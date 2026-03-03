@@ -1,41 +1,245 @@
 import React, { useState, Suspense } from 'react';
 
 /**
- * OpenELIS Design Gallery
+ * OpenELIS Global — Design Gallery
  *
- * This app renders all JSX mockups from the mockups/ directory.
- * To add a new mockup, import it in the MOCKUP_REGISTRY below.
- *
- * Usage: npm run dev (from mockup-viewer/)
+ * Browse all JSX mockups with paired spec links.
+ * Run: cd mockup-viewer && npm install && npm run dev
+ * Deploy: GitHub Pages via Actions (automatic on push)
  */
 
-// ─── MOCKUP REGISTRY ────────────────────────────────────────────
-// Add your mockups here. Each entry needs:
-//   - name: display name
-//   - category: "screens" | "components" | "flows"
-//   - component: lazy import of the JSX file
-//   - description: short description
-//   - figmaLink: (optional) link to Figma source
-//   - specLink: (optional) link to spec file
-//   - date: date added or last updated
-//
-// Example:
-//   {
-//     name: 'Sample Management',
-//     category: 'screens',
-//     component: React.lazy(() => import('@mockups/screens/SampleManagement.jsx')),
-//     description: 'Main sample management dashboard',
-//     figmaLink: 'https://figma.com/...',
-//     specLink: '../specs/sample-management.md',
-//     date: '2026-03-03',
-//   },
-// ─────────────────────────────────────────────────────────────────
-
 const MOCKUP_REGISTRY = [
-  // Add your first mockup here!
+  // ─── Admin & Configuration ───
+  {
+    name: 'Data Dictionary',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/data-dictionary.jsx')),
+    description: 'Data dictionary management interface',
+    specPath: 'designs/admin-config/data-dictionary.md',
+  },
+  {
+    name: 'Lab Units',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/lab-units.jsx')),
+    description: 'Laboratory units configuration',
+    specPath: 'designs/admin-config/lab-units.md',
+  },
+  {
+    name: 'Methods',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/methods.jsx')),
+    description: 'Test methods management',
+    specPath: 'designs/admin-config/methods.md',
+  },
+  {
+    name: 'Organizations Management',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/organizations-management.jsx')),
+    description: 'Organizations and referring facilities management',
+    specPath: 'designs/admin-config/organizations-management.md',
+  },
+  {
+    name: 'Panel',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/panel.jsx')),
+    description: 'Test panel configuration',
+    specPath: 'designs/admin-config/panel.md',
+  },
+  {
+    name: 'Range Editor',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/range-editor.jsx')),
+    description: 'Normal range editor for test results',
+    specPath: 'designs/admin-config/range-editor.md',
+  },
+  {
+    name: 'Result Options',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/result-options.jsx')),
+    description: 'Result options (dictionary values) management',
+    specPath: 'designs/admin-config/result-options.md',
+  },
+  {
+    name: 'Test Catalog',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/test-catalog.jsx')),
+    description: 'Comprehensive test catalog management',
+    specPath: 'designs/admin-config/test-catalog.md',
+  },
+
+  // ─── Analyzer Integration ───
+  {
+    name: 'Analyzer File Upload',
+    category: 'analyzer-integration',
+    component: React.lazy(() => import('@designs/analyzer-integration/analyzer-file-upload.jsx')),
+    description: 'Upload and process analyzer result files',
+    specPath: 'designs/analyzer-integration/analyzer-file-upload.md',
+  },
+  {
+    name: 'Analyzer Mapping Templates',
+    category: 'analyzer-integration',
+    component: React.lazy(() => import('@designs/analyzer-integration/analyzer-mapping-templates.jsx')),
+    description: 'Configure analyzer-to-test mapping templates',
+    specPath: 'designs/analyzer-integration/astm-analyzer-mapping-addendum.md',
+  },
+  {
+    name: 'Flat File Analyzer Config',
+    category: 'analyzer-integration',
+    component: React.lazy(() => import('@designs/analyzer-integration/flat-file-analyzer-config.jsx')),
+    description: 'Configure flat file (CSV/TSV) analyzer parsers',
+    specPath: 'designs/analyzer-integration/flat-file-analyzer-config.md',
+  },
+  {
+    name: 'HL7 Analyzer Mapping',
+    category: 'analyzer-integration',
+    component: React.lazy(() => import('@designs/analyzer-integration/hl7-analyzer-mapping.jsx')),
+    description: 'HL7 message field mapping for analyzers',
+    specPath: 'designs/analyzer-integration/hl7-analyzer-mapping-addendum.md',
+  },
+  {
+    name: 'Validation Page (Analyzer)',
+    category: 'analyzer-integration',
+    component: React.lazy(() => import('@designs/analyzer-integration/validation-page.jsx')),
+    description: 'Analyzer result validation workflow',
+    specPath: 'designs/analyzer-integration/validation-page.md',
+  },
+
+  // ─── Microbiology ───
+  {
+    name: 'AMR Module',
+    category: 'microbiology',
+    component: React.lazy(() => import('@designs/microbiology/amr-module.jsx')),
+    description: 'Antimicrobial resistance testing and reporting module',
+    specPath: 'designs/microbiology/amr-module.md',
+  },
+
+  // ─── NCE ───
+  {
+    name: 'NCE Analytics',
+    category: 'nce',
+    component: React.lazy(() => import('@designs/nce/nce-analytics.jsx')),
+    description: 'Non-conforming event analytics dashboard',
+    specPath: 'designs/nce/nce-analytics.md',
+  },
+  {
+    name: 'NCE Dashboard & CAPA',
+    category: 'nce',
+    component: React.lazy(() => import('@designs/nce/nce-dashboard.jsx')),
+    description: 'NCE dashboard with CAPA tracking',
+    specPath: 'designs/nce/nce-dashboard.md',
+  },
+  {
+    name: 'NCE Results Entry',
+    category: 'nce',
+    component: React.lazy(() => import('@designs/nce/nce-results-entry.jsx')),
+    description: 'NCE investigation results entry form',
+    specPath: 'designs/nce/nce-results-entry.md',
+  },
+  {
+    name: 'NCE Report',
+    category: 'nce',
+    component: React.lazy(() => import('@designs/nce/nce-report.jsx')),
+    description: 'Non-conformity report generation',
+    specPath: 'designs/nce/nce-report.md',
+  },
+
+  // ─── Pathology ───
+  {
+    name: 'Pathology Case View',
+    category: 'pathology',
+    component: React.lazy(() => import('@designs/pathology/pathology-case-view.jsx')),
+    description: 'Pathology case view and reporting redesign',
+    specPath: 'designs/pathology/pathology-case-view.md',
+  },
+  {
+    name: 'IHC Case View',
+    category: 'pathology',
+    component: React.lazy(() => import('@designs/pathology/ihc-case-view.jsx')),
+    description: 'Immunohistochemistry case view and scoring',
+    specPath: 'designs/pathology/ihc-case-view.md',
+  },
+
+  // ─── Results & Validation ───
+  {
+    name: 'Results Page',
+    category: 'results-validation',
+    component: React.lazy(() => import('@designs/results-validation/results-page.jsx')),
+    description: 'Main results entry and review page',
+    specPath: 'designs/results-validation/results-page.md',
+  },
+  {
+    name: 'Validation Page',
+    category: 'results-validation',
+    component: React.lazy(() => import('@designs/results-validation/validation-page.jsx')),
+    description: 'Result validation workflow',
+    specPath: 'designs/results-validation/validation-page.md',
+  },
+
+  // ─── System ───
+  {
+    name: 'Audit Trail',
+    category: 'system',
+    component: React.lazy(() => import('@designs/system/audit-trail.jsx')),
+    description: 'System audit trail viewer',
+    specPath: 'designs/system/audit-trail.md',
+  },
+  {
+    name: 'Help Menu',
+    category: 'system',
+    component: React.lazy(() => import('@designs/system/help-menu.jsx')),
+    description: 'In-app help menu and documentation links',
+    specPath: 'designs/system/help-menu.md',
+  },
+  {
+    name: 'Analyzer Import',
+    category: 'system',
+    component: React.lazy(() => import('@designs/system/analyzer-import.jsx')),
+    description: 'Bulk analyzer configuration import',
+    specPath: 'designs/system/analyzer-import.md',
+  },
+
+  // ─── Other ───
+  {
+    name: 'TAT Dashboard',
+    category: 'other',
+    component: React.lazy(() => import('@designs/other/tat-dashboard.jsx')),
+    description: 'Turnaround time monitoring dashboard',
+    specPath: 'designs/other/tat-dashboard.md',
+  },
+  {
+    name: 'Calendar Management',
+    category: 'other',
+    component: React.lazy(() => import('@designs/other/calendar-management.jsx')),
+    description: 'Lab calendar and scheduling management',
+    specPath: null,
+  },
 ];
 
-const categories = ['all', 'screens', 'components', 'flows'];
+const GITHUB_BASE = 'https://github.com/caseyi/openelis-work/blob/main/';
+
+const categories = [
+  'all',
+  'admin-config',
+  'analyzer-integration',
+  'microbiology',
+  'nce',
+  'pathology',
+  'results-validation',
+  'system',
+  'other',
+];
+
+const categoryLabels = {
+  'all': 'All',
+  'admin-config': 'Admin & Config',
+  'analyzer-integration': 'Analyzer Integration',
+  'microbiology': 'Microbiology',
+  'nce': 'NCE',
+  'pathology': 'Pathology',
+  'results-validation': 'Results & Validation',
+  'system': 'System',
+  'other': 'Other',
+};
 
 function App() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -47,8 +251,14 @@ function App() {
     const matchesSearch =
       !searchQuery ||
       m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.description.toLowerCase().includes(searchQuery.toLowerCase());
+      m.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.category.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
+  });
+
+  const countByCategory = {};
+  MOCKUP_REGISTRY.forEach((m) => {
+    countByCategory[m.category] = (countByCategory[m.category] || 0) + 1;
   });
 
   return (
@@ -56,7 +266,7 @@ function App() {
       <header style={styles.header}>
         <h1 style={styles.title}>OpenELIS Global — Design Gallery</h1>
         <p style={styles.subtitle}>
-          {MOCKUP_REGISTRY.length} mockup{MOCKUP_REGISTRY.length !== 1 ? 's' : ''} tracked
+          {MOCKUP_REGISTRY.length} mockups across {Object.keys(countByCategory).length} categories
         </p>
       </header>
 
@@ -78,7 +288,9 @@ function App() {
                 ...(activeCategory === cat ? styles.tabActive : {}),
               }}
             >
-              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+              {categoryLabels[cat]}
+              {cat !== 'all' && countByCategory[cat] ? ` (${countByCategory[cat]})` : ''}
+              {cat === 'all' ? ` (${MOCKUP_REGISTRY.length})` : ''}
             </button>
           ))}
         </div>
@@ -90,37 +302,29 @@ function App() {
             ← Back to Gallery
           </button>
           <div style={styles.mockupHeader}>
-            <h2>{selectedMockup.name}</h2>
-            <span style={styles.badge}>{selectedMockup.category}</span>
-            <span style={styles.date}>{selectedMockup.date}</span>
+            <h2 style={{ margin: 0 }}>{selectedMockup.name}</h2>
+            <span style={styles.badge}>{categoryLabels[selectedMockup.category]}</span>
           </div>
           <p style={styles.description}>{selectedMockup.description}</p>
           <div style={styles.links}>
-            {selectedMockup.figmaLink && (
-              <a href={selectedMockup.figmaLink} target="_blank" rel="noopener" style={styles.link}>
-                View in Figma ↗
-              </a>
-            )}
-            {selectedMockup.specLink && (
-              <a href={selectedMockup.specLink} style={styles.link}>
-                View Spec ↗
+            {selectedMockup.specPath && (
+              <a href={GITHUB_BASE + selectedMockup.specPath} target="_blank" rel="noopener" style={styles.link}>
+                View Spec on GitHub
               </a>
             )}
           </div>
           <div style={styles.preview}>
             <Suspense fallback={<div style={styles.loading}>Loading mockup...</div>}>
-              <selectedMockup.component />
+              <ErrorBoundary name={selectedMockup.name}>
+                <selectedMockup.component />
+              </ErrorBoundary>
             </Suspense>
           </div>
         </div>
       ) : (
         <div style={styles.grid}>
           {filtered.length === 0 ? (
-            <div style={styles.empty}>
-              {MOCKUP_REGISTRY.length === 0
-                ? 'No mockups yet. Add your first one to the MOCKUP_REGISTRY in App.jsx!'
-                : 'No mockups match your search.'}
-            </div>
+            <div style={styles.empty}>No mockups match your search.</div>
           ) : (
             filtered.map((mockup, i) => (
               <div
@@ -131,8 +335,8 @@ function App() {
                 onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)')}
               >
                 <div style={styles.cardHeader}>
-                  <span style={styles.badge}>{mockup.category}</span>
-                  <span style={styles.date}>{mockup.date}</span>
+                  <span style={styles.badge}>{categoryLabels[mockup.category]}</span>
+                  {mockup.specPath && <span style={styles.specBadge}>has spec</span>}
                 </div>
                 <h3 style={styles.cardTitle}>{mockup.name}</h3>
                 <p style={styles.cardDesc}>{mockup.description}</p>
@@ -145,15 +349,37 @@ function App() {
   );
 }
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 24, color: '#da1e28', background: '#fff1f1', borderRadius: 8 }}>
+          <h3>Failed to render: {this.props.name}</h3>
+          <p>This mockup may have dependencies not available in the gallery viewer. View the JSX source on GitHub instead.</p>
+          <pre style={{ fontSize: 12, whiteSpace: 'pre-wrap' }}>{this.state.error?.message}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const styles = {
-  container: { fontFamily: "'IBM Plex Sans', sans-serif", maxWidth: 1200, margin: '0 auto', padding: 24 },
+  container: { fontFamily: "'IBM Plex Sans', -apple-system, sans-serif", maxWidth: 1200, margin: '0 auto', padding: 24 },
   header: { marginBottom: 24, borderBottom: '2px solid #0f62fe', paddingBottom: 16 },
   title: { margin: 0, fontSize: 28, color: '#161616' },
   subtitle: { margin: '4px 0 0', color: '#6f6f6f', fontSize: 14 },
-  toolbar: { display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap', alignItems: 'center' },
-  search: { padding: '8px 12px', border: '1px solid #c6c6c6', borderRadius: 4, fontSize: 14, flex: '1 1 200px' },
-  tabs: { display: 'flex', gap: 4 },
-  tab: { padding: '6px 14px', border: '1px solid #c6c6c6', background: '#fff', borderRadius: 4, cursor: 'pointer', fontSize: 13 },
+  toolbar: { display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap', alignItems: 'flex-start' },
+  search: { padding: '8px 12px', border: '1px solid #c6c6c6', borderRadius: 4, fontSize: 14, flex: '1 1 200px', minWidth: 200 },
+  tabs: { display: 'flex', gap: 4, flexWrap: 'wrap' },
+  tab: { padding: '6px 12px', border: '1px solid #c6c6c6', background: '#fff', borderRadius: 4, cursor: 'pointer', fontSize: 12, whiteSpace: 'nowrap' },
   tabActive: { background: '#0f62fe', color: '#fff', borderColor: '#0f62fe' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 },
   card: { border: '1px solid #e0e0e0', borderRadius: 8, padding: 16, cursor: 'pointer', transition: 'box-shadow 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
@@ -161,13 +387,13 @@ const styles = {
   cardTitle: { margin: '0 0 4px', fontSize: 16 },
   cardDesc: { margin: 0, color: '#525252', fontSize: 13, lineHeight: 1.4 },
   badge: { background: '#e0e0e0', padding: '2px 8px', borderRadius: 12, fontSize: 11, textTransform: 'uppercase', fontWeight: 600 },
-  date: { color: '#8d8d8d', fontSize: 12 },
+  specBadge: { background: '#d0e2ff', color: '#0043ce', padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600 },
   backButton: { background: 'none', border: 'none', color: '#0f62fe', cursor: 'pointer', fontSize: 14, padding: 0, marginBottom: 16 },
   mockupHeader: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 },
   description: { color: '#525252', marginBottom: 16 },
   links: { display: 'flex', gap: 16, marginBottom: 24 },
-  link: { color: '#0f62fe', fontSize: 14 },
-  preview: { border: '1px solid #e0e0e0', borderRadius: 8, padding: 24, background: '#f4f4f4', minHeight: 400 },
+  link: { color: '#0f62fe', fontSize: 14, textDecoration: 'none' },
+  preview: { border: '1px solid #e0e0e0', borderRadius: 8, padding: 24, background: '#f4f4f4', minHeight: 400, overflow: 'auto' },
   loading: { textAlign: 'center', padding: 40, color: '#6f6f6f' },
   empty: { gridColumn: '1 / -1', textAlign: 'center', padding: 60, color: '#6f6f6f', fontSize: 15 },
 };

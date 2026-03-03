@@ -4,9 +4,10 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  base: '/openelis-work/',
   resolve: {
     alias: {
-      '@mockups': path.resolve(__dirname, '../mockups'),
+      '@designs': path.resolve(__dirname, '../designs'),
     },
   },
 });
