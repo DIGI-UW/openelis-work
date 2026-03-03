@@ -434,6 +434,32 @@
   links: {}
   added: "2026-03-03"
 
+- id: cytology-case-view
+  type: mockup
+  path: designs/pathology/cytology-case-view.jsx
+  category: pathology
+  description: Cytology case view with Bethesda System wizard workflow
+  paired_with: cytology-case-view-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: cytology-case-view-spec
+  type: spec
+  path: designs/pathology/cytology-case-view.md
+  category: pathology
+  description: Cytology case view FRS — Bethesda System algorithm interface
+  paired_with: cytology-case-view
+  links: {}
+  added: "2026-03-03"
+
+- id: cytology-bethesda-data-dictionary
+  type: reference-data
+  path: assets/reference-data/cytology-bethesda-data-dictionary.csv
+  category: pathology
+  description: Bethesda System data dictionary — specimen adequacy, epithelial abnormalities, organisms
+  links: {}
+  added: "2026-03-03"
+
 # ─── Quality ────────────────────────────────────────────────
 
 - id: eqa-requirements-spec

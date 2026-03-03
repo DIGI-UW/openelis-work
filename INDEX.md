@@ -54,6 +54,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 |---------|--------|------|
 | Pathology Case View | [pathology-case-view.jsx](designs/pathology/pathology-case-view.jsx) | [pathology-case-view.md](designs/pathology/pathology-case-view.md) |
 | IHC Case View | [ihc-case-view.jsx](designs/pathology/ihc-case-view.jsx) | [ihc-case-view.md](designs/pathology/ihc-case-view.md) |
+| Cytology Case View | [cytology-case-view.jsx](designs/pathology/cytology-case-view.jsx) | [cytology-case-view.md](designs/pathology/cytology-case-view.md) |
 
 ## Quality
 
@@ -122,3 +123,4 @@ Detailed per-instrument integration specs and companion guides live in `specs/an
 | EQA Functional Requirements | [DOCX](assets/requirements-docs/eqa-functional-requirements.docx) |
 | Progress Report | [DOCX](assets/requirements-docs/progress-report.docx) |
 | Project Context | [MD](PROJECT-CONTEXT.md) |
+| Cytology Bethesda Data Dictionary | [CSV](assets/reference-data/cytology-bethesda-data-dictionary.csv) |

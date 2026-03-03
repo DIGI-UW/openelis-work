@@ -159,6 +159,14 @@ const MOCKUP_REGISTRY = [
     specPath: 'designs/pathology/ihc-case-view.md',
   },
 
+  {
+    name: 'Cytology Case View',
+    category: 'pathology',
+    component: React.lazy(() => import('@designs/pathology/cytology-case-view.jsx')),
+    description: 'Cytology case view with Bethesda System wizard workflow',
+    specPath: 'designs/pathology/cytology-case-view.md',
+  },
+
   // ─── Results & Validation ───
   {
     name: 'Results Page',
