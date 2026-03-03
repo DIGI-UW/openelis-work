@@ -1,4 +1,4 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 
 /**
  * OpenELIS Global — Design Gallery
@@ -6,7 +6,16 @@ import React, { useState, Suspense } from 'react';
  * Browse all JSX mockups with paired spec links.
  * Run: cd mockup-viewer && npm install && npm run dev
  * Deploy: GitHub Pages via Actions (automatic on push)
+ *
+ * Permalinks: each mockup has a hash-based URL like
+ *   #/category/mockup-slug
+ * e.g. #/pathology/cytology-case-view
  */
+
+/** Generate a URL-safe slug from a mockup name */
+function toSlug(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
 
 const MOCKUP_REGISTRY = [
   // ─── Admin & Configuration ───
@@ -268,10 +277,58 @@ const categoryLabels = {
   'other': 'Other',
 };
 
+/** Find a mockup by its hash path (e.g. "pathology/cytology-case-view") */
+function findMockupByHash(hash) {
+  // strip leading #/ or #
+  const path = hash.replace(/^#\/?/, '');
+  if (!path) return null;
+  const [cat, ...slugParts] = path.split('/');
+  const slug = slugParts.join('/');
+  return MOCKUP_REGISTRY.find(
+    (m) => m.category === cat && toSlug(m.name) === slug
+  ) || null;
+}
+
+/** Build the hash string for a mockup */
+function toHash(mockup) {
+  return `#/${mockup.category}/${toSlug(mockup.name)}`;
+}
+
 function App() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedMockup, setSelectedMockup] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // On mount, check if the URL hash points to a mockup
+  useEffect(() => {
+    const mockup = findMockupByHash(window.location.hash);
+    if (mockup) {
+      setSelectedMockup(mockup);
+      setActiveCategory(mockup.category);
+    }
+  }, []);
+
+  // Listen for browser back/forward navigation
+  useEffect(() => {
+    function onHashChange() {
+      const mockup = findMockupByHash(window.location.hash);
+      setSelectedMockup(mockup);
+      if (mockup) setActiveCategory(mockup.category);
+    }
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  // Helper to select a mockup and update the URL hash
+  function selectMockup(mockup) {
+    setSelectedMockup(mockup);
+    if (mockup) {
+      window.location.hash = toHash(mockup);
+    } else {
+      // Clear hash when going back to gallery
+      history.pushState(null, '', window.location.pathname + window.location.search);
+    }
+  }
 
   const filtered = MOCKUP_REGISTRY.filter((m) => {
     const matchesCategory = activeCategory === 'all' || m.category === activeCategory;
@@ -325,12 +382,24 @@ function App() {
 
       {selectedMockup ? (
         <div>
-          <button onClick={() => setSelectedMockup(null)} style={styles.backButton}>
+          <button onClick={() => selectMockup(null)} style={styles.backButton}>
             ← Back to Gallery
           </button>
           <div style={styles.mockupHeader}>
             <h2 style={{ margin: 0 }}>{selectedMockup.name}</h2>
             <span style={styles.badge}>{categoryLabels[selectedMockup.category]}</span>
+            <button
+              onClick={() => {
+                const url = window.location.origin + window.location.pathname + toHash(selectedMockup);
+                navigator.clipboard.writeText(url).then(() => {
+                  alert('Permalink copied!');
+                });
+              }}
+              style={styles.permalinkButton}
+              title="Copy permalink to clipboard"
+            >
+              Copy Link
+            </button>
           </div>
           <p style={styles.description}>{selectedMockup.description}</p>
           <div style={styles.links}>
@@ -357,7 +426,7 @@ function App() {
               <div
                 key={i}
                 style={styles.card}
-                onClick={() => setSelectedMockup(mockup)}
+                onClick={() => selectMockup(mockup)}
                 onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)')}
                 onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)')}
               >
@@ -420,6 +489,7 @@ const styles = {
   description: { color: '#525252', marginBottom: 16 },
   links: { display: 'flex', gap: 16, marginBottom: 24 },
   link: { color: '#0f62fe', fontSize: 14, textDecoration: 'none' },
+  permalinkButton: { background: '#e0e0e0', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: 12, cursor: 'pointer', color: '#393939', fontWeight: 500 },
   preview: { border: '1px solid #e0e0e0', borderRadius: 8, padding: 24, background: '#f4f4f4', minHeight: 400, overflow: 'auto' },
   loading: { textAlign: 'center', padding: 40, color: '#6f6f6f' },
   empty: { gridColumn: '1 / -1', textAlign: 'center', padding: 60, color: '#6f6f6f', fontSize: 15 },
