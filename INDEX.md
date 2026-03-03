@@ -62,7 +62,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 |---------|--------|------|
 | EQA Requirements | — | [eqa-requirements.md](designs/quality/eqa-requirements.md) |
 | EQA Enrollment | [eqa-enrollment.jsx](designs/quality/eqa-enrollment.jsx) | [eqa-enrollment-addendum.md](designs/quality/eqa-enrollment-addendum.md) |
-| Westgard Rules | — | [westgard-rules.md](designs/quality/westgard-rules.md) |
+| Westgard Dashboard | [westgard-dashboard.jsx](designs/quality/westgard-dashboard.jsx) | [westgard-rules.md](designs/quality/westgard-rules.md) |
 | WHONET Integration | — | [whonet-integration.md](designs/quality/whonet-integration.md) |
 
 ## Results & Validation

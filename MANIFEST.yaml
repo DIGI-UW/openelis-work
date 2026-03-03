@@ -878,3 +878,14 @@
   links:
     jira: []
   added: "2026-03-03"
+
+- id: westgard-dashboard
+  type: mockup
+  path: designs/quality/westgard-dashboard.jsx
+  category: quality
+  description: Laboratory Instrument Compliance Dashboard with Westgard QC rules
+  paired_with: westgard-rules
+  links:
+    figma: https://www.figma.com/make/tPc9atrwbDoBf3BzGUzvTb/Laboratory-Instrument-Compliance-Dashboard--Community-
+    jira: []
+  added: "2026-03-03"

@@ -176,6 +176,14 @@ const MOCKUP_REGISTRY = [
     specPath: 'designs/quality/eqa-enrollment-addendum.md',
   },
 
+  {
+    name: 'Westgard Dashboard',
+    category: 'quality',
+    component: React.lazy(() => import('@designs/quality/westgard-dashboard.jsx')),
+    description: 'Laboratory Instrument Compliance Dashboard with Westgard QC rules',
+    specPath: 'designs/quality/westgard-rules.md',
+  },
+
   // ─── Results & Validation ───
   {
     name: 'Results Page',
