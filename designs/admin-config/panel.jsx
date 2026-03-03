@@ -289,7 +289,7 @@ const PanelsList = ({ onSelectPanel, onEditPanel }) => {
                     <span className="font-mono text-sm text-gray-600">{panel.code}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="font-mono text-sm text-gray-500">{panel.loincCode || 'â€”'}</span>
+                    <span className="font-mono text-sm text-gray-500">{panel.loincCode || '—'}</span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
@@ -553,7 +553,7 @@ const ImportExportModal = ({ panels, onClose }) => {
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900">{panel.name}</p>
-                        <p className="text-xs text-gray-500">{panel.code} â€¢ {panel.testCount} tests</p>
+                        <p className="text-xs text-gray-500">{panel.code} • {panel.testCount} tests</p>
                       </div>
                     </label>
                   ))}
@@ -1270,7 +1270,7 @@ const AddTestsModal = ({ existingTestIds, onClose, onAdd }) => {
                   />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900">{test.name}</p>
-                    <p className="text-xs text-gray-500">{test.code} â€¢ LOINC: {test.testLoinc}</p>
+                    <p className="text-xs text-gray-500">{test.code} • LOINC: {test.testLoinc}</p>
                   </div>
                 </label>
               ))

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const AnalyzerImportRedesign = () => {
   const [labNumberSearch, setLabNumberSearch] = React.useState('');
@@ -221,7 +221,7 @@ const AnalyzerImportRedesign = () => {
                         <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold ${
                           qc.status === 'pass' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'
                         }`}>
-                          {qc.status === 'pass' ? 'âœ“ PASS' : 'âœ— FAIL'}
+                          {qc.status === 'pass' ? '✓ PASS' : '✗ FAIL'}
                         </span>
                         <span className="text-xs text-gray-500 flex items-center gap-1">
                           <ClockIcon /> {qc.runTime}
@@ -255,7 +255,7 @@ const AnalyzerImportRedesign = () => {
                 {/* QC Actions */}
                 <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
                   <button className="text-sm text-teal-600 hover:text-teal-700 font-medium">
-                    View Levey-Jennings Chart â†’
+                    View Levey-Jennings Chart →
                   </button>
                   {!allQcPassed && (
                     <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md">
@@ -305,7 +305,7 @@ const AnalyzerImportRedesign = () => {
                       <div className="font-medium text-gray-900">Sysmex XN-L</div>
                       <div className="text-xs text-green-600 flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                        Online â€¢ QC Passed
+                        Online • QC Passed
                       </div>
                     </div>
                   </div>
@@ -457,17 +457,17 @@ const AnalyzerImportRedesign = () => {
                   <div className="col-span-1">
                     {result.qcStatus === 'pass' ? (
                       <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
-                        QC âœ“
+                        QC ✓
                       </span>
                     ) : (
                       <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
-                        QC âœ—
+                        QC ✗
                       </span>
                     )}
                   </div>
                   <div className="col-span-1 flex items-center gap-1">
                     {result.flags.map((flag, idx) => <span key={idx}>{getFlagIcon(flag)}</span>)}
-                    {result.flags.length === 0 && <span className="text-gray-300">â€”</span>}
+                    {result.flags.length === 0 && <span className="text-gray-300">—</span>}
                   </div>
                 </div>
               </div>
@@ -539,7 +539,7 @@ const AnalyzerImportRedesign = () => {
                 ))}
               </div>
               <button className="w-full mt-2 text-sm text-teal-600 hover:text-teal-700 font-medium">
-                View Full QC History â†’
+                View Full QC History →
               </button>
             </div>
 
@@ -555,7 +555,7 @@ const AnalyzerImportRedesign = () => {
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">EXPIRING</span>
                       )}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">Lot: {reagent.lot} â€¢ Expires: {reagent.expires}</div>
+                    <div className="text-xs text-gray-500 mt-1">Lot: {reagent.lot} • Expires: {reagent.expires}</div>
                   </div>
                 ))}
               </div>

@@ -167,6 +167,15 @@ const MOCKUP_REGISTRY = [
     specPath: 'designs/pathology/cytology-case-view.md',
   },
 
+  // ─── Quality & EQA ───
+  {
+    name: 'EQA Enrollment',
+    category: 'quality',
+    component: React.lazy(() => import('@designs/quality/eqa-enrollment.jsx')),
+    description: 'EQA program enrollment, self-enrollment, and provider management',
+    specPath: 'designs/quality/eqa-enrollment-addendum.md',
+  },
+
   // ─── Results & Validation ───
   {
     name: 'Results Page',
@@ -232,6 +241,7 @@ const categories = [
   'microbiology',
   'nce',
   'pathology',
+  'quality',
   'results-validation',
   'system',
   'other',
@@ -244,6 +254,7 @@ const categoryLabels = {
   'microbiology': 'Microbiology',
   'nce': 'NCE',
   'pathology': 'Pathology',
+  'quality': 'Quality & EQA',
   'results-validation': 'Results & Validation',
   'system': 'System',
   'other': 'Other',

@@ -848,3 +848,33 @@
   description: Analyzer sample import CSV template
   links: {}
   added: "2026-03-03"
+
+- id: eqa-enrollment
+  type: mockup
+  path: designs/quality/eqa-enrollment.jsx
+  category: quality
+  description: EQA program enrollment, self-enrollment, and provider management mockup
+  paired_with: eqa-enrollment-addendum
+  links:
+    jira: []
+  added: "2026-03-03"
+
+- id: eqa-enrollment-addendum
+  type: spec
+  path: designs/quality/eqa-enrollment-addendum.md
+  category: quality
+  description: EQA Navigation Restructure, Self-Enrollment, Program Enrollment & Provider Management addendum v3
+  paired_with: eqa-enrollment
+  links:
+    jira: []
+  added: "2026-03-03"
+
+- id: eqa-functional-requirements-docx
+  type: requirements-doc
+  path: assets/requirements-docs/eqa-functional-requirements.docx
+  category: quality
+  description: EQA Functional Requirements (DOCX format)
+  paired_with: eqa-requirements
+  links:
+    jira: []
+  added: "2026-03-03"
