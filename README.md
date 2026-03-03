@@ -2,89 +2,89 @@
 
 A centralized workspace for tracking mockups, specifications, and design changes for [OpenELIS Global](https://github.com/I-TECH-UW/OpenELIS-Global2). This repo serves as the single source of truth for design work, making it easy for designers, clients, and developers to stay aligned.
 
-**Most mockups are JSX files** (React components created via Claude artifacts), with a built-in gallery viewer for browsing and presenting them.
-
-## Figma Source
-
-**Generic UI Template:** [OpenELIS Global Template](https://www.figma.com/make/15B8LmoBhZ5WgtYDI9MCHm/OpenELIS-Global-Template)
+**Live Gallery:** [caseyi.github.io/openelis-work](https://caseyi.github.io/openelis-work/)
+**Figma Template:** [OpenELIS Global Template](https://www.figma.com/make/15B8LmoBhZ5WgtYDI9MCHm/OpenELIS-Global-Template)
 
 ---
 
 ## Repo Structure
 
 ```
-├── mockups/                # JSX mockup files (primary design artifacts)
-│   ├── screens/            # Full screen/page mockups
-│   ├── components/         # Individual component mockups
-│   └── flows/              # Multi-step flow mockups
-├── mockup-viewer/          # Vite + React app to browse & present mockups
-│   └── src/App.jsx         # MOCKUP_REGISTRY lives here
-├── designs/                # Static design artifacts (Figma exports, PNGs, SVGs)
-│   ├── screens/
-│   ├── components/
-│   └── flows/
-├── specs/                  # Written specifications & requirements
-├── handoff/                # Developer handoff documents
-├── changelogs/             # Per-feature design changelogs
-├── assets/                 # Shared assets (icons, images, exports)
-├── .templates/             # Templates for specs, handoffs, changelogs
-└── INDEX.md                # Master index of all designs & specs
+├── upload/                 # Drop files here for Claude to process
+├── designs/                # Co-located mockup + spec pairs
+│   ├── admin-config/       #   feature-name.jsx + feature-name.md
+│   ├── analyzer-integration/
+│   ├── microbiology/
+│   ├── nce/
+│   ├── pathology/
+│   ├── quality/
+│   ├── results-validation/
+│   ├── system/
+│   └── other/
+├── notes/                  # Linked context objects
+│   ├── transcripts/        #   Chat transcripts from Claude projects, Slack, etc.
+│   ├── meetings/           #   Meeting notes
+│   └── decisions/          #   Decision logs
+├── assets/                 # Supporting files
+│   ├── vendor-manuals/     #   Instrument PDFs
+│   ├── reference-data/     #   Sample CSVs, JSONs
+│   ├── requirements-docs/  #   DOCX requirements
+│   ├── research/           #   Research documents
+│   └── images/             #   Screenshots, diagrams
+├── mockup-viewer/          # Vite + React gallery app (auto-deployed to GitHub Pages)
+├── .templates/             # Templates for specs, handoffs, transcripts, decisions
+├── MANIFEST.yaml           # Master manifest — every artifact with linked objects
+└── INDEX.md                # Cross-referenced design index
 ```
 
 ## Quick Start
 
 ```bash
-# Clone the repo
-git clone https://github.com/YOUR_ORG/openelis-design-workspace.git
-cd openelis-design-workspace
-
-# Launch the mockup gallery viewer
-cd mockup-viewer
+git clone https://github.com/caseyi/openelis-work.git
+cd openelis-work/mockup-viewer
 npm install
 npm run dev
-# Opens at http://localhost:5173
+# Opens gallery at http://localhost:5173
 ```
 
-## Workflow
+## Upload Workflow (with Claude)
 
-### Adding a New JSX Mockup
+The primary way to add new artifacts:
 
-1. **Save the JSX file** from Claude into `mockups/screens/` (or `components/` or `flows/`)
-2. **Register it** in `mockup-viewer/src/App.jsx` by adding an entry to `MOCKUP_REGISTRY`:
-   ```js
-   {
-     name: 'Sample Management',
-     category: 'screens',
-     component: React.lazy(() => import('@mockups/screens/SampleManagement.jsx')),
-     description: 'Main sample management dashboard',
-     figmaLink: 'https://figma.com/...',
-     specLink: '../specs/sample-management.md',
-     date: '2026-03-03',
-   }
-   ```
-3. **Create a spec** (optional) by copying `.templates/SCREEN_SPEC.md` into `specs/`
-4. **Update `INDEX.md`** with a row linking the mockup, spec, and status
-5. **Commit** with: `feat(design): add sample management mockup v1`
+1. **Drop files** into `upload/` — JSX mockups, MD specs, DOCX requirements, PDFs, chat transcripts, whatever
+2. **Tell Claude** to process the upload folder, and mention any links:
+   > "Process uploads. The validation-page.jsx is for Jira OGC-142, here's the Figma: https://figma.com/..."
+3. **Claude will:**
+   - Identify each file type and auto-categorize it to the right folder
+   - Add/update entries in `MANIFEST.yaml` with full linked objects (Jira, Figma, Confluence, transcripts, meetings, decisions)
+   - Register new JSX mockups in the gallery viewer
+   - Update `INDEX.md` with cross-references
+   - Commit with a descriptive message
+4. **Push** and the gallery auto-deploys via GitHub Pages
 
-### Updating a Mockup
+## Linked Objects
 
-1. **Replace or version** the JSX file (e.g., `SampleManagement_v2.jsx`)
-2. **Update the spec** if requirements changed
-3. **Add a changelog entry** in `changelogs/`
-4. **Commit** with: `update(design): revise sample management — add batch mode`
+Every artifact in `MANIFEST.yaml` can link to external references:
 
-### Handing Off to Developers
+| Link Type | Example |
+|-----------|---------|
+| **Jira** | `OGC-142`, `OGC-324` |
+| **Figma** | Figma design or prototype URLs |
+| **Confluence** | Wiki pages, meeting notes, specs |
+| **Transcripts** | Claude project conversations stored in `notes/transcripts/` |
+| **Meetings** | Meeting notes stored in `notes/meetings/` |
+| **Decisions** | Decision logs stored in `notes/decisions/` |
+| **Other** | Any freeform URL or reference |
 
-1. **Copy** `.templates/HANDOFF.md` into `handoff/`
-2. **Fill in** component details, Carbon for React notes, and acceptance criteria
-3. **Link** to the JSX mockup, spec, and Figma frames
-4. **Commit and tag**: `git tag handoff/sample-mgmt-v1`
+## Manual Workflow
 
-### Presenting to Clients
+If adding files without Claude:
 
-Run the mockup viewer (`npm run dev` in `mockup-viewer/`) and use the gallery to browse all mockups. The viewer supports searching, filtering by category, and clicking into any mockup to see the full rendered component along with links to Figma and specs.
-
-For a shareable build: `cd mockup-viewer && npm run build` — the `dist/` folder can be deployed to any static host.
+1. **Place files** in the correct `designs/<category>/` folder (JSX + MD pairs share the same base name)
+2. **Add a manifest entry** — copy from `.templates/MANIFEST_ENTRY.yaml`
+3. **Register JSX mockups** in `mockup-viewer/src/App.jsx` → `MOCKUP_REGISTRY`
+4. **Update `INDEX.md`** with a row linking the mockup and spec
+5. **Commit** using the convention below
 
 ## Commit Convention
 
@@ -95,13 +95,22 @@ For a shareable build: `cd mockup-viewer && npm run build` — the `dist/` folde
 | `fix(design):` | Corrections to designs |
 | `spec:` | New or updated specification |
 | `handoff:` | Developer handoff document |
-| `docs:` | README, index, or documentation |
+| `docs:` | README, index, manifest, or documentation |
 | `chore:` | Maintenance, cleanup |
 
 ## Tech Stack Context
 
 OpenELIS Global uses **Carbon for React** (Carbon Design System) on the frontend. Mockups, specs, and handoff documents should reference Carbon components where applicable.
 
-## License
+## Templates
 
-[Specify license]
+| Template | Purpose |
+|----------|---------|
+| `.templates/SCREEN_SPEC.md` | Functional requirement spec for a screen |
+| `.templates/COMPONENT_SPEC.md` | Spec for an individual component |
+| `.templates/HANDOFF.md` | Developer handoff document |
+| `.templates/CHANGELOG_ENTRY.md` | Design changelog entry |
+| `.templates/MANIFEST_ENTRY.yaml` | New manifest entry with linked objects |
+| `.templates/CHAT_TRANSCRIPT.md` | Chat transcript template |
+| `.templates/MEETING_NOTES.md` | Meeting notes template |
+| `.templates/DECISION_LOG.md` | Decision log template |
