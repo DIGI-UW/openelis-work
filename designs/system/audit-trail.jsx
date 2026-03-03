@@ -734,9 +734,6 @@ const SystemEventsAuditTrail = () => {
     </div>
   );
 };
-    </div>
-  );
-};
 
 // ============================================
 // ORDER EVENTS AUDIT TRAIL PAGE

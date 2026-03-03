@@ -176,7 +176,7 @@ const CalendarManagement = () => {
       </tr>
     );
 
-    return (
+  const renderCalendar = () => (
     <div>
       {/* Page Sub-Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -383,8 +383,6 @@ const CalendarManagement = () => {
         </div>
       </div>
     </div>
-    );
-  };
   );
 
   // ============================================

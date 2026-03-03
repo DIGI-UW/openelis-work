@@ -8,6 +8,14 @@ export default defineConfig({
   resolve: {
     alias: {
       '@designs': path.resolve(__dirname, '../designs'),
+      // Ensure external imports from designs/ resolve to mockup-viewer's node_modules
+      'lucide-react': path.resolve(__dirname, 'node_modules/lucide-react'),
+    },
+  },
+  server: {
+    fs: {
+      // Allow serving files from the repo root (for designs/ folder)
+      allow: [path.resolve(__dirname, '..')],
     },
   },
 });
