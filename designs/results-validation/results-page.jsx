@@ -1,3 +1,5 @@
+import React from 'react';
+
 const ResultsPageRedesign = () => {
   // Initial state - no data loaded until search/filter applied
   const [hasSearched, setHasSearched] = React.useState(false);

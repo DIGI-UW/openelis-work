@@ -1,3 +1,5 @@
+import React from 'react';
+
 const AnalyzerImportRedesign = () => {
   const [labNumberSearch, setLabNumberSearch] = React.useState('');
   const [selectedRows, setSelectedRows] = React.useState([]);
