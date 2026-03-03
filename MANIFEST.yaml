@@ -118,7 +118,7 @@
   description: Panel configuration FRS
   paired_with: panel
   links:
-    jira: ["OGC-173", "OGC-189", "OGC-214"]
+    jira: [OGC-173, OGC-189, OGC-214, OGC-224]
   added: "2026-03-03"
 
 - id: range-editor
@@ -856,7 +856,7 @@
   description: EQA program enrollment, self-enrollment, and provider management mockup
   paired_with: eqa-enrollment-addendum
   links:
-    jira: []
+    jira: [OGC-61]
   added: "2026-03-03"
 
 - id: eqa-enrollment-addendum
@@ -866,7 +866,7 @@
   description: EQA Navigation Restructure, Self-Enrollment, Program Enrollment & Provider Management addendum v3
   paired_with: eqa-enrollment
   links:
-    jira: []
+    jira: [OGC-61]
   added: "2026-03-03"
 
 - id: eqa-functional-requirements-docx
@@ -887,5 +887,5 @@
   paired_with: westgard-rules
   links:
     figma: https://www.figma.com/make/tPc9atrwbDoBf3BzGUzvTb/Laboratory-Instrument-Compliance-Dashboard--Community-
-    jira: []
+    jira: [OGC-41]
   added: "2026-03-03"
