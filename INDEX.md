@@ -81,6 +81,12 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Analyzer Import | [analyzer-import.jsx](designs/system/analyzer-import.jsx) | [analyzer-import.md](designs/system/analyzer-import.md) |
 | Catalyst Lab Data Assistant | [Figma](https://www.figma.com/make/poDXKSr2IBgKbbjB1Fh9Sj/OpenELIS-Global-Template--Copy-?node-id=0-1) | — |
 
+## Sample Collection
+
+| Feature | Mockup | Spec |
+|---------|--------|------|
+| Sample Collection Redesign | [sample-collection-redesign-mockup.html](designs/sample-collection/sample-collection-redesign-mockup.html) | [sample-collection-redesign.md](designs/sample-collection/sample-collection-redesign.md) |
+
 ## Other
 
 | Feature | Mockup | Spec |

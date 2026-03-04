@@ -232,6 +232,16 @@ const MOCKUP_REGISTRY = [
     specPath: 'designs/system/analyzer-import.md',
   },
 
+  // ─── Sample Collection ───
+  {
+    name: 'Sample Collection Redesign',
+    category: 'sample-collection',
+    component: null,
+    description: 'Decoupled 4-step sample lifecycle: Enter Order → Collect Sample → Label & Store → QA Review',
+    specPath: 'designs/sample-collection/sample-collection-redesign.md',
+    htmlUrl: 'designs/sample-collection/sample-collection-redesign-mockup.html',
+  },
+
   // ─── Other ───
   {
     name: 'TAT Dashboard',
@@ -270,6 +280,7 @@ const categories = [
   'pathology',
   'quality',
   'results-validation',
+  'sample-collection',
   'system',
   'other',
 ];
@@ -283,6 +294,7 @@ const categoryLabels = {
   'pathology': 'Pathology',
   'quality': 'Quality & EQA',
   'results-validation': 'Results & Validation',
+  'sample-collection': 'Sample Collection',
   'system': 'System',
   'other': 'Other',
 };
@@ -418,6 +430,11 @@ function App() {
                 <span style={styles.figmaIcon}>◆</span> Open in Figma
               </a>
             )}
+            {selectedMockup.htmlUrl && (
+              <a href={import.meta.env.BASE_URL + selectedMockup.htmlUrl} target="_blank" rel="noopener" style={styles.htmlLink}>
+                ↗ Open Full Page
+              </a>
+            )}
             {selectedMockup.specPath && (
               <a href={GITHUB_BASE + selectedMockup.specPath} target="_blank" rel="noopener" style={styles.link}>
                 View Spec on GitHub
@@ -446,6 +463,20 @@ function App() {
                   </a>
                 </p>
               </div>
+            ) : selectedMockup.htmlUrl ? (
+              <div style={styles.figmaEmbed}>
+                <iframe
+                  src={import.meta.env.BASE_URL + selectedMockup.htmlUrl}
+                  style={{ ...styles.figmaIframe, height: 800 }}
+                  allowFullScreen
+                  title={selectedMockup.name}
+                />
+                <p style={styles.figmaFallback}>
+                  <a href={import.meta.env.BASE_URL + selectedMockup.htmlUrl} target="_blank" rel="noopener" style={styles.link}>
+                    Open mockup in full page ↗
+                  </a>
+                </p>
+              </div>
             ) : (
               <div style={styles.loading}>No preview available for this entry.</div>
             )}
@@ -468,6 +499,7 @@ function App() {
                   <span style={styles.badge}>{categoryLabels[mockup.category]}</span>
                   <div style={{ display: 'flex', gap: 4 }}>
                     {mockup.figmaUrl && <span style={styles.figmaBadge}>figma</span>}
+                    {mockup.htmlUrl && <span style={styles.htmlBadge}>html</span>}
                     {mockup.specPath && <span style={styles.specBadge}>has spec</span>}
                   </div>
                 </div>
@@ -533,6 +565,8 @@ const styles = {
   figmaLink: { display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1e1e1e', color: '#fff', padding: '6px 14px', borderRadius: 6, fontSize: 14, textDecoration: 'none', fontWeight: 500 },
   figmaIcon: { color: '#a259ff', fontSize: 14 },
   figmaBadge: { background: '#f3e8ff', color: '#7c3aed', padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600 },
+  htmlLink: { display: 'inline-flex', alignItems: 'center', gap: 6, background: '#0f62fe', color: '#fff', padding: '6px 14px', borderRadius: 6, fontSize: 14, textDecoration: 'none', fontWeight: 500 },
+  htmlBadge: { background: '#edf5ff', color: '#0f62fe', padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600 },
   figmaEmbed: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 },
   figmaIframe: { width: '100%', height: 600, border: '1px solid #e0e0e0', borderRadius: 8 },
   figmaFallback: { color: '#6f6f6f', fontSize: 13 },
