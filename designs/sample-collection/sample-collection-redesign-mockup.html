@@ -109,6 +109,9 @@
   .form-input { padding: 8px 16px; border: none; border-bottom: 1px solid var(--cds-gray-50); background: var(--cds-gray-10); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s; }
   .form-input:focus { border-bottom-color: var(--cds-blue-60); border-bottom-width: 2px; }
   .form-select { padding: 8px 16px; border: none; border-bottom: 1px solid var(--cds-gray-50); background: var(--cds-gray-10); font-size: 14px; font-family: inherit; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z' fill='%23525252'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; cursor: pointer; }
+  .program-option { padding: 8px 12px; font-size: 14px; cursor: pointer; transition: background 0.1s; }
+  .program-option:hover { background: var(--cds-blue-10); }
+  .program-option[data-value].selected { background: var(--cds-blue-10); font-weight: 600; }
 
   /* Workflow Toggle */
   .workflow-toggle { display: flex; gap: 0; margin-bottom: 20px; }
@@ -898,15 +901,30 @@
       </div>
     </div>
 
-    <!-- ===== PROGRAM SELECTION ===== -->
+    <!-- ===== PROGRAM SELECTION (Typeahead Combo) ===== -->
     <div class="form-section">
       <div class="form-section-header"><h3>Program</h3></div>
       <div class="form-section-body">
-        <div class="form-group" style="max-width:400px;">
+        <div class="form-group" style="max-width:400px; position:relative;">
           <label class="form-label">Program</label>
-          <select class="form-select" id="program-select" onchange="updateProgramInfo()"><option value="routine">Routine Testing</option><option value="vl" selected>VL Program</option><option value="eid">EID Program</option><option value="tb">TB Program</option><option value="covid">COVID-19</option></select>
+          <div style="position:relative;">
+            <input class="form-input" type="text" id="program-combo" value="VL Program" placeholder="Type to search programs..." autocomplete="off"
+              onfocus="showProgramDropdown()" oninput="filterPrograms()" style="padding-right:32px;">
+            <span style="position:absolute; right:10px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--cds-gray-50); font-size:12px;">&#9662;</span>
+            <div id="program-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:white; border:1px solid var(--cds-gray-30); border-radius:0 0 4px 4px; box-shadow:0 4px 12px rgba(0,0,0,0.12); z-index:100; max-height:220px; overflow-y:auto;">
+              <div class="program-option" data-value="routine" onclick="selectProgram('routine','Routine Testing')">Routine Testing</div>
+              <div class="program-option" data-value="vl" onclick="selectProgram('vl','VL Program')" style="background:var(--cds-blue-10);">VL Program</div>
+              <div class="program-option" data-value="eid" onclick="selectProgram('eid','EID Program')">EID Program</div>
+              <div class="program-option" data-value="tb" onclick="selectProgram('tb','TB Program')">TB Program</div>
+              <div class="program-option" data-value="covid" onclick="selectProgram('covid','COVID-19')">COVID-19</div>
+              <div style="border-top:1px solid var(--cds-gray-20); padding:4px 12px; font-size:10px; color:var(--cds-gray-50); text-transform:uppercase; letter-spacing:0.5px; background:var(--cds-gray-10);">Environmental Programs</div>
+              <div class="program-option" data-value="lead-water" onclick="selectProgram('lead-water','Lead in Well Water')">Lead in Well Water</div>
+              <div class="program-option" data-value="parasite" onclick="selectProgram('parasite','Parasite Monitoring')">Parasite Monitoring</div>
+              <div class="program-option" data-value="water" onclick="selectProgram('water','Water Quality Monitoring')">Water Quality Monitoring</div>
+            </div>
+          </div>
         </div>
-        <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">Selecting a program displays its specific Additional Order Information fields below.</p>
+        <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">Type to filter or select from the list. Selecting a program displays its specific Additional Order Information fields below.</p>
       </div>
     </div>
 
@@ -964,6 +982,67 @@
       </div>
     </div>
 
+    <!-- ===== ADDITIONAL ORDER INFORMATION (Program-specific, Environmental — Lead in Well Water) ===== -->
+    <div class="form-section hidden" id="section-additional-order-lead">
+      <div class="form-section-header"><h3>Additional Order Information — Lead in Well Water</h3></div>
+      <div class="form-section-body">
+        <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:12px;">These fields are specific to the Lead in Well Water program and provide additional context for lead contamination testing.</p>
+        <div class="form-row three-col">
+          <div class="form-group"><label class="form-label">Well Type</label>
+            <select class="form-select"><option>Select...</option><option selected>Dug Well (Shallow)</option><option>Drilled Well (Deep)</option><option>Artesian Well</option><option>Hand-Pump Well</option><option>Spring-Fed Well</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Well Depth (meters)</label><input class="form-input" type="number" placeholder="e.g., 15" value="12"></div>
+          <div class="form-group"><label class="form-label">Pipe Material</label>
+            <select class="form-select"><option>Select...</option><option>PVC</option><option selected>Galvanized Steel</option><option>Copper</option><option>Lead (Legacy)</option><option>Unknown</option></select>
+          </div>
+        </div>
+        <div class="form-row three-col">
+          <div class="form-group"><label class="form-label">Last Test Date</label><input class="form-input" type="date" value="2025-09-15"></div>
+          <div class="form-group"><label class="form-label">Previous Lead Level (ppb)</label><input class="form-input" type="number" step="0.1" placeholder="e.g., 8.5" value="11.2"></div>
+          <div class="form-group"><label class="form-label">Action Level Threshold (ppb)</label>
+            <select class="form-select"><option>WHO Guideline (10 ppb)</option><option selected>National Standard (15 ppb)</option><option>EPA Action Level (15 ppb)</option><option>EU Directive (10 ppb)</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Population Served</label>
+            <select class="form-select"><option>Select...</option><option>Single Household</option><option selected>Community (10-50 households)</option><option>Village (50-200 households)</option><option>School / Institution</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Children Under 6 Present?</label>
+            <select class="form-select"><option>Unknown</option><option selected>Yes</option><option>No</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Notes</label><input class="form-input" type="text" placeholder="Additional observations..." value="Community reported discolored water after heavy rains"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ADDITIONAL ORDER INFORMATION (Program-specific, Environmental — Parasite Monitoring) ===== -->
+    <div class="form-section hidden" id="section-additional-order-parasite">
+      <div class="form-section-header"><h3>Additional Order Information — Parasite Monitoring</h3></div>
+      <div class="form-section-body">
+        <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:12px;">These fields are specific to the Parasite Monitoring program for environmental water and soil sample analysis.</p>
+        <div class="form-row three-col">
+          <div class="form-group"><label class="form-label">Sample Matrix</label>
+            <select class="form-select"><option>Select...</option><option selected>Surface Water</option><option>Groundwater</option><option>Soil</option><option>Sediment</option><option>Wastewater</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Target Organisms</label>
+            <select class="form-select" multiple style="height:80px;"><option selected>Giardia lamblia</option><option selected>Cryptosporidium</option><option>E. coli O157:H7</option><option>Entamoeba histolytica</option><option>Ascaris lumbricoides</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Monitoring Frequency</label>
+            <select class="form-select"><option>Select...</option><option>Weekly</option><option selected>Monthly</option><option>Quarterly</option><option>Post-Event (Flooding/Outbreak)</option></select>
+          </div>
+        </div>
+        <div class="form-row three-col">
+          <div class="form-group"><label class="form-label">Upstream Land Use</label>
+            <select class="form-select"><option>Select...</option><option>Agricultural</option><option selected>Mixed (Agricultural + Residential)</option><option>Industrial</option><option>Forested / Natural</option><option>Urban</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Recent Rainfall (last 48h)</label>
+            <select class="form-select"><option>None</option><option>Light (&lt;10mm)</option><option selected>Moderate (10-25mm)</option><option>Heavy (&gt;25mm)</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Water Temperature at Collection (°C)</label><input class="form-input" type="number" step="0.1" placeholder="e.g., 24.0" value="26.3"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- ===== CLINICAL INFORMATION (Clinical only) ===== -->
     <div class="form-section" id="section-clinical-diag">
       <div class="form-section-header"><h3>Clinical Information</h3></div>
@@ -986,8 +1065,12 @@
           <h4 style="font-size:14px; font-weight:600; margin-bottom:10px;">Site Search</h4>
           <div class="form-row three-col">
             <div class="form-group"><label class="form-label">Site Name <span class="required">*</span></label><input class="form-input" placeholder="Enter site name..." value="Central"></div>
-            <div class="form-group"><label class="form-label">Department</label>
-              <select class="form-select"><option>Select...</option><option>Outpatient</option><option>Inpatient</option><option>Emergency</option><option>Field Collection</option></select>
+            <div class="form-group" id="dept-group">
+              <label class="form-label">Department / Ward / Unit</label>
+              <select class="form-select" id="dept-select" disabled style="opacity:0.5; cursor:not-allowed;">
+                <option>Select facility first...</option>
+              </select>
+              <p id="dept-hint" style="font-size:11px; color:var(--cds-gray-50); margin-top:4px;">Available after selecting a facility with subunits</p>
             </div>
             <div class="form-group"><label class="form-label">Priority</label>
               <select class="form-select"><option>Routine</option><option selected>Urgent</option><option>STAT</option></select>
@@ -1023,13 +1106,29 @@
         </div>
 
         <!-- Selected Site (shown after selection) -->
-        <div id="site-selected" style="padding:10px 14px; background:var(--cds-blue-10); border:1px solid #a6c8ff; border-radius:4px; margin-bottom:12px; display:flex; align-items:center; gap:16px;">
-          <div style="flex:1;">
-            <div style="font-size:14px; font-weight:600;">Central Hospital</div>
-            <div style="font-size:12px; color:var(--cds-gray-60);">Location: Kampala &middot; Type: Hospital</div>
+        <div id="site-selected" style="padding:10px 14px; background:var(--cds-blue-10); border:1px solid #a6c8ff; border-radius:4px; margin-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:16px; margin-bottom:10px;">
+            <div style="flex:1;">
+              <div style="font-size:14px; font-weight:600;">Central Hospital</div>
+              <div style="font-size:12px; color:var(--cds-gray-60);">Location: Kampala &middot; Type: Hospital</div>
+            </div>
+            <span style="padding:2px 8px; background:#defbe6; border-radius:10px; font-size:11px; color:var(--cds-green-60); font-weight:500;">Selected</span>
+            <a href="#" style="font-size:12px; color:var(--cds-red-60); text-decoration:none;" onclick="clearSite(); return false;">Clear</a>
           </div>
-          <span style="padding:2px 8px; background:#defbe6; border-radius:10px; font-size:11px; color:var(--cds-green-60); font-weight:500;">Selected</span>
-          <a href="#" style="font-size:12px; color:var(--cds-red-60); text-decoration:none;">Clear</a>
+          <!-- Department/Ward/Unit — enabled now that facility is selected and has subunits -->
+          <div style="display:flex; align-items:center; gap:12px;">
+            <label style="font-size:13px; font-weight:500; color:var(--cds-gray-70); white-space:nowrap;">Department / Ward / Unit:</label>
+            <select class="form-select" id="dept-loaded" style="max-width:280px; border:1px solid var(--cds-gray-30); border-bottom:1px solid var(--cds-gray-50);">
+              <option>Select...</option>
+              <option>Outpatient Dept.</option>
+              <option selected>Inpatient Ward</option>
+              <option>Emergency Dept.</option>
+              <option>Maternity Ward</option>
+              <option>Pediatrics Ward</option>
+              <option>Laboratory</option>
+            </select>
+            <span style="font-size:11px; color:var(--cds-gray-50);">6 subunits available</span>
+          </div>
         </div>
 
         <!-- Provider Search -->
@@ -1779,16 +1878,11 @@
       </div>
     </div>
 
-    <!-- QA Decision -->
+    <!-- QA Notes -->
     <div class="form-section">
-      <div class="form-section-header"><h3>QA Decision</h3></div>
+      <div class="form-section-header"><h3>QA Notes</h3></div>
       <div class="form-section-body">
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">QA Notes</label><input class="form-input" placeholder="Optional reviewer notes"></div>
-          <div class="form-group"><label class="form-label">Decision</label>
-            <select class="form-select"><option>Select...</option><option>Approve for Testing</option><option>Reject → Return to Step</option><option>Reject Entire Order</option></select>
-          </div>
-        </div>
+        <div class="form-group"><label class="form-label">Reviewer Notes</label><textarea class="form-input" rows="3" placeholder="Optional reviewer notes — document any observations, follow-up required, or justification for decision..." style="resize:vertical;"></textarea></div>
         <p style="font-size:12px; color:var(--cds-gray-60); margin-top:8px; padding:8px 12px; background:var(--cds-gray-10); border-left:3px solid var(--cds-gray-30);">If all samples have been rejected (via NCE reports), the order will automatically be saved in a <strong>Rejected</strong> state. Storage and labeling can still be performed if needed for archival purposes.</p>
       </div>
     </div>
@@ -2186,6 +2280,13 @@ function setWorkflow(type) {
   document.getElementById('section-patient').classList.toggle('hidden', type === 'env');
   document.getElementById('section-clinical-diag').classList.toggle('hidden', type === 'env');
   document.getElementById('section-env-source').classList.toggle('hidden', type === 'clinical');
+
+  // Auto-default program when switching workflow type
+  if (type === 'env') {
+    selectProgram('lead-water', 'Lead in Well Water');
+  } else if (type === 'clinical' && ['lead-water','parasite','water'].indexOf(currentProgram) !== -1) {
+    selectProgram('vl', 'VL Program');
+  }
 }
 
 function showPatientTab(tab) {
@@ -2218,11 +2319,73 @@ function selectPatient() {
   document.getElementById('pt-selected').classList.remove('hidden');
 }
 
-function updateProgramInfo() {
-  const val = document.getElementById('program-select').value;
-  document.getElementById('section-additional-order-clinical').classList.toggle('hidden', val !== 'vl');
-  document.getElementById('section-additional-order-env').classList.toggle('hidden', val !== 'water');
+// ===== PROGRAM TYPEAHEAD COMBO =====
+var currentProgram = 'vl';
+var allPrograms = [
+  {value:'routine', label:'Routine Testing', category:'clinical'},
+  {value:'vl', label:'VL Program', category:'clinical'},
+  {value:'eid', label:'EID Program', category:'clinical'},
+  {value:'tb', label:'TB Program', category:'clinical'},
+  {value:'covid', label:'COVID-19', category:'clinical'},
+  {value:'lead-water', label:'Lead in Well Water', category:'environmental'},
+  {value:'parasite', label:'Parasite Monitoring', category:'environmental'},
+  {value:'water', label:'Water Quality Monitoring', category:'environmental'}
+];
+
+function showProgramDropdown() {
+  document.getElementById('program-dropdown').style.display = 'block';
+  filterPrograms();
 }
+
+function filterPrograms() {
+  var input = document.getElementById('program-combo').value.toLowerCase();
+  var dropdown = document.getElementById('program-dropdown');
+  var options = dropdown.querySelectorAll('.program-option');
+  var dividers = dropdown.querySelectorAll('div[style*="border-top"]');
+  var hasEnvVisible = false;
+  options.forEach(function(opt) {
+    var text = opt.textContent.toLowerCase();
+    var match = !input || text.indexOf(input) !== -1;
+    opt.style.display = match ? 'block' : 'none';
+    if (match && allPrograms.find(function(p){ return p.value === opt.getAttribute('data-value') && p.category === 'environmental'; })) {
+      hasEnvVisible = true;
+    }
+  });
+  dividers.forEach(function(d) { d.style.display = hasEnvVisible ? 'block' : 'none'; });
+}
+
+function selectProgram(value, label) {
+  currentProgram = value;
+  document.getElementById('program-combo').value = label;
+  document.getElementById('program-dropdown').style.display = 'none';
+  updateProgramInfo();
+}
+
+function updateProgramInfo() {
+  var sections = {
+    'vl': 'section-additional-order-clinical',
+    'water': 'section-additional-order-env',
+    'lead-water': 'section-additional-order-lead',
+    'parasite': 'section-additional-order-parasite'
+  };
+  Object.values(sections).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
+  if (sections[currentProgram]) {
+    var el = document.getElementById(sections[currentProgram]);
+    if (el) el.classList.remove('hidden');
+  }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  var combo = document.getElementById('program-combo');
+  var dropdown = document.getElementById('program-dropdown');
+  if (combo && dropdown && !combo.contains(e.target) && !dropdown.contains(e.target)) {
+    dropdown.style.display = 'none';
+  }
+});
 
 function showProviderResults() {
   // Provider results are already visible in the mockup
