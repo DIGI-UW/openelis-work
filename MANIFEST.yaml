@@ -626,6 +626,44 @@
   links: {}
   added: "2026-03-04"
 
+# ─── Validation Page (v2 Redesign) ────────────────────────────
+
+- id: validation-page-v2-mockup
+  type: mockup
+  path: designs/validation-page/validation-page-mockup-v2.jsx
+  category: results-validation
+  description: Full v2 validation page redesign — multi-level validation pipeline, admin configuration, role-based levels, auto-validation
+  paired_with: validation-page-v2-spec
+  links: {}
+  added: "2026-03-04"
+
+- id: validation-page-v2-spec
+  type: spec
+  path: designs/validation-page/validation-page-requirements-v2.md
+  category: results-validation
+  description: Result Validation Page FRS v2.0 — multi-level validation pipeline, per-lab-unit overrides, auto-validation for normal results
+  paired_with: validation-page-v2-mockup
+  links: {}
+  added: "2026-03-04"
+
+- id: validation-page-stage1-mockup
+  type: mockup
+  path: designs/validation-page/validation-page-stage1-mockup.jsx
+  category: results-validation
+  description: Stage 1 validation page mockup — multi-signature pipeline with minimal UI changes
+  paired_with: validation-page-stage1-spec
+  links: {}
+  added: "2026-03-04"
+
+- id: validation-page-stage1-spec
+  type: spec
+  path: designs/validation-page/validation-page-requirements-v2.1-stage1.md
+  category: results-validation
+  description: Result Validation Page FRS v2.1 Stage 1 — scoped multi-level validation with minimal UI footprint
+  paired_with: validation-page-stage1-mockup
+  links: {}
+  added: "2026-03-04"
+
 # ─── Other ──────────────────────────────────────────────────
 
 - id: tat-dashboard

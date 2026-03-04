@@ -209,6 +209,21 @@ const MOCKUP_REGISTRY = [
     specPath: 'designs/results-validation/validation-page.md',
   },
 
+  {
+    name: 'Validation Page v2 (Full Redesign)',
+    category: 'results-validation',
+    component: React.lazy(() => import('@designs/validation-page/validation-page-mockup-v2.jsx')),
+    description: 'Full v2 redesign — multi-level validation pipeline, admin config, role-based levels, auto-validation',
+    specPath: 'designs/validation-page/validation-page-requirements-v2.md',
+  },
+  {
+    name: 'Validation Page v2.1 (Stage 1)',
+    category: 'results-validation',
+    component: React.lazy(() => import('@designs/validation-page/validation-page-stage1-mockup.jsx')),
+    description: 'Stage 1 scoped — multi-signature pipeline with minimal UI changes to existing validation page',
+    specPath: 'designs/validation-page/validation-page-requirements-v2.1-stage1.md',
+  },
+
   // ─── System ───
   {
     name: 'Audit Trail',

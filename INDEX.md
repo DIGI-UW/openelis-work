@@ -71,6 +71,8 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 |---------|--------|------|
 | Results Page | [results-page.jsx](designs/results-validation/results-page.jsx) | [results-page.md](designs/results-validation/results-page.md) |
 | Validation Page | [validation-page.jsx](designs/results-validation/validation-page.jsx) | [validation-page.md](designs/results-validation/validation-page.md) |
+| Validation Page v2 (Full Redesign) | [validation-page-mockup-v2.jsx](designs/validation-page/validation-page-mockup-v2.jsx) | [validation-page-requirements-v2.md](designs/validation-page/validation-page-requirements-v2.md) |
+| Validation Page v2.1 (Stage 1) | [validation-page-stage1-mockup.jsx](designs/validation-page/validation-page-stage1-mockup.jsx) | [validation-page-requirements-v2.1-stage1.md](designs/validation-page/validation-page-requirements-v2.1-stage1.md) |
 
 ## System
 
