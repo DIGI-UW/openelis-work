@@ -426,7 +426,7 @@ function App() {
           {categories.map((cat) => (
             <button
               key={cat}
-              onClick={() => setActiveCategory(cat)}
+              onClick={() => { setActiveCategory(cat); selectMockup(null); }}
               style={{
                 ...styles.tab,
                 ...(activeCategory === cat ? styles.tabActive : {}),
