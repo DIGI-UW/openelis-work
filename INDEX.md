@@ -24,6 +24,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 
 | Feature | Mockup | Spec |
 |---------|--------|------|
+| BioRad CFX Opus Connection Spec | — | [biorad-cfx-opus-analyzer-connection-spec.md](designs/analyzer-integration/biorad-cfx-opus-analyzer-connection-spec.md) |
 | Analyzer File Upload | [analyzer-file-upload.jsx](designs/analyzer-integration/analyzer-file-upload.jsx) | [analyzer-file-upload.md](designs/analyzer-integration/analyzer-file-upload.md) |
 | Analyzer Mapping Templates | [analyzer-mapping-templates.jsx](designs/analyzer-integration/analyzer-mapping-templates.jsx) | [astm-addendum](designs/analyzer-integration/astm-analyzer-mapping-addendum.md), [hl7-addendum](designs/analyzer-integration/hl7-analyzer-mapping-addendum.md) |
 | Flat File Analyzer Config | [flat-file-analyzer-config.jsx](designs/analyzer-integration/flat-file-analyzer-config.jsx) | [flat-file-analyzer-config.md](designs/analyzer-integration/flat-file-analyzer-config.md) |

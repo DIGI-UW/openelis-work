@@ -87,6 +87,13 @@ const MOCKUP_REGISTRY = [
 
   // ─── Analyzer Integration ───
   {
+    name: 'BioRad CFX Opus Connection Spec',
+    category: 'analyzer-integration',
+    component: null,
+    description: 'BioRad CFX Opus Real-Time PCR — CSV/RDML export, LIMS integration via CFX Maestro',
+    specPath: 'designs/analyzer-integration/biorad-cfx-opus-analyzer-connection-spec.md',
+  },
+  {
     name: 'Analyzer File Upload',
     category: 'analyzer-integration',
     component: React.lazy(() => import('@designs/analyzer-integration/analyzer-file-upload.jsx')),

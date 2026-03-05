@@ -294,6 +294,14 @@
   links: {}
   added: "2026-03-03"
 
+- id: biorad-cfx-opus-analyzer-connection-spec
+  type: spec
+  path: designs/analyzer-integration/biorad-cfx-opus-analyzer-connection-spec.md
+  category: analyzer-integration
+  description: BioRad CFX Opus Real-Time PCR System analyzer connection specification — CSV/RDML export, LIMS integration via CFX Maestro
+  links: {}
+  added: "2026-03-05"
+
 # ─── Microbiology ───────────────────────────────────────────
 
 - id: amr-module
