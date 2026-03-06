@@ -307,7 +307,7 @@ const MOCKUP_REGISTRY = [
   },
 ];
 
-const GITHUB_BASE = 'https://github.com/caseyi/openelis-work/blob/main/';
+const GITHUB_BASE = 'https://github.com/DIGI-UW/openelis-work/blob/main/';
 
 const categories = [
   'all',

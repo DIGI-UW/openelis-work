@@ -2,7 +2,7 @@
 
 A centralized workspace for tracking mockups, specifications, and design changes for [OpenELIS Global](https://github.com/I-TECH-UW/OpenELIS-Global2). This repo serves as the single source of truth for design work, making it easy for designers, clients, and developers to stay aligned.
 
-**Live Gallery:** [caseyi.github.io/openelis-work](https://caseyi.github.io/openelis-work/)
+**Live Gallery:** [digi-uw.github.io/openelis-work](https://digi-uw.github.io/openelis-work/)
 **Figma Template:** [OpenELIS Global Template](https://www.figma.com/make/15B8LmoBhZ5WgtYDI9MCHm/OpenELIS-Global-Template)
 
 ---
@@ -40,7 +40,7 @@ A centralized workspace for tracking mockups, specifications, and design changes
 ## Quick Start
 
 ```bash
-git clone https://github.com/caseyi/openelis-work.git
+git clone https://github.com/DIGI-UW/openelis-work.git
 cd openelis-work/mockup-viewer
 npm install
 npm run dev
