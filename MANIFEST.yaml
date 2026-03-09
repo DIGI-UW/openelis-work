@@ -342,6 +342,70 @@
   links: {}
   added: "2026-03-06"
 
+- id: quantstudio-field-mapping-spec
+  type: spec
+  path: designs/analyzer-integration/quantstudio-field-mapping-spec-v131.md
+  category: analyzer-integration
+  description: QuantStudio 5 / 7 Flex field mapping & integration spec — validated against real XLS exports from Madagascar
+  paired_with: quantstudio-companion-guide
+  links:
+    jira: [OGC-348]
+  added: "2026-03-06"
+
+- id: quantstudio-companion-guide
+  type: spec
+  path: designs/analyzer-integration/quantstudio-companion-guide-v10.md
+  category: analyzer-integration
+  description: QuantStudio 5 / 7 Flex analyzer setup & export guide for lab staff
+  paired_with: quantstudio-field-mapping-spec
+  links:
+    jira: [OGC-348]
+  added: "2026-03-06"
+
+- id: fluorocycler-xt-integration-spec
+  type: spec
+  path: designs/analyzer-integration/fluorocycler-xt-integration-spec-v1.0.md
+  category: analyzer-integration
+  description: Bruker FluoroCycler XT molecular PCR flat file import spec — Excel-based manual workflow
+  paired_with: fluorocycler-xt-companion-guide
+  links: {}
+  added: "2026-03-06"
+
+- id: fluorocycler-xt-companion-guide
+  type: spec
+  path: designs/analyzer-integration/fluorocycler-xt-companion-setup-guide-v1.0.md
+  category: analyzer-integration
+  description: Bruker FluoroCycler XT analyzer setup guide for lab staff
+  paired_with: fluorocycler-xt-integration-spec
+  links: {}
+  added: "2026-03-06"
+
+- id: tecan-infinite-f50-companion-guide
+  type: spec
+  path: designs/analyzer-integration/tecan-infinite-f50-companion-guide.md
+  category: analyzer-integration
+  description: Tecan Infinite F50 companion guide — Madagascar custom Excel workflow for OpenELIS
+  paired_with: tecan-infinite-f50-analyzer-connection-spec
+  links: {}
+  added: "2026-03-06"
+
+- id: thermo-multiskan-fc-companion-guide
+  type: spec
+  path: designs/analyzer-integration/thermo-multiskan-fc-companion-guide.md
+  category: analyzer-integration
+  description: Thermo Multiskan FC companion guide — SkanIt export configuration for OpenELIS
+  paired_with: thermo-multiskan-fc-analyzer-connection-spec
+  links: {}
+  added: "2026-03-06"
+
+- id: fluorocycler-xt-template
+  type: reference-data
+  path: assets/reference-data/FC-XT_Template.xlsx
+  category: analyzer-integration
+  description: FluoroCycler XT Excel template for result import
+  links: {}
+  added: "2026-03-06"
+
 # ─── Microbiology ───────────────────────────────────────────
 
 - id: amr-module
@@ -711,6 +775,36 @@
   paired_with: validation-page-stage1-mockup
   links: {}
   added: "2026-03-04"
+
+- id: validation-page-v3-demographics-mockup
+  type: mockup
+  path: designs/validation-page/validation-page-mockup-v3-demographics.jsx
+  category: results-validation
+  description: Validation page v3 mockup — adds patient sex and age (D-M-Y) columns for demographic-aware reference range verification
+  paired_with: validation-patient-demographics-frs
+  links:
+    jira: ["OGC-291", "OGC-343"]
+  added: "2026-03-09"
+
+- id: validation-patient-demographics-mockup
+  type: mockup
+  path: designs/validation-page/validation-patient-demographics-mockup.jsx
+  category: results-validation
+  description: Patient demographics display mockup — sex tag, age calculation, patient info header with Carbon components
+  paired_with: validation-patient-demographics-frs
+  links:
+    jira: ["OGC-291", "OGC-343"]
+  added: "2026-03-09"
+
+- id: validation-patient-demographics-frs
+  type: spec
+  path: designs/validation-page/validation-patient-demographics-frs-v1.md
+  category: results-validation
+  description: Patient Sex & Age Display on Validation Screen FRS v1.0 — D-M-Y age format, sex normalization, all validation levels
+  paired_with: validation-page-v3-demographics-mockup
+  links:
+    jira: ["OGC-291", "OGC-343"]
+  added: "2026-03-09"
 
 # ─── RBAC (Role-Based Access Control) ─────────────────────────
 

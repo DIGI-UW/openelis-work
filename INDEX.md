@@ -30,6 +30,12 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | DNA Technology DT-Prime Field Mapping | — | [dna-technology-dtprime-field-mapping-v0.2.md](designs/analyzer-integration/dna-technology-dtprime-field-mapping-v0.2.md) |
 | Tecan Infinite F50 Connection Spec | — | [tecan-infinite-f50-analyzer-connection-spec.md](designs/analyzer-integration/tecan-infinite-f50-analyzer-connection-spec.md) |
 | Thermo Multiskan FC Connection Spec | — | [thermo-multiskan-fc-analyzer-connection-spec.md](designs/analyzer-integration/thermo-multiskan-fc-analyzer-connection-spec.md) |
+| QuantStudio 5/7 Flex Field Mapping | — | [quantstudio-field-mapping-spec-v131.md](designs/analyzer-integration/quantstudio-field-mapping-spec-v131.md) |
+| QuantStudio 5/7 Flex Companion Guide | — | [quantstudio-companion-guide-v10.md](designs/analyzer-integration/quantstudio-companion-guide-v10.md) |
+| FluoroCycler XT Integration Spec | — | [fluorocycler-xt-integration-spec-v1.0.md](designs/analyzer-integration/fluorocycler-xt-integration-spec-v1.0.md) |
+| FluoroCycler XT Companion Guide | — | [fluorocycler-xt-companion-setup-guide-v1.0.md](designs/analyzer-integration/fluorocycler-xt-companion-setup-guide-v1.0.md) |
+| Tecan Infinite F50 Companion Guide | — | [tecan-infinite-f50-companion-guide.md](designs/analyzer-integration/tecan-infinite-f50-companion-guide.md) |
+| Thermo Multiskan FC Companion Guide | — | [thermo-multiskan-fc-companion-guide.md](designs/analyzer-integration/thermo-multiskan-fc-companion-guide.md) |
 | Analyzer File Upload | [analyzer-file-upload.jsx](designs/analyzer-integration/analyzer-file-upload.jsx) | [analyzer-file-upload.md](designs/analyzer-integration/analyzer-file-upload.md) |
 | Analyzer Mapping Templates | [analyzer-mapping-templates.jsx](designs/analyzer-integration/analyzer-mapping-templates.jsx) | [astm-addendum](designs/analyzer-integration/astm-analyzer-mapping-addendum.md), [hl7-addendum](designs/analyzer-integration/hl7-analyzer-mapping-addendum.md) |
 | Flat File Analyzer Config | [flat-file-analyzer-config.jsx](designs/analyzer-integration/flat-file-analyzer-config.jsx) | [flat-file-analyzer-config.md](designs/analyzer-integration/flat-file-analyzer-config.md) |
@@ -80,6 +86,9 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Validation Page | [validation-page.jsx](designs/results-validation/validation-page.jsx) | [validation-page.md](designs/results-validation/validation-page.md) |
 | Validation Page v2 (Full Redesign) | [validation-page-mockup-v2.jsx](designs/validation-page/validation-page-mockup-v2.jsx) | [validation-page-requirements-v2.md](designs/validation-page/validation-page-requirements-v2.md) |
 | Validation Page v2.1 (Stage 1) | [validation-page-stage1-mockup.jsx](designs/validation-page/validation-page-stage1-mockup.jsx) | [validation-page-requirements-v2.1-stage1.md](designs/validation-page/validation-page-requirements-v2.1-stage1.md) |
+| Validation Page v3 (Demographics) | [validation-page-mockup-v3-demographics.jsx](designs/validation-page/validation-page-mockup-v3-demographics.jsx) | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
+| Patient Demographics Mockup | [validation-patient-demographics-mockup.jsx](designs/validation-page/validation-patient-demographics-mockup.jsx) | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
+| Patient Demographics FRS | — | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
 
 ## System
 
@@ -141,3 +150,4 @@ Detailed per-instrument integration specs and companion guides live in `specs/an
 | Progress Report | [DOCX](assets/requirements-docs/progress-report.docx) |
 | Project Context | [MD](PROJECT-CONTEXT.md) |
 | Cytology Bethesda Data Dictionary | [CSV](assets/reference-data/cytology-bethesda-data-dictionary.csv) |
+| FluoroCycler XT Excel Template | [XLSX](assets/reference-data/FC-XT_Template.xlsx) |

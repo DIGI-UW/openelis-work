@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenELIS RBAC — UI Mockup (In-Context)</title>
+<style>
+  :root {
+    --oe-blue: #1d4c6e;
+    --oe-blue-dark: #163a55;
+    --oe-blue-light: #2a6496;
+    --oe-header-bg: #064b6e;
+    --cds-blue-60: #0f62fe;
+    --cds-blue-70: #0043ce;
+    --cds-blue-10: #edf5ff;
+    --cds-gray-10: #f4f4f4;
+    --cds-gray-20: #e0e0e0;
+    --cds-gray-30: #c6c6c6;
+    --cds-gray-50: #8d8d8d;
+    --cds-gray-70: #525252;
+    --cds-gray-80: #393939;
+    --cds-gray-90: #262626;
+    --cds-gray-100: #161616;
+    --cds-green-40: #42be65;
+    --cds-green-10: #defbe6;
+    --cds-red-60: #da1e28;
+    --cds-red-10: #fff1f1;
+    --cds-yellow-20: #fdd13a;
+    --cds-yellow-10: #fcf4d6;
+    --cds-purple-60: #8a3ffc;
+    --cds-purple-10: #f6f2ff;
+    --cds-teal-60: #009d9a;
+    --cds-teal-10: #d9fbfb;
+    --cds-white: #ffffff;
+    --sidebar-w: 260px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif; background:#f4f4f4; color:var(--cds-gray-100); font-size:14px; line-height:1.43; }
+
+  /* === OpenELIS Header === */
+  .oe-header { background: var(--oe-header-bg); color:white; height:48px; display:flex; align-items:center; justify-content:space-between; padding:0 1rem; position:fixed; top:0; left:0; right:0; z-index:200; }
+  .oe-header-left { display:flex; align-items:center; gap:0.75rem; }
+  .oe-header-left .hamburger { cursor:pointer; font-size:20px; padding:0.25rem; }
+  .oe-header-logo { display:flex; align-items:center; gap:0.5rem; }
+  .oe-header-logo .logo-circle { width:32px; height:32px; background:rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .oe-header-logo .site-name { font-size:14px; font-weight:600; }
+  .oe-header-logo .version { font-size:11px; opacity:0.7; }
+  .oe-header-right { display:flex; align-items:center; gap:1rem; }
+  .oe-header-right .icon-btn { background:none; border:none; color:white; cursor:pointer; font-size:18px; opacity:0.8; }
+  .oe-header-right .icon-btn:hover { opacity:1; }
+
+  /* === Sidebar === */
+  .oe-sidebar { width:var(--sidebar-w); background:white; border-right:1px solid var(--cds-gray-20); position:fixed; top:48px; bottom:0; left:0; overflow-y:auto; z-index:100; transition:transform 0.2s; }
+  .oe-sidebar.collapsed { transform:translateX(-100%); }
+  .sidebar-item { display:flex; align-items:center; gap:0.5rem; padding:0.625rem 1rem; font-size:13px; color:var(--cds-gray-80); cursor:pointer; border-left:3px solid transparent; text-decoration:none; }
+  .sidebar-item:hover { background:var(--cds-gray-10); }
+  .sidebar-item.active { background:var(--cds-blue-10); border-left-color:var(--cds-blue-60); color:var(--cds-blue-60); font-weight:600; }
+  .sidebar-item .icon { width:16px; text-align:center; font-size:14px; opacity:0.6; flex-shrink:0; }
+  .sidebar-item.active .icon { opacity:1; }
+  .sidebar-divider { height:1px; background:var(--cds-gray-20); margin:0.5rem 0; }
+  .sidebar-section-label { padding:0.5rem 1rem 0.25rem; font-size:11px; font-weight:600; color:var(--cds-gray-50); text-transform:uppercase; letter-spacing:0.5px; }
+  .sidebar-item .badge-new { background:var(--cds-blue-60); color:white; font-size:9px; padding:1px 5px; border-radius:8px; font-weight:600; margin-left:auto; }
+
+  /* === Main content === */
+  .oe-main { margin-left:var(--sidebar-w); margin-top:48px; min-height:calc(100vh - 48px); }
+  .oe-content { padding:1.5rem 2rem; max-width:1100px; }
+
+  /* === Breadcrumb === */
+  .breadcrumb { font-size:12px; color:var(--cds-gray-50); margin-bottom:0.25rem; }
+  .breadcrumb a { color:var(--cds-blue-60); text-decoration:none; }
+  .breadcrumb a:hover { text-decoration:underline; }
+
+  /* === Page title === */
+  .page-title { font-size:24px; font-weight:400; margin-bottom:0.25rem; }
+  .page-subtitle { font-size:14px; color:var(--cds-gray-70); margin-bottom:1.5rem; line-height:1.5; }
+
+  /* === Tabs (OpenELIS style — underline) === */
+  .oe-tabs { display:flex; border-bottom:1px solid var(--cds-gray-20); margin-bottom:1.5rem; }
+  .oe-tab { padding:0.75rem 1rem; font-size:14px; cursor:pointer; color:var(--cds-gray-70); border-bottom:2px solid transparent; background:none; border-top:none; border-left:none; border-right:none; font-family:inherit; }
+  .oe-tab.active { color:var(--cds-blue-60); border-bottom-color:var(--cds-blue-60); font-weight:600; }
+  .oe-tab:hover { background:var(--cds-gray-10); }
+
+  /* === View panels === */
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+
+  /* === Buttons === */
+  .btn { display:inline-flex; align-items:center; gap:0.5rem; padding:0.5rem 1rem; font-size:14px; font-family:inherit; cursor:pointer; border:none; min-height:36px; }
+  .btn-primary { background:var(--cds-blue-60); color:white; }
+  .btn-primary:hover { background:var(--cds-blue-70); }
+  .btn-secondary { background:var(--cds-gray-80); color:white; }
+  .btn-ghost { background:transparent; color:var(--cds-blue-60); }
+  .btn-ghost:hover { background:var(--cds-blue-10); }
+  .btn-danger-ghost { background:transparent; color:var(--cds-red-60); }
+  .btn-sm { min-height:30px; padding:0.25rem 0.75rem; font-size:12px; }
+
+  /* === Tags === */
+  .tag { display:inline-flex; align-items:center; padding:2px 8px; font-size:12px; border-radius:100px; }
+  .tag-blue { background:var(--cds-blue-10); color:var(--cds-blue-70); }
+  .tag-green { background:var(--cds-green-10); color:#0e6027; }
+  .tag-purple { background:var(--cds-purple-10); color:var(--cds-purple-60); }
+  .tag-teal { background:var(--cds-teal-10); color:#005d5d; }
+  .tag-gray { background:var(--cds-gray-20); color:var(--cds-gray-70); }
+  .tag-yellow { background:var(--cds-yellow-10); color:#735f00; }
+  .tag-red { background:var(--cds-red-10); color:var(--cds-red-60); }
+
+  /* === Data Table === */
+  .dt { width:100%; border-collapse:collapse; background:white; }
+  .dt th { background:var(--cds-gray-80); color:white; text-align:left; padding:0.625rem 1rem; font-size:13px; font-weight:600; }
+  .dt td { padding:0.625rem 1rem; border-bottom:1px solid var(--cds-gray-20); font-size:13px; vertical-align:middle; }
+  .dt tr:hover td { background:var(--cds-gray-10); }
+
+  /* === Forms === */
+  .fg { margin-bottom:1.25rem; }
+  .fl { display:block; font-size:12px; color:var(--cds-gray-70); margin-bottom:0.375rem; }
+  .fi { width:100%; padding:0 0.75rem; height:36px; border:none; border-bottom:1px solid var(--cds-gray-50); background:var(--cds-gray-10); font-size:14px; font-family:inherit; }
+  .fi:focus { outline:2px solid var(--cds-blue-60); border-bottom-color:transparent; }
+  .fs { width:100%; padding:0 0.75rem; height:36px; border:none; border-bottom:1px solid var(--cds-gray-50); background:var(--cds-gray-10); font-size:14px; font-family:inherit; appearance:auto; }
+  .fta { width:100%; padding:0.625rem 0.75rem; border:none; border-bottom:1px solid var(--cds-gray-50); background:var(--cds-gray-10); font-size:14px; font-family:inherit; resize:vertical; min-height:60px; }
+
+  /* === Cards === */
+  .card { background:white; border:1px solid var(--cds-gray-20); padding:1.25rem; margin-bottom:0.75rem; }
+
+  /* === Grid === */
+  .g2 { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+  .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; }
+
+  /* === Permission group === */
+  .pg { margin-bottom:1.25rem; }
+  .pg-title { font-size:13px; font-weight:600; color:var(--cds-gray-80); padding-bottom:0.375rem; border-bottom:1px solid var(--cds-gray-20); margin-bottom:0.5rem; display:flex; align-items:center; gap:0.5rem; }
+  .pg-title .select-all { margin-left:auto; font-weight:400; font-size:11px; color:var(--cds-blue-60); cursor:pointer; text-decoration:underline; padding:2px 6px; border-radius:2px; }
+  .pg-title .select-all:hover { background:var(--cds-blue-10); }
+  .cb { display:flex; align-items:flex-start; gap:0.5rem; padding:0.25rem 0; cursor:pointer; font-size:13px; }
+  .cb input { margin-top:2px; accent-color:var(--cds-blue-60); }
+  .cb-desc { font-size:11px; color:var(--cds-gray-70); }
+
+  /* === Scope assignment card === */
+  .scope-card { border:1px solid var(--cds-gray-20); background:white; padding:0.75rem 1rem; margin-bottom:0.5rem; display:flex; align-items:center; justify-content:space-between; }
+  .scope-card-left { display:flex; align-items:center; gap:0.75rem; }
+  .scope-card-role { font-weight:600; font-size:13px; }
+  .scope-card-scope { font-size:12px; color:var(--cds-gray-50); }
+
+  /* === Info box === */
+  .info-box { background:var(--cds-blue-10); border-left:3px solid var(--cds-blue-60); padding:0.75rem 1rem; margin-bottom:1.25rem; font-size:13px; line-height:1.5; }
+
+  /* === Divider === */
+  .divider { border:none; border-top:1px solid var(--cds-gray-20); margin:1.25rem 0; }
+
+  /* === Provider metadata === */
+  .provider-section { background:var(--cds-purple-10); border:1px solid #d4bbff; padding:1rem 1.25rem; margin-top:1rem; }
+  .provider-title { font-size:13px; font-weight:600; color:var(--cds-purple-60); margin-bottom:0.75rem; }
+
+  /* === Matrix table === */
+  .mx { width:100%; border-collapse:collapse; font-size:12px; }
+  .mx th { background:var(--cds-gray-10); padding:0.5rem; border:1px solid var(--cds-gray-20); font-weight:600; text-align:center; font-size:11px; }
+  .mx th:first-child { text-align:left; font-size:12px; }
+  .mx td { padding:0.5rem; border:1px solid var(--cds-gray-20); text-align:center; }
+  .mx td:first-child { text-align:left; font-weight:500; }
+  .ck { color:var(--cds-green-40); font-weight:bold; }
+  .da { color:var(--cds-gray-30); }
+
+  /* === Toolbar === */
+  .toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; gap:0.75rem; flex-wrap:wrap; }
+  .toolbar-left { display:flex; align-items:center; gap:0.5rem; }
+
+  /* === Search === */
+  .search-wrap { position:relative; }
+  .search-wrap::before { content:"⌕"; position:absolute; left:0.5rem; top:50%; transform:translateY(-50%); color:var(--cds-gray-50); font-size:14px; }
+  .search-input { padding:0.5rem 0.5rem 0.5rem 2rem; border:none; border-bottom:1px solid var(--cds-gray-50); background:var(--cds-gray-10); font-size:13px; width:240px; height:36px; font-family:inherit; }
+
+  /* === Status dot === */
+  .sd { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:0.375rem; }
+  .sd-on { background:var(--cds-green-40); }
+  .sd-off { background:var(--cds-gray-30); }
+
+  /* === Annotation for mockup navigation === */
+  .mockup-nav { background:#1a1a2e; color:white; text-align:center; padding:0.5rem; font-size:12px; position:fixed; bottom:0; left:0; right:0; z-index:300; display:flex; align-items:center; justify-content:center; gap:1rem; }
+  .mockup-nav button { background:rgba(255,255,255,0.15); color:white; border:1px solid rgba(255,255,255,0.3); padding:0.25rem 0.75rem; font-size:12px; cursor:pointer; border-radius:3px; font-family:inherit; }
+  .mockup-nav button.active { background:var(--cds-blue-60); border-color:var(--cds-blue-60); }
+  .mockup-nav button:hover { background:rgba(255,255,255,0.25); }
+
+  /* === Add role panel === */
+  .add-panel { border:2px solid var(--cds-blue-60); background:var(--cds-blue-10); padding:1rem; margin-bottom:1rem; display:none; }
+  .add-panel.show { display:block; }
+
+  /* user summary bar */
+  .user-bar { display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap; }
+  .user-bar-item { }
+  .user-bar-label { font-size:11px; color:var(--cds-gray-50); }
+  .user-bar-value { font-size:13px; font-weight:600; }
+
+  /* === Clickable expandable rows === */
+  .dt tr.expandable-row { cursor:pointer; }
+  .dt tr.expandable-row:hover td { background:var(--cds-blue-10); }
+  .dt tr.expandable-row td:first-child .expand-icon { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; font-size:12px; color:var(--cds-gray-70); transition:transform 0.15s; }
+  .dt tr.expandable-row.expanded td:first-child .expand-icon { transform:rotate(90deg); }
+
+  /* === Sticky permission counter bar === */
+  .perm-counter-bar { position:sticky; bottom:0; background:var(--cds-gray-90); color:white; padding:0.625rem 1.25rem; display:flex; align-items:center; justify-content:space-between; margin-top:1rem; z-index:50; font-size:13px; }
+  .perm-counter-bar .counter { font-weight:600; }
+  .perm-counter-bar .counter .num { color:var(--cds-blue-60); font-size:16px; background:rgba(15,98,254,0.15); padding:1px 8px; border-radius:4px; }
+
+  /* === Modal overlay for Add Role Assignment === */
+  .modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(22,22,22,0.7); z-index:500; align-items:center; justify-content:center; }
+  .modal-overlay.show { display:flex; }
+  .modal-box { background:white; width:560px; max-width:90vw; padding:0; }
+  .modal-header { background:var(--cds-gray-90); color:white; padding:0.75rem 1.25rem; display:flex; align-items:center; justify-content:space-between; font-size:15px; font-weight:600; }
+  .modal-header .close-btn { background:none; border:none; color:white; font-size:20px; cursor:pointer; opacity:0.7; }
+  .modal-header .close-btn:hover { opacity:1; }
+  .modal-body { padding:1.25rem; }
+
+  /* === Unsaved changes indicator === */
+  .unsaved-bar { background:var(--cds-yellow-10); border-bottom:1px solid var(--cds-yellow-20); padding:0.375rem 1rem; font-size:12px; color:#735f00; display:flex; align-items:center; gap:0.5rem; }
+  .unsaved-dot { width:6px; height:6px; border-radius:50%; background:var(--cds-yellow-20); }
+
+  /* === Scope legend === */
+  .scope-legend { display:flex; gap:1rem; margin-bottom:0.5rem; font-size:11px; color:var(--cds-gray-70); }
+  .scope-legend-item { display:flex; align-items:center; gap:0.375rem; }
+  .scope-legend-swatch { width:12px; height:12px; border-left:3px solid; }
+</style>
+</head>
+<body>
+
+<!-- ========== OPENELIS HEADER ========== -->
+<div class="oe-header">
+  <div class="oe-header-left">
+    <span class="hamburger">☰</span>
+    <div class="oe-header-logo">
+      <div class="logo-circle">⚕</div>
+      <div>
+        <div class="site-name">OpenELIS Global</div>
+        <div class="version">Version: 3.3.0 — RBAC Mockup</div>
+      </div>
+    </div>
+  </div>
+  <div class="oe-header-right">
+    <button class="icon-btn">🔍</button>
+    <button class="icon-btn">🔔</button>
+    <button class="icon-btn">👤</button>
+    <button class="icon-btn">❓</button>
+  </div>
+</div>
+
+<!-- ========== SIDEBAR ========== -->
+<div class="oe-sidebar" id="sidebar">
+  <div class="sidebar-section-label">Admin Management</div>
+  <a class="sidebar-item" href="#"><span class="icon">⚗</span> Reflex Tests Config</a>
+  <a class="sidebar-item" href="#"><span class="icon">🔬</span> Analyzer Test Name</a>
+  <a class="sidebar-item" href="#"><span class="icon">#</span> Lab Number Management</a>
+  <a class="sidebar-item" href="#"><span class="icon">📋</span> Program Entry</a>
+  <a class="sidebar-item" href="#"><span class="icon">👥</span> Provider Management</a>
+  <a class="sidebar-item" href="#"><span class="icon">▦</span> Barcode Configuration</a>
+  <a class="sidebar-item" href="#"><span class="icon">🔌</span> List Plugins</a>
+  <a class="sidebar-item" href="#"><span class="icon">🏢</span> Organization Management</a>
+  <a class="sidebar-item" href="#"><span class="icon">📊</span> Result Reporting Config</a>
+
+  <div class="sidebar-divider"></div>
+
+  <a class="sidebar-item" href="#" onclick="showView('user-mgmt');markSidebar(this);return false" id="sb-user">
+    <span class="icon">👤</span> User Management
+  </a>
+  <a class="sidebar-item active" href="#" onclick="showView('role-mgmt');markSidebar(this);return false" id="sb-role">
+    <span class="icon">🛡</span> Role Management
+    <span class="badge-new">NEW</span>
+  </a>
+  <a class="sidebar-item" href="#" onclick="showView('inspector');markSidebar(this);return false" id="sb-inspector">
+    <span class="icon">🔎</span> Permission Inspector
+    <span class="badge-new">P2</span>
+  </a>
+
+  <div class="sidebar-divider"></div>
+
+  <a class="sidebar-item" href="#"><span class="icon">🔄</span> Batch Test Reassignment</a>
+  <a class="sidebar-item" href="#"><span class="icon">🧪</span> Test Management</a>
+  <a class="sidebar-item" href="#"><span class="icon">☰</span> Menu Configuration ▸</a>
+  <a class="sidebar-item" href="#"><span class="icon">⚙</span> General Configurations ▸</a>
+  <a class="sidebar-item" href="#"><span class="icon">⚙</span> Application Properties</a>
+  <a class="sidebar-item" href="#"><span class="icon">📧</span> Test Notification Config</a>
+  <a class="sidebar-item" href="#"><span class="icon">#</span> Dictionary Menu</a>
+  <a class="sidebar-item" href="#"><span class="icon">📢</span> Notify User</a>
+  <a class="sidebar-item" href="#"><span class="icon">🔍</span> Search Index Management</a>
+  <a class="sidebar-item" href="#"><span class="icon">📜</span> Legacy Admin</a>
+</div>
+
+<!-- ========== MAIN CONTENT ========== -->
+<div class="oe-main">
+
+<!-- =============================== -->
+<!-- VIEW: ROLE MANAGEMENT            -->
+<!-- =============================== -->
+<div id="view-role-mgmt" class="tab-panel active">
+<div class="oe-content">
+  <div class="breadcrumb"><a href="#">Home</a> / <a href="#">Admin Management</a> / Role Management</div>
+  <div class="page-title">Role Management</div>
+  <div class="page-subtitle">Create, edit, and manage roles with screen-level permissions. <a href="#" style="color:var(--cds-blue-60);text-decoration:none;">Learn more</a></div>
+
+  <!-- Tabs -->
+  <div class="oe-tabs">
+    <button class="oe-tab active" onclick="showSubTab('role-list',this)">Role List</button>
+    <button class="oe-tab" onclick="showSubTab('create-role',this)">Create Role</button>
+  </div>
+
+  <!-- === ROLE LIST TAB === -->
+  <div id="tab-role-list" class="tab-panel active">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="search-wrap"><input type="text" class="search-input" placeholder="Search roles..."></div>
+        <select class="fs" style="width:140px;height:36px"><option>All Types</option><option>Standard</option><option>Admin</option><option>Requester</option></select>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="showSubTab('create-role',document.querySelectorAll('.oe-tab')[1])">+ Create Role</button>
+    </div>
+
+    <table class="dt">
+      <thead><tr><th>Role Name</th><th>Type</th><th>Origin</th><th>Permissions</th><th>Users</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Reception</strong><br><span class="cb-desc">Order, Patient, Non-Conformity screens</span></td>
+          <td><span class="tag tag-blue">Standard</span></td>
+          <td><span class="tag tag-gray" style="font-size:10px">System</span></td>
+          <td>6 screens</td><td>12</td>
+          <td><span class="sd sd-on"></span>Active</td>
+          <td><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-ghost btn-sm">Clone</button></td>
+        </tr>
+        <tr>
+          <td><strong>Results</strong><br><span class="cb-desc">Results entry, Workplan, Non-Conformity screens</span></td>
+          <td><span class="tag tag-blue">Standard</span></td>
+          <td><span class="tag tag-gray" style="font-size:10px">System</span></td>
+          <td>10 screens</td><td>8</td>
+          <td><span class="sd sd-on"></span>Active</td>
+          <td><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-ghost btn-sm">Clone</button></td>
+        </tr>
+        <tr>
+          <td><strong>Validation</strong><br><span class="cb-desc">All validation screens, Non-Conformity</span></td>
+          <td><span class="tag tag-blue">Standard</span></td>
+          <td><span class="tag tag-gray" style="font-size:10px">System</span></td>
+          <td>7 screens</td><td>5</td>
+          <td><span class="sd sd-on"></span>Active</td>
+          <td><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-ghost btn-sm">Clone</button></td>
+        </tr>
+        <tr>
+          <td><strong>Reports</strong><br><span class="cb-desc">Routine and Study report screens</span></td>
+          <td><span class="tag tag-blue">Standard</span></td>
+          <td><span class="tag tag-gray" style="font-size:10px">System</span></td>
+          <td>2 screens</td><td>15</td>
+          <td><span class="sd sd-on"></span>Active</td>
+          <td><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-ghost btn-sm">Clone</button></td>
+        </tr>
+        <tr>
+          <td><strong>Global Administrator</strong><br><span class="cb-desc">All admin screens + all permissions</span></td>
+          <td><span class="tag tag-purple">Admin</span></td>
+          <td><span class="tag tag-gray" style="font-size:10px">System</span></td>
+          <td>All</td><td>2</td>
+          <td><span class="sd sd-on"></span>Active</td>
+          <td><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-ghost btn-sm">Clone</button></td>
+        </tr>
+        <tr>
+          <td><strong>User Account Administrator</strong><br><span class="cb-desc">User Management screen only</span></td>
+          <td><span class="tag tag-purple">Admin</span></td>
+          <td><span class="tag tag-gray" style="font-size:10px">System</span></td>
+          <td>1 screen</td><td>3</td>
+          <td><span class="sd sd-on"></span>Active</td>
+          <td><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-ghost btn-sm">Clone</button></td>
+        </tr>
+        <tr>
+          <td><strong>Audit Trail</strong><br><span class="cb-desc">Audit Trail Report screen</span></td>
+          <td><span class="tag tag-purple">Admin</span></td>
+          <td><span class="tag tag-gray" style="font-size:10px">System</span></td>
+          <td>1 screen</td><td>4</td>
+          <td><span class="sd sd-on"></span>Active</td>
+          <td><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-ghost btn-sm">Clone</button></td>
+        </tr>
+        <tr>
+          <td><strong>Analyser Import</strong><br><span class="cb-desc">Analyzer Results Import screen</span></td>
+          <td><span class="tag tag-purple">Admin</span></td>
+          <td><span class="tag tag-gray" style="font-size:10px">System</span></td>
+          <td>1 screen</td><td>2</td>
+          <td><span class="sd sd-on"></span>Active</td>
+          <td><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-ghost btn-sm">Clone</button></td>
+        </tr>
+        <tr>
+          <td><strong>Pathologist</strong><br><span class="cb-desc">Pathology Dashboard + Case View</span></td>
+          <td><span class="tag tag-teal">Specialty</span></td>
+          <td><span class="tag tag-gray" style="font-size:10px">System</span></td>
+          <td>2 screens</td><td>2</td>
+          <td><span class="sd sd-on"></span>Active</td>
+          <td><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-ghost btn-sm">Clone</button></td>
+        </tr>
+        <tr>
+          <td><strong>Cytopathologist</strong><br><span class="cb-desc">Cytology Dashboard + Case View</span></td>
+          <td><span class="tag tag-teal">Specialty</span></td>
+          <td><span class="tag tag-gray" style="font-size:10px">System</span></td>
+          <td>2 screens</td><td>1</td>
+          <td><span class="sd sd-on"></span>Active</td>
+          <td><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-ghost btn-sm">Clone</button></td>
+        </tr>
+        <tr>
+          <td><strong>Test Requester</strong><br><span class="cb-desc">Order creation + view own orders/results</span></td>
+          <td><span class="tag tag-green">Requester</span></td>
+          <td><span class="tag tag-gray" style="font-size:10px">System</span></td>
+          <td>3 screens</td><td>0</td>
+          <td><span class="sd sd-on"></span>Active</td>
+          <td><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-ghost btn-sm">Clone</button></td>
+        </tr>
+        <tr style="background:var(--cds-yellow-10);">
+          <td><strong>QA Reviewer</strong><br><span class="cb-desc">Results view + Reports (read-only audit)</span></td>
+          <td><span class="tag tag-blue">Standard</span></td>
+          <td><span class="tag tag-yellow" style="font-size:10px">Custom</span></td>
+          <td>4 screens</td><td>1</td>
+          <td><span class="sd sd-on"></span>Active</td>
+          <td><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-ghost btn-sm">Clone</button><button class="btn btn-danger-ghost btn-sm">Delete</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- === CREATE ROLE TAB === -->
+  <div id="tab-create-role" class="tab-panel">
+    <div class="g2">
+      <div>
+        <div class="fg"><label class="fl">Role Name *</label><input type="text" class="fi" placeholder="e.g., Senior Technician" value="Senior Technician"></div>
+        <div class="fg"><label class="fl">Description</label><textarea class="fta">Results entry and validation for experienced lab technicians</textarea></div>
+      </div>
+      <div>
+        <div class="fg"><label class="fl">Role Type *</label>
+          <select class="fs"><option selected>Standard — Lab workflow role</option><option>Admin — Administrative (global only)</option><option>Requester — External clinician</option></select>
+        </div>
+        <div class="fg"><label class="fl">Scope Constraint</label>
+          <select class="fs"><option selected>Scopeable — Any scope level</option><option>Global Only — Always system-wide</option></select>
+        </div>
+        <div class="fg"><label class="fl">Clone from existing role (optional)</label>
+          <select class="fs"><option>— None —</option><option selected>Results</option><option>Reception</option><option>Validation</option><option>Reports</option></select>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="font-size:15px;">Screen Permissions</strong>
+      <div><button class="btn btn-ghost btn-sm">Select All</button> <button class="btn btn-ghost btn-sm">Clear All</button></div>
+    </div>
+
+    <div class="info-box">Cloned from <strong>Results</strong> — pre-selected permissions shown checked. Modify as needed. Permissions are grouped by the main OpenELIS menu headers (Order, Patient, Results, Validation, etc.).</div>
+
+    <div style="font-size:11px;color:var(--cds-gray-50);margin-bottom:0.75rem;">Permissions are grouped by the main OpenELIS menu headers. Each permission grants access to a specific screen.</div>
+    <div class="g2">
+      <div>
+        <div class="pg">
+          <div class="pg-title">🔖 Order <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox"> <div>Add Order <span class="cb-desc">/SamplePatientEntry</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Edit Order <span class="cb-desc">/ModifyOrder</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Find Order <span class="cb-desc">/SampleEdit</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Batch Order Entry <span class="cb-desc">/SampleBatchEntrySetup</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Incoming / Electronic Orders <span class="cb-desc">/ElectronicOrders</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Print Barcode <span class="cb-desc">/PrintBarcode</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Sample Management <span class="cb-desc">/SampleManagement</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Aliquot <span class="cb-desc">/Aliquot</span></div></label>
+        </div>
+
+        <div class="pg">
+          <div class="pg-title">👤 Patient <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox"> <div>Add/Search Patients <span class="cb-desc">/PatientManagement</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Patient History <span class="cb-desc">/PatientHistory</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Patient Merge <span class="cb-desc">/PatientMerge</span></div></label>
+        </div>
+
+        <div class="pg">
+          <div class="pg-title">🔬 Results <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox" checked> <div>Results by Unit (Logbook) <span class="cb-desc">/LogbookResults</span></div></label>
+          <label class="cb"><input type="checkbox" checked> <div>Results by Patient <span class="cb-desc">/PatientResults</span></div></label>
+          <label class="cb"><input type="checkbox" checked> <div>Results by Accession <span class="cb-desc">/AccessionResults</span></div></label>
+          <label class="cb"><input type="checkbox" checked> <div>Results by Test, Date or Status <span class="cb-desc">/StatusResults</span></div></label>
+          <label class="cb"><input type="checkbox" checked> <div>Results by Range <span class="cb-desc">/RangeResults</span></div></label>
+          <label class="cb"><input type="checkbox" checked> <div>Referred Out Tests <span class="cb-desc">/ReferredOutTests</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Analyzer Results Import <span class="cb-desc">/AnalyzerResults</span></div></label>
+        </div>
+
+        <div class="pg">
+          <div class="pg-title">✅ Validation <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox"> <div>Validation by Unit <span class="cb-desc">/ResultValidation</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Validation by Accession <span class="cb-desc">/AccessionValidation</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Validation by Range <span class="cb-desc">/AccessionValidationRange</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Validation by Test Date <span class="cb-desc">/ResultValidationByTestDate</span></div></label>
+        </div>
+
+        <div class="pg">
+          <div class="pg-title">📅 Workplan <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox" checked> <div>By Test Section <span class="cb-desc">/WorkPlanByTestSection</span></div></label>
+          <label class="cb"><input type="checkbox" checked> <div>By Test Type <span class="cb-desc">/WorkplanByTest</span></div></label>
+          <label class="cb"><input type="checkbox" checked> <div>By Panel <span class="cb-desc">/WorkplanByPanel</span></div></label>
+          <label class="cb"><input type="checkbox" checked> <div>By Priority <span class="cb-desc">/WorkplanByPriority</span></div></label>
+        </div>
+
+        <div class="pg">
+          <div class="pg-title">⚠ Non-Conform <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox" checked> <div>Report Non-Conforming Event <span class="cb-desc">/ReportNonConformingEvent</span></div></label>
+          <label class="cb"><input type="checkbox" checked> <div>View Non-Conforming Events <span class="cb-desc">/ViewNonConformingEvent</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Corrective Actions <span class="cb-desc">/NCECorrectiveAction</span></div></label>
+        </div>
+
+        <div class="pg">
+          <div class="pg-title">🏥 Pathology / Cytology / IHC <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox"> <div>Pathology Dashboard <span class="cb-desc">/PathologyDashboard</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Pathology Case View <span class="cb-desc">/PathologyCaseView</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Cytology Dashboard <span class="cb-desc">/CytologyDashboard</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Cytology Case View <span class="cb-desc">/CytologyCaseView</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>IHC Dashboard <span class="cb-desc">/ImmunohistochemistryDashboard</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>IHC Case View <span class="cb-desc">/ImmunohistochemistryCaseView</span></div></label>
+        </div>
+      </div>
+
+      <div>
+        <div class="pg">
+          <div class="pg-title">📊 Reports <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox"> <div>Routine Reports <span class="cb-desc">/RoutineReports</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Study Reports <span class="cb-desc">/StudyReports</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Audit Trail Report <span class="cb-desc">/AuditTrailReport</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>CSV Export <span class="cb-desc">(within report views)</span></div></label>
+        </div>
+
+        <div class="pg">
+          <div class="pg-title">📦 Inventory <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox"> <div>Inventory Dashboard <span class="cb-desc">/inventory</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Manage Catalog <span class="cb-desc">/inventory/catalog</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Inventory Items <span class="cb-desc">/inventory/items</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Inventory Reports <span class="cb-desc">/inventory/reports</span></div></label>
+        </div>
+
+        <div class="pg">
+          <div class="pg-title">🧊 Storage <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox"> <div>Cold Storage Dashboard <span class="cb-desc">/Storage</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Device Management <span class="cb-desc">/Storage/devices</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Freezer Monitoring <span class="cb-desc">/FreezerMonitoring</span></div></label>
+        </div>
+
+        <div class="pg">
+          <div class="pg-title">💰 Billing <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox"> <div>Billing Management <span class="cb-desc">/Billing</span></div></label>
+        </div>
+
+        <div class="pg">
+          <div class="pg-title">🧬 Generic Sample <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox"> <div>Create Order <span class="cb-desc">/GenericSample/Order</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Edit Order <span class="cb-desc">/GenericSample/Edit</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Import Samples <span class="cb-desc">/GenericSample/Import</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Enter Results <span class="cb-desc">/GenericSample/Results</span></div></label>
+        </div>
+
+        <div class="pg">
+          <div class="pg-title">📓 Notebook <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox"> <div>Notebook Dashboard <span class="cb-desc">/NoteBookDashboard</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Notebook Entry/Edit <span class="cb-desc">/NoteBookEntryForm</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Notebook Sample Order <span class="cb-desc">/NotebookSampleOrder</span></div></label>
+        </div>
+
+        <div class="pg">
+          <div class="pg-title">📋 Program <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox"> <div>Program Dashboard <span class="cb-desc">/genericProgram</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Program Case View <span class="cb-desc">/programView</span></div></label>
+        </div>
+
+        <div class="pg">
+          <div class="pg-title">⚙ Admin <span class="select-all">Select all</span></div>
+          <label class="cb"><input type="checkbox"> <div>User Management <span class="cb-desc">/userManagement</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Role Management <span class="cb-desc">(new)</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Test Management <span class="cb-desc">/testManagementConfigMenu</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Organization Management <span class="cb-desc">/organizationManagement</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Provider Management <span class="cb-desc">/providerMenu</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Lab Number Management <span class="cb-desc">/labNumber</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Barcode Configuration <span class="cb-desc">/barcodeConfiguration</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Batch Test Reassignment <span class="cb-desc">/batchTestReassignment</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Reflex Test Configuration <span class="cb-desc">/reflex</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Calculated Value Config <span class="cb-desc">/calculatedValue</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Analyzer Test Name <span class="cb-desc">/AnalyzerTestName</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Menu Configuration <span class="cb-desc">/globalMenuManagement</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>General Configurations <span class="cb-desc">(form entry)</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Application Properties</div></label>
+          <label class="cb"><input type="checkbox"> <div>Test Notification Config</div></label>
+          <label class="cb"><input type="checkbox"> <div>Dictionary Management</div></label>
+          <label class="cb"><input type="checkbox"> <div>Notify User / Broadcast</div></label>
+          <label class="cb"><input type="checkbox"> <div>Search Index Management</div></label>
+          <label class="cb"><input type="checkbox"> <div>Plugin Management <span class="cb-desc">/PluginFile</span></div></label>
+          <label class="cb"><input type="checkbox"> <div>Audit Trail Access <span class="cb-desc">/AuditTrailReport</span></div></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sticky permission counter -->
+    <div class="perm-counter-bar">
+      <div class="counter"><span class="num">12</span> of 72 permissions selected</div>
+      <div style="display:flex;gap:0.5rem;">
+        <button class="btn btn-ghost btn-sm" style="color:white;border:1px solid rgba(255,255,255,0.3);" onclick="showSubTab('role-list',document.querySelectorAll('.oe-tab')[0])">Cancel</button>
+        <button class="btn btn-primary btn-sm">Save Role</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- =============================== -->
+<!-- VIEW: USER MANAGEMENT            -->
+<!-- =============================== -->
+<div id="view-user-mgmt" class="tab-panel">
+<div class="oe-content">
+  <div class="breadcrumb"><a href="#">Home</a> / <a href="#">Admin Management</a> / User Management</div>
+  <div class="page-title">User Management</div>
+  <div class="page-subtitle">Click a user row to expand and edit their role assignments.</div>
+
+  <!-- USER LIST + INLINE MODIFY -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="search-wrap"><input type="text" class="search-input" placeholder="Search by user names..."></div>
+      <select class="fs" style="width:160px;height:36px"><option>Filter by Role</option><option>Reception</option><option>Results</option><option>Validation</option><option>Reports</option><option>Global Admin</option><option>Test Requester</option></select>
+      <label class="cb" style="padding:0 0.5rem"><input type="checkbox"> Only Active</label>
+    </div>
+    <div style="display:flex;gap:0.5rem;">
+      <button class="btn btn-secondary btn-sm">Deactivate</button>
+      <button class="btn btn-primary btn-sm">+ Add User</button>
+    </div>
+  </div>
+
+  <table class="dt">
+    <thead><tr><th style="width:30px" aria-label="Expand row"></th><th>First Name</th><th>Last Name</th><th>Login Name</th><th>Roles</th><th>Pwd Expires</th><th>Status</th><th>Timeout</th></tr></thead>
+    <tbody>
+      <tr class="expandable-row expanded" style="background:var(--cds-blue-10);" onclick="var r=document.getElementById('inline-detail-row');r.style.display=r.style.display==='none'?'':'none';this.classList.toggle('expanded')">
+        <td><span class="expand-icon">▸</span></td>
+        <td>Namanya</td><td>Abert</td><td>abertnamanya</td>
+        <td><span class="tag tag-purple" style="font-size:10px">Global Admin</span> <span class="tag tag-blue" style="font-size:10px">Reception</span></td>
+        <td>20/03/2033</td><td><span class="sd sd-on"></span>Active</td><td>480</td>
+      </tr>
+      <!-- INLINE DETAIL ROW — expands below selected user -->
+      <tr id="inline-detail-row">
+        <td colspan="8" style="padding:0;border-bottom:2px solid var(--cds-blue-60);">
+          <div style="background:var(--cds-blue-10);border-top:2px solid var(--cds-blue-60);">
+
+            <!-- Unsaved changes indicator -->
+            <div class="unsaved-bar">
+              <span class="unsaved-dot"></span>
+              <span>Unsaved changes — click <strong>Save</strong> to apply or <strong>Close</strong> to discard.</span>
+            </div>
+
+            <div style="padding:1rem 1.25rem;">
+
+            <!-- User summary + Edit Account Info -->
+            <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+              <div><span class="fl" style="margin:0">Login</span><div style="font-weight:600;font-size:13px;">abertnamanya</div></div>
+              <div><span class="fl" style="margin:0">Name</span><div style="font-weight:600;font-size:13px;">Namanya Abert</div></div>
+              <div><span class="fl" style="margin:0">Pwd Expires</span><div style="font-weight:600;font-size:13px;">20/03/2033</div></div>
+              <div><span class="fl" style="margin:0">Status</span><div style="font-weight:600;font-size:13px;"><span class="sd sd-on"></span>Active</div></div>
+              <button class="btn btn-ghost btn-sm" style="margin-left:auto">Edit Account Info</button>
+            </div>
+
+            <!-- Copy permissions -->
+            <div style="background:white;border:1px solid var(--cds-gray-20);display:flex;align-items:center;gap:1rem;padding:0.5rem 0.75rem;margin-bottom:0.75rem;">
+              <span style="font-size:12px;white-space:nowrap;color:var(--cds-gray-70);">Copy Permissions From User:</span>
+              <input type="text" class="fi" style="max-width:220px;background:var(--cds-gray-10);height:30px;font-size:12px" placeholder="Enter username...">
+              <button class="btn btn-secondary btn-sm">Apply</button>
+            </div>
+
+            <!-- Role Assignments header -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+              <strong style="font-size:13px;">Role Assignments</strong>
+              <button class="btn btn-primary btn-sm" onclick="document.getElementById('add-role-modal').classList.toggle('show')">+ Add Role Assignment</button>
+            </div>
+
+            <!-- Scope legend -->
+            <div class="scope-legend" style="margin-bottom:0.5rem;">
+              <span class="scope-legend-item"><span class="scope-legend-swatch" style="border-color:var(--cds-purple-60);"></span> Global</span>
+              <span class="scope-legend-item"><span class="scope-legend-swatch" style="border-color:var(--cds-teal-60);"></span> Department</span>
+              <span class="scope-legend-item"><span class="scope-legend-swatch" style="border-color:var(--cds-blue-60);"></span> Lab Unit</span>
+            </div>
+
+            <!-- Current assignments -->
+            <div class="scope-card" style="margin-bottom:4px;">
+              <div class="scope-card-left">
+                <span class="tag tag-purple">Admin</span>
+                <div><div class="scope-card-role">Global Administrator</div><div class="scope-card-scope">Scope: <strong>Global</strong> — All lab units</div></div>
+              </div>
+              <button class="btn btn-danger-ghost btn-sm">Remove</button>
+            </div>
+            <div class="scope-card" style="margin-bottom:4px;">
+              <div class="scope-card-left">
+                <span class="tag tag-purple">Admin</span>
+                <div><div class="scope-card-role">User Account Administrator</div><div class="scope-card-scope">Scope: <strong>Global</strong></div></div>
+              </div>
+              <button class="btn btn-danger-ghost btn-sm">Remove</button>
+            </div>
+            <div class="scope-card" style="margin-bottom:4px;">
+              <div class="scope-card-left">
+                <span class="tag tag-purple">Admin</span>
+                <div><div class="scope-card-role">Audit Trail</div><div class="scope-card-scope">Scope: <strong>Global</strong></div></div>
+              </div>
+              <button class="btn btn-danger-ghost btn-sm">Remove</button>
+            </div>
+            <div class="scope-card" style="border-left:3px solid var(--cds-blue-60);margin-bottom:4px;">
+              <div class="scope-card-left">
+                <span class="tag tag-blue">Standard</span>
+                <div><div class="scope-card-role">Reception</div><div class="scope-card-scope">Scope: <strong>Lab Unit</strong> — Immunology</div></div>
+              </div>
+              <button class="btn btn-danger-ghost btn-sm">Remove</button>
+            </div>
+            <div class="scope-card" style="border-left:3px solid var(--cds-teal-60);margin-bottom:4px;">
+              <div class="scope-card-left">
+                <span class="tag tag-blue">Standard</span>
+                <div><div class="scope-card-role">Results</div><div class="scope-card-scope">Scope: <strong>Department</strong> — Hematology (all units)</div></div>
+              </div>
+              <button class="btn btn-danger-ghost btn-sm">Remove</button>
+            </div>
+
+            <!-- Provider metadata -->
+            <div class="provider-section" style="margin-top:0.75rem;">
+              <div class="provider-title" style="font-size:12px;">🏥 Provider Metadata <span class="tag tag-green" style="font-size:10px;margin-left:0.5rem">Shown when Test Requester assigned</span></div>
+              <div class="g2" style="gap:0.75rem;">
+                <div class="fg" style="margin-bottom:0.5rem"><label class="fl">Facility / Organization</label><input class="fi" style="background:white;height:30px;font-size:12px" placeholder="e.g., Redemption Hospital"></div>
+                <div class="fg" style="margin-bottom:0.5rem"><label class="fl">License Number</label><input class="fi" style="background:white;height:30px;font-size:12px" placeholder="e.g., MD-12345"></div>
+                <div class="fg" style="margin-bottom:0.5rem"><label class="fl">Specialty</label><select class="fs" style="background:white;height:30px;font-size:12px"><option>— Select —</option><option>General Practice</option><option>Internal Medicine</option><option>Pediatrics</option><option>Surgery</option></select></div>
+                <div class="fg" style="margin-bottom:0.5rem"><label class="fl">Provider ID</label><input class="fi" style="background:white;height:30px;font-size:12px" placeholder="e.g., NPI-1234567890"></div>
+              </div>
+            </div>
+
+            <!-- Save / Close -->
+            <div style="display:flex;gap:0.5rem;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--cds-gray-20);">
+              <button class="btn btn-primary btn-sm">Save</button>
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('inline-detail-row').style.display='none';document.querySelector('.expandable-row.expanded').classList.remove('expanded')">Close</button>
+            </div>
+
+          </div><!-- /padding wrapper -->
+          </div>
+        </td>
+      </tr>
+      <tr class="expandable-row">
+        <td><span class="expand-icon">▸</span></td>
+        <td>Viro</td><td>Test</td><td>viro</td>
+        <td><span class="tag tag-blue" style="font-size:10px">Results</span> <span class="tag tag-blue" style="font-size:10px">Validation</span></td>
+        <td>13/05/2034</td><td><span class="sd sd-on"></span>Active</td><td>480</td>
+      </tr>
+      <tr class="expandable-row">
+        <td><span class="expand-icon">▸</span></td>
+        <td>hema</td><td>tology</td><td>hema</td>
+        <td><span class="tag tag-blue" style="font-size:10px">Results</span></td>
+        <td>04/07/2034</td><td><span class="sd sd-on"></span>Active</td><td>480</td>
+      </tr>
+      <tr class="expandable-row">
+        <td><span class="expand-icon">▸</span></td>
+        <td>Dr. Sarah</td><td>Kollie</td><td>skollie</td>
+        <td><span class="tag tag-green" style="font-size:10px">Test Requester</span></td>
+        <td>01/01/2035</td><td><span class="sd sd-on"></span>Active</td><td>480</td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="margin-top:0.75rem;text-align:right;font-size:12px;color:var(--cds-gray-50)">Showing 1 – 4 of 18</div>
+</div>
+</div>
+
+<!-- =============================== -->
+<!-- VIEW: PERMISSION INSPECTOR (P2)  -->
+<!-- =============================== -->
+<div id="view-inspector" class="tab-panel">
+<div class="oe-content">
+  <div class="breadcrumb"><a href="#">Home</a> / <a href="#">Admin Management</a> / Permission Inspector</div>
+  <div class="page-title">Permission Inspector</div>
+  <div class="page-subtitle">View a user's effective permissions across all lab units. <span class="tag tag-yellow">Phase 2</span> <a href="#" style="color:var(--cds-blue-60);text-decoration:none;">Learn more</a></div>
+
+  <!-- User picker -->
+  <div class="card" style="display:flex;align-items:center;gap:1rem;">
+    <label class="fl" style="margin:0;white-space:nowrap;">Select User:</label>
+    <div class="search-wrap" style="flex:1;max-width:400px"><input class="search-input" style="width:100%" placeholder="Search by name or login..." value="abertnamanya"></div>
+    <button class="btn btn-primary btn-sm">Inspect</button>
+  </div>
+
+  <!-- Result -->
+  <div class="card">
+    <div style="margin-bottom:1rem;">
+      <strong style="font-size:15px;">Namanya Abert</strong> <span style="color:var(--cds-gray-50);font-size:12px;">(abertnamanya)</span>
+      <div style="margin-top:0.5rem;display:flex;gap:0.375rem;flex-wrap:wrap;">
+        <span class="tag tag-purple">Global Administrator — Global</span>
+        <span class="tag tag-purple">User Account Admin — Global</span>
+        <span class="tag tag-purple">Audit Trail — Global</span>
+        <span class="tag tag-blue">Reception — Immunology</span>
+        <span class="tag tag-teal">Results — Hematology (dept)</span>
+      </div>
+    </div>
+
+    <table class="mx">
+      <thead>
+        <tr>
+          <th style="width:200px;">Screen Permission</th>
+          <th>Immunology</th>
+          <th>Hematology</th>
+          <th>Micro&shy;biology</th>
+          <th>Pathology</th>
+          <th>Bio&shy;chemistry</th>
+          <th style="width:140px;">Granted By</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="7" style="background:var(--cds-gray-10);font-weight:600;font-size:12px;">🔖 Order</td></tr>
+        <tr><td>Add Order</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-blue" style="font-size:10px">Reception</span></td></tr>
+        <tr><td>Edit Order</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-blue" style="font-size:10px">Reception</span></td></tr>
+        <tr><td>Find Order</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-blue" style="font-size:10px">Reception</span></td></tr>
+        <tr><td>Sample Management</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-blue" style="font-size:10px">Reception</span></td></tr>
+
+        <tr><td colspan="7" style="background:var(--cds-gray-10);font-weight:600;font-size:12px;">🔬 Results</td></tr>
+        <tr><td>Results by Unit</td><td class="da">—</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-teal" style="font-size:10px">Results</span></td></tr>
+        <tr><td>Results by Patient</td><td class="da">—</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-teal" style="font-size:10px">Results</span></td></tr>
+        <tr><td>Results by Accession</td><td class="da">—</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-teal" style="font-size:10px">Results</span></td></tr>
+
+        <tr><td colspan="7" style="background:var(--cds-gray-10);font-weight:600;font-size:12px;">📅 Workplan</td></tr>
+        <tr><td>By Test Section</td><td class="da">—</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-teal" style="font-size:10px">Results</span></td></tr>
+        <tr><td>By Test</td><td class="da">—</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-teal" style="font-size:10px">Results</span></td></tr>
+
+        <tr><td colspan="7" style="background:var(--cds-purple-10);font-weight:600;font-size:12px;">⚙ Admin (Global)</td></tr>
+        <tr style="background:rgba(138,63,252,0.03);"><td>User Management</td><td class="ck">✓</td><td class="ck">✓</td><td class="ck">✓</td><td class="ck">✓</td><td class="ck">✓</td><td><span class="tag tag-purple" style="font-size:10px">Global Admin</span></td></tr>
+        <tr style="background:rgba(138,63,252,0.03);"><td>Test Management</td><td class="ck">✓</td><td class="ck">✓</td><td class="ck">✓</td><td class="ck">✓</td><td class="ck">✓</td><td><span class="tag tag-purple" style="font-size:10px">Global Admin</span></td></tr>
+        <tr style="background:rgba(138,63,252,0.03);"><td>Audit Trail</td><td class="ck">✓</td><td class="ck">✓</td><td class="ck">✓</td><td class="ck">✓</td><td class="ck">✓</td><td><span class="tag tag-purple" style="font-size:10px">Audit Trail</span></td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:0.75rem;font-size:12px;color:var(--cds-gray-50);">Showing subset of permissions. Full matrix includes all 70+ screen permissions grouped by menu headers (Order, Patient, Results, Validation, Workplan, Non-Conform, Pathology, Reports, Inventory, Storage, Billing, Generic Sample, Notebook, Program, Admin).</div>
+  </div>
+</div>
+</div>
+
+</div><!-- /oe-main -->
+
+<!-- ========== MODAL: Add Role Assignment ========== -->
+<div id="add-role-modal" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal-box">
+    <div class="modal-header">
+      Add Role Assignment
+      <button class="close-btn" onclick="document.getElementById('add-role-modal').classList.remove('show')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg"><label class="fl">Role *</label>
+        <select class="fs" style="background:var(--cds-gray-10);"><option>— Select —</option><option>Reception</option><option>Results</option><option>Validation</option><option>Reports</option><option>Pathologist</option><option>Test Requester</option><option>QA Reviewer (custom)</option></select>
+      </div>
+      <div class="g2" style="gap:1rem;">
+        <div class="fg"><label class="fl">Scope *</label>
+          <select class="fs" style="background:var(--cds-gray-10);"><option>Global</option><option>Department</option><option>Lab Unit</option></select>
+        </div>
+        <div class="fg"><label class="fl">Target (if scoped)</label>
+          <select class="fs" style="background:var(--cds-gray-10);"><option>— Global (all units) —</option><option>Immunology</option><option>Hematology</option><option>Microbiology</option><option>Pathology</option><option>Biochemistry</option><option>Virology</option></select>
+        </div>
+      </div>
+      <div class="info-box" style="font-size:12px;"><strong>Scope levels:</strong> Global = everywhere. Department = all lab units in that department. Lab Unit = single unit only.</div>
+      <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:0.75rem;">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('add-role-modal').classList.remove('show')">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('add-role-modal').classList.remove('show')">Add Assignment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOCKUP NAV BAR -->
+<div class="mockup-nav">
+  <span style="opacity:0.6">MOCKUP VIEWS:</span>
+  <button class="active" onclick="showView('role-mgmt');markSidebar(document.getElementById('sb-role'));this.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));this.classList.add('active')">Role Management</button>
+  <button onclick="showView('user-mgmt');markSidebar(document.getElementById('sb-user'));this.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));this.classList.add('active')">User Management</button>
+  <button onclick="showView('inspector');markSidebar(document.getElementById('sb-inspector'));this.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));this.classList.add('active')">Permission Inspector (P2)</button>
+</div>
+
+<script>
+function showView(id) {
+  document.querySelectorAll('.oe-main > .tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function markSidebar(el) {
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function showSubTab(id, tabEl) {
+  const parent = tabEl.closest('.tab-panel.active') || tabEl.closest('.oe-content');
+  parent.querySelectorAll(':scope > .tab-panel, :scope > div > .tab-panel').forEach(p => p.classList.remove('active'));
+  // find the tab panel anywhere in the view
+  const panel = document.getElementById('tab-' + id);
+  if (panel) panel.classList.add('active');
+  // update tab highlight
+  const tabs = tabEl.parentElement;
+  tabs.querySelectorAll('.oe-tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+}
+</script>
+
+</body>
+</html>
