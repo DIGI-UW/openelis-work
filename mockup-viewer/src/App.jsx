@@ -228,14 +228,6 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/hl7-analyzer-mapping-addendum.md',
     jira: ['OGC-324'],
   },
-  {
-    name: 'Validation Page (Analyzer)',
-    category: 'analyzer-integration',
-    component: React.lazy(() => import('@designs/analyzer-integration/validation-page.jsx')),
-    description: 'Analyzer result validation workflow',
-    specPath: 'designs/analyzer-integration/validation-page.md',
-  },
-
   // ─── Microbiology ───
   {
     name: 'AMR Module',
@@ -330,6 +322,13 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/results-validation/validation-page.jsx')),
     description: 'Result validation workflow',
     specPath: 'designs/results-validation/validation-page.md',
+  },
+  {
+    name: 'Validation Page (Analyzer)',
+    category: 'results-validation',
+    component: React.lazy(() => import('@designs/analyzer-integration/validation-page.jsx')),
+    description: 'Analyzer result validation workflow',
+    specPath: 'designs/analyzer-integration/validation-page.md',
   },
 
   {

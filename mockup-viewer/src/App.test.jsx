@@ -292,6 +292,7 @@ describe('permalink stability', () => {
     '#/quality/westgard-dashboard',
     '#/results-validation/results-page',
     '#/results-validation/validation-page',
+    '#/results-validation/validation-page-analyzer',
     '#/results-validation/validation-page-v2-full-redesign',
     '#/results-validation/validation-page-v2-1-stage-1',
     '#/results-validation/validation-page-v3-demographics',
