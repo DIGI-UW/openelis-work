@@ -13,11 +13,11 @@ import React, { useState, useEffect, Suspense } from 'react';
  */
 
 /** Generate a URL-safe slug from a mockup name */
-function toSlug(name) {
+export function toSlug(name) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
-const MOCKUP_REGISTRY = [
+export const MOCKUP_REGISTRY = [
   // ─── Admin & Configuration ───
   {
     name: 'Data Dictionary',
@@ -92,6 +92,7 @@ const MOCKUP_REGISTRY = [
     component: null,
     description: 'Sysmex XP-100/XP-300 ASTM field mapping & bi-directional integration spec',
     specPath: 'designs/analyzer-integration/sysmex-xp-field-mapping-v0.1.md',
+    jira: ['OGC-214'],
   },
   {
     name: 'BioRad CFX Opus Connection Spec',
@@ -134,6 +135,7 @@ const MOCKUP_REGISTRY = [
     component: null,
     description: 'QuantStudio 5 / 7 Flex HIV Viral Load — XLS export field mapping, 31-column Results sheet parsing',
     specPath: 'designs/analyzer-integration/quantstudio-field-mapping-spec-v131.md',
+    jira: ['OGC-348'],
   },
   {
     name: 'QuantStudio 5/7 Flex Companion Guide',
@@ -141,6 +143,7 @@ const MOCKUP_REGISTRY = [
     component: null,
     description: 'QuantStudio 5 / 7 Flex setup & export guide — QS D&A software export walkthrough for lab staff',
     specPath: 'designs/analyzer-integration/quantstudio-companion-guide-v10.md',
+    jira: ['OGC-348'],
   },
   {
     name: 'FluoroCycler XT Integration Spec',
@@ -176,6 +179,7 @@ const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/analyzer-integration/analyzer-file-upload.jsx')),
     description: 'Upload and process analyzer result files',
     specPath: 'designs/analyzer-integration/analyzer-file-upload.md',
+    jira: ['OGC-173', 'OGC-189', 'OGC-214', 'OGC-224'],
   },
   {
     name: 'Analyzer Mapping Templates',
@@ -183,6 +187,7 @@ const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/analyzer-integration/analyzer-mapping-templates.jsx')),
     description: 'Configure analyzer-to-test mapping templates',
     specPath: 'designs/analyzer-integration/astm-analyzer-mapping-addendum.md',
+    jira: ['OGC-173'],
   },
   {
     name: 'Flat File Analyzer Config',
@@ -190,6 +195,7 @@ const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/analyzer-integration/flat-file-analyzer-config.jsx')),
     description: 'Configure flat file (CSV/TSV) analyzer parsers',
     specPath: 'designs/analyzer-integration/flat-file-analyzer-config.md',
+    jira: ['OGC-324'],
   },
   {
     name: 'HL7 Analyzer Mapping',
@@ -197,6 +203,7 @@ const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/analyzer-integration/hl7-analyzer-mapping.jsx')),
     description: 'HL7 message field mapping for analyzers',
     specPath: 'designs/analyzer-integration/hl7-analyzer-mapping-addendum.md',
+    jira: ['OGC-324'],
   },
   {
     name: 'Validation Page (Analyzer)',
@@ -322,6 +329,7 @@ const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/validation-page/validation-page-mockup-v3-demographics.jsx')),
     description: 'v3 adds patient sex and age (D-M-Y) columns for demographic-aware reference range verification',
     specPath: 'designs/validation-page/validation-patient-demographics-frs-v1.md',
+    jira: ['OGC-291', 'OGC-343'],
   },
   {
     name: 'Patient Demographics Mockup',
@@ -329,6 +337,7 @@ const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/validation-page/validation-patient-demographics-mockup.jsx')),
     description: 'Patient demographics display — sex tag, age calculation, patient info header with Carbon components',
     specPath: 'designs/validation-page/validation-patient-demographics-frs-v1.md',
+    jira: ['OGC-291', 'OGC-343'],
   },
   {
     name: 'Patient Demographics FRS',
@@ -336,6 +345,7 @@ const MOCKUP_REGISTRY = [
     component: null,
     description: 'Patient Sex & Age Display on Validation Screen FRS v1.0 — D-M-Y age format, sex normalization',
     specPath: 'designs/validation-page/validation-patient-demographics-frs-v1.md',
+    jira: ['OGC-291', 'OGC-343'],
   },
 
   // ─── System ───
@@ -369,6 +379,7 @@ const MOCKUP_REGISTRY = [
     description: 'Decoupled 4-step sample lifecycle: Enter Order → Collect Sample → Label & Store → QA Review',
     specPath: 'designs/sample-collection/sample-collection-redesign.md',
     htmlUrl: 'designs/sample-collection/sample-collection-redesign-mockup.html',
+    jira: ['OGC-70'],
   },
 
   // ─── Other ───
@@ -398,9 +409,11 @@ const MOCKUP_REGISTRY = [
   },
 ];
 
-const GITHUB_BASE = 'https://github.com/DIGI-UW/openelis-work/blob/main/';
+export const GITHUB_BASE = 'https://github.com/DIGI-UW/openelis-work/blob/main/';
+export const JIRA_BASE = 'https://uwdigi.atlassian.net/browse/';
+export const DEFAULT_ADDED = '2026-03-03'; // Initial gallery import date
 
-const categories = [
+export const categories = [
   'all',
   'admin-config',
   'analyzer-integration',
@@ -414,7 +427,7 @@ const categories = [
   'other',
 ];
 
-const categoryLabels = {
+export const categoryLabels = {
   'all': 'All',
   'admin-config': 'Admin & Config',
   'analyzer-integration': 'Analyzer Integration',
@@ -429,7 +442,7 @@ const categoryLabels = {
 };
 
 /** Find a mockup by its hash path (e.g. "pathology/cytology-case-view") */
-function findMockupByHash(hash) {
+export function findMockupByHash(hash) {
   // strip leading #/ or #
   const path = hash.replace(/^#\/?/, '');
   if (!path) return null;
@@ -441,7 +454,7 @@ function findMockupByHash(hash) {
 }
 
 /** Build the hash string for a mockup */
-function toHash(mockup) {
+export function toHash(mockup) {
   return `#/${mockup.category}/${toSlug(mockup.name)}`;
 }
 
@@ -487,7 +500,8 @@ function App() {
       !searchQuery ||
       m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       m.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.category.toLowerCase().includes(searchQuery.toLowerCase());
+      m.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (m.jira && m.jira.some((key) => key.toLowerCase().includes(searchQuery.toLowerCase())));
     return matchesCategory && matchesSearch;
   });
 
@@ -569,6 +583,11 @@ function App() {
                 View Spec on GitHub
               </a>
             )}
+            {selectedMockup.jira && selectedMockup.jira.map((key) => (
+              <a key={key} href={JIRA_BASE + key} target="_blank" rel="noopener" style={styles.jiraBadge} onClick={(e) => e.stopPropagation()}>
+                {key}
+              </a>
+            ))}
           </div>
           <div style={styles.preview}>
             {selectedMockup.component ? (
@@ -634,6 +653,15 @@ function App() {
                 </div>
                 <h3 style={styles.cardTitle}>{mockup.name}</h3>
                 <p style={styles.cardDesc}>{mockup.description}</p>
+                {mockup.jira && mockup.jira.length > 0 && (
+                  <div style={{ display: 'flex', gap: 4, marginTop: 8, flexWrap: 'wrap' }}>
+                    {mockup.jira.map((key) => (
+                      <a key={key} href={JIRA_BASE + key} target="_blank" rel="noopener" style={styles.jiraBadge} onClick={(e) => e.stopPropagation()}>
+                        {key}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             ))
           )}
@@ -699,6 +727,7 @@ const styles = {
   figmaEmbed: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 },
   figmaIframe: { width: '100%', height: 600, border: '1px solid #e0e0e0', borderRadius: 8 },
   figmaFallback: { color: '#6f6f6f', fontSize: 13 },
+  jiraBadge: { display: 'inline-block', background: '#e8f5e9', color: '#1b5e20', padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600, textDecoration: 'none', border: '1px solid #c8e6c9', cursor: 'pointer' },
 };
 
 export default App;

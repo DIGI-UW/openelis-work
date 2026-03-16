@@ -5,6 +5,11 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   base: '/openelis-work/',
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test-setup.js'],
+  },
   resolve: {
     alias: {
       '@designs': path.resolve(__dirname, '../designs'),
