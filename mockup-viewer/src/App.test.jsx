@@ -9,6 +9,8 @@ import App, {
   getEntryType,
   MOCKUP_REGISTRY,
   GITHUB_BASE,
+  GITHUB_REPO,
+  GITHUB_ISSUES_URL,
   JIRA_BASE,
   DEFAULT_ADDED,
   categories,
@@ -17,6 +19,7 @@ import App, {
   statusConfig,
   statusKeys,
   STATUS_DEFAULT,
+  sanitizeComment,
 } from './App';
 
 // ═══════════════════════════════════════════════════════════════
@@ -638,5 +641,119 @@ describe('status filter', () => {
 
     const titles = screen.getAllByRole('heading', { level: 3 });
     expect(titles.length).toBe(reviewCount);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// sanitizeComment — anti-spam link removal
+// ═══════════════════════════════════════════════════════════════
+
+describe('sanitizeComment', () => {
+  it('returns empty string for falsy input', () => {
+    expect(sanitizeComment('')).toBe('');
+    expect(sanitizeComment(null)).toBe('');
+    expect(sanitizeComment(undefined)).toBe('');
+  });
+
+  it('passes through plain text unchanged', () => {
+    expect(sanitizeComment('This is a normal comment')).toBe('This is a normal comment');
+  });
+
+  it('strips HTML tags', () => {
+    expect(sanitizeComment('Hello <b>bold</b> world')).toBe('Hello bold world');
+    expect(sanitizeComment('<script>alert("xss")</script>')).toBe('alert("xss")');
+    expect(sanitizeComment('<a href="http://evil.com">click me</a>')).toBe('click me');
+  });
+
+  it('strips http/https URLs', () => {
+    expect(sanitizeComment('Visit https://example.com for info')).toBe('Visit [link removed] for info');
+    expect(sanitizeComment('Go to http://example.com/page?q=1 now')).toBe('Go to [link removed] now');
+  });
+
+  it('strips ftp URLs', () => {
+    expect(sanitizeComment('Download from ftp://files.example.com/data')).toBe('Download from [link removed]');
+  });
+
+  it('strips markdown links but keeps link text', () => {
+    expect(sanitizeComment('See [the docs](https://example.com) for details'))
+      .toBe('See the docs for details');
+  });
+
+  it('strips markdown images', () => {
+    expect(sanitizeComment('Look at this ![alt text](https://img.com/pic.png)'))
+      .toBe('Look at this [image removed]');
+  });
+
+  it('collapses excessive newlines', () => {
+    expect(sanitizeComment('line1\n\n\n\n\nline2')).toBe('line1\n\nline2');
+  });
+
+  it('trims whitespace', () => {
+    expect(sanitizeComment('  hello  ')).toBe('hello');
+  });
+
+  it('handles complex mixed content', () => {
+    const input = 'Check <b>this</b> [link](https://spam.com) and https://evil.com please';
+    const result = sanitizeComment(input);
+    expect(result).not.toContain('https://');
+    expect(result).not.toContain('<b>');
+    expect(result).toContain('this');
+    expect(result).toContain('link');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// GitHub Issues integration constants & data
+// ═══════════════════════════════════════════════════════════════
+
+describe('GitHub Issues integration', () => {
+  beforeEach(() => {
+    window.location.hash = '';
+  });
+
+  it('GITHUB_REPO is correct', () => {
+    expect(GITHUB_REPO).toBe('DIGI-UW/openelis-work');
+  });
+
+  it('GITHUB_ISSUES_URL derives from GITHUB_REPO', () => {
+    expect(GITHUB_ISSUES_URL).toBe('https://github.com/DIGI-UW/openelis-work/issues');
+  });
+
+  it('githubIssue field is a positive integer when present', () => {
+    MOCKUP_REGISTRY.forEach((entry) => {
+      if (entry.githubIssue !== undefined) {
+        expect(Number.isInteger(entry.githubIssue),
+          `"${entry.name}" githubIssue should be an integer`).toBe(true);
+        expect(entry.githubIssue,
+          `"${entry.name}" githubIssue should be positive`).toBeGreaterThan(0);
+      }
+    });
+  });
+
+  it('entries with githubIssue show Discussion tab in detail view', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const entryWithIssue = MOCKUP_REGISTRY.find(m => m.githubIssue);
+    if (!entryWithIssue) return; // skip if none wired yet
+
+    await user.click(screen.getByText(entryWithIssue.name));
+    expect(screen.getByText('Discussion')).toBeInTheDocument();
+  });
+
+  it('entries without githubIssue do NOT show Discussion tab', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const entryWithoutIssue = MOCKUP_REGISTRY.find(m => !m.githubIssue && m.component);
+    if (!entryWithoutIssue) return;
+
+    // Use getAllByText in case name appears in both card grid and elsewhere, click first match
+    const matches = screen.getAllByText(entryWithoutIssue.name);
+    await user.click(matches[0]);
+
+    // Should now be in detail view
+    expect(screen.getByText('← Back to Gallery')).toBeInTheDocument();
+    expect(screen.queryByText('Discussion')).toBeNull();
   });
 });

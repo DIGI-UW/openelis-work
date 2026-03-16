@@ -356,6 +356,7 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-291', 'OGC-343'],
     added: '2026-03-09',
     status: 'review',
+    githubIssue: 1, // Discussion thread — create issue on DIGI-UW/openelis-work and update number
     relatedTo: ['Patient Demographics Mockup', 'Patient Demographics FRS'],
   },
   {
@@ -444,6 +445,8 @@ export const MOCKUP_REGISTRY = [
 ];
 
 export const GITHUB_BASE = 'https://github.com/DIGI-UW/openelis-work/blob/main/';
+export const GITHUB_REPO = 'DIGI-UW/openelis-work';
+export const GITHUB_ISSUES_URL = `https://github.com/${GITHUB_REPO}/issues`;
 export const JIRA_BASE = 'https://uwdigi.atlassian.net/browse/';
 export const DEFAULT_ADDED = '2026-03-03'; // Initial gallery import date
 
@@ -573,6 +576,148 @@ function SpecViewer({ specPath }) {
       style={styles.specContent}
       dangerouslySetInnerHTML={{ __html: marked(content) }}
     />
+  );
+}
+
+/**
+ * Sanitize a comment body: strip HTML tags, remove links (URLs and markdown links),
+ * and collapse excessive whitespace. This prevents spam and XSS in rendered comments.
+ */
+export function sanitizeComment(text) {
+  if (!text) return '';
+  return text
+    // Remove HTML tags
+    .replace(/<[^>]*>/g, '')
+    // Remove markdown image syntax ![alt](url) — must run before link regex
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '[image removed]')
+    // Remove markdown links [text](url) → text
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    // Remove raw URLs (http/https/ftp)
+    .replace(/https?:\/\/\S+/gi, '[link removed]')
+    .replace(/ftp:\/\/\S+/gi, '[link removed]')
+    // Collapse excessive newlines
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/** Format a GitHub API timestamp as a relative or absolute date */
+function formatCommentDate(isoString) {
+  const d = new Date(isoString);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMins < 1) return 'just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 30) return `${diffDays}d ago`;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/** Fetch and display GitHub Issue comments for a design entry */
+function CommentViewer({ issueNumber, darkMode, theme: t }) {
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!issueNumber) return;
+    setLoading(true);
+    setError(null);
+    fetch(`https://api.github.com/repos/${GITHUB_REPO}/issues/${issueNumber}/comments`, {
+      headers: { 'Accept': 'application/vnd.github.v3+json' },
+    })
+      .then((res) => {
+        if (res.status === 403) throw new Error('Rate limited — try again in a minute');
+        if (!res.ok) throw new Error(`GitHub API error (${res.status})`);
+        return res.json();
+      })
+      .then((data) => {
+        setComments(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [issueNumber]);
+
+  const issueUrl = `${GITHUB_ISSUES_URL}/${issueNumber}`;
+
+  if (loading) return <div style={{ ...styles.loading, color: t.textMuted }}>Loading discussion...</div>;
+  if (error) {
+    return (
+      <div style={styles.specError}>
+        <p style={{ color: t.textMuted }}>Could not load comments: {error}</p>
+        <a href={issueUrl} target="_blank" rel="noopener" style={{ ...styles.link, color: t.accent }}>
+          View discussion on GitHub →
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: 700 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <span style={{ fontSize: 13, color: t.textMuted }}>
+          {comments.length} comment{comments.length !== 1 ? 's' : ''}
+        </span>
+        <a
+          href={issueUrl + '#issue-comment-box'}
+          target="_blank"
+          rel="noopener"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: t.accent, color: '#fff', padding: '6px 14px',
+            borderRadius: 6, fontSize: 13, textDecoration: 'none', fontWeight: 500,
+          }}
+        >
+          Add Comment on GitHub
+        </a>
+      </div>
+      {comments.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 32, color: t.textMuted }}>
+          <p style={{ margin: 0 }}>No comments yet. Be the first to share feedback!</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {comments.map((c) => (
+            <div
+              key={c.id}
+              style={{
+                border: `1px solid ${t.border}`,
+                borderRadius: 8,
+                padding: 14,
+                background: darkMode ? '#1c1c1c' : '#fafafa',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {c.user?.avatar_url && (
+                    <img
+                      src={c.user.avatar_url}
+                      alt=""
+                      style={{ width: 24, height: 24, borderRadius: 12 }}
+                    />
+                  )}
+                  <span style={{ fontWeight: 600, fontSize: 13, color: t.text }}>{c.user?.login || 'unknown'}</span>
+                </div>
+                <span style={{ fontSize: 11, color: t.textFaint }}>{formatCommentDate(c.created_at)}</span>
+              </div>
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: t.textSecondary, whiteSpace: 'pre-wrap' }}>
+                {sanitizeComment(c.body)}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ marginTop: 16, textAlign: 'center' }}>
+        <a href={issueUrl} target="_blank" rel="noopener" style={{ fontSize: 12, color: t.accent, textDecoration: 'none' }}>
+          View full discussion on GitHub →
+        </a>
+      </div>
+    </div>
   );
 }
 
@@ -855,38 +1000,42 @@ function App() {
               </a>
             ))}
           </div>
-          {/* Detail tabs: Preview / Spec */}
+          {/* Detail tabs: Preview / Spec / Discussion */}
           {(() => {
             const hasPreview = !!(selectedMockup.component || selectedMockup.figmaUrl || selectedMockup.htmlUrl);
             const hasSpec = !!selectedMockup.specPath;
-            const showTabs = hasPreview && hasSpec;
-            // For spec-only entries, default to spec tab
-            const activeTab = !hasPreview && hasSpec ? 'spec' : detailTab;
+            const hasDiscussion = !!selectedMockup.githubIssue;
+            const tabList = [];
+            if (hasPreview) tabList.push('preview');
+            if (hasSpec) tabList.push('spec');
+            if (hasDiscussion) tabList.push('discussion');
+            // Default: first available tab, or detailTab if it's in the list
+            const activeTab = tabList.includes(detailTab) ? detailTab : tabList[0] || 'preview';
+            const tabLabel = { preview: 'Mockup Preview', spec: 'Spec Document', discussion: 'Discussion' };
             return (
               <>
-                {showTabs && (
+                {tabList.length > 1 && (
                   <div style={{ ...styles.detailTabs, borderBottomColor: t.border }}>
-                    <button
-                      style={{ ...styles.detailTab, color: t.textMuted, ...(activeTab === 'preview' ? { ...styles.detailTabActive, color: t.accent, borderBottomColor: t.accent } : {}) }}
-                      onClick={() => setDetailTab('preview')}
-                    >
-                      Mockup Preview
-                    </button>
-                    <button
-                      style={{ ...styles.detailTab, color: t.textMuted, ...(activeTab === 'spec' ? { ...styles.detailTabActive, color: t.accent, borderBottomColor: t.accent } : {}) }}
-                      onClick={() => setDetailTab('spec')}
-                    >
-                      Spec Document
-                    </button>
+                    {tabList.map((tab) => (
+                      <button
+                        key={tab}
+                        style={{ ...styles.detailTab, color: t.textMuted, ...(activeTab === tab ? { ...styles.detailTabActive, color: t.accent, borderBottomColor: t.accent } : {}) }}
+                        onClick={() => setDetailTab(tab)}
+                      >
+                        {tabLabel[tab]}
+                      </button>
+                    ))}
                   </div>
                 )}
-                {!showTabs && hasSpec && !hasPreview && (
+                {tabList.length === 1 && (
                   <div style={{ ...styles.detailTabs, borderBottomColor: t.border }}>
-                    <button style={{ ...styles.detailTab, ...styles.detailTabActive, color: t.accent, borderBottomColor: t.accent }}>Spec Document</button>
+                    <button style={{ ...styles.detailTab, ...styles.detailTabActive, color: t.accent, borderBottomColor: t.accent }}>{tabLabel[tabList[0]]}</button>
                   </div>
                 )}
                 <div style={{ ...styles.preview, background: t.previewBg, borderColor: t.border }}>
-                  {activeTab === 'spec' && hasSpec ? (
+                  {activeTab === 'discussion' && hasDiscussion ? (
+                    <CommentViewer issueNumber={selectedMockup.githubIssue} darkMode={darkMode} theme={t} />
+                  ) : activeTab === 'spec' && hasSpec ? (
                     <SpecViewer specPath={selectedMockup.specPath} />
                   ) : selectedMockup.component ? (
                     <Suspense fallback={<div style={{ ...styles.loading, color: t.textMuted }}>Loading mockup...</div>}>
@@ -953,6 +1102,7 @@ function App() {
                   <div style={{ display: 'flex', gap: 4 }}>
                     <span style={{ ...styles.typeBadge, background: typeBgDark, color: typeConf.color }}>{typeConf.label}</span>
                     {mockup.specPath && etype !== 'spec' && <span style={{ ...styles.specBadge, background: t.specBadgeBg, color: t.specBadgeColor }}>has spec</span>}
+                    {mockup.githubIssue && <span style={{ ...styles.specBadge, background: darkMode ? '#00264a' : '#e1f5fe', color: darkMode ? '#78a9ff' : '#0277bd' }}>💬</span>}
                   </div>
                 </div>
                 <h3 style={{ ...styles.cardTitle, color: t.text }}>{mockup.name}</h3>
