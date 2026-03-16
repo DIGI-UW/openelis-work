@@ -19,6 +19,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Result Options | [result-options.jsx](designs/admin-config/result-options.jsx) | [result-options.md](designs/admin-config/result-options.md) |
 | Test Catalog | [test-catalog.jsx](designs/admin-config/test-catalog.jsx) | [test-catalog.md](designs/admin-config/test-catalog.md) |
 | RBAC Management | [rbac-ui-mockup.html](designs/rbac/rbac-ui-mockup.html) | [rbac-revamp-prd.md](designs/rbac/rbac-revamp-prd.md) |
+| Password Policy Enhancements | [password-enhancements.jsx](designs/admin-config/password-enhancements.jsx) | [password-enhancements.md](designs/admin-config/password-enhancements.md) |
 
 ## Analyzer Integration
 
