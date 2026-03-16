@@ -13,6 +13,7 @@ import App, {
   DEFAULT_ADDED,
   categories,
   categoryLabels,
+  themes,
 } from './App';
 
 // ═══════════════════════════════════════════════════════════════
@@ -537,5 +538,48 @@ describe('App component', () => {
     // The important thing is the mockup preview is no longer shown and the spec viewer rendered
     const fallbackLink = await screen.findByText('View on GitHub instead →');
     expect(fallbackLink).toBeInTheDocument();
+  });
+
+  it('renders a dark mode toggle button', () => {
+    render(<App />);
+    const toggle = screen.getByRole('button', { name: /switch to dark mode/i });
+    expect(toggle).toBeInTheDocument();
+  });
+
+  it('toggles dark mode when clicking the toggle', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    // Initially light mode (jsdom has no matchMedia preference)
+    const container = screen.getByText('OpenELIS Global — Design Gallery').closest('[data-theme]');
+    expect(container).toHaveAttribute('data-theme', 'light');
+
+    // Click to switch to dark
+    const toggle = screen.getByRole('button', { name: /switch to dark mode/i });
+    await user.click(toggle);
+
+    expect(container).toHaveAttribute('data-theme', 'dark');
+
+    // Now the button should say "Switch to light mode"
+    expect(screen.getByRole('button', { name: /switch to light mode/i })).toBeInTheDocument();
+  });
+});
+
+describe('themes', () => {
+  it('light and dark themes have the same keys', () => {
+    const lightKeys = Object.keys(themes.light).sort();
+    const darkKeys = Object.keys(themes.dark).sort();
+    expect(lightKeys).toEqual(darkKeys);
+  });
+
+  it('all theme values are non-empty strings', () => {
+    Object.entries(themes.light).forEach(([key, val]) => {
+      expect(typeof val).toBe('string');
+      expect(val.length).toBeGreaterThan(0);
+    });
+    Object.entries(themes.dark).forEach(([key, val]) => {
+      expect(typeof val).toBe('string');
+      expect(val.length).toBeGreaterThan(0);
+    });
   });
 });

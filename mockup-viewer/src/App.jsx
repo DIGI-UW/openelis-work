@@ -565,11 +565,82 @@ function SpecViewer({ specPath }) {
   );
 }
 
+/** Light and dark theme token maps (Carbon-inspired) */
+export const themes = {
+  light: {
+    bg: '#ffffff',
+    bgSubtle: '#f4f4f4',
+    text: '#161616',
+    textSecondary: '#525252',
+    textMuted: '#6f6f6f',
+    textFaint: '#a8a8a8',
+    border: '#e0e0e0',
+    borderInput: '#c6c6c6',
+    cardBg: '#ffffff',
+    headerBorder: '#0f62fe',
+    accent: '#0f62fe',
+    badgeBg: '#e0e0e0',
+    specBadgeBg: '#d0e2ff',
+    specBadgeColor: '#0043ce',
+    searchBg: '#ffffff',
+    tabBg: '#ffffff',
+    previewBg: '#f4f4f4',
+    errorBg: '#fff1f1',
+    errorColor: '#da1e28',
+    jiraBg: '#e8f5e9',
+    jiraColor: '#1b5e20',
+    jiraBorder: '#c8e6c9',
+    relatedBg: '#edf5ff',
+    cardShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    cardShadowHover: '0 4px 12px rgba(0,0,0,0.15)',
+    permalinkBg: '#e0e0e0',
+    permalinkColor: '#393939',
+  },
+  dark: {
+    bg: '#161616',
+    bgSubtle: '#262626',
+    text: '#f4f4f4',
+    textSecondary: '#c6c6c6',
+    textMuted: '#8d8d8d',
+    textFaint: '#6f6f6f',
+    border: '#393939',
+    borderInput: '#525252',
+    cardBg: '#262626',
+    headerBorder: '#0f62fe',
+    accent: '#78a9ff',
+    badgeBg: '#393939',
+    specBadgeBg: '#00264a',
+    specBadgeColor: '#78a9ff',
+    searchBg: '#262626',
+    tabBg: '#262626',
+    previewBg: '#1c1c1c',
+    errorBg: '#3b1111',
+    errorColor: '#ff8389',
+    jiraBg: '#1a3320',
+    jiraColor: '#6fdc8c',
+    jiraBorder: '#24693d',
+    relatedBg: '#002d5e',
+    cardShadow: '0 1px 3px rgba(0,0,0,0.3)',
+    cardShadowHover: '0 4px 12px rgba(0,0,0,0.5)',
+    permalinkBg: '#393939',
+    permalinkColor: '#c6c6c6',
+  },
+};
+
 function App() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedMockup, setSelectedMockup] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [detailTab, setDetailTab] = useState('preview'); // 'preview' or 'spec'
+  const [darkMode, setDarkMode] = useState(() => {
+    // Default to system preference
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+
+  const t = darkMode ? themes.dark : themes.light;
 
   // On mount, check if the URL hash points to a mockup
   useEffect(() => {
@@ -619,13 +690,46 @@ function App() {
     countByCategory[m.category] = (countByCategory[m.category] || 0) + 1;
   });
 
+  // Also update body background when theme changes
+  useEffect(() => {
+    document.body.style.background = t.bg;
+    document.body.style.color = t.text;
+    document.body.style.transition = 'background 0.2s, color 0.2s';
+  }, [darkMode, t.bg, t.text]);
+
   return (
-    <div style={styles.container}>
-      <header style={styles.header}>
-        <h1 style={styles.title}>OpenELIS Global — Design Gallery</h1>
-        <p style={styles.subtitle}>
-          {MOCKUP_REGISTRY.length} mockups across {Object.keys(countByCategory).length} categories
-        </p>
+    <div style={{ ...styles.container, background: t.bg, color: t.text }} data-theme={darkMode ? 'dark' : 'light'}>
+      <header style={{ ...styles.header, borderBottomColor: t.headerBorder }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h1 style={{ ...styles.title, color: t.text }}>OpenELIS Global — Design Gallery</h1>
+            <p style={{ ...styles.subtitle, color: t.textMuted }}>
+              {MOCKUP_REGISTRY.length} mockups across {Object.keys(countByCategory).length} categories
+            </p>
+          </div>
+          <button
+            onClick={() => setDarkMode((prev) => !prev)}
+            style={{
+              background: t.badgeBg,
+              border: `1px solid ${t.border}`,
+              borderRadius: 8,
+              padding: '6px 14px',
+              cursor: 'pointer',
+              fontSize: 13,
+              fontWeight: 500,
+              color: t.text,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              transition: 'background 0.2s',
+            }}
+            title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            <span style={{ fontSize: 16 }}>{darkMode ? '☀️' : '🌙'}</span>
+            {darkMode ? 'Light' : 'Dark'}
+          </button>
+        </div>
       </header>
 
       <div style={styles.toolbar}>
@@ -634,7 +738,7 @@ function App() {
           placeholder="Search mockups..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={styles.search}
+          style={{ ...styles.search, background: t.searchBg, borderColor: t.borderInput, color: t.text }}
         />
         <div style={styles.tabs}>
           {categories.map((cat) => (
@@ -643,7 +747,10 @@ function App() {
               onClick={() => { setActiveCategory(cat); selectMockup(null); }}
               style={{
                 ...styles.tab,
-                ...(activeCategory === cat ? styles.tabActive : {}),
+                background: t.tabBg,
+                color: t.text,
+                borderColor: t.borderInput,
+                ...(activeCategory === cat ? { ...styles.tabActive, background: t.accent, color: '#fff', borderColor: t.accent } : {}),
               }}
             >
               {categoryLabels[cat]}
@@ -656,12 +763,12 @@ function App() {
 
       {selectedMockup ? (
         <div>
-          <button onClick={() => selectMockup(null)} style={styles.backButton}>
+          <button onClick={() => selectMockup(null)} style={{ ...styles.backButton, color: t.accent }}>
             ← Back to Gallery
           </button>
           <div style={styles.mockupHeader}>
-            <h2 style={{ margin: 0 }}>{selectedMockup.name}</h2>
-            <span style={styles.badge}>{categoryLabels[selectedMockup.category]}</span>
+            <h2 style={{ margin: 0, color: t.text }}>{selectedMockup.name}</h2>
+            <span style={{ ...styles.badge, background: t.badgeBg, color: t.textSecondary }}>{categoryLabels[selectedMockup.category]}</span>
             <button
               onClick={() => {
                 const url = window.location.origin + window.location.pathname + toHash(selectedMockup);
@@ -669,26 +776,26 @@ function App() {
                   alert('Permalink copied!');
                 });
               }}
-              style={styles.permalinkButton}
+              style={{ ...styles.permalinkButton, background: t.permalinkBg, color: t.permalinkColor }}
               title="Copy permalink to clipboard"
             >
               Copy Link
             </button>
           </div>
-          <p style={styles.description}>
+          <p style={{ ...styles.description, color: t.textSecondary }}>
             {selectedMockup.description}
-            <span style={styles.dateTag}>Added {formatDate(selectedMockup.added || DEFAULT_ADDED)}</span>
+            <span style={{ ...styles.dateTag, color: t.textFaint }}>Added {formatDate(selectedMockup.added || DEFAULT_ADDED)}</span>
           </p>
           {selectedMockup.relatedTo && selectedMockup.relatedTo.length > 0 && (
             <div style={styles.relatedRow}>
-              <span style={{ color: '#6f6f6f', fontSize: 13 }}>See also:</span>
+              <span style={{ color: t.textMuted, fontSize: 13 }}>See also:</span>
               {selectedMockup.relatedTo.map((name) => {
                 const related = MOCKUP_REGISTRY.find(m => m.name === name);
                 return related ? (
                   <a
                     key={name}
                     href={'#'}
-                    style={styles.relatedLink}
+                    style={{ ...styles.relatedLink, color: t.accent, background: t.relatedBg }}
                     onClick={(e) => { e.preventDefault(); selectMockup(related); }}
                   >
                     {name}
@@ -709,12 +816,12 @@ function App() {
               </a>
             )}
             {selectedMockup.specPath && (
-              <a href={GITHUB_BASE + selectedMockup.specPath} target="_blank" rel="noopener" style={styles.link}>
+              <a href={GITHUB_BASE + selectedMockup.specPath} target="_blank" rel="noopener" style={{ ...styles.link, color: t.accent }}>
                 View Spec on GitHub
               </a>
             )}
             {selectedMockup.jira && selectedMockup.jira.map((key) => (
-              <a key={key} href={JIRA_BASE + key} target="_blank" rel="noopener" style={styles.jiraBadge} onClick={(e) => e.stopPropagation()}>
+              <a key={key} href={JIRA_BASE + key} target="_blank" rel="noopener" style={{ ...styles.jiraBadge, background: t.jiraBg, color: t.jiraColor, borderColor: t.jiraBorder }} onClick={(e) => e.stopPropagation()}>
                 {key}
               </a>
             ))}
@@ -729,15 +836,15 @@ function App() {
             return (
               <>
                 {showTabs && (
-                  <div style={styles.detailTabs}>
+                  <div style={{ ...styles.detailTabs, borderBottomColor: t.border }}>
                     <button
-                      style={{ ...styles.detailTab, ...(activeTab === 'preview' ? styles.detailTabActive : {}) }}
+                      style={{ ...styles.detailTab, color: t.textMuted, ...(activeTab === 'preview' ? { ...styles.detailTabActive, color: t.accent, borderBottomColor: t.accent } : {}) }}
                       onClick={() => setDetailTab('preview')}
                     >
                       Mockup Preview
                     </button>
                     <button
-                      style={{ ...styles.detailTab, ...(activeTab === 'spec' ? styles.detailTabActive : {}) }}
+                      style={{ ...styles.detailTab, color: t.textMuted, ...(activeTab === 'spec' ? { ...styles.detailTabActive, color: t.accent, borderBottomColor: t.accent } : {}) }}
                       onClick={() => setDetailTab('spec')}
                     >
                       Spec Document
@@ -745,15 +852,15 @@ function App() {
                   </div>
                 )}
                 {!showTabs && hasSpec && !hasPreview && (
-                  <div style={styles.detailTabs}>
-                    <button style={{ ...styles.detailTab, ...styles.detailTabActive }}>Spec Document</button>
+                  <div style={{ ...styles.detailTabs, borderBottomColor: t.border }}>
+                    <button style={{ ...styles.detailTab, ...styles.detailTabActive, color: t.accent, borderBottomColor: t.accent }}>Spec Document</button>
                   </div>
                 )}
-                <div style={styles.preview}>
+                <div style={{ ...styles.preview, background: t.previewBg, borderColor: t.border }}>
                   {activeTab === 'spec' && hasSpec ? (
                     <SpecViewer specPath={selectedMockup.specPath} />
                   ) : selectedMockup.component ? (
-                    <Suspense fallback={<div style={styles.loading}>Loading mockup...</div>}>
+                    <Suspense fallback={<div style={{ ...styles.loading, color: t.textMuted }}>Loading mockup...</div>}>
                       <ErrorBoundary name={selectedMockup.name}>
                         <selectedMockup.component />
                       </ErrorBoundary>
@@ -762,13 +869,13 @@ function App() {
                     <div style={styles.figmaEmbed}>
                       <iframe
                         src={selectedMockup.figmaUrl.replace('/make/', '/embed/') + '&embed-host=share'}
-                        style={styles.figmaIframe}
+                        style={{ ...styles.figmaIframe, borderColor: t.border }}
                         allowFullScreen
                         title={selectedMockup.name}
                       />
-                      <p style={styles.figmaFallback}>
+                      <p style={{ ...styles.figmaFallback, color: t.textMuted }}>
                         If the embed doesn't load,{' '}
-                        <a href={selectedMockup.figmaUrl} target="_blank" rel="noopener" style={styles.link}>
+                        <a href={selectedMockup.figmaUrl} target="_blank" rel="noopener" style={{ ...styles.link, color: t.accent }}>
                           open directly in Figma
                         </a>
                       </p>
@@ -777,18 +884,18 @@ function App() {
                     <div style={styles.figmaEmbed}>
                       <iframe
                         src={import.meta.env.BASE_URL + selectedMockup.htmlUrl}
-                        style={{ ...styles.figmaIframe, height: 800 }}
+                        style={{ ...styles.figmaIframe, height: 800, borderColor: t.border }}
                         allowFullScreen
                         title={selectedMockup.name}
                       />
-                      <p style={styles.figmaFallback}>
-                        <a href={import.meta.env.BASE_URL + selectedMockup.htmlUrl} target="_blank" rel="noopener" style={styles.link}>
+                      <p style={{ ...styles.figmaFallback, color: t.textMuted }}>
+                        <a href={import.meta.env.BASE_URL + selectedMockup.htmlUrl} target="_blank" rel="noopener" style={{ ...styles.link, color: t.accent }}>
                           Open mockup in full page ↗
                         </a>
                       </p>
                     </div>
                   ) : (
-                    <div style={styles.loading}>No preview available for this entry.</div>
+                    <div style={{ ...styles.loading, color: t.textMuted }}>No preview available for this entry.</div>
                   )}
                 </div>
               </>
@@ -798,33 +905,34 @@ function App() {
       ) : (
         <div style={styles.grid}>
           {filtered.length === 0 ? (
-            <div style={styles.empty}>No mockups match your search.</div>
+            <div style={{ ...styles.empty, color: t.textMuted }}>No mockups match your search.</div>
           ) : (
             filtered.map((mockup, i) => {
               const etype = getEntryType(mockup);
               const typeConf = entryTypeConfig[etype];
+              const typeBgDark = darkMode ? typeConf.color + '22' : typeConf.bg; // subtle alpha in dark mode
               return (
               <div
                 key={i}
-                style={{ ...styles.card, borderLeft: `3px solid ${typeConf.color}` }}
+                style={{ ...styles.card, background: t.cardBg, borderColor: t.border, borderLeft: `3px solid ${typeConf.color}`, boxShadow: t.cardShadow }}
                 onClick={() => selectMockup(mockup)}
-                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)')}
-                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)')}
+                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = t.cardShadowHover)}
+                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = t.cardShadow)}
               >
                 <div style={styles.cardHeader}>
-                  <span style={styles.badge}>{categoryLabels[mockup.category]}</span>
+                  <span style={{ ...styles.badge, background: t.badgeBg, color: t.textSecondary }}>{categoryLabels[mockup.category]}</span>
                   <div style={{ display: 'flex', gap: 4 }}>
-                    <span style={{ ...styles.typeBadge, background: typeConf.bg, color: typeConf.color }}>{typeConf.label}</span>
-                    {mockup.specPath && etype !== 'spec' && <span style={styles.specBadge}>has spec</span>}
+                    <span style={{ ...styles.typeBadge, background: typeBgDark, color: typeConf.color }}>{typeConf.label}</span>
+                    {mockup.specPath && etype !== 'spec' && <span style={{ ...styles.specBadge, background: t.specBadgeBg, color: t.specBadgeColor }}>has spec</span>}
                   </div>
                 </div>
-                <h3 style={styles.cardTitle}>{mockup.name}</h3>
-                <p style={styles.cardDesc}>{mockup.description}</p>
-                <span style={styles.cardDate}>{formatDate(mockup.added || DEFAULT_ADDED)}</span>
+                <h3 style={{ ...styles.cardTitle, color: t.text }}>{mockup.name}</h3>
+                <p style={{ ...styles.cardDesc, color: t.textSecondary }}>{mockup.description}</p>
+                <span style={{ ...styles.cardDate, color: t.textFaint }}>{formatDate(mockup.added || DEFAULT_ADDED)}</span>
                 {mockup.jira && mockup.jira.length > 0 && (
                   <div style={{ display: 'flex', gap: 4, marginTop: 8, flexWrap: 'wrap' }}>
                     {mockup.jira.map((key) => (
-                      <a key={key} href={JIRA_BASE + key} target="_blank" rel="noopener" style={styles.jiraBadge} onClick={(e) => e.stopPropagation()}>
+                      <a key={key} href={JIRA_BASE + key} target="_blank" rel="noopener" style={{ ...styles.jiraBadge, background: t.jiraBg, color: t.jiraColor, borderColor: t.jiraBorder }} onClick={(e) => e.stopPropagation()}>
                         {key}
                       </a>
                     ))}

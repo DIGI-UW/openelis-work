@@ -52,3 +52,36 @@
 .spec-content a { color: #0f62fe; text-decoration: none; }
 .spec-content a:hover { text-decoration: underline; }
 .spec-content hr { border: none; border-top: 1px solid #e0e0e0; margin: 16px 0; }
+
+/* ─── Dark mode overrides ─── */
+[data-theme="dark"] .spec-content h1 { color: #f4f4f4; border-bottom-color: #393939; }
+[data-theme="dark"] .spec-content h2 { color: #f4f4f4; }
+[data-theme="dark"] .spec-content h3 { color: #c6c6c6; }
+[data-theme="dark"] .spec-content h4 { color: #c6c6c6; }
+[data-theme="dark"] .spec-content { color: #c6c6c6; }
+[data-theme="dark"] .spec-content code {
+  background: #393939;
+  color: #f4f4f4;
+}
+[data-theme="dark"] .spec-content pre {
+  background: #1c1c1c;
+  border-color: #393939;
+}
+[data-theme="dark"] .spec-content th,
+[data-theme="dark"] .spec-content td {
+  border-color: #393939;
+}
+[data-theme="dark"] .spec-content th {
+  background: #262626;
+  color: #f4f4f4;
+}
+[data-theme="dark"] .spec-content tr:nth-child(even) {
+  background: #1c1c1c;
+}
+[data-theme="dark"] .spec-content blockquote {
+  border-left-color: #78a9ff;
+  color: #c6c6c6;
+  background: #1c1c1c;
+}
+[data-theme="dark"] .spec-content a { color: #78a9ff; }
+[data-theme="dark"] .spec-content hr { border-top-color: #393939; }
