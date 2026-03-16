@@ -355,6 +355,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/validation-page/validation-patient-demographics-frs-v1.md',
     jira: ['OGC-291', 'OGC-343'],
     added: '2026-03-09',
+    status: 'review',
     relatedTo: ['Patient Demographics Mockup', 'Patient Demographics FRS'],
   },
   {
@@ -365,6 +366,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/validation-page/validation-patient-demographics-frs-v1.md',
     jira: ['OGC-291', 'OGC-343'],
     added: '2026-03-09',
+    status: 'review',
     relatedTo: ['Validation Page v3 (Demographics)', 'Patient Demographics FRS'],
   },
   {
@@ -375,6 +377,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/validation-page/validation-patient-demographics-frs-v1.md',
     jira: ['OGC-291', 'OGC-343'],
     added: '2026-03-09',
+    status: 'review',
     relatedTo: ['Validation Page v3 (Demographics)', 'Patient Demographics Mockup'],
   },
 
@@ -486,6 +489,15 @@ const entryTypeConfig = {
   figma: { label: 'Figma', color: '#7c3aed', bg: '#f3e8ff' },
   spec:  { label: 'Spec Only', color: '#6f6f6f', bg: '#f4f4f4' },
 };
+
+/** Status configuration — entries default to 'draft' if not specified */
+export const STATUS_DEFAULT = 'draft';
+export const statusConfig = {
+  draft:    { label: 'Draft',    color: '#8a3ffc', bg: '#f3e8ff', darkBg: '#8a3ffc22', icon: '✎' },
+  review:   { label: 'In Review', color: '#f1c21b', bg: '#fff8e1', darkBg: '#f1c21b22', icon: '⏳' },
+  approved: { label: 'Approved', color: '#198038', bg: '#defbe6', darkBg: '#19803822', icon: '✓' },
+};
+export const statusKeys = Object.keys(statusConfig);
 
 /** Format an ISO date string as "Mar 9, 2026" */
 export function formatDate(isoDate) {
@@ -631,6 +643,7 @@ function App() {
   const [selectedMockup, setSelectedMockup] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [detailTab, setDetailTab] = useState('preview'); // 'preview' or 'spec'
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'draft', 'review', 'approved'
   const [darkMode, setDarkMode] = useState(() => {
     // Default to system preference
     if (typeof window !== 'undefined' && window.matchMedia) {
@@ -675,13 +688,14 @@ function App() {
 
   const filtered = MOCKUP_REGISTRY.filter((m) => {
     const matchesCategory = activeCategory === 'all' || m.category === activeCategory;
+    const matchesStatus = statusFilter === 'all' || (m.status || STATUS_DEFAULT) === statusFilter;
     const matchesSearch =
       !searchQuery ||
       m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       m.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       m.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (m.jira && m.jira.some((key) => key.toLowerCase().includes(searchQuery.toLowerCase())));
-    return matchesCategory && matchesSearch;
+    return matchesCategory && matchesStatus && matchesSearch;
   });
 
   const countByCategory = {};
@@ -739,6 +753,17 @@ function App() {
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{ ...styles.search, background: t.searchBg, borderColor: t.borderInput, color: t.text }}
         />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          style={{ ...styles.statusSelect, background: t.searchBg, borderColor: t.borderInput, color: t.text }}
+          aria-label="Filter by status"
+        >
+          <option value="all">All statuses</option>
+          {statusKeys.map((key) => (
+            <option key={key} value={key}>{statusConfig[key].icon} {statusConfig[key].label}</option>
+          ))}
+        </select>
         <div style={styles.tabs}>
           {categories.map((cat) => (
             <button
@@ -768,6 +793,11 @@ function App() {
           <div style={styles.mockupHeader}>
             <h2 style={{ margin: 0, color: t.text }}>{selectedMockup.name}</h2>
             <span style={{ ...styles.badge, background: t.badgeBg, color: t.textSecondary }}>{categoryLabels[selectedMockup.category]}</span>
+            {(() => { const st = statusConfig[selectedMockup.status || STATUS_DEFAULT]; return (
+              <span style={{ ...styles.statusBadge, background: darkMode ? st.darkBg : st.bg, color: st.color, borderColor: st.color + '44' }}>
+                {st.icon} {st.label}
+              </span>
+            ); })()}
             <button
               onClick={() => {
                 const url = window.location.origin + window.location.pathname + toHash(selectedMockup);
@@ -927,7 +957,14 @@ function App() {
                 </div>
                 <h3 style={{ ...styles.cardTitle, color: t.text }}>{mockup.name}</h3>
                 <p style={{ ...styles.cardDesc, color: t.textSecondary }}>{mockup.description}</p>
-                <span style={{ ...styles.cardDate, color: t.textFaint }}>{formatDate(mockup.added || DEFAULT_ADDED)}</span>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 6 }}>
+                  <span style={{ ...styles.cardDate, margin: 0 }}>{formatDate(mockup.added || DEFAULT_ADDED)}</span>
+                  {(() => { const st = statusConfig[mockup.status || STATUS_DEFAULT]; return (
+                    <span style={{ ...styles.statusBadge, background: darkMode ? st.darkBg : st.bg, color: st.color, borderColor: st.color + '44', fontSize: 10, padding: '1px 6px' }}>
+                      {st.icon} {st.label}
+                    </span>
+                  ); })()}
+                </div>
                 {mockup.jira && mockup.jira.length > 0 && (
                   <div style={{ display: 'flex', gap: 4, marginTop: 8, flexWrap: 'wrap' }}>
                     {mockup.jira.map((key) => (
@@ -1014,6 +1051,8 @@ const styles = {
   detailTabActive: { color: '#0f62fe', borderBottomColor: '#0f62fe' },
   specContent: { padding: '8px 0', fontSize: 14, lineHeight: 1.7, color: '#161616', maxWidth: 800 },
   specError: { padding: 24, textAlign: 'center', color: '#6f6f6f' },
+  statusBadge: { display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600, border: '1px solid' },
+  statusSelect: { padding: '8px 12px', border: '1px solid #c6c6c6', borderRadius: 4, fontSize: 14, cursor: 'pointer' },
 };
 
 export default App;

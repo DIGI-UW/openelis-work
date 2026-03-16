@@ -14,6 +14,9 @@ import App, {
   categories,
   categoryLabels,
   themes,
+  statusConfig,
+  statusKeys,
+  STATUS_DEFAULT,
 } from './App';
 
 // ═══════════════════════════════════════════════════════════════
@@ -582,5 +585,58 @@ describe('themes', () => {
       expect(typeof val).toBe('string');
       expect(val.length).toBeGreaterThan(0);
     });
+  });
+});
+
+describe('statusConfig', () => {
+  it('has draft, review, and approved statuses', () => {
+    expect(statusKeys).toContain('draft');
+    expect(statusKeys).toContain('review');
+    expect(statusKeys).toContain('approved');
+  });
+
+  it('each status has label, color, bg, darkBg, and icon', () => {
+    statusKeys.forEach((key) => {
+      const conf = statusConfig[key];
+      expect(conf.label).toBeTruthy();
+      expect(conf.color).toBeTruthy();
+      expect(conf.bg).toBeTruthy();
+      expect(conf.darkBg).toBeTruthy();
+      expect(conf.icon).toBeTruthy();
+    });
+  });
+
+  it('entries with status have valid status values', () => {
+    MOCKUP_REGISTRY.forEach((m) => {
+      if (m.status) {
+        expect(statusKeys, `Invalid status "${m.status}" on "${m.name}"`).toContain(m.status);
+      }
+    });
+  });
+
+  it('STATUS_DEFAULT is a valid status key', () => {
+    expect(statusKeys).toContain(STATUS_DEFAULT);
+  });
+});
+
+describe('status filter', () => {
+  it('renders a status filter dropdown', () => {
+    render(<App />);
+    const select = screen.getByRole('combobox', { name: /filter by status/i });
+    expect(select).toBeInTheDocument();
+  });
+
+  it('filtering by review shows only review entries', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const reviewCount = MOCKUP_REGISTRY.filter(m => (m.status || STATUS_DEFAULT) === 'review').length;
+    if (reviewCount === 0) return; // skip if no review entries
+
+    const select = screen.getByRole('combobox', { name: /filter by status/i });
+    await user.selectOptions(select, 'review');
+
+    const titles = screen.getAllByRole('heading', { level: 3 });
+    expect(titles.length).toBe(reviewCount);
   });
 });
