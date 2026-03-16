@@ -6,15 +6,77 @@ import {
 
 // ═══════════════════════════════════════════════════════════════
 // OpenELIS Global — Validation Page Stage 1 Mockup
+// + Patient Demographics (Sex & Age D-M-Y)
+//
 // Minimal UI changes on top of the EXISTING flat-table layout.
 //
 // Changes from current UI:
 //   1. New "Validation" column (only shown when multi-level)
 //   2. Context-aware Save button label
 //   3. Tooltip on level tag showing validation history
+//   4. NEW: Sex and Age (D-M-Y) columns in results table
 //
 // Everything else (checkboxes, bulk actions, layout) is UNCHANGED.
 // ═══════════════════════════════════════════════════════════════
+
+// --- i18n stub (mirrors OpenELIS message properties pattern) ---
+const messages = {
+  "label.validation.patientSex": "Sex",
+  "label.validation.patientAge": "Age (D-M-Y)",
+  "label.validation.sex.male": "Male",
+  "label.validation.sex.female": "Female",
+  "label.validation.sex.unknown": "Unknown",
+  "label.validation.sex.male.short": "M",
+  "label.validation.sex.female.short": "F",
+  "label.validation.sex.unknown.short": "U",
+  "label.validation.age.unknown": "—",
+  "label.validation.age.approximate.tooltip":
+    "Age is approximate — sample collection date was not recorded",
+  "label.validation.patientDemographics": "Patient Demographics",
+};
+const t = (key, fallback) => messages[key] || fallback || key;
+
+// --- Age Calculation (D-M-Y format, relative to sample collection date) ---
+const calculateAgeDMY = (dobStr, collectionDateStr) => {
+  if (!dobStr) return null;
+  // If no collection date, use current date and mark approximate
+  const useApproximate = !collectionDateStr;
+  const parse = (s) => {
+    const [m, d, y] = s.split("/");
+    return new Date(+y, +m - 1, +d);
+  };
+  const birth = parse(dobStr);
+  const reference = collectionDateStr
+    ? parse(collectionDateStr)
+    : new Date();
+  if (birth > reference) return null;
+
+  let years = reference.getFullYear() - birth.getFullYear();
+  let months = reference.getMonth() - birth.getMonth();
+  let days = reference.getDate() - birth.getDate();
+  if (days < 0) {
+    months -= 1;
+    days += new Date(reference.getFullYear(), reference.getMonth(), 0).getDate();
+  }
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+  const age = `${days}D-${months}M-${years}Y`;
+  return useApproximate ? `~${age}` : age;
+};
+
+const getSexShort = (sex) => {
+  if (sex === "M") return t("label.validation.sex.male.short", "M");
+  if (sex === "F") return t("label.validation.sex.female.short", "F");
+  return t("label.validation.sex.unknown.short", "U");
+};
+
+const getSexFull = (sex) => {
+  if (sex === "M") return t("label.validation.sex.male", "Male");
+  if (sex === "F") return t("label.validation.sex.female", "Female");
+  return t("label.validation.sex.unknown", "Unknown");
+};
 
 // --- Lab Configuration (simulates admin setting) ---
 const LAB_CONFIG = {
@@ -35,6 +97,9 @@ const MOCK_RESULTS = [
     specimen: "Immunohistochemistry specimen",
     normalRange: "",
     result: "test",
+    sex: "F",
+    dob: "05/15/1988",
+    collectionDate: "03/01/2026",
     validationLevelsRequired: LAB_CONFIG.levelsRequired,
     validationLevelCurrent: 1,
     validationHistory: [],
@@ -47,6 +112,9 @@ const MOCK_RESULTS = [
     specimen: "Immunohistochemistry specimen",
     normalRange: "",
     result: "test",
+    sex: "F",
+    dob: "05/15/1988",
+    collectionDate: "03/01/2026",
     validationLevelsRequired: LAB_CONFIG.levelsRequired,
     validationLevelCurrent: 1,
     validationHistory: [],
@@ -59,6 +127,9 @@ const MOCK_RESULTS = [
     specimen: "Immunohistochemistry specimen",
     normalRange: "",
     result: "test",
+    sex: "F",
+    dob: "05/15/1988",
+    collectionDate: "03/01/2026",
     validationLevelsRequired: LAB_CONFIG.levelsRequired,
     validationLevelCurrent: 1,
     validationHistory: [],
@@ -71,6 +142,9 @@ const MOCK_RESULTS = [
     specimen: "Immunohistochemistry specimen",
     normalRange: "",
     result: "30 %",
+    sex: "M",
+    dob: "11/20/1975",
+    collectionDate: "03/01/2026",
     validationLevelsRequired: LAB_CONFIG.levelsRequired,
     validationLevelCurrent: 2,
     validationHistory: [
@@ -91,6 +165,9 @@ const MOCK_RESULTS = [
     specimen: "Immunohistochemistry specimen",
     normalRange: "",
     result: "10-15 %",
+    sex: "M",
+    dob: "11/20/1975",
+    collectionDate: "03/01/2026",
     validationLevelsRequired: LAB_CONFIG.levelsRequired,
     validationLevelCurrent: 2,
     validationHistory: [
@@ -111,6 +188,9 @@ const MOCK_RESULTS = [
     specimen: "Immunohistochemistry specimen",
     normalRange: "",
     result: "",
+    sex: "M",
+    dob: "11/20/1975",
+    collectionDate: "03/01/2026",
     validationLevelsRequired: LAB_CONFIG.levelsRequired,
     validationLevelCurrent: 1,
     validationHistory: [],
@@ -123,6 +203,9 @@ const MOCK_RESULTS = [
     specimen: "Immunohistochemistry specimen",
     normalRange: "",
     result: "See Pathology Report",
+    sex: "F",
+    dob: "08/10/2000",
+    collectionDate: "03/02/2026",
     validationLevelsRequired: LAB_CONFIG.levelsRequired,
     validationLevelCurrent: 2,
     validationHistory: [
@@ -134,6 +217,38 @@ const MOCK_RESULTS = [
         action: "VALIDATE",
       },
     ],
+    isNonconforming: false,
+  },
+  // --- Neonatal patient (tests age D-M-Y for very young patients) ---
+  {
+    id: "r8",
+    sampleInfo: "26-NEO-000-001",
+    testName: "Bilirubin Total",
+    specimen: "Serum specimen",
+    normalRange: "0.1 - 12.0 mg/dL",
+    result: "14.2 mg/dL",
+    sex: "M",
+    dob: "12/01/2025",
+    collectionDate: "03/05/2026",
+    validationLevelsRequired: LAB_CONFIG.levelsRequired,
+    validationLevelCurrent: 1,
+    validationHistory: [],
+    isNonconforming: false,
+  },
+  // --- Missing DOB patient (tests graceful degradation) ---
+  {
+    id: "r9",
+    sampleInfo: "26-UNK-000-002",
+    testName: "CBC",
+    specimen: "Blood specimen",
+    normalRange: "",
+    result: "See report",
+    sex: null,
+    dob: null,
+    collectionDate: "03/03/2026",
+    validationLevelsRequired: LAB_CONFIG.levelsRequired,
+    validationLevelCurrent: 1,
+    validationHistory: [],
     isNonconforming: false,
   },
 ];
@@ -367,6 +482,13 @@ export default function ValidationPageStage1() {
                   <th className="text-left text-sm font-medium text-gray-600 py-3 px-3 w-48">
                     Sample Info
                   </th>
+                  {/* ═══ NEW: Sex & Age columns (Demographics Change) ═══ */}
+                  <th className="text-left text-sm font-medium text-gray-600 py-3 px-3 w-12">
+                    {t("label.validation.patientSex", "Sex")}
+                  </th>
+                  <th className="text-left text-sm font-medium text-gray-600 py-3 px-3 w-32">
+                    {t("label.validation.patientAge", "Age (D-M-Y)")}
+                  </th>
                   <th className="text-left text-sm font-medium text-gray-600 py-3 px-3">
                     Test Name
                   </th>
@@ -398,6 +520,28 @@ export default function ValidationPageStage1() {
                         <Copy className="w-4 h-4 text-gray-400" />
                         <span className="text-sm text-gray-900">{row.sampleInfo}</span>
                       </div>
+                    </td>
+                    {/* ═══ NEW: Sex & Age cells (Demographics Change) ═══ */}
+                    <td className="py-4 px-3">
+                      <span className="text-sm font-bold text-gray-800">
+                        {getSexShort(row.sex)}
+                      </span>
+                    </td>
+                    <td className="py-4 px-3">
+                      {(() => {
+                        const age = calculateAgeDMY(row.dob, row.collectionDate);
+                        if (!age) return <span className="text-sm text-gray-400">{t("label.validation.age.unknown", "\u2014")}</span>;
+                        const isApproximate = age.startsWith("~");
+                        return (
+                          <span
+                            className={`text-sm font-mono ${isApproximate ? "text-amber-600 italic" : "text-gray-700"}`}
+                            title={isApproximate ? t("label.validation.age.approximate.tooltip") : undefined}
+                            style={{ whiteSpace: "nowrap" }}
+                          >
+                            {age}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="py-4 px-3">
                       <div className="flex items-center gap-2">
@@ -487,7 +631,7 @@ export default function ValidationPageStage1() {
         <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-yellow-800 mb-3">
             <Info className="w-4 h-4" />
-            Stage 1 Changes Summary (annotation only — not shown in production)
+            Stage 1 + Demographics Changes Summary (annotation only — not shown in production)
           </div>
           <div className="space-y-2 text-sm text-yellow-700">
             <div className="flex items-start gap-2">
@@ -513,17 +657,29 @@ export default function ValidationPageStage1() {
               </span>
             </div>
             <div className="flex items-start gap-2">
+              <span className="font-bold text-yellow-800">Change #4 (NEW — Demographics):</span>
+              <span>
+                New <strong>Sex</strong> and <strong>Age (D-M-Y)</strong> columns added between
+                Sample Info and Test Name. Sex shows single-letter abbreviation (M/F/U). Age shows
+                Days-Months-Years calculated from patient DOB relative to sample collection date
+                (e.g., "4D-3M-0Y" for a 3-month-old neonate). Missing DOB shows "—". Missing
+                collection date shows approximate age with "~" prefix in amber italic. Includes
+                mock data for neonatal patient (r8) and missing-DOB patient (r9).
+              </span>
+            </div>
+            <div className="flex items-start gap-2">
               <span className="font-bold text-yellow-800">Unchanged:</span>
               <span>
                 Breadcrumb, page title, search/filter, bulk checkboxes (Save All Normal, Save All
-                Results, Retest All Tests), table structure, pagination, flat table layout (no
+                Results, Retest All Tests), pagination, flat table layout (no
                 expandable rows). All of these remain identical to the current UI.
               </span>
             </div>
           </div>
           <div className="mt-3 text-xs text-yellow-600">
             Try checking some Save checkboxes to see the Save button label change. Hover over the
-            "Validation X/Y" tags to see the history tooltip.
+            "Validation X/Y" tags to see the history tooltip. Note the neonatal patient (r8) showing
+            a young age like "4D-3M-0Y" and the missing-DOB patient (r9) showing "—" for age.
           </div>
         </div>
       </div>

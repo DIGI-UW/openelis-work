@@ -1,12 +1,12 @@
-# Patient Sex & Age Display on Validation Screen
-## Functional Requirements Specification — v1.0
+# Validation Screen Enhancements
+## Functional Requirements Specification — v2.0
 
-**Version:** 1.0
+**Version:** 2.0
 **Date:** 2026-03-09
 **Status:** Draft for Review
 **Jira:** OGC-291 (Validation), OGC-343
 **Technology:** Java Spring Framework, Carbon React
-**Related Modules:** Validation, Results Entry, Reference Ranges
+**Related Modules:** Validation, Results Entry, Reference Ranges, Admin Configuration
 
 ---
 
@@ -29,17 +29,35 @@
 
 ## 1. Executive Summary
 
-This enhancement adds patient biological sex and age (in Days-Months-Years format) to the validation screen. Both fields are displayed in the patient header area and as inline columns in the results DataTable. The age is calculated as of the sample collection date. This enables validators at all levels (routine, technical, supervisor) to instantly verify whether the normal/reference ranges shown for each result are appropriate for the patient's demographic profile — without navigating to a separate patient record.
+This specification covers a staged set of enhancements to the OpenELIS Global validation screen. These changes improve validator confidence in result correctness and support configurable multi-level validation workflows.
+
+**Enhancement A — Patient Demographics (Sex & Age):** Adds patient biological sex and age (Days-Months-Years format, calculated at sample collection date) as inline columns in the results table and in the patient header. Enables validators to verify that normal/reference ranges are appropriate for the patient's demographic profile without navigating away.
+
+**Enhancement B — Multi-Level Validation Column:** When the lab is configured for more than one validation level, a new "Validation" column appears in the results table showing the current level (e.g., "Validation 1/2"). This column is hidden for single-level labs to avoid visual noise.
+
+**Enhancement C — Context-Aware Save Button:** The Save button label dynamically reflects what will happen when clicked — showing counts of results that will be released versus advanced to the next validation level.
+
+**Enhancement D — Validation History Tooltip:** Hovering or clicking the validation level tag reveals a tooltip showing the full validation progress: which levels are complete, who validated at each level and when, and which level is currently awaiting action.
 
 ---
 
 ## 2. Problem Statement
 
-**Current state:** Validators reviewing results on the validation screen can see the test name, result value, and normal range, but cannot see the patient's sex or age. To verify that the reference range is appropriate (e.g., pediatric vs. adult, male vs. female for analytes like creatinine or hemoglobin), validators must navigate away from the validation screen to the patient record, mentally calculate the age, then return. This disrupts workflow and increases the risk of approving results against incorrect reference ranges.
+### 2.1 Demographics Gap (Enhancement A)
 
-**Impact:** Mismatched reference ranges can lead to false normal/abnormal classifications. In pediatric and neonatal care, where reference ranges shift rapidly with age, the risk is especially acute. Validators who skip the demographic check due to workflow friction may approve clinically misleading results.
+**Current state:** Validators can see the test name, result value, and normal range, but cannot see the patient's sex or age. To verify that the reference range is appropriate (e.g., pediatric vs. adult, male vs. female for analytes like creatinine or hemoglobin), validators must navigate away to the patient record, mentally calculate the age, then return. This disrupts workflow and increases the risk of approving results against incorrect reference ranges.
 
-**Proposed solution:** Display patient sex (single letter: M/F/U) and age (Days-Months-Years format, calculated at sample collection date) in two locations on the validation screen: (1) the patient information header area, and (2) as two new columns ("Sex" and "Age") in the results validation DataTable. This applies to all validation levels.
+**Impact:** Mismatched reference ranges can lead to false normal/abnormal classifications. In pediatric and neonatal care, where reference ranges shift rapidly with age, the risk is especially acute.
+
+**Proposed solution:** Display patient sex (single letter: M/F/U) and age (Days-Months-Years format) as two new table columns and in the patient header.
+
+### 2.2 Multi-Level Validation Visibility (Enhancements B, C, D)
+
+**Current state:** When a lab configures multi-level validation (e.g., supervisor review followed by lab manager sign-off), the validation screen shows no indication of which level the result is currently at, who has already validated, or what the Save action will do (release vs. advance). Validators operate without context about where a result sits in the approval chain.
+
+**Impact:** Validators may not realize a result still needs additional sign-offs, leading to confusion about why a result wasn't released after they saved. Supervisors reviewing second-level results have no quick way to see who performed the first validation, requiring them to check audit logs.
+
+**Proposed solution:** (B) Add a "Validation X/Y" column that appears only when multi-level validation is active. (C) Make the Save button label reflect the outcome of the current action. (D) Provide a tooltip on the level tag showing the complete validation chain with names and timestamps.
 
 ---
 
@@ -96,6 +114,52 @@ This enhancement adds patient biological sex and age (in Days-Months-Years forma
 
 **FR-AGE-004:** If the sample collection date is missing, the system MUST fall back to the order entry date for age calculation and display an informational indicator (e.g., "~" prefix) to signal the approximation.
 
+### 4.4 Multi-Level Validation Column (Enhancement B)
+
+**FR-LVL-001:** When the lab is configured for more than one validation level (`levelsRequired > 1`), the results table MUST display a "Validation" column showing the result's current position in the validation chain.
+
+**FR-LVL-002:** The Validation column MUST display a tag showing "Validation X/Y" where X is the current validation level and Y is the total levels required (e.g., "Validation 1/2", "Validation 2/2").
+
+**FR-LVL-003:** When the result has completed one or more previous validation levels (i.e., `validationLevelCurrent > 1`), the tag MUST include a checkmark icon to indicate prior levels are complete.
+
+**FR-LVL-004:** When the result is at its final validation level (`validationLevelCurrent == validationLevelsRequired`), the tag MUST use a visually distinct style (teal background) to signal that saving will release the result.
+
+**FR-LVL-005:** When the result is at an intermediate level (not final), the tag MUST use a different style (blue background) to signal that saving will advance the result to the next level.
+
+**FR-LVL-006:** The Validation column MUST be hidden entirely when the lab is configured for single-level validation (`levelsRequired == 1`) to avoid visual clutter. The table structure MUST remain unchanged for single-level labs.
+
+**FR-LVL-007:** The Validation column MUST be positioned between the "Result" column and the "Save" checkbox column.
+
+### 4.5 Context-Aware Save Button (Enhancement C)
+
+**FR-SAV-001:** When multi-level validation is active and one or more results are checked for saving, the Save button label MUST dynamically reflect the outcome of the save action.
+
+**FR-SAV-002:** If all checked results are at their final validation level, the Save button MUST read: `Save — validates & releases N result(s)` where N is the count.
+
+**FR-SAV-003:** If all checked results are at an intermediate level, the Save button MUST read: `Save — advances N result(s) to next level` where N is the count.
+
+**FR-SAV-004:** If the checked results include a mix of final-level and intermediate-level results, the Save button MUST read: `Save — N will release, M will advance` where N and M are the respective counts.
+
+**FR-SAV-005:** When no results are checked, or when the lab uses single-level validation, the Save button MUST display the default label "Save".
+
+**FR-SAV-006:** The Save button label MUST update in real time as the user checks or unchecks individual Save checkboxes, Save All Normal, or Save All Results.
+
+### 4.6 Validation History Tooltip (Enhancement D)
+
+**FR-TIP-001:** Hovering over or clicking the validation level tag (FR-LVL-002) MUST display a tooltip/popover showing the full validation progress for that result.
+
+**FR-TIP-002:** The tooltip MUST display each validation level as a row containing: the level number, the required role name (e.g., "Supervisor", "Lab Manager"), and the status.
+
+**FR-TIP-003:** For completed validation levels, the tooltip MUST show: a checkmark icon, the validator's name, and the date/time of validation (e.g., "Dr. Williams — 03/01/2026 10:15").
+
+**FR-TIP-004:** For the current (in-progress) validation level, the tooltip MUST show: an open circle icon and the text "Awaiting your validation".
+
+**FR-TIP-005:** For future (not-yet-reached) validation levels, the tooltip MUST show: a dimmed circle icon and the text "Pending".
+
+**FR-TIP-006:** The tooltip MUST include a title "Validation Progress" at the top.
+
+**FR-TIP-007:** The tooltip MUST dismiss when the user moves the mouse away from the tag (on hover) or clicks outside the tooltip (on click).
+
 ---
 
 ## 5. Data Model
@@ -113,6 +177,13 @@ No schema changes required. The data needed already exists:
 | Patient | sex | String | Already stored ("M", "F", null) |
 | Patient | dateOfBirth | Date | Already stored |
 | Sample | collectionDate | Date | Already stored on the sample/order |
+| LabConfig | levelsRequired | Integer | Already stored; default 1 |
+| LabConfig | levels[] | Array | Already stored; each entry has level number and role name |
+| ValidationHistory | level | Integer | Already stored per result |
+| ValidationHistory | validatedBy | String | Already stored |
+| ValidationHistory | validatedAt | Timestamp | Already stored |
+| ValidationHistory | role | String | Already stored |
+| ValidationHistory | action | String | Already stored ("VALIDATE", "REJECT", etc.) |
 
 ### Computed Fields (API response only)
 
@@ -120,6 +191,9 @@ No schema changes required. The data needed already exists:
 |---|---|---|---|
 | patientAge | String | `collectionDate - dateOfBirth` → "XD-YM-ZY" | Calculated server-side per result |
 | patientSex | String | Direct from Patient.sex, defaulting to "U" | Normalized for display |
+| validationLevelsRequired | Integer | From LabConfig (lab-wide or unit override) | Per-result for display |
+| validationLevelCurrent | Integer | Next validation level needed for this result | 1-indexed |
+| validationHistory | Array | List of completed validation entries | Includes who, when, role, action |
 
 ---
 
@@ -129,7 +203,7 @@ No new endpoints required. The existing validation results endpoint must be modi
 
 | Method | Path | Change | Permission |
 |---|---|---|---|
-| GET | `/api/v1/validation/results` | Add `patientSex` and `patientAge` fields to each result item in the response | `result.validate` |
+| GET | `/api/v1/validation/results` | Add demographics and validation-level fields to each result item | `result.validate` |
 
 **Response field additions:**
 
@@ -144,21 +218,43 @@ No new endpoints required. The existing validation results endpoint must be modi
       "patientAgeApproximate": false,
       "testName": "...",
       "result": "...",
-      "normalRange": "..."
+      "normalRange": "...",
+      "validationLevelsRequired": 2,
+      "validationLevelCurrent": 1,
+      "validationHistory": [
+        {
+          "level": 1,
+          "validatedBy": "Dr. Williams",
+          "validatedAt": "2026-03-01T10:15:00Z",
+          "role": "Supervisor",
+          "action": "VALIDATE"
+        }
+      ]
     }
   ]
 }
 ```
 
+**Field definitions:**
+
 - `patientSex`: "M", "F", or "U"
 - `patientAge`: Formatted D-M-Y string, or null if DOB is missing
 - `patientAgeApproximate`: Boolean — true if collection date was missing and order entry date was used instead
+- `validationLevelsRequired`: Integer — total validation levels configured for this result's lab unit (from LabConfig or unit override)
+- `validationLevelCurrent`: Integer — the validation level this result is currently awaiting (1-indexed; equals `validationLevelsRequired` at the final level)
+- `validationHistory`: Array — list of completed validation entries, each with `level`, `validatedBy`, `validatedAt`, `role`, and `action`
 
 ---
 
 ## 7. UI Design
 
-See companion React mockup: `validation-patient-demographics-mockup.jsx`
+### Companion Mockups
+
+| Mockup | Scope | Notes |
+|---|---|---|
+| `validation-page-stage1-demographics-mockup.jsx` | Stage 1 flat table with Demographics + Validation column + Save button + Tooltip | Primary reference for implementation |
+| `validation-page-mockup-v3-demographics.jsx` | Expanded-row view with demographics in both table and patient banner | Future stage reference |
+| `validation-page-stage1-mockup.jsx` | Stage 1 baseline without demographics | Before/after comparison |
 
 ### Navigation Path
 
@@ -166,17 +262,22 @@ Validation → Routine Results / Technical Validation / Supervisor Validation
 
 ### Key Screens
 
-1. **Validation Results List** — Enhanced with Sex and Age columns in the DataTable, plus sex and age in the patient header Tile.
+1. **Validation Results List** — Enhanced with Sex and Age columns, conditional Validation column, context-aware Save button, and validation history tooltips.
 
 ### Interaction Patterns
 
-- **Read-only display** — No edit, expand, or modal behavior for the new fields
+- **Read-only demographics** — Sex and Age columns are display-only, no edit behavior
 - **Sortable columns** — Sex and Age columns support click-to-sort
-- **Patient header** — Existing patient info Tile extended with Sex tag and Age text
+- **Conditional Validation column** — Appears only when `levelsRequired > 1`; hidden for single-level labs
+- **Validation level tag** — Interactive: hover or click reveals history tooltip
+- **Tooltip dismiss** — Mouse-leave or click-outside dismisses the validation history tooltip
+- **Dynamic Save label** — Updates in real time as checkboxes are toggled
 
 ---
 
 ## 8. Business Rules
+
+### Demographics (Enhancement A)
 
 **BR-001:** Age MUST always be calculated relative to the sample collection date, not the current date or the validation date.
 
@@ -189,6 +290,20 @@ Validation → Routine Results / Technical Validation / Supervisor Validation
 **BR-005:** If sample collection date is missing but order entry date exists, use order entry date and set `patientAgeApproximate = true`. The UI MUST indicate the approximation with a "~" prefix (e.g., "~0D-3M-25Y").
 
 **BR-006:** Sex and age display MUST be consistent across all validation levels (routine, technical, supervisor). No level-specific differences.
+
+### Multi-Level Validation (Enhancements B, C, D)
+
+**BR-007:** The Validation column MUST only appear when `levelsRequired > 1`. For single-level labs (`levelsRequired == 1`), the column MUST be completely absent from the DOM — not merely hidden.
+
+**BR-008:** Saving a result at an intermediate validation level (`validationLevelCurrent < validationLevelsRequired`) MUST advance it to the next level. Saving at the final level MUST release the result.
+
+**BR-009:** The Save button label MUST reflect the combined effect of all currently checked results. It MUST update immediately (no debounce) when checkboxes change.
+
+**BR-010:** The validation history tooltip MUST show entries only for completed levels. It MUST NOT display history for the current or future levels beyond the status indicator.
+
+**BR-011:** When "Save All Normal" is checked, only results where `isNonconforming == false` are included. When "Save All Results" is checked, all results are included regardless of nonconforming status.
+
+**BR-012:** A result's `validationLevelCurrent` MUST be derived from its `validationHistory` — it equals `max(history.level) + 1`, capped at `validationLevelsRequired`. If no history exists, the current level is 1.
 
 ---
 
@@ -212,6 +327,17 @@ All UI text is externalized. The following i18n keys must be added to the messag
 | `heading.validation.patientInfo` | Patient Information |
 | `label.validation.patientId` | Patient ID |
 | `label.validation.collectionDate` | Collection Date |
+| **New keys (Enhancement B — Validation Column)** | |
+| `label.validation.level` | Validation |
+| `label.validation.level.progress` | Validation {current}/{total} |
+| `label.validation.level.tooltip.title` | Validation Progress |
+| `label.validation.level.tooltip.complete` | Level {level} ({role}) |
+| `label.validation.level.tooltip.awaiting` | Awaiting your validation |
+| `label.validation.level.tooltip.pending` | Pending |
+| **New keys (Enhancement C — Save Button)** | |
+| `button.validation.save.release` | Save — validates & releases {count} result(s) |
+| `button.validation.save.advance` | Save — advances {count} result(s) to next level |
+| `button.validation.save.mixed` | Save — {releaseCount} will release, {advanceCount} will advance |
 | **Existing keys (verified in mockup)** | |
 | `label.validation.accessionNumber` | Accession # |
 | `label.validation.patientName` | Patient |
@@ -242,12 +368,15 @@ All UI text is externalized. The following i18n keys must be added to the messag
 
 ## 10. Validation Rules
 
-No form validation rules apply — all fields are read-only display. Server-side validation of the age calculation is covered by unit tests.
+No form validation rules apply — all new display fields are read-only. Server-side validation of the age calculation and level tracking is covered by unit tests.
 
 | Computation | Rule | Handling |
 |---|---|---|
 | Age calculation | DOB must not be after collection date | Display "—" if DOB > collection date (data error) |
 | Sex normalization | Must be "M", "F", or null | Normalize anything else to "U" |
+| Validation level bounds | `validationLevelCurrent` must be between 1 and `validationLevelsRequired` | Clamp to valid range; log warning |
+| History consistency | Each history entry's level must be < `validationLevelCurrent` | Ignore out-of-range entries; log warning |
+| Save action integrity | Cannot save a result if `validationLevelCurrent` is 0 or has already been fully released | Disable Save checkbox for released results |
 
 ---
 
@@ -255,35 +384,70 @@ No form validation rules apply — all fields are read-only display. Server-side
 
 | Action | Required Permission | UI Behavior if Denied |
 |---|---|---|
-| View validation screen (including sex/age) | `result.validate` | Page not shown in menu |
+| View validation screen (including sex/age, validation levels) | `result.validate` | Page not shown in menu |
+| Perform validation (save/advance/release) | `result.validate` | Save button disabled |
 
-No new permissions are introduced. Sex and age are read-only patient demographics already visible on other screens (patient record, order entry). Displaying them on the validation screen does not expand data access beyond what validators already have.
+No new permissions are introduced. Sex, age, and validation level information are read-only display fields. The validation history tooltip shows only names of validators who have already acted — this is existing audit data, not a new access grant. RBAC is unchanged from the current system.
 
 ---
 
 ## 12. Acceptance Criteria
 
-### Functional
+### Enhancement A — Patient Demographics
 
-- [ ] Patient header displays full sex word ("Male"/"Female"/"Unknown") with a Carbon Tag
-- [ ] Patient header displays age in D-M-Y format (e.g., "0D-3M-25Y")
 - [ ] DataTable includes "Sex" column with single letter ("M"/"F"/"U")
-- [ ] DataTable includes "Age" column with D-M-Y format
+- [ ] DataTable includes "Age (D-M-Y)" column with Days-Months-Years format
+- [ ] Sex and Age columns are positioned between Sample Info and Test Name
 - [ ] Age is calculated from sample collection date, not current date
 - [ ] Sex and Age columns are sortable
-- [ ] When DOB is missing, table shows "—" and header shows "Unknown"
-- [ ] When sex is missing, table shows "U" and header shows "Unknown"
-- [ ] When collection date is missing, age uses order entry date with "~" prefix
+- [ ] When DOB is missing, table shows "—" for age
+- [ ] When sex is missing, table shows "U"
+- [ ] When collection date is missing, age uses order entry date with "~" prefix in amber italic
+- [ ] Neonatal patient (e.g., 3-month-old) shows age like "4D-3M-0Y"
 - [ ] Sex and age display on routine, technical, and supervisor validation levels
+
+### Enhancement B — Multi-Level Validation Column
+
+- [ ] "Validation" column appears when `levelsRequired > 1`
+- [ ] "Validation" column is hidden when `levelsRequired == 1`
+- [ ] Tag shows "Validation X/Y" with correct level numbers
+- [ ] Tag at intermediate level uses blue styling
+- [ ] Tag at final level uses teal styling with checkmark icon
+- [ ] Tag at level 1 (no prior validations) shows no checkmark icon
+- [ ] Column is positioned between Result and Save columns
+
+### Enhancement C — Context-Aware Save Button
+
+- [ ] Save button reads "Save" when nothing is checked
+- [ ] Save button reads "Save" for single-level labs regardless of what is checked
+- [ ] Checking results at final level shows "Save — validates & releases N result(s)"
+- [ ] Checking results at intermediate level shows "Save — advances N result(s) to next level"
+- [ ] Checking a mix of final and intermediate results shows "Save — N will release, M will advance"
+- [ ] Label updates immediately when checkboxes are toggled
+- [ ] "Save All Normal" correctly excludes nonconforming results from count
+- [ ] "Save All Results" includes all results in count
+
+### Enhancement D — Validation History Tooltip
+
+- [ ] Hovering over the validation tag shows the tooltip
+- [ ] Clicking the validation tag shows the tooltip
+- [ ] Tooltip title reads "Validation Progress"
+- [ ] Completed levels show checkmark icon, validator name, and date/time
+- [ ] Current level shows open circle icon and "Awaiting your validation"
+- [ ] Future levels show dimmed circle icon and "Pending"
+- [ ] Tooltip dismisses on mouse-leave
+- [ ] Tooltip dismisses on click-outside
 
 ### Non-Functional
 
 - [ ] All UI strings use i18n keys — no hardcoded English
-- [ ] Page load time is not measurably degraded (sex/age adds negligible payload)
+- [ ] Page load time is not measurably degraded
 - [ ] Permissions enforced at API level (HTTP 403 for unauthorized access)
 - [ ] Feature tested with French language file to verify i18n
+- [ ] Single-level lab UI is visually identical to pre-enhancement layout (no Validation column visible)
 
 ### Integration
 
 - [ ] Existing validation workflow (accept/reject/save) is unaffected by the new columns
 - [ ] Reference Ranges module is NOT modified — this feature is display-only
+- [ ] Validation history entries are created by the existing audit system — no new audit writes required
