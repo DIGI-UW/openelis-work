@@ -83,6 +83,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Role-based access control revamp — role management, permission matrix, user assignment',
     specPath: 'designs/rbac/rbac-revamp-prd.md',
     htmlUrl: 'designs/rbac/rbac-ui-mockup.html',
+    added: '2026-03-04',
   },
 
   // ─── Analyzer Integration ───
@@ -93,6 +94,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Sysmex XP-100/XP-300 ASTM field mapping & bi-directional integration spec',
     specPath: 'designs/analyzer-integration/sysmex-xp-field-mapping-v0.1.md',
     jira: ['OGC-214'],
+    added: '2026-03-05',
   },
   {
     name: 'BioRad CFX Opus Connection Spec',
@@ -100,6 +102,7 @@ export const MOCKUP_REGISTRY = [
     component: null,
     description: 'BioRad CFX Opus Real-Time PCR — CSV/RDML export, LIMS integration via CFX Maestro',
     specPath: 'designs/analyzer-integration/biorad-cfx-opus-analyzer-connection-spec.md',
+    added: '2026-03-05',
   },
   {
     name: 'Sysmex XN-L Series Field Mapping',
@@ -107,6 +110,7 @@ export const MOCKUP_REGISTRY = [
     component: null,
     description: 'Sysmex XN-L Series (XN-330 through XN-550) ASTM host-query bi-directional integration spec',
     specPath: 'designs/analyzer-integration/sysmex-xn-field-mapping-v0.1.md',
+    added: '2026-03-06',
   },
   {
     name: 'DNA Technology DT-Prime Field Mapping',
@@ -114,6 +118,7 @@ export const MOCKUP_REGISTRY = [
     component: null,
     description: 'DNA Technology DT-Prime Real-Time PCR — XML file-based export, qualitative results parsing',
     specPath: 'designs/analyzer-integration/dna-technology-dtprime-field-mapping-v0.2.md',
+    added: '2026-03-06',
   },
   {
     name: 'Tecan Infinite F50 Connection Spec',
@@ -121,6 +126,8 @@ export const MOCKUP_REGISTRY = [
     component: null,
     description: 'Tecan Infinite F50 ELISA Reader — Magellan CSV/XML export, absorbance microplate reader',
     specPath: 'designs/analyzer-integration/tecan-infinite-f50-analyzer-connection-spec.md',
+    added: '2026-03-06',
+    relatedTo: ['Tecan Infinite F50 Companion Guide'],
   },
   {
     name: 'Thermo Multiskan FC Connection Spec',
@@ -128,6 +135,8 @@ export const MOCKUP_REGISTRY = [
     component: null,
     description: 'Thermo Scientific Multiskan FC ELISA Reader — SkanIt CSV/TXT export, filter-based photometer',
     specPath: 'designs/analyzer-integration/thermo-multiskan-fc-analyzer-connection-spec.md',
+    added: '2026-03-06',
+    relatedTo: ['Thermo Multiskan FC Companion Guide'],
   },
   {
     name: 'QuantStudio 5/7 Flex Field Mapping',
@@ -136,6 +145,8 @@ export const MOCKUP_REGISTRY = [
     description: 'QuantStudio 5 / 7 Flex HIV Viral Load — XLS export field mapping, 31-column Results sheet parsing',
     specPath: 'designs/analyzer-integration/quantstudio-field-mapping-spec-v131.md',
     jira: ['OGC-348'],
+    added: '2026-03-06',
+    relatedTo: ['QuantStudio 5/7 Flex Companion Guide'],
   },
   {
     name: 'QuantStudio 5/7 Flex Companion Guide',
@@ -144,6 +155,8 @@ export const MOCKUP_REGISTRY = [
     description: 'QuantStudio 5 / 7 Flex setup & export guide — QS D&A software export walkthrough for lab staff',
     specPath: 'designs/analyzer-integration/quantstudio-companion-guide-v10.md',
     jira: ['OGC-348'],
+    added: '2026-03-06',
+    relatedTo: ['QuantStudio 5/7 Flex Field Mapping'],
   },
   {
     name: 'FluoroCycler XT Integration Spec',
@@ -151,6 +164,8 @@ export const MOCKUP_REGISTRY = [
     component: null,
     description: 'FluoroCycler XT Real-Time PCR — Excel flat file manual workflow for HIV Viral Load',
     specPath: 'designs/analyzer-integration/fluorocycler-xt-integration-spec-v1.0.md',
+    added: '2026-03-06',
+    relatedTo: ['FluoroCycler XT Companion Guide'],
   },
   {
     name: 'FluoroCycler XT Companion Guide',
@@ -158,6 +173,8 @@ export const MOCKUP_REGISTRY = [
     component: null,
     description: 'FluoroCycler XT setup & export guide — Excel template workflow for lab staff',
     specPath: 'designs/analyzer-integration/fluorocycler-xt-companion-setup-guide-v1.0.md',
+    added: '2026-03-06',
+    relatedTo: ['FluoroCycler XT Integration Spec'],
   },
   {
     name: 'Tecan Infinite F50 Companion Guide',
@@ -165,6 +182,8 @@ export const MOCKUP_REGISTRY = [
     component: null,
     description: 'Tecan Infinite F50 companion setup guide — Madagascar custom Excel workflow (validated)',
     specPath: 'designs/analyzer-integration/tecan-infinite-f50-companion-guide.md',
+    added: '2026-03-06',
+    relatedTo: ['Tecan Infinite F50 Connection Spec'],
   },
   {
     name: 'Thermo Multiskan FC Companion Guide',
@@ -172,6 +191,8 @@ export const MOCKUP_REGISTRY = [
     component: null,
     description: 'Thermo Multiskan FC companion setup guide — SkanIt export configuration for OpenELIS',
     specPath: 'designs/analyzer-integration/thermo-multiskan-fc-companion-guide.md',
+    added: '2026-03-06',
+    relatedTo: ['Thermo Multiskan FC Connection Spec'],
   },
   {
     name: 'Analyzer File Upload',
@@ -315,6 +336,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/validation-page/validation-page-mockup-v2.jsx')),
     description: 'Full v2 redesign — multi-level validation pipeline, admin config, role-based levels, auto-validation',
     specPath: 'designs/validation-page/validation-page-requirements-v2.md',
+    added: '2026-03-04',
   },
   {
     name: 'Validation Page v2.1 (Stage 1)',
@@ -322,6 +344,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/validation-page/validation-page-stage1-mockup.jsx')),
     description: 'Stage 1 scoped — multi-signature pipeline with minimal UI changes to existing validation page',
     specPath: 'designs/validation-page/validation-page-requirements-v2.1-stage1.md',
+    added: '2026-03-04',
   },
   {
     name: 'Validation Page v3 (Demographics)',
@@ -330,6 +353,8 @@ export const MOCKUP_REGISTRY = [
     description: 'v3 adds patient sex and age (D-M-Y) columns for demographic-aware reference range verification',
     specPath: 'designs/validation-page/validation-patient-demographics-frs-v1.md',
     jira: ['OGC-291', 'OGC-343'],
+    added: '2026-03-09',
+    relatedTo: ['Patient Demographics Mockup', 'Patient Demographics FRS'],
   },
   {
     name: 'Patient Demographics Mockup',
@@ -338,6 +363,8 @@ export const MOCKUP_REGISTRY = [
     description: 'Patient demographics display — sex tag, age calculation, patient info header with Carbon components',
     specPath: 'designs/validation-page/validation-patient-demographics-frs-v1.md',
     jira: ['OGC-291', 'OGC-343'],
+    added: '2026-03-09',
+    relatedTo: ['Validation Page v3 (Demographics)', 'Patient Demographics FRS'],
   },
   {
     name: 'Patient Demographics FRS',
@@ -346,6 +373,8 @@ export const MOCKUP_REGISTRY = [
     description: 'Patient Sex & Age Display on Validation Screen FRS v1.0 — D-M-Y age format, sex normalization',
     specPath: 'designs/validation-page/validation-patient-demographics-frs-v1.md',
     jira: ['OGC-291', 'OGC-343'],
+    added: '2026-03-09',
+    relatedTo: ['Validation Page v3 (Demographics)', 'Patient Demographics Mockup'],
   },
 
   // ─── System ───
@@ -380,6 +409,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/sample-collection/sample-collection-redesign.md',
     htmlUrl: 'designs/sample-collection/sample-collection-redesign-mockup.html',
     jira: ['OGC-70'],
+    added: '2026-03-04',
   },
 
   // ─── Other ───
@@ -440,6 +470,27 @@ export const categoryLabels = {
   'system': 'System',
   'other': 'Other',
 };
+
+/** Determine entry type for visual distinction */
+export function getEntryType(mockup) {
+  if (mockup.component) return 'jsx';
+  if (mockup.htmlUrl) return 'html';
+  if (mockup.figmaUrl) return 'figma';
+  return 'spec';
+}
+
+const entryTypeConfig = {
+  jsx:   { label: 'JSX Mockup', color: '#0f62fe', bg: '#edf5ff' },
+  html:  { label: 'HTML Mockup', color: '#6929c4', bg: '#f3e8ff' },
+  figma: { label: 'Figma', color: '#7c3aed', bg: '#f3e8ff' },
+  spec:  { label: 'Spec Only', color: '#6f6f6f', bg: '#f4f4f4' },
+};
+
+/** Format an ISO date string as "Mar 9, 2026" */
+export function formatDate(isoDate) {
+  const d = new Date(isoDate + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
 /** Find a mockup by its hash path (e.g. "pathology/cytology-case-view") */
 export function findMockupByHash(hash) {
@@ -566,7 +617,28 @@ function App() {
               Copy Link
             </button>
           </div>
-          <p style={styles.description}>{selectedMockup.description}</p>
+          <p style={styles.description}>
+            {selectedMockup.description}
+            <span style={styles.dateTag}>Added {formatDate(selectedMockup.added || DEFAULT_ADDED)}</span>
+          </p>
+          {selectedMockup.relatedTo && selectedMockup.relatedTo.length > 0 && (
+            <div style={styles.relatedRow}>
+              <span style={{ color: '#6f6f6f', fontSize: 13 }}>See also:</span>
+              {selectedMockup.relatedTo.map((name) => {
+                const related = MOCKUP_REGISTRY.find(m => m.name === name);
+                return related ? (
+                  <a
+                    key={name}
+                    href={'#'}
+                    style={styles.relatedLink}
+                    onClick={(e) => { e.preventDefault(); selectMockup(related); }}
+                  >
+                    {name}
+                  </a>
+                ) : null;
+              })}
+            </div>
+          )}
           <div style={styles.links}>
             {selectedMockup.figmaUrl && (
               <a href={selectedMockup.figmaUrl} target="_blank" rel="noopener" style={styles.figmaLink}>
@@ -635,10 +707,13 @@ function App() {
           {filtered.length === 0 ? (
             <div style={styles.empty}>No mockups match your search.</div>
           ) : (
-            filtered.map((mockup, i) => (
+            filtered.map((mockup, i) => {
+              const etype = getEntryType(mockup);
+              const typeConf = entryTypeConfig[etype];
+              return (
               <div
                 key={i}
-                style={styles.card}
+                style={{ ...styles.card, borderLeft: `3px solid ${typeConf.color}` }}
                 onClick={() => selectMockup(mockup)}
                 onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)')}
                 onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)')}
@@ -646,13 +721,13 @@ function App() {
                 <div style={styles.cardHeader}>
                   <span style={styles.badge}>{categoryLabels[mockup.category]}</span>
                   <div style={{ display: 'flex', gap: 4 }}>
-                    {mockup.figmaUrl && <span style={styles.figmaBadge}>figma</span>}
-                    {mockup.htmlUrl && <span style={styles.htmlBadge}>html</span>}
-                    {mockup.specPath && <span style={styles.specBadge}>has spec</span>}
+                    <span style={{ ...styles.typeBadge, background: typeConf.bg, color: typeConf.color }}>{typeConf.label}</span>
+                    {mockup.specPath && etype !== 'spec' && <span style={styles.specBadge}>has spec</span>}
                   </div>
                 </div>
                 <h3 style={styles.cardTitle}>{mockup.name}</h3>
                 <p style={styles.cardDesc}>{mockup.description}</p>
+                <span style={styles.cardDate}>{formatDate(mockup.added || DEFAULT_ADDED)}</span>
                 {mockup.jira && mockup.jira.length > 0 && (
                   <div style={{ display: 'flex', gap: 4, marginTop: 8, flexWrap: 'wrap' }}>
                     {mockup.jira.map((key) => (
@@ -663,7 +738,8 @@ function App() {
                   </div>
                 )}
               </div>
-            ))
+              );
+            })
           )}
         </div>
       )}
@@ -728,6 +804,11 @@ const styles = {
   figmaIframe: { width: '100%', height: 600, border: '1px solid #e0e0e0', borderRadius: 8 },
   figmaFallback: { color: '#6f6f6f', fontSize: 13 },
   jiraBadge: { display: 'inline-block', background: '#e8f5e9', color: '#1b5e20', padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600, textDecoration: 'none', border: '1px solid #c8e6c9', cursor: 'pointer' },
+  typeBadge: { padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600 },
+  cardDate: { display: 'block', marginTop: 6, fontSize: 11, color: '#a8a8a8' },
+  dateTag: { display: 'inline-block', marginLeft: 12, fontSize: 12, color: '#a8a8a8', fontStyle: 'italic' },
+  relatedRow: { display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' },
+  relatedLink: { color: '#0f62fe', fontSize: 13, textDecoration: 'none', padding: '2px 10px', background: '#edf5ff', borderRadius: 12, fontWeight: 500 },
 };
 
 export default App;

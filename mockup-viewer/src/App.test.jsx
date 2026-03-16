@@ -5,6 +5,8 @@ import App, {
   toSlug,
   toHash,
   findMockupByHash,
+  formatDate,
+  getEntryType,
   MOCKUP_REGISTRY,
   GITHUB_BASE,
   JIRA_BASE,
@@ -169,6 +171,87 @@ describe('categories & categoryLabels', () => {
 
   it('includes "all" as the first category', () => {
     expect(categories[0]).toBe('all');
+  });
+});
+
+describe('formatDate', () => {
+  it('formats an ISO date as "Mon D, YYYY"', () => {
+    expect(formatDate('2026-03-09')).toBe('Mar 9, 2026');
+  });
+
+  it('formats the default added date', () => {
+    expect(formatDate(DEFAULT_ADDED)).toBe('Mar 3, 2026');
+  });
+
+  it('handles different months', () => {
+    expect(formatDate('2026-01-15')).toBe('Jan 15, 2026');
+    expect(formatDate('2026-12-25')).toBe('Dec 25, 2026');
+  });
+});
+
+describe('added dates', () => {
+  it('entries with added field have valid ISO dates', () => {
+    MOCKUP_REGISTRY.forEach((entry) => {
+      if (entry.added) {
+        expect(entry.added, `"${entry.name}" has invalid added date`)
+          .toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      }
+    });
+  });
+});
+
+describe('getEntryType', () => {
+  it('returns "jsx" for entries with a component', () => {
+    expect(getEntryType({ component: () => {} })).toBe('jsx');
+  });
+
+  it('returns "html" for entries with htmlUrl but no component', () => {
+    expect(getEntryType({ component: null, htmlUrl: 'foo.html' })).toBe('html');
+  });
+
+  it('returns "figma" for entries with figmaUrl but no component or htmlUrl', () => {
+    expect(getEntryType({ component: null, figmaUrl: 'https://figma.com/...' })).toBe('figma');
+  });
+
+  it('returns "spec" for entries with only specPath', () => {
+    expect(getEntryType({ component: null, specPath: 'foo.md' })).toBe('spec');
+  });
+
+  it('correctly classifies all registry entries', () => {
+    MOCKUP_REGISTRY.forEach((entry) => {
+      const type = getEntryType(entry);
+      expect(['jsx', 'html', 'figma', 'spec']).toContain(type);
+    });
+  });
+});
+
+describe('relatedTo integrity', () => {
+  it('all relatedTo references point to existing entries', () => {
+    const names = new Set(MOCKUP_REGISTRY.map(m => m.name));
+    MOCKUP_REGISTRY.forEach((entry) => {
+      if (entry.relatedTo) {
+        entry.relatedTo.forEach((relName) => {
+          expect(names.has(relName),
+            `"${entry.name}" references non-existent related entry "${relName}"`
+          ).toBe(true);
+        });
+      }
+    });
+  });
+
+  it('relatedTo links are bidirectional', () => {
+    MOCKUP_REGISTRY.forEach((entry) => {
+      if (entry.relatedTo) {
+        entry.relatedTo.forEach((relName) => {
+          const related = MOCKUP_REGISTRY.find(m => m.name === relName);
+          if (related && related.relatedTo) {
+            expect(related.relatedTo.includes(entry.name),
+              `"${relName}" does not link back to "${entry.name}"`
+            ).toBe(true);
+          }
+        });
+      }
+    });
   });
 });
 
@@ -392,11 +475,14 @@ describe('App component', () => {
     expect(jiraLinks[0]).toHaveAttribute('href', JIRA_BASE + entryWithJira.jira[0]);
   });
 
-  it('cards show "has spec" badge for entries with specPath', () => {
+  it('cards show "has spec" badge for non-spec-only entries with specPath', () => {
     render(<App />);
     const specBadges = screen.getAllByText('has spec');
-    const entriesWithSpec = MOCKUP_REGISTRY.filter(m => m.specPath);
-    expect(specBadges.length).toBe(entriesWithSpec.length);
+    // "has spec" only shown for entries that have a specPath AND are not spec-only type
+    const entriesWithSpecAndMockup = MOCKUP_REGISTRY.filter(m =>
+      m.specPath && (m.component || m.htmlUrl || m.figmaUrl)
+    );
+    expect(specBadges.length).toBe(entriesWithSpecAndMockup.length);
   });
 
   it('navigates to a mockup via URL hash on mount', () => {
