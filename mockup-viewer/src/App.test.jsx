@@ -20,6 +20,8 @@ import App, {
   statusKeys,
   STATUS_DEFAULT,
   sanitizeComment,
+  buildStatusChangeUrl,
+  parseStatusFromComment,
 } from './App';
 
 // ═══════════════════════════════════════════════════════════════
@@ -755,5 +757,84 @@ describe('GitHub Issues integration', () => {
     // Should now be in detail view
     expect(screen.getByText('← Back to Gallery')).toBeInTheDocument();
     expect(screen.queryByText('Discussion')).toBeNull();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// buildStatusChangeUrl — pre-filled GitHub comment URLs
+// ═══════════════════════════════════════════════════════════════
+
+describe('buildStatusChangeUrl', () => {
+  it('returns null when no issueNumber', () => {
+    expect(buildStatusChangeUrl(null, 'approved', 'Test')).toBeNull();
+    expect(buildStatusChangeUrl(undefined, 'approved', 'Test')).toBeNull();
+  });
+
+  it('returns null for invalid status', () => {
+    expect(buildStatusChangeUrl(1, 'invalid', 'Test')).toBeNull();
+  });
+
+  it('builds correct URL for valid inputs', () => {
+    const url = buildStatusChangeUrl(42, 'approved', 'My Design');
+    expect(url).toContain('https://github.com/DIGI-UW/openelis-work/issues/42');
+    expect(url).toContain('body=');
+    // URL-encoded body should contain the status label and design name
+    const decoded = decodeURIComponent(url);
+    expect(decoded).toContain('Approved');
+    expect(decoded).toContain('My Design');
+    expect(decoded).toContain('`approved`');
+  });
+
+  it('builds URLs for all valid statuses', () => {
+    statusKeys.forEach((key) => {
+      const url = buildStatusChangeUrl(1, key, 'Test');
+      expect(url).not.toBeNull();
+      expect(url).toContain('issues/1');
+    });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// parseStatusFromComment — detect status-change comments
+// ═══════════════════════════════════════════════════════════════
+
+describe('parseStatusFromComment', () => {
+  it('returns null for falsy input', () => {
+    expect(parseStatusFromComment(null)).toBeNull();
+    expect(parseStatusFromComment('')).toBeNull();
+    expect(parseStatusFromComment(undefined)).toBeNull();
+  });
+
+  it('returns null for regular comments', () => {
+    expect(parseStatusFromComment('This looks great!')).toBeNull();
+    expect(parseStatusFromComment('I have some feedback on the layout')).toBeNull();
+  });
+
+  it('parses backtick-style status markers', () => {
+    expect(parseStatusFromComment('New status: `approved`')).toBe('approved');
+    expect(parseStatusFromComment('New status: `draft`')).toBe('draft');
+    expect(parseStatusFromComment('New status: `review`')).toBe('review');
+  });
+
+  it('parses arrow-style status markers', () => {
+    expect(parseStatusFromComment('**Status Change → ✓ Approved**')).toBe('approved');
+    expect(parseStatusFromComment('**Status Change → ✎ Draft**')).toBe('draft');
+    expect(parseStatusFromComment('**Status Change → ⏳ In Review**')).toBe('review');
+  });
+
+  it('parses from multi-line comment bodies', () => {
+    const body = `**Status Change → ✓ Approved**
+
+Design: Validation Page v3
+New status: \`approved\`
+Changed by: Casey
+Date: 2026-03-15
+Reason: Looks good, ready for implementation`;
+    expect(parseStatusFromComment(body)).toBe('approved');
+  });
+
+  it('ignores invalid status values in backtick format', () => {
+    expect(parseStatusFromComment('New status: `invalid`')).toBeNull();
+    expect(parseStatusFromComment('New status: `pending`')).toBeNull();
   });
 });

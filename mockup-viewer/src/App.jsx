@@ -502,6 +502,34 @@ export const statusConfig = {
 };
 export const statusKeys = Object.keys(statusConfig);
 
+/**
+ * Build a GitHub "new comment" URL with a pre-filled status change template.
+ * Used by the gallery UI so anyone can propose a status change — honor system.
+ */
+export function buildStatusChangeUrl(issueNumber, newStatus, designName) {
+  if (!issueNumber) return null;
+  const conf = statusConfig[newStatus];
+  if (!conf) return null;
+  const body = `**Status Change → ${conf.icon} ${conf.label}**\n\nDesign: ${designName}\nNew status: \`${newStatus}\`\nChanged by: _(your name)_\nDate: ${new Date().toISOString().slice(0, 10)}\n\nReason: `;
+  return `${GITHUB_ISSUES_URL}/${issueNumber}#issuecomment-new?body=${encodeURIComponent(body)}`;
+}
+
+/**
+ * Parse a comment body for status-change markers.
+ * Returns the status key if found, or null.
+ */
+export function parseStatusFromComment(body) {
+  if (!body) return null;
+  // Match "New status: `draft`" or "Status Change → ✎ Draft"
+  const backtickMatch = body.match(/New status:\s*`(\w+)`/i);
+  if (backtickMatch && statusConfig[backtickMatch[1]]) return backtickMatch[1];
+  // Fallback: match label
+  for (const [key, conf] of Object.entries(statusConfig)) {
+    if (body.includes(`Status Change → ${conf.icon} ${conf.label}`)) return key;
+  }
+  return null;
+}
+
 /** Format an ISO date string as "Mar 9, 2026" */
 export function formatDate(isoDate) {
   const d = new Date(isoDate + 'T00:00:00');
@@ -616,10 +644,11 @@ function formatCommentDate(isoString) {
 }
 
 /** Fetch and display GitHub Issue comments for a design entry */
-function CommentViewer({ issueNumber, darkMode, theme: t }) {
+function CommentViewer({ issueNumber, darkMode, theme: t, designName }) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [liveStatus, setLiveStatus] = useState(null);
 
   useEffect(() => {
     if (!issueNumber) return;
@@ -635,6 +664,11 @@ function CommentViewer({ issueNumber, darkMode, theme: t }) {
       })
       .then((data) => {
         setComments(data);
+        // Derive live status from the most recent status-change comment
+        for (let i = data.length - 1; i >= 0; i--) {
+          const parsed = parseStatusFromComment(data[i].body);
+          if (parsed) { setLiveStatus(parsed); break; }
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -657,8 +691,53 @@ function CommentViewer({ issueNumber, darkMode, theme: t }) {
     );
   }
 
+  const effectiveStatus = liveStatus || STATUS_DEFAULT;
+  const effConf = statusConfig[effectiveStatus];
+
   return (
     <div style={{ maxWidth: 700 }}>
+      {/* Live status banner derived from comments */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '10px 14px', marginBottom: 16, borderRadius: 8,
+        background: darkMode ? effConf.darkBg : effConf.bg,
+        border: `1px solid ${effConf.color}44`,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 16 }}>{effConf.icon}</span>
+          <span style={{ fontWeight: 600, fontSize: 14, color: effConf.color }}>
+            Current status: {effConf.label}
+          </span>
+          {liveStatus && (
+            <span style={{ fontSize: 11, color: t.textMuted, fontStyle: 'italic' }}>(from comments)</span>
+          )}
+        </div>
+        {/* Status change dropdown */}
+        <div style={{ display: 'flex', gap: 6 }}>
+          {statusKeys.filter(k => k !== effectiveStatus).map((key) => {
+            const sc = statusConfig[key];
+            const url = buildStatusChangeUrl(issueNumber, key, designName);
+            return (
+              <a
+                key={key}
+                href={url}
+                target="_blank"
+                rel="noopener"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 500,
+                  textDecoration: 'none', border: `1px solid ${sc.color}66`,
+                  color: sc.color, background: darkMode ? sc.darkBg : sc.bg,
+                }}
+                title={`Change status to ${sc.label}`}
+              >
+                {sc.icon} → {sc.label}
+              </a>
+            );
+          })}
+        </div>
+      </div>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <span style={{ fontSize: 13, color: t.textMuted }}>
           {comments.length} comment{comments.length !== 1 ? 's' : ''}
@@ -682,14 +761,21 @@ function CommentViewer({ issueNumber, darkMode, theme: t }) {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {comments.map((c) => (
+          {comments.map((c) => {
+            const commentStatus = parseStatusFromComment(c.body);
+            const isStatusChange = !!commentStatus;
+            const scConf = isStatusChange ? statusConfig[commentStatus] : null;
+            return (
             <div
               key={c.id}
               style={{
-                border: `1px solid ${t.border}`,
+                border: `1px solid ${isStatusChange ? scConf.color + '44' : t.border}`,
                 borderRadius: 8,
                 padding: 14,
-                background: darkMode ? '#1c1c1c' : '#fafafa',
+                background: isStatusChange
+                  ? (darkMode ? scConf.darkBg : scConf.bg)
+                  : (darkMode ? '#1c1c1c' : '#fafafa'),
+                borderLeft: isStatusChange ? `3px solid ${scConf.color}` : undefined,
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -702,6 +788,17 @@ function CommentViewer({ issueNumber, darkMode, theme: t }) {
                     />
                   )}
                   <span style={{ fontWeight: 600, fontSize: 13, color: t.text }}>{c.user?.login || 'unknown'}</span>
+                  {isStatusChange && (
+                    <span style={{
+                      ...styles.statusBadge,
+                      background: darkMode ? scConf.darkBg : scConf.bg,
+                      color: scConf.color,
+                      borderColor: scConf.color + '44',
+                      fontSize: 10,
+                    }}>
+                      {scConf.icon} → {scConf.label}
+                    </span>
+                  )}
                 </div>
                 <span style={{ fontSize: 11, color: t.textFaint }}>{formatCommentDate(c.created_at)}</span>
               </div>
@@ -709,7 +806,8 @@ function CommentViewer({ issueNumber, darkMode, theme: t }) {
                 {sanitizeComment(c.body)}
               </p>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
       <div style={{ marginTop: 16, textAlign: 'center' }}>
@@ -1034,7 +1132,7 @@ function App() {
                 )}
                 <div style={{ ...styles.preview, background: t.previewBg, borderColor: t.border }}>
                   {activeTab === 'discussion' && hasDiscussion ? (
-                    <CommentViewer issueNumber={selectedMockup.githubIssue} darkMode={darkMode} theme={t} />
+                    <CommentViewer issueNumber={selectedMockup.githubIssue} darkMode={darkMode} theme={t} designName={selectedMockup.name} />
                   ) : activeTab === 'spec' && hasSpec ? (
                     <SpecViewer specPath={selectedMockup.specPath} />
                   ) : selectedMockup.component ? (
