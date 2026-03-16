@@ -495,4 +495,47 @@ describe('App component', () => {
     const detailH2 = h2s.find(h => h.textContent === 'Data Dictionary');
     expect(detailH2).toBeTruthy();
   });
+
+  it('detail view shows Mockup Preview / Spec Document tabs for entries with both', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    // Find an entry with both a component and a specPath
+    const entryWithBoth = MOCKUP_REGISTRY.find(m => m.component && m.specPath);
+    await user.click(screen.getByText(entryWithBoth.name));
+
+    expect(screen.getByText('Mockup Preview')).toBeInTheDocument();
+    expect(screen.getByText('Spec Document')).toBeInTheDocument();
+  });
+
+  it('detail view shows Spec Document tab for spec-only entries', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    // Find a spec-only entry (no component, no htmlUrl, no figmaUrl, but has specPath)
+    const specOnly = MOCKUP_REGISTRY.find(m => !m.component && !m.htmlUrl && !m.figmaUrl && m.specPath);
+    await user.click(screen.getByText(specOnly.name));
+
+    expect(screen.getByText('Spec Document')).toBeInTheDocument();
+    // Should NOT show "Mockup Preview" tab
+    expect(screen.queryByText('Mockup Preview')).toBeNull();
+  });
+
+  it('clicking Spec Document tab switches to spec view', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    // Find an entry with both a component and a specPath
+    const entryWithBoth = MOCKUP_REGISTRY.find(m => m.component && m.specPath);
+    await user.click(screen.getByText(entryWithBoth.name));
+
+    // Click the Spec Document tab
+    const specTab = screen.getByText('Spec Document');
+    await user.click(specTab);
+
+    // In test env, fetch fails so we get either loading or the fallback error link
+    // The important thing is the mockup preview is no longer shown and the spec viewer rendered
+    const fallbackLink = await screen.findByText('View on GitHub instead →');
+    expect(fallbackLink).toBeInTheDocument();
+  });
 });

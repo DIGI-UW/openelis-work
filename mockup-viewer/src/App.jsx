@@ -1,4 +1,6 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
+import { marked } from 'marked';
+import './spec-styles.css';
 
 /**
  * OpenELIS Global — Design Gallery
@@ -509,10 +511,65 @@ export function toHash(mockup) {
   return `#/${mockup.category}/${toSlug(mockup.name)}`;
 }
 
+/** Configure marked for safe rendering */
+marked.setOptions({
+  gfm: true,
+  breaks: true,
+});
+
+/** Fetch and render a markdown spec from the repo */
+function SpecViewer({ specPath }) {
+  const [content, setContent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!specPath) return;
+    setLoading(true);
+    setError(null);
+    // Fetch the raw markdown from the deployed site (it's in the public dir via vite copy)
+    const url = import.meta.env.BASE_URL + specPath;
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Failed to load spec (${res.status})`);
+        return res.text();
+      })
+      .then((text) => {
+        setContent(text);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [specPath]);
+
+  if (loading) return <div style={styles.loading}>Loading spec...</div>;
+  if (error) {
+    return (
+      <div style={styles.specError}>
+        <p>Could not load spec inline.</p>
+        <a href={GITHUB_BASE + specPath} target="_blank" rel="noopener" style={styles.link}>
+          View on GitHub instead →
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="spec-content"
+      style={styles.specContent}
+      dangerouslySetInnerHTML={{ __html: marked(content) }}
+    />
+  );
+}
+
 function App() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedMockup, setSelectedMockup] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [detailTab, setDetailTab] = useState('preview'); // 'preview' or 'spec'
 
   // On mount, check if the URL hash points to a mockup
   useEffect(() => {
@@ -537,6 +594,7 @@ function App() {
   // Helper to select a mockup and update the URL hash
   function selectMockup(mockup) {
     setSelectedMockup(mockup);
+    setDetailTab('preview'); // Reset tab when switching entries
     if (mockup) {
       window.location.hash = toHash(mockup);
     } else {
@@ -661,46 +719,81 @@ function App() {
               </a>
             ))}
           </div>
-          <div style={styles.preview}>
-            {selectedMockup.component ? (
-              <Suspense fallback={<div style={styles.loading}>Loading mockup...</div>}>
-                <ErrorBoundary name={selectedMockup.name}>
-                  <selectedMockup.component />
-                </ErrorBoundary>
-              </Suspense>
-            ) : selectedMockup.figmaUrl ? (
-              <div style={styles.figmaEmbed}>
-                <iframe
-                  src={selectedMockup.figmaUrl.replace('/make/', '/embed/') + '&embed-host=share'}
-                  style={styles.figmaIframe}
-                  allowFullScreen
-                  title={selectedMockup.name}
-                />
-                <p style={styles.figmaFallback}>
-                  If the embed doesn't load,{' '}
-                  <a href={selectedMockup.figmaUrl} target="_blank" rel="noopener" style={styles.link}>
-                    open directly in Figma
-                  </a>
-                </p>
-              </div>
-            ) : selectedMockup.htmlUrl ? (
-              <div style={styles.figmaEmbed}>
-                <iframe
-                  src={import.meta.env.BASE_URL + selectedMockup.htmlUrl}
-                  style={{ ...styles.figmaIframe, height: 800 }}
-                  allowFullScreen
-                  title={selectedMockup.name}
-                />
-                <p style={styles.figmaFallback}>
-                  <a href={import.meta.env.BASE_URL + selectedMockup.htmlUrl} target="_blank" rel="noopener" style={styles.link}>
-                    Open mockup in full page ↗
-                  </a>
-                </p>
-              </div>
-            ) : (
-              <div style={styles.loading}>No preview available for this entry.</div>
-            )}
-          </div>
+          {/* Detail tabs: Preview / Spec */}
+          {(() => {
+            const hasPreview = !!(selectedMockup.component || selectedMockup.figmaUrl || selectedMockup.htmlUrl);
+            const hasSpec = !!selectedMockup.specPath;
+            const showTabs = hasPreview && hasSpec;
+            // For spec-only entries, default to spec tab
+            const activeTab = !hasPreview && hasSpec ? 'spec' : detailTab;
+            return (
+              <>
+                {showTabs && (
+                  <div style={styles.detailTabs}>
+                    <button
+                      style={{ ...styles.detailTab, ...(activeTab === 'preview' ? styles.detailTabActive : {}) }}
+                      onClick={() => setDetailTab('preview')}
+                    >
+                      Mockup Preview
+                    </button>
+                    <button
+                      style={{ ...styles.detailTab, ...(activeTab === 'spec' ? styles.detailTabActive : {}) }}
+                      onClick={() => setDetailTab('spec')}
+                    >
+                      Spec Document
+                    </button>
+                  </div>
+                )}
+                {!showTabs && hasSpec && !hasPreview && (
+                  <div style={styles.detailTabs}>
+                    <button style={{ ...styles.detailTab, ...styles.detailTabActive }}>Spec Document</button>
+                  </div>
+                )}
+                <div style={styles.preview}>
+                  {activeTab === 'spec' && hasSpec ? (
+                    <SpecViewer specPath={selectedMockup.specPath} />
+                  ) : selectedMockup.component ? (
+                    <Suspense fallback={<div style={styles.loading}>Loading mockup...</div>}>
+                      <ErrorBoundary name={selectedMockup.name}>
+                        <selectedMockup.component />
+                      </ErrorBoundary>
+                    </Suspense>
+                  ) : selectedMockup.figmaUrl ? (
+                    <div style={styles.figmaEmbed}>
+                      <iframe
+                        src={selectedMockup.figmaUrl.replace('/make/', '/embed/') + '&embed-host=share'}
+                        style={styles.figmaIframe}
+                        allowFullScreen
+                        title={selectedMockup.name}
+                      />
+                      <p style={styles.figmaFallback}>
+                        If the embed doesn't load,{' '}
+                        <a href={selectedMockup.figmaUrl} target="_blank" rel="noopener" style={styles.link}>
+                          open directly in Figma
+                        </a>
+                      </p>
+                    </div>
+                  ) : selectedMockup.htmlUrl ? (
+                    <div style={styles.figmaEmbed}>
+                      <iframe
+                        src={import.meta.env.BASE_URL + selectedMockup.htmlUrl}
+                        style={{ ...styles.figmaIframe, height: 800 }}
+                        allowFullScreen
+                        title={selectedMockup.name}
+                      />
+                      <p style={styles.figmaFallback}>
+                        <a href={import.meta.env.BASE_URL + selectedMockup.htmlUrl} target="_blank" rel="noopener" style={styles.link}>
+                          Open mockup in full page ↗
+                        </a>
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={styles.loading}>No preview available for this entry.</div>
+                  )}
+                </div>
+              </>
+            );
+          })()}
         </div>
       ) : (
         <div style={styles.grid}>
@@ -809,6 +902,11 @@ const styles = {
   dateTag: { display: 'inline-block', marginLeft: 12, fontSize: 12, color: '#a8a8a8', fontStyle: 'italic' },
   relatedRow: { display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' },
   relatedLink: { color: '#0f62fe', fontSize: 13, textDecoration: 'none', padding: '2px 10px', background: '#edf5ff', borderRadius: 12, fontWeight: 500 },
+  detailTabs: { display: 'flex', gap: 0, marginBottom: 0, borderBottom: '2px solid #e0e0e0' },
+  detailTab: { padding: '10px 20px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#6f6f6f', borderBottom: '2px solid transparent', marginBottom: -2, transition: 'color 0.15s, border-color 0.15s' },
+  detailTabActive: { color: '#0f62fe', borderBottomColor: '#0f62fe' },
+  specContent: { padding: '8px 0', fontSize: 14, lineHeight: 1.7, color: '#161616', maxWidth: 800 },
+  specError: { padding: 24, textAlign: 'center', color: '#6f6f6f' },
 };
 
 export default App;
