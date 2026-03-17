@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, useCallback } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { marked } from 'marked';
 import './spec-styles.css';
 
@@ -727,7 +727,7 @@ function formatCommentDate(isoString) {
 }
 
 /** Fetch and display GitHub Issue comments for a design entry */
-function CommentViewer({ issueNumber, darkMode, theme: t, designName, onStatusChange }) {
+function CommentViewer({ issueNumber, darkMode, theme: t, designName }) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -752,7 +752,6 @@ function CommentViewer({ issueNumber, darkMode, theme: t, designName, onStatusCh
           const parsed = parseStatusFromComment(data[i].body);
           if (parsed) {
             setLiveStatus(parsed);
-            if (onStatusChange) onStatusChange(issueNumber, parsed);
             break;
           }
         }
@@ -974,7 +973,13 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [detailTab, setDetailTab] = useState('preview'); // 'preview' or 'spec'
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'draft', 'review', 'approved'
-  const [liveStatuses, setLiveStatuses] = useState({}); // { issueNumber: statusKey }
+  const [localStatuses, setLocalStatuses] = useState(() => {
+    // Load persisted status overrides from localStorage
+    try {
+      const stored = localStorage.getItem('oe-gallery-statuses');
+      return stored ? JSON.parse(stored) : {};
+    } catch { return {}; }
+  }); // { slug: statusKey }
   const [darkMode, setDarkMode] = useState(() => {
     // Default to system preference
     if (typeof window !== 'undefined' && window.matchMedia) {
@@ -1017,16 +1022,22 @@ function App() {
     }
   }
 
-  /** Resolve effective status: live (from GitHub comments) > static (from registry) > default */
+  /** Resolve effective status: local override > static (from registry) > default */
   function getEffectiveStatus(mockup) {
-    if (mockup.githubIssue && liveStatuses[mockup.githubIssue]) return liveStatuses[mockup.githubIssue];
+    const slug = toSlug(mockup.name);
+    if (localStatuses[slug]) return localStatuses[slug];
     return mockup.status || STATUS_DEFAULT;
   }
 
-  /** Callback from CommentViewer when it detects a status-change comment */
-  const handleLiveStatus = useCallback((issueNumber, status) => {
-    setLiveStatuses((prev) => ({ ...prev, [issueNumber]: status }));
-  }, []);
+  /** Set status for a design (persisted to localStorage) */
+  function setDesignStatus(mockup, newStatus) {
+    const slug = toSlug(mockup.name);
+    setLocalStatuses((prev) => {
+      const next = { ...prev, [slug]: newStatus };
+      try { localStorage.setItem('oe-gallery-statuses', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }
 
   const filtered = MOCKUP_REGISTRY.filter((m) => {
     const matchesCategory = activeCategory === 'all' || m.category === activeCategory;
@@ -1136,12 +1147,29 @@ function App() {
             <h2 style={{ margin: 0, color: t.text }}>{selectedMockup.name}</h2>
             <span style={{ ...styles.badge, background: t.badgeBg, color: t.textSecondary }}>{categoryLabels[selectedMockup.category]}</span>
             {(() => { const effSt = getEffectiveStatus(selectedMockup); const st = statusConfig[effSt]; return (
-              <span style={{ ...styles.statusBadge, background: darkMode ? st.darkBg : st.bg, color: st.color, borderColor: st.color + '44' }}>
-                {st.icon} {st.label}
-                {selectedMockup.githubIssue && liveStatuses[selectedMockup.githubIssue] && (
-                  <span style={{ fontSize: 9, fontWeight: 400, opacity: 0.8, marginLeft: 4 }}>(live)</span>
-                )}
-              </span>
+              <select
+                value={effSt}
+                onChange={(e) => setDesignStatus(selectedMockup, e.target.value)}
+                style={{
+                  ...styles.statusBadge,
+                  background: darkMode ? st.darkBg : st.bg,
+                  color: st.color,
+                  borderColor: st.color + '44',
+                  cursor: 'pointer',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  paddingRight: 22,
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='${encodeURIComponent(st.color)}'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 6px center',
+                }}
+                title="Change design status"
+                aria-label="Change design status"
+              >
+                {statusKeys.map((key) => (
+                  <option key={key} value={key}>{statusConfig[key].icon} {statusConfig[key].label}</option>
+                ))}
+              </select>
             ); })()}
             <button
               onClick={() => {
@@ -1234,7 +1262,7 @@ function App() {
                 )}
                 <div style={{ ...styles.preview, background: t.previewBg, borderColor: t.border }}>
                   {activeTab === 'discussion' && hasDiscussion ? (
-                    <CommentViewer issueNumber={selectedMockup.githubIssue} darkMode={darkMode} theme={t} designName={selectedMockup.name} onStatusChange={handleLiveStatus} />
+                    <CommentViewer issueNumber={selectedMockup.githubIssue} darkMode={darkMode} theme={t} designName={selectedMockup.name} />
                   ) : activeTab === 'spec' && hasSpec ? (
                     <SpecViewer specPath={selectedMockup.specPath} />
                   ) : selectedMockup.component ? (
