@@ -1153,3 +1153,43 @@
     figma: https://www.figma.com/make/tPc9atrwbDoBf3BzGUzvTb/Laboratory-Instrument-Compliance-Dashboard--Community-
     jira: [OGC-41]
   added: "2026-03-03"
+
+- id: batch-workplan-reagent-qc
+  type: mockup
+  path: designs/quality/batch-workplan-reagent-qc.jsx
+  category: quality
+  description: Unified batch workplan with reagent lot assignment, QC verification, and automatic NCE generation on override
+  paired_with: batch-workplan-reagent-qc-spec
+  links:
+    jira: [OGC-427]
+  added: "2026-03-16"
+
+- id: batch-workplan-reagent-qc-spec
+  type: spec
+  path: designs/quality/batch-workplan-reagent-qc.md
+  category: quality
+  description: Batch Workplan with Reagent QC Integration FRS v1.0
+  paired_with: batch-workplan-reagent-qc
+  links:
+    jira: [OGC-427]
+  added: "2026-03-16"
+
+- id: analyzer-manual-qc
+  type: mockup
+  path: designs/quality/analyzer-manual-qc.jsx
+  category: quality
+  description: Manual QC recording for analyzers — inline Pass/Fail entry on import page and quick-access from analyzer list
+  paired_with: analyzer-manual-qc-spec
+  links:
+    jira: [OGC-426]
+  added: "2026-03-16"
+
+- id: analyzer-manual-qc-spec
+  type: spec
+  path: designs/quality/analyzer-manual-qc.md
+  category: quality
+  description: Analyzer Manual QC Recording FRS v1.0
+  paired_with: analyzer-manual-qc
+  links:
+    jira: [OGC-426]
+  added: "2026-03-16"

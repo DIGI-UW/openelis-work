@@ -352,6 +352,30 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/quality/westgard-rules.md',
     githubIssue: 35,
   },
+  {
+    name: 'Batch Workplan with Reagent QC',
+    category: 'quality',
+    component: React.lazy(() => import('@designs/quality/batch-workplan-reagent-qc.jsx')),
+    description: 'Unified batch workplan with reagent lot assignment, QC verification, and automatic NCE generation on override',
+    specPath: 'designs/quality/batch-workplan-reagent-qc.md',
+    jira: ['OGC-427'],
+    added: '2026-03-16',
+    status: 'approved',
+    githubIssue: 52,
+    relatedTo: ['Analyzer Manual QC'],
+  },
+  {
+    name: 'Analyzer Manual QC',
+    category: 'quality',
+    component: React.lazy(() => import('@designs/quality/analyzer-manual-qc.jsx')),
+    description: 'Manual QC recording for analyzers — inline Pass/Fail entry on import page and quick-access from analyzer list',
+    specPath: 'designs/quality/analyzer-manual-qc.md',
+    jira: ['OGC-426'],
+    added: '2026-03-16',
+    status: 'approved',
+    githubIssue: 53,
+    relatedTo: ['Batch Workplan with Reagent QC'],
+  },
 
   // ─── Results & Validation ───
   {

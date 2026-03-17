@@ -77,6 +77,8 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | EQA Requirements | — | [eqa-requirements.md](designs/quality/eqa-requirements.md) |
 | EQA Enrollment | [eqa-enrollment.jsx](designs/quality/eqa-enrollment.jsx) | [eqa-enrollment-addendum.md](designs/quality/eqa-enrollment-addendum.md) |
 | Westgard Dashboard | [westgard-dashboard.jsx](designs/quality/westgard-dashboard.jsx) | [westgard-rules.md](designs/quality/westgard-rules.md) |
+| Batch Workplan with Reagent QC | [batch-workplan-reagent-qc.jsx](designs/quality/batch-workplan-reagent-qc.jsx) | [batch-workplan-reagent-qc.md](designs/quality/batch-workplan-reagent-qc.md) |
+| Analyzer Manual QC | [analyzer-manual-qc.jsx](designs/quality/analyzer-manual-qc.jsx) | [analyzer-manual-qc.md](designs/quality/analyzer-manual-qc.md) |
 | WHONET Integration | — | [whonet-integration.md](designs/quality/whonet-integration.md) |
 
 ## Results & Validation
