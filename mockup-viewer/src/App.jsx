@@ -27,7 +27,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/admin-config/data-dictionary.jsx')),
     description: 'Data dictionary management interface',
     specPath: 'designs/admin-config/data-dictionary.md',
-    githubIssue: 2,
+    githubIssue: 1,
   },
   {
     name: 'Lab Units',
@@ -35,7 +35,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/admin-config/lab-units.jsx')),
     description: 'Laboratory units configuration',
     specPath: 'designs/admin-config/lab-units.md',
-    githubIssue: 3,
+    githubIssue: 2,
   },
   {
     name: 'Methods',
@@ -43,7 +43,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/admin-config/methods.jsx')),
     description: 'Test methods management',
     specPath: 'designs/admin-config/methods.md',
-    githubIssue: 4,
+    githubIssue: 3,
   },
   {
     name: 'Organizations Management',
@@ -51,7 +51,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/admin-config/organizations-management.jsx')),
     description: 'Organizations and referring facilities management',
     specPath: 'designs/admin-config/organizations-management.md',
-    githubIssue: 5,
+    githubIssue: 4,
   },
   {
     name: 'Panel',
@@ -59,7 +59,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/admin-config/panel.jsx')),
     description: 'Test panel configuration',
     specPath: 'designs/admin-config/panel.md',
-    githubIssue: 6,
+    githubIssue: 5,
   },
   {
     name: 'Range Editor',
@@ -67,7 +67,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/admin-config/range-editor.jsx')),
     description: 'Normal range editor for test results',
     specPath: 'designs/admin-config/range-editor.md',
-    githubIssue: 7,
+    githubIssue: 6,
   },
   {
     name: 'Result Options',
@@ -75,7 +75,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/admin-config/result-options.jsx')),
     description: 'Result options (dictionary values) management',
     specPath: 'designs/admin-config/result-options.md',
-    githubIssue: 8,
+    githubIssue: 7,
   },
   {
     name: 'Test Catalog',
@@ -83,7 +83,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/admin-config/test-catalog.jsx')),
     description: 'Comprehensive test catalog management',
     specPath: 'designs/admin-config/test-catalog.md',
-    githubIssue: 9,
+    githubIssue: 8,
   },
 
   {
@@ -94,7 +94,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/rbac/rbac-revamp-prd.md',
     htmlUrl: 'designs/rbac/rbac-ui-mockup.html',
     added: '2026-03-04',
-    githubIssue: 10,
+    githubIssue: 9,
   },
   {
     name: 'Password Policy Enhancements',
@@ -104,7 +104,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/admin-config/password-enhancements.md',
     added: '2026-03-15',
     status: 'draft',
-    githubIssue: 52,
+    githubIssue: 51,
   },
 
   // ─── Analyzer Integration ───
@@ -116,7 +116,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/sysmex-xp-field-mapping-v0.1.md',
     jira: ['OGC-214'],
     added: '2026-03-05',
-    githubIssue: 11,
+    githubIssue: 10,
   },
   {
     name: 'BioRad CFX Opus Connection Spec',
@@ -125,7 +125,7 @@ export const MOCKUP_REGISTRY = [
     description: 'BioRad CFX Opus Real-Time PCR — CSV/RDML export, LIMS integration via CFX Maestro',
     specPath: 'designs/analyzer-integration/biorad-cfx-opus-analyzer-connection-spec.md',
     added: '2026-03-05',
-    githubIssue: 12,
+    githubIssue: 11,
   },
   {
     name: 'Sysmex XN-L Series Field Mapping',
@@ -134,7 +134,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Sysmex XN-L Series (XN-330 through XN-550) ASTM host-query bi-directional integration spec',
     specPath: 'designs/analyzer-integration/sysmex-xn-field-mapping-v0.1.md',
     added: '2026-03-06',
-    githubIssue: 13,
+    githubIssue: 12,
   },
   {
     name: 'DNA Technology DT-Prime Field Mapping',
@@ -143,7 +143,7 @@ export const MOCKUP_REGISTRY = [
     description: 'DNA Technology DT-Prime Real-Time PCR — XML file-based export, qualitative results parsing',
     specPath: 'designs/analyzer-integration/dna-technology-dtprime-field-mapping-v0.2.md',
     added: '2026-03-06',
-    githubIssue: 14,
+    githubIssue: 13,
   },
   {
     name: 'Tecan Infinite F50 Connection Spec',
@@ -153,7 +153,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/tecan-infinite-f50-analyzer-connection-spec.md',
     added: '2026-03-06',
     relatedTo: ['Tecan Infinite F50 Companion Guide'],
-    githubIssue: 15,
+    githubIssue: 14,
   },
   {
     name: 'Thermo Multiskan FC Connection Spec',
@@ -163,7 +163,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/thermo-multiskan-fc-analyzer-connection-spec.md',
     added: '2026-03-06',
     relatedTo: ['Thermo Multiskan FC Companion Guide'],
-    githubIssue: 16,
+    githubIssue: 15,
   },
   {
     name: 'QuantStudio 5/7 Flex Field Mapping',
@@ -174,7 +174,7 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-348'],
     added: '2026-03-06',
     relatedTo: ['QuantStudio 5/7 Flex Companion Guide'],
-    githubIssue: 17,
+    githubIssue: 16,
   },
   {
     name: 'QuantStudio 5/7 Flex Companion Guide',
@@ -185,7 +185,7 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-348'],
     added: '2026-03-06',
     relatedTo: ['QuantStudio 5/7 Flex Field Mapping'],
-    githubIssue: 18,
+    githubIssue: 17,
   },
   {
     name: 'FluoroCycler XT Integration Spec',
@@ -195,7 +195,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/fluorocycler-xt-integration-spec-v1.0.md',
     added: '2026-03-06',
     relatedTo: ['FluoroCycler XT Companion Guide'],
-    githubIssue: 19,
+    githubIssue: 18,
   },
   {
     name: 'FluoroCycler XT Companion Guide',
@@ -205,7 +205,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/fluorocycler-xt-companion-setup-guide-v1.0.md',
     added: '2026-03-06',
     relatedTo: ['FluoroCycler XT Integration Spec'],
-    githubIssue: 20,
+    githubIssue: 19,
   },
   {
     name: 'Tecan Infinite F50 Companion Guide',
@@ -215,7 +215,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/tecan-infinite-f50-companion-guide.md',
     added: '2026-03-06',
     relatedTo: ['Tecan Infinite F50 Connection Spec'],
-    githubIssue: 21,
+    githubIssue: 20,
   },
   {
     name: 'Thermo Multiskan FC Companion Guide',
@@ -225,7 +225,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/thermo-multiskan-fc-companion-guide.md',
     added: '2026-03-06',
     relatedTo: ['Thermo Multiskan FC Connection Spec'],
-    githubIssue: 22,
+    githubIssue: 21,
   },
   {
     name: 'Analyzer File Upload',
@@ -234,7 +234,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Upload and process analyzer result files',
     specPath: 'designs/analyzer-integration/analyzer-file-upload.md',
     jira: ['OGC-173', 'OGC-189', 'OGC-214', 'OGC-224'],
-    githubIssue: 23,
+    githubIssue: 22,
   },
   {
     name: 'Analyzer Mapping Templates',
@@ -243,7 +243,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Configure analyzer-to-test mapping templates',
     specPath: 'designs/analyzer-integration/astm-analyzer-mapping-addendum.md',
     jira: ['OGC-173'],
-    githubIssue: 24,
+    githubIssue: 23,
   },
   {
     name: 'Flat File Analyzer Config',
@@ -252,7 +252,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Configure flat file (CSV/TSV) analyzer parsers',
     specPath: 'designs/analyzer-integration/flat-file-analyzer-config.md',
     jira: ['OGC-324'],
-    githubIssue: 25,
+    githubIssue: 24,
   },
   {
     name: 'HL7 Analyzer Mapping',
@@ -261,7 +261,7 @@ export const MOCKUP_REGISTRY = [
     description: 'HL7 message field mapping for analyzers',
     specPath: 'designs/analyzer-integration/hl7-analyzer-mapping-addendum.md',
     jira: ['OGC-324'],
-    githubIssue: 26,
+    githubIssue: 25,
   },
   // ─── Microbiology ───
   {
@@ -270,7 +270,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/microbiology/amr-module.jsx')),
     description: 'Antimicrobial resistance testing and reporting module',
     specPath: 'designs/microbiology/amr-module.md',
-    githubIssue: 27,
+    githubIssue: 26,
   },
 
   // ─── NCE ───
@@ -280,7 +280,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/nce/nce-analytics.jsx')),
     description: 'Non-conforming event analytics dashboard',
     specPath: 'designs/nce/nce-analytics.md',
-    githubIssue: 28,
+    githubIssue: 27,
   },
   {
     name: 'NCE Dashboard & CAPA',
@@ -288,7 +288,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/nce/nce-dashboard.jsx')),
     description: 'NCE dashboard with CAPA tracking',
     specPath: 'designs/nce/nce-dashboard.md',
-    githubIssue: 29,
+    githubIssue: 28,
   },
   {
     name: 'NCE Results Entry',
@@ -296,7 +296,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/nce/nce-results-entry.jsx')),
     description: 'NCE investigation results entry form',
     specPath: 'designs/nce/nce-results-entry.md',
-    githubIssue: 30,
+    githubIssue: 29,
   },
   {
     name: 'NCE Report',
@@ -304,7 +304,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/nce/nce-report.jsx')),
     description: 'Non-conformity report generation',
     specPath: 'designs/nce/nce-report.md',
-    githubIssue: 31,
+    githubIssue: 30,
   },
 
   // ─── Pathology ───
@@ -314,7 +314,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/pathology/pathology-case-view.jsx')),
     description: 'Pathology case view and reporting redesign',
     specPath: 'designs/pathology/pathology-case-view.md',
-    githubIssue: 32,
+    githubIssue: 31,
   },
   {
     name: 'IHC Case View',
@@ -322,7 +322,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/pathology/ihc-case-view.jsx')),
     description: 'Immunohistochemistry case view and scoring',
     specPath: 'designs/pathology/ihc-case-view.md',
-    githubIssue: 33,
+    githubIssue: 32,
   },
 
   {
@@ -331,7 +331,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/pathology/cytology-case-view.jsx')),
     description: 'Cytology case view with Bethesda System wizard workflow',
     specPath: 'designs/pathology/cytology-case-view.md',
-    githubIssue: 34,
+    githubIssue: 33,
   },
 
   // ─── Quality & EQA ───
@@ -341,7 +341,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/quality/eqa-enrollment.jsx')),
     description: 'EQA program enrollment, self-enrollment, and provider management',
     specPath: 'designs/quality/eqa-enrollment-addendum.md',
-    githubIssue: 35,
+    githubIssue: 34,
   },
 
   {
@@ -350,7 +350,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/quality/westgard-dashboard.jsx')),
     description: 'Laboratory Instrument Compliance Dashboard with Westgard QC rules',
     specPath: 'designs/quality/westgard-rules.md',
-    githubIssue: 36,
+    githubIssue: 35,
   },
 
   // ─── Results & Validation ───
@@ -360,7 +360,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/results-validation/results-page.jsx')),
     description: 'Main results entry and review page',
     specPath: 'designs/results-validation/results-page.md',
-    githubIssue: 37,
+    githubIssue: 36,
   },
   {
     name: 'Validation Page',
@@ -368,7 +368,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/results-validation/validation-page.jsx')),
     description: 'Result validation workflow',
     specPath: 'designs/results-validation/validation-page.md',
-    githubIssue: 38,
+    githubIssue: 37,
   },
   {
     name: 'Validation Page (Analyzer)',
@@ -376,7 +376,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/analyzer-integration/validation-page.jsx')),
     description: 'Analyzer result validation workflow',
     specPath: 'designs/analyzer-integration/validation-page.md',
-    githubIssue: 39,
+    githubIssue: 38,
   },
 
   {
@@ -386,7 +386,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Full v2 redesign — multi-level validation pipeline, admin config, role-based levels, auto-validation',
     specPath: 'designs/validation-page/validation-page-requirements-v2.md',
     added: '2026-03-04',
-    githubIssue: 40,
+    githubIssue: 39,
   },
   {
     name: 'Validation Page v2.1 (Stage 1)',
@@ -395,7 +395,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Stage 1 scoped — multi-signature pipeline with minimal UI changes to existing validation page',
     specPath: 'designs/validation-page/validation-page-requirements-v2.1-stage1.md',
     added: '2026-03-04',
-    githubIssue: 41,
+    githubIssue: 40,
   },
   {
     name: 'Validation Page v3 (Demographics)',
@@ -406,7 +406,7 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-291', 'OGC-343'],
     added: '2026-03-09',
     status: 'review',
-    githubIssue: 51,
+    githubIssue: 50,
     relatedTo: ['Patient Demographics Mockup', 'Patient Demographics FRS'],
   },
   {
@@ -419,7 +419,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-09',
     status: 'review',
     relatedTo: ['Validation Page v3 (Demographics)', 'Patient Demographics FRS'],
-    githubIssue: 42,
+    githubIssue: 41,
   },
   {
     name: 'Patient Demographics FRS',
@@ -431,7 +431,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-09',
     status: 'review',
     relatedTo: ['Validation Page v3 (Demographics)', 'Patient Demographics Mockup'],
-    githubIssue: 43,
+    githubIssue: 42,
   },
 
   // ─── System ───
@@ -441,7 +441,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/system/audit-trail.jsx')),
     description: 'System audit trail viewer',
     specPath: 'designs/system/audit-trail.md',
-    githubIssue: 44,
+    githubIssue: 43,
   },
   {
     name: 'Help Menu',
@@ -449,7 +449,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/system/help-menu.jsx')),
     description: 'In-app help menu and documentation links',
     specPath: 'designs/system/help-menu.md',
-    githubIssue: 45,
+    githubIssue: 44,
   },
   {
     name: 'Analyzer Import',
@@ -457,7 +457,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/system/analyzer-import.jsx')),
     description: 'Bulk analyzer configuration import',
     specPath: 'designs/system/analyzer-import.md',
-    githubIssue: 46,
+    githubIssue: 45,
   },
 
   // ─── Sample Collection ───
@@ -470,7 +470,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/sample-collection/sample-collection-redesign-mockup.html',
     jira: ['OGC-70'],
     added: '2026-03-04',
-    githubIssue: 47,
+    githubIssue: 46,
   },
 
   // ─── Other ───
@@ -480,7 +480,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/other/tat-dashboard.jsx')),
     description: 'Turnaround time monitoring dashboard',
     specPath: 'designs/other/tat-dashboard.md',
-    githubIssue: 48,
+    githubIssue: 47,
   },
   {
     name: 'Calendar Management',
@@ -488,7 +488,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/other/calendar-management.jsx')),
     description: 'Lab calendar and scheduling management',
     specPath: null,
-    githubIssue: 49,
+    githubIssue: 48,
   },
 
   // ─── Figma-only entries (no JSX mockup) ───
@@ -499,7 +499,7 @@ export const MOCKUP_REGISTRY = [
     description: 'AI-powered lab data assistant with natural language querying, wizard-based report building, and contextual help',
     specPath: null,
     figmaUrl: 'https://www.figma.com/make/poDXKSr2IBgKbbjB1Fh9Sj/OpenELIS-Global-Template--Copy-?node-id=0-1',
-    githubIssue: 50,
+    githubIssue: 49,
   },
 ];
 
@@ -703,7 +703,7 @@ function formatCommentDate(isoString) {
 }
 
 /** Fetch and display GitHub Issue comments for a design entry */
-function CommentViewer({ issueNumber, darkMode, theme: t, designName }) {
+function CommentViewer({ issueNumber, darkMode, theme: t, designName, onStatusChange }) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -726,7 +726,11 @@ function CommentViewer({ issueNumber, darkMode, theme: t, designName }) {
         // Derive live status from the most recent status-change comment
         for (let i = data.length - 1; i >= 0; i--) {
           const parsed = parseStatusFromComment(data[i].body);
-          if (parsed) { setLiveStatus(parsed); break; }
+          if (parsed) {
+            setLiveStatus(parsed);
+            if (onStatusChange) onStatusChange(issueNumber, parsed);
+            break;
+          }
         }
         setLoading(false);
       })
@@ -946,6 +950,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [detailTab, setDetailTab] = useState('preview'); // 'preview' or 'spec'
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'draft', 'review', 'approved'
+  const [liveStatuses, setLiveStatuses] = useState({}); // { issueNumber: statusKey }
   const [darkMode, setDarkMode] = useState(() => {
     // Default to system preference
     if (typeof window !== 'undefined' && window.matchMedia) {
@@ -988,9 +993,20 @@ function App() {
     }
   }
 
+  /** Resolve effective status: live (from GitHub comments) > static (from registry) > default */
+  function getEffectiveStatus(mockup) {
+    if (mockup.githubIssue && liveStatuses[mockup.githubIssue]) return liveStatuses[mockup.githubIssue];
+    return mockup.status || STATUS_DEFAULT;
+  }
+
+  /** Callback from CommentViewer when it detects a status-change comment */
+  const handleLiveStatus = useCallback((issueNumber, status) => {
+    setLiveStatuses((prev) => ({ ...prev, [issueNumber]: status }));
+  }, []);
+
   const filtered = MOCKUP_REGISTRY.filter((m) => {
     const matchesCategory = activeCategory === 'all' || m.category === activeCategory;
-    const matchesStatus = statusFilter === 'all' || (m.status || STATUS_DEFAULT) === statusFilter;
+    const matchesStatus = statusFilter === 'all' || getEffectiveStatus(m) === statusFilter;
     const matchesSearch =
       !searchQuery ||
       m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1095,9 +1111,12 @@ function App() {
           <div style={styles.mockupHeader}>
             <h2 style={{ margin: 0, color: t.text }}>{selectedMockup.name}</h2>
             <span style={{ ...styles.badge, background: t.badgeBg, color: t.textSecondary }}>{categoryLabels[selectedMockup.category]}</span>
-            {(() => { const st = statusConfig[selectedMockup.status || STATUS_DEFAULT]; return (
+            {(() => { const effSt = getEffectiveStatus(selectedMockup); const st = statusConfig[effSt]; return (
               <span style={{ ...styles.statusBadge, background: darkMode ? st.darkBg : st.bg, color: st.color, borderColor: st.color + '44' }}>
                 {st.icon} {st.label}
+                {selectedMockup.githubIssue && liveStatuses[selectedMockup.githubIssue] && (
+                  <span style={{ fontSize: 9, fontWeight: 400, opacity: 0.8, marginLeft: 4 }}>(live)</span>
+                )}
               </span>
             ); })()}
             <button
@@ -1191,7 +1210,7 @@ function App() {
                 )}
                 <div style={{ ...styles.preview, background: t.previewBg, borderColor: t.border }}>
                   {activeTab === 'discussion' && hasDiscussion ? (
-                    <CommentViewer issueNumber={selectedMockup.githubIssue} darkMode={darkMode} theme={t} designName={selectedMockup.name} />
+                    <CommentViewer issueNumber={selectedMockup.githubIssue} darkMode={darkMode} theme={t} designName={selectedMockup.name} onStatusChange={handleLiveStatus} />
                   ) : activeTab === 'spec' && hasSpec ? (
                     <SpecViewer specPath={selectedMockup.specPath} />
                   ) : selectedMockup.component ? (
@@ -1266,7 +1285,7 @@ function App() {
                 <p style={{ ...styles.cardDesc, color: t.textSecondary }}>{mockup.description}</p>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 6 }}>
                   <span style={{ ...styles.cardDate, margin: 0 }}>{formatDate(mockup.added || DEFAULT_ADDED)}</span>
-                  {(() => { const st = statusConfig[mockup.status || STATUS_DEFAULT]; return (
+                  {(() => { const effSt = getEffectiveStatus(mockup); const st = statusConfig[effSt]; return (
                     <span style={{ ...styles.statusBadge, background: darkMode ? st.darkBg : st.bg, color: st.color, borderColor: st.color + '44', fontSize: 10, padding: '1px 6px' }}>
                       {st.icon} {st.label}
                     </span>
