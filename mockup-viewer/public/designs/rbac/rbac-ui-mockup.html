@@ -454,6 +454,8 @@
           <label class="cb"><input type="checkbox"> <div>Incoming / Electronic Orders <span class="cb-desc">/ElectronicOrders</span></div></label>
           <label class="cb"><input type="checkbox"> <div>Print Barcode <span class="cb-desc">/PrintBarcode</span></div></label>
           <label class="cb"><input type="checkbox"> <div>Sample Management <span class="cb-desc">/SampleManagement</span></div></label>
+          <label class="cb"><input type="checkbox" style="margin-left:1rem"> <div>Cancel Test (no results) <span class="cb-desc">/SampleManagement (action) · order:cancel_test</span></div></label>
+          <label class="cb"><input type="checkbox" style="margin-left:1rem"> <div>Cancel Test (with results) <span class="cb-desc">/SampleManagement (action) · order:cancel_test_with_results</span></div></label>
           <label class="cb"><input type="checkbox"> <div>Aliquot <span class="cb-desc">/Aliquot</span></div></label>
         </div>
 
@@ -587,7 +589,7 @@
 
     <!-- Sticky permission counter -->
     <div class="perm-counter-bar">
-      <div class="counter"><span class="num">12</span> of 72 permissions selected</div>
+      <div class="counter"><span class="num">12</span> of 74 permissions selected</div>
       <div style="display:flex;gap:0.5rem;">
         <button class="btn btn-ghost btn-sm" style="color:white;border:1px solid rgba(255,255,255,0.3);" onclick="showSubTab('role-list',document.querySelectorAll('.oe-tab')[0])">Cancel</button>
         <button class="btn btn-primary btn-sm">Save Role</button>
@@ -799,6 +801,8 @@
         <tr><td>Edit Order</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-blue" style="font-size:10px">Reception</span></td></tr>
         <tr><td>Find Order</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-blue" style="font-size:10px">Reception</span></td></tr>
         <tr><td>Sample Management</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-blue" style="font-size:10px">Reception</span></td></tr>
+        <tr><td style="padding-left:1.5rem;font-style:italic;color:var(--cds-gray-70)">↳ Cancel Test (no results)</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-blue" style="font-size:10px">Reception</span></td></tr>
+        <tr><td style="padding-left:1.5rem;font-style:italic;color:var(--cds-gray-70)">↳ Cancel Test (with results)</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="ck">✓</td><td><span class="tag tag-purple" style="font-size:10px">Global Admin</span></td></tr>
 
         <tr><td colspan="7" style="background:var(--cds-gray-10);font-weight:600;font-size:12px;">🔬 Results</td></tr>
         <tr><td>Results by Unit</td><td class="da">—</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-teal" style="font-size:10px">Results</span></td></tr>
