@@ -147,12 +147,13 @@ const CytologyCaseView = () => {
   const riskColors = getRiskColor(recommendation.risk);
 
   return (
-    <div style={{ 
+    <div style={{
       fontFamily: "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif",
       background: '#f4f4f4',
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
+      color: '#161616',
     }}>
       {/* Header Bar */}
       <div style={{
@@ -649,7 +650,7 @@ const CytologyCaseView = () => {
                         checked={abnormalityType === opt.value}
                         onChange={() => setAbnormalityType(opt.value)}
                       />
-                      <span style={{ fontWeight: abnormalityType === opt.value ? 600 : 400 }}>{opt.label}</span>
+                      <span style={{ fontWeight: abnormalityType === opt.value ? 600 : 400, color: '#161616' }}>{opt.label}</span>
                     </label>
                   ))}
                 </div>
@@ -684,6 +685,7 @@ const CytologyCaseView = () => {
                             padding: '4px 8px',
                             borderRadius: '4px',
                             fontSize: '13px',
+                            color: '#856404',
                           }}>ASC-US</span>
                           <span style={{ color: '#525252', fontSize: '13px' }}>of undetermined significance</span>
                         </label>
@@ -699,6 +701,7 @@ const CytologyCaseView = () => {
                             padding: '4px 8px',
                             borderRadius: '4px',
                             fontSize: '13px',
+                            color: '#5d4037',
                           }}>ASC-H</span>
                           <span style={{ color: '#525252', fontSize: '13px' }}>cannot exclude HSIL</span>
                         </label>
@@ -722,6 +725,7 @@ const CytologyCaseView = () => {
                             padding: '4px 8px',
                             borderRadius: '4px',
                             fontSize: '13px',
+                            color: '#856404',
                           }}>LSIL</span>
                           <span style={{ color: '#525252', fontSize: '13px' }}>Low-grade</span>
                         </label>
@@ -816,6 +820,7 @@ const CytologyCaseView = () => {
                             padding: '4px 8px',
                             borderRadius: '4px',
                             fontSize: '13px',
+                            color: '#5d4037',
                           }}>AGC</span>
                           <span style={{ color: '#525252', fontSize: '13px' }}>Endocervical cells, NOS</span>
                         </label>
@@ -831,6 +836,7 @@ const CytologyCaseView = () => {
                             padding: '4px 8px',
                             borderRadius: '4px',
                             fontSize: '13px',
+                            color: '#5d4037',
                           }}>AGC</span>
                           <span style={{ color: '#525252', fontSize: '13px' }}>Endometrial cells, NOS</span>
                         </label>
@@ -846,6 +852,7 @@ const CytologyCaseView = () => {
                             padding: '4px 8px',
                             borderRadius: '4px',
                             fontSize: '13px',
+                            color: '#5d4037',
                           }}>AGC</span>
                           <span style={{ color: '#525252', fontSize: '13px' }}>Glandular cells, NOS</span>
                         </label>
