@@ -117,13 +117,12 @@ Define a canonical list of **screen-level permissions** mapped directly to the O
 |---|---|---|---|
 | `order:add` | Add Order | `/SamplePatientEntry` | Reception |
 | `order:modify` | Edit Order | `/ModifyOrder` | Reception |
-| `order:search` | Find Order / Sample Edit | `/SampleEdit` | Reception |
+| `order:cancel_test` | Cancel Test (no results) | `/ModifyOrder` (action) | Reception |
+| `order:cancel_test_with_results` | Cancel Test (with results) | `/ModifyOrder` (action) | Global Administrator |
 | `order:batch_entry` | Batch Order Entry | `/SampleBatchEntrySetup` | Reception |
 | `order:electronic` | Incoming / Electronic Orders | `/ElectronicOrders` | Reception |
 | `order:barcode` | Print Barcode | `/PrintBarcode` | Reception |
 | `order:sample_manage` | Sample Management | `/SampleManagement` | Reception |
-| `order:cancel_test` | Cancel Test (no results) | `/SampleManagement` (action) | Reception |
-| `order:cancel_test_with_results` | Cancel Test (with results) | `/SampleManagement` (action) | Global Administrator |
 | `order:aliquot` | Aliquot | `/Aliquot` | Reception |
 
 **👤 Patient** (`banner.menu.patient`) — scopeable:
@@ -279,7 +278,8 @@ Define a canonical list of **screen-level permissions** mapped directly to the O
 - Each permission has a unique key, display name, and description.
 - Permissions can be added via database migration without application code changes.
 - The system ships with the default permission set above, and implementations can add custom permissions.
-- Some permissions are **action-level** rather than screen-level (e.g., `order:cancel_test` and `order:cancel_test_with_results`). These gate specific actions within a screen rather than access to the screen itself. The Cancel Test button in Sample Management is only shown if the user has the appropriate cancel permission. Cancelling a test that already has results requires `order:cancel_test_with_results` (a higher-privilege permission, mapped to Global Administrator by default) to protect data integrity and audit compliance.
+- Some permissions are **action-level** rather than screen-level. These gate specific actions within a screen rather than access to the screen itself:
+  - `order:cancel_test` / `order:cancel_test_with_results` — The Cancel Test action within Edit Order is gated separately from the broader Edit Order permission. Users with `order:modify` can edit order fields, but cancelling a test requires `order:cancel_test`. Cancelling a test that already has results requires `order:cancel_test_with_results` (a higher-privilege permission, mapped to Global Administrator by default) to protect data integrity and audit compliance.
 
 #### R2. Role Management (CRUD)
 
@@ -292,7 +292,7 @@ Administrators with the `admin:roles` permission can create, read, update, and d
   - **Lab Unit defaults:** Reception, Results, Validation, Reports
   - **New default:** Test Requester (requester type)
 - Administrators can create new roles from scratch by selecting any combination of permissions.
-- The Create/Edit Role form displays a **sticky permission counter bar** showing the number of selected permissions out of the total (e.g., "12 of 74 permissions selected") that updates in real-time as checkboxes are toggled. The Save and Cancel actions are embedded in this sticky bar for constant visibility.
+- The Create/Edit Role form displays a **sticky permission counter bar** showing the number of selected permissions out of the total (e.g., "12 of 73 permissions selected") that updates in real-time as checkboxes are toggled. The Save and Cancel actions are embedded in this sticky bar for constant visibility.
 - Each permission group heading includes a "Select all" action link that toggles all permissions in that group. The link must be visually distinguishable as interactive (underline, hover state).
 - Administrators can clone an existing role to use as a starting template.
 - Deleting a custom role requires confirmation and displays how many users are currently assigned to it. Only custom-origin roles can be deleted; system-origin roles show Edit and Clone actions only.
