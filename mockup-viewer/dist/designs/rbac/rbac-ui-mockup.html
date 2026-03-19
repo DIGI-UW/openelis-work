@@ -133,6 +133,8 @@
   .cb { display:flex; align-items:flex-start; gap:0.5rem; padding:0.25rem 0; cursor:pointer; font-size:13px; }
   .cb input { margin-top:2px; accent-color:var(--cds-blue-60); }
   .cb-desc { font-size:11px; color:var(--cds-gray-70); }
+  .cb.cb-action { margin-left:1.5rem; border-left:2px solid var(--cds-blue-60); padding-left:0.5rem; }
+  .cb.cb-action .cb-action-tag { font-size:9px; text-transform:uppercase; letter-spacing:0.5px; color:var(--cds-blue-60); font-weight:600; margin-left:0.25rem; }
 
   /* === Scope assignment card === */
   .scope-card { border:1px solid var(--cds-gray-20); background:white; padding:0.75rem 1rem; margin-bottom:0.5rem; display:flex; align-items:center; justify-content:space-between; }
@@ -449,7 +451,8 @@
           <div class="pg-title">🔖 Order <span class="select-all">Select all</span></div>
           <label class="cb"><input type="checkbox"> <div>Add Order <span class="cb-desc">/SamplePatientEntry</span></div></label>
           <label class="cb"><input type="checkbox"> <div>Edit Order <span class="cb-desc">/ModifyOrder</span></div></label>
-          <label class="cb"><input type="checkbox"> <div>Find Order <span class="cb-desc">/SampleEdit</span></div></label>
+          <label class="cb cb-action"><input type="checkbox"> <div>Cancel Test (no results) <span class="cb-desc">/ModifyOrder</span><span class="cb-action-tag">action</span></div></label>
+          <label class="cb cb-action"><input type="checkbox"> <div>Cancel Test (with results) <span class="cb-desc">/ModifyOrder</span><span class="cb-action-tag">action</span></div></label>
           <label class="cb"><input type="checkbox"> <div>Batch Order Entry <span class="cb-desc">/SampleBatchEntrySetup</span></div></label>
           <label class="cb"><input type="checkbox"> <div>Incoming / Electronic Orders <span class="cb-desc">/ElectronicOrders</span></div></label>
           <label class="cb"><input type="checkbox"> <div>Print Barcode <span class="cb-desc">/PrintBarcode</span></div></label>
@@ -587,7 +590,7 @@
 
     <!-- Sticky permission counter -->
     <div class="perm-counter-bar">
-      <div class="counter"><span class="num">12</span> of 72 permissions selected</div>
+      <div class="counter"><span class="num">12</span> of 73 permissions selected</div>
       <div style="display:flex;gap:0.5rem;">
         <button class="btn btn-ghost btn-sm" style="color:white;border:1px solid rgba(255,255,255,0.3);" onclick="showSubTab('role-list',document.querySelectorAll('.oe-tab')[0])">Cancel</button>
         <button class="btn btn-primary btn-sm">Save Role</button>
@@ -797,7 +800,8 @@
         <tr><td colspan="7" style="background:var(--cds-gray-10);font-weight:600;font-size:12px;">🔖 Order</td></tr>
         <tr><td>Add Order</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-blue" style="font-size:10px">Reception</span></td></tr>
         <tr><td>Edit Order</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-blue" style="font-size:10px">Reception</span></td></tr>
-        <tr><td>Find Order</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-blue" style="font-size:10px">Reception</span></td></tr>
+        <tr style="font-size:12px;color:var(--cds-gray-70);"><td style="padding-left:1.5rem;border-left:2px solid var(--cds-blue-60);">↳ Cancel Test (no results) <span style="font-size:9px;color:var(--cds-blue-60);font-weight:600;">ACTION</span></td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-blue" style="font-size:10px">Reception</span></td></tr>
+        <tr style="font-size:12px;color:var(--cds-gray-70);"><td style="padding-left:1.5rem;border-left:2px solid var(--cds-blue-60);">↳ Cancel Test (with results) <span style="font-size:9px;color:var(--cds-blue-60);font-weight:600;">ACTION</span></td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-purple" style="font-size:10px">Global Admin</span></td></tr>
         <tr><td>Sample Management</td><td class="ck">✓</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td class="da">—</td><td><span class="tag tag-blue" style="font-size:10px">Reception</span></td></tr>
 
         <tr><td colspan="7" style="background:var(--cds-gray-10);font-weight:600;font-size:12px;">🔬 Results</td></tr>
@@ -815,7 +819,7 @@
         <tr style="background:rgba(138,63,252,0.03);"><td>Audit Trail</td><td class="ck">✓</td><td class="ck">✓</td><td class="ck">✓</td><td class="ck">✓</td><td class="ck">✓</td><td><span class="tag tag-purple" style="font-size:10px">Audit Trail</span></td></tr>
       </tbody>
     </table>
-    <div style="margin-top:0.75rem;font-size:12px;color:var(--cds-gray-50);">Showing subset of permissions. Full matrix includes all 70+ screen permissions grouped by menu headers (Order, Patient, Results, Validation, Workplan, Non-Conform, Pathology, Reports, Inventory, Storage, Billing, Generic Sample, Notebook, Program, Admin).</div>
+    <div style="margin-top:0.75rem;font-size:12px;color:var(--cds-gray-50);">Showing subset of permissions. Full matrix includes all 73 screen-level and action-level permissions grouped by menu headers (Order, Patient, Results, Validation, Workplan, Non-Conform, Pathology, Reports, Inventory, Storage, Billing, Generic Sample, Notebook, Program, Admin).</div>
   </div>
 </div>
 </div>

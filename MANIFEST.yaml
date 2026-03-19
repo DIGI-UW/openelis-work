@@ -806,6 +806,33 @@
     jira: ["OGC-291", "OGC-343"]
   added: "2026-03-09"
 
+- id: patient-report-print-queue
+  type: mockup
+  path: designs/results-validation/patient-report-print-queue.jsx
+  category: results-validation
+  description: Push-based print queue for validated patient reports — auto-surfaces unprinted accessions with batch print and ISO 15189 audit trail
+  paired_with: patient-report-print-queue-spec
+  links: {}
+  added: "2026-03-18"
+
+- id: patient-report-print-queue-carbon
+  type: mockup
+  path: designs/results-validation/patient-report-print-queue-carbon.jsx
+  category: results-validation
+  description: Full Carbon React component mockup for Patient Report Print Queue (uses @carbon/react — production reference)
+  paired_with: patient-report-print-queue-spec
+  links: {}
+  added: "2026-03-18"
+
+- id: patient-report-print-queue-spec
+  type: spec
+  path: designs/results-validation/patient-report-print-queue.md
+  category: results-validation
+  description: Patient Report Print Queue FRS v1.0 — push-based queue, batch print, ISO 15189 compliance
+  paired_with: patient-report-print-queue
+  links: {}
+  added: "2026-03-18"
+
 # ─── RBAC (Role-Based Access Control) ─────────────────────────
 
 - id: rbac-ui-mockup

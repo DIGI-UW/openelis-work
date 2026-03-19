@@ -457,6 +457,16 @@ export const MOCKUP_REGISTRY = [
     relatedTo: ['Validation Page v3 (Demographics)', 'Patient Demographics Mockup'],
     githubIssue: 42,
   },
+  {
+    name: 'Patient Report Print Queue',
+    category: 'results-validation',
+    component: React.lazy(() => import('@designs/results-validation/patient-report-print-queue.jsx')),
+    description: 'Push-based print queue for validated patient reports — auto-surfaces unprinted accessions with batch print and ISO 15189 audit trail',
+    specPath: 'designs/results-validation/patient-report-print-queue.md',
+    added: '2026-03-18',
+    status: 'draft',
+    githubIssue: 54,
+  },
 
   // ─── System ───
   {
