@@ -92,7 +92,11 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Validation Page v3 (Demographics) | [validation-page-mockup-v3-demographics.jsx](designs/validation-page/validation-page-mockup-v3-demographics.jsx) | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
 | Patient Demographics Mockup | [validation-patient-demographics-mockup.jsx](designs/validation-page/validation-patient-demographics-mockup.jsx) | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
 | Patient Demographics FRS | — | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
-| Patient Report Print Queue | [patient-report-print-queue.jsx](designs/results-validation/patient-report-print-queue.jsx) | [patient-report-print-queue.md](designs/results-validation/patient-report-print-queue.md) |
+## Reports
+
+| Feature | Mockup | Spec |
+|---------|--------|------|
+| Patient Report Print Queue | [patient-report-print-queue.jsx](designs/reports/patient-report-print-queue.jsx) | [patient-report-print-queue.md](designs/reports/patient-report-print-queue.md) |
 
 ## System
 
