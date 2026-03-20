@@ -97,6 +97,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Feature | Mockup | Spec |
 |---------|--------|------|
 | Patient Report Print Queue | [patient-report-print-queue.jsx](designs/reports/patient-report-print-queue.jsx) | [patient-report-print-queue.md](designs/reports/patient-report-print-queue.md) |
+| Positivity Rate Report | [positivity-rate.jsx](designs/reports/positivity-rate.jsx) | [positivity-rate.md](designs/reports/positivity-rate.md) |
 
 ## System
 

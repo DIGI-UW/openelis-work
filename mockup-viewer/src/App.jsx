@@ -468,6 +468,16 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 54,
   },
+  {
+    name: 'Positivity Rate Report',
+    category: 'reports',
+    component: React.lazy(() => import('@designs/reports/positivity-rate.jsx')),
+    description: 'Positivity rate report and dashboard widget — per-test result-code-based positivity definitions, date-range filtering, DataTable with CSV export, and reusable tile for the home dashboard',
+    specPath: 'designs/reports/positivity-rate.md',
+    added: '2026-03-19',
+    status: 'draft',
+    githubIssue: 55,
+  },
 
   // ─── System ───
   {

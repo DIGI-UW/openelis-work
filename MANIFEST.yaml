@@ -1220,3 +1220,19 @@
   links:
     jira: [OGC-426]
   added: "2026-03-16"
+
+- id: positivity-rate
+  type: mockup
+  path: designs/reports/positivity-rate.jsx
+  category: reports
+  description: Positivity rate report and dashboard widget — per-test result-code-based positivity definitions, date-range filtering, DataTable with CSV export, and reusable tile for the home dashboard
+  paired_with: positivity-rate-spec
+  added: "2026-03-19"
+
+- id: positivity-rate-spec
+  type: spec
+  path: designs/reports/positivity-rate.md
+  category: reports
+  description: Positivity Rate Report & Dashboard Widget FRS v1.0
+  paired_with: positivity-rate
+  added: "2026-03-19"
