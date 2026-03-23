@@ -486,7 +486,7 @@ export const MOCKUP_REGISTRY = [
     specPath: null,
     added: '2026-03-23',
     status: 'draft',
-    githubIssue: 56,
+    githubIssue: 57,
   },
 
   // ─── Notifications ───
@@ -498,7 +498,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/notifications/email-notification-integration.md',
     added: '2026-03-23',
     status: 'draft',
-    githubIssue: 57,
+    githubIssue: 58,
     relatedTo: ['TextIt SMS Integration'],
   },
   {
@@ -509,7 +509,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/notifications/textit-sms-integration.md',
     added: '2026-03-23',
     status: 'draft',
-    githubIssue: 58,
+    githubIssue: 59,
     relatedTo: ['Notification Admin'],
   },
 
@@ -522,7 +522,7 @@ export const MOCKUP_REGISTRY = [
     specPath: null,
     added: '2026-03-23',
     status: 'draft',
-    githubIssue: 59,
+    githubIssue: 60,
     relatedTo: ['Reagent Forecasting Facility View'],
   },
   {
@@ -533,7 +533,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/inventory/reagent-forecasting-facility.md',
     added: '2026-03-23',
     status: 'draft',
-    githubIssue: 60,
+    githubIssue: 61,
     relatedTo: ['Reagent Forecasting Workbench'],
   },
 
