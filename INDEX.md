@@ -98,6 +98,21 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 |---------|--------|------|
 | Patient Report Print Queue | [patient-report-print-queue.jsx](designs/reports/patient-report-print-queue.jsx) | [patient-report-print-queue.md](designs/reports/patient-report-print-queue.md) |
 | Positivity Rate Report | [positivity-rate.jsx](designs/reports/positivity-rate.jsx) | [positivity-rate.md](designs/reports/positivity-rate.md) |
+| Disease Surveillance Dashboard | [disease-surveillance-dashboard.jsx](designs/reports/disease-surveillance-dashboard.jsx) | — |
+
+## Notifications
+
+| Feature | Mockup | Spec |
+|---------|--------|------|
+| Notification Admin | [notification-admin.jsx](designs/notifications/notification-admin.jsx) | [email-notification-integration.md](designs/notifications/email-notification-integration.md) |
+| TextIt SMS Integration | [textit-sms-integration.jsx](designs/notifications/textit-sms-integration.jsx) | [textit-sms-integration.md](designs/notifications/textit-sms-integration.md) |
+
+## Inventory & Supply
+
+| Feature | Mockup | Spec |
+|---------|--------|------|
+| Reagent Forecasting Workbench | [reagent-forecasting-workbench.jsx](designs/inventory/reagent-forecasting-workbench.jsx) | — |
+| Reagent Forecasting Facility View | [reagent-forecasting-facility.jsx](designs/inventory/reagent-forecasting-facility.jsx) | [reagent-forecasting-facility.md](designs/inventory/reagent-forecasting-facility.md) |
 
 ## System
 

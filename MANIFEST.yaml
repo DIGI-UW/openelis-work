@@ -1236,3 +1236,74 @@
   description: Positivity Rate Report & Dashboard Widget FRS v1.0
   paired_with: positivity-rate
   added: "2026-03-19"
+
+- id: disease-surveillance-dashboard
+  type: mockup
+  path: designs/reports/disease-surveillance-dashboard.jsx
+  category: reports
+  description: Public-health surveillance dashboard — weekly TB/HIV positivity trends, volume-by-site breakdowns, and FHIR-sourced aggregate indicators
+  added: "2026-03-23"
+
+- id: notification-admin
+  type: mockup
+  path: designs/notifications/notification-admin.jsx
+  category: notifications
+  description: Unified notification admin — configure email and TextIt SMS alert rules, provider contact mapping, escalation chains, and notification log
+  paired_with: email-notification-integration-spec
+  added: "2026-03-23"
+
+- id: email-notification-integration-spec
+  type: spec
+  path: designs/notifications/email-notification-integration.md
+  category: notifications
+  description: Email Notification Integration FRS v1.2
+  paired_with: notification-admin
+  links:
+    jira: [OGC-437]
+  added: "2026-03-23"
+
+- id: textit-sms-integration
+  type: mockup
+  path: designs/notifications/textit-sms-integration.jsx
+  category: notifications
+  description: TextIt SMS integration admin — API credentials, flow selection, message templates, and per-event trigger mapping
+  paired_with: textit-sms-integration-spec
+  added: "2026-03-23"
+
+- id: textit-sms-integration-spec
+  type: spec
+  path: designs/notifications/textit-sms-integration.md
+  category: notifications
+  description: TextIt SMS Notification Integration FRS v1.2
+  paired_with: textit-sms-integration
+  links:
+    jira: [OGC-435, OGC-436]
+  added: "2026-03-23"
+
+- id: reagent-forecasting-workbench
+  type: mockup
+  path: designs/inventory/reagent-forecasting-workbench.jsx
+  category: inventory
+  description: National/regional reagent forecasting workbench — multi-facility days-of-stock table, critical/low alerts, ADC-based projections
+  paired_with: reagent-forecasting-facility
+  added: "2026-03-23"
+
+- id: reagent-forecasting-facility
+  type: mockup
+  path: designs/inventory/reagent-forecasting-facility.jsx
+  category: inventory
+  description: Facility-level reagent stock view — per-cartridge days-of-stock monitoring, stock-count updates, and proactive reorder alerts
+  paired_with: reagent-forecasting-facility-spec
+  links:
+    jira: [OGC-436]
+  added: "2026-03-23"
+
+- id: reagent-forecasting-facility-spec
+  type: spec
+  path: designs/inventory/reagent-forecasting-facility.md
+  category: inventory
+  description: Reagent Forecasting Facility-Level Stock View FRS v1.0
+  paired_with: reagent-forecasting-facility
+  links:
+    jira: [OGC-436]
+  added: "2026-03-23"

@@ -42,6 +42,7 @@ export default defineConfig({
       '@designs': path.resolve(__dirname, '../designs'),
       // Ensure external imports from designs/ resolve to mockup-viewer's node_modules
       'lucide-react': path.resolve(__dirname, 'node_modules/lucide-react'),
+      'recharts': path.resolve(__dirname, 'node_modules/recharts'),
       '@carbon/react': path.resolve(__dirname, 'node_modules/@carbon/react'),
       '@carbon/icons-react': path.resolve(__dirname, 'node_modules/@carbon/icons-react'),
     },
