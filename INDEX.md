@@ -20,6 +20,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Test Catalog | [test-catalog.jsx](designs/admin-config/test-catalog.jsx) | [test-catalog.md](designs/admin-config/test-catalog.md) |
 | RBAC Management | [rbac-ui-mockup.html](designs/rbac/rbac-ui-mockup.html) | [rbac-revamp-prd.md](designs/rbac/rbac-revamp-prd.md) |
 | Password Policy Enhancements | [password-enhancements.jsx](designs/admin-config/password-enhancements.jsx) | [password-enhancements.md](designs/admin-config/password-enhancements.md) |
+| Catalog Subscription | [catalog-subscription.html](designs/admin-config/catalog-subscription.html) | [catalog-subscription.md](designs/admin-config/catalog-subscription.md) |
 
 ## Analyzer Integration
 
@@ -121,6 +122,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Audit Trail | [audit-trail.jsx](designs/system/audit-trail.jsx) | [audit-trail.md](designs/system/audit-trail.md) |
 | Help Menu | [help-menu.jsx](designs/system/help-menu.jsx) | [help-menu.md](designs/system/help-menu.md) |
 | Analyzer Import | [analyzer-import.jsx](designs/system/analyzer-import.jsx) | [analyzer-import.md](designs/system/analyzer-import.md) |
+| FHIR Outbound Push | [fhir-outbound-push.jsx](designs/system/fhir-outbound-push.jsx) | [fhir-outbound-push.md](designs/system/fhir-outbound-push.md) |
 | Catalyst Lab Data Assistant | [Figma](https://www.figma.com/make/poDXKSr2IBgKbbjB1Fh9Sj/OpenELIS-Global-Template--Copy-?node-id=0-1) | — |
 
 ## Sample Collection

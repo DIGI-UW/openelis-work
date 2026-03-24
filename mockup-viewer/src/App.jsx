@@ -106,6 +106,17 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 51,
   },
+  {
+    name: 'Catalog Subscription',
+    category: 'admin-config',
+    component: null,
+    description: 'Subscribe to external FHIR-based metadata catalogs (EUCAST, WHO, national reference labs) and selectively sync test definitions and clinical decision rules — field-level diff review preserves local customizations',
+    specPath: 'designs/admin-config/catalog-subscription.md',
+    htmlUrl: 'designs/admin-config/catalog-subscription.html',
+    added: '2026-03-24',
+    status: 'draft',
+    githubIssue: 63,
+  },
 
   // ─── Analyzer Integration ───
   {
@@ -561,6 +572,16 @@ export const MOCKUP_REGISTRY = [
     description: 'Bulk analyzer configuration import',
     specPath: 'designs/system/analyzer-import.md',
     githubIssue: 45,
+  },
+  {
+    name: 'FHIR Outbound Push',
+    category: 'system',
+    component: React.lazy(() => import('@designs/system/fhir-outbound-push.jsx')),
+    description: 'Event-driven FHIR R4 outbound push to a central national hub — DiagnosticReport bundle assembly on final validation, retry queue, delivery log, and admin configuration for endpoint, auth (API key, OAuth 2.0, Basic, Private Key JWT), and per-resource toggles',
+    specPath: 'designs/system/fhir-outbound-push.md',
+    added: '2026-03-24',
+    status: 'draft',
+    githubIssue: 62,
   },
 
   // ─── Sample Collection ───
