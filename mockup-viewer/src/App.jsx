@@ -116,6 +116,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-24',
     status: 'draft',
     githubIssue: 63,
+    jira: ['OGC-447'],
   },
 
   // ─── Analyzer Integration ───
@@ -582,6 +583,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-24',
     status: 'draft',
     githubIssue: 62,
+    jira: ['OGC-446'],
   },
 
   // ─── Sample Collection ───
