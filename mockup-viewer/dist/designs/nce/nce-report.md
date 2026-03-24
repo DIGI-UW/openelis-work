@@ -1,10 +1,10 @@
 # Non-Conformity Report
 ## Functional Requirements Specification
 
-**Document Version:** 3.0  
-**Date:** February 18, 2026  
-**Author:** Casey Iiams-Hauser  
-**Mockup Reference:** `nce-modal-linking.jsx`
+**Document Version:** 3.1
+**Date:** March 24, 2026
+**Author:** Casey Iiams-Hauser
+**Mockup Reference:** `nce-report.jsx`
 
 ---
 
@@ -182,6 +182,11 @@ nce_event (
   -- Root Cause (populated during investigation)
   root_cause_category   VARCHAR(50),
   root_cause_details    TEXT,
+
+  -- Reporter context
+  reporting_unit        VARCHAR(100),                 -- Inherited from logged-in user's unit; editable at submission
+  suspected_cause       TEXT,                         -- Reporter's initial suspected cause (captured at creation)
+  proposed_action       TEXT,                         -- Reporter's proposed next steps (captured at creation)
 
   -- Source tracking
   source_type           VARCHAR(30),                  -- manual, sample_reception, results_entry, validation,
@@ -417,17 +422,45 @@ NCE  ›  Report NCE
 | Page title | `label.nce.reportNce.title` |
 | Breadcrumb | `label.breadcrumb.nce` › `label.menu.nce.reportNce` |
 
-#### Form Fields
+#### Section 1 — Reporter & Event Context
+
+Displayed at the top of the form. All fields default to the logged-in user's context and are editable to support after-the-fact entry on behalf of another reporter.
+
+| Field | Required | Type | Default | Tag |
+|-------|----------|------|---------|-----|
+| NCE Number | — | Read-only (auto-generated) | `NCE-YYYYMMDD-XXXX` | `label.nce.field.nceNumber` |
+| Reporter Name | Yes | Text input | Logged-in user's full name | `label.nce.field.reporterName` |
+| Date of Event | Yes | Date picker | Today | `label.nce.field.dateOfEvent` |
+| Reporting Unit | Yes | Creatable typeahead ComboBox | Logged-in user's unit | `label.nce.field.reportingUnit` |
+
+**Behavior notes:**
+- NCE Number is assigned on form load and held in a provisional state until submission. If the user cancels, the number is released.
+- Reporter Name field allows free-text entry to support "entered on behalf of" scenarios.
+- Reporting Unit is pre-filled from the authenticated user's lab unit (`systemuser.lab_unit`). The user may type to filter existing units or enter a new value free-form. New values are saved to the unit list and become available for future selection.
+- Unit options are sourced from configured `lab_unit` records. The ComboBox allows creation of ad-hoc units not yet in the list (for labs that have not fully configured units).
+
+#### Section 2 — Classification
 
 | Field | Required | Type | Tag |
 |-------|----------|------|-----|
 | Category | Yes | Dropdown | `label.nce.field.category` |
 | Subcategory | Yes | Dropdown (filtered by category) | `label.nce.field.subcategory` |
 | Severity | Yes | Radio cards (Critical / Major / Minor) | `label.nce.field.severity` |
+
+#### Section 3 — Details
+
+| Field | Required | Type | Tag |
+|-------|----------|------|-----|
 | Title | No | Text input (200 char max) | `label.nce.field.title` |
 | Description | No | Textarea | `label.nce.field.description` |
+| Suspected Causes | No | Textarea | `label.nce.field.suspectedCauses` |
 | Immediate Action Taken | No | Textarea | `label.nce.field.immediateAction` |
+| Proposed Action | No | Textarea | `label.nce.field.proposedAction` |
 | Attachments | No | File upload (multi) | `label.nce.field.attachments` |
+
+**Field guidance:**
+- **Suspected Causes** captures the reporter's initial hypothesis at the time of recording. This is distinct from the formal Root Cause Investigation completed during the investigation phase.
+- **Proposed Action** captures the reporter's recommended next step. This is distinct from CAPA actions, which are formally assigned and tracked during the corrective action workflow.
 
 #### Form Actions
 
@@ -480,6 +513,23 @@ After selecting an order from search results, the linked items display as a hier
 | Remove button | `label.nce.linking.remove` |
 | Sample icon label | `label.nce.linking.sample` |
 | Result icon label | `label.nce.linking.result` |
+
+#### Patient Context Auto-Population
+
+When one or more orders are linked, a read-only **Patient Context** panel appears below the order tree. Fields are populated from the first linked order. If multiple orders with different patients are linked, the panel displays the patient from the first order and notes that multiple patients are linked.
+
+| Field | Source | Tag |
+|-------|--------|-----|
+| Patient Name | `sample.patient.name` from linked order | `label.nce.linking.patientName` |
+| Prescriber | `order.requester` from linked order | `label.nce.linking.prescriber` |
+| Site | `order.site` from linked order | `label.nce.linking.site` |
+
+All three fields are read-only — they cannot be edited on this form. If the value differs from expectation, the user should remove the linked order and search for the correct one.
+
+| Section header | Tag |
+|----------------|-----|
+| Patient Context | `label.nce.section.patientContext` |
+| "(auto-populated from linked order)" helper text | `label.nce.linking.patientContextHelper` |
 
 ### 4.4 Contextual Recording — Sample Reception
 
@@ -836,9 +886,15 @@ Configurable thresholds for automatic NCE prompts in Results Entry:
 
 ### NCE Recording (Manual)
 - [ ] NCE can be created from NCE → Report NCE
+- [ ] NCE Number is shown on form load in format NCE-YYYYMMDD-XXXX (provisional; released on cancel)
+- [ ] Reporter Name defaults to logged-in user's full name and is editable
+- [ ] Date of Event defaults to today and is editable via date picker
+- [ ] Reporting Unit defaults to logged-in user's lab unit and is editable
+- [ ] Reporter Name, Date of Event, and Reporting Unit are required fields
 - [ ] Category, Subcategory, and Severity are required fields
-- [ ] Title and Description are optional
-- [ ] NCE number is auto-generated in format NCE-YYYYMMDD-XXXX
+- [ ] Title, Description, Suspected Causes, Immediate Action Taken, and Proposed Action are optional
+- [ ] Suspected Causes is stored separately from the formal Root Cause Investigation field
+- [ ] Proposed Action is stored separately from CAPA actions
 - [ ] Attachments can be uploaded during creation
 - [ ] All form labels and messages use localization tags
 
@@ -850,6 +906,9 @@ Configurable thresholds for automatic NCE prompts in Results Entry:
 - [ ] Checking a result auto-checks its parent sample
 - [ ] Multiple orders can be linked to a single NCE
 - [ ] "Remove" button detaches entire order
+- [ ] When an order is linked, Patient Name, Prescriber, and Site auto-populate as read-only fields in the Patient Context panel
+- [ ] Patient Context panel is hidden when no orders are linked
+- [ ] Patient Context panel is read-only; values cannot be manually edited
 
 ### Rejection & Cancellation Triggers
 - [ ] Sample rejection at reception requires mandatory NCE (Trigger #1)
@@ -903,6 +962,7 @@ Configurable thresholds for automatic NCE prompts in Results Entry:
 | 1.1 | 2026-01-05 | OpenELIS Implementation Team | Updated linking workflow: hierarchical order search, multiselect, optional title/description |
 | 2.0 | 2026-02-14 | OpenELIS Implementation Team | Comprehensive rejection/cancellation integration: 11 trigger points, mandatory/prompted behavior, rejection reason mapping, new subcategories, admin configuration |
 | 3.0 | 2026-02-18 | OpenELIS Implementation Team | Split into separate FRS. Report NCE is now a full-page form accessed via sidebar submenu (not a modal from Dashboard). Localization tags added for all categories, subcategories, and form elements. Sample Reception contextual form detailed. |
+| 3.1 | 2026-03-24 | Casey Iiams-Hauser | Added Reporter & Event Context section (NCE Number display, Reporter Name, Date of Event, Reporting Unit). Added Suspected Causes and Proposed Action fields to Details section. Added Patient Context auto-population (Patient Name, Prescriber, Site) from linked order. Updated data model, acceptance criteria, and mockup reference. |
 
 ---
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Menu, Search, Bell, HelpCircle, User, ChevronRight, ChevronDown,
   Home, ClipboardList, FileBarChart, Users, Package, Shield, BarChart3,
@@ -6,7 +6,7 @@ import {
   Calendar, Paperclip, MessageSquare, FileText, History, Link2,
   FlaskConical, TrendingUp, AlertCircle, X, Check, RefreshCw,
   Building, ChevronUp, Upload, Printer, Download, Eye, Filter,
-  FileSpreadsheet, File
+  FileSpreadsheet, File, UserCircle, MapPin, Stethoscope
 } from "lucide-react";
 
 // ─── OpenELIS Colors ───
@@ -194,10 +194,39 @@ const FlagBadge = ({ flag }) => {
 // ═══════════════════════════════════════════════════════════════
 // REPORT NCE — Creation Form
 // ═══════════════════════════════════════════════════════════════
+// Generate provisional NCE number on form load
+const genNceNumber = () => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  const seq = String(Math.floor(Math.random() * 9000) + 1000);
+  return `NCE-${y}${m}${d}-${seq}`;
+};
+
 const ReportNCEView = () => {
+  // Reporter & event context
+  const [nceNumber] = useState(genNceNumber);
+  const [reporterName, setReporterName] = useState("admin");
+  const [dateOfEvent, setDateOfEvent] = useState(new Date().toISOString().split("T")[0]);
+  const [reportingUnit, setReportingUnit] = useState("CDI IPCI – Abidjan");
+  const [labUnits, setLabUnits] = useState([
+    "CDI IPCI – Abidjan", "Hématologie", "Biochimie", "Microbiologie",
+    "Anatomopathologie", "Immunologie", "Virologie", "Parasitologie",
+  ]);
+  const [unitQuery, setUnitQuery] = useState("CDI IPCI – Abidjan");
+  const [showUnitDropdown, setShowUnitDropdown] = useState(false);
+
+  // Classification
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
   const [severity, setSeverity] = useState("");
+
+  // Details
+  const [suspectedCauses, setSuspectedCauses] = useState("");
+  const [proposedAction, setProposedAction] = useState("");
+
+  // Linking
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [linkedOrders, setLinkedOrders] = useState([]);
@@ -278,6 +307,107 @@ const ReportNCEView = () => {
             {/* label.nce.reportNce.subtitle */}
             Document a quality event and link to affected samples and results
           </p>
+        </div>
+      </div>
+
+      {/* ─── Reporter & Event Context ─── */}
+      <div style={{ backgroundColor: C.white, border: `1px solid ${C.gray200}`, borderRadius: 8, padding: 24, marginBottom: 20 }}>
+        <h3 style={{ margin: "0 0 16px", fontSize: 14, fontWeight: 600, color: C.gray800, display: "flex", alignItems: "center", gap: 6 }}>
+          <UserCircle size={16} color={C.teal} />
+          {/* label.nce.section.reporterContext */}
+          Reporter & Event Context
+        </h3>
+        <div style={{ display: "grid", gridTemplateColumns: "auto 1fr 1fr 1fr", gap: 16, alignItems: "start" }}>
+          {/* NCE Number — read-only */}
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.gray700, marginBottom: 6 }}>
+              {/* label.nce.field.nceNumber */}
+              NCE Number
+            </label>
+            <div style={{ padding: "10px 12px", border: `1px solid ${C.gray200}`, borderRadius: 4, fontSize: 13, backgroundColor: C.gray100, fontFamily: "monospace", fontWeight: 600, color: C.teal, whiteSpace: "nowrap" }}>
+              {nceNumber}
+            </div>
+            <div style={{ fontSize: 11, color: C.gray400, marginTop: 4 }}>Auto-generated</div>
+          </div>
+          {/* Reporter Name */}
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.gray700, marginBottom: 6 }}>
+              {/* label.nce.field.reporterName */}
+              Reporter Name <span style={{ color: C.red }}>*</span>
+            </label>
+            <input type="text" value={reporterName} onChange={e => setReporterName(e.target.value)}
+              style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.gray200}`, borderRadius: 4, fontSize: 13, boxSizing: "border-box" }} />
+            <div style={{ fontSize: 11, color: C.gray400, marginTop: 4 }}>Defaults to logged-in user</div>
+          </div>
+          {/* Date of Event */}
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.gray700, marginBottom: 6 }}>
+              {/* label.nce.field.dateOfEvent */}
+              Date of Event <span style={{ color: C.red }}>*</span>
+            </label>
+            <input type="date" value={dateOfEvent} onChange={e => setDateOfEvent(e.target.value)}
+              style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.gray200}`, borderRadius: 4, fontSize: 13, boxSizing: "border-box" }} />
+            <div style={{ fontSize: 11, color: C.gray400, marginTop: 4 }}>Defaults to today</div>
+          </div>
+          {/* Reporting Unit — creatable typeahead */}
+          <div style={{ position: "relative" }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.gray700, marginBottom: 6 }}>
+              {/* label.nce.field.reportingUnit */}
+              Reporting Unit <span style={{ color: C.red }}>*</span>
+            </label>
+            <input
+              type="text"
+              value={unitQuery}
+              onChange={e => { setUnitQuery(e.target.value); setReportingUnit(e.target.value); setShowUnitDropdown(true); }}
+              onFocus={() => setShowUnitDropdown(true)}
+              onBlur={() => {
+                setTimeout(() => {
+                  setShowUnitDropdown(false);
+                  // Save new entry to list if not already present
+                  if (unitQuery.trim() && !labUnits.includes(unitQuery.trim())) {
+                    setLabUnits(prev => [...prev, unitQuery.trim()]);
+                  }
+                }, 150);
+              }}
+              placeholder="Search or enter unit…"
+              style={{ width: "100%", padding: "10px 12px", border: `1px solid ${showUnitDropdown ? C.teal : C.gray200}`, borderRadius: showUnitDropdown ? "4px 4px 0 0" : 4, fontSize: 13, boxSizing: "border-box", outline: "none" }}
+            />
+            {showUnitDropdown && (() => {
+              const q = unitQuery.trim().toLowerCase();
+              const filtered = labUnits.filter(u => u.toLowerCase().includes(q));
+              const showCreate = unitQuery.trim() && !labUnits.map(u => u.toLowerCase()).includes(q);
+              if (!filtered.length && !showCreate) return null;
+              return (
+                <div style={{ position: "absolute", top: "100%", left: 0, right: 0, backgroundColor: C.white, border: `1px solid ${C.teal}`, borderTop: "none", borderRadius: "0 0 4px 4px", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", zIndex: 20, maxHeight: 180, overflowY: "auto" }}>
+                  {filtered.map(u => (
+                    <div key={u}
+                      onMouseDown={() => { setUnitQuery(u); setReportingUnit(u); setShowUnitDropdown(false); }}
+                      style={{ padding: "9px 12px", fontSize: 13, cursor: "pointer", backgroundColor: u === reportingUnit ? C.tealLighter : C.white, color: u === reportingUnit ? C.teal : C.gray800, fontWeight: u === reportingUnit ? 600 : 400 }}
+                      onMouseEnter={e => e.currentTarget.style.backgroundColor = C.gray50}
+                      onMouseLeave={e => e.currentTarget.style.backgroundColor = u === reportingUnit ? C.tealLighter : C.white}>
+                      {u}
+                    </div>
+                  ))}
+                  {showCreate && (
+                    <div
+                      onMouseDown={() => {
+                        const v = unitQuery.trim();
+                        setLabUnits(prev => [...prev, v]);
+                        setReportingUnit(v);
+                        setUnitQuery(v);
+                        setShowUnitDropdown(false);
+                      }}
+                      style={{ padding: "9px 12px", fontSize: 13, cursor: "pointer", color: C.teal, fontWeight: 500, borderTop: filtered.length ? `1px solid ${C.gray100}` : "none", display: "flex", alignItems: "center", gap: 6 }}>
+                      <Plus size={13} />
+                      {/* label.nce.reportingUnit.addNew */}
+                      Add "{unitQuery.trim()}"
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+            <div style={{ fontSize: 11, color: C.gray400, marginTop: 4 }}>Inherited from user context · type to search or add</div>
+          </div>
         </div>
       </div>
 
@@ -372,6 +502,28 @@ const ReportNCEView = () => {
           </label>
           <textarea rows={2} placeholder="What corrective steps were taken immediately…"
             style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.gray200}`, borderRadius: 4, fontSize: 13, resize: "vertical", fontFamily: "inherit", boxSizing: "border-box" }} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.gray700, marginBottom: 6 }}>
+              {/* label.nce.field.suspectedCauses */}
+              Suspected Causes <span style={{ fontSize: 11, fontWeight: 400, color: C.gray400 }}>(optional)</span>
+            </label>
+            <textarea rows={3} value={suspectedCauses} onChange={e => setSuspectedCauses(e.target.value)}
+              placeholder="Reporter's initial hypothesis on cause…"
+              style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.gray200}`, borderRadius: 4, fontSize: 13, resize: "vertical", fontFamily: "inherit", boxSizing: "border-box" }} />
+            <div style={{ fontSize: 11, color: C.gray400, marginTop: 4 }}>Initial assessment only — formal root cause determined during investigation</div>
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.gray700, marginBottom: 6 }}>
+              {/* label.nce.field.proposedAction */}
+              Proposed Action <span style={{ fontSize: 11, fontWeight: 400, color: C.gray400 }}>(optional)</span>
+            </label>
+            <textarea rows={3} value={proposedAction} onChange={e => setProposedAction(e.target.value)}
+              placeholder="Recommended next steps…"
+              style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.gray200}`, borderRadius: 4, fontSize: 13, resize: "vertical", fontFamily: "inherit", boxSizing: "border-box" }} />
+            <div style={{ fontSize: 11, color: C.gray400, marginTop: 4 }}>Separate from CAPA actions assigned during corrective action workflow</div>
+          </div>
         </div>
 
         {/* Attachments */}
@@ -489,6 +641,55 @@ const ReportNCEView = () => {
           </div>
         ))}
       </div>
+
+      {/* ─── Patient Context (auto-populated from linked order) ─── */}
+      {linkedOrders.length > 0 && (() => {
+        const first = linkedOrders[0];
+        const multiPatient = linkedOrders.length > 1;
+        return (
+          <div style={{ backgroundColor: C.tealLighter, border: `1px solid ${C.teal}`, borderRadius: 8, padding: 20, marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: C.teal, display: "flex", alignItems: "center", gap: 6 }}>
+                <UserCircle size={16} />
+                {/* label.nce.section.patientContext */}
+                Patient Context
+              </h3>
+              <span style={{ fontSize: 11, color: C.teal, fontStyle: "italic" }}>
+                {/* label.nce.linking.patientContextHelper */}
+                Auto-populated from linked order
+              </span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: C.teal, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.3 }}>
+                  {/* label.nce.linking.patientName */}
+                  Patient Name
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: C.gray800 }}>
+                  {multiPatient ? "(Multiple patients)" : first.patientName}
+                </div>
+                {!multiPatient && <div style={{ fontSize: 11, color: C.gray500 }}>ID: {first.patientId}</div>}
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: C.teal, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.3, display: "flex", alignItems: "center", gap: 4 }}>
+                  <Stethoscope size={11} />
+                  {/* label.nce.linking.prescriber */}
+                  Prescriber
+                </div>
+                <div style={{ fontSize: 13, color: C.gray700 }}>Dr. M. Konan</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: C.teal, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.3, display: "flex", alignItems: "center", gap: 4 }}>
+                  <MapPin size={11} />
+                  {/* label.nce.linking.site */}
+                  Site
+                </div>
+                <div style={{ fontSize: 13, color: C.gray700 }}>CDI IPCI – Abidjan</div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ─── Form Actions ─── */}
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, paddingBottom: 40 }}>
@@ -781,14 +982,20 @@ const NCEReportsView = () => {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, marginBottom: 20 }}>
                 {[
                   ["NCE Number", previewNCE.id],
-                  ["Occurrence Date", previewNCE.date],
+                  ["Date of Event", previewNCE.date],
+                  ["Reporter Name", previewNCE.assignedTo],
+                  ["Reporting Unit", "CDI IPCI – Abidjan"],
                   ["Category", `${previewNCE.category} › ${previewNCE.subcategory}`],
                   ["Status", STAT[previewNCE.status]?.label],
                   ["Severity", previewNCE.severity.charAt(0).toUpperCase() + previewNCE.severity.slice(1)],
                   ["Assigned To", previewNCE.assignedTo],
+                  ["Patient", previewNCE.patient],
+                  ["Prescriber", "Dr. M. Konan"],
+                  ["Site", "CDI IPCI – Abidjan"],
+                  ["Lab Number", previewNCE.labNumber],
                 ].map(([label, value], i) => (
                   <div key={label} style={{ display: "flex", padding: "8px 12px", backgroundColor: i % 2 === 0 ? C.gray50 : C.white, borderBottom: `1px solid ${C.gray100}` }}>
-                    <span style={{ fontWeight: 600, fontSize: 12, color: C.gray600, width: 120, flexShrink: 0 }}>{label}:</span>
+                    <span style={{ fontWeight: 600, fontSize: 12, color: C.gray600, width: 130, flexShrink: 0 }}>{label}:</span>
                     <span style={{ fontSize: 12, color: C.gray800 }}>{value}</span>
                   </div>
                 ))}
@@ -814,6 +1021,28 @@ const NCEReportsView = () => {
                 </h4>
                 <div style={{ fontSize: 12, color: C.gray600, lineHeight: 1.6, padding: 12, backgroundColor: C.gray50, borderRadius: 4 }}>
                   Contacted ordering provider to request recollection. Notified phlebotomy supervisor. Sample flagged and held per SOP.
+                </div>
+              </div>
+
+              {/* Suspected Causes */}
+              <div style={{ marginBottom: 20 }}>
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: C.gray800, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: 0.4, borderBottom: `1px solid ${C.gray200}`, paddingBottom: 4 }}>
+                  {/* label.nce.printReport.suspectedCauses */}
+                  Suspected Causes
+                </h4>
+                <div style={{ fontSize: 12, color: C.gray600, lineHeight: 1.6, padding: 12, backgroundColor: C.gray50, borderRadius: 4, fontStyle: "italic" }}>
+                  Hemolysis likely caused by difficult venipuncture on fragile vein. Possible inadequate gauge selection.
+                </div>
+              </div>
+
+              {/* Proposed Action */}
+              <div style={{ marginBottom: 20 }}>
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: C.gray800, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: 0.4, borderBottom: `1px solid ${C.gray200}`, paddingBottom: 4 }}>
+                  {/* label.nce.printReport.proposedAction */}
+                  Proposed Action
+                </h4>
+                <div style={{ fontSize: 12, color: C.gray600, lineHeight: 1.6, padding: 12, backgroundColor: C.gray50, borderRadius: 4 }}>
+                  Recommend phlebotomy team review of difficult venipuncture protocol and recollection from alternative site.
                 </div>
               </div>
 

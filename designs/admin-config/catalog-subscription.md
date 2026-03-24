@@ -1,12 +1,12 @@
 # Catalog Subscription & Metadata Sync
 ## Functional Requirements Specification — v1.0
 
-**Version:** 1.1
-**Date:** 2026-03-23
+**Version:** 1.2
+**Date:** 2026-03-24
 **Status:** Draft for Review
 **Jira:** OGC-[TBD]
 **Technology:** Java Spring Framework, Carbon React
-**Related Modules:** Test Catalog (OGC-49), AMR Configuration (OGC-312), FHIR Integration
+**Related Modules:** Test Catalog (OGC-49), AMR Configuration (OGC-312), FHIR Integration, Lab Management Dashboard
 
 ---
 
@@ -337,6 +337,7 @@ The following table defines how upstream FHIR resource fields map to local OpenE
 | `ActivityDefinition.observationResultRequirement.type` | `Test.resultType` | e.g., Numeric, Text, Coded |
 | `ActivityDefinition.observationResultRequirement.normalCodedValueSet` | `Test.normalRange` | Reference range / normal value |
 | `ActivityDefinition.observationResultRequirement.extension[unit]` | `Test.uom` | Unit of measure |
+| `ActivityDefinition.extension[http://openelis-global.org/fhir/StructureDefinition/tat-target-hours].valueDecimal` | `Test.tatTargetHours` | TAT target in decimal hours (e.g., 4.0 for 4 hours). Nullable; if absent, compliance is not calculated for this test. Used by the Lab Management Dashboard. |
 | `ActivityDefinition.status` | `Test.isActive` | `active` → true; `retired` → false |
 | `ActivityDefinition.url` | `Test.canonicalUrl` | Identity key; written on first link |
 | `ActivityDefinition.meta.versionId` | `Test.upstreamVersion` | Written on each accepted update |
