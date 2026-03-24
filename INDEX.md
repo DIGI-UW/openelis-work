@@ -123,6 +123,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Help Menu | [help-menu.jsx](designs/system/help-menu.jsx) | [help-menu.md](designs/system/help-menu.md) |
 | Analyzer Import | [analyzer-import.jsx](designs/system/analyzer-import.jsx) | [analyzer-import.md](designs/system/analyzer-import.md) |
 | FHIR Outbound Push | [fhir-outbound-push.jsx](designs/system/fhir-outbound-push.jsx) | [fhir-outbound-push.md](designs/system/fhir-outbound-push.md) |
+| Lab Management Dashboard | [lab-management-dashboard.html](designs/system/lab-management-dashboard.html) | [lab-management-dashboard.md](designs/system/lab-management-dashboard.md) |
 | Catalyst Lab Data Assistant | [Figma](https://www.figma.com/make/poDXKSr2IBgKbbjB1Fh9Sj/OpenELIS-Global-Template--Copy-?node-id=0-1) | — |
 
 ## Sample Collection

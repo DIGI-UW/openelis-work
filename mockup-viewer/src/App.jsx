@@ -585,6 +585,17 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 62,
     jira: ['OGC-446'],
   },
+  {
+    name: 'Lab Management Dashboard',
+    category: 'system',
+    component: null,
+    description: 'Cross-cutting lab management dashboard — real-time TAT monitoring, pending workload by section, analyzer status, reagent stock alerts, QC flags, and daily throughput metrics for lab managers',
+    specPath: 'designs/system/lab-management-dashboard.md',
+    htmlUrl: 'designs/system/lab-management-dashboard.html',
+    added: '2026-03-24',
+    status: 'draft',
+    githubIssue: 64,
+  },
 
   // ─── Sample Collection ───
   {

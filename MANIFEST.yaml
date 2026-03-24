@@ -1329,3 +1329,14 @@
     github: https://github.com/DIGI-UW/openelis-work/issues/63
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/catalog-subscription
   added: "2026-03-24"
+
+- id: lab-management-dashboard
+  type: both
+  path: designs/system/lab-management-dashboard.html
+  spec: designs/system/lab-management-dashboard.md
+  category: system
+  description: Cross-cutting lab management dashboard — real-time TAT monitoring, pending workload by section, analyzer status, reagent stock alerts, QC flags, and daily throughput metrics for lab managers
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/64
+    gallery: https://digi-uw.github.io/openelis-work/#/system/lab-management-dashboard
+  added: "2026-03-24"
