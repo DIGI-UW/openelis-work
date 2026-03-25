@@ -1,0 +1,77 @@
+* Block Type = 96-Well 0.2-mL Block
+* Calibration Background is expired  = No
+* Calibration Background performed on = 01-15-2025
+* Calibration Pure Dye is expired  = No
+* Calibration Pure Dye performed on = 01-15-2025
+* Calibration ROI is expired  = No
+* Calibration ROI performed on = 01-15-2025
+* Calibration Uniformity is expired  = No
+* Calibration Uniformity performed on = 01-15-2025
+* Chemistry = TaqMan® Reagents
+* Date Created = 2025-02-18 06:32:15 AM EST
+* Experiment File Name = C:\Applied Biosystems\QuantStudio 5\experiments\HIV-VL_Run-20250218.eds
+* Experiment Name = HIV-VL_Run-20250218
+* Experiment Run End Time = 2025-02-18 08:47:22 AM EST
+* Experiment Type = Standard Curve
+* Instrument Name = QuantStudio5-MOL-01
+* Instrument Serial Number = 278880134
+* Instrument Type = QuantStudio™ 5 System
+* Passive Reference = ROX
+* Quantification Cycle Method = Ct
+* Signal Smoothing On = true
+* Stage/ Cycle where Ct Calculated = Stage 2, Step 2
+* Software Name = QuantStudio™ Design & Analysis Software
+* Software Version = 2.7.0
+
+[Results]
+Well	Well Position	Omit	Sample Name	Target Name	Task	Reporter	Quencher	CT	Ct Mean	Ct SD	Quantity	Quantity Mean	Quantity SD	Automatic Ct Threshold	Ct Threshold	Automatic Baseline	Baseline Start	Baseline End	Amp Score	Amp Status	Comments
+1	A1	false	HIV-VL-STD-7	HIV-1 RNA	Standard	FAM	NFQ-MGB	15.234	15.289	0.078	10000000	10000000		true	0.04532	true	3	15	1.986	Amp	Standard 10^7
+2	A2	false	HIV-VL-STD-7	HIV-1 RNA	Standard	FAM	NFQ-MGB	15.344	15.289	0.078	10000000	10000000		true	0.04532	true	3	15	1.972	Amp	Standard 10^7
+3	A3	false	HIV-VL-STD-6	HIV-1 RNA	Standard	FAM	NFQ-MGB	18.567	18.612	0.064	1000000	1000000		true	0.04532	true	3	15	1.954	Amp	Standard 10^6
+4	A4	false	HIV-VL-STD-6	HIV-1 RNA	Standard	FAM	NFQ-MGB	18.657	18.612	0.064	1000000	1000000		true	0.04532	true	3	15	1.948	Amp	Standard 10^6
+5	A5	false	HIV-VL-STD-5	HIV-1 RNA	Standard	FAM	NFQ-MGB	21.893	21.934	0.058	100000	100000		true	0.04532	true	3	15	1.932	Amp	Standard 10^5
+6	A6	false	HIV-VL-STD-5	HIV-1 RNA	Standard	FAM	NFQ-MGB	21.975	21.934	0.058	100000	100000		true	0.04532	true	3	15	1.927	Amp	Standard 10^5
+7	A7	false	HIV-VL-STD-4	HIV-1 RNA	Standard	FAM	NFQ-MGB	25.112	25.156	0.062	10000	10000		true	0.04532	true	3	15	1.891	Amp	Standard 10^4
+8	A8	false	HIV-VL-STD-4	HIV-1 RNA	Standard	FAM	NFQ-MGB	25.200	25.156	0.062	10000	10000		true	0.04532	true	3	15	1.886	Amp	Standard 10^4
+9	A9	false	HIV-VL-STD-3	HIV-1 RNA	Standard	FAM	NFQ-MGB	28.445	28.490	0.064	1000	1000		true	0.04532	true	3	15	1.845	Amp	Standard 10^3
+10	A10	false	HIV-VL-STD-3	HIV-1 RNA	Standard	FAM	NFQ-MGB	28.535	28.490	0.064	1000	1000		true	0.04532	true	3	15	1.839	Amp	Standard 10^3
+11	A11	false	HIV-VL-STD-2	HIV-1 RNA	Standard	FAM	NFQ-MGB	31.778	31.823	0.064	100	100		true	0.04532	true	3	15	1.789	Amp	Standard 10^2
+12	A12	false	HIV-VL-STD-2	HIV-1 RNA	Standard	FAM	NFQ-MGB	31.868	31.823	0.064	100	100		true	0.04532	true	3	15	1.782	Amp	Standard 10^2
+13	B1	false	HIV-VL-STD-1	HIV-1 RNA	Standard	FAM	NFQ-MGB	35.102	35.198	0.136	10	10		true	0.04532	true	3	15	1.712	Amp	Standard 10^1 (LLOQ)
+14	B2	false	HIV-VL-STD-1	HIV-1 RNA	Standard	FAM	NFQ-MGB	35.294	35.198	0.136	10	10		true	0.04532	true	3	15	1.698	Amp	Standard 10^1 (LLOQ)
+15	B3	false	NTC	HIV-1 RNA	NTC	FAM	NFQ-MGB	Undetermined				Undetermined		true	0.04532	true	3	15	0.112	No Amp	No Template Control
+16	B4	false	NTC	HIV-1 RNA	NTC	FAM	NFQ-MGB	Undetermined				Undetermined		true	0.04532	true	3	15	0.098	No Amp	No Template Control
+17	B5	false	HIV-VL-STD-7	IC	Standard	VIC	NFQ-MGB	28.112	28.145	0.047			true	0.03218	true	3	15	1.876	Amp	Internal Control
+18	B6	false	HIV-VL-STD-6	IC	Standard	VIC	NFQ-MGB	28.178	28.145	0.047			true	0.03218	true	3	15	1.869	Amp	Internal Control
+19	B7	false	NTC	IC	NTC	VIC	NFQ-MGB	Undetermined						true	0.03218	true	3	15	0.087	No Amp	IC NTC
+20	B8	false	NTC	IC	NTC	VIC	NFQ-MGB	Undetermined						true	0.03218	true	3	15	0.092	No Amp	IC NTC
+21	C1	false	2502180001	HIV-1 RNA	Unknown	FAM	NFQ-MGB	22.456		0.000	74523	74523		true	0.04532	true	3	15	1.945	Amp	
+22	C2	false	2502180001	IC	Unknown	VIC	NFQ-MGB	28.234		0.000			true	0.03218	true	3	15	1.871	Amp	
+23	C3	false	2502180002	HIV-1 RNA	Unknown	FAM	NFQ-MGB	19.123		0.000	2345678	2345678		true	0.04532	true	3	15	1.967	Amp	
+24	C4	false	2502180002	IC	Unknown	VIC	NFQ-MGB	28.567		0.000			true	0.03218	true	3	15	1.858	Amp	
+25	C5	false	2502180003	HIV-1 RNA	Unknown	FAM	NFQ-MGB	31.234		0.000	234	234		true	0.04532	true	3	15	1.812	Amp	
+26	C6	false	2502180003	IC	Unknown	VIC	NFQ-MGB	28.345		0.000			true	0.03218	true	3	15	1.865	Amp	
+27	C7	false	2502180004	HIV-1 RNA	Unknown	FAM	NFQ-MGB	Undetermined		0.000	0	0		true	0.04532	true	3	15	0.134	No Amp	
+28	C8	false	2502180004	IC	Unknown	VIC	NFQ-MGB	28.123		0.000			true	0.03218	true	3	15	1.878	Amp	
+29	C9	false	2502180005	HIV-1 RNA	Unknown	FAM	NFQ-MGB	25.678		0.000	5432	5432		true	0.04532	true	3	15	1.901	Amp	
+30	C10	false	2502180005	IC	Unknown	VIC	NFQ-MGB	28.456		0.000			true	0.03218	true	3	15	1.862	Amp	
+31	C11	false	2502180006	HIV-1 RNA	Unknown	FAM	NFQ-MGB	17.234		0.000	5678901	5678901		true	0.04532	true	3	15	1.978	Amp	
+32	C12	false	2502180006	IC	Unknown	VIC	NFQ-MGB	28.289		0.000			true	0.03218	true	3	15	1.868	Amp	
+33	D1	false	2502180007	HIV-1 RNA	Unknown	FAM	NFQ-MGB	29.567		0.000	567	567		true	0.04532	true	3	15	1.834	Amp	
+34	D2	false	2502180007	IC	Unknown	VIC	NFQ-MGB	28.178		0.000			true	0.03218	true	3	15	1.873	Amp	
+35	D3	false	2502180008	HIV-1 RNA	Unknown	FAM	NFQ-MGB	34.789		0.000	15	15		true	0.04532	true	3	15	1.723	Amp	Near LLOQ
+36	D4	false	2502180008	IC	Unknown	VIC	NFQ-MGB	28.345		0.000			true	0.03218	true	3	15	1.866	Amp	
+37	D5	false	2502180009	HIV-1 RNA	Unknown	FAM	NFQ-MGB	Undetermined		0.000	0	0		true	0.04532	true	3	15	0.156	No Amp	
+38	D6	false	2502180009	IC	Unknown	VIC	NFQ-MGB	28.567		0.000			true	0.03218	true	3	15	1.854	Amp	
+39	D7	false	2502180010	HIV-1 RNA	Unknown	FAM	NFQ-MGB	20.345		0.000	987654	987654		true	0.04532	true	3	15	1.956	Amp	
+40	D8	false	2502180010	IC	Unknown	VIC	NFQ-MGB	28.234		0.000			true	0.03218	true	3	15	1.870	Amp	
+41	D9	false	2502180011	HIV-1 RNA	Unknown	FAM	NFQ-MGB	23.890		0.000	34567	34567		true	0.04532	true	3	15	1.934	Amp	
+42	D10	false	2502180011	IC	Unknown	VIC	NFQ-MGB	28.123		0.000			true	0.03218	true	3	15	1.877	Amp	
+43	D11	false	2502180012	HIV-1 RNA	Unknown	FAM	NFQ-MGB	Undetermined		0.000	0	0		true	0.04532	true	3	15	0.178	No Amp	
+44	D12	false	2502180012	IC	Unknown	VIC	NFQ-MGB	Undetermined		0.000			true	0.03218	true	3	15	0.102	No Amp	IC FAILURE - INVALID
+45	E1	false	QC-HIV-HIGH	HIV-1 RNA	Unknown	FAM	NFQ-MGB	20.123		0.000	1234567	1234567		true	0.04532	true	3	15	1.961	Amp	Positive Control High
+46	E2	false	QC-HIV-HIGH	IC	Unknown	VIC	NFQ-MGB	28.345		0.000			true	0.03218	true	3	15	1.864	Amp	Positive Control High
+47	E3	false	QC-HIV-LOW	HIV-1 RNA	Unknown	FAM	NFQ-MGB	32.456		0.000	123	123		true	0.04532	true	3	15	1.798	Amp	Positive Control Low
+48	E4	false	QC-HIV-LOW	IC	Unknown	VIC	NFQ-MGB	28.234		0.000			true	0.03218	true	3	15	1.869	Amp	Positive Control Low
+49	E5	false	QC-HIV-NEG	HIV-1 RNA	Unknown	FAM	NFQ-MGB	Undetermined		0.000	0	0		true	0.04532	true	3	15	0.108	No Amp	Negative Control
+50	E6	false	QC-HIV-NEG	IC	Unknown	VIC	NFQ-MGB	28.178		0.000			true	0.03218	true	3	15	1.872	Amp	Negative Control

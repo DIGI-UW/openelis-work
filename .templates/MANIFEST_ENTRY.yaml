@@ -1,0 +1,23 @@
+# Copy this block into MANIFEST.yaml for each new artifact.
+# Fields marked (required) must be filled in; others are optional.
+
+- id: my-feature                        # (required) unique slug, usually filename without extension
+  type: mockup                          # (required) mockup | spec | requirements-doc | research-doc |
+                                        #            vendor-manual | reference-data | image |
+                                        #            chat-transcript | meeting-notes | decision
+  path: designs/category/my-feature.jsx # (required) repo-relative file path
+  category: admin-config                # (required) admin-config | analyzer-integration | microbiology |
+                                        #            nce | pathology | quality | results-validation |
+                                        #            system | other
+  description: Short description here   # (required) human-readable summary
+  paired_with: my-feature-spec          # id of companion mockup or spec (if paired)
+  links:
+    jira: ["OGC-123"]                   # Jira ticket keys
+    figma: ["https://figma.com/..."]    # Figma design URLs
+    confluence: ["https://..."]         # Confluence page URLs
+    transcripts: ["transcript-id"]      # ids of chat-transcript entries in this manifest
+    meetings: ["meeting-id"]            # ids of meeting-notes entries in this manifest
+    decisions: ["decision-id"]          # ids of decision entries in this manifest
+    other: ["https://..."]              # freeform URLs or references
+  added: "2026-01-01"                   # (required) ISO date when added
+  updated: "2026-01-15"                 # ISO date of last significant change

@@ -1,0 +1,188 @@
+{
+  "id": "2502190003",
+  "timestamp": "2025-02-19T10:38:12Z",
+  "pipeline": {
+    "software": "TB-Profiler",
+    "version": "6.3.0",
+    "db_version": "WHO-UCN-GTB-PCI-2023.5",
+    "analysis_date": "2025-02-19",
+    "commit": "a8f3c2d"
+  },
+  "sequencing": {
+    "platform": "MinION",
+    "instrument_id": "MN42781",
+    "flowcell": "FLO-MIN114",
+    "kit": "SQK-RBK114.96",
+    "basecaller": "Dorado",
+    "basecaller_version": "0.5.3",
+    "basecaller_model": "dna_r10.4.1_e8.2_400bps_sup@v4.3.0"
+  },
+  "qc": {
+    "num_reads": 287345,
+    "num_reads_mapped": 278901,
+    "pct_reads_mapped": 97.06,
+    "median_depth": 98,
+    "genome_coverage_10x": 98.9,
+    "genome_coverage_30x": 97.1,
+    "mean_read_length": 4789,
+    "median_read_length": 4012,
+    "n50": 6890,
+    "target_median_depth": {
+      "rpoB": 128,
+      "katG": 105,
+      "inhA_promoter": 98,
+      "embB": 87,
+      "pncA": 102,
+      "gyrA": 118,
+      "gyrB": 112,
+      "rrs": 95,
+      "eis_promoter": 104,
+      "rplC": 99,
+      "Rv0678": 85,
+      "atpE": 91,
+      "pepQ": 87,
+      "ddn": 93,
+      "fbiA": 89
+    }
+  },
+  "main_lineage": "lineage2",
+  "sub_lineage": "lineage2.2.1",
+  "family": "Beijing",
+  "spoligotype": "SIT1",
+  "species": "Mycobacterium tuberculosis",
+  "drtype": "Pre-XDR-TB",
+  "dr_resistances": [
+    {
+      "drug": "rifampicin",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "rpoB",
+          "nucleotide_change": "c.1349C>T",
+          "amino_acid_change": "p.Ser450Leu",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 128,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "isoniazid",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "katG",
+          "nucleotide_change": "c.944G>C",
+          "amino_acid_change": "p.Ser315Thr",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 105,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "ethambutol",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "embB",
+          "nucleotide_change": "c.918A>G",
+          "amino_acid_change": "p.Met306Val",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 87,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "pyrazinamide",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "pncA",
+          "nucleotide_change": "c.391G>T",
+          "amino_acid_change": "p.Asp131Tyr",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 102,
+          "confidence": "moderate",
+          "who_confidence": "Assoc w R - Moderate confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "streptomycin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "fluoroquinolones",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "gyrA",
+          "nucleotide_change": "c.271G>C",
+          "amino_acid_change": "p.Asp94Ala",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 118,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "amikacin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "kanamycin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "capreomycin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "ethionamide",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "linezolid",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "bedaquiline",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "clofazimine",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "delamanid",
+      "status": "Sensitive",
+      "mutations": []
+    }
+  ],
+  "other_variants": [],
+  "notes": ["Pre-XDR: MDR plus fluoroquinolone resistance. Eligible for BPaL regimen assessment."]
+}

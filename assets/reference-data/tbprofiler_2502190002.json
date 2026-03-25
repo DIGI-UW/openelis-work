@@ -1,0 +1,164 @@
+{
+  "id": "2502190002",
+  "timestamp": "2025-02-19T10:12:45Z",
+  "pipeline": {
+    "software": "TB-Profiler",
+    "version": "6.3.0",
+    "db_version": "WHO-UCN-GTB-PCI-2023.5",
+    "analysis_date": "2025-02-19",
+    "commit": "a8f3c2d"
+  },
+  "sequencing": {
+    "platform": "MinION",
+    "instrument_id": "MN42781",
+    "flowcell": "FLO-MIN114",
+    "kit": "SQK-RBK114.96",
+    "basecaller": "Dorado",
+    "basecaller_version": "0.5.3",
+    "basecaller_model": "dna_r10.4.1_e8.2_400bps_sup@v4.3.0"
+  },
+  "qc": {
+    "num_reads": 312456,
+    "num_reads_mapped": 301234,
+    "pct_reads_mapped": 96.41,
+    "median_depth": 112,
+    "genome_coverage_10x": 99.1,
+    "genome_coverage_30x": 97.8,
+    "mean_read_length": 5012,
+    "median_read_length": 4234,
+    "n50": 7123,
+    "target_median_depth": {
+      "rpoB": 145,
+      "katG": 118,
+      "inhA_promoter": 108,
+      "embB": 95,
+      "pncA": 112,
+      "gyrA": 132,
+      "gyrB": 125,
+      "rrs": 102,
+      "eis_promoter": 115,
+      "rplC": 109,
+      "Rv0678": 92,
+      "atpE": 98,
+      "pepQ": 94,
+      "ddn": 101,
+      "fbiA": 96
+    }
+  },
+  "main_lineage": "lineage2",
+  "sub_lineage": "lineage2.2.1",
+  "family": "Beijing",
+  "spoligotype": "SIT1",
+  "species": "Mycobacterium tuberculosis",
+  "drtype": "MDR-TB",
+  "dr_resistances": [
+    {
+      "drug": "rifampicin",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "rpoB",
+          "nucleotide_change": "c.1349C>T",
+          "amino_acid_change": "p.Ser450Leu",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 145,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "isoniazid",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "katG",
+          "nucleotide_change": "c.944G>C",
+          "amino_acid_change": "p.Ser315Thr",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 118,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "ethambutol",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "embB",
+          "nucleotide_change": "c.918A>G",
+          "amino_acid_change": "p.Met306Val",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 95,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "pyrazinamide",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "streptomycin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "fluoroquinolones",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "amikacin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "kanamycin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "capreomycin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "ethionamide",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "linezolid",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "bedaquiline",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "clofazimine",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "delamanid",
+      "status": "Sensitive",
+      "mutations": []
+    }
+  ],
+  "other_variants": [],
+  "notes": []
+}

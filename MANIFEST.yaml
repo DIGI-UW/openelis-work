@@ -1,0 +1,1414 @@
+# ============================================================
+# OpenELIS Design Workspace — Manifest
+# ============================================================
+# This file is the single source of truth for every artifact
+# in the repo. Claude auto-updates it when processing uploads.
+#
+# Schema per entry:
+#   id:          unique slug (usually filename without extension)
+#   type:        mockup | spec | requirements-doc | research-doc |
+#                vendor-manual | reference-data | image |
+#                chat-transcript | meeting-notes | decision
+#   path:        repo-relative file path
+#   category:    admin-config | analyzer-integration | microbiology |
+#                nce | pathology | quality | results-validation |
+#                system | other
+#   description: short human-readable summary
+#   paired_with: id of the companion file (e.g. mockup ↔ spec)
+#   links:       linked external objects
+#     jira:      list of Jira ticket keys
+#     figma:     list of Figma URLs
+#     confluence: list of Confluence page URLs
+#     transcripts: list of transcript ids in this manifest
+#     meetings:  list of meeting-notes ids in this manifest
+#     decisions: list of decision ids in this manifest
+#     other:     list of freeform URLs or references
+#   added:       ISO date when first added to the repo
+#   updated:     ISO date of last significant change
+# ============================================================
+
+# ─── Admin & Configuration ──────────────────────────────────
+
+- id: data-dictionary
+  type: mockup
+  path: designs/admin-config/data-dictionary.jsx
+  category: admin-config
+  description: Data dictionary management interface
+  paired_with: data-dictionary-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: data-dictionary-spec
+  type: spec
+  path: designs/admin-config/data-dictionary.md
+  category: admin-config
+  description: Data dictionary FRS
+  paired_with: data-dictionary
+  links: {}
+  added: "2026-03-03"
+
+- id: lab-units
+  type: mockup
+  path: designs/admin-config/lab-units.jsx
+  category: admin-config
+  description: Laboratory units configuration
+  paired_with: lab-units-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: lab-units-spec
+  type: spec
+  path: designs/admin-config/lab-units.md
+  category: admin-config
+  description: Lab units FRS
+  paired_with: lab-units
+  links: {}
+  added: "2026-03-03"
+
+- id: methods
+  type: mockup
+  path: designs/admin-config/methods.jsx
+  category: admin-config
+  description: Test methods management
+  paired_with: methods-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: methods-spec
+  type: spec
+  path: designs/admin-config/methods.md
+  category: admin-config
+  description: Methods FRS
+  paired_with: methods
+  links:
+    jira: ["OGC-214"]
+  added: "2026-03-03"
+
+- id: organizations-management
+  type: mockup
+  path: designs/admin-config/organizations-management.jsx
+  category: admin-config
+  description: Organizations and referring facilities management
+  paired_with: organizations-management-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: organizations-management-spec
+  type: spec
+  path: designs/admin-config/organizations-management.md
+  category: admin-config
+  description: Organizations management FRS
+  paired_with: organizations-management
+  links: {}
+  added: "2026-03-03"
+
+- id: panel
+  type: mockup
+  path: designs/admin-config/panel.jsx
+  category: admin-config
+  description: Test panel configuration
+  paired_with: panel-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: panel-spec
+  type: spec
+  path: designs/admin-config/panel.md
+  category: admin-config
+  description: Panel configuration FRS
+  paired_with: panel
+  links:
+    jira: [OGC-173, OGC-189, OGC-214, OGC-224]
+  added: "2026-03-03"
+
+- id: range-editor
+  type: mockup
+  path: designs/admin-config/range-editor.jsx
+  category: admin-config
+  description: Normal range editor for test results
+  paired_with: range-editor-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: range-editor-spec
+  type: spec
+  path: designs/admin-config/range-editor.md
+  category: admin-config
+  description: Range editor FRS
+  paired_with: range-editor
+  links: {}
+  added: "2026-03-03"
+
+- id: result-options
+  type: mockup
+  path: designs/admin-config/result-options.jsx
+  category: admin-config
+  description: Result options (dictionary values) management
+  paired_with: result-options-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: result-options-spec
+  type: spec
+  path: designs/admin-config/result-options.md
+  category: admin-config
+  description: Result options FRS
+  paired_with: result-options
+  links: {}
+  added: "2026-03-03"
+
+- id: test-catalog
+  type: mockup
+  path: designs/admin-config/test-catalog.jsx
+  category: admin-config
+  description: Comprehensive test catalog management
+  paired_with: test-catalog-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: test-catalog-spec
+  type: spec
+  path: designs/admin-config/test-catalog.md
+  category: admin-config
+  description: Test catalog FRS
+  paired_with: test-catalog
+  links:
+    jira: ["OGC-173"]
+  added: "2026-03-03"
+
+# ─── Analyzer Integration ───────────────────────────────────
+
+- id: analyzer-file-upload
+  type: mockup
+  path: designs/analyzer-integration/analyzer-file-upload.jsx
+  category: analyzer-integration
+  description: Upload and process analyzer result files
+  paired_with: analyzer-file-upload-spec
+  links:
+    jira: ["OGC-324"]
+  added: "2026-03-03"
+
+- id: analyzer-file-upload-spec
+  type: spec
+  path: designs/analyzer-integration/analyzer-file-upload.md
+  category: analyzer-integration
+  description: Analyzer file upload FRS
+  paired_with: analyzer-file-upload
+  links:
+    jira: ["OGC-324"]
+  added: "2026-03-03"
+
+- id: analyzer-mapping-templates
+  type: mockup
+  path: designs/analyzer-integration/analyzer-mapping-templates.jsx
+  category: analyzer-integration
+  description: Configure analyzer-to-test mapping templates
+  paired_with: astm-analyzer-mapping-addendum
+  links: {}
+  added: "2026-03-03"
+
+- id: astm-analyzer-mapping-addendum
+  type: spec
+  path: designs/analyzer-integration/astm-analyzer-mapping-addendum.md
+  category: analyzer-integration
+  description: ASTM analyzer mapping addendum spec
+  paired_with: analyzer-mapping-templates
+  links: {}
+  added: "2026-03-03"
+
+- id: flat-file-analyzer-config
+  type: mockup
+  path: designs/analyzer-integration/flat-file-analyzer-config.jsx
+  category: analyzer-integration
+  description: Configure flat file (CSV/TSV) analyzer parsers
+  paired_with: flat-file-analyzer-config-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: flat-file-analyzer-config-spec
+  type: spec
+  path: designs/analyzer-integration/flat-file-analyzer-config.md
+  category: analyzer-integration
+  description: Flat file analyzer config FRS
+  paired_with: flat-file-analyzer-config
+  links: {}
+  added: "2026-03-03"
+
+- id: hl7-analyzer-mapping
+  type: mockup
+  path: designs/analyzer-integration/hl7-analyzer-mapping.jsx
+  category: analyzer-integration
+  description: HL7 message field mapping for analyzers
+  paired_with: hl7-analyzer-mapping-addendum
+  links: {}
+  added: "2026-03-03"
+
+- id: hl7-analyzer-mapping-addendum
+  type: spec
+  path: designs/analyzer-integration/hl7-analyzer-mapping-addendum.md
+  category: analyzer-integration
+  description: HL7 analyzer mapping addendum spec
+  paired_with: hl7-analyzer-mapping
+  links: {}
+  added: "2026-03-03"
+
+- id: analyzer-validation-page
+  type: mockup
+  path: designs/analyzer-integration/validation-page.jsx
+  category: analyzer-integration
+  description: Analyzer result validation workflow
+  paired_with: analyzer-validation-page-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: analyzer-validation-page-spec
+  type: spec
+  path: designs/analyzer-integration/validation-page.md
+  category: analyzer-integration
+  description: Analyzer validation page FRS
+  paired_with: analyzer-validation-page
+  links: {}
+  added: "2026-03-03"
+
+- id: hl7-mllp-listener-spec
+  type: spec
+  path: designs/analyzer-integration/hl7-mllp-listener.md
+  category: analyzer-integration
+  description: HL7 MLLP listener specification
+  links: {}
+  added: "2026-03-03"
+
+- id: astm-crosswalk-gap-analysis
+  type: spec
+  path: designs/analyzer-integration/astm-crosswalk-gap-analysis.md
+  category: analyzer-integration
+  description: ASTM crosswalk gap analysis
+  links: {}
+  added: "2026-03-03"
+
+- id: instrument-software-companion-guide
+  type: spec
+  path: designs/analyzer-integration/instrument-software-companion-guide.md
+  category: analyzer-integration
+  description: Instrument software companion guide
+  links: {}
+  added: "2026-03-03"
+
+- id: sysmex-xp-field-mapping
+  type: spec
+  path: designs/analyzer-integration/sysmex-xp-field-mapping-v0.1.md
+  category: analyzer-integration
+  description: Sysmex XP-100/XP-300 ASTM field mapping & integration specification — bi-directional ASTM E-1394 interface
+  links: {}
+  added: "2026-03-05"
+
+- id: biorad-cfx-opus-analyzer-connection-spec
+  type: spec
+  path: designs/analyzer-integration/biorad-cfx-opus-analyzer-connection-spec.md
+  category: analyzer-integration
+  description: BioRad CFX Opus Real-Time PCR System analyzer connection specification — CSV/RDML export, LIMS integration via CFX Maestro
+  links: {}
+  added: "2026-03-05"
+
+- id: sysmex-xn-field-mapping
+  type: spec
+  path: designs/analyzer-integration/sysmex-xn-field-mapping-v0.1.md
+  category: analyzer-integration
+  description: Sysmex XN-L Series (XN-330 through XN-550) ASTM field mapping & host-query bi-directional integration specification
+  links: {}
+  added: "2026-03-06"
+
+- id: dna-technology-dtprime-field-mapping
+  type: spec
+  path: designs/analyzer-integration/dna-technology-dtprime-field-mapping-v0.2.md
+  category: analyzer-integration
+  description: DNA Technology DT-Prime Real-Time PCR — XML file-based export, windows-1251 encoding, qualitative results parsing
+  links: {}
+  added: "2026-03-06"
+
+- id: tecan-infinite-f50-analyzer-connection-spec
+  type: spec
+  path: designs/analyzer-integration/tecan-infinite-f50-analyzer-connection-spec.md
+  category: analyzer-integration
+  description: Tecan Infinite F50 ELISA Reader — Magellan CSV/XML export, absorbance microplate reader integration
+  links: {}
+  added: "2026-03-06"
+
+- id: thermo-multiskan-fc-analyzer-connection-spec
+  type: spec
+  path: designs/analyzer-integration/thermo-multiskan-fc-analyzer-connection-spec.md
+  category: analyzer-integration
+  description: Thermo Scientific Multiskan FC ELISA Reader — SkanIt CSV/TXT export, filter-based microplate photometer integration
+  links: {}
+  added: "2026-03-06"
+
+- id: quantstudio-field-mapping-spec
+  type: spec
+  path: designs/analyzer-integration/quantstudio-field-mapping-spec-v131.md
+  category: analyzer-integration
+  description: QuantStudio 5 / 7 Flex field mapping & integration spec — validated against real XLS exports from Madagascar
+  paired_with: quantstudio-companion-guide
+  links:
+    jira: [OGC-348]
+  added: "2026-03-06"
+
+- id: quantstudio-companion-guide
+  type: spec
+  path: designs/analyzer-integration/quantstudio-companion-guide-v10.md
+  category: analyzer-integration
+  description: QuantStudio 5 / 7 Flex analyzer setup & export guide for lab staff
+  paired_with: quantstudio-field-mapping-spec
+  links:
+    jira: [OGC-348]
+  added: "2026-03-06"
+
+- id: fluorocycler-xt-integration-spec
+  type: spec
+  path: designs/analyzer-integration/fluorocycler-xt-integration-spec-v1.0.md
+  category: analyzer-integration
+  description: Bruker FluoroCycler XT molecular PCR flat file import spec — Excel-based manual workflow
+  paired_with: fluorocycler-xt-companion-guide
+  links: {}
+  added: "2026-03-06"
+
+- id: fluorocycler-xt-companion-guide
+  type: spec
+  path: designs/analyzer-integration/fluorocycler-xt-companion-setup-guide-v1.0.md
+  category: analyzer-integration
+  description: Bruker FluoroCycler XT analyzer setup guide for lab staff
+  paired_with: fluorocycler-xt-integration-spec
+  links: {}
+  added: "2026-03-06"
+
+- id: tecan-infinite-f50-companion-guide
+  type: spec
+  path: designs/analyzer-integration/tecan-infinite-f50-companion-guide.md
+  category: analyzer-integration
+  description: Tecan Infinite F50 companion guide — Madagascar custom Excel workflow for OpenELIS
+  paired_with: tecan-infinite-f50-analyzer-connection-spec
+  links: {}
+  added: "2026-03-06"
+
+- id: thermo-multiskan-fc-companion-guide
+  type: spec
+  path: designs/analyzer-integration/thermo-multiskan-fc-companion-guide.md
+  category: analyzer-integration
+  description: Thermo Multiskan FC companion guide — SkanIt export configuration for OpenELIS
+  paired_with: thermo-multiskan-fc-analyzer-connection-spec
+  links: {}
+  added: "2026-03-06"
+
+- id: fluorocycler-xt-template
+  type: reference-data
+  path: assets/reference-data/FC-XT_Template.xlsx
+  category: analyzer-integration
+  description: FluoroCycler XT Excel template for result import
+  links: {}
+  added: "2026-03-06"
+
+# ─── Microbiology ───────────────────────────────────────────
+
+- id: amr-module
+  type: mockup
+  path: designs/microbiology/amr-module.jsx
+  category: microbiology
+  description: Antimicrobial resistance testing and reporting module
+  paired_with: amr-module-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: amr-module-spec
+  type: spec
+  path: designs/microbiology/amr-module.md
+  category: microbiology
+  description: AMR module FRS
+  paired_with: amr-module
+  links: {}
+  added: "2026-03-03"
+
+- id: case-workbench-spec
+  type: spec
+  path: designs/microbiology/case-workbench.md
+  category: microbiology
+  description: Microbiology case workbench spec
+  links: {}
+  added: "2026-03-03"
+
+# ─── Non-Conforming Events (NCE) ───────────────────────────
+
+- id: nce-analytics
+  type: mockup
+  path: designs/nce/nce-analytics.jsx
+  category: nce
+  description: Non-conforming event analytics dashboard
+  paired_with: nce-analytics-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: nce-analytics-spec
+  type: spec
+  path: designs/nce/nce-analytics.md
+  category: nce
+  description: NCE analytics FRS
+  paired_with: nce-analytics
+  links: {}
+  added: "2026-03-03"
+
+- id: nce-dashboard
+  type: mockup
+  path: designs/nce/nce-dashboard.jsx
+  category: nce
+  description: NCE dashboard with CAPA tracking
+  paired_with: nce-dashboard-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: nce-dashboard-spec
+  type: spec
+  path: designs/nce/nce-dashboard.md
+  category: nce
+  description: NCE dashboard FRS
+  paired_with: nce-dashboard
+  links: {}
+  added: "2026-03-03"
+
+- id: nce-results-entry
+  type: mockup
+  path: designs/nce/nce-results-entry.jsx
+  category: nce
+  description: NCE investigation results entry form
+  paired_with: nce-results-entry-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: nce-results-entry-spec
+  type: spec
+  path: designs/nce/nce-results-entry.md
+  category: nce
+  description: NCE results entry FRS
+  paired_with: nce-results-entry
+  links: {}
+  added: "2026-03-03"
+
+- id: nce-report
+  type: mockup
+  path: designs/nce/nce-report.jsx
+  category: nce
+  description: Non-conformity report generation
+  paired_with: nce-report-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: nce-report-spec
+  type: spec
+  path: designs/nce/nce-report.md
+  category: nce
+  description: NCE report FRS
+  paired_with: nce-report
+  links: {}
+  added: "2026-03-03"
+
+# ─── Pathology ──────────────────────────────────────────────
+
+- id: pathology-case-view
+  type: mockup
+  path: designs/pathology/pathology-case-view.jsx
+  category: pathology
+  description: Pathology case view and reporting redesign
+  paired_with: pathology-case-view-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: pathology-case-view-spec
+  type: spec
+  path: designs/pathology/pathology-case-view.md
+  category: pathology
+  description: Pathology case view FRS
+  paired_with: pathology-case-view
+  links: {}
+  added: "2026-03-03"
+
+- id: ihc-case-view
+  type: mockup
+  path: designs/pathology/ihc-case-view.jsx
+  category: pathology
+  description: Immunohistochemistry case view and scoring
+  paired_with: ihc-case-view-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: ihc-case-view-spec
+  type: spec
+  path: designs/pathology/ihc-case-view.md
+  category: pathology
+  description: IHC case view FRS
+  paired_with: ihc-case-view
+  links: {}
+  added: "2026-03-03"
+
+- id: cytology-case-view
+  type: mockup
+  path: designs/pathology/cytology-case-view.jsx
+  category: pathology
+  description: Cytology case view with Bethesda System wizard workflow
+  paired_with: cytology-case-view-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: cytology-case-view-spec
+  type: spec
+  path: designs/pathology/cytology-case-view.md
+  category: pathology
+  description: Cytology case view FRS — Bethesda System algorithm interface
+  paired_with: cytology-case-view
+  links: {}
+  added: "2026-03-03"
+
+- id: cytology-bethesda-data-dictionary
+  type: reference-data
+  path: assets/reference-data/cytology-bethesda-data-dictionary.csv
+  category: pathology
+  description: Bethesda System data dictionary — specimen adequacy, epithelial abnormalities, organisms
+  links: {}
+  added: "2026-03-03"
+
+# ─── Quality ────────────────────────────────────────────────
+
+- id: eqa-requirements-spec
+  type: spec
+  path: designs/quality/eqa-requirements.md
+  category: quality
+  description: External quality assessment requirements
+  links: {}
+  added: "2026-03-03"
+
+- id: westgard-rules-spec
+  type: spec
+  path: designs/quality/westgard-rules.md
+  category: quality
+  description: Westgard rules for QC
+  links: {}
+  added: "2026-03-03"
+
+- id: whonet-integration-spec
+  type: spec
+  path: designs/quality/whonet-integration.md
+  category: quality
+  description: WHONET integration specification
+  links: {}
+  added: "2026-03-03"
+
+# ─── Results & Validation ───────────────────────────────────
+
+- id: results-page
+  type: mockup
+  path: designs/results-validation/results-page.jsx
+  category: results-validation
+  description: Main results entry and review page
+  paired_with: results-page-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: results-page-spec
+  type: spec
+  path: designs/results-validation/results-page.md
+  category: results-validation
+  description: Results page FRS
+  paired_with: results-page
+  links: {}
+  added: "2026-03-03"
+
+- id: validation-page
+  type: mockup
+  path: designs/results-validation/validation-page.jsx
+  category: results-validation
+  description: Result validation workflow
+  paired_with: validation-page-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: validation-page-spec
+  type: spec
+  path: designs/results-validation/validation-page.md
+  category: results-validation
+  description: Validation page FRS
+  paired_with: validation-page
+  links: {}
+  added: "2026-03-03"
+
+# ─── System ─────────────────────────────────────────────────
+
+- id: audit-trail
+  type: mockup
+  path: designs/system/audit-trail.jsx
+  category: system
+  description: System audit trail viewer
+  paired_with: audit-trail-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: audit-trail-spec
+  type: spec
+  path: designs/system/audit-trail.md
+  category: system
+  description: Audit trail FRS
+  paired_with: audit-trail
+  links: {}
+  added: "2026-03-03"
+
+- id: help-menu
+  type: mockup
+  path: designs/system/help-menu.jsx
+  category: system
+  description: In-app help menu and documentation links
+  paired_with: help-menu-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: help-menu-spec
+  type: spec
+  path: designs/system/help-menu.md
+  category: system
+  description: Help menu FRS
+  paired_with: help-menu
+  links: {}
+  added: "2026-03-03"
+
+- id: analyzer-import
+  type: mockup
+  path: designs/system/analyzer-import.jsx
+  category: system
+  description: Bulk analyzer configuration import
+  paired_with: analyzer-import-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: analyzer-import-spec
+  type: spec
+  path: designs/system/analyzer-import.md
+  category: system
+  description: Analyzer import FRS
+  paired_with: analyzer-import
+  links: {}
+  added: "2026-03-03"
+
+- id: catalyst-lab-data-assistant
+  type: figma
+  path: null
+  category: system
+  description: AI-powered lab data assistant with natural language querying, wizard-based report building, and contextual help
+  figma_url: "https://www.figma.com/make/poDXKSr2IBgKbbjB1Fh9Sj/OpenELIS-Global-Template--Copy-?node-id=0-1"
+  links:
+    jira: "https://uwdigi.atlassian.net/browse/OGC-70"
+  added: "2026-03-03"
+
+# ─── Sample Collection ─────────────────────────────────────
+
+- id: sample-collection-redesign
+  type: mockup
+  path: designs/sample-collection/sample-collection-redesign-mockup.html
+  category: sample-collection
+  description: Decoupled 4-step sample lifecycle — Enter Order, Collect Sample, Label & Store, QA Review
+  paired_with: sample-collection-redesign-spec
+  links: {}
+  added: "2026-03-04"
+
+- id: sample-collection-redesign-spec
+  type: spec
+  path: designs/sample-collection/sample-collection-redesign.md
+  category: sample-collection
+  description: Sample Collection Process Redesign FRS — decoupled order entry with unified clinical/environmental workflows
+  paired_with: sample-collection-redesign
+  links: {}
+  added: "2026-03-04"
+
+- id: sample-collection-design-critique
+  type: research-doc
+  path: designs/sample-collection/sample-collection-design-critique.md
+  category: sample-collection
+  description: Design critique of the sample collection redesign mockup
+  links: {}
+  added: "2026-03-04"
+
+- id: sample-collection-jira-epic
+  type: requirements-doc
+  path: designs/sample-collection/jira-epic-sample-collection-redesign.md
+  category: sample-collection
+  description: Jira epic breakdown for sample collection redesign implementation
+  links: {}
+  added: "2026-03-04"
+
+# ─── Validation Page (v2 Redesign) ────────────────────────────
+
+- id: validation-page-v2-mockup
+  type: mockup
+  path: designs/validation-page/validation-page-mockup-v2.jsx
+  category: results-validation
+  description: Full v2 validation page redesign — multi-level validation pipeline, admin configuration, role-based levels, auto-validation
+  paired_with: validation-page-v2-spec
+  links: {}
+  added: "2026-03-04"
+
+- id: validation-page-v2-spec
+  type: spec
+  path: designs/validation-page/validation-page-requirements-v2.md
+  category: results-validation
+  description: Result Validation Page FRS v2.0 — multi-level validation pipeline, per-lab-unit overrides, auto-validation for normal results
+  paired_with: validation-page-v2-mockup
+  links: {}
+  added: "2026-03-04"
+
+- id: validation-page-stage1-mockup
+  type: mockup
+  path: designs/validation-page/validation-page-stage1-mockup.jsx
+  category: results-validation
+  description: Stage 1 validation page mockup — multi-signature pipeline with minimal UI changes
+  paired_with: validation-page-stage1-spec
+  links: {}
+  added: "2026-03-04"
+
+- id: validation-page-stage1-spec
+  type: spec
+  path: designs/validation-page/validation-page-requirements-v2.1-stage1.md
+  category: results-validation
+  description: Result Validation Page FRS v2.1 Stage 1 — scoped multi-level validation with minimal UI footprint
+  paired_with: validation-page-stage1-mockup
+  links: {}
+  added: "2026-03-04"
+
+- id: validation-page-v3-demographics-mockup
+  type: mockup
+  path: designs/validation-page/validation-page-mockup-v3-demographics.jsx
+  category: results-validation
+  description: Validation page v3 mockup — adds patient sex and age (D-M-Y) columns for demographic-aware reference range verification
+  paired_with: validation-patient-demographics-frs
+  links:
+    jira: ["OGC-291", "OGC-343"]
+  added: "2026-03-09"
+
+- id: validation-patient-demographics-mockup
+  type: mockup
+  path: designs/validation-page/validation-patient-demographics-mockup.jsx
+  category: results-validation
+  description: Patient demographics display mockup — sex tag, age calculation, patient info header with Carbon components
+  paired_with: validation-patient-demographics-frs
+  links:
+    jira: ["OGC-291", "OGC-343"]
+  added: "2026-03-09"
+
+- id: validation-patient-demographics-frs
+  type: spec
+  path: designs/validation-page/validation-patient-demographics-frs-v1.md
+  category: results-validation
+  description: Patient Sex & Age Display on Validation Screen FRS v1.0 — D-M-Y age format, sex normalization, all validation levels
+  paired_with: validation-page-v3-demographics-mockup
+  links:
+    jira: ["OGC-291", "OGC-343"]
+  added: "2026-03-09"
+
+- id: patient-report-print-queue
+  type: mockup
+  path: designs/reports/patient-report-print-queue.jsx
+  category: reports
+  description: Push-based print queue for validated patient reports — auto-surfaces unprinted accessions with batch print and ISO 15189 audit trail
+  paired_with: patient-report-print-queue-spec
+  links: {}
+  added: "2026-03-18"
+
+- id: patient-report-print-queue-carbon
+  type: mockup
+  path: designs/reports/patient-report-print-queue-carbon.jsx
+  category: reports
+  description: Full Carbon React component mockup for Patient Report Print Queue (uses @carbon/react — production reference)
+  paired_with: patient-report-print-queue-spec
+  links: {}
+  added: "2026-03-18"
+
+- id: patient-report-print-queue-spec
+  type: spec
+  path: designs/reports/patient-report-print-queue.md
+  category: results-validation
+  description: Patient Report Print Queue FRS v1.0 — push-based queue, batch print, ISO 15189 compliance
+  paired_with: patient-report-print-queue
+  links: {}
+  added: "2026-03-18"
+
+# ─── RBAC (Role-Based Access Control) ─────────────────────────
+
+- id: rbac-ui-mockup
+  type: mockup
+  path: designs/rbac/rbac-ui-mockup.html
+  category: admin-config
+  description: RBAC revamp UI mockup — role management, permission matrix, user assignment
+  paired_with: rbac-revamp-prd
+  links: {}
+  added: "2026-03-04"
+
+- id: rbac-revamp-prd
+  type: spec
+  path: designs/rbac/rbac-revamp-prd.md
+  category: admin-config
+  description: OpenELIS RBAC Revamp PRD — role-based access control redesign with granular permissions
+  paired_with: rbac-ui-mockup
+  links: {}
+  added: "2026-03-04"
+
+- id: password-enhancements
+  type: mockup
+  path: designs/admin-config/password-enhancements.jsx
+  category: admin-config
+  description: OWASP-aligned password policy with force-reset on next login
+  paired_with: password-enhancements-spec
+  links: {}
+  added: "2026-03-15"
+
+- id: password-enhancements-spec
+  type: spec
+  path: designs/admin-config/password-enhancements.md
+  category: admin-config
+  description: Password Policy Enhancements FRS v1.0 — OWASP alignment, force reset, length-based rules
+  paired_with: password-enhancements
+  links: {}
+  added: "2026-03-15"
+
+# ─── Other ──────────────────────────────────────────────────
+
+- id: tat-dashboard
+  type: mockup
+  path: designs/other/tat-dashboard.jsx
+  category: other
+  description: Turnaround time monitoring dashboard
+  paired_with: tat-dashboard-spec
+  links: {}
+  added: "2026-03-03"
+
+- id: tat-dashboard-spec
+  type: spec
+  path: designs/other/tat-dashboard.md
+  category: other
+  description: TAT dashboard FRS
+  paired_with: tat-dashboard
+  links: {}
+  added: "2026-03-03"
+
+- id: calendar-management
+  type: mockup
+  path: designs/other/calendar-management.jsx
+  category: other
+  description: Lab calendar and scheduling management
+  links: {}
+  added: "2026-03-03"
+
+- id: change-management-strategy
+  type: spec
+  path: designs/other/change-management-strategy.md
+  category: other
+  description: Change management strategy document
+  links: {}
+  added: "2026-03-03"
+
+- id: patient-id-card-scanning-spec
+  type: spec
+  path: designs/other/patient-id-card-scanning.md
+  category: other
+  description: Patient ID card scanning specification
+  links:
+    jira: ["OGC-59", "OGC-50"]
+  added: "2026-03-03"
+
+- id: report-level-signatures-spec
+  type: spec
+  path: designs/other/report-level-signatures.md
+  category: other
+  description: Report-level digital signatures spec
+  links: {}
+  added: "2026-03-03"
+
+- id: unassigned-tests-spec
+  type: spec
+  path: designs/other/unassigned-tests.md
+  category: other
+  description: Unassigned tests workflow spec
+  links: {}
+  added: "2026-03-03"
+
+# ─── Assets: Vendor Manuals ─────────────────────────────────
+
+- id: bc5380-lis-protocol
+  type: vendor-manual
+  path: assets/vendor-manuals/bc5380-lis-protocol.pdf
+  category: analyzer-integration
+  description: Mindray BC-5380 LIS protocol specification
+  links: {}
+  added: "2026-03-03"
+
+- id: bc5380-reference
+  type: vendor-manual
+  path: assets/vendor-manuals/bc5380-reference.pdf
+  category: analyzer-integration
+  description: Mindray BC-5380 reference manual
+  links: {}
+  added: "2026-03-03"
+
+- id: finecare-fia-meter-plus-manual
+  type: vendor-manual
+  path: assets/vendor-manuals/finecare-fia-meter-plus-manual.pdf
+  category: analyzer-integration
+  description: Finecare FIA Meter Plus operator manual
+  links: {}
+  added: "2026-03-03"
+
+- id: finecare-fs113-maintenance
+  type: vendor-manual
+  path: assets/vendor-manuals/finecare-fs113-maintenance.pdf
+  category: analyzer-integration
+  description: Finecare FS-113 maintenance guide
+  links: {}
+  added: "2026-03-03"
+
+- id: finecare-lis-sop
+  type: vendor-manual
+  path: assets/vendor-manuals/finecare-lis-sop.pdf
+  category: analyzer-integration
+  description: Finecare LIS standard operating procedure
+  links: {}
+  added: "2026-03-03"
+
+- id: genexpert-dx-operator-manual
+  type: vendor-manual
+  path: assets/vendor-manuals/genexpert-dx-operator-manual-excerpt.pdf
+  category: analyzer-integration
+  description: GeneXpert Dx operator manual excerpt
+  links: {}
+  added: "2026-03-03"
+
+- id: genexpert-lis-protocol-spec
+  type: vendor-manual
+  path: assets/vendor-manuals/genexpert-lis-protocol-spec.pdf
+  category: analyzer-integration
+  description: GeneXpert LIS protocol specification
+  links: {}
+  added: "2026-03-03"
+
+- id: indiko-gallery-lis-interface
+  type: vendor-manual
+  path: assets/vendor-manuals/indiko-gallery-lis-interface.pdf
+  category: analyzer-integration
+  description: Indiko/Gallery LIS interface specification
+  links: {}
+  added: "2026-03-03"
+
+- id: maldi-biotyper-astm-spec
+  type: vendor-manual
+  path: assets/vendor-manuals/maldi-biotyper-astm-spec.pdf
+  category: analyzer-integration
+  description: MALDI Biotyper ASTM specification
+  links: {}
+  added: "2026-03-03"
+
+- id: mindray-interface-specs
+  type: vendor-manual
+  path: assets/vendor-manuals/mindray-interface-specs-v5.pdf
+  category: analyzer-integration
+  description: Mindray interface specifications v5
+  links: {}
+  added: "2026-03-03"
+
+- id: stago-st-art
+  type: vendor-manual
+  path: assets/vendor-manuals/stago-st-art.pdf
+  category: analyzer-integration
+  description: Stago ST Art coagulation analyzer manual
+  links: {}
+  added: "2026-03-03"
+
+- id: stago-start4-service-manual
+  type: vendor-manual
+  path: assets/vendor-manuals/stago-start4-service-manual.pdf
+  category: analyzer-integration
+  description: Stago Start 4 service manual
+  links: {}
+  added: "2026-03-03"
+
+- id: vidas-user-guide
+  type: vendor-manual
+  path: assets/vendor-manuals/vidas-user-guide.pdf
+  category: analyzer-integration
+  description: bioMérieux VIDAS user guide
+  links: {}
+  added: "2026-03-03"
+
+# ─── Assets: Research Documents ─────────────────────────────
+
+- id: iso-standards-supported
+  type: research-doc
+  path: assets/research/iso-standards-supported.docx
+  category: quality
+  description: ISO standards supported by OpenELIS
+  links: {}
+  added: "2026-03-03"
+
+- id: openelis-features-overview-fr
+  type: research-doc
+  path: assets/research/openelis-features-overview-fr.docx
+  category: other
+  description: OpenELIS features overview (French)
+  links: {}
+  added: "2026-03-03"
+
+- id: openelis-features-overview
+  type: research-doc
+  path: assets/research/openelis-features-overview.docx
+  category: other
+  description: OpenELIS features overview (English)
+  links: {}
+  added: "2026-03-03"
+
+- id: sample-aliquoting-requirements
+  type: research-doc
+  path: assets/research/sample-aliquoting-requirements.docx
+  category: other
+  description: Sample aliquoting requirements research
+  links: {}
+  added: "2026-03-03"
+
+# ─── Assets: Requirements Documents ─────────────────────────
+
+- id: astm-analyzer-mapping-spec-docx
+  type: requirements-doc
+  path: assets/requirements-docs/astm-analyzer-mapping-spec.docx
+  category: analyzer-integration
+  description: ASTM analyzer mapping specification document
+  links: {}
+  added: "2026-03-03"
+
+- id: eqa-functional-requirements
+  type: requirements-doc
+  path: assets/requirements-docs/eqa-functional-requirements.docx
+  category: quality
+  description: EQA functional requirements document
+  links: {}
+  added: "2026-03-03"
+
+- id: freezer-monitoring-frd
+  type: requirements-doc
+  path: assets/requirements-docs/freezer-monitoring-frd.docx
+  category: other
+  description: Freezer monitoring functional requirements
+  links: {}
+  added: "2026-03-03"
+
+- id: progress-report
+  type: requirements-doc
+  path: assets/requirements-docs/progress-report.docx
+  category: other
+  description: Project progress report
+  links: {}
+  added: "2026-03-03"
+
+- id: who-freezer-report-requirements
+  type: requirements-doc
+  path: assets/requirements-docs/who-freezer-report-requirements.docx
+  category: other
+  description: WHO freezer report requirements
+  links: {}
+  added: "2026-03-03"
+
+# ─── Assets: Reference Data ─────────────────────────────────
+
+- id: bc5380-sample-csv
+  type: reference-data
+  path: assets/reference-data/bc5380-sample.csv
+  category: analyzer-integration
+  description: BC-5380 sample output data
+  links: {}
+  added: "2026-03-03"
+
+- id: maldi-biotyper-export-sample
+  type: reference-data
+  path: assets/reference-data/maldi-biotyper-export-sample.csv
+  category: analyzer-integration
+  description: MALDI Biotyper sample export
+  links: {}
+  added: "2026-03-03"
+
+- id: sample-import-template
+  type: reference-data
+  path: assets/reference-data/sample-import-template.csv
+  category: analyzer-integration
+  description: Analyzer sample import CSV template
+  links: {}
+  added: "2026-03-03"
+
+- id: eqa-enrollment
+  type: mockup
+  path: designs/quality/eqa-enrollment.jsx
+  category: quality
+  description: EQA program enrollment, self-enrollment, and provider management mockup
+  paired_with: eqa-enrollment-addendum
+  links:
+    jira: [OGC-61]
+  added: "2026-03-03"
+
+- id: eqa-enrollment-addendum
+  type: spec
+  path: designs/quality/eqa-enrollment-addendum.md
+  category: quality
+  description: EQA Navigation Restructure, Self-Enrollment, Program Enrollment & Provider Management addendum v3
+  paired_with: eqa-enrollment
+  links:
+    jira: [OGC-61]
+  added: "2026-03-03"
+
+- id: eqa-functional-requirements-docx
+  type: requirements-doc
+  path: assets/requirements-docs/eqa-functional-requirements.docx
+  category: quality
+  description: EQA Functional Requirements (DOCX format)
+  paired_with: eqa-requirements
+  links:
+    jira: []
+  added: "2026-03-03"
+
+- id: westgard-dashboard
+  type: mockup
+  path: designs/quality/westgard-dashboard.jsx
+  category: quality
+  description: Laboratory Instrument Compliance Dashboard with Westgard QC rules
+  paired_with: westgard-rules
+  links:
+    figma: https://www.figma.com/make/tPc9atrwbDoBf3BzGUzvTb/Laboratory-Instrument-Compliance-Dashboard--Community-
+    jira: [OGC-41]
+  added: "2026-03-03"
+
+- id: batch-workplan-reagent-qc
+  type: mockup
+  path: designs/quality/batch-workplan-reagent-qc.jsx
+  category: quality
+  description: Unified batch workplan with reagent lot assignment, QC verification, and automatic NCE generation on override
+  paired_with: batch-workplan-reagent-qc-spec
+  links:
+    jira: [OGC-427]
+  added: "2026-03-16"
+
+- id: batch-workplan-reagent-qc-spec
+  type: spec
+  path: designs/quality/batch-workplan-reagent-qc.md
+  category: quality
+  description: Batch Workplan with Reagent QC Integration FRS v1.0
+  paired_with: batch-workplan-reagent-qc
+  links:
+    jira: [OGC-427]
+  added: "2026-03-16"
+
+- id: analyzer-manual-qc
+  type: mockup
+  path: designs/quality/analyzer-manual-qc.jsx
+  category: quality
+  description: Manual QC recording for analyzers — inline Pass/Fail entry on import page and quick-access from analyzer list
+  paired_with: analyzer-manual-qc-spec
+  links:
+    jira: [OGC-426]
+  added: "2026-03-16"
+
+- id: analyzer-manual-qc-spec
+  type: spec
+  path: designs/quality/analyzer-manual-qc.md
+  category: quality
+  description: Analyzer Manual QC Recording FRS v1.0
+  paired_with: analyzer-manual-qc
+  links:
+    jira: [OGC-426]
+  added: "2026-03-16"
+
+- id: positivity-rate
+  type: mockup
+  path: designs/reports/positivity-rate.jsx
+  category: reports
+  description: Positivity rate report and dashboard widget — per-test result-code-based positivity definitions, date-range filtering, DataTable with CSV export, and reusable tile for the home dashboard
+  paired_with: positivity-rate-spec
+  added: "2026-03-19"
+
+- id: positivity-rate-spec
+  type: spec
+  path: designs/reports/positivity-rate.md
+  category: reports
+  description: Positivity Rate Report & Dashboard Widget FRS v1.0
+  paired_with: positivity-rate
+  added: "2026-03-19"
+
+- id: disease-surveillance-dashboard
+  type: mockup
+  path: designs/reports/disease-surveillance-dashboard.jsx
+  category: reports
+  description: Public-health surveillance dashboard — weekly TB/HIV positivity trends, volume-by-site breakdowns, and FHIR-sourced aggregate indicators
+  added: "2026-03-23"
+
+- id: notification-admin
+  type: mockup
+  path: designs/notifications/notification-admin.jsx
+  category: notifications
+  description: Unified notification admin — configure email and TextIt SMS alert rules, provider contact mapping, escalation chains, and notification log
+  paired_with: email-notification-integration-spec
+  added: "2026-03-23"
+
+- id: email-notification-integration-spec
+  type: spec
+  path: designs/notifications/email-notification-integration.md
+  category: notifications
+  description: Email Notification Integration FRS v1.2
+  paired_with: notification-admin
+  links:
+    jira: [OGC-437]
+  added: "2026-03-23"
+
+- id: textit-sms-integration
+  type: mockup
+  path: designs/notifications/textit-sms-integration.jsx
+  category: notifications
+  description: TextIt SMS integration admin — API credentials, flow selection, message templates, and per-event trigger mapping
+  paired_with: textit-sms-integration-spec
+  added: "2026-03-23"
+
+- id: textit-sms-integration-spec
+  type: spec
+  path: designs/notifications/textit-sms-integration.md
+  category: notifications
+  description: TextIt SMS Notification Integration FRS v1.2
+  paired_with: textit-sms-integration
+  links:
+    jira: [OGC-435, OGC-436]
+  added: "2026-03-23"
+
+- id: reagent-forecasting-workbench
+  type: mockup
+  path: designs/inventory/reagent-forecasting-workbench.jsx
+  category: inventory
+  description: National/regional reagent forecasting workbench — multi-facility days-of-stock table, critical/low alerts, ADC-based projections
+  paired_with: reagent-forecasting-facility
+  added: "2026-03-23"
+
+- id: reagent-forecasting-facility
+  type: mockup
+  path: designs/inventory/reagent-forecasting-facility.jsx
+  category: inventory
+  description: Facility-level reagent stock view — per-cartridge days-of-stock monitoring, stock-count updates, and proactive reorder alerts
+  paired_with: reagent-forecasting-facility-spec
+  links:
+    jira: [OGC-436]
+  added: "2026-03-23"
+
+- id: reagent-forecasting-facility-spec
+  type: spec
+  path: designs/inventory/reagent-forecasting-facility.md
+  category: inventory
+  description: Reagent Forecasting Facility-Level Stock View FRS v1.0
+  paired_with: reagent-forecasting-facility
+  links:
+    jira: [OGC-436]
+  added: "2026-03-23"
+
+- id: fhir-outbound-push
+  type: both
+  path: designs/system/fhir-outbound-push.jsx
+  spec: designs/system/fhir-outbound-push.md
+  category: system
+  description: Event-driven FHIR R4 outbound push to national hub — bundle assembly, retry queue, delivery log, and admin config for endpoint/auth/per-resource toggles
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/62
+    gallery: https://digi-uw.github.io/openelis-work/#/system/fhir-outbound-push
+  added: "2026-03-24"
+
+- id: catalog-subscription
+  type: both
+  path: designs/admin-config/catalog-subscription.html
+  spec: designs/admin-config/catalog-subscription.md
+  category: admin-config
+  description: Subscribe to external FHIR-based metadata catalogs (EUCAST, WHO, national labs) and selectively sync test definitions and clinical decision rules with field-level diff review
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/63
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/catalog-subscription
+  added: "2026-03-24"
+
+- id: lab-management-dashboard
+  type: both
+  path: designs/system/lab-management-dashboard.html
+  spec: designs/system/lab-management-dashboard.md
+  category: system
+  description: Cross-cutting lab management dashboard — real-time TAT monitoring, pending workload by section, analyzer status, reagent stock alerts, QC flags, and daily throughput metrics for lab managers
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/64
+    gallery: https://digi-uw.github.io/openelis-work/#/system/lab-management-dashboard
+  added: "2026-03-24"
+
+- id: pretransfusion-testing
+  type: both
+  path: designs/blood-bank/pretransfusion-testing.jsx
+  spec: designs/blood-bank/pretransfusion-testing.md
+  category: blood-bank
+  description: Pre-transfusion testing worklist & request case view — compatibility-filtered unit selection, crossmatch result tracking, supervisor approval (Blood Bank Spec 4)
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/65
+    gallery: https://digi-uw.github.io/openelis-work/#/blood-bank/pre-transfusion-testing
+  added: "2026-03-24"
+
+- id: patient-blood-bank-record
+  type: both
+  path: designs/blood-bank/patient-blood-bank-record.jsx
+  spec: designs/blood-bank/patient-blood-bank-record.md
+  category: blood-bank
+  description: Longitudinal patient blood bank record — ABO/Rh typing history, antibody screen results, transfusion history, special requirements, and active transfusion requests (Blood Bank Spec 3)
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/66
+    jira: https://uwdigi.atlassian.net/browse/OGC-459
+    gallery: https://digi-uw.github.io/openelis-work/#/blood-bank/patient-blood-bank-record
+  added: "2026-03-25"
+
+- id: blood-bank-admin-config
+  type: both
+  path: designs/blood-bank/blood-bank-admin-config.jsx
+  spec: designs/blood-bank/blood-bank-admin-config.md
+  category: blood-bank
+  description: Admin configuration for blood bank component types, volume rules, storage conditions, crossmatch requirements, and expiry rules (Blood Bank Spec 1)
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/67
+    jira: https://uwdigi.atlassian.net/browse/OGC-455
+    gallery: https://digi-uw.github.io/openelis-work/#/blood-bank/blood-bank-admin-config
+  added: "2026-03-25"
+
+- id: blood-unit-inventory
+  type: both
+  path: designs/blood-bank/blood-unit-inventory.jsx
+  spec: designs/blood-bank/blood-unit-inventory.md
+  category: blood-bank
+  description: Blood unit reception & inventory workbench — receive units from donors/suppliers, assign donation IDs, track storage locations, and manage unit lifecycle from receipt to transfusion (Blood Bank Spec 2)
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/68
+    jira: https://uwdigi.atlassian.net/browse/OGC-457
+    gallery: https://digi-uw.github.io/openelis-work/#/blood-bank/blood-unit-inventory
+  added: "2026-03-25"
+
+- id: issue-to-patient
+  type: both
+  path: designs/blood-bank/issue-to-patient.jsx
+  spec: designs/blood-bank/issue-to-patient.md
+  category: blood-bank
+  description: Issue-to-patient & emergency release — issue queue for approved transfusion requests, 4-item pre-issue safety checklist, emergency crossmatch-bypass workflow with supervisor sign-off (Blood Bank Spec 5)
+  paired_with: designs/blood-bank/issue-to-patient.html
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/69
+    jira: https://uwdigi.atlassian.net/browse/OGC-461
+    gallery: https://digi-uw.github.io/openelis-work/#/blood-bank/issue-to-patient
+  added: "2026-03-25"
+
+- id: custom-data-export
+  type: both
+  path: designs/reports/custom-data-export.jsx
+  spec: designs/reports/custom-data-export.md
+  category: reports
+  description: 3-step report builder wizard with field selection, filter configuration, and scheduling — plus async My Report Queue and Saved Export Configurations panel
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/70
+    jira: https://uwdigi.atlassian.net/browse/OGC-479
+    gallery: https://digi-uw.github.io/openelis-work/#/reports/custom-data-export
+  added: "2026-03-25"

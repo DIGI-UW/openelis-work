@@ -1,0 +1,83 @@
+dictionary_category,code,display_name,display_order,description,risk_level,bethesda_section
+CYTOLOGY_SPECIMEN_ADEQUACY,SATISFACTORY,Satisfactory for evaluation,1,Specimen meets criteria for adequacy,,Specimen Adequacy
+CYTOLOGY_SPECIMEN_ADEQUACY,SATISFACTORY_LIMITED,Satisfactory for evaluation but limited by,2,Specimen adequate but with limitations,,Specimen Adequacy
+CYTOLOGY_SPECIMEN_ADEQUACY,UNSATISFACTORY,Unsatisfactory for evaluation,3,Specimen does not meet adequacy criteria,,Specimen Adequacy
+CYTOLOGY_ADEQUACY_LIMITATION,PARTIALLY_OBSCURING_BLOOD,Partially obscuring blood,1,Blood partially obscures cells,,Specimen Adequacy
+CYTOLOGY_ADEQUACY_LIMITATION,PARTIALLY_OBSCURING_INFLAMMATION,Partially obscuring inflammation,2,Inflammation partially obscures cells,,Specimen Adequacy
+CYTOLOGY_ADEQUACY_LIMITATION,PARTIALLY_OBSCURING_THICK,Partially obscuring thick areas,3,Thick areas partially obscure cells,,Specimen Adequacy
+CYTOLOGY_ADEQUACY_LIMITATION,SCANT_CELLULARITY,Scant cellularity,4,Limited number of cells present,,Specimen Adequacy
+CYTOLOGY_ADEQUACY_LIMITATION,ABSENT_TZ_EC,Absent transformation zone/endocervical component,5,No transformation zone or endocervical cells identified,,Specimen Adequacy
+CYTOLOGY_ADEQUACY_LIMITATION,OTHER,Other,99,Other limitation - specify in comments,,Specimen Adequacy
+CYTOLOGY_UNSATISFACTORY_REASON,UNLABELED,Unlabeled specimen,1,Specimen container not properly labeled,,Specimen Adequacy
+CYTOLOGY_UNSATISFACTORY_REASON,BROKEN_UNREADABLE,Slide broken/unreadable,2,Physical damage to slide prevents evaluation,,Specimen Adequacy
+CYTOLOGY_UNSATISFACTORY_REASON,NO_CERVICAL_CELLS,No cervical cells identified,3,Specimen lacks cervical epithelial cells,,Specimen Adequacy
+CYTOLOGY_UNSATISFACTORY_REASON,SCANT_SQUAMOUS,Scant squamous cellularity,4,Insufficient squamous cells for evaluation,,Specimen Adequacy
+CYTOLOGY_UNSATISFACTORY_REASON,OBSCURING_BLOOD_75,Obscuring blood (>75%),5,Blood obscures more than 75% of cells,,Specimen Adequacy
+CYTOLOGY_UNSATISFACTORY_REASON,OBSCURING_INFLAMMATION_75,Obscuring inflammation (>75%),6,Inflammation obscures more than 75% of cells,,Specimen Adequacy
+CYTOLOGY_UNSATISFACTORY_REASON,OBSCURING_THICK_75,Obscuring thick areas (>75%),7,Thick areas obscure more than 75% of cells,,Specimen Adequacy
+CYTOLOGY_UNSATISFACTORY_REASON,OTHER,Other,99,Other reason - specify in comments,,Specimen Adequacy
+CYTOLOGY_GENERAL_CATEGORY,NILM,Negative for Intraepithelial Lesion or Malignancy,1,No evidence of neoplasia,LOW,General Categorization
+CYTOLOGY_GENERAL_CATEGORY,EPITHELIAL_ABNORMALITY,Epithelial Cell Abnormality,2,Squamous or glandular cell abnormality identified,,General Categorization
+CYTOLOGY_GENERAL_CATEGORY,OTHER,Other,3,Other findings (e.g. endometrial cells in woman ≥45),,General Categorization
+CYTOLOGY_ORGANISM,TRICHOMONAS,Trichomonas vaginalis,1,Protozoan infection,,NILM Findings
+CYTOLOGY_ORGANISM,CANDIDA,Fungal organisms morphologically consistent with Candida spp.,2,Fungal infection,,NILM Findings
+CYTOLOGY_ORGANISM,BACTERIAL_VAGINOSIS,Shift in flora suggestive of bacterial vaginosis,3,Bacterial flora shift,,NILM Findings
+CYTOLOGY_ORGANISM,ACTINOMYCES,Bacteria morphologically consistent with Actinomyces spp.,4,Actinomyces infection,,NILM Findings
+CYTOLOGY_ORGANISM,HSV,Cellular changes consistent with Herpes simplex virus,5,HSV infection,,NILM Findings
+CYTOLOGY_ORGANISM,CMV,Cellular changes consistent with Cytomegalovirus,6,CMV infection,,NILM Findings
+CYTOLOGY_ORGANISM,NONE,None identified,99,No organisms identified,,NILM Findings
+CYTOLOGY_NON_NEOPLASTIC,REACTIVE_INFLAMMATION,Reactive cellular changes - Inflammation,1,Reactive changes associated with inflammation (includes typical repair),,NILM Findings
+CYTOLOGY_NON_NEOPLASTIC,REACTIVE_RADIATION,Reactive cellular changes - Radiation,2,Reactive changes associated with radiation therapy,,NILM Findings
+CYTOLOGY_NON_NEOPLASTIC,REACTIVE_IUD,Reactive cellular changes - IUD,3,Reactive changes associated with intrauterine contraceptive device,,NILM Findings
+CYTOLOGY_NON_NEOPLASTIC,REACTIVE_OTHER,Reactive cellular changes - Other,4,Reactive changes - other cause specified in comments,,NILM Findings
+CYTOLOGY_NON_NEOPLASTIC,GLANDULAR_POST_HYSTERECTOMY,Glandular cells status post hysterectomy,5,Glandular cells present in patient with prior hysterectomy,,NILM Findings
+CYTOLOGY_NON_NEOPLASTIC,ATROPHY,Atrophy,6,Atrophic cellular changes,,NILM Findings
+CYTOLOGY_NON_NEOPLASTIC,PREGNANCY_RELATED,Pregnancy-related changes,7,Cellular changes associated with pregnancy,,NILM Findings
+CYTOLOGY_NON_NEOPLASTIC,NONE,None,99,No non-neoplastic findings,,NILM Findings
+CYTOLOGY_SQUAMOUS_ABNORMALITY,ASC_US,Atypical squamous cells of undetermined significance (ASC-US),1,ASC-US - atypical squamous cells of undetermined significance,LOW,Epithelial Abnormality - Squamous
+CYTOLOGY_SQUAMOUS_ABNORMALITY,ASC_H,Atypical squamous cells cannot exclude HSIL (ASC-H),2,ASC-H - cannot exclude high-grade squamous intraepithelial lesion,INTERMEDIATE,Epithelial Abnormality - Squamous
+CYTOLOGY_SQUAMOUS_ABNORMALITY,LSIL,Low-grade squamous intraepithelial lesion (LSIL),3,LSIL - encompasses HPV/mild dysplasia/CIN 1,LOW,Epithelial Abnormality - Squamous
+CYTOLOGY_SQUAMOUS_ABNORMALITY,HSIL,High-grade squamous intraepithelial lesion (HSIL),4,HSIL - encompasses moderate and severe dysplasia/CIS/CIN 2 and CIN 3,HIGH,Epithelial Abnormality - Squamous
+CYTOLOGY_SQUAMOUS_ABNORMALITY,HSIL_SUSPICIOUS,HSIL with features suspicious for invasion,5,HSIL with features raising concern for invasive carcinoma,HIGH,Epithelial Abnormality - Squamous
+CYTOLOGY_SQUAMOUS_ABNORMALITY,SCC,Squamous cell carcinoma,6,Invasive squamous cell carcinoma,MALIGNANT,Epithelial Abnormality - Squamous
+CYTOLOGY_GLANDULAR_ABNORMALITY,AGC_ENDO_NOS,Atypical glandular cells - Endocervical NOS,1,AGC - atypical endocervical cells not otherwise specified,INTERMEDIATE,Epithelial Abnormality - Glandular
+CYTOLOGY_GLANDULAR_ABNORMALITY,AGC_ENDOM_NOS,Atypical glandular cells - Endometrial NOS,2,AGC - atypical endometrial cells not otherwise specified,INTERMEDIATE,Epithelial Abnormality - Glandular
+CYTOLOGY_GLANDULAR_ABNORMALITY,AGC_NOS,Atypical glandular cells - NOS,3,AGC - atypical glandular cells not otherwise specified,INTERMEDIATE,Epithelial Abnormality - Glandular
+CYTOLOGY_GLANDULAR_ABNORMALITY,AGC_FN_ENDO,Atypical glandular cells favor neoplastic - Endocervical,4,AGC favor neoplastic - endocervical origin,HIGH,Epithelial Abnormality - Glandular
+CYTOLOGY_GLANDULAR_ABNORMALITY,AGC_FN_NOS,Atypical glandular cells favor neoplastic - NOS,5,AGC favor neoplastic - not otherwise specified,HIGH,Epithelial Abnormality - Glandular
+CYTOLOGY_GLANDULAR_ABNORMALITY,AIS,Endocervical adenocarcinoma in situ (AIS),6,AIS - adenocarcinoma in situ of endocervix,HIGH,Epithelial Abnormality - Glandular
+CYTOLOGY_GLANDULAR_ABNORMALITY,ADENO_ENDO,Adenocarcinoma - Endocervical,7,Invasive adenocarcinoma of endocervical origin,MALIGNANT,Epithelial Abnormality - Glandular
+CYTOLOGY_GLANDULAR_ABNORMALITY,ADENO_ENDOM,Adenocarcinoma - Endometrial,8,Invasive adenocarcinoma of endometrial origin,MALIGNANT,Epithelial Abnormality - Glandular
+CYTOLOGY_GLANDULAR_ABNORMALITY,ADENO_EXTRA,Adenocarcinoma - Extrauterine,9,Invasive adenocarcinoma of extrauterine origin,MALIGNANT,Epithelial Abnormality - Glandular
+CYTOLOGY_GLANDULAR_ABNORMALITY,ADENO_NOS,Adenocarcinoma - NOS,10,Invasive adenocarcinoma not otherwise specified,MALIGNANT,Epithelial Abnormality - Glandular
+CYTOLOGY_OTHER_FINDING,ENDOMETRIAL_CELLS_45,Endometrial cells in a woman ≥45 years of age,1,Presence of benign-appearing endometrial cells in women 45 or older,,Other Findings
+CYTOLOGY_HPV_RESULT,POSITIVE,Positive,1,HPV DNA/RNA detected,,HPV Testing
+CYTOLOGY_HPV_RESULT,NEGATIVE,Negative,2,HPV DNA/RNA not detected,,HPV Testing
+CYTOLOGY_HPV_RESULT,PENDING,Pending,3,HPV test in progress,,HPV Testing
+CYTOLOGY_HPV_RESULT,NOT_TESTED,Not tested,4,HPV testing not performed,,HPV Testing
+CYTOLOGY_HPV_GENOTYPE,HPV_16,HPV 16,1,High-risk HPV type 16 detected,HIGH,HPV Testing
+CYTOLOGY_HPV_GENOTYPE,HPV_18,HPV 18,2,High-risk HPV type 18 detected,HIGH,HPV Testing
+CYTOLOGY_HPV_GENOTYPE,OTHER_HR_HPV,Other high-risk HPV,3,Other high-risk HPV types detected (not 16/18),INTERMEDIATE,HPV Testing
+CYTOLOGY_HPV_METHOD,COBAS,Cobas HPV Test,1,Roche Cobas HPV test,,HPV Testing
+CYTOLOGY_HPV_METHOD,HYBRID_CAPTURE_2,Hybrid Capture 2,2,Qiagen Hybrid Capture 2 HPV test,,HPV Testing
+CYTOLOGY_HPV_METHOD,APTIMA,Aptima HPV Assay,3,Hologic Aptima HPV assay,,HPV Testing
+CYTOLOGY_HPV_METHOD,CERVISTA,Cervista HPV HR,4,Hologic Cervista HPV HR test,,HPV Testing
+CYTOLOGY_HPV_METHOD,OTHER,Other,99,Other HPV test method - specify in comments,,HPV Testing
+CYTOLOGY_HORMONAL_EVAL,COMPATIBLE,Compatible with age and history,1,Hormonal pattern compatible with patient age and clinical history,,Hormonal Evaluation
+CYTOLOGY_HORMONAL_EVAL,INCOMPATIBLE,Incompatible with age and history,2,Hormonal pattern incompatible with patient age and history - specify,,Hormonal Evaluation
+CYTOLOGY_HORMONAL_EVAL,NOT_POSSIBLE,Evaluation not possible,3,Hormonal evaluation not possible - specify reason,,Hormonal Evaluation
+CYTOLOGY_HORMONAL_EVAL,NOT_EVALUATED,Not evaluated,4,Hormonal pattern not evaluated,,Hormonal Evaluation
+CYTOLOGY_RISK_LEVEL,LOW,Low Risk,1,Low risk for cervical neoplasia - routine follow-up,LOW,Risk Stratification
+CYTOLOGY_RISK_LEVEL,INTERMEDIATE,Intermediate Risk,2,Intermediate risk - surveillance or colposcopy based on specifics,INTERMEDIATE,Risk Stratification
+CYTOLOGY_RISK_LEVEL,HIGH,High Risk,3,High risk - colposcopy recommended,HIGH,Risk Stratification
+CYTOLOGY_RISK_LEVEL,MALIGNANT,Malignant,4,Malignancy identified - oncology referral,MALIGNANT,Risk Stratification
+CYTOLOGY_RECOMMENDATION,ROUTINE_3YR,Routine screening in 3 years,1,Cytology alone - repeat in 3 years,LOW,ASCCP Recommendations
+CYTOLOGY_RECOMMENDATION,ROUTINE_5YR,Routine screening in 5 years,2,Co-testing - repeat in 5 years,LOW,ASCCP Recommendations
+CYTOLOGY_RECOMMENDATION,REPEAT_1YR,Repeat co-test in 1 year,3,Repeat co-testing in 1 year,LOW,ASCCP Recommendations
+CYTOLOGY_RECOMMENDATION,REPEAT_3YR,Repeat co-test in 3 years,4,Repeat co-testing in 3 years,LOW,ASCCP Recommendations
+CYTOLOGY_RECOMMENDATION,COLPOSCOPY,Colposcopy,5,Colposcopy recommended,INTERMEDIATE,ASCCP Recommendations
+CYTOLOGY_RECOMMENDATION,COLPOSCOPY_EMC,Colposcopy with endocervical/endometrial sampling,6,Colposcopy with endocervical sampling; endometrial sampling if ≥35 or abnormal bleeding,HIGH,ASCCP Recommendations
+CYTOLOGY_RECOMMENDATION,COLPOSCOPY_IMMEDIATE,Immediate colposcopy or expedited treatment,7,Immediate colposcopy or expedited treatment (excision) acceptable for non-pregnant patients ≥25,HIGH,ASCCP Recommendations
+CYTOLOGY_RECOMMENDATION,EXCISION,Excisional procedure,8,Diagnostic excisional procedure recommended,HIGH,ASCCP Recommendations
+CYTOLOGY_RECOMMENDATION,ONCOLOGY_REFERRAL,Refer to gynecologic oncology,9,Referral to gynecologic oncology recommended,MALIGNANT,ASCCP Recommendations
+CYTOLOGY_RECOMMENDATION,REPEAT_PAP,Repeat Pap smear,10,Repeat specimen collection recommended,,ASCCP Recommendations

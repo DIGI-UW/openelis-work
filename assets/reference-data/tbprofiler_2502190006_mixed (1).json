@@ -1,0 +1,165 @@
+{
+  "id": "2502190006",
+  "timestamp": "2025-02-19T11:58:01Z",
+  "pipeline": {
+    "software": "TB-Profiler",
+    "version": "6.3.0",
+    "db_version": "WHO-UCN-GTB-PCI-2023.5",
+    "analysis_date": "2025-02-19",
+    "commit": "a8f3c2d"
+  },
+  "sequencing": {
+    "platform": "MinION",
+    "instrument_id": "MN42781",
+    "flowcell": "FLO-MIN114",
+    "kit": "SQK-RBK114.96",
+    "basecaller": "Dorado",
+    "basecaller_version": "0.5.3",
+    "basecaller_model": "dna_r10.4.1_e8.2_400bps_sup@v4.3.0"
+  },
+  "qc": {
+    "num_reads": 198345,
+    "num_reads_mapped": 185678,
+    "pct_reads_mapped": 93.61,
+    "median_depth": 72,
+    "genome_coverage_10x": 97.8,
+    "genome_coverage_30x": 94.5,
+    "mean_read_length": 4123,
+    "median_read_length": 3567,
+    "n50": 5678,
+    "target_median_depth": {
+      "rpoB": 95,
+      "katG": 78,
+      "inhA_promoter": 72,
+      "embB": 65,
+      "pncA": 74,
+      "gyrA": 88,
+      "gyrB": 82,
+      "rrs": 69,
+      "eis_promoter": 75,
+      "rplC": 71,
+      "Rv0678": 62,
+      "atpE": 67,
+      "pepQ": 63,
+      "ddn": 70,
+      "fbiA": 65
+    }
+  },
+  "main_lineage": "lineage4",
+  "sub_lineage": "lineage4.3.4.2",
+  "family": "LAM",
+  "spoligotype": "SIT42",
+  "species": "Mycobacterium tuberculosis",
+  "drtype": "HR-TB",
+  "dr_resistances": [
+    {
+      "drug": "rifampicin",
+      "status": "Sensitive",
+      "mutations": [
+        {
+          "gene": "rpoB",
+          "nucleotide_change": "c.1349C>T",
+          "amino_acid_change": "p.Ser450Leu",
+          "type": "missense",
+          "frequency": 0.23,
+          "depth": 95,
+          "confidence": "low",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "HETERORESISTANCE: variant at 23% frequency. Below reporting threshold (75%) but may indicate emerging resistance or mixed infection."
+        }
+      ]
+    },
+    {
+      "drug": "isoniazid",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "katG",
+          "nucleotide_change": "c.944G>C",
+          "amino_acid_change": "p.Ser315Thr",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 78,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "ethambutol",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "pyrazinamide",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "streptomycin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "fluoroquinolones",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "amikacin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "kanamycin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "capreomycin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "ethionamide",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "linezolid",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "bedaquiline",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "clofazimine",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "delamanid",
+      "status": "Sensitive",
+      "mutations": []
+    }
+  ],
+  "other_variants": [
+    {
+      "gene": "rpoB",
+      "nucleotide_change": "c.1349C>T",
+      "amino_acid_change": "p.Ser450Leu",
+      "frequency": 0.23,
+      "depth": 95,
+      "annotation": "Sub-threshold variant — possible heteroresistance or mixed population"
+    }
+  ],
+  "notes": [
+    "HR-TB: Isoniazid mono-resistance confirmed.",
+    "HETERORESISTANCE WARNING: rpoB S450L detected at 23% frequency. Below 75% reporting threshold for resistance call, but clinically significant. Recommend phenotypic DST for rifampicin and close monitoring.",
+    "Mixed population possible — consider repeat testing or culture for single-colony isolation."
+  ]
+}

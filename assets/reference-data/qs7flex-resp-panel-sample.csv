@@ -1,0 +1,87 @@
+* Block Type = 384-Well Block
+* Calibration Background is expired  = No
+* Calibration Background performed on = 02-01-2025
+* Calibration Pure Dye is expired  = No
+* Calibration Pure Dye performed on = 02-01-2025
+* Calibration ROI is expired  = No
+* Calibration ROI performed on = 02-01-2025
+* Calibration Uniformity is expired  = No
+* Calibration Uniformity performed on = 02-01-2025
+* Chemistry = TaqMan® Reagents
+* Date Created = 2025-02-18 07:15:43 AM EST
+* Experiment File Name = C:\Applied Biosystems\QuantStudio 7 Flex\experiments\RESP-Panel_Run-20250218.eds
+* Experiment Name = RESP-Panel_Run-20250218
+* Experiment Run End Time = 2025-02-18 09:22:11 AM EST
+* Experiment Type = Presence/Absence
+* Instrument Name = QuantStudio7Flex-MOL-02
+* Instrument Serial Number = 449901287
+* Instrument Type = QuantStudio™ 7 Flex System
+* Passive Reference = ROX
+* Quantification Cycle Method = Ct
+* Signal Smoothing On = true
+* Stage/ Cycle where Ct Calculated = Stage 2, Step 2
+* Software Name = QuantStudio™ Design & Analysis Software
+* Software Version = 2.7.0
+
+[Results]
+Well	Well Position	Omit	Sample Name	Target Name	Task	Reporter	Quencher	CT	Ct Mean	Ct SD	Quantity	Quantity Mean	Quantity SD	Automatic Ct Threshold	Ct Threshold	Automatic Baseline	Baseline Start	Baseline End	Amp Score	Amp Status	Comments
+1	A1	false	NTC	SARS-CoV-2	NTC	FAM	NFQ-MGB	Undetermined						true	0.05123	true	3	15	0.089	No Amp	No Template Control
+2	A2	false	NTC	Influenza A	NTC	VIC	NFQ-MGB	Undetermined						true	0.03876	true	3	15	0.076	No Amp	No Template Control
+3	A3	false	NTC	Influenza B	NTC	ABY	NFQ-MGB	Undetermined						true	0.04234	true	3	15	0.082	No Amp	No Template Control
+4	A4	false	NTC	RSV	NTC	JUN	NFQ-MGB	Undetermined						true	0.03567	true	3	15	0.091	No Amp	No Template Control
+5	A5	false	NTC	IC	NTC	Cy5	NFQ-MGB	Undetermined						true	0.02987	true	3	15	0.073	No Amp	IC NTC
+6	A6	false	PTC-RESP	SARS-CoV-2	Positive Control	FAM	NFQ-MGB	22.345						true	0.05123	true	3	15	1.934	Amp	Positive Template Control
+7	A7	false	PTC-RESP	Influenza A	Positive Control	VIC	NFQ-MGB	21.678						true	0.03876	true	3	15	1.945	Amp	Positive Template Control
+8	A8	false	PTC-RESP	Influenza B	Positive Control	ABY	NFQ-MGB	22.012						true	0.04234	true	3	15	1.938	Amp	Positive Template Control
+9	A9	false	PTC-RESP	RSV	Positive Control	JUN	NFQ-MGB	21.890						true	0.03567	true	3	15	1.941	Amp	Positive Template Control
+10	A10	false	PTC-RESP	IC	Positive Control	Cy5	NFQ-MGB	27.456						true	0.02987	true	3	15	1.878	Amp	IC Positive Control
+11	B1	false	2502180101	SARS-CoV-2	Unknown	FAM	NFQ-MGB	18.234						true	0.05123	true	3	15	1.967	Amp	
+12	B2	false	2502180101	Influenza A	Unknown	VIC	NFQ-MGB	Undetermined						true	0.03876	true	3	15	0.112	No Amp	
+13	B3	false	2502180101	Influenza B	Unknown	ABY	NFQ-MGB	Undetermined						true	0.04234	true	3	15	0.098	No Amp	
+14	B4	false	2502180101	RSV	Unknown	JUN	NFQ-MGB	Undetermined						true	0.03567	true	3	15	0.087	No Amp	
+15	B5	false	2502180101	IC	Unknown	Cy5	NFQ-MGB	27.890						true	0.02987	true	3	15	1.872	Amp	
+16	B6	false	2502180102	SARS-CoV-2	Unknown	FAM	NFQ-MGB	Undetermined						true	0.05123	true	3	15	0.134	No Amp	
+17	B7	false	2502180102	Influenza A	Unknown	VIC	NFQ-MGB	23.456						true	0.03876	true	3	15	1.923	Amp	
+18	B8	false	2502180102	Influenza B	Unknown	ABY	NFQ-MGB	Undetermined						true	0.04234	true	3	15	0.091	No Amp	
+19	B9	false	2502180102	RSV	Unknown	JUN	NFQ-MGB	Undetermined						true	0.03567	true	3	15	0.078	No Amp	
+20	B10	false	2502180102	IC	Unknown	Cy5	NFQ-MGB	28.123						true	0.02987	true	3	15	1.867	Amp	
+21	B11	false	2502180103	SARS-CoV-2	Unknown	FAM	NFQ-MGB	Undetermined						true	0.05123	true	3	15	0.098	No Amp	
+22	B12	false	2502180103	Influenza A	Unknown	VIC	NFQ-MGB	Undetermined						true	0.03876	true	3	15	0.087	No Amp	
+23	B13	false	2502180103	Influenza B	Unknown	ABY	NFQ-MGB	Undetermined						true	0.04234	true	3	15	0.076	No Amp	
+24	B14	false	2502180103	RSV	Unknown	JUN	NFQ-MGB	25.789						true	0.03567	true	3	15	1.898	Amp	
+25	B15	false	2502180103	IC	Unknown	Cy5	NFQ-MGB	27.654						true	0.02987	true	3	15	1.881	Amp	
+26	B16	false	2502180104	SARS-CoV-2	Unknown	FAM	NFQ-MGB	Undetermined						true	0.05123	true	3	15	0.145	No Amp	
+27	B17	false	2502180104	Influenza A	Unknown	VIC	NFQ-MGB	Undetermined						true	0.03876	true	3	15	0.089	No Amp	
+28	B18	false	2502180104	Influenza B	Unknown	ABY	NFQ-MGB	Undetermined						true	0.04234	true	3	15	0.092	No Amp	
+29	B19	false	2502180104	RSV	Unknown	JUN	NFQ-MGB	Undetermined						true	0.03567	true	3	15	0.086	No Amp	
+30	B20	false	2502180104	IC	Unknown	Cy5	NFQ-MGB	27.987						true	0.02987	true	3	15	1.869	Amp	
+31	C1	false	2502180105	SARS-CoV-2	Unknown	FAM	NFQ-MGB	16.789						true	0.05123	true	3	15	1.978	Amp	
+32	C2	false	2502180105	Influenza A	Unknown	VIC	NFQ-MGB	Undetermined						true	0.03876	true	3	15	0.102	No Amp	
+33	C3	false	2502180105	Influenza B	Unknown	ABY	NFQ-MGB	Undetermined						true	0.04234	true	3	15	0.088	No Amp	
+34	C4	false	2502180105	RSV	Unknown	JUN	NFQ-MGB	Undetermined						true	0.03567	true	3	15	0.079	No Amp	
+35	C5	false	2502180105	IC	Unknown	Cy5	NFQ-MGB	27.345						true	0.02987	true	3	15	1.885	Amp	
+36	C6	false	2502180106	SARS-CoV-2	Unknown	FAM	NFQ-MGB	Undetermined						true	0.05123	true	3	15	0.112	No Amp	
+37	C7	false	2502180106	Influenza A	Unknown	VIC	NFQ-MGB	19.234						true	0.03876	true	3	15	1.962	Amp	
+38	C8	false	2502180106	Influenza B	Unknown	ABY	NFQ-MGB	Undetermined						true	0.04234	true	3	15	0.094	No Amp	
+39	C9	false	2502180106	RSV	Unknown	JUN	NFQ-MGB	Undetermined						true	0.03567	true	3	15	0.081	No Amp	
+40	C10	false	2502180106	IC	Unknown	Cy5	NFQ-MGB	28.234						true	0.02987	true	3	15	1.865	Amp	
+41	C11	false	2502180107	SARS-CoV-2	Unknown	FAM	NFQ-MGB	24.567						true	0.05123	true	3	15	1.912	Amp	
+42	C12	false	2502180107	Influenza A	Unknown	VIC	NFQ-MGB	26.789						true	0.03876	true	3	15	1.889	Amp	Co-infection
+43	C13	false	2502180107	Influenza B	Unknown	ABY	NFQ-MGB	Undetermined						true	0.04234	true	3	15	0.097	No Amp	
+44	C14	false	2502180107	RSV	Unknown	JUN	NFQ-MGB	Undetermined						true	0.03567	true	3	15	0.083	No Amp	
+45	C15	false	2502180107	IC	Unknown	Cy5	NFQ-MGB	28.012						true	0.02987	true	3	15	1.870	Amp	
+46	C16	false	2502180108	SARS-CoV-2	Unknown	FAM	NFQ-MGB	Undetermined						true	0.05123	true	3	15	0.156	No Amp	
+47	C17	false	2502180108	Influenza A	Unknown	VIC	NFQ-MGB	Undetermined						true	0.03876	true	3	15	0.098	No Amp	
+48	C18	false	2502180108	Influenza B	Unknown	ABY	NFQ-MGB	Undetermined						true	0.04234	true	3	15	0.087	No Amp	
+49	C19	false	2502180108	RSV	Unknown	JUN	NFQ-MGB	Undetermined						true	0.03567	true	3	15	0.092	No Amp	
+50	C20	false	2502180108	IC	Unknown	Cy5	NFQ-MGB	28.345						true	0.02987	true	3	15	1.862	Amp	
+51	D1	false	QC-RESP-POS	SARS-CoV-2	Unknown	FAM	NFQ-MGB	21.567						true	0.05123	true	3	15	1.941	Amp	QC Positive Control
+52	D2	false	QC-RESP-POS	Influenza A	Unknown	VIC	NFQ-MGB	22.345						true	0.03876	true	3	15	1.934	Amp	QC Positive Control
+53	D3	false	QC-RESP-POS	Influenza B	Unknown	ABY	NFQ-MGB	21.890						true	0.04234	true	3	15	1.938	Amp	QC Positive Control
+54	D4	false	QC-RESP-POS	RSV	Unknown	JUN	NFQ-MGB	22.678						true	0.03567	true	3	15	1.931	Amp	QC Positive Control
+55	D5	false	QC-RESP-POS	IC	Unknown	Cy5	NFQ-MGB	27.567						true	0.02987	true	3	15	1.879	Amp	QC Positive Control
+56	D6	false	QC-RESP-NEG	SARS-CoV-2	Unknown	FAM	NFQ-MGB	Undetermined						true	0.05123	true	3	15	0.098	No Amp	QC Negative Control
+57	D7	false	QC-RESP-NEG	Influenza A	Unknown	VIC	NFQ-MGB	Undetermined						true	0.03876	true	3	15	0.087	No Amp	QC Negative Control
+58	D8	false	QC-RESP-NEG	Influenza B	Unknown	ABY	NFQ-MGB	Undetermined						true	0.04234	true	3	15	0.079	No Amp	QC Negative Control
+59	D9	false	QC-RESP-NEG	RSV	Unknown	JUN	NFQ-MGB	Undetermined						true	0.03567	true	3	15	0.085	No Amp	QC Negative Control
+60	D10	false	QC-RESP-NEG	IC	Unknown	Cy5	NFQ-MGB	27.890						true	0.02987	true	3	15	1.873	Amp	QC Negative Control

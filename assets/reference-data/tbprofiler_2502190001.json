@@ -1,0 +1,128 @@
+{
+  "id": "2502190001",
+  "timestamp": "2025-02-19T09:45:23Z",
+  "pipeline": {
+    "software": "TB-Profiler",
+    "version": "6.3.0",
+    "db_version": "WHO-UCN-GTB-PCI-2023.5",
+    "analysis_date": "2025-02-19",
+    "commit": "a8f3c2d"
+  },
+  "sequencing": {
+    "platform": "MinION",
+    "instrument_id": "MN42781",
+    "flowcell": "FLO-MIN114",
+    "kit": "SQK-RBK114.96",
+    "basecaller": "Dorado",
+    "basecaller_version": "0.5.3",
+    "basecaller_model": "dna_r10.4.1_e8.2_400bps_sup@v4.3.0"
+  },
+  "qc": {
+    "num_reads": 245678,
+    "num_reads_mapped": 234521,
+    "pct_reads_mapped": 95.46,
+    "median_depth": 87,
+    "genome_coverage_10x": 98.7,
+    "genome_coverage_30x": 96.2,
+    "mean_read_length": 4523,
+    "median_read_length": 3876,
+    "n50": 6234,
+    "target_median_depth": {
+      "rpoB": 112,
+      "katG": 95,
+      "inhA_promoter": 89,
+      "embB": 78,
+      "pncA": 92,
+      "gyrA": 104,
+      "gyrB": 98,
+      "rrs": 85,
+      "eis_promoter": 91,
+      "rplC": 88,
+      "Rv0678": 76,
+      "atpE": 82,
+      "pepQ": 79,
+      "ddn": 84,
+      "fbiA": 81
+    }
+  },
+  "main_lineage": "lineage4",
+  "sub_lineage": "lineage4.1.2.1",
+  "family": "Haarlem",
+  "spoligotype": "SIT50",
+  "species": "Mycobacterium tuberculosis",
+  "drtype": "Sensitive",
+  "dr_resistances": [
+    {
+      "drug": "rifampicin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "isoniazid",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "ethambutol",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "pyrazinamide",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "streptomycin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "fluoroquinolones",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "amikacin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "kanamycin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "capreomycin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "ethionamide",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "linezolid",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "bedaquiline",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "clofazimine",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "delamanid",
+      "status": "Sensitive",
+      "mutations": []
+    }
+  ],
+  "other_variants": [],
+  "notes": []
+}

@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Issue-to-Patient &amp; Emergency Release -- OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'IBM Plex Sans', sans-serif; background: #f4f4f4; }
+
+    .preview-banner {
+      background: #0f62fe; color: #fff;
+      padding: 6px 1rem; font-size: 12px; font-family: monospace;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    }
+
+    /* ---- Shell ---- */
+    .shell-header {
+      position: fixed; top: 22px; left: 0; right: 0; height: 48px;
+      background: #161616; color: #fff;
+      display: flex; align-items: center; z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,.4);
+    }
+    .shell-hamburger {
+      width: 48px; height: 48px; background: none; border: none; color: #fff;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .shell-hamburger:hover { background: rgba(255,255,255,.1); }
+    .shell-product-name { font-size: 14px; font-weight: 600; letter-spacing: .02em; padding-left: 4px; }
+    .shell-right { margin-left: auto; display: flex; align-items: center; padding-right: 8px; }
+    .shell-icon-btn { width: 40px; height: 48px; background: none; border: none; color: #c6c6c6; cursor: pointer; font-size: 16px; }
+
+    /* ---- SideNav ---- */
+    .sidenav {
+      position: fixed; top: 70px; left: 0; bottom: 0; width: 256px;
+      background: #161616; z-index: 90; overflow-y: auto;
+      transition: transform 200ms ease;
+    }
+    .sidenav.closed { transform: translateX(-100%); }
+    .sidenav-overlay {
+      position: fixed; inset: 70px 0 0 0; background: rgba(0,0,0,.4); z-index: 80;
+    }
+    .sidenav ul { list-style: none; margin: 0; padding: 8px 0; }
+    .sidenav-item {
+      width: 100%; text-align: left; padding: 10px 16px;
+      background: none; border: none; font-size: 14px; color: #c6c6c6; cursor: pointer;
+      display: block;
+    }
+    .sidenav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+    .sidenav-group-btn {
+      width: 100%; text-align: left; padding: 10px 16px;
+      background: none; border: none; font-size: 14px; color: #fff; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    }
+    .sidenav-group-btn:hover { background: rgba(255,255,255,.08); }
+    .sidenav-sub-item {
+      width: 100%; text-align: left;
+      padding: 10px 16px 10px 32px;
+      background: none; font-size: 14px; cursor: pointer;
+      border: none; border-left: 4px solid transparent; color: #c6c6c6; display: block;
+    }
+    .sidenav-sub-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+    .sidenav-sub-item.active {
+      border-left-color: #0f62fe; background: #393939; color: #fff; font-weight: 500;
+    }
+
+    /* ---- Main content ---- */
+    .main-content { padding-top: 70px; }
+    .breadcrumb-bar {
+      background: #fff; border-bottom: 1px solid #e0e0e0; padding: 8px 24px;
+      display: flex; align-items: center; gap: 6px; font-size: 13px; color: #525252;
+    }
+    .breadcrumb-bar a { color: #0f62fe; text-decoration: none; cursor: pointer; }
+    .breadcrumb-bar a:hover { text-decoration: underline; }
+    .page-body { max-width: 1440px; margin: 0 auto; padding: 24px; }
+
+    /* ---- Stat tiles ---- */
+    .stat-tiles { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .stat-tile {
+      background: #fff; padding: 16px 20px; min-width: 150px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    }
+    .stat-tile .stat-num { font-size: 28px; font-weight: 600; margin: 0; }
+    .stat-tile .stat-label { font-size: 12px; color: #525252; margin: 4px 0 0; }
+
+    /* ---- Tabs ---- */
+    .tab-bar { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 16px; }
+    .tab-btn {
+      padding: 10px 20px; font-size: 14px; background: none; border: none;
+      border-bottom: 2px solid transparent; cursor: pointer; color: #525252;
+      margin-bottom: -2px;
+    }
+    .tab-btn.active { color: #161616; border-bottom-color: #0f62fe; font-weight: 500; }
+    .tab-btn:hover:not(.active) { background: #f4f4f4; }
+
+    /* ---- Data table ---- */
+    .cds--data-table-container { background: #fff; }
+    .table-toolbar {
+      background: #e0e0e0; padding: 8px 12px; display: flex; align-items: center; gap: 8px;
+    }
+    .toolbar-search {
+      background: #fff; border: none; border-bottom: 1px solid #8d8d8d;
+      padding: 8px 12px; font-size: 14px; min-width: 280px; outline: none;
+    }
+    .toolbar-search:focus { border-bottom-color: #0f62fe; }
+    .cds--data-table thead { background: #e0e0e0; }
+    .cds--data-table th { font-size: 13px; font-weight: 600; padding: 10px 16px; text-align: left; color: #525252; }
+    .cds--data-table td { font-size: 13px; padding: 10px 16px; border-top: 1px solid #e0e0e0; vertical-align: middle; }
+    .cds--data-table tr:hover td { background: #f4f4f4; }
+    tr.late-row td { background: #fff8f8; }
+    tr.late-row:hover td { background: #fff0f0; }
+
+    /* ---- Tags ---- */
+    .cds--tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 2px 8px; border-radius: 24px; font-weight: 500; white-space: nowrap; }
+    .cds--tag--blue { background: #d0e2ff; color: #0043ce; }
+    .cds--tag--green { background: #defbe6; color: #0e6027; }
+    .cds--tag--red { background: #ffd7d9; color: #a2191f; }
+    .cds--tag--purple { background: #e8daff; color: #6929c4; }
+    .cds--tag--teal { background: #d9fbfb; color: #005d5d; }
+    .cds--tag--warm-gray { background: #f2f0ee; color: #564c4a; }
+    .cds--tag--cool-gray { background: #edf5ff; color: #4589ff; }
+    .cds--tag--gray { background: #e0e0e0; color: #393939; }
+
+    /* ---- Buttons ---- */
+    .cds--btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; font-size: 14px; font-weight: 400; border: none; cursor: pointer; border-radius: 0; font-family: inherit; }
+    .cds--btn--primary { background: #0f62fe; color: #fff; }
+    .cds--btn--primary:hover { background: #0353e9; }
+    .cds--btn--primary:disabled { background: #c6c6c6; color: #8d8d8d; cursor: not-allowed; }
+    .cds--btn--secondary { background: #393939; color: #fff; }
+    .cds--btn--secondary:hover { background: #4c4c4c; }
+    .cds--btn--danger { background: #da1e28; color: #fff; }
+    .cds--btn--danger:hover { background: #b81921; }
+    .cds--btn--ghost { background: none; color: #0f62fe; padding: 8px 12px; }
+    .cds--btn--ghost:hover { background: #e8f0fe; }
+    .cds--btn--sm { padding: 6px 12px; font-size: 13px; }
+
+    /* ---- Inline notifications ---- */
+    .cds--inline-notification {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 16px; margin-bottom: 0; font-size: 14px;
+      border-left: 4px solid;
+    }
+    .cds--inline-notification--warning { background: #fdf6dd; border-color: #f1c21b; color: #323232; }
+    .cds--inline-notification--error { background: #fff1f1; border-color: #da1e28; color: #a2191f; }
+    .cds--inline-notification--success { background: #defbe6; border-color: #24a148; color: #0e6027; }
+    .cds--inline-notification--info { background: #edf5ff; border-color: #0f62fe; color: #0043ce; }
+    .notif-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .notif-text strong { font-weight: 600; }
+
+    /* ---- Tile ---- */
+    .cds--tile { background: #fff; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+    /* ---- Detail view layout ---- */
+    .detail-shell { display: flex; height: calc(100vh - 148px); }
+    .detail-sidebar {
+      width: 240px; flex-shrink: 0; background: #fff;
+      border-right: 1px solid #e0e0e0; overflow-y: auto; padding: 16px 0;
+    }
+    .detail-main { flex: 1; overflow-y: auto; padding: 24px; }
+    .sidebar-section { padding: 12px 16px; border-bottom: 1px solid #e0e0e0; }
+    .sidebar-section:last-child { border-bottom: none; }
+    .sidebar-meta-label { font-size: 11px; color: #8d8d8d; font-weight: 600; text-transform: uppercase; margin: 0 0 3px; }
+    .sidebar-meta-value { font-size: 13px; margin: 0; }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+
+    /* ---- Checklist ---- */
+    .checklist-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; cursor: pointer; }
+    .checklist-item input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; cursor: pointer; accent-color: #0f62fe; flex-shrink: 0; }
+    .checklist-item label { font-size: 14px; line-height: 1.4; cursor: pointer; }
+
+    /* ---- Text input ---- */
+    .field-group { margin-bottom: 16px; }
+    .field-group label { display: block; font-size: 12px; font-weight: 600; color: #525252; margin-bottom: 4px; }
+    .field-group input, .field-group textarea, .field-group select {
+      width: 100%; background: #f4f4f4; border: none; border-bottom: 1px solid #8d8d8d;
+      padding: 10px 12px; font-size: 14px; font-family: inherit; outline: none;
+    }
+    .field-group input:focus, .field-group textarea:focus, .field-group select:focus {
+      border-bottom-color: #0f62fe; background: #fff; box-shadow: inset 0 -2px 0 #0f62fe;
+    }
+    .field-group.invalid input, .field-group.invalid textarea { border-bottom-color: #da1e28; box-shadow: inset 0 -2px 0 #da1e28; }
+    .field-group .error-text { font-size: 12px; color: #da1e28; margin-top: 4px; }
+
+    /* ---- Modal ---- */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(22,21,21,.6);
+      z-index: 9000; display: flex; align-items: center; justify-content: center;
+    }
+    .modal-box {
+      background: #fff; max-width: 560px; width: 90%; max-height: 85vh;
+      overflow-y: auto; display: flex; flex-direction: column;
+    }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid #e0e0e0; }
+    .modal-header h2 { font-size: 18px; font-weight: 400; margin: 0; }
+    .modal-body { padding: 20px; flex: 1; overflow-y: auto; }
+    .modal-footer { padding: 16px 20px; border-top: 1px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 8px; }
+
+    /* ---- Summary box ---- */
+    .summary-box { background: #f4f4f4; padding: 16px; border-radius: 2px; margin-top: 12px; }
+    .summary-row { display: flex; gap: 8px; margin-bottom: 6px; font-size: 13px; }
+    .summary-row .slabel { color: #525252; min-width: 130px; }
+    .summary-row .svalue { font-weight: 500; }
+
+    /* ---- Page title ---- */
+    .page-title-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .page-title h1 { font-size: 28px; font-weight: 300; margin: 0; color: #161616; }
+    .page-title p { font-size: 14px; color: #525252; margin: 4px 0 0; }
+    .action-bar { display: flex; gap: 12px; padding-top: 8px; }
+
+    /* ---- Empty state ---- */
+    .empty-state { text-align: center; padding: 40px; color: #525252; font-size: 14px; }
+  </style>
+</head>
+<body class="cds--white">
+
+<div class="preview-banner">
+  &#9889; Visual Preview &mdash; Issue-to-Patient &amp; Emergency Release &nbsp;|&nbsp; OpenELIS Blood Bank &nbsp;|&nbsp; Spec 5 / OGC-461 &nbsp;|&nbsp; Not a live application
+</div>
+
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useCallback } = React;
+
+// ---------------------------------------------------------------------------
+// Data
+// ---------------------------------------------------------------------------
+const APPROVED = [
+  {
+    id: 'TR-2026-0441', patient: 'Amara Diallo', patientId: 'P-004821',
+    dob: '1978-06-14', aboRh: 'B+', componentType: 'pRBC', units: 2,
+    requestingClinician: 'Dr. Fatou Camara', approvedBy: 'Supervisor K. Mensah',
+    approvedAt: '2026-03-25 07:42', wait: 73, isEmergency: false,
+    crossmatch: 'Compatible',
+    reqUnits: [
+      { num: 'BB-2026-1102', aboRh: 'B+', type: 'pRBC', expiry: '2026-04-10', storage: 'Fridge 2A', xm: 'Compatible' },
+      { num: 'BB-2026-1103', aboRh: 'B+', type: 'pRBC', expiry: '2026-04-08', storage: 'Fridge 2A', xm: 'Compatible' },
+    ],
+  },
+  {
+    id: 'TR-2026-0448', patient: 'Unknown Patient', patientId: 'EMERG-001',
+    dob: '--', aboRh: 'O-', componentType: 'pRBC', units: 2,
+    requestingClinician: 'Dr. Jean-Pierre Nkurunziza', approvedBy: 'Supervisor K. Mensah',
+    approvedAt: '2026-03-25 08:51', wait: 4, isEmergency: true,
+    crossmatch: 'Emergency Release -- No Crossmatch',
+    reqUnits: [
+      { num: 'BB-2026-0887', aboRh: 'O-', type: 'pRBC', expiry: '2026-03-29', storage: 'Fridge 1B', xm: 'Not Performed' },
+      { num: 'BB-2026-0891', aboRh: 'O-', type: 'pRBC', expiry: '2026-04-02', storage: 'Fridge 1B', xm: 'Not Performed' },
+    ],
+  },
+  {
+    id: 'TR-2026-0451', patient: 'Celestine Okonkwo', patientId: 'P-007133',
+    dob: '1990-02-28', aboRh: 'A+', componentType: 'FFP', units: 4,
+    requestingClinician: 'Dr. Amara Sesay', approvedBy: 'Supervisor K. Mensah',
+    approvedAt: '2026-03-25 08:58', wait: 22, isEmergency: false,
+    crossmatch: 'Compatible',
+    reqUnits: [
+      { num: 'BB-2026-0955', aboRh: 'AB', type: 'FFP', expiry: '2026-09-15', storage: 'Freezer 3', xm: 'Not Required (FFP)' },
+      { num: 'BB-2026-0956', aboRh: 'AB', type: 'FFP', expiry: '2026-09-15', storage: 'Freezer 3', xm: 'Not Required (FFP)' },
+      { num: 'BB-2026-0957', aboRh: 'AB', type: 'FFP', expiry: '2026-08-30', storage: 'Freezer 3', xm: 'Not Required (FFP)' },
+      { num: 'BB-2026-0958', aboRh: 'AB', type: 'FFP', expiry: '2026-08-30', storage: 'Freezer 3', xm: 'Not Required (FFP)' },
+    ],
+  },
+];
+
+const HISTORY = [
+  { id: 'TR-2026-0389', patient: 'Ibrahim Toure', patientId: 'P-003201', type: 'pRBC', units: 2, issuedAt: '2026-03-24 14:22', issuedBy: 'Tech M. Adeyemi', receivedBy: 'Nurse Grace Acheampong', emerg: false },
+  { id: 'TR-2026-0401', patient: 'Fatima Al-Hassan', patientId: 'P-005567', type: 'PLT', units: 1, issuedAt: '2026-03-25 06:11', issuedBy: 'Tech M. Adeyemi', receivedBy: 'Dr. Raymond Owusu', emerg: false },
+];
+
+const CHECKLIST = [
+  { key: 'patientId', label: 'Patient ID verified against unit label' },
+  { key: 'expiry',    label: 'Unit expiry date confirmed -- unit is not expired' },
+  { key: 'condition', label: 'Unit condition visually inspected -- no discoloration, clots, or damage' },
+  { key: 'compType',  label: 'Blood component type matches transfusion request' },
+];
+
+// ---------------------------------------------------------------------------
+// Shell
+// ---------------------------------------------------------------------------
+function Shell({ children }) {
+  const [open, setOpen] = useState(false);
+  const [bbExpanded, setBbExpanded] = useState(true);
+
+  return (
+    <div>
+      {/* Header */}
+      <header className="shell-header">
+        <button className="shell-hamburger" onClick={() => setOpen(o => !o)} aria-label="Toggle nav">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <rect y="3"  width="20" height="2" rx="1"/>
+            <rect y="9"  width="20" height="2" rx="1"/>
+            <rect y="15" width="20" height="2" rx="1"/>
+          </svg>
+        </button>
+        <span className="shell-product-name">OpenELIS Global</span>
+        <div className="shell-right">
+          <button className="shell-icon-btn">&#128276;</button>
+          <button className="shell-icon-btn">&#9881;&#65039;</button>
+          <button className="shell-icon-btn">&#128100;</button>
+        </div>
+      </header>
+
+      {/* Overlay */}
+      {open && <div className="sidenav-overlay" onClick={() => setOpen(false)} />}
+
+      {/* SideNav */}
+      <nav className={`sidenav${open ? '' : ' closed'}`}>
+        <ul>
+          {['Home', 'Add Order', 'Results', 'Patient'].map(item => (
+            <li key={item}><button className="sidenav-item">{item}</button></li>
+          ))}
+          <li>
+            <button className="sidenav-group-btn" onClick={() => setBbExpanded(e => !e)}>
+              <span>Blood Bank</span>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"
+                style={{ transform: bbExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 150ms', flexShrink: 0 }}>
+                <path d="M8 11L3 6h10z"/>
+              </svg>
+            </button>
+            {bbExpanded && (
+              <ul>
+                {[
+                  { label: 'Pre-Transfusion Testing', active: false },
+                  { label: 'Issue Queue',             active: true  },
+                  { label: 'Inventory',               active: false },
+                  { label: 'Receive Unit',            active: false },
+                  { label: 'Patient Record',          active: false },
+                ].map(s => (
+                  <li key={s.label}>
+                    <button className={`sidenav-sub-item${s.active ? ' active' : ''}`}>{s.label}</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+          {['Quality Control', 'Reports', 'Admin'].map(item => (
+            <li key={item}><button className="sidenav-item">{item}</button></li>
+          ))}
+        </ul>
+      </nav>
+
+      <div className="main-content">{children}</div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Notification helper
+// ---------------------------------------------------------------------------
+function Notif({ kind, title, subtitle }) {
+  const icons = { warning: '&#9888;&#65039;', error: '&#128721;', success: '&#9989;', info: '&#8505;&#65039;' };
+  return (
+    <div className={`cds--inline-notification cds--inline-notification--${kind}`}>
+      <span className="notif-icon" dangerouslySetInnerHTML={{ __html: icons[kind] || icons.info }} />
+      <span className="notif-text"><strong>{title}</strong>{subtitle && <span> {subtitle}</span>}</span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Issue Queue
+// ---------------------------------------------------------------------------
+function IssueQueue({ onSelect, onEmergency }) {
+  const [tab, setTab] = useState(0);
+  const [filterEmerg, setFilterEmerg] = useState(false);
+  const [search, setSearch] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
+  const lateCount  = APPROVED.filter(r => r.wait > 60).length;
+  const emergCount = APPROVED.filter(r => r.isEmergency).length;
+
+  const filtered = APPROVED.filter(r => {
+    if (filterEmerg && !r.isEmergency) return false;
+    const q = search.toLowerCase();
+    if (q && !r.patient.toLowerCase().includes(q) && !r.id.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  return (
+    <div>
+      <div className="breadcrumb-bar">
+        <a>Blood Bank</a> <span style={{ color: '#c6c6c6' }}>/</span> <span>Issue Queue</span>
+      </div>
+
+      <div className="page-body">
+        <div className="page-title-row">
+          <div className="page-title">
+            <h1>Issue Queue</h1>
+            <p>Approved transfusion requests awaiting physical handover</p>
+          </div>
+          <button className="cds--btn cds--btn--danger" onClick={onEmergency}>
+            &#9888; Emergency Release
+          </button>
+        </div>
+
+        {/* Stat tiles */}
+        <div className="stat-tiles">
+          <div className="cds--tile stat-tile" style={{ borderTop: '4px solid #0f62fe' }}>
+            <p className="stat-num" style={{ color: '#0f62fe' }}>{APPROVED.length}</p>
+            <p className="stat-label">Pending Issue</p>
+          </div>
+          <div className="cds--tile stat-tile" style={{ borderTop: '4px solid #8d8d8d' }}>
+            <p className="stat-num" style={{ color: '#8d8d8d' }}>{lateCount}</p>
+            <p className="stat-label">Late (&gt;60 min)</p>
+          </div>
+          <div className="cds--tile stat-tile" style={{ borderTop: '4px solid #da1e28' }}>
+            <p className="stat-num" style={{ color: '#da1e28' }}>{emergCount}</p>
+            <p className="stat-label">Emergency Release</p>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="tab-bar">
+          <button className={`tab-btn${tab === 0 ? ' active' : ''}`} onClick={() => setTab(0)}>Pending Issue ({APPROVED.length})</button>
+          <button className={`tab-btn${tab === 1 ? ' active' : ''}`} onClick={() => setTab(1)}>Issue History ({HISTORY.length})</button>
+        </div>
+
+        {tab === 0 && (
+          <div className="cds--data-table-container">
+            <div className="table-toolbar">
+              <input
+                className="toolbar-search"
+                placeholder="Search patient or request ID..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+              <button
+                className={`cds--btn cds--btn--sm ${filterEmerg ? 'cds--btn--primary' : 'cds--btn--ghost'}`}
+                onClick={() => setFilterEmerg(f => !f)}
+              >
+                &#9888; Emergency Only
+              </button>
+            </div>
+            <table className="cds--data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  {['Request ID', 'Patient', 'Patient ID', 'Component', 'Units', 'ABO/Rh', 'Approved At', 'Wait', 'Status', ''].map(h => (
+                    <th key={h}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(req => (
+                  <tr key={req.id} className={req.wait > 60 ? 'late-row' : ''} style={{ cursor: 'pointer' }} onClick={() => onSelect(req)}>
+                    <td><span className="mono" style={{ fontSize: 12 }}>{req.id}</span></td>
+                    <td>
+                      {req.isEmergency
+                        ? <span style={{ color: '#da1e28', fontWeight: 500 }}>{req.patient}</span>
+                        : req.patient}
+                    </td>
+                    <td><span className="mono" style={{ fontSize: 12 }}>{req.patientId}</span></td>
+                    <td><span className="cds--tag cds--tag--blue">{req.componentType}</span></td>
+                    <td>{req.units}</td>
+                    <td><span className="cds--tag cds--tag--cool-gray">{req.aboRh}</span></td>
+                    <td style={{ fontSize: 13 }}>{req.approvedAt}</td>
+                    <td>
+                      {req.wait > 60
+                        ? <span className="cds--tag cds--tag--red">&#9201; {req.wait}min</span>
+                        : req.wait > 30
+                        ? <span className="cds--tag cds--tag--warm-gray">{req.wait}min</span>
+                        : <span className="cds--tag cds--tag--green">{req.wait}min</span>}
+                    </td>
+                    <td>
+                      {req.isEmergency
+                        ? <span className="cds--tag cds--tag--red">Emergency</span>
+                        : <span className="cds--tag cds--tag--purple">Approved</span>}
+                    </td>
+                    <td>
+                      <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={e => { e.stopPropagation(); onSelect(req); }}>
+                        Issue &#8594;
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr><td colSpan="10" className="empty-state">No approved requests awaiting issue.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {tab === 1 && (
+          <div className="cds--data-table-container">
+            <table className="cds--data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  {['Request ID', 'Patient', 'Component', 'Units', 'Issued At', 'Issued By', 'Received By', ''].map(h => (
+                    <th key={h}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {HISTORY.map(h => (
+                  <tr key={h.id}>
+                    <td><span className="mono" style={{ fontSize: 12 }}>{h.id}</span></td>
+                    <td>{h.patient}</td>
+                    <td><span className="cds--tag cds--tag--blue">{h.type}</span></td>
+                    <td>{h.units}</td>
+                    <td style={{ fontSize: 13 }}>{h.issuedAt}</td>
+                    <td style={{ fontSize: 13 }}>{h.issuedBy}</td>
+                    <td style={{ fontSize: 13 }}>{h.receivedBy}</td>
+                    <td><span className="cds--tag cds--tag--teal">&#10003; Issued</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Issue Case View
+// ---------------------------------------------------------------------------
+function CaseView({ req, onBack, onIssued }) {
+  const [checks, setChecks] = useState({ patientId: false, expiry: false, condition: false, compType: false });
+  const [receivedBy, setReceivedBy] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const allChecked = Object.values(checks).every(Boolean);
+  const rbValid = receivedBy.trim().length >= 2;
+  const canIssue = allChecked && rbValid;
+
+  const doIssue = () => {
+    setConfirmOpen(false);
+    setDone(true);
+    setTimeout(() => onIssued(), 1800);
+  };
+
+  return (
+    <div>
+      <div className="breadcrumb-bar">
+        <a onClick={onBack} style={{ cursor: 'pointer' }}>Blood Bank</a>
+        <span style={{ color: '#c6c6c6' }}>/</span>
+        <a onClick={onBack} style={{ cursor: 'pointer' }}>Issue Queue</a>
+        <span style={{ color: '#c6c6c6' }}>/</span>
+        <span>{req.id}</span>
+      </div>
+
+      {done && <Notif kind="success" title="Units issued successfully. Patient Blood Bank Record updated." />}
+      {req.isEmergency && <Notif kind="error" title="Emergency Release -- No Crossmatch Performed. Confirm with clinical team before issue." />}
+
+      <div className="detail-shell">
+        {/* Sidebar */}
+        <aside className="detail-sidebar">
+          <div className="sidebar-section" style={{ paddingBottom: 8 }}>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={onBack}>&#8592; Back to Issue Queue</button>
+          </div>
+
+          <div className="sidebar-section">
+            <p className="sidebar-meta-label">Request ID</p>
+            <p className="sidebar-meta-value mono">{req.id}</p>
+          </div>
+
+          {req.isEmergency && (
+            <div className="sidebar-section">
+              <span className="cds--tag cds--tag--red">&#9888; EMERGENCY RELEASE</span>
+            </div>
+          )}
+
+          {[
+            ['Patient', req.patient],
+            ['Patient ID', req.patientId],
+            ['Date of Birth', req.dob],
+            ['ABO/Rh', req.aboRh],
+            ['Component', req.componentType],
+            ['Units', req.units],
+            ['Requesting Clinician', req.requestingClinician],
+            ['Approved By', req.approvedBy],
+            ['Approved At', req.approvedAt],
+          ].map(([label, value]) => (
+            <div key={label} className="sidebar-section" style={{ padding: '8px 16px' }}>
+              <p className="sidebar-meta-label">{label}</p>
+              <p className="sidebar-meta-value">{value}</p>
+            </div>
+          ))}
+
+          <div className="sidebar-section" style={{ padding: '8px 16px' }}>
+            <p className="sidebar-meta-label">Crossmatch</p>
+            {req.isEmergency
+              ? <span className="cds--tag cds--tag--red">No Crossmatch</span>
+              : <span className="cds--tag cds--tag--green">&#10003; Compatible</span>}
+          </div>
+        </aside>
+
+        {/* Main panel */}
+        <main className="detail-main">
+
+          {/* Unit list */}
+          <div className="cds--tile" style={{ padding: 0, marginBottom: 20 }}>
+            <div style={{ padding: '14px 20px 10px', borderBottom: '1px solid #e0e0e0' }}>
+              <strong style={{ fontSize: 15 }}>Units to Issue</strong>
+            </div>
+            <table className="cds--data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  {['Unit Number', 'ABO/Rh', 'Component', 'Expiry Date', 'Storage', 'Crossmatch'].map(h => (
+                    <th key={h}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {req.reqUnits.map(u => (
+                  <tr key={u.num}>
+                    <td><span className="mono" style={{ fontSize: 12 }}>{u.num}</span></td>
+                    <td><span className="cds--tag cds--tag--cool-gray">{u.aboRh}</span></td>
+                    <td><span className="cds--tag cds--tag--blue">{u.type}</span></td>
+                    <td style={{ fontSize: 13 }}>{u.expiry}</td>
+                    <td style={{ fontSize: 13 }}>{u.storage}</td>
+                    <td>
+                      {u.xm === 'Compatible'
+                        ? <span className="cds--tag cds--tag--green">Compatible</span>
+                        : u.xm === 'Not Performed'
+                        ? <span className="cds--tag cds--tag--red">Not Performed</span>
+                        : <span className="cds--tag cds--tag--gray">{u.xm}</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pre-Issue Checklist */}
+          <div className="cds--tile" style={{ marginBottom: 20 }}>
+            <h3 style={{ fontSize: 15, fontWeight: 600, margin: '0 0 16px' }}>Pre-Issue Safety Checklist</h3>
+            {CHECKLIST.map(item => (
+              <div key={item.key} className="checklist-item">
+                <input
+                  type="checkbox"
+                  id={`chk-${item.key}`}
+                  checked={checks[item.key]}
+                  disabled={done}
+                  onChange={e => setChecks(prev => ({ ...prev, [item.key]: e.target.checked }))}
+                />
+                <label htmlFor={`chk-${item.key}`}>{item.label}</label>
+              </div>
+            ))}
+          </div>
+
+          {/* Received By */}
+          <div className="cds--tile" style={{ marginBottom: 20 }}>
+            <div className={`field-group${receivedBy.length > 0 && !rbValid ? ' invalid' : ''}`} style={{ maxWidth: 480 }}>
+              <label htmlFor="received-by">Received By <span style={{ color: '#da1e28' }}>*</span></label>
+              <input
+                id="received-by"
+                type="text"
+                placeholder="Enter name of nurse or clinician collecting units"
+                value={receivedBy}
+                disabled={done}
+                onChange={e => setReceivedBy(e.target.value)}
+              />
+              {receivedBy.length > 0 && !rbValid && (
+                <p className="error-text">Received By is required and must be at least 2 characters.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Warnings */}
+          {!canIssue && !done && (
+            <div style={{ marginBottom: 16 }}>
+              <Notif kind="warning" title="Complete all checklist items and enter a recipient name before issuing." />
+            </div>
+          )}
+          {req.wait > 60 && (
+            <div style={{ marginBottom: 16 }}>
+              <Notif kind="warning" title="This request has been approved for over 60 minutes. Please prioritize issue." />
+            </div>
+          )}
+
+          {/* Action bar */}
+          <div className="action-bar">
+            <button
+              className="cds--btn cds--btn--primary"
+              disabled={!canIssue || done}
+              onClick={() => setConfirmOpen(true)}
+              style={{ opacity: (!canIssue || done) ? 0.5 : 1, cursor: (!canIssue || done) ? 'not-allowed' : 'pointer' }}
+            >
+              &#127973; Confirm Issue
+            </button>
+            <button className="cds--btn cds--btn--secondary" onClick={onBack} disabled={done}>Cancel</button>
+          </div>
+        </main>
+      </div>
+
+      {/* Confirm Modal */}
+      {confirmOpen && (
+        <div className="modal-backdrop" onClick={() => setConfirmOpen(false)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Confirm Issue</h2>
+            </div>
+            <div className="modal-body">
+              <p style={{ lineHeight: 1.5, marginBottom: 12 }}>
+                You are about to issue <strong>{req.units}</strong> unit(s) of <strong>{req.componentType}</strong> to patient <strong>{req.patient}</strong>. This action cannot be undone.
+              </p>
+              <div className="summary-box">
+                {[
+                  ['Patient', req.patient],
+                  ['Patient ID', req.patientId],
+                  ['Component', req.componentType],
+                  ['Units', req.units],
+                  ['Received By', receivedBy],
+                ].map(([l, v]) => (
+                  <div key={l} className="summary-row">
+                    <span className="slabel">{l}:</span>
+                    <span className="svalue">{v}</span>
+                  </div>
+                ))}
+                {req.isEmergency && <div style={{ marginTop: 8 }}><span className="cds--tag cds--tag--red">&#9888; Emergency Release -- No Crossmatch</span></div>}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="cds--btn cds--btn--secondary" onClick={() => setConfirmOpen(false)}>Cancel</button>
+              <button className="cds--btn cds--btn--danger" onClick={doIssue}>Confirm &amp; Issue</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Emergency Release Modal
+// ---------------------------------------------------------------------------
+function EmergencyModal({ onClose, onCreated }) {
+  const [unknown, setUnknown] = useState(false);
+  const [patient, setPatient] = useState('');
+  const [comp, setComp] = useState('');
+  const [qty, setQty] = useState(1);
+  const [reason, setReason] = useState('');
+  const [pin, setPin] = useState('');
+  const [err, setErr] = useState('');
+
+  const submit = () => {
+    if (!comp) { setErr('Component type is required.'); return; }
+    if (reason.trim().length < 10) { setErr('Clinical reason must be at least 10 characters.'); return; }
+    if (!pin) { setErr('Supervisor password is required.'); return; }
+    setErr('');
+    onCreated();
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-box" style={{ maxWidth: 600 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2 style={{ color: '#a2191f' }}>&#9888; Emergency Release</h2>
+        </div>
+        <div className="modal-body">
+          <Notif kind="warning" title="Emergency release bypasses crossmatch testing. Only O-negative pRBC and AB FFP are permitted. Supervisor authorization is required." />
+
+          {err && <div style={{ marginTop: 12 }}><Notif kind="error" title={err} /></div>}
+
+          <div style={{ marginTop: 20 }}>
+            <div className="field-group">
+              <label>Patient</label>
+              <input
+                type="text"
+                placeholder="Search by name or patient ID..."
+                value={patient}
+                disabled={unknown}
+                onChange={e => setPatient(e.target.value)}
+              />
+            </div>
+
+            <div className="checklist-item" style={{ marginBottom: 16 }}>
+              <input type="checkbox" id="emr-unknown" checked={unknown}
+                onChange={e => { setUnknown(e.target.checked); if (e.target.checked) { setPatient(''); setComp('pRBC-Oneg'); } }} />
+              <label htmlFor="emr-unknown">Unknown Patient (O-negative pRBC only)</label>
+            </div>
+
+            {unknown && (
+              <div style={{ marginBottom: 16 }}>
+                <Notif kind="info" title="Unknown patient -- O-negative pRBC will be auto-selected." />
+              </div>
+            )}
+
+            <div className="field-group">
+              <label>Component Type</label>
+              <select value={comp} onChange={e => setComp(e.target.value)} disabled={unknown}>
+                <option value="">Select component...</option>
+                <option value="pRBC-Oneg">pRBC (O-negative)</option>
+                <option value="FFP-AB">FFP (AB)</option>
+              </select>
+            </div>
+
+            <div className="field-group">
+              <label>Quantity</label>
+              <input type="number" min="1" max="4" value={qty}
+                onChange={e => setQty(Math.max(1, Math.min(4, parseInt(e.target.value) || 1)))} style={{ maxWidth: 100 }} />
+            </div>
+
+            <div className={`field-group${reason.length > 0 && reason.trim().length < 10 ? ' invalid' : ''}`}>
+              <label>Clinical Reason <span style={{ color: '#da1e28' }}>*</span></label>
+              <textarea rows="4" placeholder="Document the clinical urgency justifying emergency release (minimum 10 characters)..."
+                value={reason} onChange={e => setReason(e.target.value)} />
+              {reason.length > 0 && reason.trim().length < 10 && <p className="error-text">Minimum 10 characters required.</p>}
+            </div>
+
+            <div className="field-group">
+              <label>Supervisor Password <span style={{ color: '#da1e28' }}>*</span></label>
+              <input type="password" placeholder="Enter your password to authorize emergency release"
+                value={pin} onChange={e => setPin(e.target.value)} style={{ maxWidth: 320 }} />
+            </div>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="cds--btn cds--btn--secondary" onClick={onClose}>Cancel</button>
+          <button className="cds--btn cds--btn--danger" onClick={submit}>Submit Emergency Release</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// App
+// ---------------------------------------------------------------------------
+function App() {
+  const [view, setView] = useState('queue');
+  const [selected, setSelected] = useState(null);
+  const [showEmerg, setShowEmerg] = useState(false);
+  const [topMsg, setTopMsg] = useState('');
+
+  const handleSelect = r => { setSelected(r); setView('detail'); };
+  const handleIssued = () => { setTopMsg('Units issued successfully. Patient Blood Bank Record updated.'); setView('queue'); setSelected(null); };
+  const handleEmergCreated = () => { setShowEmerg(false); setTopMsg('Emergency release request created and approved. Proceed to issue.'); };
+
+  return (
+    <Shell>
+      {topMsg && (
+        <div style={{ position: 'sticky', top: 70, zIndex: 50 }} onClick={() => setTopMsg('')}>
+          <Notif kind="success" title={topMsg} subtitle="(click to dismiss)" />
+        </div>
+      )}
+
+      {view === 'queue' && <IssueQueue onSelect={handleSelect} onEmergency={() => setShowEmerg(true)} />}
+      {view === 'detail' && selected && <CaseView req={selected} onBack={() => { setView('queue'); setSelected(null); }} onIssued={handleIssued} />}
+
+      {showEmerg && <EmergencyModal onClose={() => setShowEmerg(false)} onCreated={handleEmergCreated} />}
+    </Shell>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

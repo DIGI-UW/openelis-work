@@ -1,0 +1,2493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenELIS Global - Sample Collection Redesign Mockup</title>
+<style>
+  :root {
+    --cds-blue-60: #0f62fe;
+    --cds-blue-70: #0043ce;
+    --cds-blue-10: #edf5ff;
+    --cds-gray-10: #f4f4f4;
+    --cds-gray-20: #e0e0e0;
+    --cds-gray-30: #c6c6c6;
+    --cds-gray-50: #8d8d8d;
+    --cds-gray-60: #6f6f6f;
+    --cds-gray-70: #525252;
+    --cds-gray-80: #393939;
+    --cds-gray-90: #262626;
+    --cds-gray-100: #161616;
+    --cds-green-40: #42be65;
+    --cds-green-60: #198038;
+    --cds-yellow-30: #f1c21b;
+    --cds-red-60: #da1e28;
+    --cds-white: #ffffff;
+    --cds-purple-60: #8a3ffc;
+    --oe-navy: #1a2744;
+    --oe-navy-light: #243356;
+    --oe-navy-hover: #2d3f68;
+    --oe-teal: #5bc0be;
+    --oe-active-blue: #3a7bd5;
+    --sidebar-width: 220px;
+    --header-height: 48px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; color: var(--cds-gray-100); background: var(--cds-gray-10); }
+
+  /* Header - matches OpenELIS dark header */
+  .header { position: fixed; top: 0; left: 0; right: 0; height: var(--header-height); background: var(--cds-gray-100); display: flex; align-items: center; padding: 0 0 0 0; z-index: 100; }
+  .header-hamburger { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #aaa; }
+  .header-hamburger:hover { background: #333; }
+  .header-logo { color: var(--cds-white); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px; padding: 0 16px; }
+  .header-logo-img { width: 36px; height: 36px; border-radius: 4px; }
+  .header-logo-text { display: flex; flex-direction: column; line-height: 1.2; }
+  .header-logo-name { font-size: 15px; font-weight: 700; color: #fff; }
+  .header-logo-version { font-size: 11px; color: #999; font-weight: 400; }
+  .header-nav { margin-left: auto; display: flex; gap: 0; align-items: center; height: 100%; }
+  .header-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: #aaa; cursor: pointer; }
+  .header-icon:hover { background: #333; color: #fff; }
+  .header-icon svg { width: 20px; height: 20px; }
+
+  /* Sidebar - matches OpenELIS dark navy sidebar */
+  .sidebar { position: fixed; top: var(--header-height); left: 0; bottom: 0; width: var(--sidebar-width); background: var(--oe-navy); overflow-y: auto; z-index: 90; }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: var(--oe-navy); }
+  .sidebar::-webkit-scrollbar-thumb { background: #3a5070; border-radius: 2px; }
+  .sidebar-section { padding: 0; }
+  .sidebar-home { display: flex; align-items: center; padding: 10px 16px; color: #fff; cursor: pointer; font-size: 14px; gap: 8px; }
+  .sidebar-home:hover { background: var(--oe-navy-hover); }
+  .sidebar-section-label { padding: 10px 16px 6px; font-size: 13px; font-weight: 600; color: var(--oe-teal); letter-spacing: 0.2px; }
+  .sidebar-item { display: flex; align-items: center; padding: 7px 16px 7px 28px; color: rgba(255,255,255,0.85); cursor: pointer; font-size: 13px; transition: all 0.15s; gap: 8px; border-left: 3px solid transparent; }
+  .sidebar-item:hover { background: var(--oe-navy-hover); color: #fff; }
+  .sidebar-item.active { background: var(--oe-active-blue); color: #fff; border-left-color: #fff; font-weight: 500; }
+  .sidebar-item.parent { padding-left: 16px; font-weight: 500; color: #fff; }
+  .sidebar-item.child { padding-left: 44px; font-size: 13px; color: rgba(255,255,255,0.8); }
+  .sidebar-item.child.active { background: var(--oe-active-blue); color: #fff; }
+  .sidebar-item .icon { width: 14px; height: 14px; flex-shrink: 0; }
+  .sidebar-expand { margin-left: auto; width: 14px; height: 14px; transition: transform 0.2s; color: rgba(255,255,255,0.5); }
+  .sidebar-expand.open { transform: rotate(90deg); }
+  .sidebar-children { overflow: hidden; transition: max-height 0.3s ease; }
+  .sidebar-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 12px; }
+
+  /* Main Content */
+  .main { margin-left: var(--sidebar-width); margin-top: var(--header-height); padding: 24px 32px; min-height: calc(100vh - var(--header-height)); }
+
+  /* Progress Stepper */
+  .stepper { display: flex; align-items: center; margin-bottom: 24px; background: var(--cds-white); padding: 16px 24px; border-radius: 0; border: 1px solid var(--cds-gray-20); }
+  .step { display: flex; align-items: center; gap: 10px; flex: 1; cursor: pointer; }
+  .step-number { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; border: 2px solid var(--cds-gray-30); color: var(--cds-gray-50); background: var(--cds-white); transition: all 0.2s; }
+  .step.active .step-number { border-color: var(--cds-blue-60); background: var(--cds-blue-60); color: var(--cds-white); }
+  .step.completed .step-number { border-color: var(--cds-green-60); background: var(--cds-green-60); color: var(--cds-white); }
+  .step-label { font-size: 13px; color: var(--cds-gray-60); }
+  .step.active .step-label { color: var(--cds-blue-60); font-weight: 500; }
+  .step.completed .step-label { color: var(--cds-green-60); }
+  .step-connector { flex: 0.5; height: 2px; background: var(--cds-gray-20); margin: 0 8px; }
+  .step-connector.completed { background: var(--cds-green-60); }
+
+  /* Order Context Card */
+  .context-card { background: var(--cds-white); border: 1px solid var(--cds-gray-20); padding: 16px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 32px; }
+  .context-item { display: flex; flex-direction: column; gap: 2px; }
+  .context-label { font-size: 11px; color: var(--cds-gray-60); text-transform: uppercase; letter-spacing: 0.32px; }
+  .context-value { font-size: 14px; font-weight: 500; }
+  .context-status { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+  .context-status.in-progress { background: #d0e2ff; color: var(--cds-blue-70); }
+  .context-status.pending { background: var(--cds-gray-20); color: var(--cds-gray-60); }
+  .context-status.complete { background: #defbe6; color: var(--cds-green-60); }
+
+  /* Form */
+  .form-section { background: var(--cds-white); border: 1px solid var(--cds-gray-20); margin-bottom: 16px; }
+  .form-section-header { padding: 16px 24px; border-bottom: 1px solid var(--cds-gray-20); display: flex; align-items: center; justify-content: between; cursor: pointer; }
+  .form-section-header h3 { font-size: 16px; font-weight: 500; }
+  .form-section-body { padding: 24px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px; }
+  .form-row.three-col { grid-template-columns: 1fr 1fr 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-label { font-size: 12px; font-weight: 500; color: var(--cds-gray-70); }
+  .form-label .required { color: var(--cds-red-60); }
+  .form-input { padding: 8px 16px; border: none; border-bottom: 1px solid var(--cds-gray-50); background: var(--cds-gray-10); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s; }
+  .form-input:focus { border-bottom-color: var(--cds-blue-60); border-bottom-width: 2px; }
+  .form-select { padding: 8px 16px; border: none; border-bottom: 1px solid var(--cds-gray-50); background: var(--cds-gray-10); font-size: 14px; font-family: inherit; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z' fill='%23525252'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; cursor: pointer; }
+  .program-option { padding: 8px 12px; font-size: 14px; cursor: pointer; transition: background 0.1s; }
+  .program-option:hover { background: var(--cds-blue-10); }
+  .program-option[data-value].selected { background: var(--cds-blue-10); font-weight: 600; }
+
+  /* Workflow Toggle */
+  .workflow-toggle { display: flex; gap: 0; margin-bottom: 20px; }
+  .workflow-toggle-btn { padding: 8px 20px; border: 1px solid var(--cds-gray-30); background: var(--cds-white); font-size: 13px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .workflow-toggle-btn:first-child { border-radius: 4px 0 0 4px; }
+  .workflow-toggle-btn:last-child { border-radius: 0 4px 4px 0; }
+  .workflow-toggle-btn.active { background: var(--cds-blue-60); color: white; border-color: var(--cds-blue-60); }
+
+  /* Buttons */
+  .btn-row { display: flex; gap: 12px; justify-content: flex-end; padding: 16px 0; }
+  .btn { padding: 10px 24px; min-height: 32px; font-size: 14px; font-family: inherit; cursor: pointer; border: none; font-weight: 500; transition: all 0.15s; }
+  .btn-primary { background: var(--cds-blue-60); color: white; }
+  .btn-primary:hover { background: var(--cds-blue-70); }
+  .btn-secondary { background: var(--cds-gray-80); color: white; }
+  .btn-ghost { background: transparent; min-height: 32px; color: var(--cds-blue-60); border: 1px solid transparent; }
+  .btn-ghost:hover { background: var(--cds-blue-10); }
+  .btn-danger { background: transparent; color: var(--cds-red-60); }
+
+  /* Tag / Badge */
+  .tag { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+  .tag-clinical { background: #d0e2ff; color: var(--cds-blue-70); }
+  .tag-env { background: #d9fbfb; color: #005d5d; }
+  .tag-both { background: #e8daff; color: var(--cds-purple-60); }
+
+  /* QA Dashboard */
+  .qa-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .qa-card { background: var(--cds-white); border: 1px solid var(--cds-gray-20); padding: 20px; text-align: center; }
+  .qa-card-title { font-size: 12px; color: var(--cds-gray-60); text-transform: uppercase; letter-spacing: 0.32px; margin-bottom: 8px; }
+  .qa-card-status { font-size: 24px; font-weight: 600; }
+  .qa-card-status.ok { color: var(--cds-green-60); }
+  .qa-card-status.warn { color: #f1c21b; }
+  .qa-card-status.error { color: var(--cds-red-60); }
+  .qa-card-status.pending { color: var(--cds-gray-50); }
+
+  /* Admin Config */
+  .config-preview { background: var(--cds-gray-10); padding: 16px; margin-top: 12px; border-left: 3px solid var(--cds-blue-60); }
+  .config-preview h4 { font-size: 13px; margin-bottom: 8px; color: var(--cds-gray-70); }
+  .field-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .field-chip { padding: 3px 10px; background: var(--cds-white); border: 1px solid var(--cds-gray-20); border-radius: 12px; font-size: 12px; }
+  .field-chip.enabled { background: #defbe6; border-color: var(--cds-green-40); }
+  .field-chip.disabled { background: var(--cds-gray-10); color: var(--cds-gray-50); text-decoration: line-through; }
+
+  /* Responsive note */
+  .mockup-banner { background: var(--cds-blue-60); color: white; padding: 8px 16px; font-size: 12px; text-align: center; position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; }
+
+  .hidden { display: none !important; }
+  .chevron.rotated { transform: rotate(180deg); }
+  .disabled-row { background: var(--cds-gray-10); }
+  .disabled-row td { color: var(--cds-gray-60); }
+  .disabled-row::after { content: "(unavailable until specimen added)"; font-size: 10px; color: var(--cds-gray-60); }
+  .section-env { transition: all 0.3s ease; }
+
+  /* Focus indicators for keyboard accessibility */
+  *:focus-visible { outline: 2px solid var(--cds-blue-60); outline-offset: 2px; }
+  button:focus-visible, .btn:focus-visible { box-shadow: 0 0 0 2px var(--cds-blue-60); outline: none; }
+  input:focus-visible, select:focus-visible, textarea:focus-visible { border-bottom-color: var(--cds-blue-60); border-bottom-width: 2px; box-shadow: none; outline: none; }
+  [onclick]:focus-visible { outline: 2px solid var(--cds-blue-60); outline-offset: -2px; }
+  .sidebar-item:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+</style>
+</head>
+<body>
+
+<!-- Banner -->
+<div class="mockup-banner">Interactive Mockup — OpenELIS Global Sample Collection Redesign | Click sidebar items and steps to navigate</div>
+
+<!-- Header - Real OpenELIS style -->
+<header class="header">
+  <div class="header-hamburger">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M2 4h16v1.5H2zM2 9.25h16v1.5H2zM2 14.5h16V16H2z"/></svg>
+  </div>
+  <div class="header-logo">
+    <svg class="header-logo-img" viewBox="0 0 36 36" fill="none">
+      <rect width="36" height="36" rx="6" fill="#1a5276"/>
+      <circle cx="12" cy="14" r="3" fill="#5bc0be"/>
+      <circle cx="24" cy="14" r="3" fill="#42be65"/>
+      <circle cx="18" cy="24" r="3" fill="#0f62fe"/>
+      <line x1="14" y1="15" x2="22" y2="15" stroke="#5bc0be" stroke-width="1.5"/>
+      <line x1="13" y1="16" x2="17" y2="22" stroke="#5bc0be" stroke-width="1.5"/>
+      <line x1="23" y1="16" x2="19" y2="22" stroke="#42be65" stroke-width="1.5"/>
+    </svg>
+    <div class="header-logo-text">
+      <span class="header-logo-name">OpenELIS Global</span>
+      <span class="header-logo-version">Version: 3.2.1.2</span>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <div class="header-icon" title="Search"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8.5 3a5.5 5.5 0 014.383 8.823l4.147 4.147a.75.75 0 01-1.06 1.06l-4.147-4.147A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"/></svg></div>
+    <div class="header-icon" title="Notifications"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM8 16a2 2 0 104 0H8z"/></svg></div>
+    <div class="header-icon" title="User"><svg viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="7" r="4"/><path d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7H3z"/></svg></div>
+    <div class="header-icon" title="Help"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14.5a6.5 6.5 0 110-13 6.5 6.5 0 010 13zM10 6a2.5 2.5 0 00-2.5 2.5h1.5a1 1 0 112 0c0 .55-.45 1-1 1a.75.75 0 00-.75.75V12h1.5v-.88A2.5 2.5 0 0010 6zm-.75 7.5h1.5v1.5h-1.5z"/></svg></div>
+  </nav>
+</header>
+
+<!-- Sidebar - Real OpenELIS dark navy style -->
+<aside class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-home" onclick="showStep(1)">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l7 6h-2v7H3V7H1z"/></svg>
+      Home
+    </div>
+    <div class="sidebar-divider"></div>
+
+    <!-- Generic Sample -->
+    <div class="sidebar-section-label">Generic Sample</div>
+    <div class="sidebar-item" style="padding-left:28px; color:rgba(255,255,255,0.5); font-size:12px;">Create Order</div>
+    <div class="sidebar-item" style="padding-left:28px; color:rgba(255,255,255,0.5); font-size:12px;">Edit Order</div>
+    <div class="sidebar-item" style="padding-left:28px; color:rgba(255,255,255,0.5); font-size:12px;">Import Samples</div>
+    <div class="sidebar-item" style="padding-left:28px; color:rgba(255,255,255,0.5); font-size:12px;">Enter Results</div>
+    <div class="sidebar-item" style="padding-left:28px; color:rgba(255,255,255,0.5); font-size:12px;">Sample Management</div>
+    <div class="sidebar-divider"></div>
+
+    <!-- Order - THIS IS THE REDESIGNED SECTION -->
+    <div class="sidebar-section-label">Order</div>
+    <div class="sidebar-item parent" onclick="toggleOrderMenu(); showStep(0);">
+      Add Order
+      <svg class="sidebar-expand open" id="orderExpand" viewBox="0 0 16 16" fill="currentColor"><path d="M6 3l5 5-5 5z"/></svg>
+    </div>
+    <div class="sidebar-children" id="orderChildren" style="max-height: 250px;">
+      <div class="sidebar-item child active" id="nav-dashboard" onclick="showStep(0)" style="font-weight:600; color:var(--oe-teal);">⊞ Order Dashboard</div>
+      <div class="sidebar-item child" id="nav-enter" onclick="showStep(1)">Enter Order</div>
+      <div class="sidebar-item child" id="nav-collect" onclick="showStep(2)">Collect Sample</div>
+      <div class="sidebar-item child" id="nav-label" onclick="showStep(3)">Label & Store</div>
+      <div class="sidebar-item child" id="nav-qa" onclick="showStep(4)">QA Review</div>
+    </div>
+    <div class="sidebar-item" style="padding-left:28px;">
+      Study
+      <svg class="sidebar-expand" viewBox="0 0 16 16" fill="currentColor" style="margin-left:auto;width:14px;height:14px;color:rgba(255,255,255,0.5);"><path d="M6 3l5 5-5 5z"/></svg>
+    </div>
+    <div class="sidebar-item" id="nav-edit" onclick="showStep(5)" style="padding-left:28px; font-size:12px; color:rgba(255,255,255,0.7);">Edit Order Mode <span style="font-size:10px; color:var(--oe-teal);">(demo)</span></div>
+    <div class="sidebar-item" style="padding-left:28px;">Batch Order Entry</div>
+    <div class="sidebar-item" style="padding-left:28px;">Barcode</div>
+    <div class="sidebar-divider"></div>
+
+    <!-- Patient -->
+    <div class="sidebar-section-label">Patient</div>
+    <div class="sidebar-item" style="padding-left:28px; color:rgba(255,255,255,0.5); font-size:12px;">Add/Edit Patient</div>
+    <div class="sidebar-item" style="padding-left:28px; color:rgba(255,255,255,0.5); font-size:12px;">Patient History</div>
+    <div class="sidebar-item" style="padding-left:28px; color:rgba(255,255,255,0.5); font-size:12px;">Merge Patient</div>
+    <div class="sidebar-divider"></div>
+
+    <!-- Storage -->
+    <div class="sidebar-section-label">Storage</div>
+    <div class="sidebar-item" style="padding-left:28px; color:rgba(255,255,255,0.5); font-size:12px;">Storage Management</div>
+    <div class="sidebar-item" style="padding-left:28px; color:rgba(255,255,255,0.5); font-size:12px;">Cold Storage Monitoring</div>
+    <div class="sidebar-divider"></div>
+
+    <!-- Other sections -->
+    <div class="sidebar-section-label" style="color:rgba(255,255,255,0.4); font-size:12px;">Analyzers</div>
+    <div class="sidebar-section-label" style="color:rgba(255,255,255,0.4); font-size:12px;">Non-Conform</div>
+    <div class="sidebar-section-label" style="color:rgba(255,255,255,0.4); font-size:12px;">Workplan</div>
+    <div class="sidebar-section-label" style="color:rgba(255,255,255,0.4); font-size:12px;">Pathology</div>
+    <div class="sidebar-divider"></div>
+
+    <!-- Admin (for Lab Unit Config) -->
+    <div class="sidebar-section-label">Admin</div>
+    <div class="sidebar-item" id="nav-config" onclick="showStep(6)" style="padding-left:28px;">Lab Unit Config</div>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main">
+  <!-- ========== STEP 1: Enter Order ========== -->
+  <!-- ======== STEP 0: ORDER DASHBOARD ======== -->
+  <div id="step-0" class="step-content">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+      <div>
+        <h1 style="font-size:22px; font-weight:600; color:var(--cds-gray-100);">Order Dashboard</h1>
+        <p style="font-size:13px; color:var(--cds-gray-60); margin-top:2px;">View your in-progress orders, search the lab, or accept incoming external orders.</p>
+      </div>
+      <button class="btn btn-primary" onclick="showStep(1)" style="min-height:40px; font-size:14px; padding:0 20px; display:flex; align-items:center; gap:8px;">
+        <span style="font-size:18px; font-weight:300;">+</span> New Order
+      </button>
+    </div>
+
+    <!-- Search / Filter Bar -->
+    <div style="background:var(--cds-white); border:1px solid var(--cds-gray-20); padding:16px 20px; margin-bottom:0; display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+      <!-- Search field -->
+      <div style="flex:1; min-width:250px;">
+        <label style="display:block; font-size:12px; color:var(--cds-gray-60); margin-bottom:4px;">Search by patient name, lab number, national ID, or referring lab number</label>
+        <div style="display:flex; gap:0;">
+          <input type="text" placeholder="Search orders..." style="flex:1; padding:8px 12px; border:1px solid var(--cds-gray-30); border-right:none; font-size:14px; outline:none; min-height:36px;" id="dashboard-search">
+          <button class="btn btn-primary" style="border-radius:0; min-height:36px; padding:0 16px;" onclick="dashboardSearch()">Search</button>
+        </div>
+      </div>
+      <!-- Status filter -->
+      <div style="min-width:160px;">
+        <label style="display:block; font-size:12px; color:var(--cds-gray-60); margin-bottom:4px;">Status</label>
+        <select style="width:100%; padding:8px 12px; border:1px solid var(--cds-gray-30); font-size:13px; min-height:36px; background:var(--cds-white);" id="dashboard-status" onchange="dashboardFilter()">
+          <option value="in-progress" selected>In Progress</option>
+          <option value="awaiting-qa">Awaiting QA</option>
+          <option value="completed">Completed</option>
+          <option value="all">All Statuses</option>
+        </select>
+      </div>
+      <!-- Date range -->
+      <div style="min-width:140px;">
+        <label style="display:block; font-size:12px; color:var(--cds-gray-60); margin-bottom:4px;">From</label>
+        <input type="date" style="width:100%; padding:6px 8px; border:1px solid var(--cds-gray-30); font-size:13px; min-height:36px;">
+      </div>
+      <div style="min-width:140px;">
+        <label style="display:block; font-size:12px; color:var(--cds-gray-60); margin-bottom:4px;">To</label>
+        <input type="date" style="width:100%; padding:6px 8px; border:1px solid var(--cds-gray-30); font-size:13px; min-height:36px;">
+      </div>
+      <!-- Include external toggle -->
+      <div style="display:flex; align-items:center; gap:8px; min-height:36px; padding-bottom:2px;">
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--cds-gray-70); white-space:nowrap;" id="ext-toggle-label">
+          <input type="checkbox" id="include-external" onchange="dashboardFilter()" style="width:16px; height:16px; accent-color:var(--cds-blue-60);">
+          Include external sources
+        </label>
+        <span style="font-size:11px; color:var(--cds-gray-50); cursor:help;" title="When checked, search results also include incoming orders from EMRs and referrals from other labs.">&#9432;</span>
+      </div>
+    </div>
+
+    <!-- Barcode scan bar -->
+    <div style="background:var(--cds-white); border:1px solid var(--cds-gray-20); border-top:none; padding:10px 20px; display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+      <span style="font-size:13px; color:var(--cds-gray-60);">Quick lookup:</span>
+      <div style="display:flex; gap:0; flex:1; max-width:400px;">
+        <input type="text" placeholder="Scan barcode or enter lab number..." style="flex:1; padding:6px 10px; border:1px solid var(--cds-gray-30); border-right:none; font-size:13px; min-height:32px; background:var(--cds-gray-10);">
+        <button style="padding:0 12px; background:var(--cds-gray-80); color:#fff; border:none; font-size:12px; cursor:pointer; min-height:32px;">Go</button>
+      </div>
+      <span style="font-size:11px; color:var(--cds-gray-50);">Scans directly into the relevant step</span>
+    </div>
+
+    <!-- Results Table: My In-Progress Orders (default view) -->
+    <div id="dashboard-table-wrapper">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:13px; color:var(--cds-gray-60);" id="dashboard-results-label">Showing: <strong>My In-Progress Orders</strong> (6 results)</span>
+      </div>
+
+      <table style="width:100%; border-collapse:collapse; background:var(--cds-white); border:1px solid var(--cds-gray-20);">
+        <thead>
+          <tr style="background:var(--cds-gray-80); color:#fff;">
+            <th style="padding:10px 12px; text-align:left; font-size:12px; font-weight:600;">Lab Number</th>
+            <th style="padding:10px 12px; text-align:left; font-size:12px; font-weight:600;">Patient / Subject</th>
+            <th style="padding:10px 12px; text-align:left; font-size:12px; font-weight:600;">Requesting Facility</th>
+            <th style="padding:10px 12px; text-align:left; font-size:12px; font-weight:600;">Priority</th>
+            <th style="padding:10px 12px; text-align:left; font-size:12px; font-weight:600;">Current Step</th>
+            <th style="padding:10px 12px; text-align:left; font-size:12px; font-weight:600;">Last Updated</th>
+            <th style="padding:10px 12px; text-align:left; font-size:12px; font-weight:600;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="dashboard-tbody">
+          <!-- Row 1: Awaiting Collection -->
+          <tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer;" onmouseover="this.style.background='#edf5ff'" onmouseout="this.style.background=''">
+            <td style="padding:10px 12px; font-size:13px; font-weight:600; color:var(--cds-blue-60);">DEV0125-00007</td>
+            <td style="padding:10px 12px; font-size:13px;">Doe, Jane</td>
+            <td style="padding:10px 12px; font-size:13px;">Outpatient Clinic</td>
+            <td style="padding:10px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; background:#fff8e1; color:#f57f17; border:1px solid #f57f17;">STAT</span></td>
+            <td style="padding:10px 12px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--cds-blue-60);"></span>
+                <span style="font-size:13px;">Collect Sample</span>
+              </div>
+              <div style="display:flex; gap:3px; margin-top:4px;">
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-green-40);" title="Enter Order: Complete"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-blue-60);" title="Collect Sample: In Progress"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-gray-30);" title="Label & Store: Pending"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-gray-30);" title="QA Review: Pending"></span>
+              </div>
+            </td>
+            <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">2 min ago</td>
+            <td style="padding:10px 12px;"><button class="btn btn-primary" style="font-size:12px; padding:4px 14px; min-height:28px;" onclick="showStep(2)">Continue</button></td>
+          </tr>
+          <!-- Row 2: Awaiting Label -->
+          <tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer;" onmouseover="this.style.background='#edf5ff'" onmouseout="this.style.background=''">
+            <td style="padding:10px 12px; font-size:13px; font-weight:600; color:var(--cds-blue-60);">DEV0125-00006</td>
+            <td style="padding:10px 12px; font-size:13px;">Martinez, James</td>
+            <td style="padding:10px 12px; font-size:13px;">Outpatient Clinic</td>
+            <td style="padding:10px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500; background:var(--cds-gray-10); color:var(--cds-gray-70); border:1px solid var(--cds-gray-30);">ROUTINE</span></td>
+            <td style="padding:10px 12px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--cds-blue-60);"></span>
+                <span style="font-size:13px;">Label & Store</span>
+              </div>
+              <div style="display:flex; gap:3px; margin-top:4px;">
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-green-40);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-green-40);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-blue-60);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-gray-30);"></span>
+              </div>
+            </td>
+            <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">15 min ago</td>
+            <td style="padding:10px 12px;"><button class="btn btn-primary" style="font-size:12px; padding:4px 14px; min-height:28px;" onclick="showStep(3)">Continue</button></td>
+          </tr>
+          <!-- Row 3: Awaiting QA -->
+          <tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer;" onmouseover="this.style.background='#edf5ff'" onmouseout="this.style.background=''">
+            <td style="padding:10px 12px; font-size:13px; font-weight:600; color:var(--cds-blue-60);">DEV0125-00005</td>
+            <td style="padding:10px 12px; font-size:13px;">Phillips, George</td>
+            <td style="padding:10px 12px; font-size:13px;">Outpatient Clinic</td>
+            <td style="padding:10px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500; background:var(--cds-gray-10); color:var(--cds-gray-70); border:1px solid var(--cds-gray-30);">ROUTINE</span></td>
+            <td style="padding:10px 12px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#f1c21b;"></span>
+                <span style="font-size:13px;">QA Review</span>
+              </div>
+              <div style="display:flex; gap:3px; margin-top:4px;">
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-green-40);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-green-40);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-green-40);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:#f1c21b;"></span>
+              </div>
+            </td>
+            <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">1 hr ago</td>
+            <td style="padding:10px 12px;"><button class="btn btn-primary" style="font-size:12px; padding:4px 14px; min-height:28px;" onclick="showStep(4)">Continue</button></td>
+          </tr>
+          <!-- Row 4: Returned from QA -->
+          <tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer; background:#fff8e1;" onmouseover="this.style.background='#fff3cd'" onmouseout="this.style.background='#fff8e1'">
+            <td style="padding:10px 12px; font-size:13px; font-weight:600; color:var(--cds-blue-60);">DEV0125-00004</td>
+            <td style="padding:10px 12px; font-size:13px;">Mirembe, Joana</td>
+            <td style="padding:10px 12px; font-size:13px;">Community Outreach</td>
+            <td style="padding:10px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500; background:var(--cds-gray-10); color:var(--cds-gray-70); border:1px solid var(--cds-gray-30);">ROUTINE</span></td>
+            <td style="padding:10px 12px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--cds-red-60);"></span>
+                <span style="font-size:13px; color:var(--cds-red-60); font-weight:600;">Returned from QA</span>
+                <span style="font-size:11px; color:var(--cds-gray-60);">&rarr; Collect Sample</span>
+              </div>
+              <div style="display:flex; gap:3px; margin-top:4px;">
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-green-40);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-red-60);" title="Returned to Collect Sample"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-green-40);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-gray-30);"></span>
+              </div>
+            </td>
+            <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">3 hrs ago</td>
+            <td style="padding:10px 12px;"><button class="btn btn-primary" style="font-size:12px; padding:4px 14px; min-height:28px; background:var(--cds-red-60);" onclick="showStep(2)">Fix Issue</button></td>
+          </tr>
+          <!-- Row 5: Just entered -->
+          <tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer;" onmouseover="this.style.background='#edf5ff'" onmouseout="this.style.background=''">
+            <td style="padding:10px 12px; font-size:13px; font-weight:600; color:var(--cds-blue-60);">DEV0125-00003</td>
+            <td style="padding:10px 12px; font-size:13px;">Nakamura, Yuki</td>
+            <td style="padding:10px 12px; font-size:13px;">Inpatient Ward</td>
+            <td style="padding:10px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500; background:var(--cds-gray-10); color:var(--cds-gray-70); border:1px solid var(--cds-gray-30);">ROUTINE</span></td>
+            <td style="padding:10px 12px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--cds-blue-60);"></span>
+                <span style="font-size:13px;">Enter Order</span>
+                <span style="font-size:11px; color:var(--cds-gray-50);">(Draft)</span>
+              </div>
+              <div style="display:flex; gap:3px; margin-top:4px;">
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-blue-60);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-gray-30);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-gray-30);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-gray-30);"></span>
+              </div>
+            </td>
+            <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">Yesterday</td>
+            <td style="padding:10px 12px;"><button class="btn btn-primary" style="font-size:12px; padding:4px 14px; min-height:28px;" onclick="showStep(1)">Continue</button></td>
+          </tr>
+          <!-- Row 6: NonConforming -->
+          <tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer;" onmouseover="this.style.background='#edf5ff'" onmouseout="this.style.background=''">
+            <td style="padding:10px 12px; font-size:13px; font-weight:600; color:var(--cds-blue-60);">DEV0125-00002</td>
+            <td style="padding:10px 12px; font-size:13px;">test, Test</td>
+            <td style="padding:10px 12px; font-size:13px;">Inpatient Ward</td>
+            <td style="padding:10px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500; background:var(--cds-gray-10); color:var(--cds-gray-70); border:1px solid var(--cds-gray-30);">ROUTINE</span></td>
+            <td style="padding:10px 12px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--cds-red-60);"></span>
+                <span style="font-size:13px; color:var(--cds-red-60);">NonConforming</span>
+              </div>
+              <div style="display:flex; gap:3px; margin-top:4px;">
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-green-40);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-red-60);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-gray-30);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-gray-30);"></span>
+              </div>
+            </td>
+            <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">2 days ago</td>
+            <td style="padding:10px 12px;"><button class="btn btn-ghost" style="font-size:12px; padding:4px 14px; min-height:28px;" onclick="showStep(2)">View</button></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Incoming external orders (hidden by default, shown when "Include external" is checked) -->
+      <div id="external-orders-section" style="display:none; margin-top:16px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:var(--cds-purple-60);"></span>
+          <span style="font-size:13px; color:var(--cds-gray-60);"><strong>Incoming External Orders</strong> (3 awaiting acceptance)</span>
+        </div>
+        <table style="width:100%; border-collapse:collapse; background:var(--cds-white); border:1px solid var(--cds-purple-60); border-width:1px 1px 1px 3px;">
+          <thead>
+            <tr style="background:var(--cds-gray-80); color:#fff;">
+              <th style="padding:10px 12px; text-align:left; font-size:12px; font-weight:600;">Referring Lab No.</th>
+              <th style="padding:10px 12px; text-align:left; font-size:12px; font-weight:600;">Patient / Subject</th>
+              <th style="padding:10px 12px; text-align:left; font-size:12px; font-weight:600;">Requesting Facility</th>
+              <th style="padding:10px 12px; text-align:left; font-size:12px; font-weight:600;">Priority</th>
+              <th style="padding:10px 12px; text-align:left; font-size:12px; font-weight:600;">Source</th>
+              <th style="padding:10px 12px; text-align:left; font-size:12px; font-weight:600;">Received</th>
+              <th style="padding:10px 12px; text-align:left; font-size:12px; font-weight:600;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer;" onmouseover="this.style.background='#f3e8ff'" onmouseout="this.style.background=''">
+              <td style="padding:10px 12px; font-size:13px;">
+                <span style="font-weight:600;">REF-LAB-2026-0891</span>
+                <span style="display:inline-block; margin-left:6px; padding:1px 6px; border-radius:8px; font-size:10px; background:#f3e8ff; color:var(--cds-purple-60); border:1px solid var(--cds-purple-60);">External</span>
+              </td>
+              <td style="padding:10px 12px; font-size:13px;">Mirembe, Joana</td>
+              <td style="padding:10px 12px; font-size:13px;">Community Outreach</td>
+              <td style="padding:10px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500; background:var(--cds-gray-10); color:var(--cds-gray-70); border:1px solid var(--cds-gray-30);">ROUTINE</span></td>
+              <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">EMR (OpenMRS)</td>
+              <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">Today 09:15</td>
+              <td style="padding:10px 12px;">
+                <button class="btn btn-primary" style="font-size:12px; padding:4px 14px; min-height:28px; background:var(--cds-purple-60);" onclick="showStep(1)">Accept &rarr; Step 1</button>
+              </td>
+            </tr>
+            <tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer;" onmouseover="this.style.background='#f3e8ff'" onmouseout="this.style.background=''">
+              <td style="padding:10px 12px; font-size:13px;">
+                <span style="font-weight:600;">NRL-2026-44210</span>
+                <span style="display:inline-block; margin-left:6px; padding:1px 6px; border-radius:8px; font-size:10px; background:#f3e8ff; color:var(--cds-purple-60); border:1px solid var(--cds-purple-60);">External</span>
+              </td>
+              <td style="padding:10px 12px; font-size:13px;">Phillips, George</td>
+              <td style="padding:10px 12px; font-size:13px;">National Reference Lab</td>
+              <td style="padding:10px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; background:#fff8e1; color:#f57f17; border:1px solid #f57f17;">STAT</span></td>
+              <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">Referral (FHIR)</td>
+              <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">Today 08:02</td>
+              <td style="padding:10px 12px;">
+                <button class="btn btn-primary" style="font-size:12px; padding:4px 14px; min-height:28px; background:var(--cds-purple-60);" onclick="showStep(1)">Accept &rarr; Step 1</button>
+              </td>
+            </tr>
+            <tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer;" onmouseover="this.style.background='#f3e8ff'" onmouseout="this.style.background=''">
+              <td style="padding:10px 12px; font-size:13px;">
+                <span style="font-weight:600;">EXT-CLINIC-7823</span>
+                <span style="display:inline-block; margin-left:6px; padding:1px 6px; border-radius:8px; font-size:10px; background:#f3e8ff; color:var(--cds-purple-60); border:1px solid var(--cds-purple-60);">External</span>
+              </td>
+              <td style="padding:10px 12px; font-size:13px;">Nakamura, Yuki</td>
+              <td style="padding:10px 12px; font-size:13px;">District Hospital</td>
+              <td style="padding:10px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500; background:var(--cds-gray-10); color:var(--cds-gray-70); border:1px solid var(--cds-gray-30);">ROUTINE</span></td>
+              <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">EMR (iSante)</td>
+              <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">Yesterday</td>
+              <td style="padding:10px 12px;">
+                <button class="btn btn-primary" style="font-size:12px; padding:4px 14px; min-height:28px; background:var(--cds-purple-60);" onclick="showStep(1)">Accept &rarr; Step 1</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding:8px 0;">
+        <span style="font-size:12px; color:var(--cds-gray-50);">Items per page:
+          <select style="border:1px solid var(--cds-gray-30); font-size:12px; padding:2px 4px;">
+            <option>25</option><option>50</option><option selected>100</option>
+          </select>
+        </span>
+        <span style="font-size:12px; color:var(--cds-gray-50);">1-6 of 6 items &nbsp; | &nbsp; Page 1 of 1</span>
+      </div>
+
+      <!-- Legend -->
+      <div style="margin-top:12px; padding:12px 16px; background:var(--cds-white); border:1px solid var(--cds-gray-20);">
+        <span style="font-size:12px; font-weight:600; color:var(--cds-gray-70);">Step Progress Legend:</span>
+        <span style="display:inline-flex; align-items:center; gap:4px; margin-left:12px; font-size:11px; color:var(--cds-gray-60);"><span style="width:16px; height:4px; border-radius:2px; background:var(--cds-green-40); display:inline-block;"></span> Complete</span>
+        <span style="display:inline-flex; align-items:center; gap:4px; margin-left:12px; font-size:11px; color:var(--cds-gray-60);"><span style="width:16px; height:4px; border-radius:2px; background:var(--cds-blue-60); display:inline-block;"></span> In Progress</span>
+        <span style="display:inline-flex; align-items:center; gap:4px; margin-left:12px; font-size:11px; color:var(--cds-gray-60);"><span style="width:16px; height:4px; border-radius:2px; background:#f1c21b; display:inline-block;"></span> Awaiting Review</span>
+        <span style="display:inline-flex; align-items:center; gap:4px; margin-left:12px; font-size:11px; color:var(--cds-gray-60);"><span style="width:16px; height:4px; border-radius:2px; background:var(--cds-red-60); display:inline-block;"></span> Issue / Returned</span>
+        <span style="display:inline-flex; align-items:center; gap:4px; margin-left:12px; font-size:11px; color:var(--cds-gray-60);"><span style="width:16px; height:4px; border-radius:2px; background:var(--cds-gray-30); display:inline-block;"></span> Pending</span>
+        <span style="display:inline-flex; align-items:center; gap:4px; margin-left:16px; font-size:11px; color:var(--cds-gray-60);"><span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:var(--cds-purple-60);"></span> External Order</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="step-1" class="step-content hidden">
+    <h2 style="font-size:24px; font-weight:400; margin-bottom:4px;">Test Request</h2>
+
+    <!-- ===== ORDER LOOKUP — Scan or Search (present on all steps) ===== -->
+    <div style="background:var(--cds-white); border:1px solid var(--cds-gray-20); padding:12px 20px; margin-bottom:16px; display:flex; align-items:center; gap:16px;">
+      <svg width="20" height="20" viewBox="0 0 32 32" fill="var(--cds-gray-70)"><rect x="1" y="5" width="2" height="22"/><rect x="5" y="5" width="1" height="22"/><rect x="8" y="5" width="3" height="22"/><rect x="13" y="5" width="1" height="22"/><rect x="16" y="5" width="2" height="22"/><rect x="20" y="5" width="3" height="22"/><rect x="25" y="5" width="1" height="22"/><rect x="28" y="5" width="3" height="22"/></svg>
+      <input class="form-input" placeholder="Scan or enter Lab Number to look up an existing order..." style="flex:1; margin:0;">
+      <button class="btn btn-ghost" style="padding:6px 16px; font-size:13px; border:1px solid var(--cds-blue-60); white-space:nowrap;">Search</button>
+      <span style="font-size:11px; color:var(--cds-gray-60); white-space:nowrap;">or start a new order below</span>
+    </div>
+      <!-- Scan feedback (shown after scan/search) -->
+      <div id="scan-feedback" class="hidden" style="margin-top:8px; padding:8px 16px; border-radius:4px; font-size:13px; display:flex; align-items:center; gap:8px;">
+        <!-- Success state (green) -->
+        <div style="padding:8px 16px; background:#defbe6; border:1px solid var(--cds-green-40); border-radius:4px; width:100%; display:flex; align-items:center; gap:8px;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--cds-green-60)"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm3.54 4.46l-4.5 4.5a.75.75 0 01-1.06 0l-2-2a.75.75 0 011.06-1.06L6.5 8.36l3.97-3.97a.75.75 0 011.06 1.06z"/></svg>
+          <span style="color:var(--cds-green-60); font-weight:500;">Order found:</span>
+          <span>26-03-003847 &mdash; Doe, Jane &mdash; HIV VL, Western blot</span>
+        </div>
+      </div>
+      <!-- Error state (red) — shown when scan finds no match -->
+      <div id="scan-error" class="hidden" style="margin-top:8px;">
+        <div style="padding:8px 16px; background:#fff1f1; border:1px solid #ffb3b8; border-radius:4px; width:100%; display:flex; align-items:center; gap:8px;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--cds-red-60)"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 10.5a.75.75 0 110-1.5.75.75 0 010 1.5zM8.75 8.5h-1.5v-4h1.5z"/></svg>
+          <span style="color:var(--cds-red-60); font-weight:500;">No order found for this Lab Number.</span>
+          <span style="color:var(--cds-gray-60);">Check the number and try again, or start a new order below.</span>
+        </div>
+      </div>
+
+    <div class="stepper">
+      <div class="step active" onclick="showStep(1)"><div class="step-number">1</div><div class="step-label">Enter Order</div></div>
+      <div class="step-connector"></div>
+      <div class="step" onclick="showStep(2)"><div class="step-number">2</div><div class="step-label">Collect Sample</div></div>
+      <div class="step-connector"></div>
+      <div class="step" onclick="showStep(3)"><div class="step-number">3</div><div class="step-label">Label & Store</div></div>
+      <div class="step-connector"></div>
+      <div class="step" onclick="showStep(4)"><div class="step-number">4</div><div class="step-label">QA Review</div></div>
+    </div>
+
+    <!-- ===== LAB NUMBER + PRINT LABELS (assigned at top of Step 1) ===== -->
+    <div class="form-section">
+      <div class="form-section-header" style="background:var(--cds-blue-10); border-bottom:2px solid var(--cds-blue-60);"><h3 style="color:var(--cds-blue-70);">Lab Number</h3></div>
+      <div class="form-section-body">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Lab Number <span class="required">*</span></label>
+            <div style="display:flex; gap:8px;">
+              <input class="form-input" style="flex:1" value="26-03-003847" readonly style="font-size:18px; font-weight:700; letter-spacing:0.5px; background:var(--cds-white); border-bottom:2px solid var(--cds-blue-60);">
+              <button class="btn btn-ghost" style="white-space:nowrap; padding:8px 12px;">Generate</button>
+            </div>
+            <span style="font-size:11px; color:var(--cds-gray-60);">Auto-generated per existing lab number rules. Assigned here to enable tracking across all steps.</span>
+          </div>
+        </div>
+        <!-- Print Labels — collapsed by default, click to expand -->
+        <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--cds-gray-20);">
+          <div onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotated')" tabindex="0" role="button" aria-expanded="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+            <h4 style="font-size:14px; font-weight:600;"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:middle;"><path d="M13 4H3V1h10zm1 1H2a2 2 0 00-2 2v4a2 2 0 002 2h1v2h10v-2h1a2 2 0 002-2V7a2 2 0 00-2-2zm-1 7H3v-3h10zm1-5a1 1 0 110-2 1 1 0 010 2z"/></svg> Print Labels</h4>
+            <span class="chevron" style="transition:transform 0.2s; display:inline-block; font-size:10px;">▶</span>
+          </div>
+          <div class="hidden" id="step1-print-labels">
+            <p style="font-size:12px; color:var(--cds-gray-60); margin:12px 0;">Label types and default quantities are loaded from lab configuration. Adjust quantities as needed before printing.</p>
+            <table style="width:100%; max-width:700px; font-size:13px; border-collapse:collapse;">
+              <thead><tr style="background:var(--cds-gray-10); text-align:left;">
+                <th style="padding:8px 12px; font-weight:600; border-bottom:2px solid var(--cds-gray-20);">Label Type</th>
+                <th style="padding:8px 12px; font-weight:600; border-bottom:2px solid var(--cds-gray-20);">Content</th>
+                <th style="padding:8px 12px; font-weight:600; border-bottom:2px solid var(--cds-gray-20); width:100px;">Quantity</th>
+                <th style="padding:8px 12px; font-weight:600; border-bottom:2px solid var(--cds-gray-20); width:80px;">Print</th>
+              </tr></thead>
+              <tbody>
+                <tr style="border-top:1px solid var(--cds-gray-20);">
+                  <td style="padding:8px 12px;">Order Label</td>
+                  <td style="padding:8px 12px; font-size:12px; color:var(--cds-gray-60);">Lab No + Order Details</td>
+                  <td style="padding:8px 12px;"><input class="form-input" type="number" value="1" min="0" style="width:70px; padding:4px 8px;"></td>
+                  <td style="padding:8px 12px;"><button class="btn btn-ghost" style="padding:6px 14px; font-size:12px; min-height:32px; border:1px solid var(--cds-blue-60);">Print</button></td>
+                </tr>
+                <tr style="border-top:1px solid var(--cds-gray-20); " title="Specimen labels are available once a specimen has been added to the order." class="disabled-row">
+                  <td style="padding:8px 12px;">Sample Label</td>
+                  <td style="padding:8px 12px; font-size:12px; color:var(--cds-gray-60);">Sample No + barcode</td>
+                  <td style="padding:8px 12px;"><input class="form-input" type="number" value="2" min="0" style="width:70px; padding:4px 8px;" disabled></td>
+                  <td style="padding:8px 12px;"><button class="btn btn-ghost" style="padding:6px 14px; font-size:12px; min-height:32px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-60);" disabled>Print</button></td>
+                </tr>
+                <tr style="border-top:1px solid var(--cds-gray-20);">
+                  <td style="padding:8px 12px;">Slide Label</td>
+                  <td style="padding:8px 12px; font-size:12px; color:var(--cds-gray-60);">Lab No only</td>
+                  <td style="padding:8px 12px;"><input class="form-input" type="number" value="0" min="0" style="width:70px; padding:4px 8px;"></td>
+                  <td style="padding:8px 12px;"><button class="btn btn-ghost" style="padding:6px 14px; font-size:12px; min-height:32px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-60);">Print</button></td>
+                </tr>
+                <tr style="border-top:1px solid var(--cds-gray-20);">
+                  <td style="padding:8px 12px;">Block Label</td>
+                  <td style="padding:8px 12px; font-size:12px; color:var(--cds-gray-60);">Lab No only</td>
+                  <td style="padding:8px 12px;"><input class="form-input" type="number" value="0" min="0" style="width:70px; padding:4px 8px;"></td>
+                  <td style="padding:8px 12px;"><button class="btn btn-ghost" style="padding:6px 14px; font-size:12px; min-height:32px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-60);">Print</button></td>
+                </tr>
+                <tr style="border-top:1px solid var(--cds-gray-20);">
+                  <td style="padding:8px 12px;">Freezer Label</td>
+                  <td style="padding:8px 12px; font-size:12px; color:var(--cds-gray-60);">Sample No + storage info</td>
+                  <td style="padding:8px 12px;"><input class="form-input" type="number" value="0" min="0" style="width:70px; padding:4px 8px;"></td>
+                  <td style="padding:8px 12px;"><button class="btn btn-ghost" style="padding:6px 14px; font-size:12px; min-height:32px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-60);">Print</button></td>
+                </tr>
+              </tbody>
+            </table>
+            <p style="font-size:11px; color:var(--cds-gray-60); margin-top:8px; padding:6px 10px; background:#fff8e1; border-left:3px solid var(--cds-yellow-30);">Sample Labels are disabled until a specimen is added. When available, quantity is <strong>per specimen</strong> on the order. Slide and Block labels from this view contain the <strong>Lab Number only</strong>.</p>
+            <button class="btn btn-primary" style="margin-top:12px;">Print All Labels</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workflow Toggle (only shown when lab unit = Both; hidden when only one type configured) -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Sample Category</h3></div>
+      <div class="form-section-body">
+        <div class="workflow-toggle">
+          <button class="workflow-toggle-btn active" id="wf-clinical" onclick="setWorkflow('clinical')">Clinical</button>
+          <button class="workflow-toggle-btn" id="wf-env" onclick="setWorkflow('env')">Environmental / Other</button>
+        </div>
+        <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">This toggle appears only when the lab unit is configured for "Both" workflow types. If the lab unit supports only one workflow type (e.g., Clinical only), that type is used automatically and this toggle is hidden.</p>
+      </div>
+    </div>
+
+    <!-- ===== PATIENT SEARCH (Clinical) ===== -->
+    <div class="form-section" id="section-patient">
+      <div class="form-section-header"><h3>Patient</h3></div>
+      <div class="form-section-body">
+        <!-- Search / New Patient tabs -->
+        <div style="display:flex; gap:0; margin-bottom:20px;">
+          <button class="btn btn-primary" id="pt-tab-search" onclick="showPatientTab('search')" style="border-radius:0;">Search for Patient</button>
+          <button class="btn btn-ghost" id="pt-tab-new" onclick="showPatientTab('new')" style="border-radius:0; border:1px solid var(--cds-blue-60);">New Patient</button>
+        </div>
+        <!-- Search form -->
+        <div id="pt-search-form">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Patient Id</label><input class="form-input" placeholder="Enter Patient Id"></div>
+            <div class="form-group"><label class="form-label">Previous Lab Number</label><input class="form-input" placeholder="Enter Previous Lab Number"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" placeholder="Enter Patient's Last Name"></div>
+            <div class="form-group"><label class="form-label">First Name</label><input class="form-input" placeholder="Enter Patient's First Name"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Date of Birth</label><input class="form-input" type="date" placeholder="mm/dd/yyyy"></div>
+            <div class="form-group"><label class="form-label">Gender</label>
+              <div style="display:flex; gap:16px; padding:8px 0;">
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="radio" name="gender"> Male</label>
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="radio" name="gender"> Female</label>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; gap:12px; margin-top:8px;">
+            <button class="btn btn-primary" onclick="showPatientResults()">Search</button>
+            <button class="btn btn-ghost" style="border:1px solid var(--cds-gray-30);">External Search</button>
+          </div>
+          <!-- Patient Results Table -->
+          <div id="patient-results" style="margin-top:20px;">
+            <h4 style="font-size:16px; font-weight:400; margin-bottom:12px;">Patient Results</h4>
+            <div style="overflow-x:auto;">
+              <table style="width:100%; font-size:13px; border-collapse:collapse; background:var(--cds-white);">
+                <thead><tr style="background:var(--cds-gray-10); text-align:left;">
+                  <th style="padding:10px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Last Name</th>
+                  <th style="padding:10px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">First Name</th>
+                  <th style="padding:10px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Gender</th>
+                  <th style="padding:10px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Date of Birth</th>
+                  <th style="padding:10px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Unique Health ID</th>
+                  <th style="padding:10px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">National ID</th>
+                  <th style="padding:10px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Data Source</th>
+                </tr></thead>
+                <tbody id="patient-results-body">
+                  <tr><td colspan="7" style="padding:16px; text-align:center; color:var(--cds-gray-60);">0-0 of 0 items</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="display:flex; align-items:center; gap:16px; padding:8px 0; font-size:12px; color:var(--cds-gray-60);">
+              <span>Items per page</span>
+              <select style="border:1px solid var(--cds-gray-30); padding:2px 6px; font-size:12px;"><option>100</option></select>
+              <span style="margin-left:auto;">1 of 1 page</span>
+            </div>
+          </div>
+        </div>
+        <!-- Selected Patient Card (shown after selecting from results) -->
+        <div id="pt-selected" class="hidden" style="margin-top:20px; padding:16px; background:var(--cds-blue-10); border:1px solid #a6c8ff; display:flex; gap:20px; align-items:flex-start;">
+          <div style="width:80px; height:100px; background:var(--cds-gray-20); border:1px solid var(--cds-gray-30); border-radius:4px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="var(--cds-gray-50)"><circle cx="20" cy="14" r="8"/><path d="M4 38c0-8.837 7.163-16 16-16s16 7.163 16 16H4z"/></svg>
+          </div>
+          <div style="flex:1;">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+              <h4 style="font-size:16px; font-weight:600;">Jane Doe</h4>
+              <span style="padding:2px 8px; background:#defbe6; border-radius:10px; font-size:11px; color:var(--cds-green-60); font-weight:500;">Selected</span>
+              <a href="#" style="margin-left:auto; font-size:12px; color:var(--cds-red-60); text-decoration:none;" onclick="document.getElementById('pt-selected').classList.add('hidden'); return false;">Clear selection</a>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; font-size:13px;">
+              <div><span style="color:var(--cds-gray-60);">DOB:</span> 03/15/1985</div>
+              <div><span style="color:var(--cds-gray-60);">Gender:</span> Female</div>
+              <div><span style="color:var(--cds-gray-60);">National ID:</span> NID-9928371</div>
+              <div><span style="color:var(--cds-gray-60);">Health ID:</span> UHI-00384712</div>
+              <div><span style="color:var(--cds-gray-60);">Source:</span> Local</div>
+              <div><span style="color:var(--cds-gray-60);">Phone:</span> +256 700 123456</div>
+            </div>
+            <p style="font-size:11px; color:var(--cds-gray-60); margin-top:6px;">Patient photo placeholder — will display patient photo from record if available.</p>
+          </div>
+        </div>
+
+        <!-- New Patient form (hidden by default) -->
+        <div id="pt-new-form" class="hidden">
+          <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:12px; font-style:italic;">Patient Information</p>
+
+          <!-- Photo upload -->
+          <div style="width:120px; height:130px; border:2px dashed var(--cds-gray-30); border-radius:4px; display:flex; flex-direction:column; align-items:center; justify-content:center; margin-bottom:16px; cursor:pointer; color:var(--cds-gray-60);">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg>
+            <span style="font-size:11px; margin-top:4px;">Add Photo</span>
+          </div>
+
+          <!-- Row 1: Unique Health ID + National ID -->
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Unique Health ID number</label><input class="form-input" placeholder="Enter Unique Health Identifier"></div>
+            <div class="form-group"><label class="form-label">National ID <span class="required">*</span></label><input class="form-input" placeholder="Enter Nationality Identifier"></div>
+          </div>
+          <!-- Row 2: Last Name + First Name -->
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" placeholder="Enter Patient Last Name"></div>
+            <div class="form-group"><label class="form-label">First Name</label><input class="form-input" placeholder="Enter Patient First Name"></div>
+          </div>
+          <!-- Row 3: Primary Phone + Gender -->
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Primary phone: xxxx-xxxx</label><input class="form-input" placeholder="Enter Patient Primary Number"></div>
+            <div class="form-group"><label class="form-label">Gender <span class="required">*</span></label>
+              <div style="display:flex; gap:16px; align-items:center; padding-top:6px;">
+                <label style="display:flex; align-items:center; gap:4px; font-size:13px; cursor:pointer;"><input type="radio" name="pt-gender" value="Male"> Male</label>
+                <label style="display:flex; align-items:center; gap:4px; font-size:13px; cursor:pointer;"><input type="radio" name="pt-gender" value="Female"> Female</label>
+              </div>
+            </div>
+          </div>
+          <!-- Row 4: Date of Birth + Age/Years/Months/Days -->
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Date of Birth <span class="required">*</span></label><input class="form-input" type="date" placeholder="mm/dd/yyyy"></div>
+            <div class="form-group">
+              <label class="form-label">Age / Years / Months / Days</label>
+              <div style="display:flex; gap:8px;">
+                <input class="form-input" placeholder="Enter Age" style="flex:1;">
+                <input class="form-input" placeholder="Months" style="flex:1;">
+                <input class="form-input" placeholder="Days" style="flex:1;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Emergency Contact Info (collapsible) -->
+          <div style="margin-top:16px; border:1px solid var(--cds-gray-20); border-radius:4px;">
+            <div onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotated')" tabindex="0" role="button" aria-expanded="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="display:flex; align-items:center; justify-content:space-between; padding:10px 16px; background:var(--cds-gray-10); cursor:pointer; font-weight:600; font-size:14px;">
+              Emergency Contact Info
+              <span class="chevron" style="transition:transform 0.2s; display:inline-block; font-size:10px;">&#9654;</span>
+            </div>
+            <div class="hidden" style="padding:16px;">
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Contact last name</label><input class="form-input" placeholder="Enter Emergency Contact Last Name"></div>
+                <div class="form-group"><label class="form-label">Contact first name</label><input class="form-input" placeholder="Enter Emergency Contact First Name"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Contact Email</label><input class="form-input" placeholder="Enter Emergency Contact Email"></div>
+                <div class="form-group"><label class="form-label">Contact Phone: xxxx-xxxx</label><input class="form-input" placeholder="Enter Emergency Contact Phone Number"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Information (collapsible) -->
+          <div style="margin-top:12px; border:1px solid var(--cds-blue-60); border-radius:4px;">
+            <div onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotated')" tabindex="0" role="button" aria-expanded="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="display:flex; align-items:center; justify-content:space-between; padding:10px 16px; background:var(--cds-gray-10); cursor:pointer; font-weight:600; font-size:14px;">
+              Additional Information
+              <span class="chevron" style="transition:transform 0.2s; display:inline-block; font-size:10px;">&#9654;</span>
+            </div>
+            <div class="hidden" style="padding:16px;">
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Town</label><input class="form-input" placeholder="Enter Town"></div>
+                <div class="form-group"><label class="form-label">Street</label><input class="form-input" placeholder="Enter Street"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Camp/Commune</label><input class="form-input" placeholder="Enter Camp/Commune"></div>
+                <div class="form-group"><label class="form-label">Region</label><select class="form-select"><option>Select Region...</option><option>Central Region</option><option>Eastern Region</option><option>Northern Region</option><option>Western Region</option></select></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">District</label><select class="form-select"><option>Select District...</option><option>Kampala</option><option>Wakiso</option><option>Mukono</option></select></div>
+                <div class="form-group"><label class="form-label">Education</label><select class="form-select"><option>Select Education...</option><option>None</option><option>Primary</option><option>Secondary</option><option>Tertiary</option><option>University</option></select></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Marital Status</label><select class="form-select"><option>Select Marital Status...</option><option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option></select></div>
+                <div class="form-group"><label class="form-label">Nationality</label><select class="form-select"><option>Select Nationality...</option><option>Ugandan</option><option>Kenyan</option><option>Tanzanian</option><option>Other</option></select></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Specify Other nationality</label><input class="form-input" placeholder="Enter Other Nationality"></div>
+                <div class="form-group"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Save / Clear buttons -->
+          <div style="display:flex; gap:12px; margin-top:16px;">
+            <button class="btn btn-primary" style="min-width:100px;">Save</button>
+            <button class="btn" style="min-width:100px; background:var(--cds-red-60); color:white; border:none; cursor:pointer;">Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ENVIRONMENTAL SOURCE (Environmental) ===== -->
+    <div class="form-section hidden" id="section-env-source">
+      <!-- Note: Environmental samples do not require a patient record. The Patient section is hidden when Environmental is selected. -->
+      <div class="form-section-header"><h3>Collection Location</h3></div>
+      <div class="form-section-body">
+        <div class="form-row three-col">
+          <div class="form-group"><label class="form-label">Region</label>
+            <select class="form-select"><option>Select Region...</option><option selected>Central Region</option><option>Eastern Region</option><option>Northern Region</option><option>Western Region</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">District</label>
+            <select class="form-select"><option>Select District...</option><option selected>Kampala District</option><option>Wakiso District</option><option>Mukono District</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Town / Village</label>
+            <select class="form-select"><option>Select Town/Village...</option><option selected>Nakasero</option><option>Kololo</option><option>Wandegeya</option><option>Mulago</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Collection Site Description</label><input class="form-input" placeholder="e.g., Municipal water supply intake point"></div>
+          <div class="form-group"><label class="form-label">Regulatory Reference</label><input class="form-input" placeholder="e.g., EPA Method 524.2"></div>
+        </div>
+        <div class="form-row three-col">
+          <div class="form-group"><label class="form-label">GPS Latitude</label><input class="form-input" placeholder="-1.2921" type="number" step="0.0001"></div>
+          <div class="form-group"><label class="form-label">GPS Longitude</label><input class="form-input" placeholder="36.8219" type="number" step="0.0001"></div>
+          <div class="form-group"><label class="form-label">Environmental Conditions</label><input class="form-input" placeholder="e.g., 25°C, clear weather"></div>
+        </div>
+        <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">Location hierarchy (Region / District / Town-Village) uses the existing OpenELIS location structure. Environmental workflow skips the patient section. The requestor is handled the same way as clinical but is not necessarily a clinical provider.</p>
+      </div>
+    </div>
+
+    <!-- ===== PROGRAM SELECTION (Typeahead Combo) ===== -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Program</h3></div>
+      <div class="form-section-body">
+        <div class="form-group" style="max-width:400px; position:relative;">
+          <label class="form-label">Program</label>
+          <div style="position:relative;">
+            <input class="form-input" type="text" id="program-combo" value="VL Program" placeholder="Type to search programs..." autocomplete="off"
+              onfocus="showProgramDropdown()" oninput="filterPrograms()" style="padding-right:32px;">
+            <span style="position:absolute; right:10px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--cds-gray-50); font-size:12px;">&#9662;</span>
+            <div id="program-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:white; border:1px solid var(--cds-gray-30); border-radius:0 0 4px 4px; box-shadow:0 4px 12px rgba(0,0,0,0.12); z-index:100; max-height:220px; overflow-y:auto;">
+              <div class="program-option" data-value="routine" onclick="selectProgram('routine','Routine Testing')">Routine Testing</div>
+              <div class="program-option" data-value="vl" onclick="selectProgram('vl','VL Program')" style="background:var(--cds-blue-10);">VL Program</div>
+              <div class="program-option" data-value="eid" onclick="selectProgram('eid','EID Program')">EID Program</div>
+              <div class="program-option" data-value="tb" onclick="selectProgram('tb','TB Program')">TB Program</div>
+              <div class="program-option" data-value="covid" onclick="selectProgram('covid','COVID-19')">COVID-19</div>
+              <div style="border-top:1px solid var(--cds-gray-20); padding:4px 12px; font-size:10px; color:var(--cds-gray-50); text-transform:uppercase; letter-spacing:0.5px; background:var(--cds-gray-10);">Environmental Programs</div>
+              <div class="program-option" data-value="lead-water" onclick="selectProgram('lead-water','Lead in Well Water')">Lead in Well Water</div>
+              <div class="program-option" data-value="parasite" onclick="selectProgram('parasite','Parasite Monitoring')">Parasite Monitoring</div>
+              <div class="program-option" data-value="water" onclick="selectProgram('water','Water Quality Monitoring')">Water Quality Monitoring</div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">Type to filter or select from the list. Selecting a program displays its specific Additional Order Information fields below.</p>
+      </div>
+    </div>
+
+    <!-- ===== ADDITIONAL ORDER INFORMATION (Program-specific, Clinical) ===== -->
+    <div class="form-section" id="section-additional-order-clinical">
+      <div class="form-section-header"><h3>Additional Order Information — VL Program</h3></div>
+      <div class="form-section-body">
+        <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:12px;">These fields are specific to the selected program and provide additional context needed for this workflow.</p>
+        <div class="form-row three-col">
+          <div class="form-group"><label class="form-label">ARV Regimen</label>
+            <select class="form-select"><option>Select Regimen...</option><option>TDF + 3TC + DTG</option><option>AZT + 3TC + NVP</option><option>TDF + 3TC + EFV</option><option>ABC + 3TC + DTG</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Duration on ARV (months)</label><input class="form-input" type="number" placeholder="Enter months on treatment"></div>
+          <div class="form-group"><label class="form-label">Indication for VL Test</label>
+            <select class="form-select"><option>Select...</option><option>Routine Monitoring</option><option>Suspected Treatment Failure</option><option>Post-switch Monitoring</option><option>Baseline (Pre-ART)</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Pregnancy / Breastfeeding Status</label>
+            <select class="form-select"><option>Not Applicable</option><option>Pregnant</option><option>Breastfeeding</option><option>Pregnant & Breastfeeding</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Date of Last VL Result</label><input class="form-input" type="date"></div>
+          <div class="form-group"><label class="form-label">Last VL Result (copies/mL)</label><input class="form-input" type="number" placeholder="e.g., 150"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ADDITIONAL ORDER INFORMATION (Program-specific, Environmental) — hidden by default ===== -->
+    <div class="form-section hidden" id="section-additional-order-env">
+      <div class="form-section-header"><h3>Additional Order Information — Water Quality Monitoring</h3></div>
+      <div class="form-section-body">
+        <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:12px;">These fields are specific to the selected program and provide additional context needed for this workflow.</p>
+        <div class="form-row three-col">
+          <div class="form-group"><label class="form-label">Water Source Type</label>
+            <select class="form-select"><option>Select...</option><option>Municipal Supply</option><option>Borehole / Well</option><option>Surface Water (River/Lake)</option><option>Rainwater Harvesting</option><option>Spring</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Sampling Point</label>
+            <select class="form-select"><option>Select...</option><option>Treatment Plant Inlet</option><option>Treatment Plant Outlet</option><option>Distribution Network</option><option>Point of Use (Household)</option><option>Source / Intake</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Regulatory Standard</label>
+            <select class="form-select"><option>Select...</option><option>WHO Guidelines</option><option>National Standard</option><option>EPA Standard</option><option>EU Directive 2020/2184</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Water Temperature at Collection (°C)</label><input class="form-input" type="number" step="0.1" placeholder="e.g., 22.5"></div>
+          <div class="form-group"><label class="form-label">pH at Collection</label><input class="form-input" type="number" step="0.01" placeholder="e.g., 7.2"></div>
+          <div class="form-group"><label class="form-label">Turbidity (NTU)</label><input class="form-input" type="number" step="0.1" placeholder="e.g., 1.5"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Residual Chlorine (mg/L)</label><input class="form-input" type="number" step="0.01" placeholder="e.g., 0.5"></div>
+          <div class="form-group"><label class="form-label">Weather at Collection</label>
+            <select class="form-select"><option>Select...</option><option>Sunny / Clear</option><option>Overcast</option><option>Light Rain</option><option>Heavy Rain</option><option>Recent Flooding</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ADDITIONAL ORDER INFORMATION (Program-specific, Environmental — Lead in Well Water) ===== -->
+    <div class="form-section hidden" id="section-additional-order-lead">
+      <div class="form-section-header"><h3>Additional Order Information — Lead in Well Water</h3></div>
+      <div class="form-section-body">
+        <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:12px;">These fields are specific to the Lead in Well Water program and provide additional context for lead contamination testing.</p>
+        <div class="form-row three-col">
+          <div class="form-group"><label class="form-label">Well Type</label>
+            <select class="form-select"><option>Select...</option><option selected>Dug Well (Shallow)</option><option>Drilled Well (Deep)</option><option>Artesian Well</option><option>Hand-Pump Well</option><option>Spring-Fed Well</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Well Depth (meters)</label><input class="form-input" type="number" placeholder="e.g., 15" value="12"></div>
+          <div class="form-group"><label class="form-label">Pipe Material</label>
+            <select class="form-select"><option>Select...</option><option>PVC</option><option selected>Galvanized Steel</option><option>Copper</option><option>Lead (Legacy)</option><option>Unknown</option></select>
+          </div>
+        </div>
+        <div class="form-row three-col">
+          <div class="form-group"><label class="form-label">Last Test Date</label><input class="form-input" type="date" value="2025-09-15"></div>
+          <div class="form-group"><label class="form-label">Previous Lead Level (ppb)</label><input class="form-input" type="number" step="0.1" placeholder="e.g., 8.5" value="11.2"></div>
+          <div class="form-group"><label class="form-label">Action Level Threshold (ppb)</label>
+            <select class="form-select"><option>WHO Guideline (10 ppb)</option><option selected>National Standard (15 ppb)</option><option>EPA Action Level (15 ppb)</option><option>EU Directive (10 ppb)</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Population Served</label>
+            <select class="form-select"><option>Select...</option><option>Single Household</option><option selected>Community (10-50 households)</option><option>Village (50-200 households)</option><option>School / Institution</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Children Under 6 Present?</label>
+            <select class="form-select"><option>Unknown</option><option selected>Yes</option><option>No</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Notes</label><input class="form-input" type="text" placeholder="Additional observations..." value="Community reported discolored water after heavy rains"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ADDITIONAL ORDER INFORMATION (Program-specific, Environmental — Parasite Monitoring) ===== -->
+    <div class="form-section hidden" id="section-additional-order-parasite">
+      <div class="form-section-header"><h3>Additional Order Information — Parasite Monitoring</h3></div>
+      <div class="form-section-body">
+        <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:12px;">These fields are specific to the Parasite Monitoring program for environmental water and soil sample analysis.</p>
+        <div class="form-row three-col">
+          <div class="form-group"><label class="form-label">Sample Matrix</label>
+            <select class="form-select"><option>Select...</option><option selected>Surface Water</option><option>Groundwater</option><option>Soil</option><option>Sediment</option><option>Wastewater</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Target Organisms</label>
+            <select class="form-select" multiple style="height:80px;"><option selected>Giardia lamblia</option><option selected>Cryptosporidium</option><option>E. coli O157:H7</option><option>Entamoeba histolytica</option><option>Ascaris lumbricoides</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Monitoring Frequency</label>
+            <select class="form-select"><option>Select...</option><option>Weekly</option><option selected>Monthly</option><option>Quarterly</option><option>Post-Event (Flooding/Outbreak)</option></select>
+          </div>
+        </div>
+        <div class="form-row three-col">
+          <div class="form-group"><label class="form-label">Upstream Land Use</label>
+            <select class="form-select"><option>Select...</option><option>Agricultural</option><option selected>Mixed (Agricultural + Residential)</option><option>Industrial</option><option>Forested / Natural</option><option>Urban</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Recent Rainfall (last 48h)</label>
+            <select class="form-select"><option>None</option><option>Light (&lt;10mm)</option><option selected>Moderate (10-25mm)</option><option>Heavy (&gt;25mm)</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Water Temperature at Collection (°C)</label><input class="form-input" type="number" step="0.1" placeholder="e.g., 24.0" value="26.3"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CLINICAL INFORMATION (Clinical only) ===== -->
+    <div class="form-section" id="section-clinical-diag">
+      <div class="form-section-header"><h3>Clinical Information</h3></div>
+      <div class="form-section-body">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Provisional Diagnosis</label><input class="form-input" placeholder="Search ICD-10 codes..."></div>
+          <div class="form-group"><label class="form-label">Payment Status</label>
+            <select class="form-select"><option>Select...</option><option>Prepaid</option><option>Insurance</option><option>Government</option><option>Self-pay</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== REQUESTER / PROVIDER ===== -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Requester / Ordering Provider</h3></div>
+      <div class="form-section-body">
+        <!-- Site Search — same pattern as Provider Search -->
+        <div style="border:1px solid var(--cds-gray-20); border-radius:4px; padding:16px; margin-bottom:12px; background:var(--cds-gray-10);">
+          <h4 style="font-size:14px; font-weight:600; margin-bottom:10px;">Site Search</h4>
+          <div class="form-row three-col">
+            <div class="form-group"><label class="form-label">Site Name <span class="required">*</span></label><input class="form-input" placeholder="Enter site name..." value="Central"></div>
+            <div class="form-group" id="dept-group">
+              <label class="form-label">Department / Ward / Unit</label>
+              <select class="form-select" id="dept-select" disabled style="opacity:0.5; cursor:not-allowed;">
+                <option>Select facility first...</option>
+              </select>
+              <p id="dept-hint" style="font-size:11px; color:var(--cds-gray-50); margin-top:4px;">Available after selecting a facility with subunits</p>
+            </div>
+            <div class="form-group"><label class="form-label">Priority</label>
+              <select class="form-select"><option>Routine</option><option selected>Urgent</option><option>STAT</option></select>
+            </div>
+          </div>
+          <div style="display:flex; gap:12px; margin-top:8px;">
+            <button class="btn btn-primary" style="padding:6px 16px; font-size:13px;">Search</button>
+            <button class="btn btn-ghost" style="padding:6px 16px; font-size:13px; border:1px solid var(--cds-gray-30);">Clear</button>
+          </div>
+
+          <!-- Site Results — inline disambiguation -->
+          <div id="site-results" style="margin-top:12px;">
+            <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:6px;">2 results found for "Central":</p>
+            <table style="width:100%; font-size:13px; border-collapse:collapse; background:var(--cds-white);">
+              <thead><tr style="background:var(--cds-white); text-align:left;">
+                <th style="padding:8px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Site Name</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Location</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Type</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Select</th>
+              </tr></thead>
+              <tbody>
+                <tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer; background:#edf5ff;">
+                  <td style="padding:8px 12px;">Central Hospital</td><td>Kampala</td><td>Hospital</td>
+                  <td><button class="btn btn-ghost" style="padding:2px 10px; font-size:12px; min-height:28px; border:1px solid var(--cds-blue-60);">Select</button></td>
+                </tr>
+                <tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer;">
+                  <td style="padding:8px 12px;">Central Clinic Nakasero</td><td>Nakasero</td><td>Clinic</td>
+                  <td><button class="btn btn-ghost" style="padding:2px 10px; font-size:12px; min-height:28px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-70);">Select</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Selected Site (shown after selection) -->
+        <div id="site-selected" style="padding:10px 14px; background:var(--cds-blue-10); border:1px solid #a6c8ff; border-radius:4px; margin-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:16px; margin-bottom:10px;">
+            <div style="flex:1;">
+              <div style="font-size:14px; font-weight:600;">Central Hospital</div>
+              <div style="font-size:12px; color:var(--cds-gray-60);">Location: Kampala &middot; Type: Hospital</div>
+            </div>
+            <span style="padding:2px 8px; background:#defbe6; border-radius:10px; font-size:11px; color:var(--cds-green-60); font-weight:500;">Selected</span>
+            <a href="#" style="font-size:12px; color:var(--cds-red-60); text-decoration:none;" onclick="clearSite(); return false;">Clear</a>
+          </div>
+          <!-- Department/Ward/Unit — enabled now that facility is selected and has subunits -->
+          <div style="display:flex; align-items:center; gap:12px;">
+            <label style="font-size:13px; font-weight:500; color:var(--cds-gray-70); white-space:nowrap;">Department / Ward / Unit:</label>
+            <select class="form-select" id="dept-loaded" style="max-width:280px; border:1px solid var(--cds-gray-30); border-bottom:1px solid var(--cds-gray-50);">
+              <option>Select...</option>
+              <option>Outpatient Dept.</option>
+              <option selected>Inpatient Ward</option>
+              <option>Emergency Dept.</option>
+              <option>Maternity Ward</option>
+              <option>Pediatrics Ward</option>
+              <option>Laboratory</option>
+            </select>
+            <span style="font-size:11px; color:var(--cds-gray-50);">6 subunits available</span>
+          </div>
+        </div>
+
+        <!-- Provider Search -->
+        <div style="border:1px solid var(--cds-gray-20); border-radius:4px; padding:16px; margin-bottom:12px; background:var(--cds-gray-10);">
+          <h4 style="font-size:14px; font-weight:600; margin-bottom:10px;">Provider Search</h4>
+          <div class="form-row three-col">
+            <div class="form-group"><label class="form-label">Provider Last Name</label><input class="form-input" placeholder="Enter last name..." value="Smith"></div>
+            <div class="form-group"><label class="form-label">Provider First Name</label><input class="form-input" placeholder="Enter first name..." value=""></div>
+            <div class="form-group"><label class="form-label">Provider Phone</label><input class="form-input" placeholder="+1 (555) 000-0000"></div>
+          </div>
+          <div style="display:flex; gap:12px; margin-top:8px;">
+            <button class="btn btn-primary" style="padding:6px 16px; font-size:13px;" onclick="showProviderResults()">Search</button>
+            <button class="btn btn-ghost" style="padding:6px 16px; font-size:13px; border:1px solid var(--cds-gray-30);">Clear</button>
+          </div>
+
+          <!-- Provider Results — inline disambiguation (shown after search) -->
+          <div id="provider-results" style="margin-top:12px;">
+            <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:6px;">2 results found for "Smith":</p>
+            <table style="width:100%; font-size:13px; border-collapse:collapse; background:var(--cds-white);">
+              <thead><tr style="background:var(--cds-white); text-align:left;">
+                <th style="padding:8px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Last Name</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">First Name</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Phone</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Source</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Select</th>
+              </tr></thead>
+              <tbody>
+                <tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer; background:#edf5ff;">
+                  <td style="padding:8px 12px;">Smith</td><td>Dr. Robert</td><td>+256 700 555 001</td><td>Local</td>
+                  <td><button class="btn btn-ghost" style="padding:2px 10px; font-size:12px; border:1px solid var(--cds-blue-60);" onclick="selectProvider()">Select</button></td>
+                </tr>
+                <tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer;">
+                  <td style="padding:8px 12px;">Smith</td><td>Dr. Rebecca</td><td>+256 700 555 042</td><td>Provider Registry</td>
+                  <td><button class="btn btn-ghost" style="padding:2px 10px; font-size:12px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-70);">Select</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Selected Provider (shown after selection) -->
+        <div id="provider-selected" style="padding:10px 14px; background:var(--cds-blue-10); border:1px solid #a6c8ff; border-radius:4px; display:flex; align-items:center; gap:16px;">
+          <div style="flex:1;">
+            <div style="font-size:14px; font-weight:600;">Dr. Robert Smith</div>
+            <div style="font-size:12px; color:var(--cds-gray-60);">Phone: +256 700 555 001 · Source: Local</div>
+          </div>
+          <span style="padding:2px 8px; background:#defbe6; border-radius:10px; font-size:11px; color:var(--cds-green-60); font-weight:500;">Selected</span>
+          <a href="#" style="font-size:12px; color:var(--cds-red-60); text-decoration:none;">Clear</a>
+        </div>
+        <p style="font-size:11px; color:var(--cds-gray-60); margin-top:8px;">Enter part of a last name, first name, or phone and press Search. Provider search queries the provider registry if configured, otherwise searches previously entered providers. Environmental requestors use the same search mechanism.</p>
+      </div>
+    </div>
+
+    <!-- ===== ADD SAMPLE with Panels & Tests (matches current OE UI) ===== -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Sample</h3></div>
+      <div class="form-section-body">
+        <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:16px; background:#fff8e1; padding:8px 12px; border-left:3px solid var(--cds-yellow-30);">Sample and test selection is optional at this step. Tests and sample type can be specified later during collection.</p>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+          <h4 style="font-size:16px; font-weight:500;">Sample 1</h4>
+          <a href="#" style="color:var(--cds-blue-60); font-size:13px; text-decoration:none;">Remove Sample</a>
+        </div>
+
+        <!-- Filter dropdowns for narrowing panels/tests -->
+        <div class="form-row" style="margin-bottom:16px;">
+          <div class="form-group">
+            <label class="form-label">Sample Type</label>
+            <select class="form-select"><option>Select...</option><option selected>Plasma</option><option>Serum</option><option>Whole Blood</option><option>Urine</option><option>Water Sample</option><option>Soil Sample</option><option>DBS</option></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Filter by Lab Unit</label>
+            <select class="form-select"><option>All Lab Units</option><option>Hematology</option><option>Microbiology</option><option>Chemistry</option><option>Virology</option><option>Water Quality</option></select>
+          </div>
+        </div>
+
+        <!-- Order Panels -->
+        <div style="margin-bottom:20px;">
+          <h4 style="font-size:15px; font-weight:500; margin-bottom:8px;">Order Panels</h4>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+            <span style="padding:4px 12px; background:#defbe6; border:1px solid var(--cds-green-40); border-radius:4px; font-size:12px; display:flex; align-items:center; gap:6px; color:var(--cds-green-60);">Serologie VIH <span style="cursor:pointer; font-weight:bold; color:var(--cds-green-60);">&times;</span></span>
+          </div>
+          <div style="position:relative; margin-bottom:6px;">
+            <span style="position:absolute; left:12px; top:9px; color:var(--cds-gray-60);">&#128269;</span>
+            <input class="form-input" placeholder="Choose Available panel" style="width:100%; padding-left:36px;">
+          </div>
+          <div style="border:1px solid var(--cds-gray-20); max-height:120px; overflow-y:auto;">
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> Bilan Biochimique</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox" checked> Serologie VIH</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> Complete Blood Count</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px;"><input type="checkbox"> Basic Metabolic Panel</label>
+          </div>
+        </div>
+
+        <!-- Order Tests -->
+        <div style="margin-bottom:20px;">
+          <h4 style="font-size:15px; font-weight:500; margin-bottom:8px;">Order Tests</h4>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+            <span style="padding:4px 12px; background:#fff1f1; border:1px solid #ffb3b8; border-radius:4px; font-size:12px; display:flex; align-items:center; gap:6px; color:var(--cds-red-60);">COVID-19 ANTIBODY IgG <span style="cursor:pointer; font-weight:bold;">&times;</span></span>
+            <span style="padding:4px 12px; background:#fff1f1; border:1px solid #ffb3b8; border-radius:4px; font-size:12px; display:flex; align-items:center; gap:6px; color:var(--cds-red-60);">Western blot HIV <span style="cursor:pointer; font-weight:bold;">&times;</span></span>
+          </div>
+          <div style="position:relative; margin-bottom:6px;">
+            <span style="position:absolute; left:12px; top:9px; color:var(--cds-gray-60);">&#128269;</span>
+            <input class="form-input" placeholder="Choose Available Test" style="width:100%; padding-left:36px;">
+          </div>
+          <div style="border:1px solid var(--cds-gray-20); max-height:200px; overflow-y:auto;">
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox" checked> COVID-19 ANTIBODY IgG</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> COVID-19 ANTIBODY IgM</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> DENGUE PCR</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> HEPATITIS B VIRAL LOAD</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> HEPATITIS C VIRAL LOAD</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> HIV VIRAL LOAD</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> Glucose</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> HIV rapid test HIV</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox" checked> Western blot HIV</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> Bioline</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px;"><input type="checkbox"> Determine</label>
+          </div>
+          <div style="display:flex; align-items:center; gap:16px; padding:8px 0; font-size:12px; color:var(--cds-gray-60);">
+            <span>Showing 1-11 of 47 tests</span>
+            <span style="margin-left:auto; display:flex; gap:4px;">
+              <button style="padding:2px 8px; border:1px solid var(--cds-gray-30); background:var(--cds-white); font-size:12px; cursor:pointer;">&laquo;</button>
+              <button style="padding:2px 8px; border:1px solid var(--cds-blue-60); background:var(--cds-blue-60); color:#fff; font-size:12px; cursor:pointer;">1</button>
+              <button style="padding:2px 8px; border:1px solid var(--cds-gray-30); background:var(--cds-white); font-size:12px; cursor:pointer;">2</button>
+              <button style="padding:2px 8px; border:1px solid var(--cds-gray-30); background:var(--cds-white); font-size:12px; cursor:pointer;">3</button>
+              <button style="padding:2px 8px; border:1px solid var(--cds-gray-30); background:var(--cds-white); font-size:12px; cursor:pointer;">4</button>
+              <button style="padding:2px 8px; border:1px solid var(--cds-gray-30); background:var(--cds-white); font-size:12px; cursor:pointer;">5</button>
+              <button style="padding:2px 8px; border:1px solid var(--cds-gray-30); background:var(--cds-white); font-size:12px; cursor:pointer;">&raquo;</button>
+            </span>
+          </div>
+        </div>
+
+        <!-- Refer to reference lab -->
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:var(--cds-red-60); margin-bottom:16px;">
+          <input type="checkbox"> Refer test to a reference lab
+        </label>
+
+        <!-- Add Sample button -->
+        <button class="btn btn-primary" style="display:flex; align-items:center; gap:8px;">Add Sample <span style="font-size:18px;">+</span></button>
+      </div>
+    </div>
+
+    <!-- Auto-save indicator -->
+    <div style="display:flex; align-items:center; gap:8px; padding:8px 0; font-size:12px; color:var(--cds-gray-60);">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--cds-green-60)"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm3.54 4.46l-4.5 4.5a.75.75 0 01-1.06 0l-2-2a.75.75 0 011.06-1.06L6.5 8.36l3.97-3.97a.75.75 0 011.06 1.06z"/></svg>
+      <span>Auto-saved as draft at 10:32 AM</span>
+      <span style="margin-left:auto; color:var(--cds-gray-60);">Changes are saved automatically every 30 seconds</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost">Save as Draft</button>
+      <button class="btn btn-secondary" onclick="showStep(1)">Save</button>
+      <button class="btn btn-primary" onclick="showStep(2)">Save & Next &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ========== STEP 2: Collect Sample ========== -->
+  <div id="step-2" class="step-content hidden">
+    <!-- Order Lookup — Scan or Search -->
+    <div style="background:var(--cds-white); border:1px solid var(--cds-gray-20); padding:12px 20px; margin-bottom:16px; display:flex; align-items:center; gap:16px;">
+      <svg width="20" height="20" viewBox="0 0 32 32" fill="var(--cds-gray-70)"><rect x="1" y="5" width="2" height="22"/><rect x="5" y="5" width="1" height="22"/><rect x="8" y="5" width="3" height="22"/><rect x="13" y="5" width="1" height="22"/><rect x="16" y="5" width="2" height="22"/><rect x="20" y="5" width="3" height="22"/><rect x="25" y="5" width="1" height="22"/><rect x="28" y="5" width="3" height="22"/></svg>
+      <input class="form-input" placeholder="Scan or enter Lab Number to look up an existing order..." style="flex:1; margin:0;">
+      <button class="btn btn-ghost" style="padding:6px 16px; font-size:13px; border:1px solid var(--cds-blue-60); white-space:nowrap;">Search</button>
+    </div>
+    <div class="stepper">
+      <div class="step completed" onclick="showStep(1)"><div class="step-number">✓</div><div class="step-label">Enter Order</div></div>
+      <div class="step-connector completed"></div>
+      <div class="step active" onclick="showStep(2)"><div class="step-number">2</div><div class="step-label">Collect Sample</div></div>
+      <div class="step-connector"></div>
+      <div class="step" onclick="showStep(3)"><div class="step-number">3</div><div class="step-label">Label & Store</div></div>
+      <div class="step-connector"></div>
+      <div class="step" onclick="showStep(4)"><div class="step-number">4</div><div class="step-label">QA Review</div></div>
+    </div>
+
+    <div class="context-card">
+      <div class="context-item"><span class="context-label">Lab Number</span><span class="context-value" style="font-weight:700;">26-03-003847</span></div>
+      <div class="context-item"><span class="context-label">Subject</span><span class="context-value">Doe, Jane</span></div>
+      <div class="context-item"><span class="context-label">Tests</span><span class="context-value">HIV VL, Western blot, COVID-19 IgG</span></div>
+      <div class="context-item"><span class="context-label">Status</span><span class="context-status in-progress">Collecting</span></div>
+    </div>
+
+    <!-- ===== REQUESTED TESTS — Quick Add Samples (with panels) ===== -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Requested Tests</h3></div>
+      <div class="form-section-body">
+        <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:12px;">Tests and panels ordered in Step 1. Click a sample type to assign. If a matching sample already exists, you choose whether to add to it or draw a new sample. If no match, a new sample is created directly. A test or panel can be assigned to multiple samples when needed.</p>
+        <table style="width:100%; font-size:13px; border-collapse:collapse;">
+          <thead><tr style="background:var(--cds-gray-10); text-align:left;">
+            <th style="padding:8px 12px; font-weight:600; border-bottom:2px solid var(--cds-gray-20);">Test / Panel</th>
+            <th style="padding:8px 12px; font-weight:600; border-bottom:2px solid var(--cds-gray-20);">Compatible Sample Types</th>
+            <th style="padding:8px 12px; font-weight:600; border-bottom:2px solid var(--cds-gray-20);">Sample Assignment(s)</th>
+          </tr></thead>
+          <tbody>
+            <!-- Panel header row — assign all panel tests at once -->
+            <tr style="border-top:2px solid var(--cds-gray-30); background:#f0faf0;">
+              <td style="padding:10px 12px;">
+                <span style="padding:3px 10px; background:#defbe6; border:1px solid var(--cds-green-40); border-radius:4px; font-size:12px; color:var(--cds-green-60); font-weight:600;"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:middle;margin-right:2px;"><path d="M14 1H2a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V2a1 1 0 00-1-1zM5 13H3v-2h2zm0-4H3V7h2zm0-4H3V3h2zm8 8H7v-2h6zm0-4H7V7h6zm0-4H7V3h6z"/></svg> Panel: Serologie VIH</span>
+                <span style="font-size:11px; color:var(--cds-gray-60); margin-left:8px;">(2 tests)</span>
+              </td>
+              <td style="padding:10px 12px;">
+                <button class="btn btn-ghost" style="padding:3px 12px; font-size:12px; border:1px solid var(--cds-green-60); color:var(--cds-green-60); margin-right:4px; cursor:pointer; font-weight:600;" title="Assign all panel tests to a Plasma sample">+ Plasma (all)</button>
+                <button class="btn btn-ghost" style="padding:3px 12px; font-size:12px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-70); margin-right:4px; cursor:pointer;">+ DBS (all)</button>
+              </td>
+              <td style="padding:10px 12px;"><span style="color:var(--cds-green-60); font-weight:500;">✓ Plasma (Sample 1)</span></td>
+            </tr>
+            <!-- Individual tests within panel — checkboxes for deselection -->
+            <tr style="border-top:1px solid var(--cds-gray-20);">
+              <td style="padding:8px 12px; padding-left:32px;">
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                  <input type="checkbox" checked>
+                  <span style="padding:3px 10px; background:#f6f2ff; border:1px solid #d4bbff; border-radius:4px; font-size:12px; color:var(--cds-purple-60);">HIV VIRAL LOAD</span>
+                </label>
+              </td>
+              <td style="padding:8px 12px;">
+                <button class="btn btn-ghost" style="padding:3px 12px; font-size:12px; border:1px solid var(--cds-blue-60); margin-right:4px; cursor:pointer;" title="Plasma sample exists — click to choose">+ Plasma</button>
+                <button class="btn btn-ghost" style="padding:3px 12px; font-size:12px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-70); margin-right:4px; cursor:pointer;" title="No DBS sample exists — creates new">+ DBS</button>
+              </td>
+              <td style="padding:8px 12px;"><span style="color:var(--cds-green-60); font-weight:500;">✓ Plasma (Sample 1)</span></td>
+            </tr>
+            <tr style="border-top:1px solid var(--cds-gray-20);">
+              <td style="padding:8px 12px; padding-left:32px;">
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                  <input type="checkbox" checked>
+                  <span style="padding:3px 10px; background:#f6f2ff; border:1px solid #d4bbff; border-radius:4px; font-size:12px; color:var(--cds-purple-60);">Western blot HIV</span>
+                </label>
+              </td>
+              <td style="padding:8px 12px;">
+                <button class="btn btn-ghost" style="padding:3px 12px; font-size:12px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-70); margin-right:4px; cursor:pointer;">+ Serum</button>
+                <button class="btn btn-ghost" style="padding:3px 12px; font-size:12px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-70); margin-right:4px; cursor:pointer;">+ Plasma</button>
+              </td>
+              <td style="padding:8px 12px;"><span style="color:var(--cds-green-60); font-weight:500;">✓ Plasma (Sample 1)</span></td>
+            </tr>
+            <!-- Standalone test (no panel) -->
+            <tr style="border-top:2px solid var(--cds-gray-30);">
+              <td style="padding:8px 12px;">
+                <span style="padding:3px 10px; background:#f6f2ff; border:1px solid #d4bbff; border-radius:4px; font-size:12px; color:var(--cds-purple-60);">COVID-19 ANTIBODY IgG</span>
+                <span style="font-size:11px; color:var(--cds-gray-60); margin-left:4px;">(standalone)</span>
+              </td>
+              <td style="padding:8px 12px;">
+                <button class="btn btn-ghost" style="padding:3px 12px; font-size:12px; border:1px solid var(--cds-blue-60); margin-right:4px; cursor:pointer;" title="No Serum sample exists — creates new one">+ Serum</button>
+                <button class="btn btn-ghost" style="padding:3px 12px; font-size:12px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-70); margin-right:4px; cursor:pointer;" title="Plasma sample exists — click to choose">+ Plasma</button>
+              </td>
+              <td style="padding:8px 12px; color:var(--cds-gray-60);">— No sample yet</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Inline Sample Choice Popover — appears anchored directly below the clicked sample type button.
+             Implementation note: Use Carbon Popover component with autoAlign and align="bottom-left"
+             to keep the popover adjacent to the trigger button, preventing scroll-hunting. -->
+        <div id="sample-choice-popover" style="margin-top:12px; border:2px solid var(--cds-blue-60); border-radius:4px; padding:16px; background:var(--cds-blue-10);">
+          <h4 style="font-size:14px; font-weight:600; color:var(--cds-blue-70); margin-bottom:4px;">Assign "HIV VIRAL LOAD" &mdash; Plasma</h4>
+          <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:12px;">A Plasma sample already exists. Choose where to assign this test, or draw a new sample.</p>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <!-- Option 1: Add to existing sample -->
+            <label style="display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid var(--cds-gray-20); border-radius:4px; background:white; cursor:pointer;">
+              <input type="radio" name="sample-choice" checked style="accent-color:var(--cds-blue-60);">
+              <div>
+                <div style="font-size:13px; font-weight:600;">Add to Sample 1 &mdash; Plasma</div>
+                <div style="font-size:11px; color:var(--cds-gray-60);">Currently has: HIV VIRAL LOAD, Western blot HIV</div>
+              </div>
+            </label>
+            <!-- Option 2: New sample (separate draw) -->
+            <label style="display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid var(--cds-gray-20); border-radius:4px; background:white; cursor:pointer;">
+              <input type="radio" name="sample-choice" style="accent-color:var(--cds-blue-60);">
+              <div>
+                <div style="font-size:13px; font-weight:600;">New Plasma sample (separate draw)</div>
+                <div style="font-size:11px; color:var(--cds-gray-60);">Creates a new sample requiring its own collection</div>
+              </div>
+            </label>
+          </div>
+          <div style="display:flex; gap:12px; margin-top:12px;">
+            <button class="btn btn-ghost" style="padding:8px 20px; font-size:13px; border:1px solid var(--cds-blue-60); background:var(--cds-blue-60); color:white; font-weight:600;">Assign</button>
+            <button class="btn btn-ghost" style="padding:8px 20px; font-size:13px; color:var(--cds-gray-60); border:1px solid var(--cds-gray-30);">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Multi-sample assignment indicator — shown when a test is assigned to more than one sample -->
+        <div style="margin-top:12px; padding:10px 14px; border:1px solid var(--cds-gray-20); border-radius:4px; background:var(--cds-gray-10);">
+          <div style="font-size:12px; font-weight:600; color:var(--cds-gray-70); margin-bottom:6px;">Example: Multi-Sample Assignment</div>
+          <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:8px;">A test or panel can be assigned to multiple samples. The "Sample Assignment(s)" column reflects all assignments:</p>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+            <span style="padding:3px 10px; background:#defbe6; border:1px solid var(--cds-green-40); border-radius:4px; font-size:11px; color:var(--cds-green-60);">✓ Plasma (Sample 1)</span>
+            <span style="padding:3px 10px; background:#defbe6; border:1px solid var(--cds-green-40); border-radius:4px; font-size:11px; color:var(--cds-green-60);">✓ Plasma (Sample 3)</span>
+            <span style="font-size:11px; color:var(--cds-gray-60);">— same test on two separate Plasma draws</span>
+          </div>
+        </div>
+
+        <div style="font-size:11px; color:var(--cds-gray-60); margin-top:12px; padding:8px 12px; background:var(--cds-gray-10); border-left:3px solid var(--cds-blue-60);">
+          <strong>Click behavior:</strong> If no matching sample type exists, a new sample is created directly. If one or more matching samples exist, an inline popover lets you choose: add to an existing sample, or draw a new one. A test or panel can be assigned to multiple samples when separate draws are needed. Panel "(all)" buttons follow the same logic for all panel tests at once. Uncheck a test checkbox to deselect it from the panel on this order.
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SAMPLE COLLECTION — Manual Entry ===== -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Samples</h3></div>
+      <div class="form-section-body">
+
+        <!-- Sample 1 — pre-filled from Step 1 (Plasma selected, HIV VL + Western blot auto-assigned) -->
+        <div style="border:1px solid var(--cds-gray-20); border-radius:4px; padding:16px; margin-bottom:16px; background:var(--cds-white);">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+            <h4 style="font-size:15px; font-weight:600;">Sample 1 — Plasma</h4>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button class="btn btn-ghost" style="padding:6px 14px; font-size:12px; min-height:32px; border:1px solid var(--cds-blue-60);" title="Print specimen labels for this sample"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:middle;"><path d="M13 4H3V1h10zm1 1H2a2 2 0 00-2 2v4a2 2 0 002 2h1v2h10v-2h1a2 2 0 002-2V7a2 2 0 00-2-2zm-1 7H3v-3h10zm1-5a1 1 0 110-2 1 1 0 010 2z"/></svg> Print Labels</button>
+              <a href="#" style="color:var(--cds-red-60); font-size:12px; text-decoration:none;">Remove</a>
+            </div>
+          </div>
+
+          <!-- Test-to-sample assignments (existing OE format) -->
+          <div style="margin-bottom:16px; padding:10px 14px; background:var(--cds-gray-10); border:1px solid var(--cds-gray-20); border-radius:4px;">
+            <div style="font-size:12px; font-weight:600; color:var(--cds-gray-70); margin-bottom:6px;">Assigned Tests:</div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <span style="padding:3px 10px; background:#f6f2ff; border:1px solid #d4bbff; border-radius:4px; font-size:11px; color:var(--cds-purple-60);">HIV VIRAL LOAD</span>
+              <span style="padding:3px 10px; background:#f6f2ff; border:1px solid #d4bbff; border-radius:4px; font-size:11px; color:var(--cds-purple-60);">Western blot HIV</span>
+            </div>
+          </div>
+
+          <div class="form-row three-col">
+            <div class="form-group"><label class="form-label">Sample Type</label>
+              <select class="form-select"><option>Select...</option><option selected>Plasma</option><option>Serum</option><option>Whole Blood</option><option>Urine</option><option>DBS</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Quantity</label>
+              <div style="display:flex; gap:8px;">
+                <input class="form-input" type="number" value="5" min="1" style="width:80px;">
+                <select class="form-select" style="flex:1;"><option selected>mL</option><option>units</option><option>tubes</option><option>swabs</option><option>g</option><option>L</option></select>
+              </div>
+              <span style="font-size:11px; color:var(--cds-gray-60);">UOM from test catalog</span>
+            </div>
+            <div class="form-group"><label class="form-label">Collection Conditions</label><input class="form-input" placeholder="e.g., Fasting, Room temp"></div>
+          </div>
+          <!-- Collection data — all optional, filled when sample is physically collected -->
+          <div style="margin-top:12px; padding:12px 14px; border:1px solid var(--cds-gray-20); border-radius:4px; background:#fafafa;">
+            <div style="font-size:12px; font-weight:600; color:var(--cds-gray-70); margin-bottom:8px;">Collection Data <span style="font-weight:400; color:var(--cds-gray-60);">(optional &mdash; filled when specimen is physically collected)</span></div>
+            <div class="form-row three-col">
+              <div class="form-group"><label class="form-label">Collection Date</label><input class="form-input" type="date" value="2026-03-03"></div>
+              <div class="form-group"><label class="form-label">Collection Time</label><input class="form-input" type="time" value="09:30"></div>
+              <div class="form-group"><label class="form-label">Collector</label><input class="form-input" placeholder="Name or badge #" value="COL-0042"></div>
+            </div>
+          </div>
+          <!-- Received data — auto-populated from server, editable -->
+          <div style="margin-top:8px; padding:12px 14px; border:1px solid var(--cds-gray-20); border-radius:4px; background:#f0f5ff;">
+            <div style="font-size:12px; font-weight:600; color:var(--cds-gray-70); margin-bottom:8px;">Received at Lab <span style="font-weight:400; color:var(--cds-gray-60);">(auto-populated from server &mdash; editable)</span></div>
+            <div class="form-row two-col">
+              <div class="form-group"><label class="form-label">Received Date</label><input class="form-input" type="date" value="2026-03-03"><span style="font-size:10px; color:var(--cds-blue-60);">Auto-filled from server</span></div>
+              <div class="form-group"><label class="form-label">Received Time</label><input class="form-input" type="time" value="10:15"><span style="font-size:10px; color:var(--cds-blue-60);">Auto-filled from server</span></div>
+            </div>
+          </div>
+
+          <!-- Report NCE (replaces Rejected? dropdown) — collapsed inline -->
+          <div style="margin-top:12px; border:1px solid var(--cds-gray-20); border-radius:4px;">
+            <div onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotated')" tabindex="0" role="button" aria-expanded="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="display:flex; align-items:center; justify-content:space-between; padding:8px 14px; background:var(--cds-gray-10); cursor:pointer; font-size:13px; font-weight:600; color:var(--cds-red-60);">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:middle;"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 10.5a.75.75 0 110-1.5.75.75 0 010 1.5zM8.75 8.5h-1.5v-4h1.5z"/></svg> Report Non-Conforming Event (NCE)
+              <span class="chevron" style="transition:transform 0.2s; display:inline-block; font-size:10px;">▶</span>
+            </div>
+            <div class="hidden" style="padding:14px;">
+              <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:12px;">Report a non-conforming event for this specific sample. NCE details are specified in the NCE rewrite module.</p>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">NCE Type</label>
+                  <select class="form-select"><option>Select...</option><option>Hemolyzed</option><option>Insufficient Volume</option><option>Incorrect Container</option><option>Mislabeled</option><option>Temperature Excursion</option><option>Contaminated</option><option>Clotted</option><option>Other</option></select>
+                </div>
+                <div class="form-group"><label class="form-label">Severity</label>
+                  <select class="form-select"><option>Minor</option><option>Major</option><option>Critical</option></select>
+                </div>
+              </div>
+              <div class="form-group" style="margin-top:8px;"><label class="form-label">Description</label>
+                <textarea class="form-input" rows="2" style="resize:vertical;" placeholder="Describe the non-conforming event..."></textarea>
+              </div>
+              <div class="form-group" style="margin-top:8px;">
+                <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--cds-red-60); cursor:pointer;">
+                  <input type="checkbox"> Mark this sample as <strong>Rejected</strong>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Note: The override dialog has been replaced by the inline sample choice popover above.
+             When clicking a sample type with an existing match, the popover shows all existing samples of that
+             type plus a "New sample" option. No auto-add occurs — the user always chooses. -->
+
+        <!-- Add another sample button + Print more labels -->
+        <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
+          <button class="btn btn-ghost" style="border:1px solid var(--cds-blue-60);">+ Add Another Sample</button>
+          <button class="btn btn-ghost" style="border:1px solid var(--cds-gray-30); color:var(--cds-gray-70);" title="Print additional specimen labels — e.g., drew more than expected or need a different sample type"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:middle;"><path d="M13 4H3V1h10zm1 1H2a2 2 0 00-2 2v4a2 2 0 002 2h1v2h10v-2h1a2 2 0 002-2V7a2 2 0 00-2-2zm-1 7H3v-3h10zm1-5a1 1 0 110-2 1 1 0 010 2z"/></svg> Print More Sample Labels</button>
+        </div>
+        <p style="font-size:11px; color:var(--cds-gray-60);">Use "Print More Sample Labels" if you drew more than expected or need labels for a different sample type.</p>
+
+      </div>
+    </div>
+
+    <!-- ===== DIVIDER ===== -->
+    <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
+      <div style="flex:1; height:1px; background:var(--cds-gray-20);"></div>
+      <span style="font-size:12px; color:var(--cds-gray-60); text-transform:uppercase; letter-spacing:0.5px;">Or import samples in bulk</span>
+      <div style="flex:1; height:1px; background:var(--cds-gray-20);"></div>
+    </div>
+
+    <!-- ===== BULK CSV IMPORT ===== -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Bulk Import from CSV</h3></div>
+      <div class="form-section-body">
+        <p style="font-size:13px; color:var(--cds-gray-70); margin-bottom:16px;">For batch intake of pre-collected samples (e.g., from a 10×10 storage box or 96-well plate), download the CSV template, fill in your sample data, and upload it here.</p>
+        <div style="display:flex; gap:16px; align-items:flex-start; margin-bottom:16px;">
+          <!-- Download Template -->
+          <div style="flex:1; padding:20px; border:2px dashed var(--cds-gray-30); background:var(--cds-white); text-align:center;">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="var(--cds-blue-60)" style="margin-bottom:8px;"><path d="M26 24v4H6v-4H4v4a2 2 0 002 2h20a2 2 0 002-2v-4zM16 22l-6-6 1.41-1.41L15 18.17V2h2v16.17l3.59-3.58L22 16z"/></svg>
+            <div style="font-size:14px; font-weight:500; margin-bottom:4px;">Download CSV Template</div>
+            <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:12px;">Pre-formatted with columns for sample type, position, collection date/time, collector, volume, UOM, conditions, and notes.</p>
+            <div style="display:flex; gap:8px; justify-content:center;">
+              <button class="btn btn-ghost" style="padding:6px 16px; font-size:13px; border:1px solid var(--cds-blue-60);">Standard Template</button>
+              <button class="btn btn-ghost" style="padding:6px 16px; font-size:13px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-70);">10×10 Box Layout</button>
+              <button class="btn btn-ghost" style="padding:6px 16px; font-size:13px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-70);">96-Well Plate</button>
+            </div>
+          </div>
+          <!-- Upload Area -->
+          <div style="flex:1; padding:20px; border:2px dashed var(--cds-blue-60); background:var(--cds-blue-10); text-align:center; cursor:pointer; border-radius:2px;">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="var(--cds-blue-60)" style="margin-bottom:8px;"><path d="M16 10l-6 6 1.41 1.41L15 13.83V28h2V13.83l3.59 3.58L22 16zM26 24v4H6v-4H4v4a2 2 0 002 2h20a2 2 0 002-2v-4z"/></svg>
+            <div style="font-size:14px; font-weight:500; margin-bottom:4px; color:var(--cds-blue-60);">Upload CSV File</div>
+            <p style="font-size:12px; color:var(--cds-gray-60);">Drag & drop or click to browse.<br>Accepts .csv files up to 5MB.</p>
+          </div>
+        </div>
+        <!-- Import Preview (shown after upload) -->
+        <div id="csv-preview" style="border:1px solid var(--cds-gray-20); background:var(--cds-white);">
+          <div style="padding:12px 16px; background:var(--cds-gray-10); border-bottom:1px solid var(--cds-gray-20); display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:14px; font-weight:500;">Preview: batch_samples_20260303.csv</span>
+              <span style="padding:2px 8px; background:#defbe6; border-radius:10px; font-size:11px; color:var(--cds-green-60); font-weight:500;">12 samples parsed</span>
+              <span style="padding:2px 8px; background:#fff1f1; border-radius:10px; font-size:11px; color:var(--cds-red-60); font-weight:500;">1 warning</span>
+            </div>
+            <button class="btn btn-ghost" style="padding:4px 12px; font-size:12px;">Clear</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%; font-size:12px; border-collapse:collapse;">
+              <thead><tr style="background:var(--cds-gray-10); text-align:left;">
+                <th style="padding:8px 12px; font-weight:500; border-bottom:1px solid var(--cds-gray-20);">Row</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:1px solid var(--cds-gray-20);">Position</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:1px solid var(--cds-gray-20);">Sample Type</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:1px solid var(--cds-gray-20);">Collection Date</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:1px solid var(--cds-gray-20);">Time</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:1px solid var(--cds-gray-20);">Qty</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:1px solid var(--cds-gray-20);">UOM</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:1px solid var(--cds-gray-20);">Collector</th>
+                <th style="padding:8px 12px; font-weight:500; border-bottom:1px solid var(--cds-gray-20);">Status</th>
+              </tr></thead>
+              <tbody>
+                <tr style="border-top:1px solid var(--cds-gray-20);"><td style="padding:6px 12px;">1</td><td>A1</td><td>Serum</td><td>2026-03-02</td><td>08:15</td><td>5.0</td><td>mL</td><td>COL-0042</td><td style="color:var(--cds-green-60);">✓ Valid</td></tr>
+                <tr style="border-top:1px solid var(--cds-gray-20);"><td style="padding:6px 12px;">2</td><td>A2</td><td>Plasma</td><td>2026-03-02</td><td>08:20</td><td>3.0</td><td>mL</td><td>COL-0042</td><td style="color:var(--cds-green-60);">✓ Valid</td></tr>
+                <tr style="border-top:1px solid var(--cds-gray-20); background:#fff8e1;"><td style="padding:6px 12px;">3</td><td>A3</td><td><select class="form-select" style="padding:2px 8px; font-size:12px; border:1px solid var(--cds-red-60); background:#fff8e1; min-height:28px;"><option style="color:var(--cds-red-60);">Unknown Type</option><option>Serum</option><option>Plasma</option><option>Whole Blood</option><option>Urine</option><option>DBS</option></select></td><td>2026-03-02</td><td>08:25</td><td>4.0</td><td>mL</td><td>COL-0042</td><td style="color:#f1c21b;">⚠ Invalid type</td></tr>
+                <tr style="border-top:1px solid var(--cds-gray-20);"><td style="padding:6px 12px;">4</td><td>A4</td><td>Whole Blood</td><td>2026-03-02</td><td>08:30</td><td>2.0</td><td>mL</td><td>COL-0042</td><td style="color:var(--cds-green-60);">✓ Valid</td></tr>
+                <tr style="border-top:1px solid var(--cds-gray-20);"><td style="padding:6px 12px; color:var(--cds-gray-60);" colspan="8">... 8 more rows</td><td></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding:12px 16px; border-top:1px solid var(--cds-gray-20); display:flex; gap:12px; justify-content:flex-end;">
+            <button class="btn btn-ghost" style="padding:6px 16px; font-size:13px;">Fix Warnings</button>
+            <button class="btn btn-primary" style="padding:6px 16px; font-size:13px;">Import 11 Valid Samples</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auto-save indicator -->
+    <div style="display:flex; align-items:center; gap:8px; padding:8px 0; font-size:12px; color:var(--cds-gray-60);">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--cds-green-60)"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm3.54 4.46l-4.5 4.5a.75.75 0 01-1.06 0l-2-2a.75.75 0 011.06-1.06L6.5 8.36l3.97-3.97a.75.75 0 011.06 1.06z"/></svg>
+      <span>Auto-saved as draft at 10:32 AM</span>
+      <span style="margin-left:auto; color:var(--cds-gray-60);">Changes are saved automatically every 30 seconds</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="showStep(1)">← Back</button>
+      <button class="btn btn-secondary">Save</button>
+      <button class="btn btn-primary" onclick="showStep(3)">Save & Next →</button>
+    </div>
+  </div>
+
+  <!-- ========== STEP 3: Label & Store ========== -->
+  <div id="step-3" class="step-content hidden">
+    <!-- Order Lookup — Scan or Search -->
+    <div style="background:var(--cds-white); border:1px solid var(--cds-gray-20); padding:12px 20px; margin-bottom:16px; display:flex; align-items:center; gap:16px;">
+      <svg width="20" height="20" viewBox="0 0 32 32" fill="var(--cds-gray-70)"><rect x="1" y="5" width="2" height="22"/><rect x="5" y="5" width="1" height="22"/><rect x="8" y="5" width="3" height="22"/><rect x="13" y="5" width="1" height="22"/><rect x="16" y="5" width="2" height="22"/><rect x="20" y="5" width="3" height="22"/><rect x="25" y="5" width="1" height="22"/><rect x="28" y="5" width="3" height="22"/></svg>
+      <input class="form-input" placeholder="Scan or enter Lab Number to look up an existing order..." style="flex:1; margin:0;">
+      <button class="btn btn-ghost" style="padding:6px 16px; font-size:13px; border:1px solid var(--cds-blue-60); white-space:nowrap;">Search</button>
+    </div>
+    <div class="stepper">
+      <div class="step completed" onclick="showStep(1)"><div class="step-number">✓</div><div class="step-label">Enter Order</div></div>
+      <div class="step-connector completed"></div>
+      <div class="step completed" onclick="showStep(2)"><div class="step-number">✓</div><div class="step-label">Collect Sample</div></div>
+      <div class="step-connector completed"></div>
+      <div class="step active" onclick="showStep(3)"><div class="step-number">3</div><div class="step-label">Label & Store</div></div>
+      <div class="step-connector"></div>
+      <div class="step" onclick="showStep(4)"><div class="step-number">4</div><div class="step-label">QA Review</div></div>
+    </div>
+
+    <div class="context-card">
+      <div class="context-item"><span class="context-label">Lab Number</span><span class="context-value" style="font-weight:700;">26-03-003847</span></div>
+      <div class="context-item"><span class="context-label">Subject</span><span class="context-value">Doe, Jane</span></div>
+      <div class="context-item"><span class="context-label">Samples</span><span class="context-value">1 collected</span></div>
+      <div class="context-item"><span class="context-label">Status</span><span class="context-status in-progress">Labeling</span></div>
+    </div>
+
+    <!-- Print Labels (types & quantities from config, same as Step 1) -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Print Labels</h3></div>
+      <div class="form-section-body">
+        <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:12px;">Label types and default quantities loaded from lab configuration. Labels can also be printed from Step 1.</p>
+        <table style="width:100%; max-width:700px; font-size:13px; border-collapse:collapse;">
+          <thead><tr style="background:var(--cds-gray-10); text-align:left;">
+            <th style="padding:8px 12px; font-weight:600; border-bottom:2px solid var(--cds-gray-20);">Label Type</th>
+            <th style="padding:8px 12px; font-weight:600; border-bottom:2px solid var(--cds-gray-20);">Content</th>
+            <th style="padding:8px 12px; font-weight:600; border-bottom:2px solid var(--cds-gray-20); width:100px;">Quantity</th>
+            <th style="padding:8px 12px; font-weight:600; border-bottom:2px solid var(--cds-gray-20); width:80px;">Print</th>
+          </tr></thead>
+          <tbody>
+            <tr style="border-top:1px solid var(--cds-gray-20);">
+              <td style="padding:8px 12px;">Order Label</td>
+              <td style="padding:8px 12px; font-size:12px; color:var(--cds-gray-60);">Lab No + Order Details</td>
+              <td style="padding:8px 12px;"><input class="form-input" type="number" value="1" min="0" style="width:70px; padding:4px 8px;"></td>
+              <td style="padding:8px 12px;"><button class="btn btn-ghost" style="padding:6px 14px; font-size:12px; min-height:32px; border:1px solid var(--cds-blue-60);">Print</button></td>
+            </tr>
+            <tr style="border-top:1px solid var(--cds-gray-20);">
+              <td style="padding:8px 12px;">Sample Label</td>
+              <td style="padding:8px 12px; font-size:12px; color:var(--cds-gray-60);">Sample No + barcode</td>
+              <td style="padding:8px 12px;"><input class="form-input" type="number" value="2" min="0" style="width:70px; padding:4px 8px;"></td>
+              <td style="padding:8px 12px;"><button class="btn btn-ghost" style="padding:6px 14px; font-size:12px; min-height:32px; border:1px solid var(--cds-blue-60);">Print</button></td>
+            </tr>
+            <tr style="border-top:1px solid var(--cds-gray-20);">
+              <td style="padding:8px 12px;">Slide Label</td>
+              <td style="padding:8px 12px; font-size:12px; color:var(--cds-gray-60);">Sample No + details</td>
+              <td style="padding:8px 12px;"><input class="form-input" type="number" value="0" min="0" style="width:70px; padding:4px 8px;"></td>
+              <td style="padding:8px 12px;"><button class="btn btn-ghost" style="padding:6px 14px; font-size:12px; min-height:32px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-60);">Print</button></td>
+            </tr>
+            <tr style="border-top:1px solid var(--cds-gray-20);">
+              <td style="padding:8px 12px;">Block Label</td>
+              <td style="padding:8px 12px; font-size:12px; color:var(--cds-gray-60);">Sample No + details</td>
+              <td style="padding:8px 12px;"><input class="form-input" type="number" value="0" min="0" style="width:70px; padding:4px 8px;"></td>
+              <td style="padding:8px 12px;"><button class="btn btn-ghost" style="padding:6px 14px; font-size:12px; min-height:32px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-60);">Print</button></td>
+            </tr>
+            <tr style="border-top:1px solid var(--cds-gray-20);">
+              <td style="padding:8px 12px;">Freezer Label</td>
+              <td style="padding:8px 12px; font-size:12px; color:var(--cds-gray-60);">Sample No + storage info</td>
+              <td style="padding:8px 12px;"><input class="form-input" type="number" value="0" min="0" style="width:70px; padding:4px 8px;"></td>
+              <td style="padding:8px 12px;"><button class="btn btn-ghost" style="padding:6px 14px; font-size:12px; min-height:32px; border:1px solid var(--cds-gray-30); color:var(--cds-gray-60);">Print</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px; color:var(--cds-gray-60); margin-top:8px;">Sample Label quantity is <strong>per specimen</strong> on the order.</p>
+        <button class="btn btn-primary" style="margin-top:12px;">Print All Labels</button>
+      </div>
+    </div>
+
+    <!-- Assign Storage Location (inline, auto-expanded — matches existing OE storage modal) -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Assign Storage Location</h3></div>
+      <div class="form-section-body">
+        <!-- Sample info card (read-only context) -->
+        <div style="background:var(--cds-gray-10); border:1px solid var(--cds-gray-20); border-radius:4px; padding:12px 16px; margin-bottom:20px;">
+          <div style="display:flex; gap:32px; font-size:13px;">
+            <div><span style="font-weight:600;">Sample Item ID:</span> 26-03-003847-01</div>
+            <div><span style="font-weight:600;">Sample Type:</span> Serum</div>
+            <div><span style="font-weight:600;">Status:</span> <span style="color:var(--cds-green-60);">Active</span></div>
+          </div>
+        </div>
+
+        <!-- Quick Assign (Barcode) -->
+        <div style="margin-bottom:20px;">
+          <h4 style="font-size:14px; font-weight:600; margin-bottom:4px;">Quick Assign (Barcode)</h4>
+          <label class="form-label" style="font-size:12px;">Scan barcode</label>
+          <div style="display:flex; gap:8px;">
+            <input class="form-input" placeholder="Scan barcode" style="flex:1;">
+            <button class="btn btn-ghost" style="padding:8px 12px; font-size:18px; color:var(--cds-gray-60);" title="Scan">&#8634;</button>
+          </div>
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--cds-gray-20); margin:16px 0;">
+
+        <!-- Select Location -->
+        <div style="margin-bottom:20px;">
+          <h4 style="font-size:14px; font-weight:600; margin-bottom:8px;">Select Location <span class="required">*</span></h4>
+          <div style="display:flex; gap:8px;">
+            <input class="form-input" placeholder="Search for location..." style="flex:1;">
+            <button class="btn btn-primary" style="display:flex; align-items:center; gap:6px; white-space:nowrap;">Location <span style="font-size:16px;">+</span></button>
+          </div>
+        </div>
+
+        <!-- Position (optional) -->
+        <div style="margin-bottom:20px;">
+          <h4 style="font-size:14px; font-weight:600; margin-bottom:4px;">Position <span style="font-weight:400; color:var(--cds-gray-60);">(optional)</span></h4>
+          <input class="form-input" placeholder="e.g., A5, 1-1, RED-12">
+        </div>
+
+        <!-- Condition Notes (optional) -->
+        <div style="margin-bottom:16px;">
+          <h4 style="font-size:14px; font-weight:600; margin-bottom:4px;">Condition Notes <span style="font-weight:400; color:var(--cds-gray-60);">(optional)</span></h4>
+          <textarea class="form-input" rows="3" placeholder="Enter any condition notes..." style="resize:vertical;"></textarea>
+        </div>
+
+        <p style="font-size:12px; color:var(--cds-gray-60); margin-top:8px; padding:8px 12px; background:#fff8e1; border-left:3px solid var(--cds-yellow-30);">Storage locations are assigned when you click <strong>Save</strong> or <strong>Save & Next</strong> below. No separate Assign button needed.</p>
+      </div>
+    </div>
+
+    <!-- Auto-save indicator -->
+    <div style="display:flex; align-items:center; gap:8px; padding:8px 0; font-size:12px; color:var(--cds-gray-60);">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--cds-green-60)"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm3.54 4.46l-4.5 4.5a.75.75 0 01-1.06 0l-2-2a.75.75 0 011.06-1.06L6.5 8.36l3.97-3.97a.75.75 0 011.06 1.06z"/></svg>
+      <span>Auto-saved as draft at 10:32 AM</span>
+      <span style="margin-left:auto; color:var(--cds-gray-60);">Changes are saved automatically every 30 seconds</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="showStep(2)">← Back</button>
+      <button class="btn btn-secondary">Save</button>
+      <button class="btn btn-primary" onclick="showStep(4)">Save & Submit for QA →</button>
+    </div>
+  </div>
+
+  <!-- ========== STEP 4: QA Review ========== -->
+  <div id="step-4" class="step-content hidden">
+    <!-- Order Lookup — Scan or Search -->
+    <div style="background:var(--cds-white); border:1px solid var(--cds-gray-20); padding:12px 20px; margin-bottom:16px; display:flex; align-items:center; gap:16px;">
+      <svg width="20" height="20" viewBox="0 0 32 32" fill="var(--cds-gray-70)"><rect x="1" y="5" width="2" height="22"/><rect x="5" y="5" width="1" height="22"/><rect x="8" y="5" width="3" height="22"/><rect x="13" y="5" width="1" height="22"/><rect x="16" y="5" width="2" height="22"/><rect x="20" y="5" width="3" height="22"/><rect x="25" y="5" width="1" height="22"/><rect x="28" y="5" width="3" height="22"/></svg>
+      <input class="form-input" placeholder="Scan or enter Lab Number to look up an existing order..." style="flex:1; margin:0;">
+      <button class="btn btn-ghost" style="padding:6px 16px; font-size:13px; border:1px solid var(--cds-blue-60); white-space:nowrap;">Search</button>
+    </div>
+    <div class="stepper">
+      <div class="step completed" onclick="showStep(1)"><div class="step-number">✓</div><div class="step-label">Enter Order</div></div>
+      <div class="step-connector completed"></div>
+      <div class="step completed" onclick="showStep(2)"><div class="step-number">✓</div><div class="step-label">Collect Sample</div></div>
+      <div class="step-connector completed"></div>
+      <div class="step completed" onclick="showStep(3)"><div class="step-number">✓</div><div class="step-label">Label & Store</div></div>
+      <div class="step-connector completed"></div>
+      <div class="step active" onclick="showStep(4)"><div class="step-number">4</div><div class="step-label">QA Review</div></div>
+    </div>
+
+    <div class="context-card">
+      <div class="context-item"><span class="context-label">Lab Number</span><span class="context-value" style="font-weight:700;">26-03-003847</span></div>
+      <div class="context-item"><span class="context-label">Subject</span><span class="context-value">Doe, Jane</span></div>
+      <div class="context-item"><span class="context-label">Status</span><span class="context-status in-progress">QA Pending</span></div>
+    </div>
+
+    <div class="qa-grid">
+      <div class="qa-card">
+        <div class="qa-card-title">Order Entry</div>
+        <div class="qa-card-status ok">✓ Complete</div>
+        <div style="font-size:12px; color: var(--cds-gray-50); margin-top:4px;">All required fields filled</div>
+      </div>
+      <div class="qa-card">
+        <div class="qa-card-title">Sample Collection</div>
+        <div class="qa-card-status ok">✓ Complete</div>
+        <div style="font-size:12px; color: var(--cds-gray-50); margin-top:4px;">1 sample, no rejections</div>
+      </div>
+      <div class="qa-card">
+        <div class="qa-card-title">Labeling & Storage</div>
+        <div class="qa-card-status ok">✓ Complete</div>
+        <div style="font-size:12px; color: var(--cds-gray-50); margin-top:4px;">Lab Number assigned, stored</div>
+      </div>
+      <div class="qa-card">
+        <div class="qa-card-title">QA Decision</div>
+        <div class="qa-card-status pending">⏳ Pending</div>
+        <div style="font-size:12px; color: var(--cds-gray-50); margin-top:4px;">Awaiting QA review</div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-header"><h3>Audit Trail</h3></div>
+      <div class="form-section-body" style="padding: 0;">
+        <table style="width:100%; font-size:13px; border-collapse:collapse;">
+          <thead><tr style="background:var(--cds-gray-10); text-align:left;">
+            <th style="padding:10px 16px; font-weight:500;">Timestamp</th>
+            <th style="padding:10px 16px; font-weight:500;">Step</th>
+            <th style="padding:10px 16px; font-weight:500;">Actor</th>
+            <th style="padding:10px 16px; font-weight:500;">Action</th>
+          </tr></thead>
+          <tbody>
+            <tr style="border-top:1px solid var(--cds-gray-20);"><td style="padding:8px 16px;">2026-03-03 08:15</td><td>Enter Order</td><td>Dr. R. Smith</td><td>Order created with CBC panel</td></tr>
+            <tr style="border-top:1px solid var(--cds-gray-20);"><td style="padding:8px 16px;">2026-03-03 09:30</td><td>Collect Sample</td><td>COL-0042 (J. Nguyen)</td><td>Sample 1 collected — Serum, 5.0 mL</td></tr>
+            <tr style="border-top:1px solid var(--cds-gray-20);"><td style="padding:8px 16px;">2026-03-03 09:45</td><td>Label & Store</td><td>TECH-0018 (M. Ochieng)</td><td>Lab Number 26-03-003847-01 assigned, stored S3-P12 at 4°C</td></tr>
+            <tr style="border-top:1px solid var(--cds-gray-20); background:#fff8e1;"><td style="padding:8px 16px;">2026-03-03 10:00</td><td>QA Review</td><td style="color:var(--cds-gray-60);">Pending...</td><td style="color:var(--cds-gray-60);">Awaiting QA officer review</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Sample Review Table -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Sample Review</h3></div>
+      <div class="form-section-body" style="padding:0;">
+        <table style="width:100%; font-size:13px; border-collapse:collapse;">
+          <thead><tr style="background:var(--cds-gray-10); text-align:left;">
+            <th style="padding:10px 16px; font-weight:500;">Sample</th>
+            <th style="padding:10px 16px; font-weight:500;">Type</th>
+            <th style="padding:10px 16px; font-weight:500;">Assigned Tests</th>
+            <th style="padding:10px 16px; font-weight:500;">Status</th>
+            <th style="padding:10px 16px; font-weight:500;">NCE</th>
+            <th style="padding:10px 16px; font-weight:500;">Actions</th>
+          </tr></thead>
+          <tbody>
+            <tr style="border-top:1px solid var(--cds-gray-20);">
+              <td style="padding:8px 16px; font-weight:600;">Sample 1</td>
+              <td>Plasma</td>
+              <td>
+                <span style="padding:2px 8px; background:#f6f2ff; border:1px solid #d4bbff; border-radius:4px; font-size:11px; color:var(--cds-purple-60); margin-right:4px;">HIV VL</span>
+                <span style="padding:2px 8px; background:#f6f2ff; border:1px solid #d4bbff; border-radius:4px; font-size:11px; color:var(--cds-purple-60);">Western blot</span>
+              </td>
+              <td><span style="color:var(--cds-green-60); font-weight:500;">✓ Collected</span></td>
+              <td style="color:var(--cds-gray-60);">None</td>
+              <td><button class="btn btn-ghost" style="padding:2px 10px; font-size:12px; color:var(--cds-red-60); border:1px solid var(--cds-red-60);">Report NCE</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Report NCE — Inline collapsed (for sample-level or order-level) -->
+    <div class="form-section">
+      <div class="form-section-header" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotated')" style="cursor:pointer;">
+        <h3 style="color:var(--cds-red-60);"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:middle;"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 10.5a.75.75 0 110-1.5.75.75 0 010 1.5zM8.75 8.5h-1.5v-4h1.5z"/></svg> Report Non-Conforming Event (NCE)</h3>
+        <span class="chevron" style="transition:transform 0.2s; display:inline-block; font-size:10px; margin-left:auto;">▶</span>
+      </div>
+      <div class="form-section-body hidden">
+        <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:16px;">Report an NCE for a specific sample or the entire order. NCE details and corrective action workflow are specified in the NCE rewrite module.</p>
+        <div class="form-row three-col">
+          <div class="form-group"><label class="form-label">Scope</label>
+            <select class="form-select"><option>Specific Sample</option><option>Entire Order</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Sample (if specific)</label>
+            <select class="form-select"><option>Sample 1 — Plasma</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">NCE Category</label>
+            <select class="form-select"><option>Select...</option><option>Pre-analytical</option><option>Analytical</option><option>Post-analytical</option><option>Documentation</option><option>Safety</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">NCE Type</label>
+            <select class="form-select"><option>Select...</option><option>Hemolyzed</option><option>Insufficient Volume</option><option>Incorrect Container</option><option>Mislabeled</option><option>Temperature Excursion</option><option>Contaminated</option><option>Missing Information</option><option>Chain of Custody Gap</option><option>Other</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Severity</label>
+            <select class="form-select"><option>Minor</option><option>Major</option><option>Critical</option></select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:8px;"><label class="form-label">Description</label>
+          <textarea class="form-input" rows="3" style="resize:vertical;" placeholder="Describe the non-conforming event and any immediate corrective actions taken..."></textarea>
+        </div>
+        <div class="form-group" style="margin-top:12px;">
+          <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--cds-red-60); cursor:pointer;">
+            <input type="checkbox"> Mark affected sample(s) as <strong>Rejected</strong>
+          </label>
+          <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">If ALL samples are rejected, the order will be saved in a <strong>Rejected</strong> state. No further actions are required, but storage and other steps can still be performed if needed.</p>
+        </div>
+        <button class="btn btn-primary" style="margin-top:12px; background:var(--cds-red-60);">Submit NCE Report</button>
+      </div>
+    </div>
+
+    <!-- QA Notes -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>QA Notes</h3></div>
+      <div class="form-section-body">
+        <div class="form-group"><label class="form-label">Reviewer Notes</label><textarea class="form-input" rows="3" placeholder="Optional reviewer notes — document any observations, follow-up required, or justification for decision..." style="resize:vertical;"></textarea></div>
+        <p style="font-size:12px; color:var(--cds-gray-60); margin-top:8px; padding:8px 12px; background:var(--cds-gray-10); border-left:3px solid var(--cds-gray-30);">If all samples have been rejected (via NCE reports), the order will automatically be saved in a <strong>Rejected</strong> state. Storage and labeling can still be performed if needed for archival purposes.</p>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="btn btn-danger">Reject → Return to Step</button>
+        <select class="form-select" style="width:180px; border:1px solid var(--cds-red-60);">
+          <option>Select step...</option>
+          <option>Step 1: Enter Order</option>
+          <option>Step 2: Collect Sample</option>
+          <option>Step 3: Label & Store</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" style="background:var(--cds-green-60);">✓ Approve for Testing</button>
+    </div>
+  </div>
+
+  <!-- ========== STEP 5: Edit Order Mode (loaded via barcode scan) ========== -->
+  <!-- This demonstrates how an existing order looks when loaded via Lab Number scan.
+       The same 4-step screens are used, but rendered in read-only mode by default. -->
+  <div id="step-5" class="step-content hidden">
+    <h2 style="font-size:24px; font-weight:400; margin-bottom:4px;">Edit Existing Order</h2>
+
+    <!-- Scan bar with pre-filled lab number -->
+    <div style="background:var(--cds-white); border:1px solid var(--cds-gray-20); padding:12px 20px; margin-bottom:8px; display:flex; align-items:center; gap:16px;">
+      <svg width="20" height="20" viewBox="0 0 32 32" fill="var(--cds-gray-70)"><rect x="1" y="5" width="2" height="22"/><rect x="5" y="5" width="1" height="22"/><rect x="8" y="5" width="3" height="22"/><rect x="13" y="5" width="1" height="22"/><rect x="16" y="5" width="2" height="22"/><rect x="20" y="5" width="3" height="22"/><rect x="25" y="5" width="1" height="22"/><rect x="28" y="5" width="3" height="22"/></svg>
+      <input class="form-input" value="26-03-003847" style="flex:1; margin:0; font-weight:600;">
+      <button class="btn btn-ghost" style="padding:6px 16px; font-size:13px; border:1px solid var(--cds-blue-60); white-space:nowrap;">Search</button>
+    </div>
+    <!-- Scan success feedback -->
+    <div style="margin-bottom:16px; padding:8px 16px; background:#defbe6; border:1px solid var(--cds-green-40); border-radius:4px; display:flex; align-items:center; gap:8px;">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--cds-green-60)"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm3.54 4.46l-4.5 4.5a.75.75 0 01-1.06 0l-2-2a.75.75 0 011.06-1.06L6.5 8.36l3.97-3.97a.75.75 0 011.06 1.06z"/></svg>
+      <span style="color:var(--cds-green-60); font-weight:500;">Order loaded:</span>
+      <span>26-03-003847 &mdash; Doe, Jane &mdash; HIV VL, Western blot, CD4 Panel</span>
+    </div>
+
+    <!-- Edit Mode Header Banner -->
+    <div style="background:#fff8e1; border:1px solid #f1c21b; border-radius:4px; padding:12px 20px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="#b28600"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 10.5a.75.75 0 110-1.5.75.75 0 010 1.5zM8.75 8.5h-1.5v-4h1.5z"/></svg>
+        <span style="font-weight:500; color:#6e4b00;">Read-Only Mode</span>
+        <span style="font-size:12px; color:var(--cds-gray-60);">&mdash; All fields are locked. Press Edit to make changes.</span>
+      </div>
+      <button class="btn btn-primary" style="padding:6px 20px; font-size:13px; min-height:32px;">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="white" style="margin-right:6px;"><path d="M12.15 1.85a2 2 0 00-2.83 0L2 9.17V14h4.83l7.32-7.32a2 2 0 000-2.83zM6.17 12.5H3.5V9.83l5.67-5.66 2.66 2.66z"/></svg>
+        Edit
+      </button>
+    </div>
+
+    <!-- Stepper (Collect Sample active, showing we landed on Step 2) -->
+    <div class="stepper">
+      <div class="step completed" onclick="showStep(1)"><div class="step-number">&#10003;</div><div class="step-label">Enter Order</div></div>
+      <div class="step-connector completed"></div>
+      <div class="step active" onclick="showStep(2)"><div class="step-number">2</div><div class="step-label">Collect Sample</div></div>
+      <div class="step-connector"></div>
+      <div class="step" onclick="showStep(3)"><div class="step-number">3</div><div class="step-label">Label & Store</div></div>
+      <div class="step-connector"></div>
+      <div class="step" onclick="showStep(4)"><div class="step-number">4</div><div class="step-label">QA Review</div></div>
+    </div>
+
+    <!-- Context Card -->
+    <div class="context-card">
+      <div class="context-item"><span class="context-label">Lab Number</span><span class="context-value" style="font-size:16px; font-weight:700; color:var(--cds-blue-70);">26-03-003847</span></div>
+      <div class="context-item"><span class="context-label">Patient</span><span class="context-value">Doe, Jane (F, 34y)</span></div>
+      <div class="context-item"><span class="context-label">Tests</span><span class="context-value">HIV VL, Western blot, CD4 Panel</span></div>
+      <div class="context-item"><span class="context-label">Status</span><span class="context-status in-progress">In Progress</span></div>
+    </div>
+
+    <!-- === REQUESTED TESTS TABLE (Read-Only) with test result status indicators === -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Requested Tests &mdash; Result Status</h3></div>
+      <div class="form-section-body" style="padding:0;">
+        <p style="padding:12px 16px 8px; font-size:12px; color:var(--cds-gray-60);">Tests show their current result and validation status. Tests with results require admin privileges to cancel.</p>
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+          <thead>
+            <tr style="background:var(--cds-gray-10); border-bottom:2px solid var(--cds-gray-20);">
+              <th style="text-align:left; padding:8px 12px; font-weight:600;">Test / Panel</th>
+              <th style="text-align:left; padding:8px 12px; font-weight:600;">Sample</th>
+              <th style="text-align:left; padding:8px 12px; font-weight:600;">Result Status</th>
+              <th style="text-align:left; padding:8px 12px; font-weight:600;">Validation</th>
+              <th style="text-align:center; padding:8px 12px; font-weight:600;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Test with validated results -->
+            <tr style="border-bottom:1px solid var(--cds-gray-20);">
+              <td style="padding:10px 12px; font-weight:500;">HIV VIRAL LOAD</td>
+              <td style="padding:10px 12px;"><span style="background:#f6f2ff; color:var(--cds-purple-60); padding:2px 8px; border-radius:12px; font-size:12px;">Plasma (S1)</span></td>
+              <td style="padding:10px 12px;">
+                <span style="display:inline-flex; align-items:center; gap:4px;">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--cds-blue-60)"><circle cx="8" cy="8" r="5"/></svg>
+                  <span style="color:var(--cds-blue-60); font-weight:500;">Results Entered</span>
+                  <span style="color:var(--cds-gray-60); font-size:11px;">(1,247 copies/mL)</span>
+                </span>
+              </td>
+              <td style="padding:10px 12px;">
+                <span style="display:inline-flex; align-items:center; gap:4px;">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--cds-green-60)"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm3.54 4.46l-4.5 4.5a.75.75 0 01-1.06 0l-2-2a.75.75 0 011.06-1.06L6.5 8.36l3.97-3.97a.75.75 0 011.06 1.06z"/></svg>
+                  <span style="color:var(--cds-green-60); font-weight:500;">Validated</span>
+                </span>
+              </td>
+              <td style="padding:10px 12px; text-align:center;">
+                <button class="btn btn-ghost" style="padding:4px 10px; font-size:12px; color:var(--cds-gray-50); cursor:not-allowed; border:1px solid var(--cds-gray-30);" disabled title="Admin role required to cancel tests with results">Cancel</button>
+                <div style="font-size:10px; color:var(--cds-gray-60); margin-top:2px;">Admin only</div>
+              </td>
+            </tr>
+            <!-- Test with results entered but not validated -->
+            <tr style="border-bottom:1px solid var(--cds-gray-20);">
+              <td style="padding:10px 12px; font-weight:500;">Western blot HIV</td>
+              <td style="padding:10px 12px;"><span style="background:#f6f2ff; color:var(--cds-purple-60); padding:2px 8px; border-radius:12px; font-size:12px;">Plasma (S1)</span></td>
+              <td style="padding:10px 12px;">
+                <span style="display:inline-flex; align-items:center; gap:4px;">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--cds-blue-60)"><circle cx="8" cy="8" r="5"/></svg>
+                  <span style="color:var(--cds-blue-60); font-weight:500;">Results Entered</span>
+                  <span style="color:var(--cds-gray-60); font-size:11px;">(Positive)</span>
+                </span>
+              </td>
+              <td style="padding:10px 12px;">
+                <span style="display:inline-flex; align-items:center; gap:4px;">
+                  <span style="color:var(--cds-gray-60);">&mdash; Pending</span>
+                </span>
+              </td>
+              <td style="padding:10px 12px; text-align:center;">
+                <button class="btn btn-ghost" style="padding:4px 10px; font-size:12px; color:var(--cds-gray-50); cursor:not-allowed; border:1px solid var(--cds-gray-30);" disabled title="Admin role required to cancel tests with results">Cancel</button>
+                <div style="font-size:10px; color:var(--cds-gray-60); margin-top:2px;">Admin only</div>
+              </td>
+            </tr>
+            <!-- Panel header -->
+            <tr style="border-bottom:1px solid var(--cds-gray-20); background:#f9f9f9;">
+              <td colspan="5" style="padding:10px 12px; font-weight:600; color:var(--cds-gray-80);">
+                <span style="background:#defbe6; color:var(--cds-green-60); padding:2px 8px; border-radius:12px; font-size:12px; margin-right:6px;">Panel</span>
+                CD4 Panel
+              </td>
+            </tr>
+            <!-- Test within panel — no results yet -->
+            <tr style="border-bottom:1px solid var(--cds-gray-20);">
+              <td style="padding:10px 12px 10px 28px;">CD4 Count</td>
+              <td style="padding:10px 12px;"><span style="background:#f6f2ff; color:var(--cds-purple-60); padding:2px 8px; border-radius:12px; font-size:12px;">Whole Blood (S2)</span></td>
+              <td style="padding:10px 12px;">
+                <span style="display:inline-flex; align-items:center; gap:4px;">
+                  <span style="color:var(--cds-gray-50);">&mdash;</span>
+                  <span style="color:var(--cds-gray-60);">No Results</span>
+                </span>
+              </td>
+              <td style="padding:10px 12px;">
+                <span style="color:var(--cds-gray-60);">&mdash;</span>
+              </td>
+              <td style="padding:10px 12px; text-align:center;">
+                <button class="btn btn-ghost" style="padding:4px 10px; font-size:12px; color:var(--cds-red-60); border:1px solid var(--cds-red-60);">Cancel</button>
+              </td>
+            </tr>
+            <!-- Test within panel — no results yet -->
+            <tr style="border-bottom:1px solid var(--cds-gray-20);">
+              <td style="padding:10px 12px 10px 28px;">CD4 %</td>
+              <td style="padding:10px 12px;"><span style="background:#f6f2ff; color:var(--cds-purple-60); padding:2px 8px; border-radius:12px; font-size:12px;">Whole Blood (S2)</span></td>
+              <td style="padding:10px 12px;">
+                <span style="display:inline-flex; align-items:center; gap:4px;">
+                  <span style="color:var(--cds-gray-50);">&mdash;</span>
+                  <span style="color:var(--cds-gray-60);">No Results</span>
+                </span>
+              </td>
+              <td style="padding:10px 12px;">
+                <span style="color:var(--cds-gray-60);">&mdash;</span>
+              </td>
+              <td style="padding:10px 12px; text-align:center;">
+                <button class="btn btn-ghost" style="padding:4px 10px; font-size:12px; color:var(--cds-red-60); border:1px solid var(--cds-red-60);">Cancel</button>
+              </td>
+            </tr>
+            <!-- Cancelled test example (admin already cancelled with NCE) -->
+            <tr style="border-bottom:1px solid var(--cds-gray-20); background:#fafafa;">
+              <td style="padding:10px 12px; text-decoration:line-through; color:var(--cds-gray-50);">CD8 Count</td>
+              <td style="padding:10px 12px;"><span style="background:#f4f4f4; color:var(--cds-gray-50); padding:2px 8px; border-radius:12px; font-size:12px; text-decoration:line-through;">Whole Blood (S2)</span></td>
+              <td style="padding:10px 12px;">
+                <span style="display:inline-flex; align-items:center; gap:4px;">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--cds-red-60)"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zM5.17 5.17a.75.75 0 011.06 0L8 6.94l1.77-1.77a.75.75 0 111.06 1.06L9.06 8l1.77 1.77a.75.75 0 11-1.06 1.06L8 9.06l-1.77 1.77a.75.75 0 01-1.06-1.06L6.94 8 5.17 6.23a.75.75 0 010-1.06z"/></svg>
+                  <span style="color:var(--cds-red-60); font-weight:500;">Cancelled</span>
+                  <span style="font-size:11px; color:var(--cds-gray-60);">NCE-2026-0042</span>
+                </span>
+              </td>
+              <td style="padding:10px 12px; color:var(--cds-gray-50);">N/A</td>
+              <td style="padding:10px 12px; text-align:center; color:var(--cds-gray-50); font-size:12px;">&mdash;</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div style="background:var(--cds-white); border:1px solid var(--cds-gray-20); padding:12px 16px; margin-bottom:16px;">
+      <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Status Legend</div>
+      <div style="display:flex; gap:20px; flex-wrap:wrap; font-size:12px;">
+        <span style="display:inline-flex; align-items:center; gap:4px;">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="var(--cds-blue-60)"><circle cx="8" cy="8" r="5"/></svg>
+          Results Entered
+        </span>
+        <span style="display:inline-flex; align-items:center; gap:4px;">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="var(--cds-green-60)"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm3.54 4.46l-4.5 4.5a.75.75 0 01-1.06 0l-2-2a.75.75 0 011.06-1.06L6.5 8.36l3.97-3.97a.75.75 0 011.06 1.06z"/></svg>
+          Validated
+        </span>
+        <span style="display:inline-flex; align-items:center; gap:4px;">
+          <span style="color:var(--cds-gray-50);">&mdash;</span>
+          No Results
+        </span>
+        <span style="display:inline-flex; align-items:center; gap:4px;">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="var(--cds-red-60)"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zM5.17 5.17a.75.75 0 011.06 0L8 6.94l1.77-1.77a.75.75 0 111.06 1.06L9.06 8l1.77 1.77a.75.75 0 11-1.06 1.06L8 9.06l-1.77 1.77a.75.75 0 01-1.06-1.06L6.94 8 5.17 6.23a.75.75 0 010-1.06z"/></svg>
+          Cancelled (with NCE ref)
+        </span>
+      </div>
+    </div>
+
+    <!-- Cancel Test with Results — NCE Required (admin view) -->
+    <div class="form-section">
+      <div class="form-section-header" style="background:#fff1f1;"><h3 style="color:var(--cds-red-60);">Cancel Test with Results &mdash; NCE Required (Admin Only)</h3></div>
+      <div class="form-section-body">
+        <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:12px;">Cancelling a test that has results requires a mandatory Non-Conforming Event entry. This is shown when an admin clicks Cancel on a test with results.</p>
+        <div style="border:2px solid var(--cds-red-60); border-radius:4px; padding:16px; background:#fff5f5;">
+          <div style="font-size:14px; font-weight:600; color:var(--cds-red-60); margin-bottom:12px;">Cancelling: Western blot HIV &mdash; Results: Positive</div>
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label class="form-label">NCE Category <span class="required">*</span></label>
+              <select class="form-input">
+                <option>Pre-analytical</option>
+                <option selected>Analytical</option>
+                <option>Post-analytical</option>
+                <option>Documentation</option>
+                <option>Safety</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">NCE Type <span class="required">*</span></label>
+              <select class="form-input">
+                <option>Select type...</option>
+                <option>Incorrect test ordered</option>
+                <option selected>Duplicate order</option>
+                <option>Equipment malfunction</option>
+                <option>Reagent issue</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:8px;">
+            <label class="form-label">Reason for Cancellation <span class="required">*</span></label>
+            <textarea class="form-input" rows="3" style="resize:vertical;" placeholder="Describe why this test is being cancelled despite having results...">Duplicate order entered in error. Results for this test are available on order 26-03-003812.</textarea>
+          </div>
+          <div style="display:flex; gap:12px; margin-top:12px;">
+            <button class="btn btn-primary" style="background:var(--cds-red-60); min-height:32px;">Confirm Cancellation &amp; Create NCE</button>
+            <button class="btn btn-ghost" style="border:1px solid var(--cds-gray-30); min-height:32px;">Back</button>
+          </div>
+          <p style="font-size:11px; color:var(--cds-gray-60); margin-top:8px;">This action will be recorded in the audit trail with your identity, timestamp, and NCE reference number.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Read-Only Sample Card Preview (greyed out fields) -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Sample 1 &mdash; Plasma <span style="color:var(--cds-gray-60); font-weight:400; font-size:12px;">(read-only)</span></h3></div>
+      <div class="form-section-body" style="opacity:0.6; pointer-events:none;">
+        <div class="form-row three-col">
+          <div class="form-group"><label class="form-label">Sample Type</label><input class="form-input" value="Plasma" disabled style="background:#f0f0f0;"></div>
+          <div class="form-group"><label class="form-label">Volume</label><input class="form-input" value="5" disabled style="background:#f0f0f0; width:80px;"></div>
+          <div class="form-group"><label class="form-label">UOM</label><input class="form-input" value="mL" disabled style="background:#f0f0f0; width:80px;"></div>
+        </div>
+        <div style="margin-top:8px; padding:10px 14px; border:1px solid var(--cds-gray-20); border-radius:4px; background:#fafafa;">
+          <div style="font-size:12px; font-weight:600; margin-bottom:4px;">Collection Data</div>
+          <div class="form-row three-col">
+            <div class="form-group"><label class="form-label">Collection Date</label><input class="form-input" type="date" value="2026-03-02" disabled style="background:#f0f0f0;"></div>
+            <div class="form-group"><label class="form-label">Collection Time</label><input class="form-input" type="time" value="09:30" disabled style="background:#f0f0f0;"></div>
+            <div class="form-group"><label class="form-label">Collector</label><input class="form-input" value="COL-0042" disabled style="background:#f0f0f0;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buttons (disabled in read-only, enabled after Edit) -->
+    <div style="display:flex; gap:12px; margin-top:20px;">
+      <button class="btn btn-ghost" style="border:1px solid var(--cds-gray-30); min-height:32px; color:var(--cds-gray-50); cursor:not-allowed;" disabled>Save</button>
+      <button class="btn btn-primary" style="min-height:32px; opacity:0.5; cursor:not-allowed;" disabled>Save &amp; Next</button>
+      <span style="font-size:12px; color:var(--cds-gray-60); align-self:center;">Press Edit above to enable changes</span>
+    </div>
+  </div>
+
+  <!-- ========== STEP 6: Lab Unit Config ========== -->
+  <div id="step-6" class="step-content hidden">
+    <h2 style="margin-bottom: 24px; font-size: 20px; font-weight: 500;">Lab Unit Workflow Configuration</h2>
+
+    <div class="form-section">
+      <div class="form-section-header"><h3>Central Lab — Hematology</h3></div>
+      <div class="form-section-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Workflow Type <span class="required">*</span></label>
+            <select class="form-select" id="config-workflow" onchange="updateConfigPreview()">
+              <option value="clinical">Clinical</option>
+              <option value="env">Environmental</option>
+              <option value="both" selected>Both (Unified)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Lab Unit Code</label>
+            <input class="form-input" value="CENTRAL-HEMA" readonly>
+          </div>
+        </div>
+
+        <div class="config-preview" id="config-preview">
+          <h4>Fields enabled for "Both (Unified)" mode:</h4>
+          <div class="field-list">
+            <span class="field-chip enabled">Patient Name</span>
+            <span class="field-chip enabled">DOB</span>
+            <span class="field-chip enabled">Sex</span>
+            <span class="field-chip enabled">National ID</span>
+            <span class="field-chip enabled">Diagnosis</span>
+            <span class="field-chip enabled">Insurance</span>
+            <span class="field-chip enabled">Source Type</span>
+            <span class="field-chip enabled">GPS Coordinates</span>
+            <span class="field-chip enabled">Env. Conditions</span>
+            <span class="field-chip enabled">Regulatory Ref</span>
+            <span class="field-chip enabled">Site Description</span>
+          </div>
+          <p style="font-size:12px; color:var(--cds-gray-60); margin-top:8px;">In "Both" mode, a category selector appears per sample line to show/hide field groups dynamically.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-header"><h3>Other Lab Units</h3></div>
+      <div class="form-section-body" style="padding:0;">
+        <table style="width:100%; font-size:13px; border-collapse:collapse;">
+          <thead><tr style="background:var(--cds-gray-10); text-align:left;">
+            <th style="padding:10px 16px; font-weight:500;">Lab Unit</th>
+            <th style="padding:10px 16px; font-weight:500;">Code</th>
+            <th style="padding:10px 16px; font-weight:500;">Workflow Type</th>
+            <th style="padding:10px 16px; font-weight:500;">Actions</th>
+          </tr></thead>
+          <tbody>
+            <tr style="border-top:1px solid var(--cds-gray-20);">
+              <td style="padding:8px 16px;">Central Lab — Microbiology</td><td>CENTRAL-MICRO</td>
+              <td><span class="tag tag-clinical">Clinical</span></td><td><button class="btn btn-ghost" style="padding:2px 8px; font-size:12px;">Edit</button></td>
+            </tr>
+            <tr style="border-top:1px solid var(--cds-gray-20);">
+              <td style="padding:8px 16px;">Water Quality Lab</td><td>WATER-QUAL</td>
+              <td><span class="tag tag-env">Environmental</span></td><td><button class="btn btn-ghost" style="padding:2px 8px; font-size:12px;">Edit</button></td>
+            </tr>
+            <tr style="border-top:1px solid var(--cds-gray-20);">
+              <td style="padding:8px 16px;">Public Health Reference Lab</td><td>PH-REF</td>
+              <td><span class="tag tag-both">Both</span></td><td><button class="btn btn-ghost" style="padding:2px 8px; font-size:12px;">Edit</button></td>
+            </tr>
+            <tr style="border-top:1px solid var(--cds-gray-20);">
+              <td style="padding:8px 16px;">Veterinary Diagnostics</td><td>VET-DIAG</td>
+              <td><span class="tag tag-env">Environmental</span></td><td><button class="btn btn-ghost" style="padding:2px 8px; font-size:12px;">Edit</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary">Save Configuration</button>
+    </div>
+  </div>
+</main>
+
+<script>
+function showStep(n) {
+  document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+  const el = document.getElementById('step-' + n);
+  if (el) el.classList.remove('hidden');
+
+  // Update sidebar active state
+  document.querySelectorAll('.sidebar-item.child').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-config')?.classList.remove('active');
+  document.getElementById('nav-edit')?.classList.remove('active');
+  document.getElementById('nav-dashboard')?.classList.remove('active');
+  const navMap = {0:'nav-dashboard',1:'nav-enter',2:'nav-collect',3:'nav-label',4:'nav-qa',5:'nav-edit',6:'nav-config'};
+  const navEl = document.getElementById(navMap[n]);
+  if (navEl) navEl.classList.add('active');
+}
+
+function toggleOrderMenu() {
+  const children = document.getElementById('orderChildren');
+  const expand = document.getElementById('orderExpand');
+  if (children.style.maxHeight === '0px') {
+    children.style.maxHeight = '200px';
+    expand.classList.add('open');
+  } else {
+    children.style.maxHeight = '0px';
+    expand.classList.remove('open');
+  }
+}
+
+function setWorkflow(type) {
+  document.getElementById('wf-clinical').classList.toggle('active', type === 'clinical');
+  document.getElementById('wf-env').classList.toggle('active', type === 'env');
+
+  document.getElementById('section-patient').classList.toggle('hidden', type === 'env');
+  document.getElementById('section-clinical-diag').classList.toggle('hidden', type === 'env');
+  document.getElementById('section-env-source').classList.toggle('hidden', type === 'clinical');
+
+  // Auto-default program when switching workflow type
+  if (type === 'env') {
+    selectProgram('lead-water', 'Lead in Well Water');
+  } else if (type === 'clinical' && ['lead-water','parasite','water'].indexOf(currentProgram) !== -1) {
+    selectProgram('vl', 'VL Program');
+  }
+}
+
+function showPatientTab(tab) {
+  const searchBtn = document.getElementById('pt-tab-search');
+  const newBtn = document.getElementById('pt-tab-new');
+  const searchForm = document.getElementById('pt-search-form');
+  const newForm = document.getElementById('pt-new-form');
+  if (tab === 'search') {
+    searchBtn.className = 'btn btn-primary'; newBtn.className = 'btn btn-ghost';
+    newBtn.style.border = '1px solid var(--cds-blue-60)';
+    searchForm.classList.remove('hidden'); newForm.classList.add('hidden');
+  } else {
+    newBtn.className = 'btn btn-primary'; searchBtn.className = 'btn btn-ghost';
+    searchBtn.style.border = '1px solid var(--cds-blue-60)';
+    newForm.classList.remove('hidden'); searchForm.classList.add('hidden');
+  }
+}
+
+function showPatientResults() {
+  const tbody = document.getElementById('patient-results-body');
+  tbody.innerHTML = '<tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer; background:#edf5ff;" onclick="selectPatient()">' +
+    '<td style="padding:8px 12px;">Doe</td><td>Jane</td><td>Female</td><td>03/15/1985</td>' +
+    '<td>UHI-00384712</td><td>NID-9928371</td><td>Local</td></tr>' +
+    '<tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer;">' +
+    '<td style="padding:8px 12px;">Doe</td><td>Janet</td><td>Female</td><td>11/02/1990</td>' +
+    '<td>UHI-00491823</td><td>NID-7735201</td><td>Client Registry</td></tr>';
+}
+
+function selectPatient() {
+  document.getElementById('pt-selected').classList.remove('hidden');
+}
+
+// ===== PROGRAM TYPEAHEAD COMBO =====
+var currentProgram = 'vl';
+var allPrograms = [
+  {value:'routine', label:'Routine Testing', category:'clinical'},
+  {value:'vl', label:'VL Program', category:'clinical'},
+  {value:'eid', label:'EID Program', category:'clinical'},
+  {value:'tb', label:'TB Program', category:'clinical'},
+  {value:'covid', label:'COVID-19', category:'clinical'},
+  {value:'lead-water', label:'Lead in Well Water', category:'environmental'},
+  {value:'parasite', label:'Parasite Monitoring', category:'environmental'},
+  {value:'water', label:'Water Quality Monitoring', category:'environmental'}
+];
+
+function showProgramDropdown() {
+  document.getElementById('program-dropdown').style.display = 'block';
+  filterPrograms();
+}
+
+function filterPrograms() {
+  var input = document.getElementById('program-combo').value.toLowerCase();
+  var dropdown = document.getElementById('program-dropdown');
+  var options = dropdown.querySelectorAll('.program-option');
+  var dividers = dropdown.querySelectorAll('div[style*="border-top"]');
+  var hasEnvVisible = false;
+  options.forEach(function(opt) {
+    var text = opt.textContent.toLowerCase();
+    var match = !input || text.indexOf(input) !== -1;
+    opt.style.display = match ? 'block' : 'none';
+    if (match && allPrograms.find(function(p){ return p.value === opt.getAttribute('data-value') && p.category === 'environmental'; })) {
+      hasEnvVisible = true;
+    }
+  });
+  dividers.forEach(function(d) { d.style.display = hasEnvVisible ? 'block' : 'none'; });
+}
+
+function selectProgram(value, label) {
+  currentProgram = value;
+  document.getElementById('program-combo').value = label;
+  document.getElementById('program-dropdown').style.display = 'none';
+  updateProgramInfo();
+}
+
+function updateProgramInfo() {
+  var sections = {
+    'vl': 'section-additional-order-clinical',
+    'water': 'section-additional-order-env',
+    'lead-water': 'section-additional-order-lead',
+    'parasite': 'section-additional-order-parasite'
+  };
+  Object.values(sections).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
+  if (sections[currentProgram]) {
+    var el = document.getElementById(sections[currentProgram]);
+    if (el) el.classList.remove('hidden');
+  }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  var combo = document.getElementById('program-combo');
+  var dropdown = document.getElementById('program-dropdown');
+  if (combo && dropdown && !combo.contains(e.target) && !dropdown.contains(e.target)) {
+    dropdown.style.display = 'none';
+  }
+});
+
+function showProviderResults() {
+  // Provider results are already visible in the mockup
+}
+
+function selectProvider() {
+  // Provider selected card is already visible in the mockup
+}
+
+function dashboardFilter() {
+  const extCheckbox = document.getElementById('include-external');
+  const extSection = document.getElementById('external-orders-section');
+  if (extCheckbox && extSection) {
+    extSection.style.display = extCheckbox.checked ? 'block' : 'none';
+  }
+}
+
+function dashboardSearch() {
+  const val = document.getElementById('dashboard-search').value.trim();
+  if (val) {
+    document.getElementById('dashboard-results-label').innerHTML = 'Showing: <strong>Search results for "' + val + '"</strong>';
+  } else {
+    document.getElementById('dashboard-results-label').innerHTML = 'Showing: <strong>My In-Progress Orders</strong> (6 results)';
+  }
+}
+
+function updateConfigPreview() {
+  const val = document.getElementById('config-workflow').value;
+  const preview = document.getElementById('config-preview');
+  const fields = {
+    clinical: {
+      enabled: ['Patient Name','DOB','Sex','National ID','Diagnosis','Insurance'],
+      disabled: ['Source Type','GPS Coordinates','Env. Conditions','Regulatory Ref','Site Description']
+    },
+    env: {
+      enabled: ['Source Type','GPS Coordinates','Env. Conditions','Regulatory Ref','Site Description'],
+      disabled: ['Patient Name','DOB','Sex','National ID','Diagnosis','Insurance']
+    },
+    both: {
+      enabled: ['Patient Name','DOB','Sex','National ID','Diagnosis','Insurance','Source Type','GPS Coordinates','Env. Conditions','Regulatory Ref','Site Description'],
+      disabled: []
+    }
+  };
+  const f = fields[val];
+  const labels = {clinical:'Clinical',env:'Environmental',both:'Both (Unified)'};
+  let html = '<h4>Fields enabled for "' + labels[val] + '" mode:</h4><div class="field-list">';
+  f.enabled.forEach(n => html += '<span class="field-chip enabled">' + n + '</span>');
+  f.disabled.forEach(n => html += '<span class="field-chip disabled">' + n + '</span>');
+  html += '</div>';
+  if (val === 'both') html += '<p style="font-size:12px; color:var(--cds-gray-60); margin-top:8px;">In "Both" mode, a category selector appears per sample line to show/hide field groups dynamically.</p>';
+  preview.innerHTML = html;
+}
+</script>
+
+<!-- ============================================================
+     DEVELOPER IMPLEMENTATION NOTES — Accessibility (ARIA)
+     ============================================================
+
+     1. STEPPER: Add role="progressbar" to each .step element.
+        - aria-valuenow="1" (current step number)
+        - aria-valuemin="1", aria-valuemax="4"
+        - aria-label="Step 1: Enter Order - Current" / "Step 2: Collect Sample - Complete"
+
+     2. COLLAPSIBLE SECTIONS: Each toggle trigger needs:
+        - role="button" (already added)
+        - tabindex="0" (already added)
+        - aria-expanded="true/false" (toggle with JS)
+        - aria-controls="[id of content panel]"
+        - The content panel needs id matching aria-controls
+
+     3. SAMPLE CHOICE POPOVER:
+        - role="dialog" or role="listbox"
+        - aria-labelledby pointing to the popover heading
+        - Focus trap: Tab should cycle within the popover
+        - aria-live="polite" on the container so screen readers announce it
+        - Escape key should close and return focus to trigger button
+
+     4. BARCODE SCAN FEEDBACK:
+        - aria-live="assertive" on the feedback container
+        - role="alert" for error states
+        - role="status" for success states
+
+     5. FORM VALIDATION:
+        - aria-invalid="true" on fields with errors
+        - aria-describedby linking to error message elements
+        - Required fields: aria-required="true" (in addition to visual asterisks)
+
+     6. DATA TABLES:
+        - scope="col" on all <th> elements
+        - Use <caption> for table descriptions
+        - For the Requested Tests table: aria-label="Requested tests and sample assignments"
+
+     7. SIDEBAR NAVIGATION:
+        - role="navigation" on <aside>
+        - aria-label="Main navigation"
+        - Expandable menus: aria-expanded on parent, aria-controls on children container
+
+     8. KEYBOARD NAVIGATION:
+        - All interactive elements reachable via Tab
+        - Arrow keys for radio groups and dropdown menus
+        - Enter/Space to activate buttons (already added for collapsibles)
+        - Escape to close popovers and dialogs
+     ============================================================ -->
+</body>
+</html>

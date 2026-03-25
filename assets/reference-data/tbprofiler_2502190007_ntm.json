@@ -1,0 +1,62 @@
+{
+  "id": "2502190007",
+  "timestamp": "2025-02-19T12:15:22Z",
+  "pipeline": {
+    "software": "TB-Profiler",
+    "version": "6.3.0",
+    "db_version": "WHO-UCN-GTB-PCI-2023.5",
+    "analysis_date": "2025-02-19",
+    "commit": "a8f3c2d"
+  },
+  "sequencing": {
+    "platform": "MinION",
+    "instrument_id": "MN42781",
+    "flowcell": "FLO-MIN114",
+    "kit": "SQK-RBK114.96",
+    "basecaller": "Dorado",
+    "basecaller_version": "0.5.3",
+    "basecaller_model": "dna_r10.4.1_e8.2_400bps_sup@v4.3.0"
+  },
+  "qc": {
+    "num_reads": 156789,
+    "num_reads_mapped": 4567,
+    "pct_reads_mapped": 2.91,
+    "median_depth": 0,
+    "genome_coverage_10x": 0.8,
+    "genome_coverage_30x": 0.0,
+    "mean_read_length": 3456,
+    "median_read_length": 2890,
+    "n50": 4567,
+    "target_median_depth": {
+      "rpoB": 0,
+      "katG": 0,
+      "inhA_promoter": 0,
+      "embB": 0,
+      "pncA": 0,
+      "gyrA": 0,
+      "gyrB": 0,
+      "rrs": 1,
+      "eis_promoter": 0,
+      "rplC": 0,
+      "Rv0678": 0,
+      "atpE": 0,
+      "pepQ": 0,
+      "ddn": 0,
+      "fbiA": 0
+    }
+  },
+  "main_lineage": "",
+  "sub_lineage": "",
+  "family": "",
+  "spoligotype": "",
+  "species": "Non-tuberculosis Mycobacterium",
+  "drtype": "N/A",
+  "dr_resistances": [],
+  "other_variants": [],
+  "notes": [
+    "NOT MTB: Very low mapping rate (2.91%) to M. tuberculosis H37Rv reference.",
+    "Reads likely belong to a non-tuberculosis mycobacterium (NTM).",
+    "Species identification requires alternative analysis (e.g., 16S/hsp65 sequence extraction or NTM-specific pipeline).",
+    "TB-Profiler drug resistance results NOT applicable for NTM."
+  ]
+}

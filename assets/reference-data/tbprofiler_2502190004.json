@@ -1,0 +1,259 @@
+{
+  "id": "2502190004",
+  "timestamp": "2025-02-19T11:05:33Z",
+  "pipeline": {
+    "software": "TB-Profiler",
+    "version": "6.3.0",
+    "db_version": "WHO-UCN-GTB-PCI-2023.5",
+    "analysis_date": "2025-02-19",
+    "commit": "a8f3c2d"
+  },
+  "sequencing": {
+    "platform": "MinION",
+    "instrument_id": "MN42781",
+    "flowcell": "FLO-MIN114",
+    "kit": "SQK-RBK114.96",
+    "basecaller": "Dorado",
+    "basecaller_version": "0.5.3",
+    "basecaller_model": "dna_r10.4.1_e8.2_400bps_sup@v4.3.0"
+  },
+  "qc": {
+    "num_reads": 298765,
+    "num_reads_mapped": 289456,
+    "pct_reads_mapped": 96.89,
+    "median_depth": 105,
+    "genome_coverage_10x": 99.0,
+    "genome_coverage_30x": 97.5,
+    "mean_read_length": 4912,
+    "median_read_length": 4156,
+    "n50": 7045,
+    "target_median_depth": {
+      "rpoB": 138,
+      "katG": 112,
+      "inhA_promoter": 104,
+      "embB": 91,
+      "pncA": 108,
+      "gyrA": 125,
+      "gyrB": 119,
+      "rrs": 99,
+      "eis_promoter": 110,
+      "rplC": 104,
+      "Rv0678": 89,
+      "atpE": 95,
+      "pepQ": 91,
+      "ddn": 97,
+      "fbiA": 93
+    }
+  },
+  "main_lineage": "lineage2",
+  "sub_lineage": "lineage2.2.1",
+  "family": "Beijing",
+  "spoligotype": "SIT1",
+  "species": "Mycobacterium tuberculosis",
+  "drtype": "XDR-TB",
+  "dr_resistances": [
+    {
+      "drug": "rifampicin",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "rpoB",
+          "nucleotide_change": "c.1349C>T",
+          "amino_acid_change": "p.Ser450Leu",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 138,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "isoniazid",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "katG",
+          "nucleotide_change": "c.944G>C",
+          "amino_acid_change": "p.Ser315Thr",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 112,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        },
+        {
+          "gene": "inhA_promoter",
+          "nucleotide_change": "c.-15C>T",
+          "amino_acid_change": "",
+          "type": "promoter",
+          "frequency": 1.0,
+          "depth": 104,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "ethambutol",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "embB",
+          "nucleotide_change": "c.918A>G",
+          "amino_acid_change": "p.Met306Val",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 91,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "pyrazinamide",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "pncA",
+          "nucleotide_change": "c.391G>T",
+          "amino_acid_change": "p.Asp131Tyr",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 108,
+          "confidence": "moderate",
+          "who_confidence": "Assoc w R - Moderate confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "streptomycin",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "rrs",
+          "nucleotide_change": "n.514A>C",
+          "amino_acid_change": "",
+          "type": "rRNA",
+          "frequency": 1.0,
+          "depth": 99,
+          "confidence": "moderate",
+          "who_confidence": "Assoc w R - Moderate confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "fluoroquinolones",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "gyrA",
+          "nucleotide_change": "c.271G>C",
+          "amino_acid_change": "p.Asp94Ala",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 125,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "amikacin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "kanamycin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "capreomycin",
+      "status": "Sensitive",
+      "mutations": []
+    },
+    {
+      "drug": "ethionamide",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "inhA_promoter",
+          "nucleotide_change": "c.-15C>T",
+          "amino_acid_change": "",
+          "type": "promoter",
+          "frequency": 1.0,
+          "depth": 104,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "Cross-resistance with isoniazid via inhA"
+        }
+      ]
+    },
+    {
+      "drug": "linezolid",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "rplC",
+          "nucleotide_change": "c.460C>T",
+          "amino_acid_change": "p.Cys154Arg",
+          "type": "missense",
+          "frequency": 1.0,
+          "depth": 104,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "bedaquiline",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "Rv0678",
+          "nucleotide_change": "c.192_193insG",
+          "amino_acid_change": "p.Asp65fs",
+          "type": "frameshift",
+          "frequency": 1.0,
+          "depth": 89,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "WHO catalogue 2023"
+        }
+      ]
+    },
+    {
+      "drug": "clofazimine",
+      "status": "Resistant",
+      "mutations": [
+        {
+          "gene": "Rv0678",
+          "nucleotide_change": "c.192_193insG",
+          "amino_acid_change": "p.Asp65fs",
+          "type": "frameshift",
+          "frequency": 1.0,
+          "depth": 89,
+          "confidence": "high",
+          "who_confidence": "Assoc w R - High confidence",
+          "annotation": "Cross-resistance via Rv0678"
+        }
+      ]
+    },
+    {
+      "drug": "delamanid",
+      "status": "Sensitive",
+      "mutations": []
+    }
+  ],
+  "other_variants": [],
+  "notes": ["XDR-TB: MDR + FQ + BDQ resistance. Limited treatment options. Delamanid remains susceptible."]
+}
