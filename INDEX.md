@@ -47,6 +47,12 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | ASTM Crosswalk Gap Analysis | — | [astm-crosswalk-gap-analysis.md](designs/analyzer-integration/astm-crosswalk-gap-analysis.md) |
 | Instrument Software Guide | — | [instrument-software-companion-guide.md](designs/analyzer-integration/instrument-software-companion-guide.md) |
 
+## Blood Bank
+
+| Feature | Mockup | Spec |
+|---------|--------|------|
+| Pre-Transfusion Testing | [pretransfusion-testing.jsx](designs/blood-bank/pretransfusion-testing.jsx) | [pretransfusion-testing.md](designs/blood-bank/pretransfusion-testing.md) |
+
 ## Microbiology
 
 | Feature | Mockup | Spec |

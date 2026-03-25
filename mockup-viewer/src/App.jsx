@@ -628,6 +628,19 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 48,
   },
 
+  // ─── Blood Bank ───
+  {
+    name: 'Pre-Transfusion Testing',
+    category: 'blood-bank',
+    component: React.lazy(() => import('@designs/blood-bank/pretransfusion-testing.jsx')),
+    description: 'Pre-transfusion testing worklist dashboard & request case view — compatibility-filtered unit selection, crossmatch result tracking, and supervisor approval workflow (Blood Bank Spec 4)',
+    specPath: 'designs/blood-bank/pretransfusion-testing.md',
+    added: '2026-03-24',
+    status: 'draft',
+    githubIssue: 65,
+    jira: ['OGC-464'],
+  },
+
   // ─── Figma-only entries (no JSX mockup) ───
   {
     name: 'Catalyst Lab Data Assistant',
@@ -650,6 +663,7 @@ export const categories = [
   'all',
   'admin-config',
   'analyzer-integration',
+  'blood-bank',
   'inventory',
   'microbiology',
   'nce',
@@ -667,6 +681,7 @@ export const categoryLabels = {
   'all': 'All',
   'admin-config': 'Admin & Config',
   'analyzer-integration': 'Analyzer Integration',
+  'blood-bank': 'Blood Bank',
   'inventory': 'Inventory & Supply',
   'microbiology': 'Microbiology',
   'nce': 'NCE',

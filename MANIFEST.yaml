@@ -1340,3 +1340,14 @@
     github: https://github.com/DIGI-UW/openelis-work/issues/64
     gallery: https://digi-uw.github.io/openelis-work/#/system/lab-management-dashboard
   added: "2026-03-24"
+
+- id: pretransfusion-testing
+  type: both
+  path: designs/blood-bank/pretransfusion-testing.jsx
+  spec: designs/blood-bank/pretransfusion-testing.md
+  category: blood-bank
+  description: Pre-transfusion testing worklist & request case view — compatibility-filtered unit selection, crossmatch result tracking, supervisor approval (Blood Bank Spec 4)
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/65
+    gallery: https://digi-uw.github.io/openelis-work/#/blood-bank/pre-transfusion-testing
+  added: "2026-03-24"
