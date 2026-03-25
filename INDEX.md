@@ -52,6 +52,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Feature | Mockup | Spec |
 |---------|--------|------|
 | Pre-Transfusion Testing | [pretransfusion-testing.jsx](designs/blood-bank/pretransfusion-testing.jsx) | [pretransfusion-testing.md](designs/blood-bank/pretransfusion-testing.md) |
+| Patient Blood Bank Record | [patient-blood-bank-record.jsx](designs/blood-bank/patient-blood-bank-record.jsx) | — |
 
 ## Microbiology
 

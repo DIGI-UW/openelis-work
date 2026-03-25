@@ -1351,3 +1351,14 @@
     github: https://github.com/DIGI-UW/openelis-work/issues/65
     gallery: https://digi-uw.github.io/openelis-work/#/blood-bank/pre-transfusion-testing
   added: "2026-03-24"
+
+- id: patient-blood-bank-record
+  type: jsx
+  path: designs/blood-bank/patient-blood-bank-record.jsx
+  spec: null
+  category: blood-bank
+  description: Longitudinal patient blood bank record — ABO/Rh typing history, antibody screen results, transfusion history, special requirements, and active transfusion requests (Blood Bank Spec 2)
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/66
+    gallery: https://digi-uw.github.io/openelis-work/#/blood-bank/patient-blood-bank-record
+  added: "2026-03-25"

@@ -640,6 +640,17 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 65,
     jira: ['OGC-464'],
   },
+  {
+    name: 'Patient Blood Bank Record',
+    category: 'blood-bank',
+    component: React.lazy(() => import('@designs/blood-bank/patient-blood-bank-record.jsx')),
+    description: 'Longitudinal patient blood bank record — ABO/Rh typing history, antibody screen results, transfusion history, special requirements, and active transfusion requests (Blood Bank Spec 2)',
+    specPath: null,
+    added: '2026-03-25',
+    status: 'draft',
+    githubIssue: 66,
+    jira: ['OGC-465'],
+  },
 
   // ─── Figma-only entries (no JSX mockup) ───
   {
