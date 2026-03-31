@@ -1,1713 +1,1654 @@
-import React from 'react';
+/**
+ * Results Entry Page — Interactive Preview v3
+ * OpenELIS Global · Structural fixes per critique
+ *
+ * Changes from v2:
+ *  - Notes + Interpretation are always-visible sections above tabs (not tabs)
+ *  - Report NCE inline form replaces reject workflow
+ *  - Referral tab added (checkbox-gated fields)
+ *  - QA/QC tab added
+ *  - Order Info tab added
+ *  - Patient name hidden in collapsed row (ID + calculated age shown)
+ *  - Method & Reagents is default tab
+ *  - Program banner in expanded panel
+ */
+import { useState } from "react";
+import {
+  Search, ChevronRight, ChevronDown, ChevronUp, Check, AlertTriangle,
+  FileText, Microscope, Paperclip, History, FlaskConical, Send,
+  Plus, Trash2, Download, X, Info, Shield, ClipboardList,
+  MessageSquare, AlertCircle, ExternalLink, Pencil
+} from "lucide-react";
 
-const ResultsPageRedesign = () => {
-  // Initial state - no data loaded until search/filter applied
-  const [hasSearched, setHasSearched] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
-  
-  // Search and filter state
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [selectedLabUnit, setSelectedLabUnit] = React.useState('');
-  const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false);
-  
-  // Advanced filters
-  const [filters, setFilters] = React.useState({
-    labNumberFrom: '',
-    labNumberTo: '',
-    dateFrom: '',
-    dateTo: '',
-    testSection: '',
-    status: '',
-    showPendingOnly: false,
-    showEnteredOnly: false,
-  });
-  
-  // Pagination state
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(25);
-  const [totalResultCount, setTotalResultCount] = React.useState(0);
-  
-  // UI state
-  const [expandedRow, setExpandedRow] = React.useState(null);
-  const [selectedTab, setSelectedTab] = React.useState('method');
-  const [interpretationText, setInterpretationText] = React.useState('');
-  const [selectedInterpretation, setSelectedInterpretation] = React.useState(null);
-  
-  // Lab units for dropdown
-  const labUnits = [
-    { id: 'hematology', name: 'Hematology' },
-    { id: 'chemistry', name: 'Chemistry' },
-    { id: 'microbiology', name: 'Microbiology' },
-    { id: 'immunology', name: 'Immunology' },
-    { id: 'urinalysis', name: 'Urinalysis' },
-    { id: 'bloodbank', name: 'Blood Bank' },
-  ];
-  
-  // Test sections for filter dropdown
-  const testSections = [
-    'Complete Blood Count',
-    'Basic Metabolic Panel',
-    'Lipid Panel',
-    'Liver Function',
-    'Thyroid Panel',
-    'Coagulation',
-  ];
+// ---------------------------------------------------------------------------
+// i18n stub
+// ---------------------------------------------------------------------------
+const t = (key, fallback) => fallback || key;
 
-  // Icons
-  const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>;
-  const FilterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>;
-  const ChevronDown = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>;
-  const ChevronRight = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>;
-  const CheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
-  const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>;
-  const MoreIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>;
-  const CpuIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>;
-  const TrendingUp = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>;
-  const TrendingDown = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>;
-  const AlertTriangle = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>;
-  const FileTextIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>;
-  const HistoryIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>;
-  const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
-  const SendIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>;
-  const CopyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>;
-  const ZapIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
-  const FlaskIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.58 16.5h12.85"/></svg>;
-  const BeakerIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 3h15"/><path d="M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3"/><path d="M6 14h12"/></svg>;
-  const PackageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>;
-  const ClockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
-  const AlertCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>;
-  const RotateIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>;
-  const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>;
-  const ShieldCheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>;
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+function calcAge(dob) {
+  if (!dob) return "—";
+  const [m, d, y] = dob.split("/").map(Number);
+  const birth = new Date(y, m - 1, d);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  if (today.getMonth() < birth.getMonth() ||
+    (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
+  return `${age}y`;
+}
 
-  // Available analyzers for WBC test
-  const availableAnalyzers = [
-    { id: 'sysmex-xn', name: 'Sysmex XN-L', status: 'online', lastCalibrated: '12/18/2025 06:00', qcStatus: 'pass' },
-    { id: 'sysmex-xs', name: 'Sysmex XS-1000i', status: 'online', lastCalibrated: '12/18/2025 05:45', qcStatus: 'pass' },
-    { id: 'manual', name: 'Manual (Hemocytometer)', status: 'available', lastCalibrated: null, qcStatus: null },
-  ];
+// ---------------------------------------------------------------------------
+// Result range evaluation
+// ---------------------------------------------------------------------------
+// Returns: 'empty' | 'normal' | 'abnormal' | 'critical' | 'invalid'
+// Evaluation order: invalid (impossible) → critical (panic) → abnormal (out-of-normal) → normal
+function evaluateResult(value, rangeBounds) {
+  const num = parseFloat(value);
+  if (value === "" || value == null || isNaN(num) || !rangeBounds) return "empty";
+  const { normal, critical, valid } = rangeBounds;
+  if (valid   && (num < valid.low    || num > valid.high))    return "invalid";
+  if (critical && (num < critical.low || num > critical.high)) return "critical";
+  if (normal   && (num < normal.low   || num > normal.high))   return "abnormal";
+  return "normal";
+}
 
-  // Available reagent lots (sorted by FIFO - oldest first)
-  const availableReagents = [
-    { 
-      id: 'reagent-1',
-      name: 'Cellpack DCL', 
-      lots: [
-        { lotNumber: 'LOT-2024-0892', received: '10/15/2024', expires: '12/20/2024', remaining: '15%', fifoRank: 1, status: 'expiring-soon' },
-        { lotNumber: 'LOT-2024-1234', received: '11/01/2024', expires: '01/15/2025', remaining: '85%', fifoRank: 2, status: 'ok' },
-        { lotNumber: 'LOT-2024-1567', received: '12/01/2024', expires: '02/28/2025', remaining: '100%', fifoRank: 3, status: 'ok' },
-      ]
+function getCriticalMsg(value, rangeBounds) {
+  if (!rangeBounds?.critical) return null;
+  const num = parseFloat(value);
+  if (isNaN(num)) return null;
+  if (num < rangeBounds.critical.low) return rangeBounds.critical.lowMsg;
+  if (num > rangeBounds.critical.high) return rangeBounds.critical.highMsg;
+  return null;
+}
+
+function genNceNumber() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  const seq = String(Math.floor(Math.random() * 9000) + 1000);
+  return `NCE-${y}${m}${d}-${seq}`;
+}
+
+// ---------------------------------------------------------------------------
+// Mock data
+// ---------------------------------------------------------------------------
+const LAB_UNITS = [
+  { id: "", name: "All Lab Units" },
+  { id: "hematology", name: "Hematology" },
+  { id: "chemistry", name: "Chemistry" },
+  { id: "microbiology", name: "Microbiology" },
+  { id: "immunology", name: "Immunology" },
+];
+
+const INITIAL_RESULTS = [
+  {
+    id: "1",
+    labNumber: "DEV01250000000000",
+    patient: { name: "Test, Patient", id: "3456789", dob: "01/11/2011", sex: "M" },
+    testDate: "12/18/2025",
+    testName: "White Blood Cells Count (WBC)",
+    sampleType: "Whole Blood",
+    normalRange: "4.00–10.00",
+    unit: "x10⁹/L",
+    rangeBounds: {
+      normal:   { low: 4.00,  high: 10.00 },
+      critical: { low: 2.00,  high: 30.00, lowMsg: "Critical leukopenia — WBC < 2.00 x10⁹/L", highMsg: "Critical leukocytosis — WBC > 30.00 x10⁹/L" },
+      valid:    { low: 0.10,  high: 100.0 },
     },
-    { 
-      id: 'reagent-2',
-      name: 'Lysercell WNR', 
-      lots: [
-        { lotNumber: 'LOT-2024-5678', received: '11/10/2024', expires: '12/25/2024', remaining: '45%', fifoRank: 1, status: 'expiring-soon' },
-        { lotNumber: 'LOT-2024-6012', received: '12/05/2024', expires: '02/15/2025', remaining: '100%', fifoRank: 2, status: 'ok' },
-      ]
+    result: "",
+    status: "pending",
+    analyzer: null,
+    flags: [],
+    program: { name: "EQA Round 4", dueDate: "12/20/2025" },
+    previousResults: [
+      { date: "12/01/2025", value: "6.8", unit: "x10⁹/L", delta: null },
+      { date: "11/15/2025", value: "7.2", unit: "x10⁹/L", delta: "+5.9%" },
+    ],
+    notes: [
+      { id: 1, date: "12/18/2025 09:45", author: "J. Smith", type: "internal", body: "Sample hemolyzed, may need redraw." },
+    ],
+    attachments: [
+      { id: 1, name: "Requisition_Form.pdf", size: "245 KB", uploadedBy: "Order Entry", uploadedAt: "12/18/2025 08:00", source: "order" },
+    ],
+    orderInfo: {
+      clinician: "Dr. Sarah Williams", clinicianPhone: "+1 555-0123",
+      department: "Internal Medicine", priority: "Routine",
+      collectionDate: "12/18/2025 08:30", receivedDate: "12/18/2025 09:00",
+      clinicalHistory: "Annual checkup, patient reports fatigue",
+      diagnosis: "R53.83 - Other fatigue", fastingStatus: "Non-fasting",
     },
-    { 
-      id: 'reagent-3',
-      name: 'Fluorocell WDF', 
-      lots: [
-        { lotNumber: 'LOT-2024-9012', received: '11/20/2024', expires: '02/28/2025', remaining: '70%', fifoRank: 1, status: 'ok' },
-      ]
+    qcData: {
+      overall: "pass",
+      controls: [
+        { level: "Level 1", value: "5.2", expected: "5.0 ± 0.5", status: "pass" },
+        { level: "Level 2", value: "10.8", expected: "10.5 ± 0.8", status: "pass" },
+      ],
+      analyzerStatus: "Online", lastCalibrated: "12/18/2025 06:00",
     },
-  ];
-
-  const [selectedAnalyzer, setSelectedAnalyzer] = React.useState(null);
-  const [selectedReagentLots, setSelectedReagentLots] = React.useState({});
-  const [selectedMethod, setSelectedMethod] = React.useState('manual'); // 'manual' or 'analyzer'
-  const [methodNotes, setMethodNotes] = React.useState('');
-
-  // Macro codes that expand to full text (type code, press space/tab to expand)
-  const macroCodes = {
-    'MAN-HEM': 'Manual count performed using hemocytometer with improved Neubauer chamber.',
-    'MAN-MICRO': 'Manual microscopic examination performed.',
-    'MAN-DIFF': 'Manual differential count performed on stained blood smear.',
-    'MAN-RECOUNT': 'Result verified by manual recount.',
-    'MAN-DIL': 'Sample diluted prior to manual count.',
-    'QNS': 'Quantity not sufficient for automated analysis.',
-    'CLOT': 'Sample contained clots, manual method required.',
-    'LIPEMIC': 'Lipemic sample, manual verification performed.',
-    'HEMOLYZED': 'Hemolyzed sample, result may be affected.',
-  };
-
-  // Interpretation codes that can be used as macros in the interpretation text box
-  const interpretationCodes = {
-    // WBC interpretations
-    'WBC-NL': 'White blood cell count within normal limits. No evidence of infection or hematologic abnormality.',
-    'WBC-LEUK': 'Elevated WBC count. May indicate infection, inflammation, stress response, or hematologic disorder. Clinical correlation recommended.',
-    'WBC-LEUKP': 'Decreased WBC count. May indicate bone marrow suppression, viral infection, or autoimmune condition. Follow-up testing recommended.',
-    'WBC-NEUT': 'Elevated neutrophil count suggesting bacterial infection, inflammation, or stress response.',
-    'WBC-LYMPH': 'Elevated lymphocyte percentage. Consider viral infection, chronic lymphocytic leukemia, or other lymphoproliferative disorder.',
-    // RBC interpretations
-    'RBC-NL': 'Red blood cell count within normal limits.',
-    'RBC-ANEMOD': 'RBC count slightly below reference range. Suggests mild anemia. Recommend correlation with hemoglobin, hematocrit, and reticulocyte count.',
-    'RBC-ANESEV': 'Significantly decreased RBC count indicating moderate to severe anemia. Urgent clinical evaluation recommended.',
-    'RBC-POLY': 'Elevated RBC count. May indicate polycythemia vera, secondary polycythemia, or dehydration. Further workup recommended.',
-    // Glucose interpretations
-    'GLU-NL': 'Fasting glucose within normal limits. No evidence of glucose metabolism disorder.',
-    'GLU-IFG': 'Fasting glucose in prediabetic range. Recommend lifestyle modifications and periodic monitoring.',
-    'GLU-DM': 'Fasting glucose â‰¥126 mg/dL is consistent with diabetes mellitus. Recommend confirmation with repeat fasting glucose or HbA1c.',
-    'GLU-HYPO': 'Low fasting glucose. May indicate insulin excess, adrenal insufficiency, or other metabolic disorder.',
-    'GLU-CRIT': 'CRITICAL VALUE - Immediate physician notification required. Patient may require urgent intervention.',
-  };
-
-  // Handle macro expansion in method notes (method codes only)
-  const handleMethodNotesChange = (e) => {
-    let value = e.target.value;
-    // Check if last word matches a method macro code (triggered by space)
-    if (value.endsWith(' ')) {
-      const words = value.trimEnd().split(' ');
-      const lastWord = words[words.length - 1].toUpperCase();
-      if (macroCodes[lastWord]) {
-        words[words.length - 1] = macroCodes[lastWord];
-        value = words.join(' ') + ' ';
-      }
-    }
-    setMethodNotes(value);
-  };
-
-  // Handle macro expansion in interpretation text (interpretation codes only)
-  const handleInterpretationTextChange = (e) => {
-    let value = e.target.value;
-    // Check if last word matches an interpretation code (triggered by space)
-    if (value.endsWith(' ')) {
-      const words = value.trimEnd().split(' ');
-      const lastWord = words[words.length - 1].toUpperCase();
-      if (interpretationCodes[lastWord]) {
-        words[words.length - 1] = interpretationCodes[lastWord];
-        value = words.join(' ') + ' ';
-        // Also set the selected interpretation if it matches
-        setSelectedInterpretation(lastWord);
-      }
-    }
-    setInterpretationText(value);
-  };
-
-  const allResults = [
-    {
-      id: 1,
-      labNumber: 'DEV01250000000000',
-      patient: { name: 'Test, Patient', id: '3456789', dob: '01/11/2011', sex: 'M' },
-      testDate: '12/18/2025',
-      testName: 'White Blood Cells Count (WBC)',
-      sampleType: 'Whole Blood',
-      normalRange: '4.00 - 10.00',
-      unit: 'x10^9/L',
-      result: '',
-      status: 'pending',
-      analyzer: null,
-      flags: [],
-      program: { name: 'EQA Round 4', dueDate: '12/20/2025' },
-      previousResults: [
-        { date: '12/01/2025', value: '6.8', status: 'normal' },
-        { date: '11/15/2025', value: '7.2', status: 'normal' },
-      ],
-      notes: [
-        { id: 1, date: '12/18/2025 09:45', author: 'J. Smith', type: 'internal', body: 'Sample hemolyzed, may need redraw.' },
-        { id: 2, date: '12/18/2025 10:15', author: 'M. Johnson', type: 'external', body: 'Patient on anticoagulation therapy.' },
-      ],
-      attachments: [
-        { id: 1, name: 'Requisition_Form.pdf', type: 'pdf', size: '245 KB', uploadedBy: 'Order Entry', uploadedAt: '12/18/2025 08:00', source: 'order' },
-        { id: 2, name: 'Previous_Results_Scan.jpg', type: 'image', size: '1.2 MB', uploadedBy: 'J. Smith', uploadedAt: '12/18/2025 09:30', source: 'result' },
-      ],
-      orderInfo: {
-        clinician: 'Dr. Sarah Williams',
-        clinicianPhone: '+1 555-0123',
-        department: 'Internal Medicine',
-        priority: 'Routine',
-        collectionDate: '12/18/2025 08:30',
-        receivedDate: '12/18/2025 09:00',
-        clinicalHistory: 'Annual checkup, patient reports fatigue',
-        diagnosis: 'R53.83 - Other fatigue',
-        fastingStatus: 'Non-fasting',
-        medicationList: 'Warfarin 5mg daily, Lisinopril 10mg daily',
-        specialInstructions: 'Compare with previous EQA results',
-        insuranceProvider: 'Blue Cross',
-        authorizationNumber: 'AUTH-2024-78901',
-      },
-      suggestedInterpretation: null,
-      interpretationOptions: [
-        { code: 'WBC-NL', label: 'Normal', color: 'green', range: '4.00-10.00', text: 'White blood cell count within normal limits. No evidence of infection or hematologic abnormality.' },
-        { code: 'WBC-LEUK', label: 'Leukocytosis', color: 'orange', range: '>10.00', text: 'Elevated WBC count. May indicate infection, inflammation, stress response, or hematologic disorder. Clinical correlation recommended.' },
-        { code: 'WBC-LEUKP', label: 'Leukopenia', color: 'yellow', range: '<4.00', text: 'Decreased WBC count. May indicate bone marrow suppression, viral infection, or autoimmune condition. Follow-up testing recommended.' },
-        { code: 'WBC-NEUT', label: 'Neutrophilia', color: 'orange', range: 'ANC >7.5', text: 'Elevated neutrophil count suggesting bacterial infection, inflammation, or stress response.' },
-        { code: 'WBC-LYMPH', label: 'Lymphocytosis', color: 'blue', range: 'Lymph >40%', text: 'Elevated lymphocyte percentage. Consider viral infection, chronic lymphocytic leukemia, or other lymphoproliferative disorder.' },
-      ],
-      qcStatus: 'pass',
+    suggestedInterpretation: null,
+    interpretationOptions: [
+      { code: "WBC-NL",   label: "Normal",       color: "green",  range: "4.00–10.00", text: "WBC count within normal limits. No evidence of infection or hematologic abnormality." },
+      { code: "WBC-LEUK", label: "Leukocytosis", color: "red",    range: ">10.00",     text: "Elevated WBC. May indicate infection, inflammation, stress response, or hematologic disorder." },
+      { code: "WBC-LP",   label: "Leukopenia",   color: "stone",  range: "<4.00",      text: "Decreased WBC. May indicate bone marrow suppression, viral infection, or autoimmune condition." },
+    ],
+    qcStatus: "pass",
+    deltaCheck: null,
+    referral: null,
+    // Pre-existing NCE filed for hemolyzed specimen
+    nce: { number: "NCE-20251218-2341", status: "open", category: "Pre-Analytical", subcategory: "Specimen Integrity", severity: "Minor" },
+  },
+  {
+    id: "2",
+    labNumber: "DEV01250000000000",
+    patient: { name: "Test, Patient", id: "3456789", dob: "01/11/2011", sex: "M" },
+    testDate: "12/18/2025",
+    testName: "Red Blood Cells Count (RBC)",
+    sampleType: "Whole Blood",
+    normalRange: "4.50–6.00",
+    unit: "x10¹²/L",
+    rangeBounds: {
+      normal:   { low: 4.50, high: 6.00 },
+      critical: { low: 2.50, high: 7.00, lowMsg: "Critical anemia — RBC < 2.50 x10¹²/L", highMsg: "Critical polycythemia — RBC > 7.00 x10¹²/L" },
+      valid:    { low: 1.00, high: 9.00 },
     },
-    {
-      id: 2,
-      labNumber: 'DEV01250000000000',
-      patient: { name: 'Test, Patient', id: '3456789', dob: '01/11/2011', sex: 'M' },
-      testDate: '12/18/2025',
-      testName: 'Red Blood Cells Count (RBC)',
-      sampleType: 'Whole Blood',
-      normalRange: '4.50 - 6.00',
-      unit: 'x10^12/L',
-      result: '4.2',
-      status: 'entered',
-      analyzer: 'Sysmex XN-L',
-      flags: ['below-normal'],
-      program: null,
-      previousResults: [{ date: '12/01/2025', value: '4.8', status: 'normal' }],
-      notes: [],
-      attachments: [],
-      orderInfo: {
-        clinician: 'Dr. Sarah Williams',
-        clinicianPhone: '+1 555-0123',
-        department: 'Internal Medicine',
-        priority: 'Routine',
-        collectionDate: '12/18/2025 08:30',
-        receivedDate: '12/18/2025 09:00',
-      },
-      suggestedInterpretation: { code: 'RBC-ANEMOD', label: 'Mild Anemia', color: 'yellow', text: 'RBC count slightly below reference range. Suggests mild anemia. Recommend correlation with hemoglobin, hematocrit, and reticulocyte count.' },
-      interpretationOptions: [
-        { code: 'RBC-NL', label: 'Normal', color: 'green', range: '4.50-6.00', text: 'Red blood cell count within normal limits.' },
-        { code: 'RBC-ANEMOD', label: 'Mild Anemia', color: 'yellow', range: '3.50-4.49', text: 'RBC count slightly below reference range. Suggests mild anemia. Recommend correlation with hemoglobin, hematocrit, and reticulocyte count.' },
-        { code: 'RBC-ANESEV', label: 'Moderate-Severe Anemia', color: 'red', range: '<3.50', text: 'Significantly decreased RBC count indicating moderate to severe anemia. Urgent clinical evaluation recommended. Consider iron studies, B12, folate, and peripheral smear.' },
-        { code: 'RBC-POLY', label: 'Polycythemia', color: 'orange', range: '>6.00', text: 'Elevated RBC count. May indicate polycythemia vera, secondary polycythemia, or dehydration. Further workup recommended.' },
-      ],
-      qcStatus: 'pass',
+    result: "4.2",
+    status: "awaiting-validation",
+    analyzer: "Sysmex XN-L",
+    flags: ["below-normal"],
+    program: null,
+    previousResults: [
+      { date: "12/01/2025", value: "4.8", unit: "x10¹²/L", delta: null },
+      { date: "11/15/2025", value: "4.7", unit: "x10¹²/L", delta: "-2.1%" },
+    ],
+    notes: [],
+    attachments: [],
+    orderInfo: {
+      clinician: "Dr. Sarah Williams", clinicianPhone: "+1 555-0123",
+      department: "Internal Medicine", priority: "Routine",
+      collectionDate: "12/18/2025 08:30", receivedDate: "12/18/2025 09:00",
     },
-    {
-      id: 3,
-      labNumber: 'DEV01250000000001',
-      patient: { name: 'Smith, Jane', id: '7891234', dob: '05/22/1985', sex: 'F' },
-      testDate: '12/18/2025',
-      testName: 'Glucose, Fasting',
-      sampleType: 'Serum',
-      normalRange: '70 - 99',
-      unit: 'mg/dL',
-      result: '142',
-      status: 'entered',
-      analyzer: 'Cobas c 501',
-      flags: ['above-normal', 'delta-check'],
-      program: null,
-      previousResults: [{ date: '12/01/2025', value: '98', status: 'normal' }],
-      notes: [
-        { id: 1, date: '12/18/2025 11:30', author: 'K. Davis', type: 'external', body: 'Patient confirmed 12-hour fast prior to collection.' },
+    qcData: {
+      overall: "pass",
+      controls: [
+        { level: "Level 1", value: "4.9", expected: "4.8 ± 0.3", status: "pass" },
+        { level: "Level 2", value: "6.1", expected: "6.0 ± 0.4", status: "pass" },
       ],
-      attachments: [
-        { id: 1, name: 'Insurance_Auth.pdf', type: 'pdf', size: '89 KB', uploadedBy: 'Order Entry', uploadedAt: '12/18/2025 06:45', source: 'order' },
-      ],
-      orderInfo: {
-        clinician: 'Dr. Michael Chen',
-        clinicianPhone: '+1 555-0456',
-        department: 'Endocrinology',
-        priority: 'STAT',
-        collectionDate: '12/18/2025 07:00',
-        receivedDate: '12/18/2025 07:30',
-        clinicalHistory: 'Follow-up for prediabetes, weight loss program',
-        fastingStatus: 'Fasting (12 hours)',
-      },
-      suggestedInterpretation: { code: 'GLU-DM', label: 'Diabetes Mellitus', color: 'red', text: 'Fasting glucose â‰¥126 mg/dL is consistent with diabetes mellitus. Recommend confirmation with repeat fasting glucose or HbA1c. Clinical correlation advised.' },
-      interpretationOptions: [
-        { code: 'GLU-NL', label: 'Normal', color: 'green', range: '70-99', text: 'Fasting glucose within normal limits. No evidence of glucose metabolism disorder.' },
-        { code: 'GLU-IFG', label: 'Impaired Fasting Glucose', color: 'yellow', range: '100-125', text: 'Fasting glucose in prediabetic range. Recommend lifestyle modifications and periodic monitoring. Consider oral glucose tolerance test.' },
-        { code: 'GLU-DM', label: 'Diabetes Mellitus', color: 'red', range: 'â‰¥126', text: 'Fasting glucose â‰¥126 mg/dL is consistent with diabetes mellitus. Recommend confirmation with repeat fasting glucose or HbA1c. Clinical correlation advised.' },
-        { code: 'GLU-HYPO', label: 'Hypoglycemia', color: 'orange', range: '<70', text: 'Low fasting glucose. May indicate insulin excess, adrenal insufficiency, or other metabolic disorder. Clinical correlation required.' },
-        { code: 'GLU-CRIT', label: 'Critical Value', color: 'red', range: '<50 or >400', text: 'CRITICAL VALUE - Immediate physician notification required. Patient may require urgent intervention.' },
-      ],
-      qcStatus: 'pass',
-      deltaCheck: { previous: '98', change: '+44.9%', threshold: '20%' },
+      analyzerStatus: "Online", lastCalibrated: "12/18/2025 05:45",
     },
-  ];
+    suggestedInterpretation: { code: "RBC-ANEMOD", label: "Mild Anemia", color: "stone", text: "RBC count slightly below reference range. Suggests mild anemia. Recommend correlation with Hgb, Hct, and reticulocyte count." },
+    interpretationOptions: [
+      { code: "RBC-NL",     label: "Normal",                 color: "green", range: "4.50–6.00", text: "Red blood cell count within normal limits." },
+      { code: "RBC-ANEMOD", label: "Mild Anemia",            color: "stone", range: "3.50–4.49", text: "RBC count slightly below reference range. Suggests mild anemia." },
+      { code: "RBC-ANESEV", label: "Moderate-Severe Anemia", color: "red",   range: "<3.50",     text: "Significantly decreased RBC count. Urgent clinical evaluation recommended." },
+    ],
+    qcStatus: "pass",
+    deltaCheck: null,
+    referral: null,
+    nce: null,
+  },
+  {
+    id: "3",
+    labNumber: "DEV01250000000001",
+    patient: { name: "Smith, Jane", id: "7891234", dob: "05/22/1985", sex: "F" },
+    testDate: "12/18/2025",
+    testName: "Glucose, Fasting",
+    sampleType: "Serum",
+    normalRange: "70–99",
+    unit: "mg/dL",
+    rangeBounds: {
+      normal:   { low: 70,  high: 99 },
+      critical: { low: 50,  high: 400, lowMsg: "Critical hypoglycemia — Glucose < 50 mg/dL", highMsg: "Critical hyperglycemia — Glucose > 400 mg/dL" },
+      valid:    { low: 20,  high: 600 },
+    },
+    result: "142",
+    status: "awaiting-validation",
+    analyzer: "Cobas c 501",
+    flags: ["above-normal", "delta-check"],
+    program: null,
+    previousResults: [
+      { date: "12/01/2025", value: "98",  unit: "mg/dL", delta: null },
+      { date: "11/01/2025", value: "102", unit: "mg/dL", delta: "+4.1%" },
+    ],
+    notes: [{ id: 1, date: "12/18/2025 11:30", author: "K. Davis", type: "external", body: "Patient confirmed 12-hour fast prior to collection." }],
+    attachments: [
+      { id: 1, name: "Insurance_Auth.pdf", size: "89 KB", uploadedBy: "Order Entry", uploadedAt: "12/18/2025 06:45", source: "order" },
+    ],
+    orderInfo: {
+      clinician: "Dr. Michael Chen", clinicianPhone: "+1 555-0456",
+      department: "Endocrinology", priority: "STAT",
+      collectionDate: "12/18/2025 07:00", receivedDate: "12/18/2025 07:30",
+      clinicalHistory: "Follow-up for prediabetes, weight loss program",
+      fastingStatus: "Fasting (12 hours)",
+    },
+    qcData: {
+      overall: "pass",
+      controls: [
+        { level: "Level 1", value: "85", expected: "82 ± 5", status: "pass" },
+        { level: "Level 2", value: "210", expected: "208 ± 12", status: "pass" },
+      ],
+      analyzerStatus: "Online", lastCalibrated: "12/18/2025 06:15",
+    },
+    suggestedInterpretation: { code: "GLU-DM", label: "Diabetes Mellitus", color: "red", text: "Fasting glucose ≥126 mg/dL is consistent with diabetes mellitus. Recommend confirmation with repeat fasting glucose or HbA1c." },
+    interpretationOptions: [
+      { code: "GLU-NL",   label: "Normal",                   color: "green", range: "70–99",       text: "Fasting glucose within normal limits." },
+      { code: "GLU-IFG",  label: "Impaired Fasting Glucose", color: "stone", range: "100–125",     text: "Fasting glucose in prediabetic range. Recommend lifestyle modifications and periodic monitoring." },
+      { code: "GLU-DM",   label: "Diabetes Mellitus",        color: "red",   range: "≥126",        text: "Fasting glucose ≥126 mg/dL is consistent with diabetes mellitus." },
+      { code: "GLU-CRIT", label: "Critical Value",           color: "red",   range: "<50 or >400", text: "CRITICAL VALUE — Immediate physician notification required." },
+    ],
+    qcStatus: "pass",
+    deltaCheck: { previous: "98", current: "142", change: "+44.9%", threshold: "20%" },
+    referral: null,
+    nce: null,
+  },
+  {
+    id: "4",
+    labNumber: "DEV01250000000002",
+    patient: { name: "Johnson, Robert", id: "5551234", dob: "03/14/1960", sex: "M" },
+    testDate: "12/18/2025",
+    testName: "Potassium",
+    sampleType: "Serum",
+    normalRange: "3.5–5.0",
+    unit: "mmol/L",
+    rangeBounds: {
+      normal:   { low: 3.5, high: 5.0 },
+      critical: { low: 2.5, high: 6.5, lowMsg: "Critical hypokalemia — K⁺ < 2.5 mmol/L", highMsg: "Critical hyperkalemia — K⁺ > 6.5 mmol/L" },
+      valid:    { low: 1.0, high: 10.0 },
+    },
+    result: "7.8",
+    status: "awaiting-validation",
+    analyzer: "Cobas c 501",
+    flags: ["above-normal"],
+    program: null,
+    previousResults: [],
+    notes: [],
+    attachments: [],
+    orderInfo: {
+      clinician: "Dr. Lisa Park", clinicianPhone: "+1 555-0789",
+      department: "Cardiology", priority: "Routine",
+      collectionDate: "12/18/2025 10:15", receivedDate: "12/18/2025 10:45",
+    },
+    qcData: { overall: "none", controls: [], analyzerStatus: "—", lastCalibrated: "—" },
+    suggestedInterpretation: null,
+    interpretationOptions: [],
+    qcStatus: "none",
+    deltaCheck: null,
+    referral: null,
+    nce: null,
+  },
+];
 
-  // State for displayed results (filtered from allResults)
-  const [displayedResults, setDisplayedResults] = React.useState([]);
+// ---------------------------------------------------------------------------
+// Design tokens
+// ---------------------------------------------------------------------------
+const STATUS_CONFIG = {
+  pending:               { label: "Pending",              bg: "bg-gray-200",   text: "text-gray-700" },
+  entered:               { label: "Entered",              bg: "bg-blue-100",   text: "text-blue-800" },
+  "awaiting-validation": { label: "Awaiting Validation",  bg: "bg-amber-100",  text: "text-amber-800" },
+  released:              { label: "Released",             bg: "bg-green-100",  text: "text-green-800" },
+  cancelled:             { label: "Cancelled",            bg: "bg-red-100",    text: "text-red-700"   },
+};
 
-  // Simulate search/filter function
-  const performSearch = () => {
-    setIsLoading(true);
-    // Simulate API call delay
-    setTimeout(() => {
-      let filtered = [...allResults];
-      
-      // Apply search query
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        filtered = filtered.filter(r => 
-          r.labNumber.toLowerCase().includes(q) ||
-          r.patient.id.toLowerCase().includes(q) ||
-          r.patient.name.toLowerCase().includes(q) ||
-          r.testName.toLowerCase().includes(q)
-        );
-      }
-      
-      // Apply lab unit filter (simulated - in real app would filter by lab unit)
-      if (selectedLabUnit) {
-        // For demo, filter by test type based on lab unit
-        if (selectedLabUnit === 'hematology') {
-          filtered = filtered.filter(r => 
-            r.testName.includes('WBC') || r.testName.includes('RBC') || 
-            r.testName.includes('Blood')
-          );
-        } else if (selectedLabUnit === 'chemistry') {
-          filtered = filtered.filter(r => r.testName.includes('Glucose'));
-        }
-      }
-      
-      // Apply advanced filters
-      if (filters.status) {
-        filtered = filtered.filter(r => r.status === filters.status);
-      }
-      if (filters.showPendingOnly) {
-        filtered = filtered.filter(r => r.status === 'pending');
-      }
-      if (filters.showEnteredOnly) {
-        filtered = filtered.filter(r => r.status === 'entered');
-      }
-      
-      setTotalResultCount(filtered.length);
-      setDisplayedResults(filtered);
-      setHasSearched(true);
-      setIsLoading(false);
-      setCurrentPage(1);
-    }, 500);
+const COLOR_CONFIG = {
+  green:  { bg: "bg-green-100",  text: "text-green-800",  border: "border-green-400" },
+  red:    { bg: "bg-red-100",    text: "text-red-800",    border: "border-red-400" },
+  stone:  { bg: "bg-stone-100",  text: "text-stone-700",  border: "border-stone-400" },
+  blue:   { bg: "bg-blue-100",   text: "text-blue-800",   border: "border-blue-400" },
+  purple: { bg: "bg-purple-100", text: "text-purple-800", border: "border-purple-400" },
+  teal:   { bg: "bg-teal-100",   text: "text-teal-800",   border: "border-teal-400" },
+  gray:   { bg: "bg-gray-200",   text: "text-gray-700",   border: "border-gray-400" },
+};
+
+const QC_DOT = {
+  pass: "bg-green-500", warning: "bg-yellow-400", fail: "bg-red-500", none: "bg-gray-300",
+};
+
+// Result range visual styles
+// empty/normal  — no highlight
+// abnormal      — yellow  (outside normal range)
+// critical      — orange  (panic / critical value, requires acknowledgment)
+// invalid       — dark red (outside valid physiological range — likely instrument error)
+const RANGE_INPUT_BORDER = {
+  empty:    "border-gray-300",
+  normal:   "border-gray-400",
+  abnormal: "border-yellow-500",
+  critical: "border-orange-500",
+  invalid:  "border-red-800",
+};
+const RANGE_CELL_BG = {
+  empty:    "",
+  normal:   "",
+  abnormal: "bg-yellow-50",
+  critical: "bg-orange-50",
+  invalid:  "bg-red-950",
+};
+const RANGE_CELL_TEXT = {
+  empty:    "text-gray-700",
+  normal:   "text-gray-700",
+  abnormal: "text-yellow-900",
+  critical: "text-orange-900",
+  invalid:  "text-red-100",
+};
+const RANGE_FLAG_BADGE = {
+  abnormal: "bg-yellow-100 text-yellow-800",
+  critical: "bg-orange-100 text-orange-900",
+  invalid:  "bg-red-900 text-red-100",
+};
+
+const NCE_SUBCATEGORIES = {
+  "Pre-Analytical":  ["Specimen Collection", "Specimen Labeling", "Specimen Transport", "Specimen Integrity", "Container Issue", "Order Entry"],
+  "Analytical":      ["Equipment Malfunction", "QC Failure", "Reagent Issue", "Testing Error", "Result Discrepancy", "Result Nullification"],
+  "Post-Analytical": ["Reporting Error", "Transcription Error", "Result Delay", "Interpretation Error", "Referral Result Rejection"],
+  "Administrative":  ["Documentation Gap", "Process Deviation", "Communication Failure", "Training Issue", "Test Cancellation", "Order Cancellation"],
+};
+
+// ---------------------------------------------------------------------------
+// Tiny reusable components
+// ---------------------------------------------------------------------------
+function Tag({ color = "gray", children }) {
+  const c = COLOR_CONFIG[color] || COLOR_CONFIG.gray;
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${c.bg} ${c.text}`}>
+      {children}
+    </span>
+  );
+}
+
+function StatusTag({ status }) {
+  const c = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+  const colorMap = { pending: "gray", entered: "blue", "awaiting-validation": "stone", released: "green", cancelled: "red" };
+  return <Tag color={colorMap[status] || "gray"}>{c.label}</Tag>;
+}
+
+function SectionHeader({ label, open, onToggle, badge }) {
+  return (
+    <div
+      className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-200 cursor-pointer select-none hover:bg-gray-100"
+      onClick={onToggle}
+    >
+      <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+        {label}
+        {badge && <span className="text-xs font-normal text-gray-400">{badge}</span>}
+      </div>
+      {open ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Patient Banner
+// ---------------------------------------------------------------------------
+function PatientBanner({ patient, orderInfo }) {
+  return (
+    <div className="flex flex-wrap items-center gap-4 px-4 py-2 bg-gray-100 border-b border-gray-200 text-sm">
+      <span className="font-semibold text-gray-900">{patient.name}</span>
+      <span className="text-gray-400 text-xs">ID: <strong className="text-gray-700">{patient.id}</strong></span>
+      <span className="text-gray-400 text-xs">DOB: <strong className="text-gray-700">{patient.dob}</strong></span>
+      <span className="text-gray-400 text-xs">Sex: <strong className="text-gray-700">{patient.sex}</strong></span>
+      {orderInfo?.clinician && <span className="text-gray-400 text-xs">Clinician: <strong className="text-gray-700">{orderInfo.clinician}</strong></span>}
+      {orderInfo?.department && <span className="text-gray-400 text-xs">Dept: <strong className="text-gray-700">{orderInfo.department}</strong></span>}
+      {orderInfo?.priority && <Tag color={orderInfo.priority === "STAT" ? "red" : "gray"}>{orderInfo.priority}</Tag>}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Always-visible Notes section
+// ---------------------------------------------------------------------------
+function NotesSection({ result }) {
+  const [notes, setNotes] = useState(result.notes);
+  const [open, setOpen] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [newNote, setNewNote] = useState("");
+  const [noteType, setNoteType] = useState("internal");
+
+  const addNote = () => {
+    if (!newNote.trim()) return;
+    setNotes(prev => [...prev, {
+      id: Date.now(), date: new Date().toLocaleDateString(), author: "Current User",
+      type: noteType, body: newNote.trim(),
+    }]);
+    setNewNote(""); setShowForm(false);
   };
-
-  // Handle search submit
-  const handleSearch = (e) => {
-    e?.preventDefault();
-    if (searchQuery || selectedLabUnit) {
-      performSearch();
-    }
-  };
-
-  // Handle lab unit change
-  const handleLabUnitChange = (value) => {
-    setSelectedLabUnit(value);
-    if (value) {
-      // Auto-search when lab unit selected
-      setTimeout(() => performSearch(), 100);
-    }
-  };
-
-  // Clear all filters and reset
-  const clearFilters = () => {
-    setSearchQuery('');
-    setSelectedLabUnit('');
-    setFilters({
-      labNumberFrom: '',
-      labNumberTo: '',
-      dateFrom: '',
-      dateTo: '',
-      testSection: '',
-      status: '',
-      showPendingOnly: false,
-      showEnteredOnly: false,
-    });
-    setHasSearched(false);
-    setDisplayedResults([]);
-    setTotalResultCount(0);
-  };
-
-  // Pagination calculations
-  const totalPages = Math.ceil(totalResultCount / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = Math.min(startIndex + pageSize, totalResultCount);
-  const paginatedResults = displayedResults.slice(startIndex, endIndex);
-
-  const getStatusBadge = (status) => {
-    const styles = {
-      pending: 'bg-gray-100 text-gray-700',
-      entered: 'bg-blue-100 text-blue-700',
-      'awaiting-validation': 'bg-amber-100 text-amber-700',
-      released: 'bg-green-100 text-green-700',
-      cancelled: 'bg-gray-200 text-gray-500 line-through',
-    };
-    return styles[status] || styles.pending;
-  };
-
-  const getStatusLabel = (status) => {
-    const labels = {
-      pending: 'Pending',
-      entered: 'Entered',
-      'awaiting-validation': 'Awaiting Validation',
-      released: 'Released',
-      cancelled: 'Cancelled',
-    };
-    return labels[status] || status;
-  };
-
-  const getFlagIcon = (flag) => {
-    switch (flag) {
-      case 'above-normal': return <span className="text-orange-500"><TrendingUp /></span>;
-      case 'below-normal': return <span className="text-yellow-600"><TrendingDown /></span>;
-      case 'delta-check': return <span className="text-red-500"><AlertTriangle /></span>;
-      default: return null;
-    }
-  };
-
-  const getQCStatusIndicator = (status) => {
-    switch (status) {
-      case 'pass': return <div className="w-2 h-2 rounded-full bg-green-500" title="QC Passed" />;
-      case 'warning': return <div className="w-2 h-2 rounded-full bg-yellow-500" title="QC Warning" />;
-      case 'fail': return <div className="w-2 h-2 rounded-full bg-red-500" title="QC Failed" />;
-      default: return <div className="w-2 h-2 rounded-full bg-gray-300" />;
-    }
-  };
-
-  const getInterpretationColor = (color) => {
-    const colors = {
-      green: 'bg-green-100 text-green-700 border-green-200',
-      yellow: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-      orange: 'bg-orange-100 text-orange-700 border-orange-200',
-      red: 'bg-red-100 text-red-700 border-red-200',
-      blue: 'bg-blue-100 text-blue-700 border-blue-200',
-    };
-    return colors[color] || 'bg-gray-100 text-gray-700 border-gray-200';
-  };
-
-  const getLotStatusStyle = (status, isFifo) => {
-    if (status === 'expiring-soon') return 'border-amber-300 bg-amber-50';
-    if (status === 'expired') return 'border-red-300 bg-red-50 opacity-50';
-    if (isFifo) return 'border-teal-300 bg-teal-50';
-    return 'border-gray-200 bg-white';
-  };
-
-  const calculateAge = (dob) => {
-    const [month, day, year] = dob.split('/');
-    const birthDate = new Date(year, month - 1, day);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
-  const [showNoteInput, setShowNoteInput] = React.useState(false);
-  const [noteType, setNoteType] = React.useState('internal');
-  const [noteText, setNoteText] = React.useState('');
-
-  // Icons
-  const MessageSquareIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>;
-  const ClipboardListIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>;
-  const PaperclipIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>;
-  const UploadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>;
-  const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>;
-  const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>;
-  const FileIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>;
-  const ImageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>;
 
   return (
-    <div className="bg-gray-50 min-h-screen font-sans">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">Results Entry</h1>
-            <p className="text-sm text-gray-500 mt-1">Enter and manage test results</p>
-          </div>
-          {hasSearched && (
-            <div className="text-sm text-gray-500">
-              <span className="font-medium text-gray-900">{totalResultCount}</span> results found
-            </div>
+    <div className="border-b border-gray-200">
+      <SectionHeader
+        label={<><MessageSquare className="w-4 h-4 inline mr-1.5 text-gray-500" />Notes</>}
+        open={open}
+        onToggle={() => setOpen(o => !o)}
+        badge={notes.length ? `(${notes.length})` : null}
+      />
+      {open && (
+        <div className="px-4 py-3 space-y-2 bg-white">
+          {notes.length === 0 && !showForm && (
+            <p className="text-xs text-gray-400">No notes yet.</p>
           )}
-        </div>
-      </div>
+          {notes.map(note => (
+            <div key={note.id} className="flex gap-3 text-sm">
+              <div className="flex-1 border-l-2 border-gray-200 pl-3">
+                <div className="flex gap-2 text-xs text-gray-400 mb-0.5 flex-wrap">
+                  <span>{note.date}</span>
+                  <span className="text-gray-500 font-medium">{note.author}</span>
+                  <Tag color={note.type === "internal" ? "purple" : "teal"}>
+                    {note.type === "internal" ? "In Lab Only" : "Send with Result"}
+                  </Tag>
+                </div>
+                <div className="text-gray-800 text-sm">{note.body}</div>
+              </div>
+            </div>
+          ))}
 
-      {/* Search & Filters */}
-      <form onSubmit={handleSearch} className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center gap-4">
-          {/* Lab Unit Dropdown */}
-          <select 
-            value={selectedLabUnit}
-            onChange={(e) => handleLabUnitChange(e.target.value)}
-            className="px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 w-48"
-          >
-            <option value="">Select Lab Unit...</option>
-            {labUnits.map(unit => (
-              <option key={unit.id} value={unit.id}>{unit.name}</option>
-            ))}
-          </select>
-          
-          <span className="text-gray-400">or</span>
-          
-          <div className="flex-1 relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><SearchIcon /></div>
-            <input 
-              type="text" 
-              value={searchQuery} 
-              onChange={(e) => setSearchQuery(e.target.value)} 
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
-              placeholder="Search by lab number, patient name/ID, accession..." 
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500" 
-            />
-          </div>
-          
-          {/* Search Button */}
-          <button 
-            type="submit"
-            disabled={!searchQuery && !selectedLabUnit}
-            className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-              searchQuery || selectedLabUnit
-                ? 'bg-teal-600 text-white hover:bg-teal-700'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            Search
-          </button>
-          
-          <button 
-            type="button"
-            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className={`flex items-center gap-1 px-3 py-2.5 border rounded-lg text-sm ${showAdvancedFilters ? 'border-teal-500 bg-teal-50 text-teal-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}`}
-          >
-            <FilterIcon /> Filters {showAdvancedFilters ? 'â–²' : 'â–¼'}
-          </button>
-          
-          {hasSearched && (
-            <button 
-              type="button"
-              onClick={clearFilters}
-              className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700"
-            >
-              Clear
+          {showForm ? (
+            <div className="bg-gray-50 border border-gray-200 p-3 space-y-2">
+              <div className="flex gap-4 text-xs">
+                {["internal", "external"].map(type => (
+                  <label key={type} className="flex items-center gap-1.5 cursor-pointer">
+                    <input type="radio" name={`note-type-${result.id}`} value={type}
+                      checked={noteType === type} onChange={() => setNoteType(type)} />
+                    {type === "internal" ? "In Lab Only" : "Send with Result"}
+                  </label>
+                ))}
+              </div>
+              <textarea
+                className="w-full border border-gray-300 text-sm p-2 resize-none focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
+                rows={2} value={newNote} onChange={e => setNewNote(e.target.value)}
+                placeholder="Enter note…" autoFocus
+              />
+              <div className="flex gap-2">
+                <button onClick={addNote} className="px-3 py-1 bg-blue-700 text-white text-xs font-medium hover:bg-blue-800">Save Note</button>
+                <button onClick={() => setShowForm(false)} className="px-3 py-1 border border-gray-300 text-xs text-gray-600 hover:bg-gray-100">Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setShowForm(true)}
+              className="flex items-center gap-1 text-xs text-blue-700 hover:underline">
+              <Plus className="w-3 h-3" /> New Note
             </button>
           )}
         </div>
-
-        {/* Advanced Filters Panel */}
-        {showAdvancedFilters && (
-          <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-            <div className="grid grid-cols-4 gap-4 mb-4">
-              <div>
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">Lab Number From</label>
-                <input 
-                  type="text" 
-                  value={filters.labNumberFrom}
-                  onChange={(e) => setFilters({...filters, labNumberFrom: e.target.value})}
-                  placeholder="e.g., DEV0125..." 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500" 
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">Lab Number To</label>
-                <input 
-                  type="text" 
-                  value={filters.labNumberTo}
-                  onChange={(e) => setFilters({...filters, labNumberTo: e.target.value})}
-                  placeholder="To (optional)" 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500" 
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">Date From</label>
-                <input 
-                  type="date" 
-                  value={filters.dateFrom}
-                  onChange={(e) => setFilters({...filters, dateFrom: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500" 
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">Date To</label>
-                <input 
-                  type="date" 
-                  value={filters.dateTo}
-                  onChange={(e) => setFilters({...filters, dateTo: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500" 
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-4 gap-4">
-              <div>
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">Test Section</label>
-                <select
-                  value={filters.testSection}
-                  onChange={(e) => setFilters({...filters, testSection: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                >
-                  <option value="">All Sections</option>
-                  {testSections.map(section => (
-                    <option key={section} value={section}>{section}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">Status</label>
-                <select
-                  value={filters.status}
-                  onChange={(e) => setFilters({...filters, status: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                >
-                  <option value="">All Statuses</option>
-                  <option value="pending">Pending</option>
-                  <option value="entered">Entered</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">Quick Filters</label>
-                <div className="flex flex-wrap gap-2">
-                  <label className="flex items-center gap-1 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={filters.showPendingOnly}
-                      onChange={(e) => setFilters({...filters, showPendingOnly: e.target.checked, showEnteredOnly: false})}
-                      className="rounded border-gray-300 text-teal-600"
-                    />
-                    Pending
-                  </label>
-                  <label className="flex items-center gap-1 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={filters.showEnteredOnly}
-                      onChange={(e) => setFilters({...filters, showEnteredOnly: e.target.checked, showPendingOnly: false})}
-                      className="rounded border-gray-300 text-teal-600"
-                    />
-                    Entered
-                  </label>
-                </div>
-              </div>
-              <div className="flex items-end">
-                <button
-                  type="button"
-                  onClick={performSearch}
-                  disabled={!searchQuery && !selectedLabUnit}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    searchQuery || selectedLabUnit
-                      ? 'bg-teal-600 text-white hover:bg-teal-700'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  Apply Filters
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </form>
-
-      {/* Initial State - Before Search */}
-      {!hasSearched && !isLoading && (
-        <div className="p-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-              <SearchIcon />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Search to View Results</h3>
-            <p className="text-sm text-gray-500 max-w-md mx-auto">
-              Select a lab unit from the dropdown or enter a search term to view pending results.
-              This helps ensure only relevant data is loaded.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="p-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-            <div className="w-8 h-8 mx-auto mb-4 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-sm text-gray-500">Loading results...</p>
-          </div>
-        </div>
-      )}
-
-      {/* Results View - After Search */}
-      {hasSearched && !isLoading && (
-        <>
-          {/* Results Count Bar */}
-          <div className="px-6 py-3 bg-gray-100 border-b border-gray-200">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">
-                Found <span className="font-medium text-gray-900">{totalResultCount}</span> results
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs">
-                  {displayedResults.filter(r => r.status === 'pending').length} Pending
-                </span>
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
-                  {displayedResults.filter(r => r.status === 'entered').length} Entered
-                </span>
-              </div>
-            </div>
-          </div>
-
-      {/* Results Table */}
-      <div className="px-6 py-4">
-        {paginatedResults.length > 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          {/* Table Header */}
-          <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 border-b border-gray-200 text-sm font-medium text-gray-600">
-            <div className="col-span-1"></div>
-            <div className="col-span-2">Sample / Patient</div>
-            <div className="col-span-2">Test</div>
-            <div className="col-span-1">Analyzer</div>
-            <div className="col-span-1">Range</div>
-            <div className="col-span-2">Result</div>
-            <div className="col-span-1">Status</div>
-            <div className="col-span-1">Flags</div>
-            <div className="col-span-1"></div>
-          </div>
-
-          {/* Result Rows */}
-          {paginatedResults.map((result) => (
-            <div key={result.id} className="border-b border-gray-200 last:border-b-0">
-              {/* Main Row */}
-              <div className={`grid grid-cols-12 gap-4 px-4 py-3 items-center hover:bg-gray-50 cursor-pointer ${expandedRow === result.id ? 'bg-teal-50' : ''}`}
-                onClick={() => setExpandedRow(expandedRow === result.id ? null : result.id)}>
-                <div className="col-span-1 flex items-center gap-2">
-                  {expandedRow === result.id ? <ChevronDown /> : <ChevronRight />}
-                  {getQCStatusIndicator(result.qcStatus)}
-                </div>
-
-                <div className="col-span-2">
-                  <div className="text-sm font-medium text-gray-900 truncate">{result.labNumber}</div>
-                  <div className="text-xs text-gray-500">ID: {result.patient.id}</div>
-                  <div className="text-xs text-gray-400">{result.patient.sex}, Age: {calculateAge(result.patient.dob)}</div>
-                </div>
-
-                <div className="col-span-2">
-                  <div className="text-sm font-medium text-gray-900">{result.testName}</div>
-                  <div className="text-xs text-gray-500">{result.sampleType}</div>
-                  {result.program && (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 mt-1">
-                      {result.program.name}
-                    </span>
-                  )}
-                </div>
-
-                <div className="col-span-1">
-                  <div className="flex items-center gap-1.5">
-                    <CpuIcon />
-                    <span className="text-sm text-gray-600">{result.analyzer || 'â€”'}</span>
-                  </div>
-                </div>
-
-                <div className="col-span-1">
-                  <div className="text-sm text-gray-600">{result.normalRange}</div>
-                  <div className="text-xs text-gray-400">{result.unit}</div>
-                </div>
-
-                <div className="col-span-2" onClick={(e) => e.stopPropagation()}>
-                  <input type="text" defaultValue={result.result} placeholder="Enter result"
-                    className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-teal-500 ${
-                      result.flags.includes('above-normal') || result.flags.includes('delta-check') ? 'border-orange-300 bg-orange-50' :
-                      result.flags.includes('below-normal') ? 'border-yellow-300 bg-yellow-50' : 'border-gray-300'
-                    }`} />
-                </div>
-
-                <div className="col-span-1">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize ${getStatusBadge(result.status)}`}>
-                    {result.status}
-                  </span>
-                </div>
-
-                <div className="col-span-1 flex items-center gap-1">
-                  {result.flags.map((flag, idx) => <span key={idx}>{getFlagIcon(flag)}</span>)}
-                  {result.flags.length === 0 && <span className="text-gray-300">â€”</span>}
-                </div>
-
-                <div className="col-span-1 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                  <button className="p-1.5 text-green-600 hover:bg-green-50 rounded" title="Accept Result"><CheckIcon /></button>
-                  <button 
-                    onClick={() => setShowNoteInput(!showNoteInput)}
-                    className={`p-1.5 rounded ${showNoteInput ? 'text-teal-600 bg-teal-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`} 
-                    title="Add Note">
-                    <MessageSquareIcon />
-                  </button>
-                </div>
-              </div>
-
-              {/* Expanded Detail Panel */}
-              {expandedRow === result.id && (
-                <div className="px-4 py-4 bg-gray-50 border-t border-gray-200">
-                  {/* Patient Info Banner (shown only when expanded) */}
-                  <div className="mb-4 p-3 bg-white border border-gray-200 rounded-lg flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                      <div>
-                        <div className="text-xs text-gray-500 uppercase">Patient</div>
-                        <div className="text-sm font-medium text-gray-900">{result.patient.name}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500 uppercase">Patient ID</div>
-                        <div className="text-sm text-gray-900">{result.patient.id}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500 uppercase">DOB</div>
-                        <div className="text-sm text-gray-900">{result.patient.dob}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500 uppercase">Sex</div>
-                        <div className="text-sm text-gray-900">{result.patient.sex}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500 uppercase">Age</div>
-                        <div className="text-sm text-gray-900">{calculateAge(result.patient.dob)} years</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Notes Section - Always Visible */}
-                  <div className="mb-4">
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                        <MessageSquareIcon /> Notes
-                      </h4>
-                      
-                      {/* Notes Table */}
-                      {result.notes.length > 0 ? (
-                        <div className="mb-3 overflow-hidden rounded-lg border border-gray-200">
-                          <table className="w-full text-sm">
-                            <thead className="bg-gray-50">
-                              <tr>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date/Time</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Author</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Note</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                              {result.notes.map((note) => (
-                                <tr key={note.id}>
-                                  <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{note.date}</td>
-                                  <td className="px-3 py-2 text-gray-600">{note.author}</td>
-                                  <td className="px-3 py-2">
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                      note.type === 'internal' ? 'bg-gray-100 text-gray-700' : 'bg-blue-100 text-blue-700'
-                                    }`}>
-                                      {note.type === 'internal' ? 'In Lab Only' : 'Send with Result'}
-                                    </span>
-                                  </td>
-                                  <td className="px-3 py-2 text-gray-900">{note.body}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      ) : !showNoteInput && (
-                        <p className="text-sm text-gray-500 mb-3">No notes for this result.</p>
-                      )}
-
-                      {/* Add Note Input */}
-                      {showNoteInput && (
-                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 mb-3">
-                          <div className="flex items-center gap-4 mb-2">
-                            <label className="text-xs font-medium text-gray-500 uppercase">New Note</label>
-                            <div className="flex items-center gap-2">
-                              <label className="flex items-center gap-1.5 cursor-pointer">
-                                <input 
-                                  type="radio" 
-                                  name="noteType" 
-                                  value="internal"
-                                  checked={noteType === 'internal'}
-                                  onChange={() => setNoteType('internal')}
-                                  className="text-teal-600" 
-                                />
-                                <span className="text-sm text-gray-700">In Lab Only</span>
-                              </label>
-                              <label className="flex items-center gap-1.5 cursor-pointer">
-                                <input 
-                                  type="radio" 
-                                  name="noteType" 
-                                  value="external"
-                                  checked={noteType === 'external'}
-                                  onChange={() => setNoteType('external')}
-                                  className="text-teal-600" 
-                                />
-                                <span className="text-sm text-gray-700">Send with Result</span>
-                              </label>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <textarea 
-                              rows={2}
-                              value={noteText}
-                              onChange={(e) => setNoteText(e.target.value)}
-                              placeholder="Enter note..."
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
-                            />
-                            <div className="flex flex-col gap-1">
-                              <button className="px-3 py-1.5 text-xs font-medium text-white bg-teal-600 hover:bg-teal-700 rounded">
-                                Save Note
-                              </button>
-                              <button 
-                                onClick={() => {
-                                  setShowNoteInput(false);
-                                  setNoteText('');
-                                }}
-                                className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700">
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* New Note Button - Always at bottom right */}
-                      {!showNoteInput && (
-                        <div className="flex justify-end">
-                          <button 
-                            onClick={() => setShowNoteInput(true)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-md border border-teal-200"
-                          >
-                            <MessageSquareIcon /> New Note
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Interpretation Section */}
-                  <div className="mb-4">
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                        <FileTextIcon /> Interpretation
-                      </h4>
-                      <div className="grid grid-cols-2 gap-6">
-                        {/* Available Interpretations */}
-                        <div>
-                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
-                            Available Interpretations
-                            <span className="ml-2 text-gray-400 font-normal normal-case">(click to use)</span>
-                          </label>
-                          {result.suggestedInterpretation && (
-                            <div 
-                              onClick={() => {
-                                setSelectedInterpretation(result.suggestedInterpretation.code);
-                                setInterpretationText(result.suggestedInterpretation.text);
-                              }}
-                              className={`mb-3 p-3 rounded-lg cursor-pointer transition-all ${
-                                selectedInterpretation === result.suggestedInterpretation.code
-                                  ? 'bg-blue-100 border-2 border-blue-400 ring-2 ring-blue-200'
-                                  : 'bg-blue-50 border border-blue-200 hover:border-blue-300'
-                              }`}>
-                              <div className="flex items-center justify-between mb-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-blue-600"><ZapIcon /></span>
-                                  <span className="text-xs font-medium text-blue-900">Suggested:</span>
-                                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${getInterpretationColor(result.suggestedInterpretation.color)}`}>
-                                    {result.suggestedInterpretation.label}
-                                  </span>
-                                </div>
-                                {selectedInterpretation === result.suggestedInterpretation.code && (
-                                  <span className="text-xs text-blue-700 font-medium">âœ“ Selected</span>
-                                )}
-                              </div>
-                              <p className="text-xs text-blue-800 mt-1 line-clamp-2">{result.suggestedInterpretation.text}</p>
-                            </div>
-                          )}
-                          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                            {result.interpretationOptions.map((opt) => (
-                              <div 
-                                key={opt.code} 
-                                onClick={() => {
-                                  setSelectedInterpretation(opt.code);
-                                  setInterpretationText(opt.text);
-                                }}
-                                className={`p-3 rounded-lg cursor-pointer transition-all ${
-                                  selectedInterpretation === opt.code
-                                    ? 'border-2 border-teal-400 bg-teal-50 ring-2 ring-teal-200'
-                                    : 'border border-gray-200 hover:border-teal-300 hover:bg-teal-50'
-                                }`}>
-                                <div className="flex items-center justify-between mb-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${getInterpretationColor(opt.color)}`}>
-                                      {opt.label}
-                                    </span>
-                                    <span className="text-xs text-gray-500 font-mono">{opt.code}</span>
-                                    <span className="text-xs text-gray-400">({opt.range})</span>
-                                  </div>
-                                  {selectedInterpretation === opt.code && (
-                                    <span className="text-xs text-teal-700 font-medium">âœ“ Selected</span>
-                                  )}
-                                </div>
-                                <p className="text-xs text-gray-600 mt-1 line-clamp-2">{opt.text}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        {/* Interpretation Text */}
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Interpretation Text</label>
-                            {interpretationText && (
-                              <button 
-                                onClick={() => {
-                                  setInterpretationText('');
-                                  setSelectedInterpretation(null);
-                                }}
-                                className="text-xs text-gray-400 hover:text-gray-600">
-                                Clear
-                              </button>
-                            )}
-                          </div>
-                          <textarea 
-                            rows={5} 
-                            value={interpretationText}
-                            onChange={handleInterpretationTextChange}
-                            placeholder="Click an interpretation option, or type a code (e.g., WBC-NL) and press space to expand..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500" />
-                          <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded text-xs text-gray-600">
-                            <strong>Shortcut:</strong> Type an interpretation code (e.g., <span className="font-mono bg-gray-100 px-1">WBC-NL</span>, <span className="font-mono bg-gray-100 px-1">GLU-DM</span>) and press space to expand.
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Program Banner */}
-                  {result.program && (
-                    <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center"><FileTextIcon /></div>
-                        <div>
-                          <div className="font-medium text-purple-900">{result.program.name}</div>
-                          <div className="text-sm text-purple-700">Due: {result.program.dueDate}</div>
-                        </div>
-                      </div>
-                      <button className="text-sm text-purple-700 hover:text-purple-900 font-medium">View Program Details â†’</button>
-                    </div>
-                  )}
-
-                  {/* Tabs */}
-                  <div className="flex items-center gap-1 border-b border-gray-200 mb-4">
-                    {[
-                      { id: 'method', label: 'Method & Reagents', icon: <FlaskIcon /> },
-                      { id: 'orderinfo', label: 'Order Info', icon: <ClipboardListIcon /> },
-                      { id: 'attachments', label: 'Attachments', icon: <PaperclipIcon /> },
-                      { id: 'history', label: 'History', icon: <HistoryIcon /> },
-                      { id: 'qaqc', label: 'QA/QC', icon: <CheckCircleIcon /> },
-                      { id: 'referral', label: 'Referral', icon: <SendIcon /> },
-                    ].map(tab => (
-                      <button key={tab.id} onClick={() => setSelectedTab(tab.id)}
-                        className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
-                          selectedTab === tab.id ? 'border-teal-500 text-teal-600' : 'border-transparent text-gray-500 hover:text-gray-700'
-                        }`}>
-                        {tab.icon} {tab.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Tab Content */}
-                  <div className="min-h-[200px]">
-                    {/* Method & Reagents Tab */}
-                    {selectedTab === 'method' && (
-                      <div className="grid grid-cols-2 gap-6">
-                        {/* Method Selection */}
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                            <CpuIcon /> Method
-                          </h4>
-                          
-                          {/* Method Type Selection */}
-                          <div className="space-y-2 mb-4">
-                            {/* Manual Option - Always Available */}
-                            <label className={`flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                              selectedMethod === 'manual'
-                                ? 'border-teal-500 bg-teal-50 ring-1 ring-teal-500'
-                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                            }`}>
-                              <div className="flex items-center gap-3">
-                                <input type="radio" name="method" value="manual"
-                                  checked={selectedMethod === 'manual'}
-                                  onChange={() => { setSelectedMethod('manual'); setSelectedAnalyzer(null); }}
-                                  className="text-teal-600 focus:ring-teal-500" />
-                                <div>
-                                  <div className="text-sm font-medium text-gray-900">Manual</div>
-                                  <div className="text-xs text-gray-500">Manual entry without analyzer</div>
-                                </div>
-                              </div>
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
-                                default
-                              </span>
-                            </label>
-
-                            {/* Analyzer Option */}
-                            <label className={`flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                              selectedMethod === 'analyzer'
-                                ? 'border-teal-500 bg-teal-50 ring-1 ring-teal-500'
-                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                            }`}>
-                              <div className="flex items-center gap-3">
-                                <input type="radio" name="method" value="analyzer"
-                                  checked={selectedMethod === 'analyzer'}
-                                  onChange={() => setSelectedMethod('analyzer')}
-                                  className="text-teal-600 focus:ring-teal-500" />
-                                <div>
-                                  <div className="text-sm font-medium text-gray-900">Analyzer</div>
-                                  <div className="text-xs text-gray-500">Result from automated analyzer</div>
-                                </div>
-                              </div>
-                            </label>
-                          </div>
-
-                          {/* Manual Method - Notes/Details */}
-                          {selectedMethod === 'manual' && (
-                            <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                              <label className="text-sm font-medium text-gray-700 mb-2 block">
-                                Method Details <span className="text-gray-400 font-normal">(optional)</span>
-                              </label>
-                              <textarea
-                                rows={3}
-                                value={methodNotes}
-                                onChange={handleMethodNotesChange}
-                                placeholder="Enter details or type a macro code (e.g., MAN-HEM, QNS, CLOT)..."
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
-                              />
-                              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
-                                <div className="text-xs text-blue-700">
-                                  <strong>Macro codes:</strong> Type a code and press space to expand.
-                                </div>
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {Object.keys(macroCodes).map(code => (
-                                    <span key={code} className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono bg-blue-100 text-blue-700">
-                                      {code}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Analyzer Selection - Only when analyzer method selected */}
-                          {selectedMethod === 'analyzer' && (
-                            <div className="mt-4">
-                              <label className="text-sm font-medium text-gray-600 mb-2 block">Select Analyzer</label>
-                              <div className="space-y-2">
-                                {availableAnalyzers.filter(a => a.id !== 'manual').map((analyzer) => (
-                                  <label key={analyzer.id}
-                                    className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
-                                      selectedAnalyzer === analyzer.id 
-                                        ? 'border-teal-500 bg-teal-50 ring-1 ring-teal-500' 
-                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                                    }`}>
-                                    <div className="flex items-center gap-3">
-                                      <input type="radio" name="analyzer" value={analyzer.id}
-                                        checked={selectedAnalyzer === analyzer.id}
-                                        onChange={() => setSelectedAnalyzer(analyzer.id)}
-                                        className="text-teal-600 focus:ring-teal-500" />
-                                      <div>
-                                        <div className="text-sm font-medium text-gray-900">{analyzer.name}</div>
-                                        {analyzer.lastCalibrated && (
-                                          <div className="text-xs text-gray-500">Last calibrated: {analyzer.lastCalibrated}</div>
-                                        )}
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      {analyzer.qcStatus === 'pass' && (
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
-                                          QC âœ“
-                                        </span>
-                                      )}
-                                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                        analyzer.status === 'online' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                                      }`}>
-                                        {analyzer.status}
-                                      </span>
-                                    </div>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Reagent Selection */}
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                            <BeakerIcon /> Reagent Lots Used
-                          </h4>
-                          <div className="space-y-4">
-                            {availableReagents.map((reagent) => (
-                              <div key={reagent.id}>
-                                <label className="text-sm font-medium text-gray-600 mb-2 block">{reagent.name}</label>
-                                <div className="space-y-2">
-                                  {reagent.lots.map((lot) => (
-                                    <label key={lot.lotNumber}
-                                      className={`flex items-center justify-between p-2.5 border-2 rounded-lg cursor-pointer transition-colors ${
-                                        selectedReagentLots[reagent.id] === lot.lotNumber
-                                          ? 'border-teal-500 bg-teal-50 ring-1 ring-teal-500'
-                                          : lot.fifoRank === 1 && !selectedReagentLots[reagent.id]
-                                            ? 'border-teal-300 bg-teal-50/50 hover:border-teal-400'
-                                            : getLotStatusStyle(lot.status, false)
-                                      }`}>
-                                      <div className="flex items-center gap-3">
-                                        <input type="radio" name={`reagent-${reagent.id}`} value={lot.lotNumber}
-                                          checked={selectedReagentLots[reagent.id] === lot.lotNumber}
-                                          onChange={() => setSelectedReagentLots({...selectedReagentLots, [reagent.id]: lot.lotNumber})}
-                                          className="text-teal-600 focus:ring-teal-500" />
-                                        <div>
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-sm font-mono text-gray-900">{lot.lotNumber}</span>
-                                            {lot.fifoRank === 1 && (
-                                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-700 border border-teal-300">
-                                                <ClockIcon /> FIFO Suggested
-                                              </span>
-                                            )}
-                                            {lot.status === 'expiring-soon' && (
-                                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">
-                                                <AlertCircleIcon /> Expiring
-                                              </span>
-                                            )}
-                                          </div>
-                                          <div className="text-xs text-gray-500 mt-0.5">
-                                            Exp: {lot.expires} â€¢ {lot.remaining} remaining
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </label>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-                            <div className="flex items-center gap-2 text-xs text-blue-700">
-                              <ZapIcon />
-                              <span><strong>FIFO Suggestion:</strong> Lots marked "FIFO Suggested" are the oldest unexpired lots. Select them to ensure proper stock rotation.</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Order Info Tab */}
-                    {selectedTab === 'orderinfo' && (
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-700 mb-3">Order Information</h4>
-                        <div className="grid grid-cols-3 gap-4">
-                          {result.orderInfo.clinician && (
-                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                              <div className="text-xs text-gray-500 uppercase mb-1">Ordering Clinician</div>
-                              <div className="text-sm text-gray-900">{result.orderInfo.clinician}</div>
-                              {result.orderInfo.clinicianPhone && (
-                                <div className="text-xs text-gray-500 mt-1">{result.orderInfo.clinicianPhone}</div>
-                              )}
-                            </div>
-                          )}
-                          {result.orderInfo.department && (
-                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                              <div className="text-xs text-gray-500 uppercase mb-1">Department</div>
-                              <div className="text-sm text-gray-900">{result.orderInfo.department}</div>
-                            </div>
-                          )}
-                          {result.orderInfo.priority && (
-                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                              <div className="text-xs text-gray-500 uppercase mb-1">Priority</div>
-                              <div className="text-sm text-gray-900">
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                  result.orderInfo.priority === 'STAT' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
-                                }`}>
-                                  {result.orderInfo.priority}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                          {result.orderInfo.collectionDate && (
-                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                              <div className="text-xs text-gray-500 uppercase mb-1">Collection Date/Time</div>
-                              <div className="text-sm text-gray-900">{result.orderInfo.collectionDate}</div>
-                            </div>
-                          )}
-                          {result.orderInfo.receivedDate && (
-                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                              <div className="text-xs text-gray-500 uppercase mb-1">Received Date/Time</div>
-                              <div className="text-sm text-gray-900">{result.orderInfo.receivedDate}</div>
-                            </div>
-                          )}
-                          {result.orderInfo.fastingStatus && (
-                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                              <div className="text-xs text-gray-500 uppercase mb-1">Fasting Status</div>
-                              <div className="text-sm text-gray-900">{result.orderInfo.fastingStatus}</div>
-                            </div>
-                          )}
-                          {result.orderInfo.clinicalHistory && (
-                            <div className="col-span-2 p-3 bg-white border border-gray-200 rounded-lg">
-                              <div className="text-xs text-gray-500 uppercase mb-1">Clinical History</div>
-                              <div className="text-sm text-gray-900">{result.orderInfo.clinicalHistory}</div>
-                            </div>
-                          )}
-                          {result.orderInfo.diagnosis && (
-                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                              <div className="text-xs text-gray-500 uppercase mb-1">Diagnosis</div>
-                              <div className="text-sm text-gray-900">{result.orderInfo.diagnosis}</div>
-                            </div>
-                          )}
-                          {result.orderInfo.medicationList && (
-                            <div className="col-span-2 p-3 bg-white border border-gray-200 rounded-lg">
-                              <div className="text-xs text-gray-500 uppercase mb-1">Medication List</div>
-                              <div className="text-sm text-gray-900">{result.orderInfo.medicationList}</div>
-                            </div>
-                          )}
-                          {result.orderInfo.specialInstructions && (
-                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                              <div className="text-xs text-gray-500 uppercase mb-1">Special Instructions</div>
-                              <div className="text-sm text-gray-900">{result.orderInfo.specialInstructions}</div>
-                            </div>
-                          )}
-                          {result.orderInfo.insuranceProvider && (
-                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                              <div className="text-xs text-gray-500 uppercase mb-1">Insurance Provider</div>
-                              <div className="text-sm text-gray-900">{result.orderInfo.insuranceProvider}</div>
-                            </div>
-                          )}
-                          {result.orderInfo.authorizationNumber && (
-                            <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                              <div className="text-xs text-gray-500 uppercase mb-1">Authorization #</div>
-                              <div className="text-sm text-gray-900">{result.orderInfo.authorizationNumber}</div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Attachments Tab */}
-                    {selectedTab === 'attachments' && (
-                      <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="text-sm font-medium text-gray-700">Attachments</h4>
-                          <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-md border border-teal-200">
-                            <UploadIcon /> Upload File
-                          </button>
-                        </div>
-                        
-                        {result.attachments && result.attachments.length > 0 ? (
-                          <div className="overflow-hidden rounded-lg border border-gray-200">
-                            <table className="w-full text-sm">
-                              <thead className="bg-gray-50">
-                                <tr>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">File</th>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Uploaded By</th>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-gray-200">
-                                {result.attachments.map((attachment) => (
-                                  <tr key={attachment.id} className="hover:bg-gray-50">
-                                    <td className="px-3 py-2">
-                                      <div className="flex items-center gap-2">
-                                        {attachment.type === 'image' ? (
-                                          <span className="text-blue-500"><ImageIcon /></span>
-                                        ) : (
-                                          <span className="text-red-500"><FileIcon /></span>
-                                        )}
-                                        <span className="text-gray-900 font-medium">{attachment.name}</span>
-                                      </div>
-                                    </td>
-                                    <td className="px-3 py-2 text-gray-600">{attachment.size}</td>
-                                    <td className="px-3 py-2">
-                                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                        attachment.source === 'order' ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700'
-                                      }`}>
-                                        {attachment.source === 'order' ? 'Order Entry' : 'Result Entry'}
-                                      </span>
-                                    </td>
-                                    <td className="px-3 py-2 text-gray-600">{attachment.uploadedBy}</td>
-                                    <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{attachment.uploadedAt}</td>
-                                    <td className="px-3 py-2">
-                                      <div className="flex items-center gap-1">
-                                        <button className="p-1.5 text-gray-400 hover:text-teal-600 hover:bg-teal-50 rounded" title="Download">
-                                          <DownloadIcon />
-                                        </button>
-                                        {attachment.source === 'result' && (
-                                          <button className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded" title="Delete">
-                                            <TrashIcon />
-                                          </button>
-                                        )}
-                                      </div>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        ) : (
-                          <div className="text-center py-8 border border-dashed border-gray-300 rounded-lg">
-                            <PaperclipIcon />
-                            <p className="text-sm text-gray-500 mt-2">No attachments</p>
-                            <p className="text-xs text-gray-400 mt-1">Upload files or view attachments from order entry</p>
-                          </div>
-                        )}
-                        
-                        <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-                          <div className="flex items-center gap-2 text-xs text-blue-700">
-                            <ZapIcon />
-                            <span>Files attached at order entry are marked <span className="font-medium">"Order Entry"</span> and cannot be deleted. Files uploaded during result entry can be removed.</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* History Tab */}
-                    {selectedTab === 'history' && (
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-700 mb-3">Previous Results</h4>
-                        {result.deltaCheck && (
-                          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <span className="text-red-600"><AlertTriangle /></span>
-                              <span className="text-sm font-medium text-red-900">Delta Check Alert</span>
-                            </div>
-                            <div className="mt-1 text-sm text-red-700">
-                              Change of <span className="font-medium">{result.deltaCheck.change}</span> from previous value ({result.deltaCheck.previous}) exceeds threshold of {result.deltaCheck.threshold}
-                            </div>
-                          </div>
-                        )}
-                        {result.previousResults.length > 0 ? (
-                          <table className="w-full text-sm">
-                            <thead>
-                              <tr className="text-left text-gray-500">
-                                <th className="pb-2 font-medium">Date</th>
-                                <th className="pb-2 font-medium">Result</th>
-                                <th className="pb-2 font-medium">Status</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {result.previousResults.map((prev, idx) => (
-                                <tr key={idx} className="border-t border-gray-100">
-                                  <td className="py-2 text-gray-600">{prev.date}</td>
-                                  <td className="py-2">{prev.value} {result.unit}</td>
-                                  <td className="py-2">
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                      prev.status === 'normal' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                                    }`}>{prev.status}</span>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        ) : (
-                          <div className="text-center py-8 text-gray-500">
-                            <HistoryIcon />
-                            <p className="mt-2">No previous results for this test</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* QA/QC Tab */}
-                    {selectedTab === 'qaqc' && (
-                      <div className="grid grid-cols-2 gap-6">
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-3">Control Results</h4>
-                          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <span className="text-green-600"><CheckCircleIcon /></span>
-                              <span className="font-medium text-green-900">QC Status: Passed</span>
-                            </div>
-                            <div className="text-sm text-green-700 mt-1">All controls within acceptable range</div>
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-3">Selected Method</h4>
-                          <div className="p-3 border border-gray-200 rounded-lg flex items-center gap-3">
-                            <CpuIcon />
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {selectedMethod === 'manual' 
-                                  ? 'Manual'
-                                  : availableAnalyzers.find(a => a.id === selectedAnalyzer)?.name || 'No analyzer selected'
-                                }
-                              </div>
-                              {selectedMethod === 'analyzer' && selectedAnalyzer && (
-                                <div className="text-xs text-green-600">Online â€¢ QC Passed</div>
-                              )}
-                              {selectedMethod === 'manual' && (
-                                <div className="text-xs text-gray-500">Manual entry</div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Referral Tab */}
-                    {selectedTab === 'referral' && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-4">
-                          <input type="checkbox" id="referTest" className="rounded border-gray-300 text-teal-600" />
-                          <label htmlFor="referTest" className="text-sm font-medium text-gray-700">Refer this test to a reference lab</label>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 opacity-50">
-                          <div>
-                            <label className="text-sm font-medium text-gray-700 mb-1 block">Referral Reason</label>
-                            <select disabled className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50">
-                              <option>Select reason...</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-gray-700 mb-1 block">Institute</label>
-                            <select disabled className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50">
-                              <option>Select institute...</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Row Actions */}
-                  <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
-                    <div className="text-sm text-gray-500">
-                      <span className="font-medium">Method:</span>{' '}
-                      {selectedMethod === 'manual' 
-                        ? 'Manual'
-                        : selectedAnalyzer 
-                          ? availableAnalyzers.find(a => a.id === selectedAnalyzer)?.name 
-                          : <span className="text-gray-400 italic">Select analyzer</span>
-                      }
-                      {' â€¢ '}
-                      {Object.keys(selectedReagentLots).length > 0 
-                        ? `${Object.keys(selectedReagentLots).length} reagent lot${Object.keys(selectedReagentLots).length > 1 ? 's' : ''}`
-                        : <span className="text-gray-400 italic">No reagent lots</span>
-                      }
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button className="px-4 py-2 text-sm text-white bg-teal-600 hover:bg-teal-700 rounded-md font-medium">Accept Result</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-            <p className="text-gray-500">No results found matching your criteria.</p>
-          </div>
-        )}
-
-        {/* Pagination */}
-        {paginatedResults.length > 0 && (
-        <div className="mt-4 bg-white rounded-lg shadow-sm border border-gray-200 p-3">
-          <div className="flex items-center justify-between">
-            {/* Left side - showing info */}
-            <div className="flex items-center gap-4 text-sm text-gray-500">
-              <span>
-                Showing <span className="font-medium text-gray-900">{startIndex + 1}</span> to{' '}
-                <span className="font-medium text-gray-900">{endIndex}</span> of{' '}
-                <span className="font-medium text-gray-900">{totalResultCount}</span> results
-              </span>
-            </div>
-            
-            {/* Center - page size selector */}
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-500">Show</span>
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-teal-500"
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-              <span className="text-gray-500">per page</span>
-            </div>
-            
-            {/* Right side - pagination controls */}
-            <div className="flex items-center gap-1">
-              {/* First page */}
-              <button 
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-                className="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                title="First page"
-              >
-                Â«Â«
-              </button>
-              
-              {/* Previous page */}
-              <button 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-              >
-                Previous
-              </button>
-              
-              {/* Page numbers */}
-              <div className="flex items-center gap-1 mx-2">
-                {(() => {
-                  const pages = [];
-                  const maxVisiblePages = 5;
-                  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                  let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-                  
-                  if (endPage - startPage + 1 < maxVisiblePages) {
-                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                  }
-                  
-                  if (startPage > 1) {
-                    pages.push(
-                      <button key={1} onClick={() => setCurrentPage(1)} className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm">1</button>
-                    );
-                    if (startPage > 2) {
-                      pages.push(<span key="dots1" className="px-2 text-gray-400">...</span>);
-                    }
-                  }
-                  
-                  for (let i = startPage; i <= endPage; i++) {
-                    pages.push(
-                      <button
-                        key={i}
-                        onClick={() => setCurrentPage(i)}
-                        className={`px-3 py-1 rounded text-sm ${
-                          currentPage === i
-                            ? 'bg-teal-600 text-white'
-                            : 'border border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        {i}
-                      </button>
-                    );
-                  }
-                  
-                  if (endPage < totalPages) {
-                    if (endPage < totalPages - 1) {
-                      pages.push(<span key="dots2" className="px-2 text-gray-400">...</span>);
-                    }
-                    pages.push(
-                      <button key={totalPages} onClick={() => setCurrentPage(totalPages)} className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm">{totalPages}</button>
-                    );
-                  }
-                  
-                  return pages;
-                })()}
-              </div>
-              
-              {/* Next page */}
-              <button 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-              >
-                Next
-              </button>
-              
-              {/* Last page */}
-              <button 
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage === totalPages}
-                className="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                title="Last page"
-              >
-                Â»Â»
-              </button>
-            </div>
-          </div>
-        </div>
-        )}
-      </div>
-      </>
       )}
     </div>
   );
-};
+}
 
-export default ResultsPageRedesign;
+// ---------------------------------------------------------------------------
+// Always-visible Interpretation section
+// ---------------------------------------------------------------------------
+function InterpretationSection({ result }) {
+  const [open, setOpen] = useState(true);
+  const [selected, setSelected] = useState(result.suggestedInterpretation?.code || null);
+  const [text, setText] = useState(result.suggestedInterpretation?.text || "");
+
+  return (
+    <div className="border-b border-gray-200">
+      <SectionHeader
+        label={<><Microscope className="w-4 h-4 inline mr-1.5 text-gray-500" />Interpretation</>}
+        open={open}
+        onToggle={() => setOpen(o => !o)}
+      />
+      {open && (
+        <div className="px-4 py-3 bg-white">
+          {result.suggestedInterpretation && (
+            <div className="flex gap-2 p-2.5 mb-3 bg-blue-50 border-l-4 border-blue-600 text-xs">
+              <Info className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <span><strong className="text-blue-700">Suggestion: </strong>
+                <span className="text-gray-700">{result.suggestedInterpretation.label} — {result.suggestedInterpretation.text}</span>
+              </span>
+            </div>
+          )}
+
+          {result.interpretationOptions.length === 0 ? (
+            <p className="text-xs text-gray-400 mb-2">No interpretation templates configured for this test.</p>
+          ) : (
+            <div className="flex gap-3 mb-3">
+              {/* Option cards — horizontal scroll on small viewports */}
+              <div className="flex flex-col gap-1.5 flex-shrink-0 max-w-xs">
+                {result.interpretationOptions.map(opt => {
+                  const c = COLOR_CONFIG[opt.color] || COLOR_CONFIG.gray;
+                  const isSel = selected === opt.code;
+                  return (
+                    <div key={opt.code} role="button" tabIndex={0}
+                      onClick={() => { setSelected(opt.code); setText(opt.text); }}
+                      onKeyDown={e => e.key === "Enter" && (setSelected(opt.code), setText(opt.text))}
+                      className={`flex items-start gap-2 px-2.5 py-2 border cursor-pointer text-xs transition-colors ${
+                        isSel ? `border-2 ${c.border} ${c.bg}` : "border-gray-200 hover:border-blue-300 bg-white"
+                      }`}>
+                      <div className={`w-3 h-3 rounded-full border-2 mt-0.5 flex-shrink-0 ${isSel ? "border-blue-600 bg-blue-600" : "border-gray-400"}`} />
+                      <div>
+                        <div className="font-semibold text-gray-800">{opt.label}</div>
+                        <div className={`text-xs px-1.5 rounded-full inline-block mt-0.5 ${c.bg} ${c.text}`}>{opt.range}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Text area */}
+              <div className="flex-1 flex flex-col gap-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500 font-medium">Interpretation text</span>
+                  {text && <button onClick={() => { setText(""); setSelected(null); }} className="text-xs text-gray-400 hover:text-gray-700">Clear</button>}
+                </div>
+                <textarea
+                  className="flex-1 min-h-20 border border-gray-300 text-xs p-2 resize-none focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
+                  value={text} onChange={e => setText(e.target.value)}
+                  placeholder="Select a template or type interpretation code (e.g. WBC-NL) and press space to expand…"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Program banner (conditional)
+// ---------------------------------------------------------------------------
+function ProgramBanner({ program }) {
+  if (!program) return null;
+  return (
+    <div className="flex items-center justify-between px-4 py-2 bg-purple-50 border-b border-purple-200 text-xs">
+      <div className="flex items-center gap-2">
+        <Shield className="w-3.5 h-3.5 text-purple-600" />
+        <span className="font-semibold text-purple-700">{program.name}</span>
+        {program.dueDate && <span className="text-purple-500">Due: {program.dueDate}</span>}
+      </div>
+      <button className="flex items-center gap-1 text-purple-600 hover:underline">
+        View Program Details <ExternalLink className="w-3 h-3" />
+      </button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Report NCE inline form (replaces reject workflow)
+// ---------------------------------------------------------------------------
+function ReportNceForm({ result, onSubmit, onCancel }) {
+  const [category, setCategory] = useState("Analytical");
+  const [subcategory, setSubcategory] = useState("Testing Error");
+  const [severity, setSeverity] = useState("");
+  const [description, setDescription] = useState("");
+  const [retest, setRetest] = useState(false);
+
+  const subcats = NCE_SUBCATEGORIES[category] || [];
+
+  const handleSubmit = () => {
+    if (!severity) return;
+    const nceNum = genNceNumber();
+    onSubmit({ nceNumber: nceNum, category, subcategory, severity, description, retest });
+  };
+
+  return (
+    <div className="border border-amber-300 bg-amber-50 mx-4 mb-3 p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm font-semibold text-amber-800">
+          <AlertTriangle className="w-4 h-4" />
+          Report Non-Conformity Event
+        </div>
+        <button onClick={onCancel} className="text-gray-400 hover:text-gray-700">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      <p className="text-xs text-amber-700">
+        Reporting this NCE will mark the result as <strong>Cancelled</strong> and create a Non-Conformity record linked to this result. You can complete investigation details in the NCE module.
+      </p>
+
+      {/* Pre-filled context */}
+      <div className="bg-white border border-gray-200 px-3 py-2 text-xs text-gray-600">
+        <span className="font-medium text-gray-700">Auto-linked: </span>
+        {result.testName} · {result.labNumber} · Result: {result.result || "not entered"}
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Category <span className="text-red-500">*</span></label>
+          <select className="w-full border border-gray-300 text-xs py-1.5 px-2 bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+            value={category} onChange={e => { setCategory(e.target.value); setSubcategory(""); }}>
+            {Object.keys(NCE_SUBCATEGORIES).map(c => <option key={c}>{c}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Subcategory <span className="text-red-500">*</span></label>
+          <select className="w-full border border-gray-300 text-xs py-1.5 px-2 bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+            value={subcategory} onChange={e => setSubcategory(e.target.value)}>
+            {subcats.map(s => <option key={s}>{s}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Severity <span className="text-red-500">*</span></label>
+          <select className="w-full border border-gray-300 text-xs py-1.5 px-2 bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+            value={severity} onChange={e => setSeverity(e.target.value)}>
+            <option value="">Select…</option>
+            <option value="critical">Critical — patient safety risk</option>
+            <option value="major">Major — significant quality impact</option>
+            <option value="minor">Minor — limited impact</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">Brief Description</label>
+        <textarea className="w-full border border-gray-300 text-xs p-2 resize-none focus:outline-none focus:ring-1 focus:ring-amber-500"
+          rows={2} value={description} onChange={e => setDescription(e.target.value)}
+          placeholder="Describe what happened (optional — can be completed in NCE module)" />
+      </div>
+
+      <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
+        <input type="checkbox" checked={retest} onChange={e => setRetest(e.target.checked)} />
+        Retest required — request new sample / repeat analysis
+      </label>
+
+      <div className="flex gap-2 pt-1">
+        <button onClick={handleSubmit} disabled={!severity}
+          className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${
+            severity ? "bg-amber-600 text-white hover:bg-amber-700" : "bg-gray-200 text-gray-400 cursor-not-allowed"
+          }`}>
+          <AlertCircle className="w-3.5 h-3.5" />
+          Submit NCE & Cancel Result
+        </button>
+        <button onClick={onCancel} className="px-3 py-1.5 border border-gray-300 text-xs text-gray-600 hover:bg-gray-100">
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tab content components
+// ---------------------------------------------------------------------------
+
+// Method & Reagents
+function MethodTab({ result }) {
+  const [method, setMethod] = useState(result.analyzer ? "automated" : "manual");
+  const [methodText, setMethodText] = useState("");
+
+  return (
+    <div className="p-4 space-y-4">
+      <div className="flex gap-6 text-sm">
+        {[["manual", "Manual"], ["automated", "Automated — Analyzer"]].map(([val, lbl]) => (
+          <label key={val} className="flex items-center gap-1.5 cursor-pointer">
+            <input type="radio" name={`method-${result.id}`} value={val}
+              checked={method === val} onChange={() => setMethod(val)} />
+            {lbl}
+          </label>
+        ))}
+      </div>
+
+      {method === "manual" && (
+        <div>
+          <div className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Method Description</div>
+          <textarea
+            className="w-full border border-gray-300 text-sm p-2 resize-none focus:outline-none focus:ring-1 focus:ring-blue-600 font-mono"
+            rows={3} value={methodText} onChange={e => setMethodText(e.target.value)}
+            placeholder="Type MAN- for macros (e.g. MAN-DIFF, MAN-HEM, QNS, CLOT, HEMOLYZED)…"
+          />
+          <div className="text-xs text-gray-400 mt-1">Macros: MAN-DIFF · MAN-HEM · MAN-MICRO · QNS · CLOT · HEMOLYZED</div>
+        </div>
+      )}
+
+      {method === "automated" && (
+        <div className="flex gap-3 flex-wrap">
+          <div className="flex-1 min-w-36">
+            <div className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Analyzer</div>
+            <select className="w-full border border-gray-300 text-sm p-2 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-600">
+              <option value="">Select analyzer…</option>
+              {["Sysmex XN-L (Online ✓)", "Sysmex XS-1000i (Online ✓)", "Cobas c 501 (Online ✓)"].map(a => (
+                <option key={a} selected={result.analyzer && a.startsWith(result.analyzer)}>{a}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white border border-gray-200">
+        <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Reagent Lots (FIFO)
+        </div>
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              {["Reagent", "Lot Number", "Expires", "Remaining", "FIFO"].map(h => (
+                <th key={h} className="text-left px-3 py-2 font-semibold text-gray-600">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="bg-amber-50 border-b border-gray-100">
+              <td className="px-3 py-2">Cellpack DCL</td>
+              <td className="px-3 py-2 font-mono">LOT-2024-0892</td>
+              <td className="px-3 py-2 text-yellow-700 font-medium">12/20/2024 ⚠</td>
+              <td className="px-3 py-2">15%</td>
+              <td className="px-3 py-2"><Tag color="blue">Use First</Tag></td>
+            </tr>
+            <tr>
+              <td className="px-3 py-2">Cellpack DCL</td>
+              <td className="px-3 py-2 font-mono">LOT-2024-1234</td>
+              <td className="px-3 py-2">01/15/2025</td>
+              <td className="px-3 py-2">85%</td>
+              <td className="px-3 py-2 text-gray-400">Next</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// Order Info
+function OrderInfoTab({ orderInfo }) {
+  if (!orderInfo || Object.keys(orderInfo).length === 0) {
+    return <div className="p-4 text-sm text-gray-400">No order information available.</div>;
+  }
+  const fields = [
+    { label: "Ordering Clinician", value: orderInfo.clinician },
+    { label: "Phone", value: orderInfo.clinicianPhone },
+    { label: "Department", value: orderInfo.department },
+    { label: "Priority", value: orderInfo.priority },
+    { label: "Collection Date/Time", value: orderInfo.collectionDate },
+    { label: "Received Date/Time", value: orderInfo.receivedDate },
+    { label: "Fasting Status", value: orderInfo.fastingStatus },
+    { label: "Clinical History", value: orderInfo.clinicalHistory },
+    { label: "Diagnosis", value: orderInfo.diagnosis },
+  ].filter(f => f.value);
+
+  return (
+    <div className="p-4">
+      <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+        {fields.map(f => (
+          <div key={f.label} className={f.label === "Clinical History" || f.label === "Diagnosis" ? "col-span-3 sm:col-span-1" : ""}>
+            <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">{f.label}</div>
+            <div className="text-sm text-gray-800">{f.value}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Attachments
+function AttachmentsTab({ result }) {
+  const [attachments] = useState(result.attachments);
+  return (
+    <div className="p-4 space-y-2">
+      {attachments.length === 0 ? (
+        <div className="border-2 border-dashed border-gray-200 rounded p-8 text-center text-sm text-gray-400">
+          <Paperclip className="w-5 h-5 mx-auto mb-1" />
+          No attachments. <button className="text-blue-700 underline">Upload file</button>
+        </div>
+      ) : attachments.map(att => (
+        <div key={att.id} className="flex items-center gap-3 p-3 bg-white border border-gray-200 text-sm">
+          <FileText className="w-5 h-5 text-red-500 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <div className="font-medium truncate">{att.name}</div>
+            <div className="text-xs text-gray-400">{att.size} · {att.uploadedBy} · {att.uploadedAt}</div>
+          </div>
+          {att.source === "order" && <Tag color="purple">Order Entry</Tag>}
+          <button className="p-1.5 hover:bg-gray-100 rounded" title="Download"><Download className="w-4 h-4 text-gray-500" /></button>
+          {att.source !== "order" && (
+            <button className="p-1.5 hover:bg-red-50 rounded" title="Delete"><Trash2 className="w-4 h-4 text-red-500" /></button>
+          )}
+        </div>
+      ))}
+      {attachments.length > 0 && (
+        <div className="border-2 border-dashed border-gray-200 rounded p-4 text-center text-xs text-gray-400">
+          <Plus className="w-4 h-4 mx-auto mb-0.5" />
+          Drag & drop or <button className="text-blue-700 underline">browse</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// QA/QC
+function QAQCTab({ result }) {
+  const qc = result.qcData;
+  return (
+    <div className="p-4 space-y-4">
+      {/* Overall status */}
+      <div className={`flex items-center gap-3 p-3 border rounded ${
+        qc.overall === "pass" ? "bg-green-50 border-green-200" :
+        qc.overall === "fail" ? "bg-red-50 border-red-200" :
+        qc.overall === "warning" ? "bg-yellow-50 border-yellow-200" : "bg-gray-50 border-gray-200"
+      }`}>
+        <span className={`w-3 h-3 rounded-full flex-shrink-0 ${QC_DOT[qc.overall] || QC_DOT.none}`} />
+        <span className="text-sm font-semibold capitalize">{qc.overall === "none" ? "No QC Data" : `QC ${qc.overall.charAt(0).toUpperCase() + qc.overall.slice(1)}`}</span>
+        <span className="text-xs text-gray-500 ml-auto">Analyzer: {qc.analyzerStatus} · Last calibrated: {qc.lastCalibrated}</span>
+      </div>
+
+      {/* Control results */}
+      {qc.controls.length > 0 && (
+        <div className="bg-white border border-gray-200">
+          <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Control Results
+          </div>
+          {qc.controls.map((ctrl, i) => (
+            <div key={i} className={`flex items-center gap-4 px-3 py-2 text-sm ${i < qc.controls.length - 1 ? "border-b border-gray-100" : ""}`}>
+              <span className={`w-2 h-2 rounded-full ${ctrl.status === "pass" ? "bg-green-500" : ctrl.status === "warning" ? "bg-yellow-400" : "bg-red-500"}`} />
+              <span className="font-medium w-20">{ctrl.level}</span>
+              <span className="font-mono">{ctrl.value}</span>
+              <span className="text-gray-400 text-xs">Expected: {ctrl.expected}</span>
+              <span className={`ml-auto text-xs font-semibold ${ctrl.status === "pass" ? "text-green-700" : "text-red-700"}`}>
+                {ctrl.status.toUpperCase()}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {qc.overall === "none" && (
+        <p className="text-sm text-gray-400">No QC data available for this test and analyzer combination.</p>
+      )}
+    </div>
+  );
+}
+
+// History
+function HistoryTab({ result }) {
+  return (
+    <div className="p-4 space-y-3">
+      {result.deltaCheck && (
+        <div className="flex gap-2 p-3 bg-yellow-50 border-l-4 border-yellow-500 text-sm">
+          <AlertTriangle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="font-semibold text-yellow-800">Delta Check Alert: </span>
+            <span className="text-gray-700">
+              Changed <strong>{result.deltaCheck.change}</strong> from previous
+              ({result.deltaCheck.previous} → {result.deltaCheck.current} {result.unit}).
+              Threshold: {result.deltaCheck.threshold}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {result.previousResults.length === 0 ? (
+        <p className="text-sm text-gray-400">No previous results on record for this patient and test.</p>
+      ) : (
+        <div className="bg-white border border-gray-200">
+          <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Previous Results — {result.testName}
+          </div>
+          <div className="divide-y divide-gray-100">
+            <div className="flex items-center gap-6 px-4 py-2 bg-blue-50 text-sm font-semibold">
+              <span className="w-28 text-gray-400 font-normal text-xs">Today</span>
+              <span className="font-mono w-24">{result.result || "—"} {result.unit}</span>
+              <Tag color="blue">Current</Tag>
+            </div>
+            {result.previousResults.map((prev, i) => (
+              <div key={i} className="flex items-center gap-6 px-4 py-2 text-sm">
+                <span className="w-28 text-gray-400 text-xs">{prev.date}</span>
+                <span className="font-mono w-24">{prev.value} {prev.unit}</span>
+                <span className={`text-xs font-medium ${
+                  prev.delta?.startsWith("+") ? "text-green-700" :
+                  prev.delta?.startsWith("-") ? "text-blue-700" : "text-gray-400"
+                }`}>
+                  {prev.delta || "—"}
+                  {result.deltaCheck && i === 0 && <span className="ml-2"><Tag color="red">⚠ Δ Exceeded</Tag></span>}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Referral
+function ReferralTab({ result }) {
+  const [referred, setReferred] = useState(!!result.referral);
+  const [reason, setReason] = useState("");
+  const [institute, setInstitute] = useState("");
+  const [testName, setTestName] = useState(result.testName);
+  const [sentDate, setSentDate] = useState("");
+
+  return (
+    <div className="p-4 space-y-4">
+      <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+        <input type="checkbox" checked={referred} onChange={e => setReferred(e.target.checked)} className="w-4 h-4" />
+        Refer this test to an external laboratory
+      </label>
+
+      {!referred && (
+        <p className="text-xs text-gray-400">Check the box above to enable referral fields.</p>
+      )}
+
+      {referred && (
+        <div className="space-y-3 border border-gray-200 rounded p-3 bg-white">
+          <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-100 pb-2">
+            Referral Details
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Referral Reason <span className="text-red-500">*</span></label>
+              <select className="w-full border border-gray-300 text-sm p-2 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                value={reason} onChange={e => setReason(e.target.value)}>
+                <option value="">Select reason…</option>
+                <option>Capacity — send-out test</option>
+                <option>Equipment malfunction</option>
+                <option>Specialist confirmation required</option>
+                <option>Patient request</option>
+                <option>Regulatory requirement</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Institute <span className="text-red-500">*</span></label>
+              <select className="w-full border border-gray-300 text-sm p-2 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                value={institute} onChange={e => setInstitute(e.target.value)}>
+                <option value="">Select institution…</option>
+                <option>National Reference Laboratory</option>
+                <option>University Hospital Lab</option>
+                <option>Regional Reference Center</option>
+                <option>WHO Collaborating Center</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Test to Perform</label>
+              <input type="text" className="w-full border border-gray-300 text-sm p-2 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                value={testName} onChange={e => setTestName(e.target.value)} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Sent Date</label>
+              <input type="date" className="w-full border border-gray-300 text-sm p-2 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                value={sentDate} onChange={e => setSentDate(e.target.value)} />
+            </div>
+          </div>
+
+          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-700 text-white text-sm font-medium hover:bg-blue-800">
+            <Send className="w-4 h-4" />
+            Save Referral
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Expanded Panel (full)
+// ---------------------------------------------------------------------------
+const PANEL_TABS = [
+  { key: "method",  label: "Method/Reagents", Icon: FlaskConical },
+  { key: "order",   label: "Order Info",       Icon: ClipboardList },
+  { key: "attach",  label: "Attachments",      Icon: Paperclip },
+  { key: "qaqc",    label: "QA/QC",            Icon: Shield },
+  { key: "history", label: "History",          Icon: History },
+  { key: "referral",label: "Referral",         Icon: Send },
+];
+
+function ExpandedPanel({ result, onSave, onNceSubmit }) {
+  const [activeTab, setActiveTab]           = useState("method");
+  const [resultValue, setResultValue]       = useState(result.result);
+  const [showNceForm, setShowNceForm]       = useState(false);
+  const [criticalAcknowledged, setCriticalAcknowledged] = useState(false);
+
+  // Modification workflow
+  const isModification   = result.status === "awaiting-validation" || result.status === "released";
+  const isReleasedResult = result.status === "released";
+  const [modifyConfirmed,    setModifyConfirmed]    = useState(!isReleasedResult);
+  const [modificationNote,   setModificationNote]   = useState("");
+
+  // Derived range state — recalculates live as tech types
+  const resultState  = evaluateResult(resultValue, result.rangeBounds);
+  const isCritical   = resultState === "critical";
+  const isInvalid    = resultState === "invalid";
+  const criticalMsg  = getCriticalMsg(resultValue, result.rangeBounds);
+  const hasValue     = resultValue.trim() !== "";
+  const isDirty      = resultValue !== result.result; // value changed from last-saved state
+  const noteRequired = isModification && modifyConfirmed;
+  const canSave      = hasValue
+    && (!isCritical || criticalAcknowledged)
+    && (!isReleasedResult || modifyConfirmed)
+    && (!noteRequired || modificationNote.trim() !== "");
+
+  const handleResultChange = (val) => {
+    setResultValue(val);
+    setCriticalAcknowledged(false);
+  };
+
+  const handleNceSubmit = (nceData) => {
+    setShowNceForm(false);
+    onNceSubmit(result.id, nceData);
+  };
+
+  return (
+    <div className="border-t border-gray-200">
+      {/* Patient banner — full name visible here */}
+      <PatientBanner patient={result.patient} orderInfo={result.orderInfo} />
+
+      {/* ── Released result warning — must confirm before modification is allowed ── */}
+      {isReleasedResult && !modifyConfirmed && (
+        <div className="flex items-start gap-3 px-4 py-3 bg-amber-50 border-b-2 border-amber-500">
+          <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <div className="font-semibold text-amber-900 text-sm">Result Has Been Validated and Released</div>
+            <div className="text-xs text-amber-800 mt-0.5">
+              This result has already been accepted by a validator and may have been reported to the clinician.
+              Modifying it will create an audit event and return it to the Validation queue for re-approval.
+              A reason for the modification will be required.
+            </div>
+          </div>
+          <button onClick={() => setModifyConfirmed(true)}
+            className="px-3 py-2 bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 flex-shrink-0 whitespace-nowrap rounded-sm">
+            I understand — proceed
+          </button>
+        </div>
+      )}
+      {isReleasedResult && modifyConfirmed && (
+        <div className="flex items-center gap-2 px-4 py-1.5 bg-amber-50 border-b border-amber-200 text-xs text-amber-700">
+          <Pencil className="w-3 h-3" />
+          Modifying a validated result — changes will require re-validation.
+        </div>
+      )}
+      {/* ── Awaiting-validation modification notice (not yet released) ── */}
+      {result.status === "awaiting-validation" && (
+        <div className="flex items-center gap-2 px-4 py-1.5 bg-blue-50 border-b border-blue-200 text-xs text-blue-700">
+          <Pencil className="w-3 h-3" />
+          This result is queued for validation. Modifying it requires a reason note — changes will remain in the Validation queue.
+        </div>
+      )}
+
+      {/* Delta check alert */}
+      {result.deltaCheck && (
+        <div className="flex gap-2 px-4 py-2 bg-yellow-50 border-b border-yellow-200 text-sm">
+          <AlertTriangle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="font-semibold text-yellow-800">Delta Check Alert: </span>
+            <span className="text-gray-700">
+              {result.testName} changed <strong>{result.deltaCheck.change}</strong> from previous
+              ({result.deltaCheck.previous} → {result.deltaCheck.current} {result.unit}).
+              Threshold: {result.deltaCheck.threshold}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* ── Always-visible sections ── */}
+      <NotesSection result={result} />
+      <InterpretationSection result={result} />
+      <ProgramBanner program={result.program} />
+
+      {/* ── Result entry action bar ── */}
+      <div className="flex flex-wrap items-end gap-4 px-4 py-3 bg-white border-b border-gray-200">
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Result Value</div>
+          <div className="flex items-baseline gap-2">
+            <input type="text" value={resultValue} onChange={e => handleResultChange(e.target.value)}
+              placeholder="—"
+              className={`w-28 border-b-2 focus:outline-none text-sm font-mono py-1 ${RANGE_INPUT_BORDER[resultState] || "border-gray-400"} ${resultState === "invalid" ? "bg-red-50 text-red-900" : resultState === "critical" ? "bg-orange-50 text-orange-900" : resultState === "abnormal" ? "bg-yellow-50 text-yellow-900" : "bg-transparent"}`}
+            />
+            <span className="text-xs text-gray-500">{result.unit}</span>
+            {/* Live range tier badge */}
+            {resultState === "abnormal" && <span className="text-xs font-semibold text-yellow-700 bg-yellow-100 px-1.5 py-0.5 rounded">Abnormal</span>}
+            {resultState === "critical" && <span className="text-xs font-semibold text-orange-900 bg-orange-100 px-1.5 py-0.5 rounded">Critical</span>}
+            {resultState === "invalid"  && <span className="text-xs font-semibold text-red-100 bg-red-800 px-1.5 py-0.5 rounded">Invalid</span>}
+          </div>
+        </div>
+
+        <div className="text-xs text-gray-500">
+          Ref: <span className="font-mono text-gray-800">{result.normalRange} {result.unit}</span>
+          {result.rangeBounds?.critical && (
+            <span className="ml-2 text-orange-600">Critical: &lt;{result.rangeBounds.critical.low} or &gt;{result.rangeBounds.critical.high}</span>
+          )}
+        </div>
+
+        <div className="flex gap-2 ml-auto flex-wrap items-center">
+          {/* Report NCE */}
+          {!showNceForm && (
+            <button onClick={() => setShowNceForm(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-amber-400 text-amber-700 text-xs font-medium hover:bg-amber-50">
+              <AlertTriangle className="w-3.5 h-3.5" />
+              Report Non-Conformity
+            </button>
+          )}
+
+          {/* Save / Modify — label and availability depend on status and state */}
+          <button
+            onClick={() => canSave && onSave(result.id, resultValue, modificationNote)}
+            disabled={!canSave}
+            title={
+              !hasValue                                  ? "Enter a result value to save"
+              : isReleasedResult && !modifyConfirmed     ? "Confirm the modification warning above before saving"
+              : noteRequired && !modificationNote.trim() ? "A reason for modification is required"
+              : isCritical && !criticalAcknowledged      ? "Acknowledge the critical value before saving"
+              : ""
+            }
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              canSave
+                ? isModification
+                  ? "bg-blue-700 text-white hover:bg-blue-800"
+                  : "bg-blue-700 text-white hover:bg-blue-800"
+                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+            }`}>
+            {isModification && !isDirty ? <Pencil className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
+            {isModification && !isDirty ? "Modify Result" : "Save Result"}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Modification note — required when editing a previously saved result ── */}
+      {noteRequired && (
+        <div className="px-4 py-3 bg-white border-b border-gray-200">
+          <label className="block text-xs font-semibold text-gray-700 mb-1">
+            Reason for modification <span className="text-red-500">*</span>
+            <span className="font-normal text-gray-400 ml-1">(required — will be added to the audit trail)</span>
+          </label>
+          <textarea
+            rows={2}
+            value={modificationNote}
+            onChange={e => setModificationNote(e.target.value)}
+            placeholder="Describe why this result is being modified…"
+            className="w-full border border-gray-300 text-xs p-2 focus:outline-none focus:ring-1 focus:ring-blue-600 resize-none"
+          />
+        </div>
+      )}
+
+      {/* ── Invalid range warning — outside physiological limits ── */}
+      {isInvalid && (
+        <div className="flex items-start gap-3 px-4 py-3 bg-red-900 border-b border-red-700">
+          <AlertCircle className="w-4 h-4 text-red-300 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 text-red-100 text-xs">
+            <span className="font-semibold text-red-50">Result outside valid range — </span>
+            {resultValue} {result.unit} is outside the physiologically valid range of{" "}
+            {result.rangeBounds.valid.low}–{result.rangeBounds.valid.high} {result.unit}.{" "}
+            Verify the result and repeat analysis if necessary. Do not report until confirmed.
+          </div>
+        </div>
+      )}
+
+      {/* ── Critical value acknowledgment banner ── */}
+      {isCritical && !criticalAcknowledged && (
+        <div className="flex items-start gap-3 px-4 py-3 bg-orange-50 border-b-2 border-orange-500">
+          <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <div className="font-semibold text-orange-900 text-sm">Critical Value — Physician Notification Required</div>
+            <div className="text-xs text-orange-800 mt-0.5">
+              {criticalMsg}. Per laboratory policy, the responsible clinician must be notified before or upon result reporting.
+              Acknowledge below to confirm notification has been or will be made before saving.
+            </div>
+          </div>
+          <button onClick={() => setCriticalAcknowledged(true)}
+            className="px-3 py-2 bg-orange-600 text-white text-xs font-semibold hover:bg-orange-700 flex-shrink-0 whitespace-nowrap rounded-sm">
+            I Acknowledge
+          </button>
+        </div>
+      )}
+      {isCritical && criticalAcknowledged && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 border-b border-orange-200 text-xs text-orange-700">
+          <Check className="w-3.5 h-3.5 text-orange-600" />
+          Critical value acknowledged — clinician notification confirmed. You may now save.
+        </div>
+      )}
+
+      {/* NCE inline form — appears below action bar */}
+      {showNceForm && (
+        <ReportNceForm result={result} onSubmit={handleNceSubmit} onCancel={() => setShowNceForm(false)} />
+      )}
+
+      {/* ── Tabs ── */}
+      <div className="bg-gray-50 border-b border-gray-200">
+        <div className="flex overflow-x-auto">
+          {PANEL_TABS.map(({ key, label, Icon }) => (
+            <button key={key} onClick={() => setActiveTab(key)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-xs whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === key
+                  ? "border-blue-700 text-blue-700 font-semibold bg-white"
+                  : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+              }`}>
+              <Icon className="w-3.5 h-3.5" />
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-gray-50">
+        {activeTab === "method"  && <MethodTab result={result} />}
+        {activeTab === "order"   && <OrderInfoTab orderInfo={result.orderInfo} />}
+        {activeTab === "attach"  && <AttachmentsTab result={result} />}
+        {activeTab === "qaqc"    && <QAQCTab result={result} />}
+        {activeTab === "history" && <HistoryTab result={result} />}
+        {activeTab === "referral"&& <ReferralTab result={result} />}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Toast
+// ---------------------------------------------------------------------------
+function ToastBanner({ toasts, onClose }) {
+  if (!toasts.length) return null;
+  return (
+    <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm w-full">
+      {toasts.map(t => (
+        <div key={t.id} className={`flex items-start gap-3 p-3 shadow-lg border-l-4 text-sm ${
+          t.kind === "success" ? "bg-green-50 border-green-500" :
+          t.kind === "error"   ? "bg-red-50 border-red-500"    :
+          t.kind === "warning" ? "bg-amber-50 border-amber-500" : "bg-blue-50 border-blue-500"
+        }`}>
+          <span className="flex-1 text-gray-800">{t.message}</span>
+          <button onClick={() => onClose(t.id)} className="text-gray-400 hover:text-gray-700 flex-shrink-0">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main page
+// ---------------------------------------------------------------------------
+const STATUS_FILTERS = ["All", "pending", "entered", "awaiting-validation", "released", "cancelled"];
+
+export default function ResultsPageRedesign() {
+  const [results, setResults]               = useState(INITIAL_RESULTS);
+  const [labUnit, setLabUnit]               = useState("");
+  const [searchQuery, setSearchQuery]       = useState("");
+  const [statusFilter, setStatusFilter]     = useState("All");
+  const [expandedId, setExpandedId]         = useState(null);
+  const [toasts, setToasts]                 = useState([]);
+  // Admin config: results.entry.showPatientName (default: false)
+  const [showPatientNames, setShowPatientNames] = useState(false);
+
+  const addToast = (message, kind = "success") => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, kind }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 5000);
+  };
+
+  const handleSave = (resultId, value, modificationNote) => {
+    if (!value?.trim()) {
+      addToast("Result value is required before saving.", "error");
+      return;
+    }
+    const prevResult = results.find(r => r.id === resultId);
+    const isModification = prevResult?.status === "awaiting-validation" || prevResult?.status === "released";
+    setResults(prev => prev.map(r => {
+      if (r.id !== resultId) return r;
+      const updatedNotes = modificationNote?.trim()
+        ? [...(r.notes || []), {
+            id: Date.now(),
+            date: new Date().toLocaleString(),
+            author: "Current User",
+            type: "internal",
+            body: `[Modification reason] ${modificationNote.trim()}`,
+          }]
+        : r.notes;
+      return { ...r, result: value, status: "awaiting-validation", notes: updatedNotes };
+    }));
+    setExpandedId(null);
+    addToast(
+      isModification
+        ? "Result modified and returned to Validation queue."
+        : "Result saved and queued for validation.",
+      "success"
+    );
+  };
+
+  const handleNceSubmit = (resultId, nceData) => {
+    setResults(prev => prev.map(r =>
+      r.id === resultId ? {
+        ...r,
+        status: "cancelled",
+        // Store filed NCE so the flag badge is visible in the table
+        nce: {
+          number:      nceData.nceNumber,
+          status:      "open",
+          category:    nceData.category,
+          subcategory: nceData.subcategory,
+          severity:    nceData.severity,
+        },
+      } : r
+    ));
+    setExpandedId(null);
+    addToast(
+      `NCE ${nceData.nceNumber} created. Result marked as Cancelled. Open NCE module to complete investigation.`,
+      "warning"
+    );
+  };
+
+  const filtered = results.filter(r => {
+    const q = searchQuery.toLowerCase();
+    const matchSearch = !q || r.testName.toLowerCase().includes(q) ||
+      r.labNumber.toLowerCase().includes(q) || r.patient.id.includes(q);
+    const matchStatus = statusFilter === "All" || r.status === statusFilter;
+    return matchSearch && matchStatus;
+  });
+
+  const TABLE_HEADERS = ["Lab Number / Patient", "Test Name", "Sample", "Ref. Range", "Result", "Flags", "QC", "Status", "Actions"];
+
+  return (
+    <div className="min-h-screen bg-gray-100 font-sans text-sm">
+      <ToastBanner toasts={toasts} onClose={id => setToasts(prev => prev.filter(t => t.id !== id))} />
+
+      {/* Preview banner + admin config simulation */}
+      <div className="bg-blue-50 border-b-2 border-blue-600 px-4 py-2 flex flex-wrap items-center gap-3 text-xs">
+        <span className="text-blue-700 font-semibold">🎨 Preview v3</span>
+        <span className="text-gray-500">— Results Entry · Carbon Design System · OpenELIS Global</span>
+        <span className="ml-auto flex items-center gap-3">
+          {/* Simulated admin config toggle */}
+          <span className="flex items-center gap-2 px-3 py-1 bg-white border border-blue-200 rounded text-gray-600">
+            <span className="font-semibold text-gray-500 uppercase tracking-wide text-xs">Admin Config:</span>
+            <span className="text-gray-700">Show patient name in results list</span>
+            <button
+              onClick={() => setShowPatientNames(v => !v)}
+              className={`relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                showPatientNames ? "bg-blue-600" : "bg-gray-300"
+              }`}
+              role="switch"
+              aria-checked={showPatientNames}
+              title="Toggle: Admin › General Config › Results Entry › Show Patient Name"
+            >
+              <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow transition-transform ${
+                showPatientNames ? "translate-x-4" : "translate-x-0"
+              }`} />
+            </button>
+            <span className={`font-medium ${showPatientNames ? "text-blue-700" : "text-gray-400"}`}>
+              {showPatientNames ? "On" : "Off"}
+            </span>
+          </span>
+          <span className="text-gray-400">Interactive mockup</span>
+        </span>
+      </div>
+
+      {/* Shell header */}
+      <div className="bg-gray-900 text-white px-4 py-3 flex items-center gap-2 text-sm">
+        <span className="text-blue-400 font-bold">OpenELIS Global</span>
+        <span className="text-gray-500">›</span>
+        <span>Results</span>
+        <span className="text-gray-500">›</span>
+        <span>Results Entry</span>
+      </div>
+
+      {/* Page heading */}
+      <div className="bg-white border-b border-gray-200 px-4 py-5">
+        <h1 className="text-2xl font-light text-gray-900">Results Entry</h1>
+        <p className="text-gray-500 text-xs mt-0.5">Enter and manage test results for pending laboratory orders</p>
+      </div>
+
+      {/* Toolbar */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="flex-1 min-w-52 relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input type="text"
+              className="w-full pl-8 pr-3 py-2 border border-gray-400 bg-gray-50 text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
+              placeholder="Search or scan barcode — lab number, patient ID, test name…"
+              value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="min-w-44">
+            <div className="text-xs text-gray-500 mb-1">Lab Unit <span className="text-red-500">*</span></div>
+            <select className="w-full border border-gray-400 bg-gray-50 text-sm py-2 px-2 focus:outline-none focus:ring-1 focus:ring-blue-600"
+              value={labUnit} onChange={e => setLabUnit(e.target.value)}>
+              {LAB_UNITS.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+            </select>
+          </div>
+
+          {["Date From", "Date To"].map(lbl => (
+            <div key={lbl} className="min-w-36">
+              <div className="text-xs text-gray-500 mb-1">{lbl}</div>
+              <input type="date" defaultValue="2025-12-18"
+                className="w-full border border-gray-400 bg-gray-50 text-sm py-2 px-2 focus:outline-none focus:ring-1 focus:ring-blue-600" />
+            </div>
+          ))}
+
+          <button className="px-4 py-2 bg-blue-700 text-white text-sm font-medium hover:bg-blue-800 whitespace-nowrap">
+            Load Results
+          </button>
+        </div>
+      </div>
+
+      {/* Status filter bar */}
+      <div className="bg-white border-b border-gray-200 px-4 py-2 flex flex-wrap gap-2 items-center">
+        <span className="text-xs text-gray-500 font-medium mr-1">Show:</span>
+        {STATUS_FILTERS.map(s => {
+          const count = s === "All" ? results.length : results.filter(r => r.status === s).length;
+          if (count === 0 && s !== "All" && s !== "pending" && s !== statusFilter) return null;
+          return (
+            <button key={s} onClick={() => setStatusFilter(s)}
+              className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+                statusFilter === s
+                  ? "bg-gray-800 border-gray-800 font-semibold text-white"
+                  : "border-gray-200 text-gray-500 hover:bg-gray-100"
+              }`}>
+              {s === "All" ? "All" : STATUS_CONFIG[s]?.label || s} ({count})
+            </button>
+          );
+        })}
+        <span className="ml-auto text-xs text-gray-400">
+          {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+        </span>
+      </div>
+
+      {/* Table */}
+      <div className="mx-4 mt-4 bg-white border border-gray-200 shadow-sm">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="bg-gray-100 border-b border-gray-300">
+              <th className="w-10" />
+              {TABLE_HEADERS.map(h => (
+                <th key={h} className="text-left px-3 py-3 text-xs font-semibold uppercase tracking-wide text-gray-600 whitespace-nowrap">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={TABLE_HEADERS.length + 1} className="text-center py-12 text-gray-400 text-sm">
+                  {searchQuery ? "No results match your search." : "Select a lab unit and date range, then click Load Results."}
+                </td>
+              </tr>
+            )}
+
+            {filtered.map(result => {
+              const isExpanded = expandedId === result.id;
+              const isCancelled = result.status === "cancelled";
+
+              return (
+                <>
+                  <tr key={result.id}
+                    className={`border-b border-gray-100 transition-colors ${
+                      isCancelled ? "opacity-60 bg-gray-50" :
+                      isExpanded ? "bg-blue-50" : "hover:bg-gray-50"
+                    }`}>
+                    {/* Expand */}
+                    <td className="w-10 text-center">
+                      {!isCancelled && (
+                        <button onClick={() => setExpandedId(isExpanded ? null : result.id)}
+                          className="p-2 hover:bg-gray-200 rounded transition-colors"
+                          aria-label={isExpanded ? "Collapse" : "Expand"}>
+                          {isExpanded
+                            ? <ChevronDown className="w-4 h-4 text-blue-700" />
+                            : <ChevronRight className="w-4 h-4 text-gray-400" />}
+                        </button>
+                      )}
+                    </td>
+
+                    {/* Lab Number / Patient */}
+                    <td className="px-3 py-3">
+                      <div className="font-mono text-xs text-gray-700">{result.labNumber}</div>
+                      {showPatientNames ? (
+                        /* Admin config ON: show full patient name */
+                        <div className="text-xs font-medium text-gray-800 mt-0.5">{result.patient.name}</div>
+                      ) : (
+                        /* Admin config OFF (default): privacy-safe — ID + sex + calculated age */
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          ID {result.patient.id} · {result.patient.sex} · {calcAge(result.patient.dob)}
+                        </div>
+                      )}
+                      {result.program && (
+                        <div className="mt-1"><Tag color="purple">{result.program.name}</Tag></div>
+                      )}
+                    </td>
+
+                    {/* Test Name */}
+                    <td className="px-3 py-3 max-w-48">
+                      <div className={`font-medium ${isCancelled ? "line-through text-gray-400" : "text-gray-900"}`}>
+                        {result.testName}
+                      </div>
+                      {result.analyzer && (
+                        <div className="text-xs text-gray-400 mt-0.5">🔬 {result.analyzer}</div>
+                      )}
+                    </td>
+
+                    {/* Sample */}
+                    <td className="px-3 py-3 text-gray-600 whitespace-nowrap text-xs">{result.sampleType}</td>
+
+                    {/* Ref Range */}
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      <span className="font-mono text-xs text-gray-700">{result.normalRange}</span>
+                      <span className="text-xs text-gray-400 ml-1">{result.unit}</span>
+                    </td>
+
+                    {/* Result — colored by range tier */}
+                    {(() => {
+                      const rs = evaluateResult(result.result, result.rangeBounds);
+                      return (
+                        <td className={`px-3 py-3 ${RANGE_CELL_BG[rs] || ""}`}>
+                          {isCancelled ? (
+                            <span className="text-xs text-gray-400 line-through">{result.result || "—"}</span>
+                          ) : (
+                            <input type="text" value={result.result} placeholder="—"
+                              onChange={e => setResults(prev => prev.map(r =>
+                                r.id === result.id ? { ...r, result: e.target.value } : r
+                              ))}
+                              className={`w-20 border-b-2 focus:outline-none text-xs font-mono py-0.5 bg-transparent ${RANGE_INPUT_BORDER[rs] || "border-gray-300"} ${RANGE_CELL_TEXT[rs] || "text-gray-700"}`}
+                            />
+                          )}
+                        </td>
+                      );
+                    })()}
+
+                    {/* Flags — H/L/Δ + range tier badges (C=critical, !=invalid) + NCE badge */}
+                    {(() => {
+                      const rs = evaluateResult(result.result, result.rangeBounds);
+                      const hasNce = !!result.nce;
+                      const hasAnyFlag = result.flags.length > 0 || rs === "critical" || rs === "invalid" || hasNce;
+                      const nceColor = result.nce?.status === "closed"
+                        ? "bg-gray-100 text-gray-600 border-gray-300"
+                        : "bg-teal-50 text-teal-800 border-teal-400";
+                      return (
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <div className="flex gap-1 items-center flex-wrap">
+                            {result.flags.includes("above-normal") && <span className="text-red-600 font-bold text-xs" title="Above normal range">H</span>}
+                            {result.flags.includes("below-normal") && <span className="text-blue-600 font-bold text-xs" title="Below normal range">L</span>}
+                            {result.flags.includes("delta-check") && <span className="text-amber-600 font-bold text-xs" title="Delta check threshold exceeded">Δ</span>}
+                            {rs === "critical" && (
+                              <span className={`px-1 py-0.5 rounded text-xs font-bold ${RANGE_FLAG_BADGE.critical}`} title="Critical/panic value — acknowledgment required">C</span>
+                            )}
+                            {rs === "invalid" && (
+                              <span className={`px-1 py-0.5 rounded text-xs font-bold ${RANGE_FLAG_BADGE.invalid}`} title="Outside physiologically valid range">!</span>
+                            )}
+                            {hasNce && (
+                              <span
+                                className={`px-1.5 py-0.5 rounded border text-xs font-semibold tracking-wide ${nceColor}`}
+                                title={`NCE ${result.nce.number} · ${result.nce.category} / ${result.nce.subcategory} · ${result.nce.severity} · ${result.nce.status}`}
+                              >
+                                NCE
+                              </span>
+                            )}
+                            {!hasAnyFlag && <span className="text-gray-300 text-xs">—</span>}
+                          </div>
+                        </td>
+                      );
+                    })()}
+
+                    {/* QC */}
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-1">
+                        <span className={`w-2 h-2 rounded-full ${QC_DOT[result.qcStatus] || QC_DOT.none}`} aria-hidden="true" />
+                        <span className="text-xs text-gray-500 capitalize">{result.qcStatus === "none" ? "—" : result.qcStatus}</span>
+                      </div>
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-3 py-3"><StatusTag status={result.status} /></td>
+
+                    {/* Actions */}
+                    <td className="px-3 py-3">
+                      {!isCancelled && result.result.trim() !== "" && (() => {
+                        const isModification = result.status === "awaiting-validation" || result.status === "released";
+                        const isReleased     = result.status === "released";
+                        if (isModification) {
+                          // Open expanded panel for the full modification workflow (note + optional confirmation)
+                          return (
+                            <button
+                              onClick={() => setExpandedId(isExpanded ? null : result.id)}
+                              className={`flex items-center gap-1 px-2 py-1 text-xs whitespace-nowrap border font-medium ${
+                                isReleased
+                                  ? "border-amber-500 text-amber-700 hover:bg-amber-50"
+                                  : "border-blue-600 text-blue-700 hover:bg-blue-50"
+                              }`}
+                              title={isReleased ? "Result has been validated — click to modify" : "Modify this saved result"}>
+                              <Pencil className="w-3 h-3" />
+                              Modify Result
+                            </button>
+                          );
+                        }
+                        // First save — quick inline action
+                        return (
+                          <button onClick={() => handleSave(result.id, result.result)}
+                            className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-700 text-white hover:bg-blue-800 whitespace-nowrap"
+                            title="Save result — sends to Validation queue">
+                            <Check className="w-3 h-3" />
+                            Save
+                          </button>
+                        );
+                      })()}
+                      {isCancelled && result.nce && (
+                        <span
+                          className="px-1.5 py-0.5 rounded border text-xs font-semibold tracking-wide bg-teal-50 text-teal-800 border-teal-400"
+                          title={`${result.nce.number} · ${result.nce.category} / ${result.nce.subcategory} · ${result.nce.severity}`}
+                        >
+                          NCE
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+
+                  {/* Expanded panel */}
+                  {isExpanded && !isCancelled && (
+                    <tr key={`${result.id}-exp`} className="bg-gray-50">
+                      <td colSpan={TABLE_HEADERS.length + 1} className="p-0">
+                        <ExpandedPanel result={result} onSave={handleSave} onNceSubmit={handleNceSubmit} />
+                      </td>
+                    </tr>
+                  )}
+                </>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-white text-xs text-gray-500">
+          <div className="flex items-center gap-2">
+            Items per page:
+            <select className="border border-gray-300 bg-gray-50 py-1 px-1 text-xs">
+              <option>10</option><option>25</option><option>50</option>
+            </select>
+          </div>
+          <span>1–{filtered.length} of {filtered.length}</span>
+          <div className="flex gap-1">
+            <button className="px-2 py-1 border border-gray-200 text-gray-300" disabled>‹</button>
+            <button className="px-2 py-1 border border-blue-600 bg-blue-700 text-white">1</button>
+            <button className="px-2 py-1 border border-gray-200 text-gray-300" disabled>›</button>
+          </div>
+        </div>
+      </div>
+      <div className="h-8" />
+    </div>
+  );
+}
