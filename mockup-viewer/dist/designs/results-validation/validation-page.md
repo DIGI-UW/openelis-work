@@ -1,748 +1,677 @@
-# Result Validation Page - Functional Requirements Specification
-
-## Overview
-
-The Result Validation page allows authorized users to review, validate, and release test results. This page follows the same design patterns as the Results Entry page but is focused on the validation workflow rather than data entry.
-
-### Purpose
-
-- Provide a dedicated interface for result validation/verification
-- Enable batch validation of multiple results
-- Support the review of all relevant information before release
-- Allow direct editing of results when corrections are needed
-- Support retest requests with required documentation
-
-### Access Control
-
-- **RBAC Role Required**: Users must have the validation role to access this page
-- Existing OpenELIS Global RBAC permission system applies
-- Role typically assigned to supervisors, senior technicians, or quality assurance personnel
-
-## Page Layout
-
-### Initial State (Before Search)
-
-When the page first loads, no data is displayed. Users must either:
-1. Select a Lab Unit from the dropdown, OR
-2. Enter a search query
-
-This prevents unnecessary data loading and ensures users work with relevant data sets.
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                          ðŸ”                                                     â”‚
-â”‚                                                                                 â”‚
-â”‚                    Search to View Results                                       â”‚
-â”‚                                                                                 â”‚
-â”‚     Select a lab unit from the dropdown or enter a search term to view          â”‚
-â”‚     results awaiting validation. This helps ensure only relevant data           â”‚
-â”‚     is loaded.                                                                  â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-### Header Section
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ ðŸ›¡ï¸ Result Validation                                    [47] awaiting validationâ”‚
-â”‚    Review and validate results before release                                   â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-| Element | Description |
-|---------|-------------|
-| **Page Title** | "Result Validation" with shield icon |
-| **Subtitle** | "Review and validate results before release" |
-| **Count Badge** | Number of results awaiting validation |
-
-### Search and Filter Bar
-
-The search bar requires either a lab unit selection OR a search query before results are loaded.
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ [Select Lab Unit... â–¼]  or  ðŸ” [Search by lab number, patient ID...]  [Search]  â”‚
-â”‚                                                            [Filters]  [Clear]   â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-| Element | Description |
-|---------|-------------|
-| **Lab Unit Dropdown** | Required selection OR search query to load data |
-| **Search Input** | Full-text search across lab number, patient ID, test name |
-| **Search Button** | Disabled until lab unit selected OR search query entered |
-| **Filters Button** | Toggle advanced filters panel |
-| **Clear Button** | Resets to initial empty state (only visible after search) |
-
-### Advanced Filters Panel
-
-When expanded, shows additional filter options:
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Lab Number From    Lab Number To     Date From        Date To                   â”‚
-â”‚ [____________]     [____________]    [__________]     [__________]              â”‚
-â”‚                                                                                 â”‚
-â”‚ Test Section       Analyzer          Entered By       Quick Filters             â”‚
-â”‚ [All Sections â–¼]   [All Analyzers â–¼] [All Users â–¼]   â˜ Flagged â˜ Normal â˜ Abnormalâ”‚
-â”‚                                                                                 â”‚
-â”‚                                                           [Apply Filters]       â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-| Filter | Description |
-|--------|-------------|
-| **Lab Number Range** | From/To text inputs for accession number range |
-| **Date Range** | From/To date pickers for test date |
-| **Test Section** | Dropdown to filter by test section |
-| **Analyzer** | Dropdown to filter by analyzer used |
-| **Entered By** | Dropdown to filter by user who entered result |
-| **Quick Filters** | Checkboxes for Flagged, Normal, Abnormal (mutually exclusive) |
-
-### Quick Stats (After Search)
-
-### Quick Stats (After Search)
-
-Displayed after a successful search:
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ [4 Normal] [2 Abnormal] [3 Flagged]                                             â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-| Badge | Description |
-|-------|-------------|
-| **Normal** | Count of results within normal range |
-| **Abnormal** | Count of results outside normal range |
-| **Flagged** | Count of results with any flags (delta check, critical, etc.) |
-
-### Batch Actions Bar
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ â˜‘ Select All  â”‚  âœ“ Select Normal (4)  â”‚  3 selected     [Retest Selected] [Accept & Release Selected]â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-| Element | Description |
-|---------|-------------|
-| **Select All** | Checkbox to select/deselect all visible results |
-| **Select Normal** | Button to select only results within normal range |
-| **Selection Count** | Display of currently selected result count |
-| **Retest Selected** | Batch action to send selected results for retest |
-| **Accept & Release Selected** | Batch action to validate and release selected results |
-
-**Batch Action Behavior:**
-
-- **Accept & Release**: Validates selected results and releases them (makes available to patient/EMR)
-- **Retest**: Opens retest modal requiring a reason; sets status back to "Pending"
-
-## Results Table
-
-### Collapsed Row View
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ â˜ â–¶ ðŸŸ¢ DEV01250000000000   WBC               Sysmex XN-L   4.00-10.00   7.5    â”‚
-â”‚        3456789 â€¢ M/14y     Whole Blood                      x10^9/L            â”‚
-â”‚                                                              J.Smith 10:30 [â†»][âœ“]â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-| Column | Description |
-|--------|-------------|
-| **Checkbox** | Row selection for batch actions |
-| **Expand** | Click to expand/collapse row details |
-| **QC Status** | Colored dot (green=pass, red=fail) |
-| **Lab Number** | Sample/accession number |
-| **Patient Info** | Patient ID, Sex/Age (name hidden for privacy) |
-| **Test Name** | Name of the test |
-| **Sample Type** | Type of sample |
-| **Method/Analyzer** | "Manual" or analyzer name |
-| **Range** | Reference range with unit |
-| **Result** | Result value (highlighted if abnormal) |
-| **Flags** | Flag icons (above/below normal, delta check, critical) |
-| **Entered By** | User who entered result and timestamp |
-| **Row Actions** | Retest (â†») and Accept (âœ“) buttons |
-
-### Expanded Row View
-
-When a row is expanded, the following sections are displayed:
-
-#### Patient Details Banner
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Test, Patient    DOB: 01/11/2011    ID: 3456789                        M / 14y â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-Patient name is only visible when row is expanded (privacy protection in collapsed view).
-
-#### Entry Info Banner
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ ðŸ‘¤ Entered by: J. Smith    ðŸ• at 12/18/2025 10:30    Method: [Sysmex XN-L]      â”‚
-â”‚ Manual count performed using hemocytometer with improved Neubauer chamber.      â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-| Element | Description |
-|---------|-------------|
-| **Entered By** | User who entered the result |
-| **Entry Time** | Date and time of entry |
-| **Method** | Manual or Analyzer name |
-| **Method Notes** | Optional notes about the method used (if manual) |
-
-#### Result and Interpretation Section
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ RESULT VALUE                    â”‚ INTERPRETATION                              â”‚
-â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”                 â”‚ [Normal]                                    â”‚
-â”‚ â”‚    7.5      â”‚ x10^9/L         â”‚ White blood cell count within normal limits.â”‚
-â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜                 â”‚ No evidence of infection or hematologic     â”‚
-â”‚ Range: 4.00 - 10.00             â”‚ abnormality.                                â”‚
-â”‚                                 â”‚                                             â”‚
-â”‚ âš ï¸ Delta Check: +44.9% from     â”‚                                             â”‚
-â”‚    previous (98) - exceeds 20%  â”‚                                             â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-| Element | Description |
-|---------|-------------|
-| **Result Value** | Editable input showing current result |
-| **Unit** | Unit of measurement |
-| **Range** | Reference range for comparison |
-| **Delta Check Alert** | Warning if delta exceeds threshold |
-| **Interpretation** | Label and text for the interpretation |
-
-**Result Editing:**
-- Validators can directly edit the result value
-- Changes are logged in the audit trail
-- Edited results may trigger re-evaluation of flags and interpretation
-
-#### Notes Section (If Notes Exist)
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ ðŸ“„ Notes                                                                        â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ J. Smith                             [In Lab Only]           12/18/2025 09:45   â”‚
-â”‚ Sample hemolyzed, may need redraw.                                              â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-Displays all notes associated with the result, distinguishing between internal ("In Lab Only") and external notes.
-
-### Tab Structure
-
-| Tab | Icon | Purpose |
-|-----|------|---------|
-| **Method & Reagents** | Flask | View method and reagent lots used |
-| **History** | History | View previous results and delta calculations |
-| **QA/QC** | CheckCircle | View QC results and warnings |
-
-#### Method & Reagents Tab
-
-Displays the method and reagent lots that were recorded when the result was entered.
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ METHOD USED                     â”‚ REAGENT LOTS USED                           â”‚
-â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
-â”‚ â”‚ Sysmex XN-L        [Online] â”‚ â”‚ â”‚ Cellpack DCL         [Expiring Soon]   â”‚ â”‚
-â”‚ â”‚ Automated analyzer          â”‚ â”‚ â”‚ Lot: LOT-2024-0892 â€¢ Expires: 12/20/24 â”‚ â”‚
-â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚ â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤ â”‚
-â”‚                                 â”‚ â”‚ Lysercell WNR        [Expiring Soon]   â”‚ â”‚
-â”‚                                 â”‚ â”‚ Lot: LOT-2024-5678 â€¢ Expires: 12/25/24 â”‚ â”‚
-â”‚                                 â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-**Read-only view** - validators can see but not modify method/reagent selections.
-
-#### History Tab
-
-Displays previous results for the same test and patient.
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ ðŸ“œ Previous Results                                                             â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ Date                  â”‚ Result         â”‚ Status    â”‚ Delta                      â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ 12/18/2025 (Current)  â”‚ 7.5 x10^9/L    â”‚ [Normal]  â”‚ â€”                          â”‚
-â”‚ 12/01/2025            â”‚ 6.8 x10^9/L    â”‚ [Normal]  â”‚ +10.3%                     â”‚
-â”‚ 11/15/2025            â”‚ 7.2 x10^9/L    â”‚ [Normal]  â”‚ +4.2%                      â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-| Column | Description |
-|--------|-------------|
-| **Date** | Date of result (current highlighted) |
-| **Result** | Result value with unit |
-| **Status** | Normal/Abnormal badge |
-| **Delta** | Percentage change from current result |
-
-#### QA/QC Tab
-
-Displays QC results and any warnings.
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ QC RESULTS                      â”‚ WARNINGS                                    â”‚
-â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
-â”‚ â”‚ Level 1 (Low)      [âœ“ Pass] â”‚ â”‚ â”‚ âš ï¸ Cellpack DCL                        â”‚ â”‚
-â”‚ â”‚ Expected: 3.5 â€¢ Actual: 3.6 â”‚ â”‚ â”‚    Lot LOT-2024-0892 expires 12/20/24  â”‚ â”‚
-â”‚ â”‚ CV: 2.9%                    â”‚ â”‚ â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤ â”‚
-â”‚ â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤ â”‚ â”‚ âš ï¸ Lysercell WNR                       â”‚ â”‚
-â”‚ â”‚ Level 2 (Normal)   [âœ“ Pass] â”‚ â”‚ â”‚    Lot LOT-2024-5678 expires 12/25/24  â”‚ â”‚
-â”‚ â”‚ Expected: 7.0 â€¢ Actual: 7.1 â”‚ â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
-â”‚ â”‚ CV: 1.4%                    â”‚ â”‚                                             â”‚
-â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚                                             â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-| Element | Description |
-|---------|-------------|
-| **QC Level** | Control level name |
-| **Pass/Fail** | Status badge |
-| **Expected/Actual** | Expected vs actual values |
-| **CV** | Coefficient of variation |
-| **Warnings** | Reagent expiration or other warnings |
-
-### Row Actions
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Lab #: DEV01250000000000 â€¢ Test: WBC                    [Retest] [Accept & Release]â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-| Action | Description |
-|--------|-------------|
-| **Retest** | Opens retest modal; requires reason |
-| **Accept & Release** | Validates and releases the result |
-
-## Retest Modal
-
-When a result is sent for retest (single or batch), a modal dialog appears:
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ â†» Send for Retest                                                         [X]  â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚                                                                                 â”‚
-â”‚ This result will be sent back for retesting. The status will be reset to       â”‚
-â”‚ "Pending" and the technician will need to re-enter the result.                 â”‚
-â”‚                                                                                 â”‚
-â”‚ Retest Reason *                                                                 â”‚
-â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”â”‚
-â”‚ â”‚ Enter the reason for requesting a retest...                                 â”‚â”‚
-â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜â”‚
-â”‚ This reason will be added as an internal note and recorded in result history.  â”‚
-â”‚                                                                                 â”‚
-â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”â”‚
-â”‚ â”‚ â„¹ï¸ Note: Retest requests are logged in the audit trail with your user ID   â”‚â”‚
-â”‚ â”‚    and timestamp.                                                           â”‚â”‚
-â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜â”‚
-â”‚                                                                                 â”‚
-â”‚                                                    [Cancel] [Confirm Retest]   â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-### Retest Modal Fields
-
-| Field | Required | Description |
-|-------|----------|-------------|
-| **Retest Reason** | Yes | Text field for entering the reason for retest |
-
-### Retest Behavior
-
-When a retest is confirmed:
-
-1. **Status Change**: Result status is set back to "Pending" (waiting for result entry)
-2. **Internal Note**: The retest reason is added as an internal note with:
-   - Author: Current user
-   - Type: "Internal" (In Lab Only)
-   - Body: "[RETEST REQUESTED] " + reason text
-3. **History Record**: A record is added to the result history showing:
-   - Action: "Retest Requested"
-   - By: Current user
-   - Timestamp: Current date/time
-   - Reason: Retest reason
-4. **Audit Trail**: Action is logged with user ID, timestamp, and reason
-5. **Result Value**: Previous result value is preserved in history but cleared from current entry
-
-## Pagination
-
-The page uses standard pagination controls with a configurable page size.
-
-### Pagination Bar
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Showing 1 to 25 of 147 results    Show [25 â–¼] per page    [Â«Â«][Prev][1][2][3][Next][Â»Â»]â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-### Pagination Controls
-
-| Element | Description |
-|---------|-------------|
-| **Showing X to Y of Z** | Current range and total count display |
-| **Page Size Selector** | Dropdown with options: 10, 25, 50, 100 (default: 25) |
-| **First Page (Â«Â«)** | Jump to first page |
-| **Previous** | Go to previous page |
-| **Page Numbers** | Direct page selection (shows up to 5 page numbers with ellipsis) |
-| **Next** | Go to next page |
-| **Last Page (Â»Â»)** | Jump to last page |
-
-### Page Size Options
-
-| Value | Use Case |
-|-------|----------|
-| **10** | Quick review of small batches |
-| **25** | Default - balanced view |
-| **50** | Larger batch validation |
-| **100** | Maximum for bulk operations |
-
-### Pagination Behavior
-
-- Default page size is 25 results
-- Page size preference persists during the session
-- Changing page size resets to page 1
-- Selection is cleared when changing pages
-- Navigation buttons are disabled when at boundaries
-
-## Workflow States
-
-### Result Status Flow
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Pending  â”‚ â”€â”€â–¶ â”‚ Entered  â”‚ â”€â”€â–¶ â”‚ Awaiting         â”‚ â”€â”€â–¶ â”‚ Released â”‚
-â”‚          â”‚     â”‚          â”‚     â”‚ Validation        â”‚     â”‚          â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-      â–²                                    â”‚
-      â”‚                                    â”‚
-      â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                   (Retest)
-```
-
-| Status | Description |
-|--------|-------------|
-| **Pending** | Result not yet entered |
-| **Entered** | Result entered, not yet submitted for validation |
-| **Awaiting Validation** | Result submitted, waiting for validator review |
-| **Released** | Result validated and released to patient/EMR |
-
-### Validation Actions
-
-| Action | From Status | To Status | Notes |
-|--------|-------------|-----------|-------|
-| **Accept & Release** | Awaiting Validation | Released | Validates and releases result |
-| **Retest** | Awaiting Validation | Pending | Sends back for re-entry with required reason |
-
-## Data Model
-
-### Validation Result Interface
-
-```typescript
-interface ValidationResult {
-  id: number;
-  labNumber: string;
-  patient: {
-    name: string;
-    id: string;
-    dob: string;
-    sex: string;
-    age: string;
-  };
-  testDate: string;
-  testName: string;
-  sampleType: string;
-  normalRange: string;
-  unit: string;
-  result: string;
-  status: 'awaiting-validation';
-  
-  // Entry Information
-  enteredBy: {
-    name: string;
-    date: string;  // Date and time of entry
-  };
-  method: 'manual' | 'analyzer';
-  methodNotes?: string;  // Notes for manual method
-  analyzer?: string;     // Analyzer name if method is 'analyzer'
-  
-  // Flags and Status
-  flags: ('above-normal' | 'below-normal' | 'delta-check' | 'critical')[];
-  isNormal: boolean;
-  qcStatus: 'pass' | 'fail';
-  
-  // Related Data
-  previousResults: PreviousResult[];
-  notes: Note[];
-  interpretation: Interpretation;
-  qcData: QCResult[];
-  reagentLots: ReagentLot[];
-  deltaCheck?: DeltaCheck;
-}
-
-interface PreviousResult {
-  date: string;
-  value: string;
-  status: 'normal' | 'abnormal' | 'low-normal' | 'high-normal';
-}
-
-interface Note {
-  id: number;
-  date: string;
-  author: string;
-  type: 'internal' | 'external';
-  body: string;
-}
-
-interface Interpretation {
-  code: string;
-  label: string;
-  text: string;
-}
-
-interface QCResult {
-  level: string;
-  expected: string;
-  actual: string;
-  status: 'pass' | 'fail';
-  cv: string;
-}
-
-interface ReagentLot {
-  name: string;
-  lot: string;
-  expires: string;
-  status: 'ok' | 'expiring-soon' | 'expired';
-}
-
-interface DeltaCheck {
-  previous: string;
-  change: string;
-  threshold: string;
-}
-```
-
-### Retest Request Interface
-
-```typescript
-interface RetestRequest {
-  resultIds: number[];      // IDs of results to retest
-  reason: string;           // Required reason for retest
-  requestedBy: string;      // User ID of validator
-  requestedAt: string;      // ISO timestamp
-}
-```
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/validation/results` | List results awaiting validation |
-| GET | `/api/validation/results/{id}` | Get single result with full details |
-| PUT | `/api/validation/results/{id}` | Update result value (edit) |
-| POST | `/api/validation/results/{id}/accept` | Accept and release result |
-| POST | `/api/validation/results/accept` | Batch accept and release results |
-| POST | `/api/validation/results/{id}/retest` | Send single result for retest |
-| POST | `/api/validation/results/retest` | Batch send results for retest |
-
-### Query Parameters for Search
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `q` | string | Smart search query |
-| `labUnit` | string | Filter by lab unit (required if no search query) |
-| `labNumberFrom` | string | Filter by lab number range start |
-| `labNumberTo` | string | Filter by lab number range end |
-| `dateFrom` | date | Filter by test date range start |
-| `dateTo` | date | Filter by test date range end |
-| `testSection` | string | Filter by test section |
-| `analyzer` | string | Filter by analyzer |
-| `flagged` | boolean | Filter to show only flagged results |
-| `normal` | boolean | Filter by normal status |
-| `enteredBy` | string | Filter by user who entered result |
-| `page` | integer | Page number (default: 1) |
-| `pageSize` | integer | Results per page (default: 25, options: 10, 25, 50, 100) |
-
-### Response Format
-
-```json
-{
-  "results": [...],
-  "pagination": {
-    "page": 1,
-    "pageSize": 25,
-    "totalResults": 147,
-    "totalPages": 6
-  },
-  "summary": {
-    "normal": 95,
-    "abnormal": 42,
-    "flagged": 18
-  }
-}
-```
-
-### Accept Request Body
-
-```json
-{
-  "resultIds": [1, 2, 3]
-}
-```
-
-### Retest Request Body
-
-```json
-{
-  "resultIds": [1, 2, 3],
-  "reason": "Delta check exceeded threshold. Please verify sample and re-run."
-}
-```
-
-## Acceptance Criteria
-
-### Initial State (Required Search)
-- [ ] Page loads with empty state - no data displayed
-- [ ] Empty state shows "Search to View Results" message
-- [ ] Search button disabled until lab unit selected OR search query entered
-- [ ] Selecting lab unit triggers automatic search
-- [ ] Entering search query and pressing Enter or clicking Search triggers search
-- [ ] Clear button resets to initial empty state
-
-### Page Loading (After Search)
-- [ ] Page loads with results in "Awaiting Validation" status only
-- [ ] Results sorted by entry date (oldest first by default)
-- [ ] Count of awaiting results displayed in header
-- [ ] Quick stats show Normal, Abnormal, and Flagged counts
-- [ ] Loading indicator displayed during data fetch
-
-### Pagination
-- [ ] Default page size is 25 results
-- [ ] Page size selector shows options: 10, 25, 50, 100
-- [ ] Changing page size resets to page 1
-- [ ] "Showing X to Y of Z" text displays correctly
-- [ ] Page numbers display with ellipsis for large result sets
-- [ ] First/Last page buttons work correctly
-- [ ] Previous/Next buttons work correctly
-- [ ] Navigation buttons disabled at boundaries
-- [ ] Selection cleared when changing pages
-
-### Advanced Filters
-- [ ] Filters panel toggles visibility
-- [ ] Lab Number range filter works (From/To)
-- [ ] Date range filter works (From/To)
-- [ ] Test Section dropdown filter works
-- [ ] Analyzer dropdown filter works
-- [ ] Entered By dropdown filter works
-- [ ] Quick filter checkboxes (Flagged, Normal, Abnormal) are mutually exclusive
-- [ ] Apply Filters button triggers new search
-- [ ] Filters combine correctly (AND logic)
-
-### Batch Selection
-- [ ] "Select All" checkbox selects/deselects all visible results on current page
-- [ ] "Select Normal" button selects only results with isNormal=true on current page
-- [ ] Selection count updates in real-time
-- [ ] Selected rows are visually highlighted
-
-### Batch Actions
-- [ ] "Accept & Release Selected" validates and releases all selected results
-- [ ] "Retest Selected" opens retest modal for all selected results
-- [ ] Both batch action buttons disabled when no results selected
-- [ ] Confirmation feedback after batch action completion
-
-### Row Display
-- [ ] Collapsed row shows: checkbox, QC indicator, lab number, patient ID/sex/age, test name, method, range, result, flags, entered by, row actions
-- [ ] Patient name hidden in collapsed view (privacy)
-- [ ] Result value highlighted if abnormal
-- [ ] Entry timestamp shows who entered and when
-- [ ] Row actions: Retest and Accept buttons
-
-### Expanded Row
-- [ ] Patient details banner shows full name, DOB, ID
-- [ ] Entry info banner shows entered by, timestamp, method
-- [ ] Method notes displayed if manual method
-- [ ] Result value is editable
-- [ ] Delta check alert displayed if threshold exceeded
-- [ ] Interpretation displayed with label and text
-- [ ] Notes section shows all notes if any exist
-
-### Tabs
-- [ ] Method & Reagents tab shows method and reagent lots used (read-only)
-- [ ] History tab shows previous results with delta calculations
-- [ ] QA/QC tab shows QC results and warnings
-
-### Retest Modal
-- [ ] Opens when Retest button clicked (single or batch)
-- [ ] Displays count of results being sent for retest
-- [ ] Reason field is required
-- [ ] Cancel button closes modal without action
-- [ ] Confirm button disabled until reason entered
-- [ ] On confirm: status set to Pending, note added, history updated
-
-### Result Editing
-- [ ] Result value can be edited by validator
-- [ ] Changes trigger re-evaluation of flags
-- [ ] Edit is logged in audit trail
-
-### Accept & Release
-- [ ] Single result can be accepted via row action
-- [ ] Multiple results can be accepted via batch action
-- [ ] Status changes to "Released" after acceptance
-- [ ] Results removed from validation queue after acceptance
-- [ ] Success feedback displayed after acceptance
-
-## Security Considerations
-
-### RBAC Enforcement
-- Page access restricted to users with validation role
-- API endpoints verify validation permission before processing
-- User ID logged with all actions
-
-### Audit Trail
-All actions are logged:
-- Result viewed
-- Result edited (old value, new value)
-- Result accepted
-- Result sent for retest (with reason)
-
-### Data Integrity
-- Original result values preserved in history when edited
-- Retest reason is required and cannot be empty
-- All timestamps use server time
-
-## Future Enhancements (v2)
-
-### Auto-Validation Rules
-- Configure rules for automatic validation based on:
-  - Result within normal range
-  - QC passed
-  - No delta check alert
-  - No critical flags
-- Auto-validated results marked differently in audit trail
-
-### Validation Comments
-- Optional comment field when accepting results
-- Comments visible in result history
-
-### Batch Review Mode
-- Side-by-side comparison view for batch validation
-- Quick accept/reject controls without expanding rows
+# Validation Screen Enhancements
+## Functional Requirements Specification — v2.0
+
+**Version:** 2.1
+**Date:** 2026-04-01
+**Status:** Draft for Review
+**Jira:** OGC-291 (Validation), OGC-343
+**Gallery:** [Validation Page Mockup](https://digi-uw.github.io/openelis-work/#/results-validation/validation-page)
+**Technology:** Java Spring Framework, Carbon React
+**Related Modules:** Validation, Results Entry, Reference Ranges, Admin Configuration
 
 ---
 
-## Revision History
+## Table of Contents
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0 | 2025-12-19 | Casey Iiams-Hauser | Initial draft |
+1. Executive Summary
+2. Problem Statement
+3. User Roles & Permissions
+4. Functional Requirements
+5. Data Model
+6. API Endpoints
+7. UI Design
+8. Business Rules
+9. Localization
+10. Validation Rules
+11. Security & Permissions
+12. Acceptance Criteria
+
+---
+
+## 1. Executive Summary
+
+This specification covers a staged set of enhancements to the OpenELIS Global validation screen. These changes improve validator confidence in result correctness and support configurable multi-level validation workflows.
+
+**Enhancement A — Patient Demographics (Sex & Age):** Adds patient biological sex and age (Days-Months-Years format, calculated at sample collection date) as inline columns in the results table and in the patient header. Enables validators to verify that normal/reference ranges are appropriate for the patient's demographic profile without navigating away.
+
+**Enhancement B — Multi-Level Validation Column:** When the lab is configured for more than one validation level, a new "Validation" column appears in the results table showing the current level (e.g., "Validation 1/2"). This column is hidden for single-level labs to avoid visual noise.
+
+**Enhancement C — Context-Aware Save Button:** The Save button label dynamically reflects what will happen when clicked — showing counts of results that will be released versus advanced to the next validation level.
+
+**Enhancement D — Validation History Tooltip:** Hovering or clicking the validation level tag reveals a tooltip showing the full validation progress: which levels are complete, who validated at each level and when, and which level is currently awaiting action.
+
+**Enhancement E — Expanded Detail Panel Parity with Results Entry:** Brings the validation expanded row panel into alignment with the Results Entry page's expanded panel. Adds always-visible Notes section (view and add), Interpretation section (read-only review), full tab bar (Method & Reagents, Order Info, Attachments, QA/QC, History, Referral), result range tier highlighting (normal/abnormal/critical/invalid), and NCE badge visibility — so validators have full clinical context without navigating away.
+
+---
+
+## 2. Problem Statement
+
+### 2.1 Demographics Gap (Enhancement A)
+
+**Current state:** Validators can see the test name, result value, and normal range, but cannot see the patient's sex or age. To verify that the reference range is appropriate (e.g., pediatric vs. adult, male vs. female for analytes like creatinine or hemoglobin), validators must navigate away to the patient record, mentally calculate the age, then return. This disrupts workflow and increases the risk of approving results against incorrect reference ranges.
+
+**Impact:** Mismatched reference ranges can lead to false normal/abnormal classifications. In pediatric and neonatal care, where reference ranges shift rapidly with age, the risk is especially acute.
+
+**Proposed solution:** Display patient sex (single letter: M/F/U) and age (Days-Months-Years format) as two new table columns and in the patient header.
+
+### 2.2 Multi-Level Validation Visibility (Enhancements B, C, D)
+
+**Current state:** When a lab configures multi-level validation (e.g., supervisor review followed by lab manager sign-off), the validation screen shows no indication of which level the result is currently at, who has already validated, or what the Save action will do (release vs. advance). Validators operate without context about where a result sits in the approval chain.
+
+**Impact:** Validators may not realize a result still needs additional sign-offs, leading to confusion about why a result wasn't released after they saved. Supervisors reviewing second-level results have no quick way to see who performed the first validation, requiring them to check audit logs.
+
+**Proposed solution:** (B) Add a "Validation X/Y" column that appears only when multi-level validation is active. (C) Make the Save button label reflect the outcome of the current action. (D) Provide a tooltip on the level tag showing the complete validation chain with names and timestamps.
+
+### 2.3 Incomplete Detail Context (Enhancement E)
+
+**Current state:** The validation expanded row shows only a result value input, normal range, method/analyzer, and three tabs (Method & Reagents, History, QA/QC). Validators cannot see notes left by the lab technician during entry, interpretation context, order information, attachments, referral status, or NCE flags. To review this information, they must navigate to the Results Entry page or patient record, losing their place in the validation queue.
+
+**Impact:** Validators make approval decisions without full context. A tech may have left a note explaining an anomalous value ("hemolyzed specimen, recollected, result confirmed on repeat"), but the validator cannot see it. Critical or abnormal range highlighting is absent, so validators must mentally compare every value against the reference range. NCE flags are invisible, meaning a validator might approve a result that has a pending non-conformity event.
+
+**Proposed solution:** Mirror the Results Entry expanded panel structure in the validation view: always-visible Notes section (view and add new validation notes), read-only Interpretation display, full 6-tab bar (Method & Reagents, Order Info, Attachments, QA/QC, History, Referral), result range tier color coding, and NCE badge display in the flags column.
+
+---
+
+## 3. User Roles & Permissions
+
+| Role | Access Level | Notes |
+|---|---|---|
+| Routine Validator | View | Sees sex and age on routine validation screen |
+| Technical Validator | View | Sees sex and age on technical validation screen |
+| Supervisor Validator | View | Sees sex and age on supervisor validation screen |
+| Lab Technician (no validate perm) | None | Cannot access validation screen |
+
+**Required permission keys:**
+
+- `result.validate` — Existing permission; no new permission key required. Sex and age are read-only display fields that inherit access from the validation screen itself.
+
+---
+
+## 4. Functional Requirements
+
+### 4.1 Patient Header Display
+
+**FR-HDR-001:** The patient information header on the validation screen MUST display the patient's biological sex as the full word ("Male", "Female", or "Unknown").
+
+**FR-HDR-002:** The patient information header MUST display the patient's age in Days-Months-Years format (e.g., "0D-3M-25Y") calculated as of the sample collection date.
+
+**FR-HDR-003:** If the patient's date of birth is not recorded in the system, the age field MUST display "Unknown" instead of a calculated value.
+
+**FR-HDR-004:** If the patient's sex is not recorded in the system, the sex field MUST display "Unknown".
+
+**FR-HDR-005:** The sex display in the header MUST use a Carbon `Tag` component with `kind="blue"` for visual distinction.
+
+### 4.2 DataTable Column Display
+
+**FR-TBL-001:** The validation results DataTable MUST include a "Sex" column displaying the patient's biological sex as a single letter: "M" (Male), "F" (Female), or "U" (Unknown).
+
+**FR-TBL-002:** The validation results DataTable MUST include an "Age" column displaying the patient's age in D-M-Y format (e.g., "0D-3M-25Y") calculated as of the sample collection date.
+
+**FR-TBL-003:** The Sex and Age columns MUST be positioned after the patient name/ID columns and before the test name column, so that demographic context is visible before the validator reads the result and reference range.
+
+**FR-TBL-004:** The Sex and Age columns MUST be sortable to allow validators to group results by patient demographics when reviewing batches.
+
+**FR-TBL-005:** When a patient's date of birth is missing, the Age column MUST display "—" (em dash).
+
+**FR-TBL-006:** When a patient's sex is missing, the Sex column MUST display "U".
+
+### 4.3 Age Calculation
+
+**FR-AGE-001:** Age MUST be calculated as: `sampleCollectionDate - patient.dateOfBirth`, expressed as the number of complete years, remaining complete months, and remaining days.
+
+**FR-AGE-002:** The format MUST be `[D]D-[M]M-[Y]Y` where D = days, M = months, Y = years. Examples: "15D-0M-0Y" (15-day-old neonate), "0D-6M-2Y" (2 years 6 months old), "0D-0M-45Y" (45 years old).
+
+**FR-AGE-003:** Age calculation MUST use the sample collection date recorded on the order, NOT the current system date or the validation date.
+
+**FR-AGE-004:** If the sample collection date is missing, the system MUST fall back to the order entry date for age calculation and display an informational indicator (e.g., "~" prefix) to signal the approximation.
+
+### 4.4 Multi-Level Validation Column (Enhancement B)
+
+**FR-LVL-001:** When the lab is configured for more than one validation level (`levelsRequired > 1`), the results table MUST display a "Validation" column showing the result's current position in the validation chain.
+
+**FR-LVL-002:** The Validation column MUST display a tag showing "Validation X/Y" where X is the current validation level and Y is the total levels required (e.g., "Validation 1/2", "Validation 2/2").
+
+**FR-LVL-003:** When the result has completed one or more previous validation levels (i.e., `validationLevelCurrent > 1`), the tag MUST include a checkmark icon to indicate prior levels are complete.
+
+**FR-LVL-004:** When the result is at its final validation level (`validationLevelCurrent == validationLevelsRequired`), the tag MUST use a visually distinct style (teal background) to signal that saving will release the result.
+
+**FR-LVL-005:** When the result is at an intermediate level (not final), the tag MUST use a different style (blue background) to signal that saving will advance the result to the next level.
+
+**FR-LVL-006:** The Validation column MUST be hidden entirely when the lab is configured for single-level validation (`levelsRequired == 1`) to avoid visual clutter. The table structure MUST remain unchanged for single-level labs.
+
+**FR-LVL-007:** The Validation column MUST be positioned between the "Result" column and the "Save" checkbox column.
+
+### 4.5 Context-Aware Save Button (Enhancement C)
+
+**FR-SAV-001:** When multi-level validation is active and one or more results are checked for saving, the Save button label MUST dynamically reflect the outcome of the save action.
+
+**FR-SAV-002:** If all checked results are at their final validation level, the Save button MUST read: `Save — validates & releases N result(s)` where N is the count.
+
+**FR-SAV-003:** If all checked results are at an intermediate level, the Save button MUST read: `Save — advances N result(s) to next level` where N is the count.
+
+**FR-SAV-004:** If the checked results include a mix of final-level and intermediate-level results, the Save button MUST read: `Save — N will release, M will advance` where N and M are the respective counts.
+
+**FR-SAV-005:** When no results are checked, or when the lab uses single-level validation, the Save button MUST display the default label "Save".
+
+**FR-SAV-006:** The Save button label MUST update in real time as the user checks or unchecks individual Save checkboxes, Save All Normal, or Save All Results.
+
+### 4.6 Validation History Tooltip (Enhancement D)
+
+**FR-TIP-001:** Hovering over or clicking the validation level tag (FR-LVL-002) MUST display a tooltip/popover showing the full validation progress for that result.
+
+**FR-TIP-002:** The tooltip MUST display each validation level as a row containing: the level number, the required role name (e.g., "Supervisor", "Lab Manager"), and the status.
+
+**FR-TIP-003:** For completed validation levels, the tooltip MUST show: a checkmark icon, the validator's name, and the date/time of validation (e.g., "Dr. Williams — 03/01/2026 10:15").
+
+**FR-TIP-004:** For the current (in-progress) validation level, the tooltip MUST show: an open circle icon and the text "Awaiting your validation".
+
+**FR-TIP-005:** For future (not-yet-reached) validation levels, the tooltip MUST show: a dimmed circle icon and the text "Pending".
+
+**FR-TIP-006:** The tooltip MUST include a title "Validation Progress" at the top.
+
+**FR-TIP-007:** The tooltip MUST dismiss when the user moves the mouse away from the tag (on hover) or clicks outside the tooltip (on click).
+
+### 4.7 Expanded Panel — Notes Section (Enhancement E)
+
+**FR-NOTE-001:** The expanded validation panel MUST include an always-visible, collapsible Notes section positioned above the tab bar, matching the layout of the Results Entry expanded panel.
+
+**FR-NOTE-002:** The Notes section MUST display all existing notes for the result, including notes added during Results Entry, modification reason notes (prefixed `[Modification reason]`), and any prior validation notes.
+
+**FR-NOTE-003:** Each note MUST display: author name, date/time, note type badge (internal / external / modification), and body text.
+
+**FR-NOTE-004:** Validators MUST be able to add new notes via an inline "Add Note" form within the Notes section. New notes are tagged with type "validation" and the current validator's identity.
+
+**FR-NOTE-005:** The "Add Note" form MUST contain a text area and a "Save Note" button. The button MUST be disabled when the text area is empty.
+
+**FR-NOTE-006:** Notes added during validation MUST persist immediately (saved to the result's note list via API) and appear in the Notes section without requiring a page refresh.
+
+**FR-NOTE-007:** The Notes section header MUST show a count badge indicating the total number of notes (e.g., "Notes (3)").
+
+### 4.8 Expanded Panel — Interpretation Section (Enhancement E)
+
+**FR-INTERP-001:** The expanded validation panel MUST include an always-visible, collapsible Interpretation section positioned below Notes and above the tab bar.
+
+**FR-INTERP-002:** The Interpretation section MUST display any interpretation entered during Results Entry, including: the selected interpretation template (if any) and the free-text interpretation body.
+
+**FR-INTERP-003:** The Interpretation section is read-only on the Validation page. Validators can review but not edit interpretations. Interpretation authoring remains on the Results Entry page.
+
+**FR-INTERP-004:** If no interpretation was entered during Results Entry, the section MUST display a muted placeholder: "No interpretation entered."
+
+### 4.9 Expanded Panel — Full Tab Bar (Enhancement E)
+
+**FR-TAB-001:** The expanded validation panel MUST include the same 6-tab bar as the Results Entry expanded panel: Method & Reagents (default), Order Info, Attachments, QA/QC, History, Referral.
+
+**FR-TAB-002:** The **Method & Reagents** tab MUST show the analyzer name, method, and reagent lot/expiry information associated with the result.
+
+**FR-TAB-003:** The **Order Info** tab MUST show the order details: ordering clinician, order date, priority, clinical notes, and specimen collection information.
+
+**FR-TAB-004:** The **Attachments** tab MUST display any files attached to the result (images, PDFs, instrument printouts). Validators can view but not add attachments from the Validation page.
+
+**FR-TAB-005:** The **QA/QC** tab MUST show QC status, control values, and Levey-Jennings context for the result's analyte/instrument combination.
+
+**FR-TAB-006:** The **History** tab MUST show previous results for the same patient and test, including dates, values, deltas, and who validated each.
+
+**FR-TAB-007:** The **Referral** tab MUST show referral status if the result was referred to or from an external lab, including the referring lab name, referral date, and status.
+
+### 4.10 Result Range Tier Highlighting (Enhancement E)
+
+**FR-RANGE-001:** The result value in both the collapsed row and expanded panel MUST be color-coded according to the same range tier classification used on the Results Entry page: Normal (default), Abnormal (yellow), Critical (orange), Invalid (dark red).
+
+**FR-RANGE-002:** Range evaluation MUST use the `rangeBounds` data (normal, critical, valid ranges) returned by the API for each result.
+
+**FR-RANGE-003:** The Flags column MUST display range badges (H, L, C, !) matching the Results Entry page's flag system.
+
+**FR-RANGE-004:** On the Validation page, range highlighting is informational only — it does NOT gate the validate/advance action. Validators can approve results regardless of range tier.
+
+### 4.11 NCE Badge Display (Enhancement E)
+
+**FR-NCE-001:** When a result has a linked Non-Conformity Event, the Flags column MUST display an "NCE" badge: teal for open NCEs, gray for closed NCEs.
+
+**FR-NCE-002:** The NCE badge tooltip MUST show: NCE number, category, subcategory, severity, and status — matching the Results Entry page badge behavior.
+
+**FR-NCE-003:** Results with open NCEs that have status "Cancelled" MUST still appear in the validation list (if their lab unit is selected) but their validate checkbox MUST be disabled with a tooltip: "Cannot validate — open NCE."
+
+---
+
+## 5. Data Model
+
+### New Entities
+
+None — no new database entities are required.
+
+### Modified Entities
+
+No schema changes required. The data needed already exists:
+
+| Source Entity | Field | Type | Notes |
+|---|---|---|---|
+| Patient | sex | String | Already stored ("M", "F", null) |
+| Patient | dateOfBirth | Date | Already stored |
+| Sample | collectionDate | Date | Already stored on the sample/order |
+| LabConfig | levelsRequired | Integer | Already stored; default 1 |
+| LabConfig | levels[] | Array | Already stored; each entry has level number and role name |
+| ValidationHistory | level | Integer | Already stored per result |
+| ValidationHistory | validatedBy | String | Already stored |
+| ValidationHistory | validatedAt | Timestamp | Already stored |
+| ValidationHistory | role | String | Already stored |
+| ValidationHistory | action | String | Already stored ("VALIDATE", "REJECT", etc.) |
+
+### Computed Fields (API response only)
+
+| Field | Type | Computation | Notes |
+|---|---|---|---|
+| patientAge | String | `collectionDate - dateOfBirth` → "XD-YM-ZY" | Calculated server-side per result |
+| patientSex | String | Direct from Patient.sex, defaulting to "U" | Normalized for display |
+| validationLevelsRequired | Integer | From LabConfig (lab-wide or unit override) | Per-result for display |
+| validationLevelCurrent | Integer | Next validation level needed for this result | 1-indexed |
+| validationHistory | Array | List of completed validation entries | Includes who, when, role, action |
+
+---
+
+## 6. API Endpoints
+
+No new endpoints required. The existing validation results endpoint must be modified:
+
+| Method | Path | Change | Permission |
+|---|---|---|---|
+| GET | `/api/v1/validation/results` | Add demographics and validation-level fields to each result item | `result.validate` |
+
+**Response field additions (v2.1 — includes Enhancement E fields):**
+
+```json
+{
+  "results": [
+    {
+      "accessionNumber": "...",
+      "patientName": "...",
+      "patientSex": "M",
+      "patientAge": "0D-3M-25Y",
+      "patientAgeApproximate": false,
+      "testName": "...",
+      "result": "...",
+      "normalRange": "...",
+      "rangeBounds": {
+        "normal": { "low": 4.0, "high": 10.0 },
+        "critical": { "low": 2.0, "high": 30.0 },
+        "valid": { "low": 0.1, "high": 100.0 }
+      },
+      "validationLevelsRequired": 2,
+      "validationLevelCurrent": 1,
+      "validationHistory": [
+        {
+          "level": 1,
+          "validatedBy": "Dr. Williams",
+          "validatedAt": "2026-03-01T10:15:00Z",
+          "role": "Supervisor",
+          "action": "VALIDATE"
+        }
+      ],
+      "notes": [
+        {
+          "id": 1,
+          "date": "2026-03-01T09:30:00Z",
+          "author": "J. Smith",
+          "type": "internal",
+          "body": "Hemolyzed specimen, recollected and confirmed on repeat."
+        }
+      ],
+      "interpretation": {
+        "code": "RBC-ANEMOD",
+        "label": "Mild Anemia",
+        "text": "RBC count slightly below reference range. Recommend correlation with Hgb, Hct, and reticulocyte count."
+      },
+      "nce": {
+        "number": "NCE-20260301-1234",
+        "status": "open",
+        "category": "Analytical",
+        "subcategory": "Instrument Malfunction",
+        "severity": "Minor"
+      },
+      "orderInfo": {
+        "orderingClinician": "Dr. Chen",
+        "orderDate": "2026-02-28",
+        "priority": "Routine",
+        "clinicalNotes": "Annual checkup",
+        "collectionInfo": "Venipuncture, left arm"
+      },
+      "attachments": [],
+      "referral": null
+    }
+  ]
+}
+```
+
+**Field definitions:**
+
+- `patientSex`: "M", "F", or "U"
+- `patientAge`: Formatted D-M-Y string, or null if DOB is missing
+- `patientAgeApproximate`: Boolean — true if collection date was missing and order entry date was used instead
+- `rangeBounds`: Object — normal, critical, and valid range boundaries for client-side range tier evaluation (same structure as Results Entry API)
+- `validationLevelsRequired`: Integer — total validation levels configured for this result's lab unit (from LabConfig or unit override)
+- `validationLevelCurrent`: Integer — the validation level this result is currently awaiting (1-indexed; equals `validationLevelsRequired` at the final level)
+- `validationHistory`: Array — list of completed validation entries, each with `level`, `validatedBy`, `validatedAt`, `role`, and `action`
+- `notes`: Array — all notes on the result (from entry, modification, or validation), each with `id`, `date`, `author`, `type`, and `body`
+- `interpretation`: Object or null — interpretation entered during Results Entry, with `code`, `label`, and `text`
+- `nce`: Object or null — linked Non-Conformity Event, with `number`, `status`, `category`, `subcategory`, `severity`
+- `orderInfo`: Object — order details including clinician, date, priority, clinical notes, collection info
+- `attachments`: Array — file attachment metadata
+- `referral`: Object or null — referral details if applicable
+
+**New endpoint for validation notes:**
+
+| Method | Path | Description | Permission |
+|---|---|---|---|
+| POST | `/api/v1/validation/results/{id}/notes` | Add a validation note to a result | `result.validate` |
+
+**Request body:**
+
+```json
+{
+  "body": "Confirmed with repeat testing. Validated.",
+  "type": "validation"
+}
+```
+
+---
+
+## 7. UI Design
+
+### Companion Mockups
+
+| Mockup | Scope | Notes |
+|---|---|---|
+| `validation-page-stage1-demographics-mockup.jsx` | Stage 1 flat table with Demographics + Validation column + Save button + Tooltip | Primary reference for implementation |
+| `validation-page-mockup-v3-demographics.jsx` | Expanded-row view with demographics in both table and patient banner | Future stage reference |
+| `validation-page-stage1-mockup.jsx` | Stage 1 baseline without demographics | Before/after comparison |
+
+### Navigation Path
+
+Validation → Routine Results / Technical Validation / Supervisor Validation
+
+### Key Screens
+
+1. **Validation Results List** — Enhanced with Sex and Age columns, conditional Validation column, context-aware Save button, and validation history tooltips.
+
+### Interaction Patterns
+
+- **Read-only demographics** — Sex and Age columns are display-only, no edit behavior
+- **Sortable columns** — Sex and Age columns support click-to-sort
+- **Conditional Validation column** — Appears only when `levelsRequired > 1`; hidden for single-level labs
+- **Validation level tag** — Interactive: hover or click reveals history tooltip
+- **Tooltip dismiss** — Mouse-leave or click-outside dismisses the validation history tooltip
+- **Dynamic Save label** — Updates in real time as checkboxes are toggled
+
+---
+
+## 8. Business Rules
+
+### Demographics (Enhancement A)
+
+**BR-001:** Age MUST always be calculated relative to the sample collection date, not the current date or the validation date.
+
+**BR-002:** If dateOfBirth is null, age displays as "—" (em dash) in the table and "Unknown" in the header.
+
+**BR-003:** If sex is null or not one of the recognized values, it MUST normalize to "U" (Unknown).
+
+**BR-004:** The age calculation MUST handle edge cases: same-day collection (0D-0M-0Y for a newborn), leap years, and month-boundary crossings.
+
+**BR-005:** If sample collection date is missing but order entry date exists, use order entry date and set `patientAgeApproximate = true`. The UI MUST indicate the approximation with a "~" prefix (e.g., "~0D-3M-25Y").
+
+**BR-006:** Sex and age display MUST be consistent across all validation levels (routine, technical, supervisor). No level-specific differences.
+
+### Multi-Level Validation (Enhancements B, C, D)
+
+**BR-007:** The Validation column MUST only appear when `levelsRequired > 1`. For single-level labs (`levelsRequired == 1`), the column MUST be completely absent from the DOM — not merely hidden.
+
+**BR-008:** Saving a result at an intermediate validation level (`validationLevelCurrent < validationLevelsRequired`) MUST advance it to the next level. Saving at the final level MUST release the result.
+
+**BR-009:** The Save button label MUST reflect the combined effect of all currently checked results. It MUST update immediately (no debounce) when checkboxes change.
+
+**BR-010:** The validation history tooltip MUST show entries only for completed levels. It MUST NOT display history for the current or future levels beyond the status indicator.
+
+**BR-011:** When "Save All Normal" is checked, only results where `isNonconforming == false` are included. When "Save All Results" is checked, all results are included regardless of nonconforming status.
+
+**BR-012:** A result's `validationLevelCurrent` MUST be derived from its `validationHistory` — it equals `max(history.level) + 1`, capped at `validationLevelsRequired`. If no history exists, the current level is 1.
+
+### Expanded Panel Parity (Enhancement E)
+
+**BR-013:** Notes from all sources (entry, modification, prior validation) MUST be displayed in chronological order, oldest first. New validation notes appear at the bottom.
+
+**BR-014:** Validation notes added via the expanded panel MUST be persisted immediately via API and MUST NOT require a page-level save action. The note save is independent of the validate action.
+
+**BR-015:** The Interpretation section MUST be read-only on the Validation page. The validator's role is to review and approve, not to author interpretations.
+
+**BR-016:** Range tier evaluation on the Validation page MUST use the same `evaluateResult(value, rangeBounds)` function as Results Entry: invalid → critical → abnormal → normal, evaluated in that priority order.
+
+**BR-017:** Range highlighting on the Validation page is purely informational. Unlike Results Entry (where critical values gate the save action), the validator can approve any result regardless of range tier. No acknowledgment gate is required.
+
+**BR-018:** NCE badges on the Validation page MUST render from the same `nce` data structure as Results Entry. Open NCEs disable the validate checkbox; closed NCEs are informational only.
+
+**BR-019:** The full 6-tab bar tab data (Order Info, Attachments, Referral) is lazy-loaded on expand — the initial validation results list API returns only the summary fields. Detail data is fetched on demand when the row is expanded.
+
+---
+
+## 9. Localization
+
+All UI text is externalized. The following i18n keys must be added to the message properties files:
+
+| i18n Key | Default English Text |
+|---|---|
+| **New keys (this feature)** | |
+| `label.validation.patientSex` | Sex |
+| `label.validation.patientAge` | Age (D-M-Y) |
+| `label.validation.sex.male` | Male |
+| `label.validation.sex.female` | Female |
+| `label.validation.sex.unknown` | Unknown |
+| `label.validation.sex.male.short` | M |
+| `label.validation.sex.female.short` | F |
+| `label.validation.sex.unknown.short` | U |
+| `label.validation.age.unknown` | Unknown |
+| `label.validation.age.approximate.tooltip` | Age is approximate — sample collection date was not recorded |
+| `heading.validation.patientInfo` | Patient Information |
+| `label.validation.patientId` | Patient ID |
+| `label.validation.collectionDate` | Collection Date |
+| **New keys (Enhancement B — Validation Column)** | |
+| `label.validation.level` | Validation |
+| `label.validation.level.progress` | Validation {current}/{total} |
+| `label.validation.level.tooltip.title` | Validation Progress |
+| `label.validation.level.tooltip.complete` | Level {level} ({role}) |
+| `label.validation.level.tooltip.awaiting` | Awaiting your validation |
+| `label.validation.level.tooltip.pending` | Pending |
+| **New keys (Enhancement C — Save Button)** | |
+| `button.validation.save.release` | Save — validates & releases {count} result(s) |
+| `button.validation.save.advance` | Save — advances {count} result(s) to next level |
+| `button.validation.save.mixed` | Save — {releaseCount} will release, {advanceCount} will advance |
+| **New keys (Enhancement E — Expanded Panel)** | |
+| `label.validation.notes` | Notes |
+| `label.validation.notes.count` | Notes ({count}) |
+| `label.validation.notes.add` | Add Note |
+| `button.validation.notes.save` | Save Note |
+| `placeholder.validation.notes.add` | Add a validation note... |
+| `label.validation.notes.type.internal` | Internal |
+| `label.validation.notes.type.external` | External |
+| `label.validation.notes.type.modification` | Modification |
+| `label.validation.notes.type.validation` | Validation |
+| `label.validation.notes.empty` | No notes on this result. |
+| `label.validation.interpretation` | Interpretation |
+| `label.validation.interpretation.empty` | No interpretation entered. |
+| `label.validation.tab.method` | Method & Reagents |
+| `label.validation.tab.orderInfo` | Order Info |
+| `label.validation.tab.attachments` | Attachments |
+| `label.validation.tab.qaqc` | QA/QC |
+| `label.validation.tab.history` | History |
+| `label.validation.tab.referral` | Referral |
+| `label.validation.range.abnormal` | Abnormal |
+| `label.validation.range.critical` | Critical |
+| `label.validation.range.invalid` | Invalid |
+| `label.validation.nce` | NCE |
+| `label.validation.nce.tooltip` | NCE {number} · {category} / {subcategory} · {severity} · {status} |
+| `label.validation.nce.cannotValidate` | Cannot validate — open NCE |
+| `label.validation.orderInfo.clinician` | Ordering Clinician |
+| `label.validation.orderInfo.date` | Order Date |
+| `label.validation.orderInfo.priority` | Priority |
+| `label.validation.orderInfo.clinicalNotes` | Clinical Notes |
+| `label.validation.orderInfo.collection` | Specimen Collection |
+| `label.validation.attachments.empty` | No attachments. |
+| `label.validation.referral.empty` | No referral information. |
+| `message.validation.noteSaved` | Note saved. |
+| **Existing keys (verified in mockup)** | |
+| `label.validation.accessionNumber` | Accession # |
+| `label.validation.patientName` | Patient |
+| `label.validation.testName` | Test |
+| `label.validation.result` | Result |
+| `label.validation.unit` | Unit |
+| `label.validation.normalRange` | Normal Range |
+| `label.validation.status` | Status |
+| `label.validation.status.pending` | Pending |
+| `label.validation.status.accepted` | Accepted |
+| `label.validation.status.rejected` | Rejected |
+| `label.validation.resultsDescription` | Review results and verify reference ranges against patient sex and age. |
+| `heading.validation.routine` | Routine Validation |
+| `heading.validation.results` | Results Pending Validation |
+| `placeholder.validation.search` | Search by accession, patient, or test... |
+| `button.validation.accept` | Accept |
+| `button.validation.reject` | Reject |
+| `button.validation.acceptSelected` | Accept Selected |
+| `button.validation.rejectSelected` | Reject Selected |
+| `button.validation.save` | Save |
+| `message.validation.accepted` | Results validated successfully. |
+| `message.validation.rejected` | Results rejected. |
+| `nav.home` | Home |
+| `nav.validation` | Validation |
+| `nav.validation.routine` | Routine Results |
+
+---
+
+## 10. Validation Rules
+
+No form validation rules apply — all new display fields are read-only. Server-side validation of the age calculation and level tracking is covered by unit tests.
+
+| Computation | Rule | Handling |
+|---|---|---|
+| Age calculation | DOB must not be after collection date | Display "—" if DOB > collection date (data error) |
+| Sex normalization | Must be "M", "F", or null | Normalize anything else to "U" |
+| Validation level bounds | `validationLevelCurrent` must be between 1 and `validationLevelsRequired` | Clamp to valid range; log warning |
+| History consistency | Each history entry's level must be < `validationLevelCurrent` | Ignore out-of-range entries; log warning |
+| Save action integrity | Cannot save a result if `validationLevelCurrent` is 0 or has already been fully released | Disable Save checkbox for released results |
+
+---
+
+## 11. Security & Permissions
+
+| Action | Required Permission | UI Behavior if Denied |
+|---|---|---|
+| View validation screen (including sex/age, validation levels) | `result.validate` | Page not shown in menu |
+| Perform validation (save/advance/release) | `result.validate` | Save button disabled |
+| Add validation note | `result.validate` | Add Note form not shown |
+| View notes, interpretation, attachments, order info | `result.validate` | Hidden (inherits from page access) |
+
+No new permissions are introduced. Sex, age, and validation level information are read-only display fields. The validation history tooltip shows only names of validators who have already acted — this is existing audit data, not a new access grant. RBAC is unchanged from the current system.
+
+---
+
+## 12. Acceptance Criteria
+
+### Enhancement A — Patient Demographics
+
+- [ ] DataTable includes "Sex" column with single letter ("M"/"F"/"U")
+- [ ] DataTable includes "Age (D-M-Y)" column with Days-Months-Years format
+- [ ] Sex and Age columns are positioned between Sample Info and Test Name
+- [ ] Age is calculated from sample collection date, not current date
+- [ ] Sex and Age columns are sortable
+- [ ] When DOB is missing, table shows "—" for age
+- [ ] When sex is missing, table shows "U"
+- [ ] When collection date is missing, age uses order entry date with "~" prefix in amber italic
+- [ ] Neonatal patient (e.g., 3-month-old) shows age like "4D-3M-0Y"
+- [ ] Sex and age display on routine, technical, and supervisor validation levels
+
+### Enhancement B — Multi-Level Validation Column
+
+- [ ] "Validation" column appears when `levelsRequired > 1`
+- [ ] "Validation" column is hidden when `levelsRequired == 1`
+- [ ] Tag shows "Validation X/Y" with correct level numbers
+- [ ] Tag at intermediate level uses blue styling
+- [ ] Tag at final level uses teal styling with checkmark icon
+- [ ] Tag at level 1 (no prior validations) shows no checkmark icon
+- [ ] Column is positioned between Result and Save columns
+
+### Enhancement C — Context-Aware Save Button
+
+- [ ] Save button reads "Save" when nothing is checked
+- [ ] Save button reads "Save" for single-level labs regardless of what is checked
+- [ ] Checking results at final level shows "Save — validates & releases N result(s)"
+- [ ] Checking results at intermediate level shows "Save — advances N result(s) to next level"
+- [ ] Checking a mix of final and intermediate results shows "Save — N will release, M will advance"
+- [ ] Label updates immediately when checkboxes are toggled
+- [ ] "Save All Normal" correctly excludes nonconforming results from count
+- [ ] "Save All Results" includes all results in count
+
+### Enhancement D — Validation History Tooltip
+
+- [ ] Hovering over the validation tag shows the tooltip
+- [ ] Clicking the validation tag shows the tooltip
+- [ ] Tooltip title reads "Validation Progress"
+- [ ] Completed levels show checkmark icon, validator name, and date/time
+- [ ] Current level shows open circle icon and "Awaiting your validation"
+- [ ] Future levels show dimmed circle icon and "Pending"
+- [ ] Tooltip dismisses on mouse-leave
+- [ ] Tooltip dismisses on click-outside
+
+### Enhancement E — Expanded Panel Parity
+
+#### Notes
+- [ ] Notes section is always visible in expanded panel, above tab bar
+- [ ] All existing notes display in chronological order with author, date, type badge, and body
+- [ ] Modification reason notes display with "[Modification reason]" prefix and distinct badge
+- [ ] Validator can add a new note via inline "Add Note" form
+- [ ] New note persists immediately via API without requiring page-level save
+- [ ] Note count badge updates when a note is added
+- [ ] Empty state shows "No notes on this result."
+
+#### Interpretation
+- [ ] Interpretation section is always visible in expanded panel, below Notes
+- [ ] Displays selected interpretation template label and free-text body from Results Entry
+- [ ] Section is read-only — no edit controls
+- [ ] Empty state shows "No interpretation entered."
+
+#### Full Tab Bar
+- [ ] Tab bar shows 6 tabs: Method & Reagents, Order Info, Attachments, QA/QC, History, Referral
+- [ ] Method & Reagents tab shows analyzer, method, reagent lot/expiry
+- [ ] Order Info tab shows clinician, order date, priority, clinical notes, collection info
+- [ ] Attachments tab lists file attachments (view-only)
+- [ ] QA/QC tab shows control values and QC status
+- [ ] History tab shows previous results with dates, values, deltas, and validators
+- [ ] Referral tab shows referral status or "No referral information"
+- [ ] Tab data lazy-loads on expand
+
+#### Range Tier Highlighting
+- [ ] Result values color-coded: normal (default), abnormal (yellow), critical (orange), invalid (dark red)
+- [ ] Flags column shows H, L, C, ! badges matching Results Entry
+- [ ] Range highlighting is informational — does NOT gate validate action
+- [ ] Range evaluation uses same `evaluateResult()` logic as Results Entry
+
+#### NCE Badges
+- [ ] Teal NCE badge shown in Flags column for open NCEs
+- [ ] Gray NCE badge shown for closed NCEs
+- [ ] NCE badge tooltip shows number, category, subcategory, severity, status
+- [ ] Validate checkbox disabled for results with open NCEs
+- [ ] Disabled checkbox shows tooltip: "Cannot validate — open NCE"
+
+### Non-Functional
+
+- [ ] All UI strings use i18n keys — no hardcoded English
+- [ ] Page load time is not measurably degraded
+- [ ] Permissions enforced at API level (HTTP 403 for unauthorized access)
+- [ ] Feature tested with French language file to verify i18n
+- [ ] Single-level lab UI is visually identical to pre-enhancement layout (no Validation column visible)
+
+### Integration
+
+- [ ] Existing validation workflow (accept/reject/save) is unaffected by the new columns
+- [ ] Reference Ranges module is NOT modified — this feature is display-only
+- [ ] Validation history entries are created by the existing audit system — no new audit writes required
+- [ ] Notes added on Validation page are visible on Results Entry page (shared note list)
+- [ ] Interpretation entered on Results Entry page is visible on Validation page (read-only)
+- [ ] NCE badge data consistent between Results Entry and Validation pages
+- [ ] Range bounds from same source as Results Entry (test/analyte configuration)
+- [ ] Validation notes API (`POST /api/v1/validation/results/{id}/notes`) returns 403 for users without `result.validate`
