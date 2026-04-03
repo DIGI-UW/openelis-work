@@ -91,6 +91,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Comprehensive test catalog management',
     specPath: 'designs/admin-config/test-catalog.md',
     githubIssue: 8,
+    jira: ['OGC-173'],
     tags: ['test-catalog', 'tests', 'admin', 'configuration'],
   },
 
@@ -448,6 +449,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Main results entry and review page',
     specPath: 'designs/results-validation/results-page.md',
     githubIssue: 36,
+    jira: ['OGC-517'],
     tags: ['results', 'data-entry', 'workflow', 'entry'],
   },
   {
@@ -457,6 +459,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Result validation workflow',
     specPath: 'designs/results-validation/validation-page.md',
     githubIssue: 37,
+    jira: ['OGC-343'],
     tags: ['validation', 'results', 'review', 'approval'],
   },
   {
