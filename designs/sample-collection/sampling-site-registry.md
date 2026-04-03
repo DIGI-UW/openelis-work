@@ -71,7 +71,7 @@ A centralized, searchable Sampling Site Registry will:
 
 ### 3.2 Secondary Goals
 1. Support environmental zone classification for risk assessment
-2. Integrate with location hierarchy (Region/District/Town-Village)
+2. Integrate with the existing location hierarchy (Region/District/Town-Village) — **must reuse the same geographic unit configuration and data source as Patient Entry** (see Implementation Note below)
 3. Enable site deactivation without deletion (soft delete pattern)
 4. Provide read-only site history (creation, last modified dates)
 5. Support flexible site type taxonomy with free-text subtypes
@@ -100,7 +100,7 @@ A centralized, searchable Sampling Site Registry will:
 **Priority:** P0
 **Requirement:**
 The Sampling Site Registry list shall be accessible via the main navigation menu at `Sample Collection → Site Registry`. The page shall follow the sidebar + DataTable layout pattern established by the Organizations Management module, consisting of:
-- **Left Sidebar (200px fixed):** Collapsible filter and hierarchy section with Region, District, Town-Village dropdowns; checkbox filters for Site Type and Active status; collapse/expand toggle
+- **Left Sidebar (200px fixed):** Collapsible filter and hierarchy section with Region dropdown, District typeahead (ComboBox), Town-Village typeahead (ComboBox); checkbox filters for Site Type and Active status; collapse/expand toggle
 - **Main Content Area:** Searchable DataTable with site records, action buttons, and pagination
 - **Top Toolbar:** Title, Search box, "New Site" button, "Import" button, "Export" button
 
@@ -150,8 +150,8 @@ The registry list shall support multiple search and filter mechanisms:
 - **Text Search Box** (top toolbar) — Searches across Site Code, Name, and Subtype fields in real-time; debounced at 300ms
 - **Sidebar Filters:**
   - **Region Dropdown** — Multi-select, populated from location hierarchy; filter by parent region
-  - **District Dropdown** — Multi-select, populated by selected Region; cascading dropdown
-  - **Town-Village Dropdown** — Multi-select, populated by selected District; cascading dropdown
+  - **District Typeahead (ComboBox)** — Typeahead search input populated by selected Region; user types to filter matching districts; cascading from Region selection
+  - **Town-Village Typeahead (ComboBox)** — Typeahead search input populated by selected District; cascading from District selection
   - **Site Type Checkboxes** — Multi-select checkboxes for WATER_SOURCE, AIR_MONITORING, VECTOR_TRAP, SOIL_SEDIMENT, OTHER
   - **Active Status Checkbox** — Filter by isActive=true (checked) or isActive=false (unchecked) or both (both checked)
 - **Search & Filter Logic** — All filters are AND-combined with text search (e.g., "code=WS* AND region=DKI AND siteType=WATER_SOURCE")
@@ -161,8 +161,8 @@ The registry list shall support multiple search and filter mechanisms:
 - [ ] Text search is case-insensitive and debounced at 300ms
 - [ ] Search results update without full page reload
 - [ ] Region dropdown shows all available regions from location hierarchy
-- [ ] District dropdown is empty until Region is selected; then populated by parent region
-- [ ] Town-Village dropdown is empty until District is selected
+- [ ] District typeahead is empty until Region is selected; then filters matching districts as user types
+- [ ] Town-Village typeahead is empty until District is selected; filters as user types
 - [ ] Site Type checkboxes display i18n-translated labels
 - [ ] Active Status filter shows three states: Active Only, Inactive Only, All (both checked)
 - [ ] Filters are applied immediately (no Apply button required)
@@ -255,8 +255,8 @@ Clicking the [Edit] button on an expanded LOCAL site row SHALL transform the det
 - **Type** (Enum, required) — Dropdown with WATER_SOURCE, AIR_MONITORING, VECTOR_TRAP, SOIL_SEDIMENT, OTHER
 - **Subtype** (String, optional, max 100 chars) — Free-text subtype (Well, River, etc.)
 - **Region** (Dropdown, optional) — Parent region from location hierarchy
-- **District** (Dropdown, optional, cascading from Region) — Parent district
-- **Town-Village** (String, optional, max 100 chars) — Town or village name
+- **District** (Typeahead/ComboBox, optional, cascading from Region) — Parent district; user types to filter matching districts from the location hierarchy
+- **Town-Village** (Typeahead/ComboBox, optional, cascading from District) — Town or village name; user types to filter
 - **Address** (String, optional, max 255 chars) — Street address or description
 - **Latitude** (Decimal, optional, range -90 to 90) — GPS latitude; validated on blur
 - **Longitude** (Decimal, optional, range -180 to 180) — GPS longitude; validated on blur
@@ -282,8 +282,8 @@ Clicking the [Edit] button on an expanded LOCAL site row SHALL transform the det
 - [ ] Name field is required; empty submission shows "This field is required"
 - [ ] Type dropdown shows i18n-translated options
 - [ ] Region dropdown populates from location hierarchy
-- [ ] District dropdown is empty until Region is selected; then cascades
-- [ ] Town-Village dropdown cascades from District
+- [ ] District typeahead is empty until Region is selected; then filters as user types (min 1 character)
+- [ ] Town-Village typeahead cascades from District; filters as user types
 - [ ] Latitude field validates range -90 to 90; out-of-range shows error "Must be between -90 and 90"
 - [ ] Longitude field validates range -180 to 180; out-of-range shows error "Must be between -180 and 180"
 - [ ] Phone field validates regex on blur; invalid format shows "Invalid phone number"
@@ -432,7 +432,7 @@ When entering an order with workflow type = Environmental, users without a match
   3. Type (required)
   4. Subtype (optional)
   5. Region (optional, cascading)
-  6. District (optional, cascading from Region)
+  6. District (Typeahead/ComboBox, optional, cascading from Region)
   7. Town-Village (optional)
   8. Address (optional)
   9. Latitude (optional)
@@ -460,7 +460,7 @@ When entering an order with workflow type = Environmental, users without a match
 - [ ] Code field shows duplicate validation "Code already exists"
 - [ ] Name field is required
 - [ ] Type field is required
-- [ ] Region, District dropdowns cascade correctly
+- [ ] Region dropdown and District typeahead cascade correctly (District filters as user types)
 - [ ] Latitude/Longitude/Elevation validate numeric ranges
 - [ ] Phone field validates regex format
 - [ ] "Create & Select" button is disabled until Code and Name are provided
@@ -659,9 +659,9 @@ All user-facing labels, buttons, messages, and enums in the Sampling Site Regist
 - `openELIS.site.type.SOIL_SEDIMENT` — "Soil/Sediment"
 - `openELIS.site.type.OTHER` — "Other"
 - `openELIS.site.subtype` — "Subtype"
-- `openELIS.site.region` — "Region"
-- `openELIS.site.district` — "District"
-- `openELIS.site.townVillage` — "Town/Village"
+- `openELIS.site.region` — **Do not hardcode.** Must read from the same configured label used by Patient Entry for the top-level geographic unit (may be "Region", "Province", "State", etc. depending on deployment).
+- `openELIS.site.district` — **Do not hardcode.** Must read from the same configured label used by Patient Entry for the second-level geographic unit (may be "District", "County", "Sub-county", etc.).
+- `openELIS.site.townVillage` — **Do not hardcode.** Must read from the same configured label used by Patient Entry for the third-level geographic unit (may be "Town/Village", "Camp/Commune", etc.).
 - `openELIS.site.address` — "Address"
 - `openELIS.site.latitude` — "Latitude"
 - `openELIS.site.longitude` — "Longitude"
@@ -1012,6 +1012,14 @@ Attributes:
 - Relationship: Many-to-One (N:1)
 - Cascade Rules: No cascade delete (location hierarchy is independent)
 
+> **IMPLEMENTATION NOTE — Reuse Patient Entry Geographic Infrastructure:**
+> The geographic unit hierarchy (Region, District, Town-Village) used by the Sampling Site Registry **MUST** be the same data source, configuration, and UI components already used by the Patient Entry form. Specifically:
+> - The Region dropdown and District/Town-Village typeaheads must query the **same `addresshierarchy` tables and API endpoints** that populate the patient address fields (Region, District, Town/Camp-Commune).
+> - The geographic unit labels displayed in the Site Registry (column headers, filter labels, form labels) must use the **same i18n keys** as Patient Entry so that implementations that rename "Region" to "Province" or "State" see consistent labels across both modules.
+> - The cascading logic (Region populates District options, District populates Town-Village options) must use the **same service layer** — do not create a separate location lookup service for sites.
+> - If the OpenELIS instance has configured additional or fewer geographic levels (e.g., some deployments use Province → County → Sub-county), the Site Registry must respect that configuration identically to how Patient Entry does.
+> - The Organizations Management module (Administration → Organizations Management) is the master configuration interface for this hierarchy. Sites reference records from that same hierarchy via `regionCode` and `districtCode` foreign keys.
+
 ### 6.3 Computed Fields
 
 **lastCollectionDate:**
@@ -1214,7 +1222,7 @@ Export Flow:
 
 #### Site Registry List (FR-5.1)
 - [ ] Registry page accessible at `/sample-collection/site-registry`
-- [ ] Sidebar displays Region, District, Town-Village dropdowns with cascading logic
+- [ ] Sidebar displays Region dropdown with District and Town-Village typeaheads (ComboBox) with cascading logic
 - [ ] DataTable displays all 9 columns with correct alignment and sortability
 - [ ] Search box accepts text and searches Code/Name with 300ms debounce
 - [ ] Site Type checkboxes filter by multiple types (AND combined)
@@ -1242,7 +1250,7 @@ Export Flow:
 - [ ] Code field validates format (regex ^[A-Z0-9][A-Z0-9\-]{0,19}$)
 - [ ] Name field required; empty submission shows error
 - [ ] Type dropdown shows i18n-translated options
-- [ ] Region/District/Town-Village cascade correctly
+- [ ] Region dropdown and District/Town-Village typeaheads cascade correctly
 - [ ] Latitude range validated (-90 to 90)
 - [ ] Longitude range validated (-180 to 180)
 - [ ] Phone number format validated (regex)
@@ -1283,7 +1291,7 @@ Export Flow:
 - [ ] Code field validates uniqueness (debounced server check)
 - [ ] Name field required
 - [ ] Type field required
-- [ ] Region/District cascade correctly
+- [ ] Region dropdown and District/Town-Village typeaheads cascade correctly
 - [ ] Latitude/Longitude/Elevation validate numeric ranges
 - [ ] Phone validates regex format
 - [ ] "Create & Select" button disabled until Code and Name provided

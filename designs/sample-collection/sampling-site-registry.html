@@ -657,6 +657,71 @@
             grid-template-columns: 1fr 1fr;
             gap: 16px;
         }
+
+        /* Typeahead / ComboBox styles */
+        .typeahead-wrapper {
+            position: relative;
+        }
+
+        .typeahead-wrapper input {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-bottom: 2px solid #0f62fe;
+            background-color: transparent;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 13px;
+        }
+
+        .typeahead-wrapper input:focus {
+            outline: none;
+            border-bottom-color: #0043ce;
+        }
+
+        .typeahead-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .typeahead-dropdown.open {
+            display: block;
+        }
+
+        .typeahead-option {
+            padding: 10px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            border-bottom: 1px solid #f4f4f4;
+        }
+
+        .typeahead-option:hover,
+        .typeahead-option.highlighted {
+            background-color: #e5f6ff;
+            color: #0f62fe;
+        }
+
+        .typeahead-option .district-region {
+            font-size: 11px;
+            color: #8d8d8d;
+            margin-left: 8px;
+        }
+
+        .typeahead-no-results {
+            padding: 10px 12px;
+            font-size: 12px;
+            color: #8d8d8d;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -792,87 +857,6 @@
                 </table>
             </div>
 
-            <!-- SCREEN 3: Order Entry (Search) - UNCHANGED -->
-            <div id="screen3" class="screen">
-                <div class="page-header">
-                    <div class="page-title">Order Entry - Search Sites</div>
-                </div>
-
-                <div class="order-form">
-                    <div class="form-section">
-                        <h3>Search Criteria</h3>
-                        <div class="field-row">
-                            <div class="form-group">
-                                <label>Site Code or Name</label>
-                                <input type="text" placeholder="e.g., WS-001, Ciliwung">
-                            </div>
-                            <div class="form-group">
-                                <label>Site Type</label>
-                                <select>
-                                    <option>All Types</option>
-                                    <option>Water Source</option>
-                                    <option>Air Monitoring</option>
-                                    <option>Vector Trap</option>
-                                    <option>Soil/Sediment</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="field-row">
-                            <div class="form-group">
-                                <label>Region</label>
-                                <select>
-                                    <option>All Regions</option>
-                                    <option>DKI Jakarta</option>
-                                    <option>Jawa Barat</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>District</label>
-                                <input type="text" placeholder="Leave blank for all">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="button-group">
-                        <button class="btn btn-primary">Search</button>
-                        <button class="btn btn-secondary">Clear</button>
-                    </div>
-                </div>
-
-                <div style="margin-top: 32px;">
-                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Search Results</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Code</th>
-                                <th>Name</th>
-                                <th>Type</th>
-                                <th>Region</th>
-                                <th>Last Collection</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>WS-001</strong></td>
-                                <td>Sungai Ciliwung — Manggarai</td>
-                                <td><span class="tag tag-water">Water Source</span></td>
-                                <td>DKI Jakarta</td>
-                                <td>2026-03-28</td>
-                                <td><button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">Create Order</button></td>
-                            </tr>
-                            <tr>
-                                <td><strong>WS-002</strong></td>
-                                <td>Waduk Jatiluhur — Intake Point</td>
-                                <td><span class="tag tag-water">Water Source</span></td>
-                                <td>Jawa Barat</td>
-                                <td>2026-03-27</td>
-                                <td><button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">Create Order</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -891,19 +875,116 @@
         let editingCode = null;
         let forkingCode = null;
 
+        // District data for typeahead
+        const districtData = [
+            { name: 'Jakarta Selatan', region: 'DKI Jakarta' },
+            { name: 'Jakarta Pusat', region: 'DKI Jakarta' },
+            { name: 'Jakarta Utara', region: 'DKI Jakarta' },
+            { name: 'Jakarta Barat', region: 'DKI Jakarta' },
+            { name: 'Jakarta Timur', region: 'DKI Jakarta' },
+            { name: 'Kepulauan Seribu', region: 'DKI Jakarta' },
+            { name: 'Purwakarta', region: 'Jawa Barat' },
+            { name: 'Bekasi', region: 'Jawa Barat' },
+            { name: 'Bogor', region: 'Jawa Barat' },
+            { name: 'Bandung', region: 'Jawa Barat' },
+            { name: 'Karawang', region: 'Jawa Barat' },
+            { name: 'Subang', region: 'Jawa Barat' },
+            { name: 'Cirebon', region: 'Jawa Barat' },
+            { name: 'Garut', region: 'Jawa Barat' },
+            { name: 'Sumedang', region: 'Jawa Barat' },
+            { name: 'Tasikmalaya', region: 'Jawa Barat' },
+            { name: 'Semarang', region: 'Jawa Tengah' },
+            { name: 'Surabaya', region: 'Jawa Timur' },
+            { name: 'Malang', region: 'Jawa Timur' },
+            { name: 'Denpasar', region: 'Bali' },
+            { name: 'Makassar', region: 'Sulawesi Selatan' },
+            { name: 'Medan', region: 'Sumatera Utara' }
+        ];
+
+        function initTypeahead(inputId, dropdownId, onSelect) {
+            const input = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+            if (!input || !dropdown) return;
+
+            let highlightedIndex = -1;
+
+            input.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                dropdown.innerHTML = '';
+                highlightedIndex = -1;
+
+                if (query.length === 0) {
+                    dropdown.classList.remove('open');
+                    return;
+                }
+
+                const matches = districtData.filter(d =>
+                    d.name.toLowerCase().includes(query) ||
+                    d.region.toLowerCase().includes(query)
+                );
+
+                if (matches.length === 0) {
+                    dropdown.innerHTML = '<div class="typeahead-no-results">No districts found</div>';
+                    dropdown.classList.add('open');
+                    return;
+                }
+
+                matches.forEach((d, idx) => {
+                    const option = document.createElement('div');
+                    option.className = 'typeahead-option';
+                    option.setAttribute('data-index', idx);
+                    option.innerHTML = `${d.name}<span class="district-region">${d.region}</span>`;
+                    option.addEventListener('click', function() {
+                        input.value = d.name;
+                        dropdown.classList.remove('open');
+                        if (onSelect) onSelect(d);
+                    });
+                    dropdown.appendChild(option);
+                });
+                dropdown.classList.add('open');
+            });
+
+            input.addEventListener('keydown', function(e) {
+                const options = dropdown.querySelectorAll('.typeahead-option');
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    highlightedIndex = Math.min(highlightedIndex + 1, options.length - 1);
+                    options.forEach((o, i) => o.classList.toggle('highlighted', i === highlightedIndex));
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    highlightedIndex = Math.max(highlightedIndex - 1, 0);
+                    options.forEach((o, i) => o.classList.toggle('highlighted', i === highlightedIndex));
+                } else if (e.key === 'Enter' && highlightedIndex >= 0) {
+                    e.preventDefault();
+                    options[highlightedIndex].click();
+                } else if (e.key === 'Escape') {
+                    dropdown.classList.remove('open');
+                }
+            });
+
+            input.addEventListener('focus', function() {
+                if (this.value.trim().length > 0) {
+                    this.dispatchEvent(new Event('input'));
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.typeahead-wrapper')) {
+                    dropdown.classList.remove('open');
+                }
+            });
+        }
+
         function switchScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
 
             document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelector(`[data-screen="${screenId}"]`).classList.add('active');
+            const navTab = document.querySelector(`[data-screen="${screenId}"]`);
+            if (navTab) navTab.classList.add('active');
 
             document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
-            if (screenId === 'screen1') {
-                document.querySelectorAll('.sidebar-item')[0].classList.add('active');
-            } else if (screenId === 'screen3') {
-                document.querySelectorAll('.sidebar-item')[1].classList.add('active');
-            }
+            document.querySelectorAll('.sidebar-item')[0].classList.add('active');
         }
 
         function toggleExpand(code) {
@@ -1070,6 +1151,25 @@
                             <input type="text" id="edit-name" value="${data.name}">
                         </div>
                         <div class="edit-form-group">
+                            <label>Region <span style="font-size:10px;color:#8d8d8d;font-weight:400;text-transform:none;letter-spacing:0;">(label reads from site configuration)</span></label>
+                            <select id="edit-region" style="width:100%;padding:8px;border:none;border-bottom:2px solid #0f62fe;background-color:transparent;font-family:'IBM Plex Sans',sans-serif;font-size:13px;">
+                                <option value="DKI Jakarta">DKI Jakarta</option>
+                                <option value="Jawa Barat">Jawa Barat</option>
+                                <option value="Jawa Tengah">Jawa Tengah</option>
+                                <option value="Jawa Timur">Jawa Timur</option>
+                                <option value="Bali">Bali</option>
+                                <option value="Sulawesi Selatan">Sulawesi Selatan</option>
+                                <option value="Sumatera Utara">Sumatera Utara</option>
+                            </select>
+                        </div>
+                        <div class="edit-form-group">
+                            <label>District <span style="font-size:10px;color:#8d8d8d;font-weight:400;text-transform:none;letter-spacing:0;">(label reads from site configuration)</span></label>
+                            <div class="typeahead-wrapper">
+                                <input type="text" id="edit-district" value="${data.district}" placeholder="Type to search districts..." autocomplete="off">
+                                <div class="typeahead-dropdown" id="edit-district-dropdown"></div>
+                            </div>
+                        </div>
+                        <div class="edit-form-group">
                             <label>Address</label>
                             <input type="text" id="edit-address" value="${data.address}">
                         </div>
@@ -1093,11 +1193,20 @@
                 </div>
             `;
             expandDiv.innerHTML = editHtml;
+
+            // Set Region select to current value
+            const regionSelect = document.getElementById('edit-region');
+            if (regionSelect) regionSelect.value = data.region;
+
+            // Initialize typeahead on the district field
+            initTypeahead('edit-district', 'edit-district-dropdown');
         }
 
         function saveEdit(code) {
             const data = siteData[code];
             data.name = document.getElementById('edit-name').value;
+            data.region = document.getElementById('edit-region').value;
+            data.district = document.getElementById('edit-district').value;
             data.address = document.getElementById('edit-address').value;
             data.description = document.getElementById('edit-description').value;
             data.contact = document.getElementById('edit-contact').value;
