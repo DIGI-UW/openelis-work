@@ -28,6 +28,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Data dictionary management interface',
     specPath: 'designs/admin-config/data-dictionary.md',
     githubIssue: 1,
+    tags: ['lookup-tables', 'reference-data', 'admin', 'configuration'],
   },
   {
     name: 'Lab Units',
@@ -36,6 +37,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Laboratory units configuration',
     specPath: 'designs/admin-config/lab-units.md',
     githubIssue: 2,
+    tags: ['units', 'measurement', 'admin', 'configuration'],
   },
   {
     name: 'Methods',
@@ -44,6 +46,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Test methods management',
     specPath: 'designs/admin-config/methods.md',
     githubIssue: 3,
+    tags: ['test-methods', 'admin', 'configuration'],
   },
   {
     name: 'Organizations Management',
@@ -52,6 +55,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Organizations and referring facilities management',
     specPath: 'designs/admin-config/organizations-management.md',
     githubIssue: 4,
+    tags: ['organizations', 'sites', 'facilities', 'admin'],
   },
   {
     name: 'Panel',
@@ -60,6 +64,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Test panel configuration',
     specPath: 'designs/admin-config/panel.md',
     githubIssue: 5,
+    tags: ['panels', 'test-groups', 'admin', 'configuration'],
   },
   {
     name: 'Range Editor',
@@ -68,6 +73,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Normal range editor for test results',
     specPath: 'designs/admin-config/range-editor.md',
     githubIssue: 6,
+    tags: ['reference-ranges', 'normal-values', 'age-sex', 'admin'],
   },
   {
     name: 'Result Options',
@@ -76,6 +82,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Result options (dictionary values) management',
     specPath: 'designs/admin-config/result-options.md',
     githubIssue: 7,
+    tags: ['result-codes', 'dropdowns', 'admin', 'configuration'],
   },
   {
     name: 'Test Catalog',
@@ -84,6 +91,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Comprehensive test catalog management',
     specPath: 'designs/admin-config/test-catalog.md',
     githubIssue: 8,
+    tags: ['test-catalog', 'tests', 'admin', 'configuration'],
   },
 
   {
@@ -95,6 +103,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/rbac/rbac-ui-mockup.html',
     added: '2026-03-04',
     githubIssue: 9,
+    tags: ['roles', 'permissions', 'access-control', 'security'],
   },
   {
     name: 'Password Policy Enhancements',
@@ -105,6 +114,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-15',
     status: 'draft',
     githubIssue: 51,
+    tags: ['security', 'authentication', 'password', 'admin'],
   },
   {
     name: 'Catalog Subscription',
@@ -117,6 +127,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 63,
     jira: ['OGC-447'],
+    tags: ['FHIR', 'catalog', 'sync', 'interoperability'],
   },
   {
     name: 'Compliance Standards Administration',
@@ -128,6 +139,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 72,
     jira: ['OGC-528'],
+    tags: ['compliance', 'ISO-15189', 'standards', 'vector', 'environmental'],
   },
 
   // ─── Analyzer Integration ───
@@ -140,6 +152,7 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-214'],
     added: '2026-03-05',
     githubIssue: 10,
+    tags: ['analyzer', 'Sysmex', 'hematology', 'ASTM', 'field-mapping'],
   },
   {
     name: 'BioRad CFX Opus Connection Spec',
@@ -149,6 +162,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/biorad-cfx-opus-analyzer-connection-spec.md',
     added: '2026-03-05',
     githubIssue: 11,
+    tags: ['analyzer', 'BioRad', 'PCR', 'qPCR', 'connection-spec'],
   },
   {
     name: 'Sysmex XN-L Series Field Mapping',
@@ -158,6 +172,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/sysmex-xn-field-mapping-v0.1.md',
     added: '2026-03-06',
     githubIssue: 12,
+    tags: ['analyzer', 'Sysmex', 'hematology', 'field-mapping'],
   },
   {
     name: 'DNA Technology DT-Prime Field Mapping',
@@ -167,6 +182,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/dna-technology-dtprime-field-mapping-v0.2.md',
     added: '2026-03-06',
     githubIssue: 13,
+    tags: ['analyzer', 'PCR', 'HIV', 'viral-load', 'field-mapping'],
   },
   {
     name: 'Tecan Infinite F50 Connection Spec',
@@ -177,6 +193,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-06',
     relatedTo: ['Tecan Infinite F50 Companion Guide'],
     githubIssue: 14,
+    tags: ['analyzer', 'Tecan', 'ELISA', 'connection-spec'],
   },
   {
     name: 'Thermo Multiskan FC Connection Spec',
@@ -187,6 +204,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-06',
     relatedTo: ['Thermo Multiskan FC Companion Guide'],
     githubIssue: 15,
+    tags: ['analyzer', 'Thermo', 'ELISA', 'connection-spec'],
   },
   {
     name: 'QuantStudio 5/7 Flex Field Mapping',
@@ -198,6 +216,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-06',
     relatedTo: ['QuantStudio 5/7 Flex Companion Guide'],
     githubIssue: 16,
+    tags: ['analyzer', 'QuantStudio', 'PCR', 'HIV', 'field-mapping'],
   },
   {
     name: 'QuantStudio 5/7 Flex Companion Guide',
@@ -209,6 +228,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-06',
     relatedTo: ['QuantStudio 5/7 Flex Field Mapping'],
     githubIssue: 17,
+    tags: ['analyzer', 'QuantStudio', 'PCR', 'setup-guide'],
   },
   {
     name: 'FluoroCycler XT Integration Spec',
@@ -219,6 +239,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-06',
     relatedTo: ['FluoroCycler XT Companion Guide'],
     githubIssue: 18,
+    tags: ['analyzer', 'FluoroCycler', 'PCR', 'ASTM'],
   },
   {
     name: 'FluoroCycler XT Companion Guide',
@@ -229,6 +250,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-06',
     relatedTo: ['FluoroCycler XT Integration Spec'],
     githubIssue: 19,
+    tags: ['analyzer', 'FluoroCycler', 'PCR', 'setup-guide'],
   },
   {
     name: 'Tecan Infinite F50 Companion Guide',
@@ -239,6 +261,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-06',
     relatedTo: ['Tecan Infinite F50 Connection Spec'],
     githubIssue: 20,
+    tags: ['analyzer', 'Tecan', 'ELISA', 'setup-guide'],
   },
   {
     name: 'Thermo Multiskan FC Companion Guide',
@@ -249,6 +272,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-06',
     relatedTo: ['Thermo Multiskan FC Connection Spec'],
     githubIssue: 21,
+    tags: ['analyzer', 'Thermo', 'ELISA', 'setup-guide'],
   },
   {
     name: 'Analyzer File Upload',
@@ -258,6 +282,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/analyzer-file-upload.md',
     jira: ['OGC-173', 'OGC-189', 'OGC-214', 'OGC-224'],
     githubIssue: 22,
+    tags: ['analyzer', 'file-upload', 'import', 'CSV'],
   },
   {
     name: 'Analyzer Mapping Templates',
@@ -267,6 +292,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/astm-analyzer-mapping-addendum.md',
     jira: ['OGC-173'],
     githubIssue: 23,
+    tags: ['analyzer', 'mapping', 'templates', 'configuration'],
   },
   {
     name: 'Flat File Analyzer Config',
@@ -276,6 +302,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/flat-file-analyzer-config.md',
     jira: ['OGC-324'],
     githubIssue: 24,
+    tags: ['analyzer', 'flat-file', 'CSV', 'configuration'],
   },
   {
     name: 'HL7 Analyzer Mapping',
@@ -285,6 +312,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/hl7-analyzer-mapping-addendum.md',
     jira: ['OGC-324'],
     githubIssue: 25,
+    tags: ['analyzer', 'HL7', 'MLLP', 'mapping', 'interface'],
   },
   // ─── Microbiology ───
   {
@@ -294,6 +322,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Antimicrobial resistance testing and reporting module',
     specPath: 'designs/microbiology/amr-module.md',
     githubIssue: 26,
+    tags: ['microbiology', 'AMR', 'antibiotic-resistance', 'WHONET', 'culture'],
   },
 
   // ─── NCE ───
@@ -304,6 +333,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Non-conforming event analytics dashboard',
     specPath: 'designs/nce/nce-analytics.md',
     githubIssue: 27,
+    tags: ['NCE', 'non-conforming', 'quality', 'analytics'],
   },
   {
     name: 'NCE Dashboard & CAPA',
@@ -312,6 +342,7 @@ export const MOCKUP_REGISTRY = [
     description: 'NCE dashboard with CAPA tracking',
     specPath: 'designs/nce/nce-dashboard.md',
     githubIssue: 28,
+    tags: ['NCE', 'CAPA', 'corrective-action', 'quality', 'dashboard'],
   },
   {
     name: 'NCE Results Entry',
@@ -320,6 +351,7 @@ export const MOCKUP_REGISTRY = [
     description: 'NCE investigation results entry form',
     specPath: 'designs/nce/nce-results-entry.md',
     githubIssue: 29,
+    tags: ['NCE', 'non-conforming', 'results-entry', 'quality'],
   },
   {
     name: 'NCE Report',
@@ -328,6 +360,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Non-conformity report generation',
     specPath: 'designs/nce/nce-report.md',
     githubIssue: 30,
+    tags: ['NCE', 'quality', 'report', 'non-conforming'],
   },
 
   // ─── Pathology ───
@@ -338,6 +371,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Pathology case view and reporting redesign',
     specPath: 'designs/pathology/pathology-case-view.md',
     githubIssue: 31,
+    tags: ['pathology', 'histology', 'biopsy', 'case-management'],
   },
   {
     name: 'IHC Case View',
@@ -346,6 +380,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Immunohistochemistry case view and scoring',
     specPath: 'designs/pathology/ihc-case-view.md',
     githubIssue: 32,
+    tags: ['pathology', 'IHC', 'immunohistochemistry', 'staining'],
   },
 
   {
@@ -355,6 +390,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Cytology case view with Bethesda System wizard workflow',
     specPath: 'designs/pathology/cytology-case-view.md',
     githubIssue: 33,
+    tags: ['pathology', 'cytology', 'Bethesda', 'PAP-smear'],
   },
 
   // ─── Quality & EQA ───
@@ -365,6 +401,7 @@ export const MOCKUP_REGISTRY = [
     description: 'EQA program enrollment, self-enrollment, and provider management',
     specPath: 'designs/quality/eqa-enrollment-addendum.md',
     githubIssue: 34,
+    tags: ['quality', 'EQA', 'proficiency-testing', 'external-QA'],
   },
 
   {
@@ -374,6 +411,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Laboratory Instrument Compliance Dashboard with Westgard QC rules',
     specPath: 'designs/quality/westgard-rules.md',
     githubIssue: 35,
+    tags: ['quality', 'Westgard', 'QC-rules', 'IQC', 'dashboard'],
   },
   {
     name: 'Batch Workplan with Reagent QC',
@@ -386,6 +424,7 @@ export const MOCKUP_REGISTRY = [
     status: 'approved',
     githubIssue: 52,
     relatedTo: ['Analyzer Manual QC'],
+    tags: ['quality', 'batch', 'workplan', 'reagent-QC'],
   },
   {
     name: 'Analyzer Manual QC',
@@ -398,6 +437,7 @@ export const MOCKUP_REGISTRY = [
     status: 'approved',
     githubIssue: 53,
     relatedTo: ['Batch Workplan with Reagent QC'],
+    tags: ['quality', 'QC', 'analyzer', 'manual-entry'],
   },
 
   // ─── Results & Validation ───
@@ -408,6 +448,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Main results entry and review page',
     specPath: 'designs/results-validation/results-page.md',
     githubIssue: 36,
+    tags: ['results', 'data-entry', 'workflow', 'entry'],
   },
   {
     name: 'Validation Page',
@@ -416,6 +457,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Result validation workflow',
     specPath: 'designs/results-validation/validation-page.md',
     githubIssue: 37,
+    tags: ['validation', 'results', 'review', 'approval'],
   },
   {
     name: 'Validation Page (Analyzer)',
@@ -424,6 +466,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Analyzer result validation workflow',
     specPath: 'designs/analyzer-integration/validation-page.md',
     githubIssue: 38,
+    tags: ['validation', 'analyzer', 'results', 'review'],
   },
 
   {
@@ -434,6 +477,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/validation-page/validation-page-requirements-v2.md',
     added: '2026-03-04',
     githubIssue: 39,
+    tags: ['validation', 'redesign', 'results', 'review'],
   },
   {
     name: 'Validation Page v2.1 (Stage 1)',
@@ -443,6 +487,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/validation-page/validation-page-requirements-v2.1-stage1.md',
     added: '2026-03-04',
     githubIssue: 40,
+    tags: ['validation', 'results', 'stage-1', 'incremental'],
   },
   {
     name: 'Validation Page v3 (Demographics)',
@@ -455,6 +500,7 @@ export const MOCKUP_REGISTRY = [
     status: 'review',
     githubIssue: 50,
     relatedTo: ['Patient Demographics Mockup', 'Patient Demographics FRS'],
+    tags: ['validation', 'demographics', 'patient', 'results'],
   },
   {
     name: 'Patient Demographics Mockup',
@@ -467,6 +513,7 @@ export const MOCKUP_REGISTRY = [
     status: 'review',
     relatedTo: ['Validation Page v3 (Demographics)', 'Patient Demographics FRS'],
     githubIssue: 41,
+    tags: ['patient', 'demographics', 'validation', 'results'],
   },
   {
     name: 'Patient Demographics FRS',
@@ -479,6 +526,7 @@ export const MOCKUP_REGISTRY = [
     status: 'review',
     relatedTo: ['Validation Page v3 (Demographics)', 'Patient Demographics Mockup'],
     githubIssue: 42,
+    tags: ['patient', 'demographics', 'FRS', 'spec'],
   },
   // ─── Reports ───
   {
@@ -490,6 +538,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-18',
     status: 'draft',
     githubIssue: 54,
+    tags: ['reports', 'print', 'queue', 'patient-report'],
   },
   {
     name: 'Positivity Rate Report',
@@ -500,6 +549,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-19',
     status: 'draft',
     githubIssue: 55,
+    tags: ['reports', 'positivity', 'HIV', 'malaria', 'dashboard-widget'],
   },
   {
     name: 'Disease Surveillance Dashboard',
@@ -510,6 +560,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-23',
     status: 'draft',
     githubIssue: 57,
+    tags: ['reports', 'surveillance', 'public-health', 'FHIR', 'dashboard'],
   },
   {
     name: 'Custom Data Export',
@@ -522,6 +573,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 70,
     jira: ['OGC-479', 'OGC-481', 'OGC-483'],
+    tags: ['reports', 'export', 'CSV', 'data-export', 'async-queue'],
   },
 
   // ─── Notifications ───
@@ -535,6 +587,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 58,
     relatedTo: ['TextIt SMS Integration'],
+    tags: ['notifications', 'email', 'SMS', 'alerts', 'admin'],
   },
   {
     name: 'TextIt SMS Integration',
@@ -546,6 +599,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 59,
     relatedTo: ['Notification Admin'],
+    tags: ['notifications', 'SMS', 'TextIt', 'messaging'],
   },
 
   // ─── Inventory ───
@@ -559,6 +613,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 60,
     relatedTo: ['Reagent Forecasting Facility View'],
+    tags: ['inventory', 'reagents', 'forecasting', 'stock'],
   },
   {
     name: 'Reagent Forecasting Facility View',
@@ -570,6 +625,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 61,
     relatedTo: ['Reagent Forecasting Workbench'],
+    tags: ['inventory', 'reagents', 'forecasting', 'facility'],
   },
 
   // ─── System ───
@@ -580,6 +636,7 @@ export const MOCKUP_REGISTRY = [
     description: 'System audit trail viewer',
     specPath: 'designs/system/audit-trail.md',
     githubIssue: 43,
+    tags: ['audit', 'logging', 'compliance', 'security', 'system'],
   },
   {
     name: 'Help Menu',
@@ -588,6 +645,7 @@ export const MOCKUP_REGISTRY = [
     description: 'In-app help menu and documentation links',
     specPath: 'designs/system/help-menu.md',
     githubIssue: 44,
+    tags: ['help', 'documentation', 'UI', 'navigation'],
   },
   {
     name: 'Analyzer Import',
@@ -596,6 +654,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Bulk analyzer configuration import',
     specPath: 'designs/system/analyzer-import.md',
     githubIssue: 45,
+    tags: ['analyzer', 'import', 'data-migration', 'system'],
   },
   {
     name: 'FHIR Outbound Push',
@@ -607,6 +666,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 62,
     jira: ['OGC-446'],
+    tags: ['FHIR', 'interoperability', 'outbound', 'hub', 'integration'],
   },
   {
     name: 'Lab Management Dashboard',
@@ -619,6 +679,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 64,
     jira: ['OGC-485'],
+    tags: ['dashboard', 'KPI', 'TAT', 'management', 'real-time'],
   },
   {
     name: 'Electronic Signature',
@@ -630,6 +691,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 73,
     jira: ['OGC-532'],
+    tags: ['security', 'e-signature', '21CFR11', 'compliance', 'audit'],
   },
 
   // ─── Sample Collection ───
@@ -643,6 +705,7 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-70'],
     added: '2026-03-04',
     githubIssue: 46,
+    tags: ['sample-collection', 'order-entry', 'workflow', 'labels'],
   },
   {
     name: 'Sampling Site Registry',
@@ -655,6 +718,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 71,
     jira: ['OGC-531'],
+    tags: ['sample-collection', 'environmental', 'GPS', 'vector', 'sites'],
   },
 
   // ─── Other ───
@@ -665,6 +729,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Turnaround time monitoring dashboard',
     specPath: 'designs/other/tat-dashboard.md',
     githubIssue: 47,
+    tags: ['TAT', 'turnaround-time', 'dashboard', 'performance'],
   },
   {
     name: 'Calendar Management',
@@ -673,6 +738,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Lab calendar and scheduling management',
     specPath: null,
     githubIssue: 48,
+    tags: ['calendar', 'scheduling', 'holidays', 'admin'],
   },
 
   // ─── Blood Bank ───
@@ -686,6 +752,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 65,
     jira: ['OGC-464'],
+    tags: ['blood-bank', 'transfusion', 'crossmatch', 'compatibility'],
   },
   {
     name: 'Patient Blood Bank Record',
@@ -697,6 +764,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 66,
     jira: ['OGC-459'],
+    tags: ['blood-bank', 'patient', 'transfusion-history', 'ABO-Rh'],
   },
   {
     name: 'Blood Bank Admin Config',
@@ -708,6 +776,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 67,
     jira: ['OGC-455'],
+    tags: ['blood-bank', 'admin', 'configuration'],
   },
   {
     name: 'Blood Unit Inventory',
@@ -719,6 +788,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 68,
     jira: ['OGC-457'],
+    tags: ['blood-bank', 'inventory', 'units', 'stock'],
   },
   {
     name: 'Issue to Patient',
@@ -731,6 +801,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 69,
     jira: ['OGC-461'],
+    tags: ['blood-bank', 'transfusion', 'issue', 'emergency-release'],
   },
 
   // ─── Figma-only entries (no JSX mockup) ───
@@ -742,6 +813,7 @@ export const MOCKUP_REGISTRY = [
     specPath: null,
     figmaUrl: 'https://www.figma.com/make/poDXKSr2IBgKbbjB1Fh9Sj/OpenELIS-Global-Template--Copy-?node-id=0-1',
     githubIssue: 49,
+    tags: ['AI', 'assistant', 'natural-language', 'reporting', 'chatbot'],
   },
 ];
 
