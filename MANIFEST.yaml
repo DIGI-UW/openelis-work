@@ -1448,3 +1448,15 @@
     jira: https://uwdigi.atlassian.net/browse/OGC-532
     gallery: https://digi-uw.github.io/openelis-work/#/system/electronic-signature
   added: "2026-04-02"
+
+- id: environmental-order-entry
+  type: jsx
+  path: designs/sample-collection/environmental-order-entry.jsx
+  spec: designs/sample-collection/environmental-order-entry.md
+  category: sample-collection
+  description: Environmental order entry integration (S-03) — compliance standard selection, sampling site auto-population, sample type & test panel auto-suggestion, collection conditions, and regulatory reference fields for vector/environmental LIMS workflows
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/74
+    jira: https://uwdigi.atlassian.net/browse/OGC-537
+    gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/environmental-order-entry
+  added: "2026-04-03"

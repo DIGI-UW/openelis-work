@@ -724,6 +724,20 @@ export const MOCKUP_REGISTRY = [
     tags: ['sample-collection', 'environmental', 'GPS', 'vector', 'sites'],
   },
 
+  {
+    name: 'Environmental Order Entry',
+    category: 'sample-collection',
+    component: React.lazy(() => import('@designs/sample-collection/environmental-order-entry.jsx')),
+    description: 'Environmental order entry integration (S-03) — compliance standard selection, sampling site auto-population, sample type & test panel auto-suggestion, collection conditions, and regulatory reference fields for vector/environmental LIMS workflows',
+    specPath: 'designs/sample-collection/environmental-order-entry.md',
+    htmlUrl: 'designs/sample-collection/environmental-order-entry.html',
+    added: '2026-04-03',
+    status: 'draft',
+    githubIssue: 74,
+    jira: ['OGC-537', 'OGC-527'],
+    tags: ['environmental', 'order-entry', 'vector', 'compliance', 'sample-collection'],
+  },
+
   // ─── Other ───
   {
     name: 'TAT Dashboard',
