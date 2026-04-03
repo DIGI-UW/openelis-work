@@ -705,7 +705,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Decoupled 4-step sample lifecycle: Enter Order → Collect Sample → Label & Store → QA Review',
     specPath: 'designs/sample-collection/sample-collection-redesign.md',
     htmlUrl: 'designs/sample-collection/sample-collection-redesign-mockup.html',
-    jira: ['OGC-70'],
+    jira: ['OGC-70', 'OGC-354'],
     added: '2026-03-04',
     githubIssue: 46,
     tags: ['sample-collection', 'order-entry', 'workflow', 'labels'],
