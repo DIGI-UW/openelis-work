@@ -1,8 +1,8 @@
 # Test Catalog Management - Updated Requirements
 
-**Version:** 2.0  
-**Date:** December 12, 2025  
-**Changes:** Added functional coverage validation, test ordering, panel association, inline method/panel creation, multi-select test sections
+**Version:** 2.1
+**Date:** April 2, 2026
+**Changes:** v2.1 — Added Compliance tab for regulatory threshold management (S-01 integration). v2.0 — Added functional coverage validation, test ordering, panel association, inline method/panel creation, multi-select test sections
 
 ---
 
@@ -28,6 +28,7 @@
 | **Label Presets Management** | Admin-configurable label types with dimensions, fields, and barcode settings |
 | **Reagents Tab** | Link reagents from inventory to track consumption per test |
 | **Analyzers Tab** | Link analyzers that can perform this test |
+| **Compliance Tab** | Manage regulatory compliance thresholds (Baku Mutu, WHO, EPA) per test — see S-01 FRS |
 
 ---
 
@@ -1919,3 +1920,53 @@ CREATE TABLE test_section_assignment (
 - [ ] Source (test name) shown for each label count
 - [ ] Multiple tests aggregate correctly (highest count wins)
 - [ ] Non-overridable labels are displayed as read-only
+
+### Compliance Tab
+- [ ] Compliance tab appears in test editor vertical tab sidebar under a "Compliance" section group
+- [ ] Tab displays DataTable of all compliance thresholds defined for this test
+- [ ] Thresholds grouped by Standard Name (default) or Parameter Group via "Group by" toggle
+- [ ] Threshold types shown as colored Tags: MAX (red), MIN (blue), RANGE (teal), DESCRIPTIVE (purple)
+- [ ] Inline row expansion for add/edit threshold forms (not modals)
+- [ ] ComboBox with type-ahead for standard selection
+- [ ] Conditional form fields based on threshold type (upper value for MAX, lower for MIN, both for RANGE, text for DESCRIPTIVE)
+- [ ] Badge on tab label showing threshold count
+- [ ] Tab visible only to users with `compliance.threshold.view` permission
+- [ ] Full specification in companion FRS: S01-compliance-standards-admin-frs-v1.0.md
+
+---
+
+## NEW: Compliance Tab (S-01 Integration)
+
+### Purpose
+
+Enable per-test regulatory compliance threshold management. Environmental, vector, and food safety laboratories evaluate results against externally published regulatory standards (e.g., Indonesia's Baku Mutu, WHO Drinking Water Guidelines, EPA limits) rather than patient-centric reference ranges. The Compliance tab provides the configuration surface for these thresholds within the unified Test Editor.
+
+### Tab Placement
+
+The Compliance tab is placed in the vertical tab sidebar under a new **Compliance** section group, after the existing Automation group:
+
+```
+Configuration:  Basic Info | Sample & Results | Ranges | Sample Storage
+Organization:   Display Order | Panels | Labels
+Resources:      Terminology | Reagents
+Automation:     Analyzers | Methods | Alerts | Reflex & Calc
+Compliance:     Compliance  ← NEW
+```
+
+### Key Features
+
+1. **Threshold DataTable** — Lists all compliance thresholds for the current test with columns: Standard Name, Parameter Group, Type (Tag), Value, Unit, Effective Date, Status
+2. **Group By Toggle** — Switch between grouping by Standard or Parameter Group
+3. **Inline Add/Edit** — Row expansion forms with conditional fields based on threshold type (MAX → upper value; MIN → lower value; RANGE → both; DESCRIPTIVE → text)
+4. **Standard ComboBox** — Type-ahead selection from configured ComplianceStandard entities (only ACTIVE standards shown)
+5. **Threshold Count Badge** — Tab label shows count of configured thresholds
+
+### Data Model
+
+The Compliance tab reads/writes `ComplianceThreshold` entities linked to the current test. See the full data model, API endpoints, and business rules in the companion FRS:
+
+**Companion FRS:** `S01-compliance-standards-admin-frs-v1.0.md`
+
+### Relationship to Ranges Tab
+
+For environmental tests, the Compliance tab is the primary threshold configuration surface. The existing Ranges tab (Normal, Valid, Critical, Reporting) remains available for clinical tests. Both tabs can coexist — a test may have both clinical reference ranges and regulatory compliance thresholds.

@@ -118,6 +118,17 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 63,
     jira: ['OGC-447'],
   },
+  {
+    name: 'Compliance Standards Administration',
+    category: 'admin-config',
+    component: null,
+    description: 'Admin configuration for compliance standards (ISO 15189, WHO, CLSI) — link standards to test catalog entries, QC rules, and sampling protocols. Part of the Vector/Environmental LIMS epic.',
+    specPath: 'designs/admin-config/compliance-standards-admin.md',
+    added: '2026-04-02',
+    status: 'draft',
+    githubIssue: 72,
+    jira: ['OGC-528'],
+  },
 
   // ─── Analyzer Integration ───
   {
@@ -609,6 +620,17 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 64,
     jira: ['OGC-485'],
   },
+  {
+    name: 'Electronic Signature',
+    category: 'system',
+    component: React.lazy(() => import('@designs/system/electronic-signature.jsx')),
+    description: 'Electronic signature capture and audit trail for 21 CFR Part 11 compliance — authenticated sign-off for results validation, report release, and critical value acknowledgment',
+    specPath: 'designs/system/electronic-signature.md',
+    added: '2026-04-02',
+    status: 'draft',
+    githubIssue: 73,
+    jira: ['OGC-532'],
+  },
 
   // ─── Sample Collection ───
   {
@@ -621,6 +643,18 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-70'],
     added: '2026-03-04',
     githubIssue: 46,
+  },
+  {
+    name: 'Sampling Site Registry',
+    category: 'sample-collection',
+    component: React.lazy(() => import('@designs/sample-collection/sampling-site-registry.jsx')),
+    description: 'Environmental LIMS sampling site registry — manage sampling locations, GPS coordinates, site types, and compliance linkage to S-01 standards with hierarchical site grouping (S-02)',
+    specPath: 'designs/sample-collection/sampling-site-registry.md',
+    htmlUrl: 'designs/sample-collection/sampling-site-registry.html',
+    added: '2026-04-02',
+    status: 'draft',
+    githubIssue: 71,
+    jira: ['OGC-531'],
   },
 
   // ─── Other ───

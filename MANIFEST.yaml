@@ -1412,3 +1412,39 @@
     jira: https://uwdigi.atlassian.net/browse/OGC-479
     gallery: https://digi-uw.github.io/openelis-work/#/reports/custom-data-export
   added: "2026-03-25"
+
+- id: compliance-standards-admin
+  type: spec
+  path: null
+  spec: designs/admin-config/compliance-standards-admin.md
+  category: admin-config
+  description: Admin configuration for compliance standards (ISO 15189, WHO, CLSI) — link to test catalog, QC rules, and sampling protocols (S-01, Vector epic)
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/72
+    jira: https://uwdigi.atlassian.net/browse/OGC-528
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/compliance-standards-admin
+  added: "2026-04-02"
+
+- id: sampling-site-registry
+  type: both
+  path: designs/sample-collection/sampling-site-registry.jsx
+  spec: designs/sample-collection/sampling-site-registry.md
+  category: sample-collection
+  description: Environmental LIMS sampling site registry — manage sampling locations, GPS coordinates, site types, and compliance linkage (S-02, Vector epic)
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/71
+    jira: https://uwdigi.atlassian.net/browse/OGC-531
+    gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/sampling-site-registry
+  added: "2026-04-02"
+
+- id: electronic-signature
+  type: jsx
+  path: designs/system/electronic-signature.jsx
+  spec: designs/system/electronic-signature.md
+  category: system
+  description: Electronic signature capture and audit trail for 21 CFR Part 11 compliance
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/73
+    jira: https://uwdigi.atlassian.net/browse/OGC-532
+    gallery: https://digi-uw.github.io/openelis-work/#/system/electronic-signature
+  added: "2026-04-02"

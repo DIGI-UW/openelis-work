@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenELIS Global - Sampling Site Registry</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f4f4f4;
+            color: #393939;
+        }
+
+        /* Header */
+        .header {
+            height: 48px;
+            background-color: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #161616;
+            margin-right: 48px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0;
+            margin-left: auto;
+            margin-right: 24px;
+        }
+
+        .nav-tab {
+            padding: 0 16px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 500;
+            color: #525252;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .nav-tab:hover {
+            color: #0f62fe;
+            background-color: rgba(15, 98, 254, 0.05);
+        }
+
+        .nav-tab.active {
+            color: #0f62fe;
+            border-bottom-color: #0f62fe;
+        }
+
+        /* Main container */
+        .container {
+            display: flex;
+            height: calc(100vh - 48px);
+        }
+
+        .sidebar {
+            width: 14rem;
+            background-color: #fff;
+            border-right: 1px solid #e0e0e0;
+            padding: 24px 16px;
+            overflow-y: auto;
+        }
+
+        .sidebar-group {
+            margin-bottom: 32px;
+        }
+
+        .sidebar-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #8d8d8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .sidebar-item {
+            padding: 10px 12px;
+            margin-bottom: 4px;
+            border-radius: 2px;
+            font-size: 13px;
+            color: #525252;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: block;
+            width: 100%;
+            text-align: left;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-item:hover {
+            background-color: #f4f4f4;
+        }
+
+        .sidebar-item.active {
+            background-color: #defbe6;
+            color: #0e6027;
+            border-left-color: #0e6027;
+            font-weight: 500;
+        }
+
+        /* Content area */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            background-color: #f4f4f4;
+        }
+
+        .screen {
+            display: none;
+            padding: 24px;
+            min-height: 100%;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Page header */
+        .page-header {
+            background-color: #fff;
+            padding: 24px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #161616;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .btn-primary {
+            background-color: #0f62fe;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0353e9;
+        }
+
+        .btn-secondary {
+            background-color: #e0e0e0;
+            color: #161616;
+        }
+
+        .btn-secondary:hover {
+            background-color: #c6c6c6;
+        }
+
+        .btn-tertiary {
+            background-color: transparent;
+            color: #0f62fe;
+            border: 1px solid #0f62fe;
+        }
+
+        .btn-tertiary:hover {
+            background-color: rgba(15, 98, 254, 0.1);
+        }
+
+        .btn-danger {
+            background-color: #da1e28;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background-color: #ba1b23;
+        }
+
+        .btn-danger-secondary {
+            background-color: #fff1f1;
+            color: #da1e28;
+            border: 1px solid #da1e28;
+        }
+
+        .btn-danger-secondary:hover {
+            background-color: #fde8e8;
+        }
+
+        .btn-warning {
+            background-color: #f1c21b;
+            color: #161616;
+        }
+
+        .btn-warning:hover {
+            background-color: #ddb00b;
+        }
+
+        .btn-disabled {
+            background-color: #e0e0e0;
+            color: #8d8d8d;
+            cursor: not-allowed;
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        thead {
+            background-color: #f4f4f4;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #161616;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+
+        tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        tbody tr.expanded {
+            background-color: #f4f4f4;
+        }
+
+        /* Tag/Badge styles */
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 2px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .tag-water {
+            background-color: #009d9a;
+            color: #fff;
+        }
+
+        .tag-air {
+            background-color: #0043ce;
+            color: #fff;
+        }
+
+        .tag-vector {
+            background-color: #6929c4;
+            color: #fff;
+        }
+
+        .tag-soil {
+            background-color: #525252;
+            color: #fff;
+        }
+
+        .tag-source {
+            background-color: #e0e0e0;
+            color: #161616;
+            font-size: 11px;
+            padding: 2px 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tag-source.local {
+            background-color: #defbe6;
+            color: #0e6027;
+        }
+
+        .tag-source.hub {
+            background-color: #e3f2fd;
+            color: #003d82;
+        }
+
+        /* Expanded row styles */
+        .expand-row {
+            background-color: #fff;
+            border-left: 3px solid #0f62fe;
+            padding: 20px;
+            box-shadow: inset 0 -1px 0 #e0e0e0;
+        }
+
+        .expand-row.hub {
+            border-left-color: #0043ce;
+            background-color: #edf5ff;
+        }
+
+        .expand-row.local {
+            border-left-color: #24a148;
+        }
+
+        .expand-content {
+            display: grid;
+            grid-template-columns: 60% 40%;
+            gap: 40px;
+        }
+
+        .expand-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .expand-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #161616;
+            margin-bottom: 16px;
+        }
+
+        .expand-field {
+            margin-bottom: 12px;
+        }
+
+        .expand-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #525252;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .expand-value {
+            font-size: 13px;
+            color: #161616;
+            line-height: 1.5;
+        }
+
+        .expand-value.monospace {
+            font-family: 'Courier New', monospace;
+            background-color: #f4f4f4;
+            padding: 8px;
+            border-radius: 2px;
+        }
+
+        .expand-value-group {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .expand-value-subitem {
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .expand-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        /* Confirmation panel styles */
+        .confirm-panel {
+            background-color: #fff8e1;
+            border: 1px solid #f1c21b;
+            padding: 16px;
+            border-radius: 2px;
+            margin-top: 16px;
+        }
+
+        .confirm-panel.danger {
+            background-color: #fff1f1;
+            border: 1px solid #da1e28;
+        }
+
+        .confirm-panel h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #161616;
+            margin-bottom: 8px;
+        }
+
+        .confirm-panel p {
+            font-size: 13px;
+            color: #525252;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .confirm-field {
+            margin: 12px 0;
+        }
+
+        .confirm-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #161616;
+            margin-bottom: 6px;
+        }
+
+        .confirm-field input[type="text"],
+        .confirm-field input[type="checkbox"] {
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .confirm-field input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #8d8d8d;
+            border-radius: 2px;
+            font-size: 13px;
+        }
+
+        .confirm-field input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .confirm-field-checkbox-label {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            color: #161616;
+            cursor: pointer;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        /* Edit form styles */
+        .edit-form {
+            margin-top: 16px;
+        }
+
+        .edit-form-group {
+            margin-bottom: 16px;
+        }
+
+        .edit-form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #161616;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .edit-form-group input,
+        .edit-form-group textarea {
+            width: 100%;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 13px;
+            padding: 8px;
+            border: none;
+            border-bottom: 2px solid #0f62fe;
+            background-color: transparent;
+        }
+
+        .edit-form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .edit-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        /* Managed by FHIR label */
+        .managed-label {
+            font-style: italic;
+            color: #8d8d8d;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background-color: #24a148;
+            color: #fff;
+            padding: 16px 24px;
+            border-radius: 2px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 13px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Search and filter */
+        .search-box {
+            background-color: #fff;
+            padding: 16px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #8d8d8d;
+            border-radius: 2px;
+            font-size: 13px;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .search-box button {
+            padding: 8px 16px;
+        }
+
+        /* Order Entry Screen Styles */
+        .order-form {
+            background-color: #fff;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid #e0e0e0;
+            border-radius: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #161616;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #8d8d8d;
+            border-radius: 2px;
+            font-size: 13px;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .form-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #161616;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .breadcrumb {
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: #525252;
+        }
+
+        .breadcrumb a {
+            color: #0f62fe;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">OpenELIS Global</div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-screen="screen1" onclick="switchScreen('screen1')">Site Registry</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-group">
+                <label class="sidebar-label">Navigation</label>
+                <button class="sidebar-item active" onclick="switchScreen('screen1')">Site Registry</button>
+            </div>
+
+            <div class="sidebar-group">
+                <label class="sidebar-label">Filters</label>
+                <button class="sidebar-item">All Sites</button>
+                <button class="sidebar-item">Water Sources</button>
+                <button class="sidebar-item">Air Monitoring</button>
+                <button class="sidebar-item">Vector Traps</button>
+                <button class="sidebar-item">Soil/Sediment</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- SCREEN 1: Site Registry with Inline Expansion -->
+            <div id="screen1" class="screen active">
+                <div class="page-header">
+                    <div class="page-title">Sampling Site Registry</div>
+                    <div class="button-group">
+                        <button class="btn btn-primary">+ New Site</button>
+                        <button class="btn btn-secondary">Export</button>
+                    </div>
+                </div>
+
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search by code, name, region...">
+                    <button class="btn btn-secondary">Search</button>
+                </div>
+
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Region</th>
+                            <th>District</th>
+                            <th>Contact</th>
+                            <th>Last Collection</th>
+                            <th>Source</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-code="WS-001">
+                            <td><strong>WS-001</strong></td>
+                            <td>Sungai Ciliwung — Manggarai</td>
+                            <td><span class="tag tag-water">Water Source</span></td>
+                            <td>DKI Jakarta</td>
+                            <td>Jakarta Selatan</td>
+                            <td>Budi Santoso</td>
+                            <td>2026-03-28</td>
+                            <td><span class="tag tag-source local">LOCAL</span></td>
+                            <td>Active</td>
+                            <td>▼</td>
+                        </tr>
+                        <tr data-code="WS-002">
+                            <td><strong>WS-002</strong></td>
+                            <td>Waduk Jatiluhur — Intake Point</td>
+                            <td><span class="tag tag-water">Water Source</span></td>
+                            <td>Jawa Barat</td>
+                            <td>Purwakarta</td>
+                            <td>Sri Wahyuni</td>
+                            <td>2026-03-27</td>
+                            <td><span class="tag tag-source hub">HUB</span></td>
+                            <td>Active</td>
+                            <td>▼</td>
+                        </tr>
+                        <tr data-code="AT-001">
+                            <td><strong>AT-001</strong></td>
+                            <td>Stasiun Pemantauan Udara Kemayoran</td>
+                            <td><span class="tag tag-air">Air Monitoring</span></td>
+                            <td>DKI Jakarta</td>
+                            <td>Jakarta Pusat</td>
+                            <td>Ahmad Rizky</td>
+                            <td>2026-03-26</td>
+                            <td><span class="tag tag-source hub">HUB</span></td>
+                            <td>Active</td>
+                            <td>▼</td>
+                        </tr>
+                        <tr data-code="VT-001">
+                            <td><strong>VT-001</strong></td>
+                            <td>Perangkap Nyamuk — Kelurahan Ancol</td>
+                            <td><span class="tag tag-vector">Vector Trap</span></td>
+                            <td>DKI Jakarta</td>
+                            <td>Jakarta Utara</td>
+                            <td>Dewi Lestari</td>
+                            <td>2026-03-25</td>
+                            <td><span class="tag tag-source local">LOCAL</span></td>
+                            <td>Active</td>
+                            <td>▼</td>
+                        </tr>
+                        <tr data-code="SS-001">
+                            <td><strong>SS-001</strong></td>
+                            <td>Lahan Industri — Cikarang Barat</td>
+                            <td><span class="tag tag-soil">Soil/Sediment</span></td>
+                            <td>Jawa Barat</td>
+                            <td>Bekasi</td>
+                            <td>Eko Prasetyo</td>
+                            <td>2026-03-20</td>
+                            <td><span class="tag tag-source local">LOCAL</span></td>
+                            <td>Active</td>
+                            <td>▼</td>
+                        </tr>
+                        <tr data-code="WS-003">
+                            <td><strong>WS-003</strong></td>
+                            <td>Sumur SD Negeri 1 Gambir</td>
+                            <td><span class="tag tag-water">Water Source</span></td>
+                            <td>DKI Jakarta</td>
+                            <td>Jakarta Pusat</td>
+                            <td>Ratna Sari</td>
+                            <td>2025-12-15</td>
+                            <td><span class="tag tag-source local">LOCAL</span></td>
+                            <td>Inactive</td>
+                            <td>▼</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- SCREEN 3: Order Entry (Search) - UNCHANGED -->
+            <div id="screen3" class="screen">
+                <div class="page-header">
+                    <div class="page-title">Order Entry - Search Sites</div>
+                </div>
+
+                <div class="order-form">
+                    <div class="form-section">
+                        <h3>Search Criteria</h3>
+                        <div class="field-row">
+                            <div class="form-group">
+                                <label>Site Code or Name</label>
+                                <input type="text" placeholder="e.g., WS-001, Ciliwung">
+                            </div>
+                            <div class="form-group">
+                                <label>Site Type</label>
+                                <select>
+                                    <option>All Types</option>
+                                    <option>Water Source</option>
+                                    <option>Air Monitoring</option>
+                                    <option>Vector Trap</option>
+                                    <option>Soil/Sediment</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field-row">
+                            <div class="form-group">
+                                <label>Region</label>
+                                <select>
+                                    <option>All Regions</option>
+                                    <option>DKI Jakarta</option>
+                                    <option>Jawa Barat</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>District</label>
+                                <input type="text" placeholder="Leave blank for all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-primary">Search</button>
+                        <button class="btn btn-secondary">Clear</button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 32px;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Search Results</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Region</th>
+                                <th>Last Collection</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>WS-001</strong></td>
+                                <td>Sungai Ciliwung — Manggarai</td>
+                                <td><span class="tag tag-water">Water Source</span></td>
+                                <td>DKI Jakarta</td>
+                                <td>2026-03-28</td>
+                                <td><button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">Create Order</button></td>
+                            </tr>
+                            <tr>
+                                <td><strong>WS-002</strong></td>
+                                <td>Waduk Jatiluhur — Intake Point</td>
+                                <td><span class="tag tag-water">Water Source</span></td>
+                                <td>Jawa Barat</td>
+                                <td>2026-03-27</td>
+                                <td><button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">Create Order</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Site data
+        const siteData = {
+            'WS-001': { code:'WS-001', name:'Sungai Ciliwung — Manggarai', type:'Water Source', subtype:'River', region:'DKI Jakarta', district:'Jakarta Selatan', address:'Jl. Sultan Agung, Manggarai', description:'Downstream monitoring point on Ciliwung River near Manggarai floodgate. 50m from industrial discharge.', zone:'Urban', contact:'Budi Santoso', phone:'+62 812 3456 7890', lat:'-6.1885', lng:'106.8114', lastCollection:'2026-03-28', totalCollections:47, source:'local', fhirId:'Location/site-ws-001', lastSync:'2026-04-02 10:28', created:'2024-08-15', modified:'2026-03-28' },
+            'WS-002': { code:'WS-002', name:'Waduk Jatiluhur — Intake Point', type:'Water Source', subtype:'Reservoir', region:'Jawa Barat', district:'Purwakarta', address:'Jatiluhur Dam Complex', description:'Main water intake point at Jatiluhur reservoir. Supplies drinking water treatment plants.', zone:'Suburban', contact:'Sri Wahyuni', phone:'+62 813 5678 1234', lat:'-6.3141', lng:'107.4156', lastCollection:'2026-03-27', totalCollections:23, source:'hub', fhirId:'Location/site-ws-002', lastSync:'2026-04-02 10:25', created:'2024-06-20', modified:'2026-03-27' },
+            'AT-001': { code:'AT-001', name:'Stasiun Pemantauan Udara Kemayoran', type:'Air Monitoring', subtype:'Fixed Station', region:'DKI Jakarta', district:'Jakarta Pusat', address:'BMKG Kemayoran Complex', description:'Fixed ambient air quality monitoring station operated by BMKG.', zone:'Urban', contact:'Ahmad Rizky', phone:'+62 821 9876 5432', lat:'-6.1689', lng:'106.8208', lastCollection:'2026-03-26', totalCollections:156, source:'hub', fhirId:'Location/site-at-001', lastSync:'2026-04-02 10:25', created:'2023-01-10', modified:'2026-03-26' },
+            'VT-001': { code:'VT-001', name:'Perangkap Nyamuk — Kelurahan Ancol', type:'Vector Trap', subtype:'BG-Sentinel', region:'DKI Jakarta', district:'Jakarta Utara', address:'RT 05/RW 03 Kelurahan Ancol', description:'BG-Sentinel mosquito trap for Aedes surveillance near coastal residential area.', zone:'Urban', contact:'Dewi Lestari', phone:'+62 856 4321 8765', lat:'-6.1289', lng:'106.8847', lastCollection:'2026-03-25', totalCollections:89, source:'local', fhirId:'Location/site-vt-001', lastSync:'2026-04-02 10:28', created:'2024-02-01', modified:'2026-03-25' },
+            'SS-001': { code:'SS-001', name:'Lahan Industri — Cikarang Barat', type:'Soil/Sediment', subtype:'Industrial Site', region:'Jawa Barat', district:'Bekasi', address:'Kawasan Industri MM2100, Cikarang', description:'Soil contamination monitoring point at industrial estate perimeter.', zone:'Industrial', contact:'Eko Prasetyo', phone:'+62 878 1234 5678', lat:'-6.2647', lng:'107.1514', lastCollection:'2026-03-20', totalCollections:12, source:'local', fhirId:'Location/site-ss-001', lastSync:'2026-04-02 10:28', created:'2025-05-15', modified:'2026-03-20' },
+            'WS-003': { code:'WS-003', name:'Sumur SD Negeri 1 Gambir', type:'Water Source', subtype:'Well', region:'DKI Jakarta', district:'Jakarta Pusat', address:'Jl. Cideng Timur, Gambir', description:'School well water quality monitoring point. Currently inactive due to well closure.', zone:'Urban', contact:'Ratna Sari', phone:'+62 812 0000 1111', lat:'-6.1945', lng:'106.8295', lastCollection:'2025-12-15', totalCollections:8, source:'local', fhirId:'Location/site-ws-003', lastSync:'2026-04-02 10:28', created:'2025-01-20', modified:'2025-12-15' }
+        };
+
+        let expandedRow = null;
+        let editingCode = null;
+        let forkingCode = null;
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`[data-screen="${screenId}"]`).classList.add('active');
+
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            if (screenId === 'screen1') {
+                document.querySelectorAll('.sidebar-item')[0].classList.add('active');
+            } else if (screenId === 'screen3') {
+                document.querySelectorAll('.sidebar-item')[1].classList.add('active');
+            }
+        }
+
+        function toggleExpand(code) {
+            const table = document.getElementById('dataTable');
+
+            if (expandedRow === code) {
+                // Collapse current row
+                const expandedTr = table.querySelector(`tr[data-expand="${code}"]`);
+                if (expandedTr) expandedTr.remove();
+                expandedRow = null;
+                return;
+            }
+
+            // Remove previous expansion
+            if (expandedRow) {
+                const prevTr = table.querySelector(`tr[data-expand="${expandedRow}"]`);
+                if (prevTr) prevTr.remove();
+            }
+
+            // Create and insert expanded row
+            const data = siteData[code];
+            const row = table.querySelector(`tr[data-code="${code}"]`);
+            const expandedTr = createExpandedRow(code, data);
+            row.after(expandedTr);
+            expandedRow = code;
+        }
+
+        function createExpandedRow(code, data) {
+            const tr = document.createElement('tr');
+            tr.setAttribute('data-expand', code);
+
+            const rowClass = data.source === 'hub' ? 'hub' : 'local';
+            const typeTag = getTypeTag(data.type);
+
+            const html = `
+                <td colspan="10">
+                    <div class="expand-row ${rowClass}">
+                        <div class="expand-content">
+                            <!-- Left Column (60%) -->
+                            <div class="expand-section">
+                                <h3>${data.code} — ${data.name}</h3>
+
+                                <div class="expand-field">
+                                    <span class="tag ${typeTag}">${data.type}</span>
+                                    ${data.subtype ? `<span class="tag" style="background-color: #e0e0e0; color: #161616; margin-left: 8px;">${data.subtype}</span>` : ''}
+                                </div>
+
+                                <div class="expand-field">
+                                    <label class="expand-label">Location</label>
+                                    <div class="expand-value">${data.region} > ${data.district}</div>
+                                </div>
+
+                                <div class="expand-field">
+                                    <label class="expand-label">Address</label>
+                                    <div class="expand-value">${data.address}</div>
+                                </div>
+
+                                <div class="expand-field">
+                                    <label class="expand-label">Description</label>
+                                    <div class="expand-value">${data.description}</div>
+                                </div>
+
+                                <div class="expand-field">
+                                    <label class="expand-label">Environmental Zone</label>
+                                    <div class="expand-value">${data.zone}</div>
+                                </div>
+
+                                <div class="expand-field">
+                                    <label class="expand-label">Contact Person</label>
+                                    <div class="expand-value">${data.contact}</div>
+                                    <div class="expand-value" style="margin-top: 4px; color: #525252;">${data.phone}</div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column (40%) -->
+                            <div class="expand-section">
+                                <div class="expand-field">
+                                    <label class="expand-label">GPS Coordinates</label>
+                                    <div class="expand-value monospace">
+                                        ${data.lat}, ${data.lng}
+                                    </div>
+                                </div>
+
+                                <div class="expand-field">
+                                    <label class="expand-label">Collection History</label>
+                                    <div class="expand-value-group">
+                                        <div class="expand-value-subitem"><strong>Last Collection:</strong> ${data.lastCollection}</div>
+                                        <div class="expand-value-subitem"><strong>Total Collections:</strong> ${data.totalCollections}</div>
+                                    </div>
+                                </div>
+
+                                <div class="expand-field">
+                                    <label class="expand-label">FHIR Sync Info</label>
+                                    <div class="expand-value-group">
+                                        <div class="expand-value-subitem"><strong>Resource ID:</strong> ${data.fhirId}</div>
+                                        <div class="expand-value-subitem"><strong>Last Sync:</strong> ${data.lastSync}</div>
+                                        <div class="expand-value-subitem"><strong>Status:</strong> <span class="tag-source" style="background-color: #defbe6; color: #0e6027; display: inline-block;">Synced</span></div>
+                                        <div class="expand-value-subitem"><strong>Server:</strong> HUB Server</div>
+                                    </div>
+                                </div>
+
+                                <div class="expand-field">
+                                    <label class="expand-label">Source</label>
+                                    <div class="expand-value">
+                                        <span class="tag tag-source ${data.source}">${data.source.toUpperCase()}</span>
+                                    </div>
+                                </div>
+
+                                <div class="expand-field">
+                                    <label class="expand-label">Timestamps</label>
+                                    <div class="expand-value-group">
+                                        <div class="expand-value-subitem"><strong>Created:</strong> ${data.created}</div>
+                                        <div class="expand-value-subitem"><strong>Modified:</strong> ${data.modified}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Bar -->
+                        <div class="expand-actions" id="actions-${code}">
+                            ${data.source === 'local' ? `
+                                <button class="btn btn-primary" onclick="startEdit('${code}')">Edit</button>
+                                <button class="btn btn-danger" onclick="showDeactivatePrompt('${code}')">Deactivate</button>
+                                <button class="btn btn-secondary" onclick="toggleExpand('${code}')">Close</button>
+                            ` : `
+                                <button class="btn btn-primary" onclick="showForkPrompt('${code}')">Create Local Copy</button>
+                                <button class="btn btn-disabled" title="Managed by FHIR server">Edit</button>
+                                <button class="btn btn-secondary" onclick="toggleExpand('${code}')">Close</button>
+                            `}
+                        </div>
+                    </div>
+                </td>
+            `;
+            tr.innerHTML = html;
+            return tr;
+        }
+
+        function getTypeTag(type) {
+            const tagMap = {
+                'Water Source': 'tag-water',
+                'Air Monitoring': 'tag-air',
+                'Vector Trap': 'tag-vector',
+                'Soil/Sediment': 'tag-soil'
+            };
+            return tagMap[type] || 'tag';
+        }
+
+        function startEdit(code) {
+            editingCode = code;
+            const data = siteData[code];
+            const expandDiv = document.querySelector(`tr[data-expand="${code}"] .expand-row`);
+
+            // Transform to edit form
+            const editHtml = `
+                <div class="expand-row local">
+                    <h3>Edit ${code}</h3>
+                    <div class="edit-form">
+                        <div class="edit-form-group">
+                            <label>Site Code</label>
+                            <input type="text" value="${data.code}" readonly style="color: #8d8d8d;">
+                        </div>
+                        <div class="edit-form-group">
+                            <label>Site Name</label>
+                            <input type="text" id="edit-name" value="${data.name}">
+                        </div>
+                        <div class="edit-form-group">
+                            <label>Address</label>
+                            <input type="text" id="edit-address" value="${data.address}">
+                        </div>
+                        <div class="edit-form-group">
+                            <label>Description</label>
+                            <textarea id="edit-description">${data.description}</textarea>
+                        </div>
+                        <div class="edit-form-group">
+                            <label>Contact Person</label>
+                            <input type="text" id="edit-contact" value="${data.contact}">
+                        </div>
+                        <div class="edit-form-group">
+                            <label>Phone</label>
+                            <input type="text" id="edit-phone" value="${data.phone}">
+                        </div>
+                        <div class="edit-actions">
+                            <button class="btn btn-primary" onclick="saveEdit('${code}')">Save</button>
+                            <button class="btn btn-secondary" onclick="cancelEdit('${code}')">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            expandDiv.innerHTML = editHtml;
+        }
+
+        function saveEdit(code) {
+            const data = siteData[code];
+            data.name = document.getElementById('edit-name').value;
+            data.address = document.getElementById('edit-address').value;
+            data.description = document.getElementById('edit-description').value;
+            data.contact = document.getElementById('edit-contact').value;
+            data.phone = document.getElementById('edit-phone').value;
+
+            showToast(`Site ${code} updated successfully!`);
+            toggleExpand(code);
+            toggleExpand(code);
+            editingCode = null;
+        }
+
+        function cancelEdit(code) {
+            editingCode = null;
+            toggleExpand(code);
+            toggleExpand(code);
+        }
+
+        function showDeactivatePrompt(code) {
+            const expandDiv = document.querySelector(`tr[data-expand="${code}"] .expand-row`);
+            const confirmHtml = `
+                <div class="confirm-panel danger">
+                    <h4>Deactivate ${code}?</h4>
+                    <p>This site will no longer appear in searches.</p>
+                    <div class="confirm-actions">
+                        <button class="btn btn-danger" onclick="confirmDeactivate('${code}')">Confirm</button>
+                        <button class="btn btn-secondary" onclick="cancelDeactivate('${code}')">Cancel</button>
+                    </div>
+                </div>
+            `;
+            const existing = expandDiv.querySelector('.confirm-panel');
+            if (existing) existing.remove();
+            expandDiv.innerHTML += confirmHtml;
+        }
+
+        function confirmDeactivate(code) {
+            showToast(`Site ${code} deactivated.`);
+            toggleExpand(code);
+        }
+
+        function cancelDeactivate(code) {
+            const panel = document.querySelector(`tr[data-expand="${code}"] .confirm-panel`);
+            if (panel) panel.remove();
+        }
+
+        function showForkPrompt(code) {
+            forkingCode = code;
+            const expandDiv = document.querySelector(`tr[data-expand="${code}"] .expand-row`);
+            const defaultNewCode = `${code}-LOCAL`;
+            const confirmHtml = `
+                <div class="confirm-panel">
+                    <h4>Create Local Copy of ${code}?</h4>
+                    <p>This will create a new LOCAL site with all data from this HUB site. The HUB original will be deactivated.</p>
+                    <div class="confirm-field">
+                        <label>New Site Code</label>
+                        <input type="text" id="fork-code" value="${defaultNewCode}">
+                    </div>
+                    <div class="confirm-field">
+                        <label class="confirm-field-checkbox-label">
+                            <input type="checkbox" id="fork-deactivate" checked>
+                            Deactivate the HUB original (${code})
+                        </label>
+                    </div>
+                    <div class="confirm-actions">
+                        <button class="btn btn-primary" onclick="confirmFork('${code}')">Create Local Copy</button>
+                        <button class="btn btn-secondary" onclick="cancelFork('${code}')">Cancel</button>
+                    </div>
+                </div>
+            `;
+            const existing = expandDiv.querySelector('.confirm-panel');
+            if (existing) existing.remove();
+            expandDiv.innerHTML += confirmHtml;
+        }
+
+        function confirmFork(code) {
+            const newCode = document.getElementById('fork-code').value;
+            const deactivate = document.getElementById('fork-deactivate').checked;
+
+            showToast(`Local copy created: ${newCode}`);
+            cancelFork(code);
+            forkingCode = null;
+        }
+
+        function cancelFork(code) {
+            const panel = document.querySelector(`tr[data-expand="${code}"] .confirm-panel`);
+            if (panel) panel.remove();
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Event delegation for row clicks
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.getElementById('dataTable');
+            if (table) {
+                table.addEventListener('click', function(e) {
+                    const row = e.target.closest('tbody tr[data-code]');
+                    if (row && !e.target.closest('button')) {
+                        const code = row.getAttribute('data-code');
+                        toggleExpand(code);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

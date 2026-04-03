@@ -21,6 +21,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | RBAC Management | [rbac-ui-mockup.html](designs/rbac/rbac-ui-mockup.html) | [rbac-revamp-prd.md](designs/rbac/rbac-revamp-prd.md) |
 | Password Policy Enhancements | [password-enhancements.jsx](designs/admin-config/password-enhancements.jsx) | [password-enhancements.md](designs/admin-config/password-enhancements.md) |
 | Catalog Subscription | [catalog-subscription.html](designs/admin-config/catalog-subscription.html) | [catalog-subscription.md](designs/admin-config/catalog-subscription.md) |
+| Compliance Standards Administration | — | [compliance-standards-admin.md](designs/admin-config/compliance-standards-admin.md) |
 
 ## Analyzer Integration
 
@@ -136,12 +137,14 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | FHIR Outbound Push | [fhir-outbound-push.jsx](designs/system/fhir-outbound-push.jsx) | [fhir-outbound-push.md](designs/system/fhir-outbound-push.md) |
 | Lab Management Dashboard | [lab-management-dashboard.html](designs/system/lab-management-dashboard.html) | [lab-management-dashboard.md](designs/system/lab-management-dashboard.md) |
 | Catalyst Lab Data Assistant | [Figma](https://www.figma.com/make/poDXKSr2IBgKbbjB1Fh9Sj/OpenELIS-Global-Template--Copy-?node-id=0-1) | — |
+| Electronic Signature | [electronic-signature.jsx](designs/system/electronic-signature.jsx) | [electronic-signature.md](designs/system/electronic-signature.md) |
 
 ## Sample Collection
 
 | Feature | Mockup | Spec |
 |---------|--------|------|
 | Sample Collection Redesign | [sample-collection-redesign-mockup.html](designs/sample-collection/sample-collection-redesign-mockup.html) | [sample-collection-redesign.md](designs/sample-collection/sample-collection-redesign.md) |
+| Sampling Site Registry | [sampling-site-registry.jsx](designs/sample-collection/sampling-site-registry.jsx) | [sampling-site-registry.md](designs/sample-collection/sampling-site-registry.md) |
 
 ## Other
 

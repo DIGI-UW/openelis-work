@@ -1910,12 +1910,81 @@ const TestListView = ({ onEditTest, onAddTest }) => {
 };
 
 // ============================================
+// COMPLIANCE TAB (S-01 Integration)
+// See: S01-compliance-standards-admin-frs-v1.0.md
+// ============================================
+
+const ComplianceTab = () => {
+  const [groupBy, setGroupBy] = useState('standard');
+
+  // Placeholder thresholds — in production, loaded via API per test
+  const thresholds = [
+    { id: 't1', std: 'PP No. 22/2021 — Baku Mutu Air', grp: 'Parameter Fisika', type: 'MAX', value: '≤ 25 NTU', date: '2021-02-02' },
+    { id: 't2', std: 'WHO Drinking Water Guidelines', grp: 'Chemical Contaminants', type: 'MAX', value: '≤ 5 NTU', date: '2022-03-21' },
+  ];
+
+  const typeColors = { MAX: 'bg-red-100 text-red-700', MIN: 'bg-blue-100 text-blue-700', RANGE: 'bg-teal-100 text-teal-700', DESCRIPTIVE: 'bg-purple-100 text-purple-700' };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">Compliance Thresholds</h2>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-gray-500">Group by:</span>
+            <select value={groupBy} onChange={e => setGroupBy(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-sm">
+              <option value="standard">Standard</option>
+              <option value="group">Parameter Group</option>
+            </select>
+          </div>
+          <button className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded text-sm font-medium flex items-center gap-1">
+            <Plus size={14} /> Add Threshold
+          </button>
+        </div>
+      </div>
+      <p className="text-sm text-gray-500 mb-4">
+        Regulatory compliance thresholds for this test. Environmental tests use these instead of (or alongside) clinical reference ranges.
+        Full compliance standards are managed at Admin → Test Management → Compliance Standards.
+      </p>
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-gray-50 border-b">
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Standard</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Parameter Group</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Type</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Value</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Effective Date</th>
+              <th className="px-4 py-3 w-16"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {thresholds.map(th => (
+              <tr key={th.id} className="border-b hover:bg-gray-50">
+                <td className="px-4 py-3">{th.std}</td>
+                <td className="px-4 py-3">{th.grp}</td>
+                <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${typeColors[th.type]}`}>{th.type}</span></td>
+                <td className="px-4 py-3 font-medium">{th.value}</td>
+                <td className="px-4 py-3 text-gray-500">{th.date}</td>
+                <td className="px-4 py-3"><button className="text-gray-400 hover:text-gray-600"><Edit size={16} /></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// ============================================
 // TEST EDITOR (TABBED INTERFACE)
 // ============================================
 
 const TestEditor = ({ test, onBack }) => {
   const [activeTab, setActiveTab] = useState('basic');
 
+  // Tab groups: Configuration | Organization | Resources | Automation | Compliance
+  // Compliance tab added in v2.1 — see S01-compliance-standards-admin-frs-v1.0.md
   const tabs = [
     { id: 'basic', label: 'Basic Info', icon: FileText },
     { id: 'sample', label: 'Sample & Results', icon: Beaker },
@@ -1930,6 +1999,7 @@ const TestEditor = ({ test, onBack }) => {
     { id: 'methods', label: 'Methods', icon: Settings },
     { id: 'alerts', label: 'Alerts', icon: Bell },
     { id: 'reflex', label: 'Reflex & Calc', icon: GitBranch },
+    { id: 'compliance', label: 'Compliance', icon: CheckCircle },
   ];
 
   return (
@@ -2030,15 +2100,36 @@ const TestEditor = ({ test, onBack }) => {
             <div className="mt-4 mb-2">
               <p className="px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Automation</p>
             </div>
-            {tabs.slice(9).map((tab) => {
+            {tabs.slice(9, 13).map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors mb-0.5 ${
-                    activeTab === tab.id 
-                      ? 'bg-teal-50 text-teal-700 border-l-3 border-teal-600' 
+                    activeTab === tab.id
+                      ? 'bg-teal-50 text-teal-700 border-l-3 border-teal-600'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Icon size={18} className={activeTab === tab.id ? 'text-teal-600' : 'text-gray-400'} />
+                  {tab.label}
+                </button>
+              );
+            })}
+
+            <div className="mt-4 mb-2">
+              <p className="px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Compliance</p>
+            </div>
+            {tabs.slice(13).map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors mb-0.5 ${
+                    activeTab === tab.id
+                      ? 'bg-teal-50 text-teal-700 border-l-3 border-teal-600'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
@@ -2066,6 +2157,7 @@ const TestEditor = ({ test, onBack }) => {
             {activeTab === 'methods' && <MethodLinkingWithCreate />}
             {activeTab === 'alerts' && <AlertRulesTab />}
             {activeTab === 'reflex' && <ReflexCalculatedTab />}
+            {activeTab === 'compliance' && <ComplianceTab />}
           </div>
         </div>
       </div>

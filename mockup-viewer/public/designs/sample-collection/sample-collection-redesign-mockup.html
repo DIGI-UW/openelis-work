@@ -872,32 +872,150 @@
       </div>
     </div>
 
-    <!-- ===== ENVIRONMENTAL SOURCE (Environmental) ===== -->
+    <!-- ===== SAMPLING SITE (Environmental) — mirrors Patient search/create pattern (S-02) ===== -->
     <div class="form-section hidden" id="section-env-source">
-      <!-- Note: Environmental samples do not require a patient record. The Patient section is hidden when Environmental is selected. -->
-      <div class="form-section-header"><h3>Collection Location</h3></div>
+      <div class="form-section-header"><h3>Subject — Sampling Site</h3></div>
       <div class="form-section-body">
-        <div class="form-row three-col">
-          <div class="form-group"><label class="form-label">Region</label>
-            <select class="form-select"><option>Select Region...</option><option selected>Central Region</option><option>Eastern Region</option><option>Northern Region</option><option>Western Region</option></select>
+        <!-- Search / New Site tabs — mirrors Patient section's Search/New Patient tabs -->
+        <div style="display:flex; gap:0; margin-bottom:20px;">
+          <button class="btn btn-primary" id="site-tab-search" onclick="showSiteTab('search')" style="border-radius:0;">Search for Site</button>
+          <button class="btn btn-ghost" id="site-tab-new" onclick="showSiteTab('new')" style="border-radius:0; border:1px solid var(--cds-blue-60);">New Site</button>
+        </div>
+
+        <!-- Site Search form -->
+        <div id="site-search-form">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Site Code</label><input class="form-input" placeholder="e.g., WS-001"></div>
+            <div class="form-group"><label class="form-label">Site Name</label><input class="form-input" placeholder="Enter site name or keyword"></div>
           </div>
-          <div class="form-group"><label class="form-label">District</label>
-            <select class="form-select"><option>Select District...</option><option selected>Kampala District</option><option>Wakiso District</option><option>Mukono District</option></select>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Site Type</label>
+              <select class="form-select"><option>All Types</option><option>Water Source</option><option>Air Monitoring</option><option>Vector Trap</option><option>Soil / Sediment</option><option>Other</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Region</label>
+              <select class="form-select"><option>All Regions</option><option>DKI Jakarta</option><option>Jawa Barat</option><option>Jawa Tengah</option><option>Jawa Timur</option></select>
+            </div>
           </div>
-          <div class="form-group"><label class="form-label">Town / Village</label>
-            <select class="form-select"><option>Select Town/Village...</option><option selected>Nakasero</option><option>Kololo</option><option>Wandegeya</option><option>Mulago</option></select>
+          <div style="display:flex; gap:12px; margin-top:8px;">
+            <button class="btn btn-primary" onclick="showSiteResults()">Search</button>
+          </div>
+
+          <!-- Site Results Table -->
+          <div id="site-results" style="margin-top:20px;">
+            <h4 style="font-size:16px; font-weight:400; margin-bottom:12px;">Site Results</h4>
+            <div style="overflow-x:auto;">
+              <table style="width:100%; font-size:13px; border-collapse:collapse; background:var(--cds-white);">
+                <thead><tr style="background:var(--cds-gray-10); text-align:left;">
+                  <th style="padding:10px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Code</th>
+                  <th style="padding:10px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Name</th>
+                  <th style="padding:10px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Type</th>
+                  <th style="padding:10px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Region / District</th>
+                  <th style="padding:10px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">GPS</th>
+                  <th style="padding:10px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);">Last Collection</th>
+                  <th style="padding:10px 12px; font-weight:500; border-bottom:2px solid var(--cds-gray-20);"></th>
+                </tr></thead>
+                <tbody id="site-results-body">
+                  <tr><td colspan="7" style="padding:16px; text-align:center; color:var(--cds-gray-60);">0-0 of 0 items</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="display:flex; align-items:center; gap:16px; padding:8px 0; font-size:12px; color:var(--cds-gray-60);">
+              <span>Items per page</span>
+              <select style="border:1px solid var(--cds-gray-30); padding:2px 6px; font-size:12px;"><option>100</option></select>
+              <span style="margin-left:auto;">1 of 1 page</span>
+            </div>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Collection Site Description</label><input class="form-input" placeholder="e.g., Municipal water supply intake point"></div>
-          <div class="form-group"><label class="form-label">Regulatory Reference</label><input class="form-input" placeholder="e.g., EPA Method 524.2"></div>
+
+        <!-- Selected Site Card (shown after selecting from results) — mirrors Selected Patient Card -->
+        <div id="site-selected" class="hidden" style="margin-top:20px; padding:16px; background:#defbe6; border:1px solid #a7f0ba; display:flex; gap:20px; align-items:flex-start;">
+          <div style="width:80px; height:80px; background:var(--cds-gray-20); border:1px solid var(--cds-gray-30); border-radius:4px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--cds-gray-50)" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          </div>
+          <div style="flex:1;">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+              <h4 style="font-size:16px; font-weight:600;">WS-001 — Sungai Ciliwung — Manggarai</h4>
+              <span style="padding:2px 8px; background:#08bdba; color:#fff; border-radius:10px; font-size:11px; font-weight:500;">Water Source</span>
+              <span style="padding:2px 8px; background:#defbe6; border-radius:10px; font-size:11px; color:var(--cds-green-60); font-weight:500;">Selected</span>
+              <a href="#" style="margin-left:auto; font-size:12px; color:var(--cds-red-60); text-decoration:none;" onclick="document.getElementById('site-selected').classList.add('hidden'); return false;">Clear selection</a>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; font-size:13px;">
+              <div><span style="color:var(--cds-gray-60);">Subtype:</span> River</div>
+              <div><span style="color:var(--cds-gray-60);">Region:</span> DKI Jakarta</div>
+              <div><span style="color:var(--cds-gray-60);">District:</span> Jakarta Selatan</div>
+              <div><span style="color:var(--cds-gray-60);">GPS:</span> <span style="font-family:monospace;">-6.2088, 106.8456</span></div>
+              <div><span style="color:var(--cds-gray-60);">Zone:</span> Urban</div>
+              <div><span style="color:var(--cds-gray-60);">Collections:</span> 47 (last: 2026-03-28)</div>
+            </div>
+            <p style="font-size:11px; color:var(--cds-gray-60); margin-top:6px;">Site description: Downstream monitoring point on Ciliwung River near Manggarai floodgate.</p>
+          </div>
         </div>
-        <div class="form-row three-col">
-          <div class="form-group"><label class="form-label">GPS Latitude</label><input class="form-input" placeholder="-1.2921" type="number" step="0.0001"></div>
-          <div class="form-group"><label class="form-label">GPS Longitude</label><input class="form-input" placeholder="36.8219" type="number" step="0.0001"></div>
-          <div class="form-group"><label class="form-label">Environmental Conditions</label><input class="form-input" placeholder="e.g., 25°C, clear weather"></div>
+
+        <!-- New Site form (hidden by default) — mirrors New Patient form -->
+        <div id="site-new-form" class="hidden">
+          <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:12px; font-style:italic;">Register a new sampling site. The site will be saved to the Site Registry and can be reused for future orders.</p>
+
+          <!-- Row 1: Code + Name -->
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Site Code</label><input class="form-input" placeholder="Auto-generated (or enter manually)" style="background:#f4f4f4;"></div>
+            <div class="form-group"><label class="form-label">Site Name <span class="required">*</span></label><input class="form-input" placeholder="e.g., Sungai Ciliwung — Manggarai"></div>
+          </div>
+          <!-- Row 2: Type + Subtype -->
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Site Type <span class="required">*</span></label>
+              <select class="form-select"><option>Select Type...</option><option>Water Source</option><option>Air Monitoring</option><option>Vector Trap</option><option>Soil / Sediment</option><option>Other</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Subtype</label>
+              <input class="form-input" placeholder="e.g., River, Well, BG-Sentinel, Fixed Station">
+            </div>
+          </div>
+          <!-- Row 3: Location hierarchy -->
+          <div class="form-row three-col">
+            <div class="form-group"><label class="form-label">Region</label>
+              <select class="form-select"><option>Select Region...</option><option>DKI Jakarta</option><option>Jawa Barat</option><option>Jawa Tengah</option><option>Jawa Timur</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">District</label>
+              <select class="form-select"><option>Select District...</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Town / Village</label>
+              <input class="form-input" placeholder="Enter town or village name">
+            </div>
+          </div>
+          <!-- Row 4: GPS + Zone -->
+          <div class="form-row three-col">
+            <div class="form-group"><label class="form-label">GPS Latitude</label><input class="form-input" placeholder="-6.2088" type="number" step="0.0001"></div>
+            <div class="form-group"><label class="form-label">GPS Longitude</label><input class="form-input" placeholder="106.8456" type="number" step="0.0001"></div>
+            <div class="form-group"><label class="form-label">Environmental Zone</label>
+              <select class="form-select"><option>Select Zone...</option><option>Urban</option><option>Suburban</option><option>Rural</option><option>Industrial</option><option>Agricultural</option><option>Protected</option></select>
+            </div>
+          </div>
+          <!-- Row 5: Description + Address -->
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Site Description</label><input class="form-input" placeholder="e.g., Downstream monitoring point near floodgate"></div>
+            <div class="form-group"><label class="form-label">Address</label><input class="form-input" placeholder="Street address or location reference"></div>
+          </div>
+          <!-- Row 6: Contact -->
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Contact Person</label><input class="form-input" placeholder="Name of site custodian or contact"></div>
+            <div class="form-group"><label class="form-label">Contact Phone</label><input class="form-input" placeholder="+62 xxx xxxx xxxx"></div>
+          </div>
+          <div style="display:flex; gap:12px; margin-top:12px;">
+            <button class="btn btn-primary" onclick="saveNewSite()">Save & Select Site</button>
+            <button class="btn btn-ghost" style="border:1px solid var(--cds-gray-30);" onclick="showSiteTab('search')">Cancel</button>
+          </div>
         </div>
-        <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">Location hierarchy (Region / District / Town-Village) uses the existing OpenELIS location structure. Environmental workflow skips the patient section. The requestor is handled the same way as clinical but is not necessarily a clinical provider.</p>
+
+        <!-- Environmental Conditions (always visible in env mode, below site selection) -->
+        <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--cds-gray-20);">
+          <h4 style="font-size:14px; font-weight:500; margin-bottom:12px; color:var(--cds-gray-80);">Collection Conditions</h4>
+          <div class="form-row three-col">
+            <div class="form-group"><label class="form-label">Environmental Conditions</label><input class="form-input" placeholder="e.g., 25°C, clear weather, dry season"></div>
+            <div class="form-group"><label class="form-label">Regulatory Reference</label><input class="form-input" placeholder="e.g., PP No. 22/2021 Baku Mutu Air"></div>
+            <div class="form-group"><label class="form-label">Collection Method</label><input class="form-input" placeholder="e.g., Grab sample, Composite 24h"></div>
+          </div>
+        </div>
+
+        <p style="font-size:11px; color:var(--cds-gray-60); margin-top:8px;">Search for an existing sampling site or create a new one. Sites are reusable across orders — like patients in clinical workflows. The site's GPS, zone, and description carry forward automatically. See <strong>S-02: Sampling Site Registry</strong> for the full admin-facing site management page.</p>
       </div>
     </div>
 
@@ -2317,6 +2435,62 @@ function showPatientResults() {
 
 function selectPatient() {
   document.getElementById('pt-selected').classList.remove('hidden');
+}
+
+// ===== SITE SEARCH / CREATE (Environmental — mirrors Patient pattern, S-02) =====
+function showSiteTab(tab) {
+  const searchBtn = document.getElementById('site-tab-search');
+  const newBtn = document.getElementById('site-tab-new');
+  const searchForm = document.getElementById('site-search-form');
+  const newForm = document.getElementById('site-new-form');
+  if (tab === 'search') {
+    searchBtn.className = 'btn btn-primary'; newBtn.className = 'btn btn-ghost';
+    newBtn.style.border = '1px solid var(--cds-blue-60)';
+    searchForm.classList.remove('hidden'); newForm.classList.add('hidden');
+  } else {
+    newBtn.className = 'btn btn-primary'; searchBtn.className = 'btn btn-ghost';
+    searchBtn.style.border = '1px solid var(--cds-blue-60)';
+    newForm.classList.remove('hidden'); searchForm.classList.add('hidden');
+  }
+}
+
+function showSiteResults() {
+  const tbody = document.getElementById('site-results-body');
+  tbody.innerHTML =
+    '<tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer; background:#edf5ff;" onclick="selectSite()">' +
+    '<td style="padding:8px 12px; font-family:monospace;">WS-001</td>' +
+    '<td style="padding:8px 12px;">Sungai Ciliwung — Manggarai</td>' +
+    '<td style="padding:8px 12px;"><span style="padding:2px 8px; background:#d2fbf0; color:#005d5d; border-radius:10px; font-size:11px;">Water Source</span></td>' +
+    '<td style="padding:8px 12px;">DKI Jakarta / Jakarta Selatan</td>' +
+    '<td style="padding:8px 12px; font-family:monospace; font-size:12px;">-6.2088, 106.8456</td>' +
+    '<td style="padding:8px 12px;">2026-03-28</td>' +
+    '<td style="padding:8px 12px;"><button class="btn btn-ghost" style="padding:2px 12px; font-size:12px;" onclick="selectSite(); event.stopPropagation();">Select</button></td></tr>' +
+    '<tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer;">' +
+    '<td style="padding:8px 12px; font-family:monospace;">WS-002</td>' +
+    '<td style="padding:8px 12px;">Waduk Jatiluhur — Intake Point</td>' +
+    '<td style="padding:8px 12px;"><span style="padding:2px 8px; background:#d2fbf0; color:#005d5d; border-radius:10px; font-size:11px;">Water Source</span></td>' +
+    '<td style="padding:8px 12px;">Jawa Barat / Purwakarta</td>' +
+    '<td style="padding:8px 12px; font-family:monospace; font-size:12px;">-6.5341, 107.3856</td>' +
+    '<td style="padding:8px 12px;">2026-03-15</td>' +
+    '<td style="padding:8px 12px;"><button class="btn btn-ghost" style="padding:2px 12px; font-size:12px;">Select</button></td></tr>' +
+    '<tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer;">' +
+    '<td style="padding:8px 12px; font-family:monospace;">VT-001</td>' +
+    '<td style="padding:8px 12px;">Perangkap Nyamuk — Kelurahan Ancol</td>' +
+    '<td style="padding:8px 12px;"><span style="padding:2px 8px; background:#e8daff; color:#6929c4; border-radius:10px; font-size:11px;">Vector Trap</span></td>' +
+    '<td style="padding:8px 12px;">DKI Jakarta / Jakarta Utara</td>' +
+    '<td style="padding:8px 12px; font-family:monospace; font-size:12px;">-6.1184, 106.8316</td>' +
+    '<td style="padding:8px 12px;">2026-03-30</td>' +
+    '<td style="padding:8px 12px;"><button class="btn btn-ghost" style="padding:2px 12px; font-size:12px;">Select</button></td></tr>';
+}
+
+function selectSite() {
+  document.getElementById('site-selected').classList.remove('hidden');
+}
+
+function saveNewSite() {
+  // Simulate saving and auto-selecting the newly created site
+  document.getElementById('site-selected').classList.remove('hidden');
+  showSiteTab('search');
 }
 
 // ===== PROGRAM TYPEAHEAD COMBO =====
