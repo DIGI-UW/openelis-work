@@ -544,6 +544,19 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 42,
     tags: ['patient', 'demographics', 'FRS', 'spec'],
   },
+  {
+    name: 'Compliance Evaluation Engine',
+    category: 'results-validation',
+    component: React.lazy(() => import('@designs/results-validation/compliance-evaluation-engine.jsx')),
+    description: 'Compliance Evaluation Engine (S-05) — auto-evaluate results against regulatory thresholds with pass/marginal/fail indicators, descriptive tag library, unit conversion, and override workflow. Extends results entry page.',
+    specPath: 'designs/results-validation/compliance-evaluation-engine.md',
+    htmlUrl: 'designs/results-validation/compliance-evaluation-engine.html',
+    added: '2026-04-04',
+    status: 'draft',
+    githubIssue: null,
+    jira: ['OGC-547', 'OGC-527'],
+    tags: ['compliance', 'evaluation', 'environmental', 'vector', 'results', 'thresholds'],
+  },
   // ─── Reports ───
   {
     name: 'Patient Report Print Queue',

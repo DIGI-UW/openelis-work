@@ -1472,3 +1472,15 @@
     jira: https://uwdigi.atlassian.net/browse/OGC-537
     gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/environmental-order-entry
   added: "2026-04-03"
+
+- id: compliance-evaluation-engine
+  type: both
+  path: designs/results-validation/compliance-evaluation-engine.jsx
+  spec: designs/results-validation/compliance-evaluation-engine.md
+  category: results-validation
+  description: Compliance Evaluation Engine (S-05) — auto-evaluate results against regulatory thresholds with pass/marginal/fail indicators, descriptive tag library, unit conversion, and override workflow. Extends results entry page.
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/TBD
+    jira: https://uwdigi.atlassian.net/browse/OGC-547
+    gallery: https://digi-uw.github.io/openelis-work/#/results-validation/compliance-evaluation-engine
+  added: "2026-04-04"

@@ -105,6 +105,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Validation Page v3 (Demographics) | [validation-page-mockup-v3-demographics.jsx](designs/validation-page/validation-page-mockup-v3-demographics.jsx) | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
 | Patient Demographics Mockup | [validation-patient-demographics-mockup.jsx](designs/validation-page/validation-patient-demographics-mockup.jsx) | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
 | Patient Demographics FRS | — | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
+| Compliance Evaluation Engine | [compliance-evaluation-engine.jsx](designs/results-validation/compliance-evaluation-engine.jsx) | [compliance-evaluation-engine.md](designs/results-validation/compliance-evaluation-engine.md) |
 ## Reports
 
 | Feature | Mockup | Spec |

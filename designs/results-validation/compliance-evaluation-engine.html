@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S-05 Compliance Evaluation Engine — Interactive Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: #f4f4f4;
+      color: #161616;
+      padding: 0;
+    }
+    .preview-banner {
+      background: linear-gradient(135deg, #0043ce 0%, #0062ff 100%);
+      color: white;
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+    .page-title {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      color: #161616;
+    }
+    .summary-banner {
+      background: white;
+      border: 2px solid #0043ce;
+      border-left: 4px solid #0043ce;
+      padding: 16px;
+      margin-bottom: 24px;
+      border-radius: 4px;
+    }
+    .summary-banner h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #161616;
+      margin-bottom: 12px;
+    }
+    .summary-counts {
+      display: flex;
+      gap: 24px;
+      font-size: 13px;
+    }
+    .summary-counts > div {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .count-badge {
+      background: #0043ce;
+      color: white;
+      min-width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .cds--data-table-container {
+      margin: 0;
+      overflow: visible;
+    }
+    .cds--data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+    .cds--data-table thead {
+      background: #f4f4f4;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    .cds--data-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #525252;
+    }
+    .cds--data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+    .cds--data-table tbody tr {
+      cursor: pointer;
+      transition: background-color 150ms;
+    }
+    .cds--data-table tbody tr:hover {
+      background: #f4f4f4;
+    }
+    .cds--data-table tbody tr.expanded {
+      background: #f4f4f4;
+    }
+    .test-name {
+      font-weight: 500;
+      color: #161616;
+    }
+    .result-input {
+      border: 1px solid #b8bdc1;
+      padding: 6px 8px;
+      font-size: 13px;
+      border-radius: 3px;
+      width: 80px;
+      font-family: monospace;
+    }
+    .result-input:focus {
+      outline: none;
+      border-color: #0043ce;
+      box-shadow: 0 0 0 2px rgba(0, 67, 206, 0.2);
+    }
+    .tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .tag.pass {
+      background: #d3f8d3;
+      color: #0e6027;
+      border: 1px solid #9defc9;
+    }
+    .tag.marginal {
+      background: #fef3bf;
+      color: #b8860b;
+      border: 1px solid #f1d04e;
+    }
+    .tag.fail {
+      background: #ffd5da;
+      color: #a3192d;
+      border: 1px solid #ff8a99;
+    }
+    .tag.mismatch {
+      background: #d4e8ff;
+      color: #0043ce;
+      border: 1px solid #7eb8ff;
+    }
+    .indicator-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .detail-section {
+      display: none;
+      padding: 16px;
+      background: #fafafa;
+      border-top: 1px solid #e0e0e0;
+    }
+    .detail-section.show {
+      display: block;
+    }
+    .cds--tile {
+      background: white;
+      border: 1px solid #e0e0e0;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 4px;
+    }
+    .tile-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #161616;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tile-content {
+      font-size: 13px;
+      color: #525252;
+      line-height: 1.6;
+    }
+    .threshold-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+    .threshold-table th {
+      background: #f4f4f4;
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid #e0e0e0;
+      color: #525252;
+    }
+    .threshold-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .notification {
+      background: #fff4e6;
+      border-left: 4px solid #f1d04e;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      border-radius: 2px;
+      font-size: 13px;
+      color: #a3540b;
+    }
+    .notification.warning {
+      background: #fff4e6;
+      border-left-color: #f1d04e;
+      color: #a3540b;
+    }
+    .override-form {
+      background: #f4f4f4;
+      padding: 12px;
+      border-radius: 3px;
+      margin-top: 12px;
+    }
+    .form-group {
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .form-group label {
+      font-size: 12px;
+      font-weight: 500;
+      min-width: 120px;
+      color: #161616;
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      flex: 1;
+      padding: 6px 8px;
+      border: 1px solid #b8bdc1;
+      font-size: 12px;
+      border-radius: 3px;
+      font-family: inherit;
+    }
+    .form-group textarea {
+      min-height: 60px;
+      resize: vertical;
+    }
+    .form-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .cds--btn {
+      padding: 6px 16px;
+      border: none;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 150ms;
+    }
+    .cds--btn--primary {
+      background: #0043ce;
+      color: white;
+    }
+    .cds--btn--primary:hover {
+      background: #0035a9;
+    }
+    .cds--btn--secondary {
+      background: white;
+      color: #0043ce;
+      border: 1px solid #0043ce;
+    }
+    .cds--btn--secondary:hover {
+      background: #e8eef9;
+    }
+    .combobox-container {
+      position: relative;
+      display: inline-block;
+      width: 200px;
+    }
+    .combobox-input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #b8bdc1;
+      border-radius: 3px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .combobox-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #b8bdc1;
+      border-top: none;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .combobox-dropdown.show {
+      display: block;
+    }
+    .combobox-category {
+      padding: 8px 12px;
+      background: #f4f4f4;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #525252;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .combobox-option {
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .combobox-option:hover {
+      background: #e0e0e0;
+    }
+    .combobox-option.selected {
+      background: #d3f8d3;
+      color: #0e6027;
+    }
+    .selected-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .selected-tag {
+      background: #d3f8d3;
+      color: #0e6027;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .selected-tag .remove {
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .conversion-note {
+      background: #e3f2fd;
+      color: #1565c0;
+      padding: 8px 12px;
+      border-left: 3px solid #1565c0;
+      font-size: 12px;
+      margin-top: 8px;
+      border-radius: 2px;
+    }
+    .expand-icon {
+      font-size: 10px;
+      color: #525252;
+    }
+    .detail-row {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .detail-label {
+      font-weight: 600;
+      color: #525252;
+      font-size: 12px;
+    }
+    .detail-value {
+      color: #161616;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="preview-banner">⚡ Visual Preview — Compliance Evaluation Engine | OpenELIS Design Mockup | Not a live application</div>
+
+<div class="container">
+  <h1 class="page-title">Results Entry — Drinking Water Quality</h1>
+
+  <div id="summaryBanner"></div>
+  <div id="resultsTable"></div>
+</div>
+
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+<script type="text/babel">
+  const { useState } = React;
+
+  // Mock data
+  const mockStandard = {
+    name: "PP No. 22/2021 — Drinking Water Quality",
+    version: "2021"
+  };
+
+  const mockTests = [
+    {
+      id: 1,
+      name: "pH",
+      sampleType: "Raw Water",
+      thresholdType: "RANGE",
+      thresholdMin: 6.5,
+      thresholdMax: 8.5,
+      unit: "pH",
+      marginPercent: 10,
+      expectedTags: [],
+      result: "7.8",
+      unitConverted: false
+    },
+    {
+      id: 2,
+      name: "Turbidity",
+      sampleType: "Filtered Water",
+      thresholdType: "MAX",
+      thresholdValue: 5,
+      unit: "NTU",
+      marginPercent: 15,
+      expectedTags: [],
+      result: "4.5",
+      unitConverted: false
+    },
+    {
+      id: 3,
+      name: "Lead (Pb)",
+      sampleType: "Distribution",
+      thresholdType: "MAX",
+      thresholdValue: 0.01,
+      unit: "mg/L",
+      marginPercent: 10,
+      expectedTags: [],
+      result: "0.015",
+      unitConverted: false,
+      overrideAvailable: true
+    },
+    {
+      id: 4,
+      name: "E. coli",
+      sampleType: "Distribution",
+      thresholdType: "MAX",
+      thresholdValue: 0,
+      unit: "CFU/100mL",
+      marginPercent: 0,
+      expectedTags: [],
+      result: "0",
+      unitConverted: false
+    },
+    {
+      id: 5,
+      name: "Odor",
+      sampleType: "Raw Water",
+      thresholdType: "DESCRIPTIVE",
+      thresholdValue: null,
+      unit: null,
+      marginPercent: 0,
+      expectedTags: ["ODOR_NONE"],
+      result: "",
+      selectedTags: ["ODOR_NONE", "ODOR_CLEAR"],
+      unitConverted: false
+    }
+  ];
+
+  const descriptiveTags = {
+    "Odor": [
+      { code: "ODOR_NONE", label: "No odor", expected: true },
+      { code: "ODOR_CLEAR", label: "Clear", expected: false },
+      { code: "ODOR_CHLORINE", label: "Chlorine", expected: false },
+      { code: "ODOR_SULFUR", label: "Sulfur", expected: false }
+    ],
+    "Color": [
+      { code: "COLOR_CLEAR", label: "Clear", expected: false },
+      { code: "COLOR_YELLOW", label: "Yellow", expected: false },
+      { code: "COLOR_BROWN", label: "Brown", expected: false }
+    ]
+  };
+
+  function evaluateCompliance(testValue, threshold) {
+    const val = parseFloat(testValue);
+    if (isNaN(val)) return null;
+
+    if (threshold.thresholdType === "MAX") {
+      const limit = threshold.thresholdValue;
+      const marginBound = limit * (1 - threshold.marginPercent / 100);
+      if (val > limit) return "fail";
+      if (val > marginBound) return "marginal";
+      return "pass";
+    }
+
+    if (threshold.thresholdType === "MIN") {
+      const limit = threshold.thresholdValue;
+      const marginBound = limit * (1 + threshold.marginPercent / 100);
+      if (val < limit) return "fail";
+      if (val < marginBound) return "marginal";
+      return "pass";
+    }
+
+    if (threshold.thresholdType === "RANGE") {
+      if (val < threshold.thresholdMin || val > threshold.thresholdMax) return "fail";
+      const range = threshold.thresholdMax - threshold.thresholdMin;
+      const lowerMargin = threshold.thresholdMin + (range * threshold.marginPercent / 100);
+      const upperMargin = threshold.thresholdMax - (range * threshold.marginPercent / 100);
+      if (val < lowerMargin || val > upperMargin) return "marginal";
+      return "pass";
+    }
+
+    if (threshold.thresholdType === "DESCRIPTIVE") {
+      const hasAll = threshold.expectedTags.every(tag =>
+        threshold.selectedTags && threshold.selectedTags.includes(tag)
+      );
+      return hasAll ? "pass" : "fail";
+    }
+
+    return null;
+  }
+
+  function ResultsTable() {
+    const [tests, setTests] = useState(mockTests);
+    const [expandedId, setExpandedId] = useState(null);
+    const [showOverride, setShowOverride] = useState({});
+    const [showCombobox, setShowCombobox] = useState({});
+    const [overrideForm, setOverrideForm] = useState({});
+
+    const handleResultChange = (id, value) => {
+      setTests(tests.map(t =>
+        t.id === id ? { ...t, result: value } : t
+      ));
+    };
+
+    const handleTagSelect = (id, tag) => {
+      setTests(tests.map(t => {
+        if (t.id === id) {
+          const selected = t.selectedTags || [];
+          const newSelected = selected.includes(tag)
+            ? selected.filter(x => x !== tag)
+            : [...selected, tag];
+          return { ...t, selectedTags: newSelected };
+        }
+        return t;
+      }));
+    };
+
+    const handleOverrideSave = (id) => {
+      const form = overrideForm[id] || {};
+      if (!form.justification || form.justification.length < 10) {
+        alert("Justification required (min 10 characters)");
+        return;
+      }
+      alert("Override saved: " + form.value + " — " + form.justification);
+      setShowOverride({ ...showOverride, [id]: false });
+    };
+
+    const handleComboboxOpen = (id) => {
+      setShowCombobox({ ...showCombobox, [id]: !showCombobox[id] });
+    };
+
+    const countsByStatus = tests.reduce((acc, t) => {
+      const status = evaluateCompliance(t.result, t);
+      if (status) {
+        acc[status] = (acc[status] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    const worstStatus = tests.map(t => evaluateCompliance(t.result, t)).filter(Boolean);
+    let overallStatus = "Pending Results";
+    if (worstStatus.includes("fail")) overallStatus = "Issues Found";
+    else if (worstStatus.length === tests.length && !worstStatus.includes("marginal")) overallStatus = "All Compliant";
+
+    return (
+      <>
+        <div className="summary-banner">
+          <h3>{mockStandard.name} — v{mockStandard.version}</h3>
+          <div className="summary-counts">
+            <div>
+              <span className="count-badge" style={{ background: "#0e6027" }}>{countsByStatus.pass || 0}</span>
+              <span>Pass</span>
+            </div>
+            <div>
+              <span className="count-badge" style={{ background: "#b8860b" }}>{countsByStatus.marginal || 0}</span>
+              <span>Marginal</span>
+            </div>
+            <div>
+              <span className="count-badge" style={{ background: "#a3192d" }}>{countsByStatus.fail || 0}</span>
+              <span>Fail</span>
+            </div>
+            <div>
+              <span className="count-badge" style={{ background: "#525252" }}>{tests.length - worstStatus.length}</span>
+              <span>Pending</span>
+            </div>
+            <div style={{ marginLeft: "auto" }}>
+              <strong>{overallStatus}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div className="cds--data-table-container">
+          <table className="cds--data-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Test Name</th>
+                <th>Sample Type</th>
+                <th>Reference Range</th>
+                <th>Result</th>
+                <th>Clinical Indicator</th>
+                <th>Compliance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tests.map(test => {
+                const status = evaluateCompliance(test.result, test);
+                const isExpanded = expandedId === test.id;
+
+                return (
+                  <React.Fragment key={test.id}>
+                    <tr
+                      className={isExpanded ? "expanded" : ""}
+                      onClick={() => setExpandedId(isExpanded ? null : test.id)}
+                    >
+                      <td style={{ width: "30px", cursor: "pointer" }}>
+                        <span className="expand-icon">{isExpanded ? "▼" : "▶"}</span>
+                      </td>
+                      <td className="test-name">{test.name}</td>
+                      <td>{test.sampleType}</td>
+                      <td>
+                        {test.thresholdType === "RANGE"
+                          ? `${test.thresholdMin}–${test.thresholdMax} ${test.unit}`
+                          : test.thresholdType === "DESCRIPTIVE"
+                          ? "See tags"
+                          : `≤ ${test.thresholdValue} ${test.unit}`}
+                      </td>
+                      <td>
+                        {test.thresholdType === "DESCRIPTIVE" ? (
+                          <div className="selected-tags">
+                            {(test.selectedTags || []).map(tag => (
+                              <div key={tag} className="selected-tag">
+                                {descriptiveTags["Odor"].find(t => t.code === tag)?.label}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            className="result-input"
+                            value={test.result}
+                            onChange={(e) => handleResultChange(test.id, e.target.value)}
+                            placeholder="Enter value"
+                          />
+                        )}
+                      </td>
+                      <td>—</td>
+                      <td>
+                        <div className="indicator-group">
+                          {status && (
+                            <span className={`tag ${status}`}>
+                              {status === "pass" ? "Compliant" : status === "marginal" ? "Marginal" : "Non-Compliant"}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+
+                    {isExpanded && (
+                      <tr>
+                        <td colSpan="7">
+                          <div className="detail-section show">
+                            {test.thresholdType === "DESCRIPTIVE" ? (
+                              <div className="cds--tile">
+                                <div className="tile-title">Test Selection: {test.name}</div>
+                                <div className="tile-content">
+                                  <div className="combobox-container">
+                                    <div
+                                      className="combobox-input"
+                                      onClick={() => handleComboboxOpen(test.id)}
+                                    >
+                                      {(test.selectedTags && test.selectedTags.length > 0) ?
+                                        `${test.selectedTags.length} selected` :
+                                        "Select observations..."}
+                                    </div>
+                                    {showCombobox[test.id] && (
+                                      <div className="combobox-dropdown show">
+                                        {Object.entries(descriptiveTags).map(([category, options]) => (
+                                          <React.Fragment key={category}>
+                                            <div className="combobox-category">{category}</div>
+                                            {options.map(opt => (
+                                              <div
+                                                key={opt.code}
+                                                className={`combobox-option ${(test.selectedTags || []).includes(opt.code) ? 'selected' : ''}`}
+                                                onClick={() => {
+                                                  handleTagSelect(test.id, opt.code);
+                                                }}
+                                              >
+                                                {opt.expected && "✓ "}
+                                                {opt.label}
+                                              </div>
+                                            ))}
+                                          </React.Fragment>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                {test.id === 3 && (
+                                  <div className="notification warning">
+                                    ⚠ Lead level exceeds regulatory limit. Review override options.
+                                  </div>
+                                )}
+
+                                <div className="cds--tile">
+                                  <div className="tile-title">Compliance Evaluation</div>
+                                  <div className="tile-content">
+                                    <div className="detail-row">
+                                      <div className="detail-label">Standard</div>
+                                      <div className="detail-value">{mockStandard.name}</div>
+                                    </div>
+                                    <div className="detail-row">
+                                      <div className="detail-label">Version</div>
+                                      <div className="detail-value">{mockStandard.version}</div>
+                                    </div>
+                                    <div className="detail-row">
+                                      <div className="detail-label">Parameter Group</div>
+                                      <div className="detail-value">Water Quality</div>
+                                    </div>
+                                    <hr style={{ margin: "12px 0", border: "none", borderTop: "1px solid #e0e0e0" }} />
+                                    <div className="detail-row">
+                                      <div className="detail-label">Threshold Type</div>
+                                      <div className="detail-value">
+                                        {test.thresholdType === "MAX" ? "Maximum" :
+                                         test.thresholdType === "MIN" ? "Minimum" : "Range"}
+                                      </div>
+                                    </div>
+                                    <div className="detail-row">
+                                      <div className="detail-label">Limit</div>
+                                      <div className="detail-value">
+                                        {test.thresholdType === "RANGE"
+                                          ? `${test.thresholdMin}–${test.thresholdMax}`
+                                          : test.thresholdValue} {test.unit}
+                                      </div>
+                                    </div>
+                                    <div className="detail-row">
+                                      <div className="detail-label">Margin Zone</div>
+                                      <div className="detail-value">
+                                        {test.marginPercent}%
+                                        {test.marginPercent > 0 && ` (${((test.thresholdType === "MAX" ? test.thresholdValue : test.thresholdMax) * test.marginPercent / 100).toFixed(2)} units)`}
+                                      </div>
+                                    </div>
+                                    <hr style={{ margin: "12px 0", border: "none", borderTop: "1px solid #e0e0e0" }} />
+                                    <div className="detail-row">
+                                      <div className="detail-label">Result</div>
+                                      <div className="detail-value">{test.result} {test.unit}</div>
+                                    </div>
+                                    <div className="detail-row">
+                                      <div className="detail-label">Status</div>
+                                      <div className="detail-value">
+                                        {status && (
+                                          <span className={`tag ${status}`}>
+                                            {status === "pass" ? "Compliant" : status === "marginal" ? "Marginal" : "Non-Compliant"}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {test.unitConverted && (
+                                      <div className="conversion-note">
+                                        Result converted from µg/L to mg/L using factor 0.001 for evaluation.
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {test.overrideAvailable && (
+                                  <div className="cds--tile">
+                                    <div className="tile-title">Override Options</div>
+                                    <div className="tile-content">
+                                      {!showOverride[test.id] && (
+                                        <button className="cds--btn cds--btn--primary" onClick={() => setShowOverride({ ...showOverride, [test.id]: true })}>
+                                          Override This Evaluation
+                                        </button>
+                                      )}
+                                      {showOverride[test.id] && (
+                                        <div className="override-form">
+                                          <div className="form-group">
+                                            <label>Override To</label>
+                                            <select
+                                              value={overrideForm[test.id]?.value || ""}
+                                              onChange={(e) => setOverrideForm({ ...overrideForm, [test.id]: { ...overrideForm[test.id], value: e.target.value } })}
+                                            >
+                                              <option value="">Select...</option>
+                                              <option value="PASS">Pass</option>
+                                              <option value="FAIL">Fail</option>
+                                            </select>
+                                          </div>
+                                          <div className="form-group">
+                                            <label>Justification</label>
+                                            <textarea
+                                              value={overrideForm[test.id]?.justification || ""}
+                                              onChange={(e) => setOverrideForm({ ...overrideForm, [test.id]: { ...overrideForm[test.id], justification: e.target.value } })}
+                                              placeholder="Explain why this evaluation is being overridden..."
+                                            />
+                                          </div>
+                                          <div className="form-buttons">
+                                            <button className="cds--btn cds--btn--primary" onClick={() => handleOverrideSave(test.id)}>
+                                              Save Override
+                                            </button>
+                                            <button className="cds--btn cds--btn--secondary" onClick={() => setShowOverride({ ...showOverride, [test.id]: false })}>
+                                              Cancel
+                                            </button>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </>
+    );
+  }
+
+  ReactDOM.render(<ResultsTable />, document.getElementById('resultsTable'));
+</script>
+
+</body>
+</html>
