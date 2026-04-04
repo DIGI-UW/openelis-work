@@ -92,7 +92,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/admin-config/test-catalog.md',
     githubIssue: 8,
     jira: ['OGC-173'],
-    tags: ['test-catalog', 'tests', 'admin', 'configuration'],
+    tags: ['test-catalog', 'tests', 'admin', 'configuration', 'environmental', 'vector'],
   },
 
   {
@@ -463,7 +463,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/results-validation/results-page.md',
     githubIssue: 36,
     jira: ['OGC-517'],
-    tags: ['results', 'data-entry', 'workflow', 'entry'],
+    tags: ['results', 'data-entry', 'workflow', 'entry', 'environmental', 'vector'],
   },
   {
     name: 'Validation Page',
@@ -473,7 +473,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/results-validation/validation-page.md',
     githubIssue: 37,
     jira: ['OGC-343'],
-    tags: ['validation', 'results', 'review', 'approval'],
+    tags: ['validation', 'results', 'review', 'approval', 'environmental', 'vector'],
   },
   {
     name: 'Validation Page (Analyzer)',
@@ -721,7 +721,7 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-70', 'OGC-354'],
     added: '2026-03-04',
     githubIssue: 46,
-    tags: ['sample-collection', 'order-entry', 'workflow', 'labels'],
+    tags: ['sample-collection', 'order-entry', 'workflow', 'labels', 'environmental', 'vector'],
   },
   {
     name: 'Sampling Site Registry',
