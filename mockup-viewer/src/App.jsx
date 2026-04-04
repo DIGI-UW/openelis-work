@@ -1299,6 +1299,7 @@ function App() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedMockup, setSelectedMockup] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTag, setActiveTag] = useState(null);
   const [detailTab, setDetailTab] = useState('preview'); // 'preview' or 'spec'
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'draft', 'review', 'approved'
   const [localStatuses, setLocalStatuses] = useState(() => {
@@ -1370,13 +1371,16 @@ function App() {
   const filtered = MOCKUP_REGISTRY.filter((m) => {
     const matchesCategory = activeCategory === 'all' || m.category === activeCategory;
     const matchesStatus = statusFilter === 'all' || getEffectiveStatus(m) === statusFilter;
+    const matchesTag = !activeTag || (m.tags && m.tags.includes(activeTag));
+    const q = searchQuery.toLowerCase();
     const matchesSearch =
       !searchQuery ||
-      m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (m.jira && m.jira.some((key) => key.toLowerCase().includes(searchQuery.toLowerCase())));
-    return matchesCategory && matchesStatus && matchesSearch;
+      m.name.toLowerCase().includes(q) ||
+      m.description.toLowerCase().includes(q) ||
+      m.category.toLowerCase().includes(q) ||
+      (m.jira && m.jira.some((key) => key.toLowerCase().includes(q))) ||
+      (m.tags && m.tags.some((tag) => tag.toLowerCase().includes(q)));
+    return matchesCategory && matchesStatus && matchesTag && matchesSearch;
   });
 
   const countByCategory = {};
@@ -1427,13 +1431,23 @@ function App() {
       </header>
 
       <div style={styles.toolbar}>
-        <input
-          type="text"
-          placeholder="Search mockups..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ ...styles.search, background: t.searchBg, borderColor: t.borderInput, color: t.text }}
-        />
+        <div style={{ display: 'flex', flex: '1 1 200px', minWidth: 200, alignItems: 'center', gap: 6 }}>
+          <input
+            type="text"
+            placeholder="Search by name, tag, Jira key…"
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setActiveTag(null); }}
+            style={{ ...styles.search, flex: 1, minWidth: 0 }}
+          />
+          {activeTag && (
+            <span
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: darkMode ? '#0043ce33' : '#d0e2ff', color: darkMode ? '#78a9ff' : '#0043ce', border: '1px solid ' + (darkMode ? '#0043ce88' : '#78a9ff'), whiteSpace: 'nowrap' }}
+            >
+              #{activeTag}
+              <button onClick={() => setActiveTag(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, color: 'inherit', fontSize: 14, marginLeft: 2 }} title="Clear tag filter">×</button>
+            </span>
+          )}
+        </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -1677,6 +1691,26 @@ function App() {
                       <a key={key} href={JIRA_BASE + key} target="_blank" rel="noopener" style={{ ...styles.jiraBadge, background: t.jiraBg, color: t.jiraColor, borderColor: t.jiraBorder }} onClick={(e) => e.stopPropagation()}>
                         {key}
                       </a>
+                    ))}
+                  </div>
+                )}
+                {mockup.tags && mockup.tags.length > 0 && (
+                  <div style={{ display: 'flex', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
+                    {mockup.tags.map((tag) => (
+                      <button
+                        key={tag}
+                        onClick={(e) => { e.stopPropagation(); setActiveTag(activeTag === tag ? null : tag); setSearchQuery(''); }}
+                        title={`Filter by #${tag}`}
+                        style={{
+                          padding: '1px 8px', borderRadius: 10, fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                          background: activeTag === tag ? (darkMode ? '#0043ce55' : '#d0e2ff') : (darkMode ? '#3d3d3d' : '#f4f4f4'),
+                          color: activeTag === tag ? (darkMode ? '#78a9ff' : '#0043ce') : (darkMode ? '#c6c6c6' : '#525252'),
+                          border: activeTag === tag ? '1px solid ' + (darkMode ? '#78a9ff' : '#0043ce') : '1px solid ' + (darkMode ? '#525252' : '#e0e0e0'),
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        #{tag}
+                      </button>
                     ))}
                   </div>
                 )}
