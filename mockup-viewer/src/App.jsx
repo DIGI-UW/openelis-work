@@ -142,6 +142,19 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-528'],
     tags: ['compliance', 'ISO-15189', 'standards', 'vector', 'environmental'],
   },
+  {
+    name: 'Sample Type Domain Classification',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/sample-type-domain-classification.jsx')),
+    description: 'Sample Type Domain Classification (S-04) — adds sampleDomain enum (CLINICAL/ENVIRONMENTAL/BOTH) to Sample Type entity, bulk assignment utility, and workflow toggle filtering. Addendum to OGC-296.',
+    specPath: 'designs/admin-config/sample-type-domain-classification.md',
+    htmlUrl: 'designs/admin-config/sample-type-domain-classification.html',
+    added: '2026-04-03',
+    status: 'draft',
+    githubIssue: 75,
+    jira: ['OGC-538', 'OGC-296'],
+    tags: ['sample-type', 'domain', 'environmental', 'vector', 'classification', 'admin'],
+  },
 
   // ─── Analyzer Integration ───
   {

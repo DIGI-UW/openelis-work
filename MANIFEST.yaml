@@ -1449,6 +1449,18 @@
     gallery: https://digi-uw.github.io/openelis-work/#/system/electronic-signature
   added: "2026-04-02"
 
+- id: sample-type-domain-classification
+  type: both
+  path: designs/admin-config/sample-type-domain-classification.jsx
+  spec: designs/admin-config/sample-type-domain-classification.md
+  category: admin-config
+  description: Sample Type Domain Classification (S-04) — adds sampleDomain enum (CLINICAL/ENVIRONMENTAL/BOTH) to Sample Type entity, bulk assignment utility, and workflow toggle filtering. Addendum to OGC-296.
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/75
+    jira: https://uwdigi.atlassian.net/browse/OGC-538
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-domain-classification
+  added: "2026-04-03"
+
 - id: environmental-order-entry
   type: jsx
   path: designs/sample-collection/environmental-order-entry.jsx
