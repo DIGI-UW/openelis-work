@@ -1484,3 +1484,26 @@
     jira: https://uwdigi.atlassian.net/browse/OGC-547
     gallery: https://digi-uw.github.io/openelis-work/#/results-validation/compliance-evaluation-engine
   added: "2026-04-04"
+
+- id: tat-report
+  type: mockup
+  path: designs/reports/tat-report.jsx
+  category: reports
+  description: >
+    Turn Around Time Report (OGC-307) — summary statistics, detail list,
+    trends analysis, and CSV export for lab TAT performance monitoring
+  paired_with: tat-report-spec
+  links:
+    jira: ["OGC-307", "OGC-310"]
+  added: "2026-04-05"
+
+- id: tat-report-spec
+  type: spec
+  path: designs/reports/tat-report.md
+  category: reports
+  description: >
+    Functional requirements specification for TAT Report feature
+  paired_with: tat-report
+  links:
+    jira: ["OGC-307", "OGC-310"]
+  added: "2026-04-05"

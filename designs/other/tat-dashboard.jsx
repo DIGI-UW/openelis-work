@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import {
   Clock, TrendingUp, TrendingDown, AlertTriangle, Activity, Eye,
-  ArrowRight, ArrowUpRight, ArrowDownRight, ExternalLink, BarChart3
+  ArrowRight, ArrowUpRight, ArrowDownRight, ExternalLink, BarChart3, CircleCheck
 } from 'lucide-react';
+import {
+  ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Line
+} from 'recharts';
 
 // ============================================
 // COLOR PALETTE (OpenELIS / Carbon-like)
@@ -55,6 +58,18 @@ const formatTatShort = (hours) => {
   if (hours < 1) return `${Math.round(hours * 60)}m`;
   return `${hours.toFixed(1)}h`;
 };
+// Section header component
+const SectionDivider = ({ label, action }) => (
+  <div style={{
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    borderBottom: `1px solid ${colors.gray100}`, paddingBottom: '0.5rem',
+    marginBottom: '1rem', marginTop: '1.5rem',
+  }}>
+    <h4 style={{ fontSize: '14px', fontWeight: 600, color: colors.gray600, margin: 0 }}>{label}</h4>
+    {action}
+  </div>
+);
+
 // V2 Dashboard KPI data
 const dashboardKPIs = [
   { label: 'Avg TAT Today', value: '2h 48m', change: -8, trend: 'down', color: colors.green },
@@ -89,6 +104,16 @@ const Badge = ({ children, variant = 'default', size = 'md' }) => {
 
 // ============================================
 // MAIN COMPONENT
+const trendData = [
+  { date: 'Mar 29', median: 3.2 },
+  { date: 'Mar 30', median: 2.8 },
+  { date: 'Mar 31', median: 4.1 },
+  { date: 'Apr 01', median: 3.5 },
+  { date: 'Apr 02', median: 2.9 },
+  { date: 'Apr 03', median: 3.8 },
+  { date: 'Apr 04', median: 3.1 },
+];
+
 // ============================================
 const TATDashboard = () => {
 
@@ -174,7 +199,7 @@ const TATDashboard = () => {
                       }} />
                     </div>
                     {row.compliance >= 90 ? (
-                      <CheckCircle2 size={16} color={colors.green} />
+                      <CircleCheck size={16} color={colors.green} />
                     ) : (
                       <AlertTriangle size={16} color={colors.yellow} />
                     )}
@@ -199,7 +224,7 @@ const TATDashboard = () => {
               <CartesianGrid strokeDasharray="3 3" stroke={colors.gray100} />
               <XAxis dataKey="date" tick={{ fontSize: 10, fill: colors.gray500 }} />
               <YAxis tick={{ fontSize: 10, fill: colors.gray500 }} />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip />
               <Line type="monotone" dataKey="median" stroke={colors.tealPrimary} strokeWidth={2.5} dot={{ r: 3, fill: colors.tealPrimary }} name="Median TAT" />
             </LineChart>
           </ResponsiveContainer>

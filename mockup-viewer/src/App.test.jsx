@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
+import { Suspense } from 'react';
 import userEvent from '@testing-library/user-event';
 import App, {
   toSlug,
@@ -377,7 +378,7 @@ describe('App component', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    const searchInput = screen.getByPlaceholderText('Search mockups...');
+    const searchInput = screen.getByPlaceholderText('Search by name, tag, Jira key\u2026');
     await user.type(searchInput, 'cytology');
 
     const titles = screen.getAllByRole('heading', { level: 3 });
@@ -390,7 +391,7 @@ describe('App component', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    const searchInput = screen.getByPlaceholderText('Search mockups...');
+    const searchInput = screen.getByPlaceholderText('Search by name, tag, Jira key\u2026');
     await user.type(searchInput, 'OGC-291');
 
     const titles = screen.getAllByRole('heading', { level: 3 });
@@ -406,7 +407,7 @@ describe('App component', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    const searchInput = screen.getByPlaceholderText('Search mockups...');
+    const searchInput = screen.getByPlaceholderText('Search by name, tag, Jira key\u2026');
     await user.type(searchInput, 'zzzzxyznonexistent');
 
     expect(screen.getByText('No mockups match your search.')).toBeInTheDocument();
@@ -723,7 +724,7 @@ describe('GitHub Issues integration', () => {
 
   it('githubIssue field is a positive integer when present', () => {
     MOCKUP_REGISTRY.forEach((entry) => {
-      if (entry.githubIssue !== undefined) {
+      if (entry.githubIssue !== undefined && entry.githubIssue !== null) {
         expect(Number.isInteger(entry.githubIssue),
           `"${entry.name}" githubIssue should be an integer`).toBe(true);
         expect(entry.githubIssue,
@@ -836,5 +837,26 @@ Reason: Looks good, ready for implementation`;
   it('ignores invalid status values in backtick format', () => {
     expect(parseStatusFromComment('New status: `invalid`')).toBeNull();
     expect(parseStatusFromComment('New status: `pending`')).toBeNull();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Mockup render smoke tests
+// ═══════════════════════════════════════════════════════════════
+
+describe('Mockup render smoke tests', () => {
+  const jsxEntries = MOCKUP_REGISTRY.filter(m => m.component);
+
+  jsxEntries.forEach((entry) => {
+    it(`renders "${entry.name}" without crashing`, async () => {
+      const { container } = render(
+        <Suspense fallback={<div>Loading...</div>}>
+          <entry.component />
+        </Suspense>
+      );
+      await waitFor(() => {
+        expect(container.innerHTML).not.toContain('Loading...');
+      }, { timeout: 10000 });
+    });
   });
 });

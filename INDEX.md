@@ -114,6 +114,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Positivity Rate Report | [positivity-rate.jsx](designs/reports/positivity-rate.jsx) | [positivity-rate.md](designs/reports/positivity-rate.md) |
 | Disease Surveillance Dashboard | [disease-surveillance-dashboard.jsx](designs/reports/disease-surveillance-dashboard.jsx) | — |
 | Custom Data Export | [custom-data-export.jsx](designs/reports/custom-data-export.jsx) | [custom-data-export.md](designs/reports/custom-data-export.md) |
+| TAT Report | [tat-report.jsx](designs/reports/tat-report.jsx) | [tat-report.md](designs/reports/tat-report.md) |
 
 ## Notifications
 

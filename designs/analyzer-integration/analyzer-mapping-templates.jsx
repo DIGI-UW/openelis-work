@@ -1663,7 +1663,7 @@ export default function AnalyzerMappingApp() {
                               </tbody>
                             </table>
                             {p.testCount > (p.sampleTestCodes || []).length && (
-                              <div style={{ padding: "6px 10px", fontSize: 11, color: tk.g500, fontStyle: "italic", background: tk.white, borderTop: "none", border: `1px solid ${tk.g100}`, borderTop: "none" }}>
+                              <div style={{ padding: "6px 10px", fontSize: 11, color: tk.g500, fontStyle: "italic", background: tk.white, border: `1px solid ${tk.g100}`, borderTop: "none" }}>
                                 + {p.testCount - (p.sampleTestCodes || []).length} more test codes not shown in preview. Full mappings available when profile is applied to an analyzer.
                               </div>
                             )}

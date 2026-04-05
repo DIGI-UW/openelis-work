@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Download, Plus, Edit, Trash2, Upload, CalendarDays, X, CheckCircle2
+  Download, Plus, Edit, Trash2, Upload, CalendarDays, X, CircleCheck
 } from 'lucide-react';
 
 // ============================================
@@ -159,7 +159,7 @@ const CalendarManagement = () => {
                 fontSize: '12px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px',
               }}
             >
-              <CheckCircle2 size={13} /> Save
+              <CircleCheck size={13} /> Save
             </button>
             <button
               onClick={() => { setEditingHoliday(null); setNewHoliday({ date: '', name: '', recurring: false }); }}

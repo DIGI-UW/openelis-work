@@ -604,6 +604,17 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-479', 'OGC-481', 'OGC-483'],
     tags: ['reports', 'export', 'CSV', 'data-export', 'async-queue'],
   },
+  {
+    name: 'TAT Report',
+    category: 'reports',
+    component: React.lazy(() => import('@designs/reports/tat-report.jsx')),
+    description: 'Turn Around Time Report — summary stats, detail list, trends, and CSV export for lab performance analysis (OGC-307)',
+    specPath: 'designs/reports/tat-report.md',
+    githubIssue: null,
+    jira: ['OGC-307', 'OGC-310'],
+    tags: ['TAT', 'turnaround-time', 'report', 'analytics', 'performance'],
+    relatedTo: ['Calendar Management', 'TAT Dashboard'],
+  },
 
   // ─── Notifications ───
   {
@@ -772,6 +783,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Turnaround time monitoring dashboard',
     specPath: 'designs/other/tat-dashboard.md',
     githubIssue: 47,
+    jira: ['OGC-310'],
     tags: ['TAT', 'turnaround-time', 'dashboard', 'performance'],
   },
   {
@@ -781,6 +793,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Lab calendar and scheduling management',
     specPath: null,
     githubIssue: 48,
+    jira: ['OGC-306', 'OGC-310'],
     tags: ['calendar', 'scheduling', 'holidays', 'admin'],
   },
 
