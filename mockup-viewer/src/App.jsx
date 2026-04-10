@@ -453,6 +453,19 @@ export const MOCKUP_REGISTRY = [
     relatedTo: ['Batch Workplan with Reagent QC'],
     tags: ['quality', 'QC', 'analyzer', 'manual-entry'],
   },
+  {
+    name: 'Environmental QC Rules',
+    category: 'quality',
+    component: React.lazy(() => import('@designs/quality/environmental-qc-rules.jsx')),
+    description: 'Environmental QC Rules (S-08) — field blank, trip blank, duplicate sample (RPD), spike recovery. Per-standard QC protocol configuration, QC sample creation at order entry, inline QC results tab, and QC warning with acknowledgment modal on validation.',
+    specPath: 'designs/quality/environmental-qc-rules.md',
+    htmlUrl: 'designs/quality/environmental-qc-rules.html',
+    added: '2026-04-10',
+    status: 'draft',
+    githubIssue: null,
+    jira: ['OGC-527'],
+    tags: ['quality', 'QC', 'environmental', 'vector', 'field-blank', 'trip-blank', 'duplicate', 'spike-recovery'],
+  },
 
   // ─── Results & Validation ───
   {
