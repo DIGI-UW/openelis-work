@@ -559,6 +559,19 @@ export const MOCKUP_REGISTRY = [
   },
   // ─── Reports ───
   {
+    name: 'Laporan Hasil — Compliance Report',
+    category: 'reports',
+    component: React.lazy(() => import('@designs/reports/laporan-hasil-compliance-report.jsx')),
+    description: 'Laporan Hasil (S-06) — formal Sertifikat Hasil Uji (Test Results Certificate) PDF generation for validated environmental orders. Dual e-signature, batch ZIP download, shared Report Print Configuration admin page.',
+    specPath: 'designs/reports/laporan-hasil-compliance-report.md',
+    htmlUrl: 'designs/reports/laporan-hasil-compliance-report.html',
+    added: '2026-04-05',
+    status: 'draft',
+    githubIssue: null,
+    jira: ['OGC-527'],
+    tags: ['compliance', 'report', 'environmental', 'vector', 'certificate', 'pdf', 'laporan-hasil'],
+  },
+  {
     name: 'Patient Report Print Queue',
     category: 'reports',
     component: React.lazy(() => import('@designs/reports/patient-report-print-queue.jsx')),
