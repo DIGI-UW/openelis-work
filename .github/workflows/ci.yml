@@ -1,0 +1,31 @@
+name: CI — Test Gallery on Pull Requests
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: mockup-viewer
+        run: npm install
+
+      - name: Run tests
+        working-directory: mockup-viewer
+        run: npm test -- --run
+
+      - name: Build gallery (smoke check)
+        working-directory: mockup-viewer
+        run: npm run build
