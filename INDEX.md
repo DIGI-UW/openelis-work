@@ -160,6 +160,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Unassigned Tests | — | [unassigned-tests.md](designs/other/unassigned-tests.md) |
 | Report Level Signatures | — | [report-level-signatures.md](designs/other/report-level-signatures.md) |
 | Change Management Strategy | — | [change-management-strategy.md](designs/other/change-management-strategy.md) |
+| Environmental & Vector Testing Roadmap | — | [environmental-vector-roadmap.md](designs/other/environmental-vector-roadmap.md) |
 
 ---
 

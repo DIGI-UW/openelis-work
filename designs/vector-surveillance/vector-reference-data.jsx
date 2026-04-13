@@ -36,9 +36,9 @@ import {
   Button, Tag, InlineNotification, Accordion, AccordionItem,
 } from '@carbon/react';
 import {
-  Add, Edit, TrashCan, Locked, ChevronDown, ChevronUp,
-  UserAvatar, Bug, CloudDataOps, CheckmarkFilled, WarningFilled,
-} from '@carbon/icons-react';
+  Plus, Pencil, Trash2, Lock, ChevronDown, ChevronUp,
+  User, Bug, Cloud, CheckCircle2, AlertTriangle,
+} from 'lucide-react';
 
 const t = (key, fallback) => fallback || key;
 
@@ -103,7 +103,7 @@ function AppShell({ page, setPage, pendingCount, children }) {
         <HeaderName prefix="">{t('header.app', 'OpenELIS Global')}</HeaderName>
         <HeaderGlobalBar>
           <HeaderGlobalAction aria-label={t('header.user', 'User menu')}>
-            <UserAvatar size={20} />
+            <User size={20} />
           </HeaderGlobalAction>
         </HeaderGlobalBar>
       </Header>
@@ -163,18 +163,18 @@ function HubBanner({ pendingCount, onReview }) {
   return (
     <Tile style={{ padding: '1rem', marginBottom: '1rem', borderLeft: '4px solid #0f62fe' }}>
       <Stack orientation="horizontal" gap={5}>
-        <CloudDataOps size={24} style={{ color: '#0f62fe', flexShrink: 0, marginTop: '0.25rem' }} />
+        <Cloud size={24} style={{ color: '#0f62fe', flexShrink: 0, marginTop: '0.25rem' }} />
         <div style={{ flex: 1 }}>
           <Stack orientation="horizontal" gap={3} style={{ alignItems: 'center', marginBottom: '0.25rem' }}>
             <strong>{t('hub.name', 'OpenELIS Community Hub')}</strong>
-            <Tag type="green" renderIcon={CheckmarkFilled}>{t('hub.status.connected', 'Connected')}</Tag>
+            <Tag type="green" renderIcon={CheckCircle2}>{t('hub.status.connected', 'Connected')}</Tag>
           </Stack>
           <div style={{ fontSize: '0.875rem', color: '#525252' }}>
             {t('hub.summary', '12 reference catalogs available · 3 subscribed (Species, Traps, Groups) · Last sync 2026-04-13 06:00 UTC')}
           </div>
           {pendingCount > 0 && (
             <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <WarningFilled size={16} style={{ color: '#f1c21b' }} />
+              <AlertTriangle size={16} style={{ color: '#f1c21b' }} />
               <span style={{ fontSize: '0.875rem' }}>
                 {t('hub.pending', '{n} proposed updates awaiting review').replace('{n}', pendingCount)}
               </span>
@@ -229,7 +229,7 @@ function GroupsPage({ groups, setGroups, onReviewPending, pendingCount }) {
         <TableToolbar>
           <TableToolbarContent>
             <TableToolbarSearch placeholder={t('search.groups', 'Search group code or label')} />
-            <Button renderIcon={Add} size="sm" onClick={() => setAdding(true)}>{t('button.addGroup', 'Add group')}</Button>
+            <Button renderIcon={Plus} size="sm" onClick={() => setAdding(true)}>{t('button.addGroup', 'Add group')}</Button>
           </TableToolbarContent>
         </TableToolbar>
         <Table>
@@ -297,7 +297,7 @@ function GroupsPage({ groups, setGroups, onReviewPending, pendingCount }) {
                   </TableCell>
                   <TableCell>
                     <span style={{ fontFamily: 'monospace' }}>{g.code}</span>
-                    {g.system && <Locked size={14} style={{ marginLeft: '0.5rem', color: '#6929c4', verticalAlign: 'middle' }} />}
+                    {g.system && <Lock size={14} style={{ marginLeft: '0.5rem', color: '#6929c4', verticalAlign: 'middle' }} />}
                   </TableCell>
                   <TableCell>{g.label}</TableCell>
                   <TableCell><Tag type={g.colorKind}>{g.label}</Tag></TableCell>
@@ -308,7 +308,7 @@ function GroupsPage({ groups, setGroups, onReviewPending, pendingCount }) {
                   </TableCell>
                   <TableCell><Tag type={g.active ? 'green' : 'gray'}>{g.active ? t('status.active', 'Active') : t('status.inactive', 'Inactive')}</Tag></TableCell>
                   <TableCell>
-                    <Button kind="ghost" size="sm" renderIcon={Edit}>{t('button.edit', 'Edit')}</Button>
+                    <Button kind="ghost" size="sm" renderIcon={Pencil}>{t('button.edit', 'Edit')}</Button>
                   </TableCell>
                 </TableRow>
                 {expanded === g.code && (
@@ -347,7 +347,7 @@ function GroupsPage({ groups, setGroups, onReviewPending, pendingCount }) {
                           <Button kind="primary" size="sm">{t('button.save', 'Save')}</Button>
                           <Button kind="ghost" size="sm" onClick={() => setExpanded(null)}>{t('button.cancel', 'Cancel')}</Button>
                           {!g.system && (
-                            <Button kind="danger--ghost" size="sm" renderIcon={TrashCan}
+                            <Button kind="danger--ghost" size="sm" renderIcon={Trash2}
                               disabled={referenceCount(g) > 0}
                               title={referenceCount(g) > 0 ? t('msg.cannotDelete', 'Cannot delete: referenced by other records') : ''}>
                               {t('button.delete', 'Delete')}
@@ -417,7 +417,7 @@ function SpeciesPage({ groups, species, setSpecies, pendingCount, onReviewPendin
               <SelectItem value="ALL" text={t('filter.allGroups', 'All groups')} />
               {groups.map(g => <SelectItem key={g.code} value={g.code} text={g.label} />)}
             </Select>
-            <Button renderIcon={Add} size="sm" onClick={() => setAdding(true)}>{t('button.addSpecies', 'Add species')}</Button>
+            <Button renderIcon={Plus} size="sm" onClick={() => setAdding(true)}>{t('button.addSpecies', 'Add species')}</Button>
           </TableToolbarContent>
         </TableToolbar>
         <Table>
@@ -479,7 +479,7 @@ function SpeciesPage({ groups, species, setSpecies, pendingCount, onReviewPendin
                     <TableCell><Tag type={g?.colorKind || 'gray'}>{g?.label || r.group}</Tag></TableCell>
                     <TableCell>{r.pathogens.slice(0,2).join(', ')}{r.pathogens.length>2?` +${r.pathogens.length-2}`:''}</TableCell>
                     <TableCell><Tag type={r.active ? 'green' : 'gray'}>{r.active ? t('status.active', 'Active') : t('status.inactive', 'Inactive')}</Tag></TableCell>
-                    <TableCell><Button kind="ghost" size="sm" renderIcon={Edit}>{t('button.edit', 'Edit')}</Button></TableCell>
+                    <TableCell><Button kind="ghost" size="sm" renderIcon={Pencil}>{t('button.edit', 'Edit')}</Button></TableCell>
                   </TableRow>
                   {expanded === r.id && (
                     <TableRow>
@@ -552,7 +552,7 @@ function TrapTypesPage({ groups, traps, setTraps, pendingCount, onReviewPending 
         <TableToolbar>
           <TableToolbarContent>
             <TableToolbarSearch placeholder={t('search.traps', 'Search trap name or description')} />
-            <Button renderIcon={Add} size="sm" onClick={() => setAdding(true)}>{t('button.addTrap', 'Add trap type')}</Button>
+            <Button renderIcon={Plus} size="sm" onClick={() => setAdding(true)}>{t('button.addTrap', 'Add trap type')}</Button>
           </TableToolbarContent>
         </TableToolbar>
         <Table>
@@ -606,7 +606,7 @@ function TrapTypesPage({ groups, traps, setTraps, pendingCount, onReviewPending 
                     <TableCell><Tag type={g?.colorKind || 'gray'}>{g?.label || tr.target}</Tag></TableCell>
                     <TableCell>{tr.description}</TableCell>
                     <TableCell><Tag type="green">{t('status.active', 'Active')}</Tag></TableCell>
-                    <TableCell><Button kind="ghost" size="sm" renderIcon={Edit}>{t('button.edit', 'Edit')}</Button></TableCell>
+                    <TableCell><Button kind="ghost" size="sm" renderIcon={Pencil}>{t('button.edit', 'Edit')}</Button></TableCell>
                   </TableRow>
                   {expanded === tr.id && (
                     <TableRow>
@@ -733,7 +733,7 @@ function SampleTypesPage({ groups, sampleTypes }) {
               <SelectItem value="ENVIRONMENTAL" text="Environmental" />
               <SelectItem value="VECTOR" text="Vector" />
             </Select>
-            <Button renderIcon={Add} size="sm">{t('button.addSampleType', 'Add sample type')}</Button>
+            <Button renderIcon={Plus} size="sm">{t('button.addSampleType', 'Add sample type')}</Button>
           </TableToolbarContent>
         </TableToolbar>
         <Table>
@@ -757,7 +757,7 @@ function SampleTypesPage({ groups, sampleTypes }) {
                   <TableCell><strong>{s.name}</strong></TableCell>
                   <TableCell><Tag type={DOMAIN_TAG[s.domain]}>{s.domain}</Tag></TableCell>
                   <TableCell>{s.desc}</TableCell>
-                  <TableCell><Button kind="ghost" size="sm" renderIcon={Edit}>{t('button.edit', 'Edit')}</Button></TableCell>
+                  <TableCell><Button kind="ghost" size="sm" renderIcon={Pencil}>{t('button.edit', 'Edit')}</Button></TableCell>
                 </TableRow>
                 {expanded === s.id && (
                   <TableRow>

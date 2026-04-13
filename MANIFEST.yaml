@@ -1507,3 +1507,16 @@
   links:
     jira: ["OGC-307", "OGC-310"]
   added: "2026-04-05"
+
+- id: environmental-vector-roadmap
+  type: spec
+  path: designs/other/environmental-vector-roadmap.md
+  category: other
+  description: >
+    Architecture roadmap for the Environmental & Vector Testing Module (OGC-527 epic).
+    Covers 3-layer build order: S-01–S-08 environmental specs and V-01–V-04 vector surveillance.
+    Dependency graph, recommended implementation phases, and current spec completion status.
+  links:
+    jira: ["OGC-527"]
+    github_issue: 81
+  added: "2026-04-13"

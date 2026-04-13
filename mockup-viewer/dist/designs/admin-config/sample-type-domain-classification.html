@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S-04: Sample Type Domain Classification — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner {
+      background: #0f62fe; color: #fff;
+      padding: 6px 1rem; font-size: 12px; font-family: monospace;
+    }
+    .preview-content { padding: 1rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .tile { background: #fff; padding: 1.5rem; margin-bottom: 1rem; border: 1px solid #e0e0e0; }
+    .tile h3 { font-size: 20px; font-weight: 600; margin: 0 0 4px 0; }
+    .tile h4 { font-size: 16px; font-weight: 600; margin: 0; }
+
+    .tag { display: inline-block; padding: 2px 10px; border-radius: 24px; font-size: 12px; font-weight: 500; vertical-align: middle; }
+    .tag-green { background: #defbe6; color: #0e6027; }
+    .tag-purple { background: #e8daff; color: #491d8b; }
+    .tag-teal { background: #d9fbfb; color: #004144; }
+    .tag-gray { background: #e0e0e0; color: #161616; }
+    .tag-blue { background: #d0e2ff; color: #002d9c; }
+
+    .btn { padding: 8px 16px; font-size: 14px; font-weight: 500; border: none; cursor: pointer; font-family: inherit; transition: background 0.15s; border-radius: 0; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-primary:hover { background: #0353e9; }
+    .btn-primary:disabled { background: #c6c6c6; color: #8d8d8d; cursor: not-allowed; }
+    .btn-ghost { background: transparent; color: #0f62fe; padding: 4px 8px; font-size: 13px; }
+    .btn-ghost:hover { background: rgba(15,98,254,0.08); }
+    .btn-ghost:disabled { color: #c6c6c6; cursor: not-allowed; }
+
+    .toolbar { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #fff; border: 1px solid #e0e0e0; border-bottom: none; }
+    .toolbar input[type="text"] { padding: 8px 12px; border: none; border-bottom: 2px solid #8d8d8d; font-size: 14px; font-family: inherit; background: #f4f4f4; flex: 1; max-width: 300px; outline: none; }
+    .toolbar input:focus { border-bottom-color: #0f62fe; background: #fff; }
+    .toolbar select { padding: 8px 12px; border: none; border-bottom: 2px solid #8d8d8d; font-size: 14px; font-family: inherit; background: #f4f4f4; outline: none; min-width: 140px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; border: 1px solid #e0e0e0; }
+    th { text-align: left; padding: 10px 16px; background: #e0e0e0; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    td { padding: 10px 16px; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
+    tr:hover td { background: #f4f4f4; }
+    tr.changed td { background: #edf5ff; }
+
+    .notification { padding: 12px 16px; border-left: 3px solid; margin-bottom: 1rem; font-size: 13px; }
+    .notification-info { border-color: #0f62fe; background: #edf5ff; }
+    .notification-success { border-color: #24a148; background: #defbe6; }
+
+    .accordion-header { padding: 12px 16px; background: #f4f4f4; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 500; font-size: 14px; border: 1px solid #e0e0e0; user-select: none; }
+    .accordion-header:hover { background: #e8e8e8; }
+    .accordion-body { border: 1px solid #e0e0e0; border-top: none; padding: 16px; display: none; }
+    .accordion-body.open { display: block; }
+
+    .tabs { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 0; }
+    .tab { padding: 12px 20px; font-size: 14px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; color: #525252; transition: all 0.15s; }
+    .tab:hover { color: #161616; }
+    .tab.active { color: #0f62fe; border-bottom-color: #0f62fe; }
+    .tab-content { background: #fff; border: 1px solid #e0e0e0; border-top: none; padding: 1.5rem; }
+
+    .form-field { margin-bottom: 1.25rem; }
+    .form-field label { display: block; font-size: 12px; font-weight: 500; color: #161616; margin-bottom: 6px; }
+    .form-field input, .form-field select, .form-field textarea {
+      width: 100%; padding: 10px 12px; border: none; border-bottom: 2px solid #8d8d8d;
+      font-size: 14px; font-family: inherit; background: #fff; outline: none; box-sizing: border-box;
+    }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-bottom-color: #0f62fe; }
+    .form-field textarea { resize: vertical; min-height: 60px; }
+    .form-field .helper { font-size: 12px; color: #525252; margin-top: 4px; }
+
+    .header-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .summary-tags { display: flex; gap: 8px; justify-content: flex-end; flex: 1; }
+
+    .inline-select { padding: 4px 8px; border: none; border-bottom: 1px solid #8d8d8d; font-size: 13px; font-family: inherit; background: transparent; outline: none; min-width: 130px; }
+    .inline-select:focus { border-bottom-color: #0f62fe; }
+
+    .actions { display: flex; gap: 12px; margin-top: 16px; }
+
+    @media (max-width: 768px) {
+      .header-row { flex-direction: column; align-items: flex-start; }
+      .summary-tags { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    ⚡ Visual Preview — S-04: Sample Type Domain Classification (Addendum to OGC-296) &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application
+  </div>
+  <div class="preview-content" id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, useCallback } = React;
+
+    // ─── Mock Data ───────────────────────────────────────────
+    const INITIAL_TYPES = [
+      { id:1, name:'Serum', desc:'Blood serum after centrifugation', active:true, domain:'CLINICAL', tests:142, whonet:'SER' },
+      { id:2, name:'Whole Blood', desc:'Unprocessed blood sample', active:true, domain:'CLINICAL', tests:87, whonet:'BLD' },
+      { id:3, name:'Urine', desc:'Spot or 24-hour urine', active:true, domain:'CLINICAL', tests:63, whonet:'URI' },
+      { id:4, name:'Plasma', desc:'Anticoagulated plasma', active:true, domain:'CLINICAL', tests:98, whonet:'PLA' },
+      { id:5, name:'CSF', desc:'Cerebrospinal fluid', active:true, domain:'CLINICAL', tests:24, whonet:'CSF' },
+      { id:6, name:'Stool', desc:'Fecal specimen', active:true, domain:'CLINICAL', tests:18, whonet:'STL' },
+      { id:7, name:'Surface Water', desc:'River, lake, or stream sample', active:true, domain:'ENVIRONMENTAL', tests:42, whonet:null },
+      { id:8, name:'Groundwater', desc:'Well or borehole water', active:true, domain:'ENVIRONMENTAL', tests:38, whonet:null },
+      { id:9, name:'Drinking Water', desc:'Treated potable water', active:true, domain:'BOTH', tests:56, whonet:null },
+      { id:10, name:'Effluent / Wastewater', desc:'Industrial or municipal discharge', active:true, domain:'ENVIRONMENTAL', tests:31, whonet:null },
+      { id:11, name:'Ambient Air', desc:'Outdoor air quality sample', active:true, domain:'ENVIRONMENTAL', tests:18, whonet:null },
+      { id:12, name:'Topsoil', desc:'Surface soil (0–30 cm)', active:true, domain:'ENVIRONMENTAL', tests:22, whonet:null },
+      { id:13, name:'Sediment', desc:'River or lake bed sediment', active:true, domain:'ENVIRONMENTAL', tests:15, whonet:null },
+      { id:14, name:'Sputum', desc:'Expectorated or induced sputum', active:true, domain:'CLINICAL', tests:12, whonet:'SPT' },
+      { id:15, name:'Sludge', desc:'Wastewater treatment sludge', active:true, domain:'ENVIRONMENTAL', tests:9, whonet:null },
+      { id:16, name:'Throat Swab', desc:'Oropharyngeal swab', active:true, domain:'CLINICAL', tests:8, whonet:'THR' },
+    ];
+
+    const DOMAIN_COLORS = { CLINICAL:'tag-green', ENVIRONMENTAL:'tag-purple', BOTH:'tag-teal' };
+    const DOMAIN_LABELS = { CLINICAL:'Clinical', ENVIRONMENTAL:'Environmental', BOTH:'Both' };
+
+    // ─── App ─────────────────────────────────────────────────
+    function App() {
+      const [view, setView] = useState('list');
+      const [types, setTypes] = useState(INITIAL_TYPES);
+      const [search, setSearch] = useState('');
+      const [domainFilter, setDomainFilter] = useState('');
+      const [bulkChanges, setBulkChanges] = useState({});
+      const [bulkOpen, setBulkOpen] = useState(false);
+      const [editType, setEditType] = useState(null);
+      const [activeTab, setActiveTab] = useState(0);
+      const [savedMsg, setSavedMsg] = useState('');
+
+      const filtered = useMemo(() => types.filter(st => {
+        const ms = !search || st.name.toLowerCase().includes(search.toLowerCase()) || st.desc.toLowerCase().includes(search.toLowerCase());
+        const md = !domainFilter || st.domain === domainFilter;
+        return ms && md;
+      }), [types, search, domainFilter]);
+
+      const counts = useMemo(() => {
+        const c = { CLINICAL:0, ENVIRONMENTAL:0, BOTH:0 };
+        types.forEach(st => c[st.domain]++);
+        return c;
+      }, [types]);
+
+      const bulkCount = Object.keys(bulkChanges).length;
+
+      function handleBulkChange(id, val) {
+        setBulkChanges(prev => {
+          const orig = types.find(s => s.id === id)?.domain;
+          if (val === orig) { const n = {...prev}; delete n[id]; return n; }
+          return {...prev, [id]: val};
+        });
+      }
+
+      function applyBulk() {
+        setTypes(prev => prev.map(st => bulkChanges[st.id] ? {...st, domain: bulkChanges[st.id]} : st));
+        setSavedMsg(`${bulkCount} sample types updated successfully.`);
+        setBulkChanges({});
+        setTimeout(() => setSavedMsg(''), 4000);
+      }
+
+      function openEditor(st) {
+        setEditType({...st});
+        setActiveTab(0);
+        setView('editor');
+      }
+
+      function saveEditor() {
+        setTypes(prev => prev.map(st => st.id === editType.id ? editType : st));
+        setView('list');
+        setEditType(null);
+      }
+
+      // ─── LIST VIEW ───────────────────────────────────────
+      if (view === 'list') return (
+        <div>
+          {/* Header */}
+          <div className="tile">
+            <div className="header-row">
+              <div>
+                <h3>Sample Type Management</h3>
+                <p style={{fontSize:14, color:'#525252', marginTop:4}}>
+                  Configure sample types, display order, test associations, and domain classification.
+                </p>
+              </div>
+              <div className="summary-tags">
+                <span className="tag tag-green">{counts.CLINICAL} Clinical</span>
+                <span className="tag tag-purple">{counts.ENVIRONMENTAL} Environmental</span>
+                <span className="tag tag-teal">{counts.BOTH} Both</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Toolbar + Table */}
+          <div className="toolbar">
+            <input type="text" placeholder="Search sample types..." value={search}
+              onChange={e => setSearch(e.target.value)} />
+            <select value={domainFilter} onChange={e => setDomainFilter(e.target.value)}>
+              <option value="">All domains</option>
+              <option value="CLINICAL">Clinical</option>
+              <option value="ENVIRONMENTAL">Environmental</option>
+              <option value="BOTH">Both</option>
+            </select>
+            <div style={{flex:1}}></div>
+            <button className="btn btn-primary" style={{fontSize:13, padding:'6px 14px'}}>+ Add Sample Type</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Domain</th>
+                <th>Status</th>
+                <th>Tests</th>
+                <th>WHONET</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(st => (
+                <tr key={st.id}>
+                  <td>
+                    <span style={{fontWeight:500}}>{st.name}</span><br/>
+                    <span style={{fontSize:11, color:'#525252'}}>{st.desc}</span>
+                  </td>
+                  <td><span className={`tag ${DOMAIN_COLORS[st.domain]}`}>{DOMAIN_LABELS[st.domain]}</span></td>
+                  <td><span className={`tag ${st.active ? 'tag-green' : 'tag-gray'}`}>{st.active ? 'Active' : 'Inactive'}</span></td>
+                  <td>{st.tests}</td>
+                  <td>{st.whonet || <span style={{color:'#c6c6c6'}}>—</span>}</td>
+                  <td><button className="btn-ghost" onClick={() => openEditor(st)}>Edit</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Bulk Domain Assignment */}
+          <div style={{marginTop:16}}>
+            <div className="accordion-header" onClick={() => setBulkOpen(!bulkOpen)}>
+              <span>Classify Sample Domains</span>
+              <span>{bulkOpen ? '▾' : '▸'}</span>
+            </div>
+            <div className={`accordion-body ${bulkOpen ? 'open' : ''}`}>
+              <div className="notification notification-info">
+                Use this utility to quickly classify your existing sample types. This determines which sample types appear in Clinical vs. Environmental workflow modes.
+              </div>
+
+              {savedMsg && (
+                <div className="notification notification-success">{savedMsg}</div>
+              )}
+
+              <p style={{fontSize:13, color:'#525252', marginBottom:12}}>
+                {counts.ENVIRONMENTAL + counts.BOTH} of {types.length} sample types classified as Environmental or Both
+              </p>
+
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Current Domain</th>
+                    <th>New Domain</th>
+                    <th>Tests</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {types.map(st => (
+                    <tr key={st.id} className={bulkChanges[st.id] ? 'changed' : ''}>
+                      <td style={{fontWeight:500}}>{st.name}</td>
+                      <td><span className={`tag ${DOMAIN_COLORS[st.domain]}`}>{DOMAIN_LABELS[st.domain]}</span></td>
+                      <td>
+                        <select className="inline-select" value={bulkChanges[st.id] || st.domain}
+                          onChange={e => handleBulkChange(st.id, e.target.value)}>
+                          <option value="CLINICAL">Clinical</option>
+                          <option value="ENVIRONMENTAL">Environmental</option>
+                          <option value="BOTH">Both</option>
+                        </select>
+                      </td>
+                      <td>{st.tests}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="actions">
+                <button className="btn btn-primary" disabled={bulkCount === 0} onClick={applyBulk}>
+                  Apply Changes{bulkCount > 0 && ` (${bulkCount})`}
+                </button>
+                <button className="btn-ghost" disabled={bulkCount === 0} onClick={() => setBulkChanges({})}>
+                  Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+      // ─── EDITOR VIEW ─────────────────────────────────────
+      return (
+        <div>
+          {/* Editor Header */}
+          <div className="tile">
+            <div className="header-row">
+              <button className="btn-ghost" onClick={() => { setView('list'); setEditType(null); }}>
+                ← Back to List
+              </button>
+              <h4>{editType?.name}</h4>
+              <span className={`tag ${DOMAIN_COLORS[editType?.domain]}`}>{DOMAIN_LABELS[editType?.domain]}</span>
+              <span className={`tag ${editType?.active ? 'tag-green' : 'tag-gray'}`}>
+                {editType?.active ? 'Active' : 'Inactive'}
+              </span>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="tabs">
+            {['Basic Info', 'Display Order', 'Associated Tests', 'Storage & Disposal', 'WHONET Mapping'].map((tab, i) => (
+              <div key={i} className={`tab ${activeTab === i ? 'active' : ''}`} onClick={() => setActiveTab(i)}>
+                {tab}
+              </div>
+            ))}
+          </div>
+
+          <div className="tab-content">
+            {activeTab === 0 && (
+              <div style={{maxWidth:500}}>
+                <div className="form-field">
+                  <label>Name *</label>
+                  <input type="text" value={editType?.name || ''}
+                    onChange={e => setEditType(prev => ({...prev, name: e.target.value}))} />
+                </div>
+
+                <div className="form-field">
+                  <label>Active</label>
+                  <div style={{display:'flex', alignItems:'center', gap:8}}>
+                    <input type="checkbox" checked={editType?.active || false}
+                      onChange={e => setEditType(prev => ({...prev, active: e.target.checked}))}
+                      style={{width:18, height:18, accentColor:'#0f62fe'}} />
+                    <span style={{fontSize:14}}>{editType?.active ? 'Active' : 'Inactive'}</span>
+                  </div>
+                </div>
+
+                {/* ─── NEW: Sample Domain (S-04) ─────────────── */}
+                <div className="form-field" style={{border:'2px solid #d0e2ff', borderRadius:4, padding:16, background:'#f6f9ff'}}>
+                  <label style={{color:'#0f62fe'}}>Sample Domain * <span className="tag tag-blue" style={{fontSize:10, padding:'1px 6px', marginLeft:4}}>S-04</span></label>
+                  <select value={editType?.domain || 'CLINICAL'}
+                    onChange={e => setEditType(prev => ({...prev, domain: e.target.value}))}>
+                    <option value="CLINICAL">Clinical</option>
+                    <option value="ENVIRONMENTAL">Environmental</option>
+                    <option value="BOTH">Both</option>
+                  </select>
+                  <div className="helper">
+                    Determines which workflow mode (Clinical or Environmental) this sample type appears in.
+                  </div>
+                </div>
+                {/* ─── END NEW ───────────────────────────────── */}
+
+                <div className="form-field">
+                  <label>Description</label>
+                  <textarea value={editType?.desc || ''} rows={3}
+                    onChange={e => setEditType(prev => ({...prev, desc: e.target.value}))} />
+                </div>
+
+                <div className="actions">
+                  <button className="btn btn-primary" onClick={saveEditor}>Save</button>
+                  <button className="btn-ghost" onClick={() => { setView('list'); setEditType(null); }}>Cancel</button>
+                </div>
+              </div>
+            )}
+
+            {activeTab > 0 && (
+              <p style={{color:'#525252'}}>
+                {['', 'Display Order — Drag-and-drop reordering for dropdown appearance.',
+                  'Associated Tests — Bidirectional test association management.',
+                  'Storage & Disposal — Default storage conditions, duration, disposal method.',
+                  'WHONET Mapping — Map to WHONET specimen codes for AMR surveillance exports.'][activeTab]}
+                {' '}See OGC-296 for full specification.
+              </p>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

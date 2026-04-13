@@ -462,8 +462,8 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/quality/environmental-qc-rules.html',
     added: '2026-04-10',
     status: 'draft',
-    githubIssue: null,
-    jira: ['OGC-527'],
+    githubIssue: 79,
+    jira: ['OGC-554', 'OGC-527'],
     tags: ['quality', 'QC', 'environmental', 'vector', 'field-blank', 'trip-blank', 'duplicate', 'spike-recovery'],
   },
 
@@ -477,8 +477,8 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/vector-surveillance/vector-reference-data.html',
     added: '2026-04-13',
     status: 'draft',
-    githubIssue: null,
-    jira: ['OGC-527'],
+    githubIssue: 80,
+    jira: ['OGC-555', 'OGC-527'],
     tags: ['vector', 'species', 'taxonomy', 'trap-types', 'mosquito', 'tick', 'rodent', 'reference-data', 'pooling'],
   },
 
@@ -581,7 +581,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/results-validation/compliance-evaluation-engine.html',
     added: '2026-04-04',
     status: 'draft',
-    githubIssue: null,
+    githubIssue: 76,
     jira: ['OGC-547', 'OGC-527'],
     tags: ['compliance', 'evaluation', 'environmental', 'vector', 'results', 'thresholds'],
   },
@@ -595,8 +595,8 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/reports/laporan-hasil-compliance-report.html',
     added: '2026-04-05',
     status: 'draft',
-    githubIssue: null,
-    jira: ['OGC-527'],
+    githubIssue: 77,
+    jira: ['OGC-552', 'OGC-527'],
     tags: ['compliance', 'report', 'environmental', 'vector', 'certificate', 'pdf', 'laporan-hasil'],
   },
   {
@@ -630,8 +630,8 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/reports/environmental-dashboard.html',
     added: '2026-04-10',
     status: 'draft',
-    githubIssue: null,
-    jira: ['OGC-527'],
+    githubIssue: 78,
+    jira: ['OGC-553', 'OGC-527'],
     tags: ['compliance', 'environmental', 'vector', 'dashboard', 'trends', 'charts'],
   },
   {
@@ -912,6 +912,20 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 69,
     jira: ['OGC-461'],
     tags: ['blood-bank', 'transfusion', 'issue', 'emergency-release'],
+  },
+
+  // ─── Reference / Planning ───
+  {
+    name: 'Environmental & Vector Testing Roadmap',
+    category: 'other',
+    component: null,
+    description: 'Architecture roadmap for the Environmental & Vector Testing Module (OGC-527 epic). Covers 3-layer build order: S-01–S-02 foundational infrastructure, S-03–S-04 integration, S-05–S-08 analytics/reporting, V-01–V-04 vector surveillance. Dependency graph, recommended implementation phases, and current spec completion status.',
+    specPath: 'designs/other/environmental-vector-roadmap.md',
+    added: '2026-04-13',
+    status: 'draft',
+    githubIssue: 81,
+    jira: ['OGC-527'],
+    tags: ['environmental', 'vector', 'roadmap', 'planning', 'architecture', 'compliance'],
   },
 
   // ─── Figma-only entries (no JSX mockup) ───
