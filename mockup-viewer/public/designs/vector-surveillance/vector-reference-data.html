@@ -25,6 +25,7 @@
     .oe-sidenav-item:hover { background: #353535; }
     .oe-sidenav-item.active { background: #393939; border-left-color: #0f62fe; color: #fff; font-weight: 600; }
     .oe-sidenav-item .chev { margin-left: auto; font-size: 11px; }
+    .oe-sidenav-badge { display: inline-block; background: #da1e28; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 8px; margin-left: auto; }
     .oe-sidenav-submenu { background: #1e1e1e; }
     .oe-sidenav-submenu .oe-sidenav-item { padding-left: 3.25rem; font-size: 13px; color: #c6c6c6; }
     .oe-sidenav-submenu .oe-sidenav-item.active { background: #393939; color: #fff; border-left-color: #0f62fe; }
@@ -44,16 +45,16 @@
     table.oe-table tbody td { padding: 12px 1rem; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
     table.oe-table tbody tr:hover { background: #f4f4f4; }
     table.oe-table tbody tr.expanded { background: #edf5ff; }
+    table.oe-table tbody tr.new-row { background: #defbe6; }
     .oe-row-expand { background: #f4f4f4; padding: 1rem 1.5rem; }
     .cds--tag { margin: 0 4px 0 0; }
     .oe-accordion-panel { background: #fff; border: 1px solid #e0e0e0; margin-top: 1rem; }
     .oe-accordion-header { padding: 12px 1rem; cursor: pointer; display: flex; align-items: center; font-size: 14px; font-weight: 600; color: #161616; background: #f4f4f4; border-bottom: 1px solid #e0e0e0; }
-    .oe-accordion-header .chev { margin-left: auto; transition: transform 0.2s; }
-    .oe-accordion-header.open .chev { transform: rotate(180deg); }
     .oe-accordion-body { padding: 1rem 1.5rem; background: #fff; }
     .oe-field { margin-bottom: 1rem; }
     .oe-field label { display: block; font-size: 12px; color: #525252; margin-bottom: 4px; }
     .oe-field input, .oe-field select, .oe-field textarea { width: 100%; padding: 8px 12px; border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; font-size: 14px; font-family: inherit; box-sizing: border-box; }
+    .oe-field input:disabled, .oe-field select:disabled { background: #e8e8e8; color: #8d8d8d; }
     .oe-field input:focus, .oe-field select:focus, .oe-field textarea:focus { outline: 2px solid #0f62fe; outline-offset: -2px; }
     .oe-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .oe-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
@@ -62,14 +63,27 @@
     .oe-banner-icon { font-size: 16px; color: #0f62fe; }
     .oe-banner-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
     .oe-banner-body { font-size: 13px; color: #393939; }
-    .oe-callout { background: #edf5ff; border: 1px solid #a6c8ff; padding: 1rem 1.25rem; margin-bottom: 1rem; }
-    .oe-callout strong { color: #002d9c; }
+
+    /* Hub status banner (matches OGC-447 pattern) */
+    .oe-hub { display: flex; align-items: center; gap: 1rem; background: #fff; border: 1px solid #e0e0e0; border-left: 4px solid #24a148; padding: 12px 1.25rem; margin-bottom: 1rem; }
+    .oe-hub.unreachable { border-left-color: #da1e28; }
+    .oe-hub-status { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+    .oe-hub-dot { width: 8px; height: 8px; border-radius: 50%; background: #24a148; }
+    .oe-hub.unreachable .oe-hub-dot { background: #da1e28; }
+    .oe-hub-meta { font-size: 12px; color: #525252; display: flex; align-items: center; gap: 1.25rem; }
+    .oe-hub-meta strong { color: #161616; }
+    .oe-hub-actions { margin-left: auto; display: flex; gap: 8px; }
+    .oe-pending-pill { display: inline-block; background: #fff1f1; color: #750e13; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; border: 1px solid #ffd7d9; }
+
+    /* System-protected badge */
+    .oe-lock { display: inline-block; background: #edf5ff; color: #002d9c; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+
     .preview-footer { background: #161616; color: #8d8d8d; padding: 4px 1rem; font-size: 11px; font-family: monospace; }
   </style>
 </head>
 <body class="cds--white">
   <div class="preview-banner">
-    ⚡ Visual Preview — V-01 Vector Specimen Types & Taxonomy &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Option A: Integrated with Sample Type Management
+    ⚡ Visual Preview — V-01 Vector Specimen Types & Taxonomy &nbsp;|&nbsp; v1.2 · Groups CRUD + Catalog Subscription (OGC-447)
   </div>
   <div id="root"></div>
   <div class="preview-footer">OpenELIS Global · v3.x design preview · Not a live application</div>
@@ -77,50 +91,83 @@
   <script type="text/babel">
     const { useState } = React;
 
-    const SPECIES = [
-      { id: 'sp1', genus: 'Aedes', species: 'aegypti', subspecies: null, group: 'MOSQUITO', pathogens: ['Dengue', 'Zika', 'Chikungunya'], stages: ['ADULT', 'LARVA', 'PUPA', 'EGG'], active: true },
-      { id: 'sp2', genus: 'Aedes', species: 'albopictus', subspecies: null, group: 'MOSQUITO', pathogens: ['Dengue', 'Chikungunya'], stages: ['ADULT', 'LARVA'], active: true },
-      { id: 'sp3', genus: 'Anopheles', species: 'sundaicus', subspecies: null, group: 'MOSQUITO', pathogens: ['Plasmodium falciparum', 'Plasmodium vivax'], stages: ['ADULT', 'LARVA'], active: true },
-      { id: 'sp4', genus: 'Anopheles', species: 'maculatus', subspecies: null, group: 'MOSQUITO', pathogens: ['Plasmodium vivax'], stages: ['ADULT'], active: true },
-      { id: 'sp5', genus: 'Culex', species: 'quinquefasciatus', subspecies: null, group: 'MOSQUITO', pathogens: ['Wuchereria bancrofti', 'JE virus'], stages: ['ADULT', 'LARVA'], active: true },
-      { id: 'sp6', genus: 'Rhipicephalus', species: 'sanguineus', subspecies: null, group: 'TICK', pathogens: ['Ehrlichia canis', 'Babesia'], stages: ['ADULT', 'NYMPH', 'LARVA'], active: true },
-      { id: 'sp7', genus: 'Haemaphysalis', species: 'bispinosa', subspecies: null, group: 'TICK', pathogens: ['Anaplasma'], stages: ['ADULT', 'NYMPH'], active: true },
-      { id: 'sp8', genus: 'Rattus', species: 'rattus', subspecies: 'diardii', group: 'RODENT', pathogens: ['Leptospira', 'Rickettsia'], stages: ['ADULT'], active: true },
-      { id: 'sp9', genus: 'Rattus', species: 'norvegicus', subspecies: null, group: 'RODENT', pathogens: ['Leptospira', 'Hantavirus'], stages: ['ADULT'], active: true },
-      { id: 'sp10', genus: 'Bandicota', species: 'indica', subspecies: null, group: 'RODENT', pathogens: ['Leptospira'], stages: ['ADULT'], active: true },
+    // ─── System-protected default groups (codes immutable, label/color editable, cannot delete) ───
+    const INITIAL_GROUPS = [
+      { code: 'MOSQUITO', label: 'Mosquito', colorKind: 'green', description: 'Culicidae family; arbovirus and malaria vectors', system: true, active: true, speciesCount: 18, trapCount: 4, sampleTypeCount: 2 },
+      { code: 'TICK', label: 'Tick', colorKind: 'blue', description: 'Ixodidae and Argasidae; tick-borne pathogens', system: true, active: true, speciesCount: 10, trapCount: 2, sampleTypeCount: 1 },
+      { code: 'RODENT', label: 'Rodent', colorKind: 'purple', description: 'Rats, mice, bandicoots; zoonotic reservoirs', system: true, active: true, speciesCount: 7, trapCount: 2, sampleTypeCount: 1 },
+      { code: 'OTHER_ARTHROPOD', label: 'Other arthropod', colorKind: 'warm-gray', description: 'Sandflies, midges, triatomines, etc.', system: true, active: true, speciesCount: 3, trapCount: 1, sampleTypeCount: 0 },
+      { code: 'OTHER_ANIMAL', label: 'Other animal', colorKind: 'gray', description: 'Non-rodent zoonotic hosts (bats, birds, etc.)', system: true, active: true, speciesCount: 2, trapCount: 0, sampleTypeCount: 0 },
     ];
 
-    const TRAPS = [
-      { id: 't1', name: 'BG-Sentinel Trap', target: 'MOSQUITO', description: 'CO\u2082-baited adult mosquito trap with electric fan; widely used for Aedes surveillance', active: true },
-      { id: 't2', name: 'CDC Light Trap', target: 'MOSQUITO', description: 'UV-light trap for nocturnal mosquitoes, especially Culex and Anopheles', active: true },
-      { id: 't3', name: 'Ovitrap', target: 'MOSQUITO', description: 'Oviposition trap with wooden paddle for Aedes egg collection in households', active: true },
-      { id: 't4', name: 'Human Landing Catch', target: 'MOSQUITO', description: 'Manual collection on human bait; requires ethical approval; gold standard for EIR', active: true },
-      { id: 't5', name: 'Drag Cloth', target: 'TICK', description: 'White flannel cloth dragged through vegetation to collect questing ticks', active: true },
-      { id: 't6', name: 'CO\u2082 Tick Trap', target: 'TICK', description: 'Dry-ice baited trap for attracting host-seeking ticks', active: true },
-      { id: 't7', name: 'Sherman Live Trap', target: 'RODENT', description: 'Folding aluminum live trap for small rodents; standard for urban Rattus surveillance', active: true },
-      { id: 't8', name: 'Snap Trap', target: 'RODENT', description: 'Kill trap; used where ethics permit; simpler logistics than live traps', active: true },
+    const INITIAL_SPECIES = [
+      { id: 'sp1', genus: 'Aedes', species: 'aegypti', subspecies: null, groupCode: 'MOSQUITO', pathogens: ['Dengue', 'Zika', 'Chikungunya'], stages: ['ADULT', 'LARVA', 'PUPA', 'EGG'], active: true },
+      { id: 'sp2', genus: 'Aedes', species: 'albopictus', subspecies: null, groupCode: 'MOSQUITO', pathogens: ['Dengue', 'Chikungunya'], stages: ['ADULT', 'LARVA'], active: true },
+      { id: 'sp3', genus: 'Anopheles', species: 'sundaicus', subspecies: null, groupCode: 'MOSQUITO', pathogens: ['Plasmodium falciparum'], stages: ['ADULT'], active: true },
+      { id: 'sp4', genus: 'Culex', species: 'quinquefasciatus', subspecies: null, groupCode: 'MOSQUITO', pathogens: ['Wuchereria bancrofti'], stages: ['ADULT', 'LARVA'], active: true },
+      { id: 'sp5', genus: 'Rhipicephalus', species: 'sanguineus', subspecies: null, groupCode: 'TICK', pathogens: ['Ehrlichia canis'], stages: ['ADULT', 'NYMPH'], active: true },
+      { id: 'sp6', genus: 'Rattus', species: 'rattus', subspecies: 'diardii', groupCode: 'RODENT', pathogens: ['Leptospira'], stages: ['ADULT'], active: true },
+      { id: 'sp7', genus: 'Rattus', species: 'norvegicus', subspecies: null, groupCode: 'RODENT', pathogens: ['Leptospira', 'Hantavirus'], stages: ['ADULT'], active: true },
     ];
+
+    const INITIAL_TRAPS = [
+      { id: 'tr1', name: 'BG-Sentinel Trap', targetCode: 'MOSQUITO', description: 'CO\u2082-baited adult mosquito trap; widely used for Aedes surveillance', active: true },
+      { id: 'tr2', name: 'CDC Light Trap', targetCode: 'MOSQUITO', description: 'UV-light trap for nocturnal mosquitoes (Culex, Anopheles)', active: true },
+      { id: 'tr3', name: 'Ovitrap', targetCode: 'MOSQUITO', description: 'Oviposition trap for Aedes egg collection', active: true },
+      { id: 'tr4', name: 'Sherman Live Trap', targetCode: 'RODENT', description: 'Folding aluminum live trap for small rodents', active: true },
+      { id: 'tr5', name: 'Drag Cloth', targetCode: 'TICK', description: 'White flannel cloth dragged through vegetation to collect questing ticks', active: true },
+    ];
+
+    // Pending updates from upstream hub (mirrors OGC-447 pattern)
+    const PENDING_COUNT = 4;
+
+    // Hub status
+    const HUB = { name: 'OpenELIS Community Hub', url: 'https://hub.openelis.org/fhir', status: 'CONNECTED', catalogs: 12, subscribed: 3, lastSync: '2026-04-13 06:00 UTC', pending: PENDING_COUNT };
 
     const SAMPLE_TYPES = [
       { id: 'st1', name: 'Serum', domain: 'CLINICAL', desc: 'Venous blood serum' },
       { id: 'st2', name: 'Surface Water', domain: 'ENVIRONMENTAL', desc: 'Surface water for potability or pollution testing' },
-      { id: 'st3', name: 'Drinking Water', domain: 'BOTH', desc: 'Finished drinking water, POE/POU sampling' },
-      { id: 'st4', name: 'Mosquito Pool \u2014 Aedes', domain: 'VECTOR', desc: 'Pool of up to 50 adult Aedes mosquitoes for arbovirus screening', vectorProfile: { strategy: 'POOL_FIXED', defaultPoolSize: 50, preservation: 'RNAlater', groups: ['MOSQUITO'], stages: ['ADULT'] } },
-      { id: 'st5', name: 'Mosquito Pool \u2014 Anopheles', domain: 'VECTOR', desc: 'Variable pool for malaria vector identification', vectorProfile: { strategy: 'POOL_VARIABLE', defaultPoolSize: null, preservation: 'Silica gel', groups: ['MOSQUITO'], stages: ['ADULT'] } },
-      { id: 'st6', name: 'Individual Rodent Tissue', domain: 'VECTOR', desc: 'Single rodent kidney/spleen for Leptospira testing', vectorProfile: { strategy: 'INDIVIDUAL', defaultPoolSize: null, preservation: 'Frozen (-80\u00b0C)', groups: ['RODENT'], stages: ['ADULT'] } },
-      { id: 'st7', name: 'Tick Pool', domain: 'VECTOR', desc: 'Pool of ticks by species/stage', vectorProfile: { strategy: 'POOL_FIXED', defaultPoolSize: 25, preservation: '70% Ethanol', groups: ['TICK'], stages: ['ADULT', 'NYMPH'] } },
+      { id: 'st3', name: 'Mosquito Pool \u2014 Aedes', domain: 'VECTOR', desc: 'Pool of up to 50 adult Aedes mosquitoes for arbovirus screening', vectorProfile: { strategy: 'POOL_FIXED', defaultPoolSize: 50, preservation: 'RNAlater', groups: ['MOSQUITO'], stages: ['ADULT'] } },
+      { id: 'st4', name: 'Mosquito Pool \u2014 Anopheles', domain: 'VECTOR', desc: 'Variable pool for malaria vector identification', vectorProfile: { strategy: 'POOL_VARIABLE', defaultPoolSize: null, preservation: 'Silica gel', groups: ['MOSQUITO'], stages: ['ADULT'] } },
+      { id: 'st5', name: 'Individual Rodent Tissue', domain: 'VECTOR', desc: 'Single rodent kidney/spleen for Leptospira testing', vectorProfile: { strategy: 'INDIVIDUAL', defaultPoolSize: null, preservation: 'Frozen (-80\u00b0C)', groups: ['RODENT'], stages: ['ADULT'] } },
     ];
 
-    const GROUP_COLORS = { MOSQUITO: 'green', TICK: 'blue', RODENT: 'purple', OTHER_ARTHROPOD: 'warm-gray', OTHER_ANIMAL: 'gray' };
+    const DOMAIN_TAG = { CLINICAL: 'blue', ENVIRONMENTAL: 'teal', BOTH: 'purple', VECTOR: 'green' };
 
-    const STRATEGY_LABEL = {
-      INDIVIDUAL: 'Individual (1 organism per sample)',
-      POOL_FIXED: 'Pool \u2014 fixed size',
-      POOL_VARIABLE: 'Pool \u2014 variable size',
-    };
+    // ─── Hub status banner (shared across pages) ───
+    function HubBanner() {
+      const unreachable = HUB.status !== 'CONNECTED';
+      return (
+        <div className={'oe-hub' + (unreachable ? ' unreachable' : '')}>
+          <div className="oe-hub-status">
+            <span className="oe-hub-dot"></span>
+            {unreachable ? 'Unreachable' : 'Connected'}
+          </div>
+          <div className="oe-hub-meta">
+            <span><strong>{HUB.name}</strong></span>
+            <span>{HUB.catalogs} catalogs &middot; <strong>{HUB.subscribed}</strong> subscribed</span>
+            <span>Last sync: {HUB.lastSync}</span>
+            {HUB.pending > 0 && (
+              <span className="oe-pending-pill">{HUB.pending} pending updates to review</span>
+            )}
+          </div>
+          <div className="oe-hub-actions">
+            <button className="cds--btn cds--btn--ghost cds--btn--sm">Sync now</button>
+            <button className="cds--btn cds--btn--tertiary cds--btn--sm">Manage subscriptions</button>
+          </div>
+        </div>
+      );
+    }
 
+    // ─── Header ───
     function Header({ page }) {
-      const crumbs = { species: 'Admin \u203a Vector Surveillance \u203a Species', traps: 'Admin \u203a Vector Surveillance \u203a Trap Types', sampleTypes: 'Admin \u203a Sample Types' };
+      const crumbs = {
+        groups: 'Admin \u203a Vector Surveillance \u203a Groups',
+        species: 'Admin \u203a Vector Surveillance \u203a Species',
+        traps: 'Admin \u203a Vector Surveillance \u203a Trap Types',
+        pending: 'Admin \u203a Vector Surveillance \u203a Pending Updates',
+        sampleTypes: 'Admin \u203a Sample Types',
+      };
       return (
         <div className="oe-header">
           <div className="oe-header-title">OpenELIS Global</div>
@@ -137,6 +184,7 @@
       );
     }
 
+    // ─── Side Nav ───
     function SideNav({ page, setPage }) {
       const [vectorOpen, setVectorOpen] = useState(true);
       return (
@@ -161,8 +209,13 @@
           </div>
           {vectorOpen && (
             <div className="oe-sidenav-submenu">
+              <div className={'oe-sidenav-item' + (page === 'groups' ? ' active' : '')} onClick={() => setPage('groups')}>Groups</div>
               <div className={'oe-sidenav-item' + (page === 'species' ? ' active' : '')} onClick={() => setPage('species')}>Species</div>
               <div className={'oe-sidenav-item' + (page === 'traps' ? ' active' : '')} onClick={() => setPage('traps')}>Trap Types</div>
+              <div className={'oe-sidenav-item' + (page === 'pending' ? ' active' : '')} onClick={() => setPage('pending')}>
+                Pending Updates
+                {PENDING_COUNT > 0 && <span className="oe-sidenav-badge">{PENDING_COUNT}</span>}
+              </div>
             </div>
           )}
 
@@ -172,31 +225,41 @@
       );
     }
 
-    function SpeciesPage() {
+    // ─── Groups page (full CRUD; defaults are system-protected) ───
+    function GroupsPage() {
+      const [groups, setGroups] = useState(INITIAL_GROUPS);
       const [expanded, setExpanded] = useState(null);
-      const [groupFilter, setGroupFilter] = useState('ALL');
-      const filtered = groupFilter === 'ALL' ? SPECIES : SPECIES.filter(s => s.group === groupFilter);
+      const [adding, setAdding] = useState(false);
+
+      const colorOptions = ['green', 'blue', 'purple', 'warm-gray', 'gray', 'teal', 'red', 'magenta', 'cyan'];
+
+      function handleAdd() {
+        setAdding(true);
+        setExpanded(null);
+      }
+      function saveNew(e) {
+        const code = e.target.querySelector('[data-f="code"]').value.trim().toUpperCase().replace(/\s+/g, '_');
+        const label = e.target.querySelector('[data-f="label"]').value.trim();
+        const colorKind = e.target.querySelector('[data-f="color"]').value;
+        const description = e.target.querySelector('[data-f="desc"]').value.trim();
+        if (!code || !label) return;
+        setGroups([...groups, { code, label, colorKind, description, system: false, active: true, speciesCount: 0, trapCount: 0, sampleTypeCount: 0 }]);
+        setAdding(false);
+      }
+
       return (
         <>
-          <div className="oe-breadcrumb"><a href="#">Admin</a> \u203a <a href="#">Vector Surveillance</a> \u203a Species</div>
-          <h1 className="oe-page-title">Species</h1>
+          <div className="oe-breadcrumb"><a href="#">Admin</a> \u203a <a href="#">Vector Surveillance</a> \u203a Groups</div>
+          <h1 className="oe-page-title">Organism Groups</h1>
           <div className="oe-page-subtitle">
-            Manage the taxonomy of mosquitoes, ticks, rodents, and other vector organisms. Species defined here are selectable during vector specimen collection (V-02) and identification (V-03).
+            Top-level classifications for vector organisms. Groups are referenced by Species, Trap Types, and Vector Sample Type profiles. Defaults are system-protected (their codes cannot be changed or deleted), but you may freely rename, recolor, or add new groups (e.g., SANDFLY, SNAIL, BAT).
           </div>
 
-          <div className="oe-callout">
-            <strong>Seed data available.</strong> OpenELIS ships with ~40 pre-loaded species relevant to Indonesia (18 mosquitoes, 10 ticks, 7 rodents, 5 other). The seed import is idempotent.
-            <button className="cds--btn cds--btn--ghost cds--btn--sm" style={{marginLeft: '8px'}}>Reload seed</button>
-          </div>
+          <HubBanner />
 
           <div className="oe-toolbar">
-            <div className="oe-toolbar-search"><span>\ud83d\udd0d</span><input placeholder="Search by genus, species, or pathogen..." /></div>
-            {['ALL', 'MOSQUITO', 'TICK', 'RODENT', 'OTHER_ARTHROPOD', 'OTHER_ANIMAL'].map(g => (
-              <span key={g} className={'oe-filter-chip' + (groupFilter === g ? ' active' : '')} onClick={() => setGroupFilter(g)}>
-                {g === 'ALL' ? 'All groups' : g.replace('_', ' ')}
-              </span>
-            ))}
-            <button className="cds--btn cds--btn--primary cds--btn--sm" style={{marginLeft: 'auto'}}>+ Add species</button>
+            <div className="oe-toolbar-search"><span>\ud83d\udd0d</span><input placeholder="Search by code or label..." /></div>
+            <button className="cds--btn cds--btn--primary cds--btn--sm" style={{marginLeft: 'auto'}} onClick={handleAdd}>+ Add group</button>
           </div>
 
           <div className="oe-table-wrap">
@@ -204,20 +267,186 @@
               <thead>
                 <tr>
                   <th style={{width: '40px'}}></th>
-                  <th>Genus</th><th>Species</th><th>Subspecies</th><th>Group</th><th>Pathogens of interest</th><th>Status</th><th style={{width: '80px'}}></th>
+                  <th>Code</th><th>Label</th><th>Color tag</th><th>Description</th><th>Used by</th><th>Status</th><th style={{width:'80px'}}></th>
                 </tr>
               </thead>
               <tbody>
+                {adding && (
+                  <>
+                    <tr className="new-row"><td>+</td><td colSpan="7"><strong>New group (unsaved)</strong></td></tr>
+                    <tr className="new-row">
+                      <td colSpan="8" className="oe-row-expand">
+                        <form onSubmit={(e) => { e.preventDefault(); saveNew(e); }}>
+                          <div className="oe-grid-3">
+                            <div className="oe-field"><label>Code* (A-Z, underscores)</label><input data-f="code" placeholder="e.g., SANDFLY" required /></div>
+                            <div className="oe-field"><label>Label*</label><input data-f="label" placeholder="e.g., Sandfly" required /></div>
+                            <div className="oe-field">
+                              <label>Color tag*</label>
+                              <select data-f="color" defaultValue="teal">
+                                {colorOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                              </select>
+                            </div>
+                          </div>
+                          <div className="oe-field"><label>Description</label><textarea data-f="desc" rows="2"></textarea></div>
+                          <div style={{marginTop: '1rem', display: 'flex', gap: '8px'}}>
+                            <button type="submit" className="cds--btn cds--btn--primary cds--btn--sm">Save group</button>
+                            <button type="button" className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setAdding(false)}>Cancel</button>
+                          </div>
+                        </form>
+                      </td>
+                    </tr>
+                  </>
+                )}
+                {groups.map(g => (
+                  <React.Fragment key={g.code}>
+                    <tr className={expanded === g.code ? 'expanded' : ''} onClick={() => setExpanded(expanded === g.code ? null : g.code)} style={{cursor:'pointer'}}>
+                      <td>{expanded === g.code ? '\u25be' : '\u25b8'}</td>
+                      <td><code>{g.code}</code>{g.system && <span className="oe-lock" title="System-protected">SYSTEM</span>}</td>
+                      <td><span className={'cds--tag cds--tag--' + g.colorKind}>{g.label}</span></td>
+                      <td style={{color:'#525252', fontSize:'12px'}}>{g.colorKind}</td>
+                      <td style={{color:'#525252'}}>{g.description}</td>
+                      <td style={{fontSize: '12px', color: '#525252'}}>
+                        {g.speciesCount} species &middot; {g.trapCount} traps &middot; {g.sampleTypeCount} sample types
+                      </td>
+                      <td><span className={'cds--tag cds--tag--' + (g.active ? 'green' : 'gray')}>{g.active ? 'Active' : 'Inactive'}</span></td>
+                      <td><button className="cds--btn cds--btn--ghost cds--btn--sm">Edit</button></td>
+                    </tr>
+                    {expanded === g.code && (
+                      <tr>
+                        <td colSpan="8" className="oe-row-expand">
+                          {g.system && (
+                            <div className="oe-banner" style={{marginBottom: '1rem', borderLeftColor: '#6929c4'}}>
+                              <span className="oe-banner-icon" style={{color:'#6929c4'}}>\ud83d\udd12</span>
+                              <div>
+                                <div className="oe-banner-title">System-protected group</div>
+                                <div className="oe-banner-body">The code <code>{g.code}</code> and deletion are locked because this group is referenced by core reports and seed data. You may still edit the label, color, and description.</div>
+                              </div>
+                            </div>
+                          )}
+                          <div className="oe-grid-3">
+                            <div className="oe-field">
+                              <label>Code* {g.system && <span style={{color:'#6929c4'}}>(locked)</span>}</label>
+                              <input defaultValue={g.code} disabled={g.system} />
+                            </div>
+                            <div className="oe-field"><label>Label*</label><input defaultValue={g.label} /></div>
+                            <div className="oe-field">
+                              <label>Color tag*</label>
+                              <select defaultValue={g.colorKind}>
+                                {colorOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                              </select>
+                            </div>
+                          </div>
+                          <div className="oe-field"><label>Description</label><textarea defaultValue={g.description} rows="2"></textarea></div>
+                          <div style={{marginTop: '1rem', display: 'flex', gap: '8px', alignItems: 'center'}}>
+                            <button className="cds--btn cds--btn--primary cds--btn--sm">Save</button>
+                            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setExpanded(null)}>Cancel</button>
+                            {!g.system && (
+                              <button className="cds--btn cds--btn--danger cds--btn--sm" style={{marginLeft: 'auto'}}
+                                disabled={g.speciesCount + g.trapCount + g.sampleTypeCount > 0}
+                                title={g.speciesCount + g.trapCount + g.sampleTypeCount > 0 ? 'Cannot delete: group is still referenced' : ''}
+                              >Delete group</button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      );
+    }
+
+    // ─── Species page (with working Add species) ───
+    function SpeciesPage() {
+      const [species, setSpecies] = useState(INITIAL_SPECIES);
+      const [expanded, setExpanded] = useState(null);
+      const [groupFilter, setGroupFilter] = useState('ALL');
+      const [adding, setAdding] = useState(false);
+
+      const groups = INITIAL_GROUPS;
+      const groupByCode = Object.fromEntries(groups.map(g => [g.code, g]));
+
+      const filtered = groupFilter === 'ALL' ? species : species.filter(s => s.groupCode === groupFilter);
+
+      function saveNew(e) {
+        const genus = e.target.querySelector('[data-f="genus"]').value.trim();
+        const speciesName = e.target.querySelector('[data-f="species"]').value.trim();
+        const subspecies = e.target.querySelector('[data-f="sub"]').value.trim() || null;
+        const groupCode = e.target.querySelector('[data-f="group"]').value;
+        if (!genus || !speciesName) return;
+        const newRec = {
+          id: 'sp' + (species.length + 1),
+          genus, species: speciesName, subspecies, groupCode, pathogens: [], stages: [], active: true,
+        };
+        setSpecies([newRec, ...species]);
+        setAdding(false);
+      }
+
+      return (
+        <>
+          <div className="oe-breadcrumb"><a href="#">Admin</a> \u203a <a href="#">Vector Surveillance</a> \u203a Species</div>
+          <h1 className="oe-page-title">Species</h1>
+          <div className="oe-page-subtitle">
+            Vector organism taxonomy at genus + species + optional subspecies. New species can be added manually or accepted from the OpenELIS Community Hub via Pending Updates.
+          </div>
+
+          <HubBanner />
+
+          <div className="oe-toolbar">
+            <div className="oe-toolbar-search"><span>\ud83d\udd0d</span><input placeholder="Search by genus, species, or pathogen..." /></div>
+            <span className={'oe-filter-chip' + (groupFilter === 'ALL' ? ' active' : '')} onClick={() => setGroupFilter('ALL')}>All groups</span>
+            {groups.map(g => (
+              <span key={g.code} className={'oe-filter-chip' + (groupFilter === g.code ? ' active' : '')} onClick={() => setGroupFilter(g.code)}>{g.label}</span>
+            ))}
+            <button className="cds--btn cds--btn--primary cds--btn--sm" style={{marginLeft: 'auto'}} onClick={() => { setAdding(true); setExpanded(null); }}>+ Add species</button>
+          </div>
+
+          <div className="oe-table-wrap">
+            <table className="oe-table">
+              <thead>
+                <tr>
+                  <th style={{width: '40px'}}></th>
+                  <th>Genus</th><th>Species</th><th>Subspecies</th><th>Group</th><th>Pathogens of interest</th><th>Status</th><th style={{width:'80px'}}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {adding && (
+                  <tr className="new-row">
+                    <td colSpan="8" className="oe-row-expand">
+                      <strong style={{display:'block', marginBottom:'8px'}}>New species</strong>
+                      <form onSubmit={(e) => { e.preventDefault(); saveNew(e); }}>
+                        <div className="oe-grid-3">
+                          <div className="oe-field"><label>Genus*</label><input data-f="genus" placeholder="e.g., Mansonia" required /></div>
+                          <div className="oe-field"><label>Species*</label><input data-f="species" placeholder="e.g., uniformis" required /></div>
+                          <div className="oe-field"><label>Subspecies (optional)</label><input data-f="sub" placeholder="e.g., diardii" /></div>
+                        </div>
+                        <div className="oe-field">
+                          <label>Organism group*</label>
+                          <select data-f="group" defaultValue="MOSQUITO">
+                            {groups.map(g => <option key={g.code} value={g.code}>{g.label}</option>)}
+                          </select>
+                        </div>
+                        <div style={{marginTop: '1rem', display: 'flex', gap: '8px'}}>
+                          <button type="submit" className="cds--btn cds--btn--primary cds--btn--sm">Save species</button>
+                          <button type="button" className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setAdding(false)}>Cancel</button>
+                        </div>
+                      </form>
+                    </td>
+                  </tr>
+                )}
                 {filtered.map(s => (
                   <React.Fragment key={s.id}>
-                    <tr className={expanded === s.id ? 'expanded' : ''} onClick={() => setExpanded(expanded === s.id ? null : s.id)} style={{cursor: 'pointer'}}>
+                    <tr className={expanded === s.id ? 'expanded' : ''} onClick={() => setExpanded(expanded === s.id ? null : s.id)} style={{cursor:'pointer'}}>
                       <td>{expanded === s.id ? '\u25be' : '\u25b8'}</td>
                       <td><em>{s.genus}</em></td>
                       <td><em>{s.species}</em></td>
-                      <td>{s.subspecies ? <em>ssp. {s.subspecies}</em> : <span style={{color:'#8d8d8d'}}>\u2014</span>}</td>
-                      <td><span className={'cds--tag cds--tag--' + GROUP_COLORS[s.group]}>{s.group}</span></td>
-                      <td>{s.pathogens.slice(0, 2).join(', ')}{s.pathogens.length > 2 ? ` +${s.pathogens.length - 2}` : ''}</td>
-                      <td>{s.active ? <span className="cds--tag cds--tag--green">Active</span> : <span className="cds--tag cds--tag--gray">Inactive</span>}</td>
+                      <td>{s.subspecies ? <em>ssp. {s.subspecies}</em> : '\u2014'}</td>
+                      <td><span className={'cds--tag cds--tag--' + (groupByCode[s.groupCode]?.colorKind || 'gray')}>{groupByCode[s.groupCode]?.label || s.groupCode}</span></td>
+                      <td>{s.pathogens.slice(0,2).join(', ') || <span style={{color:'#8d8d8d'}}>\u2014</span>}{s.pathogens.length>2?` +${s.pathogens.length-2}`:''}</td>
+                      <td><span className={'cds--tag cds--tag--' + (s.active?'green':'gray')}>{s.active?'Active':'Inactive'}</span></td>
                       <td><button className="cds--btn cds--btn--ghost cds--btn--sm">Edit</button></td>
                     </tr>
                     {expanded === s.id && (
@@ -226,39 +455,33 @@
                           <div className="oe-grid-3">
                             <div className="oe-field"><label>Genus*</label><input defaultValue={s.genus} /></div>
                             <div className="oe-field"><label>Species*</label><input defaultValue={s.species} /></div>
-                            <div className="oe-field"><label>Subspecies (optional)</label><input defaultValue={s.subspecies || ''} placeholder="e.g., diardii" /></div>
+                            <div className="oe-field"><label>Subspecies (optional)</label><input defaultValue={s.subspecies || ''} /></div>
                           </div>
                           <div className="oe-grid-2">
                             <div className="oe-field">
                               <label>Organism group*</label>
-                              <select defaultValue={s.group}>
-                                <option>MOSQUITO</option><option>TICK</option><option>RODENT</option><option>OTHER_ARTHROPOD</option><option>OTHER_ANIMAL</option>
+                              <select defaultValue={s.groupCode}>
+                                {groups.map(g => <option key={g.code} value={g.code}>{g.label}</option>)}
                               </select>
                             </div>
                             <div className="oe-field">
                               <label>Status</label>
-                              <select defaultValue={s.active ? 'active' : 'inactive'}>
-                                <option value="active">Active</option><option value="inactive">Inactive</option>
+                              <select defaultValue={s.active?'active':'inactive'}>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
                               </select>
                             </div>
                           </div>
-
-                          <div className="oe-accordion-panel">
-                            <div className="oe-accordion-header open">Advanced: pathogens &amp; lifecycle stages<span className="chev">\u25be</span></div>
-                            <div className="oe-accordion-body">
-                              <div className="oe-field">
-                                <label>Pathogens of interest</label>
-                                <input defaultValue={s.pathogens.join(', ')} />
-                                <div className="oe-help">Comma-separated. Selectable during vector testing (V-03).</div>
-                              </div>
-                              <div className="oe-field">
-                                <label>Lifecycle stages collected</label>
-                                <input defaultValue={s.stages.join(', ')} />
-                                <div className="oe-help">e.g., ADULT, LARVA, PUPA, EGG, NYMPH</div>
-                              </div>
-                            </div>
+                          <div className="oe-field">
+                            <label>Pathogens of interest</label>
+                            <input defaultValue={s.pathogens.join(', ')} />
+                            <div className="oe-help">Comma-separated. Selectable during vector testing (V-03).</div>
                           </div>
-
+                          <div className="oe-field">
+                            <label>Lifecycle stages</label>
+                            <input defaultValue={s.stages.join(', ')} />
+                            <div className="oe-help">e.g., ADULT, LARVA, PUPA, EGG, NYMPH</div>
+                          </div>
                           <div style={{marginTop: '1rem', display: 'flex', gap: '8px'}}>
                             <button className="cds--btn cds--btn--primary cds--btn--sm">Save</button>
                             <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setExpanded(null)}>Cancel</button>
@@ -275,51 +498,90 @@
       );
     }
 
+    // ─── Trap Types page (with working Add trap) ───
     function TrapTypesPage() {
+      const [traps, setTraps] = useState(INITIAL_TRAPS);
       const [expanded, setExpanded] = useState(null);
+      const [adding, setAdding] = useState(false);
+      const groupByCode = Object.fromEntries(INITIAL_GROUPS.map(g => [g.code, g]));
+
+      function saveNew(e) {
+        const name = e.target.querySelector('[data-f="name"]').value.trim();
+        const targetCode = e.target.querySelector('[data-f="target"]').value;
+        const description = e.target.querySelector('[data-f="desc"]').value.trim();
+        if (!name) return;
+        setTraps([{ id: 'tr' + (traps.length + 1), name, targetCode, description, active: true }, ...traps]);
+        setAdding(false);
+      }
+
       return (
         <>
           <div className="oe-breadcrumb"><a href="#">Admin</a> \u203a <a href="#">Vector Surveillance</a> \u203a Trap Types</div>
           <h1 className="oe-page-title">Trap Types</h1>
           <div className="oe-page-subtitle">Collection methods and devices used to capture vectors. Selectable when recording a Collection Lot (V-02).</div>
 
+          <HubBanner />
+
           <div className="oe-toolbar">
             <div className="oe-toolbar-search"><span>\ud83d\udd0d</span><input placeholder="Search trap name or description..." /></div>
-            <button className="cds--btn cds--btn--primary cds--btn--sm" style={{marginLeft: 'auto'}}>+ Add trap type</button>
+            <button className="cds--btn cds--btn--primary cds--btn--sm" style={{marginLeft: 'auto'}} onClick={() => { setAdding(true); setExpanded(null); }}>+ Add trap type</button>
           </div>
 
           <div className="oe-table-wrap">
             <table className="oe-table">
               <thead>
                 <tr>
-                  <th style={{width: '40px'}}></th><th>Trap name</th><th>Target organism group</th><th>Description</th><th>Status</th><th style={{width: '80px'}}></th>
+                  <th style={{width: '40px'}}></th><th>Trap name</th><th>Target organism group</th><th>Description</th><th>Status</th><th style={{width:'80px'}}></th>
                 </tr>
               </thead>
               <tbody>
-                {TRAPS.map(t => (
-                  <React.Fragment key={t.id}>
-                    <tr className={expanded === t.id ? 'expanded' : ''} onClick={() => setExpanded(expanded === t.id ? null : t.id)} style={{cursor: 'pointer'}}>
-                      <td>{expanded === t.id ? '\u25be' : '\u25b8'}</td>
-                      <td style={{fontWeight: 600}}>{t.name}</td>
-                      <td><span className={'cds--tag cds--tag--' + GROUP_COLORS[t.target]}>{t.target}</span></td>
-                      <td style={{color: '#525252'}}>{t.description}</td>
+                {adding && (
+                  <tr className="new-row">
+                    <td colSpan="6" className="oe-row-expand">
+                      <strong style={{display:'block', marginBottom:'8px'}}>New trap type</strong>
+                      <form onSubmit={(e) => { e.preventDefault(); saveNew(e); }}>
+                        <div className="oe-grid-2">
+                          <div className="oe-field"><label>Trap name*</label><input data-f="name" required /></div>
+                          <div className="oe-field">
+                            <label>Target organism group*</label>
+                            <select data-f="target" defaultValue="MOSQUITO">
+                              {INITIAL_GROUPS.map(g => <option key={g.code} value={g.code}>{g.label}</option>)}
+                            </select>
+                          </div>
+                        </div>
+                        <div className="oe-field"><label>Description</label><textarea data-f="desc" rows="3"></textarea></div>
+                        <div style={{marginTop:'1rem', display:'flex', gap:'8px'}}>
+                          <button type="submit" className="cds--btn cds--btn--primary cds--btn--sm">Save trap</button>
+                          <button type="button" className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setAdding(false)}>Cancel</button>
+                        </div>
+                      </form>
+                    </td>
+                  </tr>
+                )}
+                {traps.map(tr => (
+                  <React.Fragment key={tr.id}>
+                    <tr className={expanded === tr.id ? 'expanded' : ''} onClick={() => setExpanded(expanded === tr.id ? null : tr.id)} style={{cursor:'pointer'}}>
+                      <td>{expanded === tr.id ? '\u25be' : '\u25b8'}</td>
+                      <td style={{fontWeight: 600}}>{tr.name}</td>
+                      <td><span className={'cds--tag cds--tag--' + (groupByCode[tr.targetCode]?.colorKind || 'gray')}>{groupByCode[tr.targetCode]?.label || tr.targetCode}</span></td>
+                      <td style={{color:'#525252'}}>{tr.description}</td>
                       <td><span className="cds--tag cds--tag--green">Active</span></td>
                       <td><button className="cds--btn cds--btn--ghost cds--btn--sm">Edit</button></td>
                     </tr>
-                    {expanded === t.id && (
+                    {expanded === tr.id && (
                       <tr>
                         <td colSpan="6" className="oe-row-expand">
                           <div className="oe-grid-2">
-                            <div className="oe-field"><label>Trap name*</label><input defaultValue={t.name} /></div>
+                            <div className="oe-field"><label>Trap name*</label><input defaultValue={tr.name} /></div>
                             <div className="oe-field">
                               <label>Target organism group*</label>
-                              <select defaultValue={t.target}>
-                                <option>MOSQUITO</option><option>TICK</option><option>RODENT</option><option>OTHER_ARTHROPOD</option><option>OTHER_ANIMAL</option>
+                              <select defaultValue={tr.targetCode}>
+                                {INITIAL_GROUPS.map(g => <option key={g.code} value={g.code}>{g.label}</option>)}
                               </select>
                             </div>
                           </div>
-                          <div className="oe-field"><label>Description</label><textarea rows="3" defaultValue={t.description}></textarea></div>
-                          <div style={{marginTop: '1rem', display: 'flex', gap: '8px'}}>
+                          <div className="oe-field"><label>Description</label><textarea rows="3" defaultValue={tr.description}></textarea></div>
+                          <div style={{marginTop:'1rem', display:'flex', gap:'8px'}}>
                             <button className="cds--btn cds--btn--primary cds--btn--sm">Save</button>
                             <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setExpanded(null)}>Cancel</button>
                           </div>
@@ -335,54 +597,100 @@
       );
     }
 
+    // ─── Pending Updates page (stub showing the OGC-447 pattern applied to vector reference data) ───
+    function PendingUpdatesPage() {
+      const pending = [
+        { id: 1, type: 'SPECIES', action: 'NEW', summary: 'Aedes scutellaris (MOSQUITO) — new species proposal from Hub', source: 'WHO Vector Ref v2026.1' },
+        { id: 2, type: 'SPECIES', action: 'UPDATE', summary: 'Culex tritaeniorhynchus — pathogens list updated (+ Murray Valley encephalitis)', source: 'WHO Vector Ref v2026.1' },
+        { id: 3, type: 'GROUP', action: 'NEW', summary: 'SANDFLY (Phlebotominae) — new organism group proposal', source: 'WHO Vector Ref v2026.1' },
+        { id: 4, type: 'TRAP', action: 'UPDATE', summary: 'BG-Sentinel Trap — description revision', source: 'OpenELIS Community Hub' },
+      ];
+      return (
+        <>
+          <div className="oe-breadcrumb"><a href="#">Admin</a> \u203a <a href="#">Vector Surveillance</a> \u203a Pending Updates</div>
+          <h1 className="oe-page-title">Pending Updates <span style={{fontSize: '14px', color:'#da1e28', fontWeight: 600, marginLeft: '8px'}}>{pending.length} awaiting review</span></h1>
+          <div className="oe-page-subtitle">
+            Proposed changes to your local vector reference data from subscribed upstream catalogs. Review field-by-field and selectively accept or reject each change — same workflow as the Test Catalog Subscription (OGC-447).
+          </div>
+
+          <HubBanner />
+
+          <div className="oe-table-wrap">
+            <table className="oe-table">
+              <thead>
+                <tr>
+                  <th>Type</th><th>Action</th><th>Summary</th><th>Source</th><th style={{width: '200px'}}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {pending.map(p => (
+                  <tr key={p.id}>
+                    <td><span className="cds--tag cds--tag--gray">{p.type}</span></td>
+                    <td><span className={'cds--tag cds--tag--' + (p.action === 'NEW' ? 'green' : 'blue')}>{p.action}</span></td>
+                    <td>{p.summary}</td>
+                    <td style={{color:'#525252', fontSize:'12px'}}>{p.source}</td>
+                    <td>
+                      <button className="cds--btn cds--btn--ghost cds--btn--sm">Review diff</button>
+                      <button className="cds--btn cds--btn--primary cds--btn--sm">Accept</button>
+                      <button className="cds--btn cds--btn--danger cds--btn--sm">Reject</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{marginTop:'1rem', fontSize:'12px', color:'#525252'}}>
+            Bulk actions and per-field Accept/Reject diff follow the same UI contract as <a href="#">OGC-447 Catalog Subscription</a>.
+          </div>
+        </>
+      );
+    }
+
+    // ─── Sample Types page (V-01 integration via Vector Profile accordion) ───
     function SampleTypesPage() {
-      const [expanded, setExpanded] = useState('st4');
+      const [expanded, setExpanded] = useState('st3');
       const [domainFilter, setDomainFilter] = useState('ALL');
-      const [vectorAccOpen, setVectorAccOpen] = useState(true);
       const filtered = domainFilter === 'ALL' ? SAMPLE_TYPES : SAMPLE_TYPES.filter(s => s.domain === domainFilter);
-      const domainTag = (d) => {
-        const kinds = { CLINICAL: 'blue', ENVIRONMENTAL: 'teal', BOTH: 'purple', VECTOR: 'green' };
-        return <span className={'cds--tag cds--tag--' + kinds[d]}>{d}</span>;
+      const domainTag = (d) => <span className={'cds--tag cds--tag--' + DOMAIN_TAG[d]}>{d}</span>;
+      const groupByCode = Object.fromEntries(INITIAL_GROUPS.map(g => [g.code, g]));
+      const STRATEGY = {
+        INDIVIDUAL: 'Individual (1 organism per sample)',
+        POOL_FIXED: 'Pool \u2014 fixed size', POOL_VARIABLE: 'Pool \u2014 variable size',
       };
+
       return (
         <>
           <div className="oe-breadcrumb"><a href="#">Admin</a> \u203a Sample Types</div>
           <h1 className="oe-page-title">Sample Types</h1>
-          <div className="oe-page-subtitle">Manage all sample types. Vector sample types (with pooling configuration) are edited here via the <strong>Vector Profile</strong> section that appears when domain = Vector.</div>
+          <div className="oe-page-subtitle">Vector sample types are edited here via the <strong>Vector Profile</strong> section that appears when domain = Vector.</div>
 
           <div className="oe-banner">
             <span className="oe-banner-icon">\u2139</span>
             <div>
               <div className="oe-banner-title">How V-01 integrates with Sample Type Management</div>
               <div className="oe-banner-body">
-                V-01 extends the existing <em>Sample Type</em> entity by adding <code>VECTOR</code> to the <code>sampleDomain</code> enum introduced in S-04. When a sample type's domain is set to <strong>Vector</strong>, a <strong>Vector Profile</strong> accordion appears below Basic Info holding pooling strategy, preservation method, and allowed organism groups. This preserves a single source of truth and reuses the existing admin surface. Species and Trap Types remain separate admin pages because they are independent reference tables, not per\u2013sample-type configuration.
+                V-01 extends the existing <em>Sample Type</em> entity by adding <code>VECTOR</code> to the <code>sampleDomain</code> enum introduced in S-04. When a sample type's domain is set to <strong>Vector</strong>, a <strong>Vector Profile</strong> accordion appears below Basic Info holding pooling strategy, preservation, and allowed organism groups. Groups, Species, and Trap Types remain separate admin pages because they are independent reference tables.
               </div>
             </div>
           </div>
 
           <div className="oe-toolbar">
             <div className="oe-toolbar-search"><span>\ud83d\udd0d</span><input placeholder="Search sample type name..." /></div>
-            {['ALL', 'CLINICAL', 'ENVIRONMENTAL', 'VECTOR'].map(d => (
-              <span key={d} className={'oe-filter-chip' + (domainFilter === d ? ' active' : '')} onClick={() => setDomainFilter(d)}>
-                {d === 'ALL' ? 'All domains' : d}
-              </span>
+            {['ALL','CLINICAL','ENVIRONMENTAL','VECTOR'].map(d => (
+              <span key={d} className={'oe-filter-chip' + (domainFilter === d ? ' active' : '')} onClick={() => setDomainFilter(d)}>{d === 'ALL' ? 'All domains' : d}</span>
             ))}
             <button className="cds--btn cds--btn--primary cds--btn--sm" style={{marginLeft: 'auto'}}>+ Add sample type</button>
           </div>
 
           <div className="oe-table-wrap">
             <table className="oe-table">
-              <thead>
-                <tr>
-                  <th style={{width: '40px'}}></th><th>Sample type</th><th>Domain</th><th>Description</th><th style={{width: '80px'}}></th>
-                </tr>
-              </thead>
+              <thead><tr><th style={{width:'40px'}}></th><th>Sample type</th><th>Domain</th><th>Description</th><th style={{width:'80px'}}></th></tr></thead>
               <tbody>
                 {filtered.map(s => (
                   <React.Fragment key={s.id}>
-                    <tr className={expanded === s.id ? 'expanded' : ''} onClick={() => setExpanded(expanded === s.id ? null : s.id)} style={{cursor: 'pointer'}}>
+                    <tr className={expanded === s.id ? 'expanded' : ''} onClick={() => setExpanded(expanded === s.id ? null : s.id)} style={{cursor:'pointer'}}>
                       <td>{expanded === s.id ? '\u25be' : '\u25b8'}</td>
-                      <td style={{fontWeight: 600}}>{s.name}</td>
+                      <td style={{fontWeight:600}}>{s.name}</td>
                       <td>{domainTag(s.domain)}</td>
                       <td style={{color:'#525252'}}>{s.desc}</td>
                       <td><button className="cds--btn cds--btn--ghost cds--btn--sm">Edit</button></td>
@@ -391,69 +699,57 @@
                       <tr>
                         <td colSpan="5" className="oe-row-expand">
                           <div className="oe-accordion-panel">
-                            <div className="oe-accordion-header open">Basic Info<span className="chev">\u25be</span></div>
+                            <div className="oe-accordion-header">Basic Info</div>
                             <div className="oe-accordion-body">
                               <div className="oe-grid-2">
                                 <div className="oe-field"><label>Sample type name*</label><input defaultValue={s.name} /></div>
                                 <div className="oe-field">
-                                  <label>Domain* <span style={{color:'#0f62fe', fontSize:'11px'}}>(added by S-04)</span></label>
+                                  <label>Domain* <span style={{color:'#0f62fe', fontSize:'11px'}}>(from S-04)</span></label>
                                   <select defaultValue={s.domain}>
                                     <option>CLINICAL</option><option>ENVIRONMENTAL</option><option>BOTH</option><option>VECTOR</option>
                                   </select>
-                                  <div className="oe-help">Selecting <strong>VECTOR</strong> reveals the Vector Profile section below.</div>
+                                  <div className="oe-help">Selecting <strong>VECTOR</strong> reveals the Vector Profile section.</div>
                                 </div>
                               </div>
                               <div className="oe-field"><label>Description</label><textarea rows="2" defaultValue={s.desc}></textarea></div>
                             </div>
                           </div>
-
                           {s.domain === 'VECTOR' && s.vectorProfile && (
                             <div className="oe-accordion-panel" style={{borderColor:'#0f62fe', borderLeft:'3px solid #0f62fe'}}>
-                              <div className={'oe-accordion-header' + (vectorAccOpen ? ' open' : '')} onClick={() => setVectorAccOpen(!vectorAccOpen)}>
-                                \ud83e\udd9f Vector Profile <span style={{marginLeft:'8px', fontSize:'11px', color:'#0f62fe', fontWeight: 400}}>Added by V-01 \u00b7 appears only when domain = VECTOR</span>
-                                <span className="chev">\u25be</span>
+                              <div className="oe-accordion-header">
+                                \ud83e\udd9f Vector Profile <span style={{marginLeft:'8px', fontSize:'11px', color:'#0f62fe', fontWeight:400}}>Added by V-01</span>
                               </div>
-                              {vectorAccOpen && (
-                                <div className="oe-accordion-body">
-                                  <div className="oe-grid-2">
-                                    <div className="oe-field">
-                                      <label>Pooling strategy*</label>
-                                      <select defaultValue={s.vectorProfile.strategy}>
-                                        <option value="INDIVIDUAL">{STRATEGY_LABEL.INDIVIDUAL}</option>
-                                        <option value="POOL_FIXED">{STRATEGY_LABEL.POOL_FIXED}</option>
-                                        <option value="POOL_VARIABLE">{STRATEGY_LABEL.POOL_VARIABLE}</option>
-                                      </select>
-                                    </div>
-                                    {s.vectorProfile.strategy === 'POOL_FIXED' && (
-                                      <div className="oe-field">
-                                        <label>Default pool size*</label>
-                                        <input type="number" defaultValue={s.vectorProfile.defaultPoolSize} />
-                                        <div className="oe-help">Prefilled as pool size when creating a Collection Lot.</div>
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="oe-grid-2">
-                                    <div className="oe-field">
-                                      <label>Preservation method*</label>
-                                      <input defaultValue={s.vectorProfile.preservation} placeholder="e.g., RNAlater, 70% Ethanol, Frozen (-80\u00b0C)" />
-                                    </div>
-                                    <div className="oe-field">
-                                      <label>Allowed organism groups*</label>
-                                      <input defaultValue={s.vectorProfile.groups.join(', ')} />
-                                      <div className="oe-help">Multi-select: MOSQUITO, TICK, RODENT, OTHER_ARTHROPOD, OTHER_ANIMAL.</div>
-                                    </div>
-                                  </div>
+                              <div className="oe-accordion-body">
+                                <div className="oe-grid-2">
                                   <div className="oe-field">
-                                    <label>Allowed lifecycle stages</label>
-                                    <input defaultValue={s.vectorProfile.stages.join(', ')} />
-                                    <div className="oe-help">Constrains stage selection in V-02 collection entry.</div>
+                                    <label>Pooling strategy*</label>
+                                    <select defaultValue={s.vectorProfile.strategy}>
+                                      <option value="INDIVIDUAL">{STRATEGY.INDIVIDUAL}</option>
+                                      <option value="POOL_FIXED">{STRATEGY.POOL_FIXED}</option>
+                                      <option value="POOL_VARIABLE">{STRATEGY.POOL_VARIABLE}</option>
+                                    </select>
+                                  </div>
+                                  {s.vectorProfile.strategy === 'POOL_FIXED' && (
+                                    <div className="oe-field">
+                                      <label>Default pool size*</label>
+                                      <input type="number" defaultValue={s.vectorProfile.defaultPoolSize} />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="oe-grid-2">
+                                  <div className="oe-field"><label>Preservation method*</label><input defaultValue={s.vectorProfile.preservation} /></div>
+                                  <div className="oe-field">
+                                    <label>Allowed organism groups* <span style={{color:'#0f62fe', fontSize:'11px'}}>(multi-select, FK to Groups)</span></label>
+                                    <select multiple defaultValue={s.vectorProfile.groups} style={{height:'80px'}}>
+                                      {INITIAL_GROUPS.map(g => <option key={g.code} value={g.code}>{g.label}</option>)}
+                                    </select>
                                   </div>
                                 </div>
-                              )}
+                                <div className="oe-field"><label>Allowed lifecycle stages</label><input defaultValue={s.vectorProfile.stages.join(', ')} /></div>
+                              </div>
                             </div>
                           )}
-
-                          <div style={{marginTop: '1rem', display: 'flex', gap: '8px'}}>
+                          <div style={{marginTop:'1rem', display:'flex', gap:'8px'}}>
                             <button className="cds--btn cds--btn--primary cds--btn--sm">Save</button>
                             <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setExpanded(null)}>Cancel</button>
                           </div>
@@ -470,15 +766,17 @@
     }
 
     function App() {
-      const [page, setPage] = useState('species');
+      const [page, setPage] = useState('groups');
       return (
         <>
           <Header page={page} />
           <div className="oe-layout">
             <SideNav page={page} setPage={setPage} />
             <div className="oe-main">
+              {page === 'groups' && <GroupsPage />}
               {page === 'species' && <SpeciesPage />}
               {page === 'traps' && <TrapTypesPage />}
+              {page === 'pending' && <PendingUpdatesPage />}
               {page === 'sampleTypes' && <SampleTypesPage />}
             </div>
           </div>
