@@ -33,12 +33,13 @@ import {
   TableContainer, Table, TableHead, TableRow, TableHeader, TableBody, TableCell,
   TableToolbar, TableToolbarContent, TableToolbarSearch,
   TextInput, TextArea, Select, SelectItem, NumberInput, MultiSelect,
+  ComboBox, Modal, FormLabel,
   Button, Tag, InlineNotification, Accordion, AccordionItem,
 } from '@carbon/react';
 import {
-  Plus, Pencil, Trash2, Lock, ChevronDown, ChevronUp,
-  User, Bug, Cloud, CheckCircle2, AlertTriangle,
-} from 'lucide-react';
+  Add, Edit, TrashCan, Locked, ChevronDown, ChevronUp,
+  UserAvatar, Bug, CloudDataOps, CheckmarkFilled, WarningFilled,
+} from '@carbon/icons-react';
 
 const t = (key, fallback) => fallback || key;
 
@@ -93,6 +94,39 @@ const PENDING_UPDATES = [
 const DOMAIN_TAG = { CLINICAL: 'blue', ENVIRONMENTAL: 'teal', BOTH: 'purple', VECTOR: 'green' };
 
 // ---------------------------------------------------------------------------
+// Color palette — Carbon Tag colors + admin-added custom colors
+// ---------------------------------------------------------------------------
+
+const BUILTIN_COLORS = [
+  { id: 'red', label: 'Red', builtin: true },
+  { id: 'magenta', label: 'Magenta', builtin: true },
+  { id: 'purple', label: 'Purple', builtin: true },
+  { id: 'blue', label: 'Blue', builtin: true },
+  { id: 'cyan', label: 'Cyan', builtin: true },
+  { id: 'teal', label: 'Teal', builtin: true },
+  { id: 'green', label: 'Green', builtin: true },
+  { id: 'warm-gray', label: 'Warm gray', builtin: true },
+  { id: 'gray', label: 'Gray', builtin: true },
+  { id: 'cool-gray', label: 'Cool gray', builtin: true },
+  { id: 'high-contrast', label: 'High contrast', builtin: true },
+];
+
+// Sensible default hex for confirmation preview when creating a new color
+const DEFAULT_NEW_HEX = '#8a3ffc';
+
+// Render a Carbon Tag that supports both built-in Carbon palette IDs and
+// custom admin-added colors (via inline hex). Falls back to gray if unknown.
+function ColorTag({ colors, colorKind, children }) {
+  const c = colors.find(x => x.id === colorKind);
+  if (c && c.builtin) return <Tag type={c.id}>{children}</Tag>;
+  if (c && !c.builtin && c.hex) {
+    return <Tag style={{ backgroundColor: c.hex, color: '#fff' }}>{children}</Tag>;
+  }
+  return <Tag type="gray">{children}</Tag>;
+}
+
+
+// ---------------------------------------------------------------------------
 // Shell
 // ---------------------------------------------------------------------------
 
@@ -103,7 +137,7 @@ function AppShell({ page, setPage, pendingCount, children }) {
         <HeaderName prefix="">{t('header.app', 'OpenELIS Global')}</HeaderName>
         <HeaderGlobalBar>
           <HeaderGlobalAction aria-label={t('header.user', 'User menu')}>
-            <User size={20} />
+            <UserAvatar size={20} />
           </HeaderGlobalAction>
         </HeaderGlobalBar>
       </Header>
@@ -163,18 +197,18 @@ function HubBanner({ pendingCount, onReview }) {
   return (
     <Tile style={{ padding: '1rem', marginBottom: '1rem', borderLeft: '4px solid #0f62fe' }}>
       <Stack orientation="horizontal" gap={5}>
-        <Cloud size={24} style={{ color: '#0f62fe', flexShrink: 0, marginTop: '0.25rem' }} />
+        <CloudDataOps size={24} style={{ color: '#0f62fe', flexShrink: 0, marginTop: '0.25rem' }} />
         <div style={{ flex: 1 }}>
           <Stack orientation="horizontal" gap={3} style={{ alignItems: 'center', marginBottom: '0.25rem' }}>
             <strong>{t('hub.name', 'OpenELIS Community Hub')}</strong>
-            <Tag type="green" renderIcon={CheckCircle2}>{t('hub.status.connected', 'Connected')}</Tag>
+            <Tag type="green" renderIcon={CheckmarkFilled}>{t('hub.status.connected', 'Connected')}</Tag>
           </Stack>
           <div style={{ fontSize: '0.875rem', color: '#525252' }}>
             {t('hub.summary', '12 reference catalogs available · 3 subscribed (Species, Traps, Groups) · Last sync 2026-04-13 06:00 UTC')}
           </div>
           {pendingCount > 0 && (
             <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <AlertTriangle size={16} style={{ color: '#f1c21b' }} />
+              <WarningFilled size={16} style={{ color: '#f1c21b' }} />
               <span style={{ fontSize: '0.875rem' }}>
                 {t('hub.pending', '{n} proposed updates awaiting review').replace('{n}', pendingCount)}
               </span>
@@ -192,12 +226,50 @@ function HubBanner({ pendingCount, onReview }) {
 // Groups Page — full CRUD with system-protected defaults
 // ---------------------------------------------------------------------------
 
-function GroupsPage({ groups, setGroups, onReviewPending, pendingCount }) {
+function GroupsPage({ groups, setGroups, onReviewPending, pendingCount, colors, setColors }) {
   const [expanded, setExpanded] = useState(null);
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ code: '', label: '', colorKind: 'teal', description: '' });
 
+  // "Create new color" confirmation modal state. `target` is 'new' | groupCode
+  // so we know which form/row to apply the confirmed color to.
+  const [colorModal, setColorModal] = useState(null); // { target, proposedLabel, hex }
+
   const referenceCount = (g) => g.speciesCount + g.trapCount + g.sampleTypeCount;
+
+  function handleColorPick(target, selection) {
+    if (!selection) return;
+    // ComboBox convention: if the typed value doesn't match an existing item,
+    // the wrapper passes `{ id: '__create__', label: <typed> }` — we then prompt.
+    if (selection.id === '__create__') {
+      setColorModal({ target, proposedLabel: selection.label, hex: DEFAULT_NEW_HEX });
+      return;
+    }
+    applyColor(target, selection.id);
+  }
+
+  function applyColor(target, colorId) {
+    if (target === 'new') {
+      setForm(f => ({ ...f, colorKind: colorId }));
+    } else {
+      setGroups(gs => gs.map(g => g.code === target ? { ...g, colorKind: colorId } : g));
+    }
+  }
+
+  function confirmCreateColor() {
+    const raw = (colorModal.proposedLabel || '').trim();
+    if (!raw) return;
+    // ID is slugified; label is the admin's original casing.
+    const id = raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    if (!id) return;
+    // Dedupe: if slug matches an existing color, just select it.
+    const exists = colors.find(c => c.id === id);
+    if (!exists) {
+      setColors([...colors, { id, label: raw, builtin: false, hex: colorModal.hex }]);
+    }
+    applyColor(colorModal.target, id);
+    setColorModal(null);
+  }
 
   function saveNew() {
     const code = form.code.trim().toUpperCase().replace(/\s+/g, '_');
@@ -229,7 +301,7 @@ function GroupsPage({ groups, setGroups, onReviewPending, pendingCount }) {
         <TableToolbar>
           <TableToolbarContent>
             <TableToolbarSearch placeholder={t('search.groups', 'Search group code or label')} />
-            <Button renderIcon={Plus} size="sm" onClick={() => setAdding(true)}>{t('button.addGroup', 'Add group')}</Button>
+            <Button renderIcon={Add} size="sm" onClick={() => setAdding(true)}>{t('button.addGroup', 'Add group')}</Button>
           </TableToolbarContent>
         </TableToolbar>
         <Table>
@@ -261,18 +333,33 @@ function GroupsPage({ groups, setGroups, onReviewPending, pendingCount }) {
                           value={form.label} onChange={e => setForm({ ...form, label: e.target.value })} />
                       </Column>
                       <Column sm={4} md={4} lg={3}>
-                        <Select id="ng-color" labelText={t('label.color', 'Tag color')}
-                          value={form.colorKind} onChange={e => setForm({ ...form, colorKind: e.target.value })}>
-                          <SelectItem value="red" text="Red" />
-                          <SelectItem value="magenta" text="Magenta" />
-                          <SelectItem value="purple" text="Purple" />
-                          <SelectItem value="blue" text="Blue" />
-                          <SelectItem value="cyan" text="Cyan" />
-                          <SelectItem value="teal" text="Teal" />
-                          <SelectItem value="green" text="Green" />
-                          <SelectItem value="warm-gray" text="Warm gray" />
-                          <SelectItem value="gray" text="Gray" />
-                        </Select>
+                        <ComboBox
+                          id="ng-color"
+                          titleText={t('label.color', 'Tag color')}
+                          helperText={t('help.color', 'Type to search or add a new color; new colors require confirmation.')}
+                          items={colors}
+                          itemToString={c => c ? c.label : ''}
+                          selectedItem={colors.find(c => c.id === form.colorKind) || null}
+                          shouldFilterItem={({ item, inputValue }) => {
+                            if (!inputValue) return true;
+                            return item.label.toLowerCase().includes(inputValue.toLowerCase());
+                          }}
+                          onChange={({ selectedItem, inputValue }) => {
+                            // If no selection and the user typed a novel value, offer Create.
+                            if (!selectedItem && inputValue && inputValue.trim()) {
+                              const typed = inputValue.trim();
+                              const match = colors.find(c => c.label.toLowerCase() === typed.toLowerCase());
+                              if (!match) {
+                                handleColorPick('new', { id: '__create__', label: typed });
+                                return;
+                              }
+                              handleColorPick('new', match);
+                              return;
+                            }
+                            if (selectedItem) handleColorPick('new', selectedItem);
+                          }}
+                          placeholder={t('placeholder.pickColor', 'Pick or create a color')}
+                        />
                       </Column>
                       <Column sm={4} md={4} lg={3}>
                         <TextInput id="ng-desc" labelText={t('label.description', 'Description')}
@@ -297,10 +384,10 @@ function GroupsPage({ groups, setGroups, onReviewPending, pendingCount }) {
                   </TableCell>
                   <TableCell>
                     <span style={{ fontFamily: 'monospace' }}>{g.code}</span>
-                    {g.system && <Lock size={14} style={{ marginLeft: '0.5rem', color: '#6929c4', verticalAlign: 'middle' }} />}
+                    {g.system && <Locked size={14} style={{ marginLeft: '0.5rem', color: '#6929c4', verticalAlign: 'middle' }} />}
                   </TableCell>
                   <TableCell>{g.label}</TableCell>
-                  <TableCell><Tag type={g.colorKind}>{g.label}</Tag></TableCell>
+                  <TableCell><ColorTag colors={colors} colorKind={g.colorKind}>{g.label}</ColorTag></TableCell>
                   <TableCell>
                     <span style={{ fontSize: '0.875rem', color: '#525252' }}>
                       {g.speciesCount} species · {g.trapCount} traps · {g.sampleTypeCount} sample types
@@ -308,7 +395,7 @@ function GroupsPage({ groups, setGroups, onReviewPending, pendingCount }) {
                   </TableCell>
                   <TableCell><Tag type={g.active ? 'green' : 'gray'}>{g.active ? t('status.active', 'Active') : t('status.inactive', 'Inactive')}</Tag></TableCell>
                   <TableCell>
-                    <Button kind="ghost" size="sm" renderIcon={Pencil}>{t('button.edit', 'Edit')}</Button>
+                    <Button kind="ghost" size="sm" renderIcon={Edit}>{t('button.edit', 'Edit')}</Button>
                   </TableCell>
                 </TableRow>
                 {expanded === g.code && (
@@ -329,15 +416,31 @@ function GroupsPage({ groups, setGroups, onReviewPending, pendingCount }) {
                             <TextInput id={`gl-${g.code}`} labelText={t('label.displayLabel', 'Display label *')} defaultValue={g.label} />
                           </Column>
                           <Column sm={4} md={4} lg={3}>
-                            <Select id={`gk-${g.code}`} labelText={t('label.color', 'Tag color')} defaultValue={g.colorKind}>
-                              <SelectItem value="red" text="Red" />
-                              <SelectItem value="purple" text="Purple" />
-                              <SelectItem value="blue" text="Blue" />
-                              <SelectItem value="teal" text="Teal" />
-                              <SelectItem value="green" text="Green" />
-                              <SelectItem value="warm-gray" text="Warm gray" />
-                              <SelectItem value="gray" text="Gray" />
-                            </Select>
+                            <ComboBox
+                              id={`gk-${g.code}`}
+                              titleText={t('label.color', 'Tag color')}
+                              items={colors}
+                              itemToString={c => c ? c.label : ''}
+                              selectedItem={colors.find(c => c.id === g.colorKind) || null}
+                              shouldFilterItem={({ item, inputValue }) => {
+                                if (!inputValue) return true;
+                                return item.label.toLowerCase().includes(inputValue.toLowerCase());
+                              }}
+                              onChange={({ selectedItem, inputValue }) => {
+                                if (!selectedItem && inputValue && inputValue.trim()) {
+                                  const typed = inputValue.trim();
+                                  const match = colors.find(c => c.label.toLowerCase() === typed.toLowerCase());
+                                  if (!match) {
+                                    handleColorPick(g.code, { id: '__create__', label: typed });
+                                    return;
+                                  }
+                                  handleColorPick(g.code, match);
+                                  return;
+                                }
+                                if (selectedItem) handleColorPick(g.code, selectedItem);
+                              }}
+                              placeholder={t('placeholder.pickColor', 'Pick or create a color')}
+                            />
                           </Column>
                           <Column sm={4} md={4} lg={3}>
                             <TextInput id={`gd-${g.code}`} labelText={t('label.description', 'Description')} defaultValue={g.description} />
@@ -347,7 +450,7 @@ function GroupsPage({ groups, setGroups, onReviewPending, pendingCount }) {
                           <Button kind="primary" size="sm">{t('button.save', 'Save')}</Button>
                           <Button kind="ghost" size="sm" onClick={() => setExpanded(null)}>{t('button.cancel', 'Cancel')}</Button>
                           {!g.system && (
-                            <Button kind="danger--ghost" size="sm" renderIcon={Trash2}
+                            <Button kind="danger--ghost" size="sm" renderIcon={TrashCan}
                               disabled={referenceCount(g) > 0}
                               title={referenceCount(g) > 0 ? t('msg.cannotDelete', 'Cannot delete: referenced by other records') : ''}>
                               {t('button.delete', 'Delete')}
@@ -363,6 +466,48 @@ function GroupsPage({ groups, setGroups, onReviewPending, pendingCount }) {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {colorModal && (
+        <Modal
+          open
+          modalHeading={t('modal.createColor.heading', 'Create new tag color')}
+          modalLabel={t('modal.createColor.label', 'Color palette')}
+          primaryButtonText={t('modal.createColor.primary', 'Create and apply')}
+          secondaryButtonText={t('button.cancel', 'Cancel')}
+          onRequestClose={() => setColorModal(null)}
+          onRequestSubmit={confirmCreateColor}
+          primaryButtonDisabled={!colorModal.proposedLabel || !colorModal.proposedLabel.trim()}>
+          <p style={{ marginBottom: '1rem' }}>
+            {t('modal.createColor.body',
+              `"${colorModal.proposedLabel}" isn't an existing color. New colors become reusable everywhere tag colors are picked. Confirm the name and hex value, then create.`)}
+          </p>
+          <Grid>
+            <Column sm={4} md={4} lg={8}>
+              <TextInput id="cc-name"
+                labelText={t('label.colorName', 'Color name *')}
+                value={colorModal.proposedLabel}
+                onChange={e => setColorModal({ ...colorModal, proposedLabel: e.target.value })} />
+            </Column>
+            <Column sm={4} md={4} lg={8}>
+              <FormLabel>{t('label.colorHex', 'Hex value *')}</FormLabel>
+              <Stack orientation="horizontal" gap={3} style={{ alignItems: 'center' }}>
+                <input type="color" value={colorModal.hex}
+                  onChange={e => setColorModal({ ...colorModal, hex: e.target.value })}
+                  style={{ width: '3rem', height: '2.5rem', border: '1px solid #8d8d8d', padding: 0 }} />
+                <TextInput id="cc-hex" labelText="" hideLabel
+                  value={colorModal.hex}
+                  onChange={e => setColorModal({ ...colorModal, hex: e.target.value })} />
+              </Stack>
+            </Column>
+          </Grid>
+          <div style={{ marginTop: '1rem' }}>
+            <FormLabel>{t('label.preview', 'Preview')}</FormLabel>
+            <Tag style={{ backgroundColor: colorModal.hex, color: '#fff', marginTop: '0.25rem' }}>
+              {colorModal.proposedLabel || 'Preview'}
+            </Tag>
+          </div>
+        </Modal>
+      )}
     </>
   );
 }
@@ -371,7 +516,7 @@ function GroupsPage({ groups, setGroups, onReviewPending, pendingCount }) {
 // Species Page — with working Add + inline new-row form
 // ---------------------------------------------------------------------------
 
-function SpeciesPage({ groups, species, setSpecies, pendingCount, onReviewPending }) {
+function SpeciesPage({ groups, species, setSpecies, pendingCount, onReviewPending, colors }) {
   const [expanded, setExpanded] = useState(null);
   const [groupFilter, setGroupFilter] = useState('ALL');
   const [adding, setAdding] = useState(false);
@@ -417,7 +562,7 @@ function SpeciesPage({ groups, species, setSpecies, pendingCount, onReviewPendin
               <SelectItem value="ALL" text={t('filter.allGroups', 'All groups')} />
               {groups.map(g => <SelectItem key={g.code} value={g.code} text={g.label} />)}
             </Select>
-            <Button renderIcon={Plus} size="sm" onClick={() => setAdding(true)}>{t('button.addSpecies', 'Add species')}</Button>
+            <Button renderIcon={Add} size="sm" onClick={() => setAdding(true)}>{t('button.addSpecies', 'Add species')}</Button>
           </TableToolbarContent>
         </TableToolbar>
         <Table>
@@ -476,10 +621,10 @@ function SpeciesPage({ groups, species, setSpecies, pendingCount, onReviewPendin
                     <TableCell><em>{r.genus}</em></TableCell>
                     <TableCell><em>{r.species}</em></TableCell>
                     <TableCell>{r.subspecies ? <em>ssp. {r.subspecies}</em> : '—'}</TableCell>
-                    <TableCell><Tag type={g?.colorKind || 'gray'}>{g?.label || r.group}</Tag></TableCell>
+                    <TableCell><ColorTag colors={colors} colorKind={g?.colorKind}>{g?.label || r.group}</ColorTag></TableCell>
                     <TableCell>{r.pathogens.slice(0,2).join(', ')}{r.pathogens.length>2?` +${r.pathogens.length-2}`:''}</TableCell>
                     <TableCell><Tag type={r.active ? 'green' : 'gray'}>{r.active ? t('status.active', 'Active') : t('status.inactive', 'Inactive')}</Tag></TableCell>
-                    <TableCell><Button kind="ghost" size="sm" renderIcon={Pencil}>{t('button.edit', 'Edit')}</Button></TableCell>
+                    <TableCell><Button kind="ghost" size="sm" renderIcon={Edit}>{t('button.edit', 'Edit')}</Button></TableCell>
                   </TableRow>
                   {expanded === r.id && (
                     <TableRow>
@@ -518,7 +663,7 @@ function SpeciesPage({ groups, species, setSpecies, pendingCount, onReviewPendin
 // Trap Types Page — with working Add
 // ---------------------------------------------------------------------------
 
-function TrapTypesPage({ groups, traps, setTraps, pendingCount, onReviewPending }) {
+function TrapTypesPage({ groups, traps, setTraps, pendingCount, onReviewPending, colors }) {
   const [expanded, setExpanded] = useState(null);
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ name: '', target: groups[0]?.code, description: '' });
@@ -552,7 +697,7 @@ function TrapTypesPage({ groups, traps, setTraps, pendingCount, onReviewPending 
         <TableToolbar>
           <TableToolbarContent>
             <TableToolbarSearch placeholder={t('search.traps', 'Search trap name or description')} />
-            <Button renderIcon={Plus} size="sm" onClick={() => setAdding(true)}>{t('button.addTrap', 'Add trap type')}</Button>
+            <Button renderIcon={Add} size="sm" onClick={() => setAdding(true)}>{t('button.addTrap', 'Add trap type')}</Button>
           </TableToolbarContent>
         </TableToolbar>
         <Table>
@@ -603,10 +748,10 @@ function TrapTypesPage({ groups, traps, setTraps, pendingCount, onReviewPending 
                         renderIcon={expanded === tr.id ? ChevronUp : ChevronDown} />
                     </TableCell>
                     <TableCell><strong>{tr.name}</strong></TableCell>
-                    <TableCell><Tag type={g?.colorKind || 'gray'}>{g?.label || tr.target}</Tag></TableCell>
+                    <TableCell><ColorTag colors={colors} colorKind={g?.colorKind}>{g?.label || tr.target}</ColorTag></TableCell>
                     <TableCell>{tr.description}</TableCell>
                     <TableCell><Tag type="green">{t('status.active', 'Active')}</Tag></TableCell>
-                    <TableCell><Button kind="ghost" size="sm" renderIcon={Pencil}>{t('button.edit', 'Edit')}</Button></TableCell>
+                    <TableCell><Button kind="ghost" size="sm" renderIcon={Edit}>{t('button.edit', 'Edit')}</Button></TableCell>
                   </TableRow>
                   {expanded === tr.id && (
                     <TableRow>
@@ -733,7 +878,7 @@ function SampleTypesPage({ groups, sampleTypes }) {
               <SelectItem value="ENVIRONMENTAL" text="Environmental" />
               <SelectItem value="VECTOR" text="Vector" />
             </Select>
-            <Button renderIcon={Plus} size="sm">{t('button.addSampleType', 'Add sample type')}</Button>
+            <Button renderIcon={Add} size="sm">{t('button.addSampleType', 'Add sample type')}</Button>
           </TableToolbarContent>
         </TableToolbar>
         <Table>
@@ -757,7 +902,7 @@ function SampleTypesPage({ groups, sampleTypes }) {
                   <TableCell><strong>{s.name}</strong></TableCell>
                   <TableCell><Tag type={DOMAIN_TAG[s.domain]}>{s.domain}</Tag></TableCell>
                   <TableCell>{s.desc}</TableCell>
-                  <TableCell><Button kind="ghost" size="sm" renderIcon={Pencil}>{t('button.edit', 'Edit')}</Button></TableCell>
+                  <TableCell><Button kind="ghost" size="sm" renderIcon={Edit}>{t('button.edit', 'Edit')}</Button></TableCell>
                 </TableRow>
                 {expanded === s.id && (
                   <TableRow>
@@ -852,6 +997,7 @@ export default function V01VectorReferenceData() {
   const [traps, setTraps] = useState(INITIAL_TRAPS);
   const [sampleTypes] = useState(INITIAL_SAMPLE_TYPES);
   const [pending, setPending] = useState(PENDING_UPDATES);
+  const [colors, setColors] = useState(BUILTIN_COLORS);
 
   const goPending = () => setPage('pending');
 
@@ -859,14 +1005,17 @@ export default function V01VectorReferenceData() {
     <AppShell page={page} setPage={setPage} pendingCount={pending.length}>
       {page === 'groups' && (
         <GroupsPage groups={groups} setGroups={setGroups}
+          colors={colors} setColors={setColors}
           pendingCount={pending.length} onReviewPending={goPending} />
       )}
       {page === 'species' && (
         <SpeciesPage groups={groups} species={species} setSpecies={setSpecies}
+          colors={colors}
           pendingCount={pending.length} onReviewPending={goPending} />
       )}
       {page === 'traps' && (
         <TrapTypesPage groups={groups} traps={traps} setTraps={setTraps}
+          colors={colors}
           pendingCount={pending.length} onReviewPending={goPending} />
       )}
       {page === 'pending' && (
