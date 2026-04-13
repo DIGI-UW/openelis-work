@@ -4,7 +4,7 @@
 **Version:** 1.0
 **Date:** 2026-04-13
 **Status:** Draft for Review
-**Jira:** TBD (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
+**Jira:** [OGC-555](https://uwdigi.atlassian.net/browse/OGC-555) (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
 **Technology:** Java Spring Framework, Carbon React (`@carbon/react`)
 **Related Modules:** Sample Type Domain Classification (S-04, OGC-538), Compliance Standards Administration (S-01, OGC-528), Sampling Site Registry (S-02, OGC-536)
 
