@@ -467,6 +467,21 @@ export const MOCKUP_REGISTRY = [
     tags: ['quality', 'QC', 'environmental', 'vector', 'field-blank', 'trip-blank', 'duplicate', 'spike-recovery'],
   },
 
+  // ─── Vector Surveillance ───
+  {
+    name: 'Vector Specimen Types & Taxonomy',
+    category: 'vector-surveillance',
+    component: React.lazy(() => import('@designs/vector-surveillance/vector-reference-data.jsx')),
+    description: 'Vector reference data (V-01) — species taxonomy (genus + species + subspecies), trap types, and vector sample types with pooling strategy. Establishes the foundation for vector surveillance by extending SampleType.sampleDomain with VECTOR, adding VectorSpecimenProfile for pooling configuration, and seeding ~40 species and 15 trap types used in Indonesia.',
+    specPath: 'designs/vector-surveillance/vector-reference-data.md',
+    htmlUrl: 'designs/vector-surveillance/vector-reference-data.html',
+    added: '2026-04-13',
+    status: 'draft',
+    githubIssue: null,
+    jira: ['OGC-527'],
+    tags: ['vector', 'species', 'taxonomy', 'trap-types', 'mosquito', 'tick', 'rodent', 'reference-data', 'pooling'],
+  },
+
   // ─── Results & Validation ───
   {
     name: 'Results Page',
@@ -932,6 +947,7 @@ export const categories = [
   'results-validation',
   'reports',
   'sample-collection',
+  'vector-surveillance',
   'system',
   'other',
 ];
@@ -950,6 +966,7 @@ export const categoryLabels = {
   'results-validation': 'Results & Validation',
   'reports': 'Reports',
   'sample-collection': 'Sample Collection',
+  'vector-surveillance': 'Vector Surveillance',
   'system': 'System',
   'other': 'Other',
 };
