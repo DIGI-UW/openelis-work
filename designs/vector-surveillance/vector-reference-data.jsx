@@ -1,674 +1,434 @@
 /**
- * V-01 Vector Specimen Types & Taxonomy — Mockup v1.0
- * OpenELIS Global
+ * V-01: Vector Specimen Types & Taxonomy — Mockup v1.1
  *
- * Admin → Vector Surveillance → Reference Data
- * Three tabs: Species | Trap Types | Vector Sample Types
+ * Integration model (Option A, confirmed 2026-04-13):
+ * V-01 adds TWO new admin pages under a new "Vector Surveillance" side-nav submenu:
+ *   - Admin → Vector Surveillance → Species
+ *   - Admin → Vector Surveillance → Trap Types
  *
- * Carbon Design System. All strings via t(key, fallback).
- * Inline row expansion for edit (no edit modals). Modal only for destructive confirm.
+ * Vector Sample Types are NOT a separate page. They live inside the existing
+ * Sample Type admin (OGC-296 / S-04). V-01 contributes:
+ *   (a) VECTOR added to the sampleDomain enum
+ *   (b) A new Vector Profile Accordion panel that appears in the Sample Type
+ *       inline editor when sampleDomain = VECTOR, holding VectorSpecimenProfile
+ *       fields (pooling strategy, default pool size, preservation, allowed
+ *       organism groups, allowed lifecycle stages)
+ *   (c) A VECTOR filter chip in the Sample Type list toolbar
  */
-import { useState } from "react";
+
+import React, { useState, useMemo } from 'react';
 import {
-  Bug, Layers, Beaker, Plus, Search, ChevronDown, ChevronRight,
-  Edit3, MoreVertical, AlertTriangle, CheckCircle2, X, RefreshCw, Filter,
-} from "lucide-react";
+  Header, HeaderName, HeaderGlobalBar, HeaderGlobalAction,
+  SideNav, SideNavItems, SideNavMenu, SideNavMenuItem, SideNavLink, SideNavDivider,
+  Breadcrumb, BreadcrumbItem,
+  Grid, Column, Stack, Tile,
+  TableContainer, Table, TableHead, TableRow, TableHeader, TableBody, TableCell,
+  TableToolbar, TableToolbarContent, TableToolbarSearch,
+  TextInput, TextArea, Select, SelectItem, NumberInput,
+  Button, Tag, InlineNotification, Accordion, AccordionItem,
+} from '@carbon/react';
+import { Add, Edit, ChevronDown, ChevronUp, UserAvatar, Bug } from '@carbon/icons-react';
 
 const t = (key, fallback) => fallback || key;
 
-// ---------------------------------------------------------------------------
-// Design tokens (Carbon-aligned)
-// ---------------------------------------------------------------------------
-const C = {
-  blue60: "#0f62fe", blue10: "#edf5ff", blueText: "#0043ce",
-  gray10: "#f4f4f4", gray20: "#e0e0e0", gray30: "#c6c6c6",
-  gray50: "#8d8d8d", gray60: "#6f6f6f", gray70: "#525252", gray80: "#393939",
-  gray90: "#262626", gray100: "#161616", white: "#ffffff",
-  green10: "#defbe6", greenText: "#0e6027",
-  red10: "#fff1f1", red50: "#da1e28",
-  purple10: "#f6f2ff", purpleText: "#6929c4",
-  teal10: "#d9fbfb", tealText: "#005d5d",
-  warmGray10: "#f7f3f2", warmGrayText: "#565151",
-};
-
-const ORGANISM_GROUPS = {
-  MOSQUITO:        { label: "Mosquito",         bg: C.green10,    color: C.greenText,  icon: "🦟" },
-  TICK:            { label: "Tick",             bg: C.blue10,     color: C.blueText,   icon: "🕷️" },
-  RODENT:          { label: "Rodent",           bg: C.purple10,   color: C.purpleText, icon: "🐀" },
-  OTHER_ARTHROPOD: { label: "Other Arthropod",  bg: C.warmGray10, color: C.warmGrayText, icon: "🪰" },
-  OTHER_ANIMAL:    { label: "Other Animal",     bg: C.gray10,     color: C.gray70,     icon: "🐾" },
-};
-
-const COLLECTION_METHODS = {
-  LIGHT:         "Light",
-  BAIT:          "Bait",
-  GRAVID:        "Gravid",
-  ADULT_RESTING: "Adult Resting",
-  LARVAL:        "Larval",
-  DRAG:          "Drag",
-  SNAP:          "Snap",
-  LIVE:          "Live Capture",
-  OVIPOSITION:   "Oviposition",
-  OTHER:         "Other",
-};
-
-const POOLING_STRATEGY = {
-  INDIVIDUAL:    { label: "Individual",          bg: C.blue10,   color: C.blueText   },
-  POOL_FIXED:    { label: "Pool — Fixed Size",    bg: C.purple10, color: C.purpleText },
-  POOL_VARIABLE: { label: "Pool — Variable Size", bg: C.teal10,   color: C.tealText   },
-};
-
-// ---------------------------------------------------------------------------
-// Mock data
-// ---------------------------------------------------------------------------
-const MOCK_SPECIES = [
-  { id: 1, genus: "Aedes", species: "aegypti", subspecies: "", commonName: "Yellow Fever Mosquito", organismGroup: "MOSQUITO", pathogens: ["DENV", "CHIKV", "ZIKV", "YFV"], stages: ["EGG","LARVA","PUPA","ADULT"], active: true },
-  { id: 2, genus: "Aedes", species: "albopictus", subspecies: "", commonName: "Asian Tiger Mosquito", organismGroup: "MOSQUITO", pathogens: ["DENV", "CHIKV", "ZIKV"], stages: ["EGG","LARVA","PUPA","ADULT"], active: true },
-  { id: 3, genus: "Anopheles", species: "sundaicus", subspecies: "", commonName: "", organismGroup: "MOSQUITO", pathogens: ["PLASMODIUM_FALCIPARUM", "PLASMODIUM_VIVAX"], stages: ["LARVA","PUPA","ADULT"], active: true },
-  { id: 4, genus: "Anopheles", species: "balabacensis", subspecies: "", commonName: "", organismGroup: "MOSQUITO", pathogens: ["PLASMODIUM_KNOWLESI"], stages: ["ADULT"], active: true },
-  { id: 5, genus: "Culex", species: "quinquefasciatus", subspecies: "", commonName: "Southern House Mosquito", organismGroup: "MOSQUITO", pathogens: ["WNV", "WEE", "SLEV"], stages: ["LARVA","PUPA","ADULT"], active: true },
-  { id: 6, genus: "Culex", species: "tritaeniorhynchus", subspecies: "", commonName: "", organismGroup: "MOSQUITO", pathogens: ["JEV"], stages: ["ADULT"], active: true },
-  { id: 7, genus: "Ixodes", species: "scapularis", subspecies: "", commonName: "Blacklegged Tick", organismGroup: "TICK", pathogens: ["BORRELIA_BURGDORFERI", "ANAPLASMA_PHAGOCYTOPHILUM", "BABESIA_MICROTI"], stages: ["LARVA","NYMPH","ADULT","ENGORGED_ADULT"], active: true },
-  { id: 8, genus: "Rhipicephalus", species: "sanguineus", subspecies: "", commonName: "Brown Dog Tick", organismGroup: "TICK", pathogens: ["RICKETTSIA_RICKETTSII"], stages: ["NYMPH","ADULT"], active: true },
-  { id: 9, genus: "Rattus", species: "rattus", subspecies: "", commonName: "Black Rat", organismGroup: "RODENT", pathogens: ["LEPTOSPIRA", "YERSINIA_PESTIS"], stages: ["ADULT"], active: true },
-  { id: 10, genus: "Rattus", species: "norvegicus", subspecies: "", commonName: "Brown Rat", organismGroup: "RODENT", pathogens: ["LEPTOSPIRA", "YERSINIA_PESTIS", "HANTAVIRUS"], stages: ["ADULT"], active: true },
-  { id: 11, genus: "Phlebotomus", species: "papatasi", subspecies: "", commonName: "Sand Fly", organismGroup: "OTHER_ARTHROPOD", pathogens: ["LEISHMANIA_MAJOR"], stages: ["ADULT"], active: true },
-  { id: 12, genus: "Armigeres", species: "subalbatus", subspecies: "", commonName: "", organismGroup: "MOSQUITO", pathogens: [], stages: ["ADULT"], active: false },
+const SPECIES = [
+  { id: 'sp1', genus: 'Aedes', species: 'aegypti', subspecies: null, group: 'MOSQUITO', pathogens: ['Dengue', 'Zika', 'Chikungunya'], stages: ['ADULT', 'LARVA', 'PUPA', 'EGG'], active: true },
+  { id: 'sp2', genus: 'Aedes', species: 'albopictus', subspecies: null, group: 'MOSQUITO', pathogens: ['Dengue', 'Chikungunya'], stages: ['ADULT', 'LARVA'], active: true },
+  { id: 'sp3', genus: 'Anopheles', species: 'sundaicus', subspecies: null, group: 'MOSQUITO', pathogens: ['Plasmodium falciparum', 'Plasmodium vivax'], stages: ['ADULT', 'LARVA'], active: true },
+  { id: 'sp4', genus: 'Culex', species: 'quinquefasciatus', subspecies: null, group: 'MOSQUITO', pathogens: ['Wuchereria bancrofti', 'JE virus'], stages: ['ADULT', 'LARVA'], active: true },
+  { id: 'sp5', genus: 'Rhipicephalus', species: 'sanguineus', subspecies: null, group: 'TICK', pathogens: ['Ehrlichia canis', 'Babesia'], stages: ['ADULT', 'NYMPH'], active: true },
+  { id: 'sp6', genus: 'Rattus', species: 'rattus', subspecies: 'diardii', group: 'RODENT', pathogens: ['Leptospira', 'Rickettsia'], stages: ['ADULT'], active: true },
+  { id: 'sp7', genus: 'Rattus', species: 'norvegicus', subspecies: null, group: 'RODENT', pathogens: ['Leptospira', 'Hantavirus'], stages: ['ADULT'], active: true },
 ];
 
-const MOCK_TRAPS = [
-  { id: 1, code: "CDC_LT",    name: "CDC Light Trap",           target: "MOSQUITO",        method: "LIGHT",         description: "Standard New Jersey / CDC miniature light trap with CO2 augmentation option", active: true },
-  { id: 2, code: "BG_SENT",   name: "BG-Sentinel Trap",          target: "MOSQUITO",        method: "ADULT_RESTING", description: "Host-seeking Aedes-targeted trap with BG-Lure", active: true },
-  { id: 3, code: "OVITRAP",   name: "Ovitrap",                   target: "MOSQUITO",        method: "OVIPOSITION",   description: "Black jar for egg deposition monitoring (Aedes)", active: true },
-  { id: 4, code: "HLC",       name: "Human Landing Catch",        target: "MOSQUITO",        method: "BAIT",          description: "Direct aspiration from human collector", active: true },
-  { id: 5, code: "PSC",       name: "Pyrethrum Spray Collection", target: "MOSQUITO",        method: "ADULT_RESTING", description: "Indoor resting mosquito knockdown collection", active: true },
-  { id: 6, code: "LARVAL_DIP",name: "Larval Dipping",             target: "MOSQUITO",        method: "LARVAL",        description: "Standard 350mL larval dipper for breeding site surveys", active: true },
-  { id: 7, code: "TICK_DRAG", name: "Tick Drag",                  target: "TICK",            method: "DRAG",          description: "1m² white flannel drag across vegetation", active: true },
-  { id: 8, code: "TICK_FLAG", name: "Tick Flag",                  target: "TICK",            method: "DRAG",          description: "Vertical flag sweep through dense understory", active: true },
-  { id: 9, code: "SHERMAN",   name: "Sherman Live Trap",          target: "RODENT",          method: "LIVE",          description: "Folding aluminum live trap, small-to-medium rodents", active: true },
-  { id: 10, code: "TOMAHAWK", name: "Tomahawk Live Trap",         target: "RODENT",          method: "LIVE",          description: "Wire-mesh live trap for larger rodents", active: true },
-  { id: 11, code: "SNAP",     name: "Snap Trap",                  target: "RODENT",          method: "SNAP",          description: "Lethal trap for population reduction surveys", active: true },
-  { id: 12, code: "PITFALL",  name: "Pitfall Trap",               target: "OTHER_ARTHROPOD", method: "LIVE",          description: "In-ground container trap for ground-dwelling arthropods", active: true },
+const TRAPS = [
+  { id: 'tr1', name: 'BG-Sentinel Trap', target: 'MOSQUITO', description: 'CO₂-baited adult mosquito trap; widely used for Aedes surveillance', active: true },
+  { id: 'tr2', name: 'CDC Light Trap', target: 'MOSQUITO', description: 'UV-light trap for nocturnal mosquitoes, especially Culex and Anopheles', active: true },
+  { id: 'tr3', name: 'Ovitrap', target: 'MOSQUITO', description: 'Oviposition trap for Aedes egg collection in households', active: true },
+  { id: 'tr4', name: 'Sherman Live Trap', target: 'RODENT', description: 'Folding aluminum live trap for small rodents', active: true },
+  { id: 'tr5', name: 'Drag Cloth', target: 'TICK', description: 'White flannel cloth dragged through vegetation to collect questing ticks', active: true },
 ];
 
-const MOCK_VECTOR_SAMPLE_TYPES = [
-  { id: 1, name: "Adult Mosquito Pool",      poolingStrategy: "POOL_FIXED",    defaultPoolSize: 25, preservation: "95% Ethanol / -80°C", allowedGroups: ["MOSQUITO"],                 stages: ["ADULT"] },
-  { id: 2, name: "Mosquito Larvae",          poolingStrategy: "POOL_VARIABLE", defaultPoolSize: null, preservation: "70% Ethanol",       allowedGroups: ["MOSQUITO"],                 stages: ["LARVA","PUPA"] },
-  { id: 3, name: "Mosquito Eggs (Ovitrap)",  poolingStrategy: "POOL_VARIABLE", defaultPoolSize: null, preservation: "Dry, Silica Gel",    allowedGroups: ["MOSQUITO"],                 stages: ["EGG"] },
-  { id: 4, name: "Individual Tick",          poolingStrategy: "INDIVIDUAL",    defaultPoolSize: null, preservation: "70% Ethanol",       allowedGroups: ["TICK"],                     stages: ["NYMPH","ADULT","ENGORGED_ADULT"] },
-  { id: 5, name: "Tick Pool",                poolingStrategy: "POOL_FIXED",    defaultPoolSize: 10, preservation: "RNAlater",            allowedGroups: ["TICK"],                     stages: ["NYMPH","ADULT"] },
-  { id: 6, name: "Rodent Blood",             poolingStrategy: "INDIVIDUAL",    defaultPoolSize: null, preservation: "EDTA, -20°C",        allowedGroups: ["RODENT"],                   stages: ["ADULT"] },
-  { id: 7, name: "Rodent Tissue (Spleen)",   poolingStrategy: "INDIVIDUAL",    defaultPoolSize: null, preservation: "RNAlater / -80°C",   allowedGroups: ["RODENT"],                   stages: ["ADULT"] },
-  { id: 8, name: "Sand Fly Pool",            poolingStrategy: "POOL_FIXED",    defaultPoolSize: 30, preservation: "95% Ethanol",         allowedGroups: ["OTHER_ARTHROPOD"],          stages: ["ADULT"] },
+const SAMPLE_TYPES = [
+  { id: 'st1', name: 'Serum', domain: 'CLINICAL', desc: 'Venous blood serum' },
+  { id: 'st2', name: 'Surface Water', domain: 'ENVIRONMENTAL', desc: 'Surface water for potability or pollution testing' },
+  { id: 'st3', name: 'Mosquito Pool — Aedes', domain: 'VECTOR', desc: 'Pool of up to 50 adult Aedes mosquitoes for arbovirus screening',
+    vectorProfile: { strategy: 'POOL_FIXED', defaultPoolSize: 50, preservation: 'RNAlater', groups: ['MOSQUITO'], stages: ['ADULT'] } },
+  { id: 'st4', name: 'Mosquito Pool — Anopheles', domain: 'VECTOR', desc: 'Variable pool for malaria vector identification',
+    vectorProfile: { strategy: 'POOL_VARIABLE', defaultPoolSize: null, preservation: 'Silica gel', groups: ['MOSQUITO'], stages: ['ADULT'] } },
+  { id: 'st5', name: 'Individual Rodent Tissue', domain: 'VECTOR', desc: 'Single rodent kidney/spleen for Leptospira testing',
+    vectorProfile: { strategy: 'INDIVIDUAL', defaultPoolSize: null, preservation: 'Frozen (-80°C)', groups: ['RODENT'], stages: ['ADULT'] } },
 ];
 
-// =====================================================================
-// Shared styled components
-// =====================================================================
-function Tag({ bg, color, children, size = "default" }) {
+const GROUP_TAG = { MOSQUITO: 'green', TICK: 'blue', RODENT: 'purple', OTHER_ARTHROPOD: 'warm-gray', OTHER_ANIMAL: 'gray' };
+const DOMAIN_TAG = { CLINICAL: 'blue', ENVIRONMENTAL: 'teal', BOTH: 'purple', VECTOR: 'green' };
+
+function AppShell({ page, setPage, children }) {
   return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 4,
-      padding: size === "sm" ? "1px 8px" : "2px 10px",
-      borderRadius: 24,
-      fontSize: size === "sm" ? 11 : 12,
-      fontWeight: 500,
-      background: bg, color,
-      whiteSpace: "nowrap",
-    }}>
-      {children}
-    </span>
+    <>
+      <Header aria-label={t('header.app', 'OpenELIS Global')}>
+        <HeaderName prefix="">{t('header.app', 'OpenELIS Global')}</HeaderName>
+        <HeaderGlobalBar>
+          <HeaderGlobalAction aria-label={t('header.user', 'User menu')}>
+            <UserAvatar size={20} />
+          </HeaderGlobalAction>
+        </HeaderGlobalBar>
+      </Header>
+
+      <SideNav aria-label={t('nav.side', 'Side navigation')} isFixedNav expanded>
+        <SideNavItems>
+          <SideNavLink>{t('nav.dashboard', 'Dashboard')}</SideNavLink>
+          <SideNavLink>{t('nav.orderEntry', 'Order Entry')}</SideNavLink>
+          <SideNavLink>{t('nav.results', 'Results')}</SideNavLink>
+          <SideNavLink>{t('nav.validation', 'Validation')}</SideNavLink>
+          <SideNavLink>{t('nav.reports', 'Reports')}</SideNavLink>
+          <SideNavDivider />
+          <SideNavLink isActive={page === 'sampleTypes'} onClick={() => setPage('sampleTypes')}>
+            {t('nav.admin.sampleTypes', 'Sample Types')}
+          </SideNavLink>
+          <SideNavLink>{t('nav.admin.testCatalog', 'Test Catalog')}</SideNavLink>
+          <SideNavLink>{t('nav.admin.standards', 'Compliance Standards')}</SideNavLink>
+          <SideNavLink>{t('nav.admin.sites', 'Sampling Sites')}</SideNavLink>
+          <SideNavLink>{t('nav.admin.analyzers', 'Analyzers')}</SideNavLink>
+
+          {/* V-01 adds this submenu */}
+          <SideNavMenu title={t('nav.admin.vector', 'Vector Surveillance')} renderIcon={Bug} defaultExpanded>
+            <SideNavMenuItem isActive={page === 'species'} onClick={() => setPage('species')}>
+              {t('nav.admin.vector.species', 'Species')}
+            </SideNavMenuItem>
+            <SideNavMenuItem isActive={page === 'traps'} onClick={() => setPage('traps')}>
+              {t('nav.admin.vector.traps', 'Trap Types')}
+            </SideNavMenuItem>
+          </SideNavMenu>
+
+          <SideNavLink>{t('nav.admin.users', 'Users & Permissions')}</SideNavLink>
+          <SideNavLink>{t('nav.admin.system', 'System Configuration')}</SideNavLink>
+        </SideNavItems>
+      </SideNav>
+
+      <main style={{ marginLeft: '16rem', padding: '2rem' }}>{children}</main>
+    </>
   );
 }
 
-function OrganismTag({ group, size }) {
-  const cfg = ORGANISM_GROUPS[group];
-  return <Tag bg={cfg.bg} color={cfg.color} size={size}>{cfg.icon} {cfg.label}</Tag>;
-}
-
-// =====================================================================
-// TAB 1: Vector Species
-// =====================================================================
-function SpeciesTab() {
-  const [expandedId, setExpandedId] = useState(null);
-  const [search, setSearch] = useState("");
-  const [filterGroup, setFilterGroup] = useState("ALL");
-  const [filterActive, setFilterActive] = useState("ACTIVE");
-  const [seedBanner, setSeedBanner] = useState(null);
-
-  const filtered = MOCK_SPECIES.filter(sp => {
-    if (filterActive === "ACTIVE" && !sp.active) return false;
-    if (filterActive === "INACTIVE" && sp.active) return false;
-    if (filterGroup !== "ALL" && sp.organismGroup !== filterGroup) return false;
-    if (search && !(`${sp.genus} ${sp.species} ${sp.commonName}`.toLowerCase().includes(search.toLowerCase()))) return false;
-    return true;
-  });
+function SpeciesPage() {
+  const [expanded, setExpanded] = useState(null);
+  const [groupFilter, setGroupFilter] = useState('ALL');
+  const rows = useMemo(() => groupFilter === 'ALL' ? SPECIES : SPECIES.filter(s => s.group === groupFilter), [groupFilter]);
 
   return (
-    <div style={{ padding: 24 }}>
-      {seedBanner && (
-        <div style={{ background: C.green10, border: `1px solid ${C.greenText}`, padding: "12px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: C.greenText }}>
-          <CheckCircle2 size={16} />
-          {t("message.vectorRef.seedReloadComplete", `Seed reload complete: ${seedBanner.created} created, ${seedBanner.skipped} skipped.`)}
-          <button onClick={() => setSeedBanner(null)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: C.greenText }}><X size={14} /></button>
-        </div>
-      )}
+    <>
+      <Breadcrumb>
+        <BreadcrumbItem href="#">{t('crumb.admin', 'Admin')}</BreadcrumbItem>
+        <BreadcrumbItem href="#">{t('crumb.vector', 'Vector Surveillance')}</BreadcrumbItem>
+        <BreadcrumbItem isCurrentPage>{t('page.species', 'Species')}</BreadcrumbItem>
+      </Breadcrumb>
+      <h1>{t('page.species', 'Species')}</h1>
+      <p>{t('page.species.subtitle',
+        'Manage the taxonomy of mosquitoes, ticks, rodents, and other vector organisms. Species defined here are selectable during vector specimen collection (V-02) and identification (V-03).')}</p>
 
-      {/* Toolbar */}
-      <div style={{ background: C.white, border: `1px solid ${C.gray20}`, display: "flex", alignItems: "center", borderBottom: "none" }}>
-        <div style={{ padding: "8px 12px", display: "flex", alignItems: "center", gap: 8, borderRight: `1px solid ${C.gray20}`, flex: 1 }}>
-          <Search size={16} color={C.gray60} />
-          <input
-            placeholder={t("placeholder.vectorRef.search", "Search species…")}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{ border: "none", outline: "none", fontSize: 14, flex: 1, background: "transparent", fontFamily: "inherit" }}
-          />
-        </div>
-        <select value={filterGroup} onChange={e => setFilterGroup(e.target.value)} style={toolbarSelect}>
-          <option value="ALL">{t("placeholder.vectorRef.filterOrganismGroup", "All Organism Groups")}</option>
-          {Object.entries(ORGANISM_GROUPS).map(([k, v]) => <option key={k} value={k}>{v.icon} {v.label}</option>)}
-        </select>
-        <select value={filterActive} onChange={e => setFilterActive(e.target.value)} style={toolbarSelect}>
-          <option value="ACTIVE">Active</option>
-          <option value="INACTIVE">Inactive</option>
-          <option value="ALL">All</option>
-        </select>
-        <button
-          onClick={() => setSeedBanner({ created: 3, skipped: 37 })}
-          style={{ background: C.white, border: "none", borderLeft: `1px solid ${C.gray20}`, padding: "0 16px", height: 40, cursor: "pointer", fontSize: 13, color: C.gray70, display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit" }}
-        >
-          <RefreshCw size={14} /> {t("button.vectorRef.reloadSeed", "Reload Seed Data")}
-        </button>
-        <button style={{ background: C.blue60, color: C.white, border: "none", padding: "0 20px", height: 40, cursor: "pointer", fontSize: 13, fontWeight: 500, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}>
-          <Plus size={14} /> {t("button.vectorRef.addSpecies", "Add Species")}
-        </button>
-      </div>
+      <InlineNotification kind="info"
+        title={t('msg.seed.title', 'Seed data available')}
+        subtitle={t('msg.seed.body', 'OpenELIS ships with ~40 pre-loaded species relevant to Indonesia. Seed import is idempotent.')}
+        actions={<Button kind="ghost" size="sm">{t('button.reloadSeed', 'Reload seed')}</Button>}
+        lowContrast hideCloseButton />
 
-      {/* DataTable */}
-      <div style={{ background: C.white, border: `1px solid ${C.gray20}` }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-          <thead>
-            <tr style={{ background: C.gray10, borderBottom: `1px solid ${C.gray20}` }}>
-              <th style={thStyle}>{t("label.vectorSpecies.genus", "Genus / Species")}</th>
-              <th style={thStyle}>{t("label.vectorSpecies.commonName", "Common Name")}</th>
-              <th style={thStyle}>{t("label.vectorSpecies.organismGroup", "Organism Group")}</th>
-              <th style={thStyle}>{t("label.vectorSpecies.pathogens", "Pathogens")}</th>
-              <th style={thStyle}>Status</th>
-              <th style={{ ...thStyle, width: 60 }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(sp => {
-              const isExpanded = expandedId === sp.id;
-              return (
-                <>
-                  <tr key={sp.id} style={{ borderBottom: `1px solid ${C.gray20}`, background: isExpanded ? C.blue10 : "transparent", cursor: "pointer" }}
-                      onClick={() => setExpandedId(isExpanded ? null : sp.id)}>
-                    <td style={tdStyle}>
-                      <span style={{ fontStyle: "italic", fontWeight: 500 }}>{sp.genus} {sp.species}</span>
-                      {sp.subspecies && <span style={{ fontStyle: "italic", color: C.gray60 }}> {sp.subspecies}</span>}
-                    </td>
-                    <td style={{ ...tdStyle, color: sp.commonName ? C.gray90 : C.gray50 }}>
-                      {sp.commonName || "—"}
-                    </td>
-                    <td style={tdStyle}><OrganismTag group={sp.organismGroup} /></td>
-                    <td style={tdStyle}>
-                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                        {sp.pathogens.slice(0, 2).map(p => (
-                          <Tag key={p} bg={C.gray10} color={C.gray70} size="sm">{p}</Tag>
-                        ))}
-                        {sp.pathogens.length > 2 && <Tag bg={C.gray10} color={C.gray70} size="sm">+{sp.pathogens.length - 2} more</Tag>}
-                        {sp.pathogens.length === 0 && <span style={{ color: C.gray50, fontSize: 13 }}>—</span>}
-                      </div>
-                    </td>
-                    <td style={tdStyle}>
-                      <Tag bg={sp.active ? C.green10 : C.gray10} color={sp.active ? C.greenText : C.gray60} size="sm">
-                        {sp.active ? t("label.vectorSpecies.status.active", "Active") : t("label.vectorSpecies.status.inactive", "Inactive")}
-                      </Tag>
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: "right" }}>
-                      {isExpanded ? <ChevronDown size={16} color={C.gray60} /> : <ChevronRight size={16} color={C.gray60} />}
-                    </td>
-                  </tr>
-                  {isExpanded && (
-                    <tr>
-                      <td colSpan={6} style={{ background: C.gray10, padding: "20px 24px", borderBottom: `1px solid ${C.gray20}` }}>
-                        <SpeciesEditForm species={sp} onClose={() => setExpandedId(null)} />
-                      </td>
-                    </tr>
-                  )}
-                </>
-              );
-            })}
-            {filtered.length === 0 && (
-              <tr><td colSpan={6} style={{ padding: 40, textAlign: "center", color: C.gray60 }}>No species match the current filters.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-      <div style={{ marginTop: 12, fontSize: 12, color: C.gray60 }}>
-        Showing {filtered.length} of {MOCK_SPECIES.length} species
-      </div>
-    </div>
-  );
-}
-
-function SpeciesEditForm({ species, onClose }) {
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-  return (
-    <div style={{ background: C.white, border: `1px solid ${C.gray20}`, padding: 20 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 16 }}>
-        <div>
-          <label style={formLabel}>{t("label.vectorSpecies.genus", "Genus")} *</label>
-          <input style={formInput} defaultValue={species.genus} />
-          <div style={formHint}>First letter capitalized (e.g., Aedes)</div>
-        </div>
-        <div>
-          <label style={formLabel}>{t("label.vectorSpecies.species", "Species")} *</label>
-          <input style={formInput} defaultValue={species.species} />
-          <div style={formHint}>Lowercase (e.g., aegypti)</div>
-        </div>
-        <div>
-          <label style={formLabel}>{t("label.vectorSpecies.subspecies", "Subspecies")}</label>
-          <input style={formInput} defaultValue={species.subspecies} placeholder="(optional)" />
-        </div>
-        <div>
-          <label style={formLabel}>{t("label.vectorSpecies.commonName", "Common Name")}</label>
-          <input style={formInput} defaultValue={species.commonName} />
-        </div>
-        <div>
-          <label style={formLabel}>{t("label.vectorSpecies.organismGroup", "Organism Group")} *</label>
-          <select style={formInput} defaultValue={species.organismGroup}>
-            {Object.entries(ORGANISM_GROUPS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={formLabel}>{t("label.vectorSpecies.defaultTestPanel", "Default Test Panel")}</label>
-          <select style={formInput} defaultValue="">
-            <option value="">— None —</option>
-            <option>Arbovirus RT-PCR (DENV/CHIKV/ZIKV)</option>
-            <option>Malaria PCR Panel</option>
-            <option>JEV RT-PCR</option>
-            <option>Tick-borne Pathogen Panel</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Accordion: Advanced */}
-      <div style={{ borderTop: `1px solid ${C.gray20}`, marginBottom: 16 }}>
-        <button onClick={() => setAdvancedOpen(!advancedOpen)} style={{
-          width: "100%", background: "none", border: "none", padding: "12px 0", cursor: "pointer",
-          display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500, color: C.gray80, textAlign: "left", fontFamily: "inherit",
-        }}>
-          {advancedOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          {t("label.vectorSpecies.advanced", "Advanced")}
-        </button>
-        {advancedOpen && (
-          <div style={{ padding: "0 0 16px", display: "flex", flexDirection: "column", gap: 16 }}>
-            <div>
-              <label style={formLabel}>{t("label.vectorSpecies.pathogens", "Associated Pathogens")}</label>
-              <div style={{ border: `1px solid ${C.gray30}`, padding: "8px 12px", background: C.white, display: "flex", gap: 6, flexWrap: "wrap", minHeight: 38 }}>
-                {species.pathogens.map(p => (
-                  <Tag key={p} bg={C.blue10} color={C.blueText} size="sm">{p} <X size={10} style={{ cursor: "pointer" }} /></Tag>
-                ))}
-                <span style={{ color: C.gray50, fontSize: 13 }}>+ Add pathogen…</span>
-              </div>
-            </div>
-            <div>
-              <label style={formLabel}>{t("label.vectorSpecies.lifecycleStages", "Lifecycle Stages")}</label>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                {["EGG","LARVA","PUPA","NYMPH","ADULT","ENGORGED_ADULT"].map(s => (
-                  <label key={s} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: C.gray80 }}>
-                    <input type="checkbox" defaultChecked={species.stages.includes(s)} /> {s.replace("_", " ")}
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label style={formLabel}>{t("label.vectorSpecies.active", "Active")}</label>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
-                <input type="checkbox" defaultChecked={species.active} /> Species is available for new collection lots
-              </label>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Actions */}
-      <div style={{ display: "flex", gap: 12, paddingTop: 12, borderTop: `1px solid ${C.gray20}` }}>
-        <button style={btnPrimary}>{t("button.vectorRef.save", "Save")}</button>
-        <button onClick={onClose} style={btnGhost}>{t("button.vectorRef.cancel", "Cancel")}</button>
-        <div style={{ flex: 1 }} />
-        <button style={{ ...btnGhost, color: C.red50, borderColor: C.red50 }}>{t("button.vectorRef.deactivate", "Deactivate")}</button>
-      </div>
-    </div>
-  );
-}
-
-// =====================================================================
-// TAB 2: Trap Types
-// =====================================================================
-function TrapTypesTab() {
-  const [expandedId, setExpandedId] = useState(null);
-  const [search, setSearch] = useState("");
-  const [filterGroup, setFilterGroup] = useState("ALL");
-
-  const filtered = MOCK_TRAPS.filter(tr => {
-    if (filterGroup !== "ALL" && tr.target !== filterGroup) return false;
-    if (search && !(`${tr.code} ${tr.name}`.toLowerCase().includes(search.toLowerCase()))) return false;
-    return true;
-  });
-
-  return (
-    <div style={{ padding: 24 }}>
-      {/* Toolbar */}
-      <div style={{ background: C.white, border: `1px solid ${C.gray20}`, display: "flex", alignItems: "center", borderBottom: "none" }}>
-        <div style={{ padding: "8px 12px", display: "flex", alignItems: "center", gap: 8, borderRight: `1px solid ${C.gray20}`, flex: 1 }}>
-          <Search size={16} color={C.gray60} />
-          <input
-            placeholder="Search trap types…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{ border: "none", outline: "none", fontSize: 14, flex: 1, background: "transparent", fontFamily: "inherit" }}
-          />
-        </div>
-        <select value={filterGroup} onChange={e => setFilterGroup(e.target.value)} style={toolbarSelect}>
-          <option value="ALL">All Targets</option>
-          {Object.entries(ORGANISM_GROUPS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-        </select>
-        <button style={{ background: C.blue60, color: C.white, border: "none", padding: "0 20px", height: 40, cursor: "pointer", fontSize: 13, fontWeight: 500, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}>
-          <Plus size={14} /> {t("button.vectorRef.addTrapType", "Add Trap Type")}
-        </button>
-      </div>
-
-      {/* DataTable */}
-      <div style={{ background: C.white, border: `1px solid ${C.gray20}` }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-          <thead>
-            <tr style={{ background: C.gray10, borderBottom: `1px solid ${C.gray20}` }}>
-              <th style={thStyle}>{t("label.trapType.code", "Code")}</th>
-              <th style={thStyle}>{t("label.trapType.displayName", "Display Name")}</th>
-              <th style={thStyle}>{t("label.trapType.targetOrganism", "Target")}</th>
-              <th style={thStyle}>{t("label.trapType.collectionMethod", "Collection Method")}</th>
-              <th style={thStyle}>Status</th>
-              <th style={{ ...thStyle, width: 60 }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(tr => {
-              const isExpanded = expandedId === tr.id;
-              return (
-                <>
-                  <tr key={tr.id} style={{ borderBottom: `1px solid ${C.gray20}`, background: isExpanded ? C.blue10 : "transparent", cursor: "pointer" }}
-                      onClick={() => setExpandedId(isExpanded ? null : tr.id)}>
-                    <td style={{ ...tdStyle, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 500, fontSize: 13 }}>{tr.code}</td>
-                    <td style={tdStyle}>{tr.name}</td>
-                    <td style={tdStyle}><OrganismTag group={tr.target} /></td>
-                    <td style={tdStyle}><Tag bg={C.teal10} color={C.tealText} size="sm">{COLLECTION_METHODS[tr.method]}</Tag></td>
-                    <td style={tdStyle}><Tag bg={C.green10} color={C.greenText} size="sm">Active</Tag></td>
-                    <td style={{ ...tdStyle, textAlign: "right" }}>
-                      {isExpanded ? <ChevronDown size={16} color={C.gray60} /> : <ChevronRight size={16} color={C.gray60} />}
-                    </td>
-                  </tr>
-                  {isExpanded && (
-                    <tr>
-                      <td colSpan={6} style={{ background: C.gray10, padding: "20px 24px", borderBottom: `1px solid ${C.gray20}` }}>
-                        <TrapTypeEditForm trap={tr} onClose={() => setExpandedId(null)} />
-                      </td>
-                    </tr>
-                  )}
-                </>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      <div style={{ marginTop: 12, fontSize: 12, color: C.gray60 }}>
-        Showing {filtered.length} of {MOCK_TRAPS.length} trap types
-      </div>
-    </div>
-  );
-}
-
-function TrapTypeEditForm({ trap, onClose }) {
-  return (
-    <div style={{ background: C.white, border: `1px solid ${C.gray20}`, padding: 20 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 20, marginBottom: 16 }}>
-        <div>
-          <label style={formLabel}>{t("label.trapType.code", "Code")} *</label>
-          <input style={{ ...formInput, fontFamily: "'IBM Plex Mono', monospace" }} defaultValue={trap.code} />
-          <div style={formHint}>Uppercase alphanumeric + underscore (e.g., CDC_LT)</div>
-        </div>
-        <div>
-          <label style={formLabel}>{t("label.trapType.displayName", "Display Name")} *</label>
-          <input style={formInput} defaultValue={trap.name} />
-        </div>
-        <div>
-          <label style={formLabel}>{t("label.trapType.targetOrganism", "Target Organism Group")} *</label>
-          <select style={formInput} defaultValue={trap.target}>
-            {Object.entries(ORGANISM_GROUPS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={formLabel}>{t("label.trapType.collectionMethod", "Collection Method")} *</label>
-          <select style={formInput} defaultValue={trap.method}>
-            {Object.entries(COLLECTION_METHODS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-      </div>
-      <div style={{ marginBottom: 16 }}>
-        <label style={formLabel}>{t("label.trapType.description", "Description")}</label>
-        <textarea style={{ ...formInput, minHeight: 70, resize: "vertical" }} defaultValue={trap.description} />
-      </div>
-      <div style={{ display: "flex", gap: 12, paddingTop: 12, borderTop: `1px solid ${C.gray20}` }}>
-        <button style={btnPrimary}>{t("button.vectorRef.save", "Save")}</button>
-        <button onClick={onClose} style={btnGhost}>{t("button.vectorRef.cancel", "Cancel")}</button>
-        <div style={{ flex: 1 }} />
-        <button style={{ ...btnGhost, color: C.red50, borderColor: C.red50 }}>{t("button.vectorRef.deactivate", "Deactivate")}</button>
-      </div>
-    </div>
-  );
-}
-
-// =====================================================================
-// TAB 3: Vector Sample Types
-// =====================================================================
-function VectorSampleTypesTab() {
-  const [expandedId, setExpandedId] = useState(null);
-
-  return (
-    <div style={{ padding: 24 }}>
-      <div style={{ background: C.blue10, border: `1px solid ${C.blue60}`, padding: "12px 16px", marginBottom: 16, fontSize: 13, color: C.blueText, display: "flex", alignItems: "center", gap: 8 }}>
-        <AlertTriangle size={16} />
-        <span>
-          These are Sample Types with <strong>sampleDomain = VECTOR</strong> (from S-04).
-          To create a new vector Sample Type, use the Sample Types admin page — this tab only configures the Vector Specimen Profile.
-        </span>
-      </div>
-
-      <div style={{ background: C.white, border: `1px solid ${C.gray20}` }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-          <thead>
-            <tr style={{ background: C.gray10, borderBottom: `1px solid ${C.gray20}` }}>
-              <th style={thStyle}>{t("label.vectorSampleType.name", "Sample Type")}</th>
-              <th style={thStyle}>{t("label.vectorSampleType.allowedGroups", "Allowed Groups")}</th>
-              <th style={thStyle}>{t("label.vectorSampleType.poolingStrategy", "Pooling")}</th>
-              <th style={thStyle}>{t("label.vectorSampleType.defaultPoolSize", "Pool Size")}</th>
-              <th style={thStyle}>{t("label.vectorSampleType.preservationMethod", "Preservation")}</th>
-              <th style={{ ...thStyle, width: 60 }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {MOCK_VECTOR_SAMPLE_TYPES.map(st => {
-              const isExpanded = expandedId === st.id;
-              const poolCfg = POOLING_STRATEGY[st.poolingStrategy];
-              return (
-                <>
-                  <tr key={st.id} style={{ borderBottom: `1px solid ${C.gray20}`, background: isExpanded ? C.blue10 : "transparent", cursor: "pointer" }}
-                      onClick={() => setExpandedId(isExpanded ? null : st.id)}>
-                    <td style={{ ...tdStyle, fontWeight: 500 }}>{st.name}</td>
-                    <td style={tdStyle}>
-                      <div style={{ display: "flex", gap: 4 }}>
-                        {st.allowedGroups.map(g => <OrganismTag key={g} group={g} size="sm" />)}
-                      </div>
-                    </td>
-                    <td style={tdStyle}><Tag bg={poolCfg.bg} color={poolCfg.color} size="sm">{poolCfg.label}</Tag></td>
-                    <td style={{ ...tdStyle, color: st.defaultPoolSize ? C.gray90 : C.gray50 }}>
-                      {st.defaultPoolSize || "—"}
-                    </td>
-                    <td style={{ ...tdStyle, fontSize: 13 }}>{st.preservation}</td>
-                    <td style={{ ...tdStyle, textAlign: "right" }}>
-                      {isExpanded ? <ChevronDown size={16} color={C.gray60} /> : <ChevronRight size={16} color={C.gray60} />}
-                    </td>
-                  </tr>
-                  {isExpanded && (
-                    <tr>
-                      <td colSpan={6} style={{ background: C.gray10, padding: "20px 24px", borderBottom: `1px solid ${C.gray20}` }}>
-                        <VectorSampleTypeEditForm sampleType={st} onClose={() => setExpandedId(null)} />
-                      </td>
-                    </tr>
-                  )}
-                </>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function VectorSampleTypeEditForm({ sampleType, onClose }) {
-  const [strategy, setStrategy] = useState(sampleType.poolingStrategy);
-  return (
-    <div style={{ background: C.white, border: `1px solid ${C.gray20}`, padding: 20 }}>
-      <div style={{ marginBottom: 20 }}>
-        <label style={formLabel}>{t("label.vectorSampleType.poolingStrategy", "Pooling Strategy")} *</label>
-        <div style={{ display: "flex", gap: 16, marginTop: 4 }}>
-          {Object.entries(POOLING_STRATEGY).map(([k, v]) => (
-            <label key={k} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, cursor: "pointer" }}>
-              <input type="radio" name="strategy" checked={strategy === k} onChange={() => setStrategy(k)} />
-              {v.label}
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Progressive disclosure: only shown for POOL_FIXED */}
-      {strategy === "POOL_FIXED" && (
-        <div style={{ marginBottom: 20 }}>
-          <label style={formLabel}>{t("label.vectorSampleType.defaultPoolSize", "Default Pool Size")} *</label>
-          <input type="number" style={{ ...formInput, width: 160 }} defaultValue={sampleType.defaultPoolSize || 25} min={1} max={100} />
-          <div style={formHint}>1 to 100 organisms per pool</div>
-        </div>
-      )}
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
-        <div>
-          <label style={formLabel}>{t("label.vectorSampleType.allowedGroups", "Allowed Organism Groups")} *</label>
-          <div style={{ border: `1px solid ${C.gray30}`, padding: "8px 12px", background: C.white, display: "flex", gap: 6, flexWrap: "wrap", minHeight: 38 }}>
-            {sampleType.allowedGroups.map(g => (
-              <OrganismTag key={g} group={g} size="sm" />
+      <TableContainer>
+        <TableToolbar>
+          <TableToolbarContent>
+            <TableToolbarSearch placeholder={t('search.species', 'Search by genus, species, or pathogen')} />
+            <Select id="group-filter" labelText="" hideLabel value={groupFilter} onChange={e => setGroupFilter(e.target.value)}>
+              <SelectItem value="ALL" text={t('filter.allGroups', 'All groups')} />
+              <SelectItem value="MOSQUITO" text="Mosquito" />
+              <SelectItem value="TICK" text="Tick" />
+              <SelectItem value="RODENT" text="Rodent" />
+              <SelectItem value="OTHER_ARTHROPOD" text="Other arthropod" />
+              <SelectItem value="OTHER_ANIMAL" text="Other animal" />
+            </Select>
+            <Button renderIcon={Add} size="sm">{t('button.addSpecies', 'Add species')}</Button>
+          </TableToolbarContent>
+        </TableToolbar>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeader />
+              <TableHeader>{t('col.genus', 'Genus')}</TableHeader>
+              <TableHeader>{t('col.species', 'Species')}</TableHeader>
+              <TableHeader>{t('col.subspecies', 'Subspecies')}</TableHeader>
+              <TableHeader>{t('col.group', 'Group')}</TableHeader>
+              <TableHeader>{t('col.pathogens', 'Pathogens')}</TableHeader>
+              <TableHeader>{t('col.status', 'Status')}</TableHeader>
+              <TableHeader />
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {rows.map(r => (
+              <React.Fragment key={r.id}>
+                <TableRow>
+                  <TableCell>
+                    <Button kind="ghost" size="sm" onClick={() => setExpanded(expanded === r.id ? null : r.id)}
+                      renderIcon={expanded === r.id ? ChevronUp : ChevronDown} />
+                  </TableCell>
+                  <TableCell><em>{r.genus}</em></TableCell>
+                  <TableCell><em>{r.species}</em></TableCell>
+                  <TableCell>{r.subspecies ? <em>ssp. {r.subspecies}</em> : '—'}</TableCell>
+                  <TableCell><Tag type={GROUP_TAG[r.group]}>{r.group}</Tag></TableCell>
+                  <TableCell>{r.pathogens.slice(0,2).join(', ')}{r.pathogens.length>2?` +${r.pathogens.length-2}`:''}</TableCell>
+                  <TableCell><Tag type={r.active ? 'green' : 'gray'}>{r.active ? t('status.active', 'Active') : t('status.inactive', 'Inactive')}</Tag></TableCell>
+                  <TableCell><Button kind="ghost" size="sm" renderIcon={Edit}>{t('button.edit', 'Edit')}</Button></TableCell>
+                </TableRow>
+                {expanded === r.id && (
+                  <TableRow>
+                    <TableCell colSpan={8}>
+                      <Tile style={{ padding: '1rem' }}>
+                        <Grid>
+                          <Column sm={4} md={4} lg={4}><TextInput id={`g-${r.id}`} labelText={t('label.genus', 'Genus *')} defaultValue={r.genus} /></Column>
+                          <Column sm={4} md={4} lg={4}><TextInput id={`s-${r.id}`} labelText={t('label.species', 'Species *')} defaultValue={r.species} /></Column>
+                          <Column sm={4} md={4} lg={4}><TextInput id={`sub-${r.id}`} labelText={t('label.subspecies', 'Subspecies (optional)')} defaultValue={r.subspecies || ''} /></Column>
+                        </Grid>
+                        <Accordion>
+                          <AccordionItem title={t('section.advanced', 'Advanced: pathogens & lifecycle stages')}>
+                            <TextInput id={`p-${r.id}`} labelText={t('label.pathogens', 'Pathogens of interest')} defaultValue={r.pathogens.join(', ')} helperText={t('help.pathogens', 'Comma-separated. Selectable during vector testing (V-03).')} />
+                            <TextInput id={`st-${r.id}`} labelText={t('label.stages', 'Lifecycle stages')} defaultValue={r.stages.join(', ')} />
+                          </AccordionItem>
+                        </Accordion>
+                        <Stack orientation="horizontal" gap={3} style={{ marginTop: '1rem' }}>
+                          <Button kind="primary" size="sm">{t('button.save', 'Save')}</Button>
+                          <Button kind="ghost" size="sm" onClick={() => setExpanded(null)}>{t('button.cancel', 'Cancel')}</Button>
+                        </Stack>
+                      </Tile>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </React.Fragment>
             ))}
-            <span style={{ color: C.gray50, fontSize: 13 }}>+ Add group…</span>
-          </div>
-        </div>
-        <div>
-          <label style={formLabel}>{t("label.vectorSampleType.preservationMethod", "Preservation Method")}</label>
-          <input style={formInput} defaultValue={sampleType.preservation} />
-        </div>
-      </div>
-
-      <div style={{ marginBottom: 20 }}>
-        <label style={formLabel}>{t("label.vectorSampleType.expectedStages", "Expected Lifecycle Stages")}</label>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          {["EGG","LARVA","PUPA","NYMPH","ADULT","ENGORGED_ADULT"].map(s => (
-            <label key={s} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: C.gray80 }}>
-              <input type="checkbox" defaultChecked={sampleType.stages.includes(s)} /> {s.replace("_", " ")}
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ display: "flex", gap: 12, paddingTop: 12, borderTop: `1px solid ${C.gray20}` }}>
-        <button style={btnPrimary}>{t("button.vectorRef.save", "Save")}</button>
-        <button onClick={onClose} style={btnGhost}>{t("button.vectorRef.cancel", "Cancel")}</button>
-      </div>
-    </div>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   );
 }
 
-// =====================================================================
-// App Shell — Page header + tabs
-// =====================================================================
-export default function V01VectorReferenceDataMockup() {
-  const [activeTab, setActiveTab] = useState("species");
+function TrapTypesPage() {
+  const [expanded, setExpanded] = useState(null);
+  return (
+    <>
+      <Breadcrumb>
+        <BreadcrumbItem href="#">{t('crumb.admin', 'Admin')}</BreadcrumbItem>
+        <BreadcrumbItem href="#">{t('crumb.vector', 'Vector Surveillance')}</BreadcrumbItem>
+        <BreadcrumbItem isCurrentPage>{t('page.traps', 'Trap Types')}</BreadcrumbItem>
+      </Breadcrumb>
+      <h1>{t('page.traps', 'Trap Types')}</h1>
+      <p>{t('page.traps.subtitle', 'Collection methods and devices used to capture vectors. Selectable when recording a Collection Lot (V-02).')}</p>
+
+      <TableContainer>
+        <TableToolbar>
+          <TableToolbarContent>
+            <TableToolbarSearch placeholder={t('search.traps', 'Search trap name or description')} />
+            <Button renderIcon={Add} size="sm">{t('button.addTrap', 'Add trap type')}</Button>
+          </TableToolbarContent>
+        </TableToolbar>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeader />
+              <TableHeader>{t('col.trapName', 'Trap name')}</TableHeader>
+              <TableHeader>{t('col.target', 'Target organism group')}</TableHeader>
+              <TableHeader>{t('col.description', 'Description')}</TableHeader>
+              <TableHeader>{t('col.status', 'Status')}</TableHeader>
+              <TableHeader />
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {TRAPS.map(tr => (
+              <React.Fragment key={tr.id}>
+                <TableRow>
+                  <TableCell>
+                    <Button kind="ghost" size="sm" onClick={() => setExpanded(expanded === tr.id ? null : tr.id)}
+                      renderIcon={expanded === tr.id ? ChevronUp : ChevronDown} />
+                  </TableCell>
+                  <TableCell><strong>{tr.name}</strong></TableCell>
+                  <TableCell><Tag type={GROUP_TAG[tr.target]}>{tr.target}</Tag></TableCell>
+                  <TableCell>{tr.description}</TableCell>
+                  <TableCell><Tag type="green">{t('status.active', 'Active')}</Tag></TableCell>
+                  <TableCell><Button kind="ghost" size="sm" renderIcon={Edit}>{t('button.edit', 'Edit')}</Button></TableCell>
+                </TableRow>
+                {expanded === tr.id && (
+                  <TableRow>
+                    <TableCell colSpan={6}>
+                      <Tile style={{ padding: '1rem' }}>
+                        <Grid>
+                          <Column sm={4} md={4} lg={6}><TextInput id={`tn-${tr.id}`} labelText={t('label.trapName', 'Trap name *')} defaultValue={tr.name} /></Column>
+                          <Column sm={4} md={4} lg={6}>
+                            <Select id={`tg-${tr.id}`} labelText={t('label.target', 'Target organism group *')} defaultValue={tr.target}>
+                              <SelectItem value="MOSQUITO" text="Mosquito" />
+                              <SelectItem value="TICK" text="Tick" />
+                              <SelectItem value="RODENT" text="Rodent" />
+                              <SelectItem value="OTHER_ARTHROPOD" text="Other arthropod" />
+                              <SelectItem value="OTHER_ANIMAL" text="Other animal" />
+                            </Select>
+                          </Column>
+                        </Grid>
+                        <TextArea id={`td-${tr.id}`} labelText={t('label.description', 'Description')} defaultValue={tr.description} rows={3} />
+                        <Stack orientation="horizontal" gap={3} style={{ marginTop: '1rem' }}>
+                          <Button kind="primary" size="sm">{t('button.save', 'Save')}</Button>
+                          <Button kind="ghost" size="sm" onClick={() => setExpanded(null)}>{t('button.cancel', 'Cancel')}</Button>
+                        </Stack>
+                      </Tile>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </React.Fragment>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
+  );
+}
+
+function SampleTypesPage() {
+  const [expanded, setExpanded] = useState('st3'); // Default-open the first vector row to showcase integration
+  const [domainFilter, setDomainFilter] = useState('ALL');
+  const rows = useMemo(() => domainFilter === 'ALL' ? SAMPLE_TYPES : SAMPLE_TYPES.filter(s => s.domain === domainFilter), [domainFilter]);
 
   return (
-    <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", background: C.gray10, minHeight: "100vh" }}>
-      {/* Page header */}
-      <div style={{ background: C.white, borderBottom: `1px solid ${C.gray20}`, padding: "24px 32px 0" }}>
-        <div style={{ fontSize: 14, color: C.gray60, marginBottom: 4 }}>
-          <Bug size={16} style={{ verticalAlign: "middle" }} /> Admin / {t("nav.vectorRef.breadcrumb", "Vector Surveillance")} / Reference Data
-        </div>
-        <h1 style={{ fontSize: 28, fontWeight: 400, color: C.gray100, margin: "4px 0" }}>
-          {t("heading.vectorRef.title", "Vector Surveillance Reference Data")}
-        </h1>
-        <p style={{ fontSize: 14, color: C.gray60, margin: "4px 0 20px" }}>
-          {t("heading.vectorRef.subtitle", "Manage species, trap types, and vector sample type profiles")}
-        </p>
-        {/* Tabs */}
-        <div style={{ display: "flex", gap: 4, borderBottom: "none" }}>
-          {[
-            { key: "species",     label: t("tab.vectorRef.species",     "Species"),               icon: <Bug size={14} />,     count: MOCK_SPECIES.length },
-            { key: "trapTypes",   label: t("tab.vectorRef.trapTypes",   "Trap Types"),            icon: <Layers size={14} />,  count: MOCK_TRAPS.length },
-            { key: "sampleTypes", label: t("tab.vectorRef.sampleTypes", "Vector Sample Types"),   icon: <Beaker size={14} />,  count: MOCK_VECTOR_SAMPLE_TYPES.length },
-          ].map(tab => (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
-              padding: "10px 20px", background: activeTab === tab.key ? C.gray10 : "transparent",
-              border: "none", borderBottom: activeTab === tab.key ? `3px solid ${C.blue60}` : `3px solid transparent`,
-              fontSize: 14, fontWeight: activeTab === tab.key ? 600 : 400,
-              color: activeTab === tab.key ? C.gray100 : C.gray60,
-              cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6,
-            }}>
-              {tab.icon} {tab.label}
-              <span style={{ padding: "1px 8px", background: C.gray20, color: C.gray70, borderRadius: 10, fontSize: 11, fontWeight: 500 }}>{tab.count}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+    <>
+      <Breadcrumb>
+        <BreadcrumbItem href="#">{t('crumb.admin', 'Admin')}</BreadcrumbItem>
+        <BreadcrumbItem isCurrentPage>{t('page.sampleTypes', 'Sample Types')}</BreadcrumbItem>
+      </Breadcrumb>
+      <h1>{t('page.sampleTypes', 'Sample Types')}</h1>
+      <p>{t('page.sampleTypes.subtitle',
+        'Manage all sample types. Vector sample types are edited here via the Vector Profile section that appears when domain = Vector.')}</p>
 
-      {activeTab === "species"     && <SpeciesTab />}
-      {activeTab === "trapTypes"   && <TrapTypesTab />}
-      {activeTab === "sampleTypes" && <VectorSampleTypesTab />}
-    </div>
+      <InlineNotification kind="info"
+        title={t('msg.integration.title', 'How V-01 integrates with Sample Type Management')}
+        subtitle={t('msg.integration.body',
+          'V-01 extends the existing Sample Type entity by adding VECTOR to the sampleDomain enum (introduced in S-04). When a sample type\'s domain is set to Vector, a Vector Profile accordion appears below Basic Info. Species and Trap Types remain separate admin pages because they are independent reference tables, not per-sample-type configuration.')}
+        lowContrast hideCloseButton />
+
+      <TableContainer>
+        <TableToolbar>
+          <TableToolbarContent>
+            <TableToolbarSearch placeholder={t('search.sampleTypes', 'Search sample type name')} />
+            <Select id="domain-filter" labelText="" hideLabel value={domainFilter} onChange={e => setDomainFilter(e.target.value)}>
+              <SelectItem value="ALL" text={t('filter.allDomains', 'All domains')} />
+              <SelectItem value="CLINICAL" text="Clinical" />
+              <SelectItem value="ENVIRONMENTAL" text="Environmental" />
+              <SelectItem value="VECTOR" text="Vector" />
+            </Select>
+            <Button renderIcon={Add} size="sm">{t('button.addSampleType', 'Add sample type')}</Button>
+          </TableToolbarContent>
+        </TableToolbar>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeader />
+              <TableHeader>{t('col.sampleType', 'Sample type')}</TableHeader>
+              <TableHeader>{t('col.domain', 'Domain')}</TableHeader>
+              <TableHeader>{t('col.description', 'Description')}</TableHeader>
+              <TableHeader />
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {rows.map(s => (
+              <React.Fragment key={s.id}>
+                <TableRow>
+                  <TableCell>
+                    <Button kind="ghost" size="sm" onClick={() => setExpanded(expanded === s.id ? null : s.id)}
+                      renderIcon={expanded === s.id ? ChevronUp : ChevronDown} />
+                  </TableCell>
+                  <TableCell><strong>{s.name}</strong></TableCell>
+                  <TableCell><Tag type={DOMAIN_TAG[s.domain]}>{s.domain}</Tag></TableCell>
+                  <TableCell>{s.desc}</TableCell>
+                  <TableCell><Button kind="ghost" size="sm" renderIcon={Edit}>{t('button.edit', 'Edit')}</Button></TableCell>
+                </TableRow>
+                {expanded === s.id && (
+                  <TableRow>
+                    <TableCell colSpan={5}>
+                      <Tile style={{ padding: '1rem' }}>
+                        <Accordion>
+                          <AccordionItem title={t('section.basicInfo', 'Basic Info')} open>
+                            <Grid>
+                              <Column sm={4} md={4} lg={6}>
+                                <TextInput id={`n-${s.id}`} labelText={t('label.sampleTypeName', 'Sample type name *')} defaultValue={s.name} />
+                              </Column>
+                              <Column sm={4} md={4} lg={6}>
+                                <Select id={`d-${s.id}`}
+                                  labelText={t('label.domain', 'Domain *')}
+                                  helperText={t('help.domain', 'VECTOR reveals the Vector Profile section. (VECTOR added by V-01; enum introduced by S-04.)')}
+                                  defaultValue={s.domain}>
+                                  <SelectItem value="CLINICAL" text="Clinical" />
+                                  <SelectItem value="ENVIRONMENTAL" text="Environmental" />
+                                  <SelectItem value="BOTH" text="Both" />
+                                  <SelectItem value="VECTOR" text="Vector" />
+                                </Select>
+                              </Column>
+                            </Grid>
+                            <TextArea id={`desc-${s.id}`} labelText={t('label.description', 'Description')} defaultValue={s.desc} rows={2} />
+                          </AccordionItem>
+
+                          {/* V-01 contribution: Vector Profile progressive-discloses when domain = VECTOR */}
+                          {s.domain === 'VECTOR' && s.vectorProfile && (
+                            <AccordionItem title={t('section.vectorProfile', 'Vector Profile (added by V-01)')} open>
+                              <Grid>
+                                <Column sm={4} md={4} lg={6}>
+                                  <Select id={`ps-${s.id}`} labelText={t('label.poolingStrategy', 'Pooling strategy *')} defaultValue={s.vectorProfile.strategy}>
+                                    <SelectItem value="INDIVIDUAL" text={t('enum.strategy.individual', 'Individual (1 organism per sample)')} />
+                                    <SelectItem value="POOL_FIXED" text={t('enum.strategy.poolFixed', 'Pool — fixed size')} />
+                                    <SelectItem value="POOL_VARIABLE" text={t('enum.strategy.poolVariable', 'Pool — variable size')} />
+                                  </Select>
+                                </Column>
+                                {s.vectorProfile.strategy === 'POOL_FIXED' && (
+                                  <Column sm={4} md={4} lg={6}>
+                                    <NumberInput id={`pz-${s.id}`}
+                                      label={t('label.defaultPoolSize', 'Default pool size *')}
+                                      helperText={t('help.defaultPoolSize', 'Prefilled as pool size when creating a Collection Lot.')}
+                                      defaultValue={s.vectorProfile.defaultPoolSize || 1} min={1} />
+                                  </Column>
+                                )}
+                              </Grid>
+                              <Grid>
+                                <Column sm={4} md={4} lg={6}>
+                                  <TextInput id={`pr-${s.id}`} labelText={t('label.preservation', 'Preservation method *')} defaultValue={s.vectorProfile.preservation} />
+                                </Column>
+                                <Column sm={4} md={4} lg={6}>
+                                  <TextInput id={`gr-${s.id}`} labelText={t('label.allowedGroups', 'Allowed organism groups *')}
+                                    defaultValue={s.vectorProfile.groups.join(', ')}
+                                    helperText={t('help.allowedGroups', 'Multi-select: MOSQUITO, TICK, RODENT, OTHER_ARTHROPOD, OTHER_ANIMAL.')} />
+                                </Column>
+                              </Grid>
+                              <TextInput id={`stg-${s.id}`} labelText={t('label.allowedStages', 'Allowed lifecycle stages')}
+                                defaultValue={s.vectorProfile.stages.join(', ')}
+                                helperText={t('help.allowedStages', 'Constrains stage selection in V-02 collection entry.')} />
+                            </AccordionItem>
+                          )}
+                        </Accordion>
+                        <Stack orientation="horizontal" gap={3} style={{ marginTop: '1rem' }}>
+                          <Button kind="primary" size="sm">{t('button.save', 'Save')}</Button>
+                          <Button kind="ghost" size="sm" onClick={() => setExpanded(null)}>{t('button.cancel', 'Cancel')}</Button>
+                        </Stack>
+                      </Tile>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </React.Fragment>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Shared styles
-// ---------------------------------------------------------------------------
-const thStyle = {
-  padding: "10px 12px", textAlign: "left", fontSize: 12, fontWeight: 600,
-  color: C.gray60, textTransform: "uppercase", letterSpacing: 0.5,
-};
-const tdStyle = { padding: "10px 12px", verticalAlign: "middle", fontSize: 14, color: C.gray90 };
-const toolbarSelect = {
-  padding: "0 12px", height: 40, background: C.white, border: "none",
-  borderRight: `1px solid ${C.gray20}`, fontSize: 13, color: C.gray80, fontFamily: "inherit", cursor: "pointer",
-};
-const formLabel = { display: "block", fontSize: 12, fontWeight: 500, color: C.gray70, marginBottom: 4 };
-const formInput = {
-  width: "100%", padding: "8px 12px", fontSize: 14, border: `1px solid ${C.gray30}`,
-  background: C.white, color: C.gray90, boxSizing: "border-box", fontFamily: "inherit",
-};
-const formHint = { fontSize: 11, color: C.gray50, marginTop: 2 };
-const btnPrimary = {
-  background: C.blue60, color: C.white, border: "none", padding: "9px 20px",
-  fontSize: 14, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
-};
-const btnGhost = {
-  background: "none", border: `1px solid ${C.gray30}`, padding: "8px 20px",
-  fontSize: 14, cursor: "pointer", fontFamily: "inherit", color: C.gray80,
-};
+export default function V01VectorReferenceData() {
+  const [page, setPage] = useState('species');
+  return (
+    <AppShell page={page} setPage={setPage}>
+      {page === 'species' && <SpeciesPage />}
+      {page === 'traps' && <TrapTypesPage />}
+      {page === 'sampleTypes' && <SampleTypesPage />}
+    </AppShell>
+  );
+}

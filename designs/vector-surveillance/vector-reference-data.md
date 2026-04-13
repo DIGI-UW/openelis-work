@@ -68,6 +68,51 @@ V-01 establishes the foundational data model and admin configuration UI for vect
 
 ---
 
+## 3a. Navigation & Integration with Sample Type Management
+
+### 3a.1 Admin navigation changes
+
+V-01 introduces a new top-level admin submenu, **Vector Surveillance**, under the existing Admin section of the SideNav. The submenu contains exactly two items:
+
+- **Admin → Vector Surveillance → Species**
+- **Admin → Vector Surveillance → Trap Types**
+
+**FR-V01-NAV-001:** The Vector Surveillance submenu MUST appear in the admin SideNav when the authenticated user holds `vector.species.view` OR `vector.trapType.view`. If the user holds neither, the submenu MUST be hidden.
+
+**FR-V01-NAV-002:** Each submenu child (Species, Trap Types) MUST be individually gated by its corresponding `*.view` permission. A user with only `vector.species.view` sees only Species.
+
+**FR-V01-NAV-003:** The header breadcrumb on each page MUST read: `Admin › Vector Surveillance › {Species | Trap Types}`.
+
+### 3a.2 Integration with existing Sample Type admin (Option A)
+
+Vector Sample Types are **not** a separate admin page. They are regular `SampleType` rows with `sampleDomain = VECTOR`. The existing Sample Type admin (OGC-296 / S-04) is the single source of truth for all sample types. V-01 contributes the following additions to that existing page:
+
+**FR-V01-INT-001:** V-01 MUST extend the `sampleDomain` enum (introduced in S-04) to include a new value, `VECTOR`, in addition to `CLINICAL`, `ENVIRONMENTAL`, and `BOTH`.
+
+**FR-V01-INT-002:** The Sample Type list MUST add a filter chip for `VECTOR` domain alongside the existing CLINICAL / ENVIRONMENTAL filter chips.
+
+**FR-V01-INT-003:** The Sample Type inline editor MUST progressive-disclose a new Carbon `AccordionItem` titled **"Vector Profile"** when, and only when, the editor's current `sampleDomain` selection is `VECTOR`. The Vector Profile accordion MUST hold all fields of the `VectorSpecimenProfile` entity (see §5.2): pooling strategy, default pool size (only when strategy = `POOL_FIXED`), preservation method, allowed organism groups, allowed lifecycle stages.
+
+**FR-V01-INT-004:** Saving a Sample Type with `sampleDomain = VECTOR` MUST require the Vector Profile to be valid (pooling strategy selected, preservation method non-empty, at least one allowed organism group). The Save button MUST remain disabled until Vector Profile is valid.
+
+**FR-V01-INT-005:** Changing a Sample Type's `sampleDomain` away from `VECTOR` MUST warn the user: "Removing VECTOR domain will orphan the Vector Profile and may affect existing Collection Lots. Continue?" (Cancel / Confirm modal). If confirmed, the VectorSpecimenProfile row is soft-deleted but preserved for audit.
+
+**FR-V01-INT-006:** Editing a Sample Type with `sampleDomain = VECTOR` MUST require permission `vector.sampleType.edit` in addition to the existing `sampleType.edit` permission. Users with only `sampleType.edit` MUST see Vector Profile as read-only.
+
+### 3a.3 Why this integration model
+
+| Alternative considered | Reason rejected |
+|---|---|
+| Standalone "Vector Sample Types" admin page (parallel entity) | Duplicates `SampleType` fields; creates two admin surfaces editing the same underlying data; breaks the sampleDomain architecture committed in S-04 |
+| Separate Vector Sample Types list that deep-links into Sample Type admin | Users get confused about which surface is canonical; no real benefit over the filter chip approach |
+| **Progressive disclosure inside existing Sample Type admin (chosen)** | One source of truth; reuses all S-04 investment (domain column, bulk assignment, workflow toggle); aligned with constitution Principle 3 (inline-first) |
+
+### 3a.4 Why Species and Trap Types are separate pages
+
+Species and Trap Types are **independent reference tables** — they are not per-sample-type configuration. A given Species (e.g., *Aedes aegypti*) can be collected into many different Sample Types (a fixed pool of 50, a variable pool, or an individual tissue), and a given Trap Type (e.g., BG-Sentinel) is shared across many collection events. Embedding them into the Sample Type admin would be the wrong coupling. They therefore live as sibling admin pages under the Vector Surveillance submenu.
+
+---
+
 ## 4. Functional Requirements
 
 ### 4.1 Vector Species Catalog
