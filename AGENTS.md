@@ -68,6 +68,25 @@ INDEX.md           Cross-referenced design index
 
 When staging changes, always use `git add <specific files>` rather than `git add -A` or `git add .`. Past commits have accidentally deleted existing design files by staging unintended removals. After staging, run `git status` and verify no unexpected deletions appear.
 
+## Agent-accessible endpoints
+
+The gallery is a React SPA. For programmatic or non-JS access, use these static endpoints:
+
+| URL | Format | Contents |
+|-----|--------|----------|
+| `/catalog.json` | JSON | Structured index of all designs with URLs |
+| `/catalog.html` | HTML | Browsable plain-HTML catalog (no JS needed) |
+| `/llms.txt` | Markdown | LLM-optimized site index (llms.txt convention) |
+| `/llms-full.txt` | Markdown | All spec documents concatenated |
+| `/sitemap.xml` | XML | Standard sitemap for crawlers |
+| `/#/preview/{category}/{slug}` | SPA | Standalone mockup preview with screenshot |
+| `/#/spec/{category}/{slug}` | SPA | Standalone rendered spec document |
+| `/designs/{category}/{slug}.md` | Markdown | Raw spec file |
+| `/designs/{category}/{slug}.jsx` | JSX | Raw mockup source code |
+| `/designs/{category}/{slug}.html` | HTML | Standalone HTML mockup |
+
+All `/catalog.*`, `/llms*`, `/sitemap.xml`, and `/designs/**` URLs are static files — no JS execution needed. The `/#/preview/` and `/#/spec/` routes require the SPA but render without gallery chrome.
+
 ## Test suite
 
 Tests live in `mockup-viewer/src/App.test.jsx`. The suite includes:

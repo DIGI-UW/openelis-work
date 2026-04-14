@@ -14,6 +14,7 @@
   "dependencies": {
     "@carbon/icons-react": "^11.77.1",
     "@carbon/react": "^1.104.1",
+    "html-to-image": "^1.11.13",
     "lucide-react": "^0.576.0",
     "marked": "^17.0.6",
     "react": "^18.2.0",
