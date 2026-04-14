@@ -14,7 +14,7 @@
  *  4. DescriptiveTagSelector — replaces numeric input for DESCRIPTIVE thresholds
  *  5. Unit mismatch warning — inline alert in expanded panel
  */
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Search, ChevronRight, ChevronDown, ChevronUp, Check, AlertTriangle,
   FileText, Microscope, Paperclip, History, FlaskConical, Send,
