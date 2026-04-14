@@ -1066,6 +1066,33 @@ export function findMockupByHash(hash) {
   ) || null;
 }
 
+/**
+ * Parse the hash into a route object.
+ * Supports:
+ *   #/{category}/{slug}           → { mode: 'gallery', mockup }
+ *   #/preview/{category}/{slug}   → { mode: 'preview', mockup }
+ *   #/spec/{category}/{slug}      → { mode: 'spec', mockup }
+ */
+export function parseRoute(hash) {
+  const path = hash.replace(/^#\/?/, '');
+  if (!path) return { mode: 'gallery', mockup: null };
+  const parts = path.split('/');
+  if (parts[0] === 'preview' && parts.length >= 3) {
+    const cat = parts[1];
+    const slug = parts.slice(2).join('/');
+    const mockup = MOCKUP_REGISTRY.find(m => m.category === cat && toSlug(m.name) === slug) || null;
+    return { mode: 'preview', mockup };
+  }
+  if (parts[0] === 'spec' && parts.length >= 3) {
+    const cat = parts[1];
+    const slug = parts.slice(2).join('/');
+    const mockup = MOCKUP_REGISTRY.find(m => m.category === cat && toSlug(m.name) === slug) || null;
+    return { mode: 'spec', mockup };
+  }
+  const mockup = findMockupByHash(hash);
+  return { mode: 'gallery', mockup };
+}
+
 /** Build the hash string for a mockup */
 export function toHash(mockup) {
   return `#/${mockup.category}/${toSlug(mockup.name)}`;
@@ -1122,6 +1149,124 @@ function SpecViewer({ specPath }) {
       style={styles.specContent}
       dangerouslySetInnerHTML={{ __html: marked(content) }}
     />
+  );
+}
+
+// ─── Standalone Preview (full-screen mockup, no gallery chrome) ───
+
+function StandalonePreview({ mockup }) {
+  const previewRef = React.useRef(null);
+  const [capturing, setCapturing] = React.useState(false);
+
+  async function handleScreenshot() {
+    if (!previewRef.current) return;
+    setCapturing(true);
+    try {
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(previewRef.current, { cacheBust: true, backgroundColor: '#ffffff' });
+      const link = document.createElement('a');
+      link.download = `${toSlug(mockup.name)}-screenshot.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Screenshot failed:', err);
+      alert('Screenshot capture failed. Try using your browser\'s built-in screenshot tool.');
+    }
+    setCapturing(false);
+  }
+
+  const slug = toSlug(mockup.name);
+  const galleryUrl = `#/${mockup.category}/${slug}`;
+  const specUrl = mockup.specPath ? `#/spec/${mockup.category}/${slug}` : null;
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem 1rem', background: '#161616', color: '#f4f4f4', fontSize: '0.875rem', flexShrink: 0 }}>
+        <a href={galleryUrl} style={{ color: '#78a9ff', textDecoration: 'none' }}>← Gallery</a>
+        <span style={{ fontWeight: 600 }}>{mockup.name}</span>
+        <span style={{ color: '#6f6f6f' }}>{categoryLabels[mockup.category] || mockup.category}</span>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.75rem' }}>
+          {specUrl && <a href={specUrl} style={{ color: '#78a9ff', textDecoration: 'none' }}>View Spec</a>}
+          <button
+            onClick={handleScreenshot}
+            disabled={capturing}
+            style={{ background: '#0f62fe', color: '#fff', border: 'none', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+          >
+            {capturing ? 'Capturing...' : '📷 Screenshot'}
+          </button>
+        </div>
+      </div>
+      <div ref={previewRef} style={{ flex: 1, overflow: 'auto' }}>
+        {mockup.component ? (
+          <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading mockup...</div>}>
+            <ErrorBoundary name={mockup.name}>
+              <mockup.component />
+            </ErrorBoundary>
+          </Suspense>
+        ) : mockup.htmlUrl ? (
+          <iframe
+            src={import.meta.env.BASE_URL + mockup.htmlUrl}
+            style={{ width: '100%', height: 'calc(100vh - 42px)', border: 'none' }}
+            title={mockup.name}
+          />
+        ) : mockup.figmaUrl ? (
+          <iframe
+            src={mockup.figmaUrl.replace('/make/', '/embed/') + '&embed-host=share'}
+            style={{ width: '100%', height: 'calc(100vh - 42px)', border: 'none' }}
+            title={mockup.name}
+          />
+        ) : (
+          <div style={{ padding: '2rem', textAlign: 'center', color: '#525252' }}>No preview available for this entry.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Standalone Spec (full-page rendered markdown, no gallery chrome) ───
+
+function StandaloneSpec({ mockup }) {
+  const [content, setContent] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!mockup.specPath) return;
+    fetch(import.meta.env.BASE_URL + mockup.specPath)
+      .then(r => r.ok ? r.text() : Promise.reject(`HTTP ${r.status}`))
+      .then(text => { setContent(text); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [mockup.specPath]);
+
+  const slug = toSlug(mockup.name);
+  const galleryUrl = `#/${mockup.category}/${slug}`;
+  const previewUrl = `#/preview/${mockup.category}/${slug}`;
+  const rawUrl = import.meta.env.BASE_URL + mockup.specPath;
+  const githubUrl = GITHUB_BASE + mockup.specPath;
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem 1rem', background: '#161616', color: '#f4f4f4', fontSize: '0.875rem', flexShrink: 0 }}>
+        <a href={galleryUrl} style={{ color: '#78a9ff', textDecoration: 'none' }}>← Gallery</a>
+        <span style={{ fontWeight: 600 }}>{mockup.name} — Spec</span>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.75rem' }}>
+          <a href={previewUrl} style={{ color: '#78a9ff', textDecoration: 'none' }}>Preview</a>
+          <a href={rawUrl} download style={{ color: '#78a9ff', textDecoration: 'none' }}>Download MD</a>
+          <a href={githubUrl} target="_blank" rel="noopener" style={{ color: '#78a9ff', textDecoration: 'none' }}>GitHub</a>
+        </div>
+      </div>
+      <div style={{ flex: 1, maxWidth: '800px', margin: '0 auto', padding: '2rem 1rem' }}>
+        {loading ? (
+          <div style={{ textAlign: 'center', color: '#525252', padding: '2rem' }}>Loading spec...</div>
+        ) : content ? (
+          <div className="spec-content" style={styles.specContent} dangerouslySetInnerHTML={{ __html: marked(content) }} />
+        ) : (
+          <div style={{ textAlign: 'center', color: '#525252', padding: '2rem' }}>
+            <p>Could not load spec.</p>
+            <a href={githubUrl} target="_blank" rel="noopener" style={{ color: '#0f62fe' }}>View on GitHub →</a>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -1403,6 +1548,33 @@ export const themes = {
 };
 
 function App() {
+  // ─── Standalone route detection ───
+  const [routeMode, setRouteMode] = useState(() => parseRoute(window.location.hash).mode);
+  const [routeMockup, setRouteMockup] = useState(() => parseRoute(window.location.hash).mockup);
+
+  useEffect(() => {
+    function onHashChange() {
+      const route = parseRoute(window.location.hash);
+      setRouteMode(route.mode);
+      setRouteMockup(route.mockup);
+    }
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  // Render standalone modes immediately, bypassing the full gallery UI
+  if (routeMode === 'preview' && routeMockup) {
+    return <StandalonePreview mockup={routeMockup} />;
+  }
+  if (routeMode === 'spec' && routeMockup) {
+    return <StandaloneSpec mockup={routeMockup} />;
+  }
+
+  // ─── Gallery mode (original) ───
+  return <GalleryApp />;
+}
+
+function GalleryApp() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedMockup, setSelectedMockup] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');

@@ -6,6 +6,7 @@ import App, {
   toSlug,
   toHash,
   findMockupByHash,
+  parseRoute,
   formatDate,
   getEntryType,
   MOCKUP_REGISTRY,
@@ -837,6 +838,88 @@ Reason: Looks good, ready for implementation`;
   it('ignores invalid status values in backtick format', () => {
     expect(parseStatusFromComment('New status: `invalid`')).toBeNull();
     expect(parseStatusFromComment('New status: `pending`')).toBeNull();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Route parsing (standalone preview/spec routes)
+// ═══════════════════════════════════════════════════════════════
+
+describe('parseRoute', () => {
+  it('returns gallery mode for standard hash', () => {
+    const result = parseRoute('#/admin-config/data-dictionary');
+    expect(result.mode).toBe('gallery');
+    expect(result.mockup).not.toBeNull();
+    expect(result.mockup.name).toBe('Data Dictionary');
+  });
+
+  it('returns preview mode for #/preview/...', () => {
+    const result = parseRoute('#/preview/admin-config/data-dictionary');
+    expect(result.mode).toBe('preview');
+    expect(result.mockup).not.toBeNull();
+    expect(result.mockup.name).toBe('Data Dictionary');
+  });
+
+  it('returns spec mode for #/spec/...', () => {
+    const result = parseRoute('#/spec/admin-config/data-dictionary');
+    expect(result.mode).toBe('spec');
+    expect(result.mockup).not.toBeNull();
+    expect(result.mockup.name).toBe('Data Dictionary');
+  });
+
+  it('returns gallery mode with null mockup for empty hash', () => {
+    const result = parseRoute('');
+    expect(result.mode).toBe('gallery');
+    expect(result.mockup).toBeNull();
+  });
+
+  it('returns preview mode with null for unknown slug', () => {
+    const result = parseRoute('#/preview/admin-config/nonexistent');
+    expect(result.mode).toBe('preview');
+    expect(result.mockup).toBeNull();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Catalog field validation (ensures build-time catalog has required data)
+// ═══════════════════════════════════════════════════════════════
+
+describe('Catalog field requirements', () => {
+  it('every registry entry has name, category, and description', () => {
+    for (const entry of MOCKUP_REGISTRY) {
+      expect(entry.name, `Entry missing name`).toBeTruthy();
+      expect(entry.category, `${entry.name} missing category`).toBeTruthy();
+      expect(entry.description, `${entry.name} missing description`).toBeTruthy();
+    }
+  });
+
+  it('no two entries produce the same category/slug permalink', () => {
+    const seen = new Set();
+    for (const entry of MOCKUP_REGISTRY) {
+      const key = `${entry.category}/${toSlug(entry.name)}`;
+      expect(seen.has(key), `Duplicate permalink: ${key}`).toBe(false);
+      seen.add(key);
+    }
+  });
+
+  it('all preview routes resolve to the correct mockup', () => {
+    for (const entry of MOCKUP_REGISTRY) {
+      const hash = `#/preview/${entry.category}/${toSlug(entry.name)}`;
+      const route = parseRoute(hash);
+      expect(route.mode).toBe('preview');
+      expect(route.mockup, `Preview route broken for ${entry.name}: ${hash}`).not.toBeNull();
+      expect(route.mockup.name).toBe(entry.name);
+    }
+  });
+
+  it('all spec routes resolve for entries with specPath', () => {
+    const specEntries = MOCKUP_REGISTRY.filter(m => m.specPath);
+    for (const entry of specEntries) {
+      const hash = `#/spec/${entry.category}/${toSlug(entry.name)}`;
+      const route = parseRoute(hash);
+      expect(route.mode).toBe('spec');
+      expect(route.mockup, `Spec route broken for ${entry.name}`).not.toBeNull();
+    }
   });
 });
 
