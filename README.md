@@ -41,10 +41,17 @@ A centralized workspace for tracking mockups, specifications, and design changes
 
 ```bash
 git clone https://github.com/DIGI-UW/openelis-work.git
-cd openelis-work/mockup-viewer
-npm install
-npm run dev
-# Opens gallery at http://localhost:5173
+cd openelis-work
+npm run setup    # one-time: install mockup-viewer dependencies
+npm run dev      # opens gallery at http://localhost:5173
+```
+
+**Test and build:**
+
+```bash
+npm test         # run the test suite (175 tests)
+npm run build    # production build
+npm run preview  # serve the production build locally
 ```
 
 ## Upload Workflow (with Claude)
@@ -60,7 +67,7 @@ The primary way to add new artifacts:
    - Register new JSX mockups in the gallery viewer
    - Update `INDEX.md` with cross-references
    - Commit with a descriptive message
-4. **Push** and the gallery auto-deploys via GitHub Pages
+4. **Claude opens a PR**, CI tests run, and the gallery auto-deploys after merge
 
 ## Linked Objects
 
@@ -85,6 +92,7 @@ If adding files without Claude:
 3. **Register JSX mockups** in `mockup-viewer/src/App.jsx` → `MOCKUP_REGISTRY`
 4. **Update `INDEX.md`** with a row linking the mockup and spec
 5. **Commit** using the convention below
+6. For larger changes, **use a feature branch and PR**: `git push -u origin <branch> && gh pr create`
 
 ## Commit Convention
 

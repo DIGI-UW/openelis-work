@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git push)"
+      "Bash(git push*)",
+      "Bash(gh pr create*)",
+      "Bash(gh pr list*)",
+      "Bash(gh pr view*)",
+      "Bash(gh pr status*)",
+      "Bash(gh pr merge*)",
+      "Bash(npm run*)",
+      "Bash(npm test*)",
+      "Bash(npm install*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)"
     ]
   }
 }
