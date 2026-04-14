@@ -155,7 +155,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Sample Type Domain Classification',
-    category: 'admin-config',
+    category: 'vector-surveillance',
     component: React.lazy(() => import('@designs/admin-config/sample-type-domain-classification.jsx')),
     description: 'Sample Type Domain Classification (S-04) — adds sampleDomain enum (CLINICAL/ENVIRONMENTAL/BOTH) to Sample Type entity, bulk assignment utility, and workflow toggle filtering. Addendum to OGC-296.',
     specPath: 'designs/admin-config/sample-type-domain-classification.md',
@@ -938,6 +938,18 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-527'],
     tags: ['environmental', 'vector', 'roadmap', 'planning', 'architecture', 'compliance'],
   },
+  {
+    name: 'Patient ID Card Scanning',
+    category: 'patient',
+    component: React.lazy(() => import('@designs/patient/patient-id-card-scanning.jsx')),
+    description: 'Patient ID card scanning and document management. Adds an Identification Documents accordion to patient registration and edit screens, plus a document count column and inline preview panel in patient search results. Supports file upload, camera capture, and clipboard paste; stores documents as FHIR Patient attachments with full audit trail and role-based permissions.',
+    specPath: 'designs/patient/patient-id-card-scanning.md',
+    added: '2026-04-13',
+    status: 'draft',
+    githubIssue: 82,
+    jira: ['OGC-66'],
+    tags: ['patient', 'document-management', 'FHIR', 'scanning', 'registration'],
+  },
 
   // ─── Figma-only entries (no JSX mockup) ───
   {
@@ -971,6 +983,7 @@ export const categories = [
   'quality',
   'results-validation',
   'reports',
+  'patient',
   'sample-collection',
   'vector-surveillance',
   'system',
@@ -990,6 +1003,7 @@ export const categoryLabels = {
   'quality': 'Quality & EQA',
   'results-validation': 'Results & Validation',
   'reports': 'Reports',
+  'patient': 'Patient',
   'sample-collection': 'Sample Collection',
   'vector-surveillance': 'Vector Surveillance',
   'system': 'System',
@@ -998,8 +1012,8 @@ export const categoryLabels = {
 
 /** Determine entry type for visual distinction */
 export function getEntryType(mockup) {
-  if (mockup.component) return 'jsx';
   if (mockup.htmlUrl) return 'html';
+  if (mockup.component) return 'jsx';
   if (mockup.figmaUrl) return 'figma';
   return 'spec';
 }
@@ -1197,18 +1211,18 @@ function StandalonePreview({ mockup }) {
         </div>
       </div>
       <div ref={previewRef} style={{ flex: 1, overflow: 'auto' }}>
-        {mockup.component ? (
-          <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading mockup...</div>}>
-            <ErrorBoundary name={mockup.name}>
-              <mockup.component />
-            </ErrorBoundary>
-          </Suspense>
-        ) : mockup.htmlUrl ? (
+        {mockup.htmlUrl ? (
           <iframe
             src={import.meta.env.BASE_URL + mockup.htmlUrl}
             style={{ width: '100%', height: 'calc(100vh - 42px)', border: 'none' }}
             title={mockup.name}
           />
+        ) : mockup.component ? (
+          <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading mockup...</div>}>
+            <ErrorBoundary name={mockup.name}>
+              <mockup.component />
+            </ErrorBoundary>
+          </Suspense>
         ) : mockup.figmaUrl ? (
           <iframe
             src={mockup.figmaUrl.replace('/make/', '/embed/') + '&embed-host=share'}
@@ -1886,6 +1900,15 @@ function GalleryApp() {
                     <CommentViewer issueNumber={selectedMockup.githubIssue} darkMode={darkMode} theme={t} designName={selectedMockup.name} />
                   ) : activeTab === 'spec' && hasSpec ? (
                     <SpecViewer specPath={selectedMockup.specPath} />
+                  ) : selectedMockup.htmlUrl ? (
+                    <div style={styles.figmaEmbed}>
+                      <iframe
+                        src={import.meta.env.BASE_URL + selectedMockup.htmlUrl}
+                        style={{ ...styles.figmaIframe, height: 800, borderColor: t.border }}
+                        allowFullScreen
+                        title={selectedMockup.name}
+                      />
+                    </div>
                   ) : selectedMockup.component ? (
                     <Suspense fallback={<div style={{ ...styles.loading, color: t.textMuted }}>Loading mockup...</div>}>
                       <ErrorBoundary name={selectedMockup.name}>
@@ -1904,20 +1927,6 @@ function GalleryApp() {
                         If the embed doesn't load,{' '}
                         <a href={selectedMockup.figmaUrl} target="_blank" rel="noopener" style={{ ...styles.link, color: t.accent }}>
                           open directly in Figma
-                        </a>
-                      </p>
-                    </div>
-                  ) : selectedMockup.htmlUrl ? (
-                    <div style={styles.figmaEmbed}>
-                      <iframe
-                        src={import.meta.env.BASE_URL + selectedMockup.htmlUrl}
-                        style={{ ...styles.figmaIframe, height: 800, borderColor: t.border }}
-                        allowFullScreen
-                        title={selectedMockup.name}
-                      />
-                      <p style={{ ...styles.figmaFallback, color: t.textMuted }}>
-                        <a href={import.meta.env.BASE_URL + selectedMockup.htmlUrl} target="_blank" rel="noopener" style={{ ...styles.link, color: t.accent }}>
-                          Open mockup in full page ↗
                         </a>
                       </p>
                     </div>

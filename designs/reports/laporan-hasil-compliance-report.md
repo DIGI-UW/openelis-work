@@ -4,7 +4,7 @@
 **Version:** 1.0
 **Date:** 2026-04-05
 **Status:** Draft for Review
-**Jira:** TBD (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
+**Jira:** [OGC-552](https://uwdigi.atlassian.net/browse/OGC-552) (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
 **Technology:** Java Spring Framework, Carbon React (`@carbon/react`), PDF generation (server-side)
 **Related Modules:** Compliance Standards Administration (S-01, OGC-528), Sampling Site Registry (S-02, OGC-531), Environmental Order Entry (S-03, OGC-537), Compliance Evaluation Engine (S-05, OGC-547), Report-Level Electronic Signatures, Patient Report Print Queue
 

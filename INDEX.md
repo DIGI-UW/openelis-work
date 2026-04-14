@@ -22,8 +22,14 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Password Policy Enhancements | [password-enhancements.jsx](designs/admin-config/password-enhancements.jsx) | [password-enhancements.md](designs/admin-config/password-enhancements.md) |
 | Catalog Subscription | [catalog-subscription.html](designs/admin-config/catalog-subscription.html) | [catalog-subscription.md](designs/admin-config/catalog-subscription.md) |
 | Compliance Standards Administration | — | [compliance-standards-admin.md](designs/admin-config/compliance-standards-admin.md) |
-| Sample Type Domain Classification | [sample-type-domain-classification.jsx](designs/admin-config/sample-type-domain-classification.jsx) | [sample-type-domain-classification.md](designs/admin-config/sample-type-domain-classification.md) |
 | Barcode Configuration | [barcode-config.jsx](designs/admin-config/barcode-config.jsx) | [barcode-config.md](designs/admin-config/barcode-config.md) |
+
+## Vector Surveillance
+
+| Feature | Mockup | Spec |
+|---------|--------|------|
+| Sample Type Domain Classification | [sample-type-domain-classification.jsx](designs/admin-config/sample-type-domain-classification.jsx) | [sample-type-domain-classification.md](designs/admin-config/sample-type-domain-classification.md) |
+| Vector Specimen Types & Taxonomy | [vector-reference-data.jsx](designs/vector-surveillance/vector-reference-data.jsx) | [vector-reference-data.md](designs/vector-surveillance/vector-reference-data.md) |
 
 ## Analyzer Integration
 
@@ -143,6 +149,12 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Catalyst Lab Data Assistant | [Figma](https://www.figma.com/make/poDXKSr2IBgKbbjB1Fh9Sj/OpenELIS-Global-Template--Copy-?node-id=0-1) | — |
 | Electronic Signature | [electronic-signature.jsx](designs/system/electronic-signature.jsx) | [electronic-signature.md](designs/system/electronic-signature.md) |
 
+## Patient
+
+| Feature | Mockup | Spec |
+|---------|--------|------|
+| Patient ID Card Scanning | [patient-id-card-scanning.jsx](designs/patient/patient-id-card-scanning.jsx) | [patient-id-card-scanning.md](designs/patient/patient-id-card-scanning.md) |
+
 ## Sample Collection
 
 | Feature | Mockup | Spec |
@@ -157,7 +169,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 |---------|--------|------|
 | TAT Dashboard | [tat-dashboard.jsx](designs/other/tat-dashboard.jsx) | [tat-dashboard.md](designs/other/tat-dashboard.md) |
 | Calendar Management | [calendar-management.jsx](designs/other/calendar-management.jsx) | — |
-| Patient ID Card Scanning | — | [patient-id-card-scanning.md](designs/other/patient-id-card-scanning.md) |
+| Patient ID Card Scanning | *(moved to Patient section)* | — |
 | Unassigned Tests | — | [unassigned-tests.md](designs/other/unassigned-tests.md) |
 | Report Level Signatures | — | [report-level-signatures.md](designs/other/report-level-signatures.md) |
 | Change Management Strategy | — | [change-management-strategy.md](designs/other/change-management-strategy.md) |

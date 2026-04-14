@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-06 Laporan Hasil — Compliance Report Preview</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: #f4f4f4; color: #161616; }
+
+  /* Carbon color tokens */
+  :root {
+    --blue60: #0f62fe; --blue70: #0043ce;
+    --gray10: #f4f4f4; --gray20: #e0e0e0; --gray30: #c6c6c6;
+    --gray50: #8d8d8d; --gray60: #6f6f6f; --gray70: #525252;
+    --gray80: #393939; --gray90: #262626; --gray100: #161616;
+    --white: #ffffff;
+    --green10: #defbe6; --green50: #24a148; --green-text: #0e6027;
+    --yellow10: #fcf4d6; --yellow-text: #6e4b00;
+    --red10: #fff1f1; --red50: #da1e28;
+    --teal50: #009d9a;
+  }
+
+  /* Screen switcher */
+  .screen-tabs { background: var(--gray90); padding: 8px 16px; display: flex; gap: 4px; align-items: center; }
+  .screen-tabs button { background: transparent; color: #fff; border: none; padding: 6px 16px; font-size: 13px; cursor: pointer; border-radius: 4px; opacity: 0.7; font-family: inherit; }
+  .screen-tabs button.active { background: var(--blue60); opacity: 1; }
+  .screen-tabs .version { color: var(--gray30); font-size: 11px; margin-left: auto; }
+
+  /* Page header */
+  .page-header { background: var(--white); border-bottom: 1px solid var(--gray20); padding: 24px 32px 16px; }
+  .page-header .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--gray60); margin-bottom: 4px; }
+  .page-header h1 { font-size: 28px; font-weight: 400; margin: 4px 0; }
+  .page-header p { font-size: 14px; color: var(--gray60); }
+
+  /* Content area */
+  .content { padding: 24px 32px; }
+
+  /* Summary bar */
+  .summary-bar { display: flex; gap: 16px; margin-bottom: 16px; }
+  .summary-card { background: var(--white); border: 1px solid var(--gray20); border-radius: 4px; padding: 12px 16px; flex: 1; display: flex; align-items: center; gap: 12px; }
+  .summary-card .icon-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .summary-card .value { font-size: 24px; font-weight: 600; }
+  .summary-card .label { font-size: 12px; color: var(--gray60); }
+
+  /* Filters */
+  .filters { background: var(--white); border: 1px solid var(--gray20); border-bottom: none; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+  .filter-field label { display: block; font-size: 12px; color: var(--gray60); margin-bottom: 4px; }
+  .filter-field input, .filter-field select { padding: 6px 12px; font-size: 14px; border: 1px solid var(--gray30); background: var(--white); font-family: inherit; min-width: 140px; }
+
+  /* Batch bar */
+  .batch-bar { background: var(--blue60); color: #fff; padding: 8px 16px; display: none; align-items: center; gap: 12px; font-size: 14px; }
+  .batch-bar.visible { display: flex; }
+  .batch-bar .count { font-weight: 500; }
+  .batch-bar .spacer { flex: 1; }
+  .batch-btn { background: rgba(255,255,255,0.15); color: #fff; border: none; padding: 6px 14px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; }
+  .batch-btn.outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); }
+
+  /* DataTable */
+  .data-table { background: var(--white); border: 1px solid var(--gray20); width: 100%; border-collapse: collapse; font-size: 14px; }
+  .data-table th { padding: 10px 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--gray60); text-transform: uppercase; letter-spacing: 0.5px; background: var(--gray10); border-bottom: 1px solid var(--gray20); }
+  .data-table td { padding: 10px 12px; vertical-align: top; border-bottom: 1px solid var(--gray20); }
+  .data-table tbody tr { cursor: pointer; transition: background 0.1s; }
+  .data-table tbody tr:hover { background: #edf5ff; }
+  .data-table tbody tr.selected { background: #edf5ff; }
+
+  .lab-number { font-weight: 600; }
+  .site-code { font-size: 12px; color: var(--gray50); }
+  .standard-short { font-size: 13px; }
+  .test-count { text-align: center; }
+
+  /* Tags */
+  .tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 24px; font-size: 12px; font-weight: 500; }
+  .tag-compliant { background: var(--green10); color: var(--green-text); }
+  .tag-marginal { background: var(--yellow10); color: var(--yellow-text); }
+  .tag-noncompliant { background: var(--red10); color: var(--red50); }
+  .tag-generated { background: var(--green10); color: var(--green-text); }
+  .tag-notgenerated { background: var(--gray10); color: var(--gray60); }
+  .mini-tag { padding: 1px 8px; font-size: 11px; }
+  .pf-counts { font-size: 11px; color: var(--gray50); margin-top: 2px; }
+  .gen-detail { font-size: 11px; color: var(--gray50); margin-top: 2px; }
+
+  /* Generate button */
+  .btn-generate { background: var(--blue60); color: #fff; border: none; padding: 6px 12px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-family: inherit; }
+  .btn-generate:hover { background: var(--blue70); }
+
+  /* Expand chevron */
+  .chevron { color: var(--gray60); font-size: 14px; width: 20px; text-align: center; }
+
+  /* Expansion panel */
+  .expand-panel { padding: 16px 24px 20px 48px; background: var(--gray10); }
+  .expand-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .section-head { font-size: 13px; font-weight: 600; color: var(--gray70); margin: 0 0 8px; display: flex; align-items: center; gap: 6px; }
+  .section-head.mt { margin-top: 12px; }
+  .preview-card { background: var(--white); border: 1px solid var(--gray20); border-radius: 4px; padding: 10px 14px; }
+  .preview-row { display: flex; padding: 3px 0; font-size: 13px; }
+  .preview-row .pr-label { width: 140px; color: var(--gray60); flex-shrink: 0; }
+  .preview-row .pr-value { color: var(--gray90); }
+
+  /* Mini compliance table */
+  .mini-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .mini-table th { padding: 6px 8px; text-align: left; font-size: 11px; font-weight: 600; color: var(--gray60); text-transform: uppercase; border-bottom: 1px solid var(--gray20); }
+  .mini-table td { padding: 6px 8px; border-bottom: 1px solid var(--gray20); }
+
+  /* Signature block in preview */
+  .sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .sig-label { font-size: 11px; color: var(--gray50); margin-bottom: 2px; }
+  .sig-name { font-size: 13px; font-weight: 500; }
+  .sig-title { font-size: 12px; color: var(--gray60); }
+  .sig-time { font-size: 12px; color: var(--gray50); }
+  .sig-meaning { font-size: 11px; color: var(--teal50); margin-top: 2px; }
+
+  /* === SCREEN 2: Config page === */
+  .config-content { padding: 24px 32px; max-width: 800px; }
+
+  /* Notification */
+  .notification { padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .notification.success { background: var(--green10); border: 1px solid var(--green-text); color: var(--green-text); }
+  .notification .close-btn { margin-left: auto; background: none; border: none; cursor: pointer; color: inherit; font-size: 14px; }
+
+  /* Accordion */
+  .accordion-item { background: var(--white); border: 1px solid var(--gray20); margin-bottom: -1px; }
+  .accordion-header { width: 100%; background: none; border: none; padding: 12px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--gray90); text-align: left; font-family: inherit; }
+  .accordion-header:hover { background: var(--gray10); }
+  .accordion-body { padding: 0 16px 20px; border-top: 1px solid var(--gray20); }
+  .accordion-body .fields { padding-top: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* Config fields */
+  .cfg-field label { display: block; font-size: 12px; font-weight: 500; color: var(--gray70); margin-bottom: 4px; }
+  .cfg-field label .req { color: var(--red50); }
+  .cfg-field input, .cfg-field select, .cfg-field textarea { padding: 8px 12px; font-size: 14px; border: 1px solid var(--gray30); background: var(--white); font-family: inherit; width: 100%; box-sizing: border-box; }
+  .cfg-field textarea { min-height: 64px; resize: vertical; }
+  .cfg-field .help { font-size: 12px; color: var(--gray50); margin-top: 4px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* Logo uploader */
+  .logo-upload-btn { background: none; border: 1px dashed var(--gray30); padding: 12px 16px; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--blue60); font-size: 13px; font-family: inherit; }
+  .logo-preview { display: flex; align-items: center; gap: 12px; }
+  .logo-thumb { width: 120px; height: 48px; background: var(--gray10); border: 1px solid var(--gray20); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--gray30); font-size: 24px; }
+  .btn-remove { background: none; border: 1px solid var(--gray30); padding: 6px 12px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; color: var(--red50); font-family: inherit; }
+
+  .prefix-preview { font-size: 12px; color: var(--gray50); margin-top: 4px; }
+
+  /* Save button */
+  .btn-save { background: var(--blue60); color: #fff; border: none; padding: 11px 24px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 24px; }
+  .btn-save:hover { background: var(--blue70); }
+
+  /* Toggle checkbox */
+  .toggle-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
+  .toggle-row input[type=checkbox] { width: 18px; height: 18px; }
+  .toggle-label { font-size: 14px; color: var(--gray80); }
+
+  /* Hide screens */
+  .screen { display: none; }
+  .screen.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- Screen tabs -->
+<div class="screen-tabs">
+  <button class="active" onclick="switchScreen('report')">Reports → Laporan Hasil</button>
+  <button onclick="switchScreen('config')">Admin → Report Configuration</button>
+  <span class="version">S-06 Laporan Hasil — Preview v1.0</span>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCREEN 1: Report Generation Page                             -->
+<!-- ============================================================ -->
+<div id="screen-report" class="screen active">
+  <div class="page-header">
+    <div class="breadcrumb">
+      <span>📄</span> Reports /
+    </div>
+    <h1>Laporan Hasil — Compliance Report</h1>
+    <p>Generate Sertifikat Hasil Uji (Test Results Certificates) for validated environmental orders</p>
+  </div>
+
+  <div class="content">
+    <!-- Summary bar -->
+    <div class="summary-bar">
+      <div class="summary-card">
+        <div class="icon-circle" style="background:#0f62fe15;color:var(--blue60)">📦</div>
+        <div><div class="value">3</div><div class="label">Total Eligible</div></div>
+      </div>
+      <div class="summary-card">
+        <div class="icon-circle" style="background:#24a14815;color:var(--green50)">✓</div>
+        <div><div class="value">1</div><div class="label">Generated</div></div>
+      </div>
+      <div class="summary-card">
+        <div class="icon-circle" style="background:#6f6f6f15;color:var(--gray60)">⏳</div>
+        <div><div class="value">2</div><div class="label">Not Yet Generated</div></div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-field">
+        <label>Date From</label>
+        <input type="date" value="2026-03-06">
+      </div>
+      <div class="filter-field">
+        <label>Date To</label>
+        <input type="date" value="2026-04-05">
+      </div>
+      <div class="filter-field">
+        <label>Sampling Site</label>
+        <select>
+          <option>All Sites</option>
+          <option>SITE-042 — Intake Point A</option>
+          <option>SITE-017 — Treatment Plant Outlet</option>
+          <option>SITE-088 — Reservoir Jatiluhur</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Compliance Standard</label>
+        <select>
+          <option>All Standards</option>
+          <option>PP No. 22/2021</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Compliance Status</label>
+        <select>
+          <option>All</option>
+          <option>All Compliant</option>
+          <option>Has Issues</option>
+          <option>Non-Compliant (Fail)</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Generation Status</label>
+        <select>
+          <option>All</option>
+          <option>Not Yet Generated</option>
+          <option>Previously Generated</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Batch bar -->
+    <div id="batch-bar" class="batch-bar">
+      <span class="count"><span id="batch-count">0</span> items selected</span>
+      <div class="spacer"></div>
+      <button class="batch-btn">📄 Generate PDFs</button>
+      <button class="batch-btn">⬇ Download ZIP</button>
+      <button class="batch-btn outline" onclick="clearSelection()">✕ Cancel</button>
+    </div>
+
+    <!-- DataTable -->
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width:32px"><input type="checkbox" id="select-all" onchange="toggleSelectAll(this)"></th>
+          <th style="width:32px"></th>
+          <th>Lab Number</th>
+          <th>Site</th>
+          <th>Standard</th>
+          <th>Collection Date</th>
+          <th style="text-align:center">Tests</th>
+          <th>Compliance</th>
+          <th>Last Generated</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Row 1: ENV-2026-001 — Non-Compliant, Not Generated -->
+        <tr id="row-1" onclick="toggleRow(1)">
+          <td onclick="event.stopPropagation()"><input type="checkbox" class="row-cb" data-row="1" onchange="updateBatch()"></td>
+          <td><span class="chevron" id="chev-1">▸</span></td>
+          <td class="lab-number">ENV-2026-001</td>
+          <td>Intake Point A — Citarum River<br><span class="site-code">SITE-042</span></td>
+          <td class="standard-short">PP No. 22/2021</td>
+          <td>04/04/2026</td>
+          <td class="test-count">5</td>
+          <td>
+            <span class="tag tag-noncompliant">✗ Non-Compliant</span>
+            <div class="pf-counts">3P / 1M / 1F</div>
+          </td>
+          <td><span class="tag tag-notgenerated">Not Yet Generated</span></td>
+          <td onclick="event.stopPropagation()"><button class="btn-generate">📄 Generate PDF</button></td>
+        </tr>
+        <tr id="expand-1" style="display:none">
+          <td colspan="10" style="padding:0">
+            <div class="expand-panel">
+              <div class="expand-grid">
+                <div>
+                  <h4 class="section-head">📍 Site Information</h4>
+                  <div class="preview-card">
+                    <div class="preview-row"><span class="pr-label">Site</span><span class="pr-value">Intake Point A — Citarum River (SITE-042)</span></div>
+                    <div class="preview-row"><span class="pr-label">GPS</span><span class="pr-value">-6.7254, 107.6048</span></div>
+                    <div class="preview-row"><span class="pr-label">Collection Date</span><span class="pr-value">04/04/2026 07:30</span></div>
+                    <div class="preview-row"><span class="pr-label">Collection Method</span><span class="pr-value">Manual Grab</span></div>
+                    <div class="preview-row"><span class="pr-label">Standard</span><span class="pr-value">PP No. 22/2021 — Baku Mutu Air Permukaan (2021-01)</span></div>
+                  </div>
+                  <h4 class="section-head mt">🧪 Collection Conditions</h4>
+                  <div class="preview-card">
+                    <div class="preview-row"><span class="pr-label">Water Temp</span><span class="pr-value">28.5 °C</span></div>
+                    <div class="preview-row"><span class="pr-label">Ambient Temp</span><span class="pr-value">31.2 °C</span></div>
+                    <div class="preview-row"><span class="pr-label">Weather</span><span class="pr-value">Clear</span></div>
+                    <div class="preview-row"><span class="pr-label">Preservation</span><span class="pr-value">HNO3 acidification</span></div>
+                  </div>
+                </div>
+                <div>
+                  <h4 class="section-head">🛡 Compliance Summary</h4>
+                  <div class="preview-card">
+                    <table class="mini-table">
+                      <thead><tr><th>Parameter</th><th>Result</th><th>Threshold</th><th>Status</th></tr></thead>
+                      <tbody>
+                        <tr><td>pH</td><td>7.2 pH</td><td>6.5–8.5</td><td><span class="tag mini-tag tag-compliant">✓ Compliant</span></td></tr>
+                        <tr><td>Turbidity</td><td>3.8 NTU</td><td>≤5.0</td><td><span class="tag mini-tag tag-compliant">✓ Compliant</span></td></tr>
+                        <tr><td>Lead (Pb)</td><td>0.032 mg/L</td><td>≤0.03</td><td><span class="tag mini-tag tag-noncompliant">✗ Non-Compliant</span></td></tr>
+                        <tr><td>E. coli</td><td>45 CFU/100mL</td><td>≤50</td><td><span class="tag mini-tag tag-marginal">⚠ Marginal</span></td></tr>
+                        <tr><td>Odor</td><td>Tidak berbau</td><td>Tidak berbau</td><td><span class="tag mini-tag tag-compliant">✓ Compliant</span></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <h4 class="section-head mt">✍ E-Signatures</h4>
+                  <div class="preview-card">
+                    <div class="sig-grid">
+                      <div>
+                        <div class="sig-label">Tested by</div>
+                        <div class="sig-name">Dwi Rahmawati, S.Si</div>
+                        <div class="sig-title">Lab Analyst</div>
+                        <div class="sig-time">2026-04-04 14:22 WIB</div>
+                        <div class="sig-meaning">Meaning: Authored</div>
+                      </div>
+                      <div>
+                        <div class="sig-label">Approved by</div>
+                        <div class="sig-name">Dr. Bambang Sutrisno</div>
+                        <div class="sig-title">Lab Manager</div>
+                        <div class="sig-time">2026-04-04 16:45 WIB</div>
+                        <div class="sig-meaning">Meaning: Validated and Released</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Row 2: ENV-2026-002 — All Compliant, Previously Generated -->
+        <tr id="row-2" onclick="toggleRow(2)">
+          <td onclick="event.stopPropagation()"><input type="checkbox" class="row-cb" data-row="2" onchange="updateBatch()"></td>
+          <td><span class="chevron" id="chev-2">▸</span></td>
+          <td class="lab-number">ENV-2026-002</td>
+          <td>Treatment Plant Outlet — Cisangkuy<br><span class="site-code">SITE-017</span></td>
+          <td class="standard-short">PP No. 22/2021</td>
+          <td>03/04/2026</td>
+          <td class="test-count">4</td>
+          <td>
+            <span class="tag tag-compliant">✓ All Compliant</span>
+            <div class="pf-counts">4P / 0M / 0F</div>
+          </td>
+          <td>
+            <span class="tag tag-generated">Generated</span>
+            <div class="gen-detail">04/04/2026 18:00</div>
+            <div class="gen-detail">LHU-2026-0041</div>
+          </td>
+          <td onclick="event.stopPropagation()"><button class="btn-generate">📄 Generate PDF</button></td>
+        </tr>
+        <tr id="expand-2" style="display:none">
+          <td colspan="10" style="padding:0">
+            <div class="expand-panel">
+              <div class="expand-grid">
+                <div>
+                  <h4 class="section-head">📍 Site Information</h4>
+                  <div class="preview-card">
+                    <div class="preview-row"><span class="pr-label">Site</span><span class="pr-value">Treatment Plant Outlet — Cisangkuy (SITE-017)</span></div>
+                    <div class="preview-row"><span class="pr-label">GPS</span><span class="pr-value">-6.9175, 107.6191</span></div>
+                    <div class="preview-row"><span class="pr-label">Collection Date</span><span class="pr-value">03/04/2026 09:15</span></div>
+                    <div class="preview-row"><span class="pr-label">Collection Method</span><span class="pr-value">Composite (24h)</span></div>
+                    <div class="preview-row"><span class="pr-label">Standard</span><span class="pr-value">PP No. 22/2021 — Baku Mutu Air Permukaan (2021-01)</span></div>
+                  </div>
+                  <h4 class="section-head mt">🧪 Collection Conditions</h4>
+                  <div class="preview-card">
+                    <div class="preview-row"><span class="pr-label">Water Temp</span><span class="pr-value">26.1 °C</span></div>
+                    <div class="preview-row"><span class="pr-label">Ambient Temp</span><span class="pr-value">29.0 °C</span></div>
+                    <div class="preview-row"><span class="pr-label">Weather</span><span class="pr-value">Overcast</span></div>
+                    <div class="preview-row"><span class="pr-label">Preservation</span><span class="pr-value">Cold storage 4°C</span></div>
+                  </div>
+                </div>
+                <div>
+                  <h4 class="section-head">🛡 Compliance Summary</h4>
+                  <div class="preview-card">
+                    <table class="mini-table">
+                      <thead><tr><th>Parameter</th><th>Result</th><th>Threshold</th><th>Status</th></tr></thead>
+                      <tbody>
+                        <tr><td>pH</td><td>7.0 pH</td><td>6.5–8.5</td><td><span class="tag mini-tag tag-compliant">✓ Compliant</span></td></tr>
+                        <tr><td>Turbidity</td><td>1.2 NTU</td><td>≤5.0</td><td><span class="tag mini-tag tag-compliant">✓ Compliant</span></td></tr>
+                        <tr><td>Lead (Pb)</td><td>0.008 mg/L</td><td>≤0.03</td><td><span class="tag mini-tag tag-compliant">✓ Compliant</span></td></tr>
+                        <tr><td>E. coli</td><td>2 CFU/100mL</td><td>≤50</td><td><span class="tag mini-tag tag-compliant">✓ Compliant</span></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <h4 class="section-head mt">✍ E-Signatures</h4>
+                  <div class="preview-card">
+                    <div class="sig-grid">
+                      <div>
+                        <div class="sig-label">Tested by</div>
+                        <div class="sig-name">Siti Aminah, S.T.</div>
+                        <div class="sig-title">Lab Analyst</div>
+                        <div class="sig-time">2026-04-03 15:10 WIB</div>
+                        <div class="sig-meaning">Meaning: Authored</div>
+                      </div>
+                      <div>
+                        <div class="sig-label">Approved by</div>
+                        <div class="sig-name">Dr. Bambang Sutrisno</div>
+                        <div class="sig-title">Lab Manager</div>
+                        <div class="sig-time">2026-04-03 17:30 WIB</div>
+                        <div class="sig-meaning">Meaning: Validated and Released</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Row 3: ENV-2026-003 — Marginal, Not Generated -->
+        <tr id="row-3" onclick="toggleRow(3)">
+          <td onclick="event.stopPropagation()"><input type="checkbox" class="row-cb" data-row="3" onchange="updateBatch()"></td>
+          <td><span class="chevron" id="chev-3">▸</span></td>
+          <td class="lab-number">ENV-2026-003</td>
+          <td>Reservoir Jatiluhur — Dam Outlet<br><span class="site-code">SITE-088</span></td>
+          <td class="standard-short">PP No. 22/2021</td>
+          <td>02/04/2026</td>
+          <td class="test-count">5</td>
+          <td>
+            <span class="tag tag-marginal">⚠ Marginal</span>
+            <div class="pf-counts">4P / 1M / 0F</div>
+          </td>
+          <td><span class="tag tag-notgenerated">Not Yet Generated</span></td>
+          <td onclick="event.stopPropagation()"><button class="btn-generate">📄 Generate PDF</button></td>
+        </tr>
+        <tr id="expand-3" style="display:none">
+          <td colspan="10" style="padding:0">
+            <div class="expand-panel">
+              <div class="expand-grid">
+                <div>
+                  <h4 class="section-head">📍 Site Information</h4>
+                  <div class="preview-card">
+                    <div class="preview-row"><span class="pr-label">Site</span><span class="pr-value">Reservoir Jatiluhur — Dam Outlet (SITE-088)</span></div>
+                    <div class="preview-row"><span class="pr-label">GPS</span><span class="pr-value">-6.5288, 107.3847</span></div>
+                    <div class="preview-row"><span class="pr-label">Collection Date</span><span class="pr-value">02/04/2026 06:00</span></div>
+                    <div class="preview-row"><span class="pr-label">Collection Method</span><span class="pr-value">Manual Grab</span></div>
+                    <div class="preview-row"><span class="pr-label">Standard</span><span class="pr-value">PP No. 22/2021 — Baku Mutu Air Permukaan (2021-01)</span></div>
+                  </div>
+                  <h4 class="section-head mt">🧪 Collection Conditions</h4>
+                  <div class="preview-card">
+                    <div class="preview-row"><span class="pr-label">Water Temp</span><span class="pr-value">25.8 °C</span></div>
+                    <div class="preview-row"><span class="pr-label">Ambient Temp</span><span class="pr-value">27.4 °C</span></div>
+                    <div class="preview-row"><span class="pr-label">Weather</span><span class="pr-value">Rain</span></div>
+                    <div class="preview-row"><span class="pr-label">Preservation</span><span class="pr-value">None — analyzed within 6h</span></div>
+                  </div>
+                </div>
+                <div>
+                  <h4 class="section-head">🛡 Compliance Summary</h4>
+                  <div class="preview-card">
+                    <table class="mini-table">
+                      <thead><tr><th>Parameter</th><th>Result</th><th>Threshold</th><th>Status</th></tr></thead>
+                      <tbody>
+                        <tr><td>pH</td><td>6.6 pH</td><td>6.5–8.5</td><td><span class="tag mini-tag tag-compliant">✓ Compliant</span></td></tr>
+                        <tr><td>Turbidity</td><td>4.7 NTU</td><td>≤5.0</td><td><span class="tag mini-tag tag-marginal">⚠ Marginal</span></td></tr>
+                        <tr><td>Lead (Pb)</td><td>0.011 mg/L</td><td>≤0.03</td><td><span class="tag mini-tag tag-compliant">✓ Compliant</span></td></tr>
+                        <tr><td>E. coli</td><td>8 CFU/100mL</td><td>≤50</td><td><span class="tag mini-tag tag-compliant">✓ Compliant</span></td></tr>
+                        <tr><td>Odor</td><td>Tidak berbau</td><td>Tidak berbau</td><td><span class="tag mini-tag tag-compliant">✓ Compliant</span></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <h4 class="section-head mt">✍ E-Signatures</h4>
+                  <div class="preview-card">
+                    <div class="sig-grid">
+                      <div>
+                        <div class="sig-label">Tested by</div>
+                        <div class="sig-name">Dwi Rahmawati, S.Si</div>
+                        <div class="sig-title">Lab Analyst</div>
+                        <div class="sig-time">2026-04-02 12:45 WIB</div>
+                        <div class="sig-meaning">Meaning: Authored</div>
+                      </div>
+                      <div>
+                        <div class="sig-label">Approved by</div>
+                        <div class="sig-name">Dr. Bambang Sutrisno</div>
+                        <div class="sig-title">Lab Manager</div>
+                        <div class="sig-time">2026-04-02 15:20 WIB</div>
+                        <div class="sig-meaning">Meaning: Validated and Released</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCREEN 2: Report Print Configuration                         -->
+<!-- ============================================================ -->
+<div id="screen-config" class="screen">
+  <div class="page-header">
+    <div class="breadcrumb">
+      <span>⚙</span> Admin /
+    </div>
+    <h1>Report Print Configuration</h1>
+    <p>Configure shared header, footer, and layout settings for all printed reports</p>
+  </div>
+
+  <div class="config-content">
+    <!-- Success notification -->
+    <div id="save-notification" class="notification success" style="display:none">
+      ✓ Report configuration saved.
+      <button class="close-btn" onclick="document.getElementById('save-notification').style.display='none'">✕</button>
+    </div>
+
+    <!-- Accordion: Lab Identity -->
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion('identity')">
+        <span id="acc-chev-identity">▾</span> 📄 Lab Identity
+      </button>
+      <div id="acc-body-identity" class="accordion-body">
+        <div class="fields">
+          <div class="cfg-field">
+            <label>Lab Name <span class="req">*</span></label>
+            <input type="text" value="Laboratorium Lingkungan Hidup Daerah Jawa Barat">
+          </div>
+          <div class="cfg-field">
+            <label>Lab Subtitle</label>
+            <input type="text" value="Dinas Lingkungan Hidup Provinsi Jawa Barat" placeholder="e.g., Environmental Testing Division">
+          </div>
+          <div class="cfg-field">
+            <label>Address Line 1 <span class="req">*</span></label>
+            <input type="text" value="Jl. Naripan No. 25">
+          </div>
+          <div class="cfg-field">
+            <label>Address Line 2</label>
+            <input type="text" value="Bandung 40112, Jawa Barat, Indonesia" placeholder="City, Province, Postal Code">
+          </div>
+          <div class="grid-3">
+            <div class="cfg-field">
+              <label>Phone</label>
+              <input type="text" value="+62 22 420 3423">
+            </div>
+            <div class="cfg-field">
+              <label>Email</label>
+              <input type="text" value="lab@dlh.jabarprov.go.id">
+            </div>
+            <div class="cfg-field">
+              <label>Website</label>
+              <input type="text" value="https://dlh.jabarprov.go.id">
+            </div>
+          </div>
+          <div class="cfg-field">
+            <label>Lab Logo</label>
+            <button class="logo-upload-btn" onclick="this.outerHTML='<div class=\'logo-preview\'><div class=\'logo-thumb\'>🖼</div><button class=\'btn-remove\'>🗑 Remove</button></div>'">
+              📤 Upload Logo
+            </button>
+            <div class="help">PNG or JPG, max 500KB. Recommended: 200×80px</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accordion: Accreditation -->
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion('accreditation')">
+        <span id="acc-chev-accreditation">▸</span> 🛡 Accreditation
+      </button>
+      <div id="acc-body-accreditation" class="accordion-body" style="display:none">
+        <div class="fields">
+          <div class="grid-2">
+            <div class="cfg-field">
+              <label>Accreditation Number</label>
+              <input type="text" value="KAN LP-042-IDN" placeholder="e.g., KAN LP-042-IDN">
+            </div>
+            <div class="cfg-field">
+              <label>Accreditation Body</label>
+              <input type="text" value="KAN">
+            </div>
+          </div>
+          <div class="cfg-field">
+            <label>Accreditation Logo</label>
+            <button class="logo-upload-btn" onclick="this.outerHTML='<div class=\'logo-preview\'><div class=\'logo-thumb\'>🖼</div><button class=\'btn-remove\'>🗑 Remove</button></div>'">
+              📤 Upload Logo
+            </button>
+            <div class="help">PNG or JPG, max 500KB. Recommended: 200×80px</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accordion: Page Layout -->
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion('layout')">
+        <span id="acc-chev-layout">▸</span> 📄 Page Layout
+      </button>
+      <div id="acc-body-layout" class="accordion-body" style="display:none">
+        <div class="fields">
+          <div class="cfg-field">
+            <label>Report Footer Text</label>
+            <textarea placeholder="Disclaimer or notice printed at the bottom of all reports">Sertifikat ini diterbitkan secara elektronik dan sah tanpa tanda tangan basah. / This certificate is issued electronically and valid without wet signature.</textarea>
+          </div>
+          <div class="grid-2">
+            <div class="cfg-field">
+              <label>Show Page Numbers</label>
+              <div class="toggle-row">
+                <input type="checkbox" checked>
+                <span class="toggle-label">Enabled</span>
+              </div>
+            </div>
+            <div class="cfg-field">
+              <label>Page Number Format</label>
+              <select>
+                <option selected>Page X of Y</option>
+                <option>Page X</option>
+                <option>None</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accordion: Numbering -->
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion('numbering')">
+        <span id="acc-chev-numbering">▸</span> # Numbering
+      </button>
+      <div id="acc-body-numbering" class="accordion-body" style="display:none">
+        <div class="fields">
+          <div class="grid-2">
+            <div class="cfg-field">
+              <label>Certificate Number Prefix</label>
+              <input type="text" value="LHU" maxlength="20" id="prefix-input" oninput="updatePrefixPreview()">
+              <div class="prefix-preview" id="prefix-preview">Preview: LHU-2026-0001</div>
+            </div>
+            <div class="cfg-field">
+              <label>Date Format</label>
+              <select>
+                <option selected>DD/MM/YYYY</option>
+                <option>MM/DD/YYYY</option>
+                <option>YYYY-MM-DD</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save button -->
+    <button class="btn-save" onclick="document.getElementById('save-notification').style.display='flex'">
+      Save Configuration
+    </button>
+  </div>
+</div>
+
+<script>
+// Screen switcher
+function switchScreen(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  document.querySelectorAll('.screen-tabs button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// Row expansion
+function toggleRow(id) {
+  var expand = document.getElementById('expand-' + id);
+  var chev = document.getElementById('chev-' + id);
+  if (expand.style.display === 'none') {
+    expand.style.display = 'table-row';
+    chev.textContent = '▾';
+  } else {
+    expand.style.display = 'none';
+    chev.textContent = '▸';
+  }
+}
+
+// Batch selection
+function updateBatch() {
+  var cbs = document.querySelectorAll('.row-cb');
+  var count = 0;
+  cbs.forEach(function(cb) { if (cb.checked) count++; });
+  var bar = document.getElementById('batch-bar');
+  document.getElementById('batch-count').textContent = count;
+  if (count > 0) {
+    bar.classList.add('visible');
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+function toggleSelectAll(el) {
+  var cbs = document.querySelectorAll('.row-cb');
+  cbs.forEach(function(cb) { cb.checked = el.checked; });
+  updateBatch();
+}
+
+function clearSelection() {
+  document.querySelectorAll('.row-cb').forEach(function(cb) { cb.checked = false; });
+  document.getElementById('select-all').checked = false;
+  updateBatch();
+}
+
+// Accordion
+var accState = { identity: true, accreditation: false, layout: false, numbering: false };
+function toggleAccordion(key) {
+  accState[key] = !accState[key];
+  var body = document.getElementById('acc-body-' + key);
+  var chev = document.getElementById('acc-chev-' + key);
+  if (accState[key]) {
+    body.style.display = '';
+    chev.textContent = '▾';
+  } else {
+    body.style.display = 'none';
+    chev.textContent = '▸';
+  }
+}
+
+// Prefix preview
+function updatePrefixPreview() {
+  var val = document.getElementById('prefix-input').value || 'LHU';
+  document.getElementById('prefix-preview').textContent = 'Preview: ' + val + '-2026-0001';
+}
+</script>
+</body>
+</html>

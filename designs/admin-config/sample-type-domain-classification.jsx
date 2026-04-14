@@ -14,7 +14,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import {
   Grid, Column, Stack,
   DataTable, TableContainer, Table, TableHead, TableRow, TableHeader,
-  TableBody, TableCell, TableToolbar, TableToolbarContent, TableToolbarSearch,
+  TableBody, TableCell,
   TextInput, TextArea, Select, SelectItem, Toggle,
   Button, InlineNotification, Tag, Tile, Accordion, AccordionItem,
   Tabs, Tab, TabList, TabPanels, TabPanel,
@@ -153,30 +153,40 @@ export default function SampleTypeDomainClassification() {
 
           {/* Sample Type Table */}
           <TableContainer>
-            <TableToolbar>
-              <TableToolbarContent>
-                <TableToolbarSearch
-                  placeholder={t('placeholder.sampleType.search', 'Search sample types...')}
-                  onChange={(e) => setSearchText(e.target.value)}
-                />
-                <Select
-                  id="domain-filter"
-                  labelText=""
-                  inline
-                  value={domainFilter}
-                  onChange={(e) => setDomainFilter(e.target.value)}
-                  style={{ minWidth: '160px' }}
-                >
-                  <SelectItem value="" text={t('placeholder.sampleType.filter.domain', 'All domains')} />
-                  {DOMAIN_OPTIONS.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value} text={opt.label} />
-                  ))}
-                </Select>
-                <Button kind="primary" size="sm" renderIcon={Add}>
-                  {t('button.sampleType.add', 'Add Sample Type')}
-                </Button>
-              </TableToolbarContent>
-            </TableToolbar>
+            {/* Custom toolbar — TableToolbarSearch expands to 100% width outside DataTable context,
+                stacking items. Plain flexbox row avoids the issue. */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0 1rem', height: '3rem',
+              background: 'var(--cds-layer)', borderBottom: '1px solid var(--cds-border-subtle-01)',
+            }}>
+              <TextInput
+                id="sample-type-search"
+                labelText={t('placeholder.sampleType.search', 'Search sample types...')}
+                hideLabel
+                placeholder={t('placeholder.sampleType.search', 'Search sample types...')}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                size="sm"
+                style={{ flex: '1 1 auto', maxWidth: '18rem' }}
+              />
+              <Select
+                id="domain-filter"
+                labelText={t('label.sampleType.filterDomain', 'Filter by domain')}
+                hideLabel
+                value={domainFilter}
+                onChange={(e) => setDomainFilter(e.target.value)}
+                style={{ minWidth: '160px' }}
+              >
+                <SelectItem value="" text={t('placeholder.sampleType.filter.domain', 'All domains')} />
+                {DOMAIN_OPTIONS.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value} text={opt.label} />
+                ))}
+              </Select>
+              <Button kind="primary" size="sm" renderIcon={Add} style={{ whiteSpace: 'nowrap' }}>
+                {t('button.sampleType.add', 'Add Sample Type')}
+              </Button>
+            </div>
             <Table>
               <TableHead>
                 <TableRow>
@@ -255,8 +265,8 @@ export default function SampleTypeDomainClassification() {
                       <TableCell>
                         <Select
                           id={`bulk-domain-${st.id}`}
-                          labelText=""
-                          inline
+                          labelText={t('label.sampleType.newDomain', 'New Domain')}
+                          hideLabel
                           size="sm"
                           value={bulkChanges[st.id] || st.domain}
                           onChange={(e) => handleBulkChange(st.id, e.target.value)}
