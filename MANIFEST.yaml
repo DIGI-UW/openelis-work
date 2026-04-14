@@ -1462,15 +1462,15 @@
   added: "2026-04-03"
 
 - id: environmental-order-entry
-  type: jsx
+  type: html
   path: designs/sample-collection/environmental-order-entry.jsx
   spec: designs/sample-collection/environmental-order-entry.md
-  category: sample-collection
+  category: vector-surveillance
   description: Environmental order entry integration (S-03) — compliance standard selection, sampling site auto-population, sample type & test panel auto-suggestion, collection conditions, and regulatory reference fields for vector/environmental LIMS workflows
   links:
     github: https://github.com/DIGI-UW/openelis-work/issues/74
     jira: https://uwdigi.atlassian.net/browse/OGC-537
-    gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/environmental-order-entry
+    gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-order-entry
   added: "2026-04-03"
 
 - id: compliance-evaluation-engine
@@ -1552,3 +1552,21 @@
   added: "2026-04-13"
   status: draft
   tags: ["patient", "document-management", "FHIR", "scanning", "registration"]
+
+- id: informed-consent
+  type: html
+  path: designs/sample-collection/informed-consent.jsx
+  spec: designs/sample-collection/informed-consent.md
+  preview_path: mockup-viewer/public/designs/sample-collection/informed-consent.html
+  category: sample-collection
+  description: >
+    Informed consent capture section for sample order entry (OGC-557). Collapsible
+    accordion with consent checkbox and optional form reference number, with auditable
+    agent/timestamp record for ISO 15189 compliance. Includes reusable
+    ConsentAccordionSection component for Add Order and Edit Order workflows.
+  links:
+    jira: ["OGC-557"]
+    gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/informed-consent
+  added: "2026-04-14"
+  status: draft
+  tags: ["sample-collection", "order-entry", "consent", "compliance", "ISO-15189", "Madagascar"]
