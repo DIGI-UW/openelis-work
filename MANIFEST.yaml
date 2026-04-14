@@ -1520,3 +1520,16 @@
     jira: ["OGC-527"]
     github_issue: 81
   added: "2026-04-13"
+
+- id: barcode-config
+  type: jsx
+  path: designs/admin-config/barcode-config.jsx
+  spec: designs/admin-config/barcode-config.md
+  category: admin-config
+  description: >
+    Barcode label configuration and printing — template design, field mapping,
+    label previews, and bulk print queue for sample collection labels.
+  links:
+    jira: ["OGC-527"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/barcode-config
+  added: "2026-04-13"

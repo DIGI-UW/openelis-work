@@ -38,7 +38,7 @@ import {
 } from '@carbon/react';
 import {
   Add, Edit, TrashCan, Locked, ChevronDown, ChevronUp,
-  UserAvatar, Bug, CloudDataOps, CheckmarkFilled, WarningFilled,
+  UserAvatar, Catalog, DataBase, CheckmarkFilled, WarningFilled,
 } from '@carbon/icons-react';
 
 const t = (key, fallback) => fallback || key;
@@ -159,7 +159,7 @@ function AppShell({ page, setPage, pendingCount, children }) {
           <SideNavLink>{t('nav.admin.analyzers', 'Analyzers')}</SideNavLink>
 
           {/* V-01 adds this submenu */}
-          <SideNavMenu title={t('nav.admin.vector', 'Vector Surveillance')} renderIcon={Bug} defaultExpanded>
+          <SideNavMenu title={t('nav.admin.vector', 'Vector Surveillance')} renderIcon={Catalog} defaultExpanded>
             <SideNavMenuItem isActive={page === 'groups'} onClick={() => setPage('groups')}>
               {t('nav.admin.vector.groups', 'Groups')}
             </SideNavMenuItem>
@@ -197,7 +197,7 @@ function HubBanner({ pendingCount, onReview }) {
   return (
     <Tile style={{ padding: '1rem', marginBottom: '1rem', borderLeft: '4px solid #0f62fe' }}>
       <Stack orientation="horizontal" gap={5}>
-        <CloudDataOps size={24} style={{ color: '#0f62fe', flexShrink: 0, marginTop: '0.25rem' }} />
+        <DataBase size={24} style={{ color: '#0f62fe', flexShrink: 0, marginTop: '0.25rem' }} />
         <div style={{ flex: 1 }}>
           <Stack orientation="horizontal" gap={3} style={{ alignItems: 'center', marginBottom: '0.25rem' }}>
             <strong>{t('hub.name', 'OpenELIS Community Hub')}</strong>

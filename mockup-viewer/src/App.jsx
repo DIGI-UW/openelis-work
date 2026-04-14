@@ -58,6 +58,17 @@ export const MOCKUP_REGISTRY = [
     tags: ['organizations', 'sites', 'facilities', 'admin'],
   },
   {
+    name: 'Barcode Configuration',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/barcode-config.jsx')),
+    description: 'Barcode label configuration and printing — template design, field mapping, label previews, and bulk print queue for sample collection labels',
+    specPath: 'designs/admin-config/barcode-config.md',
+    added: '2026-04-13',
+    status: 'draft',
+    jira: ['OGC-527'],
+    tags: ['barcode', 'labels', 'printing', 'admin', 'configuration', 'sample-collection'],
+  },
+  {
     name: 'Panel',
     category: 'admin-config',
     component: React.lazy(() => import('@designs/admin-config/panel.jsx')),

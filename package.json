@@ -1,0 +1,17 @@
+{
+  "name": "openelis-work",
+  "private": true,
+  "description": "OpenELIS Global design gallery — root scripts proxy to mockup-viewer/",
+  "scripts": {
+    "setup": "cd mockup-viewer && npm install",
+    "dev": "cd mockup-viewer && npm run dev",
+    "test": "cd mockup-viewer && npm test",
+    "test:watch": "cd mockup-viewer && npm run test:watch",
+    "build": "cd mockup-viewer && npm run build",
+    "preview": "cd mockup-viewer && npm run build && npm run preview"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

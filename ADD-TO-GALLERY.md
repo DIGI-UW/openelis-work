@@ -182,16 +182,41 @@ If the MCP tool is unavailable, fall back to Chrome automation:
 
 ---
 
-## Step 9 — Commit
+## Step 9 — Branch, commit, and open a PR
+
+**Create a feature branch** (if not already on one):
 
 ```bash
-cd /sessions/funny-blissful-gates/mnt/openelis-work
-git add designs/{category}/ mockup-viewer/src/App.jsx MANIFEST.yaml INDEX.md
-# include mockup-viewer/public/designs/ if HTML was added
-git commit -m "feat: add {Feature Name} mockup (#{github-issue}, {OGC-ticket})"
+git checkout -b design/{slug}
 ```
 
-Commits accumulate locally. Run `git push origin main` to deploy to GitHub Pages (triggers the Actions workflow automatically).
+**Commit your changes:**
+
+```bash
+git add designs/{category}/ mockup-viewer/src/App.jsx MANIFEST.yaml INDEX.md
+# include mockup-viewer/public/designs/ if HTML was added
+git commit -m "feat(design): add {Feature Name} mockup (#{github-issue}, OGC-{ticket})"
+```
+
+**Important:** Always use `git add <specific files>` — never `git add -A` or `git add .`, which can accidentally stage deletions of existing files.
+
+**Run tests to make sure nothing is broken:**
+
+```bash
+npm test
+```
+
+**Push and open a pull request:**
+
+```bash
+git push -u origin design/{slug}
+gh pr create --title "feat(design): add {Feature Name}" \
+  --body "Adds {Feature Name} mockup and spec. Jira: OGC-XXX, GitHub: #NNN"
+```
+
+CI tests run on the PR. Once green, merge and the gallery auto-deploys to GitHub Pages.
+
+**Fast path:** For tiny corrections (typo fixes, link fixes), direct push to main is fine.
 
 ---
 
