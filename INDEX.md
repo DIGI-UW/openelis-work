@@ -23,6 +23,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Catalog Subscription | [catalog-subscription.html](designs/admin-config/catalog-subscription.html) | [catalog-subscription.md](designs/admin-config/catalog-subscription.md) |
 | Compliance Standards Administration | — | [compliance-standards-admin.md](designs/admin-config/compliance-standards-admin.md) |
 | Sample Type Domain Classification | [sample-type-domain-classification.jsx](designs/admin-config/sample-type-domain-classification.jsx) | [sample-type-domain-classification.md](designs/admin-config/sample-type-domain-classification.md) |
+| Barcode Configuration | [barcode-config.jsx](designs/admin-config/barcode-config.jsx) | [barcode-config.md](designs/admin-config/barcode-config.md) |
 
 ## Analyzer Integration
 
