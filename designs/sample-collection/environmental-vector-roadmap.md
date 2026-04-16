@@ -72,22 +72,22 @@ These specs add the analytical engine, compliance reporting, and vector-specific
 
 **Layer 3 summary:** 5 of 8 environmental specs complete + V-01 complete. V-02/V-03/V-04 not started but now enriched with PRD user stories. S-07 needs a geographic map addendum.
 
-### Layer 4 — Cross-Cutting Operational Workflows (PRD Gaps)
+### Layer 4 — PRD Gap Items (Addendums & New Specs)
 
-These specs cover operational capabilities identified in the SILNAS PRD v0.5 that cut across all modules (Clinical, Environmental, Vector). They are not ENV/Vector-specific but are required by the PRD for the complete SILNAS system.
+Capabilities identified in the SILNAS PRD v0.5 that our original S-series did not cover. After reviewing existing OpenELIS functionality, most of these are **addendums** to existing modules rather than full new specs. Only S-10 is a genuinely new standalone spec; S-13 is deferred pending contractor delivery.
 
-| Spec | Title | Jira | Status | Description | PRD Source |
-|------|-------|------|--------|-------------|------------|
-| **S-07a** | Geographic Map Dashboard View | TBD | **Not Started** | Leaflet/OpenLayers choropleth map with case markers (size = count, color = sample type), case detail pop-up, cluster boundaries, disease toggle, PNG/PDF export. Addendum to S-07. | PRD ENV Table 10, row 5 |
-| **S-09** | Pre-Analytical Eligibility Gate & Resampling | TBD | **Not Started** | Formal Eligible/Non-Eligible decision point after sample receipt. Mandatory rejection reasons, resampling loop (notify customer, re-submit), QR label generation on pass, status transitions (Received → Eligible/Non-Eligible → Pending/Resampling/Rejection). Applies to ENV and Vector modules. | PRD ENV Table 11 rows 10–12; Vector Table 16 rows 10–11 |
-| **S-10** | Sample Distribution & Analyst Assignment | TBD | **Not Started** | Assign eligible samples to specific analysts/departments. Worklist by department, read-only registration summary, Baku Mutu display, distribution confirmation. QR code label printing at distribution. | PRD ENV Table 11 rows 14–15; Vector Table 16 row 14 |
-| **S-11** | Instrument QC Gating | TBD | **Not Started** | Mandatory instrument calibration QC check before analyst can proceed with testing. System displays warning if QC results need rechecking; testing blocked until instrument QC passes. Extends existing OpenELIS QC module. | PRD ENV Table 12 rows 3–4; Vector Table 17 rows 3–4 |
-| **S-12** | Dual Verification → Validation Pipeline | TBD | **Not Started** | Two-stage result review: Verificator checks and approves (status → "Technically Verified"), then Validator reviews, can return to Verificator or accept. Amendment loop with revision flags and correction tracking. Extends existing OpenELIS validation workflow. | PRD ENV Table 13; Vector Table 18 |
-| **S-13** | Payment & Billing Integration | TBD | **Not Started** | Payment status tracking (Unpaid → Paid), payment type (General/Program), payment receipt printing, payment gateway integration. Optional gate — samples can proceed even if Unpaid. Applies to all modules. | PRD ENV Table 11 row 13; Vector Table 16 row 12 |
-| **S-14** | Inter-Lab Sample Transfer & Referral | TBD | **Not Started** | Transfer samples between lab units with reason, target lab selection, WhatsApp/email notification to target lab and customer, referral tracking history, status → "Referred". Process referral registration from incoming transfers. | PRD ENV Table 11 row 9, row 3; Vector Table 16 row 9, row 3 |
-| **S-15** | Bulk Sample Import (CSV/XLS) | TBD | **Not Started** | Template download, CSV/XLS upload for batch sample entry during registration. Coordinate validation, parameter assignment, duplicate detection. Template per sample type. | PRD ENV Table 11 row 5; Vector Table 16 row 5 |
+| Spec | Title | Type | Extends | Status | Description | PRD Source |
+|------|-------|------|---------|--------|-------------|------------|
+| **S-07a** | Geographic Map Dashboard View | Addendum | S-07 | **Not Started** | Leaflet/OpenLayers choropleth map with case markers (size = count, color = sample type), case detail pop-up, cluster boundaries, disease toggle, PNG/PDF export. | PRD ENV Table 10, row 5 |
+| **S-09** | Pre-Analytical Eligibility Gate & Resampling | Addendum | Sample Collection Redesign (Step 2) | **Not Started** | Formal Eligible/Non-Eligible decision point after sample receipt. OE already has NCE system and configurable sample rejection — this addendum formalizes it as a gate with resampling loop (notify customer, re-submit), QR label generation on pass, status transitions (Received → Eligible/Non-Eligible → Pending/Resampling/Rejection). | PRD ENV Table 11 rows 10–12; Vector Table 16 rows 10–11 |
+| **S-10** | Sample Distribution & Analyst Assignment | New spec | — | **Not Started** | Assign eligible samples to specific analysts/departments. Worklist by department, read-only registration summary, Baku Mutu display, distribution confirmation. OE has RBAC department scoping but no analyst assignment UI or department worklist. | PRD ENV Table 11 rows 14–15; Vector Table 16 row 14 |
+| **S-11** | Instrument QC Gating | Addendum | S-08 / existing QC module | **Not Started** | OE already has analyzer manual QC, QC status panel, overdue alerts, Westgard rules, and auto-NCE on failure. This addendum adds the PRD's requirement: block testing if instrument QC is overdue/failed, display warning before analyst can proceed. May already be partially implemented. | PRD ENV Table 12 rows 3–4; Vector Table 17 rows 3–4 |
+| **S-12** | Dual Verification → Validation Pipeline | Addendum | Existing OE validation workflow | **Not Started** | OE already has multi-level validation (validation 1/2 support) and enhanced validation screen. This addendum adds explicit Verificator→Validator role routing, return-to-analyst amendment loop with revision flags, and correction tracking per the SILNAS dual-stage model. | PRD ENV Table 13; Vector Table 18 |
+| **S-13** | Payment & Billing Integration | **Deferred** | — | **Awaiting contractor** | Independent contractor is building payment/billing. We will adapt their deliverable for ENV/Vector integration rather than spec from scratch. PRD scope: payment status (Unpaid→Paid), payment type (General/Program), receipt printing, gateway integration. Optional gate — samples can proceed even if Unpaid. | PRD ENV Table 11 row 13; Vector Table 16 row 12 |
+| **S-14** | Inter-Lab Sample Transfer & Referral | Addendum | Existing OE referral module | **Not Started** | OE already has referral infrastructure, FHIR R4 external lab integration, and a referral dashboard. This addendum adds: transfer reason input, target lab selection from predefined list, WhatsApp/email notification to target lab and customer, transfer history tracking, and inbound referral registration processing. | PRD ENV Table 11 row 9, row 3; Vector Table 16 row 9, row 3 |
+| **S-15** | Bulk Sample Import (CSV/XLS) | Addendum | S-03 / existing import infra | **Not Started** | OE already has `generic_sample:import` permission and analyzer file upload. This addendum adds: downloadable CSV/XLS template per sample type, coordinate validation, parameter/Baku Mutu assignment, duplicate detection, import preview with error highlighting. | PRD ENV Table 11 row 5; Vector Table 16 row 5 |
 
-**Layer 4 summary:** 8 new specs identified from PRD crosswalk. These are cross-cutting — they apply to Clinical, Environmental, and Vector modules alike. S-07a is a targeted addendum to the existing S-07 dashboard. S-09 through S-15 are standalone specs.
+**Layer 4 summary:** 8 items from PRD crosswalk. 1 new spec (S-10), 6 addendums to existing modules, 1 deferred (S-13 — awaiting contractor). The addendum approach significantly reduces effort since OpenELIS already has NCE, QC, multi-level validation, referral, and import infrastructure.
 
 ---
 
@@ -108,16 +108,16 @@ Source document: *[Revise] PRD Human, ENV, Vector & BPP Module Ver. V.0.5*
 
 ### What the PRD covers that our specs did not (now addressed in Layer 4)
 
-| PRD Requirement | New Spec | Notes |
-|----------------|----------|-------|
-| Geographic map (Leaflet/OpenLayers, choropleth, clustering) | **S-07a** | Addendum to S-07 |
-| Eligibility gate with resampling loop | **S-09** | Formal pre-analytical gate |
-| Sample distribution to analysts | **S-10** | Worklist-based assignment |
-| Instrument QC gating before testing | **S-11** | Extends OpenELIS QC |
-| Dual Verificator → Validator pipeline | **S-12** | Extends OpenELIS validation |
-| Payment/billing integration | **S-13** | Optional payment gate |
-| Inter-lab transfer/referral | **S-14** | With notification |
-| Bulk CSV/XLS sample import | **S-15** | Template-based import |
+| PRD Requirement | Spec | Type | Notes |
+|----------------|------|------|-------|
+| Geographic map (Leaflet/OpenLayers, choropleth, clustering) | **S-07a** | Addendum to S-07 | Net-new UI component |
+| Eligibility gate with resampling loop | **S-09** | Addendum to Sample Collection Redesign | OE has NCE + sample rejection — formalize as gate |
+| Sample distribution to analysts | **S-10** | **New spec** | OE has RBAC but no assignment UI |
+| Instrument QC gating before testing | **S-11** | Addendum to S-08 / QC module | OE has QC infrastructure — add gating UX |
+| Dual Verificator → Validator pipeline | **S-12** | Addendum to OE validation | OE has multi-level validation — add role routing |
+| Payment/billing integration | **S-13** | **Deferred** | Awaiting independent contractor delivery |
+| Inter-lab transfer/referral | **S-14** | Addendum to OE referral | OE has referral + FHIR — add notifications + tracking |
+| Bulk CSV/XLS sample import | **S-15** | Addendum to S-03 / import infra | OE has import permission — add templates + validation |
 
 ---
 
@@ -131,56 +131,59 @@ S-01 (Compliance Standards) ──┐                                 │
 S-02 (Sampling Site Registry) ┘         │              │        │
                                         │              ├── S-04 (Sample Domain)
 Sample Collection Redesign ─────────────┘              │
-                                                       ├── S-05 (Evaluation Engine)
-                                                       │
-                                                       ├── S-06 (Laporan Hasil)
-                                                       │        └── S-12 (Verification Pipeline)
-                                                       │
-                                                       ├── S-07 (Dashboard/Trends)
-                                                       │        └── S-07a (Geographic Map)
+       │                                               ├── S-05 (Evaluation Engine)
+       │                                               │
+       └── S-09 (Eligibility Gate) ← addendum Step 2   ├── S-06 (Laporan Hasil)
+                │                                      │
+                └── S-10 (Distribution) ← new spec     ├── S-07 (Dashboard/Trends)
+                                                       │        └── S-07a (Map) ← addendum
                                                        │
                                                        └── S-08 (Environmental QC)
-                                                                └── S-11 (Instrument QC)
+                                                                └── S-11 (Inst. QC) ← addendum
 
-Cross-cutting (apply to all modules, no layer dependency):
-  S-09 (Eligibility Gate)     ← after Sample Collection Redesign
-  S-10 (Sample Distribution)  ← after S-09
-  S-13 (Payment/Billing)      ← after S-09 (eligibility triggers payment)
-  S-14 (Inter-Lab Transfer)   ← standalone, after Layer 1
-  S-15 (Bulk Import)          ← standalone, after S-03/S-04
+Addendums to existing OE modules (no S-series dependency):
+  S-12 (Verification Pipeline) ← addendum to OE validation module
+  S-14 (Inter-Lab Transfer)    ← addendum to OE referral module
+  S-15 (Bulk Import)           ← addendum to OE import + S-03 templates
+
+Deferred:
+  S-13 (Payment/Billing)       ← awaiting independent contractor delivery
 
 V-01 (Vector Specimens) ── V-02 (Collection) ── V-03 (Testing) ── V-04 (Surveillance)
      │                         │                     │                  │
      │                         ├── S-09 (Elig.)      ├── S-11 (Inst.QC) ├── S-12 (Verif.)
      │                         ├── S-10 (Distrib.)   │                  │
-     │                         ├── S-15 (Import)     │                  │
-     │                         └── S-13 (Payment)    │                  │
+     │                         └── S-15 (Import)     │                  │
 ```
 
 ---
 
 ## Recommended Build Order
 
-| Phase | Specs | Rationale |
-|-------|-------|-----------|
-| **Phase 1 — Foundation** | S-01, S-02, Sample Collection Redesign | Core entities and 4-step workflow. Can be built in parallel. |
-| **Phase 2 — Integration** | S-04 (sample domain), S-03 (order entry) | S-04 first (small, unblocks filtering), then S-03 wires everything together. |
-| **Phase 3 — Compliance Loop** | S-05 (evaluation), S-06 (reporting) | Completes the end-to-end compliance workflow: enter → test → evaluate → report. |
-| **Phase 4 — Operational** | S-07 (dashboard), S-08 (QC rules) | Adds operational tooling for environmental labs — trends, quality control. |
-| **Phase 5 — Pre-Analytical Ops** | S-09 (eligibility gate), S-10 (distribution), S-15 (bulk import) | Formalizes the pre-analytical workflow from the PRD. S-09 is the gate, S-10 routes samples to analysts, S-15 enables batch entry. |
-| **Phase 6 — Cross-Cutting Integrations** | S-11 (instrument QC), S-12 (verification pipeline), S-13 (payment), S-14 (transfer) | Operational integrations that apply across all modules. Can be built in parallel. |
-| **Phase 7 — Dashboard Enhancement** | S-07a (geographic map) | Adds Leaflet/OpenLayers map view to existing S-07 dashboard. |
-| **Phase 8 — Vector** | V-01, V-02, V-03, V-04 | Extends the environmental framework to vector surveillance. Sequential dependencies. V-02 now includes eligibility (S-09), distribution (S-10), import (S-15). V-03 includes instrument QC (S-11). V-04 includes verification pipeline (S-12). |
+| Phase | Specs | Type | Rationale |
+|-------|-------|------|-----------|
+| **Phase 1 — Foundation** | S-01, S-02, Sample Collection Redesign | Spec complete | Core entities and 4-step workflow. Can be built in parallel. |
+| **Phase 2 — Integration** | S-04 (sample domain), S-03 (order entry) | Spec complete | S-04 first (small, unblocks filtering), then S-03 wires everything together. |
+| **Phase 3 — Compliance Loop** | S-05 (evaluation), S-06 (reporting) | Spec complete | Completes the end-to-end compliance workflow: enter → test → evaluate → report. |
+| **Phase 4 — Operational** | S-07 (dashboard), S-08 (QC rules) | Spec complete | Adds operational tooling for environmental labs — trends, quality control. |
+| **Phase 5 — PRD Addendums** | S-09 (eligibility gate), S-10 (distribution), S-15 (bulk import) | 1 new + 2 addendums | Formalizes the pre-analytical workflow. S-09 extends Step 2 with NCE-based gate, S-10 is new (analyst assignment), S-15 extends existing import infra. |
+| **Phase 6 — PRD Addendums cont.** | S-11 (instrument QC), S-12 (verification pipeline), S-14 (transfer) | 3 addendums | Light extensions to existing OE modules. S-11 adds QC gating UX, S-12 adds role routing to validation, S-14 adds notification to referral. Can be built in parallel. |
+| **Phase 7 — Dashboard Enhancement** | S-07a (geographic map) | Addendum | Adds Leaflet/OpenLayers map view to existing S-07 dashboard. |
+| **Phase 8 — Vector** | V-01, V-02, V-03, V-04 | 1 complete + 3 new | Extends the environmental framework to vector surveillance. Sequential dependencies. V-02 consumes S-09/S-10/S-15; V-03 consumes S-11; V-04 consumes S-12. |
+| **Deferred** | S-13 (payment/billing) | Awaiting contractor | Adapt from independent contractor's payment module delivery. |
 
 ---
 
 ## Current Sprint Focus
 
 **Spec work completed (2026-04-16):**
-- PRD crosswalk completed against *PRD Human, ENV, Vector & BPP Module Ver. V.0.5*
-- 8 new specs identified (S-07a, S-09 through S-15) from PRD gap analysis
+- PRD crosswalk completed against *PRD Human, ENV, Vector & BPP Module Ver. V.0.5* — the same document that originally drove S-01 through S-08 and V-01
+- Reviewed 8 PRD gap items against existing OpenELIS functionality; reclassified:
+  - 6 as **addendums** (S-07a, S-09, S-11, S-12, S-14, S-15) — OE already has NCE, QC, multi-level validation, referral, and import infrastructure
+  - 1 as **new spec** (S-10 — Sample Distribution & Analyst Assignment)
+  - 1 as **deferred** (S-13 — Payment/Billing, awaiting independent contractor delivery)
 - V-02, V-03, V-04 descriptions enriched with PRD user stories (Tables 16–18)
-- Roadmap updated to v2.0 with Layer 4 (Cross-Cutting Operational Workflows), PRD crosswalk summary, updated dependency graph, and revised build order
+- Roadmap updated to v2.0 with Layer 4, PRD crosswalk summary, updated dependency graph, and revised build order (8 phases + deferred)
 - Sample Collection Redesign mockup updated with S-03 environmental sections (commit `dae1259`)
 - Sample Collection Redesign FRS v2.0 finalized with S-03 merge (commit `db0ef52`)
 
@@ -227,8 +230,9 @@ V-01 (Vector Specimens) ── V-02 (Collection) ── V-03 (Testing) ── V-
 - Jira ticket [OGC-538](https://uwdigi.atlassian.net/browse/OGC-538) created
 
 **Next up:**
-- V-02: Vector Collection Workflow — trap-based collection, pool/individual processing at sample intake, geographic/temporal clustering, field data entry, registration form, eligibility gate (S-09), sample distribution (S-10), bulk import (S-15). Builds on V-01 reference data.
-- Consider prioritizing S-09 (Eligibility Gate) first as it's needed by both ENV and Vector workflows.
+- **Phase 5 addendums** — S-09 (eligibility gate addendum to Step 2), S-10 (new spec: analyst assignment), S-15 (bulk import addendum). S-09 should come first as it's consumed by both ENV and Vector.
+- **V-02:** Vector Collection Workflow — trap-based collection, pool/individual processing, field data entry. Consumes S-09/S-10/S-15. Builds on V-01 reference data.
+- **S-13 (Payment):** On hold — adapt from independent contractor's delivery when available.
 
 ---
 
@@ -242,7 +246,7 @@ V-01 (Vector Specimens) ── V-02 (Collection) ── V-03 (Testing) ── V-
 | FHIR Catalog Subscription | [OGC-447](https://uwdigi.atlassian.net/browse/OGC-447) | Backlog | Environmental sample types need to sync via FHIR |
 | Existing OpenELIS Validation Workflow | *(core module)* | Existing | S-12 extends with dual Verificator→Validator pipeline |
 | Existing OpenELIS QC Module | *(core module)* | Existing | S-11 extends with instrument QC gating |
-| Payment Gateway (SATUSEHAT) | *(external)* | TBD | S-13 integrates with national payment gateway |
+| Payment Gateway (SATUSEHAT) | *(external)* | **Deferred — contractor** | S-13 will adapt from contractor's payment module |
 | National e-Signature Service | *(external)* | TBD | S-06 and S-12 depend on e-Sign for LH signing |
 | WhatsApp Business API / Email | *(external)* | TBD | S-14 depends on notification service for transfer alerts |
 
