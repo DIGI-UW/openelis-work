@@ -1,29 +1,33 @@
 /**
- * V-03 Vector Testing & Identification — React Mockup
+ * V-03 Vector Testing & Identification — React Mockup (v1.1)
  * Spec: vector-testing-identification.md
- * Jira: TBD (OGC-527 epic)
+ * Jira: OGC-583 (OGC-527 epic)
  *
- * Screens:
- *  1. Identification Worklist (tabbed: Pending ID | In Progress | Deconvolution | Complete)
- *  2. Lot Identification Detail (specimen DataTable + inline row expansion + bulk-apply)
- *  3. Deconvolution Workflow (positive pool alert + modal)
- *  4. Panel Admin (test panel config DataTable)
+ * v1.1 changes:
+ *  - Navigation: SideNav with submenus replaces top-level Tabs
+ *  - Lot detail: inline row expansion instead of separate screen/page nav
+ *  - Panel Admin: references unified Panel admin (Admin → Panel Setup, domain = VECTOR)
+ *
+ * Sections:
+ *  A. Identification Worklist — SideNav-driven filter (Pending ID | In Progress | Deconvolution | Complete)
+ *     └── Lot rows expand inline to show LotDetail (specimens + ID forms)
+ *  B. Test Panels — redirect notice pointing to unified Admin → Panel Setup
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Grid, Column, Stack,
-  Tabs, Tab, TabList, TabPanels, TabPanel,
+  SideNav, SideNavItems, SideNavMenu, SideNavMenuItem, SideNavLink,
   DataTable, TableContainer, Table, TableHead, TableRow, TableHeader,
   TableBody, TableCell, TableToolbar, TableToolbarContent, TableToolbarSearch,
   TableBatchActions, TableBatchAction, TableSelectRow, TableSelectAll,
-  TextInput, TextArea, Select, SelectItem, ComboBox, NumberInput, Toggle, MultiSelect,
+  TextInput, TextArea, Select, SelectItem, ComboBox, NumberInput, Toggle,
   Button, InlineNotification, Tag, Modal, Accordion, AccordionItem,
-  Tile, Breadcrumb, BreadcrumbItem, ProgressBar,
+  Tile,
 } from '@carbon/react';
 import {
-  Identification, Add, ChevronDown, ChevronUp, CheckmarkFilled,
-  WarningFilled, Bee, Save, TrashCan, Renew,
+  Identification, Add, ChevronDown, ChevronUp, Save, TrashCan,
+  Launch, ArrowRight,
 } from '@carbon/icons-react';
 
 // ---------------------------------------------------------------------------
@@ -35,57 +39,63 @@ const t = (key, fallback) => fallback || key;
 // Seed data
 // ---------------------------------------------------------------------------
 const SPECIES_CATALOG = [
-  { id: 'ae-aeg',  label: 'Aedes aegypti', group: 'MOSQUITO' },
-  { id: 'ae-alb',  label: 'Aedes albopictus', group: 'MOSQUITO' },
-  { id: 'cx-qui',  label: 'Culex quinquefasciatus', group: 'MOSQUITO' },
-  { id: 'cx-tri',  label: 'Culex tritaeniorhynchus', group: 'MOSQUITO' },
-  { id: 'an-bar',  label: 'Anopheles barbirostris', group: 'MOSQUITO' },
-  { id: 'an-mac',  label: 'Anopheles maculatus', group: 'MOSQUITO' },
-  { id: 'ix-ric',  label: 'Ixodes ricinus', group: 'TICK' },
-  { id: 'rh-mic',  label: 'Rhipicephalus microplus', group: 'TICK' },
-  { id: 'rat-nor', label: 'Rattus norvegicus', group: 'RODENT' },
-  { id: 'rat-rat', label: 'Rattus rattus', group: 'RODENT' },
+  { id: 'ae-aeg',  label: 'Aedes aegypti',              group: 'MOSQUITO' },
+  { id: 'ae-alb',  label: 'Aedes albopictus',            group: 'MOSQUITO' },
+  { id: 'cx-qui',  label: 'Culex quinquefasciatus',      group: 'MOSQUITO' },
+  { id: 'cx-tri',  label: 'Culex tritaeniorhynchus',     group: 'MOSQUITO' },
+  { id: 'an-bar',  label: 'Anopheles barbirostris',      group: 'MOSQUITO' },
+  { id: 'an-mac',  label: 'Anopheles maculatus',         group: 'MOSQUITO' },
+  { id: 'ix-ric',  label: 'Ixodes ricinus',              group: 'TICK' },
+  { id: 'rh-mic',  label: 'Rhipicephalus microplus',     group: 'TICK' },
+  { id: 'rat-nor', label: 'Rattus norvegicus',           group: 'RODENT' },
+  { id: 'rat-rat', label: 'Rattus rattus',               group: 'RODENT' },
 ];
 
-const LOTS_PENDING = [
-  { id: 'BPP-01-LOT-042', site: 'Bojongsoang — BPP-01', trapType: 'BG-Sentinel', collectionDate: '2026-04-14', group: 'MOSQUITO', specimenCount: 25, identified: 0, status: 'NOT_STARTED', poolFlag: true, positiveTest: null },
-  { id: 'BPP-01-LOT-043', site: 'Margahayu — BPP-02', trapType: 'CDC Light Trap', collectionDate: '2026-04-14', group: 'MOSQUITO', specimenCount: 12, identified: 7, status: 'IN_PROGRESS', poolFlag: true, positiveTest: null },
-  { id: 'CIL-02-LOT-019', site: 'Cileunyi — CIL-02', trapType: 'Oviposition Trap', collectionDate: '2026-04-13', group: 'MOSQUITO', specimenCount: 8, identified: 0, status: 'NOT_STARTED', poolFlag: false, positiveTest: null },
-];
+const LOT_SECTIONS = {
+  pendingId: [
+    { id: 'BPP-01-LOT-042', site: 'Bojongsoang — BPP-01', trapType: 'BG-Sentinel',      collectionDate: '2026-04-14', group: 'MOSQUITO', specimenCount: 25, identified: 0,  status: 'NOT_STARTED', poolFlag: true,  positiveTest: null },
+    { id: 'BPP-01-LOT-043', site: 'Margahayu — BPP-02',   trapType: 'CDC Light Trap',   collectionDate: '2026-04-14', group: 'MOSQUITO', specimenCount: 12, identified: 0,  status: 'NOT_STARTED', poolFlag: true,  positiveTest: null },
+    { id: 'CIL-02-LOT-019', site: 'Cileunyi — CIL-02',    trapType: 'Oviposition Trap', collectionDate: '2026-04-13', group: 'MOSQUITO', specimenCount: 8,  identified: 0,  status: 'NOT_STARTED', poolFlag: false, positiveTest: null },
+    { id: 'JAT-03-LOT-005', site: 'Jatisari — JAT-03',    trapType: 'Gravid Trap',      collectionDate: '2026-04-13', group: 'MOSQUITO', specimenCount: 18, identified: 0,  status: 'NOT_STARTED', poolFlag: true,  positiveTest: null },
+  ],
+  inProgress: [
+    { id: 'BPP-02-LOT-031', site: 'Margahayu — BPP-02',   trapType: 'CDC Light Trap',   collectionDate: '2026-04-12', group: 'MOSQUITO', specimenCount: 20, identified: 11, status: 'IN_PROGRESS', poolFlag: true,  positiveTest: null },
+  ],
+  deconvolution: [
+    { id: 'BPP-03-LOT-011', site: 'Antapani — BPP-03',    trapType: 'BG-Sentinel',      collectionDate: '2026-04-10', group: 'MOSQUITO', specimenCount: 25, identified: 25, status: 'COMPLETE',    poolFlag: true,  positiveTest: 'NS1 RT-PCR', deconStatus: 'IN_PROGRESS', childCount: 25, resultsIn: 18 },
+    { id: 'JAT-01-LOT-007', site: 'Jatisari — JAT-01',    trapType: 'Gravid Trap',      collectionDate: '2026-04-08', group: 'MOSQUITO', specimenCount: 20, identified: 20, status: 'COMPLETE',    poolFlag: true,  positiveTest: 'NS1 RT-PCR', deconStatus: 'COMPLETE',    childCount: 20, resultsIn: 20, positiveChildCount: 3 },
+  ],
+  complete: Array.from({ length: 14 }, (_, i) => ({
+    id: `BPP-0${(i % 4) + 1}-LOT-0${String(i + 1).padStart(2, '0')}`,
+    site: ['Bojongsoang — BPP-01', 'Margahayu — BPP-02', 'Cileunyi — CIL-02', 'Antapani — BPP-03'][i % 4],
+    trapType: ['BG-Sentinel', 'CDC Light Trap', 'Oviposition Trap', 'Gravid Trap'][i % 4],
+    collectionDate: `2026-04-${String(i + 1).padStart(2, '0')}`,
+    group: 'MOSQUITO', specimenCount: 10 + i, identified: 10 + i, status: 'COMPLETE', poolFlag: i % 3 === 0, positiveTest: null,
+  })),
+};
 
 const LOT_DETAIL_SPECIMENS = Array.from({ length: 10 }, (_, i) => ({
   id: `BPP-01-LOT-042-S${String(i + 1).padStart(2, '0')}`,
   label: `S${String(i + 1).padStart(2, '0')}`,
-  status: i < 3 ? 'CONFIRMED' : i === 3 ? 'PRESUMPTIVE' : 'NOT_IDENTIFIED',
-  species: i < 3 ? 'Aedes aegypti' : i === 3 ? 'Culex quinquefasciatus' : '',
-  method: i < 3 ? 'MORPHOLOGICAL' : i === 3 ? 'MOLECULAR' : '',
-  confidence: i < 3 ? 'CONFIRMED' : i === 3 ? 'PRESUMPTIVE' : '',
+  status:     i < 3 ? 'CONFIRMED'      : i === 3 ? 'PRESUMPTIVE' : 'NOT_IDENTIFIED',
+  species:    i < 3 ? 'Aedes aegypti'  : i === 3 ? 'Culex quinquefasciatus' : '',
+  method:     i < 3 ? 'MORPHOLOGICAL'  : i === 3 ? 'MOLECULAR'   : '',
+  confidence: i < 3 ? 'CONFIRMED'      : i === 3 ? 'PRESUMPTIVE' : '',
 }));
-
-const TEST_PANELS = [
-  { id: 'p1', name: 'Dengue Surveillance Panel', group: 'MOSQUITO', tests: 'NS1 ELISA, NS1 RT-PCR (multiplex)', testCount: 2, active: true },
-  { id: 'p2', name: 'Malaria Vector Panel', group: 'MOSQUITO', tests: 'Plasmodium PCR, P. falciparum Ag RDT', testCount: 2, active: true },
-  { id: 'p3', name: 'Tick-Borne Panel (Basic)', group: 'TICK', tests: 'Rickettsia PCR, Borrelia PCR', testCount: 2, active: true },
-  { id: 'p4', name: 'Arbovirus Expanded Panel', group: 'MOSQUITO', tests: 'NS1 RT-PCR, Chikungunya RT-PCR, Zika RT-PCR', testCount: 3, active: false },
-];
-
-const DECON_LOTS = [
-  { id: 'BPP-03-LOT-011', site: 'Antapani — BPP-03', positiveTest: 'NS1 RT-PCR', childCount: 25, resultsIn: 18, status: 'IN_PROGRESS' },
-  { id: 'JAT-01-LOT-007', site: 'Jatisari — JAT-01', positiveTest: 'NS1 RT-PCR', childCount: 20, resultsIn: 20, status: 'COMPLETE', positive: 3 },
-];
 
 // ---------------------------------------------------------------------------
 // Helper components
 // ---------------------------------------------------------------------------
 const StatusTag = ({ status }) => {
   const map = {
-    NOT_IDENTIFIED: { kind: 'gray',      label: t('label.vectorId.status.notIdentified', 'Not Identified') },
-    PRESUMPTIVE:    { kind: 'warm-gray', label: t('label.vectorId.status.presumptive',   'Presumptive') },
-    CONFIRMED:      { kind: 'green',     label: t('label.vectorId.status.confirmed',      'Confirmed') },
+    NOT_IDENTIFIED: { kind: 'gray',      label: 'Not Identified' },
+    PRESUMPTIVE:    { kind: 'warm-gray', label: 'Presumptive' },
+    CONFIRMED:      { kind: 'green',     label: 'Confirmed' },
     NOT_STARTED:    { kind: 'gray',      label: 'Not Started' },
     IN_PROGRESS:    { kind: 'blue',      label: 'In Progress' },
     COMPLETE:       { kind: 'green',     label: 'Complete' },
-    PENDING:        { kind: 'red',       label: t('label.vectorDec.status.pending',       'Decon Needed') },
+    DECON_NEEDED:   { kind: 'red',       label: 'Decon Needed' },
+    DECON_PROGRESS: { kind: 'blue',      label: 'Decon In Progress' },
     DECON_COMPLETE: { kind: 'teal',      label: 'Decon Complete' },
   };
   const { kind, label } = map[status] || { kind: 'gray', label: status };
@@ -97,287 +107,28 @@ const GroupTag = ({ group }) => {
   return <Tag kind={map[group] || 'gray'} size="sm">{group}</Tag>;
 };
 
-// ---------------------------------------------------------------------------
-// Screen 1 — Identification Worklist
-// ---------------------------------------------------------------------------
-function IdentificationWorklist({ onSelectLot }) {
-  const [search, setSearch] = useState('');
-
-  const wlHeaders = [
-    { key: 'id',            header: t('label.vectorId.lotId',          'Lot ID') },
-    { key: 'site',          header: t('label.vectorId.samplingsite',   'Sampling Site') },
-    { key: 'trapType',      header: t('label.vectorId.trapType',       'Trap Type') },
-    { key: 'collectionDate',header: t('label.vectorId.collectionDate', 'Collection Date') },
-    { key: 'group',         header: t('label.vectorId.organismGroup',  'Group') },
-    { key: 'progress',      header: t('label.vectorId.identifiedCount','Progress') },
-    { key: 'status',        header: t('label.vectorId.identificationStatus', 'ID Status') },
-    { key: 'actions',       header: '' },
-  ];
-
-  const rows = LOTS_PENDING.map(lot => ({
-    ...lot,
-    group:    <GroupTag group={lot.group} />,
-    progress: <span style={{ fontSize: 13 }}>{lot.identified}/{lot.specimenCount}</span>,
-    status:   <StatusTag status={lot.status} />,
-    actions:  <Button kind="ghost" size="sm" onClick={() => onSelectLot(lot)}>Open</Button>,
-  }));
-
-  return (
-    <Stack gap={5}>
-      <div>
-        <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>
-          {t('heading.vectorId.worklist', 'Vector Identification Worklist')}
-        </h2>
-        <p style={{ color: '#525252', fontSize: 14 }}>
-          Received vector lots awaiting species identification. Select a lot to begin.
-        </p>
-      </div>
-
-      <Tabs>
-        <TabList aria-label="Worklist tabs">
-          <Tab>{t('tab.vectorId.pending',       'Pending ID')} (3)</Tab>
-          <Tab>{t('tab.vectorId.inProgress',    'In Progress')} (1)</Tab>
-          <Tab>{t('tab.vectorId.deconvolution', 'Deconvolution')} (2)</Tab>
-          <Tab>{t('tab.vectorId.complete',      'Complete')} (14)</Tab>
-        </TabList>
-        <TabPanels>
-          <TabPanel>
-            <DataTable rows={rows} headers={wlHeaders}>
-              {({ rows: tRows, headers, getTableProps, getHeaderProps, getRowProps }) => (
-                <TableContainer>
-                  <TableToolbar>
-                    <TableToolbarContent>
-                      <TableToolbarSearch
-                        placeholder={t('placeholder.vectorId.search', 'Search lots…')}
-                        onChange={e => setSearch(e.target.value)}
-                      />
-                    </TableToolbarContent>
-                  </TableToolbar>
-                  <Table {...getTableProps()} size="md">
-                    <TableHead>
-                      <TableRow>
-                        {headers.map(h => <TableHeader key={h.key} {...getHeaderProps({ header: h })}>{h.header}</TableHeader>)}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {tRows.map(row => (
-                        <TableRow key={row.id} {...getRowProps({ row })}>
-                          {row.cells.map(cell => <TableCell key={cell.id}>{cell.value}</TableCell>)}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </DataTable>
-          </TabPanel>
-          <TabPanel>
-            <p style={{ padding: '1rem', color: '#525252' }}>Lots with identification in progress…</p>
-          </TabPanel>
-          <TabPanel>
-            <DeconvolutionWorklist />
-          </TabPanel>
-          <TabPanel>
-            <p style={{ padding: '1rem', color: '#525252' }}>Completed identification lots…</p>
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
-    </Stack>
-  );
-}
+// Badge shown in SideNav items
+const NavBadge = ({ count, alert }) => (
+  <span style={{
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    minWidth: 20, height: 20, padding: '0 5px',
+    background: alert ? '#da1e28' : '#e0e0e0',
+    color: alert ? '#fff' : '#161616',
+    borderRadius: 10, fontSize: 11, fontWeight: 600, marginLeft: 6,
+  }}>
+    {count}
+  </span>
+);
 
 // ---------------------------------------------------------------------------
-// Screen 2 — Lot Identification Detail
-// ---------------------------------------------------------------------------
-function LotIdentificationDetail({ lot, onBack }) {
-  const [specimens, setSpecimens] = useState(LOT_DETAIL_SPECIMENS);
-  const [expandedRow, setExpandedRow] = useState(null);
-  const [selectedRows, setSelectedRows] = useState([]);
-  const [bulkModalOpen, setBulkModalOpen] = useState(false);
-  const [showDeconAlert] = useState(lot?.positiveTest != null);
-  const [deconModalOpen, setDeconModalOpen] = useState(false);
-  const [formData, setFormData] = useState({});
-
-  const headers = [
-    { key: 'label',   header: 'Specimen' },
-    { key: 'status',  header: t('label.vectorId.identificationStatus', 'ID Status') },
-    { key: 'species', header: t('label.vectorId.species', 'Species') },
-    { key: 'method',  header: t('label.vectorId.method',  'Method') },
-    { key: 'actions', header: '' },
-  ];
-
-  const rows = specimens.map(s => ({
-    id: s.id,
-    label:   s.label,
-    status:  <StatusTag status={s.status} />,
-    species: s.species || <span style={{ color: '#8d8d8d' }}>—</span>,
-    method:  s.method || <span style={{ color: '#8d8d8d' }}>—</span>,
-    actions: (
-      <Button
-        kind="ghost" size="sm"
-        renderIcon={expandedRow === s.id ? ChevronUp : ChevronDown}
-        onClick={() => setExpandedRow(prev => prev === s.id ? null : s.id)}
-      >
-        {t('button.vectorId.identify', 'Identify')}
-      </Button>
-    ),
-    _raw: s,
-  }));
-
-  const confirmed = specimens.filter(s => s.status === 'CONFIRMED').length;
-  const presumptive = specimens.filter(s => s.status === 'PRESUMPTIVE').length;
-  const total = specimens.length;
-
-  return (
-    <Stack gap={5}>
-      {/* Breadcrumb */}
-      <Breadcrumb>
-        <BreadcrumbItem onClick={onBack} style={{ cursor: 'pointer' }}>
-          {t('heading.vectorId.worklist', 'Identification Worklist')}
-        </BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage>{lot?.id || 'BPP-01-LOT-042'}</BreadcrumbItem>
-      </Breadcrumb>
-
-      {/* Positive pool alert */}
-      {showDeconAlert && (
-        <InlineNotification
-          kind="warning"
-          title={t('label.vectorDec.status.pending', 'Deconvolution Needed')}
-          subtitle="NS1 RT-PCR returned POSITIVE for this pooled lot. Initiate deconvolution to trace individual infections."
-          actions={
-            <Button kind="ghost" size="sm" onClick={() => setDeconModalOpen(true)}>
-              {t('button.vectorDec.initiate', 'Initiate Deconvolution')}
-            </Button>
-          }
-        />
-      )}
-
-      {/* Lot summary */}
-      <Tile>
-        <Grid condensed>
-          <Column lg={4} md={4}>
-            <p style={{ fontSize: 12, color: '#6f6f6f' }}>Lot ID</p>
-            <p style={{ fontWeight: 600 }}>{lot?.id || 'BPP-01-LOT-042'}</p>
-          </Column>
-          <Column lg={4} md={4}>
-            <p style={{ fontSize: 12, color: '#6f6f6f' }}>Sampling Site</p>
-            <p style={{ fontWeight: 600 }}>Bojongsoang — BPP-01</p>
-          </Column>
-          <Column lg={4} md={4}>
-            <p style={{ fontSize: 12, color: '#6f6f6f' }}>Collection Date</p>
-            <p>2026-04-14</p>
-          </Column>
-          <Column lg={4} md={4}>
-            <p style={{ fontSize: 12, color: '#6f6f6f' }}>Trap Type</p>
-            <p>BG-Sentinel</p>
-          </Column>
-        </Grid>
-      </Tile>
-
-      {/* Species distribution summary */}
-      <Tile>
-        <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
-          {t('heading.vectorId.speciesSummary', 'Species Distribution')}
-        </h4>
-        <Grid condensed>
-          <Column lg={8}>
-            {[
-              { species: 'Aedes aegypti', count: 3, total },
-              { species: 'Culex quinquefasciatus', count: 1, total },
-              { species: 'Not yet identified', count: total - 4, total },
-            ].map(({ species, count }) => (
-              <div key={species} style={{ marginBottom: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>
-                  <span>{species}</span>
-                  <span style={{ color: '#6f6f6f' }}>{count}/{total}</span>
-                </div>
-                <div style={{ background: '#e0e0e0', borderRadius: 2, height: 6 }}>
-                  <div style={{ background: species.includes('Not') ? '#e0e0e0' : '#0f62fe', width: `${(count / total) * 100}%`, height: 6, borderRadius: 2 }} />
-                </div>
-              </div>
-            ))}
-          </Column>
-          <Column lg={4}>
-            <Stack gap={2}>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <Tag kind="green" size="sm">{confirmed} Confirmed</Tag>
-              </div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <Tag kind="warm-gray" size="sm">{presumptive} Presumptive</Tag>
-              </div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <Tag kind="gray" size="sm">{total - confirmed - presumptive} Not Identified</Tag>
-              </div>
-            </Stack>
-          </Column>
-        </Grid>
-      </Tile>
-
-      {/* Specimen DataTable */}
-      <DataTable rows={rows} headers={headers}>
-        {({ rows: tRows, headers, getTableProps, getHeaderProps, getRowProps, selectedRows: sr, getSelectionProps, getBatchActionProps }) => (
-          <TableContainer title={t('heading.vectorId.specimenGrid', 'Specimens')}>
-            <TableBatchActions {...getBatchActionProps()}>
-              <TableBatchAction renderIcon={Identification} onClick={() => setBulkModalOpen(true)}>
-                {t('button.vectorId.bulkApply', 'Bulk Apply ID')}
-              </TableBatchAction>
-            </TableBatchActions>
-            <Table {...getTableProps()} size="md">
-              <TableHead>
-                <TableRow>
-                  <TableSelectAll {...getSelectionProps()} />
-                  {headers.map(h => <TableHeader key={h.key} {...getHeaderProps({ header: h })}>{h.header}</TableHeader>)}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {tRows.map(row => {
-                  const specimen = specimens.find(s => s.id === row.id);
-                  return (
-                    <React.Fragment key={row.id}>
-                      <TableRow {...getRowProps({ row })}>
-                        <TableSelectRow {...getSelectionProps({ row })} />
-                        {row.cells.map(cell => <TableCell key={cell.id}>{cell.value}</TableCell>)}
-                      </TableRow>
-                      {expandedRow === row.id && (
-                        <TableRow>
-                          <TableCell colSpan={headers.length + 2}>
-                            <SpecimenIdForm specimen={specimen} onSave={() => setExpandedRow(null)} />
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </DataTable>
-
-      {/* Bulk Apply Modal */}
-      <BulkApplyModal open={bulkModalOpen} onClose={() => setBulkModalOpen(false)} />
-
-      {/* Deconvolution Modal */}
-      <DeconvolutionModal open={deconModalOpen} onClose={() => setDeconModalOpen(false)} lotId={lot?.id || 'BPP-01-LOT-042'} />
-    </Stack>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Specimen Identification Form (inline expansion)
+// Specimen Identification Form (inline expansion within lot detail)
 // ---------------------------------------------------------------------------
 function SpecimenIdForm({ specimen, onSave }) {
   const [method, setMethod] = useState(specimen?.method || '');
-  const [showMolecular, setShowMolecular] = useState(method === 'MOLECULAR' || method === 'BOTH');
-
-  const handleMethodChange = (e) => {
-    const val = e.target.value;
-    setMethod(val);
-    setShowMolecular(val === 'MOLECULAR' || val === 'BOTH');
-  };
+  const showMolecular = method === 'MOLECULAR' || method === 'BOTH';
 
   return (
-    <Tile style={{ padding: 'var(--cds-spacing-05)', margin: '0.5rem 0' }}>
+    <Tile style={{ padding: 'var(--cds-spacing-05)', margin: '0.5rem 0', background: '#f4f4f4' }}>
       <Grid condensed>
         <Column lg={6} md={4}>
           <ComboBox
@@ -385,7 +136,7 @@ function SpecimenIdForm({ specimen, onSave }) {
             titleText={t('label.vectorId.species', 'Species')}
             items={SPECIES_CATALOG}
             itemToString={item => item?.label || ''}
-            placeholder={t('placeholder.vectorId.species', 'Search by genus or species name…')}
+            placeholder="Search by genus or species name…"
             initialSelectedItem={SPECIES_CATALOG.find(s => s.label === specimen?.species)}
           />
         </Column>
@@ -394,12 +145,12 @@ function SpecimenIdForm({ specimen, onSave }) {
             id={`method-${specimen?.id}`}
             labelText={t('label.vectorId.method', 'Identification Method')}
             defaultValue={specimen?.method || ''}
-            onChange={handleMethodChange}
+            onChange={e => setMethod(e.target.value)}
           >
-            <SelectItem value="" text="Select method…" />
-            <SelectItem value="MORPHOLOGICAL" text={t('label.vectorId.method.morphological', 'Morphological')} />
-            <SelectItem value="MOLECULAR"     text={t('label.vectorId.method.molecular',     'Molecular')} />
-            <SelectItem value="BOTH"          text={t('label.vectorId.method.both',          'Morphological + Molecular')} />
+            <SelectItem value=""             text="Select method…" />
+            <SelectItem value="MORPHOLOGICAL" text="Morphological" />
+            <SelectItem value="MOLECULAR"     text="Molecular" />
+            <SelectItem value="BOTH"          text="Morphological + Molecular" />
           </Select>
         </Column>
         <Column lg={4} md={4}>
@@ -408,61 +159,40 @@ function SpecimenIdForm({ specimen, onSave }) {
             labelText={t('label.vectorId.confidence', 'Confidence')}
             defaultValue={specimen?.confidence || ''}
           >
-            <SelectItem value="" text="Select confidence…" />
-            <SelectItem value="CONFIRMED"   text={t('label.vectorId.confidence.confirmed',   'Confirmed')} />
-            <SelectItem value="PRESUMPTIVE" text={t('label.vectorId.confidence.presumptive', 'Presumptive')} />
+            <SelectItem value=""           text="Select confidence…" />
+            <SelectItem value="CONFIRMED"   text="Confirmed" />
+            <SelectItem value="PRESUMPTIVE" text="Presumptive" />
           </Select>
         </Column>
         <Column lg={16} md={8}>
           <TextArea
             id={`notes-${specimen?.id}`}
-            labelText={t('label.vectorId.notes', 'Notes')}
-            placeholder={t('placeholder.vectorId.notes', 'Optional notes about this identification…')}
-            defaultValue=""
+            labelText="Notes"
+            placeholder="Optional notes about this identification…"
             rows={2}
           />
         </Column>
         <Column lg={16} md={8}>
           <Accordion>
-            <AccordionItem
-              title={t('label.vectorId.molecularDetails', 'Molecular Details')}
-              open={showMolecular}
-            >
+            <AccordionItem title="Molecular Details" open={showMolecular}>
               <Grid condensed>
                 <Column lg={5} md={4}>
-                  <TextInput
-                    id={`gene-${specimen?.id}`}
-                    labelText={t('label.vectorId.targetGene', 'Target Gene')}
-                    placeholder="e.g. COI, ITS2, 28S rDNA"
-                  />
+                  <TextInput id={`gene-${specimen?.id}`}     labelText="Target Gene"       placeholder="e.g. COI, ITS2, 28S rDNA" />
                 </Column>
                 <Column lg={5} md={4}>
-                  <TextInput
-                    id={`assay-${specimen?.id}`}
-                    labelText={t('label.vectorId.assayName', 'Assay Name')}
-                    placeholder="e.g. Multiplex RT-PCR Dengue"
-                  />
+                  <TextInput id={`assay-${specimen?.id}`}    labelText="Assay Name"        placeholder="e.g. Multiplex RT-PCR Dengue" />
                 </Column>
                 <Column lg={6} md={4}>
-                  <TextInput
-                    id={`accession-${specimen?.id}`}
-                    labelText={t('label.vectorId.genbankAccession', 'GenBank Accession')}
-                    placeholder="e.g. MW123456"
-                  />
+                  <TextInput id={`accession-${specimen?.id}`} labelText="GenBank Accession" placeholder="e.g. MW123456" />
                 </Column>
               </Grid>
             </AccordionItem>
           </Accordion>
         </Column>
       </Grid>
-
       <Stack orientation="horizontal" gap={3} style={{ marginTop: 'var(--cds-spacing-05)' }}>
-        <Button kind="primary" size="sm" renderIcon={Save} onClick={onSave}>
-          {t('button.vectorId.save', 'Save Identification')}
-        </Button>
-        <Button kind="ghost" size="sm" onClick={onSave}>
-          {t('button.vectorId.cancel', 'Cancel')}
-        </Button>
+        <Button kind="primary" size="sm" renderIcon={Save} onClick={onSave}>Save Identification</Button>
+        <Button kind="ghost"   size="sm"                   onClick={onSave}>Cancel</Button>
       </Stack>
     </Tile>
   );
@@ -475,32 +205,32 @@ function BulkApplyModal({ open, onClose }) {
   return (
     <Modal
       open={open}
-      modalHeading={t('button.vectorId.bulkApply', 'Bulk Apply Species ID')}
-      primaryButtonText={t('button.vectorId.applyToAll', 'Apply to All Selected')}
-      secondaryButtonText={t('button.vectorId.cancel', 'Cancel')}
+      modalHeading="Bulk Apply Species ID"
+      primaryButtonText="Apply to All Selected"
+      secondaryButtonText="Cancel"
       onRequestClose={onClose}
       onRequestSubmit={onClose}
       size="sm"
     >
       <p style={{ marginBottom: 'var(--cds-spacing-05)', fontSize: 14, color: '#525252' }}>
-        This will apply the same species identification to all selected specimens. Molecular detail fields are not copied.
+        Applies the same species identification to all selected specimens. Molecular detail fields are not copied.
       </p>
       <Stack gap={5}>
         <ComboBox
           id="bulk-species"
-          titleText={t('label.vectorId.species', 'Species')}
+          titleText="Species"
           items={SPECIES_CATALOG}
           itemToString={item => item?.label || ''}
           placeholder="Search species…"
         />
-        <Select id="bulk-method" labelText={t('label.vectorId.method', 'Identification Method')}>
-          <SelectItem value="" text="Select method…" />
+        <Select id="bulk-method" labelText="Identification Method">
+          <SelectItem value=""             text="Select method…" />
           <SelectItem value="MORPHOLOGICAL" text="Morphological" />
           <SelectItem value="MOLECULAR"     text="Molecular" />
           <SelectItem value="BOTH"          text="Morphological + Molecular" />
         </Select>
-        <Select id="bulk-confidence" labelText={t('label.vectorId.confidence', 'Confidence')}>
-          <SelectItem value="" text="Select confidence…" />
+        <Select id="bulk-confidence" labelText="Confidence">
+          <SelectItem value=""           text="Select confidence…" />
           <SelectItem value="CONFIRMED"   text="Confirmed" />
           <SelectItem value="PRESUMPTIVE" text="Presumptive" />
         </Select>
@@ -518,9 +248,9 @@ function DeconvolutionModal({ open, onClose, lotId }) {
   return (
     <Modal
       open={open}
-      modalHeading={t('heading.vectorDec.title', 'Initiate Pool Deconvolution')}
-      primaryButtonText={t('button.vectorDec.confirm', 'Confirm & Generate Specimens')}
-      secondaryButtonText={t('button.vectorDec.cancel', 'Cancel')}
+      modalHeading="Initiate Pool Deconvolution"
+      primaryButtonText="Confirm & Generate Specimens"
+      secondaryButtonText="Cancel"
       onRequestClose={onClose}
       onRequestSubmit={onClose}
       size="md"
@@ -528,9 +258,9 @@ function DeconvolutionModal({ open, onClose, lotId }) {
       <InlineNotification
         kind="warning"
         title="Positive result detected"
-        subtitle="NS1 RT-PCR returned POSITIVE for lot BPP-01-LOT-042. Child specimens will be created and a re-test order generated."
-        style={{ marginBottom: 'var(--cds-spacing-05)' }}
+        subtitle="NS1 RT-PCR returned POSITIVE. Child specimens will be created and a re-test order generated."
         lowContrast
+        style={{ marginBottom: 'var(--cds-spacing-05)' }}
       />
       <Stack gap={6}>
         <Grid condensed>
@@ -540,25 +270,20 @@ function DeconvolutionModal({ open, onClose, lotId }) {
           </Column>
           <Column lg={8}>
             <p style={{ fontSize: 12, color: '#6f6f6f', marginBottom: 4 }}>Lot</p>
-            <p style={{ fontWeight: 600 }}>{lotId} · 25 specimens · BG-Sentinel</p>
+            <p style={{ fontWeight: 600 }}>{lotId} · 25 specimens</p>
           </Column>
         </Grid>
 
         <fieldset style={{ border: 'none', padding: 0 }}>
-          <legend style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
-            {t('label.vectorDec.strategy', 'Deconvolution Strategy')}
-          </legend>
+          <legend style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Deconvolution Strategy</legend>
           <Stack gap={3}>
             {[
-              { value: 'INDIVIDUAL', label: t('label.vectorDec.strategy.individual', 'Individual specimens') },
-              { value: 'SUB_POOL',   label: t('label.vectorDec.strategy.subpool',    'Sub-pools') },
+              { value: 'INDIVIDUAL', label: 'Individual specimens' },
+              { value: 'SUB_POOL',   label: 'Sub-pools' },
             ].map(opt => (
               <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14 }}>
-                <input
-                  type="radio" name="decon-strategy" value={opt.value}
-                  checked={strategy === opt.value}
-                  onChange={() => setStrategy(opt.value)}
-                />
+                <input type="radio" name="decon-strategy" value={opt.value}
+                  checked={strategy === opt.value} onChange={() => setStrategy(opt.value)} />
                 {opt.label}
               </label>
             ))}
@@ -566,158 +291,144 @@ function DeconvolutionModal({ open, onClose, lotId }) {
         </fieldset>
 
         {strategy === 'INDIVIDUAL' ? (
-          <NumberInput
-            id="decon-count"
-            label={t('label.vectorDec.specimenCount', 'Number of Specimens')}
-            value={25}
-            min={2} max={200}
-          />
+          <NumberInput id="decon-count" label="Number of Specimens" value={25} min={2} max={200} />
         ) : (
           <Grid condensed>
-            <Column lg={8}>
-              <NumberInput id="decon-subpool-count" label={t('label.vectorDec.subPoolCount', 'Number of Sub-pools')} value={5} min={2} />
-            </Column>
-            <Column lg={8}>
-              <NumberInput id="decon-per-subpool" label={t('label.vectorDec.specimensPerSubPool', 'Specimens per Sub-pool')} value={5} min={1} />
-            </Column>
+            <Column lg={8}><NumberInput id="decon-subpool-count" label="Number of Sub-pools"        value={5} min={2} /></Column>
+            <Column lg={8}><NumberInput id="decon-per-subpool"   label="Specimens per Sub-pool"     value={5} min={1} /></Column>
           </Grid>
         )}
 
         <ComboBox
           id="decon-panel"
-          titleText={t('label.vectorDec.panel', 'Test Panel')}
-          items={TEST_PANELS.filter(p => p.active)}
+          titleText="Test Panel"
+          items={[
+            { id: 'p1', name: 'Dengue Surveillance Panel' },
+            { id: 'p2', name: 'Arbovirus Expanded Panel' },
+          ]}
           itemToString={item => item?.name || ''}
           placeholder="Select a test panel…"
-          initialSelectedItem={TEST_PANELS[0]}
         />
 
-        <TextArea
-          id="decon-notes"
-          labelText={t('label.vectorDec.notes', 'Notes')}
-          placeholder="Optional notes…"
-          rows={2}
-        />
+        <TextArea id="decon-notes" labelText="Notes" placeholder="Optional notes…" rows={2} />
       </Stack>
     </Modal>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Screen 3 — Deconvolution Worklist
+// Inline Lot Detail — rendered inside a TableRow expansion
 // ---------------------------------------------------------------------------
-function DeconvolutionWorklist() {
-  const headers = [
-    { key: 'id',         header: 'Lot ID' },
-    { key: 'site',       header: 'Site' },
-    { key: 'positiveTest', header: 'Positive Test' },
-    { key: 'progress',   header: 'Results Received' },
-    { key: 'status',     header: 'Status' },
-    { key: 'actions',    header: '' },
+function LotDetail({ lot, onDeconOpen }) {
+  const [specimens, setSpecimens] = useState(LOT_DETAIL_SPECIMENS);
+  const [expandedSpecimen, setExpandedSpecimen] = useState(null);
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+
+  const specimenHeaders = [
+    { key: 'label',   header: 'Specimen' },
+    { key: 'status',  header: 'ID Status' },
+    { key: 'species', header: 'Species' },
+    { key: 'method',  header: 'Method' },
+    { key: 'actions', header: '' },
   ];
 
-  const rows = DECON_LOTS.map(lot => ({
-    id: lot.id,
-    site: lot.site,
-    positiveTest: lot.positiveTest,
-    progress: `${lot.resultsIn} / ${lot.childCount}`,
-    status: <StatusTag status={lot.status === 'COMPLETE' ? 'DECON_COMPLETE' : 'IN_PROGRESS'} />,
-    actions: <Button kind="ghost" size="sm">View</Button>,
-  }));
-
-  return (
-    <DataTable rows={rows} headers={headers}>
-      {({ rows: tRows, headers, getTableProps, getHeaderProps, getRowProps }) => (
-        <TableContainer>
-          <Table {...getTableProps()} size="md">
-            <TableHead>
-              <TableRow>
-                {headers.map(h => <TableHeader key={h.key} {...getHeaderProps({ header: h })}>{h.header}</TableHeader>)}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {tRows.map(row => (
-                <TableRow key={row.id} {...getRowProps({ row })}>
-                  {row.cells.map(cell => <TableCell key={cell.id}>{cell.value}</TableCell>)}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
-    </DataTable>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Screen 4 — Panel Admin
-// ---------------------------------------------------------------------------
-function PanelAdmin() {
-  const [expandedPanel, setExpandedPanel] = useState(null);
-
-  const headers = [
-    { key: 'name',      header: t('label.vectorPanel.name', 'Panel Name') },
-    { key: 'group',     header: t('label.vectorPanel.organismGroup', 'Organism Group') },
-    { key: 'testCount', header: t('label.vectorPanel.testCount', 'Tests') },
-    { key: 'status',    header: t('label.vectorPanel.active', 'Status') },
-    { key: 'actions',   header: '' },
-  ];
-
-  const rows = TEST_PANELS.map(p => ({
-    id: p.id,
-    name: p.name,
-    group: <GroupTag group={p.group} />,
-    testCount: p.testCount,
-    status: p.active ? <Tag kind="green" size="sm">Active</Tag> : <Tag kind="gray" size="sm">Inactive</Tag>,
+  const specimenRows = specimens.map(s => ({
+    id: s.id,
+    label:   s.label,
+    status:  <StatusTag status={s.status} />,
+    species: s.species || <span style={{ color: '#8d8d8d' }}>—</span>,
+    method:  s.method  || <span style={{ color: '#8d8d8d' }}>—</span>,
     actions: (
       <Button
         kind="ghost" size="sm"
-        renderIcon={expandedPanel === p.id ? ChevronUp : ChevronDown}
-        onClick={() => setExpandedPanel(prev => prev === p.id ? null : p.id)}
+        renderIcon={expandedSpecimen === s.id ? ChevronUp : ChevronDown}
+        onClick={e => { e.stopPropagation(); setExpandedSpecimen(prev => prev === s.id ? null : s.id); }}
       >
-        Edit
+        Identify
       </Button>
     ),
-    _raw: p,
   }));
 
-  return (
-    <Stack gap={5}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>
-            {t('heading.vectorPanel.title', 'Vector Test Panels')}
-          </h2>
-          <p style={{ color: '#525252', fontSize: 14 }}>
-            Configure named pathogen screening panels for use at order entry.
-          </p>
-        </div>
-        <Button renderIcon={Add} kind="primary">
-          {t('button.vectorPanel.add', 'Add Panel')}
-        </Button>
-      </div>
+  const confirmed   = specimens.filter(s => s.status === 'CONFIRMED').length;
+  const presumptive = specimens.filter(s => s.status === 'PRESUMPTIVE').length;
+  const total       = specimens.length;
 
-      <DataTable rows={rows} headers={headers}>
-        {({ rows: tRows, headers, getTableProps, getHeaderProps, getRowProps }) => (
+  return (
+    <div style={{ padding: '1rem 1.5rem', borderLeft: '3px solid #0f62fe', background: '#f4f4f4' }}>
+      {/* Positive pool alert */}
+      {lot.positiveTest && (
+        <InlineNotification
+          kind="warning"
+          title="Deconvolution Needed"
+          subtitle={`${lot.positiveTest} returned POSITIVE for this pooled lot.`}
+          actions={
+            <Button kind="ghost" size="sm" onClick={() => onDeconOpen(lot)}>
+              Initiate Deconvolution
+            </Button>
+          }
+          style={{ marginBottom: '1rem' }}
+        />
+      )}
+
+      {/* Lot summary */}
+      <Grid condensed style={{ marginBottom: '1rem' }}>
+        <Column lg={4} md={2}>
+          <p style={{ fontSize: 12, color: '#6f6f6f' }}>Sampling Site</p>
+          <p style={{ fontWeight: 600, fontSize: 14 }}>{lot.site}</p>
+        </Column>
+        <Column lg={3} md={2}>
+          <p style={{ fontSize: 12, color: '#6f6f6f' }}>Collection Date</p>
+          <p style={{ fontSize: 14 }}>{lot.collectionDate}</p>
+        </Column>
+        <Column lg={3} md={2}>
+          <p style={{ fontSize: 12, color: '#6f6f6f' }}>Trap Type</p>
+          <p style={{ fontSize: 14 }}>{lot.trapType}</p>
+        </Column>
+        <Column lg={3} md={2}>
+          <p style={{ fontSize: 12, color: '#6f6f6f' }}>Progress</p>
+          <p style={{ fontSize: 14 }}>{lot.identified}/{lot.specimenCount} identified</p>
+        </Column>
+        <Column lg={3} md={2}>
+          <Tag kind="green"     size="sm">{confirmed}   Confirmed</Tag>{' '}
+          <Tag kind="warm-gray" size="sm">{presumptive} Presumptive</Tag>{' '}
+          <Tag kind="gray"      size="sm">{total - confirmed - presumptive} Not ID'd</Tag>
+        </Column>
+      </Grid>
+
+      {/* Specimen table */}
+      <DataTable rows={specimenRows} headers={specimenHeaders}>
+        {({ rows: tRows, headers, getTableProps, getHeaderProps, getRowProps, getSelectionProps, getBatchActionProps }) => (
           <TableContainer>
-            <Table {...getTableProps()} size="md">
+            <TableBatchActions {...getBatchActionProps()}>
+              <TableBatchAction renderIcon={Identification} onClick={() => setBulkModalOpen(true)}>
+                Bulk Apply ID
+              </TableBatchAction>
+            </TableBatchActions>
+            <Table {...getTableProps()} size="sm">
               <TableHead>
                 <TableRow>
-                  {headers.map(h => <TableHeader key={h.key} {...getHeaderProps({ header: h })}>{h.header}</TableHeader>)}
+                  <TableSelectAll {...getSelectionProps()} />
+                  {headers.map(h => (
+                    <TableHeader key={h.key} {...getHeaderProps({ header: h })}>{h.header}</TableHeader>
+                  ))}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {tRows.map(row => {
-                  const panel = TEST_PANELS.find(p => p.id === row.id);
+                  const specimen = specimens.find(s => s.id === row.id);
                   return (
                     <React.Fragment key={row.id}>
                       <TableRow {...getRowProps({ row })}>
+                        <TableSelectRow {...getSelectionProps({ row })} />
                         {row.cells.map(cell => <TableCell key={cell.id}>{cell.value}</TableCell>)}
                       </TableRow>
-                      {expandedPanel === row.id && (
+                      {expandedSpecimen === row.id && (
                         <TableRow>
-                          <TableCell colSpan={headers.length}>
-                            <PanelEditForm panel={panel} onSave={() => setExpandedPanel(null)} />
+                          <TableCell colSpan={headers.length + 2} style={{ padding: 0 }}>
+                            <SpecimenIdForm
+                              specimen={specimen}
+                              onSave={() => setExpandedSpecimen(null)}
+                            />
                           </TableCell>
                         </TableRow>
                       )}
@@ -729,104 +440,313 @@ function PanelAdmin() {
           </TableContainer>
         )}
       </DataTable>
+
+      <BulkApplyModal open={bulkModalOpen} onClose={() => setBulkModalOpen(false)} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Identification Worklist — section-filtered lot table with inline lot detail
+// ---------------------------------------------------------------------------
+function IdentificationWorklist({ section }) {
+  const lots = LOT_SECTIONS[section] || [];
+  const [search, setSearch] = useState('');
+  const [expandedLot, setExpandedLot] = useState(null);
+  const [deconLot, setDeconLot] = useState(null);
+  const [deconModalOpen, setDeconModalOpen] = useState(false);
+
+  const handleDeconOpen = (lot) => { setDeconLot(lot); setDeconModalOpen(true); };
+
+  const filtered = lots.filter(lot =>
+    !search || lot.id.toLowerCase().includes(search.toLowerCase()) || lot.site.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const isDeconSection = section === 'deconvolution';
+
+  const wlHeaders = [
+    { key: 'expand',        header: '' },
+    { key: 'id',            header: 'Lot ID' },
+    { key: 'site',          header: 'Sampling Site' },
+    { key: 'trapType',      header: 'Trap Type' },
+    { key: 'collectionDate',header: 'Collection Date' },
+    { key: 'group',         header: 'Group' },
+    { key: 'progress',      header: 'Progress' },
+    ...(isDeconSection ? [{ key: 'deconStatus', header: 'Decon Status' }] : [{ key: 'idStatus', header: 'ID Status' }]),
+  ];
+
+  const rows = filtered.map(lot => ({
+    id: lot.id,
+    expand:         <span style={{ cursor: 'pointer', userSelect: 'none', color: '#0f62fe' }}>{expandedLot === lot.id ? '▼' : '▶'}</span>,
+    site:           lot.site,
+    trapType:       lot.trapType,
+    collectionDate: lot.collectionDate,
+    group:          <GroupTag group={lot.group} />,
+    progress:       <span style={{ fontSize: 13 }}>{lot.identified}/{lot.specimenCount}</span>,
+    ...(isDeconSection
+      ? { deconStatus: <StatusTag status={lot.deconStatus === 'COMPLETE' ? 'DECON_COMPLETE' : 'DECON_PROGRESS'} /> }
+      : { idStatus: <StatusTag status={lot.status} /> }),
+  }));
+
+  const sectionLabel = {
+    pendingId:     'Pending Identification',
+    inProgress:    'In Progress',
+    deconvolution: 'Deconvolution',
+    complete:      'Complete',
+  }[section] || '';
+
+  return (
+    <Stack gap={5}>
+      <div>
+        <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>
+          Vector Identification — {sectionLabel}
+        </h2>
+        <p style={{ color: '#525252', fontSize: 14 }}>
+          {section === 'pendingId'    && 'Lots received and awaiting species identification. Click a row to begin.'}
+          {section === 'inProgress'   && 'Lots with identification work currently in progress.'}
+          {section === 'deconvolution'&& 'Pooled lots with a positive pathogen result requiring deconvolution.'}
+          {section === 'complete'     && 'Lots with all specimens fully identified.'}
+        </p>
+      </div>
+
+      <DataTable rows={rows} headers={wlHeaders}>
+        {({ rows: tRows, headers, getTableProps, getHeaderProps, getRowProps }) => (
+          <TableContainer>
+            <TableToolbar>
+              <TableToolbarContent>
+                <TableToolbarSearch
+                  placeholder="Search lots…"
+                  onChange={e => setSearch(e.target.value)}
+                />
+              </TableToolbarContent>
+            </TableToolbar>
+            <Table {...getTableProps()} size="md">
+              <TableHead>
+                <TableRow>
+                  {headers.map(h => (
+                    <TableHeader key={h.key} {...getHeaderProps({ header: h })}>{h.header}</TableHeader>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {tRows.map(row => (
+                  <React.Fragment key={row.id}>
+                    <TableRow
+                      {...getRowProps({ row })}
+                      onClick={() => setExpandedLot(prev => prev === row.id ? null : row.id)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {row.cells.map(cell => <TableCell key={cell.id}>{cell.value}</TableCell>)}
+                    </TableRow>
+                    {expandedLot === row.id && (
+                      <TableRow>
+                        <TableCell colSpan={headers.length} style={{ padding: 0 }}>
+                          <LotDetail
+                            lot={filtered.find(l => l.id === row.id)}
+                            onDeconOpen={handleDeconOpen}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </DataTable>
+
+      <DeconvolutionModal
+        open={deconModalOpen}
+        onClose={() => setDeconModalOpen(false)}
+        lotId={deconLot?.id || ''}
+      />
     </Stack>
   );
 }
 
-function PanelEditForm({ panel, onSave }) {
+// ---------------------------------------------------------------------------
+// Test Panels — redirect notice to unified Panel admin
+// ---------------------------------------------------------------------------
+function TestPanelsSection() {
   return (
-    <Tile style={{ padding: 'var(--cds-spacing-05)', margin: '0.5rem 0' }}>
-      <Grid condensed>
-        <Column lg={6} md={4}>
-          <TextInput
-            id={`panel-name-${panel?.id}`}
-            labelText={t('label.vectorPanel.name', 'Panel Name')}
-            defaultValue={panel?.name}
-          />
-        </Column>
-        <Column lg={4} md={4}>
-          <Select
-            id={`panel-group-${panel?.id}`}
-            labelText={t('label.vectorPanel.organismGroup', 'Organism Group Filter')}
-            defaultValue={panel?.group}
-          >
-            <SelectItem value="" text="Any group" />
-            <SelectItem value="MOSQUITO" text="Mosquito" />
-            <SelectItem value="TICK"     text="Tick" />
-            <SelectItem value="RODENT"   text="Rodent" />
-          </Select>
-        </Column>
-        <Column lg={6} md={4}>
-          <Toggle
-            id={`panel-active-${panel?.id}`}
-            labelText={t('label.vectorPanel.active', 'Active')}
-            labelA="Inactive" labelB="Active"
-            defaultToggled={panel?.active}
-          />
-        </Column>
-        <Column lg={16} md={8}>
-          <TextArea
-            id={`panel-desc-${panel?.id}`}
-            labelText={t('label.vectorPanel.description', 'Description')}
-            defaultValue=""
-            rows={2}
-          />
-        </Column>
-        <Column lg={16} md={8}>
-          <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
-            {t('label.vectorPanel.tests', 'Tests')}
-          </p>
-          <Tile style={{ background: '#f4f4f4', padding: 12 }}>
-            <p style={{ fontSize: 13, color: '#525252' }}>{panel?.tests}</p>
-            <Button kind="ghost" size="sm" renderIcon={Add} style={{ marginTop: 8 }}>
-              Add Test
+    <Stack gap={5}>
+      <div>
+        <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>
+          Vector Test Panels
+        </h2>
+        <p style={{ color: '#525252', fontSize: 14 }}>
+          Vector test panels are configured in the unified Panel Setup admin page.
+        </p>
+      </div>
+
+      <Tile>
+        <Stack gap={4}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontWeight: 600, marginBottom: 4 }}>Admin → Panel Setup</p>
+              <p style={{ fontSize: 14, color: '#525252', lineHeight: 1.5 }}>
+                Panel configuration is centralised in <strong>Admin → Panel Setup</strong>.
+                To view or create vector panels, filter the panel list by <strong>Domain = VECTOR</strong>.
+                The panel editor includes a <strong>Vector Config</strong> tab — visible when Domain is VECTOR or ALL —
+                where you can set an organism group filter hint used at order entry to suggest matching panels.
+              </p>
+            </div>
+            <Button kind="tertiary" renderIcon={ArrowRight} size="sm">
+              Go to Panel Setup
             </Button>
-          </Tile>
-        </Column>
-      </Grid>
-      <Stack orientation="horizontal" gap={3} style={{ marginTop: 'var(--cds-spacing-05)' }}>
-        <Button kind="primary" size="sm" renderIcon={Save} onClick={onSave}>
-          {t('button.vectorPanel.save', 'Save Panel')}
-        </Button>
-        <Button kind="danger--ghost" size="sm" renderIcon={TrashCan}>
-          {t('button.vectorPanel.deactivate', 'Deactivate')}
-        </Button>
-        <Button kind="ghost" size="sm" onClick={onSave}>
-          {t('button.vectorId.cancel', 'Cancel')}
-        </Button>
-      </Stack>
-    </Tile>
+          </div>
+
+          <div style={{ borderTop: '1px solid #e0e0e0', paddingTop: '1rem' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: '#525252' }}>
+              Quick reference — active VECTOR panels
+            </p>
+            <DataTable
+              rows={[
+                { id: 'p1', name: 'Dengue Surveillance Panel',   domain: 'VECTOR', group: 'MOSQUITO', testCount: 2, active: true },
+                { id: 'p2', name: 'Malaria Vector Panel',        domain: 'VECTOR', group: 'MOSQUITO', testCount: 2, active: true },
+                { id: 'p3', name: 'Tick-Borne Panel (Basic)',    domain: 'VECTOR', group: 'TICK',     testCount: 2, active: true },
+                { id: 'p4', name: 'Arbovirus Expanded Panel',    domain: 'ALL',    group: 'MOSQUITO', testCount: 3, active: false },
+              ]}
+              headers={[
+                { key: 'name',      header: 'Panel Name' },
+                { key: 'domain',    header: 'Domain' },
+                { key: 'group',     header: 'Organism Group' },
+                { key: 'testCount', header: 'Tests' },
+                { key: 'status',    header: 'Status' },
+              ].map(h => h)}
+            >
+              {({ rows: tRows, headers, getTableProps, getHeaderProps, getRowProps }) => (
+                <TableContainer>
+                  <Table {...getTableProps()} size="sm">
+                    <TableHead>
+                      <TableRow>
+                        {headers.map(h => <TableHeader key={h.key} {...getHeaderProps({ header: h })}>{h.header}</TableHeader>)}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {tRows.map(row => {
+                        const panel = [
+                          { id: 'p1', name: 'Dengue Surveillance Panel',   domain: 'VECTOR', group: 'MOSQUITO', testCount: 2, active: true },
+                          { id: 'p2', name: 'Malaria Vector Panel',        domain: 'VECTOR', group: 'MOSQUITO', testCount: 2, active: true },
+                          { id: 'p3', name: 'Tick-Borne Panel (Basic)',    domain: 'VECTOR', group: 'TICK',     testCount: 2, active: true },
+                          { id: 'p4', name: 'Arbovirus Expanded Panel',    domain: 'ALL',    group: 'MOSQUITO', testCount: 3, active: false },
+                        ].find(p => p.id === row.id);
+                        return (
+                          <TableRow key={row.id} {...getRowProps({ row })}>
+                            {row.cells.map(cell => {
+                              let val = cell.value;
+                              if (cell.info.header === 'domain') {
+                                const domainColor = { VECTOR: 'purple', ALL: 'gray', CLINICAL: 'blue', ENVIRONMENTAL: 'teal' };
+                                val = <Tag kind={domainColor[cell.value] || 'gray'} size="sm">{cell.value}</Tag>;
+                              } else if (cell.info.header === 'group') {
+                                val = <GroupTag group={cell.value} />;
+                              } else if (cell.info.header === 'status') {
+                                val = panel?.active
+                                  ? <Tag kind="green" size="sm">Active</Tag>
+                                  : <Tag kind="gray"  size="sm">Inactive</Tag>;
+                              }
+                              return <TableCell key={cell.id}>{val}</TableCell>;
+                            })}
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+            </DataTable>
+          </div>
+        </Stack>
+      </Tile>
+    </Stack>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Root App — screen router
+// Root — SideNav + content layout
 // ---------------------------------------------------------------------------
 export default function VectorTestingIdentification() {
-  const [screen, setScreen] = useState('worklist'); // worklist | lotDetail | panelAdmin
-  const [selectedLot, setSelectedLot] = useState(null);
+  // section keys: 'pendingId' | 'inProgress' | 'deconvolution' | 'complete' | 'testPanels'
+  const [activeSection, setActiveSection] = useState('pendingId');
 
-  const handleSelectLot = (lot) => {
-    setSelectedLot(lot);
-    setScreen('lotDetail');
+  const counts = {
+    pendingId:     LOT_SECTIONS.pendingId.length,
+    inProgress:    LOT_SECTIONS.inProgress.length,
+    deconvolution: LOT_SECTIONS.deconvolution.length,
+    complete:      LOT_SECTIONS.complete.length,
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f4f4f4', padding: 'var(--cds-spacing-06)' }}>
-      {/* Screen nav tabs */}
-      <Tabs style={{ marginBottom: 'var(--cds-spacing-06)' }}>
-        <TabList aria-label="V-03 screens">
-          <Tab onClick={() => setScreen('worklist')}>ID Worklist</Tab>
-          <Tab onClick={() => setScreen('lotDetail')}>Lot Detail</Tab>
-          <Tab onClick={() => setScreen('panelAdmin')}>Panel Admin</Tab>
-        </TabList>
-      </Tabs>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f4f4f4' }}>
+      {/* ---- SideNav ---- */}
+      <SideNav
+        isFixedNav
+        expanded
+        isChildOfHeader={false}
+        aria-label="Vector Surveillance navigation"
+        style={{ position: 'sticky', top: 0, height: '100vh', background: '#161616', width: 256, flexShrink: 0 }}
+      >
+        <SideNavItems>
+          {/* Section header */}
+          <div style={{ padding: '1rem 1rem 0.5rem', fontSize: 11, fontWeight: 600, color: '#8d8d8d', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            Vector Surveillance
+          </div>
 
-      <div style={{ maxWidth: 1200 }}>
-        {screen === 'worklist'   && <IdentificationWorklist onSelectLot={handleSelectLot} />}
-        {screen === 'lotDetail'  && <LotIdentificationDetail lot={selectedLot} onBack={() => setScreen('worklist')} />}
-        {screen === 'panelAdmin' && <PanelAdmin />}
-      </div>
+          {/* Vector Identification submenu */}
+          <SideNavMenu title="Vector Identification" defaultExpanded>
+            <SideNavMenuItem
+              isActive={activeSection === 'pendingId'}
+              onClick={() => setActiveSection('pendingId')}
+            >
+              <span style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                Pending ID <NavBadge count={counts.pendingId} />
+              </span>
+            </SideNavMenuItem>
+            <SideNavMenuItem
+              isActive={activeSection === 'inProgress'}
+              onClick={() => setActiveSection('inProgress')}
+            >
+              <span style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                In Progress <NavBadge count={counts.inProgress} />
+              </span>
+            </SideNavMenuItem>
+            <SideNavMenuItem
+              isActive={activeSection === 'deconvolution'}
+              onClick={() => setActiveSection('deconvolution')}
+            >
+              <span style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                Deconvolution <NavBadge count={counts.deconvolution} alert />
+              </span>
+            </SideNavMenuItem>
+            <SideNavMenuItem
+              isActive={activeSection === 'complete'}
+              onClick={() => setActiveSection('complete')}
+            >
+              <span style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                Complete <NavBadge count={counts.complete} />
+              </span>
+            </SideNavMenuItem>
+          </SideNavMenu>
+
+          {/* Test Panels link */}
+          <SideNavLink
+            isActive={activeSection === 'testPanels'}
+            onClick={() => setActiveSection('testPanels')}
+          >
+            Test Panels
+          </SideNavLink>
+        </SideNavItems>
+      </SideNav>
+
+      {/* ---- Main content ---- */}
+      <main style={{ flex: 1, padding: 'var(--cds-spacing-07)', overflowY: 'auto' }}>
+        {activeSection === 'testPanels' ? (
+          <TestPanelsSection />
+        ) : (
+          <IdentificationWorklist section={activeSection} />
+        )}
+      </main>
     </div>
   );
 }

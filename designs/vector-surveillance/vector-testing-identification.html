@@ -9,1070 +9,1075 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
   <style>
-    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', Arial, sans-serif; }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', Arial, sans-serif; font-size: 14px; color: #161616; }
+
     .preview-banner {
       background: #0f62fe; color: #fff;
       padding: 6px 1rem; font-size: 12px; font-family: monospace;
       display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; z-index: 200;
     }
-    .app-shell { display: flex; min-height: calc(100vh - 48px); }
-    .sidebar {
-      width: 240px; min-width: 240px; background: #161616; color: #f4f4f4;
-      padding: 0; overflow-y: auto;
+
+    /* ── App shell ─────────────────────────────────────────── */
+    .app-shell { display: flex; min-height: calc(100vh - 32px); }
+
+    /* ── Header bar ─────────────────────────────────────────── */
+    .app-header {
+      position: sticky; top: 32px; z-index: 100;
+      background: #161616; color: #fff;
+      height: 48px; display: flex; align-items: center;
+      padding: 0 16px; gap: 16px; width: 100%;
     }
-    .sidebar-header {
-      background: #0f62fe; padding: 12px 16px;
-      font-size: 14px; font-weight: 600; color: #fff;
-      display: flex; align-items: center; gap: 8px;
+    .header-product { font-size: 14px; font-weight: 600; color: #fff; }
+    .header-separator { width: 1px; height: 20px; background: #393939; }
+    .header-section { font-size: 14px; color: #c6c6c6; }
+
+    /* ── SideNav ──────────────────────────────────────────────── */
+    .sidenav {
+      width: 256px; min-width: 256px; background: #161616;
+      padding-top: 0; overflow-y: auto;
     }
-    .nav-section { padding: 8px 0; }
-    .nav-section-title {
+    .nav-group { padding: 8px 0; border-bottom: 1px solid #2d2d2d; }
+    .nav-group:last-child { border-bottom: none; }
+    .nav-group-title {
       font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
-      color: #8d8d8d; padding: 8px 16px 4px;
+      color: #8d8d8d; padding: 10px 16px 4px; font-weight: 600;
     }
     .nav-item {
-      display: block; padding: 8px 16px; font-size: 14px; color: #c6c6c6;
-      cursor: pointer; border-left: 2px solid transparent;
-      text-decoration: none; transition: background 0.15s;
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 16px; font-size: 14px; color: #c6c6c6;
+      cursor: pointer; border-left: 3px solid transparent;
+      user-select: none;
     }
     .nav-item:hover { background: #2d2d2d; color: #f4f4f4; }
-    .nav-item.active { background: #2d2d2d; color: #fff; border-left-color: #0f62fe; }
-    .main-content { flex: 1; padding: 24px 32px; overflow-y: auto; max-width: 1100px; }
+    .nav-item.active { color: #fff; background: #2d2d2d; border-left-color: #0f62fe; }
+    .nav-item.section-header { font-weight: 600; color: #f4f4f4; justify-content: space-between; }
+    .nav-item.section-header:hover { background: #262626; }
 
-    /* Screen tabs */
-    .screen-tabs { display: flex; gap: 0; border-bottom: 2px solid #e0e0e0; margin-bottom: 24px; }
-    .screen-tab {
-      padding: 10px 20px; font-size: 14px; cursor: pointer; color: #525252;
-      border-bottom: 2px solid transparent; margin-bottom: -2px; font-weight: 500;
+    /* Submenus */
+    .nav-submenu { background: #131313; overflow: hidden; }
+    .nav-subitem {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px 8px 32px; font-size: 13px; color: #a8a8a8;
+      cursor: pointer; border-left: 3px solid transparent;
     }
-    .screen-tab.active { color: #0f62fe; border-bottom-color: #0f62fe; font-weight: 600; }
-    .screen-tab:hover:not(.active) { color: #161616; background: #f4f4f4; }
+    .nav-subitem:hover { background: #2d2d2d; color: #f4f4f4; }
+    .nav-subitem.active { color: #fff; border-left-color: #0f62fe; background: #2d2d2d; }
+    .nav-count { margin-left: auto; font-size: 11px; background: #393939; color: #c6c6c6; padding: 1px 6px; border-radius: 10px; }
+    .nav-count.alert { background: #a2191f; color: #fff; }
 
-    /* Worklist tabs */
-    .wl-tabs { display: flex; gap: 0; border-bottom: 1px solid #e0e0e0; margin-bottom: 16px; }
-    .wl-tab {
-      padding: 8px 16px; font-size: 13px; cursor: pointer; color: #525252;
-      border-bottom: 2px solid transparent; margin-bottom: -1px;
-    }
-    .wl-tab.active { color: #0f62fe; border-bottom-color: #0f62fe; font-weight: 600; }
+    /* ── Main content ─────────────────────────────────────────── */
+    .main { flex: 1; overflow-y: auto; }
+    .page-content { padding: 24px 28px; max-width: 1200px; }
 
-    /* DataTable */
-    .data-table-wrap { background: #fff; border: 1px solid #e0e0e0; }
-    .cds--data-table thead th { background: #e0e0e0 !important; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .cds--data-table tbody tr:hover td { background: #f4f4f4; }
-    .cds--data-table td, .cds--data-table th { padding: 10px 12px !important; vertical-align: middle; }
+    /* ── Page header ──────────────────────────────────────────── */
+    .page-header { margin-bottom: 20px; }
+    .page-title { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
+    .page-subtitle { color: #525252; font-size: 13px; margin: 0; }
 
-    /* Tags */
-    .tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; white-space: nowrap; }
-    .tag-green { background: #defbe6; color: #0e6027; }
-    .tag-blue { background: #edf5ff; color: #0043ce; }
-    .tag-warm-gray { background: #f2f0ef; color: #565151; }
-    .tag-gray { background: #e0e0e0; color: #393939; }
-    .tag-red { background: #fff1f1; color: #a2191f; }
-    .tag-purple { background: #f6f2ff; color: #491d8b; }
-    .tag-teal { background: #d9fbfb; color: #005d5d; }
-    .tag-orange { background: #fff2e8; color: #b45309; }
+    /* ── Tags ─────────────────────────────────────────────────── */
+    .tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; white-space: nowrap; line-height: 1.4; }
+    .tag-green    { background: #defbe6; color: #0e6027; }
+    .tag-blue     { background: #edf5ff; color: #0043ce; }
+    .tag-warm-gray{ background: #f2f0ef; color: #565151; }
+    .tag-gray     { background: #e0e0e0; color: #393939; }
+    .tag-red      { background: #fff1f1; color: #a2191f; }
+    .tag-purple   { background: #f6f2ff; color: #491d8b; }
+    .tag-teal     { background: #d9fbfb; color: #005d5d; }
+    .tag-orange   { background: #fff2e8; color: #b45309; }
 
-    /* Buttons */
-    .btn { display: inline-flex; align-items: center; gap: 6px; border: none; cursor: pointer; font-size: 14px; font-family: inherit; padding: 8px 16px; border-radius: 0; font-weight: 400; }
-    .btn-primary { background: #0f62fe; color: #fff; }
-    .btn-primary:hover { background: #0353e9; }
+    /* ── Buttons ──────────────────────────────────────────────── */
+    .btn { display: inline-flex; align-items: center; gap: 6px; border: none; cursor: pointer; font-size: 14px; font-family: inherit; padding: 8px 15px; font-weight: 400; line-height: 1; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary   { background: #0f62fe; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #0353e9; }
     .btn-secondary { background: #393939; color: #fff; }
-    .btn-ghost { background: transparent; color: #0f62fe; padding: 6px 12px; font-size: 13px; }
+    .btn-ghost     { background: transparent; color: #0f62fe; padding: 6px 12px; }
     .btn-ghost:hover { background: #edf5ff; }
-    .btn-danger-ghost { background: transparent; color: #da1e28; font-size: 13px; padding: 6px 12px; }
-    .btn-sm { padding: 5px 12px; font-size: 13px; }
-    .btn-icon { background: transparent; border: none; cursor: pointer; color: #525252; padding: 4px; }
+    .btn-danger    { background: transparent; color: #da1e28; padding: 6px 12px; }
+    .btn-sm        { padding: 5px 11px; font-size: 13px; }
 
-    /* Form */
-    .form-field { margin-bottom: 16px; }
-    .form-label { display: block; font-size: 12px; font-weight: 600; color: #525252; margin-bottom: 6px; letter-spacing: 0.02em; }
-    .form-input { width: 100%; padding: 8px 12px; border: 1px solid #8d8d8d; background: #fff; font-size: 14px; font-family: inherit; box-sizing: border-box; }
-    .form-input:focus { outline: 2px solid #0f62fe; outline-offset: 0; border-color: #0f62fe; }
-    .form-select { width: 100%; padding: 8px 32px 8px 12px; border: 1px solid #8d8d8d; background: #fff; font-size: 14px; font-family: inherit; appearance: none; cursor: pointer; }
-    .form-textarea { width: 100%; padding: 8px 12px; border: 1px solid #8d8d8d; background: #fff; font-size: 14px; font-family: inherit; resize: vertical; box-sizing: border-box; }
+    /* ── DataTable ────────────────────────────────────────────── */
+    .table-wrap { background: #fff; border: 1px solid #e0e0e0; }
+    .table-toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #e0e0e0; background: #fff; flex-wrap: wrap; }
+    .table-title { font-size: 15px; font-weight: 600; padding: 12px 16px 8px; }
+    table.dt { width: 100%; border-collapse: collapse; }
+    table.dt thead th { background: #e0e0e0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; text-align: left; white-space: nowrap; }
+    table.dt tbody td { padding: 10px 12px; border-bottom: 1px solid #f4f4f4; vertical-align: middle; }
+    table.dt tbody tr:last-child td { border-bottom: none; }
+    table.dt tbody tr:hover td { background: #f4f4f4; }
+    table.dt tbody tr.expanded td { background: #edf5ff; }
+    table.dt tbody tr.expansion-row td { padding: 0; background: #f4f4f4; }
 
-    /* Tile */
-    .tile { background: #fff; padding: 16px; border: 1px solid #e0e0e0; }
+    /* ── Inline expansion ─────────────────────────────────────── */
+    .inline-expansion { padding: 16px 20px; background: #f4f4f4; border-top: 2px solid #0f62fe; }
+    .inline-expansion.lot-detail { background: #fafafa; border-left: 3px solid #0f62fe; }
 
-    /* Notification */
-    .notif { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; margin-bottom: 16px; }
+    /* ── Batch bar ────────────────────────────────────────────── */
+    .batch-bar { background: #393939; color: #fff; padding: 9px 16px; display: flex; align-items: center; gap: 12px; }
+    .batch-count { font-size: 13px; flex: 1; }
+
+    /* ── Forms ────────────────────────────────────────────────── */
+    .form-field { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 12px; font-weight: 600; color: #525252; margin-bottom: 5px; letter-spacing: 0.02em; }
+    .form-input  { width: 100%; padding: 7px 11px; border: 1px solid #8d8d8d; background: #fff; font-size: 14px; font-family: inherit; }
+    .form-input:focus { outline: 2px solid #0f62fe; border-color: #0f62fe; }
+    .form-select { width: 100%; padding: 7px 28px 7px 11px; border: 1px solid #8d8d8d; background: #fff; font-size: 14px; font-family: inherit; appearance: none; cursor: pointer; }
+    .form-textarea { width: 100%; padding: 7px 11px; border: 1px solid #8d8d8d; background: #fff; font-size: 14px; font-family: inherit; resize: vertical; min-height: 60px; }
+
+    /* ── Notifications ────────────────────────────────────────── */
+    .notif { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; margin-bottom: 14px; }
     .notif-warning { background: #fff8e1; border-left: 4px solid #f1c21b; }
     .notif-success { background: #defbe6; border-left: 4px solid #24a148; }
-    .notif-info { background: #edf5ff; border-left: 4px solid #0f62fe; }
-    .notif-icon { font-size: 18px; margin-top: 1px; }
-    .notif-content { flex: 1; }
+    .notif-info    { background: #edf5ff; border-left: 4px solid #0f62fe; }
+    .notif-body { flex: 1; }
     .notif-title { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
-    .notif-subtitle { font-size: 13px; color: #525252; }
+    .notif-sub   { font-size: 13px; color: #525252; }
 
-    /* Accordion */
-    .accordion { border-top: 1px solid #e0e0e0; }
-    .accordion-item { border-bottom: 1px solid #e0e0e0; }
-    .accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; cursor: pointer; background: #fff; }
-    .accordion-header:hover { background: #f4f4f4; }
-    .accordion-title { font-size: 14px; font-weight: 500; }
-    .accordion-body { padding: 16px; background: #fff; }
+    /* ── Accordion ────────────────────────────────────────────── */
+    .accordion { border-top: 1px solid #e0e0e0; margin-bottom: 14px; }
+    .acc-header { display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; cursor: pointer; background: #fff; border-bottom: 1px solid #e0e0e0; }
+    .acc-header:hover { background: #f4f4f4; }
+    .acc-title { font-size: 14px; font-weight: 500; }
+    .acc-body { padding: 14px; background: #fff; border-bottom: 1px solid #e0e0e0; }
 
-    /* Modal overlay */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-    .modal-box { background: #fff; width: 540px; max-height: 90vh; overflow-y: auto; box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
-    .modal-header { background: #161616; color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+    /* ── Modal ────────────────────────────────────────────────── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: #fff; width: 560px; max-height: 88vh; overflow-y: auto; box-shadow: 0 16px 48px rgba(0,0,0,0.35); }
+    .modal-header { background: #161616; color: #fff; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
     .modal-title { font-size: 16px; font-weight: 600; }
-    .modal-body { padding: 20px; }
+    .modal-body { padding: 18px 20px; }
     .modal-footer { padding: 12px 20px; background: #e0e0e0; display: flex; justify-content: flex-end; gap: 8px; }
 
-    /* Expanded row */
-    .expanded-row-content { background: #f4f4f4; padding: 16px; }
+    /* ── Tile ─────────────────────────────────────────────────── */
+    .tile { background: #fff; border: 1px solid #e0e0e0; padding: 14px 16px; }
 
-    /* Grid */
-    .grid { display: grid; gap: 16px; }
-    .grid-2 { grid-template-columns: 1fr 1fr; }
-    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
-    .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    /* ── Grid helpers ─────────────────────────────────────────── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; }
 
-    /* Progress bar */
-    .progress-bar-wrap { display: flex; align-items: center; gap: 8px; }
-    .progress-bar-bg { flex: 1; height: 6px; background: #e0e0e0; border-radius: 3px; }
-    .progress-bar-fill { height: 6px; background: #0f62fe; border-radius: 3px; }
+    /* ── Progress bar ─────────────────────────────────────────── */
+    .prog-wrap { display: flex; align-items: center; gap: 6px; }
+    .prog-bg { flex: 1; height: 5px; background: #e0e0e0; border-radius: 3px; min-width: 60px; }
+    .prog-fill { height: 5px; border-radius: 3px; background: #0f62fe; }
 
-    /* Species dist bar */
-    .species-bar { margin-bottom: 10px; }
-    .species-bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
-    .species-bar-bg { background: #e0e0e0; height: 8px; border-radius: 3px; }
-    .species-bar-fill { height: 8px; border-radius: 3px; }
+    /* ── Species bars ─────────────────────────────────────────── */
+    .sp-bar { margin-bottom: 9px; }
+    .sp-bar-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
+    .sp-bar-bg { background: #e0e0e0; height: 7px; border-radius: 3px; }
+    .sp-bar-fill { height: 7px; border-radius: 3px; }
 
-    /* Checkbox */
-    .cb { width: 16px; height: 16px; cursor: pointer; }
+    /* ── Checkbox ─────────────────────────────────────────────── */
+    .cb { width: 14px; height: 14px; cursor: pointer; accent-color: #0f62fe; }
 
-    /* Batch bar */
-    .batch-bar { background: #393939; color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 0; }
-    .batch-count { font-size: 13px; }
+    /* ── Panel domain tab ─────────────────────────────────────── */
+    .panel-tabs { display: flex; border-bottom: 1px solid #e0e0e0; margin-bottom: 16px; }
+    .panel-tab { padding: 9px 18px; font-size: 13px; cursor: pointer; color: #525252; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .panel-tab.active { color: #0f62fe; border-bottom-color: #0f62fe; font-weight: 600; }
+    .panel-tab:hover:not(.active) { background: #f4f4f4; }
 
-    /* Summary card */
-    .summary-card { background: #fff; border: 1px solid #e0e0e0; padding: 12px 16px; }
-    .summary-card-label { font-size: 11px; color: #6f6f6f; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-    .summary-card-value { font-size: 20px; font-weight: 600; color: #161616; }
-    .summary-card-sub { font-size: 12px; color: #525252; margin-top: 2px; }
+    /* ── Scrollable area for nested table ─────────────────────── */
+    .scrollable { overflow-x: auto; }
 
-    /* Radio */
-    .radio-group { display: flex; flex-direction: column; gap: 8px; }
-    .radio-item { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+    /* ── Toggle ───────────────────────────────────────────────── */
+    .toggle-wrap { display: flex; align-items: center; gap: 10px; font-size: 13px; margin-top: 6px; }
+    .toggle-track { width: 40px; height: 20px; border-radius: 10px; position: relative; cursor: pointer; transition: background 0.2s; }
+    .toggle-track.on { background: #0f62fe; }
+    .toggle-track.off { background: #8d8d8d; }
+    .toggle-thumb { position: absolute; top: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: left 0.2s; }
+    .toggle-track.on  .toggle-thumb { left: 22px; }
+    .toggle-track.off .toggle-thumb { left: 2px; }
   </style>
 </head>
 <body class="cds--white">
-  <div class="preview-banner">
-    <span>⚡ Visual Preview — V-03 Vector Testing &amp; Identification &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application</span>
-    <span>Spec: vector-testing-identification.md</span>
-  </div>
 
-  <div id="root"></div>
+<div class="preview-banner">
+  <span>⚡ V-03 Vector Testing &amp; Identification — OpenELIS Preview (v1.1 — submenus + inline lot detail)</span>
+  <span style="opacity:.7">vector-testing-identification.html</span>
+</div>
 
-  <script type="text/babel">
-    const { useState, useCallback } = React;
+<div id="root"></div>
 
-    // -------------------------------------------------------------------------
-    // Seed data
-    // -------------------------------------------------------------------------
-    const SPECIES_CATALOG = [
-      'Aedes aegypti', 'Aedes albopictus', 'Culex quinquefasciatus',
-      'Culex tritaeniorhynchus', 'Anopheles barbirostris', 'Anopheles maculatus',
-      'Ixodes ricinus', 'Rhipicephalus microplus', 'Rattus norvegicus', 'Rattus rattus',
-    ];
+<script type="text/babel">
+const { useState, useCallback } = React;
 
-    const WORKLIST_LOTS = [
-      { id: 'BPP-01-LOT-042', site: 'Bojongsoang — BPP-01', trapType: 'BG-Sentinel',    date: '2026-04-14', group: 'MOSQUITO', total: 25, done: 0,  pool: true,  positiveTest: 'NS1 RT-PCR', decon: 'PENDING' },
-      { id: 'BPP-02-LOT-043', site: 'Margahayu — BPP-02',    trapType: 'CDC Light Trap', date: '2026-04-14', group: 'MOSQUITO', total: 12, done: 7,  pool: true,  positiveTest: null, decon: 'NOT_APPLICABLE' },
-      { id: 'CIL-02-LOT-019', site: 'Cileunyi — CIL-02',     trapType: 'Ovitramp',       date: '2026-04-13', group: 'MOSQUITO', total: 8,  done: 0,  pool: false, positiveTest: null, decon: 'NOT_APPLICABLE' },
-      { id: 'JAT-01-LOT-031', site: 'Jatisari — JAT-01',     trapType: 'BG-Sentinel',    date: '2026-04-12', group: 'MOSQUITO', total: 30, done: 14, pool: true,  positiveTest: null, decon: 'NOT_APPLICABLE' },
-    ];
+/* ── Seed data ──────────────────────────────────────────────── */
+const SPECIES_CATALOG = [
+  'Aedes aegypti','Aedes albopictus','Culex quinquefasciatus',
+  'Culex tritaeniorhynchus','Anopheles barbirostris','Anopheles maculatus',
+  'Ixodes ricinus','Rhipicephalus microplus','Rattus norvegicus','Rattus rattus',
+];
 
-    const SPECIMENS = Array.from({ length: 10 }, (_, i) => ({
-      id: `S${String(i+1).padStart(2,'0')}`,
-      label: `Specimen ${String(i+1).padStart(2,'0')}`,
-      status: i < 3 ? 'CONFIRMED' : i === 3 ? 'PRESUMPTIVE' : 'NOT_IDENTIFIED',
-      species: i < 3 ? 'Aedes aegypti' : i === 3 ? 'Culex quinquefasciatus' : '',
-      method: i < 3 ? 'Morphological' : i === 3 ? 'Molecular' : '',
-      confidence: i < 3 ? 'Confirmed' : i === 3 ? 'Presumptive' : '',
-    }));
+const WORKLIST = [
+  { id:'BPP-01-LOT-042', site:'Bojongsoang — BPP-01', trap:'BG-Sentinel',    date:'2026-04-14', grp:'MOSQUITO', total:25, done:0,  pool:true,  posTest:'NS1 RT-PCR', dec:'PENDING'        },
+  { id:'BPP-02-LOT-043', site:'Margahayu — BPP-02',   trap:'CDC Light Trap', date:'2026-04-14', grp:'MOSQUITO', total:12, done:7,  pool:true,  posTest:null,         dec:'NOT_APPLICABLE' },
+  { id:'CIL-02-LOT-019', site:'Cileunyi — CIL-02',    trap:'Ovitramp',       date:'2026-04-13', grp:'MOSQUITO', total:8,  done:0,  pool:false, posTest:null,         dec:'NOT_APPLICABLE' },
+  { id:'JAT-01-LOT-031', site:'Jatisari — JAT-01',    trap:'BG-Sentinel',    date:'2026-04-12', grp:'MOSQUITO', total:30, done:14, pool:true,  posTest:null,         dec:'NOT_APPLICABLE' },
+];
 
-    const TEST_PANELS = [
-      { id: 'p1', name: 'Dengue Surveillance Panel',    group: 'MOSQUITO', tests: 'NS1 ELISA, NS1 RT-PCR (multiplex)', active: true },
-      { id: 'p2', name: 'Malaria Vector Panel',         group: 'MOSQUITO', tests: 'Plasmodium PCR, P. falciparum Ag RDT', active: true },
-      { id: 'p3', name: 'Tick-Borne Panel (Basic)',     group: 'TICK',     tests: 'Rickettsia PCR, Borrelia PCR', active: true },
-      { id: 'p4', name: 'Arbovirus Expanded Panel',     group: 'MOSQUITO', tests: 'NS1 RT-PCR, Chikungunya RT-PCR, Zika RT-PCR', active: false },
-    ];
+const makeSpecimens = (lotId) => Array.from({length:10},(_,i)=>({
+  id:`${lotId}-S${String(i+1).padStart(2,'0')}`,
+  label:`Specimen ${String(i+1).padStart(2,'0')}`,
+  status: i<3?'CONFIRMED':i===3?'PRESUMPTIVE':'NOT_IDENTIFIED',
+  species: i<3?'Aedes aegypti':i===3?'Culex quinquefasciatus':'',
+  method:  i<3?'Morphological':i===3?'Molecular':'',
+  conf:    i<3?'Confirmed':i===3?'Presumptive':'',
+}));
 
-    const DECON_LOTS = [
-      { id: 'BPP-03-LOT-011', site: 'Antapani — BPP-03', positiveTest: 'NS1 RT-PCR', child: 25, done: 18, status: 'IN_PROGRESS' },
-      { id: 'JAT-01-LOT-007', site: 'Jatisari — JAT-01',  positiveTest: 'NS1 RT-PCR', child: 20, done: 20, status: 'COMPLETE', positive: 3 },
-    ];
+const PANELS = [
+  {id:'p1',name:'Dengue Surveillance Panel',  domain:'VECTOR', grp:'MOSQUITO', tests:'NS1 ELISA, NS1 RT-PCR (multiplex)', active:true },
+  {id:'p2',name:'Malaria Vector Panel',       domain:'VECTOR', grp:'MOSQUITO', tests:'Plasmodium PCR, P. falciparum Ag',  active:true },
+  {id:'p3',name:'Tick-Borne Panel (Basic)',   domain:'VECTOR', grp:'TICK',     tests:'Rickettsia PCR, Borrelia PCR',      active:true },
+  {id:'p4',name:'Complete Blood Count',       domain:'CLINICAL',grp:null,      tests:'WBC, RBC, HGB, HCT, PLT',          active:true },
+  {id:'p5',name:'Basic Metabolic Panel',      domain:'CLINICAL',grp:null,      tests:'Na, K, Cl, CO2, BUN, Creatinine',  active:true },
+  {id:'p6',name:'Arbovirus Expanded Panel',   domain:'VECTOR', grp:'MOSQUITO', tests:'NS1 RT-PCR, Chikungunya, Zika',    active:false},
+];
 
-    // -------------------------------------------------------------------------
-    // Tag helpers
-    // -------------------------------------------------------------------------
-    const Tag = ({ kind, children }) => (
-      <span className={`tag tag-${kind}`}>{children}</span>
-    );
+const DECON_LOTS = [
+  {id:'BPP-03-LOT-011',site:'Antapani — BPP-03',  posTest:'NS1 RT-PCR', child:25,done:18,status:'IN_PROGRESS'},
+  {id:'JAT-01-LOT-007',site:'Jatisari — JAT-01',  posTest:'NS1 RT-PCR', child:20,done:20,status:'COMPLETE',pos:3},
+];
 
-    const GroupTag = ({ group }) => {
-      const map = { MOSQUITO: 'blue', TICK: 'purple', RODENT: 'warm-gray', OTHER: 'gray' };
-      return <Tag kind={map[group] || 'gray'}>{group}</Tag>;
-    };
+/* ── Helpers ────────────────────────────────────────────────── */
+const Tag = ({kind,children}) => <span className={`tag tag-${kind}`}>{children}</span>;
 
-    const StatusTag = ({ status }) => {
-      const map = {
-        NOT_IDENTIFIED: ['gray',      'Not Identified'],
-        PRESUMPTIVE:    ['warm-gray', 'Presumptive'],
-        CONFIRMED:      ['green',     'Confirmed'],
-        NOT_STARTED:    ['gray',      'Not Started'],
-        IN_PROGRESS:    ['blue',      'In Progress'],
-        COMPLETE:       ['green',     'Complete'],
-        PENDING:        ['red',       'Decon Needed'],
-        IN_PROG_DEC:    ['orange',    'Decon In Progress'],
-        COMPLETE_DEC:   ['teal',      'Decon Complete'],
-      };
-      const [kind, label] = map[status] || ['gray', status];
-      return <Tag kind={kind}>{label}</Tag>;
-    };
+const GroupTag = ({grp}) => {
+  const m={MOSQUITO:'blue',TICK:'purple',RODENT:'warm-gray',OTHER:'gray'};
+  return <Tag kind={m[grp]||'gray'}>{grp}</Tag>;
+};
 
-    // -------------------------------------------------------------------------
-    // Sidebar
-    // -------------------------------------------------------------------------
-    const Sidebar = ({ screen, setScreen }) => (
-      <div className="sidebar">
-        <div className="sidebar-header">
-          🧬 OpenELIS Global
+const StatusTag = ({s}) => {
+  const m={
+    NOT_IDENTIFIED:['gray','Not Identified'],
+    PRESUMPTIVE:   ['warm-gray','Presumptive'],
+    CONFIRMED:     ['green','Confirmed'],
+    NOT_STARTED:   ['gray','Not Started'],
+    IN_PROGRESS:   ['blue','In Progress'],
+    COMPLETE:      ['green','Complete'],
+    PENDING:       ['red','Decon Needed'],
+    COMPLETE_DEC:  ['teal','Decon Complete'],
+  };
+  const [kind,label]=m[s]||['gray',s];
+  return <Tag kind={kind}>{label}</Tag>;
+};
+
+const DomainTag = ({d}) => {
+  const m={CLINICAL:'blue',ENVIRONMENTAL:'teal',VECTOR:'purple',ALL:'gray'};
+  return <Tag kind={m[d]||'gray'}>{d}</Tag>;
+};
+
+/* ── SideNav ────────────────────────────────────────────────── */
+const SideNav = ({activeSection,activeMenu,setNav}) => {
+  const [vecOpen,setVecOpen]=useState(true);
+  const [adminOpen,setAdminOpen]=useState(false);
+
+  return (
+    <div className="sidenav">
+      {/* Worklist group */}
+      <div className="nav-group">
+        <div className="nav-group-title">Worklist</div>
+        <div className={`nav-item section-header ${vecOpen?'':'collapsed'}`}
+             onClick={()=>setVecOpen(p=>!p)}>
+          <span>🦟 Vector Identification</span>
+          <span style={{fontSize:10}}>{vecOpen?'▲':'▼'}</span>
         </div>
-        <div className="nav-section">
-          <div className="nav-section-title">Worklist</div>
-          <a className={`nav-item ${screen === 'worklist' ? 'active' : ''}`} onClick={() => setScreen('worklist')}>
-            📋 Vector Identification
-          </a>
-        </div>
-        <div className="nav-section">
-          <div className="nav-section-title">Admin — Vector Surveillance</div>
-          <a className={`nav-item ${screen === 'panelAdmin' ? 'active' : ''}`} onClick={() => setScreen('panelAdmin')}>
-            🧪 Test Panels
-          </a>
-          <a className="nav-item">🦟 Species Catalog</a>
-          <a className="nav-item">🪤 Trap Types</a>
-        </div>
-        <div className="nav-section">
-          <div className="nav-section-title">Results</div>
-          <a className="nav-item">📊 Results Entry</a>
-          <a className="nav-item">✅ Validation</a>
-        </div>
-      </div>
-    );
-
-    // -------------------------------------------------------------------------
-    // Screen 1 — Identification Worklist
-    // -------------------------------------------------------------------------
-    const WorklistScreen = ({ onSelectLot }) => {
-      const [activeTab, setActiveTab] = useState('pending');
-
-      return (
-        <div>
-          <div style={{ marginBottom: 20 }}>
-            <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Vector Identification Worklist</h1>
-            <p style={{ color: '#525252', fontSize: 14 }}>Received vector lots awaiting species identification and pathogen testing.</p>
-          </div>
-
-          <div className="wl-tabs">
+        {vecOpen && (
+          <div className="nav-submenu">
             {[
-              { key: 'pending',   label: 'Pending ID (4)' },
-              { key: 'decon',     label: 'Deconvolution (2)' },
-              { key: 'complete',  label: 'Complete (14)' },
-            ].map(tab => (
-              <div key={tab.key} className={`wl-tab ${activeTab === tab.key ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab.key)}>
-                {tab.label}
+              {key:'pending',   label:'Pending ID',   count:4, alert:false},
+              {key:'inprogress',label:'In Progress',  count:1, alert:false},
+              {key:'decon',     label:'Deconvolution',count:2, alert:true },
+              {key:'complete',  label:'Complete',     count:14,alert:false},
+            ].map(item=>(
+              <div key={item.key}
+                className={`nav-subitem ${activeSection==='worklist'&&activeMenu===item.key?'active':''}`}
+                onClick={()=>setNav('worklist',item.key)}>
+                {item.label}
+                <span className={`nav-count${item.alert?' alert':''}`}>{item.count}</span>
               </div>
             ))}
           </div>
+        )}
+        <div className={`nav-item ${activeSection==='results'?'active':''}`}
+             onClick={()=>setNav('results','')}>
+          📊 Results Entry
+        </div>
+      </div>
 
-          {activeTab === 'pending' && (
-            <div className="data-table-wrap">
-              <div style={{ padding: '10px 16px', borderBottom: '1px solid #e0e0e0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <input className="form-input" style={{ width: 280 }} placeholder="🔍  Search lots…" />
-              </div>
-              <table className="cds--data-table" style={{ width: '100%' }}>
-                <thead>
-                  <tr>
-                    <th>Lot ID</th>
-                    <th>Sampling Site</th>
-                    <th>Trap Type</th>
-                    <th>Collection Date</th>
-                    <th>Group</th>
-                    <th>Progress</th>
-                    <th>ID Status</th>
-                    <th>Decon</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {WORKLIST_LOTS.map(lot => (
-                    <tr key={lot.id}>
-                      <td style={{ fontWeight: 600, fontSize: 13 }}>{lot.id}</td>
-                      <td style={{ fontSize: 13 }}>{lot.site}</td>
-                      <td style={{ fontSize: 13 }}>{lot.trapType}</td>
-                      <td style={{ fontSize: 13 }}>{lot.date}</td>
-                      <td><GroupTag group={lot.group} /></td>
-                      <td>
-                        <div className="progress-bar-wrap">
-                          <div className="progress-bar-bg" style={{ width: 80 }}>
-                            <div className="progress-bar-fill" style={{ width: `${(lot.done / lot.total) * 100}%` }} />
-                          </div>
-                          <span style={{ fontSize: 12, color: '#525252' }}>{lot.done}/{lot.total}</span>
+      {/* Admin group */}
+      <div className="nav-group">
+        <div className="nav-group-title">Admin</div>
+        <div className={`nav-item ${activeSection==='panels'?'active':''}`}
+             onClick={()=>setNav('panels','')}>
+          🧪 Test Panels
+        </div>
+        <div className="nav-item">🦟 Species Catalog</div>
+        <div className="nav-item">🪤 Trap Types</div>
+      </div>
+    </div>
+  );
+};
+
+/* ── Worklist screen ────────────────────────────────────────── */
+const WorklistScreen = ({menu}) => {
+  const [expandedLot,setExpandedLot]=useState(null);
+  const [specimens,setSpecimens]=useState({});
+
+  const toggleLot = (lotId) => {
+    setExpandedLot(p=>p===lotId?null:lotId);
+    if(!specimens[lotId]) setSpecimens(p=>({...p,[lotId]:makeSpecimens(lotId)}));
+  };
+
+  const titles={
+    pending:   {h:'Pending ID', sub:'Received vector lots awaiting species identification.'},
+    inprogress:{h:'In Progress',sub:'Lots with identification partially complete.'},
+    decon:     {h:'Deconvolution',sub:'Positive pool lots requiring individual specimen follow-up.'},
+    complete:  {h:'Complete',   sub:'Lots with all specimens identified.'},
+  };
+  const {h,sub}=titles[menu]||titles.pending;
+
+  const rows = menu==='decon' ? DECON_LOTS.map(l=>({
+    ...l, isDecon:true,
+  })) : WORKLIST.filter(l=>{
+    if(menu==='pending')    return l.done===0;
+    if(menu==='inprogress') return l.done>0&&l.done<l.total;
+    if(menu==='complete')   return l.done===l.total;
+    return true;
+  });
+
+  return (
+    <div className="page-content">
+      <div className="page-header">
+        <h1 className="page-title">{h}</h1>
+        <p className="page-subtitle">{sub}</p>
+      </div>
+
+      {menu==='decon' ? (
+        <DeconTable />
+      ) : (
+        <div className="table-wrap">
+          <div className="table-toolbar">
+            <input className="form-input" style={{width:240}} placeholder="🔍  Search lots…" />
+          </div>
+          <table className="dt" style={{width:'100%'}}>
+            <thead>
+              <tr>
+                <th style={{width:36}}></th>
+                <th>Lot ID</th>
+                <th>Sampling Site</th>
+                <th>Trap Type</th>
+                <th>Date</th>
+                <th>Group</th>
+                <th>Progress</th>
+                <th>ID Status</th>
+                <th>Decon</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.length===0 && (
+                <tr><td colSpan={9} style={{padding:'24px',textAlign:'center',color:'#8d8d8d'}}>No lots in this queue.</td></tr>
+              )}
+              {rows.map(lot=>(
+                <React.Fragment key={lot.id}>
+                  <tr className={expandedLot===lot.id?'expanded':''} style={{cursor:'pointer'}} onClick={()=>toggleLot(lot.id)}>
+                    <td style={{textAlign:'center',color:'#0f62fe',fontSize:16,userSelect:'none'}}>
+                      {expandedLot===lot.id?'▼':'▶'}
+                    </td>
+                    <td style={{fontWeight:600,fontSize:13}}>{lot.id}</td>
+                    <td style={{fontSize:13}}>{lot.site}</td>
+                    <td style={{fontSize:13}}>{lot.trap}</td>
+                    <td style={{fontSize:13}}>{lot.date}</td>
+                    <td><GroupTag grp={lot.grp}/></td>
+                    <td>
+                      <div className="prog-wrap">
+                        <div className="prog-bg">
+                          <div className="prog-fill" style={{width:`${(lot.done/lot.total)*100}%`}}/>
                         </div>
-                      </td>
-                      <td><StatusTag status={lot.done === 0 ? 'NOT_STARTED' : lot.done < lot.total ? 'IN_PROGRESS' : 'COMPLETE'} /></td>
-                      <td>
-                        {lot.decon === 'PENDING'
-                          ? <Tag kind="red">⚠ Decon Needed</Tag>
-                          : <span style={{ color: '#8d8d8d', fontSize: 12 }}>—</span>
-                        }
-                      </td>
-                      <td>
-                        <button className="btn btn-ghost btn-sm" onClick={() => onSelectLot(lot)}>Open →</button>
+                        <span style={{fontSize:12,color:'#525252',whiteSpace:'nowrap'}}>{lot.done}/{lot.total}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <StatusTag s={lot.done===0?'NOT_STARTED':lot.done<lot.total?'IN_PROGRESS':'COMPLETE'}/>
+                    </td>
+                    <td>
+                      {lot.dec==='PENDING'
+                        ? <Tag kind="red">⚠ Decon Needed</Tag>
+                        : <span style={{color:'#8d8d8d',fontSize:12}}>—</span>
+                      }
+                    </td>
+                  </tr>
+
+                  {/* ── Inline lot detail ───────────────────── */}
+                  {expandedLot===lot.id && (
+                    <tr className="expansion-row">
+                      <td colSpan={9}>
+                        <LotDetail lot={lot} specimens={specimens[lot.id]||[]}
+                          onSpecimensUpdate={updated=>setSpecimens(p=>({...p,[lot.id]:updated}))}/>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {activeTab === 'decon' && <DeconWorklist />}
-          {activeTab === 'complete' && (
-            <div className="tile" style={{ color: '#525252', fontSize: 14 }}>14 lots with completed identification — archived view not shown in this preview.</div>
-          )}
-        </div>
-      );
-    };
-
-    // -------------------------------------------------------------------------
-    // Screen 2 — Lot Identification Detail
-    // -------------------------------------------------------------------------
-    const LotDetailScreen = ({ lot, onBack }) => {
-      const [specimens, setSpecimens] = useState(SPECIMENS);
-      const [expandedId, setExpandedId] = useState(null);
-      const [selected, setSelected] = useState(new Set());
-      const [bulkOpen, setBulkOpen] = useState(false);
-      const [deconOpen, setDeconOpen] = useState(false);
-      const [savedNotif, setSavedNotif] = useState(null);
-
-      const activeLot = lot || WORKLIST_LOTS[0];
-      const hasPositive = !!activeLot.positiveTest;
-
-      const toggleSelect = (id) => {
-        setSelected(prev => {
-          const next = new Set(prev);
-          if (next.has(id)) next.delete(id); else next.add(id);
-          return next;
-        });
-      };
-
-      const handleSave = (specimenId, species, method, confidence) => {
-        setSpecimens(prev => prev.map(s =>
-          s.id === specimenId
-            ? { ...s, species, method, confidence, status: confidence === 'Confirmed' ? 'CONFIRMED' : 'PRESUMPTIVE' }
-            : s
-        ));
-        setExpandedId(null);
-        setSavedNotif(`Identification saved for Specimen ${specimenId}.`);
-        setTimeout(() => setSavedNotif(null), 3000);
-      };
-
-      const confirmed   = specimens.filter(s => s.status === 'CONFIRMED').length;
-      const presumptive = specimens.filter(s => s.status === 'PRESUMPTIVE').length;
-      const total       = specimens.length;
-
-      const speciesCounts = {};
-      specimens.forEach(s => {
-        if (s.species) speciesCounts[s.species] = (speciesCounts[s.species] || 0) + 1;
-      });
-      const unidentified = total - confirmed - presumptive;
-      if (unidentified > 0) speciesCounts['Not yet identified'] = unidentified;
-
-      return (
-        <div>
-          {/* Breadcrumb */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, marginBottom: 16, color: '#525252' }}>
-            <span style={{ color: '#0f62fe', cursor: 'pointer' }} onClick={onBack}>Vector Identification</span>
-            <span>›</span>
-            <span style={{ color: '#161616', fontWeight: 500 }}>{activeLot.id}</span>
-          </div>
-
-          {/* Positive pool deconvolution alert */}
-          {hasPositive && (
-            <div className="notif notif-warning" style={{ marginBottom: 20 }}>
-              <div className="notif-icon">⚠️</div>
-              <div className="notif-content">
-                <div className="notif-title">Deconvolution Needed</div>
-                <div className="notif-subtitle">{activeLot.positiveTest} returned <strong>POSITIVE</strong> for this pooled lot. Initiate deconvolution to trace individual infections.</div>
-              </div>
-              <button className="btn btn-ghost btn-sm" onClick={() => setDeconOpen(true)} style={{ whiteSpace: 'nowrap', marginLeft: 12 }}>
-                Initiate Deconvolution →
-              </button>
-            </div>
-          )}
-
-          {savedNotif && (
-            <div className="notif notif-success" style={{ marginBottom: 16 }}>
-              <div className="notif-icon">✅</div>
-              <div className="notif-content"><div className="notif-title">{savedNotif}</div></div>
-            </div>
-          )}
-
-          {/* Lot summary tile */}
-          <div className="tile" style={{ marginBottom: 20 }}>
-            <div className="grid grid-4">
-              {[
-                { label: 'Lot ID',        value: activeLot.id },
-                { label: 'Sampling Site', value: activeLot.site },
-                { label: 'Trap Type',     value: activeLot.trapType },
-                { label: 'Collection',    value: activeLot.date },
-              ].map(f => (
-                <div key={f.label}>
-                  <div style={{ fontSize: 11, color: '#6f6f6f', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{f.label}</div>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>{f.value}</div>
-                </div>
+                  )}
+                </React.Fragment>
               ))}
-            </div>
-          </div>
-
-          {/* Species distribution */}
-          <div className="tile" style={{ marginBottom: 20 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Species Distribution</h3>
-            <div className="grid grid-2" style={{ gap: 24 }}>
-              <div>
-                {Object.entries(speciesCounts).map(([sp, count]) => (
-                  <div key={sp} className="species-bar">
-                    <div className="species-bar-label">
-                      <span style={{ fontSize: 13 }}>{sp}</span>
-                      <span style={{ color: '#6f6f6f' }}>{count}/{total}</span>
-                    </div>
-                    <div className="species-bar-bg">
-                      <div className="species-bar-fill"
-                        style={{ width: `${(count/total)*100}%`, background: sp.includes('Not') ? '#c6c6c6' : sp.includes('Culex') ? '#8a3ffc' : '#0f62fe' }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Tag kind="green">{confirmed} Confirmed</Tag>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Tag kind="warm-gray">{presumptive} Presumptive</Tag>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Tag kind="gray">{unidentified} Not Identified</Tag>
-                </div>
-                <div style={{ marginTop: 8, padding: '8px 12px', background: '#f4f4f4', fontSize: 12, color: '#525252' }}>
-                  Overall progress: {confirmed + presumptive}/{total} identified
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Batch bar */}
-          {selected.size > 0 && (
-            <div className="batch-bar">
-              <span className="batch-count">{selected.size} specimen{selected.size > 1 ? 's' : ''} selected</span>
-              <button className="btn btn-secondary btn-sm" onClick={() => setBulkOpen(true)}>
-                🔖 Bulk Apply ID
-              </button>
-              <button className="btn btn-ghost btn-sm" style={{ color: '#ccc' }} onClick={() => setSelected(new Set())}>
-                Cancel
-              </button>
-            </div>
-          )}
-
-          {/* Specimen DataTable */}
-          <div className="data-table-wrap">
-            <table className="cds--data-table" style={{ width: '100%' }}>
-              <thead>
-                <tr>
-                  <th style={{ width: 40 }}>
-                    <input type="checkbox" className="cb"
-                      onChange={e => setSelected(e.target.checked ? new Set(specimens.map(s => s.id)) : new Set())}
-                    />
-                  </th>
-                  <th>Specimen</th>
-                  <th>ID Status</th>
-                  <th>Species</th>
-                  <th>Method</th>
-                  <th>Confidence</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {specimens.map(sp => (
-                  <React.Fragment key={sp.id}>
-                    <tr style={{ background: expandedId === sp.id ? '#edf5ff' : 'white' }}>
-                      <td>
-                        <input type="checkbox" className="cb"
-                          checked={selected.has(sp.id)}
-                          onChange={() => toggleSelect(sp.id)}
-                        />
-                      </td>
-                      <td style={{ fontWeight: 600, fontSize: 13 }}>{sp.label}</td>
-                      <td><StatusTag status={sp.status} /></td>
-                      <td style={{ fontSize: 13 }}>{sp.species || <span style={{ color: '#8d8d8d' }}>—</span>}</td>
-                      <td style={{ fontSize: 13 }}>{sp.method || <span style={{ color: '#8d8d8d' }}>—</span>}</td>
-                      <td style={{ fontSize: 13 }}>{sp.confidence || <span style={{ color: '#8d8d8d' }}>—</span>}</td>
-                      <td>
-                        <button className="btn btn-ghost btn-sm"
-                          onClick={() => setExpandedId(prev => prev === sp.id ? null : sp.id)}>
-                          {expandedId === sp.id ? '▲ Close' : '▼ Identify'}
-                        </button>
-                      </td>
-                    </tr>
-                    {expandedId === sp.id && (
-                      <tr>
-                        <td colSpan={7} style={{ padding: 0 }}>
-                          <SpecimenIdForm specimen={sp} onSave={handleSave} onCancel={() => setExpandedId(null)} />
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Bulk Apply Modal */}
-          {bulkOpen && (
-            <BulkApplyModal count={selected.size} onClose={() => setBulkOpen(false)} onApply={() => { setBulkOpen(false); setSelected(new Set()); setSavedNotif(`ID applied to ${selected.size} specimens.`); setTimeout(() => setSavedNotif(null), 3000); }} />
-          )}
-
-          {/* Deconvolution Modal */}
-          {deconOpen && <DeconModal lotId={activeLot.id} onClose={() => setDeconOpen(false)} />}
+            </tbody>
+          </table>
         </div>
-      );
-    };
+      )}
+    </div>
+  );
+};
 
-    // -------------------------------------------------------------------------
-    // Specimen ID Form (inline expansion)
-    // -------------------------------------------------------------------------
-    const SpecimenIdForm = ({ specimen, onSave, onCancel }) => {
-      const [species, setSpecies]         = useState(specimen.species || '');
-      const [method, setMethod]           = useState(specimen.method || '');
-      const [confidence, setConfidence]   = useState(specimen.confidence || '');
-      const [showMol, setShowMol]         = useState(false);
-      const [molOpen, setMolOpen]         = useState(false);
-      const [speciesSearch, setSpeciesSearch] = useState('');
-      const [showDropdown, setShowDropdown] = useState(false);
+/* ── Inline lot detail ──────────────────────────────────────── */
+const LotDetail = ({lot,specimens,onSpecimensUpdate}) => {
+  const [expandedSpec,setExpandedSpec]=useState(null);
+  const [selected,setSelected]=useState(new Set());
+  const [bulkOpen,setBulkOpen]=useState(false);
+  const [deconOpen,setDeconOpen]=useState(false);
+  const [notif,setNotif]=useState(null);
 
-      const filtered = SPECIES_CATALOG.filter(s =>
-        s.toLowerCase().includes(speciesSearch.toLowerCase()) && speciesSearch.length > 0
-      );
+  const notify = (msg) => { setNotif(msg); setTimeout(()=>setNotif(null),3000); };
 
-      const handleMethodChange = (e) => {
-        const v = e.target.value;
-        setMethod(v);
-        setShowMol(v === 'Molecular' || v === 'Both');
-        if (v === 'Molecular' || v === 'Both') setMolOpen(true);
-      };
+  const handleSave=(specId,species,method,conf)=>{
+    const updated=specimens.map(s=>s.id===specId
+      ?{...s,species,method,conf,status:conf==='Confirmed'?'CONFIRMED':'PRESUMPTIVE'}:s);
+    onSpecimensUpdate(updated);
+    setExpandedSpec(null);
+    notify(`Identification saved for ${specId.split('-S')[1]?'Specimen '+specId.split('-S')[1]:specId}.`);
+  };
 
-      return (
-        <div className="expanded-row-content">
-          <div className="grid grid-3" style={{ marginBottom: 16 }}>
-            {/* Species ComboBox */}
-            <div className="form-field" style={{ position: 'relative' }}>
-              <label className="form-label">Species *</label>
-              <input
-                className="form-input"
-                value={speciesSearch || species}
-                placeholder="Search by genus or species…"
-                onChange={e => { setSpeciesSearch(e.target.value); setShowDropdown(true); }}
-                onFocus={() => setShowDropdown(true)}
-                onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-              />
-              {showDropdown && filtered.length > 0 && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #8d8d8d', zIndex: 100, maxHeight: 180, overflowY: 'auto' }}>
-                  {filtered.map(s => (
-                    <div key={s} style={{ padding: '8px 12px', fontSize: 13, cursor: 'pointer' }}
-                      onMouseDown={() => { setSpecies(s); setSpeciesSearch(s); setShowDropdown(false); }}>
-                      {s}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+  const toggleSelect=(id)=>setSelected(p=>{const n=new Set(p);n.has(id)?n.delete(id):n.add(id);return n;});
 
-            {/* Method */}
-            <div className="form-field">
-              <label className="form-label">Identification Method *</label>
-              <select className="form-select" value={method} onChange={handleMethodChange}>
-                <option value="">Select method…</option>
-                <option>Morphological</option>
-                <option>Molecular</option>
-                <option>Both</option>
-              </select>
-            </div>
+  const confirmed  =specimens.filter(s=>s.status==='CONFIRMED').length;
+  const presumptive=specimens.filter(s=>s.status==='PRESUMPTIVE').length;
+  const total=specimens.length;
+  const unid=total-confirmed-presumptive;
 
-            {/* Confidence */}
-            <div className="form-field">
-              <label className="form-label">Confidence *</label>
-              <select className="form-select" value={confidence} onChange={e => setConfidence(e.target.value)}>
-                <option value="">Select confidence…</option>
-                <option>Confirmed</option>
-                <option>Presumptive</option>
-              </select>
-            </div>
+  const spCounts={};
+  specimens.forEach(s=>{ if(s.species) spCounts[s.species]=(spCounts[s.species]||0)+1; });
+  if(unid>0) spCounts['Not yet identified']=unid;
+
+  return (
+    <div className="inline-expansion lot-detail">
+
+      {/* Positive pool alert */}
+      {lot.posTest && (
+        <div className="notif notif-warning">
+          <span style={{fontSize:18}}>⚠️</span>
+          <div className="notif-body">
+            <div className="notif-title">Deconvolution Needed</div>
+            <div className="notif-sub"><strong>{lot.posTest}</strong> returned POSITIVE for this pooled lot. Initiate deconvolution to trace individual infections.</div>
           </div>
-
-          {/* Notes */}
-          <div className="form-field">
-            <label className="form-label">Notes</label>
-            <textarea className="form-textarea" rows={2} placeholder="Optional notes about this identification…" />
-          </div>
-
-          {/* Molecular Details Accordion */}
-          <div className="accordion" style={{ marginBottom: 16 }}>
-            <div className="accordion-item">
-              <div className="accordion-header" onClick={() => setMolOpen(p => !p)}>
-                <span className="accordion-title">🔬 Molecular Details {showMol ? '' : '(optional)'}</span>
-                <span style={{ fontSize: 12, color: '#525252' }}>{molOpen ? '▲' : '▼'}</span>
-              </div>
-              {molOpen && (
-                <div className="accordion-body">
-                  <div className="grid grid-3">
-                    <div className="form-field">
-                      <label className="form-label">Target Gene</label>
-                      <input className="form-input" placeholder="e.g. COI, ITS2, 28S rDNA" />
-                    </div>
-                    <div className="form-field">
-                      <label className="form-label">Assay Name</label>
-                      <input className="form-input" placeholder="e.g. Multiplex RT-PCR Dengue" />
-                    </div>
-                    <div className="form-field">
-                      <label className="form-label">GenBank Accession</label>
-                      <input className="form-input" placeholder="e.g. MW123456" />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn btn-primary btn-sm"
-              onClick={() => onSave(specimen.id, species || specimen.species, method || specimen.method, confidence || specimen.confidence)}
-              disabled={!species && !specimen.species}>
-              💾 Save Identification
-            </button>
-            <button className="btn btn-ghost btn-sm" onClick={onCancel}>Cancel</button>
-          </div>
+          <button className="btn btn-ghost btn-sm" style={{whiteSpace:'nowrap'}} onClick={()=>setDeconOpen(true)}>
+            Initiate Deconvolution →
+          </button>
         </div>
-      );
-    };
+      )}
 
-    // -------------------------------------------------------------------------
-    // Bulk Apply Modal
-    // -------------------------------------------------------------------------
-    const BulkApplyModal = ({ count, onClose, onApply }) => (
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-box" onClick={e => e.stopPropagation()}>
-          <div className="modal-header">
-            <span className="modal-title">Bulk Apply Species ID</span>
-            <button className="btn-icon" onClick={onClose} style={{ color: '#fff', fontSize: 18 }}>✕</button>
+      {notif && (
+        <div className="notif notif-success" style={{marginBottom:12}}>
+          <span style={{fontSize:18}}>✅</span>
+          <div className="notif-body"><div className="notif-title">{notif}</div></div>
+        </div>
+      )}
+
+      {/* Lot summary strip */}
+      <div className="tile" style={{marginBottom:14}}>
+        <div className="grid-4">
+          {[['Lot ID',lot.id],['Site',lot.site],['Trap',lot.trap],['Collection',lot.date]].map(([l,v])=>(
+            <div key={l}>
+              <div style={{fontSize:11,color:'#6f6f6f',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:3}}>{l}</div>
+              <div style={{fontWeight:600,fontSize:13}}>{v}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Species distribution */}
+      <div className="tile" style={{marginBottom:14}}>
+        <div style={{fontWeight:600,fontSize:13,marginBottom:10}}>Species Distribution</div>
+        <div className="grid-2">
+          <div>
+            {Object.entries(spCounts).map(([sp,cnt])=>(
+              <div key={sp} className="sp-bar">
+                <div className="sp-bar-row">
+                  <span style={{fontSize:12}}>{sp}</span>
+                  <span style={{color:'#6f6f6f'}}>{cnt}/{total}</span>
+                </div>
+                <div className="sp-bar-bg">
+                  <div className="sp-bar-fill" style={{
+                    width:`${(cnt/total)*100}%`,
+                    background:sp.includes('Not')?'#c6c6c6':sp.includes('Culex')?'#8a3ffc':'#0f62fe'
+                  }}/>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="modal-body">
-            <div className="notif notif-info" style={{ marginBottom: 16 }}>
-              <div className="notif-content">
-                <div className="notif-subtitle">Applying identification to <strong>{count} specimens</strong>. Molecular detail fields (target gene, assay, accession) will not be copied.</div>
-              </div>
-            </div>
-            <div className="form-field">
-              <label className="form-label">Species *</label>
-              <input className="form-input" placeholder="Search by genus or species name…" defaultValue="Aedes aegypti" />
-            </div>
-            <div className="grid grid-2" style={{ gap: 16 }}>
-              <div className="form-field">
-                <label className="form-label">Identification Method *</label>
-                <select className="form-select">
-                  <option>Morphological</option>
-                  <option>Molecular</option>
-                  <option>Both</option>
-                </select>
-              </div>
-              <div className="form-field">
-                <label className="form-label">Confidence *</label>
-                <select className="form-select">
-                  <option>Confirmed</option>
-                  <option>Presumptive</option>
-                </select>
-              </div>
-            </div>
-            <div className="form-field">
-              <label className="form-label">Notes (applied to all)</label>
-              <textarea className="form-textarea" rows={2} placeholder="Optional…" />
-            </div>
-          </div>
-          <div className="modal-footer">
-            <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
-            <button className="btn btn-primary btn-sm" onClick={onApply}>Apply to {count} Specimens</button>
+          <div style={{display:'flex',flexDirection:'column',gap:6}}>
+            <Tag kind="green">{confirmed} Confirmed</Tag>
+            <Tag kind="warm-gray">{presumptive} Presumptive</Tag>
+            <Tag kind="gray">{unid} Not Identified</Tag>
           </div>
         </div>
       </div>
-    );
 
-    // -------------------------------------------------------------------------
-    // Deconvolution Modal
-    // -------------------------------------------------------------------------
-    const DeconModal = ({ lotId, onClose }) => {
-      const [strategy, setStrategy] = useState('INDIVIDUAL');
-      const [done, setDone] = useState(false);
-
-      if (done) return (
-        <div className="modal-overlay" onClick={onClose}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <div className="modal-header" style={{ background: '#0e6027' }}>
-              <span className="modal-title">✅ Deconvolution Initiated</span>
-              <button className="btn-icon" onClick={onClose} style={{ color: '#fff', fontSize: 18 }}>✕</button>
-            </div>
-            <div className="modal-body">
-              <div className="notif notif-success">
-                <div className="notif-icon">✅</div>
-                <div className="notif-content">
-                  <div className="notif-title">25 child specimens created</div>
-                  <div className="notif-subtitle">Re-test order <strong>ORD-2026-0892</strong> generated with Dengue Surveillance Panel. Lot {lotId} status → Deconvolution In Progress.</div>
-                </div>
-              </div>
-              <p style={{ fontSize: 13, color: '#525252', marginTop: 12 }}>Child specimens are labelled BPP-01-LOT-042-D01 through -D25. They will appear in Results Entry for NS1 RT-PCR testing.</p>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-primary btn-sm" onClick={onClose}>Done</button>
-            </div>
-          </div>
+      {/* Batch bar */}
+      {selected.size>0 && (
+        <div className="batch-bar" style={{marginBottom:0}}>
+          <span className="batch-count">{selected.size} specimen{selected.size>1?'s':''} selected</span>
+          <button className="btn btn-secondary btn-sm" onClick={()=>setBulkOpen(true)}>🔖 Bulk Apply ID</button>
+          <button className="btn btn-ghost btn-sm" style={{color:'#ccc'}} onClick={()=>setSelected(new Set())}>Cancel</button>
         </div>
-      );
+      )}
 
-      return (
-        <div className="modal-overlay" onClick={onClose}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <span className="modal-title">Initiate Pool Deconvolution</span>
-              <button className="btn-icon" onClick={onClose} style={{ color: '#fff', fontSize: 18 }}>✕</button>
-            </div>
-            <div className="modal-body">
-              <div className="notif notif-warning" style={{ marginBottom: 16 }}>
-                <div className="notif-icon">⚠️</div>
-                <div className="notif-content">
-                  <div className="notif-title">Positive result detected</div>
-                  <div className="notif-subtitle"><strong>NS1 RT-PCR</strong> returned POSITIVE for lot {lotId} (25 specimens, BG-Sentinel, Bojongsoang).</div>
-                </div>
-              </div>
-
-              <div className="form-field">
-                <label className="form-label">Deconvolution Strategy</label>
-                <div className="radio-group">
-                  {[
-                    { val: 'INDIVIDUAL', label: 'Individual specimens — test each separately' },
-                    { val: 'SUB_POOL',   label: 'Sub-pools — split into smaller pools first' },
-                  ].map(opt => (
-                    <label key={opt.val} className="radio-item">
-                      <input type="radio" name="strategy" value={opt.val}
-                        checked={strategy === opt.val} onChange={() => setStrategy(opt.val)} />
-                      {opt.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {strategy === 'INDIVIDUAL' ? (
-                <div className="form-field">
-                  <label className="form-label">Number of Individual Specimens</label>
-                  <input className="form-input" type="number" defaultValue={25} min={2} max={200} style={{ width: 120 }} />
-                </div>
-              ) : (
-                <div className="grid grid-2" style={{ gap: 16 }}>
-                  <div className="form-field">
-                    <label className="form-label">Number of Sub-pools</label>
-                    <input className="form-input" type="number" defaultValue={5} style={{ width: 120 }} />
-                  </div>
-                  <div className="form-field">
-                    <label className="form-label">Specimens per Sub-pool</label>
-                    <input className="form-input" type="number" defaultValue={5} style={{ width: 120 }} />
-                  </div>
-                </div>
-              )}
-
-              <div className="form-field">
-                <label className="form-label">Test Panel *</label>
-                <select className="form-select">
-                  {TEST_PANELS.filter(p => p.active).map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-field">
-                <label className="form-label">Notes</label>
-                <textarea className="form-textarea" rows={2} placeholder="Optional notes…" />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
-              <button className="btn btn-primary btn-sm" onClick={() => setDone(true)}>
-                Confirm &amp; Generate Specimens
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    };
-
-    // -------------------------------------------------------------------------
-    // Deconvolution Worklist (tab)
-    // -------------------------------------------------------------------------
-    const DeconWorklist = () => (
-      <div className="data-table-wrap">
-        <table className="cds--data-table" style={{ width: '100%' }}>
+      {/* Specimen table */}
+      <div className="scrollable">
+        <table className="dt" style={{width:'100%',background:'#fff'}}>
           <thead>
             <tr>
-              <th>Lot ID</th>
-              <th>Site</th>
-              <th>Positive Test</th>
-              <th>Child Specimens</th>
-              <th>Results Received</th>
-              <th>Status</th>
+              <th style={{width:36}}>
+                <input type="checkbox" className="cb"
+                  onChange={e=>setSelected(e.target.checked?new Set(specimens.map(s=>s.id)):new Set())}/>
+              </th>
+              <th>Specimen</th>
+              <th>ID Status</th>
+              <th>Species</th>
+              <th>Method</th>
+              <th>Confidence</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {DECON_LOTS.map(lot => (
-              <tr key={lot.id}>
-                <td style={{ fontWeight: 600, fontSize: 13 }}>{lot.id}</td>
-                <td style={{ fontSize: 13 }}>{lot.site}</td>
-                <td style={{ fontSize: 13 }}>{lot.positiveTest}</td>
-                <td style={{ fontSize: 13 }}>{lot.child}</td>
-                <td>
-                  <div className="progress-bar-wrap">
-                    <div className="progress-bar-bg" style={{ width: 80 }}>
-                      <div className="progress-bar-fill" style={{ width: `${(lot.done/lot.child)*100}%`, background: lot.status === 'COMPLETE' ? '#24a148' : '#0f62fe' }} />
-                    </div>
-                    <span style={{ fontSize: 12, color: '#525252' }}>{lot.done}/{lot.child}</span>
-                  </div>
-                </td>
-                <td>
-                  {lot.status === 'COMPLETE'
-                    ? <span><Tag kind="teal">Decon Complete</Tag> <span style={{ fontSize: 12, color: '#525252' }}>{lot.positive}/20 positive</span></span>
-                    : <Tag kind="blue">In Progress</Tag>
-                  }
-                </td>
-                <td><button className="btn btn-ghost btn-sm">View</button></td>
-              </tr>
+            {specimens.map(sp=>(
+              <React.Fragment key={sp.id}>
+                <tr className={expandedSpec===sp.id?'expanded':''}>
+                  <td><input type="checkbox" className="cb" checked={selected.has(sp.id)} onChange={()=>toggleSelect(sp.id)}/></td>
+                  <td style={{fontWeight:600,fontSize:13}}>{sp.label}</td>
+                  <td><StatusTag s={sp.status}/></td>
+                  <td style={{fontSize:13}}>{sp.species||<span style={{color:'#8d8d8d'}}>—</span>}</td>
+                  <td style={{fontSize:13}}>{sp.method||<span style={{color:'#8d8d8d'}}>—</span>}</td>
+                  <td style={{fontSize:13}}>{sp.conf||<span style={{color:'#8d8d8d'}}>—</span>}</td>
+                  <td>
+                    <button className="btn btn-ghost btn-sm"
+                      onClick={()=>setExpandedSpec(p=>p===sp.id?null:sp.id)}>
+                      {expandedSpec===sp.id?'▲ Close':'▼ Identify'}
+                    </button>
+                  </td>
+                </tr>
+                {expandedSpec===sp.id && (
+                  <tr className="expansion-row">
+                    <td colSpan={7}>
+                      <SpecimenForm sp={sp} onSave={handleSave} onCancel={()=>setExpandedSpec(null)}/>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+            {specimens.length===0 && (
+              <tr><td colSpan={7} style={{padding:16,color:'#8d8d8d',textAlign:'center'}}>Loading specimens…</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {bulkOpen && <BulkModal count={selected.size} onClose={()=>setBulkOpen(false)} onApply={()=>{setBulkOpen(false);setSelected(new Set());notify(`ID applied to ${selected.size} specimens.`);}}/>}
+      {deconOpen && <DeconModal lotId={lot.id} onClose={()=>setDeconOpen(false)}/>}
+    </div>
+  );
+};
+
+/* ── Specimen ID form ───────────────────────────────────────── */
+const SpecimenForm = ({sp,onSave,onCancel}) => {
+  const [species,setSpecies]=useState(sp.species||'');
+  const [method,setMethod]=useState(sp.method||'');
+  const [conf,setConf]=useState(sp.conf||'');
+  const [search,setSearch]=useState(sp.species||'');
+  const [ddOpen,setDdOpen]=useState(false);
+  const [molOpen,setMolOpen]=useState(sp.method==='Molecular'||sp.method==='Both');
+
+  const filtered=SPECIES_CATALOG.filter(s=>s.toLowerCase().includes(search.toLowerCase())&&search.length>0);
+
+  return (
+    <div className="inline-expansion">
+      <div className="grid-3" style={{marginBottom:12}}>
+        {/* Species combobox */}
+        <div className="form-field" style={{position:'relative'}}>
+          <label className="form-label">Species *</label>
+          <input className="form-input" value={search}
+            placeholder="Search genus or species…"
+            onChange={e=>{setSearch(e.target.value);setDdOpen(true);}}
+            onFocus={()=>setDdOpen(true)} onBlur={()=>setTimeout(()=>setDdOpen(false),180)}/>
+          {ddOpen&&filtered.length>0&&(
+            <div style={{position:'absolute',top:'100%',left:0,right:0,background:'#fff',border:'1px solid #8d8d8d',zIndex:50,maxHeight:160,overflowY:'auto'}}>
+              {filtered.map(s=>(
+                <div key={s} style={{padding:'7px 11px',fontSize:13,cursor:'pointer'}}
+                  onMouseDown={()=>{setSpecies(s);setSearch(s);setDdOpen(false);}}>
+                  {s}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="form-field">
+          <label className="form-label">Method *</label>
+          <select className="form-select" value={method}
+            onChange={e=>{setMethod(e.target.value);setMolOpen(e.target.value==='Molecular'||e.target.value==='Both');}}>
+            <option value="">Select…</option>
+            <option>Morphological</option><option>Molecular</option><option>Both</option>
+          </select>
+        </div>
+
+        <div className="form-field">
+          <label className="form-label">Confidence *</label>
+          <select className="form-select" value={conf} onChange={e=>setConf(e.target.value)}>
+            <option value="">Select…</option>
+            <option>Confirmed</option><option>Presumptive</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="form-field">
+        <label className="form-label">Notes</label>
+        <textarea className="form-textarea" placeholder="Optional notes…"/>
+      </div>
+
+      {/* Molecular accordion */}
+      <div className="accordion" style={{marginBottom:12}}>
+        <div className="acc-header" onClick={()=>setMolOpen(p=>!p)}>
+          <span className="acc-title">🔬 Molecular Details {method==='Molecular'||method==='Both'?'':"(optional)"}</span>
+          <span style={{fontSize:11,color:'#525252'}}>{molOpen?'▲':'▼'}</span>
+        </div>
+        {molOpen&&(
+          <div className="acc-body">
+            <div className="grid-3">
+              <div className="form-field">
+                <label className="form-label">Target Gene</label>
+                <input className="form-input" placeholder="e.g. COI, ITS2"/>
+              </div>
+              <div className="form-field">
+                <label className="form-label">Assay Name</label>
+                <input className="form-input" placeholder="e.g. Multiplex RT-PCR"/>
+              </div>
+              <div className="form-field">
+                <label className="form-label">GenBank Accession</label>
+                <input className="form-input" placeholder="e.g. MW123456"/>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{display:'flex',gap:8}}>
+        <button className="btn btn-primary btn-sm"
+          onClick={()=>onSave(sp.id,species||sp.species,method||sp.method,conf||sp.conf)}
+          disabled={!species&&!sp.species}>
+          💾 Save Identification
+        </button>
+        <button className="btn btn-ghost btn-sm" onClick={onCancel}>Cancel</button>
+      </div>
+    </div>
+  );
+};
+
+/* ── Bulk apply modal ───────────────────────────────────────── */
+const BulkModal = ({count,onClose,onApply}) => (
+  <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-box" onClick={e=>e.stopPropagation()}>
+      <div className="modal-header">
+        <span className="modal-title">Bulk Apply Species ID</span>
+        <button className="btn-sm" style={{background:'none',border:'none',color:'#fff',fontSize:18,cursor:'pointer'}} onClick={onClose}>✕</button>
+      </div>
+      <div className="modal-body">
+        <div className="notif notif-info" style={{marginBottom:14}}>
+          <div className="notif-body">
+            <div className="notif-sub">Applying to <strong>{count} specimens</strong>. Molecular detail fields (target gene, assay, accession) will not be copied — they are specimen-specific.</div>
+          </div>
+        </div>
+        <div className="form-field">
+          <label className="form-label">Species *</label>
+          <input className="form-input" defaultValue="Aedes aegypti" placeholder="Search species…"/>
+        </div>
+        <div className="grid-2">
+          <div className="form-field">
+            <label className="form-label">Method *</label>
+            <select className="form-select"><option>Morphological</option><option>Molecular</option><option>Both</option></select>
+          </div>
+          <div className="form-field">
+            <label className="form-label">Confidence *</label>
+            <select className="form-select"><option>Confirmed</option><option>Presumptive</option></select>
+          </div>
+        </div>
+        <div className="form-field">
+          <label className="form-label">Notes (applied to all)</label>
+          <textarea className="form-textarea" placeholder="Optional…"/>
+        </div>
+      </div>
+      <div className="modal-footer">
+        <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
+        <button className="btn btn-primary btn-sm" onClick={onApply}>Apply to {count} Specimens</button>
+      </div>
+    </div>
+  </div>
+);
+
+/* ── Deconvolution modal ─────────────────────────────────────── */
+const DeconModal = ({lotId,onClose}) => {
+  const [strategy,setStrategy]=useState('INDIVIDUAL');
+  const [done,setDone]=useState(false);
+
+  if(done) return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header" style={{background:'#0e6027'}}>
+          <span className="modal-title">✅ Deconvolution Initiated</span>
+          <button style={{background:'none',border:'none',color:'#fff',fontSize:18,cursor:'pointer'}} onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          <div className="notif notif-success">
+            <span style={{fontSize:18}}>✅</span>
+            <div className="notif-body">
+              <div className="notif-title">25 child specimens created</div>
+              <div className="notif-sub">Re-test order <strong>ORD-2026-0892</strong> generated with Dengue Surveillance Panel. Lot {lotId} → Deconvolution In Progress. Child specimens labelled {lotId}-D01 through -D25.</div>
+            </div>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-primary btn-sm" onClick={onClose}>Done</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header">
+          <span className="modal-title">Initiate Pool Deconvolution</span>
+          <button style={{background:'none',border:'none',color:'#fff',fontSize:18,cursor:'pointer'}} onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          <div className="notif notif-warning" style={{marginBottom:16}}>
+            <span style={{fontSize:18}}>⚠️</span>
+            <div className="notif-body">
+              <div className="notif-title">Positive result: NS1 RT-PCR</div>
+              <div className="notif-sub">Lot {lotId} · 25 specimens · BG-Sentinel · Bojongsoang</div>
+            </div>
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">Deconvolution Strategy</label>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {[['INDIVIDUAL','Individual specimens — test each separately'],['SUB_POOL','Sub-pools — split into smaller pools first']].map(([v,l])=>(
+                <label key={v} style={{display:'flex',alignItems:'center',gap:8,fontSize:14,cursor:'pointer'}}>
+                  <input type="radio" name="dec-strategy" value={v} checked={strategy===v} onChange={()=>setStrategy(v)}/>
+                  {l}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {strategy==='INDIVIDUAL'
+            ? <div className="form-field">
+                <label className="form-label">Number of Specimens</label>
+                <input className="form-input" type="number" defaultValue={25} style={{width:120}}/>
+              </div>
+            : <div className="grid-2">
+                <div className="form-field"><label className="form-label">Sub-pools</label><input className="form-input" type="number" defaultValue={5} style={{width:100}}/></div>
+                <div className="form-field"><label className="form-label">Specimens per Sub-pool</label><input className="form-input" type="number" defaultValue={5} style={{width:100}}/></div>
+              </div>
+          }
+
+          <div className="form-field">
+            <label className="form-label">Test Panel *</label>
+            <select className="form-select">
+              {PANELS.filter(p=>p.active&&(p.domain==='VECTOR'||p.domain==='ALL')).map(p=>(
+                <option key={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">Notes</label>
+            <textarea className="form-textarea" placeholder="Optional…"/>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary btn-sm" onClick={()=>setDone(true)}>Confirm &amp; Generate Specimens</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── Deconvolution table ─────────────────────────────────────── */
+const DeconTable = () => (
+  <div className="table-wrap">
+    <table className="dt" style={{width:'100%'}}>
+      <thead>
+        <tr>
+          <th>Lot ID</th><th>Site</th><th>Positive Test</th>
+          <th>Child Specimens</th><th>Results</th><th>Status</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {DECON_LOTS.map(lot=>(
+          <tr key={lot.id}>
+            <td style={{fontWeight:600,fontSize:13}}>{lot.id}</td>
+            <td style={{fontSize:13}}>{lot.site}</td>
+            <td style={{fontSize:13}}>{lot.posTest}</td>
+            <td style={{fontSize:13}}>{lot.child}</td>
+            <td>
+              <div className="prog-wrap">
+                <div className="prog-bg">
+                  <div className="prog-fill" style={{width:`${(lot.done/lot.child)*100}%`,background:lot.status==='COMPLETE'?'#24a148':'#0f62fe'}}/>
+                </div>
+                <span style={{fontSize:12,color:'#525252'}}>{lot.done}/{lot.child}</span>
+              </div>
+            </td>
+            <td>
+              {lot.status==='COMPLETE'
+                ? <span style={{display:'inline-flex',gap:6,alignItems:'center'}}><Tag kind="teal">Decon Complete</Tag><span style={{fontSize:12,color:'#525252'}}>{lot.pos}/{lot.child} positive</span></span>
+                : <Tag kind="blue">In Progress</Tag>
+              }
+            </td>
+            <td><button className="btn btn-ghost btn-sm">View</button></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
+/* ── Panel admin screen ─────────────────────────────────────── */
+const PanelAdminScreen = () => {
+  const [panels,setPanels]=useState(PANELS);
+  const [domainFilter,setDomainFilter]=useState('ALL');
+  const [expandedId,setExpandedId]=useState(null);
+  const [addNew,setAddNew]=useState(false);
+  const [notif,setNotif]=useState(null);
+
+  const filtered=panels.filter(p=>domainFilter==='ALL'||p.domain===domainFilter);
+
+  const save=(id)=>{setExpandedId(null);setAddNew(false);setNotif('Panel saved.');setTimeout(()=>setNotif(null),3000);};
+
+  return (
+    <div className="page-content">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20}}>
+        <div>
+          <h1 className="page-title">Test Panels</h1>
+          <p className="page-subtitle">Configure pathogen screening panels. Set domain = VECTOR or ALL for vector surveillance programs.</p>
+        </div>
+        <button className="btn btn-primary" onClick={()=>{setAddNew(true);setExpandedId(null);}}>+ Add Panel</button>
+      </div>
+
+      {notif&&<div className="notif notif-success" style={{marginBottom:14}}><span style={{fontSize:18}}>✅</span><div className="notif-body"><div className="notif-title">{notif}</div></div></div>}
+
+      {addNew&&(
+        <div className="tile" style={{marginBottom:14,borderLeft:'3px solid #0f62fe'}}>
+          <div style={{fontWeight:600,marginBottom:14}}>New Panel</div>
+          <PanelForm onSave={()=>save(null)} onCancel={()=>setAddNew(false)}/>
+        </div>
+      )}
+
+      <div className="table-wrap">
+        <div className="table-toolbar">
+          <input className="form-input" style={{width:220}} placeholder="🔍 Search panels…"/>
+          <select className="form-select" style={{width:180}} value={domainFilter} onChange={e=>setDomainFilter(e.target.value)}>
+            <option value="ALL">All Domains</option>
+            <option value="CLINICAL">Clinical</option>
+            <option value="ENVIRONMENTAL">Environmental</option>
+            <option value="VECTOR">Vector</option>
+          </select>
+        </div>
+        <table className="dt" style={{width:'100%'}}>
+          <thead>
+            <tr>
+              <th>Panel Name</th><th>Domain</th><th>Org. Group</th>
+              <th>Tests</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(panel=>(
+              <React.Fragment key={panel.id}>
+                <tr className={expandedId===panel.id?'expanded':''}>
+                  <td style={{fontWeight:600,fontSize:13}}>{panel.name}</td>
+                  <td><DomainTag d={panel.domain}/></td>
+                  <td>{panel.grp?<GroupTag grp={panel.grp}/>:<span style={{color:'#8d8d8d'}}>—</span>}</td>
+                  <td style={{fontSize:13,color:'#525252',maxWidth:260,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{panel.tests}</td>
+                  <td>{panel.active?<Tag kind="green">Active</Tag>:<Tag kind="gray">Inactive</Tag>}</td>
+                  <td>
+                    <button className="btn btn-ghost btn-sm"
+                      onClick={()=>setExpandedId(p=>p===panel.id?null:panel.id)}>
+                      {expandedId===panel.id?'▲ Close':'▼ Edit'}
+                    </button>
+                  </td>
+                </tr>
+                {expandedId===panel.id&&(
+                  <tr className="expansion-row">
+                    <td colSpan={6}>
+                      <div className="inline-expansion">
+                        <PanelForm panel={panel} onSave={()=>save(panel.id)} onCancel={()=>setExpandedId(null)}/>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>
       </div>
-    );
+    </div>
+  );
+};
 
-    // -------------------------------------------------------------------------
-    // Screen 3 — Panel Admin
-    // -------------------------------------------------------------------------
-    const PanelAdminScreen = () => {
-      const [panels, setPanels] = useState(TEST_PANELS);
-      const [expandedId, setExpandedId] = useState(null);
-      const [addingNew, setAddingNew] = useState(false);
-      const [saved, setSaved] = useState(null);
+/* ── Panel form ─────────────────────────────────────────────── */
+const PanelForm = ({panel,onSave,onCancel}) => {
+  const [domain,setDomain]=useState(panel?.domain||'ALL');
+  const [activeTab,setActiveTab]=useState('basic');
+  const showVecTab=domain==='VECTOR'||domain==='ALL';
 
-      const handleSave = (id) => {
-        setExpandedId(null);
-        setAddingNew(false);
-        setSaved('Test panel saved.');
-        setTimeout(() => setSaved(null), 3000);
-      };
+  return (
+    <div>
+      {/* Editor tabs */}
+      <div className="panel-tabs">
+        {[['basic','Basic Info'],['tests','Tests'],[showVecTab?'vector':null,'Vector Config']].filter(t=>t[0]).map(([key,label])=>(
+          <div key={key} className={`panel-tab ${activeTab===key?'active':''}`} onClick={()=>setActiveTab(key)}>{label}</div>
+        ))}
+      </div>
 
-      return (
+      {activeTab==='basic'&&(
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-            <div>
-              <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Vector Test Panels</h1>
-              <p style={{ color: '#525252', fontSize: 14 }}>Configure pathogen screening panels for use at order entry.</p>
+          <div className="grid-3">
+            <div className="form-field">
+              <label className="form-label">Panel Name *</label>
+              <input className="form-input" defaultValue={panel?.name||''} placeholder="e.g. Dengue Surveillance Panel"/>
             </div>
-            <button className="btn btn-primary" onClick={() => { setAddingNew(true); setExpandedId(null); }}>
-              + Add Panel
-            </button>
-          </div>
-
-          {saved && (
-            <div className="notif notif-success" style={{ marginBottom: 16 }}>
-              <div className="notif-icon">✅</div>
-              <div className="notif-content"><div className="notif-title">{saved}</div></div>
+            <div className="form-field">
+              <label className="form-label">Code *</label>
+              <input className="form-input" defaultValue="" placeholder="e.g. DENGUE-VEC"/>
             </div>
-          )}
-
-          {/* Add new panel inline form */}
-          {addingNew && (
-            <div className="tile" style={{ marginBottom: 16, borderLeft: '4px solid #0f62fe' }}>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>New Panel</h3>
-              <PanelForm onSave={() => handleSave(null)} onCancel={() => setAddingNew(false)} />
+            <div className="form-field">
+              <label className="form-label">LOINC Code</label>
+              <input className="form-input" placeholder="e.g. 94500-6"/>
             </div>
-          )}
-
-          <div className="data-table-wrap">
-            <div style={{ padding: '10px 16px', borderBottom: '1px solid #e0e0e0', display: 'flex', gap: 12, alignItems: 'center' }}>
-              <input className="form-input" style={{ width: 240 }} placeholder="🔍  Search panels…" />
-              <select className="form-select" style={{ width: 160 }}>
-                <option>All groups</option>
-                <option>Mosquito</option>
-                <option>Tick</option>
-              </select>
-            </div>
-            <table className="cds--data-table" style={{ width: '100%' }}>
-              <thead>
-                <tr>
-                  <th>Panel Name</th>
-                  <th>Organism Group</th>
-                  <th>Tests Included</th>
-                  <th>Status</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {panels.map(panel => (
-                  <React.Fragment key={panel.id}>
-                    <tr style={{ background: expandedId === panel.id ? '#edf5ff' : 'white' }}>
-                      <td style={{ fontWeight: 600, fontSize: 13 }}>{panel.name}</td>
-                      <td><GroupTag group={panel.group} /></td>
-                      <td style={{ fontSize: 13, color: '#525252' }}>{panel.tests}</td>
-                      <td>
-                        {panel.active
-                          ? <Tag kind="green">Active</Tag>
-                          : <Tag kind="gray">Inactive</Tag>
-                        }
-                      </td>
-                      <td>
-                        <button className="btn btn-ghost btn-sm"
-                          onClick={() => setExpandedId(prev => prev === panel.id ? null : panel.id)}>
-                          {expandedId === panel.id ? '▲ Close' : '▼ Edit'}
-                        </button>
-                      </td>
-                    </tr>
-                    {expandedId === panel.id && (
-                      <tr>
-                        <td colSpan={5} style={{ padding: 0 }}>
-                          <div className="expanded-row-content">
-                            <PanelForm panel={panel} onSave={() => handleSave(panel.id)} onCancel={() => setExpandedId(null)} />
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      );
-    };
-
-    const PanelForm = ({ panel, onSave, onCancel }) => (
-      <div>
-        <div className="grid grid-3" style={{ marginBottom: 16 }}>
-          <div className="form-field">
-            <label className="form-label">Panel Name *</label>
-            <input className="form-input" defaultValue={panel?.name || ''} placeholder="e.g. Dengue Surveillance Panel" />
           </div>
           <div className="form-field">
-            <label className="form-label">Organism Group Filter</label>
-            <select className="form-select" defaultValue={panel?.group || ''}>
-              <option value="">Any group</option>
-              <option value="MOSQUITO">Mosquito</option>
-              <option value="TICK">Tick</option>
-              <option value="RODENT">Rodent</option>
+            <label className="form-label">Panel Domain *</label>
+            <select className="form-select" style={{width:240}} value={domain} onChange={e=>setDomain(e.target.value)}>
+              <option value="CLINICAL">Clinical</option>
+              <option value="ENVIRONMENTAL">Environmental</option>
+              <option value="VECTOR">Vector</option>
+              <option value="ALL">ALL (all order types)</option>
             </select>
+            <div style={{fontSize:12,color:'#525252',marginTop:5}}>
+              {domain==='VECTOR'||domain==='ALL'
+                ? '✅ Vector Config tab is now visible. Configure organism group for order-entry suggestions.'
+                : 'Set to VECTOR or ALL to enable Vector Config tab.'}
+            </div>
+          </div>
+          <div className="form-field">
+            <label className="form-label">Description</label>
+            <textarea className="form-textarea" placeholder="Optional description…"/>
           </div>
           <div className="form-field">
             <label className="form-label">Status</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
-              <span style={{ fontSize: 13 }}>Inactive</span>
-              <div style={{ position: 'relative', width: 40, height: 20 }}>
-                <div style={{ background: panel?.active !== false ? '#0f62fe' : '#e0e0e0', borderRadius: 10, height: 20, width: 40 }} />
-                <div style={{ position: 'absolute', top: 2, left: panel?.active !== false ? 22 : 2, width: 16, height: 16, background: '#fff', borderRadius: '50%', transition: 'left 0.2s' }} />
+            <div className="toggle-wrap">
+              <span>Inactive</span>
+              <div className={`toggle-track ${panel?.active!==false?'on':'off'}`}>
+                <div className="toggle-thumb"/>
               </div>
-              <span style={{ fontSize: 13 }}>Active</span>
+              <span>Active</span>
             </div>
           </div>
         </div>
+      )}
 
-        <div className="form-field">
-          <label className="form-label">Description</label>
-          <textarea className="form-textarea" rows={2} placeholder="Optional description…" />
-        </div>
-
-        <div className="form-field">
-          <label className="form-label">Tests Included</label>
-          <div style={{ background: '#f4f4f4', border: '1px solid #e0e0e0', padding: 12, marginBottom: 8 }}>
-            {(panel?.tests || '').split(', ').filter(Boolean).map((test, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #e0e0e0', fontSize: 13 }}>
-                <span>🧪 {test}</span>
-                <button className="btn btn-ghost btn-sm" style={{ color: '#da1e28', fontSize: 12 }}>Remove</button>
+      {activeTab==='tests'&&(
+        <div>
+          <div style={{background:'#f4f4f4',border:'1px solid #e0e0e0',padding:12,marginBottom:12}}>
+            {(panel?.tests||'').split(', ').filter(Boolean).map((t,i)=>(
+              <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid #e0e0e0',fontSize:13}}>
+                <span>🧪 {t}</span>
+                <button className="btn btn-danger btn-sm">Remove</button>
               </div>
             ))}
-            {(!panel?.tests) && <p style={{ fontSize: 13, color: '#8d8d8d' }}>No tests added yet.</p>}
+            {!panel?.tests&&<p style={{fontSize:13,color:'#8d8d8d'}}>No tests added yet.</p>}
           </div>
           <button className="btn btn-ghost btn-sm">+ Add Test from Catalog</button>
         </div>
+      )}
 
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-          <button className="btn btn-primary btn-sm" onClick={onSave}>💾 Save Panel</button>
-          {panel && <button className="btn btn-danger-ghost btn-sm">🗑 Deactivate</button>}
-          <button className="btn btn-ghost btn-sm" onClick={onCancel}>Cancel</button>
-        </div>
-      </div>
-    );
-
-    // -------------------------------------------------------------------------
-    // Root App
-    // -------------------------------------------------------------------------
-    const App = () => {
-      const [screen, setScreen]     = useState('worklist');
-      const [selectedLot, setSelectedLot] = useState(null);
-
-      const handleSelectLot = (lot) => {
-        setSelectedLot(lot);
-        setScreen('lotDetail');
-      };
-
-      return (
+      {activeTab==='vector'&&showVecTab&&(
         <div>
-          <div className="app-shell">
-            <Sidebar screen={screen} setScreen={(s) => { setScreen(s); }} />
-            <div className="main-content">
-              {/* Screen tabs */}
-              <div className="screen-tabs">
-                {[
-                  { key: 'worklist',   label: '📋 ID Worklist' },
-                  { key: 'lotDetail',  label: '🔬 Lot Detail (BPP-01-LOT-042)' },
-                  { key: 'panelAdmin', label: '🧪 Panel Admin' },
-                ].map(tab => (
-                  <div key={tab.key}
-                    className={`screen-tab ${screen === tab.key ? 'active' : ''}`}
-                    onClick={() => setScreen(tab.key)}>
-                    {tab.label}
-                  </div>
-                ))}
-              </div>
-
-              {screen === 'worklist'   && <WorklistScreen onSelectLot={handleSelectLot} />}
-              {screen === 'lotDetail'  && <LotDetailScreen lot={selectedLot || WORKLIST_LOTS[0]} onBack={() => setScreen('worklist')} />}
-              {screen === 'panelAdmin' && <PanelAdminScreen />}
+          <div className="notif notif-info" style={{marginBottom:14}}>
+            <div className="notif-body">
+              <div className="notif-sub">This tab is visible because Panel Domain = <strong>{domain}</strong>. Organism group is an optional filter hint — it sorts this panel to the top at order entry when the collection lot matches.</div>
             </div>
           </div>
+          <div className="form-field" style={{maxWidth:320}}>
+            <label className="form-label">Organism Group (optional)</label>
+            <select className="form-select" defaultValue={panel?.grp||''}>
+              <option value="">Any group (no preference)</option>
+              <option value="MOSQUITO">Mosquito</option>
+              <option value="TICK">Tick</option>
+              <option value="RODENT">Rodent</option>
+              <option value="OTHER">Other arthropod</option>
+            </select>
+            <div style={{fontSize:12,color:'#525252',marginTop:5}}>When set, this panel appears first in order entry for lots with matching organism group.</div>
+          </div>
         </div>
-      );
-    };
+      )}
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-  </script>
+      <div style={{display:'flex',gap:8,marginTop:14,paddingTop:12,borderTop:'1px solid #e0e0e0'}}>
+        <button className="btn btn-primary btn-sm" onClick={onSave}>💾 Save Panel</button>
+        {panel&&<button className="btn btn-danger btn-sm">🗑 Deactivate</button>}
+        <button className="btn btn-ghost btn-sm" onClick={onCancel}>Cancel</button>
+      </div>
+    </div>
+  );
+};
+
+/* ── Root ───────────────────────────────────────────────────── */
+const App = () => {
+  const [activeSection,setActiveSection]=useState('worklist');
+  const [activeMenu,setActiveMenu]=useState('pending');
+
+  const setNav=(section,menu)=>{setActiveSection(section);if(menu)setActiveMenu(menu);};
+
+  return (
+    <div>
+      {/* Sticky header */}
+      <div className="app-header" style={{position:'sticky',top:32,zIndex:100}}>
+        <span className="header-product">🧬 OpenELIS Global</span>
+        <div className="header-separator"/>
+        <span className="header-section">
+          {activeSection==='worklist'?'Worklist':'Admin'}
+        </span>
+      </div>
+
+      <div className="app-shell">
+        <SideNav activeSection={activeSection} activeMenu={activeMenu} setNav={setNav}/>
+        <div className="main">
+          {activeSection==='worklist' && <WorklistScreen menu={activeMenu}/>}
+          {activeSection==='panels'   && <PanelAdminScreen/>}
+          {activeSection==='results'  && (
+            <div className="page-content">
+              <div className="page-header">
+                <h1 className="page-title">Results Entry</h1>
+                <p className="page-subtitle">Standard Results Entry — vector pathogen test results (PCR, ELISA) are entered here, not in the identification workbench.</p>
+              </div>
+              <div className="tile" style={{color:'#525252'}}>Results Entry module — existing page, not modified by V-03.</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
 </body>
 </html>

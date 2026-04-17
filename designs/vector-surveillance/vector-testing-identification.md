@@ -1,7 +1,7 @@
 # Vector Testing & Identification
 ## Functional Requirements Specification — v1.0
 
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-04-17
 **Status:** Draft for Review
 **Jira:** TBD (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
@@ -10,6 +10,7 @@
 
 ### Change Log
 
+- **v1.1 (2026-04-17):** Removed standalone `VectorTestPanel` and `VectorTestPanelItem` entities. Vector test panels are now a configuration step within the unified Panel admin (panel.md v1.1). The existing `Panel` entity gains `panelDomain` (CLINICAL/ENVIRONMENTAL/VECTOR/ALL) and `vectorOrganismGroup` fields. Vector Config tab in Panel editor is conditionally shown when domain = VECTOR or ALL. Identification worklist navigation changed from tabs to SideNav submenus. Lot detail opens inline on row click (row expansion) rather than navigating to a separate page.
 - **v1.0 (2026-04-17):** Initial draft.
 
 ---
@@ -92,10 +93,10 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 
 ### US-V03-05 — Vector Test Panel Configuration
 **As a** Vector Program Coordinator,
-**I want to** configure named pathogen screening panels (e.g., "Dengue Surveillance Panel" = NS1 ELISA + NS1 RT-PCR),
-**so that** technicians always order the correct test set for each surveillance program without manual selection.
+**I want to** configure named pathogen screening panels (e.g., "Dengue Surveillance Panel" = NS1 ELISA + NS1 RT-PCR) using the unified Panel admin,
+**so that** technicians always order the correct test set for each surveillance program without manual selection, and vector panels share the same UX as clinical and environmental panels.
 
-**Acceptance:** Admin page under Vector Surveillance → Test Panels. Create/edit/deactivate panels. Each panel has a name, optional organism group filter, and one or more tests from the OpenELIS test catalog. Panel is available at order entry when domain = VECTOR.
+**Acceptance:** Panels with domain = VECTOR or ALL are configured in the standard Panel admin page (Admin → Test Panels). The Vector Config tab appears when domain = VECTOR or ALL, exposing the organism group filter field. Panel is available at VECTOR-domain order entry. No separate Vector Test Panels page exists. See `panel.md` v1.1 for full UI specification.
 
 ---
 
@@ -187,19 +188,19 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 
 ### 4.2 Vector Test Panel Administration
 
-**FR-V03-PNL-001:** An admin page SHALL exist at Admin → Vector Surveillance → Test Panels listing all `VectorTestPanel` records in a `DataTable` with columns: Panel Name, Organism Group, Test Count, Status tag, Actions.
+> Vector test panels are managed through the **unified Panel admin** (Admin → Test Panels), not a separate Vector Surveillance page. The requirements below describe the vector-specific behaviour within that shared UI. See `panel.md` v1.1 for the complete Panel admin specification.
 
-**FR-V03-PNL-002:** Clicking "Add Panel" SHALL inline-expand a new row form with fields: Panel Name (`TextInput`, required, unique), Description (`TextArea`, optional), Organism Group (`Select` over VectorGroup catalog, optional filter hint), Tests (`MultiSelect` over active tests from the OpenELIS test catalog), Active (`Toggle`, default on).
+**FR-V03-PNL-001:** The Panel admin list view SHALL include a **Domain** column (Tag: CLINICAL=blue / ENVIRONMENTAL=teal / VECTOR=purple / ALL=gray) and a **Domain filter** dropdown (All Domains / Clinical / Environmental / Vector).
 
-**FR-V03-PNL-003:** Clicking an existing panel row's Edit button SHALL inline-expand the same form pre-populated with existing values.
+**FR-V03-PNL-002:** The Panel editor's Basic Info tab SHALL include a **Panel Domain** field (`Select`: CLINICAL / ENVIRONMENTAL / VECTOR / ALL, default ALL). Changing this field to VECTOR or ALL SHALL reveal the **Vector Config** tab in the editor.
 
-**FR-V03-PNL-004:** Deactivating a panel (Active toggle off) SHALL not delete it. Inactive panels SHALL be hidden from order entry but remain visible in the admin list with an "Inactive" Tag kind="gray".
+**FR-V03-PNL-003:** The **Vector Config** tab SHALL contain an **Organism Group** field (`ComboBox` over active VectorGroup catalog, optional). When set, this field acts as a suggestion hint at order entry — it does not restrict which panels are selectable.
 
-**FR-V03-PNL-005:** At order entry for VECTOR-domain orders, a "Test Panel" `ComboBox` field SHALL appear in the test selection section. Selecting a panel SHALL auto-populate the test list with all tests from that panel.
+**FR-V03-PNL-004:** At order entry for VECTOR-domain orders, the panel `ComboBox` SHALL show only active panels with `panelDomain IN (VECTOR, ALL)`. Panels whose `vectorOrganismGroup` matches the lot's organism group SHALL be sorted to the top with a "Suggested" label.
 
-**FR-V03-PNL-006:** After panel auto-population, individual tests MAY be added or removed by the ordering user before saving the order. The panel selection is stored for traceability but the individual test list is the binding order.
+**FR-V03-PNL-005:** Selecting a panel at order entry SHALL auto-populate the test list with all tests from that panel. Individual tests MAY be added or removed after panel selection. The panel selection is stored for traceability; the individual test list is the binding order.
 
-**FR-V03-PNL-007:** The Panel admin DataTable SHALL support search by panel name and filter by organism group and active status.
+**FR-V03-PNL-006:** Deactivating a panel (Active toggle off) SHALL hide it from order entry. It remains visible in the admin list with an "Inactive" Tag. Existing orders that used the panel are not affected.
 
 ---
 
@@ -268,28 +269,9 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 | genbankAccession | String(50) | No | Format: 1–2 letters + 5–8 digits, e.g. "MW123456" |
 | linkedResult | Result | No | FK to pathogen test result if same PCR run confirmed species |
 
-**VectorTestPanel**
+**~~VectorTestPanel~~ — REMOVED in v1.1**
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| id | Long | Yes | Primary key |
-| name | String(200) | Yes | Unique across active panels |
-| description | String(500) | No | |
-| organismGroup | VectorGroup | No | Filter hint for order entry ComboBox |
-| isActive | Boolean | Yes | Default true |
-| createdBy | SystemUser | Yes | |
-| createdAt | Timestamp | Yes | |
-| updatedBy | SystemUser | No | |
-| updatedAt | Timestamp | No | |
-
-**VectorTestPanelItem**
-
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| id | Long | Yes | Primary key |
-| panel | VectorTestPanel | Yes | FK |
-| test | Test | Yes | FK to existing OpenELIS Test entity |
-| sortOrder | Integer | No | Display order within panel |
+> Vector panels are now represented by the existing `Panel` entity with `panelDomain = VECTOR`. No separate entity is introduced. `VectorTestPanelItem` is replaced by the existing `PanelTest` join entity.
 
 **DeconvolutionTask**
 
@@ -312,6 +294,13 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 | notes | String(1000) | No | |
 
 ### Modified Entities
+
+**Panel** — Add fields (shared entity, see `panel.md` v1.1):
+
+| Field | Type | Notes |
+|---|---|---|
+| panelDomain | Enum(CLINICAL, ENVIRONMENTAL, VECTOR, ALL) | Default ALL — backward-compatible |
+| vectorOrganismGroup | VectorGroup | FK, nullable; only relevant when panelDomain = VECTOR or ALL |
 
 **CollectionLot** — Add fields:
 
@@ -343,15 +332,15 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 | POST | `/api/v1/vector/identification/specimens/bulk-identify` | Bulk-apply identification to list of specimen IDs | `vector.identification.bulk` |
 | GET | `/api/v1/vector/identification/specimens/{specimenId}/identification` | Get identification record | `vector.identification.view` |
 
-### Test Panels
+### Test Panels (via unified Panel API)
+
+> Vector panels use the existing Panel CRUD API. The endpoints below are additions/modifications to support domain filtering. See Panel admin spec for the full API.
 
 | Method | Path | Description | Permission |
 |---|---|---|---|
-| GET | `/api/v1/vector/panels` | List panels (filterable by active, organism group) | `vector.panel.view` |
-| GET | `/api/v1/vector/panels/{id}` | Get panel with test items | `vector.panel.view` |
-| POST | `/api/v1/vector/panels` | Create panel | `vector.panel.edit` |
-| PUT | `/api/v1/vector/panels/{id}` | Update panel | `vector.panel.edit` |
-| PUT | `/api/v1/vector/panels/{id}/deactivate` | Deactivate panel | `vector.panel.edit` |
+| GET | `/api/v1/panels?domain=VECTOR` | List panels filtered to VECTOR and ALL domains | `panel.view` |
+| GET | `/api/v1/panels?domain=VECTOR&organismGroup={groupId}` | List panels with organism group suggestion sort | `panel.view` |
+| PUT | `/api/v1/panels/{id}` | Update panel (now includes `panelDomain`, `vectorOrganismGroupId`) | `panel.edit` |
 
 ### Deconvolution
 
@@ -371,21 +360,23 @@ See interactive HTML preview: `vector-testing-identification.html`
 
 ### Navigation Path
 
-- **Identification Workbench:** Worklist → Vector Identification (new menu item under existing Worklist menu)
-- **Panel Admin:** Admin → Vector Surveillance → Test Panels
-- **Deconvolution (lot detail):** Accessible from identification worklist row or from lot's detail page
+- **Identification Workbench:** SideNav → Worklist → Vector Identification (SideNavMenu with submenus: Pending ID / In Progress / Deconvolution / Complete)
+- **Panel Admin:** Admin → Test Panels (unified Panel admin, filtered by domain = VECTOR via toolbar Domain filter)
+- **Lot detail:** Opens **inline** within the worklist row — clicking a lot row expands the specimen DataTable directly beneath it. No page navigation.
 
 ### Key Screens
 
-1. **Identification Worklist** — tabbed DataTable: "Pending ID" | "In Progress" | "Deconvolution" | "Complete". Each row shows lot summary and identification progress badge.
-2. **Lot Identification Detail** — specimen DataTable with inline row expansion for per-specimen ID form. Mixed-species summary bar at top. Positive-pool InlineNotification when applicable.
+1. **Identification Worklist** — SideNav submenus control the active filter (Pending ID / In Progress / Deconvolution / Complete). Lot rows are expandable; clicking a row expands an inline lot detail section beneath it.
+2. **Lot Detail (inline)** — specimen DataTable rendered inside the expanded worklist row. Mixed-species summary bar, positive-pool InlineNotification, bulk-apply batch action, per-specimen inline ID forms — all inline, no breadcrumb or separate page.
 3. **Bulk Apply Modal** — compact Modal with species/method/confidence form; applies to all checked specimens on confirm.
 4. **Deconvolution Modal** — strategy selection, child specimen count, panel selector; generates child records + re-test order on submit.
-5. **Panel Admin** — admin config DataTable with inline row expansion for create/edit. Active/inactive toggle, test MultiSelect.
+5. **Panel Admin (shared)** — standard Panel admin page (panel.md v1.1). Coordinators use Domain filter = VECTOR to scope the list. Vector Config tab shown when editing/creating a VECTOR or ALL panel.
 
 ### Interaction Patterns
 
-- Inline row expansion for per-specimen identification (not modals)
+- **SideNav submenus** (not tabs) for worklist filter navigation
+- **Inline row expansion** for lot detail within the worklist (not page navigation)
+- Inline row expansion for per-specimen identification within the lot detail (not modals)
 - `TableBatchActions` for bulk-apply across selected specimens
 - `Accordion` for optional Molecular Details section (collapsed by default)
 - `InlineNotification` kind="warning" for positive pool deconvolution prompt
@@ -543,18 +534,21 @@ All UI text is externalized. The following i18n keys must be added to the messag
 - [ ] Selecting 2+ specimens and clicking "Bulk Apply ID" applies the form values to all selected specimens; molecular detail fields are not copied
 - [ ] Species distribution summary panel updates as specimens are identified
 
-### Functional — Test Panels
+### Functional — Test Panels (via unified Panel admin)
 
-- [ ] Admin user can create a panel with name, description, organism group filter, and test selections
-- [ ] Panel with no tests cannot be set to Active; system shows validation error
-- [ ] Deactivated panel no longer appears in order entry ComboBox
-- [ ] Selecting a panel at order entry auto-populates the test list; individual tests can be added or removed
-- [ ] Duplicate panel name is rejected with an error message
+- [ ] Panel Domain field present in Basic Info tab with options CLINICAL / ENVIRONMENTAL / VECTOR / ALL
+- [ ] Vector Config tab appears (and only appears) when domain = VECTOR or ALL
+- [ ] Organism Group field in Vector Config tab is populated from VectorGroup catalog
+- [ ] Panel list view shows Domain column and Domain filter dropdown
+- [ ] At VECTOR-domain order entry, panel ComboBox shows only panels with domain = VECTOR or ALL
+- [ ] Panels with matching organism group sorted to top with "Suggested" label
+- [ ] Selecting a panel auto-populates test list; individual tests can be added or removed
+- [ ] Deactivated panel does not appear in order entry ComboBox
 
 ### Functional — Deconvolution
 
 - [ ] Positive result on a pool lot causes `deconvolutionStatus = PENDING` and displays InlineNotification (warning) on lot detail page
-- [ ] Deconvolution worklist tab shows all lots with deconvolutionStatus ≠ NOT_APPLICABLE
+- [ ] Deconvolution submenu item shows all lots with deconvolutionStatus ≠ NOT_APPLICABLE
 - [ ] Completing the deconvolution modal creates the correct number of child specimens with auto-generated labels
 - [ ] A new re-test Order is created in PENDING state linked to the child specimens
 - [ ] Parent lot status advances to DECONVOLUTION_IN_PROGRESS
