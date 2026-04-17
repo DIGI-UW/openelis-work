@@ -290,7 +290,7 @@
     <div style="background:var(--cds-white); border:1px solid var(--cds-gray-20); padding:16px 20px; margin-bottom:0; display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
       <!-- Search field -->
       <div style="flex:1; min-width:250px;">
-        <label style="display:block; font-size:12px; color:var(--cds-gray-60); margin-bottom:4px;">Search by patient name, lab number, national ID, or referring lab number</label>
+        <label style="display:block; font-size:12px; color:var(--cds-gray-60); margin-bottom:4px;">Search by patient name, site code, lab number, national ID, or referring lab number</label>
         <div style="display:flex; gap:0;">
           <input type="text" placeholder="Search orders..." style="flex:1; padding:8px 12px; border:1px solid var(--cds-gray-30); border-right:none; font-size:14px; outline:none; min-height:36px;" id="dashboard-search">
           <button class="btn btn-primary" style="border-radius:0; min-height:36px; padding:0 16px;" onclick="dashboardSearch()">Search</button>
@@ -315,6 +315,17 @@
         <label style="display:block; font-size:12px; color:var(--cds-gray-60); margin-bottom:4px;">To</label>
         <input type="date" style="width:100%; padding:6px 8px; border:1px solid var(--cds-gray-30); font-size:13px; min-height:36px;">
       </div>
+      <!-- Compliance Standard filter (environmental) -->
+      <div style="min-width:160px;">
+        <label style="display:block; font-size:12px; color:var(--cds-gray-60); margin-bottom:4px;">Compliance Standard</label>
+        <select style="width:100%; padding:8px 12px; border:1px solid var(--cds-gray-30); font-size:13px; min-height:36px; background:var(--cds-white);">
+          <option value="all" selected>All Standards</option>
+          <option value="pp22">PP 22/2021</option>
+          <option value="sni">SNI 6989</option>
+          <option value="who">WHO GDWQ</option>
+          <option value="epa">EPA SDWA</option>
+        </select>
+      </div>
       <!-- Include external toggle -->
       <div style="display:flex; align-items:center; gap:8px; min-height:36px; padding-bottom:2px;">
         <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--cds-gray-70); white-space:nowrap;" id="ext-toggle-label">
@@ -338,7 +349,7 @@
     <!-- Results Table: My In-Progress Orders (default view) -->
     <div id="dashboard-table-wrapper">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span style="font-size:13px; color:var(--cds-gray-60);" id="dashboard-results-label">Showing: <strong>My In-Progress Orders</strong> (6 results)</span>
+        <span style="font-size:13px; color:var(--cds-gray-60);" id="dashboard-results-label">Showing: <strong>My In-Progress Orders</strong> (8 results)</span>
       </div>
 
       <table style="width:100%; border-collapse:collapse; background:var(--cds-white); border:1px solid var(--cds-gray-20);">
@@ -481,6 +492,56 @@
             </td>
             <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">2 days ago</td>
             <td style="padding:10px 12px;"><button class="btn btn-ghost" style="font-size:12px; padding:4px 14px; min-height:28px;" onclick="showStep(2)">View</button></td>
+          </tr>
+          <!-- Row 7: Environmental Order — Collect Sample -->
+          <tr style="border-top:2px solid #009d9a; cursor:pointer; background:#f0faf9;" onmouseover="this.style.background='#e0f7f5'" onmouseout="this.style.background='#f0faf9'">
+            <td style="padding:10px 12px; font-size:13px; font-weight:600; color:var(--cds-blue-60);">ENV0326-00012</td>
+            <td style="padding:10px 12px; font-size:13px;">
+              <div style="font-family:monospace; font-weight:600;">WS-001</div>
+              <div style="font-size:11px; color:var(--cds-gray-60);">Sungai Ciliwung — Manggarai</div>
+              <div style="margin-top:2px;"><span style="padding:1px 6px; background:#d2fbf0; color:#005d5d; border-radius:8px; font-size:10px;">PP 22/2021</span></div>
+            </td>
+            <td style="padding:10px 12px; font-size:13px;">Water Quality Lab</td>
+            <td style="padding:10px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500; background:#d2fbf0; color:#005d5d; border:1px solid #009d9a;">ENV</span></td>
+            <td style="padding:10px 12px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--cds-blue-60);"></span>
+                <span style="font-size:13px;">Collect Sample</span>
+              </div>
+              <div style="display:flex; gap:3px; margin-top:4px;">
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-green-40);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-blue-60);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-gray-30);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-gray-30);"></span>
+              </div>
+            </td>
+            <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">30 min ago</td>
+            <td style="padding:10px 12px;"><button class="btn btn-primary" style="font-size:12px; padding:4px 14px; min-height:28px; background:#009d9a;" onclick="showStep(2)">Continue</button></td>
+          </tr>
+          <!-- Row 8: Environmental Order — QA Review -->
+          <tr style="border-top:1px solid var(--cds-gray-20); cursor:pointer; background:#f0faf9;" onmouseover="this.style.background='#e0f7f5'" onmouseout="this.style.background='#f0faf9'">
+            <td style="padding:10px 12px; font-size:13px; font-weight:600; color:var(--cds-blue-60);">ENV0326-00011</td>
+            <td style="padding:10px 12px; font-size:13px;">
+              <div style="font-family:monospace; font-weight:600;">WS-002</div>
+              <div style="font-size:11px; color:var(--cds-gray-60);">Waduk Jatiluhur — Intake Point</div>
+              <div style="margin-top:2px;"><span style="padding:1px 6px; background:#d2fbf0; color:#005d5d; border-radius:8px; font-size:10px;">SNI 6989</span></div>
+            </td>
+            <td style="padding:10px 12px; font-size:13px;">Water Quality Lab</td>
+            <td style="padding:10px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500; background:#d2fbf0; color:#005d5d; border:1px solid #009d9a;">ENV</span></td>
+            <td style="padding:10px 12px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#f1c21b;"></span>
+                <span style="font-size:13px;">QA Review</span>
+              </div>
+              <div style="display:flex; gap:3px; margin-top:4px;">
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-green-40);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-green-40);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:var(--cds-green-40);"></span>
+                <span style="width:20px; height:4px; border-radius:2px; background:#f1c21b;"></span>
+              </div>
+            </td>
+            <td style="padding:10px 12px; font-size:12px; color:var(--cds-gray-60);">2 hrs ago</td>
+            <td style="padding:10px 12px;"><button class="btn btn-primary" style="font-size:12px; padding:4px 14px; min-height:28px; background:#009d9a;" onclick="showStep(4)">Continue</button></td>
           </tr>
         </tbody>
       </table>
@@ -1005,17 +1066,243 @@
           </div>
         </div>
 
-        <!-- Environmental Conditions (always visible in env mode, below site selection) -->
-        <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--cds-gray-20);">
-          <h4 style="font-size:14px; font-weight:500; margin-bottom:12px; color:var(--cds-gray-80);">Collection Conditions</h4>
-          <div class="form-row three-col">
-            <div class="form-group"><label class="form-label">Environmental Conditions</label><input class="form-input" placeholder="e.g., 25°C, clear weather, dry season"></div>
-            <div class="form-group"><label class="form-label">Regulatory Reference</label><input class="form-input" placeholder="e.g., PP No. 22/2021 Baku Mutu Air"></div>
-            <div class="form-group"><label class="form-label">Collection Method</label><input class="form-input" placeholder="e.g., Grab sample, Composite 24h"></div>
+        <p style="font-size:11px; color:var(--cds-gray-60); margin-top:8px;">Search for an existing sampling site or create a new one. Sites are reusable across orders — like patients in clinical workflows. The site's GPS, zone, and description carry forward automatically. See <strong>S-02: Sampling Site Registry</strong> for the full admin-facing site management page.</p>
+      </div>
+    </div>
+
+    <!-- ===== COMPLIANCE STANDARD (ENV-1-001) — Environmental only ===== -->
+    <div class="form-section hidden" id="section-env-standard">
+      <div class="form-section-header"><h3>Compliance Standard</h3></div>
+      <div class="form-section-body">
+        <div class="form-group" style="max-width:600px; position:relative;">
+          <label class="form-label">Compliance Standard <span class="required">*</span></label>
+          <div style="position:relative;">
+            <input class="form-input" type="text" id="std-combo" placeholder="Search standards by name or regulation number..." autocomplete="off"
+              onfocus="showStdDropdown()" oninput="filterStandards()">
+            <div id="std-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:white; border:1px solid var(--cds-gray-30); box-shadow:0 4px 12px rgba(0,0,0,0.12); z-index:100; max-height:300px; overflow-y:auto;"></div>
+          </div>
+          <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">Select the regulatory standard for this order. This determines which tests and thresholds apply.</p>
+        </div>
+
+        <!-- Selected Standard Card (shown after selection) -->
+        <div id="std-selected-card" class="hidden" style="margin-top:16px; padding:16px; background:var(--cds-blue-10); border-left:3px solid var(--cds-blue-60);">
+          <div style="display:flex; align-items:flex-start; justify-content:space-between;">
+            <div>
+              <p style="font-weight:600; font-size:14px;" id="std-card-name"></p>
+              <span style="padding:2px 8px; background:#defbe6; color:var(--cds-green-60); border-radius:10px; font-size:11px; font-weight:500; margin-top:4px; display:inline-block;">Active</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-ghost" style="font-size:12px;" onclick="toggleStdThresholds()">▸ View Thresholds</button>
+              <button class="btn btn-ghost" style="font-size:12px; color:var(--cds-red-60);" onclick="clearStandard()">Clear</button>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; margin-top:12px; font-size:13px;">
+            <div><span style="color:var(--cds-gray-60); font-size:11px;">Issuing Body</span><br><span id="std-card-body"></span></div>
+            <div><span style="color:var(--cds-gray-60); font-size:11px;">Regulation Number</span><br><span id="std-card-reg"></span></div>
+            <div><span style="color:var(--cds-gray-60); font-size:11px;">Version / Effective</span><br><span id="std-card-ver"></span></div>
+            <div><span style="color:var(--cds-gray-60); font-size:11px;">Linked Tests</span><br><strong id="std-card-tests" style="font-size:18px;"></strong></div>
+          </div>
+
+          <!-- Threshold Accordion (hidden by default) -->
+          <div id="std-thresholds" class="hidden" style="margin-top:16px; border:1px solid var(--cds-gray-20);">
+            <div style="padding:10px 16px; background:var(--cds-gray-10); font-weight:500; font-size:13px; cursor:pointer; border-bottom:1px solid var(--cds-gray-20);" onclick="this.nextElementSibling.classList.toggle('hidden')">Physical Parameters (4 tests) ▾</div>
+            <div>
+              <table style="width:100%; font-size:12px; border-collapse:collapse;">
+                <thead><tr style="background:var(--cds-gray-10);"><th style="padding:6px 12px; text-align:left;">Test</th><th style="padding:6px 12px;">LOINC</th><th style="padding:6px 12px;">Unit</th><th style="padding:6px 12px;">Threshold</th></tr></thead>
+                <tbody>
+                  <tr><td style="padding:6px 12px;">Temperature</td><td style="padding:6px 12px; font-family:monospace;">8310-5</td><td style="padding:6px 12px;">°C</td><td style="padding:6px 12px; font-weight:600;">± 3 from ambient</td></tr>
+                  <tr><td style="padding:6px 12px;">Total Dissolved Solids</td><td style="padding:6px 12px; font-family:monospace;">3745-7</td><td style="padding:6px 12px;">mg/L</td><td style="padding:6px 12px; font-weight:600;">≤ 1000</td></tr>
+                  <tr><td style="padding:6px 12px;">Total Suspended Solids</td><td style="padding:6px 12px; font-family:monospace;">4808-2</td><td style="padding:6px 12px;">mg/L</td><td style="padding:6px 12px; font-weight:600;">≤ 50</td></tr>
+                  <tr><td style="padding:6px 12px;">Turbidity</td><td style="padding:6px 12px; font-family:monospace;">61020-8</td><td style="padding:6px 12px;">NTU</td><td style="padding:6px 12px; font-weight:600;">≤ 25</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="padding:10px 16px; background:var(--cds-gray-10); font-weight:500; font-size:13px; cursor:pointer; border-top:1px solid var(--cds-gray-20); border-bottom:1px solid var(--cds-gray-20);" onclick="this.nextElementSibling.classList.toggle('hidden')">Chemical Parameters (7 tests) ▾</div>
+            <div>
+              <table style="width:100%; font-size:12px; border-collapse:collapse;">
+                <thead><tr style="background:var(--cds-gray-10);"><th style="padding:6px 12px; text-align:left;">Test</th><th style="padding:6px 12px;">LOINC</th><th style="padding:6px 12px;">Unit</th><th style="padding:6px 12px;">Threshold</th></tr></thead>
+                <tbody>
+                  <tr><td style="padding:6px 12px;">pH</td><td style="padding:6px 12px; font-family:monospace;">11558-4</td><td style="padding:6px 12px;">—</td><td style="padding:6px 12px; font-weight:600;">6.0 – 9.0</td></tr>
+                  <tr><td style="padding:6px 12px;">Dissolved Oxygen (DO)</td><td style="padding:6px 12px; font-family:monospace;">19218-7</td><td style="padding:6px 12px;">mg/L</td><td style="padding:6px 12px; font-weight:600;">≥ 4</td></tr>
+                  <tr><td style="padding:6px 12px;">BOD₅</td><td style="padding:6px 12px; font-family:monospace;">5839-3</td><td style="padding:6px 12px;">mg/L</td><td style="padding:6px 12px; font-weight:600;">≤ 3</td></tr>
+                  <tr><td style="padding:6px 12px;">COD</td><td style="padding:6px 12px; font-family:monospace;">5840-1</td><td style="padding:6px 12px;">mg/L</td><td style="padding:6px 12px; font-weight:600;">≤ 25</td></tr>
+                  <tr><td style="padding:6px 12px;">Ammonia (NH₃-N)</td><td style="padding:6px 12px; font-family:monospace;">1971-1</td><td style="padding:6px 12px;">mg/L</td><td style="padding:6px 12px; font-weight:600;">≤ 0.5</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="padding:10px 16px; background:var(--cds-gray-10); font-weight:500; font-size:13px; cursor:pointer; border-top:1px solid var(--cds-gray-20);">Heavy Metals (3 tests) ▸</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SAMPLE TYPE SELECTION (ENV-2-001) — Environmental only, after standard ===== -->
+    <div class="form-section hidden" id="section-env-samples">
+      <div class="form-section-header"><h3>Select Available Samples</h3></div>
+      <div class="form-section-body">
+        <p style="font-size:12px; color:var(--cds-gray-60); margin-bottom:16px;">Check the sample types you have collected for this order. Tests will be suggested based on your selections.</p>
+
+        <div id="sample-type-checklist" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px;">
+          <!-- Populated by JS based on selected standard -->
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <button class="btn btn-ghost" style="font-size:13px;" onclick="showOverrideCombo()">+ Add Other Sample Type</button>
+          <div id="override-combo-wrapper" class="hidden" style="max-width:400px; margin-top:8px; position:relative;">
+            <input class="form-input" type="text" id="override-combo" placeholder="Search all sample types..." oninput="filterOverrides()" onfocus="document.getElementById('override-dropdown').style.display='block'">
+            <div id="override-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:white; border:1px solid var(--cds-gray-30); box-shadow:0 4px 8px rgba(0,0,0,0.1); z-index:100; max-height:200px; overflow-y:auto;"></div>
           </div>
         </div>
 
-        <p style="font-size:11px; color:var(--cds-gray-60); margin-top:8px;">Search for an existing sampling site or create a new one. Sites are reusable across orders — like patients in clinical workflows. The site's GPS, zone, and description carry forward automatically. See <strong>S-02: Sampling Site Registry</strong> for the full admin-facing site management page.</p>
+        <p style="font-size:12px; color:var(--cds-gray-60);" id="sample-count-label">0 sample types selected</p>
+
+        <button class="btn btn-primary" id="suggest-tests-btn" class="hidden" style="margin-top:12px; display:none;" onclick="triggerTestSuggestion()">Suggest Tests for Selected Samples</button>
+      </div>
+    </div>
+
+    <!-- ===== SUGGESTED TEST PANEL (ENV-2-001) — Environmental only, after sample types ===== -->
+    <div class="form-section hidden" id="section-env-tests">
+      <div class="form-section-header"><h3>Suggested Tests</h3></div>
+      <div class="form-section-body">
+        <div style="padding:12px 16px; background:var(--cds-blue-10); border-left:3px solid var(--cds-blue-60); margin-bottom:16px; font-size:13px;">
+          <strong>Based on PP No. 22/2021 and 3 selected sample types,</strong> 16 tests have been suggested. You can add or remove tests below.
+        </div>
+        <p style="font-size:13px; color:var(--cds-gray-60); margin-bottom:12px;" id="env-test-count">16 of 16 tests selected</p>
+
+        <!-- Test groups with checkboxes -->
+        <div style="border:1px solid var(--cds-gray-20);">
+          <div style="padding:10px 16px; background:var(--cds-gray-10); font-weight:500; font-size:13px; cursor:pointer; display:flex; justify-content:space-between; border-bottom:1px solid var(--cds-gray-20);" onclick="this.nextElementSibling.classList.toggle('hidden')">
+            <span>Physical Parameters — 4/4 selected</span><span>▾</span>
+          </div>
+          <div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 16px; border-bottom:1px solid var(--cds-gray-10); font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" checked style="width:16px; height:16px; accent-color:var(--cds-blue-60);"> Temperature <span style="padding:1px 6px; background:#d0e2ff; color:var(--cds-blue-70); border-radius:8px; font-size:10px; margin-left:4px;">Suggested</span></label>
+              <span style="font-size:12px; color:var(--cds-gray-60);">± 3 from ambient °C</span>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 16px; border-bottom:1px solid var(--cds-gray-10); font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" checked style="width:16px; height:16px; accent-color:var(--cds-blue-60);"> Total Dissolved Solids (TDS) <span style="padding:1px 6px; background:#d0e2ff; color:var(--cds-blue-70); border-radius:8px; font-size:10px; margin-left:4px;">Suggested</span></label>
+              <span style="font-size:12px; color:var(--cds-gray-60);">≤ 1000 mg/L</span>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 16px; border-bottom:1px solid var(--cds-gray-10); font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" checked style="width:16px; height:16px; accent-color:var(--cds-blue-60);"> Total Suspended Solids (TSS) <span style="padding:1px 6px; background:#d0e2ff; color:var(--cds-blue-70); border-radius:8px; font-size:10px; margin-left:4px;">Suggested</span></label>
+              <span style="font-size:12px; color:var(--cds-gray-60);">≤ 50 mg/L</span>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 16px; font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" checked style="width:16px; height:16px; accent-color:var(--cds-blue-60);"> Turbidity <span style="padding:1px 6px; background:#d0e2ff; color:var(--cds-blue-70); border-radius:8px; font-size:10px; margin-left:4px;">Suggested</span></label>
+              <span style="font-size:12px; color:var(--cds-gray-60);">≤ 25 NTU</span>
+            </div>
+          </div>
+          <div style="padding:10px 16px; background:var(--cds-gray-10); font-weight:500; font-size:13px; cursor:pointer; display:flex; justify-content:space-between; border-top:1px solid var(--cds-gray-20); border-bottom:1px solid var(--cds-gray-20);" onclick="this.nextElementSibling.classList.toggle('hidden')">
+            <span>Chemical Parameters — 7/7 selected</span><span>▾</span>
+          </div>
+          <div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 16px; border-bottom:1px solid var(--cds-gray-10); font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" checked style="width:16px; height:16px; accent-color:var(--cds-blue-60);"> pH <span style="padding:1px 6px; background:#d0e2ff; color:var(--cds-blue-70); border-radius:8px; font-size:10px; margin-left:4px;">Suggested</span></label>
+              <span style="font-size:12px; color:var(--cds-gray-60);">6.0 – 9.0</span>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 16px; border-bottom:1px solid var(--cds-gray-10); font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" checked style="width:16px; height:16px; accent-color:var(--cds-blue-60);"> Dissolved Oxygen (DO) <span style="padding:1px 6px; background:#d0e2ff; color:var(--cds-blue-70); border-radius:8px; font-size:10px; margin-left:4px;">Suggested</span></label>
+              <span style="font-size:12px; color:var(--cds-gray-60);">≥ 4 mg/L</span>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 16px; border-bottom:1px solid var(--cds-gray-10); font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" checked style="width:16px; height:16px; accent-color:var(--cds-blue-60);"> BOD₅ <span style="padding:1px 6px; background:#d0e2ff; color:var(--cds-blue-70); border-radius:8px; font-size:10px; margin-left:4px;">Suggested</span></label>
+              <span style="font-size:12px; color:var(--cds-gray-60);">≤ 3 mg/L</span>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 16px; font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" checked style="width:16px; height:16px; accent-color:var(--cds-blue-60);"> COD <span style="padding:1px 6px; background:#d0e2ff; color:var(--cds-blue-70); border-radius:8px; font-size:10px; margin-left:4px;">Suggested</span></label>
+              <span style="font-size:12px; color:var(--cds-gray-60);">≤ 25 mg/L</span>
+            </div>
+          </div>
+          <div style="padding:10px 16px; background:var(--cds-gray-10); font-weight:500; font-size:13px; cursor:pointer; display:flex; justify-content:space-between; border-top:1px solid var(--cds-gray-20); border-bottom:1px solid var(--cds-gray-20);" onclick="this.nextElementSibling.classList.toggle('hidden')">
+            <span>Microbiological Parameters — 2/2 selected</span><span>▾</span>
+          </div>
+          <div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 16px; border-bottom:1px solid var(--cds-gray-10); font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" checked style="width:16px; height:16px; accent-color:var(--cds-blue-60);"> Total Coliform <span style="padding:1px 6px; background:#d0e2ff; color:var(--cds-blue-70); border-radius:8px; font-size:10px; margin-left:4px;">Suggested</span></label>
+              <span style="font-size:12px; color:var(--cds-gray-60);">≤ 5000 MPN/100mL</span>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 16px; font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" checked style="width:16px; height:16px; accent-color:var(--cds-blue-60);"> Fecal Coliform (E. coli) <span style="padding:1px 6px; background:#d0e2ff; color:var(--cds-blue-70); border-radius:8px; font-size:10px; margin-left:4px;">Suggested</span></label>
+              <span style="font-size:12px; color:var(--cds-gray-60);">≤ 1000 MPN/100mL</span>
+            </div>
+          </div>
+          <div style="padding:10px 16px; background:var(--cds-gray-10); font-weight:500; font-size:13px; cursor:pointer; display:flex; justify-content:space-between; border-top:1px solid var(--cds-gray-20);" onclick="this.nextElementSibling.classList.toggle('hidden')">
+            <span>Heavy Metals — 3/3 selected</span><span>▸</span>
+          </div>
+          <div class="hidden">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 16px; border-bottom:1px solid var(--cds-gray-10); font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" checked style="width:16px; height:16px; accent-color:var(--cds-blue-60);"> Lead (Pb) <span style="padding:1px 6px; background:#d0e2ff; color:var(--cds-blue-70); border-radius:8px; font-size:10px; margin-left:4px;">Suggested</span></label>
+              <span style="font-size:12px; color:var(--cds-gray-60);">≤ 0.03 mg/L</span>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 16px; border-bottom:1px solid var(--cds-gray-10); font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" checked style="width:16px; height:16px; accent-color:var(--cds-blue-60);"> Mercury (Hg) <span style="padding:1px 6px; background:#d0e2ff; color:var(--cds-blue-70); border-radius:8px; font-size:10px; margin-left:4px;">Suggested</span></label>
+              <span style="font-size:12px; color:var(--cds-gray-60);">≤ 0.001 mg/L</span>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 16px; font-size:13px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" checked style="width:16px; height:16px; accent-color:var(--cds-blue-60);"> Cadmium (Cd) <span style="padding:1px 6px; background:#d0e2ff; color:var(--cds-blue-70); border-radius:8px; font-size:10px; margin-left:4px;">Suggested</span></label>
+              <span style="font-size:12px; color:var(--cds-gray-60);">≤ 0.01 mg/L</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-ghost" style="margin-top:12px; font-size:13px;">+ Add Test Manually</button>
+      </div>
+    </div>
+
+    <!-- ===== COLLECTION CONDITIONS (ENV-3-001) — Environmental only, structured fields ===== -->
+    <div class="form-section hidden" id="section-env-conditions">
+      <div class="form-section-header"><h3>Collection Conditions</h3></div>
+      <div class="form-section-body">
+        <div class="form-row three-col">
+          <div class="form-group">
+            <label class="form-label">Collection Method <span class="required">*</span></label>
+            <select class="form-select" id="env-collection-method">
+              <option value="">Select collection method...</option>
+              <option>Manual Grab</option><option>Composite (Time)</option><option>Composite (Flow)</option>
+              <option>Automated Sampler</option><option>Passive</option><option>Trap Collection</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Water Temperature (°C)</label>
+            <input class="form-input" type="number" placeholder="e.g., 28.5" step="0.1" min="-50" max="100">
+            <span style="font-size:11px; color:var(--cds-gray-60);">Measured at collection point</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ambient Temperature (°C)</label>
+            <input class="form-input" type="number" placeholder="e.g., 31.2" step="0.1" min="-50" max="100">
+          </div>
+        </div>
+        <div class="form-row three-col">
+          <div class="form-group">
+            <label class="form-label">Weather Conditions</label>
+            <select class="form-select">
+              <option value="">Select weather conditions...</option>
+              <option>Clear</option><option>Cloudy</option><option>Rain</option><option>Storm</option><option>Wind</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Preservation Method</label>
+            <input class="form-input" type="text" placeholder="e.g., HNO3 acidification, 4°C cooler">
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="display:flex; align-items:center; gap:6px;">
+              Regulatory Reference
+              <span id="reg-ref-lock" style="font-size:10px; color:var(--cds-gray-60); font-style:italic; font-weight:400;">&#x1F512; Auto-populated from standard</span>
+            </label>
+            <div style="position:relative;">
+              <input class="form-input" type="text" id="env-reg-ref" value="PP 22/2021 — Baku Mutu Air Permukaan" readonly style="background:var(--cds-gray-10); color:var(--cds-gray-70);">
+              <button class="btn btn-ghost" style="position:absolute; right:0; top:0; font-size:11px;" onclick="overrideRegRef()">Override</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label">Field Notes</label>
+            <textarea class="form-input" placeholder="Enter field observations..." style="min-height:60px; resize:vertical;" maxlength="1000"></textarea>
+            <span style="font-size:11px; color:var(--cds-gray-60);">Max 1000 characters</span>
+          </div>
+        </div>
+        <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">Fields are configurable per environmental program. These are the default fields for Water Quality Monitoring. Admin can add/remove/reorder fields per program.</p>
       </div>
     </div>
 
@@ -1425,6 +1712,13 @@
       <div class="context-item"><span class="context-label">Tests</span><span class="context-value">HIV VL, Western blot, COVID-19 IgG</span></div>
       <div class="context-item"><span class="context-label">Status</span><span class="context-status in-progress">Collecting</span></div>
     </div>
+    <!-- Environmental Context Row (hidden for clinical orders, shown for env) -->
+    <div id="env-context-step2" class="hidden" style="background:#e8f5e9; border:1px solid var(--cds-gray-20); border-top:none; padding:10px 24px; margin-top:-25px; margin-bottom:24px; display:flex; align-items:center; gap:32px; font-size:13px;">
+      <div class="context-item"><span class="context-label">Site</span><span class="context-value" style="font-family:monospace;">WS-001</span> <span style="color:var(--cds-gray-60);">Sungai Ciliwung</span></div>
+      <div class="context-item"><span class="context-label">Standard</span><span class="context-value"><span style="padding:2px 8px; background:#d2fbf0; color:#005d5d; border-radius:10px; font-size:11px;">PP 22/2021</span></span></div>
+      <div class="context-item"><span class="context-label">GPS</span><span class="context-value" style="font-family:monospace; font-size:12px;">-6.2088, 106.8456</span></div>
+      <div><button class="btn btn-ghost" style="font-size:11px; padding:2px 8px;" onclick="toggleStdThresholds()">View Thresholds</button></div>
+    </div>
 
     <!-- ===== REQUESTED TESTS — Quick Add Samples (with panels) ===== -->
     <div class="form-section">
@@ -1745,6 +2039,12 @@
       <div class="context-item"><span class="context-label">Samples</span><span class="context-value">1 collected</span></div>
       <div class="context-item"><span class="context-label">Status</span><span class="context-status in-progress">Labeling</span></div>
     </div>
+    <!-- Environmental Context Row (hidden for clinical orders) -->
+    <div id="env-context-step3" class="hidden" style="background:#e8f5e9; border:1px solid var(--cds-gray-20); border-top:none; padding:10px 24px; margin-top:-25px; margin-bottom:24px; display:flex; align-items:center; gap:32px; font-size:13px;">
+      <div class="context-item"><span class="context-label">Site</span><span class="context-value" style="font-family:monospace;">WS-001</span> <span style="color:var(--cds-gray-60);">Sungai Ciliwung</span></div>
+      <div class="context-item"><span class="context-label">Standard</span><span class="context-value"><span style="padding:2px 8px; background:#d2fbf0; color:#005d5d; border-radius:10px; font-size:11px;">PP 22/2021</span></span></div>
+      <div class="context-item"><span class="context-label">Collection</span><span class="context-value">Manual Grab, 28.5°C</span></div>
+    </div>
 
     <!-- Print Labels (types & quantities from config, same as Step 1) -->
     <div class="form-section">
@@ -1882,6 +2182,13 @@
       <div class="context-item"><span class="context-label">Subject</span><span class="context-value">Doe, Jane</span></div>
       <div class="context-item"><span class="context-label">Status</span><span class="context-status in-progress">QA Pending</span></div>
     </div>
+    <!-- Environmental Context Row (hidden for clinical orders) -->
+    <div id="env-context-step4" class="hidden" style="background:#e8f5e9; border:1px solid var(--cds-gray-20); border-top:none; padding:10px 24px; margin-top:-25px; margin-bottom:24px; display:flex; align-items:center; gap:32px; font-size:13px;">
+      <div class="context-item"><span class="context-label">Site</span><span class="context-value" style="font-family:monospace;">WS-001</span> <span style="color:var(--cds-gray-60);">Sungai Ciliwung</span></div>
+      <div class="context-item"><span class="context-label">Standard</span><span class="context-value"><span style="padding:2px 8px; background:#d2fbf0; color:#005d5d; border-radius:10px; font-size:11px;">PP 22/2021</span></span></div>
+      <div class="context-item"><span class="context-label">GPS</span><span class="context-value" style="font-family:monospace; font-size:12px;">-6.2088, 106.8456</span></div>
+      <div class="context-item"><span class="context-label">Conditions</span><span class="context-value">Manual Grab, 28.5°C water, Clear</span></div>
+    </div>
 
     <div class="qa-grid">
       <div class="qa-card">
@@ -1903,6 +2210,57 @@
         <div class="qa-card-title">QA Decision</div>
         <div class="qa-card-status pending">⏳ Pending</div>
         <div style="font-size:12px; color: var(--cds-gray-50); margin-top:4px;">Awaiting QA review</div>
+      </div>
+    </div>
+
+    <!-- Environmental QA Completeness (hidden for clinical orders) -->
+    <div id="env-qa-section" class="hidden">
+      <div class="form-section" style="margin-bottom:16px;">
+        <div class="form-section-header" style="background:#e8f5e9;"><h3 style="color:var(--cds-green-60);">Environmental Completeness</h3></div>
+        <div class="form-section-body" style="padding:0;">
+          <table style="width:100%; font-size:13px; border-collapse:collapse;">
+            <thead><tr style="background:var(--cds-gray-10); text-align:left;">
+              <th style="padding:8px 16px; font-weight:500;">Check</th>
+              <th style="padding:8px 16px; font-weight:500; width:120px;">Status</th>
+              <th style="padding:8px 16px; font-weight:500;">Details</th>
+            </tr></thead>
+            <tbody>
+              <tr style="border-top:1px solid var(--cds-gray-20);">
+                <td style="padding:8px 16px;">Collection Site</td>
+                <td style="padding:8px 16px;"><span style="color:var(--cds-green-60); font-weight:600;">&#10003; Present</span></td>
+                <td style="padding:8px 16px; font-size:12px; color:var(--cds-gray-60);">WS-001 — Sungai Ciliwung — Manggarai</td>
+              </tr>
+              <tr style="border-top:1px solid var(--cds-gray-20);">
+                <td style="padding:8px 16px;">Compliance Standard</td>
+                <td style="padding:8px 16px;"><span style="color:var(--cds-green-60); font-weight:600;">&#10003; Present</span></td>
+                <td style="padding:8px 16px; font-size:12px; color:var(--cds-gray-60);">PP No. 22/2021 — Water Quality Standards</td>
+              </tr>
+              <tr style="border-top:1px solid var(--cds-gray-20);">
+                <td style="padding:8px 16px;">GPS Coordinates</td>
+                <td style="padding:8px 16px;"><span style="color:var(--cds-green-60); font-weight:600;">&#10003; Present</span></td>
+                <td style="padding:8px 16px; font-size:12px; color:var(--cds-gray-60);">-6.2088, 106.8456</td>
+              </tr>
+              <tr style="border-top:1px solid var(--cds-gray-20);">
+                <td style="padding:8px 16px;">Collection Method</td>
+                <td style="padding:8px 16px;"><span style="color:var(--cds-green-60); font-weight:600;">&#10003; Present</span></td>
+                <td style="padding:8px 16px; font-size:12px; color:var(--cds-gray-60);">Manual Grab</td>
+              </tr>
+              <tr style="border-top:1px solid var(--cds-gray-20);">
+                <td style="padding:8px 16px;">Collection Conditions</td>
+                <td style="padding:8px 16px;"><span style="color:#f57f17; font-weight:600;">&#9888; Partial</span></td>
+                <td style="padding:8px 16px; font-size:12px; color:#f57f17;">Water temp recorded (28.5°C), ambient temp missing, weather missing</td>
+              </tr>
+              <tr style="border-top:1px solid var(--cds-gray-20);">
+                <td style="padding:8px 16px;">Regulatory Reference</td>
+                <td style="padding:8px 16px;"><span style="color:var(--cds-green-60); font-weight:600;">&#10003; Auto</span></td>
+                <td style="padding:8px 16px; font-size:12px; color:var(--cds-gray-60);">PP 22/2021 — auto-populated from standard</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="padding:12px 16px; background:#fff8e1; border-top:1px solid var(--cds-gray-20); font-size:12px; color:#f57f17;">
+            <strong>&#9888; 1 warning:</strong> Collection conditions partially complete. Ambient temperature and weather conditions were not recorded. This may affect regulatory compliance reporting.
+          </div>
+        </div>
       </div>
     </div>
 
@@ -2399,9 +2757,17 @@ function setWorkflow(type) {
   document.getElementById('section-clinical-diag').classList.toggle('hidden', type === 'env');
   document.getElementById('section-env-source').classList.toggle('hidden', type === 'clinical');
 
-  // Auto-default program when switching workflow type
+  // Toggle environmental-specific sections
+  var envSections = ['section-env-standard','section-env-samples','section-env-tests','section-env-conditions'];
+  envSections.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.toggle('hidden', type === 'clinical');
+  });
+
+  // When switching to env, populate sample type checklist and reset standard
   if (type === 'env') {
     selectProgram('lead-water', 'Lead in Well Water');
+    populateSampleChecklist();
   } else if (type === 'clinical' && ['lead-water','parasite','water'].indexOf(currentProgram) !== -1) {
     selectProgram('vl', 'VL Program');
   }
@@ -2582,9 +2948,176 @@ function dashboardSearch() {
   if (val) {
     document.getElementById('dashboard-results-label').innerHTML = 'Showing: <strong>Search results for "' + val + '"</strong>';
   } else {
-    document.getElementById('dashboard-results-label').innerHTML = 'Showing: <strong>My In-Progress Orders</strong> (6 results)';
+    document.getElementById('dashboard-results-label').innerHTML = 'Showing: <strong>My In-Progress Orders</strong> (8 results)';
   }
 }
+
+// ===== COMPLIANCE STANDARD COMBOBOX (ENV-1-001) =====
+var allStandards = [
+  {id:'pp22', name:'PP No. 22/2021 — Water Quality Standards', body:'Ministry of Environment (KLHK)', reg:'PP 22/2021', ver:'2021 / Jan 2022', tests:16, status:'Active'},
+  {id:'sni-6989', name:'SNI 6989 — Water Testing Methods', body:'BSN (Badan Standardisasi Nasional)', reg:'SNI 6989:2019', ver:'2019 / Mar 2020', tests:12, status:'Active'},
+  {id:'who-gdwq', name:'WHO GDWQ — Drinking Water Guidelines', body:'World Health Organization', reg:'WHO GDWQ 4th Ed', ver:'4th Ed / 2017', tests:22, status:'Active'},
+  {id:'epa-safe', name:'EPA Safe Drinking Water Act', body:'US EPA', reg:'40 CFR 141', ver:'Rev 2020 / Jan 2021', tests:18, status:'Active'}
+];
+var selectedStandard = null;
+
+function showStdDropdown() {
+  var dropdown = document.getElementById('std-dropdown');
+  dropdown.style.display = 'block';
+  filterStandards();
+}
+
+function filterStandards() {
+  var input = document.getElementById('std-combo').value.toLowerCase();
+  var dropdown = document.getElementById('std-dropdown');
+  var html = '';
+  allStandards.forEach(function(std) {
+    var match = !input || std.name.toLowerCase().indexOf(input) !== -1 || std.reg.toLowerCase().indexOf(input) !== -1;
+    if (match) {
+      html += '<div style="padding:10px 16px; cursor:pointer; border-bottom:1px solid var(--cds-gray-10); font-size:13px;" ' +
+        'onmouseover="this.style.background=\'#edf5ff\'" onmouseout="this.style.background=\'\'" ' +
+        'onclick="selectStandard(\'' + std.id + '\')">' +
+        '<div style="font-weight:500;">' + std.name + '</div>' +
+        '<div style="font-size:11px; color:var(--cds-gray-60); margin-top:2px;">' + std.body + ' &middot; ' + std.reg + ' &middot; ' + std.tests + ' linked tests</div>' +
+        '</div>';
+    }
+  });
+  if (!html) html = '<div style="padding:12px 16px; font-size:13px; color:var(--cds-gray-50);">No matching standards found</div>';
+  dropdown.innerHTML = html;
+}
+
+function selectStandard(id) {
+  selectedStandard = allStandards.find(function(s) { return s.id === id; });
+  if (!selectedStandard) return;
+  document.getElementById('std-combo').value = selectedStandard.name;
+  document.getElementById('std-dropdown').style.display = 'none';
+  document.getElementById('std-card-name').textContent = selectedStandard.name;
+  document.getElementById('std-card-body').textContent = selectedStandard.body;
+  document.getElementById('std-card-reg').textContent = selectedStandard.reg;
+  document.getElementById('std-card-ver').textContent = selectedStandard.ver;
+  document.getElementById('std-card-tests').textContent = selectedStandard.tests;
+  document.getElementById('std-selected-card').classList.remove('hidden');
+  // Auto-populate regulatory reference
+  var regRef = document.getElementById('env-reg-ref');
+  if (regRef) { regRef.value = selectedStandard.reg + ' — ' + selectedStandard.name.split(' — ')[1]; regRef.readOnly = true; regRef.style.background = 'var(--cds-gray-10)'; }
+  var lockLabel = document.getElementById('reg-ref-lock');
+  if (lockLabel) { lockLabel.innerHTML = '&#x1F512; Auto-populated from standard'; lockLabel.style.color = 'var(--cds-gray-60)'; }
+  populateSampleChecklist();
+}
+
+function clearStandard() {
+  selectedStandard = null;
+  document.getElementById('std-combo').value = '';
+  document.getElementById('std-selected-card').classList.add('hidden');
+  document.getElementById('std-thresholds').classList.add('hidden');
+  document.getElementById('sample-type-checklist').innerHTML = '';
+  document.getElementById('sample-count-label').textContent = '0 sample types selected';
+  document.getElementById('suggest-tests-btn').style.display = 'none';
+}
+
+function toggleStdThresholds() {
+  var el = document.getElementById('std-thresholds');
+  el.classList.toggle('hidden');
+}
+
+// ===== SAMPLE TYPE CHECKLIST (ENV-2-001) =====
+var standardSampleTypes = {
+  'pp22': ['Surface Water','Groundwater','Effluent Discharge'],
+  'sni-6989': ['Drinking Water','Surface Water','Wastewater'],
+  'who-gdwq': ['Drinking Water','Source Water','Treated Water','Distribution'],
+  'epa-safe': ['Drinking Water','Source Water','Groundwater']
+};
+var allSampleTypes = ['Surface Water','Groundwater','Effluent Discharge','Drinking Water','Wastewater','Sediment','Soil','Air Particulate','Treated Water','Source Water','Distribution'];
+
+function populateSampleChecklist() {
+  var container = document.getElementById('sample-type-checklist');
+  if (!container) return;
+  var stdTypes = (selectedStandard && standardSampleTypes[selectedStandard.id]) || ['Surface Water','Groundwater','Effluent Discharge'];
+  var html = '';
+  stdTypes.forEach(function(st, i) {
+    html += '<label style="display:flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--cds-gray-20); border-radius:4px; cursor:pointer; font-size:13px;" onchange="updateSampleCount()">' +
+      '<input type="checkbox" class="sample-check" style="width:16px; height:16px; accent-color:var(--cds-blue-60);" ' + (i < 3 ? 'checked' : '') + '> ' + st + '</label>';
+  });
+  container.innerHTML = html;
+  updateSampleCount();
+}
+
+function updateSampleCount() {
+  var checks = document.querySelectorAll('.sample-check:checked');
+  var label = document.getElementById('sample-count-label');
+  var btn = document.getElementById('suggest-tests-btn');
+  label.textContent = checks.length + ' sample type' + (checks.length !== 1 ? 's' : '') + ' selected';
+  btn.style.display = checks.length > 0 ? 'inline-block' : 'none';
+}
+
+function showOverrideCombo() {
+  document.getElementById('override-combo-wrapper').classList.remove('hidden');
+}
+
+function filterOverrides() {
+  var input = document.getElementById('override-combo').value.toLowerCase();
+  var dropdown = document.getElementById('override-dropdown');
+  var stdTypes = (selectedStandard && standardSampleTypes[selectedStandard.id]) || [];
+  var html = '';
+  allSampleTypes.forEach(function(st) {
+    if (stdTypes.indexOf(st) !== -1) return; // already in checklist
+    if (input && st.toLowerCase().indexOf(input) === -1) return;
+    html += '<div style="padding:8px 16px; cursor:pointer; font-size:13px; display:flex; justify-content:space-between;" ' +
+      'onmouseover="this.style.background=\'#edf5ff\'" onmouseout="this.style.background=\'\'" ' +
+      'onclick="addOverrideSample(\'' + st + '\')">' +
+      '<span>' + st + '</span>' +
+      '<span style="padding:1px 6px; background:#fff1f1; color:var(--cds-red-60); border-radius:8px; font-size:10px;">Not in Standard</span></div>';
+  });
+  if (!html) html = '<div style="padding:10px 16px; font-size:13px; color:var(--cds-gray-50);">No additional sample types found</div>';
+  dropdown.innerHTML = html;
+  dropdown.style.display = 'block';
+}
+
+function addOverrideSample(name) {
+  var container = document.getElementById('sample-type-checklist');
+  var label = document.createElement('label');
+  label.style.cssText = 'display:flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid #ffcdd2; border-radius:4px; cursor:pointer; font-size:13px; background:#fff8f8;';
+  label.setAttribute('onchange', 'updateSampleCount()');
+  label.innerHTML = '<input type="checkbox" class="sample-check" checked style="width:16px; height:16px; accent-color:var(--cds-blue-60);"> ' + name +
+    ' <span style="padding:1px 6px; background:#fff1f1; color:var(--cds-red-60); border-radius:8px; font-size:10px; margin-left:auto;">Not in Standard</span>';
+  container.appendChild(label);
+  document.getElementById('override-dropdown').style.display = 'none';
+  document.getElementById('override-combo').value = '';
+  updateSampleCount();
+}
+
+function triggerTestSuggestion() {
+  // Show the suggested tests section (already populated with static HTML)
+  document.getElementById('section-env-tests').classList.remove('hidden');
+  // Scroll to it
+  document.getElementById('section-env-tests').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ===== REGULATORY REFERENCE OVERRIDE =====
+function overrideRegRef() {
+  var input = document.getElementById('env-reg-ref');
+  input.readOnly = false;
+  input.style.background = 'var(--cds-white)';
+  input.style.color = 'var(--cds-gray-100)';
+  input.style.borderColor = '#f1c21b';
+  input.focus();
+  var lockLabel = document.getElementById('reg-ref-lock');
+  if (lockLabel) { lockLabel.innerHTML = '&#9888; Manual override — standard auto-populate disabled'; lockLabel.style.color = '#f57f17'; }
+}
+
+// Close standard dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  var combo = document.getElementById('std-combo');
+  var dropdown = document.getElementById('std-dropdown');
+  if (combo && dropdown && !combo.contains(e.target) && !dropdown.contains(e.target)) {
+    dropdown.style.display = 'none';
+  }
+  var oDrop = document.getElementById('override-dropdown');
+  var oCombo = document.getElementById('override-combo');
+  if (oDrop && oCombo && !oCombo.contains(e.target) && !oDrop.contains(e.target)) {
+    oDrop.style.display = 'none';
+  }
+});
 
 function updateConfigPreview() {
   const val = document.getElementById('config-workflow').value;

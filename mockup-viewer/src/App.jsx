@@ -97,7 +97,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Test Catalog',
-    category: 'admin-config',
+    category: 'vector-surveillance',
     component: React.lazy(() => import('@designs/admin-config/test-catalog.jsx')),
     description: 'Comprehensive test catalog management',
     specPath: 'designs/admin-config/test-catalog.md',
@@ -143,10 +143,11 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Compliance Standards Administration',
-    category: 'admin-config',
-    component: null,
+    category: 'vector-surveillance',
+    component: React.lazy(() => import('@designs/admin-config/compliance-standards-admin.jsx')),
     description: 'Admin configuration for compliance standards (ISO 15189, WHO, CLSI) — link standards to test catalog entries, QC rules, and sampling protocols. Part of the Vector/Environmental LIMS epic.',
     specPath: 'designs/admin-config/compliance-standards-admin.md',
+    htmlUrl: 'designs/admin-config/compliance-standards-admin.html',
     added: '2026-04-02',
     status: 'draft',
     githubIssue: 72,
@@ -496,7 +497,7 @@ export const MOCKUP_REGISTRY = [
   // ─── Results & Validation ───
   {
     name: 'Results Page',
-    category: 'results-validation',
+    category: 'vector-surveillance',
     component: React.lazy(() => import('@designs/results-validation/results-page.jsx')),
     description: 'Main results entry and review page',
     specPath: 'designs/results-validation/results-page.md',
@@ -506,7 +507,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Validation Page',
-    category: 'results-validation',
+    category: 'vector-surveillance',
     component: React.lazy(() => import('@designs/results-validation/validation-page.jsx')),
     description: 'Result validation workflow',
     specPath: 'designs/results-validation/validation-page.md',
@@ -585,7 +586,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Compliance Evaluation Engine',
-    category: 'results-validation',
+    category: 'vector-surveillance',
     component: React.lazy(() => import('@designs/results-validation/compliance-evaluation-engine.jsx')),
     description: 'Compliance Evaluation Engine (S-05) — auto-evaluate results against regulatory thresholds with pass/marginal/fail indicators, descriptive tag library, unit conversion, and override workflow. Extends results entry page.',
     specPath: 'designs/results-validation/compliance-evaluation-engine.md',
@@ -599,7 +600,7 @@ export const MOCKUP_REGISTRY = [
   // ─── Reports ───
   {
     name: 'Laporan Hasil — Compliance Report',
-    category: 'reports',
+    category: 'vector-surveillance',
     component: React.lazy(() => import('@designs/reports/laporan-hasil-compliance-report.jsx')),
     description: 'Laporan Hasil (S-06) — formal Sertifikat Hasil Uji (Test Results Certificate) PDF generation for validated environmental orders. Dual e-signature, batch ZIP download, shared Report Print Configuration admin page.',
     specPath: 'designs/reports/laporan-hasil-compliance-report.md',
@@ -634,7 +635,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Environmental Dashboard & Trend Analysis',
-    category: 'reports',
+    category: 'vector-surveillance',
     component: React.lazy(() => import('@designs/reports/environmental-dashboard.jsx')),
     description: 'Environmental Dashboard (S-07) — site-level compliance rate trends, per-parameter drill-down, exceedance summary table, site comparison bar chart, CSV export. Monthly aggregation with 12-month default view.',
     specPath: 'designs/reports/environmental-dashboard.md',
@@ -650,7 +651,7 @@ export const MOCKUP_REGISTRY = [
     category: 'reports',
     component: React.lazy(() => import('@designs/reports/disease-surveillance-dashboard.jsx')),
     description: 'Public-health surveillance dashboard — weekly TB/HIV positivity trends, volume-by-site breakdowns, and FHIR-sourced aggregate indicators for program managers',
-    specPath: null,
+    specPath: 'designs/reports/disease-surveillance-dashboard.md',
     added: '2026-03-23',
     status: 'draft',
     githubIssue: 57,
@@ -713,7 +714,7 @@ export const MOCKUP_REGISTRY = [
     category: 'inventory',
     component: React.lazy(() => import('@designs/inventory/reagent-forecasting-workbench.jsx')),
     description: 'National/regional reagent forecasting workbench — multi-facility days-of-stock table, critical/low alerts, ADC-based projections, and reorder planning for program managers',
-    specPath: null,
+    specPath: 'designs/inventory/reagent-forecasting-workbench.md',
     added: '2026-03-23',
     status: 'draft',
     githubIssue: 60,
@@ -802,7 +803,7 @@ export const MOCKUP_REGISTRY = [
   // ─── Sample Collection ───
   {
     name: 'Sample Collection Redesign',
-    category: 'sample-collection',
+    category: 'vector-surveillance',
     component: null,
     description: 'Decoupled 4-step sample lifecycle: Enter Order → Collect Sample → Label & Store → QA Review',
     specPath: 'designs/sample-collection/sample-collection-redesign.md',
@@ -814,7 +815,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Sampling Site Registry',
-    category: 'sample-collection',
+    category: 'vector-surveillance',
     component: React.lazy(() => import('@designs/sample-collection/sampling-site-registry.jsx')),
     description: 'Environmental LIMS sampling site registry — manage sampling locations, GPS coordinates, site types, and compliance linkage to S-01 standards with hierarchical site grouping (S-02)',
     specPath: 'designs/sample-collection/sampling-site-registry.md',
@@ -940,7 +941,7 @@ export const MOCKUP_REGISTRY = [
   // ─── Reference / Planning ───
   {
     name: 'Environmental & Vector Testing Roadmap',
-    category: 'other',
+    category: 'vector-surveillance',
     component: null,
     description: 'Architecture roadmap for the Environmental & Vector Testing Module (OGC-527 epic). Covers 3-layer build order: S-01–S-02 foundational infrastructure, S-03–S-04 integration, S-05–S-08 analytics/reporting, V-01–V-04 vector surveillance. Dependency graph, recommended implementation phases, and current spec completion status.',
     specPath: 'designs/other/environmental-vector-roadmap.md',
@@ -956,6 +957,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/patient/patient-id-card-scanning.jsx')),
     description: 'Patient ID card scanning and document management. Adds an Identification Documents accordion to patient registration and edit screens, plus a document count column and inline preview panel in patient search results. Supports file upload, camera capture, and clipboard paste; stores documents as FHIR Patient attachments with full audit trail and role-based permissions.',
     specPath: 'designs/patient/patient-id-card-scanning.md',
+    htmlUrl: 'designs/patient/patient-id-card-scanning.html',
     added: '2026-04-13',
     status: 'draft',
     githubIssue: 82,

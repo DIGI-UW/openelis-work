@@ -1417,7 +1417,7 @@
   type: spec
   path: null
   spec: designs/admin-config/compliance-standards-admin.md
-  category: admin-config
+  category: vector-surveillance
   description: Admin configuration for compliance standards (ISO 15189, WHO, CLSI) — link to test catalog, QC rules, and sampling protocols (S-01, Vector epic)
   links:
     github: https://github.com/DIGI-UW/openelis-work/issues/72
@@ -1429,7 +1429,7 @@
   type: both
   path: designs/sample-collection/sampling-site-registry.jsx
   spec: designs/sample-collection/sampling-site-registry.md
-  category: sample-collection
+  category: vector-surveillance
   description: Environmental LIMS sampling site registry — manage sampling locations, GPS coordinates, site types, and compliance linkage (S-02, Vector epic)
   links:
     github: https://github.com/DIGI-UW/openelis-work/issues/71
@@ -1477,7 +1477,7 @@
   type: both
   path: designs/results-validation/compliance-evaluation-engine.jsx
   spec: designs/results-validation/compliance-evaluation-engine.md
-  category: results-validation
+  category: vector-surveillance
   description: Compliance Evaluation Engine (S-05) — auto-evaluate results against regulatory thresholds with pass/marginal/fail indicators, descriptive tag library, unit conversion, and override workflow. Extends results entry page.
   links:
     github: https://github.com/DIGI-UW/openelis-work/issues/TBD
@@ -1570,3 +1570,83 @@
   added: "2026-04-14"
   status: draft
   tags: ["sample-collection", "order-entry", "consent", "compliance", "ISO-15189", "Madagascar"]
+
+- id: disease-surveillance-dashboard-spec
+  type: spec
+  path: designs/reports/disease-surveillance-dashboard.md
+  spec: designs/reports/disease-surveillance-dashboard.md
+  category: reports
+  description: >
+    Functional Requirements Spec for the Disease Surveillance Dashboard — public-health
+    surveillance reporting with weekly TB/HIV positivity trends, volume-by-site breakdowns,
+    and FHIR-sourced aggregate indicators for program managers.
+  links:
+    github_issue: 57
+    gallery: https://digi-uw.github.io/openelis-work/#/reports/disease-surveillance-dashboard
+  added: "2026-04-16"
+  status: draft
+  tags: ["reports", "surveillance", "public-health", "FHIR", "dashboard"]
+
+- id: reagent-forecasting-workbench-spec
+  type: spec
+  path: designs/inventory/reagent-forecasting-workbench.md
+  spec: designs/inventory/reagent-forecasting-workbench.md
+  category: inventory
+  description: >
+    Functional Requirements Spec for the Reagent Forecasting Workbench — national/regional
+    multi-facility days-of-stock table, critical/low alerts, ADC-based projections,
+    and reorder planning for program managers.
+  links:
+    github_issue: 60
+    gallery: https://digi-uw.github.io/openelis-work/#/inventory/reagent-forecasting-workbench
+  added: "2026-04-16"
+  status: draft
+  tags: ["inventory", "reagents", "forecasting", "stock"]
+
+- id: compliance-standards-admin
+  type: both
+  path: designs/admin-config/compliance-standards-admin.jsx
+  spec: designs/admin-config/compliance-standards-admin.md
+  preview_path: mockup-viewer/public/designs/admin-config/compliance-standards-admin.html
+  category: vector-surveillance
+  description: >
+    Carbon React mockup for Compliance Standards Administration — admin configuration
+    to link ISO 15189, WHO, and CLSI compliance standards to test catalog entries,
+    QC rules, and sampling protocols. Part of the Vector/Environmental LIMS epic.
+  links:
+    jira: ["OGC-528"]
+    github_issue: 72
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/compliance-standards-administration
+  added: "2026-04-16"
+  status: draft
+  tags: ["compliance", "ISO-15189", "standards", "vector", "environmental", "admin-config"]
+
+- id: patient-id-card-scanning-html
+  type: html
+  path: designs/patient/patient-id-card-scanning.html
+  spec: designs/patient/patient-id-card-scanning.md
+  preview_path: mockup-viewer/public/designs/patient/patient-id-card-scanning.html
+  category: patient
+  description: >
+    HTML preview for Patient ID card scanning and document management (OGC-66).
+  links:
+    jira: ["OGC-66"]
+    github_issue: 82
+    gallery: https://digi-uw.github.io/openelis-work/#/patient/patient-id-card-scanning
+  added: "2026-04-16"
+  status: draft
+  tags: ["patient", "document-management", "FHIR", "scanning", "registration"]
+
+- id: aspect-gxalert-openelis-gap-analysis
+  type: requirements-doc
+  path: assets/requirements-docs/aspect-gxalert-openelis-gap-analysis.docx
+  spec: null
+  category: analyzer-integration
+  description: >
+    Gap analysis document comparing Aspect GxAlert alert management capabilities
+    against OpenELIS Global — identifies integration requirements, missing features,
+    and implementation recommendations for connecting GxAlert to OpenELIS.
+  links: {}
+  added: "2026-04-16"
+  status: reference
+  tags: ["analyzer-integration", "GxAlert", "gap-analysis", "alerts"]
