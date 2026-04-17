@@ -1612,3 +1612,33 @@
     - eligibility-gate
   added: "2026-04-17"
   status: draft
+
+- id: vector-testing-identification
+  type: both
+  path: designs/vector-surveillance/vector-testing-identification.jsx
+  spec: designs/vector-surveillance/vector-testing-identification.md
+  preview: designs/vector-surveillance/vector-testing-identification.html
+  category: vector-surveillance
+  description: >
+    V-03 Vector Testing & Identification — species identification workbench with per-specimen
+    inline form and bulk-apply for homogeneous lots. Molecular detail capture (target gene,
+    assay name, GenBank accession). Admin-configured pathogen test panel library (VectorTestPanel).
+    Pool deconvolution workflow: positive pool → DeconvolutionTask → child VectorSpecimen records
+    → re-test order. Hybrid architecture: species ID in dedicated workbench; pathogen results
+    through standard Results Entry workflow.
+  links:
+    jira: ["OGC-527"]
+  tags:
+    - vector
+    - identification
+    - species
+    - pathogen
+    - panel
+    - deconvolution
+    - Indonesia
+    - mosquito
+    - molecular
+    - PCR
+    - pool
+  added: "2026-04-17"
+  status: draft
