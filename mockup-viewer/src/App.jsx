@@ -862,7 +862,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/sample-collection/pre-analytical-eligibility-gate.html',
     added: '2026-04-16',
     status: 'draft',
-    jira: ['OGC-527'],
+    jira: ['OGC-527', 'OGC-580'],
     tags: ['sample-collection', 'environmental', 'vector', 'clinical', 'eligibility', 'nce', 'iso-15189', 'iso-17025', 'SILNAS'],
   },
 
