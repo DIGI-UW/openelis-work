@@ -747,6 +747,7 @@
         <div class="workflow-toggle">
           <button class="workflow-toggle-btn active" id="wf-clinical" onclick="setWorkflow('clinical')">Clinical</button>
           <button class="workflow-toggle-btn" id="wf-env" onclick="setWorkflow('env')">Environmental / Other</button>
+          <button class="workflow-toggle-btn" id="wf-vector" onclick="setWorkflow('vector')">Vector</button>
         </div>
         <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">This toggle appears only when the lab unit is configured for "Both" workflow types. If the lab unit supports only one workflow type (e.g., Clinical only), that type is used automatically and this toggle is hidden.</p>
       </div>
@@ -1306,6 +1307,160 @@
       </div>
     </div>
 
+    <!-- ===== SAMPLING SITE (Vector) ===== -->
+    <div class="form-section hidden" id="section-vector">
+      <div class="form-section-header"><h3>Sampling Site</h3></div>
+      <div class="form-section-body">
+        <div style="position:relative; max-width:480px; margin-bottom:16px;">
+          <label class="form-label">Search sampling sites <span class="required">*</span></label>
+          <input class="form-input" id="vec-site-input" type="text"
+            placeholder="Search by site name or district…"
+            oninput="filterVecSites(this.value)"
+            onfocus="document.getElementById('vec-site-dd').style.display='block'"
+            autocomplete="off">
+          <div id="vec-site-dd" style="display:none; position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid var(--cds-gray-30); z-index:20; box-shadow:0 4px 8px rgba(0,0,0,.12);">
+            <div class="program-option" onclick="selectVecSite('ss1','Ciliwung River — Upstream S1','Jakarta Selatan',-6.2341,106.8312)"><strong>Ciliwung River — Upstream S1</strong><br><span style="font-size:12px; color:var(--cds-gray-60);">Jakarta Selatan · Vector Trap · −6.2341, 106.8312</span></div>
+            <div class="program-option" onclick="selectVecSite('ss2','Manggarai Station — East Drainage','Jakarta Selatan',-6.2105,106.8502)"><strong>Manggarai Station — East Drainage</strong><br><span style="font-size:12px; color:var(--cds-gray-60);">Jakarta Selatan · Vector Trap · −6.2105, 106.8502</span></div>
+            <div class="program-option" onclick="selectVecSite('ss3','Ragunan Park — Zone B Perimeter','Jakarta Selatan',-6.3128,106.8212)"><strong>Ragunan Park — Zone B Perimeter</strong><br><span style="font-size:12px; color:var(--cds-gray-60);">Jakarta Selatan · Vector Trap · −6.3128, 106.8212</span></div>
+          </div>
+        </div>
+        <div id="vec-site-card" style="display:none; padding:12px 16px; background:#edfafa; border:1px solid #9ef0f0; max-width:480px; margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <strong id="vec-site-name" style="font-size:14px;">—</strong>
+            <span class="tag tag-env" style="font-size:11px;">Selected</span>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; font-size:12px;">
+            <div><span style="color:var(--cds-gray-60);">District: </span><span id="vec-site-district">—</span></div>
+            <div><span style="color:var(--cds-gray-60);">Type: </span>Vector Trap</div>
+            <div style="font-family:monospace; font-size:11px;"><span id="vec-site-coords">—</span></div>
+          </div>
+        </div>
+        <p style="font-size:11px; color:var(--cds-gray-60);">Can't find a site? <a href="#" style="color:var(--cds-blue-60);">Register a new sampling site (S-02)</a> first.</p>
+      </div>
+    </div>
+
+    <!-- ===== COLLECTION EVENT (Vector) ===== -->
+    <div class="form-section hidden" id="section-vector-event">
+      <div class="form-section-header"><h3>Collection Event</h3></div>
+      <div class="form-section-body">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Trap Type <span class="required">*</span></label>
+            <select class="form-select">
+              <option value="">Select trap type…</option>
+              <option>BG-Sentinel</option>
+              <option>BG-Pro</option>
+              <option>CDC Light Trap</option>
+              <option>Ovitrap</option>
+              <option>Gravid Trap</option>
+              <option>Human Landing Catch (HLC)</option>
+              <option>Tick Drag</option>
+              <option>Sherman Trap</option>
+            </select>
+            <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">Trap type catalogue managed in V-01 Trap Type Config.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Field team / Collector name</label>
+            <input class="form-input" placeholder="e.g., Tim Vektor Jaksel — Budi Santoso" value="Tim Vektor Jaksel — Budi Santoso">
+            <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">Free text. Transcribe from field data sheet.</p>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Collection start date <span class="required">*</span></label>
+            <input class="form-input" type="date" value="2026-04-15">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Collection end date (optional)</label>
+            <input class="form-input" type="date">
+          </div>
+        </div>
+
+        <!-- GPS -->
+        <p style="font-size:13px; font-weight:600; margin-bottom:8px;">GPS Coordinates</p>
+        <div class="form-row three-col" style="margin-bottom:8px;">
+          <div class="form-group">
+            <label class="form-label">Latitude <span class="required">*</span></label>
+            <input class="form-input" type="number" id="vec-lat" step="0.0001" min="-90" max="90" value="-6.2341">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Longitude <span class="required">*</span></label>
+            <input class="form-input" type="number" id="vec-lng" step="0.0001" min="-180" max="180" value="106.8312">
+          </div>
+          <div class="form-group" style="justify-content:flex-end;">
+            <div style="background:var(--cds-blue-10); border-left:3px solid var(--cds-blue-60); padding:8px 10px; font-size:11px; color:var(--cds-blue-70); margin-top:20px;">
+              Pre-filled from selected site. Update if the trap GPS differs from the site centre.
+            </div>
+          </div>
+        </div>
+
+        <!-- Pool flag + count + sample type -->
+        <div class="form-row three-col" style="margin-top:8px; align-items:start;">
+          <div class="form-group">
+            <label class="form-label">Pooled specimen</label>
+            <div style="display:flex; align-items:center; gap:10px; margin-top:6px;">
+              <label style="position:relative; display:inline-block; width:48px; height:24px; cursor:pointer;">
+                <input type="checkbox" id="vec-pool-chk" checked onchange="toggleVecPool(this.checked)" style="opacity:0; width:0; height:0;">
+                <span id="vec-pool-track" style="position:absolute; inset:0; background:var(--cds-blue-60); border-radius:12px; transition:background 0.2s;"></span>
+                <span id="vec-pool-thumb" style="position:absolute; top:4px; left:28px; width:16px; height:16px; background:#fff; border-radius:50%; transition:transform 0.2s; pointer-events:none;"></span>
+              </label>
+              <span id="vec-pool-label" style="font-size:13px; color:var(--cds-gray-70);">Yes — Pool</span>
+            </div>
+            <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">Pool = multiple organisms combined in one container.</p>
+          </div>
+          <div class="form-group" id="vec-count-group">
+            <label class="form-label">Organism count <span class="required">*</span></label>
+            <input class="form-input" type="number" min="1" value="25">
+            <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">Total organisms in this pool.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Vector Sample Type <span class="required">*</span></label>
+            <select class="form-select">
+              <option>Mosquito Pool (Fixed — 25)</option>
+              <option>Mosquito Pool (Variable)</option>
+              <option>Tick — Individual</option>
+              <option>Rodent Tissue — Individual</option>
+            </select>
+            <p style="font-size:11px; color:var(--cds-gray-60); margin-top:4px;">Drives pool size validation in Step 4 eligibility gate.</p>
+          </div>
+        </div>
+
+        <!-- Weather accordion -->
+        <div style="border:1px solid var(--cds-gray-20); margin-top:16px;" id="vec-weather-accordion">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; cursor:pointer; background:var(--cds-white); font-size:14px; font-weight:500;"
+            onclick="toggleVecWeather()">
+            Weather &amp; Conditions (optional)
+            <svg id="vec-weather-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition:transform 0.2s; color:var(--cds-gray-60);"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div id="vec-weather-body" style="display:none; padding:16px; border-top:1px solid var(--cds-gray-20);">
+            <div class="form-row three-col">
+              <div class="form-group">
+                <label class="form-label">Air temperature (°C)</label>
+                <input class="form-input" type="number" step="0.1" value="28">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Humidity (%)</label>
+                <input class="form-input" type="number" min="0" max="100" value="82">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Weather condition</label>
+                <select class="form-select">
+                  <option>Clear</option><option>Cloudy</option><option>Rainy</option><option>Post-rain</option><option>Overcast</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-top:12px;">
+              <label class="form-label">Collection notes</label>
+              <textarea class="form-input" rows="2" style="border:1px solid var(--cds-gray-30); resize:vertical;" placeholder="e.g., High mosquito activity near drainage canal; trap placed 1.5m above ground"></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <!-- ===== PROGRAM SELECTION (Typeahead Combo) ===== -->
     <div class="form-section">
       <div class="form-section-header"><h3>Program</h3></div>
@@ -1326,6 +1481,10 @@
               <div class="program-option" data-value="lead-water" onclick="selectProgram('lead-water','Lead in Well Water')">Lead in Well Water</div>
               <div class="program-option" data-value="parasite" onclick="selectProgram('parasite','Parasite Monitoring')">Parasite Monitoring</div>
               <div class="program-option" data-value="water" onclick="selectProgram('water','Water Quality Monitoring')">Water Quality Monitoring</div>
+              <div style="border-top:1px solid var(--cds-gray-20); padding:4px 12px; font-size:10px; color:var(--cds-gray-50); text-transform:uppercase; letter-spacing:0.5px; background:var(--cds-gray-10);">Vector Programs</div>
+              <div class="program-option" data-value="dengue-vector" onclick="selectProgram('dengue-vector','Dengue Vector Surveillance')">Dengue Vector Surveillance</div>
+              <div class="program-option" data-value="malaria-vector" onclick="selectProgram('malaria-vector','Malaria Vector Surveillance')">Malaria Vector Surveillance</div>
+              <div class="program-option" data-value="tick-borne" onclick="selectProgram('tick-borne','Tick-Borne Disease Monitoring')">Tick-Borne Disease Monitoring</div>
             </div>
           </div>
         </div>
@@ -2752,10 +2911,22 @@ function toggleOrderMenu() {
 function setWorkflow(type) {
   document.getElementById('wf-clinical').classList.toggle('active', type === 'clinical');
   document.getElementById('wf-env').classList.toggle('active', type === 'env');
+  document.getElementById('wf-vector').classList.toggle('active', type === 'vector');
 
-  document.getElementById('section-patient').classList.toggle('hidden', type === 'env');
-  document.getElementById('section-clinical-diag').classList.toggle('hidden', type === 'env');
-  document.getElementById('section-env-source').classList.toggle('hidden', type === 'clinical');
+  const isClinical = type === 'clinical';
+  const isEnv      = type === 'env';
+  const isVector   = type === 'vector';
+
+  // Clinical-only sections
+  document.getElementById('section-patient').classList.toggle('hidden', !isClinical);
+  document.getElementById('section-clinical-diag').classList.toggle('hidden', !isClinical);
+
+  // Environmental-only section
+  document.getElementById('section-env-source').classList.toggle('hidden', !isEnv);
+
+  // Vector-only sections
+  document.getElementById('section-vector').classList.toggle('hidden', !isVector);
+  document.getElementById('section-vector-event').classList.toggle('hidden', !isVector);
 
   // Toggle environmental-specific sections
   var envSections = ['section-env-standard','section-env-samples','section-env-tests','section-env-conditions'];
@@ -2764,13 +2935,56 @@ function setWorkflow(type) {
     if (el) el.classList.toggle('hidden', type === 'clinical');
   });
 
-  // When switching to env, populate sample type checklist and reset standard
-  if (type === 'env') {
+  // Auto-default program when switching workflow type
+  if (isEnv) {
     selectProgram('lead-water', 'Lead in Well Water');
-    populateSampleChecklist();
-  } else if (type === 'clinical' && ['lead-water','parasite','water'].indexOf(currentProgram) !== -1) {
+  } else if (isVector) {
+    selectProgram('dengue-vector', 'Dengue Vector Surveillance');
+  } else if (isClinical && ['lead-water','parasite','water','dengue-vector','malaria-vector','tick-borne'].indexOf(currentProgram) !== -1) {
+
     selectProgram('vl', 'VL Program');
   }
+}
+
+// ── Vector site search ─────────────────────────────────────────────────────
+function filterVecSites(val) {
+  const dd = document.getElementById('vec-site-dd');
+  dd.style.display = 'block';
+  const opts = dd.querySelectorAll('.program-option');
+  opts.forEach(o => { o.style.display = o.textContent.toLowerCase().includes(val.toLowerCase()) ? '' : 'none'; });
+}
+function selectVecSite(id, name, district, lat, lng) {
+  document.getElementById('vec-site-input').value = name;
+  document.getElementById('vec-site-dd').style.display = 'none';
+  document.getElementById('vec-site-name').textContent = name;
+  document.getElementById('vec-site-district').textContent = district;
+  document.getElementById('vec-site-coords').textContent = lat + ', ' + lng;
+  document.getElementById('vec-site-card').style.display = 'block';
+  document.getElementById('vec-lat').value = lat;
+  document.getElementById('vec-lng').value = lng;
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#vec-site-input') && !e.target.closest('#vec-site-dd')) {
+    const dd = document.getElementById('vec-site-dd');
+    if (dd) dd.style.display = 'none';
+  }
+});
+
+// ── Vector pool toggle ─────────────────────────────────────────────────────
+function toggleVecPool(checked) {
+  document.getElementById('vec-pool-label').textContent = checked ? 'Yes — Pool' : 'No — Individual';
+  document.getElementById('vec-pool-track').style.background = checked ? 'var(--cds-blue-60)' : 'var(--cds-gray-50)';
+  document.getElementById('vec-pool-thumb').style.transform = checked ? 'translateX(24px)' : '';
+  document.getElementById('vec-count-group').style.display = checked ? '' : 'none';
+}
+
+// ── Vector weather accordion ───────────────────────────────────────────────
+function toggleVecWeather() {
+  const body = document.getElementById('vec-weather-body');
+  const chev = document.getElementById('vec-weather-chevron');
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  chev.style.transform = open ? '' : 'rotate(180deg)';
 }
 
 function showPatientTab(tab) {

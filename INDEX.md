@@ -30,6 +30,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 |---------|--------|------|
 | Sample Type Domain Classification | [sample-type-domain-classification.jsx](designs/admin-config/sample-type-domain-classification.jsx) | [sample-type-domain-classification.md](designs/admin-config/sample-type-domain-classification.md) |
 | Vector Specimen Types & Taxonomy | [vector-reference-data.jsx](designs/vector-surveillance/vector-reference-data.jsx) | [vector-reference-data.md](designs/vector-surveillance/vector-reference-data.md) |
+| Vector Collection Workflow | [vector-collection-workflow.jsx](designs/vector-surveillance/vector-collection-workflow.jsx) · [preview](designs/vector-surveillance/vector-collection-workflow.html) | [vector-collection-workflow.md](designs/vector-surveillance/vector-collection-workflow.md) |
 
 ## Analyzer Integration
 
