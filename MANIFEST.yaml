@@ -1567,7 +1567,7 @@
     criteria + per-lab-unit gate behavior configuration. Layer 4 addendum to Sample Collection
     Redesign (OGC-527 epic).
   links:
-    jira: ["OGC-527", "OGC-TBD"]
+    jira: ["OGC-527", "OGC-580"]
     other:
       - "SILNAS PRD v0.5 — Environmental Module Table 11 rows 10-12; Vector Module Table 16 rows 10-11"
       - "Roadmap: designs/other/environmental-vector-roadmap.md"
