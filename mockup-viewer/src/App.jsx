@@ -828,7 +828,7 @@ export const MOCKUP_REGISTRY = [
 
   {
     name: 'Environmental Order Entry',
-    category: 'sample-collection',
+    category: 'vector-surveillance',
     component: React.lazy(() => import('@designs/sample-collection/environmental-order-entry.jsx')),
     description: 'Environmental order entry integration (S-03) — compliance standard selection, sampling site auto-population, sample type & test panel auto-suggestion, collection conditions, and regulatory reference fields for vector/environmental LIMS workflows',
     specPath: 'designs/sample-collection/environmental-order-entry.md',
@@ -838,6 +838,18 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 74,
     jira: ['OGC-537', 'OGC-527'],
     tags: ['environmental', 'order-entry', 'vector', 'compliance', 'sample-collection'],
+  },
+  {
+    name: 'Informed Consent Capture',
+    category: 'sample-collection',
+    component: React.lazy(() => import('@designs/sample-collection/informed-consent.jsx')),
+    description: 'Informed consent capture section for sample order entry (OGC-557) — collapsible accordion with consent checkbox and optional form reference number, auditable agent/timestamp record for ISO 15189 compliance. Reusable ConsentAccordionSection component for Add Order and Edit Order workflows.',
+    specPath: 'designs/sample-collection/informed-consent.md',
+    htmlUrl: 'designs/sample-collection/informed-consent.html',
+    added: '2026-04-14',
+    status: 'draft',
+    jira: ['OGC-557'],
+    tags: ['sample-collection', 'order-entry', 'consent', 'compliance', 'ISO-15189', 'Madagascar'],
   },
 
   // ─── Other ───
