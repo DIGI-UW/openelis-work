@@ -163,6 +163,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Sampling Site Registry | [sampling-site-registry.jsx](designs/sample-collection/sampling-site-registry.jsx) | [sampling-site-registry.md](designs/sample-collection/sampling-site-registry.md) |
 | Environmental Order Entry | [environmental-order-entry.jsx](designs/sample-collection/environmental-order-entry.jsx) | [environmental-order-entry.md](designs/sample-collection/environmental-order-entry.md) |
 | Informed Consent Capture (OGC-557) | [informed-consent.jsx](designs/sample-collection/informed-consent.jsx) | [informed-consent.md](designs/sample-collection/informed-consent.md) |
+| Pre-Analytical Eligibility Gate (S-09) | [pre-analytical-eligibility-gate.jsx](designs/sample-collection/pre-analytical-eligibility-gate.jsx) · [preview](designs/sample-collection/pre-analytical-eligibility-gate.html) | [pre-analytical-eligibility-gate.md](designs/sample-collection/pre-analytical-eligibility-gate.md) |
 
 ## Other
 

@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S-09 Pre-Analytical Eligibility Gate — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', Arial, sans-serif; }
+    .preview-banner {
+      background: #0f62fe; color: #fff;
+      padding: 6px 1.5rem; font-size: 12px; font-family: 'IBM Plex Mono', monospace;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .preview-content { padding: 1.5rem 2rem; max-width: 1440px; margin: 0 auto; }
+    .screen-switcher { display: flex; gap: 0; border-bottom: 2px solid #e0e0e0; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .screen-btn {
+      padding: 0.75rem 1.25rem; font-size: 0.875rem; border: none; background: transparent;
+      cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px;
+      font-family: 'IBM Plex Sans', Arial, sans-serif; color: #525252;
+    }
+    .screen-btn.active { color: #0f62fe; border-bottom-color: #0f62fe; font-weight: 600; }
+    .screen-btn:hover:not(.active) { background: #e8e8e8; }
+    .cds--tile { background: #fff; padding: 1rem; }
+    /* NCE form slide-down */
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    .nce-form-wrap { animation: slideDown 200ms ease-out; }
+    /* Criterion row hover */
+    .criterion-row { transition: background 120ms; }
+    .criterion-row:hover { background: #f4f4f4; }
+    /* Override to remove Carbon's heavy tile shadow on hover for tiles used as radio cards */
+    .action-card { transition: border-color 150ms, background 150ms; }
+    .action-card:hover { border-color: #0f62fe !important; }
+    /* compact table */
+    .cds--data-table td, .cds--data-table th { padding: 0.5rem 1rem; }
+    .tag-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 1rem; font-size: 0.75rem; font-weight: 500;
+    }
+    .tag-blue { background: #d0e2ff; color: #0043ce; }
+    .tag-green { background: #defbe6; color: #044317; }
+    .tag-teal { background: #d9fbfb; color: #004144; }
+    .tag-red { background: #fff1f1; color: #da1e28; }
+    .tag-orange { background: #fff2e8; color: #8a3800; }
+    .tag-gray { background: #e0e0e0; color: #393939; }
+    .tag-purple { background: #e8daff; color: #491d8b; }
+    .tag-cyan { background: #e5f6ff; color: #003a6d; }
+    .summary-tile {
+      background: #fff; padding: 1.25rem; border-radius: 2px;
+      border-top: 4px solid #0f62fe; flex: 1 1 180px;
+    }
+    .summary-tile .metric { font-size: 2rem; font-weight: 700; line-height: 1.2; }
+    .summary-tile .metric-label { font-size: 0.75rem; color: #525252; margin-bottom: 0.25rem; }
+    /* form fields */
+    input[type=text], textarea, select {
+      width: 100%; box-sizing: border-box; padding: 0.5rem 0.75rem;
+      border: 1px solid #8d8d8d; font-family: 'IBM Plex Sans', Arial, sans-serif;
+      font-size: 0.875rem; background: #fff;
+    }
+    input[type=text]:focus, textarea:focus, select:focus {
+      outline: 2px solid #0f62fe; outline-offset: -2px; border-color: transparent;
+    }
+    label.field-label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.25rem; color: #161616; }
+    .helper-text { font-size: 0.75rem; color: #6f6f6f; margin-top: 0.25rem; }
+    /* Buttons */
+    .btn { padding: 0.6rem 1rem; font-size: 0.875rem; border: none; cursor: pointer; font-family: inherit; font-weight: 400; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-primary:hover { background: #0353e9; }
+    .btn-primary:disabled { background: #c6c6c6; color: #8d8d8d; cursor: not-allowed; }
+    .btn-secondary { background: #393939; color: #fff; }
+    .btn-tertiary { background: transparent; color: #0f62fe; border: 1px solid #0f62fe; }
+    .btn-danger { background: #da1e28; color: #fff; }
+    .btn-ghost { background: transparent; color: #0f62fe; }
+    .btn-ghost:hover { background: #e8f0fe; }
+    .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8125rem; }
+    .btn-nce { background: transparent; color: #e65100; border: 1px solid #e65100; }
+    .btn-nce:hover { background: #fff3e0; }
+    /* Inline notification */
+    .inline-notif { padding: 0.75rem 1rem; border-left: 4px solid; margin-bottom: 1rem; font-size: 0.875rem; }
+    .inline-notif-warning { border-color: #f1c21b; background: #fdf6dd; }
+    .inline-notif-error { border-color: #da1e28; background: #fff1f1; }
+    .inline-notif-success { border-color: #24a148; background: #defbe6; }
+    .inline-notif-info { border-color: #0f62fe; background: #edf5ff; }
+    /* Grid helpers */
+    .grid { display: grid; gap: 1rem; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    @media (max-width: 900px) { .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+    /* Criteria pass/fail btn */
+    .pass-btn { padding: 0.3rem 0.75rem; font-size: 0.8rem; border: 1px solid #24a148; background: transparent; color: #24a148; cursor: pointer; border-radius: 2px; }
+    .pass-btn.active { background: #24a148; color: #fff; }
+    .fail-btn { padding: 0.3rem 0.75rem; font-size: 0.8rem; border: 1px solid #da1e28; background: transparent; color: #da1e28; cursor: pointer; border-radius: 2px; }
+    .fail-btn.active { background: #da1e28; color: #fff; }
+    /* Modal overlay */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(22,22,22,0.5); display: flex; align-items: center; justify-content: center; z-index: 9000; }
+    .modal-box { background: #fff; width: 560px; max-width: 95vw; padding: 0; box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+    .modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+    .modal-body { padding: 1.5rem; }
+    .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #e0e0e0; display: flex; gap: 1rem; justify-content: flex-end; }
+    /* Accordion */
+    details summary { padding: 1rem; font-weight: 600; cursor: pointer; background: #f4f4f4; border: 1px solid #e0e0e0; list-style: none; display: flex; justify-content: space-between; }
+    details summary::-webkit-details-marker { display: none; }
+    details[open] summary { background: #e8f0fe; color: #0f62fe; }
+    details .accordion-body { padding: 1rem; border: 1px solid #e0e0e0; border-top: none; background: #fff; }
+    /* Radio card */
+    .radio-card { border: 2px solid #e0e0e0; border-radius: 4px; padding: 1rem; cursor: pointer; transition: border-color 150ms, background 150ms; }
+    .radio-card.selected-continue { border-color: #0f62fe; background: #edf5ff; }
+    .radio-card.selected-reject { border-color: #da1e28; background: #fff1f1; }
+    .radio-card.selected-resample { border-color: #24a148; background: #defbe6; }
+    .radio-card.disabled { opacity: 0.5; cursor: not-allowed; }
+    /* Breadcrumb */
+    .breadcrumb { font-size: 0.875rem; color: #525252; margin-bottom: 1rem; }
+    .breadcrumb a { color: #0f62fe; text-decoration: none; }
+    .breadcrumb span { color: #525252; }
+    .breadcrumb .sep { margin: 0 0.5rem; color: #8d8d8d; }
+  </style>
+</head>
+<body class="cds--white">
+
+<div class="preview-banner">
+  <span>⚡ Visual Preview — S-09 Pre-Analytical Eligibility Gate &nbsp;|&nbsp; OpenELIS Global Design Mockup</span>
+  <span style="font-size:11px; opacity:0.8">OGC-527 · Layer 4 Addendum · Not a live application</span>
+</div>
+
+<div class="preview-content" id="root"></div>
+
+<script type="text/babel">
+const { useState, useCallback } = React;
+
+// ── i18n stub ─────────────────────────────────────────────────────────────────
+const t = (key, fallback) => fallback || key;
+
+// ── Mock Data ─────────────────────────────────────────────────────────────────
+const ORDER = {
+  labNumber: 'ENV-2026-00127',
+  siteCode: 'SS-041',
+  siteName: 'Ciliwung River — Upstream Station 3',
+  complianceStandard: 'PP 22/2021 — Surface Water',
+  domain: 'Environmental',
+  sampleType: 'Water — Surface',
+  arrivalAt: '2026-04-16  08:14',
+  collectedAt: '2026-04-15 13:30',
+  transitHours: 18.7,
+  sopWindowHours: 12,
+  receivedBy: 'Siti Rahayu',
+  shipmentId: 'SHIP-2026-00088',
+  coolerId: 'COOLER-042',
+};
+
+const INITIAL_CRITERIA = [
+  { id:'c1', label:'Container integrity intact',       severity:'MAJOR',    recoverable:true,  auto:false, pass:null, note:'' },
+  { id:'c2', label:'Label legibility',                 severity:'MINOR',    recoverable:true,  auto:false, pass:null, note:'' },
+  { id:'c3', label:'Sample volume sufficient',         severity:'MAJOR',    recoverable:true,  auto:true,  pass:true, note:'220 mL received (min 200 mL)' },
+  { id:'c4', label:'Temperature within range (2–8 °C)',severity:'CRITICAL', recoverable:true,  auto:false, pass:null, note:'' },
+  { id:'c5', label:'SOP transit window met',           severity:'MAJOR',    recoverable:true,  auto:true,  pass:false,note:'18.7 h elapsed; SOP max 12 h' },
+  { id:'c6', label:'Chain-of-custody form present',    severity:'MAJOR',    recoverable:false, auto:false, pass:null, note:'' },
+];
+
+const WORKLIST = [
+  { id:'w1', labNumber:'ENV-2026-00127', sampleType:'Water — Surface', domain:'Environmental', receivedAt:'08:14',  transit:18.7, sop:12,  site:'Ciliwung River — Upstream S3',    standard:'PP 22/2021', priority:'High',   breach:true  },
+  { id:'w2', labNumber:'ENV-2026-00128', sampleType:'Sediment',        domain:'Environmental', receivedAt:'09:02',  transit:6.2,  sop:24,  site:'Ciliwung River — Downstream S7',  standard:'PP 22/2021', priority:'Normal', breach:false },
+  { id:'w3', labNumber:'VEC-2026-00031', sampleType:'Mosquito Pool',   domain:'Vector',        receivedAt:'07:45',  transit:4.2,  sop:8,   site:'Trap BDG-019 — collection 03:30', standard:'—',          priority:'Urgent', breach:false },
+  { id:'w4', labNumber:'CLN-2026-04892', sampleType:'Whole Blood',     domain:'Clinical',      receivedAt:'10:22',  transit:1.1,  sop:4,   site:'Puskesmas Kebayoran',             standard:'—',          priority:'Normal', breach:false },
+  { id:'w5', labNumber:'ENV-2026-00124', sampleType:'Water — Surface', domain:'Environmental', receivedAt:'06:55',  transit:22.4, sop:12,  site:'Ciliwung River — Upstream S1',    standard:'PP 22/2021', priority:'High',   breach:true  },
+];
+
+// ── Tag helper ────────────────────────────────────────────────────────────────
+function Tag({ kind, children, size }) {
+  return <span className={`tag-pill tag-${kind}`} style={size==='sm'?{fontSize:'0.7rem',padding:'1px 6px'}:{}}>{children}</span>;
+}
+
+function SevTag({ sev }) {
+  const map = { CRITICAL:'red', MAJOR:'orange', MINOR:'gray' };
+  return <Tag kind={map[sev]||'gray'}>{sev.charAt(0)+sev.slice(1).toLowerCase()}</Tag>;
+}
+
+function DomainTag({ domain }) {
+  const map = { Environmental:'green', Vector:'teal', Clinical:'blue' };
+  return <Tag kind={map[domain]||'gray'} size="sm">{domain}</Tag>;
+}
+
+// ── Breadcrumb ────────────────────────────────────────────────────────────────
+function Breadcrumb({ items }) {
+  return (
+    <div className="breadcrumb">
+      {items.map((item, i) => (
+        <span key={i}>
+          {i > 0 && <span className="sep">/</span>}
+          {item.current ? <span>{item.label}</span> : <a href="#">{item.label}</a>}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// ── Screen 1: Step 4 Eligibility Assessment ───────────────────────────────────
+function ScreenEligibility({ onNavigateWorklist }) {
+  const [criteria, setCriteria] = useState(INITIAL_CRITERIA);
+  const [nceOpen, setNceOpen] = useState(false);
+  const [overrideOpen, setOverrideOpen] = useState(false);
+  const [overrideJust, setOverrideJust] = useState('');
+  const [toast, setToast] = useState(null);
+
+  const allChecked = criteria.every(c => c.pass !== null);
+  const anyFail = criteria.some(c => c.pass === false);
+  const canAccept = allChecked && !anyFail;
+  const failing = criteria.filter(c => c.pass === false);
+  const transitBreach = ORDER.transitHours > ORDER.sopWindowHours;
+
+  const toggle = (id, pass) => setCriteria(p => p.map(c => c.id===id ? {...c, pass} : c));
+  const note = (id, n) => setCriteria(p => p.map(c => c.id===id ? {...c, note:n} : c));
+
+  const handleAccept = () => {
+    if (!allChecked) return;
+    if (anyFail) { setOverrideOpen(true); return; }
+    setToast({ kind:'success', msg:`Sample ${ORDER.labNumber} accepted. Status: Eligible.` });
+  };
+
+  return (
+    <div>
+      <Breadcrumb items={[
+        {label:'Sample Collection'}, {label:'Add Order'}, {label:'QA Review — Step 4', current:true}
+      ]} />
+
+      <div style={{marginBottom:'1rem'}}>
+        <h2 style={{margin:0,fontSize:'1.5rem',fontWeight:700}}>QA Review — Step 4</h2>
+        <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginTop:'0.5rem'}}>
+          <Tag kind="blue">{ORDER.labNumber}</Tag>
+          <DomainTag domain={ORDER.domain} />
+          <span style={{fontSize:'0.875rem',color:'#525252'}}>{ORDER.siteCode} — {ORDER.siteName}</span>
+          <Tag kind="purple" size="sm">Pending QA</Tag>
+        </div>
+      </div>
+
+      {toast && (
+        <div className={`inline-notif inline-notif-${toast.kind}`} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+          <span><strong>{toast.msg}</strong></span>
+          <button onClick={()=>setToast(null)} style={{border:'none',background:'transparent',cursor:'pointer',fontSize:'1.2rem',lineHeight:1}}>×</button>
+        </div>
+      )}
+
+      {/* QA-1 Completeness Dashboard */}
+      <div className="cds--tile" style={{marginBottom:'1rem',padding:'1rem'}}>
+        <h4 style={{margin:'0 0 0.75rem',fontWeight:600}}>Completeness Dashboard</h4>
+        <div style={{display:'flex',gap:'1.5rem',flexWrap:'wrap',alignItems:'center'}}>
+          {['Step 1 — Order Entry','Step 2 — Collect Sample','Step 3 — Label & Store'].map((s,i) => (
+            <div key={i} style={{display:'flex',alignItems:'center',gap:'0.5rem'}}>
+              <div style={{width:22,height:22,borderRadius:'50%',background:'#24a148',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:'0.75rem'}}>✓</div>
+              <span style={{fontSize:'0.875rem'}}>{s}</span>
+            </div>
+          ))}
+          <div style={{display:'flex',alignItems:'center',gap:'0.5rem'}}>
+            <div style={{width:22,height:22,borderRadius:'50%',background:'#0f62fe',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:700,fontSize:'0.75rem'}}>4</div>
+            <span style={{fontSize:'0.875rem',fontWeight:600}}>Step 4 — QA Review</span>
+          </div>
+          <div style={{marginLeft:'auto'}}>
+            <span style={{fontSize:'0.75rem',color:'#525252',marginRight:'0.5rem'}}>Eligibility:</span>
+            {transitBreach
+              ? <Tag kind="red" size="sm">⚠ SOP Breach</Tag>
+              : <Tag kind="gray" size="sm">Not yet assessed</Tag>
+            }
+          </div>
+        </div>
+      </div>
+
+      {/* Eligibility Assessment Tile */}
+      <div className="cds--tile" style={{borderLeft:'4px solid #0f62fe',marginBottom:'1rem',padding:'1.25rem'}}>
+        <h3 style={{margin:'0 0 1.25rem',color:'#0f62fe',fontWeight:700,fontSize:'1.1rem'}}>
+          Eligibility Assessment
+        </h3>
+
+        {/* 1. Arrival & Transit */}
+        <div style={{marginBottom:'1.25rem'}}>
+          <h5 style={{margin:'0 0 0.5rem',fontWeight:600}}>Arrival & Transit</h5>
+          {transitBreach && (
+            <div className="inline-notif inline-notif-warning">
+              ⚠ <strong>SOP transit window exceeded</strong> — {ORDER.transitHours} h elapsed; SOP max {ORDER.sopWindowHours} h
+            </div>
+          )}
+          <div className="grid grid-4" style={{marginTop:'0.5rem'}}>
+            {[
+              {l:'Received at lab', v:ORDER.arrivalAt},
+              {l:'Time in transit',  v:`${ORDER.transitHours} h`},
+              {l:'Received by',      v:ORDER.receivedBy},
+              {l:'SOP window',       v:`${ORDER.sopWindowHours} h`},
+              {l:'Shipment ID',      v:ORDER.shipmentId},
+              {l:'Cooler / Container ID', v:ORDER.coolerId},
+            ].map((f,i) => (
+              <div key={i}>
+                <div style={{fontSize:'0.75rem',color:'#525252'}}>{f.l}</div>
+                <div style={{fontSize:'0.875rem',fontWeight:500}}>{f.v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 2. Criteria Checklist */}
+        <div style={{marginBottom:'1.25rem'}}>
+          <h5 style={{margin:'0 0 0.5rem',fontWeight:600}}>Acceptance Criteria</h5>
+          <div style={{display:'flex',flexDirection:'column',gap:'0.5rem'}}>
+            {criteria.map(c => (
+              <div key={c.id} className="criterion-row" style={{
+                padding:'0.75rem',
+                background: c.pass===false ? '#fff1f1' : c.pass===true ? '#defbe6' : '#fff',
+                border: `1px solid ${c.pass===false ? '#da1e28' : c.pass===true ? '#24a148' : '#e0e0e0'}`,
+                borderRadius:2,
+              }}>
+                <div style={{display:'flex',gap:'1rem',alignItems:'flex-start',flexWrap:'wrap'}}>
+                  <div style={{flex:'1 1 200px'}}>
+                    <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginBottom:'0.25rem'}}>
+                      <span style={{fontWeight:500,fontSize:'0.875rem'}}>{c.label}</span>
+                      <SevTag sev={c.severity} />
+                      {c.auto && <span style={{fontSize:'0.7rem',background:'#e0e0e0',padding:'1px 6px',borderRadius:'1rem',color:'#525252'}}>🔒 Auto-evaluated</span>}
+                      {!c.recoverable && <span style={{fontSize:'0.7rem',background:'#e0e0e0',padding:'1px 6px',borderRadius:'1rem',color:'#525252'}}>No resample</span>}
+                    </div>
+                    {c.note && <div style={{fontSize:'0.75rem',color:'#525252'}}>{c.note}</div>}
+                  </div>
+                  <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexShrink:0}}>
+                    {c.auto ? (
+                      c.pass
+                        ? <Tag kind="green" size="sm">✓ Pass</Tag>
+                        : <Tag kind="red" size="sm">✗ Fail</Tag>
+                    ) : (
+                      <>
+                        <button className={`pass-btn${c.pass===true?' active':''}`} onClick={()=>toggle(c.id,true)}>✓ Pass</button>
+                        <button className={`fail-btn${c.pass===false?' active':''}`} onClick={()=>toggle(c.id,false)}>✗ Fail</button>
+                      </>
+                    )}
+                  </div>
+                  <div style={{flex:'1 1 200px',minWidth:160}}>
+                    <input type="text" placeholder="Optional — note any observed condition"
+                      value={c.note||''} onChange={e=>note(c.id,e.target.value)}
+                      disabled={c.auto}
+                      style={{fontSize:'0.8rem',padding:'0.35rem 0.5rem',background:c.auto?'#f4f4f4':'#fff'}}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 3. Compliance Context */}
+        <div style={{marginBottom:'1.25rem'}}>
+          <h5 style={{margin:'0 0 0.5rem',fontWeight:600}}>Compliance Context</h5>
+          <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
+            <Tag kind="green">{ORDER.complianceStandard}</Tag>
+            <Tag kind="cyan">{ORDER.siteCode} — {ORDER.siteName}</Tag>
+            <Tag kind="teal">{ORDER.sampleType}</Tag>
+            <DomainTag domain={ORDER.domain} />
+          </div>
+        </div>
+
+        {/* Action Bar */}
+        <div style={{display:'flex',gap:'0.75rem',flexWrap:'wrap',paddingTop:'1rem',borderTop:'1px solid #e0e0e0'}}>
+          <button className="btn btn-primary" disabled={!allChecked} onClick={handleAccept}
+            title={!allChecked ? 'All criteria must be marked pass or fail before accepting' : ''}>
+            ✓ Accept
+          </button>
+          <button className="btn btn-nce" onClick={()=>setNceOpen(v=>!v)}>
+            {nceOpen ? '▲ Close NCE Form' : '+ Report NCE'}
+          </button>
+          <button className="btn btn-ghost">Return to Step…</button>
+        </div>
+        {!allChecked && (
+          <p style={{margin:'0.5rem 0 0',fontSize:'0.75rem',color:'#da1e28'}}>
+            All criteria must be marked pass or fail before accepting.
+          </p>
+        )}
+      </div>
+
+      {/* NCE Inline Form */}
+      {nceOpen && (
+        <NceInlineForm
+          failing={failing}
+          onClose={()=>setNceOpen(false)}
+          onSubmit={(action)=>{
+            setNceOpen(false);
+            const msgs = { resample:'Resample Request queued. Customer notified.', reject:'Sample rejected.', continue:'NCE flag added.' };
+            setToast({kind:'success', msg:`${ORDER.labNumber}: NCE created. ${msgs[action]||''}`});
+          }}
+        />
+      )}
+
+      {/* QA-2 Sample Review Table */}
+      <div className="cds--tile" style={{padding:'1rem',marginBottom:'1rem'}}>
+        <div style={{fontWeight:600,marginBottom:'0.75rem',fontSize:'0.875rem'}}>Sample Review</div>
+        <table className="cds--data-table" style={{width:'100%'}}>
+          <thead>
+            <tr>
+              {['Lab Number','Sample Type','Volume','Collected At','Collector','Eligibility'].map(h => (
+                <th key={h} style={{textAlign:'left',fontSize:'0.8125rem',fontWeight:600,padding:'0.5rem 0.75rem',background:'#e0e0e0'}}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style={{padding:'0.5rem 0.75rem',fontSize:'0.875rem'}}>{ORDER.labNumber}</td>
+              <td style={{padding:'0.5rem 0.75rem',fontSize:'0.875rem'}}>{ORDER.sampleType}</td>
+              <td style={{padding:'0.5rem 0.75rem',fontSize:'0.875rem'}}>220 mL</td>
+              <td style={{padding:'0.5rem 0.75rem',fontSize:'0.875rem'}}>{ORDER.collectedAt}</td>
+              <td style={{padding:'0.5rem 0.75rem',fontSize:'0.875rem'}}>Budi Santoso</td>
+              <td style={{padding:'0.5rem 0.75rem'}}>
+                {anyFail
+                  ? <Tag kind="red" size="sm">✗ Criteria failed</Tag>
+                  : allChecked
+                  ? <Tag kind="green" size="sm">✓ All pass</Tag>
+                  : <Tag kind="gray" size="sm">Not yet assessed</Tag>
+                }
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Override Modal */}
+      {overrideOpen && (
+        <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&setOverrideOpen(false)}>
+          <div className="modal-box">
+            <div className="modal-header" style={{borderLeft:'4px solid #da1e28'}}>
+              <strong>Accept with failing criteria?</strong>
+              <button onClick={()=>setOverrideOpen(false)} style={{border:'none',background:'transparent',cursor:'pointer',fontSize:'1.25rem'}}>×</button>
+            </div>
+            <div className="modal-body">
+              <p style={{marginTop:0,fontSize:'0.875rem'}}>
+                Some criteria are not marked pass. Committing will record this as an override in the audit trail and the EligibilityAssessment.override flag will be set to true.
+              </p>
+              <label className="field-label" htmlFor="override-just">Override justification (required)</label>
+              <textarea id="override-just" rows={4} placeholder="Describe why these criteria are being accepted despite failures (min. 10 characters)"
+                value={overrideJust} onChange={e=>setOverrideJust(e.target.value)}
+                style={{borderColor: overrideJust.length>0&&overrideJust.trim().length<10 ? '#da1e28' : undefined}}
+              />
+              {overrideJust.length>0 && overrideJust.trim().length<10 && (
+                <p style={{color:'#da1e28',fontSize:'0.75rem',margin:'0.25rem 0 0'}}>Justification must be at least 10 characters</p>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={()=>setOverrideOpen(false)}>Cancel</button>
+              <button className="btn btn-danger" disabled={overrideJust.trim().length<10}
+                onClick={()=>{ setOverrideOpen(false); setToast({kind:'warning',msg:`${ORDER.labNumber} accepted with override. Audit trail updated.`}); }}>
+                Accept with override
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── NCE Inline Form ─────────────────────────────────────────────────────────
+function NceInlineForm({ failing, onClose, onSubmit }) {
+  const [action, setAction] = useState(failing.every(c=>!c.recoverable) ? 'reject' : 'resample');
+  const [grouped, setGrouped] = useState(false);
+  const allNonRec = failing.length>0 && failing.every(c=>!c.recoverable);
+  const autoDesc = failing.length>0
+    ? `Eligibility gate failure: ${failing.length} criteria failed\n` + failing.map(c=>`• ${c.label}: FAIL${c.note?` — ${c.note}`:''}`).join('\n')
+    : '';
+
+  const actionColors = { continue:'#0f62fe', reject:'#da1e28', resample:'#24a148' };
+  const actions = [
+    { value:'continue', label:'Continue with NCE flag',     desc:'Record NCE but continue processing. Status unchanged.' },
+    { value:'reject',   label:'Reject sample',              desc:'Record NCE and mark sample pre-analytically rejected. Terminal. No re-collection.' },
+    { value:'resample', label:'Resample',                   desc:'Reject and auto-create a new collection order. Customer will be notified.', disabled:allNonRec, disabledMsg:'Field re-collection not applicable for this failure type' },
+  ];
+
+  return (
+    <div className="nce-form-wrap" style={{borderTop:'4px solid #e65100',background:'#fffbf0',padding:'1.25rem',marginBottom:'1rem'}}>
+      {/* Context Banner */}
+      <div style={{fontFamily:'IBM Plex Mono,monospace',fontSize:'0.75rem',background:'#fff8ec',border:'1px solid #e65100',padding:'0.75rem',marginBottom:'1rem',borderRadius:2}}>
+        <strong>📌 CONTEXT — ELIGIBILITY GATE</strong>
+        <div style={{marginTop:'0.5rem',lineHeight:1.7}}>
+          <strong>Lab #:</strong> {ORDER.labNumber} · <strong>Sample Type:</strong> {ORDER.sampleType} · <strong>Domain:</strong> {ORDER.domain}<br/>
+          <strong>Arrival:</strong> {ORDER.arrivalAt} · <strong>Transit:</strong> {ORDER.transitHours} h (SOP: {ORDER.sopWindowHours} h)<br/>
+          <strong>Site:</strong> {ORDER.siteCode} – {ORDER.siteName}<br/>
+          <strong>Standard:</strong> {ORDER.complianceStandard}<br/>
+          {failing.length>0 && <><strong>Failing Criteria:</strong> {failing.map(c=>c.label).join(', ')}</>}
+        </div>
+      </div>
+
+      <div className="grid grid-2" style={{marginBottom:'1rem'}}>
+        <div>
+          <label className="field-label">Category</label>
+          <select><option>Pre-Analytical</option></select>
+        </div>
+        <div>
+          <label className="field-label">Subcategory</label>
+          <select defaultValue="Cold Chain">
+            <option>Cold Chain</option><option>Specimen Integrity</option>
+            <option>Transport</option><option>Volume</option><option>Labeling</option>
+          </select>
+        </div>
+        <div>
+          <label className="field-label">Severity</label>
+          <select defaultValue="MAJOR"><option value="CRITICAL">Critical</option><option value="MAJOR">Major</option><option value="MINOR">Minor</option></select>
+        </div>
+        <div>
+          <label className="field-label">Title</label>
+          <input type="text" defaultValue={`Eligibility gate failure: ${failing.length} criteria failed`} />
+        </div>
+      </div>
+
+      <div style={{marginBottom:'1rem'}}>
+        <label className="field-label">Description</label>
+        <textarea rows={5} defaultValue={autoDesc} style={{fontSize:'0.8125rem',lineHeight:1.5}} />
+        <div className="helper-text">Auto-generated from failing criteria. Editable before submitting.</div>
+      </div>
+
+      {/* Sample Action */}
+      <div style={{marginBottom:'1rem'}}>
+        <label className="field-label" style={{marginBottom:'0.5rem',display:'block'}}>Sample Action</label>
+        <div className="grid grid-3">
+          {actions.map(a => (
+            <div key={a.value}
+              className={`radio-card${a.disabled?` disabled`:''}${action===a.value?` selected-${a.value}`:''}`}
+              onClick={()=>!a.disabled && setAction(a.value)}
+            >
+              <div style={{display:'flex',alignItems:'center',gap:'0.5rem',marginBottom:'0.35rem'}}>
+                <div style={{width:16,height:16,borderRadius:'50%',border:`2px solid ${actionColors[a.value]}`,background:action===a.value?actionColors[a.value]:'transparent',flexShrink:0}} />
+                <strong style={{fontSize:'0.875rem'}}>{a.label}</strong>
+              </div>
+              <p style={{margin:0,fontSize:'0.75rem',color:'#525252'}}>{a.disabled ? a.disabledMsg : a.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Grouping offer */}
+      <div style={{border:'1px solid #0f62fe',borderRadius:4,padding:'0.75rem',marginBottom:'1rem',background:'#edf5ff'}}>
+        <p style={{margin:'0 0 0.5rem',fontWeight:600,fontSize:'0.875rem'}}>
+          🔗 Other samples match this root cause
+        </p>
+        <p style={{margin:'0 0 0.5rem',fontSize:'0.875rem',color:'#525252'}}>
+          3 other samples in the same shipment may share this failure:
+        </p>
+        <ul style={{margin:'0 0 0.5rem',paddingLeft:'1.25rem',fontSize:'0.875rem'}}>
+          <li>Lab #ENV-2026-00124 (Water — Surface)</li>
+          <li>Lab #ENV-2026-00125 (Water — Ground)</li>
+          <li>Lab #ENV-2026-00126 (Water — Surface)</li>
+        </ul>
+        <label style={{display:'flex',alignItems:'center',gap:'0.5rem',fontSize:'0.875rem',cursor:'pointer'}}>
+          <input type="checkbox" checked={grouped} onChange={e=>setGrouped(e.target.checked)} />
+          Include these samples in the same NCE
+        </label>
+        {grouped && (
+          <div className="inline-notif inline-notif-info" style={{marginTop:'0.5rem',marginBottom:0}}>
+            ℹ Each grouped sample will receive an independent Resample Request.
+          </div>
+        )}
+      </div>
+
+      <div style={{display:'flex',gap:'0.75rem'}}>
+        <button className="btn btn-primary" onClick={()=>onSubmit(action)}>
+          {action==='resample' ? 'Submit NCE & Create Resample Request'
+            : action==='reject' ? 'Submit NCE & Reject Sample'
+            : 'Submit NCE & Continue'}
+        </button>
+        <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Screen 3: Eligibility Worklist ────────────────────────────────────────────
+function ScreenWorklist({ onAssess }) {
+  const [domain, setDomain] = useState('All');
+  const [search, setSearch] = useState('');
+
+  const filtered = WORKLIST.filter(r => {
+    if (domain!=='All' && r.domain!==domain) return false;
+    if (search && !r.labNumber.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  const tiles = [
+    {label:'Awaiting Assessment', value: WORKLIST.length, color:'#0f62fe', icon:'⏳'},
+    {label:'SOP Breaches',        value: WORKLIST.filter(r=>r.breach).length, color:'#da1e28', icon:'⚠️'},
+    {label:'Oldest Waiting',      value:'4h 31m',   color:'#f1c21b', icon:'🕐'},
+    {label:'My Receipts',         value:2,           color:'#24a148', icon:'👤'},
+  ];
+
+  return (
+    <div>
+      <Breadcrumb items={[{label:'Sample Collection'},{label:'Add Order'},{label:'Eligibility Worklist',current:true}]} />
+      <h2 style={{margin:'0 0 1rem',fontSize:'1.5rem',fontWeight:700}}>Eligibility Worklist</h2>
+
+      {/* Summary tiles */}
+      <div style={{display:'flex',gap:'1rem',flexWrap:'wrap',marginBottom:'1.25rem'}}>
+        {tiles.map((t,i) => (
+          <div key={i} className="summary-tile" style={{borderTopColor:t.color}}>
+            <div className="metric-label">{t.icon} {t.label}</div>
+            <div className="metric" style={{color:t.color}}>{t.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div style={{display:'flex',gap:'0.75rem',flexWrap:'wrap',alignItems:'center',marginBottom:'1rem'}}>
+        <input type="text" placeholder="Scan QR or enter lab number…" value={search} onChange={e=>setSearch(e.target.value)}
+          style={{width:280,padding:'0.5rem 0.75rem'}} />
+        <div style={{display:'flex',gap:'4px'}}>
+          {['All','Clinical','Environmental','Vector'].map(d => (
+            <button key={d} className={`btn btn-sm ${domain===d ? 'btn-primary' : 'btn-tertiary'}`} onClick={()=>setDomain(d)}>{d}</button>
+          ))}
+        </div>
+        <button className="btn btn-ghost btn-sm">⬇ Export CSV</button>
+      </div>
+
+      {/* Table */}
+      <table className="cds--data-table" style={{width:'100%'}}>
+        <thead>
+          <tr>
+            {['Lab Number','Sample Type','Received At','Transit','Customer / Site','Standard','Priority',''].map(h => (
+              <th key={h} style={{textAlign:'left',fontSize:'0.8125rem',fontWeight:600,padding:'0.5rem 0.75rem',background:'#e0e0e0'}}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map(r => (
+            <tr key={r.id} style={{borderBottom:'1px solid #e0e0e0'}}>
+              <td style={{padding:'0.5rem 0.75rem',fontSize:'0.875rem',fontWeight:500}}>{r.labNumber}</td>
+              <td style={{padding:'0.5rem 0.75rem',fontSize:'0.875rem'}}>
+                <div>{r.sampleType}</div>
+                <DomainTag domain={r.domain} />
+              </td>
+              <td style={{padding:'0.5rem 0.75rem',fontSize:'0.875rem'}}>{r.receivedAt}</td>
+              <td style={{padding:'0.5rem 0.75rem',fontSize:'0.875rem'}}>
+                <span>{r.transit} h</span>
+                {r.breach && <> <Tag kind="red" size="sm">⚠ Breach</Tag></>}
+              </td>
+              <td style={{padding:'0.5rem 0.75rem',fontSize:'0.875rem',maxWidth:200}}>{r.site}</td>
+              <td style={{padding:'0.5rem 0.75rem',fontSize:'0.875rem'}}>{r.standard}</td>
+              <td style={{padding:'0.5rem 0.75rem'}}>
+                <Tag kind={r.priority==='Urgent'?'red':r.priority==='High'?'orange':'gray'} size="sm">{r.priority}</Tag>
+              </td>
+              <td style={{padding:'0.5rem 0.75rem'}}>
+                <button className="btn btn-primary btn-sm" onClick={()=>onAssess()}>Assess →</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ── Screen 4: SampleType Admin — Criteria ─────────────────────────────────────
+function ScreenSampleTypeAdmin() {
+  const [criteria, setCriteria] = useState([
+    {id:'ca1',label:'Container integrity intact',      sev:'MAJOR',    rec:true,  rule:'none',              sub:'Specimen Integrity'},
+    {id:'ca2',label:'Label legibility',                sev:'MINOR',    rec:true,  rule:'none',              sub:'Labeling'},
+    {id:'ca3',label:'Sample volume sufficient',        sev:'MAJOR',    rec:true,  rule:'volume_range',      sub:'Volume'},
+    {id:'ca4',label:'Temperature within range (2–8°C)',sev:'CRITICAL', rec:true,  rule:'temperature_range', sub:'Cold Chain'},
+    {id:'ca5',label:'SOP transit window met',          sev:'MAJOR',    rec:true,  rule:'transit_window',    sub:'Transport'},
+  ]);
+  const [newLabel, setNewLabel] = useState('');
+
+  return (
+    <div>
+      <Breadcrumb items={[{label:'Admin'},{label:'Sample Types'},{label:'Water — Surface',current:true}]} />
+      <h2 style={{margin:'0 0 1rem',fontSize:'1.5rem',fontWeight:700}}>
+        Water — Surface <Tag kind="green" size="sm">Environmental</Tag>
+      </h2>
+
+      <div className="cds--tile" style={{marginBottom:'1rem',padding:'1rem'}}>
+        <div className="grid grid-2">
+          <div><label className="field-label">Sample Type Name</label><input type="text" defaultValue="Water — Surface" /></div>
+          <div><label className="field-label">Domain</label>
+            <select defaultValue="Environmental"><option>Environmental</option><option>Clinical</option><option>Vector</option></select>
+          </div>
+          <div><label className="field-label">Matrix</label>
+            <select defaultValue="Liquid"><option>Liquid</option><option>Solid</option></select>
+          </div>
+        </div>
+      </div>
+
+      <details>
+        <summary>
+          <span>Acceptance Criteria <span style={{fontWeight:400,marginLeft:'0.5rem',fontSize:'0.8125rem',background:'#d0e2ff',padding:'2px 8px',borderRadius:'1rem',color:'#0043ce'}}>{criteria.length} criteria</span></span>
+          <span>▾</span>
+        </summary>
+        <div className="accordion-body">
+          <div style={{marginBottom:'1rem'}}>
+            <label className="field-label" htmlFor="sop">SOP Transit Window (hours)</label>
+            <input type="number" id="sop" defaultValue={12} min={1} max={168} style={{width:120}} />
+            <div className="helper-text">Maximum allowed time from collection to receipt at lab</div>
+          </div>
+
+          <details style={{marginBottom:'1rem'}}>
+            <summary><span>Inherit from default criteria library</span><span>▾</span></summary>
+            <div className="accordion-body">
+              {['Container integrity intact','Label legibility','Sample volume sufficient','Temperature within range','SOP transit window met','Chain-of-custody form present','Biohazard disposal requirements met'].map((d,i) => (
+                <label key={i} style={{display:'flex',alignItems:'center',gap:'0.5rem',fontSize:'0.875rem',marginBottom:'0.4rem',cursor:'pointer'}}>
+                  <input type="checkbox" defaultChecked={i<5} /> {d}
+                </label>
+              ))}
+            </div>
+          </details>
+
+          <h5 style={{margin:'0 0 0.75rem',fontWeight:600}}>Criteria List</h5>
+          {criteria.map(c => (
+            <div key={c.id} style={{borderLeft:'3px solid #0f62fe',padding:'0.75rem',background:'#f4f4f4',marginBottom:'0.5rem',borderRadius:'0 2px 2px 0'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem'}}>
+                <strong style={{fontSize:'0.875rem'}}>{c.label}</strong>
+                <button className="btn btn-ghost btn-sm" onClick={()=>setCriteria(p=>p.filter(x=>x.id!==c.id))}>🗑</button>
+              </div>
+              <div className="grid grid-4">
+                <div>
+                  <label className="field-label">Severity</label>
+                  <select defaultValue={c.sev}><option value="CRITICAL">Critical</option><option value="MAJOR">Major</option><option value="MINOR">Minor</option></select>
+                </div>
+                <div>
+                  <label className="field-label">Auto-Compute Rule</label>
+                  <select defaultValue={c.rule}>
+                    <option value="none">None (manual)</option>
+                    <option value="transit_window">Transit window</option>
+                    <option value="temperature_range">Temperature range</option>
+                    <option value="volume_range">Volume range</option>
+                    <option value="pool_size">Pool size (vector)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label">NCE Subcategory</label>
+                  <select defaultValue={c.sub}>
+                    <option>Specimen Integrity</option><option>Cold Chain</option>
+                    <option>Transport</option><option>Volume</option><option>Labeling</option>
+                  </select>
+                </div>
+                <div style={{paddingTop:'1.25rem'}}>
+                  <label style={{display:'flex',alignItems:'center',gap:'0.5rem',fontSize:'0.875rem',cursor:'pointer'}}>
+                    <input type="checkbox" defaultChecked={c.rec} /> Recoverable (allow Resample)
+                  </label>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <div style={{border:'2px dashed #c6c6c6',padding:'0.75rem',borderRadius:2,display:'flex',gap:'0.75rem',alignItems:'center',marginTop:'0.5rem'}}>
+            <input type="text" placeholder="New criterion label…" value={newLabel} onChange={e=>setNewLabel(e.target.value)}
+              style={{flex:1}} onKeyDown={e=>e.key==='Enter'&&newLabel.trim()&&(setCriteria(p=>[...p,{id:`ca${Date.now()}`,label:newLabel,sev:'MAJOR',rec:true,rule:'none',sub:'Specimen Integrity'}]),setNewLabel(''))} />
+            <button className="btn btn-primary btn-sm"
+              onClick={()=>newLabel.trim()&&(setCriteria(p=>[...p,{id:`ca${Date.now()}`,label:newLabel,sev:'MAJOR',rec:true,rule:'none',sub:'Specimen Integrity'}]),setNewLabel(''))}>
+              + Add
+            </button>
+          </div>
+
+          <div style={{display:'flex',gap:'0.75rem',marginTop:'1rem'}}>
+            <button className="btn btn-primary">Save criteria</button>
+            <button className="btn btn-ghost">Cancel</button>
+          </div>
+        </div>
+      </details>
+    </div>
+  );
+}
+
+// ── Screen 5: Lab Unit Gate Behavior ─────────────────────────────────────────
+function ScreenGateBehavior() {
+  const [config, setConfig] = useState({ environmental:'Mandatory', vector:'Mandatory', clinical:'Disabled' });
+  const [saved, setSaved] = useState(false);
+
+  const helpText = {
+    Mandatory: 'Eligibility Assessment is shown and enforced. Accept button disabled until all criteria pass. Required for ISO 15189/17025 compliance.',
+    Prompted:  'Eligibility Assessment is shown but advisory. Accept button always enabled. Criteria are recorded but not enforced.',
+    Disabled:  'Eligibility Assessment section hidden. Step 4 behaves as in the original Sample Collection Redesign.',
+  };
+
+  const domains = [
+    {key:'environmental', label:'Environmental', note:'Default: Mandatory'},
+    {key:'vector',        label:'Vector',        note:'Default: Mandatory'},
+    {key:'clinical',      label:'Clinical',      note:'Default: Disabled'},
+  ];
+
+  return (
+    <div>
+      <Breadcrumb items={[{label:'Admin'},{label:'Lab Units'},{label:'Main Clinical Lab',current:true}]} />
+      <h2 style={{margin:'0 0 1rem',fontSize:'1.5rem',fontWeight:700}}>Main Clinical Lab</h2>
+
+      <div className="cds--tile" style={{marginBottom:'1rem',padding:'1rem'}}>
+        <div className="grid grid-2">
+          <div><label className="field-label">Lab Unit Name</label><input type="text" defaultValue="Main Clinical Lab" /></div>
+          <div><label className="field-label">Workflow Type</label>
+            <select defaultValue="Both"><option>Clinical</option><option>Environmental</option><option value="Both">Both</option></select>
+          </div>
+        </div>
+      </div>
+
+      <details open>
+        <summary><span>Eligibility Gate Behavior</span><span>▾</span></summary>
+        <div className="accordion-body">
+          <div className="inline-notif inline-notif-info">
+            ℹ Configure the pre-analytical eligibility gate per sample domain. Changes apply to new orders only; in-flight orders retain the behavior active when they entered Pending QA.
+          </div>
+
+          {domains.map(d => (
+            <div key={d.key} style={{marginBottom:'1.5rem'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'0.5rem',marginBottom:'0.5rem'}}>
+                <h5 style={{margin:0,fontWeight:600}}>{d.label}</h5>
+                <span style={{fontSize:'0.75rem',color:'#525252'}}>({d.note})</span>
+              </div>
+              <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',marginBottom:'0.5rem'}}>
+                {['Mandatory','Prompted','Disabled'].map(v => (
+                  <label key={v} style={{display:'flex',alignItems:'center',gap:'0.5rem',cursor:'pointer',
+                    padding:'0.35rem 0.85rem',border:`1px solid ${config[d.key]===v?'#0f62fe':'#c6c6c6'}`,
+                    background:config[d.key]===v?'#edf5ff':'#fff',borderRadius:2,fontSize:'0.875rem'}}>
+                    <input type="radio" name={`gate-${d.key}`} value={v}
+                      checked={config[d.key]===v}
+                      onChange={()=>setConfig(p=>({...p,[d.key]:v}))} />
+                    {v}
+                  </label>
+                ))}
+              </div>
+              <p style={{margin:0,fontSize:'0.75rem',color:'#525252'}}>{helpText[config[d.key]]}</p>
+            </div>
+          ))}
+
+          {saved && <div className="inline-notif inline-notif-success">✓ Configuration saved.</div>}
+          <div style={{display:'flex',gap:'0.75rem'}}>
+            <button className="btn btn-primary" onClick={()=>{setSaved(true);setTimeout(()=>setSaved(false),2000);}}>Save configuration</button>
+            <button className="btn btn-ghost">Cancel</button>
+          </div>
+        </div>
+      </details>
+    </div>
+  );
+}
+
+// ── Screen 6: Vector CollectionLot Variant ────────────────────────────────────
+function ScreenVector() {
+  const vcriteria0 = [
+    {id:'v1',label:'Pool size meets VectorSpecimenProfile minimum',sev:'MAJOR',    rec:true,  auto:true,  pass:true,  note:'47 specimens (min 30 per Anopheles profile)'},
+    {id:'v2',label:'Desiccation absent',                           sev:'CRITICAL', rec:true,  auto:false, pass:null,  note:''},
+    {id:'v3',label:'Preservation medium appropriate',              sev:'MAJOR',    rec:false, auto:false, pass:null,  note:''},
+    {id:'v4',label:'Specimens not damaged (pool integrity)',        sev:'MAJOR',    rec:true,  auto:false, pass:null,  note:''},
+    {id:'v5',label:'Cold chain intact (field to lab)',             sev:'CRITICAL', rec:true,  auto:false, pass:null,  note:''},
+  ];
+  const [vc, setVc] = useState(vcriteria0);
+  const allChecked = vc.every(c=>c.pass!==null);
+  const anyFail = vc.some(c=>c.pass===false);
+
+  return (
+    <div>
+      <Breadcrumb items={[{label:'Sample Collection'},{label:'Add Order'},{label:'QA Review — Step 4 (Vector)',current:true}]} />
+      <div style={{marginBottom:'1rem'}}>
+        <h2 style={{margin:0,fontSize:'1.5rem',fontWeight:700}}>QA Review — Step 4</h2>
+        <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginTop:'0.5rem'}}>
+          <Tag kind="teal">VEC-2026-00031</Tag>
+          <Tag kind="teal" size="sm">Vector</Tag>
+          <span style={{fontSize:'0.875rem',color:'#525252'}}>Trap BDG-019 — Bandung Urban Catchment</span>
+          <Tag kind="purple" size="sm">Pending QA</Tag>
+        </div>
+      </div>
+
+      <div className="cds--tile" style={{borderLeft:'4px solid #0f62fe',padding:'1.25rem'}}>
+        <h3 style={{margin:'0 0 1.25rem',color:'#0f62fe',fontWeight:700,fontSize:'1.1rem'}}>Eligibility Assessment</h3>
+
+        {/* CollectionLot Context */}
+        <div style={{marginBottom:'1.25rem'}}>
+          <h5 style={{margin:'0 0 0.5rem',fontWeight:600}}>
+            Collection Lot Context
+            <Tag kind="teal" size="sm" style={{marginLeft:'0.5rem'}}>CollectionLot</Tag>
+          </h5>
+          <div className="grid grid-4" style={{marginBottom:'0.5rem'}}>
+            {[
+              {l:'Trap Type',           v:'CDC Light Trap'},
+              {l:'Collection Start',    v:'2026-04-15 18:00'},
+              {l:'Collection End',      v:'2026-04-16 06:00'},
+              {l:'Pool Flag',           v:'Yes'},
+              {l:'Pool Size',           v:'47 specimens'},
+              {l:'Field Collector',     v:'Ahmad Fauzan'},
+              {l:'Weather Conditions',  v:'Humid, 28°C, post-rain'},
+              {l:'Target Organism',     v:<Tag kind="green" size="sm">🦟 Anopheles spp.</Tag>},
+              {l:'Received at lab',     v:'2026-04-16 07:45'},
+              {l:'Time in transit',     v:'1h 45m (SOP: 8h ✓)'},
+              {l:'Received by',         v:'Siti Rahayu'},
+              {l:'Shipment ID',         v:'SHIP-2026-VEC-008'},
+            ].map((f,i) => (
+              <div key={i}>
+                <div style={{fontSize:'0.75rem',color:'#525252'}}>{f.l}</div>
+                <div style={{fontSize:'0.875rem',fontWeight:500}}>{f.v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Vector Criteria */}
+        <div style={{marginBottom:'1.25rem'}}>
+          <h5 style={{margin:'0 0 0.5rem',fontWeight:600}}>
+            Acceptance Criteria
+            <Tag kind="teal" size="sm" style={{marginLeft:'0.5rem'}}>Vector — Mosquito Pool</Tag>
+          </h5>
+          <div style={{display:'flex',flexDirection:'column',gap:'0.5rem'}}>
+            {vc.map(c => (
+              <div key={c.id} style={{
+                padding:'0.75rem',
+                background:c.pass===false?'#fff1f1':c.pass===true?'#defbe6':'#fff',
+                border:`1px solid ${c.pass===false?'#da1e28':c.pass===true?'#24a148':'#e0e0e0'}`,
+                borderRadius:2,
+              }}>
+                <div style={{display:'flex',gap:'1rem',alignItems:'flex-start',flexWrap:'wrap'}}>
+                  <div style={{flex:'1 1 200px'}}>
+                    <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginBottom:'0.25rem'}}>
+                      <span style={{fontWeight:500,fontSize:'0.875rem'}}>{c.label}</span>
+                      <SevTag sev={c.sev} />
+                      {c.auto && <span style={{fontSize:'0.7rem',background:'#e0e0e0',padding:'1px 6px',borderRadius:'1rem',color:'#525252'}}>🔒 Auto-evaluated</span>}
+                      {!c.rec && <span style={{fontSize:'0.7rem',background:'#e0e0e0',padding:'1px 6px',borderRadius:'1rem',color:'#525252'}}>No resample</span>}
+                    </div>
+                    {c.note && <div style={{fontSize:'0.75rem',color:'#525252'}}>{c.note}</div>}
+                  </div>
+                  <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexShrink:0}}>
+                    {c.auto ? (
+                      c.pass ? <Tag kind="green" size="sm">✓ Pass</Tag> : <Tag kind="red" size="sm">✗ Fail</Tag>
+                    ) : (
+                      <>
+                        <button className={`pass-btn${c.pass===true?' active':''}`} onClick={()=>setVc(p=>p.map(x=>x.id===c.id?{...x,pass:true}:x))}>✓ Pass</button>
+                        <button className={`fail-btn${c.pass===false?' active':''}`} onClick={()=>setVc(p=>p.map(x=>x.id===c.id?{...x,pass:false}:x))}>✗ Fail</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Action bar */}
+        <div style={{display:'flex',gap:'0.75rem',flexWrap:'wrap',paddingTop:'1rem',borderTop:'1px solid #e0e0e0'}}>
+          <button className="btn btn-primary" disabled={!allChecked}>✓ Accept</button>
+          <button className="btn btn-nce">+ Report NCE</button>
+          <button className="btn btn-ghost">Return to Step…</button>
+        </div>
+        {!allChecked && <p style={{margin:'0.5rem 0 0',fontSize:'0.75rem',color:'#da1e28'}}>All criteria must be marked pass or fail before accepting.</p>}
+      </div>
+    </div>
+  );
+}
+
+// ── Root App ──────────────────────────────────────────────────────────────────
+function App() {
+  const [screen, setScreen] = useState(0);
+
+  const screens = [
+    { label:'Step 4 — Eligibility Assessment', component:<ScreenEligibility onNavigateWorklist={()=>setScreen(1)} /> },
+    { label:'Eligibility Worklist',            component:<ScreenWorklist    onAssess={()=>setScreen(0)} /> },
+    { label:'Admin — SampleType Criteria',     component:<ScreenSampleTypeAdmin /> },
+    { label:'Admin — Gate Behavior',           component:<ScreenGateBehavior /> },
+    { label:'Vector Variant',                  component:<ScreenVector /> },
+  ];
+
+  return (
+    <div>
+      <div className="screen-switcher">
+        {screens.map((s,i) => (
+          <button key={i} className={`screen-btn${screen===i?' active':''}`} onClick={()=>setScreen(i)}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+      <div>{screens[screen].component}</div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

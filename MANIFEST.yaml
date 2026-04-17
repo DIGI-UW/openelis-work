@@ -1650,3 +1650,35 @@
   added: "2026-04-16"
   status: reference
   tags: ["analyzer-integration", "GxAlert", "gap-analysis", "alerts"]
+- id: pre-analytical-eligibility-gate
+  type: mockup
+  path: designs/sample-collection/pre-analytical-eligibility-gate.jsx
+  spec: designs/sample-collection/pre-analytical-eligibility-gate.md
+  preview: designs/sample-collection/pre-analytical-eligibility-gate.html
+  category: sample-collection
+  description: >
+    S-09 Pre-Analytical Eligibility Gate & Resampling — extends Step 4 (QA Review) of the
+    Sample Collection Redesign with a formal pre-analytical eligibility gate meeting ISO 15189
+    §5.4 and ISO 17025 §7.4 requirements. Adds criteria checklist, Resample sample_action on
+    existing NCE inline form, Eligibility Worklist sidebar entry, and per-SampleType acceptance
+    criteria + per-lab-unit gate behavior configuration. Layer 4 addendum to Sample Collection
+    Redesign (OGC-527 epic).
+  links:
+    jira: ["OGC-527", "OGC-TBD"]
+    other:
+      - "SILNAS PRD v0.5 — Environmental Module Table 11 rows 10-12; Vector Module Table 16 rows 10-11"
+      - "Roadmap: designs/other/environmental-vector-roadmap.md"
+  tags:
+    - sample-collection
+    - environmental
+    - vector
+    - clinical
+    - eligibility
+    - nce
+    - iso-15189
+    - iso-17025
+    - SILNAS
+    - Indonesia
+  added: "2026-04-16"
+  status: draft
+

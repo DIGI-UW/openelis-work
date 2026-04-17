@@ -853,6 +853,19 @@ export const MOCKUP_REGISTRY = [
     tags: ['sample-collection', 'order-entry', 'consent', 'compliance', 'ISO-15189', 'Madagascar'],
   },
 
+  {
+    name: 'Pre-Analytical Eligibility Gate',
+    category: 'sample-collection',
+    component: React.lazy(() => import('@designs/sample-collection/pre-analytical-eligibility-gate.jsx')),
+    description: 'Step 4 extension for ISO 15189/17025 pre-analytical acceptance (S-09). Adds criteria checklist, Resample sample_action on NCE inline form, Eligibility Worklist sidebar entry, per-SampleType acceptance criteria config, and per-lab-unit gate behavior. Layer 4 addendum to Sample Collection Redesign.',
+    specPath: 'designs/sample-collection/pre-analytical-eligibility-gate.md',
+    htmlUrl: 'designs/sample-collection/pre-analytical-eligibility-gate.html',
+    added: '2026-04-16',
+    status: 'draft',
+    jira: ['OGC-527'],
+    tags: ['sample-collection', 'environmental', 'vector', 'clinical', 'eligibility', 'nce', 'iso-15189', 'iso-17025', 'SILNAS'],
+  },
+
   // ─── Other ───
   {
     name: 'TAT Dashboard',
