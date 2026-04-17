@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Grid,
   Column,
@@ -40,6 +40,7 @@ import {
   BreadcrumbItem,
   OverflowMenu,
   OverflowMenuItem,
+  Link,
 } from '@carbon/react';
 import {
   Checkmark,
@@ -104,6 +105,16 @@ const MOCK_CRITERIA = [
     autoComputed: true,
     pass: true,
     note: '220 mL received (min 200 mL)',
+    sourceData: {
+      rule: 'volume_range',
+      stepLabel: t('label.source.step2', 'Step 2 — Collect Sample'),
+      stepHref: '#step-2-collect',
+      fields: [
+        { label: t('label.source.volumeReceived', 'Volume received'), value: '220 mL', enteredBy: 'Budi Santoso', enteredAt: '2026-04-15 13:30', role: t('label.role.collector', 'Collector') },
+        { label: t('label.source.volumeMinimum', 'Minimum required (SampleType config)'), value: '200 mL', enteredBy: t('label.source.systemConfig', 'System — SampleType admin'), enteredAt: null, role: null },
+      ],
+      computed: t('message.source.volumeResult', 'Evaluated: 220 mL ≥ 200 mL → PASS'),
+    },
   },
   {
     id: 'c4',
@@ -122,6 +133,17 @@ const MOCK_CRITERIA = [
     autoComputed: true,
     pass: false,
     note: '18.7 h elapsed; SOP max 12 h',
+    sourceData: {
+      rule: 'transit_window',
+      stepLabel: t('label.source.step2', 'Step 2 — Collect Sample'),
+      stepHref: '#step-2-collect',
+      fields: [
+        { label: t('label.source.collectionDateTime', 'Collection date/time'), value: '2026-04-15 13:30', enteredBy: 'Budi Santoso', enteredAt: '2026-04-15 13:30', role: t('label.role.collector', 'Collector') },
+        { label: t('label.source.receivedAtLab', 'Received at lab'), value: '2026-04-16 08:14', enteredBy: 'Siti Rahayu', enteredAt: '2026-04-16 08:14', role: t('label.role.qaOfficer', 'QA Officer') },
+        { label: t('label.source.sopTransitWindow', 'SOP transit window (SampleType config)'), value: '12 h', enteredBy: t('label.source.systemConfig', 'System — SampleType admin'), enteredAt: null, role: null },
+      ],
+      computed: t('message.source.transitResult', 'Evaluated: 18.7 h elapsed > 12 h SOP window → FAIL'),
+    },
   },
   {
     id: 'c6',
@@ -222,6 +244,66 @@ const domainTag = (domain) => {
   return <Tag kind={map[domain] || 'gray'} size="sm">{domain}</Tag>;
 };
 
+// ─── Source Provenance Block ─────────────────────────────────────────────────
+// Shown when the officer clicks "View source" on an auto-evaluated criterion.
+// Displays the contributing fields, who entered them, and links back to the
+// originating step so the officer can verify the raw data without navigating away.
+function SourceProvenanceBlock({ sourceData, pass }) {
+  return (
+    <div style={{
+      marginTop: 'var(--cds-spacing-03)',
+      padding: 'var(--cds-spacing-04)',
+      background: pass === false ? '#fff8f7' : '#f4f4f4',
+      border: `1px solid ${pass === false ? '#ffb3b8' : '#c6c6c6'}`,
+      borderLeft: `3px solid ${pass === false ? 'var(--cds-support-error)' : 'var(--cds-interactive-01)'}`,
+      borderRadius: 2,
+    }}>
+      <p style={{ margin: '0 0 var(--cds-spacing-03)', fontSize: '0.75rem', fontWeight: 600, color: 'var(--cds-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        {t('heading.source.title', 'Source data — auto-evaluated')}
+      </p>
+      <Stack gap={3}>
+        {sourceData.fields.map((field, i) => (
+          <Grid key={i} condensed style={{ gap: 0 }}>
+            <Column lg={4} style={{ marginBottom: 0 }}>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>{field.label}</p>
+            </Column>
+            <Column lg={6}>
+              <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600 }}>{field.value}</p>
+              {field.enteredBy && (
+                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>
+                  {t('label.source.enteredBy', 'Entered by')} {field.enteredBy}
+                  {field.role && ` (${field.role})`}
+                  {field.enteredAt && ` · ${field.enteredAt}`}
+                </p>
+              )}
+              {!field.enteredBy && (
+                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>{field.enteredBy || t('label.source.systemConfig', 'System — SampleType admin')}</p>
+              )}
+            </Column>
+          </Grid>
+        ))}
+      </Stack>
+      <div style={{
+        marginTop: 'var(--cds-spacing-03)',
+        paddingTop: 'var(--cds-spacing-03)',
+        borderTop: '1px solid #c6c6c6',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 'var(--cds-spacing-03)',
+      }}>
+        <p style={{ margin: 0, fontSize: '0.8125rem', fontFamily: 'IBM Plex Mono, monospace', color: pass === false ? 'var(--cds-support-error)' : 'var(--cds-support-success)' }}>
+          {sourceData.computed}
+        </p>
+        <Link href={sourceData.stepHref} size="sm">
+          {t('button.source.goToStep', 'Go to')} {sourceData.stepLabel} →
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 // ─── SCREEN 1: Step 4 — Eligibility Assessment ───────────────────────────────
 function Screen1EligibilityAssessment() {
   const [criteria, setCriteria] = useState(MOCK_CRITERIA);
@@ -231,6 +313,8 @@ function Screen1EligibilityAssessment() {
   const [sampleAction, setSampleAction] = useState('resample');
   const [submitted, setSubmitted] = useState(false);
   const [successToast, setSuccessToast] = useState(null);
+  const [expandedSources, setExpandedSources] = useState({});
+  const toggleSource = (id) => setExpandedSources(prev => ({ ...prev, [id]: !prev[id] }));
 
   const allChecked = criteria.every(c => c.pass !== null);
   const anyFail = criteria.some(c => c.pass === false);
@@ -395,9 +479,23 @@ function Screen1EligibilityAssessment() {
                             <span style={{ fontWeight: 500, fontSize: '0.875rem' }}>{c.label}</span>
                             {severityTag(c.severity)}
                             {c.autoComputed && (
-                              <Tag kind="gray" size="sm" renderIcon={Lock}>
-                                {t('label.eligibility.criterionAutoComputed', 'Auto-evaluated')}
-                              </Tag>
+                              <>
+                                <Tag kind="gray" size="sm" renderIcon={Lock}>
+                                  {t('label.eligibility.criterionAutoComputed', 'Auto-evaluated')}
+                                </Tag>
+                                {c.sourceData && (
+                                  <Button
+                                    kind="ghost"
+                                    size="sm"
+                                    onClick={() => toggleSource(c.id)}
+                                    renderIcon={expandedSources[c.id] ? ChevronUp : ChevronDown}
+                                  >
+                                    {expandedSources[c.id]
+                                      ? t('button.source.hide', 'Hide source')
+                                      : t('button.source.view', 'View source')}
+                                  </Button>
+                                )}
+                              </>
                             )}
                             {!c.recoverable && (
                               <Tag kind="cool-gray" size="sm">
@@ -449,6 +547,9 @@ function Screen1EligibilityAssessment() {
                         />
                       </Column>
                     </Grid>
+                    {c.autoComputed && c.sourceData && expandedSources[c.id] && (
+                      <SourceProvenanceBlock sourceData={c.sourceData} pass={c.pass} />
+                    )}
                   </Tile>
                 ))}
               </Stack>
@@ -1196,13 +1297,30 @@ function Screen5LabUnitAdmin() {
 // ─── SCREEN 6: Vector CollectionLot Variant ───────────────────────────────────
 function Screen6VectorVariant() {
   const vectorCriteria = [
-    { id: 'v1', label: t('label.eligibility.criterion.poolSize', 'Pool size meets VectorSpecimenProfile minimum'), severity: 'MAJOR', recoverable: true, autoComputed: true, pass: true, note: '47 specimens (min 30 per Anopheles profile)' },
+    {
+      id: 'v1',
+      label: t('label.eligibility.criterion.poolSize', 'Pool size meets VectorSpecimenProfile minimum'),
+      severity: 'MAJOR', recoverable: true, autoComputed: true, pass: true,
+      note: '47 specimens (min 30 per Anopheles profile)',
+      sourceData: {
+        rule: 'pool_size',
+        stepLabel: t('label.source.collectionLotEntry', 'V-01 CollectionLot Entry'),
+        stepHref: '#collection-lot-entry',
+        fields: [
+          { label: t('label.source.poolSize', 'Pool size recorded'), value: '47 specimens', enteredBy: 'Ahmad Fauzan', enteredAt: '2026-04-16 06:10', role: t('label.role.collector', 'Field Collector') },
+          { label: t('label.source.poolMinimum', 'Minimum required (VectorSpecimenProfile — Anopheles spp.)'), value: '30 specimens', enteredBy: t('label.source.systemConfig', 'System — VectorSpecimenProfile admin'), enteredAt: null, role: null },
+        ],
+        computed: t('message.source.poolSizeResult', 'Evaluated: 47 specimens ≥ 30 minimum → PASS'),
+      },
+    },
     { id: 'v2', label: t('label.eligibility.criterion.desiccation', 'Desiccation absent'), severity: 'CRITICAL', recoverable: true, autoComputed: false, pass: null, note: '' },
     { id: 'v3', label: t('label.eligibility.criterion.preservationMedium', 'Preservation medium appropriate'), severity: 'MAJOR', recoverable: false, autoComputed: false, pass: null, note: '' },
     { id: 'v4', label: t('label.eligibility.criterion.specimensNotDamaged', 'Specimens not damaged (pool integrity)'), severity: 'MAJOR', recoverable: true, autoComputed: false, pass: null, note: '' },
     { id: 'v5', label: t('label.eligibility.criterion.coldChain', 'Cold chain intact (field to lab)'), severity: 'CRITICAL', recoverable: true, autoComputed: false, pass: null, note: '' },
   ];
   const [vcriteria, setVCriteria] = useState(vectorCriteria);
+  const [expandedVectorSources, setExpandedVectorSources] = useState({});
+  const toggleVectorSource = (id) => setExpandedVectorSources(prev => ({ ...prev, [id]: !prev[id] }));
   const allChecked = vcriteria.every(c => c.pass !== null);
   const anyFail = vcriteria.some(c => c.pass === false);
 
@@ -1286,7 +1404,18 @@ function Screen6VectorVariant() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--cds-spacing-03)', flexWrap: 'wrap' }}>
                           <span style={{ fontWeight: 500, fontSize: '0.875rem' }}>{c.label}</span>
                           {severityTag(c.severity)}
-                          {c.autoComputed && <Tag kind="gray" size="sm" renderIcon={Lock}>{t('label.eligibility.criterionAutoComputed', 'Auto-evaluated')}</Tag>}
+                          {c.autoComputed && (
+                              <>
+                                <Tag kind="gray" size="sm" renderIcon={Lock}>{t('label.eligibility.criterionAutoComputed', 'Auto-evaluated')}</Tag>
+                                {c.sourceData && (
+                                  <Button kind="ghost" size="sm"
+                                    onClick={() => toggleVectorSource(c.id)}
+                                    renderIcon={expandedVectorSources[c.id] ? ChevronUp : ChevronDown}>
+                                    {expandedVectorSources[c.id] ? t('button.source.hide', 'Hide source') : t('button.source.view', 'View source')}
+                                  </Button>
+                                )}
+                              </>
+                            )}
                           {!c.recoverable && <Tag kind="cool-gray" size="sm">{t('label.eligibility.notRecoverable', 'No resample')}</Tag>}
                         </div>
                         {c.note && <span style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)', display: 'block', marginTop: 4 }}>{c.note}</span>}
@@ -1311,6 +1440,9 @@ function Screen6VectorVariant() {
                         )}
                       </Column>
                     </Grid>
+                    {c.autoComputed && c.sourceData && expandedVectorSources[c.id] && (
+                      <SourceProvenanceBlock sourceData={c.sourceData} pass={c.pass} />
+                    )}
                   </Tile>
                 ))}
               </Stack>

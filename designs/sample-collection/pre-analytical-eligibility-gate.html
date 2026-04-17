@@ -155,9 +155,32 @@ const ORDER = {
 const INITIAL_CRITERIA = [
   { id:'c1', label:'Container integrity intact',       severity:'MAJOR',    recoverable:true,  auto:false, pass:null, note:'' },
   { id:'c2', label:'Label legibility',                 severity:'MINOR',    recoverable:true,  auto:false, pass:null, note:'' },
-  { id:'c3', label:'Sample volume sufficient',         severity:'MAJOR',    recoverable:true,  auto:true,  pass:true, note:'220 mL received (min 200 mL)' },
+  {
+    id:'c3', label:'Sample volume sufficient', severity:'MAJOR', recoverable:true, auto:true, pass:true,
+    note:'220 mL received (min 200 mL)',
+    sourceData: {
+      stepLabel:'Step 2 — Collect Sample', stepHref:'#step-2',
+      fields:[
+        { label:'Volume received',                                  value:'220 mL',   enteredBy:'Budi Santoso',              role:'Collector',   at:'2026-04-15 13:30' },
+        { label:'Minimum required (SampleType config)',             value:'200 mL',   enteredBy:'System — SampleType admin', role:null,          at:null },
+      ],
+      computed:'Evaluated: 220 mL ≥ 200 mL → PASS',
+    },
+  },
   { id:'c4', label:'Temperature within range (2–8 °C)',severity:'CRITICAL', recoverable:true,  auto:false, pass:null, note:'' },
-  { id:'c5', label:'SOP transit window met',           severity:'MAJOR',    recoverable:true,  auto:true,  pass:false,note:'18.7 h elapsed; SOP max 12 h' },
+  {
+    id:'c5', label:'SOP transit window met', severity:'MAJOR', recoverable:true, auto:true, pass:false,
+    note:'18.7 h elapsed; SOP max 12 h',
+    sourceData: {
+      stepLabel:'Step 2 — Collect Sample', stepHref:'#step-2',
+      fields:[
+        { label:'Collection date/time',                             value:'2026-04-15 13:30', enteredBy:'Budi Santoso',              role:'Collector',   at:'2026-04-15 13:30' },
+        { label:'Received at lab',                                  value:'2026-04-16 08:14', enteredBy:'Siti Rahayu',              role:'QA Officer',  at:'2026-04-16 08:14' },
+        { label:'SOP transit window (SampleType config)',           value:'12 h',             enteredBy:'System — SampleType admin', role:null,          at:null },
+      ],
+      computed:'Evaluated: 18.7 h elapsed > 12 h SOP window → FAIL',
+    },
+  },
   { id:'c6', label:'Chain-of-custody form present',    severity:'MAJOR',    recoverable:false, auto:false, pass:null, note:'' },
 ];
 
@@ -198,9 +221,41 @@ function Breadcrumb({ items }) {
   );
 }
 
+// ── Source Provenance Block ───────────────────────────────────────────────────
+function SourceProvenanceBlock({ sourceData, pass }) {
+  const borderColor = pass === false ? '#da1e28' : '#0f62fe';
+  const bg = pass === false ? '#fff8f7' : '#f4f4f4';
+  return (
+    <div style={{marginTop:'0.5rem',padding:'0.75rem',background:bg,border:`1px solid ${pass===false?'#ffb3b8':'#c6c6c6'}`,borderLeft:`3px solid ${borderColor}`,borderRadius:2}}>
+      <div style={{fontSize:'0.7rem',fontWeight:700,color:'#525252',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'0.5rem'}}>
+        Source data — auto-evaluated
+      </div>
+      {sourceData.fields.map((f,i) => (
+        <div key={i} style={{display:'flex',gap:'1rem',marginBottom:'0.4rem',flexWrap:'wrap'}}>
+          <span style={{fontSize:'0.75rem',color:'#525252',minWidth:180,flexShrink:0}}>{f.label}</span>
+          <span style={{fontSize:'0.875rem',fontWeight:600}}>{f.value}</span>
+          {f.enteredBy && (
+            <span style={{fontSize:'0.75rem',color:'#6f6f6f'}}>
+              Entered by {f.enteredBy}{f.role ? ` (${f.role})` : ''}{f.at ? ` · ${f.at}` : ''}
+            </span>
+          )}
+        </div>
+      ))}
+      <div style={{marginTop:'0.5rem',paddingTop:'0.5rem',borderTop:'1px solid #c6c6c6',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'0.5rem'}}>
+        <code style={{fontSize:'0.8125rem',color:pass===false?'#da1e28':'#198038'}}>{sourceData.computed}</code>
+        <a href={sourceData.stepHref} style={{fontSize:'0.8125rem',color:'#0f62fe',textDecoration:'none'}}>
+          Go to {sourceData.stepLabel} →
+        </a>
+      </div>
+    </div>
+  );
+}
+
 // ── Screen 1: Step 4 Eligibility Assessment ───────────────────────────────────
 function ScreenEligibility({ onNavigateWorklist }) {
   const [criteria, setCriteria] = useState(INITIAL_CRITERIA);
+  const [expandedSources, setExpandedSources] = useState({});
+  const toggleSource = (id) => setExpandedSources(p => ({...p, [id]:!p[id]}));
   const [nceOpen, setNceOpen] = useState(false);
   const [overrideOpen, setOverrideOpen] = useState(false);
   const [overrideJust, setOverrideJust] = useState('');
@@ -315,7 +370,17 @@ function ScreenEligibility({ onNavigateWorklist }) {
                     <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginBottom:'0.25rem'}}>
                       <span style={{fontWeight:500,fontSize:'0.875rem'}}>{c.label}</span>
                       <SevTag sev={c.severity} />
-                      {c.auto && <span style={{fontSize:'0.7rem',background:'#e0e0e0',padding:'1px 6px',borderRadius:'1rem',color:'#525252'}}>🔒 Auto-evaluated</span>}
+                      {c.auto && (
+                        <>
+                          <span style={{fontSize:'0.7rem',background:'#e0e0e0',padding:'1px 6px',borderRadius:'1rem',color:'#525252'}}>🔒 Auto-evaluated</span>
+                          {c.sourceData && (
+                            <button className="btn btn-ghost btn-sm" onClick={()=>toggleSource(c.id)}
+                              style={{fontSize:'0.75rem',padding:'2px 8px'}}>
+                              {expandedSources[c.id] ? '▲ Hide source' : '▼ View source'}
+                            </button>
+                          )}
+                        </>
+                      )}
                       {!c.recoverable && <span style={{fontSize:'0.7rem',background:'#e0e0e0',padding:'1px 6px',borderRadius:'1rem',color:'#525252'}}>No resample</span>}
                     </div>
                     {c.note && <div style={{fontSize:'0.75rem',color:'#525252'}}>{c.note}</div>}
@@ -340,6 +405,9 @@ function ScreenEligibility({ onNavigateWorklist }) {
                     />
                   </div>
                 </div>
+                {c.auto && c.sourceData && expandedSources[c.id] && (
+                  <SourceProvenanceBlock sourceData={c.sourceData} pass={c.pass} />
+                )}
               </div>
             ))}
           </div>
@@ -833,13 +901,26 @@ function ScreenGateBehavior() {
 // ── Screen 6: Vector CollectionLot Variant ────────────────────────────────────
 function ScreenVector() {
   const vcriteria0 = [
-    {id:'v1',label:'Pool size meets VectorSpecimenProfile minimum',sev:'MAJOR',    rec:true,  auto:true,  pass:true,  note:'47 specimens (min 30 per Anopheles profile)'},
+    {
+      id:'v1', label:'Pool size meets VectorSpecimenProfile minimum', sev:'MAJOR', rec:true, auto:true, pass:true,
+      note:'47 specimens (min 30 per Anopheles profile)',
+      sourceData:{
+        stepLabel:'V-01 CollectionLot Entry', stepHref:'#collection-lot-entry',
+        fields:[
+          { label:'Pool size recorded',                                   value:'47 specimens', enteredBy:'Ahmad Fauzan',              role:'Field Collector', at:'2026-04-16 06:10' },
+          { label:'Minimum required (VectorSpecimenProfile — Anopheles)', value:'30 specimens', enteredBy:'System — VectorSpecimenProfile admin', role:null, at:null },
+        ],
+        computed:'Evaluated: 47 specimens ≥ 30 minimum → PASS',
+      },
+    },
     {id:'v2',label:'Desiccation absent',                           sev:'CRITICAL', rec:true,  auto:false, pass:null,  note:''},
     {id:'v3',label:'Preservation medium appropriate',              sev:'MAJOR',    rec:false, auto:false, pass:null,  note:''},
     {id:'v4',label:'Specimens not damaged (pool integrity)',        sev:'MAJOR',    rec:true,  auto:false, pass:null,  note:''},
     {id:'v5',label:'Cold chain intact (field to lab)',             sev:'CRITICAL', rec:true,  auto:false, pass:null,  note:''},
   ];
   const [vc, setVc] = useState(vcriteria0);
+  const [expandedVSrc, setExpandedVSrc] = useState({});
+  const toggleVSrc = (id) => setExpandedVSrc(p=>({...p,[id]:!p[id]}));
   const allChecked = vc.every(c=>c.pass!==null);
   const anyFail = vc.some(c=>c.pass===false);
 
@@ -907,7 +988,17 @@ function ScreenVector() {
                     <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap',marginBottom:'0.25rem'}}>
                       <span style={{fontWeight:500,fontSize:'0.875rem'}}>{c.label}</span>
                       <SevTag sev={c.sev} />
-                      {c.auto && <span style={{fontSize:'0.7rem',background:'#e0e0e0',padding:'1px 6px',borderRadius:'1rem',color:'#525252'}}>🔒 Auto-evaluated</span>}
+                      {c.auto && (
+                        <>
+                          <span style={{fontSize:'0.7rem',background:'#e0e0e0',padding:'1px 6px',borderRadius:'1rem',color:'#525252'}}>🔒 Auto-evaluated</span>
+                          {c.sourceData && (
+                            <button className="btn btn-ghost btn-sm" onClick={()=>toggleVSrc(c.id)}
+                              style={{fontSize:'0.75rem',padding:'2px 8px'}}>
+                              {expandedVSrc[c.id] ? '▲ Hide source' : '▼ View source'}
+                            </button>
+                          )}
+                        </>
+                      )}
                       {!c.rec && <span style={{fontSize:'0.7rem',background:'#e0e0e0',padding:'1px 6px',borderRadius:'1rem',color:'#525252'}}>No resample</span>}
                     </div>
                     {c.note && <div style={{fontSize:'0.75rem',color:'#525252'}}>{c.note}</div>}
@@ -923,6 +1014,9 @@ function ScreenVector() {
                     )}
                   </div>
                 </div>
+                {c.auto && c.sourceData && expandedVSrc[c.id] && (
+                  <SourceProvenanceBlock sourceData={c.sourceData} pass={c.pass} />
+                )}
               </div>
             ))}
           </div>
