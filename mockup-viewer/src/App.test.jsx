@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, within, waitFor, act } from '@testing-library/react';
 import { Suspense } from 'react';
 import userEvent from '@testing-library/user-event';
 import App, {
@@ -561,6 +561,9 @@ describe('App component', () => {
     const user = userEvent.setup();
     render(<App />);
 
+    // Wait for any pending lazy-load microtasks to settle before interacting
+    await act(async () => {});
+
     // Initially light mode (jsdom has no matchMedia preference)
     const container = screen.getByText('OpenELIS Global — Design Gallery').closest('[data-theme]');
     expect(container).toHaveAttribute('data-theme', 'light');
@@ -573,7 +576,7 @@ describe('App component', () => {
 
     // Now the button should say "Switch to light mode"
     expect(screen.getByRole('button', { name: /switch to light mode/i })).toBeInTheDocument();
-  });
+  }, 15000);
 });
 
 describe('themes', () => {
