@@ -225,11 +225,20 @@ const MOCK_WORKLIST = [
 ];
 
 const MOCK_CRITERIA_ADMIN = [
-  { id: 'ca1', label: 'Container integrity intact', severity: 'MAJOR', recoverable: true, autoRule: 'none', subcategory: 'Specimen Integrity' },
-  { id: 'ca2', label: 'Label legibility', severity: 'MINOR', recoverable: true, autoRule: 'none', subcategory: 'Labeling' },
-  { id: 'ca3', label: 'Sample volume sufficient', severity: 'MAJOR', recoverable: true, autoRule: 'volume_range', subcategory: 'Volume' },
-  { id: 'ca4', label: 'Temperature within range', severity: 'CRITICAL', recoverable: true, autoRule: 'temperature_range', subcategory: 'Cold Chain' },
-  { id: 'ca5', label: 'SOP transit window met', severity: 'MAJOR', recoverable: true, autoRule: 'transit_window', subcategory: 'Transport' },
+  { id: 'ca1', label: 'Container integrity intact', severity: 'MAJOR', recoverable: true, autoRule: 'none', subcategory: 'Specimen Integrity', autoRuleConfig: null },
+  { id: 'ca2', label: 'Label legibility', severity: 'MINOR', recoverable: true, autoRule: 'none', subcategory: 'Labeling', autoRuleConfig: null },
+  {
+    id: 'ca3', label: 'Sample volume sufficient', severity: 'MAJOR', recoverable: true, autoRule: 'volume_range', subcategory: 'Volume',
+    autoRuleConfig: { direction: 'at_least', minValue: 200, maxValue: null, unit: 'mL' },
+  },
+  {
+    id: 'ca4', label: 'Temperature within range', severity: 'CRITICAL', recoverable: true, autoRule: 'temperature_range', subcategory: 'Cold Chain',
+    autoRuleConfig: { direction: 'within_range', minValue: 2, maxValue: 8, unit: '°C' },
+  },
+  {
+    id: 'ca5', label: 'SOP transit window met', severity: 'MAJOR', recoverable: true, autoRule: 'transit_window', subcategory: 'Transport',
+    autoRuleConfig: { source: 'sop_window', customHours: null },
+  },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -1031,12 +1040,238 @@ function Screen3EligibilityWorklist({ onAssess }) {
   );
 }
 
+// ─── Auto-Rule Config Panel ───────────────────────────────────────────────────
+// Renders below the Auto-Compute Rule selector when a non-"none" rule is chosen.
+// Shows: what the rule evaluates, threshold inputs, direction, and a live preview.
+function AutoRuleConfigPanel({ rule, config, onChange, sopWindow }) {
+  if (!rule || rule === 'none') return null;
+
+  const update = (patch) => onChange({ ...config, ...patch });
+
+  // Live preview strings
+  const preview = () => {
+    if (rule === 'transit_window') {
+      const hours = config.customHours != null ? config.customHours : sopWindow;
+      return t('preview.transitWindow', `Will FAIL if elapsed time from collection to receipt > ${hours} h`).replace('${hours}', hours);
+    }
+    if (rule === 'temperature_range') {
+      const { direction, minValue, maxValue, unit } = config;
+      if (direction === 'within_range') return `Will FAIL if temperature < ${minValue ?? '—'}${unit} or > ${maxValue ?? '—'}${unit}`;
+      if (direction === 'at_least')     return `Will FAIL if temperature < ${minValue ?? '—'}${unit}`;
+      if (direction === 'at_most')      return `Will FAIL if temperature > ${maxValue ?? '—'}${unit}`;
+      if (direction === 'outside_range') return `Will FAIL if temperature ≥ ${minValue ?? '—'}${unit} and ≤ ${maxValue ?? '—'}${unit}`;
+    }
+    if (rule === 'volume_range') {
+      const { direction, minValue, maxValue, unit } = config;
+      if (direction === 'within_range') return `Will FAIL if volume < ${minValue ?? '—'} ${unit} or > ${maxValue ?? '—'} ${unit}`;
+      if (direction === 'at_least')     return `Will FAIL if volume < ${minValue ?? '—'} ${unit}`;
+      if (direction === 'at_most')      return `Will FAIL if volume > ${maxValue ?? '—'} ${unit}`;
+      if (direction === 'outside_range') return `Will FAIL if volume ≥ ${minValue ?? '—'} ${unit} and ≤ ${maxValue ?? '—'} ${unit}`;
+    }
+    if (rule === 'pool_size') {
+      const { source, customMin } = config;
+      const min = source === 'specimen_profile' ? '(from Vector Specimen Profile)' : (customMin ?? '—');
+      return `Will FAIL if pool count < ${min} specimens`;
+    }
+    return '';
+  };
+
+  const panelStyle = {
+    background: 'var(--cds-layer-01)',
+    border: '1px solid var(--cds-border-subtle-01)',
+    borderRadius: '4px',
+    padding: 'var(--cds-spacing-04)',
+    marginTop: 'var(--cds-spacing-03)',
+  };
+
+  return (
+    <div style={panelStyle}>
+      {/* Rule description */}
+      {rule === 'transit_window' && (
+        <Stack gap={3}>
+          <InlineNotification
+            kind="info"
+            title={t('label.admin.autoRule.transitWindow', 'Transit window')}
+            subtitle={t('helperText.autoRule.transitWindow', 'Computes elapsed time between the collection date/time (entered at Step 2) and the lab receipt date/time. Fails if elapsed time exceeds the configured maximum.')}
+            lowContrast
+            hideCloseButton
+          />
+          <RadioButtonGroup
+            legendText={t('label.admin.transitWindow.source', 'Window source')}
+            name={`tw-source-${rule}`}
+            valueSelected={config.customHours != null ? 'custom' : 'sop'}
+            onChange={(val) => update({ customHours: val === 'custom' ? (config.customHours ?? sopWindow) : null })}
+          >
+            <RadioButton value="sop" labelText={t('label.admin.transitWindow.useSOP', `Use SOP Transit Window (${sopWindow} h, set above)`).replace('${sopWindow}', sopWindow)} id="tw-sop" />
+            <RadioButton value="custom" labelText={t('label.admin.transitWindow.custom', 'Custom maximum for this criterion')} id="tw-custom" />
+          </RadioButtonGroup>
+          {config.customHours != null && (
+            <NumberInput
+              id="tw-custom-hours"
+              label={t('label.admin.transitWindow.customHours', 'Maximum elapsed time (hours)')}
+              value={config.customHours}
+              min={1} max={720}
+              onChange={(e, { value }) => update({ customHours: value })}
+              helperText={t('helperText.transitWindow.overridesSOPWindow', 'Overrides the SOP Transit Window above for this criterion only')}
+            />
+          )}
+        </Stack>
+      )}
+
+      {(rule === 'temperature_range' || rule === 'volume_range') && (
+        <Stack gap={3}>
+          <InlineNotification
+            kind="info"
+            title={rule === 'temperature_range'
+              ? t('label.admin.autoRule.temperatureRange', 'Temperature range')
+              : t('label.admin.autoRule.volumeRange', 'Volume range')}
+            subtitle={rule === 'temperature_range'
+              ? t('helperText.autoRule.temperatureRange', 'Reads the temperature recorded during sample receipt or cold-chain monitoring. Fails when the measured temperature falls outside the configured threshold.')
+              : t('helperText.autoRule.volumeRange', 'Reads the measured sample volume entered at collection. Fails when the volume does not meet the configured threshold.')}
+            lowContrast
+            hideCloseButton
+          />
+          <Grid condensed>
+            <Column lg={5}>
+              <Select
+                id={`dir-${rule}`}
+                labelText={t('label.admin.rangeRule.direction', 'Pass condition')}
+                value={config.direction}
+                onChange={(e) => update({ direction: e.target.value })}
+                size="sm"
+              >
+                <SelectItem value="within_range" text={t('label.admin.direction.withinRange', 'Within range (min ≤ x ≤ max)')} />
+                <SelectItem value="at_least"     text={t('label.admin.direction.atLeast',    'At least minimum (x ≥ min)')} />
+                <SelectItem value="at_most"      text={t('label.admin.direction.atMost',     'At most maximum (x ≤ max)')} />
+                <SelectItem value="outside_range" text={t('label.admin.direction.outsideRange', 'Outside range (x < min or x > max)')} />
+              </Select>
+            </Column>
+            {(config.direction === 'within_range' || config.direction === 'outside_range' || config.direction === 'at_least') && (
+              <Column lg={4}>
+                <NumberInput
+                  id={`min-${rule}`}
+                  label={t('label.admin.rangeRule.min', 'Minimum')}
+                  value={config.minValue ?? ''}
+                  onChange={(e, { value }) => update({ minValue: value })}
+                  size="sm"
+                />
+              </Column>
+            )}
+            {(config.direction === 'within_range' || config.direction === 'outside_range' || config.direction === 'at_most') && (
+              <Column lg={4}>
+                <NumberInput
+                  id={`max-${rule}`}
+                  label={t('label.admin.rangeRule.max', 'Maximum')}
+                  value={config.maxValue ?? ''}
+                  onChange={(e, { value }) => update({ maxValue: value })}
+                  size="sm"
+                />
+              </Column>
+            )}
+            <Column lg={3}>
+              {rule === 'temperature_range' ? (
+                <Select
+                  id="temp-unit"
+                  labelText={t('label.admin.rangeRule.unit', 'Unit')}
+                  value={config.unit}
+                  onChange={(e) => update({ unit: e.target.value })}
+                  size="sm"
+                >
+                  <SelectItem value="°C" text="°C" />
+                  <SelectItem value="°F" text="°F" />
+                </Select>
+              ) : (
+                <Select
+                  id="vol-unit"
+                  labelText={t('label.admin.rangeRule.unit', 'Unit')}
+                  value={config.unit}
+                  onChange={(e) => update({ unit: e.target.value })}
+                  size="sm"
+                >
+                  <SelectItem value="mL" text="mL" />
+                  <SelectItem value="µL" text="µL" />
+                  <SelectItem value="L"  text="L" />
+                </Select>
+              )}
+            </Column>
+          </Grid>
+        </Stack>
+      )}
+
+      {rule === 'pool_size' && (
+        <Stack gap={3}>
+          <InlineNotification
+            kind="info"
+            title={t('label.admin.autoRule.poolSize', 'Pool size (vector)')}
+            subtitle={t('helperText.autoRule.poolSize', 'Counts the specimens linked to this collection lot. Fails when the pool count falls below the configured minimum. Typically sourced from the Vector Specimen Profile.')}
+            lowContrast
+            hideCloseButton
+          />
+          <RadioButtonGroup
+            legendText={t('label.admin.poolSize.minSource', 'Minimum pool size source')}
+            name="pool-source"
+            valueSelected={config.source}
+            onChange={(val) => update({ source: val })}
+          >
+            <RadioButton value="specimen_profile" labelText={t('label.admin.poolSize.fromProfile', 'From Vector Specimen Profile (recommended)')} id="pool-profile" />
+            <RadioButton value="custom" labelText={t('label.admin.poolSize.custom', 'Custom minimum for this criterion')} id="pool-custom" />
+          </RadioButtonGroup>
+          {config.source === 'custom' && (
+            <NumberInput
+              id="pool-min"
+              label={t('label.admin.poolSize.customMin', 'Minimum specimen count')}
+              value={config.customMin ?? 10}
+              min={1}
+              onChange={(e, { value }) => update({ customMin: value })}
+            />
+          )}
+        </Stack>
+      )}
+
+      {/* Live preview */}
+      <div style={{
+        marginTop: 'var(--cds-spacing-04)',
+        padding: 'var(--cds-spacing-03)',
+        background: 'var(--cds-layer-02)',
+        borderRadius: '4px',
+        fontFamily: 'var(--cds-code-01-font-family, monospace)',
+        fontSize: '0.8rem',
+        color: 'var(--cds-text-primary)',
+        borderLeft: '3px solid var(--cds-interactive-01)',
+      }}>
+        <span style={{ color: 'var(--cds-text-secondary)', marginRight: 4 }}>{t('label.admin.rulePreview', 'Preview:')}</span>
+        {preview()}
+      </div>
+    </div>
+  );
+}
+
 // ─── SCREEN 4: SampleType Admin — Acceptance Criteria Accordion ───────────────
+// Default autoRuleConfig shapes when a rule is first selected
+const DEFAULT_RULE_CONFIG = {
+  transit_window:    { source: 'sop_window', customHours: null },
+  temperature_range: { direction: 'within_range', minValue: null, maxValue: null, unit: '°C' },
+  volume_range:      { direction: 'at_least', minValue: null, maxValue: null, unit: 'mL' },
+  pool_size:         { source: 'specimen_profile', customMin: null },
+};
+
 function Screen4SampleTypeAdmin() {
   const [criteria, setCriteria] = useState(MOCK_CRITERIA_ADMIN);
   const [sopWindow, setSopWindow] = useState(12);
-  const [expandedCrit, setExpandedCrit] = useState(null);
   const [newCritLabel, setNewCritLabel] = useState('');
+
+  const updateCriterion = (id, patch) =>
+    setCriteria(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
+
+  const setAutoRule = (id, newRule) => {
+    const current = criteria.find(c => c.id === id);
+    const newConfig = newRule === 'none'
+      ? null
+      : (current.autoRule === newRule ? current.autoRuleConfig : DEFAULT_RULE_CONFIG[newRule] ?? null);
+    updateCriterion(id, { autoRule: newRule, autoRuleConfig: newConfig });
+  };
+
+  const setRuleConfig = (id, config) => updateCriterion(id, { autoRuleConfig: config });
 
   const addCriterion = () => {
     if (!newCritLabel.trim()) return;
@@ -1046,6 +1281,7 @@ function Screen4SampleTypeAdmin() {
       severity: 'MAJOR',
       recoverable: true,
       autoRule: 'none',
+      autoRuleConfig: null,
       subcategory: 'Specimen Integrity',
     }]);
     setNewCritLabel('');
@@ -1136,14 +1372,29 @@ function Screen4SampleTypeAdmin() {
                 </div>
                 <Grid condensed>
                   <Column lg={4}>
-                    <Select id={`sev-${c.id}`} labelText={t('label.admin.severity', 'Severity')} defaultValue={c.severity} size="sm">
+                    <Select
+                      id={`sev-${c.id}`}
+                      labelText={t('label.admin.severity', 'Severity')}
+                      value={c.severity}
+                      onChange={(e) => updateCriterion(c.id, { severity: e.target.value })}
+                      size="sm"
+                    >
                       <SelectItem value="CRITICAL" text={t('label.nce.severity.critical', 'Critical')} />
                       <SelectItem value="MAJOR" text={t('label.nce.severity.major', 'Major')} />
                       <SelectItem value="MINOR" text={t('label.nce.severity.minor', 'Minor')} />
                     </Select>
                   </Column>
                   <Column lg={4}>
-                    <Select id={`auto-${c.id}`} labelText={t('label.admin.autoComputeRule', 'Auto-Compute Rule')} defaultValue={c.autoRule} size="sm">
+                    <Select
+                      id={`auto-${c.id}`}
+                      labelText={t('label.admin.autoComputeRule', 'Auto-Compute Rule')}
+                      value={c.autoRule}
+                      onChange={(e) => setAutoRule(c.id, e.target.value)}
+                      size="sm"
+                      helperText={c.autoRule === 'none'
+                        ? t('helperText.autoRule.none', 'Officer checks this criterion manually at assessment')
+                        : t('helperText.autoRule.active', 'System evaluates automatically — configure below')}
+                    >
                       <SelectItem value="none" text={t('label.admin.autoRule.none', 'None (manual)')} />
                       <SelectItem value="transit_window" text={t('label.admin.autoRule.transitWindow', 'Transit window')} />
                       <SelectItem value="temperature_range" text={t('label.admin.autoRule.temperatureRange', 'Temperature range')} />
@@ -1152,7 +1403,13 @@ function Screen4SampleTypeAdmin() {
                     </Select>
                   </Column>
                   <Column lg={4}>
-                    <Select id={`sub-${c.id}`} labelText={t('label.admin.subcategory', 'NCE Subcategory')} defaultValue={c.subcategory} size="sm">
+                    <Select
+                      id={`sub-${c.id}`}
+                      labelText={t('label.admin.subcategory', 'NCE Subcategory')}
+                      value={c.subcategory}
+                      onChange={(e) => updateCriterion(c.id, { subcategory: e.target.value })}
+                      size="sm"
+                    >
                       <SelectItem value="Specimen Integrity" text={t('label.nce.subcategory.specimenIntegrity', 'Specimen Integrity')} />
                       <SelectItem value="Cold Chain" text={t('label.nce.subcategory.coldChain', 'Cold Chain')} />
                       <SelectItem value="Transport" text={t('label.nce.subcategory.transport', 'Transport')} />
@@ -1161,9 +1418,24 @@ function Screen4SampleTypeAdmin() {
                     </Select>
                   </Column>
                   <Column lg={4} style={{ paddingTop: 'var(--cds-spacing-05)' }}>
-                    <Checkbox id={`rec-${c.id}`} labelText={t('label.admin.recoverable', 'Recoverable (allow Resample)')} defaultChecked={c.recoverable} />
+                    <Checkbox
+                      id={`rec-${c.id}`}
+                      labelText={t('label.admin.recoverable', 'Recoverable (allow Resample)')}
+                      checked={c.recoverable}
+                      onChange={(_, { checked }) => updateCriterion(c.id, { recoverable: checked })}
+                    />
                   </Column>
                 </Grid>
+
+                {/* Auto-compute rule config panel — expands when a rule is selected */}
+                {c.autoRule !== 'none' && c.autoRuleConfig && (
+                  <AutoRuleConfigPanel
+                    rule={c.autoRule}
+                    config={c.autoRuleConfig}
+                    onChange={(cfg) => setRuleConfig(c.id, cfg)}
+                    sopWindow={sopWindow}
+                  />
+                )}
               </Tile>
             ))}
 

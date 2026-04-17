@@ -717,16 +717,163 @@ function ScreenWorklist({ onAssess }) {
   );
 }
 
+// ── Auto-Rule Config Panel ────────────────────────────────────────────────────
+function AutoRuleConfigPanel({ rule, config, onChange, sopWindow }) {
+  if (!rule || rule === 'none' || !config) return null;
+  const upd = (patch) => onChange({ ...config, ...patch });
+
+  const preview = () => {
+    if (rule === 'transit_window') {
+      const h = config.customHours != null ? config.customHours : sopWindow;
+      return `Will FAIL if elapsed time from collection to receipt > ${h} h`;
+    }
+    if (rule === 'temperature_range' || rule === 'volume_range') {
+      const { direction: d, minValue: mn, maxValue: mx, unit: u } = config;
+      const label = rule === 'temperature_range' ? 'temperature' : 'volume';
+      if (d === 'within_range')  return `Will FAIL if ${label} < ${mn ?? '—'}${u} or > ${mx ?? '—'}${u}`;
+      if (d === 'at_least')      return `Will FAIL if ${label} < ${mn ?? '—'}${u}`;
+      if (d === 'at_most')       return `Will FAIL if ${label} > ${mx ?? '—'}${u}`;
+      if (d === 'outside_range') return `Will FAIL if ${label} ≥ ${mn ?? '—'}${u} and ≤ ${mx ?? '—'}${u}`;
+    }
+    if (rule === 'pool_size') {
+      const min = config.source === 'specimen_profile' ? '(from Vector Specimen Profile)' : (config.customMin ?? '—');
+      return `Will FAIL if pool count < ${min} specimens`;
+    }
+    return '';
+  };
+
+  const panelStyle = {
+    marginTop:'0.75rem', padding:'0.75rem',
+    background:'#fff', border:'1px solid #c6c6c6', borderRadius:4,
+  };
+  const infoBox = (title, body) => (
+    <div style={{background:'#edf5ff',border:'1px solid #a6c8ff',borderRadius:4,padding:'0.625rem 0.75rem',marginBottom:'0.75rem',fontSize:'0.8125rem'}}>
+      <strong style={{display:'block',marginBottom:'0.25rem',color:'#0043ce'}}>{title}</strong>
+      <span style={{color:'#161616'}}>{body}</span>
+    </div>
+  );
+
+  return (
+    <div style={panelStyle}>
+      {rule === 'transit_window' && (<>
+        {infoBox('Transit window', 'Computes elapsed time between the collection date/time (entered at Step 2) and the lab receipt date/time. Fails if elapsed time exceeds the configured maximum.')}
+        <div style={{marginBottom:'0.625rem'}}>
+          <label style={{display:'block',fontWeight:600,fontSize:'0.8125rem',marginBottom:'0.4rem'}}>Window source</label>
+          <label style={{display:'flex',alignItems:'center',gap:'0.5rem',fontSize:'0.875rem',marginBottom:'0.3rem',cursor:'pointer'}}>
+            <input type="radio" name={`tw-${config._id||'x'}`} checked={config.customHours == null}
+              onChange={() => upd({customHours: null})} /> Use SOP Transit Window ({sopWindow} h, set above)
+          </label>
+          <label style={{display:'flex',alignItems:'center',gap:'0.5rem',fontSize:'0.875rem',cursor:'pointer'}}>
+            <input type="radio" name={`tw-${config._id||'x'}`} checked={config.customHours != null}
+              onChange={() => upd({customHours: sopWindow})} /> Custom maximum for this criterion
+          </label>
+        </div>
+        {config.customHours != null && (
+          <div style={{marginBottom:'0.625rem'}}>
+            <label className="field-label">Maximum elapsed time (hours)</label>
+            <input type="number" value={config.customHours} min={1} max={720} style={{width:100}}
+              onChange={e => upd({customHours: Number(e.target.value)})} />
+            <div className="helper-text">Overrides the SOP Transit Window above for this criterion only</div>
+          </div>
+        )}
+      </>)}
+
+      {(rule === 'temperature_range' || rule === 'volume_range') && (<>
+        {rule === 'temperature_range'
+          ? infoBox('Temperature range', 'Reads the temperature recorded during sample receipt or cold-chain monitoring. Fails when the measured temperature falls outside the configured threshold.')
+          : infoBox('Volume range', 'Reads the measured sample volume entered at collection. Fails when the volume does not meet the configured threshold.')}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'0.75rem',alignItems:'end',marginBottom:'0.625rem'}}>
+          <div>
+            <label className="field-label">Pass condition</label>
+            <select value={config.direction} onChange={e => upd({direction: e.target.value})}>
+              <option value="within_range">Within range (min ≤ x ≤ max)</option>
+              <option value="at_least">At least minimum (x ≥ min)</option>
+              <option value="at_most">At most maximum (x ≤ max)</option>
+              <option value="outside_range">Outside range (x &lt; min or x &gt; max)</option>
+            </select>
+          </div>
+          {(config.direction === 'within_range' || config.direction === 'outside_range' || config.direction === 'at_least') && (
+            <div>
+              <label className="field-label">Minimum</label>
+              <input type="number" value={config.minValue ?? ''} style={{width:'100%'}}
+                onChange={e => upd({minValue: e.target.value === '' ? null : Number(e.target.value)})} />
+            </div>
+          )}
+          {(config.direction === 'within_range' || config.direction === 'outside_range' || config.direction === 'at_most') && (
+            <div>
+              <label className="field-label">Maximum</label>
+              <input type="number" value={config.maxValue ?? ''} style={{width:'100%'}}
+                onChange={e => upd({maxValue: e.target.value === '' ? null : Number(e.target.value)})} />
+            </div>
+          )}
+          <div>
+            <label className="field-label">Unit</label>
+            {rule === 'temperature_range'
+              ? (<select value={config.unit} onChange={e => upd({unit: e.target.value})}>
+                  <option value="°C">°C</option><option value="°F">°F</option>
+                </select>)
+              : (<select value={config.unit} onChange={e => upd({unit: e.target.value})}>
+                  <option value="mL">mL</option><option value="µL">µL</option><option value="L">L</option>
+                </select>)}
+          </div>
+        </div>
+      </>)}
+
+      {rule === 'pool_size' && (<>
+        {infoBox('Pool size (vector)', 'Counts the specimens linked to this collection lot. Fails when the pool count falls below the configured minimum. Typically sourced from the Vector Specimen Profile.')}
+        <div style={{marginBottom:'0.625rem'}}>
+          <label style={{display:'block',fontWeight:600,fontSize:'0.8125rem',marginBottom:'0.4rem'}}>Minimum pool size source</label>
+          <label style={{display:'flex',alignItems:'center',gap:'0.5rem',fontSize:'0.875rem',marginBottom:'0.3rem',cursor:'pointer'}}>
+            <input type="radio" name="pool-src" checked={config.source === 'specimen_profile'}
+              onChange={() => upd({source:'specimen_profile',customMin:null})} /> From Vector Specimen Profile (recommended)
+          </label>
+          <label style={{display:'flex',alignItems:'center',gap:'0.5rem',fontSize:'0.875rem',cursor:'pointer'}}>
+            <input type="radio" name="pool-src" checked={config.source === 'custom'}
+              onChange={() => upd({source:'custom',customMin:10})} /> Custom minimum for this criterion
+          </label>
+        </div>
+        {config.source === 'custom' && (
+          <div style={{marginBottom:'0.625rem'}}>
+            <label className="field-label">Minimum specimen count</label>
+            <input type="number" value={config.customMin ?? 10} min={1} style={{width:100}}
+              onChange={e => upd({customMin: Number(e.target.value)})} />
+          </div>
+        )}
+      </>)}
+
+      {/* Live preview */}
+      <div style={{marginTop:'0.625rem',padding:'0.5rem 0.75rem',background:'#f4f4f4',borderLeft:'3px solid #0f62fe',borderRadius:'0 4px 4px 0',fontFamily:'monospace',fontSize:'0.8rem',color:'#161616'}}>
+        <span style={{color:'#6f6f6f',marginRight:6}}>Preview:</span>{preview()}
+      </div>
+    </div>
+  );
+}
+
 // ── Screen 4: SampleType Admin — Criteria ─────────────────────────────────────
+const DEFAULT_RULE_CONFIG_HTML = {
+  transit_window:    { source:'sop_window', customHours:null },
+  temperature_range: { direction:'within_range', minValue:null, maxValue:null, unit:'°C' },
+  volume_range:      { direction:'at_least', minValue:null, maxValue:null, unit:'mL' },
+  pool_size:         { source:'specimen_profile', customMin:null },
+};
+
 function ScreenSampleTypeAdmin() {
+  const [sopWindow, setSopWindow] = useState(12);
   const [criteria, setCriteria] = useState([
-    {id:'ca1',label:'Container integrity intact',      sev:'MAJOR',    rec:true,  rule:'none',              sub:'Specimen Integrity'},
-    {id:'ca2',label:'Label legibility',                sev:'MINOR',    rec:true,  rule:'none',              sub:'Labeling'},
-    {id:'ca3',label:'Sample volume sufficient',        sev:'MAJOR',    rec:true,  rule:'volume_range',      sub:'Volume'},
-    {id:'ca4',label:'Temperature within range (2–8°C)',sev:'CRITICAL', rec:true,  rule:'temperature_range', sub:'Cold Chain'},
-    {id:'ca5',label:'SOP transit window met',          sev:'MAJOR',    rec:true,  rule:'transit_window',    sub:'Transport'},
+    {id:'ca1',label:'Container integrity intact',        sev:'MAJOR',    rec:true, rule:'none',              sub:'Specimen Integrity', ruleConfig:null},
+    {id:'ca2',label:'Label legibility',                  sev:'MINOR',    rec:true, rule:'none',              sub:'Labeling',           ruleConfig:null},
+    {id:'ca3',label:'Sample volume sufficient',          sev:'MAJOR',    rec:true, rule:'volume_range',      sub:'Volume',             ruleConfig:{direction:'at_least',minValue:200,maxValue:null,unit:'mL'}},
+    {id:'ca4',label:'Temperature within range (2–8°C)',  sev:'CRITICAL', rec:true, rule:'temperature_range', sub:'Cold Chain',         ruleConfig:{direction:'within_range',minValue:2,maxValue:8,unit:'°C'}},
+    {id:'ca5',label:'SOP transit window met',            sev:'MAJOR',    rec:true, rule:'transit_window',    sub:'Transport',          ruleConfig:{source:'sop_window',customHours:null}},
   ]);
   const [newLabel, setNewLabel] = useState('');
+
+  const updCrit = (id, patch) => setCriteria(p => p.map(c => c.id === id ? {...c,...patch} : c));
+  const setRule = (id, newRule) => {
+    const cur = criteria.find(c => c.id === id);
+    const newCfg = newRule === 'none' ? null : (cur.rule === newRule ? cur.ruleConfig : (DEFAULT_RULE_CONFIG_HTML[newRule] ?? null));
+    updCrit(id, { rule: newRule, ruleConfig: newCfg });
+  };
 
   return (
     <div>
@@ -755,8 +902,9 @@ function ScreenSampleTypeAdmin() {
         <div className="accordion-body">
           <div style={{marginBottom:'1rem'}}>
             <label className="field-label" htmlFor="sop">SOP Transit Window (hours)</label>
-            <input type="number" id="sop" defaultValue={12} min={1} max={168} style={{width:120}} />
-            <div className="helper-text">Maximum allowed time from collection to receipt at lab</div>
+            <input type="number" id="sop" value={sopWindow} min={1} max={168} style={{width:120}}
+              onChange={e => setSopWindow(Number(e.target.value))} />
+            <div className="helper-text">Maximum allowed time from collection to receipt at lab — used by the Transit Window auto-compute rule</div>
           </div>
 
           <details style={{marginBottom:'1rem'}}>
@@ -772,7 +920,7 @@ function ScreenSampleTypeAdmin() {
 
           <h5 style={{margin:'0 0 0.75rem',fontWeight:600}}>Criteria List</h5>
           {criteria.map(c => (
-            <div key={c.id} style={{borderLeft:'3px solid #0f62fe',padding:'0.75rem',background:'#f4f4f4',marginBottom:'0.5rem',borderRadius:'0 2px 2px 0'}}>
+            <div key={c.id} style={{borderLeft:'3px solid #0f62fe',padding:'0.75rem',background:'#f4f4f4',marginBottom:'0.75rem',borderRadius:'0 2px 2px 0'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem'}}>
                 <strong style={{fontSize:'0.875rem'}}>{c.label}</strong>
                 <button className="btn btn-ghost btn-sm" onClick={()=>setCriteria(p=>p.filter(x=>x.id!==c.id))}>🗑</button>
@@ -780,39 +928,54 @@ function ScreenSampleTypeAdmin() {
               <div className="grid grid-4">
                 <div>
                   <label className="field-label">Severity</label>
-                  <select defaultValue={c.sev}><option value="CRITICAL">Critical</option><option value="MAJOR">Major</option><option value="MINOR">Minor</option></select>
+                  <select value={c.sev} onChange={e=>updCrit(c.id,{sev:e.target.value})}>
+                    <option value="CRITICAL">Critical</option><option value="MAJOR">Major</option><option value="MINOR">Minor</option>
+                  </select>
                 </div>
                 <div>
                   <label className="field-label">Auto-Compute Rule</label>
-                  <select defaultValue={c.rule}>
+                  <select value={c.rule} onChange={e=>setRule(c.id,e.target.value)}>
                     <option value="none">None (manual)</option>
                     <option value="transit_window">Transit window</option>
                     <option value="temperature_range">Temperature range</option>
                     <option value="volume_range">Volume range</option>
                     <option value="pool_size">Pool size (vector)</option>
                   </select>
+                  <div className="helper-text" style={{marginTop:'0.25rem'}}>
+                    {c.rule === 'none' ? 'Officer checks manually at assessment' : 'System evaluates automatically — configure below'}
+                  </div>
                 </div>
                 <div>
                   <label className="field-label">NCE Subcategory</label>
-                  <select defaultValue={c.sub}>
+                  <select value={c.sub} onChange={e=>updCrit(c.id,{sub:e.target.value})}>
                     <option>Specimen Integrity</option><option>Cold Chain</option>
                     <option>Transport</option><option>Volume</option><option>Labeling</option>
                   </select>
                 </div>
                 <div style={{paddingTop:'1.25rem'}}>
                   <label style={{display:'flex',alignItems:'center',gap:'0.5rem',fontSize:'0.875rem',cursor:'pointer'}}>
-                    <input type="checkbox" defaultChecked={c.rec} /> Recoverable (allow Resample)
+                    <input type="checkbox" checked={c.rec} onChange={e=>updCrit(c.id,{rec:e.target.checked})} /> Recoverable (allow Resample)
                   </label>
                 </div>
               </div>
+
+              {/* Auto-rule config panel */}
+              {c.rule !== 'none' && c.ruleConfig && (
+                <AutoRuleConfigPanel
+                  rule={c.rule}
+                  config={c.ruleConfig}
+                  onChange={cfg => updCrit(c.id, {ruleConfig: cfg})}
+                  sopWindow={sopWindow}
+                />
+              )}
             </div>
           ))}
 
           <div style={{border:'2px dashed #c6c6c6',padding:'0.75rem',borderRadius:2,display:'flex',gap:'0.75rem',alignItems:'center',marginTop:'0.5rem'}}>
             <input type="text" placeholder="New criterion label…" value={newLabel} onChange={e=>setNewLabel(e.target.value)}
-              style={{flex:1}} onKeyDown={e=>e.key==='Enter'&&newLabel.trim()&&(setCriteria(p=>[...p,{id:`ca${Date.now()}`,label:newLabel,sev:'MAJOR',rec:true,rule:'none',sub:'Specimen Integrity'}]),setNewLabel(''))} />
+              style={{flex:1}} onKeyDown={e=>e.key==='Enter'&&newLabel.trim()&&(setCriteria(p=>[...p,{id:`ca${Date.now()}`,label:newLabel,sev:'MAJOR',rec:true,rule:'none',ruleConfig:null,sub:'Specimen Integrity'}]),setNewLabel(''))} />
             <button className="btn btn-primary btn-sm"
-              onClick={()=>newLabel.trim()&&(setCriteria(p=>[...p,{id:`ca${Date.now()}`,label:newLabel,sev:'MAJOR',rec:true,rule:'none',sub:'Specimen Integrity'}]),setNewLabel(''))}>
+              onClick={()=>newLabel.trim()&&(setCriteria(p=>[...p,{id:`ca${Date.now()}`,label:newLabel,sev:'MAJOR',rec:true,rule:'none',ruleConfig:null,sub:'Specimen Integrity'}]),setNewLabel(''))}>
               + Add
             </button>
           </div>
