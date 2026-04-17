@@ -97,7 +97,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Test Catalog',
-    category: 'admin-config',
+    category: 'vector-surveillance',
     component: React.lazy(() => import('@designs/admin-config/test-catalog.jsx')),
     description: 'Comprehensive test catalog management',
     specPath: 'designs/admin-config/test-catalog.md',
@@ -497,7 +497,7 @@ export const MOCKUP_REGISTRY = [
   // ─── Results & Validation ───
   {
     name: 'Results Page',
-    category: 'results-validation',
+    category: 'vector-surveillance',
     component: React.lazy(() => import('@designs/results-validation/results-page.jsx')),
     description: 'Main results entry and review page',
     specPath: 'designs/results-validation/results-page.md',
@@ -507,7 +507,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Validation Page',
-    category: 'results-validation',
+    category: 'vector-surveillance',
     component: React.lazy(() => import('@designs/results-validation/validation-page.jsx')),
     description: 'Result validation workflow',
     specPath: 'designs/results-validation/validation-page.md',
@@ -803,7 +803,7 @@ export const MOCKUP_REGISTRY = [
   // ─── Sample Collection ───
   {
     name: 'Sample Collection Redesign',
-    category: 'sample-collection',
+    category: 'vector-surveillance',
     component: null,
     description: 'Decoupled 4-step sample lifecycle: Enter Order → Collect Sample → Label & Store → QA Review',
     specPath: 'designs/sample-collection/sample-collection-redesign.md',
@@ -941,7 +941,7 @@ export const MOCKUP_REGISTRY = [
   // ─── Reference / Planning ───
   {
     name: 'Environmental & Vector Testing Roadmap',
-    category: 'other',
+    category: 'vector-surveillance',
     component: null,
     description: 'Architecture roadmap for the Environmental & Vector Testing Module (OGC-527 epic). Covers 3-layer build order: S-01–S-02 foundational infrastructure, S-03–S-04 integration, S-05–S-08 analytics/reporting, V-01–V-04 vector surveillance. Dependency graph, recommended implementation phases, and current spec completion status.',
     specPath: 'designs/other/environmental-vector-roadmap.md',
