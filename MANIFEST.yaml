@@ -1584,3 +1584,31 @@
     - Indonesia
   added: "2026-04-16"
   status: draft
+
+- id: vector-collection-workflow
+  type: both
+  path: designs/vector-surveillance/vector-collection-workflow.jsx
+  spec: designs/vector-surveillance/vector-collection-workflow.md
+  preview: designs/vector-surveillance/vector-collection-workflow.html
+  category: vector-surveillance
+  description: >
+    V-02 Vector Collection Workflow — extends the 4-step Sample Collection Redesign with a
+    Vector domain toggle (Clinical | Environmental / Other | Vector). Introduces CollectionLot
+    entity with trap type, GPS coordinates (pre-filled from sampling site, overrideable),
+    pool flag, organism count, weather conditions, receipt confirmation (timestamp drives
+    S-09 transit window rule), and S-09 eligibility gate integration at Step 4.
+  links:
+    jira: ["OGC-527"]
+  tags:
+    - vector
+    - collection
+    - workflow
+    - sample-collection
+    - Indonesia
+    - mosquito
+    - tick
+    - GPS
+    - pooling
+    - eligibility-gate
+  added: "2026-04-17"
+  status: draft

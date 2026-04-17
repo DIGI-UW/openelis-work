@@ -492,6 +492,18 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-555', 'OGC-527'],
     tags: ['vector', 'species', 'taxonomy', 'trap-types', 'mosquito', 'tick', 'rodent', 'reference-data', 'pooling'],
   },
+  {
+    name: 'Vector Collection Workflow',
+    category: 'vector-surveillance',
+    component: React.lazy(() => import('@designs/vector-surveillance/vector-collection-workflow.jsx')),
+    description: 'V-02 Vector Collection Workflow — extends the 4-step Sample Collection Redesign with a Vector domain toggle (Clinical | Environmental / Other | Vector). Adds CollectionLot entity with trap type, GPS coordinates (pre-filled from sampling site), pool flag, organism count, weather conditions, receipt confirmation, and S-09 eligibility gate integration at Step 4.',
+    specPath: 'designs/vector-surveillance/vector-collection-workflow.md',
+    htmlUrl: 'designs/vector-surveillance/vector-collection-workflow.html',
+    added: '2026-04-17',
+    status: 'draft',
+    jira: ['OGC-527'],
+    tags: ['vector', 'collection', 'workflow', 'sample-collection', 'Indonesia', 'mosquito', 'tick', 'GPS', 'pooling', 'eligibility-gate'],
+  },
 
   // ─── Results & Validation ───
   {
