@@ -2932,16 +2932,16 @@ function setWorkflow(type) {
   var envSections = ['section-env-standard','section-env-samples','section-env-tests','section-env-conditions'];
   envSections.forEach(function(id) {
     var el = document.getElementById(id);
-    if (el) el.classList.toggle('hidden', type === 'clinical');
+    if (el) el.classList.toggle('hidden', !isEnv);
   });
 
   // Auto-default program when switching workflow type
   if (isEnv) {
     selectProgram('lead-water', 'Lead in Well Water');
+    if (typeof populateSampleChecklist === 'function') populateSampleChecklist();
   } else if (isVector) {
     selectProgram('dengue-vector', 'Dengue Vector Surveillance');
   } else if (isClinical && ['lead-water','parasite','water','dengue-vector','malaria-vector','tick-borne'].indexOf(currentProgram) !== -1) {
-
     selectProgram('vl', 'VL Program');
   }
 }

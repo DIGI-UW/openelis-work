@@ -505,6 +505,18 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-527'],
     tags: ['vector', 'collection', 'workflow', 'sample-collection', 'Indonesia', 'mosquito', 'tick', 'GPS', 'pooling', 'eligibility-gate'],
   },
+  {
+    name: 'Vector Testing & Identification',
+    category: 'vector-surveillance',
+    component: React.lazy(() => import('@designs/vector-surveillance/vector-testing-identification.jsx')),
+    description: 'V-03 Vector Testing & Identification — species identification workbench with per-specimen inline form, bulk-apply for homogeneous lots, molecular detail capture (target gene, assay, GenBank accession), admin-configured pathogen test panel library, and pool deconvolution workflow (positive pool → child specimens → re-test order). Hybrid integration: species ID in dedicated workbench; pathogen results through standard Results Entry.',
+    specPath: 'designs/vector-surveillance/vector-testing-identification.md',
+    htmlUrl: 'designs/vector-surveillance/vector-testing-identification.html',
+    added: '2026-04-17',
+    status: 'draft',
+    jira: ['OGC-527'],
+    tags: ['vector', 'identification', 'species', 'pathogen', 'panel', 'deconvolution', 'Indonesia', 'mosquito', 'molecular', 'PCR', 'pool'],
+  },
 
   // ─── Results & Validation ───
   {
