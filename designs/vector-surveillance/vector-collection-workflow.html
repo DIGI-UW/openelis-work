@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenELIS Global — V-02 Vector Collection Workflow Mockup</title>
+<style>
+  :root {
+    --cds-blue-60: #0f62fe;
+    --cds-blue-70: #0043ce;
+    --cds-blue-10: #edf5ff;
+    --cds-gray-10: #f4f4f4;
+    --cds-gray-20: #e0e0e0;
+    --cds-gray-30: #c6c6c6;
+    --cds-gray-50: #8d8d8d;
+    --cds-gray-60: #6f6f6f;
+    --cds-gray-70: #525252;
+    --cds-gray-80: #393939;
+    --cds-gray-90: #262626;
+    --cds-gray-100: #161616;
+    --cds-green-40: #42be65;
+    --cds-green-60: #198038;
+    --cds-yellow-30: #f1c21b;
+    --cds-red-60: #da1e28;
+    --cds-teal-60: #005d5d;
+    --cds-teal-20: #d9fbfb;
+    --cds-purple-60: #8a3ffc;
+    --cds-orange-40: #ff832b;
+    --cds-cyan-20: #bae6ff;
+    --cds-cyan-60: #0072c3;
+    --cds-white: #ffffff;
+    --oe-navy: #1a2744;
+    --oe-navy-light: #243356;
+    --oe-navy-hover: #2d3f68;
+    --oe-teal: #5bc0be;
+    --oe-active-blue: #3a7bd5;
+    --sidebar-width: 220px;
+    --header-height: 48px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; color: var(--cds-gray-100); background: var(--cds-gray-10); }
+
+  /* ── Header ── */
+  .header { position: fixed; top: 0; left: 0; right: 0; height: var(--header-height); background: var(--cds-gray-100); display: flex; align-items: center; z-index: 100; }
+  .header-hamburger { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #aaa; }
+  .header-hamburger:hover { background: #333; }
+  .header-logo { color: var(--cds-white); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px; padding: 0 16px; }
+  .header-logo-img { width: 36px; height: 36px; border-radius: 4px; }
+  .header-logo-text { display: flex; flex-direction: column; line-height: 1.2; }
+  .header-logo-name { font-size: 15px; font-weight: 700; color: #fff; }
+  .header-logo-version { font-size: 11px; color: #999; font-weight: 400; }
+  .header-nav { margin-left: auto; display: flex; align-items: center; height: 100%; }
+  .header-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: #aaa; cursor: pointer; }
+  .header-icon:hover { background: #333; color: #fff; }
+
+  /* ── Sidebar ── */
+  .sidebar { position: fixed; top: var(--header-height); left: 0; bottom: 0; width: var(--sidebar-width); background: var(--oe-navy); overflow-y: auto; z-index: 90; }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: #3a5070; border-radius: 2px; }
+  .sidebar-section-label { padding: 10px 16px 6px; font-size: 13px; font-weight: 600; color: var(--oe-teal); letter-spacing: 0.2px; }
+  .sidebar-item { display: flex; align-items: center; padding: 7px 16px 7px 28px; color: rgba(255,255,255,0.85); cursor: pointer; font-size: 13px; gap: 8px; border-left: 3px solid transparent; }
+  .sidebar-item:hover { background: var(--oe-navy-hover); color: #fff; }
+  .sidebar-item.active { background: var(--oe-active-blue); color: #fff; border-left-color: #fff; font-weight: 500; }
+  .sidebar-item.parent { padding-left: 16px; font-weight: 500; color: #fff; }
+  .sidebar-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 12px; }
+
+  /* ── Main Content ── */
+  .main { margin-left: var(--sidebar-width); margin-top: var(--header-height); padding: 24px 32px; min-height: calc(100vh - var(--header-height)); padding-bottom: 48px; }
+
+  /* ── Screen Nav Tabs ── */
+  .screen-tabs { display: flex; border-bottom: 2px solid var(--cds-gray-20); margin-bottom: 24px; background: var(--cds-white); padding: 0 4px; overflow-x: auto; }
+  .screen-tab { padding: 12px 20px; font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap; color: var(--cds-gray-60); }
+  .screen-tab:hover { color: var(--cds-blue-60); background: var(--cds-blue-10); }
+  .screen-tab.active { color: var(--cds-blue-60); border-bottom-color: var(--cds-blue-60); font-weight: 500; }
+
+  /* ── Stepper ── */
+  .stepper { display: flex; align-items: center; background: var(--cds-white); padding: 16px 24px; border: 1px solid var(--cds-gray-20); margin-bottom: 24px; }
+  .step { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .step-number { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; border: 2px solid var(--cds-gray-30); color: var(--cds-gray-50); background: var(--cds-white); }
+  .step.active .step-number { border-color: var(--cds-blue-60); background: var(--cds-blue-60); color: #fff; }
+  .step.completed .step-number { border-color: var(--cds-green-60); background: var(--cds-green-60); color: #fff; }
+  .step-label { font-size: 13px; color: var(--cds-gray-60); }
+  .step.active .step-label { color: var(--cds-blue-60); font-weight: 500; }
+  .step.completed .step-label { color: var(--cds-green-60); }
+  .step-connector { flex: 0.5; height: 2px; background: var(--cds-gray-20); margin: 0 8px; }
+  .step-connector.completed { background: var(--cds-green-60); }
+
+  /* ── Context Card ── */
+  .context-card { background: var(--cds-white); border: 1px solid var(--cds-gray-20); border-left: 4px solid var(--cds-blue-60); padding: 16px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap; }
+  .context-item { display: flex; flex-direction: column; gap: 2px; }
+  .context-label { font-size: 11px; color: var(--cds-gray-60); text-transform: uppercase; letter-spacing: 0.32px; }
+  .context-value { font-size: 14px; font-weight: 500; }
+
+  /* ── Form Sections ── */
+  .form-section { background: var(--cds-white); border: 1px solid var(--cds-gray-20); margin-bottom: 16px; }
+  .form-section-header { padding: 16px 24px; border-bottom: 1px solid var(--cds-gray-20); display: flex; align-items: center; justify-content: space-between; }
+  .form-section-header h3 { font-size: 16px; font-weight: 500; }
+  .form-section-body { padding: 24px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px; }
+  .form-row.three-col { grid-template-columns: 1fr 1fr 1fr; }
+  .form-row.four-col { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-label { font-size: 12px; font-weight: 500; color: var(--cds-gray-70); margin-bottom: 2px; }
+  .form-label .required { color: var(--cds-red-60); }
+  .form-input { padding: 8px 16px; border: none; border-bottom: 1px solid var(--cds-gray-50); background: var(--cds-gray-10); font-size: 14px; font-family: inherit; outline: none; width: 100%; }
+  .form-input:focus { border-bottom-color: var(--cds-blue-60); border-bottom-width: 2px; }
+  .form-input[readonly] { color: var(--cds-gray-60); cursor: default; }
+  .form-select { padding: 8px 32px 8px 16px; border: none; border-bottom: 1px solid var(--cds-gray-50); background: var(--cds-gray-10); font-size: 14px; font-family: inherit; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z' fill='%23525252'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; cursor: pointer; width: 100%; outline: none; }
+  .helper-text { font-size: 11px; color: var(--cds-gray-60); margin-top: 4px; }
+
+  /* ── Workflow Toggle ── */
+  .workflow-toggle { display: flex; gap: 0; margin-bottom: 8px; }
+  .workflow-toggle-btn { padding: 8px 20px; border: 1px solid var(--cds-gray-30); background: var(--cds-white); font-size: 13px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .workflow-toggle-btn:first-child { border-radius: 4px 0 0 4px; }
+  .workflow-toggle-btn:last-child { border-radius: 0 4px 4px 0; }
+  .workflow-toggle-btn.active { background: var(--cds-blue-60); color: white; border-color: var(--cds-blue-60); font-weight: 600; }
+
+  /* ── Tags ── */
+  .tag { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; gap: 4px; }
+  .tag-vector { background: #d9fbfb; color: var(--cds-teal-60); }
+  .tag-clinical { background: #d0e2ff; color: var(--cds-blue-70); }
+  .tag-env { background: #e8daff; color: var(--cds-purple-60); }
+  .tag-gray { background: var(--cds-gray-20); color: var(--cds-gray-70); }
+  .tag-blue { background: #d0e2ff; color: var(--cds-blue-70); }
+  .tag-green { background: #defbe6; color: var(--cds-green-60); }
+  .tag-red { background: #ffd7d9; color: var(--cds-red-60); }
+  .tag-teal { background: #d9fbfb; color: var(--cds-teal-60); }
+  .tag-purple { background: #e8daff; color: var(--cds-purple-60); }
+  .tag-orange { background: #ffd9be; color: #a2191f; }
+  .tag-cyan { background: var(--cds-cyan-20); color: var(--cds-cyan-60); }
+  .tag-warm-gray { background: #f7f3f2; color: var(--cds-gray-70); }
+
+  /* ── Buttons ── */
+  .btn-row { display: flex; gap: 12px; justify-content: flex-end; padding: 16px 0; }
+  .btn { padding: 10px 24px; font-size: 14px; font-family: inherit; cursor: pointer; border: none; font-weight: 500; transition: all 0.15s; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-primary { background: var(--cds-blue-60); color: white; }
+  .btn-primary:hover { background: var(--cds-blue-70); }
+  .btn-primary:disabled { background: var(--cds-gray-30); color: var(--cds-gray-50); cursor: not-allowed; }
+  .btn-secondary { background: var(--cds-gray-80); color: white; }
+  .btn-secondary:hover { background: var(--cds-gray-90); }
+  .btn-ghost { background: transparent; color: var(--cds-blue-60); border: 1px solid transparent; }
+  .btn-ghost:hover { background: var(--cds-blue-10); }
+  .btn-danger-ghost { background: transparent; color: var(--cds-red-60); border: 1px solid transparent; }
+  .btn-danger-ghost:hover { background: #fff1f1; }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+  /* ── Notification Banners ── */
+  .notification { display: flex; gap: 12px; padding: 14px 16px; margin-bottom: 16px; font-size: 13px; }
+  .notification-info { background: var(--cds-blue-10); border-left: 4px solid var(--cds-blue-60); }
+  .notification-success { background: #defbe6; border-left: 4px solid var(--cds-green-60); }
+  .notification-warning { background: #fff8e1; border-left: 4px solid var(--cds-yellow-30); }
+  .notification-error { background: #ffd7d9; border-left: 4px solid var(--cds-red-60); }
+  .notification-title { font-weight: 600; margin-bottom: 2px; }
+
+  /* ── Site Search Dropdown ── */
+  .site-search-wrap { position: relative; max-width: 480px; }
+  .site-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid var(--cds-gray-30); z-index: 20; box-shadow: 0 4px 8px rgba(0,0,0,.12); }
+  .site-option { padding: 10px 16px; cursor: pointer; font-size: 14px; border-bottom: 1px solid var(--cds-gray-10); }
+  .site-option:hover { background: var(--cds-blue-10); }
+  .site-option strong { display: block; }
+  .site-option span { font-size: 12px; color: var(--cds-gray-60); }
+  .site-selected-card { padding: 14px 16px; background: #edfafa; border: 1px solid #9ef0f0; border-radius: 2px; margin-top: 8px; }
+  .site-selected-card .sc-name { font-weight: 600; font-size: 14px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .site-selected-card .sc-meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; font-size: 12px; }
+  .site-selected-card .sc-meta span { color: var(--cds-gray-60); }
+
+  /* ── Accordion ── */
+  .accordion { border: 1px solid var(--cds-gray-20); }
+  .accordion-item { border-bottom: 1px solid var(--cds-gray-20); }
+  .accordion-item:last-child { border-bottom: none; }
+  .accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; cursor: pointer; background: var(--cds-white); font-size: 14px; font-weight: 500; user-select: none; }
+  .accordion-header:hover { background: var(--cds-gray-10); }
+  .accordion-chevron { transition: transform 0.2s; color: var(--cds-gray-60); }
+  .accordion-chevron.open { transform: rotate(180deg); }
+  .accordion-body { padding: 16px; border-top: 1px solid var(--cds-gray-20); background: var(--cds-white); }
+
+  /* ── Toggle Switch ── */
+  .toggle-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .toggle-label { font-size: 12px; font-weight: 500; color: var(--cds-gray-70); }
+  .toggle-row { display: flex; align-items: center; gap: 12px; }
+  .toggle-switch { position: relative; display: inline-block; width: 48px; height: 24px; cursor: pointer; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-track { position: absolute; inset: 0; background: var(--cds-gray-50); border-radius: 12px; transition: background 0.2s; }
+  .toggle-switch input:checked + .toggle-track { background: var(--cds-blue-60); }
+  .toggle-thumb { position: absolute; top: 4px; left: 4px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: transform 0.2s; pointer-events: none; }
+  .toggle-switch input:checked ~ .toggle-thumb { transform: translateX(24px); }
+  .toggle-text { font-size: 13px; color: var(--cds-gray-70); min-width: 120px; }
+
+  /* ── Worklist Table ── */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th { padding: 10px 16px; background: var(--cds-gray-10); font-weight: 600; text-align: left; border-bottom: 2px solid var(--cds-gray-20); white-space: nowrap; }
+  .data-table td { padding: 12px 16px; border-bottom: 1px solid var(--cds-gray-20); vertical-align: middle; }
+  .data-table tr:hover td { background: var(--cds-blue-10); }
+  .table-toolbar { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--cds-gray-10); border: 1px solid var(--cds-gray-20); border-bottom: none; }
+  .search-input { flex: 1; max-width: 320px; padding: 8px 16px; border: 1px solid var(--cds-gray-30); background: #fff; font-size: 13px; font-family: inherit; outline: none; }
+  .search-input:focus { border-color: var(--cds-blue-60); }
+
+  /* ── Eligibility Criteria ── */
+  .criterion-row { display: flex; align-items: flex-start; gap: 14px; padding: 12px 16px; border-radius: 2px; border: 1px solid var(--cds-gray-20); margin-bottom: 8px; background: var(--cds-white); }
+  .criterion-row.pass { border-color: var(--cds-gray-20); }
+  .criterion-row.fail { background: #fff1f1; border-color: var(--cds-red-60); }
+  .criterion-body { flex: 1; }
+  .criterion-title { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .criterion-note { font-size: 12px; font-family: monospace; color: var(--cds-gray-60); margin-top: 4px; }
+  .check-icon { color: var(--cds-green-60); font-size: 18px; margin-top: 2px; flex-shrink: 0; }
+  .warn-icon { color: var(--cds-red-60); font-size: 18px; margin-top: 2px; flex-shrink: 0; }
+
+  /* ── Label Preview ── */
+  .label-preview { border: 2px solid var(--cds-gray-30); padding: 16px; max-width: 340px; background: #fff; border-radius: 2px; margin-bottom: 20px; }
+  .label-mono { font-family: monospace; }
+  .barcode-placeholder { height: 40px; margin-top: 12px; background: repeating-linear-gradient(90deg, #000 0, #000 2px, #fff 2px, #fff 6px); opacity: 0.85; }
+
+  /* ── Breadcrumb ── */
+  .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 16px; color: var(--cds-gray-60); }
+  .breadcrumb a { color: var(--cds-blue-60); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb-sep { color: var(--cds-gray-30); }
+
+  /* ── Page Title ── */
+  .page-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .page-title { font-size: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+
+  /* ── Override note box ── */
+  .override-box { background: #fff8e1; border: 1px solid var(--cds-yellow-30); padding: 16px; margin-top: 16px; }
+  .override-box h4 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+  textarea.form-input { resize: vertical; border: 1px solid var(--cds-gray-30); border-bottom: 2px solid var(--cds-gray-50); padding: 8px 12px; }
+  textarea.form-input:focus { border-bottom-color: var(--cds-blue-60); border-bottom-width: 2px; }
+
+  /* ── GPS info note ── */
+  .gps-note { background: var(--cds-blue-10); border-left: 3px solid var(--cds-blue-60); padding: 8px 12px; font-size: 12px; color: var(--cds-blue-70); margin-top: 8px; }
+
+  /* ── Read-only summary grid ── */
+  .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .summary-item { display: flex; flex-direction: column; gap: 2px; }
+  .summary-label { font-size: 11px; color: var(--cds-gray-60); text-transform: uppercase; letter-spacing: 0.3px; }
+  .summary-value { font-size: 14px; font-weight: 500; }
+
+  /* ── Success state ── */
+  .success-state { text-align: center; padding: 48px 24px; }
+  .success-icon { font-size: 64px; margin-bottom: 16px; }
+  .success-title { font-size: 1.25rem; font-weight: 600; color: var(--cds-green-60); margin-bottom: 8px; }
+  .success-sub { font-size: 14px; color: var(--cds-gray-60); }
+
+  /* ── Misc ── */
+  .hidden { display: none !important; }
+  .mockup-banner { background: var(--cds-blue-60); color: white; padding: 8px 16px; font-size: 12px; text-align: center; position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; }
+  *:focus-visible { outline: 2px solid var(--cds-blue-60); outline-offset: 2px; }
+
+  /* ── Screen panels ── */
+  .screen-panel { display: none; }
+  .screen-panel.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="mockup-banner">Interactive Mockup — OpenELIS Global V-02 Vector Collection Workflow | Click screen tabs to navigate</div>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-hamburger">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M2 4h16v1.5H2zM2 9.25h16v1.5H2zM2 14.5h16V16H2z"/></svg>
+  </div>
+  <div class="header-logo">
+    <svg class="header-logo-img" viewBox="0 0 36 36" fill="none">
+      <rect width="36" height="36" rx="6" fill="#1a5276"/>
+      <circle cx="12" cy="14" r="3" fill="#5bc0be"/>
+      <circle cx="24" cy="14" r="3" fill="#42be65"/>
+      <circle cx="18" cy="24" r="3" fill="#0f62fe"/>
+      <line x1="14" y1="15" x2="22" y2="15" stroke="#5bc0be" stroke-width="1.5"/>
+      <line x1="13" y1="16" x2="17" y2="22" stroke="#5bc0be" stroke-width="1.5"/>
+      <line x1="23" y1="16" x2="19" y2="22" stroke="#42be65" stroke-width="1.5"/>
+    </svg>
+    <div class="header-logo-text">
+      <span class="header-logo-name">OpenELIS Global</span>
+      <span class="header-logo-version">Version: 3.2.1.2</span>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <div class="header-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </div>
+    <div class="header-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20v-1a6 6 0 0 1 12 0v1"/></svg>
+    </div>
+  </nav>
+</header>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-section-label">Sample Collection</div>
+  <div class="sidebar-item parent">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    Collection Lots
+  </div>
+  <div class="sidebar-item active child">Vector</div>
+  <div class="sidebar-item child">Clinical</div>
+  <div class="sidebar-item child">Environmental / Other</div>
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section-label">Vector Surveillance</div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+    Sampling Sites
+  </div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    Species ID (V-03)
+  </div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+    EQA
+  </div>
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section-label">Administration</div>
+  <div class="sidebar-item">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+    Pre-Analytical Config
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main">
+
+  <!-- Screen Tabs -->
+  <div class="screen-tabs">
+    <div class="screen-tab active" onclick="showScreen('worklist', this)">Collection Lot Worklist</div>
+    <div class="screen-tab" onclick="showScreen('step1', this)">Step 1 — Enter Order</div>
+    <div class="screen-tab" onclick="showScreen('step2', this)">Step 2 — Collect Sample</div>
+    <div class="screen-tab" onclick="showScreen('step3', this)">Step 3 — Label &amp; Store</div>
+    <div class="screen-tab" onclick="showScreen('step4', this)">Step 4 — QA Review</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       SCREEN 0 — COLLECTION LOT WORKLIST
+  ══════════════════════════════════════════════════════════════════ -->
+  <div id="screen-worklist" class="screen-panel active">
+
+    <div class="breadcrumb">
+      <a href="#">Sample Collection</a>
+      <span class="breadcrumb-sep">/</span>
+      <span>Collection Lots — Vector</span>
+    </div>
+
+    <div class="page-title-row">
+      <h2 class="page-title">
+        Collection Lots
+        <span class="tag tag-teal">Vector</span>
+      </h2>
+      <button class="btn btn-primary" onclick="showScreen('step1', document.querySelectorAll('.screen-tab')[1])">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Collection Lot
+      </button>
+    </div>
+
+    <div class="form-section">
+      <div class="table-toolbar">
+        <input class="search-input" type="text" placeholder="Search by lab number or site…" />
+        <select class="form-select" style="width:160px; border:1px solid var(--cds-gray-30);">
+          <option value="all">All statuses</option>
+          <option>Draft</option>
+          <option>Received</option>
+          <option>Processing</option>
+          <option>Eligible</option>
+          <option>Rejected</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Lab Number</th>
+              <th>Sampling Site</th>
+              <th>Trap Type</th>
+              <th>Collection Date</th>
+              <th>Sample Type</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code style="font-size:12px;">0012/BPP-01/VCT/04/2026</code></td>
+              <td>Ciliwung River — Upstream S1</td>
+              <td>BG-Sentinel</td>
+              <td>2026-04-15</td>
+              <td>Mosquito Pool (Fixed — 25)</td>
+              <td><span class="tag tag-blue">Received</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="showScreen('step2', document.querySelectorAll('.screen-tab')[2])">View →</button></td>
+            </tr>
+            <tr>
+              <td><code style="font-size:12px;">0011/BPP-01/VCT/04/2026</code></td>
+              <td>Manggarai Station — East Drainage</td>
+              <td>CDC Light Trap</td>
+              <td>2026-04-14</td>
+              <td>Mosquito Pool (Variable)</td>
+              <td><span class="tag tag-purple">Processing</span></td>
+              <td><button class="btn btn-ghost btn-sm">View →</button></td>
+            </tr>
+            <tr>
+              <td><code style="font-size:12px;">0010/BPP-01/VCT/04/2026</code></td>
+              <td>Ragunan Park — Zone B Perimeter</td>
+              <td>Tick Drag</td>
+              <td>2026-04-13</td>
+              <td>Tick — Individual</td>
+              <td><span class="tag tag-green">Eligible</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="showScreen('step4', document.querySelectorAll('.screen-tab')[4])">View →</button></td>
+            </tr>
+            <tr>
+              <td><code style="font-size:12px;">0009/BPP-01/VCT/04/2026</code></td>
+              <td>Ciliwung River — Upstream S1</td>
+              <td>BG-Sentinel</td>
+              <td>2026-04-12</td>
+              <td>Mosquito Pool (Fixed — 25)</td>
+              <td><span class="tag tag-gray">Draft</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="showScreen('step1', document.querySelectorAll('.screen-tab')[1])">Continue →</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px; padding:10px 16px; font-size:12px; color:var(--cds-gray-60);">
+        <span>Items per page</span>
+        <select style="border:1px solid var(--cds-gray-30); padding:2px 6px; font-size:12px;"><option>10</option><option>25</option></select>
+        <span style="margin-left:auto;">1–4 of 4 items</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       SCREEN 1 — STEP 1: ENTER ORDER
+  ══════════════════════════════════════════════════════════════════ -->
+  <div id="screen-step1" class="screen-panel">
+
+    <div class="breadcrumb">
+      <a href="#" onclick="showScreen('worklist', document.querySelectorAll('.screen-tab')[0]); return false;">Sample Collection</a>
+      <span class="breadcrumb-sep">/</span>
+      <span>New Entry</span>
+    </div>
+
+    <!-- Stepper -->
+    <div class="stepper">
+      <div class="step active">
+        <div class="step-number">1</div>
+        <div class="step-label">Enter Order</div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-label">Collect Sample</div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-label">Label &amp; Store</div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-label">QA Review</div>
+      </div>
+    </div>
+
+    <!-- Lab Number -->
+    <div class="form-section">
+      <div class="form-section-body">
+        <div style="display:flex; align-items:flex-end; gap:16px;">
+          <div class="form-group" style="flex:1; max-width:360px;">
+            <label class="form-label">Lab Number</label>
+            <input class="form-input" value="0013/BPP-01/VCT/04/2026" readonly>
+            <p class="helper-text">Auto-generated with module code <strong>VCT</strong>. Assigned at entry to enable tracking across all steps.</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" style="margin-bottom:20px; border:1px solid var(--cds-gray-30);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Labels
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Domain Toggle -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Sample Category</h3></div>
+      <div class="form-section-body">
+        <div class="workflow-toggle">
+          <button class="workflow-toggle-btn" id="wf-clinical" onclick="setWorkflow('clinical')">Clinical</button>
+          <button class="workflow-toggle-btn" id="wf-env" onclick="setWorkflow('env')">Environmental / Other</button>
+          <button class="workflow-toggle-btn active" id="wf-vector" onclick="setWorkflow('vector')">Vector</button>
+        </div>
+        <p class="helper-text" style="margin-top:6px;">This toggle appears only when the lab unit is configured for multiple workflow types. Hidden when a single domain is configured.</p>
+      </div>
+    </div>
+
+    <!-- Non-vector placeholder -->
+    <div id="section-non-vector" class="hidden">
+      <div class="notification notification-info">
+        <div>
+          <div class="notification-title">Clinical and Environmental workflows</div>
+          Clinical and Environmental / Other domain screens are unchanged from the Sample Collection Redesign. This mockup focuses on the Vector extension — switch back to Vector to see the new fields.
+        </div>
+      </div>
+    </div>
+
+    <!-- Vector-specific sections -->
+    <div id="section-vector">
+
+      <!-- Sampling Site -->
+      <div class="form-section">
+        <div class="form-section-header"><h3>Sampling Site</h3></div>
+        <div class="form-section-body">
+          <div class="site-search-wrap">
+            <label class="form-label">Search sampling sites <span class="required">*</span></label>
+            <input class="form-input" id="site-search-input" type="text"
+              placeholder="Search by site name or district…"
+              oninput="filterSites(this.value)"
+              onfocus="document.getElementById('site-dropdown').classList.remove('hidden')"
+              autocomplete="off"
+            >
+            <div id="site-dropdown" class="site-dropdown hidden">
+              <div class="site-option" onclick="selectSite('ss1')">
+                <strong>Ciliwung River — Upstream S1</strong>
+                <span>Jakarta Selatan · Vector Trap · −6.2341, 106.8312</span>
+              </div>
+              <div class="site-option" onclick="selectSite('ss2')">
+                <strong>Manggarai Station — East Drainage</strong>
+                <span>Jakarta Selatan · Vector Trap · −6.2105, 106.8502</span>
+              </div>
+              <div class="site-option" onclick="selectSite('ss3')">
+                <strong>Ragunan Park — Zone B Perimeter</strong>
+                <span>Jakarta Selatan · Vector Trap · −6.3128, 106.8212</span>
+              </div>
+            </div>
+          </div>
+          <div id="site-selected-card" class="site-selected-card hidden" style="max-width:480px;">
+            <div class="sc-name">
+              <span id="site-name-display">—</span>
+              <span class="tag tag-green" style="font-size:11px;">Selected</span>
+            </div>
+            <div class="sc-meta">
+              <div><span>District: </span><span id="site-district-display">—</span></div>
+              <div><span>Type: </span><span>Vector Trap</span></div>
+              <div style="font-family:monospace; font-size:11px;"><span id="site-coords-display">—</span></div>
+            </div>
+          </div>
+          <p class="helper-text" style="margin-top:8px;">Can't find a site? <a href="#" style="color:var(--cds-blue-60);">Register a new sampling site (S-02)</a> first.</p>
+        </div>
+      </div>
+
+      <!-- Collection Event -->
+      <div class="form-section">
+        <div class="form-section-header"><h3>Collection Event</h3></div>
+        <div class="form-section-body">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Trap Type <span class="required">*</span></label>
+              <select class="form-select">
+                <option value="">Select trap type…</option>
+                <option>BG-Sentinel</option>
+                <option>BG-Pro</option>
+                <option>CDC Light Trap</option>
+                <option>Ovitrap</option>
+                <option>Gravid Trap</option>
+                <option>Human Landing Catch (HLC)</option>
+                <option>Tick Drag</option>
+                <option>Sherman Trap</option>
+              </select>
+              <p class="helper-text">Trap type catalogue managed in V-01 Trap Type Config.</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Field team / Collector name</label>
+              <input class="form-input" placeholder="e.g., Tim Vektor Jaksel — Budi Santoso" value="Tim Vektor Jaksel — Budi Santoso">
+              <p class="helper-text">Free text. Transcribe from field data sheet.</p>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Collection start date <span class="required">*</span></label>
+              <input class="form-input" type="date" value="2026-04-15">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Collection end date (optional)</label>
+              <input class="form-input" type="date">
+            </div>
+          </div>
+
+          <!-- GPS Coordinates -->
+          <p style="font-size:13px; font-weight:600; margin-bottom:8px; margin-top:4px;">GPS Coordinates</p>
+          <div class="form-row three-col">
+            <div class="form-group">
+              <label class="form-label">Latitude <span class="required">*</span></label>
+              <input class="form-input" type="number" id="gps-lat" step="0.0001" min="-90" max="90" value="-6.2341" placeholder="e.g. −6.2341">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Longitude <span class="required">*</span></label>
+              <input class="form-input" type="number" id="gps-lng" step="0.0001" min="-180" max="180" value="106.8312" placeholder="e.g. 106.8312">
+            </div>
+            <div class="form-group" style="justify-content:flex-end;">
+              <div class="gps-note">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Pre-filled from selected site. Update if the trap GPS differs from the site centre.
+              </div>
+            </div>
+          </div>
+
+          <!-- Pool flag + count -->
+          <div class="form-row three-col" style="margin-top:8px; align-items:start;">
+            <div class="form-group">
+              <div class="toggle-wrap">
+                <label class="toggle-label">Pooled specimen</label>
+                <div class="toggle-row">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="pool-toggle" checked onchange="togglePool(this.checked)">
+                    <div class="toggle-track"></div>
+                    <div class="toggle-thumb"></div>
+                  </label>
+                  <span class="toggle-text" id="pool-toggle-label">Yes — Pool</span>
+                </div>
+                <p class="helper-text">Pool = multiple organisms combined in one container.</p>
+              </div>
+            </div>
+            <div class="form-group" id="organism-count-group">
+              <label class="form-label">Organism count <span class="required">*</span></label>
+              <input class="form-input" type="number" min="1" value="25">
+              <p class="helper-text">Total organisms in this pool. Required when pooled.</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vector Sample Type <span class="required">*</span></label>
+              <select class="form-select">
+                <option>Mosquito Pool (Fixed — 25)</option>
+                <option>Mosquito Pool (Variable)</option>
+                <option>Tick — Individual</option>
+                <option>Rodent Tissue — Individual</option>
+              </select>
+              <p class="helper-text">Drives pool size validation in Step 4 eligibility gate.</p>
+            </div>
+          </div>
+
+          <!-- Weather accordion -->
+          <div class="accordion" style="margin-top:16px;">
+            <div class="accordion-item">
+              <div class="accordion-header" onclick="toggleAccordion('weather-body', 'weather-chevron')">
+                Weather &amp; Conditions (optional)
+                <svg id="weather-chevron" class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div id="weather-body" class="accordion-body hidden">
+                <div class="form-row three-col">
+                  <div class="form-group">
+                    <label class="form-label">Air temperature (°C)</label>
+                    <input class="form-input" type="number" step="0.1" value="28">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Humidity (%)</label>
+                    <input class="form-input" type="number" min="0" max="100" value="82">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Weather condition</label>
+                    <select class="form-select">
+                      <option>Clear</option>
+                      <option>Cloudy</option>
+                      <option>Rainy</option>
+                      <option>Post-rain</option>
+                      <option>Overcast</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-top:12px;">
+                  <label class="form-label">Collection notes</label>
+                  <textarea class="form-input" rows="2" placeholder="e.g., High mosquito activity near drainage canal; trap placed 1.5m above ground on wooden post"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Requester -->
+      <div class="form-section">
+        <div class="form-section-header"><h3>Requester / Ordering Organization</h3></div>
+        <div class="form-section-body">
+          <div class="form-row three-col">
+            <div class="form-group">
+              <label class="form-label">Organization name</label>
+              <input class="form-input" value="Dinas Kesehatan Jakarta Selatan">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Type</label>
+              <select class="form-select">
+                <option>Program (Paid)</option>
+                <option>General (Unpaid)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="toggle-wrap">
+                <label class="toggle-label">Subcontract</label>
+                <div class="toggle-row">
+                  <label class="toggle-switch">
+                    <input type="checkbox">
+                    <div class="toggle-track"></div>
+                    <div class="toggle-thumb"></div>
+                  </label>
+                  <span class="toggle-text">No</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="showScreen('worklist', document.querySelectorAll('.screen-tab')[0])">Cancel</button>
+        <button class="btn btn-primary" onclick="showScreen('step2', document.querySelectorAll('.screen-tab')[2])">
+          Continue to Collect
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div><!-- /section-vector -->
+
+  </div><!-- /screen-step1 -->
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       SCREEN 2 — STEP 2: COLLECT SAMPLE
+  ══════════════════════════════════════════════════════════════════ -->
+  <div id="screen-step2" class="screen-panel">
+
+    <!-- Stepper -->
+    <div class="stepper">
+      <div class="step completed"><div class="step-number">✓</div><div class="step-label">Enter Order</div></div>
+      <div class="step-connector completed"></div>
+      <div class="step active"><div class="step-number">2</div><div class="step-label">Collect Sample</div></div>
+      <div class="step-connector"></div>
+      <div class="step"><div class="step-number">3</div><div class="step-label">Label &amp; Store</div></div>
+      <div class="step-connector"></div>
+      <div class="step"><div class="step-number">4</div><div class="step-label">QA Review</div></div>
+    </div>
+
+    <!-- Context Card -->
+    <div class="context-card">
+      <div class="context-item">
+        <div class="context-label">Lab Number</div>
+        <div class="context-value" style="font-family:monospace; font-size:13px;">0013/BPP-01/VCT/04/2026</div>
+      </div>
+      <div class="context-item">
+        <div class="context-label">Site</div>
+        <div class="context-value">Ciliwung River — Upstream S1</div>
+      </div>
+      <div class="context-item">
+        <div class="context-label">Trap Type</div>
+        <div class="context-value">BG-Sentinel</div>
+      </div>
+      <div class="context-item">
+        <div class="context-label">Collection Date</div>
+        <div class="context-value">15/04/2026</div>
+      </div>
+      <div class="context-item">
+        <div class="context-label">Domain</div>
+        <div class="context-value"><span class="tag tag-teal">Vector</span></div>
+      </div>
+    </div>
+
+    <!-- Collection Event Summary (read-only) -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <h3>Collection Event Summary</h3>
+        <button class="btn btn-ghost btn-sm" onclick="showScreen('step1', document.querySelectorAll('.screen-tab')[1])">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit (Step 1)
+        </button>
+      </div>
+      <div class="form-section-body">
+        <div class="summary-grid">
+          <div class="summary-item"><div class="summary-label">Trap Type</div><div class="summary-value">BG-Sentinel</div></div>
+          <div class="summary-item"><div class="summary-label">Collector</div><div class="summary-value">Tim Vektor Jaksel — Budi Santoso</div></div>
+          <div class="summary-item"><div class="summary-label">Collection Start</div><div class="summary-value">15/04/2026 07:00</div></div>
+          <div class="summary-item"><div class="summary-label">Sampling Site</div><div class="summary-value">Ciliwung River — Upstream S1</div></div>
+          <div class="summary-item"><div class="summary-label">GPS Coordinates</div><div class="summary-value" style="font-family:monospace; font-size:13px;">−6.2341, 106.8312</div></div>
+          <div class="summary-item"><div class="summary-label">Pool / Count</div><div class="summary-value">25 organisms (Mosquito Pool Fixed)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receipt Confirmation -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Receipt Confirmation</h3></div>
+      <div class="form-section-body">
+        <div class="notification notification-info" style="margin-bottom:16px;">
+          <div>
+            <div class="notification-title">Reception Officer Entry</div>
+            This step is typically completed by the Reception Officer when the field collection arrives at the lab. It records the official receipt timestamp used by the S-09 transit window auto-compute rule.
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Lab receipt date/time <span class="required">*</span></label>
+            <input class="form-input" type="text" value="2026-04-16 08:30">
+            <p class="helper-text">Used by S-09 transit window auto-compute rule to calculate elapsed time from collection.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Received by</label>
+            <input class="form-input" value="Siti Rahayu (QA Officer)">
+            <p class="helper-text">Auto-filled with logged-in user; editable.</p>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Cooler / Container ID</label>
+            <input class="form-input" value="CLR-2026-0042" placeholder="Optional — from field container or shipment">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Shipment ID</label>
+            <input class="form-input" value="SHP-2026-0019" placeholder="Optional — links to sample shipment record">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Updatable Collection Details accordion -->
+    <div class="accordion" style="margin-bottom:16px;">
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion('update-body', 'update-chevron')">
+          Update Collection Details (optional — if field data differs from Step 1 entry)
+          <svg id="update-chevron" class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div id="update-body" class="accordion-body hidden">
+          <div class="form-row three-col">
+            <div class="form-group">
+              <label class="form-label">GPS Latitude</label>
+              <input class="form-input" type="number" step="0.0001" value="-6.2341">
+            </div>
+            <div class="form-group">
+              <label class="form-label">GPS Longitude</label>
+              <input class="form-input" type="number" step="0.0001" value="106.8312">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Organism count</label>
+              <input class="form-input" type="number" min="1" value="25">
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:12px;">
+            <label class="form-label">Collection notes</label>
+            <textarea class="form-input" rows="2">High mosquito activity observed near drainage canal; trap placed 1.5m above ground on wooden post</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="showScreen('step1', document.querySelectorAll('.screen-tab')[1])">← Back</button>
+      <button class="btn btn-primary" onclick="showScreen('step3', document.querySelectorAll('.screen-tab')[3])">
+        Continue to Label
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+  </div><!-- /screen-step2 -->
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       SCREEN 3 — STEP 3: LABEL & STORE
+  ══════════════════════════════════════════════════════════════════ -->
+  <div id="screen-step3" class="screen-panel">
+
+    <!-- Stepper -->
+    <div class="stepper">
+      <div class="step completed"><div class="step-number">✓</div><div class="step-label">Enter Order</div></div>
+      <div class="step-connector completed"></div>
+      <div class="step completed"><div class="step-number">✓</div><div class="step-label">Collect Sample</div></div>
+      <div class="step-connector completed"></div>
+      <div class="step active"><div class="step-number">3</div><div class="step-label">Label &amp; Store</div></div>
+      <div class="step-connector"></div>
+      <div class="step"><div class="step-number">4</div><div class="step-label">QA Review</div></div>
+    </div>
+
+    <!-- Context Card -->
+    <div class="context-card">
+      <div class="context-item"><div class="context-label">Lab Number</div><div class="context-value" style="font-family:monospace; font-size:13px;">0013/BPP-01/VCT/04/2026</div></div>
+      <div class="context-item"><div class="context-label">Site</div><div class="context-value">Ciliwung River — Upstream S1</div></div>
+      <div class="context-item"><div class="context-label">Trap Type</div><div class="context-value">BG-Sentinel</div></div>
+      <div class="context-item"><div class="context-label">Collection Date</div><div class="context-value">15/04/2026</div></div>
+      <div class="context-item"><div class="context-label">Domain</div><div class="context-value"><span class="tag tag-teal">Vector</span></div></div>
+    </div>
+
+    <!-- Label Preview -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Collection Lot Label</h3></div>
+      <div class="form-section-body">
+        <div class="label-preview">
+          <div class="label-mono" style="font-size:10px; color:var(--cds-gray-60); margin-bottom:4px;">OpenELIS Global — Vector Collection Lot</div>
+          <div class="label-mono" style="font-size:18px; font-weight:700; letter-spacing:0.04em; margin-bottom:8px;">0013/BPP-01/VCT/04/2026</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; font-size:11px;">
+            <div><span style="color:var(--cds-gray-60);">Site: </span>Ciliwung R. — S1</div>
+            <div><span style="color:var(--cds-gray-60);">Trap: </span>BG-Sentinel</div>
+            <div><span style="color:var(--cds-gray-60);">Collected: </span>15/04/2026</div>
+            <div><span style="color:var(--cds-gray-60);">Pool: </span>25 organisms</div>
+            <div><span style="color:var(--cds-gray-60);">GPS: </span>−6.2341, 106.8312</div>
+            <div><span style="color:var(--cds-gray-60);">Type: </span>Mosquito Pool (Fixed)</div>
+          </div>
+          <div class="barcode-placeholder"></div>
+        </div>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button class="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Label
+          </button>
+          <button class="btn btn-secondary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Registration Form
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Storage Location (optional) -->
+    <div class="form-section">
+      <div class="form-section-header"><h3>Storage Location (optional)</h3></div>
+      <div class="form-section-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Storage location</label>
+            <input class="form-input" placeholder="e.g., Fridge 2, Rack A, Shelf 3">
+            <p class="helper-text">Leave blank if assigned to storage later (V-04 Storage module).</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Storage type</label>
+            <select class="form-select">
+              <option>Temporary Storage</option>
+              <option>Biorepository</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="showScreen('step2', document.querySelectorAll('.screen-tab')[2])">← Back</button>
+      <button class="btn btn-primary" onclick="showScreen('step4', document.querySelectorAll('.screen-tab')[4])">
+        Continue to QA Review
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+  </div><!-- /screen-step3 -->
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       SCREEN 4 — STEP 4: QA REVIEW / ELIGIBILITY GATE
+  ══════════════════════════════════════════════════════════════════ -->
+  <div id="screen-step4" class="screen-panel">
+
+    <!-- Stepper -->
+    <div class="stepper">
+      <div class="step completed"><div class="step-number">✓</div><div class="step-label">Enter Order</div></div>
+      <div class="step-connector completed"></div>
+      <div class="step completed"><div class="step-number">✓</div><div class="step-label">Collect Sample</div></div>
+      <div class="step-connector completed"></div>
+      <div class="step completed"><div class="step-number">✓</div><div class="step-label">Label &amp; Store</div></div>
+      <div class="step-connector completed"></div>
+      <div class="step active"><div class="step-number">4</div><div class="step-label">QA Review</div></div>
+    </div>
+
+    <!-- Context Card -->
+    <div class="context-card">
+      <div class="context-item"><div class="context-label">Lab Number</div><div class="context-value" style="font-family:monospace; font-size:13px;">0013/BPP-01/VCT/04/2026</div></div>
+      <div class="context-item"><div class="context-label">Site</div><div class="context-value">Ciliwung River — Upstream S1</div></div>
+      <div class="context-item"><div class="context-label">Trap Type</div><div class="context-value">BG-Sentinel</div></div>
+      <div class="context-item"><div class="context-label">Collection Date</div><div class="context-value">15/04/2026</div></div>
+      <div class="context-item"><div class="context-label">Domain</div><div class="context-value"><span class="tag tag-teal">Vector</span></div></div>
+    </div>
+
+    <!-- Eligibility Assessment panel -->
+    <div class="form-section" id="eligibility-panel">
+      <div class="form-section-header">
+        <h3>Pre-Analytical Eligibility Assessment</h3>
+        <span class="tag tag-teal">Vector</span>
+      </div>
+      <div class="form-section-body">
+
+        <!-- criterion 1: Container integrity — manual checkbox, MAJOR, passing -->
+        <div class="criterion-row pass" id="cr1">
+          <div style="margin-top:2px; flex-shrink:0;">
+            <input type="checkbox" checked style="width:16px; height:16px; cursor:pointer;" onchange="updateCriterion('cr1', this.checked)">
+          </div>
+          <div class="criterion-body">
+            <div class="criterion-title">
+              Container integrity intact
+              <span class="tag tag-orange">Major</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- criterion 2: Label legibility — manual checkbox, MINOR, passing -->
+        <div class="criterion-row pass" id="cr2">
+          <div style="margin-top:2px; flex-shrink:0;">
+            <input type="checkbox" checked style="width:16px; height:16px; cursor:pointer;" onchange="updateCriterion('cr2', this.checked)">
+          </div>
+          <div class="criterion-body">
+            <div class="criterion-title">
+              Label legibility
+              <span class="tag tag-warm-gray">Minor</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- criterion 3: Transit window — auto-computed, MAJOR, PASS -->
+        <div class="criterion-row pass" id="cr3">
+          <div class="check-icon" style="flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="criterion-body">
+            <div class="criterion-title">
+              SOP transit window met
+              <span class="tag tag-orange">Major</span>
+              <span class="tag tag-cyan">Auto-computed</span>
+            </div>
+            <div class="criterion-note">32.5 h elapsed; SOP max 48 h (transit_window rule) → PASS</div>
+          </div>
+        </div>
+
+        <!-- criterion 4: Pool size — auto-computed, MAJOR, FAIL (interactive) -->
+        <div class="criterion-row fail" id="cr4">
+          <div class="warn-icon" style="flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="criterion-body">
+            <div class="criterion-title">
+              Pool size sufficient
+              <span class="tag tag-orange">Major</span>
+              <span class="tag tag-cyan">Auto-computed</span>
+            </div>
+            <div class="criterion-note">22 organisms collected; minimum 25 (from Mosquito Pool Fixed profile) → FAIL</div>
+            <p style="font-size:12px; color:var(--cds-gray-60); margin-top:4px;">
+              Pool count was 22 at receipt; profile minimum is 25. Override or reject this lot.
+            </p>
+          </div>
+        </div>
+
+        <!-- criterion 5: Container condition — manual checkbox, MINOR, passing -->
+        <div class="criterion-row pass" id="cr5">
+          <div style="margin-top:2px; flex-shrink:0;">
+            <input type="checkbox" checked style="width:16px; height:16px; cursor:pointer;" onchange="updateCriterion('cr5', this.checked)">
+          </div>
+          <div class="criterion-body">
+            <div class="criterion-title">
+              Container condition acceptable
+              <span class="tag tag-warm-gray">Minor</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fail summary + override -->
+        <div id="fail-summary" style="margin-top:20px;">
+          <div class="notification notification-error">
+            <div>
+              <div class="notification-title">1 major criterion failed</div>
+              Pool size criterion failed (auto-computed). You may reject this lot or document an override reason to accept it.
+            </div>
+          </div>
+          <div style="display:flex; gap:12px; flex-wrap:wrap;">
+            <button class="btn btn-danger-ghost" onclick="showOverride()">Accept with note (override)</button>
+            <button class="btn btn-ghost" style="color:var(--cds-red-60); border:1px solid var(--cds-red-60);">Reject Lot</button>
+          </div>
+        </div>
+
+        <!-- Override box (hidden until button clicked) -->
+        <div class="override-box hidden" id="override-box">
+          <h4>Override reason (required)</h4>
+          <textarea class="form-input" id="override-textarea" rows="3"
+            placeholder="Describe the reason for accepting despite failed criteria…"
+            oninput="checkOverride()"
+          ></textarea>
+          <div style="display:flex; gap:12px; margin-top:12px;">
+            <button class="btn btn-primary" id="accept-override-btn" disabled onclick="submitAssessment(true)">Accept with override</button>
+            <button class="btn btn-ghost" onclick="hideOverride()">Cancel</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Submission success (hidden until submitted) -->
+    <div id="eligibility-success" class="form-section hidden">
+      <div class="form-section-body">
+        <div class="success-state">
+          <div class="success-icon">✅</div>
+          <div class="success-title" id="success-title">Assessment overridden — Lot accepted</div>
+          <div class="success-sub" id="success-sub">Override reason recorded in EligibilityAssessment audit trail. Lot advanced to PROCESSING — ready for V-03 species identification.</div>
+          <div style="margin-top:24px; display:flex; gap:12px; justify-content:center;">
+            <button class="btn btn-primary" onclick="showScreen('worklist', document.querySelectorAll('.screen-tab')[0])">Back to Worklist</button>
+            <button class="btn btn-ghost" style="border:1px solid var(--cds-gray-30);">Print Eligibility Report</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="qa-btn-row" class="btn-row">
+      <button class="btn btn-ghost" onclick="showScreen('step3', document.querySelectorAll('.screen-tab')[3])">← Back</button>
+      <button class="btn btn-primary" id="submit-eligible-btn" disabled onclick="submitAssessment(false)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Mark Eligible — Complete
+      </button>
+    </div>
+
+  </div><!-- /screen-step4 -->
+
+</main>
+
+<script>
+// ── Site data ─────────────────────────────────────────────────────────────────
+const SITES = {
+  ss1: { name: 'Ciliwung River — Upstream S1', district: 'Jakarta Selatan', lat: -6.2341, lng: 106.8312 },
+  ss2: { name: 'Manggarai Station — East Drainage', district: 'Jakarta Selatan', lat: -6.2105, lng: 106.8502 },
+  ss3: { name: 'Ragunan Park — Zone B Perimeter', district: 'Jakarta Selatan', lat: -6.3128, lng: 106.8212 },
+};
+
+// ── Screen navigation ─────────────────────────────────────────────────────────
+function showScreen(id, tabEl) {
+  document.querySelectorAll('.screen-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.screen-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  if (tabEl) tabEl.classList.add('active');
+}
+
+// ── Domain toggle ─────────────────────────────────────────────────────────────
+function setWorkflow(type) {
+  ['clinical','env','vector'].forEach(k => {
+    document.getElementById('wf-' + k).classList.toggle('active', k === type);
+  });
+  const isVector = (type === 'vector');
+  document.getElementById('section-vector').classList.toggle('hidden', !isVector);
+  document.getElementById('section-non-vector').classList.toggle('hidden', isVector);
+}
+
+// ── Site search ───────────────────────────────────────────────────────────────
+function filterSites(val) {
+  const dd = document.getElementById('site-dropdown');
+  dd.classList.remove('hidden');
+  const options = dd.querySelectorAll('.site-option');
+  const lc = val.toLowerCase();
+  options.forEach(opt => {
+    opt.style.display = opt.textContent.toLowerCase().includes(lc) ? '' : 'none';
+  });
+}
+
+function selectSite(id) {
+  const s = SITES[id];
+  document.getElementById('site-search-input').value = s.name;
+  document.getElementById('site-dropdown').classList.add('hidden');
+  document.getElementById('site-name-display').textContent = s.name;
+  document.getElementById('site-district-display').textContent = s.district;
+  document.getElementById('site-coords-display').textContent = s.lat + ', ' + s.lng;
+  document.getElementById('site-selected-card').classList.remove('hidden');
+  document.getElementById('gps-lat').value = s.lat;
+  document.getElementById('gps-lng').value = s.lng;
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.site-search-wrap')) {
+    const dd = document.getElementById('site-dropdown');
+    if (dd) dd.classList.add('hidden');
+  }
+});
+
+// ── Pool toggle ───────────────────────────────────────────────────────────────
+function togglePool(checked) {
+  document.getElementById('pool-toggle-label').textContent = checked ? 'Yes — Pool' : 'No — Individual';
+  document.getElementById('organism-count-group').style.display = checked ? '' : 'none';
+}
+
+// ── Accordion ─────────────────────────────────────────────────────────────────
+function toggleAccordion(bodyId, chevronId) {
+  const body = document.getElementById(bodyId);
+  const chevron = document.getElementById(chevronId);
+  body.classList.toggle('hidden');
+  chevron.classList.toggle('open');
+}
+
+// ── Eligibility criteria (Step 4) ─────────────────────────────────────────────
+let criteriaState = { cr1: true, cr2: true, cr3: true, cr4: false, cr5: true };
+
+function updateCriterion(id, checked) {
+  criteriaState[id] = checked;
+  const row = document.getElementById(id);
+  row.classList.toggle('pass', checked);
+  row.classList.toggle('fail', !checked);
+  refreshEligibilitySummary();
+}
+
+function refreshEligibilitySummary() {
+  const allPass = Object.values(criteriaState).every(Boolean);
+  const failSummary = document.getElementById('fail-summary');
+  const submitBtn = document.getElementById('submit-eligible-btn');
+  failSummary.classList.toggle('hidden', allPass);
+  submitBtn.disabled = !allPass;
+}
+
+function showOverride() {
+  document.getElementById('override-box').classList.remove('hidden');
+}
+function hideOverride() {
+  document.getElementById('override-box').classList.add('hidden');
+  document.getElementById('override-textarea').value = '';
+  document.getElementById('accept-override-btn').disabled = true;
+}
+function checkOverride() {
+  const val = document.getElementById('override-textarea').value.trim();
+  document.getElementById('accept-override-btn').disabled = !val;
+}
+
+function submitAssessment(withOverride) {
+  document.getElementById('eligibility-panel').classList.add('hidden');
+  document.getElementById('qa-btn-row').classList.add('hidden');
+  const success = document.getElementById('eligibility-success');
+  success.classList.remove('hidden');
+  if (withOverride) {
+    document.getElementById('success-title').textContent = 'Assessment overridden — Lot accepted';
+    document.getElementById('success-sub').textContent = 'Override reason recorded in EligibilityAssessment audit trail. Lot advanced to PROCESSING — ready for V-03 species identification.';
+  } else {
+    document.getElementById('success-title').textContent = 'Eligibility assessment passed';
+    document.getElementById('success-title').style.color = 'var(--cds-green-60)';
+    document.getElementById('success-sub').textContent = 'Collection lot 0013/BPP-01/VCT/04/2026 is ELIGIBLE. Status advanced to PROCESSING — ready for V-03 species identification.';
+  }
+}
+</script>
+</body>
+</html>
