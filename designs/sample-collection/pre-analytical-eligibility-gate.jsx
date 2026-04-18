@@ -48,7 +48,7 @@ import {
   Warning,
   Add,
   TrashCan,
-  Lock,
+  Locked,
   ArrowRight,
   Renew,
   Download,
@@ -489,7 +489,7 @@ function Screen1EligibilityAssessment() {
                             {severityTag(c.severity)}
                             {c.autoComputed && (
                               <>
-                                <Tag kind="gray" size="sm" renderIcon={Lock}>
+                                <Tag kind="gray" size="sm" renderIcon={Locked}>
                                   {t('label.eligibility.criterionAutoComputed', 'Auto-evaluated')}
                                 </Tag>
                                 {c.sourceData && (
@@ -1678,7 +1678,7 @@ function Screen6VectorVariant() {
                           {severityTag(c.severity)}
                           {c.autoComputed && (
                               <>
-                                <Tag kind="gray" size="sm" renderIcon={Lock}>{t('label.eligibility.criterionAutoComputed', 'Auto-evaluated')}</Tag>
+                                <Tag kind="gray" size="sm" renderIcon={Locked}>{t('label.eligibility.criterionAutoComputed', 'Auto-evaluated')}</Tag>
                                 {c.sourceData && (
                                   <Button kind="ghost" size="sm"
                                     onClick={() => toggleVectorSource(c.id)}
