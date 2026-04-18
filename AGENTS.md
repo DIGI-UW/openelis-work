@@ -17,22 +17,48 @@ npm run build    # production build
 
 ## Recommended workflow
 
-For anything beyond trivial typo fixes, use a feature branch and PR:
+All changes go through a feature branch and PR. Direct pushes to `main` are blocked by branch protection.
 
 ```bash
 git checkout main && git pull origin main
 git checkout -b design/<slug>
 # ... make changes ...
 npm test
+npm run build                    # catch production-only errors (tree-shaking, missing exports)
 git add <specific files>
 git commit -m "feat(design): add <Feature Name> (#<issue>, OGC-<ticket>)"
 git push -u origin design/<slug>
 gh pr create --title "feat(design): add <Feature Name>" --body "..."
 ```
 
-CI runs tests on the PR. Once green, merge and the gallery auto-deploys.
+### Branch protection on `main`
 
-**When direct-to-main is fine:** trivial README typos, MANIFEST link fixes, single-field corrections. For new designs or multi-file changes, always use a branch+PR.
+Main has branch protection enabled. A PR **cannot be merged** until:
+
+1. **`test` check passes** — runs `npm test` (187+ tests including render smoke tests)
+2. **`build` check passes** — runs `npm run build` (catches production-only errors like missing Carbon icon exports that jsdom doesn't catch)
+3. **Branch is up to date with `main`** — if someone else's PR merges first, you must sync main into your branch and let CI re-run before merging
+
+**If your PR's Merge button is disabled:**
+- Red ❌ on a check? Click it, read the error, fix it, push again.
+- Yellow "out of date"? Run `git fetch origin && git merge origin/main`, resolve any conflicts, push.
+- No status checks visible? The workflow hasn't triggered yet — wait 30s and refresh.
+
+**Always run `npm run build` locally before pushing.** Tests run in jsdom which doesn't strictly check module exports; only the production build (Rollup) catches issues like importing a non-existent icon name. This broke main once already (#88 imported `Lock` from `@carbon/icons-react` when the correct name is `Locked`). Tests passed, build failed.
+
+### Carbon icon names — common gotchas
+
+`@carbon/icons-react` uses specific names that differ from what you'd guess. If you import an icon that doesn't exist, tests pass but production build fails. Known mistakes:
+
+| Wrong | Correct |
+|---|---|
+| `Lock` | `Locked` |
+| `Bug` | `Catalog` (or import `Bug` from `lucide-react`) |
+| `CloudDataOps` | `DataBase` or `Cloud` |
+
+When in doubt, check [Carbon's icon library](https://carbondesignsystem.com/elements/icons/library/) or use `lucide-react` which has more permissive naming.
+
+**When branching from an active stack:** always `git checkout main && git pull origin main` first. Branching off a feature branch pulls that branch's commits into your PR, causing "behind main" / conflict messes later.
 
 ## Commit convention
 
