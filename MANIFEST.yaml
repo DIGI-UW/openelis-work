@@ -1417,7 +1417,7 @@
   type: spec
   path: null
   spec: designs/admin-config/compliance-standards-admin.md
-  category: admin-config
+  category: vector-surveillance
   description: Admin configuration for compliance standards (ISO 15189, WHO, CLSI) — link to test catalog, QC rules, and sampling protocols (S-01, Vector epic)
   links:
     github: https://github.com/DIGI-UW/openelis-work/issues/72
@@ -1429,7 +1429,7 @@
   type: both
   path: designs/sample-collection/sampling-site-registry.jsx
   spec: designs/sample-collection/sampling-site-registry.md
-  category: sample-collection
+  category: vector-surveillance
   description: Environmental LIMS sampling site registry — manage sampling locations, GPS coordinates, site types, and compliance linkage (S-02, Vector epic)
   links:
     github: https://github.com/DIGI-UW/openelis-work/issues/71
@@ -1477,7 +1477,7 @@
   type: both
   path: designs/results-validation/compliance-evaluation-engine.jsx
   spec: designs/results-validation/compliance-evaluation-engine.md
-  category: results-validation
+  category: vector-surveillance
   description: Compliance Evaluation Engine (S-05) — auto-evaluate results against regulatory thresholds with pass/marginal/fail indicators, descriptive tag library, unit conversion, and override workflow. Extends results entry page.
   links:
     github: https://github.com/DIGI-UW/openelis-work/issues/TBD
@@ -1570,3 +1570,287 @@
   added: "2026-04-14"
   status: draft
   tags: ["sample-collection", "order-entry", "consent", "compliance", "ISO-15189", "Madagascar"]
+
+- id: disease-surveillance-dashboard-spec
+  type: spec
+  path: designs/reports/disease-surveillance-dashboard.md
+  spec: designs/reports/disease-surveillance-dashboard.md
+  category: reports
+  description: >
+    Functional Requirements Spec for the Disease Surveillance Dashboard — public-health
+    surveillance reporting with weekly TB/HIV positivity trends, volume-by-site breakdowns,
+    and FHIR-sourced aggregate indicators for program managers.
+  links:
+    github_issue: 57
+    gallery: https://digi-uw.github.io/openelis-work/#/reports/disease-surveillance-dashboard
+  added: "2026-04-16"
+  status: draft
+  tags: ["reports", "surveillance", "public-health", "FHIR", "dashboard"]
+
+- id: reagent-forecasting-workbench-spec
+  type: spec
+  path: designs/inventory/reagent-forecasting-workbench.md
+  spec: designs/inventory/reagent-forecasting-workbench.md
+  category: inventory
+  description: >
+    Functional Requirements Spec for the Reagent Forecasting Workbench — national/regional
+    multi-facility days-of-stock table, critical/low alerts, ADC-based projections,
+    and reorder planning for program managers.
+  links:
+    github_issue: 60
+    gallery: https://digi-uw.github.io/openelis-work/#/inventory/reagent-forecasting-workbench
+  added: "2026-04-16"
+  status: draft
+  tags: ["inventory", "reagents", "forecasting", "stock"]
+
+- id: compliance-standards-admin
+  type: both
+  path: designs/admin-config/compliance-standards-admin.jsx
+  spec: designs/admin-config/compliance-standards-admin.md
+  preview_path: mockup-viewer/public/designs/admin-config/compliance-standards-admin.html
+  category: vector-surveillance
+  description: >
+    Carbon React mockup for Compliance Standards Administration — admin configuration
+    to link ISO 15189, WHO, and CLSI compliance standards to test catalog entries,
+    QC rules, and sampling protocols. Part of the Vector/Environmental LIMS epic.
+  links:
+    jira: ["OGC-528"]
+    github_issue: 72
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/compliance-standards-administration
+  added: "2026-04-16"
+  status: draft
+  tags: ["compliance", "ISO-15189", "standards", "vector", "environmental", "admin-config"]
+
+- id: patient-id-card-scanning-html
+  type: html
+  path: designs/patient/patient-id-card-scanning.html
+  spec: designs/patient/patient-id-card-scanning.md
+  preview_path: mockup-viewer/public/designs/patient/patient-id-card-scanning.html
+  category: patient
+  description: >
+    HTML preview for Patient ID card scanning and document management (OGC-66).
+  links:
+    jira: ["OGC-66"]
+    github_issue: 82
+    gallery: https://digi-uw.github.io/openelis-work/#/patient/patient-id-card-scanning
+  added: "2026-04-16"
+  status: draft
+  tags: ["patient", "document-management", "FHIR", "scanning", "registration"]
+
+- id: aspect-gxalert-openelis-gap-analysis
+  type: requirements-doc
+  path: assets/requirements-docs/aspect-gxalert-openelis-gap-analysis.docx
+  spec: null
+  category: analyzer-integration
+  description: >
+    Gap analysis document comparing Aspect GxAlert alert management capabilities
+    against OpenELIS Global — identifies integration requirements, missing features,
+    and implementation recommendations for connecting GxAlert to OpenELIS.
+  links: {}
+  added: "2026-04-16"
+  status: reference
+  tags: ["analyzer-integration", "GxAlert", "gap-analysis", "alerts"]
+>>>>>>> origin/main
+- id: pre-analytical-eligibility-gate
+  type: mockup
+  path: designs/sample-collection/pre-analytical-eligibility-gate.jsx
+  spec: designs/sample-collection/pre-analytical-eligibility-gate.md
+  preview: designs/sample-collection/pre-analytical-eligibility-gate.html
+  category: sample-collection
+  description: >
+    S-09 Pre-Analytical Eligibility Gate & Resampling — extends Step 4 (QA Review) of the
+    Sample Collection Redesign with a formal pre-analytical eligibility gate meeting ISO 15189
+    §5.4 and ISO 17025 §7.4 requirements. Adds criteria checklist, Resample sample_action on
+    existing NCE inline form, Eligibility Worklist sidebar entry, and per-SampleType acceptance
+    criteria + per-lab-unit gate behavior configuration. Layer 4 addendum to Sample Collection
+    Redesign (OGC-527 epic).
+  links:
+    jira: ["OGC-527", "OGC-580"]
+    other:
+      - "SILNAS PRD v0.5 — Environmental Module Table 11 rows 10-12; Vector Module Table 16 rows 10-11"
+      - "Roadmap: designs/other/environmental-vector-roadmap.md"
+  tags:
+    - sample-collection
+    - environmental
+    - vector
+    - clinical
+    - eligibility
+    - nce
+    - iso-15189
+    - iso-17025
+    - SILNAS
+    - Indonesia
+  added: "2026-04-16"
+  status: draft
+
+- id: vector-collection-workflow
+  type: both
+  path: designs/vector-surveillance/vector-collection-workflow.jsx
+  spec: designs/vector-surveillance/vector-collection-workflow.md
+  preview: designs/vector-surveillance/vector-collection-workflow.html
+  category: vector-surveillance
+  description: >
+    V-02 Vector Collection Workflow — extends the 4-step Sample Collection Redesign with a
+    Vector domain toggle (Clinical | Environmental / Other | Vector). Introduces CollectionLot
+    entity with trap type, GPS coordinates (pre-filled from sampling site, overrideable),
+    pool flag, organism count, weather conditions, receipt confirmation (timestamp drives
+    S-09 transit window rule), and S-09 eligibility gate integration at Step 4.
+  links:
+    jira: ["OGC-527"]
+  tags:
+    - vector
+    - collection
+    - workflow
+    - sample-collection
+    - Indonesia
+    - mosquito
+    - tick
+    - GPS
+    - pooling
+    - eligibility-gate
+  added: "2026-04-17"
+  status: draft
+
+- id: vector-testing-identification
+  type: both
+  path: designs/vector-surveillance/vector-testing-identification.jsx
+  spec: designs/vector-surveillance/vector-testing-identification.md
+  preview: designs/vector-surveillance/vector-testing-identification.html
+  category: vector-surveillance
+  description: >
+    V-03 Vector Testing & Identification — species identification workbench with per-specimen
+    inline form and bulk-apply for homogeneous lots. Molecular detail capture (target gene,
+    assay name, GenBank accession). Admin-configured pathogen test panel library (VectorTestPanel).
+    Pool deconvolution workflow: positive pool → DeconvolutionTask → child VectorSpecimen records
+    → re-test order. Hybrid architecture: species ID in dedicated workbench; pathogen results
+    through standard Results Entry workflow.
+  links:
+    jira: ["OGC-527"]
+  tags:
+    - vector
+    - identification
+    - species
+    - pathogen
+    - panel
+    - deconvolution
+    - Indonesia
+    - mosquito
+    - molecular
+    - PCR
+    - pool
+  added: "2026-04-17"
+  status: draft
+
+- id: vector-surveillance-reporting
+  type: html
+  path: designs/vector-surveillance/vector-surveillance-reporting.jsx
+  spec: designs/vector-surveillance/vector-surveillance-reporting.md
+  preview: designs/vector-surveillance/vector-surveillance-reporting.html
+  category: vector-surveillance
+  description: >
+    V-04 Vector Surveillance Reporting — Apache Superset dashboard embedded via guest token JWT
+    into Reports → Vector Surveillance page. OHS SQL-on-FHIR ETL pipeline flattening HAPI FHIR
+    resources into five Postgres analytics views (vector_collection_lots, vector_specimen_ids,
+    vector_pathogen_results, vector_mir_weekly, vector_trap_catch_daily). Charts: trap catch rate
+    trend, species distribution donut, MIR heatmap, pathogen positivity bars. PDF export via
+    headless Chromium. Superset native email alerts.
+  links:
+    jira: ["OGC-585", "OGC-527"]
+  tags:
+    - vector
+    - surveillance
+    - reporting
+    - superset
+    - dashboard
+    - fhir
+    - ohs
+    - analytics
+    - MIR
+    - Indonesia
+    - mosquito
+  added: "2026-04-20"
+  status: draft
+
+- id: lh-delivery-sent-messages
+  type: jsx
+  path: designs/reports/lh-delivery-sent-messages.jsx
+  spec: designs/reports/lh-delivery-sent-messages.md
+  category: vector-surveillance
+  description: >
+    S-06b Addendum to Laporan Hasil — LH Delivery Notification & Sent Messages Tab.
+    Extends OGC-437 (TextIt SMS) + OGC-439 (Email/SMTP) with LH_COMPLETED trigger for
+    environmental orders. Per-channel delivery status (Email ✓/✗, WhatsApp ✓/✗) in a
+    global Sent Messages main-menu tab. Resend flow (5 states), delivery log modal,
+    secure customer download page with 128-bit token (30-day TTL, rate-limited).
+    ORDERING_PROVIDER resolves to order customer contact for ENV orders.
+  links:
+    jira: ["OGC-587", "OGC-552", "OGC-527"]
+  tags:
+    - notification
+    - SMS
+    - email
+    - delivery
+    - laporan-hasil
+    - environmental
+    - vector
+    - Indonesia
+    - SILNAS
+    - LH_COMPLETED
+    - sent-messages
+  added: "2026-04-20"
+  status: draft
+
+- id: environmental-dashboard-chart-export
+  type: jsx
+  path: designs/reports/environmental-dashboard-chart-export.jsx
+  spec: designs/reports/environmental-dashboard-chart-export.md
+  category: vector-surveillance
+  description: >
+    S-07b Addendum to ENV Dashboard — Chart PNG & Full-Dashboard PDF Export.
+    Per-chart hover download (client-side SVG→PNG, 1200×800px @144dpi). Full-dashboard
+    PDF: config modal with title/prepared-by/cover-page/exceedance-table toggles,
+    server-side generation via POST /api/v1/env-dashboard/export-pdf, progress indicator,
+    success/error notifications. ROLE_ENV_EXPORT permission. Annotated mockup with scope
+    badges (gold = new, dimmed = S-07 existing).
+  links:
+    jira: ["OGC-553", "OGC-527"]
+  tags:
+    - export
+    - PNG
+    - PDF
+    - environmental
+    - vector
+    - dashboard
+    - charts
+    - compliance
+    - Indonesia
+  added: "2026-04-20"
+  status: draft
+
+- id: sampling-uncertainty
+  type: jsx
+  path: designs/sample-collection/sampling-uncertainty.jsx
+  spec: designs/sample-collection/sampling-uncertainty.md
+  category: vector-surveillance
+  description: >
+    S-03b Addendum to Environmental Order Entry — Sampling Uncertainty field in
+    Collection Conditions (§5.3). ISO 17025 §7.6 field/sampling uncertainty: NumberInput
+    + unit Select (%, mg/L, μg/L, CFU/100mL, Other free-text). Mandatory by default,
+    per-program optional override. Carries to Step 2 via ENV-3-002. QA completeness check
+    extended. Laporan Hasil payload extended with samplingUncertaintyValue + unit.
+    3-scene mockup: Step 1 entry, Step 2 carry-forward, QA completeness warning.
+  links:
+    jira: ["OGC-537", "OGC-527"]
+  tags:
+    - environmental
+    - order-entry
+    - vector
+    - compliance
+    - sample-collection
+    - ISO-17025
+    - uncertainty
+    - Indonesia
+    - SILNAS
+    - collection-conditions
+  added: "2026-04-20"
+  status: draft
