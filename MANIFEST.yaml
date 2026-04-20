@@ -1854,3 +1854,34 @@
     - collection-conditions
   added: "2026-04-20"
   status: draft
+
+- id: referral-out-notification
+  type: jsx
+  path: designs/notifications/referral-out-notification.jsx
+  spec: designs/notifications/referral-out-notification.md
+  category: vector-surveillance
+  description: >
+    X-01 Addendum to Existing Referral Out Module — Configurable REFERRAL_OUT notification
+    trigger added to OGC-437/OGC-439 dispatch pipeline. Extends Combined Triggers Page with
+    one new row (default OFF toggle, Email + WhatsApp channels, Ordering Provider + Submitting
+    User recipients), Combined Templates Page with Referral Out template editor (merge fields:
+    referred_lab, referred_tests, referral_date, expected_return, lab_name, lab_phone),
+    and Sent Messages tab with "Referral Out" type. Per-lab-unit override configurable.
+    3× retry and delivery logging via existing OGC-437 async queue.
+    3-scene mockup: Combined Triggers Page, Combined Templates Page, Sent Messages Tab.
+  links:
+    jira: ["OGC-527"]
+  tags:
+    - notifications
+    - referral
+    - email
+    - whatsapp
+    - vector
+    - environmental
+    - admin-config
+    - OGC-437
+    - OGC-439
+    - Indonesia
+    - SILNAS
+  added: "2026-04-20"
+  status: draft

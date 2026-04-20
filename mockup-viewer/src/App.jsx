@@ -913,6 +913,18 @@ export const MOCKUP_REGISTRY = [
     tags: ['environmental', 'order-entry', 'vector', 'compliance', 'sample-collection', 'ISO-17025', 'uncertainty', 'Indonesia', 'SILNAS'],
   },
   {
+    name: 'Referral-Out Notification',
+    category: 'vector-surveillance',
+    component: React.lazy(() => import('@designs/notifications/referral-out-notification.jsx')),
+    description: 'X-01 Addendum — Configurable REFERRAL_OUT notification trigger added to existing Refer Out module. Extends OGC-437/OGC-439 dispatch pipeline with one new event type, Combined Triggers Page row (default OFF), Combined Templates Page editor with merge fields, and Sent Messages tab "Referral Out" type. Three scenes: triggers config, template editor with live preview, sent messages table.',
+    specPath: 'designs/notifications/referral-out-notification.md',
+    added: '2026-04-20',
+    status: 'draft',
+    githubIssue: 86,
+    jira: ['OGC-527'],
+    tags: ['notifications', 'referral', 'email', 'whatsapp', 'vector', 'environmental', 'admin-config', 'OGC-437', 'OGC-439'],
+  },
+  {
     name: 'Informed Consent Capture',
     category: 'sample-collection',
     component: React.lazy(() => import('@designs/sample-collection/informed-consent.jsx')),
