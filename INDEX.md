@@ -32,6 +32,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Vector Specimen Types & Taxonomy | [vector-reference-data.jsx](designs/vector-surveillance/vector-reference-data.jsx) | [vector-reference-data.md](designs/vector-surveillance/vector-reference-data.md) |
 | Vector Collection Workflow | [vector-collection-workflow.jsx](designs/vector-surveillance/vector-collection-workflow.jsx) · [preview](designs/vector-surveillance/vector-collection-workflow.html) | [vector-collection-workflow.md](designs/vector-surveillance/vector-collection-workflow.md) |
 | Vector Testing & Identification | [vector-testing-identification.jsx](designs/vector-surveillance/vector-testing-identification.jsx) · [preview](designs/vector-surveillance/vector-testing-identification.html) | [vector-testing-identification.md](designs/vector-surveillance/vector-testing-identification.md) |
+| Vector Surveillance Reporting | [preview](designs/vector-surveillance/vector-surveillance-reporting.html) | [vector-surveillance-reporting.md](designs/vector-surveillance/vector-surveillance-reporting.md) |
 
 ## Analyzer Integration
 

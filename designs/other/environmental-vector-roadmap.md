@@ -62,11 +62,11 @@ These specs add the analytical engine, compliance reporting, and vector-specific
 | **S-07** | Environmental Dashboard & Trend Analysis | [OGC-553](https://uwdigi.atlassian.net/browse/OGC-553) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview — site-level compliance rate trends (monthly/12mo), per-parameter drill-down, exceedance summary table, site comparison bar chart, CSV export |
 | **S-08** | Environmental QC Rules | [OGC-554](https://uwdigi.atlassian.net/browse/OGC-554) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview — field blank, trip blank, duplicate sample (RPD), spike recovery. Per-standard QC protocol config, QC sample creation at order entry, inline QC results tab, acknowledgment modal on validation |
 | **V-01** | Vector Specimen Types & Taxonomy | [OGC-555](https://uwdigi.atlassian.net/browse/OGC-555) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview — species taxonomy (genus/species/subspecies), trap types, vector sample types with pooling strategy (INDIVIDUAL/POOL_FIXED/POOL_VARIABLE). Extends SampleType.sampleDomain with VECTOR, adds VectorSpecimenProfile, seeds ~40 species + 15 trap types |
-| **V-02** | Vector Collection Workflow | TBD | **Not Started** | Trap-based collection, pool/individual processing, geographic clustering |
-| **V-03** | Vector Testing & Identification | TBD | **Not Started** | Species ID (morphological + molecular), pathogen screening panels, pool deconvolution |
-| **V-04** | Vector Surveillance Reporting | TBD | **Not Started** | Density indices, infection rates, distribution maps, outbreak alerts |
+| **V-02** | Vector Collection Workflow | [OGC-581](https://uwdigi.atlassian.net/browse/OGC-581) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview — trap-based CollectionLot entry, pool/individual intake, geographic/temporal clustering, field data capture |
+| **V-03** | Vector Testing & Identification | [OGC-583](https://uwdigi.atlassian.net/browse/OGC-583) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview — species ID (morphological + molecular), pathogen screening panels, pool deconvolution workflow |
+| **V-04** | Vector Surveillance Reporting | [OGC-585](https://uwdigi.atlassian.net/browse/OGC-585) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview — Superset embedded dashboard (trap catch rate, species distribution, MIR heatmap, pathogen positivity), guest token embedding, OHS ETL pipeline, PDF export, email alerts. FHIR considerations doc for Piotr. |
 
-**Layer 3 summary:** 5 of 8 specs complete (S-05, S-06, S-07, S-08, V-01). All environmental specs done; vector reference data foundation in place. V-02 (Vector Collection Workflow) is next — it builds the pool/individual collection UI on top of the V-01 data model.
+**Layer 3 summary:** 8 of 8 specs complete. All environmental and vector specs done. Epic OGC-527 spec phase complete.
 
 ---
 
@@ -108,6 +108,17 @@ The specs should be implemented in this order based on dependencies and value de
 ---
 
 ## Current Sprint Focus
+
+**Spec work completed (2026-04-20):**
+- V-04 FRS v1.0 finalized — Vector Surveillance Reporting. Superset embedded dashboard via guest token JWT (5-min, silent refresh), OHS SQL-on-FHIR ETL pipeline (5 analytics views), Docker Compose infrastructure (hapi-fhir, postgres-fhir, superset, chromium), FHIR push extensions (Specimen, Observation, DiagnosticReport, Task), MIR heatmap, trap catch rate trend, species distribution donut, pathogen positivity bars. PDF export via headless Chromium. Superset native email alerts. RLS deferrable for single-tenant.
+- V-04 React mockup: Carbon embedding shell with header strip filters, loading/error/connected states, simulated Superset dashboard (KPI tiles + 4 chart panels), token countdown, Pipeline & Infrastructure tab (arch diagram, OHS view status, FHIR push log, config accordion snippets)
+- V-04 HTML preview: light-mode vanilla JS interactive preview with site filter (updates KPI + MIR data), token countdown, three connection state controls, SideNav
+- FHIR Considerations doc: coverage assessment (45–50% native R4), 7 extensions, 5 CodeSystems, OHS ETL implications, WHO Vector Surveillance IG alignment approach, 7 questions for Piotr
+- Jira ticket [OGC-585](https://uwdigi.atlassian.net/browse/OGC-585) created under epic OGC-527
+- **Epic OGC-527 spec phase complete — all 8 specs done (S-01 through S-08, V-01 through V-04)**
+
+**Spec work completed (2026-04-17):**
+- V-02 and V-03 specs finalized — OGC-581 and OGC-583 respectively. V-03 amended: SideNav submenus replacing Tabs, inline lot expansion replacing page navigation, VectorTestPanel entity removed (uses Panel with panelDomain=VECTOR instead)
 
 **Spec work completed (2026-04-13):**
 - V-01 FRS v1.0 finalized — Vector Specimen Types & Taxonomy reference data. Species taxonomy (genus + species + optional subspecies), organism groups (MOSQUITO/TICK/RODENT/OTHER_ARTHROPOD/OTHER_ANIMAL), lifecycle stages, pathogens of interest, trap type registry, vector sample types with pooling strategy (INDIVIDUAL/POOL_FIXED/POOL_VARIABLE). Extends SampleType.sampleDomain with VECTOR and adds VectorSpecimenProfile. Defines CollectionLot → VectorSpecimen data model for V-02
@@ -152,7 +163,7 @@ The specs should be implemented in this order based on dependencies and value de
 - Jira ticket [OGC-538](https://uwdigi.atlassian.net/browse/OGC-538) created
 
 **Next up:**
-- V-02: Vector Collection Workflow — trap-based collection, pool/individual processing at sample intake, geographic/temporal clustering, field data entry. Builds on V-01 reference data.
+- Epic OGC-527 spec phase complete. Implementation sprints can begin with Phase 1 (S-01, S-02, Sample Collection Redesign). Pending: gallery registration + branch/PR for V-04 assets; FHIR Considerations doc review by Piotr; V-04b (in-app alerts) story to be created when V-04 implementation is underway.
 
 ---
 
