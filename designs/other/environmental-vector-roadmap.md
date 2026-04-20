@@ -132,6 +132,18 @@ X-01 (Inter-Lab Transfer) ── cross-cutting: applies to S-03, V-02
 | **Phase 5 — Vector** | V-01, V-02, V-03, V-04 | Extends the environmental framework to vector surveillance. Sequential dependencies. |
 | **Phase 6 — Gap Addenda (low-effort)** | S-03b, S-06b, S-07b | Field-level additions and notification extensions to existing workflows. |
 | **Phase 7 — Gap Specs (higher effort)** | X-01, S-03c, S-03d, S-05b | New workflow components. X-01 first (cross-cutting), then registration addenda, storage last. |
+| **Phase 8 — Research Items** | S-03e | Scope and approach must be confirmed before sprint planning. |
+| **Phase 9 — Future Enhancements** | F-01 (Package) | Low-priority; design investigation required before any sprint commitment. |
+
+---
+
+## Future Enhancements
+
+Tracked here for visibility — not scheduled for any current sprint. These items require design investigation and stakeholder alignment before they can enter the Layer 4 backlog.
+
+| ID | Title | Status | Description |
+|----|-------|--------|-------------|
+| **F-01** | Test Package (Super-Panel) | 💡 Future / Not Scoped | A composable "Package" entity that bundles together multiple specimen types, panels, and individual tests into a single orderable unit. Analogous to a super-panel but with heterogeneous content — a single Package order could trigger collection of multiple specimen types (water, sediment, air), run multiple test panels, and include ad-hoc individual tests. Distinct from Panel (homogeneous test grouping) and from multi-container (S-03e, which is multiple tubes of the same type). Potential use cases: multi-media site assessments, standard regulatory submission packages, vector surveillance intake bundles. Cross-cuts order entry (S-03), test catalog (OGC-173), collection workflow (V-02), and results (S-05). **Needs stakeholder scoping session before design begins.** |
 
 ---
 
