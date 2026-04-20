@@ -517,6 +517,18 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-527'],
     tags: ['vector', 'identification', 'species', 'pathogen', 'panel', 'deconvolution', 'Indonesia', 'mosquito', 'molecular', 'PCR', 'pool'],
   },
+  {
+    name: 'Vector Surveillance Reporting',
+    category: 'vector-surveillance',
+    component: React.lazy(() => import('@designs/vector-surveillance/vector-surveillance-reporting.jsx')),
+    description: 'V-04 Vector Surveillance Reporting — Apache Superset dashboard embedded via guest token JWT into Reports → Vector Surveillance page. OHS SQL-on-FHIR ETL pipeline flattening HAPI FHIR resources into five Postgres analytics views (vector_collection_lots, vector_specimen_ids, vector_pathogen_results, vector_mir_weekly, vector_trap_catch_daily). Charts: trap catch rate trend, species distribution donut, MIR heatmap, pathogen positivity bars. PDF export via headless Chromium. Superset native email alerts.',
+    specPath: 'designs/vector-surveillance/vector-surveillance-reporting.md',
+    htmlUrl: 'designs/vector-surveillance/vector-surveillance-reporting.html',
+    added: '2026-04-20',
+    status: 'draft',
+    jira: ['OGC-585', 'OGC-527'],
+    tags: ['vector', 'surveillance', 'reporting', 'superset', 'dashboard', 'fhir', 'ohs', 'analytics', 'MIR', 'Indonesia', 'mosquito'],
+  },
 
   // ─── Results & Validation ───
   {
