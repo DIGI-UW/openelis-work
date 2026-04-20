@@ -925,6 +925,18 @@ export const MOCKUP_REGISTRY = [
     tags: ['notifications', 'referral', 'email', 'whatsapp', 'vector', 'environmental', 'admin-config', 'OGC-437', 'OGC-439'],
   },
   {
+    name: 'Subcontract Management',
+    category: 'vector-surveillance',
+    component: React.lazy(() => import('@designs/notifications/subcontract-management.jsx')),
+    description: 'S-03c Addendum to S-03 + V-02 — Structured subcontract tracking for ENV/Vector Refer Out referrals. Subcontract Metadata panel (handoff datetime, expected return, agreement ref, chain-of-custody contact). Five-state status workflow (DISPATCHED → RECEIVED → RESULTS_RETURNED → CLOSED). Subcontract Register page with overdue highlighting, status filters, and Advance Status modal. Audit log per transition. ISO 17025 §6.6 / §7.7 compliance.',
+    specPath: 'designs/notifications/subcontract-management.md',
+    added: '2026-04-20',
+    status: 'draft',
+    githubIssue: 87,
+    jira: ['OGC-590', 'OGC-537', 'OGC-581', 'OGC-527'],
+    tags: ['referral', 'subcontract', 'environmental', 'vector', 'ISO-17025', 'chain-of-custody', 'Indonesia', 'SILNAS', 'Bogor'],
+  },
+  {
     name: 'Informed Consent Capture',
     category: 'sample-collection',
     component: React.lazy(() => import('@designs/sample-collection/informed-consent.jsx')),

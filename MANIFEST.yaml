@@ -1855,6 +1855,34 @@
   added: "2026-04-20"
   status: draft
 
+- id: subcontract-management
+  type: jsx
+  path: designs/notifications/subcontract-management.jsx
+  spec: designs/notifications/subcontract-management.md
+  category: vector-surveillance
+  description: >
+    S-03c Addendum to S-03 (ENV Order Entry) + V-02 (Vector Collection) — Structured
+    subcontract tracking for ENV/Vector Refer Out referrals. ISO 17025 §6.6/§7.7.
+    Subcontract Metadata panel (handoff datetime, expected return, agreement ref,
+    chain-of-custody contact). Five-state status workflow: DISPATCHED → RECEIVED →
+    RESULTS_RETURNED → CLOSED. Subcontract Register page with overdue highlighting (red),
+    status filters, pagination, Advance Status modal with audit log. One new audit table,
+    one new permission key (referral.close). Bogor Must Have, Phase 1.
+  links:
+    jira: ["OGC-590", "OGC-537", "OGC-581", "OGC-527"]
+  tags:
+    - referral
+    - subcontract
+    - environmental
+    - vector
+    - ISO-17025
+    - chain-of-custody
+    - Indonesia
+    - SILNAS
+    - Bogor
+  added: "2026-04-20"
+  status: draft
+
 - id: referral-out-notification
   type: jsx
   path: designs/notifications/referral-out-notification.jsx
