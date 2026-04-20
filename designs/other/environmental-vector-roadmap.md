@@ -13,7 +13,7 @@ The environmental/vector module is built across **4 architectural layers**, with
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │  LAYER 4: Gap Specs & Addenda (from PRD v0.5 + Bogor review)            │
-│  X-01✅  S-03b✅  S-03c  S-03d  S-05b  S-06b✅  S-07b✅               │
+│  X-01✅  S-03b✅  S-03c✅  S-03d  S-05b  S-06b✅  S-07b✅             │
 ├─────────────────────────────────────────────────────────────────────────┤
 │  LAYER 3: Analytics, Reporting & Vector-Specific                        │
 │  S-05✅  S-06✅  S-07✅  S-08✅  V-01✅  V-02✅  V-03✅  V-04✅        │
@@ -77,7 +77,7 @@ Identified from cross-referencing PRD v0.5 and the Bogor requirements spreadshee
 | Spec | Title | Jira | Status | Summary |
 |------|-------|------|--------|---------|
 | **X-01** | Referral-Out Notification | [OGC-589](https://uwdigi.atlassian.net/browse/OGC-589) | ✅ Spec Complete | **Notification addendum** to existing Refer Out module. Adds REFERRAL_OUT event type to OGC-437/OGC-439 dispatch pipeline: Combined Triggers Page row (default OFF), Combined Templates Page editor (merge fields: referred_lab, referred_tests, referral_date, expected_return), Sent Messages tab "Referral Out" type. Per-lab-unit override. Prerequisites: OGC-437 + OGC-439. |
-| **S-03c** | Subcontract Management | TBD | ⬜ Not Started | Track samples sent to external laboratories: external lab, handoff date, expected return, subcontract status. Addendum to S-03 and V-02. Must Have, Phase 1 (Bogor). |
+| **S-03c** | Subcontract Management | [OGC-590](https://uwdigi.atlassian.net/browse/OGC-590) | ✅ Spec Complete | **Subcontract tracking layer** on top of Refer Out for ENV/Vector orders. ISO 17025 §6.6/§7.7. Subcontract Metadata panel (handoff datetime, expected return, agreement ref, chain-of-custody contact), five-state status workflow (DISPATCHED → RECEIVED → RESULTS_RETURNED → CLOSED), new Subcontract Register page with overdue highlighting, Advance Status modal, audit log. |
 | **S-03d** | SOP Deadline Calculation | TBD | ⬜ Not Started | Compute testing deadline from collection date/time + SOP maximum holding time. Flag approaching/exceeded deadlines in ENV testing worklist. Must Have, Phase 1 (Bogor). |
 | **S-05b** | Final Storage Disposition | TBD | ⬜ Not Started | Record final sample fate (Temporary / Biorepository / Disposal) at result entry for ENV (S-05) and Vector (V-03). Cross-cutting with Biorepository Module. Must Have, Phase 1 (Bogor). |
 
@@ -90,7 +90,7 @@ Identified from cross-referencing PRD v0.5 and the Bogor requirements spreadshee
 | **S-07b** | S-07 / [OGC-553](https://uwdigi.atlassian.net/browse/OGC-553) | OGC-553 addendum | ✅ Spec Complete | **Chart PNG + full-dashboard PDF export**. Per-chart hover download (client-side SVG→PNG @2×). PDF config modal → server-side generation. ROLE_ENV_EXPORT permission. |
 | **S-03e** | S-03 / [OGC-537](https://uwdigi.atlassian.net/browse/OGC-537) | TBD | ⬜ Not Started (Research) | **Multiple containers per test** — support adding a 2nd, 3rd, etc. physical tube/container to the same test on an order (e.g., 3 water tubes all running the same panel). Requires research: how is tube count specified (test catalog config vs. at-collection decision vs. both)? How are containers labeled? Are results per-tube or aggregated? Does this warrant a full spec or a targeted addendum? Applies to ENV and potentially clinical orders. |
 
-**Layer 4 summary:** 4 of 7 gap specs complete (X-01, S-03b, S-06b, S-07b). Remaining: S-03c, S-03d, S-05b.
+**Layer 4 summary:** 5 of 7 gap specs complete (X-01, S-03b, S-03c, S-06b, S-07b). Remaining: S-03d, S-05b.
 
 ---
 
@@ -131,7 +131,7 @@ X-01 (Referral-Out Notification) ── addendum: extends existing Refer Out + O
 | **Phase 4 — Operational** | S-07 (dashboard), S-08 (QC rules) | Adds operational tooling for environmental labs — trends, quality control. |
 | **Phase 5 — Vector** | V-01, V-02, V-03, V-04 | Extends the environmental framework to vector surveillance. Sequential dependencies. |
 | **Phase 6 — Gap Addenda (low-effort)** | S-03b, S-06b, S-07b | Field-level additions and notification extensions to existing workflows. |
-| **Phase 7 — Gap Specs (higher effort)** | S-03c, S-03d, S-05b | New workflow components. Registration addenda (S-03c, S-03d) first, storage disposition last. |
+| **Phase 7 — Gap Specs (higher effort)** | S-03c ✅, S-03d, S-05b | New workflow components. S-03c complete. S-03d (SOP deadline), then S-05b (storage disposition). |
 | **Phase 8 — Research Items** | S-03e | Scope and approach must be confirmed before sprint planning. |
 | **Phase 9 — Future Enhancements** | F-01 (Package) | Low-priority; design investigation required before any sprint commitment. |
 
@@ -186,8 +186,14 @@ All three committed to `feat/add-informed-consent-ogc-557` (commit `7e4eac9`).
 - V-04 FRS v1.0 — Vector Surveillance Reporting: Superset dashboard, FHIR/OHS SQL-on-FHIR ETL, MIR/density/trap-catch charts, PDF/email alerts. Jira [OGC-585](https://uwdigi.atlassian.net/browse/OGC-585).
 - V-04 FHIR architectural review doc posted as OGC-586 for Piotr Mankowski.
 
+- **S-03c** — Subcontract Management ([OGC-590](https://uwdigi.atlassian.net/browse/OGC-590))
+  - FRS v1.0 addendum to S-03 + V-02; ISO 17025 §6.6/§7.7 chain-of-custody compliance
+  - Subcontract Metadata panel on Refer Out (ENV/Vector only), five-state status workflow
+  - 3-scene JSX mockup: Refer Out screen, Subcontract Register, Advance Status modal
+  - Gallery entry #87: `subcontract-management`
+  - Committed to `feat/add-informed-consent-ogc-557` (commit `22423dd`)
+
 **Next up (Layer 4):**
-- S-03c — Subcontract Management
 - S-03d — SOP Deadline Calculation
 - S-05b — Final Storage Disposition
 
@@ -231,6 +237,7 @@ All three committed to `feat/add-informed-consent-ogc-557` (commit `7e4eac9`).
 | S-06b (v1.1) | `S06b-lh-delivery-notification-frs-v1.1.md` | `S06b-sent-messages-mockup.jsx` |
 | S-07b | `S07b-chart-export-frs-v1.0.md` | `S07b-chart-export-mockup.jsx` |
 | X-01 | `X01-referral-out-notification-frs-v1.0.md` | `X01-referral-out-notification-mockup.jsx` |
+| S-03c | `S03c-subcontract-management-frs-v1.0.md` | `S03c-subcontract-management-mockup.jsx` |
 
 ### Gallery Registrations (designs/)
 
@@ -240,3 +247,4 @@ All three committed to `feat/add-informed-consent-ogc-557` (commit `7e4eac9`).
 | S-06b | `designs/reports/lh-delivery-sent-messages.jsx` | `designs/reports/lh-delivery-sent-messages.md` |
 | S-07b | `designs/reports/environmental-dashboard-chart-export.jsx` | `designs/reports/environmental-dashboard-chart-export.md` |
 | X-01 | `designs/notifications/referral-out-notification.jsx` | `designs/notifications/referral-out-notification.md` |
+| S-03c | `designs/notifications/subcontract-management.jsx` | `designs/notifications/subcontract-management.md` |
