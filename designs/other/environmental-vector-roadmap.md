@@ -13,7 +13,7 @@ The environmental/vector module is built across **4 architectural layers**, with
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │  LAYER 4: Gap Specs & Addenda (from PRD v0.5 + Bogor review)            │
-│  X-01  S-03b✅  S-03c  S-03d  S-05b  S-06b✅  S-07b✅                  │
+│  X-01✅  S-03b✅  S-03c  S-03d  S-05b  S-06b✅  S-07b✅               │
 ├─────────────────────────────────────────────────────────────────────────┤
 │  LAYER 3: Analytics, Reporting & Vector-Specific                        │
 │  S-05✅  S-06✅  S-07✅  S-08✅  V-01✅  V-02✅  V-03✅  V-04✅        │
@@ -76,7 +76,7 @@ Identified from cross-referencing PRD v0.5 and the Bogor requirements spreadshee
 
 | Spec | Title | Jira | Status | Summary |
 |------|-------|------|--------|---------|
-| **X-01** | Inter-Lab Transfer Workflow | TBD | ⬜ Not Started | Transfer sample to another lab unit with reason, notification (WhatsApp/email), and history. Applies to both ENV and Vector modules. |
+| **X-01** | Referral-Out Notification | [OGC-589](https://uwdigi.atlassian.net/browse/OGC-589) | ✅ Spec Complete | **Notification addendum** to existing Refer Out module. Adds REFERRAL_OUT event type to OGC-437/OGC-439 dispatch pipeline: Combined Triggers Page row (default OFF), Combined Templates Page editor (merge fields: referred_lab, referred_tests, referral_date, expected_return), Sent Messages tab "Referral Out" type. Per-lab-unit override. Prerequisites: OGC-437 + OGC-439. |
 | **S-03c** | Subcontract Management | TBD | ⬜ Not Started | Track samples sent to external laboratories: external lab, handoff date, expected return, subcontract status. Addendum to S-03 and V-02. Must Have, Phase 1 (Bogor). |
 | **S-03d** | SOP Deadline Calculation | TBD | ⬜ Not Started | Compute testing deadline from collection date/time + SOP maximum holding time. Flag approaching/exceeded deadlines in ENV testing worklist. Must Have, Phase 1 (Bogor). |
 | **S-05b** | Final Storage Disposition | TBD | ⬜ Not Started | Record final sample fate (Temporary / Biorepository / Disposal) at result entry for ENV (S-05) and Vector (V-03). Cross-cutting with Biorepository Module. Must Have, Phase 1 (Bogor). |
@@ -90,7 +90,7 @@ Identified from cross-referencing PRD v0.5 and the Bogor requirements spreadshee
 | **S-07b** | S-07 / [OGC-553](https://uwdigi.atlassian.net/browse/OGC-553) | OGC-553 addendum | ✅ Spec Complete | **Chart PNG + full-dashboard PDF export**. Per-chart hover download (client-side SVG→PNG @2×). PDF config modal → server-side generation. ROLE_ENV_EXPORT permission. |
 | **S-03e** | S-03 / [OGC-537](https://uwdigi.atlassian.net/browse/OGC-537) | TBD | ⬜ Not Started (Research) | **Multiple containers per test** — support adding a 2nd, 3rd, etc. physical tube/container to the same test on an order (e.g., 3 water tubes all running the same panel). Requires research: how is tube count specified (test catalog config vs. at-collection decision vs. both)? How are containers labeled? Are results per-tube or aggregated? Does this warrant a full spec or a targeted addendum? Applies to ENV and potentially clinical orders. |
 
-**Layer 4 summary:** 3 of 7 gap specs complete (S-03b, S-06b, S-07b). Remaining: X-01, S-03c, S-03d, S-05b.
+**Layer 4 summary:** 4 of 7 gap specs complete (X-01, S-03b, S-06b, S-07b). Remaining: S-03c, S-03d, S-05b.
 
 ---
 
@@ -116,7 +116,7 @@ S-03 ──── S-03b (Uncertainty) · S-03c (Subcontract) · S-03d (SOP Deadl
 
 V-01 (Vector Specimens) ── V-02 (Collection) ── V-03 (Testing) ── V-04 (Surveillance)
 
-X-01 (Inter-Lab Transfer) ── cross-cutting: applies to S-03, V-02
+X-01 (Referral-Out Notification) ── addendum: extends existing Refer Out + OGC-437/OGC-439
 ```
 
 ---
@@ -131,7 +131,7 @@ X-01 (Inter-Lab Transfer) ── cross-cutting: applies to S-03, V-02
 | **Phase 4 — Operational** | S-07 (dashboard), S-08 (QC rules) | Adds operational tooling for environmental labs — trends, quality control. |
 | **Phase 5 — Vector** | V-01, V-02, V-03, V-04 | Extends the environmental framework to vector surveillance. Sequential dependencies. |
 | **Phase 6 — Gap Addenda (low-effort)** | S-03b, S-06b, S-07b | Field-level additions and notification extensions to existing workflows. |
-| **Phase 7 — Gap Specs (higher effort)** | X-01, S-03c, S-03d, S-05b | New workflow components. X-01 first (cross-cutting), then registration addenda, storage last. |
+| **Phase 7 — Gap Specs (higher effort)** | S-03c, S-03d, S-05b | New workflow components. Registration addenda (S-03c, S-03d) first, storage disposition last. |
 | **Phase 8 — Research Items** | S-03e | Scope and approach must be confirmed before sprint planning. |
 | **Phase 9 — Future Enhancements** | F-01 (Package) | Low-priority; design investigation required before any sprint commitment. |
 
@@ -172,6 +172,15 @@ Tracked here for visibility — not scheduled for any current sprint. These item
 
 All three committed to `feat/add-informed-consent-ogc-557` (commit `7e4eac9`).
 
+- **X-01** — Referral-Out Notification (OGC-589 new story)
+  - FRS v1.0 addendum to existing Refer Out module; no changes to referral mechanics
+  - Adds `REFERRAL_OUT` trigger to OGC-437/OGC-439 pipeline; default OFF globally
+  - 3-scene JSX mockup: Combined Triggers Page, Combined Templates Page (live preview), Sent Messages Tab
+  - Gallery entry #86: `referral-out-notification`
+  - Jira story [OGC-589](https://uwdigi.atlassian.net/browse/OGC-589) created (child of OGC-527)
+  - FRS + mockup comment posted to OGC-589
+  - Committed to `feat/add-informed-consent-ogc-557` (commit `fb54b9b`)
+
 **Previous sprint (2026-04-17–19) — V-03 and V-04:**
 - V-03 FRS v1.0 — Vector Testing & Identification: species ID workbench, pathogen panels, pool deconvolution. Jira [OGC-583](https://uwdigi.atlassian.net/browse/OGC-583).
 - V-04 FRS v1.0 — Vector Surveillance Reporting: Superset dashboard, FHIR/OHS SQL-on-FHIR ETL, MIR/density/trap-catch charts, PDF/email alerts. Jira [OGC-585](https://uwdigi.atlassian.net/browse/OGC-585).
@@ -181,7 +190,6 @@ All three committed to `feat/add-informed-consent-ogc-557` (commit `7e4eac9`).
 - S-03c — Subcontract Management
 - S-03d — SOP Deadline Calculation
 - S-05b — Final Storage Disposition
-- X-01 — Inter-Lab Transfer Workflow
 
 ---
 
@@ -222,6 +230,7 @@ All three committed to `feat/add-informed-consent-ogc-557` (commit `7e4eac9`).
 | S-03b | `S03b-sampling-uncertainty-frs-v1.0.md` | `S03b-sampling-uncertainty-mockup.jsx` |
 | S-06b (v1.1) | `S06b-lh-delivery-notification-frs-v1.1.md` | `S06b-sent-messages-mockup.jsx` |
 | S-07b | `S07b-chart-export-frs-v1.0.md` | `S07b-chart-export-mockup.jsx` |
+| X-01 | `X01-referral-out-notification-frs-v1.0.md` | `X01-referral-out-notification-mockup.jsx` |
 
 ### Gallery Registrations (designs/)
 
@@ -230,3 +239,4 @@ All three committed to `feat/add-informed-consent-ogc-557` (commit `7e4eac9`).
 | S-03b | `designs/sample-collection/sampling-uncertainty.jsx` | `designs/sample-collection/sampling-uncertainty.md` |
 | S-06b | `designs/reports/lh-delivery-sent-messages.jsx` | `designs/reports/lh-delivery-sent-messages.md` |
 | S-07b | `designs/reports/environmental-dashboard-chart-export.jsx` | `designs/reports/environmental-dashboard-chart-export.md` |
+| X-01 | `designs/notifications/referral-out-notification.jsx` | `designs/notifications/referral-out-notification.md` |
