@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Data Export — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'IBM Plex Sans', Arial, sans-serif; background: #f4f4f4; overflow: hidden; height: 100vh; }
+
+    /* ── Preview banner ── */
+    .preview-banner {
+      background: #6929c4; color: #fff;
+      padding: 5px 1rem; font-size: 11px; font-family: monospace;
+      display: flex; align-items: center; gap: 12px; z-index: 9999;
+      position: relative;
+    }
+
+    /* ── App shell ── */
+    .app-shell { display: flex; flex-direction: column; height: calc(100vh - 28px); }
+
+    /* ── Top header ── */
+    .top-header {
+      background: #161616; color: #fff;
+      height: 48px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1rem; flex-shrink: 0; z-index: 100;
+      border-bottom: 1px solid #393939;
+    }
+    .top-header-left { display: flex; align-items: center; gap: 1rem; }
+    .hamburger-btn { background: none; border: none; color: #fff; cursor: pointer; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+    .hamburger-btn span { display: block; width: 18px; height: 2px; background: #fff; }
+    .app-logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-mark { width: 24px; height: 24px; background: #0f62fe; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
+    .app-name { font-size: 0.875rem; font-weight: 600; color: #fff; letter-spacing: 0.01em; }
+    .app-name span { color: #a8a8a8; font-weight: 400; }
+    .top-header-right { display: flex; align-items: center; gap: 0.5rem; }
+    .header-icon-btn { background: none; border: none; color: #c6c6c6; cursor: pointer; padding: 8px; font-size: 16px; display: flex; align-items: center; border-radius: 2px; }
+    .header-icon-btn:hover { background: #393939; color: #fff; }
+    .lang-selector { background: none; border: 1px solid #525252; color: #c6c6c6; font-size: 12px; padding: 4px 8px; border-radius: 2px; cursor: pointer; }
+    .user-avatar { width: 30px; height: 30px; border-radius: 50%; background: #0f62fe; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+    /* ── Body: sidebar + main ── */
+    .app-body { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── Left sidebar ── */
+    .sidebar {
+      width: 256px; background: #262626; color: #f4f4f4; flex-shrink: 0;
+      overflow-y: auto; display: flex; flex-direction: column;
+    }
+    .sidebar-section-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: #8d8d8d; padding: 1.25rem 1rem 0.5rem; margin: 0;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.625rem 1rem; cursor: pointer; color: #c6c6c6; font-size: 0.875rem;
+      border-left: 3px solid transparent; transition: background 0.1s;
+      text-decoration: none; position: relative;
+    }
+    .nav-item:hover { background: #353535; color: #fff; }
+    .nav-item.active { background: #393939; color: #fff; border-left-color: #0f62fe; }
+    .nav-item.section-header { font-weight: 600; color: #e0e0e0; }
+    .nav-item.section-header.expanded { background: #333333; }
+    .nav-item .nav-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+    .nav-item .nav-chevron { margin-left: auto; font-size: 10px; color: #8d8d8d; }
+    .sub-nav { background: #1c1c1c; }
+    .sub-nav .nav-item { padding-left: 2.75rem; font-size: 0.8125rem; }
+    .sub-nav .nav-item .new-badge {
+      font-size: 9px; font-weight: 700; background: #0f62fe; color: #fff;
+      padding: 1px 5px; border-radius: 8px; margin-left: auto; letter-spacing: 0.04em;
+    }
+    .sub-nav .nav-item.active { border-left-color: #0f62fe; background: #2d3f65; color: #fff; }
+    .sidebar-divider { border: none; border-top: 1px solid #393939; margin: 0.5rem 0; }
+
+    /* ── Main content area ── */
+    .main-content { flex: 1; overflow-y: auto; background: #f4f4f4; display: flex; flex-direction: column; }
+    .page-header {
+      background: #fff; border-bottom: 1px solid #e0e0e0;
+      padding: 1rem 2rem; display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .page-title { font-size: 1.25rem; font-weight: 600; color: #161616; margin: 0 0 0.25rem; }
+    .page-subtitle { font-size: 0.8125rem; color: #525252; margin: 0; }
+    .page-body { padding: 1.5rem 2rem; flex: 1; }
+
+    /* ── Progress stepper ── */
+    .stepper { display: flex; align-items: flex-start; margin-bottom: 2rem; }
+    .step-wrap { display: flex; flex-direction: column; align-items: center; position: relative; }
+    .step-circle {
+      width: 1.75rem; height: 1.75rem; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; z-index: 1;
+    }
+    .step-circle.done { background: #0f62fe; color: #fff; }
+    .step-circle.current { background: #0f62fe; color: #fff; }
+    .step-circle.pending { background: #c6c6c6; color: #525252; }
+    .step-label { font-size: 0.6875rem; color: #525252; margin-top: 0.375rem; white-space: nowrap; }
+    .step-label.current { color: #0f62fe; font-weight: 600; }
+    .step-line { flex: 1; height: 2px; background: #e0e0e0; margin-top: 0.875rem; }
+    .step-line.done { background: #0f62fe; }
+
+    /* ── Saved config bar ── */
+    .saved-config-bar {
+      background: #e8f0fe; border: 1px solid #a8c4f0; border-radius: 4px;
+      padding: 0.75rem 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    }
+    .saved-config-bar label { font-size: 0.8125rem; font-weight: 600; color: #1d3461; white-space: nowrap; }
+    .saved-config-select {
+      flex: 1; min-width: 200px; max-width: 380px;
+      border: 1px solid #a8c4f0; border-radius: 2px; padding: 0.375rem 0.625rem;
+      font-size: 0.8125rem; background: #fff; color: #161616;
+    }
+    .btn-ghost-sm {
+      background: none; border: 1px solid #0f62fe; color: #0f62fe;
+      padding: 0.375rem 0.875rem; font-size: 0.8125rem; border-radius: 2px; cursor: pointer; font-family: inherit;
+    }
+    .btn-ghost-sm:hover { background: #eaf0ff; }
+
+    /* ── Section card ── */
+    .card { background: #fff; border: 1px solid #e0e0e0; margin-bottom: 1rem; }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.875rem 1rem; border-bottom: 1px solid #e0e0e0; cursor: pointer;
+      user-select: none;
+    }
+    .card-header:hover { background: #f9f9f9; }
+    .card-title { font-size: 0.875rem; font-weight: 600; color: #161616; display: flex; align-items: center; gap: 0.5rem; }
+    .card-body { padding: 1rem; }
+
+    /* ── PII badge ── */
+    .pii-badge {
+      font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 8px;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .pii-badge.demographics { background: #fff0f0; color: #da1e28; border: 1px solid #ffb3b8; }
+    .pii-badge.identifiers { background: #fff6e0; color: #be6a00; border: 1px solid #ffd791; }
+    .var-count-badge { font-size: 10px; background: #dde1e7; color: #697077; padding: 2px 7px; border-radius: 8px; font-weight: 600; }
+    .var-count-badge.has-sel { background: #0f62fe; color: #fff; }
+
+    /* ── Variable grid ── */
+    .var-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.5rem; }
+    .var-check { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.25rem; }
+    .var-check input[type=checkbox] { margin-top: 2px; cursor: pointer; flex-shrink: 0; accent-color: #0f62fe; }
+    .var-check label { font-size: 0.8125rem; color: #161616; cursor: pointer; line-height: 1.4; }
+    .var-note { font-size: 10px; color: #8d8d8d; font-style: italic; margin-left: 1.375rem; }
+
+    /* ── Filter panel ── */
+    .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.75rem; font-weight: 600; color: #525252; margin-bottom: 0.375rem; }
+    .form-input {
+      width: 100%; border: 1px solid #8d8d8d; border-radius: 0; padding: 0.5rem 0.75rem;
+      font-size: 0.875rem; background: #fff; color: #161616; font-family: inherit;
+    }
+    .form-input:focus { outline: 2px solid #0f62fe; outline-offset: -2px; }
+    .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23161616' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; padding-right: 2rem; }
+
+    /* ── Review table ── */
+    .review-section { margin-bottom: 1.5rem; }
+    .review-section h4 { font-size: 0.875rem; font-weight: 600; color: #161616; margin: 0 0 0.5rem; }
+    .var-pill { display: inline-flex; align-items: center; gap: 4px; background: #e0e0e0; color: #161616; font-size: 11px; padding: 2px 8px; border-radius: 12px; margin: 2px; }
+
+    /* ── Save config panel ── */
+    .save-config-panel {
+      border: 2px dashed #c6c6c6; border-radius: 4px; padding: 1rem;
+      margin-top: 1.5rem; background: #fafafa;
+    }
+    .save-config-panel h4 { font-size: 0.875rem; font-weight: 600; color: #161616; margin: 0 0 0.25rem; }
+    .save-config-panel p { font-size: 0.8125rem; color: #525252; margin: 0 0 0.75rem; }
+    .save-config-row { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; }
+    .save-config-row .form-group { flex: 1; min-width: 180px; margin: 0; }
+
+    /* ── Estimate banner ── */
+    .estimate-banner {
+      border-radius: 4px; padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.8125rem;
+      display: flex; align-items: flex-start; gap: 0.75rem;
+    }
+    .estimate-banner.sync { background: #defbe6; border: 1px solid #a7f0ba; color: #044317; }
+    .estimate-banner.async { background: #fff8e1; border: 1px solid #fdd57e; color: #4d3200; }
+
+    /* ── Queue DataTable ── */
+    .queue-table { width: 100%; border-collapse: collapse; background: #fff; }
+    .queue-table th { background: #e0e0e0; font-size: 0.75rem; font-weight: 600; text-align: left; padding: 0.625rem 1rem; color: #161616; }
+    .queue-table td { font-size: 0.8125rem; padding: 0.75rem 1rem; border-bottom: 1px solid #e0e0e0; color: #161616; vertical-align: middle; }
+    .queue-table tr:hover td { background: #f4f4f4; }
+    .queue-table tr:last-child td { border-bottom: none; }
+
+    /* ── Status tags ── */
+    .status-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; letter-spacing: 0.04em; text-transform: uppercase; display: inline-block; }
+    .status-tag.queued    { background: #f6e2ff; color: #8a3ffc; border: 1px solid #d4bbff; }
+    .status-tag.generating{ background: #d0e2ff; color: #0043ce; border: 1px solid #97c1ff; }
+    .status-tag.ready     { background: #defbe6; color: #0e6027; border: 1px solid #a7f0ba; }
+    .status-tag.failed    { background: #fff1f1; color: #da1e28; border: 1px solid #ffb3b8; }
+    .status-tag.expired   { background: #f4f4f4; color: #6f6f6f; border: 1px solid #c6c6c6; }
+    .status-tag.cancelled { background: #f5f5f5; color: #8d8d8d; border: 1px solid #d1d1d1; }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      background: #0f62fe; color: #fff; border: none; padding: 0.625rem 1.5rem;
+      font-size: 0.875rem; cursor: pointer; font-family: inherit; font-weight: 600;
+      border-radius: 0;
+    }
+    .btn-primary:hover { background: #0353e9; }
+    .btn-secondary {
+      background: #fff; color: #161616; border: 1px solid #8d8d8d;
+      padding: 0.625rem 1.5rem; font-size: 0.875rem; cursor: pointer; font-family: inherit;
+      border-radius: 0;
+    }
+    .btn-secondary:hover { background: #f4f4f4; }
+    .btn-danger { background: #da1e28; color: #fff; border: none; padding: 0.5rem 1rem; font-size: 0.8125rem; cursor: pointer; font-family: inherit; border-radius: 0; }
+    .btn-icon { background: none; border: none; cursor: pointer; color: #525252; padding: 4px 6px; font-size: 15px; border-radius: 2px; }
+    .btn-icon:hover { background: #e8e8e8; color: #161616; }
+    .btn-link { background: none; border: none; color: #0f62fe; cursor: pointer; font-size: 0.875rem; padding: 0; text-decoration: underline; font-family: inherit; }
+
+    .action-bar { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e0e0e0; }
+    .breadcrumb { font-size: 0.75rem; color: #525252; margin-bottom: 0.5rem; }
+    .breadcrumb span { color: #0f62fe; cursor: pointer; }
+    .breadcrumb span:hover { text-decoration: underline; }
+    .inline-notification {
+      display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.875rem 1rem;
+      border-radius: 0; margin-bottom: 1rem; font-size: 0.875rem;
+    }
+    .inline-notification.success { background: #defbe6; border-left: 4px solid #24a148; color: #044317; }
+    .inline-notification.info { background: #edf5ff; border-left: 4px solid #0f62fe; color: #002d9c; }
+    .empty-state { text-align: center; padding: 3rem 2rem; color: #8d8d8d; }
+    .empty-state-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .empty-state p { font-size: 0.875rem; margin: 0; }
+  </style>
+</head>
+<body>
+<div class="preview-banner">
+  🔬 OpenELIS Design Preview — Custom Data Export &amp; My Report Queue &nbsp;|&nbsp; Navigation via sidebar (not tabs) &nbsp;|&nbsp; Saved configurations feature shown
+</div>
+
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useCallback } = React;
+
+// ─── Data catalog ───────────────────────────────────────────────────────────
+const DOMAINS = [
+  { id:'ORDER', label:'Order / Accession', pii: null, vars:[
+    { key:'accessionNumber', label:'Accession Number' },
+    { key:'orderDate', label:'Order Date' },
+    { key:'orderTime', label:'Order Time' },
+    { key:'priority', label:'Priority (Routine/STAT)' },
+    { key:'receivedDate', label:'Specimen Received Date' },
+    { key:'collectionDate', label:'Specimen Collection Date' },
+    { key:'collectionTime', label:'Collection Time' },
+    { key:'specimenType', label:'Specimen Type' },
+    { key:'sampleCondition', label:'Sample Condition' },
+    { key:'referringFacility', label:'Referring Facility' },
+    { key:'referringProvider', label:'Referring Provider' },
+    { key:'labSection', label:'Lab Section / Unit' },
+    { key:'orderingPhysician', label:'Ordering Physician' },
+    { key:'programCode', label:'Program Code' },
+  ]},
+  { id:'PATIENT', label:'Patient Demographics', pii:'DEMOGRAPHICS', vars:[
+    { key:'patientId', label:'Patient ID (internal)' },
+    { key:'dateOfBirth', label:'Date of Birth' },
+    { key:'age', label:'Age (at order)' },
+    { key:'sex', label:'Sex' },
+    { key:'patientDistrict', label:'District / Region' },
+  ]},
+  { id:'PATIENT_IDS', label:'Patient Identifiers', pii:'IDENTIFIERS', vars:[
+    { key:'nationalId', label:'National ID' },
+    { key:'patientName', label:'Patient Name (First + Last)' },
+    { key:'healthCenterId', label:'Health Centre ID' },
+    { key:'phoneNumber', label:'Phone Number' },
+  ]},
+  { id:'TEST', label:'Test & Panel', pii: null, vars:[
+    { key:'testName', label:'Test Name' },
+    { key:'panelName', label:'Panel Name' },
+    { key:'loincCode', label:'LOINC Code' },
+    { key:'testMethod', label:'Test Method' },
+    { key:'analyzerName', label:'Analyzer Name', note:'Blank if no analyzer integration' },
+  ]},
+  { id:'RESULT', label:'Results', pii: null, vars:[
+    { key:'resultValue', label:'Result Value' },
+    { key:'resultUnit', label:'Unit of Measure' },
+    { key:'referenceRange', label:'Reference Range' },
+    { key:'interpretation', label:'Interpretation (H/N/L/Crit)' },
+    { key:'resultStatus', label:'Result Status' },
+    { key:'resultDate', label:'Result Date' },
+    { key:'resultTime', label:'Result Time' },
+    { key:'validatedBy', label:'Validated By' },
+    { key:'validatedDate', label:'Validation Date' },
+    { key:'validationLevel', label:'Validation Level' },
+    { key:'reportedDate', label:'Reported Date' },
+  ]},
+  { id:'TAT', label:'Turnaround Time', pii: null, vars:[
+    { key:'tatReceiptToResult', label:'Receipt → Result (hours)', note:'Computed' },
+    { key:'tatCollectionToResult', label:'Collection → Result (hours)', note:'Computed' },
+    { key:'tatReceiptToValidation', label:'Receipt → Validation (hours)', note:'Computed' },
+  ]},
+  { id:'QC', label:'Quality Control', pii: null, vars:[
+    { key:'qcLevel', label:'QC Level' },
+    { key:'qcResult', label:'QC Result Value' },
+    { key:'qcStatus', label:'QC Status (Pass/Fail/Warning)' },
+    { key:'qcLot', label:'QC Lot Number' },
+    { key:'qcAnalyzer', label:'Analyzer', note:'Blank without analyzer integration' },
+  ]},
+  { id:'NON_CONFORMANCE', label:'Non-Conformance / Rejections', pii: null, vars:[
+    { key:'ncAccessionNumber', label:'Accession Number' },
+    { key:'rejectionReason', label:'Rejection Reason' },
+    { key:'rejectionDate', label:'Rejection Date' },
+    { key:'rejectionStage', label:'Rejection Stage' },
+    { key:'rejectedBy', label:'Rejected By' },
+  ]},
+];
+
+const SAVED_CONFIGS = [
+  { id:'1', name:'Hematology Monthly TAT', vars: new Set(['accessionNumber','orderDate','labSection','testName','tatReceiptToResult','tatCollectionToResult','tatReceiptToValidation']) },
+  { id:'2', name:'HIV Program Monthly Extract', vars: new Set(['accessionNumber','orderDate','labSection','programCode','testName','resultValue','referenceRange','interpretation','resultStatus','validatedDate']) },
+  { id:'3', name:'Microbiology QC Review', vars: new Set(['qcLevel','qcResult','qcStatus','qcLot','qcAnalyzer','labSection','orderDate']) },
+];
+
+const QUEUE_ROWS = [
+  { id:'JOB-1018', name:'HIV Program Monthly — Feb 2026',     status:'ready',      rows:12847, created:'Mar 24, 2026 09:12', size:'2.1 MB', expires:'Mar 31, 2026' },
+  { id:'JOB-1017', name:'Hematology TAT — Q1 2026',           status:'generating', rows:null,  created:'Mar 24, 2026 11:45', size:'—',      expires:'—' },
+  { id:'JOB-1016', name:'All Results Export — Jan 2026',      status:'queued',     rows:null,  created:'Mar 24, 2026 11:50', size:'—',      expires:'—' },
+  { id:'JOB-1015', name:'QC Review — Feb 2026',               status:'expired',    rows:4201,  created:'Mar 10, 2026 14:30', size:'0.8 MB', expires:'Mar 17, 2026' },
+  { id:'JOB-1014', name:'Non-Conformance Extract — Feb 2026', status:'failed',     rows:null,  created:'Mar 9, 2026 08:05',  size:'—',      expires:'—' },
+];
+
+// ─── Components ──────────────────────────────────────────────────────────────
+
+function TopHeader() {
+  return (
+    <header className="top-header">
+      <div className="top-header-left">
+        <button className="hamburger-btn" title="Toggle menu">
+          <span/><span/><span/>
+        </button>
+        <div className="app-logo">
+          <div className="logo-mark">OE</div>
+          <div className="app-name">OpenELIS <span>Global</span></div>
+        </div>
+      </div>
+      <div className="top-header-right">
+        <button className="header-icon-btn" title="Help">?</button>
+        <select className="lang-selector">
+          <option>EN</option><option>FR</option><option>MG</option>
+        </select>
+        <button className="header-icon-btn" title="Notifications">🔔</button>
+        <div className="user-avatar" title="Lab Manager">LM</div>
+      </div>
+    </header>
+  );
+}
+
+function Sidebar({ activePage, onNav }) {
+  return (
+    <nav className="sidebar">
+      <p className="sidebar-section-label">Main Menu</p>
+
+      <div className="nav-item" onClick={() => onNav('home')}>
+        <span className="nav-icon">🏠</span> Home
+      </div>
+
+      <hr className="sidebar-divider"/>
+      <p className="sidebar-section-label">Patient &amp; Orders</p>
+
+      <div className="nav-item" onClick={() => onNav('orders')}>
+        <span className="nav-icon">📋</span> Order Test
+      </div>
+      <div className="nav-item" onClick={() => onNav('results')}>
+        <span className="nav-icon">🧪</span> Results Entry
+      </div>
+      <div className="nav-item" onClick={() => onNav('validation')}>
+        <span className="nav-icon">✅</span> Results Validation
+      </div>
+      <div className="nav-item" onClick={() => onNav('patient')}>
+        <span className="nav-icon">👤</span> Patient Management
+      </div>
+
+      <hr className="sidebar-divider"/>
+      <p className="sidebar-section-label">Reports</p>
+
+      <div className={`nav-item section-header expanded`}>
+        <span className="nav-icon">📊</span> Reports
+        <span className="nav-chevron">▾</span>
+      </div>
+
+      <div className="sub-nav">
+        <div className="nav-item" onClick={() => onNav('patient-report')}>
+          Patient Status Report
+        </div>
+        <div className="nav-item" onClick={() => onNav('print-queue')}>
+          Patient Report Print Queue
+        </div>
+        <div className={`nav-item ${activePage === 'builder' ? 'active' : ''}`} onClick={() => onNav('builder')}>
+          Custom Data Export
+          {activePage !== 'builder' && <span className="new-badge">NEW</span>}
+        </div>
+        <div className={`nav-item ${activePage === 'queue' ? 'active' : ''}`} onClick={() => onNav('queue')}>
+          My Report Queue
+          {activePage !== 'queue' && <span className="new-badge">NEW</span>}
+        </div>
+      </div>
+
+      <hr className="sidebar-divider"/>
+      <p className="sidebar-section-label">Administration</p>
+
+      <div className="nav-item" onClick={() => onNav('admin')}>
+        <span className="nav-icon">⚙️</span> Admin
+        <span className="nav-chevron">▸</span>
+      </div>
+      <div className="nav-item" onClick={() => onNav('workplan')}>
+        <span className="nav-icon">📅</span> Workplan
+      </div>
+    </nav>
+  );
+}
+
+function StatusTag({ status }) {
+  const labels = { queued:'Queued', generating:'Generating', ready:'Ready', failed:'Failed', expired:'Expired', cancelled:'Cancelled' };
+  return <span className={`status-tag ${status}`}>{labels[status] || status}</span>;
+}
+
+// ─── Report Builder ───────────────────────────────────────────────────────────
+function ReportBuilder({ onGoToQueue }) {
+  const [step, setStep] = useState(1);
+  const [openDomains, setOpenDomains] = useState(new Set(['ORDER','RESULT']));
+  const [selected, setSelected] = useState(new Set());
+  const [startDate, setStartDate] = useState('2026-01-01');
+  const [endDate, setEndDate] = useState('2026-01-31');
+  const [labSection, setLabSection] = useState('all');
+  const [savedConfigId, setSavedConfigId] = useState('');
+  const [configName, setConfigName] = useState('');
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const toggleDomain = (id) => {
+    const next = new Set(openDomains);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setOpenDomains(next);
+  };
+
+  const toggleVar = (key) => {
+    const next = new Set(selected);
+    next.has(key) ? next.delete(key) : next.add(key);
+    setSelected(next);
+  };
+
+  const toggleAllDomain = (vars) => {
+    const keys = vars.map(v => v.key);
+    const allSel = keys.every(k => selected.has(k));
+    const next = new Set(selected);
+    if (allSel) keys.forEach(k => next.delete(k));
+    else keys.forEach(k => next.add(k));
+    setSelected(next);
+  };
+
+  const loadConfig = () => {
+    const cfg = SAVED_CONFIGS.find(c => c.id === savedConfigId);
+    if (cfg) setSelected(new Set(cfg.vars));
+  };
+
+  const handleSaveConfig = () => {
+    setShowSaveSuccess(true);
+    setTimeout(() => setShowSaveSuccess(false), 3000);
+    setConfigName('');
+  };
+
+  const handleSubmit = () => {
+    setSubmitted(true);
+  };
+
+  // Estimate: 9 days → async
+  const dayDiff = 30;
+  const rowEst = 12847;
+  const isAsync = dayDiff > 7 || rowEst > 5000;
+
+  const steps = ['Select Variables', 'Set Filters', 'Review & Submit'];
+  const selectedVarList = DOMAINS.flatMap(d => d.vars.filter(v => selected.has(v.key)).map(v => ({ ...v, domain: d.label })));
+
+  if (submitted) {
+    return (
+      <div className="main-content">
+        <div className="page-header">
+          <div>
+            <div className="breadcrumb">Reports <span onClick={() => setSubmitted(false)}>/ Custom Data Export</span> / Submitted</div>
+            <h1 className="page-title">Report Submitted</h1>
+          </div>
+        </div>
+        <div className="page-body">
+          <div className="inline-notification success">
+            <span>✅</span>
+            <div>
+              <strong>Your report has been queued.</strong> It will appear in <strong>My Report Queue</strong> when ready. Large reports may take a few minutes.
+            </div>
+          </div>
+          <div style={{display:'flex',gap:'0.75rem',marginTop:'1rem'}}>
+            <button className="btn-primary" onClick={onGoToQueue}>Go to My Report Queue</button>
+            <button className="btn-secondary" onClick={() => { setSubmitted(false); setStep(1); setSelected(new Set()); }}>Start New Report</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="main-content">
+      <div className="page-header">
+        <div>
+          <div className="breadcrumb">Reports <span>/ Custom Data Export</span></div>
+          <h1 className="page-title">Custom Data Export</h1>
+          <p className="page-subtitle">Select variables, set date filters, and download or queue your export.</p>
+        </div>
+        <button className="btn-secondary" onClick={onGoToQueue}>My Report Queue →</button>
+      </div>
+
+      <div className="page-body">
+        {/* Stepper */}
+        <div className="stepper">
+          {steps.map((s, i) => {
+            const n = i + 1;
+            const state = n < step ? 'done' : n === step ? 'current' : 'pending';
+            return (
+              <React.Fragment key={s}>
+                <div className="step-wrap">
+                  <div className={`step-circle ${state}`}>{state === 'done' ? '✓' : n}</div>
+                  <div className={`step-label ${state === 'current' ? 'current' : ''}`}>{s}</div>
+                </div>
+                {i < steps.length - 1 && <div className={`step-line ${n < step ? 'done' : ''}`}/>}
+              </React.Fragment>
+            );
+          })}
+        </div>
+
+        {/* ── Step 1: Variable Selection ── */}
+        {step === 1 && (
+          <>
+            {/* Saved config bar */}
+            <div className="saved-config-bar">
+              <label>📂 Load saved configuration:</label>
+              <select className="saved-config-select" value={savedConfigId} onChange={e => setSavedConfigId(e.target.value)}>
+                <option value="">— Select a saved configuration —</option>
+                {SAVED_CONFIGS.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              <button className="btn-ghost-sm" disabled={!savedConfigId} onClick={loadConfig}>Load</button>
+            </div>
+
+            <div className="inline-notification info">
+              <span>ℹ️</span>
+              <div>Select the variables you want in your export. <strong>PII fields</strong> require additional permissions. {selected.size > 0 && <strong>{selected.size} variable{selected.size !== 1 ? 's' : ''} selected.</strong>}</div>
+            </div>
+
+            {DOMAINS.map(domain => {
+              const domainSelCount = domain.vars.filter(v => selected.has(v.key)).length;
+              const isOpen = openDomains.has(domain.id);
+              return (
+                <div className="card" key={domain.id}>
+                  <div className="card-header" onClick={() => toggleDomain(domain.id)}>
+                    <div className="card-title">
+                      {domain.label}
+                      {domain.pii && <span className={`pii-badge ${domain.pii === 'DEMOGRAPHICS' ? 'demographics' : 'identifiers'}`}>{domain.pii}</span>}
+                      <span className={`var-count-badge ${domainSelCount > 0 ? 'has-sel' : ''}`}>{domainSelCount}/{domain.vars.length}</span>
+                    </div>
+                    <div style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
+                      {isOpen && (
+                        <button className="btn-ghost-sm" style={{fontSize:'11px',padding:'2px 8px'}}
+                          onClick={e => { e.stopPropagation(); toggleAllDomain(domain.vars); }}>
+                          {domain.vars.every(v => selected.has(v.key)) ? 'Deselect all' : 'Select all'}
+                        </button>
+                      )}
+                      <span style={{color:'#8d8d8d',fontSize:'12px'}}>{isOpen ? '▲' : '▼'}</span>
+                    </div>
+                  </div>
+                  {isOpen && (
+                    <div className="card-body">
+                      <div className="var-grid">
+                        {domain.vars.map(v => (
+                          <div key={v.key}>
+                            <div className="var-check">
+                              <input type="checkbox" id={v.key} checked={selected.has(v.key)} onChange={() => toggleVar(v.key)}/>
+                              <label htmlFor={v.key}>{v.label}</label>
+                            </div>
+                            {v.note && <div className="var-note">⚠ {v.note}</div>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            <div className="action-bar">
+              <button className="btn-primary" disabled={selected.size === 0} onClick={() => setStep(2)}>
+                Next: Set Filters ({selected.size} variable{selected.size !== 1 ? 's' : ''} selected) →
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── Step 2: Filters ── */}
+        {step === 2 && (
+          <>
+            <div className="card">
+              <div className="card-header" style={{cursor:'default'}}>
+                <div className="card-title">Date Range <span style={{color:'#da1e28',fontSize:'0.75rem',fontWeight:'400'}}>* Required</span></div>
+              </div>
+              <div className="card-body">
+                <div className="filter-grid">
+                  <div className="form-group">
+                    <label>Start Date *</label>
+                    <input className="form-input" type="date" value={startDate} onChange={e => setStartDate(e.target.value)}/>
+                  </div>
+                  <div className="form-group">
+                    <label>End Date *</label>
+                    <input className="form-input" type="date" value={endDate} onChange={e => setEndDate(e.target.value)}/>
+                  </div>
+                </div>
+                <div style={{fontSize:'0.8125rem',color:'#6f6f6f'}}>
+                  📅 Range: <strong>31 days</strong> &nbsp;·&nbsp; Reports &gt;7 days or &gt;5,000 estimated rows are queued for async generation.
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-header" style={{cursor:'default'}}>
+                <div className="card-title">Scope Filters <span style={{color:'#8d8d8d',fontSize:'0.75rem',fontWeight:'400'}}>(Optional)</span></div>
+              </div>
+              <div className="card-body">
+                <div className="filter-grid">
+                  <div className="form-group">
+                    <label>Lab Section</label>
+                    <select className="form-input form-select" value={labSection} onChange={e => setLabSection(e.target.value)}>
+                      <option value="all">All sections (my access)</option>
+                      <option value="hematology">Hematology</option>
+                      <option value="microbiology">Microbiology</option>
+                      <option value="chemistry">Chemistry</option>
+                      <option value="serology">Serology / Immunology</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Result Status</label>
+                    <select className="form-input form-select">
+                      <option>All statuses</option>
+                      <option>Validated only</option>
+                      <option>Preliminary</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Test / Panel</label>
+                    <input className="form-input" type="text" placeholder="Filter by test name…"/>
+                  </div>
+                  <div className="form-group">
+                    <label>Program Code</label>
+                    <input className="form-input" type="text" placeholder="e.g. HIV, TB, MCH"/>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="action-bar">
+              <button className="btn-secondary" onClick={() => setStep(1)}>← Back</button>
+              <button className="btn-primary" onClick={() => setStep(3)}>Next: Review & Submit →</button>
+            </div>
+          </>
+        )}
+
+        {/* ── Step 3: Review & Submit ── */}
+        {step === 3 && (
+          <>
+            {/* Estimate banner */}
+            <div className={`estimate-banner ${isAsync ? 'async' : 'sync'}`}>
+              <span>{isAsync ? '⏳' : '⚡'}</span>
+              <div>
+                {isAsync
+                  ? <><strong>Estimated ~{rowEst.toLocaleString()} rows · 31 days</strong> — This report will be queued. You'll find it in <strong>My Report Queue</strong> when ready (est. ~2 min).</>
+                  : <><strong>Small report — instant download.</strong> Estimated {rowEst.toLocaleString()} rows. Your CSV will download immediately.</>
+                }
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-header" style={{cursor:'default'}}>
+                <div className="card-title">Review Configuration</div>
+              </div>
+              <div className="card-body">
+                <div className="review-section">
+                  <h4>Date Range</h4>
+                  <span className="var-pill">📅 {startDate} → {endDate} (31 days)</span>
+                </div>
+                <div className="review-section">
+                  <h4>Lab Scope</h4>
+                  <span className="var-pill">🔬 {labSection === 'all' ? 'All sections (my access)' : labSection}</span>
+                </div>
+                <div className="review-section">
+                  <h4>Selected Variables ({selectedVarList.length})</h4>
+                  {DOMAINS.map(d => {
+                    const dVars = selectedVarList.filter(v => v.domain === d.label);
+                    if (dVars.length === 0) return null;
+                    return (
+                      <div key={d.id} style={{marginBottom:'0.5rem'}}>
+                        <div style={{fontSize:'0.75rem',color:'#525252',marginBottom:'3px',fontWeight:'600'}}>{d.label}</div>
+                        {dVars.map(v => <span key={v.key} className="var-pill">{v.label}</span>)}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Save configuration panel */}
+            <div className="save-config-panel">
+              <h4>💾 Save this configuration for later</h4>
+              <p>Save your variable selection to quickly reload it next time. Date range is not saved.</p>
+              {showSaveSuccess && (
+                <div className="inline-notification success" style={{marginBottom:'0.75rem'}}>
+                  ✅ Configuration saved as "<strong>{configName || 'My Config'}</strong>".
+                </div>
+              )}
+              <div className="save-config-row">
+                <div className="form-group">
+                  <label>Configuration Name</label>
+                  <input className="form-input" type="text" placeholder="e.g. Hematology Monthly TAT"
+                    value={configName} onChange={e => setConfigName(e.target.value)}/>
+                </div>
+                <button className="btn-ghost-sm" onClick={handleSaveConfig} style={{marginBottom:'1px'}}>Save Configuration</button>
+              </div>
+            </div>
+
+            <div className="action-bar">
+              <button className="btn-secondary" onClick={() => setStep(2)}>← Back</button>
+              <button className="btn-primary" onClick={handleSubmit}>
+                {isAsync ? '⏳ Queue Report' : '⬇ Download CSV'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Report Queue ─────────────────────────────────────────────────────────────
+function ReportQueue({ onGoToBuilder }) {
+  const [rows, setRows] = useState(QUEUE_ROWS);
+
+  const cancel = (id) => setRows(r => r.map(row => row.id === id ? {...row, status:'cancelled'} : row));
+  const deleteRow = (id) => setRows(r => r.filter(row => row.id !== id));
+
+  return (
+    <div className="main-content">
+      <div className="page-header">
+        <div>
+          <div className="breadcrumb">Reports <span>/ My Report Queue</span></div>
+          <h1 className="page-title">My Report Queue</h1>
+          <p className="page-subtitle">View and download your queued CSV exports. Ready files are kept for 7 days.</p>
+        </div>
+        <button className="btn-primary" onClick={onGoToBuilder}>+ New Export</button>
+      </div>
+
+      <div className="page-body">
+        {rows.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">📭</div>
+            <p>No reports yet. <button className="btn-link" onClick={onGoToBuilder}>Create your first export.</button></p>
+          </div>
+        ) : (
+          <div className="card" style={{padding:0,overflow:'hidden'}}>
+            <table className="queue-table">
+              <thead>
+                <tr>
+                  <th>Report Name</th>
+                  <th>Status</th>
+                  <th>Rows / Size</th>
+                  <th>Created</th>
+                  <th>Expires</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(row => (
+                  <tr key={row.id}>
+                    <td>
+                      <div style={{fontWeight:500}}>{row.name}</div>
+                      <div style={{fontSize:'11px',color:'#8d8d8d'}}>{row.id}</div>
+                    </td>
+                    <td><StatusTag status={row.status}/></td>
+                    <td>{row.rows ? `${row.rows.toLocaleString()} · ${row.size}` : '—'}</td>
+                    <td>{row.created}</td>
+                    <td style={{color: row.status==='expired' ? '#da1e28' : '#161616'}}>{row.expires}</td>
+                    <td>
+                      <div style={{display:'flex',gap:'4px'}}>
+                        {row.status === 'ready' && (
+                          <button className="btn-icon" title="Download CSV">⬇</button>
+                        )}
+                        {row.status === 'queued' && (
+                          <button className="btn-icon" title="Cancel" onClick={() => cancel(row.id)}>✕</button>
+                        )}
+                        {row.status === 'failed' && (
+                          <button className="btn-icon" title="Retry">↺</button>
+                        )}
+                        {row.status === 'expired' && (
+                          <button className="btn-icon" title="Re-run">▷</button>
+                        )}
+                        {(row.status === 'failed' || row.status === 'expired' || row.status === 'cancelled') && (
+                          <button className="btn-icon" title="Delete" onClick={() => deleteRow(row.id)}>🗑</button>
+                        )}
+                        <button className="btn-icon" title="View details">👁</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div style={{padding:'0.75rem 1rem',borderTop:'1px solid #e0e0e0',display:'flex',justifyContent:'space-between',alignItems:'center',background:'#fff',fontSize:'0.8125rem',color:'#525252'}}>
+              <span>Showing {rows.length} of {rows.length} reports</span>
+              <div style={{display:'flex',gap:'0.5rem'}}>
+                <button className="btn-secondary" style={{padding:'4px 12px',fontSize:'12px'}} disabled>← Prev</button>
+                <button className="btn-secondary" style={{padding:'4px 12px',fontSize:'12px'}} disabled>Next →</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div style={{marginTop:'1rem',fontSize:'0.8125rem',color:'#8d8d8d'}}>
+          ℹ Ready files are available for download for <strong>7 days</strong> after generation.
+          Active jobs refresh automatically every 15 seconds.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Root App ─────────────────────────────────────────────────────────────────
+function App() {
+  const [page, setPage] = useState('builder');
+
+  const handleNav = (dest) => {
+    if (dest === 'builder' || dest === 'queue') setPage(dest);
+    // Other nav items are decorative in this preview
+  };
+
+  return (
+    <div className="app-shell">
+      <TopHeader/>
+      <div className="app-body">
+        <Sidebar activePage={page} onNav={handleNav}/>
+        {page === 'builder'
+          ? <ReportBuilder onGoToQueue={() => setPage('queue')}/>
+          : <ReportQueue onGoToBuilder={() => setPage('builder')}/>
+        }
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

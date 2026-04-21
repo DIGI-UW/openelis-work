@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V-04 Vector Surveillance Reporting — OpenELIS Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif; background: #f4f4f4; color: #161616; }
+
+  /* ───── Preview banner ───── */
+  .preview-banner {
+    background: #0f62fe; color: #fff;
+    padding: 5px 1rem; font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+    position: sticky; top: 0; z-index: 200;
+  }
+
+  /* ───── Shell ───── */
+  .shell { display: flex; height: calc(100vh - 26px); overflow: hidden; }
+
+  /* ───── Side nav ───── */
+  .side-nav {
+    width: 256px; background: #161616; flex-shrink: 0;
+    display: flex; flex-direction: column; overflow-y: auto;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px; border-bottom: 1px solid #393939;
+    font-size: 14px; font-weight: 600; color: #fff;
+  }
+  .nav-logo-icon {
+    width: 24px; height: 24px; background: #0f62fe; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #fff; font-weight: 700;
+  }
+  .nav-section-label {
+    padding: 20px 16px 6px; font-size: 11px; font-weight: 600;
+    color: #6f6f6f; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .nav-group-title {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 16px; font-size: 13px; color: #f4f4f4; font-weight: 600;
+    cursor: pointer; user-select: none;
+  }
+  .nav-group-title:hover { background: rgba(255,255,255,0.05); }
+  .nav-chevron { font-size: 10px; color: #6f6f6f; transition: transform 0.15s; }
+  .nav-group-title.collapsed .nav-chevron { transform: rotate(-90deg); }
+  .nav-sub.collapsed { display: none; }
+  .nav-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 16px 7px 32px; font-size: 13px; color: #c6c6c6;
+    cursor: pointer; border-left: 3px solid transparent;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.05); }
+  .nav-item.active { color: #fff; border-left-color: #0f62fe; background: rgba(255,255,255,0.08); }
+  .nav-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 18px; height: 18px; padding: 0 4px;
+    background: #393939; color: #c6c6c6; border-radius: 9px;
+    font-size: 10px; font-weight: 600;
+  }
+  .nav-badge.alert { background: #da1e28; color: #fff; }
+  .nav-top-link {
+    display: flex; align-items: center; padding: 8px 16px;
+    font-size: 13px; color: #c6c6c6; cursor: pointer; border-left: 3px solid transparent;
+  }
+  .nav-top-link:hover { background: rgba(255,255,255,0.05); }
+
+  /* ───── Main area ───── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+  /* ───── Page header ───── */
+  .page-header { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 14px 20px 0; flex-shrink: 0; }
+  .page-title { font-size: 20px; font-weight: 600; margin-bottom: 2px; }
+  .page-breadcrumb { font-size: 12px; color: #525252; margin-bottom: 12px; }
+
+  /* ───── Filter bar ───── */
+  .header-strip {
+    background: #fff; border-bottom: 1px solid #e0e0e0;
+    padding: 10px 20px; display: flex; align-items: flex-end;
+    gap: 12px; flex-wrap: wrap; flex-shrink: 0;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 3px; }
+  .filter-label { font-size: 11px; color: #525252; font-weight: 600; }
+  .filter-input {
+    height: 32px; border: 1px solid #8d8d8d; padding: 0 8px; font-size: 13px;
+    font-family: inherit; background: #fff; outline: none;
+  }
+  .filter-input:focus { border-color: #0f62fe; box-shadow: inset 0 0 0 1px #0f62fe; }
+  .filter-select {
+    height: 32px; border: 1px solid #8d8d8d; padding: 0 28px 0 8px; font-size: 13px;
+    font-family: inherit; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23525252'/%3E%3C/svg%3E") no-repeat right 8px center;
+    appearance: none; outline: none;
+  }
+  .header-actions { margin-left: auto; display: flex; gap: 8px; align-items: flex-end; }
+
+  /* ───── Buttons ───── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 15px; height: 32px; font-size: 14px;
+    font-family: inherit; cursor: pointer; border: none; font-weight: 400;
+  }
+  .btn-primary { background: #0f62fe; color: #fff; }
+  .btn-primary:hover { background: #0353e9; }
+  .btn-ghost { background: transparent; color: #0f62fe; border: 1px solid transparent; }
+  .btn-ghost:hover { background: rgba(15,98,254,0.08); }
+  .btn-ghost:disabled { color: #c6c6c6; cursor: not-allowed; }
+  .btn-secondary { background: #393939; color: #fff; }
+  .btn-secondary:hover { background: #474747; }
+
+  /* ───── Token bar ───── */
+  .token-bar {
+    background: #defbe6; border-bottom: 1px solid #a7f0ba;
+    padding: 5px 20px; font-size: 12px; color: #044317;
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+  .token-bar.hidden { display: none; }
+
+  /* ───── Dashboard area ───── */
+  .dashboard-area { flex: 1; background: #f4f4f4; position: relative; min-height: 0; overflow: hidden; }
+
+  /* ───── Loading state ───── */
+  .loading-state {
+    position: absolute; inset: 0; background: #f4f4f4;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 16px;
+  }
+  .loading-state.hidden { display: none; }
+  .loading-spinner {
+    width: 48px; height: 48px; border: 4px solid #e0e0e0;
+    border-top-color: #0f62fe; border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ───── Error state ───── */
+  .error-state {
+    position: absolute; inset: 0; background: #f4f4f4;
+    display: flex; align-items: center; justify-content: center; padding: 2rem;
+  }
+  .error-state.hidden { display: none; }
+  .inline-error {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px; max-width: 560px;
+    background: #fff1f1; border-left: 4px solid #da1e28;
+  }
+  .error-icon { color: #da1e28; font-size: 20px; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+  .error-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .error-sub { font-size: 13px; color: #525252; line-height: 1.5; }
+  .error-sub code { background: #f4f4f4; padding: 1px 4px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+
+  /* ───── Connected: Superset embed shell ───── */
+  .superset-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; background: #f4f4f4; }
+  .superset-wrap.hidden { display: none; }
+
+  /* Thin embed-boundary indicator (simulates iframe edge) */
+  .embed-label {
+    background: #e8f5e9; border-bottom: 1px solid #a7f0ba;
+    padding: 3px 16px; font-size: 11px; color: #044317;
+    font-family: 'IBM Plex Mono', monospace; flex-shrink: 0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .embed-label-dot { width: 7px; height: 7px; background: #24a148; border-radius: 50%; }
+
+  /* The simulated iframe content */
+  .iframe-sim { flex: 1; overflow-y: auto; background: #fff; }
+
+  /* ───── Superset dashboard header (light) ───── */
+  .ss-header {
+    background: #f4f4f4; border-bottom: 1px solid #e0e0e0;
+    padding: 10px 20px; display: flex; align-items: center; gap: 12px;
+  }
+  .ss-header-title { font-size: 14px; font-weight: 600; color: #161616; }
+  .ss-header-meta { margin-left: auto; font-size: 12px; color: #525252; }
+
+  /* ───── KPI grid ───── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #e0e0e0; border-bottom: 1px solid #e0e0e0; }
+  .kpi-tile { background: #fff; padding: 20px 24px; }
+  .kpi-label { font-size: 12px; color: #525252; margin-bottom: 6px; }
+  .kpi-value { font-size: 32px; font-weight: 700; color: #161616; line-height: 1; margin-bottom: 4px; }
+  .kpi-value.alert { color: #da1e28; }
+  .kpi-sub { font-size: 12px; color: #0f62fe; }
+  .kpi-sub.neutral { color: #525252; }
+
+  /* ───── Chart grid ───── */
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #e0e0e0; padding-bottom: 1px; }
+  .chart-tile { background: #fff; padding: 20px; }
+  .chart-title { font-size: 13px; font-weight: 600; color: #161616; margin-bottom: 14px; }
+  .chart-source { color: #8d8d8d; font-size: 10px; margin-top: 10px; font-family: 'IBM Plex Mono', monospace; }
+  .chart-legend { display: flex; gap: 16px; margin-top: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #525252; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ───── Donut ───── */
+  .donut-wrap { display: flex; align-items: center; gap: 20px; }
+  .donut-legend { flex: 1; }
+  .donut-legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .donut-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .donut-legend-name { font-size: 12px; color: #161616; flex: 1; }
+  .donut-legend-pct { font-size: 12px; font-weight: 600; }
+  .donut-legend-n { font-size: 11px; color: #8d8d8d; }
+
+  /* ───── MIR heatmap ───── */
+  .heatmap-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .heatmap-table th { color: #525252; text-align: center; font-weight: 600; padding-bottom: 8px; font-size: 11px; }
+  .heatmap-table th:first-child { text-align: left; }
+  .heatmap-table td { text-align: center; padding: 6px 10px; }
+  .heatmap-table td:first-child { text-align: left; color: #161616; padding-right: 16px; white-space: nowrap; font-size: 12px; }
+
+  /* ───── Positivity bars ───── */
+  .pos-block { margin-bottom: 16px; }
+  .pos-block-label { font-size: 12px; color: #525252; margin-bottom: 5px; font-weight: 600; }
+  .pos-bars { display: flex; gap: 3px; }
+  .pos-bar-col { flex: 1; }
+  .pos-bar-outer {
+    background: #f4f4f4; border: 1px solid #e0e0e0; border-radius: 2px;
+    height: 28px; position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pos-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; }
+  .pos-bar-val { position: relative; z-index: 1; font-size: 11px; font-weight: 600; color: #161616; }
+  .pos-bar-val.on-color { color: #fff; }
+  .pos-week-labels { display: flex; gap: 3px; margin-top: 3px; }
+  .pos-week-label { flex: 1; text-align: center; color: #8d8d8d; font-size: 10px; }
+
+  /* ───── Demo controls ───── */
+  .demo-controls {
+    background: #e0e0e0; padding: 8px 16px;
+    display: flex; gap: 10px; align-items: center; flex-shrink: 0; flex-wrap: wrap;
+    border-top: 1px solid #c6c6c6;
+  }
+  .demo-label { font-size: 12px; color: #525252; font-weight: 600; }
+  .demo-hint { font-size: 11px; color: #6f6f6f; margin-left: 4px; }
+
+  /* ───── Tags ───── */
+  .tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font-size: 12px; border-radius: 2px; }
+  .tag-green { background: #defbe6; color: #044317; }
+  .tag-red   { background: #fff1f1; color: #750e13; }
+  .tag-blue  { background: #edf5ff; color: #0043ce; }
+  .tag-gray  { background: #e0e0e0; color: #393939; }
+</style>
+</head>
+<body>
+
+<div class="preview-banner">
+  ⚡ Visual Preview — V-04 Vector Surveillance Reporting &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application
+</div>
+
+<div class="shell">
+
+  <!-- ═══════════════ SIDE NAV ═══════════════ -->
+  <nav class="side-nav">
+    <div class="nav-logo">
+      <div class="nav-logo-icon">OE</div>
+      OpenELIS Global
+    </div>
+
+    <div class="nav-section-label">Vector Surveillance</div>
+
+    <div class="nav-group-title" onclick="toggleGroup('grp-collection', this)">
+      <span>Vector Collection</span><span class="nav-chevron">▾</span>
+    </div>
+    <div class="nav-sub" id="grp-collection">
+      <div class="nav-item" onclick="navAlert('V-02: Collection Lots')">
+        <span>Collection Lots</span><span class="nav-badge">7</span>
+      </div>
+      <div class="nav-item" onclick="navAlert('V-02: New Collection Lot')">New Collection Lot</div>
+    </div>
+
+    <div class="nav-group-title" onclick="toggleGroup('grp-id', this)">
+      <span>Vector Identification</span><span class="nav-chevron">▾</span>
+    </div>
+    <div class="nav-sub" id="grp-id">
+      <div class="nav-item" onclick="navAlert('V-03: Pending ID')">
+        <span>Pending ID</span><span class="nav-badge">4</span>
+      </div>
+      <div class="nav-item" onclick="navAlert('V-03: In Progress')">
+        <span>In Progress</span><span class="nav-badge">1</span>
+      </div>
+      <div class="nav-item" onclick="navAlert('V-03: Deconvolution')">
+        <span>Deconvolution</span><span class="nav-badge alert">2</span>
+      </div>
+      <div class="nav-item" onclick="navAlert('V-03: Complete')">
+        <span>Complete</span><span class="nav-badge">14</span>
+      </div>
+    </div>
+
+    <div class="nav-group-title" onclick="toggleGroup('grp-reports', this)">
+      <span>Reports</span><span class="nav-chevron">▾</span>
+    </div>
+    <div class="nav-sub" id="grp-reports">
+      <div class="nav-item active"><span>Vector Surveillance</span></div>
+      <div class="nav-item" onclick="navAlert('Environmental Compliance')">Environmental Compliance</div>
+      <div class="nav-item" onclick="navAlert('Laporan Hasil')">Laporan Hasil</div>
+    </div>
+
+    <div style="margin-top:16px;border-top:1px solid #393939;padding-top:8px;">
+      <div class="nav-top-link" onclick="navAlert('Admin → Vector Specimen Types')">
+        ⚙ Admin: Vector Config
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <div class="main">
+
+    <!-- Page header (no tabs — single-screen page) -->
+    <div class="page-header">
+      <h1 class="page-title">Vector Surveillance Dashboard</h1>
+      <p class="page-breadcrumb" style="margin-bottom:14px;">Reports › Vector Surveillance</p>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="header-strip">
+      <div class="filter-group">
+        <label class="filter-label">Date From</label>
+        <input type="date" class="filter-input" id="date-from" value="2026-01-01">
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Date To</label>
+        <input type="date" class="filter-input" id="date-to" value="2026-04-20">
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Site</label>
+        <select class="filter-select" id="site-select">
+          <option value="all">All Sites</option>
+          <option value="BPP-01">Bojongsoang — BPP-01</option>
+          <option value="BPP-02">Margahayu — BPP-02</option>
+          <option value="BPP-03">Antapani — BPP-03</option>
+          <option value="CIL-02">Cileunyi — CIL-02</option>
+          <option value="JAT-01">Jatisari — JAT-01</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="applyFilters()">Apply</button>
+      <div class="header-actions">
+        <button class="btn btn-ghost" id="btn-export" onclick="alert('Exports the dashboard as a PDF via Superset headless Chromium.\n\nFR-V04-DASH-003')" disabled>
+          ↓ Export PDF
+        </button>
+        <button class="btn btn-ghost" id="btn-open-superset" onclick="alert('Opens the dashboard directly in Superset at:\n/superset/dashboard/vec-surv-overview-001/')" disabled>
+          Open in Superset ↗
+        </button>
+      </div>
+    </div>
+
+    <!-- Token bar -->
+    <div class="token-bar hidden" id="token-bar">
+      <span>🔑</span>
+      <span id="token-countdown">Guest token active — expires in 5:00 · auto-refreshes silently (BR-V04-004)</span>
+    </div>
+
+    <!-- Dashboard area -->
+    <div class="dashboard-area">
+
+      <!-- Loading -->
+      <div class="loading-state" id="state-loading">
+        <div class="loading-spinner"></div>
+        <p style="color:#525252;font-size:14px;">Fetching dashboard session…</p>
+        <p style="color:#8d8d8d;font-size:12px;font-family:'IBM Plex Mono',monospace;">POST /api/v1/vector/superset/guest-token</p>
+      </div>
+
+      <!-- Error -->
+      <div class="error-state hidden" id="state-error">
+        <div class="inline-error">
+          <div class="error-icon">✕</div>
+          <div>
+            <p class="error-title">The vector surveillance dashboard is temporarily unavailable.</p>
+            <p class="error-sub">
+              Could not reach the Superset analytics service. Check that the
+              <code>superset</code> Docker service is running and accessible at <code>/superset</code>.
+            </p>
+            <button class="btn btn-ghost" style="margin-top:10px;padding:0 10px;" onclick="simulateLoading()">↺ Retry</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connected -->
+      <div class="superset-wrap hidden" id="state-connected">
+
+        <!-- Embed boundary label (dev-visible annotation; would not appear in production) -->
+        <div class="embed-label">
+          <span class="embed-label-dot"></span>
+          <span>Embedded Superset dashboard &nbsp;·&nbsp; <code style="font-family:inherit">&lt;iframe src="/superset/embedded/vec-surv-overview-001?token={jwt}"&gt;</code></span>
+        </div>
+
+        <!-- Simulated iframe content -->
+        <div class="iframe-sim">
+
+          <!-- Superset inner header -->
+          <div class="ss-header">
+            <span class="ss-header-title">Vector Surveillance Overview</span>
+            <span class="ss-header-meta" id="ss-meta">All Sites &nbsp;·&nbsp; 2026-01-01 → 2026-04-20</span>
+          </div>
+
+          <!-- KPI row -->
+          <div class="kpi-grid" id="kpi-grid">
+            <!-- populated by JS -->
+          </div>
+
+          <!-- 2×2 charts -->
+          <div class="chart-grid">
+
+            <!-- 1: Trap catch trend -->
+            <div class="chart-tile">
+              <p class="chart-title">Trap Catch Rate — Trend (specimens / trap-night)</p>
+              <svg width="100%" height="120" viewBox="0 0 400 120" preserveAspectRatio="none">
+                <line x1="0" y1="20"  x2="400" y2="20"  stroke="#e0e0e0" stroke-width="1"/>
+                <line x1="0" y1="55"  x2="400" y2="55"  stroke="#e0e0e0" stroke-width="1"/>
+                <line x1="0" y1="90"  x2="400" y2="90"  stroke="#e0e0e0" stroke-width="1"/>
+                <text x="0"   y="17" fill="#8d8d8d" font-size="8" text-anchor="start">60</text>
+                <text x="0"   y="52" fill="#8d8d8d" font-size="8" text-anchor="start">40</text>
+                <text x="0"   y="87" fill="#8d8d8d" font-size="8" text-anchor="start">20</text>
+                <!-- BPP-01 solid blue -->
+                <polyline points="0,95 50,80 100,58 150,65 200,42 250,50 300,28 350,36 400,22"
+                  fill="none" stroke="#0f62fe" stroke-width="2.5"/>
+                <!-- BPP-02 dashed teal -->
+                <polyline points="0,88 50,92 100,75 150,80 200,65 250,58 300,50 350,52 400,44"
+                  fill="none" stroke="#007d79" stroke-width="2" stroke-dasharray="5 3"/>
+                <text x="0"   y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W9</text>
+                <text x="50"  y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W10</text>
+                <text x="100" y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W11</text>
+                <text x="150" y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W12</text>
+                <text x="200" y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W13</text>
+                <text x="250" y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W14</text>
+                <text x="300" y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W15</text>
+                <text x="350" y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W16</text>
+                <text x="400" y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W17</text>
+              </svg>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-dot" style="background:#0f62fe"></span>BPP-01</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#007d79;border-radius:0"></span>BPP-02</span>
+              </div>
+              <p class="chart-source">Superset line chart · vector_trap_catch_daily</p>
+            </div>
+
+            <!-- 2: Species distribution donut -->
+            <div class="chart-tile">
+              <p class="chart-title">Species Distribution (confirmed identifications)</p>
+              <div class="donut-wrap">
+                <svg width="110" height="110" viewBox="0 0 100 100" style="flex-shrink:0">
+                  <circle cx="50" cy="50" r="35" fill="none" stroke="#0f62fe" stroke-width="20"
+                    stroke-dasharray="131 82" stroke-dashoffset="0"/>
+                  <circle cx="50" cy="50" r="35" fill="none" stroke="#007d79" stroke-width="20"
+                    stroke-dasharray="60 153" stroke-dashoffset="-131"/>
+                  <circle cx="50" cy="50" r="35" fill="none" stroke="#f1c21b" stroke-width="20"
+                    stroke-dasharray="22 191" stroke-dashoffset="-191"/>
+                  <circle cx="50" cy="50" r="22" fill="#fff"/>
+                  <text x="50" y="47" text-anchor="middle" fill="#161616" font-size="11" font-weight="700">4,820</text>
+                  <text x="50" y="58" text-anchor="middle" fill="#8d8d8d" font-size="8">specimens</text>
+                </svg>
+                <div class="donut-legend">
+                  <div class="donut-legend-row">
+                    <span class="donut-legend-dot" style="background:#0f62fe"></span>
+                    <span class="donut-legend-name">Ae. aegypti</span>
+                    <span class="donut-legend-pct" style="color:#0f62fe">62%</span>
+                    <span class="donut-legend-n">&nbsp;(2,988)</span>
+                  </div>
+                  <div class="donut-legend-row">
+                    <span class="donut-legend-dot" style="background:#007d79"></span>
+                    <span class="donut-legend-name">Cx. quinquefasciatus</span>
+                    <span class="donut-legend-pct" style="color:#007d79">28%</span>
+                    <span class="donut-legend-n">&nbsp;(1,350)</span>
+                  </div>
+                  <div class="donut-legend-row">
+                    <span class="donut-legend-dot" style="background:#f1c21b"></span>
+                    <span class="donut-legend-name">An. barbirostris</span>
+                    <span class="donut-legend-pct" style="color:#a67f00">10%</span>
+                    <span class="donut-legend-n">&nbsp;(482)</span>
+                  </div>
+                </div>
+              </div>
+              <p class="chart-source">Superset donut · vector_specimen_ids</p>
+            </div>
+
+            <!-- 3: MIR heatmap -->
+            <div class="chart-tile">
+              <p class="chart-title">Minimum Infection Rate × Species (per 1,000 specimens)</p>
+              <table class="heatmap-table" id="mir-table"><!-- populated by JS --></table>
+              <p class="chart-source">Superset table/heatmap · vector_mir_weekly &nbsp;·&nbsp; MIR = (positive pools ÷ total specimens) × 1,000 &nbsp;·&nbsp; CONFIRMED results only</p>
+            </div>
+
+            <!-- 4: Pathogen positivity -->
+            <div class="chart-tile">
+              <p class="chart-title">Pathogen Positivity Rate (% positive pools, last 4 weeks)</p>
+
+              <div class="pos-block">
+                <div class="pos-block-label">NS1 RT-PCR — Dengue</div>
+                <div class="pos-bars">
+                  <div class="pos-bar-col"><div class="pos-bar-outer">
+                    <div class="pos-bar-fill" style="width:24%;background:#f1c21b66"></div>
+                    <span class="pos-bar-val">8%</span>
+                  </div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer">
+                    <div class="pos-bar-fill" style="width:36%;background:#f1c21b88"></div>
+                    <span class="pos-bar-val">12%</span>
+                  </div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer">
+                    <div class="pos-bar-fill" style="width:54%;background:#f1c21b"></div>
+                    <span class="pos-bar-val">18%</span>
+                  </div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer">
+                    <div class="pos-bar-fill" style="width:72%;background:#da1e28"></div>
+                    <span class="pos-bar-val on-color">24%</span>
+                  </div></div>
+                </div>
+                <div class="pos-week-labels">
+                  <span class="pos-week-label">W13</span><span class="pos-week-label">W14</span>
+                  <span class="pos-week-label">W15</span><span class="pos-week-label">W16 ⚠</span>
+                </div>
+              </div>
+
+              <div class="pos-block">
+                <div class="pos-block-label">Malaria (PCR)</div>
+                <div class="pos-bars">
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:6%;background:#0f62fe55"></div><span class="pos-bar-val">2%</span></div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:6%;background:#0f62fe55"></div><span class="pos-bar-val">2%</span></div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:12%;background:#0f62fe88"></div><span class="pos-bar-val">4%</span></div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:9%;background:#0f62fe77"></div><span class="pos-bar-val">3%</span></div></div>
+                </div>
+                <div class="pos-week-labels">
+                  <span class="pos-week-label">W13</span><span class="pos-week-label">W14</span>
+                  <span class="pos-week-label">W15</span><span class="pos-week-label">W16</span>
+                </div>
+              </div>
+
+              <div class="pos-block" style="margin-bottom:0">
+                <div class="pos-block-label">Chikungunya RT-PCR</div>
+                <div class="pos-bars">
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:0%"></div><span class="pos-bar-val">0%</span></div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:3%;background:#007d7944"></div><span class="pos-bar-val">1%</span></div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:6%;background:#007d7966"></div><span class="pos-bar-val">2%</span></div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:15%;background:#007d79"></div><span class="pos-bar-val">5%</span></div></div>
+                </div>
+                <div class="pos-week-labels">
+                  <span class="pos-week-label">W13</span><span class="pos-week-label">W14</span>
+                  <span class="pos-week-label">W15</span><span class="pos-week-label">W16</span>
+                </div>
+              </div>
+
+              <p class="chart-source">Superset bar chart · vector_pathogen_results &nbsp;·&nbsp; red = exceeds threshold</p>
+            </div>
+
+          </div><!-- /chart-grid -->
+        </div><!-- /iframe-sim -->
+      </div><!-- /superset-wrap -->
+
+    </div><!-- /dashboard-area -->
+
+    <!-- Demo controls -->
+    <div class="demo-controls">
+      <span class="demo-label">Preview controls:</span>
+      <button class="btn btn-secondary" style="height:28px;font-size:12px;" onclick="simulateLoading()">Simulate token fetch (loading)</button>
+      <button class="btn btn-secondary" style="height:28px;font-size:12px;" onclick="simulateError()">Simulate error state</button>
+      <button class="btn btn-secondary" style="height:28px;font-size:12px;" onclick="simulateConnected()">Simulate connected</button>
+      <span class="demo-hint">Try: change Site → "BPP-01" and Apply to see per-site MIR data</span>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+// ═══ DATA ═══════════════════════════════════
+
+const SITE_DATA = {
+  all: {
+    kpi: [
+      { label: 'Total Collection Lots', value: '312',   sub: '↑ 18 this week',        alert: false },
+      { label: 'Total Specimens',       value: '4,820', sub: '↑ 240 this week',       alert: false },
+      { label: 'Active Sites',          value: '5',     sub: 'of 7 reporting',        alert: false, neutral: true },
+      { label: 'Highest MIR (W16)',     value: '12.4',  sub: 'BPP-01 · Ae. aegypti', alert: true  },
+    ],
+    mir: [
+      { species: 'Ae. aegypti',          vals: [2.1, 4.8, 8.3, 12.4] },
+      { species: 'Cx. quinquefasciatus', vals: [0,   1.2, 2.0,  3.1] },
+      { species: 'An. barbirostris',     vals: [0,   0,   0.8,  1.5] },
+    ],
+  },
+  'BPP-01': {
+    kpi: [
+      { label: 'Total Collection Lots', value: '87',    sub: '↑ 6 this week',          alert: false },
+      { label: 'Total Specimens',       value: '1,340', sub: '↑ 80 this week',         alert: false },
+      { label: 'Active Sites',          value: '1',     sub: 'Bojongsoang',            alert: false, neutral: true },
+      { label: 'Highest MIR (W16)',     value: '12.4',  sub: 'Ae. aegypti · NS1',      alert: true  },
+    ],
+    mir: [
+      { species: 'Ae. aegypti',          vals: [3.1, 6.2,  9.8, 12.4] },
+      { species: 'Cx. quinquefasciatus', vals: [0,   0.8,  1.2,  2.0] },
+      { species: 'An. barbirostris',     vals: [0,   0,    0,    0.5] },
+    ],
+  },
+};
+
+function getD(site) { return SITE_DATA[site] || SITE_DATA['all']; }
+
+// ═══ RENDER ══════════════════════════════════
+
+function renderKPI(site) {
+  const d = getD(site);
+  document.getElementById('kpi-grid').innerHTML = d.kpi.map(k => `
+    <div class="kpi-tile">
+      <p class="kpi-label">${k.label}</p>
+      <p class="kpi-value${k.alert ? ' alert' : ''}">${k.value}</p>
+      <p class="kpi-sub${k.neutral ? ' neutral' : ''}">${k.sub}</p>
+    </div>
+  `).join('');
+}
+
+function renderMIR(site) {
+  const d = getD(site);
+  const weeks = ['W13','W14','W15','W16'];
+  let html = `<thead><tr><th>Species / Panel</th>${weeks.map(w=>`<th>${w}</th>`).join('')}</tr></thead><tbody>`;
+  d.mir.forEach(row => {
+    html += `<tr><td>${row.species}</td>`;
+    row.vals.forEach(v => {
+      const intensity = Math.min(v / 15, 1);
+      let bg, color;
+      if (v === 0) {
+        bg = '#f4f4f4'; color = '#8d8d8d';
+      } else if (v < 5) {
+        bg = `rgba(241,194,27,${(0.2 + intensity * 0.6).toFixed(2)})`; color = '#161616';
+      } else {
+        bg = `rgba(218,30,40,${(0.3 + intensity * 0.7).toFixed(2)})`; color = v > 8 ? '#fff' : '#161616';
+      }
+      html += `<td style="background:${bg};color:${color};font-weight:600">${v || '—'}</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody>`;
+  document.getElementById('mir-table').innerHTML = html;
+}
+
+function updateMeta() {
+  const sel = document.getElementById('site-select');
+  const from = document.getElementById('date-from').value;
+  const to   = document.getElementById('date-to').value;
+  const site = sel.value;
+  const siteName = site === 'all' ? 'All Sites' : sel.options[sel.selectedIndex].text;
+  document.getElementById('ss-meta').textContent = siteName + '  ·  ' + from + ' → ' + to;
+}
+
+// ═══ CONNECTION STATES ═══════════════════════
+
+function setState(s) {
+  document.getElementById('state-loading').classList.toggle('hidden', s !== 'loading');
+  document.getElementById('state-error').classList.toggle('hidden', s !== 'error');
+  document.getElementById('state-connected').classList.toggle('hidden', s !== 'connected');
+  document.getElementById('token-bar').classList.toggle('hidden', s !== 'connected');
+  document.getElementById('btn-export').disabled = s !== 'connected';
+  document.getElementById('btn-open-superset').disabled = s !== 'connected';
+  if (s === 'connected') startTokenTimer(); else stopTokenTimer();
+}
+
+function simulateLoading() {
+  setState('loading');
+  setTimeout(() => {
+    const site = document.getElementById('site-select').value;
+    renderKPI(site); renderMIR(site); updateMeta();
+    setState('connected');
+  }, 1100);
+}
+function simulateError()     { setState('error'); }
+function simulateConnected() {
+  const site = document.getElementById('site-select').value;
+  renderKPI(site); renderMIR(site); updateMeta();
+  setState('connected');
+}
+function applyFilters() { simulateLoading(); }
+
+// ═══ TOKEN COUNTDOWN ════════════════════════
+
+let tokenSec = 300, tokenIv = null;
+
+function startTokenTimer() {
+  stopTokenTimer();
+  tokenSec = 300;
+  tokenIv = setInterval(() => {
+    tokenSec--;
+    if (tokenSec <= 0) { tokenSec = 300; } // silent refresh
+    const m = Math.floor(tokenSec / 60);
+    const s = String(tokenSec % 60).padStart(2,'0');
+    const el = document.getElementById('token-countdown');
+    if (el) el.textContent = `Guest token active — expires in ${m}:${s} · auto-refreshes silently (BR-V04-004)`;
+  }, 1000);
+}
+function stopTokenTimer() { if (tokenIv) { clearInterval(tokenIv); tokenIv = null; } }
+
+// ═══ NAV ════════════════════════════════════
+
+function toggleGroup(id, titleEl) {
+  document.getElementById(id).classList.toggle('collapsed');
+  titleEl.classList.toggle('collapsed');
+}
+function navAlert(msg) {
+  alert('Navigate to: ' + msg + '\n\n(This preview focuses on V-04 Vector Surveillance Reporting)');
+}
+
+// ═══ INIT ════════════════════════════════════
+
+setState('loading');
+setTimeout(() => {
+  renderKPI('all'); renderMIR('all'); updateMeta();
+  setState('connected');
+}, 1200);
+</script>
+</body>
+</html>

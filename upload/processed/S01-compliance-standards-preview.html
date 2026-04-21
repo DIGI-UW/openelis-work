@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S-01: Compliance Standards Admin — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner {
+      background: #0f62fe; color: #fff;
+      padding: 6px 1rem; font-size: 12px; font-family: monospace;
+    }
+
+    /* ── SideNav ─────────────────────────────────────────── */
+    .sidenav {
+      width: 256px; min-height: calc(100vh - 28px); background: #161616;
+      color: #c6c6c6; overflow-y: auto; flex-shrink: 0;
+    }
+    .sidenav-menu-title {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; font-size: 14px; font-weight: 600; color: #f4f4f4;
+      cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+    }
+    .sidenav-menu-title:hover { background: #262626; }
+    .sidenav-item {
+      display: block; width: 100%; padding: 8px 16px 8px 32px; font-size: 14px;
+      color: #c6c6c6; text-decoration: none; border: none; background: none;
+      cursor: pointer; text-align: left;
+    }
+    .sidenav-item:hover { background: #262626; color: #f4f4f4; }
+    .sidenav-item.active { background: #393939; color: #fff; border-left: 3px solid #0f62fe; padding-left: 29px; }
+    .sidenav-nested-title {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 16px 8px 40px; font-size: 13px; font-weight: 600; color: #c6c6c6;
+      cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+    }
+    .sidenav-nested-title:hover { background: #262626; }
+    .sidenav-nested-item {
+      display: block; width: 100%; padding: 6px 16px 6px 56px; font-size: 13px;
+      color: #a8a8a8; text-decoration: none; border: none; background: none;
+      cursor: pointer; text-align: left;
+    }
+    .sidenav-nested-item:hover { background: #262626; color: #f4f4f4; }
+    .sidenav-nested-item.active { background: #393939; color: #fff; }
+
+    /* ── Main Content ────────────────────────────────────── */
+    .main-content { flex: 1; padding: 2rem; background: #f4f4f4; overflow-y: auto; min-height: calc(100vh - 28px); }
+
+    /* ── Breadcrumb ──────────────────────────────────────── */
+    .breadcrumb { display: flex; gap: 4px; font-size: 14px; color: #525252; margin-bottom: 1rem; }
+    .breadcrumb a { color: #0f62fe; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb .sep { margin: 0 4px; color: #a8a8a8; }
+
+    /* ── DataTable ────────────────────────────────────────── */
+    table.dt { width: 100%; border-collapse: collapse; background: #fff; }
+    table.dt th {
+      background: #e0e0e0; padding: 12px 16px; text-align: left;
+      font-size: 14px; font-weight: 600; color: #161616; border-bottom: 1px solid #c6c6c6;
+    }
+    table.dt td {
+      padding: 10px 16px; font-size: 14px; color: #161616;
+      border-bottom: 1px solid #e0e0e0; vertical-align: middle;
+    }
+    table.dt tr:hover td { background: #e8e8e8; }
+
+    /* ── Tags ─────────────────────────────────────────────── */
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 24px; font-size: 12px; font-weight: 500; margin-right: 4px; white-space: nowrap; }
+    .tag-green { background: #defbe6; color: #0e6027; }
+    .tag-blue { background: #d0e2ff; color: #0043ce; }
+    .tag-warm-gray { background: #e8e0db; color: #4f3b31; }
+    .tag-gray { background: #e0e0e0; color: #525252; }
+    .tag-red { background: #ffd7d9; color: #a2191f; }
+    .tag-teal { background: #d9fbfb; color: #005d5d; }
+    .tag-purple { background: #e8daff; color: #6929c4; }
+    .badge { display: inline-block; background: #da1e28; color: #fff; border-radius: 50%; font-size: 11px; width: 18px; height: 18px; text-align: center; line-height: 18px; margin-left: 6px; }
+
+    /* ── Buttons ──────────────────────────────────────────── */
+    .btn { border: none; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px; transition: background 0.15s; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-primary:hover { background: #0353e9; }
+    .btn-ghost { background: transparent; color: #0f62fe; padding: 8px 12px; }
+    .btn-ghost:hover { background: #e8e8e8; }
+    .btn-danger { background: #da1e28; color: #fff; }
+    .btn-sm { padding: 4px 12px; font-size: 13px; }
+    .btn-icon { padding: 6px; background: none; border: none; cursor: pointer; color: #525252; }
+    .btn-icon:hover { background: #e0e0e0; }
+
+    /* ── Tile / Forms ─────────────────────────────────────── */
+    .tile { background: #fff; padding: 1.5rem; border: 1px solid #e0e0e0; margin: 0.5rem 0; }
+    .form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1rem; }
+    .form-grid-full { grid-column: 1 / -1; }
+    .form-field label { display: block; font-size: 12px; color: #525252; margin-bottom: 4px; font-weight: 500; }
+    .form-field input, .form-field select, .form-field textarea {
+      width: 100%; padding: 8px 12px; border: none; border-bottom: 1px solid #8d8d8d;
+      font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; background: #f4f4f4; box-sizing: border-box;
+    }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+      outline: 2px solid #0f62fe; border-bottom-color: #0f62fe;
+    }
+
+    /* ── Toolbar ──────────────────────────────────────────── */
+    .toolbar { display: flex; align-items: center; gap: 0.75rem; padding: 12px 16px; background: #e0e0e0; flex-wrap: wrap; }
+    .toolbar-search {
+      flex: 1; min-width: 200px; padding: 8px 12px; border: none;
+      background: #fff; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif;
+    }
+    .toolbar-search:focus { outline: 2px solid #0f62fe; }
+    .toolbar select { padding: 6px 12px; border: none; background: #fff; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; }
+
+    /* ── Accordion ────────────────────────────────────────── */
+    .accordion { list-style: none; padding: 0; margin: 1rem 0; }
+    .accordion-item { border-top: 1px solid #e0e0e0; }
+    .accordion-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; cursor: pointer; background: none; border: none;
+      width: 100%; text-align: left; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif;
+    }
+    .accordion-header:hover { background: #e8e8e8; }
+    .accordion-body { padding: 10px 16px 16px 32px; font-size: 14px; color: #525252; }
+
+    /* ── Notification ─────────────────────────────────────── */
+    .notification {
+      display: flex; align-items: center; padding: 12px 16px; margin-bottom: 1rem;
+      font-size: 14px; border-left: 3px solid;
+    }
+    .notification-success { background: #defbe6; border-color: #24a148; color: #0e6027; }
+    .notification .close-btn { margin-left: auto; background: none; border: none; cursor: pointer; font-size: 16px; color: inherit; }
+
+    /* ── Modal ────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;
+    }
+    .modal { background: #fff; width: 780px; max-width: 92vw; max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 24px rgba(0,0,0,0.2); }
+    .modal-header { padding: 1rem 1.5rem; border-bottom: 1px solid #e0e0e0; }
+    .modal-header h3 { margin: 0; font-size: 18px; }
+    .modal-body { padding: 1.5rem; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 0.5rem; padding: 1rem 1.5rem; border-top: 1px solid #e0e0e0; }
+
+    /* ── Tabs ─────────────────────────────────────────────── */
+    .tab-bar { display: flex; gap: 0; border-bottom: 2px solid #e0e0e0; margin-bottom: 1.5rem; }
+    .tab-btn {
+      padding: 10px 20px; cursor: pointer; border: none; background: none;
+      font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; color: #525252;
+      border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+    }
+    .tab-btn:hover { color: #161616; }
+    .tab-btn.active { color: #0f62fe; border-bottom-color: #0f62fe; font-weight: 600; }
+
+    /* ── Overflow Menu ────────────────────────────────────── */
+    .overflow-menu { position: relative; display: inline-block; }
+    .overflow-btn { background: none; border: none; cursor: pointer; padding: 4px 8px; font-size: 18px; color: #525252; }
+    .overflow-btn:hover { background: #e0e0e0; }
+    .overflow-dropdown { position: absolute; right: 0; top: 100%; background: #fff; border: 1px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 180px; }
+    .overflow-item { display: block; width: 100%; padding: 8px 16px; border: none; background: none; text-align: left; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; cursor: pointer; }
+    .overflow-item:hover { background: #e8e8e8; }
+    .overflow-item.danger { color: #da1e28; }
+
+    .error-row td { border-left: 3px solid #da1e28; }
+    .inline-select { display: flex; align-items: center; gap: 8px; }
+    .inline-select label { font-size: 13px; color: #525252; white-space: nowrap; }
+    .inline-select select { padding: 4px 8px; font-size: 13px; border: 1px solid #c6c6c6; background: #fff; }
+
+    /* ── Test Editor Vertical Tab Sidebar ─────────────────── */
+    .editor-wrap { display: flex; flex-direction: column; height: calc(100vh - 28px); background: #f4f4f4; }
+    .editor-header {
+      background: #fff; border-bottom: 1px solid #e0e0e0; padding: 1rem 1.5rem; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .editor-header h1 { font-size: 1.25rem; font-weight: 600; margin: 0; }
+    .editor-header .meta { font-size: 0.875rem; color: #525252; margin: 0; }
+    .editor-body { display: flex; flex: 1; overflow: hidden; }
+    .vtab-nav {
+      width: 14rem; background: #fff; border-right: 1px solid #e0e0e0;
+      flex-shrink: 0; overflow-y: auto; padding: 0.5rem;
+    }
+    .vtab-group-label {
+      padding: 0.375rem 0.75rem; font-size: 0.6875rem; font-weight: 600;
+      color: #a8a8a8; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.75rem;
+    }
+    .vtab-group-label:first-child { margin-top: 0; }
+    .vtab-item {
+      width: 100%; display: block; padding: 0.5rem 0.75rem; font-size: 0.875rem;
+      font-weight: 500; border: none; border-radius: 0.375rem; cursor: pointer;
+      margin-bottom: 2px; text-align: left; background: transparent; color: #525252;
+      border-left: 3px solid transparent; font-family: 'IBM Plex Sans', sans-serif;
+    }
+    .vtab-item:hover { background: #e8e8e8; color: #161616; }
+    .vtab-item.active { background: #defbe6; color: #0e6027; border-left-color: #0e6027; }
+    .vtab-content { flex: 1; overflow-y: auto; padding: 1.5rem; }
+    .vtab-content-inner { max-width: 64rem; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    ⚡ Visual Preview — S-01: Compliance Standards Administration &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application
+  </div>
+  <div id="root" style="display:flex;"></div>
+  <script type="text/babel">
+    const { useState, Fragment } = React;
+    const t = (key, fb) => fb || key;
+
+    // ── Mock Data ──────────────────────────────────────────
+    const standards = [
+      { id:1, name:'PP No. 22/2021 — Baku Mutu Air', issuer:'Pemerintah RI', reg:'PP 22/2021', ver:'2021', date:'2021-02-02', region:'Indonesia', status:'ACTIVE', groups:4, tests:47, seeded:true, sampleTypes:['Water'],
+        paramGroups:[
+          {id:'g1',name:'Parameter Fisika',desc:'Kekeruhan, warna, bau, rasa, suhu',th:6},
+          {id:'g2',name:'Parameter Kimia Anorganik',desc:'Logam berat, pH, kesadahan, TDS',th:22},
+          {id:'g3',name:'Parameter Kimia Organik',desc:'Pestisida, pelarut, produk samping desinfeksi',th:14},
+          {id:'g4',name:'Parameter Mikrobiologi',desc:'Total coliform, E. coli, fecal coliform',th:5},
+        ]},
+      { id:2, name:'PP No. 41/1999 — Baku Mutu Udara Ambien', issuer:'Pemerintah RI', reg:'PP 41/1999', ver:'1999', date:'1999-05-26', region:'Indonesia', status:'ACTIVE', groups:2, tests:12, seeded:true, sampleTypes:['Air'],
+        paramGroups:[
+          {id:'g5',name:'Pencemar Primer',desc:'SO₂, CO, NO₂, O₃, Pb, PM₁₀, PM₂.₅',th:7},
+          {id:'g6',name:'Pencemar Sekunder',desc:'Debu, H₂S, NH₃, HCl',th:5},
+        ]},
+      { id:3, name:'WHO Drinking Water Guidelines', issuer:'World Health Organization', reg:'WHO/SDE/WSH/2022', ver:'4th Ed. 2022', date:'2022-03-21', region:'International', status:'ACTIVE', groups:3, tests:34, seeded:false, sampleTypes:['Water'],
+        paramGroups:[
+          {id:'g7',name:'Chemical Contaminants',desc:'Arsenic, fluoride, lead, nitrate',th:18},
+          {id:'g8',name:'Microbial Indicators',desc:'E. coli, total coliforms',th:4},
+          {id:'g9',name:'Radiological Parameters',desc:'Gross alpha, gross beta',th:2},
+        ]},
+      { id:4, name:'PermenLH No. 5/2014 — Baku Mutu Air Limbah', issuer:'KemenLHK', reg:'PermenLH 5/2014', ver:'2014', date:'2014-04-21', region:'Indonesia', status:'SUPERSEDED', groups:3, tests:28, seeded:true, sampleTypes:['Waste'],
+        paramGroups:[]},
+      { id:5, name:'PP No. 22/2021 — Air (Draft v2)', issuer:'Pemerintah RI', reg:'PP 22/2021-rev', ver:'2026 Draft', date:'2026-01-01', region:'Indonesia', status:'DRAFT', groups:4, tests:0, seeded:false, sampleTypes:['Water'],
+        paramGroups:[]},
+    ];
+
+    const thresholds = [
+      {id:'t1',std:'PP No. 22/2021 — Baku Mutu Air',grp:'Parameter Fisika',type:'MAX',upper:25,unit:'NTU',date:'2021-02-02',active:true},
+      {id:'t2',std:'WHO Drinking Water Guidelines',grp:'Chemical Contaminants',type:'MAX',upper:5,unit:'NTU',date:'2022-03-21',active:true},
+      {id:'t3',std:'PP No. 22/2021 — Baku Mutu Air',grp:'Parameter Kimia Anorganik',type:'RANGE',lower:6.5,upper:8.5,unit:'pH',date:'2021-02-02',active:true},
+      {id:'t4',std:'PP No. 22/2021 — Baku Mutu Air',grp:'Parameter Mikrobiologi',type:'MAX',upper:5000,unit:'CFU/100mL',date:'2021-02-02',active:true},
+      {id:'t5',std:'PP No. 22/2021 — Baku Mutu Air',grp:'Parameter Fisika',type:'DESCRIPTIVE',desc:'Tidak berbau',unit:'—',date:'2021-02-02',active:true},
+      {id:'t6',std:'PP No. 22/2021 — Baku Mutu Air',grp:'Parameter Fisika',type:'MAX',upper:50,unit:'TCU',date:'2021-02-02',active:true},
+      {id:'t7',std:'PP No. 22/2021 — Baku Mutu Air',grp:'Parameter Kimia Anorganik',type:'MIN',lower:4,unit:'mg/L',date:'2021-02-02',active:true},
+    ];
+
+    const csvRows = [
+      {row:1,std:'PP 22/2021',grp:'Parameter Fisika',test:'Kekeruhan (Turbidity)',match:'Matched',th:'Max ≤ 25 NTU',ok:true},
+      {row:2,std:'PP 22/2021',grp:'Parameter Fisika',test:'Warna (Color)',match:'Matched',th:'Max ≤ 50 TCU',ok:true},
+      {row:3,std:'PP 22/2021',grp:'Parameter Fisika',test:'Oksigen Terlarut (DO)',match:'Matched',th:'Min ≥ 4 mg/L',ok:true},
+      {row:4,std:'PP 22/2021',grp:'Parameter Kimia',test:'Arsenik (As)',match:'Matched',th:'Max ≤ 0.05 mg/L',ok:true},
+      {row:5,std:'PP 22/2021',grp:'Parameter Mikrobiologi',test:'Coliform sp.',match:'Not Found',th:'Max ≤ 5000 CFU/100mL',ok:false,err:'Test not found in catalog'},
+      {row:6,std:'PP 22/2021',grp:'Parameter Kimia',test:'Besi (Fe)',match:'Matched',th:'Max ≤ 1.0 mg/L',ok:true},
+      {row:7,std:'PP 22/2021',grp:'Parameter Fisika',test:'Bau',match:'Matched',th:'Qualitative: Tidak berbau',ok:true},
+    ];
+
+    const sts = {ACTIVE:'tag-green',DRAFT:'tag-blue',SUPERSEDED:'tag-warm-gray',ARCHIVED:'tag-gray'};
+    const ttc = {MAX:'tag-red',MIN:'tag-blue',RANGE:'tag-teal',DESCRIPTIVE:'tag-purple'};
+    const ttl = {MAX:'Max ≤',MIN:'Min ≥',RANGE:'Range',DESCRIPTIVE:'Qualitative'};
+    const fmtVal = t => t.type==='MAX'?'≤ '+t.upper+' '+t.unit:t.type==='MIN'?'≥ '+t.lower+' '+t.unit:t.type==='RANGE'?t.lower+' – '+t.upper+' '+t.unit:t.desc;
+
+    // ── SideNav ────────────────────────────────────────────
+    function SideNav({page, setPage}) {
+      return (
+        <nav className="sidenav">
+          <button className="sidenav-menu-title" style={{marginTop:8}}>Test Management ▾</button>
+          <button className={"sidenav-item"+(page==='test-catalog'?' active':'')} onClick={()=>setPage('test-catalog')}>Test Catalog</button>
+          <button className="sidenav-item">Panels</button>
+          <button className="sidenav-item">Reference Ranges</button>
+          <button className={"sidenav-item"+(page==='standards'?' active':'')} onClick={()=>setPage('standards')}>
+            Compliance Standards
+          </button>
+          <button className="sidenav-nested-title">Catalog Subscriptions ▾</button>
+          <button className="sidenav-nested-item">Subscriptions</button>
+          <button className="sidenav-nested-item">Pending Updates <span className="badge">3</span></button>
+        </nav>
+      );
+    }
+
+    // ── Screen 1: Standards List ────────────────────────────
+    function StandardsList() {
+      const [search,setSearch]=useState('');
+      const [sf,setSf]=useState('');
+      const [exp,setExp]=useState(null);
+      const [openGrps,setOpenGrps]=useState({});
+      const [showImport,setShowImport]=useState(false);
+      const [showArchive,setShowArchive]=useState(null);
+      const [addNew,setAddNew]=useState(false);
+      const [notif,setNotif]=useState(null);
+      const [menu,setMenu]=useState(null);
+
+      const fil = standards.filter(s=>{
+        if(sf&&s.status!==sf) return false;
+        if(search){const q=search.toLowerCase(); return s.name.toLowerCase().includes(q)||s.issuer.toLowerCase().includes(q)||s.reg.toLowerCase().includes(q);}
+        return true;
+      });
+
+      return (
+        <div>
+          <div className="breadcrumb">
+            <a href="#">Admin</a><span className="sep">/</span>
+            <a href="#">Test Management</a><span className="sep">/</span>
+            <span>Compliance Standards</span>
+          </div>
+          <h1 style={{fontSize:'1.75rem',fontWeight:400,marginBottom:'1.5rem'}}>Compliance Standards</h1>
+
+          {notif&&<div className="notification notification-success">{notif}<button className="close-btn" onClick={()=>setNotif(null)}>✕</button></div>}
+
+          <div className="toolbar">
+            <input className="toolbar-search" placeholder="Search by name, issuing body, or regulation number..." value={search} onChange={e=>setSearch(e.target.value)}/>
+            <select value={sf} onChange={e=>setSf(e.target.value)}>
+              <option value="">All Statuses</option><option value="ACTIVE">Active</option><option value="DRAFT">Draft</option><option value="SUPERSEDED">Superseded</option><option value="ARCHIVED">Archived</option>
+            </select>
+            <button className="btn btn-ghost btn-sm" onClick={()=>setShowImport(true)}>↑ Import from CSV</button>
+            <button className="btn btn-primary btn-sm" onClick={()=>{setAddNew(true);setExp(null);}}>+ Add Standard</button>
+          </div>
+
+          <table className="dt">
+            <thead><tr>
+              <th>Standard Name</th><th>Issuing Body</th><th>Regulation No.</th><th>Version</th><th>Effective Date</th><th>Status</th><th>Groups</th><th>Linked Tests</th><th style={{width:80}}></th>
+            </tr></thead>
+            <tbody>
+              {addNew&&<tr><td colSpan={9}><StdForm isNew onSave={()=>{setAddNew(false);setNotif('Compliance standard created successfully.');}} onCancel={()=>setAddNew(false)}/></td></tr>}
+              {fil.map(s=>(
+                <Fragment key={s.id}>
+                  <tr>
+                    <td>{s.name}{s.seeded&&<span className="tag tag-teal" style={{marginLeft:6}}>Default</span>}</td>
+                    <td>{s.issuer}</td><td>{s.reg}</td><td>{s.ver}</td><td>{s.date}</td>
+                    <td><span className={'tag '+sts[s.status]}>{s.status}</span></td>
+                    <td>{s.groups}</td>
+                    <td><button className="btn btn-ghost btn-sm">{s.tests}</button></td>
+                    <td>
+                      <div style={{display:'flex',alignItems:'center',gap:4}}>
+                        <button className="btn-icon" onClick={()=>setExp(exp===s.id?null:s.id)}>{exp===s.id?'▲':'▼'}</button>
+                        <div className="overflow-menu">
+                          <button className="overflow-btn" onClick={()=>setMenu(menu===s.id?null:s.id)}>⋮</button>
+                          {menu===s.id&&<div className="overflow-dropdown">
+                            <button className="overflow-item" onClick={()=>{setExp(s.id);setMenu(null);}}>Edit</button>
+                            <button className="overflow-item" onClick={()=>setMenu(null)}>Copy Standard</button>
+                            <button className="overflow-item" onClick={()=>setMenu(null)}>View Linked Tests</button>
+                            {!s.seeded&&<button className="overflow-item danger" onClick={()=>{setShowArchive(s);setMenu(null);}}>Archive</button>}
+                          </div>}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  {exp===s.id&&<tr><td colSpan={9} style={{padding:0,background:'#fff'}}>
+                    <StdForm standard={s} openGrps={openGrps} toggleGrp={g=>setOpenGrps(p=>({...p,[g]:!p[g]}))}
+                      onSave={()=>{setExp(null);setNotif('Compliance standard saved successfully.');}} onCancel={()=>setExp(null)}/>
+                  </td></tr>}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+
+          {showArchive&&<div className="modal-overlay" onClick={()=>setShowArchive(null)}>
+            <div className="modal" onClick={e=>e.stopPropagation()}>
+              <div className="modal-header"><h3>Archive Compliance Standard</h3></div>
+              <div className="modal-body"><p>Are you sure you want to archive <strong>{showArchive.name}</strong>?</p><p style={{color:'#525252',marginTop:8}}>Existing evaluated results will not be affected.</p></div>
+              <div className="modal-footer"><button className="btn btn-ghost" onClick={()=>setShowArchive(null)}>Cancel</button><button className="btn btn-danger" onClick={()=>{setShowArchive(null);setNotif('Compliance standard archived.');}}>Archive</button></div>
+            </div>
+          </div>}
+
+          {showImport&&<ImportModal onClose={()=>setShowImport(false)} onDone={()=>{setShowImport(false);setNotif('Import complete: 1 standard, 3 groups, 6 thresholds created.');}}/>}
+        </div>
+      );
+    }
+
+    function StdForm({standard:s,isNew,onSave,onCancel,openGrps,toggleGrp}) {
+      return (
+        <div className="tile">
+          <h4 style={{marginBottom:16}}>{isNew?'Add New Compliance Standard':'Edit Compliance Standard'}</h4>
+          <div className="form-grid">
+            <div className="form-field"><label>Standard Name *</label><input defaultValue={s?.name||''} placeholder="e.g., PP No. 22/2021 — Baku Mutu Air"/></div>
+            <div className="form-field"><label>Issuing Body *</label><input defaultValue={s?.issuer||''} placeholder="e.g., Pemerintah RI"/></div>
+            <div className="form-field"><label>Regulation Number *</label><input defaultValue={s?.reg||''} placeholder="e.g., PP 22/2021"/></div>
+            <div className="form-field"><label>Version *</label><input defaultValue={s?.ver||''}/></div>
+            <div className="form-field"><label>Effective Date *</label><input type="date" defaultValue={s?.date||''}/></div>
+            <div className="form-field"><label>Expiry Date</label><input type="date"/></div>
+            <div className="form-field"><label>Country / Region *</label><input defaultValue={s?.region||''} list="rgn"/><datalist id="rgn"><option value="Indonesia"/><option value="International"/><option value="Madagascar"/></datalist></div>
+            <div className="form-field"><label>Status</label><select defaultValue={s?.status||'DRAFT'}><option value="DRAFT">Draft</option><option value="ACTIVE">Active</option><option value="SUPERSEDED">Superseded</option><option value="ARCHIVED">Archived</option></select></div>
+            <div className="form-field form-grid-full"><label>Description</label><textarea rows={2} placeholder="Full description of the standard's scope..."></textarea></div>
+          </div>
+          {!isNew&&s?.paramGroups&&s.paramGroups.length>0&&<div style={{marginTop:16}}>
+            <h5 style={{marginBottom:8}}>Parameter Groups</h5>
+            <ul className="accordion">
+              {s.paramGroups.map(g=><li className="accordion-item" key={g.id}>
+                <button className="accordion-header" onClick={()=>toggleGrp&&toggleGrp(g.id)}>
+                  <span style={{display:'flex',alignItems:'center',gap:8}}>
+                    <span>{openGrps?.[g.id]?'▼':'▶'}</span><strong>{g.name}</strong><span className="tag tag-gray">{g.th} thresholds</span>
+                  </span>
+                </button>
+                {openGrps?.[g.id]&&<div className="accordion-body"><p style={{marginBottom:8}}>{g.desc}</p><button className="btn btn-ghost btn-sm">+ Link Test</button></div>}
+              </li>)}
+            </ul>
+            <button className="btn btn-ghost btn-sm">+ Add Parameter Group</button>
+          </div>}
+          <div style={{display:'flex',gap:8,marginTop:16}}>
+            <button className="btn btn-primary btn-sm" onClick={onSave}>Save</button>
+            <button className="btn btn-ghost btn-sm" onClick={onCancel}>Cancel</button>
+          </div>
+        </div>
+      );
+    }
+
+    function ImportModal({onClose,onDone}) {
+      const [step,setStep]=useState(1);
+      const [skip,setSkip]=useState(false);
+      return (
+        <div className="modal-overlay" onClick={onClose}>
+          <div className="modal" style={{width:820}} onClick={e=>e.stopPropagation()}>
+            <div className="modal-header"><h3>Import Compliance Standards from CSV</h3></div>
+            <div className="modal-body">
+              {step===1?<div>
+                <div style={{marginBottom:16}}>
+                  <label style={{display:'block',fontSize:13,fontWeight:600,marginBottom:8}}>Import Scope</label>
+                  <label style={{display:'flex',alignItems:'center',gap:8,fontSize:14,marginBottom:4}}><input type="radio" name="sc" value="s"/> Standards & Groups only</label>
+                  <label style={{display:'flex',alignItems:'center',gap:8,fontSize:14}}><input type="radio" name="sc" value="f" defaultChecked/> Standards, Groups & Thresholds</label>
+                </div>
+                <div style={{border:'2px dashed #c6c6c6',padding:24,textAlign:'center',background:'#f4f4f4',marginBottom:16}}>
+                  <p style={{color:'#525252',marginBottom:8}}>Drag and drop a .csv file here, or click to browse</p>
+                  <button className="btn" style={{background:'#393939',color:'#fff',fontSize:13}}>Select CSV file</button>
+                  <p style={{color:'#8d8d8d',fontSize:12,marginTop:8}}>Max file size: 5MB. Only .csv files accepted.</p>
+                </div>
+                <div style={{padding:'8px 12px',background:'#e8e8e8',display:'inline-flex',alignItems:'center',gap:8,fontSize:13}}>📄 baku-mutu-pp22-2021-water.csv <span style={{color:'#525252'}}>(3.2 KB)</span> <button style={{background:'none',border:'none',cursor:'pointer',color:'#da1e28'}}>✕</button></div>
+                <div style={{marginTop:8}}><button className="btn btn-ghost btn-sm">↓ Download Template</button></div>
+              </div>:<div>
+                <h4 style={{marginBottom:12}}>Import Preview</h4>
+                <div style={{display:'flex',gap:12,marginBottom:12,flexWrap:'wrap'}}>
+                  <span className="tag tag-blue">Total Rows: 7</span><span className="tag tag-green">Valid: 6</span><span className="tag tag-red">Errors: 1</span>
+                  <span className="tag tag-teal">Standards: 1</span><span className="tag tag-teal">Groups: 3</span><span className="tag tag-teal">Thresholds: 6</span>
+                </div>
+                <div style={{maxHeight:280,overflowY:'auto'}}>
+                  <table className="dt"><thead><tr><th>Row</th><th>Standard</th><th>Group</th><th>Test</th><th>Match</th><th>Threshold</th><th>Status</th></tr></thead>
+                  <tbody>{csvRows.map(r=><tr key={r.row} className={r.ok?'':'error-row'}>
+                    <td>{r.row}</td><td>{r.std}</td><td>{r.grp}</td><td>{r.test}</td>
+                    <td><span className={'tag '+(r.match==='Matched'?'tag-green':'tag-red')}>{r.match}</span></td>
+                    <td>{r.th}</td><td>{r.ok?<span className="tag tag-green">Valid</span>:<span style={{color:'#da1e28',fontSize:13}}>{r.err}</span>}</td>
+                  </tr>)}</tbody></table>
+                </div>
+                <label style={{display:'flex',alignItems:'center',gap:8,marginTop:12,fontSize:14}}><input type="checkbox" checked={skip} onChange={e=>setSkip(e.target.checked)}/> Skip error rows</label>
+              </div>}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+              {step===1?<button className="btn btn-primary" onClick={()=>setStep(2)}>Upload & Preview</button>
+                :<button className="btn btn-primary" onClick={onDone} disabled={!skip}>Import</button>}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Screen 2: Test Editor → Compliance Tab (Vertical Tab Sidebar) ──
+    // Matches the vertical tab sidebar pattern from test-catalog.jsx
+    const editorTabs = {
+      Configuration: ['Basic Info','Sample & Results','Ranges','Sample Storage'],
+      Organization: ['Display Order','Panels','Labels'],
+      Resources: ['Terminology','Reagents'],
+      Automation: ['Analyzers','Methods','Alerts','Reflex & Calc'],
+      Compliance: ['Compliance'],
+    };
+    const tabIds = Object.values(editorTabs).flat();
+
+    function TestEditor({onBack}) {
+      const [activeTab,setActiveTab]=useState('Compliance');
+      const [exp,setExp]=useState(null);
+      const [addNew,setAddNew]=useState(false);
+      const [notif,setNotif]=useState(null);
+      const [thType,setThType]=useState('MAX');
+
+      return (
+        <div className="editor-wrap">
+          {/* Editor Header */}
+          <div className="editor-header">
+            <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
+              <button className="btn btn-ghost btn-sm" onClick={onBack}>← Back</button>
+              <div>
+                <h1>Edit Test: Kekeruhan / Turbidity (NTU)</h1>
+                <p className="meta">LOINC: 13965-9 &nbsp;|&nbsp; Sample Type: Water &nbsp;|&nbsp; Result Type: Numeric &nbsp;|&nbsp; Unit: NTU</p>
+              </div>
+            </div>
+            <div style={{display:'flex',gap:'0.5rem'}}>
+              <button className="btn" style={{background:'#e0e0e0',color:'#161616'}}>Cancel</button>
+              <button className="btn btn-primary">Save Test</button>
+            </div>
+          </div>
+
+          {/* Body: Vertical Tab Sidebar + Content */}
+          <div className="editor-body">
+            {/* Vertical Tab Sidebar */}
+            <nav className="vtab-nav">
+              {Object.entries(editorTabs).map(([group,tabs])=>(
+                <div key={group}>
+                  <div className="vtab-group-label">{group}</div>
+                  {tabs.map(tab=>(
+                    <button key={tab} className={'vtab-item'+(activeTab===tab?' active':'')} onClick={()=>setActiveTab(tab)}>
+                      {tab}{tab==='Compliance'&&<span className="tag tag-blue" style={{marginLeft:6,fontSize:11}}>{thresholds.length}</span>}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </nav>
+
+            {/* Tab Content */}
+            <div className="vtab-content">
+              <div className="vtab-content-inner">
+                {activeTab==='Basic Info'&&<div className="tile" style={{color:'#525252'}}>
+                  <h3 style={{marginBottom:12}}>Basic Info</h3>
+                  <p><strong>Test Name:</strong> Kekeruhan / Turbidity</p><p><strong>LOINC:</strong> 13965-9</p>
+                  <p><strong>Method:</strong> Nephelometry (SNI 06-6989.25-2005)</p><p><strong>Lab Section:</strong> Kimia Fisika</p>
+                  <p><strong>Active:</strong> Yes &nbsp;|&nbsp; <strong>Orderable:</strong> Yes</p>
+                  <p style={{marginTop:12,fontStyle:'italic'}}>(Existing Basic Info tab content — see test-catalog.jsx)</p>
+                </div>}
+
+                {activeTab==='Ranges'&&<div className="tile" style={{color:'#525252'}}>
+                  <h3 style={{marginBottom:12}}>Ranges</h3>
+                  <p><strong>Note:</strong> Environmental tests typically use compliance thresholds (Baku Mutu) rather than clinical reference ranges.</p>
+                  <p style={{marginTop:8}}>No clinical reference ranges defined. Use the <strong>Compliance</strong> tab for regulatory threshold configuration.</p>
+                  <p style={{marginTop:12,fontStyle:'italic'}}>(Existing Ranges tab — RangeEditorV3 from test-catalog.jsx)</p>
+                </div>}
+
+                {activeTab==='Compliance'&&<div>
+                  <h3 style={{marginBottom:16}}>Compliance Thresholds</h3>
+                  {notif&&<div className="notification notification-success">{notif}<button className="close-btn" onClick={()=>setNotif(null)}>✕</button></div>}
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+                    <div className="inline-select"><label>Group by:</label><select><option>Standard</option><option>Parameter Group</option></select></div>
+                    <button className="btn btn-primary btn-sm" onClick={()=>setAddNew(true)}>+ Add Threshold</button>
+                  </div>
+                  <table className="dt"><thead><tr>
+                    <th>Standard</th><th>Parameter Group</th><th>Type</th><th>Value</th><th>Unit</th><th>Effective Date</th><th>Status</th><th style={{width:50}}></th>
+                  </tr></thead><tbody>
+                    {addNew&&<tr><td colSpan={8}>
+                      <div className="tile">
+                        <h5 style={{marginBottom:12}}>Add Compliance Threshold</h5>
+                        <div className="form-grid">
+                          <div className="form-field"><label>Standard *</label><select><option value="">Select a compliance standard...</option><option>PP No. 22/2021 — Baku Mutu Air</option><option>WHO Drinking Water Guidelines</option></select></div>
+                          <div className="form-field"><label>Parameter Group *</label><select><option value="">Select group...</option><option>Parameter Fisika</option><option>Parameter Kimia Anorganik</option><option>Parameter Mikrobiologi</option></select></div>
+                          <div className="form-field"><label>Threshold Type *</label><select value={thType} onChange={e=>setThType(e.target.value)}><option value="MAX">Max ≤</option><option value="MIN">Min ≥</option><option value="RANGE">Range</option><option value="DESCRIPTIVE">Qualitative</option></select></div>
+                          {(thType==='MIN'||thType==='RANGE')&&<div className="form-field"><label>Lower Value *</label><input type="number" step="0.01" placeholder="0.00"/></div>}
+                          {(thType==='MAX'||thType==='RANGE')&&<div className="form-field"><label>Upper Value *</label><input type="number" step="0.01" placeholder="0.00"/></div>}
+                          {thType==='DESCRIPTIVE'&&<div className="form-field"><label>Descriptive Value *</label><input placeholder="e.g., Tidak berbau"/></div>}
+                          <div className="form-field"><label>Unit</label><input defaultValue="NTU"/></div>
+                          <div className="form-field form-grid-full"><label>Notes</label><textarea rows={2} placeholder="Regulatory notes or methodology reference..."></textarea></div>
+                        </div>
+                        <div style={{display:'flex',gap:8,marginTop:12}}>
+                          <button className="btn btn-primary btn-sm" onClick={()=>{setAddNew(false);setNotif('Compliance threshold saved successfully.');}}>Save</button>
+                          <button className="btn btn-ghost btn-sm" onClick={()=>setAddNew(false)}>Cancel</button>
+                        </div>
+                      </div>
+                    </td></tr>}
+                    {thresholds.map(th=><Fragment key={th.id}>
+                      <tr>
+                        <td>{th.std}</td><td>{th.grp}</td>
+                        <td><span className={'tag '+ttc[th.type]}>{ttl[th.type]}</span></td>
+                        <td style={{fontWeight:600}}>{fmtVal(th)}</td><td>{th.unit}</td><td>{th.date}</td>
+                        <td><span className={'tag '+(th.active?'tag-green':'tag-gray')}>{th.active?'Active':'Archived'}</span></td>
+                        <td><button className="btn-icon" onClick={()=>setExp(exp===th.id?null:th.id)}>{exp===th.id?'▲':'▼'}</button></td>
+                      </tr>
+                      {exp===th.id&&<tr><td colSpan={8} style={{padding:0,background:'#fff'}}>
+                        <div className="tile">
+                          <h5 style={{marginBottom:12}}>Edit Compliance Threshold</h5>
+                          <div className="form-grid">
+                            <div className="form-field"><label>Standard</label><input defaultValue={th.std} readOnly style={{background:'#e0e0e0'}}/></div>
+                            <div className="form-field"><label>Parameter Group</label><input defaultValue={th.grp} readOnly style={{background:'#e0e0e0'}}/></div>
+                            <div className="form-field"><label>Threshold Type</label><select defaultValue={th.type}><option value="MAX">Max ≤</option><option value="MIN">Min ≥</option><option value="RANGE">Range</option><option value="DESCRIPTIVE">Qualitative</option></select></div>
+                            {th.type==='MAX'&&<div className="form-field"><label>Upper Value</label><input type="number" defaultValue={th.upper} step="0.01"/></div>}
+                            {th.type==='MIN'&&<div className="form-field"><label>Lower Value</label><input type="number" defaultValue={th.lower} step="0.01"/></div>}
+                            {th.type==='RANGE'&&<Fragment><div className="form-field"><label>Lower</label><input type="number" defaultValue={th.lower} step="0.01"/></div><div className="form-field"><label>Upper</label><input type="number" defaultValue={th.upper} step="0.01"/></div></Fragment>}
+                            {th.type==='DESCRIPTIVE'&&<div className="form-field"><label>Descriptive Value</label><input defaultValue={th.desc}/></div>}
+                            <div className="form-field"><label>Unit</label><input defaultValue={th.unit}/></div>
+                          </div>
+                          <div style={{display:'flex',gap:8,marginTop:12}}>
+                            <button className="btn btn-primary btn-sm" onClick={()=>{setExp(null);setNotif('Compliance threshold saved successfully.');}}>Save</button>
+                            <button className="btn btn-ghost btn-sm" onClick={()=>setExp(null)}>Cancel</button>
+                          </div>
+                        </div>
+                      </td></tr>}
+                    </Fragment>)}
+                  </tbody></table>
+                </div>}
+
+                {!['Basic Info','Ranges','Compliance'].includes(activeTab)&&<div className="tile" style={{color:'#525252'}}>
+                  <h3 style={{marginBottom:12}}>{activeTab}</h3>
+                  <p style={{fontStyle:'italic'}}>(Existing {activeTab} tab content — see test-catalog.jsx)</p>
+                </div>}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── App Root ────────────────────────────────────────────
+    function App() {
+      const [page,setPage]=useState('standards');
+      return (
+        <Fragment>
+          {page==='test-catalog'?
+            <TestEditor onBack={()=>setPage('standards')}/>
+          :<Fragment>
+            <SideNav page={page} setPage={setPage}/>
+            <div className="main-content">
+              {page==='standards'&&<StandardsList/>}
+            </div>
+          </Fragment>}
+        </Fragment>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>

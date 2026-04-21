@@ -20,9 +20,11 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Test Catalog | [test-catalog.jsx](designs/admin-config/test-catalog.jsx) | [test-catalog.md](designs/admin-config/test-catalog.md) |
 | RBAC Management | [rbac-ui-mockup.html](designs/rbac/rbac-ui-mockup.html) | [rbac-revamp-prd.md](designs/rbac/rbac-revamp-prd.md) |
 | Password Policy Enhancements | [password-enhancements.jsx](designs/admin-config/password-enhancements.jsx) | [password-enhancements.md](designs/admin-config/password-enhancements.md) |
-| Catalog Subscription | [catalog-subscription.html](designs/admin-config/catalog-subscription.html) | [catalog-subscription.md](designs/admin-config/catalog-subscription.md) |
-| Compliance Standards Administration | — | [compliance-standards-admin.md](designs/admin-config/compliance-standards-admin.md) |
+| Catalog Subscription | [catalog-subscription-carbon.jsx](designs/admin-config/catalog-subscription-carbon.jsx) \| [preview](designs/admin-config/catalog-subscription.html) | [catalog-subscription.md](designs/admin-config/catalog-subscription.md) |
+| Compliance Standards Administration | [compliance-standards-admin.jsx](designs/admin-config/compliance-standards-admin.jsx) \| [preview](designs/admin-config/compliance-standards-admin.html) | [compliance-standards-admin.md](designs/admin-config/compliance-standards-admin.md) |
 | Barcode Configuration | [barcode-config.jsx](designs/admin-config/barcode-config.jsx) | [barcode-config.md](designs/admin-config/barcode-config.md) |
+| Sample Type Multi-Domain Addendum | [preview](designs/admin-config/sample-type-multi-domain-addendum.html) | [sample-type-multi-domain-addendum.md](designs/admin-config/sample-type-multi-domain-addendum.md) |
+| Concept Mapping & Multi-Coding | [concept-mapping-multi-coding.jsx](designs/admin-config/concept-mapping-multi-coding.jsx) \| [preview](designs/admin-config/concept-mapping-multi-coding.html) | [concept-mapping-multi-coding.md](designs/admin-config/concept-mapping-multi-coding.md) |
 
 ## Vector Surveillance
 
@@ -30,6 +32,9 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 |---------|--------|------|
 | Sample Type Domain Classification | [sample-type-domain-classification.jsx](designs/admin-config/sample-type-domain-classification.jsx) | [sample-type-domain-classification.md](designs/admin-config/sample-type-domain-classification.md) |
 | Vector Specimen Types & Taxonomy | [vector-reference-data.jsx](designs/vector-surveillance/vector-reference-data.jsx) | [vector-reference-data.md](designs/vector-surveillance/vector-reference-data.md) |
+| Vector Collection Workflow | [vector-collection-workflow.jsx](designs/vector-surveillance/vector-collection-workflow.jsx) · [preview](designs/vector-surveillance/vector-collection-workflow.html) | [vector-collection-workflow.md](designs/vector-surveillance/vector-collection-workflow.md) |
+| Vector Testing & Identification | [vector-testing-identification.jsx](designs/vector-surveillance/vector-testing-identification.jsx) · [preview](designs/vector-surveillance/vector-testing-identification.html) | [vector-testing-identification.md](designs/vector-surveillance/vector-testing-identification.md) |
+| Vector Surveillance Reporting | [preview](designs/vector-surveillance/vector-surveillance-reporting.html) | [vector-surveillance-reporting.md](designs/vector-surveillance/vector-surveillance-reporting.md) |
 
 ## Analyzer Integration
 
@@ -119,7 +124,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 |---------|--------|------|
 | Patient Report Print Queue | [patient-report-print-queue.jsx](designs/reports/patient-report-print-queue.jsx) | [patient-report-print-queue.md](designs/reports/patient-report-print-queue.md) |
 | Positivity Rate Report | [positivity-rate.jsx](designs/reports/positivity-rate.jsx) | [positivity-rate.md](designs/reports/positivity-rate.md) |
-| Disease Surveillance Dashboard | [disease-surveillance-dashboard.jsx](designs/reports/disease-surveillance-dashboard.jsx) | — |
+| Disease Surveillance Dashboard | [disease-surveillance-dashboard.jsx](designs/reports/disease-surveillance-dashboard.jsx) | [disease-surveillance-dashboard.md](designs/reports/disease-surveillance-dashboard.md) |
 | Custom Data Export | [custom-data-export.jsx](designs/reports/custom-data-export.jsx) | [custom-data-export.md](designs/reports/custom-data-export.md) |
 | TAT Report | [tat-report.jsx](designs/reports/tat-report.jsx) | [tat-report.md](designs/reports/tat-report.md) |
 
@@ -134,7 +139,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 
 | Feature | Mockup | Spec |
 |---------|--------|------|
-| Reagent Forecasting Workbench | [reagent-forecasting-workbench.jsx](designs/inventory/reagent-forecasting-workbench.jsx) | — |
+| Reagent Forecasting Workbench | [reagent-forecasting-workbench.jsx](designs/inventory/reagent-forecasting-workbench.jsx) | [reagent-forecasting-workbench.md](designs/inventory/reagent-forecasting-workbench.md) |
 | Reagent Forecasting Facility View | [reagent-forecasting-facility.jsx](designs/inventory/reagent-forecasting-facility.jsx) | [reagent-forecasting-facility.md](designs/inventory/reagent-forecasting-facility.md) |
 
 ## System
@@ -153,7 +158,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 
 | Feature | Mockup | Spec |
 |---------|--------|------|
-| Patient ID Card Scanning | [patient-id-card-scanning.jsx](designs/patient/patient-id-card-scanning.jsx) | [patient-id-card-scanning.md](designs/patient/patient-id-card-scanning.md) |
+| Patient ID Card Scanning | [patient-id-card-scanning.jsx](designs/patient/patient-id-card-scanning.jsx) \| [preview](designs/patient/patient-id-card-scanning.html) | [patient-id-card-scanning.md](designs/patient/patient-id-card-scanning.md) |
 
 ## Sample Collection
 
@@ -163,6 +168,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Sampling Site Registry | [sampling-site-registry.jsx](designs/sample-collection/sampling-site-registry.jsx) | [sampling-site-registry.md](designs/sample-collection/sampling-site-registry.md) |
 | Environmental Order Entry | [environmental-order-entry.jsx](designs/sample-collection/environmental-order-entry.jsx) | [environmental-order-entry.md](designs/sample-collection/environmental-order-entry.md) |
 | Informed Consent Capture (OGC-557) | [informed-consent.jsx](designs/sample-collection/informed-consent.jsx) | [informed-consent.md](designs/sample-collection/informed-consent.md) |
+| Pre-Analytical Eligibility Gate (S-09) | [pre-analytical-eligibility-gate.jsx](designs/sample-collection/pre-analytical-eligibility-gate.jsx) · [preview](designs/sample-collection/pre-analytical-eligibility-gate.html) | [pre-analytical-eligibility-gate.md](designs/sample-collection/pre-analytical-eligibility-gate.md) |
 
 ## Other
 
