@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>S-01: Compliance Standards Administration — v2.2</title>
+  <title>S-01: Compliance Standards Administration — v2.3</title>
   <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css" />
   <style>
     * { box-sizing: border-box; }
@@ -176,6 +176,37 @@
     .mlt-note-row { padding: 0.375rem 0.75rem 0.5rem calc(28px + 160px + 1rem); border-bottom: 1px solid #f0f0f0; background: #fffbf0; }
     .mlt-note-row label { font-size: 0.6875rem; font-weight: 600; color: #6f6f6f; }
     input[type=checkbox] { width: 1rem; height: 1rem; cursor: pointer; accent-color: #0f62fe; flex-shrink: 0; }
+
+    /* ── Select-list compliance mapping table ── */
+    .select-mapping-section { margin-top: .5rem; }
+    .select-mapping-badge { display: inline-flex; align-items: center; gap: .25rem;
+      padding: .125rem .5rem; font-size: .75rem; font-weight: 500; border-radius: 10rem; }
+    .smb-compliant    { background: #defbe6; color: #0e6027; }
+    .smb-borderline   { background: #fffbf0; color: #744c00; border: 1px solid #f1c21b; }
+    .smb-noncompliant { background: #ffd7d9; color: #a2191f; }
+    .smb-unset        { background: #e0e0e0; color: #525252; }
+    .smt-wrap { border: 1px solid #e0e0e0; border-radius: 2px; overflow: hidden; margin-top: .25rem; }
+    .smt-head { display: grid; grid-template-columns: 1fr 180px; padding: .375rem .75rem;
+      background: #e0e0e0; font-size: .6875rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .04em; color: #525252; }
+    .smt-row { display: grid; grid-template-columns: 1fr 180px; align-items: center;
+      padding: .375rem .75rem; border-bottom: 1px solid #f0f0f0; font-size: .875rem; }
+    .smt-row:last-child { border-bottom: none; }
+    .smt-row.smt-compliant    { background: #f6fef9; }
+    .smt-row.smt-borderline   { background: #fffbf0; }
+    .smt-row.smt-noncompliant { background: #fff1f1; }
+    .smt-row select { padding: .25rem .5rem; font-size: .8125rem; border: 1px solid #8d8d8d;
+      background: #fff; width: 100%; }
+    .smt-row.smt-compliant select    { border-color: #24a148; }
+    .smt-row.smt-borderline select   { border-color: #f1c21b; }
+    .smt-row.smt-noncompliant select { border-color: #da1e28; }
+    .smt-note { font-size: .75rem; color: #6f6f6f; margin: .375rem 0 0 0; }
+    .smt-readonly-row { display: flex; align-items: center; gap: .5rem; padding: .3rem .75rem;
+      border-bottom: 1px solid #f0f0f0; font-size: .875rem; }
+    .smt-readonly-row:last-child { border-bottom: none; }
+    /* result type badge in typeahead */
+    .typeahead-item-type { font-size: .6875rem; background: #e8daff; color: #491d8b;
+      padding: .0625rem .375rem; border-radius: 10rem; margin-left: .375rem; }
 
     /* Borderline row stripe in main table */
     tr.borderline-row td { background: #fffbf0; }
@@ -391,11 +422,19 @@
                           <button class="btn-icon" title="Remove" style="color:#da1e28;">✕</button>
                         </td>
                       </tr>
-                      <!-- Odor -->
+                      <!-- Odor — select list test -->
                       <tr id="g1-ODOR-01">
-                        <td><div class="test-name-primary">Odor</div><div class="test-code">ODOR-01</div></td>
+                        <td>
+                          <div class="test-name-primary">Odor</div>
+                          <div class="test-code">ODOR-01 &nbsp;<span class="tag tag-purple tag-sm" style="font-size:.6875rem;">Select List</span></div>
+                        </td>
                         <td><span class="tag tag-blue tag-sm">Water</span></td>
-                        <td><span class="tag tag-purple tag-sm">No odor</span></td>
+                        <td>
+                          <span class="select-mapping-badge smb-compliant">No odor ✓</span>
+                          <span class="select-mapping-badge smb-borderline" style="margin-left:.25rem;">Faint ⚑</span>
+                          <span class="select-mapping-badge smb-noncompliant" style="margin-left:.25rem;">Moderate ✗</span>
+                          <span class="select-mapping-badge smb-noncompliant" style="margin-left:.25rem;">Strong ✗</span>
+                        </td>
                         <td>
                           <button class="btn-icon" onclick="openMultiLimitEdit('g1','ODOR-01')" title="Edit limits">✏</button>
                           <button class="btn-icon" title="Remove" style="color:#da1e28;">✕</button>
@@ -507,6 +546,18 @@
                               <span></span>
                             </div>
                           </div>
+                        </div>
+
+                        <!-- Step 3 (select list): compliance value mapping — shown instead of numeric rows -->
+                        <div id="g1-select-section" style="display:none;">
+                          <div class="step-label" style="margin-bottom:.375rem;">Step 3 — Compliance Value Mapping</div>
+                          <p style="font-size:.75rem;color:#6f6f6f;margin:0 0 .5rem 0;">
+                            Result options are pulled from the test catalog. Assign a compliance status to each option.
+                          </p>
+                          <div class="smt-wrap" id="g1-select-map-rows">
+                            <!-- Populated by JS when a select-list test is chosen -->
+                          </div>
+                          <p class="smt-note">Borderline values trigger an advisory flag at validation; the result is not counted as a failure.</p>
                         </div>
 
                         <div style="display:flex;gap:.5rem;margin-top:.875rem;">
@@ -737,47 +788,58 @@ function showScreen(id) {
 }
 
 // ── All tests in the system (demo subset — represents 1000+)
+// resultType: 'numeric' (default) | 'select'
+// options: array of result option strings — only for select-type tests (pulled from test catalog)
 const ALL_TESTS = [
-  { id:'T-001', name:'Turbidity',              code:'TURB-01',  st:['Water'] },
-  { id:'T-002', name:'Color (TCU)',             code:'COLOR-01', st:['Water'] },
-  { id:'T-003', name:'pH',                      code:'PH-01',    st:['Water','Soil'] },
-  { id:'T-004', name:'Temperature',             code:'TEMP-01',  st:['Water','Air'] },
-  { id:'T-005', name:'Odor',                    code:'ODOR-01',  st:['Water'] },
-  { id:'T-006', name:'Total Dissolved Solids',  code:'TDS-01',   st:['Water'] },
-  { id:'T-007', name:'Arsenic (As)',             code:'AS-01',    st:['Water','Soil'] },
-  { id:'T-008', name:'Lead (Pb)',               code:'PB-01',    st:['Water','Soil'] },
-  { id:'T-009', name:'Iron (Fe)',               code:'FE-01',    st:['Water'] },
-  { id:'T-010', name:'Nitrate (NO₃⁻)',          code:'NO3-01',   st:['Water'] },
-  { id:'T-011', name:'Mercury (Hg)',            code:'HG-01',    st:['Water','Soil','Sediment'] },
-  { id:'T-012', name:'Fluoride (F⁻)',           code:'FLR-01',   st:['Water'] },
-  { id:'T-013', name:'Chloroform',              code:'CHLF-01',  st:['Water'] },
-  { id:'T-014', name:'Pesticides (Total)',       code:'PEST-01',  st:['Water','Soil','Sediment'] },
-  { id:'T-015', name:'Total Coliform',          code:'TCOL-01',  st:['Water'] },
-  { id:'T-016', name:'E. coli',                 code:'ECOL-01',  st:['Water'] },
-  { id:'T-017', name:'Fecal Coliform',          code:'FCOL-01',  st:['Water'] },
-  { id:'T-018', name:'SO₂ (Sulfur Dioxide)',    code:'SO2-01',   st:['Air'] },
-  { id:'T-019', name:'CO (Carbon Monoxide)',    code:'CO-01',    st:['Air'] },
-  { id:'T-020', name:'NO₂ (Nitrogen Dioxide)', code:'NO2-01',   st:['Air'] },
-  { id:'T-021', name:'PM10',                    code:'PM10-01',  st:['Air'] },
-  { id:'T-022', name:'PM2.5',                   code:'PM25-01',  st:['Air'] },
-  { id:'T-023', name:'Dissolved Oxygen (DO)',   code:'DO-01',    st:['Water'] },
-  { id:'T-024', name:'Biochemical Oxygen Demand',code:'BOD-01',  st:['Water'] },
-  { id:'T-025', name:'Chemical Oxygen Demand',  code:'COD-01',   st:['Water'] },
-  { id:'T-026', name:'Ammonia Nitrogen',        code:'NH3-N-01', st:['Water','Soil'] },
-  { id:'T-027', name:'Cadmium (Cd)',            code:'CD-01',    st:['Water','Soil','Sediment'] },
-  { id:'T-028', name:'Chromium (Cr)',           code:'CR-01',    st:['Water','Soil'] },
-  { id:'T-029', name:'Zinc (Zn)',               code:'ZN-01',    st:['Water','Soil'] },
-  { id:'T-030', name:'Copper (Cu)',             code:'CU-01',    st:['Water','Soil'] },
-  { id:'T-031', name:'Organochlorine Pesticides',code:'OCP-01',  st:['Soil','Sediment'] },
-  { id:'T-032', name:'Total Petroleum Hydrocarbons',code:'TPH-01',st:['Soil','Sediment','Water'] },
-  { id:'T-033', name:'Benzene',                 code:'BENZ-01',  st:['Water','Air'] },
-  { id:'T-034', name:'Toluene',                 code:'TOLU-01',  st:['Water','Air'] },
-  { id:'T-035', name:'Xylene',                  code:'XYL-01',   st:['Water','Air'] },
-  { id:'T-036', name:'H₂S (Hydrogen Sulfide)', code:'H2S-01',   st:['Air'] },
-  { id:'T-037', name:'NH₃ (Ammonia Gas)',       code:'NH3-01',   st:['Air'] },
-  { id:'T-038', name:'Ozone (O₃)',              code:'O3-01',    st:['Air'] },
-  { id:'T-039', name:'Salmonella spp.',         code:'SAL-01',   st:['Water','Food'] },
-  { id:'T-040', name:'Vibrio cholerae',         code:'VIB-01',   st:['Water','Food'] },
+  { id:'T-001', name:'Turbidity',              code:'TURB-01',  st:['Water'],              resultType:'numeric' },
+  { id:'T-002', name:'Color (TCU)',             code:'COLOR-01', st:['Water'],              resultType:'numeric' },
+  { id:'T-003', name:'pH',                      code:'PH-01',    st:['Water','Soil'],       resultType:'numeric' },
+  { id:'T-004', name:'Temperature',             code:'TEMP-01',  st:['Water','Air'],        resultType:'numeric' },
+  { id:'T-005', name:'Odor',                    code:'ODOR-01',  st:['Water'],              resultType:'select',
+    options:['No odor','Faint','Moderate','Strong'] },
+  { id:'T-006', name:'Total Dissolved Solids',  code:'TDS-01',   st:['Water'],              resultType:'numeric' },
+  { id:'T-007', name:'Arsenic (As)',             code:'AS-01',    st:['Water','Soil'],       resultType:'numeric' },
+  { id:'T-008', name:'Lead (Pb)',               code:'PB-01',    st:['Water','Soil'],       resultType:'numeric' },
+  { id:'T-009', name:'Iron (Fe)',               code:'FE-01',    st:['Water'],              resultType:'numeric' },
+  { id:'T-010', name:'Nitrate (NO₃⁻)',          code:'NO3-01',   st:['Water'],              resultType:'numeric' },
+  { id:'T-011', name:'Mercury (Hg)',            code:'HG-01',    st:['Water','Soil','Sediment'], resultType:'numeric' },
+  { id:'T-012', name:'Fluoride (F⁻)',           code:'FLR-01',   st:['Water'],              resultType:'numeric' },
+  { id:'T-013', name:'Chloroform',              code:'CHLF-01',  st:['Water'],              resultType:'numeric' },
+  { id:'T-014', name:'Pesticides (Total)',       code:'PEST-01',  st:['Water','Soil','Sediment'], resultType:'numeric' },
+  { id:'T-015', name:'Total Coliform',          code:'TCOL-01',  st:['Water'],              resultType:'numeric' },
+  { id:'T-016', name:'E. coli',                 code:'ECOL-01',  st:['Water'],              resultType:'numeric' },
+  { id:'T-017', name:'Fecal Coliform',          code:'FCOL-01',  st:['Water'],              resultType:'numeric' },
+  { id:'T-018', name:'SO₂ (Sulfur Dioxide)',    code:'SO2-01',   st:['Air'],                resultType:'numeric' },
+  { id:'T-019', name:'CO (Carbon Monoxide)',    code:'CO-01',    st:['Air'],                resultType:'numeric' },
+  { id:'T-020', name:'NO₂ (Nitrogen Dioxide)', code:'NO2-01',   st:['Air'],                resultType:'numeric' },
+  { id:'T-021', name:'PM10',                    code:'PM10-01',  st:['Air'],                resultType:'numeric' },
+  { id:'T-022', name:'PM2.5',                   code:'PM25-01',  st:['Air'],                resultType:'numeric' },
+  { id:'T-023', name:'Dissolved Oxygen (DO)',   code:'DO-01',    st:['Water'],              resultType:'numeric' },
+  { id:'T-024', name:'Biochemical Oxygen Demand',code:'BOD-01',  st:['Water'],              resultType:'numeric' },
+  { id:'T-025', name:'Chemical Oxygen Demand',  code:'COD-01',   st:['Water'],              resultType:'numeric' },
+  { id:'T-026', name:'Ammonia Nitrogen',        code:'NH3-N-01', st:['Water','Soil'],       resultType:'numeric' },
+  { id:'T-027', name:'Cadmium (Cd)',            code:'CD-01',    st:['Water','Soil','Sediment'], resultType:'numeric' },
+  { id:'T-028', name:'Chromium (Cr)',           code:'CR-01',    st:['Water','Soil'],       resultType:'numeric' },
+  { id:'T-029', name:'Zinc (Zn)',               code:'ZN-01',    st:['Water','Soil'],       resultType:'numeric' },
+  { id:'T-030', name:'Copper (Cu)',             code:'CU-01',    st:['Water','Soil'],       resultType:'numeric' },
+  { id:'T-031', name:'Organochlorine Pesticides',code:'OCP-01',  st:['Soil','Sediment'],    resultType:'numeric' },
+  { id:'T-032', name:'Total Petroleum Hydrocarbons',code:'TPH-01',st:['Soil','Sediment','Water'], resultType:'numeric' },
+  { id:'T-033', name:'Benzene',                 code:'BENZ-01',  st:['Water','Air'],        resultType:'numeric' },
+  { id:'T-034', name:'Toluene',                 code:'TOLU-01',  st:['Water','Air'],        resultType:'numeric' },
+  { id:'T-035', name:'Xylene',                  code:'XYL-01',   st:['Water','Air'],        resultType:'numeric' },
+  { id:'T-036', name:'H₂S (Hydrogen Sulfide)', code:'H2S-01',   st:['Air'],                resultType:'numeric' },
+  { id:'T-037', name:'NH₃ (Ammonia Gas)',       code:'NH3-01',   st:['Air'],                resultType:'numeric' },
+  { id:'T-038', name:'Ozone (O₃)',              code:'O3-01',    st:['Air'],                resultType:'numeric' },
+  { id:'T-039', name:'Salmonella spp.',         code:'SAL-01',   st:['Water','Food'],       resultType:'select',
+    options:['Not detected','Detected — trace','Detected — confirmed'] },
+  { id:'T-040', name:'Vibrio cholerae',         code:'VIB-01',   st:['Water','Food'],       resultType:'select',
+    options:['Absent','Present'] },
+  { id:'T-041', name:'Color Appearance',        code:'COLOR-APP-01', st:['Water'],          resultType:'select',
+    options:['Clear','Slightly colored','Colored','Highly colored'] },
+  { id:'T-042', name:'Taste',                   code:'TASTE-01', st:['Water'],              resultType:'select',
+    options:['No taste','Faint','Moderate','Strong'] },
+  { id:'T-043', name:'Visible Turbidity',       code:'TURB-VIS-01', st:['Water'],           resultType:'select',
+    options:['Clear','Slightly turbid','Turbid','Very turbid'] },
 ];
 
 // ── Existing test limits per group (demo data)
@@ -801,8 +863,15 @@ const GROUP_TEST_DATA = {
     'TEMP-01':  { testName:'Temperature',            sampleTypes:['Water','Air'],
       limits:[ { type:'HIGH', lower:'', upper:'30', unit:'°C', note:'' } ]
     },
-    'ODOR-01':  { testName:'Odor',                   sampleTypes:['Water'],
-      limits:[ { type:'DESCRIPTIVE', lower:'', upper:'', unit:'', note:'No odor' } ]
+    'ODOR-01':  { testName:'Odor', resultType:'select', sampleTypes:['Water'],
+      // Select-list tests use a valueMap instead of numeric limits
+      // Key: option string from catalog, Value: 'compliant' | 'borderline' | 'noncompliant'
+      valueMap: {
+        'No odor':  'compliant',
+        'Faint':    'borderline',
+        'Moderate': 'noncompliant',
+        'Strong':   'noncompliant',
+      }
     },
     'TDS-01':   { testName:'Total Dissolved Solids', sampleTypes:['Water'],
       limits:[ { type:'HIGH', lower:'', upper:'1000', unit:'mg/L', note:'' } ]
@@ -931,9 +1000,12 @@ function taFilter(groupId) {
     matches.forEach(t => {
       const li = document.createElement('li');
       li.className = 'typeahead-item';
+      const typeBadge = t.resultType === 'select'
+        ? `<span class="typeahead-item-type">Select List</span>` : '';
       li.innerHTML = `<span class="typeahead-item-name">${t.name}</span>`
         + `<span class="typeahead-item-code">${t.code}</span>`
-        + t.st.map(s => `<span class="typeahead-item-st">${s}</span>`).join('');
+        + t.st.map(s => `<span class="typeahead-item-st">${s}</span>`).join('')
+        + typeBadge;
       li.addEventListener('mousedown', (e) => { e.preventDefault(); taSelect(groupId, t); });
       list.appendChild(li);
     });
@@ -959,9 +1031,15 @@ function taSelect(groupId, test) {
   if (clear) clear.style.display = 'block';
   if (hint)  { hint.textContent = `Sample types: ${test.st.join(', ')}`; hint.className = 'form-hint form-hint-blue'; }
   taState[groupId] = test;
-  // Reveal the multi-limit section
-  const mltSection = document.getElementById(`${groupId}-mlt-section`);
-  if (mltSection) mltSection.style.display = 'block';
+  // Reveal the appropriate Step 3 based on result type
+  const mltSection    = document.getElementById(`${groupId}-mlt-section`);
+  const selectSection = document.getElementById(`${groupId}-select-section`);
+  const isSelect = test.resultType === 'select';
+  if (mltSection)    mltSection.style.display    = isSelect ? 'none' : 'block';
+  if (selectSection) {
+    selectSection.style.display = isSelect ? 'block' : 'none';
+    if (isSelect) buildSelectMapRows(groupId, test.options, {});
+  }
 }
 function taClear(groupId) {
   const input = document.getElementById(`${groupId}-ta-input`);
@@ -971,8 +1049,10 @@ function taClear(groupId) {
   if (clear) clear.style.display = 'none';
   if (hint)  { hint.textContent = 'Select sample types above to filter available tests.'; hint.className = 'form-hint'; }
   delete taState[groupId];
-  const mltSection = document.getElementById(`${groupId}-mlt-section`);
-  if (mltSection) mltSection.style.display = 'none';
+  const mltSection    = document.getElementById(`${groupId}-mlt-section`);
+  const selectSection = document.getElementById(`${groupId}-select-section`);
+  if (mltSection)    mltSection.style.display    = 'none';
+  if (selectSection) selectSection.style.display = 'none';
   taFilter(groupId);
 }
 document.addEventListener('click', (e) => {
@@ -1022,6 +1102,43 @@ function openMultiLimitEdit(groupId, testCode) {
 
   const editId = `mlt-edit-${groupId}-${testCode}`;
   const stTags = testData.sampleTypes.map(s => `<span class="tag tag-blue tag-sm">${s}</span>`).join(' ');
+
+  // ── Select-list test: show value mapping instead of numeric rows ──
+  if (testData.resultType === 'select') {
+    const catalogTest = ALL_TESTS.find(t => t.code === testCode);
+    const options = catalogTest?.options || [];
+    const mapContainerId = `${editId}-select-map`;
+    const html = `
+    <tr class="edit-inline-row" id="${editId}">
+      <td colspan="4">
+        <div class="edit-inline-inner">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;">
+            <strong style="font-size:.875rem;">${testData.testName}</strong>
+            <span style="font-size:.75rem;color:#6f6f6f;">${testCode}</span>
+            ${stTags}
+            <span class="tag tag-purple tag-sm">Select List</span>
+            <span style="font-size:.75rem;color:#6f6f6f;background:#edf5ff;padding:.125rem .5rem;border-radius:2px;border:1px solid #0f62fe33;">editing compliance mapping</span>
+          </div>
+          <p style="font-size:.75rem;color:#6f6f6f;margin:0 0 .5rem 0;">
+            Result options are pulled from the test catalog. Assign a compliance status to each option.
+          </p>
+          <div class="smt-wrap" id="${mapContainerId}"></div>
+          <p class="smt-note">Borderline values trigger an advisory flag at validation; the result is not counted as a failure.</p>
+          <div style="display:flex;gap:.5rem;margin-top:.875rem;">
+            <button class="btn btn-primary btn-sm" onclick="showSaveNotif();closeMultiLimitEdit()">💾 Save</button>
+            <button class="btn btn-ghost btn-sm" onclick="closeMultiLimitEdit()">Cancel</button>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+    sourceRow.insertAdjacentHTML('afterend', html);
+    sourceRow.style.outline = '2px solid #0f62fe';
+    sourceRow.style.outlineOffset = '-2px';
+    // Populate the mapping table with existing values
+    buildSelectMapRowsInto(mapContainerId, options, testData.valueMap || {});
+    document.getElementById(editId)?.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    return;
+  }
 
   // Build limit rows HTML with pre-filled values
   const limitMap = {};
@@ -1120,6 +1237,64 @@ function closeMultiLimitEdit() {
   const src = document.getElementById(`${groupId}-${testCode}`);
   if (src) { src.style.outline = ''; src.style.outlineOffset = ''; }
   currentMLTEdit = null;
+}
+
+// ── Select-list compliance mapping helpers ──
+
+// Build the value-mapping rows inside a container element
+// options: string[] from test catalog; existingMap: { optionValue: 'compliant'|'borderline'|'noncompliant' }
+function buildSelectMapRows(groupId, options, existingMap) {
+  const container = document.getElementById(`${groupId}-select-map-rows`);
+  if (!container) return;
+  let html = `<div class="smt-head"><span>Result Option (from catalog)</span><span>Compliance Status</span></div>`;
+  options.forEach((opt, i) => {
+    const current = existingMap[opt] || 'compliant';
+    const rowClass = smtRowClass(current);
+    html += `
+    <div class="smt-row ${rowClass}" id="${groupId}-smt-row-${i}">
+      <span>${opt}</span>
+      <select onchange="smtStatusChange(this,'${groupId}-smt-row-${i}')">
+        <option value="compliant"   ${current==='compliant'?'selected':''}>✓ Compliant</option>
+        <option value="borderline"  ${current==='borderline'?'selected':''}>⚑ Borderline (advisory)</option>
+        <option value="noncompliant"${current==='noncompliant'?'selected':''}>✗ Non-Compliant</option>
+      </select>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+// Build select-map rows inside an arbitrary container (used in inline edit)
+function buildSelectMapRowsInto(containerId, options, existingMap) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  let html = `<div class="smt-head"><span>Result Option (from catalog)</span><span>Compliance Status</span></div>`;
+  options.forEach((opt, i) => {
+    const current = existingMap[opt] || 'compliant';
+    const rowClass = smtRowClass(current);
+    html += `
+    <div class="smt-row ${rowClass}" id="${containerId}-row-${i}">
+      <span>${opt}</span>
+      <select onchange="smtStatusChange(this,'${containerId}-row-${i}')">
+        <option value="compliant"   ${current==='compliant'?'selected':''}>✓ Compliant</option>
+        <option value="borderline"  ${current==='borderline'?'selected':''}>⚑ Borderline (advisory)</option>
+        <option value="noncompliant"${current==='noncompliant'?'selected':''}>✗ Non-Compliant</option>
+      </select>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function smtRowClass(status) {
+  return status === 'compliant' ? 'smt-compliant'
+       : status === 'borderline' ? 'smt-borderline'
+       : 'smt-noncompliant';
+}
+
+function smtStatusChange(sel, rowId) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  row.classList.remove('smt-compliant','smt-borderline','smt-noncompliant');
+  row.classList.add(smtRowClass(sel.value));
 }
 
 function toggleEditMLTRow(editId, type) {
