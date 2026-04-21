@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>S-01: Compliance Standards Administration — v2.0</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css" />
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'IBM Plex Sans', Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+
+    .screen-tabs { display: flex; background: #fff; border-bottom: 2px solid #e0e0e0; padding: 0 1.5rem; }
+    .screen-tab { padding: 0.875rem 1.25rem; cursor: pointer; font-size: 0.875rem; font-weight: 500;
+      border-bottom: 3px solid transparent; color: #525252; transition: all .15s; margin-bottom: -2px; }
+    .screen-tab.active { border-bottom-color: #0f62fe; color: #0f62fe; font-weight: 600; }
+
+    .page-wrap { padding: 1.5rem 2rem; max-width: 1280px; margin: 0 auto; }
+    .breadcrumb { font-size: 0.75rem; color: #525252; margin-bottom: 1rem; }
+    .breadcrumb a { color: #0f62fe; text-decoration: none; }
+    .breadcrumb span { margin: 0 0.375rem; }
+    h1.page-title { font-size: 1.75rem; font-weight: 400; margin: 0 0 1.25rem 0; color: #161616; }
+
+    .toolbar { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;
+      background: #e0e0e0; border-bottom: 1px solid #c6c6c6; flex-wrap: wrap; }
+    .toolbar-search { flex: 1; min-width: 220px; padding: 0.5rem 0.75rem; border: 1px solid #8d8d8d;
+      background: #fff; font-size: 0.875rem; outline: none; }
+    .filter-select { padding: 0.5rem 0.75rem; border: 1px solid #8d8d8d; background: #fff;
+      font-size: 0.875rem; outline: none; cursor: pointer; }
+    .btn { padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600; border: none; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 0.375rem; transition: background .15s; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-primary:hover { background: #0050e6; }
+    .btn-secondary { background: #393939; color: #fff; }
+    .btn-ghost { background: transparent; color: #0f62fe; border: 1px solid transparent; }
+    .btn-ghost:hover { background: #e8f0fe; }
+    .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }
+    .btn-icon { padding: 0.375rem; background: transparent; border: none; cursor: pointer; color: #525252;
+      border-radius: 2px; font-size: 0.9rem; }
+    .btn-icon:hover { background: #e0e0e0; }
+
+    .table-wrap { background: #fff; border: 1px solid #e0e0e0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    thead tr { background: #e0e0e0; }
+    th { padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600;
+      color: #525252; white-space: nowrap; }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:not(.expand-row):hover td { background: #f4f4f4; }
+    .test-name-primary { font-weight: 500; color: #161616; }
+    .test-code { font-size: 0.75rem; color: #6f6f6f; margin-top: 2px; }
+    .range-value { font-family: 'IBM Plex Mono', monospace; font-size: 0.875rem; color: #161616; }
+    .note-text { font-size: 0.75rem; color: #6f6f6f; font-style: italic; }
+
+    .tag { display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; font-size: 0.75rem;
+      font-weight: 500; border-radius: 10rem; white-space: nowrap; }
+    .tag-green  { background: #defbe6; color: #0e6027; }
+    .tag-blue   { background: #d0e2ff; color: #0043ce; }
+    .tag-red    { background: #ffd7d9; color: #a2191f; }
+    .tag-teal   { background: #d9fbfb; color: #005d5d; }
+    .tag-purple { background: #e8daff; color: #491d8b; }
+    .tag-gray   { background: #e0e0e0; color: #525252; }
+    .tag-warm-gray { background: #f0f0f0; color: #525252; border: 1px solid #c6c6c6; }
+    .tag-cyan   { background: #e5f6ff; color: #003a6d; }
+    .tag-sm { padding: 0.0625rem 0.375rem; font-size: 0.6875rem; }
+
+    .expand-row td { background: #f4f4f4; padding: 0; }
+    .expand-inner { padding: 1.25rem 1.5rem; }
+
+    .accordion { border: 1px solid #e0e0e0; border-radius: 2px; }
+    .accordion-item { border-bottom: 1px solid #e0e0e0; }
+    .accordion-item:last-child { border-bottom: none; }
+    .accordion-header { display: flex; align-items: center; justify-content: space-between;
+      padding: 0.75rem 1rem; cursor: pointer; background: #fff; font-size: 0.875rem; font-weight: 500;
+      color: #161616; user-select: none; }
+    .accordion-header:hover { background: #f4f4f4; }
+    .accordion-header.open { background: #e8f0fe; }
+    .accordion-body { padding: 1rem; background: #fff; border-top: 1px solid #e0e0e0; }
+    .accordion-desc { font-size: 0.8125rem; color: #6f6f6f; margin: 0 0 0.875rem 0; }
+
+    .tile-inner { background: #f4f4f4; padding: 1rem; border: 1px solid #e0e0e0; }
+    .form-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.875rem; }
+    .form-col { display: flex; flex-direction: column; }
+    .form-col-2 { flex: 0 0 calc(12.5% - 0.5rem); min-width: 90px; }
+    .form-col-3 { flex: 0 0 calc(18.75% - 0.5rem); min-width: 110px; }
+    .form-col-4 { flex: 0 0 calc(25% - 0.75rem); min-width: 130px; }
+    .form-col-5 { flex: 0 0 calc(31.25% - 0.75rem); min-width: 160px; }
+    .form-col-6 { flex: 0 0 calc(37.5% - 0.75rem); min-width: 180px; }
+    .form-col-full { flex: 1 1 100%; }
+    label.field-label { font-size: 0.75rem; font-weight: 600; color: #525252; margin-bottom: 0.25rem; }
+    input[type=text], select, textarea {
+      padding: 0.5rem 0.75rem; border: 1px solid #8d8d8d; font-size: 0.875rem;
+      background: #fff; outline: none; width: 100%; font-family: inherit; }
+    input[type=text]:focus, select:focus { border-color: #0f62fe; box-shadow: 0 0 0 2px #0f62fe33; }
+    textarea { resize: vertical; }
+    .form-hint { font-size: 0.75rem; color: #6f6f6f; margin: 0.25rem 0 0 0; }
+
+    .notification { padding: 0.875rem 1rem; margin-bottom: 1rem; border-left: 4px solid; font-size: 0.875rem; }
+    .notification-success { background: #defbe6; border-color: #24a148; color: #0e6027; }
+    .info-box { background: #edf5ff; border-left: 4px solid #0f62fe; padding: 0.75rem 1rem;
+      font-size: 0.8125rem; color: #0043ce; margin-bottom: 1rem; }
+
+    .legend { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0.625rem 1rem;
+      background: #fff; border: 1px solid #e0e0e0; border-radius: 2px; margin-bottom: 1rem; align-items: center; }
+    .legend-label { font-size: 0.6875rem; font-weight: 700; color: #525252; text-transform: uppercase;
+      letter-spacing: .04em; margin-right: 0.25rem; }
+
+    .sample-type-panel { background: #f4f4f4; border: 1px solid #e0e0e0; border-radius: 2px; padding: 1rem; }
+    .sample-type-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.375rem 0;
+      border-bottom: 1px solid #e8e8e8; }
+    .sample-type-row:last-child { border-bottom: none; }
+    .sample-type-name { font-size: 0.875rem; font-weight: 500; min-width: 90px; cursor: pointer; }
+    .sample-type-name.excluded { font-weight: 400; color: #a8a8a8; text-decoration: line-through; }
+    input[type=checkbox] { width: 1rem; height: 1rem; cursor: pointer; accent-color: #0f62fe; flex-shrink: 0; }
+    .derived-hint { font-size: 0.75rem; color: #6f6f6f; margin: 0 0 0.75rem 0; }
+    .derived-count { font-size: 0.75rem; color: #6f6f6f; margin: 0.75rem 0 0 0; }
+
+    /* Borderline rows get amber left stripe and light background */
+    tr.borderline-row td { background: #fffbf0; }
+    tr.borderline-row td:first-child { border-left: 3px solid #f1c21b; }
+
+    /* Test Editor */
+    .editor-wrap { display: flex; flex-direction: column; min-height: calc(100vh - 48px); }
+    .editor-header { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 1rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between; }
+    .editor-title { font-size: 1.125rem; font-weight: 600; margin: 0; }
+    .editor-meta { font-size: 0.8125rem; color: #6f6f6f; margin-top: 2px; }
+    .editor-body { display: flex; flex: 1; }
+    .editor-nav { width: 14rem; min-width: 14rem; background: #fff; border-right: 1px solid #e0e0e0;
+      padding: 0.5rem; overflow-y: auto; }
+    .nav-group-label { padding: 0.375rem 0.75rem; font-size: 0.6875rem; font-weight: 700; color: #a8a8a8;
+      text-transform: uppercase; letter-spacing: 0.06em; }
+    .nav-tab { width: 100%; display: flex; align-items: center; padding: 0.5rem 0.75rem; font-size: 0.875rem;
+      font-weight: 500; border: none; border-radius: 3px; cursor: pointer; margin-bottom: 2px;
+      text-align: left; background: transparent; color: #525252; border-left: 3px solid transparent; }
+    .nav-tab:hover { background: #f4f4f4; }
+    .nav-tab.active { background: #defbe6; color: #0e6027; border-left-color: #0e6027; font-weight: 600; }
+    .editor-content { flex: 1; padding: 1.5rem; overflow-y: auto; }
+    .content-inner { max-width: 960px; }
+  </style>
+</head>
+<body>
+
+<div class="screen-tabs">
+  <div class="screen-tab active" onclick="showScreen('list')">Compliance Standards List</div>
+  <div class="screen-tab" onclick="showScreen('editor')">Compliance Tab (Test Editor)</div>
+</div>
+
+<!-- ============================================================
+     SCREEN 1: Compliance Standards List
+============================================================ -->
+<div id="screen-list">
+<div class="page-wrap">
+  <div class="breadcrumb">
+    <a href="#">Admin</a><span>›</span>
+    <a href="#">Test Management</a><span>›</span>
+    <strong>Compliance Standards</strong>
+  </div>
+  <h1 class="page-title">Compliance Standards</h1>
+
+  <div id="save-notification" class="notification notification-success" style="display:none">
+    ✓ &nbsp;<strong>Compliance standard saved successfully.</strong>
+  </div>
+
+  <!-- Limit type legend -->
+  <div class="legend">
+    <span class="legend-label">Limit Types:</span>
+    <span class="tag tag-red tag-sm">High Limit ≤</span>
+    <span class="tag tag-blue tag-sm">Low Limit ≥</span>
+    <span class="tag tag-teal tag-sm">Normal Range</span>
+    <span class="tag tag-warm-gray tag-sm">Borderline ⚑</span>
+    <span class="tag tag-purple tag-sm">Qualitative</span>
+  </div>
+
+  <div class="table-wrap">
+    <div class="toolbar">
+      <input type="text" class="toolbar-search" placeholder="Search by name, issuing body, or regulation number…" />
+      <select class="filter-select"><option value="">All Statuses</option><option>ACTIVE</option><option>DRAFT</option></select>
+      <select class="filter-select"><option value="">All Regions</option><option>Indonesia</option><option>International</option></select>
+      <button class="btn btn-ghost btn-sm">⬆ Import from CSV</button>
+      <button class="btn btn-primary btn-sm" onclick="toggleAddForm()">+ Add Standard</button>
+    </div>
+
+    <!-- Inline Add form -->
+    <div id="add-form" style="display:none; border-bottom: 2px solid #0f62fe; padding: 1rem 1.5rem; background:#edf5ff;">
+      <h4 style="margin:0 0 1rem 0; font-size:0.9375rem;">Add New Compliance Standard</h4>
+      <div class="form-row">
+        <div class="form-col form-col-5"><label class="field-label">Standard Name *</label><input type="text" placeholder="e.g., PP No. 22/2021 — Water Quality" /></div>
+        <div class="form-col form-col-4"><label class="field-label">Issuing Body *</label><input type="text" placeholder="e.g., Government of Indonesia" /></div>
+        <div class="form-col form-col-3"><label class="field-label">Regulation No. *</label><input type="text" placeholder="PP 22/2021" /></div>
+        <div class="form-col form-col-2"><label class="field-label">Version *</label><input type="text" placeholder="2021" /></div>
+        <div class="form-col form-col-2"><label class="field-label">Status</label><select><option>DRAFT</option><option>ACTIVE</option></select></div>
+        <div class="form-col form-col-3"><label class="field-label">Effective Date</label><input type="text" placeholder="yyyy-mm-dd" /></div>
+        <div class="form-col form-col-4"><label class="field-label">Country / Region</label><input type="text" placeholder="Indonesia" /></div>
+      </div>
+      <div style="display:flex;gap:0.5rem;">
+        <button class="btn btn-primary btn-sm" onclick="showSaveNotif();toggleAddForm()">💾 Save</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleAddForm()">Cancel</button>
+      </div>
+    </div>
+
+    <table>
+      <thead><tr>
+        <th>Standard Name</th><th>Issuing Body</th><th>Regulation No.</th><th>Version</th>
+        <th>Effective Date</th><th>Status</th><th>Groups</th><th>Tests</th><th></th>
+      </tr></thead>
+      <tbody>
+
+        <!-- ROW 1 — PP 22/2021 Water Quality — EXPANDED to show full editor -->
+        <tr>
+          <td><span class="test-name-primary">PP No. 22/2021 — Water Quality</span> &nbsp;<span class="tag tag-teal tag-sm">Default</span></td>
+          <td>Government of Indonesia</td><td>PP 22/2021</td><td>2021</td><td>2021-02-02</td>
+          <td><span class="tag tag-green tag-sm">ACTIVE</span></td><td>4</td><td>28</td>
+          <td><button class="btn-icon" onclick="toggleExpand('exp1',this)">▲</button></td>
+        </tr>
+        <tr class="expand-row" id="exp1" style="display:table-row;">
+          <td colspan="9"><div class="expand-inner">
+            <h4 style="margin:0 0 1rem 0;font-size:.9375rem;">Edit Compliance Standard</h4>
+            <div class="form-row">
+              <div class="form-col form-col-5"><label class="field-label">Standard Name *</label><input type="text" value="PP No. 22/2021 — Water Quality" /></div>
+              <div class="form-col form-col-4"><label class="field-label">Issuing Body *</label><input type="text" value="Government of Indonesia" /></div>
+              <div class="form-col form-col-3"><label class="field-label">Regulation No. *</label><input type="text" value="PP 22/2021" /></div>
+              <div class="form-col form-col-2"><label class="field-label">Version *</label><input type="text" value="2021" /></div>
+              <div class="form-col form-col-2"><label class="field-label">Status</label><select><option>ACTIVE</option><option>DRAFT</option></select></div>
+              <div class="form-col form-col-3"><label class="field-label">Effective Date</label><input type="text" value="2021-02-02" /></div>
+              <div class="form-col form-col-3"><label class="field-label">Expiry Date</label><input type="text" placeholder="yyyy-mm-dd" /></div>
+              <div class="form-col form-col-4"><label class="field-label">Country / Region</label><input type="text" value="Indonesia" /></div>
+            </div>
+
+            <!-- Parameter Groups + Linked Tests -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin:1.25rem 0 .75rem;">
+              <h5 style="margin:0;font-size:.875rem;font-weight:600;">Parameter Groups &amp; Linked Tests</h5>
+              <button class="btn btn-ghost btn-sm">+ Add Group</button>
+            </div>
+
+            <div class="accordion">
+
+              <!-- GROUP 1: Physical Parameters — open by default -->
+              <div class="accordion-item">
+                <div class="accordion-header open" onclick="acc('g1','g1a')">
+                  Physical Parameters &nbsp;<span class="tag tag-gray tag-sm">8 tests</span>
+                  <span id="g1a">▲</span>
+                </div>
+                <div class="accordion-body" id="g1">
+                  <p class="accordion-desc">Turbidity, color, odor, taste, temperature</p>
+                  <table><thead><tr>
+                    <th>Test</th><th>Sample Types</th><th>Limit Type</th><th>Threshold / Range</th><th>Note</th><th></th>
+                  </tr></thead><tbody>
+                    <tr>
+                      <td><div class="test-name-primary">Turbidity</div><div class="test-code">TURB-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 25 NTU</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr class="borderline-row">
+                      <td><div class="test-name-primary">Turbidity</div><div class="test-code">TURB-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-warm-gray tag-sm">Borderline ⚑</span></td>
+                      <td><span class="range-value">20 – 25 NTU</span></td>
+                      <td class="note-text">Requires re-sampling</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">Color (TCU)</div><div class="test-code">COLOR-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 50 TCU</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">pH</div><div class="test-code">PH-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span> <span class="tag tag-blue tag-sm">Soil</span></td>
+                      <td><span class="tag tag-teal tag-sm">Normal Range</span></td>
+                      <td><span class="range-value">6.5 – 8.5 pH</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr class="borderline-row">
+                      <td><div class="test-name-primary">pH</div><div class="test-code">PH-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span> <span class="tag tag-blue tag-sm">Soil</span></td>
+                      <td><span class="tag tag-warm-gray tag-sm">Borderline ⚑</span></td>
+                      <td><span class="range-value">6.5 – 7.0 pH</span></td>
+                      <td class="note-text">Borderline low; flag for review</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">Temperature</div><div class="test-code">TEMP-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span> <span class="tag tag-blue tag-sm">Air</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 30 °C</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">Odor</div><div class="test-code">ODOR-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-purple tag-sm">Qualitative</span></td>
+                      <td><span class="range-value">No odor</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">Total Dissolved Solids</div><div class="test-code">TDS-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 1000 mg/L</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                  </tbody></table>
+
+                  <!-- Link Test button + inline form -->
+                  <div style="margin-top:.75rem;">
+                    <button class="btn btn-ghost btn-sm" onclick="toggleEl('lf1')">+ Link Test to Group</button>
+                    <div id="lf1" style="display:none;margin-top:.75rem;">
+                      <div class="tile-inner">
+                        <h6 style="margin:0 0 .75rem 0;font-size:.8125rem;font-weight:600;">Link Test to Group</h6>
+                        <div class="form-row">
+                          <div class="form-col form-col-6">
+                            <label class="field-label">Test</label>
+                            <select onchange="updateSampleTypeHint(this,'lf1-hint')">
+                              <option value="">— Search and select a test —</option>
+                              <option data-st="Water">Dissolved Oxygen (DO) — DO-01 [Water]</option>
+                              <option data-st="Water, Soil">Arsenic (As) — AS-01 [Water, Soil]</option>
+                              <option data-st="Air">H₂S — H2S-01 [Air]</option>
+                            </select>
+                            <p class="form-hint" id="lf1-hint">Sample types will appear after selecting a test.</p>
+                          </div>
+                          <div class="form-col form-col-3">
+                            <label class="field-label">Limit Type</label>
+                            <select id="lf1-type" onchange="updateLimitForm('lf1')">
+                              <option value="HIGH">High Limit ≤ (fail if exceeded)</option>
+                              <option value="LOW">Low Limit ≥ (fail if below)</option>
+                              <option value="RANGE">Normal Range (low–high)</option>
+                              <option value="BORDERLINE">Borderline / Advisory (warn, not fail)</option>
+                              <option value="DESCRIPTIVE">Qualitative (text match)</option>
+                            </select>
+                          </div>
+                          <div class="form-col form-col-2" id="lf1-lower" style="display:none;">
+                            <label class="field-label" id="lf1-lower-lbl">Lower Bound</label>
+                            <input type="text" placeholder="0" />
+                          </div>
+                          <div class="form-col form-col-2" id="lf1-upper">
+                            <label class="field-label" id="lf1-upper-lbl">Upper Limit</label>
+                            <input type="text" placeholder="0" />
+                          </div>
+                          <div class="form-col form-col-4" id="lf1-desc" style="display:none;">
+                            <label class="field-label">Allowed Value</label>
+                            <input type="text" placeholder="e.g., No odor, Absent, Clear" />
+                          </div>
+                          <div class="form-col form-col-2">
+                            <label class="field-label">Unit</label>
+                            <input type="text" placeholder="mg/L" />
+                          </div>
+                          <div class="form-col form-col-full" id="lf1-note" style="display:none;">
+                            <label class="field-label">Advisory Note (shown on borderline flag)</label>
+                            <input type="text" placeholder="e.g., Requires re-sampling within 24h" />
+                          </div>
+                        </div>
+                        <div style="display:flex;gap:.5rem;">
+                          <button class="btn btn-primary btn-sm" onclick="showSaveNotif();toggleEl('lf1')">💾 Save</button>
+                          <button class="btn btn-ghost btn-sm" onclick="toggleEl('lf1')">Cancel</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div><!-- /g1 -->
+
+              <!-- GROUP 2: Inorganic Chemical Parameters -->
+              <div class="accordion-item">
+                <div class="accordion-header" onclick="acc('g2','g2a')">
+                  Inorganic Chemical Parameters &nbsp;<span class="tag tag-gray tag-sm">10 tests</span>
+                  <span id="g2a">▼</span>
+                </div>
+                <div class="accordion-body" id="g2" style="display:none;">
+                  <p class="accordion-desc">Heavy metals, pH, hardness, dissolved solids</p>
+                  <table><thead><tr>
+                    <th>Test</th><th>Sample Types</th><th>Limit Type</th><th>Threshold / Range</th><th>Note</th><th></th>
+                  </tr></thead><tbody>
+                    <tr>
+                      <td><div class="test-name-primary">Arsenic (As)</div><div class="test-code">AS-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span> <span class="tag tag-blue tag-sm">Soil</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 0.05 mg/L</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr class="borderline-row">
+                      <td><div class="test-name-primary">Arsenic (As)</div><div class="test-code">AS-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span> <span class="tag tag-blue tag-sm">Soil</span></td>
+                      <td><span class="tag tag-warm-gray tag-sm">Borderline ⚑</span></td>
+                      <td><span class="range-value">0.04 – 0.05 mg/L</span></td>
+                      <td class="note-text">Advisory threshold (WHO 0.01 mg/L)</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">Lead (Pb)</div><div class="test-code">PB-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span> <span class="tag tag-blue tag-sm">Soil</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 0.01 mg/L</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">Iron (Fe)</div><div class="test-code">FE-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 0.3 mg/L</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">Iron (Fe)</div><div class="test-code">FE-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-blue tag-sm">Low Limit ≥</span></td>
+                      <td><span class="range-value">≥ 0.0 mg/L</span></td>
+                      <td class="note-text">Detect presence</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">Nitrate (NO₃⁻)</div><div class="test-code">NO3-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 50 mg/L</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">Mercury (Hg)</div><div class="test-code">HG-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span> <span class="tag tag-blue tag-sm">Soil</span> <span class="tag tag-blue tag-sm">Sediment</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 0.001 mg/L</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">Fluoride (F⁻)</div><div class="test-code">FLR-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 1.5 mg/L</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">Fluoride (F⁻)</div><div class="test-code">FLR-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-blue tag-sm">Low Limit ≥</span></td>
+                      <td><span class="range-value">≥ 0.5 mg/L</span></td>
+                      <td class="note-text">Min fluoride for dental health</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                  </tbody></table>
+                  <div style="margin-top:.75rem;"><button class="btn btn-ghost btn-sm">+ Link Test to Group</button></div>
+                </div>
+              </div><!-- /g2 -->
+
+              <!-- GROUP 3: Organic Chemical Parameters -->
+              <div class="accordion-item">
+                <div class="accordion-header" onclick="acc('g3','g3a')">
+                  Organic Chemical Parameters &nbsp;<span class="tag tag-gray tag-sm">4 tests</span>
+                  <span id="g3a">▼</span>
+                </div>
+                <div class="accordion-body" id="g3" style="display:none;">
+                  <p class="accordion-desc">Pesticides, solvents, disinfection byproducts</p>
+                  <table><thead><tr>
+                    <th>Test</th><th>Sample Types</th><th>Limit Type</th><th>Threshold / Range</th><th>Note</th><th></th>
+                  </tr></thead><tbody>
+                    <tr>
+                      <td><div class="test-name-primary">Chloroform</div><div class="test-code">CHLF-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 0.03 mg/L</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">Pesticides (Total)</div><div class="test-code">PEST-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span> <span class="tag tag-blue tag-sm">Soil</span> <span class="tag tag-blue tag-sm">Sediment</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 0.0005 mg/L</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr class="borderline-row">
+                      <td><div class="test-name-primary">Pesticides (Total)</div><div class="test-code">PEST-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span> <span class="tag tag-blue tag-sm">Soil</span> <span class="tag tag-blue tag-sm">Sediment</span></td>
+                      <td><span class="tag tag-warm-gray tag-sm">Borderline ⚑</span></td>
+                      <td><span class="range-value">0.0004 – 0.0005 mg/L</span></td>
+                      <td class="note-text">Advisory: investigate source</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                  </tbody></table>
+                  <div style="margin-top:.75rem;"><button class="btn btn-ghost btn-sm">+ Link Test to Group</button></div>
+                </div>
+              </div><!-- /g3 -->
+
+              <!-- GROUP 4: Microbiological Parameters -->
+              <div class="accordion-item">
+                <div class="accordion-header" onclick="acc('g4','g4a')">
+                  Microbiological Parameters &nbsp;<span class="tag tag-gray tag-sm">4 tests</span>
+                  <span id="g4a">▼</span>
+                </div>
+                <div class="accordion-body" id="g4" style="display:none;">
+                  <p class="accordion-desc">Total coliform, E. coli, fecal coliform</p>
+                  <table><thead><tr>
+                    <th>Test</th><th>Sample Types</th><th>Limit Type</th><th>Threshold / Range</th><th>Note</th><th></th>
+                  </tr></thead><tbody>
+                    <tr>
+                      <td><div class="test-name-primary">Total Coliform</div><div class="test-code">TCOL-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 0 CFU/100mL</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">E. coli</div><div class="test-code">ECOL-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 0 CFU/100mL</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr>
+                      <td><div class="test-name-primary">Fecal Coliform</div><div class="test-code">FCOL-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                      <td><span class="range-value">≤ 5000 CFU/100mL</span></td>
+                      <td>—</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                    <tr class="borderline-row">
+                      <td><div class="test-name-primary">Fecal Coliform</div><div class="test-code">FCOL-01</div></td>
+                      <td><span class="tag tag-blue tag-sm">Water</span></td>
+                      <td><span class="tag tag-warm-gray tag-sm">Borderline ⚑</span></td>
+                      <td><span class="range-value">3000 – 5000 CFU/100mL</span></td>
+                      <td class="note-text">Advisory: repeat sample within 24h</td>
+                      <td><button class="btn-icon">✏</button><button class="btn-icon">🗑</button></td>
+                    </tr>
+                  </tbody></table>
+                  <div style="margin-top:.75rem;"><button class="btn btn-ghost btn-sm">+ Link Test to Group</button></div>
+                </div>
+              </div><!-- /g4 -->
+
+            </div><!-- /accordion -->
+
+            <!-- Derived Sample Types panel -->
+            <div style="margin-top:1.5rem;">
+              <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;">
+                <h5 style="margin:0;font-size:.875rem;font-weight:600;">Applicable Sample Types</h5>
+                <span class="tag tag-cyan tag-sm">Derived from linked tests</span>
+              </div>
+              <div class="sample-type-panel">
+                <p class="derived-hint">Sample types are automatically derived from linked tests. Uncheck any that should not apply to this standard.</p>
+                <div class="sample-type-row">
+                  <input type="checkbox" id="st-water" checked onchange="toggleST(this,'st-water-lbl','st-water-tag')" />
+                  <label class="sample-type-name" id="st-water-lbl" for="st-water">Water</label>
+                  <span class="tag tag-blue tag-sm" id="st-water-tag">26 tests</span>
+                </div>
+                <div class="sample-type-row">
+                  <input type="checkbox" id="st-soil" checked onchange="toggleST(this,'st-soil-lbl','st-soil-tag')" />
+                  <label class="sample-type-name" id="st-soil-lbl" for="st-soil">Soil</label>
+                  <span class="tag tag-blue tag-sm" id="st-soil-tag">4 tests</span>
+                </div>
+                <div class="sample-type-row">
+                  <input type="checkbox" id="st-sediment" checked onchange="toggleST(this,'st-sediment-lbl','st-sediment-tag')" />
+                  <label class="sample-type-name" id="st-sediment-lbl" for="st-sediment">Sediment</label>
+                  <span class="tag tag-blue tag-sm" id="st-sediment-tag">3 tests</span>
+                </div>
+                <div class="sample-type-row">
+                  <input type="checkbox" id="st-air" checked onchange="toggleST(this,'st-air-lbl','st-air-tag')" />
+                  <label class="sample-type-name" id="st-air-lbl" for="st-air">Air</label>
+                  <span class="tag tag-blue tag-sm" id="st-air-tag">1 test</span>
+                </div>
+                <p class="derived-count" id="st-summary">4 of 4 sample types active for this standard</p>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:.5rem;margin-top:1.5rem;">
+              <button class="btn btn-primary btn-sm" onclick="showSaveNotif();toggleExpand('exp1',null)">💾 Save</button>
+              <button class="btn btn-ghost btn-sm" onclick="toggleExpand('exp1',null)">Cancel</button>
+            </div>
+          </div></td>
+        </tr><!-- /exp1 -->
+
+        <!-- Other rows (collapsed) -->
+        <tr>
+          <td><span class="test-name-primary">PP No. 41/1999 — Ambient Air Quality</span> &nbsp;<span class="tag tag-teal tag-sm">Default</span></td>
+          <td>Government of Indonesia</td><td>PP 41/1999</td><td>1999</td><td>1999-05-26</td>
+          <td><span class="tag tag-green tag-sm">ACTIVE</span></td><td>2</td><td>7</td>
+          <td><button class="btn-icon" onclick="toggleExpand('exp2',this)">▼</button></td>
+        </tr>
+        <tr class="expand-row" id="exp2" style="display:none;"><td colspan="9"><div class="expand-inner" style="color:#6f6f6f;font-style:italic;">Edit form for PP No. 41/1999 — Air Quality</div></td></tr>
+
+        <tr>
+          <td><span class="test-name-primary">WHO Drinking Water Guidelines</span></td>
+          <td>World Health Organization</td><td>WHO/SDE/WSH/2022</td><td>4th Ed. 2022</td><td>2022-03-21</td>
+          <td><span class="tag tag-green tag-sm">ACTIVE</span></td><td>3</td><td>34</td>
+          <td><button class="btn-icon" onclick="toggleExpand('exp3',this)">▼</button></td>
+        </tr>
+        <tr class="expand-row" id="exp3" style="display:none;"><td colspan="9"><div class="expand-inner" style="color:#6f6f6f;font-style:italic;">Edit form for WHO Drinking Water Guidelines</div></td></tr>
+
+        <tr>
+          <td><span class="test-name-primary">PP No. 22/2021 — Water Quality (Draft v2)</span></td>
+          <td>Government of Indonesia</td><td>PP 22/2021-rev</td><td>2026 Draft</td><td>2026-01-01</td>
+          <td><span class="tag tag-blue tag-sm">DRAFT</span></td><td>0</td><td>0</td>
+          <td><button class="btn-icon" onclick="toggleExpand('exp4',this)">▼</button></td>
+        </tr>
+        <tr class="expand-row" id="exp4" style="display:none;"><td colspan="9"><div class="expand-inner" style="color:#6f6f6f;font-style:italic;">Edit form for Draft v2 — no groups yet</div></td></tr>
+
+      </tbody>
+    </table>
+  </div><!-- /table-wrap -->
+</div><!-- /page-wrap -->
+</div><!-- /screen-list -->
+
+
+<!-- ============================================================
+     SCREEN 2: Test Editor — Compliance Tab
+============================================================ -->
+<div id="screen-editor" style="display:none;">
+<div class="editor-wrap">
+  <div class="editor-header">
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <button class="btn btn-ghost btn-sm">← Back</button>
+      <div>
+        <div class="editor-title">Edit Test: Turbidity (NTU)</div>
+        <div class="editor-meta">LOINC: 13965-9 &nbsp;|&nbsp; Sample Type: Water &nbsp;|&nbsp; Result Type: Numeric</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:.5rem;">
+      <button class="btn btn-secondary btn-sm">Cancel</button>
+      <button class="btn btn-primary btn-sm">💾 Save Test</button>
+    </div>
+  </div>
+
+  <div class="editor-body">
+    <nav class="editor-nav">
+      <div class="nav-group-label">Configuration</div>
+      <button class="nav-tab">Basic Info</button>
+      <button class="nav-tab">Sample &amp; Results</button>
+      <button class="nav-tab">Ranges</button>
+      <button class="nav-tab">Sample Storage</button>
+      <div class="nav-group-label" style="margin-top:.5rem;">Organization</div>
+      <button class="nav-tab">Display Order</button>
+      <button class="nav-tab">Panels</button>
+      <button class="nav-tab">Labels</button>
+      <div class="nav-group-label" style="margin-top:.5rem;">Resources</div>
+      <button class="nav-tab">Terminology</button>
+      <button class="nav-tab">Reagents</button>
+      <div class="nav-group-label" style="margin-top:.5rem;">Automation</div>
+      <button class="nav-tab">Analyzers</button>
+      <button class="nav-tab">Methods</button>
+      <button class="nav-tab">Alerts</button>
+      <button class="nav-tab">Reflex &amp; Calc</button>
+      <div class="nav-group-label" style="margin-top:.5rem;">Compliance</div>
+      <button class="nav-tab active">Compliance</button>
+    </nav>
+
+    <div class="editor-content">
+      <div class="content-inner">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+          <h3 style="margin:0;font-size:1rem;">Compliance Thresholds for Turbidity (NTU)</h3>
+          <button class="btn btn-primary btn-sm">+ Add Threshold</button>
+        </div>
+
+        <div class="info-box">
+          This test is linked to <strong>2 compliance standards</strong>. Thresholds are evaluated at validation time; each result stores the standard name and version in effect at evaluation.
+        </div>
+
+        <div class="legend">
+          <span class="legend-label">Limit Types:</span>
+          <span class="tag tag-red tag-sm">High Limit ≤</span>
+          <span class="tag tag-blue tag-sm">Low Limit ≥</span>
+          <span class="tag tag-teal tag-sm">Normal Range</span>
+          <span class="tag tag-warm-gray tag-sm">Borderline ⚑</span>
+          <span class="tag tag-purple tag-sm">Qualitative</span>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Standard</th><th>Parameter Group</th><th>Limit Type</th>
+              <th>Threshold / Range</th><th>Unit</th><th>Effective</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td>PP No. 22/2021 — Water Quality</td>
+                <td>Physical Parameters</td>
+                <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                <td><span class="range-value">≤ 25 NTU</span></td>
+                <td>NTU</td><td>2021-02-02</td>
+                <td><span class="tag tag-green tag-sm">Active</span></td>
+                <td><button class="btn-icon">▼</button></td>
+              </tr>
+              <tr class="borderline-row">
+                <td>PP No. 22/2021 — Water Quality</td>
+                <td>Physical Parameters</td>
+                <td><span class="tag tag-warm-gray tag-sm">Borderline ⚑</span></td>
+                <td><span class="range-value">20 – 25 NTU</span></td>
+                <td>NTU</td><td>2021-02-02</td>
+                <td><span class="tag tag-green tag-sm">Active</span></td>
+                <td><button class="btn-icon">▼</button></td>
+              </tr>
+              <tr>
+                <td>WHO Drinking Water Guidelines</td>
+                <td>Chemical Contaminants</td>
+                <td><span class="tag tag-red tag-sm">High Limit ≤</span></td>
+                <td><span class="range-value">≤ 5 NTU</span></td>
+                <td>NTU</td><td>2022-03-21</td>
+                <td><span class="tag tag-green tag-sm">Active</span></td>
+                <td><button class="btn-icon">▼</button></td>
+              </tr>
+              <tr class="borderline-row">
+                <td>WHO Drinking Water Guidelines</td>
+                <td>Chemical Contaminants</td>
+                <td><span class="tag tag-warm-gray tag-sm">Borderline ⚑</span></td>
+                <td><span class="range-value">3 – 5 NTU</span></td>
+                <td>NTU</td><td>2022-03-21</td>
+                <td><span class="tag tag-green tag-sm">Active</span></td>
+                <td><button class="btn-icon">▼</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div><!-- /screen-editor -->
+
+
+<script>
+  function showScreen(name) {
+    document.getElementById('screen-list').style.display = name === 'list' ? 'block' : 'none';
+    document.getElementById('screen-editor').style.display = name === 'editor' ? 'block' : 'none';
+    document.querySelectorAll('.screen-tab').forEach((t,i) => {
+      t.classList.toggle('active', i === (name === 'list' ? 0 : 1));
+    });
+  }
+
+  function toggleExpand(id, btn) {
+    const row = document.getElementById(id);
+    if (!row) return;
+    const open = row.style.display !== 'none';
+    row.style.display = open ? 'none' : 'table-row';
+    if (btn) btn.textContent = open ? '▼' : '▲';
+  }
+
+  function toggleAddForm() {
+    const f = document.getElementById('add-form');
+    f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function toggleEl(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function acc(bodyId, arrowId) {
+    const body = document.getElementById(bodyId);
+    const arrow = document.getElementById(arrowId);
+    const header = body.previousElementSibling;
+    const open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : 'block';
+    if (arrow) arrow.textContent = open ? '▼' : '▲';
+    if (header) header.classList.toggle('open', !open);
+  }
+
+  function updateLimitForm(prefix) {
+    const val = document.getElementById(prefix + '-type').value;
+    const lower = document.getElementById(prefix + '-lower');
+    const upper = document.getElementById(prefix + '-upper');
+    const desc  = document.getElementById(prefix + '-desc');
+    const note  = document.getElementById(prefix + '-note');
+    lower.style.display = (val === 'LOW' || val === 'RANGE' || val === 'BORDERLINE') ? 'flex' : 'none';
+    upper.style.display = (val === 'HIGH' || val === 'RANGE' || val === 'BORDERLINE') ? 'flex' : 'none';
+    desc.style.display  = val === 'DESCRIPTIVE' ? 'flex' : 'none';
+    note.style.display  = val === 'BORDERLINE' ? 'flex' : 'none';
+    const ll = document.getElementById(prefix + '-lower-lbl');
+    const ul = document.getElementById(prefix + '-upper-lbl');
+    if (ll) ll.textContent = val === 'LOW' ? 'Lower Limit' : 'Lower Bound';
+    if (ul) ul.textContent = val === 'HIGH' ? 'Upper Limit' : 'Upper Bound';
+  }
+
+  function updateSampleTypeHint(sel, hintId) {
+    const hint = document.getElementById(hintId);
+    const opt = sel.options[sel.selectedIndex];
+    if (sel.value && opt) {
+      const m = opt.text.match(/\[(.+)\]/);
+      hint.textContent = 'Sample types: ' + (m ? m[1] : '—');
+      hint.style.color = '#0f62fe';
+    } else {
+      hint.textContent = 'Sample types will appear after selecting a test.';
+      hint.style.color = '#6f6f6f';
+    }
+  }
+
+  let stChecked = 4;
+  const stTotal  = 4;
+  function toggleST(cb, lblId, tagId) {
+    const lbl = document.getElementById(lblId);
+    const tag = document.getElementById(tagId);
+    if (cb.checked) { lbl.classList.remove('excluded'); tag.className = 'tag tag-blue tag-sm'; stChecked++; }
+    else { lbl.classList.add('excluded'); tag.className = 'tag tag-gray tag-sm'; stChecked--; }
+    document.getElementById('st-summary').textContent =
+      stChecked + ' of ' + stTotal + ' sample types active for this standard';
+  }
+
+  function showSaveNotif() {
+    const n = document.getElementById('save-notification');
+    if (!n) return;
+    n.style.display = 'block';
+    setTimeout(() => { n.style.display = 'none'; }, 3500);
+  }
+</script>
+</body>
+</html>
