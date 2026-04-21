@@ -835,6 +835,18 @@ export const MOCKUP_REGISTRY = [
     tags: ['FHIR', 'interoperability', 'outbound', 'hub', 'integration'],
   },
   {
+    name: 'Storage Disposition FHIR',
+    category: 'system',
+    component: React.lazy(() => import('@designs/system/storage-disposition-fhir.jsx')),
+    description: 'S-05b Addendum to S-05 (Compliance Evaluation Engine) — FHIR Specimen resource update triggered when ENV/Vector sample final disposition is recorded (Disposed or Biorepository). Animated FHIR push pipeline simulation: OpenELIS Storage → SPECIMEN_DISPOSITION_FINAL event → Async Queue → HAPI FHIR R4 → OHS ETL → Future Dashboard. Interactive Specimen JSON payload explorer with collapsible sections, disposition-type toggle, and specimen-final-disposition extension annotations. Best-effort non-blocking push with 3× retry, delivery logging, and sampleDomain gating for ENV/Vector orders only.',
+    specPath: 'designs/system/storage-disposition-fhir.md',
+    added: '2026-04-21',
+    status: 'draft',
+    githubIssue: 88,
+    jira: ['OGC-547', 'OGC-527'],
+    tags: ['FHIR', 'storage', 'disposition', 'biorepository', 'environmental', 'vector', 'Indonesia', 'SILNAS', 'HAPI', 'OHS', 'Bogor'],
+  },
+  {
     name: 'Lab Management Dashboard',
     category: 'system',
     component: React.lazy(() => import('@designs/system/lab-management-dashboard.jsx')),

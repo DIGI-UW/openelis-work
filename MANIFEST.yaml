@@ -1319,6 +1319,18 @@
     gallery: https://digi-uw.github.io/openelis-work/#/system/fhir-outbound-push
   added: "2026-03-24"
 
+- id: storage-disposition-fhir
+  type: both
+  path: designs/system/storage-disposition-fhir.jsx
+  spec: designs/system/storage-disposition-fhir.md
+  category: system
+  description: S-05b Addendum to S-05 (OGC-547) — FHIR Specimen resource update on ENV/Vector final disposition (Disposed/Biorepository). SPECIMEN_DISPOSITION_FINAL event → async queue → HAPI FHIR R4 Specimen status + specimen-final-disposition extension. Same pipeline as V-04 (OGC-585). Best-effort non-blocking; sampleDomain-gated for ENV/Vector orders only.
+  links:
+    jira: ['OGC-547', 'OGC-527']
+    github: https://github.com/DIGI-UW/openelis-work/issues/88
+    gallery: https://digi-uw.github.io/openelis-work/#/system/storage-disposition-fhir
+  added: "2026-04-21"
+
 - id: catalog-subscription
   type: both
   path: designs/admin-config/catalog-subscription.html

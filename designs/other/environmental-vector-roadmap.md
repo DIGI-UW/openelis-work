@@ -1,7 +1,7 @@
 # Environmental & Vector Testing Module — Roadmap
 
 **Epic:** [OGC-527 — Vector: Environmental & Vector Testing Module](https://uwdigi.atlassian.net/browse/OGC-527)
-**Last Updated:** 2026-04-20
+**Last Updated:** 2026-04-21
 **Target:** SILNAS (Indonesia) as first implementation; designed for international use
 
 ---
@@ -13,7 +13,7 @@ The environmental/vector module is built across **4 architectural layers**, with
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │  LAYER 4: Gap Specs & Addenda (from PRD v0.5 + Bogor review)            │
-│  X-01✅  S-03b✅  S-03c✅  S-03d  S-05b  S-06b✅  S-07b✅             │
+│  X-01✅  S-03b✅  S-03c✅  S-03d  S-05b✅  S-06b✅  S-07b✅           │
 ├─────────────────────────────────────────────────────────────────────────┤
 │  LAYER 3: Analytics, Reporting & Vector-Specific                        │
 │  S-05✅  S-06✅  S-07✅  S-08✅  V-01✅  V-02✅  V-03✅  V-04✅        │
@@ -79,7 +79,7 @@ Identified from cross-referencing PRD v0.5 and the Bogor requirements spreadshee
 | **X-01** | Referral-Out Notification | [OGC-589](https://uwdigi.atlassian.net/browse/OGC-589) | ✅ Spec Complete | **Notification addendum** to existing Refer Out module. Adds REFERRAL_OUT event type to OGC-437/OGC-439 dispatch pipeline: Combined Triggers Page row (default OFF), Combined Templates Page editor (merge fields: referred_lab, referred_tests, referral_date, expected_return), Sent Messages tab "Referral Out" type. Per-lab-unit override. Prerequisites: OGC-437 + OGC-439. |
 | **S-03c** | Subcontract Management | [OGC-590](https://uwdigi.atlassian.net/browse/OGC-590) | ✅ Spec Complete | **Subcontract tracking layer** on top of Refer Out for ENV/Vector orders. ISO 17025 §6.6/§7.7. Subcontract Metadata panel (handoff datetime, expected return, agreement ref, chain-of-custody contact), five-state status workflow (DISPATCHED → RECEIVED → RESULTS_RETURNED → CLOSED), new Subcontract Register page with overdue highlighting, Advance Status modal, audit log. |
 | **S-03d** | SOP Deadline Calculation | TBD | ⬜ Not Started | Compute testing deadline from collection date/time + SOP maximum holding time. Flag approaching/exceeded deadlines in ENV testing worklist. Must Have, Phase 1 (Bogor). |
-| **S-05b** | Final Storage Disposition | TBD | ⬜ Not Started | Record final sample fate (Temporary / Biorepository / Disposal) at result entry for ENV (S-05) and Vector (V-03). Cross-cutting with Biorepository Module. Must Have, Phase 1 (Bogor). |
+| **S-05b** | Final Storage Disposition FHIR Publishing | [OGC-592](https://uwdigi.atlassian.net/browse/OGC-592) | ✅ Spec Complete | **FHIR push addendum** to S-05 (OGC-547). Fires `SPECIMEN_DISPOSITION_FINAL` event on Disposed/Biorepository save → updates `Specimen` resource on HAPI FHIR R4 (same server as V-04). `Specimen.status` + `specimen-final-disposition` extension (dispositionType, dispositionDate, storageLocation, disposedBy, dispositionNotes). Temporary storage excluded. No UI changes. OHS ETL query pattern in §7 for future dashboards. |
 
 #### Addenda to Existing Specs
 
@@ -90,7 +90,7 @@ Identified from cross-referencing PRD v0.5 and the Bogor requirements spreadshee
 | **S-07b** | S-07 / [OGC-553](https://uwdigi.atlassian.net/browse/OGC-553) | OGC-553 addendum | ✅ Spec Complete | **Chart PNG + full-dashboard PDF export**. Per-chart hover download (client-side SVG→PNG @2×). PDF config modal → server-side generation. ROLE_ENV_EXPORT permission. |
 | **S-03e** | S-03 / [OGC-537](https://uwdigi.atlassian.net/browse/OGC-537) | TBD | ⬜ Not Started (Research) | **Multiple containers per test** — support adding a 2nd, 3rd, etc. physical tube/container to the same test on an order (e.g., 3 water tubes all running the same panel). Requires research: how is tube count specified (test catalog config vs. at-collection decision vs. both)? How are containers labeled? Are results per-tube or aggregated? Does this warrant a full spec or a targeted addendum? Applies to ENV and potentially clinical orders. |
 
-**Layer 4 summary:** 5 of 7 gap specs complete (X-01, S-03b, S-03c, S-06b, S-07b). Remaining: S-03d, S-05b.
+**Layer 4 summary:** 6 of 7 gap specs complete (X-01, S-03b, S-03c, S-05b, S-06b, S-07b). Remaining: S-03d.
 
 ---
 
@@ -131,7 +131,7 @@ X-01 (Referral-Out Notification) ── addendum: extends existing Refer Out + O
 | **Phase 4 — Operational** | S-07 (dashboard), S-08 (QC rules) | Adds operational tooling for environmental labs — trends, quality control. |
 | **Phase 5 — Vector** | V-01, V-02, V-03, V-04 | Extends the environmental framework to vector surveillance. Sequential dependencies. |
 | **Phase 6 — Gap Addenda (low-effort)** | S-03b, S-06b, S-07b | Field-level additions and notification extensions to existing workflows. |
-| **Phase 7 — Gap Specs (higher effort)** | S-03c ✅, S-03d, S-05b | New workflow components. S-03c complete. S-03d (SOP deadline), then S-05b (storage disposition). |
+| **Phase 7 — Gap Specs (higher effort)** | S-03c ✅, S-05b ✅, S-03d | New workflow components. S-03c and S-05b complete. Remaining: S-03d (SOP deadline calculation). |
 | **Phase 8 — Research Items** | S-03e | Scope and approach must be confirmed before sprint planning. |
 | **Phase 9 — Future Enhancements** | F-01 (Package) | Low-priority; design investigation required before any sprint commitment. |
 
@@ -193,9 +193,17 @@ All three committed to `feat/add-informed-consent-ogc-557` (commit `7e4eac9`).
   - Gallery entry #87: `subcontract-management`
   - Committed to `feat/add-informed-consent-ogc-557` (commit `22423dd`)
 
+- **S-05b** — Final Storage Disposition FHIR Publishing ([OGC-592](https://uwdigi.atlassian.net/browse/OGC-592))
+  - FRS v1.0 addendum to S-05; hooks into existing Storage module dispose/biorepository save event
+  - `SPECIMEN_DISPOSITION_FINAL` event → async FHIR push queue (3× retry, same as V-04)
+  - Updates HAPI FHIR R4 `Specimen.status` + new `specimen-final-disposition` extension
+  - 2-scene JSX mockup: FHIR push pipeline simulation (animated), Specimen JSON payload explorer
+  - Gallery entry #88: `storage-disposition-fhir`
+  - Jira story [OGC-592](https://uwdigi.atlassian.net/browse/OGC-592) created (child of OGC-527)
+  - FRS + mockup comment posted to OGC-592
+
 **Next up (Layer 4):**
 - S-03d — SOP Deadline Calculation
-- S-05b — Final Storage Disposition
 
 ---
 
