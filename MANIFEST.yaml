@@ -1565,6 +1565,26 @@
   status: draft
   tags: ["patient", "document-management", "FHIR", "scanning", "registration"]
 
+- id: sop-deadline-calculation
+  type: both
+  path: designs/sample-collection/sop-deadline-calculation.jsx
+  spec: designs/sample-collection/sop-deadline-calculation.md
+  preview: designs/sample-collection/sop-deadline-calculation.html
+  category: sample-collection
+  description: >
+    S-03d Addendum to S-03 (OGC-537) — General "Required By" date+time field on Order Entry Step 1 (all order types),
+    unifying the EQA eqa_deadline into order.required_by. ENV/Vector-specific SOP holding time auto-calculation:
+    deadline = collection datetime + min(sop_max_holding_hours). Admin: SOP Max Holding Time field in Test Catalog
+    Management (inline edit). ENV/Vector worklist Deadline column: green/amber/red Tags, Approaching/Overdue filter chips,
+    configurable approach threshold. ISO 17025 §7.5 SOP compliance.
+  links:
+    jira: ["OGC-537", "OGC-527"]
+    github: https://github.com/DIGI-UW/openelis-work/issues/89
+    gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/sop-deadline-calculation
+  added: "2026-04-21"
+  status: draft
+  tags: ["order-entry", "SOP", "deadline", "holding-time", "environmental", "vector", "EQA", "worklist", "Indonesia", "SILNAS", "Bogor", "ISO-17025"]
+
 - id: informed-consent
   type: html
   path: designs/sample-collection/informed-consent.jsx
