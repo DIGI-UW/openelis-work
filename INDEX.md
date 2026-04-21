@@ -20,9 +20,11 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Test Catalog | [test-catalog.jsx](designs/admin-config/test-catalog.jsx) | [test-catalog.md](designs/admin-config/test-catalog.md) |
 | RBAC Management | [rbac-ui-mockup.html](designs/rbac/rbac-ui-mockup.html) | [rbac-revamp-prd.md](designs/rbac/rbac-revamp-prd.md) |
 | Password Policy Enhancements | [password-enhancements.jsx](designs/admin-config/password-enhancements.jsx) | [password-enhancements.md](designs/admin-config/password-enhancements.md) |
-| Catalog Subscription | [catalog-subscription.html](designs/admin-config/catalog-subscription.html) | [catalog-subscription.md](designs/admin-config/catalog-subscription.md) |
+| Catalog Subscription | [catalog-subscription-carbon.jsx](designs/admin-config/catalog-subscription-carbon.jsx) \| [preview](designs/admin-config/catalog-subscription.html) | [catalog-subscription.md](designs/admin-config/catalog-subscription.md) |
 | Compliance Standards Administration | [compliance-standards-admin.jsx](designs/admin-config/compliance-standards-admin.jsx) \| [preview](designs/admin-config/compliance-standards-admin.html) | [compliance-standards-admin.md](designs/admin-config/compliance-standards-admin.md) |
 | Barcode Configuration | [barcode-config.jsx](designs/admin-config/barcode-config.jsx) | [barcode-config.md](designs/admin-config/barcode-config.md) |
+| Sample Type Multi-Domain Addendum | [preview](designs/admin-config/sample-type-multi-domain-addendum.html) | [sample-type-multi-domain-addendum.md](designs/admin-config/sample-type-multi-domain-addendum.md) |
+| Concept Mapping & Multi-Coding | [concept-mapping-multi-coding.jsx](designs/admin-config/concept-mapping-multi-coding.jsx) \| [preview](designs/admin-config/concept-mapping-multi-coding.html) | [concept-mapping-multi-coding.md](designs/admin-config/concept-mapping-multi-coding.md) |
 
 ## Vector Surveillance
 
