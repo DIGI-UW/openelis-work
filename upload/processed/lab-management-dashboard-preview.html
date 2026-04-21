@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lab Management Dashboard — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', Arial, sans-serif; }
+    .preview-banner {
+      background: #0f62fe; color: #fff;
+      padding: 7px 1.5rem; font-size: 11px; letter-spacing: 0.03em;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .preview-banner strong { font-weight: 600; font-size: 12px; }
+    .content { padding: 1.5rem 2rem; max-width: 1440px; margin: 0 auto; }
+
+    /* Page header */
+    .page-header { margin-bottom: 1.5rem; }
+    .page-header h1 { font-size: 1.75rem; font-weight: 600; margin: 0 0 1rem; color: #161616; }
+    .filter-row {
+      display: flex; flex-wrap: wrap; align-items: flex-end;
+      gap: 1.5rem; margin-bottom: 0.5rem;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; }
+    .filter-group label { font-size: 0.75rem; color: #525252; font-weight: 400; }
+    .cds--select-input { height: 2.5rem; padding: 0 2.5rem 0 0.75rem; border: 1px solid #8d8d8d; background: #fff; font-size: 0.875rem; min-width: 160px; cursor: pointer; }
+    .timestamp { font-size: 0.75rem; color: #6f6f6f; padding-bottom: 6px; }
+    .cds--btn { height: 2.5rem; padding: 0 1rem; font-size: 0.875rem; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; }
+    .cds--btn--tertiary { background: transparent; color: #0f62fe; border: 1px solid #0f62fe; }
+    .cds--btn--tertiary:hover { background: #e8f0fe; }
+
+    /* KPI tiles */
+    .kpi-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .kpi-tile { background: #fff; padding: 1rem; border-left: 3px solid #e0e0e0; }
+    .kpi-label { font-size: 0.75rem; color: #6f6f6f; margin-bottom: 0.4rem; }
+    .kpi-value { font-size: 1.75rem; font-weight: 600; color: #161616; line-height: 1; margin-bottom: 0.5rem; }
+    .kpi-delta { font-size: 0.75rem; }
+    .delta-up { color: #24a148; }
+    .delta-down { color: #da1e28; }
+
+    /* Tags */
+    .cds--tag { display: inline-flex; align-items: center; padding: 0 0.5rem; height: 1.5rem; font-size: 0.75rem; border-radius: 0.75rem; font-weight: 400; white-space: nowrap; }
+    .cds--tag--green { background: #defbe6; color: #0e6027; }
+    .cds--tag--red { background: #fff1f1; color: #a2191f; }
+    .cds--tag--blue { background: #edf5ff; color: #0043ce; }
+    .cds--tag--purple { background: #f6f2ff; color: #6929c4; }
+    .cds--tag--warm-gray { background: #f2f0ef; color: #3d3935; }
+    .cds--tag--teal { background: #d9fbfb; color: #005d5d; }
+    .cds--tag--gray { background: #f4f4f4; color: #525252; }
+
+    /* Notifications */
+    .notification-stack { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .cds--inline-notification {
+      display: flex; align-items: flex-start; padding: 0.875rem 1rem;
+      border-left: 3px solid; font-size: 0.875rem; background: #fff;
+    }
+    .cds--inline-notification--error { border-color: #da1e28; background: #fff1f1; }
+    .cds--inline-notification--success { border-color: #24a148; background: #defbe6; }
+    .cds--inline-notification--info { border-color: #0f62fe; background: #edf5ff; }
+    .notif-icon { margin-right: 0.75rem; font-size: 1rem; flex-shrink: 0; }
+    .notif-title { font-weight: 600; margin-right: 0.25rem; }
+
+    /* Two-column layout */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+    /* Data tables */
+    .cds--data-table-container { background: #fff; }
+    .table-title { font-size: 1rem; font-weight: 600; padding: 1rem; border-bottom: 1px solid #e0e0e0; color: #161616; }
+    .cds--data-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    .cds--data-table thead tr { background: #e0e0e0; }
+    .cds--data-table th { padding: 0.75rem 1rem; text-align: left; font-weight: 600; color: #161616; white-space: nowrap; }
+    .cds--data-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #f4f4f4; color: #161616; vertical-align: middle; }
+    .cds--data-table tbody tr:hover { background: #f4f4f4; }
+    .cds--data-table tbody tr:last-child td { border-bottom: none; }
+
+    /* Accordion */
+    .section-block { background: #fff; margin-bottom: 1.5rem; }
+    .accordion-header {
+      display: flex; align-items: center; padding: 1rem;
+      cursor: pointer; border-bottom: 1px solid #e0e0e0;
+      font-weight: 600; font-size: 0.875rem; color: #161616;
+      background: none; border-top: none; border-left: none; border-right: none;
+      width: 100%; text-align: left; gap: 0.5rem;
+    }
+    .accordion-header:hover { background: #f4f4f4; }
+    .accordion-arrow { transition: transform 0.15s; font-size: 0.75rem; }
+    .accordion-arrow.open { transform: rotate(180deg); }
+    .accordion-content { padding: 1rem; }
+
+    /* Tabs */
+    .tabs-container { background: #fff; margin-bottom: 1.5rem; }
+    .tabs-nav { display: flex; border-bottom: 2px solid #e0e0e0; padding: 0 1rem; gap: 0; }
+    .tab-btn {
+      padding: 0.875rem 1rem; font-size: 0.875rem; cursor: pointer;
+      background: none; border: none; border-bottom: 2px solid transparent;
+      margin-bottom: -2px; color: #525252; white-space: nowrap;
+    }
+    .tab-btn:hover { color: #161616; background: #f4f4f4; }
+    .tab-btn.active { color: #0f62fe; border-bottom-color: #0f62fe; font-weight: 600; }
+    .tab-content { padding: 1.5rem; }
+
+    /* Surveillance stats */
+    .surv-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .surv-stat { background: #f4f4f4; padding: 1rem; }
+    .surv-stat-label { font-size: 0.75rem; color: #6f6f6f; margin-bottom: 0.4rem; }
+    .surv-stat-value { font-size: 1.5rem; font-weight: 600; color: #161616; margin-bottom: 0.4rem; }
+
+    /* Sparkline */
+    .sparkline-block { background: #f4f4f4; padding: 1rem; }
+    .sparkline-label { font-size: 0.75rem; color: #6f6f6f; margin-bottom: 0.5rem; }
+
+    /* Section heading */
+    .section-heading { font-size: 0.875rem; font-weight: 600; color: #6f6f6f; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.75rem; }
+
+    /* Expandable rows */
+    .expand-btn {
+      background: none; border: none; cursor: pointer; padding: 0 6px;
+      color: #525252; font-size: 0.875rem; line-height: 1;
+    }
+    .expand-btn:hover { color: #161616; }
+    .expand-row { background: #f4f4f4 !important; }
+    .expand-row td { color: #525252; font-size: 0.8rem; padding: 0.5rem 0.75rem 0.5rem 2.5rem !important; }
+    .expand-row td:first-child { padding-left: 2.5rem !important; font-style: italic; }
+    .no-target-note { font-size: 0.75rem; color: #6f6f6f; margin-top: 0.5rem; padding: 0.5rem 1rem; background: #f4f4f4; border-left: 3px solid #e0e0e0; }
+
+    @media (max-width: 1100px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    <strong>⚡ Visual Preview</strong>
+    <span>Lab Management Dashboard &nbsp;·&nbsp; OpenELIS Design Mockup &nbsp;·&nbsp; Not a live application</span>
+  </div>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    // ── Mock data ──────────────────────────────────────────────────────────
+    // Section-level aggregate rows with nested unit breakdowns (FR-3-005, FR-4-007)
+    const WORKLOAD = [
+      { id: 'h',  section: 'Hematology',   total: 128, pending: 12, inProgress: 8,  completed: 104, rejected: 4,
+        units: [
+          { section: 'CBC / Full Blood Count', total: 89,  pending: 8,  inProgress: 5, completed: 73, rejected: 3 },
+          { section: 'Coagulation',            total: 39,  pending: 4,  inProgress: 3, completed: 31, rejected: 1 },
+        ]},
+      { id: 'c',  section: 'Chemistry',    total: 97,  pending: 9,  inProgress: 5,  completed: 81,  rejected: 2,
+        units: [
+          { section: 'Routine Chemistry', total: 72, pending: 6, inProgress: 4, completed: 60, rejected: 2 },
+          { section: 'Immunoassay',       total: 25, pending: 3, inProgress: 1, completed: 21, rejected: 0 },
+        ]},
+      { id: 'm',  section: 'Microbiology', total: 61,  pending: 18, inProgress: 11, completed: 29,  rejected: 3,
+        units: [
+          { section: 'Bacteriology',         total: 38, pending: 11, inProgress: 7, completed: 18, rejected: 2 },
+          { section: 'Mycobacteriology (TB)', total: 23, pending: 7,  inProgress: 4, completed: 11, rejected: 1 },
+        ]},
+      { id: 's',  section: 'Serology',     total: 44,  pending: 6,  inProgress: 2,  completed: 35,  rejected: 1,
+        units: [
+          { section: 'HIV / STI',      total: 28, pending: 4, inProgress: 1, completed: 22, rejected: 1 },
+          { section: 'Malaria / RDT',  total: 16, pending: 2, inProgress: 1, completed: 13, rejected: 0 },
+        ]},
+      { id: 'mo', section: 'Molecular',    total: 12,  pending: 2,  inProgress: 3,  completed: 6,   rejected: 1,
+        units: [
+          { section: 'PCR / GeneXpert', total: 12, pending: 2, inProgress: 3, completed: 6, rejected: 1 },
+        ]},
+    ];
+
+    // TAT targets sourced from tatTargetHours on Test entity (Test Catalog prerequisite — FR-4-006)
+    // Expand icon shown ONLY on non-compliant sections (< 95%); only non-compliant units shown in expand
+    const TAT = [
+      { id: 'h',  section: 'Hematology',   target: 4,    avg: 3.2,  min: 0.8,  max: 6.1,  compliance: 96.1, status: 'green',
+        units: [] /* all units compliant — no expand */},
+      { id: 'c',  section: 'Chemistry',    target: 6,    avg: 5.8,  min: 1.2,  max: 9.4,  compliance: 91.4, status: 'warm-gray',
+        units: [
+          { section: 'Immunoassay', avg: 6.8, min: 3.1, max: 9.4, compliance: 88.2, status: 'warm-gray' },
+          /* Routine Chemistry at 96% is compliant — not shown */
+        ]},
+      { id: 'm',  section: 'Microbiology', target: 48,   avg: 52.3, min: 18.0, max: 96.0, compliance: 74.2, status: 'red',
+        units: [
+          { section: 'Bacteriology',          avg: 48.1, min: 18.0, max: 72.0, compliance: 88.1, status: 'warm-gray' },
+          { section: 'Mycobacteriology (TB)',  avg: 58.4, min: 36.0, max: 96.0, compliance: 61.2, status: 'red'       },
+        ]},
+      { id: 's',  section: 'Serology',     target: 8,    avg: 7.1,  min: 2.0,  max: 11.2, compliance: 95.0, status: 'green',
+        units: [] /* all units compliant */},
+      { id: 'mo', section: 'Molecular',    target: null, avg: 18.4, min: 8.0,  max: 32.0, compliance: null, status: 'gray',
+        units: [] /* no target configured */},
+    ];
+
+    const QC = [
+      { section: 'Hematology',   runs: 24, passes: 24, failures: 0,  passRate: 100.0, status: 'green' },
+      { section: 'Chemistry',    runs: 36, passes: 35, failures: 1,  passRate: 97.2,  status: 'green' },
+      { section: 'Microbiology', runs: 18, passes: 14, failures: 4,  passRate: 77.8,  status: 'red'   },
+      { section: 'Serology',     runs: 12, passes: 12, failures: 0,  passRate: 100.0, status: 'green' },
+      { section: 'Molecular',    runs: 6,  passes: 6,  failures: 0,  passRate: 100.0, status: 'green' },
+    ];
+
+    const SURVEILLANCE = {
+      tb:      { label: 'Tuberculosis (TB)',          rate: 12.4, rateStatus: 'red',   tested: 193, positive: 24, spark: [8.1, 9.4, 11.0, 10.2, 13.7, 12.4], extra: null },
+      hiv:     { label: 'HIV',                        rate: 4.8,  rateStatus: 'green', tested: 312, positive: 15, spark: [5.2, 4.9, 5.4,  5.1,  4.6,  4.8],  extra: null },
+      malaria: { label: 'Malaria',                    rate: 31.2, rateStatus: 'red',   tested: 141, positive: 44, spark: [18.3,22.1,27.4, 29.0, 30.1, 31.2], extra: null },
+      amr:     { label: 'Antimicrobial Resistance',   rate: 68.1, rateStatus: 'red',   tested: 47,  positive: 32, spark: [55.0,58.3,62.1, 64.7, 66.0, 68.1], extra: { mdrCount: 11, mdrRate: 34.4 } },
+    };
+
+    // Equipment: Last Results Imported replaces Last Maintenance / Next Maintenance (FR-7-001)
+    const EQUIPMENT = [
+      { name: 'Mindray BC-5380', section: 'Hematology',   status: 'online',      lastImported: 'Today 09:41'      },
+      { name: 'Mindray BS-430',  section: 'Chemistry',    status: 'online',      lastImported: 'Today 10:12'      },
+      { name: 'Indiko Plus',     section: 'Chemistry',    status: 'warning',     lastImported: 'Today 07:30'      },
+      { name: 'QuantStudio 7',   section: 'Molecular',    status: 'offline',     lastImported: 'Yesterday 16:00'  },
+      { name: 'MALDI Biotyper',  section: 'Microbiology', status: 'maintenance', lastImported: 'Mar 22 14:00'     },
+      { name: 'VIDAS',           section: 'Serology',     status: 'online',      lastImported: 'Today 10:05'      },
+    ];
+
+    // Stock: Forecast column added (FR-8-006) — sourced from stock forecasting module
+    const STOCK = [
+      { item: 'Malaria RDT Kits',      section: 'Serology',     stock: 48,  unit: 'kits',    status: 'critical', days: 3,  forecast: 'Mar 27' },
+      { item: 'AFB Staining Reagent',  section: 'Microbiology', stock: 2,   unit: 'bottles', status: 'critical', days: 4,  forecast: 'Mar 28' },
+      { item: 'EDTA Tubes (3 mL)',     section: 'Hematology',   stock: 310, unit: 'tubes',   status: 'low',      days: 11, forecast: 'Apr 04' },
+      { item: 'HIV Rapid Test Strips', section: 'Serology',     stock: 95,  unit: 'strips',  status: 'low',      days: 14, forecast: 'Apr 07' },
+    ];
+
+    const STATUS_CONFIG = {
+      online:      { kind: 'green',     label: 'Online'      },
+      offline:     { kind: 'red',       label: 'Offline'     },
+      warning:     { kind: 'warm-gray', label: 'Warning'     },
+      maintenance: { kind: 'blue',      label: 'Maintenance' },
+      critical:    { kind: 'red',       label: 'Critical'    },
+      low:         { kind: 'warm-gray', label: 'Low'         },
+      normal:      { kind: 'green',     label: 'Normal'      },
+    };
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+    function Tag({ kind, children }) {
+      return <span className={`cds--tag cds--tag--${kind}`}>{children}</span>;
+    }
+
+    function Sparkline({ data, color = '#0f62fe', width = 280, height = 56 }) {
+      const max = Math.max(...data), min = Math.min(...data), range = max - min || 1;
+      const pts = data.map((v, i) => [
+        (i / (data.length - 1)) * width,
+        height - ((v - min) / range) * (height - 8) - 4,
+      ]);
+      const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+      return (
+        <svg width={width} height={height} role="img" aria-label="Trend chart">
+          <defs>
+            <linearGradient id={`grad-${color.replace('#','')}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity="0.15"/>
+              <stop offset="100%" stopColor={color} stopOpacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d={`${d} L${pts[pts.length-1][0].toFixed(1)},${height} L${pts[0][0].toFixed(1)},${height} Z`}
+            fill={`url(#grad-${color.replace('#','')})`} />
+          <path d={d} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          {pts.map((p, i) => (
+            <circle key={i} cx={p[0]} cy={p[1]} r="3.5" fill="#fff" stroke={color} strokeWidth="2"/>
+          ))}
+        </svg>
+      );
+    }
+
+    // ── Main Dashboard ─────────────────────────────────────────────────────
+    function Dashboard() {
+      const [section, setSection] = useState('all');
+      const [dateRange, setDateRange] = useState('today');
+      const [survTab, setSurvTab] = useState('tb');
+      const [qcOpen, setQcOpen] = useState(false);
+      const [wExpanded, setWExpanded] = useState({});
+      const [tatExpanded, setTatExpanded] = useState({});
+      const toggleW = (id) => setWExpanded(p => ({ ...p, [id]: !p[id] }));
+      const toggleTat = (id) => setTatExpanded(p => ({ ...p, [id]: !p[id] }));
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const survData = SURVEILLANCE[survTab];
+
+      return (
+        <div className="content">
+          {/* ── Page header ────────────────────────────────── */}
+          <div className="page-header">
+            <div style={{ fontSize: '0.75rem', color: '#6f6f6f', marginBottom: '0.5rem' }}>
+              Home &rsaquo; <strong style={{ color: '#161616' }}>Lab Management Dashboard</strong>
+            </div>
+            <h1>Lab Management Dashboard</h1>
+            <div className="filter-row">
+              <div className="filter-group">
+                <label htmlFor="section">Section</label>
+                <select id="section" className="cds--select-input" value={section} onChange={e => setSection(e.target.value)}>
+                  <option value="all">All Sections</option>
+                  <option value="hematology">Hematology</option>
+                  <option value="chemistry">Chemistry</option>
+                  <option value="microbiology">Microbiology</option>
+                  <option value="serology">Serology</option>
+                  <option value="molecular">Molecular</option>
+                </select>
+              </div>
+              <div className="filter-group">
+                <label htmlFor="daterange">Date Range</label>
+                <select id="daterange" className="cds--select-input" value={dateRange} onChange={e => setDateRange(e.target.value)}>
+                  <option value="today">Today</option>
+                  <option value="7d">Last 7 Days</option>
+                  <option value="30d">Last 30 Days</option>
+                  <option value="90d">Last 90 Days</option>
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>Auto-refresh (min)</label>
+                <input type="number" defaultValue={10} min={5} max={30}
+                  style={{ height: '2.5rem', padding: '0 0.5rem', border: '1px solid #8d8d8d', width: '80px', fontSize: '0.875rem' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem' }}>
+                <button className="cds--btn cds--btn--tertiary">↻ Refresh</button>
+                <span className="timestamp">Last updated: {now}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Critical alerts ────────────────────────────── */}
+          <div className="notification-stack">
+            <div className="cds--inline-notification cds--inline-notification--error">
+              <span className="notif-icon">⚠</span>
+              <div>
+                <span className="notif-title">QC pass rate below 90% threshold. Immediate review required.</span>
+                <span style={{ color: '#a2191f', fontSize: '0.8rem' }}>Microbiology — 77.8%</span>
+              </div>
+            </div>
+            <div className="cds--inline-notification cds--inline-notification--error">
+              <span className="notif-icon">⚠</span>
+              <div>
+                <span className="notif-title">One or more analyzers have been offline for more than 2 hours.</span>
+                <span style={{ color: '#a2191f', fontSize: '0.8rem' }}>QuantStudio 7 — Molecular</span>
+              </div>
+            </div>
+            <div className="cds--inline-notification cds--inline-notification--error">
+              <span className="notif-icon">⚠</span>
+              <div>
+                <span className="notif-title">Critical stock shortage detected. Resupply action required.</span>
+                <span style={{ color: '#a2191f', fontSize: '0.8rem' }}>Malaria RDT Kits (3 days), AFB Staining Reagent (4 days)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── KPI tiles ──────────────────────────────────── */}
+          <p className="section-heading">Key Performance Indicators</p>
+          <div className="kpi-row" style={{ marginBottom: '1.5rem' }}>
+            {[
+              { label: 'Tests Today',        value: '342',   delta: '↑ +18 vs yesterday',    deltaClass: 'delta-up',   tag: null },
+              { label: 'Pending',            value: '47',    delta: '↓ –5 vs yesterday',     deltaClass: 'delta-down', tag: null },
+              { label: 'TAT Compliance',     value: '91.4%', delta: '↓ –2.1% vs prior',      deltaClass: 'delta-down', tag: { kind: 'warm-gray', label: '91.4%' } },
+              { label: 'QC Pass Rate',       value: '97.8%', delta: '↑ +0.3% vs prior',      deltaClass: 'delta-up',   tag: { kind: 'green',     label: '97.8%' } },
+              { label: 'Analyzers Online',   value: '7 / 9', delta: '',                        deltaClass: '',           tag: { kind: 'warm-gray', label: '1 offline' } },
+              { label: 'Stock Alerts',       value: '4',     delta: '',                        deltaClass: '',           tag: { kind: 'red',       label: '2 critical' } },
+            ].map(kpi => (
+              <div key={kpi.label} className="kpi-tile cds--tile">
+                <div className="kpi-label">{kpi.label}</div>
+                <div className="kpi-value">{kpi.value}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {kpi.tag && <Tag kind={kpi.tag.kind}>{kpi.tag.label}</Tag>}
+                  {kpi.delta && <span className={`kpi-delta ${kpi.deltaClass}`}>{kpi.delta}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Workload + TAT (expandable by unit) ───────── */}
+          <div className="two-col">
+            <div className="cds--data-table-container">
+              <div className="table-title">Workload by Section
+                <span style={{ fontWeight: 400, fontSize: '0.75rem', color: '#6f6f6f', marginLeft: '0.5rem' }}>
+                  — click ▶ to expand by unit
+                </span>
+              </div>
+              <table className="cds--data-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '2rem' }}></th>
+                    <th>Section</th><th>Total</th><th>Pending</th><th>In Progress</th><th>Completed</th><th>Rejected</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {WORKLOAD.map(r => (
+                    <React.Fragment key={r.id}>
+                      <tr>
+                        <td>
+                          <button className="expand-btn" onClick={() => toggleW(r.id)} aria-label="Expand unit breakdown">
+                            {wExpanded[r.id] ? '▼' : '▶'}
+                          </button>
+                        </td>
+                        <td><strong>{r.section}</strong></td>
+                        <td>{r.total}</td>
+                        <td><Tag kind="purple">{r.pending}</Tag></td>
+                        <td><Tag kind="blue">{r.inProgress}</Tag></td>
+                        <td><Tag kind="green">{r.completed}</Tag></td>
+                        <td><Tag kind="red">{r.rejected}</Tag></td>
+                      </tr>
+                      {wExpanded[r.id] && r.units.map(u => (
+                        <tr key={u.section} className="expand-row">
+                          <td></td>
+                          <td>{u.section}</td>
+                          <td>{u.total}</td>
+                          <td><Tag kind="purple">{u.pending}</Tag></td>
+                          <td><Tag kind="blue">{u.inProgress}</Tag></td>
+                          <td><Tag kind="green">{u.completed}</Tag></td>
+                          <td><Tag kind="red">{u.rejected}</Tag></td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="cds--data-table-container">
+              <div className="table-title">Turnaround Time
+                <span style={{ fontWeight: 400, fontSize: '0.75rem', color: '#6f6f6f', marginLeft: '0.5rem' }}>
+                  — ▶ expands non-compliant sections to show failing units
+                </span>
+              </div>
+              <table className="cds--data-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '2rem' }}></th>
+                    <th>Section</th><th>Target (h)</th><th>Avg (h)</th><th>Min</th><th>Max</th><th>Compliance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {TAT.map(r => {
+                    const canExpand = r.status === 'warm-gray' || r.status === 'red';
+                    return (
+                      <React.Fragment key={r.id}>
+                        <tr>
+                          <td>
+                            {canExpand && (
+                              <button className="expand-btn" onClick={() => toggleTat(r.id)} aria-label="Expand non-compliant units">
+                                {tatExpanded[r.id] ? '▼' : '▶'}
+                              </button>
+                            )}
+                          </td>
+                          <td><strong>{r.section}</strong></td>
+                          <td>{r.target ?? '—'}</td>
+                          <td>{r.avg}</td>
+                          <td>{r.min}</td>
+                          <td>{r.max}</td>
+                          <td>
+                            {r.status === 'gray'
+                              ? <Tag kind="gray">No target set</Tag>
+                              : <Tag kind={r.status}>{r.compliance}%</Tag>
+                            }
+                          </td>
+                        </tr>
+                        {canExpand && tatExpanded[r.id] && r.units.map(u => (
+                          <tr key={u.section} className="expand-row" style={{ background: u.status === 'red' ? '#fff1f1' : '#fff8f1' }}>
+                            <td></td>
+                            <td style={{ color: u.status === 'red' ? '#a2191f' : '#8a3800' }}>⚠ {u.section}</td>
+                            <td><Tag kind="gray" style={{ fontSize: '0.7rem' }}>No target set</Tag></td>
+                            <td>{u.avg}</td>
+                            <td>{u.min}</td>
+                            <td>{u.max}</td>
+                            <td><Tag kind={u.status}>{u.compliance}%</Tag></td>
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <div className="no-target-note">
+                ℹ TAT targets are configured per test in Admin → Test Management → Test Catalog. Expand (▶) is shown only for sections below 95% compliance.
+              </div>
+            </div>
+          </div>
+
+          {/* ── Quality Control (accordion) ────────────────── */}
+          <div className="section-block">
+            <button className="accordion-header" onClick={() => setQcOpen(o => !o)}>
+              <span className={`accordion-arrow ${qcOpen ? 'open' : ''}`}>▼</span>
+              Quality Control
+              <span style={{ marginLeft: '0.5rem', fontWeight: 400, fontSize: '0.8rem', color: '#6f6f6f' }}>
+                {qcOpen ? '— click to collapse' : '— click to expand'}
+              </span>
+            </button>
+            {qcOpen && (
+              <div className="accordion-content">
+                <table className="cds--data-table">
+                  <thead>
+                    <tr>
+                      <th>Section</th><th>QC Runs</th><th>Passes</th><th>Failures</th><th>Pass Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {QC.map(r => (
+                      <tr key={r.section}>
+                        <td><strong>{r.section}</strong></td>
+                        <td>{r.runs}</td>
+                        <td>{r.passes}</td>
+                        <td>{r.failures}</td>
+                        <td><Tag kind={r.status}>{r.passRate}%</Tag></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* ── Disease Surveillance (tabs) ────────────────── */}
+          <div className="tabs-container">
+            <div style={{ padding: '1rem 1rem 0', borderBottom: '1px solid #e0e0e0' }}>
+              <p className="section-heading" style={{ margin: '0 0 0.75rem' }}>Disease Surveillance</p>
+            </div>
+            <div className="tabs-nav">
+              {Object.entries(SURVEILLANCE).map(([key, d]) => (
+                <button key={key} className={`tab-btn ${survTab === key ? 'active' : ''}`} onClick={() => setSurvTab(key)}>
+                  {d.label}
+                </button>
+              ))}
+            </div>
+            <div className="tab-content">
+              <div className="surv-stats">
+                <div className="surv-stat">
+                  <div className="surv-stat-label">Positivity Rate — Current Month</div>
+                  <div className="surv-stat-value">{survData.rate}%</div>
+                  <Tag kind={survData.rateStatus}>
+                    {survData.rateStatus === 'red' ? 'Above threshold' : 'Within threshold'}
+                  </Tag>
+                </div>
+                <div className="surv-stat">
+                  <div className="surv-stat-label">Total Tested — Current Month</div>
+                  <div className="surv-stat-value">{survData.tested}</div>
+                </div>
+                <div className="surv-stat">
+                  <div className="surv-stat-label">Total Positive — Current Month</div>
+                  <div className="surv-stat-value">{survData.positive}</div>
+                </div>
+                {survData.extra && (
+                  <>
+                    <div className="surv-stat">
+                      <div className="surv-stat-label">MDR Isolates — Current Month</div>
+                      <div className="surv-stat-value">{survData.extra.mdrCount}</div>
+                    </div>
+                    <div className="surv-stat">
+                      <div className="surv-stat-label">MDR Rate</div>
+                      <div className="surv-stat-value">{survData.extra.mdrRate}%</div>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="sparkline-block">
+                <div className="sparkline-label">Positivity Rate (%) — Last 6 Months</div>
+                <Sparkline
+                  data={survData.spark}
+                  color={survData.rateStatus === 'red' ? '#da1e28' : '#0f62fe'}
+                  width={380} height={72}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#6f6f6f', marginTop: '4px', paddingTop: '2px' }}>
+                  {['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'].map(m => <span key={m}>{m}</span>)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Equipment + Stock ──────────────────────────── */}
+          <div className="two-col">
+            <div className="cds--data-table-container">
+              <div className="table-title">Equipment Status</div>
+              <table className="cds--data-table">
+                <thead>
+                  <tr>
+                    <th>Analyzer</th><th>Section</th><th>Status</th><th>Last Results Imported</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {EQUIPMENT.map(r => {
+                    const cfg = STATUS_CONFIG[r.status] || { kind: 'gray', label: r.status };
+                    return (
+                      <tr key={r.name}>
+                        <td><strong>{r.name}</strong></td>
+                        <td>{r.section}</td>
+                        <td><Tag kind={cfg.kind}>{cfg.label}</Tag></td>
+                        <td style={{ fontSize: '0.8rem' }}>{r.lastImported}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="cds--data-table-container">
+              <div className="table-title">Stock Levels — Alerts Only</div>
+              <table className="cds--data-table">
+                <thead>
+                  <tr>
+                    <th>Item</th><th>Section</th><th>Stock</th><th>Unit</th><th>Status</th><th>Days Left</th><th>Projected Stock-Out</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {STOCK.map(r => {
+                    const cfg = STATUS_CONFIG[r.status] || { kind: 'gray', label: r.status };
+                    return (
+                      <tr key={r.item}>
+                        <td><strong style={{ fontSize: '0.85rem' }}>{r.item}</strong></td>
+                        <td style={{ fontSize: '0.8rem' }}>{r.section}</td>
+                        <td>{r.stock}</td>
+                        <td style={{ fontSize: '0.8rem' }}>{r.unit}</td>
+                        <td><Tag kind={cfg.kind}>{cfg.label}</Tag></td>
+                        <td>
+                          <span style={{ color: r.days <= 5 ? '#a2191f' : r.days <= 14 ? '#8a3800' : '#161616', fontWeight: 600 }}>
+                            {r.days}
+                          </span>
+                        </td>
+                        <td style={{ fontSize: '0.8rem', color: r.days <= 5 ? '#a2191f' : '#525252', fontWeight: r.days <= 5 ? 600 : 400 }}>
+                          {r.forecast}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style={{ height: '3rem' }} />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<Dashboard />);
+  </script>
+</body>
+</html>

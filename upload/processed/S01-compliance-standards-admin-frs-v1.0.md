@@ -1,19 +1,17 @@
 # Compliance Standards Administration
-## Functional Requirements Specification — v2.0
+## Functional Requirements Specification — v1.1
 
-**Version:** 2.0
+**Version:** 1.1
 **Date:** 2026-04-21
 **Status:** Draft for Review
-
-**Change summary (v1.0 → v2.0):**
-- CSV import removed — not in scope for this sprint (Section 4.5 removed; FR-5-xxx removed)
-- Applicable Sample Types are now **explicitly declared** on the standard (not derived from linked tests); declared types drive the sample-type filter in the Link Test form (FR-1-007 updated)
-- **Multi-limit configuration**: all limit types are configured in a single edit form per test — not one per action (FR-4-003 updated, FR-4-004 added)
-- **Select list compliance mapping**: tests with predefined result options get a value-to-status mapping table with options pulled from the test catalog (FR-3-013, FR-3-014 added)
-- **BORDERLINE threshold type** added alongside HIGH, LOW, RANGE, DESCRIPTIVE (FR-3-003, data model updated)
 **Jira:** [OGC-528](https://uwdigi.atlassian.net/browse/OGC-528) (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
 **Technology:** Java Spring Framework, Carbon React (`@carbon/react`)
-**Related Modules:** Test Catalog (OGC-49), Catalog Subscription & Metadata Sync, Results Entry, Non-Patient Registration (S-02), Compliance Evaluation Engine (S-05)
+**Related Modules:** Test Catalog (OGC-49), Catalog & Terminology Subscription (v1.1 addendum to OGC-447), Concept Mapping & Multi-Coding (T-01), Results Entry, Non-Patient Registration (S-02), Compliance Evaluation Engine (S-05)
+
+### Change Log
+
+- **v1.0 (2026-04-02):** Initial draft — ComplianceStandard, ParameterGroup, ComplianceThreshold entities; CSV seed + runtime import; Test Editor Compliance tab.
+- **v1.1 (2026-04-21):** Added addendum at end of document integrating T-01 multi-coding and catalog-subscription v1.1 value sets. Three changes: (A1) optional ConceptMapping on each ComplianceThreshold to record the upstream regulatory parameter concept, (A2) new optional `test_concept_mappings` CSV column for bulk-populating Test multi-codings alongside compliance thresholds, (A3) `ComplianceStandard.applicableSampleTypes` accepts ValueSet canonical URLs in addition to literal sample type names. Header-only revision — no breaking schema changes. See §13 Addendum v1.1 at end of document.
 
 ---
 
@@ -56,11 +54,11 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 
 ## 3. User Roles & Permissions
 
-| Role | Standards List | Standard CRUD | Threshold CRUD | CSV Seed (Deploy) | Notes |
-|---|---|---|---|---|---|
-| Lab Technician | View only | None | None | N/A | Can see which standard applies to a sample but cannot modify |
-| Lab Manager | View | View only | View only | N/A | Can monitor standards configuration |
-| System Administrator | Full | Full | Full | Server-side | Can manage all standards and thresholds |
+| Role | Standards List | Standard CRUD | Threshold CRUD | CSV Import | CSV Seed (Deploy) | Notes |
+|---|---|---|---|---|---|---|
+| Lab Technician | View only | None | None | None | N/A | Can see which standard applies to a sample but cannot modify |
+| Lab Manager | View | View only | View only | None | N/A | Can monitor standards configuration |
+| System Administrator | Full | Full | Full | Full | Server-side | Can manage all standards, thresholds, and imports |
 
 **Required permission keys:**
 
@@ -68,6 +66,7 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 - `compliance.standard.add` — Create a new compliance standard
 - `compliance.standard.modify` — Edit an existing compliance standard
 - `compliance.standard.delete` — Deactivate (soft-delete) a compliance standard
+- `compliance.standard.import` — Import standards and thresholds from CSV
 - `compliance.threshold.view` — View the Compliance Thresholds tab on test catalog entries
 - `compliance.threshold.modify` — Add, edit, or remove thresholds on test catalog entries
 
@@ -89,11 +88,7 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 
 **FR-1-006:** The system SHALL allow a user with `compliance.standard.delete` to deactivate a standard via a destructive confirmation modal. Deactivation sets status to Archived and does NOT delete previously evaluated results. Deactivated standards are excluded from the registration-time standard selection dropdown but remain visible in the admin list with an Archived tag.
 
-**FR-1-007:** The add/edit form SHALL contain the following fields: Name (required, TextInput), Issuing Body (required, TextInput), Regulation Number (required, TextInput), Description (optional, TextArea), Version (required, TextInput), Effective Date (required, DatePicker), Expiry Date (optional, DatePicker), Country/Region (required, ComboBox with type-ahead from existing values plus free text), Status (required, Select: Draft, Active, Superseded, Archived).
-
-**FR-1-007a:** The add/edit form SHALL include a dedicated **Applicable Sample Types** panel that appears above the Parameter Groups accordion. The administrator explicitly declares which sample type categories apply to the standard by selecting from the system's available sample type categories (e.g., Water, Air, Soil, Sediment) and adding/removing chip tags. Sample types are NOT derived automatically from linked tests. At least one sample type is required before the standard can be set to Active status.
-
-**FR-1-007b:** The declared sample types on a standard SHALL drive filter chips in the Link Test form (FR-4-003), allowing the administrator to pre-filter the test catalog typeahead by one or more sample types before selecting a test to link.
+**FR-1-007:** The add/edit form SHALL contain the following fields: Name (required, TextInput), Issuing Body (required, TextInput), Regulation Number (required, TextInput), Description (optional, TextArea), Version (required, TextInput), Effective Date (required, DatePicker), Expiry Date (optional, DatePicker), Country/Region (required, ComboBox with type-ahead from existing values plus free text), Applicable Sample Types (required, MultiSelect from test catalog sample type categories), Status (required, Select: Draft, Active, Superseded, Archived).
 
 **FR-1-008:** The system SHALL support filtering the standards list by: Status (Select), Country/Region (ComboBox), Applicable Sample Type (Select), and free-text search on Name, Issuing Body, or Regulation Number.
 
@@ -115,7 +110,7 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 
 **FR-3-002:** The Compliance Thresholds tab SHALL display a DataTable of all thresholds defined for the current test, with columns: Standard Name, Parameter Group, Threshold Type (Tag), Threshold Value(s), Unit, Effective Date, Status, Actions.
 
-**FR-3-003:** The system SHALL support the following threshold types, displayed as Carbon Tags: High Limit (`red` Tag, label "High Limit ≤"), Low Limit (`blue` Tag, label "Low Limit ≥"), Range (`teal` Tag, label "Normal Range"), Borderline (`warm-gray` Tag, label "Borderline"), Descriptive (`purple` Tag, label "Qualitative"). The BORDERLINE type represents an advisory warning zone — it triggers a review flag on the result but does NOT mark the result as non-compliant.
+**FR-3-003:** The system SHALL support the following threshold types, displayed as Carbon Tags: Maximum (`red` Tag, label "Max ≤"), Minimum (`blue` Tag, label "Min ≥"), Range (`teal` Tag, label "Range"), Descriptive (`purple` Tag, label "Qualitative").
 
 **FR-3-004:** For threshold type "Maximum": the system SHALL store a single numeric upper-limit value. A result is Compliant if result ≤ threshold.
 
@@ -125,15 +120,7 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 
 **FR-3-007:** For threshold type "Descriptive": the system SHALL store a text description of the acceptable condition (e.g., "No odor," "Clear," "Absent"). Compliance evaluation for descriptive thresholds requires manual analyst judgment — the system SHALL flag these as "Manual Review Required" rather than auto-evaluating.
 
-**FR-3-007a:** For threshold type "Borderline": the system SHALL store a lower and upper numeric value defining the advisory zone (same field structure as RANGE). A result falling within the borderline zone SHALL be flagged with a review indicator (amber/warm-gray) but SHALL NOT be classified as non-compliant. Borderline thresholds are typically used alongside a corresponding HIGH or LOW limit to define a near-limit advisory band (e.g., HIGH ≤ 25 NTU with a BORDERLINE zone of 20–25 NTU).
-
 **FR-3-008:** The system SHALL allow a user with `compliance.threshold.modify` to add a new threshold via inline row expansion. The add form SHALL include: Standard (required, ComboBox filtered to Active standards), Parameter Group (required, Select filtered to groups within the selected standard), Threshold Type (required, Select), Value(s) (conditional fields based on type), Unit (TextInput, pre-populated from test catalog's default unit if available), Notes (optional, TextArea).
-
-**FR-3-013:** For tests whose result type is "Select List" (i.e., tests with predefined result options in the test catalog, such as Absent/Present or a severity scale), the system SHALL present a **value-to-compliance mapping table** instead of numeric threshold fields. Each row in the table shows one result option from the test catalog and a dropdown to assign it to: Compliant, Borderline, or Non-Compliant.
-
-**FR-3-014:** The result options displayed in the value mapping table (FR-3-013) SHALL be pulled automatically from the test catalog's defined result options for that test. Administrators do not manually enter the option values — they only assign compliance status to each.
-
-**FR-3-015:** The system SHALL detect a test's result type (numeric vs. select list) automatically when the test is selected in the Link Test form or inline edit form, and SHALL render the appropriate configuration UI (multi-limit form for numeric; value mapping table for select list).
 
 **FR-3-009:** The system SHALL allow a user with `compliance.threshold.modify` to edit an existing threshold via inline row expansion.
 
@@ -149,14 +136,27 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 
 **FR-4-002:** The Compliance Standards list page SHALL include a "View Linked Tests" action per standard row that opens a read-only panel showing all tests with thresholds for that standard, organized by Parameter Group.
 
-**FR-4-003:** The system SHALL support a "Link Test" workflow from each Parameter Group accordion item. The Link Test form is a three-step inline form:
-- **Step 1 — Sample Type Filter**: Filter chips derived from the standard's declared sample types (FR-1-007a). The admin toggles chips to pre-filter the test catalog typeahead by one or more sample types. All declared sample types are selected by default.
-- **Step 2 — Test Search**: A typeahead text input filters the test catalog by name or code, further restricted to the sample types selected in Step 1. Results are capped at 12 and include the test name, code, sample types, and a "Select List" badge if the test's result type is select. Tests already linked to the group are excluded from results.
-- **Step 3 — Configure Thresholds**: After a test is selected, the system renders the appropriate configuration form based on the test's result type: the multi-limit form for numeric tests (FR-4-004), or the value mapping table for select list tests (FR-3-013).
+**FR-4-003:** The system SHALL support a "Quick Link" workflow from the Parameter Group accordion: a "Link Test" button per group that opens a ComboBox to search and select a test from the catalog, then expands the threshold add form pre-populated with the standard and group.
 
-**FR-4-004:** For numeric tests, the threshold configuration form SHALL present all five limit types (HIGH, LOW, RANGE, BORDERLINE, DESCRIPTIVE) as checkable rows in a single table. The administrator enables one or more types by checking the corresponding row, then fills in the value fields for that row. All enabled limits are saved together in a single Save action. This replaces the prior behavior of adding the same test multiple times for different limit types.
+### 4.5 CSV Import (Runtime)
 
-### 4.5 Deployment-Time CSV Seeding
+**FR-5-001:** The Compliance Standards list page SHALL include an "Import from CSV" button visible to users with `compliance.standard.import` permission.
+
+**FR-5-002:** Clicking "Import from CSV" SHALL open a modal dialog containing: a FileUploader component accepting `.csv` files (max 5MB), a "Download Template" link that downloads a pre-formatted CSV template, an import scope selector (Radio: "Standards & Groups only" or "Standards, Groups & Thresholds"), and an "Upload & Preview" button.
+
+**FR-5-003:** The CSV template for "Standards, Groups & Thresholds" SHALL have the following columns: `standard_name`, `issuing_body`, `regulation_number`, `version`, `effective_date`, `country_region`, `sample_types` (semicolon-delimited), `group_name`, `group_sort_order`, `test_name` (matched against test catalog by name or LOINC code), `test_loinc_code` (optional, used for matching), `threshold_type` (max|min|range|descriptive), `threshold_value_lower`, `threshold_value_upper`, `threshold_value_descriptive`, `unit`, `notes`.
+
+**FR-5-004:** After upload, the system SHALL parse the CSV and display a preview DataTable showing: Row Number, Standard Name, Group, Test Match Status (Matched / Not Found / Ambiguous), Threshold, Validation Status (Valid / Error). Rows with errors SHALL be highlighted with a red left-border and display the error message in the Validation Status column.
+
+**FR-5-005:** The preview SHALL display summary counts: Total Rows, Standards to Create/Update, Groups to Create, Thresholds to Create, Errors. The "Import" button SHALL be disabled if there are any errors, unless the user checks "Skip error rows."
+
+**FR-5-006:** Test matching in CSV import SHALL use the following ordered strategy: (1) Match by `test_loinc_code` if provided, (2) Match by exact `test_name` against the test catalog's name field, (3) If no match is found, mark the row as "Not Found" error. If multiple matches are found, mark as "Ambiguous."
+
+**FR-5-007:** For standards that already exist (matched by `standard_name` + `regulation_number`), the import SHALL update existing fields rather than creating duplicates. New parameter groups and thresholds SHALL be added to the existing standard.
+
+**FR-5-008:** The system SHALL write an audit log entry for each CSV import, recording: filename, row count, standards created/updated, thresholds created, errors skipped, importing user, and timestamp.
+
+### 4.6 Deployment-Time CSV Seeding
 
 **FR-6-001:** The system SHALL support pre-populating compliance standards, parameter groups, and thresholds from CSV files placed in the `/data/compliance-standards/` directory on the server filesystem. This follows the same pattern used for test catalog seed data.
 
@@ -233,29 +233,18 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 | testId | Long | Yes | FK to Test (test catalog entity) |
 | standardId | Long | Yes | FK to ComplianceStandard |
 | parameterGroupId | Long | Yes | FK to ParameterGroup |
-| thresholdType | Enum | Yes | HIGH, LOW, RANGE, BORDERLINE, DESCRIPTIVE (aliases MAX→HIGH, MIN→LOW accepted on import) |
-| valueLower | Double | No | Required for LOW, RANGE, BORDERLINE |
-| valueUpper | Double | No | Required for HIGH, RANGE, BORDERLINE |
+| thresholdType | Enum | Yes | MAX, MIN, RANGE, DESCRIPTIVE |
+| valueLower | Double | No | Required for MIN, RANGE |
+| valueUpper | Double | No | Required for MAX, RANGE |
 | valueDescriptive | String (1024) | No | Required for DESCRIPTIVE |
 | unit | String (100) | No | Overrides test's default unit if different |
-| notes | String (1024) | No | Regulatory notes or methodology reference; advisory note text for BORDERLINE type |
+| notes | String (1024) | No | Regulatory notes or methodology reference |
 | isActive | Boolean | Yes | Default true; false = archived threshold |
 | createdBy | String | Yes | Username |
 | createdAt | Timestamp | Yes | — |
 | updatedAt | Timestamp | Yes | — |
 
-**Uniqueness constraint:** (`testId`, `standardId`, `parameterGroupId`, `thresholdType`) must be unique — one entry per limit type per test per standard per group. This allows a test to have both a HIGH and a BORDERLINE limit within the same group.
-
-**ComplianceThresholdValueMap** (new entity — for select list tests)
-
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| id | Long | Yes | Primary key |
-| thresholdId | Long | Yes | FK to ComplianceThreshold (parent record with thresholdType = SELECT_MAP) |
-| optionValue | String (255) | Yes | The result option text from the test catalog |
-| complianceStatus | Enum | Yes | COMPLIANT, BORDERLINE, NON_COMPLIANT |
-
-A ComplianceThreshold record with `thresholdType = SELECT_MAP` acts as the parent container for a set of ComplianceThresholdValueMap rows — one row per result option from the test catalog. The `valueLower`, `valueUpper`, and `valueDescriptive` fields are null for SELECT_MAP records.
+**Uniqueness constraint:** (`testId`, `standardId`, `parameterGroupId`) must be unique — one threshold per test per standard per group.
 
 **ComplianceImportLog**
 
@@ -482,6 +471,7 @@ All UI text is externalized. The following i18n keys must be added to the messag
 | Add standard | `compliance.standard.add` | "Add Standard" button hidden |
 | Edit standard | `compliance.standard.modify` | Edit button hidden; API returns 403 |
 | Archive standard | `compliance.standard.delete` | Archive button hidden; API returns 403 |
+| Import from CSV | `compliance.standard.import` | "Import from CSV" button hidden; API returns 403 |
 | View thresholds tab | `compliance.threshold.view` | Tab not rendered on test detail page |
 | Add/edit threshold | `compliance.threshold.modify` | Add/Edit buttons hidden; API returns 403 |
 | Remove threshold | `compliance.threshold.modify` | Remove button hidden; API returns 403 |
@@ -502,18 +492,18 @@ All UI text is externalized. The following i18n keys must be added to the messag
 - [ ] User can copy a standard, producing a new Draft with all groups and threshold configurations
 - [ ] Superseded standards display a banner with a link to the replacement standard
 - [ ] The Compliance tab appears in the Test Editor vertical tab sidebar under a Compliance section group
-- [ ] Admin can declare applicable sample types on a standard before linking tests; chips appear in the Link Test form filter
-- [ ] Admin can add and remove sample type chips; the panel is displayed above the Parameter Groups accordion
-- [ ] Link Test form filter chips pre-filter the test catalog typeahead by selected sample type(s)
-- [ ] Test catalog typeahead excludes tests already linked to the current group
-- [ ] Numeric test: all 5 limit types (HIGH, LOW, RANGE, BORDERLINE, DESCRIPTIVE) are presented as checkable rows in a single edit form; multiple types can be enabled and saved together
-- [ ] Select list test: value mapping table is shown instead of numeric fields; result options are pulled from the test catalog
-- [ ] Select list mapping: each option can be set to Compliant, Borderline, or Non-Compliant; row background updates live to reflect the selected status
-- [ ] After saving, the linked tests table shows one row per test with limit-type badge summaries (not one row per limit)
-- [ ] Clicking the edit icon on a test row expands the correct form (multi-limit for numeric, value mapping for select)
-- [ ] BORDERLINE threshold is stored and displayed with warm-gray tag; does not mark result non-compliant during evaluation
+- [ ] User can add a threshold with type Max, Min, Range, or Descriptive
+- [ ] Threshold type-specific fields appear/hide correctly based on selection
+- [ ] Duplicate threshold (same test + standard + group) is rejected with an error message
+- [ ] Range validation enforces lower < upper
 - [ ] "View Linked Tests" shows all tests with thresholds for a given standard
 - [ ] Standard selection auto-suggests a test panel during registration (verified via S-02 integration)
+- [ ] CSV import: user can download the template
+- [ ] CSV import: upload parses and displays a preview with match status per row
+- [ ] CSV import: errors are highlighted and import is blocked (unless "Skip error rows" is checked)
+- [ ] CSV import: successful import creates standards, groups, and thresholds; success notification shows counts
+- [ ] CSV import: test matching works by LOINC code first, then by name
+- [ ] CSV import: existing standards are updated (not duplicated) on re-import
 
 ### Deployment-Time Seeding
 
@@ -541,3 +531,137 @@ All UI text is externalized. The following i18n keys must be added to the messag
 - [ ] Results page displays compliance status tags based on threshold evaluation
 - [ ] Version-lock: evaluated results store standard version and are not retroactively affected by standard changes
 - [ ] Audit trail records all standard modifications, threshold changes, and CSV imports
+
+---
+
+## 13. Addendum v1.1 — Concept Mapping Integration (2026-04-21)
+
+### A.0 Purpose
+
+v1.1 adds three narrow integrations with the T-01 Concept Mapping & Multi-Coding spec and the v1.1 addendum to the Catalog & Terminology Subscription FRS. Nothing in v1.0 is removed or renamed. All v1.1 additions are optional; a v1.0 deployment with no ConceptMapping rows and no ValueSet subscriptions continues to function exactly as before.
+
+### A.1 ComplianceThreshold → Concept Mapping (FR-S01-A1)
+
+**FR-S01-A1-01:** A `ComplianceThreshold` MAY be associated with zero or one `Concept` in the local Concept cache, through the polymorphic `ConceptMapping` table (`entityType = COMPLIANCE_THRESHOLD`, `entityId = ComplianceThreshold.id`). The Concept represents the *upstream regulatory parameter code* — e.g., the Baku Mutu ValueSet member `BM-AS` for an Arsenic threshold, or WHO's parameter identifier for a nitrate threshold.
+
+**FR-S01-A1-02:** The Test Editor's Compliance tab → [threshold inline-expansion row] SHALL add a new **Concept** `Accordion` (collapsed by default) below the existing fields. The accordion body SHALL embed the shared `<MultiCodingPanel>` component (T-01 FR-T01-030) with `entityType = "COMPLIANCE_THRESHOLD"`, `entityId = threshold.id`, and `primaryRequired = false`.
+
+**FR-S01-A1-03:** Because `primaryRequired = false`, a threshold MAY carry zero codings — a v1.0-style threshold that references only a free-text parameter name remains valid. If one coding is attached, it SHALL be the primary coding (there is no multi-coding use case for a single regulatory parameter; the multi-coding component is reused here only for consistency and for the **Browse subscribed value sets…** drill-down (T-01 FR-T01-040)).
+
+**FR-S01-A1-04:** The Compliance Threshold row's inline summary (displayed when the accordion is collapsed) SHALL show a single Carbon `Tag` indicating the mapped concept when one exists, e.g., `Tag kind="teal"` displaying `BM-AS (Baku Mutu)`. When no concept is attached, no tag is shown — the row looks identical to v1.0.
+
+**FR-S01-A1-05:** The Baku Mutu PP22/2021 seed file delivered per v1.0 §4.5 SHALL, on v1.1 installations, also register a co-delivered ValueSet `BakuMutuWaterParameters` in the local `ValueSet` table and a corresponding `CodeSystem` entry for the local Baku Mutu codes. Deployments that have already loaded the v1.0 seed MAY run a one-time "Link thresholds to concepts" admin action that auto-populates `ConceptMapping` rows for thresholds whose `parameterName` matches a member concept's `display` or a configured alias. This match is non-destructive — operators review and accept before commit, through the same pending-updates queue used for subscription updates (catalog-subscription v1.1 addendum §A.3).
+
+**FR-S01-A1-06:** FHIR outbound integration for evaluated results SHALL, when a threshold's underlying Concept is mapped, emit the threshold reference as a coded `Observation.interpretation.coding` (or equivalent) using the Concept's `systemUri` and `code`. This is handled transparently by the T-01 FHIR outbound pipeline — S-01 contributes only the mapping, not the FHIR serialization logic.
+
+### A.2 `test_concept_mappings` CSV Column (FR-S01-A2)
+
+**FR-S01-A2-01:** The ComplianceStandard CSV import defined in v1.0 §4.6 SHALL support an **additional optional column** `test_concept_mappings`. The column, if present, encodes one or more Test-level ConceptMapping rows to create/update alongside the threshold rows in the same CSV. Format per cell:
+
+```
+system_uri|code[|is_primary]; system_uri|code[|is_primary]
+```
+
+Example: `http://loinc.org|2339-0|true; http://snomed.info/sct|33747003|false`
+
+**FR-S01-A2-02:** When `test_concept_mappings` is present on a row, the importer SHALL, before creating the compliance threshold, resolve the referenced Test (using the existing v1.0 LOINC-then-name match strategy) and apply the encoded codings to that Test via the T-01 ConceptMapping API. Rows referencing concepts not present in the local Concept cache SHALL be reported as a Match Status error — the v1.1 addendum to catalog-subscription defines how to load those concepts first, either via seed file or subscription.
+
+**FR-S01-A2-03:** The CSV preview UI SHALL display an additional summary column "Test Codings" showing a count of codings that will be created, updated, or unchanged, with drill-down to the affected Tests. The "Apply Import" button SHALL be blocked when any row's Test Codings contain a Not Found concept, unless "Skip error rows" is checked (same pattern as v1.0 threshold errors).
+
+**FR-S01-A2-04:** The CSV template download (v1.0 §4.6 endpoint `/api/v1/compliance/standards/import/template`) SHALL be updated in v1.1 to include the new column with a header comment explaining that it is optional and the supported format.
+
+**FR-S01-A2-05:** Idempotency: re-importing a CSV with identical `test_concept_mappings` values SHALL be a no-op (catalog-subscription v1.1 addendum §A.10 idempotency applies). Changing `is_primary` from `false` to `true` for a concept already mapped to a Test SHALL flip the primary flag (demoting any existing primary per T-01 BR-T01-01).
+
+### A.3 ValueSet Canonical URL in `applicableSampleTypes` (FR-S01-A3)
+
+**FR-S01-A3-01:** The `ComplianceStandard.applicableSampleTypes` field (v1.0 §5, multi-select of SampleType names) SHALL be extended in v1.1 to accept **either** a literal SampleType name (existing behavior) **or** a ValueSet canonical URL (e.g., `https://api.openconceptlab.org/orgs/openelis-global/collections/EnvironmentalWaterSampleTypes/`).
+
+**FR-S01-A3-02:** When a ValueSet canonical URL is used, the set of applicable sample types SHALL be resolved at runtime by expanding the ValueSet against the local `ValueSet` + `ValueSetMember` tables (T-01 Data Model). Expansion SHALL map each member concept to the matching SampleType via SampleType's own ConceptMapping (`entityType = SAMPLE_TYPE`).
+
+**FR-S01-A3-03:** Resolving a ValueSet that is not present in the local cache SHALL cause the standard's editor to display a non-blocking Carbon `InlineNotification` kind="warning": *"ValueSet not yet synced locally. Applicable sample types cannot be resolved until the value set is delivered via subscription or seed file."* The standard can still be saved — resolution is retried on every read until the cache populates.
+
+**FR-S01-A3-04:** The admin UI for `applicableSampleTypes` SHALL surface a new radio choice **Named sample types** (v1.0 behavior, MultiSelect) vs **ValueSet URL** (TextInput + type-ahead against the local `ValueSet.canonicalUrl` column). The UI SHALL NOT allow mixing the two strategies in a single standard — an administrator chooses one or the other per standard.
+
+**FR-S01-A3-05:** When a ValueSet is the strategy, the Non-Patient Registration (S-02) dropdown and the Compliance Evaluation Engine (S-05) standard lookups SHALL query the resolved sample-type set the same way they do for named lists — resolution is transparent to downstream consumers.
+
+### A.4 Data Model Additions
+
+**ComplianceThreshold** — no column changes. The relationship to `Concept` is represented *only* through the T-01 `ConceptMapping` table (`entityType = COMPLIANCE_THRESHOLD`). No new FK is added.
+
+**ComplianceStandard.applicableSampleTypes** — schema change: the column already stores a delimited string of names; v1.1 allows each delimited entry to be either a literal SampleType name (as today) or a canonical URL. A trailing marker (`@vs` suffix or equivalent) is NOT used — URLs are recognized by their `http://` / `https://` prefix. The data type SHALL change only if storage limits (e.g., VARCHAR length) require it; if so, the migration SHALL extend the column to at least 2048 characters.
+
+### A.5 API Endpoint Additions / Changes
+
+| Method | Path | Description | Permission |
+|---|---|---|---|
+| POST | `/api/v1/compliance/standards/link-thresholds-to-concepts` | Run the one-time Baku Mutu alias match (A.1.5); returns a preview for the pending-updates queue | `compliance.threshold.modify` + `terminology.mapping.modify` |
+| GET | `/api/v1/compliance/standards/import/template` | *(existing v1.0)* — v1.1 version includes the `test_concept_mappings` column in the CSV template | `compliance.standard.import` |
+| POST | `/api/v1/compliance/standards/import/preview` | *(existing v1.0)* — v1.1 response schema adds a `testCodings` summary per row with created/updated/unchanged/notFound counts | `compliance.standard.import` |
+
+No existing v1.0 endpoints change their request schema — only response schemas are extended with optional fields.
+
+### A.6 i18n Key Additions
+
+| i18n Key | Default English Text |
+|---|---|
+| `heading.complianceThreshold.concept` | Regulatory Concept |
+| `label.complianceThreshold.noConcept` | No regulatory concept mapped |
+| `label.complianceStandard.applicableSampleTypes.strategy` | Sample type selection |
+| `label.complianceStandard.applicableSampleTypes.named` | Named sample types |
+| `label.complianceStandard.applicableSampleTypes.valueSet` | ValueSet URL |
+| `label.complianceStandard.valueSetUrl` | ValueSet canonical URL |
+| `message.complianceStandard.valueSetNotResolved` | ValueSet not yet synced locally. Applicable sample types cannot be resolved until the value set is delivered via subscription or seed file. |
+| `button.complianceStandard.linkThresholdsToConcepts` | Link existing thresholds to concepts... |
+| `heading.complianceStandard.linkThresholdsReview` | Review threshold → concept matches |
+| `label.complianceStandard.bulkImport.testCodingsColumn` | Test Codings |
+| `label.complianceStandard.bulkImport.codingsCreated` | Created: {0} |
+| `label.complianceStandard.bulkImport.codingsUpdated` | Updated: {0} |
+| `label.complianceStandard.bulkImport.codingsUnchanged` | Unchanged: {0} |
+| `error.complianceStandard.bulkImport.conceptNotFound` | Concept not found in local cache: {0}&#124;{1} |
+
+### A.7 New Business Rules
+
+**BR-S01-A1:** A `ComplianceThreshold` carries at most one `ConceptMapping` row. T-01's multi-coding pattern is reused here for consistency, but semantically a regulatory parameter has at most one upstream identity — multiple codings would create ambiguity in compliance reporting. The UI SHALL enforce this by hiding the "Add another coding" button once a single mapping exists; the API SHALL reject additional mappings with a `validation.singleCodingPerThreshold` error.
+
+**BR-S01-A2:** Removing a ComplianceThreshold SHALL cascade-delete its ConceptMapping row, per T-01 FR-T01-006. Removing a Concept SHALL be blocked while any threshold references it (T-01 BR-T01-03).
+
+**BR-S01-A3:** A ComplianceStandard that uses a ValueSet URL strategy SHALL NOT be deletable while the referenced ValueSet is actively used by any other standard or pending update — this prevents accidental dangling references. The UI SHALL warn and list affected consumers before allowing deletion.
+
+**BR-S01-A4:** The v1.1 CSV format remains fully backward-compatible with v1.0 CSVs — a v1.0 CSV (no `test_concept_mappings` column) imports cleanly into a v1.1 deployment with identical behavior to v1.0.
+
+### A.8 Updated Acceptance Criteria (Addendum)
+
+#### Concept Mapping Integration
+
+- [ ] The Compliance Threshold inline-expansion row renders a **Regulatory Concept** accordion (collapsed by default)
+- [ ] Opening the accordion embeds the shared `<MultiCodingPanel>` with `entityType = "COMPLIANCE_THRESHOLD"`
+- [ ] A threshold with no concept mapping continues to work exactly as v1.0 — no regression in the existing threshold editor
+- [ ] When a concept is mapped, the collapsed row summary displays a single teal Tag with the concept's display
+- [ ] The multi-coding panel respects `primaryRequired = false` — zero-coding save is permitted on thresholds
+- [ ] Attempting to add a second coding on a threshold is blocked with the `validation.singleCodingPerThreshold` error
+- [ ] The "Link existing thresholds to concepts…" admin action runs the alias match and routes matches through the pending-updates queue (catalog-subscription v1.1 §A.3)
+
+#### `test_concept_mappings` CSV Column
+
+- [ ] A v1.0 CSV (no `test_concept_mappings` column) imports cleanly on v1.1 with identical results
+- [ ] A v1.1 CSV with `test_concept_mappings` populated creates ConceptMapping rows on the matching Tests in the same import transaction
+- [ ] The preview UI shows a "Test Codings" column with created/updated/unchanged/not-found counts per row
+- [ ] Import is blocked when any row contains a Not Found concept unless "Skip error rows" is checked
+- [ ] Re-importing the same CSV is idempotent — no duplicate concept mappings are created
+- [ ] The downloaded CSV template includes the `test_concept_mappings` column with format guidance
+
+#### ValueSet Canonical URL in `applicableSampleTypes`
+
+- [ ] The ComplianceStandard editor displays a radio choice between "Named sample types" and "ValueSet URL"
+- [ ] ValueSet URL strategy displays a type-ahead TextInput populated from the local `ValueSet.canonicalUrl` column
+- [ ] A standard whose ValueSet is not yet synced displays the warning InlineNotification but can still be saved
+- [ ] Non-Patient Registration (S-02) resolves the applicable sample types via ValueSet expansion when the strategy is ValueSet URL
+- [ ] Compliance Evaluation Engine (S-05) resolves the same way — no code changes required in S-05 beyond calling the standard's resolved sample-type list
+- [ ] Switching a standard from Named to ValueSet URL (or vice versa) is permitted via edit but triggers a confirmation warning
+
+#### Integration
+
+- [ ] The shared `<MultiCodingPanel>` component (T-01) renders correctly inside the S-01 threshold row expansion
+- [ ] Baku Mutu PP22/2021 seed file v1.1 creates both ComplianceStandard rows AND the co-delivered ValueSet + CodeSystem entries on fresh install
+- [ ] The Link Thresholds action is idempotent and non-destructive — rejected matches are not re-proposed on the next run (tracked in the pending-updates "dismissed" state from catalog-subscription v1.1)
+- [ ] Audit trail records addendum-introduced actions: concept mapping add/remove on thresholds, bulk-import Test Codings created/updated, strategy switch on applicableSampleTypes

@@ -1319,6 +1319,18 @@
     gallery: https://digi-uw.github.io/openelis-work/#/system/fhir-outbound-push
   added: "2026-03-24"
 
+- id: storage-disposition-fhir
+  type: both
+  path: designs/system/storage-disposition-fhir.jsx
+  spec: designs/system/storage-disposition-fhir.md
+  category: system
+  description: S-05b Addendum to S-05 (OGC-547) — FHIR Specimen resource update on ENV/Vector final disposition (Disposed/Biorepository). SPECIMEN_DISPOSITION_FINAL event → async queue → HAPI FHIR R4 Specimen status + specimen-final-disposition extension. Same pipeline as V-04 (OGC-585). Best-effort non-blocking; sampleDomain-gated for ENV/Vector orders only.
+  links:
+    jira: ['OGC-547', 'OGC-527']
+    github: https://github.com/DIGI-UW/openelis-work/issues/88
+    gallery: https://digi-uw.github.io/openelis-work/#/system/storage-disposition-fhir
+  added: "2026-04-21"
+
 - id: catalog-subscription
   type: both
   path: designs/admin-config/catalog-subscription-carbon.jsx
@@ -1554,6 +1566,26 @@
   status: draft
   tags: ["patient", "document-management", "FHIR", "scanning", "registration"]
 
+- id: sop-deadline-calculation
+  type: both
+  path: designs/sample-collection/sop-deadline-calculation.jsx
+  spec: designs/sample-collection/sop-deadline-calculation.md
+  preview: designs/sample-collection/sop-deadline-calculation.html
+  category: sample-collection
+  description: >
+    S-03d Addendum to S-03 (OGC-537) — General "Required By" date+time field on Order Entry Step 1 (all order types),
+    unifying the EQA eqa_deadline into order.required_by. ENV/Vector-specific SOP holding time auto-calculation:
+    deadline = collection datetime + min(sop_max_holding_hours). Admin: SOP Max Holding Time field in Test Catalog
+    Management (inline edit). ENV/Vector worklist Deadline column: green/amber/red Tags, Approaching/Overdue filter chips,
+    configurable approach threshold. ISO 17025 §7.5 SOP compliance.
+  links:
+    jira: ["OGC-537", "OGC-527"]
+    github: https://github.com/DIGI-UW/openelis-work/issues/89
+    gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/sop-deadline-calculation
+  added: "2026-04-21"
+  status: draft
+  tags: ["order-entry", "SOP", "deadline", "holding-time", "environmental", "vector", "EQA", "worklist", "Indonesia", "SILNAS", "Bogor", "ISO-17025"]
+
 - id: informed-consent
   type: html
   path: designs/sample-collection/informed-consent.jsx
@@ -1651,7 +1683,7 @@
   added: "2026-04-16"
   status: reference
   tags: ["analyzer-integration", "GxAlert", "gap-analysis", "alerts"]
->>>>>>> origin/main
+
 - id: pre-analytical-eligibility-gate
   type: mockup
   path: designs/sample-collection/pre-analytical-eligibility-gate.jsx
@@ -1769,6 +1801,149 @@
     - MIR
     - Indonesia
     - mosquito
+  added: "2026-04-20"
+  status: draft
+
+- id: lh-delivery-sent-messages
+  type: jsx
+  path: designs/reports/lh-delivery-sent-messages.jsx
+  spec: designs/reports/lh-delivery-sent-messages.md
+  category: vector-surveillance
+  description: >
+    S-06b Addendum to Laporan Hasil — LH Delivery Notification & Sent Messages Tab.
+    Extends OGC-437 (TextIt SMS) + OGC-439 (Email/SMTP) with LH_COMPLETED trigger for
+    environmental orders. Per-channel delivery status (Email ✓/✗, WhatsApp ✓/✗) in a
+    global Sent Messages main-menu tab. Resend flow (5 states), delivery log modal,
+    secure customer download page with 128-bit token (30-day TTL, rate-limited).
+    ORDERING_PROVIDER resolves to order customer contact for ENV orders.
+  links:
+    jira: ["OGC-587", "OGC-552", "OGC-527"]
+  tags:
+    - notification
+    - SMS
+    - email
+    - delivery
+    - laporan-hasil
+    - environmental
+    - vector
+    - Indonesia
+    - SILNAS
+    - LH_COMPLETED
+    - sent-messages
+  added: "2026-04-20"
+  status: draft
+
+- id: environmental-dashboard-chart-export
+  type: jsx
+  path: designs/reports/environmental-dashboard-chart-export.jsx
+  spec: designs/reports/environmental-dashboard-chart-export.md
+  category: vector-surveillance
+  description: >
+    S-07b Addendum to ENV Dashboard — Chart PNG & Full-Dashboard PDF Export.
+    Per-chart hover download (client-side SVG→PNG, 1200×800px @144dpi). Full-dashboard
+    PDF: config modal with title/prepared-by/cover-page/exceedance-table toggles,
+    server-side generation via POST /api/v1/env-dashboard/export-pdf, progress indicator,
+    success/error notifications. ROLE_ENV_EXPORT permission. Annotated mockup with scope
+    badges (gold = new, dimmed = S-07 existing).
+  links:
+    jira: ["OGC-553", "OGC-527"]
+  tags:
+    - export
+    - PNG
+    - PDF
+    - environmental
+    - vector
+    - dashboard
+    - charts
+    - compliance
+    - Indonesia
+  added: "2026-04-20"
+  status: draft
+
+- id: sampling-uncertainty
+  type: jsx
+  path: designs/sample-collection/sampling-uncertainty.jsx
+  spec: designs/sample-collection/sampling-uncertainty.md
+  category: vector-surveillance
+  description: >
+    S-03b Addendum to Environmental Order Entry — Sampling Uncertainty field in
+    Collection Conditions (§5.3). ISO 17025 §7.6 field/sampling uncertainty: NumberInput
+    + unit Select (%, mg/L, μg/L, CFU/100mL, Other free-text). Mandatory by default,
+    per-program optional override. Carries to Step 2 via ENV-3-002. QA completeness check
+    extended. Laporan Hasil payload extended with samplingUncertaintyValue + unit.
+    3-scene mockup: Step 1 entry, Step 2 carry-forward, QA completeness warning.
+  links:
+    jira: ["OGC-537", "OGC-527"]
+  tags:
+    - environmental
+    - order-entry
+    - vector
+    - compliance
+    - sample-collection
+    - ISO-17025
+    - uncertainty
+    - Indonesia
+    - SILNAS
+    - collection-conditions
+  added: "2026-04-20"
+  status: draft
+
+- id: subcontract-management
+  type: jsx
+  path: designs/notifications/subcontract-management.jsx
+  spec: designs/notifications/subcontract-management.md
+  category: vector-surveillance
+  description: >
+    S-03c Addendum to S-03 (ENV Order Entry) + V-02 (Vector Collection) — Structured
+    subcontract tracking for ENV/Vector Refer Out referrals. ISO 17025 §6.6/§7.7.
+    Subcontract Metadata panel (handoff datetime, expected return, agreement ref,
+    chain-of-custody contact). Five-state status workflow: DISPATCHED → RECEIVED →
+    RESULTS_RETURNED → CLOSED. Subcontract Register page with overdue highlighting (red),
+    status filters, pagination, Advance Status modal with audit log. One new audit table,
+    one new permission key (referral.close). Bogor Must Have, Phase 1.
+  links:
+    jira: ["OGC-590", "OGC-537", "OGC-581", "OGC-527"]
+  tags:
+    - referral
+    - subcontract
+    - environmental
+    - vector
+    - ISO-17025
+    - chain-of-custody
+    - Indonesia
+    - SILNAS
+    - Bogor
+  added: "2026-04-20"
+  status: draft
+
+- id: referral-out-notification
+  type: jsx
+  path: designs/notifications/referral-out-notification.jsx
+  spec: designs/notifications/referral-out-notification.md
+  category: vector-surveillance
+  description: >
+    X-01 Addendum to Existing Referral Out Module — Configurable REFERRAL_OUT notification
+    trigger added to OGC-437/OGC-439 dispatch pipeline. Extends Combined Triggers Page with
+    one new row (default OFF toggle, Email + WhatsApp channels, Ordering Provider + Submitting
+    User recipients), Combined Templates Page with Referral Out template editor (merge fields:
+    referred_lab, referred_tests, referral_date, expected_return, lab_name, lab_phone),
+    and Sent Messages tab with "Referral Out" type. Per-lab-unit override configurable.
+    3× retry and delivery logging via existing OGC-437 async queue.
+    3-scene mockup: Combined Triggers Page, Combined Templates Page, Sent Messages Tab.
+  links:
+    jira: ["OGC-527"]
+  tags:
+    - notifications
+    - referral
+    - email
+    - whatsapp
+    - vector
+    - environmental
+    - admin-config
+    - OGC-437
+    - OGC-439
+    - Indonesia
+    - SILNAS
   added: "2026-04-20"
   status: draft
 
