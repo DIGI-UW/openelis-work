@@ -45,6 +45,7 @@ jobs:
             mkdir -p "$(dirname "$dest")"
             cp "$f" "$dest"
           done
+          find . -maxdepth 1 -name '*.html' -exec cp {} mockup-viewer/dist/ \;
 
       - name: Upload artifact
         if: github.event_name == 'push'
