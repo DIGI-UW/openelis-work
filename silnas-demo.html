@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenELIS Global — SILNAS ENV & Vector Module Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-70: #0043ce;
+      --blue-60: #0f62fe;
+      --blue-10: #edf5ff;
+      --teal-60: #0072c3;
+      --teal-10: #e5f6ff;
+      --green-50: #198038;
+      --green-10: #defbe6;
+      --purple-60: #8a3ffc;
+      --purple-10: #f6f2ff;
+      --gray-100: #161616;
+      --gray-80: #393939;
+      --gray-60: #525252;
+      --gray-40: #8d8d8d;
+      --gray-20: #e0e0e0;
+      --gray-10: #f4f4f4;
+      --white: #ffffff;
+      --shell-h: 56px;
+      --sidebar-w: 280px;
+      --context-w: 300px;
+    }
+
+    body { font-family: 'IBM Plex Sans', system-ui, sans-serif; background: var(--gray-10); color: var(--gray-100); height: 100vh; overflow: hidden; }
+
+    /* ── COVER SCREEN ───────────────────────────────────────── */
+    #cover {
+      position: fixed; inset: 0; z-index: 100;
+      background: linear-gradient(135deg, #001d6c 0%, #0043ce 50%, #0072c3 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: white; text-align: center; padding: 2rem;
+      transition: opacity 0.4s, visibility 0.4s;
+    }
+    #cover.hidden { opacity: 0; visibility: hidden; }
+    .cover-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 2rem; padding: 0.4rem 1rem; font-size: 0.75rem;
+      letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.5rem;
+    }
+    .cover-logo { font-size: 1rem; font-weight: 300; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.8; margin-bottom: 0.5rem; }
+    .cover-title { font-size: clamp(1.75rem, 4vw, 2.75rem); font-weight: 600; line-height: 1.15; margin-bottom: 0.75rem; max-width: 700px; }
+    .cover-subtitle { font-size: 1.05rem; opacity: 0.8; max-width: 560px; line-height: 1.6; margin-bottom: 2.5rem; }
+    .cover-paths { display: flex; gap: 1.25rem; flex-wrap: wrap; justify-content: center; }
+    .path-card {
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 8px; padding: 1.5rem 2rem; min-width: 220px; cursor: pointer;
+      transition: background 0.2s, transform 0.15s; text-align: left;
+    }
+    .path-card:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+    .path-card .path-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+    .path-card .path-name { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .path-card .path-desc { font-size: 0.8rem; opacity: 0.75; line-height: 1.5; }
+    .path-card .path-steps { font-size: 0.75rem; opacity: 0.6; margin-top: 0.75rem; }
+    .cover-footer { margin-top: 3rem; font-size: 0.75rem; opacity: 0.5; }
+
+    /* ── SHELL ──────────────────────────────────────────────── */
+    #shell { display: none; flex-direction: column; height: 100vh; }
+    #shell.visible { display: flex; }
+
+    /* top bar */
+    #topbar {
+      height: var(--shell-h); background: var(--gray-100); color: white;
+      display: flex; align-items: center; padding: 0 1rem; gap: 1rem;
+      flex-shrink: 0; z-index: 10;
+    }
+    #topbar .tb-logo { font-size: 0.85rem; font-weight: 600; letter-spacing: 0.05em; white-space: nowrap; }
+    #topbar .tb-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.2); flex-shrink: 0; }
+    #topbar .tb-path {
+      display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem;
+      background: rgba(255,255,255,0.08); border-radius: 4px; padding: 0.3rem 0.75rem;
+    }
+    #topbar .tb-path-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    #topbar .tb-spacer { flex: 1; }
+    #topbar .tb-btn {
+      font-size: 0.78rem; padding: 0.35rem 0.85rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.25);
+      background: transparent; color: white; cursor: pointer; transition: background 0.15s;
+    }
+    #topbar .tb-btn:hover { background: rgba(255,255,255,0.1); }
+    #topbar .tb-home-btn {
+      font-size: 0.78rem; padding: 0.35rem 0.85rem; border-radius: 4px;
+      background: var(--blue-60); color: white; border: none; cursor: pointer; transition: background 0.15s;
+    }
+    #topbar .tb-home-btn:hover { background: #0353e9; }
+
+    /* body row */
+    #body-row { display: flex; flex: 1; overflow: hidden; }
+
+    /* sidebar */
+    #sidebar {
+      width: var(--sidebar-w); background: var(--white); border-right: 1px solid var(--gray-20);
+      display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto;
+    }
+    .sb-section-label {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--gray-40); padding: 1rem 1rem 0.4rem; font-weight: 600;
+    }
+    .sb-item {
+      display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.6rem 1rem;
+      cursor: pointer; transition: background 0.12s; border-left: 3px solid transparent;
+      font-size: 0.82rem;
+    }
+    .sb-item:hover { background: var(--gray-10); }
+    .sb-item.active { background: var(--blue-10); border-left-color: var(--blue-60); }
+    .sb-item .sb-num {
+      min-width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--gray-20);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 600; color: var(--gray-60); flex-shrink: 0; margin-top: 1px;
+    }
+    .sb-item.active .sb-num { border-color: var(--blue-60); background: var(--blue-60); color: white; }
+    .sb-item.done .sb-num { border-color: var(--green-50); background: var(--green-50); color: white; }
+    .sb-item .sb-text .sb-name { font-weight: 500; color: var(--gray-100); line-height: 1.3; }
+    .sb-item .sb-text .sb-tag { font-size: 0.68rem; color: var(--gray-40); margin-top: 0.1rem; }
+    .sb-item.active .sb-text .sb-name { color: var(--blue-60); }
+    .sb-divider { height: 1px; background: var(--gray-20); margin: 0.5rem 0; }
+
+    /* iframe area */
+    #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    #step-bar {
+      background: var(--white); border-bottom: 1px solid var(--gray-20);
+      padding: 0.75rem 1.25rem; display: flex; align-items: center; gap: 1rem; flex-shrink: 0;
+    }
+    .step-progress { flex: 1; }
+    .step-progress-label { font-size: 0.7rem; color: var(--gray-40); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+    .step-progress-bar { height: 4px; background: var(--gray-20); border-radius: 2px; overflow: hidden; }
+    .step-progress-fill { height: 100%; background: var(--blue-60); border-radius: 2px; transition: width 0.3s; }
+    .step-nav { display: flex; gap: 0.5rem; flex-shrink: 0; }
+    .step-nav button {
+      padding: 0.4rem 1rem; border-radius: 4px; font-size: 0.82rem; cursor: pointer;
+      border: 1px solid var(--gray-20); background: var(--white); color: var(--gray-100);
+      transition: background 0.12s;
+    }
+    .step-nav button:hover { background: var(--gray-10); }
+    .step-nav button.primary { background: var(--blue-60); color: white; border-color: var(--blue-60); }
+    .step-nav button.primary:hover { background: #0353e9; }
+    .step-nav button:disabled { opacity: 0.35; cursor: not-allowed; }
+    .fullscreen-btn {
+      padding: 0.4rem 0.75rem; border-radius: 4px; font-size: 0.78rem; cursor: pointer;
+      border: 1px solid var(--gray-20); background: var(--white); color: var(--gray-60);
+      transition: background 0.12s; flex-shrink: 0;
+    }
+    .fullscreen-btn:hover { background: var(--gray-10); }
+
+    #iframe-container { flex: 1; position: relative; overflow: hidden; }
+    #demo-frame { width: 100%; height: 100%; border: none; }
+
+    /* context panel */
+    #context {
+      width: var(--context-w); background: var(--white); border-left: 1px solid var(--gray-20);
+      display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto;
+    }
+    .ctx-header { padding: 1rem; border-bottom: 1px solid var(--gray-20); }
+    .ctx-step-num { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-40); margin-bottom: 0.25rem; }
+    .ctx-step-name { font-size: 1rem; font-weight: 600; color: var(--gray-100); line-height: 1.3; }
+    .ctx-story-id { display: inline-block; font-size: 0.72rem; background: var(--blue-10); color: var(--blue-60); border-radius: 3px; padding: 0.15rem 0.5rem; margin-top: 0.4rem; font-weight: 500; }
+    .ctx-section { padding: 0.9rem 1rem; border-bottom: 1px solid var(--gray-10); }
+    .ctx-section-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-40); margin-bottom: 0.5rem; font-weight: 600; }
+    .ctx-body { font-size: 0.82rem; color: var(--gray-60); line-height: 1.6; }
+    .ctx-user { font-size: 0.82rem; color: var(--gray-60); line-height: 1.5; display: flex; gap: 0.5rem; margin-bottom: 0.4rem; }
+    .ctx-user::before { content: '👤'; font-size: 0.75rem; flex-shrink: 0; margin-top: 1px; }
+    .ctx-key-list { list-style: none; }
+    .ctx-key-list li { font-size: 0.8rem; color: var(--gray-60); line-height: 1.5; padding: 0.2rem 0; display: flex; gap: 0.5rem; }
+    .ctx-key-list li::before { content: '✓'; color: var(--green-50); font-weight: 700; flex-shrink: 0; }
+    .ctx-dep { font-size: 0.75rem; background: var(--gray-10); border-radius: 4px; padding: 0.35rem 0.6rem; color: var(--gray-60); display: inline-flex; align-items: center; gap: 0.3rem; margin: 0.2rem 0.2rem 0 0; }
+    .ctx-dep::before { content: '→'; color: var(--gray-40); }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ COVER ═══════════════════ -->
+<div id="cover">
+  <div class="cover-badge">🔬 Design Preview &nbsp;·&nbsp; April 2026</div>
+  <div class="cover-logo">OpenELIS Global</div>
+  <h1 class="cover-title">Environmental &amp; Vector Testing Module</h1>
+  <p class="cover-subtitle">Interactive design walkthrough for the SILNAS Indonesia deployment. Select a workflow to explore the full feature set.</p>
+  <div class="cover-paths">
+    <div class="path-card" onclick="startPath('env')">
+      <div class="path-icon">🌊</div>
+      <div class="path-name">Environmental Compliance</div>
+      <div class="path-desc">Water, air, and soil sample workflows with automated compliance evaluation and regulatory reporting.</div>
+      <div class="path-steps">7 screens &nbsp;·&nbsp; S-01 through S-08</div>
+    </div>
+    <div class="path-card" onclick="startPath('vector')">
+      <div class="path-icon">🦟</div>
+      <div class="path-name">Vector Surveillance</div>
+      <div class="path-desc">Mosquito and arthropod collection, species identification, and population surveillance dashboards.</div>
+      <div class="path-steps">4 screens &nbsp;·&nbsp; V-01 through V-04</div>
+    </div>
+  </div>
+  <div class="cover-footer">OpenELIS Global · DIGI-UW · SILNAS Indonesia · 2026</div>
+</div>
+
+<!-- ═══════════════════ SHELL ═══════════════════ -->
+<div id="shell">
+
+  <!-- top bar -->
+  <div id="topbar">
+    <span class="tb-logo">OpenELIS Global</span>
+    <div class="tb-sep"></div>
+    <div class="tb-path">
+      <div class="tb-path-dot" id="path-dot"></div>
+      <span id="path-label">ENV Compliance</span>
+    </div>
+    <div class="tb-spacer"></div>
+    <button class="tb-btn" onclick="openFullscreen()">↗ Full screen</button>
+    <button class="tb-home-btn" onclick="goHome()">← All workflows</button>
+  </div>
+
+  <!-- body -->
+  <div id="body-row">
+
+    <!-- sidebar -->
+    <nav id="sidebar">
+      <div class="sb-section-label" id="sb-section-label">Workflow Steps</div>
+      <div id="sb-items"></div>
+    </nav>
+
+    <!-- main content -->
+    <div id="main">
+      <!-- step progress bar -->
+      <div id="step-bar">
+        <div class="step-progress">
+          <div class="step-progress-label" id="progress-label">Step 1 of 7</div>
+          <div class="step-progress-bar"><div class="step-progress-fill" id="progress-fill" style="width:14%"></div></div>
+        </div>
+        <button class="fullscreen-btn" onclick="openFullscreen()" title="Open in new tab">↗</button>
+        <div class="step-nav">
+          <button id="btn-prev" onclick="navigate(-1)" disabled>← Previous</button>
+          <button id="btn-next" onclick="navigate(1)" class="primary">Next →</button>
+        </div>
+      </div>
+      <!-- iframe -->
+      <div id="iframe-container">
+        <iframe id="demo-frame" src="" title="Demo screen"></iframe>
+      </div>
+    </div>
+
+    <!-- context panel -->
+    <div id="context">
+      <div class="ctx-header">
+        <div class="ctx-step-num" id="ctx-step-num">Step 1 of 7</div>
+        <div class="ctx-step-name" id="ctx-step-name">—</div>
+        <span class="ctx-story-id" id="ctx-story-id">—</span>
+      </div>
+      <div class="ctx-section">
+        <div class="ctx-section-title">Purpose</div>
+        <div class="ctx-body" id="ctx-purpose">—</div>
+      </div>
+      <div class="ctx-section">
+        <div class="ctx-section-title">Primary Users</div>
+        <div id="ctx-users"></div>
+      </div>
+      <div class="ctx-section">
+        <div class="ctx-section-title">Key Capabilities</div>
+        <ul class="ctx-key-list" id="ctx-capabilities"></ul>
+      </div>
+      <div class="ctx-section">
+        <div class="ctx-section-title">Feeds Into</div>
+        <div id="ctx-deps"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const PATHS = {
+  env: {
+    label: 'ENV Compliance',
+    color: '#0072c3',
+    sectionLabel: 'Environmental Compliance Workflow',
+    steps: [
+      {
+        name: 'Compliance Standards Admin',
+        tag: 'S-01 · Admin Configuration',
+        story: 'OGC-528',
+        src: 'designs/admin-config/compliance-standards-admin.html',
+        purpose: 'Lab administrators configure the regulatory thresholds that define pass/marginal/fail for each tested parameter. This is the foundation — without configured standards, the system cannot evaluate any sample results.',
+        users: ['Lab administrator', 'Regulatory compliance officer'],
+        capabilities: [
+          'Define parameter limits (min/max) per regulatory body',
+          'Multiple limits per parameter (e.g. WHO + local MoH)',
+          'Link standards to specific test panels',
+          'Activate/deactivate standards without deletion',
+          'Audit trail of changes'
+        ],
+        deps: ['S-03 Environmental Order Entry', 'S-05 Compliance Evaluation']
+      },
+      {
+        name: 'Sampling Site Registry',
+        tag: 'S-02 · Site Management',
+        story: 'OGC-531',
+        src: 'designs/sample-collection/sampling-site-registry.html',
+        purpose: 'Every environmental order must be linked to a registered sampling site. This module lets administrators maintain the catalogue of sites — rivers, wells, air monitoring stations — with GPS coordinates and site-specific compliance standards.',
+        users: ['Lab administrator', 'Field coordinator'],
+        capabilities: [
+          'Register sites with GPS coordinates and location hierarchy',
+          'Assign site-specific compliance standards',
+          'Categorise by water body type (surface, groundwater, coastal)',
+          'Link sites to regulatory monitoring programmes',
+          'Inactive site suppression from order entry dropdowns'
+        ],
+        deps: ['S-03 Environmental Order Entry', 'V-02 Vector Collection Workflow']
+      },
+      {
+        name: 'Environmental Order Entry',
+        tag: 'S-03 · Order Workflow',
+        story: 'OGC-537',
+        src: 'designs/sample-collection/environmental-order-entry.html',
+        purpose: 'The primary intake screen for all environmental samples. Extends the standard 4-step collection workflow with site linkage, GPS capture, field conditions, holding time enforcement, and automatic test suggestions based on compliance programme.',
+        users: ['Field technician', 'Lab receptionist', 'Environmental scientist'],
+        capabilities: [
+          'Site selection with GPS auto-fill from registry',
+          'Field conditions capture (weather, temperature, flow rate)',
+          'Auto-suggest test panels based on sampling programme',
+          'Holding time enforcement per ISO 17025 §7.3',
+          'Sampling uncertainty field (ISO 17025 §7.6)',
+          'Subcontract routing for external lab referrals',
+          'Required-by date with SOP deadline auto-calculation'
+        ],
+        deps: ['S-05 Compliance Evaluation', 'S-08 QC Rules']
+      },
+      {
+        name: 'SOP Deadline Calculation',
+        tag: 'S-03d · Deadline Enforcement',
+        story: 'OGC-593',
+        src: 'designs/sample-collection/sop-deadline-calculation.html',
+        purpose: 'Automatically computes holding times and analysis deadlines from collection timestamp and SOP requirements. Ensures the lab never reports results from a sample whose integrity may have been compromised by exceeding its preservation window.',
+        users: ['Lab technician', 'Workplan manager'],
+        capabilities: [
+          'Per-parameter holding time lookup from SOP library',
+          'Auto-calculate analysis deadline on order save',
+          'Visual deadline warnings at 75% and 95% elapsed',
+          'Worklist sorted by urgency / time-to-expiry',
+          'Expired sample flagging with required acknowledgment'
+        ],
+        deps: ['S-05 Compliance Evaluation', 'S-06 Laporan Hasil']
+      },
+      {
+        name: 'Environmental QC Rules',
+        tag: 'S-08 · Quality Control',
+        story: 'OGC-554',
+        src: 'designs/quality/environmental-qc-rules.html',
+        purpose: 'Configures and enforces ISO 17025 QC protocols for environmental testing: field blanks detect contamination introduced during collection; trip blanks verify container integrity; duplicates assess precision; spike recovery confirms method accuracy.',
+        users: ['QC officer', 'Lab manager'],
+        capabilities: [
+          'Field blank and trip blank rule configuration',
+          'Duplicate sample rules with acceptable deviation %',
+          'Spike recovery rules with recovery range',
+          'Auto-generate QC sample orders per rule',
+          'QC failure holds result release pending review',
+          'QC summary on Laporan Hasil report'
+        ],
+        deps: ['S-05 Compliance Evaluation', 'S-06 Laporan Hasil']
+      },
+      {
+        name: 'Compliance Evaluation Engine',
+        tag: 'S-05 · Results Evaluation',
+        story: 'OGC-547',
+        src: 'designs/results-validation/compliance-evaluation-engine.html',
+        purpose: 'The core value proposition of the ENV module. After results are entered, this engine automatically evaluates each parameter against the configured regulatory thresholds and produces pass/marginal/fail determinations with the exact limit and margin displayed.',
+        users: ['Validation scientist', 'Lab director', 'Environmental engineer'],
+        capabilities: [
+          'Automatic threshold comparison on result entry',
+          'Multi-standard evaluation (WHO + local simultaneously)',
+          'Pass / Marginal / Fail with exact margin display',
+          'Override with mandatory justification and audit trail',
+          'Batch evaluation across all parameters in one order',
+          'Result holds until evaluation complete'
+        ],
+        deps: ['S-06 Laporan Hasil Report']
+      },
+      {
+        name: 'Laporan Hasil — Compliance Report',
+        tag: 'S-06 · Regulatory Report',
+        story: 'OGC-552',
+        src: 'designs/reports/laporan-hasil-compliance-report.html',
+        purpose: 'The contractual deliverable for SILNAS Indonesia — the Laporan Hasil (Sertifikat Hasil Uji) is the official compliance report submitted to regulatory authorities. It packages all results, compliance determinations, QC summaries, and chain of custody into a signed, stamped document.',
+        users: ['Lab director', 'Client / Environmental agency', 'Regulatory authority'],
+        capabilities: [
+          'Full parameter results with compliance determination per row',
+          'Regulatory limit reference and margin displayed',
+          'QC summary (blanks, duplicates, spike recovery)',
+          'Sampling site details, GPS, collection conditions',
+          'ISO 17025 accreditation details and method references',
+          'Authorised signatory block with digital stamp',
+          'PDF export for submission and archiving'
+        ],
+        deps: []
+      }
+    ]
+  },
+  vector: {
+    label: 'Vector Surveillance',
+    color: '#8a3ffc',
+    sectionLabel: 'Vector Surveillance Workflow',
+    steps: [
+      {
+        name: 'Vector Reference Data',
+        tag: 'V-01 · Reference Configuration',
+        story: 'OGC-555',
+        src: 'designs/vector-surveillance/vector-reference-data.html',
+        purpose: 'Establishes the taxonomy and trap configuration reference data that all downstream vector workflows depend on. Administrators register the species catalogue, trap types, and collection protocols before any field operations begin.',
+        users: ['Lab administrator', 'Entomologist', 'Programme coordinator'],
+        capabilities: [
+          'Species catalogue with taxonomic hierarchy (Family → Genus → Species)',
+          'Trap type registry with collection method metadata',
+          'Vector specimen profile configuration',
+          'Programme linkage (malaria, dengue, filariasis)',
+          'Import from standard entomological databases'
+        ],
+        deps: ['V-02 Vector Collection Workflow']
+      },
+      {
+        name: 'Vector Collection Workflow',
+        tag: 'V-02 · Field Collection',
+        story: 'OGC-581',
+        src: 'designs/vector-surveillance/vector-collection-workflow.html',
+        purpose: 'Extends the 4-step sample collection workflow with a dedicated Vector domain mode. Field teams record collection events — trap placement, GPS, pool composition, organism counts — creating CollectionLots that pass to the species ID workbench.',
+        users: ['Field entomologist', 'Vector control technician', 'Lab receptionist'],
+        capabilities: [
+          'Collection event with trap type, GPS, date/time range',
+          'Pool composition — organism count, pool flag, cooler ID',
+          'Auto-link to nearest registered sampling site',
+          'Weather and environmental conditions capture',
+          'Receipt confirmation step (Step 2) with transit window check',
+          'Pre-analytical eligibility gate (pool size, transit time)',
+          'Lab number: [year]/[site]/VCT/[month]/[seq]'
+        ],
+        deps: ['V-03 Vector Testing & Identification', 'S-02 Sampling Site Registry']
+      },
+      {
+        name: 'Vector Testing & Identification',
+        tag: 'V-03 · Species ID Workbench',
+        story: 'OGC-582',
+        src: 'designs/vector-surveillance/vector-testing-identification.html',
+        purpose: 'The species identification workbench where laboratory entomologists process pooled collections. Technicians examine specimens morphologically or molecularly, identify species, and record results per pool and per individual within a pool (deconvolution).',
+        users: ['Entomologist', 'Lab technician', 'Molecular biologist'],
+        capabilities: [
+          'Lot-level worklist sorted by priority and transit time',
+          'Per-pool specimen examination with species assignment',
+          'Pool deconvolution — individual specimens within pool',
+          'Morphological ID workflow with key illustration links',
+          'Molecular confirmation (PCR) result entry',
+          'Abortive lot handling with reason codes',
+          'Test lot review and release workflow'
+        ],
+        deps: ['V-04 Surveillance Reporting']
+      },
+      {
+        name: 'Vector Surveillance Reporting',
+        tag: 'V-04 · Surveillance Dashboard',
+        story: 'OGC-585',
+        src: 'designs/vector-surveillance/vector-surveillance-reporting.html',
+        purpose: 'Aggregates collection data across sites and time periods into surveillance reports and population trend charts. Feeds the Superset analytics dashboard and provides FHIR-compatible exports for integration with national disease surveillance systems.',
+        users: ['Epidemiologist', 'Public health officer', 'Programme manager', 'WHO / MoH'],
+        capabilities: [
+          'Species abundance over time by site and trap type',
+          'Geographic heat map of collection density',
+          'Seasonal trend analysis with year-on-year comparison',
+          'Entomological risk indicators (adult density index)',
+          'Export to WHO IG-compatible FHIR Bundle',
+          'Superset dashboard integration for national reporting',
+          'Printable surveillance bulletin'
+        ],
+        deps: []
+      }
+    ]
+  }
+};
+
+let currentPath = null;
+let currentStep = 0;
+let visitedSteps = new Set();
+
+function startPath(pathKey) {
+  currentPath = pathKey;
+  currentStep = 0;
+  visitedSteps.clear();
+  document.getElementById('cover').classList.add('hidden');
+  const shell = document.getElementById('shell');
+  shell.classList.add('visible');
+  const path = PATHS[pathKey];
+  document.getElementById('path-label').textContent = path.label;
+  document.getElementById('path-dot').style.background = path.color;
+  document.getElementById('sb-section-label').textContent = path.sectionLabel;
+  renderSidebar();
+  goToStep(0);
+}
+
+function goHome() {
+  document.getElementById('cover').classList.remove('hidden');
+  document.getElementById('shell').classList.remove('visible');
+  document.getElementById('demo-frame').src = '';
+}
+
+function renderSidebar() {
+  const path = PATHS[currentPath];
+  const container = document.getElementById('sb-items');
+  container.innerHTML = '';
+  path.steps.forEach((step, i) => {
+    const div = document.createElement('div');
+    div.className = 'sb-item' + (i === currentStep ? ' active' : '') + (visitedSteps.has(i) && i !== currentStep ? ' done' : '');
+    div.onclick = () => goToStep(i);
+    div.innerHTML = `
+      <div class="sb-num">${visitedSteps.has(i) && i !== currentStep ? '✓' : i + 1}</div>
+      <div class="sb-text">
+        <div class="sb-name">${step.name}</div>
+        <div class="sb-tag">${step.tag}</div>
+      </div>`;
+    container.appendChild(div);
+    if (i < path.steps.length - 1) {
+      const divider = document.createElement('div');
+      divider.style.cssText = 'height:1px; background: #f4f4f4; margin: 0 1rem;';
+      container.appendChild(divider);
+    }
+  });
+}
+
+function goToStep(index) {
+  const path = PATHS[currentPath];
+  const total = path.steps.length;
+  visitedSteps.add(currentStep);
+  currentStep = index;
+  const step = path.steps[index];
+
+  // iframe
+  document.getElementById('demo-frame').src = step.src;
+
+  // progress bar
+  const pct = Math.round(((index + 1) / total) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `Step ${index + 1} of ${total}`;
+
+  // nav buttons
+  document.getElementById('btn-prev').disabled = index === 0;
+  const nextBtn = document.getElementById('btn-next');
+  if (index === total - 1) {
+    nextBtn.textContent = '↩ Restart workflow';
+    nextBtn.classList.remove('primary');
+    nextBtn.onclick = () => { visitedSteps.clear(); goToStep(0); };
+  } else {
+    nextBtn.textContent = 'Next →';
+    nextBtn.classList.add('primary');
+    nextBtn.onclick = () => navigate(1);
+  }
+
+  // context panel
+  document.getElementById('ctx-step-num').textContent = `Step ${index + 1} of ${total}`;
+  document.getElementById('ctx-step-name').textContent = step.name;
+  document.getElementById('ctx-story-id').textContent = step.story;
+  document.getElementById('ctx-purpose').textContent = step.purpose;
+
+  const usersEl = document.getElementById('ctx-users');
+  usersEl.innerHTML = step.users.map(u => `<div class="ctx-user">${u}</div>`).join('');
+
+  const capEl = document.getElementById('ctx-capabilities');
+  capEl.innerHTML = step.capabilities.map(c => `<li>${c}</li>`).join('');
+
+  const depsEl = document.getElementById('ctx-deps');
+  if (step.deps.length === 0) {
+    depsEl.innerHTML = '<span style="font-size:0.8rem; color:#8d8d8d;">End of workflow</span>';
+  } else {
+    depsEl.innerHTML = step.deps.map(d => `<span class="ctx-dep">${d}</span>`).join('');
+  }
+
+  renderSidebar();
+}
+
+function navigate(dir) {
+  const path = PATHS[currentPath];
+  const next = currentStep + dir;
+  if (next >= 0 && next < path.steps.length) goToStep(next);
+}
+
+function openFullscreen() {
+  if (!currentPath) return;
+  const src = PATHS[currentPath].steps[currentStep].src;
+  window.open(src, '_blank');
+}
+
+// keyboard navigation
+document.addEventListener('keydown', e => {
+  if (!currentPath) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') navigate(-1);
+  if (e.key === 'Escape') goHome();
+});
+</script>
+</body>
+</html>
