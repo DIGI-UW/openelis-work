@@ -2000,3 +2000,31 @@
     - Indonesia
   added: "2026-04-21"
   status: draft
+
+- id: sample-collection-referral-addendum
+  type: both
+  path: designs/sample-collection/sample-collection-referral-addendum.jsx
+  spec: designs/sample-collection/sample-collection-referral-addendum.md
+  category: sample-collection
+  description: >
+    v2.1 Addendum to Sample Collection Redesign — restores Refer Out workflow into Step 3
+    (Label & Store). Inline per-test referral assignment with ReferringLab ComboBox, Reason
+    TextArea, Expected Return DatePicker, and Notify Customer toggle. Bulk "Refer all" modal
+    for full-order referrals. New REFERRED_OUT order status; fully-referred orders bypass Step 4
+    QA. Partial referral handling (order continues in-house). Order Dashboard "Has Referred Tests"
+    and "Fully Referred Out" filters. Reuses existing Refer Out module mechanics and X-01
+    notification trigger without modification.
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/92
+    jira: https://uwdigi.atlassian.net/browse/OGC-354
+    gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/sample-collection-redesign-v2-1-referral-addendum
+  tags:
+    - sample-collection
+    - referral
+    - refer-out
+    - order-status
+    - clinical
+    - environmental
+    - vector
+  added: "2026-04-23"
+  status: draft

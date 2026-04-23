@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Label &amp; Store — Refer Out Addendum — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner {
+      background: #0f62fe; color: #fff;
+      padding: 6px 1rem; font-size: 12px; font-family: monospace;
+    }
+    .preview-content { padding: 1rem 2rem; max-width: 1440px; margin: 0 auto; }
+    .section { background: #fff; border: 1px solid #e0e0e0; margin-bottom: 1rem; }
+    .section-heading {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #e0e0e0;
+      background: #fafafa;
+    }
+    .section-heading h3 { margin: 0; font-weight: 600; font-size: 14px; }
+    .section-heading p { margin: 0.25rem 0 0; color: #525252; font-size: 12px; }
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.5rem 1rem; border-bottom: 1px solid #e0e0e0; background: #fafafa;
+    }
+    .cds--data-table td, .cds--data-table th { padding: 0.75rem 1rem; vertical-align: middle; }
+    .stepper {
+      display: flex; gap: 0; margin-bottom: 1rem; background: #fff;
+      padding: 1rem 1.5rem; border: 1px solid #e0e0e0;
+    }
+    .step { flex: 1; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; position: relative; }
+    .step-circle {
+      width: 20px; height: 20px; border-radius: 50%; border: 2px solid #8d8d8d;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; color: #525252; flex-shrink: 0;
+    }
+    .step.complete .step-circle { background: #198038; border-color: #198038; color: #fff; }
+    .step.current .step-circle { background: #0f62fe; border-color: #0f62fe; color: #fff; }
+    .step.disabled { opacity: 0.5; }
+    .step-label { font-size: 13px; }
+    .step.current .step-label { font-weight: 600; }
+    .ctx-card {
+      background: #fff; border: 1px solid #e0e0e0; padding: 1rem 1.5rem;
+      display: grid; grid-template-columns: auto 2fr 1fr 1.5fr; gap: 1.5rem; margin-bottom: 1rem;
+    }
+    .ctx-item-label { font-size: 11px; color: #525252; text-transform: uppercase; letter-spacing: 0.5px; }
+    .ctx-item-value { font-size: 14px; font-weight: 500; margin-top: 2px; }
+    .ctx-item-value.big { font-size: 20px; font-weight: 600; }
+    .ctx-item-sub { font-size: 11px; color: #525252; }
+    .inline-form {
+      background: #f4f4f4; padding: 1rem; border-left: 3px solid #8a3ffc;
+    }
+    .inline-form h5 { margin: 0 0 0.75rem; font-size: 13px; font-weight: 600; }
+    .form-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .form-grid.single { grid-template-columns: 1fr; }
+    .form-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+    .inline-field label { font-size: 11px; color: #525252; display: block; margin-bottom: 4px; font-weight: 500; }
+    .inline-field input, .inline-field textarea, .inline-field select {
+      width: 100%; padding: 6px 10px; border: none; border-bottom: 1px solid #8d8d8d;
+      background: #fff; font-family: inherit; font-size: 13px;
+    }
+    .breadcrumb { font-size: 12px; color: #525252; margin-bottom: 0.75rem; }
+    .breadcrumb a { color: #0f62fe; text-decoration: none; }
+    .breadcrumb .current { color: #161616; }
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(22,22,22,0.5);
+      display: flex; align-items: center; justify-content: center; z-index: 10;
+    }
+    .modal {
+      background: #fff; width: 560px; max-width: 90vw; max-height: 90vh; overflow: auto;
+      display: flex; flex-direction: column;
+    }
+    .modal-header {
+      padding: 1rem 1.5rem 0.5rem; font-size: 18px; font-weight: 400;
+    }
+    .modal-body { padding: 1rem 1.5rem; }
+    .modal-footer { padding: 1rem 1.5rem; display: flex; justify-content: flex-end; gap: 0; border-top: 1px solid #e0e0e0; }
+    .modal-footer .cds--btn { flex: 1; max-width: 50%; justify-content: flex-start; padding: 0.875rem 1rem; }
+    .notif-preview { margin: 0.75rem 0; }
+    .referred-details { font-size: 11px; color: #525252; margin-top: 4px; font-style: italic; }
+    .dashboard-preview { margin-top: 2rem; padding: 1.5rem; background: #fff; border: 1px solid #e0e0e0; }
+    .dashboard-preview h3 { margin-top: 0; }
+    .filter-row { display: flex; gap: 0.75rem; align-items: flex-end; margin-bottom: 1rem; padding: 1rem; background: #fafafa; }
+    .filter-row label { font-size: 11px; color: #525252; display: block; margin-bottom: 4px; }
+    .filter-row .cds--select { min-width: 180px; }
+    .badge-pill {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: #e8daff; color: #491d8b; padding: 4px 12px; border-radius: 12px;
+      font-size: 12px; font-weight: 500;
+    }
+    .badge-pill-count {
+      background: #491d8b; color: #fff; padding: 1px 8px; border-radius: 10px; font-size: 11px;
+    }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    Visual Preview &nbsp;|&nbsp; Label &amp; Store — Refer Out Addendum &nbsp;|&nbsp; OpenELIS Sample Collection Redesign v2.1 &nbsp;|&nbsp; Not a live application
+  </div>
+  <div class="preview-content" id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo, useCallback, Fragment } = React;
+
+    // ---------------------------------------------------------------
+    // Mock data
+    // ---------------------------------------------------------------
+    const REFERRING_LABS = [
+      { id: 'lab-01', text: 'Balai Besar Teknik Kesehatan Lingkungan (BBTKL) Jakarta', fhirEnabled: true },
+      { id: 'lab-02', text: 'Laboratorium Kesehatan Daerah — Yogyakarta', fhirEnabled: true },
+      { id: 'lab-03', text: 'Eijkman Institute — Molecular Reference Lab', fhirEnabled: false },
+      { id: 'lab-04', text: 'National Reference Laboratory — Antananarivo', fhirEnabled: true },
+    ];
+
+    const INITIAL_ROWS = [
+      { id: 'r1', sampleId: 'S.2026-00412.1', sampleType: 'Whole Blood EDTA', labNumber: '2026-00412',
+        storage: 'Fridge A / Shelf 2 / Pos 14', test: 'HIV Viral Load (PCR)', referralState: 'inhouse' },
+      { id: 'r2', sampleId: 'S.2026-00412.1', sampleType: 'Whole Blood EDTA', labNumber: '2026-00412',
+        storage: 'Fridge A / Shelf 2 / Pos 14', test: 'HIV Drug Resistance Genotyping', referralState: 'inhouse' },
+      { id: 'r3', sampleId: 'S.2026-00412.2', sampleType: 'Plasma', labNumber: '2026-00412',
+        storage: 'Freezer B / Rack 1 / Pos 3', test: 'Hepatitis B DNA Quantitative', referralState: 'inhouse' },
+      { id: 'r4', sampleId: 'S.2026-00412.2', sampleType: 'Plasma', labNumber: '2026-00412',
+        storage: 'Freezer B / Rack 1 / Pos 3', test: 'Hepatitis C RNA Quantitative', referralState: 'inhouse' },
+    ];
+
+    // Dashboard mock data (for lower preview panel)
+    const DASHBOARD_ORDERS = [
+      { lab: '2026-00408', patient: 'Budi Hartono', facility: 'Puskesmas Kramat Jati', priority: 'Routine',
+        status: 'Awaiting QA', referredTag: null, step: 4 },
+      { lab: '2026-00410', patient: 'Fitri Ananda', facility: 'RS Cipto Mangunkusumo', priority: 'Urgent',
+        status: 'Labeling', referredTag: 'Referred (1 of 3)', step: 3 },
+      { lab: '2026-00412', patient: 'Sari Wulandari', facility: 'RS Hasan Sadikin Bandung', priority: 'Routine',
+        status: 'Labeling', referredTag: 'Referred (2 of 4)', step: 3 },
+      { lab: '2026-00413', patient: 'Arya Pratama', facility: 'Klinik Harapan', priority: 'Routine',
+        status: 'Referred Out', referredTag: 'Referred (all)', step: 4, fullyReferred: true },
+      { lab: '2026-00414', patient: 'Nadia Safitri', facility: 'RS Pondok Indah', priority: 'Routine',
+        status: 'Completed', referredTag: null, step: 4 },
+    ];
+
+    // ---------------------------------------------------------------
+    // Helpers
+    // ---------------------------------------------------------------
+    function StatusTag({ state, labName, onRetry }) {
+      if (state === 'inhouse') return <span className="cds--tag cds--tag--gray">In-house</span>;
+      if (state === 'referred') return (
+        <span className="cds--tag cds--tag--purple" title={labName}>Referred — {truncate(labName, 32)}</span>
+      );
+      if (state === 'sent') return <span className="cds--tag cds--tag--blue">Awaiting External Results</span>;
+      if (state === 'failed') return (
+        <span style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center' }}>
+          <span className="cds--tag cds--tag--red">Send Failed</span>
+          <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={onRetry}>Retry Send</button>
+        </span>
+      );
+      return null;
+    }
+
+    function truncate(s, n) { return s && s.length > n ? s.slice(0, n - 1) + '…' : s; }
+
+    function deriveOrderStatus(rows) {
+      const active = rows.filter(r => !r.voided);
+      const referredCount = active.filter(r => r.referralState !== 'inhouse').length;
+      const total = active.length;
+      if (total === 0) return 'LABELING';
+      if (referredCount === total) return 'REFERRED_OUT';
+      return 'LABELING';
+    }
+
+    function HeaderStatusBadge({ orderStatus, rows }) {
+      if (orderStatus === 'REFERRED_OUT') return <span className="cds--tag cds--tag--purple">Referred Out</span>;
+      const referredCount = rows.filter(r => r.referralState !== 'inhouse').length;
+      const total = rows.length;
+      if (referredCount > 0) return (
+        <Fragment>
+          <span className="cds--tag cds--tag--blue">Labeling</span>
+          <span className="cds--tag cds--tag--purple" style={{ marginLeft: '0.25rem' }}>
+            Referred ({referredCount} of {total})
+          </span>
+        </Fragment>
+      );
+      return <span className="cds--tag cds--tag--blue">Labeling</span>;
+    }
+
+    // ---------------------------------------------------------------
+    // Inline per-row refer form
+    // ---------------------------------------------------------------
+    function InlineReferForm({ row, onSave, onCancel, xoaEnabled }) {
+      const [referringLabId, setReferringLabId] = useState('');
+      const [reason, setReason] = useState('');
+      const [expectedReturn, setExpectedReturn] = useState('');
+      const [notifyCustomer, setNotifyCustomer] = useState(true);
+      const [error, setError] = useState(null);
+
+      const save = () => {
+        if (!referringLabId) {
+          setError('Select a referring lab before saving.');
+          return;
+        }
+        const lab = REFERRING_LABS.find(l => l.id === referringLabId);
+        onSave({ rowId: row.id, lab, reason, expectedReturn, notifyCustomer });
+      };
+
+      return (
+        <div className="inline-form">
+          <h5>Refer Out — {row.test}</h5>
+          {error && (
+            <div className="cds--inline-notification cds--inline-notification--error" style={{ marginBottom: '0.75rem' }}>
+              <div className="cds--inline-notification__details">
+                <div className="cds--inline-notification__text-wrapper">
+                  <div className="cds--inline-notification__title">{error}</div>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="form-grid">
+            <div className="inline-field">
+              <label>Referring Lab *</label>
+              <select value={referringLabId} onChange={(e) => setReferringLabId(e.target.value)}>
+                <option value="">Select a referring lab…</option>
+                {REFERRING_LABS.map(lab => (
+                  <option key={lab.id} value={lab.id}>
+                    {lab.text}{lab.fhirEnabled ? '' : ' (paper/manifest only)'}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="inline-field">
+              <label>Expected Return Date</label>
+              <input type="date" value={expectedReturn} onChange={(e) => setExpectedReturn(e.target.value)} />
+            </div>
+          </div>
+          <div className="form-grid single">
+            <div className="inline-field">
+              <label>Reason (optional, max 500)</label>
+              <textarea rows="2" maxLength="500" value={reason} onChange={(e) => setReason(e.target.value)} />
+            </div>
+          </div>
+          {xoaEnabled && (
+            <div className="inline-field" style={{ marginBottom: '0.5rem' }}>
+              <label style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center' }}>
+                <input type="checkbox" checked={notifyCustomer} onChange={(e) => setNotifyCustomer(e.target.checked)} />
+                Notify customer of referral
+              </label>
+            </div>
+          )}
+          <div className="form-actions">
+            <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={save}>Save Referral</button>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={onCancel}>Cancel</button>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------------------------------------------------------------
+    // Bulk modal
+    // ---------------------------------------------------------------
+    function BulkReferModal({ open, onClose, onConfirm, pendingRows, xoaEnabled }) {
+      const [referringLabId, setReferringLabId] = useState('');
+      const [reason, setReason] = useState('');
+      const [expectedReturn, setExpectedReturn] = useState('');
+      const [notifyCustomer, setNotifyCustomer] = useState(true);
+
+      if (!open) return null;
+
+      const sampleCount = new Set(pendingRows.map(r => r.sampleId)).size;
+      const testCount = pendingRows.length;
+      const lab = REFERRING_LABS.find(l => l.id === referringLabId);
+
+      const reset = () => { setReferringLabId(''); setReason(''); setExpectedReturn(''); setNotifyCustomer(true); };
+      const closeAndReset = () => { reset(); onClose(); };
+      const handleConfirm = () => {
+        if (!referringLabId || testCount === 0) return;
+        onConfirm({ lab, reason, expectedReturn, notifyCustomer });
+        reset();
+      };
+
+      return (
+        <div className="modal-backdrop" onClick={closeAndReset}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">Refer All Tests to External Lab</div>
+            <div className="modal-body">
+              {testCount === 0 ? (
+                <div className="cds--inline-notification cds--inline-notification--info">
+                  <div className="cds--inline-notification__details">
+                    <div className="cds--inline-notification__text-wrapper">
+                      <div className="cds--inline-notification__title">
+                        No in-house tests to refer. All tests on this order are already referred.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Fragment>
+                  <div className="form-grid single" style={{ marginBottom: '1rem' }}>
+                    <div className="inline-field">
+                      <label>Referring Lab *</label>
+                      <select value={referringLabId} onChange={(e) => setReferringLabId(e.target.value)}>
+                        <option value="">Select a referring lab…</option>
+                        {REFERRING_LABS.map(lab => (
+                          <option key={lab.id} value={lab.id}>
+                            {lab.text}{lab.fhirEnabled ? '' : ' (paper/manifest only)'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="form-grid">
+                    <div className="inline-field">
+                      <label>Expected Return Date</label>
+                      <input type="date" value={expectedReturn} onChange={(e) => setExpectedReturn(e.target.value)} />
+                    </div>
+                    <div className="inline-field">
+                      <label>Reason (optional)</label>
+                      <input type="text" maxLength="500" value={reason} onChange={(e) => setReason(e.target.value)} />
+                    </div>
+                  </div>
+                  {xoaEnabled && (
+                    <div className="inline-field" style={{ marginBottom: '0.75rem' }}>
+                      <label style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <input type="checkbox" checked={notifyCustomer} onChange={(e) => setNotifyCustomer(e.target.checked)} />
+                        Notify customer of referral
+                      </label>
+                    </div>
+                  )}
+                  <div className="cds--inline-notification cds--inline-notification--warning">
+                    <div className="cds--inline-notification__details">
+                      <div className="cds--inline-notification__text-wrapper">
+                        <div className="cds--inline-notification__title">
+                          This will refer {testCount} test{testCount === 1 ? '' : 's'} on {sampleCount} sample{sampleCount === 1 ? '' : 's'}{lab ? ` to ${lab.text}` : ''}.
+                        </div>
+                        <div className="cds--inline-notification__subtitle">
+                          {lab && !lab.fhirEnabled ? 'This lab is paper/manifest only — no FHIR transmission will occur.'
+                           : lab ? 'FHIR ServiceRequest will be transmitted to the receiving lab.'
+                           : 'Select a referring lab to see transmission details.'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Fragment>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="cds--btn cds--btn--secondary" onClick={closeAndReset}>Cancel</button>
+              <button className="cds--btn cds--btn--primary" disabled={!referringLabId || testCount === 0} onClick={handleConfirm}>
+                Refer All
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------------------------------------------------------------
+    // Main app
+    // ---------------------------------------------------------------
+    function App() {
+      const [rows, setRows] = useState(INITIAL_ROWS);
+      const [expandedRowId, setExpandedRowId] = useState(null);
+      const [bulkOpen, setBulkOpen] = useState(false);
+      const [notification, setNotification] = useState(null);
+      const [dashboardFilter, setDashboardFilter] = useState('any');
+
+      const xoaEnabled = true;
+      const allowBulkReferOut = true;
+      const orderStatus = useMemo(() => deriveOrderStatus(rows), [rows]);
+      const pendingInhouseRows = useMemo(() => rows.filter(r => r.referralState === 'inhouse'), [rows]);
+
+      const toggleExpand = (rowId) => setExpandedRowId(prev => prev === rowId ? null : rowId);
+
+      const savePerRowReferral = ({ rowId, lab, reason, expectedReturn, notifyCustomer }) => {
+        setRows(prev => prev.map(r =>
+          r.id === rowId
+            ? { ...r, referralState: 'referred', referringLab: lab.text, fhirEnabled: lab.fhirEnabled,
+                reason, expectedReturn, notifyCustomer }
+            : r
+        ));
+        setExpandedRowId(null);
+        setNotification({ kind: 'success', title: `Referred 1 test to ${lab.text}.` });
+        setTimeout(() => setNotification(null), 5000);
+      };
+
+      const confirmBulk = ({ lab, reason, expectedReturn, notifyCustomer }) => {
+        const pendingIds = pendingInhouseRows.map(r => r.id);
+        setRows(prev => prev.map(r =>
+          pendingIds.includes(r.id)
+            ? { ...r, referralState: 'referred', referringLab: lab.text, fhirEnabled: lab.fhirEnabled,
+                reason, expectedReturn, notifyCustomer }
+            : r
+        ));
+        setBulkOpen(false);
+        setNotification({ kind: 'success', title: `Referred ${pendingIds.length} tests to ${lab.text}.` });
+        setTimeout(() => setNotification(null), 5000);
+      };
+
+      const undoReferral = (rowId) => {
+        setRows(prev => prev.map(r => r.id === rowId ? {
+          ...r, referralState: 'inhouse', referringLab: null, fhirEnabled: null,
+          reason: null, expectedReturn: null, notifyCustomer: null
+        } : r));
+        setNotification({ kind: 'info', title: 'Referral undone. Test returned to in-house queue.' });
+        setTimeout(() => setNotification(null), 4000);
+      };
+
+      // Dashboard filter
+      const filteredDashboard = DASHBOARD_ORDERS.filter(o => {
+        if (dashboardFilter === 'any') return true;
+        if (dashboardFilter === 'hasReferred') return o.referredTag !== null;
+        if (dashboardFilter === 'fullyReferred') return o.fullyReferred;
+        return true;
+      });
+
+      return (
+        <Fragment>
+          {/* Step 3 Label & Store */}
+          <div className="breadcrumb">
+            <a href="#">Add Order</a> / <a href="#">Order 2026-00412</a> / <span className="current">Label &amp; Store</span>
+          </div>
+
+          <div className="stepper">
+            <div className="step complete"><span className="step-circle">✓</span><span className="step-label">Enter Order</span></div>
+            <div className="step complete"><span className="step-circle">✓</span><span className="step-label">Collect Sample</span></div>
+            <div className="step current"><span className="step-circle">3</span><span className="step-label">Label &amp; Store</span></div>
+            <div className={'step ' + (orderStatus === 'REFERRED_OUT' ? 'disabled' : '')}>
+              <span className="step-circle">4</span>
+              <span className="step-label">
+                QA Review {orderStatus === 'REFERRED_OUT' && <em style={{ fontSize: '11px', color: '#525252' }}>(skipped — fully referred)</em>}
+              </span>
+            </div>
+          </div>
+
+          {/* Order Context Card */}
+          <div className="ctx-card">
+            <div>
+              <div className="ctx-item-label">Lab Number</div>
+              <div className="ctx-item-value big">2026-00412</div>
+            </div>
+            <div>
+              <div className="ctx-item-label">Patient</div>
+              <div className="ctx-item-value">Ibu Sari Wulandari</div>
+              <div className="ctx-item-sub">F · 34 · NIK 3174012345678901</div>
+            </div>
+            <div>
+              <div className="ctx-item-label">Tests</div>
+              <div className="ctx-item-value">{rows.length} tests · {new Set(rows.map(r => r.sampleId)).size} samples</div>
+            </div>
+            <div>
+              <div className="ctx-item-label">Status</div>
+              <div style={{ marginTop: '0.25rem', display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                <HeaderStatusBadge orderStatus={orderStatus} rows={rows} />
+              </div>
+            </div>
+          </div>
+
+          {notification && (
+            <div className={'cds--inline-notification cds--inline-notification--' + notification.kind + ' notif-preview'}>
+              <div className="cds--inline-notification__details">
+                <div className="cds--inline-notification__text-wrapper">
+                  <div className="cds--inline-notification__title">{notification.title}</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {orderStatus === 'REFERRED_OUT' && (
+            <div className="cds--inline-notification cds--inline-notification--info notif-preview">
+              <div className="cds--inline-notification__details">
+                <div className="cds--inline-notification__text-wrapper">
+                  <div className="cds--inline-notification__title">Order fully referred out</div>
+                  <div className="cds--inline-notification__subtitle">
+                    All tests are referred to an external lab. Step 4 QA Review is skipped — the order will complete when external results return via referral result entry.
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Samples & Tests table */}
+          <div className="section">
+            <div className="section-heading">
+              <h3>Samples &amp; Tests</h3>
+              <p>Assign storage location, print labels, and refer individual tests or the whole order to an external lab.</p>
+            </div>
+            <div className="toolbar">
+              <button
+                className="cds--btn cds--btn--secondary cds--btn--sm"
+                disabled={!allowBulkReferOut || pendingInhouseRows.length === 0}
+                onClick={() => setBulkOpen(true)}
+              >
+                Bulk Refer Out{pendingInhouseRows.length > 0 ? ` (${pendingInhouseRows.length})` : ''}
+              </button>
+              <button className="cds--btn cds--btn--primary cds--btn--sm">Save &amp; Next</button>
+            </div>
+            <div className="cds--data-table-container">
+              <table className="cds--data-table">
+                <thead>
+                  <tr>
+                    <th>Sample</th><th>Type</th><th>Storage</th><th>Test</th><th>Refer Out</th><th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map(row => {
+                    const isExpanded = expandedRowId === row.id;
+                    return (
+                      <Fragment key={row.id}>
+                        <tr>
+                          <td><code style={{ fontSize: '12px' }}>{row.sampleId}</code></td>
+                          <td>{row.sampleType}</td>
+                          <td><span style={{ fontSize: '11px', color: '#525252' }}>{row.storage}</span></td>
+                          <td>{row.test}</td>
+                          <td>
+                            <StatusTag state={row.referralState} labName={row.referringLab} />
+                            {row.referralState === 'referred' && row.referringLab && (
+                              <div className="referred-details">
+                                {row.fhirEnabled ? 'FHIR transmission queued' : 'Paper/manifest referral'}
+                                {row.expectedReturn ? ' · return by ' + row.expectedReturn : ''}
+                              </div>
+                            )}
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            {row.referralState === 'inhouse' ? (
+                              <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => toggleExpand(row.id)}>
+                                {isExpanded ? 'Close' : 'Refer Out'}
+                              </button>
+                            ) : (
+                              <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => undoReferral(row.id)}>
+                                Undo Referral
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr>
+                            <td colSpan="6" style={{ padding: 0 }}>
+                              <InlineReferForm row={row} xoaEnabled={xoaEnabled}
+                                onCancel={() => setExpandedRowId(null)}
+                                onSave={savePerRowReferral} />
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Dashboard filter preview */}
+          <div className="dashboard-preview">
+            <h3 style={{ fontWeight: 600, fontSize: '16px' }}>Order Dashboard — Referred Out filter</h3>
+            <p style={{ color: '#525252', fontSize: '13px', marginTop: 0 }}>
+              New filter on the Order Entry dashboard. Try changing it to see which orders qualify.
+            </p>
+            <div className="filter-row">
+              <div>
+                <label>Status</label>
+                <div className="cds--select">
+                  <select className="cds--select-input" disabled>
+                    <option>All</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label>Priority</label>
+                <div className="cds--select">
+                  <select className="cds--select-input" disabled>
+                    <option>Any</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style={{ fontWeight: 600, color: '#8a3ffc' }}>Referred Out (new)</label>
+                <div className="cds--select">
+                  <select className="cds--select-input" value={dashboardFilter} onChange={(e) => setDashboardFilter(e.target.value)}>
+                    <option value="any">Any</option>
+                    <option value="hasReferred">Has Referred Tests</option>
+                    <option value="fullyReferred">Fully Referred Out</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ marginLeft: 'auto' }}>
+                <span className="badge-pill">
+                  Awaiting External Results <span className="badge-pill-count">3</span>
+                </span>
+              </div>
+            </div>
+            <div className="cds--data-table-container">
+              <table className="cds--data-table">
+                <thead>
+                  <tr>
+                    <th>Lab Number</th><th>Patient</th><th>Facility</th><th>Priority</th>
+                    <th>Status</th><th>Step</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredDashboard.map(o => (
+                    <tr key={o.lab}>
+                      <td><code style={{ fontSize: '12px' }}>{o.lab}</code></td>
+                      <td>{o.patient}</td>
+                      <td style={{ fontSize: '12px' }}>{o.facility}</td>
+                      <td>{o.priority}</td>
+                      <td>
+                        <span className={'cds--tag cds--tag--' + (o.status === 'Referred Out' ? 'purple'
+                          : o.status === 'Completed' ? 'green' : o.status === 'Awaiting QA' ? 'warm-gray' : 'blue')}>
+                          {o.status}
+                        </span>
+                        {o.referredTag && o.status !== 'Referred Out' && (
+                          <span className="cds--tag cds--tag--purple" style={{ marginLeft: '0.25rem' }}>
+                            {o.referredTag}
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ fontSize: '12px', color: '#525252' }}>
+                        Step {o.step}{o.fullyReferred ? ' (skipped)' : ''}
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredDashboard.length === 0 && (
+                    <tr><td colSpan="6" style={{ textAlign: 'center', color: '#525252', padding: '2rem' }}>
+                      No orders match this filter.
+                    </td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <BulkReferModal
+            open={bulkOpen}
+            onClose={() => setBulkOpen(false)}
+            onConfirm={confirmBulk}
+            pendingRows={pendingInhouseRows}
+            xoaEnabled={xoaEnabled}
+          />
+        </Fragment>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
