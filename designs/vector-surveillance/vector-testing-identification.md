@@ -1,8 +1,8 @@
 # Vector Testing & Identification
 ## Functional Requirements Specification — v1.0
 
-**Version:** 1.1
-**Date:** 2026-04-17
+**Version:** 1.2
+**Date:** 2026-04-23
 **Status:** Draft for Review
 **Jira:** TBD (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
 **Technology:** Java Spring Framework, Carbon React (`@carbon/react`)
@@ -10,8 +10,23 @@
 
 ### Change Log
 
+- **v1.2 (2026-04-23):** Deconvolution child-specimen labeling replaced end-to-end. `[parentLotId]-D[n]` convention removed; replaced with OpenELIS aliquot numbering (`LABNO.X-Y`). FR-V03-DEC-006 rewritten. VectorSpecimen `childLabel` field example updated. Data model note added confirming parent-child linkage uses existing aliquot parent pointer. BR-V03-011 added (child specimens inherit parent organism group, species ID, and Panel/test orders). UI section updated with `LABNO.X-Y` column header. Laporan Hasil consolidation note added (§13). Acceptance criteria updated to reference aliquot labeling format.
 - **v1.1 (2026-04-17):** Removed standalone `VectorTestPanel` and `VectorTestPanelItem` entities. Vector test panels are now a configuration step within the unified Panel admin (panel.md v1.1). The existing `Panel` entity gains `panelDomain` (CLINICAL/ENVIRONMENTAL/VECTOR/ALL) and `vectorOrganismGroup` fields. Vector Config tab in Panel editor is conditionally shown when domain = VECTOR or ALL. Identification worklist navigation changed from tabs to SideNav submenus. Lot detail opens inline on row click (row expansion) rather than navigating to a separate page.
 - **v1.0 (2026-04-17):** Initial draft.
+
+---
+
+## Changes from Prior Draft (v1.1 → v1.2)
+
+| FR / Section | What Changed |
+|---|---|
+| FR-V03-DEC-006 | Removed `[parentLotId]-D[n]` / `-D01` labeling. Replaced with aliquot convention `LABNO.X-Y` (e.g., `VCT-2026-000042.1-1`). Added iterative nesting note. |
+| FR-V03-DEC-006 | Added child inheritance rule: organism group, species ID, and Panel/test orders inherited from parent by default; each may be explicitly overridden. |
+| Data Model — VectorSpecimen `childLabel` | Updated example from `"BPP-01-LOT-042-D01"` to `"VCT-2026-000042.1-1"`. Added note that parent-child linkage uses the existing aliquot parent pointer — no new `parentLotId` FK field. |
+| BR-V03-011 | New rule: child specimens inherit organism group, species identification, and Panel/test orders from parent lot. |
+| §7 UI Design — Deconvolution Workbench | Added note: child-specimen column header reads "Specimen ID (Aliquot)" and displays `LABNO.X-Y` format labels. |
+| §13 Reporting — Laporan Hasil Consolidation | New section: deconvoluted children are consolidated under the parent pool on the customer-facing certificate. Lineage shown as narrative, not flat list of child accessions. |
+| §12 Acceptance Criteria — Deconvolution | Updated: child specimens use `LABNO.X-Y` aliquot format, not `-D[n]` format. |
 
 ---
 
@@ -227,7 +242,15 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 4. Set parent lot `deconvolutionStatus` to IN_PROGRESS
 5. Show `InlineNotification` kind="success" confirming how many child specimens and which re-test order were created
 
-**FR-V03-DEC-006:** Child specimens SHALL inherit from the parent lot: sampling site, trap type, collection date range. They SHALL be auto-labelled as `[parentLotId]-D[n]` (e.g., `BPP-01-LOT-042-D01`, `-D02`, …).
+**FR-V03-DEC-006:** Child specimens SHALL be numbered using OpenELIS's existing aliquot-numbering convention. Given a parent pool lab number `LABNO` (e.g., `VCT-2026-000042`):
+
+- First-level aliquots off the main pool: `LABNO.1`, `LABNO.2`, `LABNO.3`, …
+- Sub-pools deconvoluted from an aliquot: `LABNO.1-1`, `LABNO.1-2`, …
+- The pattern is iterative: a sub-pool can itself be deconvoluted into `LABNO.1-1-1`, `LABNO.1-1-2`, etc., supporting progressive localisation of a positive signal without limit.
+
+Each child specimen receives a real accession number and barcode so lab operations can track it as a physical object. The parent-child relationship is maintained via the existing aliquot parent pointer on the OpenELIS Sample/accession object — no new `parentLotId` field is introduced.
+
+Child specimens SHALL inherit from the parent lot: sampling site, trap type, collection date range. They SHALL also inherit the parent's organism group and species identification (if already set on the parent) as defaults; either MAY be explicitly re-identified on the child if re-examination is performed. Child specimens SHALL inherit the parent's Panel and test order list as defaults; the coordinator MAY add or remove tests on the child's re-test order before submission.
 
 **FR-V03-DEC-007:** A dedicated "Deconvolution" tab on the identification worklist SHALL show all lots with `deconvolutionStatus != NOT_APPLICABLE` in a DataTable with columns: Lot ID, Site, Positive Test, Child Specimens, Results Received / Total, Status tag.
 
@@ -316,7 +339,7 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 | identificationStatus | Enum(NOT_IDENTIFIED, PRESUMPTIVE, CONFIRMED) | Default NOT_IDENTIFIED |
 | isDeconvolutionChild | Boolean | Default false; true for child specimens created by a DeconvolutionTask |
 | deconvolutionTask | DeconvolutionTask | FK, null unless isDeconvolutionChild = true |
-| childLabel | String(50) | Auto-generated label for deconvolution children, e.g. "BPP-01-LOT-042-D01" |
+| childLabel | String(50) | Auto-generated aliquot label for deconvolution children, e.g. `VCT-2026-000042.1-1`. Format: `LABNO.X-Y` (see FR-V03-DEC-006). Parent-child linkage is via the existing aliquot parent pointer — no separate `parentLotId` FK. |
 
 ---
 
@@ -369,7 +392,7 @@ See interactive HTML preview: `vector-testing-identification.html`
 1. **Identification Worklist** — SideNav submenus control the active filter (Pending ID / In Progress / Deconvolution / Complete). Lot rows are expandable; clicking a row expands an inline lot detail section beneath it.
 2. **Lot Detail (inline)** — specimen DataTable rendered inside the expanded worklist row. Mixed-species summary bar, positive-pool InlineNotification, bulk-apply batch action, per-specimen inline ID forms — all inline, no breadcrumb or separate page.
 3. **Bulk Apply Modal** — compact Modal with species/method/confidence form; applies to all checked specimens on confirm.
-4. **Deconvolution Modal** — strategy selection, child specimen count, panel selector; generates child records + re-test order on submit.
+4. **Deconvolution Modal** — strategy selection, child specimen count, panel selector; generates child records + re-test order on submit. The child-specimen DataTable in this modal (and in the Deconvolution worklist) uses column header **"Specimen ID (Aliquot)"** and displays labels in `LABNO.X-Y` format (e.g., `VCT-2026-000042.1-1`, `VCT-2026-000042.1-2`). The `-D[n]` format SHALL NOT appear anywhere in the UI.
 5. **Panel Admin (shared)** — standard Panel admin page (panel.md v1.1). Coordinators use Domain filter = VECTOR to scope the list. Vector Config tab shown when editing/creating a VECTOR or ALL panel.
 
 ### Interaction Patterns
@@ -405,6 +428,8 @@ See interactive HTML preview: `vector-testing-identification.html`
 **BR-V03-009:** When `deconvolutionStatus = COMPLETE`, the parent lot SHALL expose `deconvolutionOutcomePct` in the lot detail API response and display the outcome summary tile (FR-V03-DEC-009).
 
 **BR-V03-010:** Species identified with confidence = PRESUMPTIVE SHALL be flagged in V-04 surveillance exports with a "P" indicator. Only CONFIRMED identifications count toward MIR calculations.
+
+**BR-V03-011:** Child specimens created by a DeconvolutionTask SHALL inherit the following from the parent pool as defaults: (a) organism group, (b) species identification and confidence level if already set on the parent, and (c) the parent's Panel and test order list. Inheritance is applied at creation time. Each inherited value MAY be explicitly overridden by the coordinator on the child's re-test order; an override does not affect the parent or sibling child specimens.
 
 ---
 
@@ -549,7 +574,7 @@ All UI text is externalized. The following i18n keys must be added to the messag
 
 - [ ] Positive result on a pool lot causes `deconvolutionStatus = PENDING` and displays InlineNotification (warning) on lot detail page
 - [ ] Deconvolution submenu item shows all lots with deconvolutionStatus ≠ NOT_APPLICABLE
-- [ ] Completing the deconvolution modal creates the correct number of child specimens with auto-generated labels
+- [ ] Completing the deconvolution modal creates the correct number of child specimens with auto-generated `LABNO.X-Y` aliquot labels (e.g., `VCT-2026-000042.1-1`); no `-D[n]` format appears
 - [ ] A new re-test Order is created in PENDING state linked to the child specimens
 - [ ] Parent lot status advances to DECONVOLUTION_IN_PROGRESS
 - [ ] When all child results finalized, system computes positiveCount and deconvolutionOutcomePct and advances lot to DECONVOLUTION_COMPLETE
@@ -570,3 +595,21 @@ All UI text is externalized. The following i18n keys must be added to the messag
 - [ ] Deconvolution child specimens are linkable to parent lot in V-04 density index calculations
 - [ ] CONFIRMED species identifications with POSITIVE pathogen results contribute to MIR numerator in V-04
 - [ ] Re-test orders created by deconvolution appear in standard Results Entry worklist with VECTOR domain indicator
+
+---
+
+## 13. Reporting — Laporan Hasil Consolidation
+
+When a deconvoluted pool lot's results are included in a Laporan Hasil (S-06 Compliance Report) or a vector surveillance certificate, the following consolidation rules apply:
+
+**FR-V03-RPT-001:** The customer-facing certificate SHALL present deconvoluted children consolidated under their parent pool, not as a flat list of child accession numbers. The child `LABNO.X-Y` identifiers are internal tracking references and SHALL NOT be listed as standalone rows on the certificate.
+
+**FR-V03-RPT-002:** The certificate SHALL include a deconvolution narrative in the findings section. Format:
+
+> *"Pool [LABNO] tested positive for [pathogen]. Deconvolution performed across [N] sub-specimens ([LABNO.1], [LABNO.2], …). [M] of [N] sub-specimens confirmed positive: [LABNO.1-1] — [species], [confidence]."*
+
+The narrative is generated automatically from the DeconvolutionTask and child VectorSpecimenIdentification records. It replaces a flat results table for positive pools.
+
+**FR-V03-RPT-003:** The deconvolution lineage depth is recorded but not expanded beyond two levels on the printed certificate. Deeper nesting (e.g., `LABNO.1-1-1`) is accessible in the system audit view and API but summarised as "further sub-deconvolution performed" on the certificate.
+
+**FR-V03-RPT-004:** The parent pool result row on the certificate SHALL show status "Positive — Deconvolution Complete" (or "Positive — Deconvolution In Progress" if not yet resolved) rather than a raw result value. The individual pathogen result values are shown in the deconvolution narrative block, not in the main results table.
