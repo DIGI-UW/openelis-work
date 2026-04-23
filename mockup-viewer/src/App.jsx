@@ -929,6 +929,20 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-527', 'OGC-580'],
     tags: ['sample-collection', 'environmental', 'vector', 'clinical', 'eligibility', 'nce', 'iso-15189', 'iso-17025', 'SILNAS'],
   },
+  {
+    name: 'Sample Collection Redesign v2.1 — Referral Addendum',
+    category: 'sample-collection',
+    component: React.lazy(() => import('@designs/sample-collection/sample-collection-referral-addendum.jsx')),
+    description: 'v2.1 Addendum to Sample Collection Redesign — restores Refer Out workflow into Step 3 (Label & Store). Inline per-test referral assignment, bulk "Refer all" modal, REFERRED_OUT order status, QA bypass for fully-referred orders, partial referral handling, and Order Dashboard filters. Reuses existing Refer Out module mechanics and X-01 notification trigger.',
+    specPath: 'designs/sample-collection/sample-collection-referral-addendum.md',
+    htmlUrl: 'designs/sample-collection/sample-collection-referral-addendum.html',
+    added: '2026-04-23',
+    status: 'draft',
+    githubIssue: 92,
+    jira: ['OGC-354', 'OGC-527'],
+    relatedTo: ['Sample Collection Redesign', 'Referral-Out Notification'],
+    tags: ['sample-collection', 'referral', 'refer-out', 'order-status', 'clinical', 'environmental', 'vector'],
+  },
 
   // ─── Other ───
   {
