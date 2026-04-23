@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Informed Consent Capture — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', Arial, sans-serif; }
+    .preview-banner {
+      background: #0f62fe; color: #fff;
+      padding: 6px 1rem; font-size: 12px; font-family: monospace;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .preview-content { padding: 1.5rem 2rem; max-width: 1100px; margin: 0 auto; }
+
+    /* Tabs */
+    .tab-nav { display: flex; gap: 0; border-bottom: 2px solid #e0e0e0; margin-bottom: 1.5rem; }
+    .tab-btn {
+      background: none; border: none; border-bottom: 3px solid transparent;
+      padding: 0.75rem 1.25rem; font-size: 14px;
+      font-family: 'IBM Plex Sans', Arial, sans-serif;
+      cursor: pointer; color: #525252; margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn:hover { color: #161616; }
+    .tab-btn.active { color: #0f62fe; border-bottom-color: #0f62fe; font-weight: 600; }
+
+    /* Accordion */
+    .accordion-section { border: 1px solid #e0e0e0; background: #fff; }
+    .accordion-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.875rem 1rem; cursor: pointer; background: #fff;
+      border: none; width: 100%; text-align: left;
+      font-size: 14px; font-weight: 600;
+      font-family: 'IBM Plex Sans', Arial, sans-serif; color: #161616;
+    }
+    .accordion-header:hover { background: #f4f4f4; }
+    .accordion-body { padding: 1rem 1.25rem 1.25rem; border-top: 1px solid #e0e0e0; }
+    .accordion-chevron { font-size: 10px; color: #525252; transition: transform 0.2s; }
+    .accordion-chevron.open { transform: rotate(180deg); }
+
+    /* Forms */
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; font-size: 12px; font-weight: 600; color: #525252; margin-bottom: 0.375rem; letter-spacing: 0.16px; }
+    .cds-input {
+      width: 100%; max-width: 380px; height: 40px; padding: 0 1rem;
+      font-size: 14px; font-family: 'IBM Plex Sans', Arial, sans-serif;
+      border: none; border-bottom: 1px solid #8d8d8d;
+      background: #f4f4f4; color: #161616; outline: none; box-sizing: border-box;
+    }
+    .cds-input:focus { border-bottom: 2px solid #0f62fe; outline: 2px solid #0f62fe; outline-offset: -2px; }
+    .cds-input.invalid { border-bottom: 2px solid #da1e28; outline: 2px solid #da1e28; outline-offset: -2px; }
+    .cds-input[readonly] { background: #e8e8e8; color: #525252; }
+    .cds-select {
+      width: 100%; max-width: 320px; height: 40px; padding: 0 2.5rem 0 1rem;
+      font-size: 14px; font-family: 'IBM Plex Sans', Arial, sans-serif;
+      border: none; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; color: #161616;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23161616' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 0.75rem center; cursor: pointer;
+    }
+    .error-text { display: flex; align-items: center; gap: 0.25rem; color: #da1e28; font-size: 12px; margin-top: 0.25rem; }
+
+    /* Checkbox */
+    .checkbox-wrapper { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+    .cds-checkbox { width: 18px; height: 18px; accent-color: #0f62fe; cursor: pointer; flex-shrink: 0; }
+    .checkbox-label { font-size: 14px; color: #161616; cursor: pointer; user-select: none; }
+
+    /* Tile */
+    .tile { background: #fff; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .tile-title { font-size: 14px; font-weight: 600; color: #161616; margin: 0 0 0.875rem 0; }
+
+    /* Grid */
+    .grid { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .col-half { flex: 1 1 280px; min-width: 200px; }
+
+    /* Tags */
+    .cds--tag {
+      display: inline-flex; align-items: center; padding: 0 0.5rem;
+      height: 1.25rem; font-size: 11px; font-weight: 400;
+      border-radius: 24px; margin-left: 0.5rem; white-space: nowrap;
+    }
+    .cds--tag--teal { background: #9ef0f0; color: #022b30; }
+    .cds--tag--blue  { background: #d0e2ff; color: #002d9c; }
+
+    /* Buttons */
+    .btn-primary {
+      height: 40px; padding: 0 1rem; background: #0f62fe; color: #fff;
+      border: none; font-size: 14px; font-family: 'IBM Plex Sans', Arial, sans-serif;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .btn-primary:hover { background: #0050e6; }
+    .btn-ghost {
+      height: 40px; padding: 0 1rem; background: transparent; color: #0f62fe;
+      border: none; font-size: 14px; font-family: 'IBM Plex Sans', Arial, sans-serif; cursor: pointer;
+    }
+    .btn-ghost:hover { background: #d0e2ff; }
+    .btn-row { display: flex; gap: 0.5rem; margin-top: 1.25rem; }
+
+    /* Reveal animation */
+    .consent-ref-reveal { animation: slideDown 0.18s ease-out; }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Audit record */
+    .audit-record { background: #f4f4f4; padding: 0.75rem 1rem; margin-top: 0.75rem; }
+    .audit-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.32px; color: #6f6f6f; margin-bottom: 0.5rem; }
+    .audit-row { display: flex; align-items: center; gap: 0.5rem; font-size: 13px; color: #161616; margin-bottom: 0.25rem; }
+
+    /* Notification */
+    .inline-notification { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.875rem 1rem; margin-bottom: 1rem; font-size: 14px; }
+    .inline-notification.success { background: #defbe6; border-left: 3px solid #24a148; color: #161616; }
+
+    .page-heading { font-size: 20px; font-weight: 400; color: #161616; margin: 0 0 1.5rem 0; }
+    .order-number { color: #6f6f6f; font-size: 14px; margin: -1rem 0 1.25rem 0; }
+  </style>
+</head>
+<body class="cds--white">
+
+<div class="preview-banner">
+  ⚡ Visual Preview — Informed Consent Capture &nbsp;|&nbsp; OpenELIS Global &nbsp;|&nbsp; OGC-557 · FRS v1.1 &nbsp;|&nbsp; Not a live application
+</div>
+
+<div class="preview-content" id="root"></div>
+
+<script type="text/babel">
+  const { useState } = React;
+
+  const FORM_REF_MAX_LENGTH = 100;
+  const FORM_REF_PATTERN = /^[a-zA-Z0-9\- ]*$/;
+
+  function validateFormRef(value) {
+    if (!value) return null;
+    if (value.length > FORM_REF_MAX_LENGTH) return 'Consent form reference must be 100 characters or fewer';
+    if (!FORM_REF_PATTERN.test(value)) return 'Only letters, numbers, hyphens, and spaces are allowed';
+    return null;
+  }
+
+  // ─── Reusable Consent Accordion ─────────────────────────────────────────
+  function ConsentAccordion({ existingConsent = null, readOnly = false }) {
+    const [open, setOpen] = useState(true);
+    const [consentGiven, setConsentGiven] = useState(existingConsent?.given ?? false);
+    const [formRef, setFormRef] = useState(existingConsent?.formReference ?? '');
+    const [formRefError, setFormRefError] = useState(null);
+
+    const handleCheckbox = (e) => {
+      const checked = e.target.checked;
+      setConsentGiven(checked);
+      if (!checked) { setFormRef(''); setFormRefError(null); }
+    };
+
+    const handleFormRef = (e) => {
+      const v = e.target.value;
+      setFormRef(v);
+      setFormRefError(validateFormRef(v));
+    };
+
+    return (
+      <div className="accordion-section">
+        <button className="accordion-header" onClick={() => setOpen(o => !o)}>
+          <span style={{ display: 'flex', alignItems: 'center' }}>
+            Informed Consent
+            {consentGiven && <span className="cds--tag cds--tag--teal">Consent Recorded</span>}
+          </span>
+          <span className={`accordion-chevron ${open ? 'open' : ''}`}>▼</span>
+        </button>
+
+        {open && (
+          <div className="accordion-body">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+              <label className="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  className="cds-checkbox"
+                  checked={consentGiven}
+                  onChange={handleCheckbox}
+                  disabled={readOnly}
+                />
+                <span className="checkbox-label">Patient has provided signed consent</span>
+              </label>
+
+              {consentGiven && (
+                <div className="consent-ref-reveal form-group">
+                  <label className="form-label" htmlFor="consent-form-ref">
+                    Consent Form Reference No. <span style={{ color: '#6f6f6f', fontWeight: 400 }}>(optional)</span>
+                  </label>
+                  <input
+                    id="consent-form-ref"
+                    type="text"
+                    className={`cds-input ${formRefError ? 'invalid' : ''}`}
+                    placeholder="e.g. CF-2026-00123"
+                    value={formRef}
+                    onChange={handleFormRef}
+                    disabled={readOnly}
+                    maxLength={FORM_REF_MAX_LENGTH}
+                  />
+                  {formRefError && <div className="error-text">⚠ {formRefError}</div>}
+                </div>
+              )}
+
+              {existingConsent?.given && (
+                <div className="audit-record">
+                  <div className="audit-title">Consent Audit Record</div>
+                  <div className="audit-row">
+                    <span>👤</span>
+                    <span><strong>Recorded by:</strong> {existingConsent.recordedBy}</span>
+                  </div>
+                  <div className="audit-row">
+                    <span>🕐</span>
+                    <span><strong>Recorded on:</strong> {existingConsent.recordedAt}</span>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ─── Tab 1: Add Order ────────────────────────────────────────────────────
+  function AddOrderTab() {
+    const [saved, setSaved] = useState(false);
+    return (
+      <div>
+        <h2 className="page-heading">Add Order</h2>
+
+        {saved && (
+          <div className="inline-notification success">
+            <span>✓</span>
+            <span>Order saved successfully.</span>
+          </div>
+        )}
+
+        <div className="tile">
+          <p className="tile-title">Patient Information</p>
+          <div className="grid">
+            <div className="col-half">
+              <div className="form-group">
+                <label className="form-label">Patient ID</label>
+                <input type="text" className="cds-input" placeholder="e.g. P-00456" />
+              </div>
+            </div>
+            <div className="col-half">
+              <div className="form-group">
+                <label className="form-label">Full Name</label>
+                <input type="text" className="cds-input" placeholder="e.g. Rakoto Andriamanana" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="tile">
+          <p className="tile-title">Order Information</p>
+          <div className="grid">
+            <div className="col-half">
+              <div className="form-group">
+                <label className="form-label">Lab Section</label>
+                <select className="cds-select">
+                  <option value="">Select section</option>
+                  <option>Hematology</option>
+                  <option>Microbiology</option>
+                  <option>Chemistry</option>
+                  <option>Serology</option>
+                  <option>Molecular Biology</option>
+                </select>
+              </div>
+            </div>
+            <div className="col-half">
+              <div className="form-group">
+                <label className="form-label">Collection Date</label>
+                <input type="date" className="cds-input" defaultValue="2026-04-14" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <ConsentAccordion existingConsent={null} readOnly={false} />
+        </div>
+
+        <div className="btn-row">
+          <button className="btn-primary" onClick={() => setSaved(true)}>💾 Save Order</button>
+          <button className="btn-ghost" onClick={() => setSaved(false)}>Cancel</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Tab 2: Edit Order (consent previously recorded) ─────────────────────
+  function EditOrderTab() {
+    const existingConsent = {
+      given: true,
+      formReference: 'CF-2026-00847',
+      recordedBy: 'Marie Rakoto',
+      recordedAt: '14 Apr 2026, 09:32 UTC',
+    };
+    return (
+      <div>
+        <h2 className="page-heading">Edit Order</h2>
+        <p className="order-number"># ORD-2026-00847 &nbsp;·&nbsp; <span className="cds--tag cds--tag--blue">In Progress</span></p>
+
+        <div className="tile">
+          <p className="tile-title">Patient Information</p>
+          <div className="grid">
+            <div className="col-half">
+              <div className="form-group">
+                <label className="form-label">Patient ID</label>
+                <input type="text" className="cds-input" value="P-00456" readOnly />
+              </div>
+            </div>
+            <div className="col-half">
+              <div className="form-group">
+                <label className="form-label">Full Name</label>
+                <input type="text" className="cds-input" value="Rakoto Andriamanana" readOnly />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <ConsentAccordion existingConsent={existingConsent} readOnly={false} />
+        </div>
+
+        <div className="btn-row">
+          <button className="btn-primary">💾 Save Order</button>
+          <button className="btn-ghost">Cancel</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Root App ─────────────────────────────────────────────────────────────
+  function App() {
+    const [activeTab, setActiveTab] = useState(0);
+    const tabs = [
+      { label: 'Add Order (New)', content: <AddOrderTab /> },
+      { label: 'Edit Order — Consent Recorded', content: <EditOrderTab /> },
+    ];
+
+    return (
+      <div>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 300, color: '#161616', margin: '0 0 0.25rem 0' }}>
+            Informed Consent Capture
+          </h1>
+          <p style={{ fontSize: '13px', color: '#6f6f6f', margin: 0 }}>
+            OpenELIS Global · OGC-557 · FRS v1.1 · 2026-04-14 · Global rollout, Madagascar priority
+          </p>
+        </div>
+
+        <div className="tab-nav">
+          {tabs.map((tab, i) => (
+            <button key={i} className={`tab-btn ${activeTab === i ? 'active' : ''}`} onClick={() => setActiveTab(i)}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="tile" style={{ padding: '1.5rem' }}>
+          {tabs[activeTab].content}
+        </div>
+
+        <div style={{
+          marginTop: '1.5rem', padding: '0.875rem 1rem', background: '#fff',
+          borderLeft: '3px solid #0f62fe', fontSize: '12px', color: '#525252', lineHeight: 1.6
+        }}>
+          <strong style={{ color: '#161616' }}>Design notes:</strong>
+          &nbsp;Consent is <em>advisory only</em> — order submission is never blocked.
+          &nbsp;Accordion expanded by default; shows "Consent Recorded" teal tag when collapsed with consent recorded.
+          &nbsp;Reference field appears only when checkbox is checked (conditional reveal).
+          &nbsp;Audit record (agent + timestamp) shown read-only on edit.
+          &nbsp;<strong>ConsentAccordionSection</strong> is a standalone exported component — can be dropped into other workflows (e.g. Sample Collection Wizard) independently.
+        </div>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -1,9 +1,16 @@
 # Compliance Standards Administration
-## Functional Requirements Specification — v1.0
+## Functional Requirements Specification — v2.0
 
-**Version:** 1.0
-**Date:** 2026-04-02
+**Version:** 2.0
+**Date:** 2026-04-21
 **Status:** Draft for Review
+
+**Change summary (v1.0 → v2.0):**
+- CSV import removed — not in scope for this sprint (Section 4.5 removed; FR-5-xxx removed)
+- Applicable Sample Types are now **explicitly declared** on the standard (not derived from linked tests); declared types drive the sample-type filter in the Link Test form (FR-1-007 updated)
+- **Multi-limit configuration**: all limit types are configured in a single edit form per test — not one per action (FR-4-003 updated, FR-4-004 added)
+- **Select list compliance mapping**: tests with predefined result options get a value-to-status mapping table with options pulled from the test catalog (FR-3-013, FR-3-014 added)
+- **BORDERLINE threshold type** added alongside HIGH, LOW, RANGE, DESCRIPTIVE (FR-3-003, data model updated)
 **Jira:** [OGC-528](https://uwdigi.atlassian.net/browse/OGC-528) (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
 **Technology:** Java Spring Framework, Carbon React (`@carbon/react`)
 **Related Modules:** Test Catalog (OGC-49), Catalog Subscription & Metadata Sync, Results Entry, Non-Patient Registration (S-02), Compliance Evaluation Engine (S-05)
@@ -49,11 +56,11 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 
 ## 3. User Roles & Permissions
 
-| Role | Standards List | Standard CRUD | Threshold CRUD | CSV Import | CSV Seed (Deploy) | Notes |
-|---|---|---|---|---|---|---|
-| Lab Technician | View only | None | None | None | N/A | Can see which standard applies to a sample but cannot modify |
-| Lab Manager | View | View only | View only | None | N/A | Can monitor standards configuration |
-| System Administrator | Full | Full | Full | Full | Server-side | Can manage all standards, thresholds, and imports |
+| Role | Standards List | Standard CRUD | Threshold CRUD | CSV Seed (Deploy) | Notes |
+|---|---|---|---|---|---|
+| Lab Technician | View only | None | None | N/A | Can see which standard applies to a sample but cannot modify |
+| Lab Manager | View | View only | View only | N/A | Can monitor standards configuration |
+| System Administrator | Full | Full | Full | Server-side | Can manage all standards and thresholds |
 
 **Required permission keys:**
 
@@ -61,7 +68,6 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 - `compliance.standard.add` — Create a new compliance standard
 - `compliance.standard.modify` — Edit an existing compliance standard
 - `compliance.standard.delete` — Deactivate (soft-delete) a compliance standard
-- `compliance.standard.import` — Import standards and thresholds from CSV
 - `compliance.threshold.view` — View the Compliance Thresholds tab on test catalog entries
 - `compliance.threshold.modify` — Add, edit, or remove thresholds on test catalog entries
 
@@ -83,7 +89,11 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 
 **FR-1-006:** The system SHALL allow a user with `compliance.standard.delete` to deactivate a standard via a destructive confirmation modal. Deactivation sets status to Archived and does NOT delete previously evaluated results. Deactivated standards are excluded from the registration-time standard selection dropdown but remain visible in the admin list with an Archived tag.
 
-**FR-1-007:** The add/edit form SHALL contain the following fields: Name (required, TextInput), Issuing Body (required, TextInput), Regulation Number (required, TextInput), Description (optional, TextArea), Version (required, TextInput), Effective Date (required, DatePicker), Expiry Date (optional, DatePicker), Country/Region (required, ComboBox with type-ahead from existing values plus free text), Applicable Sample Types (required, MultiSelect from test catalog sample type categories), Status (required, Select: Draft, Active, Superseded, Archived).
+**FR-1-007:** The add/edit form SHALL contain the following fields: Name (required, TextInput), Issuing Body (required, TextInput), Regulation Number (required, TextInput), Description (optional, TextArea), Version (required, TextInput), Effective Date (required, DatePicker), Expiry Date (optional, DatePicker), Country/Region (required, ComboBox with type-ahead from existing values plus free text), Status (required, Select: Draft, Active, Superseded, Archived).
+
+**FR-1-007a:** The add/edit form SHALL include a dedicated **Applicable Sample Types** panel that appears above the Parameter Groups accordion. The administrator explicitly declares which sample type categories apply to the standard by selecting from the system's available sample type categories (e.g., Water, Air, Soil, Sediment) and adding/removing chip tags. Sample types are NOT derived automatically from linked tests. At least one sample type is required before the standard can be set to Active status.
+
+**FR-1-007b:** The declared sample types on a standard SHALL drive filter chips in the Link Test form (FR-4-003), allowing the administrator to pre-filter the test catalog typeahead by one or more sample types before selecting a test to link.
 
 **FR-1-008:** The system SHALL support filtering the standards list by: Status (Select), Country/Region (ComboBox), Applicable Sample Type (Select), and free-text search on Name, Issuing Body, or Regulation Number.
 
@@ -105,7 +115,7 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 
 **FR-3-002:** The Compliance Thresholds tab SHALL display a DataTable of all thresholds defined for the current test, with columns: Standard Name, Parameter Group, Threshold Type (Tag), Threshold Value(s), Unit, Effective Date, Status, Actions.
 
-**FR-3-003:** The system SHALL support the following threshold types, displayed as Carbon Tags: Maximum (`red` Tag, label "Max ≤"), Minimum (`blue` Tag, label "Min ≥"), Range (`teal` Tag, label "Range"), Descriptive (`purple` Tag, label "Qualitative").
+**FR-3-003:** The system SHALL support the following threshold types, displayed as Carbon Tags: High Limit (`red` Tag, label "High Limit ≤"), Low Limit (`blue` Tag, label "Low Limit ≥"), Range (`teal` Tag, label "Normal Range"), Borderline (`warm-gray` Tag, label "Borderline"), Descriptive (`purple` Tag, label "Qualitative"). The BORDERLINE type represents an advisory warning zone — it triggers a review flag on the result but does NOT mark the result as non-compliant.
 
 **FR-3-004:** For threshold type "Maximum": the system SHALL store a single numeric upper-limit value. A result is Compliant if result ≤ threshold.
 
@@ -115,7 +125,15 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 
 **FR-3-007:** For threshold type "Descriptive": the system SHALL store a text description of the acceptable condition (e.g., "No odor," "Clear," "Absent"). Compliance evaluation for descriptive thresholds requires manual analyst judgment — the system SHALL flag these as "Manual Review Required" rather than auto-evaluating.
 
+**FR-3-007a:** For threshold type "Borderline": the system SHALL store a lower and upper numeric value defining the advisory zone (same field structure as RANGE). A result falling within the borderline zone SHALL be flagged with a review indicator (amber/warm-gray) but SHALL NOT be classified as non-compliant. Borderline thresholds are typically used alongside a corresponding HIGH or LOW limit to define a near-limit advisory band (e.g., HIGH ≤ 25 NTU with a BORDERLINE zone of 20–25 NTU).
+
 **FR-3-008:** The system SHALL allow a user with `compliance.threshold.modify` to add a new threshold via inline row expansion. The add form SHALL include: Standard (required, ComboBox filtered to Active standards), Parameter Group (required, Select filtered to groups within the selected standard), Threshold Type (required, Select), Value(s) (conditional fields based on type), Unit (TextInput, pre-populated from test catalog's default unit if available), Notes (optional, TextArea).
+
+**FR-3-013:** For tests whose result type is "Select List" (i.e., tests with predefined result options in the test catalog, such as Absent/Present or a severity scale), the system SHALL present a **value-to-compliance mapping table** instead of numeric threshold fields. Each row in the table shows one result option from the test catalog and a dropdown to assign it to: Compliant, Borderline, or Non-Compliant.
+
+**FR-3-014:** The result options displayed in the value mapping table (FR-3-013) SHALL be pulled automatically from the test catalog's defined result options for that test. Administrators do not manually enter the option values — they only assign compliance status to each.
+
+**FR-3-015:** The system SHALL detect a test's result type (numeric vs. select list) automatically when the test is selected in the Link Test form or inline edit form, and SHALL render the appropriate configuration UI (multi-limit form for numeric; value mapping table for select list).
 
 **FR-3-009:** The system SHALL allow a user with `compliance.threshold.modify` to edit an existing threshold via inline row expansion.
 
@@ -131,27 +149,14 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 
 **FR-4-002:** The Compliance Standards list page SHALL include a "View Linked Tests" action per standard row that opens a read-only panel showing all tests with thresholds for that standard, organized by Parameter Group.
 
-**FR-4-003:** The system SHALL support a "Quick Link" workflow from the Parameter Group accordion: a "Link Test" button per group that opens a ComboBox to search and select a test from the catalog, then expands the threshold add form pre-populated with the standard and group.
+**FR-4-003:** The system SHALL support a "Link Test" workflow from each Parameter Group accordion item. The Link Test form is a three-step inline form:
+- **Step 1 — Sample Type Filter**: Filter chips derived from the standard's declared sample types (FR-1-007a). The admin toggles chips to pre-filter the test catalog typeahead by one or more sample types. All declared sample types are selected by default.
+- **Step 2 — Test Search**: A typeahead text input filters the test catalog by name or code, further restricted to the sample types selected in Step 1. Results are capped at 12 and include the test name, code, sample types, and a "Select List" badge if the test's result type is select. Tests already linked to the group are excluded from results.
+- **Step 3 — Configure Thresholds**: After a test is selected, the system renders the appropriate configuration form based on the test's result type: the multi-limit form for numeric tests (FR-4-004), or the value mapping table for select list tests (FR-3-013).
 
-### 4.5 CSV Import (Runtime)
+**FR-4-004:** For numeric tests, the threshold configuration form SHALL present all five limit types (HIGH, LOW, RANGE, BORDERLINE, DESCRIPTIVE) as checkable rows in a single table. The administrator enables one or more types by checking the corresponding row, then fills in the value fields for that row. All enabled limits are saved together in a single Save action. This replaces the prior behavior of adding the same test multiple times for different limit types.
 
-**FR-5-001:** The Compliance Standards list page SHALL include an "Import from CSV" button visible to users with `compliance.standard.import` permission.
-
-**FR-5-002:** Clicking "Import from CSV" SHALL open a modal dialog containing: a FileUploader component accepting `.csv` files (max 5MB), a "Download Template" link that downloads a pre-formatted CSV template, an import scope selector (Radio: "Standards & Groups only" or "Standards, Groups & Thresholds"), and an "Upload & Preview" button.
-
-**FR-5-003:** The CSV template for "Standards, Groups & Thresholds" SHALL have the following columns: `standard_name`, `issuing_body`, `regulation_number`, `version`, `effective_date`, `country_region`, `sample_types` (semicolon-delimited), `group_name`, `group_sort_order`, `test_name` (matched against test catalog by name or LOINC code), `test_loinc_code` (optional, used for matching), `threshold_type` (max|min|range|descriptive), `threshold_value_lower`, `threshold_value_upper`, `threshold_value_descriptive`, `unit`, `notes`.
-
-**FR-5-004:** After upload, the system SHALL parse the CSV and display a preview DataTable showing: Row Number, Standard Name, Group, Test Match Status (Matched / Not Found / Ambiguous), Threshold, Validation Status (Valid / Error). Rows with errors SHALL be highlighted with a red left-border and display the error message in the Validation Status column.
-
-**FR-5-005:** The preview SHALL display summary counts: Total Rows, Standards to Create/Update, Groups to Create, Thresholds to Create, Errors. The "Import" button SHALL be disabled if there are any errors, unless the user checks "Skip error rows."
-
-**FR-5-006:** Test matching in CSV import SHALL use the following ordered strategy: (1) Match by `test_loinc_code` if provided, (2) Match by exact `test_name` against the test catalog's name field, (3) If no match is found, mark the row as "Not Found" error. If multiple matches are found, mark as "Ambiguous."
-
-**FR-5-007:** For standards that already exist (matched by `standard_name` + `regulation_number`), the import SHALL update existing fields rather than creating duplicates. New parameter groups and thresholds SHALL be added to the existing standard.
-
-**FR-5-008:** The system SHALL write an audit log entry for each CSV import, recording: filename, row count, standards created/updated, thresholds created, errors skipped, importing user, and timestamp.
-
-### 4.6 Deployment-Time CSV Seeding
+### 4.5 Deployment-Time CSV Seeding
 
 **FR-6-001:** The system SHALL support pre-populating compliance standards, parameter groups, and thresholds from CSV files placed in the `/data/compliance-standards/` directory on the server filesystem. This follows the same pattern used for test catalog seed data.
 
@@ -228,18 +233,29 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 | testId | Long | Yes | FK to Test (test catalog entity) |
 | standardId | Long | Yes | FK to ComplianceStandard |
 | parameterGroupId | Long | Yes | FK to ParameterGroup |
-| thresholdType | Enum | Yes | MAX, MIN, RANGE, DESCRIPTIVE |
-| valueLower | Double | No | Required for MIN, RANGE |
-| valueUpper | Double | No | Required for MAX, RANGE |
+| thresholdType | Enum | Yes | HIGH, LOW, RANGE, BORDERLINE, DESCRIPTIVE (aliases MAX→HIGH, MIN→LOW accepted on import) |
+| valueLower | Double | No | Required for LOW, RANGE, BORDERLINE |
+| valueUpper | Double | No | Required for HIGH, RANGE, BORDERLINE |
 | valueDescriptive | String (1024) | No | Required for DESCRIPTIVE |
 | unit | String (100) | No | Overrides test's default unit if different |
-| notes | String (1024) | No | Regulatory notes or methodology reference |
+| notes | String (1024) | No | Regulatory notes or methodology reference; advisory note text for BORDERLINE type |
 | isActive | Boolean | Yes | Default true; false = archived threshold |
 | createdBy | String | Yes | Username |
 | createdAt | Timestamp | Yes | — |
 | updatedAt | Timestamp | Yes | — |
 
-**Uniqueness constraint:** (`testId`, `standardId`, `parameterGroupId`) must be unique — one threshold per test per standard per group.
+**Uniqueness constraint:** (`testId`, `standardId`, `parameterGroupId`, `thresholdType`) must be unique — one entry per limit type per test per standard per group. This allows a test to have both a HIGH and a BORDERLINE limit within the same group.
+
+**ComplianceThresholdValueMap** (new entity — for select list tests)
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| id | Long | Yes | Primary key |
+| thresholdId | Long | Yes | FK to ComplianceThreshold (parent record with thresholdType = SELECT_MAP) |
+| optionValue | String (255) | Yes | The result option text from the test catalog |
+| complianceStatus | Enum | Yes | COMPLIANT, BORDERLINE, NON_COMPLIANT |
+
+A ComplianceThreshold record with `thresholdType = SELECT_MAP` acts as the parent container for a set of ComplianceThresholdValueMap rows — one row per result option from the test catalog. The `valueLower`, `valueUpper`, and `valueDescriptive` fields are null for SELECT_MAP records.
 
 **ComplianceImportLog**
 
@@ -466,7 +482,6 @@ All UI text is externalized. The following i18n keys must be added to the messag
 | Add standard | `compliance.standard.add` | "Add Standard" button hidden |
 | Edit standard | `compliance.standard.modify` | Edit button hidden; API returns 403 |
 | Archive standard | `compliance.standard.delete` | Archive button hidden; API returns 403 |
-| Import from CSV | `compliance.standard.import` | "Import from CSV" button hidden; API returns 403 |
 | View thresholds tab | `compliance.threshold.view` | Tab not rendered on test detail page |
 | Add/edit threshold | `compliance.threshold.modify` | Add/Edit buttons hidden; API returns 403 |
 | Remove threshold | `compliance.threshold.modify` | Remove button hidden; API returns 403 |
@@ -487,18 +502,18 @@ All UI text is externalized. The following i18n keys must be added to the messag
 - [ ] User can copy a standard, producing a new Draft with all groups and threshold configurations
 - [ ] Superseded standards display a banner with a link to the replacement standard
 - [ ] The Compliance tab appears in the Test Editor vertical tab sidebar under a Compliance section group
-- [ ] User can add a threshold with type Max, Min, Range, or Descriptive
-- [ ] Threshold type-specific fields appear/hide correctly based on selection
-- [ ] Duplicate threshold (same test + standard + group) is rejected with an error message
-- [ ] Range validation enforces lower < upper
+- [ ] Admin can declare applicable sample types on a standard before linking tests; chips appear in the Link Test form filter
+- [ ] Admin can add and remove sample type chips; the panel is displayed above the Parameter Groups accordion
+- [ ] Link Test form filter chips pre-filter the test catalog typeahead by selected sample type(s)
+- [ ] Test catalog typeahead excludes tests already linked to the current group
+- [ ] Numeric test: all 5 limit types (HIGH, LOW, RANGE, BORDERLINE, DESCRIPTIVE) are presented as checkable rows in a single edit form; multiple types can be enabled and saved together
+- [ ] Select list test: value mapping table is shown instead of numeric fields; result options are pulled from the test catalog
+- [ ] Select list mapping: each option can be set to Compliant, Borderline, or Non-Compliant; row background updates live to reflect the selected status
+- [ ] After saving, the linked tests table shows one row per test with limit-type badge summaries (not one row per limit)
+- [ ] Clicking the edit icon on a test row expands the correct form (multi-limit for numeric, value mapping for select)
+- [ ] BORDERLINE threshold is stored and displayed with warm-gray tag; does not mark result non-compliant during evaluation
 - [ ] "View Linked Tests" shows all tests with thresholds for a given standard
 - [ ] Standard selection auto-suggests a test panel during registration (verified via S-02 integration)
-- [ ] CSV import: user can download the template
-- [ ] CSV import: upload parses and displays a preview with match status per row
-- [ ] CSV import: errors are highlighted and import is blocked (unless "Skip error rows" is checked)
-- [ ] CSV import: successful import creates standards, groups, and thresholds; success notification shows counts
-- [ ] CSV import: test matching works by LOINC code first, then by name
-- [ ] CSV import: existing standards are updated (not duplicated) on re-import
 
 ### Deployment-Time Seeding
 

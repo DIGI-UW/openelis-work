@@ -1,26 +1,29 @@
 # Environmental & Vector Testing Module — Roadmap
 
 **Epic:** [OGC-527 — Vector: Environmental & Vector Testing Module](https://uwdigi.atlassian.net/browse/OGC-527)
-**Last Updated:** 2026-04-10
+**Last Updated:** 2026-04-21
 **Target:** SILNAS (Indonesia) as first implementation; designed for international use
 
 ---
 
 ## Architecture Overview
 
-The environmental/vector module is built across **3 architectural layers**, with specs progressing from foundational infrastructure through integration glue to analytical and reporting capabilities.
+The environmental/vector module is built across **4 architectural layers**, with specs progressing from foundational infrastructure through integration, analytics/reporting, and PRD gap addenda.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  LAYER 3: Analytics, Reporting & Vector-Specific            │
-│  S-05  S-06  S-07  S-08  V-01  V-02  V-03  V-04           │
-├─────────────────────────────────────────────────────────────┤
-│  LAYER 2: Integration & Workflow                            │
-│  S-03  S-04                                                 │
-├─────────────────────────────────────────────────────────────┤
-│  LAYER 1: Foundational Infrastructure                       │
-│  S-01  S-02  + Sample Collection Redesign + OGC-296         │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│  LAYER 4: Gap Specs & Addenda (from PRD v0.5 + Bogor review)            │
+│  X-01✅  S-03b✅  S-03c✅  S-03d✅  S-05b✅  S-06b✅  S-07b✅          │
+├─────────────────────────────────────────────────────────────────────────┤
+│  LAYER 3: Analytics, Reporting & Vector-Specific                        │
+│  S-05✅  S-06✅  S-07✅  S-08✅  V-01✅  V-02✅  V-03✅  V-04✅        │
+├─────────────────────────────────────────────────────────────────────────┤
+│  LAYER 2: Integration & Workflow                                        │
+│  S-03✅  S-04✅                                                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│  LAYER 1: Foundational Infrastructure                                   │
+│  S-01✅  S-02✅  + Sample Collection Redesign✅  + OGC-296✅            │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -29,74 +32,96 @@ The environmental/vector module is built across **3 architectural layers**, with
 
 ### Layer 1 — Foundational Infrastructure
 
-These specs define the core entities and admin interfaces that everything else builds on.
-
 | Spec | Title | Jira | Status | Deliverables |
 |------|-------|------|--------|-------------|
-| **S-01** | Compliance Standards Administration | [OGC-528](https://uwdigi.atlassian.net/browse/OGC-528) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview |
-| **S-02** | Sampling Site Registry | [OGC-531](https://uwdigi.atlassian.net/browse/OGC-531) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview |
-| — | Sample Collection Redesign (4-step workflow) | *(pre-existing)* | **Spec Complete** | FRS v2.0, HTML mockup |
-| — | Sample Type Domain Flag (clinical/environmental/both) | [OGC-296](https://uwdigi.atlassian.net/browse/OGC-296) | **In Progress** (needs env addendum) | Existing module — needs `sampleDomain` enum |
-
-**Layer 1 summary:** 3 of 4 specs complete. OGC-296 needs a small addendum to add `sampleDomain` enum (`CLINICAL`, `ENVIRONMENTAL`, `BOTH`) to the SampleType entity. This is a cross-cutting dependency — not part of the Vector epic, but required by S-03 and everything above.
+| **S-01** | Compliance Standards Administration | [OGC-528](https://uwdigi.atlassian.net/browse/OGC-528) | ✅ Spec Complete | FRS v1.0, JSX mockup, HTML preview |
+| **S-02** | Sampling Site Registry | [OGC-531](https://uwdigi.atlassian.net/browse/OGC-531) | ✅ Spec Complete | FRS v1.0, JSX mockup, HTML preview |
+| — | Sample Collection Redesign (4-step workflow) | *(pre-existing)* | ✅ Spec Complete | FRS v2.0, HTML mockup |
+| — | Sample Type Domain Flag (clinical/environmental/both) | [OGC-296](https://uwdigi.atlassian.net/browse/OGC-296) | ✅ Addendum Complete | `sampleDomain` Set enum — addendum FRS + preview (OGC-296 addendum) |
 
 ### Layer 2 — Integration & Workflow
 
-These specs wire the foundational entities into the order entry and results workflows.
-
 | Spec | Title | Jira | Status | Deliverables |
 |------|-------|------|--------|-------------|
-| **S-03** | Environmental Order Entry Integration | [OGC-537](https://uwdigi.atlassian.net/browse/OGC-537) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview |
-| **S-04** | Sample Type Domain Classification | [OGC-538](https://uwdigi.atlassian.net/browse/OGC-538) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview (addendum to OGC-296) |
-
-**Layer 2 summary:** Both specs complete. S-04 adds `sampleDomain` enum (CLINICAL/ENVIRONMENTAL/BOTH) to the SampleType entity as an addendum to OGC-296. This enables the workflow toggle to filter sample types and S-03's checklist to show only relevant types.
+| **S-03** | Environmental Order Entry Integration | [OGC-537](https://uwdigi.atlassian.net/browse/OGC-537) | ✅ Spec Complete | FRS v1.0, JSX mockup, HTML preview |
+| **S-04** | Sample Type Domain Classification | [OGC-538](https://uwdigi.atlassian.net/browse/OGC-538) | ✅ Spec Complete | FRS v1.0, JSX mockup, HTML preview |
 
 ### Layer 3 — Analytics, Reporting & Vector-Specific
 
-These specs add the analytical engine, compliance reporting, and vector-specific extensions.
+#### Environmental Sub-track
 
-| Spec | Title | Jira | Status | Description |
+| Spec | Title | Jira | Status | Deliverables |
 |------|-------|------|--------|-------------|
-| **S-05** | Compliance Evaluation Engine | [OGC-547](https://uwdigi.atlassian.net/browse/OGC-547) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview — auto-evaluate results against ComplianceThresholds with pass/marginal/fail indicators, descriptive tag library, unit conversion, override workflow |
-| **S-06** | Laporan Hasil (Compliance Report) | [OGC-552](https://uwdigi.atlassian.net/browse/OGC-552) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview — formal Sertifikat Hasil Uji PDF generation with shared Report Print Configuration, dual e-signature, batch ZIP download, audit trail |
-| **S-07** | Environmental Dashboard & Trend Analysis | [OGC-553](https://uwdigi.atlassian.net/browse/OGC-553) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview — site-level compliance rate trends (monthly/12mo), per-parameter drill-down, exceedance summary table, site comparison bar chart, CSV export |
-| **S-08** | Environmental QC Rules | [OGC-554](https://uwdigi.atlassian.net/browse/OGC-554) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview — field blank, trip blank, duplicate sample (RPD), spike recovery. Per-standard QC protocol config, QC sample creation at order entry, inline QC results tab, acknowledgment modal on validation |
-| **V-01** | Vector Specimen Types & Taxonomy | [OGC-555](https://uwdigi.atlassian.net/browse/OGC-555) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview — species taxonomy (genus/species/subspecies), trap types, vector sample types with pooling strategy (INDIVIDUAL/POOL_FIXED/POOL_VARIABLE). Extends SampleType.sampleDomain with VECTOR, adds VectorSpecimenProfile, seeds ~40 species + 15 trap types |
-| **V-02** | Vector Collection Workflow | [OGC-581](https://uwdigi.atlassian.net/browse/OGC-581) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview — trap-based CollectionLot entry, pool/individual intake, geographic/temporal clustering, field data capture |
-| **V-03** | Vector Testing & Identification | [OGC-583](https://uwdigi.atlassian.net/browse/OGC-583) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview — species ID (morphological + molecular), pathogen screening panels, pool deconvolution workflow |
-| **V-04** | Vector Surveillance Reporting | [OGC-585](https://uwdigi.atlassian.net/browse/OGC-585) | **Spec Complete** | FRS v1.0, JSX mockup, HTML preview — Superset embedded dashboard (trap catch rate, species distribution, MIR heatmap, pathogen positivity), guest token embedding, OHS ETL pipeline, PDF export, email alerts. FHIR implementation sprint **blocked by [OGC-586](https://uwdigi.atlassian.net/browse/OGC-586)** (Piotr architectural review). |
-| — | V-04 FHIR Architectural Review | [OGC-586](https://uwdigi.atlassian.net/browse/OGC-586) | **In Review (Piotr)** | 7 architectural decisions required before FHIR implementation sprint: OHS ETL approach, trap-nights gap (Option A/B/C), Specimen.note → extension migration, lifecycle stage/sex push, StructureDefinition publication, SNOMED dual-coding, pool deconvolution chain gap. Blocks OGC-585 FHIR sprint. |
+| **S-05** | Compliance Evaluation Engine | [OGC-547](https://uwdigi.atlassian.net/browse/OGC-547) | ✅ Spec Complete | FRS v1.0, JSX mockup, HTML preview |
+| **S-06** | Laporan Hasil (Compliance Report) | [OGC-552](https://uwdigi.atlassian.net/browse/OGC-552) | ✅ Spec Complete | FRS v1.0, JSX mockup, HTML preview |
+| **S-07** | Environmental Dashboard & Trend Analysis | [OGC-553](https://uwdigi.atlassian.net/browse/OGC-553) | ✅ Spec Complete | FRS v1.0, JSX mockup, HTML preview |
+| **S-08** | Environmental QC Rules | [OGC-554](https://uwdigi.atlassian.net/browse/OGC-554) | ✅ Spec Complete | FRS v1.0, JSX mockup, HTML preview |
 
-**Layer 3 summary:** 8 of 8 specs complete. All environmental and vector specs done. Epic OGC-527 spec phase complete.
+#### Vector Surveillance Sub-track
+
+| Spec | Title | Jira | Status | Deliverables |
+|------|-------|------|--------|-------------|
+| **V-01** | Vector Specimen Types & Taxonomy | [OGC-555](https://uwdigi.atlassian.net/browse/OGC-555) | ✅ Spec Complete | FRS v1.0, JSX mockup, HTML preview |
+| **V-02** | Vector Collection Workflow | [OGC-581](https://uwdigi.atlassian.net/browse/OGC-581) | ✅ Spec Complete | FRS v1.0, JSX mockup, HTML preview — trap-based collection, pool/individual, geographic clustering |
+| **V-03** | Vector Testing & Identification | [OGC-583](https://uwdigi.atlassian.net/browse/OGC-583) | ✅ Spec Complete | FRS v1.0, JSX mockup, HTML preview — species ID workbench, pathogen panels, pool deconvolution |
+| **V-04** | Vector Surveillance Reporting | [OGC-585](https://uwdigi.atlassian.net/browse/OGC-585) | ✅ Spec Complete | FRS v1.0, JSX mockup, HTML preview — Superset dashboard, FHIR/OHS ETL, MIR/density charts. Blocked by [OGC-586](https://uwdigi.atlassian.net/browse/OGC-586) FHIR review |
+
+**Layer 3 summary:** All 8 specs complete. V-04 dev blocked pending FHIR architectural decisions in OGC-586 (assigned: Piotr Mankowski).
+
+### Layer 4 — Gap Specs & Addenda
+
+Identified from cross-referencing PRD v0.5 and the Bogor requirements spreadsheet against the 12 core specs (2026-04-20). Full coverage mapping: `designs/other/PRD-roadmap-coverage-mapping.md`.
+
+#### New Cross-Cutting Specs
+
+| Spec | Title | Jira | Status | Summary |
+|------|-------|------|--------|---------|
+| **X-01** | Referral-Out Notification | [OGC-589](https://uwdigi.atlassian.net/browse/OGC-589) | ✅ Spec Complete | **Notification addendum** to existing Refer Out module. Adds REFERRAL_OUT event type to OGC-437/OGC-439 dispatch pipeline: Combined Triggers Page row (default OFF), Combined Templates Page editor (merge fields: referred_lab, referred_tests, referral_date, expected_return), Sent Messages tab "Referral Out" type. Per-lab-unit override. Prerequisites: OGC-437 + OGC-439. |
+| **S-03c** | Subcontract Management | [OGC-590](https://uwdigi.atlassian.net/browse/OGC-590) | ✅ Spec Complete | **Subcontract tracking layer** on top of Refer Out for ENV/Vector orders. ISO 17025 §6.6/§7.7. Subcontract Metadata panel (handoff datetime, expected return, agreement ref, chain-of-custody contact), five-state status workflow (DISPATCHED → RECEIVED → RESULTS_RETURNED → CLOSED), new Subcontract Register page with overdue highlighting, Advance Status modal, audit log. |
+| **S-03d** | SOP Deadline Calculation & Order Due Date | [OGC-593](https://uwdigi.atlassian.net/browse/OGC-593) | ✅ Spec Complete | **Three-part addendum to S-03.** (A) General `Required By` date+time on Order Entry Step 1 for all order types — unifies EQA `eqa_deadline` into `order.required_by`; optional by default, mandatory configurable per type. (B) ENV/Vector: `sop_max_holding_hours` per test (admin inline edit); auto-calculates deadline = collection datetime + min holding time; live notification with per-test breakdown. (C) ENV/Vector worklist `Deadline` column: green/amber/red Tags, Approaching/Overdue filter chips, configurable threshold. |
+| **S-05b** | Final Storage Disposition FHIR Publishing | [OGC-592](https://uwdigi.atlassian.net/browse/OGC-592) | ✅ Spec Complete | **FHIR push addendum** to S-05 (OGC-547). Fires `SPECIMEN_DISPOSITION_FINAL` event on Disposed/Biorepository save → updates `Specimen` resource on HAPI FHIR R4 (same server as V-04). `Specimen.status` + `specimen-final-disposition` extension (dispositionType, dispositionDate, storageLocation, disposedBy, dispositionNotes). Temporary storage excluded. No UI changes. OHS ETL query pattern in §7 for future dashboards. |
+
+#### Addenda to Existing Specs
+
+| Addendum | Parent | Jira | Status | Summary |
+|----------|--------|------|--------|---------|
+| **S-03b** | S-03 / [OGC-537](https://uwdigi.atlassian.net/browse/OGC-537) | OGC-537 addendum | ✅ Spec Complete | **Sampling Uncertainty field** added to Collection Conditions. ISO 17025 §7.6 field/sampling uncertainty: NumberInput + unit Select (%, mg/L, μg/L, CFU/100mL, Other). Mandatory by default, per-program optional. Carries to Step 2 via ENV-3-002. |
+| **S-06b** | S-06 / [OGC-552](https://uwdigi.atlassian.net/browse/OGC-552) | [OGC-587](https://uwdigi.atlassian.net/browse/OGC-587) | ✅ Spec Complete | **Email/WhatsApp LH delivery + Sent Messages tab**. Extends OGC-437/OGC-439 with LH_COMPLETED trigger. Global Sent Messages main-menu tab with per-channel ✓/✗ status, resend flow, delivery log modal, secure download token. |
+| **S-07b** | S-07 / [OGC-553](https://uwdigi.atlassian.net/browse/OGC-553) | OGC-553 addendum | ✅ Spec Complete | **Chart PNG + full-dashboard PDF export**. Per-chart hover download (client-side SVG→PNG @2×). PDF config modal → server-side generation. ROLE_ENV_EXPORT permission. |
+| **S-03e** | S-03 / [OGC-537](https://uwdigi.atlassian.net/browse/OGC-537) | TBD | ⬜ Not Started (Research) | **Multiple containers per test** — support adding a 2nd, 3rd, etc. physical tube/container to the same test on an order (e.g., 3 water tubes all running the same panel). Requires research: how is tube count specified (test catalog config vs. at-collection decision vs. both)? How are containers labeled? Are results per-tube or aggregated? Does this warrant a full spec or a targeted addendum? Applies to ENV and potentially clinical orders. |
+
+**Layer 4 summary:** 7 of 7 gap specs complete (X-01, S-03b, S-03c, S-03d, S-05b, S-06b, S-07b). ✅ All Layer 4 gap specs complete.
 
 ---
 
 ## Dependency Graph
 
 ```
-OGC-296 (Sample Type Management) ──────────────────────────┐
-                                                            │
-S-01 (Compliance Standards) ──┐                             │
-                              ├── S-03 (Order Entry) ──┐    │
-S-02 (Sampling Site Registry) ┘         │              │    │
-                                        │              ├── S-04 (Sample Domain)
-Sample Collection Redesign ─────────────┘              │
-                                                       ├── S-05 (Evaluation Engine)
-                                                       │
-                                                       ├── S-06 (Laporan Hasil)
-                                                       │
-                                                       ├── S-07 (Dashboard/Trends)
-                                                       │
-                                                       └── S-08 (Environmental QC)
+OGC-296 (Sample Type Management) ──────────────────────────────┐
+                                                                │
+S-01 (Compliance Standards) ──┐                                 │
+                               ├── S-03 (Order Entry) ──┐      │
+S-02 (Sampling Site Registry) ┘         │                │      │
+                                        │                ├── S-04 (Sample Domain)
+Sample Collection Redesign ─────────────┘                │
+                                                         ├── S-05 (Evaluation) ──── S-05b (Storage)
+                                                         │
+                                                         ├── S-06 (Laporan Hasil) ── S-06b (Delivery)
+                                                         │
+                                                         ├── S-07 (Dashboard) ────── S-07b (Export)
+                                                         │
+                                                         └── S-08 (QC Rules)
+
+S-03 ──── S-03b (Uncertainty) · S-03c (Subcontract) · S-03d (SOP Deadline)
 
 V-01 (Vector Specimens) ── V-02 (Collection) ── V-03 (Testing) ── V-04 (Surveillance)
+
+X-01 (Referral-Out Notification) ── addendum: extends existing Refer Out + OGC-437/OGC-439
 ```
 
 ---
 
 ## Recommended Build Order
-
-The specs should be implemented in this order based on dependencies and value delivery:
 
 | Phase | Specs | Rationale |
 |-------|-------|-----------|
@@ -105,67 +130,87 @@ The specs should be implemented in this order based on dependencies and value de
 | **Phase 3 — Compliance Loop** | S-05 (evaluation), S-06 (reporting) | Completes the end-to-end compliance workflow: enter → test → evaluate → report. |
 | **Phase 4 — Operational** | S-07 (dashboard), S-08 (QC rules) | Adds operational tooling for environmental labs — trends, quality control. |
 | **Phase 5 — Vector** | V-01, V-02, V-03, V-04 | Extends the environmental framework to vector surveillance. Sequential dependencies. |
+| **Phase 6 — Gap Addenda (low-effort)** | S-03b, S-06b, S-07b | Field-level additions and notification extensions to existing workflows. |
+| **Phase 7 — Gap Specs (higher effort)** | S-03c ✅, S-05b ✅, S-03d ✅ | All complete. S-03c (subcontract tracking), S-05b (FHIR disposition push), S-03d (SOP deadline + order due date). |
+| **Phase 8 — Research Items** | S-03e | Scope and approach must be confirmed before sprint planning. |
+| **Phase 9 — Future Enhancements** | F-01 (Package) | Low-priority; design investigation required before any sprint commitment. |
+
+---
+
+## Future Enhancements
+
+Tracked here for visibility — not scheduled for any current sprint. These items require design investigation and stakeholder alignment before they can enter the Layer 4 backlog.
+
+| ID | Title | Status | Description |
+|----|-------|--------|-------------|
+| **F-01** | Test Package (Super-Panel) | 💡 Future / Not Scoped | A composable "Package" entity that bundles together multiple specimen types, panels, and individual tests into a single orderable unit. Analogous to a super-panel but with heterogeneous content — a single Package order could trigger collection of multiple specimen types (water, sediment, air), run multiple test panels, and include ad-hoc individual tests. Distinct from Panel (homogeneous test grouping) and from multi-container (S-03e, which is multiple tubes of the same type). Potential use cases: multi-media site assessments, standard regulatory submission packages, vector surveillance intake bundles. Cross-cuts order entry (S-03), test catalog (OGC-173), collection workflow (V-02), and results (S-05). **Needs stakeholder scoping session before design begins.** |
 
 ---
 
 ## Current Sprint Focus
 
-**Spec work completed (2026-04-20):**
-- [OGC-586](https://uwdigi.atlassian.net/browse/OGC-586) created — V-04 FHIR Architectural Review task, assigned to Piotr Mankowski. Blocks OGC-585 FHIR implementation sprint. 7 decisions required (OHS ETL approach, trap-nights, Specimen.note migration, lifecycle stage/sex, StructureDefinition publication, SNOMED dual-coding, pool deconvolution chain). High priority.
-- V-04 FRS v1.0 finalized — Vector Surveillance Reporting. Superset embedded dashboard via guest token JWT (5-min, silent refresh), OHS SQL-on-FHIR ETL pipeline (5 analytics views), Docker Compose infrastructure (hapi-fhir, postgres-fhir, superset, chromium), FHIR push extensions (Specimen, Observation, DiagnosticReport, Task), MIR heatmap, trap catch rate trend, species distribution donut, pathogen positivity bars. PDF export via headless Chromium. Superset native email alerts. RLS deferrable for single-tenant.
-- V-04 React mockup: Carbon embedding shell with header strip filters, loading/error/connected states, simulated Superset dashboard (KPI tiles + 4 chart panels), token countdown, Pipeline & Infrastructure tab (arch diagram, OHS view status, FHIR push log, config accordion snippets)
-- V-04 HTML preview: light-mode vanilla JS interactive preview with site filter (updates KPI + MIR data), token countdown, three connection state controls, SideNav
-- FHIR Considerations doc: coverage assessment (45–50% native R4), 7 extensions, 5 CodeSystems, OHS ETL implications, WHO Vector Surveillance IG alignment approach, 7 questions for Piotr
-- Jira ticket [OGC-585](https://uwdigi.atlassian.net/browse/OGC-585) created under epic OGC-527
-- **Epic OGC-527 spec phase complete — all 8 specs done (S-01 through S-08, V-01 through V-04)**
+**Spec work completed (2026-04-20) — Layer 4 gap addenda:**
 
-**Spec work completed (2026-04-17):**
-- V-02 and V-03 specs finalized — OGC-581 and OGC-583 respectively. V-03 amended: SideNav submenus replacing Tabs, inline lot expansion replacing page navigation, VectorTestPanel entity removed (uses Panel with panelDomain=VECTOR instead)
+- **S-03b** — Sampling Uncertainty Field (OGC-537 addendum)
+  - FRS v1.0, 3-scene JSX mockup (Step 1 entry, Step 2 carry-forward, QA completeness warning)
+  - Gallery entry #85: `env-order-sampling-uncertainty-field`
+  - Addendum comment posted to OGC-537
 
-**Spec work completed (2026-04-13):**
-- V-01 FRS v1.0 finalized — Vector Specimen Types & Taxonomy reference data. Species taxonomy (genus + species + optional subspecies), organism groups (MOSQUITO/TICK/RODENT/OTHER_ARTHROPOD/OTHER_ANIMAL), lifecycle stages, pathogens of interest, trap type registry, vector sample types with pooling strategy (INDIVIDUAL/POOL_FIXED/POOL_VARIABLE). Extends SampleType.sampleDomain with VECTOR and adds VectorSpecimenProfile. Defines CollectionLot → VectorSpecimen data model for V-02
-- V-01 React mockup: 3-tab Carbon mockup — Species | Trap Types | Vector Sample Types. Inline row expansion, Accordion for advanced config, progressive disclosure of pool size when strategy = POOL_FIXED, organism-group color coding
-- V-01 HTML preview: interactive 3-tab preview with search, filters, row expansion, accordion, seed reload simulation
-- Seed data spec: ~40 pre-loaded species (18 mosquitoes, 10 ticks, 7 rodents, 5 other) and 15 trap types relevant to Indonesia
-- Jira ticket [OGC-555](https://uwdigi.atlassian.net/browse/OGC-555) created under epic OGC-527
-- New `vector-surveillance` category added to design gallery; V-01 assets registered in mockup-viewer
+- **S-06b** — LH Delivery Notification & Sent Messages Tab (OGC-587 new story)
+  - FRS v1.1 (rewritten to extend OGC-437/439 infrastructure), 4-scene JSX mockup
+  - Scenes: Sent Messages tab, resend flow, delivery log modal, customer download page
+  - Per-channel ✓/✗ delivery status pills (Email, WhatsApp), Carbon pagination
+  - Gallery entry #83: `lh-delivery-sent-messages-tab`
+  - Jira story OGC-587 created (assigned: Reagan, labels: Indonesia+Vector)
 
-**Spec work completed (2026-04-10):**
-- S-08 FRS v1.0 finalized — Environmental QC Rules with field blank, trip blank, duplicate sample (RPD), spike recovery. Per-standard QC protocol configuration, QC sample creation at order entry, inline QC results tab, QC warning with acknowledgment modal on validation
-- S-08 React mockup: 3-screen Carbon mockup — QC Protocol Config (Accordion per QC type), QC Results Tab (DataTable with type tags, pass/fail status, RPD calculations), QC Warning + Acknowledgment (modal with justification and checkbox)
-- S-08 HTML preview: interactive 3-screen with accordion toggle, DataTable, modal with validation
-- Jira ticket [OGC-554](https://uwdigi.atlassian.net/browse/OGC-554) created under epic OGC-527
-- All S-08 assets added to design gallery and mockup-viewer
-- S-07 FRS v1.0 finalized — Environmental Dashboard & Trend Analysis with KPI summary cards (with trend comparison), site-level compliance rate trend chart (monthly aggregation, 12-month default), per-parameter drill-down with threshold reference lines, exceedance summary DataTable, site comparison bar chart, CSV export
-- S-07 React mockup: recharts-based dashboard with interactive drill-down, custom tooltips, color-coded compliance bars, export overflow menu
-- S-07 HTML preview: Chart.js-based interactive preview with all 6 charts, toggleable drill-down panel
-- Jira ticket [OGC-553](https://uwdigi.atlassian.net/browse/OGC-553) created under epic OGC-527
-- All S-07 assets added to design gallery and mockup-viewer
+- **S-07b** — Chart PNG & Dashboard PDF Export (OGC-553 addendum)
+  - FRS v1.0, 2-scene annotated JSX mockup (scope badge convention)
+  - Gold dashed border = S-07b new; dimmed = S-07 existing context
+  - Scenes: annotated dashboard, A4 PDF layout preview (5 selectable pages)
+  - Gallery entry #84: `env-dashboard-chart-pdf-export`
+  - Two addendum comments posted to OGC-553
 
-**Spec work completed (2026-04-09):**
-- S-06 FRS v1.0 finalized — Laporan Hasil (Compliance Report / Sertifikat Hasil Uji) with shared Report Print Configuration admin page, formal PDF certificate structure, dual e-signature integration (§11.50), batch ZIP generation, sequential certificate numbering, and generation audit trail
-- S-06 React mockup: two-screen Carbon Design System mockup — Reports → Laporan Hasil workbench (DataTable + filters + batch actions + inline row expansion with compliance preview) and Admin → Report Configuration (Accordion-grouped settings form)
-- S-06 HTML preview created with interactive row expansion, batch selection, accordion config, screen switcher
-- Jira ticket [OGC-552](https://uwdigi.atlassian.net/browse/OGC-552) created under epic OGC-527
-- All S-06 assets added to design gallery and mockup-viewer
+All three committed to `feat/add-informed-consent-ogc-557` (commit `7e4eac9`).
 
-**Spec work completed (2026-04-04):**
-- S-05 FRS v1.0 finalized — Compliance Evaluation Engine with three-tier pass/marginal/fail evaluation, descriptive tag library with type-ahead multi-select, unit conversion engine, configurable margin percentages, version-locked evaluation, and override workflow with audit trail
-- S-05 React mockup extends existing results-page.jsx with ComplianceSummaryBanner, DescriptiveTagSelector, ComplianceDetailTile, and override form
-- S-05 HTML preview created
-- Jira ticket [OGC-547](https://uwdigi.atlassian.net/browse/OGC-547) created and gallery permalinks posted
-- All S-05 assets added to design gallery
+- **X-01** — Referral-Out Notification (OGC-589 new story)
+  - FRS v1.0 addendum to existing Refer Out module; no changes to referral mechanics
+  - Adds `REFERRAL_OUT` trigger to OGC-437/OGC-439 pipeline; default OFF globally
+  - 3-scene JSX mockup: Combined Triggers Page, Combined Templates Page (live preview), Sent Messages Tab
+  - Gallery entry #86: `referral-out-notification`
+  - Jira story [OGC-589](https://uwdigi.atlassian.net/browse/OGC-589) created (child of OGC-527)
+  - FRS + mockup comment posted to OGC-589
+  - Committed to `feat/add-informed-consent-ogc-557` (commit `fb54b9b`)
 
-**Spec work completed (2026-04-03):**
-- S-03 FRS v1.0 finalized with sample type selection, test auto-suggestion, collection conditions, regulatory reference, dashboard extensions, QA completeness, and reporting data contract
-- S-03 React mockup and HTML preview updated with sample type checklist + override flow
-- Jira ticket [OGC-537](https://uwdigi.atlassian.net/browse/OGC-537) created
-- S-04 FRS v1.0 completed as addendum to OGC-296 — `sampleDomain` enum, Basic Info tab extension, bulk assignment utility, workflow toggle filtering
-- S-04 React mockup and HTML preview with list view (domain column + filter), editor (domain dropdown on Basic Info), and bulk assignment accordion
-- Jira ticket [OGC-538](https://uwdigi.atlassian.net/browse/OGC-538) created
+**Previous sprint (2026-04-17–19) — V-03 and V-04:**
+- V-03 FRS v1.0 — Vector Testing & Identification: species ID workbench, pathogen panels, pool deconvolution. Jira [OGC-583](https://uwdigi.atlassian.net/browse/OGC-583).
+- V-04 FRS v1.0 — Vector Surveillance Reporting: Superset dashboard, FHIR/OHS SQL-on-FHIR ETL, MIR/density/trap-catch charts, PDF/email alerts. Jira [OGC-585](https://uwdigi.atlassian.net/browse/OGC-585).
+- V-04 FHIR architectural review doc posted as OGC-586 for Piotr Mankowski.
 
-**Next up:**
-- Epic OGC-527 spec phase complete. Implementation sprints can begin with Phase 1 (S-01, S-02, Sample Collection Redesign). Pending: gallery registration + branch/PR for V-04 assets; FHIR Considerations doc review by Piotr; V-04b (in-app alerts) story to be created when V-04 implementation is underway.
+- **S-03c** — Subcontract Management ([OGC-590](https://uwdigi.atlassian.net/browse/OGC-590))
+  - FRS v1.0 addendum to S-03 + V-02; ISO 17025 §6.6/§7.7 chain-of-custody compliance
+  - Subcontract Metadata panel on Refer Out (ENV/Vector only), five-state status workflow
+  - 3-scene JSX mockup: Refer Out screen, Subcontract Register, Advance Status modal
+  - Gallery entry #87: `subcontract-management`
+  - Committed to `feat/add-informed-consent-ogc-557` (commit `22423dd`)
+
+- **S-05b** — Final Storage Disposition FHIR Publishing ([OGC-592](https://uwdigi.atlassian.net/browse/OGC-592))
+  - FRS v1.0 addendum to S-05; hooks into existing Storage module dispose/biorepository save event
+  - `SPECIMEN_DISPOSITION_FINAL` event → async FHIR push queue (3× retry, same as V-04)
+  - Updates HAPI FHIR R4 `Specimen.status` + new `specimen-final-disposition` extension
+  - 2-scene JSX mockup: FHIR push pipeline simulation (animated), Specimen JSON payload explorer
+  - Gallery entry #88: `storage-disposition-fhir`
+  - Jira story [OGC-592](https://uwdigi.atlassian.net/browse/OGC-592) created (child of OGC-527)
+
+- **S-03d** — SOP Deadline Calculation & Order Due Date ([OGC-593](https://uwdigi.atlassian.net/browse/OGC-593))
+  - FRS v1.0 addendum to S-03; three-part feature
+  - Part A: `Required By` date+time on Order Entry Step 1 (all types); unifies EQA `eqa_deadline` into `order.required_by`
+  - Part B: `sop_max_holding_hours` per test (admin); auto-calc = collection datetime + min holding time; live inline notification
+  - Part C: ENV/Vector worklist `Deadline` column — green/amber/red Tags, filter chips, configurable threshold
+  - 3-scene JSX mockup + HTML preview: Step 1 order entry, admin test catalog, ENV worklist
+  - Gallery entry #89: `sop-deadline-calculation`
+  - Jira story [OGC-593](https://uwdigi.atlassian.net/browse/OGC-593) created (child of OGC-527)
+
+**🎉 Layer 4 complete — all 7 gap specs spec'd and committed.**
 
 ---
 
@@ -174,15 +219,18 @@ The specs should be implemented in this order based on dependencies and value de
 | Dependency | Jira | Status | Impact on Vector |
 |-----------|------|--------|-----------------|
 | Sample Collection Redesign (4-step workflow) | *(pre-existing)* | Spec Complete | S-03 extends this workflow |
-| Sample Type Management Module | [OGC-296](https://uwdigi.atlassian.net/browse/OGC-296) | In Progress | S-04 adds `sampleDomain` enum here |
+| Sample Type Management Module | [OGC-296](https://uwdigi.atlassian.net/browse/OGC-296) | Addendum Complete | S-04 adds `sampleDomain` Set enum |
+| TextIt SMS Notification | [OGC-437](https://uwdigi.atlassian.net/browse/OGC-437) | Spec Complete | S-06b extends with LH_COMPLETED trigger |
+| Email/SMTP Notification | [OGC-439](https://uwdigi.atlassian.net/browse/OGC-439) | Spec Complete | S-06b extends with LH_COMPLETED trigger |
 | Test Catalog Management Redesign | [OGC-173](https://uwdigi.atlassian.net/browse/OGC-173) | Done | S-01 links standards to tests via catalog |
-| FHIR Catalog Subscription | [OGC-447](https://uwdigi.atlassian.net/browse/OGC-447) | Backlog | Environmental sample types need to sync via FHIR |
+| FHIR Catalog Subscription | [OGC-447](https://uwdigi.atlassian.net/browse/OGC-447) | Backlog | Environmental sample types need FHIR sync |
+| V-04 FHIR Architectural Review | [OGC-586](https://uwdigi.atlassian.net/browse/OGC-586) | In Review (Piotr) | 7 architecture decisions gate V-04 dev |
 
 ---
 
 ## File Index
 
-All spec deliverables are in the upload folder:
+### Core Specs (upload/)
 
 | Spec | FRS | Mockup (JSX) | Preview (HTML) |
 |------|-----|-------------|----------------|
@@ -195,3 +243,23 @@ All spec deliverables are in the upload folder:
 | S-07 | `S07-environmental-dashboard-frs-v1.0.md` | `S07-environmental-dashboard-mockup.jsx` | `S07-environmental-dashboard-preview.html` |
 | S-08 | `S08-environmental-qc-rules-frs-v1.0.md` | `S08-environmental-qc-rules-mockup.jsx` | `S08-environmental-qc-rules-preview.html` |
 | V-01 | `V01-vector-specimen-types-taxonomy-frs-v1.0.md` | `V01-vector-specimen-types-taxonomy-mockup.jsx` | `V01-vector-specimen-types-taxonomy-preview.html` |
+
+### Layer 4 Addenda (upload/)
+
+| Addendum | FRS | Mockup (JSX) |
+|----------|-----|-------------|
+| S-03b | `S03b-sampling-uncertainty-frs-v1.0.md` | `S03b-sampling-uncertainty-mockup.jsx` |
+| S-06b (v1.1) | `S06b-lh-delivery-notification-frs-v1.1.md` | `S06b-sent-messages-mockup.jsx` |
+| S-07b | `S07b-chart-export-frs-v1.0.md` | `S07b-chart-export-mockup.jsx` |
+| X-01 | `X01-referral-out-notification-frs-v1.0.md` | `X01-referral-out-notification-mockup.jsx` |
+| S-03c | `S03c-subcontract-management-frs-v1.0.md` | `S03c-subcontract-management-mockup.jsx` |
+
+### Gallery Registrations (designs/)
+
+| Spec | JSX | Spec Doc |
+|------|-----|---------|
+| S-03b | `designs/sample-collection/sampling-uncertainty.jsx` | `designs/sample-collection/sampling-uncertainty.md` |
+| S-06b | `designs/reports/lh-delivery-sent-messages.jsx` | `designs/reports/lh-delivery-sent-messages.md` |
+| S-07b | `designs/reports/environmental-dashboard-chart-export.jsx` | `designs/reports/environmental-dashboard-chart-export.md` |
+| X-01 | `designs/notifications/referral-out-notification.jsx` | `designs/notifications/referral-out-notification.md` |
+| S-03c | `designs/notifications/subcontract-management.jsx` | `designs/notifications/subcontract-management.md` |

@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S-03d — SOP Deadline Calculation & Order Due Date · OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', Arial, sans-serif; }
+    .preview-banner {
+      background: #0f62fe; color: #fff;
+      padding: 6px 1.5rem; font-size: 12px; font-family: monospace;
+      display: flex; gap: 16px; align-items: center;
+    }
+    .scene-bar {
+      background: #161616; padding: 10px 24px;
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    }
+    .scene-btn {
+      padding: 6px 16px; border-radius: 4px; font-size: 12px;
+      cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+      transition: all 0.15s;
+    }
+    .scene-btn.active {
+      background: #F1C21B; color: #000; border: 2px solid #F1C21B; font-weight: 700;
+    }
+    .scene-btn:not(.active) {
+      background: transparent; color: #fff; border: 1px solid #525252;
+    }
+    .legend-bar {
+      background: #f4f4f4; border-bottom: 1px solid #e0e0e0;
+      padding: 6px 24px; display: flex; gap: 24px; align-items: center;
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #525252; }
+    .legend-new { width: 16px; height: 16px; border: 2px dashed #F1C21B; border-radius: 2px; }
+    .legend-existing { width: 16px; height: 16px; background: #e0e0e0; border-radius: 2px; opacity: 0.72; }
+    .scene-content { padding: 24px 32px; max-width: 1200px; margin: 0 auto; }
+    .new-region {
+      border: 2px dashed #F1C21B; border-radius: 6px; padding: 16px;
+      position: relative; margin-bottom: 20px;
+    }
+    .new-badge {
+      position: absolute; top: -12px; left: 12px;
+      background: #F1C21B; color: #000; font-size: 11px; font-weight: 700;
+      padding: 1px 8px; border-radius: 4px; letter-spacing: 0.04em;
+    }
+    .existing-region { opacity: 0.72; position: relative; margin-bottom: 16px; }
+    .existing-badge {
+      position: absolute; top: 6px; right: 10px; z-index: 1;
+      background: #8D8D8D; color: #fff; font-size: 10px; font-weight: 600;
+      padding: 1px 6px; border-radius: 4px;
+    }
+    /* Carbon overrides */
+    .cds--tile { background: #fff; }
+    .filter-chip {
+      padding: 4px 14px; border-radius: 16px; font-size: 13px;
+      cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; transition: all 0.15s;
+    }
+    .filter-chip.active { background: #0F62FE; color: #fff; border: 2px solid #0F62FE; }
+    .filter-chip:not(.active) { background: transparent; color: #161616; border: 1px solid #8D8D8D; }
+    .deadline-row-exceeded { background: rgba(218, 30, 40, 0.05); }
+    .deadline-row-approaching { background: rgba(241, 194, 27, 0.06); }
+    .mono { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+    input[type=text], input[type=search] {
+      padding: 6px 12px; border: 1px solid #8D8D8D; border-radius: 4px;
+      font-size: 13px; font-family: 'IBM Plex Sans', sans-serif;
+    }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    ⚡ Visual Preview · S-03d — SOP Deadline Calculation &amp; Order Due Date &nbsp;|&nbsp;
+    OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application
+  </div>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+    const GOLD = '#F1C21B';
+
+    // ── Scene 1: Step 1 Order Entry ───────────────────────────────────────────
+    function Scene1() {
+      const [calcMode, setCalcMode] = useState('auto'); // auto | overridden
+      const [manualDate, setManualDate] = useState('');
+      const [manualTime, setManualTime] = useState('');
+
+      const tests = [
+        { id: 1, name: 'Total Coliform Count', holdingHours: 6 },
+        { id: 2, name: 'E. coli (MPN)', holdingHours: 6 },
+        { id: 3, name: 'Nitrate–N', holdingHours: 48 },
+        { id: 4, name: 'pH (field)', holdingHours: null },
+      ];
+
+      const minH = 6;
+      const base = new Date('2026-04-21T08:30:00');
+      const calc = new Date(base.getTime() + minH * 3600 * 1000);
+      const calcDate = calc.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const calcTime = calc.toTimeString().slice(0,5);
+
+      return (
+        <div style={{ maxWidth: 900 }}>
+          <nav style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
+            Order &gt; <strong>Enter Order — Step 1</strong>
+          </nav>
+          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>Enter Order — Step 1</h2>
+          <p style={{ color: '#525252', fontSize: 13, marginBottom: 24 }}>
+            Environmental Order · Lab No: <strong>ENV-2026-04217</strong>
+          </p>
+
+          {/* Existing: subject info */}
+          <div className="existing-region">
+            <span className="existing-badge">EXISTING</span>
+            <div className="cds--tile" style={{ padding: '12px 16px', marginBottom: 16 }}>
+              <p style={{ fontWeight: 600, marginBottom: 10 }}>Subject / Location</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="cds--text-input-wrapper">
+                  <label className="cds--label">Sampling Site</label>
+                  <input className="cds--text-input" value="Sungai Ciliwung — Station 4" readOnly style={{ background: '#F4F4F4' }} />
+                </div>
+                <div className="cds--text-input-wrapper">
+                  <label className="cds--label">Requester / Collector</label>
+                  <input className="cds--text-input" value="BPOM Region III" readOnly style={{ background: '#F4F4F4' }} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Existing: Priority */}
+          <div className="existing-region">
+            <span className="existing-badge">EXISTING</span>
+            <div className="cds--tile" style={{ padding: '12px 16px', marginBottom: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="cds--select">
+                  <label className="cds--label">Priority</label>
+                  <select className="cds--select-input" defaultValue="routine">
+                    <option value="routine">Routine</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="stat">STAT</option>
+                  </select>
+                </div>
+                <div className="cds--select">
+                  <label className="cds--label">Environmental Program</label>
+                  <select className="cds--select-input">
+                    <option>Drinking Water — PERMENKES 492/2010</option>
+                    <option>Surface Water — PP 22/2021</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* NEW: Required By */}
+          <div className="new-region">
+            <span className="new-badge">S-03d NEW — Required By field</span>
+            <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 12 }}>Required By</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '280px 160px auto', gap: 16, alignItems: 'end' }}>
+              <div className="cds--text-input-wrapper">
+                <label className="cds--label">Required by (date)</label>
+                <input
+                  className="cds--text-input"
+                  placeholder="DD/MM/YYYY"
+                  value={calcMode === 'auto' ? calcDate : manualDate}
+                  onChange={e => { setManualDate(e.target.value); setCalcMode('overridden'); }}
+                />
+                <p className="cds--form__helper-text">
+                  {calcMode === 'pending' ? 'SOP deadline will be calculated once collection date/time is entered.' : 'Leave blank if no deadline applies.'}
+                </p>
+              </div>
+              <div className="cds--text-input-wrapper">
+                <label className="cds--label">Time</label>
+                <input
+                  className="cds--text-input"
+                  placeholder="HH:MM"
+                  value={calcMode === 'auto' ? calcTime : manualTime}
+                  onChange={e => { setManualTime(e.target.value); setCalcMode('overridden'); }}
+                />
+              </div>
+              {calcMode === 'overridden' && (
+                <button
+                  className="cds--btn cds--btn--ghost cds--btn--sm"
+                  onClick={() => setCalcMode('auto')}
+                  style={{ marginBottom: 24 }}
+                >
+                  ↺ Reset to SOP-calculated
+                </button>
+              )}
+            </div>
+
+            {/* Auto-calculation info notification */}
+            {calcMode === 'auto' && (
+              <div className="cds--inline-notification cds--inline-notification--info" style={{ marginTop: 12 }}>
+                <div className="cds--inline-notification__details">
+                  <div className="cds--inline-notification__text-wrapper">
+                    <p className="cds--inline-notification__subtitle">
+                      Required-by date <strong>auto-calculated</strong> from collection date (21 Apr 2026 08:30) + shortest SOP holding time (<strong>6h — "Total Coliform Count"</strong>). You may override this value.
+                    </p>
+                    <div style={{ marginTop: 10, fontSize: 12 }}>
+                      <strong>Holding times across all tests:</strong>
+                      <ul style={{ margin: '4px 0 0 16px' }}>
+                        {tests.map(test => (
+                          <li key={test.id} style={{ color: test.holdingHours === minH ? '#DA1E28' : test.holdingHours ? '#525252' : '#8D8D8D' }}>
+                            {test.name}: {test.holdingHours ? <strong>{test.holdingHours}h{test.holdingHours === minH ? ' ← most restrictive' : ''}</strong> : <em>no SOP holding time configured</em>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {calcMode === 'overridden' && (
+              <div className="cds--inline-notification cds--inline-notification--warning" style={{ marginTop: 12 }}>
+                <div className="cds--inline-notification__details">
+                  <div className="cds--inline-notification__text-wrapper">
+                    <p className="cds--inline-notification__subtitle">
+                      Required-by date manually set. SOP calculated: <strong>{calcDate} {calcTime}</strong>. The manual value will be saved.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Existing: Requested tests */}
+          <div className="existing-region">
+            <span className="existing-badge">EXISTING</span>
+            <div className="cds--tile" style={{ padding: '12px 16px', marginBottom: 16 }}>
+              <p style={{ fontWeight: 600, marginBottom: 10 }}>Requested Tests</p>
+              <div className="cds--data-table-container">
+                <table className="cds--data-table cds--data-table--sm">
+                  <thead><tr>
+                    <th><span className="cds--table-header-label">Test / Panel</span></th>
+                    <th><span className="cds--table-header-label">Sample Type</span></th>
+                    <th><span className="cds--table-header-label">SOP Hold</span></th>
+                  </tr></thead>
+                  <tbody>
+                    {tests.map(test => (
+                      <tr key={test.id}>
+                        <td>{test.name}</td>
+                        <td>Water — Surface</td>
+                        <td>{test.holdingHours !== null
+                          ? <span className={`cds--tag cds--tag--${test.holdingHours === minH ? 'red' : 'green'} cds--tag--sm`}>{test.holdingHours}h</span>
+                          : <span className="cds--tag cds--tag--gray cds--tag--sm">—</span>
+                        }</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+            <button className="cds--btn cds--btn--primary">Save &amp; Continue to Step 2 →</button>
+            <button className="cds--btn cds--btn--ghost">Save Draft</button>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Scene 2: Admin — SOP Holding Time ────────────────────────────────────
+    function Scene2() {
+      const [expanded, setExpanded] = useState(1);
+      const [holdingVal, setHoldingVal] = useState(6);
+      const [holdingUnit, setHoldingUnit] = useState('hours');
+      const [saved, setSaved] = useState(false);
+
+      const tests = [
+        { id: 1, name: 'Total Coliform Count', category: 'Microbiology', sopHours: 6, domain: 'ENV/Vector' },
+        { id: 2, name: 'E. coli (MPN)', category: 'Microbiology', sopHours: 6, domain: 'ENV/Vector' },
+        { id: 3, name: 'Nitrate–N', category: 'Chemistry', sopHours: 48, domain: 'ENV/Vector' },
+        { id: 4, name: 'pH (field)', category: 'Chemistry', sopHours: null, domain: 'ENV/Vector' },
+        { id: 5, name: 'Hemoglobin', category: 'Hematology', sopHours: null, domain: 'Clinical' },
+      ];
+
+      return (
+        <div style={{ maxWidth: 1000 }}>
+          <nav style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
+            Administration &gt; Test Catalog Management &gt; <strong>ENV / Vector Tests</strong>
+          </nav>
+          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>Test Catalog Management</h2>
+          <p style={{ color: '#525252', fontSize: 13, marginBottom: 20 }}>
+            Configure SOP maximum holding times for ENV and Vector tests.
+          </p>
+
+          <div className="new-region">
+            <span className="new-badge">S-03d NEW — SOP Holding Time column + inline edit</span>
+
+            <div className="cds--inline-notification cds--inline-notification--info" style={{ marginBottom: 16 }}>
+              <div className="cds--inline-notification__details">
+                <div className="cds--inline-notification__text-wrapper">
+                  <p className="cds--inline-notification__title">SOP Max Holding Time&nbsp;</p>
+                  <p className="cds--inline-notification__subtitle">Configure the maximum time from sample collection to result entry for ENV/Vector tests. Used to auto-calculate Required By dates on order entry. Clinical tests are not affected.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="cds--data-table-container">
+              <table className="cds--data-table cds--data-table--lg">
+                <thead><tr>
+                  <th><span className="cds--table-header-label">Test Name</span></th>
+                  <th><span className="cds--table-header-label">Category</span></th>
+                  <th><span className="cds--table-header-label">Domain</span></th>
+                  <th><span className="cds--table-header-label">SOP Max Holding Time</span></th>
+                  <th><span className="cds--table-header-label"></span></th>
+                </tr></thead>
+                <tbody>
+                  {tests.map(row => (
+                    <React.Fragment key={row.id}>
+                      <tr style={{ background: expanded === row.id ? '#EDF5FF' : '' }}>
+                        <td><strong>{row.name}</strong></td>
+                        <td>{row.category}</td>
+                        <td>
+                          <span className={`cds--tag cds--tag--${row.domain === 'Clinical' ? 'gray' : 'blue'} cds--tag--sm`}>
+                            {row.domain}
+                          </span>
+                        </td>
+                        <td>
+                          {row.domain !== 'Clinical'
+                            ? (row.sopHours !== null
+                              ? <span className="cds--tag cds--tag--green cds--tag--sm">{row.sopHours}h</span>
+                              : <span className="cds--tag cds--tag--warm-gray cds--tag--sm">Not set</span>)
+                            : <span style={{ color: '#8D8D8D', fontSize: 12 }}>N/A</span>
+                          }
+                        </td>
+                        <td>
+                          {row.domain !== 'Clinical' && (
+                            <button
+                              className="cds--btn cds--btn--ghost cds--btn--sm"
+                              onClick={() => { setExpanded(p => p === row.id ? null : row.id); setSaved(false); }}
+                            >
+                              {expanded === row.id ? '▲ Close' : '▼ Edit'}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+
+                      {expanded === row.id && (
+                        <tr>
+                          <td colSpan={5} style={{ padding: '0 0 12px' }}>
+                            <div style={{
+                              margin: '0 1rem 0 1rem', padding: '16px 20px',
+                              background: '#fff', borderLeft: `4px solid ${GOLD}`,
+                              borderRadius: 2
+                            }}>
+                              <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>
+                                SOP Max Holding Time — {row.name}
+                              </p>
+                              <p style={{ fontSize: 12, color: '#525252', marginBottom: 16 }}>
+                                Maximum time from collection to result. Used to calculate testing deadlines for ENV/Vector orders.
+                              </p>
+                              <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                                <div>
+                                  <label className="cds--label">Maximum holding time</label>
+                                  <input
+                                    type="number"
+                                    className="cds--text-input"
+                                    style={{ width: 120 }}
+                                    value={holdingVal}
+                                    min={1} max={10000}
+                                    onChange={e => { setHoldingVal(Number(e.target.value)); setSaved(false); }}
+                                  />
+                                </div>
+                                <div className="cds--select" style={{ width: 200 }}>
+                                  <label className="cds--label">Unit</label>
+                                  <select
+                                    className="cds--select-input"
+                                    value={holdingUnit}
+                                    onChange={e => setHoldingUnit(e.target.value)}
+                                  >
+                                    <option value="hours">Hours</option>
+                                    <option value="days">Days (stored as hours)</option>
+                                  </select>
+                                </div>
+                                {holdingUnit === 'days' && (
+                                  <span className="cds--tag cds--tag--blue cds--tag--sm">
+                                    = {holdingVal * 24}h stored
+                                  </span>
+                                )}
+                              </div>
+
+                              {saved && (
+                                <div className="cds--inline-notification cds--inline-notification--success" style={{ marginTop: 12 }}>
+                                  <div className="cds--inline-notification__details">
+                                    <div className="cds--inline-notification__text-wrapper">
+                                      <p className="cds--inline-notification__subtitle">
+                                        SOP holding time saved: {holdingVal} {holdingUnit} ({holdingUnit === 'days' ? holdingVal * 24 : holdingVal}h). Will be used in deadline calculations on new orders.
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+                                <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={() => setSaved(true)}>
+                                  ✓ Save Holding Time
+                                </button>
+                                <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setExpanded(null)}>
+                                  Cancel
+                                </button>
+                                {row.sopHours !== null && (
+                                  <button className="cds--btn cds--btn--danger--ghost cds--btn--sm">
+                                    Clear (no SOP deadline)
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Scene 3: ENV Worklist — Deadline column ───────────────────────────────
+    function Scene3() {
+      const [filter, setFilter] = useState('all');
+      const [search, setSearch] = useState('');
+      const now = new Date('2026-04-21T10:00:00');
+
+      const orders = [
+        { id: 'ENV-2026-04003', site: 'Air Bersih — Kec. Gambir', standard: 'PERMENKES 492/2010', status: 'Pending', due: new Date('2026-04-21T08:00:00'), tests: 4 },
+        { id: 'ENV-2026-04001', site: 'Sungai Ciliwung — Sta. 4', standard: 'PERMENKES 492/2010', status: 'In Progress', due: new Date('2026-04-21T11:30:00'), tests: 3 },
+        { id: 'ENV-2026-04006', site: 'Sungai Brantas — Sta. 3', standard: 'PP 22/2021', status: 'In Progress', due: new Date('2026-04-21T13:30:00'), tests: 3 },
+        { id: 'ENV-2026-04002', site: 'Danau Toba — North Shore', standard: 'PP 22/2021', status: 'In Progress', due: new Date('2026-04-21T14:00:00'), tests: 5 },
+        { id: 'ENV-2026-04004', site: 'Sungai Musi — Sta. 12', standard: 'PP 22/2021', status: 'In Progress', due: new Date('2026-04-22T09:00:00'), tests: 6 },
+        { id: 'ENV-2026-04005', site: 'Kolam Waduk Jatiluhur', standard: 'PERMENKES 492/2010', status: 'Pending', due: null, tests: 2 },
+      ];
+
+      const THRESHOLD_H = 4;
+
+      function getStatus(due) {
+        if (!due) return 'none';
+        const diffH = (due - now) / 3600000;
+        if (diffH < 0) return 'exceeded';
+        if (diffH <= THRESHOLD_H) return 'approaching';
+        return 'ok';
+      }
+
+      function fmtRelative(due) {
+        if (!due) return '—';
+        const diffMs = due - now;
+        const abs = Math.abs(diffMs);
+        const h = Math.floor(abs / 3600000);
+        const m = Math.floor((abs % 3600000) / 60000);
+        return diffMs < 0 ? `${h}h ${m}m ago` : `in ${h}h ${m}m`;
+      }
+
+      function fmtTime(due) {
+        return due ? due.toTimeString().slice(0,5) : '';
+      }
+
+      const tagKind = { ok: 'green', approaching: 'warm-gray', exceeded: 'red', none: 'gray' };
+
+      const overdueCount = orders.filter(o => getStatus(o.due) === 'exceeded').length;
+      const approachingCount = orders.filter(o => getStatus(o.due) === 'approaching').length;
+
+      const visible = orders
+        .filter(o => {
+          if (search) {
+            const q = search.toLowerCase();
+            if (!o.id.toLowerCase().includes(q) && !o.site.toLowerCase().includes(q)) return false;
+          }
+          if (filter === 'approaching') return getStatus(o.due) === 'approaching';
+          if (filter === 'overdue') return getStatus(o.due) === 'exceeded';
+          return true;
+        });
+
+      return (
+        <div style={{ maxWidth: 1100 }}>
+          <nav style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
+            Results &gt; <strong>ENV Testing Worklist</strong>
+          </nav>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+            <div>
+              <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>ENV Testing Worklist</h2>
+              <p style={{ color: '#525252', fontSize: 13 }}>{visible.length} orders · Sorted by deadline</p>
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              {overdueCount > 0 && (
+                <span className="cds--tag cds--tag--red">
+                  ⚠ {overdueCount} Overdue
+                </span>
+              )}
+              {approachingCount > 0 && (
+                <span className="cds--tag cds--tag--warm-gray">
+                  {approachingCount} Approaching
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="new-region">
+            <span className="new-badge">S-03d NEW — Deadline column + filter chips</span>
+
+            {/* Filter chips + search */}
+            <div style={{ display: 'flex', gap: 10, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 13, color: '#525252' }}>Filter:</span>
+              {[
+                { key: 'all', label: 'All orders' },
+                { key: 'approaching', label: `Approaching deadline (${approachingCount})` },
+                { key: 'overdue', label: `Overdue (${overdueCount})` },
+              ].map(f => (
+                <button
+                  key={f.key}
+                  className={`filter-chip ${filter === f.key ? 'active' : ''}`}
+                  onClick={() => setFilter(f.key)}
+                >
+                  {f.label}
+                </button>
+              ))}
+              <input
+                type="search"
+                placeholder="Search lab no or site..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{ marginLeft: 'auto', width: 220 }}
+              />
+            </div>
+
+            <div className="cds--data-table-container">
+              <table className="cds--data-table cds--data-table--lg">
+                <thead><tr>
+                  <th><span className="cds--table-header-label">Lab Number</span></th>
+                  <th><span className="cds--table-header-label">Sampling Site</span></th>
+                  <th><span className="cds--table-header-label">Standard</span></th>
+                  <th><span className="cds--table-header-label">Tests</span></th>
+                  <th><span className="cds--table-header-label">Status</span></th>
+                  <th>
+                    <span className="cds--table-header-label" style={{ color: GOLD, fontWeight: 700 }}>
+                      ↑ Deadline
+                    </span>
+                  </th>
+                  <th><span className="cds--table-header-label"></span></th>
+                </tr></thead>
+                <tbody>
+                  {visible.map(o => {
+                    const s = getStatus(o.due);
+                    const rowClass = s === 'exceeded' ? 'deadline-row-exceeded' : s === 'approaching' ? 'deadline-row-approaching' : '';
+                    return (
+                      <tr key={o.id} className={rowClass}>
+                        <td><span className="mono">{o.id}</span></td>
+                        <td style={{ fontSize: 13 }}>{o.site}</td>
+                        <td style={{ fontSize: 12, color: '#525252' }}>{o.standard}</td>
+                        <td>{o.tests} tests</td>
+                        <td>
+                          <span className={`cds--tag cds--tag--${o.status === 'In Progress' ? 'blue' : 'purple'} cds--tag--sm`}>
+                            {o.status}
+                          </span>
+                        </td>
+                        <td>
+                          {s === 'none'
+                            ? <span style={{ color: '#8D8D8D', fontSize: 13 }}>—</span>
+                            : (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                {s === 'exceeded' && <span style={{ color: '#DA1E28', fontSize: 16 }}>⚠</span>}
+                                <span className={`cds--tag cds--tag--${tagKind[s]} cds--tag--sm`}>
+                                  {fmtRelative(o.due)}
+                                </span>
+                                <span style={{ fontSize: 11, color: '#525252' }}>{fmtTime(o.due)}</span>
+                              </div>
+                            )
+                          }
+                        </td>
+                        <td>
+                          <button className="cds--btn cds--btn--ghost cds--btn--sm">Enter Results</button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Legend */}
+            <div style={{ marginTop: 16, padding: '12px 16px', background: '#f4f4f4', borderRadius: 4 }}>
+              <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Deadline status legend</p>
+              <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span className="cds--tag cds--tag--green cds--tag--sm">in Xh Ym</span>
+                  <span style={{ fontSize: 12, color: '#525252' }}>&gt; 4h remaining</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span className="cds--tag cds--tag--warm-gray cds--tag--sm">in Xh Ym</span>
+                  <span style={{ fontSize: 12, color: '#525252' }}>≤ 4h (approaching)</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ color: '#DA1E28' }}>⚠</span>
+                  <span className="cds--tag cds--tag--red cds--tag--sm">Xh Ym ago</span>
+                  <span style={{ fontSize: 12, color: '#525252' }}>Exceeded</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 12, color: '#8D8D8D' }}>—</span>
+                  <span style={{ fontSize: 12, color: '#525252' }}>No deadline set</span>
+                </div>
+              </div>
+              <p style={{ fontSize: 11, color: '#8D8D8D', marginTop: 8 }}>
+                Approaching threshold: 4h (configurable in Administration → Site Information → Order Settings)
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Root ──────────────────────────────────────────────────────────────────
+    const SCENES = [
+      { id: 1, label: 'Scene 1: Step 1 — Required By + SOP Auto-Calc', comp: Scene1 },
+      { id: 2, label: 'Scene 2: Admin — SOP Holding Time per Test', comp: Scene2 },
+      { id: 3, label: 'Scene 3: ENV Worklist — Deadline Column', comp: Scene3 },
+    ];
+
+    function App() {
+      const [active, setActive] = useState(1);
+      const Comp = SCENES.find(s => s.id === active).comp;
+      return (
+        <>
+          <div className="scene-bar">
+            <span style={{ fontSize: 13, fontWeight: 700, color: GOLD, marginRight: 8 }}>
+              S-03d — SOP Deadline Calculation
+            </span>
+            {SCENES.map(s => (
+              <button
+                key={s.id}
+                className={`scene-btn ${active === s.id ? 'active' : ''}`}
+                onClick={() => setActive(s.id)}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="legend-bar">
+            <div className="legend-item"><div className="legend-new"></div>S-03d NEW</div>
+            <div className="legend-item"><div className="legend-existing"></div>EXISTING (context)</div>
+          </div>
+
+          <div className="scene-content">
+            <Comp />
+          </div>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
