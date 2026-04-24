@@ -10,6 +10,7 @@
 
 ### Change Log
 
+- **v1.6 (2026-04-24):** Major deconvolution UX redesign. No modal — deconvolution is fully inline. Filter pills replaced with a Status dropdown (default: Pending). Trap type removed from worklist and lot detail. Split into Sub-pools available on all lots (not just positive ones). Pool assignment strategies: Assign randomly, Auto sub-pool by species, Assign manually (drag-and-drop). Pool hierarchy tree shown in lot detail after save, with Re-split action. Localization keys updated.
 - **v1.5 (2026-04-23):** Deconvolution modal simplified — removed "Individual specimens / Sub-pools" RadioButtonGroup strategy selector. Modal now has two plain fields: Number of Aliquots and Organisms per Aliquot. "Individual" is just organisms-per-aliquot = 1; sub-pools are organisms-per-aliquot > 1. Soft warning added when total organisms exceeds parent quantity. V-02 data model note updated: `quantity` field already exists on Sample; only UOM display is suppressed for VECTOR domain.
 - **v1.4 (2026-04-23):** Major data model simplification. CollectionLot → existing Sample entity. VectorSpecimen (pooling) → existing Aliquot entity. DeconvolutionTask removed as new entity — deconvolution creates Aliquots (LABNO.X-Y) with copied test orders. VectorSpecimenIdentification FK changed from VectorSpecimen → Sample/Aliquot. pool_flag references removed (every VECTOR Sample is a pool). New BR: test orders copied to aliquots, parent orders unchanged. Deconvolution trigger updated to quantity > 1.
 - **v1.3 (2026-04-23):** Removed `ALL` from `panelDomain` enum throughout. `FR-V03-PNL-002/004` updated — panels are single-domain only; order entry shows only `panelDomain = VECTOR` panels (not "VECTOR"). Data model Panel entry updated. API endpoint description updated. Acceptance criteria updated. Aligns with panel.md v1.2 and single-domain design decision.
@@ -129,10 +130,10 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 
 ### US-V03-07 — Deconvolution Workflow
 **As a** Lab Technician,
-**I want to** generate child specimen records and a new re-test order from a deconvolution modal,
+**I want to** generate child specimen records and a new re-test order from an inline panel,
 **so that** the individual confirmation workflow is tracked end-to-end in OpenELIS rather than on paper.
 
-**Acceptance:** Deconvolution modal lets the coordinator specify the number of sub-pools or individual specimens, sub-pool sizes, and test panel to use. On submit, child Aliquots are created using the existing OpenELIS aliquot mechanism (LABNO.X-Y numbering). Each aliquot receives COPIES of the parent's test orders as new independent orders. The parent Sample's existing test orders and results are unchanged.
+**Acceptance:** Inline sub-pool panel opens below the lot detail (no modal). Tech selects number of pools and assignment strategy (randomly / by species / manually). Preview shows proposed grouping. In manual mode specimens are drag-and-drop. On save, pool tree appears in the lot detail showing pools with their assigned specimens indented below each pool header.
 
 ---
 
@@ -141,7 +142,7 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 **I want to** see the deconvolution status of all positive pool lots in one view,
 **so that** I can ensure no positive results are left unresolved before surveillance data is submitted to the national program.
 
-**Acceptance:** Worklist tab "Deconvolution" shows all lots with deconvolutionStatus ≠ NOT_APPLICABLE. Columns: lot ID, site, positive test, child specimens created, results received, status tag (PENDING / IN_PROGRESS / COMPLETE). Supervisor can drill into any lot.
+**Acceptance:** A deconvolution filter option in the Status dropdown shows all lots with deconvolutionStatus ≠ NOT_APPLICABLE.
 
 ---
 
@@ -171,9 +172,9 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 
 ### 4.1 Species Identification Workbench
 
-**FR-V03-ID-001:** The system SHALL provide a Vector Identification worklist showing all Samples with `sampleDomain = VECTOR` and `status IN (RECEIVED, IDENTIFICATION_IN_PROGRESS)`.
+**FR-V03-ID-001:** The system SHALL provide a Vector Identification worklist showing all Samples with `sampleDomain = VECTOR` and `status IN (RECEIVED, IDENTIFICATION_IN_PROGRESS)`. The worklist uses a **Status dropdown filter** (default: Pending = all not-complete) rather than SideNav sub-items. Filter options: Pending / Not Started / Partial ID / Deconvolution / Complete.
 
-**FR-V03-ID-002:** Each worklist row SHALL display: Lot ID, Sampling Site name, Trap Type, Collection Date, Organism Group tag, total specimen count, identified specimen count, identification status tag (NOT_STARTED / IN_PROGRESS / COMPLETE).
+**FR-V03-ID-002:** Each worklist row SHALL display: Sample ID, Sampling Site (if set), Collection Date, Organism Group tag, total specimen count, identified specimen count, identification status tag.
 
 **FR-V03-ID-003:** Clicking a sample row SHALL navigate to the Sample Identification Detail page showing a DataTable of all Aliquots belonging to that Sample, plus the Sample itself.
 
@@ -226,19 +227,22 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 
 **FR-V03-DEC-001:** The system SHALL monitor linked Results for all Samples with `sampleDomain = VECTOR` and `quantity > 1`. When any linked Result transitions to a final state with value = POSITIVE (or equivalent positive indicator), the system SHALL set the sample's `deconvolutionStatus` to PENDING.
 
-**FR-V03-DEC-002:** On the Lot Identification Detail page, when `deconvolutionStatus = PENDING`, an `InlineNotification` kind="warning" SHALL appear at the top of the page with text identifying the positive test name and a prominent "Initiate Deconvolution" button.
+**FR-V03-DEC-002:** On the Sample Identification Detail page, when `deconvolutionStatus = PENDING`, an `InlineNotification` kind='warning' SHALL appear at the top. A **'Split into Sub-pools' button** SHALL be present on ALL vector lots — not only positive ones — enabling proactive splitting before test results. Clicking this button expands the inline sub-pool panel within the lot detail row (no modal).
 
 **FR-V03-DEC-003:** The identification worklist row for a lot with `deconvolutionStatus = PENDING` SHALL display a Tag kind="red" labelled "Deconvolution Needed".
 
-**FR-V03-DEC-004:** Clicking "Initiate Deconvolution" SHALL open a Modal containing:
-- Positive test name and result value (read-only summary)
-- Parent sample lab number and quantity (read-only summary, e.g. "VCT/2026/04/00042 — 25 organisms")
-- **Number of Aliquots** (`NumberInput`, required, min 2) — how many child aliquots to create
-- **Organisms per Aliquot** (`NumberInput`, required, min 1) — quantity of organisms in each child aliquot. Setting this to 1 creates individual-organism aliquots; setting it > 1 creates sub-pools that can themselves be deconvoluted if they test positive.
-- Soft warning (InlineNotification kind="warning") shown when Number of Aliquots × Organisms per Aliquot exceeds the parent quantity, e.g. "Total organisms across aliquots (30) exceeds parent quantity (25). Adjust if needed." Non-blocking.
-- Notes (`TextArea`, optional)
-
-> There is no strategy selector. Individual specimens and sub-pools are the same mechanism — both are Aliquots with a quantity. An aliquot with quantity = 1 is an individual; quantity > 1 is a sub-pool eligible for further deconvolution on a positive result.
+**FR-V03-DEC-004:** The inline sub-pool panel SHALL contain:
+- Positive test name and result (read-only, shown only when posTest is set)
+- Parent sample lab number and quantity (read-only)
+- **Number of pools** (NumberInput, required, min 2) — calculated label shows organisms/pool distribution
+- **Assignment method** (RadioButtonGroup):
+  - *Assign randomly* — evenly distributes specimens across pools
+  - *Auto sub-pool by species* — groups specimens by species; pool header is labelled with species name when all specimens in pool share one species
+  - *Assign manually* — opens drag-and-drop view; specimens shown with grab handles; unassigned section shown in red until all specimens are placed
+- **Preview Grouping** button — applies the strategy and shows proposed pool groupings inline
+- In preview: each pool shows as an expandable row with its lab number (LABNO.X) and specimen list underneath
+- **Sticky dark action bar** at bottom of panel: assigned count, pool count, Save Pools button
+- On save: inline panel collapses to success message; pool hierarchy tree renders in the specimen section
 
 **FR-V03-DEC-005:** On submitting the deconvolution modal, the system SHALL:
 1. Create child Aliquots from the parent Sample using the existing OpenELIS aliquot mechanism. Each aliquot is assigned a lab number per the LABNO.X-Y convention.
@@ -257,7 +261,7 @@ Each child specimen receives a real accession number and barcode so lab operatio
 
 Child specimens SHALL inherit from the parent lot: sampling site, trap type, collection date range. They SHALL also inherit the parent's organism group and species identification (if already set on the parent) as defaults; either MAY be explicitly re-identified on the child if re-examination is performed. Child specimens SHALL inherit the parent's Panel and test order list as defaults; the coordinator MAY add or remove tests on the child's re-test order before submission.
 
-**FR-V03-DEC-007:** A dedicated "Deconvolution" tab on the identification worklist SHALL show all lots with `deconvolutionStatus != NOT_APPLICABLE` in a DataTable with columns: Lot ID, Site, Positive Test, Child Specimens, Results Received / Total, Status tag.
+**FR-V03-DEC-007:** After pools are saved, the Sample Identification Detail page SHALL display a **pool hierarchy tree** in place of (or above) the flat specimen table. Each pool row shows: pool label (species-named when auto-by-species), lab number (LABNO.X), organism count. Each specimen row is indented under its parent pool, showing specimen label, species (if identified), and confidence. A **Re-split** action SHALL allow the tech to re-open the sub-pool panel to revise the grouping.
 
 **FR-V03-DEC-008:** When all child specimen results are received and finalized, the system SHALL automatically compute:
 - `positiveCount` = number of child specimens with a POSITIVE result
@@ -374,11 +378,12 @@ See interactive HTML preview: `vector-testing-identification.html`
 
 ### Key Screens
 
-1. **Identification Worklist** — SideNav submenus control the active filter (Pending ID / In Progress / Deconvolution / Complete). Lot rows are expandable; clicking a row expands an inline lot detail section beneath it.
+1. **Vector Identification Worklist** — Status filter dropdown (default: Pending) in the toolbar row alongside the search field. No SideNav sub-items for status filtering. Trap type not shown.
 2. **Lot Detail (inline)** — specimen DataTable rendered inside the expanded worklist row. Mixed-species summary bar, positive-pool InlineNotification, bulk-apply batch action, per-specimen inline ID forms — all inline, no breadcrumb or separate page.
 3. **Bulk Apply Modal** — compact Modal with species/method/confidence form; applies to all checked specimens on confirm.
-4. **Deconvolution Modal** — strategy selection, child specimen count, panel selector; generates child records + re-test order on submit. The child-specimen DataTable in this modal (and in the Deconvolution worklist) uses column header **"Specimen ID (Aliquot)"** and displays labels in `LABNO.X-Y` format (e.g., `VCT-2026-000042.1-1`, `VCT-2026-000042.1-2`). The `-D[n]` format SHALL NOT appear anywhere in the UI.
-5. **Panel Admin (shared)** — standard Panel admin page (panel.md v1.1). Coordinators use Domain filter = VECTOR to scope the list. Vector Config tab shown when editing/creating a VECTOR panel.
+4. **Sub-pool Creation Panel (inline)** — Opens inline below lot detail (no modal). Contains number of pools input, assignment strategy selector (RadioButtonGroup), preview grouping button, and sticky action bar with Save Pools. Supports random distribution, auto-grouping by species with species-named pool headers, and manual drag-and-drop assignment with unassigned red zone.
+5. **Post-save pool hierarchy tree** — pool rows with indented specimen rows; pool headers show lab number and specimen count; species label on pool when auto-assigned; Re-split button in header.
+6. **Panel Admin (shared)** — standard Panel admin page (panel.md v1.1). Coordinators use Domain filter = VECTOR to scope the list. Vector Config tab shown when editing/creating a VECTOR panel.
 
 ### Interaction Patterns
 
@@ -432,7 +437,6 @@ All UI text is externalized. The following i18n keys must be added to the messag
 | `heading.vectorId.speciesSummary` | Species Distribution |
 | `label.vectorId.lotId` | Lot ID |
 | `label.vectorId.samplingsite` | Sampling Site |
-| `label.vectorId.trapType` | Trap Type |
 | `label.vectorId.collectionDate` | Collection Date |
 | `label.vectorId.organismGroup` | Organism Group |
 | `label.vectorId.specimenCount` | Specimens |
@@ -482,23 +486,24 @@ All UI text is externalized. The following i18n keys must be added to the messag
 | `error.vectorPanel.noTests` | At least one test is required to activate a panel. |
 | `heading.vectorDec.title` | Pool Deconvolution |
 | `label.vectorDec.positiveTest` | Positive Test |
-| `label.vectorDec.strategy` | Deconvolution Strategy |
-| `label.vectorDec.aliquotCount` | Number of Aliquots |
-| `label.vectorDec.organismsPerAliquot` | Organisms per Aliquot |
-| `helper.vectorDec.organismsPerAliquot` | Set to 1 for individual organisms; set to more to create sub-pools (which can be deconvoluted further if positive). |
-| `warning.vectorDec.exceedsParentQuantity` | Total organisms across aliquots ({total}) exceeds parent quantity ({parent}). Adjust if needed. |
-| `label.vectorDec.panel` | Test Panel |
+| `label.vectorDec.poolCount` | Number of pools |
+| `label.vectorDec.assignmentMethod` | Assignment method |
+| `label.vectorDec.assignRandomly` | Assign randomly |
+| `label.vectorDec.assignBySpecies` | Auto sub-pool by species |
+| `label.vectorDec.assignManually` | Assign manually |
 | `label.vectorDec.notes` | Notes |
 | `label.vectorDec.status.pending` | Deconvolution Needed |
 | `label.vectorDec.status.inProgress` | Deconvolution In Progress |
 | `label.vectorDec.status.complete` | Deconvolution Complete |
-| `button.vectorDec.initiate` | Initiate Deconvolution |
-| `button.vectorDec.confirm` | Confirm & Generate Specimens |
+| `button.vectorDec.splitSubpools` | Split into Sub-pools |
+| `button.vectorDec.previewGrouping` | Preview Grouping |
+| `button.vectorDec.savePools` | Save Pools |
+| `button.vectorDec.reSplit` | Re-split |
 | `button.vectorDec.cancel` | Cancel |
-| `message.vectorDec.success` | Deconvolution initiated: {count} specimens created. Re-test order {orderId} generated. |
+| `heading.vectorDec.poolTree` | Sub-pool Grouping |
+| `message.vectorDec.success` | Sub-pools created and assigned. Pool hierarchy saved. |
 | `message.vectorDec.complete` | Deconvolution complete — {positive} of {total} specimens positive ({pct}%). |
-| `error.vectorDec.countRequired` | Specimen count is required. |
-| `error.vectorDec.panelRequired` | A test panel is required. |
+| `error.vectorDec.countRequired` | Pool count is required. |
 | `error.vectorDec.duplicate` | A deconvolution task is already active for this lot and positive result. |
 
 ---
@@ -559,13 +564,13 @@ All UI text is externalized. The following i18n keys must be added to the messag
 
 ### Functional — Deconvolution
 
-- [ ] Positive result on a pool sample (quantity > 1) causes `deconvolutionStatus = PENDING` and displays InlineNotification (warning) on sample detail page
-- [ ] Deconvolution submenu item shows all samples with deconvolutionStatus ≠ NOT_APPLICABLE
-- [ ] Completing the deconvolution modal creates the correct number of child Aliquots with auto-generated `LABNO.X-Y` aliquot labels (e.g., `VCT-2026-000042.1-1`); no `-D[n]` format appears
-- [ ] New test orders are COPIED from the parent Sample to each child Aliquot in PENDING state; the parent's existing orders are unchanged
-- [ ] Parent sample status advances to DECONVOLUTION_IN_PROGRESS
-- [ ] When all child results finalized, system computes positiveCount and deconvolutionOutcomePct and advances sample to DECONVOLUTION_COMPLETE
-- [ ] Attempting to initiate deconvolution on a Sample already in deconvolutionStatus=IN_PROGRESS for the same result returns an error
+- [ ] Sub-pool panel opens inline within the lot detail, not in a modal
+- [ ] Split into Sub-pools button is available on all vector lots
+- [ ] Assign randomly distributes specimens evenly
+- [ ] Auto by species groups specimens by species; pool header shows species name when all specimens match
+- [ ] Manual mode shows drag-and-drop; unassigned specimens shown in red; all must be assigned before save
+- [ ] On save, pool hierarchy tree replaces flat specimen list; each pool shows its specimens indented below
+- [ ] Re-split action opens the sub-pool panel again for revision
 
 ### Non-Functional
 

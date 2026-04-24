@@ -10,6 +10,7 @@
 
 ### Change Log
 
+- **v2.3 (2026-04-24):** Trap type removed from UI — not captured in this workflow. Sampling site search label simplified to "Site name or code". Domain toggle removed from page header — Vector lab unit always loads Vector context, no toggle shown. Section heading chips removed for cleaner layout.
 - **v2.2 (2026-04-23):** Data model correction — `quantity` field already exists on the OpenELIS Sample entity; no new field is introduced. For VECTOR-domain samples the unit of measure field is suppressed in the UI (always "organisms", not user-editable).
 - **v2.1 (2026-04-23):** Replaced CollectionLot entity references with existing OpenELIS Sample entity.
 - **v2.0 (2026-04-23):** Major simplification. Order entry reduced to organism group (= sample type), quantity, and test selection. Step 2 (Collect Sample) removed entirely — workflow goes directly from Step 1 to label/store/refer. QA screen simplified: QA samples can be added as needed; S-09 transit window and pool_size eligibility criteria removed (no longer captured). Trap type, GPS, collection dates, pool flag, weather conditions, cooler ID, and shipment ID all removed from the data model and UI. Sampling site retained as optional context field.
@@ -74,7 +75,7 @@ V-02 adds **Vector** as a third domain option in the Sample Collection Redesign 
 
 **FR-V02-TOG-001:** The Sample Category toggle in Step 1 of the Sample Collection Redesign MUST include a third option: **"Vector"**, appearing after "Environmental / Other". The toggle reads: `Clinical | Environmental / Other | Vector`.
 
-**FR-V02-TOG-002:** When the authenticated lab unit is configured with `labUnitDomain = VECTOR`, the toggle MUST be hidden and the Vector domain pre-selected silently. When the lab unit supports multiple domains, the toggle MUST be shown.
+**FR-V02-TOG-002:** When the authenticated lab unit is configured with `labUnitDomain = VECTOR`, the Sample Category section SHALL NOT be rendered at all. The domain is implicit from the lab unit context and requires no user interaction.
 
 **FR-V02-TOG-003:** Switching the domain toggle MUST clear all domain-specific form sections and reset their state. Fields shared across domains (Lab Number, Requester) MUST be preserved.
 
@@ -90,7 +91,7 @@ V-02 adds **Vector** as a third domain option in the Sample Collection Redesign 
 |---|---|---|---|
 | Organism Group | ComboBox | Yes | Sourced from V-01 VectorGroup catalog (active only). This is the vector "sample type" — e.g., Mosquito, Tick, Rodent. Displayed as "Organism Group" in the UI; maps to `sample_type_id` (VECTOR-domain SampleType) internally. |
 | Quantity | NumberInput (integer) | Yes | Number of organisms received. Minimum 1. Label: "Quantity (organisms)". |
-| Sampling Site | ComboBox | No | Optional. Sourced from S-02 SamplingSite registry. Records which site the specimens came from. |
+| Sampling Site | ComboBox | No | Optional. Sourced from S-02 SamplingSite registry. Records which site the specimens came from. Label: "Site name or code". |
 
 **FR-V02-S1-003:** Below the intake fields, a **Test / Panel selection section** MUST appear, identical in behaviour to the standard order entry test selection component, filtered to panels and tests with `panelDomain = VECTOR` (or `sampleDomain = VECTOR` for individual tests). At least one test or panel MUST be selected before Step 1 can be submitted.
 
@@ -209,7 +210,7 @@ Sample Collection → Step 1 (Enter Order, Vector domain) → Step 2 (Label & St
 | `label.vectorOrder.organismGroup` | Organism Group |
 | `placeholder.vectorOrder.organismGroup` | Search organism groups… |
 | `label.vectorOrder.quantity` | Quantity (organisms) |
-| `label.vectorOrder.samplingSite` | Sampling Site (optional) |
+| `label.vectorOrder.samplingSite` | Site name or code |
 | `placeholder.vectorOrder.samplingSite` | Search sampling sites… |
 | `heading.vectorOrder.tests` | Tests & Panels |
 | `label.sample.status.draft` | Draft |
