@@ -1,7 +1,7 @@
 # Vector Collection Workflow (V-02)
 ## Functional Requirements Specification — v2.0
 
-**Version:** 2.0
+**Version:** 2.3
 **Date:** 2026-04-23
 **Status:** Draft for Review
 **Jira:** [OGC-581](https://uwdigi.atlassian.net/browse/OGC-581) (Epic: OGC-527)
@@ -10,6 +10,7 @@
 
 ### Change Log
 
+- **v2.3 (2026-04-24 — clarify pass):** Fixed quantity data model note (was incorrectly labelled "NEW field"). Added FR-V02-QA back-navigation rule and QA type source spec. Clarify pass: QA sample type sourced from existing OpenELIS QA catalog; QA samples receive own VCT accessions and appear in V-03 worklist. Back-navigation rule added to FR-V02-S2-002.
 - **v2.3 (2026-04-24):** Trap type removed from UI — not captured in this workflow. Sampling site search label simplified to "Site name or code". Domain toggle removed from page header — Vector lab unit always loads Vector context, no toggle shown. Section heading chips removed for cleaner layout.
 - **v2.2 (2026-04-23):** Data model correction — `quantity` field already exists on the OpenELIS Sample entity; no new field is introduced. For VECTOR-domain samples the unit of measure field is suppressed in the UI (always "organisms", not user-editable).
 - **v2.1 (2026-04-23):** Replaced CollectionLot entity references with existing OpenELIS Sample entity.
@@ -75,6 +76,8 @@ V-02 adds **Vector** as a third domain option in the Sample Collection Redesign 
 
 **FR-V02-TOG-001:** The Sample Category toggle in Step 1 of the Sample Collection Redesign MUST include a third option: **"Vector"**, appearing after "Environmental / Other". The toggle reads: `Clinical | Environmental / Other | Vector`.
 
+> Note: This toggle is only relevant when the lab unit supports multiple domains. When `labUnitDomain = VECTOR` (FR-V02-TOG-002), the toggle is not rendered and Vector is pre-selected implicitly.
+
 **FR-V02-TOG-002:** When the authenticated lab unit is configured with `labUnitDomain = VECTOR`, the Sample Category section SHALL NOT be rendered at all. The domain is implicit from the lab unit context and requires no user interaction.
 
 **FR-V02-TOG-003:** Switching the domain toggle MUST clear all domain-specific form sections and reset their state. Fields shared across domains (Lab Number, Requester) MUST be preserved.
@@ -112,6 +115,8 @@ V-02 adds **Vector** as a third domain option in the Sample Collection Redesign 
 
 **FR-V02-S2-002:** On entering Step 2, the Sample status MUST advance from `DRAFT` to `RECEIVED` and a lab receipt timestamp MUST be recorded automatically.
 
+**FR-V02-S2-002a:** If the user navigates back to Step 1 before printing a label, the Sample status SHALL revert from `RECEIVED` to `DRAFT` and Step 1 fields SHALL be editable. Once a barcode label has been printed, the '← Back' button SHALL be disabled. Correction of a received sample after label printing requires the `vector.sample.edit` permission and a mandatory change-reason field.
+
 **FR-V02-S2-003:** The existing label print, storage location, and refer-out workflow MUST apply unchanged to vector samples. Storage location is optional.
 
 ---
@@ -119,6 +124,8 @@ V-02 adds **Vector** as a third domain option in the Sample Collection Redesign 
 ### 4.4 QA Screen — Vector Domain
 
 **FR-V02-QA-001:** The QA screen for Vector samples MUST allow QA samples to be added to the order as needed. The QA officer selects the QA sample type, quantity, and associated tests from a compact form.
+
+**FR-V02-QA-001a:** The QA sample type dropdown SHALL be sourced from the existing OpenELIS QA type catalog (same source used by ENV QC rules — e.g., Positive Control, Negative Control, Blank, Duplicate). No new QA type entity is introduced. Each QA sample added SHALL receive its own `VCT` lab number and SHALL appear in the V-03 identification worklist with a `QC` indicator Tag.
 
 **FR-V02-QA-002:** Adding QA samples is optional. The order MAY proceed to `PROCESSING` without QA samples if none are required for the current sample.
 
@@ -135,7 +142,7 @@ V-02 creates standard OpenELIS Sample records with `sampleDomain = VECTOR`. **No
 | UI Field | Sample Field | Type | Notes |
 |---|---|---|---|
 | Organism Group | `sample_type_id` | FK → SampleType (sampleDomain=VECTOR) | Displayed as "Organism Group"; user selects from VectorGroup-mapped SampleTypes |
-| Quantity | `quantity` | INTEGER | Number of organisms received; minimum 1; NEW field for VECTOR domain |
+| Quantity | `quantity` | INTEGER | Number of organisms received; minimum 1. Field already exists on Sample entity — no schema change required. |
 | Sampling Site | `sampling_site_id` | FK → SamplingSite, nullable | Optional context field |
 | Lab receipt date/time | `received_at` | TIMESTAMP WITH TIME ZONE | Auto-set on Step 2 entry |
 | Received by | `received_by_user_id` | FK → SystemUser | Auto-set from logged-in user |
