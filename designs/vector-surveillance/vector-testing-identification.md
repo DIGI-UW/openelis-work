@@ -10,6 +10,7 @@
 
 ### Change Log
 
+- **v1.7 (2026-04-24):** Unified pool+specimen table — single table replaces dual stacked view. Pool header rows (with ↗ Split) sit above their specimen rows in the same table; no separate hierarchy view above a flat list. Re-split creates child pool rows nested under the parent (parent row is preserved); recursive — a sub-pool can be re-split at any depth. 'Reset all pools' removed — pool reassignment after physical preparation is out of scope per ISO 17025 chain-of-custody requirements (§7.5 technical records). Specimens rows use └╴/├╴ tree connectors to indicate pool membership.
 - **v1.6 (2026-04-24):** Major deconvolution UX redesign. No modal — deconvolution is fully inline. Filter pills replaced with a Status dropdown (default: Pending). Trap type removed from worklist and lot detail. Split into Sub-pools available on all lots (not just positive ones). Pool assignment strategies: Assign randomly, Auto sub-pool by species, Assign manually (drag-and-drop). Pool hierarchy tree shown in lot detail after save, with Re-split action. Localization keys updated.
 - **v1.5 (2026-04-23):** Deconvolution modal simplified — removed "Individual specimens / Sub-pools" RadioButtonGroup strategy selector. Modal now has two plain fields: Number of Aliquots and Organisms per Aliquot. "Individual" is just organisms-per-aliquot = 1; sub-pools are organisms-per-aliquot > 1. Soft warning added when total organisms exceeds parent quantity. V-02 data model note updated: `quantity` field already exists on Sample; only UOM display is suppressed for VECTOR domain.
 - **v1.4 (2026-04-23):** Major data model simplification. CollectionLot → existing Sample entity. VectorSpecimen (pooling) → existing Aliquot entity. DeconvolutionTask removed as new entity — deconvolution creates Aliquots (LABNO.X-Y) with copied test orders. VectorSpecimenIdentification FK changed from VectorSpecimen → Sample/Aliquot. pool_flag references removed (every VECTOR Sample is a pool). New BR: test orders copied to aliquots, parent orders unchanged. Deconvolution trigger updated to quantity > 1.
@@ -261,7 +262,7 @@ Each child specimen receives a real accession number and barcode so lab operatio
 
 Child specimens SHALL inherit from the parent lot: sampling site, trap type, collection date range. They SHALL also inherit the parent's organism group and species identification (if already set on the parent) as defaults; either MAY be explicitly re-identified on the child if re-examination is performed. Child specimens SHALL inherit the parent's Panel and test order list as defaults; the coordinator MAY add or remove tests on the child's re-test order before submission.
 
-**FR-V03-DEC-007:** After pools are saved, the Sample Identification Detail page SHALL display a **pool hierarchy tree** in place of (or above) the flat specimen table. Each pool row shows: pool label (species-named when auto-by-species), lab number (LABNO.X), organism count. Each specimen row is indented under its parent pool, showing specimen label, species (if identified), and confidence. A **Re-split** action SHALL allow the tech to re-open the sub-pool panel to revise the grouping.
+**FR-V03-DEC-007:** After pools are saved, the Sample Identification Detail page SHALL display a single **unified pool + specimen table** (one table, not two stacked). Pool header rows (grey/purple by depth) appear within the table at the appropriate position; specimen rows follow immediately below their pool, indented with tree connectors (└╴/├╴). Each pool header row SHALL display: pool label (species-named when auto-by-species), lab number (LABNO.X), organism count, and a **↗ Split** action button when the pool contains more than one specimen and has not been further split. When ↗ Split is used on a sub-pool, the child pool rows appear nested beneath the parent pool row — the parent row is preserved and NOT replaced. This pattern is recursive: a sub-pool can itself be split into further sub-pools at any depth, producing LABNO.X-Y-Z notation. A **Re-split** action is not available at the top level once any specimen has been physically prepared (ISO 17025 §7.5). The column header reads 'Pool / Specimen' when pools are assigned; 'Specimen' when no pools exist.
 
 **FR-V03-DEC-008:** When all child specimen results are received and finalized, the system SHALL automatically compute:
 - `positiveCount` = number of child specimens with a POSITIVE result
@@ -382,7 +383,7 @@ See interactive HTML preview: `vector-testing-identification.html`
 2. **Lot Detail (inline)** — specimen DataTable rendered inside the expanded worklist row. Mixed-species summary bar, positive-pool InlineNotification, bulk-apply batch action, per-specimen inline ID forms — all inline, no breadcrumb or separate page.
 3. **Bulk Apply Modal** — compact Modal with species/method/confidence form; applies to all checked specimens on confirm.
 4. **Sub-pool Creation Panel (inline)** — Opens inline below lot detail (no modal). Contains number of pools input, assignment strategy selector (RadioButtonGroup), preview grouping button, and sticky action bar with Save Pools. Supports random distribution, auto-grouping by species with species-named pool headers, and manual drag-and-drop assignment with unassigned red zone.
-5. **Post-save pool hierarchy tree** — pool rows with indented specimen rows; pool headers show lab number and specimen count; species label on pool when auto-assigned; Re-split button in header.
+5. **Unified Pool + Specimen Table** — single DataTable with pool header rows interspersed with specimen rows. Pool rows: grey background at depth 0, purple at depth 1+, ▸/▾ icon, lab number, organism count, ↗ Split button (when qty > 1 and no children yet). Specimen rows: indented with └╴/├╴ connectors, checkbox, specimen label, lab number, ID status, species, confidence, ▼ Identify action. When no pools are assigned, table renders as a flat specimen list (standard mode).
 6. **Panel Admin (shared)** — standard Panel admin page (panel.md v1.1). Coordinators use Domain filter = VECTOR to scope the list. Vector Config tab shown when editing/creating a VECTOR panel.
 
 ### Interaction Patterns
@@ -422,6 +423,8 @@ See interactive HTML preview: `vector-testing-identification.html`
 **BR-V03-011:** Child Aliquots created by deconvolution SHALL inherit from the parent Sample: (a) organism group (SampleType), (b) species identification and confidence level if already set on the parent, and (c) COPIES of the parent's test orders as new independent orders. Each inherited value MAY be explicitly overridden on the child; an override does not affect the parent or sibling aliquots.
 
 **BR-V03-012:** Test orders on deconvolution aliquots are **copies** of the parent's test orders — they are new independent orders in PENDING state. The parent Sample's original test orders and their results SHALL remain visible and unchanged. Both the parent result (positive) and each aliquot's result are stored and accessible.
+
+**BR-V03-013:** Pool assignment is a physical act. Once any sub-pool's status has advanced beyond DRAFT (i.e., it has been received, barcoded, or has any test result), the pool groupings for that sample SHALL be treated as immutable. A 'Reset all pools' function SHALL NOT exist in the production UI. Corrections to pool assignments after physical preparation require a documented supervisor override via the sample amendment workflow (out of scope for V-03).
 
 ---
 
@@ -569,8 +572,10 @@ All UI text is externalized. The following i18n keys must be added to the messag
 - [ ] Assign randomly distributes specimens evenly
 - [ ] Auto by species groups specimens by species; pool header shows species name when all specimens match
 - [ ] Manual mode shows drag-and-drop; unassigned specimens shown in red; all must be assigned before save
-- [ ] On save, pool hierarchy tree replaces flat specimen list; each pool shows its specimens indented below
-- [ ] Re-split action opens the sub-pool panel again for revision
+- [ ] On save, pool header rows appear in the unified specimen table above their grouped specimens
+- [ ] ↗ Split on a pool row (qty > 1, no children) opens the scoped re-split panel for that pool; saving creates child pool rows nested under the parent without removing the parent row
+- [ ] A 'Reset all pools' action does not exist in the UI
+- [ ] Specimens rows show └╴ (last in pool) or ├╴ (not last) tree connectors indicating pool membership
 
 ### Non-Functional
 
