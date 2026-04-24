@@ -211,7 +211,7 @@ const SPECIES_CATALOG = [
 ];
 
 const WORKLIST = [
-  { id:'BPP-01-LOT-042', site:'Bojongsoang — BPP-01', trap:'BG-Sentinel',    date:'2026-04-14', grp:'MOSQUITO', total:25, done:0,  pool:true,  posTest:'NS1 RT-PCR', dec:'PENDING'        },
+  { id:'BPP-01-LOT-042', site:'Bojongsoang — BPP-01',    date:'2026-04-14', grp:'MOSQUITO', total:25, done:0,  pool:true,  posTest:'NS1 RT-PCR', dec:'PENDING'        },
   { id:'BPP-02-LOT-043', site:'Margahayu — BPP-02',   trap:'CDC Light Trap', date:'2026-04-14', grp:'MOSQUITO', total:12, done:7,  pool:true,  posTest:null,         dec:'NOT_APPLICABLE' },
   { id:'CIL-02-LOT-019', site:'Cileunyi — CIL-02',    trap:'Ovitramp',       date:'2026-04-13', grp:'MOSQUITO', total:8,  done:0,  pool:false, posTest:null,         dec:'NOT_APPLICABLE' },
   { id:'JAT-01-LOT-031', site:'Jatisari — JAT-01',    trap:'BG-Sentinel',    date:'2026-04-12', grp:'MOSQUITO', total:30, done:14, pool:true,  posTest:null,         dec:'NOT_APPLICABLE' },
@@ -337,7 +337,7 @@ const WorklistScreen = () => {
   };
 
   const filters=[
-    {key:'pending',   label:'Pending',    sub:'All active — not yet complete', alert:true},
+    {key:'pending',   label:'Pending',    sub:'', alert:true},
     {key:'notstarted',label:'Not Started', sub:'Received, 0 identified'},
     {key:'partialid', label:'Partial ID',  sub:'Identification in progress'},
     {key:'decon',     label:'Deconvolution',sub:'Positive result, awaiting split', alert:true},
@@ -358,32 +358,23 @@ const WorklistScreen = () => {
     <div className="page-content">
       <div className="page-header">
         <h1 className="page-title">Vector Identification</h1>
-        <p className="page-subtitle">{sub}</p>
-      </div>
-
-      {/* ── Status filter dropdown ── */}
-      <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:20}}>
-        <label style={{fontSize:13,fontWeight:600,color:'#161616',whiteSpace:'nowrap'}}>Show:</label>
-        <select value={filter}
-          onChange={e=>{setFilter(e.target.value);setExpandedLot(null);}}
-          style={{height:40,border:'1px solid #8d8d8d',background:'#fff',padding:'0 2rem 0 0.75rem',
-            fontSize:13,fontFamily:'inherit',color:'#161616',cursor:'pointer',
-            appearance:'auto',minWidth:220}}>
-          {filters.map(f=>(
-            <option key={f.key} value={f.key}>
-              {f.label} ({FILTER_COUNTS[f.key]||0})
-            </option>
-          ))}
-        </select>
-        {filter==='decon' && <Tag kind="red">{FILTER_COUNTS.decon} need attention</Tag>}
       </div>
 
       {filter==='decon' ? (
         <DeconTable />
       ) : (
         <div className="table-wrap">
-          <div className="table-toolbar">
-            <input className="form-input" style={{width:240}} placeholder="🔍  Search lots…" />
+          <div className="table-toolbar" style={{display:'flex',alignItems:'center',gap:10}}>
+            <label style={{fontSize:13,fontWeight:600,color:'#161616',whiteSpace:'nowrap'}}>Status</label>
+            <select value={filter}
+              onChange={e=>{setFilter(e.target.value);setExpandedLot(null);}}
+              style={{height:40,border:'1px solid #8d8d8d',background:'#fff',padding:'0 1.5rem 0 0.75rem',
+                fontSize:13,fontFamily:'inherit',color:'#161616',cursor:'pointer',appearance:'auto',minWidth:200}}>
+              {filters.map(f=>(
+                <option key={f.key} value={f.key}>{f.label} ({FILTER_COUNTS[f.key]||0})</option>
+              ))}
+            </select>
+            <input className="form-input" style={{flex:1,minWidth:180}} placeholder="🔍  Search lots…" />
           </div>
           <table className="dt" style={{width:'100%'}}>
             <thead>
@@ -391,7 +382,6 @@ const WorklistScreen = () => {
                 <th style={{width:36}}></th>
                 <th>Lot ID</th>
                 <th>Sampling Site</th>
-                <th>Trap Type</th>
                 <th>Date</th>
                 <th>Group</th>
                 <th>Progress</th>
@@ -411,7 +401,6 @@ const WorklistScreen = () => {
                     </td>
                     <td style={{fontWeight:600,fontSize:13}}>{lot.id}</td>
                     <td style={{fontSize:13}}>{lot.site}</td>
-                    <td style={{fontSize:13}}>{lot.trap}</td>
                     <td style={{fontSize:13}}>{lot.date}</td>
                     <td><GroupTag grp={lot.grp}/></td>
                     <td>
@@ -727,23 +716,26 @@ const LotDetail = ({lot,specimens,onSpecimensUpdate}) => {
   return (
     <div className="inline-expansion lot-detail">
 
-      {/* Positive pool alert + inline decon panel */}
-      {lot.posTest && (
-        deconOpen
-          ? <InlineDeconPanel lot={lot} specimens={specimens} onClose={()=>setDeconOpen(false)}/>
-          : (
-            <div className="notif notif-warning">
-              <span style={{fontSize:18}}>⚠️</span>
-              <div className="notif-body">
-                <div className="notif-title">Deconvolution Needed</div>
-                <div className="notif-sub"><strong>{lot.posTest}</strong> returned POSITIVE. Split into sub-pools to trace individual infections.</div>
+      {/* Decon alert (positive result) + always-available Split button */}
+      {deconOpen
+        ? <InlineDeconPanel lot={lot} specimens={specimens} onClose={()=>setDeconOpen(false)}/>
+        : (
+          <div style={{marginBottom:12}}>
+            {lot.posTest && (
+              <div className="notif notif-warning" style={{marginBottom:8}}>
+                <span style={{fontSize:18}}>⚠️</span>
+                <div className="notif-body">
+                  <div className="notif-title">Deconvolution Needed</div>
+                  <div className="notif-sub"><strong>{lot.posTest}</strong> returned POSITIVE. Split into sub-pools to trace individual infections.</div>
+                </div>
               </div>
-              <button className="btn btn-primary btn-sm" style={{whiteSpace:'nowrap',flexShrink:0}} onClick={()=>setDeconOpen(true)}>
-                Split into Sub-pools →
-              </button>
-            </div>
-          )
-      )}
+            )}
+            <button className="btn btn-secondary btn-sm" style={{whiteSpace:'nowrap'}} onClick={()=>setDeconOpen(true)}>
+              Split into Sub-pools →
+            </button>
+          </div>
+        )
+      }
 
       {notif && (
         <div className="notif notif-success" style={{marginBottom:12}}>
@@ -755,7 +747,7 @@ const LotDetail = ({lot,specimens,onSpecimensUpdate}) => {
       {/* Lot summary strip */}
       <div className="tile" style={{marginBottom:14}}>
         <div className="grid-4">
-          {[['Lot ID',lot.id],['Site',lot.site],['Trap',lot.trap],['Collection',lot.date]].map(([l,v])=>(
+          {[['Lot ID',lot.id],['Site',lot.site],['Collection',lot.date]].map(([l,v])=>(
             <div key={l}>
               <div style={{fontSize:11,color:'#6f6f6f',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:3}}>{l}</div>
               <div style={{fontWeight:600,fontSize:13}}>{v}</div>
@@ -923,7 +915,6 @@ const LotDetail = ({lot,specimens,onSpecimensUpdate}) => {
       </div>
 
       {bulkOpen && <BulkModal count={selected.size} onClose={()=>setBulkOpen(false)} onApply={()=>{setBulkOpen(false);setSelected(new Set());notify(`ID applied to ${selected.size} specimens.`);}}/>}
-      {deconOpen && <DeconModal lotId={lot.id} onClose={()=>setDeconOpen(false)}/>}
     </div>
   );
 };
