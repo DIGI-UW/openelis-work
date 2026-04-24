@@ -599,7 +599,14 @@ const InlineDeconPanel = ({lot,specimens,onClose,onSave}) => {
                       <strong style={{fontSize:13}}>{poolLabel(pid)}</strong>
                       <span style={{marginLeft:10,fontSize:11,color:'#525252',fontFamily:'monospace'}}>{poolLabNo(pid)}</span>
                     </div>
-                    <span style={{fontSize:12,color:'#525252'}}>{inPool.length} specimen{inPool.length!==1?'s':''}</span>
+                    <div style={{display:'flex',alignItems:'center',gap:8}}>
+                      <span style={{fontSize:12,color:'#525252'}}>{inPool.length} specimen{inPool.length!==1?'s':''}</span>
+                      {inPool.length>1 && <button className="btn btn-ghost btn-sm"
+                        style={{height:26,fontSize:11,padding:'0 8px',border:'1px solid #e0e0e0'}}
+                        onClick={()=>setResplitPool({pid,label:poolLabel(pid),labNo:poolLabNo(pid),specimens:inPool})}>
+                        ↗ Split
+                      </button>}
+                    </div>
                   </div>
                   {/* Specimens in pool */}
                   {inPool.length===0 && (
@@ -700,7 +707,9 @@ const LotDetail = ({lot,specimens,onSpecimensUpdate}) => {
   const [selected,setSelected]=useState(new Set());
   const [bulkOpen,setBulkOpen]=useState(false);
   const [deconOpen,setDeconOpen]=useState(false);
-  const [savedPools,setSavedPools]=useState(null); // null | [{id,label,labNo,specimens}]
+  const [savedPools,setSavedPools]=useState(null);       // null | [{id,label,labNo,specimens}]
+  const [resplitPool,setResplitPool]=useState(null);     // null | pool object — scoped re-split
+  const [resetConfirm,setResetConfirm]=useState(false);  // show reset confirmation
   const [notif,setNotif]=useState(null);
 
   const notify = (msg) => { setNotif(msg); setTimeout(()=>setNotif(null),3000); };
@@ -822,14 +831,28 @@ const LotDetail = ({lot,specimens,onSpecimensUpdate}) => {
         const resultColor = r => r==='POSITIVE'?'#da1e28':r==='Negative'?'#198038':'#8d8d8d';
         return (
           <div style={{marginBottom:16}}>
-            <div style={{fontWeight:600,fontSize:13,marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
+            <div style={{fontWeight:600,fontSize:13,marginBottom:8,display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
               Sub-pool Grouping
               <span style={{fontWeight:400,fontSize:12,color:'#525252'}}>{h.pools.length} pools · {h.parentQty||specimens.length} organisms total</span>
-              {livePools && (
-                <button className="btn btn-ghost btn-sm" style={{marginLeft:'auto',fontSize:12,height:28}}
-                  onClick={()=>{setSavedPools(null);setDeconOpen(true);}}>
-                  ✎ Re-split
+              {livePools && !resetConfirm && (
+                <button className="btn btn-ghost btn-sm"
+                  style={{marginLeft:'auto',fontSize:11,height:26,color:'#da1e28',border:'1px solid #da1e28'}}
+                  onClick={()=>setResetConfirm(true)}>
+                  Reset all pools
                 </button>
+              )}
+              {resetConfirm && (
+                <span style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8,fontSize:12}}>
+                  <span style={{color:'#da1e28',fontWeight:400}}>Discard all pool groupings?</span>
+                  <button className="btn btn-sm" style={{height:26,background:'#da1e28',color:'#fff',border:'none',fontSize:11,cursor:'pointer'}}
+                    onClick={()=>{setSavedPools(null);setResplitPool(null);setResetConfirm(false);setDeconOpen(true);}}>
+                    Yes, reset
+                  </button>
+                  <button className="btn btn-ghost btn-sm" style={{height:26,fontSize:11}}
+                    onClick={()=>setResetConfirm(false)}>
+                    Cancel
+                  </button>
+                </span>
               )}
             </div>
             <table className="dt" style={{width:'100%',background:'#fff'}}>
@@ -891,6 +914,37 @@ const LotDetail = ({lot,specimens,onSpecimensUpdate}) => {
           </div>
         );
       })()}
+
+      {/* ── Scoped re-split panel for a specific pool ── */}
+      {resplitPool && (
+        <div style={{marginBottom:16,border:'2px solid #f1620f',borderRadius:2,overflow:'hidden'}}>
+          <div style={{background:'#fff2e8',padding:'0.6rem 1rem',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:'1px solid #ffd7b3'}}>
+            <strong style={{fontSize:13,color:'#a63800'}}>
+              Split: {resplitPool.label}
+              <span style={{fontFamily:'monospace',fontWeight:400,fontSize:12,marginLeft:8,color:'#525252'}}>{resplitPool.labNo} · {resplitPool.specimens.length} organisms</span>
+            </strong>
+            <button className="btn btn-ghost btn-sm" style={{fontSize:11,height:24,color:'#525252'}} onClick={()=>setResplitPool(null)}>✕ Cancel</button>
+          </div>
+          <InlineDeconPanel
+            lot={{id:resplitPool.labNo, total:resplitPool.specimens.length}}
+            specimens={resplitPool.specimens}
+            onClose={()=>setResplitPool(null)}
+            onSave={subPoolData=>{
+              // Expand the parent pool in savedPools with the new sub-pools
+              setSavedPools(prev=>{
+                if(!prev) return subPoolData;
+                // Replace the pool being split with the new sub-pools
+                return prev.flatMap(p=>p.id===resplitPool.pid ? subPoolData.map((sp,i)=>({
+                  ...sp, id:`${resplitPool.pid}.${sp.id}`,
+                  label:`${resplitPool.label} → ${sp.label}`,
+                  labNo:`${resplitPool.labNo}-${sp.id}`,
+                })) : [p]);
+              });
+              setResplitPool(null);
+            }}
+          />
+        </div>
+      )}
 
       {/* ── Flat specimen table (no deconvolution) ── */}
       <div className="scrollable">
