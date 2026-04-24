@@ -217,7 +217,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-04-24',
     status: 'draft',
     githubIssue: 97,
-    relatedTo: ['Test Catalog', 'Patient Report Print Queue'],
+    relatedTo: ['Test Catalog', 'Patient Report Print Queue', 'Patient Report Redesign'],
     tags: ['admin', 'accreditation', 'test-catalog', 'reports', 'logo', 'iso-15189'],
   },
   {
