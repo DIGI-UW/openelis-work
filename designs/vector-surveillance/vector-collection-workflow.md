@@ -10,7 +10,8 @@
 
 ### Change Log
 
-- **v2.1 (2026-04-23):** Replaced CollectionLot entity references with existing OpenELIS Sample entity. CollectionLot is not a new entity — V-02 creates standard Sample records with sampleDomain=VECTOR plus a new `quantity` field. All BRs and ACs updated accordingly.
+- **v2.2 (2026-04-23):** Data model correction — `quantity` field already exists on the OpenELIS Sample entity; no new field is introduced. For VECTOR-domain samples the unit of measure field is suppressed in the UI (always "organisms", not user-editable).
+- **v2.1 (2026-04-23):** Replaced CollectionLot entity references with existing OpenELIS Sample entity.
 - **v2.0 (2026-04-23):** Major simplification. Order entry reduced to organism group (= sample type), quantity, and test selection. Step 2 (Collect Sample) removed entirely — workflow goes directly from Step 1 to label/store/refer. QA screen simplified: QA samples can be added as needed; S-09 transit window and pool_size eligibility criteria removed (no longer captured). Trap type, GPS, collection dates, pool flag, weather conditions, cooler ID, and shipment ID all removed from the data model and UI. Sampling site retained as optional context field.
 - **v1.0 (2026-04-17):** Initial draft.
 
@@ -126,9 +127,9 @@ V-02 adds **Vector** as a third domain option in the Sample Collection Redesign 
 
 ## 5. Data Model
 
-### Modified Entity: Sample (existing — adds `quantity` field for VECTOR domain)
+### Existing Entity: Sample (no new fields)
 
-V-02 creates standard OpenELIS Sample records with `sampleDomain = VECTOR`. The only new field added to Sample is `quantity` (INTEGER, min 1) — the number of organisms in this pool. All other fields (sample_type_id, sampling_site_id, received_at, received_by_user_id, status, lab_number) exist in the current Sample entity.
+V-02 creates standard OpenELIS Sample records with `sampleDomain = VECTOR`. **No new fields are introduced.** The `quantity` field already exists on the Sample entity. For VECTOR-domain samples, the unit of measure field is suppressed in the UI — it is not displayed or editable, and is treated as "organisms" implicitly. All fields used (sample_type_id, quantity, sampling_site_id, received_at, received_by_user_id, status, lab_number) exist in the current Sample entity.
 
 | UI Field | Sample Field | Type | Notes |
 |---|---|---|---|

@@ -10,6 +10,7 @@
 
 ### Change Log
 
+- **v1.5 (2026-04-23):** Deconvolution modal simplified — removed "Individual specimens / Sub-pools" RadioButtonGroup strategy selector. Modal now has two plain fields: Number of Aliquots and Organisms per Aliquot. "Individual" is just organisms-per-aliquot = 1; sub-pools are organisms-per-aliquot > 1. Soft warning added when total organisms exceeds parent quantity. V-02 data model note updated: `quantity` field already exists on Sample; only UOM display is suppressed for VECTOR domain.
 - **v1.4 (2026-04-23):** Major data model simplification. CollectionLot → existing Sample entity. VectorSpecimen (pooling) → existing Aliquot entity. DeconvolutionTask removed as new entity — deconvolution creates Aliquots (LABNO.X-Y) with copied test orders. VectorSpecimenIdentification FK changed from VectorSpecimen → Sample/Aliquot. pool_flag references removed (every VECTOR Sample is a pool). New BR: test orders copied to aliquots, parent orders unchanged. Deconvolution trigger updated to quantity > 1.
 - **v1.3 (2026-04-23):** Removed `ALL` from `panelDomain` enum throughout. `FR-V03-PNL-002/004` updated — panels are single-domain only; order entry shows only `panelDomain = VECTOR` panels (not "VECTOR"). Data model Panel entry updated. API endpoint description updated. Acceptance criteria updated. Aligns with panel.md v1.2 and single-domain design decision.
 - **v1.2 (2026-04-23):** Deconvolution child-specimen labeling replaced end-to-end. `[parentLotId]-D[n]` convention removed; replaced with OpenELIS aliquot numbering (`LABNO.X-Y`). FR-V03-DEC-006 rewritten. VectorSpecimen `childLabel` field example updated. Data model note added confirming parent-child linkage uses existing aliquot parent pointer. BR-V03-011 added (child specimens inherit parent organism group, species ID, and Panel/test orders). UI section updated with `LABNO.X-Y` column header. Laporan Hasil consolidation note added (§13). Acceptance criteria updated to reference aliquot labeling format.
@@ -231,11 +232,13 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 
 **FR-V03-DEC-004:** Clicking "Initiate Deconvolution" SHALL open a Modal containing:
 - Positive test name and result value (read-only summary)
-- Deconvolution Strategy (`RadioButtonGroup`: "Individual specimens" / "Sub-pools")
-- If Sub-pools selected: Sub-pool count (`NumberInput`) and specimens per sub-pool (`NumberInput`)
-- If Individual: individual count (`NumberInput`, pre-filled from parent lot organism_count)
-- Test Panel selector (`ComboBox` over active VectorTestPanels)
+- Parent sample lab number and quantity (read-only summary, e.g. "VCT/2026/04/00042 — 25 organisms")
+- **Number of Aliquots** (`NumberInput`, required, min 2) — how many child aliquots to create
+- **Organisms per Aliquot** (`NumberInput`, required, min 1) — quantity of organisms in each child aliquot. Setting this to 1 creates individual-organism aliquots; setting it > 1 creates sub-pools that can themselves be deconvoluted if they test positive.
+- Soft warning (InlineNotification kind="warning") shown when Number of Aliquots × Organisms per Aliquot exceeds the parent quantity, e.g. "Total organisms across aliquots (30) exceeds parent quantity (25). Adjust if needed." Non-blocking.
 - Notes (`TextArea`, optional)
+
+> There is no strategy selector. Individual specimens and sub-pools are the same mechanism — both are Aliquots with a quantity. An aliquot with quantity = 1 is an individual; quantity > 1 is a sub-pool eligible for further deconvolution on a positive result.
 
 **FR-V03-DEC-005:** On submitting the deconvolution modal, the system SHALL:
 1. Create child Aliquots from the parent Sample using the existing OpenELIS aliquot mechanism. Each aliquot is assigned a lab number per the LABNO.X-Y convention.
@@ -480,11 +483,10 @@ All UI text is externalized. The following i18n keys must be added to the messag
 | `heading.vectorDec.title` | Pool Deconvolution |
 | `label.vectorDec.positiveTest` | Positive Test |
 | `label.vectorDec.strategy` | Deconvolution Strategy |
-| `label.vectorDec.strategy.individual` | Individual specimens |
-| `label.vectorDec.strategy.subpool` | Sub-pools |
-| `label.vectorDec.specimenCount` | Number of Specimens |
-| `label.vectorDec.subPoolCount` | Number of Sub-pools |
-| `label.vectorDec.specimensPerSubPool` | Specimens per Sub-pool |
+| `label.vectorDec.aliquotCount` | Number of Aliquots |
+| `label.vectorDec.organismsPerAliquot` | Organisms per Aliquot |
+| `helper.vectorDec.organismsPerAliquot` | Set to 1 for individual organisms; set to more to create sub-pools (which can be deconvoluted further if positive). |
+| `warning.vectorDec.exceedsParentQuantity` | Total organisms across aliquots ({total}) exceeds parent quantity ({parent}). Adjust if needed. |
 | `label.vectorDec.panel` | Test Panel |
 | `label.vectorDec.notes` | Notes |
 | `label.vectorDec.status.pending` | Deconvolution Needed |
@@ -511,8 +513,9 @@ All UI text is externalized. The following i18n keys must be added to the messag
 | VectorMolecularRecord.genbankAccession | Pattern `[A-Z]{1,2}[0-9]{5,8}` if provided | `error.vectorId.accessionFormat` |
 | VectorTestPanel.name | Required, unique among active panels | `error.vectorPanel.nameRequired`, `error.vectorPanel.nameDuplicate` |
 | VectorTestPanel.items | At least 1 item if isActive = true | `error.vectorPanel.noTests` |
-| Aliquot quantity per sub-pool | Required; integer ≥ 1 | error.vectorDec.quantityRequired |
-| Sub-pool count | Required; integer ≥ 2 | error.vectorDec.countRequired |
+| Deconvolution — Number of Aliquots | Required; integer ≥ 2 | `error.vectorDec.countRequired` |
+| Deconvolution — Organisms per Aliquot | Required; integer ≥ 1 | `error.vectorDec.quantityRequired` |
+| Deconvolution — Total organisms (Number × Organisms per Aliquot) | Soft warning (non-blocking) if > parent quantity | `warning.vectorDec.exceedsParentQuantity` |
 
 ---
 
