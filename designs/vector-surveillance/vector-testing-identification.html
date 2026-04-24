@@ -814,107 +814,6 @@ const LotDetail = ({lot,specimens,onSpecimensUpdate}) => {
         </div>
       )}
 
-      {/* ── Pool hierarchy view — from live save OR static mock data ── */}
-      {(savedPools || POOL_HIERARCHY[lot.id]) && (() => {
-        // Prefer live savedPools; fall back to static mock for demo
-        const livePools = savedPools;
-        const staticH = POOL_HIERARCHY[lot.id];
-        // Build a unified structure
-        const h = livePools ? { parentQty: specimens.length||10, pools: livePools.map(p=>({
-          id: p.id, label: p.label, qty: p.specimens.length,
-          result: null, species: p.specimens.length>0&&p.specimens.every(s=>s.species===p.specimens[0].species)&&p.specimens[0].species ? p.specimens[0].species : null,
-          conf: null, individuals: p.specimens.map(s=>({
-            id: s.id, label: s.label, qty:1, result:null, species:s.species||'', conf:s.status==='CONFIRMED'?'Confirmed':s.status==='PRESUMPTIVE'?'Presumptive':''
-          }))
-        })) } : staticH;
-        const rowStyle = {borderBottom:'1px solid #f4f4f4'};
-        const resultColor = r => r==='POSITIVE'?'#da1e28':r==='Negative'?'#198038':'#8d8d8d';
-        return (
-          <div style={{marginBottom:16}}>
-            <div style={{fontWeight:600,fontSize:13,marginBottom:8,display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
-              Sub-pool Grouping
-              <span style={{fontWeight:400,fontSize:12,color:'#525252'}}>{h.pools.length} pools · {h.parentQty||specimens.length} organisms total</span>
-              {livePools && !resetConfirm && (
-                <button className="btn btn-ghost btn-sm"
-                  style={{marginLeft:'auto',fontSize:11,height:26,color:'#da1e28',border:'1px solid #da1e28'}}
-                  onClick={()=>setResetConfirm(true)}>
-                  Reset all pools
-                </button>
-              )}
-              {resetConfirm && (
-                <span style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8,fontSize:12}}>
-                  <span style={{color:'#da1e28',fontWeight:400}}>Discard all pool groupings?</span>
-                  <button className="btn btn-sm" style={{height:26,background:'#da1e28',color:'#fff',border:'none',fontSize:11,cursor:'pointer'}}
-                    onClick={()=>{setSavedPools(null);setResplitPool(null);setResetConfirm(false);setDeconOpen(true);}}>
-                    Yes, reset
-                  </button>
-                  <button className="btn btn-ghost btn-sm" style={{height:26,fontSize:11}}
-                    onClick={()=>setResetConfirm(false)}>
-                    Cancel
-                  </button>
-                </span>
-              )}
-            </div>
-            <table className="dt" style={{width:'100%',background:'#fff'}}>
-              <thead>
-                <tr>
-                  <th style={{width:28}}></th>
-                  <th>Pool / Individual</th>
-                  <th>Lab Number</th>
-                  <th style={{textAlign:'center'}}>Organisms</th>
-                  <th>Result</th>
-                  <th>Species ID</th>
-                  <th>Confidence</th>
-                </tr>
-              </thead>
-              <tbody>
-                {h.pools.map((pool,pi)=>(
-                  <React.Fragment key={pool.id}>
-                    {/* Pool row */}
-                    <tr style={{...rowStyle, background: pool.result==='POSITIVE'?'#fff1f1':pi%2===0?'#fafafa':'#fff'}}>
-                      <td style={{padding:'8px 6px',textAlign:'center'}}>
-                        <span style={{fontSize:16}}>{pool.individuals.length>0?'▾':'○'}</span>
-                      </td>
-                      <td style={{padding:'8px 10px',fontWeight:600,fontSize:13}}>
-                        {pool.label}
-                        {pool.result==='POSITIVE' && <span style={{marginLeft:6,color:'#da1e28',fontSize:11,fontWeight:700}}>● POSITIVE</span>}
-                      </td>
-                      <td style={{padding:'8px 10px',fontFamily:'monospace',fontSize:12,color:'#525252'}}>{pool.id}</td>
-                      <td style={{padding:'8px 10px',textAlign:'center',fontSize:13}}>{pool.qty}</td>
-                      <td style={{padding:'8px 10px'}}>
-                        <span style={{fontSize:12,fontWeight:600,color:resultColor(pool.result)}}>{pool.result}</span>
-                      </td>
-                      <td style={{padding:'8px 10px',fontSize:13}}>{pool.species||<span style={{color:'#8d8d8d'}}>—</span>}</td>
-                      <td style={{padding:'8px 10px',fontSize:13}}>{pool.conf||<span style={{color:'#8d8d8d'}}>—</span>}</td>
-                    </tr>
-                    {/* Individual rows (indented) */}
-                    {pool.individuals.map((ind,ii)=>(
-                      <tr key={ind.id} style={{...rowStyle, background:'#f9f5ff'}}>
-                        <td style={{padding:'6px 6px',textAlign:'center'}}>
-                          <span style={{fontSize:11,color:'#8a3ffc'}}>{ii===pool.individuals.length-1?'└':'├'}</span>
-                        </td>
-                        <td style={{padding:'6px 10px',fontSize:12,paddingLeft:24}}>
-                          <span style={{color:'#8d8d8d',marginRight:6}}>╴</span>
-                          {ind.label}
-                          {ind.result==='POSITIVE' && <span style={{marginLeft:6,color:'#da1e28',fontSize:11,fontWeight:700}}>● POSITIVE</span>}
-                        </td>
-                        <td style={{padding:'6px 10px',fontFamily:'monospace',fontSize:11,color:'#525252'}}>{ind.id}</td>
-                        <td style={{padding:'6px 10px',textAlign:'center',fontSize:12}}>{ind.qty}</td>
-                        <td style={{padding:'6px 10px'}}>
-                          <span style={{fontSize:12,fontWeight:600,color:resultColor(ind.result)}}>{ind.result}</span>
-                        </td>
-                        <td style={{padding:'6px 10px',fontSize:12}}>{ind.species||<span style={{color:'#8d8d8d'}}>—</span>}</td>
-                        <td style={{padding:'6px 10px',fontSize:12}}>{ind.conf||<span style={{color:'#8d8d8d'}}>—</span>}</td>
-                      </tr>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        );
-      })()}
-
       {/* ── Scoped re-split panel for a specific pool ── */}
       {resplitPool && (
         <div style={{marginBottom:16,border:'2px solid #f1620f',borderRadius:2,overflow:'hidden'}}>
@@ -930,67 +829,149 @@ const LotDetail = ({lot,specimens,onSpecimensUpdate}) => {
             specimens={resplitPool.specimens}
             onClose={()=>setResplitPool(null)}
             onSave={subPoolData=>{
-              // Expand the parent pool in savedPools with the new sub-pools
-              setSavedPools(prev=>{
-                if(!prev) return subPoolData;
-                // Replace the pool being split with the new sub-pools
-                return prev.flatMap(p=>p.id===resplitPool.pid ? subPoolData.map((sp,i)=>({
-                  ...sp, id:`${resplitPool.pid}.${sp.id}`,
-                  label:`${resplitPool.label} → ${sp.label}`,
-                  labNo:`${resplitPool.labNo}-${sp.id}`,
-                })) : [p]);
-              });
+              // Add children to the split pool (don't replace — keep parent row)
+              setSavedPools(prev=>(prev||[]).map(p=>
+                p.id===resplitPool.pid
+                  ? {...p, children: subPoolData.map(sp=>({
+                      ...sp,
+                      id:`${resplitPool.pid}-${sp.id}`,
+                      label:`${sp.label}`,
+                      labNo:`${resplitPool.labNo}.${sp.id}`,
+                      children:[],
+                    }))}
+                  : p
+              ));
               setResplitPool(null);
             }}
           />
         </div>
       )}
 
-      {/* ── Flat specimen table (no deconvolution) ── */}
+      {/* ── Unified specimen / pool table ── */}
       <div className="scrollable">
         <table className="dt" style={{width:'100%',background:'#fff'}}>
           <thead>
             <tr>
               <th style={{width:36}}>
-                <input type="checkbox" className="cb"
-                  onChange={e=>setSelected(e.target.checked?new Set(specimens.map(s=>s.id)):new Set())}/>
+                {!savedPools && <input type="checkbox" className="cb"
+                  onChange={e=>setSelected(e.target.checked?new Set(specimens.map(s=>s.id)):new Set())}/>}
               </th>
-              <th>Specimen</th>
+              <th>{savedPools ? 'Pool / Specimen' : 'Specimen'}</th>
+              <th>Lab Number</th>
               <th>ID Status</th>
               <th>Species</th>
-              <th>Method</th>
               <th>Confidence</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {specimens.map(sp=>(
-              <React.Fragment key={sp.id}>
-                <tr className={expandedSpec===sp.id?'expanded':''}>
-                  <td><input type="checkbox" className="cb" checked={selected.has(sp.id)} onChange={()=>toggleSelect(sp.id)}/></td>
-                  <td style={{fontWeight:600,fontSize:13}}>{sp.label}</td>
-                  <td><StatusTag s={sp.status}/></td>
-                  <td style={{fontSize:13}}>{sp.species||<span style={{color:'#8d8d8d'}}>—</span>}</td>
-                  <td style={{fontSize:13}}>{sp.method||<span style={{color:'#8d8d8d'}}>—</span>}</td>
-                  <td style={{fontSize:13}}>{sp.conf||<span style={{color:'#8d8d8d'}}>—</span>}</td>
-                  <td>
-                    <button className="btn btn-ghost btn-sm"
-                      onClick={()=>setExpandedSpec(p=>p===sp.id?null:sp.id)}>
-                      {expandedSpec===sp.id?'▲ Close':'▼ Identify'}
-                    </button>
-                  </td>
-                </tr>
-                {expandedSpec===sp.id && (
-                  <tr className="expansion-row">
-                    <td colSpan={7}>
-                      <SpecimenForm sp={sp} onSave={handleSave} onCancel={()=>setExpandedSpec(null)}/>
-                    </td>
-                  </tr>
+            {savedPools ? (() => {
+              // Recursive pool+specimen renderer
+              const renderPool = (pool, depth=0) => {
+                const indent = depth * 20;
+                const hasChildren = pool.children && pool.children.length > 0;
+                const hasSubs = pool.specimens && pool.specimens.length > 0;
+                return (
+                  <React.Fragment key={pool.id||pool.labNo}>
+                    {/* Pool header row */}
+                    <tr style={{background: depth===0?'#f4f4f4':'#ede8ff', borderBottom:'1px solid #e0e0e0'}}>
+                      <td style={{padding:'7px 6px',textAlign:'center',paddingLeft:6+indent}}>
+                        <span style={{fontSize:14,color:depth===0?'#525252':'#8a3ffc'}}>
+                          {hasChildren?'▾':'▸'}
+                        </span>
+                      </td>
+                      <td style={{padding:'7px 10px',fontWeight:700,fontSize:13,paddingLeft:10+indent}}>
+                        {pool.label}
+                        {pool.qty>1 && <span style={{marginLeft:8,fontSize:11,color:'#525252',fontWeight:400}}>· {pool.specimens?pool.specimens.length:pool.qty} organisms</span>}
+                      </td>
+                      <td style={{padding:'7px 10px',fontFamily:'monospace',fontSize:11,color:'#525252'}}>{pool.labNo}</td>
+                      <td></td>
+                      <td style={{fontSize:12,color:'#525252',padding:'7px 10px'}}>
+                        {pool.specimens&&pool.specimens.every(s=>s.species&&s.species===pool.specimens[0].species)&&pool.specimens[0].species
+                          ? pool.specimens[0].species : <span style={{color:'#c6c6c6'}}>—</span>}
+                      </td>
+                      <td></td>
+                      <td style={{padding:'7px 10px'}}>
+                        {(pool.specimens?.length||0) > 1 && !hasChildren && (
+                          <button className="btn btn-ghost btn-sm"
+                            style={{fontSize:11,height:26,padding:'0 8px',border:'1px solid #e0e0e0'}}
+                            onClick={()=>setResplitPool({pid:pool.id, label:pool.label, labNo:pool.labNo, specimens:pool.specimens||[]})}>
+                            ↗ Split
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                    {/* Child sub-pools (if re-split) */}
+                    {hasChildren && pool.children.map(child=>renderPool(child, depth+1))}
+                    {/* Specimen rows under this pool */}
+                    {!hasChildren && hasSubs && pool.specimens.map((sp,si)=>(
+                      <React.Fragment key={sp.id}>
+                        <tr className={expandedSpec===sp.id?'expanded':''} style={{background:'#fff',borderBottom:'1px solid #f4f4f4'}}>
+                          <td style={{paddingLeft:6+indent+16}}>
+                            <input type="checkbox" className="cb" checked={selected.has(sp.id)} onChange={()=>toggleSelect(sp.id)}/>
+                          </td>
+                          <td style={{padding:'6px 10px',fontSize:12,paddingLeft:10+indent+16}}>
+                            <span style={{color:'#8d8d8d',marginRight:5}}>
+                              {si===pool.specimens.length-1?'└╴':'├╴'}
+                            </span>
+                            <span style={{fontWeight:500}}>{sp.label}</span>
+                          </td>
+                          <td style={{padding:'6px 10px',fontFamily:'monospace',fontSize:11,color:'#8d8d8d'}}>{sp.id}</td>
+                          <td style={{padding:'6px 10px'}}><StatusTag s={sp.status}/></td>
+                          <td style={{padding:'6px 10px',fontSize:12}}>{sp.species||<span style={{color:'#8d8d8d'}}>—</span>}</td>
+                          <td style={{padding:'6px 10px',fontSize:12}}>{sp.conf||<span style={{color:'#8d8d8d'}}>—</span>}</td>
+                          <td style={{padding:'6px 10px'}}>
+                            <button className="btn btn-ghost btn-sm" style={{fontSize:11}}
+                              onClick={()=>setExpandedSpec(p=>p===sp.id?null:sp.id)}>
+                              {expandedSpec===sp.id?'▲ Close':'▼ ID'}
+                            </button>
+                          </td>
+                        </tr>
+                        {expandedSpec===sp.id && (
+                          <tr className="expansion-row">
+                            <td colSpan={7}>
+                              <SpecimenForm sp={sp} onSave={handleSave} onCancel={()=>setExpandedSpec(null)}/>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </React.Fragment>
+                );
+              };
+              return savedPools.map(p=>renderPool(p));
+            })() : (
+              // Flat list (no pools)
+              <>
+                {specimens.map(sp=>(
+                  <React.Fragment key={sp.id}>
+                    <tr className={expandedSpec===sp.id?'expanded':''}>
+                      <td><input type="checkbox" className="cb" checked={selected.has(sp.id)} onChange={()=>toggleSelect(sp.id)}/></td>
+                      <td style={{fontWeight:600,fontSize:13}}>{sp.label}</td>
+                      <td style={{fontFamily:'monospace',fontSize:11,color:'#8d8d8d'}}>{sp.id}</td>
+                      <td><StatusTag s={sp.status}/></td>
+                      <td style={{fontSize:13}}>{sp.species||<span style={{color:'#8d8d8d'}}>—</span>}</td>
+                      <td style={{fontSize:13}}>{sp.conf||<span style={{color:'#8d8d8d'}}>—</span>}</td>
+                      <td>
+                        <button className="btn btn-ghost btn-sm"
+                          onClick={()=>setExpandedSpec(p=>p===sp.id?null:sp.id)}>
+                          {expandedSpec===sp.id?'▲ Close':'▼ Identify'}
+                        </button>
+                      </td>
+                    </tr>
+                    {expandedSpec===sp.id && (
+                      <tr className="expansion-row">
+                        <td colSpan={7}>
+                          <SpecimenForm sp={sp} onSave={handleSave} onCancel={()=>setExpandedSpec(null)}/>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+                {specimens.length===0 && (
+                  <tr><td colSpan={7} style={{padding:16,color:'#8d8d8d',textAlign:'center'}}>Loading specimens…</td></tr>
                 )}
-              </React.Fragment>
-            ))}
-            {specimens.length===0 && (
-              <tr><td colSpan={7} style={{padding:16,color:'#8d8d8d',textAlign:'center'}}>Loading specimens…</td></tr>
+              </>
             )}
           </tbody>
         </table>
