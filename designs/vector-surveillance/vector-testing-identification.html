@@ -723,8 +723,12 @@ const BulkModal = ({count,onClose,onApply}) => (
 
 /* ── Deconvolution modal ─────────────────────────────────────── */
 const DeconModal = ({lotId,onClose}) => {
-  const [strategy,setStrategy]=useState('INDIVIDUAL');
+  const [aliquotCount,setAliquotCount]=useState(5);
+  const [organismsPerAliquot,setOrganismsPerAliquot]=useState(5);
   const [done,setDone]=useState(false);
+  const parentQty=25;
+  const totalOrganisms=aliquotCount*organismsPerAliquot;
+  const showWarning=totalOrganisms>parentQty;
 
   if(done) return (
     <div className="modal-overlay" onClick={onClose}>
@@ -737,8 +741,8 @@ const DeconModal = ({lotId,onClose}) => {
           <div className="notif notif-success">
             <span style={{fontSize:18}}>✅</span>
             <div className="notif-body">
-              <div className="notif-title">25 child specimens created</div>
-              <div className="notif-sub">Re-test order <strong>ORD-2026-0892</strong> generated with Dengue Surveillance Panel. Lot {lotId} → Deconvolution In Progress. Child specimens labelled {lotId}-D01 through -D25.</div>
+              <div className="notif-title">{aliquotCount} aliquots created — {organismsPerAliquot===1?'individual organisms':'sub-pools'}</div>
+              <div className="notif-sub">Test orders copied to each aliquot. Parent result unchanged. Aliquots labelled {lotId}.1 through {lotId}.{aliquotCount}. Status → Deconvolution In Progress.</div>
             </div>
           </div>
         </div>
@@ -761,41 +765,39 @@ const DeconModal = ({lotId,onClose}) => {
             <span style={{fontSize:18}}>⚠️</span>
             <div className="notif-body">
               <div className="notif-title">Positive result: NS1 RT-PCR</div>
-              <div className="notif-sub">Lot {lotId} · 25 specimens · BG-Sentinel · Bojongsoang</div>
+              <div className="notif-sub">{lotId} · {parentQty} organisms · BPP-01 Cilincing North — parent test orders and results will remain unchanged.</div>
             </div>
           </div>
 
-          <div className="form-field">
-            <label className="form-label">Deconvolution Strategy</label>
-            <div style={{display:'flex',flexDirection:'column',gap:8}}>
-              {[['INDIVIDUAL','Individual specimens — test each separately'],['SUB_POOL','Sub-pools — split into smaller pools first']].map(([v,l])=>(
-                <label key={v} style={{display:'flex',alignItems:'center',gap:8,fontSize:14,cursor:'pointer'}}>
-                  <input type="radio" name="dec-strategy" value={v} checked={strategy===v} onChange={()=>setStrategy(v)}/>
-                  {l}
-                </label>
-              ))}
+          <div className="grid-2" style={{marginBottom:16}}>
+            <div className="form-field">
+              <label className="form-label">Number of Aliquots *</label>
+              <input className="form-input" type="number" min={2} value={aliquotCount}
+                onChange={e=>setAliquotCount(Math.max(2,parseInt(e.target.value)||2))} style={{width:120}}/>
+              <div style={{fontSize:12,color:'#525252',marginTop:4}}>Minimum 2</div>
+            </div>
+            <div className="form-field">
+              <label className="form-label">Organisms per Aliquot *</label>
+              <input className="form-input" type="number" min={1} value={organismsPerAliquot}
+                onChange={e=>setOrganismsPerAliquot(Math.max(1,parseInt(e.target.value)||1))} style={{width:120}}/>
+              <div style={{fontSize:12,color:'#525252',marginTop:4}}>
+                {organismsPerAliquot===1?'→ Individual organisms (terminal — no further deconvolution)':'→ Sub-pools (can be deconvoluted further if positive)'}
+              </div>
             </div>
           </div>
 
-          {strategy==='INDIVIDUAL'
-            ? <div className="form-field">
-                <label className="form-label">Number of Specimens</label>
-                <input className="form-input" type="number" defaultValue={25} style={{width:120}}/>
-              </div>
-            : <div className="grid-2">
-                <div className="form-field"><label className="form-label">Sub-pools</label><input className="form-input" type="number" defaultValue={5} style={{width:100}}/></div>
-                <div className="form-field"><label className="form-label">Specimens per Sub-pool</label><input className="form-input" type="number" defaultValue={5} style={{width:100}}/></div>
-              </div>
-          }
-
-          <div className="form-field">
-            <label className="form-label">Test Panel *</label>
-            <select className="form-select">
-              {PANELS.filter(p=>p.active&&(p.domain==='VECTOR'||p.domain==='ALL')).map(p=>(
-                <option key={p.id}>{p.name}</option>
-              ))}
-            </select>
+          <div style={{fontSize:13,color:'#393939',marginBottom:16,padding:'0.5rem 0.75rem',background:'#f4f4f4',borderRadius:2}}>
+            Total organisms across aliquots: <strong>{totalOrganisms}</strong> of <strong>{parentQty}</strong> parent organisms
           </div>
+
+          {showWarning && (
+            <div className="notif notif-warning" style={{marginBottom:16}}>
+              <span>⚠️</span>
+              <div className="notif-body">
+                <div className="notif-sub">Total organisms ({totalOrganisms}) exceeds parent quantity ({parentQty}). Adjust if needed — this is non-blocking.</div>
+              </div>
+            </div>
+          )}
 
           <div className="form-field">
             <label className="form-label">Notes</label>
@@ -804,7 +806,7 @@ const DeconModal = ({lotId,onClose}) => {
         </div>
         <div className="modal-footer">
           <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary btn-sm" onClick={()=>setDone(true)}>Confirm &amp; Generate Specimens</button>
+          <button className="btn btn-primary btn-sm" onClick={()=>setDone(true)}>Confirm &amp; Generate Aliquots</button>
         </div>
       </div>
     </div>

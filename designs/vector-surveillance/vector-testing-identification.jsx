@@ -243,74 +243,96 @@ function BulkApplyModal({ open, onClose }) {
 // Deconvolution Modal
 // ---------------------------------------------------------------------------
 function DeconvolutionModal({ open, onClose, lotId }) {
-  const [strategy, setStrategy] = useState('INDIVIDUAL');
+  const [aliquotCount, setAliquotCount]           = useState(5);
+  const [organismsPerAliquot, setOrganismsPerAliquot] = useState(5);
+  const parentQty = 25;
+  const totalOrganisms = aliquotCount * organismsPerAliquot;
+  const exceedsParent = totalOrganisms > parentQty;
 
   return (
     <Modal
       open={open}
-      modalHeading="Initiate Pool Deconvolution"
-      primaryButtonText="Confirm & Generate Specimens"
-      secondaryButtonText="Cancel"
+      modalHeading={t('heading.vectorDec.title', 'Initiate Pool Deconvolution')}
+      primaryButtonText={t('button.vectorDec.confirm', 'Confirm & Generate Aliquots')}
+      secondaryButtonText={t('button.vectorDec.cancel', 'Cancel')}
       onRequestClose={onClose}
       onRequestSubmit={onClose}
       size="md"
     >
       <InlineNotification
         kind="warning"
-        title="Positive result detected"
-        subtitle="NS1 RT-PCR returned POSITIVE. Child specimens will be created and a re-test order generated."
+        title={t('label.vectorDec.positiveTest', 'Positive result:')}
+        subtitle={t('message.vectorDec.parentNote',
+          'NS1 RT-PCR returned POSITIVE. Parent test orders and results will remain unchanged.')}
         lowContrast
         style={{ marginBottom: 'var(--cds-spacing-05)' }}
       />
       <Stack gap={6}>
+        {/* Parent summary */}
+        <Tile style={{ background: '#f4f4f4', padding: '0.75rem 1rem' }}>
+          <Grid condensed>
+            <Column lg={8}>
+              <p style={{ fontSize: 12, color: '#6f6f6f', marginBottom: 4 }}>{t('label.positiveTest', 'Positive Test')}</p>
+              <p style={{ fontWeight: 600 }}>NS1 RT-PCR (Dengue Surveillance Panel)</p>
+            </Column>
+            <Column lg={8}>
+              <p style={{ fontSize: 12, color: '#6f6f6f', marginBottom: 4 }}>{t('label.parentSample', 'Parent Sample')}</p>
+              <p style={{ fontWeight: 600, fontFamily: 'monospace' }}>{lotId} · {parentQty} organisms</p>
+            </Column>
+          </Grid>
+        </Tile>
+
+        {/* Simplified two-field form — no strategy selector */}
         <Grid condensed>
           <Column lg={8}>
-            <p style={{ fontSize: 12, color: '#6f6f6f', marginBottom: 4 }}>Positive Test</p>
-            <p style={{ fontWeight: 600 }}>NS1 RT-PCR (Dengue Surveillance Panel)</p>
+            <NumberInput
+              id="decon-aliquot-count"
+              label={<>{t('label.vectorDec.aliquotCount', 'Number of Aliquots')} <span style={{ color: '#da1e28' }}>*</span></>}
+              helperText={t('helper.vectorDec.aliquotCount', 'Minimum 2')}
+              min={2}
+              value={aliquotCount}
+              onChange={(e, { value }) => setAliquotCount(Math.max(2, value || 2))}
+            />
           </Column>
           <Column lg={8}>
-            <p style={{ fontSize: 12, color: '#6f6f6f', marginBottom: 4 }}>Lot</p>
-            <p style={{ fontWeight: 600 }}>{lotId} · 25 specimens</p>
+            <NumberInput
+              id="decon-organisms-per"
+              label={<>{t('label.vectorDec.organismsPerAliquot', 'Organisms per Aliquot')} <span style={{ color: '#da1e28' }}>*</span></>}
+              helperText={
+                organismsPerAliquot === 1
+                  ? t('helper.vectorDec.individual', '→ Individual organisms (terminal)')
+                  : t('helper.vectorDec.subpool', '→ Sub-pools — can be deconvoluted further if positive')
+              }
+              min={1}
+              value={organismsPerAliquot}
+              onChange={(e, { value }) => setOrganismsPerAliquot(Math.max(1, value || 1))}
+            />
           </Column>
         </Grid>
 
-        <fieldset style={{ border: 'none', padding: 0 }}>
-          <legend style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Deconvolution Strategy</legend>
-          <Stack gap={3}>
-            {[
-              { value: 'INDIVIDUAL', label: 'Individual specimens' },
-              { value: 'SUB_POOL',   label: 'Sub-pools' },
-            ].map(opt => (
-              <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14 }}>
-                <input type="radio" name="decon-strategy" value={opt.value}
-                  checked={strategy === opt.value} onChange={() => setStrategy(opt.value)} />
-                {opt.label}
-              </label>
-            ))}
-          </Stack>
-        </fieldset>
+        {/* Running total */}
+        <p style={{ fontSize: 13, color: '#393939', background: '#f4f4f4', padding: '0.5rem 0.75rem' }}>
+          {t('label.vectorDec.totalOrganisms', 'Total organisms across aliquots:')} <strong>{totalOrganisms}</strong>
+          {' '}{t('label.vectorDec.ofParent', 'of')} <strong>{parentQty}</strong> parent organisms
+        </p>
 
-        {strategy === 'INDIVIDUAL' ? (
-          <NumberInput id="decon-count" label="Number of Specimens" value={25} min={2} max={200} />
-        ) : (
-          <Grid condensed>
-            <Column lg={8}><NumberInput id="decon-subpool-count" label="Number of Sub-pools"        value={5} min={2} /></Column>
-            <Column lg={8}><NumberInput id="decon-per-subpool"   label="Specimens per Sub-pool"     value={5} min={1} /></Column>
-          </Grid>
+        {/* Soft warning — non-blocking */}
+        {exceedsParent && (
+          <InlineNotification
+            kind="warning"
+            title=""
+            subtitle={`${t('warning.vectorDec.exceedsParentQuantity',
+              `Total organisms (${totalOrganisms}) exceeds parent quantity (${parentQty}). Adjust if needed — this is non-blocking.`)}`}
+            lowContrast
+          />
         )}
 
-        <ComboBox
-          id="decon-panel"
-          titleText="Test Panel"
-          items={[
-            { id: 'p1', name: 'Dengue Surveillance Panel' },
-            { id: 'p2', name: 'Arbovirus Expanded Panel' },
-          ]}
-          itemToString={item => item?.name || ''}
-          placeholder="Select a test panel…"
+        <TextArea
+          id="decon-notes"
+          labelText={t('label.vectorDec.notes', 'Notes')}
+          placeholder={t('placeholder.vectorDec.notes', 'Optional…')}
+          rows={2}
         />
-
-        <TextArea id="decon-notes" labelText="Notes" placeholder="Optional notes…" rows={2} />
       </Stack>
     </Modal>
   );
