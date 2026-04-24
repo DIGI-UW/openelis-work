@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Test Accreditation — OpenELIS preview</title>
+  <link rel="stylesheet" href="https://1.www.s81c.com/common/carbon/plex/sans.css" />
+  <style>
+    :root {
+      --bg-0: #ffffff;
+      --bg-1: #f4f4f4;
+      --bg-2: #e0e0e0;
+      --text: #161616;
+      --text-muted: #525252;
+      --text-placeholder: #a8a8a8;
+      --border: #e0e0e0;
+      --border-subtle: #c6c6c6;
+      --blue: #0f62fe;
+      --green: #198038;
+      --warn-bg: #fdd13a33;
+      --warn-border: #f1c21b;
+      --danger: #da1e28;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-1);
+      color: var(--text);
+    }
+    code, .mono { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; }
+
+    /* ---------- Header ---------- */
+    .hdr {
+      position: fixed; top: 0; left: 0; right: 0; height: 48px;
+      background: #161616; color: #fff;
+      display: flex; align-items: center; padding: 0 1rem; z-index: 10;
+    }
+    .hdr-brand { font-weight: 600; letter-spacing: 0.02em; }
+    .hdr-prefix { opacity: 0.7; margin-right: 0.5rem; }
+
+    /* ---------- SideNav ---------- */
+    .side { position: fixed; top: 48px; bottom: 0; left: 0; width: 256px;
+            background: #fff; border-right: 1px solid var(--border); overflow-y: auto; }
+    .side-sec-title {
+      font-size: 0.875rem; font-weight: 600; color: var(--text);
+      padding: 0.75rem 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between;
+      border-left: 3px solid transparent;
+    }
+    .side-sec-title:hover { background: #e8e8e8; }
+    .side-sec-title .chev { font-size: 0.75rem; opacity: 0.6; }
+    .side-sec-items { display: block; padding-bottom: 0.5rem; }
+    .side-sec.collapsed .side-sec-items { display: none; }
+    .side-item {
+      display: block; padding: 0.5rem 1rem 0.5rem 2rem;
+      font-size: 0.875rem; color: var(--text-muted);
+      text-decoration: none; cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+    .side-item:hover { background: #e8e8e8; color: var(--text); }
+    .side-item.active {
+      background: #e0e0e0; color: var(--text); font-weight: 600;
+      border-left-color: var(--blue);
+    }
+
+    /* ---------- Main ---------- */
+    main { margin-left: 256px; margin-top: 48px; padding: 2rem; max-width: 1400px; }
+    h2 { font-size: 1.75rem; font-weight: 400; margin: 0.5rem 0 0.25rem; }
+    h3 { font-size: 1rem; font-weight: 600; margin: 0 0 0.25rem; }
+    .breadcrumb { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+    .breadcrumb .sep { margin: 0 0.4rem; opacity: 0.5; }
+    .breadcrumb .current { color: var(--text); }
+    .sub { color: var(--text-muted); margin: 0 0 1.5rem; font-size: 0.875rem; max-width: 900px; }
+
+    /* ---------- Tables ---------- */
+    .table-wrap { background: #fff; }
+    table.t { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    table.t th { text-align: left; font-weight: 600; padding: 0.75rem; background: #fff;
+                 border-bottom: 1px solid var(--border); color: var(--text); }
+    table.t td { padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    table.t tr.expanded { background: var(--bg-1); }
+
+    /* ---------- Tags ---------- */
+    .tag { display: inline-flex; align-items: center; padding: 0 0.5rem; height: 1.5rem;
+           border-radius: 1.5rem; font-size: 0.75rem; font-weight: 400;
+           margin-right: 0.25rem; white-space: nowrap; }
+    .tag-green { background: #a7f0ba; color: #044317; }
+    .tag-red   { background: #ffb3b8; color: #750e13; }
+    .tag-gray  { background: #e0e0e0; color: #393939; }
+    .tag-warm  { background: #f1e5db; color: #58392a; }
+    .tag-cyan  { background: #bae6ff; color: #003a6d; }
+    .tag-sm { height: 1.25rem; font-size: 0.6875rem; }
+
+    /* ---------- Notifications ---------- */
+    .note { border-left: 3px solid var(--blue); background: #edf5ff;
+            padding: 0.75rem 1rem; margin: 0 0 1rem; font-size: 0.875rem; }
+    .note-warn { border-left-color: var(--warn-border); background: var(--warn-bg); }
+    .note-info { border-left-color: var(--blue); background: #edf5ff; }
+    .note .title { font-weight: 600; margin-bottom: 0.25rem; }
+    .note .sub { color: inherit; margin: 0; }
+
+    /* ---------- Form controls ---------- */
+    .btn { border: 0; padding: 0.5rem 1rem; font-size: 0.875rem; cursor: pointer;
+           font-family: inherit; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: #0353e9; }
+    .btn-ghost { background: transparent; color: var(--blue); }
+    .btn-ghost:hover { background: #e8e8e8; }
+    .btn-danger-ghost { background: transparent; color: var(--danger); }
+    .btn-sm { padding: 0.25rem 0.75rem; font-size: 0.8125rem; }
+    .input, select.input {
+      background: var(--bg-1); border: 0; border-bottom: 1px solid var(--border-subtle);
+      padding: 0.4rem 0.5rem; font-size: 0.875rem; font-family: inherit;
+      width: 100%; color: var(--text);
+    }
+    .input:focus { outline: 2px solid var(--blue); outline-offset: -2px; }
+    .field { margin-bottom: 0.75rem; }
+    .field label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+
+    /* ---------- Radio group (visibility mode) ---------- */
+    .radio-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    .radio-opt {
+      display: flex; align-items: flex-start; gap: 0.5rem;
+      padding: 0.5rem; border: 1px solid transparent; cursor: pointer;
+    }
+    .radio-opt:hover { background: #f4f4f4; }
+    .radio-opt input[type="radio"] { margin-top: 0.2rem; }
+    .radio-opt .opt-label { font-size: 0.875rem; color: var(--text); }
+    .radio-opt .opt-help  { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.125rem; }
+    .threshold-slot { margin-left: 1.75rem; margin-top: 0.5rem; max-width: 220px; }
+
+    /* ---------- Toolbar ---------- */
+    .toolbar { display: flex; gap: 0.5rem; align-items: center; padding: 0.5rem;
+               background: #fff; border-bottom: 1px solid var(--border); }
+    .toolbar .input { max-width: 240px; }
+
+    /* ---------- Row expand panel ---------- */
+    .expand-panel { padding: 1.25rem; background: var(--bg-1); }
+    .expand-panel h5 { margin: 0 0 0.5rem; font-size: 0.875rem; font-weight: 600; }
+    .grid { display: grid; gap: 0.75rem; grid-template-columns: repeat(12, 1fr); }
+    .col-3 { grid-column: span 3; }
+    .col-4 { grid-column: span 4; }
+    .col-5 { grid-column: span 5; }
+    .col-6 { grid-column: span 6; }
+    .col-8 { grid-column: span 8; }
+    .col-12 { grid-column: span 12; }
+
+    /* ---------- Report preview ---------- */
+    .report {
+      background: #fff; border: 1px solid var(--border-subtle); padding: 1.5rem;
+      margin-top: 1rem;
+    }
+    .report .hd { display: flex; justify-content: space-between; align-items: flex-start;
+                  border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    .report .hd .lab-name { font-weight: 700; font-size: 1.125rem; }
+    .report .hd .meta { color: var(--text-muted); font-size: 0.8125rem; }
+    .report .logos { display: flex; gap: 0.75rem; align-items: center; }
+    .report .logos img { max-height: 60px; max-width: 120px; }
+    .report table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; margin-top: 1rem; }
+    .report th, .report td { text-align: left; padding: 0.25rem 0; border-bottom: 1px solid var(--border); }
+    .report .notes { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);
+                     font-size: 0.75rem; color: var(--text-muted); }
+
+    /* ---------- Modal ---------- */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(22,22,22,0.5);
+                      display: flex; align-items: center; justify-content: center; z-index: 20; }
+    .modal-backdrop.hidden { display: none; }
+    .modal { background: #fff; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+    .modal-hd { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); font-weight: 600; }
+    .modal-body { padding: 1rem 1.5rem; }
+    .modal-ft { padding: 0.75rem 1.5rem; border-top: 1px solid var(--border);
+                display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="hdr">
+  <span class="hdr-prefix">OpenELIS</span><span class="hdr-brand">Global</span>
+</div>
+
+<nav class="side">
+  <div class="side-sec" data-sec="testcatalog">
+    <div class="side-sec-title" onclick="toggleSection('testcatalog')">
+      <span>Test Catalog Management</span><span class="chev">▾</span>
+    </div>
+    <div class="side-sec-items">
+      <a class="side-item active" data-scene="bodies" onclick="goTo('bodies')">Accrediting bodies</a>
+      <a class="side-item" data-scene="accreditations" onclick="goTo('accreditations')">Test accreditations</a>
+    </div>
+  </div>
+  <div class="side-sec" data-sec="reports">
+    <div class="side-sec-title" onclick="toggleSection('reports')">
+      <span>Patient Reports</span><span class="chev">▾</span>
+    </div>
+    <div class="side-sec-items">
+      <a class="side-item" data-scene="report" onclick="goTo('report')">Report preview</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <section id="scene-bodies"></section>
+  <section id="scene-accreditations" class="hidden"></section>
+  <section id="scene-report" class="hidden"></section>
+</main>
+
+<!-- ==================== Modals ==================== -->
+
+<!-- Add / edit accrediting body -->
+<div class="modal-backdrop hidden" id="modal-body-form" onclick="if(event.target===this) closeBodyModal()">
+  <div class="modal">
+    <div class="modal-hd" id="body-form-heading">Add accrediting body</div>
+    <div class="modal-body" id="body-form-inner">
+      <!-- injected by renderBodyForm() -->
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeBodyModal()">Cancel</button>
+      <button class="btn btn-primary" id="body-form-save" onclick="saveBodyForm()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add / edit test accreditation -->
+<div class="modal-backdrop hidden" id="modal-acc-form" onclick="if(event.target===this) closeAccModal()">
+  <div class="modal">
+    <div class="modal-hd" id="acc-form-heading">Add test accreditation</div>
+    <div class="modal-body" id="acc-form-inner">
+      <!-- injected by renderAccForm() -->
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeAccModal()">Cancel</button>
+      <button class="btn btn-primary" id="acc-form-save" onclick="saveAccForm()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk extend -->
+<div class="modal-backdrop hidden" id="modal-bulk-extend" onclick="if(event.target===this) closeModal('modal-bulk-extend')">
+  <div class="modal">
+    <div class="modal-hd" id="bulk-heading">Extend expiration for N accreditations</div>
+    <div class="modal-body">
+      <p style="margin-top: 0">All selected accreditations will have their expiration set to the date below.</p>
+      <div class="field"><label>New expiration date</label><input class="input" type="date" id="bulk-extend-date"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeModal('modal-bulk-extend')">Cancel</button>
+      <button class="btn btn-primary" onclick="applyBulk()">Extend</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== Visibility mode enum ====================
+const MODE_ANY = 'ANY_ACCREDITED_TEST';
+const MODE_PCT = 'PERCENTAGE';
+
+// ==================== Mock data ====================
+const TODAY = new Date('2026-04-22');
+const todayISO = '2026-04-22';
+const daysUntil = (iso) => Math.round((new Date(iso) - TODAY) / 86400000);
+
+let bodies = [
+  { id: 'b1', code: 'ISO15189', name: 'ISO 15189 (SANAS)',
+    logo: 'https://placehold.co/120x80/0f62fe/ffffff?text=ISO%2015189',
+    logoVisibilityMode: MODE_ANY, thresholdPct: 80, displayOrder: 10, active: true },
+  { id: 'b2', code: 'SANAS',    name: 'SANAS General',
+    logo: 'https://placehold.co/120x80/198038/ffffff?text=SANAS',
+    logoVisibilityMode: MODE_PCT, thresholdPct: 50, displayOrder: 20, active: true },
+  { id: 'b3', code: 'RETIRED',  name: 'Regional (legacy)',
+    logo: null,
+    logoVisibilityMode: MODE_PCT, thresholdPct: 60, displayOrder: 30, active: false },
+];
+
+const tests = [
+  { id: 't1', code: 'CBC',     name: 'Complete Blood Count',        section: 'Hematology' },
+  { id: 't2', code: 'HGB',     name: 'Hemoglobin',                  section: 'Hematology' },
+  { id: 't3', code: 'GLUC',    name: 'Glucose, serum',              section: 'Chemistry' },
+  { id: 't4', code: 'CREAT',   name: 'Creatinine, serum',           section: 'Chemistry' },
+  { id: 't5', code: 'AST',     name: 'Aspartate aminotransferase',  section: 'Chemistry' },
+  { id: 't6', code: 'HIV-RAP', name: 'HIV rapid antibody',          section: 'Serology' },
+  { id: 't7', code: 'MALARIA', name: 'Malaria smear',               section: 'Microbiology' },
+  { id: 't8', code: 'UA',      name: 'Urinalysis, macro + micro',   section: 'Chemistry' },
+];
+
+let accreditations = [
+  { id: 'a1', testId: 't1', bodyId: 'b1', expires: '2027-03-15' },
+  { id: 'a2', testId: 't2', bodyId: 'b1', expires: '2027-03-15' },
+  { id: 'a3', testId: 't3', bodyId: 'b1', expires: '2026-06-02' },
+  { id: 'a4', testId: 't4', bodyId: 'b1', expires: '2026-05-05' },
+  { id: 'a5', testId: 't6', bodyId: 'b1', expires: '2025-11-30' },
+  { id: 'a6', testId: 't8', bodyId: 'b1', expires: '2026-12-01' },
+  { id: 'a7', testId: 't1', bodyId: 'b2', expires: '2027-01-15' },
+  { id: 'a8', testId: 't3', bodyId: 'b2', expires: '2027-01-15' },
+];
+
+function statusFor(iso) {
+  const d = daysUntil(iso);
+  if (d < 0)   return { tag: 'tag-red',  label: 'Expired ' + iso, bucket: 'expired' };
+  if (d <= 60) return { tag: 'tag-warm', label: 'Expiring ' + iso, bucket: 'expiring' };
+  return { tag: 'tag-green', label: 'Active · ' + iso, bucket: 'active' };
+}
+const bodyById = () => Object.fromEntries(bodies.map(b => [b.id, b]));
+const testById = Object.fromEntries(tests.map(t => [t.id, t]));
+
+function visibilitySummary(body) {
+  return body.logoVisibilityMode === MODE_ANY
+    ? 'Any accredited test'
+    : `≥ ${body.thresholdPct}%`;
+}
+
+function nextId(prefix, rows) {
+  let n = 1;
+  const taken = new Set(rows.map(r => r.id));
+  while (taken.has(prefix + n)) n++;
+  return prefix + n;
+}
+
+// ==================== Filter & edit state ====================
+let preselectedTestId = null;
+let filterState = { query: '', status: 'all', body: 'all', section: 'all' };
+let selectedAccIds = new Set();
+let expandedBodyId = null;
+
+// Draft state for forms — lives while modal is open
+let bodyDraft = null;       // { id: null | 'b#', code, name, logo, logoVisibilityMode, thresholdPct, displayOrder, active }
+let accDraft = null;        // { id: null | 'a#', testId, bodyId, expires }
+let editingAccId = null;
+
+// ==================== Navigation ====================
+function goTo(scene) {
+  document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+  document.getElementById('scene-' + scene).classList.remove('hidden');
+  document.querySelectorAll('.side-item').forEach(i => i.classList.remove('active'));
+  const el = document.querySelector('.side-item[data-scene="' + scene + '"]');
+  if (el) el.classList.add('active');
+  if (scene === 'bodies')           renderBodies();
+  if (scene === 'accreditations')   renderAccreditations();
+  if (scene === 'report')           renderReport();
+}
+function toggleSection(key) {
+  const el = document.querySelector('.side-sec[data-sec="' + key + '"]');
+  el.classList.toggle('collapsed');
+}
+function clearPreselection() {
+  preselectedTestId = null;
+  renderAccreditations();
+}
+
+// ==================== Scene: Accrediting bodies ====================
+function renderBodies() {
+  const counts = {};
+  for (const a of accreditations) {
+    const s = statusFor(a.expires).bucket;
+    if (s !== 'expired') counts[a.bodyId] = (counts[a.bodyId] || 0) + 1;
+  }
+
+  let html = `
+    <div class="breadcrumb">
+      <span>Admin</span><span class="sep">/</span>
+      <span>Test Catalog Management</span><span class="sep">/</span>
+      <span class="current">Accrediting bodies</span>
+    </div>
+    <h2>Accrediting bodies</h2>
+    <p class="sub">
+      Create and manage accrediting bodies. Each body has its own logo and visibility rule applied to patient reports.
+    </p>
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 0.75rem;">
+      <button class="btn btn-primary" onclick="openAddBody()">+ Add accrediting body</button>
+    </div>
+    <div class="table-wrap">
+      <table class="t">
+        <thead><tr>
+          <th>Code</th><th>Name</th><th>Logo</th>
+          <th>Logo visibility</th><th>Tests accredited</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody>`;
+  for (const b of bodies) {
+    const isOpen = expandedBodyId === b.id;
+    html += `<tr class="${isOpen ? 'expanded' : ''}">
+      <td><code>${b.code}</code></td>
+      <td>${b.name}</td>
+      <td>${b.logo ? `<img src="${b.logo}" alt="" style="max-height: 28px; max-width: 80px;">` : '<span style="color: var(--text-placeholder)">—</span>'}</td>
+      <td>${visibilitySummary(b)}</td>
+      <td>${counts[b.id] || 0}</td>
+      <td><span class="tag ${b.active ? 'tag-green' : 'tag-gray'}">${b.active ? 'Active' : 'Inactive'}</span></td>
+      <td style="text-align: right">
+        <button class="btn btn-ghost btn-sm" onclick="openEditBody('${b.id}')">▼ Edit</button>
+      </td>
+    </tr>`;
+    if (isOpen) {
+      html += `<tr class="expanded"><td colspan="7" style="padding: 0;">
+        <div class="expand-panel" id="body-inline-edit">
+          <!-- injected by renderBodyInlineEdit() -->
+        </div>
+      </td></tr>`;
+    }
+  }
+  html += `</tbody></table></div>`;
+  document.getElementById('scene-bodies').innerHTML = html;
+
+  if (expandedBodyId) renderBodyInlineEdit();
+}
+
+function openAddBody() {
+  bodyDraft = {
+    id: null,
+    code: '',
+    name: '',
+    logo: null,
+    logoVisibilityMode: MODE_ANY,
+    thresholdPct: 80,
+    displayOrder: 0,
+    active: true,
+  };
+  document.getElementById('body-form-heading').textContent = 'Add accrediting body';
+  document.getElementById('body-form-save').textContent = 'Create';
+  renderBodyForm();
+  openModal('modal-body-form');
+}
+function openEditBody(id) {
+  // Row expand, not modal — matches JSX mockup (P-02)
+  expandedBodyId = expandedBodyId === id ? null : id;
+  if (expandedBodyId) {
+    const b = bodies.find(x => x.id === id);
+    bodyDraft = { ...b };
+  } else {
+    bodyDraft = null;
+  }
+  renderBodies();
+}
+function closeBodyModal() {
+  bodyDraft = null;
+  closeModal('modal-body-form');
+}
+
+function renderBodyForm() {
+  const d = bodyDraft;
+  const isCreate = d.id === null;
+  const inner = document.getElementById('body-form-inner');
+  inner.innerHTML = bodyFormMarkup(d, isCreate, 'modal');
+  wireBodyFormHandlers('modal');
+}
+function renderBodyInlineEdit() {
+  const panel = document.getElementById('body-inline-edit');
+  if (!panel || !bodyDraft) return;
+  panel.innerHTML = bodyFormMarkup(bodyDraft, false, 'inline') + `
+    <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem; align-items: center;">
+      <button class="btn btn-primary btn-sm" onclick="saveBodyInline()">Save</button>
+      <button class="btn btn-ghost btn-sm" onclick="cancelBodyInline()">Cancel</button>
+      <span style="flex: 1"></span>
+      <button class="btn btn-danger-ghost btn-sm" onclick="deleteBody('${bodyDraft.id}')"
+        ${(inlineBodyCount(bodyDraft.id) > 0) ? 'disabled title="Cannot delete — tests reference this body."' : ''}>
+        🗑 Delete body
+      </button>
+    </div>`;
+  wireBodyFormHandlers('inline');
+}
+function inlineBodyCount(bodyId) {
+  return accreditations.filter(a => a.bodyId === bodyId).length;
+}
+
+function bodyFormMarkup(d, isCreate, prefix) {
+  const codeReadonly = isCreate ? '' : 'readonly';
+  const codeLabel    = isCreate ? 'Code' : 'Code (immutable)';
+  const showPctSlot  = d.logoVisibilityMode === MODE_PCT;
+  return `
+    <div class="grid">
+      <div class="col-4"><div class="field"><label>${codeLabel}</label>
+        <input class="input" id="${prefix}-code" value="${escapeHtml(d.code)}" ${codeReadonly} placeholder="e.g. ISO15189"></div></div>
+      <div class="col-8"><div class="field"><label>Name</label>
+        <input class="input" id="${prefix}-name" value="${escapeHtml(d.name)}"></div></div>
+      <div class="col-6"><div class="field"><label>Logo (PNG / SVG, ≤ 500 KB)</label>
+        <input class="input" type="file" accept=".png,.svg" id="${prefix}-logo">
+        ${d.logo ? `<div style="margin-top: 0.5rem;"><img src="${d.logo}" style="max-height: 44px;"></div>` : ''}
+      </div></div>
+      <div class="col-3"><div class="field"><label>Display order</label>
+        <input class="input" type="number" id="${prefix}-order" value="${d.displayOrder}">
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+          Lower numbers appear first (leftmost) on the report header. Ties break alphabetically on Code.
+        </div></div></div>
+      <div class="col-3"><div class="field"><label>Active</label>
+        <select class="input" id="${prefix}-active">
+          <option value="true"  ${d.active ? 'selected' : ''}>Active</option>
+          <option value="false" ${!d.active ? 'selected' : ''}>Inactive</option>
+        </select></div></div>
+      <div class="col-12"><div class="field">
+        <label>Logo visibility</label>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+          Choose when this body's logo appears on a patient report.
+        </div>
+        <div class="radio-group">
+          <label class="radio-opt">
+            <input type="radio" name="${prefix}-mode" value="${MODE_ANY}"
+              ${d.logoVisibilityMode === MODE_ANY ? 'checked' : ''}>
+            <div>
+              <div class="opt-label">Any test on the report is accredited by this body</div>
+              <div class="opt-help">Logo appears whenever at least one test on the report is accredited by this body. Use this for most labs.</div>
+            </div>
+          </label>
+          <label class="radio-opt">
+            <input type="radio" name="${prefix}-mode" value="${MODE_PCT}"
+              ${d.logoVisibilityMode === MODE_PCT ? 'checked' : ''}>
+            <div style="flex: 1;">
+              <div class="opt-label">At least N% of tests on the report are accredited by this body</div>
+              <div class="opt-help">Logo only appears when the share of accredited tests on a report meets or exceeds this percentage.</div>
+              ${showPctSlot ? `
+                <div class="threshold-slot">
+                  <div class="field" style="margin-bottom: 0;">
+                    <label>Threshold (%)</label>
+                    <input class="input" type="number" min="0" max="100" step="1"
+                      id="${prefix}-threshold" value="${d.thresholdPct}">
+                  </div>
+                </div>` : ``}
+            </div>
+          </label>
+        </div>
+      </div></div>
+    </div>`;
+}
+
+function wireBodyFormHandlers(prefix) {
+  const codeEl  = document.getElementById(prefix + '-code');
+  const nameEl  = document.getElementById(prefix + '-name');
+  const orderEl = document.getElementById(prefix + '-order');
+  const activeEl = document.getElementById(prefix + '-active');
+  const modeEls = document.querySelectorAll(`input[name="${prefix}-mode"]`);
+  const thresholdEl = document.getElementById(prefix + '-threshold');
+
+  if (codeEl)  codeEl.oninput   = (e) => { bodyDraft.code = e.target.value.toUpperCase(); };
+  if (nameEl)  nameEl.oninput   = (e) => { bodyDraft.name = e.target.value; };
+  if (orderEl) orderEl.oninput  = (e) => { bodyDraft.displayOrder = parseInt(e.target.value || '0', 10); };
+  if (activeEl) activeEl.onchange = (e) => { bodyDraft.active = e.target.value === 'true'; };
+  if (thresholdEl) thresholdEl.oninput = (e) => {
+    const v = parseInt(e.target.value || '0', 10);
+    bodyDraft.thresholdPct = Math.max(0, Math.min(100, isNaN(v) ? 0 : v));
+  };
+  modeEls.forEach(el => {
+    el.onchange = (e) => {
+      bodyDraft.logoVisibilityMode = e.target.value;
+      // Re-render to mount/unmount the threshold input
+      if (prefix === 'modal') renderBodyForm();
+      else renderBodyInlineEdit();
+    };
+  });
+}
+
+function saveBodyForm() {
+  if (!bodyDraft) return;
+  if (!bodyDraft.code || !/^[A-Z0-9-]{2,16}$/.test(bodyDraft.code)) {
+    alert('Code must be 2–16 characters: A–Z, 0–9, hyphen.');
+    return;
+  }
+  if (!bodyDraft.name || bodyDraft.name.length < 1) {
+    alert('Name is required.');
+    return;
+  }
+  if (bodies.some(b => b.code === bodyDraft.code && b.id !== bodyDraft.id)) {
+    alert(`Code "${bodyDraft.code}" is already in use.`);
+    return;
+  }
+  // Create: no logo uploaded in this mock → default placeholder
+  const newBody = {
+    ...bodyDraft,
+    id: nextId('b', bodies),
+    logo: bodyDraft.logo || `https://placehold.co/120x80/6929c4/ffffff?text=${encodeURIComponent(bodyDraft.code)}`,
+  };
+  bodies = [...bodies, newBody];
+  closeBodyModal();
+  renderBodies();
+}
+
+function saveBodyInline() {
+  if (!bodyDraft) return;
+  if (!bodyDraft.name || bodyDraft.name.length < 1) {
+    alert('Name is required.');
+    return;
+  }
+  const idx = bodies.findIndex(b => b.id === bodyDraft.id);
+  if (idx >= 0) {
+    bodies = bodies.map(b => b.id === bodyDraft.id ? { ...bodyDraft } : b);
+  }
+  expandedBodyId = null;
+  bodyDraft = null;
+  renderBodies();
+}
+function cancelBodyInline() {
+  expandedBodyId = null;
+  bodyDraft = null;
+  renderBodies();
+}
+function deleteBody(id) {
+  if (inlineBodyCount(id) > 0) return;
+  if (!confirm('Delete this body? This cannot be undone.')) return;
+  bodies = bodies.filter(b => b.id !== id);
+  expandedBodyId = null;
+  bodyDraft = null;
+  renderBodies();
+}
+
+// ==================== Scene: Test accreditations ====================
+function renderAccreditations() {
+  const bById = bodyById();
+  const sections = Array.from(new Set(tests.map(t => t.section))).sort();
+
+  let enriched = accreditations.map(a => ({
+    ...a, test: testById[a.testId], body: bById[a.bodyId], status: statusFor(a.expires),
+  }));
+  let filtered = enriched.filter(r => {
+    if (preselectedTestId && r.testId !== preselectedTestId) return false;
+    if (filterState.status !== 'all' && r.status.bucket !== filterState.status) return false;
+    if (filterState.body !== 'all' && r.bodyId !== filterState.body) return false;
+    if (filterState.section !== 'all' && r.test?.section !== filterState.section) return false;
+    if (filterState.query) {
+      const q = filterState.query.toLowerCase();
+      if (!(r.test?.code + ' ' + r.test?.name).toLowerCase().includes(q)) return false;
+    }
+    return true;
+  }).sort((a, b) => {
+    const order = { expired: 0, expiring: 1, active: 2 };
+    if (order[a.status.bucket] !== order[b.status.bucket]) return order[a.status.bucket] - order[b.status.bucket];
+    return a.expires.localeCompare(b.expires);
+  });
+
+  const expired = enriched.filter(r => r.status.bucket === 'expired').length;
+  const expiring = enriched.filter(r => r.status.bucket === 'expiring').length;
+
+  let html = `
+    <div class="breadcrumb">
+      <span>Admin</span><span class="sep">/</span>
+      <span>Test Catalog Management</span><span class="sep">/</span>
+      <span class="current">Test accreditations</span>
+    </div>
+    <h2>Test accreditations</h2>
+    <p class="sub">
+      Track and maintain accreditation coverage across the test catalog. Filter by status, body, or section;
+      bulk-extend expirations to match your renewal cycle.
+    </p>`;
+
+  if (preselectedTestId) {
+    html += `<div class="note note-info">
+      <div class="title">Filtered to test: ${testById[preselectedTestId].name}</div>
+      <div>Click <a href="#" onclick="clearPreselection(); event.preventDefault();">clear filter</a> to see all accreditations.</div>
+    </div>`;
+  }
+
+  html += `<div class="note ${expired > 0 ? 'note-warn' : 'note-info'}">
+    <div class="title">${expired} expired · ${expiring} expiring in the next 60 days</div>
+    <div class="sub">Default sort surfaces expired and expiring accreditations first.</div>
+  </div>`;
+
+  const selCount = selectedAccIds.size;
+  html += `<div class="table-wrap">
+    <div class="toolbar">`;
+  if (selCount > 0) {
+    html += `<span style="font-size: 0.875rem;"><strong>${selCount}</strong> selected</span>
+      <button class="btn btn-primary btn-sm" onclick="openBulkExtend()">Extend expiration</button>
+      <button class="btn btn-ghost btn-sm" onclick="selectedAccIds = new Set(); renderAccreditations();">Cancel</button>`;
+  } else {
+    html += `
+      <input class="input" placeholder="Search tests" value="${filterState.query}"
+             oninput="filterState.query = this.value; renderAccreditations();">
+      <select class="input" style="max-width: 180px;" onchange="filterState.status = this.value; renderAccreditations();">
+        <option value="all" ${filterState.status==='all'?'selected':''}>All statuses</option>
+        <option value="active" ${filterState.status==='active'?'selected':''}>Active</option>
+        <option value="expiring" ${filterState.status==='expiring'?'selected':''}>Expiring ≤ 60 days</option>
+        <option value="expired" ${filterState.status==='expired'?'selected':''}>Expired</option>
+      </select>
+      <select class="input" style="max-width: 180px;" onchange="filterState.body = this.value; renderAccreditations();">
+        <option value="all">All bodies</option>
+        ${bodies.map(b => `<option value="${b.id}" ${filterState.body===b.id?'selected':''}>${b.name}</option>`).join('')}
+      </select>
+      <select class="input" style="max-width: 180px;" onchange="filterState.section = this.value; renderAccreditations();">
+        <option value="all">All sections</option>
+        ${sections.map(s => `<option value="${s}" ${filterState.section===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+      <span style="flex: 1"></span>
+      <button class="btn btn-primary btn-sm" onclick="openAddAcc()">+ Add accreditation</button>`;
+  }
+  html += `</div>
+    <table class="t">
+      <thead><tr>
+        <th style="width: 32px;"><input type="checkbox" ${filtered.length > 0 && filtered.every(r => selectedAccIds.has(r.id)) ? 'checked' : ''}
+              onchange="toggleAllAcc(${JSON.stringify(filtered.map(r=>r.id)).replace(/"/g, '&quot;')}, this.checked)"></th>
+        <th>Code</th><th>Test</th><th>Section</th>
+        <th>Body</th><th>Expires</th><th>Status</th><th></th>
+      </tr></thead>
+      <tbody>`;
+  for (const r of filtered) {
+    html += `<tr>
+      <td><input type="checkbox" ${selectedAccIds.has(r.id) ? 'checked' : ''} onchange="toggleAcc('${r.id}', this.checked)"></td>
+      <td><code>${r.test.code}</code></td>
+      <td>${r.test.name}</td>
+      <td>${r.test.section}</td>
+      <td>${r.body.name}</td>
+      <td>${r.expires}</td>
+      <td><span class="tag ${r.status.tag}">${r.status.label}</span></td>
+      <td style="text-align: right">
+        <button class="btn btn-ghost btn-sm" onclick="openEditAcc('${r.id}')">Edit</button>
+        <button class="btn btn-danger-ghost btn-sm" onclick="deleteAcc('${r.id}')">Delete</button>
+      </td>
+    </tr>`;
+  }
+  if (filtered.length === 0) {
+    html += `<tr><td colspan="8" style="text-align: center; color: var(--text-placeholder); font-style: italic;">No accreditations match the current filters.</td></tr>`;
+  }
+  html += `</tbody></table></div>`;
+
+  document.getElementById('scene-accreditations').innerHTML = html;
+}
+
+function toggleAcc(id, checked) {
+  if (checked) selectedAccIds.add(id); else selectedAccIds.delete(id);
+  renderAccreditations();
+}
+function toggleAllAcc(ids, checked) {
+  if (checked) selectedAccIds = new Set(ids); else selectedAccIds = new Set();
+  renderAccreditations();
+}
+function openBulkExtend() {
+  document.getElementById('bulk-heading').textContent = `Extend expiration for ${selectedAccIds.size} accreditations`;
+  document.getElementById('bulk-extend-date').value = '';
+  openModal('modal-bulk-extend');
+}
+function applyBulk() {
+  const newDate = document.getElementById('bulk-extend-date').value;
+  if (!newDate) { alert('Pick a new expiration date.'); return; }
+  accreditations = accreditations.map(a =>
+    selectedAccIds.has(a.id) ? { ...a, expires: newDate } : a
+  );
+  closeModal('modal-bulk-extend');
+  selectedAccIds = new Set();
+  renderAccreditations();
+}
+
+// ---------- Add / edit accreditation modal ----------
+function openAddAcc() {
+  const activeBody = bodies.find(b => b.active) || bodies[0];
+  accDraft = {
+    id: null,
+    testId: tests[0].id,
+    bodyId: activeBody ? activeBody.id : '',
+    expires: '2027-01-01',
+  };
+  editingAccId = null;
+  document.getElementById('acc-form-heading').textContent = 'Add test accreditation';
+  document.getElementById('acc-form-save').textContent = 'Create';
+  renderAccForm();
+  openModal('modal-acc-form');
+}
+function openEditAcc(id) {
+  const a = accreditations.find(x => x.id === id);
+  if (!a) return;
+  accDraft = { ...a };
+  editingAccId = id;
+  document.getElementById('acc-form-heading').textContent = 'Edit test accreditation';
+  document.getElementById('acc-form-save').textContent = 'Save';
+  renderAccForm();
+  openModal('modal-acc-form');
+}
+function closeAccModal() {
+  accDraft = null;
+  editingAccId = null;
+  closeModal('modal-acc-form');
+}
+function renderAccForm() {
+  const d = accDraft;
+  const isEdit = editingAccId !== null;
+  const inner = document.getElementById('acc-form-inner');
+  inner.innerHTML = `
+    <div class="grid">
+      <div class="col-6"><div class="field">
+        <label>Test ${isEdit ? '(immutable)' : ''}</label>
+        <select class="input" id="acc-test" ${isEdit ? 'disabled' : ''}>
+          ${tests.map(t => `<option value="${t.id}" ${t.id === d.testId ? 'selected' : ''}>${t.code} — ${t.name}</option>`).join('')}
+        </select>
+      </div></div>
+      <div class="col-6"><div class="field">
+        <label>Accrediting body ${isEdit ? '(immutable)' : ''}</label>
+        <select class="input" id="acc-body" ${isEdit ? 'disabled' : ''}>
+          ${bodies.filter(b => b.active || b.id === d.bodyId).map(b => `<option value="${b.id}" ${b.id === d.bodyId ? 'selected' : ''}>${b.name}</option>`).join('')}
+        </select>
+      </div></div>
+      <div class="col-6"><div class="field">
+        <label>Expiration date</label>
+        <input class="input" type="date" id="acc-expires" value="${d.expires}">
+      </div></div>
+    </div>
+    ${isEdit ? '' : `
+      <div class="note note-info" style="margin-top: 0.75rem;">
+        <div class="sub">A test can only have one accreditation per body. Duplicate combinations are rejected.</div>
+      </div>`}`;
+  document.getElementById('acc-test').onchange    = (e) => { accDraft.testId  = e.target.value; };
+  document.getElementById('acc-body').onchange    = (e) => { accDraft.bodyId  = e.target.value; };
+  document.getElementById('acc-expires').onchange = (e) => { accDraft.expires = e.target.value; };
+}
+function saveAccForm() {
+  if (!accDraft) return;
+  if (!accDraft.expires) { alert('Expiration date is required.'); return; }
+  if (!accDraft.testId || !accDraft.bodyId) { alert('Test and body are required.'); return; }
+  const isEdit = editingAccId !== null;
+  if (!isEdit) {
+    const dup = accreditations.some(a => a.testId === accDraft.testId && a.bodyId === accDraft.bodyId);
+    if (dup) { alert('This test is already accredited by that body.'); return; }
+    accreditations = [...accreditations, { ...accDraft, id: nextId('a', accreditations) }];
+  } else {
+    accreditations = accreditations.map(a => a.id === editingAccId ? { ...accDraft } : a);
+  }
+  closeAccModal();
+  renderAccreditations();
+}
+function deleteAcc(id) {
+  if (!confirm('Delete this accreditation?')) return;
+  accreditations = accreditations.filter(a => a.id !== id);
+  selectedAccIds.delete(id);
+  renderAccreditations();
+}
+
+// ==================== Scene: Report preview ====================
+function renderReport() {
+  const bById = bodyById();
+  const sampleIds = ['t1','t2','t3','t5','t7'];
+  const reportTests = sampleIds.map(id => testById[id]);
+  const total = reportTests.length;
+
+  const evalByBody = bodies.filter(b => b.active).map(b => {
+    const accreditedTestIds = new Set(
+      accreditations
+        .filter(a => a.bodyId === b.id && statusFor(a.expires).bucket !== 'expired')
+        .map(a => a.testId)
+    );
+    const n = sampleIds.filter(id => accreditedTestIds.has(id)).length;
+    const ratio = total > 0 ? Math.round((n / total) * 100) : 0;
+    const gatePasses = b.logoVisibilityMode === MODE_ANY
+      ? (n >= 1)
+      : (ratio >= b.thresholdPct);
+    const showLogo = !!b.logo && total > 0 && gatePasses;
+    return { body: b, n, ratio, gatePasses, showLogo, hasAny: n > 0 };
+  });
+
+  const logosToShow = evalByBody.filter(e => e.showLogo)
+    .sort((a, b) => a.body.displayOrder - b.body.displayOrder);
+  const bodiesWithAny = evalByBody.filter(e => e.hasAny)
+    .sort((a, b) => a.body.displayOrder - b.body.displayOrder)
+    .map(e => e.body.name);
+  const notesLine = bodiesWithAny.length > 0
+    ? `Tests on this report are accredited by: ${bodiesWithAny.join(', ')}.`
+    : null;
+
+  const evalSummary = evalByBody.map(e => {
+    const modeLabel = e.body.logoVisibilityMode === MODE_ANY
+      ? 'mode: Any'
+      : `mode: ≥${e.body.thresholdPct}%`;
+    return `${e.body.name}: ${e.n}/${total} (${e.ratio}%) · ${modeLabel} → ${e.showLogo ? 'LOGO SHOWN' : 'logo hidden'}`;
+  }).join(' · ');
+
+  let html = `
+    <div class="breadcrumb">
+      <span>Patient reports</span><span class="sep">/</span>
+      <span class="current">Report preview</span>
+    </div>
+    <h2>Patient Result Report (preview)</h2>
+    <p class="sub">
+      Sample of a rendered patient report showing per-body visibility-mode evaluation and the automatic accreditation notes line.
+    </p>
+    <div class="note note-info">
+      <div class="title">Evaluation summary</div>
+      <div>${evalSummary}</div>
+    </div>
+    <div class="report">
+      <div class="hd">
+        <div>
+          <div class="lab-name">Centre Hospitalier Universitaire — Lab</div>
+          <div class="meta">Patient Result Report</div>
+          <div class="meta">Patient: Rakoto, Hery · M, 42</div>
+          <div class="meta">Accession: MG-2026-04-22-0147</div>
+        </div>
+        <div class="logos">
+          ${logosToShow.length === 0
+            ? '<span style="color: var(--text-placeholder); font-size: 0.75rem;">No accreditation logos qualify</span>'
+            : logosToShow.map(e => `<img src="${e.body.logo}" alt="${e.body.name}">`).join('')}
+        </div>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Test</th><th>Result</th><th>Units</th><th>Accreditation</th>
+        </tr></thead>
+        <tbody>`;
+  for (const ts of reportTests) {
+    const badges = accreditations
+      .filter(a => a.testId === ts.id && statusFor(a.expires).bucket !== 'expired')
+      .map(a => bById[a.bodyId])
+      .filter(b => b && b.active);
+    html += `<tr>
+      <td>${ts.name}</td><td>—</td><td>—</td>
+      <td>${badges.length === 0 ? '—' : badges.map(b => `<span class="tag tag-green tag-sm">${b.code}</span>`).join('')}</td>
+    </tr>`;
+  }
+  html += `</tbody></table>`;
+  if (notesLine) {
+    html += `<div class="notes"><strong>Notes:</strong> ${notesLine}</div>`;
+  }
+  html += `</div>`;
+  document.getElementById('scene-report').innerHTML = html;
+}
+
+// ==================== Helpers ====================
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ==================== Modal helpers ====================
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+// ==================== Bootstrap ====================
+renderBodies();
+</script>
+</body>
+</html>

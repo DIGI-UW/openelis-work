@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1960 1258" width="1960" height="1258">
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+          markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M 0 0 L 10 5 L 0 10 z" fill="#000"/>
+  </marker>
+</defs>
+
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="980.0" y="34" font-family="'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="700" fill="#111" text-anchor="middle">Vector Workflow — OpenELIS Global</text><text x="980.0" y="58" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#555" text-anchor="middle">Epic OGC-527 · Three intake paths → 4-step wizard → Species ID + Deconvolution</text>
+<rect x="160" y="88" width="22" height="14" rx="3" ry="3" fill="#e8e8e8" stroke="#555555" stroke-width="1.4"/>
+<text x="188" y="100" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#222">Existing OpenELIS</text>
+<rect x="327" y="88" width="22" height="14" rx="3" ry="3" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.4"/>
+<text x="355" y="100" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#222">Spec Complete</text>
+<rect x="466" y="88" width="22" height="14" rx="3" ry="3" fill="#f5f5f5" stroke="#999999" stroke-width="1.4" stroke-dasharray="6,4"/>
+<text x="494" y="100" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#222">Not Started</text>
+<rect x="591" y="88" width="22" height="14" rx="3" ry="3" fill="#e6f4ff" stroke="#1976d2" stroke-width="1.4"/>
+<text x="619" y="100" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#222">Primary path</text>
+<rect x="0" y="122" width="1960" height="162" fill="#f8f9fa"/><rect x="0" y="122" width="140" height="162" fill="#2b3a4a"/><text x="70.0" y="208.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Admin</text>
+<rect x="160" y="138" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
+<text x="285.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Vector Surveillance</text>
+<text x="285.0" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Groups / Species / Trap Types /</text>
+<text x="285.0" y="194" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Pending</text>
+<text x="285.0" y="208" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">V-01 · OGC-555</text>
+<rect x="428" y="138" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
+<text x="553.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Panel Admin (Vector extension)</text>
+<text x="553.0" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing + V-03 panel-domain</text>
+<text x="553.0" y="194" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">extension</text>
+<rect x="696" y="138" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
+<text x="821.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">FHIR Catalog Subscription</text>
+<text x="821.0" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">hub-delivered reference data</text>
+<text x="821.0" y="194" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">OGC-447 (Backlog)</text>
+<rect x="964" y="138" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
+<text x="1089.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Analyst Assignment /</text>
+<text x="1089.0" y="176" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Instrument QC</text>
+<text x="1089.0" y="196" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-10 / S-11</text>
+<rect x="0" y="284" width="1960" height="458" fill="#f1f5fb"/><rect x="0" y="284" width="140" height="458" fill="#2b3a4a"/><text x="70.0" y="518.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Reception</text>
+<rect x="160" y="300" width="250" height="130" rx="8" ry="8" fill="#e6f4ff" stroke="#1976d2" stroke-width="1.6"/>
+<text x="285.0" y="322" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Intake 1: FHIR Referral-in</text>
+<text x="285.0" y="338" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">(primary)</text>
+<text x="285.0" y="358" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">FHIR Task tracks origin · FHIR</text>
+<text x="285.0" y="372" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Sample</text>
+<text x="285.0" y="386" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">imports species ID → skip morph ID</text>
+<rect x="160" y="448" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
+<text x="285.0" y="470" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Intake 2: Paper / CSV manifest</text>
+<text x="285.0" y="490" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">transcription from external source</text>
+<text x="285.0" y="504" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">V-02 + S-15 Bulk Import</text>
+<rect x="160" y="596" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
+<text x="285.0" y="618" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Intake 3: Direct field entry</text>
+<text x="285.0" y="634" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">(low pri)</text>
+<text x="285.0" y="654" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">full collection event captured</text>
+<text x="285.0" y="668" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">V-02</text>
+<rect x="446" y="448.0" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
+<text x="571.0" y="470.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Step 1: Enter Order</text>
+<text x="571.0" y="490.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Domain=VECTOR · module=VCT</text>
+<text x="571.0" y="504.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Sample Collection Redesign + V-02</text>
+<rect x="714" y="448.0" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
+<text x="839.0" y="470.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Step 2: Collect Sample</text>
+<text x="839.0" y="490.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Referral: Receipt Confirm +</text>
+<text x="839.0" y="504.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Cooler/Ship ID</text>
+<text x="839.0" y="518.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Field: Trap, GPS, Pool, Count,</text>
+<text x="839.0" y="532.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Weather</text>
+<line x1="698" y1="513.0" x2="712" y2="513.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="982" y="448.0" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
+<text x="1107.0" y="470.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Step 3: Label &amp; Store</text>
+<text x="1107.0" y="490.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">LABNO + barcode · pools: LABNO.1,</text>
+<text x="1107.0" y="504.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">.2, …</text>
+<text x="1107.0" y="518.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Sample Collection Redesign + V-02</text>
+<line x1="966" y1="513.0" x2="980" y2="513.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="1250" y="448.0" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
+<text x="1375.0" y="470.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Step 4: QA Review</text>
+<text x="1375.0" y="490.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Eligibility Gate</text>
+<text x="1375.0" y="504.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-09</text>
+<line x1="1234" y1="513.0" x2="1248" y2="513.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="412" y1="365.0" x2="444" y2="513.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="412" y1="513.0" x2="444" y2="513.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="412" y1="661.0" x2="444" y2="513.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="0" y="742" width="1960" height="162" fill="#f6f1fb"/><rect x="0" y="742" width="140" height="162" fill="#2b3a4a"/><text x="70.0" y="828.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Lab Tech</text>
+<rect x="160" y="758" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
+<text x="285.0" y="780" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Species ID Workbench</text>
+<text x="285.0" y="800" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">per-specimen + bulk-apply</text>
+<text x="285.0" y="814" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">MORPH / MOLECULAR / BOTH</text>
+<text x="285.0" y="828" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">SKIP if FHIR Sample ID present</text>
+<text x="285.0" y="842" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">V-03</text>
+<rect x="428" y="758" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
+<text x="553.0" y="780" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Pathogen testing per panel</text>
+<text x="553.0" y="800" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing + V-03 panel extension</text>
+<line x1="412" y1="823.0" x2="426" y2="823.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="696" y="758" width="250" height="130" rx="8" ry="8" fill="#fffbe6" stroke="#d4a017" stroke-width="1.6"/>
+<text x="821.0" y="780" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Deconvolution Workflow</text>
+<text x="821.0" y="800" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">LABNO.1-1, LABNO.1-2 · iterative</text>
+<text x="821.0" y="814" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">V-03 (FRS labeling update pending)</text>
+<line x1="680" y1="823.0" x2="694" y2="823.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="964" y="758" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
+<text x="1089.0" y="780" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">NCE on anomaly</text>
+<text x="1089.0" y="800" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing OpenELIS</text>
+<rect x="0" y="904" width="1960" height="162" fill="#fbf6f1"/><rect x="0" y="904" width="140" height="162" fill="#2b3a4a"/><text x="70.0" y="990.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Validation</text>
+<rect x="160" y="920" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
+<text x="285.0" y="942" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Approve / Reject / Rerun</text>
+<text x="285.0" y="962" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing OpenELIS</text>
+<rect x="428" y="920" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
+<text x="553.0" y="942" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Sign-off — Final Authority</text>
+<text x="553.0" y="962" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing + V-04</text>
+<text x="553.0" y="976" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Verificator→Validator pipeline</text>
+<line x1="412" y1="985.0" x2="426" y2="985.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="0" y="1066" width="1960" height="162" fill="#f1fbf6"/><rect x="0" y="1066" width="140" height="162" fill="#2b3a4a"/><text x="70.0" y="1152.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Reporting</text>
+<rect x="160" y="1082" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
+<text x="285.0" y="1104" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Client Certificate</text>
+<text x="285.0" y="1124" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">reuse S-06 LH pattern · routed</text>
+<text x="285.0" y="1138" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">upstream</text>
+<text x="285.0" y="1152" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">via FHIR Task · consolidated</text>
+<text x="285.0" y="1166" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">lineage</text>
+<rect x="428" y="1082" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
+<text x="553.0" y="1104" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Vector Surveillance Dashboard</text>
+<text x="553.0" y="1124" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Apache Superset embedded · HAPI</text>
+<text x="553.0" y="1138" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">FHIR →</text>
+<text x="553.0" y="1152" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">OHS SQL-on-FHIR · MIR calc, 6</text>
+<text x="553.0" y="1166" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">dashboards</text>
+</svg>
