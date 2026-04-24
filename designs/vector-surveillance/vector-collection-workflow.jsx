@@ -1,859 +1,560 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
-  Grid, Column, Stack, Tabs, Tab, TabList, TabPanels, TabPanel,
-  TextInput, TextArea, Select, SelectItem, NumberInput, Toggle,
-  ComboBox, DatePicker, DatePickerInput, Button, Tag, InlineNotification,
-  Accordion, AccordionItem, Tile, Breadcrumb, BreadcrumbItem,
-  ProgressIndicator, ProgressStep,
-  DataTable, TableContainer, Table, TableHead, TableRow, TableHeader,
-  TableBody, TableCell, TableToolbar, TableToolbarContent, TableToolbarSearch,
+  Grid, Column, Stack,
+  TextInput, Select, SelectItem, NumberInput, ComboBox,
+  Button, Tag, InlineNotification, DataTable, TableContainer,
+  Table, TableHead, TableRow, TableHeader, TableBody, TableCell,
+  TableSelectRow, TableSelectAll, TableBatchActions, TableBatchAction,
+  TableToolbar, TableToolbarContent, TableToolbarSearch,
+  Tile, ProgressIndicator, ProgressStep, Accordion, AccordionItem,
+  FormGroup, FormLabel,
 } from '@carbon/react';
-import {
-  Add, ArrowRight, Checkmark, Warning, InformationFilled,
-  Location, Bee, TreeView, Time, Printer, Edit, TrashCan,
-} from '@carbon/icons-react';
+import { Add, TrashCan, Checkmark, ArrowRight } from '@carbon/icons-react';
 
-// ─── i18n stub ───────────────────────────────────────────────────────────────
 const t = (key, fallback) => fallback || key;
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const TRAP_TYPES = [
-  { id: 'tt1', label: 'BG-Sentinel' },
-  { id: 'tt2', label: 'BG-Pro' },
-  { id: 'tt3', label: 'CDC Light Trap' },
-  { id: 'tt4', label: 'Ovitrap' },
-  { id: 'tt5', label: 'Gravid Trap' },
-  { id: 'tt6', label: 'Human Landing Catch (HLC)' },
-  { id: 'tt7', label: 'Tick Drag' },
-  { id: 'tt8', label: 'Sherman Trap' },
+// ── Sample data ──────────────────────────────────────────────────────────────
+const ORGANISM_GROUPS = [
+  { id: 'anopheles', label: 'Mosquito (Anopheles)' },
+  { id: 'aedes',     label: 'Mosquito (Aedes)' },
+  { id: 'culex',     label: 'Mosquito (Culex)' },
+  { id: 'tick',      label: 'Tick' },
+  { id: 'rodent',    label: 'Rodent' },
 ];
 
 const SAMPLING_SITES = [
-  { id: 'ss1', name: 'Ciliwung River — Upstream S1', district: 'Jakarta Selatan', type: 'Vector Trap', lat: -6.2341, lng: 106.8312 },
-  { id: 'ss2', name: 'Manggarai Station — East Drainage', district: 'Jakarta Selatan', type: 'Vector Trap', lat: -6.2105, lng: 106.8502 },
-  { id: 'ss3', name: 'Ragunan Park — Zone B Perimeter', district: 'Jakarta Selatan', type: 'Vector Trap', lat: -6.3128, lng: 106.8212 },
+  { id: 'bpp01', label: 'BPP-01 — Cilincing North' },
+  { id: 'bpp02', label: 'BPP-02 — Penjaringan East' },
+  { id: 'bpp03', label: 'BPP-03 — Tanjung Priok' },
 ];
 
-const VECTOR_SAMPLE_TYPES = [
-  { id: 'vst1', label: 'Mosquito Pool (Fixed — 25)', poolStrategy: 'POOL_FIXED', minPool: 25 },
-  { id: 'vst2', label: 'Mosquito Pool (Variable)', poolStrategy: 'POOL_VARIABLE', minPool: 10 },
-  { id: 'vst3', label: 'Tick — Individual', poolStrategy: 'INDIVIDUAL', minPool: 1 },
-  { id: 'vst4', label: 'Rodent Tissue — Individual', poolStrategy: 'INDIVIDUAL', minPool: 1 },
+const AVAILABLE_TESTS = [
+  { id: 'dengue-panel', name: 'Dengue Surveillance Panel', type: 'Panel', method: 'ELISA / PCR', defaultSelected: true },
+  { id: 'pf-pcr',      name: 'Plasmodium falciparum PCR', type: 'Test',  method: 'RT-PCR',     defaultSelected: true },
+  { id: 'chik-pcr',    name: 'Chikungunya RT-PCR',       type: 'Test',  method: 'RT-PCR',     defaultSelected: false },
+  { id: 'zika-pcr',    name: 'Zika Virus RT-PCR',        type: 'Test',  method: 'RT-PCR',     defaultSelected: false },
 ];
 
-const LOT_STATUS_TAG = {
-  DRAFT:      { kind: 'gray',    label: 'Draft' },
-  RECEIVED:   { kind: 'blue',    label: 'Received' },
-  PROCESSING: { kind: 'purple',  label: 'Processing' },
-  TESTED:     { kind: 'teal',    label: 'Tested' },
-  ELIGIBLE:   { kind: 'green',   label: 'Eligible' },
-  REJECTED:   { kind: 'red',     label: 'Rejected' },
-};
+const QA_TYPES = ['Positive Control', 'Negative Control', 'Blank', 'Duplicate', 'Spike'];
 
-const MOCK_LOTS = [
-  { id: 'vl1', labNo: '0012/BPP-01/VCT/04/2026', site: 'Ciliwung River — Upstream S1', trap: 'BG-Sentinel', collectionDate: '2026-04-15', status: 'RECEIVED', pool: true, count: 25, sampleType: 'Mosquito Pool (Fixed — 25)' },
-  { id: 'vl2', labNo: '0011/BPP-01/VCT/04/2026', site: 'Manggarai Station — East Drainage', trap: 'CDC Light Trap', collectionDate: '2026-04-14', status: 'PROCESSING', pool: true, count: 18, sampleType: 'Mosquito Pool (Variable)' },
-  { id: 'vl3', labNo: '0010/BPP-01/VCT/04/2026', site: 'Ragunan Park — Zone B Perimeter', trap: 'Tick Drag', collectionDate: '2026-04-13', status: 'ELIGIBLE', pool: false, count: 1, sampleType: 'Tick — Individual' },
-  { id: 'vl4', labNo: '0009/BPP-01/VCT/04/2026', site: 'Ciliwung River — Upstream S1', trap: 'BG-Sentinel', collectionDate: '2026-04-12', status: 'DRAFT', pool: true, count: 22, sampleType: 'Mosquito Pool (Fixed — 25)' },
-];
-
-// ─── Shared: Step progress indicator ─────────────────────────────────────────
-function StepBar({ current }) {
-  const steps = [
-    { label: t('label.step.enterOrder', 'Enter Order') },
-    { label: t('label.step.collectSample', 'Collect Sample') },
-    { label: t('label.step.labelStore', 'Label & Store') },
-    { label: t('label.step.qaReview', 'QA Review') },
-  ];
-  return (
-    <Tile style={{ marginBottom: 'var(--cds-spacing-05)', padding: 'var(--cds-spacing-04) var(--cds-spacing-06)' }}>
-      <ProgressIndicator currentIndex={current} spaceEqually>
-        {steps.map((s, i) => (
-          <ProgressStep key={i} label={s.label}
-            complete={i < current}
-            current={i === current}
-          />
-        ))}
-      </ProgressIndicator>
-    </Tile>
+// ── Step 1: Enter Order ───────────────────────────────────────────────────────
+function Step1EnterOrder({ onNext }) {
+  const [organismGroup, setOrganismGroup] = useState(ORGANISM_GROUPS[0]);
+  const [quantity, setQuantity]           = useState(25);
+  const [samplingSite, setSamplingSite]   = useState(SAMPLING_SITES[0]);
+  const [requester, setRequester]         = useState('SILNAS Indonesia — Malaria Programme');
+  const [selectedTests, setSelectedTests] = useState(
+    new Set(AVAILABLE_TESTS.filter(t => t.defaultSelected).map(t => t.id))
   );
-}
+  const [testSearch, setTestSearch] = useState('');
+  const [error, setError] = useState('');
 
-// ─── Shared: Order context card (shown on Steps 2–4) ─────────────────────────
-function OrderContextCard({ lot }) {
-  return (
-    <Tile style={{ marginBottom: 'var(--cds-spacing-05)', padding: 'var(--cds-spacing-04) var(--cds-spacing-06)', display: 'flex', gap: 'var(--cds-spacing-08)', alignItems: 'center', borderLeft: '4px solid var(--cds-interactive-01)' }}>
-      {[
-        ['Lab Number', lot.labNo],
-        ['Site', lot.site],
-        ['Trap Type', lot.trap],
-        ['Collection Date', lot.collectionDate],
-        ['Domain', null],
-      ].map(([label, val]) => (
-        <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <span style={{ fontSize: '0.6875rem', color: 'var(--cds-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.32px' }}>{label}</span>
-          {val
-            ? <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>{val}</span>
-            : <Tag kind="teal" size="sm">{t('label.domain.vector', 'Vector')}</Tag>}
-        </div>
-      ))}
-    </Tile>
+  const toggleTest = useCallback((id) => {
+    setSelectedTests(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleAll = useCallback((checked) => {
+    setSelectedTests(checked ? new Set(AVAILABLE_TESTS.map(t => t.id)) : new Set());
+  }, []);
+
+  const filteredTests = AVAILABLE_TESTS.filter(t =>
+    t.name.toLowerCase().includes(testSearch.toLowerCase())
   );
-}
 
-// ─── Screen 0: Collection Lot Worklist ───────────────────────────────────────
-const LOT_HEADERS = [
-  { key: 'labNo', header: t('label.lot.labNumber', 'Lab Number') },
-  { key: 'site', header: t('label.lot.site', 'Sampling Site') },
-  { key: 'trap', header: t('label.lot.trapType', 'Trap Type') },
-  { key: 'collectionDate', header: t('label.lot.collectionDate', 'Collection Date') },
-  { key: 'sampleType', header: t('label.lot.sampleType', 'Sample Type') },
-  { key: 'status', header: t('label.lot.status', 'Status') },
-  { key: 'action', header: '' },
-];
-
-function Screen0Worklist({ onNewLot, onContinue }) {
-  return (
-    <div>
-      <Breadcrumb style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-        <BreadcrumbItem href="#"><span>{t('nav.sampleCollection', 'Sample Collection')}</span></BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage><span>{t('nav.collectionLots', 'Collection Lots — Vector')}</span></BreadcrumbItem>
-      </Breadcrumb>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--cds-spacing-05)' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>
-          {t('heading.collectionLots', 'Collection Lots')}
-          <Tag kind="teal" size="sm" style={{ marginLeft: 'var(--cds-spacing-03)' }}>
-            {t('label.domain.vector', 'Vector')}
-          </Tag>
-        </h2>
-        <Button renderIcon={Add} onClick={onNewLot}>
-          {t('button.newCollectionLot', 'New Collection Lot')}
-        </Button>
-      </div>
-
-      <DataTable rows={MOCK_LOTS.map(lot => ({ ...lot, id: lot.id }))} headers={LOT_HEADERS}>
-        {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
-          <TableContainer>
-            <TableToolbar>
-              <TableToolbarContent>
-                <TableToolbarSearch placeholder={t('placeholder.searchLots', 'Search by lab number or site…')} />
-                <Select id="filter-status" labelText="" hideLabel defaultValue="all" style={{ width: 160 }}>
-                  <SelectItem value="all" text={t('label.filter.allStatuses', 'All statuses')} />
-                  <SelectItem value="DRAFT" text={t('label.collectionLot.status.draft', 'Draft')} />
-                  <SelectItem value="RECEIVED" text={t('label.collectionLot.status.received', 'Received')} />
-                  <SelectItem value="PROCESSING" text={t('label.collectionLot.status.processing', 'Processing')} />
-                </Select>
-              </TableToolbarContent>
-            </TableToolbar>
-            <Table {...getTableProps()}>
-              <TableHead>
-                <TableRow>
-                  {headers.map(h => <TableHeader {...getHeaderProps({ header: h })} key={h.key}>{h.header}</TableHeader>)}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map(row => {
-                  const lot = MOCK_LOTS.find(l => l.id === row.id);
-                  const st = LOT_STATUS_TAG[lot.status] || { kind: 'gray', label: lot.status };
-                  return (
-                    <TableRow {...getRowProps({ row })} key={row.id}>
-                      <TableCell style={{ fontFamily: 'monospace', fontSize: '0.8125rem' }}>{lot.labNo}</TableCell>
-                      <TableCell>{lot.site}</TableCell>
-                      <TableCell>{lot.trap}</TableCell>
-                      <TableCell>{lot.collectionDate}</TableCell>
-                      <TableCell>{lot.sampleType}</TableCell>
-                      <TableCell><Tag kind={st.kind} size="sm">{st.label}</Tag></TableCell>
-                      <TableCell>
-                        <Button kind="ghost" size="sm" renderIcon={ArrowRight}
-                          onClick={() => onContinue(lot)}>
-                          {lot.status === 'DRAFT' ? t('button.continue', 'Continue') : t('button.view', 'View')}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </DataTable>
-    </div>
-  );
-}
-
-// ─── Screen 1: Step 1 — Enter Order (Vector domain active) ───────────────────
-function Screen1EnterOrder({ onNext }) {
-  const [domain, setDomain]           = useState('vector');
-  const [selectedSite, setSelectedSite] = useState(null);
-  const [siteSearch, setSiteSearch]   = useState('');
-  const [showSiteResults, setShowSiteResults] = useState(false);
-  const [trapType, setTrapType]       = useState(null);
-  const [isPool, setIsPool]           = useState(true);
-  const [count, setCount]             = useState(25);
-  const [lat, setLat]                 = useState('');
-  const [lng, setLng]                 = useState('');
-  const [weatherOpen, setWeatherOpen] = useState(false);
-  const [sampleTypeId, setSampleTypeId] = useState('vst1');
-
-  const handleSiteSelect = (site) => {
-    setSelectedSite(site);
-    setLat(String(site.lat));
-    setLng(String(site.lng));
-    setShowSiteResults(false);
-    setSiteSearch(site.name);
+  const handleNext = () => {
+    if (!organismGroup) { setError(t('error.vectorOrder.organismGroupRequired', 'Organism group is required.')); return; }
+    if (!quantity || quantity < 1) { setError(t('error.vectorOrder.quantityMin', 'Quantity must be at least 1.')); return; }
+    if (selectedTests.size === 0) { setError(t('error.vectorOrder.testRequired', 'Select at least one test or panel.')); return; }
+    setError('');
+    onNext({ organismGroup, quantity, samplingSite, requester, selectedTests });
   };
 
-  const filteredSites = SAMPLING_SITES.filter(s =>
-    s.name.toLowerCase().includes(siteSearch.toLowerCase()) ||
-    s.district.toLowerCase().includes(siteSearch.toLowerCase())
-  );
+  const testHeaders = [
+    { key: 'select', header: '' },
+    { key: 'name',   header: t('label.test.name', 'Test / Panel') },
+    { key: 'type',   header: t('label.test.type', 'Type') },
+    { key: 'method', header: t('label.test.method', 'Method') },
+  ];
 
   return (
-    <div>
-      <Breadcrumb style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-        <BreadcrumbItem href="#"><span>{t('nav.sampleCollection', 'Sample Collection')}</span></BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage><span>{t('nav.newEntry', 'New Entry')}</span></BreadcrumbItem>
-      </Breadcrumb>
-
-      <StepBar current={0} />
-
-      {/* Lab Number (assigned at top) */}
-      <Tile style={{ marginBottom: 'var(--cds-spacing-05)', padding: 'var(--cds-spacing-05)' }}>
-        <Grid condensed>
-          <Column lg={6}>
-            <TextInput
-              id="lab-number"
-              labelText={t('label.labNumber', 'Lab Number')}
-              value="0013/BPP-01/VCT/04/2026"
-              readOnly
-              helperText={t('helperText.labNumber', 'Auto-generated with module code VCT. Assigned here to enable tracking across all steps.')}
-            />
-          </Column>
-          <Column lg={3} style={{ paddingTop: 'var(--cds-spacing-06)' }}>
-            <Button kind="ghost" renderIcon={Printer} size="sm">
-              {t('button.printLabels', 'Print Labels')}
-            </Button>
-          </Column>
-        </Grid>
-      </Tile>
-
-      {/* Domain Toggle */}
-      <Tile style={{ marginBottom: 'var(--cds-spacing-05)', padding: 'var(--cds-spacing-05)' }}>
-        <p style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: 'var(--cds-spacing-03)' }}>
-          {t('label.sampleCategory', 'Sample Category')}
-        </p>
-        <div style={{ display: 'flex', gap: 0 }}>
-          {[
-            { key: 'clinical', label: t('label.domain.clinical', 'Clinical') },
-            { key: 'environmental', label: t('label.domain.environmental', 'Environmental / Other') },
-            { key: 'vector', label: t('label.workflow.vector', 'Vector') },
-          ].map(({ key, label }) => (
-            <button key={key} onClick={() => setDomain(key)} style={{
-              padding: '8px 20px', border: '1px solid var(--cds-border-strong-01)',
-              background: domain === key ? 'var(--cds-interactive-01)' : 'var(--cds-layer-01)',
-              color: domain === key ? '#fff' : 'var(--cds-text-primary)',
-              fontFamily: 'inherit', fontSize: '0.875rem', cursor: 'pointer',
-              borderRadius: key === 'clinical' ? '4px 0 0 4px' : key === 'vector' ? '0 4px 4px 0' : '0',
-              fontWeight: domain === key ? 600 : 400,
+    <Stack gap={6}>
+      {/* Domain toggle — Vector pre-selected */}
+      <Tile>
+        <div style={{ marginBottom: '0.5rem' }}>
+          <FormLabel>{t('label.sampleCategory', 'Sample Category')}</FormLabel>
+          <p style={{ fontSize: '0.8rem', color: '#525252', margin: '0.25rem 0 0.75rem' }}>
+            {t('helperText.labUnit.preselected', 'Lab unit: Vector Surveillance Lab — Vector domain pre-selected.')}
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: 0, border: '1px solid #e0e0e0', overflow: 'hidden', width: 'fit-content' }}>
+          {['Clinical', 'Environmental / Other', 'Vector'].map((label, i) => (
+            <button key={label} style={{
+              padding: '0.5rem 1.25rem', fontSize: '0.82rem', fontWeight: 500,
+              background: i === 2 ? '#0f62fe' : '#f4f4f4',
+              color: i === 2 ? '#fff' : '#525252',
+              border: 'none', borderRight: i < 2 ? '1px solid #e0e0e0' : 'none',
+              cursor: i === 2 ? 'default' : 'pointer', fontFamily: 'inherit',
             }}>{label}</button>
           ))}
         </div>
-        <p style={{ fontSize: '0.6875rem', color: 'var(--cds-text-secondary)', marginTop: 'var(--cds-spacing-02)' }}>
-          {t('helperText.domainToggle', 'This toggle is shown when the lab unit is configured for multiple workflow types. It is hidden when only one domain is configured.')}
-        </p>
       </Tile>
 
-      {domain === 'vector' && (<>
-        {/* Sampling Site */}
-        <Tile style={{ marginBottom: 'var(--cds-spacing-05)', padding: 'var(--cds-spacing-05)' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 'var(--cds-spacing-04)' }}>
-            {t('heading.samplingSite', 'Sampling Site')}
-          </h3>
-
-          <div style={{ position: 'relative', maxWidth: 480, marginBottom: 'var(--cds-spacing-04)' }}>
-            <TextInput
-              id="site-search"
-              labelText={t('label.samplingSite.search', 'Search sampling sites')}
-              placeholder={t('placeholder.samplingSite', 'Search by site name or district…')}
-              value={siteSearch}
-              onChange={e => { setSiteSearch(e.target.value); setShowSiteResults(true); setSelectedSite(null); }}
+      {/* Specimen details */}
+      <Tile>
+        <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Tag kind="green">{t('label.domain.vector', 'Vector')}</Tag>
+          {t('heading.vectorOrder.specimenDetails', 'Specimen Details')}
+        </h4>
+        <Grid>
+          <Column lg={8} md={4}>
+            <ComboBox
+              id="organism-group"
+              titleText={<>{t('label.vectorOrder.organismGroup', 'Organism Group')} <span style={{ color: '#da1e28' }}>*</span></>}
+              helperText={t('helperText.vectorOrder.organismGroup', 'The vector "sample type" — e.g., Mosquito, Tick, Rodent.')}
+              placeholder={t('placeholder.vectorOrder.organismGroup', 'Search organism groups…')}
+              items={ORGANISM_GROUPS}
+              itemToString={item => item?.label ?? ''}
+              selectedItem={organismGroup}
+              onChange={({ selectedItem }) => setOrganismGroup(selectedItem)}
             />
-            {showSiteResults && siteSearch && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid var(--cds-border-subtle-01)', zIndex: 10, boxShadow: '0 4px 8px rgba(0,0,0,.1)' }}>
-                {filteredSites.length === 0
-                  ? <div style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: 'var(--cds-text-secondary)' }}>{t('message.noSitesFound', 'No sites found.')}</div>
-                  : filteredSites.map(s => (
-                    <div key={s.id} onClick={() => handleSiteSelect(s)} style={{ padding: '0.625rem 1rem', cursor: 'pointer', fontSize: '0.875rem', borderBottom: '1px solid var(--cds-layer-02)' }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'var(--cds-layer-hover-01)'}
-                      onMouseLeave={e => e.currentTarget.style.background = ''}>
-                      <strong>{s.name}</strong>
-                      <span style={{ color: 'var(--cds-text-secondary)', marginLeft: 8, fontSize: '0.8125rem' }}>{s.district} · {s.type}</span>
-                    </div>
-                  ))
-                }
-              </div>
-            )}
-          </div>
+          </Column>
+          <Column lg={4} md={4}>
+            <NumberInput
+              id="quantity"
+              label={<>{t('label.vectorOrder.quantity', 'Quantity (organisms)')} <span style={{ color: '#da1e28' }}>*</span></>}
+              helperText={t('helperText.vectorOrder.quantity', 'Total organisms received.')}
+              min={1}
+              value={quantity}
+              onChange={(e, { value }) => setQuantity(value)}
+            />
+          </Column>
+          <Column lg={8} md={4}>
+            <ComboBox
+              id="sampling-site"
+              titleText={t('label.vectorOrder.samplingSite', 'Sampling Site')}
+              helperText={t('helperText.vectorOrder.samplingSite', 'Optional — records the collection site for traceability.')}
+              placeholder={t('placeholder.vectorOrder.samplingSite', 'Search sampling sites…')}
+              items={SAMPLING_SITES}
+              itemToString={item => item?.label ?? ''}
+              selectedItem={samplingSite}
+              onChange={({ selectedItem }) => setSamplingSite(selectedItem)}
+            />
+          </Column>
+          <Column lg={8} md={4}>
+            <TextInput
+              id="requester"
+              labelText={t('label.vectorOrder.requester', 'Requester / Organisation')}
+              value={requester}
+              onChange={e => setRequester(e.target.value)}
+            />
+          </Column>
+        </Grid>
+      </Tile>
 
-          {selectedSite && (
-            <div style={{ padding: 'var(--cds-spacing-04)', background: 'var(--cds-layer-accent-01)', border: '1px solid var(--cds-border-subtle-01)', borderRadius: 4, marginBottom: 'var(--cds-spacing-04)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--cds-spacing-02)' }}>
-                <strong style={{ fontSize: '0.875rem' }}>{selectedSite.name}</strong>
-                <Tag kind="green" size="sm">{t('label.selected', 'Selected')}</Tag>
-              </div>
-              <Grid condensed>
-                <Column lg={4}><span style={{ fontSize: '0.8125rem', color: 'var(--cds-text-secondary)' }}>{t('label.site.district', 'District:')} </span><span style={{ fontSize: '0.8125rem' }}>{selectedSite.district}</span></Column>
-                <Column lg={4}><span style={{ fontSize: '0.8125rem', color: 'var(--cds-text-secondary)' }}>{t('label.site.type', 'Type:')} </span><span style={{ fontSize: '0.8125rem' }}>{selectedSite.type}</span></Column>
-                <Column lg={4}><span style={{ fontSize: '0.8125rem', fontFamily: 'monospace' }}>{selectedSite.lat}, {selectedSite.lng}</span></Column>
-              </Grid>
-            </div>
+      {/* Tests & Panels */}
+      <Tile>
+        <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '1rem' }}>
+          {t('heading.vectorOrder.tests', 'Tests & Panels')}
+        </h4>
+        <div style={{ marginBottom: '1rem', maxWidth: 400 }}>
+          <TextInput
+            id="test-search"
+            labelText=""
+            hideLabel
+            placeholder={t('placeholder.testSearch', 'Search tests or panels…')}
+            value={testSearch}
+            onChange={e => setTestSearch(e.target.value)}
+          />
+        </div>
+        <DataTable rows={filteredTests.map(t => ({ id: t.id, ...t }))} headers={testHeaders}>
+          {({ rows, headers, getHeaderProps, getRowProps, getTableProps }) => (
+            <TableContainer>
+              <Table {...getTableProps()} size="sm">
+                <TableHead>
+                  <TableRow>
+                    <TableHeader>
+                      <input
+                        type="checkbox"
+                        checked={filteredTests.every(t => selectedTests.has(t.id))}
+                        onChange={e => toggleAll(e.target.checked)}
+                      />
+                    </TableHeader>
+                    {headers.slice(1).map(h => (
+                      <TableHeader key={h.key} {...getHeaderProps({ header: h })}>{h.header}</TableHeader>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.map(row => {
+                    const test = AVAILABLE_TESTS.find(t => t.id === row.id);
+                    return (
+                      <TableRow key={row.id} {...getRowProps({ row })}>
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            checked={selectedTests.has(row.id)}
+                            onChange={() => toggleTest(row.id)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <strong>{test?.name}</strong>
+                          {test?.type === 'Panel' && <div style={{ fontSize: '0.75rem', color: '#525252' }}>NS1 ELISA + NS1 RT-PCR</div>}
+                        </TableCell>
+                        <TableCell>
+                          <Tag kind={test?.type === 'Panel' ? 'blue' : 'gray'} size="sm">{test?.type}</Tag>
+                        </TableCell>
+                        <TableCell>{test?.method}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
           )}
-        </Tile>
+        </DataTable>
+        <div style={{ fontSize: '0.78rem', color: '#525252', marginTop: '0.5rem' }}>
+          {selectedTests.size} of {AVAILABLE_TESTS.length} items selected
+        </div>
+      </Tile>
 
-        {/* Collection Event */}
-        <Tile style={{ marginBottom: 'var(--cds-spacing-05)', padding: 'var(--cds-spacing-05)' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 'var(--cds-spacing-04)' }}>
-            {t('heading.step1.collectionEvent', 'Collection Event')}
-          </h3>
-
-          <Grid condensed>
-            <Column lg={6}>
-              <ComboBox
-                id="trap-type"
-                titleText={t('label.collectionEvent.trapType', 'Trap Type')}
-                placeholder={t('placeholder.collectionEvent.trapType', 'Search trap types…')}
-                items={TRAP_TYPES}
-                itemToString={i => i?.label || ''}
-                onChange={({ selectedItem }) => setTrapType(selectedItem)}
-              />
-            </Column>
-            <Column lg={6}>
-              <TextInput
-                id="collector-name"
-                labelText={t('label.collectionEvent.collectorName', 'Field team / Collector name')}
-                placeholder="e.g., Tim Vektor Jaksel — Budi Santoso"
-                defaultValue="Tim Vektor Jaksel — Budi Santoso"
-              />
-            </Column>
-            <Column lg={8} style={{ marginTop: 'var(--cds-spacing-04)' }}>
-              <DatePicker datePickerType="range" dateFormat="d/m/Y">
-                <DatePickerInput
-                  id="coll-start"
-                  labelText={t('label.collectionEvent.collectionStart', 'Collection start date/time')}
-                  placeholder="dd/mm/yyyy"
-                  defaultValue="15/04/2026"
-                />
-                <DatePickerInput
-                  id="coll-end"
-                  labelText={t('label.collectionEvent.collectionEnd', 'Collection end date/time (optional)')}
-                  placeholder="dd/mm/yyyy"
-                />
-              </DatePicker>
-            </Column>
-          </Grid>
-
-          {/* GPS — pre-filled from site */}
-          <Grid condensed style={{ marginTop: 'var(--cds-spacing-04)' }}>
-            <Column lg={4}>
-              <NumberInput
-                id="gps-lat"
-                label={t('label.collectionEvent.gpsLat', 'GPS Latitude')}
-                value={lat || -6.2341}
-                step={0.0001}
-                min={-90} max={90}
-                onChange={(e, { value }) => setLat(String(value))}
-                helperText={t('helperText.collectionEvent.gps', 'Pre-filled from site. Update if trap GPS differs from site centre.')}
-              />
-            </Column>
-            <Column lg={4}>
-              <NumberInput
-                id="gps-lng"
-                label={t('label.collectionEvent.gpsLng', 'GPS Longitude')}
-                value={lng || 106.8312}
-                step={0.0001}
-                min={-180} max={180}
-                onChange={(e, { value }) => setLng(String(value))}
-              />
-            </Column>
-            <Column lg={4} style={{ paddingTop: 'var(--cds-spacing-06)' }}>
-              <InlineNotification
-                kind="info"
-                title=""
-                subtitle={t('message.collectionLot.gpsPreFilled', 'Pre-filled from site. Update if trap GPS differs from site centre.')}
-                lowContrast
-                hideCloseButton
-              />
-            </Column>
-          </Grid>
-
-          {/* Pool flag + count */}
-          <Grid condensed style={{ marginTop: 'var(--cds-spacing-05)' }}>
-            <Column lg={4}>
-              <Toggle
-                id="pool-flag"
-                labelText={t('label.collectionEvent.poolFlag', 'Pooled specimen')}
-                labelA={t('label.no', 'No — Individual')}
-                labelB={t('label.yes', 'Yes — Pool')}
-                toggled={isPool}
-                onToggle={val => setIsPool(val)}
-              />
-            </Column>
-            {isPool && (
-              <Column lg={4}>
-                <NumberInput
-                  id="organism-count"
-                  label={t('label.collectionEvent.organismCount', 'Organism count')}
-                  value={count}
-                  min={1}
-                  onChange={(e, { value }) => setCount(value)}
-                  helperText={t('helperText.organismCount', 'Total organisms in this pool')}
-                />
-              </Column>
-            )}
-            <Column lg={4}>
-              <Select
-                id="vector-sample-type"
-                labelText={t('label.collectionEvent.sampleType', 'Vector Sample Type')}
-                value={sampleTypeId}
-                onChange={e => setSampleTypeId(e.target.value)}
-              >
-                {VECTOR_SAMPLE_TYPES.map(vst => (
-                  <SelectItem key={vst.id} value={vst.id} text={vst.label} />
-                ))}
-              </Select>
-            </Column>
-          </Grid>
-
-          {/* Weather accordion */}
-          <div style={{ marginTop: 'var(--cds-spacing-05)' }}>
-            <Accordion>
-              <AccordionItem title={t('label.collectionEvent.weather', 'Weather & Conditions (optional)')}>
-                <Grid condensed>
-                  <Column lg={4}>
-                    <NumberInput
-                      id="weather-temp"
-                      label={t('label.collectionEvent.weatherTemp', 'Air temperature (°C)')}
-                      defaultValue={28}
-                      step={0.1}
-                    />
-                  </Column>
-                  <Column lg={4}>
-                    <NumberInput
-                      id="weather-humidity"
-                      label={t('label.collectionEvent.weatherHumidity', 'Humidity (%)')}
-                      defaultValue={82}
-                      min={0} max={100}
-                    />
-                  </Column>
-                  <Column lg={4}>
-                    <Select id="weather-cond" labelText={t('label.collectionEvent.weatherCondition', 'Weather condition')} defaultValue="Clear">
-                      {['Clear', 'Cloudy', 'Rainy', 'Post-rain', 'Overcast'].map(w => (
-                        <SelectItem key={w} value={w} text={t(`label.collectionEvent.weatherCondition.${w.toLowerCase().replace('-', '')}`, w)} />
-                      ))}
-                    </Select>
-                  </Column>
-                  <Column lg={16} style={{ marginTop: 'var(--cds-spacing-04)' }}>
-                    <TextArea
-                      id="coll-notes"
-                      labelText={t('label.collectionEvent.notes', 'Collection notes')}
-                      placeholder={t('placeholder.collectionNotes', 'e.g., High mosquito activity observed near drainage canal; trap placed 1.5m above ground on wooden post')}
-                      rows={2}
-                    />
-                  </Column>
-                </Grid>
-              </AccordionItem>
-            </Accordion>
-          </div>
-        </Tile>
-
-        {/* Requester */}
-        <Tile style={{ marginBottom: 'var(--cds-spacing-05)', padding: 'var(--cds-spacing-05)' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 'var(--cds-spacing-04)' }}>
-            {t('heading.requester', 'Requester / Ordering Organization')}
-          </h3>
-          <Grid condensed>
-            <Column lg={6}>
-              <TextInput id="requester" labelText={t('label.requester', 'Organization name')} defaultValue="Dinas Kesehatan Jakarta Selatan" />
-            </Column>
-            <Column lg={4}>
-              <Select id="payment-type" labelText={t('label.paymentType', 'Payment Type')} defaultValue="Program">
-                <SelectItem value="Program" text={t('label.payment.program', 'Program (Paid)')} />
-                <SelectItem value="General" text={t('label.payment.general', 'General (Unpaid)')} />
-              </Select>
-            </Column>
-            <Column lg={3}>
-              <Toggle id="subcontract" labelText={t('label.subcontract', 'Subcontract')} labelA={t('label.no', 'No')} labelB={t('label.yes', 'Yes')} />
-            </Column>
-          </Grid>
-        </Tile>
-
-        <Stack orientation="horizontal" gap={3} style={{ justifyContent: 'flex-end', marginTop: 'var(--cds-spacing-05)' }}>
-          <Button kind="ghost">{t('button.cancel', 'Cancel')}</Button>
-          <Button renderIcon={ArrowRight} onClick={onNext}>
-            {t('button.collectionLot.saveStep1', 'Continue to Collect')}
-          </Button>
-        </Stack>
-      </>)}
-
-      {domain !== 'vector' && (
-        <InlineNotification
-          kind="info"
-          title={t('label.domainNotShown', 'Clinical and Environmental workflows')}
-          subtitle={t('helperText.domainNotShown', 'Clinical and Environmental / Other domain screens are unchanged from the Sample Collection Redesign. This mockup focuses on the Vector extension. Switch to Vector above to see the new fields.')}
-          lowContrast
-          hideCloseButton
-        />
+      {error && (
+        <InlineNotification kind="error" title={t('error.vectorOrder.title', 'Validation error')} subtitle={error} lowContrast />
       )}
-    </div>
-  );
-}
 
-// ─── Screen 2: Step 2 — Collect Sample (Vector) ───────────────────────────────
-function Screen2CollectSample({ lot, onNext, onBack }) {
-  const [receivedAt, setReceivedAt] = useState('2026-04-16 08:30');
-  const [coolerId, setCoolerId]     = useState('CLR-2026-0042');
-  const [shipmentId, setShipmentId] = useState('SHP-2026-0019');
-
-  return (
-    <div>
-      <StepBar current={1} />
-      <OrderContextCard lot={lot} />
-
-      {/* Collection Event Summary */}
-      <Tile style={{ marginBottom: 'var(--cds-spacing-05)', padding: 'var(--cds-spacing-05)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--cds-spacing-04)' }}>
-          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
-            {t('heading.collectionEventSummary', 'Collection Event Summary')}
-          </h3>
-          <Button kind="ghost" size="sm" renderIcon={Edit}>
-            {t('button.editStep1', 'Edit (Step 1)')}
-          </Button>
-        </div>
-        <Grid condensed>
-          {[
-            [t('label.collectionEvent.trapType', 'Trap Type'), 'BG-Sentinel'],
-            [t('label.collectionEvent.collectorName', 'Collector'), 'Tim Vektor Jaksel — Budi Santoso'],
-            [t('label.collectionEvent.collectionStart', 'Collection start'), '15/04/2026 07:00'],
-            [t('label.lot.site', 'Sampling site'), 'Ciliwung River — Upstream S1'],
-            [t('label.collectionEvent.gpsLat', 'GPS'), '-6.2341, 106.8312'],
-            [t('label.collectionEvent.poolFlag', 'Pool'), '25 organisms (Mosquito Pool Fixed)'],
-          ].map(([label, value]) => (
-            <Column key={label} lg={4} style={{ marginBottom: 'var(--cds-spacing-03)' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)', display: 'block' }}>{label}</span>
-              <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>{value}</span>
-            </Column>
-          ))}
-        </Grid>
-      </Tile>
-
-      {/* Receipt Confirmation */}
-      <Tile style={{ marginBottom: 'var(--cds-spacing-05)', padding: 'var(--cds-spacing-05)' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 'var(--cds-spacing-04)' }}>
-          {t('heading.step2.receiptConfirmation', 'Receipt Confirmation')}
-        </h3>
-        <Grid condensed>
-          <Column lg={5}>
-            <TextInput
-              id="received-at"
-              labelText={t('label.receipt.receivedAt', 'Lab receipt date/time')}
-              value={receivedAt}
-              onChange={e => setReceivedAt(e.target.value)}
-              helperText={t('helperText.receivedAt', 'Used by the S-09 transit window auto-compute rule')}
-            />
-          </Column>
-          <Column lg={5}>
-            <TextInput
-              id="received-by"
-              labelText={t('label.receipt.receivedBy', 'Received by')}
-              defaultValue="Siti Rahayu (QA Officer)"
-              helperText={t('helperText.receivedBy', 'Auto-filled with logged-in user; editable')}
-            />
-          </Column>
-          <Column lg={6} style={{ marginTop: 'var(--cds-spacing-04)' }}>
-            <TextInput
-              id="cooler-id"
-              labelText={t('label.receipt.coolerId', 'Cooler / Container ID')}
-              value={coolerId}
-              onChange={e => setCoolerId(e.target.value)}
-              helperText={t('helperText.coolerId', 'Optional. From field container or sample shipment.')}
-            />
-          </Column>
-          <Column lg={6} style={{ marginTop: 'var(--cds-spacing-04)' }}>
-            <TextInput
-              id="shipment-id"
-              labelText={t('label.receipt.shipmentId', 'Shipment ID')}
-              value={shipmentId}
-              onChange={e => setShipmentId(e.target.value)}
-              helperText={t('helperText.receipt.shipmentId', 'Optional. Links to an existing sample shipment record.')}
-            />
-          </Column>
-        </Grid>
-      </Tile>
-
-      {/* Updatable collection details */}
-      <Accordion style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-        <AccordionItem title={t('heading.collectionDetailsUpdate', 'Update Collection Details (optional)')}>
-          <Grid condensed>
-            <Column lg={4}>
-              <NumberInput id="upd-lat" label={t('label.collectionEvent.gpsLat', 'GPS Latitude')} defaultValue={-6.2341} step={0.0001} />
-            </Column>
-            <Column lg={4}>
-              <NumberInput id="upd-lng" label={t('label.collectionEvent.gpsLng', 'GPS Longitude')} defaultValue={106.8312} step={0.0001} />
-            </Column>
-            <Column lg={4}>
-              <NumberInput id="upd-count" label={t('label.collectionEvent.organismCount', 'Organism count')} defaultValue={25} min={1} />
-            </Column>
-            <Column lg={16} style={{ marginTop: 'var(--cds-spacing-04)' }}>
-              <TextArea id="upd-notes" labelText={t('label.collectionEvent.notes', 'Collection notes')} rows={2}
-                defaultValue="High mosquito activity observed near drainage canal; trap placed 1.5m above ground on wooden post" />
-            </Column>
-          </Grid>
-        </AccordionItem>
-      </Accordion>
-
-      <Stack orientation="horizontal" gap={3} style={{ justifyContent: 'flex-end' }}>
-        <Button kind="ghost" onClick={onBack}>{t('button.back', 'Back')}</Button>
-        <Button renderIcon={ArrowRight} onClick={onNext}>
-          {t('button.collectionLot.saveStep2', 'Continue to Label')}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+        <Button kind="ghost">{t('button.cancel', 'Cancel')}</Button>
+        <Button kind="secondary">{t('button.saveDraft', 'Save Draft')}</Button>
+        <Button kind="primary" renderIcon={ArrowRight} onClick={handleNext}>
+          {t('button.collectionLot.saveStep1', 'Continue to Label & Store')}
         </Button>
-      </Stack>
-    </div>
+      </div>
+    </Stack>
   );
 }
 
-// ─── Screen 3: Step 3 — Label & Store (Vector) ───────────────────────────────
-function Screen3LabelStore({ lot, onNext, onBack }) {
+// ── Step 2: Label & Store ─────────────────────────────────────────────────────
+function Step2LabelStore({ order, labNumber, onNext, onBack }) {
+  const [storageUnit, setStorageUnit] = useState('field-container');
+  const [storageSlot, setStorageSlot] = useState('');
+
   return (
-    <div>
-      <StepBar current={2} />
-      <OrderContextCard lot={lot} />
+    <Stack gap={6}>
+      <InlineNotification
+        kind="success"
+        title={t('message.collectionLot.saved', 'Order saved.')}
+        subtitle={`${t('message.collectionLot.labNumber', 'Lab number')} ${labNumber} ${t('message.collectionLot.assigned', 'assigned.')}`}
+        lowContrast
+      />
 
-      <Tile style={{ marginBottom: 'var(--cds-spacing-05)', padding: 'var(--cds-spacing-05)' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 'var(--cds-spacing-04)' }}>
-          {t('heading.collectionLotLabel', 'Collection Lot Label')}
-        </h3>
-
-        {/* Label preview */}
-        <div style={{ border: '2px solid var(--cds-border-strong-01)', borderRadius: 4, padding: 'var(--cds-spacing-05)', maxWidth: 360, marginBottom: 'var(--cds-spacing-05)', background: '#fff' }}>
-          <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', marginBottom: 4, color: 'var(--cds-text-secondary)' }}>OpenELIS Global — Vector Collection Lot</div>
-          <div style={{ fontSize: '1.125rem', fontWeight: 700, letterSpacing: '0.02em', marginBottom: 6, fontFamily: 'monospace' }}>0013/BPP-01/VCT/04/2026</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, fontSize: '0.75rem' }}>
-            <div><span style={{ color: 'var(--cds-text-secondary)' }}>Site: </span>Ciliwung R. — S1</div>
-            <div><span style={{ color: 'var(--cds-text-secondary)' }}>Trap: </span>BG-Sentinel</div>
-            <div><span style={{ color: 'var(--cds-text-secondary)' }}>Collected: </span>15/04/2026</div>
-            <div><span style={{ color: 'var(--cds-text-secondary)' }}>Pool: </span>25 organisms</div>
-          </div>
-          {/* Barcode placeholder */}
-          <div style={{ marginTop: 12, height: 40, background: 'repeating-linear-gradient(90deg, #000 0, #000 2px, #fff 2px, #fff 6px)', opacity: 0.8 }} />
-        </div>
-
-        <Stack orientation="horizontal" gap={3}>
-          <Button renderIcon={Printer}>{t('button.printLabel', 'Print Label')}</Button>
-          <Button kind="secondary" renderIcon={Printer}>{t('button.printRegistration', 'Print Registration Form')}</Button>
-        </Stack>
+      <Tile>
+        <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '1rem' }}>
+          {t('heading.orderSummary', 'Order Summary')}
+        </h4>
+        <Grid>
+          <Column lg={4} md={4}><div style={{ fontSize: '0.78rem', color: '#525252' }}>{t('label.labNumber', 'Lab Number')}</div><strong style={{ fontFamily: 'monospace' }}>{labNumber}</strong></Column>
+          <Column lg={4} md={4}><div style={{ fontSize: '0.78rem', color: '#525252' }}>{t('label.vectorOrder.organismGroup', 'Organism Group')}</div><strong>{order.organismGroup?.label}</strong></Column>
+          <Column lg={4} md={4}><div style={{ fontSize: '0.78rem', color: '#525252' }}>{t('label.vectorOrder.quantity', 'Quantity')}</div><strong>{order.quantity} organisms</strong></Column>
+          <Column lg={4} md={4}><div style={{ fontSize: '0.78rem', color: '#525252' }}>{t('label.vectorOrder.samplingSite', 'Sampling Site')}</div><strong>{order.samplingSite?.label ?? '—'}</strong></Column>
+          <Column lg={8} md={4}><div style={{ fontSize: '0.78rem', color: '#525252' }}>{t('label.tests', 'Tests')}</div><strong>{order.selectedTests?.size} selected</strong></Column>
+        </Grid>
       </Tile>
 
-      <Tile style={{ marginBottom: 'var(--cds-spacing-05)', padding: 'var(--cds-spacing-05)' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 'var(--cds-spacing-04)' }}>
-          {t('heading.storageLocation', 'Storage Location (optional)')}
-        </h3>
-        <Grid condensed>
-          <Column lg={5}>
-            <TextInput id="storage-loc" labelText={t('label.storageLocation', 'Storage location')} placeholder="e.g., Fridge 2, Rack A, Shelf 3" />
-          </Column>
-          <Column lg={5}>
-            <Select id="storage-type" labelText={t('label.storageType', 'Storage type')} defaultValue="temporary">
-              <SelectItem value="temporary" text={t('label.storage.temporary', 'Temporary Storage')} />
-              <SelectItem value="biorepository" text={t('label.storage.biorepository', 'Biorepository')} />
+      {/* Label preview */}
+      <Tile>
+        <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '1rem' }}>
+          {t('heading.barcodeLabel', 'Lot Barcode Label')}
+        </h4>
+        <div style={{ border: '2px dashed #0f62fe', padding: '1.25rem', background: '#edf5ff', fontFamily: 'monospace' }}>
+          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#0f62fe', letterSpacing: '0.05em' }}>{labNumber}</div>
+          <div style={{ display: 'flex', gap: '2rem', marginTop: '0.5rem', fontSize: '0.8rem', color: '#393939' }}>
+            <span><strong>Group:</strong> {order.organismGroup?.label}</span>
+            <span><strong>Qty:</strong> {order.quantity}</span>
+            <span><strong>Site:</strong> {order.samplingSite?.id?.toUpperCase() ?? '—'}</span>
+            <span><strong>Date:</strong> 2026-04-23</span>
+          </div>
+          <div style={{ height: 40, background: 'repeating-linear-gradient(90deg, #161616 0px, #161616 3px, #fff 3px, #fff 5px)', marginTop: '0.75rem' }} />
+        </div>
+        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
+          <Button kind="secondary" size="sm">{t('button.printLabel', '🖨 Print Label')}</Button>
+          <Button kind="ghost" size="sm">{t('button.printCopies', 'Print 3 copies')}</Button>
+        </div>
+      </Tile>
+
+      {/* Storage (optional) */}
+      <Tile>
+        <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '1rem' }}>
+          {t('heading.storageLocation', 'Storage Location')}{' '}
+          <span style={{ fontWeight: 400, color: '#525252', fontSize: '0.8rem' }}>{t('label.optional', '(optional)')}</span>
+        </h4>
+        <Grid>
+          <Column lg={8} md={4}>
+            <Select
+              id="storage-unit"
+              labelText={t('label.storageUnit', 'Storage Unit')}
+              value={storageUnit}
+              onChange={e => setStorageUnit(e.target.value)}
+            >
+              <SelectItem value="field-container" text={t('option.storageFieldContainer', 'Field container — pending transfer')} />
+              <SelectItem value="freezer-a" text={t('option.storageFreezera', 'Freezer A — Vector Lab (-80°C)')} />
+              <SelectItem value="fridge-2" text={t('option.storageFridge2', 'Fridge 2 — Vector Lab (4°C)')} />
             </Select>
           </Column>
+          <Column lg={8} md={4}>
+            <TextInput
+              id="storage-slot"
+              labelText={t('label.storageSlot', 'Position / Slot')}
+              placeholder={t('placeholder.storageSlot', 'e.g. Box 3, Row B, Col 4')}
+              value={storageSlot}
+              onChange={e => setStorageSlot(e.target.value)}
+            />
+          </Column>
         </Grid>
       </Tile>
 
-      <Stack orientation="horizontal" gap={3} style={{ justifyContent: 'flex-end' }}>
-        <Button kind="ghost" onClick={onBack}>{t('button.back', 'Back')}</Button>
-        <Button renderIcon={ArrowRight} onClick={onNext}>
-          {t('button.continueToQA', 'Continue to QA Review')}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+        <Button kind="ghost" onClick={onBack}>{t('button.back', '← Back')}</Button>
+        <Button kind="secondary">{t('button.referOut', 'Refer Out')}</Button>
+        <Button kind="primary" renderIcon={ArrowRight} onClick={onNext}>
+          {t('button.continueToQa', 'Continue to QA →')}
         </Button>
-      </Stack>
-    </div>
+      </div>
+    </Stack>
   );
 }
 
-// ─── Screen 4: Step 4 — QA Review / Eligibility Gate (Vector) ────────────────
-function Screen4QAReview({ lot, onBack }) {
-  const [checkedCriteria, setCheckedCriteria] = useState({
-    c1: true, c2: true, c3: true, c4: false, c5: true,
-  });
-  const [overrideNote, setOverrideNote] = useState('');
-  const [showOverride, setShowOverride]   = useState(false);
-  const [submitted, setSubmitted]         = useState(false);
+// ── QA Screen ─────────────────────────────────────────────────────────────────
+function QaScreen({ order, labNumber, onNext, onBack }) {
+  const [qaType, setQaType]           = useState('Positive Control');
+  const [qaQty, setQaQty]             = useState(1);
+  const [qaTests, setQaTests]         = useState('All tests on this order');
+  const [qaSamples, setQaSamples]     = useState([
+    { id: 'qa1', type: 'Positive Control', qty: 1, tests: 'Dengue Surveillance Panel', labNo: `${labNumber.replace(/00042/, '00043')}` },
+    { id: 'qa2', type: 'Negative Control', qty: 1, tests: 'All tests on this order',   labNo: `${labNumber.replace(/00042/, '00044')}` },
+  ]);
 
-  const criteria = [
-    { id: 'c1', label: t('label.eligibility.containerIntegrity', 'Container integrity intact'), severity: 'MAJOR', autoComputed: false, pass: checkedCriteria.c1 },
-    { id: 'c2', label: t('label.eligibility.labelLegibility', 'Label legibility'), severity: 'MINOR', autoComputed: false, pass: checkedCriteria.c2 },
-    { id: 'c3', label: t('label.eligibility.transitWindow', 'SOP transit window met'), severity: 'MAJOR', autoComputed: true, pass: checkedCriteria.c3, note: '32.5 h elapsed; SOP max 48 h → PASS' },
-    { id: 'c4', label: t('label.eligibility.poolSize', 'Pool size sufficient'), severity: 'MAJOR', autoComputed: true, pass: checkedCriteria.c4, note: '25 organisms collected; minimum 25 (from Mosquito Pool Fixed profile) → PASS' },
-    { id: 'c5', label: t('label.eligibility.containerCondition', 'Container condition acceptable'), severity: 'MINOR', autoComputed: false, pass: checkedCriteria.c5 },
+  const addQaSample = () => {
+    const nextNum = 42 + qaSamples.length + 1;
+    setQaSamples(prev => [...prev, {
+      id: `qa${prev.length + 1}`,
+      type: qaType, qty: qaQty, tests: qaTests,
+      labNo: labNumber.replace(/\d{5}$/, String(nextNum).padStart(5, '0')),
+    }]);
+  };
+
+  const removeQaSample = (id) => setQaSamples(prev => prev.filter(s => s.id !== id));
+
+  const headers = [
+    { key: 'type',  header: t('label.qaType', 'QA Type') },
+    { key: 'qty',   header: t('label.qaQty', 'Qty') },
+    { key: 'tests', header: t('label.qaTests', 'Tests') },
+    { key: 'labNo', header: t('label.labNumber', 'Lab Number') },
+    { key: 'actions', header: '' },
   ];
 
-  const allPass = criteria.every(c => c.pass);
-  const hasFail = criteria.some(c => !c.pass);
-
-  if (submitted) {
-    return (
-      <div>
-        <StepBar current={3} />
-        <InlineNotification
-          kind={allPass || overrideNote ? 'success' : 'error'}
-          title={allPass ? t('message.eligibility.passed', 'Eligibility assessment passed.') : t('message.eligibility.overridden', 'Assessment overridden with documented reason.')}
-          subtitle={allPass
-            ? t('message.eligibility.passedDetail', 'Collection lot 0013/BPP-01/VCT/04/2026 is ELIGIBLE. Status advanced to PROCESSING — ready for V-03 identification.')
-            : t('message.eligibility.overriddenDetail', 'Lot accepted with override. Reason recorded in EligibilityAssessment audit trail.')
-          }
-          lowContrast
-          hideCloseButton
-        />
-      </div>
-    );
-  }
-
   return (
-    <div>
-      <StepBar current={3} />
-      <OrderContextCard lot={lot} />
+    <Stack gap={6}>
+      <InlineNotification
+        kind="info"
+        title={t('message.qa.optional', 'QA samples are optional.')}
+        subtitle={t('message.qa.proceed', 'Add any controls or duplicates below, then proceed to Processing.')}
+        lowContrast
+      />
 
-      <Tile style={{ padding: 'var(--cds-spacing-05)', marginBottom: 'var(--cds-spacing-05)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--cds-spacing-04)' }}>
-          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
-            {t('heading.eligibilityAssessment', 'Pre-Analytical Eligibility Assessment')}
-          </h3>
-          <Tag kind="teal" size="sm">{t('label.domain.vector', 'Vector')}</Tag>
-        </div>
-
-        <Stack gap={3}>
-          {criteria.map(c => (
-            <div key={c.id} style={{
-              display: 'flex', alignItems: 'flex-start', gap: 'var(--cds-spacing-04)',
-              padding: 'var(--cds-spacing-03) var(--cds-spacing-04)',
-              background: c.pass ? 'var(--cds-layer-01)' : '#fff1f1',
-              border: `1px solid ${c.pass ? 'var(--cds-border-subtle-01)' : 'var(--cds-support-error)'}`,
-              borderRadius: 4,
-            }}>
-              {c.autoComputed
-                ? <span style={{ color: c.pass ? 'var(--cds-support-success)' : 'var(--cds-support-error)', marginTop: 2 }}>
-                    {c.pass ? <Checkmark size={16} /> : <Warning size={16} />}
-                  </span>
-                : <input type="checkbox" checked={c.pass}
-                    onChange={e => setCheckedCriteria(p => ({ ...p, [c.id]: e.target.checked }))}
-                    style={{ marginTop: 4, width: 16, height: 16, cursor: 'pointer' }}
-                  />
-              }
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', gap: 'var(--cds-spacing-03)', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>{c.label}</span>
-                  {c.severity === 'MAJOR' && <Tag kind="orange" size="sm">{t('label.severity.major', 'Major')}</Tag>}
-                  {c.severity === 'MINOR' && <Tag kind="warm-gray" size="sm">{t('label.severity.minor', 'Minor')}</Tag>}
-                  {c.autoComputed && <Tag kind="cyan" size="sm">{t('label.autoComputed', 'Auto-computed')}</Tag>}
-                </div>
-                {c.note && <div style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--cds-text-secondary)', marginTop: 4 }}>{c.note}</div>}
-              </div>
-            </div>
-          ))}
-        </Stack>
-
-        {hasFail && !showOverride && (
-          <div style={{ marginTop: 'var(--cds-spacing-05)', display: 'flex', gap: 'var(--cds-spacing-03)' }}>
-            <Button kind="danger--ghost" onClick={() => setShowOverride(true)}>
-              {t('button.overrideWithNote', 'Accept with note (override)')}
-            </Button>
-          </div>
-        )}
-
-        {showOverride && (
-          <Tile style={{ marginTop: 'var(--cds-spacing-04)', background: '#fff8e1', border: '1px solid #f1c21b' }}>
-            <h4 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: 'var(--cds-spacing-03)' }}>
-              {t('heading.overrideReason', 'Override reason (required)')}
-            </h4>
-            <TextArea
-              id="override-note"
-              labelText=""
-              placeholder={t('placeholder.overrideReason', 'Describe the reason for accepting despite failed criteria…')}
-              value={overrideNote}
-              onChange={e => setOverrideNote(e.target.value)}
-              rows={3}
+      <Tile>
+        <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '1rem' }}>
+          {t('heading.addQaSample', 'Add QA Sample')}
+        </h4>
+        <Grid style={{ alignItems: 'flex-end' }}>
+          <Column lg={5} md={3}>
+            <Select
+              id="qa-type"
+              labelText={t('label.qaType', 'QA Type')}
+              value={qaType}
+              onChange={e => setQaType(e.target.value)}
+            >
+              {QA_TYPES.map(qt => <SelectItem key={qt} value={qt} text={qt} />)}
+            </Select>
+          </Column>
+          <Column lg={2} md={1}>
+            <NumberInput
+              id="qa-qty"
+              label={t('label.qaQty', 'Quantity')}
+              min={1}
+              value={qaQty}
+              onChange={(e, { value }) => setQaQty(value)}
             />
-            <Stack orientation="horizontal" gap={3} style={{ marginTop: 'var(--cds-spacing-04)' }}>
-              <Button kind="primary" disabled={!overrideNote.trim()} onClick={() => setSubmitted(true)}>
-                {t('button.acceptWithOverride', 'Accept with override')}
-              </Button>
-              <Button kind="ghost" onClick={() => setShowOverride(false)}>{t('button.cancel', 'Cancel')}</Button>
-            </Stack>
-          </Tile>
+          </Column>
+          <Column lg={5} md={3}>
+            <Select
+              id="qa-tests"
+              labelText={t('label.qaTests', 'Apply to Tests')}
+              value={qaTests}
+              onChange={e => setQaTests(e.target.value)}
+            >
+              <SelectItem value="Dengue Surveillance Panel" text="Dengue Surveillance Panel" />
+              <SelectItem value="Plasmodium falciparum PCR" text="Plasmodium falciparum PCR" />
+              <SelectItem value="All tests on this order" text="All tests on this order" />
+            </Select>
+          </Column>
+          <Column lg={4} md={1}>
+            <Button kind="secondary" renderIcon={Add} onClick={addQaSample}>
+              {t('button.vectorQa.addQaSample', 'Add')}
+            </Button>
+          </Column>
+        </Grid>
+      </Tile>
+
+      <Tile>
+        <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '1rem' }}>
+          {t('heading.qaSamplesOnOrder', 'QA Samples on This Order')}{' '}
+          <Tag kind="gray" size="sm">{qaSamples.length}</Tag>
+        </h4>
+        {qaSamples.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '2rem', color: '#525252', fontSize: '0.875rem' }}>
+            {t('message.qa.noSamples', 'No QA samples added. You may proceed without QA samples.')}
+          </div>
+        ) : (
+          <DataTable rows={qaSamples} headers={headers}>
+            {({ rows, headers, getHeaderProps, getRowProps, getTableProps }) => (
+              <TableContainer>
+                <Table {...getTableProps()} size="sm">
+                  <TableHead>
+                    <TableRow>
+                      {headers.map(h => <TableHeader key={h.key} {...getHeaderProps({ header: h })}>{h.header}</TableHeader>)}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {rows.map(row => {
+                      const sample = qaSamples.find(s => s.id === row.id);
+                      return (
+                        <TableRow key={row.id} {...getRowProps({ row })}>
+                          <TableCell><strong>{sample?.type}</strong></TableCell>
+                          <TableCell>{sample?.qty}</TableCell>
+                          <TableCell>{sample?.tests}</TableCell>
+                          <TableCell><code style={{ fontSize: '0.78rem' }}>{sample?.labNo}</code></TableCell>
+                          <TableCell>
+                            <Button kind="ghost" size="sm" renderIcon={TrashCan} iconDescription="Remove" hasIconOnly
+                              onClick={() => removeQaSample(row.id)} />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </DataTable>
         )}
       </Tile>
 
-      <Stack orientation="horizontal" gap={3} style={{ justifyContent: 'flex-end' }}>
-        <Button kind="ghost" onClick={onBack}>{t('button.back', 'Back')}</Button>
-        <Button
-          renderIcon={allPass ? Checkmark : Warning}
-          kind={allPass ? 'primary' : 'secondary'}
-          disabled={hasFail && !overrideNote}
-          onClick={() => setSubmitted(true)}
-        >
-          {allPass
-            ? t('button.submitEligible', 'Mark Eligible — Complete')
-            : t('button.submitFailed', 'Submit Assessment')
-          }
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+        <Button kind="ghost" onClick={onBack}>{t('button.back', '← Back')}</Button>
+        <Button kind="primary" renderIcon={Checkmark} onClick={onNext}>
+          {t('button.vectorQa.proceed', 'Proceed to Processing →')}
         </Button>
-      </Stack>
-    </div>
+      </div>
+    </Stack>
   );
 }
 
-// ─── Root component ───────────────────────────────────────────────────────────
-export default function VectorCollectionWorkflow() {
-  const [screen, setScreen] = useState(0);
-  const [activeLot, setActiveLot] = useState(MOCK_LOTS[0]);
+// ── Complete ──────────────────────────────────────────────────────────────────
+function CompleteScreen({ order, labNumber, onNewOrder }) {
+  return (
+    <Tile style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
+      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+        {t('heading.complete', 'Order Complete — Processing')}
+      </h2>
+      <p style={{ color: '#525252', fontSize: '0.9rem', maxWidth: 500, margin: '0 auto 1.5rem' }}>
+        <strong>{labNumber}</strong> {t('message.complete.status', 'is now in Processing status and will appear in the V-03 Vector Identification worklist.')}
+      </p>
+      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '2rem' }}>
+        {[
+          [t('label.labNumber', 'Lab Number'), labNumber],
+          [t('label.vectorOrder.organismGroup', 'Organism Group'), order.organismGroup?.label],
+          [t('label.vectorOrder.quantity', 'Quantity'), `${order.quantity} organisms`],
+          [t('label.status', 'Status'), <Tag kind="teal">{t('status.processing', 'Processing')}</Tag>],
+        ].map(([label, value]) => (
+          <div key={label} style={{ background: '#f4f4f4', padding: '0.75rem 1.25rem', textAlign: 'left', minWidth: 180 }}>
+            <div style={{ fontSize: '0.72rem', color: '#525252', marginBottom: '0.2rem' }}>{label}</div>
+            <div style={{ fontWeight: 600, fontFamily: typeof value === 'string' && value.startsWith('VCT') ? 'monospace' : 'inherit' }}>{value}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+        <Button kind="secondary" onClick={onNewOrder}>{t('button.newVectorOrder', 'New Vector Order')}</Button>
+        <Button kind="primary">{t('button.goToWorklist', 'Go to V-03 Worklist')}</Button>
+      </div>
+    </Tile>
+  );
+}
 
-  const SCREENS = [
-    { label: t('label.screen.worklist', 'Collection Lot Worklist'), key: 'worklist' },
-    { label: t('label.screen.step1', 'Step 1 — Enter Order'), key: 'step1' },
-    { label: t('label.screen.step2', 'Step 2 — Collect Sample'), key: 'step2' },
-    { label: t('label.screen.step3', 'Step 3 — Label & Store'), key: 'step3' },
-    { label: t('label.screen.step4', 'Step 4 — QA Review'), key: 'step4' },
+// ── Root component ────────────────────────────────────────────────────────────
+export default function VectorCollectionWorkflow() {
+  const [step, setStep]     = useState(0); // 0=Step1, 1=Step2, 2=QA, 3=Complete
+  const [order, setOrder]   = useState(null);
+  const LAB_NUMBER = 'VCT/2026/04/00042';
+
+  const steps = [
+    { label: t('step.enterOrder', 'Enter Order'),      secondaryLabel: t('step.enterOrder.sub', 'Organism group, quantity, tests') },
+    { label: t('step.labelStore', 'Label & Store'),    secondaryLabel: t('step.labelStore.sub', 'Print label, assign storage') },
+    { label: t('step.qaReview', 'QA Review'),          secondaryLabel: t('step.qaReview.sub', 'Add QA samples') },
   ];
 
   return (
-    <div>
-      {/* Screen switcher for mockup navigation */}
-      <div style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-        <Tabs selectedIndex={screen} onChange={({ selectedIndex }) => setScreen(selectedIndex)}>
-          <TabList aria-label="Screens">
-            {SCREENS.map(s => <Tab key={s.key}>{s.label}</Tab>)}
-          </TabList>
-          <TabPanels>
-            <TabPanel>
-              <Screen0Worklist
-                onNewLot={() => setScreen(1)}
-                onContinue={lot => { setActiveLot(lot); setScreen(2); }}
-              />
-            </TabPanel>
-            <TabPanel>
-              <Screen1EnterOrder onNext={() => setScreen(2)} />
-            </TabPanel>
-            <TabPanel>
-              <Screen2CollectSample lot={activeLot} onNext={() => setScreen(3)} onBack={() => setScreen(1)} />
-            </TabPanel>
-            <TabPanel>
-              <Screen3LabelStore lot={activeLot} onNext={() => setScreen(4)} onBack={() => setScreen(2)} />
-            </TabPanel>
-            <TabPanel>
-              <Screen4QAReview lot={activeLot} onBack={() => setScreen(3)} />
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
+    <div style={{ minHeight: '100vh', background: '#f4f4f4', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>
+      {/* Page header */}
+      <div style={{ background: '#161616', color: '#fff', height: 48, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: '0.5rem', fontSize: '0.875rem' }}>
+        <span style={{ fontWeight: 600 }}>OpenELIS Global</span>
+        <span style={{ opacity: 0.3 }}>/</span>
+        <span style={{ opacity: 0.6, fontWeight: 400 }}>{t('nav.sampleCollection', 'Sample Collection')}</span>
+        <span style={{ opacity: 0.3 }}>/</span>
+        <span>{t('nav.newVectorOrder', 'New Vector Order')}</span>
+        <div style={{ marginLeft: 'auto' }}>
+          <Tag kind="green">{t('label.domain.vector', 'Vector')}</Tag>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 960, margin: '2rem auto', padding: '0 1.5rem' }}>
+        <ProgressIndicator currentIndex={step} style={{ marginBottom: '2rem' }}>
+          {steps.map((s, i) => (
+            <ProgressStep key={i} label={s.label} secondaryLabel={s.secondaryLabel}
+              complete={i < step} current={i === step} />
+          ))}
+        </ProgressIndicator>
+
+        {step === 0 && (
+          <Step1EnterOrder
+            onNext={data => { setOrder(data); setStep(1); }}
+          />
+        )}
+        {step === 1 && (
+          <Step2LabelStore
+            order={order}
+            labNumber={LAB_NUMBER}
+            onNext={() => setStep(2)}
+            onBack={() => setStep(0)}
+          />
+        )}
+        {step === 2 && (
+          <QaScreen
+            order={order}
+            labNumber={LAB_NUMBER}
+            onNext={() => setStep(3)}
+            onBack={() => setStep(1)}
+          />
+        )}
+        {step === 3 && (
+          <CompleteScreen
+            order={order}
+            labNumber={LAB_NUMBER}
+            onNewOrder={() => { setOrder(null); setStep(0); }}
+          />
+        )}
       </div>
     </div>
   );
