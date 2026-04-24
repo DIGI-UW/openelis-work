@@ -5,11 +5,12 @@
 Comprehensive redesign of the Panel management interface in OpenELIS Global. Panels are predefined groups of tests that are ordered together, with configurable display order and panel-specific LOINC codes for each test.
 
 **Target Release:** OpenELIS Global v3.2 (Q1 2026)
-**Version:** 1.1 (2026-04-17)
+**Version:** 1.2 (2026-04-23)
 **Related Modules:** Test Catalog, Results Entry, Vector Testing & Identification (V-03, OGC-583)
 
 ### Change Log
-- **v1.1 (2026-04-17):** Added `panelDomain` field (CLINICAL / ENVIRONMENTAL / VECTOR / ALL) and conditional Vector Configuration section to Basic Info tab. Vector panels are now a configuration step within the unified Panel editor — no separate VectorTestPanel entity. Adds Domain column and Domain filter to list view. Panels with domain = VECTOR or ALL appear in order entry for VECTOR-domain orders; organism group field provides an optional filter hint at order entry.
+- **v1.2 (2026-04-23):** Removed `ALL` from `panelDomain` enum. Every panel must be explicitly assigned to exactly one domain (CLINICAL, ENVIRONMENTAL, or VECTOR). Default changed from ALL to CLINICAL. Domain routing is determined by the assigned lab unit's domain — the order entry UI never needs a panel from a different domain. Vector Config tab is now shown only when domain = VECTOR (not "VECTOR or ALL").
+- **v1.1 (2026-04-17):** Added `panelDomain` field and conditional Vector Configuration section to Basic Info tab. Vector panels are now a configuration step within the unified Panel editor — no separate VectorTestPanel entity. Adds Domain column and Domain filter to list view.
 
 ---
 
@@ -48,7 +49,7 @@ CREATE TABLE panel (
     is_active BOOLEAN DEFAULT TRUE,
     display_order INTEGER DEFAULT 0,
     -- v1.1: domain classification
-    panel_domain VARCHAR(20) NOT NULL DEFAULT 'ALL',  -- CLINICAL | ENVIRONMENTAL | VECTOR | ALL
+    panel_domain VARCHAR(20) NOT NULL DEFAULT 'CLINICAL',  -- CLINICAL | ENVIRONMENTAL | VECTOR
     vector_organism_group_id INTEGER REFERENCES vector_group(id),  -- nullable; filter hint for VECTOR panels
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMP,
@@ -103,7 +104,7 @@ CREATE TABLE panel_import_log (
 |---------|-----|-------------|
 | **Configuration** | Basic Info | Name, code, description, LOINC, domain, lab units, sample types, status |
 | **Configuration** | Tests | Test assignment with ordering and panel-specific LOINC codes |
-| **Configuration** | Vector Config | Organism group filter — **conditional: only shown when Panel Domain = VECTOR or ALL** |
+| **Configuration** | Vector Config | Organism group filter — **conditional: only shown when Panel Domain = VECTOR** |
 
 ---
 
@@ -131,7 +132,7 @@ CREATE TABLE panel_import_log (
 | Code | 100px | Yes | Panel code (monospace) |
 | LOINC | 100px | Yes | Panel LOINC code |
 | Tests | 80px | Yes | Number of tests in panel |
-| Domain | 120px | Yes | Tag: CLINICAL (blue) / ENVIRONMENTAL (teal) / VECTOR (purple) / ALL (gray) |
+| Domain | 120px | Yes | Tag: CLINICAL (blue) / ENVIRONMENTAL (teal) / VECTOR (purple) |
 | Lab Units | 200px | No | Badges (max 2 visible, then "+X more") |
 | Sample Types | 200px | No | Badges (max 2 visible, then "+X more") |
 | Status | 100px | No | Active/Inactive badge |
@@ -166,7 +167,7 @@ CREATE TABLE panel_import_log (
 | **Code** | Text | Yes | Short code (e.g., "CBC"), unique |
 | **LOINC Code** | Text | No | Panel LOINC (e.g., "58410-2") |
 | **Description** | Textarea | No | Detailed description |
-| **Panel Domain** | Select | Yes | CLINICAL / ENVIRONMENTAL / VECTOR / ALL. Default: ALL. Controls where this panel appears at order entry. Selecting VECTOR or ALL reveals the Vector Config tab. |
+| **Panel Domain** | Select | Yes | CLINICAL / ENVIRONMENTAL / VECTOR. Default: CLINICAL. Controls where this panel appears at order entry. Selecting VECTOR reveals the Vector Config tab. |
 | **Lab Units** | Multi-select | Yes | At least one required |
 | **Sample Types** | Multi-select | No | Valid sample types for this panel |
 | **Active** | Toggle | Yes | Status |
@@ -178,9 +179,8 @@ CREATE TABLE panel_import_log (
 | CLINICAL | Clinical-domain orders only |
 | ENVIRONMENTAL | Environmental-domain orders only |
 | VECTOR | Vector-domain orders only |
-| ALL | All order domains (default — backward-compatible with existing panels) |
 
-Changing domain from ALL to a specific domain does **not** affect existing orders that already used this panel. The domain filter applies only at time of order entry panel selection.
+Domain is resolved automatically from the lab unit assigned to the order — no domain picker is shown to the user. The panel ComboBox is pre-filtered to only show panels matching the resolved domain. Changing a panel's domain does **not** affect existing orders that already used it; the filter applies only at time of new order entry panel selection.
 
 ### Lab Units Section
 - Checkbox grid of available lab units
@@ -258,7 +258,7 @@ Changing domain from ALL to a specific domain does **not** affect existing order
 
 ## Vector Config Tab
 
-> **Conditional visibility:** This tab is only shown when Panel Domain = VECTOR or ALL. It is hidden for CLINICAL and ENVIRONMENTAL panels.
+> **Conditional visibility:** This tab is only shown when Panel Domain = VECTOR. It is hidden for CLINICAL and ENVIRONMENTAL panels.
 
 This tab lets coordinators attach vector-specific metadata to a panel, enabling smarter filtering and auto-suggestion at order entry for VECTOR-domain orders.
 
@@ -266,20 +266,20 @@ This tab lets coordinators attach vector-specific metadata to a panel, enabling 
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| **Organism Group** | ComboBox | No | Optional filter hint — e.g., MOSQUITO, TICK, RODENT. When set, this panel is suggested first at order entry when the CollectionLot's organism group matches. No hard constraint; any active VECTOR/ALL panel remains selectable. |
+| **Organism Group** | ComboBox | No | Optional filter hint — e.g., MOSQUITO, TICK, RODENT. When set, this panel is suggested first at order entry when the CollectionLot's organism group matches. No hard constraint; any active VECTOR panel remains selectable. |
 
 ### Organism Group Behavior at Order Entry
 
 When a VECTOR-domain order is being created and a CollectionLot is linked:
-1. The panel ComboBox shows all active panels with domain = VECTOR or ALL
+1. The panel ComboBox shows all active panels with domain = VECTOR
 2. Panels whose `vectorOrganismGroup` matches the lot's organism group are sorted to the top and shown with a "Suggested for [group]" label
-3. All other VECTOR/ALL panels remain selectable
+3. All other VECTOR panels remain selectable
 
 This is a suggestion only — it does not hide or block selection of non-matching panels.
 
 ### Empty State
 
-When Panel Domain is CLINICAL or ENVIRONMENTAL, this tab is hidden. If domain is later changed back to VECTOR or ALL, any previously saved organism group value is restored.
+When Panel Domain is CLINICAL or ENVIRONMENTAL, this tab is hidden. If domain is later changed to VECTOR, any previously saved organism group value is restored.
 
 ---
 

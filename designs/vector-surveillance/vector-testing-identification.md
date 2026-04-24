@@ -1,7 +1,7 @@
 # Vector Testing & Identification
 ## Functional Requirements Specification — v1.0
 
-**Version:** 1.2
+**Version:** 1.3
 **Date:** 2026-04-23
 **Status:** Draft for Review
 **Jira:** TBD (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
@@ -10,8 +10,9 @@
 
 ### Change Log
 
+- **v1.3 (2026-04-23):** Removed `ALL` from `panelDomain` enum throughout. `FR-V03-PNL-002/004` updated — panels are single-domain only; order entry shows only `panelDomain = VECTOR` panels (not "VECTOR"). Data model Panel entry updated. API endpoint description updated. Acceptance criteria updated. Aligns with panel.md v1.2 and single-domain design decision.
 - **v1.2 (2026-04-23):** Deconvolution child-specimen labeling replaced end-to-end. `[parentLotId]-D[n]` convention removed; replaced with OpenELIS aliquot numbering (`LABNO.X-Y`). FR-V03-DEC-006 rewritten. VectorSpecimen `childLabel` field example updated. Data model note added confirming parent-child linkage uses existing aliquot parent pointer. BR-V03-011 added (child specimens inherit parent organism group, species ID, and Panel/test orders). UI section updated with `LABNO.X-Y` column header. Laporan Hasil consolidation note added (§13). Acceptance criteria updated to reference aliquot labeling format.
-- **v1.1 (2026-04-17):** Removed standalone `VectorTestPanel` and `VectorTestPanelItem` entities. Vector test panels are now a configuration step within the unified Panel admin (panel.md v1.1). The existing `Panel` entity gains `panelDomain` (CLINICAL/ENVIRONMENTAL/VECTOR/ALL) and `vectorOrganismGroup` fields. Vector Config tab in Panel editor is conditionally shown when domain = VECTOR or ALL. Identification worklist navigation changed from tabs to SideNav submenus. Lot detail opens inline on row click (row expansion) rather than navigating to a separate page.
+- **v1.1 (2026-04-17):** Removed standalone `VectorTestPanel` and `VectorTestPanelItem` entities. Vector test panels are now a configuration step within the unified Panel admin (panel.md v1.1). The existing `Panel` entity gains `panelDomain` (CLINICAL/ENVIRONMENTAL/VECTOR) and `vectorOrganismGroup` fields. Vector Config tab in Panel editor is conditionally shown when domain = VECTOR. Identification worklist navigation changed from tabs to SideNav submenus. Lot detail opens inline on row click (row expansion) rather than navigating to a separate page.
 - **v1.0 (2026-04-17):** Initial draft.
 
 ---
@@ -111,7 +112,7 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 **I want to** configure named pathogen screening panels (e.g., "Dengue Surveillance Panel" = NS1 ELISA + NS1 RT-PCR) using the unified Panel admin,
 **so that** technicians always order the correct test set for each surveillance program without manual selection, and vector panels share the same UX as clinical and environmental panels.
 
-**Acceptance:** Panels with domain = VECTOR or ALL are configured in the standard Panel admin page (Admin → Test Panels). The Vector Config tab appears when domain = VECTOR or ALL, exposing the organism group filter field. Panel is available at VECTOR-domain order entry. No separate Vector Test Panels page exists. See `panel.md` v1.1 for full UI specification.
+**Acceptance:** Panels with domain = VECTOR are configured in the standard Panel admin page (Admin → Test Panels). The Vector Config tab appears when domain = VECTOR, exposing the organism group filter field. Panel is available at VECTOR-domain order entry. No separate Vector Test Panels page exists. See `panel.md` v1.1 for full UI specification.
 
 ---
 
@@ -205,13 +206,13 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 
 > Vector test panels are managed through the **unified Panel admin** (Admin → Test Panels), not a separate Vector Surveillance page. The requirements below describe the vector-specific behaviour within that shared UI. See `panel.md` v1.1 for the complete Panel admin specification.
 
-**FR-V03-PNL-001:** The Panel admin list view SHALL include a **Domain** column (Tag: CLINICAL=blue / ENVIRONMENTAL=teal / VECTOR=purple / ALL=gray) and a **Domain filter** dropdown (All Domains / Clinical / Environmental / Vector).
+**FR-V03-PNL-001:** The Panel admin list view SHALL include a **Domain** column (Tag: CLINICAL=blue / ENVIRONMENTAL=teal / VECTOR=purple) and a **Domain filter** dropdown (All Domains / Clinical / Environmental / Vector).
 
-**FR-V03-PNL-002:** The Panel editor's Basic Info tab SHALL include a **Panel Domain** field (`Select`: CLINICAL / ENVIRONMENTAL / VECTOR / ALL, default ALL). Changing this field to VECTOR or ALL SHALL reveal the **Vector Config** tab in the editor.
+**FR-V03-PNL-002:** The Panel editor's Basic Info tab SHALL include a **Panel Domain** field (`Select`: CLINICAL / ENVIRONMENTAL / VECTOR). Changing this field to VECTOR SHALL reveal the **Vector Config** tab in the editor.
 
 **FR-V03-PNL-003:** The **Vector Config** tab SHALL contain an **Organism Group** field (`ComboBox` over active VectorGroup catalog, optional). When set, this field acts as a suggestion hint at order entry — it does not restrict which panels are selectable.
 
-**FR-V03-PNL-004:** At order entry for VECTOR-domain orders, the panel `ComboBox` SHALL show only active panels with `panelDomain IN (VECTOR, ALL)`. Panels whose `vectorOrganismGroup` matches the lot's organism group SHALL be sorted to the top with a "Suggested" label.
+**FR-V03-PNL-004:** At order entry for VECTOR-domain orders, the panel `ComboBox` SHALL show only active panels with `panelDomain = VECTOR`. Panels whose `vectorOrganismGroup` matches the lot's organism group SHALL be sorted to the top with a "Suggested" label.
 
 **FR-V03-PNL-005:** Selecting a panel at order entry SHALL auto-populate the test list with all tests from that panel. Individual tests MAY be added or removed after panel selection. The panel selection is stored for traceability; the individual test list is the binding order.
 
@@ -322,8 +323,8 @@ Child specimens SHALL inherit from the parent lot: sampling site, trap type, col
 
 | Field | Type | Notes |
 |---|---|---|
-| panelDomain | Enum(CLINICAL, ENVIRONMENTAL, VECTOR, ALL) | Default ALL — backward-compatible |
-| vectorOrganismGroup | VectorGroup | FK, nullable; only relevant when panelDomain = VECTOR or ALL |
+| panelDomain | Enum(CLINICAL, ENVIRONMENTAL, VECTOR) | Default CLINICAL |
+| vectorOrganismGroup | VectorGroup | FK, nullable; only relevant when panelDomain = VECTOR |
 
 **CollectionLot** — Add fields:
 
@@ -361,7 +362,7 @@ Child specimens SHALL inherit from the parent lot: sampling site, trap type, col
 
 | Method | Path | Description | Permission |
 |---|---|---|---|
-| GET | `/api/v1/panels?domain=VECTOR` | List panels filtered to VECTOR and ALL domains | `panel.view` |
+| GET | `/api/v1/panels?domain=VECTOR` | List panels filtered to VECTOR domain only | `panel.view` |
 | GET | `/api/v1/panels?domain=VECTOR&organismGroup={groupId}` | List panels with organism group suggestion sort | `panel.view` |
 | PUT | `/api/v1/panels/{id}` | Update panel (now includes `panelDomain`, `vectorOrganismGroupId`) | `panel.edit` |
 
@@ -393,7 +394,7 @@ See interactive HTML preview: `vector-testing-identification.html`
 2. **Lot Detail (inline)** — specimen DataTable rendered inside the expanded worklist row. Mixed-species summary bar, positive-pool InlineNotification, bulk-apply batch action, per-specimen inline ID forms — all inline, no breadcrumb or separate page.
 3. **Bulk Apply Modal** — compact Modal with species/method/confidence form; applies to all checked specimens on confirm.
 4. **Deconvolution Modal** — strategy selection, child specimen count, panel selector; generates child records + re-test order on submit. The child-specimen DataTable in this modal (and in the Deconvolution worklist) uses column header **"Specimen ID (Aliquot)"** and displays labels in `LABNO.X-Y` format (e.g., `VCT-2026-000042.1-1`, `VCT-2026-000042.1-2`). The `-D[n]` format SHALL NOT appear anywhere in the UI.
-5. **Panel Admin (shared)** — standard Panel admin page (panel.md v1.1). Coordinators use Domain filter = VECTOR to scope the list. Vector Config tab shown when editing/creating a VECTOR or ALL panel.
+5. **Panel Admin (shared)** — standard Panel admin page (panel.md v1.1). Coordinators use Domain filter = VECTOR to scope the list. Vector Config tab shown when editing/creating a VECTOR panel.
 
 ### Interaction Patterns
 
@@ -561,11 +562,11 @@ All UI text is externalized. The following i18n keys must be added to the messag
 
 ### Functional — Test Panels (via unified Panel admin)
 
-- [ ] Panel Domain field present in Basic Info tab with options CLINICAL / ENVIRONMENTAL / VECTOR / ALL
-- [ ] Vector Config tab appears (and only appears) when domain = VECTOR or ALL
+- [ ] Panel Domain field present in Basic Info tab with options CLINICAL / ENVIRONMENTAL / VECTOR
+- [ ] Vector Config tab appears (and only appears) when domain = VECTOR
 - [ ] Organism Group field in Vector Config tab is populated from VectorGroup catalog
 - [ ] Panel list view shows Domain column and Domain filter dropdown
-- [ ] At VECTOR-domain order entry, panel ComboBox shows only panels with domain = VECTOR or ALL
+- [ ] At VECTOR-domain order entry, panel ComboBox shows only panels with domain = VECTOR
 - [ ] Panels with matching organism group sorted to top with "Suggested" label
 - [ ] Selecting a panel auto-populates test list; individual tests can be added or removed
 - [ ] Deactivated panel does not appear in order entry ComboBox

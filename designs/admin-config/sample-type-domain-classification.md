@@ -1,8 +1,8 @@
 # Sample Type Domain Classification
 ## Functional Requirements Specification — v1.0
 
-**Version:** 1.0
-**Date:** 2026-04-03
+**Version:** 1.1
+**Date:** 2026-04-23
 **Status:** Draft for Review
 **Jira:** [OGC-538](https://uwdigi.atlassian.net/browse/OGC-538) (addendum to [OGC-296](https://uwdigi.atlassian.net/browse/OGC-296), tracked under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
 **Technology:** Java Spring Framework, Carbon React (`@carbon/react`)
@@ -35,7 +35,7 @@
 
 ## 1. Executive Summary
 
-S-04 adds a `sampleDomain` classification field to the SampleType entity, enabling OpenELIS to distinguish between clinical sample types (Serum, Plasma, Whole Blood), environmental sample types (Surface Water, Groundwater, Ambient Air), and dual-use types that appear in both contexts (e.g., Drinking Water may be tested in either a clinical water-quality context or an environmental monitoring context).
+S-04 adds a `sampleDomain` classification field to the SampleType entity, enabling OpenELIS to distinguish between clinical sample types (Serum, Plasma, Whole Blood), environmental sample types (Surface Water, Groundwater, Ambient Air), and vector sample types (Mosquito Pool, Tick Batch). Every sample type has exactly **one** domain. Domain routing is determined by the lab unit assigned to the order; no sample type spans multiple domains.
 
 **This spec introduces no new pages or modules.** The underlying sample type management infrastructure already exists and is fully functional (OGC-296, In Progress). S-04 adds a single enum field (`sampleDomain`) to the existing entity, extends the existing Basic Info tab with a dropdown, and provides a bulk assignment utility for classifying existing sample types. The field is then consumed by the workflow toggle (ORD-3), the environmental order entry sample type checklist (S-03 ENV-2-001), and the compliance standard's `applicableSampleTypes` filter (S-01).
 
@@ -49,7 +49,7 @@ This is a **UI and data model addendum** to OGC-296, not a standalone module.
 
 **Impact:** Without domain classification, the environmental workflow extensions (S-03) cannot properly filter sample types. The compliance standard's `applicableSampleTypes` field (S-01) has no domain context. Users must mentally filter irrelevant sample types from long dropdown lists, increasing error risk and slowing data entry.
 
-**Proposed solution:** Add a `sampleDomain` enum (`CLINICAL`, `ENVIRONMENTAL`, `BOTH`) to the SampleType entity. Expose it as a dropdown on the existing OGC-296 Basic Info tab. Provide a one-time bulk assignment utility for existing deployments. Wire the enum into the workflow toggle filter and the S-03 sample type checklist.
+**Proposed solution:** Add a `sampleDomain` enum (`CLINICAL`, `ENVIRONMENTAL`, `VECTOR`) to the SampleType entity — single value only, no multi-domain. Expose it as a dropdown on the existing OGC-296 Basic Info tab. Provide a one-time bulk assignment utility for existing deployments. Domain routing (which order entry form, results, and validation screen to use) is determined by the lab unit's configured domain, not by a user-facing selector.
 
 ---
 
@@ -57,10 +57,10 @@ This is a **UI and data model addendum** to OGC-296, not a standalone module.
 
 ### 3.1 Goals
 
-1. **Classify every sample type by domain** — CLINICAL, ENVIRONMENTAL, or BOTH
-2. **Filter sample type dropdowns by workflow mode** — Clinical mode shows CLINICAL + BOTH; Environmental mode shows ENVIRONMENTAL + BOTH
+1. **Classify every sample type by domain** — CLINICAL, ENVIRONMENTAL, or VECTOR (exactly one)
+2. **Filter sample type dropdowns by lab unit domain** — the resolved lab unit domain pre-filters the dropdown; Clinical shows CLINICAL, Environmental shows ENVIRONMENTAL, Vector shows VECTOR. No user-facing domain selector.
 3. **Provide bulk assignment for existing deployments** — A utility view to quickly classify all existing sample types without editing each one individually
-4. **Support S-03 sample type checklist** — The compliance standard's `applicableSampleTypes` list only references ENVIRONMENTAL or BOTH types
+4. **Support S-03 sample type checklist** — The compliance standard's `applicableSampleTypes` list references only ENVIRONMENTAL types
 5. **Zero disruption to existing clinical workflows** — Default value is CLINICAL so nothing changes for existing deployments until explicitly configured
 
 ### 3.2 Non-Goals
@@ -94,7 +94,7 @@ S-04 builds on functionality that **already exists** in OpenELIS. This section d
 
 | Capability | What's New |
 |-----------|-----------|
-| `sampleDomain` enum on SampleType entity | New column: `CLINICAL` / `ENVIRONMENTAL` / `BOTH` |
+| `sampleDomain` enum on SampleType entity | New column: `CLINICAL` / `ENVIRONMENTAL` / `VECTOR` |
 | Domain dropdown on Basic Info tab | New field in existing tab |
 | Domain Tag in sample type list table | New column with colored Tags |
 | Domain filter on sample type list | New filter dropdown on existing toolbar |
@@ -116,11 +116,11 @@ The SampleType entity SHALL include a `sampleDomain` field with the following en
 
 | Value | Description | When shown |
 |-------|------------|-----------|
-| `CLINICAL` | Clinical specimen type (blood, urine, tissue, etc.) | Clinical workflow only |
-| `ENVIRONMENTAL` | Environmental sample type (water, air, soil, etc.) | Environmental workflow only |
-| `BOTH` | Dual-use type applicable in either context | Both workflows |
+| `CLINICAL` | Clinical specimen type (blood, urine, tissue, etc.) | Clinical-domain lab unit orders only |
+| `ENVIRONMENTAL` | Environmental sample type (water, air, soil, etc.) | Environmental-domain lab unit orders only |
+| `VECTOR` | Vector surveillance specimen (mosquito pool, tick batch, etc.) | Vector-domain lab unit orders only |
 
-The default value for all existing sample types is `CLINICAL`, ensuring zero disruption to existing deployments. New sample types default to `CLINICAL` unless explicitly set.
+Every sample type has exactly **one** domain. The dropdown is pre-filtered by the lab unit's domain before rendering — no dual-domain or "all-domain" values exist. The default value for all existing sample types is `CLINICAL`, ensuring zero disruption to existing deployments.
 
 **Acceptance Criteria:**
 - [ ] `sampleDomain` column exists on the sample_type table
@@ -139,11 +139,11 @@ The Sample Type Editor Basic Info tab (OGC-296) SHALL include a **Sample Domain*
 
 - Clinical — for clinical specimen types
 - Environmental — for environmental sample types
-- Both — for dual-use types
+- Vector — for vector surveillance specimen types
 
-The field is required. When creating a new sample type, the default is "Clinical." A helper text reads: "Determines which workflow mode (Clinical or Environmental) this sample type appears in."
+The field is required. When creating a new sample type, the default is "Clinical." A helper text reads: "Determines which workflow context this sample type appears in. Exactly one domain per sample type."
 
-A Domain Tag SHALL also appear next to the sample type name in the editor header, using the same color mapping as the list table (green=Clinical, purple=Environmental, teal=Both).
+A Domain Tag SHALL also appear next to the sample type name in the editor header, using the same color mapping as the list table (blue=Clinical, teal=Environmental, green=Vector).
 
 **Acceptance Criteria:**
 - [ ] Domain dropdown appears on Basic Info tab
@@ -196,17 +196,17 @@ An `InlineNotification` (kind="info") above the table reads: "Use this utility t
 **ID:** STD-4-001
 **Priority:** P0
 **Requirement:**
-When the Sample Collection Redesign workflow toggle (ORD-3) is set to **Clinical**, all sample type dropdowns throughout the order entry workflow SHALL be filtered to show only sample types where `sampleDomain` is `CLINICAL` or `BOTH`. When set to **Environmental**, dropdowns SHALL show only `ENVIRONMENTAL` or `BOTH`.
+Sample type dropdowns SHALL be pre-filtered by the resolved lab unit domain before rendering. The lab unit assigned to the order determines the domain; no user-facing toggle is needed. CLINICAL lab units show only CLINICAL sample types; ENVIRONMENTAL lab units show only ENVIRONMENTAL; VECTOR lab units show only VECTOR.
 
 This filtering applies to:
 - Step 1 (Enter Order) — sample type selection
 - Step 2 (Collect Sample) — sample type confirmation/change
 - S-03 ENV-2-001 — sample type checklist from compliance standard (already filtered by standard's `applicableSampleTypes`, now additionally filtered by domain)
-- S-03 "Add Other Sample Type" override ComboBox — shows `ENVIRONMENTAL` or `BOTH` types when in Environmental mode
+- S-03 "Add Other Sample Type" override ComboBox — shows only ENVIRONMENTAL types for Environmental lab unit orders
 
 **Acceptance Criteria:**
-- [ ] Clinical mode shows CLINICAL + BOTH sample types
-- [ ] Environmental mode shows ENVIRONMENTAL + BOTH sample types
+- [ ] Clinical mode shows CLINICAL sample types
+- [ ] Environmental mode shows ENVIRONMENTAL sample types
 - [ ] Filtering applies to all sample type dropdowns in the order workflow
 - [ ] S-03 sample type checklist respects domain filter
 - [ ] S-03 override ComboBox respects domain filter
@@ -220,10 +220,10 @@ This filtering applies to:
 **ID:** STD-5-001
 **Priority:** P1
 **Requirement:**
-When configuring a Compliance Standard's `applicableSampleTypes` in the S-01 admin UI (FR-1-008), the sample type picker SHALL be filtered to show only `ENVIRONMENTAL` or `BOTH` types. Clinical-only sample types are not relevant to compliance standards and should not appear in the picker.
+When configuring a Compliance Standard's `applicableSampleTypes` in the S-01 admin UI (FR-1-008), the sample type picker SHALL be filtered to show only `ENVIRONMENTAL` types. Clinical and Vector sample types are not relevant to compliance standards and should not appear in the picker.
 
 **Acceptance Criteria:**
-- [ ] S-01 `applicableSampleTypes` picker shows only ENVIRONMENTAL + BOTH types
+- [ ] S-01 `applicableSampleTypes` picker shows only ENVIRONMENTAL types
 - [ ] Existing associations with CLINICAL types (if any from before migration) are preserved but flagged with a warning
 - [ ] i18n warning message: "This sample type is classified as Clinical-only and may not appear in environmental workflows."
 
@@ -237,15 +237,15 @@ When configuring a Compliance Standard's `applicableSampleTypes` in the S-01 adm
 The sample type list API endpoint SHALL support a `domain` query parameter that filters results by `sampleDomain`. This enables all consuming UIs to request only relevant sample types.
 
 Examples:
-- `GET /api/v1/sample-types?domain=CLINICAL` — returns CLINICAL + BOTH
-- `GET /api/v1/sample-types?domain=ENVIRONMENTAL` — returns ENVIRONMENTAL + BOTH
+- `GET /api/v1/sample-types?domain=CLINICAL` — returns CLINICAL
+- `GET /api/v1/sample-types?domain=ENVIRONMENTAL` — returns ENVIRONMENTAL
 - `GET /api/v1/sample-types` (no filter) — returns all sample types
 
-Note: When `domain` is specified, the API returns types matching that domain **plus** types with `BOTH`, since dual-use types are always relevant.
+Note: When `domain` is specified, the API returns only types matching exactly that domain. There are no dual-domain types.
 
 **Acceptance Criteria:**
-- [ ] `?domain=CLINICAL` returns CLINICAL and BOTH types
-- [ ] `?domain=ENVIRONMENTAL` returns ENVIRONMENTAL and BOTH types
+- [ ] `?domain=CLINICAL` returns only CLINICAL types
+- [ ] `?domain=ENVIRONMENTAL` returns only ENVIRONMENTAL types
 - [ ] No `domain` parameter returns all types
 - [ ] Invalid domain value returns HTTP 400
 - [ ] Filter combines with existing filters (active, search) via AND
@@ -260,13 +260,13 @@ Note: When `domain` is specified, the API returns types matching that domain **p
 
 | Field | Type | Required | Default | Notes |
 |-------|------|----------|---------|-------|
-| `sampleDomain` | Enum | Yes | `CLINICAL` | Values: CLINICAL, ENVIRONMENTAL, BOTH |
+| `sampleDomain` | Enum | Yes | `CLINICAL` | Values: CLINICAL, ENVIRONMENTAL, VECTOR |
 
 ### 6.2 Database Schema Changes
 
 ```sql
 -- Create enum type
-CREATE TYPE sample_domain AS ENUM ('CLINICAL', 'ENVIRONMENTAL', 'BOTH');
+CREATE TYPE sample_domain AS ENUM ('CLINICAL', 'ENVIRONMENTAL', 'VECTOR');
 
 -- Add domain column with default (non-breaking migration)
 ALTER TABLE sample_type
@@ -293,7 +293,7 @@ CREATE INDEX idx_sample_type_domain ON sample_type(sample_domain);
 {
   "assignments": [
     { "sampleTypeId": 1, "sampleDomain": "ENVIRONMENTAL" },
-    { "sampleTypeId": 2, "sampleDomain": "BOTH" },
+    { "sampleTypeId": 2, "sampleDomain": "VECTOR" },
     { "sampleTypeId": 5, "sampleDomain": "ENVIRONMENTAL" }
   ]
 }
@@ -307,15 +307,15 @@ CREATE INDEX idx_sample_type_domain ON sample_type(sample_domain);
 
 **BR-001:** Default value for `sampleDomain` is `CLINICAL`. This ensures backward compatibility — existing deployments see no change in behavior until explicitly configured.
 
-**BR-002:** The `BOTH` domain means the sample type appears in both Clinical and Environmental workflow modes. It does NOT mean "unclassified." Every sample type must have an explicit classification.
+**BR-002:** Every sample type must be explicitly assigned to exactly one domain: CLINICAL, ENVIRONMENTAL, or VECTOR. There is no multi-domain or "all-domain" value. A sample type that appears in multiple workflow contexts (e.g., a water sample type used for both clinical parasite testing and environmental monitoring) must be duplicated and assigned to each relevant domain separately.
 
-**BR-003:** When the API is queried with `?domain=CLINICAL`, it returns sample types where `sampleDomain IN ('CLINICAL', 'BOTH')`. Similarly, `?domain=ENVIRONMENTAL` returns `sampleDomain IN ('ENVIRONMENTAL', 'BOTH')`. The `BOTH` value is always included in either filter.
+**BR-003:** When the API is queried with `?domain=CLINICAL`, it returns only sample types where `sampleDomain = 'CLINICAL'`. There is no wildcard or fallback; each domain filter is exact.
 
 **BR-004:** Changing a sample type's domain does not affect existing orders that reference it. Orders store the sample type ID; the domain is only used for filtering in new order entry.
 
 **BR-005:** Bulk domain assignment (STD-3-001) is idempotent — assigning a type to its current domain has no effect and is not counted as a change.
 
-**BR-006:** The compliance standard `applicableSampleTypes` picker (S-01) only shows ENVIRONMENTAL + BOTH types, since compliance standards are an environmental concept. If a standard was previously linked to a CLINICAL-only type (e.g., due to data migration), the link is preserved but a warning is displayed.
+**BR-006:** The compliance standard `applicableSampleTypes` picker (S-01) only shows ENVIRONMENTAL types, since compliance standards are an environmental concept. If a standard was previously linked to a CLINICAL-only type (e.g., due to data migration), the link is preserved but a warning is displayed.
 
 ---
 
@@ -326,8 +326,8 @@ CREATE INDEX idx_sample_type_domain ON sample_type(sample_domain);
 | `label.sampleType.domain` | Sample Domain |
 | `label.sampleType.domain.clinical` | Clinical |
 | `label.sampleType.domain.environmental` | Environmental |
-| `label.sampleType.domain.both` | Both |
-| `label.sampleType.domain.helper` | Determines which workflow mode (Clinical or Environmental) this sample type appears in. |
+| `label.sampleType.domain.vector` | Vector |
+| `label.sampleType.domain.helper` | Determines which workflow context this sample type appears in. Exactly one domain per sample type. |
 | `heading.sampleType.bulkDomain` | Classify Sample Domains |
 | `label.sampleType.bulkDomain.current` | Current Domain |
 | `label.sampleType.bulkDomain.new` | New Domain |
@@ -350,7 +350,7 @@ CREATE INDEX idx_sample_type_domain ON sample_type(sample_domain);
 
 | Field | Rule | Error Key |
 |-------|------|-----------|
-| sampleDomain | Required; must be one of CLINICAL, ENVIRONMENTAL, BOTH | `error.sampleType.domain.required` / `error.sampleType.domain.invalid` |
+| sampleDomain | Required; must be one of CLINICAL, ENVIRONMENTAL, VECTOR | `error.sampleType.domain.required` / `error.sampleType.domain.invalid` |
 | Bulk assignment | Each entry must reference a valid sample type ID | `error.sampleType.notFound` |
 | Bulk assignment | Each entry must have a valid domain value | `error.sampleType.domain.invalid` |
 
@@ -373,7 +373,7 @@ S-04 reuses existing OGC-296 permissions. No new permission keys are introduced.
 
 ### Functional
 
-- [ ] `sampleDomain` field added to SampleType entity with CLINICAL/ENVIRONMENTAL/BOTH values
+- [ ] `sampleDomain` field added to SampleType entity with CLINICAL/ENVIRONMENTAL/VECTOR values
 - [ ] Default value is CLINICAL — existing deployments unaffected
 - [ ] Domain dropdown appears on OGC-296 Basic Info tab
 - [ ] Domain Tag (colored) appears in sample type list table and editor header
@@ -382,7 +382,7 @@ S-04 reuses existing OGC-296 permissions. No new permission keys are introduced.
 - [ ] Workflow toggle (ORD-3) filters sample types by domain
 - [ ] S-03 sample type checklist respects domain filter
 - [ ] S-03 override ComboBox respects domain filter
-- [ ] S-01 `applicableSampleTypes` picker shows only ENVIRONMENTAL + BOTH
+- [ ] S-01 `applicableSampleTypes` picker shows only ENVIRONMENTAL
 - [ ] API supports `?domain=` filter parameter
 
 ### Non-Functional
@@ -394,9 +394,9 @@ S-04 reuses existing OGC-296 permissions. No new permission keys are introduced.
 
 ### Integration
 
-- [ ] S-03 ENV-2-001 sample type checklist filters by ENVIRONMENTAL + BOTH
-- [ ] S-03 "Add Other Sample Type" override filters by ENVIRONMENTAL + BOTH in Environmental mode
-- [ ] S-01 FR-1-008 `applicableSampleTypes` picker filters by ENVIRONMENTAL + BOTH
+- [ ] S-03 ENV-2-001 sample type checklist filters by ENVIRONMENTAL
+- [ ] S-03 "Add Other Sample Type" override filters by ENVIRONMENTAL in Environmental mode
+- [ ] S-01 FR-1-008 `applicableSampleTypes` picker filters by ENVIRONMENTAL
 - [ ] ORD-3 workflow toggle drives domain filter on all sample type dropdowns
 
 ---
@@ -405,6 +405,6 @@ S-04 reuses existing OGC-296 permissions. No new permission keys are introduced.
 
 | Domain | Tag kind | Color |
 |--------|---------|-------|
-| CLINICAL | `green` | Green — matches clinical/positive conventions |
-| ENVIRONMENTAL | `purple` | Purple — matches environmental workflow tag |
-| BOTH | `teal` | Teal — neutral dual-use indicator |
+| CLINICAL | `blue` | Blue — matches clinical workflow conventions |
+| ENVIRONMENTAL | `teal` | Teal — matches environmental workflow tag |
+| VECTOR | `green` | Green — matches vector/surveillance indicator |
