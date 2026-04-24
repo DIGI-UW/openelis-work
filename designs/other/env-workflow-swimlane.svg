@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1720 962" width="1720" height="962">
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+          markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M 0 0 L 10 5 L 0 10 z" fill="#000"/>
+  </marker>
+</defs>
+
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="860.0" y="34" font-family="'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="700" fill="#111" text-anchor="middle">Environmental Workflow — OpenELIS Global</text><text x="860.0" y="58" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#555" text-anchor="middle">Epic OGC-527 · Swimlanes: Admin → Reception → Lab Tech → Validation → Reporting</text>
+<rect x="160" y="88" width="22" height="14" rx="3" ry="3" fill="#e8e8e8" stroke="#555555" stroke-width="1.4"/>
+<text x="188" y="100" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#222">Existing OpenELIS</text>
+<rect x="327" y="88" width="22" height="14" rx="3" ry="3" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.4"/>
+<text x="355" y="100" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#222">Spec Complete</text>
+<rect x="466" y="88" width="22" height="14" rx="3" ry="3" fill="#f5f5f5" stroke="#999999" stroke-width="1.4" stroke-dasharray="6,4"/>
+<text x="494" y="100" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#222">Not Started</text>
+<rect x="591" y="88" width="22" height="14" rx="3" ry="3" fill="#e6f4ff" stroke="#1976d2" stroke-width="1.4"/>
+<text x="619" y="100" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#222">Primary path</text>
+<rect x="0" y="122" width="1720" height="162" fill="#f8f9fa"/><rect x="0" y="122" width="140" height="162" fill="#2b3a4a"/><text x="70.0" y="208.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Admin</text>
+<rect x="160" y="138" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
+<text x="285.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Compliance Standards</text>
+<text x="285.0" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-01 · OGC-528</text>
+<rect x="428" y="138" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
+<text x="553.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Sampling Site Registry</text>
+<text x="553.0" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-02 · OGC-531</text>
+<rect x="696" y="138" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
+<text x="821.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Panel Admin / Test Catalog</text>
+<text x="821.0" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing (OGC-173 redesign)</text>
+<rect x="964" y="138" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
+<text x="1089.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Referral / Subcontract</text>
+<text x="1089.0" y="176" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Partners</text>
+<text x="1089.0" y="196" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing + S-14 extension</text>
+<rect x="1232" y="138" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
+<text x="1357.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">QC Rules Config</text>
+<text x="1357.0" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-08 · OGC-554</text>
+<rect x="1500" y="138" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
+<text x="1625.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Analyst Assignment</text>
+<text x="1625.0" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-10</text>
+<rect x="0" y="284" width="1720" height="162" fill="#f1f5fb"/><rect x="0" y="284" width="140" height="162" fill="#2b3a4a"/><text x="70.0" y="370.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Reception</text>
+<rect x="160" y="300" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
+<text x="285.0" y="322" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Step 1: Enter Order</text>
+<text x="285.0" y="342" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Compliance Std OR ad-hoc ·</text>
+<text x="285.0" y="356" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Domain=ENV</text>
+<text x="285.0" y="370" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Sample Collection Redesign + S-03</text>
+<text x="285.0" y="384" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">· OGC-537 + S-04</text>
+<rect x="428" y="300" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
+<text x="553.0" y="322" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Step 2: Collect Sample</text>
+<text x="553.0" y="342" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Sample type, collection date/time</text>
+<text x="553.0" y="356" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">starts hold-time clock</text>
+<text x="553.0" y="370" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Sample Collection Redesign</text>
+<line x1="412" y1="365.0" x2="426" y2="365.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="696" y="300" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
+<text x="821.0" y="322" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Step 3: Label &amp; Store</text>
+<text x="821.0" y="342" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">LABNO + barcode, cold-chain</text>
+<text x="821.0" y="356" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">storage location</text>
+<text x="821.0" y="370" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Sample Collection Redesign</text>
+<line x1="680" y1="365.0" x2="694" y2="365.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="964" y="300" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
+<text x="1089.0" y="322" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Step 4: QA Review</text>
+<text x="1089.0" y="342" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Add QC (S-08) · NCE on hold-time</text>
+<text x="1089.0" y="356" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">+ S-09 Eligibility Gate</text>
+<line x1="948" y1="365.0" x2="962" y2="365.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="0" y="446" width="1720" height="162" fill="#f6f1fb"/><rect x="0" y="446" width="140" height="162" fill="#2b3a4a"/><text x="70.0" y="532.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Lab Tech</text>
+<rect x="160" y="462" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
+<text x="285.0" y="484" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Results Entry</text>
+<text x="285.0" y="504" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">per assigned panel</text>
+<text x="285.0" y="518" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing OpenELIS</text>
+<rect x="428" y="462" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
+<text x="553.0" y="484" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Compliance Evaluation Engine</text>
+<text x="553.0" y="504" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Pass / Marginal / Fail</text>
+<text x="553.0" y="518" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-05 · OGC-547</text>
+<line x1="412" y1="527.0" x2="426" y2="527.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="696" y="462" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
+<text x="821.0" y="484" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">NCE on anomaly</text>
+<text x="821.0" y="504" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">contamination, instrument fault,</text>
+<text x="821.0" y="518" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">hold-time · Existing OpenELIS</text>
+<rect x="964" y="462" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
+<text x="1089.0" y="484" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Instrument QC Gating</text>
+<text x="1089.0" y="504" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-11</text>
+<rect x="0" y="608" width="1720" height="162" fill="#fbf6f1"/><rect x="0" y="608" width="140" height="162" fill="#2b3a4a"/><text x="70.0" y="694.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Validation</text>
+<rect x="160" y="624" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
+<text x="285.0" y="646" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Approve / Reject / Rerun</text>
+<text x="285.0" y="666" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing OpenELIS</text>
+<rect x="428" y="624" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
+<text x="553.0" y="646" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Sign-off — Final Authority</text>
+<text x="553.0" y="666" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing + S-12 dual-verification</text>
+<text x="553.0" y="680" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">(SILNAS addendum)</text>
+<line x1="412" y1="689.0" x2="426" y2="689.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="0" y="770" width="1720" height="162" fill="#f1fbf6"/><rect x="0" y="770" width="140" height="162" fill="#2b3a4a"/><text x="70.0" y="856.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Reporting</text>
+<rect x="160" y="786" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
+<text x="285.0" y="808" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Laporan Hasil / Sertifikat</text>
+<text x="285.0" y="828" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Formal PDF, dual e-sig, LH</text>
+<text x="285.0" y="842" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">numbering</text>
+<text x="285.0" y="856" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-06 · OGC-552</text>
+<rect x="428" y="786" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
+<text x="553.0" y="808" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Environmental Dashboard</text>
+<text x="553.0" y="828" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">trends, exceedance, drill-down</text>
+<text x="553.0" y="842" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-07 · OGC-553 + S-07a map</text>
+<rect x="696" y="786" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
+<text x="821.0" y="808" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">NCE Report</text>
+<text x="821.0" y="828" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing OpenELIS</text>
+<rect x="964" y="786" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
+<text x="1089.0" y="808" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Activity Report</text>
+<text x="1089.0" y="828" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing OpenELIS</text>
+</svg>

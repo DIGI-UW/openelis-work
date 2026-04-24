@@ -25,6 +25,12 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Barcode Configuration | [barcode-config.jsx](designs/admin-config/barcode-config.jsx) | [barcode-config.md](designs/admin-config/barcode-config.md) |
 | Sample Type Multi-Domain Addendum | [preview](designs/admin-config/sample-type-multi-domain-addendum.html) | [sample-type-multi-domain-addendum.md](designs/admin-config/sample-type-multi-domain-addendum.md) |
 | Concept Mapping & Multi-Coding | [concept-mapping-multi-coding.jsx](designs/admin-config/concept-mapping-multi-coding.jsx) \| [preview](designs/admin-config/concept-mapping-multi-coding.html) | [concept-mapping-multi-coding.md](designs/admin-config/concept-mapping-multi-coding.md) |
+| User Management | [user-management.jsx](designs/admin-config/user-management.jsx) \| [preview](designs/admin-config/user-management.html) | [user-management.md](designs/admin-config/user-management.md) |
+| Test Accreditation & Report Logo Threshold | [test-accreditation.jsx](designs/admin-config/test-accreditation.jsx) \| [preview](designs/admin-config/test-accreditation.html) | [test-accreditation.md](designs/admin-config/test-accreditation.md) |
+| Reporting Ranges by Method | [reporting-ranges-by-method.jsx](designs/admin-config/reporting-ranges-by-method.jsx) \| [preview](designs/admin-config/reporting-ranges-by-method.html) | [reporting-ranges-by-method.md](designs/admin-config/reporting-ranges-by-method.md) |
+| Admin Shell | [preview](designs/admin-config/admin-shell.html) | [admin-shell.md](designs/admin-config/admin-shell.md) |
+| Admin Pattern Library | [preview](designs/admin-config/admin-pattern-library.html) | [admin-pattern-library.md](designs/admin-config/admin-pattern-library.md) |
+| Admin Phase 5 Roadmap | — | [admin-phase5-roadmap.md](designs/admin-config/admin-phase5-roadmap.md) |
 
 ## Vector Surveillance
 
@@ -101,6 +107,9 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 |---------|--------|------|
 | EQA Requirements | — | [eqa-requirements.md](designs/quality/eqa-requirements.md) |
 | EQA Enrollment | [eqa-enrollment.jsx](designs/quality/eqa-enrollment.jsx) | [eqa-enrollment-addendum.md](designs/quality/eqa-enrollment-addendum.md) |
+| EQA V1 ↔ V2 Crosswalk | — | [eqa-v1-crosswalk.md](designs/quality/eqa-v1-crosswalk.md) |
+| EQA V2 ↔ APHL ePT Platform Crosswalk | — | [eqa-v2-ept-platform-crosswalk.md](designs/quality/eqa-v2-ept-platform-crosswalk.md) |
+| EQA V2 Epic & Stories | — | [eqa-v2-epic-and-stories.md](designs/quality/eqa-v2-epic-and-stories.md) |
 | Westgard Dashboard | [westgard-dashboard.jsx](designs/quality/westgard-dashboard.jsx) | [westgard-rules.md](designs/quality/westgard-rules.md) |
 | Batch Workplan with Reagent QC | [batch-workplan-reagent-qc.jsx](designs/quality/batch-workplan-reagent-qc.jsx) | [batch-workplan-reagent-qc.md](designs/quality/batch-workplan-reagent-qc.md) |
 | Analyzer Manual QC | [analyzer-manual-qc.jsx](designs/quality/analyzer-manual-qc.jsx) | [analyzer-manual-qc.md](designs/quality/analyzer-manual-qc.md) |
@@ -123,6 +132,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Feature | Mockup | Spec |
 |---------|--------|------|
 | Patient Report Print Queue | [patient-report-print-queue.jsx](designs/reports/patient-report-print-queue.jsx) | [patient-report-print-queue.md](designs/reports/patient-report-print-queue.md) |
+| Patient Report Redesign | [preview](designs/reports/patient-report-redesign.html) | [patient-report-redesign.md](designs/reports/patient-report-redesign.md) |
 | Positivity Rate Report | [positivity-rate.jsx](designs/reports/positivity-rate.jsx) | [positivity-rate.md](designs/reports/positivity-rate.md) |
 | Disease Surveillance Dashboard | [disease-surveillance-dashboard.jsx](designs/reports/disease-surveillance-dashboard.jsx) | [disease-surveillance-dashboard.md](designs/reports/disease-surveillance-dashboard.md) |
 | Custom Data Export | [custom-data-export.jsx](designs/reports/custom-data-export.jsx) | [custom-data-export.md](designs/reports/custom-data-export.md) |
