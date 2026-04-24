@@ -240,6 +240,28 @@ const DECON_LOTS = [
   {id:'JAT-01-LOT-007',site:'Jatisari — JAT-01',  posTest:'NS1 RT-PCR', child:20,done:20,status:'COMPLETE',pos:3},
 ];
 
+// Mock pool hierarchy for a deconvoluted lot
+const POOL_HIERARCHY = {
+  'BPP-03-LOT-011': {
+    parentQty:25, pooled:true,
+    pools:[
+      { id:'BPP-03-LOT-011.1', label:'Pool 1', qty:5, result:'Negative', species:'Aedes aegypti', conf:'Confirmed',
+        individuals:[] },
+      { id:'BPP-03-LOT-011.2', label:'Pool 2', qty:5, result:'POSITIVE', species:null, conf:null,
+        individuals:[
+          {id:'BPP-03-LOT-011.2-1',label:'Ind 1',qty:1,result:'Negative',species:'Aedes aegypti',conf:'Confirmed'},
+          {id:'BPP-03-LOT-011.2-2',label:'Ind 2',qty:1,result:'POSITIVE',species:'Aedes aegypti',conf:'Confirmed'},
+          {id:'BPP-03-LOT-011.2-3',label:'Ind 3',qty:1,result:'Negative',species:'Aedes aegypti',conf:'Confirmed'},
+          {id:'BPP-03-LOT-011.2-4',label:'Ind 4',qty:1,result:'Negative',species:'Culex quinquefasciatus',conf:'Confirmed'},
+          {id:'BPP-03-LOT-011.2-5',label:'Ind 5',qty:1,result:'Negative',species:'Aedes aegypti',conf:'Confirmed'},
+        ]},
+      { id:'BPP-03-LOT-011.3', label:'Pool 3', qty:5, result:'Negative', species:'Culex quinquefasciatus', conf:'Confirmed', individuals:[] },
+      { id:'BPP-03-LOT-011.4', label:'Pool 4', qty:5, result:'Negative', species:null, conf:null, individuals:[] },
+      { id:'BPP-03-LOT-011.5', label:'Pool 5', qty:5, result:'Negative', species:'Aedes aegypti', conf:'Presumptive', individuals:[] },
+    ]
+  }
+};
+
 /* ── Helpers ────────────────────────────────────────────────── */
 const Tag = ({kind,children}) => <span className={`tag tag-${kind}`}>{children}</span>;
 
@@ -530,7 +552,78 @@ const LotDetail = ({lot,specimens,onSpecimensUpdate}) => {
         </div>
       )}
 
-      {/* Specimen table */}
+      {/* ── Pool hierarchy view (when deconvolution has happened) ── */}
+      {POOL_HIERARCHY[lot.id] && (() => {
+        const h = POOL_HIERARCHY[lot.id];
+        const rowStyle = {borderBottom:'1px solid #f4f4f4'};
+        const resultColor = r => r==='POSITIVE'?'#da1e28':r==='Negative'?'#198038':'#8d8d8d';
+        return (
+          <div style={{marginBottom:16}}>
+            <div style={{fontWeight:600,fontSize:13,marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
+              Sub-pool Grouping
+              <span style={{fontWeight:400,fontSize:12,color:'#525252'}}>{h.pools.length} pools · {h.parentQty} organisms total</span>
+            </div>
+            <table className="dt" style={{width:'100%',background:'#fff'}}>
+              <thead>
+                <tr>
+                  <th style={{width:28}}></th>
+                  <th>Pool / Individual</th>
+                  <th>Lab Number</th>
+                  <th style={{textAlign:'center'}}>Organisms</th>
+                  <th>Result</th>
+                  <th>Species ID</th>
+                  <th>Confidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                {h.pools.map((pool,pi)=>(
+                  <React.Fragment key={pool.id}>
+                    {/* Pool row */}
+                    <tr style={{...rowStyle, background: pool.result==='POSITIVE'?'#fff1f1':pi%2===0?'#fafafa':'#fff'}}>
+                      <td style={{padding:'8px 6px',textAlign:'center'}}>
+                        <span style={{fontSize:16}}>{pool.individuals.length>0?'▾':'○'}</span>
+                      </td>
+                      <td style={{padding:'8px 10px',fontWeight:600,fontSize:13}}>
+                        {pool.label}
+                        {pool.result==='POSITIVE' && <span style={{marginLeft:6,color:'#da1e28',fontSize:11,fontWeight:700}}>● POSITIVE</span>}
+                      </td>
+                      <td style={{padding:'8px 10px',fontFamily:'monospace',fontSize:12,color:'#525252'}}>{pool.id}</td>
+                      <td style={{padding:'8px 10px',textAlign:'center',fontSize:13}}>{pool.qty}</td>
+                      <td style={{padding:'8px 10px'}}>
+                        <span style={{fontSize:12,fontWeight:600,color:resultColor(pool.result)}}>{pool.result}</span>
+                      </td>
+                      <td style={{padding:'8px 10px',fontSize:13}}>{pool.species||<span style={{color:'#8d8d8d'}}>—</span>}</td>
+                      <td style={{padding:'8px 10px',fontSize:13}}>{pool.conf||<span style={{color:'#8d8d8d'}}>—</span>}</td>
+                    </tr>
+                    {/* Individual rows (indented) */}
+                    {pool.individuals.map((ind,ii)=>(
+                      <tr key={ind.id} style={{...rowStyle, background:'#f9f5ff'}}>
+                        <td style={{padding:'6px 6px',textAlign:'center'}}>
+                          <span style={{fontSize:11,color:'#8a3ffc'}}>{ii===pool.individuals.length-1?'└':'├'}</span>
+                        </td>
+                        <td style={{padding:'6px 10px',fontSize:12,paddingLeft:24}}>
+                          <span style={{color:'#8d8d8d',marginRight:6}}>╴</span>
+                          {ind.label}
+                          {ind.result==='POSITIVE' && <span style={{marginLeft:6,color:'#da1e28',fontSize:11,fontWeight:700}}>● POSITIVE</span>}
+                        </td>
+                        <td style={{padding:'6px 10px',fontFamily:'monospace',fontSize:11,color:'#525252'}}>{ind.id}</td>
+                        <td style={{padding:'6px 10px',textAlign:'center',fontSize:12}}>{ind.qty}</td>
+                        <td style={{padding:'6px 10px'}}>
+                          <span style={{fontSize:12,fontWeight:600,color:resultColor(ind.result)}}>{ind.result}</span>
+                        </td>
+                        <td style={{padding:'6px 10px',fontSize:12}}>{ind.species||<span style={{color:'#8d8d8d'}}>—</span>}</td>
+                        <td style={{padding:'6px 10px',fontSize:12}}>{ind.conf||<span style={{color:'#8d8d8d'}}>—</span>}</td>
+                      </tr>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      })()}
+
+      {/* ── Flat specimen table (no deconvolution) ── */}
       <div className="scrollable">
         <table className="dt" style={{width:'100%',background:'#fff'}}>
           <thead>
@@ -723,12 +816,33 @@ const BulkModal = ({count,onClose,onApply}) => (
 
 /* ── Deconvolution modal ─────────────────────────────────────── */
 const DeconModal = ({lotId,onClose}) => {
-  const [aliquotCount,setAliquotCount]=useState(5);
-  const [organismsPerAliquot,setOrganismsPerAliquot]=useState(5);
-  const [done,setDone]=useState(false);
   const parentQty=25;
-  const totalOrganisms=aliquotCount*organismsPerAliquot;
-  const showWarning=totalOrganisms>parentQty;
+  const [poolCount,setPoolCount]=useState(5);
+  const [mode,setMode]=useState('auto'); // 'auto' | 'manual'
+  const [done,setDone]=useState(false);
+
+  // Calculate even distribution
+  const base=Math.floor(parentQty/poolCount);
+  const remainder=parentQty%poolCount;
+  const calcLabel = remainder===0
+    ? `${base} organisms per pool`
+    : `${poolCount-remainder} pool${poolCount-remainder>1?'s':''} of ${base}, ${remainder} pool${remainder>1?'s':''} of ${base+1}`;
+
+  // Manual allocation state — initialised on auto-assign
+  const initPools = () => Array.from({length:poolCount},(_, i)=>({
+    id:i+1, qty: i < remainder ? base+1 : base
+  }));
+  const [manualPools,setManualPools]=useState(initPools);
+  const manualTotal=manualPools.reduce((s,p)=>s+p.qty,0);
+
+  const autoAssign=()=>{ setManualPools(initPools()); setMode('manual'); };
+
+  const updatePool=(id,val)=>setManualPools(prev=>
+    prev.map(p=>p.id===id?{...p,qty:Math.max(1,parseInt(val)||1)}:p)
+  );
+
+  // Re-init when pool count changes
+  const changePoolCount=(n)=>{ const c=Math.max(2,n); setPoolCount(c); setManualPools(Array.from({length:c},(_,i)=>({id:i+1,qty:Math.floor(parentQty/c)+(i<parentQty%c?1:0)}))); };
 
   if(done) return (
     <div className="modal-overlay" onClick={onClose}>
@@ -741,8 +855,8 @@ const DeconModal = ({lotId,onClose}) => {
           <div className="notif notif-success">
             <span style={{fontSize:18}}>✅</span>
             <div className="notif-body">
-              <div className="notif-title">{aliquotCount} aliquots created — {organismsPerAliquot===1?'individual organisms':'sub-pools'}</div>
-              <div className="notif-sub">Test orders copied to each aliquot. Parent result unchanged. Aliquots labelled {lotId}.1 through {lotId}.{aliquotCount}. Status → Deconvolution In Progress.</div>
+              <div className="notif-title">{poolCount} pools created from {lotId}</div>
+              <div className="notif-sub">Test orders copied to each pool. Parent result unchanged. Pools labelled {lotId}.1 through {lotId}.{poolCount}. Status → Deconvolution In Progress.</div>
             </div>
           </div>
         </div>
@@ -755,9 +869,9 @@ const DeconModal = ({lotId,onClose}) => {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" onClick={e=>e.stopPropagation()}>
+      <div className="modal-box" onClick={e=>e.stopPropagation()} style={{maxWidth:520}}>
         <div className="modal-header">
-          <span className="modal-title">Initiate Pool Deconvolution</span>
+          <span className="modal-title">Split into Sub-Pools</span>
           <button style={{background:'none',border:'none',color:'#fff',fontSize:18,cursor:'pointer'}} onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
@@ -765,48 +879,85 @@ const DeconModal = ({lotId,onClose}) => {
             <span style={{fontSize:18}}>⚠️</span>
             <div className="notif-body">
               <div className="notif-title">Positive result: NS1 RT-PCR</div>
-              <div className="notif-sub">{lotId} · {parentQty} organisms · BPP-01 Cilincing North — parent test orders and results will remain unchanged.</div>
+              <div className="notif-sub">{lotId} · <strong>{parentQty} organisms</strong> · Parent result and test orders will remain unchanged.</div>
             </div>
           </div>
 
-          <div className="grid-2" style={{marginBottom:16}}>
-            <div className="form-field">
-              <label className="form-label">Number of Aliquots *</label>
-              <input className="form-input" type="number" min={2} value={aliquotCount}
-                onChange={e=>setAliquotCount(Math.max(2,parseInt(e.target.value)||2))} style={{width:120}}/>
-              <div style={{fontSize:12,color:'#525252',marginTop:4}}>Minimum 2</div>
-            </div>
-            <div className="form-field">
-              <label className="form-label">Organisms per Aliquot *</label>
-              <input className="form-input" type="number" min={1} value={organismsPerAliquot}
-                onChange={e=>setOrganismsPerAliquot(Math.max(1,parseInt(e.target.value)||1))} style={{width:120}}/>
-              <div style={{fontSize:12,color:'#525252',marginTop:4}}>
-                {organismsPerAliquot===1?'→ Individual organisms (terminal — no further deconvolution)':'→ Sub-pools (can be deconvoluted further if positive)'}
-              </div>
+          {/* Pool count input */}
+          <div className="form-field" style={{marginBottom:12}}>
+            <label className="form-label">How many pools? *</label>
+            <div style={{display:'flex',alignItems:'center',gap:12}}>
+              <input className="form-input" type="number" min={2} value={poolCount}
+                onChange={e=>changePoolCount(parseInt(e.target.value)||2)}
+                style={{width:100}}/>
+              <span style={{fontSize:13,color:'#525252'}}>{calcLabel}</span>
             </div>
           </div>
 
-          <div style={{fontSize:13,color:'#393939',marginBottom:16,padding:'0.5rem 0.75rem',background:'#f4f4f4',borderRadius:2}}>
-            Total organisms across aliquots: <strong>{totalOrganisms}</strong> of <strong>{parentQty}</strong> parent organisms
+          {/* Auto / Manual toggle */}
+          <div style={{display:'flex',gap:8,marginBottom:16}}>
+            <button
+              className={`btn btn-sm ${mode==='auto'?'btn-primary':'btn-secondary'}`}
+              style={{height:32,fontSize:12}}
+              onClick={()=>{autoAssign();setMode('auto');}}>
+              ⚡ Auto-assign evenly
+            </button>
+            <button
+              className={`btn btn-sm ${mode==='manual'?'btn-primary':'btn-secondary'}`}
+              style={{height:32,fontSize:12}}
+              onClick={()=>setMode('manual')}>
+              ✏ Assign manually
+            </button>
           </div>
 
-          {showWarning && (
-            <div className="notif notif-warning" style={{marginBottom:16}}>
-              <span>⚠️</span>
-              <div className="notif-body">
-                <div className="notif-sub">Total organisms ({totalOrganisms}) exceeds parent quantity ({parentQty}). Adjust if needed — this is non-blocking.</div>
-              </div>
-            </div>
-          )}
+          {/* Pool allocation table */}
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:13,marginBottom:8}}>
+            <thead>
+              <tr style={{background:'#f4f4f4'}}>
+                <th style={{padding:'6px 10px',textAlign:'left',fontWeight:600,color:'#525252',fontSize:11,textTransform:'uppercase',borderBottom:'1px solid #e0e0e0'}}>Pool</th>
+                <th style={{padding:'6px 10px',textAlign:'left',fontWeight:600,color:'#525252',fontSize:11,textTransform:'uppercase',borderBottom:'1px solid #e0e0e0'}}>Lab Number</th>
+                <th style={{padding:'6px 10px',textAlign:'right',fontWeight:600,color:'#525252',fontSize:11,textTransform:'uppercase',borderBottom:'1px solid #e0e0e0'}}>Organisms</th>
+              </tr>
+            </thead>
+            <tbody>
+              {manualPools.map(pool=>(
+                <tr key={pool.id} style={{borderBottom:'1px solid #f4f4f4'}}>
+                  <td style={{padding:'6px 10px',color:'#161616',fontWeight:500}}>Pool {pool.id}</td>
+                  <td style={{padding:'6px 10px',fontFamily:'monospace',fontSize:12,color:'#525252'}}>{lotId}.{pool.id}</td>
+                  <td style={{padding:'4px 10px',textAlign:'right'}}>
+                    {mode==='manual'
+                      ? <input type="number" min={1} value={pool.qty}
+                          onChange={e=>updatePool(pool.id,e.target.value)}
+                          style={{width:64,border:'1px solid #8d8d8d',padding:'2px 6px',textAlign:'right',fontFamily:'inherit',fontSize:13}}/>
+                      : <strong>{pool.qty}</strong>
+                    }
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr style={{borderTop:'2px solid #e0e0e0',background:'#f4f4f4'}}>
+                <td colSpan={2} style={{padding:'6px 10px',fontWeight:600,fontSize:13}}>Total</td>
+                <td style={{padding:'6px 10px',textAlign:'right',fontWeight:700}}>
+                  <span style={{color: manualTotal===parentQty?'#198038':manualTotal>parentQty?'#da1e28':'#f1620f'}}>
+                    {manualTotal}
+                  </span>
+                  <span style={{color:'#525252',fontWeight:400}}> / {parentQty}</span>
+                  {manualTotal===parentQty && <span style={{marginLeft:6,color:'#198038'}}>✓</span>}
+                  {manualTotal!==parentQty && <span style={{marginLeft:6,fontSize:11,color:'#f1620f'}}>⚠ {manualTotal>parentQty?'exceeds':'below'} parent</span>}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
 
-          <div className="form-field">
+          <div className="form-field" style={{marginTop:12}}>
             <label className="form-label">Notes</label>
-            <textarea className="form-textarea" placeholder="Optional…"/>
+            <textarea className="form-textarea" placeholder="Optional…" rows={2}/>
           </div>
         </div>
         <div className="modal-footer">
           <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary btn-sm" onClick={()=>setDone(true)}>Confirm &amp; Generate Aliquots</button>
+          <button className="btn btn-primary btn-sm" onClick={()=>setDone(true)}>Confirm &amp; Create Pools</button>
         </div>
       </div>
     </div>
