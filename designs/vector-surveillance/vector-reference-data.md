@@ -1,8 +1,8 @@
 # Vector Specimen Types & Taxonomy
 ## Functional Requirements Specification — v1.0
 
-**Version:** 1.3
-**Date:** 2026-04-13
+**Version:** 1.4
+**Date:** 2026-04-23
 **Status:** Draft for Review
 **Jira:** [OGC-555](https://uwdigi.atlassian.net/browse/OGC-555) (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
 **Technology:** Java Spring Framework, Carbon React (`@carbon/react`)
@@ -10,6 +10,7 @@
 
 ### Change Log
 
+- **v1.4 (2026-04-23):** Trap Type catalog section demoted to **Deferred**. V-02 (collection workflow) no longer captures trap metadata at order entry; trap types are not needed for the simplified organism group + quantity intake flow. Trap Type admin will be scoped as a separate story when field collection tracking is added in a future phase. Species catalog and VectorGroup catalog are unaffected and remain in scope.
 - **v1.3 (2026-04-13):** Added FR-V01-GRP-011 — Groups color field MUST be a typeahead ComboBox over the shared Tag color palette with a "+ Create" affordance that opens a confirmation Modal (name + hex picker with live preview). New colors persist to a shared palette (`TagColor`) and become reusable across all tag-color pickers in OpenELIS. Added `TagColor` entity to §5 Data Model and `GET/POST /api/v1/admin/tag-colors` endpoints to §6.
 - **v1.2 (2026-04-13):** Replaced hardcoded `organism_group` enum with full-CRUD `VectorGroup` entity (system-protected defaults). Replaced §13 "Seed Data" with §13 "Reference Data Distribution via Catalog Subscription" — reuses OGC-447 FHIR Catalog Subscription pattern (Hub Status Banner, Pending Updates page with review / accept / reject). Added §3a.5 Groups navigation and §3a.6 Pending Updates navigation. Added FR-V01-GRP-001..010 (Groups CRUD). Added §4.6 Hub Subscription & Pending Updates. Working Add Group / Add Species / Add Trap flows now documented (FR-V01-UX-001..003).
 - **v1.1 (2026-04-13):** §3a added — Option A integration: Vector Sample Types live inside existing Sample Type admin via progressive-disclosure Vector Profile accordion. Species and Trap Types are sibling admin pages under a new "Vector Surveillance" submenu.
