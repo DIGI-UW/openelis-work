@@ -442,7 +442,7 @@ const WorklistScreen = () => {
 };
 
 /* ── Inline deconvolution panel ─────────────────────────────── */
-const InlineDeconPanel = ({lot,specimens,onClose}) => {
+const InlineDeconPanel = ({lot,specimens,onClose,onSave}) => {
   const [phase,setPhase]=useState('setup');  // 'setup' | 'preview'
   const [poolCount,setPoolCount]=useState(5);
   const [strategy,setStrategy]=useState('random'); // 'random'|'species'|'manual'
@@ -673,7 +673,17 @@ const InlineDeconPanel = ({lot,specimens,onClose}) => {
               style={{color:'#fff',border:'1px solid rgba(255,255,255,0.3)',height:36}}
               onClick={onClose}>Cancel</button>
             <button
-              onClick={()=>setSaved(true)}
+              onClick={()=>{
+                // Build structured pool data and lift to parent
+                const poolData = pools.map(pid=>({
+                  id: pid,
+                  label: poolLabel(pid),
+                  labNo: poolLabNo(pid),
+                  specimens: spList.filter(sp=>assignment[sp.id]===pid),
+                }));
+                setSaved(true);
+                if(onSave) onSave(poolData);
+              }}
               style={{height:36,padding:'0 1.25rem',background:'#0f62fe',color:'#fff',border:'none',fontWeight:600,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>
               Save Pools
             </button>
@@ -690,6 +700,7 @@ const LotDetail = ({lot,specimens,onSpecimensUpdate}) => {
   const [selected,setSelected]=useState(new Set());
   const [bulkOpen,setBulkOpen]=useState(false);
   const [deconOpen,setDeconOpen]=useState(false);
+  const [savedPools,setSavedPools]=useState(null); // null | [{id,label,labNo,specimens}]
   const [notif,setNotif]=useState(null);
 
   const notify = (msg) => { setNotif(msg); setTimeout(()=>setNotif(null),3000); };
@@ -718,7 +729,8 @@ const LotDetail = ({lot,specimens,onSpecimensUpdate}) => {
 
       {/* Decon alert (positive result) + always-available Split button */}
       {deconOpen
-        ? <InlineDeconPanel lot={lot} specimens={specimens} onClose={()=>setDeconOpen(false)}/>
+        ? <InlineDeconPanel lot={lot} specimens={specimens} onClose={()=>setDeconOpen(false)}
+            onSave={poolData=>{setSavedPools(poolData);setDeconOpen(false);}}/>
         : (
           <div style={{marginBottom:12}}>
             {lot.posTest && (
@@ -793,16 +805,32 @@ const LotDetail = ({lot,specimens,onSpecimensUpdate}) => {
         </div>
       )}
 
-      {/* ── Pool hierarchy view (when deconvolution has happened) ── */}
-      {POOL_HIERARCHY[lot.id] && (() => {
-        const h = POOL_HIERARCHY[lot.id];
+      {/* ── Pool hierarchy view — from live save OR static mock data ── */}
+      {(savedPools || POOL_HIERARCHY[lot.id]) && (() => {
+        // Prefer live savedPools; fall back to static mock for demo
+        const livePools = savedPools;
+        const staticH = POOL_HIERARCHY[lot.id];
+        // Build a unified structure
+        const h = livePools ? { parentQty: specimens.length||10, pools: livePools.map(p=>({
+          id: p.id, label: p.label, qty: p.specimens.length,
+          result: null, species: p.specimens.length>0&&p.specimens.every(s=>s.species===p.specimens[0].species)&&p.specimens[0].species ? p.specimens[0].species : null,
+          conf: null, individuals: p.specimens.map(s=>({
+            id: s.id, label: s.label, qty:1, result:null, species:s.species||'', conf:s.status==='CONFIRMED'?'Confirmed':s.status==='PRESUMPTIVE'?'Presumptive':''
+          }))
+        })) } : staticH;
         const rowStyle = {borderBottom:'1px solid #f4f4f4'};
         const resultColor = r => r==='POSITIVE'?'#da1e28':r==='Negative'?'#198038':'#8d8d8d';
         return (
           <div style={{marginBottom:16}}>
             <div style={{fontWeight:600,fontSize:13,marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
               Sub-pool Grouping
-              <span style={{fontWeight:400,fontSize:12,color:'#525252'}}>{h.pools.length} pools · {h.parentQty} organisms total</span>
+              <span style={{fontWeight:400,fontSize:12,color:'#525252'}}>{h.pools.length} pools · {h.parentQty||specimens.length} organisms total</span>
+              {livePools && (
+                <button className="btn btn-ghost btn-sm" style={{marginLeft:'auto',fontSize:12,height:28}}
+                  onClick={()=>{setSavedPools(null);setDeconOpen(true);}}>
+                  ✎ Re-split
+                </button>
+              )}
             </div>
             <table className="dt" style={{width:'100%',background:'#fff'}}>
               <thead>
