@@ -291,59 +291,43 @@ const DomainTag = ({d}) => {
 };
 
 /* ── SideNav ────────────────────────────────────────────────── */
-const SideNav = ({activeSection,activeMenu,setNav}) => {
-  const [vecOpen,setVecOpen]=useState(true);
-  const [adminOpen,setAdminOpen]=useState(false);
-
-  return (
-    <div className="sidenav">
-      {/* Worklist group */}
-      <div className="nav-group">
-        <div className="nav-group-title">Worklist</div>
-        <div className={`nav-item section-header ${vecOpen?'':'collapsed'}`}
-             onClick={()=>setVecOpen(p=>!p)}>
-          <span>🦟 Vector Identification</span>
-          <span style={{fontSize:10}}>{vecOpen?'▲':'▼'}</span>
-        </div>
-        {vecOpen && (
-          <div className="nav-submenu">
-            {[
-              {key:'pending',   label:'Pending ID',   count:4, alert:false},
-              {key:'inprogress',label:'In Progress',  count:1, alert:false},
-              {key:'decon',     label:'Deconvolution',count:2, alert:true },
-              {key:'complete',  label:'Complete',     count:14,alert:false},
-            ].map(item=>(
-              <div key={item.key}
-                className={`nav-subitem ${activeSection==='worklist'&&activeMenu===item.key?'active':''}`}
-                onClick={()=>setNav('worklist',item.key)}>
-                {item.label}
-                <span className={`nav-count${item.alert?' alert':''}`}>{item.count}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className={`nav-item ${activeSection==='results'?'active':''}`}
-             onClick={()=>setNav('results','')}>
-          📊 Results Entry
-        </div>
+const SideNav = ({activeSection,setNav}) => (
+  <div className="sidenav">
+    <div className="nav-group">
+      <div className="nav-group-title">Worklist</div>
+      <div className={`nav-item ${activeSection==='worklist'?'active':''}`}
+           onClick={()=>setNav('worklist','')}>
+        🦟 Vector Identification
+        <span className="nav-count alert" style={{marginLeft:'auto'}}>2</span>
       </div>
-
-      {/* Admin group */}
-      <div className="nav-group">
-        <div className="nav-group-title">Admin</div>
-        <div className={`nav-item ${activeSection==='panels'?'active':''}`}
-             onClick={()=>setNav('panels','')}>
-          🧪 Test Panels
-        </div>
-        <div className="nav-item">🦟 Species Catalog</div>
-        <div className="nav-item">🪤 Trap Types</div>
+      <div className={`nav-item ${activeSection==='results'?'active':''}`}
+           onClick={()=>setNav('results','')}>
+        📊 Results Entry
       </div>
     </div>
-  );
+    <div className="nav-group">
+      <div className="nav-group-title">Admin</div>
+      <div className={`nav-item ${activeSection==='panels'?'active':''}`}
+           onClick={()=>setNav('panels','')}>
+        🧪 Test Panels
+      </div>
+      <div className="nav-item">🦟 Species Catalog</div>
+    </div>
+  </div>
+);
+
+/* ── Filter pill counts ─────────────────────────────────────── */
+const FILTER_COUNTS = {
+  pending:    WORKLIST.filter(l=>l.done<l.total&&l.dec==='NOT_APPLICABLE').length + DECON_LOTS.length,
+  notstarted: WORKLIST.filter(l=>l.done===0).length,
+  partialid:  WORKLIST.filter(l=>l.done>0&&l.done<l.total&&l.dec==='NOT_APPLICABLE').length,
+  decon:      DECON_LOTS.length,
+  complete:   WORKLIST.filter(l=>l.done===l.total).length,
 };
 
 /* ── Worklist screen ────────────────────────────────────────── */
-const WorklistScreen = ({menu}) => {
+const WorklistScreen = () => {
+  const [filter,setFilter]=useState('pending');
   const [expandedLot,setExpandedLot]=useState(null);
   const [specimens,setSpecimens]=useState({});
 
@@ -352,31 +336,54 @@ const WorklistScreen = ({menu}) => {
     if(!specimens[lotId]) setSpecimens(p=>({...p,[lotId]:makeSpecimens(lotId)}));
   };
 
-  const titles={
-    pending:   {h:'Pending ID', sub:'Received vector lots awaiting species identification.'},
-    inprogress:{h:'In Progress',sub:'Lots with identification partially complete.'},
-    decon:     {h:'Deconvolution',sub:'Positive pool lots requiring individual specimen follow-up.'},
-    complete:  {h:'Complete',   sub:'Lots with all specimens identified.'},
-  };
-  const {h,sub}=titles[menu]||titles.pending;
+  const filters=[
+    {key:'pending',   label:'Pending',    sub:'All active — not yet complete', alert:true},
+    {key:'notstarted',label:'Not Started', sub:'Received, 0 identified'},
+    {key:'partialid', label:'Partial ID',  sub:'Identification in progress'},
+    {key:'decon',     label:'Deconvolution',sub:'Positive result, awaiting split', alert:true},
+    {key:'complete',  label:'Complete',   sub:'All specimens identified'},
+  ];
 
-  const rows = menu==='decon' ? DECON_LOTS.map(l=>({
-    ...l, isDecon:true,
-  })) : WORKLIST.filter(l=>{
-    if(menu==='pending')    return l.done===0;
-    if(menu==='inprogress') return l.done>0&&l.done<l.total;
-    if(menu==='complete')   return l.done===l.total;
-    return true;
-  });
+  const {sub}=filters.find(f=>f.key===filter)||filters[0];
+
+  const deconRows = DECON_LOTS.map(l=>({...l, isDecon:true}));
+  const rows = filter==='decon' ? deconRows
+    : filter==='pending'    ? [...WORKLIST.filter(l=>l.done<l.total), ...deconRows]
+    : filter==='notstarted' ? WORKLIST.filter(l=>l.done===0)
+    : filter==='partialid'  ? WORKLIST.filter(l=>l.done>0&&l.done<l.total&&l.dec==='NOT_APPLICABLE')
+    : filter==='complete'   ? WORKLIST.filter(l=>l.done===l.total)
+    : WORKLIST;
 
   return (
     <div className="page-content">
       <div className="page-header">
-        <h1 className="page-title">{h}</h1>
+        <h1 className="page-title">Vector Identification</h1>
         <p className="page-subtitle">{sub}</p>
       </div>
 
-      {menu==='decon' ? (
+      {/* ── Status filter pills ── */}
+      <div style={{display:'flex',gap:8,marginBottom:20,flexWrap:'wrap'}}>
+        {filters.map(f=>(
+          <button key={f.key}
+            onClick={()=>{setFilter(f.key);setExpandedLot(null);}}
+            style={{
+              display:'flex',alignItems:'center',gap:8,
+              padding:'0.45rem 1rem',border:'2px solid',borderRadius:2,
+              fontFamily:'inherit',fontSize:13,fontWeight:600,cursor:'pointer',
+              background: filter===f.key?'#161616':'#fff',
+              color:       filter===f.key?'#fff':'#161616',
+              borderColor: filter===f.key?'#161616':'#e0e0e0',
+            }}>
+            {f.label}
+            <span style={{
+              background: filter===f.key?(f.alert?'#da1e28':'#525252'):(f.alert?'#da1e28':'#e0e0e0'),
+              color:'#fff', borderRadius:'1rem', padding:'1px 7px', fontSize:11, fontWeight:700,
+            }}>{FILTER_COUNTS[f.key]||0}</span>
+          </button>
+        ))}
+      </div>
+
+      {filter==='decon' ? (
         <DeconTable />
       ) : (
         <div className="table-wrap">
@@ -917,6 +924,7 @@ const DeconModal = ({lotId,onClose}) => {
                 <th style={{padding:'6px 10px',textAlign:'left',fontWeight:600,color:'#525252',fontSize:11,textTransform:'uppercase',borderBottom:'1px solid #e0e0e0'}}>Pool</th>
                 <th style={{padding:'6px 10px',textAlign:'left',fontWeight:600,color:'#525252',fontSize:11,textTransform:'uppercase',borderBottom:'1px solid #e0e0e0'}}>Lab Number</th>
                 <th style={{padding:'6px 10px',textAlign:'right',fontWeight:600,color:'#525252',fontSize:11,textTransform:'uppercase',borderBottom:'1px solid #e0e0e0'}}>Organisms</th>
+                <th style={{padding:'6px 10px',textAlign:'left',fontWeight:600,color:'#525252',fontSize:11,textTransform:'uppercase',borderBottom:'1px solid #e0e0e0'}}>Species <span style={{fontWeight:400,textTransform:'none',fontSize:10,color:'#8d8d8d'}}>(optional)</span></th>
               </tr>
             </thead>
             <tbody>
@@ -932,12 +940,16 @@ const DeconModal = ({lotId,onClose}) => {
                       : <strong>{pool.qty}</strong>
                     }
                   </td>
+                  <td style={{padding:'4px 10px'}}>
+                    <input type="text" list="species-list-dec" placeholder="e.g. Aedes aegypti"
+                      style={{width:'100%',border:'1px solid #e0e0e0',padding:'2px 6px',fontFamily:'inherit',fontSize:12,color:'#161616',background:'#fff'}}/>
+                  </td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr style={{borderTop:'2px solid #e0e0e0',background:'#f4f4f4'}}>
-                <td colSpan={2} style={{padding:'6px 10px',fontWeight:600,fontSize:13}}>Total</td>
+                <td colSpan={3} style={{padding:'6px 10px',fontWeight:600,fontSize:13}}>Total</td>
                 <td style={{padding:'6px 10px',textAlign:'right',fontWeight:700}}>
                   <span style={{color: manualTotal===parentQty?'#198038':manualTotal>parentQty?'#da1e28':'#f1620f'}}>
                     {manualTotal}
@@ -1195,9 +1207,7 @@ const PanelForm = ({panel,onSave,onCancel}) => {
 /* ── Root ───────────────────────────────────────────────────── */
 const App = () => {
   const [activeSection,setActiveSection]=useState('worklist');
-  const [activeMenu,setActiveMenu]=useState('pending');
-
-  const setNav=(section,menu)=>{setActiveSection(section);if(menu)setActiveMenu(menu);};
+  const setNav=(section)=>setActiveSection(section);
 
   return (
     <div>
@@ -1211,9 +1221,9 @@ const App = () => {
       </div>
 
       <div className="app-shell">
-        <SideNav activeSection={activeSection} activeMenu={activeMenu} setNav={setNav}/>
+        <SideNav activeSection={activeSection} setNav={setNav}/>
         <div className="main">
-          {activeSection==='worklist' && <WorklistScreen menu={activeMenu}/>}
+          {activeSection==='worklist' && <WorklistScreen/>}
           {activeSection==='panels'   && <PanelAdminScreen/>}
           {activeSection==='results'  && (
             <div className="page-content">
