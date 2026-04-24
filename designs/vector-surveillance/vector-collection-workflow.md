@@ -10,6 +10,7 @@
 
 ### Change Log
 
+- **v2.1 (2026-04-23):** Replaced CollectionLot entity references with existing OpenELIS Sample entity. CollectionLot is not a new entity — V-02 creates standard Sample records with sampleDomain=VECTOR plus a new `quantity` field. All BRs and ACs updated accordingly.
 - **v2.0 (2026-04-23):** Major simplification. Order entry reduced to organism group (= sample type), quantity, and test selection. Step 2 (Collect Sample) removed entirely — workflow goes directly from Step 1 to label/store/refer. QA screen simplified: QA samples can be added as needed; S-09 transit window and pool_size eligibility criteria removed (no longer captured). Trap type, GPS, collection dates, pool flag, weather conditions, cooler ID, and shipment ID all removed from the data model and UI. Sampling site retained as optional context field.
 - **v1.0 (2026-04-17):** Initial draft.
 
@@ -42,7 +43,7 @@ V-02 adds **Vector** as a third domain option in the Sample Collection Redesign 
 
 **Current state:** OpenELIS has no workflow for vector specimen receipt and testing. Lab staff receiving mosquito or tick batches for pathogen screening have no structured intake mechanism — they either improvise with environmental orders or bypass the system entirely.
 
-**Proposed solution:** Extend the Sample Collection workflow with a Vector domain option. When selected, the form presents a simple intake: organism group, quantity, and test selection. The resulting CollectionLot record provides the foundation for V-03 species identification and V-04 surveillance reporting.
+**Proposed solution:** Extend the Sample Collection workflow with a Vector domain option. When selected, the form presents a simple intake: organism group, quantity, and test selection. The resulting Sample record provides the foundation for V-03 species identification and V-04 surveillance reporting.
 
 ---
 
@@ -58,10 +59,10 @@ V-02 adds **Vector** as a third domain option in the Sample Collection Redesign 
 
 **Required permission keys:**
 
-- `vector.collectionLot.view` — View collection lot list and detail
-- `vector.collectionLot.create` — Create a new collection lot
-- `vector.collectionLot.edit` — Edit a draft or received lot (pre-QC only)
-- `vector.collectionLot.delete` — Soft-delete a draft lot
+- `vector.sample.view` — View vector sample list and detail
+- `vector.sample.create` — Create a new vector sample
+- `vector.sample.edit` — Edit a draft or received sample (pre-QC only)
+- `vector.sample.delete` — Soft-delete a draft sample
 - `vector.qa.addSample` — Add QA samples to an order on the QA screen
 
 ---
@@ -95,7 +96,7 @@ V-02 adds **Vector** as a third domain option in the Sample Collection Redesign 
 **FR-V02-S1-004:** The **Requester / Ordering Provider section** MUST remain visible and function identically to other domains — search by organisation name.
 
 **FR-V02-S1-005:** On submission of Step 1, the system MUST:
-1. Create a `CollectionLot` record with status `DRAFT`
+1. Create a `Sample` record (sampleDomain=VECTOR) with status `DRAFT`
 2. Assign a lab number using module code `VCT`
 3. Link the selected Organism Group (as SampleType), Quantity, Sampling Site (if provided), and test orders
 
@@ -105,41 +106,39 @@ V-02 adds **Vector** as a third domain option in the Sample Collection Redesign 
 
 > **Note:** The "Collect Sample" step (formerly Step 2) is not present in the Vector workflow. After completing Step 1, the workflow advances directly to label/store/refer.
 
-**FR-V02-S2-001:** Step 2 MUST generate a collection lot barcode label using the assigned lab number. The label MUST include: lab number, organism group, quantity, and receipt date.
+**FR-V02-S2-001:** Step 2 MUST generate a sample barcode label using the assigned lab number. The label MUST include: lab number, organism group, quantity, and receipt date.
 
-**FR-V02-S2-002:** On entering Step 2, the CollectionLot status MUST advance from `DRAFT` to `RECEIVED` and a lab receipt timestamp MUST be recorded automatically.
+**FR-V02-S2-002:** On entering Step 2, the Sample status MUST advance from `DRAFT` to `RECEIVED` and a lab receipt timestamp MUST be recorded automatically.
 
-**FR-V02-S2-003:** The existing label print, storage location, and refer-out workflow MUST apply unchanged to vector lots. Storage location is optional.
+**FR-V02-S2-003:** The existing label print, storage location, and refer-out workflow MUST apply unchanged to vector samples. Storage location is optional.
 
 ---
 
 ### 4.4 QA Screen — Vector Domain
 
-**FR-V02-QA-001:** The QA screen for Vector lots MUST allow QA samples to be added to the order as needed. The QA officer selects the QA sample type, quantity, and associated tests from a compact form.
+**FR-V02-QA-001:** The QA screen for Vector samples MUST allow QA samples to be added to the order as needed. The QA officer selects the QA sample type, quantity, and associated tests from a compact form.
 
-**FR-V02-QA-002:** Adding QA samples is optional. The order MAY proceed to `PROCESSING` without QA samples if none are required for the current lot.
+**FR-V02-QA-002:** Adding QA samples is optional. The order MAY proceed to `PROCESSING` without QA samples if none are required for the current sample.
 
-**FR-V02-QA-003:** On completing the QA screen (with or without QA samples), the CollectionLot status MUST advance from `RECEIVED` to `PROCESSING`. The lot MUST appear in the V-03 identification worklist.
+**FR-V02-QA-003:** On completing the QA screen (with or without QA samples), the Sample status MUST advance from `RECEIVED` to `PROCESSING`. The sample MUST appear in the V-03 identification worklist.
 
 ---
 
 ## 5. Data Model
 
-### Modified Entity: CollectionLot
+### Modified Entity: Sample (existing — adds `quantity` field for VECTOR domain)
 
-V-02 provides the create and edit UI for CollectionLot records. The following fields are used by the Vector workflow:
+V-02 creates standard OpenELIS Sample records with `sampleDomain = VECTOR`. The only new field added to Sample is `quantity` (INTEGER, min 1) — the number of organisms in this pool. All other fields (sample_type_id, sampling_site_id, received_at, received_by_user_id, status, lab_number) exist in the current Sample entity.
 
-| UI Field | CollectionLot Field | Type | Notes |
+| UI Field | Sample Field | Type | Notes |
 |---|---|---|---|
 | Organism Group | `sample_type_id` | FK → SampleType (sampleDomain=VECTOR) | Displayed as "Organism Group"; user selects from VectorGroup-mapped SampleTypes |
-| Quantity | `quantity` | INTEGER | Number of organisms received; minimum 1 |
+| Quantity | `quantity` | INTEGER | Number of organisms received; minimum 1; NEW field for VECTOR domain |
 | Sampling Site | `sampling_site_id` | FK → SamplingSite, nullable | Optional context field |
 | Lab receipt date/time | `received_at` | TIMESTAMP WITH TIME ZONE | Auto-set on Step 2 entry |
 | Received by | `received_by_user_id` | FK → SystemUser | Auto-set from logged-in user |
 | Status | `status` | ENUM: DRAFT / RECEIVED / PROCESSING / TESTED / ARCHIVED | |
 | Lab number | `lab_number` | VARCHAR(50) | Module code VCT |
-
-**Fields removed in v2.0** (not captured in this workflow): `trap_type_id`, `collection_start`, `collection_end`, `gps_lat`, `gps_lng`, `is_pool`, `pool_size`, `collector_name`, `weather_condition`, `weather_temp_c`, `weather_humidity_pct`, `collection_notes`, `container_id`, `shipment_id`.
 
 ---
 
@@ -147,14 +146,14 @@ V-02 provides the create and edit UI for CollectionLot records. The following fi
 
 | Method | Path | Description | Permission |
 |---|---|---|---|
-| GET | `/api/v1/vector/collectionLots` | List collection lots (filterable by status, site, date) | `vector.collectionLot.view` |
-| GET | `/api/v1/vector/collectionLots/{id}` | Get single lot with full detail | `vector.collectionLot.view` |
-| POST | `/api/v1/vector/collectionLots` | Create new lot (Step 1 submit) | `vector.collectionLot.create` |
-| PUT | `/api/v1/vector/collectionLots/{id}` | Update lot | `vector.collectionLot.edit` |
-| PATCH | `/api/v1/vector/collectionLots/{id}/receive` | Advance status DRAFT → RECEIVED | `vector.collectionLot.edit` |
-| DELETE | `/api/v1/vector/collectionLots/{id}` | Soft-delete a DRAFT lot | `vector.collectionLot.delete` |
+| GET | `/api/v1/vector/samples` | List vector samples (filterable by status, site, date) | `vector.sample.view` |
+| GET | `/api/v1/vector/samples/{id}` | Get single sample with full detail | `vector.sample.view` |
+| POST | `/api/v1/vector/samples` | Create new sample (Step 1 submit) | `vector.sample.create` |
+| PUT | `/api/v1/vector/samples/{id}` | Update sample | `vector.sample.edit` |
+| PATCH | `/api/v1/vector/samples/{id}/receive` | Advance status DRAFT → RECEIVED | `vector.sample.edit` |
+| DELETE | `/api/v1/vector/samples/{id}` | Soft-delete a DRAFT sample | `vector.sample.delete` |
 | GET | `/api/v1/sampleTypes?domain=VECTOR&active=true` | List VECTOR-domain sample types for Organism Group ComboBox | `sampleType.view` |
-| POST | `/api/v1/vector/collectionLots/{id}/qa-samples` | Add QA sample(s) to a lot | `vector.qa.addSample` |
+| POST | `/api/v1/vector/samples/{id}/qa-samples` | Add QA sample(s) to a sample | `vector.qa.addSample` |
 
 ---
 
@@ -170,7 +169,7 @@ Sample Collection → Step 1 (Enter Order, Vector domain) → Step 2 (Label & St
 ### Key Screens
 
 1. **Step 1 — Enter Order (Vector active)** — Domain toggle with Vector selected; Organism Group ComboBox; Quantity NumberInput; optional Sampling Site ComboBox; Test/Panel selection section (VECTOR-domain only).
-2. **Step 2 — Label & Store** — Lot barcode label print (lab number, organism group, quantity, date); storage location (optional); refer-out option.
+2. **Step 2 — Label & Store** — Sample barcode label print (lab number, organism group, quantity, date); storage location (optional); refer-out option.
 3. **QA Screen** — Optional QA sample addition form; proceed to Processing.
 
 ### Interaction Patterns
@@ -185,19 +184,19 @@ Sample Collection → Step 1 (Enter Order, Vector domain) → Step 2 (Label & St
 
 ## 8. Business Rules
 
-**BR-V02-001:** Organism Group is required. A CollectionLot MUST have a `sample_type_id` pointing to an active VECTOR-domain SampleType.
+**BR-V02-001:** Organism Group is required. A Sample MUST have a `sample_type_id` pointing to an active VECTOR-domain SampleType.
 
 **BR-V02-002:** Quantity MUST be ≥ 1. There is no maximum enforced at the system level; labs may configure soft warnings via QA rules if needed.
 
-**BR-V02-003:** At least one test or panel MUST be selected in Step 1 before the lot can be saved.
+**BR-V02-003:** At least one test or panel MUST be selected in Step 1 before the sample can be saved.
 
-**BR-V02-004:** A CollectionLot MUST NOT advance to `PROCESSING` unless the QA screen has been visited and confirmed (with or without QA samples added).
+**BR-V02-004:** A Sample MUST NOT advance to `PROCESSING` unless the QA screen has been visited and confirmed (with or without QA samples added).
 
-**BR-V02-005:** Editing a CollectionLot is permitted only while status is `DRAFT` or `RECEIVED`. Lots in `PROCESSING`, `TESTED`, or `ARCHIVED` status are read-only.
+**BR-V02-005:** Editing a Sample is permitted only while status is `DRAFT` or `RECEIVED`. Samples in `PROCESSING`, `TESTED`, or `ARCHIVED` status are read-only.
 
-**BR-V02-006:** The lab number format for vector lots MUST use the module code `VCT` in the existing lab number template: `{seq}/{labCode}/VCT/{month}/{year}`.
+**BR-V02-006:** The lab number format for vector samples MUST use the module code `VCT` in the existing lab number template: `{seq}/{labCode}/VCT/{month}/{year}`.
 
-**BR-V02-007:** Sampling site is optional. A CollectionLot MAY have a null `sampling_site_id`. When provided, it is for traceability only and does not affect workflow routing.
+**BR-V02-007:** Sampling site is optional. A Sample MAY have a null `sampling_site_id`. When provided, it is for traceability only and does not affect workflow routing.
 
 ---
 
@@ -212,11 +211,11 @@ Sample Collection → Step 1 (Enter Order, Vector domain) → Step 2 (Label & St
 | `label.vectorOrder.samplingSite` | Sampling Site (optional) |
 | `placeholder.vectorOrder.samplingSite` | Search sampling sites… |
 | `heading.vectorOrder.tests` | Tests & Panels |
-| `label.collectionLot.status.draft` | Draft |
-| `label.collectionLot.status.received` | Received |
-| `label.collectionLot.status.processing` | Processing |
-| `label.collectionLot.status.tested` | Tested |
-| `label.collectionLot.status.archived` | Archived |
+| `label.sample.status.draft` | Draft |
+| `label.sample.status.received` | Received |
+| `label.sample.status.processing` | Processing |
+| `label.sample.status.tested` | Tested |
+| `label.sample.status.archived` | Archived |
 | `button.collectionLot.saveStep1` | Continue to Label & Store |
 | `button.vectorQa.addQaSample` | Add QA Sample |
 | `button.vectorQa.proceed` | Proceed to Processing |
@@ -244,10 +243,10 @@ Sample Collection → Step 1 (Enter Order, Vector domain) → Step 2 (Label & St
 
 | Action | Required Permission | UI Behavior if Denied |
 |---|---|---|
-| View collection lot list | `vector.collectionLot.view` | Menu item hidden |
-| Create new lot | `vector.collectionLot.create` | "New Collection" button hidden |
-| Edit lot (pre-QC) | `vector.collectionLot.edit` | Edit link hidden; API returns 403 |
-| Delete draft lot | `vector.collectionLot.delete` | Delete button hidden |
+| View vector sample list | `vector.sample.view` | Menu item hidden |
+| Create new sample | `vector.sample.create` | "New Collection" button hidden |
+| Edit sample (pre-QC) | `vector.sample.edit` | Edit link hidden; API returns 403 |
+| Delete draft sample | `vector.sample.delete` | Delete button hidden |
 | Add QA samples | `vector.qa.addSample` | QA sample form hidden; API returns 403 |
 
 ---
@@ -263,14 +262,14 @@ Sample Collection → Step 1 (Enter Order, Vector domain) → Step 2 (Label & St
 - [ ] Sampling Site ComboBox is optional and sourced from S-02 SamplingSite API
 - [ ] Test/Panel section shows only VECTOR-domain panels and tests
 - [ ] At least one test or panel must be selected before Step 1 can be submitted
-- [ ] Completing Step 1 creates a CollectionLot with status DRAFT and assigns a lab number with module code VCT
+- [ ] Completing Step 1 creates a Sample with status DRAFT and assigns a lab number with module code VCT
 - [ ] Step 2 displays the label print UI and advances status to RECEIVED on entry
 - [ ] Storage location is optional on Step 2
 - [ ] QA screen allows QA samples to be added (organism group, quantity, tests)
 - [ ] QA screen can be completed without adding any QA samples
-- [ ] Completing the QA screen advances CollectionLot status to PROCESSING
-- [ ] The lot appears in the V-03 identification worklist after reaching PROCESSING
-- [ ] Editing a lot in PROCESSING, TESTED, or ARCHIVED status is blocked (read-only)
+- [ ] Completing the QA screen advances Sample status to PROCESSING
+- [ ] The sample appears in the V-03 identification worklist after reaching PROCESSING
+- [ ] Editing a sample in PROCESSING, TESTED, or ARCHIVED status is blocked (read-only)
 
 ### Non-Functional
 
@@ -284,4 +283,4 @@ Sample Collection → Step 1 (Enter Order, Vector domain) → Step 2 (Label & St
 - [ ] Organism Group ComboBox data sourced from `/api/v1/sampleTypes?domain=VECTOR&active=true`
 - [ ] Sampling Site lookup uses existing S-02 SamplingSite API
 - [ ] Lab number assigned using existing lab numbering service with module code VCT
-- [ ] Completed lot is accessible via V-03 identification worklist API
+- [ ] Completed sample is accessible via V-03 identification worklist API

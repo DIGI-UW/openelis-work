@@ -10,6 +10,7 @@
 
 ### Change Log
 
+- **v1.5 (2026-04-23):** Removed `CollectionLot` and `VectorSpecimen` entity definitions — vector workflow uses the existing OpenELIS `Sample` and `Aliquot` entities. Removed `VectorSpecimenProfile` pooling strategy fields (POOL_FIXED/POOL_VARIABLE/INDIVIDUAL, default_pool_size) — pooling is implicit: every VECTOR Sample is a pool; quantity is specified at order entry. FR-V01-030/031/032/033/034 removed. FR-V01-021/022 simplified. BR-V01-007/008/010 updated. CollectionLot/VectorSpecimen entities removed from §5 Data Model.
 - **v1.4 (2026-04-23):** Trap Type catalog section demoted to **Deferred**. V-02 (collection workflow) no longer captures trap metadata at order entry; trap types are not needed for the simplified organism group + quantity intake flow. Trap Type admin will be scoped as a separate story when field collection tracking is added in a future phase. Species catalog and VectorGroup catalog are unaffected and remain in scope.
 - **v1.3 (2026-04-13):** Added FR-V01-GRP-011 — Groups color field MUST be a typeahead ComboBox over the shared Tag color palette with a "+ Create" affordance that opens a confirmation Modal (name + hex picker with live preview). New colors persist to a shared palette (`TagColor`) and become reusable across all tag-color pickers in OpenELIS. Added `TagColor` entity to §5 Data Model and `GET/POST /api/v1/admin/tag-colors` endpoints to §6.
 - **v1.2 (2026-04-13):** Replaced hardcoded `organism_group` enum with full-CRUD `VectorGroup` entity (system-protected defaults). Replaced §13 "Seed Data" with §13 "Reference Data Distribution via Catalog Subscription" — reuses OGC-447 FHIR Catalog Subscription pattern (Hub Status Banner, Pending Updates page with review / accept / reject). Added §3a.5 Groups navigation and §3a.6 Pending Updates navigation. Added FR-V01-GRP-001..010 (Groups CRUD). Added §4.6 Hub Subscription & Pending Updates. Working Add Group / Add Species / Add Trap flows now documented (FR-V01-UX-001..003).
@@ -38,7 +39,7 @@
 
 ## 1. Executive Summary
 
-V-01 establishes the foundational data model and admin configuration UI for vector surveillance in OpenELIS Global. It introduces three reference catalogs — **Vector Species**, **Trap Types**, and **Vector Sample Types** — plus the two-level `CollectionLot` → `VectorSpecimen` data model that downstream vector specs (V-02 Collection Workflow, V-03 Testing & Identification, V-04 Surveillance Reporting) will operate on. This is the first spec in the vector extension layer, and its data model is the foundation for all vector workflows.
+V-01 establishes the foundational data model and admin configuration UI for vector surveillance in OpenELIS Global. It introduces three reference catalogs — **Vector Species**, **Trap Types**, and **Vector Sample Types**. Vector workflows use the existing OpenELIS `Sample` and `Aliquot` entities extended with a `quantity` field and VECTOR-domain SampleTypes. V-01 delivers the reference catalogs only — no new pooling entities are introduced.
 
 ---
 
@@ -51,7 +52,7 @@ V-01 establishes the foundational data model and admin configuration UI for vect
 - Labs running both clinical and vector testing need a separate system for vector work, fragmenting their data.
 - Downstream reporting (density indices, infection rates, distribution) is impossible without a standardized specimen model.
 
-**Proposed solution:** Extend the existing Sample Type framework with a VECTOR domain, introduce three admin-managed reference catalogs (Species, Trap Types, Vector Sample Types), and define the `CollectionLot` / `VectorSpecimen` entities that support both individual and pooled specimens. This spec delivers only the admin configuration UI and data model — the collection, testing, and reporting workflows come in V-02, V-03, and V-04.
+**Proposed solution:** Extend the existing Sample Type framework with a VECTOR domain, introduce three admin-managed reference catalogs (Species, Trap Types, Vector Sample Types), and use the existing `Sample` and `Aliquot` entities. Every vector sample is treated as a pool; the quantity field records organism count. This spec delivers only the admin configuration UI and reference catalogs — the collection, testing, and reporting workflows come in V-02, V-03, and V-04.
 
 ---
 
@@ -203,9 +204,9 @@ V-01 replaces the previously-hardcoded organism-group enum with a first-class `V
 
 **FR-V01-020:** The existing `sampleDomain` enum (from S-04, OGC-538) MUST be extended with the VECTOR value. Existing CLINICAL, ENVIRONMENTAL, and BOTH values remain unchanged.
 
-**FR-V01-021:** Sample Types with `sampleDomain = VECTOR` MUST have an associated `VectorSpecimenProfile` 1:1 record holding vector-specific defaults.
+**FR-V01-021:** Sample Types with `sampleDomain = VECTOR` MAY have an associated `VectorSpecimenProfile` 1:1 record holding vector-specific metadata (allowed organism groups, preservation method, expected lifecycle stages). The pooling strategy and default pool size fields are removed — pooling is implicit for all VECTOR samples.
 
-**FR-V01-022:** The VectorSpecimenProfile MUST include: default pooling strategy (INDIVIDUAL / POOL_FIXED / POOL_VARIABLE), default pool size (nullable when strategy=INDIVIDUAL), expected lifecycle stages (multi-select), allowed organism groups (multi-select), preservation method default.
+**FR-V01-022:** The VectorSpecimenProfile, if present, MUST include: allowed organism groups (multi-select, optional hint for order entry filtering), preservation method default (optional), expected lifecycle stages (multi-select, optional).
 
 **FR-V01-023:** The existing Sample Type admin UI MUST be extended: when the user selects `sampleDomain = VECTOR`, a "Vector Profile" accordion section MUST appear on the edit form.
 
@@ -213,17 +214,7 @@ V-01 replaces the previously-hardcoded organism-group enum with a first-class `V
 
 ### 4.4 Collection Lot & Vector Specimen Data Model (model-only in V-01)
 
-**FR-V01-030:** The system MUST define the `CollectionLot` entity as the container for vector collection events. Each lot represents one trap-collection event: either a pool of N organisms or an individual.
-
-**FR-V01-031:** The `CollectionLot` entity MUST reference: sampling site (FK to SamplingSite from S-02), trap type (FK), collection date/time, pool flag, pool size (NULL when individual), collector name, weather conditions (optional), status (DRAFT / RECEIVED / PROCESSING / TESTED / ARCHIVED).
-
-**FR-V01-032:** The system MUST define the `VectorSpecimen` entity as an individual organism record within a CollectionLot. For an INDIVIDUAL lot, there is exactly 1 specimen; for a POOL lot, there are N specimens.
-
-**FR-V01-033:** Each `VectorSpecimen` MUST reference: parent CollectionLot (FK), species (FK, may be NULL until identified), lifecycle stage, sex (MALE / FEMALE / UNKNOWN / N_A), condition (LIVE / DEAD / DAMAGED / ENGORGED).
-
-**FR-V01-034:** V-01 MUST NOT provide UI for creating or editing CollectionLot or VectorSpecimen records — these belong to V-02 Collection Workflow and V-03 Testing & Identification.
-
-**FR-V01-035:** V-01 MUST NOT provide UI for pool deconvolution — this belongs to V-03.
+**FR-V01-030:** V-01 MUST NOT provide UI for creating or editing vector Sample records or Aliquot records — these belong to V-02 Collection Workflow and V-03 Testing & Identification. V-01 establishes only the reference catalogs (Species, Groups, Vector Sample Types).
 
 ### 4.5 Reference Data Distribution via Catalog Subscription
 
@@ -340,42 +331,13 @@ V-01 reference data (VectorGroup, VectorSpecies, TrapType) is distributed throug
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | sample_type_id | UUID | Yes | PK, FK → SampleType |
-| pooling_strategy | ENUM | Yes | INDIVIDUAL / POOL_FIXED / POOL_VARIABLE |
-| default_pool_size | INT | No | Required when strategy=POOL_FIXED; max 100 |
 | expected_lifecycle_stages | ARRAY<ENUM> | No | Subset of stages |
-| allowed_organism_group_codes | ARRAY<VARCHAR(40)> | Yes | FK array → VectorGroup.code; at least one (was ARRAY<ENUM> in v1.0) |
+| allowed_organism_group_codes | ARRAY<VARCHAR(40)> | No | FK array → VectorGroup.code; optional hint for order entry filtering |
 | preservation_method | VARCHAR(60) | No | e.g., "95% Ethanol", "RNAlater", "Silica Gel" |
 
-**CollectionLot** (model only — UI in V-02)
+**CollectionLot / VectorSpecimen — REMOVED**
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| id | UUID | Yes | PK |
-| lab_number | VARCHAR(40) | Yes | Unique, assigned at receipt (V-02) |
-| sampling_site_id | UUID | Yes | FK → SamplingSite (S-02) |
-| trap_type_id | UUID | Yes | FK → TrapType |
-| sample_type_id | UUID | Yes | FK → SampleType (must be VECTOR domain) |
-| collection_start_at | TIMESTAMP | Yes | Trap deployed |
-| collection_end_at | TIMESTAMP | Yes | Trap collected |
-| is_pool | BOOLEAN | Yes | TRUE if >1 specimen pooled together |
-| pool_size | INT | No | Required when is_pool=TRUE; NULL when individual |
-| collector_name | VARCHAR(120) | No | Field collector |
-| weather_conditions | TEXT | No | Optional |
-| status | ENUM | Yes | DRAFT / RECEIVED / PROCESSING / TESTED / ARCHIVED |
-| created_at, updated_at, created_by, updated_by | — | Yes | Audit |
-
-**VectorSpecimen** (model only — UI in V-03)
-
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| id | UUID | Yes | PK |
-| collection_lot_id | UUID | Yes | FK → CollectionLot |
-| species_id | UUID | No | FK → VectorSpecies (NULL until identified) |
-| lifecycle_stage | ENUM | No | See stages above |
-| sex | ENUM | No | MALE / FEMALE / UNKNOWN / N_A |
-| condition | ENUM | No | LIVE / DEAD / DAMAGED / ENGORGED |
-| notes | TEXT | No | Morphological observations |
-| created_at, updated_at | — | Yes | Audit |
+> Vector workflows use the existing OpenELIS `Sample` entity (pool = Sample) and `Aliquot` entity (sub-pool/individual = Aliquot). No new pooling entities are introduced. The only new field is `quantity` (INTEGER) added to Sample, representing the number of organisms in the pool or aliquot. This field is added by V-02.
 
 ### Modified Entities
 
@@ -521,13 +483,9 @@ Shown from overflow menu on Species and Trap Types tabs. Explains: "This will in
 
 **BR-V01-006:** A Sample Type's `sampleDomain` cannot be changed to VECTOR unless a VectorSpecimenProfile is created in the same transaction.
 
-**BR-V01-007:** A Sample Type's `sampleDomain` cannot be changed FROM VECTOR if any active CollectionLot references it; user must first archive or delete those lots.
-
-**BR-V01-008:** Pooling strategy POOL_FIXED requires `default_pool_size` between 1 and 100; POOL_VARIABLE allows pool size to be specified per lot; INDIVIDUAL forces pool_size = NULL (is_pool = FALSE).
+**BR-V01-007:** A Sample Type's `sampleDomain` cannot be changed FROM VECTOR if any active VECTOR-domain Sample records reference it.
 
 **BR-V01-009:** Seed reload is idempotent. If a seed record's unique key already exists, the existing record is left unchanged — seed reload NEVER overwrites user edits.
-
-**BR-V01-010:** Soft-delete of a trap type does not cascade. Existing CollectionLot.trap_type_id references remain valid; the trap type simply doesn't appear in new lot creation dropdowns.
 
 ---
 
