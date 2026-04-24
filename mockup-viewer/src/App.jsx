@@ -565,8 +565,20 @@ export const MOCKUP_REGISTRY = [
     added: '2026-04-24',
     status: 'draft',
     githubIssue: 95,
-    relatedTo: ['EQA Enrollment', 'EQA V1 ↔ V2 Crosswalk', 'EQA V2 ↔ APHL ePT Platform Crosswalk'],
+    relatedTo: ['EQA Enrollment', 'EQA V1 ↔ V2 Crosswalk', 'EQA V2 ↔ APHL ePT Platform Crosswalk', 'EQA V2 Design Critique'],
     tags: ['quality', 'EQA', 'iso-15189', 'iso-17043', 'proficiency-testing', 'epic', 'planning', 'jira'],
+  },
+  {
+    name: 'EQA V2 Design Critique',
+    category: 'quality',
+    component: null,
+    description: 'Structural consistency scan of EQA V2 (Epic + Stories, preview, crosswalks) — five-pass /analyze across i18n, Carbon fidelity, interaction patterns, constitution alignment, and coverage gaps. 10 findings: 1 HIGH (per-analyst column integration point undocumented), 3 MEDIUM (label sheet affordance, repeat-shipment reprovisioning, provider IA role-conditional rendering), 4 LOW (terminology drifts). No V2 blockers; V3 expansion is clear to proceed.',
+    specPath: 'designs/quality/eqa-v2-critique.md',
+    added: '2026-04-24',
+    status: 'draft',
+    githubIssue: 103,
+    relatedTo: ['EQA V2 Epic & Stories', 'EQA V1 ↔ V2 Crosswalk'],
+    tags: ['quality', 'EQA', 'design-critique', 'analyze', 'iso-15189', 'planning'],
   },
 
   {

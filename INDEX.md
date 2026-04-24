@@ -109,7 +109,8 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | EQA Enrollment | [eqa-enrollment.jsx](designs/quality/eqa-enrollment.jsx) | [eqa-enrollment-addendum.md](designs/quality/eqa-enrollment-addendum.md) |
 | EQA V1 ↔ V2 Crosswalk | — | [eqa-v1-crosswalk.md](designs/quality/eqa-v1-crosswalk.md) |
 | EQA V2 ↔ APHL ePT Platform Crosswalk | — | [eqa-v2-ept-platform-crosswalk.md](designs/quality/eqa-v2-ept-platform-crosswalk.md) |
-| EQA V2 Epic & Stories | — | [eqa-v2-epic-and-stories.md](designs/quality/eqa-v2-epic-and-stories.md) |
+| EQA V2 Epic & Stories | [preview](designs/quality/eqa-v2-preview.html) | [eqa-v2-epic-and-stories.md](designs/quality/eqa-v2-epic-and-stories.md) |
+| EQA V2 Design Critique | — | [eqa-v2-critique.md](designs/quality/eqa-v2-critique.md) |
 | Westgard Dashboard | [westgard-dashboard.jsx](designs/quality/westgard-dashboard.jsx) | [westgard-rules.md](designs/quality/westgard-rules.md) |
 | Batch Workplan with Reagent QC | [batch-workplan-reagent-qc.jsx](designs/quality/batch-workplan-reagent-qc.jsx) | [batch-workplan-reagent-qc.md](designs/quality/batch-workplan-reagent-qc.md) |
 | Analyzer Manual QC | [analyzer-manual-qc.jsx](designs/quality/analyzer-manual-qc.jsx) | [analyzer-manual-qc.md](designs/quality/analyzer-manual-qc.md) |
