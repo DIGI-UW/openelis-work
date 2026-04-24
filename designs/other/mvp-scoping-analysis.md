@@ -87,24 +87,33 @@ Confirmed with SILNAS team (2026-04-21): labs regularly refer samples to externa
 
 ## Revised MVP Sprint Plan
 
-With the on-fence items confirmed in and the analytics/FHIR layer deferred, the plan tightens from 157 SP to ~113 SP across 6 sprints — same calendar, but Sprint 5 becomes a real testing sprint instead of a crunch sprint, and the Jun 27 deadline becomes comfortable rather than a nail-biter.
+With the on-fence items confirmed in, the analytics/FHIR layer deferred, and the V-02 workflow simplified, the plan tightens further to ~106 SP across 6 sprints.
+
+### Amendment (2026-04-23): V-01/V-02 Simplification
+
+The vector collection workflow was simplified after stakeholder review:
+- **V-02 order entry** reduced to 3 fields: organism group, quantity, test selection. Step 2 (Collect Sample) removed; workflow goes Step 1 → Label/Store → QA. SP estimate: 8 → **5 SP**.
+- **V-01 Trap Type admin** deferred — no longer needed since trap metadata is not captured in V-02. SP estimate: 3 → **2 SP** (species catalog + VectorGroup only).
+- **S-09 Pre-Analytical Eligibility Gate** vector-specific criteria (transit window, pool size) are not applicable — those fields are not captured in the simplified V-02. S-09 remains in Sprint 7 (stretch) for potential ENV use only. No impact on Sprint 3.
+- **Net saving: ~4 SP** freed in Sprint 3 and Sprint 1.
 
 ### Revised Sprint Map
 
 | Sprint | Dates | Stories | SP | Notes |
 |---|---|---|---|---|
-| **1 — Foundation** | Apr 21–May 2 | OGC-296, Sample Collection Redesign, S-01, S-02, V-01 | ~24 SP | Unchanged from original plan |
-| **2 — Integration** | May 5–16 | S-03 (full), S-04, S-03d Part A, X-01 | ~22 SP | X-01 added (small, Herbert Yiga) |
-| **3 — Compliance + Vector Collection** | May 19–30 | S-05, V-02, S-03b | ~24 SP | Unchanged |
-| **4 — Report + QC + Subcontract** | Jun 2–13 | S-06, S-08, S-03c (backend), S-03d B+C | ~29 SP | **OGC-517 and V-03 removed** from this sprint |
-| **5 — Subcontract Frontend + E2E Testing** | Jun 16–27 | S-03c frontend, E2E ENV + Vector, i18n, bug fixes | ~18 SP | Testing sprint; no more crunch |
-| **6 — Buffer / Phase 2** | Jun 30–Jul 4 | V-03 if OGC-517 resolved; S-07 if capacity allows | TBD | Low-pressure; Phase 2 start or overflow buffer |
+| **1 — Foundation** | Apr 21–May 2 | OGC-296, Sample Collection Redesign, S-01, S-02, V-01 | ~21 SP | V-01 reduced to ~2 SP (trap admin deferred) |
+| **2 — Integration** | May 5–16 | S-03 (full), S-04, S-03d Part A, X-01 | ~22 SP | Unchanged |
+| **3 — Compliance + Vector Collection** | May 19–30 | S-05, V-02, S-03b | ~21 SP | V-02 simplified to ~5 SP |
+| **4 — Report + QC + Subcontract** | Jun 2–13 | S-06, S-08, S-03c (backend), S-03d B+C | ~29 SP | Unchanged |
+| **5 — Subcontract Frontend + E2E Testing** | Jun 16–27 | S-03c frontend, E2E ENV + Vector, i18n, bug fixes | ~18 SP | Testing sprint |
+| **6 — Buffer / Phase 2** | Jun 30–Jul 4 | V-03 if OGC-517 resolved; S-07 if capacity allows | TBD | Low-pressure overflow/Phase 2 start |
 
-**What changed from the original plan:**
-- **Removed from Sprint 4:** OGC-517 (13 SP) and V-03 (13 SP). These were the biggest risk items.
-- **Removed from Sprints 5–6:** V-04 (26 SP), S-05b (5 SP), S-07 (8 SP), S-07b (3 SP), S-06b (5 SP).
+**What changed from the prior revised plan:**
+- **V-01 Sprint 1:** Trap admin removed from scope → saves ~1 SP
+- **V-02 Sprint 3:** Simplified intake (no trap/GPS/pool/weather) → saves ~3 SP
+- **S-09:** Vector-specific eligibility gate deferred; ENV use tracked separately in Sprint 7
 - **S-06 remains in Sprint 4** — contractual Laporan Hasil report, due Jun 13. ✅
-- **S-07 defers to Phase 2** — frees up Herman's Sprint 5 for testing and hardening instead of a dashboard crunch.
+- **S-07 defers to Phase 2** — Herman's Sprint 5 stays a testing sprint.
 
 ---
 
@@ -112,7 +121,7 @@ With the on-fence items confirmed in and the analytics/FHIR layer deferred, the 
 
 | Metric | Full Plan | Revised MVP |
 |---|---|---|
-| Total SP | 157 | ~113 |
+| Total SP | 157 | ~106 |
 | Sprints at effective full load | 6 | 4 |
 | Buffer for testing / hardening | 0 sprints | Sprint 5 + Sprint 6 |
 | Biggest dependency risks | V-04 (OGC-586 blocker), V-03 (OGC-517) | Both eliminated |
