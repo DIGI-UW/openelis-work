@@ -540,7 +540,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-04-24',
     status: 'draft',
     githubIssue: 93,
-    relatedTo: ['EQA Enrollment', 'EQA V2 Epic & Stories'],
+    relatedTo: ['EQA Enrollment', 'EQA V2 Epic & Stories', 'EQA V2 Design Critique'],
     tags: ['quality', 'EQA', 'iso-15189', 'proficiency-testing', 'crosswalk', 'planning'],
   },
   {
