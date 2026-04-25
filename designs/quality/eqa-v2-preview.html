@@ -669,7 +669,7 @@
 
       return (
         <div>
-          <div className="breadcrumb">
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
             <a>My EQA</a> / <span>My Cycles</span>
           </div>
           <h1 className="page-title">{t('eqa.participant.myCycles', 'My EQA Cycles')}</h1>
@@ -725,7 +725,7 @@
             </div>
             <div className="filter-group">
               <div className="filter-label">Search</div>
-              <input className="filter-input" placeholder={t('eqa.search', 'Scheme, provider, cycle…')}
+              <input className="filter-input" aria-label={t('eqa.search.ariaLabel', 'Search cycles by scheme, provider, or cycle name')} placeholder={t('eqa.search', 'Scheme, provider, cycle…')}
                      value={search} onChange={e => setSearch(e.target.value)} />
             </div>
             {filtersApplied && (
@@ -890,7 +890,7 @@
     function CycleReviewScreen({ cycle, onBack }) {
       return (
         <div>
-          <div className="breadcrumb">
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
             <a onClick={(e)=>{e.preventDefault(); onBack();}}>My Cycles</a> / <span>{cycle.schemeName} — {cycle.cycleNumber}</span>
           </div>
           <h1 className="page-title">{t('eqa.review.title', 'Pre-submission summary')}</h1>
@@ -990,7 +990,7 @@
 
       return (
         <div>
-          <div className="breadcrumb">
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
             <a>EQA Oversight</a> / <a>Lab Performance</a> / <span>{title}</span>
           </div>
           <h1 className="page-title">{t(`eqa.labperf.${view}.title`, `Lab EQA Performance — ${title}`)}</h1>
@@ -1118,7 +1118,7 @@
       const [expanded, setExpanded] = useState(null);
       return (
         <div>
-          <div className="breadcrumb">
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
             <a>EQA Oversight</a> / <span>Follow-Up Queue</span>
           </div>
           <h1 className="page-title">{t('eqa.oversight.followUpQueue', 'Follow-Up Queue')}</h1>
@@ -1199,7 +1199,7 @@
     function AnalystTrackScreen() {
       return (
         <div>
-          <div className="breadcrumb">
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
             <a>EQA Oversight</a> / <span>Analyst Competency Track</span>
           </div>
           <h1 className="page-title">{t('eqa.analyst.title', 'Per-Analyst Competency Track')}</h1>
@@ -1251,7 +1251,7 @@
     function InHouseBlindingScreen({ onLaunch }) {
       return (
         <div>
-          <div className="breadcrumb">
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
             <a>EQA Program Management</a> / <span>In-House Blinding</span>
           </div>
           <div className="page-header-row">
@@ -1296,7 +1296,12 @@
                 <td><span className="seal-badge">🔒 Sealed (AES-256)</span></td>
                 <td>{statusTag('planned')}</td>
                 <td>2026-08-15 08:00</td>
-                <td><button className="cds--btn cds--btn--ghost cds--btn--sm">View →</button></td>
+                <td style={{whiteSpace:'nowrap'}}>
+                  <button className="cds--btn cds--btn--ghost cds--btn--sm" title={t('eqa.inhouse.labels.tooltip', 'Generate PDF label sheet (blind codes only — no target values)')}>
+                    {t('eqa.inhouse.labels.print', 'Print labels')}
+                  </button>
+                  <button className="cds--btn cds--btn--ghost cds--btn--sm">{t('eqa.common.view', 'View →')}</button>
+                </td>
               </tr>
               <tr>
                 <td><strong>In-House HbA1c Split</strong></td>
@@ -1305,7 +1310,12 @@
                 <td><span className="seal-badge">🔒 Sealed (AES-256)</span></td>
                 <td>{statusTag('testing')}</td>
                 <td>2026-07-01 09:00</td>
-                <td><button className="cds--btn cds--btn--ghost cds--btn--sm">View →</button></td>
+                <td style={{whiteSpace:'nowrap'}}>
+                  <button className="cds--btn cds--btn--ghost cds--btn--sm" title={t('eqa.inhouse.labels.tooltip', 'Generate PDF label sheet (blind codes only — no target values)')}>
+                    {t('eqa.inhouse.labels.print', 'Print labels')}
+                  </button>
+                  <button className="cds--btn cds--btn--ghost cds--btn--sm">{t('eqa.common.view', 'View →')}</button>
+                </td>
               </tr>
               <tr>
                 <td><strong>In-House CD4 Cross-Bench</strong></td>
@@ -1352,9 +1362,9 @@
 
       return (
         <div className="modal-backdrop" onClick={onClose}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('eqa.blinding.wizardTitle', 'In-house blinding wizard')}</h3>
-            <p>{t('eqa.blinding.wizardSub', 'Define the cycle, the blinded sample set, analyst assignment, and seal target values.')}</p>
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="blinding-wizard-title" aria-describedby="blinding-wizard-sub" onClick={(e) => e.stopPropagation()}>
+            <h3 id="blinding-wizard-title">{t('eqa.blinding.wizardTitle', 'In-house blinding wizard')}</h3>
+            <p id="blinding-wizard-sub">{t('eqa.blinding.wizardSub', 'Define the cycle, the blinded sample set, analyst assignment, and seal target values.')}</p>
 
             <div className="progress-indicator">
               {stepLabel(1, 'Scheme & cycle')}
@@ -1557,7 +1567,7 @@
     function ProviderSchemeScreen() {
       return (
         <div>
-          <div className="breadcrumb">
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
             <a>EQA Program Management</a> / <span>Schemes &amp; Programs</span>
           </div>
           <div className="page-header-row">
@@ -1629,7 +1639,7 @@
       const [expanded, setExpanded] = useState(null);
       return (
         <div>
-          <div className="breadcrumb">
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
             <a>EQA Program Management</a> / <span>Participant Follow-Up</span>
           </div>
           <h1 className="page-title">{t('eqa.followup.title', 'Participant Follow-Up Register')}</h1>
@@ -1694,6 +1704,13 @@
                           <button className="cds--btn cds--btn--tertiary cds--btn--sm">Notify participant</button>
                           <button className="cds--btn cds--btn--tertiary cds--btn--sm">Record response</button>
                           <button className="cds--btn cds--btn--secondary cds--btn--sm">Flag for repeat</button>
+                          <button
+                            className="cds--btn cds--btn--secondary cds--btn--sm"
+                            title={t('eqa.followup.shipRepeat.tooltip', 'Ship a repeat panel from the cycle\u2019s reserve aliquots (FR-V2.5-15). Only enabled once flagged for repeat and reserves are available.')}
+                            disabled={f.followupState !== 'Flagged for repeat'}
+                          >
+                            {t('eqa.followup.shipRepeat', 'Ship repeat panel')}
+                          </button>
                           <button className="cds--btn cds--btn--danger cds--btn--sm">Escalate (external review)</button>
                           <button className="cds--btn cds--btn--ghost cds--btn--sm">Resolve</button>
                           <button className="cds--btn cds--btn--ghost cds--btn--sm" style={{color:'#da1e28'}}>Remove from scheme</button>
@@ -1720,6 +1737,9 @@
       const [labPerfOpen, setLabPerfOpen] = useState(true);
       const [receiveCycle, setReceiveCycle] = useState(null);
       const [providerCyclesOpen, setProviderCyclesOpen] = useState(true);
+      const [followupOpen, setFollowupOpen] = useState(true);
+      const [panelQcOpen, setPanelQcOpen] = useState(true);
+      const [proxyEntryOpen, setProxyEntryOpen] = useState(true);
 
       const openReview = (cycle) => {
         setReviewCycle(cycle);
@@ -1753,6 +1773,7 @@
             >
               My Cycles <span className="sidebar-badge">5</span>
             </div>
+            {navItem('enhanced-receipt', 'Panel Receipt', { text: 'V3', neutral: true })}
 
             {/* Lane 2: Participant-side QA oversight */}
             <div className="sidebar-section-title">EQA Oversight</div>
@@ -1768,15 +1789,33 @@
               <div className="sidebar-submenu">
                 {navItem('labperf-coverage', 'Coverage')}
                 {navItem('labperf-recent', 'Recent Cycles')}
+                {navItem('trends', 'Trends', { text: 'V3', neutral: true })}
+                {navItem('signals', 'Signals', { text: 'V3', neutral: true })}
+                {navItem('thresholds', 'Thresholds', { text: 'V3', neutral: true })}
+                {navItem('annual-summary', 'Annual Summary', { text: 'V3', neutral: true })}
               </div>
             )}
-            {navItem('queue', 'Follow-Up Queue', { text: '3' })}
+            <div
+              className={`sidebar-item-parent${followupOpen ? ' expanded' : ''}`}
+              onClick={() => setFollowupOpen(!followupOpen)}
+            >
+              <span>Follow-Up Queue <span className="sidebar-badge">3</span></span>
+              <span className="caret">▶</span>
+            </div>
+            {followupOpen && (
+              <div className="sidebar-submenu">
+                {navItem('queue', 'Open NCEs')}
+                {navItem('nce-iqc', 'IQC Correlation', { text: 'V3', neutral: true })}
+                {navItem('patient-impact', 'Patient Impact', { text: 'V3', neutral: true })}
+              </div>
+            )}
             {navItem('analyst', 'Analyst Competency')}
 
             {/* Lane 3: Provider-only — only visible to labs that run EQA programs */}
             <div className="sidebar-section-title">EQA Program Management</div>
             <div className="sidebar-lane-hint">Provider role only — labs running EQA programs</div>
             {navItem('schemes', 'Schemes & Programs')}
+            {navItem('scheme-endpoint-config', 'Scheme Endpoints', { text: 'V3', neutral: true })}
             <div
               className={`sidebar-item-parent${providerCyclesOpen ? ' expanded' : ''}`}
               onClick={() => setProviderCyclesOpen(!providerCyclesOpen)}
@@ -1789,6 +1828,36 @@
                 {navItem('provider-prep', 'Prep Workbench')}
                 {navItem('provider-ship', 'Shipment Workbench')}
                 {navItem('provider-receipts', 'Receipt Monitor')}
+                {navItem('cold-chain-monitor', 'Cold-Chain Monitor', { text: 'V3', neutral: true })}
+              </div>
+            )}
+            <div
+              className={`sidebar-item-parent${panelQcOpen ? ' expanded' : ''}`}
+              onClick={() => setPanelQcOpen(!panelQcOpen)}
+            >
+              <span>Panel QC <span className="sidebar-badge neutral">V3</span></span>
+              <span className="caret">▶</span>
+            </div>
+            {panelQcOpen && (
+              <div className="sidebar-submenu">
+                {navItem('panel-homogeneity', 'Homogeneity Testing')}
+                {navItem('panel-stability', 'Stability Testing')}
+                {navItem('cycle-certificates', 'Cycle Certificates')}
+              </div>
+            )}
+            {navItem('nce-register', 'NCE Register', { text: 'V3', neutral: true })}
+            {navItem('detector-config', 'Detector Config', { text: 'V3', neutral: true })}
+            <div
+              className={`sidebar-item-parent${proxyEntryOpen ? ' expanded' : ''}`}
+              onClick={() => setProxyEntryOpen(!proxyEntryOpen)}
+            >
+              <span>Proxy Entry <span className="sidebar-badge neutral">V3</span></span>
+              <span className="caret">▶</span>
+            </div>
+            {proxyEntryOpen && (
+              <div className="sidebar-submenu">
+                {navItem('proxy-entry', 'Single Entry')}
+                {navItem('bulk-proxy-import', 'Bulk Import')}
               </div>
             )}
             {navItem('blinding', 'In-House Blinding', { text: 'V2.4', neutral: true })}
@@ -1809,6 +1878,30 @@
             {screen === 'provider-prep' && <ProviderPrepWorkbench />}
             {screen === 'provider-ship' && <ProviderShipmentWorkbench />}
             {screen === 'provider-receipts' && <ProviderReceiptMonitor />}
+            {/* V3.1 — Lab Performance Analytics */}
+            {screen === 'trends' && <TrendsScreen />}
+            {screen === 'signals' && <SignalsScreen />}
+            {screen === 'thresholds' && <ThresholdsConfigScreen />}
+            {screen === 'annual-summary' && <AnnualSummaryScreen />}
+            {/* V3.2 — Cold Chain + Enhanced Receipt */}
+            {screen === 'cold-chain-monitor' && <ColdChainMonitorScreen />}
+            {screen === 'enhanced-receipt' && <EnhancedReceiptScreen />}
+            {/* V3.3 — IQC Correlation */}
+            {screen === 'nce-iqc' && <NCEInvestigationIQCScreen />}
+            {/* V3.4 — Patient Impact */}
+            {screen === 'patient-impact' && <PatientImpactScreen />}
+            {/* V3.5 — ISO 17043 Panel QC */}
+            {screen === 'panel-homogeneity' && <PanelHomogeneityScreen />}
+            {screen === 'panel-stability' && <PanelStabilityScreen />}
+            {screen === 'cycle-certificates' && <CycleCertificatesScreen />}
+            {/* V3.6 — Provider NCE + Detectors */}
+            {screen === 'nce-register' && <NCERegisterScreen />}
+            {screen === 'detector-config' && <DetectorConfigScreen />}
+            {/* V3.7 — Proxy Entry */}
+            {screen === 'proxy-entry' && <ProxyEntryScreen />}
+            {screen === 'bulk-proxy-import' && <BulkProxyImportScreen />}
+            {/* V3.8 — Scheme Endpoints */}
+            {screen === 'scheme-endpoint-config' && <SchemeEndpointConfigScreen />}
           </main>
 
           {wizardOpen && <BlindingWizardModal onClose={() => setWizardOpen(false)} />}
@@ -1820,12 +1913,20 @@
     function EnrollmentsPlaceholder() {
       return (
         <div>
-          <div className="breadcrumb">
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
             <a>My EQA</a> / <span>My Enrollments</span>
           </div>
           <h1 className="page-title">{t('eqa.enroll.title', 'My EQA Enrollments')}</h1>
           <div className="page-subtitle">
             {t('eqa.enroll.subtitle', 'Carbon port of the V1 enrollment UI (scope of V2.2). Enroll this lab in new schemes, map per-analyst eligibility where applicable, and attach accreditation alternative-assessment notes for §7.7.2 coverage gaps.')}
+          </div>
+          <div className="cds--inline-notification cds--inline-notification--info" role="status" style={{marginBottom:'1rem'}}>
+            <div className="cds--inline-notification__details">
+              <div className="cds--inline-notification__text-wrapper">
+                <p className="cds--inline-notification__title">{t('eqa.enroll.previewBanner.title', 'Preview placeholder')}</p>
+                <p className="cds--inline-notification__subtitle">{t('eqa.enroll.previewBanner.body', 'V1 enrollment UI has already been ported to Carbon (per FR-V2.2-01). This preview stub reserves the IA slot only — the real screen lives in the shipped app.')}</p>
+              </div>
+            </div>
           </div>
           <div className="tile">
             <div style={{fontSize:14, color:'#525252'}}>V1 enrollment table ports here — scheme name, type, enrollment status, effective dates, assigned analysts (for per-analyst schemes).</div>
@@ -1839,9 +1940,9 @@
       const [integrityOk, setIntegrityOk] = useState(true);
       return (
         <div className="modal-backdrop" onClick={onClose}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('eqa.receipt.title', 'Confirm panel receipt')}</h3>
-            <p style={{fontSize:13, color:'#525252'}}>
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="panel-receipt-title" aria-describedby="panel-receipt-sub" onClick={(e) => e.stopPropagation()}>
+            <h3 id="panel-receipt-title">{t('eqa.receipt.title', 'Confirm panel receipt')}</h3>
+            <p id="panel-receipt-sub" style={{fontSize:13, color:'#525252'}}>
               {t('eqa.receipt.sub', 'Minimal receipt event — records who received the panel and when. Temperature + integrity fields are optional at MVP; structured cold-chain validation arrives in V3.2.')}
             </p>
 
@@ -1918,7 +2019,7 @@
       ];
       return (
         <div>
-          <div className="breadcrumb">
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
             <a>EQA Program Management</a> / <a>Provider Cycles</a> / <span>Prep Workbench</span>
           </div>
           <h1 className="page-title">{t('eqa.provider.prep.title', 'Prep workbench')}</h1>
@@ -2002,7 +2103,7 @@
       };
       return (
         <div>
-          <div className="breadcrumb">
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
             <a>EQA Program Management</a> / <a>Provider Cycles</a> / <span>Shipment Workbench</span>
           </div>
           <h1 className="page-title">{t('eqa.provider.ship.title', 'Shipment workbench — EA HIV VL 2026-Q3')}</h1>
@@ -2094,7 +2195,7 @@
       const totalCount = receipts.length;
       return (
         <div>
-          <div className="breadcrumb">
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
             <a>EQA Program Management</a> / <a>Provider Cycles</a> / <span>Receipt Monitor</span>
           </div>
           <h1 className="page-title">{t('eqa.provider.receipt.title', 'Receipt monitor — EA HIV VL 2026-Q3')}</h1>
@@ -2190,6 +2291,1108 @@
 
           <div style={{fontSize:12, color:'#525252', marginTop:12}}>
             {t('eqa.provider.receipt.noteFhir', 'Receipts arrive via participant-side V2.2 receipt modal + best-effort FHIR ShipmentDelivery inbound. Inbound FHIR failures fall back to manual entry on this screen.')}
+          </div>
+        </div>
+      );
+    }
+
+    /* =======================================================================
+       V3 SCREENS (V3.1 Analytics, V3.2 Cold-Chain, V3.3 IQC, V3.4 Patient Impact,
+       V3.5 ISO 17043, V3.6 Provider NCE, V3.7 Proxy Entry, V3.8 ePT FHIR)
+       ======================================================================= */
+
+    // ---------- V3.1 — Multi-Cycle Analytics ----------
+
+    function TrendsScreen() {
+      const analytes = [
+        { name: 'HIV-1 VL (log10 cp/mL)', z: [-0.4, -0.2, -0.8, -1.1, -1.3, -1.6], trend: 'drift_down', cycles: 6, recent: -1.6 },
+        { name: 'HIV Serology (categorical)', z: [null, null, null, null, null, null], trend: 'categorical', cycles: 6, recent: 'match' },
+        { name: 'HCV-Ab (categorical)', z: [null, null, null, null, null, null], trend: 'categorical', cycles: 6, recent: 'match' },
+        { name: 'TB GeneXpert (qualitative)', z: [null, null, null, null, null, null], trend: 'categorical', cycles: 6, recent: 'match' },
+      ];
+      const sparkline = (zs) => {
+        if (!zs || zs[0] === null) return <span style={{color:'#8d8d8d'}}>—</span>;
+        const w = 120, h = 28, pad = 2;
+        const min = -2, max = 2;
+        const pts = zs.map((z, i) => {
+          const x = pad + (i / (zs.length - 1)) * (w - pad*2);
+          const y = pad + ((max - z) / (max - min)) * (h - pad*2);
+          return `${x},${y}`;
+        }).join(' ');
+        return (
+          <svg width={w} height={h} style={{display:'inline-block', verticalAlign:'middle'}}>
+            <line x1={0} x2={w} y1={h/2} y2={h/2} stroke="#e0e0e0" strokeWidth="1" />
+            <polyline fill="none" stroke="#0f62fe" strokeWidth="1.5" points={pts} />
+            {zs.map((z, i) => {
+              const x = pad + (i / (zs.length - 1)) * (w - pad*2);
+              const y = pad + ((max - z) / (max - min)) * (h - pad*2);
+              return <circle key={i} cx={x} cy={y} r="2" fill="#0f62fe" />;
+            })}
+          </svg>
+        );
+      };
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Oversight</a> / <a>Lab Performance</a> / <span>Trends</span>
+          </div>
+          <h1 className="page-title">{t('eqa.analytics.trends.title', 'Performance Trends')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.analytics.trends.subtitle', 'Multi-cycle z-score trend per analyte. Trend classifications (stable / drift-up / drift-down / oscillating) are computed from the last 6 cycles; drill into an analyte to see the full history.')}
+          </div>
+
+          <div className="toolbar">
+            <div className="toolbar-left">
+              <select className="cds--select-input" style={{marginRight:8, padding:'4px 8px'}}>
+                <option>Last 6 cycles</option><option>Last 12 cycles</option><option>Last 24 months</option>
+              </select>
+              <select className="cds--select-input" style={{padding:'4px 8px'}}>
+                <option>All schemes</option><option>HIV serology</option><option>HIV VL</option><option>TB</option>
+              </select>
+            </div>
+            <div>
+              <button className="cds--btn cds--btn--tertiary cds--btn--sm">Download CSV</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Download chart</button>
+            </div>
+          </div>
+
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Analyte</th>
+                <th>Scheme</th>
+                <th>Last 6 z-scores</th>
+                <th>Trend</th>
+                <th>Most recent</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytes.map((a, i) => (
+                <tr key={i}>
+                  <td><strong>{a.name}</strong></td>
+                  <td>{i === 0 ? 'HIV VL Monthly' : i === 1 ? 'HIV Serology Q' : i === 2 ? 'HCV-Ab Q' : 'TB GeneXpert Q'}</td>
+                  <td>{sparkline(a.z)}</td>
+                  <td>
+                    {a.trend === 'drift_down' && <span className="cds--tag cds--tag--red">Drift down</span>}
+                    {a.trend === 'categorical' && <span className="cds--tag cds--tag--gray">Categorical — match streak</span>}
+                  </td>
+                  <td>{typeof a.recent === 'number' ? `z = ${a.recent.toFixed(1)}` : a.recent}</td>
+                  <td><button className="cds--btn cds--btn--ghost cds--btn--sm">Open detail</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="tile" style={{marginTop:'1.5rem'}}>
+            <div style={{fontSize:14, fontWeight:600, marginBottom:6}}>Detected drift — HIV-1 VL</div>
+            <div style={{fontSize:13, color:'#525252'}}>Six-cycle slope = −0.24 z / cycle. Threshold for drift = |slope| ≥ 0.15 over ≥ 4 cycles. A Signal was raised on 2026-04-12 (<a style={{color:'#0f62fe'}}>view</a>).</div>
+          </div>
+        </div>
+      );
+    }
+
+    function SignalsScreen() {
+      const signals = [
+        { id: 'SIG-0042', kind: 'trend_drift', analyte: 'HIV-1 VL', detected: '2026-04-12', acked: false, severity: 'major' },
+        { id: 'SIG-0041', kind: 'edge_warning', analyte: 'HCV-Ab', detected: '2026-04-10', acked: true, severity: 'minor' },
+        { id: 'SIG-0040', kind: 'repeated_fail', analyte: 'TB GeneXpert', detected: '2026-04-03', acked: false, severity: 'critical' },
+        { id: 'SIG-0039', kind: 'coverage_drop', analyte: '—', detected: '2026-03-28', acked: true, severity: 'major' },
+      ];
+      const kindLabel = (k) => ({
+        trend_drift: 'Trend drift',
+        edge_warning: 'Edge warning',
+        repeated_fail: 'Repeated unacceptable',
+        coverage_drop: 'Coverage drop',
+      })[k] || k;
+      const sevTag = (s) => {
+        if (s === 'critical') return <span className="cds--tag cds--tag--red">Critical</span>;
+        if (s === 'major')    return <span className="cds--tag cds--tag--warm-gray">Major</span>;
+        return <span className="cds--tag cds--tag--gray">Minor</span>;
+      };
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Oversight</a> / <a>Lab Performance</a> / <span>Signals</span>
+          </div>
+          <h1 className="page-title">{t('eqa.analytics.signals.title', 'Performance Signals')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.analytics.signals.subtitle', 'Auto-detected performance problems (trend drift, edge warnings, repeated unacceptable, coverage gaps). Thresholds are configurable — review and acknowledge signals; unacknowledged critical signals age onto the Follow-Up Queue as NCEs.')}
+          </div>
+
+          <div className="kpi-row">
+            <div className="kpi-tile"><div className="kpi-label">Open signals</div><div className="kpi-value" style={{color:'#da1e28'}}>2</div></div>
+            <div className="kpi-tile"><div className="kpi-label">Acknowledged (30d)</div><div className="kpi-value">2</div></div>
+            <div className="kpi-tile"><div className="kpi-label">Escalated to NCE</div><div className="kpi-value">1</div></div>
+          </div>
+
+          <div className="toolbar">
+            <div className="toolbar-left"><strong>Signals</strong> · {signals.length} results</div>
+            <div>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Configure thresholds →</button>
+            </div>
+          </div>
+
+          <table className="data-table">
+            <thead><tr>
+              <th>ID</th><th>Kind</th><th>Analyte</th><th>Detected</th><th>Severity</th><th>State</th><th></th>
+            </tr></thead>
+            <tbody>
+              {signals.map(s => (
+                <tr key={s.id}>
+                  <td><strong>{s.id}</strong></td>
+                  <td>{kindLabel(s.kind)}</td>
+                  <td>{s.analyte}</td>
+                  <td>{s.detected}</td>
+                  <td>{sevTag(s.severity)}</td>
+                  <td>{s.acked ? <span className="cds--tag cds--tag--teal">Acknowledged</span> : <span className="cds--tag cds--tag--purple">Open</span>}</td>
+                  <td>
+                    {!s.acked
+                      ? <>
+                          <button className="cds--btn cds--btn--tertiary cds--btn--sm">Acknowledge</button>
+                          <button className="cds--btn cds--btn--ghost cds--btn--sm">Escalate → NCE</button>
+                        </>
+                      : <button className="cds--btn cds--btn--ghost cds--btn--sm">View</button>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    function ThresholdsConfigScreen() {
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Oversight</a> / <a>Lab Performance</a> / <a>Signals</a> / <span>Thresholds</span>
+          </div>
+          <h1 className="page-title">{t('eqa.analytics.thresholds.title', 'Signal Thresholds')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.analytics.thresholds.subtitle', 'Per-signal threshold configuration. Defaults are sensible for most labs; tune if your cycle cadence or analyte mix warrants narrower or wider bands. Requires eqa.analytics.config.')}
+          </div>
+
+          <div className="tile" style={{maxWidth:760}}>
+            <div style={{fontWeight:600, marginBottom:10}}>Trend drift</div>
+            <div className="form-row">
+              <div className="form-field">
+                <label className="cds--label">Min cycles for drift</label>
+                <input className="cds--text-input" defaultValue="4" />
+              </div>
+              <div className="form-field">
+                <label className="cds--label">Slope threshold (|z/cycle|)</label>
+                <input className="cds--text-input" defaultValue="0.15" />
+              </div>
+              <div className="form-field">
+                <label className="cds--label">Default severity</label>
+                <select className="cds--select-input"><option>major</option><option>minor</option><option>critical</option></select>
+              </div>
+            </div>
+            <div style={{borderTop:'1px solid #e0e0e0', margin:'16px 0'}}></div>
+            <div style={{fontWeight:600, marginBottom:10}}>Edge warning</div>
+            <div className="form-row">
+              <div className="form-field">
+                <label className="cds--label">|z| threshold</label>
+                <input className="cds--text-input" defaultValue="1.8" />
+              </div>
+              <div className="form-field">
+                <label className="cds--label">Default severity</label>
+                <select className="cds--select-input"><option>minor</option><option>major</option></select>
+              </div>
+            </div>
+            <div style={{borderTop:'1px solid #e0e0e0', margin:'16px 0'}}></div>
+            <div style={{fontWeight:600, marginBottom:10}}>Repeated unacceptable</div>
+            <div className="form-row">
+              <div className="form-field">
+                <label className="cds--label">Unacceptable in last N cycles</label>
+                <input className="cds--text-input" defaultValue="2 of last 4" />
+              </div>
+              <div className="form-field">
+                <label className="cds--label">Default severity</label>
+                <select className="cds--select-input"><option>critical</option><option>major</option></select>
+              </div>
+            </div>
+            <div style={{borderTop:'1px solid #e0e0e0', margin:'16px 0'}}></div>
+            <div style={{fontWeight:600, marginBottom:10}}>Coverage drop</div>
+            <div className="form-row">
+              <div className="form-field">
+                <label className="cds--label">Coverage % threshold</label>
+                <input className="cds--text-input" defaultValue="80" />
+              </div>
+              <div className="form-field">
+                <label className="cds--label">Look-back window (months)</label>
+                <input className="cds--text-input" defaultValue="12" />
+              </div>
+            </div>
+
+            <div className="btn-row" style={{marginTop:16}}>
+              <button className="cds--btn cds--btn--primary cds--btn--sm">Save thresholds</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Restore defaults</button>
+            </div>
+            <div className="cds--inline-notification cds--inline-notification--info" style={{marginTop:16, padding:'8px 12px'}}>
+              Changes apply to signal evaluation from the next nightly run; existing open signals are not re-evaluated.
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function AnnualSummaryScreen() {
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Oversight</a> / <span>Annual Summary</span>
+          </div>
+          <h1 className="page-title">{t('eqa.analytics.annual.title', 'Annual EQA Summary')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.analytics.annual.subtitle', 'Accreditation-ready yearly rollup of cycles, pass rates, CAPAs, and coverage. Generates a date-stamped PDF for ISO 15189 assessor review.')}
+          </div>
+
+          <div className="toolbar">
+            <div className="toolbar-left">
+              <select className="cds--select-input" style={{padding:'4px 8px'}}>
+                <option>2025</option><option>2024</option><option>2023</option>
+              </select>
+            </div>
+            <div>
+              <button className="cds--btn cds--btn--primary cds--btn--sm">Generate PDF</button>
+              <button className="cds--btn cds--btn--tertiary cds--btn--sm">Download CSV appendix</button>
+            </div>
+          </div>
+
+          <div className="kpi-row">
+            <div className="kpi-tile"><div className="kpi-label">Cycles participated</div><div className="kpi-value">42</div></div>
+            <div className="kpi-tile"><div className="kpi-label">Acceptable rate</div><div className="kpi-value">94.3%</div></div>
+            <div className="kpi-tile"><div className="kpi-label">CAPAs closed</div><div className="kpi-value">5</div></div>
+            <div className="kpi-tile"><div className="kpi-label">Coverage (analytes tested)</div><div className="kpi-value">87.5%</div></div>
+          </div>
+
+          <div className="tile" style={{marginTop:16}}>
+            <div style={{fontWeight:600, marginBottom:8}}>Per-scheme rollup</div>
+            <table className="data-table">
+              <thead><tr>
+                <th>Scheme</th><th>Cycles</th><th>Acceptable</th><th>Unacceptable</th><th>CAPA opened</th><th>CAPA closed</th>
+              </tr></thead>
+              <tbody>
+                <tr><td><strong>HIV Serology Q</strong></td><td>4</td><td>4</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><strong>HIV VL Monthly</strong></td><td>12</td><td>11</td><td>1</td><td>1</td><td>1</td></tr>
+                <tr><td><strong>HCV-Ab Q</strong></td><td>4</td><td>4</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><strong>TB GeneXpert Q</strong></td><td>4</td><td>3</td><td>1</td><td>1</td><td>1</td></tr>
+                <tr><td><strong>COVID-19 Q</strong></td><td>4</td><td>4</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td><strong>Syphilis Rapid Q</strong></td><td>4</td><td>3</td><td>1</td><td>1</td><td>1</td></tr>
+                <tr><td colSpan="6" style={{textAlign:'center', color:'#525252', fontSize:12}}>… + 6 more</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------- V3.2 — Cold-Chain Validators + Rejection ----------
+
+    function ColdChainMonitorScreen() {
+      const rows = [
+        { lab: 'Butembo Regional Lab', cycle: 'HIV VL 2026-04', shippedT: '−70°C', receivedT: '−62°C', sev: 'minor', disp: 'accept_with_deviation' },
+        { lab: 'Kinshasa Univ. Hospital', cycle: 'HIV VL 2026-04', shippedT: '−70°C', receivedT: '−71°C', sev: null, disp: 'accept' },
+        { lab: 'Mbuji-Mayi Ref. Lab', cycle: 'HIV VL 2026-04', shippedT: '−70°C', receivedT: '+8°C', sev: 'critical', disp: 'rejected' },
+        { lab: 'Goma Prov. Hospital', cycle: 'HCV-Ab 2026-Q2', shippedT: '2–8°C', receivedT: '9.4°C', sev: 'major', disp: 'accept_with_deviation' },
+        { lab: 'Lubumbashi Lab', cycle: 'HCV-Ab 2026-Q2', shippedT: '2–8°C', receivedT: '6.1°C', sev: null, disp: 'accept' },
+      ];
+      const sevTag = (s) => {
+        if (s === 'critical') return <span className="cds--tag cds--tag--red">Critical</span>;
+        if (s === 'major') return <span className="cds--tag cds--tag--warm-gray">Major</span>;
+        if (s === 'minor') return <span className="cds--tag cds--tag--gray">Minor</span>;
+        return <span style={{color:'#8d8d8d'}}>—</span>;
+      };
+      const dispTag = (d) => {
+        if (d === 'accept') return <span className="cds--tag cds--tag--green">Accepted</span>;
+        if (d === 'accept_with_deviation') return <span className="cds--tag cds--tag--warm-gray">Accepted w/ deviation</span>;
+        if (d === 'rejected') return <span className="cds--tag cds--tag--red">Rejected</span>;
+        return d;
+      };
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Program Management</a> / <a>Provider Cycles</a> / <span>Cold-Chain Monitor</span>
+          </div>
+          <h1 className="page-title">{t('eqa.coldchain.monitor.title', 'Cold-Chain Monitor')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.coldchain.monitor.subtitle', 'Cross-lab shipment temperature + disposition tracker. Red rows indicate rejected panels — a reprovisioning task (V2.5) is auto-created on rejection.')}
+          </div>
+
+          <div className="kpi-row">
+            <div className="kpi-tile"><div className="kpi-label">Shipments (active cycles)</div><div className="kpi-value">47</div></div>
+            <div className="kpi-tile"><div className="kpi-label">Deviations (30d)</div><div className="kpi-value" style={{color:'#c21e56'}}>8</div></div>
+            <div className="kpi-tile"><div className="kpi-label">Rejections (30d)</div><div className="kpi-value" style={{color:'#da1e28'}}>1</div></div>
+            <div className="kpi-tile"><div className="kpi-label">Courier lane failure rate</div><div className="kpi-value">3.2%</div></div>
+          </div>
+
+          <div className="toolbar">
+            <div className="toolbar-left">
+              <select className="cds--select-input" style={{padding:'4px 8px', marginRight:8}}><option>All cycles</option></select>
+              <select className="cds--select-input" style={{padding:'4px 8px', marginRight:8}}><option>All severities</option><option>Critical</option><option>Major</option><option>Minor</option></select>
+              <select className="cds--select-input" style={{padding:'4px 8px'}}><option>All courier lanes</option></select>
+            </div>
+            <button className="cds--btn cds--btn--tertiary cds--btn--sm">Download CSV</button>
+          </div>
+
+          <table className="data-table">
+            <thead><tr>
+              <th>Participant</th><th>Cycle</th><th>Shipped temp</th><th>Received temp</th><th>Severity</th><th>Disposition</th><th></th>
+            </tr></thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i}>
+                  <td><strong>{r.lab}</strong></td>
+                  <td>{r.cycle}</td>
+                  <td>{r.shippedT}</td>
+                  <td>{r.receivedT}</td>
+                  <td>{sevTag(r.sev)}</td>
+                  <td>{dispTag(r.disp)}</td>
+                  <td><button className="cds--btn cds--btn--ghost cds--btn--sm">View →</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    function EnhancedReceiptScreen() {
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>My EQA</a> / <a>My Cycles</a> / <a>HCV-Ab 2026-Q2</a> / <span>Panel receipt (V3.2)</span>
+          </div>
+          <h1 className="page-title">{t('eqa.coldchain.receipt.title', 'Panel receipt — with cold-chain validation')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.coldchain.receipt.subtitle', 'Enhanced two-step receipt. Step 1: temperature + packaging checklist. Step 2: disposition. Cold-chain deviations do not block testing but attach to the scored report for interpretation (ISO 15189 §7.3.4).')}
+          </div>
+
+          <div className="tile" style={{maxWidth:780}}>
+            <div style={{fontSize:14, color:'#525252', marginBottom:12}}>
+              <strong>Step 1 of 2</strong> — Temperature + packaging
+            </div>
+
+            <div className="form-row">
+              <div className="form-field">
+                <label className="cds--label">Received date</label>
+                <input className="cds--text-input" defaultValue="2026-04-18" />
+              </div>
+              <div className="form-field">
+                <label className="cds--label">Received by</label>
+                <input className="cds--text-input" defaultValue="J. Okonkwo" />
+              </div>
+              <div className="form-field">
+                <label className="cds--label">Temperature reading (°C)</label>
+                <input className="cds--text-input" defaultValue="9.4" />
+                <div style={{fontSize:12, color:'#da1e28', marginTop:4}}>Out of range (2.0–8.0°C)</div>
+              </div>
+            </div>
+
+            <div style={{borderTop:'1px solid #e0e0e0', margin:'16px 0'}}></div>
+            <div style={{fontWeight:600, marginBottom:10}}>Packaging checklist</div>
+            <table className="data-table">
+              <thead><tr><th>Item</th><th>State</th></tr></thead>
+              <tbody>
+                <tr><td>Outer packaging</td><td><select className="cds--select-input" style={{padding:'4px 8px'}}><option>intact</option><option>damaged_minor</option><option>damaged_major</option></select></td></tr>
+                <tr><td>Inner container</td><td><select className="cds--select-input" style={{padding:'4px 8px'}}><option>intact</option><option>damaged_minor</option><option>damaged_major</option></select></td></tr>
+                <tr><td>Ice pack</td><td><select className="cds--select-input" style={{padding:'4px 8px'}} defaultValue="partially_thawed"><option>frozen_hard</option><option>partially_thawed</option><option>fully_thawed</option><option>not_applicable</option></select></td></tr>
+                <tr><td>Desiccant</td><td><select className="cds--select-input" style={{padding:'4px 8px'}}><option>active</option><option>exhausted</option><option>missing</option><option>not_applicable</option></select></td></tr>
+                <tr><td>Tamper-evident seal</td><td><select className="cds--select-input" style={{padding:'4px 8px'}}><option>intact</option><option>broken</option><option>not_applicable</option></select></td></tr>
+              </tbody>
+            </table>
+
+            <div className="cds--inline-notification cds--inline-notification--error" style={{marginTop:12, padding:'8px 12px'}}>
+              2 deviations detected: temp_out_of_range (major), ice_pack_failed (major). Select a disposition on Step 2.
+            </div>
+
+            <div className="btn-row" style={{marginTop:16}}>
+              <button className="cds--btn cds--btn--primary cds--btn--sm">Next: disposition →</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Cancel</button>
+            </div>
+          </div>
+
+          <div className="tile" style={{marginTop:16, maxWidth:780, opacity:0.6}}>
+            <div style={{fontSize:14, color:'#525252', marginBottom:10}}><strong>Step 2 of 2</strong> — Disposition (preview)</div>
+            <div style={{marginBottom:10}}>
+              <label><input type="radio" disabled /> Accept</label>&nbsp;&nbsp;
+              <label><input type="radio" defaultChecked disabled /> Accept with deviation</label>&nbsp;&nbsp;
+              <label><input type="radio" disabled /> Reject (requires eqa.receipt.reject)</label>
+            </div>
+            <div className="form-field">
+              <label className="cds--label">Notes (optional)</label>
+              <textarea className="cds--text-input" rows="3" placeholder="Add free-text context if needed"></textarea>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------- V3.3 — IQC ↔ EQA Correlation ----------
+
+    function NCEInvestigationIQCScreen() {
+      const runs = [
+        { ts: '2026-04-12 10:15', level: 'Low', state: 'in_control', rules: '—' },
+        { ts: '2026-04-12 13:40', level: 'Mid', state: 'violation', rules: '1-3s' },
+        { ts: '2026-04-12 14:00', level: '—', state: 'eqa_run', rules: 'EQA result entered' },
+        { ts: '2026-04-12 15:20', level: 'High', state: 'in_control', rules: '—' },
+      ];
+      const stateTag = (s) => {
+        if (s === 'in_control') return <span className="cds--tag cds--tag--green">In control</span>;
+        if (s === 'violation')  return <span className="cds--tag cds--tag--red">Violation</span>;
+        if (s === 'eqa_run')    return <span className="cds--tag cds--tag--blue">EQA event</span>;
+        return s;
+      };
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Oversight</a> / <a>Follow-Up Queue</a> / <a>NCE-2026-0184</a> / <span>Same-run IQC</span>
+          </div>
+          <h1 className="page-title">{t('eqa.iqc_correlation.title', 'NCE-2026-0184 — HIV-1 VL Unacceptable')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.iqc_correlation.subtitle', 'EQA-triggered NCE investigation. Same-run IQC context shown below helps distinguish an isolated EQA error from a system-wide QC problem.')}
+          </div>
+
+          <div className="tile" style={{marginBottom:16}}>
+            <div style={{fontWeight:600, marginBottom:8}}>Trigger</div>
+            <div style={{fontSize:13, color:'#525252'}}>
+              EQA result entered 2026-04-12 14:00 · Analyte HIV-1 VL · Instrument Abbott m2000rt-01 · z = −2.7 · performance = <span className="cds--tag cds--tag--red">Unacceptable</span>
+            </div>
+          </div>
+
+          <div className="tile">
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10}}>
+              <div style={{fontWeight:600}}>Same-run IQC (window ±8h)</div>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Adjust window</button>
+            </div>
+            <table className="data-table">
+              <thead><tr>
+                <th>Run time</th><th>QC level</th><th>State</th><th>Westgard rules</th><th></th>
+              </tr></thead>
+              <tbody>
+                {runs.map((r, i) => (
+                  <tr key={i} style={r.state === 'eqa_run' ? {background:'#edf5ff'} : {}}>
+                    <td>{r.ts}</td>
+                    <td>{r.level}</td>
+                    <td>{stateTag(r.state)}</td>
+                    <td>{r.rules}</td>
+                    <td>{r.state !== 'eqa_run' && <button className="cds--btn cds--btn--ghost cds--btn--sm">View →</button>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div style={{marginTop:16, fontWeight:600}}>Levey-Jennings snippet (Mid level)</div>
+            <svg width="100%" height="120" viewBox="0 0 600 120" style={{display:'block', marginTop:8}}>
+              <line x1="0" x2="600" y1="60" y2="60" stroke="#e0e0e0" />
+              <line x1="0" x2="600" y1="20" y2="20" stroke="#fa4d56" strokeDasharray="3,3" />
+              <line x1="0" x2="600" y1="100" y2="100" stroke="#fa4d56" strokeDasharray="3,3" />
+              <text x="4" y="18" fontSize="10" fill="#fa4d56">+3s</text>
+              <text x="4" y="58" fontSize="10" fill="#6f6f6f">mean</text>
+              <text x="4" y="112" fontSize="10" fill="#fa4d56">−3s</text>
+              <polyline fill="none" stroke="#0f62fe" strokeWidth="2" points="40,62 120,58 200,55 280,60 360,28 440,62 520,60" />
+              <circle cx="360" cy="28" r="4" fill="#da1e28" stroke="#fff" strokeWidth="1.5" />
+              <text x="360" y="18" fontSize="10" textAnchor="middle" fill="#da1e28">1-3s violation</text>
+            </svg>
+
+            <div className="cds--inline-notification cds--inline-notification--info" style={{marginTop:12, padding:'8px 12px'}}>
+              QC violation 20 minutes before the EQA run suggests a system-wide drift, not an isolated EQA misstep. Recommend escalating the root-cause note to reference this IQC event.
+            </div>
+          </div>
+
+          <div className="tile" style={{marginTop:16}}>
+            <div style={{fontWeight:600, marginBottom:8}}>Root-cause note</div>
+            <textarea className="cds--text-input" rows="4" placeholder="Investigation notes (links to IQC runs are auto-attached on save)…"></textarea>
+            <div className="btn-row" style={{marginTop:8}}>
+              <button className="cds--btn cds--btn--primary cds--btn--sm">Save &amp; continue</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Open Patient Impact tab →</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------- V3.4 — Patient Impact Look-Back ----------
+
+    function PatientImpactScreen() {
+      const items = [
+        { sample: 'S-2026-18421', patient: '[redacted-a91f]', reported: '2026-04-12 11:42', result: '4.12 log10', flag: 'low', assessment: 'no_impact' },
+        { sample: 'S-2026-18427', patient: '[redacted-3c04]', reported: '2026-04-12 12:58', result: '2.81 log10', flag: 'low', assessment: 'review_advised' },
+        { sample: 'S-2026-18431', patient: '[redacted-b62d]', reported: '2026-04-12 13:35', result: 'not detected', flag: null, assessment: 'clinician_notified' },
+        { sample: 'S-2026-18434', patient: '[redacted-a8e1]', reported: '2026-04-12 14:15', result: '3.22 log10', flag: null, assessment: 'result_retracted' },
+        { sample: 'S-2026-18440', patient: '[redacted-ef11]', reported: '2026-04-12 14:48', result: '5.01 log10', flag: 'high', assessment: 'pending' },
+      ];
+      const assTag = (a) => {
+        const map = {
+          pending: ['cds--tag--gray', 'Pending'],
+          no_impact: ['cds--tag--green', 'No impact'],
+          review_advised: ['cds--tag--purple', 'Review advised'],
+          clinician_notified: ['cds--tag--blue', 'Clinician notified'],
+          result_retracted: ['cds--tag--red', 'Retracted'],
+          result_reissued: ['cds--tag--warm-gray', 'Reissued'],
+        };
+        const [cls, label] = map[a] || ['cds--tag--gray', a];
+        return <span className={`cds--tag ${cls}`}>{label}</span>;
+      };
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Oversight</a> / <a>Follow-Up Queue</a> / <a>NCE-2026-0184</a> / <span>Patient Impact</span>
+          </div>
+          <h1 className="page-title">{t('eqa.impact.title', 'Patient Impact Look-Back')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.impact.subtitle', 'ISO 15189 §7.5 — patient samples reported on the same instrument/analyte between the last IQC-passing run before the EQA error and the first IQC-passing run after. Record a disposition per sample.')}
+          </div>
+
+          <div className="tile" style={{marginBottom:12}}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+              <div>
+                <div style={{fontSize:13}}><strong>Window:</strong> 2026-04-12 10:15 → 2026-04-12 15:20 &nbsp;·&nbsp; <span className="cds--tag cds--tag--teal">auto</span></div>
+                <div style={{fontSize:12, color:'#525252'}}>Source: last prior IQC pass → first subsequent IQC pass</div>
+              </div>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Override window</button>
+            </div>
+          </div>
+
+          <div className="kpi-row">
+            <div className="kpi-tile"><div className="kpi-label">Samples in window</div><div className="kpi-value">5</div></div>
+            <div className="kpi-tile"><div className="kpi-label">Reviewed</div><div className="kpi-value">4</div></div>
+            <div className="kpi-tile"><div className="kpi-label">Retracted</div><div className="kpi-value" style={{color:'#da1e28'}}>1</div></div>
+          </div>
+
+          <div className="toolbar">
+            <div className="toolbar-left"><strong>Patient samples</strong> · 5 rows</div>
+            <div>
+              <button className="cds--btn cds--btn--tertiary cds--btn--sm">Download CSV (redacted)</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Download PDF (MD sign-off)</button>
+            </div>
+          </div>
+
+          <table className="data-table">
+            <thead><tr>
+              <th>Sample</th><th>Patient</th><th>Reported at</th><th>Result</th><th>Flag</th><th>Assessment</th><th></th>
+            </tr></thead>
+            <tbody>
+              {items.map((x, i) => (
+                <tr key={i}>
+                  <td><strong>{x.sample}</strong></td>
+                  <td style={{fontFamily:'monospace', fontSize:12}}>{x.patient}</td>
+                  <td>{x.reported}</td>
+                  <td>{x.result}</td>
+                  <td>{x.flag ? <span className="cds--tag cds--tag--warm-gray">{x.flag}</span> : '—'}</td>
+                  <td>{assTag(x.assessment)}</td>
+                  <td><button className="cds--btn cds--btn--ghost cds--btn--sm">{x.assessment === 'pending' ? 'Review →' : 'Edit'}</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="btn-row" style={{marginTop:16}}>
+            <button className="cds--btn cds--btn--primary cds--btn--sm" disabled>Mark look-back complete (1 pending)</button>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm">Regenerate snapshot</button>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------- V3.5 — ISO 17043 Provider Compliance ----------
+
+    function PanelHomogeneityScreen() {
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Program Management</a> / <a>Provider Cycles</a> / <a>Prep Workbench</a> / <a>Panel Wizard</a> / <span>Step 2a · Homogeneity</span>
+          </div>
+          <h1 className="page-title">{t('eqa.iso17043.homogeneity.title', 'Homogeneity Testing')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.iso17043.homogeneity.subtitle', 'ISO 17043 §4.4.1.3 — per-analyte homogeneity across samples + replicates. ANOVA computes within-bottle vs between-bottle variance; pass when p ≥ 0.05 and between-bottle variance is within tolerance.')}
+          </div>
+
+          <div className="tile">
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10}}>
+              <div style={{fontWeight:600}}>Analyte: HIV-1 VL</div>
+              <div>
+                <span className="cds--tag cds--tag--teal">10 samples × 3 replicates</span>
+              </div>
+            </div>
+            <table className="data-table">
+              <thead><tr>
+                <th>Sample</th><th>Rep 1</th><th>Rep 2</th><th>Rep 3</th><th>Mean</th><th>SD</th>
+              </tr></thead>
+              <tbody>
+                {['01','02','03','04','05','06','07','08','09','10'].map(s => (
+                  <tr key={s}>
+                    <td>S-{s}</td>
+                    <td><input className="cds--text-input" style={{width:80}} defaultValue={(4.10 + Math.random()*0.1).toFixed(2)} /></td>
+                    <td><input className="cds--text-input" style={{width:80}} defaultValue={(4.10 + Math.random()*0.1).toFixed(2)} /></td>
+                    <td><input className="cds--text-input" style={{width:80}} defaultValue={(4.10 + Math.random()*0.1).toFixed(2)} /></td>
+                    <td>4.13</td>
+                    <td>0.03</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div style={{display:'flex', gap:24, marginTop:16, padding:12, background:'#f4f4f4', borderRadius:4}}>
+              <div><div style={{fontSize:12, color:'#525252'}}>ANOVA F</div><div style={{fontSize:20, fontWeight:600}}>1.34</div></div>
+              <div><div style={{fontSize:12, color:'#525252'}}>p-value</div><div style={{fontSize:20, fontWeight:600}}>0.23</div></div>
+              <div><div style={{fontSize:12, color:'#525252'}}>Within-bottle var</div><div style={{fontSize:20, fontWeight:600}}>0.002</div></div>
+              <div><div style={{fontSize:12, color:'#525252'}}>Between-bottle var</div><div style={{fontSize:20, fontWeight:600}}>0.003</div></div>
+              <div><div style={{fontSize:12, color:'#525252'}}>Result</div><div style={{fontSize:20, fontWeight:600}}><span className="cds--tag cds--tag--green">PASS</span></div></div>
+            </div>
+
+            <div className="btn-row" style={{marginTop:16}}>
+              <button className="cds--btn cds--btn--primary cds--btn--sm">Save &amp; next: stability →</button>
+              <button className="cds--btn cds--btn--tertiary cds--btn--sm">Save draft</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Import CSV</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function PanelStabilityScreen() {
+      const rows = [
+        { tp: 'T0 (2026-04-01)', val: '4.13', ref: '4.13', dev: '0.0%', ok: true },
+        { tp: 'T30 (2026-05-01)', val: '4.11', ref: '4.13', dev: '−0.5%', ok: true },
+        { tp: 'T60 (2026-06-01)', val: '4.08', ref: '4.13', dev: '−1.2%', ok: true },
+        { tp: 'T90 (2026-07-01)', val: '—', ref: '4.13', dev: '—', ok: null },
+      ];
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Program Management</a> / <a>Provider Cycles</a> / <a>Prep Workbench</a> / <a>Panel Wizard</a> / <span>Step 2b · Stability</span>
+          </div>
+          <h1 className="page-title">{t('eqa.iso17043.stability.title', 'Stability Testing')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.iso17043.stability.subtitle', 'Per-analyte stability across time points vs. a reference value. Tolerance band is ±10% unless overridden per scheme.')}
+          </div>
+
+          <div className="tile">
+            <div style={{fontWeight:600, marginBottom:10}}>Analyte: HIV-1 VL (reference 4.13 log10)</div>
+            <table className="data-table">
+              <thead><tr><th>Time point</th><th>Measured</th><th>Reference</th><th>Deviation</th><th>Within ±10%?</th></tr></thead>
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr key={i}>
+                    <td>{r.tp}</td>
+                    <td>{r.val}</td>
+                    <td>{r.ref}</td>
+                    <td>{r.dev}</td>
+                    <td>{r.ok === null ? <span className="cds--tag cds--tag--gray">Pending</span> : r.ok ? <span className="cds--tag cds--tag--green">Yes</span> : <span className="cds--tag cds--tag--red">No</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div className="cds--inline-notification cds--inline-notification--info" style={{marginTop:12, padding:'8px 12px'}}>
+              T0 recorded. Add later time points as panel ages; release-for-distribution gate requires T0 + at least one later measurement per analyte.
+            </div>
+
+            <div className="btn-row" style={{marginTop:16}}>
+              <button className="cds--btn cds--btn--primary cds--btn--sm">Save &amp; continue</button>
+              <button className="cds--btn cds--btn--tertiary cds--btn--sm">Add time point</button>
+            </div>
+          </div>
+
+          <div className="tile" style={{marginTop:16}}>
+            <div style={{fontWeight:600, marginBottom:8}}>Release-for-distribution status</div>
+            <ul style={{fontSize:13, margin:0, paddingLeft:18}}>
+              <li>Homogeneity: <span className="cds--tag cds--tag--green">PASS</span> for HIV-1 VL, HCV-Ab, TB</li>
+              <li>Stability: <span className="cds--tag cds--tag--green">T0 recorded</span> for all analytes</li>
+              <li>Lot status: <span className="cds--tag cds--tag--warm-gray">prepared</span></li>
+            </ul>
+            <div className="btn-row" style={{marginTop:12}}>
+              <button className="cds--btn cds--btn--primary cds--btn--sm">Release for distribution</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Download audit evidence bundle</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function CycleCertificatesScreen() {
+      const certs = [
+        { lab: 'Butembo Regional Lab', serial: 'HIV-VL-2026-M04-0012', generated: '2026-04-30 14:12', regen: 0, withdrawn: false },
+        { lab: 'Kinshasa Univ. Hospital', serial: 'HIV-VL-2026-M04-0013', generated: '2026-04-30 14:12', regen: 0, withdrawn: false },
+        { lab: 'Mbuji-Mayi Ref. Lab', serial: 'HIV-VL-2026-M04-0014', generated: '2026-04-30 14:12', regen: 1, withdrawn: false, supersedes: 'HIV-VL-2026-M04-0008' },
+        { lab: 'Goma Prov. Hospital', serial: 'HIV-VL-2026-M04-0015', generated: '2026-04-30 14:12', regen: 0, withdrawn: true, reason: 'Incorrect scoring applied' },
+        { lab: 'Lubumbashi Lab', serial: '—', generated: 'failed', regen: 0, withdrawn: false, reason: 'missing accreditation number' },
+      ];
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Program Management</a> / <a>Provider Cycles</a> / <a>HIV VL 2026-04</a> / <span>Certificates</span>
+          </div>
+          <h1 className="page-title">{t('eqa.iso17043.certificates.title', 'Cycle Certificates')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.iso17043.certificates.subtitle', 'Per-participant ISO 17043 Certificate of Participation. Auto-generated at cycle close; regenerations produce a new serial with a "supersedes" watermark.')}
+          </div>
+
+          <div className="kpi-row">
+            <div className="kpi-tile"><div className="kpi-label">Participants</div><div className="kpi-value">25</div></div>
+            <div className="kpi-tile"><div className="kpi-label">Certificates generated</div><div className="kpi-value">23</div></div>
+            <div className="kpi-tile"><div className="kpi-label">Regenerated</div><div className="kpi-value">1</div></div>
+            <div className="kpi-tile"><div className="kpi-label">Withdrawn</div><div className="kpi-value" style={{color:'#c21e56'}}>1</div></div>
+          </div>
+
+          <div className="toolbar">
+            <div className="toolbar-left"><strong>Certificates</strong> · {certs.length} rows</div>
+            <div>
+              <button className="cds--btn cds--btn--tertiary cds--btn--sm">Retry failed (1)</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Download CSV</button>
+            </div>
+          </div>
+
+          <table className="data-table">
+            <thead><tr>
+              <th>Lab</th><th>Serial</th><th>Generated</th><th>Regen</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody>
+              {certs.map((c, i) => (
+                <tr key={i}>
+                  <td><strong>{c.lab}</strong></td>
+                  <td style={{fontFamily:'monospace', fontSize:12}}>{c.serial}</td>
+                  <td>{c.generated}</td>
+                  <td>{c.regen > 0 ? <><span className="cds--tag cds--tag--blue">{c.regen}×</span> <span style={{fontSize:11, color:'#525252'}}>supersedes {c.supersedes}</span></> : <span style={{color:'#8d8d8d'}}>—</span>}</td>
+                  <td>
+                    {c.generated === 'failed'
+                      ? <span className="cds--tag cds--tag--red">Failed: {c.reason}</span>
+                      : c.withdrawn
+                        ? <span className="cds--tag cds--tag--warm-gray">Withdrawn: {c.reason}</span>
+                        : <span className="cds--tag cds--tag--green">Issued</span>}
+                  </td>
+                  <td>
+                    {c.generated === 'failed'
+                      ? <button className="cds--btn cds--btn--tertiary cds--btn--sm">Retry</button>
+                      : <>
+                          <button className="cds--btn cds--btn--ghost cds--btn--sm">Preview</button>
+                          <button className="cds--btn cds--btn--ghost cds--btn--sm">Download</button>
+                          {!c.withdrawn && <button className="cds--btn cds--btn--ghost cds--btn--sm">Regenerate</button>}
+                        </>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // ---------- V3.6 — Provider-Side Internal NCE Triggers ----------
+
+    function NCERegisterScreen() {
+      const rows = [
+        { id: 'NCE-2026-0201', source: 'cluster_failure_detected', providerOp: true, subject: 'HIV VL 2026-04 — 45% fail rate on HIV-1 VL', opened: '2026-04-29', state: 'open' },
+        { id: 'NCE-2026-0200', source: 'panel_homogeneity_failure', providerOp: true, subject: 'HCV-Ab Lot L-2026-041 homogeneity fail', opened: '2026-04-27', state: 'investigating' },
+        { id: 'NCE-2026-0199', source: 'distribution_deadline_miss', providerOp: true, subject: 'TB 2026-Q2 distribution not sent by 2026-04-25', opened: '2026-04-26', state: 'open' },
+        { id: 'NCE-2026-0198', source: 'scoring_error', providerOp: true, subject: 'HIV VL 2026-04 — z-score skew = 0.91 (advisory)', opened: '2026-04-30', state: 'open' },
+        { id: 'NCE-2026-0184', source: 'eqa_unacceptable', providerOp: false, subject: 'Lab X HIV-1 VL unacceptable (z = −2.7)', opened: '2026-04-12', state: 'investigating' },
+        { id: 'NCE-2026-0183', source: 'westgard_violation', providerOp: false, subject: 'Westgard 1-3s, mid-level QC', opened: '2026-04-12', state: 'closed' },
+      ];
+      const sourceLabel = (s) => ({
+        cluster_failure_detected: 'Cluster failure detected',
+        panel_homogeneity_failure: 'Panel homogeneity failure',
+        panel_stability_failure: 'Panel stability failure',
+        distribution_deadline_miss: 'Distribution deadline miss',
+        provider_cold_chain_failure: 'Provider cold-chain failure',
+        scoring_error: 'Scoring error',
+        eqa_unacceptable: 'EQA unacceptable',
+        westgard_violation: 'Westgard violation',
+      })[s] || s;
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Program Management</a> / <span>NCE Register</span>
+          </div>
+          <h1 className="page-title">{t('eqa.provider_nce.title', 'NCE Register')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.provider_nce.subtitle', 'Unified NCE register across participant-side and provider-side triggers. Use the Provider-side quick filter to isolate the provider\'s own operational failures.')}
+          </div>
+
+          <div className="toolbar">
+            <div className="toolbar-left">
+              <button className="cds--btn cds--btn--tertiary cds--btn--sm">All</button>
+              <button className="cds--btn cds--btn--primary cds--btn--sm">Provider-side</button>
+              <button className="cds--btn cds--btn--tertiary cds--btn--sm">Participant-side</button>
+              <select className="cds--select-input" style={{padding:'4px 8px', marginLeft:8}}>
+                <option>All trigger sources</option><option>Cluster failure detected</option><option>Homogeneity failure</option><option>Distribution deadline miss</option>
+              </select>
+            </div>
+            <input className="cds--text-input" placeholder="Search NCE id or subject…" style={{maxWidth:260}} />
+          </div>
+
+          <table className="data-table">
+            <thead><tr>
+              <th>NCE</th><th>Trigger</th><th>Subject</th><th>Opened</th><th>State</th><th></th>
+            </tr></thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.id}>
+                  <td><strong>{r.id}</strong></td>
+                  <td>
+                    {sourceLabel(r.source)}
+                    {r.providerOp && <span className="cds--tag cds--tag--warm-gray" style={{marginLeft:6}}>Provider-op</span>}
+                  </td>
+                  <td>{r.subject}</td>
+                  <td>{r.opened}</td>
+                  <td>
+                    {r.state === 'open' && <span className="cds--tag cds--tag--purple">Open</span>}
+                    {r.state === 'investigating' && <span className="cds--tag cds--tag--blue">Investigating</span>}
+                    {r.state === 'closed' && <span className="cds--tag cds--tag--green">Closed</span>}
+                  </td>
+                  <td><button className="cds--btn cds--btn--ghost cds--btn--sm">Open →</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    function DetectorConfigScreen() {
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Program Management</a> / <a>Schemes &amp; Programs</a> / <span>Provider NCE Detectors</span>
+          </div>
+          <h1 className="page-title">{t('eqa.provider_nce.detectors.title', 'Provider NCE Detectors')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.provider_nce.detectors.subtitle', 'Thresholds for auto-raised provider-side NCEs. Changes apply to the next nightly run; previously-scored cycles are not re-evaluated.')}
+          </div>
+
+          <div className="tile" style={{maxWidth:760}}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4}}>
+              <div style={{fontWeight:600}}>Cluster failure detector</div>
+              <label className="cds--toggle"><input type="checkbox" defaultChecked /> Enabled</label>
+            </div>
+            <div className="form-row">
+              <div className="form-field"><label className="cds--label">Fail-rate threshold (%)</label><input className="cds--text-input" defaultValue="40" /></div>
+              <div className="form-field"><label className="cds--label">Min participants</label><input className="cds--text-input" defaultValue="10" /></div>
+              <div className="form-field"><label className="cds--label">Schedule</label><input className="cds--text-input" defaultValue="02:00 local" /></div>
+            </div>
+
+            <div style={{borderTop:'1px solid #e0e0e0', margin:'16px 0'}}></div>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4}}>
+              <div style={{fontWeight:600}}>Scoring error detector (advisory)</div>
+              <label className="cds--toggle"><input type="checkbox" defaultChecked /> Enabled</label>
+            </div>
+            <div className="form-row">
+              <div className="form-field"><label className="cds--label">|skew| threshold</label><input className="cds--text-input" defaultValue="0.8" /></div>
+              <div className="form-field"><label className="cds--label">One-tail % threshold</label><input className="cds--text-input" defaultValue="30" /></div>
+            </div>
+
+            <div style={{borderTop:'1px solid #e0e0e0', margin:'16px 0'}}></div>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4}}>
+              <div style={{fontWeight:600}}>Distribution deadline miss</div>
+              <label className="cds--toggle"><input type="checkbox" defaultChecked /> Enabled</label>
+            </div>
+            <div className="form-row">
+              <div className="form-field"><label className="cds--label">Grace period (hours after distribution_date)</label><input className="cds--text-input" defaultValue="24" /></div>
+            </div>
+
+            <div className="btn-row" style={{marginTop:16}}>
+              <button className="cds--btn cds--btn--primary cds--btn--sm">Save thresholds</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Restore defaults</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------- V3.7 — PT Hub Proxy Entry ----------
+
+    function ProxyEntryScreen() {
+      const participants = [
+        { lab: 'Butembo Regional Lab', status: 'ready', submitted: false, canProxy: true },
+        { lab: 'Mbuji-Mayi Ref. Lab', status: 'paper_expected', submitted: false, canProxy: true },
+        { lab: 'Kisangani Health Center', status: 'submitted_paper', submitted: true, canProxy: false },
+        { lab: 'Kinshasa Univ. Hospital', status: 'submitted_electronic', submitted: true, canProxy: false },
+      ];
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Program Management</a> / <a>Provider Cycles</a> / <a>HIV VL 2026-04</a> / <span>Proxy Entry</span>
+          </div>
+          <h1 className="page-title">{t('eqa.proxy_entry.title', 'Proxy Entry — HIV VL 2026-04')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.proxy_entry.subtitle', 'Enter results on behalf of participating labs that submit via paper, phone, SMS, or email. Results attribute to the participating lab (not the provider), with a visible source tag on all downstream views.')}
+          </div>
+
+          <div className="toolbar">
+            <div className="toolbar-left"><strong>Participants</strong> · 25 enrolled</div>
+            <div>
+              <button className="cds--btn cds--btn--tertiary cds--btn--sm">+ Bulk proxy import (CSV)</button>
+            </div>
+          </div>
+
+          <table className="data-table">
+            <thead><tr><th>Participant</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {participants.map((p, i) => (
+                <tr key={i}>
+                  <td><strong>{p.lab}</strong></td>
+                  <td>
+                    {p.status === 'ready' && <span className="cds--tag cds--tag--gray">Awaiting submission</span>}
+                    {p.status === 'paper_expected' && <span className="cds--tag cds--tag--warm-gray">Paper expected</span>}
+                    {p.status === 'submitted_paper' && <span className="cds--tag cds--tag--teal">Submitted (proxy/paper)</span>}
+                    {p.status === 'submitted_electronic' && <span className="cds--tag cds--tag--green">Submitted (electronic)</span>}
+                  </td>
+                  <td>
+                    {p.canProxy && <button className="cds--btn cds--btn--tertiary cds--btn--sm">Proxy entry →</button>}
+                    {!p.canProxy && <button className="cds--btn cds--btn--ghost cds--btn--sm">View result</button>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="tile" style={{marginTop:16, borderLeft:'3px solid #0f62fe'}}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10}}>
+              <div style={{fontWeight:600}}>Expanded: Mbuji-Mayi Ref. Lab</div>
+              <span className="cds--tag cds--tag--warm-gray">Inline proxy-entry form</span>
+            </div>
+
+            <div className="form-row">
+              <div className="form-field">
+                <label className="cds--label">Data source *</label>
+                <select className="cds--select-input"><option>proxy_paper</option><option>proxy_phone</option><option>proxy_email</option><option>proxy_sms</option><option>proxy_other</option></select>
+              </div>
+              <div className="form-field">
+                <label className="cds--label">Attachment (PDF/JPEG, ≤10MB)</label>
+                <input type="file" />
+              </div>
+              <div className="form-field">
+                <label className="cds--label">Notes</label>
+                <input className="cds--text-input" defaultValue="Received via email from M. Kamau 2026-05-14" />
+              </div>
+            </div>
+
+            <div style={{borderTop:'1px solid #e0e0e0', margin:'12px 0'}}></div>
+            <div style={{fontWeight:600, marginBottom:6}}>Analyte results</div>
+            <table className="data-table">
+              <thead><tr><th>Analyte</th><th>Result value</th><th>Unit</th></tr></thead>
+              <tbody>
+                <tr><td>HIV-1 VL</td><td><input className="cds--text-input" style={{width:100}} defaultValue="3.92" /></td><td>log10 cp/mL</td></tr>
+                <tr><td>HCV-Ab</td><td><select className="cds--select-input"><option>reactive</option><option>non-reactive</option></select></td><td>categorical</td></tr>
+              </tbody>
+            </table>
+
+            <div className="btn-row" style={{marginTop:12}}>
+              <button className="cds--btn cds--btn--primary cds--btn--sm">Save proxy entry</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Cancel</button>
+            </div>
+
+            <div className="cds--inline-notification cds--inline-notification--info" style={{marginTop:12, padding:'8px 12px'}}>
+              Result will attribute to Mbuji-Mayi Ref. Lab. It will appear in their Recent Cycles + Lab Performance with a "Source: Proxy (paper)" tag. Scoring applies identically to electronic submissions.
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function BulkProxyImportScreen() {
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Program Management</a> / <a>Provider Cycles</a> / <a>Proxy Entry</a> / <span>Bulk CSV Import</span>
+          </div>
+          <h1 className="page-title">{t('eqa.proxy_entry.bulk.title', 'Bulk Proxy Import')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.proxy_entry.bulk.subtitle', 'Upload a CSV to batch-enter proxy results. Columns: participant_org_id, analyte_id, result_value, data_source, notes. Row-level validation runs before commit.')}
+          </div>
+
+          <div className="tile">
+            <div style={{marginBottom:12, fontWeight:600}}>Preview — proxy-entries-2026-04-30.csv</div>
+            <div style={{fontSize:13, color:'#525252', marginBottom:10}}>
+              <span className="cds--tag cds--tag--green">3 ready</span>&nbsp;
+              <span className="cds--tag cds--tag--red">2 errors</span>
+              <span style={{marginLeft:12}}>5 rows total</span>
+            </div>
+            <table className="data-table">
+              <thead><tr>
+                <th>Row</th><th>Participant</th><th>Analyte</th><th>Value</th><th>Source</th><th>Status</th>
+              </tr></thead>
+              <tbody>
+                <tr><td>1</td><td>Butembo Regional Lab</td><td>HIV-1 VL</td><td>3.92</td><td>proxy_paper</td><td><span className="cds--tag cds--tag--green">OK</span></td></tr>
+                <tr><td>2</td><td>Mbuji-Mayi Ref. Lab</td><td>HIV-1 VL</td><td>4.11</td><td>proxy_email</td><td><span className="cds--tag cds--tag--green">OK</span></td></tr>
+                <tr style={{background:'#fff1f1'}}><td>3</td><td>Kananga Lab</td><td>HIV-1 VL</td><td>3.88</td><td style={{color:'#da1e28'}}>(missing)</td><td><span className="cds--tag cds--tag--red">Missing data_source</span></td></tr>
+                <tr><td>4</td><td>Lubumbashi Lab</td><td>HCV-Ab</td><td>reactive</td><td>proxy_paper</td><td><span className="cds--tag cds--tag--green">OK</span></td></tr>
+                <tr style={{background:'#fff1f1'}}><td>5</td><td>Unknown Org XYZ</td><td>HIV-1 VL</td><td>3.5</td><td>proxy_paper</td><td><span className="cds--tag cds--tag--red">Unknown participant_org_id</span></td></tr>
+              </tbody>
+            </table>
+
+            <div className="btn-row" style={{marginTop:16}}>
+              <button className="cds--btn cds--btn--primary cds--btn--sm">Commit 3 valid rows</button>
+              <button className="cds--btn cds--btn--tertiary cds--btn--sm">Download errors CSV</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Cancel</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------- V3.8 — ePT FHIR Interop ----------
+
+    function SchemeEndpointConfigScreen() {
+      return (
+        <div>
+          <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
+            <a>EQA Program Management</a> / <a>Schemes &amp; Programs</a> / <a>HIV VL Monthly</a> / <span>Provider Endpoint</span>
+          </div>
+          <h1 className="page-title">{t('eqa.ept_interop.title', 'Provider Endpoint (FHIR)')}</h1>
+          <div className="page-subtitle">
+            {t('eqa.ept_interop.subtitle', 'Configure the FHIR submission endpoint for this scheme. APHL ePT / InteLIS deployments route through the adapter module; credentials are stored in the secret store and never returned by the read API.')}
+          </div>
+
+          <div className="tile" style={{maxWidth:780}}>
+            <div className="form-field">
+              <label className="cds--label">Endpoint type</label>
+              <select className="cds--select-input"><option>generic_fhir_r4</option><option>aphl_ept_fhir (selected)</option><option>aphl_intelis_fhir</option><option>custom</option></select>
+            </div>
+            <div className="form-field">
+              <label className="cds--label">Endpoint URL</label>
+              <input className="cds--text-input" defaultValue="https://ept.example.org/fhir" />
+            </div>
+            <div className="form-field">
+              <label className="cds--label">Country deployment ID</label>
+              <input className="cds--text-input" defaultValue="DRC-2026" />
+            </div>
+            <div className="form-field">
+              <label className="cds--label">Credential</label>
+              <div style={{display:'flex', gap:8, alignItems:'center'}}>
+                <select className="cds--select-input" style={{flex:1}}><option>ePT-DRC-client-secret (set)</option><option>+ Add new secret</option></select>
+                <span className="cds--tag cds--tag--teal">Set</span>
+              </div>
+            </div>
+
+            <div className="btn-row" style={{marginTop:12}}>
+              <button className="cds--btn cds--btn--secondary cds--btn--sm">Test connection</button>
+              <button className="cds--btn cds--btn--primary cds--btn--sm">Save</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Cancel</button>
+            </div>
+
+            <div className="cds--inline-notification cds--inline-notification--success" style={{marginTop:16, padding:'8px 12px'}}>
+              <strong>Test connection — OK.</strong> Adapter v1.2 tested against ePT v2.4; remote reports v2.4. CapabilityStatement retrieved successfully.
+            </div>
+
+            <div className="cds--inline-notification cds--inline-notification--info" style={{marginTop:8, padding:'8px 12px'}}>
+              <strong>Version note:</strong> Adapter v1.2 was verified against ePT v2.4. If the remote reports a newer version, a warning will appear before submission.
+            </div>
+          </div>
+
+          <div className="tile" style={{marginTop:16, maxWidth:780}}>
+            <div style={{fontWeight:600, marginBottom:8}}>Recent submissions via this endpoint</div>
+            <table className="data-table">
+              <thead><tr><th>When</th><th>Participant</th><th>Adapter</th><th>Result</th></tr></thead>
+              <tbody>
+                <tr><td>2026-04-29 10:11</td><td>Butembo Regional Lab</td><td>aphl_ept_fhir v1.2</td><td><span className="cds--tag cds--tag--green">Submitted → scored</span></td></tr>
+                <tr><td>2026-04-29 10:12</td><td>Kinshasa Univ. Hospital</td><td>aphl_ept_fhir v1.2</td><td><span className="cds--tag cds--tag--green">Submitted → scored</span></td></tr>
+                <tr><td>2026-04-29 10:13</td><td>Mbuji-Mayi Ref. Lab</td><td>aphl_ept_fhir v1.2</td><td><span className="cds--tag cds--tag--red">HTTP 401 — invalid credentials</span></td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       );
