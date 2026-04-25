@@ -1,7 +1,7 @@
 # Vector Testing & Identification
 ## Functional Requirements Specification — v1.0
 
-**Version:** 1.3
+**Version:** 1.7
 **Date:** 2026-04-23
 **Status:** Draft for Review
 **Jira:** TBD (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
@@ -10,6 +10,7 @@
 
 ### Change Log
 
+- **v1.8 (2026-04-24 — clarify pass):** Applied all CRITICAL and HIGH fixes from constitution/clarify review: version header corrected; trap type removed from US-V03-01 and FR-V03-DEC-006 inheritance list; FR-V03-DEC-005 "modal" changed to "inline panel"; FR-V03-ID-003 changed from page navigation to inline expansion; FR-V03-ID-009 Bulk Apply changed from Modal to inline Tile; permission description updated for vector.deconvolution.initiate; FR-V03-DEC-004 save-block rule for unassigned specimens added; FR-V03-ID-001 corrected to use identificationStatus field.
 - **v1.7 (2026-04-24):** Unified pool+specimen table — single table replaces dual stacked view. Pool header rows (with ↗ Split) sit above their specimen rows in the same table; no separate hierarchy view above a flat list. Re-split creates child pool rows nested under the parent (parent row is preserved); recursive — a sub-pool can be re-split at any depth. 'Reset all pools' removed — pool reassignment after physical preparation is out of scope per ISO 17025 chain-of-custody requirements (§7.5 technical records). Specimens rows use └╴/├╴ tree connectors to indicate pool membership.
 - **v1.6 (2026-04-24):** Major deconvolution UX redesign. No modal — deconvolution is fully inline. Filter pills replaced with a Status dropdown (default: Pending). Trap type removed from worklist and lot detail. Split into Sub-pools available on all lots (not just positive ones). Pool assignment strategies: Assign randomly, Auto sub-pool by species, Assign manually (drag-and-drop). Pool hierarchy tree shown in lot detail after save, with Re-split action. Localization keys updated.
 - **v1.5 (2026-04-23):** Deconvolution modal simplified — removed "Individual specimens / Sub-pools" RadioButtonGroup strategy selector. Modal now has two plain fields: Number of Aliquots and Organisms per Aliquot. "Individual" is just organisms-per-aliquot = 1; sub-pools are organisms-per-aliquot > 1. Soft warning added when total organisms exceeds parent quantity. V-02 data model note updated: `quantity` field already exists on Sample; only UOM display is suppressed for VECTOR domain.
@@ -80,7 +81,7 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 **I want to** see all received vector lots awaiting species identification in a dedicated worklist,
 **so that** I can work through my identification queue without searching across the system.
 
-**Acceptance:** Worklist shows only VECTOR-domain lots in RECEIVED or IDENTIFICATION_IN_PROGRESS status. Lot rows show site name, trap type, collection date, organism group, specimen count, and identification progress (0/25 identified).
+**Acceptance:** Worklist shows only VECTOR-domain lots where identificationStatus != COMPLETE. Lot rows show site name, collection date (if set), organism group, specimen count, and identification progress (0/25 identified).
 
 ---
 
@@ -164,7 +165,7 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 - `vector.identification.bulk` — Use bulk-apply batch action
 - `vector.panel.view` — View test panel list and detail
 - `vector.panel.edit` — Create, update, deactivate test panels
-- `vector.deconvolution.initiate` — Create DeconvolutionTask and child specimens
+- `vector.deconvolution.initiate` — Create child Aliquots (sub-pools) and copy test orders from parent Sample
 - `vector.deconvolution.view` — View deconvolution status and child lot detail
 
 ---
@@ -173,11 +174,11 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 
 ### 4.1 Species Identification Workbench
 
-**FR-V03-ID-001:** The system SHALL provide a Vector Identification worklist showing all Samples with `sampleDomain = VECTOR` and `status IN (RECEIVED, IDENTIFICATION_IN_PROGRESS)`. The worklist uses a **Status dropdown filter** (default: Pending = all not-complete) rather than SideNav sub-items. Filter options: Pending / Not Started / Partial ID / Deconvolution / Complete.
+**FR-V03-ID-001:** The system SHALL provide a Vector Identification worklist showing all Samples with `sampleDomain = VECTOR` and `identificationStatus IN (NOT_STARTED, IN_PROGRESS)` or `deconvolutionStatus = PENDING`. The worklist uses a **Status dropdown filter** (default: Pending = all not-complete) rather than SideNav sub-items. Filter options: Pending / Not Started / Partial ID / Deconvolution / Complete.
 
 **FR-V03-ID-002:** Each worklist row SHALL display: Sample ID, Sampling Site (if set), Collection Date, Organism Group tag, total specimen count, identified specimen count, identification status tag.
 
-**FR-V03-ID-003:** Clicking a sample row SHALL navigate to the Sample Identification Detail page showing a DataTable of all Aliquots belonging to that Sample, plus the Sample itself.
+**FR-V03-ID-003:** Clicking a sample row SHALL expand the Sample Identification Detail inline within the worklist row (no page navigation).
 
 **FR-V03-ID-004:** Each specimen row SHALL display: Specimen ID, organism group tag, current ID status tag (NOT_IDENTIFIED / PRESUMPTIVE / CONFIRMED), identified species (if set), and an expand button.
 
@@ -198,7 +199,7 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 
 **FR-V03-ID-008:** The specimen DataTable SHALL support multi-row selection via `TableSelectRow`. When two or more rows are selected, a `TableBatchActions` bar SHALL appear with action "Bulk Apply ID".
 
-**FR-V03-ID-009:** Clicking "Bulk Apply ID" SHALL open a compact Modal pre-populated with the identification data from the first selected specimen. The modal SHALL contain the same species/method/confidence/notes fields. On confirm, all selected specimens SHALL receive the same values. Molecular Detail fields (target gene, assay, accession) SHALL NOT be copied in bulk (they remain specimen-specific).
+**FR-V03-ID-009:** Clicking "Bulk Apply ID" SHALL expand an inline `Tile` within the batch action bar area (not a Modal), pre-populated with the identification data from the first selected specimen. The Tile SHALL contain the same species/method/confidence/notes fields. On confirm, all selected specimens SHALL receive the same values. This interaction is intentionally non-modal because the action is non-destructive and involves 4 fields — consistent with Constitution Principle 3.
 
 **FR-V03-ID-010:** When all specimens in a lot have `identificationStatus != NOT_IDENTIFIED`, the lot's `identificationStatus` SHALL automatically advance to `COMPLETE` and the lot SHALL be removed from the "Pending ID" worklist tab.
 
@@ -244,8 +245,9 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 - In preview: each pool shows as an expandable row with its lab number (LABNO.X) and specimen list underneath
 - **Sticky dark action bar** at bottom of panel: assigned count, pool count, Save Pools button
 - On save: inline panel collapses to success message; pool hierarchy tree renders in the specimen section
+- In manual assignment mode, the **Save Pools button SHALL be disabled** while any specimens remain in the unassigned section. The sticky action bar SHALL display the unassigned count in orange (e.g., "3 unassigned"). The Save button becomes enabled only when unassigned count = 0.
 
-**FR-V03-DEC-005:** On submitting the deconvolution modal, the system SHALL:
+**FR-V03-DEC-005:** On submitting the inline sub-pool panel, the system SHALL:
 1. Create child Aliquots from the parent Sample using the existing OpenELIS aliquot mechanism. Each aliquot is assigned a lab number per the LABNO.X-Y convention.
 2. Set the `quantity` on each child Aliquot to the organisms-per-sub-pool value entered in the modal.
 3. Copy the parent Sample's test orders to each child Aliquot as new independent orders (PENDING state). The parent Sample's existing test orders and results SHALL remain unchanged.
@@ -260,7 +262,7 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 
 Each child specimen receives a real accession number and barcode so lab operations can track it as a physical object. The parent-child relationship is maintained via the existing aliquot parent pointer on the OpenELIS Sample/accession object — no new `parentLotId` field is introduced.
 
-Child specimens SHALL inherit from the parent lot: sampling site, trap type, collection date range. They SHALL also inherit the parent's organism group and species identification (if already set on the parent) as defaults; either MAY be explicitly re-identified on the child if re-examination is performed. Child specimens SHALL inherit the parent's Panel and test order list as defaults; the coordinator MAY add or remove tests on the child's re-test order before submission.
+Child Aliquots SHALL inherit from the parent Sample: sampling site (if set on parent). They SHALL also inherit the parent's organism group and species identification (if already set on the parent) as defaults; either MAY be explicitly re-identified on the child if re-examination is performed. Child specimens SHALL inherit the parent's Panel and test order list as defaults; the coordinator MAY add or remove tests on the child's re-test order before submission.
 
 **FR-V03-DEC-007:** After pools are saved, the Sample Identification Detail page SHALL display a single **unified pool + specimen table** (one table, not two stacked). Pool header rows (grey/purple by depth) appear within the table at the appropriate position; specimen rows follow immediately below their pool, indented with tree connectors (└╴/├╴). Each pool header row SHALL display: pool label (species-named when auto-by-species), lab number (LABNO.X), organism count, and a **↗ Split** action button when the pool contains more than one specimen and has not been further split. When ↗ Split is used on a sub-pool, the child pool rows appear nested beneath the parent pool row — the parent row is preserved and NOT replaced. This pattern is recursive: a sub-pool can itself be split into further sub-pools at any depth, producing LABNO.X-Y-Z notation. A **Re-split** action is not available at the top level once any specimen has been physically prepared (ISO 17025 §7.5). The column header reads 'Pool / Specimen' when pools are assigned; 'Specimen' when no pools exist.
 
