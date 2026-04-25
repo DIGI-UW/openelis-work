@@ -512,7 +512,11 @@ const InlineDeconPanel = ({lot,specimens,onClose,onSave}) => {
       <span style={{fontSize:18}}>✅</span>
       <div className="notif-body">
         <div className="notif-title">{poolCount} pools created</div>
-        <div className="notif-sub">Pools labelled {lot.id}.1 through {lot.id}.{poolCount}. Test orders copied. Status → Deconvolution In Progress.</div>
+        <div className="notif-sub">
+          Pools labelled {lot.id}.1 through {lot.id}.{poolCount}. Parent test orders copied to each pool, plus
+          {' '}<strong>1 additional order added by reflex rule VR-01 (Malaria Speciation)</strong>{' '}
+          per BR-V03-012. Status → Deconvolution In Progress.
+        </div>
       </div>
     </div>
   );
@@ -990,6 +994,11 @@ const SpecimenForm = ({sp,onSave,onCancel}) => {
   const [search,setSearch]=useState(sp.species||'');
   const [ddOpen,setDdOpen]=useState(false);
   const [molOpen,setMolOpen]=useState(sp.method==='Molecular'||sp.method==='Both');
+  /* v1.11 — physiological state (Detinova) drives Blood-Meal Panel suggestion */
+  const [physState,setPhysState]=useState(sp.physState||'UNKNOWN');
+  const [bmAdded,setBmAdded]=useState(false);
+  const [bmDismissed,setBmDismissed]=useState(false);
+  const showBmSuggest=physState==='BLOOD_FED'&&!bmAdded&&!bmDismissed;
 
   const filtered=SPECIES_CATALOG.filter(s=>s.toLowerCase().includes(search.toLowerCase())&&search.length>0);
 
@@ -1033,10 +1042,52 @@ const SpecimenForm = ({sp,onSave,onCancel}) => {
         </div>
       </div>
 
-      <div className="form-field">
-        <label className="form-label">Notes</label>
-        <textarea className="form-textarea" placeholder="Optional notes…"/>
+      {/* v1.11 — Physiological State + Notes row */}
+      <div className="grid-3" style={{marginBottom:12}}>
+        <div className="form-field">
+          <label className="form-label">Physiological State <span style={{fontWeight:400,color:'#6f6f6f',fontSize:11}}>(females only)</span></label>
+          <select className="form-select" value={physState}
+            onChange={e=>{setPhysState(e.target.value);setBmDismissed(false);}}>
+            <option value="UNKNOWN">Unknown / not assessed</option>
+            <option value="UNFED">Unfed</option>
+            <option value="BLOOD_FED">Blood-fed</option>
+            <option value="HALF_GRAVID">Half-gravid</option>
+            <option value="GRAVID">Gravid</option>
+          </select>
+        </div>
+        <div className="form-field" style={{gridColumn:'span 2'}}>
+          <label className="form-label">Notes</label>
+          <textarea className="form-textarea" placeholder="Optional notes…" style={{minHeight:42}}/>
+        </div>
       </div>
+
+      {/* v1.11 — Blood-Meal Panel suggestion (FR-V03-ID-013, BR-V03-014) — soft, never auto */}
+      {showBmSuggest && (
+        <div className="notif" style={{background:'#edf5ff',border:'1px solid #78a9ff',padding:'12px 14px',marginBottom:12,display:'flex',gap:10}}>
+          <span style={{fontSize:18}}>🩸</span>
+          <div className="notif-body" style={{flex:1}}>
+            <div className="notif-title" style={{color:'#0043ce',marginBottom:3}}>Blood-fed female detected</div>
+            <div className="notif-sub" style={{color:'#393939',marginBottom:8}}>
+              Order the <strong>Mosquito Blood-Meal Identification Panel</strong> to identify the host species this specimen fed on?
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              <button className="btn btn-primary btn-sm" style={{height:28,fontSize:12}}
+                onClick={()=>setBmAdded(true)}>Add Panel to Order</button>
+              <button className="btn btn-ghost btn-sm" style={{height:28,fontSize:12}}
+                onClick={()=>setBmDismissed(true)}>Dismiss</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {bmAdded && (
+        <div className="notif notif-success" style={{marginBottom:12}}>
+          <span style={{fontSize:18}}>✅</span>
+          <div className="notif-body">
+            <div className="notif-title">Blood-Meal Identification Panel added to specimen test orders</div>
+            <div className="notif-sub">Provenance: <strong>manual</strong> (lab tech accepted suggestion). Per BR-V03-014.</div>
+          </div>
+        </div>
+      )}
 
       {/* Molecular accordion */}
       <div className="accordion" style={{marginBottom:12}}>
@@ -1159,7 +1210,11 @@ const DeconModal = ({lotId,onClose}) => {
             <span style={{fontSize:18}}>✅</span>
             <div className="notif-body">
               <div className="notif-title">{poolCount} pools created from {lotId}</div>
-              <div className="notif-sub">Test orders copied to each pool. Parent result unchanged. Pools labelled {lotId}.1 through {lotId}.{poolCount}. Status → Deconvolution In Progress.</div>
+              <div className="notif-sub">
+                Parent test orders copied to each pool. <strong>Reflex rule VR-01 (Malaria Speciation)</strong> fired —
+                Plasmodium Speciation Panel added to each child as additional orders (per BR-V03-012, ADD semantics).
+                Parent result unchanged. Pools labelled {lotId}.1 through {lotId}.{poolCount}. Status → Deconvolution In Progress.
+              </div>
             </div>
           </div>
         </div>
@@ -1182,7 +1237,10 @@ const DeconModal = ({lotId,onClose}) => {
             <span style={{fontSize:18}}>⚠️</span>
             <div className="notif-body">
               <div className="notif-title">Positive result: NS1 RT-PCR</div>
-              <div className="notif-sub">{lotId} · <strong>{parentQty} organisms</strong> · Parent result and test orders will remain unchanged.</div>
+              <div className="notif-sub">
+                {lotId} · <strong>{parentQty} organisms</strong> · Parent result and test orders will remain unchanged.
+                Reflex rule <strong>VR-01 Malaria Speciation</strong> will fire on save and add a Plasmodium Speciation Panel to each child pool.
+              </div>
             </div>
           </div>
 

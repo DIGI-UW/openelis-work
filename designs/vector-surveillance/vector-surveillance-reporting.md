@@ -1,12 +1,19 @@
 # Vector Surveillance Reporting
 ## Functional Requirements Specification — v1.0
 
-**Version:** 1.0
-**Date:** 2026-04-20
+**Version:** 1.3
+**Date:** 2026-04-24
 **Status:** Draft for Review
 **Jira:** TBD (Epic: [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
 **Technology:** Java Spring Framework, Carbon React, Apache Superset, HAPI FHIR, Google Open Health Stack (SQL-on-FHIR)
 **Related Modules:** Vector Collection Workflow (V-02, OGC-581), Vector Testing & Identification (V-03, OGC-583), Vector Specimen Types & Taxonomy (V-01, OGC-555), FHIR Outbound Push (existing)
+
+### Change Log
+
+- **v1.3 (2026-04-24 — infection rate accuracy for deconvoluted pools):** Rewrote §8.4 `vector_mir_weekly` to compute two metrics side-by-side: `mir_classic` (classical formula, conservative lower bound) and `infection_rate_per_1000` (uses exact positive counts when pool deconvolution is COMPLETE; falls back to classical assumption of 1 positive per unresolved positive pool). Added `positive_resolution_pct` diagnostic so report readers can judge how trustworthy the hybrid metric is. Rewrote BR-V04-001. Updated Dashboard #4 to show both metrics. Added §17.3 future-scope note for MLE-based PooledInfRate-style estimator (deferred — requires iterative solver, not expressible in pure SQL). Acceptance criteria added.
+- **v1.2 (2026-04-24 — QC exclusion):** Added explicit QC sample handling. Surveillance aggregates (MIR, density) now filter out QC samples by traversing the existing OpenELIS `analysis_qaevent` join table. Per OpenELIS architecture, QC is identified at the Analysis level (a Sample is QC if any of its Analyses has a linked QaEvent record — Positive Control, Negative Control, Blank, Duplicate). New FR-V04-QC-001/002/003. New §8.6 `vector_qc_monitoring` view. New Dashboard #7 "QC Pass Rate". New BR-V04-008. Updated FHIR §7.3 DiagnosticReport mapping with `qaEventType` extension. Acceptance criteria for QC exclusion added.
+- **v1.1 (2026-04-24 — alignment with simplified V-02/V-03):** Removed `trap_type` from FHIR Specimen mapping, OHS analytics views, and dashboard groupings — trap type is designed in the backend but currently out of scope for V-02 intake (no data captured). Replaced `pool_flag` references with derived `is_pool = (quantity > 1)` to match V-02 v2.2+ data model. Renamed `specimen_count` → `organism_count` consistently. Renamed `vector_trap_catch_daily` view → `vector_collection_density_daily` and metric `catch_rate` → `organisms_per_event` to reflect the post-trap-type entomological metric. Added §17.2 deferred-feature note for trap type. Dashboard #1 and #5 titles updated.
+- **v1.0 (2026-04-20):** Initial draft.
 
 ---
 
@@ -28,7 +35,10 @@
 14. Validation Rules
 15. Security & Permissions
 16. Acceptance Criteria
-17. Future Scope (V-04b)
+17. Future Scope
+    - 17.1 V-04b — In-App Outbreak Alerts
+    - 17.2 Trap Type Reactivation (Deferred)
+    - 17.3 V-04c — MLE-based Infection Rate Estimation (Deferred)
 
 ---
 
@@ -40,7 +50,7 @@ V-04 delivers vector surveillance analytics to OpenELIS operators without requir
 
 ## 2. Problem Statement
 
-**Current state:** Vector surveillance data collected through V-02 (CollectionLot) and V-03 (VectorSpecimenIdentification, pathogen results) is stored in OpenELIS but has no analytical surface. Coordinators must export raw data and process it externally — typically in Excel — to produce trap catch rates, species-level summaries, or MIR figures required by health authority reporting.
+**Current state:** Vector surveillance data collected through V-02 (VECTOR-domain Samples) and V-03 (VectorSpecimenIdentification, pathogen results, deconvolution aliquots) is stored in OpenELIS but has no analytical surface. Coordinators must export raw data and process it externally — typically in Excel — to produce collection density figures, species-level summaries, or MIR calculations required by health authority reporting.
 
 **Impact:** Manual aggregation is error-prone, time-consuming, and non-reproducible. Health authority submissions are delayed. There is no real-time view of surveillance trends, meaning outbreak signals may go undetected until the weekly manual report cycle.
 
@@ -154,9 +164,9 @@ V-04 delivers vector surveillance analytics to OpenELIS operators without requir
 ┌──────────────────────────────────────────────────────────────────────┐
 │  Postgres — analytics schema  (Docker Compose service: postgres-fhir) │
 │  OHS flattened views:                                                 │
-│    vector_collection_lots    vector_specimen_ids                      │
-│    vector_pathogen_results   vector_mir_weekly                        │
-│    vector_trap_catch_daily                                            │
+│    vector_collection_samples       vector_specimen_ids                │
+│    vector_pathogen_results         vector_mir_weekly                  │
+│    vector_collection_density_daily vector_qc_monitoring               │
 └──────────────────────────────┬───────────────────────────────────────┘
                                │ SQLAlchemy connection
                                ▼
@@ -191,28 +201,35 @@ V-04 delivers vector surveillance analytics to OpenELIS operators without requir
 
 ### 6.2 FHIR Outbound Push Extensions
 
-**FR-V04-FHIR-001:** The existing OpenELIS FHIR outbound push pipeline MUST be extended to push `Specimen` resources for each `CollectionLot` created in V-02.
+**FR-V04-FHIR-001:** The existing OpenELIS FHIR outbound push pipeline MUST be extended to push `Specimen` resources for each VECTOR-domain Sample created in V-02 — including top-level submissions and deconvolution aliquots (see V-03). Aliquots MUST set `Specimen.parent` to reference their parent Specimen.
 
 **FR-V04-FHIR-002:** Each `VectorSpecimenIdentification` record (V-03) MUST generate a FHIR `Observation` resource with code = LOINC `81255-2` (organism identified) and component observations for species, method, and confidence.
 
 **FR-V04-FHIR-003:** Each pathogen test result linked to a V-03 lot (pooled or deconvoluted) MUST be pushed as a FHIR `DiagnosticReport` referencing the parent `Specimen`.
 
-**FR-V04-FHIR-004:** `DeconvolutionTask` outcomes (V-03) MUST be pushed as FHIR `Task` resources with `Task.output` containing positive child count and deconvolution outcome percentage.
+**FR-V04-FHIR-004:** Deconvolution outcomes (per V-03 BR-V03-009) MUST be derivable from the pushed Specimen graph: the parent Sample's `Specimen.extension[deconvolutionStatus]` carries the workflow state, and aggregation across child specimens (linked via `Specimen.parent`) yields the positive count and outcome percentage. The `DeconvolutionTask` entity was removed in V-03 v1.4; no separate FHIR `Task` resource is pushed for deconvolution lifecycle events. A lightweight `VectorDeconvolutionEvent` audit record (V-03 §5) MAY OPTIONALLY be pushed as a FHIR `Provenance` resource referencing the parent Specimen.
 
 **FR-V04-FHIR-005:** FHIR push failures MUST be logged to the existing OpenELIS outbound FHIR error log and MUST NOT block the primary OpenELIS workflow.
 
 ### 6.3 OHS Flattened Views
 
 **FR-V04-OHS-001:** The OHS ETL job MUST produce the following Postgres views in the `vector_analytics` schema (see §8 for full schemas):
-- `vector_collection_lots` — one row per CollectionLot
+- `vector_collection_samples` — one row per VECTOR-domain Sample (top-level submissions and aliquots; carries derived `is_qc`)
 - `vector_specimen_ids` — one row per VectorSpecimenIdentification
-- `vector_pathogen_results` — one row per pathogen test result
-- `vector_mir_weekly` — pre-aggregated MIR by species × panel × ISO week
-- `vector_trap_catch_daily` — pre-aggregated specimens/trap-night by site × day
+- `vector_pathogen_results` — one row per pathogen test result (carries `is_qc` and `qa_event_type`)
+- `vector_mir_weekly` — pre-aggregated infection rate metrics by species × panel × ISO week (see §8.4 / Item 5 for classical vs. observed split; QC-excluded)
+- `vector_collection_density_daily` — pre-aggregated organisms/collection-event by site × organism group × day (top-level submissions only; QC-excluded)
+- `vector_qc_monitoring` — pre-aggregated QC pass rate by `qa_event_type` × site × ISO week (QC-only)
 
 **FR-V04-OHS-002:** Views MUST be refreshed atomically (CREATE OR REPLACE VIEW or materialised view refresh) to prevent partial reads by Superset during ETL.
 
 **FR-V04-OHS-003:** Each view MUST include a `site_id`, `site_name`, and `collection_date` column to support Superset row-level security filtering.
+
+**FR-V04-QC-001:** QC samples — defined as Samples whose Analyses include one or more linked `AnalysisQaEvent` records (the existing OpenELIS QC pattern: `qa_event` catalog of Positive Control / Negative Control / Blank / Duplicate joined to Analysis via `analysis_qaevent`) — MUST be derivable as an `is_qc` boolean column in `vector_collection_samples` and `vector_pathogen_results` views. The QC type (`qa_event_type`) MUST be available alongside the boolean for QC monitoring reporting.
+
+**FR-V04-QC-002:** Surveillance aggregate views (`vector_mir_weekly`, `vector_collection_density_daily`) MUST exclude rows where `is_qc = TRUE`. QC samples MUST NOT contribute to MIR numerator, MIR denominator, or organism density calculations.
+
+**FR-V04-QC-003:** A separate `vector_qc_monitoring` view MUST aggregate QC sample results by `qa_event_type` × site × ISO week, producing per-control-type pass rates. This surfaces, e.g., "Positive Control pass rate at Site BPP-01 was 96% in W12" without polluting the surveillance aggregates.
 
 ### 6.4 Superset Dashboards
 
@@ -224,7 +241,7 @@ V-04 delivers vector surveillance analytics to OpenELIS operators without requir
 
 **FR-V04-DASH-004:** The dashboard MUST be exportable as PDF via Superset's native export function (requires Superset `ENABLE_SCHEDULED_EMAIL_REPORTS = True` and a headless browser — see §10.3).
 
-**FR-V04-DASH-005:** Superset alert rules MUST be configurable in the Superset admin UI for any metric in the `vector_mir_weekly` and `vector_trap_catch_daily` views. Alert delivery is via email (SMTP configured in `superset_config.py`).
+**FR-V04-DASH-005:** Superset alert rules MUST be configurable in the Superset admin UI for any metric in the `vector_mir_weekly` and `vector_collection_density_daily` views. Alert delivery is via email (SMTP configured in `superset_config.py`).
 
 ### 6.5 OpenELIS Embedding Page
 
@@ -250,19 +267,22 @@ V-04 delivers vector surveillance analytics to OpenELIS operators without requir
 
 ## 7. FHIR Resource Mapping
 
-### 7.1 CollectionLot → FHIR Specimen
+### 7.1 Sample (VECTOR domain) → FHIR Specimen
 
-| CollectionLot field | FHIR Specimen path | Notes |
+> Aligned with V-02 v2.2+ — the source entity is the existing `Sample`, not a separate `CollectionLot`. Trap type is designed in the backend but currently out of scope for V-02 intake; see §17.2 for deferred reactivation.
+
+| Sample field | FHIR Specimen path | Notes |
 |---|---|---|
-| `id` | `Specimen.identifier[0].value` | System: `https://openelis-global.org/lot` |
-| `lotCode` | `Specimen.identifier[1].value` | Display label |
-| `samplingSite.id` | `Specimen.collection.collector` | Reference to Location |
-| `collectionDate` | `Specimen.collection.collectedDateTime` | ISO 8601 |
-| `trapType.code` | `Specimen.type.coding[0].code` | System: `https://openelis-global.org/trap-type` |
-| `specimenCount` | `Specimen.note[0].text` | `"specimenCount:{n}"` |
-| `poolFlag` | `Specimen.note[1].text` | `"poolFlag:true|false"` |
+| `id` | `Specimen.identifier[0].value` | System: `https://openelis-global.org/sample` |
+| `lab_number` | `Specimen.identifier[1].value` | Display label (e.g., `VCT-2026-000042`) |
+| `sampling_site_id` | `Specimen.collection.collector` | Reference to Location (nullable; V-02 makes site optional) |
+| `received_at` | `Specimen.collection.collectedDateTime` | ISO 8601 — V-02 records lab receipt; collection date upstream of OpenELIS not captured |
+| `quantity` | `Specimen.collection.quantity` | `Quantity` resource: `{ value: <int>, unit: "organisms" }` |
+| — (derived) | `Specimen.note[0].text` | `"isPool:{quantity>1}"` — derived at push time |
 | `identificationStatus` | `Specimen.status` | `available` = COMPLETE, `unavailable` = NOT_STARTED, `unsatisfactory` = IN_PROGRESS |
-| `group` (organism group) | `Specimen.type.coding[1].code` | System: `https://openelis-global.org/organism-group` |
+| `sample_type_id` (organism group) | `Specimen.type.coding[0].code` | System: `https://openelis-global.org/organism-group` |
+| `deconvolutionStatus` | `Specimen.extension[deconvolutionStatus]` | Custom extension URL |
+| `parent_aliquot_id` | `Specimen.parent` | Set on child aliquots; references parent Specimen |
 
 ### 7.2 VectorSpecimenIdentification → FHIR Observation
 
@@ -283,23 +303,24 @@ V-04 delivers vector surveillance analytics to OpenELIS operators without requir
 | OpenELIS field | FHIR DiagnosticReport path | Notes |
 |---|---|---|
 | `result.id` | `DiagnosticReport.identifier[0].value` | — |
-| `lot.id` | `DiagnosticReport.specimen[0]` | Reference to Specimen (lot) |
+| `sample.id` | `DiagnosticReport.specimen[0]` | Reference to Specimen (Sample or Aliquot) |
 | `panel.loincCode` | `DiagnosticReport.code.coding[0]` | Panel LOINC |
 | `result.value` | `DiagnosticReport.conclusion` | Positive / Negative / Indeterminate |
 | `result.resultDate` | `DiagnosticReport.effectiveDateTime` | — |
 | `isPoolPositive` | `DiagnosticReport.extension[poolPositive]` | Custom extension URL |
+| `analysis_qaevent.qa_event_id` (joined via `analysis_id`) | `DiagnosticReport.extension[qaEventType]` | CodeableConcept; absent when analysis is not QC. System: `https://openelis-global.org/qa-event-type`. Drives `is_qc` derivation in OHS views. |
+| Provenance from BR-V03-012 §4 | `DiagnosticReport.extension[orderProvenance]` | "copied" / "reflex:VR-NN" / "manual" — supports ISO 17025 §7.5 audit |
 
-### 7.4 DeconvolutionTask → FHIR Task
+### 7.4 Deconvolution → derived from Specimen graph
 
-| DeconvolutionTask field | FHIR Task path | Notes |
+> Per V-03 v1.4 the standalone `DeconvolutionTask` entity was removed. Deconvolution state and outcomes are now derivable directly from the pushed Specimen graph using `Specimen.parent` and the `deconvolutionStatus` extension on the parent Specimen. No separate FHIR `Task` resource is pushed.
+
+| Source | FHIR path | Notes |
 |---|---|---|
-| `id` | `Task.identifier[0].value` | — |
-| `parentLot.id` | `Task.focus` | Reference to parent Specimen |
-| `strategy` | `Task.input[0].valueCode` | INDIVIDUAL / SUB_POOL |
-| `childCount` | `Task.input[1].valueInteger` | — |
-| `positiveCount` | `Task.output[0].valueInteger` | — |
-| `deconvolutionOutcomePct` | `Task.output[1].valueDecimal` | Percent positive |
-| `status` | `Task.status` | IN_PROGRESS / COMPLETE |
+| `parent_aliquot_id` (on each child Sample) | `Specimen.parent` | Reference to parent Specimen — establishes the deconvolution tree |
+| `deconvolutionStatus` (on parent Sample) | `Specimen.extension[deconvolutionStatus]` | NOT_APPLICABLE / PENDING / IN_PROGRESS / COMPLETE |
+| Aggregation over children | (computed in OHS view) | `positive_count` = COUNT(child WHERE result is_positive); `outcome_pct` = positive_count / total_children × 100 |
+| **Optional:** `VectorDeconvolutionEvent` audit | `Provenance` referencing parent Specimen | Triggering result, aliquot count, initiated-by, timestamp; OPTIONAL push |
 
 ---
 
@@ -307,26 +328,42 @@ V-04 delivers vector surveillance analytics to OpenELIS operators without requir
 
 All views live in the `vector_analytics` Postgres schema. The OHS `sql-on-fhir` engine generates these by running SQL projections against the HAPI FHIR Postgres tables.
 
-### 8.1 `vector_collection_lots`
+### 8.1 `vector_collection_samples`
+
+> Renamed from `vector_collection_lots` to align with V-02's Sample entity (the term "lot" is no longer used). Trap type fields removed — see §17.2 for deferred reactivation.
 
 ```sql
-CREATE OR REPLACE VIEW vector_analytics.vector_collection_lots AS
+CREATE OR REPLACE VIEW vector_analytics.vector_collection_samples AS
 SELECT
-    s.id                              AS lot_fhir_id,
-    s.lot_code                        AS lot_code,
+    s.id                              AS sample_fhir_id,
+    s.lab_number                      AS lab_number,
     s.site_id                         AS site_id,
     s.site_name                       AS site_name,
     s.collection_date::date           AS collection_date,
     EXTRACT(ISOYEAR FROM s.collection_date::date)  AS iso_year,
-    EXTRACT(WEEK   FROM s.collection_date::date)  AS iso_week,
-    s.trap_type_code                  AS trap_type_code,
-    s.trap_type_name                  AS trap_type_name,
+    EXTRACT(WEEK   FROM s.collection_date::date)   AS iso_week,
     s.organism_group                  AS organism_group,
-    s.specimen_count::int             AS specimen_count,
-    s.pool_flag::boolean              AS pool_flag,
-    s.identification_status           AS identification_status
+    s.organism_count::int             AS organism_count,        -- from Specimen.collection.quantity.value
+    (s.organism_count > 1)::boolean   AS is_pool,                -- derived; replaces former pool_flag
+    s.identification_status           AS identification_status,
+    s.deconvolution_status            AS deconvolution_status,
+    s.parent_sample_fhir_id           AS parent_sample_fhir_id,  -- null for top-level samples; set for aliquots
+    -- QC derivation: a Sample is QC if any of its Analyses has a linked AnalysisQaEvent (OpenELIS pattern).
+    -- Pulled in OHS via DiagnosticReport.extension[qaEventType].
+    EXISTS (
+        SELECT 1
+          FROM ohs_diagnosticreport_flat dr
+         WHERE dr.specimen_ref = s.id
+           AND dr.qa_event_type IS NOT NULL
+    )::boolean                        AS is_qc,
+    (
+        SELECT array_agg(DISTINCT dr.qa_event_type)
+          FROM ohs_diagnosticreport_flat dr
+         WHERE dr.specimen_ref = s.id
+           AND dr.qa_event_type IS NOT NULL
+    )                                 AS qa_event_types  -- e.g. {'Positive Control'}, {'Blank','Duplicate'}, NULL when not QC
 FROM ohs_specimen_flat s
-WHERE s.system = 'https://openelis-global.org/lot';
+WHERE s.system = 'https://openelis-global.org/sample';
 ```
 
 ### 8.2 `vector_specimen_ids`
@@ -357,7 +394,7 @@ WHERE o.loinc_code = '81255-2';
 CREATE OR REPLACE VIEW vector_analytics.vector_pathogen_results AS
 SELECT
     dr.id                             AS report_fhir_id,
-    dr.specimen_ref                   AS lot_fhir_id,
+    dr.specimen_ref                   AS sample_fhir_id,
     dr.panel_loinc                    AS panel_loinc,
     dr.panel_name                     AS panel_name,
     dr.conclusion                     AS result_value,
@@ -366,7 +403,12 @@ SELECT
     s.site_id                         AS site_id,
     s.site_name                       AS site_name,
     s.organism_group                  AS organism_group,
-    s.specimen_count::int             AS pool_size,
+    s.organism_count::int             AS organism_count,        -- pool size when is_pool, else 1
+    (s.organism_count > 1)::boolean   AS is_pool,
+    -- QC derivation: this analysis is QC iff its FHIR DiagnosticReport carries a qaEventType extension
+    -- (sourced from analysis_qaevent → qa_event in OpenELIS; see FR-V04-QC-001).
+    (dr.qa_event_type IS NOT NULL)::boolean AS is_qc,
+    dr.qa_event_type                  AS qa_event_type,         -- 'Positive Control' / 'Negative Control' / 'Blank' / 'Duplicate' / NULL
     EXTRACT(ISOYEAR FROM dr.effective_date::date) AS iso_year,
     EXTRACT(WEEK   FROM dr.effective_date::date) AS iso_week
 FROM ohs_diagnosticreport_flat dr
@@ -375,56 +417,165 @@ JOIN ohs_specimen_flat s ON s.id = dr.specimen_ref;
 
 ### 8.4 `vector_mir_weekly` (pre-aggregated)
 
-MIR = (positive pools / total specimens tested) × 1000
+Computes two infection rate metrics side-by-side:
+
+- **`mir_classic`** — classical Minimum Infection Rate. `(positive_pools / total_organisms) × 1000`. Treats every positive pool as exactly 1 positive organism; conservative lower bound used by national surveillance programs and WHO standards for cross-program comparability.
+- **`infection_rate_per_1000`** — hybrid metric. Uses *exact* positive counts when a pool's `deconvolution_status = COMPLETE`; falls back to the classical 1-positive-per-pool assumption when the pool is unresolved. When deconvolution coverage reaches 100%, this is the true observed infection rate.
+
+A diagnostic `positive_resolution_pct` is included so report readers can judge how trustworthy `infection_rate_per_1000` is: 100% means fully resolved (the hybrid metric reflects ground truth), 0% means none resolved (the hybrid metric equals classical).
 
 ```sql
 CREATE OR REPLACE VIEW vector_analytics.vector_mir_weekly AS
+WITH sample_positivity AS (
+    -- For each top-level non-QC tested Sample, compute the inferred number of
+    -- positive organisms in that Sample, using exact counts when deconvolution is
+    -- COMPLETE and the classical 1-positive-per-pool assumption otherwise.
+    SELECT
+        pr.site_id,
+        pr.site_name,
+        pr.organism_group,
+        pr.panel_loinc,
+        pr.panel_name,
+        pr.iso_year,
+        pr.iso_week,
+        pr.sample_fhir_id,
+        pr.organism_count,
+        pr.is_positive,
+        cs.deconvolution_status,
+        (cs.deconvolution_status = 'COMPLETE')::boolean AS is_resolved,
+        CASE
+            WHEN NOT pr.is_positive
+                THEN 0                                    -- negative pool / individual contributes 0 positives
+            WHEN cs.organism_count = 1
+                THEN 1                                    -- positive individual
+            WHEN cs.deconvolution_status = 'COMPLETE'
+                THEN (
+                    -- exact count of positive descendant individuals for the same panel
+                    SELECT COUNT(*)
+                      FROM vector_analytics.vector_pathogen_results child_pr
+                      JOIN vector_analytics.vector_collection_samples child_cs
+                        ON child_pr.sample_fhir_id = child_cs.sample_fhir_id
+                     WHERE child_cs.parent_sample_fhir_id = cs.sample_fhir_id
+                       AND child_pr.panel_loinc = pr.panel_loinc
+                       AND child_pr.is_positive
+                       AND child_cs.organism_count = 1
+                )
+            ELSE 1                                        -- unresolved positive pool → classical assumption
+        END                                               AS inferred_positive_organisms
+    FROM vector_analytics.vector_pathogen_results pr
+    JOIN vector_analytics.vector_collection_samples cs
+        ON cs.sample_fhir_id = pr.sample_fhir_id
+    WHERE pr.is_qc = FALSE                                -- FR-V04-QC-002
+      AND cs.parent_sample_fhir_id IS NULL                -- top-level only; aliquots fold into their parent
+)
+SELECT
+    site_id,
+    site_name,
+    organism_group,
+    panel_loinc,
+    panel_name,
+    iso_year,
+    iso_week,
+    -- Counts
+    COUNT(*)                              AS samples_tested,
+    SUM(is_positive::int)                 AS positive_samples,
+    SUM(organism_count)                   AS total_organisms,
+    SUM(inferred_positive_organisms)      AS inferred_positive_organisms,
+    SUM(CASE WHEN is_positive THEN 1 ELSE 0 END)         AS positive_pools,
+    SUM(CASE WHEN is_positive AND is_resolved THEN 1 ELSE 0 END) AS resolved_positive_pools,
+    -- mir_classic — conservative lower-bound; comparable across programs.
+    ROUND(
+        (SUM(is_positive::int)::numeric / NULLIF(SUM(organism_count), 0)) * 1000,
+        2
+    )                                     AS mir_classic,
+    -- infection_rate_per_1000 — uses exact counts when resolved; classical fallback otherwise.
+    ROUND(
+        (SUM(inferred_positive_organisms)::numeric / NULLIF(SUM(organism_count), 0)) * 1000,
+        2
+    )                                     AS infection_rate_per_1000,
+    -- Diagnostic — % of positive pools that have been deconvoluted.
+    -- 100% → infection_rate_per_1000 equals the true observed infection rate.
+    -- 0%   → infection_rate_per_1000 equals mir_classic.
+    ROUND(
+        SUM(CASE WHEN is_positive AND is_resolved THEN 1 ELSE 0 END)::numeric
+            / NULLIF(SUM(CASE WHEN is_positive THEN 1 ELSE 0 END), 0) * 100,
+        1
+    )                                     AS positive_resolution_pct
+FROM sample_positivity
+GROUP BY site_id, site_name, organism_group,
+         panel_loinc, panel_name, iso_year, iso_week;
+```
+
+### 8.5 `vector_collection_density_daily` (pre-aggregated)
+
+> Renamed from `vector_trap_catch_daily`. Trap-type stratification is deferred (§17.2). The metric is now organisms-per-collection-event (a collection event = one Sample submission to the lab on a given date from a given site, regardless of trap method). When trap type is reactivated, it can be added as a grouping column without breaking this view's contract.
+
+Collection density = total organisms received / number of collection events
+
+```sql
+CREATE OR REPLACE VIEW vector_analytics.vector_collection_density_daily AS
+SELECT
+    cs.site_id,
+    cs.site_name,
+    cs.organism_group,
+    cs.collection_date,
+    cs.iso_year,
+    cs.iso_week,
+    COUNT(*)                          AS collection_events,
+    SUM(cs.organism_count)            AS total_organisms,
+    ROUND(
+        SUM(cs.organism_count)::numeric / NULLIF(COUNT(*), 0),
+        2
+    )                                 AS organisms_per_event
+FROM vector_analytics.vector_collection_samples cs
+WHERE cs.parent_sample_fhir_id IS NULL    -- exclude aliquots; only top-level submissions count as collection events
+  AND cs.is_qc = FALSE                    -- FR-V04-QC-002 — exclude QC samples from density aggregates
+GROUP BY cs.site_id, cs.site_name, cs.organism_group,
+         cs.collection_date, cs.iso_year, cs.iso_week;
+```
+
+### 8.6 `vector_qc_monitoring` (pre-aggregated)
+
+QC pass rate per QA event type per site per ISO week. Surfaces lab QC health alongside surveillance metrics — e.g., "Positive Control pass rate at BPP-01 was 96% in W12; investigate." Per FR-V04-QC-003.
+
+```sql
+CREATE OR REPLACE VIEW vector_analytics.vector_qc_monitoring AS
 SELECT
     pr.site_id,
     pr.site_name,
-    pr.organism_group,
+    pr.qa_event_type,
     pr.panel_loinc,
     pr.panel_name,
     pr.iso_year,
     pr.iso_week,
-    COUNT(*)                          AS pools_tested,
-    SUM(pr.is_positive::int)          AS positive_pools,
-    SUM(pr.pool_size)                 AS total_specimens,
+    COUNT(*)                          AS qc_samples_run,
+    -- "Pass" semantics depend on QA event type:
+    --   Positive Control  → expected POSITIVE  → pass = is_positive
+    --   Negative Control  → expected NEGATIVE  → pass = NOT is_positive
+    --   Blank             → expected NEGATIVE  → pass = NOT is_positive
+    --   Duplicate         → pass requires concordance with paired analysis (computed downstream; this view records both rows)
+    SUM(CASE
+        WHEN pr.qa_event_type = 'Positive Control' AND     pr.is_positive THEN 1
+        WHEN pr.qa_event_type = 'Negative Control' AND NOT pr.is_positive THEN 1
+        WHEN pr.qa_event_type = 'Blank'            AND NOT pr.is_positive THEN 1
+        ELSE 0
+    END)                              AS qc_passes,
     ROUND(
-        (SUM(pr.is_positive::int)::numeric / NULLIF(SUM(pr.pool_size), 0)) * 1000,
+        SUM(CASE
+            WHEN pr.qa_event_type = 'Positive Control' AND     pr.is_positive THEN 1
+            WHEN pr.qa_event_type = 'Negative Control' AND NOT pr.is_positive THEN 1
+            WHEN pr.qa_event_type = 'Blank'            AND NOT pr.is_positive THEN 1
+            ELSE 0
+        END)::numeric / NULLIF(COUNT(*), 0) * 100,
         2
-    )                                 AS mir
+    )                                 AS qc_pass_rate_pct
 FROM vector_analytics.vector_pathogen_results pr
-GROUP BY pr.site_id, pr.site_name, pr.organism_group,
+WHERE pr.is_qc = TRUE                                           -- inverse of FR-V04-QC-002 — QC-only view
+GROUP BY pr.site_id, pr.site_name, pr.qa_event_type,
          pr.panel_loinc, pr.panel_name, pr.iso_year, pr.iso_week;
 ```
 
-### 8.5 `vector_trap_catch_daily` (pre-aggregated)
-
-Trap catch rate = total specimens / number of trap-nights
-
-```sql
-CREATE OR REPLACE VIEW vector_analytics.vector_trap_catch_daily AS
-SELECT
-    cl.site_id,
-    cl.site_name,
-    cl.organism_group,
-    cl.trap_type_code,
-    cl.trap_type_name,
-    cl.collection_date,
-    cl.iso_year,
-    cl.iso_week,
-    COUNT(*)                          AS trap_nights,
-    SUM(cl.specimen_count)            AS total_specimens,
-    ROUND(
-        SUM(cl.specimen_count)::numeric / NULLIF(COUNT(*), 0),
-        2
-    )                                 AS catch_rate
-FROM vector_analytics.vector_collection_lots cl
-GROUP BY cl.site_id, cl.site_name, cl.organism_group,
-         cl.trap_type_code, cl.trap_type_name,
-         cl.collection_date, cl.iso_year, cl.iso_week;
-```
+> **Note on Duplicate QC:** Pass-rate calculation for Duplicate-type QC requires comparing two paired analyses for concordance. The view above records each duplicate row but does not compute concordance — that is expressed in a separate downstream view or Superset calculated column when needed.
 
 ---
 
@@ -434,12 +585,13 @@ All six charts are assembled into the **"Vector Surveillance Overview"** dashboa
 
 | # | Chart name | Type | Source view | X axis | Y axis / Metric | Notes |
 |---|---|---|---|---|---|---|
-| 1 | **Trap Catch Rate — Trend** | Line chart | `vector_trap_catch_daily` | `collection_date` (weekly aggregate) | `catch_rate` (avg) | Grouped by `site_name`; threshold reference line configurable |
+| 1 | **Collection Density — Trend** | Line chart | `vector_collection_density_daily` | `collection_date` (weekly aggregate) | `organisms_per_event` (avg) | Grouped by `site_name`; threshold reference line configurable. (Renamed from "Trap Catch Rate" — trap-type stratification deferred per §17.2.) |
 | 2 | **Species Distribution** | Pie / Donut | `vector_specimen_ids` | — | COUNT per `species_name` | Filterable by site, date range, `confidence = CONFIRMED` |
 | 3 | **Pathogen Positivity Rate** | Bar chart | `vector_pathogen_results` | `iso_week` | `is_positive` (% of rows) | Grouped by `panel_name`; stacked by site |
-| 4 | **MIR by Species × Panel** | Heatmap | `vector_mir_weekly` | `iso_week` | `mir` | Rows = `species_name`; color = MIR quartile |
-| 5 | **Site Comparison — Catch Rate** | Bar chart | `vector_trap_catch_daily` | `site_name` | `catch_rate` (period avg) | Horizontal bars; color by `organism_group` |
-| 6 | **KPI Summary Tiles** | Big Number | All views | — | Total lots · Total specimens · Active sites · Highest MIR this week | 4-tile header row on dashboard |
+| 4 | **Infection Rate by Species × Panel** | Heatmap (toggle) | `vector_mir_weekly` | `iso_week` | `infection_rate_per_1000` (default) / `mir_classic` (toggle) | Rows = `species_name`; color = quartile. Toggle in chart header switches metric. Tooltip shows BOTH metrics plus `positive_resolution_pct` so users understand divergence. When `positive_resolution_pct < 100%`, the chart displays a small warning glyph indicating partial resolution. |
+| 5 | **Site Comparison — Collection Density** | Bar chart | `vector_collection_density_daily` | `site_name` | `organisms_per_event` (period avg) | Horizontal bars; color by `organism_group`. (Renamed from "Catch Rate"). |
+| 6 | **KPI Summary Tiles** | Big Number | All views | — | Total samples · Total organisms · Active sites · Highest MIR this week | 4-tile header row on dashboard. Counts exclude QC samples per FR-V04-QC-002. |
+| 7 | **QC Pass Rate** | Bar chart | `vector_qc_monitoring` | `iso_week` | `qc_pass_rate_pct` | Grouped by `qa_event_type`; one stack per site. Threshold reference line at 95% (configurable). Renders below the surveillance dashboard, under a clear "Quality Control" section divider. Per FR-V04-QC-003. |
 
 ---
 
@@ -647,11 +799,19 @@ Internally this calls: `POST /superset/api/v1/security/guest_token` with the ser
 
 ## 12. Business Rules
 
-**BR-V04-001:** MIR MUST be calculated as `(positive_pools / total_specimens_in_pools) × 1000`. Only pools with a `CONFIRMED` test result status MUST be counted as positive. Inconclusive results MUST be excluded from MIR numerator and denominator.
+**BR-V04-001:** Two infection rate metrics MUST be computed in `vector_mir_weekly` and surfaced together on Dashboard #4:
+
+1. **`mir_classic`** — Minimum Infection Rate (classical formulation). Formula: `(positive_pools / total_organisms_tested) × 1000`. Treats every positive pool as containing exactly one positive organism. This is the conservative lower-bound estimate used by most national vector surveillance programs and is required for cross-program comparability.
+
+2. **`infection_rate_per_1000`** — Hybrid observed-with-fallback infection rate. For each tested top-level Sample, the inferred number of positive organisms is computed as: exact count of positive descendant individuals when `deconvolution_status = COMPLETE`; 1 (classical assumption) when the pool is positive but unresolved; 0 when the pool is negative; 1 when an individual organism (`organism_count = 1`) is positive. Formula: `(SUM(inferred_positive_organisms) / SUM(total_organisms)) × 1000`. When all positive pools in the reporting period are deconvoluted, this metric equals the true observed infection rate.
+
+A `positive_resolution_pct` diagnostic column MUST accompany both metrics, indicating the percentage of positive pools that have been fully deconvoluted in the reporting period. A value of 100% means the hybrid metric reflects ground truth; 0% means it equals `mir_classic`. Values in between represent partial resolution.
+
+Only pools with a `CONFIRMED` test result status MUST be counted as positive. Inconclusive results MUST be excluded from numerator and denominator of both metrics. QC samples MUST NOT contribute to either numerator or denominator (BR-V04-008).
 
 **BR-V04-002:** Only `VectorSpecimenIdentification` records with `confidence = CONFIRMED` MUST contribute to species distribution charts (per BR-V03-010).
 
-**BR-V04-003:** Trap catch rate MUST be expressed as specimens per trap-night. One trap deployed for one collection date = one trap-night.
+**BR-V04-003:** Collection density MUST be expressed as organisms per collection event, where a collection event is one VECTOR-domain Sample submission (top-level, not aliquot) on a given collection date from a given sampling site. Trap-night and trap-type stratification are deferred (§17.2). Aliquots derived via deconvolution MUST NOT be counted as additional collection events.
 
 **BR-V04-004:** Guest tokens MUST expire after 300 seconds (5 minutes). The OpenELIS frontend MUST silently refresh the token on expiry by calling the backend endpoint again. Refreshes MUST NOT cause a visible iframe reload.
 
@@ -660,6 +820,8 @@ Internally this calls: `POST /superset/api/v1/security/guest_token` with the ser
 **BR-V04-006:** The OHS ETL job MUST complete within 5 minutes for datasets up to 500,000 FHIR resources. If the ETL job exceeds 10 minutes, it MUST be terminated and an error logged.
 
 **BR-V04-007:** The `vector_analytics` schema views MUST be refreshed atomically. No Superset query MUST see a partial state during ETL refresh.
+
+**BR-V04-008:** QC samples (those with one or more `analysis_qaevent` linkages on their analyses) MUST NOT contribute to MIR numerator, MIR denominator, or organism density calculations. They MUST be surfaced separately via `vector_qc_monitoring` (§8.6) and Dashboard #7 (§9). Users MUST NOT be able to disable this exclusion via filters — it is a structural property of the surveillance views, not a UI toggle.
 
 ---
 
@@ -697,7 +859,7 @@ All OpenELIS UI strings (header strip, error states, buttons) are externalized. 
 | Date range: To | Must be ≥ From date | `error.vectorReport.dateRangeInvalid` |
 | Date range: span | Maximum 2 years | `error.vectorReport.dateRangeTooLarge` |
 | Guest token | Must not be expired before iframe load | Internal — triggers silent refresh |
-| FHIR Specimen push | `collectionDate` required | Blocked at V-02 CollectionLot save |
+| FHIR Specimen push | `received_at` required (collection date upstream of OpenELIS not captured by V-02) | Blocked at V-02 Sample save |
 
 ---
 
@@ -729,15 +891,30 @@ All OpenELIS UI strings (header strip, error states, buttons) are externalized. 
 
 ### FHIR Mapping
 
-- [ ] Creating a CollectionLot in V-02 generates a FHIR `Specimen` resource in HAPI FHIR within one push cycle
+- [ ] Creating a VECTOR-domain Sample in V-02 generates a FHIR `Specimen` resource in HAPI FHIR within one push cycle
+- [ ] Creating a deconvolution aliquot in V-03 generates a FHIR `Specimen` with `Specimen.parent` set to the parent Sample's Specimen reference
 - [ ] Saving a VectorSpecimenIdentification in V-03 generates a FHIR `Observation` (LOINC 81255-2)
 - [ ] A positive pool result generates a FHIR `DiagnosticReport` referencing the parent Specimen
 - [ ] FHIR push failure is logged and does not block the V-02/V-03 UI workflow
 
 ### OHS Views
 
-- [ ] `vector_trap_catch_daily` produces correct `catch_rate` (specimens / trap-nights per site per day)
-- [ ] `vector_mir_weekly` MIR formula: `(positive_pools / total_specimens) × 1000`, rounded to 2 dp
+- [ ] `vector_collection_density_daily` produces correct `organisms_per_event` (organisms / collection events per site per organism group per day, top-level samples only, QC excluded)
+- [ ] `vector_mir_weekly` `mir_classic` formula: `(positive_pools / total_organisms) × 1000`, rounded to 2 dp, QC excluded
+- [ ] `vector_mir_weekly` `infection_rate_per_1000` uses exact descendant positive count when parent's `deconvolution_status = COMPLETE`; falls back to 1-per-positive-pool otherwise
+- [ ] `vector_mir_weekly` `infection_rate_per_1000` equals `mir_classic` when no positive pools are resolved (`positive_resolution_pct = 0`)
+- [ ] `vector_mir_weekly` `infection_rate_per_1000` equals true observed infection rate when all positive pools are resolved (`positive_resolution_pct = 100`)
+- [ ] `positive_resolution_pct` correctly reflects the deconvolution coverage of positive pools in the period
+- [ ] Dashboard #4 toggle correctly switches the heatmap between `mir_classic` and `infection_rate_per_1000`
+- [ ] Dashboard #4 tooltip shows both metrics plus `positive_resolution_pct` simultaneously
+- [ ] Dashboard #4 partial-resolution warning glyph appears when `positive_resolution_pct < 100`
+- [ ] `vector_collection_samples` `is_qc` column is TRUE iff at least one of the Sample's analyses has a linked `analysis_qaevent` record
+- [ ] `vector_pathogen_results` `is_qc` column matches the analysis's `qa_event_type` extension presence
+- [ ] A Sample submitted as a "Positive Control" QC type does NOT appear in `vector_mir_weekly` or `vector_collection_density_daily`
+- [ ] The same Sample DOES appear in `vector_qc_monitoring` with `qa_event_type = 'Positive Control'`
+- [ ] `vector_qc_monitoring` correctly computes `qc_pass_rate_pct` for Positive Control (expected POS), Negative Control (expected NEG), and Blank (expected NEG) types
+- [ ] Dashboard #7 "QC Pass Rate" renders below a "Quality Control" section divider and is visually separate from surveillance charts
+- [ ] BR-V04-008: there is no UI toggle that allows QC samples to flow into surveillance aggregates
 - [ ] Views refresh atomically — no partial reads during ETL
 - [ ] ETL completes in < 5 minutes for a 500k-resource FHIR dataset
 
@@ -767,12 +944,14 @@ All OpenELIS UI strings (header strip, error states, buttons) are externalized. 
 
 ---
 
-## 17. Future Scope — V-04b: In-App Outbreak Alerts
+## 17. Future Scope
+
+### 17.1 V-04b — In-App Outbreak Alerts
 
 A separate Jira story (V-04b) will add in-app alert integration:
 
 **Scope:**
-- A Spring `@Scheduled` background job polls `vector_mir_weekly` and `vector_trap_catch_daily` every 15 minutes
+- A Spring `@Scheduled` background job polls `vector_mir_weekly` and `vector_collection_density_daily` every 15 minutes
 - When a metric exceeds a configured threshold (stored in a new `VectorAlertThreshold` entity), the job creates an OpenELIS `SystemNotification`
 - The notification appears in the existing OpenELIS Alerts tab with severity (WARNING / CRITICAL), metric name, site, current value, and threshold value
 - An `InlineNotification` banner also appears on the Reports → Vector Surveillance page when there is at least one active unacknowledged alert for the sites visible to the user
@@ -796,3 +975,39 @@ CREATE TABLE vector_alert_threshold (
     created_at        TIMESTAMP DEFAULT NOW()
 );
 ```
+
+### 17.2 Trap Type Reactivation (Deferred)
+
+**Status:** Designed in the OpenELIS backend but currently out of scope for V-02 intake (per the V-02 v2.3 simplification pass). Trap type fields exist on the underlying entities and remain queryable for legacy/imported records but are not collected via the current V-02 workflow and are therefore omitted from the V-04 v1.1 analytics surface.
+
+**Reactivation path (no ETL re-run required):**
+
+1. **V-02 intake** — restore the Trap Type ComboBox in Step 1 (Vector domain) sourced from the existing trap-type catalog. No data model change needed.
+2. **V-04 §7.1 FHIR mapping** — re-add `trap_type → Specimen.type.coding[1]` (system: `https://openelis-global.org/trap-type`).
+3. **V-04 §8.1 view** — re-add `s.trap_type_code AS trap_type_code` and `s.trap_type_name AS trap_type_name` columns to `vector_collection_samples`.
+4. **V-04 §8.5 view** — re-add `cs.trap_type_code, cs.trap_type_name` to `vector_collection_density_daily`'s SELECT and GROUP BY clauses. Optionally introduce `vector_trap_efficacy_daily` as a derived view if direct trap-comparison metrics are required.
+5. **V-04 §9 dashboard** — add a "Catch Rate by Trap Type" chart (Dashboard #7) and add Trap Type to the dashboard cross-filter set. Existing dashboards continue to function unchanged because trap type would only be added as an additional grouping dimension.
+
+**Surveillance metrics that become available on reactivation:**
+
+- Catch rate per trap-night (the original `catch_rate = specimens / trap-nights` formulation)
+- Trap-type efficacy comparison (e.g., BG-Sentinel vs. CDC light trap for *Aedes* surveillance)
+- Trap-type-stratified MIR (rarely needed but valuable for some research programs)
+
+**Why deferred:** Field labs in the V-04 v1.1 deployment context (Indonesia, single-trap-type sites) reported the trap-type field as low-value friction during intake. The data model and FHIR coding system stay in place so reactivation is purely a UI + view-layer change with no migration burden.
+
+### 17.3 V-04c — MLE-based Infection Rate Estimation
+
+**Status:** Considered in V-04 v1.3 design and deferred to a future release.
+
+**Background.** The two-metric approach in §8.4 (`mir_classic` + `infection_rate_per_1000`) gives surveillance programs a defensible lower-bound estimate plus a hybrid metric that improves as deconvolution coverage grows. Both metrics break down for the case that vector surveillance most commonly faces: **variable pool sizes at low prevalence with no deconvolution.** In that regime, neither classical MIR nor the hybrid metric is statistically optimal — the gold-standard estimator is a **maximum likelihood estimate (MLE) of infection rate from pooled data**, as implemented in CDC's PooledInfRate package and described in Biggerstaff (2008).
+
+**Why deferred.** The MLE estimator requires an iterative numerical solver (Newton-Raphson or expectation-maximisation) over the joint likelihood of variable-pool-size pooled testing data. It cannot be expressed in pure SQL and therefore does not fit cleanly into an OHS view. Implementation options for a future V-04c release:
+
+1. A Python OHS post-processing job that consumes `vector_pathogen_results`, runs the PooledInfRate algorithm per site × organism × panel × week group, and writes results to a `vector_mle_weekly` materialised table.
+2. A Spring `@Scheduled` job in the OpenELIS application calling a JVM port of the algorithm.
+3. A Superset Python virtual dataset that calls a microservice running the estimator.
+
+**Surveillance value.** Programs already submitting MIR figures to national health authorities will continue to use `mir_classic` because that is what the authority requires. MLE infection rate would be an internal analytical layer for outbreak signal detection and entomological research, not a reporting metric. This is why deferral is acceptable for V-04 v1.3.
+
+**Design hook in V-04 v1.3:** The `vector_mir_weekly` view's column ordering and naming (`mir_classic` vs. `infection_rate_per_1000`) leaves room for a future `mle_infection_rate` column to be added without renaming or breaking existing dashboards.
