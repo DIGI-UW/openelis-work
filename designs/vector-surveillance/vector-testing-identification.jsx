@@ -1,7 +1,27 @@
 /**
- * V-03 Vector Testing & Identification — React Mockup (v1.1)
- * Spec: vector-testing-identification.md
- * Jira: OGC-583 (OGC-527 epic)
+ * V-03 Vector Testing & Identification — React Mockup (v1.3)
+ * Spec: vector-testing-identification.md (v1.11)
+ * Jira: OGC-582 / OGC-583 (OGC-527 epic)
+ *
+ * v1.3 changes (lab-tech feedback, April 2026):
+ *  - SpecimenIdForm now includes a Physiological State Select (Detinova classification)
+ *    per FR-V03-ID-012. When state = BLOOD_FED, the form surfaces a soft suggestion
+ *    to add the Mosquito Blood-Meal Identification Panel (FR-V03-ID-013, BR-V03-014).
+ *    The system never auto-orders — the lab tech explicitly accepts.
+ *  - Three new seed Panels referenced from Appendix A.5: Blood-Meal (A.5.6),
+ *    Plasmodium Drug Resistance (A.5.7), Vector Insecticide Resistance (A.5.8).
+ *  - VR-06 Plasmodium Drug Resistance reflex shipped (fires on confirmed P. falciparum positive).
+ *  - §14 Future Scope trimmed — workflows promoted into v1.0 scope; future scope is now
+ *    host range expansion, drug-resistance reference set updates, and vectorial capacity.
+ *
+ * v1.2 changes (FRS crosswalk April 2026):
+ *  - BR-V03-012 reflex integration: deconvolution modal previews which reflex rules
+ *    will fire on save (eager evaluation), with provenance Tags showing copied vs.
+ *    reflex-added orders. Success messages reference the rule that fired.
+ *  - Appendix A seed rules: VR-01 Malaria Speciation referenced in deconvolution preview.
+ *  - §14 characterization scope: documentation-only — no UI changes for blood-meal,
+ *    drug-resistance, insecticide-resistance workflows (all enabled today via
+ *    lab-authored reflex rules in Admin → Reflex Rules).
  *
  * v1.1 changes:
  *  - Navigation: SideNav with submenus replaces top-level Tabs
@@ -125,7 +145,12 @@ const NavBadge = ({ count, alert }) => (
 // ---------------------------------------------------------------------------
 function SpecimenIdForm({ specimen, onSave }) {
   const [method, setMethod] = useState(specimen?.method || '');
+  // v1.11: physiological state (Detinova classification) — drives Blood-Meal Panel suggestion
+  const [physState, setPhysState] = useState(specimen?.physiologicalState || 'UNKNOWN');
+  const [bloodMealAdded, setBloodMealAdded] = useState(false);
+  const [bloodMealDismissed, setBloodMealDismissed] = useState(false);
   const showMolecular = method === 'MOLECULAR' || method === 'BOTH';
+  const showBloodMealSuggest = physState === 'BLOOD_FED' && !bloodMealAdded && !bloodMealDismissed;
 
   return (
     <Tile style={{ padding: 'var(--cds-spacing-05)', margin: '0.5rem 0', background: '#f4f4f4' }}>
@@ -153,7 +178,7 @@ function SpecimenIdForm({ specimen, onSave }) {
             <SelectItem value="BOTH"          text="Morphological + Molecular" />
           </Select>
         </Column>
-        <Column lg={4} md={4}>
+        <Column lg={3} md={4}>
           <Select
             id={`confidence-${specimen?.id}`}
             labelText={t('label.vectorId.confidence', 'Confidence')}
@@ -164,6 +189,56 @@ function SpecimenIdForm({ specimen, onSave }) {
             <SelectItem value="PRESUMPTIVE" text="Presumptive" />
           </Select>
         </Column>
+        {/* v1.11 — Physiological State (Detinova age-grading classification) per FR-V03-ID-012 */}
+        <Column lg={3} md={4}>
+          <Select
+            id={`physstate-${specimen?.id}`}
+            labelText={t('label.vectorId.physiologicalState', 'Physiological State')}
+            value={physState}
+            onChange={e => { setPhysState(e.target.value); setBloodMealDismissed(false); }}
+            helperText="Females only"
+          >
+            <SelectItem value="UNKNOWN"     text={t('label.vectorId.physiologicalState.unknown',   'Unknown / not assessed')} />
+            <SelectItem value="UNFED"       text={t('label.vectorId.physiologicalState.unfed',     'Unfed')} />
+            <SelectItem value="BLOOD_FED"   text={t('label.vectorId.physiologicalState.bloodFed',  'Blood-fed')} />
+            <SelectItem value="HALF_GRAVID" text={t('label.vectorId.physiologicalState.halfGravid','Half-gravid')} />
+            <SelectItem value="GRAVID"      text={t('label.vectorId.physiologicalState.gravid',    'Gravid')} />
+          </Select>
+        </Column>
+        {/* v1.11 — Blood-Meal Panel suggestion (FR-V03-ID-013, BR-V03-014) — soft, never auto */}
+        {showBloodMealSuggest && (
+          <Column lg={16} md={8}>
+            <InlineNotification
+              kind="info"
+              title={t('message.vectorId.bloodMealSuggest', 'Blood-fed female detected.')}
+              subtitle={t('message.vectorId.bloodMealSuggestSub',
+                'Order the Mosquito Blood-Meal Identification Panel to identify the host species this specimen fed on?')}
+              actions={
+                <Stack orientation="horizontal" gap={3}>
+                  <Button kind="ghost" size="sm" onClick={() => { setBloodMealAdded(true); }}>
+                    {t('button.vectorId.addBloodMealPanel', 'Add Panel to Order')}
+                  </Button>
+                  <Button kind="ghost" size="sm" onClick={() => setBloodMealDismissed(true)}>
+                    {t('button.vectorId.dismissBloodMealSuggest', 'Dismiss')}
+                  </Button>
+                </Stack>
+              }
+              lowContrast
+              style={{ marginBottom: 'var(--cds-spacing-04)' }}
+            />
+          </Column>
+        )}
+        {bloodMealAdded && (
+          <Column lg={16} md={8}>
+            <InlineNotification
+              kind="success"
+              title={t('message.vectorId.bloodMealAdded', 'Blood-Meal Identification Panel added to specimen test orders.')}
+              hideCloseButton
+              lowContrast
+              style={{ marginBottom: 'var(--cds-spacing-04)' }}
+            />
+          </Column>
+        )}
         <Column lg={16} md={8}>
           <TextArea
             id={`notes-${specimen?.id}`}
@@ -263,7 +338,9 @@ function DeconvolutionModal({ open, onClose, lotId }) {
         kind="warning"
         title={t('label.vectorDec.positiveTest', 'Positive result:')}
         subtitle={t('message.vectorDec.parentNote',
-          'NS1 RT-PCR returned POSITIVE. Parent test orders and results will remain unchanged.')}
+          'NS1 RT-PCR returned POSITIVE. Parent test orders and results will remain unchanged. ' +
+          'Reflex rule VR-01 (Malaria Speciation) will fire on save and add a Plasmodium Speciation Panel ' +
+          'to each child aliquot per BR-V03-012 (ADD semantics).')}
         lowContrast
         style={{ marginBottom: 'var(--cds-spacing-05)' }}
       />
@@ -315,6 +392,30 @@ function DeconvolutionModal({ open, onClose, lotId }) {
           {t('label.vectorDec.totalOrganisms', 'Total organisms across aliquots:')} <strong>{totalOrganisms}</strong>
           {' '}{t('label.vectorDec.ofParent', 'of')} <strong>{parentQty}</strong> parent organisms
         </p>
+
+        {/* Reflex preview (BR-V03-012 — eager evaluation at aliquot creation) */}
+        <Tile style={{ background: '#edf5ff', padding: '0.75rem 1rem', border: '1px solid #78a9ff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#0043ce' }}>↪ Reflex rules will fire on save</span>
+            <Tag size="sm" type="blue">eager evaluation</Tag>
+          </div>
+          <div style={{ fontSize: 12, color: '#393939', lineHeight: 1.5 }}>
+            Each of the <strong>{aliquotCount}</strong> aliquots will receive:
+            <ul style={{ marginTop: 4, marginBottom: 0, paddingLeft: 20 }}>
+              <li>
+                <Tag size="sm" type="gray">copied</Tag>{' '}
+                Dengue Surveillance Panel (from parent)
+              </li>
+              <li>
+                <Tag size="sm" type="cyan">VR-01 reflex</Tag>{' '}
+                Plasmodium Speciation Panel (added by Malaria Speciation rule — Appendix A)
+              </li>
+            </ul>
+            <p style={{ fontSize: 11, color: '#525252', marginTop: 6 }}>
+              Provenance is recorded on each order per BR-V03-012 §4. Lab admin can edit reflex rules at Admin → Reflex Rules (requires reflex.vector.edit).
+            </p>
+          </div>
+        </Tile>
 
         {/* Soft warning — non-blocking */}
         {exceedsParent && (

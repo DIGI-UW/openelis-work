@@ -1,7 +1,7 @@
 /**
- * V-04 Vector Surveillance Reporting — React Mockup (v1.0)
- * Spec: vector-surveillance-reporting.md
- * Jira: TBD (Epic: OGC-527)
+ * V-04 Vector Surveillance Reporting — React Mockup (v1.3)
+ * Spec: vector-surveillance-reporting.md (v1.3)
+ * Jira: OGC-585 (Epic: OGC-527)
  *
  * This component is the OpenELIS embedding shell for the Superset dashboard.
  * It does NOT contain custom charts — Superset owns all charting.
@@ -11,6 +11,15 @@
  *  2. Error state     — Superset unreachable / token fetch failed
  *  3. Connected state — iframe with embedded Superset dashboard
  *  4. Infrastructure  — architecture diagram tab (design reference)
+ *
+ * v1.3 changes (FRS crosswalk April 2026):
+ *  - V-04 v1.1 — trap_type removed from views and FHIR mapping (deferred per §17.2);
+ *    pool_flag derived from quantity > 1; renamed vector_collection_lots →
+ *    vector_collection_samples and vector_trap_catch_daily → vector_collection_density_daily.
+ *  - V-04 v1.2 — QC exclusion: surveillance views filter QC samples (analysis_qaevent join);
+ *    new vector_qc_monitoring view + Dashboard #7 "QC Pass Rate".
+ *  - V-04 v1.3 — dual MIR metrics: classical (mir_classic) + hybrid (infection_rate_per_1000)
+ *    with positive_resolution_pct diagnostic. Dashboard #4 toggle (ContentSwitcher).
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -55,19 +64,24 @@ const MOCK_TOKEN_RESPONSE = {
 };
 
 // Simulated OHS view stats (for the infrastructure tab)
+// v1.1: collection_lots → collection_samples, trap_catch_daily → collection_density_daily
+// v1.2: + vector_qc_monitoring
 const OHS_VIEW_STATS = [
-  { view: 'vector_collection_lots',   rows: 312,  lastRefresh: '2026-04-20 09:45', status: 'OK' },
-  { view: 'vector_specimen_ids',      rows: 4820, lastRefresh: '2026-04-20 09:45', status: 'OK' },
-  { view: 'vector_pathogen_results',  rows: 186,  lastRefresh: '2026-04-20 09:45', status: 'OK' },
-  { view: 'vector_mir_weekly',        rows: 48,   lastRefresh: '2026-04-20 09:45', status: 'OK' },
-  { view: 'vector_trap_catch_daily',  rows: 624,  lastRefresh: '2026-04-20 09:45', status: 'OK' },
+  { view: 'vector_collection_samples',         rows: 312,  lastRefresh: '2026-04-20 09:45', status: 'OK' },
+  { view: 'vector_specimen_ids',               rows: 4820, lastRefresh: '2026-04-20 09:45', status: 'OK' },
+  { view: 'vector_pathogen_results',           rows: 186,  lastRefresh: '2026-04-20 09:45', status: 'OK' },
+  { view: 'vector_mir_weekly',                 rows: 48,   lastRefresh: '2026-04-20 09:45', status: 'OK' },
+  { view: 'vector_collection_density_daily',   rows: 624,  lastRefresh: '2026-04-20 09:45', status: 'OK' },
+  { view: 'vector_qc_monitoring',              rows: 96,   lastRefresh: '2026-04-20 09:45', status: 'OK' },
 ];
 
+// v1.1: deconvolution Task removed (V-03 v1.4 dropped DeconvolutionTask entity);
+// outcomes derive from Specimen.parent + extension[deconvolutionStatus]. Provenance is optional.
 const FHIR_PUSH_LOG = [
   { resource: 'Specimen',         pushed: 312,  failed: 0,  lastPush: '2026-04-20 09:44' },
   { resource: 'Observation',      pushed: 4820, failed: 2,  lastPush: '2026-04-20 09:44' },
   { resource: 'DiagnosticReport', pushed: 186,  failed: 0,  lastPush: '2026-04-20 09:44' },
-  { resource: 'Task',             pushed: 18,   failed: 0,  lastPush: '2026-04-20 09:44' },
+  { resource: 'Provenance',       pushed: 18,   failed: 0,  lastPush: '2026-04-20 09:44' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -92,6 +106,9 @@ const ConnectionTag = ({ status }) => {
 // ---------------------------------------------------------------------------
 function SimulatedDashboard({ dateFrom, dateTo, site }) {
   const siteName = SITES.find(s => s.id === site)?.name || 'All Sites';
+  // v1.3 — MIR metric toggle for Dashboard #4 (ContentSwitcher pattern)
+  const [mirMode, setMirMode] = useState('observed'); // 'observed' | 'classic'
+  const positiveResolutionPct = 67; // simulated — would come from API
   return (
     <div style={{
       width: '100%', height: '100%', background: '#1c1c1c', borderRadius: 4,
@@ -109,9 +126,9 @@ function SimulatedDashboard({ dateFrom, dateTo, site }) {
       {/* KPI row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, padding: 16, flexShrink: 0 }}>
         {[
-          { label: 'Total Lots', value: '312', sub: '↑ 18 this week' },
-          { label: 'Total Specimens', value: '4,820', sub: '↑ 240 this week' },
-          { label: 'Active Sites', value: '5', sub: 'of 7 reporting' },
+          { label: 'Total Samples',   value: '312',   sub: '↑ 18 this week' },
+          { label: 'Total Organisms', value: '4,820', sub: '↑ 240 this week' },
+          { label: 'Active Sites',    value: '5',     sub: 'of 7 reporting' },
           { label: 'Highest MIR (wk 16)', value: '12.4', sub: 'BPP-01 · Ae. aegypti · NS1' },
         ].map(kpi => (
           <div key={kpi.label} style={{ background: '#2a2a2a', borderRadius: 4, padding: 16 }}>
@@ -124,9 +141,9 @@ function SimulatedDashboard({ dateFrom, dateTo, site }) {
 
       {/* Chart grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '0 16px 16px', flex: 1, minHeight: 0 }}>
-        {/* Trap Catch Rate Trend */}
+        {/* Collection Density Trend (renamed from Trap Catch Rate per V-04 v1.1; trap-type stratification deferred to §17.2) */}
         <div style={{ background: '#2a2a2a', borderRadius: 4, padding: 16, display: 'flex', flexDirection: 'column' }}>
-          <p style={{ color: '#fff', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Trap Catch Rate — Trend</p>
+          <p style={{ color: '#fff', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Collection Density — Trend (organisms per collection event)</p>
           <div style={{ flex: 1, position: 'relative' }}>
             <svg width="100%" height="100%" viewBox="0 0 400 120" preserveAspectRatio="none">
               <polyline points="0,100 50,85 100,60 150,70 200,45 250,55 300,30 350,40 400,25"
@@ -175,9 +192,33 @@ function SimulatedDashboard({ dateFrom, dateTo, site }) {
           </div>
         </div>
 
-        {/* MIR Heatmap */}
+        {/* Infection Rate Heatmap — V-04 v1.3 dual-metric with toggle (Dashboard #4) */}
         <div style={{ background: '#2a2a2a', borderRadius: 4, padding: 16 }}>
-          <p style={{ color: '#fff', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>MIR by Species × Panel (per 1000)</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
+            <p style={{ color: '#fff', fontSize: 13, fontWeight: 600, margin: 0 }}>Infection Rate by Species × Panel (per 1,000 organisms)</p>
+            {/* Carbon ContentSwitcher pattern — toggle metric */}
+            <div role="tablist" style={{ display: 'inline-flex', border: '1px solid #525252', borderRadius: 0, fontSize: 10, fontWeight: 500, lineHeight: 1 }}>
+              <button role="tab" aria-selected={mirMode === 'observed'}
+                      onClick={() => setMirMode('observed')}
+                      style={{ padding: '4px 8px', background: mirMode === 'observed' ? '#fff' : 'transparent', color: mirMode === 'observed' ? '#161616' : '#ccc', border: 'none', cursor: 'pointer' }}>
+                Observed
+              </button>
+              <button role="tab" aria-selected={mirMode === 'classic'}
+                      onClick={() => setMirMode('classic')}
+                      style={{ padding: '4px 8px', background: mirMode === 'classic' ? '#fff' : 'transparent', color: mirMode === 'classic' ? '#161616' : '#ccc', border: 'none', borderLeft: '1px solid #525252', cursor: 'pointer' }}>
+                Classical MIR
+              </button>
+            </div>
+          </div>
+
+          {/* Partial-resolution warning (per Item 5 acceptance criteria) */}
+          {positiveResolutionPct < 100 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: '#f1c21b', marginBottom: 6 }}>
+              <span style={{ display: 'inline-block', width: 12, height: 12, background: '#f1c21b', borderRadius: '50%', color: '#161616', fontWeight: 700, textAlign: 'center', lineHeight: '12px', fontSize: 9 }}>!</span>
+              <span>Partial resolution: {positiveResolutionPct}% of positive pools deconvoluted. {mirMode === 'observed' ? 'Observed uses classical fallback for the rest.' : 'Switch to Observed for exact counts.'}</span>
+            </div>
+          )}
+
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
             <thead>
               <tr>
@@ -189,23 +230,34 @@ function SimulatedDashboard({ dateFrom, dateTo, site }) {
             </thead>
             <tbody>
               {[
-                { species: 'Ae. aegypti',   vals: [2.1, 4.8, 8.3, 12.4] },
-                { species: 'Cx. quinque.',  vals: [0,   1.2, 2.0, 3.1]  },
-                { species: 'An. barb.',     vals: [0,   0,   0.8, 1.5]  },
-              ].map(row => (
-                <tr key={row.species}>
-                  <td style={{ color: '#ccc', paddingRight: 8, paddingBottom: 4 }}>{row.species}</td>
-                  {row.vals.map((v, i) => {
-                    const intensity = Math.min(v / 15, 1);
-                    const bg = v === 0 ? '#1c1c1c' : `rgba(218, 30, 40, ${0.15 + intensity * 0.85})`;
-                    return (
-                      <td key={i} style={{ background: bg, textAlign: 'center', color: v > 7 ? '#fff' : '#ccc', padding: '3px 8px', borderRadius: 2 }}>
-                        {v || '—'}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
+                // observed = exact descendant positive count when resolved; classical fallback otherwise
+                // classic  = (positive_pools / total_organisms) × 1000
+                { species: 'Ae. aegypti',  observed: [2.1, 4.8, 9.6, 14.2], classic: [2.1, 4.8, 8.3, 12.4] },
+                { species: 'Cx. quinque.', observed: [0,   1.2, 2.0,  3.1], classic: [0,   1.2, 2.0,  3.1] },
+                { species: 'An. barb.',    observed: [0,   0,   0.8,  1.5], classic: [0,   0,   0.8,  1.5] },
+              ].map(row => {
+                const active  = mirMode === 'classic' ? row.classic  : row.observed;
+                const compare = mirMode === 'classic' ? row.observed : row.classic;
+                return (
+                  <tr key={row.species}>
+                    <td style={{ color: '#ccc', paddingRight: 8, paddingBottom: 4 }}>{row.species}</td>
+                    {active.map((v, i) => {
+                      const intensity = Math.min(v / 15, 1);
+                      const bg = v === 0 ? '#1c1c1c' : `rgba(218, 30, 40, ${0.15 + intensity * 0.85})`;
+                      // Tooltip shows BOTH metrics + resolution % per Item 5 acceptance criteria
+                      const tip = mirMode === 'classic'
+                        ? `Classical: ${v}\nObserved: ${compare[i]}\nResolution: ${positiveResolutionPct}%`
+                        : `Observed: ${v}\nClassical: ${compare[i]}\nResolution: ${positiveResolutionPct}%`;
+                      return (
+                        <td key={i} title={tip}
+                            style={{ background: bg, textAlign: 'center', color: v > 7 ? '#fff' : '#ccc', padding: '3px 8px', borderRadius: 2 }}>
+                          {v || '—'}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -239,6 +291,58 @@ function SimulatedDashboard({ dateFrom, dateTo, site }) {
           </div>
         </div>
       </div>
+
+      {/* ═══ Quality Control section (V-04 v1.2 — Dashboard #7) ═══ */}
+      {/* Visually separated from surveillance charts; QC samples are excluded from MIR / density per BR-V04-008 */}
+      <div style={{ borderTop: '8px solid #0f0f0f', padding: '14px 16px 6px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <span style={{ display: 'inline-block', width: 8, height: 8, background: '#20a7c9', borderRadius: '50%' }} />
+          <span style={{ color: '#fff', fontSize: 12, fontWeight: 600, letterSpacing: 0.16, textTransform: 'uppercase' }}>Quality Control</span>
+          <span style={{ color: '#888', fontSize: 10 }}>QC samples are excluded from surveillance aggregates above (BR-V04-008).</span>
+        </div>
+
+        <div style={{ background: '#2a2a2a', borderRadius: 4, padding: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <p style={{ color: '#fff', fontSize: 13, fontWeight: 600, margin: 0 }}>QC Pass Rate (per QA event type · last 4 weeks)</p>
+            <span style={{ fontSize: 10, color: '#888' }}>Threshold: <strong style={{ color: '#5aa700' }}>≥ 95%</strong></span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[
+              { type: 'Positive Control (expected POS)', vals: [96, 100, 92, 100],  flags: [false, false, true,  false] },
+              { type: 'Negative Control (expected NEG)', vals: [100, 100, 100, 100], flags: [false, false, false, false] },
+              { type: 'Blank (expected NEG)',            vals: [100, 88, 100, 100],  flags: [false, true,  false, false] },
+            ].map(row => (
+              <div key={row.type}>
+                <p style={{ color: '#888', fontSize: 10, marginBottom: 3 }}>{row.type}</p>
+                <div style={{ display: 'flex', gap: 2 }}>
+                  {row.vals.map((v, i) => {
+                    const fail = v < 95;
+                    const warn = row.flags[i] && !fail;
+                    const fillColor = fail ? '#da1e28' : warn ? '#f1c21b' : '#5aa700';
+                    return (
+                      <div key={i} style={{ flex: 1, height: 24, background: '#3a3a3a', borderRadius: 2, position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ width: `${v}%`, height: '100%', background: fillColor, transition: 'width 0.3s' }} />
+                        <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', fontSize: 10 }}>
+                          {v}%{(fail || warn) ? ' ⚠' : ''}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ display: 'flex', gap: 2, marginTop: 2 }}>
+                  {['W13','W14','W15','W16'].map(w => (
+                    <p key={w} style={{ flex: 1, textAlign: 'center', color: '#666', fontSize: 9 }}>{w}</p>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p style={{ color: '#666', fontSize: 9, marginTop: 8 }}>
+            Source: vector_qc_monitoring · pass = result matches expectation · Duplicate concordance computed downstream
+          </p>
+        </div>
+      </div>
+      {/* ═══ /Quality Control section ═══ */}
 
       <div style={{ background: '#0f0f0f', padding: '6px 16px', flexShrink: 0 }}>
         <p style={{ color: '#444', fontSize: 10 }}>
@@ -291,15 +395,16 @@ HAPI FHIR Server  [:8080 internal]
     │ OHS SQL-on-FHIR ETL  (every 15 min, cron configurable)
     ▼
 Postgres — vector_analytics schema
-    ├── vector_collection_lots
+    ├── vector_collection_samples       ← top-level + aliquots; carries is_qc, is_pool
     ├── vector_specimen_ids
-    ├── vector_pathogen_results
-    ├── vector_mir_weekly        ← MIR = (pos_pools / specimens) × 1000
-    └── vector_trap_catch_daily  ← catch_rate = specimens / trap-nights
+    ├── vector_pathogen_results         ← carries is_qc, qa_event_type
+    ├── vector_mir_weekly               ← mir_classic + infection_rate_per_1000 + positive_resolution_pct
+    ├── vector_collection_density_daily ← organisms_per_event (top-level only, QC excluded)
+    └── vector_qc_monitoring            ← QC pass rate by qa_event_type
     │ SQLAlchemy connection
     ▼
 Apache Superset  [/superset via nginx proxy]
-    ├── Dashboard: Vector Surveillance Overview (6 charts)
+    ├── Dashboard: Vector Surveillance Overview (6 surveillance + 1 QC chart)
     ├── Guest token API  → OpenELIS backend → frontend iframe
     └── Alert engine  → email on threshold breach
 
