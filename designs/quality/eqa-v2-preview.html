@@ -860,14 +860,15 @@
                             {c.status === 'submitted' && 'Submitted to provider — awaiting scores.'}
                             {c.status === 'planned' && (
                               <>
-                                <div>{t('eqa.cycle.plannedCopy', 'Panel has not yet been received at this lab. Confirm receipt when the shipment arrives to advance the cycle to Testing.')}</div>
+                                <div>{t('eqa.cycle.plannedCopy', 'Panel has not yet been received at this lab. Open Add Order with the EQA box checked to record the receipt and advance the cycle to Testing.')}</div>
                                 <div className="btn-row" style={{marginTop:8}}>
                                   <button
                                     className="cds--btn cds--btn--primary cds--btn--sm"
                                     onClick={(e) => { e.stopPropagation(); onReceivePanel && onReceivePanel(c); }}
                                     style={{fontStyle:'normal'}}
+                                    title={t('eqa.btn.receivePanel.tooltip', 'Launches standard Add Order with the EQA box pre-checked and the cycle’s EQA program pre-loaded. Receipt fields render inline as an EQA-conditional section.')}
                                   >
-                                    📦 {t('eqa.btn.receivePanel', 'Receive panel')}
+                                    📦 {t('eqa.btn.receivePanel', 'Receive panel — open Add Order')}
                                   </button>
                                 </div>
                               </>
@@ -1935,16 +1936,24 @@
       );
     }
 
-    // ---------- V2.2 Panel Receipt Modal (FR-V2.2-12) ----------
+    // ---------- V2.2 Panel Receipt — Preview of Add Order EQA section (FR-V2.2-12) ----------
+    // Receipt is captured on the standard OpenELIS Add Order screen as an EQA-conditional
+    // section. This Modal is a *preview* of that section — in production the button on My
+    // Cycles deep-links to Add Order with the EQA box pre-checked and the program pre-loaded;
+    // it does NOT open a dedicated receipt UI.
     function PanelReceiptModal({ cycle, onClose }) {
       const [integrityOk, setIntegrityOk] = useState(true);
       return (
         <div className="modal-backdrop" onClick={onClose}>
           <div className="modal" role="dialog" aria-modal="true" aria-labelledby="panel-receipt-title" aria-describedby="panel-receipt-sub" onClick={(e) => e.stopPropagation()}>
-            <h3 id="panel-receipt-title">{t('eqa.receipt.title', 'Confirm panel receipt')}</h3>
+            <h3 id="panel-receipt-title">{t('orderEntry.eqa.section.title', 'EQA panel receipt')}</h3>
             <p id="panel-receipt-sub" style={{fontSize:13, color:'#525252'}}>
-              {t('eqa.receipt.sub', 'Minimal receipt event — records who received the panel and when. Temperature + integrity fields are optional at MVP; structured cold-chain validation arrives in V3.2.')}
+              {t('orderEntry.eqa.section.subtitle', 'Required when this sample is flagged EQA. Standard order-entry Received date and Received by are reused; the fields below capture EQA-specific receipt details and trigger the cycle’s planned → panel_received transition on save.')}
             </p>
+
+            <div className="cds--inline-notification cds--inline-notification--info" role="status" style={{padding:'0.5rem 0.75rem', background:'#edf5ff', borderLeft:'3px solid #0f62fe', fontSize:12, marginBottom:12}}>
+              <strong>Preview only.</strong> In production this section renders inline on the standard Add Order screen below the patient/sample/tests fields when the order's sample is flagged EQA. Clicking <em>Receive panel</em> on My Cycles deep-links to Add Order with the EQA box pre-checked and the program pre-loaded.
+            </div>
 
             <div className="tile" style={{background:'#f4f4f4', padding:'0.75rem 1rem', marginBottom:12}}>
               <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.5rem', fontSize:13}}>
@@ -1955,25 +1964,17 @@
               </div>
             </div>
 
+            <div style={{fontSize:12, color:'#525252', marginBottom:8, fontStyle:'italic'}}>
+              → Above this section on Add Order: standard <em>Received date</em> + <em>Received by</em> fields (already present today — not duplicated here).
+            </div>
+
             <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.75rem'}}>
               <div className="signoff-field" style={{margin:0}}>
-                <label>{t('eqa.receipt.receivedDate', 'Received date')} *</label>
-                <input type="text" defaultValue="2026-04-23" />
-              </div>
-              <div className="signoff-field" style={{margin:0}}>
-                <label>{t('eqa.receipt.receivedBy', 'Received by')} *</label>
-                <select defaultValue="V. Chebet">
-                  <option>V. Chebet</option>
-                  <option>A. Kamau</option>
-                  <option>S. Wanjiku</option>
-                </select>
-              </div>
-              <div className="signoff-field" style={{margin:0}}>
-                <label>{t('eqa.receipt.temp', 'Received temp (°C)')} <span style={{color:'#525252', fontWeight:400}}>optional</span></label>
+                <label>{t('orderEntry.eqa.temp', 'Received temp (°C)')} <span style={{color:'#525252', fontWeight:400}}>optional</span></label>
                 <input type="number" defaultValue="4" step="0.1" />
               </div>
               <div className="signoff-field" style={{margin:0}}>
-                <label>{t('eqa.receipt.integrity', 'Package integrity')}</label>
+                <label>{t('orderEntry.eqa.integrity', 'Package integrity OK?')}</label>
                 <div style={{display:'flex', gap:16, paddingTop:6}}>
                   <label style={{display:'flex', alignItems:'center', gap:6, fontSize:13, color:'#161616', margin:0}}>
                     <input type="radio" name="integrity" checked={integrityOk} onChange={() => setIntegrityOk(true)} /> OK
@@ -1986,24 +1987,21 @@
             </div>
             {!integrityOk && (
               <div className="signoff-field">
-                <label>{t('eqa.receipt.integrityNotes', 'Integrity notes')} *</label>
+                <label>{t('orderEntry.eqa.integrityNotes', 'Integrity notes')} *</label>
                 <textarea rows="2" placeholder="Describe the issue (e.g., broken seal, thawed ice packs, missing tube)…" style={{width:'100%', padding:'4px 8px', border:'1px solid #c6c6c6', fontFamily:'inherit', fontSize:13}} />
               </div>
             )}
             <div className="signoff-field">
-              <label>{t('eqa.receipt.notes', 'General notes')} <span style={{color:'#525252', fontWeight:400}}>optional</span></label>
+              <label>{t('orderEntry.eqa.notes', 'Receipt notes')} <span style={{color:'#525252', fontWeight:400}}>optional</span></label>
               <textarea rows="2" style={{width:'100%', padding:'4px 8px', border:'1px solid #c6c6c6', fontFamily:'inherit', fontSize:13}} />
             </div>
 
             <div className="cds--inline-notification cds--inline-notification--info" style={{padding:'0.5rem 0.75rem', background:'#edf5ff', borderLeft:'3px solid #0f62fe', fontSize:12}}>
-              {t('eqa.receipt.sideEffect', 'Confirming receipt transactionally updates the linked sample_shipment to delivered and transitions the cycle planned → panel_received. A best-effort FHIR ShipmentDelivery notification is sent; failure is logged but does not block the receipt.')}
+              {t('orderEntry.eqa.sideEffect', 'Saving the order updates the linked sample_shipment to delivered, transitions the cycle planned → panel_received, and emits a best-effort FHIR ShipmentDelivery to the provider.')}
             </div>
 
             <div className="modal-btn-row">
-              <button className="cds--btn cds--btn--ghost" onClick={onClose}>Cancel</button>
-              <button className="cds--btn cds--btn--primary" onClick={onClose}>
-                ✓ {t('eqa.receipt.confirm', 'Confirm receipt')}
-              </button>
+              <button className="cds--btn cds--btn--ghost" onClick={onClose}>Close preview</button>
             </div>
           </div>
         </div>
@@ -2663,36 +2661,23 @@
       return (
         <div>
           <div className="breadcrumb" role="navigation" aria-label="Breadcrumb">
-            <a>My EQA</a> / <a>My Cycles</a> / <a>HCV-Ab 2026-Q2</a> / <span>Panel receipt (V3.2)</span>
+            <a>My EQA</a> / <a>My Cycles</a> / <a>HCV-Ab 2026-Q2</a> / <span>Add Order — EQA section (V3.2)</span>
           </div>
-          <h1 className="page-title">{t('eqa.coldchain.receipt.title', 'Panel receipt — with cold-chain validation')}</h1>
+          <h1 className="page-title">Add Order — EQA section with V3.2 cold-chain extension</h1>
           <div className="page-subtitle">
-            {t('eqa.coldchain.receipt.subtitle', 'Enhanced two-step receipt. Step 1: temperature + packaging checklist. Step 2: disposition. Cold-chain deviations do not block testing but attach to the scored report for interpretation (ISO 15189 §7.3.4).')}
+            Preview of the Add Order EQA-conditional section once V3.2 is live. The V2.2 minimal fields (received_temp_c, integrity_ok, integrity_notes, receipt notes) are extended below with the structured packaging checklist + disposition radios. Saving the order writes the receipt row, runs the cold-chain validator, and — when Reject is selected — opens a confirmation Modal before transitioning the cycle to <code>panel_rejected</code>.
+          </div>
+
+          <div className="cds--inline-notification cds--inline-notification--info" role="status" style={{marginBottom:16, padding:'0.5rem 0.75rem', background:'#edf5ff', borderLeft:'3px solid #0f62fe', fontSize:13, maxWidth:780}}>
+            <strong>Preview only.</strong> This is NOT a separate screen in production. These fields render as additions to the existing Add Order EQA-conditional section. There is no "Step 1 / Step 2" wizard — the checklist and disposition appear inline below the V2.2 fields, and the standard Add Order Save button writes everything in one transaction.
           </div>
 
           <div className="tile" style={{maxWidth:780}}>
-            <div style={{fontSize:14, color:'#525252', marginBottom:12}}>
-              <strong>Step 1 of 2</strong> — Temperature + packaging
+            <div style={{fontSize:14, color:'#525252', marginBottom:12, fontStyle:'italic'}}>
+              → Above this section on Add Order: standard <em>Received date</em>, <em>Received by</em> + V2.2 EQA fields (Received temp, Integrity, Receipt notes — see V2.2 preview).
             </div>
 
-            <div className="form-row">
-              <div className="form-field">
-                <label className="cds--label">Received date</label>
-                <input className="cds--text-input" defaultValue="2026-04-18" />
-              </div>
-              <div className="form-field">
-                <label className="cds--label">Received by</label>
-                <input className="cds--text-input" defaultValue="J. Okonkwo" />
-              </div>
-              <div className="form-field">
-                <label className="cds--label">Temperature reading (°C)</label>
-                <input className="cds--text-input" defaultValue="9.4" />
-                <div style={{fontSize:12, color:'#da1e28', marginTop:4}}>Out of range (2.0–8.0°C)</div>
-              </div>
-            </div>
-
-            <div style={{borderTop:'1px solid #e0e0e0', margin:'16px 0'}}></div>
-            <div style={{fontWeight:600, marginBottom:10}}>Packaging checklist</div>
+            <div style={{fontWeight:600, marginBottom:10}}>V3.2 cold-chain checklist</div>
             <table className="data-table">
               <thead><tr><th>Item</th><th>State</th></tr></thead>
               <tbody>
@@ -2705,25 +2690,22 @@
             </table>
 
             <div className="cds--inline-notification cds--inline-notification--error" style={{marginTop:12, padding:'8px 12px'}}>
-              2 deviations detected: temp_out_of_range (major), ice_pack_failed (major). Select a disposition on Step 2.
+              2 deviations detected on this order: <code>temp_out_of_range</code> (major) on the V2.2 temp field above, <code>ice_pack_failed</code> (major) below. Disposition selection required before Save.
             </div>
 
-            <div className="btn-row" style={{marginTop:16}}>
-              <button className="cds--btn cds--btn--primary cds--btn--sm">Next: disposition →</button>
-              <button className="cds--btn cds--btn--ghost cds--btn--sm">Cancel</button>
-            </div>
-          </div>
-
-          <div className="tile" style={{marginTop:16, maxWidth:780, opacity:0.6}}>
-            <div style={{fontSize:14, color:'#525252', marginBottom:10}}><strong>Step 2 of 2</strong> — Disposition (preview)</div>
+            <div style={{borderTop:'1px solid #e0e0e0', margin:'16px 0'}}></div>
+            <div style={{fontWeight:600, marginBottom:10}}>Disposition (deviation present)</div>
             <div style={{marginBottom:10}}>
-              <label><input type="radio" disabled /> Accept</label>&nbsp;&nbsp;
-              <label><input type="radio" defaultChecked disabled /> Accept with deviation</label>&nbsp;&nbsp;
-              <label><input type="radio" disabled /> Reject (requires eqa.receipt.reject)</label>
+              <label><input type="radio" name="disp" /> Accept (disabled — deviation present)</label>&nbsp;&nbsp;
+              <label><input type="radio" name="disp" defaultChecked /> Accept with deviation</label>&nbsp;&nbsp;
+              <label><input type="radio" name="disp" /> Reject (requires <code>eqa.receipt.reject</code>)</label>
             </div>
-            <div className="form-field">
-              <label className="cds--label">Notes (optional)</label>
-              <textarea className="cds--text-input" rows="3" placeholder="Add free-text context if needed"></textarea>
+            <div style={{fontSize:12, color:'#525252', marginBottom:12}}>
+              Selecting <em>Reject</em> opens a confirmation Modal (the only modal V3.2 introduces) before persisting <code>panel_rejected</code>.
+            </div>
+
+            <div className="cds--inline-notification cds--inline-notification--info" style={{padding:'0.5rem 0.75rem', background:'#edf5ff', borderLeft:'3px solid #0f62fe', fontSize:12}}>
+              On Save: standard Add Order commits, validator inserts <code>eqa_cold_chain_deviation</code> rows, cycle transitions to <code>panel_received</code> (or <code>panel_rejected</code> on Reject confirm), Alerts raised to QA officer + provider, FHIR ShipmentDelivery emitted (best-effort).
             </div>
           </div>
         </div>

@@ -2087,7 +2087,9 @@
     eligible-analyst mapping, Carbon-port, cycle progress dashboard, FHIR auto-submit,
     EQA->NCE tiered integration, Lab Performance dashboard, Analyst Competency, In-House Blinding,
     Provider-Side Program. V3 adds multi-cycle analytics, ISO 17043 compliance, cold-chain, IQC
-    correlation. Pending Casey approval before filing to OGC.
+    correlation. Updated: panel receipt (V2.2 FR-V2.2-12) redesigned as EQA-conditional section
+    on the standard Add Order screen — no separate modal. V3.2 extends in-place with packaging
+    checklist, tolerance validation, and disposition radio. Pending Casey approval before filing.
   links:
     github: https://github.com/DIGI-UW/openelis-work/issues/95
     gallery: https://digi-uw.github.io/openelis-work/#/quality/eqa-v2-epic-stories
@@ -2100,5 +2102,27 @@
     - epic
     - planning
     - jira
+  added: "2026-04-24"
+  status: draft
+
+- id: eqa-v2-design-critique
+  type: spec
+  path: designs/quality/eqa-v2-critique.md
+  category: quality
+  description: >
+    Structural consistency scan of EQA V2 (Epic + Stories, preview, crosswalks) — five-pass
+    /analyze across i18n, Carbon fidelity, interaction patterns, constitution alignment, and
+    coverage gaps. 10 findings: 1 HIGH, 3 MEDIUM, 4 LOW. No V2 blockers. Follow-up addendum
+    documents panel receipt redesign: receipt fields move to EQA-conditional section on standard
+    Add Order; V3.2 cold-chain extension layers in-place on same section.
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/103
+  tags:
+    - quality
+    - EQA
+    - design-critique
+    - analyze
+    - iso-15189
+    - planning
   added: "2026-04-24"
   status: draft

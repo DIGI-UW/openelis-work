@@ -105,3 +105,38 @@ A light WCAG 2.1 AA scan ran on `eqa-v2-preview.html`. Three surgical fixes appl
 Nothing in the a11y pass changes the FRS or the mockup functional surface — it is all implementation-phase hygiene.
 
 ### Task #66 closed.
+
+---
+
+## Follow-up: panel receipt moves to standard order entry (2026-04-24)
+
+After the polish pass closed, Casey directed that panel receipt should not be its own dedicated screen or modal — it should be captured as an EQA-conditional section on the standard OpenELIS Add Order screen, since `received_date` and `received_by` are already on Add Order today. The previous design had a separate Panel Receipt Modal (V2.2) and a separate Enhanced Receipt screen (V3.2 cold-chain extension).
+
+### What changed
+
+| Concern | Before | After |
+|---|---|---|
+| **V2.2 receipt UI** | Dedicated Modal launched from My Cycles "Receive panel" button | EQA-conditional section on standard Add Order screen; section appears when sample is flagged EQA |
+| **V3.2 cold-chain extension** | Two-step mini-wizard inside the Modal | Inline addition to the same Add Order EQA section (checklist + disposition radios appear when deviations detected) |
+| **My Cycles "Receive panel" button** | Opened the Modal | Deep-links to standard Add Order with the EQA box pre-checked and the cycle's EQA program pre-loaded |
+| **Reject path (V3.2)** | Step 2 of the wizard set disposition | Reject confirmation Modal opens from the inline disposition radio — only modal V3.2 introduces, used for the destructive cycle-state freeze |
+| **Data model** | `eqa_panel_receipt` | Unchanged (FR-V2.1-20 stays); the table is now populated as a side-effect of the EQA-flagged Add Order save |
+| **i18n namespaces** | `eqa.receipt.*` (V2.2) + `eqa.coldchain.receipt.*` (V3.2) | `orderEntry.eqa.*` (V2.2 fields) + `orderEntry.eqa.coldchain.*` (V3.2 extensions). Provider-only screens keep `eqa.coldchain.monitor.*` / `eqa.coldchain.config.*` / `eqa.coldchain.scored.*` |
+
+### Files updated
+
+- **FRS (`eqa-v2-epic-and-stories.md`):** FR-V2.2-12 rewritten; AC-V2.2-13 rewritten; V2.2 out-of-scope reference updated; V3.2 design brief rewritten; FR-V3.2-02, FR-V3.2-04, FR-V3.2-06, FR-V3.2-14 updated; AC-V3.2-01..05 + AC-V3.2-11 updated; Appendix A namespace index + V2.2 + V3.2 key tables retitled and re-keyed under `orderEntry.eqa.*`.
+- **Preview (`eqa-v2-preview.html`):** `PanelReceiptModal` retained as a *preview of the Add Order EQA section* (not a production UI surface) with an info banner clarifying that. `EnhancedReceiptScreen` reframed as "Add Order — EQA section with V3.2 cold-chain extension" — no more Step 1 / Step 2 wizard framing. "Receive panel" button copy + tooltip now signal it deep-links into Add Order. Cycle planned-state copy updated.
+- **Jira:** OGC-610 (V2.2) and OGC-616 (V3.2) descriptions re-synced; comment added to each summarizing the move.
+
+### Why
+
+`received_date` + `received_by` already exist on Add Order. Building a parallel receipt UI duplicates fields the lab already enters, splits the accessioning workflow into two surfaces, and creates a state where receipt and order can be out of sync. Moving the EQA-specific delta (temp, integrity, packaging checklist, disposition) onto Add Order keeps the lab's one-form-per-sample workflow intact and lets the V3.2 cold-chain validators run as part of the standard save.
+
+### Implementation handoff notes
+
+- The OE form needs an `is_eqa_sample` conditional renderer for the EQA section (renders only when the sample on the order is flagged EQA).
+- The cycle state transition (`planned → panel_received` or `→ panel_rejected`) fires as an OE save side-effect — service layer detects EQA flag + matching `eqa_cycle.status='planned'` and writes the receipt + transitions atomically.
+- The Reject confirmation Modal must wrap the OE save commit, not be a separate save: confirm → commit OE save → transition cycle. Cancel from the Modal returns the user to the OE form with disposition still set to Reject (no data loss).
+- Idempotency: if a receipt row already exists for `(cycle_id, lab_enrollment_id)`, the EQA section renders read-only with an Amend banner gated on `eqa.participant.receipt.amend`.
+- Per-locale: `orderEntry.eqa.*` keys are V2.2 launch blockers for any locale that is launched at GA; `orderEntry.eqa.coldchain.*` keys are V3.2 launch blockers.

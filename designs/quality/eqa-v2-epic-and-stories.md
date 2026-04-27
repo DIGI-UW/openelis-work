@@ -476,15 +476,16 @@ Empty state: when filters match zero rows, show a centered "No cycles match thes
 
 **FR-V2.2-11 — Accessibility.** WCAG 2.1 AA. axe-core scan zero critical.
 
-**FR-V2.2-12 — Panel receipt event (minimal MVP).** On the cycle page, when `eqa_cycle.status = 'planned'` and the participant knows a panel shipment is en route (provider has recorded a shipment via V2.5 FR-V2.5-13; for non-FHIR providers, the lab QA officer knows from out-of-band comms), render a "Confirm panel received" action. Clicking opens a Modal with:
-- **Received date** (DatePicker, default today, required).
-- **Received by** (Select — populated from `systemuser`, defaults to current user, required).
-- **Shipment reference** (optional; auto-filled from the inbound provider-side shipment record if matched via FHIR `ShipmentNotification` event, otherwise free-text).
-- **Temperature on arrival** (optional NumberInput — no validation range in MVP; V3.2 adds the expected-range validator).
-- **Integrity OK?** (Checkbox, default true; uncheck reveals a required free-text "Integrity notes" field).
-- **Notes** (optional).
+**FR-V2.2-12 — Panel receipt event on standard order entry (minimal MVP).** Receipt is captured on the **standard OpenELIS Add Order screen** as an EQA-conditional section, NOT as a dedicated screen or modal. When the order being created has its sample flagged `is_eqa_sample = true` AND the order's linked `eqa_cycle.status = 'planned'`, the order entry form renders a small "EQA panel receipt" section *in addition to* the standard fields (`received_date` + `received_by` are already on Add Order today and are reused as-is). The EQA-conditional additions are:
 
-On save: transition `eqa_cycle.status` `planned → panel_received`; write `eqa_panel_receipt` row (per V2.1 FR-V2.1-20); if an inbound `sample_shipment` record is matched, set its `actual_delivery_date` (satisfies V2.5 FR-V2.5-14 `delivered` state contract); emit FHIR `ShipmentDelivery` outbound event for the provider to receive. Idempotent: if a receipt event already exists for this cycle, the action is "Edit receipt" instead of "Confirm received." MVP scope explicitly excludes the rejection / `panel_rejected` workflow and the structured cold-chain validators — both live in V3.2.
+- **Temperature on arrival** (optional NumberInput — no validation range in MVP; V3.2 adds the tolerance-band validator).
+- **Integrity OK?** (Checkbox, default true; unchecking reveals a required free-text "Integrity notes" field).
+- **Receipt notes** (optional free-text supplement).
+- **Shipment reference** (optional; auto-filled from the matched inbound `sample_shipment` row when one exists, otherwise free-text).
+
+On Add Order save (no separate Receive-Panel save), the service layer additionally: writes an `eqa_panel_receipt` row (per V2.1 FR-V2.1-20); transitions `eqa_cycle.status` `planned → panel_received`; if an inbound `sample_shipment` record is matched, sets its `actual_delivery_date` (satisfies V2.5 FR-V2.5-14 `delivered` state contract); emits FHIR `ShipmentDelivery` outbound event for the provider to receive. Idempotent: if a receipt row already exists for `(cycle_id, lab_enrollment_id)`, the order entry section loads the existing values in read-only mode with an "Amend receipt" affordance gated on `eqa.participant.receipt.amend` (post-MVP). MVP scope explicitly excludes the rejection / `panel_rejected` workflow and the structured cold-chain validators — both live in V3.2 and extend the same EQA-conditional section.
+
+The "Receive panel" affordance on the My Cycles page is a deep-link that launches the standard **Add Order** workflow with the EQA box pre-checked and the cycle's EQA program pre-loaded — no parallel UI surface.
 
 **FR-V2.2-13 — FHIR ShipmentDelivery outbound.** When a panel receipt is confirmed via FR-V2.2-12 AND the cycle's scheme has a configured provider FHIR endpoint, emit an outbound FHIR event (shape TBD in dev discovery — expected: `Communication` or `Task` update referencing the provider's original shipment record). Failure is non-fatal (logged + retried via same exponential backoff as FR-V2.2-05); provider-side can still manually confirm delivery via V2.5 FR-V2.5-14.
 
@@ -515,7 +516,7 @@ On save: transition `eqa_cycle.status` `planned → panel_received`; write `eqa_
 - **AC-V2.2-10** All strings localized (verified in es.json, fr.json).
 - **AC-V2.2-11** axe-core zero critical violations.
 - **AC-V2.2-12** No lucide-react imports (grep check).
-- **AC-V2.2-13** Panel receipt modal (FR-V2.2-12): on save, inserts `eqa_panel_receipt` row, transitions cycle `planned → panel_received`, and — when a matching `sample_shipment` row exists — sets that row's `actual_delivery_date = received_date` and `delivery_status = delivered`. Unchecking `integrity_ok` makes `integrity_notes` required. Modal is idempotent (re-opening a cycle already at `panel_received` loads the existing row in read-only mode with an "Amend" affordance gated on `eqa.participant.receipt.amend` — post-MVP).
+- **AC-V2.2-13** Panel receipt on standard order entry (FR-V2.2-12): saving an EQA-flagged Add Order with `eqa_cycle.status='planned'` inserts an `eqa_panel_receipt` row, transitions the cycle `planned → panel_received`, and — when a matching `sample_shipment` row exists — sets that row's `actual_delivery_date = received_date` and `delivery_status = delivered`. The EQA-conditional section renders inline on the order entry form (no separate Modal); unchecking `integrity_ok` makes `integrity_notes` required. Idempotent: a second EQA save for the same `(cycle_id, lab_enrollment_id)` loads the existing receipt in read-only mode with the standard order-entry submit otherwise unaffected; an "Amend receipt" affordance is gated on `eqa.participant.receipt.amend` (post-MVP). The My Cycles "Receive panel" button deep-links to Add Order with the EQA box pre-checked and EQA program pre-loaded.
 - **AC-V2.2-14** FHIR ShipmentDelivery outbound (FR-V2.2-13): on successful receipt save, queues an outbound FHIR event (shape TBD in dev discovery — expected `Communication` or `Task` status update referencing the `sample_shipment`). Failure is non-fatal: Alert logged, receipt row still persists, cycle state still advances.
 - **AC-V2.2-15** Reminder emails (FR-V2.2-14): seeded test — a cycle in `panel_received` with `submission_deadline = now + 2 days` and a lab with 2 QA contacts produces exactly one aggregated email listing the cycle, addressed to both contacts, within one scheduled-job cycle. A `scored` cycle does not produce an email. A lab with no contacts produces no email and writes an `eqa_submission_reminder_no_contact` Alert. The lead-time threshold is read from `eqa.participant.reminder.leadTimeDays` (set to 0 disables the job — verified). Running the job twice in the same day sends only one email per lab (24h dedup). Email body contains the deep-link to the cycle page and resolves correctly under `es.json` + `fr.json` i18n.
 
@@ -538,7 +539,7 @@ On save: transition `eqa_cycle.status` `planned → panel_received`; write `eqa_
 - Per-analyst capture UI — this story surfaces the `assigned_analyst_id` column if present, but the data-entry UX for per-analyst is in V2.3.
 - In-house panel creation (V2.4).
 - Provider-side work (V2.5).
-- Structured cold-chain validators + panel rejection workflow (V3.2). **Note:** The minimal receipt event (FR-V2.2-12) IS in this story's scope; V3.2 adds range validators, `panel_rejected` state, and cross-module cold-chain deviation tracking.
+- Structured cold-chain validators + panel rejection workflow (V3.2). **Note:** The minimal receipt event (FR-V2.2-12) IS in this story's scope as an EQA-conditional section on the standard Add Order screen; V3.2 extends that same section with range validators, the structured packaging checklist, the `accept / accept_with_deviation / rejected` disposition radio, and the `panel_rejected` state + cross-module cold-chain deviation tracking.
 
 ---
 
@@ -1229,30 +1230,30 @@ On submit, the system generates a summary document containing: lab identity bloc
 
 ### Design Brief
 
-**Purpose:** extend the V2.2 minimal panel-receipt event (single temperature + integrity checkbox + free-text notes) into a validated cold-chain record with a structured packaging checklist, tolerance-band validation, a rejection/replacement workflow, and a provider-side shipment deviation capture. Treat cold-chain as an attribute of score interpretation, not a pass-gate on testing.
+**Purpose:** extend the V2.2 minimal panel-receipt event into a validated cold-chain record with a structured packaging checklist, tolerance-band validation, a rejection/replacement workflow, and a provider-side shipment deviation capture. Treat cold-chain as an attribute of score interpretation, not a pass-gate on testing.
 
-**Primary user action:** at receipt, the QA officer fills the enhanced receipt form — temp reading + packaging checklist items — and either **Accept**, **Accept with deviation** (testing proceeds, deviation flag attached to score), or **Reject** (request replacement, freeze cycle).
+**Primary user action:** when accessioning an EQA-flagged sample on the **standard OpenELIS Add Order screen**, the QA officer completes the EQA-conditional receipt section (already containing V2.2's minimal fields) — V3.2 adds the packaging checklist + temperature tolerance feedback + a disposition radio. They choose **Accept**, **Accept with deviation** (testing proceeds, deviation flag attached to score), or **Reject** (request replacement, freeze cycle).
 
-**Layout pattern:** extends V2.2 Panel Receipt Modal into a two-step mini-wizard (Step 1: temp + packaging; Step 2: disposition + notes). Same modal footprint; an Accordion reveals the shipment-side shipment-deviation panel when the provider's courier data is present.
+**Layout pattern:** extends the V2.2 EQA-conditional section *in place* on Add Order. No new screen, no modal mini-wizard. The packaging-checklist sub-section appears below the V2.2 fields; the disposition radio renders only when at least one deviation is detected. The Reject path uses a small confirmation Modal because freezing a cycle is destructive — that Modal is the only modal added by V3.2.
 
-**Interaction model:** inline tolerance validation on the temperature field (live range check). Structured checklist via Carbon `Checkbox` rows with `Dropdown`s for severity tags. Disposition uses `RadioButton`s — Accept / Accept with deviation / Reject. Rejection confirmation uses a Modal to prevent accidental freezes.
+**Interaction model:** inline tolerance validation on the temperature field (live range check using `eqa_scheme.cold_chain_bands`). Structured checklist via Carbon `Dropdown` per item with controlled vocab. Disposition uses `RadioButton`s — Accept / Accept with deviation / Reject. Reject opens the destructive-action confirmation Modal before persisting `panel_rejected`.
 
 **Scope boundary (this story):**
-- Adds cold-chain validator service + `cold_chain_deviation` event table.
-- Adds structured packaging checklist (controlled vocab).
-- Adds `panel_rejected` cycle state + replacement workflow.
-- Adds provider-side `shipped_at_temp` excursion capture (manual + optional CSV import from data-logger).
+- Adds cold-chain validator service + `eqa_cold_chain_deviation` event table.
+- Adds structured packaging checklist (controlled vocab) into the existing EQA Add Order section.
+- Adds `panel_rejected` cycle state + replacement workflow + Reject confirmation Modal.
+- Adds provider-side `shipped_at_temp` excursion capture (manual + optional CSV import from data-logger) on V2.5 Prep / Shipment workbench.
 - Adds deviation flag to scored-report rendering.
 
-**Out of scope (stays in V2.2):** the minimal `eqa_panel_receipt` row (`received_date`, `received_by`, `integrity_ok` boolean, `received_temp_c`, free-text `integrity_notes`) — those ship in FR-V2.2-12 / FR-V2.1-20 as the `delivered` state contract.
+**Out of scope (stays in V2.2):** the minimal receipt fields on Add Order (`received_temp_c`, `integrity_ok`, `integrity_notes`) — those ship in FR-V2.2-12 / FR-V2.1-20 as the `delivered` state contract. V3.2 layers on top.
 
-**Carbon components:** `Modal`, `RadioButtonGroup`, `Checkbox` (controlled vocab), `Dropdown`, `NumberInput` (temp), `InlineNotification` (out-of-range), `Accordion` (shipment deviation panel), `Tag` (`cold-chain-ok` / `cold-chain-deviation` / `panel-rejected`).
+**Carbon components on Add Order:** `Dropdown` (checklist items), `NumberInput` (temp), `InlineNotification` (out-of-range), `RadioButtonGroup` (disposition), `Tag` (`cold-chain-ok` / `cold-chain-deviation` / `panel-rejected`). Reject confirmation Modal: standard Carbon `Modal` with `aria-modal="true"`. Cold-Chain Monitor (cross-lab provider screen) is unchanged — separate screen with its own components.
 
 ### Functional Requirements
 
 **FR-V3.2-01 — Temperature tolerance bands per panel storage mode.** Add `eqa_scheme.cold_chain_bands` JSONB column (nullable — falls back to platform defaults). Platform default bands: `refrigerated_2_8C` = [2.0, 8.0]°C, `frozen_neg20` = [−30.0, −15.0]°C, `frozen_neg70` = [−80.0, −60.0]°C, `ambient` = [15.0, 30.0]°C, `controlled_room_temp` = [20.0, 25.0]°C. A scheme editor can override with narrower or wider bands and an optional `excursion_minutes_tolerance` value for brief spikes.
 
-**FR-V3.2-02 — Cold-chain validator service.** At `eqa_panel_receipt` insert or update (V2.2 entity), run validator that compares `received_temp_c` against the scheme's applicable band for `panel.storage_temp`. If out-of-range, insert an `eqa_cold_chain_deviation` row and raise an Alert (severity = warning) to the participant QA officer (role `eqa.manage` or `eqa.triage`) and to the provider (role `eqa.provider.manage`).
+**FR-V3.2-02 — Cold-chain validator service.** At `eqa_panel_receipt` insert or update (V2.2 entity, populated as a side-effect of saving the EQA-flagged Add Order — see V2.2 FR-V2.2-12), run validator that compares `received_temp_c` against the scheme's applicable band for `panel.storage_temp`. The validator surfaces an inline range-error indicator on the order entry temp field while the user is filling the form (live check) and additionally — on save — inserts an `eqa_cold_chain_deviation` row and raises an Alert (severity = warning) to the participant QA officer (role `eqa.manage` or `eqa.triage`) and to the provider (role `eqa.provider.manage`).
 
 **FR-V3.2-03 — `eqa_cold_chain_deviation` table.**
 ```
@@ -1270,17 +1271,18 @@ linked_to_rejection (boolean default false — flips true if deviation drove rej
 ```
 One receipt row MAY have multiple deviation rows (e.g., temp excursion + damaged outer packaging). Exposed to scored reports as a list.
 
-**FR-V3.2-04 — Packaging condition checklist (structured).** Replace free-text `integrity_notes` (from V2.2) with a structured checklist captured on receipt. Controlled-vocab items, each mandatory:
+**FR-V3.2-04 — Packaging condition checklist (structured).** Add a structured checklist *below* the V2.2 minimal fields in the same EQA-conditional section on the standard Add Order screen. Controlled-vocab items, each mandatory:
 - Outer packaging state — `intact | damaged_minor | damaged_major`
 - Inner container state — `intact | damaged_minor | damaged_major`
 - Ice/cold-pack state (if storage_temp ∈ {refrigerated, frozen}) — `frozen_hard | partially_thawed | fully_thawed | not_applicable`
 - Desiccant state (if required by scheme) — `active | exhausted | missing | not_applicable`
 - Tamper-evident seal — `intact | broken | not_applicable`
-The free-text `integrity_notes` stays as an optional supplement, not a replacement for the checklist.
+
+The V2.2 free-text `integrity_notes` field stays as an optional supplement; the V3.2 checklist does NOT remove it. No mini-wizard, no modal, no second save click — the checklist persists as part of the same Add Order save that writes the receipt row.
 
 **FR-V3.2-05 — Checklist → deviation mapping.** If any checklist item is in a non-intact/non-active state, the validator inserts an `eqa_cold_chain_deviation` row with `deviation_type` mapped (damaged_major → `packaging_compromised`, severity `major`; fully_thawed → `ice_pack_failed`, severity `major`; exhausted → `desiccant_exhausted`, severity `minor|major` per scheme config; broken seal → `packaging_compromised`, severity `critical`).
 
-**FR-V3.2-06 — Disposition model.** Add `eqa_panel_receipt.disposition` enum = `accept | accept_with_deviation | rejected`. Default = `accept`. Set by the QA officer explicitly when any deviation is present (form must force a choice). On `rejected`, cycle transitions `panel_received → panel_rejected` (new state — see FR-V3.2-07). On `accept_with_deviation`, cycle proceeds to `testing` but the deviation flag is attached to the scored report (FR-V3.2-10).
+**FR-V3.2-06 — Disposition model.** Add `eqa_panel_receipt.disposition` enum = `accept | accept_with_deviation | rejected`. Default = `accept`. The disposition `RadioButton`s render in the Add Order EQA-conditional section *only when* at least one deviation is detected (live, as the user fills the form). When deviations are present, the form forces an explicit choice — Add Order's standard Save button is disabled until the user selects a non-default disposition. On `rejected`, the Save click opens a Reject confirmation Modal (the only V3.2-introduced modal — destructive action confirmation); confirming the modal commits the order entry save AND transitions the cycle `panel_received → panel_rejected` (new state — see FR-V3.2-07). On `accept_with_deviation`, the standard Add Order save proceeds, the cycle advances to `testing`, and the deviation flag is attached to the scored report (FR-V3.2-10).
 
 **FR-V3.2-07 — `panel_rejected` cycle state + replacement workflow.** Add `panel_rejected` to the participant cycle state machine, reachable only from `panel_received`. Allowed transitions out: `panel_rejected → panel_received` (when a replacement receipt is logged) or `panel_rejected → closed` (terminal — participant opts out of this cycle). A `panel_rejected` cycle is **excluded** from coverage calculations (V2.3 Lab Performance) and from V3.1 trend analytics. A replacement `eqa_panel_receipt` row carries `replaces_receipt_id` FK back to the original receipt, and the original receipt keeps its `disposition=rejected` for audit.
 
@@ -1308,23 +1310,23 @@ Provider can record manually in the Prep / Shipment workbench (V2.5) or upload a
 
 **FR-V3.2-13 — Configuration UI for tolerance bands.** Add a **Cold-chain bands** Accordion to the V2.1 Scheme editor. Each row: storage mode + low °C + high °C + excursion minutes. Validation: low < high; low ≥ −200; high ≤ 50. Blank leaves the platform default.
 
-**FR-V3.2-14 — i18n namespace.** `eqa.coldchain.*`. Keys MUST cover all checklist labels, disposition radio labels, rejection modal copy, deviation type enum values, scored-report flag text, and Cold-Chain Monitor column headers.
+**FR-V3.2-14 — i18n namespace.** Receipt-screen-bound keys (V3.2's checklist, disposition radios, reject confirmation modal, inline range-error copy) live under `orderEntry.eqa.coldchain.*` since V3.2 extends the Add Order EQA section (per FR-V2.2-12). Provider-only screens that are NOT on order entry — the cross-lab Cold-Chain Monitor (FR-V3.2-12) and the scheme editor's tolerance-band Accordion (FR-V3.2-13) — keep their own non-OE namespace `eqa.coldchain.monitor.*` / `eqa.coldchain.config.*`. Keys MUST cover all checklist labels, disposition radio labels, reject confirmation modal copy, deviation type enum values, scored-report flag text, and Cold-Chain Monitor column headers.
 
 **FR-V3.2-15 — Audit trail.** Every `eqa_panel_receipt.disposition` change, every `eqa_cold_chain_deviation` insert, and every state transition involving `panel_rejected` MUST be written to the existing OpenELIS audit table with `who / when / old_value / new_value / reason`.
 
 ### Acceptance Criteria
 
-- **AC-V3.2-01:** Given a panel with `storage_temp='refrigerated_2_8C'`, when a QA officer logs a receipt with `received_temp_c = 9.4`, then the form shows an inline error tag `Out of range (2.0–8.0°C)`, the disposition defaults to `accept_with_deviation`, an `eqa_cold_chain_deviation` row is inserted with `deviation_type='temp_out_of_range'` and `severity='major'`, and an Alert is raised to both the QA officer and the provider.
-- **AC-V3.2-02:** Given the same out-of-range receipt, when the QA officer sets `disposition='accept'` without completing the forced deviation choice, then the save is blocked and an `InlineNotification` says `Select Accept with deviation or Reject — temperature is out of range`.
-- **AC-V3.2-03:** Given a receipt where outer packaging = `damaged_major` and ice-pack state = `fully_thawed`, then two `eqa_cold_chain_deviation` rows are written (one `packaging_compromised`, one `ice_pack_failed`) and the receipt cannot be saved with `disposition='accept'` — only `accept_with_deviation` or `rejected`.
-- **AC-V3.2-04:** Given a QA officer without `eqa.receipt.reject`, when they open the disposition dropdown, then the `Reject` option is present but disabled with tooltip `Requires eqa.receipt.reject`.
-- **AC-V3.2-05:** Given a receipt saved with `disposition='rejected'`, then the cycle state transitions to `panel_rejected`, a FHIR `Communication` to the provider is emitted, a V2.5 reprovisioning task is created with `reason='panel_rejected_cold_chain'`, and the Receipt Monitor row shows a red `Panel rejected` Tag with a `Ship replacement` action.
+- **AC-V3.2-01:** Given a panel with `storage_temp='refrigerated_2_8C'`, when a QA officer enters `received_temp_c = 9.4` in the EQA-conditional section of the standard Add Order screen, then the temp field shows an inline error tag `Out of range (2.0–8.0°C)`, the disposition `RadioButton`s appear with `accept_with_deviation` pre-selected, and on Save an `eqa_cold_chain_deviation` row is inserted with `deviation_type='temp_out_of_range'` and `severity='major'`, and an Alert is raised to both the QA officer and the provider.
+- **AC-V3.2-02:** Given the same out-of-range entry on Add Order, when the QA officer attempts Save with `disposition='accept'` (or leaves disposition at the default and a deviation is present), then the standard Add Order Save is blocked and an `InlineNotification` says `Select Accept with deviation or Reject — temperature is out of range`.
+- **AC-V3.2-03:** Given an Add Order entry where outer packaging = `damaged_major` and ice-pack state = `fully_thawed`, then on Save two `eqa_cold_chain_deviation` rows are written (one `packaging_compromised`, one `ice_pack_failed`) and the order cannot be saved with `disposition='accept'` — only `accept_with_deviation` or `rejected`.
+- **AC-V3.2-04:** Given a QA officer without `eqa.receipt.reject`, when they look at the disposition radio group on Add Order, then the `Reject` option is present but disabled with tooltip `Requires eqa.receipt.reject`.
+- **AC-V3.2-05:** Given a Save attempt with `disposition='rejected'`, then the Reject confirmation Modal opens; on confirm, the standard Add Order save proceeds, the cycle state transitions to `panel_rejected`, a FHIR `Communication` to the provider is emitted, a V2.5 reprovisioning task is created with `reason='panel_rejected_cold_chain'`, and the Receipt Monitor row shows a red `Panel rejected` Tag with a `Ship replacement` action.
 - **AC-V3.2-06:** Given a rejected cycle, when a replacement receipt is logged, then a new `eqa_panel_receipt` row carries `replaces_receipt_id = <original>`, the cycle returns to `panel_received`, the original receipt row is retained with `disposition='rejected'` for audit, and coverage/trend dashboards exclude the rejected receipt.
 - **AC-V3.2-07:** Given a shipment has a logger-imported `eqa_shipment_deviation` row and the receipt has no receipt-side deviations, then the scored report still shows the `Cold-chain deviation` Tag (warning kind) with the shipment-side entry on hover.
 - **AC-V3.2-08:** Given a provider-admin user with `eqa.provider.manage` + `eqa.analytics.view`, when they open the Cold-Chain Monitor, then they see one row per shipment-participant and can filter by severity; CSV export produces a UTF-8 BOM file with matching column headers.
 - **AC-V3.2-09:** Given a scheme editor changes a tolerance band from `[2.0, 8.0]` to `[3.0, 7.0]`, when a new receipt at 7.5°C is logged, then the validator flags `temp_out_of_range` using the narrower band; previously-accepted receipts are not retroactively flagged.
 - **AC-V3.2-10:** Given an auditor reviews the audit trail, every `panel_rejected` transition carries a row with `who`, `when`, `reason`, and a JSON pointer to the triggering `eqa_cold_chain_deviation` rows.
-- **AC-V3.2-11:** Given all text strings in the Cold-Chain Monitor, rejection modal, checklist, and scored-report tag, every visible string is bound via `t('eqa.coldchain.*')` and present in the Localization table.
+- **AC-V3.2-11:** All text strings render via `t(key, fallback)` and resolve in the Localization table. Order-entry-bound strings (checklist, disposition radios, reject confirmation modal, inline range-error copy) use `orderEntry.eqa.coldchain.*`. Provider-only strings (Cold-Chain Monitor, scheme editor tolerance bands, scored-report tag) use `eqa.coldchain.monitor.*` / `eqa.coldchain.config.*` / `eqa.coldchain.scored.*`.
 - **AC-V3.2-12:** Given a cycle with `disposition='accept_with_deviation'`, when scoring runs, the score is computed normally and stored; the deviation tag appears on the report but does not alter the pass/fail outcome.
 
 ### Non-Functional
@@ -2153,12 +2155,12 @@ This appendix consolidates the per-story i18n namespace declarations (FR-V2.2-10
 | Story | Namespaces |
 |---|---|
 | V2.1 | `error.eqa.panel.*` (validation errors only — no visible UI) |
-| V2.2 | `eqa.participant.*`, `eqa.cycle.*`, `eqa.receipt.*`, `eqa.enroll.*`, `eqa.review.*` |
+| V2.2 | `eqa.participant.*`, `eqa.cycle.*`, `eqa.enroll.*`, `eqa.review.*`, `orderEntry.eqa.*` (EQA-conditional fields on standard Add Order — covers receipt fields per FR-V2.2-12) |
 | V2.3 | `eqa.oversight.*`, `eqa.analyst.*`, `eqa.performance.*`, `eqa.queue.*` |
 | V2.4 | `eqa.inhouse.*`, `eqa.inhouse.prep.*`, `eqa.inhouse.labels.*`, `eqa.blinding.*` |
 | V2.5 | `eqa.provider.*`, `eqa.provider.prep.*`, `eqa.provider.ship.*`, `eqa.provider.receipt.*`, `eqa.followup.*` |
 | V3.1 | `eqa.analytics.trends.*`, `eqa.analytics.signals.*`, `eqa.analytics.thresholds.*`, `eqa.analytics.annual.*`, `eqa.analytics.config.*` |
-| V3.2 | `eqa.coldchain.*`, `eqa.coldchain.monitor.*`, `eqa.coldchain.receipt.*` |
+| V3.2 | `orderEntry.eqa.coldchain.*` (checklist + disposition + reject confirmation modal — extends Add Order EQA section), `eqa.coldchain.monitor.*` (provider cross-lab screen), `eqa.coldchain.config.*` (scheme editor tolerance bands), `eqa.coldchain.scored.*` (scored-report deviation Tag) |
 | V3.3 | `eqa.iqc_correlation.*` |
 | V3.4 | `eqa.impact.*` |
 | V3.5 | `eqa.iso17043.*`, `eqa.iso17043.homogeneity.*`, `eqa.iso17043.stability.*`, `eqa.iso17043.certificates.*` |
@@ -2200,7 +2202,7 @@ Notation: `key` · English fallback. FR column = French fallback (TBD = not yet 
 | `eqa.progress.title` | Sample progress | TBD |
 | `eqa.labNo.tooltip` | Open results entry for this lab number | TBD |
 
-#### V2.2 — Participant experience (`eqa.participant.*`, `eqa.cycle.*`, `eqa.receipt.*`, `eqa.enroll.*`, `eqa.review.*`)
+#### V2.2 — Participant experience (`eqa.participant.*`, `eqa.cycle.*`, `eqa.enroll.*`, `eqa.review.*`, `orderEntry.eqa.*`)
 
 | Key | English | FR |
 |---|---|---|
@@ -2208,7 +2210,7 @@ Notation: `key` · English fallback. FR column = French fallback (TBD = not yet 
 | `eqa.participant.myCyclesSubtitle` | Cycles your lab is participating in. Result entry and validation happen in the standard OpenELIS result pipeline — this page tracks progress and routes you there. | TBD |
 | `eqa.participant.infoTitle` | EQA results flow through standard validation. | TBD |
 | `eqa.participant.infoBody` | Click a Lab No to open standard result entry for that sample, with the EQA flag and per-analyst column set. Once validation-complete, the cycle auto-advances to Submitted (or to Ready-to-submit if the scheme requires cycle-level review). | TBD |
-| `eqa.cycle.plannedCopy` | Panel has not yet been received at this lab. Confirm receipt when the shipment arrives to advance the cycle to Testing. | TBD |
+| `eqa.cycle.plannedCopy` | Panel has not yet been received at this lab. Open Add Order with the EQA box checked to record the receipt and advance the cycle to Testing. | TBD |
 | `eqa.review.title` | Pre-submission summary | TBD |
 | `eqa.review.subtitle` | Read-only summary of all validated results before FHIR submission. No additional sign-off is required — validation in the standard pipeline is the authoritative gate. This scheme has the optional cycle-review flag turned on. | TBD |
 | `eqa.review.ready` | All results validated. | TBD |
@@ -2219,16 +2221,15 @@ Notation: `key` · English fallback. FR column = French fallback (TBD = not yet 
 | `eqa.review.status` | Status | TBD |
 | `eqa.review.resultsBySample` | Results summary | TBD |
 | `eqa.review.auditFootnote` | All results linked to their standard-pipeline validation audit record. No additional approval captured here — validation is the authoritative action. | TBD |
-| `eqa.receipt.title` | Confirm panel receipt | TBD |
-| `eqa.receipt.sub` | Minimal receipt event — records who received the panel and when. Temperature + integrity fields are optional at MVP; structured cold-chain validation arrives in V3.2. | TBD |
-| `eqa.receipt.receivedDate` | Received date | TBD |
-| `eqa.receipt.receivedBy` | Received by | TBD |
-| `eqa.receipt.temp` | Received temp (°C) | TBD |
-| `eqa.receipt.integrity` | Package integrity | TBD |
-| `eqa.receipt.integrityNotes` | Integrity notes | TBD |
-| `eqa.receipt.notes` | General notes | TBD |
-| `eqa.receipt.sideEffect` | Confirming receipt transactionally updates the linked sample_shipment to delivered and transitions the cycle planned → panel_received. A best-effort FHIR ShipmentDelivery notification is sent; failure is logged but does not block the receipt. | TBD |
-| `eqa.receipt.confirm` | Confirm receipt | TBD |
+| `orderEntry.eqa.section.title` | EQA panel receipt | TBD |
+| `orderEntry.eqa.section.subtitle` | Required when this sample is flagged EQA. Standard order-entry `received_date` and `received_by` are reused; the fields below capture EQA-specific receipt details and trigger the cycle's `planned → panel_received` transition on save. | TBD |
+| `orderEntry.eqa.temp` | Received temp (°C) | TBD |
+| `orderEntry.eqa.integrity` | Package integrity OK? | TBD |
+| `orderEntry.eqa.integrityNotes` | Integrity notes | TBD |
+| `orderEntry.eqa.notes` | Receipt notes | TBD |
+| `orderEntry.eqa.shipmentRef` | Shipment reference | TBD |
+| `orderEntry.eqa.sideEffect` | Saving the order updates the linked sample_shipment to delivered, transitions the cycle planned → panel_received, and emits a best-effort FHIR ShipmentDelivery to the provider. | TBD |
+| `orderEntry.eqa.amendBanner` | A receipt is already on file for this cycle. Fields are read-only; use Amend receipt to change them (requires eqa.participant.receipt.amend). | TBD |
 | `eqa.enroll.title` | My EQA Enrollments | TBD |
 | `eqa.enroll.subtitle` | Carbon port of the V1 enrollment UI (scope of V2.2). Enroll this lab in new schemes, map per-analyst eligibility where applicable, and attach accreditation alternative-assessment notes for §7.7.2 coverage gaps. | TBD |
 | `eqa.enroll.previewBanner.title` | Preview placeholder | TBD |
@@ -2313,14 +2314,29 @@ Notation: `key` · English fallback. FR column = French fallback (TBD = not yet 
 | `eqa.analytics.annual.title` | Annual EQA Summary | TBD |
 | `eqa.analytics.annual.subtitle` | Accreditation-ready yearly rollup of cycles, pass rates, CAPAs, and coverage. Generates a date-stamped PDF for ISO 15189 assessor review. | TBD |
 
-#### V3.2 — Cold chain (`eqa.coldchain.*`)
+#### V3.2 — Cold chain (`orderEntry.eqa.coldchain.*` extends the V2.2 Add Order section; `eqa.coldchain.monitor.*` is the provider cross-lab screen; `eqa.coldchain.config.*` is the scheme editor; `eqa.coldchain.scored.*` is the scored-report Tag)
 
 | Key | English | FR |
 |---|---|---|
+| `orderEntry.eqa.coldchain.checklist.title` | Cold-chain & packaging | TBD |
+| `orderEntry.eqa.coldchain.checklist.outerPackaging` | Outer packaging | TBD |
+| `orderEntry.eqa.coldchain.checklist.innerContainer` | Inner container | TBD |
+| `orderEntry.eqa.coldchain.checklist.icePack` | Ice / cold-pack state | TBD |
+| `orderEntry.eqa.coldchain.checklist.desiccant` | Desiccant state | TBD |
+| `orderEntry.eqa.coldchain.checklist.tamperSeal` | Tamper-evident seal | TBD |
+| `orderEntry.eqa.coldchain.tempOutOfRange` | Out of range ({low}–{high}°C) | TBD |
+| `orderEntry.eqa.coldchain.disposition.title` | Disposition (deviation present) | TBD |
+| `orderEntry.eqa.coldchain.disposition.accept` | Accept | TBD |
+| `orderEntry.eqa.coldchain.disposition.acceptWithDeviation` | Accept with deviation | TBD |
+| `orderEntry.eqa.coldchain.disposition.reject` | Reject | TBD |
+| `orderEntry.eqa.coldchain.disposition.forceChoice` | Select Accept with deviation or Reject — temperature is out of range. | TBD |
+| `orderEntry.eqa.coldchain.rejectModal.title` | Reject panel and freeze cycle? | TBD |
+| `orderEntry.eqa.coldchain.rejectModal.body` | This will transition the cycle to panel_rejected, request a replacement from the provider, and exclude the cycle from coverage and trend analytics. | TBD |
+| `orderEntry.eqa.coldchain.rejectModal.confirm` | Reject panel | TBD |
 | `eqa.coldchain.monitor.title` | Cold-Chain Monitor | TBD |
 | `eqa.coldchain.monitor.subtitle` | Cross-lab shipment temperature + disposition tracker. Red rows indicate rejected panels — a reprovisioning task (V2.5) is auto-created on rejection. | TBD |
-| `eqa.coldchain.receipt.title` | Panel receipt — with cold-chain validation | TBD |
-| `eqa.coldchain.receipt.subtitle` | Enhanced two-step receipt. Step 1: temperature + packaging checklist. Step 2: disposition. Cold-chain deviations do not block testing but attach to the scored report for interpretation (ISO 15189 §7.3.4). | TBD |
+| `eqa.coldchain.config.bandsTitle` | Cold-chain tolerance bands | TBD |
+| `eqa.coldchain.scored.deviationTag` | Cold-chain deviation | TBD |
 
 #### V3.3 — IQC correlation (`eqa.iqc_correlation.*`)
 
