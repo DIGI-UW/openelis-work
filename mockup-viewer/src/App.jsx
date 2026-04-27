@@ -97,13 +97,16 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Test Catalog',
-    category: 'vector-surveillance',
+    category: 'admin-config',
     component: React.lazy(() => import('@designs/admin-config/test-catalog.jsx')),
-    description: 'Comprehensive test catalog management',
+    description: 'Admin surface where lab managers define all tests offered — 14-section routed editor covering identity, result types, ranges, sample storage, panels, analyzers, alerts, AMR mapping, regulatory compliance thresholds, LOINC/SNOMED/CIEL/OCL terminology, and order entry configuration. Replaces five separate admin pages (Test, Section, Panel, Method, Reagent). v2.3: JSX–FRS reconciliation pass, Terminology Mappings section, Sample & Results Configuration, click-to-open row interaction, 226 i18n keys.',
     specPath: 'designs/admin-config/test-catalog.md',
+    htmlUrl: 'designs/admin-config/test-catalog.html',
+    added: '2026-04-27',
+    status: 'draft',
     githubIssue: 8,
     jira: ['OGC-173'],
-    tags: ['test-catalog', 'tests', 'admin', 'configuration', 'environmental', 'vector'],
+    tags: ['test-catalog', 'tests', 'admin', 'configuration', 'environmental', 'vector', 'LOINC', 'SNOMED'],
   },
 
   {
@@ -996,7 +999,18 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 62,
     jira: ['OGC-446'],
+    relatedTo: ['FHIR Publication Settings'],
     tags: ['FHIR', 'interoperability', 'outbound', 'hub', 'integration'],
+  },
+  {
+    name: 'FHIR Publication Settings',
+    category: 'system',
+    component: React.lazy(() => import('@designs/system/fhir-publication-settings.jsx')),
+    description: 'Admin configuration page for FHIR R4 outbound publication — endpoint URL, per-resource toggles (DiagnosticReport, Observation, ServiceRequest, Device, Organization), authentication modes (API key, OAuth 2.0, Basic auth, Private Key JWT with public key upload), DHIS2 push URL, and live connection test. Companion admin UI for the FHIR Outbound Push pipeline (OGC-446).',
+    added: '2026-04-27',
+    status: 'draft',
+    relatedTo: ['FHIR Outbound Push'],
+    tags: ['FHIR', 'interoperability', 'outbound', 'admin', 'configuration', 'integration'],
   },
   {
     name: 'Storage Disposition FHIR',

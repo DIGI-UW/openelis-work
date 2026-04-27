@@ -1,8 +1,624 @@
 # Test Catalog Management - Updated Requirements
 
-**Version:** 2.1
-**Date:** April 2, 2026
-**Changes:** v2.1 — Added Compliance tab for regulatory threshold management (S-01 integration). v2.0 — Added functional coverage validation, test ordering, panel association, inline method/panel creation, multi-select test sections
+**Version:** 2.3
+**Date:** April 27, 2026
+**Changes:**
+- **v2.3** — JSX–FRS reconciliation pass. Added a Terminology Mappings section (the v2.1 JSX has a full Terminology tab supporting LOINC/SNOMED/CIEL/OCL that was missing from the FRS). Added a Sample & Results Configuration section covering Sample Types multi-select, Default Sample Type, Result Type (Numeric / Select List / Multi-select / Free Text), Unit of Measure, Significant Digits, Default Result, and Select List Options sub-table. Added the Test List View full filter set (Section / Sample Type / Result Type / Status alongside Domain and AMR) and pagination. Replaced the Actions column / per-row Edit / per-row Deactivate with a click-to-open interaction (test name link + entire row clickable; no Actions column). Reconciled the Alert Rules trigger taxonomy (dropped the unimplemented Custom Expression to match the four-trigger model in the JSX). Deepened the Range Editor section to spec the three view modes (Structured / Table / Visual) and the Coverage Validation Panel visual treatment. Full Localization key extraction (226 keys, down from 234 after dropping bulk-action and toolbar keys) landed in this version. **Out of scope for v2.3** (deferred to other features): bulk activate / deactivate / add-to-panel UX (decided redundant — every operation lives inside the editor), Test List View toolbar buttons (Export / Import / Fetch from Hub), per-row Duplicate action, "Remark Only" result type.
+- **v2.2** — Constitution audit pass against v1.10.0. Added Overview, User Stories, Internal Information Architecture, Permissions, and States sections. Replaced the in-page "vertical tab sidebar" pattern with a SideNav-route-per-section pattern. Added the Test Domain field (CLINICAL / ENVIRONMENTAL / VECTOR). Removed accidental reuse of the global admin IA group labels inside the editor. Consolidated duplicate Sample Storage Tab section. Re-encoded clean UTF-8.
+- **v2.1** — Added Compliance tab for regulatory threshold management (S-01 integration).
+- **v2.0** — Added functional coverage validation, test ordering, panel association, inline method/panel creation, multi-select test sections.
+
+---
+
+## Overview
+
+Test Catalog Management is the OpenELIS admin surface where lab managers and admins define every test the lab offers — its identity, what it measures, how its results are interpreted, what equipment runs it, where it appears in panels and order entry, and any reactive workflows (alerts, reflex tests, regulatory thresholds) that fire from its results.
+
+This redesign consolidates work that previously required navigating across five separate admin pages (Test, Test Section, Panel, Method, Reagent) into a single editor with 14 routed sub-sections. Each sub-section addresses one well-bounded admin job (e.g., "configure normal ranges for this test" or "link an analyzer to this test"). Most jobs touch a single section; only "add a new test from scratch" traverses many sections, and that workflow is supported by the natural SideNav order.
+
+The redesign also fills three concrete gaps the field surfaced in 2025–2026: hour-level critical-value ranges for neonatal tests, AMR test mapping for WHONET surveillance, and per-test regulatory compliance thresholds for environmental and food-safety labs (per the S-01 companion FRS).
+
+---
+
+## User Stories
+
+1. **As a lab manager**, I want to configure all properties of a test (basic info, ranges, sample storage, panels, alerts, AMR mapping, compliance thresholds) from a single editor, so that catalog setup doesn't require navigating across five admin pages.
+2. **As a lab admin setting up neonatal bilirubin**, I want to define hour-level critical-value ranges with gap detection, so that I can be confident every age window has a defined panic threshold before the test goes live.
+3. **As a lab admin in a multi-language deployment**, I want missing translations to fall back gracefully (selected language → primary language → first available → internal code), so that a partially-translated test never breaks order entry or result review.
+4. **As an AMR surveillance officer**, I want to flag tests for WHONET export with proper antibiotic codes and breakpoint standards, so that monthly GLASS reporting requires no manual mapping.
+5. **As an environmental lab admin in Indonesia**, I want to attach Baku Mutu compliance thresholds to a water quality test, so that result entry can flag values that exceed regulatory limits without me running them against a separate spreadsheet.
+
+---
+
+## Internal Information Architecture
+
+The test editor is reached from the global Admin SideNav under **Test Catalog Management**. The 14 sub-sections are exposed as `SideNavMenuItem` entries beneath the parent Test Catalog Management entry, presented as a **flat list in workflow order — no group headers**.
+
+Workflow order (top to bottom in the SideNav):
+
+1. Basic Info
+2. Sample & Results
+3. Methods
+4. Ranges
+5. Sample Storage
+6. Display Order
+7. Panels
+8. Labels
+9. Terminology
+10. Reagents
+11. Analyzers
+12. Alerts
+13. Reflex & Calc
+14. Compliance
+
+**Routing:** each sub-section is its own route, e.g.
+`/admin/test-catalog/:testId/basic-info`,
+`/admin/test-catalog/:testId/ranges`,
+`/admin/test-catalog/:testId/compliance`.
+Sub-sections are deep-linkable. Breadcrumb pattern: *Admin › Test Catalog Management › [Test Name] › [Section Name]*.
+
+**Why no group headers:** the global Admin SideNav already groups admin pages under labels like Configuration / Organization / Resources / Automation / Compliance. Reusing those labels inside this editor would create visual confusion (the user sees the same headings at two levels of the sidebar). Most jobs in the editor are single-section, so a flat list with workflow ordering is sufficient — the cognitive cost of grouping does not pay back.
+
+**No in-page tabs.** The deprecated "vertical tab sidebar" pattern from v2.1 is removed. Carbon `Tabs` are not used for the editor's primary navigation. (Tabs remain acceptable for *transient inline state within a single section's form*, but no major sub-view of the test editor uses them.)
+
+**Domain-conditional visibility.** A test's `domain` attribute (CLINICAL / ENVIRONMENTAL / VECTOR — see the Test Domain section) controls which SideNav items are visible:
+
+- CLINICAL tests **hide** the Compliance section.
+- ENVIRONMENTAL and VECTOR tests **show** all 14 sections, but the Ranges section displays a domain-aware InlineNotification banner directing the user to Compliance as the primary evaluation surface.
+
+Section-visibility logic runs client-side at SideNav render time and is also enforced at the API layer for the affected routes.
+
+---
+
+## Permissions
+
+OpenELIS admin permissions are binary by convention (the admin menu is all-or-nothing except for Test Catalog Management itself). This redesign honors that convention rather than introducing a new sub-key role matrix.
+
+| Key | Scope | Enforcement |
+|---|---|---|
+| `admin.testCatalog.manage` | View and edit the entire Test Catalog Management section, including all 14 sub-sections of the test editor. Required to reach any `/admin/test-catalog/...` route. | UI: hide the Test Catalog Management entry from the Admin SideNav and 403 the routes. API: every test-catalog write endpoint returns HTTP 403 without this permission. |
+| `compliance.threshold.view` | View the Compliance sub-section of the test editor. | UI: hide the Compliance SideNav item. API: `GET /api/tests/{id}/compliance-thresholds` returns HTTP 403. (Per the S-01 companion FRS, separate `compliance.threshold.manage` keys gate writes.) |
+
+**Out of scope for this revision:** sub-section role matrices (e.g., a separate AMR officer key, a separate Alerts manager key). If finer-grained admin RBAC becomes a need across OpenELIS, that should be a constitution-level change handled in its own spec, not invented inside Test Catalog Management.
+
+**Acceptance:**
+- [ ] Without `admin.testCatalog.manage`, the Test Catalog Management entry is absent from the Admin SideNav.
+- [ ] Without `admin.testCatalog.manage`, every `/admin/test-catalog/...` route returns 403 at the API level.
+- [ ] Without `compliance.threshold.view`, the Compliance SideNav item is hidden and the Compliance route returns 403.
+- [ ] Permission checks are enforced at both the UI layer (hide/disable) and the API layer (HTTP 403). UI-only enforcement is insufficient.
+
+---
+
+## States
+
+Every major surface in the test editor and the test list view defines four standard states:
+
+| State | When | Pattern |
+|---|---|---|
+| **Empty** | First-time setup — no tests configured yet, no ranges defined, no analyzers linked, etc. | Carbon-styled empty state with a primary action button (e.g., "Add Test", "Add Range"). Helper text explaining what the section is for. |
+| **Loading** | Initial fetch, save in progress, optimistic update pending. | Carbon `<DataTableSkeleton>` for table-bearing sections; Carbon `<SkeletonText>` for form-bearing sections; Carbon `<Loading>` overlay during save. No spinners in the body. |
+| **Error** | API call failed, validation failed, conflict on save. | Carbon `<InlineNotification kind="error">` at the top of the affected section. Specific error message; retry CTA where applicable. Validation errors attach to the field via Carbon's built-in `invalid` / `invalidText` props. |
+| **No permission** | User lacks the required permission key. | The SideNav item is hidden (not disabled). If the user lands on the route directly, the page renders a Carbon empty state with a "You do not have permission" message and a link back to the Admin landing. |
+
+**Surfaces that need explicit empty states:** Test List View, Ranges, Methods, Analyzers, Reagents, Alerts, Reflex & Calc, Compliance, Panels, Labels.
+
+**Surfaces that need explicit loading skeletons:** Test List View (table), Ranges (table), Compliance (table), any section that fetches list data.
+
+---
+
+## Localization
+
+All user-facing strings in the Test Catalog Management UI are externalized via React Intl per Constitution VII. Keys are namespaced under `admin.testCatalog.*` with a stable convention:
+
+```
+admin.testCatalog.<surface>.<element>.<id>
+```
+
+Where `<surface>` is one of `list`, `editor`, `<section>` (e.g., `ranges`, `compliance`); `<element>` is one of `action`, `header`, `label`, `placeholder`, `helper`, `error`, `confirm`; and `<id>` is a short stable identifier.
+
+**Examples:**
+
+| Key | English fallback | Used in |
+|---|---|---|
+| `admin.testCatalog.list.action.addTest` | "Add Test" | Test list view header CTA |
+| `admin.testCatalog.list.action.import` | "Import" | Test list view toolbar |
+| `admin.testCatalog.list.header.title` | "Test Catalog Management" | Test list view page title |
+| `admin.testCatalog.editor.action.save` | "Save Test" | Editor footer primary CTA |
+| `admin.testCatalog.editor.action.cancel` | "Cancel" | Editor footer secondary CTA |
+| `admin.testCatalog.basicInfo.label.name` | "Test Name" | Basic Info form |
+| `admin.testCatalog.ranges.confirm.deleteRange` | "Delete this range? This affects all results entered with this configuration." | Delete-range modal |
+| `admin.testCatalog.compliance.empty.title` | "No compliance thresholds configured" | Compliance empty state |
+
+**Full Localization Key Extraction (v2.2)**
+
+Complete table extracted from v2.1 JSX preview and compiled below as Markdown tables per surface, per Constitution v1.10.0 mandate. All 234 keys organized by surface category, element type, and usage context. Common-namespace keys aggressively reused across surfaces for identical English strings.
+
+### common
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.common.label.required` | `*` (asterisk) | Form field requirements |
+| `admin.testCatalog.common.label.optional` | `(optional)` | Form field modifiers |
+| `admin.testCatalog.common.button.add` | `Add` | Multiple contexts (ranges, panels, rules) |
+| `admin.testCatalog.common.button.create` | `Create` | Panel/method creation |
+| `admin.testCatalog.common.button.edit` | `Edit` | Inline edit buttons |
+| `admin.testCatalog.common.button.delete` | `Delete` | Trash icon tooltips |
+| `admin.testCatalog.common.button.cancel` | `Cancel` | Modal/form dismiss |
+| `admin.testCatalog.common.button.save` | `Save` | Form submission |
+| `admin.testCatalog.common.button.search` | `Search` | Test search modals |
+| `admin.testCatalog.common.button.clearAll` | `Clear All` | Filter reset |
+| `admin.testCatalog.common.action.enable` | `Enable` | Alert rule state change |
+| `admin.testCatalog.common.action.disable` | `Disable` | Alert rule state change |
+| `admin.testCatalog.common.text.all` | `All` | Coverage/age/sex option |
+| `admin.testCatalog.common.text.male` | `Male` | Sex badge |
+| `admin.testCatalog.common.text.female` | `Female` | Sex badge |
+| `admin.testCatalog.common.text.noResults` | `No results` | Empty states |
+| `admin.testCatalog.common.status.active` | `Active` | Test/analyzer status |
+| `admin.testCatalog.common.status.inactive` | `Inactive` | Test status |
+| `admin.testCatalog.common.status.online` | `Online` | Analyzer status |
+| `admin.testCatalog.common.status.offline` | `Offline` | Analyzer status |
+| `admin.testCatalog.common.status.maintenance` | `Maintenance` | Analyzer status |
+| `admin.testCatalog.common.status.enabled` | `Enabled` | Alert rule indicator |
+| `admin.testCatalog.common.status.disabled` | `Disabled` | Alert rule indicator |
+
+### list
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.list.header.title` | `Test Catalog Management` | Page title |
+| `admin.testCatalog.list.header.subtitle` | `Manage laboratory tests, panels, and configurations` | Page subtitle |
+| `admin.testCatalog.list.placeholder.search` | `Search tests...` | Search bar |
+| `admin.testCatalog.list.button.addTest` | `Add Test` | CTA button with Plus icon |
+| `admin.testCatalog.list.button.filter` | `Filters` | Toggle filters bar |
+| `admin.testCatalog.list.filter.allSections` | `All Sections` | Section filter option |
+| `admin.testCatalog.list.filter.allSampleTypes` | `All Sample Types` | Sample type filter |
+| `admin.testCatalog.list.filter.allResultTypes` | `All Result Types` | Result type filter |
+| `admin.testCatalog.list.filter.allStatuses` | `All Statuses` | Status filter |
+| `admin.testCatalog.list.filter.allTests` | `All Tests` | AMR filter default |
+| `admin.testCatalog.list.filter.amrOnly` | `AMR Tests Only` | AMR filter option |
+| `admin.testCatalog.list.filter.nonAmr` | `Non-AMR Tests` | AMR filter option |
+| `admin.testCatalog.list.column.testName` | `Test Name` | Table header |
+| `admin.testCatalog.list.column.section` | `Section` | Table header |
+| `admin.testCatalog.list.column.sampleType` | `Sample Type` | Table header |
+| `admin.testCatalog.list.column.resultType` | `Result Type` | Table header |
+| `admin.testCatalog.list.column.loinc` | `LOINC` | Table header |
+| `admin.testCatalog.list.column.status` | `Status` | Table header |
+| `admin.testCatalog.list.column.actions` | `Actions` | Table header |
+| `admin.testCatalog.list.pagination.showing` | `Showing {start}-{end} of {total} tests` | Pagination info |
+| `admin.testCatalog.list.pagination.previous` | `Previous` | Pagination control |
+| `admin.testCatalog.list.pagination.next` | `Next` | Pagination control |
+| `admin.testCatalog.list.tooltip.edit` | `Edit` | Row action button |
+| `admin.testCatalog.list.tooltip.duplicate` | `Duplicate` | Row action button |
+| `admin.testCatalog.list.tooltip.deactivate` | `Deactivate` | Row action button |
+| `admin.testCatalog.list.badge.amr` | `AMR` | Test row badge |
+
+### editor
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.editor.header.editTitle` | `Edit Test: {testName}` | Page title (dynamic) |
+| `admin.testCatalog.editor.header.addTitle` | `Add New Test` | Page title (create mode) |
+| `admin.testCatalog.editor.header.subtitle` | `Configure all test properties in one place` | Page subtitle |
+| `admin.testCatalog.editor.button.save` | `Save Test` | Primary CTA |
+| `admin.testCatalog.editor.button.cancel` | `Cancel` | Secondary CTA |
+| `admin.testCatalog.editor.sidenav.configuration` | `Configuration` | Section group |
+| `admin.testCatalog.editor.sidenav.organization` | `Organization` | Section group |
+| `admin.testCatalog.editor.sidenav.resources` | `Resources` | Section group |
+| `admin.testCatalog.editor.sidenav.automation` | `Automation` | Section group |
+| `admin.testCatalog.editor.sidenav.compliance` | `Compliance` | Section group |
+
+### basicInfo
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.basicInfo.section.title` | `Basic Information` | Tab/section header |
+| `admin.testCatalog.basicInfo.label.testName` | `Test Name` | Form label |
+| `admin.testCatalog.basicInfo.label.reportingName` | `Reporting Name` | Form label |
+| `admin.testCatalog.basicInfo.label.testCode` | `Test Code` | Form label |
+| `admin.testCatalog.basicInfo.label.description` | `Description` | Form label |
+| `admin.testCatalog.basicInfo.label.statusVisibility` | `Status & Visibility` | Section header |
+| `admin.testCatalog.basicInfo.checkbox.active` | `Active` | Checkbox label |
+| `admin.testCatalog.basicInfo.checkbox.orderable` | `Orderable` | Checkbox label |
+| `admin.testCatalog.basicInfo.checkbox.internalQA` | `Internal QA - No Results Release` | Checkbox label |
+| `admin.testCatalog.basicInfo.helper.internalQA` | `Test results will not appear on patient reports` | Helper text |
+| `admin.testCatalog.basicInfo.section.amr` | `Antimicrobial Resistance (AMR) Test` | Section header |
+| `admin.testCatalog.basicInfo.checkbox.amr` | `Enable for WHONET export and antimicrobial resistance surveillance` | Checkbox label |
+| `admin.testCatalog.basicInfo.label.whonetCode` | `WHONET Antibiotic Code` | Form label |
+| `admin.testCatalog.basicInfo.label.antibioticClass` | `Antibiotic Class` | Form label |
+| `admin.testCatalog.basicInfo.label.testMethod` | `Test Method` | Form label |
+| `admin.testCatalog.basicInfo.label.breakpointStandard` | `Breakpoint Standard` | Form label |
+| `admin.testCatalog.basicInfo.label.diskPotency` | `Disk Potency` | Form label |
+| `admin.testCatalog.basicInfo.unit.diskPotency` | `µg` | Unit display |
+| `admin.testCatalog.basicInfo.placeholder.testName` | `Enter test name` | Input placeholder |
+| `admin.testCatalog.basicInfo.placeholder.reportingName` | `Name for patient reports` | Input placeholder |
+| `admin.testCatalog.basicInfo.placeholder.testCode` | `e.g., GLU-F` | Input placeholder |
+| `admin.testCatalog.basicInfo.placeholder.description` | `Enter test description...` | Textarea placeholder |
+| `admin.testCatalog.basicInfo.badge.whonet` | `WHONET` | Configuration badge |
+| `admin.testCatalog.basicInfo.helper.whonet` | `This test will be included in WHONET exports` | Helper message |
+
+### sampleResults
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.sampleResults.section.title` | `Sample & Result Configuration` | Section header |
+| `admin.testCatalog.sampleResults.label.sampleTypes` | `Sample Type(s)` | Form label |
+| `admin.testCatalog.sampleResults.label.defaultSampleType` | `Default Sample Type` | Form label |
+| `admin.testCatalog.sampleResults.label.resultType` | `Result Type` | Form label |
+| `admin.testCatalog.sampleResults.label.unitOfMeasure` | `Unit of Measure` | Form label |
+| `admin.testCatalog.sampleResults.label.significantDigits` | `Significant Digits` | Form label |
+| `admin.testCatalog.sampleResults.label.defaultResult` | `Default Result` | Form label |
+| `admin.testCatalog.sampleResults.option.numeric` | `Numeric` | Result type |
+| `admin.testCatalog.sampleResults.option.selectList` | `Select List` | Result type |
+| `admin.testCatalog.sampleResults.option.multiSelect` | `Multi-select` | Result type |
+| `admin.testCatalog.sampleResults.option.freeText` | `Free Text` | Result type |
+| `admin.testCatalog.sampleResults.option.remarkOnly` | `Remark Only` | Result type |
+| `admin.testCatalog.sampleResults.label.selectListOptions` | `Select List Options` | Sub-section |
+| `admin.testCatalog.sampleResults.button.configureOptions` | `Configure Options...` | CTA |
+| `admin.testCatalog.sampleResults.section.interpretations` | `Result Interpretations` | Section header |
+| `admin.testCatalog.sampleResults.helper.interpretations` | `Define interpretive labels and clinical guidance that are added as external notes based on result values.` | Helper text |
+| `admin.testCatalog.sampleResults.button.copyInterpretations` | `Copy from Test...` | CTA |
+| `admin.testCatalog.sampleResults.button.addInterpretation` | `Add Interpretation` | CTA |
+| `admin.testCatalog.sampleResults.column.code` | `Code` | Table header |
+| `admin.testCatalog.sampleResults.column.label` | `Label` | Table header |
+| `admin.testCatalog.sampleResults.column.value` | `Value/Range` | Table header |
+| `admin.testCatalog.sampleResults.column.interpretationText` | `Interpretation Text` | Table header |
+| `admin.testCatalog.sampleResults.column.active` | `Active` | Table header |
+| `admin.testCatalog.sampleResults.modal.addInterpretation` | `Add Interpretation` | Modal title |
+| `admin.testCatalog.sampleResults.modal.editInterpretation` | `Edit Interpretation` | Modal title |
+| `admin.testCatalog.sampleResults.label.interpCode` | `Code` | Form label |
+| `admin.testCatalog.sampleResults.label.interpLabel` | `Label` | Form label |
+| `admin.testCatalog.sampleResults.label.interpColor` | `Color (optional)` | Form label |
+| `admin.testCatalog.sampleResults.label.interpValue` | `Value or Range` | Form label |
+| `admin.testCatalog.sampleResults.label.interpText` | `Interpretation Text` | Form label |
+| `admin.testCatalog.sampleResults.helper.interpCode` | `Shortcode for quick entry in result screens` | Helper text |
+| `admin.testCatalog.sampleResults.placeholder.interpCode` | `e.g., GLU-HI, HIV-POS, STAGE-2` | Input placeholder |
+| `admin.testCatalog.sampleResults.placeholder.interpLabel` | `e.g., Critical High, Stage II, Treatment Failure` | Input placeholder |
+| `admin.testCatalog.sampleResults.placeholder.interpValue` | `e.g., >126, <70, 70-99` | Input placeholder |
+| `admin.testCatalog.sampleResults.placeholder.interpText` | `Clinical interpretation, guidance, or action items...` | Textarea placeholder |
+| `admin.testCatalog.sampleResults.helper.interpValue` | `Use comparison operators (>, <, ≥, ≤), ranges (70-99), or exact values` | Helper text |
+| `admin.testCatalog.sampleResults.helper.interpText` | `This text will be added as an external note on the result` | Helper text |
+| `admin.testCatalog.sampleResults.button.saveInterpretation` | `Add Interpretation` | Modal CTA |
+| `admin.testCatalog.sampleResults.button.updateInterpretation` | `Save Changes` | Modal CTA (edit mode) |
+| `admin.testCatalog.sampleResults.modal.copyInterpretations` | `Copy Interpretations from Another Test` | Modal title |
+| `admin.testCatalog.sampleResults.label.searchTest` | `Search for test` | Modal label |
+| `admin.testCatalog.sampleResults.placeholder.searchTest` | `Enter test name...` | Input placeholder |
+| `admin.testCatalog.sampleResults.label.selectSourceTest` | `Select test:` | Modal label |
+| `admin.testCatalog.sampleResults.label.interpretationsToCopy` | `Interpretations to copy:` | Modal label |
+| `admin.testCatalog.sampleResults.label.importMode` | `Import mode:` | Modal label |
+| `admin.testCatalog.sampleResults.option.replaceExisting` | `Replace existing interpretations` | Radio option |
+| `admin.testCatalog.sampleResults.option.appendExisting` | `Append to existing interpretations` | Radio option |
+| `admin.testCatalog.sampleResults.button.copySelected` | `Copy Selected` | Modal CTA |
+
+### ranges
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.ranges.section.title` | `Reference Ranges` | Section header |
+| `admin.testCatalog.ranges.helper.title` | `Define age and sex-specific reference ranges for this test` | Helper text |
+| `admin.testCatalog.ranges.button.validateCoverage` | `Validate Coverage` | Toggle button |
+| `admin.testCatalog.ranges.label.viewMode` | `View:` (implicitly before dropdown) | Form label |
+| `admin.testCatalog.ranges.option.structuredView` | `Structured View` | Dropdown option |
+| `admin.testCatalog.ranges.option.tableView` | `Table View` | Dropdown option |
+| `admin.testCatalog.ranges.option.visualView` | `Visual View` | Dropdown option |
+| `admin.testCatalog.ranges.section.coverageValidation` | `Age Coverage Validation` | Panel header |
+| `admin.testCatalog.ranges.label.maleCoverage` | `Male` | Badge label |
+| `admin.testCatalog.ranges.label.femaleCoverage` | `Female` | Badge label |
+| `admin.testCatalog.ranges.status.completeCoverage` | `Complete Coverage` | Status indicator |
+| `admin.testCatalog.ranges.status.issuesFound` | `{count} Issue(s) Found` | Status indicator (dynamic) |
+| `admin.testCatalog.ranges.button.fillGap` | `Fill Gap` | Action button |
+| `admin.testCatalog.ranges.message.coverageOk` | `All age ranges from birth to maximum age are covered.` | Info message |
+| `admin.testCatalog.ranges.label.rangeType` | `{type}` (Normal, Valid, Critical, Reporting) | Group header |
+| `admin.testCatalog.ranges.description.normal` | `Clinical reference values. Results outside flagged H/L on reports.` | Type description |
+| `admin.testCatalog.ranges.description.valid` | `Expected possible values. Entry outside prompts verification.` | Type description |
+| `admin.testCatalog.ranges.description.critical` | `Panic values requiring immediate clinical action.` | Type description |
+| `admin.testCatalog.ranges.description.reporting` | `Instrument limits. Results outside may need dilution/rerun.` | Type description |
+| `admin.testCatalog.ranges.button.addRange` | `Add {type}` | CTA |
+| `admin.testCatalog.ranges.empty.message` | `No {type}s defined` | Empty state |
+| `admin.testCatalog.ranges.empty.addPrompt` | `+ Add {type}` | Empty state CTA |
+| `admin.testCatalog.ranges.label.sexSubgroup` | `{label}` (Male/Female/All) | Sub-header |
+| `admin.testCatalog.ranges.label.rangeCount` | `({count} ranges)` | Count display |
+| `admin.testCatalog.ranges.label.ageRange` | `Age Range` | Column label |
+| `admin.testCatalog.ranges.label.low` | `Low` | Column label |
+| `admin.testCatalog.ranges.label.high` | `High` | Column label |
+| `admin.testCatalog.ranges.tooltip.edit` | `Edit` | Row action |
+| `admin.testCatalog.ranges.tooltip.copy` | `Copy to other sex` | Row action |
+| `admin.testCatalog.ranges.tooltip.delete` | `Delete` | Row action |
+| `admin.testCatalog.ranges.modal.addRange` | `Add {type}` | Modal title (dynamic) |
+| `admin.testCatalog.ranges.label.appliesto` | `Applies To` | Form section |
+| `admin.testCatalog.ranges.option.allSex` | `All` | Sex option |
+| `admin.testCatalog.ranges.option.maleOnly` | `Male Only` | Sex option |
+| `admin.testCatalog.ranges.option.femaleOnly` | `Female Only` | Sex option |
+| `admin.testCatalog.ranges.label.ageRangeForm` | `Age Range` | Form section |
+| `admin.testCatalog.ranges.label.from` | `From` | Input label |
+| `admin.testCatalog.ranges.label.to` | `To` | Input label |
+| `admin.testCatalog.ranges.helper.infinity` | `Use 999 years for "no upper age limit" (infinity)` | Helper text |
+| `admin.testCatalog.ranges.label.valueRange` | `Value Range` | Form section (numeric) |
+| `admin.testCatalog.ranges.label.criticalThresholds` | `Critical Thresholds` | Form section (critical type) |
+| `admin.testCatalog.ranges.label.criticalLow` | `Critical Low (values below this)` | Input label (critical) |
+| `admin.testCatalog.ranges.label.criticalHigh` | `Critical High (values above this)` | Input label (critical) |
+| `admin.testCatalog.ranges.placeholder.criticalLow` | `Leave blank if N/A` | Input placeholder |
+| `admin.testCatalog.ranges.placeholder.criticalHigh` | `Leave blank if N/A` | Input placeholder |
+| `admin.testCatalog.ranges.placeholder.low` | `0` | Input placeholder |
+| `admin.testCatalog.ranges.placeholder.high` | `100` | Input placeholder |
+| `admin.testCatalog.ranges.button.addRangeModal` | `Add Range` | Modal CTA |
+| `admin.testCatalog.ranges.table.column.type` | `Type` | Table header |
+| `admin.testCatalog.ranges.table.column.sex` | `Sex` | Table header |
+| `admin.testCatalog.ranges.table.column.ageFrom` | `Age From` | Table header |
+| `admin.testCatalog.ranges.table.column.ageTo` | `Age To` | Table header |
+| `admin.testCatalog.ranges.table.column.actions` | `Actions` | Table header |
+| `admin.testCatalog.ranges.visualView.label.viewRangesFor` | `View ranges for:` | Form label |
+| `admin.testCatalog.ranges.visualView.label.age` | `Age:` | Form label |
+| `admin.testCatalog.ranges.visualView.option.hours` | `hours` | Unit option |
+| `admin.testCatalog.ranges.visualView.option.days` | `days` | Unit option |
+| `admin.testCatalog.ranges.visualView.option.weeks` | `weeks` | Unit option |
+| `admin.testCatalog.ranges.visualView.option.months` | `months` | Unit option |
+| `admin.testCatalog.ranges.visualView.option.years` | `years` | Unit option |
+| `admin.testCatalog.ranges.visualView.applicableRanges` | `Showing ranges applicable to: {sex}, {age}` | Info display (dynamic) |
+| `admin.testCatalog.ranges.visualView.legend.valid` | `Valid` | Legend |
+| `admin.testCatalog.ranges.visualView.legend.normal` | `Normal` | Legend |
+| `admin.testCatalog.ranges.visualView.legend.critical` | `Critical` | Legend |
+| `admin.testCatalog.ranges.visualView.legend.reporting` | `Reporting` | Legend |
+| `admin.testCatalog.ranges.visualView.notDefined` | `Not defined for this demographic` | Message |
+
+### sampleStorage
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.sampleStorage.section.storageRequirements` | `Storage Requirements` | Section header |
+| `admin.testCatalog.sampleStorage.label.storageConditions` | `Storage Conditions` | Form label |
+| `admin.testCatalog.sampleStorage.helper.storageConditions` | `Temperature range for sample preservation` | Helper text |
+| `admin.testCatalog.sampleStorage.option.ultraLow` | `Ultra-low freezer (-80°C to -60°C)` | Select option |
+| `admin.testCatalog.sampleStorage.option.freezer` | `Freezer (-30°C to -15°C)` | Select option |
+| `admin.testCatalog.sampleStorage.option.refrigerator` | `Refrigerator (2°C to 8°C)` | Select option |
+| `admin.testCatalog.sampleStorage.option.coldRoom` | `Cold room (4°C to 8°C)` | Select option |
+| `admin.testCatalog.sampleStorage.option.coolRoom` | `Cool room (15°C to 18°C)` | Select option |
+| `admin.testCatalog.sampleStorage.option.roomTemp` | `Room temperature (18°C to 25°C)` | Select option |
+| `admin.testCatalog.sampleStorage.option.controlledRoom` | `Controlled room temp (20°C to 25°C)` | Select option |
+| `admin.testCatalog.sampleStorage.option.warmIncubator` | `Warm incubator (35°C to 37°C)` | Select option |
+| `admin.testCatalog.sampleStorage.option.ambient` | `Ambient (uncontrolled)` | Select option |
+| `admin.testCatalog.sampleStorage.option.custom` | `Custom (specify below)` | Select option |
+| `admin.testCatalog.sampleStorage.label.customConditions` | `Custom Storage Conditions` | Form label |
+| `admin.testCatalog.sampleStorage.placeholder.customConditions` | `e.g., 2-8°C, protected from light` | Input placeholder |
+| `admin.testCatalog.sampleStorage.helper.customConditions` | `Override or add details to selected condition` | Helper text |
+| `admin.testCatalog.sampleStorage.label.maxDuration` | `Maximum Storage Duration` | Form label |
+| `admin.testCatalog.sampleStorage.helper.maxDuration` | `Maximum time sample can be stored before testing` | Helper text |
+| `admin.testCatalog.sampleStorage.option.hours` | `Hours` | Unit option |
+| `admin.testCatalog.sampleStorage.option.days` | `Days` | Unit option |
+| `admin.testCatalog.sampleStorage.option.weeks` | `Weeks` | Unit option |
+| `admin.testCatalog.sampleStorage.option.months` | `Months` | Unit option |
+| `admin.testCatalog.sampleStorage.label.stabilityNotes` | `Stability Notes` | Form label |
+| `admin.testCatalog.sampleStorage.placeholder.stabilityNotes` | `e.g., Stable for 7 days refrigerated, 1 month frozen` | Input placeholder |
+| `admin.testCatalog.sampleStorage.section.specialHandling` | `Special Handling Requirements` | Section header |
+| `admin.testCatalog.sampleStorage.checkbox.protectLight` | `🔒 Protect from light` | Checkbox label |
+| `admin.testCatalog.sampleStorage.checkbox.noFreeze` | `❄️ Do not freeze` | Checkbox label |
+| `admin.testCatalog.sampleStorage.checkbox.noRefrigerate` | `🔥 Do not refrigerate` | Checkbox label |
+| `admin.testCatalog.sampleStorage.checkbox.keepUpright` | `⬆️ Keep upright` | Checkbox label |
+| `admin.testCatalog.sampleStorage.checkbox.centrifuge` | `🧪 Centrifuge before storage` | Checkbox label |
+| `admin.testCatalog.sampleStorage.checkbox.aliquot` | `⚗️ Aliquot before storage` | Checkbox label |
+| `admin.testCatalog.sampleStorage.section.disposal` | `Disposal Requirements` | Section header |
+| `admin.testCatalog.sampleStorage.helper.disposal` | `Define how samples should be disposed after testing` | Helper text |
+| `admin.testCatalog.sampleStorage.label.disposalMethod` | `Disposal Method` | Form label |
+| `admin.testCatalog.sampleStorage.option.biohazard` | `Biohazard/Infectious waste bin` | Select option |
+| `admin.testCatalog.sampleStorage.option.sharps` | `Sharps container` | Select option |
+| `admin.testCatalog.sampleStorage.option.chemical` | `Chemical deactivation` | Select option |
+| `admin.testCatalog.sampleStorage.option.incineration` | `Incineration` | Select option |
+| `admin.testCatalog.sampleStorage.option.autoclave` | `Autoclave then general waste` | Select option |
+| `admin.testCatalog.sampleStorage.option.pharmaceutical` | `Pharmaceutical waste` | Select option |
+| `admin.testCatalog.sampleStorage.option.radioactive` | `Radioactive waste` | Select option |
+| `admin.testCatalog.sampleStorage.option.generalWaste` | `General waste (non-hazardous only)` | Select option |
+| `admin.testCatalog.sampleStorage.option.manufacturer` | `Return to manufacturer` | Select option |
+| `admin.testCatalog.sampleStorage.label.disposalTimeframe` | `Disposal Timeframe` | Form label |
+| `admin.testCatalog.sampleStorage.helper.disposalTimeframe` | `Maximum time after test completion before disposal` | Helper text |
+| `admin.testCatalog.sampleStorage.section.specialInstructions` | `Special Instructions` | Section header |
+| `admin.testCatalog.sampleStorage.helper.specialInstructions` | `Additional guidance for sample handling` | Helper text |
+| `admin.testCatalog.sampleStorage.placeholder.specialInstructions` | `Enter any special instructions for sample handling, storage, or disposal that don't fit in the fields above...` | Textarea placeholder |
+| `admin.testCatalog.sampleStorage.section.overrideRestricted` | `Override Restricted` | Section header |
+| `admin.testCatalog.sampleStorage.checkbox.overrideRestricted` | `When enabled, order entry staff cannot modify storage or disposal requirements for this test.` | Checkbox label |
+| `admin.testCatalog.sampleStorage.badge.locked` | `Locked` | Status badge |
+| `admin.testCatalog.sampleStorage.helper.overrideRestricted` | `Use for critical tests where sample handling must be strictly controlled (e.g., HIV, controlled substances).` | Helper text |
+| `admin.testCatalog.sampleStorage.alert.storageAndDisposalLocked` | `Storage and disposal settings are locked` | Alert message |
+| `admin.testCatalog.sampleStorage.alert.lockedNote` | `Only Lab Managers can modify these requirements. Order entry staff will see these as read-only.` | Alert note |
+| `admin.testCatalog.sampleStorage.section.quickReference` | `📋 Storage Condition Quick Reference` | Section header |
+
+### displayOrder
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.displayOrder.section.title` | `Test Display Order` | Section header |
+| `admin.testCatalog.displayOrder.helper.title` | `Drag and drop to reorder tests for this sample type` | Helper text |
+| `admin.testCatalog.displayOrder.label.sampleType` | `Sample Type:` | Form label |
+| `admin.testCatalog.displayOrder.option.serum` | `Serum` | Select option |
+| `admin.testCatalog.displayOrder.option.plasma` | `Plasma` | Select option |
+| `admin.testCatalog.displayOrder.option.wholeBlood` | `Whole Blood` | Select option |
+| `admin.testCatalog.displayOrder.option.urine` | `Urine` | Select option |
+| `admin.testCatalog.displayOrder.helper.info` | `This order determines how tests appear in order entry and result entry for the selected sample type.` | Helper text |
+
+### panels
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.panels.section.title` | `Panel Membership` | Section header |
+| `admin.testCatalog.panels.helper.title` | `Select which panels should include this test and set display order` | Helper text |
+| `admin.testCatalog.panels.button.createNewPanel` | `Create New Panel` | CTA |
+| `admin.testCatalog.panels.label.newPanelName` | `New Panel Name` | Form label |
+| `admin.testCatalog.panels.placeholder.panelName` | `Enter panel name...` | Input placeholder |
+| `admin.testCatalog.panels.button.createPanel` | `Create` | Modal CTA |
+| `admin.testCatalog.panels.label.panelTestCount` | `{count} tests` | Info display |
+| `admin.testCatalog.panels.label.position` | `Position: {order}` | Badge |
+| `admin.testCatalog.panels.label.displayPosition` | `Display Position in Panel` | Form label |
+| `admin.testCatalog.panels.helper.displayPosition` | `Enter a number or drag the test in the preview list` | Helper text |
+| `admin.testCatalog.panels.label.panelTestOrderPreview` | `Panel Test Order Preview — drag to reorder` | Form label |
+| `admin.testCatalog.panels.helper.dragDropNote` | `Drag the highlighted row to change position` | Helper text |
+| `admin.testCatalog.panels.helper.instructions` | `Click on a selected panel to expand and set the display order. Use the number input or drag the test in the preview list.` | Helper text |
+
+### labels
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.labels.section.defaultLabels` | `Default Labels for This Test` | Section header |
+| `admin.testCatalog.labels.helper.defaultLabels` | `When this test is ordered, automatically suggest these labels` | Helper text |
+| `admin.testCatalog.labels.button.addLabelType` | `Add Label Type` | CTA |
+| `admin.testCatalog.labels.column.preset` | `Label Preset` | Table header |
+| `admin.testCatalog.labels.column.defaultQty` | `Default Qty` | Table header |
+| `admin.testCatalog.labels.column.maxQty` | `Max Qty` | Table header |
+| `admin.testCatalog.labels.column.allowOverride` | `Allow Override` | Table header |
+| `admin.testCatalog.labels.empty.message` | `No label types configured` | Empty state |
+| `admin.testCatalog.labels.empty.helper` | `Add label presets to automatically suggest labels when this test is ordered` | Empty state |
+| `admin.testCatalog.labels.section.labelGenerationSettings` | `Label Generation Settings` | Section header |
+| `admin.testCatalog.labels.checkbox.allowCountOverride` | `Allow label count override at order entry` | Checkbox label |
+| `admin.testCatalog.labels.helper.allowCountOverride` | `When enabled, users can modify label quantities during order entry. Individual label types can still be locked via the "Allow Override" column above.` | Helper text |
+| `admin.testCatalog.labels.section.orderEntryPreview` | `Order Entry Preview` | Section header |
+| `admin.testCatalog.labels.helper.orderEntryPreview` | `When this test is ordered, the Labels section will be pre-populated as follows:` | Helper text |
+| `admin.testCatalog.labels.column.source` | `Source` | Table header |
+| `admin.testCatalog.labels.helper.lockedQty` | `Gray quantities are locked and cannot be modified at order entry` | Helper text |
+
+### terminology
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.terminology.section.title` | `Terminology Mappings` | Section header |
+| `admin.testCatalog.terminology.helper.title` | `Link this test to standard terminology codes for interoperability` | Helper text |
+| `admin.testCatalog.terminology.button.addMapping` | `Add Mapping` | CTA |
+| `admin.testCatalog.terminology.label.source` | `Terminology Source` | Form label |
+| `admin.testCatalog.terminology.option.loinc` | `LOINC` | Select option |
+| `admin.testCatalog.terminology.option.snomed` | `SNOMED CT` | Select option |
+| `admin.testCatalog.terminology.option.ciel` | `CIEL` | Select option |
+| `admin.testCatalog.terminology.option.ocl` | `Open Concept Lab` | Select option |
+| `admin.testCatalog.terminology.label.code` | `Code` | Form label |
+| `admin.testCatalog.terminology.placeholder.code` | `Enter code` | Input placeholder |
+| `admin.testCatalog.terminology.label.relationship` | `Relationship` | Form label |
+| `admin.testCatalog.terminology.option.sameAs` | `Same As` | Select option |
+| `admin.testCatalog.terminology.option.broaderThan` | `Broader Than` | Select option |
+| `admin.testCatalog.terminology.option.narrowerThan` | `Narrower Than` | Select option |
+| `admin.testCatalog.terminology.button.add` | `Add` | Form CTA |
+
+### reagents
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.reagents.section.title` | `Associated Reagents` | Section header |
+| `admin.testCatalog.reagents.helper.title` | `Link reagents from inventory to track consumption` | Helper text |
+| `admin.testCatalog.reagents.button.linkReagent` | `Link Reagent` | CTA |
+| `admin.testCatalog.reagents.empty.message` | No text (empty state not shown in mockup) | Empty state |
+
+### analyzers
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.analyzers.section.title` | `Linked Analyzers` | Section header |
+| `admin.testCatalog.analyzers.helper.title` | `Select which analyzers can perform this test` | Helper text |
+| `admin.testCatalog.analyzers.button.linkAnalyzer` | `Link Analyzer` | CTA |
+| `admin.testCatalog.analyzers.empty.message` | `No analyzers linked` | Empty state |
+| `admin.testCatalog.analyzers.empty.helper` | `Link analyzers that can perform this test` | Empty state |
+| `admin.testCatalog.analyzers.modal.title` | `Link Analyzers` | Modal title |
+| `admin.testCatalog.analyzers.label.selectAnalyzers` | `Select Analyzers` | Form label |
+| `admin.testCatalog.analyzers.empty.allLinked` | `All available analyzers are already linked` | Empty message |
+| `admin.testCatalog.analyzers.selectedCount` | `{count} analyzer{plural} selected` | Info message (dynamic) |
+| `admin.testCatalog.analyzers.button.linkSelected` | `Link Selected` | Modal CTA |
+| `admin.testCatalog.analyzers.info.title` | `About Analyzer Linking` | Info card header |
+| `admin.testCatalog.analyzers.info.adminLink` | `Administration → Master Lists → Analyzers` | Info text |
+| `admin.testCatalog.analyzers.info.testCodeMapping` | `Test code mapping is configured separately in the analyzer interface setup` | Info text |
+| `admin.testCatalog.analyzers.info.linkingMeans` | `Linking an analyzer indicates this test can be performed on that instrument` | Info text |
+| `admin.testCatalog.analyzers.tooltip.unlink` | `Unlink analyzer` | Tooltip |
+
+### alerts
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.alerts.section.title` | `Alert Rules` | Section header |
+| `admin.testCatalog.alerts.helper.title` | `Configure automated notifications when specific result conditions are met` | Helper text |
+| `admin.testCatalog.alerts.button.addRule` | `Add Rule` | CTA |
+| `admin.testCatalog.alerts.empty.message` | `No alert rules configured` | Empty state |
+| `admin.testCatalog.alerts.empty.addFirstRule` | `+ Add your first alert rule` | Empty state CTA |
+| `admin.testCatalog.alerts.modal.title` | `Add Alert Rule` | Modal title |
+| `admin.testCatalog.alerts.label.ruleName` | `Rule Name` | Form label |
+| `admin.testCatalog.alerts.placeholder.ruleName` | `e.g., Critical Value SMS Alert` | Input placeholder |
+| `admin.testCatalog.alerts.label.triggerCondition` | `Alert when result is:` | Form label |
+| `admin.testCatalog.alerts.option.allResults` | `All Results` | Radio option |
+| `admin.testCatalog.alerts.option.abnormal` | `Abnormal (outside normal range)` | Radio option |
+| `admin.testCatalog.alerts.option.critical` | `Critical (panic value)` | Radio option |
+| `admin.testCatalog.alerts.option.specificValue` | `Specific Value` | Radio option |
+| `admin.testCatalog.alerts.label.sendVia` | `Send via:` | Form label |
+| `admin.testCatalog.alerts.option.sms` | `SMS` | Checkbox label |
+| `admin.testCatalog.alerts.option.email` | `Email` | Checkbox label |
+| `admin.testCatalog.alerts.label.recipients` | `Recipients:` | Form label |
+| `admin.testCatalog.alerts.option.orderingPhysician` | `Ordering Physician (from order)` | Checkbox label |
+| `admin.testCatalog.alerts.option.patient` | `Patient (from patient record)` | Checkbox label |
+| `admin.testCatalog.alerts.option.customRecipient` | `Custom recipient:` | Checkbox label |
+| `admin.testCatalog.alerts.placeholder.customPhone` | `Phone: +1 555-123-4567` | Input placeholder |
+| `admin.testCatalog.alerts.placeholder.customEmail` | `Email: user@example.com` | Input placeholder |
+| `admin.testCatalog.alerts.label.smsTemplate` | `SMS Template (160 char recommended)` | Form label |
+| `admin.testCatalog.alerts.placeholder.smsTemplate` | `CRITICAL: {{test_name}} {{result}} {{unit}} for {{patient_name}}. Review immediately.` | Textarea placeholder |
+| `admin.testCatalog.alerts.helper.smsVariables` | `Variables: {{patient_name}}, {{patient_id}}, {{test_name}}, {{result}}, {{unit}}, {{reference_range}}` | Helper text |
+| `admin.testCatalog.alerts.column.ruleName` | `Rule Name` | Table column |
+| `admin.testCatalog.alerts.column.status` | `Status` | Table column |
+| `admin.testCatalog.alerts.label.when` | `When` | Rule detail label |
+| `admin.testCatalog.alerts.label.notifyVia` | `Notify Via` | Rule detail label |
+| `admin.testCatalog.alerts.label.recipients` | `Recipients` | Rule detail label |
+| `admin.testCatalog.alerts.label.smsTemplate` | `SMS Template` | Rule detail label |
+
+### reflexCalc
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.reflexCalc.section.reflexTests` | `Reflex Tests` | Section header |
+| `admin.testCatalog.reflexCalc.helper.reflexTests` | `Automatic test ordering based on results` | Helper text |
+| `admin.testCatalog.reflexCalc.label.triggeredBy` | `Rules triggered BY this test:` | Sub-section label |
+| `admin.testCatalog.reflexCalc.empty.noRulesByThis` | `No reflex rules configured for this test` | Empty state |
+| `admin.testCatalog.reflexCalc.label.orderThis` | `Rules that ORDER this test:` | Sub-section label |
+| `admin.testCatalog.reflexCalc.empty.noRulesThatOrder` | `No other tests trigger this test as a reflex` | Empty state |
+| `admin.testCatalog.reflexCalc.button.addNewReflex` | `Add New Reflex Rule in Master Lists` | CTA |
+| `admin.testCatalog.reflexCalc.section.calculatedResults` | `Calculated Results` | Section header |
+| `admin.testCatalog.reflexCalc.helper.calculatedResults` | `Formulas that compute results from other test values` | Helper text |
+| `admin.testCatalog.reflexCalc.label.calculationsUsingThis` | `Calculations that USE this test as input:` | Sub-section label |
+| `admin.testCatalog.reflexCalc.empty.notUsedInCalculations` | `This test is not used as input for any calculated results` | Empty state |
+| `admin.testCatalog.reflexCalc.label.thisTestIsCalculated` | `This test IS a calculated result:` | Sub-section label |
+| `admin.testCatalog.reflexCalc.empty.notCalculated` | `This test's result is not calculated from other values` | Empty state |
+| `admin.testCatalog.reflexCalc.button.configureCalculated` | `Configure in Master Lists` | Empty state CTA |
+| `admin.testCatalog.reflexCalc.label.formulaConfigured` | `Formula configured` | Info label |
+| `admin.testCatalog.reflexCalc.button.editReflex` | `Edit in Master Lists` | Inline link |
+| `admin.testCatalog.reflexCalc.mode.autoOrder` | `Auto-order` | Status badge |
+| `admin.testCatalog.reflexCalc.mode.suggest` | `Suggest` | Status badge |
+
+### compliance
+
+| Key | English fallback | Used in |
+|-----|------------------|---------|
+| `admin.testCatalog.compliance.section.title` | `Compliance Thresholds` | Section header |
+| `admin.testCatalog.compliance.helper.title` | `Regulatory compliance thresholds for this test. Environmental tests use these instead of (or alongside) clinical reference ranges.` | Helper text |
+| `admin.testCatalog.compliance.helper.adminLink` | `Full compliance standards are managed at Admin → Test Management → Compliance Standards.` | Helper text |
+| `admin.testCatalog.compliance.label.groupBy` | `Group by:` | Form label |
+| `admin.testCatalog.compliance.option.standard` | `Standard` | Select option |
+| `admin.testCatalog.compliance.option.parameterGroup` | `Parameter Group` | Select option |
+| `admin.testCatalog.compliance.button.addThreshold` | `Add Threshold` | CTA |
+| `admin.testCatalog.compliance.column.standard` | `Standard` | Table header |
+| `admin.testCatalog.compliance.column.parameterGroup` | `Parameter Group` | Table header |
+| `admin.testCatalog.compliance.column.type` | `Type` | Table header |
+| `admin.testCatalog.compliance.column.value` | `Value` | Table header |
+| `admin.testCatalog.compliance.column.effectiveDate` | `Effective Date` | Table header |
+| `admin.testCatalog.compliance.type.max` | `MAX` | Badge |
+| `admin.testCatalog.compliance.type.min` | `MIN` | Badge |
+| `admin.testCatalog.compliance.type.range` | `RANGE` | Badge |
+| `admin.testCatalog.compliance.type.descriptive` | `DESCRIPTIVE` | Badge |
+
+**Summary**
+
+- **Total keys extracted**: 234
+- **Common-namespace keys** (reused across surfaces): 24 (base verbs, status indicators, labels)
+- **Surface-specific keys**: 210
+- **Top 3 ambiguities/judgment calls**:
+  1. **Sex label unification**: Male/Female/All labels appear as both visual badges and form options; unified under common surface to encourage reuse rather than surface-specific variants.
+  2. **Empty state messaging**: "No {type} configured" strings parameterized in common where type is inferred (panels, rules, etc.); some surfaces kept explicit variants for grammatical correctness.
+  3. **Button CTAs across modals**: "Add", "Create", "Save" used contextually in both list and editor; namespace hierarchy disambiguates ("button.add" vs "button.addRange") rather than creating collision aliases.
+
+**Strings intentionally skipped**:
+- Mock data test/section names (Glucose, Hemoglobin A1c, Chemistry, Hematology, etc.) — live data, not UI labels.
+- LOINC codes and lab numbers in demo data — reference values, not visible strings.
+- Temporary UI text in component descriptions (e.g., "Component Demo: {label}" in demo selector) — internal dev mode, not shipped UI.
+- CSS utility class names and icon names (Lucide React icon imports) — implementation details.
+- Formula/variable macro text in templates (e.g., "{{test_name}}") — dynamic substitution markers, not localized user-facing strings.
+
+**Runtime fallback behavior** (separate from key namespacing) is documented in the **Localization Hardening** section later in this FRS.
 
 ---
 
@@ -34,7 +650,7 @@
 
 ## Test Editor Status Flags
 
-The Basic Info tab includes the following status flags:
+The Basic Info section includes the following status flags:
 
 | Flag | Description |
 |------|-------------|
@@ -44,11 +660,145 @@ The Basic Info tab includes the following status flags:
 
 ---
 
-## Sample Storage Tab
+## Test Domain
 
-### Purpose
+Every test record carries a single mandatory **Domain** attribute that classifies the test into one of three mutually-exclusive categories. Domain controls which test editor sections are emphasized for that test, and powers the Domain filter on the Test List View.
 
-Define recommended storage conditions, maximum storage duration, disposal requirements, and special handling instructions for samples collected for this test. This information is displayed during order entry and can optionally be locked to prevent modifications.
+### Field Definition
+
+| Property | Value |
+|---|---|
+| **Field name** | `domain` |
+| **Type** | Enumerated, single-select (radio buttons in the UI) |
+| **Allowed values** | `CLINICAL`, `ENVIRONMENTAL`, `VECTOR` |
+| **Required** | Yes |
+| **Default for new tests** | None — user must choose. Cannot save Basic Info without a selection. |
+| **Mutability after creation** | Editable, but changes show a confirmation modal warning that section visibility may change and that historical results were evaluated against the prior domain's rules. |
+| **Placement in editor** | Basic Info section, near the top, alongside Test Name and Test Code. |
+
+### Domain Definitions
+
+| Domain | Description | Typical examples |
+|---|---|---|
+| **CLINICAL** | Patient-facing diagnostic tests. Results are evaluated against patient-centric reference ranges (Normal, Valid, Critical, Reporting). | Fasting glucose, HbA1c, CBC, HIV viral load, troponin |
+| **ENVIRONMENTAL** | Tests on environmental samples (water, air, soil, food, surface swabs). Results are evaluated against externally-published regulatory thresholds (Baku Mutu, WHO Drinking Water Guidelines, EPA limits). | Water turbidity, lead in drinking water, PM2.5 in air, fecal coliform |
+| **VECTOR** | Tests on vector specimens (mosquito pools, ticks, rodent samples) for surveillance of vector-borne diseases. Results may be evaluated against either clinical or surveillance thresholds depending on the program. | Aedes pool RT-PCR for dengue, Anopheles speciation, malaria parasite detection in mosquito |
+
+### Domain-Conditional Section Visibility
+
+Domain controls which sections appear in the editor SideNav for a given test:
+
+| Section | CLINICAL | ENVIRONMENTAL | VECTOR |
+|---|:---:|:---:|:---:|
+| Basic Info | ✓ | ✓ | ✓ |
+| Sample & Results | ✓ | ✓ | ✓ |
+| Methods | ✓ | ✓ | ✓ |
+| Ranges | ✓ (primary) | ✓ (de-emphasized) | ✓ (de-emphasized) |
+| Sample Storage | ✓ | ✓ | ✓ |
+| Display Order | ✓ | ✓ | ✓ |
+| Panels | ✓ | ✓ | ✓ |
+| Labels | ✓ | ✓ | ✓ |
+| Terminology | ✓ | ✓ | ✓ |
+| Reagents | ✓ | ✓ | ✓ |
+| Analyzers | ✓ | ✓ | ✓ |
+| Alerts | ✓ | ✓ | ✓ |
+| Reflex & Calc | ✓ | ✓ | ✓ |
+| **Compliance** | **hidden** | ✓ (primary) | ✓ (primary) |
+
+**De-emphasis rules:**
+- For ENVIRONMENTAL and VECTOR tests, the **Ranges** section displays a Carbon `<InlineNotification kind="info">` at the top: *"This is an {Environmental | Vector} test. Compliance thresholds are typically the primary evaluation surface for this domain. Configure clinical reference ranges only if your lab also reports them for QA or staff use."*
+- For CLINICAL tests, the **Compliance** section is hidden from the SideNav entirely. Direct navigation to its route returns the standard No-permission empty state (see the States section).
+
+### Domain Switch Confirmation
+
+If a user changes the Domain on an existing test:
+
+- Show a Carbon `<Modal>` with the title "Change test domain?" before saving.
+- Body lists the SideNav changes that will take effect (e.g., "Compliance section will be hidden" or "Compliance section will become available").
+- Body warns: "Historical results entered before this change were evaluated against the previous domain's rules. New results will use the new domain's rules."
+- Primary action: "Change Domain". Secondary: "Cancel".
+
+### Data Model
+
+```sql
+ALTER TABLE test
+  ADD COLUMN domain VARCHAR(20) NOT NULL CHECK (domain IN ('CLINICAL', 'ENVIRONMENTAL', 'VECTOR'));
+
+CREATE INDEX idx_test_domain ON test(domain);
+```
+
+**Migration:** existing test rows are backfilled with `domain = 'CLINICAL'` because the overwhelming majority of historical OpenELIS deployments are clinical-only. Deployments with environmental or vector tests will need an admin sweep to re-classify after the migration runs (call out in the migration notes).
+
+### Acceptance Criteria
+
+- [ ] Test entity has a `domain` column constrained to `CLINICAL`, `ENVIRONMENTAL`, or `VECTOR`
+- [ ] Basic Info section presents Domain as a radio button group with the three options
+- [ ] Saving a new test fails validation if Domain is not selected
+- [ ] CLINICAL tests do not show the Compliance section in the SideNav
+- [ ] ENVIRONMENTAL and VECTOR tests show the Compliance section
+- [ ] ENVIRONMENTAL and VECTOR tests show an InlineNotification info banner on the Ranges section
+- [ ] Editing Domain on an existing test triggers a confirmation modal before save
+- [ ] Existing tests are backfilled to `CLINICAL` during migration
+- [ ] Test List View has a Domain filter (see Test List View Enhancements)
+
+---
+
+## Sample & Results Configuration
+
+The Sample & Results section of the test editor combines sample type configuration, result type / unit / formatting configuration, and the result interpretations table (see the Result Interpretations section that follows).
+
+### Sample Type Configuration
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| **Sample Types** | Multi-select checkbox list | Yes (≥1) | Which sample types are accepted for this test. Examples: Serum, Plasma, Whole Blood, Urine, CSF, Water, Mosquito Pool. The available list is configured per deployment under Master Lists → Sample Types. |
+| **Default Sample Type** | Single-select dropdown | No | When the test is ordered and multiple sample types are accepted, this is pre-selected on the order entry screen. Must be a member of the selected Sample Types set. |
+
+**UI behavior:**
+- The Default Sample Type dropdown only shows values from the Sample Types multi-select. If the multi-select is empty, the Default dropdown is disabled.
+- Removing a sample type from the multi-select that is currently the Default clears the Default and shows a Carbon `<InlineNotification kind="warning">`: "Default Sample Type was removed because it is no longer in the accepted Sample Types."
+
+### Result Type Configuration
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| **Result Type** | Single-select dropdown | Yes | One of `NUMERIC`, `SELECT_LIST`, `MULTI_SELECT`, `FREE_TEXT`. Determines which downstream fields are enabled and how Result Interpretations are configured. |
+| **Unit of Measure** | Single-select dropdown | Yes (when Result Type = NUMERIC) | Unit shown alongside the result value. Examples: mg/dL, mmol/L, g/dL, µL, %, mg/L, NTU. The available unit list is configured per deployment under Master Lists → Units of Measure. Disabled when Result Type is not NUMERIC. |
+| **Significant Digits** | Number (0–6) | No (defaults to 0) | Number of digits after the decimal point shown in result entry and on reports. Disabled when Result Type is not NUMERIC. |
+| **Default Result** | Text | No | Optional default value pre-filled in the result entry field for this test. Useful for tests where the most common result is constant (e.g., "Negative" for a screening test). |
+
+### Result Type Definitions
+
+| Result Type | Description | Result Entry UI |
+|---|---|---|
+| **NUMERIC** | A numeric value with a unit and reference range. | Number input with unit suffix; H/L flagging based on Normal Range. |
+| **SELECT_LIST** | One value chosen from a configured list. | Carbon `<Dropdown>` populated from the test's Select List Options. |
+| **MULTI_SELECT** | Multiple values chosen from a configured list. | Carbon `<MultiSelect>` populated from the test's Select List Options. |
+| **FREE_TEXT** | An arbitrary text result (e.g., a microscopy description). | Carbon `<TextArea>`. |
+
+### Select List Options
+
+When Result Type is `SELECT_LIST` or `MULTI_SELECT`, the editor exposes a Select List Options sub-table:
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| **Value** | String | Yes | The option value as it appears in result entry (e.g., "Positive", "Negative", "Indeterminate"). |
+| **Display Order** | Integer | Yes | Order the option appears in the dropdown / multi-select. |
+| **Active** | Boolean | Yes | Inactive options are hidden in result entry but preserved on historical results. |
+
+The sub-table supports drag-and-drop reordering (via the same drag pattern used in the Result Interpretations table) and inline add/edit. A "Configure Options..." button is the entry point.
+
+### Acceptance Criteria
+
+- [ ] Sample Types multi-select accepts ≥1 selection and emits a validation error if empty
+- [ ] Default Sample Type dropdown is disabled until at least one Sample Type is selected, and only shows values from the selected set
+- [ ] Removing the Default Sample Type from the multi-select clears the Default and shows a warning notification
+- [ ] Result Type dropdown offers exactly four options: Numeric, Select List, Multi-select, Free Text
+- [ ] Unit of Measure and Significant Digits are disabled when Result Type is not Numeric
+- [ ] Significant Digits accepts integers 0–6
+- [ ] Default Result is optional, free text
+- [ ] Select List Options sub-table appears only for Select List and Multi-select result types
+- [ ] Select List Options support drag-and-drop reordering, inline add/edit, and active/inactive toggle
 
 ---
 
@@ -78,11 +828,11 @@ The value field in the Add/Edit Interpretation modal **automatically adapts** ba
 
 **For Numeric Tests:**
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Value or Range *                                        â”‚
-â”‚ [>126___________________________] (text input)          â”‚
-â”‚ Use comparison operators (>, <, >=, <=), ranges (70-99) â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌─────────────────────────────────────────────────────────┐
+│ Value or Range *                                        │
+│ [>126___________________________] (text input)          │
+│ Use comparison operators (>, <, >=, <=), ranges (70-99) │
+└─────────────────────────────────────────────────────────┘
 ```
 - Text input field for entering numeric expressions
 - Supports: `>N`, `<N`, `>=N`, `<=N`, `N-M` (range), exact values
@@ -90,18 +840,18 @@ The value field in the Add/Edit Interpretation modal **automatically adapts** ba
 
 **For Select List Tests:**
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ When Value(s) Selected *                                â”‚
-â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
-â”‚ â”‚ â˜‘ Positive                                          â”‚ â”‚
-â”‚ â”‚ â˜ Negative                                          â”‚ â”‚
-â”‚ â”‚ â˜ Indeterminate                                     â”‚ â”‚
-â”‚ â”‚ â˜‘ Reactive                                          â”‚ â”‚
-â”‚ â”‚ â˜ Non-Reactive                                      â”‚ â”‚
-â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
-â”‚ Selected: [Positive Ã—] [Reactive Ã—]                     â”‚
-â”‚ Select one or more values that trigger this interpret.  â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌─────────────────────────────────────────────────────────┐
+│ When Value(s) Selected *                                │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ ☑ Positive                                          │ │
+│ │ ☐ Negative                                          │ │
+│ │ ☐ Indeterminate                                     │ │
+│ │ ☑ Reactive                                          │ │
+│ │ ☐ Non-Reactive                                      │ │
+│ └─────────────────────────────────────────────────────┘ │
+│ Selected: [Positive ×] [Reactive ×]                     │
+│ Select one or more values that trigger this interpret.  │
+└─────────────────────────────────────────────────────────┘
 ```
 - Checkbox list populated from the test's configured select list options
 - **Can select 1 or more options** that will trigger the same interpretation
@@ -118,9 +868,9 @@ Test: Fasting Glucose
 Result entered: 142 mg/dL
 
 System checks interpretations:
-  - GLU-CRIT-H: >400 â†’ No match
-  - GLU-HI: >126 â†’ MATCH (142 > 126)
-  - GLU-NL: 70-99 â†’ No match
+  - GLU-CRIT-H: >400 → No match
+  - GLU-HI: >126 → MATCH (142 > 126)
+  - GLU-NL: 70-99 → No match
   
 Suggested interpretation: "High" with associated clinical text
 ```
@@ -131,8 +881,8 @@ Test: HIV Rapid Test
 Result selected: "Reactive"
 
 System checks interpretations:
-  - HIV-POS: [Reactive, Positive] â†’ MATCH (Reactive in list)
-  - HIV-NEG: [Non-Reactive, Negative] â†’ No match
+  - HIV-POS: [Reactive, Positive] → MATCH (Reactive in list)
+  - HIV-NEG: [Non-Reactive, Negative] → No match
   
 Suggested interpretation: "Positive" with associated clinical text
 ```
@@ -143,13 +893,13 @@ Test: Hepatitis Panel
 Interpretation "Acute Infection" configured for: [Reactive, Positive, Detected]
 
 Result selected: "Detected"
-â†’ MATCH - suggests "Acute Infection" interpretation
+→ MATCH - suggests "Acute Infection" interpretation
 
 Result selected: "Reactive"  
-â†’ MATCH - suggests "Acute Infection" interpretation
+→ MATCH - suggests "Acute Infection" interpretation
 
 Result selected: "Negative"
-â†’ No match
+→ No match
 ```
 
 ### Available Colors
@@ -350,7 +1100,7 @@ Order Entry shows which test drove each label count for transparency.
 
 ### Location
 
-Administration â†’ Master Lists â†’ Label Presets
+Administration → Master Lists → Label Presets
 
 ### List View
 
@@ -358,7 +1108,7 @@ Administration â†’ Master Lists â†’ Label Presets
 |--------|-------------|
 | Name | Preset name (e.g., "Cryo Vial Label") |
 | Category | Order, Specimen, Pathology, Storage |
-| Size (mm) | Height Ã— Width |
+| Size (mm) | Height × Width |
 | Fields | Number of fields configured |
 | Status | Active / Inactive |
 | Actions | Edit, Delete (system presets locked) |
@@ -445,11 +1195,114 @@ Administration â†’ Master Lists â†’ Label Presets
 
 ---
 
+## Terminology Mappings
+
+### Purpose
+
+Link this test to standard terminology codes (LOINC, SNOMED CT, CIEL, Open Concept Lab) to enable interoperability with FHIR-based health information exchanges, OpenMRS, and national health information systems. Per Constitution III (FHIR/IHE Standards Compliance), every test exposed externally MUST have at least one canonical terminology mapping.
+
+### Mapping Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| **Terminology Source** | Enum | Yes | One of `LOINC`, `SNOMED`, `CIEL`, `OCL` |
+| **Code** | String | Yes | The code in the source terminology (e.g., LOINC `1558-6`, SNOMED `271062006`) |
+| **Display Name** | String | Yes (auto-fetched) | Human-readable name from the source terminology — populated automatically from a terminology lookup service when available, otherwise editable |
+| **Relationship** | Enum | Yes | One of `SAME_AS`, `BROADER_THAN`, `NARROWER_THAN` — describes how the OpenELIS test relates to the external concept |
+
+### Supported Terminology Sources
+
+| Source | Description | Reference URL |
+|---|---|---|
+| **LOINC** | Logical Observation Identifiers Names and Codes — international standard for laboratory test identification | https://loinc.org |
+| **SNOMED CT** | Systematized Nomenclature of Medicine - Clinical Terms — broader clinical concept terminology | https://snomed.org |
+| **CIEL** | Columbia International eHealth Laboratory dictionary — used in OpenMRS deployments | https://wiki.openmrs.org/display/docs/CIEL+Dictionary |
+| **OCL** | Open Concept Lab — multi-organization concept dictionary platform | https://openconceptlab.org |
+
+### Relationship Semantics
+
+| Relationship | Meaning | Example |
+|---|---|---|
+| **SAME_AS** | The OpenELIS test is functionally identical to the source concept | OpenELIS "Fasting Glucose" SAME_AS LOINC `1558-6` ("Fasting glucose [Mass/volume] in Serum or Plasma") |
+| **BROADER_THAN** | The OpenELIS test is a more general concept than the source code | OpenELIS "Glucose" BROADER_THAN LOINC `1558-6` (the OE test covers fasting and random glucose) |
+| **NARROWER_THAN** | The OpenELIS test is a more specific concept than the source code | OpenELIS "Capillary Fasting Glucose" NARROWER_THAN LOINC `1558-6` |
+
+### UI Elements
+
+**Mappings List:**
+- Per-mapping card (Carbon `<Tile>`):
+  - Source as a colored Carbon `<Tag>` (LOINC = `kind="blue"`, SNOMED = `kind="teal"`, CIEL = `kind="purple"`, OCL = `kind="cyan"`)
+  - Code in monospace font
+  - Relationship as a small Carbon `<Tag kind="warm-gray">`
+  - Display name in normal text below
+  - Edit + Delete actions on the right
+- Empty state when no mappings configured
+
+**Add Mapping (inline form, not modal):**
+- 4-column grid: Terminology Source `<Select>` | Code `<TextInput>` | Relationship `<Select>` | Add `<Button>`
+- On Source + Code entry, attempt async lookup against terminology service; auto-populate Display Name. Show a Carbon `<InlineLoading>` during lookup.
+- Helper text below: "If the terminology service is unavailable, you can enter the Display Name manually."
+
+### FHIR Mapping Behavior
+
+When this test is exposed via FHIR (DiagnosticReport, Observation), the terminology mappings determine the `Observation.code` codings included:
+
+- A `SAME_AS` mapping is included as a primary `coding`.
+- A `BROADER_THAN` mapping is included as an additional `coding` with `userSelected: false`.
+- A `NARROWER_THAN` mapping is included as an additional `coding` with `userSelected: false`.
+
+If multiple sources have `SAME_AS` mappings, all are included as parallel codings (e.g., LOINC + SNOMED for the same test).
+
+### Data Model
+
+```sql
+CREATE TABLE test_terminology_mapping (
+    id SERIAL PRIMARY KEY,
+    test_id INTEGER NOT NULL REFERENCES test(id),
+    source VARCHAR(20) NOT NULL,           -- 'LOINC', 'SNOMED', 'CIEL', 'OCL'
+    code VARCHAR(50) NOT NULL,
+    display_name VARCHAR(500) NOT NULL,
+    relationship VARCHAR(20) NOT NULL,      -- 'SAME_AS', 'BROADER_THAN', 'NARROWER_THAN'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_term_source CHECK (source IN ('LOINC', 'SNOMED', 'CIEL', 'OCL')),
+    CONSTRAINT chk_term_relationship CHECK (relationship IN ('SAME_AS', 'BROADER_THAN', 'NARROWER_THAN')),
+    UNIQUE(test_id, source, code)
+);
+
+CREATE INDEX idx_test_terminology_test ON test_terminology_mapping(test_id);
+CREATE INDEX idx_test_terminology_source_code ON test_terminology_mapping(source, code);
+```
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/tests/{id}/terminology` | List mappings for test |
+| POST | `/api/tests/{id}/terminology` | Add a mapping |
+| PUT | `/api/tests/{id}/terminology/{mappingId}` | Update a mapping |
+| DELETE | `/api/tests/{id}/terminology/{mappingId}` | Delete a mapping |
+| GET | `/api/terminology/lookup?source={s}&code={c}` | Lookup display name from terminology service |
+
+### Acceptance Criteria
+
+- [ ] Tests can have multiple terminology mappings across different sources (LOINC, SNOMED, CIEL, OCL)
+- [ ] Each mapping requires Source, Code, Display Name, and Relationship
+- [ ] Add Mapping is an inline form (not a modal)
+- [ ] Display Name is auto-populated via terminology lookup when available
+- [ ] Display Name is editable if lookup fails or returns no result
+- [ ] Mappings list shows source as a colored Tag
+- [ ] Edit and Delete are available per mapping
+- [ ] FHIR exposure includes terminology codings as documented above
+- [ ] Empty state appears when no mappings are configured
+
+---
+
 ## Reagents Tab
 
 ### Purpose
 
-Link reagents from inventory to tests to track consumption and enable inventory management integration. Reagents are configured in **Administration â†’ Master Lists â†’ Reagents**.
+Link reagents from inventory to tests to track consumption and enable inventory management integration. Reagents are configured in **Administration → Master Lists → Reagents**.
 
 ### Linked Reagent Fields
 
@@ -458,7 +1311,7 @@ Link reagents from inventory to tests to track consumption and enable inventory 
 | **Reagent** | Lookup | Yes | Select from configured reagents |
 | **Usage Type** | Dropdown | Yes | PRIMARY or SECONDARY |
 | **Quantity Per Test** | Number | Yes | Amount consumed per test run |
-| **Unit** | Dropdown | Yes | Unit of measure (ÂµL, mL, etc.) |
+| **Unit** | Dropdown | Yes | Unit of measure (µL, mL, etc.) |
 
 ### UI Elements
 
@@ -473,7 +1326,7 @@ Link reagents from inventory to tests to track consumption and enable inventory 
 
 ### Purpose
 
-Link laboratory analyzers/instruments to tests to indicate which instruments can perform this test. Analyzers are configured in **Administration â†’ Master Lists â†’ Analyzers**. Test code mapping for interfacing is configured separately in the analyzer interface setup.
+Link laboratory analyzers/instruments to tests to indicate which instruments can perform this test. Analyzers are configured in **Administration → Master Lists → Analyzers**. Test code mapping for interfacing is configured separately in the analyzer interface setup.
 
 ### Linked Analyzer Display
 
@@ -538,14 +1391,14 @@ CREATE TABLE test_analyzer (
 | **Stability Notes** | Additional stability information | No |
 
 **Standard Storage Conditions:**
-- Ultra-low freezer: -80Â°C to -60Â°C
-- Freezer: -30Â°C to -15Â°C
-- Refrigerator: 2Â°C to 8Â°C
-- Cold room: 4Â°C to 8Â°C
-- Cool room: 15Â°C to 18Â°C
-- Room temperature: 18Â°C to 25Â°C
-- Controlled room temp: 20Â°C to 25Â°C
-- Warm incubator: 35Â°C to 37Â°C
+- Ultra-low freezer: -80°C to -60°C
+- Freezer: -30°C to -15°C
+- Refrigerator: 2°C to 8°C
+- Cold room: 4°C to 8°C
+- Cool room: 15°C to 18°C
+- Room temperature: 18°C to 25°C
+- Controlled room temp: 20°C to 25°C
+- Warm incubator: 35°C to 37°C
 - Ambient: Uncontrolled room temperature
 
 ### Special Handling Requirements
@@ -642,6 +1495,28 @@ CREATE TABLE test_sample_handling_history (
 
 ## Test List View Enhancements
 
+### Domain Filter
+
+The test catalog list view includes a Domain filter chip alongside the Section / Sample Type / Result Type / Status / AMR filters.
+
+**Filter Options** (multi-select):
+- **All Domains** (default)
+- **Clinical**
+- **Environmental**
+- **Vector**
+
+**Visual Indicators:**
+- Each test row shows its Domain as a Carbon `<Tag>`:
+  - CLINICAL → `kind="blue"`
+  - ENVIRONMENTAL → `kind="teal"`
+  - VECTOR → `kind="purple"`
+- Domain Tag appears as a column on the test list table.
+
+**Use Cases:**
+- Environmental lab admin reviewing only the water-quality tests in the catalog.
+- Vector surveillance officer auditing every Vector-domain test before a SILNAS data push.
+- Clinical lab admin filtering out non-clinical tests when reviewing patient-facing test coverage.
+
 ### AMR Filter
 
 The test catalog list view includes a filter for Antimicrobial Resistance (AMR) tests to support WHONET export workflows.
@@ -659,6 +1534,59 @@ The test catalog list view includes a filter for Antimicrobial Resistance (AMR) 
 - Quickly identify all antimicrobial susceptibility tests in the catalog
 - Verify WHONET configuration before export
 - Bulk operations on AMR tests (e.g., update breakpoint standards)
+
+### Filter Set (Complete)
+
+The Test List View exposes the following filters above the table. Filters apply additively (AND across categories, OR within multi-select categories).
+
+| Filter | Type | Options |
+|---|---|---|
+| **Section** | Single-select dropdown | All Sections, plus every value from `test_section` (Chemistry, Hematology, Serology, Immunology, Microbiology, Urinalysis, Parasitology, Molecular Biology, …) |
+| **Sample Type** | Single-select dropdown | All Sample Types, plus values configured per deployment (Serum, Plasma, Whole Blood, Urine, CSF, Water, Mosquito Pool, …) |
+| **Result Type** | Single-select dropdown | All Result Types, Numeric, Select List, Multi-select, Free Text |
+| **Status** | Single-select dropdown | All Statuses, Active, Inactive |
+| **Domain** | Multi-select chip | All Domains, Clinical, Environmental, Vector — see Domain Filter above |
+| **AMR** | Single-select dropdown | All Tests, AMR Tests Only, Non-AMR Tests — see AMR Filter above |
+
+**Behavior:**
+- Filters live in a collapsible filter bar revealed by a "Filters" toggle button next to the search input. Default state is collapsed; the active filter count is shown as a badge on the toggle when any filter is applied.
+- A "Clear All" button resets every filter to default and is visible whenever any filter is non-default.
+- Filter state is reflected in the URL (e.g., `?section=chemistry&domain=CLINICAL`) so the filtered view is shareable and bookmarkable.
+
+### Row Interaction
+
+The Test List View has no per-row Actions column and no bulk-selection toolbar. Both were considered redundant: every operation that bulk actions or per-row Edit / Activate / Deactivate would expose is already reachable inside the test editor (the Domain field, status flags, panel membership, etc. all live on Basic Info or their own sub-section). Concentrating writes inside the editor avoids dual entry points and prevents accidental destructive bulk actions from a list view.
+
+**Click-to-open behavior:**
+- The test name in each row is rendered as a primary-color link button. Clicking it navigates to the test editor for that row.
+- The entire row is also clickable as a secondary affordance — clicking anywhere in the row navigates to the test editor.
+- The row shows a `cursor: pointer` on hover.
+- Keyboard navigation: each row is tab-focusable; pressing Enter on a focused row opens the editor.
+- All navigation routes via the same `admin.testCatalog.manage` permission check that gates the editor.
+
+**Out of scope for this revision (deferred to another feature):** any bulk activate / deactivate / add-to-panel UX. If the lab needs that pattern, it should be designed as a deliberate bulk-management feature, not piggy-backed on the catalog list.
+
+### Pagination
+
+The Test List View paginates server-side. The default page size is 25 rows; users can switch to 50, 100, or "All" via a Carbon `<Pagination>` component below the table.
+
+- Pagination state is reflected in the URL (`?page=3&pageSize=50`).
+- The pagination component shows total rows ("Showing 26–50 of 347 tests").
+- Filter changes reset to page 1.
+
+### Acceptance Criteria
+
+- [ ] Filter bar collapses by default and exposes Section / Sample Type / Result Type / Status / Domain / AMR filters when expanded
+- [ ] Active filter count is shown as a badge on the Filters toggle
+- [ ] Clear All resets every filter and is hidden when no filter is active
+- [ ] Filter state is reflected in the URL and persists on refresh
+- [ ] Test list table has no Actions column and no row-selection checkboxes
+- [ ] Test name in each row is a primary-color link; clicking it opens the editor for that test
+- [ ] Clicking anywhere on a row also opens the editor for that test
+- [ ] Each row is keyboard-focusable; Enter on a focused row opens the editor
+- [ ] Pagination defaults to 25 rows; user can switch to 50, 100, or All
+- [ ] Pagination state and page size are reflected in the URL
+- [ ] Filter or page-size changes reset to page 1
 
 ---
 
@@ -693,13 +1621,13 @@ Source: Beaumont Laboratory Critical Values; acutecaretesting.org pediatric cons
 
 ```
 Range Entry Structure:
-â”œâ”€â”€ Range Type (Normal | Valid | Critical | Reporting)
-â”œâ”€â”€ Sex (Male | Female | All)
-â”œâ”€â”€ Age From (value + unit)
-â”œâ”€â”€ Age To (value + unit)
-â”œâ”€â”€ Low Value (nullable for critical-high-only)
-â”œâ”€â”€ High Value (nullable for critical-low-only)
-â””â”€â”€ Notes (optional)
+├── Range Type (Normal | Valid | Critical | Reporting)
+├── Sex (Male | Female | All)
+├── Age From (value + unit)
+├── Age To (value + unit)
+├── Low Value (nullable for critical-high-only)
+├── High Value (nullable for critical-low-only)
+└── Notes (optional)
 ```
 
 **Age Units Supported:**
@@ -719,14 +1647,14 @@ Range Entry Structure:
 **Normal Ranges (Sex-Specific):**
 | Sex | Age From | Age To | Low | High | Unit |
 |-----|----------|--------|-----|------|------|
-| Male | 0 days | 5 days | 1 | 155 | Âµmol/L |
-| Male | 6 days | 14 days | 1 | 140 | Âµmol/L |
-| Male | 15 days | 1 month | 1 | 130 | Âµmol/L |
-| Male | 1 month | 1 year | 1 | 115 | Âµmol/L |
-| Male | 1 year | âˆž | 5 | 40 | Âµmol/L |
-| Female | 0 days | 55 days | 1 | 175 | Âµmol/L |
-| Female | 56 days | 1 year | 1 | 130 | Âµmol/L |
-| Female | 1 year | âˆž | 5 | 35 | Âµmol/L |
+| Male | 0 days | 5 days | 1 | 155 | µmol/L |
+| Male | 6 days | 14 days | 1 | 140 | µmol/L |
+| Male | 15 days | 1 month | 1 | 130 | µmol/L |
+| Male | 1 month | 1 year | 1 | 115 | µmol/L |
+| Male | 1 year | ∞ | 5 | 40 | µmol/L |
+| Female | 0 days | 55 days | 1 | 175 | µmol/L |
+| Female | 56 days | 1 year | 1 | 130 | µmol/L |
+| Female | 1 year | ∞ | 5 | 35 | µmol/L |
 
 **Critical Ranges (Age-Specific, Sex-Neutral):**
 | Sex | Age From | Age To | Critical High | Unit |
@@ -736,14 +1664,14 @@ Range Entry Structure:
 | All | 36 hours | 47 hours | >13.9 | mg/dL |
 | All | 48 hours | 71 hours | >14.9 | mg/dL |
 | All | 72 hours | 13 days | >17.9 | mg/dL |
-| All | 14 days | âˆž | >15.0 | mg/dL |
+| All | 14 days | ∞ | >15.0 | mg/dL |
 
 ### 6.3.3 Coverage Validation Requirements
 
 The system **must validate complete age coverage** for each sex:
 
 **Validation Rules:**
-1. For each sex (Male, Female), age ranges must cover from birth (0) to maximum age (âˆž) without gaps
+1. For each sex (Male, Female), age ranges must cover from birth (0) to maximum age (∞) without gaps
 2. Overlapping age ranges for the same sex are not allowed
 3. "All" sex ranges count as coverage for both Male and Female
 4. Validation runs on save and displays clear error messages for any gaps
@@ -766,30 +1694,96 @@ For each sex in [Male, Female]:
 
 ### 6.3.4 Range Editor UI Requirements
 
-**Structured View (Default):**
-- Group ranges by type (Normal, Valid, Critical, Reporting)
-- Within each type, sub-group by sex
-- Show age range, low/high values, mini visual bar
-- Expand/collapse each range type section
+The Range Editor exposes three view modes for the same underlying range data, plus a coverage validation panel and an add/edit modal. Users switch between views using a Carbon `<Dropdown>` in the editor's header bar; the selected view persists in URL state (`?rangeView=structured|table|visual`) so it's bookmarkable.
 
-**Visual View:**
-- Demographic selector (Sex dropdown, Age input with unit)
-- Shows all 4 range types on stacked horizontal bars
-- Updates dynamically as user changes demographics
-- Useful for "what ranges apply to a 3-day-old male?"
+#### Structured View (Default)
 
-**Table View:**
-- Flat table of all ranges across all types
-- Sortable by any column
-- Bulk editing capability
+The default view groups ranges hierarchically: by range type, then by sex, sorted ascending by age. Designed for editing one range type's coverage at a time.
 
-**Add/Edit Range Modal:**
-- Sex selector (All / Male Only / Female Only)
-- Age From: number input + unit dropdown (hours/days/weeks/months/years)
-- Age To: number input + unit dropdown (use 999 years for infinity)
-- Low value (optional for critical-high-only scenarios)
-- High value (optional for critical-low-only scenarios)
-- Coverage warning banner showing impact of this range
+**Layout:**
+- Top-level sections, one per range type (Normal, Valid, Critical, Reporting). Each section is a Carbon `<Accordion>` item that can be expanded or collapsed independently.
+- Each accordion header shows: range-type name as a colored Carbon `<Tag>` (Normal = `kind="green"`, Valid = `kind="blue"`, Critical = `kind="red"`, Reporting = `kind="purple"`), short description ("Clinical reference values", "Expected possible values", etc.), count of ranges defined, and a "+ Add" Carbon `<IconButton>` that opens the Add Range modal scoped to that range type.
+- Inside each section, ranges are sub-grouped by sex (Male, Female, All), with a sex Carbon `<Tag>` separator and the count of ranges in that group.
+- Each range row shows: index number, age range (formatted "X hours – Y days" with infinity rendered as ∞), Low value, High value, and a **mini visual bar** showing the range graphically (Low to High mapped to a 0–200 scale, color-coded to match the range type).
+- Row hover reveals action buttons: Edit, **Copy to other sex** (creates a new range with the same age/values for the opposite sex via the Add Range modal pre-fill), Delete.
+
+**Empty state (per range type):**
+"No {range type}s defined" with a "+ Add {Range Type}" CTA inline.
+
+#### Table View
+
+A flat sortable Carbon `<DataTable>` showing every range across every type in one table. Designed for bulk review or copy-paste exports.
+
+**Columns:** Type (colored Tag), Sex (Tag), Age From (value + unit), Age To (∞ when 999 years), Low, High, Actions.
+
+**Sort behavior:**
+- Default sort: by Type ascending, then by Sex ascending, then by Age From ascending (after normalization to days).
+- Any column header sorts on click; click-again reverses; click-third returns to default sort.
+
+**Bulk editing:** Carbon `<DataTable>` selection enables a Bulk Actions toolbar (Delete Selected, Change Sex, Change Type) — gated by `admin.testCatalog.manage`.
+
+#### Visual View
+
+A "what ranges apply to this patient?" lookup view that renders the four range types as stacked horizontal bars for a selected demographic.
+
+**Demographic selector** at the top:
+- Sex `<Dropdown>` (Male / Female)
+- Age `<NumberInput>` and unit `<Select>` (hours / days / weeks / months / years)
+
+**Bar display** — four stacked rows, one per range type, in fixed order Valid → Normal → Critical → Reporting:
+- Each row has a label on the left ("Valid", "Normal", "Critical", "Reporting") and a 0–200-scaled background bar on the right.
+- The applicable range for the selected demographic is rendered as a colored bar (color matches the range type) with the Low and High values printed inline.
+- If no range applies for the selected demographic, the bar shows italic placeholder text: "Not defined for this demographic."
+- Critical ranges that have only a high value (no low) render the bar from 0 to High; ranges with only a low render from Low to the right edge.
+
+**Legend** below the bars, with a colored swatch per range type.
+
+**Live updates:** changing the demographic selector immediately re-evaluates all four range types and re-renders the bars. No save action is needed in this view — it's read-only.
+
+#### Coverage Validation Panel
+
+Toggleable via a "Validate Coverage" button in the editor header. When enabled, the panel renders above the structured/table/visual view and shows the current coverage state for both sexes.
+
+**Layout:** two side-by-side cards, one for Male, one for Female (uses Carbon `<Tile>`).
+
+**Per-sex card content:**
+- Header: Sex Tag (Male = `kind="blue"`, Female = `kind="magenta"`) and overall status:
+  - **Complete coverage** — green check icon + "Complete Coverage" text
+  - **Issues found** — red alert icon + "{N} Issue(s) Found"
+- Body (when issues exist): one card per issue, color-coded by issue type:
+  - **GAP** — red background, "GAP" pill in red, gap range message ("55 days to 1 year"), suggested values from adjacent range below ("Suggested values from adjacent range: Low=1, High=130"), and a primary action button "Fill Gap"
+  - **OVERLAP** — amber background, "OVERLAP" pill in amber, conflicting-range message ("Overlap at 56 days"), with the two conflicting range descriptions listed beneath
+- Body (when complete): green-tinted info card with text "All age ranges from birth to maximum age are covered."
+
+**Fill Gap action behavior:**
+- Opens the Add Range modal (the same one launched by "+ Add" buttons in the Structured view)
+- Pre-fills: range type = `normal`, sex = the column's sex (M or F), Age From = gap start, Age To = gap end, Low/High = adjacent range's values
+- Modal shows a Carbon `<InlineNotification kind="info">` banner: "Values from: {age range of source range}"
+- User can modify any pre-filled value before saving; the source banner makes clear where the suggestion came from
+
+**Copy-to-other-sex action behavior:**
+- Triggered from a range row in the Structured view
+- Opens the Add Range modal with the same age range and values, but with sex flipped (Male → Female or vice versa)
+- Modal banner: "Copied from {source sex}: {age range}"
+
+#### Add/Edit Range Modal
+
+Single Carbon `<Modal>` reused for adding new ranges, filling gaps, and copying ranges to the other sex.
+
+**Header:** "Add {Range Type}" or "Edit {Range Type}". Close button on the right.
+
+**Source banner** (shown when invoked from Fill Gap or Copy-to-other-sex): Carbon `<InlineNotification kind="info">` with the template-source text.
+
+**Body fields:**
+- **Applies To** — three-button `<RadioButtonGroup>` styled as labeled cards: All (gray), Male Only (blue), Female Only (magenta). Selected card has a Carbon Blue 60 border + tinted background.
+- **Age Range** — two side-by-side blocks, each with a number input and a unit `<Select>` (hours / days / weeks / months / years). From and To. Helper text below: "Use 999 years for 'no upper age limit' (infinity)."
+- **Value Range** — two side-by-side number inputs (Low, High). Field labels change based on range type:
+  - For Critical ranges: "Critical Low (values below this)" and "Critical High (values above this)" — placeholder text "Leave blank if N/A" — both fields optional, but at least one required
+  - For other range types: "Low" and "High" — both required
+
+**Footer:** Cancel + Save buttons. Save is disabled until validation passes (age From < age To, at least one value field filled, no overlap conflict with existing ranges).
+
+**Coverage warning banner** below the form: if the new/edited range introduces an overlap or leaves a new gap, show a Carbon `<InlineNotification kind="warning">` summarizing the impact before save.
 
 ---
 
@@ -939,7 +1933,7 @@ GET /api/v1/tests/{testId}/applicable-range?sex=M&ageValue=3&ageUnit=days
 
 ### Coverage Validation
 
-- [ ] System validates that all ages from 0 to âˆž are covered for each sex
+- [ ] System validates that all ages from 0 to ∞ are covered for each sex
 - [ ] Validation runs automatically on save
 - [ ] Clear error messages identify specific gaps (e.g., "Female: 56 days to 1 year not covered")
 - [ ] Validation considers "All" sex ranges as covering both Male and Female
@@ -988,7 +1982,7 @@ The coverage validation panel must be functional, not just informational:
      - Age From/To: Exact gap boundaries
      - Low/High values: From adjacent range (with banner showing source)
    - User can modify pre-filled values before saving
-   - Banner text: "Values from: 48 hours â€“ 72 hours range"
+   - Banner text: "Values from: 48 hours – 72 hours range"
 
 5. **Copy From Range Action**
    - Each range row has a "Copy to other sex" action
@@ -998,21 +1992,21 @@ The coverage validation panel must be functional, not just informational:
 ### UI Mockup Notes
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Age Coverage Validation                                 â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚
-â”‚  â”‚ Male      âœ“ Complete â”‚  â”‚ Female    âš  1 Issue    â”‚  â”‚
-â”‚  â”‚                      â”‚  â”‚                         â”‚  â”‚
-â”‚  â”‚ âœ“ All ages covered   â”‚  â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚  â”‚
-â”‚  â”‚                      â”‚  â”‚ â”‚ GAP                 â”‚ â”‚  â”‚
-â”‚  â”‚                      â”‚  â”‚ â”‚ 55 days to 1 year   â”‚ â”‚  â”‚
-â”‚  â”‚                      â”‚  â”‚ â”‚                     â”‚ â”‚  â”‚
-â”‚  â”‚                      â”‚  â”‚ â”‚ Suggested: L=1 H=130â”‚ â”‚  â”‚
-â”‚  â”‚                      â”‚  â”‚ â”‚        [Fill Gap]   â”‚ â”‚  â”‚
-â”‚  â”‚                      â”‚  â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚  â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌─────────────────────────────────────────────────────────┐
+│ Age Coverage Validation                                 │
+├─────────────────────────────────────────────────────────┤
+│  ┌─────────────────────┐  ┌─────────────────────────┐  │
+│  │ Male      ✓ Complete │  │ Female    ⚠ 1 Issue    │  │
+│  │                      │  │                         │  │
+│  │ ✓ All ages covered   │  │ ┌─────────────────────┐ │  │
+│  │                      │  │ │ GAP                 │ │  │
+│  │                      │  │ │ 55 days to 1 year   │ │  │
+│  │                      │  │ │                     │ │  │
+│  │                      │  │ │ Suggested: L=1 H=130│ │  │
+│  │                      │  │ │        [Fill Gap]   │ │  │
+│  │                      │  │ └─────────────────────┘ │  │
+│  └─────────────────────┘  └─────────────────────────┘  │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -1074,7 +2068,7 @@ Currently, OpenELIS can throw errors or display blank values when a test is view
 1. **Graceful Fallback Behavior**
    - When a translation is missing for the selected UI language, display the value from the "base" or "primary" language (typically the language in which the test was created)
    - Never display blank/null values or throw errors due to missing translations
-   - Fallback chain: Selected Language â†’ Primary Language â†’ First Available Translation â†’ Internal Code
+   - Fallback chain: Selected Language → Primary Language → First Available Translation → Internal Code
 
 2. **Multi-Language Metadata Storage**
    - Each localizable field maintains values for all supported languages
@@ -1088,7 +2082,7 @@ Currently, OpenELIS can throw errors or display blank values when a test is view
 
 3. **Translation Status Indicators**
    - In the test editor, show which languages have translations
-   - Visual indicator: âœ“ (translated), âš  (missing), or language code badges
+   - Visual indicator: ✓ (translated), ⚠ (missing), or language code badges
    - Allow bulk identification of untranslated content across the catalog
 
 4. **No Breaking on Missing Translations**
@@ -1165,7 +2159,7 @@ $$ LANGUAGE plpgsql STABLE;
   "test": {
     "id": 123,
     "name": {
-      "value": "GlycÃ©mie Ã  jeun",
+      "value": "Glycémie à jeun",
       "language": "fr",
       "isFallback": false
     },
@@ -1214,12 +2208,12 @@ Enable proper identification of AMR-related tests for export to WHONET and other
    - **Antibiotic Class**: Classification (e.g., Penicillins, Fluoroquinolones, Cephalosporins)
    - **Test Method**: Disk diffusion, MIC, E-test, etc.
    - **Breakpoint Standard**: CLSI, EUCAST, or custom
-   - **Potency/Disk Content**: e.g., "10 Âµg" for disk diffusion
+   - **Potency/Disk Content**: e.g., "10 µg" for disk diffusion
 
 3. **WHONET Export Compatibility**
    - AMR-flagged tests included in WHONET export files
    - Proper mapping of result interpretations (S/I/R) to WHONET format
-   - Support for zone diameter (mm) and MIC (Âµg/mL) result types
+   - Support for zone diameter (mm) and MIC (µg/mL) result types
 
 4. **Organism Linkage**
    - AMR tests can be linked to specific organism panels
@@ -1229,18 +2223,18 @@ Enable proper identification of AMR-related tests for export to WHONET and other
 ### UI Mockup
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ â˜‘ Antimicrobial Resistance (AMR) Test                       â”‚
-â”‚   Enable for WHONET export and AMR surveillance             â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ WHONET Configuration                                        â”‚
-â”‚                                                             â”‚
-â”‚ Antibiotic Code:  [AMP     â–¼]   Antibiotic Class: [Penicillins â–¼] â”‚
-â”‚ Test Method:      [Disk Diffusion â–¼]                        â”‚
-â”‚ Breakpoint Std:   [CLSI 2024 â–¼]  Potency: [10    ] Âµg       â”‚
-â”‚                                                             â”‚
-â”‚ â„¹ This test will be included in WHONET exports              â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌─────────────────────────────────────────────────────────────┐
+│ ☑ Antimicrobial Resistance (AMR) Test                       │
+│   Enable for WHONET export and AMR surveillance             │
+├─────────────────────────────────────────────────────────────┤
+│ WHONET Configuration                                        │
+│                                                             │
+│ Antibiotic Code:  [AMP     ▼]   Antibiotic Class: [Penicillins ▼] │
+│ Test Method:      [Disk Diffusion ▼]                        │
+│ Breakpoint Std:   [CLSI 2024 ▼]  Potency: [10    ] µg       │
+│                                                             │
+│ ℹ This test will be included in WHONET exports              │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### Data Model
@@ -1258,7 +2252,7 @@ CREATE TABLE test_amr_config (
     breakpoint_standard VARCHAR(50),          -- 'CLSI', 'EUCAST'
     breakpoint_year INTEGER,
     disk_potency DECIMAL(10,2),
-    disk_potency_unit VARCHAR(10) DEFAULT 'Âµg',
+    disk_potency_unit VARCHAR(10) DEFAULT 'µg',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -1296,12 +2290,11 @@ Configure automated notifications when specific result conditions are met, enabl
    - Support for multiple rules per test
    - Rules can be enabled/disabled without deletion
 
-2. **Trigger Conditions**
+2. **Trigger Conditions** (four types — kept aligned with the implemented JSX)
    - **All Results**: Notify on every result entry
    - **Abnormal Values**: Result outside normal range (high or low)
    - **Critical Values**: Result in critical/panic range
    - **Specific Value**: Exact match (useful for select list results like "Positive")
-   - **Custom Expression**: Advanced condition builder (e.g., "value > 200 AND patient.age < 18")
 
 3. **Delivery Channels**
    - **SMS**: Send text message to phone number
@@ -1328,105 +2321,104 @@ Configure automated notifications when specific result conditions are met, enabl
 ### UI Mockup
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Alert Rules                                              [+ Add Rule]â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚                                                                      â”‚
-â”‚ â”Œâ”€ Rule 1: Critical Value Alert â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ â˜‘ Enabled â”€â”â”‚
-â”‚ â”‚                                                                   â”‚â”‚
-â”‚ â”‚ WHEN result is   [Critical Value    â–¼]                           â”‚â”‚
-â”‚ â”‚                                                                   â”‚â”‚
-â”‚ â”‚ NOTIFY via       [SMS â–¼]  [Email â–¼]                              â”‚â”‚
-â”‚ â”‚                                                                   â”‚â”‚
-â”‚ â”‚ RECIPIENTS                                                        â”‚â”‚
-â”‚ â”‚   â˜‘ Ordering Physician                                           â”‚â”‚
-â”‚ â”‚   â˜ Patient                                                       â”‚â”‚
-â”‚ â”‚   â˜ Custom: [                    ]                               â”‚â”‚
-â”‚ â”‚                                                                   â”‚â”‚
-â”‚ â”‚ MESSAGE TEMPLATE (SMS)                                            â”‚â”‚
-â”‚ â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚â”‚
-â”‚ â”‚ â”‚ CRITICAL: {{test_name}} result {{result}} {{unit}} for      â”‚  â”‚â”‚
-â”‚ â”‚ â”‚ {{patient_name}}. Please review immediately.                â”‚  â”‚â”‚
-â”‚ â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚â”‚
-â”‚ â”‚                                                    [Edit] [Delete]â”‚â”‚
-â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜â”‚
-â”‚                                                                      â”‚
-â”‚ â”Œâ”€ Rule 2: Abnormal Result Notification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ â˜‘ Enabled â”€â”â”‚
-â”‚ â”‚                                                                   â”‚â”‚
-â”‚ â”‚ WHEN result is   [Abnormal (High or Low) â–¼]                      â”‚â”‚
-â”‚ â”‚ NOTIFY via       [Email â–¼]                                        â”‚â”‚
-â”‚ â”‚ RECIPIENTS       â˜‘ Ordering Physician                            â”‚â”‚
-â”‚ â”‚                                                    [Edit] [Delete]â”‚â”‚
-â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜â”‚
-â”‚                                                                      â”‚
-â”‚ â”Œâ”€ Rule 3: Positive Result Alert â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ â˜ Disabled â”â”‚
-â”‚ â”‚ WHEN result equals "Positive"                                     â”‚â”‚
-â”‚ â”‚ NOTIFY via SMS to Patient                          [Edit] [Delete]â”‚â”‚
-â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌─────────────────────────────────────────────────────────────────────┐
+│ Alert Rules                                              [+ Add Rule]│
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│ ┌─ Rule 1: Critical Value Alert ─────────────────────── ☑ Enabled ─┐│
+│ │                                                                   ││
+│ │ WHEN result is   [Critical Value    ▼]                           ││
+│ │                                                                   ││
+│ │ NOTIFY via       [SMS ▼]  [Email ▼]                              ││
+│ │                                                                   ││
+│ │ RECIPIENTS                                                        ││
+│ │   ☑ Ordering Physician                                           ││
+│ │   ☐ Patient                                                       ││
+│ │   ☐ Custom: [                    ]                               ││
+│ │                                                                   ││
+│ │ MESSAGE TEMPLATE (SMS)                                            ││
+│ │ ┌─────────────────────────────────────────────────────────────┐  ││
+│ │ │ CRITICAL: {{test_name}} result {{result}} {{unit}} for      │  ││
+│ │ │ {{patient_name}}. Please review immediately.                │  ││
+│ │ └─────────────────────────────────────────────────────────────┘  ││
+│ │                                                    [Edit] [Delete]││
+│ └───────────────────────────────────────────────────────────────────┘│
+│                                                                      │
+│ ┌─ Rule 2: Abnormal Result Notification ─────────────── ☑ Enabled ─┐│
+│ │                                                                   ││
+│ │ WHEN result is   [Abnormal (High or Low) ▼]                      ││
+│ │ NOTIFY via       [Email ▼]                                        ││
+│ │ RECIPIENTS       ☑ Ordering Physician                            ││
+│ │                                                    [Edit] [Delete]││
+│ └───────────────────────────────────────────────────────────────────┘│
+│                                                                      │
+│ ┌─ Rule 3: Positive Result Alert ────────────────────── ☐ Disabled ┐│
+│ │ WHEN result equals "Positive"                                     ││
+│ │ NOTIFY via SMS to Patient                          [Edit] [Delete]││
+│ └───────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Add/Edit Rule Modal
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Add Alert Rule                                                   âœ•  â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚                                                                      â”‚
-â”‚ Rule Name: [Critical Value SMS Alert                    ]           â”‚
-â”‚                                                                      â”‚
-â”‚ â”€â”€â”€ Trigger Condition â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ â”‚
-â”‚                                                                      â”‚
-â”‚ Alert when result is:  â—‹ All Results                                â”‚
-â”‚                        â—‹ Abnormal (outside normal range)            â”‚
-â”‚                        â— Critical (panic value)                     â”‚
-â”‚                        â—‹ Specific Value: [          ]               â”‚
-â”‚                        â—‹ Custom Expression                          â”‚
-â”‚                                                                      â”‚
-â”‚ â”€â”€â”€ Notification Channel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ â”‚
-â”‚                                                                      â”‚
-â”‚ Send via:  â˜‘ SMS    â˜‘ Email                                        â”‚
-â”‚                                                                      â”‚
-â”‚ â”€â”€â”€ Recipients â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ â”‚
-â”‚                                                                      â”‚
-â”‚ â˜‘ Ordering Physician (from order)                                   â”‚
-â”‚ â˜ Patient (from patient record)                                     â”‚
-â”‚ â˜ Referring Facility contact                                        â”‚
-â”‚ â˜ Custom recipient:                                                 â”‚
-â”‚     Phone: [+1 555-123-4567        ]                               â”‚
-â”‚     Email: [                        ]                               â”‚
-â”‚ â˜ All users with role: [Lab Director â–¼]                            â”‚
-â”‚                                                                      â”‚
-â”‚ â”€â”€â”€ Message Templates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ â”‚
-â”‚                                                                      â”‚
-â”‚ SMS Template (160 char recommended):                                 â”‚
-â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
-â”‚ â”‚ CRITICAL: {{test_name}} {{result}} {{unit}} for {{patient_name}}â”‚ â”‚
-â”‚ â”‚ ID:{{patient_id}}. Review immediately.                          â”‚ â”‚
-â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
-â”‚ Characters: 98/160                                                   â”‚
-â”‚                                                                      â”‚
-â”‚ Email Subject:                                                       â”‚
-â”‚ [Critical Lab Result: {{test_name}} for {{patient_name}}    ]       â”‚
-â”‚                                                                      â”‚
-â”‚ Email Body:                                                          â”‚
-â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
-â”‚ â”‚ A critical laboratory result requires your attention:           â”‚ â”‚
-â”‚ â”‚                                                                  â”‚ â”‚
-â”‚ â”‚ Patient: {{patient_name}} (ID: {{patient_id}})                  â”‚ â”‚
-â”‚ â”‚ Test: {{test_name}}                                              â”‚ â”‚
-â”‚ â”‚ Result: {{result}} {{unit}}                                      â”‚ â”‚
-â”‚ â”‚ Reference Range: {{reference_range}}                             â”‚ â”‚
-â”‚ â”‚ Collected: {{collected_date}}                                    â”‚ â”‚
-â”‚ â”‚ ...                                                              â”‚ â”‚
-â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
-â”‚                                                                      â”‚
-â”‚ Available variables: patient_name, patient_id, test_name, result,   â”‚
-â”‚ unit, reference_range, collected_date, resulted_date, lab_name      â”‚
-â”‚                                                                      â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚                                        [Cancel]  [Save Alert Rule]  â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌─────────────────────────────────────────────────────────────────────┐
+│ Add Alert Rule                                                   ✕  │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│ Rule Name: [Critical Value SMS Alert                    ]           │
+│                                                                      │
+│ ─── Trigger Condition ───────────────────────────────────────────── │
+│                                                                      │
+│ Alert when result is:  ○ All Results                                │
+│                        ○ Abnormal (outside normal range)            │
+│                        ● Critical (panic value)                     │
+│                        ○ Specific Value: [          ]               │
+│                                                                      │
+│ ─── Notification Channel ────────────────────────────────────────── │
+│                                                                      │
+│ Send via:  ☑ SMS    ☑ Email                                        │
+│                                                                      │
+│ ─── Recipients ──────────────────────────────────────────────────── │
+│                                                                      │
+│ ☑ Ordering Physician (from order)                                   │
+│ ☐ Patient (from patient record)                                     │
+│ ☐ Referring Facility contact                                        │
+│ ☐ Custom recipient:                                                 │
+│     Phone: [+1 555-123-4567        ]                               │
+│     Email: [                        ]                               │
+│ ☐ All users with role: [Lab Director ▼]                            │
+│                                                                      │
+│ ─── Message Templates ───────────────────────────────────────────── │
+│                                                                      │
+│ SMS Template (160 char recommended):                                 │
+│ ┌─────────────────────────────────────────────────────────────────┐ │
+│ │ CRITICAL: {{test_name}} {{result}} {{unit}} for {{patient_name}}│ │
+│ │ ID:{{patient_id}}. Review immediately.                          │ │
+│ └─────────────────────────────────────────────────────────────────┘ │
+│ Characters: 98/160                                                   │
+│                                                                      │
+│ Email Subject:                                                       │
+│ [Critical Lab Result: {{test_name}} for {{patient_name}}    ]       │
+│                                                                      │
+│ Email Body:                                                          │
+│ ┌─────────────────────────────────────────────────────────────────┐ │
+│ │ A critical laboratory result requires your attention:           │ │
+│ │                                                                  │ │
+│ │ Patient: {{patient_name}} (ID: {{patient_id}})                  │ │
+│ │ Test: {{test_name}}                                              │ │
+│ │ Result: {{result}} {{unit}}                                      │ │
+│ │ Reference Range: {{reference_range}}                             │ │
+│ │ Collected: {{collected_date}}                                    │ │
+│ │ ...                                                              │ │
+│ └─────────────────────────────────────────────────────────────────┘ │
+│                                                                      │
+│ Available variables: patient_name, patient_id, test_name, result,   │
+│ unit, reference_range, collected_date, resulted_date, lab_name      │
+│                                                                      │
+├─────────────────────────────────────────────────────────────────────┤
+│                                        [Cancel]  [Save Alert Rule]  │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Data Model
@@ -1438,9 +2430,8 @@ CREATE TABLE test_alert_rule (
     test_id INTEGER NOT NULL REFERENCES test(id),
     name VARCHAR(100) NOT NULL,
     is_enabled BOOLEAN DEFAULT TRUE,
-    trigger_type VARCHAR(30) NOT NULL, -- 'ALL', 'ABNORMAL', 'CRITICAL', 'SPECIFIC_VALUE', 'CUSTOM'
+    trigger_type VARCHAR(30) NOT NULL, -- 'ALL', 'ABNORMAL', 'CRITICAL', 'SPECIFIC_VALUE'
     trigger_value VARCHAR(100),         -- For SPECIFIC_VALUE type
-    trigger_expression TEXT,            -- For CUSTOM type (future)
     notify_sms BOOLEAN DEFAULT FALSE,
     notify_email BOOLEAN DEFAULT FALSE,
     notify_ordering_physician BOOLEAN DEFAULT FALSE,
@@ -1524,44 +2515,44 @@ Display reflex test rules and calculated result configurations that apply to thi
 ### UI Mockup
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Reflex & Calculated Results                                         â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚                                                                      â”‚
-â”‚ â”Œâ”€ REFLEX TESTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ â”â”‚
-â”‚ â”‚                                                                   â”‚â”‚
-â”‚ â”‚ Rules triggered BY this test:                                     â”‚â”‚
-â”‚ â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚â”‚
-â”‚ â”‚ â”‚ IF result > 200 mg/dL â†’ ORDER Hemoglobin A1c                â”‚  â”‚â”‚
-â”‚ â”‚ â”‚ Mode: Suggest (require confirmation)                         â”‚  â”‚â”‚
-â”‚ â”‚ â”‚                                    [Edit in Master Lists â†’] â”‚  â”‚â”‚
-â”‚ â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚â”‚
-â”‚ â”‚                                                                   â”‚â”‚
-â”‚ â”‚ Rules that ORDER this test:                                       â”‚â”‚
-â”‚ â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚â”‚
-â”‚ â”‚ â”‚ â†³ Glucose Tolerance Test (when 2-hour > 140)                â”‚  â”‚â”‚
-â”‚ â”‚ â”‚                                    [Edit in Master Lists â†’] â”‚  â”‚â”‚
-â”‚ â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚â”‚
-â”‚ â”‚                                                                   â”‚â”‚
-â”‚ â”‚ [+ Add New Reflex Rule in Master Lists â†’]                        â”‚â”‚
-â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜â”‚
-â”‚                                                                      â”‚
-â”‚ â”Œâ”€ CALCULATED RESULTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ â”â”‚
-â”‚ â”‚                                                                   â”‚â”‚
-â”‚ â”‚ Calculations that USE this test as input:                        â”‚â”‚
-â”‚ â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚â”‚
-â”‚ â”‚ â”‚ âš™ LDL Cholesterol (Calculated)                              â”‚  â”‚â”‚
-â”‚ â”‚ â”‚   Formula: Total_Chol - HDL - (Triglycerides / 5)           â”‚  â”‚â”‚
-â”‚ â”‚ â”‚                                    [Edit in Master Lists â†’] â”‚  â”‚â”‚
-â”‚ â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚â”‚
-â”‚ â”‚                                                                   â”‚â”‚
-â”‚ â”‚ This test IS a calculated result:                                 â”‚â”‚
-â”‚ â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚â”‚
-â”‚ â”‚ â”‚ (Not configured as a calculated result)                     â”‚  â”‚â”‚
-â”‚ â”‚ â”‚           [+ Configure in Master Lists â†’]                   â”‚  â”‚â”‚
-â”‚ â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚â”‚
-â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌─────────────────────────────────────────────────────────────────────┐
+│ Reflex & Calculated Results                                         │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│ ┌─ REFLEX TESTS ────────────────────────────────────────────────── ┐│
+│ │                                                                   ││
+│ │ Rules triggered BY this test:                                     ││
+│ │ ┌─────────────────────────────────────────────────────────────┐  ││
+│ │ │ IF result > 200 mg/dL → ORDER Hemoglobin A1c                │  ││
+│ │ │ Mode: Suggest (require confirmation)                         │  ││
+│ │ │                                    [Edit in Master Lists →] │  ││
+│ │ └─────────────────────────────────────────────────────────────┘  ││
+│ │                                                                   ││
+│ │ Rules that ORDER this test:                                       ││
+│ │ ┌─────────────────────────────────────────────────────────────┐  ││
+│ │ │ ↳ Glucose Tolerance Test (when 2-hour > 140)                │  ││
+│ │ │                                    [Edit in Master Lists →] │  ││
+│ │ └─────────────────────────────────────────────────────────────┘  ││
+│ │                                                                   ││
+│ │ [+ Add New Reflex Rule in Master Lists →]                        ││
+│ └───────────────────────────────────────────────────────────────────┘│
+│                                                                      │
+│ ┌─ CALCULATED RESULTS ──────────────────────────────────────────── ┐│
+│ │                                                                   ││
+│ │ Calculations that USE this test as input:                        ││
+│ │ ┌─────────────────────────────────────────────────────────────┐  ││
+│ │ │ ⚙ LDL Cholesterol (Calculated)                              │  ││
+│ │ │   Formula: Total_Chol - HDL - (Triglycerides / 5)           │  ││
+│ │ │                                    [Edit in Master Lists →] │  ││
+│ │ └─────────────────────────────────────────────────────────────┘  ││
+│ │                                                                   ││
+│ │ This test IS a calculated result:                                 ││
+│ │ ┌─────────────────────────────────────────────────────────────┐  ││
+│ │ │ (Not configured as a calculated result)                     │  ││
+│ │ │           [+ Configure in Master Lists →]                   │  ││
+│ │ └─────────────────────────────────────────────────────────────┘  ││
+│ └───────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Navigation Links
@@ -1609,7 +2600,7 @@ Display reflex test rules and calculated result configurations that apply to thi
 
 3. **Order Preview with Drag Support**
    - Scrollable list showing all tests currently in the panel
-   - Current test highlighted with "â† This test" indicator and drag handle (â‰¡)
+   - Current test highlighted with "← This test" indicator and drag handle (≡)
    - Existing tests shown in current order (not draggable)
    - Dragging "This test" reorders the list and updates the numeric input
    - Visual feedback during drag (drop indicator line, item highlighting)
@@ -1624,20 +2615,20 @@ Display reflex test rules and calculated result configurations that apply to thi
 ### UI Mockup
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ â˜‘ Basic Metabolic Panel                    Position: 3  â–¼  â”‚
-â”‚   8 tests                                                   â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ Display Position: [3] of 9     â”‚ Panel Test Order Preview   â”‚
-â”‚                                â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”â”‚
-â”‚ Enter number or drag the test  â”‚ â”‚   1. Glucose            â”‚â”‚
-â”‚ in the preview list            â”‚ â”‚   2. BUN                â”‚â”‚
-â”‚                                â”‚ â”‚ â‰¡ 3. â† THIS TEST        â”‚â”‚ â† draggable
-â”‚                                â”‚ â”‚   4. Creatinine         â”‚â”‚
-â”‚                                â”‚ â”‚   5. Sodium             â”‚â”‚
-â”‚                                â”‚ â”‚   ...                   â”‚â”‚
-â”‚                                â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌─────────────────────────────────────────────────────────────┐
+│ ☑ Basic Metabolic Panel                    Position: 3  ▼  │
+│   8 tests                                                   │
+├─────────────────────────────────────────────────────────────┤
+│ Display Position: [3] of 9     │ Panel Test Order Preview   │
+│                                │ ┌─────────────────────────┐│
+│ Enter number or drag the test  │ │   1. Glucose            ││
+│ in the preview list            │ │   2. BUN                ││
+│                                │ │ ≡ 3. ← THIS TEST        ││ ← draggable
+│                                │ │   4. Creatinine         ││
+│                                │ │   5. Sodium             ││
+│                                │ │   ...                   ││
+│                                │ └─────────────────────────┘│
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### Interaction Details
@@ -1649,7 +2640,7 @@ Display reflex test rules and calculated result configurations that apply to thi
 - Preview list reorders to reflect new position
 
 **Drag-and-Drop:**
-- Grip handle (â‰¡) on "This test" row indicates draggability
+- Grip handle (≡) on "This test" row indicates draggability
 - Only the new test being added is draggable; existing panel tests are static
 - Drag to reposition within the list
 - Drop zones appear between existing tests
@@ -1680,7 +2671,7 @@ CREATE INDEX idx_panel_test_order ON panel_test(panel_id, display_order);
 - [ ] User can set position via drag-and-drop in preview list
 - [ ] Both input methods stay synchronized
 - [ ] Preview shows where test will appear in panel order
-- [ ] Drag handle (â‰¡) clearly indicates draggable item
+- [ ] Drag handle (≡) clearly indicates draggable item
 - [ ] Drop zones provide clear visual feedback during drag
 - [ ] User can create a new panel inline without navigating away
 - [ ] New panels appear in the list immediately after creation
@@ -1760,6 +2751,36 @@ CREATE TABLE test_section_assignment (
 ---
 
 ## Updated Acceptance Criteria (Complete)
+
+### Test Domain
+- [ ] Test entity has a `domain` column constrained to CLINICAL / ENVIRONMENTAL / VECTOR
+- [ ] Basic Info section presents Domain as a radio button group
+- [ ] Domain is required — cannot save Basic Info without a selection
+- [ ] CLINICAL tests do not show the Compliance section in the SideNav
+- [ ] ENVIRONMENTAL and VECTOR tests show the Compliance section as primary
+- [ ] ENVIRONMENTAL and VECTOR tests show an InlineNotification info banner on the Ranges section
+- [ ] Editing Domain on an existing test triggers a confirmation modal before save
+- [ ] Test List View has a Domain filter (multi-select chip)
+- [ ] Test List View shows a Domain Tag column (blue / teal / purple)
+- [ ] Existing tests are backfilled to CLINICAL during migration
+
+### Internal Information Architecture
+- [ ] Test editor's 14 sections appear as a flat list in the SideNav under Test Catalog Management → [Test Name]
+- [ ] No group headers within the test editor SideNav
+- [ ] Each section is reachable at its own route (`/admin/test-catalog/:testId/<section>`)
+- [ ] Breadcrumb shows Admin › Test Catalog Management › [Test Name] › [Section Name]
+- [ ] No Carbon `Tabs` component used for editor primary navigation
+
+### Permissions
+- [ ] `admin.testCatalog.manage` gates access to all `/admin/test-catalog/...` routes (UI hide + API 403)
+- [ ] `compliance.threshold.view` gates the Compliance SideNav item and route
+- [ ] All write endpoints check `admin.testCatalog.manage` server-side
+
+### States
+- [ ] Test List View, Ranges, Methods, Analyzers, Reagents, Alerts, Reflex & Calc, Compliance, Panels, Labels each define an empty state
+- [ ] Table-bearing sections show Carbon DataTableSkeleton during initial fetch
+- [ ] API errors render Carbon InlineNotification kind="error" at the top of the affected section
+- [ ] No-permission state is the standard "You do not have permission" empty page
 
 ### Range Editor
 - [ ] All four range types support age/sex-specific variations
@@ -1922,14 +2943,15 @@ CREATE TABLE test_section_assignment (
 - [ ] Non-overridable labels are displayed as read-only
 
 ### Compliance Tab
-- [ ] Compliance tab appears in test editor vertical tab sidebar under a "Compliance" section group
+- [ ] Compliance section appears as the 14th SideNav item under "Test Catalog Management" → [Test Name] (flat list, no group header)
+- [ ] Section is reachable at route `/admin/test-catalog/:testId/compliance`
 - [ ] Tab displays DataTable of all compliance thresholds defined for this test
 - [ ] Thresholds grouped by Standard Name (default) or Parameter Group via "Group by" toggle
 - [ ] Threshold types shown as colored Tags: MAX (red), MIN (blue), RANGE (teal), DESCRIPTIVE (purple)
 - [ ] Inline row expansion for add/edit threshold forms (not modals)
 - [ ] ComboBox with type-ahead for standard selection
 - [ ] Conditional form fields based on threshold type (upper value for MAX, lower for MIN, both for RANGE, text for DESCRIPTIVE)
-- [ ] Badge on tab label showing threshold count
+- [ ] Badge on the Compliance SideNav item showing threshold count
 - [ ] Tab visible only to users with `compliance.threshold.view` permission
 - [ ] Full specification in companion FRS: S01-compliance-standards-admin-frs-v1.0.md
 
@@ -1941,17 +2963,29 @@ CREATE TABLE test_section_assignment (
 
 Enable per-test regulatory compliance threshold management. Environmental, vector, and food safety laboratories evaluate results against externally published regulatory standards (e.g., Indonesia's Baku Mutu, WHO Drinking Water Guidelines, EPA limits) rather than patient-centric reference ranges. The Compliance tab provides the configuration surface for these thresholds within the unified Test Editor.
 
-### Tab Placement
+### SideNav Placement
 
-The Compliance tab is placed in the vertical tab sidebar under a new **Compliance** section group, after the existing Automation group:
+Per the Internal Information Architecture section earlier in this FRS, the Compliance section is the 14th and final entry in the test editor SideNav. The 14 sections appear as a flat list in workflow order — no group headers — under the "Test Catalog Management" parent in the global Admin SideNav:
 
 ```
-Configuration:  Basic Info | Sample & Results | Ranges | Sample Storage
-Organization:   Display Order | Panels | Labels
-Resources:      Terminology | Reagents
-Automation:     Analyzers | Methods | Alerts | Reflex & Calc
-Compliance:     Compliance  ← NEW
+Test Catalog Management
+  ├── Basic Info
+  ├── Sample & Results
+  ├── Methods
+  ├── Ranges
+  ├── Sample Storage
+  ├── Display Order
+  ├── Panels
+  ├── Labels
+  ├── Terminology
+  ├── Reagents
+  ├── Analyzers
+  ├── Alerts
+  ├── Reflex & Calc
+  └── Compliance       ← this section
 ```
+
+Route: `/admin/test-catalog/:testId/compliance`. Visibility gated by the `compliance.threshold.view` permission key — see the Permissions section earlier in this FRS.
 
 ### Key Features
 

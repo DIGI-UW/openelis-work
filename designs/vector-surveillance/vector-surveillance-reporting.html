@@ -401,9 +401,9 @@
           <!-- 2×2 charts -->
           <div class="chart-grid">
 
-            <!-- 1: Collection density trend (renamed from Trap Catch Rate per V-04 v1.1; trap-type stratification deferred to §17.2) -->
+            <!-- 1: Trap catch trend -->
             <div class="chart-tile">
-              <p class="chart-title">Collection Density — Trend (organisms per collection event)</p>
+              <p class="chart-title">Trap Catch Rate — Trend (specimens / trap-night)</p>
               <svg width="100%" height="120" viewBox="0 0 400 120" preserveAspectRatio="none">
                 <line x1="0" y1="20"  x2="400" y2="20"  stroke="#e0e0e0" stroke-width="1"/>
                 <line x1="0" y1="55"  x2="400" y2="55"  stroke="#e0e0e0" stroke-width="1"/>
@@ -431,7 +431,7 @@
                 <span class="legend-item"><span class="legend-dot" style="background:#0f62fe"></span>BPP-01</span>
                 <span class="legend-item"><span class="legend-dot" style="background:#007d79;border-radius:0"></span>BPP-02</span>
               </div>
-              <p class="chart-source">Superset line chart · vector_collection_density_daily</p>
+              <p class="chart-source">Superset line chart · vector_trap_catch_daily</p>
             </div>
 
             <!-- 2: Species distribution donut -->
@@ -473,25 +473,11 @@
               <p class="chart-source">Superset donut · vector_specimen_ids</p>
             </div>
 
-            <!-- 3: Infection Rate heatmap (V-04 v1.3 — two metrics, toggleable, with resolution diagnostic) -->
+            <!-- 3: MIR heatmap -->
             <div class="chart-tile">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px;">
-                <p class="chart-title" style="margin-bottom:0;">Infection Rate × Species (per 1,000 organisms)</p>
-                <!-- Carbon ContentSwitcher pattern — toggle between two metrics -->
-                <div role="tablist" style="display:inline-flex;border:1px solid #c6c6c6;border-radius:0;font-size:11px;font-weight:500;line-height:1;">
-                  <button id="mir-tab-observed" role="tab" aria-selected="true"
-                          style="padding:6px 10px;background:#161616;color:#fff;border:none;cursor:pointer;">Observed (default)</button>
-                  <button id="mir-tab-classic" role="tab" aria-selected="false"
-                          style="padding:6px 10px;background:#fff;color:#161616;border:none;border-left:1px solid #c6c6c6;cursor:pointer;">Classical MIR</button>
-                </div>
-              </div>
+              <p class="chart-title">Minimum Infection Rate × Species (per 1,000 specimens)</p>
               <table class="heatmap-table" id="mir-table"><!-- populated by JS --></table>
-              <!-- Partial resolution warning glyph — surfaces when positive_resolution_pct < 100 (per FR-V04 / Item 5) -->
-              <div id="mir-resolution-warning" style="display:flex;align-items:center;gap:6px;font-size:11px;color:#a67f00;margin-top:6px;">
-                <span style="display:inline-block;width:14px;height:14px;background:#f1c21b;border-radius:50%;color:#161616;font-weight:700;text-align:center;line-height:14px;font-size:10px;">!</span>
-                <span>Partial resolution: 67% of positive pools deconvoluted this period. Observed metric uses classical fallback for the remainder.</span>
-              </div>
-              <p class="chart-source">Superset heatmap · vector_mir_weekly &nbsp;·&nbsp; <strong>Observed</strong>: exact descendant positive count for resolved pools, classical fallback (1 per pool) when unresolved &nbsp;·&nbsp; <strong>Classical</strong>: (positive pools ÷ total organisms) × 1,000 &nbsp;·&nbsp; CONFIRMED results only · QC excluded</p>
+              <p class="chart-source">Superset table/heatmap · vector_mir_weekly &nbsp;·&nbsp; MIR = (positive pools ÷ total specimens) × 1,000 &nbsp;·&nbsp; CONFIRMED results only</p>
             </div>
 
             <!-- 4: Pathogen positivity -->
@@ -556,87 +542,6 @@
             </div>
 
           </div><!-- /chart-grid -->
-
-          <!-- ═══ Quality Control section (V-04 v1.2 — Dashboard #7) ═══ -->
-          <!-- Visually separated from surveillance charts to avoid implying QC samples flow into MIR/density -->
-          <div style="border-top:8px solid #f4f4f4;padding:18px 0 6px 0;margin-top:18px;">
-            <div style="display:flex;align-items:center;gap:8px;padding:0 4px 12px 4px;">
-              <span style="display:inline-block;width:10px;height:10px;background:#0f62fe;border-radius:50%;"></span>
-              <span style="font-size:13px;font-weight:600;color:#161616;letter-spacing:0.16px;text-transform:uppercase;">Quality Control</span>
-              <span style="font-size:11px;color:#525252;">QC samples are excluded from surveillance aggregates above (per BR-V04-008).</span>
-            </div>
-
-            <div class="chart-tile">
-              <p class="chart-title">QC Pass Rate (per QA event type · last 8 weeks)</p>
-
-              <!-- 95% reference line + bars per QA event type, stacked by site -->
-              <div style="position:relative;padding:8px 0 22px 0;">
-
-                <!-- 95% threshold reference line annotation -->
-                <div style="position:absolute;top:6px;right:0;font-size:10px;color:#525252;">
-                  Threshold: <strong style="color:#198038;">≥ 95%</strong>
-                </div>
-
-                <div class="pos-block" style="margin-top:14px;">
-                  <div class="pos-block-label">Positive Control (expected POS)</div>
-                  <div class="pos-bars">
-                    <div class="pos-bar-col"><div class="pos-bar-outer">
-                      <div class="pos-bar-fill" style="width:96%;background:#198038"></div>
-                      <span class="pos-bar-val on-color">96%</span>
-                    </div></div>
-                    <div class="pos-bar-col"><div class="pos-bar-outer">
-                      <div class="pos-bar-fill" style="width:100%;background:#198038"></div>
-                      <span class="pos-bar-val on-color">100%</span>
-                    </div></div>
-                    <div class="pos-bar-col"><div class="pos-bar-outer">
-                      <div class="pos-bar-fill" style="width:92%;background:#f1c21b"></div>
-                      <span class="pos-bar-val">92% ⚠</span>
-                    </div></div>
-                    <div class="pos-bar-col"><div class="pos-bar-outer">
-                      <div class="pos-bar-fill" style="width:100%;background:#198038"></div>
-                      <span class="pos-bar-val on-color">100%</span>
-                    </div></div>
-                  </div>
-                  <div class="pos-week-labels">
-                    <span class="pos-week-label">W13</span><span class="pos-week-label">W14</span>
-                    <span class="pos-week-label">W15 ⚠</span><span class="pos-week-label">W16</span>
-                  </div>
-                </div>
-
-                <div class="pos-block">
-                  <div class="pos-block-label">Negative Control (expected NEG)</div>
-                  <div class="pos-bars">
-                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:100%;background:#198038"></div><span class="pos-bar-val on-color">100%</span></div></div>
-                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:100%;background:#198038"></div><span class="pos-bar-val on-color">100%</span></div></div>
-                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:100%;background:#198038"></div><span class="pos-bar-val on-color">100%</span></div></div>
-                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:100%;background:#198038"></div><span class="pos-bar-val on-color">100%</span></div></div>
-                  </div>
-                  <div class="pos-week-labels">
-                    <span class="pos-week-label">W13</span><span class="pos-week-label">W14</span>
-                    <span class="pos-week-label">W15</span><span class="pos-week-label">W16</span>
-                  </div>
-                </div>
-
-                <div class="pos-block" style="margin-bottom:0">
-                  <div class="pos-block-label">Blank (expected NEG)</div>
-                  <div class="pos-bars">
-                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:100%;background:#198038"></div><span class="pos-bar-val on-color">100%</span></div></div>
-                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:88%;background:#da1e28"></div><span class="pos-bar-val on-color">88% ⚠</span></div></div>
-                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:100%;background:#198038"></div><span class="pos-bar-val on-color">100%</span></div></div>
-                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:100%;background:#198038"></div><span class="pos-bar-val on-color">100%</span></div></div>
-                  </div>
-                  <div class="pos-week-labels">
-                    <span class="pos-week-label">W13</span><span class="pos-week-label">W14 ⚠</span>
-                    <span class="pos-week-label">W15</span><span class="pos-week-label">W16</span>
-                  </div>
-                </div>
-
-              </div>
-              <p class="chart-source">Superset bar chart · vector_qc_monitoring &nbsp;·&nbsp; pass = result matches expectation (POS for Positive Control, NEG for Negative Control / Blank); Duplicate concordance computed downstream</p>
-            </div>
-          </div>
-          <!-- ═══ /Quality Control section ═══ -->
-
         </div><!-- /iframe-sim -->
       </div><!-- /superset-wrap -->
 
@@ -660,49 +565,31 @@
 const SITE_DATA = {
   all: {
     kpi: [
-      { label: 'Total Samples',         value: '312',   sub: '↑ 18 this week',        alert: false },
-      { label: 'Total Organisms',       value: '4,820', sub: '↑ 240 this week',       alert: false },
+      { label: 'Total Collection Lots', value: '312',   sub: '↑ 18 this week',        alert: false },
+      { label: 'Total Specimens',       value: '4,820', sub: '↑ 240 this week',       alert: false },
       { label: 'Active Sites',          value: '5',     sub: 'of 7 reporting',        alert: false, neutral: true },
       { label: 'Highest MIR (W16)',     value: '12.4',  sub: 'BPP-01 · Ae. aegypti', alert: true  },
     ],
-    // V-04 v1.3 — two metrics, both per-thousand-organisms.
-    // observed = exact descendant positive count when deconvolution is COMPLETE; classical fallback otherwise (1 per positive pool).
-    // classic  = (positive pools / total organisms) × 1000 — every positive pool counted as 1.
-    mirObserved: [
-      { species: 'Ae. aegypti',          vals: [2.1, 4.8, 9.6, 14.2] },
-      { species: 'Cx. quinquefasciatus', vals: [0,   1.2, 2.0,  3.1] },
-      { species: 'An. barbirostris',     vals: [0,   0,   0.8,  1.5] },
-    ],
-    mirClassic: [
+    mir: [
       { species: 'Ae. aegypti',          vals: [2.1, 4.8, 8.3, 12.4] },
       { species: 'Cx. quinquefasciatus', vals: [0,   1.2, 2.0,  3.1] },
       { species: 'An. barbirostris',     vals: [0,   0,   0.8,  1.5] },
     ],
-    positiveResolutionPct: 67,  // % of positive pools deconvoluted in this period
   },
   'BPP-01': {
     kpi: [
-      { label: 'Total Samples',         value: '87',    sub: '↑ 6 this week',          alert: false },
-      { label: 'Total Organisms',       value: '1,340', sub: '↑ 80 this week',         alert: false },
+      { label: 'Total Collection Lots', value: '87',    sub: '↑ 6 this week',          alert: false },
+      { label: 'Total Specimens',       value: '1,340', sub: '↑ 80 this week',         alert: false },
       { label: 'Active Sites',          value: '1',     sub: 'Bojongsoang',            alert: false, neutral: true },
       { label: 'Highest MIR (W16)',     value: '12.4',  sub: 'Ae. aegypti · NS1',      alert: true  },
     ],
-    mirObserved: [
-      { species: 'Ae. aegypti',          vals: [3.1, 6.2, 11.4, 14.2] },
-      { species: 'Cx. quinquefasciatus', vals: [0,   0.8,  1.2,  2.0] },
-      { species: 'An. barbirostris',     vals: [0,   0,    0,    0.5] },
-    ],
-    mirClassic: [
+    mir: [
       { species: 'Ae. aegypti',          vals: [3.1, 6.2,  9.8, 12.4] },
       { species: 'Cx. quinquefasciatus', vals: [0,   0.8,  1.2,  2.0] },
       { species: 'An. barbirostris',     vals: [0,   0,    0,    0.5] },
     ],
-    positiveResolutionPct: 80,
   },
 };
-
-// Active metric mode for the heatmap toggle (FR Item 5 / Dashboard #4)
-let mirMode = 'observed';  // 'observed' | 'classic'
 
 function getD(site) { return SITE_DATA[site] || SITE_DATA['all']; }
 
@@ -722,15 +609,10 @@ function renderKPI(site) {
 function renderMIR(site) {
   const d = getD(site);
   const weeks = ['W13','W14','W15','W16'];
-  // Active series depending on toggle (V-04 v1.3 / Dashboard #4)
-  const activeRows  = mirMode === 'classic' ? d.mirClassic : d.mirObserved;
-  const compareRows = mirMode === 'classic' ? d.mirObserved : d.mirClassic;
-
   let html = `<thead><tr><th>Species / Panel</th>${weeks.map(w=>`<th>${w}</th>`).join('')}</tr></thead><tbody>`;
-  activeRows.forEach((row, ri) => {
+  d.mir.forEach(row => {
     html += `<tr><td>${row.species}</td>`;
-    row.vals.forEach((v, ci) => {
-      const compareV = compareRows[ri].vals[ci];
+    row.vals.forEach(v => {
       const intensity = Math.min(v / 15, 1);
       let bg, color;
       if (v === 0) {
@@ -740,52 +622,12 @@ function renderMIR(site) {
       } else {
         bg = `rgba(218,30,40,${(0.3 + intensity * 0.7).toFixed(2)})`; color = v > 8 ? '#fff' : '#161616';
       }
-      // Tooltip shows BOTH metrics + resolution % per Item 5 acceptance criteria
-      const tooltip = mirMode === 'classic'
-        ? `Classical: ${v}\nObserved: ${compareV}\nResolution: ${d.positiveResolutionPct}%`
-        : `Observed: ${v}\nClassical: ${compareV}\nResolution: ${d.positiveResolutionPct}%`;
-      html += `<td style="background:${bg};color:${color};font-weight:600" title="${tooltip}">${v || '—'}</td>`;
+      html += `<td style="background:${bg};color:${color};font-weight:600">${v || '—'}</td>`;
     });
     html += `</tr>`;
   });
   html += `</tbody>`;
   document.getElementById('mir-table').innerHTML = html;
-
-  // Toggle the partial-resolution warning glyph based on resolution %
-  const warn = document.getElementById('mir-resolution-warning');
-  if (warn) {
-    if (d.positiveResolutionPct < 100) {
-      warn.style.display = 'flex';
-      warn.querySelector('span:last-child').textContent =
-        `Partial resolution: ${d.positiveResolutionPct}% of positive pools deconvoluted this period. ` +
-        `${mirMode === 'observed' ? 'Observed metric uses classical fallback for the remainder.' : 'Switch to Observed for exact counts where resolved.'}`;
-    } else {
-      warn.style.display = 'none';
-    }
-  }
-}
-
-function setMirMode(mode) {
-  mirMode = mode;
-  const obsTab = document.getElementById('mir-tab-observed');
-  const claTab = document.getElementById('mir-tab-classic');
-  if (obsTab && claTab) {
-    const activeStyle = 'padding:6px 10px;background:#161616;color:#fff;border:none;cursor:pointer;';
-    const inactiveStyle = 'padding:6px 10px;background:#fff;color:#161616;border:none;cursor:pointer;';
-    if (mode === 'observed') {
-      obsTab.setAttribute('style', activeStyle);
-      claTab.setAttribute('style', inactiveStyle + 'border-left:1px solid #c6c6c6;');
-      obsTab.setAttribute('aria-selected', 'true');
-      claTab.setAttribute('aria-selected', 'false');
-    } else {
-      obsTab.setAttribute('style', inactiveStyle);
-      claTab.setAttribute('style', activeStyle + 'border-left:1px solid #c6c6c6;');
-      obsTab.setAttribute('aria-selected', 'false');
-      claTab.setAttribute('aria-selected', 'true');
-    }
-  }
-  const site = document.getElementById('site-select').value;
-  renderMIR(site);
 }
 
 function updateMeta() {
@@ -855,23 +697,10 @@ function navAlert(msg) {
 
 // ═══ INIT ════════════════════════════════════
 
-// Wire up MIR metric toggle (Dashboard #4 ContentSwitcher)
-document.addEventListener('DOMContentLoaded', () => {
-  const obsTab = document.getElementById('mir-tab-observed');
-  const claTab = document.getElementById('mir-tab-classic');
-  if (obsTab) obsTab.addEventListener('click', () => setMirMode('observed'));
-  if (claTab) claTab.addEventListener('click', () => setMirMode('classic'));
-});
-
 setState('loading');
 setTimeout(() => {
   renderKPI('all'); renderMIR('all'); updateMeta();
   setState('connected');
-  // Also wire up tabs in case DOMContentLoaded already fired
-  const obsTab = document.getElementById('mir-tab-observed');
-  const claTab = document.getElementById('mir-tab-classic');
-  if (obsTab && !obsTab._wired) { obsTab._wired = true; obsTab.addEventListener('click', () => setMirMode('observed')); }
-  if (claTab && !claTab._wired) { claTab._wired = true; claTab.addEventListener('click', () => setMirMode('classic')); }
 }, 1200);
 </script>
 </body>
