@@ -833,6 +833,54 @@
   links: {}
   added: "2026-03-18"
 
+- id: patient-report-redesign-spec
+  type: spec
+  path: designs/reports/patient-report-redesign.md
+  category: results-validation
+  description: >
+    Patient Report visual redesign spec — Carbon-aligned layout, accreditation logo, digital
+    signature block, reference range display, result interpretation flagging. Ships two JRXML
+    templates: patient_letter.jrxml (US Letter) and patient_a4.jrxml (A4), selected via Admin →
+    General Configuration → Printed Reports Configuration. Includes Jasper coordinate-level
+    implementation notes.
+  paired_with: patient-report-redesign-preview
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/102
+  tags:
+    - reports
+    - patient-report
+    - jasper
+    - jrxml
+    - iso-15189
+    - A4
+    - letter
+  added: "2026-04-24"
+  updated: "2026-04-27"
+
+- id: patient-report-redesign-preview
+  type: mockup
+  path: designs/reports/patient-report-redesign.html
+  category: results-validation
+  description: >
+    HTML preview of the patient report redesign — renders at US Letter and A4 dimensions with
+    a paper-size toggle in the banner. No build step required; open in any browser.
+  paired_with: patient-report-redesign-spec
+  links: {}
+  added: "2026-04-24"
+  updated: "2026-04-27"
+
+- id: patient-report-letter-jrxml
+  type: reference-data
+  path: designs/reports/patient_letter.jrxml
+  category: results-validation
+  description: >
+    JasperReports JRXML template for the patient report (US Letter, 8.5×11 in). Ready-to-use
+    implementation file — rename to patient_letter.jrxml in OpenELIS-Global-2
+    src/main/resources/reports/. Companion A4 template (patient_a4.jrxml) ships separately.
+  paired_with: patient-report-redesign-spec
+  links: {}
+  added: "2026-04-27"
+
 # ─── RBAC (Role-Based Access Control) ─────────────────────────
 
 - id: rbac-ui-mockup

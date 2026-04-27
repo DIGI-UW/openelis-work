@@ -133,7 +133,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Feature | Mockup | Spec |
 |---------|--------|------|
 | Patient Report Print Queue | [patient-report-print-queue.jsx](designs/reports/patient-report-print-queue.jsx) | [patient-report-print-queue.md](designs/reports/patient-report-print-queue.md) |
-| Patient Report Redesign | [preview](designs/reports/patient-report-redesign.html) | [patient-report-redesign.md](designs/reports/patient-report-redesign.md) |
+| Patient Report Redesign | [preview](designs/reports/patient-report-redesign.html) · [patient_letter.jrxml](designs/reports/patient_letter.jrxml) | [patient-report-redesign.md](designs/reports/patient-report-redesign.md) |
 | Positivity Rate Report | [positivity-rate.jsx](designs/reports/positivity-rate.jsx) | [positivity-rate.md](designs/reports/positivity-rate.md) |
 | Disease Surveillance Dashboard | [disease-surveillance-dashboard.jsx](designs/reports/disease-surveillance-dashboard.jsx) | [disease-surveillance-dashboard.md](designs/reports/disease-surveillance-dashboard.md) |
 | Custom Data Export | [custom-data-export.jsx](designs/reports/custom-data-export.jsx) | [custom-data-export.md](designs/reports/custom-data-export.md) |
