@@ -1195,11 +1195,26 @@
   type: spec
   path: designs/quality/batch-workplan-reagent-qc.md
   category: quality
-  description: Batch Workplan with Reagent QC Integration FRS v1.0
+  description: >
+    Batch Workplan with Reagent QC Integration FRS v1.1. Aligns with merged Westgard QC engine
+    (OGC-41, PR #3390): QC inline entry fires QCResultCreatedEvent → async Westgard evaluator;
+    QC frequency moved from Reagent to QCControlLot; QcRun entity removed (uses QCResult);
+    PER_SHIFT frequency added; NCE override links to QCResult + QCRuleViolation audit trail.
   paired_with: batch-workplan-reagent-qc
   links:
     jira: [OGC-427]
   added: "2026-03-16"
+  updated: "2026-04-27"
+
+- id: batch-workplan-reagent-qc-changelog
+  type: spec
+  path: designs/quality/batch-workplan-reagent-qc-CHANGELOG-v1-to-v1.1.md
+  category: quality
+  description: Section-by-section diff and rationale for the v1.0 → v1.1 revision of the Batch Workplan with Reagent QC FRS
+  paired_with: batch-workplan-reagent-qc-spec
+  links:
+    jira: [OGC-427]
+  added: "2026-04-27"
 
 - id: analyzer-manual-qc
   type: mockup
