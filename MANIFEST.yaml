@@ -160,21 +160,33 @@
 - id: test-catalog
   type: mockup
   path: designs/admin-config/test-catalog.jsx
+  preview: designs/admin-config/test-catalog.html
   category: admin-config
-  description: Comprehensive test catalog management
+  description: >
+    Test Catalog admin editor v2.3 — 14-section routed editor covering identity, result types,
+    ranges, sample storage, panels, analyzers, alerts, AMR mapping, regulatory compliance
+    thresholds, LOINC/SNOMED/CIEL/OCL terminology, and order entry configuration. Replaces
+    five separate admin pages (Test, Section, Panel, Method, Reagent). v2.3 adds Terminology
+    Mappings section, Sample & Results Configuration, click-to-open row interaction, 226 i18n keys.
   paired_with: test-catalog-spec
-  links: {}
+  links:
+    jira: ["OGC-173"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog
   added: "2026-03-03"
+  updated: "2026-04-27"
+  status: draft
 
 - id: test-catalog-spec
   type: spec
   path: designs/admin-config/test-catalog.md
   category: admin-config
-  description: Test catalog FRS
+  description: Test Catalog Management FRS v2.3 — JSX-FRS reconciliation pass with 226 i18n keys, Terminology Mappings, Sample & Results Configuration, and Alert Rules taxonomy reconciliation
   paired_with: test-catalog
   links:
     jira: ["OGC-173"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog
   added: "2026-03-03"
+  updated: "2026-04-27"
 
 # ─── Analyzer Integration ───────────────────────────────────
 
@@ -1377,10 +1389,26 @@
   spec: designs/system/fhir-outbound-push.md
   category: system
   description: Event-driven FHIR R4 outbound push to national hub — bundle assembly, retry queue, delivery log, and admin config for endpoint/auth/per-resource toggles
+  related: [fhir-publication-settings]
   links:
     github: https://github.com/DIGI-UW/openelis-work/issues/62
     gallery: https://digi-uw.github.io/openelis-work/#/system/fhir-outbound-push
   added: "2026-03-24"
+
+- id: fhir-publication-settings
+  type: mockup
+  path: designs/system/fhir-publication-settings.jsx
+  category: system
+  description: >
+    Admin configuration page for FHIR R4 outbound publication — endpoint URL, per-resource
+    toggles (DiagnosticReport, Observation, ServiceRequest, Device, Organization), auth modes
+    (API key, OAuth 2.0, Basic auth, Private Key JWT with public key upload), DHIS2 push URL,
+    and live connection test. Companion admin UI for the FHIR Outbound Push pipeline (OGC-446).
+  related: [fhir-outbound-push]
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/system/fhir-publication-settings
+  added: "2026-04-27"
+  status: draft
 
 - id: storage-disposition-fhir
   type: both
@@ -1872,6 +1900,21 @@
     - QC
     - infection-rate
   added: "2026-04-20"
+  updated: "2026-04-27"
+  status: draft
+
+- id: vector-surveillance-reporting-fhir-considerations
+  type: spec
+  path: designs/vector-surveillance/vector-surveillance-reporting-fhir-considerations.md
+  category: vector-surveillance
+  description: >
+    V-04 FHIR architecture considerations — FHIR R4 coverage assessment for vector surveillance
+    data, extension design aligned with WHO Vector Surveillance DAK/FHIR IG, CodeSystem URI
+    namespacing under openelis-global.org/fhir/, and implementation guidance for Piotr's review.
+  related: [vector-surveillance-reporting]
+  links:
+    jira: ["OGC-527"]
+  added: "2026-04-27"
   status: draft
 
 - id: lh-delivery-sent-messages
@@ -2117,6 +2160,7 @@
     - crosswalk
     - planning
   added: "2026-04-24"
+  updated: "2026-04-27"
   status: draft
 
 - id: eqa-v2-ept-platform-crosswalk
