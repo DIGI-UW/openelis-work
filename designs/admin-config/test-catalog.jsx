@@ -13,10 +13,11 @@ import {
 import {
   Add, Edit, TrashCan, ChevronDown, ChevronUp, Information, Renew,
   Download, Upload, Save, Draggable, Search as SearchIcon, Catalog,
-  Settings, NotificationFilled, Email, Phone, Thermometer, Snowflake, Beaker,
-  Activity, FlowConnection, ChartLine, Printer, Cpu, FlaskConical,
+  Settings, NotificationFilled, Email, Phone, Snowflake,
+  Activity, FlowConnection, ChartLine, Printer,
   CheckmarkOutline, WarningAlt, Filter, Locked, Unlocked, Close, Copy,
 } from '@carbon/icons-react';
+import { FlaskConical, Cpu } from 'lucide-react';
 
 // ==================== I18N HELPER ====================
 const t = (key, fallback) => fallback || key;
