@@ -591,7 +591,7 @@ export const MOCKUP_REGISTRY = [
     tags: ['quality', 'Westgard', 'QC-rules', 'IQC', 'dashboard'],
   },
   {
-    name: 'Batch Workplan with Reagent QC',
+    name: 'Batch Workplan Reagent QC',
     category: 'quality',
     component: React.lazy(() => import('@designs/quality/batch-workplan-reagent-qc.jsx')),
     description: 'Unified batch workplan with reagent lot assignment, QC verification, and automatic NCE generation on override. v1.1: aligns with merged Westgard QC engine (OGC-41, PR #3390) — QC inline entry fires QCResultCreatedEvent → existing async Westgard evaluator; QC frequency moved from Reagent to QCControlLot; new QcRun entity removed (uses existing QCResult); PER_SHIFT frequency added; NCE override links to specific QCResult + QCRuleViolation.',
@@ -613,7 +613,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-16',
     status: 'approved',
     githubIssue: 53,
-    relatedTo: ['Batch Workplan with Reagent QC'],
+    relatedTo: ['Batch Workplan Reagent QC'],
     tags: ['quality', 'QC', 'analyzer', 'manual-entry'],
   },
   {
