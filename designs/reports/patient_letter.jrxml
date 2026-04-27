@@ -1,0 +1,829 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ============================================================
+  OpenELIS Global — Patient Report (US Letter)
+  ============================================================
+  Redesigned 2026-04 by Casey Iiams-Hauser.
+  Applies Style Guide v1 tokens (IBM Plex Sans / Helvetica fallback,
+  navy #295785, red #da1e28, Carbon neutrals).
+
+  Page size: US Letter 612 x 792 pts, 30 L/R margins, columnWidth 552.
+  Sister template for A4: patient_a4.jrxml (595 x 842 pts).
+
+  Template selection: controlled by site-configuration key
+  "report.page.size" (values: "letter" | "a4"). See the
+  ReportTemplateResolver snippet in patient-report-redesign-spec.md.
+
+  Preserves all 38 fields and 15 parameters from the original
+  patient.jrxml. No backend contract changes.
+  ============================================================
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="PatientReport"
+              pageWidth="612" pageHeight="792"
+              whenNoDataType="AllSectionsNoDetail"
+              columnWidth="552"
+              leftMargin="30" rightMargin="30"
+              topMargin="20" bottomMargin="20"
+              resourceBundle="MessageResources"
+              whenResourceMissingType="Empty">
+
+  <property name="ireport.encoding" value="UTF-8"/>
+  <property name="ireport.scriptlethandling" value="0"/>
+
+  <import value="net.sf.jasperreports.engine.*"/>
+  <import value="java.util.*"/>
+  <import value="net.sf.jasperreports.engine.data.*"/>
+
+  <!-- ============================================================
+       STYLE BLOCK — Style Guide v1 tokens
+       To use IBM Plex Sans in the PDF, install a Jasper font extension
+       for Plex Sans and change pdfFontName + fontName across styles.
+       Default falls back to Helvetica (built-in AFM, no install).
+       ============================================================ -->
+  <style name="FacilityMeta" fontName="SansSerif" fontSize="9" forecolor="#525252" pdfFontName="Helvetica"/>
+  <style name="PageTitle" fontName="SansSerif" fontSize="14" isBold="true" forecolor="#161616" pdfFontName="Helvetica-Bold"/>
+  <style name="CorrectedBanner" fontName="SansSerif" fontSize="11" isBold="true" forecolor="#FFFFFF" backcolor="#b38600" mode="Opaque" pdfFontName="Helvetica-Bold"/>
+  <style name="BlockLabel" fontName="SansSerif" fontSize="7" isBold="true" forecolor="#525252" pdfFontName="Helvetica-Bold"/>
+  <style name="PatientName" fontName="SansSerif" fontSize="11" isBold="true" forecolor="#161616" pdfFontName="Helvetica-Bold"/>
+  <style name="FieldLabel" fontName="SansSerif" fontSize="8" forecolor="#525252" pdfFontName="Helvetica"/>
+  <style name="FieldValue" fontName="SansSerif" fontSize="8" forecolor="#161616" pdfFontName="Helvetica"/>
+  <style name="FieldValueBold" fontName="SansSerif" fontSize="8" isBold="true" forecolor="#161616" pdfFontName="Helvetica-Bold"/>
+  <style name="FieldValueCode" fontName="Monospaced" fontSize="8" forecolor="#161616" pdfFontName="Courier"/>
+  <style name="SectionTitle" fontName="SansSerif" fontSize="9" isBold="true" forecolor="#295785" pdfFontName="Helvetica-Bold"/>
+  <style name="SectionAnnotation" fontName="SansSerif" fontSize="8" isItalic="true" forecolor="#6f6f6f" pdfFontName="Helvetica-Oblique"/>
+  <style name="ColHeader" fontName="SansSerif" fontSize="7" isBold="true" forecolor="#525252" pdfFontName="Helvetica-Bold"/>
+  <style name="ResultValue" fontName="SansSerif" fontSize="9" forecolor="#161616" pdfFontName="Helvetica"/>
+  <style name="ResultValueAbnormal" fontName="SansSerif" fontSize="9" isBold="true" forecolor="#da1e28" pdfFontName="Helvetica-Bold"/>
+  <style name="ResultMeta" fontName="SansSerif" fontSize="9" forecolor="#525252" pdfFontName="Helvetica"/>
+  <style name="NoteRow" fontName="SansSerif" fontSize="8" isItalic="true" forecolor="#525252" pdfFontName="Helvetica-Oblique"/>
+  <style name="Legend" fontName="SansSerif" fontSize="7" forecolor="#525252" pdfFontName="Helvetica"/>
+  <style name="PageFooterText" fontName="SansSerif" fontSize="7" forecolor="#6f6f6f" pdfFontName="Helvetica"/>
+  <style name="StripText" fontName="SansSerif" fontSize="8" forecolor="#525252" pdfFontName="Helvetica"/>
+
+  <!-- Row-level conditional style: applied to the detail-row frame -->
+  <style name="ResultRow" mode="Transparent" fontName="SansSerif" fontSize="9" forecolor="#161616">
+    <conditionalStyle>
+      <conditionExpression><![CDATA[$F{abnormalResult} != null && $F{abnormalResult}.booleanValue() && "L".equals($F{alerts})]]></conditionExpression>
+      <style mode="Opaque" backcolor="#f0f6ff"/>
+    </conditionalStyle>
+    <conditionalStyle>
+      <conditionExpression><![CDATA[$F{abnormalResult} != null && $F{abnormalResult}.booleanValue()]]></conditionExpression>
+      <style mode="Opaque" backcolor="#fff1f1"/>
+    </conditionalStyle>
+    <conditionalStyle>
+      <conditionExpression><![CDATA[$F{parentMarker} != null && $F{parentMarker}.booleanValue()]]></conditionExpression>
+      <style mode="Opaque" backcolor="#f4f4f4"/>
+    </conditionalStyle>
+  </style>
+
+  <!-- ============================================================
+       PARAMETERS (unchanged from original patient.jrxml)
+       ============================================================ -->
+  <parameter name="SUBREPORT_DIR" class="java.lang.String">
+    <defaultValueExpression><![CDATA["../reports/"]]></defaultValueExpression>
+  </parameter>
+  <parameter name="siteId" class="java.lang.String" isForPrompting="false">
+    <defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+  </parameter>
+  <parameter name="siteName" class="java.lang.String" isForPrompting="false"/>
+  <parameter name="directorName" class="java.lang.String"/>
+  <parameter name="headerName" class="java.lang.String" isForPrompting="false">
+    <defaultValueExpression><![CDATA["GeneralHeader.jasper"]]></defaultValueExpression>
+  </parameter>
+  <parameter name="usePageNumbers" class="java.lang.String" isForPrompting="false">
+    <defaultValueExpression><![CDATA["true"]]></defaultValueExpression>
+  </parameter>
+  <parameter name="additionalSiteInfo" class="java.lang.String" isForPrompting="false"/>
+  <parameter name="useSTNumber" class="java.lang.Boolean" isForPrompting="false">
+    <defaultValueExpression><![CDATA[Boolean.TRUE]]></defaultValueExpression>
+  </parameter>
+  <parameter name="correctedReport" class="java.lang.Boolean" isForPrompting="false">
+    <defaultValueExpression><![CDATA[true]]></defaultValueExpression>
+  </parameter>
+  <parameter name="billingNumberLabel" class="java.lang.String" isForPrompting="false"/>
+  <parameter name="footerName" class="java.lang.String" isForPrompting="false">
+    <defaultValueExpression><![CDATA["CILNSPFooter.jasper"]]></defaultValueExpression>
+  </parameter>
+  <parameter name="leftHeaderImage" class="java.io.InputStream" isForPrompting="false"/>
+  <parameter name="rightHeaderImage" class="java.io.InputStream" isForPrompting="false"/>
+  <parameter name="localization" class="java.util.Map" isForPrompting="false"/>
+  <parameter name="imagesPath" class="java.lang.String"/>
+
+  <queryString><![CDATA[]]></queryString>
+
+  <!-- ============================================================
+       FIELDS (all 38 preserved from original patient.jrxml)
+       ============================================================ -->
+  <field name="nationalId" class="java.lang.String"/>
+  <field name="gender" class="java.lang.String"/>
+  <field name="stNumber" class="java.lang.String"/>
+  <field name="testName" class="java.lang.String"/>
+  <field name="result" class="java.lang.String"/>
+  <field name="accessionNumber" class="java.lang.String"/>
+  <field name="recievedDate" class="java.lang.String"/>
+  <field name="conclusion" class="java.lang.String"/>
+  <field name="contactInfo" class="java.lang.String"/>
+  <field name="siteInfo" class="java.lang.String"/>
+  <field name="uom" class="java.lang.String"/>
+  <field name="note" class="java.lang.String"/>
+  <field name="age" class="java.lang.String"/>
+  <field name="testSection" class="java.lang.String"/>
+  <field name="testRefRange" class="java.lang.String"/>
+  <field name="dept" class="java.lang.String"/>
+  <field name="commune" class="java.lang.String"/>
+  <field name="completeFlag" class="java.lang.String"/>
+  <field name="panelName" class="java.lang.String"/>
+  <field name="separator" class="java.lang.Boolean"/>
+  <field name="orderFinishDate" class="java.lang.String"/>
+  <field name="orderDate" class="java.lang.String"/>
+  <field name="patientSiteNumber" class="java.lang.String"/>
+  <field name="patientName" class="java.lang.String"/>
+  <field name="abnormalResult" class="java.lang.Boolean"/>
+  <field name="collectionDateTime" class="java.lang.String"/>
+  <field name="correctedResult" class="java.lang.Boolean"/>
+  <field name="parentMarker" class="java.lang.Boolean"/>
+  <field name="alerts" class="java.lang.String"/>
+  <field name="subjectNumber" class="java.lang.String"/>
+  <field name="billingNumber" class="java.lang.String"/>
+  <field name="healthRegion" class="java.lang.String"/>
+  <field name="healthDistrict" class="java.lang.String"/>
+  <field name="sampleId" class="java.lang.String"/>
+  <field name="sampleType" class="java.lang.String"/>
+  <field name="analysisStatus" class="java.lang.String"/>
+  <field name="labOrderType" class="java.lang.String"/>
+  <field name="sampleSortOrder" class="java.lang.String"/>
+
+  <!-- ============================================================
+       GROUPS: person → Accession Number → section name
+       ============================================================ -->
+  <group name="person" isStartNewPage="true" isResetPageNumber="true" footerPosition="ForceAtBottom">
+    <groupExpression><![CDATA[$F{subjectNumber}]]></groupExpression>
+    <groupFooter>
+      <band height="92">
+        <!-- Top double rule -->
+        <line>
+          <reportElement x="0" y="0" width="552" height="1" forecolor="#161616"/>
+          <graphicElement><pen lineWidth="1.5"/></graphicElement>
+        </line>
+        <!-- Left cell: Laboratory information -->
+        <textField>
+          <reportElement x="10" y="6" width="310" height="10" style="BlockLabel"/>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("labInfomation") : ""]]></textFieldExpression>
+        </textField>
+        <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+          <reportElement x="10" y="18" width="310" height="70" style="FieldValue"/>
+          <textFieldExpression class="java.lang.String"><![CDATA[($P{siteName} != null ? $P{siteName} : "") + "\n" + ($P{additionalSiteInfo} != null ? $P{additionalSiteInfo} : "")]]></textFieldExpression>
+        </textField>
+        <!-- Vertical cell divider -->
+        <line>
+          <reportElement x="332" y="4" width="1" height="84" forecolor="#c6c6c6"/>
+        </line>
+        <!-- Right cell: Verified by / signature -->
+        <textField>
+          <reportElement x="342" y="6" width="200" height="10" style="BlockLabel"/>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("signValidation") : ""]]></textFieldExpression>
+        </textField>
+        <image onErrorType="Blank">
+          <reportElement x="342" y="22" width="200" height="40" isPrintInFirstWholeBand="true"/>
+          <imageExpression class="java.lang.String"><![CDATA[$P{imagesPath} + "RTSign.jpg"]]></imageExpression>
+        </image>
+        <line>
+          <reportElement x="342" y="64" width="200" height="1" forecolor="#161616"/>
+        </line>
+        <textField isBlankWhenNull="true">
+          <reportElement x="342" y="66" width="130" height="14" style="FieldValueBold"/>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{directorName}]]></textFieldExpression>
+        </textField>
+        <textField pattern="dd MMM yyyy">
+          <reportElement x="472" y="66" width="70" height="14" style="FieldValue"/>
+          <textElement textAlignment="Right"/>
+          <textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+        </textField>
+      </band>
+    </groupFooter>
+  </group>
+
+  <group name="Accession Number" isStartNewPage="true" isResetPageNumber="true" isReprintHeaderOnEachPage="true">
+    <groupExpression><![CDATA[$F{accessionNumber}]]></groupExpression>
+    <groupHeader>
+      <band height="132" splitType="Prevent">
+
+        <!-- ======================================================
+             CONTINUATION STRIP (PAGE_NUMBER > 1)
+             22pt at top; full card below is suppressed via printWhen.
+             ====================================================== -->
+        <rectangle>
+          <reportElement x="0" y="0" width="3" height="22" backcolor="#295785" mode="Opaque">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() > 1]]></printWhenExpression>
+          </reportElement>
+          <graphicElement><pen lineWidth="0"/></graphicElement>
+        </rectangle>
+        <rectangle>
+          <reportElement x="3" y="0" width="549" height="22" backcolor="#f4f4f4" mode="Opaque">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() > 1]]></printWhenExpression>
+          </reportElement>
+          <graphicElement><pen lineWidth="0"/></graphicElement>
+        </rectangle>
+        <textField isBlankWhenNull="true">
+          <reportElement x="10" y="3" width="220" height="16" style="StripText">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() > 1]]></printWhenExpression>
+          </reportElement>
+          <textElement><font size="8" isBold="true"/></textElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{patientName} + " · " + ($F{age} != null ? $F{age} : "-") + " · " + ($F{gender} != null ? $F{gender} : "-")]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="240" y="3" width="120" height="16" style="StripText">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() > 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[($P{localization} != null ? (String) $P{localization}.get("patientCode") : "") + " " + $F{subjectNumber}]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="370" y="3" width="120" height="16" style="StripText">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() > 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[($P{localization} != null ? (String) $P{localization}.get("ordinanceNo") : "") + " " + $F{accessionNumber}]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="490" y="3" width="62" height="16" style="StripText">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() > 1]]></printWhenExpression>
+          </reportElement>
+          <textElement textAlignment="Right"/>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{collectionDateTime}]]></textFieldExpression>
+        </textField>
+
+        <!-- ======================================================
+             FULL DEMOGRAPHIC CARD (PAGE_NUMBER == 1)
+             Left column: PATIENT. Right column: ORDER.
+             ====================================================== -->
+
+        <!-- ===== PATIENT block ===== -->
+        <textField>
+          <reportElement x="0" y="0" width="270" height="10" style="BlockLabel">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("patient") : "PATIENT"]]></textFieldExpression>
+        </textField>
+        <line>
+          <reportElement x="0" y="11" width="270" height="1" forecolor="#e0e0e0">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+        </line>
+        <textField isBlankWhenNull="true">
+          <reportElement x="0" y="14" width="180" height="14" style="PatientName">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{patientName}]]></textFieldExpression>
+        </textField>
+        <textField>
+          <reportElement x="180" y="15" width="90" height="13" style="FieldValue">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textElement textAlignment="Right"/>
+          <textFieldExpression class="java.lang.String"><![CDATA[($R{report.age} != null ? $R{report.age} : "Age") + " " + ($F{age} != null ? $F{age} : "-") + "   " + ($F{gender} != null ? $F{gender} : "-")]]></textFieldExpression>
+        </textField>
+
+        <!-- Patient code -->
+        <textField>
+          <reportElement x="0" y="32" width="80" height="12" style="FieldLabel">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("patientCode") : ""]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="80" y="32" width="190" height="12" style="FieldValueCode">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{subjectNumber}]]></textFieldExpression>
+        </textField>
+
+        <!-- National ID -->
+        <textField>
+          <reportElement x="0" y="46" width="80" height="12" style="FieldLabel">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("idNational") : ""]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="80" y="46" width="190" height="12" style="FieldValueCode">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{nationalId}]]></textFieldExpression>
+        </textField>
+
+        <!-- Contact -->
+        <textField>
+          <reportElement x="0" y="60" width="80" height="12" style="FieldLabel">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("contact") : "Contact"]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="80" y="60" width="190" height="12" style="FieldValue">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{contactInfo}]]></textFieldExpression>
+        </textField>
+
+        <!-- Billing # -->
+        <textField>
+          <reportElement x="0" y="74" width="80" height="12" style="FieldLabel">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1 && $P{billingNumberLabel} != null]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{billingNumberLabel}]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="80" y="74" width="190" height="12" style="FieldValueCode">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1 && $P{billingNumberLabel} != null]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{billingNumber}]]></textFieldExpression>
+        </textField>
+
+        <!-- ST Number (conditional on useSTNumber) -->
+        <textField>
+          <reportElement x="0" y="88" width="80" height="12" style="FieldLabel">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1 && $P{useSTNumber} != null && $P{useSTNumber}.booleanValue()]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("stNumber") : "ST"]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="80" y="88" width="190" height="12" style="FieldValueCode">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1 && $P{useSTNumber} != null && $P{useSTNumber}.booleanValue()]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{stNumber}]]></textFieldExpression>
+        </textField>
+
+        <!-- ===== ORDER block ===== -->
+        <textField>
+          <reportElement x="282" y="0" width="270" height="10" style="BlockLabel">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("order") : "ORDER"]]></textFieldExpression>
+        </textField>
+        <line>
+          <reportElement x="282" y="11" width="270" height="1" forecolor="#e0e0e0">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+        </line>
+
+        <!-- Accession # -->
+        <textField>
+          <reportElement x="282" y="14" width="90" height="12" style="FieldLabel">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("ordinanceNo") : ""]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="372" y="14" width="180" height="12" style="FieldValueCode">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textElement><font fontName="Monospaced" size="8" isBold="true"/></textElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{accessionNumber}]]></textFieldExpression>
+        </textField>
+
+        <!-- Program -->
+        <textField>
+          <reportElement x="282" y="28" width="90" height="12" style="FieldLabel">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("program") : ""]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="372" y="28" width="180" height="12" style="FieldValue">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{labOrderType}]]></textFieldExpression>
+        </textField>
+
+        <!-- Prescriber (re-uses contactInfo per current JRXML dual-use pattern) -->
+        <textField>
+          <reportElement x="282" y="42" width="90" height="12" style="FieldLabel">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("prescriber") : ""]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="372" y="42" width="180" height="12" style="FieldValue">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{contactInfo}]]></textFieldExpression>
+        </textField>
+
+        <!-- Referring site -->
+        <textField>
+          <reportElement x="282" y="56" width="90" height="12" style="FieldLabel">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("referringSite") : ""]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="372" y="56" width="180" height="12" style="FieldValue">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{siteInfo}]]></textFieldExpression>
+        </textField>
+
+        <!-- Order date -->
+        <textField>
+          <reportElement x="282" y="70" width="90" height="12" style="FieldLabel">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("orderDate") : ""]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="372" y="70" width="180" height="12" style="FieldValue">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{orderDate}]]></textFieldExpression>
+        </textField>
+
+        <!-- Received date -->
+        <textField>
+          <reportElement x="282" y="84" width="90" height="12" style="FieldLabel">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("receiptDate") : ""]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="372" y="84" width="180" height="12" style="FieldValue">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{recievedDate}]]></textFieldExpression>
+        </textField>
+
+        <!-- Collected -->
+        <textField>
+          <reportElement x="282" y="98" width="90" height="12" style="FieldLabel">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("specimenCollectTimes") : ""]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="372" y="98" width="180" height="12" style="FieldValue">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{collectionDateTime}]]></textFieldExpression>
+        </textField>
+
+        <!-- Sample ID (supplementary, only when populated and different from accession) -->
+        <textField>
+          <reportElement x="282" y="112" width="90" height="12" style="FieldLabel" isRemoveLineWhenBlank="true">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1 && $F{sampleId} != null && !$F{sampleId}.equals($F{accessionNumber})]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA["Sample ID"]]></textFieldExpression>
+        </textField>
+        <textField isBlankWhenNull="true">
+          <reportElement x="372" y="112" width="180" height="12" style="FieldValueCode" isRemoveLineWhenBlank="true">
+            <printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1 && $F{sampleId} != null && !$F{sampleId}.equals($F{accessionNumber})]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{sampleId}]]></textFieldExpression>
+        </textField>
+      </band>
+    </groupHeader>
+    <groupFooter>
+      <!-- Conclusion block, only when non-empty -->
+      <band height="44" splitType="Stretch">
+        <rectangle>
+          <reportElement x="0" y="12" width="3" height="30" backcolor="#295785" mode="Opaque" isRemoveLineWhenBlank="true">
+            <printWhenExpression><![CDATA[$F{conclusion} != null && $F{conclusion}.length() > 0]]></printWhenExpression>
+          </reportElement>
+          <graphicElement><pen lineWidth="0"/></graphicElement>
+        </rectangle>
+        <textField isRemoveLineWhenBlank="true">
+          <reportElement x="0" y="0" width="200" height="10" style="BlockLabel">
+            <printWhenExpression><![CDATA[$F{conclusion} != null && $F{conclusion}.length() > 0]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("clinicalConclusion") : "CLINICAL CONCLUSION"]]></textFieldExpression>
+        </textField>
+        <textField isStretchWithOverflow="true" isBlankWhenNull="true" isRemoveLineWhenBlank="true">
+          <reportElement x="10" y="12" width="542" height="30" style="FieldValue" markup="styled">
+            <printWhenExpression><![CDATA[$F{conclusion} != null && $F{conclusion}.length() > 0]]></printWhenExpression>
+          </reportElement>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{conclusion}]]></textFieldExpression>
+        </textField>
+      </band>
+    </groupFooter>
+  </group>
+
+  <group name="section name" isReprintHeaderOnEachPage="true">
+    <groupExpression><![CDATA[$F{testSection}]]></groupExpression>
+    <groupHeader>
+      <band height="34" splitType="Prevent">
+        <!-- Section title -->
+        <textField>
+          <reportElement x="0" y="0" width="400" height="14" style="SectionTitle"/>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{testSection} != null ? $F{testSection}.toUpperCase() : ""]]></textFieldExpression>
+        </textField>
+        <!-- Sample type annotation right-aligned -->
+        <textField isBlankWhenNull="true">
+          <reportElement x="350" y="0" width="202" height="14" style="SectionAnnotation"/>
+          <textElement textAlignment="Right"/>
+          <textFieldExpression class="java.lang.String"><![CDATA[$F{sampleType} != null ? "· " + $F{sampleType} : ""]]></textFieldExpression>
+        </textField>
+        <!-- Underline rule -->
+        <line>
+          <reportElement x="0" y="16" width="552" height="1" forecolor="#161616"/>
+          <graphicElement><pen lineWidth="1.0"/></graphicElement>
+        </line>
+        <!-- Column headers -->
+        <textField>
+          <reportElement x="0" y="18" width="220" height="12" style="ColHeader"/>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("test") : "TEST"]]></textFieldExpression>
+        </textField>
+        <textField>
+          <reportElement x="224" y="18" width="40" height="12" style="ColHeader"/>
+          <textElement textAlignment="Center"/>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("specimen") : "SPEC"]]></textFieldExpression>
+        </textField>
+        <textField>
+          <reportElement x="268" y="18" width="90" height="12" style="ColHeader"/>
+          <textElement textAlignment="Right"/>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("outcome") : "RESULT"]]></textFieldExpression>
+        </textField>
+        <textField>
+          <reportElement x="362" y="18" width="100" height="12" style="ColHeader"/>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("referenceValue") : "REF RANGE"]]></textFieldExpression>
+        </textField>
+        <textField>
+          <reportElement x="466" y="18" width="54" height="12" style="ColHeader"/>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("unit") : "UNIT"]]></textFieldExpression>
+        </textField>
+        <textField>
+          <reportElement x="524" y="18" width="28" height="12" style="ColHeader"/>
+          <textElement textAlignment="Center"/>
+          <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? (String) $P{localization}.get("alert") : "FLAG"]]></textFieldExpression>
+        </textField>
+        <!-- Header-to-detail divider -->
+        <line>
+          <reportElement x="0" y="32" width="552" height="1" forecolor="#c6c6c6"/>
+        </line>
+      </band>
+    </groupHeader>
+    <groupFooter>
+      <band/>
+    </groupFooter>
+  </group>
+
+  <background>
+    <band splitType="Stretch"/>
+  </background>
+
+  <!-- ============================================================
+       TITLE (empty — removed the rogue 2pt line from original)
+       ============================================================ -->
+  <title>
+    <band height="0"/>
+  </title>
+
+  <!-- ============================================================
+       PAGE HEADER — Facility subreport + corrected banner + status chip
+       Rendered on every page via subreport; corrected + status only on page 1.
+       ============================================================ -->
+  <pageHeader>
+    <band height="128" splitType="Stretch">
+      <!-- Subreport: facility header (logos, name, address) -->
+      <subreport>
+        <reportElement x="0" y="0" width="552" height="94" printWhenGroupChanges="person"/>
+        <subreportParameter name="labName2"><subreportParameterExpression><![CDATA[$P{additionalSiteInfo}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="useSTNumber"><subreportParameterExpression><![CDATA[$P{useSTNumber}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="labName1"><subreportParameterExpression><![CDATA[$P{siteName}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="localization"><subreportParameterExpression><![CDATA[$P{localization}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="billingNumberLabel"><subreportParameterExpression><![CDATA[$P{billingNumberLabel}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="reportTitle"><subreportParameterExpression><![CDATA[$P{localization} != null ? (String) $P{localization}.get("analysisReport") : "Laboratory Analysis Report"]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="rightHeaderImage"><subreportParameterExpression><![CDATA[$P{rightHeaderImage}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="footerName"><subreportParameterExpression><![CDATA[$P{footerName}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="imagesPath"><subreportParameterExpression><![CDATA[$P{imagesPath}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="completeFlag"><subreportParameterExpression><![CDATA[$F{completeFlag}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="headerName"><subreportParameterExpression><![CDATA[$P{headerName}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="correctedReport"><subreportParameterExpression><![CDATA[$P{correctedReport}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="SUBREPORT_DIR"><subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="leftHeaderImage"><subreportParameterExpression><![CDATA[$P{leftHeaderImage}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="orderFinishDate"><subreportParameterExpression><![CDATA[$F{orderFinishDate}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="siteId"><subreportParameterExpression><![CDATA[$P{siteId}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="usePageNumbers"><subreportParameterExpression><![CDATA[$P{usePageNumbers}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="additionalSiteInfo"><subreportParameterExpression><![CDATA[$P{additionalSiteInfo}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="directorName"><subreportParameterExpression><![CDATA[$P{directorName}]]></subreportParameterExpression></subreportParameter>
+        <subreportParameter name="siteName"><subreportParameterExpression><![CDATA[$P{siteName}]]></subreportParameterExpression></subreportParameter>
+        <dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.JREmptyDataSource()]]></dataSourceExpression>
+        <subreportExpression class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + $P{headerName}]]></subreportExpression>
+      </subreport>
+
+      <!-- Corrected-report banner (only when correctedResult == true) -->
+      <textField isBlankWhenNull="true">
+        <reportElement x="0" y="96" width="552" height="18" style="CorrectedBanner">
+          <printWhenExpression><![CDATA[$F{correctedResult} != null && $F{correctedResult}.booleanValue()]]></printWhenExpression>
+        </reportElement>
+        <textElement textAlignment="Center" verticalAlignment="Middle"/>
+        <textFieldExpression class="java.lang.String"><![CDATA[$P{localization} != null ? ((String) $P{localization}.get("correctedReport")).toUpperCase() : "CORRECTED REPORT"]]></textFieldExpression>
+      </textField>
+
+      <!-- Status strip: completeness tag (left) + issued timestamp (right) -->
+      <textField>
+        <reportElement x="0" y="116" width="200" height="10" style="FacilityMeta"/>
+        <textElement><font size="7" isBold="true"/></textElement>
+        <textFieldExpression class="java.lang.String"><![CDATA[($R{report.results} != null ? $R{report.results} : "Report status: ") + ($F{completeFlag} != null ? $F{completeFlag} : "")]]></textFieldExpression>
+      </textField>
+      <textField pattern="dd MMM yyyy HH:mm">
+        <reportElement x="352" y="116" width="200" height="10" style="FacilityMeta"/>
+        <textElement textAlignment="Right"><font size="7"/></textElement>
+        <textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+      </textField>
+    </band>
+  </pageHeader>
+
+  <columnHeader>
+    <band splitType="Prevent"/>
+  </columnHeader>
+
+  <!-- ============================================================
+       DETAIL — result row (+ optional note row)
+       ============================================================ -->
+  <detail>
+    <!-- Main result row band (22pt) -->
+    <band height="22" splitType="Prevent">
+      <!-- Row background frame (conditional style handles tint) -->
+      <frame>
+        <reportElement x="0" y="0" width="552" height="22" style="ResultRow"/>
+        <box><pen lineWidth="0"/></box>
+      </frame>
+
+      <!-- Left-edge accent rectangles (only one prints per row, based on alerts value) -->
+      <rectangle>
+        <reportElement x="0" y="0" width="3" height="22" backcolor="#da1e28" mode="Opaque">
+          <printWhenExpression><![CDATA[$F{abnormalResult} != null && $F{abnormalResult}.booleanValue() && $F{alerts} != null && ("H".equals($F{alerts}) || "*".equals($F{alerts}))]]></printWhenExpression>
+        </reportElement>
+        <graphicElement><pen lineWidth="0"/></graphicElement>
+      </rectangle>
+      <rectangle>
+        <reportElement x="0" y="0" width="3" height="22" backcolor="#0043ce" mode="Opaque">
+          <printWhenExpression><![CDATA[$F{abnormalResult} != null && $F{abnormalResult}.booleanValue() && "L".equals($F{alerts})]]></printWhenExpression>
+        </reportElement>
+        <graphicElement><pen lineWidth="0"/></graphicElement>
+      </rectangle>
+
+      <!-- Test name (bold when panel parent; default otherwise) -->
+      <textField isStretchWithOverflow="true">
+        <reportElement x="8" y="2" width="210" height="18" style="ResultValue" markup="html">
+          <printWhenExpression><![CDATA[$F{parentMarker} == null || !$F{parentMarker}.booleanValue()]]></printWhenExpression>
+        </reportElement>
+        <textElement verticalAlignment="Middle"/>
+        <textFieldExpression class="java.lang.String"><![CDATA[$F{testName}]]></textFieldExpression>
+      </textField>
+      <textField isStretchWithOverflow="true">
+        <reportElement x="8" y="2" width="210" height="18" style="ResultValue" markup="html">
+          <printWhenExpression><![CDATA[$F{parentMarker} != null && $F{parentMarker}.booleanValue()]]></printWhenExpression>
+        </reportElement>
+        <textElement verticalAlignment="Middle"><font isBold="true"/></textElement>
+        <textFieldExpression class="java.lang.String"><![CDATA[$F{testName}]]></textFieldExpression>
+      </textField>
+
+      <!-- Specimen sort code -->
+      <textField isBlankWhenNull="true">
+        <reportElement x="224" y="2" width="40" height="18" style="FieldValueCode"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle"/>
+        <textFieldExpression class="java.lang.String"><![CDATA[$F{sampleSortOrder}]]></textFieldExpression>
+      </textField>
+
+      <!-- Result value (abnormal rows use ResultValueAbnormal) -->
+      <textField isBlankWhenNull="true" isStretchWithOverflow="true">
+        <reportElement x="268" y="2" width="90" height="18" style="ResultValue" markup="styled">
+          <printWhenExpression><![CDATA[$F{abnormalResult} == null || !$F{abnormalResult}.booleanValue()]]></printWhenExpression>
+        </reportElement>
+        <textElement textAlignment="Right" verticalAlignment="Middle"/>
+        <textFieldExpression class="java.lang.String"><![CDATA[$F{result}]]></textFieldExpression>
+      </textField>
+      <textField isBlankWhenNull="true" isStretchWithOverflow="true">
+        <reportElement x="268" y="2" width="90" height="18" style="ResultValueAbnormal" markup="styled">
+          <printWhenExpression><![CDATA[$F{abnormalResult} != null && $F{abnormalResult}.booleanValue()]]></printWhenExpression>
+        </reportElement>
+        <textElement textAlignment="Right" verticalAlignment="Middle"/>
+        <textFieldExpression class="java.lang.String"><![CDATA[$F{result}]]></textFieldExpression>
+      </textField>
+
+      <!-- Reference range (muted) -->
+      <textField isBlankWhenNull="true">
+        <reportElement x="362" y="2" width="100" height="18" style="ResultMeta"/>
+        <textElement verticalAlignment="Middle"/>
+        <textFieldExpression class="java.lang.String"><![CDATA[$F{testRefRange}]]></textFieldExpression>
+      </textField>
+
+      <!-- Units (muted) -->
+      <textField isBlankWhenNull="true">
+        <reportElement x="466" y="2" width="54" height="18" style="ResultMeta"/>
+        <textElement verticalAlignment="Middle"/>
+        <textFieldExpression class="java.lang.String"><![CDATA[$F{uom}]]></textFieldExpression>
+      </textField>
+
+      <!-- Flag (H/L/*) -->
+      <textField isBlankWhenNull="true">
+        <reportElement x="524" y="2" width="28" height="18" style="ResultValueAbnormal" markup="html"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle"/>
+        <textFieldExpression class="java.lang.String"><![CDATA[$F{alerts}]]></textFieldExpression>
+      </textField>
+
+      <!-- Row bottom divider -->
+      <line>
+        <reportElement x="3" y="21" width="549" height="1" forecolor="#e0e0e0"/>
+      </line>
+    </band>
+
+    <!-- Optional note row (16pt, only when note is present) -->
+    <band height="18" splitType="Prevent">
+      <printWhenExpression><![CDATA[$F{note} != null && $F{note}.length() > 0]]></printWhenExpression>
+      <rectangle>
+        <reportElement x="22" y="1" width="530" height="15" backcolor="#f4f4f4" mode="Opaque"/>
+        <graphicElement><pen lineWidth="0"/></graphicElement>
+      </rectangle>
+      <rectangle>
+        <reportElement x="22" y="1" width="2" height="15" backcolor="#c6c6c6" mode="Opaque"/>
+        <graphicElement><pen lineWidth="0"/></graphicElement>
+      </rectangle>
+      <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+        <reportElement x="28" y="2" width="522" height="13" style="NoteRow" markup="styled"/>
+        <textFieldExpression class="java.lang.String"><![CDATA[$F{note}]]></textFieldExpression>
+      </textField>
+    </band>
+  </detail>
+
+  <columnHeader>
+    <band splitType="Prevent"/>
+  </columnHeader>
+
+  <!-- ============================================================
+       COLUMN FOOTER — Legend (5 flags)
+       ============================================================ -->
+  <columnFooter>
+    <band height="22" splitType="Stretch">
+      <line>
+        <reportElement x="0" y="0" width="552" height="1" forecolor="#e0e0e0"/>
+      </line>
+      <textField>
+        <reportElement x="0" y="4" width="50" height="14" style="BlockLabel"/>
+        <textFieldExpression class="java.lang.String"><![CDATA[$R{report.legend} != null ? $R{report.legend} : "LEGEND"]]></textFieldExpression>
+      </textField>
+      <textField>
+        <reportElement x="52" y="4" width="120" height="14" style="Legend" markup="html"/>
+        <textFieldExpression class="java.lang.String"><![CDATA["<style forecolor='#da1e28' isBold='true'>H</style> " + ($R{report.aboveNormal} != null ? $R{report.aboveNormal} : "above range")]]></textFieldExpression>
+      </textField>
+      <textField>
+        <reportElement x="172" y="4" width="120" height="14" style="Legend" markup="html"/>
+        <textFieldExpression class="java.lang.String"><![CDATA["<style forecolor='#0043ce' isBold='true'>L</style> " + ($R{report.belowNormal} != null ? $R{report.belowNormal} : "below range")]]></textFieldExpression>
+      </textField>
+      <textField>
+        <reportElement x="292" y="4" width="100" height="14" style="Legend" markup="html"/>
+        <textFieldExpression class="java.lang.String"><![CDATA["<style forecolor='#da1e28' isBold='true'>*</style> " + ($R{report.abnormal} != null ? $R{report.abnormal} : "abnormal")]]></textFieldExpression>
+      </textField>
+      <textField>
+        <reportElement x="392" y="4" width="80" height="14" style="Legend" markup="html"/>
+        <textFieldExpression class="java.lang.String"><![CDATA["<b>R</b> " + ($R{report.extLabReference} != null ? $R{report.extLabReference} : "ext lab")]]></textFieldExpression>
+      </textField>
+      <textField>
+        <reportElement x="472" y="4" width="80" height="14" style="Legend" markup="html"/>
+        <textFieldExpression class="java.lang.String"><![CDATA["<b>C</b> " + ($R{report.confirmTest} != null ? $R{report.confirmTest} : "confirmation")]]></textFieldExpression>
+      </textField>
+    </band>
+  </columnFooter>
+
+  <!-- ============================================================
+       PAGE FOOTER — generated + accession/patient + page X of Y
+       ============================================================ -->
+  <pageFooter>
+    <band height="22" splitType="Stretch">
+      <line>
+        <reportElement x="0" y="0" width="552" height="1" forecolor="#e0e0e0"/>
+      </line>
+      <!-- Left: report generated timestamp -->
+      <textField pattern="dd MMM yyyy HH:mm">
+        <reportElement x="0" y="6" width="200" height="12" style="PageFooterText"/>
+        <textFieldExpression class="java.lang.String"><![CDATA[($P{localization} != null ? (String) $P{localization}.get("reportDate") : "") + " " + new java.text.SimpleDateFormat("dd MMM yyyy HH:mm").format(new java.util.Date())]]></textFieldExpression>
+      </textField>
+      <!-- Center: accession + patient -->
+      <textField isBlankWhenNull="true">
+        <reportElement x="176" y="6" width="200" height="12" style="PageFooterText"/>
+        <textElement textAlignment="Center"/>
+        <textFieldExpression class="java.lang.String"><![CDATA[($P{localization} != null ? (String) $P{localization}.get("ordinanceNo") : "") + " " + $F{accessionNumber} + "  ·  " + ($P{localization} != null ? (String) $P{localization}.get("patientCode") : "") + " " + $F{subjectNumber}]]></textFieldExpression>
+      </textField>
+      <!-- Right: page X of Y -->
+      <textField>
+        <reportElement x="402" y="6" width="100" height="12" style="PageFooterText">
+          <printWhenExpression><![CDATA["true".equals($P{usePageNumbers})]]></printWhenExpression>
+        </reportElement>
+        <textElement textAlignment="Right"/>
+        <textFieldExpression class="java.lang.String"><![CDATA["Page " + $V{PAGE_NUMBER}.toString() + " " + ($P{localization} != null ? (String) $P{localization}.get("about") : "of") + " "]]></textFieldExpression>
+      </textField>
+      <textField evaluationTime="Group" evaluationGroup="Accession Number">
+        <reportElement x="502" y="6" width="50" height="12" style="PageFooterText">
+          <printWhenExpression><![CDATA["true".equals($P{usePageNumbers})]]></printWhenExpression>
+        </reportElement>
+        <textElement textAlignment="Left"/>
+        <textFieldExpression class="java.lang.String"><![CDATA[$V{PAGE_NUMBER}.toString()]]></textFieldExpression>
+      </textField>
+    </band>
+  </pageFooter>
+
+  <summary>
+    <band splitType="Stretch"/>
+  </summary>
+</jasperReport>

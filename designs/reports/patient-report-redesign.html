@@ -25,6 +25,8 @@
     --support-success: #24a148;
     --support-info: #0043ce;
     --corrected-bg: #b38600;
+    --support-critical: #a00000;
+    --support-critical-soft: #ffe0e0;
   }
   body {
     margin: 0;
@@ -389,6 +391,170 @@
     border-left-style: dashed;                    /* B&W redundancy: dashed rule = abnormal low */
     background: #f0f6ff;
   }
+  /* Critical rows — alerts == "HH" or "LL", derived from ResultLimit.criticalLow/High.
+     Visual treatment per spec §7.5 + §17.1: 6pt solid left-rule (twice the abnormal 3pt rule —
+     the thickness itself is the B&W-redundancy cue; we do NOT vary line-style between HH/LL
+     because dashed-at-6pt reads as a broken pattern in photocopy), row bg #ffe0e0 (darker than
+     abnormal tint so it stands apart when both appear on the same page), double-arrow glyph,
+     and an inline CRITICAL chip right of the result value. */
+  .result-row.critical-high,
+  .result-row.critical-low {
+    border-left-color: var(--support-critical);
+    border-left-style: solid;
+    border-left-width: 6px;
+    padding-left: 5px;                            /* compensate so content x-position matches abnormal rows */
+    background: var(--support-critical-soft);
+    font-weight: 500;
+  }
+  .result-row.critical-high .value-result,
+  .result-row.critical-low  .value-result {
+    color: var(--support-critical);
+    font-weight: 700;
+    font-size: 11px;                              /* 9.5pt in Jasper → scale factor for preview */
+  }
+  .result-row.critical-high .alert-flag,
+  .result-row.critical-low  .alert-flag {
+    color: var(--support-critical);
+    font-weight: 700;
+  }
+  /* Double-arrow glyphs — carry HH/LL distinction through B&W photocopy */
+  .result-row .trend-arrow.up-up::before   { content: "\21C8"; font-size: 12px; color: var(--support-critical); }  /* ⇈ */
+  .result-row .trend-arrow.down-down::before { content: "\21CA"; font-size: 12px; color: var(--support-critical); } /* ⇊ */
+  /* CRITICAL chip — inverse-contrast pill renders as solid black in B&W. Uppercase, letterspaced. */
+  .critical-chip {
+    display: inline-block;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--support-critical);
+    color: #ffffff;
+    padding: 1px 5px;
+    margin-left: 6px;
+    vertical-align: 1px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    border-radius: 2px;
+  }
+
+  /* ---------- Round 4 additions ---------- */
+  /* HIL chip — dormant until the §18 backend epic ships. CSS shipped now so a future
+     populator change lights up the chip across every deployment with no template edit. */
+  .hil-chip {
+    display: inline-block;
+    background: #fff8c5;
+    color: var(--ink-secondary);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0 4px;
+    margin-left: 6px;
+    border: 1px solid #e8d967;
+    border-radius: 2px;
+    vertical-align: 0;
+    white-space: nowrap;
+  }
+  /* Referral-lab sub-line — replaces method sub-line on R-flag rows. Italic, with a
+     small "performed by" pseudo-element matching the method sub-line's pattern. */
+  .referral-lab-sub {
+    display: block;
+    font-size: 8.5px;
+    color: var(--ink-muted);
+    font-style: italic;
+    font-family: 'IBM Plex Sans', sans-serif;
+    margin-top: 1px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+  }
+  .referral-lab-sub::before { content: "Performed by "; color: var(--ink-secondary); font-weight: 500; font-style: normal; }
+  /* Critical-notification footnote — small italicized audit row directly under a critical
+     row. Amber tint distinguishes it from the grey operator-note row. Phone glyph anchors
+     it semantically as a "we called someone about this" affordance. */
+  .crit-notification {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 2px 0 4px 22px;
+    padding: 4px 10px;
+    background: #fff8e8;
+    border-left: 2px solid #f1c21b;
+    font-size: 9.5px;
+    color: var(--ink-secondary);
+    font-style: italic;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .crit-notification .glyph {
+    font-style: normal;
+    font-size: 11px;
+    color: var(--support-critical);
+  }
+  .crit-notification .label {
+    font-style: normal;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 8px;
+    color: var(--ink);
+  }
+  .crit-notification strong { font-style: normal; color: var(--ink); font-weight: 600; }
+  /* Report version + supersedes line — sits inside the gold corrected banner.
+     Italic white at 9pt; one line of text directly under the banner title. */
+  .corrected-version-line {
+    color: #fff8d6;
+    font-size: 10px;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    margin-top: 2px;
+    line-height: 1.35;
+  }
+  .corrected-version-line strong { color: #fff; font-weight: 600; }
+  /* Critical Value Notifications appendix table */
+  .notif-appendix {
+    margin-top: 22px;
+    padding-top: 10px;
+    border-top: 1.5px solid var(--ink);
+  }
+  .notif-appendix h3 {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brand-navy);
+    margin: 0 0 4px 0;
+  }
+  .notif-appendix .subtitle {
+    font-size: 9px;
+    font-style: italic;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+  .notif-appendix table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .notif-appendix th {
+    text-align: left;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 8px;
+    color: var(--ink-secondary);
+    padding: 4px 6px;
+    border-bottom: 1px solid var(--divider-strong);
+  }
+  .notif-appendix td {
+    padding: 5px 6px;
+    border-bottom: 1px solid var(--divider);
+    color: var(--ink);
+    vertical-align: top;
+  }
+  .notif-appendix td.test { font-weight: 600; }
+  .notif-appendix td.result { color: var(--support-critical); font-weight: 700; text-align: right; }
   /* Trend arrow glyph — inline with the result value.
      Carries the clinical signal in B&W photocopies where red/blue collapse to similar grays. */
   .result-row .trend-arrow {
@@ -476,6 +642,7 @@
   }
   .legend-item .flag.red { color: var(--support-error); }
   .legend-item .flag.blue { color: var(--support-info); }
+  .legend-item .flag.critical { color: var(--support-critical); }
 
   /* ---------- Group footer: person (sign-off) ---------- */
   .band-group-footer {
@@ -603,6 +770,11 @@
         <li>Patient demographics packed into 84pt with 11 bordered cells — hard to scan</li>
         <li>Stranded demo backcolors (<code>#FF9999</code>, <code>#66FF66</code>, <code>#33FFFF</code>) in page-2 frame that only render if prints-when conditions are edited</li>
         <li>Abnormal flagging confined to a 34pt "alert" column (H/L/*) — entire row gives no visual cue</li>
+        <li>No visual distinction between merely abnormal and <strong>critical</strong> (panic-range) values — both appear identical on the printed page despite the clinical-notification difference</li>
+        <li>No critical-value notification audit on the report — clinical call gets logged in OpenELIS but the printed report doesn't carry the trail (CAP/CLSI noncompliance risk)</li>
+        <li>Send-out tests show only an <code>R</code> flag — performing lab name + their accreditation reference are absent (ISO 15189 §7.4.1.6 noncompliance for accredited labs)</li>
+        <li>Corrected reports paint a banner but never identify the version they supersede or summarize what changed (ISO 15189 §7.4.1.7 noncompliance)</li>
+        <li>No specimen-quality interference signal — a hemolyzed potassium reads as a real critical hyperkalemia and the clinician can't tell from the report</li>
         <li>Legend at bottom is two cryptic lines of letter codes</li>
         <li>Gender column 28pt wide (~single letter), age column 33pt — awkward widows when "Unknown" or translated "Femme" appears</li>
         <li>Corrected-report banner text is plain and bold-13pt but not color-coded</li>
@@ -615,6 +787,11 @@
         <li>Type scale aligned to Style Guide v1: facility 14pt, title 18pt semibold, patient name 15pt semibold, results 10.5pt tabular-nums, labels 8.5pt uppercase</li>
         <li>Two-column demographic card — same 38 fields, roomy, scannable in under 2s</li>
         <li>Abnormal results flagged on the full row (left-edge color rule + soft row tint) in addition to the alerts column — driven by the existing <code>abnormalResult</code> boolean field</li>
+        <li><strong>Critical (panic-range) values</strong> flagged with a visibly thicker 6pt left-edge rule, double-arrow glyph (⇈/⇊), darker row tint, and an inline "CRITICAL" chip — survives B&amp;W photocopy and draws the reviewer's eye instantly. Derived from existing <code>ResultLimit.criticalLow</code> / <code>criticalHigh</code>; no new bean field.</li>
+        <li><strong>Critical-value notification audit</strong> rendered both inline (italic footnote under each critical row with phone glyph + recipient + readback) and as an end-of-report appendix table for the surveyor view. Fixes CAP/CLSI compliance gap. Backend = new <code>result_critical_notification</code> audit table + validator-UI prompt at notify time (§14(d)).</li>
+        <li><strong>Performing-lab disclosure</strong> on <code>R</code>-flagged rows replaces the method sub-line with "Performed by [external lab]". Fixes ISO 15189 §7.4.1.6 referral-lab disclosure gap. Backend = plumb through existing <code>Referral</code> entity (§14(c)). Home-lab test accreditation is governed by a separate Test Accreditation epic (parent + 4 sub-issues) which renders body logos in the report header — that epic is not modified by this redesign.</li>
+        <li><strong>Report version + supersedes line</strong> on corrected issues — italic white line inside the gold banner identifies prior version date and summarizes the change. Fixes ISO 15189 §7.4.1.7 corrected-report identification gap. Backend = new <code>patient_report_issue</code> version-history table (§14(e)).</li>
+        <li><strong>HIL specimen-quality chip slot</strong> reserved in the result-row sub-line area, parameterized on <code>specimenQualityFlags</code>. <em>Dormant in production</em> until the §18 HIL backend epic ships across the analyzer framework — at which point the chip lights up across every deployment with no template change. Designed now so the chip ships ready when the data arrives.</li>
         <li>Report-status chip ("Partial" / "Complete" / "Corrected") in a Carbon-style Tag in the top-right of the header — replaces the boldface "Corrected Report" centered banner when a subtler signal suffices</li>
         <li>Compact single-line legend</li>
         <li>Panel parent/child visually distinct — parent row shaded, child rows indented 14pt</li>
@@ -780,6 +957,27 @@
       <span class="alert-flag"></span>
     </div>
 
+    <!-- CRITICAL example: Potassium 6.8 mmol/L — derived HH from ResultLimit.criticalHigh=6.5 -->
+    <!-- HIL chip: shown here populated with H+ for demonstration. In production every deployment
+         renders this slot blank until the §18 backend epic ships and populates specimenQualityFlags. -->
+    <div class="result-row critical-high">
+      <span class="test-name">Potassium<span class="method-sub">Indirect ISE · Roche cobas c311<span class="hil-chip" title="Specimen quality flags — dormant in production until §18 backend epic ships">H+ I− L−</span></span></span>
+      <span class="sample-sort ctr">SR</span>
+      <span class="value-result"><span class="trend-arrow up-up"></span>6.8<span class="critical-chip">Critical</span></span>
+      <span class="ref-range">3.5 – 5.0</span>
+      <span class="uom">mmol/L</span>
+      <span class="alert-flag">HH</span>
+    </div>
+    <div class="result-note">
+      <strong>Note</strong>Specimen mildly hemolyzed (H+) — potassium leakage from RBCs may have contributed to elevation. Repeat requested with fresh draw.
+    </div>
+    <!-- Critical-value notification footnote — round 4. ISO 15189 / CAP/CLSI audit trail. -->
+    <div class="crit-notification">
+      <span class="glyph">☎</span>
+      <span class="label">Critical notified</span>
+      <span><strong>Dr.&nbsp;Amani Kouassi</strong> at <strong>10:19</strong> · readback <strong>AKM</strong> at <strong>10:21</strong></span>
+    </div>
+
     <!-- Column footer -->
     <div class="band-row band-legend">
       <span class="band-label" style="bottom:180px;">Column footer<br>legend · 18pt</span>
@@ -787,6 +985,7 @@
       <span class="legend-item"><span class="flag red">H</span>above reference</span>
       <span class="legend-item"><span class="flag blue">L</span>below reference</span>
       <span class="legend-item"><span class="flag red">*</span>abnormal</span>
+      <span class="legend-item"><span class="flag critical">HH</span>/<span class="flag critical">LL</span> critical</span>
       <span class="legend-item"><span class="flag">R</span>sent to external lab</span>
       <span class="legend-item"><span class="flag">C</span>confirmation test</span>
     </div>
@@ -836,13 +1035,15 @@
         <span class="ctr">Flag</span>
       </div>
     </div>
+    <!-- R-flag example (round 4) — referred to external lab. Method sub-line is replaced by
+         the performing-lab disclosure per ISO 15189 §7.4.1.6. -->
     <div class="result-row abnormal-high">
-      <span class="test-name">Urine culture — <em>E. coli</em><span class="method-sub">Chromogenic agar · MALDI-TOF identification</span></span>
+      <span class="test-name">Urine culture — <em>E. coli</em><span class="referral-lab-sub">Centre Pasteur de Côte d'Ivoire</span></span>
       <span class="sample-sort ctr">UR</span>
       <span class="value-result abnormal"><span class="trend-arrow up"></span>&gt;10⁵</span>
       <span class="ref-range">&lt;10⁴</span>
       <span class="uom">CFU/mL</span>
-      <span class="alert-flag abn">*</span>
+      <span class="alert-flag" style="color: var(--ink-secondary); font-weight: 700;">R *</span>
     </div>
     <div class="result-note">
       <strong>Note</strong>Antibiotic susceptibility testing attached as AST report DJ25-000187-AST.
@@ -860,8 +1061,37 @@
     <div style="margin-top:20px;padding:10px 14px;background:var(--surface-alt);border-left:3px solid var(--brand-navy);">
       <div class="block-label" style="border:none;padding:0;margin-bottom:4px;">Clinical conclusion</div>
       <div style="font-size:10.5px;line-height:1.55;color:var(--ink);">
-        Results are consistent with uncomplicated lower urinary-tract infection. Suggest correlation with clinical findings and awaiting AST for antibiotic guidance. Sodium, ALT within reference ranges; mild elevation of creatinine consistent with Stage 2 CKD history noted on requisition.
+        Results are consistent with uncomplicated lower urinary-tract infection. Suggest correlation with clinical findings and awaiting AST for antibiotic guidance. Sodium, ALT within reference ranges; mild elevation of creatinine consistent with Stage 2 CKD history noted on requisition. Hyperkalemia (K+ 6.8 mmol/L) likely artifactual due to specimen hemolysis — repeat sample requested.
       </div>
+    </div>
+
+    <!-- Round 4: Critical Value Notifications appendix (last page only, when present) -->
+    <div class="notif-appendix">
+      <span class="band-label" style="bottom:170px;">Critical Notifications<br>appendix · variable height<br>(last page only)</span>
+      <h3>Critical Value Notifications</h3>
+      <div class="subtitle">Audit log of critical-result notifications for this accession · per CAP/CLSI critical-value reporting policy</div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:24%">Test</th>
+            <th style="width:14%; text-align:right;">Result</th>
+            <th style="width:24%">Notified recipient</th>
+            <th style="width:14%">Time</th>
+            <th style="width:8%">By</th>
+            <th style="width:16%">Readback</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="test">Potassium</td>
+            <td class="result">6.8 mmol/L ⇈</td>
+            <td>Dr. Amani Kouassi (Med Interne, HG Abengourou)</td>
+            <td>14 Apr 10:19</td>
+            <td>MLB</td>
+            <td>AKM · 10:21</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Legend -->
@@ -870,6 +1100,7 @@
       <span class="legend-item"><span class="flag red">H</span>above reference</span>
       <span class="legend-item"><span class="flag blue">L</span>below reference</span>
       <span class="legend-item"><span class="flag red">*</span>abnormal</span>
+      <span class="legend-item"><span class="flag critical">HH</span>/<span class="flag critical">LL</span> critical</span>
       <span class="legend-item"><span class="flag">R</span>sent to external lab</span>
       <span class="legend-item"><span class="flag">C</span>confirmation test</span>
     </div>
@@ -904,10 +1135,23 @@
     </div>
   </div>
 
+  <!-- ===================== ROUND 4: CORRECTED-REPORT BANNER STATE ===================== -->
+  <div class="section-label">Corrected report — version &amp; supersedes line (Round 4 §7.1a)</div>
+  <div style="width:816px;background:#fff;padding:24px;border:1px solid var(--divider-strong);">
+    <p style="margin:0 0 14px 0;font-size:12px;color:var(--ink-secondary);">When <code>correctedResult == true</code> and <code>reportVersion &gt; 1</code>, the corrected banner extends with an italic version line showing the prior issue date and a one-line summary of what changed. ISO 15189 §7.4.1.7 hard requirement. The banner stays a single gold frame so both lines sit on the same background.</p>
+    <div class="corrected-banner" style="margin:0;padding:10px 16px;text-align:left;">
+      <div style="font-weight:600; font-size:13px; letter-spacing:0.08em; text-transform:uppercase;">Corrected Report</div>
+      <div class="corrected-version-line">
+        <strong>Report v2</strong> — Supersedes <strong>v1</strong> issued 12 Apr 2026 10:24. <em>Changes:</em> Hemoglobin corrected from 11.3 to 12.3 g/dL after instrument recalibration; potassium added (verbal preliminary on 13 Apr).
+      </div>
+    </div>
+    <p style="margin:14px 0 0 0;font-size:11px;color:var(--ink-muted);font-style:italic;">First issues (<code>reportVersion == 1</code> or null) suppress the version line entirely. The banner appears only on corrected issues. The full audit chain — every prior version with its issue date and correction summary — is available via the §7.9 cross-reference (when present) or the new <code>patient_report_issue</code> table per §14(e).</p>
+  </div>
+
   <!-- ===================== FIELD MAP REFERENCE CARD ===================== -->
   <div class="section-label">Field map at a glance (full table in spec .md)</div>
   <div style="width:816px;background:#fff;padding:16px;border:1px solid var(--divider-strong);font-size:11.5px;">
-    <p style="margin:0 0 12px 0;color:var(--ink-secondary);">38 of 39 fields map 1:1 from the current <code>patient.jrxml</code>. <strong>One new field</strong> — <code>methodName</code> — needs to be exposed on <code>PatientReportBean</code> (see spec §14 "Related backend work"). Two new parameters — <code>accreditationImage</code> and <code>accreditationNumber</code> — drop into the sign-off. That's what keeps this a ~30-minute implementation job on the Jasper side.</p>
+    <p style="margin:0 0 12px 0;color:var(--ink-secondary);">38 of the original 39 fields still map 1:1 from the current <code>patient.jrxml</code>. The redesign adds <strong>9 new bean fields</strong> + <strong>6 new parameters</strong>, sized as follows: <em>small / same-PR ready</em> — <code>methodName</code> (§14a), <code>HH/LL</code> derived into <code>alerts</code> (§14b), <code>performingLabName</code> + <code>performingLabAccreditation</code> (§14c), accreditation params (§7.7a). <em>Medium / its-own-ticket</em> — five critical-notification fields + <code>criticalNotifications</code> list (§14d), four report-version params (§14e). <em>Large / separate epic</em> — <code>specimenQualityFlags</code> for HIL (§18). The Jasper template wires every field today; the dormant ones render blank until their respective backend ships, with no template revisits required.</p>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 24px;font-variant-numeric:tabular-nums;">
       <div>
         <strong>Page header (subreport)</strong><br>
@@ -931,7 +1175,7 @@
       </div>
       <div>
         <strong>Result row</strong><br>
-        testName, sampleSortOrder, result, testRefRange, uom, alerts, analysisStatus, abnormalResult, parentMarker, separator, note
+        testName, sampleSortOrder, result, testRefRange, uom, alerts, analysisStatus, abnormalResult, parentMarker, separator, note, methodName, performingLabName, performingLabAccreditation, criticalNotifiedTo, criticalNotifiedAt, criticalReadbackBy, criticalReadbackAt, specimenQualityFlags <em style="color:var(--ink-muted);">(dormant)</em>
       </div>
       <div>
         <strong>Conclusion block (p-last)</strong><br>
@@ -956,6 +1200,14 @@
       <div>
         <strong>Parameters retained</strong><br>
         siteId, localization, imagesPath, headerName, footerName, correctedReport, useSTNumber, billingNumberLabel, usePageNumbers, SUBREPORT_DIR
+      </div>
+      <div>
+        <strong>Round 4 new parameters</strong><br>
+        accreditationImage, accreditationNumber, reportVersion, priorVersionDate, priorVersionId, correctionSummary, criticalNotifications (List)
+      </div>
+      <div>
+        <strong>Critical Notifications appendix (last page)</strong><br>
+        criticalNotifications.testName, .result, .notifiedTo, .notifiedAt, .notifiedBy, .readbackBy, .readbackAt
       </div>
     </div>
   </div>
