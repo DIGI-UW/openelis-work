@@ -1,1772 +1,389 @@
-import React, { useState, useRef } from 'react';
+/**
+ * S-09 v2.0 — Pre-Analytical Eligibility Gate & Resampling
+ * Addendum to S-03 v2.0 §5.3 (Step 3 QA/QC + Intake Acceptance)
+ *
+ * Rebased from v1.0:
+ *   - 4-step model → 3-step model (Step 3 instead of Step 4)
+ *   - Eligibility Worklist → Order Dashboard filter on status=PENDING_INTAKE
+ *   - Shipment batch grouping deferred (P2)
+ *   - Vector CollectionLot variant deferred (V-02)
+ *
+ * 4 scenes:
+ *   1. SampleType Admin — new "Acceptance Criteria" tab
+ *   2. Step 3 sample row + criteria checklist side panel (Eligible / Review tags)
+ *   3. NCE dialog with new "Resample" radio option
+ *   4. Lab Unit admin — per-domain gate behavior config
+ */
+
+import React, { useState } from 'react';
 import {
-  Grid,
-  Column,
-  Stack,
-  Tabs,
-  Tab,
-  TabList,
-  TabPanels,
-  TabPanel,
-  DataTable,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableHeader,
-  TableBody,
-  TableCell,
-  TableToolbar,
-  TableToolbarContent,
-  TableToolbarSearch,
-  TextInput,
-  TextArea,
-  Select,
-  SelectItem,
-  NumberInput,
+  Grid, Column, Stack,
+  Tabs, Tab, TabList, TabPanels, TabPanel,
+  Table, TableHead, TableRow, TableHeader, TableBody, TableCell,
+  TextInput, TextArea, NumberInput, Select, SelectItem, RadioButton, RadioButtonGroup,
+  Button, Tag, Tile, InlineNotification, Modal,
   Toggle,
-  Checkbox,
-  RadioButton,
-  RadioButtonGroup,
-  Button,
-  IconButton,
-  InlineNotification,
-  Tag,
-  Modal,
-  Accordion,
-  AccordionItem,
-  Tile,
-  Breadcrumb,
-  BreadcrumbItem,
-  OverflowMenu,
-  OverflowMenuItem,
-  Link,
 } from '@carbon/react';
-import {
-  Checkmark,
-  Close,
-  Warning,
-  Add,
-  TrashCan,
-  Locked,
-  ArrowRight,
-  Renew,
-  Download,
-  Search,
-  ChevronDown,
-  ChevronUp,
-  DocumentAdd,
-} from '@carbon/icons-react';
+import { Checkmark, Close, Warning, ArrowRight, Email } from '@carbon/icons-react';
 
-// ─── i18n helper ────────────────────────────────────────────────────────────
-const t = (key, fallback) => fallback || key;
+const t = (k, f) => f || k;
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-const MOCK_ORDER = {
-  labNumber: 'ENV-2026-00127',
-  siteCode: 'SS-041',
-  siteName: 'Ciliwung River — Upstream Station 3',
-  complianceStandard: 'PP 22/2021 — Surface Water',
-  domain: 'Environmental',
-  sampleType: 'Water — Surface',
-  arrivalAt: '2026-04-16 08:14',
-  collectedAt: '2026-04-15 13:30',
-  transitHours: 18.7,
-  sopWindowHours: 12,
-  receivedBy: 'Siti Rahayu',
-  shipmentId: 'SHIP-2026-00088',
-  coolerId: 'COOLER-042',
-};
+const NewRegion = ({ children, label = 'S-09 v2 NEW' }) => (
+  <div style={{ border: '2px dashed #F1C21B', borderRadius: 6, padding: 12, position: 'relative', marginBottom: 16 }}>
+    <span style={{
+      position: 'absolute', top: -11, left: 12,
+      background: '#F1C21B', color: '#000', fontSize: 11, fontWeight: 700,
+      padding: '1px 8px', borderRadius: 4,
+    }}>{label}</span>
+    {children}
+  </div>
+);
 
-const MOCK_CRITERIA = [
-  {
-    id: 'c1',
-    label: t('label.eligibility.criterion.containerIntegrity', 'Container integrity intact'),
-    severity: 'MAJOR',
-    recoverable: true,
-    autoComputed: false,
-    pass: null,
-    note: '',
-  },
-  {
-    id: 'c2',
-    label: t('label.eligibility.criterion.labelLegibility', 'Label legibility'),
-    severity: 'MINOR',
-    recoverable: true,
-    autoComputed: false,
-    pass: null,
-    note: '',
-  },
-  {
-    id: 'c3',
-    label: t('label.eligibility.criterion.volumeSufficient', 'Sample volume sufficient'),
-    severity: 'MAJOR',
-    recoverable: true,
-    autoComputed: true,
-    pass: true,
-    note: '220 mL received (min 200 mL)',
-    sourceData: {
-      rule: 'volume_range',
-      stepLabel: t('label.source.step2', 'Step 2 — Collect Sample'),
-      stepHref: '#step-2-collect',
-      fields: [
-        { label: t('label.source.volumeReceived', 'Volume received'), value: '220 mL', enteredBy: 'Budi Santoso', enteredAt: '2026-04-15 13:30', role: t('label.role.collector', 'Collector') },
-        { label: t('label.source.volumeMinimum', 'Minimum required (SampleType config)'), value: '200 mL', enteredBy: t('label.source.systemConfig', 'System — SampleType admin'), enteredAt: null, role: null },
-      ],
-      computed: t('message.source.volumeResult', 'Evaluated: 220 mL ≥ 200 mL → PASS'),
-    },
-  },
-  {
-    id: 'c4',
-    label: t('label.eligibility.criterion.temperatureRange', 'Temperature within range (2–8 °C)'),
-    severity: 'CRITICAL',
-    recoverable: true,
-    autoComputed: false,
-    pass: null,
-    note: '',
-  },
-  {
-    id: 'c5',
-    label: t('label.eligibility.criterion.sopTransit', 'SOP transit window met'),
-    severity: 'MAJOR',
-    recoverable: true,
-    autoComputed: true,
-    pass: false,
-    note: '18.7 h elapsed; SOP max 12 h',
-    sourceData: {
-      rule: 'transit_window',
-      stepLabel: t('label.source.step2', 'Step 2 — Collect Sample'),
-      stepHref: '#step-2-collect',
-      fields: [
-        { label: t('label.source.collectionDateTime', 'Collection date/time'), value: '2026-04-15 13:30', enteredBy: 'Budi Santoso', enteredAt: '2026-04-15 13:30', role: t('label.role.collector', 'Collector') },
-        { label: t('label.source.receivedAtLab', 'Received at lab'), value: '2026-04-16 08:14', enteredBy: 'Siti Rahayu', enteredAt: '2026-04-16 08:14', role: t('label.role.qaOfficer', 'QA Officer') },
-        { label: t('label.source.sopTransitWindow', 'SOP transit window (SampleType config)'), value: '12 h', enteredBy: t('label.source.systemConfig', 'System — SampleType admin'), enteredAt: null, role: null },
-      ],
-      computed: t('message.source.transitResult', 'Evaluated: 18.7 h elapsed > 12 h SOP window → FAIL'),
-    },
-  },
-  {
-    id: 'c6',
-    label: t('label.eligibility.criterion.cocPresent', 'Chain-of-custody form present'),
-    severity: 'MAJOR',
-    recoverable: false,
-    autoComputed: false,
-    pass: null,
-    note: '',
-  },
+const ExistingRegion = ({ children, label = 'EXISTING' }) => (
+  <div style={{ opacity: 0.72, position: 'relative', marginBottom: 16 }}>
+    <span style={{
+      position: 'absolute', top: 4, right: 8, zIndex: 1,
+      background: '#8D8D8D', color: '#fff', fontSize: 10, fontWeight: 600,
+      padding: '1px 6px', borderRadius: 3,
+    }}>{label}</span>
+    {children}
+  </div>
+);
+
+// ─── Mock Data ──────────────────────────────────────────────────────
+
+const MOCK_SAMPLES = [
+  { id: 's-1', idx: 1, type: 'Surface Water', accession: 'ENV-2026-0412.001',
+    transitH: 4, volMl: 500, tempC: 4.5, status: 'eligible' },
+  { id: 's-2', idx: 2, type: 'Surface Water', accession: 'ENV-2026-0412.002',
+    transitH: 26, volMl: 500, tempC: 6.0, status: 'review' /* transit > 24h */ },
+  { id: 's-3', idx: 3, type: 'Groundwater', accession: 'ENV-2026-0412.003',
+    transitH: 8, volMl: 250, tempC: 18.0, status: 'review' /* temp out of range, vol low */ },
 ];
 
-const MOCK_WORKLIST = [
-  {
-    id: 'w1',
-    labNumber: 'ENV-2026-00127',
-    sampleType: 'Water — Surface',
-    domain: 'Environmental',
-    receivedAt: '08:14 (3h 12m ago)',
-    transitHours: 18.7,
-    sopHours: 12,
-    site: 'Ciliwung River — Upstream S3',
-    standard: 'PP 22/2021',
-    priority: 'High',
-    breach: true,
+const SAMPLETYPE_CRITERIA = {
+  'Surface Water': {
+    transitMaxH: 24,
+    volumeMin: 500, volumeMax: 1000,
+    tempMin: 0, tempMax: 6,
+    containers: ['Sterile bottle (HDPE)', 'Brown glass'],
   },
-  {
-    id: 'w2',
-    labNumber: 'ENV-2026-00128',
-    sampleType: 'Sediment',
-    domain: 'Environmental',
-    receivedAt: '09:02 (2h 24m ago)',
-    transitHours: 6.2,
-    sopHours: 24,
-    site: 'Ciliwung River — Downstream S7',
-    standard: 'PP 22/2021',
-    priority: 'Normal',
-    breach: false,
+  'Groundwater': {
+    transitMaxH: 24,
+    volumeMin: 500, volumeMax: 1000,
+    tempMin: 0, tempMax: 6,
+    containers: ['Sterile bottle (HDPE)'],
   },
-  {
-    id: 'w3',
-    labNumber: 'VEC-2026-00031',
-    sampleType: 'Mosquito Pool',
-    domain: 'Vector',
-    receivedAt: '07:45 (3h 41m ago)',
-    transitHours: 4.2,
-    sopHours: 8,
-    site: 'Trap site BDG-019 — collection ended 03:30',
-    standard: '—',
-    priority: 'Urgent',
-    breach: false,
-  },
-  {
-    id: 'w4',
-    labNumber: 'CLN-2026-04892',
-    sampleType: 'Whole Blood',
-    domain: 'Clinical',
-    receivedAt: '10:22 (1h 04m ago)',
-    transitHours: 1.1,
-    sopHours: 4,
-    site: 'Puskesmas Kebayoran',
-    standard: '—',
-    priority: 'Normal',
-    breach: false,
-  },
-  {
-    id: 'w5',
-    labNumber: 'ENV-2026-00124',
-    sampleType: 'Water — Surface',
-    domain: 'Environmental',
-    receivedAt: '06:55 (4h 31m ago)',
-    transitHours: 22.4,
-    sopHours: 12,
-    site: 'Ciliwung River — Upstream S1',
-    standard: 'PP 22/2021',
-    priority: 'High',
-    breach: true,
-  },
-];
-
-const MOCK_CRITERIA_ADMIN = [
-  { id: 'ca1', label: 'Container integrity intact', severity: 'MAJOR', recoverable: true, autoRule: 'none', subcategory: 'Specimen Integrity', autoRuleConfig: null },
-  { id: 'ca2', label: 'Label legibility', severity: 'MINOR', recoverable: true, autoRule: 'none', subcategory: 'Labeling', autoRuleConfig: null },
-  {
-    id: 'ca3', label: 'Sample volume sufficient', severity: 'MAJOR', recoverable: true, autoRule: 'volume_range', subcategory: 'Volume',
-    autoRuleConfig: { direction: 'at_least', minValue: 200, maxValue: null, unit: 'mL' },
-  },
-  {
-    id: 'ca4', label: 'Temperature within range', severity: 'CRITICAL', recoverable: true, autoRule: 'temperature_range', subcategory: 'Cold Chain',
-    autoRuleConfig: { direction: 'within_range', minValue: 2, maxValue: 8, unit: '°C' },
-  },
-  {
-    id: 'ca5', label: 'SOP transit window met', severity: 'MAJOR', recoverable: true, autoRule: 'transit_window', subcategory: 'Transport',
-    autoRuleConfig: { source: 'sop_window', customHours: null },
-  },
-];
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-const severityTag = (sev) => {
-  const map = { CRITICAL: 'red', MAJOR: 'orange', MINOR: 'warm-gray' };
-  const label = { CRITICAL: 'Critical', MAJOR: 'Major', MINOR: 'Minor' };
-  return <Tag kind={map[sev] || 'gray'} size="sm">{label[sev] || sev}</Tag>;
 };
 
-const domainTag = (domain) => {
-  const map = { Environmental: 'green', Vector: 'teal', Clinical: 'blue' };
-  return <Tag kind={map[domain] || 'gray'} size="sm">{domain}</Tag>;
+// Label-completeness handled by existing OE label management module — not part of S-09.
+const evaluateCriteria = (sample) => {
+  const c = SAMPLETYPE_CRITERIA[sample.type];
+  if (!c) return [];
+  return [
+    { name: 'Transit time max',  pass: sample.transitH <= c.transitMaxH,
+      detail: `${sample.transitH}h vs max ${c.transitMaxH}h` },
+    { name: 'Volume in range',   pass: sample.volMl >= c.volumeMin && sample.volMl <= c.volumeMax,
+      detail: `${sample.volMl}mL vs ${c.volumeMin}–${c.volumeMax}mL` },
+    { name: 'Receipt temp in range', pass: sample.tempC >= c.tempMin && sample.tempC <= c.tempMax,
+      detail: `${sample.tempC}°C vs ${c.tempMin}–${c.tempMax}°C` },
+    { name: 'Container type valid', pass: true,
+      detail: c.containers[0] },
+  ];
 };
 
-// ─── Source Provenance Block ─────────────────────────────────────────────────
-// Shown when the officer clicks "View source" on an auto-evaluated criterion.
-// Displays the contributing fields, who entered them, and links back to the
-// originating step so the officer can verify the raw data without navigating away.
-function SourceProvenanceBlock({ sourceData, pass }) {
-  return (
-    <div style={{
-      marginTop: 'var(--cds-spacing-03)',
-      padding: 'var(--cds-spacing-04)',
-      background: pass === false ? '#fff8f7' : '#f4f4f4',
-      border: `1px solid ${pass === false ? '#ffb3b8' : '#c6c6c6'}`,
-      borderLeft: `3px solid ${pass === false ? 'var(--cds-support-error)' : 'var(--cds-interactive-01)'}`,
-      borderRadius: 2,
-    }}>
-      <p style={{ margin: '0 0 var(--cds-spacing-03)', fontSize: '0.75rem', fontWeight: 600, color: 'var(--cds-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-        {t('heading.source.title', 'Source data — auto-evaluated')}
-      </p>
-      <Stack gap={3}>
-        {sourceData.fields.map((field, i) => (
-          <Grid key={i} condensed style={{ gap: 0 }}>
-            <Column lg={4} style={{ marginBottom: 0 }}>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>{field.label}</p>
-            </Column>
-            <Column lg={6}>
-              <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600 }}>{field.value}</p>
-              {field.enteredBy && (
-                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>
-                  {t('label.source.enteredBy', 'Entered by')} {field.enteredBy}
-                  {field.role && ` (${field.role})`}
-                  {field.enteredAt && ` · ${field.enteredAt}`}
-                </p>
-              )}
-              {!field.enteredBy && (
-                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>{field.enteredBy || t('label.source.systemConfig', 'System — SampleType admin')}</p>
-              )}
-            </Column>
-          </Grid>
-        ))}
-      </Stack>
-      <div style={{
-        marginTop: 'var(--cds-spacing-03)',
-        paddingTop: 'var(--cds-spacing-03)',
-        borderTop: '1px solid #c6c6c6',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: 'var(--cds-spacing-03)',
-      }}>
-        <p style={{ margin: 0, fontSize: '0.8125rem', fontFamily: 'IBM Plex Mono, monospace', color: pass === false ? 'var(--cds-support-error)' : 'var(--cds-support-success)' }}>
-          {sourceData.computed}
-        </p>
-        <Link href={sourceData.stepHref} size="sm">
-          {t('button.source.goToStep', 'Go to')} {sourceData.stepLabel} →
-        </Link>
-      </div>
-    </div>
-  );
-}
+// ─── Component ──────────────────────────────────────────────────────
 
-// ─── SCREEN 1: Step 4 — Eligibility Assessment ───────────────────────────────
-function Screen1EligibilityAssessment() {
-  const [criteria, setCriteria] = useState(MOCK_CRITERIA);
-  const [nceOpen, setNceOpen] = useState(false);
-  const [overrideOpen, setOverrideOpen] = useState(false);
-  const [overrideJustification, setOverrideJustification] = useState('');
-  const [sampleAction, setSampleAction] = useState('resample');
-  const [submitted, setSubmitted] = useState(false);
-  const [successToast, setSuccessToast] = useState(null);
-  const [expandedSources, setExpandedSources] = useState({});
-  const toggleSource = (id) => setExpandedSources(prev => ({ ...prev, [id]: !prev[id] }));
+export default function S09MockupV2() {
+  const [scene, setScene] = useState(0);
+  const [openSampleId, setOpenSampleId] = useState(null);
+  const [showNceDialog, setShowNceDialog] = useState(false);
+  const [nceAction, setNceAction] = useState('flag');
+  const [nceReason, setNceReason] = useState('TRANSIT-EXCEEDED');
 
-  const allChecked = criteria.every(c => c.pass !== null);
-  const anyFail = criteria.some(c => c.pass === false);
-  const canAccept = allChecked && !anyFail;
-  const transitBreach = MOCK_ORDER.transitHours > MOCK_ORDER.sopWindowHours;
+  const openSample = MOCK_SAMPLES.find(s => s.id === openSampleId);
+  const criteria = openSample ? evaluateCriteria(openSample) : [];
 
-  const failingCriteria = criteria.filter(c => c.pass === false);
-  const allFailsRecoverable = failingCriteria.length > 0 && failingCriteria.every(c => c.recoverable);
-
-  const toggleCriterion = (id, pass) => {
-    setCriteria(prev => prev.map(c => c.id === id ? { ...c, pass } : c));
-  };
-  const updateNote = (id, note) => {
-    setCriteria(prev => prev.map(c => c.id === id ? { ...c, note } : c));
-  };
-
-  const handleAccept = () => {
-    if (anyFail) { setOverrideOpen(true); return; }
-    if (!canAccept) return;
-    setSuccessToast({ kind: 'success', text: `Sample ${MOCK_ORDER.labNumber} accepted. Status: Eligible.` });
-  };
-
-  const handleOverrideConfirm = () => {
-    if (overrideJustification.trim().length < 10) return;
-    setOverrideOpen(false);
-    setSuccessToast({ kind: 'warning', text: `Sample ${MOCK_ORDER.labNumber} accepted with override. Status: Eligible. Override recorded.` });
-  };
+  // Scene 4
+  const [gateConfig, setGateConfig] = useState({ Clinical: 'Prompted', Env: 'Mandatory', Vector: 'Mandatory' });
 
   return (
-    <div>
-      {/* Breadcrumb */}
-      <Breadcrumb style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-        <BreadcrumbItem href="#"><span>{t('nav.sampleCollection', 'Sample Collection')}</span></BreadcrumbItem>
-        <BreadcrumbItem href="#"><span>{t('nav.addOrder', 'Add Order')}</span></BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage><span>{t('nav.qaReview', 'QA Review — Step 4')}</span></BreadcrumbItem>
-      </Breadcrumb>
+    <div style={{ padding: 24, maxWidth: 1300, margin: '0 auto' }}>
+      <Tabs selectedIndex={scene} onChange={({ selectedIndex }) => { setScene(selectedIndex); setOpenSampleId(null); }}>
+        <TabList aria-label="Scene">
+          <Tab>1 — SampleType Acceptance Criteria</Tab>
+          <Tab>2 — Step 3 with Criteria Checklist</Tab>
+          <Tab>3 — NCE Dialog (Resample option)</Tab>
+          <Tab>4 — Lab Unit Gate Config</Tab>
+        </TabList>
+        <TabPanels>
+          {/* ── Scene 1 — SampleType Admin Acceptance Criteria tab ──── */}
+          <TabPanel>
+            <h3 style={{ margin: '16px 0' }}>SampleType Admin — Acceptance Criteria Tab</h3>
+            <p style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
+              The existing SampleType admin form gains a new "Acceptance Criteria" tab where admins
+              configure rules per SampleType. Optional — if no criteria set, the gate is effectively skipped.
+            </p>
 
-      {/* Page header */}
-      <Stack gap={3} style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>
-          {t('heading.step4', 'QA Review — Step 4')}
-        </h2>
-        <div style={{ display: 'flex', gap: 'var(--cds-spacing-04)', alignItems: 'center', flexWrap: 'wrap' }}>
-          <Tag kind="blue" size="md">{MOCK_ORDER.labNumber}</Tag>
-          <Tag kind="green" size="sm">{MOCK_ORDER.domain}</Tag>
-          <span style={{ fontSize: '0.875rem', color: 'var(--cds-text-secondary)' }}>
-            {MOCK_ORDER.siteCode} — {MOCK_ORDER.siteName}
-          </span>
-          <Tag kind="purple" size="sm">{t('status.pendingQA', 'Pending QA')}</Tag>
-        </div>
-      </Stack>
+            <ExistingRegion>
+              <Tile>
+                <h5>SampleType: Surface Water</h5>
+                <p style={{ fontSize: 12, color: '#525252' }}>Existing tabs: Basic Info | Domain Classification | <strong>Acceptance Criteria (NEW)</strong></p>
+              </Tile>
+            </ExistingRegion>
 
-      {/* Success / error toast */}
-      {successToast && (
-        <InlineNotification
-          kind={successToast.kind}
-          title={successToast.text}
-          style={{ marginBottom: 'var(--cds-spacing-05)' }}
-          onClose={() => setSuccessToast(null)}
-        />
-      )}
-
-      <Grid>
-        {/* ── QA-1: Completeness Dashboard ── */}
-        <Column lg={16} style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-          <Tile style={{ padding: 'var(--cds-spacing-05)' }}>
-            <h4 style={{ marginTop: 0, marginBottom: 'var(--cds-spacing-04)' }}>
-              {t('heading.completeness', 'Completeness Dashboard')}
-            </h4>
-            <div style={{ display: 'flex', gap: 'var(--cds-spacing-06)', flexWrap: 'wrap' }}>
-              {[
-                { step: t('label.step1', 'Step 1 — Order Entry'), status: 'complete', icon: <Checkmark size={16} /> },
-                { step: t('label.step2', 'Step 2 — Collect Sample'), status: 'complete', icon: <Checkmark size={16} /> },
-                { step: t('label.step3', 'Step 3 — Label & Store'), status: 'complete', icon: <Checkmark size={16} /> },
-                { step: t('label.step4', 'Step 4 — QA Review'), status: 'current', icon: null },
-              ].map((s, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--cds-spacing-02)' }}>
-                  <div style={{
-                    width: 24, height: 24, borderRadius: '50%',
-                    background: s.status === 'complete' ? 'var(--cds-support-success)' : 'var(--cds-brand-01)',
-                    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '0.75rem', fontWeight: 700,
-                  }}>
-                    {s.status === 'complete' ? <Checkmark size={14} /> : '4'}
-                  </div>
-                  <span style={{ fontSize: '0.875rem', fontWeight: s.status === 'current' ? 600 : 400 }}>{s.step}</span>
-                </div>
-              ))}
-              {/* Eligibility indicator in dashboard */}
-              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 'var(--cds-spacing-02)' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>
-                  {t('label.eligibility.indicatorLabel', 'Eligibility:')}
-                </span>
-                {transitBreach
-                  ? <Tag kind="red" size="sm"><Warning size={12} /> {t('label.eligibility.sopBreachShort', 'SOP Breach')}</Tag>
-                  : <Tag kind="gray" size="sm">{t('label.eligibility.notAssessed', 'Not yet assessed')}</Tag>
-                }
-              </div>
-            </div>
-          </Tile>
-        </Column>
-
-        {/* ── Eligibility Assessment Section ── */}
-        <Column lg={16} style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-          <Tile style={{
-            padding: 'var(--cds-spacing-05)',
-            borderLeft: '4px solid var(--cds-interactive-01)',
-          }}>
-            <h3 style={{ marginTop: 0, marginBottom: 'var(--cds-spacing-05)', color: 'var(--cds-interactive-01)' }}>
-              {t('heading.eligibility.assessment', 'Eligibility Assessment')}
-            </h3>
-
-            {/* ── 1. Arrival & Transit Context ── */}
-            <div style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-              <h5 style={{ margin: '0 0 var(--cds-spacing-03)' }}>
-                {t('heading.eligibility.arrivalContext', 'Arrival & Transit')}
-              </h5>
-
-              {transitBreach && (
-                <InlineNotification
-                  kind="warning"
-                  title={t('label.eligibility.sopBreach', 'SOP transit window exceeded')}
-                  subtitle={`${MOCK_ORDER.transitHours} h elapsed — SOP max: ${MOCK_ORDER.sopWindowHours} h`}
-                  lowContrast
-                  style={{ marginBottom: 'var(--cds-spacing-04)' }}
-                />
-              )}
-
-              <Grid condensed style={{ gap: 0 }}>
-                {[
-                  { label: t('label.eligibility.arrivalAt', 'Received at lab'), value: MOCK_ORDER.arrivalAt },
-                  { label: t('label.eligibility.transitDuration', 'Time in transit'), value: `${MOCK_ORDER.transitHours} h` },
-                  { label: t('label.eligibility.receivedBy', 'Received by'), value: MOCK_ORDER.receivedBy },
-                  { label: t('label.eligibility.sopWindow', 'SOP window'), value: `${MOCK_ORDER.sopWindowHours} h` },
-                  { label: t('label.eligibility.shipmentId', 'Shipment ID'), value: MOCK_ORDER.shipmentId },
-                  { label: t('label.eligibility.coolerId', 'Cooler / Container ID'), value: MOCK_ORDER.coolerId },
-                ].map((f, i) => (
-                  <Column key={i} lg={4} md={4} sm={4} style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>{f.label}</p>
-                    <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 500 }}>{f.value}</p>
+            <NewRegion>
+              <Tile>
+                <h5 style={{ marginBottom: 12 }}>Acceptance Criteria — Surface Water</h5>
+                <Grid>
+                  <Column lg={4}>
+                    <NumberInput id="transit" label="Transit time max (hours)" defaultValue={24} min={0} />
                   </Column>
-                ))}
-              </Grid>
-            </div>
+                  <Column lg={4}>
+                    <NumberInput id="vol-min" label="Volume min (mL)" defaultValue={500} />
+                  </Column>
+                  <Column lg={4}>
+                    <NumberInput id="vol-max" label="Volume max (mL)" defaultValue={1000} />
+                  </Column>
+                  <Column lg={4}>
+                    <NumberInput id="temp-min" label="Receipt temp min (°C)" defaultValue={0} step={0.1} />
+                  </Column>
+                  <Column lg={4}>
+                    <NumberInput id="temp-max" label="Receipt temp max (°C)" defaultValue={6} step={0.1} />
+                  </Column>
+                  <Column lg={12}>
+                    <TextInput id="containers" labelText="Required container types (comma-separated)"
+                               defaultValue="Sterile bottle (HDPE), Brown glass" />
+                  </Column>
+                  <Column lg={12}>
+                    <p style={{ fontSize: 12, color: '#525252', marginTop: 8 }}>
+                      <em>Note: label-completeness checks are handled by the existing OE label management module — not configured here.</em>
+                    </p>
+                  </Column>
+                </Grid>
+              </Tile>
+            </NewRegion>
+          </TabPanel>
 
-            {/* ── 2. Criteria Checklist ── */}
-            <div style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-              <h5 style={{ margin: '0 0 var(--cds-spacing-03)' }}>
-                {t('heading.eligibility.criteria', 'Acceptance Criteria')}
-              </h5>
-              <Stack gap={4}>
-                {criteria.map(c => (
-                  <Tile key={c.id} style={{
-                    padding: 'var(--cds-spacing-04)',
-                    background: c.pass === false ? 'var(--cds-support-error-inverse)' : c.pass === true ? 'var(--cds-support-success-inverse)' : 'var(--cds-layer-01)',
-                    border: c.pass === false ? '1px solid var(--cds-support-error)' : '1px solid var(--cds-layer-accent-01)',
-                  }}>
-                    <Grid condensed>
-                      <Column lg={8} md={5} sm={4}>
-                        <Stack gap={2}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--cds-spacing-03)', flexWrap: 'wrap' }}>
-                            <span style={{ fontWeight: 500, fontSize: '0.875rem' }}>{c.label}</span>
-                            {severityTag(c.severity)}
-                            {c.autoComputed && (
-                              <>
-                                <Tag kind="gray" size="sm" renderIcon={Locked}>
-                                  {t('label.eligibility.criterionAutoComputed', 'Auto-evaluated')}
-                                </Tag>
-                                {c.sourceData && (
-                                  <Button
-                                    kind="ghost"
-                                    size="sm"
-                                    onClick={() => toggleSource(c.id)}
-                                    renderIcon={expandedSources[c.id] ? ChevronUp : ChevronDown}
-                                  >
-                                    {expandedSources[c.id]
-                                      ? t('button.source.hide', 'Hide source')
-                                      : t('button.source.view', 'View source')}
-                                  </Button>
-                                )}
-                              </>
-                            )}
-                            {!c.recoverable && (
-                              <Tag kind="cool-gray" size="sm">
-                                {t('label.eligibility.notRecoverable', 'No resample')}
-                              </Tag>
-                            )}
-                          </div>
-                          {c.note && <span style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>{c.note}</span>}
-                        </Stack>
-                      </Column>
-                      <Column lg={4} md={3} sm={4}>
-                        {c.autoComputed ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--cds-spacing-02)', paddingTop: 'var(--cds-spacing-02)' }}>
-                            {c.pass
-                              ? <Tag kind="green"><Checkmark size={12} /> {t('label.eligibility.criterionPass', 'Pass')}</Tag>
-                              : <Tag kind="red"><Close size={12} /> {t('label.eligibility.criterionFail', 'Fail')}</Tag>
-                            }
-                          </div>
-                        ) : (
-                          <div style={{ display: 'flex', gap: 'var(--cds-spacing-03)', paddingTop: 'var(--cds-spacing-02)' }}>
-                            <Button
-                              kind={c.pass === true ? 'primary' : 'tertiary'}
-                              size="sm"
-                              onClick={() => toggleCriterion(c.id, true)}
-                              renderIcon={Checkmark}
-                            >
-                              {t('label.eligibility.criterionPass', 'Pass')}
-                            </Button>
-                            <Button
-                              kind={c.pass === false ? 'danger' : 'tertiary'}
-                              size="sm"
-                              onClick={() => toggleCriterion(c.id, false)}
-                              renderIcon={Close}
-                            >
-                              {t('label.eligibility.criterionFail', 'Fail')}
-                            </Button>
-                          </div>
-                        )}
-                      </Column>
-                      <Column lg={4} md={8} sm={4} style={{ marginTop: 'var(--cds-spacing-03)' }}>
-                        <TextInput
-                          id={`note-${c.id}`}
-                          labelText=""
-                          size="sm"
-                          placeholder={t('label.eligibility.notesPlaceholder', 'Optional — note any observed condition')}
-                          value={c.note || ''}
-                          onChange={e => updateNote(c.id, e.target.value)}
-                          disabled={c.autoComputed}
-                        />
-                      </Column>
-                    </Grid>
-                    {c.autoComputed && c.sourceData && expandedSources[c.id] && (
-                      <SourceProvenanceBlock sourceData={c.sourceData} pass={c.pass} />
-                    )}
-                  </Tile>
-                ))}
-              </Stack>
-            </div>
+          {/* ── Scene 2 — Step 3 with criteria checklist ─────────────── */}
+          <TabPanel>
+            <h3 style={{ margin: '16px 0' }}>Step 3 (S-03 v2.0) — Per-Sample Eligibility</h3>
+            <p style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
+              Each sample row at S-03 v2.0 §5.3 now shows an Eligible / Review tag based on the auto-evaluated
+              criteria. Click <strong>Open Eligibility</strong> to inspect the per-sample checklist.
+            </p>
 
-            {/* ── 3. Compliance Context ── */}
-            <div style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-              <h5 style={{ margin: '0 0 var(--cds-spacing-03)' }}>
-                {t('heading.eligibility.complianceContext', 'Compliance Context')}
-              </h5>
-              <div style={{ display: 'flex', gap: 'var(--cds-spacing-03)', flexWrap: 'wrap' }}>
-                <Tag kind="green" size="md">{MOCK_ORDER.complianceStandard}</Tag>
-                <Tag kind="cyan" size="md">{MOCK_ORDER.siteCode} — {MOCK_ORDER.siteName}</Tag>
-                <Tag kind="teal" size="md">{MOCK_ORDER.sampleType}</Tag>
-                {domainTag(MOCK_ORDER.domain)}
-              </div>
-            </div>
+            <ExistingRegion>
+              <Tile>
+                <h5>Order ENV-2026-0412 — Step 3 (Sample Intake)</h5>
+              </Tile>
+            </ExistingRegion>
 
-            {/* ── Action Bar ── */}
-            <div style={{
-              display: 'flex', gap: 'var(--cds-spacing-04)', flexWrap: 'wrap',
-              paddingTop: 'var(--cds-spacing-05)',
-              borderTop: '1px solid var(--cds-layer-accent-01)',
-            }}>
-              <Button
-                kind="primary"
-                disabled={!allChecked}
-                onClick={handleAccept}
-                renderIcon={Checkmark}
-                title={!allChecked ? t('button.eligibility.accept.disabled', 'All criteria must be marked pass before accepting') : ''}
-              >
-                {t('button.eligibility.accept', 'Accept')}
-              </Button>
-              <Button
-                kind="tertiary"
-                onClick={() => setNceOpen(!nceOpen)}
-                style={{ borderColor: '#e65100', color: '#e65100' }}
-                renderIcon={DocumentAdd}
-              >
-                {t('button.eligibility.reportNce', 'Report NCE')}
-              </Button>
-              <Button kind="ghost">
-                {t('button.eligibility.returnToStep', 'Return to Step…')}
-              </Button>
-            </div>
-
-            {!allChecked && (
-              <p style={{ margin: 'var(--cds-spacing-03) 0 0', fontSize: '0.75rem', color: 'var(--cds-text-error)' }}>
-                {t('error.eligibility.criteriaIncomplete', 'All criteria must be marked pass or fail before accepting.')}
-              </p>
-            )}
-          </Tile>
-        </Column>
-
-        {/* ── QA-2: Sample Review Table ── */}
-        <Column lg={16} style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-          <DataTable
-            rows={[
-              { id: 's1', labNumber: MOCK_ORDER.labNumber, sampleType: MOCK_ORDER.sampleType, volume: '220 mL', collectedAt: '2026-04-15 13:30', collector: 'Budi Santoso', eligibility: anyFail ? 'fail' : allChecked ? 'pass' : 'pending' },
-            ]}
-            headers={[
-              { key: 'labNumber', header: t('header.labNumber', 'Lab Number') },
-              { key: 'sampleType', header: t('header.sampleType', 'Sample Type') },
-              { key: 'volume', header: t('header.volume', 'Volume') },
-              { key: 'collectedAt', header: t('header.collectedAt', 'Collected At') },
-              { key: 'collector', header: t('header.collector', 'Collector') },
-              { key: 'eligibility', header: t('header.eligibility', 'Eligibility') },
-            ]}
-          >
-            {({ rows, headers, getHeaderProps, getTableProps }) => (
-              <TableContainer title={t('heading.sampleReview', 'Sample Review')}>
-                <Table {...getTableProps()}>
+            <NewRegion>
+              <Tile>
+                <Table size="md">
                   <TableHead>
                     <TableRow>
-                      {headers.map(h => <TableHeader {...getHeaderProps({ header: h })} key={h.key}>{h.header}</TableHeader>)}
+                      <TableHeader>#</TableHeader>
+                      <TableHeader>Sample Type</TableHeader>
+                      <TableHeader>Accession</TableHeader>
+                      <TableHeader style={{ background: '#fcf4d6' }}>Eligibility (new)</TableHeader>
+                      <TableHeader>NCE Button (existing)</TableHeader>
+                      <TableHeader></TableHeader>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {rows.map(row => (
-                      <TableRow key={row.id}>
-                        {row.cells.map(cell => (
-                          <TableCell key={cell.id}>
-                            {cell.info.header === 'eligibility' ? (
-                              cell.value === 'fail'
-                                ? <Tag kind="red" size="sm"><Close size={12} /> {t('label.eligibility.criterionFail', 'Fail')}</Tag>
-                                : cell.value === 'pass'
-                                ? <Tag kind="green" size="sm"><Checkmark size={12} /> {t('label.eligibility.criterionPass', 'Pass')}</Tag>
-                                : <Tag kind="gray" size="sm">{t('label.eligibility.notAssessed', 'Not assessed')}</Tag>
-                            ) : cell.value}
-                          </TableCell>
-                        ))}
+                    {MOCK_SAMPLES.map(s => (
+                      <TableRow key={s.id}>
+                        <TableCell>{s.idx}</TableCell>
+                        <TableCell>{s.type}</TableCell>
+                        <TableCell><code style={{ fontSize: 12 }}>{s.accession}</code></TableCell>
+                        <TableCell>
+                          {s.status === 'eligible'
+                            ? <Tag type="green" size="sm">✓ Eligible</Tag>
+                            : <Tag type="warm-gray" size="sm">⚠ Review</Tag>}
+                        </TableCell>
+                        <TableCell>
+                          <Button kind="tertiary" size="sm" renderIcon={Warning} onClick={() => setShowNceDialog(true)}>
+                            Flag NCE
+                          </Button>
+                        </TableCell>
+                        <TableCell>
+                          <Button kind="ghost" size="sm" onClick={() => setOpenSampleId(s.id)}>
+                            Open Eligibility →
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-              </TableContainer>
-            )}
-          </DataTable>
-        </Column>
-
-        {/* ── Screen 2 embedded: NCE Inline Form ── */}
-        {nceOpen && (
-          <Column lg={16} style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-            <NceInlineForm
-              failingCriteria={failingCriteria}
-              sampleAction={sampleAction}
-              setSampleAction={setSampleAction}
-              onClose={() => setNceOpen(false)}
-              onSubmit={(action) => {
-                setNceOpen(false);
-                const labels = { resample: 'Resample Request queued.', reject: 'Sample rejected.', continue: 'NCE flag added.' };
-                setSuccessToast({ kind: 'success', text: `${MOCK_ORDER.labNumber}: NCE created. ${labels[action] || ''}` });
-              }}
-            />
-          </Column>
-        )}
-      </Grid>
-
-      {/* Override Modal */}
-      <Modal
-        open={overrideOpen}
-        modalHeading={t('message.eligibility.override.heading', 'Accept with failing criteria?')}
-        primaryButtonText={t('button.eligibility.override.confirm', 'Accept with override')}
-        secondaryButtonText={t('button.cancel', 'Cancel')}
-        danger
-        onRequestClose={() => setOverrideOpen(false)}
-        onRequestSubmit={handleOverrideConfirm}
-        primaryButtonDisabled={overrideJustification.trim().length < 10}
-      >
-        <p style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-          {t('message.eligibility.override.confirm', 'Some criteria are not marked pass. Committing will record this as an override in the audit trail.')}
-        </p>
-        <TextArea
-          id="override-justification"
-          labelText={t('label.eligibility.override.justification', 'Override justification (required)')}
-          placeholder={t('placeholder.eligibility.override.justification', 'Describe why these criteria are being accepted despite failures (min. 10 characters)')}
-          value={overrideJustification}
-          onChange={e => setOverrideJustification(e.target.value)}
-          invalid={overrideJustification.length > 0 && overrideJustification.trim().length < 10}
-          invalidText={t('error.eligibility.overrideJustificationRequired', 'Justification must be at least 10 characters')}
-          rows={4}
-        />
-      </Modal>
-    </div>
-  );
-}
-
-// ─── NCE Inline Form Component (Screen 2) ────────────────────────────────────
-function NceInlineForm({ failingCriteria = [], sampleAction, setSampleAction, onClose, onSubmit }) {
-  const [localAction, setLocalAction] = useState(sampleAction || 'resample');
-  const allNonRecoverable = failingCriteria.length > 0 && failingCriteria.every(c => !c.recoverable);
-  const defaultAction = allNonRecoverable ? 'reject' : 'resample';
-  const [groupIncluded, setGroupIncluded] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-
-  const autoDesc = failingCriteria.length > 0
-    ? `Eligibility gate failure: ${failingCriteria.length} criterion${failingCriteria.length > 1 ? 'a' : ''} failed\n` +
-      failingCriteria.map(c => `• ${c.label}: FAIL${c.note ? ` — ${c.note}` : ''}`).join('\n')
-    : t('placeholder.nce.description', 'Describe the non-conformance...');
-
-  return (
-    <div style={{
-      borderTop: '4px solid #e65100',
-      background: '#fffbf0',
-      borderRadius: '0 0 4px 4px',
-      padding: 'var(--cds-spacing-05)',
-      animation: 'slideDown 200ms ease-out',
-    }}>
-      {/* Context Banner */}
-      <div style={{
-        background: '#fff8ec',
-        border: '1px solid #e65100',
-        borderRadius: 4,
-        padding: 'var(--cds-spacing-04)',
-        marginBottom: 'var(--cds-spacing-05)',
-        fontFamily: 'IBM Plex Mono, monospace',
-        fontSize: '0.75rem',
-      }}>
-        <strong>📌 {t('heading.nce.contextBanner', 'CONTEXT — ELIGIBILITY GATE')}</strong>
-        <div style={{ marginTop: 'var(--cds-spacing-02)', lineHeight: 1.6 }}>
-          <span><strong>{t('label.nce.labNumber', 'Lab #')}:</strong> {MOCK_ORDER.labNumber}</span> ·{' '}
-          <span><strong>{t('label.nce.sampleType', 'Sample Type')}:</strong> {MOCK_ORDER.sampleType}</span> ·{' '}
-          <span><strong>{t('label.nce.domain', 'Domain')}:</strong> {MOCK_ORDER.domain}</span><br />
-          <span><strong>{t('label.eligibility.arrivalAt', 'Arrival')}:</strong> {MOCK_ORDER.arrivalAt}</span> ·{' '}
-          <span><strong>{t('label.eligibility.transitDuration', 'Transit')}:</strong> {MOCK_ORDER.transitHours} h (SOP: {MOCK_ORDER.sopWindowHours} h)</span><br />
-          <span><strong>{t('label.nce.site', 'Site')}:</strong> {MOCK_ORDER.siteCode} — {MOCK_ORDER.siteName}</span><br />
-          <span><strong>{t('label.nce.standard', 'Standard')}:</strong> {MOCK_ORDER.complianceStandard}</span><br />
-          {failingCriteria.length > 0 && (
-            <span><strong>{t('label.nce.failingCriteria', 'Failing Criteria')}:</strong> {failingCriteria.map(c => c.label).join(', ')}</span>
-          )}
-        </div>
-      </div>
-
-      <Grid>
-        <Column lg={8} style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-          <Stack gap={4}>
-            <Select id="nce-category" labelText={t('label.nce.category', 'Category')} defaultValue="Pre-Analytical">
-              <SelectItem value="Pre-Analytical" text={t('label.nce.category.preAnalytical', 'Pre-Analytical')} />
-            </Select>
-            <Select id="nce-subcategory" labelText={t('label.nce.subcategory', 'Subcategory')} defaultValue="Cold Chain">
-              <SelectItem value="Cold Chain" text={t('label.nce.subcategory.coldChain', 'Cold Chain')} />
-              <SelectItem value="Specimen Integrity" text={t('label.nce.subcategory.specimenIntegrity', 'Specimen Integrity')} />
-              <SelectItem value="Transport" text={t('label.nce.subcategory.transport', 'Transport')} />
-              <SelectItem value="Volume" text={t('label.nce.subcategory.volume', 'Volume')} />
-              <SelectItem value="Labeling" text={t('label.nce.subcategory.labeling', 'Labeling')} />
-            </Select>
-            <Select id="nce-severity" labelText={t('label.nce.severity', 'Severity')} defaultValue="MAJOR">
-              <SelectItem value="CRITICAL" text={t('label.nce.severity.critical', 'Critical')} />
-              <SelectItem value="MAJOR" text={t('label.nce.severity.major', 'Major')} />
-              <SelectItem value="MINOR" text={t('label.nce.severity.minor', 'Minor')} />
-            </Select>
-          </Stack>
-        </Column>
-        <Column lg={8} style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-          <TextArea
-            id="nce-description"
-            labelText={t('label.nce.description', 'Description')}
-            value={autoDesc}
-            rows={6}
-            helperText={t('helperText.nce.description', 'Auto-generated from failing criteria. You may edit before submitting.')}
-          />
-        </Column>
-
-        {/* Sample Action */}
-        <Column lg={16} style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-          <p style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: 'var(--cds-spacing-03)' }}>
-            {t('label.nce.sampleAction', 'Sample Action')}
-          </p>
-          <div style={{ display: 'flex', gap: 'var(--cds-spacing-04)', flexWrap: 'wrap' }}>
-            {[
-              {
-                value: 'continue',
-                label: t('label.nce.sampleAction.continue', 'Continue with NCE flag'),
-                desc: t('label.nce.sampleAction.continue.desc', 'Record NCE but continue processing this sample. Status unchanged.'),
-                color: '#0f62fe',
-                disabled: false,
-              },
-              {
-                value: 'reject',
-                label: t('label.nce.sampleAction.reject', 'Reject sample'),
-                desc: t('label.nce.sampleAction.reject.desc', 'Record NCE and mark sample pre-analytically rejected. No re-collection scheduled.'),
-                color: '#da1e28',
-                disabled: false,
-              },
-              {
-                value: 'resample',
-                label: t('label.nce.sampleAction.resample', 'Resample'),
-                desc: t('label.nce.sampleAction.resample.desc', 'Reject this sample and automatically create a new collection order for re-collection. The customer will be notified.'),
-                color: '#0e8a4e',
-                disabled: allNonRecoverable,
-                disabledTooltip: t('message.eligibility.resample.unavailable', 'Field re-collection not applicable for this failure type'),
-              },
-            ].map(opt => (
-              <div
-                key={opt.value}
-                onClick={() => !opt.disabled && setLocalAction(opt.value)}
-                style={{
-                  flex: '1 1 200px',
-                  border: `2px solid ${localAction === opt.value ? opt.color : 'var(--cds-layer-accent-01)'}`,
-                  borderRadius: 4,
-                  padding: 'var(--cds-spacing-04)',
-                  cursor: opt.disabled ? 'not-allowed' : 'pointer',
-                  opacity: opt.disabled ? 0.5 : 1,
-                  background: localAction === opt.value ? `${opt.color}10` : 'white',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--cds-spacing-02)', marginBottom: 'var(--cds-spacing-02)' }}>
-                  <div style={{
-                    width: 16, height: 16, borderRadius: '50%',
-                    border: `2px solid ${opt.color}`,
-                    background: localAction === opt.value ? opt.color : 'transparent',
-                  }} />
-                  <strong style={{ fontSize: '0.875rem' }}>{opt.label}</strong>
-                </div>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>
-                  {opt.disabled ? opt.disabledTooltip : opt.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </Column>
-
-        {/* Shipment Grouping Offer */}
-        <Column lg={16} style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-          <div style={{
-            border: '1px solid var(--cds-link-01)',
-            borderRadius: 4,
-            padding: 'var(--cds-spacing-04)',
-            background: 'var(--cds-layer-01)',
-          }}>
-            <p style={{ margin: '0 0 var(--cds-spacing-03)', fontWeight: 600, fontSize: '0.875rem' }}>
-              🔗 {t('heading.eligibility.grouping.title', 'Other samples match this root cause')}
-            </p>
-            <p style={{ margin: '0 0 var(--cds-spacing-03)', fontSize: '0.875rem', color: 'var(--cds-text-secondary)' }}>
-              {t('message.eligibility.grouping.body', '3 other samples arriving in the same shipment may share this failure:')}
-            </p>
-            <ul style={{ margin: '0 0 var(--cds-spacing-03)', paddingLeft: 'var(--cds-spacing-05)', fontSize: '0.875rem' }}>
-              <li>Lab #ENV-2026-00124 ({t('label.sampleType.waterSurface', 'Water — Surface')})</li>
-              <li>Lab #ENV-2026-00125 ({t('label.sampleType.waterGround', 'Water — Ground')})</li>
-              <li>Lab #ENV-2026-00126 ({t('label.sampleType.waterSurface', 'Water — Surface')})</li>
-            </ul>
-            <Checkbox
-              id="grouping-checkbox"
-              labelText={t('label.eligibility.grouping.checkbox', 'Include these samples in the same NCE')}
-              checked={groupIncluded}
-              onChange={(_, { checked }) => setGroupIncluded(checked)}
-            />
-            {groupIncluded && (
-              <InlineNotification
-                kind="info"
-                title={t('message.eligibility.grouping.note', 'Each grouped sample will receive an independent Resample Request.')}
-                lowContrast
-                style={{ marginTop: 'var(--cds-spacing-03)' }}
-              />
-            )}
-          </div>
-        </Column>
-
-        {/* Form actions */}
-        <Column lg={16}>
-          <Stack orientation="horizontal" gap={4}>
-            <Button
-              kind="primary"
-              onClick={() => { onSubmit && onSubmit(localAction); }}
-            >
-              {localAction === 'resample'
-                ? t('button.nce.submitResample', 'Submit NCE & Create Resample Request')
-                : localAction === 'reject'
-                ? t('button.nce.submitReject', 'Submit NCE & Reject Sample')
-                : t('button.nce.submitContinue', 'Submit NCE & Continue')
-              }
-            </Button>
-            <Button kind="ghost" onClick={onClose}>
-              {t('button.cancel', 'Cancel')}
-            </Button>
-          </Stack>
-        </Column>
-      </Grid>
-    </div>
-  );
-}
-
-// ─── SCREEN 3: Eligibility Worklist ──────────────────────────────────────────
-function Screen3EligibilityWorklist({ onAssess }) {
-  const [domainFilter, setDomainFilter] = useState('All');
-  const [searchVal, setSearchVal] = useState('');
-
-  const filtered = MOCK_WORKLIST.filter(r => {
-    if (domainFilter !== 'All' && r.domain !== domainFilter) return false;
-    if (searchVal && !r.labNumber.toLowerCase().includes(searchVal.toLowerCase())) return false;
-    return true;
-  });
-
-  const sopBreaches = MOCK_WORKLIST.filter(r => r.breach).length;
-  const oldest = '4h 31m';
-
-  return (
-    <div>
-      <Breadcrumb style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-        <BreadcrumbItem href="#"><span>{t('nav.sampleCollection', 'Sample Collection')}</span></BreadcrumbItem>
-        <BreadcrumbItem href="#"><span>{t('nav.addOrder', 'Add Order')}</span></BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage><span>{t('menu.order.eligibilityWorklist', 'Eligibility Worklist')}</span></BreadcrumbItem>
-      </Breadcrumb>
-
-      <h2 style={{ margin: '0 0 var(--cds-spacing-05)', fontSize: '1.5rem', fontWeight: 600 }}>
-        {t('menu.order.eligibilityWorklist', 'Eligibility Worklist')}
-      </h2>
-
-      {/* Summary Tiles */}
-      <Grid style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-        {[
-          { label: t('label.worklist.awaitingAssessment', 'Awaiting Assessment'), value: MOCK_WORKLIST.length, color: 'var(--cds-interactive-01)', icon: '⏳' },
-          { label: t('label.worklist.sopBreaches', 'SOP Breaches'), value: sopBreaches, color: 'var(--cds-support-error)', icon: '⚠️' },
-          { label: t('label.worklist.oldestWaiting', 'Oldest Waiting'), value: oldest, color: 'var(--cds-support-warning)', icon: '🕐' },
-          { label: t('label.worklist.myReceipts', 'My Receipts'), value: 2, color: 'var(--cds-support-success)', icon: '👤', clickable: true },
-        ].map((tile, i) => (
-          <Column lg={4} md={4} sm={4} key={i} style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-            <Tile style={{
-              padding: 'var(--cds-spacing-05)',
-              borderTop: `4px solid ${tile.color}`,
-              cursor: tile.clickable ? 'pointer' : 'default',
-            }}>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--cds-text-secondary)', marginBottom: 'var(--cds-spacing-02)' }}>
-                {tile.icon} {tile.label}
-              </p>
-              <p style={{ margin: 0, fontSize: '2rem', fontWeight: 700, color: tile.color }}>{tile.value}</p>
-            </Tile>
-          </Column>
-        ))}
-      </Grid>
-
-      {/* Toolbar */}
-      <div style={{ display: 'flex', gap: 'var(--cds-spacing-04)', marginBottom: 'var(--cds-spacing-04)', flexWrap: 'wrap', alignItems: 'center' }}>
-        <TextInput
-          id="scan-bar"
-          labelText=""
-          placeholder={t('placeholder.worklist.scan', 'Scan QR or enter lab number…')}
-          value={searchVal}
-          onChange={e => setSearchVal(e.target.value)}
-          style={{ width: 280 }}
-        />
-        <div style={{ display: 'flex', gap: 'var(--cds-spacing-02)' }}>
-          {['All', 'Clinical', 'Environmental', 'Vector'].map(d => (
-            <Button
-              key={d}
-              kind={domainFilter === d ? 'primary' : 'tertiary'}
-              size="sm"
-              onClick={() => setDomainFilter(d)}
-            >
-              {d}
-            </Button>
-          ))}
-        </div>
-        <Button kind="ghost" size="sm" renderIcon={Download}>
-          {t('button.exportCsv', 'Export CSV')}
-        </Button>
-      </div>
-
-      {/* Worklist Table */}
-      <DataTable
-        rows={filtered}
-        headers={[
-          { key: 'labNumber', header: t('header.labNumber', 'Lab Number') },
-          { key: 'sampleType', header: t('header.sampleType', 'Sample Type') },
-          { key: 'receivedAt', header: t('header.receivedAt', 'Received At') },
-          { key: 'transitHours', header: t('header.transitDuration', 'Transit') },
-          { key: 'site', header: t('header.site', 'Customer / Site') },
-          { key: 'standard', header: t('header.standard', 'Standard') },
-          { key: 'priority', header: t('header.priority', 'Priority') },
-          { key: 'action', header: '' },
-        ]}
-        isSortable
-      >
-        {({ rows, headers, getHeaderProps, getTableProps }) => (
-          <TableContainer title="">
-            <Table {...getTableProps()}>
-              <TableHead>
-                <TableRow>
-                  {headers.map(h => <TableHeader {...getHeaderProps({ header: h })} key={h.key}>{h.header}</TableHeader>)}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map((row, ri) => {
-                  const orig = filtered[ri];
-                  return (
-                    <TableRow key={row.id}>
-                      {row.cells.map(cell => (
-                        <TableCell key={cell.id}>
-                          {cell.info.header === 'sampleType' ? (
-                            <Stack gap={2}>
-                              <span>{cell.value}</span>
-                              {domainTag(orig.domain)}
-                            </Stack>
-                          ) : cell.info.header === 'transitHours' ? (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                              {cell.value} h
-                              {orig.breach && <Tag kind="red" size="sm"><Warning size={12} /> {t('label.breach', 'Breach')}</Tag>}
-                            </span>
-                          ) : cell.info.header === 'priority' ? (
-                            <Tag kind={orig.priority === 'Urgent' ? 'red' : orig.priority === 'High' ? 'orange' : 'gray'} size="sm">
-                              {cell.value}
-                            </Tag>
-                          ) : cell.info.header === 'action' ? (
-                            <Button kind="primary" size="sm" renderIcon={ArrowRight} onClick={() => onAssess && onAssess()}>
-                              {t('button.worklist.assess', 'Assess')}
-                            </Button>
-                          ) : cell.value}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </DataTable>
-    </div>
-  );
-}
-
-// ─── Auto-Rule Config Panel ───────────────────────────────────────────────────
-// Renders below the Auto-Compute Rule selector when a non-"none" rule is chosen.
-// Shows: what the rule evaluates, threshold inputs, direction, and a live preview.
-function AutoRuleConfigPanel({ rule, config, onChange, sopWindow }) {
-  if (!rule || rule === 'none') return null;
-
-  const update = (patch) => onChange({ ...config, ...patch });
-
-  // Live preview strings
-  const preview = () => {
-    if (rule === 'transit_window') {
-      const hours = config.customHours != null ? config.customHours : sopWindow;
-      return t('preview.transitWindow', `Will FAIL if elapsed time from collection to receipt > ${hours} h`).replace('${hours}', hours);
-    }
-    if (rule === 'temperature_range') {
-      const { direction, minValue, maxValue, unit } = config;
-      if (direction === 'within_range') return `Will FAIL if temperature < ${minValue ?? '—'}${unit} or > ${maxValue ?? '—'}${unit}`;
-      if (direction === 'at_least')     return `Will FAIL if temperature < ${minValue ?? '—'}${unit}`;
-      if (direction === 'at_most')      return `Will FAIL if temperature > ${maxValue ?? '—'}${unit}`;
-      if (direction === 'outside_range') return `Will FAIL if temperature ≥ ${minValue ?? '—'}${unit} and ≤ ${maxValue ?? '—'}${unit}`;
-    }
-    if (rule === 'volume_range') {
-      const { direction, minValue, maxValue, unit } = config;
-      if (direction === 'within_range') return `Will FAIL if volume < ${minValue ?? '—'} ${unit} or > ${maxValue ?? '—'} ${unit}`;
-      if (direction === 'at_least')     return `Will FAIL if volume < ${minValue ?? '—'} ${unit}`;
-      if (direction === 'at_most')      return `Will FAIL if volume > ${maxValue ?? '—'} ${unit}`;
-      if (direction === 'outside_range') return `Will FAIL if volume ≥ ${minValue ?? '—'} ${unit} and ≤ ${maxValue ?? '—'} ${unit}`;
-    }
-    if (rule === 'pool_size') {
-      const { source, customMin } = config;
-      const min = source === 'specimen_profile' ? '(from Vector Specimen Profile)' : (customMin ?? '—');
-      return `Will FAIL if pool count < ${min} specimens`;
-    }
-    return '';
-  };
-
-  const panelStyle = {
-    background: 'var(--cds-layer-01)',
-    border: '1px solid var(--cds-border-subtle-01)',
-    borderRadius: '4px',
-    padding: 'var(--cds-spacing-04)',
-    marginTop: 'var(--cds-spacing-03)',
-  };
-
-  return (
-    <div style={panelStyle}>
-      {/* Rule description */}
-      {rule === 'transit_window' && (
-        <Stack gap={3}>
-          <InlineNotification
-            kind="info"
-            title={t('label.admin.autoRule.transitWindow', 'Transit window')}
-            subtitle={t('helperText.autoRule.transitWindow', 'Computes elapsed time between the collection date/time (entered at Step 2) and the lab receipt date/time. Fails if elapsed time exceeds the configured maximum.')}
-            lowContrast
-            hideCloseButton
-          />
-          <RadioButtonGroup
-            legendText={t('label.admin.transitWindow.source', 'Window source')}
-            name={`tw-source-${rule}`}
-            valueSelected={config.customHours != null ? 'custom' : 'sop'}
-            onChange={(val) => update({ customHours: val === 'custom' ? (config.customHours ?? sopWindow) : null })}
-          >
-            <RadioButton value="sop" labelText={t('label.admin.transitWindow.useSOP', `Use SOP Transit Window (${sopWindow} h, set above)`).replace('${sopWindow}', sopWindow)} id="tw-sop" />
-            <RadioButton value="custom" labelText={t('label.admin.transitWindow.custom', 'Custom maximum for this criterion')} id="tw-custom" />
-          </RadioButtonGroup>
-          {config.customHours != null && (
-            <NumberInput
-              id="tw-custom-hours"
-              label={t('label.admin.transitWindow.customHours', 'Maximum elapsed time (hours)')}
-              value={config.customHours}
-              min={1} max={720}
-              onChange={(e, { value }) => update({ customHours: value })}
-              helperText={t('helperText.transitWindow.overridesSOPWindow', 'Overrides the SOP Transit Window above for this criterion only')}
-            />
-          )}
-        </Stack>
-      )}
-
-      {(rule === 'temperature_range' || rule === 'volume_range') && (
-        <Stack gap={3}>
-          <InlineNotification
-            kind="info"
-            title={rule === 'temperature_range'
-              ? t('label.admin.autoRule.temperatureRange', 'Temperature range')
-              : t('label.admin.autoRule.volumeRange', 'Volume range')}
-            subtitle={rule === 'temperature_range'
-              ? t('helperText.autoRule.temperatureRange', 'Reads the temperature recorded during sample receipt or cold-chain monitoring. Fails when the measured temperature falls outside the configured threshold.')
-              : t('helperText.autoRule.volumeRange', 'Reads the measured sample volume entered at collection. Fails when the volume does not meet the configured threshold.')}
-            lowContrast
-            hideCloseButton
-          />
-          <Grid condensed>
-            <Column lg={5}>
-              <Select
-                id={`dir-${rule}`}
-                labelText={t('label.admin.rangeRule.direction', 'Pass condition')}
-                value={config.direction}
-                onChange={(e) => update({ direction: e.target.value })}
-                size="sm"
-              >
-                <SelectItem value="within_range" text={t('label.admin.direction.withinRange', 'Within range (min ≤ x ≤ max)')} />
-                <SelectItem value="at_least"     text={t('label.admin.direction.atLeast',    'At least minimum (x ≥ min)')} />
-                <SelectItem value="at_most"      text={t('label.admin.direction.atMost',     'At most maximum (x ≤ max)')} />
-                <SelectItem value="outside_range" text={t('label.admin.direction.outsideRange', 'Outside range (x < min or x > max)')} />
-              </Select>
-            </Column>
-            {(config.direction === 'within_range' || config.direction === 'outside_range' || config.direction === 'at_least') && (
-              <Column lg={4}>
-                <NumberInput
-                  id={`min-${rule}`}
-                  label={t('label.admin.rangeRule.min', 'Minimum')}
-                  value={config.minValue ?? ''}
-                  onChange={(e, { value }) => update({ minValue: value })}
-                  size="sm"
-                />
-              </Column>
-            )}
-            {(config.direction === 'within_range' || config.direction === 'outside_range' || config.direction === 'at_most') && (
-              <Column lg={4}>
-                <NumberInput
-                  id={`max-${rule}`}
-                  label={t('label.admin.rangeRule.max', 'Maximum')}
-                  value={config.maxValue ?? ''}
-                  onChange={(e, { value }) => update({ maxValue: value })}
-                  size="sm"
-                />
-              </Column>
-            )}
-            <Column lg={3}>
-              {rule === 'temperature_range' ? (
-                <Select
-                  id="temp-unit"
-                  labelText={t('label.admin.rangeRule.unit', 'Unit')}
-                  value={config.unit}
-                  onChange={(e) => update({ unit: e.target.value })}
-                  size="sm"
-                >
-                  <SelectItem value="°C" text="°C" />
-                  <SelectItem value="°F" text="°F" />
-                </Select>
-              ) : (
-                <Select
-                  id="vol-unit"
-                  labelText={t('label.admin.rangeRule.unit', 'Unit')}
-                  value={config.unit}
-                  onChange={(e) => update({ unit: e.target.value })}
-                  size="sm"
-                >
-                  <SelectItem value="mL" text="mL" />
-                  <SelectItem value="µL" text="µL" />
-                  <SelectItem value="L"  text="L" />
-                </Select>
-              )}
-            </Column>
-          </Grid>
-        </Stack>
-      )}
-
-      {rule === 'pool_size' && (
-        <Stack gap={3}>
-          <InlineNotification
-            kind="info"
-            title={t('label.admin.autoRule.poolSize', 'Pool size (vector)')}
-            subtitle={t('helperText.autoRule.poolSize', 'Counts the specimens linked to this collection lot. Fails when the pool count falls below the configured minimum. Typically sourced from the Vector Specimen Profile.')}
-            lowContrast
-            hideCloseButton
-          />
-          <RadioButtonGroup
-            legendText={t('label.admin.poolSize.minSource', 'Minimum pool size source')}
-            name="pool-source"
-            valueSelected={config.source}
-            onChange={(val) => update({ source: val })}
-          >
-            <RadioButton value="specimen_profile" labelText={t('label.admin.poolSize.fromProfile', 'From Vector Specimen Profile (recommended)')} id="pool-profile" />
-            <RadioButton value="custom" labelText={t('label.admin.poolSize.custom', 'Custom minimum for this criterion')} id="pool-custom" />
-          </RadioButtonGroup>
-          {config.source === 'custom' && (
-            <NumberInput
-              id="pool-min"
-              label={t('label.admin.poolSize.customMin', 'Minimum specimen count')}
-              value={config.customMin ?? 10}
-              min={1}
-              onChange={(e, { value }) => update({ customMin: value })}
-            />
-          )}
-        </Stack>
-      )}
-
-      {/* Live preview */}
-      <div style={{
-        marginTop: 'var(--cds-spacing-04)',
-        padding: 'var(--cds-spacing-03)',
-        background: 'var(--cds-layer-02)',
-        borderRadius: '4px',
-        fontFamily: 'var(--cds-code-01-font-family, monospace)',
-        fontSize: '0.8rem',
-        color: 'var(--cds-text-primary)',
-        borderLeft: '3px solid var(--cds-interactive-01)',
-      }}>
-        <span style={{ color: 'var(--cds-text-secondary)', marginRight: 4 }}>{t('label.admin.rulePreview', 'Preview:')}</span>
-        {preview()}
-      </div>
-    </div>
-  );
-}
-
-// ─── SCREEN 4: SampleType Admin — Acceptance Criteria Accordion ───────────────
-// Default autoRuleConfig shapes when a rule is first selected
-const DEFAULT_RULE_CONFIG = {
-  transit_window:    { source: 'sop_window', customHours: null },
-  temperature_range: { direction: 'within_range', minValue: null, maxValue: null, unit: '°C' },
-  volume_range:      { direction: 'at_least', minValue: null, maxValue: null, unit: 'mL' },
-  pool_size:         { source: 'specimen_profile', customMin: null },
-};
-
-function Screen4SampleTypeAdmin() {
-  const [criteria, setCriteria] = useState(MOCK_CRITERIA_ADMIN);
-  const [sopWindow, setSopWindow] = useState(12);
-  const [newCritLabel, setNewCritLabel] = useState('');
-
-  const updateCriterion = (id, patch) =>
-    setCriteria(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
-
-  const setAutoRule = (id, newRule) => {
-    const current = criteria.find(c => c.id === id);
-    const newConfig = newRule === 'none'
-      ? null
-      : (current.autoRule === newRule ? current.autoRuleConfig : DEFAULT_RULE_CONFIG[newRule] ?? null);
-    updateCriterion(id, { autoRule: newRule, autoRuleConfig: newConfig });
-  };
-
-  const setRuleConfig = (id, config) => updateCriterion(id, { autoRuleConfig: config });
-
-  const addCriterion = () => {
-    if (!newCritLabel.trim()) return;
-    setCriteria(prev => [...prev, {
-      id: `ca${Date.now()}`,
-      label: newCritLabel,
-      severity: 'MAJOR',
-      recoverable: true,
-      autoRule: 'none',
-      autoRuleConfig: null,
-      subcategory: 'Specimen Integrity',
-    }]);
-    setNewCritLabel('');
-  };
-
-  return (
-    <div>
-      <Breadcrumb style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-        <BreadcrumbItem href="#"><span>{t('nav.admin', 'Admin')}</span></BreadcrumbItem>
-        <BreadcrumbItem href="#"><span>{t('nav.sampleTypes', 'Sample Types')}</span></BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage><span>{t('nav.waterSurface', 'Water — Surface')}</span></BreadcrumbItem>
-      </Breadcrumb>
-
-      <h2 style={{ margin: '0 0 var(--cds-spacing-05)', fontSize: '1.5rem', fontWeight: 600 }}>
-        {t('heading.sampleTypeEdit', 'Water — Surface')}{' '}
-        <Tag kind="green" size="sm">{t('label.domain.environmental', 'Environmental')}</Tag>
-      </h2>
-
-      {/* Existing SampleType fields placeholder */}
-      <Tile style={{ padding: 'var(--cds-spacing-05)', marginBottom: 'var(--cds-spacing-05)' }}>
-        <Grid>
-          <Column lg={8}>
-            <TextInput id="st-name" labelText={t('label.sampleType.name', 'Sample Type Name')} defaultValue="Water — Surface" />
-          </Column>
-          <Column lg={4}>
-            <Select id="st-domain" labelText={t('label.sampleType.domain', 'Domain')} defaultValue="Environmental">
-              <SelectItem value="Environmental" text={t('label.domain.environmental', 'Environmental')} />
-              <SelectItem value="Clinical" text={t('label.domain.clinical', 'Clinical')} />
-              <SelectItem value="Vector" text={t('label.domain.vector', 'Vector')} />
-            </Select>
-          </Column>
-          <Column lg={4}>
-            <Select id="st-matrix" labelText={t('label.sampleType.matrix', 'Matrix')} defaultValue="Liquid">
-              <SelectItem value="Liquid" text={t('label.matrix.liquid', 'Liquid')} />
-              <SelectItem value="Solid" text={t('label.matrix.solid', 'Solid')} />
-            </Select>
-          </Column>
-        </Grid>
-      </Tile>
-
-      {/* Acceptance Criteria Accordion */}
-      <Accordion>
-        <AccordionItem
-          title={
-            <span style={{ fontWeight: 600 }}>
-              {t('label.admin.sampleType.acceptanceCriteria', 'Acceptance Criteria')}
-              <Tag kind="blue" size="sm" style={{ marginLeft: 'var(--cds-spacing-03)' }}>{criteria.length} {t('label.criteria.count', 'criteria')}</Tag>
-            </span>
-          }
-        >
-          <Stack gap={4}>
-            <NumberInput
-              id="sop-window"
-              label={t('label.admin.sopTransitWindow', 'SOP Transit Window (hours)')}
-              value={sopWindow}
-              min={1} max={168}
-              onChange={(e, { value }) => setSopWindow(value)}
-              helperText={t('helperText.sopWindow', 'Maximum allowed time from collection to receipt at lab')}
-            />
-
-            {/* Default criteria library */}
-            <Accordion>
-              <AccordionItem title={t('label.admin.defaultCriteriaLibrary', 'Inherit from default criteria library')}>
-                <Stack gap={2}>
-                  {[
-                    { label: 'Container integrity intact', checked: true },
-                    { label: 'Label legibility', checked: true },
-                    { label: 'Sample volume sufficient', checked: true },
-                    { label: 'Temperature within range', checked: true },
-                    { label: 'SOP transit window met', checked: true },
-                    { label: 'Chain-of-custody form present', checked: false },
-                    { label: 'Biohazard disposal requirements met', checked: false },
-                  ].map((def, i) => (
-                    <Checkbox key={i} id={`default-${i}`} labelText={def.label} defaultChecked={def.checked} />
-                  ))}
-                </Stack>
-              </AccordionItem>
-            </Accordion>
-
-            <h5 style={{ margin: 0 }}>{t('label.admin.criteriaList', 'Criteria List')}</h5>
-
-            {criteria.map((c, i) => (
-              <Tile key={c.id} style={{ padding: 'var(--cds-spacing-04)', borderLeft: '3px solid var(--cds-interactive-01)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--cds-spacing-03)' }}>
-                  <strong style={{ fontSize: '0.875rem' }}>{c.label}</strong>
-                  <Button kind="ghost" size="sm" hasIconOnly renderIcon={TrashCan} iconDescription={t('button.deleteCriterion', 'Delete criterion')}
-                    onClick={() => setCriteria(prev => prev.filter(x => x.id !== c.id))} />
-                </div>
-                <Grid condensed>
-                  <Column lg={4}>
-                    <Select
-                      id={`sev-${c.id}`}
-                      labelText={t('label.admin.severity', 'Severity')}
-                      value={c.severity}
-                      onChange={(e) => updateCriterion(c.id, { severity: e.target.value })}
-                      size="sm"
-                    >
-                      <SelectItem value="CRITICAL" text={t('label.nce.severity.critical', 'Critical')} />
-                      <SelectItem value="MAJOR" text={t('label.nce.severity.major', 'Major')} />
-                      <SelectItem value="MINOR" text={t('label.nce.severity.minor', 'Minor')} />
-                    </Select>
-                  </Column>
-                  <Column lg={4}>
-                    <Select
-                      id={`auto-${c.id}`}
-                      labelText={t('label.admin.autoComputeRule', 'Auto-Compute Rule')}
-                      value={c.autoRule}
-                      onChange={(e) => setAutoRule(c.id, e.target.value)}
-                      size="sm"
-                      helperText={c.autoRule === 'none'
-                        ? t('helperText.autoRule.none', 'Officer checks this criterion manually at assessment')
-                        : t('helperText.autoRule.active', 'System evaluates automatically — configure below')}
-                    >
-                      <SelectItem value="none" text={t('label.admin.autoRule.none', 'None (manual)')} />
-                      <SelectItem value="transit_window" text={t('label.admin.autoRule.transitWindow', 'Transit window')} />
-                      <SelectItem value="temperature_range" text={t('label.admin.autoRule.temperatureRange', 'Temperature range')} />
-                      <SelectItem value="volume_range" text={t('label.admin.autoRule.volumeRange', 'Volume range')} />
-                      <SelectItem value="pool_size" text={t('label.admin.autoRule.poolSize', 'Pool size (vector)')} />
-                    </Select>
-                  </Column>
-                  <Column lg={4}>
-                    <Select
-                      id={`sub-${c.id}`}
-                      labelText={t('label.admin.subcategory', 'NCE Subcategory')}
-                      value={c.subcategory}
-                      onChange={(e) => updateCriterion(c.id, { subcategory: e.target.value })}
-                      size="sm"
-                    >
-                      <SelectItem value="Specimen Integrity" text={t('label.nce.subcategory.specimenIntegrity', 'Specimen Integrity')} />
-                      <SelectItem value="Cold Chain" text={t('label.nce.subcategory.coldChain', 'Cold Chain')} />
-                      <SelectItem value="Transport" text={t('label.nce.subcategory.transport', 'Transport')} />
-                      <SelectItem value="Volume" text={t('label.nce.subcategory.volume', 'Volume')} />
-                      <SelectItem value="Labeling" text={t('label.nce.subcategory.labeling', 'Labeling')} />
-                    </Select>
-                  </Column>
-                  <Column lg={4} style={{ paddingTop: 'var(--cds-spacing-05)' }}>
-                    <Checkbox
-                      id={`rec-${c.id}`}
-                      labelText={t('label.admin.recoverable', 'Recoverable (allow Resample)')}
-                      checked={c.recoverable}
-                      onChange={(_, { checked }) => updateCriterion(c.id, { recoverable: checked })}
-                    />
-                  </Column>
-                </Grid>
-
-                {/* Auto-compute rule config panel — expands when a rule is selected */}
-                {c.autoRule !== 'none' && c.autoRuleConfig && (
-                  <AutoRuleConfigPanel
-                    rule={c.autoRule}
-                    config={c.autoRuleConfig}
-                    onChange={(cfg) => setRuleConfig(c.id, cfg)}
-                    sopWindow={sopWindow}
-                  />
-                )}
               </Tile>
-            ))}
+            </NewRegion>
 
-            {/* Add criterion inline */}
-            <Tile style={{ padding: 'var(--cds-spacing-04)', border: '2px dashed var(--cds-layer-accent-01)' }}>
-              <Stack orientation="horizontal" gap={3}>
-                <TextInput
-                  id="new-crit-label"
-                  labelText=""
-                  placeholder={t('placeholder.admin.newCriterion', 'New criterion label…')}
-                  value={newCritLabel}
-                  onChange={e => setNewCritLabel(e.target.value)}
-                />
-                <Button kind="primary" size="md" renderIcon={Add} onClick={addCriterion}>
-                  {t('button.admin.addCriterion', 'Add')}
-                </Button>
-              </Stack>
-            </Tile>
-
-            <Stack orientation="horizontal" gap={3}>
-              <Button kind="primary">{t('button.save', 'Save criteria')}</Button>
-              <Button kind="ghost">{t('button.cancel', 'Cancel')}</Button>
-            </Stack>
-          </Stack>
-        </AccordionItem>
-      </Accordion>
-    </div>
-  );
-}
-
-// ─── SCREEN 5: Lab Unit Admin — Gate Behavior Config ─────────────────────────
-function Screen5LabUnitAdmin() {
-  const [config, setConfig] = useState({
-    clinical: 'Disabled',
-    environmental: 'Mandatory',
-    vector: 'Mandatory',
-  });
-
-  const setDomainConfig = (domain, val) => setConfig(prev => ({ ...prev, [domain]: val }));
-
-  const helpText = {
-    Mandatory: t('helperText.gateBehavior.mandatory', 'Eligibility Assessment is shown and enforced. The Accept button is disabled until all criteria pass. Required for ISO 15189/17025 compliance.'),
-    Prompted: t('helperText.gateBehavior.prompted', 'Eligibility Assessment is shown but advisory. The Accept button remains enabled at all times. Criteria results are recorded but not enforced.'),
-    Disabled: t('helperText.gateBehavior.disabled', 'Eligibility Assessment section is hidden. Step 4 behaves as in the original Sample Collection Redesign.'),
-  };
-
-  const domains = [
-    { key: 'environmental', label: t('label.domain.environmental', 'Environmental'), defaultNote: t('note.defaultMandatory', 'Default: Mandatory') },
-    { key: 'vector', label: t('label.domain.vector', 'Vector'), defaultNote: t('note.defaultMandatory', 'Default: Mandatory') },
-    { key: 'clinical', label: t('label.domain.clinical', 'Clinical'), defaultNote: t('note.defaultDisabled', 'Default: Disabled') },
-  ];
-
-  return (
-    <div>
-      <Breadcrumb style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-        <BreadcrumbItem href="#"><span>{t('nav.admin', 'Admin')}</span></BreadcrumbItem>
-        <BreadcrumbItem href="#"><span>{t('nav.labUnits', 'Lab Units')}</span></BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage><span>{t('nav.mainLab', 'Main Clinical Lab')}</span></BreadcrumbItem>
-      </Breadcrumb>
-
-      <h2 style={{ margin: '0 0 var(--cds-spacing-05)', fontSize: '1.5rem', fontWeight: 600 }}>
-        {t('heading.labUnit.edit', 'Main Clinical Lab')}
-      </h2>
-
-      {/* Existing Lab Unit fields placeholder */}
-      <Tile style={{ padding: 'var(--cds-spacing-05)', marginBottom: 'var(--cds-spacing-05)' }}>
-        <Grid>
-          <Column lg={8}>
-            <TextInput id="lu-name" labelText={t('label.labUnit.name', 'Lab Unit Name')} defaultValue="Main Clinical Lab" />
-          </Column>
-          <Column lg={4}>
-            <Select id="lu-type" labelText={t('label.labUnit.type', 'Workflow Type')} defaultValue="Both">
-              <SelectItem value="Clinical" text={t('label.workflowType.clinical', 'Clinical')} />
-              <SelectItem value="Environmental" text={t('label.workflowType.environmental', 'Environmental')} />
-              <SelectItem value="Both" text={t('label.workflowType.both', 'Both')} />
-            </Select>
-          </Column>
-        </Grid>
-      </Tile>
-
-      {/* Eligibility Gate Behavior */}
-      <Accordion>
-        <AccordionItem
-          title={
-            <span style={{ fontWeight: 600 }}>
-              {t('label.admin.labUnit.eligibilityGate', 'Eligibility Gate Behavior')}
-            </span>
-          }
-        >
-          <InlineNotification
-            kind="info"
-            title={t('message.eligibilityGate.info', 'Configure the pre-analytical eligibility gate per sample domain. Changes apply to new orders only; in-flight orders retain the behavior active when they entered PENDING QA.')}
-            lowContrast
-            style={{ marginBottom: 'var(--cds-spacing-05)' }}
-          />
-
-          <Stack gap={6}>
-            {domains.map(domain => (
-              <div key={domain.key}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--cds-spacing-03)', marginBottom: 'var(--cds-spacing-03)' }}>
-                  <h5 style={{ margin: 0 }}>{domain.label}</h5>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>({domain.defaultNote})</span>
-                </div>
-                <RadioButtonGroup
-                  name={`gate-${domain.key}`}
-                  valueSelected={config[domain.key]}
-                  onChange={val => setDomainConfig(domain.key, val)}
-                  orientation="horizontal"
-                >
-                  <RadioButton value="Mandatory" labelText={t('label.admin.labUnit.eligibilityGate.mandatory', 'Mandatory')} id={`${domain.key}-mandatory`} />
-                  <RadioButton value="Prompted" labelText={t('label.admin.labUnit.eligibilityGate.prompted', 'Prompted')} id={`${domain.key}-prompted`} />
-                  <RadioButton value="Disabled" labelText={t('label.admin.labUnit.eligibilityGate.disabled', 'Disabled')} id={`${domain.key}-disabled`} />
-                </RadioButtonGroup>
-                <p style={{ margin: 'var(--cds-spacing-02) 0 0', fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>
-                  {helpText[config[domain.key]]}
-                </p>
-              </div>
-            ))}
-          </Stack>
-
-          <Stack orientation="horizontal" gap={3} style={{ marginTop: 'var(--cds-spacing-05)' }}>
-            <Button kind="primary">{t('button.save', 'Save configuration')}</Button>
-            <Button kind="ghost">{t('button.cancel', 'Cancel')}</Button>
-          </Stack>
-        </AccordionItem>
-      </Accordion>
-    </div>
-  );
-}
-
-// ─── SCREEN 6: Vector CollectionLot Variant ───────────────────────────────────
-function Screen6VectorVariant() {
-  const vectorCriteria = [
-    {
-      id: 'v1',
-      label: t('label.eligibility.criterion.poolSize', 'Pool size meets VectorSpecimenProfile minimum'),
-      severity: 'MAJOR', recoverable: true, autoComputed: true, pass: true,
-      note: '47 specimens (min 30 per Anopheles profile)',
-      sourceData: {
-        rule: 'pool_size',
-        stepLabel: t('label.source.collectionLotEntry', 'V-01 CollectionLot Entry'),
-        stepHref: '#collection-lot-entry',
-        fields: [
-          { label: t('label.source.poolSize', 'Pool size recorded'), value: '47 specimens', enteredBy: 'Ahmad Fauzan', enteredAt: '2026-04-16 06:10', role: t('label.role.collector', 'Field Collector') },
-          { label: t('label.source.poolMinimum', 'Minimum required (VectorSpecimenProfile — Anopheles spp.)'), value: '30 specimens', enteredBy: t('label.source.systemConfig', 'System — VectorSpecimenProfile admin'), enteredAt: null, role: null },
-        ],
-        computed: t('message.source.poolSizeResult', 'Evaluated: 47 specimens ≥ 30 minimum → PASS'),
-      },
-    },
-    { id: 'v2', label: t('label.eligibility.criterion.desiccation', 'Desiccation absent'), severity: 'CRITICAL', recoverable: true, autoComputed: false, pass: null, note: '' },
-    { id: 'v3', label: t('label.eligibility.criterion.preservationMedium', 'Preservation medium appropriate'), severity: 'MAJOR', recoverable: false, autoComputed: false, pass: null, note: '' },
-    { id: 'v4', label: t('label.eligibility.criterion.specimensNotDamaged', 'Specimens not damaged (pool integrity)'), severity: 'MAJOR', recoverable: true, autoComputed: false, pass: null, note: '' },
-    { id: 'v5', label: t('label.eligibility.criterion.coldChain', 'Cold chain intact (field to lab)'), severity: 'CRITICAL', recoverable: true, autoComputed: false, pass: null, note: '' },
-  ];
-  const [vcriteria, setVCriteria] = useState(vectorCriteria);
-  const [expandedVectorSources, setExpandedVectorSources] = useState({});
-  const toggleVectorSource = (id) => setExpandedVectorSources(prev => ({ ...prev, [id]: !prev[id] }));
-  const allChecked = vcriteria.every(c => c.pass !== null);
-  const anyFail = vcriteria.some(c => c.pass === false);
-
-  const toggleCriterion = (id, pass) => setVCriteria(prev => prev.map(c => c.id === id ? { ...c, pass } : c));
-
-  return (
-    <div>
-      <Breadcrumb style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-        <BreadcrumbItem href="#"><span>{t('nav.sampleCollection', 'Sample Collection')}</span></BreadcrumbItem>
-        <BreadcrumbItem href="#"><span>{t('nav.addOrder', 'Add Order')}</span></BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage><span>{t('nav.qaReview', 'QA Review — Step 4 (Vector)')}</span></BreadcrumbItem>
-      </Breadcrumb>
-
-      <Stack gap={3} style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>
-          {t('heading.step4.vector', 'QA Review — Step 4')}
-        </h2>
-        <div style={{ display: 'flex', gap: 'var(--cds-spacing-04)', alignItems: 'center', flexWrap: 'wrap' }}>
-          <Tag kind="teal" size="md">VEC-2026-00031</Tag>
-          <Tag kind="teal" size="sm">{t('label.domain.vector', 'Vector')}</Tag>
-          <span style={{ fontSize: '0.875rem', color: 'var(--cds-text-secondary)' }}>
-            Trap BDG-019 — Bandung Urban Catchment
-          </span>
-          <Tag kind="purple" size="sm">{t('status.pendingQA', 'Pending QA')}</Tag>
-        </div>
-      </Stack>
-
-      <Grid>
-        {/* CollectionLot Context Block — replaces clinical/env context */}
-        <Column lg={16} style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-          <Tile style={{ padding: 'var(--cds-spacing-05)', borderLeft: '4px solid var(--cds-interactive-01)' }}>
-            <h3 style={{ marginTop: 0, marginBottom: 'var(--cds-spacing-05)', color: 'var(--cds-interactive-01)' }}>
-              {t('heading.eligibility.assessment', 'Eligibility Assessment')}
-            </h3>
-
-            {/* Vector CollectionLot context */}
-            <div style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-              <h5 style={{ margin: '0 0 var(--cds-spacing-03)' }}>
-                {t('heading.eligibility.collectionLotContext', 'Collection Lot Context')}
-              </h5>
-              <Grid condensed>
-                {[
-                  { label: t('label.vector.trapType', 'Trap Type'), value: 'CDC Light Trap' },
-                  { label: t('label.vector.collectionStart', 'Collection Start'), value: '2026-04-15 18:00' },
-                  { label: t('label.vector.collectionEnd', 'Collection End'), value: '2026-04-16 06:00' },
-                  { label: t('label.vector.poolFlag', 'Pool'), value: 'Yes' },
-                  { label: t('label.vector.poolSize', 'Pool Size'), value: '47 specimens' },
-                  { label: t('label.vector.collector', 'Field Collector'), value: 'Ahmad Fauzan' },
-                  { label: t('label.vector.weatherConditions', 'Weather Conditions'), value: 'Humid, 28°C, post-rain' },
-                  { label: t('label.vector.targetOrganism', 'Target Organism Group'), value: <Tag kind="green" size="sm">🦟 Anopheles spp.</Tag> },
-                  { label: t('label.eligibility.arrivalAt', 'Received at lab'), value: '2026-04-16 07:45' },
-                  { label: t('label.eligibility.transitDuration', 'Time in transit'), value: '1h 45m (SOP: 8h ✓)' },
-                  { label: t('label.eligibility.receivedBy', 'Received by'), value: 'Siti Rahayu' },
-                  { label: t('label.eligibility.shipmentId', 'Shipment ID'), value: 'SHIP-2026-VEC-008' },
-                ].map((f, i) => (
-                  <Column key={i} lg={4} md={4} sm={4} style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>{f.label}</p>
-                    <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 500 }}>{f.value}</p>
-                  </Column>
-                ))}
-              </Grid>
-            </div>
-
-            {/* Vector Criteria Checklist */}
-            <div style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-              <h5 style={{ margin: '0 0 var(--cds-spacing-03)' }}>
-                {t('heading.eligibility.criteria', 'Acceptance Criteria')}
-                <Tag kind="teal" size="sm" style={{ marginLeft: 'var(--cds-spacing-03)' }}>
-                  {t('label.vector.criteria', 'Vector — Anopheles spp. / Mosquito Pool')}
-                </Tag>
-              </h5>
-              <Stack gap={4}>
-                {vcriteria.map(c => (
-                  <Tile key={c.id} style={{
-                    padding: 'var(--cds-spacing-04)',
-                    background: c.pass === false ? 'var(--cds-support-error-inverse)' : c.pass === true ? 'var(--cds-support-success-inverse)' : 'var(--cds-layer-01)',
-                    border: '1px solid var(--cds-layer-accent-01)',
-                  }}>
-                    <Grid condensed>
-                      <Column lg={8}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--cds-spacing-03)', flexWrap: 'wrap' }}>
-                          <span style={{ fontWeight: 500, fontSize: '0.875rem' }}>{c.label}</span>
-                          {severityTag(c.severity)}
-                          {c.autoComputed && (
-                              <>
-                                <Tag kind="gray" size="sm" renderIcon={Locked}>{t('label.eligibility.criterionAutoComputed', 'Auto-evaluated')}</Tag>
-                                {c.sourceData && (
-                                  <Button kind="ghost" size="sm"
-                                    onClick={() => toggleVectorSource(c.id)}
-                                    renderIcon={expandedVectorSources[c.id] ? ChevronUp : ChevronDown}>
-                                    {expandedVectorSources[c.id] ? t('button.source.hide', 'Hide source') : t('button.source.view', 'View source')}
-                                  </Button>
-                                )}
-                              </>
-                            )}
-                          {!c.recoverable && <Tag kind="cool-gray" size="sm">{t('label.eligibility.notRecoverable', 'No resample')}</Tag>}
-                        </div>
-                        {c.note && <span style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)', display: 'block', marginTop: 4 }}>{c.note}</span>}
-                      </Column>
-                      <Column lg={4}>
-                        {c.autoComputed ? (
-                          <div style={{ paddingTop: 'var(--cds-spacing-02)' }}>
+            {openSample && (
+              <NewRegion label="S-09 v2 Side Panel">
+                <Tile>
+                  <h5>Eligibility Checklist — {openSample.accession} ({openSample.type})</h5>
+                  <Table size="sm">
+                    <TableHead>
+                      <TableRow>
+                        <TableHeader style={{ width: 60 }}>Status</TableHeader>
+                        <TableHeader>Criterion</TableHeader>
+                        <TableHeader>Detail</TableHeader>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {criteria.map(c => (
+                        <TableRow key={c.name}>
+                          <TableCell>
                             {c.pass
-                              ? <Tag kind="green"><Checkmark size={12} /> {t('label.eligibility.criterionPass', 'Pass')}</Tag>
-                              : <Tag kind="red"><Close size={12} /> {t('label.eligibility.criterionFail', 'Fail')}</Tag>
-                            }
-                          </div>
-                        ) : (
-                          <div style={{ display: 'flex', gap: 'var(--cds-spacing-03)', paddingTop: 'var(--cds-spacing-02)' }}>
-                            <Button kind={c.pass === true ? 'primary' : 'tertiary'} size="sm" onClick={() => toggleCriterion(c.id, true)} renderIcon={Checkmark}>
-                              {t('label.eligibility.criterionPass', 'Pass')}
-                            </Button>
-                            <Button kind={c.pass === false ? 'danger' : 'tertiary'} size="sm" onClick={() => toggleCriterion(c.id, false)} renderIcon={Close}>
-                              {t('label.eligibility.criterionFail', 'Fail')}
-                            </Button>
-                          </div>
-                        )}
-                      </Column>
-                    </Grid>
-                    {c.autoComputed && c.sourceData && expandedVectorSources[c.id] && (
-                      <SourceProvenanceBlock sourceData={c.sourceData} pass={c.pass} />
-                    )}
-                  </Tile>
-                ))}
-              </Stack>
-            </div>
+                              ? <Tag type="green" size="sm">✓</Tag>
+                              : <Tag type="red" size="sm">✕</Tag>}
+                          </TableCell>
+                          <TableCell>{c.name}</TableCell>
+                          <TableCell><span style={{ fontSize: 12, color: c.pass ? '#525252' : '#a2191f' }}>{c.detail}</span></TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  <p style={{ fontSize: 12, color: '#525252', marginTop: 12 }}>
+                    Failing criteria pre-populate the NCE dialog reason picklist when the operator clicks Flag NCE.
+                  </p>
+                  <Stack orientation="horizontal" gap={3} style={{ marginTop: 12 }}>
+                    <Button kind="ghost" onClick={() => setOpenSampleId(null)}>Close</Button>
+                    <Button kind="primary" onClick={() => { setShowNceDialog(true); setOpenSampleId(null); }}>
+                      Flag NCE with these reasons →
+                    </Button>
+                  </Stack>
+                </Tile>
+              </NewRegion>
+            )}
+          </TabPanel>
 
-            {/* Action bar */}
-            <div style={{
-              display: 'flex', gap: 'var(--cds-spacing-04)', flexWrap: 'wrap',
-              paddingTop: 'var(--cds-spacing-05)',
-              borderTop: '1px solid var(--cds-layer-accent-01)',
-            }}>
-              <Button kind="primary" disabled={!allChecked} renderIcon={Checkmark}>
-                {t('button.eligibility.accept', 'Accept')}
-              </Button>
-              <Button kind="tertiary" style={{ borderColor: '#e65100', color: '#e65100' }} renderIcon={DocumentAdd}>
-                {t('button.eligibility.reportNce', 'Report NCE')}
-              </Button>
-              <Button kind="ghost">
-                {t('button.eligibility.returnToStep', 'Return to Step…')}
-              </Button>
-            </div>
-          </Tile>
-        </Column>
-      </Grid>
-    </div>
-  );
-}
+          {/* ── Scene 3 — NCE dialog with Resample option ─────────────── */}
+          <TabPanel>
+            <h3 style={{ margin: '16px 0' }}>NCE Dialog — New "Resample" Radio Option</h3>
+            <p style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
+              The existing OE NCE dialog (coded reason + decision) gains a third sample_action option: <strong>Resample</strong>.
+              On commit, Resample creates a linked new Draft order pre-populated from the original and notifies the customer.
+            </p>
 
-// ─── Root App ─────────────────────────────────────────────────────────────────
-export default function PreAnalyticalEligibilityGate() {
-  const [activeTab, setActiveTab] = useState(0);
+            <Button onClick={() => setShowNceDialog(true)}>Open NCE Dialog (demo)</Button>
 
-  const screens = [
-    { label: t('tab.screen1', 'Step 4 — Eligibility Assessment'), component: <Screen1EligibilityAssessment /> },
-    { label: t('tab.screen3', 'Eligibility Worklist'), component: <Screen3EligibilityWorklist onAssess={() => setActiveTab(0)} /> },
-    { label: t('tab.screen4', 'Admin — SampleType Criteria'), component: <Screen4SampleTypeAdmin /> },
-    { label: t('tab.screen5', 'Admin — Gate Behavior'), component: <Screen5LabUnitAdmin /> },
-    { label: t('tab.screen6', 'Vector Variant'), component: <Screen6VectorVariant /> },
-  ];
+            <Modal
+              open={showNceDialog}
+              modalHeading="Flag NCE — Sample ENV-2026-0412.002"
+              primaryButtonText="Commit"
+              secondaryButtonText="Cancel"
+              onRequestClose={() => setShowNceDialog(false)}
+              onRequestSubmit={() => setShowNceDialog(false)}
+            >
+              <ExistingRegion>
+                <div style={{ marginBottom: 12 }}>
+                  <p style={{ fontSize: 12, color: '#525252', marginBottom: 6 }}>NCE Reason (existing coded picklist)</p>
+                  <Select
+                    id="nce-reason"
+                    labelText=""
+                    hideLabel
+                    value={nceReason}
+                    onChange={(e) => setNceReason(e.target.value)}
+                  >
+                    <SelectItem value="TRANSIT-EXCEEDED" text="Transit time exceeded" />
+                    <SelectItem value="COND-BROKEN" text="Cold-chain broken" />
+                    <SelectItem value="CONT-DAMAGED" text="Container damaged" />
+                    <SelectItem value="VOL-INSUFFICIENT" text="Volume insufficient" />
+                  </Select>
+                </div>
+              </ExistingRegion>
 
-  return (
-    <div style={{ padding: 'var(--cds-spacing-05)', maxWidth: 1440 }}>
-      <Tabs selectedIndex={activeTab} onChange={({ selectedIndex }) => setActiveTab(selectedIndex)}>
-        <TabList aria-label={t('aria.screenSwitcher', 'Screen switcher')}>
-          {screens.map((s, i) => <Tab key={i}>{s.label}</Tab>)}
-        </TabList>
-        <TabPanels>
-          {screens.map((s, i) => (
-            <TabPanel key={i} style={{ paddingTop: 'var(--cds-spacing-05)' }}>
-              {s.component}
-            </TabPanel>
-          ))}
+              <NewRegion label="S-09 v2 NEW">
+                <p style={{ fontSize: 12, color: '#525252', marginBottom: 6 }}>Sample Action (new third radio)</p>
+                <RadioButtonGroup
+                  name="sample-action"
+                  valueSelected={nceAction}
+                  onChange={(value) => setNceAction(value)}
+                  orientation="vertical"
+                >
+                  <RadioButton id="action-flag" labelText="Continue with NCE flag (existing)" value="flag" />
+                  <RadioButton id="action-reject" labelText="Reject sample (existing)" value="reject" />
+                  <RadioButton id="action-resample" labelText="Resample — create linked new order + notify customer (NEW)" value="resample" />
+                </RadioButtonGroup>
+
+                {nceAction === 'resample' && (
+                  <div style={{ marginTop: 12, padding: 12, background: '#edf5ff', borderLeft: '3px solid #0f62fe', fontSize: 13 }}>
+                    <strong>On commit:</strong>
+                    <ul style={{ marginTop: 6, marginLeft: 16 }}>
+                      <li>Original sample marked <code>REJECTED_RESAMPLING</code> (terminal)</li>
+                      <li>New Draft order created with <code>resampled_from = ENV-2026-0412</code>; site, standard, sample types, tests pre-populated</li>
+                      <li><Email size={14} style={{ verticalAlign: 'middle' }} /> Notification sent to original requester via configured channel (email or TextIt SMS)</li>
+                    </ul>
+                  </div>
+                )}
+              </NewRegion>
+
+              <ExistingRegion>
+                <TextArea
+                  id="nce-notes"
+                  labelText="Notes (existing free-text)"
+                  rows={2}
+                  placeholder="Additional context for the NCE record"
+                />
+              </ExistingRegion>
+            </Modal>
+          </TabPanel>
+
+          {/* ── Scene 4 — Lab Unit gate config ─────────────────────── */}
+          <TabPanel>
+            <h3 style={{ margin: '16px 0' }}>Lab Unit Admin — Gate Behavior per Domain</h3>
+            <p style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
+              Each lab unit configures gate behavior per-domain: <strong>Mandatory</strong> (block submit until criteria met),
+              <strong> Prompted</strong> (show but allow override), or <strong>Disabled</strong> (criteria checklist hidden).
+              SILNAS labs configure Mandatory for all three domains.
+            </p>
+
+            <ExistingRegion>
+              <Tile>
+                <h5>Lab Unit — Env Lab Jakarta</h5>
+                <Grid>
+                  <Column lg={4}><TextInput id="ln" labelText="Name" value="Env Lab Jakarta" readOnly /></Column>
+                  <Column lg={4}><TextInput id="ld" labelText="Domain Assignment" value="Environmental" readOnly /></Column>
+                </Grid>
+              </Tile>
+            </ExistingRegion>
+
+            <NewRegion>
+              <Tile>
+                <h5 style={{ marginBottom: 12 }}>Eligibility Gate Behavior</h5>
+                <Table size="sm">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Domain</TableHeader>
+                      <TableHeader>Gate Behavior</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {['Clinical', 'Env', 'Vector'].map(d => (
+                      <TableRow key={d}>
+                        <TableCell>{d}</TableCell>
+                        <TableCell>
+                          <Select
+                            id={`gb-${d}`}
+                            labelText="" hideLabel size="sm"
+                            value={gateConfig[d]}
+                            onChange={(e) => setGateConfig(prev => ({ ...prev, [d]: e.target.value }))}
+                          >
+                            <SelectItem value="Mandatory" text="Mandatory — block submit if any sample failing" />
+                            <SelectItem value="Prompted"  text="Prompted — show but allow single-click override" />
+                            <SelectItem value="Disabled"  text="Disabled — hide criteria checklist" />
+                          </Select>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Tile>
+            </NewRegion>
+          </TabPanel>
         </TabPanels>
       </Tabs>
     </div>

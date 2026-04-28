@@ -1,493 +1,316 @@
 /**
- * S-08 Environmental QC Rules — Mockup v1.0
- * OpenELIS Global
+ * S-08 v2.0 — QC Result Evaluation & Validation Warning
+ * Reframed from v1.0: focuses on the downstream half (result eval + validator warning).
+ * Dropped from v1.0:
+ *   - QC Protocol Configuration admin page (per 2026-04-25: user knows requirements)
+ *   - QC Sample Creation flow (already in S-03 v2.0 §5.3.2 quick-add buttons)
  *
- * Three screens via tab switcher:
- *   1. QC Protocol Configuration — Accordion within S-01 standard detail
- *   2. QC Tab on Results Entry — DataTable of linked QC samples + pass/fail
- *   3. QC Warning + Acknowledgment — Validation screen with warning banner
- *
- * Carbon Design System components. All strings via t(key, fallback).
+ * 3 scenes:
+ *   1. Test Catalog Admin — three new QC threshold fields per env/vector test
+ *   2. Results Entry — "QC Status" column added to expanded panel
+ *   3. Validation Screen — warning banner with required acknowledgment + justification
  */
-import { useState } from "react";
+
+import React, { useState } from 'react';
 import {
-  Settings, Shield, FlaskConical, Copy, Beaker, ChevronDown, ChevronRight,
-  CheckCircle2, AlertTriangle, XCircle, Clock, Info, X, FileText
-} from "lucide-react";
+  Grid, Column, Stack,
+  Tabs, Tab, TabList, TabPanels, TabPanel,
+  Table, TableHead, TableRow, TableHeader, TableBody, TableCell,
+  TextInput, TextArea, NumberInput, Checkbox,
+  Button, Tag, Tile, InlineNotification,
+} from '@carbon/react';
+import { Checkmark, Warning, Close, Edit, Save } from '@carbon/icons-react';
 
-const t = (key, fallback) => fallback || key;
+const t = (k, f) => f || k;
 
-// ---------------------------------------------------------------------------
-// Design tokens
-// ---------------------------------------------------------------------------
-const C = {
-  blue60: "#0f62fe", gray10: "#f4f4f4", gray20: "#e0e0e0", gray30: "#c6c6c6",
-  gray50: "#8d8d8d", gray60: "#6f6f6f", gray70: "#525252", gray80: "#393939",
-  gray90: "#262626", gray100: "#161616", white: "#ffffff",
-  green50: "#24a148", green10: "#defbe6", greenText: "#0e6027",
-  yellow30: "#f1c21b", yellow10: "#fcf4d6", yellowText: "#6e4b00",
-  red50: "#da1e28", red10: "#fff1f1",
-  teal50: "#009d9a", purple60: "#8a3ffc",
-};
+const NewRegion = ({ children, label = 'S-08 v2 NEW' }) => (
+  <div style={{ border: '2px dashed #F1C21B', borderRadius: 6, padding: 12, position: 'relative', marginBottom: 16 }}>
+    <span style={{
+      position: 'absolute', top: -11, left: 12,
+      background: '#F1C21B', color: '#000', fontSize: 11, fontWeight: 700,
+      padding: '1px 8px', borderRadius: 4,
+    }}>{label}</span>
+    {children}
+  </div>
+);
 
-const QC_TYPE_CONFIG = {
-  FIELD_BLANK:    { label: "Field Blank",      icon: "🧪", color: C.blue60, bg: "#edf5ff",  desc: "Detect contamination from collection equipment" },
-  TRIP_BLANK:     { label: "Trip Blank",        icon: "🚚", color: C.purple60, bg: "#f6f2ff", desc: "Detect contamination during transport" },
-  DUPLICATE:      { label: "Duplicate Sample",  icon: "📋", color: C.teal50, bg: "#d9fbfb",  desc: "Assess measurement precision via RPD" },
-  SPIKE_RECOVERY: { label: "Spike Recovery",    icon: "💉", color: C.yellowText, bg: C.yellow10, desc: "Verify analyte recovery in sample matrix" },
-};
+const ExistingRegion = ({ children, label = 'EXISTING' }) => (
+  <div style={{ opacity: 0.72, position: 'relative', marginBottom: 16 }}>
+    <span style={{
+      position: 'absolute', top: 4, right: 8, zIndex: 1,
+      background: '#8D8D8D', color: '#fff', fontSize: 10, fontWeight: 600,
+      padding: '1px 6px', borderRadius: 3,
+    }}>{label}</span>
+    {children}
+  </div>
+);
 
-const STATUS_TAG = {
-  PASS:    { bg: C.green10, color: C.greenText, label: "Pass", icon: "✓" },
-  FAIL:    { bg: C.red10, color: C.red50, label: "Fail", icon: "✗" },
-  PENDING: { bg: C.gray10, color: C.gray60, label: "Pending", icon: "⏳" },
-};
+// ─── Mock Data ──────────────────────────────────────────────────────
 
-// ---------------------------------------------------------------------------
-// Mock data — QC protocol config
-// ---------------------------------------------------------------------------
-const MOCK_PROTOCOLS = [
-  { qcType: "FIELD_BLANK", enabled: true, frequency: "PER_EVENT", frequencyN: null, acceptanceLower: 0, acceptanceUpper: 1, acceptanceUnit: "MDL_RELATIVE" },
-  { qcType: "TRIP_BLANK", enabled: true, frequency: "PER_EVENT", frequencyN: null, acceptanceLower: 0, acceptanceUpper: 1, acceptanceUnit: "MDL_RELATIVE" },
-  { qcType: "DUPLICATE", enabled: true, frequency: "PER_N_SAMPLES", frequencyN: 10, acceptanceLower: 0, acceptanceUpper: 20, acceptanceUnit: "PERCENT" },
-  { qcType: "SPIKE_RECOVERY", enabled: false, frequency: "PER_EVENT", frequencyN: null, acceptanceLower: 75, acceptanceUpper: 125, acceptanceUnit: "PERCENT" },
+const MOCK_TESTS = [
+  { id: 't-014', name: 'Lead (Pb)',     unit: 'mg/L',     blankThreshold: 0.003, rpdThreshold: 20, recoveryWindow: 20 },
+  { id: 't-015', name: 'Mercury (Hg)',  unit: 'mg/L',     blankThreshold: 0.0001, rpdThreshold: 20, recoveryWindow: 20 },
+  { id: 't-005', name: 'pH',            unit: '—',        blankThreshold: null,  rpdThreshold: 5,  recoveryWindow: 10 },
+  { id: 't-008', name: 'COD',           unit: 'mg/L',     blankThreshold: 5,     rpdThreshold: 25, recoveryWindow: 20 },
 ];
 
-// Mock data — QC evaluations for an order
-const MOCK_EVALUATIONS = [
-  { qcType: "FIELD_BLANK", labNumber: "ENV-2026-001-FB", parameter: "Lead (Pb)", qcResult: "0.001 mg/L", parentResult: "—", calculated: "—", acceptance: "< MDL (0.003)", status: "PASS" },
-  { qcType: "FIELD_BLANK", labNumber: "ENV-2026-001-FB", parameter: "pH", qcResult: "6.9 pH", parentResult: "—", calculated: "—", acceptance: "< MDL", status: "PASS" },
-  { qcType: "FIELD_BLANK", labNumber: "ENV-2026-001-FB", parameter: "E. coli", qcResult: "0 CFU/100mL", parentResult: "—", calculated: "—", acceptance: "< MDL", status: "PASS" },
-  { qcType: "TRIP_BLANK", labNumber: "ENV-2026-001-TB", parameter: "Lead (Pb)", qcResult: "0.004 mg/L", parentResult: "—", calculated: "—", acceptance: "< MDL (0.003)", status: "FAIL" },
-  { qcType: "TRIP_BLANK", labNumber: "ENV-2026-001-TB", parameter: "pH", qcResult: "7.0 pH", parentResult: "—", calculated: "—", acceptance: "< MDL", status: "PASS" },
-  { qcType: "DUPLICATE", labNumber: "ENV-2026-001-DUP", parameter: "Lead (Pb)", qcResult: "0.030 mg/L", parentResult: "0.032 mg/L", calculated: "RPD: 6.5%", acceptance: "≤20%", status: "PASS" },
-  { qcType: "DUPLICATE", labNumber: "ENV-2026-001-DUP", parameter: "E. coli", qcResult: "52 CFU/100mL", parentResult: "45 CFU/100mL", calculated: "RPD: 14.4%", acceptance: "≤20%", status: "PASS" },
-  { qcType: "DUPLICATE", labNumber: "ENV-2026-001-DUP", parameter: "Turbidity", qcResult: "4.1 NTU", parentResult: "3.8 NTU", calculated: "RPD: 7.6%", acceptance: "≤20%", status: "PASS" },
+const MOCK_RESULTS = [
+  // Client samples
+  { id: 'r-001', accession: 'ENV-2026-0412.001', sampleType: 'Surface Water', test: 'Lead (Pb)',     result: '0.05 mg/L',  qcType: null,        qcEval: null,    detail: null },
+  { id: 'r-002', accession: 'ENV-2026-0412.001', sampleType: 'Surface Water', test: 'Mercury (Hg)',  result: '0.0008 mg/L', qcType: null,        qcEval: null,    detail: null },
+  { id: 'r-003', accession: 'ENV-2026-0412.002', sampleType: 'Surface Water', test: 'Lead (Pb)',     result: '0.04 mg/L',  qcType: null,        qcEval: null,    detail: null },
+  // QC samples
+  { id: 'r-101', accession: 'QC-BLNK-001',       sampleType: '—',             test: 'Lead (Pb)',     result: '0.001 mg/L', qcType: 'BLANK',     qcEval: 'PASS',  detail: '0.001 ≤ 0.003 (threshold)' },
+  { id: 'r-102', accession: 'QC-BLNK-001',       sampleType: '—',             test: 'Mercury (Hg)',  result: '0.0003 mg/L', qcType: 'BLANK',    qcEval: 'FAIL',  detail: '0.0003 > 0.0001 threshold (potential contamination)' },
+  { id: 'r-103', accession: 'QC-DUP-001',        sampleType: '—',             test: 'Lead (Pb)',     result: '0.052 mg/L', qcType: 'DUPLICATE', qcEval: 'PASS',  detail: 'RPD = 3.9% (threshold 20%); parent ENV-2026-0412.001' },
+  { id: 'r-104', accession: 'QC-CTRL-001',       sampleType: '—',             test: 'Lead (Pb)',     result: '0.078 mg/L', qcType: 'CONTROL',   qcEval: 'FAIL',  detail: 'Recovery 78% (window 80–120%); expected 0.100' },
 ];
 
-// =====================================================================
-// SCREEN 1: QC Protocol Configuration
-// =====================================================================
-function QcProtocolConfig() {
-  const [protocols, setProtocols] = useState(MOCK_PROTOCOLS);
-  const [openPanels, setOpenPanels] = useState({ FIELD_BLANK: true });
-  const [saved, setSaved] = useState(false);
+const QC_EVAL_TAG = {
+  PASS: { type: 'green', icon: <Checkmark size={14} />, label: 'QC Pass' },
+  FAIL: { type: 'red',   icon: <Close size={14} />,     label: 'QC Fail' },
+  N_A:  { type: 'gray',  icon: null,                     label: 'QC N/A' },
+};
 
-  const togglePanel = (type) => setOpenPanels(p => ({ ...p, [type]: !p[type] }));
+// ─── Component ──────────────────────────────────────────────────────
 
-  return (
-    <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", background: C.gray10, minHeight: "100vh" }}>
-      <div style={{ background: C.white, borderBottom: `1px solid ${C.gray20}`, padding: "24px 32px 16px" }}>
-        <div style={{ fontSize: 14, color: C.gray60, marginBottom: 4 }}>
-          <Settings size={16} style={{ verticalAlign: "middle" }} /> Admin / Compliance Standards / PP No. 22/2021
-        </div>
-        <h1 style={{ fontSize: 28, fontWeight: 400, color: C.gray100, margin: "4px 0" }}>
-          {t("heading.qcProtocol.title", "QC Protocol")}
-        </h1>
-        <p style={{ fontSize: 14, color: C.gray60 }}>
-          {t("heading.qcProtocol.subtitle", "Configure environmental quality control requirements for this standard")}
-        </p>
-      </div>
-
-      <div style={{ padding: "24px 32px", maxWidth: 800 }}>
-        {saved && (
-          <div style={{ background: C.green10, border: `1px solid ${C.greenText}`, padding: "12px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: C.greenText }}>
-            <CheckCircle2 size={16} /> {t("message.qcProtocol.saved", "QC protocol saved.")}
-            <button onClick={() => setSaved(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: C.greenText }}><X size={14} /></button>
-          </div>
-        )}
-
-        {protocols.map(proto => {
-          const cfg = QC_TYPE_CONFIG[proto.qcType];
-          const open = !!openPanels[proto.qcType];
-          return (
-            <div key={proto.qcType} style={{ background: C.white, border: `1px solid ${C.gray20}`, marginBottom: -1 }}>
-              <button onClick={() => togglePanel(proto.qcType)} style={{
-                width: "100%", background: "none", border: "none", padding: "12px 16px", cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 600, color: C.gray90, textAlign: "left", fontFamily: "inherit",
-              }}>
-                {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                <span>{cfg.icon}</span>
-                <span>{cfg.label}</span>
-                <span style={{ fontSize: 12, fontWeight: 400, color: C.gray50, marginLeft: 4 }}>— {cfg.desc}</span>
-                <span style={{ marginLeft: "auto" }}>
-                  <span style={{
-                    padding: "2px 10px", borderRadius: 24, fontSize: 12, fontWeight: 500,
-                    background: proto.enabled ? C.green10 : C.gray10,
-                    color: proto.enabled ? C.greenText : C.gray60,
-                  }}>
-                    {proto.enabled ? t("label.qcProtocol.enabled", "Enabled") : "Disabled"}
-                  </span>
-                </span>
-              </button>
-              {open && (
-                <div style={{ padding: "0 16px 20px", borderTop: `1px solid ${C.gray20}` }}>
-                  <div style={{ paddingTop: 16, display: "flex", flexDirection: "column", gap: 16 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <label style={cfgLabelStyle}>{t("label.qcProtocol.enabled", "Enabled")}</label>
-                      <input type="checkbox" checked={proto.enabled} readOnly style={{ width: 18, height: 18 }} />
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                      <div>
-                        <label style={cfgLabelStyle}>{t("label.qcProtocol.frequency", "Frequency")}</label>
-                        <select style={cfgInputStyle} defaultValue={proto.frequency}>
-                          <option value="PER_EVENT">{t("label.qcProtocol.frequencyPerEvent", "Every sampling event")}</option>
-                          <option value="PER_N_SAMPLES">1 per N samples</option>
-                        </select>
-                      </div>
-                      {proto.frequency === "PER_N_SAMPLES" && (
-                        <div>
-                          <label style={cfgLabelStyle}>N</label>
-                          <input type="number" style={cfgInputStyle} defaultValue={proto.frequencyN} min={1} />
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-                      <div>
-                        <label style={cfgLabelStyle}>{t("label.qcProtocol.acceptanceLower", "Lower Bound")}</label>
-                        <input type="number" style={cfgInputStyle} defaultValue={proto.acceptanceLower} />
-                      </div>
-                      <div>
-                        <label style={cfgLabelStyle}>{t("label.qcProtocol.acceptanceUpper", "Upper Bound")}</label>
-                        <input type="number" style={cfgInputStyle} defaultValue={proto.acceptanceUpper} />
-                      </div>
-                      <div>
-                        <label style={cfgLabelStyle}>{t("label.qcProtocol.acceptanceUnit", "Unit")}</label>
-                        <select style={cfgInputStyle} defaultValue={proto.acceptanceUnit}>
-                          <option value="PERCENT">{t("label.qcProtocol.unitPercent", "Percent (%)")}</option>
-                          <option value="ABSOLUTE">{t("label.qcProtocol.unitAbsolute", "Absolute Value")}</option>
-                          <option value="MDL_RELATIVE">{t("label.qcProtocol.unitMdl", "Relative to MDL")}</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div>
-                      <label style={cfgLabelStyle}>{t("label.qcProtocol.parameters", "Parameters")}</label>
-                      <div style={{ fontSize: 13, color: C.gray60, padding: "8px 0" }}>
-                        {t("label.qcProtocol.allParameters", "All Parameters")} (pH, Turbidity, Lead, E. coli, Odor)
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-
-        <button onClick={() => setSaved(true)} style={{
-          background: C.blue60, color: C.white, border: "none", padding: "11px 24px",
-          fontSize: 14, fontWeight: 500, cursor: "pointer", fontFamily: "inherit", marginTop: 24,
-        }}>
-          {t("button.qcProtocol.save", "Save QC Protocol")}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// =====================================================================
-// SCREEN 2: QC Tab on Results Entry
-// =====================================================================
-function QcResultsTab() {
-  const failCount = MOCK_EVALUATIONS.filter(e => e.status === "FAIL").length;
-  const passCount = MOCK_EVALUATIONS.filter(e => e.status === "PASS").length;
-  const pendingCount = MOCK_EVALUATIONS.filter(e => e.status === "PENDING").length;
-  const total = MOCK_EVALUATIONS.length;
-
-  return (
-    <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", background: C.gray10, minHeight: "100vh" }}>
-      <div style={{ background: C.white, borderBottom: `1px solid ${C.gray20}`, padding: "24px 32px 16px" }}>
-        <div style={{ fontSize: 14, color: C.gray60, marginBottom: 4 }}>
-          <FlaskConical size={16} style={{ verticalAlign: "middle" }} /> Results Entry / ENV-2026-001 / Expanded Panel
-        </div>
-        <h1 style={{ fontSize: 28, fontWeight: 400, color: C.gray100, margin: "4px 0" }}>
-          {t("heading.qcTab.title", "QC")} {failCount > 0 && (
-            <span style={{ fontSize: 16, padding: "2px 10px", borderRadius: 24, background: C.red10, color: C.red50, fontWeight: 600, marginLeft: 8 }}>
-              ⚠ {failCount}
-            </span>
-          )}
-        </h1>
-        <p style={{ fontSize: 14, color: C.gray60 }}>
-          {t("label.qcTab.summary", `QC Status: ${passCount} passed, ${failCount} failed, ${pendingCount} pending of ${total} evaluations`)}
-        </p>
-      </div>
-
-      <div style={{ padding: "24px 32px" }}>
-        {failCount > 0 && (
-          <div style={{
-            background: C.yellow10, border: `1px solid ${C.yellow30}`, padding: "12px 16px",
-            marginBottom: 16, display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: C.yellowText,
-          }}>
-            <AlertTriangle size={16} />
-            {t("message.qcWarning", `⚠ QC Warning: ${failCount} quality control check(s) failed for this order. Review before releasing results.`)}
-          </div>
-        )}
-
-        <div style={{ background: C.white, border: `1px solid ${C.gray20}` }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-            <thead>
-              <tr style={{ background: C.gray10, borderBottom: `1px solid ${C.gray20}` }}>
-                <th style={thStyle}>{t("label.qcTab.qcType", "QC Type")}</th>
-                <th style={thStyle}>{t("label.qcTab.labNumber", "Lab Number")}</th>
-                <th style={thStyle}>{t("label.qcTab.parameter", "Parameter")}</th>
-                <th style={thStyle}>{t("label.qcTab.qcResult", "QC Result")}</th>
-                <th style={thStyle}>{t("label.qcTab.parentResult", "Parent Result")}</th>
-                <th style={thStyle}>{t("label.qcTab.calculated", "Calculated")}</th>
-                <th style={thStyle}>{t("label.qcTab.acceptance", "Acceptance")}</th>
-                <th style={thStyle}>{t("label.qcTab.status", "Status")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {MOCK_EVALUATIONS.map((ev, i) => {
-                const qcCfg = QC_TYPE_CONFIG[ev.qcType];
-                const sCfg = STATUS_TAG[ev.status];
-                return (
-                  <tr key={i} style={{ borderBottom: `1px solid ${C.gray20}` }}>
-                    <td style={tdStyle}>
-                      <span style={{
-                        display: "inline-flex", alignItems: "center", gap: 4,
-                        padding: "2px 10px", borderRadius: 24, fontSize: 12, fontWeight: 500,
-                        background: qcCfg.bg, color: qcCfg.color,
-                      }}>
-                        {qcCfg.icon} {qcCfg.label}
-                      </span>
-                    </td>
-                    <td style={{ ...tdStyle, fontWeight: 500, fontSize: 13 }}>{ev.labNumber}</td>
-                    <td style={tdStyle}>{ev.parameter}</td>
-                    <td style={tdStyle}>{ev.qcResult}</td>
-                    <td style={{ ...tdStyle, color: ev.parentResult === "—" ? C.gray50 : C.gray90 }}>{ev.parentResult}</td>
-                    <td style={{ ...tdStyle, color: ev.calculated === "—" ? C.gray50 : C.gray90 }}>{ev.calculated}</td>
-                    <td style={{ ...tdStyle, fontSize: 13 }}>{ev.acceptance}</td>
-                    <td style={tdStyle}>
-                      <span style={{
-                        display: "inline-flex", alignItems: "center", gap: 4,
-                        padding: "2px 10px", borderRadius: 24, fontSize: 12, fontWeight: 500,
-                        background: sCfg.bg, color: sCfg.color,
-                      }}>
-                        {sCfg.icon} {sCfg.label}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// =====================================================================
-// SCREEN 3: QC Warning + Acknowledgment Modal
-// =====================================================================
-function QcAcknowledgment() {
-  const [showModal, setShowModal] = useState(false);
-  const [justification, setJustification] = useState("");
-  const [checked, setChecked] = useState(false);
+export default function S08MockupV2() {
+  const [scene, setScene] = useState(0);
   const [acknowledged, setAcknowledged] = useState(false);
+  const [justification, setJustification] = useState('');
+  const failures = MOCK_RESULTS.filter(r => r.qcEval === 'FAIL');
+  const canRelease = failures.length === 0 || (acknowledged && justification.trim().length > 0);
 
   return (
-    <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", background: C.gray10, minHeight: "100vh" }}>
-      <div style={{ background: C.white, borderBottom: `1px solid ${C.gray20}`, padding: "24px 32px 16px" }}>
-        <div style={{ fontSize: 14, color: C.gray60, marginBottom: 4 }}>
-          <Shield size={16} style={{ verticalAlign: "middle" }} /> Validation / ENV-2026-001
-        </div>
-        <h1 style={{ fontSize: 28, fontWeight: 400, color: C.gray100, margin: "4px 0" }}>
-          Validate and Release
-        </h1>
-        <p style={{ fontSize: 14, color: C.gray60 }}>
-          Intake Point A — Citarum River (SITE-042) · PP No. 22/2021
-        </p>
-      </div>
+    <div style={{ padding: 24, maxWidth: 1300, margin: '0 auto' }}>
+      <Tabs selectedIndex={scene} onChange={({ selectedIndex }) => setScene(selectedIndex)}>
+        <TabList aria-label="Scene">
+          <Tab>1 — Test Catalog Admin</Tab>
+          <Tab>2 — Results Entry (QC Status)</Tab>
+          <Tab>3 — Validation (Warning + Acknowledgment)</Tab>
+        </TabList>
+        <TabPanels>
+          {/* ── Scene 1 — Test Catalog Admin ─────────────────────────── */}
+          <TabPanel>
+            <h3 style={{ margin: '16px 0' }}>Test Catalog Admin — QC Acceptance Thresholds</h3>
+            <p style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
+              Three new optional fields per env/vector test: blank threshold (units of test),
+              RPD threshold (%), and recovery window (%). These drive QC evaluation at result-save time.
+            </p>
 
-      <div style={{ padding: "24px 32px", maxWidth: 800 }}>
-        {/* QC Warning Banner */}
-        {!acknowledged && (
-          <div style={{
-            background: C.yellow10, border: `1px solid ${C.yellow30}`, padding: "16px 20px",
-            marginBottom: 16, display: "flex", alignItems: "flex-start", gap: 12, fontSize: 14, color: C.yellowText,
-          }}>
-            <AlertTriangle size={20} style={{ flexShrink: 0, marginTop: 2 }} />
-            <div>
-              <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                {t("message.qcWarning", "⚠ QC Warning: 1 quality control check(s) failed for this order.")}
-              </div>
-              <div style={{ fontSize: 13 }}>
-                Trip Blank — Lead (Pb): 0.004 mg/L detected (acceptance: &lt; MDL 0.003 mg/L).
-                Review the QC tab before releasing results.
-              </div>
-            </div>
-          </div>
-        )}
+            <ExistingRegion>
+              <Tile>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Test</TableHeader>
+                      <TableHeader>Unit</TableHeader>
+                      <TableHeader>Domain</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {MOCK_TESTS.map(test => (
+                      <TableRow key={test.id}>
+                        <TableCell>{test.name}</TableCell>
+                        <TableCell>{test.unit}</TableCell>
+                        <TableCell><Tag type="purple" size="sm">Environmental</Tag></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Tile>
+            </ExistingRegion>
 
-        {/* Acknowledged notice */}
-        {acknowledged && (
-          <div style={{
-            background: C.green10, border: `1px solid ${C.greenText}`, padding: "12px 16px",
-            marginBottom: 16, display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: C.greenText,
-          }}>
-            <CheckCircle2 size={16} />
-            {t("label.qcAcknowledge.acknowledgedBy", "QC failures acknowledged by Dr. Bambang Sutrisno on 04/04/2026 16:40 WIB")}
-          </div>
-        )}
+            <NewRegion>
+              <Tile>
+                <h5 style={{ marginBottom: 12 }}>QC Acceptance Thresholds — env/vector tests only</h5>
+                <Table size="sm">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Test</TableHeader>
+                      <TableHeader>Blank Threshold</TableHeader>
+                      <TableHeader>RPD Threshold (%)</TableHeader>
+                      <TableHeader>Recovery Window (± %)</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {MOCK_TESTS.map(test => (
+                      <TableRow key={test.id}>
+                        <TableCell>{test.name}</TableCell>
+                        <TableCell>
+                          <NumberInput id={`bt-${test.id}`} hideLabel label="" size="sm"
+                                       defaultValue={test.blankThreshold ?? ''} step={0.001} />
+                        </TableCell>
+                        <TableCell>
+                          <NumberInput id={`rpd-${test.id}`} hideLabel label="" size="sm"
+                                       defaultValue={test.rpdThreshold} min={0} max={100} />
+                        </TableCell>
+                        <TableCell>
+                          <NumberInput id={`rec-${test.id}`} hideLabel label="" size="sm"
+                                       defaultValue={test.recoveryWindow} min={0} max={100} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Tile>
+            </NewRegion>
+          </TabPanel>
 
-        {/* Order summary */}
-        <div style={{ background: C.white, border: `1px solid ${C.gray20}`, padding: 20, marginBottom: 16 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: C.gray80, marginBottom: 12 }}>Order Summary</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 13 }}>
-            <div><span style={{ color: C.gray60, width: 120, display: "inline-block" }}>Lab Number:</span> ENV-2026-001</div>
-            <div><span style={{ color: C.gray60, width: 120, display: "inline-block" }}>Tests:</span> 5 (all results entered)</div>
-            <div><span style={{ color: C.gray60, width: 120, display: "inline-block" }}>Compliance:</span> <span style={{ padding: "1px 8px", borderRadius: 24, fontSize: 11, background: C.red10, color: C.red50 }}>✗ Non-Compliant</span></div>
-            <div><span style={{ color: C.gray60, width: 120, display: "inline-block" }}>QC Status:</span> <span style={{ padding: "1px 8px", borderRadius: 24, fontSize: 11, background: C.red10, color: C.red50 }}>✗ 1 Failure</span></div>
-          </div>
-        </div>
+          {/* ── Scene 2 — Results Entry with QC Status column ────────── */}
+          <TabPanel>
+            <h3 style={{ margin: '16px 0' }}>Results Entry — QC Status Column</h3>
+            <p style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
+              The Results Entry expanded panel gains a "QC Status" column.
+              For client samples, status is shown when a duplicate exists.
+              For QC samples (BLANK/DUPLICATE/CONTROL), status reflects auto-evaluation against the test's thresholds.
+            </p>
 
-        {/* Action buttons */}
-        <div style={{ display: "flex", gap: 12 }}>
-          <button
-            onClick={() => { if (!acknowledged) setShowModal(true); }}
-            style={{
-              background: !acknowledged ? C.blue60 : C.green50, color: C.white,
-              border: "none", padding: "11px 24px", fontSize: 14, fontWeight: 500,
-              cursor: "pointer", fontFamily: "inherit",
-            }}
-          >
-            {acknowledged ? "✓ Released" : "Validate and Release"}
-          </button>
-          {!acknowledged && (
-            <button style={{
-              background: "none", border: `1px solid ${C.gray30}`, padding: "11px 24px",
-              fontSize: 14, cursor: "pointer", fontFamily: "inherit", color: C.gray80,
-            }}>
-              Cancel
-            </button>
-          )}
-        </div>
+            <ExistingRegion>
+              <Tile>
+                <h5>Order ENV-2026-0412 — Results Entry</h5>
+                <Stack orientation="horizontal" gap={3}>
+                  <Tag type="purple" size="sm">Environmental</Tag>
+                  <p style={{ fontSize: 12, color: '#525252' }}>Site: WS-001 Ciliwung · 8 client samples · 4 QC samples</p>
+                </Stack>
+              </Tile>
+            </ExistingRegion>
 
-        {/* Acknowledgment Modal */}
-        {showModal && (
-          <div style={{
-            position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-            background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100,
-          }}>
-            <div style={{
-              background: C.white, width: 520, borderRadius: 4, boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
-            }}>
-              <div style={{ padding: "20px 24px", borderBottom: `1px solid ${C.gray20}` }}>
-                <h2 style={{ fontSize: 20, fontWeight: 400, color: C.gray100, margin: 0 }}>
-                  {t("label.qcAcknowledge.title", "Acknowledge QC Failures")}
-                </h2>
-              </div>
-              <div style={{ padding: "20px 24px" }}>
-                <div style={{
-                  background: C.red10, padding: "12px 16px", marginBottom: 16,
-                  fontSize: 13, color: C.red50, display: "flex", alignItems: "center", gap: 8,
-                }}>
-                  <AlertTriangle size={16} />
-                  1 QC failure detected. You must provide justification to release results.
-                </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: C.gray70, marginBottom: 4 }}>
-                    {t("label.qcAcknowledge.justification", "Justification")} <span style={{ color: C.red50 }}>*</span>
-                  </label>
-                  <textarea
-                    value={justification}
-                    onChange={e => setJustification(e.target.value)}
-                    placeholder="Explain why results are being released despite QC failure (min. 10 characters)..."
-                    style={{
-                      width: "100%", minHeight: 80, padding: "8px 12px", fontSize: 14,
-                      border: `1px solid ${C.gray30}`, fontFamily: "inherit", resize: "vertical", boxSizing: "border-box",
-                    }}
+            <NewRegion>
+              <Tile>
+                <h5 style={{ marginBottom: 12 }}>Results Table (with new QC Status column)</h5>
+                <Table size="md">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Accession</TableHeader>
+                      <TableHeader>Test</TableHeader>
+                      <TableHeader>Result</TableHeader>
+                      <TableHeader>Sample Kind</TableHeader>
+                      <TableHeader style={{ background: '#fcf4d6' }}>QC Status (new)</TableHeader>
+                      <TableHeader style={{ background: '#fcf4d6' }}>Detail (new)</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {MOCK_RESULTS.map(r => {
+                      const tag = r.qcEval ? QC_EVAL_TAG[r.qcEval] : null;
+                      return (
+                        <TableRow key={r.id}>
+                          <TableCell><code style={{ fontSize: 12 }}>{r.accession}</code></TableCell>
+                          <TableCell>{r.test}</TableCell>
+                          <TableCell><strong>{r.result}</strong></TableCell>
+                          <TableCell>
+                            {r.qcType
+                              ? <Tag type={r.qcType === 'BLANK' ? 'gray' : r.qcType === 'DUPLICATE' ? 'cyan' : 'green'} size="sm">{r.qcType}</Tag>
+                              : <span style={{ color: '#525252', fontSize: 12 }}>Client sample</span>}
+                          </TableCell>
+                          <TableCell>
+                            {tag ? (
+                              <Stack orientation="horizontal" gap={1} style={{ alignItems: 'center' }}>
+                                <Tag type={tag.type} size="sm">{tag.label}</Tag>
+                              </Stack>
+                            ) : <span style={{ color: '#8d8d8d', fontSize: 12 }}>—</span>}
+                          </TableCell>
+                          <TableCell>
+                            <span style={{ fontSize: 12, color: r.qcEval === 'FAIL' ? '#a2191f' : '#525252' }}>
+                              {r.detail || '—'}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+                <p style={{ fontSize: 12, color: '#525252', marginTop: 12 }}>
+                  ⚠️ Yellow column headers indicate new columns. QC evaluation runs at result-save time;
+                  failed evaluations surface as warnings on the validation screen (Scene 3).
+                </p>
+              </Tile>
+            </NewRegion>
+          </TabPanel>
+
+          {/* ── Scene 3 — Validation with warning + acknowledgment ─── */}
+          <TabPanel>
+            <h3 style={{ margin: '16px 0' }}>Validation Screen — QC Failure Warning</h3>
+            <p style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
+              When a batch contains failed QC samples, a warning banner blocks Release Results
+              until the validator acknowledges + provides justification (audit-logged).
+            </p>
+
+            <ExistingRegion>
+              <Tile>
+                <h5>Validation — Order ENV-2026-0412</h5>
+                <Stack orientation="horizontal" gap={3}>
+                  <Tag type="purple" size="sm">Environmental</Tag>
+                  <p style={{ fontSize: 12, color: '#525252' }}>3 client results validated · 4 QC results auto-evaluated</p>
+                </Stack>
+              </Tile>
+            </ExistingRegion>
+
+            <NewRegion>
+              <Tile>
+                <InlineNotification
+                  kind="warning"
+                  title={t('qc.warningTitle', `QC failures detected — ${failures.length} of ${MOCK_RESULTS.filter(r => r.qcType).length} QC samples failed acceptance criteria`)}
+                  subtitle={t('qc.warningSubtitle', 'Review and acknowledge below before releasing results.')}
+                  hideCloseButton lowContrast
+                  style={{ marginBottom: 12 }}
+                />
+
+                <h5 style={{ marginBottom: 8 }}>Failed QC Samples</h5>
+                <Table size="sm">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>QC Sample</TableHeader>
+                      <TableHeader>Type</TableHeader>
+                      <TableHeader>Test</TableHeader>
+                      <TableHeader>Result</TableHeader>
+                      <TableHeader>Detail</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {failures.map(r => (
+                      <TableRow key={r.id}>
+                        <TableCell><code style={{ fontSize: 12 }}>{r.accession}</code></TableCell>
+                        <TableCell><Tag type={r.qcType === 'BLANK' ? 'gray' : 'green'} size="sm">{r.qcType}</Tag></TableCell>
+                        <TableCell>{r.test}</TableCell>
+                        <TableCell><strong>{r.result}</strong></TableCell>
+                        <TableCell><span style={{ fontSize: 12, color: '#a2191f' }}>{r.detail}</span></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                <div style={{ marginTop: 16, padding: 16, border: '1px solid #e0e0e0', background: '#fcf4d6' }}>
+                  <h5 style={{ marginBottom: 8 }}>Required Acknowledgment</h5>
+                  <Checkbox
+                    id="ack-checkbox"
+                    labelText={t('qc.ackLabel', 'I have reviewed the QC failures and assessed their impact on the result release.')}
+                    checked={acknowledged}
+                    onChange={(_, { checked }) => setAcknowledged(checked)}
                   />
-                  {justification.length > 0 && justification.length < 10 && (
-                    <div style={{ fontSize: 12, color: C.red50, marginTop: 4 }}>
-                      {t("error.qcAcknowledge.justificationRequired", "Justification is required (minimum 10 characters).")}
-                    </div>
-                  )}
+                  <TextArea
+                    id="ack-justify"
+                    labelText={t('qc.justificationLabel', 'Justification (required, max 500 chars)')}
+                    rows={2}
+                    maxLength={500}
+                    value={justification}
+                    onChange={(e) => setJustification(e.target.value)}
+                    style={{ marginTop: 12 }}
+                    placeholder="Why are these results acceptable to release despite QC failure?"
+                  />
                 </div>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
-                  <input type="checkbox" checked={checked} onChange={e => setChecked(e.target.checked)}
-                    style={{ width: 18, height: 18, marginTop: 2 }} />
-                  <label style={{ fontSize: 13, color: C.gray80, lineHeight: 1.4 }}>
-                    {t("label.qcAcknowledge.checkbox", "I have reviewed the QC failures and accept responsibility for releasing these results")}
-                  </label>
-                </div>
-              </div>
-              <div style={{ padding: "16px 24px", borderTop: `1px solid ${C.gray20}`, display: "flex", justifyContent: "flex-end", gap: 12 }}>
-                <button onClick={() => setShowModal(false)} style={{
-                  background: "none", border: `1px solid ${C.gray30}`, padding: "8px 20px",
-                  fontSize: 14, cursor: "pointer", fontFamily: "inherit", color: C.gray80,
-                }}>
-                  {t("button.qcAcknowledge.cancel", "Cancel")}
-                </button>
-                <button
-                  onClick={() => { setShowModal(false); setAcknowledged(true); }}
-                  disabled={justification.length < 10 || !checked}
-                  style={{
-                    background: justification.length >= 10 && checked ? C.red50 : C.gray30,
-                    color: C.white, border: "none", padding: "8px 20px",
-                    fontSize: 14, fontWeight: 500, cursor: justification.length >= 10 && checked ? "pointer" : "not-allowed",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  {t("button.qcAcknowledge.confirm", "Confirm Release")}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+
+                <Stack orientation="horizontal" gap={3} style={{ marginTop: 16, justifyContent: 'flex-end' }}>
+                  <Button kind="ghost">Return to Analyst</Button>
+                  <Button kind="primary" disabled={!canRelease}>
+                    {canRelease ? 'Release Results' : 'Acknowledge + justify to release'}
+                  </Button>
+                </Stack>
+              </Tile>
+            </NewRegion>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
     </div>
   );
 }
-
-// =====================================================================
-// App — tab switcher for all three screens
-// =====================================================================
-const TABS = [
-  { key: "config", label: "S-01 → QC Protocol Config" },
-  { key: "qctab", label: "Results → QC Tab" },
-  { key: "acknowledge", label: "Validation → QC Warning" },
-];
-
-export default function S08EnvironmentalQcRulesMockup() {
-  const [activeTab, setActiveTab] = useState("config");
-
-  return (
-    <div>
-      <div style={{
-        background: C.gray90, padding: "8px 16px", display: "flex", gap: 4, fontFamily: "'IBM Plex Sans', sans-serif",
-      }}>
-        {TABS.map(tab => (
-          <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
-            background: activeTab === tab.key ? C.blue60 : "transparent",
-            color: C.white, border: "none", padding: "6px 16px", fontSize: 13,
-            cursor: "pointer", borderRadius: 4, opacity: activeTab === tab.key ? 1 : 0.7, fontFamily: "inherit",
-          }}>
-            {tab.label}
-          </button>
-        ))}
-        <div style={{ flex: 1 }} />
-        <span style={{ color: C.gray30, fontSize: 11, alignSelf: "center" }}>S-08 Environmental QC Rules — Mockup v1.0</span>
-      </div>
-
-      {activeTab === "config" && <QcProtocolConfig />}
-      {activeTab === "qctab" && <QcResultsTab />}
-      {activeTab === "acknowledge" && <QcAcknowledgment />}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Shared styles
-// ---------------------------------------------------------------------------
-const cfgLabelStyle = { display: "block", fontSize: 12, fontWeight: 500, color: C.gray70, marginBottom: 4 };
-const cfgInputStyle = {
-  padding: "8px 12px", fontSize: 14, border: `1px solid ${C.gray30}`,
-  background: C.white, color: C.gray90, width: "100%", boxSizing: "border-box", fontFamily: "inherit",
-};
-const thStyle = {
-  padding: "10px 12px", textAlign: "left", fontSize: 12, fontWeight: 600,
-  color: C.gray60, textTransform: "uppercase", letterSpacing: 0.5,
-};
-const tdStyle = { padding: "10px 12px", verticalAlign: "middle", fontSize: 14, color: C.gray90 };

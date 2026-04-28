@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>S-14 v1.0: Inter-Lab Transfer & Subcontract — In Context</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner { background: #491d8b; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .oe-shell { background: #f4f4f4; min-height: 100vh; }
+    .oe-topbar { background: #161616; color: #fff; height: 48px; display: flex; align-items: center; padding: 0 16px; gap: 16px; }
+    .oe-topbar .logo { font-weight: 600; font-size: 14px; }
+    .oe-topbar .nav-item { font-size: 13px; opacity: 0.7; cursor: pointer; }
+    .oe-topbar .nav-item:hover { opacity: 1; }
+    .oe-topbar .spacer { flex: 1; }
+    .oe-topbar .user { font-size: 12px; opacity: 0.7; }
+    .oe-breadcrumb { background: #fff; padding: 8px 24px; border-bottom: 1px solid #e0e0e0; font-size: 12px; color: #525252; }
+    .oe-breadcrumb a { color: #0f62fe; text-decoration: none; }
+    .oe-breadcrumb .sep { margin: 0 6px; color: #c6c6c6; }
+    .oe-page { padding: 16px 24px; max-width: 1300px; margin: 0 auto; }
+    .oe-page-header { background: #fff; padding: 16px 24px; border-bottom: 1px solid #e0e0e0; }
+    .oe-page-title { font-size: 28px; font-weight: 300; margin: 0; }
+    .oe-page-subtitle { font-size: 14px; color: #525252; margin: 4px 0 0 0; }
+    .tile { background: #fff; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid #e0e0e0; }
+    .tile h5 { font-size: 14px; font-weight: 600; margin: 0 0 0.75rem 0; }
+    .form-field { margin-bottom: 0.75rem; }
+    .form-field label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; }
+    .form-field input, .form-field select, .form-field textarea {
+      width: 100%; padding: 8px 12px; border: none; border-bottom: 2px solid #8d8d8d;
+      font-size: 14px; background: #f4f4f4; outline: none; box-sizing: border-box;
+    }
+    .form-field input[readonly] { background: #e0e0e0; color: #525252; }
+    .form-field { margin-bottom: 0.75rem; }
+    .grid { display: grid; gap: 1rem; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .helper { font-size: 12px; color: #525252; }
+    .btn { padding: 6px 14px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; }
+    .btn-ghost { background: transparent; color: #0f62fe; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 8px 12px; background: #f4f4f4; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e0e0e0; }
+    th.new-col { background: #fcf4d6; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
+    td code { font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: #f4f4f4; padding: 2px 6px; }
+    .tag { display: inline-block; padding: 2px 10px; border-radius: 24px; font-size: 12px; font-weight: 500; }
+    .tag-gray { background: #e0e0e0; color: #161616; }
+    .tag-blue { background: #d0e2ff; color: #002d9c; }
+    .tag-cyan { background: #bae6ff; color: #003a6d; }
+    .tag-teal { background: #d9fbfb; color: #004144; }
+    .tag-green { background: #defbe6; color: #0e6027; }
+    .tag-red { background: #ffd7d9; color: #a2191f; }
+    .tag-purple { background: #e8daff; color: #491d8b; }
+    .new-region { border: 2px dashed #f1c21b; border-radius: 6px; padding: 12px; position: relative; margin-bottom: 1rem; }
+    .new-region::before {
+      content: 'S-14 NEW'; position: absolute; top: -11px; left: 12px;
+      background: #f1c21b; color: #000; font-size: 11px; font-weight: 700;
+      padding: 1px 8px; border-radius: 4px; z-index: 2;
+    }
+    .scenes { background: #393939; color: #fff; display: flex; padding: 0; }
+    .scene { padding: 10px 16px; cursor: pointer; font-size: 13px; border-right: 1px solid #525252; }
+    .scene:hover { background: #525252; }
+    .scene.active { background: #0f62fe; font-weight: 600; }
+    .notification { padding: 12px 16px; border-left: 3px solid #0f62fe; background: #edf5ff; margin-top: 12px; font-size: 13px; }
+    .filter-bar { display: flex; gap: 12px; align-items: flex-end; padding: 12px; background: #fff; border-bottom: 1px solid #e0e0e0; flex-wrap: wrap; }
+    textarea { min-height: 60px; resize: vertical; }
+    .badge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .domain-badge.purple { background: #e8daff; color: #491d8b; padding: 2px 10px; border-radius: 24px; font-size: 12px; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="preview-banner">⚡ S-14 v1.0 — Inter-Lab Transfer & Subcontract — IN-CONTEXT preview (merged from S-03c + planned S-14)</div>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    const STATUS_TAGS = {
+      DRAFT: { cls: 'tag-gray', label: 'Draft' },
+      DISPATCHED: { cls: 'tag-blue', label: 'Dispatched' },
+      RECEIVED: { cls: 'tag-cyan', label: 'Received' },
+      RESULTS_RETURNED: { cls: 'tag-teal', label: 'Results Returned' },
+      CLOSED: { cls: 'tag-green', label: 'Closed' },
+    };
+
+    const REFERRALS = [
+      { id: 1, lab: 'ENV-2026-0410', target: 'Lab Bandung Selatan', tests: 'Pb, Hg, Cd', status: 'DISPATCHED', dispatched: '2026-04-22 14:30', expected: '2026-04-29', overdue: false },
+      { id: 2, lab: 'ENV-2026-0408', target: 'PT Lab Sertifikasi', tests: 'COD, BOD₅', status: 'RECEIVED', dispatched: '2026-04-20 09:15', expected: '2026-04-27', overdue: false },
+      { id: 3, lab: 'ENV-2026-0395', target: 'Lab UI Depok', tests: 'Microbiological panel', status: 'DISPATCHED', dispatched: '2026-04-15 11:00', expected: '2026-04-22', overdue: true },
+      { id: 4, lab: 'CLN-2026-1102', target: 'Reference Lab Jakarta', tests: 'Genotyping', status: 'RESULTS_RETURNED', dispatched: '2026-04-10 08:00', expected: '2026-04-25', overdue: false },
+      { id: 5, lab: 'ENV-2026-0420', target: 'Lab Surabaya', tests: 'Heavy metals panel', status: 'DRAFT', dispatched: null, expected: null, overdue: false },
+    ];
+
+    function Topbar() {
+      return (
+        <div className="oe-topbar">
+          <span className="logo">OpenELIS Global</span>
+          <span className="nav-item">Home</span>
+          <span className="nav-item">Order</span>
+          <span className="nav-item">Referrals</span>
+          <span className="nav-item">Reports</span>
+          <span className="nav-item">Admin</span>
+          <span className="spacer"></span>
+          <span className="user">caseyi · Lab Manager</span>
+        </div>
+      );
+    }
+
+    function Breadcrumb({ trail }) {
+      return (
+        <div className="oe-breadcrumb">
+          {trail.map((t, i) => (
+            <span key={i}>
+              {i > 0 && <span className="sep">›</span>}
+              {i < trail.length - 1 ? <a href="#">{t}</a> : <strong>{t}</strong>}
+            </span>
+          ))}
+        </div>
+      );
+    }
+
+    function PageHeader({ title, subtitle }) {
+      return (
+        <div className="oe-page-header">
+          <h1 className="oe-page-title">{title}</h1>
+          {subtitle && <p className="oe-page-subtitle">{subtitle}</p>}
+        </div>
+      );
+    }
+
+    function Scene1_ReferOut() {
+      const [status, setStatus] = useState('DRAFT');
+      const next = { DRAFT: 'DISPATCHED', DISPATCHED: 'RECEIVED', RECEIVED: 'RESULTS_RETURNED', RESULTS_RETURNED: 'CLOSED' };
+      const advance = () => setStatus(next[status] || status);
+      return (
+        <div>
+          <Breadcrumb trail={['Order', 'ENV-2026-0420', 'Refer Out']} />
+          <PageHeader
+            title="Refer Out — Order ENV-2026-0420"
+            subtitle="Send selected tests to an external laboratory. S-14 adds the Subcontract Metadata panel below the existing referral fields."
+          />
+          <div className="oe-page">
+            <div className="tile">
+              <div className="badge-row">
+                <span className="domain-badge purple">Environmental</span>
+                <span className="helper">Source order: ENV-2026-0420 · Site: WS-001 Ciliwung</span>
+              </div>
+            </div>
+
+            <div className="tile">
+              <h5>Refer Out — Standard Fields (existing)</h5>
+              <div className="grid grid-3">
+                <div className="form-field"><label>Source Lab Number</label><input value="ENV-2026-0420" readOnly /></div>
+                <div className="form-field"><label>Target Lab</label>
+                  <select><option>Lab Surabaya — Microbiology</option><option>Lab Bandung — Heavy Metals</option><option>Reference Lab Jakarta</option></select>
+                </div>
+                <div className="form-field"><label>Tests Referred</label><input value="Heavy metals panel (Pb, Hg, Cd)" readOnly /></div>
+              </div>
+            </div>
+
+            <div className="new-region">
+              <div className="tile" style={{ marginBottom: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                  <h5 style={{ margin: 0 }}>Subcontract Metadata</h5>
+                  <span className={`tag ${STATUS_TAGS[status].cls}`}>{STATUS_TAGS[status].label}</span>
+                </div>
+                <div className="grid grid-2">
+                  <div className="form-field"><label>Agreement Reference</label><input defaultValue="SUB-2026-INDO-LAB-09" /></div>
+                  <div className="form-field"><label>Expected Return Date</label><input type="date" defaultValue="2026-05-02" /></div>
+                </div>
+                <div className="grid grid-3">
+                  <div className="form-field"><label>Handoff Date *</label><input type="date" defaultValue="2026-04-25" /></div>
+                  <div className="form-field"><label>Handoff Time *</label><input type="time" defaultValue="14:30" /></div>
+                  <div></div>
+                </div>
+                <div className="grid grid-2">
+                  <div className="form-field"><label>Chain-of-Custody Contact Name</label><input defaultValue="Dr. Putri Lestari" /></div>
+                  <div className="form-field"><label>Chain-of-Custody Contact Phone</label><input defaultValue="+62 812 3456 7890" /></div>
+                </div>
+                <div className="form-field"><label>Notes (max 500 chars)</label><textarea rows={2}></textarea></div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16 }}>
+                  <p className="helper" style={{ flex: 1 }}>
+                    Status transitions: DRAFT → DISPATCHED → RECEIVED → RESULTS_RETURNED → CLOSED.
+                    Each transition logged with actor + timestamp.
+                  </p>
+                  {status !== 'CLOSED' && (
+                    <button className="btn btn-primary" onClick={advance}>
+                      Advance to {{ DRAFT: 'Dispatched', DISPATCHED: 'Received', RECEIVED: 'Results Returned', RESULTS_RETURNED: 'Closed' }[status]} →
+                    </button>
+                  )}
+                </div>
+
+                {status === 'DISPATCHED' && (
+                  <div className="notification">
+                    ✉️ On dispatch: notification sent to <strong>Dr. Putri Lestari</strong> at the target lab,
+                    plus optional WhatsApp/SMS to customer (per site config). Reuses existing Notification Admin (X-01).
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="tile">
+              <div className="actions">
+                <button className="btn btn-ghost">Cancel</button>
+                <button className="btn btn-primary">💾 Save Referral</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function Scene2_ReferralDashboard() {
+      const [statusFilter, setStatusFilter] = useState('');
+      const filtered = useMemo(() =>
+        statusFilter ? REFERRALS.filter(r => r.status === statusFilter) : REFERRALS,
+        [statusFilter]);
+      return (
+        <div>
+          <Breadcrumb trail={['Referrals', 'Outbound Dashboard']} />
+          <PageHeader
+            title="Referral Dashboard — Outbound"
+            subtitle="Existing referral dashboard. S-14 adds Subcontract Status column + filter and Expected Return column. No new main-menu page."
+          />
+          <div className="oe-page">
+            <div className="filter-bar">
+              <div className="form-field" style={{ minWidth: 280, marginBottom: 0 }}>
+                <label>Search Referrals</label>
+                <input placeholder="Lab number, target lab…" />
+              </div>
+              <div className="form-field" style={{ marginBottom: 0 }}>
+                <label>Order Type</label>
+                <select><option>All</option><option>Env</option><option>Vector</option><option>Clinical</option></select>
+              </div>
+              <div className="form-field" style={{ marginBottom: 0, background: '#fff8e1', padding: '4px 8px', border: '1px dashed #f1c21b' }}>
+                <label style={{ color: '#6e4b00' }}>Subcontract Status (NEW)</label>
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ minWidth: 220 }}>
+                  <option value="">All statuses</option>
+                  <option value="DRAFT">Draft</option>
+                  <option value="DISPATCHED">Dispatched</option>
+                  <option value="RECEIVED">Received</option>
+                  <option value="RESULTS_RETURNED">Results Returned</option>
+                  <option value="CLOSED">Closed</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="tile" style={{ marginTop: 16 }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Lab Number</th>
+                    <th>Target Lab</th>
+                    <th>Tests</th>
+                    <th>Dispatched</th>
+                    <th className="new-col">Subcontract Status (new)</th>
+                    <th className="new-col">Expected Return (new)</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(r => {
+                    const tag = STATUS_TAGS[r.status];
+                    return (
+                      <tr key={r.id}>
+                        <td><code>{r.lab}</code></td>
+                        <td>{r.target}</td>
+                        <td>{r.tests}</td>
+                        <td>{r.dispatched ? <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{r.dispatched}</span> : '—'}</td>
+                        <td><span className={`tag ${tag.cls}`}>{tag.label}</span></td>
+                        <td>
+                          {r.expected ? (
+                            <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+                              <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{r.expected}</span>
+                              {r.overdue && <span className="tag tag-red">Past Due</span>}
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td><button className="btn btn-ghost">👁 Open</button></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <p className="helper" style={{ marginTop: 8 }}>
+                ⚠️ Yellow column headers and the highlighted filter = new from S-14.
+                Showing {filtered.length} of {REFERRALS.length} referrals.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [scene, setScene] = useState(0);
+      const scenes = [
+        { label: '1 — Refer Out (Subcontract Panel)', cmp: <Scene1_ReferOut /> },
+        { label: '2 — Referral Dashboard (new columns + filter)', cmp: <Scene2_ReferralDashboard /> },
+      ];
+      return (
+        <div className="oe-shell">
+          <Topbar />
+          <div className="scenes">
+            {scenes.map((s, i) => (
+              <div key={i} className={`scene ${scene === i ? 'active' : ''}`} onClick={() => setScene(i)}>{s.label}</div>
+            ))}
+          </div>
+          {scenes[scene].cmp}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

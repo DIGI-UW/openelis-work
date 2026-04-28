@@ -1,10 +1,18 @@
-# S-03c — Subcontract Management
-## Addendum to S-03: Environmental Order Entry Integration (OGC-537) and V-02: Vector Collection Workflow (OGC-581)
+# S-03c — Subcontract Management [SUPERSEDED]
+## ⚠️ DEPRECATED — Merged into S-14 v1.0 (Inter-Lab Transfer & Subcontract)
+### Functional Requirements Specification — v1.0 [HISTORICAL]
+
+**Status (2026-04-25):** ⚠️ **SUPERSEDED.** S-03c (env/vector subcontract) and the planned S-14 (general inter-lab transfer) covered overlapping surface — both extended OE's existing referral module for handing samples to external labs. The artificial split between "env/vector subcontract" and "general transfer" has been collapsed into a single addendum: **S-14 v1.0 — Inter-Lab Transfer & Subcontract** (see `S14-inter-lab-transfer-frs-v1.0.md`). The standalone "Subcontract Register" main-menu page from S-03c §3.3 was dropped — instead, S-14 adds a Subcontract-status filter + columns to the existing Referral dashboard. Original v1.0 content preserved below for historical reference only.
+
+---
+
+# S-03c — Subcontract Management [original v1.0]
+## Addendum to S-03 + V-02
 ### Functional Requirements Specification — v1.0
 
 **Version:** 1.0
 **Date:** 2026-04-20
-**Status:** Draft for Review
+**Status:** ⚠️ SUPERSEDED — see header above
 **Addendum to:** [S-03 FRS — Environmental Order Entry Integration](./S03-environmental-order-entry-frs-v1.0.md) / [OGC-537](https://uwdigi.atlassian.net/browse/OGC-537) and [V-02 FRS — Vector Collection Workflow](./V02-vector-collection-workflow-frs-v1.0.md) / [OGC-581](https://uwdigi.atlassian.net/browse/OGC-581)
 **Parent epic:** [OGC-527 — Environmental & Vector Testing Module](https://uwdigi.atlassian.net/browse/OGC-527)
 **Source requirement:** Bogor requirements spreadsheet — Must Have, Phase 1: "Track samples sent to subcontract/external laboratories with handoff date, expected return, and subcontract status."

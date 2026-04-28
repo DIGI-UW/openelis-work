@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>S-03: Environmental Order Entry — OpenELIS Preview</title>
+  <title>S-03 v2.0: Environmental Order Entry — Standalone (Domain-Assigned Lab)</title>
   <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
@@ -11,126 +11,138 @@
   <style>
     body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
     .preview-banner {
-      background: #0f62fe; color: #fff;
+      background: #491d8b; color: #fff;
       padding: 6px 1rem; font-size: 12px; font-family: monospace;
     }
     .preview-content { padding: 1rem 2rem; max-width: 1200px; margin: 0 auto; }
     .tile { background: #fff; padding: 1.5rem; margin-bottom: 1rem; border: 1px solid #e0e0e0; }
-    .tile h4 { font-size: 16px; font-weight: 600; margin-bottom: 1rem; color: #161616; }
-    .tile h5 { font-size: 14px; font-weight: 600; margin-bottom: 0.75rem; color: #161616; }
+    .tile h4 { font-size: 16px; font-weight: 600; margin: 0 0 1rem 0; color: #161616; }
+    .tile h5 { font-size: 14px; font-weight: 600; margin: 0 0 0.5rem 0; color: #161616; }
+    .tile p { margin: 0; }
 
     .grid { display: grid; gap: 1rem; }
     .grid-2 { grid-template-columns: 1fr 1fr; }
     .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
     .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .grid-5 { grid-template-columns: repeat(5, 1fr); }
     .grid-6 { grid-template-columns: repeat(6, 1fr); }
 
     .field-label { font-size: 12px; color: #525252; margin-bottom: 4px; display: block; }
     .field-value { font-size: 14px; color: #161616; }
     .mono { font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+    .reg-num-large { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: #161616; letter-spacing: -0.5px; }
 
     .tag { display: inline-block; padding: 2px 10px; border-radius: 24px; font-size: 12px; font-weight: 500; vertical-align: middle; }
     .tag-green { background: #defbe6; color: #0e6027; }
     .tag-blue { background: #d0e2ff; color: #002d9c; }
     .tag-purple { background: #e8daff; color: #491d8b; }
     .tag-teal { background: #d9fbfb; color: #004144; }
+    .tag-cyan { background: #bae6ff; color: #003a6d; }
     .tag-gray { background: #e0e0e0; color: #161616; }
-    .tag-warm-gray { background: #f7e9d0; color: #5e4118; }
+    .tag-magenta { background: #ffd6e8; color: #740937; }
     .tag-red { background: #ffd7d9; color: #a2191f; }
 
     .btn { padding: 8px 16px; font-size: 14px; font-weight: 500; border: none; border-radius: 0; cursor: pointer; font-family: inherit; transition: background 0.15s; }
     .btn-primary { background: #0f62fe; color: #fff; }
     .btn-primary:hover { background: #0353e9; }
-    .btn-secondary { background: #e0e0e0; color: #161616; }
-    .btn-secondary:hover { background: #c6c6c6; }
-    .btn-ghost { background: transparent; color: #0f62fe; padding: 4px 8px; font-size: 13px; }
+    .btn-primary:disabled { background: #c6c6c6; color: #8d8d8d; cursor: not-allowed; }
+    .btn-secondary { background: #393939; color: #fff; }
+    .btn-secondary:hover { background: #4c4c4c; }
+    .btn-tertiary { background: #fff; color: #0f62fe; border: 1px solid #0f62fe; }
+    .btn-tertiary:hover { background: #edf5ff; }
+    .btn-ghost { background: transparent; color: #0f62fe; padding: 6px 12px; font-size: 13px; }
     .btn-ghost:hover { background: rgba(15,98,254,0.08); }
-    .btn-danger { background: #da1e28; color: #fff; }
-    .btn-danger:hover { background: #ba1b23; }
+    .btn-icon { background: transparent; color: #525252; padding: 4px; cursor: pointer; border: none; }
+    .btn-icon:hover { color: #0f62fe; }
 
-    .site-card { border-left: 3px solid #24a148; padding: 1rem; background: #f6fef8; margin-top: 0.5rem; }
-    .standard-card { border-left: 3px solid #0f62fe; padding: 1rem; background: #edf5ff; margin-top: 0.75rem; }
+    .branch-tile { padding: 1.25rem; border: 1px solid #e0e0e0; cursor: pointer; transition: all 0.15s; background: #fff; min-height: 130px; }
+    .branch-tile:hover { background: #f4f4f4; }
+    .branch-tile.selected { border: 2px solid #0f62fe; background: #edf5ff; }
+    .branch-tile h5 { color: #161616; }
+    .branch-tile p { font-size: 13px; color: #525252; margin-top: 0.5rem; }
+    .branch-helper { font-size: 12px; color: #525252; margin-top: 1rem; }
+    .branch-helper svg { vertical-align: middle; }
 
-    .combobox-wrapper { position: relative; max-width: 600px; }
-    .combobox-input { width: 100%; padding: 10px 12px; border: none; border-bottom: 2px solid #8d8d8d; font-size: 14px; font-family: inherit; background: #fff; outline: none; }
-    .combobox-input:focus { border-bottom-color: #0f62fe; }
-    .combobox-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e0e0e0; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 10; max-height: 300px; overflow-y: auto; display: none; }
-    .combobox-dropdown.open { display: block; }
-    .combobox-option { padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f4f4f4; font-size: 13px; }
-    .combobox-option:hover { background: #e5f6ff; }
-    .combobox-option .option-sub { font-size: 11px; color: #525252; margin-top: 2px; }
-    .combobox-helper { font-size: 12px; color: #525252; margin-top: 4px; }
+    .site-card { border-left: 3px solid #24a148; padding: 1rem; background: #f6fef8; }
+    .standard-card { border-left: 3px solid #0f62fe; padding: 1rem; background: #edf5ff; }
+    .pool-card { border-left: 3px solid #1192e8; padding: 1rem; background: #e5f6ff; }
 
-    .form-field { margin-bottom: 1rem; }
+    .form-field { margin-bottom: 0.75rem; }
     .form-field label { display: block; font-size: 12px; font-weight: 500; color: #161616; margin-bottom: 6px; }
     .form-field input, .form-field select, .form-field textarea {
       width: 100%; padding: 8px 12px; border: none; border-bottom: 2px solid #8d8d8d;
-      font-size: 14px; font-family: inherit; background: #fff; outline: none;
+      font-size: 14px; font-family: inherit; background: #f4f4f4; outline: none; box-sizing: border-box;
     }
-    .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-bottom-color: #0f62fe; }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-bottom-color: #0f62fe; background: #fff; }
     .form-field textarea { resize: vertical; min-height: 60px; }
     .form-field .helper { font-size: 12px; color: #525252; margin-top: 4px; }
-    .form-field input[readonly] { color: #525252; background: #f4f4f4; }
+    .form-field input[readonly] { color: #525252; background: #e0e0e0; }
+    .form-field input[type="number"] { max-width: 100px; }
 
-    .accordion-group { border: 1px solid #e0e0e0; margin-top: 1rem; }
-    .accordion-header { padding: 12px 16px; background: #f4f4f4; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 500; font-size: 14px; border-bottom: 1px solid #e0e0e0; user-select: none; }
+    .accordion-group { border: 1px solid #e0e0e0; }
+    .accordion-header { padding: 12px 16px; background: #f4f4f4; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 500; font-size: 14px; user-select: none; }
     .accordion-header:hover { background: #e8e8e8; }
-    .accordion-body { padding: 0; display: none; }
-    .accordion-body.open { display: block; }
-
-    .test-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; border-bottom: 1px solid #f4f4f4; font-size: 13px; }
-    .test-row:last-child { border-bottom: none; }
-    .test-row label { display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 13px; }
-    .test-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #0f62fe; cursor: pointer; }
-    .test-threshold { font-size: 12px; color: #525252; text-align: right; min-width: 120px; }
+    .accordion-body { padding: 0; }
 
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th { text-align: left; padding: 8px 12px; background: #f4f4f4; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e0e0e0; }
-    td { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; }
+    th { text-align: left; padding: 10px 12px; background: #f4f4f4; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e0e0e0; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
     td code { font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: #f4f4f4; padding: 2px 6px; }
+    td input, td select { padding: 4px 8px; font-size: 13px; }
 
-    .notification { padding: 12px 16px; border-left: 3px solid; margin-bottom: 1rem; font-size: 13px; }
-    .notification-info { border-color: #0f62fe; background: #edf5ff; }
-    .notification-warning { border-color: #f1c21b; background: #fff8e1; }
+    .notification { padding: 12px 16px; border-left: 3px solid; margin-bottom: 1rem; font-size: 13px; background: #edf5ff; border-color: #0f62fe; }
+    .notification.warning { background: #fff8e1; border-color: #f1c21b; }
     .notification strong { font-weight: 600; }
 
     .progress-bar { display: flex; gap: 0; margin-bottom: 1rem; background: #fff; border: 1px solid #e0e0e0; }
-    .progress-step { flex: 1; padding: 12px 16px; text-align: center; font-size: 13px; position: relative; border-right: 1px solid #e0e0e0; }
+    .progress-step { flex: 1; padding: 12px 16px; font-size: 13px; position: relative; border-right: 1px solid #e0e0e0; cursor: pointer; }
     .progress-step:last-child { border-right: none; }
     .progress-step.current { background: #d0e2ff; color: #002d9c; font-weight: 600; }
     .progress-step.complete { background: #defbe6; color: #0e6027; }
     .progress-step.pending { background: #f4f4f4; color: #525252; }
-    .progress-step .step-num { font-weight: 700; }
+    .progress-step .step-label { display: block; font-weight: 600; }
+    .progress-step .step-desc { font-size: 11px; color: #525252; margin-top: 2px; }
 
-    .context-card { background: #fff; padding: 1rem 1.5rem; border: 1px solid #e0e0e0; border-left: 4px solid #0f62fe; margin-bottom: 1rem; }
-    .context-card .grid { align-items: center; }
+    .header-row { display: flex; align-items: flex-end; gap: 1rem; }
+    .header-row .lab-no { flex: 0 0 280px; }
+    .header-row .badges { flex: 1; display: flex; gap: 8px; align-items: center; }
 
-    .qa-check { border-left: 3px solid; padding: 12px 16px; background: #fff; margin-bottom: 8px; }
-    .qa-check.complete { border-color: #24a148; }
-    .qa-check.warning { border-color: #f1c21b; }
-    .qa-check.error { border-color: #da1e28; }
-    .qa-check .check-label { font-weight: 500; font-size: 14px; }
-    .qa-check .check-value { font-size: 13px; color: #525252; margin-top: 2px; }
+    .actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 0.5rem; }
 
-    .actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 1.5rem; }
+    .qc-buttons { display: flex; gap: 8px; align-items: center; }
+    .qc-buttons h4 { flex: 1; margin: 0; }
 
-    .hidden { display: none; }
+    .total-samples { font-size: 13px; color: #161616; }
+    .total-samples strong { font-weight: 600; }
+
+    .file-uploader-stub {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 12px; border: 1px dashed #8d8d8d; background: #f4f4f4;
+      font-size: 13px; cursor: pointer;
+    }
+    .file-uploader-stub:hover { background: #e8e8e8; }
+
+    .helper-inline { font-size: 12px; color: #525252; margin-top: 4px; }
+    .step-helper { font-size: 13px; color: #525252; margin-bottom: 1rem; }
+
+    .footer-actions { display: flex; gap: 12px; justify-content: flex-end; align-items: center; }
 
     @media (max-width: 768px) {
-      .grid-2, .grid-3, .grid-4, .grid-6 { grid-template-columns: 1fr; }
+      .grid-2, .grid-3, .grid-4, .grid-5, .grid-6 { grid-template-columns: 1fr; }
+      .header-row { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
-<body class="cds--white">
+<body>
   <div class="preview-banner">
-    ⚡ Visual Preview — S-03: Environmental Order Entry Integration &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application
+    ⚡ Visual Preview — S-03 v2.0: Environmental Order Entry — Standalone &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application
   </div>
   <div class="preview-content" id="root"></div>
 
   <script type="text/babel">
-    const { useState, useCallback, useMemo } = React;
+    const { useState, useCallback, useMemo, Fragment } = React;
 
-    // ─── Mock Data ─────────────────────────────────────────────────
+    // ─── Mock data ──────────────────────────────────────────────
     const ALL_SAMPLE_TYPES = [
       { id:'st-001', name:'Surface Water', code:'WATER_SURFACE' },
       { id:'st-002', name:'Drinking Water', code:'WATER_DRINKING' },
@@ -146,598 +158,812 @@
     ];
 
     const STANDARDS = [
-      { id:'std-001', name:'PP No. 22/2021 — Baku Mutu Air Permukaan', body:'Pemerintah RI', reg:'PP 22/2021', ver:'2021-01', date:'2021-02-02', tests:42, sampleTypeIds:['st-001','st-003','st-004'] },
-      { id:'std-002', name:'PP No. 41/1999 — Baku Mutu Udara Ambien', body:'Pemerintah RI', reg:'PP 41/1999', ver:'1999-01', date:'1999-05-26', tests:18, sampleTypeIds:['st-005','st-006'] },
-      { id:'std-003', name:'WHO Drinking Water Guidelines (4th Ed)', body:'WHO', reg:'WHO-DWG-4', ver:'2011-01', date:'2011-01-01', tests:56, sampleTypeIds:['st-002','st-003'] },
-      { id:'std-004', name:'PP No. 101/2014 — Pengelolaan Limbah B3', body:'Pemerintah RI', reg:'PP 101/2014', ver:'2014-01', date:'2014-10-17', tests:31, sampleTypeIds:['st-007','st-008','st-009','st-001'] },
-      { id:'std-005', name:'PermenKES No. 32/2017 — Baku Mutu Air Minum', body:'Kemenkes RI', reg:'PMK 32/2017', ver:'2017-01', date:'2017-05-12', tests:38, sampleTypeIds:['st-002'] },
+      { id:'std-001', name:'Baku Mutu Air Permukaan', body:'Pemerintah RI', reg:'PP No. 22/2021', ver:'2021-01', date:'2021-02-02', tests:42, sampleTypeIds:['st-001','st-003','st-004'] },
+      { id:'std-002', name:'Baku Mutu Udara Ambien', body:'Pemerintah RI', reg:'PP No. 41/1999', ver:'1999-01', date:'1999-05-26', tests:18, sampleTypeIds:['st-005','st-006'] },
+      { id:'std-003', name:'WHO Drinking Water Guidelines (4th Ed)', body:'World Health Organization', reg:'WHO-DWG-4', ver:'2011-01', date:'2011-01-01', tests:56, sampleTypeIds:['st-002','st-003'] },
+      { id:'std-004', name:'Pengelolaan Limbah B3', body:'Pemerintah RI', reg:'PP No. 101/2014', ver:'2014-01', date:'2014-10-17', tests:31, sampleTypeIds:['st-007','st-008','st-009','st-001'] },
+      { id:'std-005', name:'Baku Mutu Air Minum', body:'Kemenkes RI', reg:'PMK No. 32/2017', ver:'2017-01', date:'2017-05-12', tests:38, sampleTypeIds:['st-002'] },
     ];
 
-    const TEST_GROUPS = [
-      { group:'Physical Parameters', tests:[
-        { id:'t1', name:'Temperature', loinc:'8310-5', unit:'°C', thr:'± 3 from ambient' },
-        { id:'t2', name:'Total Dissolved Solids (TDS)', loinc:'3745-7', unit:'mg/L', thr:'≤ 1000' },
-        { id:'t3', name:'Total Suspended Solids (TSS)', loinc:'4808-2', unit:'mg/L', thr:'≤ 50' },
-        { id:'t4', name:'Turbidity', loinc:'61020-8', unit:'NTU', thr:'≤ 25' },
-      ]},
-      { group:'Chemical Parameters', tests:[
-        { id:'t5', name:'pH', loinc:'11558-4', unit:'—', thr:'6.0 – 9.0' },
-        { id:'t6', name:'Dissolved Oxygen (DO)', loinc:'19218-7', unit:'mg/L', thr:'≥ 4' },
-        { id:'t7', name:'BOD₅', loinc:'5839-3', unit:'mg/L', thr:'≤ 3' },
-        { id:'t8', name:'COD', loinc:'5840-1', unit:'mg/L', thr:'≤ 25' },
-        { id:'t9', name:'Ammonia (NH₃-N)', loinc:'1971-1', unit:'mg/L', thr:'≤ 0.5' },
-        { id:'t10', name:'Nitrate (NO₃-N)', loinc:'3030-4', unit:'mg/L', thr:'≤ 10' },
-        { id:'t11', name:'Phosphate (PO₄-P)', loinc:'14879-1', unit:'mg/L', thr:'≤ 0.2' },
-      ]},
-      { group:'Microbiological Parameters', tests:[
-        { id:'t12', name:'Total Coliform', loinc:'5794-0', unit:'MPN/100mL', thr:'≤ 5000' },
-        { id:'t13', name:'Fecal Coliform (E. coli)', loinc:'5799-9', unit:'MPN/100mL', thr:'≤ 1000' },
-      ]},
-      { group:'Heavy Metals', tests:[
-        { id:'t14', name:'Lead (Pb)', loinc:'5671-0', unit:'mg/L', thr:'≤ 0.03' },
-        { id:'t15', name:'Mercury (Hg)', loinc:'5688-4', unit:'mg/L', thr:'≤ 0.001' },
-        { id:'t16', name:'Cadmium (Cd)', loinc:'5614-0', unit:'mg/L', thr:'≤ 0.01' },
-      ]},
-    ];
+    const TESTS_BY_STANDARD = {
+      'std-001': [
+        { group:'Physical Parameters', tests:[
+          { id:'t-001', name:'Temperature', loinc:'8310-5', unit:'°C', threshold:'± 3 from ambient' },
+          { id:'t-002', name:'TDS', loinc:'3745-7', unit:'mg/L', threshold:'≤ 1000' },
+          { id:'t-003', name:'TSS', loinc:'4808-2', unit:'mg/L', threshold:'≤ 50' },
+          { id:'t-004', name:'Turbidity', loinc:'61020-8', unit:'NTU', threshold:'≤ 25' },
+        ]},
+        { group:'Chemical Parameters', tests:[
+          { id:'t-005', name:'pH', loinc:'11558-4', unit:'—', threshold:'6.0 – 9.0' },
+          { id:'t-006', name:'Dissolved Oxygen', loinc:'19218-7', unit:'mg/L', threshold:'≥ 4' },
+          { id:'t-007', name:'BOD₅', loinc:'5839-3', unit:'mg/L', threshold:'≤ 3' },
+          { id:'t-008', name:'COD', loinc:'5840-1', unit:'mg/L', threshold:'≤ 25' },
+        ]},
+        { group:'Microbiological', tests:[
+          { id:'t-012', name:'Total Coliform', loinc:'5794-0', unit:'MPN/100mL', threshold:'≤ 5000' },
+          { id:'t-013', name:'Fecal Coliform', loinc:'5799-9', unit:'MPN/100mL', threshold:'≤ 1000' },
+        ]},
+      ],
+    };
 
     const SITE = {
       code:'WS-001', name:'Sungai Ciliwung — Manggarai', type:'Water Source', subtype:'River',
       region:'DKI Jakarta', district:'Jakarta Selatan', gps:'-6.1885, 106.8114',
-      zone:'Urban', collections:47, lastCollection:'2026-03-28'
+      zone:'Urban', total:47, last:'2026-03-28',
     };
 
-    // ─── App Component ─────────────────────────────────────────────
+    const COLLECTION_METHODS = ['Manual Grab','Composite (Time)','Composite (Flow)','Automated Sampler','Passive','Trap Collection','Other'];
+    const WEATHER = ['Clear','Cloudy','Rain','Storm','Wind','Other'];
+    const RECEIPT_CONDS = ['Acceptable','Cold-chain Broken','Container Damaged','Insufficient Volume','Other'];
+    const STORAGE = ['Fridge A — Shelf 1','Fridge A — Shelf 2','Freezer B — Rack 3','Ambient Shelf C-12'];
+    const BLANK_SUBTYPES = ['Field','Trip','Equipment','Method','Other'];
+
+    const LAB_UNIT = { name:'Env Lab — Jakarta', domain:'Environmental' };
+    const DOMAIN_TAGS = { Environmental:'tag-purple', Vector:'tag-teal', Clinical:'tag-blue' };
+
+    // Demo: simulate an inbound referral
+    const REFERRAL = null; // set to { name:'Lab XYZ Bandung', fhirTaskId:'task-987' } to demo referral state
+    const HAS_PARENT_SPECIMENS = false;
+
+    // ─── App ─────────────────────────────────────────────────────
     function App() {
       const [step, setStep] = useState(0);
-      const [selectedStd, setSelectedStd] = useState(null);
-      const [showDropdown, setShowDropdown] = useState(false);
-      const [searchText, setSearchText] = useState('');
+      const [branch, setBranch] = useState(REFERRAL ? 'REGULATION_DRIVEN' : null);
+      const [site] = useState(SITE);
+      const [standard, setStandard] = useState(null);
       const [showThresholds, setShowThresholds] = useState(false);
-      const [deselected, setDeselected] = useState({});
-      const [openGroups, setOpenGroups] = useState({'Physical Parameters':true, 'Chemical Parameters':true, 'Microbiological Parameters':true, 'Heavy Metals':true});
-      const [method, setMethod] = useState('');
-      const [regRef, setRegRef] = useState('');
-      const [regOverride, setRegOverride] = useState(false);
+      const [adhocRegRef, setAdhocRegRef] = useState('');
+      const [manifest, setManifest] = useState([]);
+      const [deselected, setDeselected] = useState(new Set());
+      const [showAddType, setShowAddType] = useState(false);
+      const [showSwitch, setShowSwitch] = useState(null);
 
-      // Sample type selection state
-      const [checkedSamples, setCheckedSamples] = useState({});
-      const [overrideSamples, setOverrideSamples] = useState({}); // IDs added via override
-      const [showOverrideBox, setShowOverrideBox] = useState(false);
-      const [overrideSearch, setOverrideSearch] = useState('');
-      const [showOverrideDropdown, setShowOverrideDropdown] = useState(false);
-      const [testsShown, setTestsShown] = useState(false); // whether test suggestion has been triggered
+      const [collMethod, setCollMethod] = useState('');
+      const [waterT, setWaterT] = useState('');
+      const [ambientT, setAmbientT] = useState('');
+      const [weather, setWeather] = useState('');
+      const [preserv, setPreserv] = useState('');
+      const [notes, setNotes] = useState('');
 
-      const filteredStds = STANDARDS.filter(s =>
-        s.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        s.reg.toLowerCase().includes(searchText.toLowerCase()) ||
-        s.body.toLowerCase().includes(searchText.toLowerCase())
-      );
+      const [sampleRows, setSampleRows] = useState([]);
+      const [bulkStorage, setBulkStorage] = useState('');
 
-      const totalTests = TEST_GROUPS.reduce((s,g) => s + g.tests.length, 0);
-      const selectedCount = TEST_GROUPS.reduce((s,g) => s + g.tests.filter(t => !deselected[t.id]).length, 0);
+      const [qcSamples, setQcSamples] = useState([]);
+      const [nces, setNces] = useState({});
 
-      function selectStandard(std) {
-        setSelectedStd(std);
-        setShowDropdown(false);
-        setSearchText(`${std.name} (${std.reg})`);
-        setDeselected({});
-        setCheckedSamples({});
-        setOverrideSamples({});
-        setTestsShown(false);
-        if (!regOverride) setRegRef(`${std.reg} — ${std.name}`);
-      }
+      // ── Branch handlers ──
+      const pickBranch = (b) => {
+        if (branch && branch !== b && (standard || manifest.length || adhocRegRef)) {
+          setShowSwitch({ from: branch, to: b });
+          return;
+        }
+        setBranch(b);
+      };
+      const confirmSwitch = () => {
+        setBranch(showSwitch.to);
+        setStandard(null);
+        setManifest([]);
+        setAdhocRegRef('');
+        setDeselected(new Set());
+        setShowSwitch(null);
+      };
 
-      function clearStandard() {
-        setSelectedStd(null);
-        setSearchText('');
-        setRegRef('');
-        setRegOverride(false);
-        setDeselected({});
-        setCheckedSamples({});
-        setOverrideSamples({});
-        setTestsShown(false);
-      }
+      // ── Standard handlers ──
+      const pickStandard = (s) => {
+        setStandard(s);
+        setManifest(s.sampleTypeIds.map(id => ({ sampleTypeId:id, quantity:0, isOverride:false })));
+      };
 
-      function toggleSample(id) {
-        setCheckedSamples(prev => ({...prev, [id]: !prev[id]}));
-      }
+      // ── Manifest handlers ──
+      const setQty = (sid, q) => {
+        const qty = Math.max(0, Math.min(999, parseInt(q) || 0));
+        setManifest(m => m.map(r => r.sampleTypeId === sid ? { ...r, quantity:qty } : r));
+      };
+      const addType = (id) => {
+        setManifest(m => {
+          if (m.find(r => r.sampleTypeId === id)) return m;
+          const isFromStd = !!standard?.sampleTypeIds.includes(id);
+          return [...m, { sampleTypeId:id, quantity:1, isOverride:!isFromStd }];
+        });
+        setShowAddType(false);
+      };
+      const removeRow = (sid) => setManifest(m => m.filter(r => r.sampleTypeId !== sid));
 
-      function addOverrideSample(st) {
-        setCheckedSamples(prev => ({...prev, [st.id]: true}));
-        setOverrideSamples(prev => ({...prev, [st.id]: true}));
-        setShowOverrideBox(false);
-        setOverrideSearch('');
-      }
+      const total = useMemo(() => manifest.reduce((s,r) => s + r.quantity, 0), [manifest]);
+      const activeTypes = useMemo(() => manifest.filter(r => r.quantity > 0).map(r => r.sampleTypeId), [manifest]);
 
-      function triggerTestSuggestion() {
-        setTestsShown(true);
-        setDeselected({});
-      }
+      const groups = useMemo(() => {
+        if (!standard || !activeTypes.length) return [];
+        return TESTS_BY_STANDARD[standard.id] || [];
+      }, [standard, activeTypes]);
+      const totalTests = useMemo(() => groups.reduce((s,g) => s + g.tests.length, 0), [groups]);
+      const selTests = useMemo(() => {
+        let n = 0;
+        groups.forEach(g => g.tests.forEach(t => { if (!deselected.has(t.id)) n++; }));
+        return n;
+      }, [groups, deselected]);
 
-      const checkedCount = Object.values(checkedSamples).filter(Boolean).length;
+      // ── Step 2 handlers ──
+      const advanceTo2 = () => {
+        const rows = [];
+        let i = 1;
+        manifest.forEach(r => {
+          const st = ALL_SAMPLE_TYPES.find(s => s.id === r.sampleTypeId);
+          for (let k = 0; k < r.quantity; k++) {
+            rows.push({
+              id:`s-${i}`, idx:i, type:st,
+              accession:`ENV-2026-0412.${String(i).padStart(3,'0')}`,
+              barcode:'', dt:'', cond:'', storage:'',
+            });
+            i++;
+          }
+        });
+        setSampleRows(rows);
+        setStep(1);
+      };
+      const updRow = (id, p) => setSampleRows(r => r.map(x => x.id === id ? {...x, ...p} : x));
+      const applyBulk = () => {
+        if (!bulkStorage) return;
+        setSampleRows(r => r.map(x => ({ ...x, storage:bulkStorage })));
+      };
 
-      // Sample types from the standard
-      const stdSampleTypes = selectedStd ? ALL_SAMPLE_TYPES.filter(st => selectedStd.sampleTypeIds.includes(st.id)) : [];
-      // Override sample types (not in standard)
-      const overrideSampleTypeList = ALL_SAMPLE_TYPES.filter(st => overrideSamples[st.id] && !(selectedStd?.sampleTypeIds || []).includes(st.id));
-      // Available for override combobox
-      const allShownIds = new Set([...(selectedStd?.sampleTypeIds || []), ...Object.keys(overrideSamples).filter(k => overrideSamples[k])]);
-      const availableOverrides = ALL_SAMPLE_TYPES.filter(st => !allShownIds.has(st.id));
-      const filteredOverrides = availableOverrides.filter(st =>
-        st.name.toLowerCase().includes(overrideSearch.toLowerCase()) ||
-        st.code.toLowerCase().includes(overrideSearch.toLowerCase())
-      );
+      // ── Step 3 handlers ──
+      const addQc = (type) => {
+        const idx = qcSamples.filter(q => q.type === type).length + 1;
+        const prefix = type === 'BLANK' ? 'BLNK' : type === 'DUPLICATE' ? 'DUP' : 'CTRL';
+        setQcSamples(q => [...q, {
+          id:`qc-${q.length+1}`,
+          qcId:`QC-${prefix}-${String(idx).padStart(3,'0')}`,
+          type,
+          subtype: type === 'BLANK' ? 'Field' : '',
+          parent: '',
+          materialName: '',
+          materialSource: '',
+          storage: '',
+        }]);
+      };
+      const updQc = (id, p) => setQcSamples(q => q.map(x => x.id === id ? {...x, ...p} : x));
+      const rmQc = (id) => setQcSamples(q => q.filter(x => x.id !== id));
 
-      function toggleGroup(g) {
-        setOpenGroups(prev => ({...prev, [g]: !prev[g]}));
-      }
+      const flagNce = (sid) => {
+        setNces(prev => {
+          const cur = prev[sid];
+          if (!cur) return { ...prev, [sid]:{ code:'COND-BROKEN', decision:'flag' } };
+          if (cur.decision === 'flag') return { ...prev, [sid]:{ code:'HOLD-EXCEEDED', decision:'reject' } };
+          const { [sid]:_, ...rest } = prev;
+          return rest;
+        });
+      };
 
-      function toggleTest(id) {
-        setDeselected(prev => ({...prev, [id]: !prev[id]}));
-      }
+      const canAdvance1 = total > 0 && collMethod && (branch === 'AD_HOC' || (branch === 'REGULATION_DRIVEN' && standard));
 
       return (
         <div>
-          {/* Progress Bar */}
+          {/* ── Progress Indicator ─────────────────────────────── */}
           <div className="progress-bar">
-            <div className={`progress-step ${step===0?'current':step>0?'complete':'pending'}`}>
-              <span className="step-num">1</span> Enter Order
+            <div className={`progress-step ${step === 0 ? 'current' : step > 0 ? 'complete' : 'pending'}`} onClick={() => setStep(0)}>
+              <span className="step-label">1 — Branch & Order Setup</span>
+              <span className="step-desc">Branch, site, manifest, conditions</span>
             </div>
-            <div className={`progress-step ${step===1?'current':step>1?'complete':'pending'}`}>
-              <span className="step-num">2</span> Collect Sample
+            <div className={`progress-step ${step === 1 ? 'current' : step > 1 ? 'complete' : 'pending'}`} onClick={() => sampleRows.length && setStep(1)}>
+              <span className="step-label">2 — Label & Store</span>
+              <span className="step-desc">Per-sample labeling, storage</span>
             </div>
-            <div className={`progress-step ${step===2?'current':step>2?'complete':'pending'}`}>
-              <span className="step-num">3</span> Label & Store
-            </div>
-            <div className={`progress-step ${step===3?'current':'pending'}`}>
-              <span className="step-num">4</span> QA Review
+            <div className={`progress-step ${step === 2 ? 'current' : 'pending'}`} onClick={() => sampleRows.length && setStep(2)}>
+              <span className="step-label">3 — QA / QC + Intake</span>
+              <span className="step-desc">NCE, QC samples, submit batch</span>
             </div>
           </div>
 
-          {/* ════════ STEP 1: ENTER ORDER ════════ */}
-          {step === 0 && (<div>
-            {/* Lab Number + Workflow Tag */}
-            <div className="tile">
-              <div className="grid grid-3">
-                <div>
-                  <span className="field-label">Lab Number</span>
-                  <span className="field-value" style={{fontWeight:700, fontSize:18}}>ENV-2026-0412</span>
-                </div>
-                <div>
-                  <span className="tag tag-purple">Environmental</span>
-                </div>
-                <div style={{textAlign:'right'}}>
-                  <span className="field-label">Program</span>
-                  <span className="field-value">Water Quality Monitoring</span>
-                </div>
+          {/* ── Lab Number + Domain Badge + Referral Tag (always) ─ */}
+          <div className="tile">
+            <div className="header-row">
+              <div className="lab-no form-field">
+                <label>Lab Number</label>
+                <input type="text" value="ENV-2026-0412" readOnly />
+                <span className="helper">Auto-generated</span>
+              </div>
+              <div className="badges">
+                <span className={`tag ${DOMAIN_TAGS[LAB_UNIT.domain]}`} title={`This order belongs to ${LAB_UNIT.name} (${LAB_UNIT.domain})`}>
+                  {LAB_UNIT.domain}
+                </span>
+                {REFERRAL && (
+                  <span className="tag tag-cyan">📥 Referral: {REFERRAL.name}</span>
+                )}
               </div>
             </div>
+          </div>
 
-            {/* ── Sampling Site (from S-02) ────────────────── */}
-            <div className="tile">
-              <h4>Sampling Site</h4>
-              <div className="site-card">
-                <div className="grid grid-6" style={{alignItems:'start'}}>
-                  <div style={{gridColumn:'span 2'}}>
-                    <p style={{fontWeight:600, fontSize:15}}>{SITE.code} — {SITE.name}</p>
-                    <div style={{marginTop:4}}>
-                      <span className="tag tag-teal">{SITE.type}</span>
-                      <span className="tag tag-gray" style={{marginLeft:4}}>{SITE.subtype}</span>
-                    </div>
+          {/* ════════════════════════════════════════════════════════
+              STEP 1 — Branch & Order Setup (single page)
+              ════════════════════════════════════════════════════════ */}
+          {step === 0 && (
+            <Fragment>
+              {/* Branch Selector */}
+              <div className="tile">
+                <h4>Order Type</h4>
+                <div className="grid grid-2">
+                  <div className={`branch-tile ${branch === 'REGULATION_DRIVEN' ? 'selected' : ''}`}
+                       onClick={() => pickBranch('REGULATION_DRIVEN')}>
+                    <h5>Regulation-driven</h5>
+                    <p>Order is governed by a compliance standard. Tests will be suggested based on the standard's linked thresholds.</p>
                   </div>
-                  <div>
-                    <span className="field-label">Region / District</span>
-                    <span className="field-value">{SITE.region} &gt; {SITE.district}</span>
-                  </div>
-                  <div>
-                    <span className="field-label">GPS</span>
-                    <span className="field-value mono">{SITE.gps}</span>
-                  </div>
-                  <div>
-                    <span className="field-label">Zone</span>
-                    <span className="field-value">{SITE.zone}</span>
-                  </div>
-                  <div>
-                    <span className="field-label">Collections</span>
-                    <span className="field-value">{SITE.collections} (last: {SITE.lastCollection})</span>
+                  <div className={`branch-tile ${branch === 'AD_HOC' ? 'selected' : ''}`}
+                       onClick={() => pickBranch('AD_HOC')}>
+                    <h5>Ad-hoc</h5>
+                    <p>Site-driven. Pick tests freely from the catalog. Optional regulatory reference for audit trail.</p>
                   </div>
                 </div>
-                <div style={{marginTop:12}}>
-                  <button className="btn-ghost">Change Site</button>
-                  <button className="btn-ghost" style={{marginLeft:8}}>Clear</button>
-                </div>
-              </div>
-            </div>
-
-            {/* ── Compliance Standard (ENV-1-001) ─────────── */}
-            <div className="tile">
-              <h4>Compliance Standard</h4>
-              <div className="form-field">
-                <label>Compliance Standard *</label>
-                <div className="combobox-wrapper">
-                  <input
-                    className="combobox-input"
-                    placeholder="Search standards by name or regulation number..."
-                    value={searchText}
-                    onChange={e => { setSearchText(e.target.value); setShowDropdown(true); if(selectedStd) clearStandard(); }}
-                    onFocus={() => { if(!selectedStd) setShowDropdown(true); }}
-                  />
-                  <div className={`combobox-dropdown ${showDropdown && !selectedStd ? 'open' : ''}`}>
-                    {filteredStds.map(s => (
-                      <div key={s.id} className="combobox-option" onClick={() => selectStandard(s)}>
-                        <div><strong>{s.name}</strong></div>
-                        <div className="option-sub">{s.body} · {s.reg} · <span className="tag tag-green" style={{fontSize:10,padding:'1px 6px'}}>Active</span> · {s.tests} tests</div>
-                      </div>
-                    ))}
-                    {filteredStds.length === 0 && (
-                      <div className="combobox-option" style={{color:'#8d8d8d', fontStyle:'italic'}}>No matching standards found</div>
-                    )}
-                  </div>
-                </div>
-                <div className="combobox-helper">Select the regulatory standard for this order</div>
+                {REFERRAL && (
+                  <p className="branch-helper">ⓘ Auto-set when order arrives from referral. You can override.</p>
+                )}
               </div>
 
-              {selectedStd && (
-                <div className="standard-card">
-                  <div className="grid grid-6" style={{alignItems:'start'}}>
-                    <div style={{gridColumn:'span 2'}}>
-                      <p style={{fontWeight:600, fontSize:14}}>{selectedStd.name}</p>
-                      <span className="tag tag-green" style={{marginTop:4}}>Active</span>
-                    </div>
-                    <div>
-                      <span className="field-label">Issuing Body</span>
-                      <span className="field-value">{selectedStd.body}</span>
-                    </div>
-                    <div>
-                      <span className="field-label">Regulation Number</span>
-                      <span className="field-value">{selectedStd.reg}</span>
-                    </div>
-                    <div>
-                      <span className="field-label">Version / Effective</span>
-                      <span className="field-value">{selectedStd.ver} ({selectedStd.date})</span>
-                    </div>
-                    <div>
-                      <span className="field-label">Linked Tests</span>
-                      <span className="field-value" style={{fontWeight:600, fontSize:18}}>{selectedStd.tests}</span>
-                    </div>
-                  </div>
-                  <div style={{marginTop:12}}>
-                    <button className="btn-ghost" onClick={() => setShowThresholds(!showThresholds)}>
-                      {showThresholds ? '▾ Hide Thresholds' : '▸ View Thresholds'}
-                    </button>
-                    <button className="btn-ghost" style={{marginLeft:8}} onClick={clearStandard}>Clear Standard</button>
-                  </div>
-
-                  {showThresholds && (
-                    <div className="accordion-group" style={{marginTop:12}}>
-                      {TEST_GROUPS.map(g => (
-                        <div key={g.group}>
-                          <div className="accordion-header" onClick={() => toggleGroup(g.group)}>
-                            <span>{g.group} ({g.tests.length} tests)</span>
-                            <span>{openGroups[g.group] ? '▾' : '▸'}</span>
-                          </div>
-                          <div className={`accordion-body ${openGroups[g.group] ? 'open' : ''}`}>
-                            <table>
-                              <thead><tr><th>Test</th><th>LOINC</th><th>Unit</th><th>Threshold</th></tr></thead>
-                              <tbody>
-                                {g.tests.map(t => (
-                                  <tr key={t.id}><td>{t.name}</td><td><code>{t.loinc}</code></td><td>{t.unit}</td><td><strong>{t.thr}</strong></td></tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
+              {/* Sampling Site (always when branch chosen) */}
+              {branch && (
+                <div className="tile">
+                  <h4>Sampling Site</h4>
+                  <div className="site-card">
+                    <div className="grid grid-5">
+                      <div style={{ gridColumn:'span 2' }}>
+                        <p style={{ fontWeight:600, fontSize:14 }}>{site.code} — {site.name}</p>
+                        <div style={{ marginTop:4 }}>
+                          <span className="tag tag-teal">{site.type}</span>
+                          <span className="tag tag-gray" style={{ marginLeft:4 }}>{site.subtype}</span>
                         </div>
+                      </div>
+                      <div>
+                        <span className="field-label">Region</span>
+                        <span className="field-value">{site.region} &gt; {site.district}</span>
+                      </div>
+                      <div>
+                        <span className="field-label">GPS</span>
+                        <span className="field-value mono">{site.gps}</span>
+                      </div>
+                      <div>
+                        <span className="field-label">Zone / Collections</span>
+                        <span className="field-value">{site.zone} · {site.total} (last: {site.last})</span>
+                      </div>
+                    </div>
+                    <div className="actions" style={{ marginTop:'1rem' }}>
+                      <button className="btn btn-ghost">✎ Change Site</button>
+                      <button className="btn btn-ghost">✕ Clear</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Compliance Standard (regulation-driven only) */}
+              {branch === 'REGULATION_DRIVEN' && (
+                <div className="tile">
+                  <h4>Compliance Standard</h4>
+                  <div className="form-field">
+                    <label>Compliance Standard</label>
+                    <select value={standard?.id || ''} onChange={(e) => {
+                      const s = STANDARDS.find(x => x.id === e.target.value);
+                      if (s) pickStandard(s);
+                    }}>
+                      <option value="">Search by regulation number, name, or issuing body…</option>
+                      {STANDARDS.map(s => (
+                        <option key={s.id} value={s.id}>{s.reg} — {s.name}</option>
                       ))}
+                    </select>
+                    <span className="helper">Type the regulation number from your paperwork (e.g. PP No. 22/2021)</span>
+                  </div>
+
+                  {standard && (
+                    <div className="standard-card" style={{ marginTop:'1rem' }}>
+                      <div style={{ marginBottom:'1rem' }}>
+                        <span className="field-label">Regulation Number</span>
+                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                          <span className="reg-num-large">{standard.reg}</span>
+                          <button className="btn-icon" title="Copy regulation number" onClick={() => navigator.clipboard?.writeText(standard.reg)}>📋</button>
+                          <span className="tag tag-green">Active</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-5">
+                        <div style={{ gridColumn:'span 2' }}>
+                          <span className="field-label">Standard Name</span>
+                          <span className="field-value" style={{ fontWeight:500 }}>{standard.name}</span>
+                        </div>
+                        <div>
+                          <span className="field-label">Issuing Body</span>
+                          <span className="field-value">{standard.body}</span>
+                        </div>
+                        <div>
+                          <span className="field-label">Version / Effective</span>
+                          <span className="field-value">{standard.ver} · {standard.date}</span>
+                        </div>
+                        <div>
+                          <span className="field-label">Linked Tests</span>
+                          <span className="field-value">{standard.tests}</span>
+                        </div>
+                      </div>
+                      <button className="btn btn-ghost" style={{ marginTop:8 }}
+                              onClick={() => setShowThresholds(!showThresholds)}>
+                        {showThresholds ? '▴ Hide Thresholds' : '▾ View Thresholds'}
+                      </button>
                     </div>
                   )}
                 </div>
               )}
-            </div>
 
-            {/* ── Sample Type Selection (ENV-2-001) ──────── */}
-            {selectedStd && (
-              <div className="tile">
-                <h4>Select Available Samples</h4>
-                <p style={{fontSize:13, color:'#525252', marginBottom:16}}>
-                  Check the sample types you have collected for this order. Tests will be suggested based on your selections.
-                </p>
-
-                <div className="grid grid-2" style={{gap:8, marginBottom:12}}>
-                  {stdSampleTypes.map(st => (
-                    <label key={st.id} style={{display:'flex', alignItems:'center', gap:8, cursor:'pointer', fontSize:13, padding:'4px 0'}}>
-                      <input type="checkbox" checked={!!checkedSamples[st.id]} onChange={() => toggleSample(st.id)}
-                        style={{width:18, height:18, accentColor:'#0f62fe', cursor:'pointer'}} />
-                      {st.name} <span style={{fontSize:11, color:'#525252'}}>({st.code})</span>
-                    </label>
-                  ))}
-
-                  {overrideSampleTypeList.map(st => (
-                    <label key={st.id} style={{display:'flex', alignItems:'center', gap:8, cursor:'pointer', fontSize:13, padding:'4px 0'}}>
-                      <input type="checkbox" checked={!!checkedSamples[st.id]} onChange={() => toggleSample(st.id)}
-                        style={{width:18, height:18, accentColor:'#0f62fe', cursor:'pointer'}} />
-                      {st.name} <span style={{fontSize:11, color:'#525252'}}>({st.code})</span>
-                      <span className="tag tag-purple" style={{fontSize:10, padding:'1px 6px', marginLeft:4}}>Not in Standard</span>
-                    </label>
-                  ))}
-                </div>
-
-                {showOverrideBox ? (
-                  <div style={{maxWidth:400, marginBottom:12}}>
-                    <div className="form-field" style={{marginBottom:4}}>
-                      <label>Add Other Sample Type</label>
-                      <div className="combobox-wrapper" style={{maxWidth:400}}>
-                        <input className="combobox-input" placeholder="Search all sample types..."
-                          value={overrideSearch}
-                          onChange={e => { setOverrideSearch(e.target.value); setShowOverrideDropdown(true); }}
-                          onFocus={() => setShowOverrideDropdown(true)}
-                        />
-                        <div className={`combobox-dropdown ${showOverrideDropdown ? 'open' : ''}`}>
-                          {filteredOverrides.map(st => (
-                            <div key={st.id} className="combobox-option" onClick={() => addOverrideSample(st)}>
-                              <div><strong>{st.name}</strong></div>
-                              <div className="option-sub">{st.code}</div>
-                            </div>
-                          ))}
-                          {filteredOverrides.length === 0 && (
-                            <div className="combobox-option" style={{color:'#8d8d8d', fontStyle:'italic'}}>No more sample types available</div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <button className="btn-ghost" onClick={() => { setShowOverrideBox(false); setOverrideSearch(''); setShowOverrideDropdown(false); }}>Cancel</button>
+              {/* Test Catalog Picker (ad-hoc only) */}
+              {branch === 'AD_HOC' && (
+                <div className="tile">
+                  <h4>Tests</h4>
+                  <p className="step-helper">Pick tests from the catalog. These will run for every sample in this batch.</p>
+                  <div className="form-field">
+                    <label>Test Catalog</label>
+                    <select multiple style={{ minHeight:120 }}>
+                      <option>pH (LOINC 11558-4)</option>
+                      <option>TDS (LOINC 3745-7)</option>
+                      <option>Lead (Pb) (LOINC 5671-0)</option>
+                      <option>Mercury (Hg) (LOINC 5688-4)</option>
+                      <option>BOD₅ (LOINC 5839-3)</option>
+                      <option>COD (LOINC 5840-1)</option>
+                    </select>
+                    <span className="helper">Hold Cmd/Ctrl to select multiple</span>
                   </div>
-                ) : (
-                  <button className="btn-ghost" onClick={() => setShowOverrideBox(true)}>+ Add Other Sample Type</button>
-                )}
+                </div>
+              )}
 
-                <p style={{fontSize:12, color:'#525252', marginTop:8}}>
-                  {checkedCount} sample types selected
-                </p>
-
-                {checkedCount > 0 && !testsShown && (
-                  <button className="btn btn-primary" style={{marginTop:12, fontSize:13, padding:'6px 16px'}}
-                    onClick={triggerTestSuggestion}>
-                    Suggest Tests for Selected Samples
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* ── Suggested Test Panel (ENV-2-001) ────────── */}
-            {selectedStd && testsShown && (
-              <div className="tile">
-                <h4>Suggested Tests</h4>
-                <div className="notification notification-info">
-                  <strong>Based on {selectedStd.name} and {checkedCount} selected sample types,</strong> {totalTests} tests have been suggested. You can add or remove tests below.
-                </div>
-                <p style={{fontSize:13, color:'#525252', margin:'8px 0'}}>
-                  {selectedCount} of {totalTests} tests selected
-                </p>
-
-                <div className="accordion-group">
-                  {TEST_GROUPS.map(g => {
-                    const gSelected = g.tests.filter(t => !deselected[t.id]).length;
-                    return (
-                      <div key={g.group}>
-                        <div className="accordion-header" onClick={() => toggleGroup(g.group)}>
-                          <span>{g.group} — {gSelected}/{g.tests.length} selected</span>
-                          <span>{openGroups[g.group] ? '▾' : '▸'}</span>
-                        </div>
-                        <div className={`accordion-body ${openGroups[g.group] ? 'open' : ''}`}>
-                          {g.tests.map(t => (
-                            <div className="test-row" key={t.id}>
-                              <label>
-                                <input type="checkbox" checked={!deselected[t.id]} onChange={() => toggleTest(t.id)} />
-                                {t.name}
-                                <span className="tag tag-blue" style={{marginLeft:6, fontSize:10, padding:'1px 6px'}}>Suggested</span>
-                              </label>
-                              <span className="test-threshold">{t.thr} {t.unit}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div style={{marginTop:12}}>
-                  <button className="btn-ghost">+ Add Test Manually</button>
-                </div>
-              </div>
-            )}
-
-            {/* ── Collection Conditions (ENV-3-001) ──────── */}
-            <div className="tile">
-              <h4>Collection Conditions</h4>
-              <div className="grid grid-3">
-                <div className="form-field">
-                  <label>Collection Method *</label>
-                  <select value={method} onChange={e => setMethod(e.target.value)}>
-                    <option value="">Select collection method...</option>
-                    <option>Manual Grab</option>
-                    <option>Composite (Time)</option>
-                    <option>Composite (Flow)</option>
-                    <option>Automated Sampler</option>
-                    <option>Passive</option>
-                    <option>Trap Collection</option>
-                    <option>Other</option>
-                  </select>
-                </div>
-                <div className="form-field">
-                  <label>Water Temperature (°C)</label>
-                  <input type="number" placeholder="e.g., 28.5" step="0.1" min="-50" max="100" />
-                  <div className="helper">Measured at collection point</div>
-                </div>
-                <div className="form-field">
-                  <label>Ambient Temperature (°C)</label>
-                  <input type="number" placeholder="e.g., 31.2" step="0.1" min="-50" max="100" />
-                </div>
-                <div className="form-field">
-                  <label>Weather Conditions</label>
-                  <select>
-                    <option value="">Select weather conditions...</option>
-                    <option>Clear</option><option>Cloudy</option><option>Rain</option>
-                    <option>Storm</option><option>Wind</option><option>Other</option>
-                  </select>
-                </div>
-                <div className="form-field">
-                  <label>Preservation Method</label>
-                  <input type="text" placeholder="e.g., HNO3 acidification, 4°C cooler" />
-                </div>
-                <div className="form-field">
-                  <label style={{display:'flex', alignItems:'center', gap:6}}>
-                    Regulatory Reference
-                    {!regOverride && selectedStd && (
-                      <span style={{fontSize:11, color:'#525252', fontStyle:'italic', fontWeight:400}}>
-                        🔒 Auto-populated from standard
-                      </span>
-                    )}
-                  </label>
-                  <div style={{position:'relative'}}>
-                    <input
-                      type="text"
-                      value={regRef}
-                      readOnly={!regOverride && !!selectedStd}
-                      onChange={e => setRegRef(e.target.value)}
-                      placeholder="Enter regulatory reference..."
+              {/* Regulatory Reference (ad-hoc only) */}
+              {branch === 'AD_HOC' && (
+                <div className="tile">
+                  <div className="form-field" style={{ marginBottom:0 }}>
+                    <label>Regulatory Reference (optional)</label>
+                    <textarea
+                      value={adhocRegRef}
+                      onChange={(e) => setAdhocRegRef(e.target.value)}
+                      maxLength={500}
+                      rows={2}
+                      placeholder="e.g., requisition references PP No. 22/2021 but client is requesting partial test panel only"
                     />
-                    {!regOverride && selectedStd && (
-                      <button className="btn-ghost" style={{position:'absolute', right:0, top:0}}
-                        onClick={() => { setRegOverride(true); setRegRef(''); }}>
-                        Override
-                      </button>
+                    <span className="helper">Note any regulation referenced on the requisition. Optional — for audit trail only.</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Sample Manifest */}
+              {branch && (
+                <div className="tile">
+                  <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:'1rem' }}>
+                    <h4 style={{ flex:1, marginBottom:0 }}>Sample Manifest</h4>
+                    <span className="file-uploader-stub">📎 Upload CSV manifest</span>
+                  </div>
+
+                  {manifest.length > 0 ? (
+                    <table>
+                      <thead>
+                        <tr>
+                          <th style={{ width:30 }}></th>
+                          <th>Sample Type</th>
+                          <th>Code</th>
+                          <th style={{ width:120 }}>Quantity</th>
+                          <th></th>
+                          <th style={{ width:30 }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {manifest.map(row => {
+                          const st = ALL_SAMPLE_TYPES.find(s => s.id === row.sampleTypeId);
+                          return (
+                            <tr key={row.sampleTypeId}>
+                              <td>
+                                <input type="checkbox" checked={row.quantity > 0}
+                                       onChange={(e) => setQty(row.sampleTypeId, e.target.checked ? (row.quantity || 1) : 0)} />
+                              </td>
+                              <td>{st?.name}</td>
+                              <td><code>{st?.code}</code></td>
+                              <td>
+                                <input type="number" min={0} max={999}
+                                       value={row.quantity}
+                                       onChange={(e) => setQty(row.sampleTypeId, e.target.value)} />
+                              </td>
+                              <td>
+                                {row.isOverride && <span className="tag tag-purple">Not in Standard</span>}
+                              </td>
+                              <td>
+                                <button className="btn-icon" title="Remove" onClick={() => removeRow(row.sampleTypeId)}>🗑</button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p className="step-helper">
+                      {branch === 'REGULATION_DRIVEN'
+                        ? 'Select a compliance standard to pre-populate sample types.'
+                        : 'Add sample types to begin.'}
+                    </p>
+                  )}
+
+                  <div style={{ display:'flex', alignItems:'center', gap:12, marginTop:'1rem' }}>
+                    {showAddType ? (
+                      <select onChange={(e) => e.target.value && addType(e.target.value)} defaultValue="">
+                        <option value="" disabled>Pick a sample type to add…</option>
+                        {ALL_SAMPLE_TYPES.filter(st => !manifest.find(m => m.sampleTypeId === st.id))
+                                         .map(st => <option key={st.id} value={st.id}>{st.name} ({st.code})</option>)}
+                      </select>
+                    ) : (
+                      <button className="btn btn-ghost" onClick={() => setShowAddType(true)}>+ Add Other Sample Type</button>
                     )}
+                    <span style={{ flex:1 }} />
+                    <span className="total-samples"><strong>Total: {total} samples in this batch</strong></span>
                   </div>
                 </div>
-              </div>
-              <div className="form-field" style={{marginTop:8}}>
-                <label>Field Notes</label>
-                <textarea placeholder="Enter field observations..." maxLength={1000}></textarea>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="actions">
-              <button className="btn btn-secondary">Save Draft</button>
-              <button className="btn btn-primary" onClick={() => setStep(1)}>Save & Next →</button>
-            </div>
-          </div>)}
-
-          {/* ════════ STEPS 2–4: CONTEXT CARD + PLACEHOLDER ════════ */}
-          {step > 0 && (<div>
-            {/* Order Context Card (ENV-6-001) */}
-            <div className="context-card">
-              <div className="grid grid-4" style={{alignItems:'center'}}>
-                <div>
-                  <span className="field-label">Lab Number</span>
-                  <span className="field-value" style={{fontWeight:700, fontSize:16}}>ENV-2026-0412</span>
-                </div>
-                <div>
-                  <span className="field-label">Site</span>
-                  <span className="field-value">{SITE.code} — {SITE.name}</span>
-                </div>
-                <div>
-                  <span className="field-label">Compliance Standard</span>
-                  {selectedStd ? (
-                    <div>
-                      <span className="field-value">{selectedStd.reg}</span>
-                      <span className="tag tag-green" style={{marginLeft:6}}>Active</span>
-                    </div>
-                  ) : <span style={{color:'#8d8d8d'}}>—</span>}
-                </div>
-                <div>
-                  <span className="field-label">Tests / Status</span>
-                  <span className="field-value">{selectedCount} tests</span>
-                  <span className="tag tag-blue" style={{marginLeft:6}}>
-                    {step===1 ? 'Collecting' : step===2 ? 'Labeling' : 'QA Review'}
-                  </span>
-                </div>
-              </div>
-              {selectedStd && (
-                <button className="btn-ghost" style={{marginTop:8}}>▸ View Thresholds</button>
               )}
-            </div>
 
-            {/* Step content placeholder */}
-            <div className="tile">
-              <h4>
-                {step===1 && 'Step 2 — Collect Sample'}
-                {step===2 && 'Step 3 — Label & Store'}
-                {step===3 && 'Step 4 — QA Review'}
-              </h4>
-              <p style={{color:'#525252', marginBottom:16}}>
-                {step === 1 && checkedCount > 0 && (
-                  <span>
-                    <strong>{checkedCount} sample types</strong> auto-populated from Step 1 selections. Confirm or adjust below.
-                    <br/><br/>
-                  </span>
+              {/* Suggested Tests (regulation-driven, after manifest has sample types) */}
+              {branch === 'REGULATION_DRIVEN' && standard && activeTypes.length > 0 && (
+                <div className="tile">
+                  <h4>Suggested Tests</h4>
+                  <div className="notification">
+                    Based on <strong>{standard.reg}</strong> and <strong>{activeTypes.length}</strong> sample types,
+                    {' '}<strong>{totalTests}</strong> tests have been suggested. <strong>{selTests}</strong> selected.
+                  </div>
+                  {groups.length > 0 ? (
+                    <div className="accordion-group">
+                      {groups.map(g => {
+                        const sel = g.tests.filter(t => !deselected.has(t.id)).length;
+                        return (
+                          <div key={g.group}>
+                            <div className="accordion-header">
+                              <span>{g.group} ({sel} of {g.tests.length} selected)</span>
+                              <span>▾</span>
+                            </div>
+                            <div className="accordion-body">
+                              <table>
+                                <thead>
+                                  <tr>
+                                    <th style={{ width:30 }}></th>
+                                    <th>Test</th>
+                                    <th>LOINC</th>
+                                    <th>Unit</th>
+                                    <th>Threshold</th>
+                                    <th></th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {g.tests.map(t => {
+                                    const checked = !deselected.has(t.id);
+                                    return (
+                                      <tr key={t.id}>
+                                        <td><input type="checkbox" checked={checked} onChange={() => {
+                                          setDeselected(prev => {
+                                            const n = new Set(prev);
+                                            checked ? n.add(t.id) : n.delete(t.id);
+                                            return n;
+                                          });
+                                        }} /></td>
+                                        <td>{t.name}</td>
+                                        <td><code>{t.loinc}</code></td>
+                                        <td>{t.unit}</td>
+                                        <td><strong>{t.threshold}</strong></td>
+                                        <td>{checked && <span className="tag tag-blue">Suggested</span>}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="notification warning">
+                      No tests are linked to this standard for the selected sample types. Add tests manually.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Default Collection Conditions */}
+              {branch && (
+                <div className="tile">
+                  <h4>Default Collection Conditions</h4>
+                  <p className="step-helper">Defaults applied to all samples. Per-sample overrides at Step 2.</p>
+                  <div className="grid grid-3">
+                    <div className="form-field">
+                      <label>Collection Method *</label>
+                      <select value={collMethod} onChange={(e) => setCollMethod(e.target.value)}>
+                        <option value="">Select…</option>
+                        {COLLECTION_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                    </div>
+                    <div className="form-field">
+                      <label>Water Temp (°C)</label>
+                      <input type="number" min={-50} max={100} step={0.1} value={waterT} onChange={(e) => setWaterT(e.target.value)} />
+                    </div>
+                    <div className="form-field">
+                      <label>Ambient Temp (°C)</label>
+                      <input type="number" min={-50} max={100} step={0.1} value={ambientT} onChange={(e) => setAmbientT(e.target.value)} />
+                    </div>
+                    <div className="form-field">
+                      <label>Weather</label>
+                      <select value={weather} onChange={(e) => setWeather(e.target.value)}>
+                        <option value="">Select…</option>
+                        {WEATHER.map(w => <option key={w} value={w}>{w}</option>)}
+                      </select>
+                    </div>
+                    <div className="form-field" style={{ gridColumn:'span 2' }}>
+                      <label>Preservation Method</label>
+                      <input type="text" maxLength={255} placeholder="e.g., HNO3 acidification, 4°C cooler"
+                             value={preserv} onChange={(e) => setPreserv(e.target.value)} />
+                    </div>
+                    <div className="form-field" style={{ gridColumn:'span 3' }}>
+                      <label>Field Notes</label>
+                      <textarea rows={2} maxLength={1000} placeholder="Enter field observations…"
+                                value={notes} onChange={(e) => setNotes(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Pool/Aliquot subsection (only when referral has parent specimens) */}
+              {HAS_PARENT_SPECIMENS && (
+                <div className="tile">
+                  <h4>Pool / Aliquot</h4>
+                  <div className="notification">
+                    Parent specimens detected in referral payload. Local aliquot LABNOs assigned automatically.
+                  </div>
+                  <table style={{ marginTop:'1rem' }}>
+                    <thead>
+                      <tr>
+                        <th>Parent Specimen (sender)</th>
+                        <th>Local Aliquot LABNO</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><code>POOL-XYZ-2026-09</code></td>
+                        <td><code>ENV-2026-0412.1-3</code></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Footer */}
+              {branch && (
+                <div className="tile">
+                  <div className="footer-actions">
+                    <button className="btn btn-ghost">Cancel</button>
+                    <button className="btn btn-secondary">💾 Save Draft</button>
+                    <button className="btn btn-primary" disabled={!canAdvance1} onClick={advanceTo2}>
+                      Continue to Label & Store →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </Fragment>
+          )}
+
+          {/* ════════════════════════════════════════════════════════
+              STEP 2 — Label & Store
+              ════════════════════════════════════════════════════════ */}
+          {step === 1 && (
+            <Fragment>
+              <div className="tile">
+                <h4>Label & Store</h4>
+                <p className="step-helper">Per-sample accession, barcode, collection date/time, receipt condition, and storage. Use bulk-apply controls for batches collected together.</p>
+
+                <div style={{ display:'flex', gap:12, alignItems:'flex-end', marginBottom:'1rem' }}>
+                  <div className="form-field" style={{ flex:1, marginBottom:0 }}>
+                    <label>Apply storage location to all</label>
+                    <select value={bulkStorage} onChange={(e) => setBulkStorage(e.target.value)}>
+                      <option value="">Pick a location to bulk-apply…</option>
+                      {STORAGE.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <button className="btn btn-tertiary" onClick={applyBulk} disabled={!bulkStorage}>Apply to all</button>
+                </div>
+
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Sample Type</th>
+                      <th>Accession</th>
+                      <th>Barcode</th>
+                      <th>Collected</th>
+                      <th>Receipt</th>
+                      <th>Storage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sampleRows.map(r => (
+                      <tr key={r.id}>
+                        <td>{r.idx}</td>
+                        <td>{r.type?.name}</td>
+                        <td><code>{r.accession}</code></td>
+                        <td><input type="text" placeholder="Scan or type…" value={r.barcode}
+                                   onChange={(e) => updRow(r.id, { barcode:e.target.value })} /></td>
+                        <td><input type="text" placeholder="YYYY-MM-DD HH:mm" value={r.dt}
+                                   onChange={(e) => updRow(r.id, { dt:e.target.value })} /></td>
+                        <td>
+                          <select value={r.cond} onChange={(e) => updRow(r.id, { cond:e.target.value })}>
+                            <option value="">—</option>
+                            {RECEIPT_CONDS.map(c => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                        </td>
+                        <td>
+                          <select value={r.storage} onChange={(e) => updRow(r.id, { storage:e.target.value })}>
+                            <option value="">—</option>
+                            {STORAGE.map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="tile">
+                <div className="footer-actions">
+                  <button className="btn btn-ghost" onClick={() => setStep(0)}>← Back</button>
+                  <button className="btn btn-secondary">💾 Save Draft</button>
+                  <button className="btn btn-primary" onClick={() => setStep(2)}>Continue to QA / QC →</button>
+                </div>
+              </div>
+            </Fragment>
+          )}
+
+          {/* ════════════════════════════════════════════════════════
+              STEP 3 — QA / QC + Intake
+              ════════════════════════════════════════════════════════ */}
+          {step === 2 && (
+            <Fragment>
+              <div className="tile">
+                <h4>Sample Intake (NCE / Reject)</h4>
+                <p className="step-helper">Click <strong>Flag NCE</strong> on any sample to assign a coded reason and accept-with-flag or reject. Reuses the existing OpenELIS NCE button pattern.</p>
+
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Sample Type</th>
+                      <th>Accession</th>
+                      <th>Receipt</th>
+                      <th>Hold-time</th>
+                      <th>NCE</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sampleRows.map(r => {
+                      const nce = nces[r.id];
+                      const exceeded = r.idx % 3 === 0;
+                      return (
+                        <tr key={r.id}>
+                          <td>{r.idx}</td>
+                          <td>{r.type?.name}</td>
+                          <td><code>{r.accession}</code></td>
+                          <td>{r.cond || '—'}</td>
+                          <td>
+                            {exceeded
+                              ? <span className="tag tag-red">Exceeded</span>
+                              : <span className="tag tag-green">OK</span>}
+                          </td>
+                          <td>
+                            {nce ? (
+                              <span style={{ display:'inline-flex', alignItems:'center', gap:8 }}>
+                                <span className={`tag ${nce.decision === 'reject' ? 'tag-red' : 'tag-magenta'}`}>{nce.code}</span>
+                                <span style={{ fontSize:14 }}>{nce.decision === 'reject' ? '✕' : '⚠'}</span>
+                                <button className="btn btn-ghost" style={{ padding:'2px 6px' }} onClick={() => flagNce(r.id)}>Edit</button>
+                              </span>
+                            ) : (
+                              <button className="btn btn-tertiary" style={{ padding:'4px 10px', fontSize:12 }} onClick={() => flagNce(r.id)}>⚠ Flag NCE</button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="tile">
+                <div className="qc-buttons">
+                  <h4>QC Samples</h4>
+                  <button className="btn btn-primary" onClick={() => addQc('BLANK')}>+ Blank</button>
+                  <button className="btn btn-primary" onClick={() => addQc('DUPLICATE')}>+ Duplicate</button>
+                  <button className="btn btn-primary" onClick={() => addQc('CONTROL')}>+ Control</button>
+                </div>
+
+                {qcSamples.length > 0 ? (
+                  <table style={{ marginTop:'1rem' }}>
+                    <thead>
+                      <tr>
+                        <th>QC ID</th>
+                        <th>Type</th>
+                        <th>Detail</th>
+                        <th>Expected Value(s)</th>
+                        <th>Storage</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {qcSamples.map(q => (
+                        <tr key={q.id}>
+                          <td><code>{q.qcId}</code></td>
+                          <td>
+                            <span className={`tag ${q.type === 'BLANK' ? 'tag-gray' : q.type === 'DUPLICATE' ? 'tag-cyan' : 'tag-green'}`}>{q.type}</span>
+                          </td>
+                          <td>
+                            {q.type === 'BLANK' && (
+                              <select value={q.subtype} onChange={(e) => updQc(q.id, { subtype:e.target.value })}>
+                                {BLANK_SUBTYPES.map(s => <option key={s} value={s}>{s}</option>)}
+                              </select>
+                            )}
+                            {q.type === 'DUPLICATE' && (
+                              <select value={q.parent} onChange={(e) => updQc(q.id, { parent:e.target.value })}>
+                                <option value="">Pick parent…</option>
+                                {sampleRows.map(s => <option key={s.id} value={s.id}>{s.accession}</option>)}
+                              </select>
+                            )}
+                            {q.type === 'CONTROL' && (
+                              <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+                                <input type="text" placeholder="Material name (e.g., NIST 1640a)"
+                                       value={q.materialName} onChange={(e) => updQc(q.id, { materialName:e.target.value })} />
+                                <input type="text" placeholder="Source (vendor, lot)"
+                                       value={q.materialSource} onChange={(e) => updQc(q.id, { materialSource:e.target.value })} />
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            {q.type === 'CONTROL' && <span className="helper-inline">Edit per parameter →</span>}
+                            {q.type === 'DUPLICATE' && <span className="helper-inline">inherits from parent</span>}
+                            {q.type === 'BLANK' && <span className="helper-inline">—</span>}
+                          </td>
+                          <td>
+                            <select value={q.storage} onChange={(e) => updQc(q.id, { storage:e.target.value })}>
+                              <option value="">—</option>
+                              {STORAGE.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                          </td>
+                          <td><button className="btn-icon" onClick={() => rmQc(q.id)}>🗑</button></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="step-helper">No QC samples added. Click a button above to add one.</p>
                 )}
-                See Sample Collection Redesign FRS for full step specification. The Order Context Card above persists the compliance standard on all steps.
-              </p>
+              </div>
 
-              {/* QA Environmental Completeness (ENV-8-001) */}
-              {step === 3 && (
-                <div>
-                  <h5 style={{marginTop:24}}>Environmental Completeness</h5>
-                  <div className="grid grid-2">
-                    <div className="qa-check complete">
-                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                        <span className="check-label">Sampling Site</span>
-                        <span className="tag tag-green">Complete</span>
-                      </div>
-                      <div className="check-value">{SITE.code} — {SITE.name}</div>
-                    </div>
-                    <div className="qa-check complete">
-                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                        <span className="check-label">Compliance Standard</span>
-                        <span className="tag tag-green">Complete</span>
-                      </div>
-                      <div className="check-value">{selectedStd ? selectedStd.reg : '—'}</div>
-                    </div>
-                    <div className="qa-check complete">
-                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                        <span className="check-label">Collection Method</span>
-                        <span className="tag tag-green">Complete</span>
-                      </div>
-                      <div className="check-value">{method || 'Manual Grab'}</div>
-                    </div>
-                    <div className="qa-check warning">
-                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                        <span className="check-label">GPS Coordinates</span>
-                        <span className="tag tag-warm-gray">Incomplete</span>
-                      </div>
-                      <div className="check-value" style={{color:'#b28600'}}>GPS not recorded</div>
-                      <button className="btn-ghost" style={{marginTop:4, fontSize:12}}>Go to Step 2 →</button>
-                    </div>
-                    <div className="qa-check complete">
-                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                        <span className="check-label">Collection Conditions</span>
-                        <span className="tag tag-green">Complete</span>
-                      </div>
-                      <div className="check-value">5 of 6 fields completed</div>
-                    </div>
-                  </div>
+              <div className="tile">
+                <div className="footer-actions">
+                  <button className="btn btn-ghost" onClick={() => setStep(1)}>← Back</button>
+                  <button className="btn btn-secondary">💾 Save Draft</button>
+                  <button className="btn btn-primary">Submit Batch →</button>
                 </div>
-              )}
-            </div>
+              </div>
+            </Fragment>
+          )}
 
-            {/* Step navigation */}
-            <div style={{display:'flex', justifyContent:'space-between', marginTop:16}}>
-              <button className="btn btn-secondary" onClick={() => setStep(Math.max(0, step-1))}>
-                ← Previous
-              </button>
-              {step < 3 ? (
-                <button className="btn btn-primary" onClick={() => setStep(step+1)}>
-                  Save & Next →
-                </button>
-              ) : (
-                <div style={{display:'flex', gap:12}}>
-                  <button className="btn btn-danger">Return to Step</button>
-                  <button className="btn btn-primary">Approve for Testing</button>
+          {/* ── Branch Switch Modal ─────────────────────────────── */}
+          {showSwitch && (
+            <div style={{
+              position:'fixed', top:0, left:0, right:0, bottom:0,
+              background:'rgba(22,22,22,0.5)',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              zIndex:100,
+            }}>
+              <div className="tile" style={{ maxWidth:480, margin:0 }}>
+                <h4>Switch order type?</h4>
+                <p style={{ fontSize:14, color:'#525252', marginBottom:'1rem' }}>
+                  Switching order type will clear the standard, tests, manifest, and regulatory reference. Continue?
+                </p>
+                <div className="footer-actions">
+                  <button className="btn btn-ghost" onClick={() => setShowSwitch(null)}>Keep current</button>
+                  <button className="btn btn-primary" onClick={confirmSwitch}>Continue and clear</button>
                 </div>
-              )}
+              </div>
             </div>
-          </div>)}
+          )}
         </div>
       );
     }
