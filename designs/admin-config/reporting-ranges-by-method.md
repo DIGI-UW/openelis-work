@@ -37,8 +37,19 @@ There is **no new fallback layer**. If a method has no reporting range configure
 ```
 method                                            -- master catalog
   id                (pk)
-  code              VARCHAR UNIQUE NOT NULL      -- immutable after create
-  name              VARCHAR NOT NULL
+  code              VARCHAR UNIQUE NOT NULL      -- immutable after create. System-generated
+                                                 --   for USER methods as 'METH-NNN' (zero-padded
+                                                 --   to 3 digits, monotonic per-instance).
+                                                 --   Plugin-supplied for PLUGIN methods.
+                                                 --   Literal 'MANUAL' for the seeded Manual row.
+                                                 --   Never displayed in the admin UI; used only
+                                                 --   for stable identifiers in CSV import/export,
+                                                 --   audit trails, and plugin namespacing.
+  name              VARCHAR NOT NULL              -- 1–120 chars. Primary identifier shown in the UI.
+  description       TEXT NULL                     -- optional, 0–500 chars. Free text describing
+                                                 --   what the method does and when to use it.
+                                                 --   Shown in row-expand and in the per-test
+                                                 --   method picker. Plugins MAY supply on register.
   source            VARCHAR NOT NULL              -- enum: 'MANUAL' | 'USER' | 'PLUGIN'
   plugin_id         VARCHAR NULL                  -- set only when source = 'PLUGIN'
   analyzer_id       FK NULL                       -- set only when source = 'PLUGIN', points to
@@ -80,12 +91,12 @@ Route: `/admin/test-catalog/methods`. SideNav: a new submenu item **"Methods"** 
 
 | # | Requirement |
 |---|---|
-| FR-1 | P-01 Admin Table with columns: **Code · Name · Source · Used by N tests · Status**. Sortable on Code, Name, Source, Used by, Status. |
+| FR-1 | P-01 Admin Table with columns: **Name · Source · Used by N tests · Status**. Sortable on Name, Source, Used by, Status. The internal `method.code` is **not displayed** in this admin surface (see §3.1). |
 | FR-2 | Source is rendered as a Carbon `Tag` — `Manual` (gray), `User` (cyan), `<Analyzer name>` (warm) — based on `method.source` and (for PLUGIN) the registering analyzer's name. |
-| FR-3 | Toolbar primary action **"Add method"** (P-03 Create modal): fields Code (2–16 chars `[A-Z0-9-]+`, immutable after create), Name (1–120 chars), Active (Toggle, default ON). The created method has `source = 'USER'`. |
-| FR-4 | P-02 Inline row-expand edit on USER rows. On MANUAL and PLUGIN rows, the row-expand is **read-only** — shows the row, explains the source (`"Registered by GeneXpert analyzer plugin"` or `"System-provided default"`), and displays which tests currently use the method. No editable fields. |
+| FR-3 | Toolbar primary action **"Add method"** (P-03 Create modal): fields Name (1–120 chars, required), Description (0–500 chars, optional, Carbon `TextArea`), Active (Toggle, default ON). The server auto-assigns `method.code` as `METH-NNN` (zero-padded, monotonic) at create — the field is not entered, displayed, or editable in the UI. The created method has `source = 'USER'`. |
+| FR-4 | P-02 Inline row-expand edit on USER rows — Name, Description, Active. On MANUAL and PLUGIN rows, the row-expand is **read-only** — shows the row, explains the source (`"Registered by GeneXpert analyzer plugin"` or `"System-provided default"`), renders any Description (read-only) supplied by plugin registration or seed migration, and displays which tests currently use the method. No editable fields on MANUAL or PLUGIN rows. |
 | FR-5 | Delete (P-04 Confirm) is offered **only** on USER rows with `Used by = 0`. MANUAL and PLUGIN rows are never deletable. USER rows with usage show the delete button disabled with a tooltip identifying the blocking tests (`"Used by N tests — remove from each test first"`). |
-| FR-6 | Filter bar: filter by Source (All / Manual / User / Plugin — with a sub-select for specific plugin/analyzer). Search by code/name substring. Empty state P-06. |
+| FR-6 | Filter bar: filter by Source (All / Manual / User / Plugin — with a sub-select for specific plugin/analyzer). Search by name substring. Empty state P-06. |
 | FR-7 | Writes gated behind `TEST_CATALOG_MANAGE` (P-13). Users without the scope see the table read-only. |
 
 ### 3.3 Test row-expand — Methods section *(Sub-3)*
@@ -95,7 +106,7 @@ Location: inside the existing Test admin row-expand (Test Catalog → Test Manag
 | # | Requirement |
 |---|---|
 | FR-8 | New section **"Methods"** sits above the existing reporting range controls. A Carbon `DataTable` with columns: **Method · Source · Added on · actions**. Manual and analyzer-auto rows show their source Tag and no delete affordance. User-added rows show a Delete button (P-04 Confirm). |
-| FR-9 | Toolbar inside the Methods section — a single primary button **"Add method"** opens a modal with two stacked options: (a) **Pick existing** (a Carbon `ComboBox` filtered to methods not already on this test, excluding analyzer-scoped methods whose analyzer isn't mapped to this test); (b) **Create new** — inline form for Code / Name, creates a method with `source = 'USER'` and adds it to this test as `source = 'USER_ADDED'` in one action. |
+| FR-9 | Toolbar inside the Methods section — a single primary button **"Add method"** opens a modal with two stacked options: (a) **Pick existing** (a Carbon `ComboBox` filtered to methods not already on this test, excluding analyzer-scoped methods whose analyzer isn't mapped to this test; the picker shows method **Name** and the first ~80 chars of Description as secondary text); (b) **Create new** — inline form for Name (required) and Description (optional, 0–500 chars), creates a method with `source = 'USER'` and a server-assigned `code = 'METH-NNN'` and adds it to this test as `source = 'USER_ADDED'` in one action. |
 | FR-10 | Attempting to delete a row with `source = 'ANALYZER_AUTO'` is **blocked** with an inline banner: `"This method is provided by the [Analyzer name] analyzer mapping. To remove it, un-map the analyzer from this test."` (FR from directive answer C.ii) |
 | FR-11 | Attempting to delete a row with `source = 'MANUAL_DEFAULT'` is **blocked** with an inline banner: `"Manual is always available and cannot be removed."` |
 | FR-12 | When an analyzer mapping is added or removed from a test (elsewhere in Test admin), the Methods section reflects the change on next render: analyzer methods appear / disappear accordingly, along with their `test_method_range` rows (range rows follow the allowed-methods row lifecycle — removing an analyzer removes its range entries for this test). |
@@ -126,7 +137,7 @@ Location: inside the existing Test admin row-expand (Test Catalog → Test Manag
 | # | Requirement |
 |---|---|
 | FR-24 | When an analyzer plugin is enabled (analyzer configured for the instance), the analyzer's init hook calls a `MethodRegistry.register(analyzer, methods[])` service that upserts one `method` row per declared method, with `source = 'PLUGIN'`, `plugin_id = <plugin id>`, `analyzer_id = <analyzer id>`. |
-| FR-25 | Re-registration (same analyzer upgraded or re-initialized) updates name/active but never changes `code`. If a plugin removes a method in a new release, the `method` row is set to `active = false`, **not** deleted, to preserve history on existing tests. |
+| FR-25 | Re-registration (same analyzer upgraded or re-initialized) updates name, description, and active but never changes `code`. Plugin-supplied codes are persisted as-is (not re-mapped to the `METH-NNN` namespace) so analyzers that ship method codes as part of their integration contract remain stable. If a plugin removes a method in a new release, the `method` row is set to `active = false`, **not** deleted, to preserve history on existing tests. |
 | FR-26 | When an analyzer is mapped to a test (existing `test_analyzer_mapping` flow), the mapping service must insert one `test_method` row per `PLUGIN`-sourced method registered by that analyzer, with `source = 'ANALYZER_AUTO'`, `analyzer_mapping_id = <mapping id>`. |
 | FR-27 | When an analyzer is un-mapped from a test, cascade-remove the `ANALYZER_AUTO` rows with that `analyzer_mapping_id`. The corresponding `test_method_range` rows are removed in the same transaction. |
 
@@ -135,7 +146,7 @@ Location: inside the existing Test admin row-expand (Test Catalog → Test Manag
 | # | Requirement |
 |---|---|
 | FR-28 | The existing Test Catalog CSV import must be extended to carry methods assigned to each test and reporting ranges per method. Exact column schema is **deferred to build** (owner: Reagan — existing maintainer of the CSV importer; confirm with him during Sub-1 kickoff). |
-| FR-29 | Plugin-sourced methods in the CSV are accepted as an explicit assignment only if the referenced analyzer is currently mapped to the test; otherwise the row is rejected with a clear error. USER methods referenced by an unknown code are auto-created by the importer only if an optional `auto_create_methods` flag is passed; otherwise rejected. |
+| FR-29 | Plugin-sourced methods in the CSV are referenced by their plugin-supplied `method.code` and are accepted as an explicit assignment only if the referenced analyzer is currently mapped to the test; otherwise the row is rejected with a clear error. USER methods are referenced by `method.code` (`METH-NNN`) for round-trip stability — but because end users do not see codes in the admin UI, the importer SHOULD also accept a USER method by `name` (case-insensitive, exact match against `method.name` filtered to `source = 'USER'`) and reject ambiguous matches with a clear error. USER methods referenced by an unknown identifier are auto-created by the importer only if an optional `auto_create_methods` flag is passed (the new `method` row gets a server-assigned `METH-NNN` code); otherwise rejected. |
 | FR-30 | Export mirrors import. |
 
 ## 4. Out of Scope
@@ -192,11 +203,14 @@ All writes in §3.2–§3.4 and §3.7 require `TEST_CATALOG_MANAGE`. No new perm
 | `admin.testCatalog.methods.heading` | "Methods" |
 | `admin.testCatalog.methods.desc` | "Master catalog of methods used by this lab. Plugin-registered methods are read-only; create and manage your own methods here." |
 | `admin.testCatalog.methods.addCta` | "Add method" |
-| `admin.testCatalog.methods.col.code` | "Code" |
 | `admin.testCatalog.methods.col.name` | "Name" |
 | `admin.testCatalog.methods.col.source` | "Source" |
 | `admin.testCatalog.methods.col.usedBy` | "Used by" |
 | `admin.testCatalog.methods.col.status` | "Status" |
+| `admin.testCatalog.methods.field.name` | "Name" |
+| `admin.testCatalog.methods.field.description` | "Description" |
+| `admin.testCatalog.methods.field.descriptionHelp` | "What this method does, when to use it. Shown when picking a method on a test." |
+| `admin.testCatalog.methods.field.active` | "Active" |
 | `admin.testCatalog.methods.source.manual` | "Manual" |
 | `admin.testCatalog.methods.source.user` | "User" |
 | `admin.testCatalog.methods.source.plugin` | "Plugin: [analyzer]" |

@@ -227,7 +227,7 @@ export const MOCKUP_REGISTRY = [
     name: 'Reporting Ranges by Method',
     category: 'admin-config',
     component: React.lazy(() => import('@designs/admin-config/reporting-ranges-by-method.jsx')),
-    description: 'Per-method reporting ranges for Test Catalog — allowed-methods model per test, Methods admin page (P-01 table pattern), per-method range editor (inline row-expand), and CSV import extension. FRS v2.',
+    description: 'Per-method reporting ranges for Test Catalog (FRS v2, full spec). Methods as first-class concepts: master Methods admin page (MANUAL/USER/PLUGIN sources, P-01 table pattern), per-method reporting range grid in test row-expand (Sub-2 + Sub-3), method-aware range lookup in result entry (Sub-4). CSV import extension. Covers full epic scope across all three sub-issues.',
     specPath: 'designs/admin-config/reporting-ranges-by-method.md',
     htmlUrl: 'designs/admin-config/reporting-ranges-by-method.html',
     added: '2026-04-24',
