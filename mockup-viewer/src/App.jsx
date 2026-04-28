@@ -802,6 +802,30 @@ export const MOCKUP_REGISTRY = [
   },
   // ─── Reports ───
   {
+    name: 'Environmental LHU',
+    category: 'vector-surveillance',
+    component: React.lazy(() => import('@designs/vector-surveillance/environmental-lhu.jsx')),
+    description: 'Environmental Laporan Hasil Uji — printable, Carbon-styled test result report for environmental samples (air, water, soil, sediment). Extends S-06 letterhead, e-signature, and print config. Multi-matrix result table with compliance status icons, KAN accreditation handling, and Baku Mutu regulatory reference display. Real data from PT. Unggulrejo Wasono & RS Permata Depok.',
+    specPath: 'designs/vector-surveillance/environmental-lhu.md',
+    htmlUrl: 'designs/vector-surveillance/environmental-lhu.html',
+    added: '2026-04-28',
+    status: 'draft',
+    relatedTo: ['Laporan Hasil — Compliance Report'],
+    tags: ['report', 'environmental', 'laporan-hasil', 'LHU', 'pdf', 'certificate', 'Indonesia', 'SILNAS', 'KAN'],
+  },
+  {
+    name: 'Vector LHU',
+    category: 'vector-surveillance',
+    component: React.lazy(() => import('@designs/vector-surveillance/vector-lhu.jsx')),
+    description: 'Vector Laporan Hasil Uji — printable result report for vector surveillance samples (BBLKM/Labkesmas). Three result-table modes: Species Identification (PCR, Ct values), Surveillance Indices (MIR, infection rate per 1000), and Larval Population Indices (House, Container, Breteau). Inherits letterhead, accreditation, and signature blocks from S-06. Real data from BBLKM Jakarta Aedes aegypti specimens.',
+    specPath: 'designs/vector-surveillance/vector-lhu.md',
+    htmlUrl: 'designs/vector-surveillance/vector-lhu.html',
+    added: '2026-04-28',
+    status: 'draft',
+    relatedTo: ['Laporan Hasil — Compliance Report'],
+    tags: ['report', 'vector-surveillance', 'laporan-hasil', 'LHU', 'pdf', 'certificate', 'Indonesia', 'SILNAS', 'KAN', 'mosquito', 'entomology'],
+  },
+  {
     name: 'Laporan Hasil — Compliance Report',
     category: 'vector-surveillance',
     component: React.lazy(() => import('@designs/reports/laporan-hasil-compliance-report.jsx')),
@@ -812,6 +836,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 77,
     jira: ['OGC-552', 'OGC-527'],
+    relatedTo: ['Environmental LHU', 'Vector LHU'],
     tags: ['compliance', 'report', 'environmental', 'vector', 'certificate', 'pdf', 'laporan-hasil'],
   },
   {
