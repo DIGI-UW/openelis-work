@@ -124,14 +124,14 @@ export default function EnvironmentalOrderEntryV2({
   const [branch, setBranch] = useState(referralSource ? 'REGULATION_DRIVEN' : null);
   const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
 
-  // Step 1 state
+  // Step 1 state — 2026-04-28 amendment: selectedStandards is now an array (M:N, multi-regulation)
   const [selectedSite, setSelectedSite] = useState(MOCK_SITE);
-  const [selectedStandard, setSelectedStandard] = useState(null);
+  const [selectedStandards, setSelectedStandards] = useState([]);  // [{ id, name, regulationNumber, ... }]
   const [showThresholds, setShowThresholds] = useState(false);
   const [showAllStandards, setShowAllStandards] = useState(false);
   const [adhocTests, setAdhocTests] = useState([]);
   const [adhocRegRef, setAdhocRegRef] = useState('');
-  const [manifest, setManifest] = useState([]);   // [{ sampleTypeId, quantity, isFromStandard, isOverride }]
+  const [manifest, setManifest] = useState([]);   // [{ sampleTypeId, quantity, coverageStandardIds: [], isOverride }]
   const [deselectedTestIds, setDeselectedTestIds] = useState(new Set());
   const [showAddSampleType, setShowAddSampleType] = useState(false);
 
@@ -153,16 +153,16 @@ export default function EnvironmentalOrderEntryV2({
 
   // ── Branch handlers ───────────────────────────────────────────────
   const handleBranchSelect = useCallback((newBranch) => {
-    if (branch && branch !== newBranch && (selectedStandard || adhocTests.length > 0 || manifest.length > 0)) {
+    if (branch && branch !== newBranch && (selectedStandards.length > 0 || adhocTests.length > 0 || manifest.length > 0)) {
       setShowSwitchConfirm({ from: branch, to: newBranch });
       return;
     }
     setBranch(newBranch);
-  }, [branch, selectedStandard, adhocTests, manifest]);
+  }, [branch, selectedStandards, adhocTests, manifest]);
 
   const confirmSwitchBranch = useCallback(() => {
     setBranch(showSwitchConfirm.to);
-    setSelectedStandard(null);
+    setSelectedStandards([]);
     setAdhocTests([]);
     setAdhocRegRef('');
     setManifest([]);
@@ -170,23 +170,58 @@ export default function EnvironmentalOrderEntryV2({
     setShowSwitchConfirm(false);
   }, [showSwitchConfirm]);
 
-  // ── Standard handlers ─────────────────────────────────────────────
-  const handleStandardSelect = useCallback((event) => {
-    const item = event?.selectedItem;
-    if (!item) {
-      setSelectedStandard(null);
+  // ── Standard handlers — 2026-04-28 amendment: add/remove from selectedStandards array ──
+  // Recompute manifest as UNION of applicableSampleTypes across all selected standards
+  const recomputeManifestFromStandards = useCallback((standards) => {
+    if (standards.length === 0) {
       setManifest([]);
-      setDeselectedTestIds(new Set());
       return;
     }
-    setSelectedStandard(item);
-    // Pre-populate manifest with standard's applicableSampleTypes at quantity 0
-    const seedManifest = item.applicableSampleTypes.map(stId => ({
-      sampleTypeId: stId, quantity: 0, isFromStandard: true, isOverride: false,
-    }));
-    setManifest(seedManifest);
-    setDeselectedTestIds(new Set());
+    // Build a map: sampleTypeId → list of standards that include it
+    const coverageMap = new Map();
+    standards.forEach(std => {
+      std.applicableSampleTypes.forEach(stId => {
+        if (!coverageMap.has(stId)) coverageMap.set(stId, []);
+        coverageMap.get(stId).push(std.id);
+      });
+    });
+    setManifest(prev => {
+      // Preserve quantities for sample types already in manifest; reset coverage
+      const unioned = Array.from(coverageMap.entries()).map(([stId, coverageIds]) => {
+        const existing = prev.find(r => r.sampleTypeId === stId);
+        return {
+          sampleTypeId: stId,
+          quantity: existing?.quantity || 0,
+          coverageStandardIds: coverageIds,
+          isOverride: false,
+        };
+      });
+      // Keep override rows (sample types added that aren't in any selected standard's list)
+      const overrideRows = prev.filter(r => r.isOverride && !coverageMap.has(r.sampleTypeId));
+      return [...unioned, ...overrideRows];
+    });
   }, []);
+
+  const addStandard = useCallback((event) => {
+    const item = event?.selectedItem;
+    if (!item) return;
+    setSelectedStandards(prev => {
+      if (prev.find(s => s.id === item.id)) return prev;  // already added
+      const next = [...prev, item];
+      recomputeManifestFromStandards(next);
+      return next;
+    });
+    setDeselectedTestIds(new Set());
+  }, [recomputeManifestFromStandards]);
+
+  const removeStandard = useCallback((standardId) => {
+    setSelectedStandards(prev => {
+      const next = prev.filter(s => s.id !== standardId);
+      recomputeManifestFromStandards(next);
+      return next;
+    });
+    setDeselectedTestIds(new Set());
+  }, [recomputeManifestFromStandards]);
 
   // ── Manifest handlers ─────────────────────────────────────────────
   const updateManifestQuantity = useCallback((sampleTypeId, quantity) => {
@@ -200,11 +235,15 @@ export default function EnvironmentalOrderEntryV2({
     if (!item) return;
     setManifest(prev => {
       if (prev.find(r => r.sampleTypeId === item.id)) return prev;
-      const isFromStandard = !!selectedStandard?.applicableSampleTypes.includes(item.id);
-      return [...prev, { sampleTypeId: item.id, quantity: 1, isFromStandard, isOverride: !isFromStandard }];
+      // Compute coverage across all selected standards
+      const coverageStandardIds = selectedStandards
+        .filter(std => std.applicableSampleTypes.includes(item.id))
+        .map(std => std.id);
+      const isOverride = coverageStandardIds.length === 0;
+      return [...prev, { sampleTypeId: item.id, quantity: 1, coverageStandardIds, isOverride }];
     });
     setShowAddSampleType(false);
-  }, [selectedStandard]);
+  }, [selectedStandards]);
 
   const removeManifestRow = useCallback((sampleTypeId) => {
     setManifest(prev => prev.filter(r => r.sampleTypeId !== sampleTypeId));
@@ -221,10 +260,34 @@ export default function EnvironmentalOrderEntryV2({
     [manifest],
   );
 
+  // 2026-04-28 amendment: union + dedup tests across selectedStandards.
+  // Each test in the result carries `coverageStandardIds: [stdId, ...]` showing which standards govern it.
   const suggestedTestGroups = useMemo(() => {
-    if (!selectedStandard || activeManifestSampleTypes.length === 0) return [];
-    return MOCK_TESTS_BY_STANDARD[selectedStandard.id] || [];
-  }, [selectedStandard, activeManifestSampleTypes]);
+    if (selectedStandards.length === 0 || activeManifestSampleTypes.length === 0) return [];
+    // Collect all (group, test) pairs across selected standards, tracking coverage
+    const testMap = new Map();  // testId → { groupName, test, coverageStandardIds }
+    selectedStandards.forEach(std => {
+      const groups = MOCK_TESTS_BY_STANDARD[std.id] || [];
+      groups.forEach(g => {
+        g.tests.forEach(t => {
+          const key = t.id;
+          if (!testMap.has(key)) {
+            testMap.set(key, { groupName: g.group, test: t, coverageStandardIds: [std.id] });
+          } else {
+            testMap.get(key).coverageStandardIds.push(std.id);
+          }
+        });
+      });
+    });
+    // Re-group by parameter group name (deterministic sort)
+    const groupMap = new Map();
+    testMap.forEach(entry => {
+      const g = entry.groupName;
+      if (!groupMap.has(g)) groupMap.set(g, []);
+      groupMap.get(g).push({ ...entry.test, coverageStandardIds: entry.coverageStandardIds });
+    });
+    return Array.from(groupMap.entries()).map(([group, tests]) => ({ group, tests }));
+  }, [selectedStandards, activeManifestSampleTypes]);
 
   const suggestedTestCount = useMemo(
     () => suggestedTestGroups.reduce((sum, g) => sum + g.tests.length, 0),
@@ -475,77 +538,77 @@ export default function EnvironmentalOrderEntryV2({
             </Tile>
           )}
 
-          {/* ── Compliance Standard (REGULATION-DRIVEN ONLY) ─────────── */}
+          {/* ── Compliance Standards (REGULATION-DRIVEN ONLY) — 2026-04-28 multi-regulation ─ */}
           {branch === 'REGULATION_DRIVEN' && (
             <Tile>
               <h4 style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-                {t('heading.order.complianceStandard', 'Compliance Standard')}
+                {t('heading.order.complianceStandards', 'Compliance Standards')}
               </h4>
+              <p style={{ fontSize: 12, color: 'var(--cds-text-secondary)', marginBottom: 'var(--cds-spacing-04)' }}>
+                Select <strong>one or more</strong> standards. Tests, thresholds, and downstream evaluation will be union'd across all selected standards. All selected standards are equal weight (no "primary").
+              </p>
 
+              {/* Add-standard ComboBox: filters out already-selected standards */}
               <ComboBox
-                id="compliance-standard"
-                items={MOCK_STANDARDS}
+                id="compliance-standard-add"
+                items={MOCK_STANDARDS.filter(s => !selectedStandards.find(ss => ss.id === s.id))}
                 itemToString={(item) => item ? `${item.regulationNumber} — ${item.name}` : ''}
-                titleText={t('label.order.standard', 'Compliance Standard')}
+                titleText={`${t('label.order.standard.add', 'Add Compliance Standard')} (${selectedStandards.length} selected)`}
                 placeholder={t('placeholder.order.standard.search', 'Search by regulation number, name, or issuing body…')}
-                onChange={handleStandardSelect}
-                helperText={t('label.order.standard.helper', 'Type the regulation number from your paperwork (e.g. PP No. 22/2021)')}
+                onChange={addStandard}
+                helperText={t('label.order.standard.helper', 'Type the regulation number from your paperwork (e.g. PP No. 22/2021). Add more by repeating.')}
+                selectedItem={null}
               />
 
-              {selectedStandard && (
-                <Tile light style={{ borderLeft: '3px solid var(--cds-link-primary)', padding: 'var(--cds-spacing-05)', marginTop: 'var(--cds-spacing-05)' }}>
-                  {/* Regulation number prominent */}
-                  <div style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-                    <p style={{ fontSize: '11px', color: 'var(--cds-text-secondary)', marginBottom: 'var(--cds-spacing-02)' }}>
-                      {t('label.order.standard.regulationNumber', 'Regulation Number')}
-                    </p>
-                    <Stack orientation="horizontal" gap={2} style={{ alignItems: 'center' }}>
-                      <span style={{ fontFamily: 'monospace', fontSize: '20px', fontWeight: 600 }}>
-                        {selectedStandard.regulationNumber}
-                      </span>
-                      <IconButton
-                        kind="ghost"
-                        size="sm"
-                        label={t('label.order.standard.copyRegNumber', 'Copy regulation number')}
-                        onClick={() => navigator.clipboard?.writeText(selectedStandard.regulationNumber)}
-                      >
-                        <Copy />
-                      </IconButton>
-                      <Tag type="green" size="sm">{selectedStandard.status}</Tag>
-                    </Stack>
-                  </div>
+              {/* Selected Standards Stack — one card per selection */}
+              {selectedStandards.length > 0 && (
+                <Stack gap={3} style={{ marginTop: 'var(--cds-spacing-05)' }}>
+                  {selectedStandards.map((std, idx) => (
+                    <Tile key={std.id} light style={{ borderLeft: '3px solid var(--cds-link-primary)', padding: 'var(--cds-spacing-05)' }}>
+                      {/* Regulation number prominent + remove button */}
+                      <Stack orientation="horizontal" gap={3} style={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: 11, color: 'var(--cds-text-secondary)', marginBottom: 4 }}>
+                            #{idx + 1} · {t('label.order.standard.regulationNumber', 'Regulation Number')}
+                          </p>
+                          <Stack orientation="horizontal" gap={2} style={{ alignItems: 'center' }}>
+                            <span style={{ fontFamily: 'monospace', fontSize: 20, fontWeight: 600 }}>
+                              {std.regulationNumber}
+                            </span>
+                            <IconButton kind="ghost" size="sm"
+                              label={t('label.order.standard.copyRegNumber', 'Copy regulation number')}
+                              onClick={() => navigator.clipboard?.writeText(std.regulationNumber)}>
+                              <Copy />
+                            </IconButton>
+                            <Tag type="green" size="sm">{std.status}</Tag>
+                          </Stack>
+                        </div>
+                        <Button kind="ghost" size="sm" renderIcon={Close} onClick={() => removeStandard(std.id)}>
+                          {t('button.order.standard.remove', 'Remove')}
+                        </Button>
+                      </Stack>
 
-                  <Grid>
-                    <Column lg={6} md={4} sm={4}>
-                      <p style={{ fontSize: '11px', color: 'var(--cds-text-secondary)' }}>{t('label.order.standard.name', 'Standard Name')}</p>
-                      <p style={{ fontWeight: 500 }}>{selectedStandard.name}</p>
-                    </Column>
-                    <Column lg={3} md={2} sm={2}>
-                      <p style={{ fontSize: '11px', color: 'var(--cds-text-secondary)' }}>{t('label.order.standard.issuingBody', 'Issuing Body')}</p>
-                      <p>{selectedStandard.issuingBody}</p>
-                    </Column>
-                    <Column lg={3} md={2} sm={2}>
-                      <p style={{ fontSize: '11px', color: 'var(--cds-text-secondary)' }}>{t('label.order.standard.version', 'Version')}</p>
-                      <p>{selectedStandard.version}</p>
-                    </Column>
-                    <Column lg={3} md={2} sm={2}>
-                      <p style={{ fontSize: '11px', color: 'var(--cds-text-secondary)' }}>{t('label.order.standard.effectiveDate', 'Effective Date')}</p>
-                      <p>{selectedStandard.effectiveDate}</p>
-                    </Column>
-                    <Column lg={3} md={2} sm={2}>
-                      <p style={{ fontSize: '11px', color: 'var(--cds-text-secondary)' }}>{t('label.order.standard.linkedTests', 'Linked Tests')}</p>
-                      <p>{selectedStandard.linkedTests}</p>
-                    </Column>
-                  </Grid>
-
-                  <Button kind="ghost" size="sm" renderIcon={View}
-                    onClick={() => setShowThresholds(!showThresholds)}
-                    style={{ marginTop: 'var(--cds-spacing-04)' }}>
-                    {showThresholds
-                      ? t('button.order.hideThresholds', 'Hide Thresholds')
-                      : t('button.order.viewThresholds', 'View Thresholds')}
-                  </Button>
-                </Tile>
+                      <Grid style={{ marginTop: 'var(--cds-spacing-04)' }}>
+                        <Column lg={6} md={4} sm={4}>
+                          <p style={{ fontSize: 11, color: 'var(--cds-text-secondary)' }}>{t('label.order.standard.name', 'Standard Name')}</p>
+                          <p style={{ fontWeight: 500 }}>{std.name}</p>
+                        </Column>
+                        <Column lg={3} md={2} sm={2}>
+                          <p style={{ fontSize: 11, color: 'var(--cds-text-secondary)' }}>{t('label.order.standard.issuingBody', 'Issuing Body')}</p>
+                          <p>{std.issuingBody}</p>
+                        </Column>
+                        <Column lg={2} md={2} sm={2}>
+                          <p style={{ fontSize: 11, color: 'var(--cds-text-secondary)' }}>Version</p>
+                          <p>{std.version}</p>
+                        </Column>
+                        <Column lg={2} md={2} sm={2}>
+                          <p style={{ fontSize: 11, color: 'var(--cds-text-secondary)' }}>Linked Tests</p>
+                          <p>{std.linkedTests}</p>
+                        </Column>
+                      </Grid>
+                    </Tile>
+                  ))}
+                </Stack>
               )}
             </Tile>
           )}
@@ -644,7 +707,14 @@ export default function EnvironmentalOrderEntryV2({
                             />
                           </TableCell>
                           <TableCell>
-                            {row.isOverride && <Tag type="purple" size="sm">{t('tag.order.notInStandard', 'Not in Standard')}</Tag>}
+                            {/* 2026-04-28 amendment: per-row coverage tags showing which standards include this sample type */}
+                            <Stack orientation="horizontal" gap={1} style={{ flexWrap: 'wrap' }}>
+                              {row.coverageStandardIds && row.coverageStandardIds.map(stdId => {
+                                const std = MOCK_STANDARDS.find(s => s.id === stdId);
+                                return std ? <Tag key={stdId} type="purple" size="sm">{std.regulationNumber}</Tag> : null;
+                              })}
+                              {row.isOverride && <Tag type="warm-gray" size="sm">{t('tag.order.notInAnyStandard', 'Not in any selected standard')}</Tag>}
+                            </Stack>
                           </TableCell>
                           <TableCell>
                             <IconButton
@@ -664,7 +734,7 @@ export default function EnvironmentalOrderEntryV2({
               ) : (
                 <p style={{ fontSize: '13px', color: 'var(--cds-text-secondary)', marginBottom: 'var(--cds-spacing-04)' }}>
                   {branch === 'REGULATION_DRIVEN'
-                    ? t('label.order.manifest.empty.regulation', 'Select a compliance standard to pre-populate sample types.')
+                    ? t('label.order.manifest.empty.regulation', 'Select one or more compliance standards above to pre-populate sample types (union of each standard\'s applicable types, deduplicated).')
                     : t('label.order.manifest.empty.adhoc', 'Add sample types to begin.')}
                 </p>
               )}
@@ -694,20 +764,27 @@ export default function EnvironmentalOrderEntryV2({
           )}
 
           {/* ── Suggested Tests (REGULATION-DRIVEN, after manifest has sample types) ── */}
-          {branch === 'REGULATION_DRIVEN' && selectedStandard && activeManifestSampleTypes.length > 0 && (
+          {/* 2026-04-28 amendment: union+dedup across selectedStandards; per-test coverage tags */}
+          {branch === 'REGULATION_DRIVEN' && selectedStandards.length > 0 && activeManifestSampleTypes.length > 0 && (
             <Tile>
               <h4 style={{ marginBottom: 'var(--cds-spacing-04)' }}>
                 {t('heading.order.suggestedTests', 'Suggested Tests')}
               </h4>
-              <InlineNotification
-                kind="info"
-                title=""
-                subtitle={t('message.order.testsSuggested',
-                  `Based on ${selectedStandard.regulationNumber} and ${activeManifestSampleTypes.length} sample types, ${suggestedTestCount} tests have been suggested. ${selectedSuggestedTestCount} selected.`)}
-                hideCloseButton
-                lowContrast
-                style={{ marginBottom: 'var(--cds-spacing-04)' }}
-              />
+              {(() => {
+                const allTests = suggestedTestGroups.flatMap(g => g.tests);
+                const sharedCount = allTests.filter(t => t.coverageStandardIds.length > 1).length;
+                const stdRegs = selectedStandards.map(s => s.regulationNumber).join(' + ');
+                return (
+                  <InlineNotification
+                    kind="info"
+                    title=""
+                    subtitle={`Based on ${selectedStandards.length} standards (${stdRegs}) and ${activeManifestSampleTypes.length} sample types, ${suggestedTestCount} unique tests suggested (${sharedCount} shared across multiple standards). ${selectedSuggestedTestCount} selected.`}
+                    hideCloseButton
+                    lowContrast
+                    style={{ marginBottom: 'var(--cds-spacing-04)' }}
+                  />
+                );
+              })()}
 
               {suggestedTestGroups.length > 0 ? (
                 <Accordion>
@@ -726,13 +803,15 @@ export default function EnvironmentalOrderEntryV2({
                               <TableHeader>{t('label.test.name', 'Test')}</TableHeader>
                               <TableHeader>{t('label.test.loinc', 'LOINC')}</TableHeader>
                               <TableHeader>{t('label.test.unit', 'Unit')}</TableHeader>
-                              <TableHeader>{t('label.test.threshold', 'Threshold')}</TableHeader>
+                              <TableHeader>{t('label.test.threshold', 'Threshold(s) — per standard')}</TableHeader>
+                              <TableHeader>{t('label.test.coverage', 'Covered by')}</TableHeader>
                               <TableHeader></TableHeader>
                             </TableRow>
                           </TableHead>
                           <TableBody>
                             {group.tests.map(test => {
                               const selected = !deselectedTestIds.has(test.id);
+                              const isShared = test.coverageStandardIds.length > 1;
                               return (
                                 <TableRow key={test.id}>
                                   <TableCell>
@@ -752,7 +831,32 @@ export default function EnvironmentalOrderEntryV2({
                                   <TableCell>{test.name}</TableCell>
                                   <TableCell><code style={{ fontSize: '12px' }}>{test.loinc}</code></TableCell>
                                   <TableCell>{test.unit}</TableCell>
-                                  <TableCell><strong>{test.threshold}</strong></TableCell>
+                                  <TableCell>
+                                    {/* Side-by-side per-standard threshold preview when shared */}
+                                    {isShared ? (
+                                      <Stack gap={1}>
+                                        {test.coverageStandardIds.map(stdId => {
+                                          const std = MOCK_STANDARDS.find(s => s.id === stdId);
+                                          return (
+                                            <span key={stdId} style={{ fontSize: 12 }}>
+                                              <Tag type="purple" size="sm">{std?.regulationNumber}</Tag>{' '}
+                                              <strong>{test.threshold}</strong>
+                                            </span>
+                                          );
+                                        })}
+                                      </Stack>
+                                    ) : (
+                                      <strong>{test.threshold}</strong>
+                                    )}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Stack orientation="horizontal" gap={1} style={{ flexWrap: 'wrap' }}>
+                                      {test.coverageStandardIds.map(stdId => {
+                                        const std = MOCK_STANDARDS.find(s => s.id === stdId);
+                                        return std ? <Tag key={stdId} type="purple" size="sm">{std.regulationNumber}</Tag> : null;
+                                      })}
+                                    </Stack>
+                                  </TableCell>
                                   <TableCell>
                                     {selected && <Tag type="blue" size="sm">{t('tag.order.suggestedTest', 'Suggested')}</Tag>}
                                   </TableCell>
@@ -769,7 +873,7 @@ export default function EnvironmentalOrderEntryV2({
                 <InlineNotification
                   kind="warning"
                   title=""
-                  subtitle={t('message.order.noLinkedTests', 'No tests are linked to this standard for the selected sample types. Add tests manually.')}
+                  subtitle={t('message.order.noLinkedTests', 'No tests are linked to any selected standard for the selected sample types. Add tests manually or remove a standard.')}
                   hideCloseButton
                   lowContrast
                 />
@@ -892,7 +996,7 @@ export default function EnvironmentalOrderEntryV2({
                   kind="primary"
                   renderIcon={ArrowRight}
                   onClick={advanceToStep2}
-                  disabled={totalSamples === 0 || !collectionMethod || (branch === 'REGULATION_DRIVEN' && !selectedStandard)}
+                  disabled={totalSamples === 0 || !collectionMethod || (branch === 'REGULATION_DRIVEN' && selectedStandards.length === 0)}
                 >
                   {t('button.order.continueToLabel', 'Continue to Label & Store')}
                 </Button>

@@ -1,8 +1,9 @@
 # Test Catalog Management - Updated Requirements
 
-**Version:** 2.3
-**Date:** April 27, 2026
+**Version:** 2.4
+**Date:** April 28, 2026
 **Changes:**
+- **v2.4** — Result Components + multi-reading. Introduced the concept of *result components* — a single test can produce N labeled subresult fields (e.g., noise pollution = `heading` in degrees + `level` in dB; blood pressure = `systolic` + `diastolic`; pH meter = `pH` + `temperature`). Each component carries its own result type, unit, significant digits, reference ranges, and result interpretations. Existing per-test result fields (Result Type, Unit of Measure, Significant Digits, Default Result, Select List Options, Reference Ranges, Result Interpretations) move to per-component scope; existing tests are migrated to single-component (legacy behavior preserved by default). Added a per-component `allow_multiple_readings` flag for tests where one order captures repeated samples from the same field (e.g., 5 noise readings over 60 seconds, repeated BP for orthostatic). **Unit of Measure is a foreign key to a master `unit_of_measure` table — never free text.** The Unit field on each component is rendered as a typeahead `<ComboBox>` with an inline `+ Add new unit…` option that creates a master record without leaving the editor. **FHIR mapping commits to one `Observation` per component (not `Observation.component[]`)** — uniform with the panel mapping, aligned with OpenELIS's existing FHIR sync, and clean for multi-reading. Co-collection semantics preserved via shared `effectiveDateTime` + optional `Observation.derivedFrom` / `hasMember`. Added a Components vs. Panels boundary section to disambiguate: a *component* is one labeled value field within one test; a *panel* is a collection of separate tests ordered together. Sample & Results editor section gets a new Result Components sub-table — visible by default with one auto-created PRIMARY row; admins opt in to multi-component by adding rows.
 - **v2.3** — JSX–FRS reconciliation pass. Added a Terminology Mappings section (the v2.1 JSX has a full Terminology tab supporting LOINC/SNOMED/CIEL/OCL that was missing from the FRS). Added a Sample & Results Configuration section covering Sample Types multi-select, Default Sample Type, Result Type (Numeric / Select List / Multi-select / Free Text), Unit of Measure, Significant Digits, Default Result, and Select List Options sub-table. Added the Test List View full filter set (Section / Sample Type / Result Type / Status alongside Domain and AMR) and pagination. Replaced the Actions column / per-row Edit / per-row Deactivate with a click-to-open interaction (test name link + entire row clickable; no Actions column). Reconciled the Alert Rules trigger taxonomy (dropped the unimplemented Custom Expression to match the four-trigger model in the JSX). Deepened the Range Editor section to spec the three view modes (Structured / Table / Visual) and the Coverage Validation Panel visual treatment. Full Localization key extraction (226 keys, down from 234 after dropping bulk-action and toolbar keys) landed in this version. **Out of scope for v2.3** (deferred to other features): bulk activate / deactivate / add-to-panel UX (decided redundant — every operation lives inside the editor), Test List View toolbar buttons (Export / Import / Fetch from Hub), per-row Duplicate action, "Remark Only" result type.
 - **v2.2** — Constitution audit pass against v1.10.0. Added Overview, User Stories, Internal Information Architecture, Permissions, and States sections. Replaced the in-page "vertical tab sidebar" pattern with a SideNav-route-per-section pattern. Added the Test Domain field (CLINICAL / ENVIRONMENTAL / VECTOR). Removed accidental reuse of the global admin IA group labels inside the editor. Consolidated duplicate Sample Storage Tab section. Re-encoded clean UTF-8.
 - **v2.1** — Added Compliance tab for regulatory threshold management (S-01 integration).
@@ -743,9 +744,263 @@ CREATE INDEX idx_test_domain ON test(domain);
 
 ---
 
+## Result Components (NEW in v2.4)
+
+### Purpose
+
+A single test can produce more than one labeled value. Some examples:
+
+| Test | Components |
+|---|---|
+| **Noise pollution** (environmental) | `level` (dB) + `heading` (degrees) |
+| **Blood Pressure** (clinical) | `systolic` (mmHg) + `diastolic` (mmHg) |
+| **pH probe** (environmental / vector) | `pH` + `temperature` (°C) |
+| **Lipid Panel as one test** | `totalChol` + `HDL` + `LDL` + `triglycerides` |
+| **Spirometry** (clinical) | `FVC` + `FEV1` + `PEF` |
+| **Visual Acuity** | `leftEye` + `rightEye` |
+
+Each component has its own result type, unit, significant digits, reference ranges, and result interpretations. The single-component case (one labeled value per test) remains the default — most tests in OpenELIS deployments today are single-component, and the migration preserves that.
+
+### Components vs. Panels
+
+These two concepts coexist and are deliberately distinct:
+
+| | Result Component | Panel |
+|---|---|---|
+| **What it is** | One labeled value field within one test | A collection of separate tests ordered together |
+| **Identity** | Sub-record of a test | Independent grouping object |
+| **FHIR mapping** | One `Observation` per result component, all linked to a single `ServiceRequest`. Components from one test additionally share `Observation.effectiveDateTime` and may use `Observation.derivedFrom` / `hasMember` to express co-collection. | One `ServiceRequest` per panel; each test in the panel has its own `Observation`. |
+| **Billing** | One billable test | One billable line per test in the panel |
+| **Order entry** | User orders one test; result entry shows N component fields | User orders the panel; system creates one order line per test |
+| **Example** | "Blood Pressure" = systolic + diastolic (one test, one biological measurement) | "Lipid Panel" ordered as Total Chol + HDL + LDL + Triglycerides as four separate tests |
+| **When to choose** | The values are co-collected, biologically inseparable, or always reported together | The tests are independently meaningful, billable, and could be ordered alone |
+
+A lab may model the same domain concept either way depending on local billing, reporting, or workflow needs. The catalog supports both. (Lipid Panel is the canonical edge case — some labs model it as a multi-component test, others as a panel.)
+
+### Component Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| **Code** | String | Yes | Stable internal identifier (e.g., `LEVEL`, `HEADING`, `SYSTOLIC`, `DIASTOLIC`). Unique within the test. Used in FHIR `Observation.code.coding[].code` and result entry shortcodes. |
+| **Label** | String | Yes | Human-readable label shown in the editor and in result entry (e.g., "Sound level", "Heading"). Localizable. |
+| **Display Order** | Integer | Yes | Order the component appears in the editor sub-table and in result entry. |
+| **Result Type** | Enum | Yes | One of `NUMERIC`, `SELECT_LIST`, `MULTI_SELECT`, `FREE_TEXT`. Each component has its own. |
+| **Unit of Measure** | FK → `unit_of_measure.id` | Yes (when NUMERIC) | Single-select typeahead `<ComboBox>` populated from **Master Lists → Units of Measure**. Stored as a foreign key, never as a free-text string — every unit on every test must resolve to a master record so UCUM mapping, locale-aware display, and reporting consistency stay enforceable. The dropdown includes a sentinel **"+ Add new unit…"** item at the bottom that opens an inline form (Code, Display Name, optional UCUM code, optional description) without leaving the editor. On Add, the new unit is created in the master table and auto-selected for the current component. Examples: `dB`, `°`, `mmHg`, `pH`, `°C`, `mg/dL`, `mmol/L`, `NTU`. |
+| **Significant Digits** | Integer (0–6) | No (default 0) | Display precision. |
+| **Default Result** | Text | No | Pre-filled in result entry. |
+| **Allow Multiple Readings** | Boolean | No (default false) | When `true`, result entry captures N timestamped readings under this component. See *Multi-reading* below. |
+| **Active** | Boolean | Yes (default true) | Inactive components are hidden in result entry but preserved on historical results. |
+
+A component's **reference ranges** (Normal / Valid / Critical / Reporting) and **result interpretations** are configured per-component in the Ranges and Sample & Results sections of the editor. The Range Editor and Result Interpretations sub-table both show a Component selector when the test has more than one component.
+
+### Multi-reading Support
+
+Some result-capture flows need to record **N timestamped readings on the same component field** within a single order. Examples:
+
+- **Noise pollution survey:** 5 dB readings over 60 seconds from one sound-level meter, all under the `level` component.
+- **Orthostatic blood pressure:** systolic + diastolic each captured supine, sitting, and standing — 3 readings per component.
+- **Continuous monitoring:** 30 readings over 5 minutes for a body-temperature probe.
+
+When `allow_multiple_readings = true` for a component, the result entry UI exposes a "+ Add Reading" affordance and stores N rows under that component. Each reading carries:
+
+| Field | Description |
+|---|---|
+| **Value** | The reading value (typed per the component's Result Type) |
+| **Captured at** | ISO 8601 timestamp (auto from device clock if integrated; user-editable) |
+| **Sequence** | 1-indexed position within the order |
+| **Note** | Optional free-text annotation |
+
+**Result reporting** for multi-reading components is configured per-test (out of scope for v2.4 — defaults to "show all readings" and a derived summary like mean / median / max / latest. The summary function will be specified in a follow-up).
+
+**Default state:** `allow_multiple_readings = false`. Most clinical tests record one value per component per order.
+
+### Data Model
+
+```sql
+-- Per-test result components
+CREATE TABLE test_result_component (
+    id SERIAL PRIMARY KEY,
+    test_id INTEGER NOT NULL REFERENCES test(id),
+    code VARCHAR(50) NOT NULL,
+    label VARCHAR(200) NOT NULL,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    result_type VARCHAR(20) NOT NULL,           -- 'NUMERIC', 'SELECT_LIST', 'MULTI_SELECT', 'FREE_TEXT'
+    unit_of_measure_id INTEGER REFERENCES unit_of_measure(id),  -- required when NUMERIC; FK to master table, NEVER a free-text string
+    significant_digits INTEGER DEFAULT 0,
+    default_result VARCHAR(500),
+    allow_multiple_readings BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_component_result_type CHECK (result_type IN ('NUMERIC', 'SELECT_LIST', 'MULTI_SELECT', 'FREE_TEXT')),
+    CONSTRAINT chk_component_sig_digits CHECK (significant_digits >= 0 AND significant_digits <= 6),
+    UNIQUE (test_id, code)
+);
+
+CREATE INDEX idx_test_result_component_test ON test_result_component(test_id, display_order);
+```
+
+**Existing referencing tables migrate to component scope:**
+
+```sql
+-- Existing test_range gets a component column; backfill points at the test's default component.
+ALTER TABLE test_range ADD COLUMN component_id INTEGER REFERENCES test_result_component(id);
+-- Existing test_interpretation likewise:
+ALTER TABLE test_interpretation ADD COLUMN component_id INTEGER REFERENCES test_result_component(id);
+-- Existing select_list_option likewise (for SELECT_LIST and MULTI_SELECT components):
+ALTER TABLE test_select_list_option ADD COLUMN component_id INTEGER REFERENCES test_result_component(id);
+```
+
+**Multi-reading storage** (in the result-entry domain, listed here for completeness — full spec lives in the result-entry FRS):
+
+```sql
+-- Each reading on a multi-reading component is one row
+CREATE TABLE result_reading (
+    id SERIAL PRIMARY KEY,
+    result_id INTEGER NOT NULL REFERENCES result(id),
+    component_id INTEGER NOT NULL REFERENCES test_result_component(id),
+    sequence INTEGER NOT NULL,
+    value_numeric DECIMAL(15,6),
+    value_text VARCHAR(500),
+    captured_at TIMESTAMP NOT NULL,
+    note TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (result_id, component_id, sequence)
+);
+```
+
+### Migration
+
+For backward compatibility, every existing test in any deployment is migrated to **single-component** with a system-generated component preserving the existing per-test result configuration:
+
+1. For each existing `test` row, insert one `test_result_component` row with:
+   - `code = 'PRIMARY'`
+   - `label = test.name` (or `test.reporting_name` if present)
+   - `display_order = 1`
+   - `result_type, unit_of_measure, significant_digits, default_result` copied from existing per-test fields
+   - `allow_multiple_readings = false`
+2. Backfill `test_range.component_id`, `test_interpretation.component_id`, and `test_select_list_option.component_id` to point at that component.
+3. The legacy per-test result fields (`test.result_type`, `test.unit_of_measure`, `test.significant_digits`, `test.default_result`) become **deprecated** and remain in the schema for one release cycle to support rollback. A subsequent release removes them.
+
+Existing UI flows continue to work — single-component tests render the same as before. Admins opt in to multi-component by adding rows to the Result Components sub-table in the Sample & Results section.
+
+### FHIR Mapping
+
+Per Constitution III (FHIR/IHE Standards Compliance), every result component is exposed as **its own `Observation`**. Multi-component tests do **not** use FHIR's `Observation.component[]` array.
+
+**Why separate Observations rather than `Observation.component`:**
+
+- **Uniformity with panels.** A multi-component test and a panel both produce N Observations under one `ServiceRequest`. Downstream consumers (OpenMRS Lab, SHR/IPS, GLASS for AMR, environmental surveillance pipelines) iterate Observations at the top level — they don't unpack `Observation.component[]` arrays.
+- **Multi-domain fit.** The `Observation.component` model is FHIR-native for clinical compound measurements (e.g., the BP profile), but doesn't carry the same semantic weight for environmental or vector tests, where components are simply co-captured measurements with no specific biological coupling.
+- **Multi-reading clarity.** When a component has `allow_multiple_readings = true`, each reading is one Observation with its own `effectiveDateTime`. Nesting readings inside a single Observation's `component[]` array gets convoluted; flat Observations match the existing OpenELIS FHIR sync pattern.
+- **Existing infrastructure.** OpenELIS's FHIR subscriptions, `FhirPersistanceService`, and `FhirTransformService` already operate at the Observation level. No new code paths are needed.
+
+**Preserving co-collection semantics.** When components from one test are biologically related (BP systolic + diastolic, height + weight, lipid components), the relationship is preserved via:
+
+| FHIR field | How it's used |
+|---|---|
+| `Observation.basedOn` | All components reference the same `ServiceRequest`. Implicitly co-orders them. |
+| `Observation.effectiveDateTime` | All components from one biological measurement share the same effective timestamp. (For multi-reading components, each reading carries its own effective timestamp.) |
+| `Observation.derivedFrom` *or* `Observation.hasMember` | Optional. When the deployment needs to express "these components came from one biological measurement", use one of these references to link to a parent Observation that represents the test as a whole. The choice between `derivedFrom` and `hasMember` is per-deployment FHIR mapping config. |
+| `Observation.identifier` | All components from one test order share a stable identifier prefix (e.g., the test's lab number) so they can be correlated by external consumers. |
+
+**Mapping table** (component → Observation fields):
+
+| Component field | Observation field |
+|---|---|
+| Component `code` | `Observation.code.coding[].code` (with terminology mapping per the Terminology Mappings section) |
+| Component `label` | `Observation.code.coding[].display` |
+| Component `result_type` + value | `Observation.value[x]` (`valueQuantity` for NUMERIC, `valueCodeableConcept` for SELECT_LIST/MULTI_SELECT, `valueString` for FREE_TEXT) |
+| Component `unit_of_measure` | `Observation.valueQuantity.unit` and `code` (with UCUM mapping) |
+| Component reference ranges | `Observation.referenceRange[]` |
+| Component result interpretations | `Observation.interpretation[]` (when triggered by interpretation rules) |
+| Multi-reading capture timestamp | `Observation.effectiveDateTime` (per-reading; each reading is one Observation) |
+| Multi-reading sequence | `Observation.identifier[].value` suffix or `Observation.note` |
+
+This approach is fully consistent with FHIR R4 — both `Observation.component` and "separate Observations linked via basedOn/effectiveDateTime/hasMember" are valid mappings; FHIR explicitly supports either choice. OpenELIS commits to the latter for the reasons above.
+
+### Unit of Measure Master List + Inline Add
+
+Every component's unit of measure is a foreign key into a master `unit_of_measure` table — **never a free-text string**. Free-text units would defeat UCUM mapping, locale-aware display, reporting roll-ups, and inter-deployment data exchange.
+
+**Master table schema:**
+
+```sql
+CREATE TABLE unit_of_measure (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE,           -- e.g., 'mg/dL', 'NTU', 'µg/m³', 'dB'
+    display_name VARCHAR(200),                  -- defaults to code if null
+    ucum_code VARCHAR(50),                      -- optional UCUM mapping (https://ucum.org)
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+The list is administered at **Admin → Master Lists → Units of Measure** (separate admin surface, out of scope for this FRS). New deployments seed the master list with common units across clinical, environmental, and vector domains.
+
+**Inline-add flow (in the Result Components Unit dropdown):**
+
+The Unit field for each component is rendered as a Carbon `<ComboBox>` with typeahead filtering. The dropdown's last item is a sentinel `+ Add new unit…`. Selecting it opens a small inline form below the components table:
+
+| Field | Required | Description |
+|---|---|---|
+| **Code** | Yes | Short identifier shown in result entry, reports, FHIR (e.g., `NTU`, `µg/m³`). Unique across the master table. |
+| **Display Name** | No | Human-readable name. Defaults to Code. |
+| **UCUM Code** | No | Optional UCUM standard code for FHIR `Observation.valueQuantity.code`. |
+| **Description** | No | Free-text note for admin reference. |
+
+The form has Add and Cancel buttons. On Add:
+1. The new unit is inserted into `unit_of_measure`.
+2. The component's `unit_of_measure_id` is set to the new unit's id.
+3. The Unit dropdown for *all other components* refreshes to include the new option.
+4. The inline form closes.
+
+**Permissions:** the inline-add affordance is gated by `admin.testCatalog.manage` (same gate as the editor itself). It does not require a separate Master Lists permission, because adding a unit while configuring a test is a natural extension of the test-catalog admin's workflow.
+
+**Domain seeding (suggested per-deployment seed list):**
+
+| Domain | Common units |
+|---|---|
+| Clinical | mg/dL, mmol/L, g/dL, µL, %, IU/L, U/L, mEq/L, ng/mL, pg/mL, K/µL, M/µL, mmHg |
+| Environmental | NTU, mg/L, µg/L, ppm, ppb, dB, °, °C, pH, µg/m³, MPN/100mL |
+| Vector | count, %, copies/µL, copies/reaction |
+| Cross-domain | s, min, hr, day, mm, cm, m |
+
+Deployments can extend this list at any time via the inline-add flow or directly through Admin → Master Lists → Units of Measure.
+
+### Editor UI (minimal — opt-in to multi-component)
+
+The Sample & Results section of the test editor includes a new **Result Components** sub-table:
+
+- Default state for new tests: one row pre-populated with `code = 'PRIMARY'`, label = the test's name. The user fills in result type, unit, etc. as before.
+- "+ Add Component" button below the table adds a new row.
+- Each row exposes: Code, Label, Result Type, Unit, Significant Digits, Default Result, Allow Multiple Readings (toggle), Active (toggle), drag handle for reorder, edit/delete actions.
+- When the table has only one row, the table renders compactly inline (the Code field is hidden, defaulted to `PRIMARY`). When it has 2+ rows, the full table renders with all columns visible.
+- The Reference Ranges section (in the Ranges sidenav item) shows a **Component** selector when the test has 2+ components. Single-component tests skip the selector.
+- The Result Interpretations sub-table (in this same Sample & Results section) shows a **Component** column when the test has 2+ components.
+
+### Acceptance Criteria
+
+- [ ] Test entity supports ≥1 result components (`test_result_component` table)
+- [ ] Each component has Code, Label, Display Order, Result Type, optional Unit / Significant Digits / Default Result, Allow Multiple Readings flag, Active flag
+- [ ] Component Code is unique within a test
+- [ ] Existing tests are migrated to single-component during the v2.4 schema migration; no admin intervention required
+- [ ] Editor's Sample & Results section shows a Result Components sub-table; single-component tests render compactly with Code hidden
+- [ ] Adding a second component switches the sub-table to full multi-column rendering
+- [ ] Reference Ranges (Normal / Valid / Critical / Reporting) attach to a component, not directly to the test
+- [ ] Result Interpretations attach to a component, not directly to the test
+- [ ] Range Editor and Result Interpretations table show a Component selector when the test has 2+ components
+- [ ] Per-component `allow_multiple_readings` flag is editable; default is false
+- [ ] FHIR exposure: each component is its own `Observation` (one Observation per component), all linked to a single `ServiceRequest` via `Observation.basedOn`. `Observation.component[]` is **not** used. Components from one biological measurement share `Observation.effectiveDateTime` and may optionally link via `Observation.derivedFrom` / `hasMember` to express co-collection. Multi-reading components produce one Observation per reading, each with its own `effectiveDateTime`.
+- [ ] Components and Panels are distinct concepts in the catalog — a multi-component test is not a panel and is not exposed in the Panels section
+
+---
+
 ## Sample & Results Configuration
 
-The Sample & Results section of the test editor combines sample type configuration, result type / unit / formatting configuration, and the result interpretations table (see the Result Interpretations section that follows).
+The Sample & Results section of the test editor combines sample type configuration, the **Result Components** sub-table (see *Result Components* section above for the full spec), and the result interpretations table (see the Result Interpretations section that follows).
 
 ### Sample Type Configuration
 
@@ -758,27 +1013,22 @@ The Sample & Results section of the test editor combines sample type configurati
 - The Default Sample Type dropdown only shows values from the Sample Types multi-select. If the multi-select is empty, the Default dropdown is disabled.
 - Removing a sample type from the multi-select that is currently the Default clears the Default and shows a Carbon `<InlineNotification kind="warning">`: "Default Sample Type was removed because it is no longer in the accepted Sample Types."
 
-### Result Type Configuration
+### Result Configuration (per-component)
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| **Result Type** | Single-select dropdown | Yes | One of `NUMERIC`, `SELECT_LIST`, `MULTI_SELECT`, `FREE_TEXT`. Determines which downstream fields are enabled and how Result Interpretations are configured. |
-| **Unit of Measure** | Single-select dropdown | Yes (when Result Type = NUMERIC) | Unit shown alongside the result value. Examples: mg/dL, mmol/L, g/dL, µL, %, mg/L, NTU. The available unit list is configured per deployment under Master Lists → Units of Measure. Disabled when Result Type is not NUMERIC. |
-| **Significant Digits** | Number (0–6) | No (defaults to 0) | Number of digits after the decimal point shown in result entry and on reports. Disabled when Result Type is not NUMERIC. |
-| **Default Result** | Text | No | Optional default value pre-filled in the result entry field for this test. Useful for tests where the most common result is constant (e.g., "Negative" for a screening test). |
+The Result Type, Unit of Measure, Significant Digits, and Default Result fields are configured **per result component** (see Result Components section). For single-component tests (the default for new tests and all migrated existing tests), the editor renders the configuration inline without a Component column. For multi-component tests, the configuration becomes per-row in the Result Components sub-table.
 
 ### Result Type Definitions
 
 | Result Type | Description | Result Entry UI |
 |---|---|---|
 | **NUMERIC** | A numeric value with a unit and reference range. | Number input with unit suffix; H/L flagging based on Normal Range. |
-| **SELECT_LIST** | One value chosen from a configured list. | Carbon `<Dropdown>` populated from the test's Select List Options. |
-| **MULTI_SELECT** | Multiple values chosen from a configured list. | Carbon `<MultiSelect>` populated from the test's Select List Options. |
+| **SELECT_LIST** | One value chosen from a configured list. | Carbon `<Dropdown>` populated from the component's Select List Options. |
+| **MULTI_SELECT** | Multiple values chosen from a configured list. | Carbon `<MultiSelect>` populated from the component's Select List Options. |
 | **FREE_TEXT** | An arbitrary text result (e.g., a microscopy description). | Carbon `<TextArea>`. |
 
-### Select List Options
+### Select List Options (per-component)
 
-When Result Type is `SELECT_LIST` or `MULTI_SELECT`, the editor exposes a Select List Options sub-table:
+When a component's Result Type is `SELECT_LIST` or `MULTI_SELECT`, that component exposes a Select List Options sub-table:
 
 | Field | Type | Required | Description |
 |---|---|---|---|
@@ -786,18 +1036,18 @@ When Result Type is `SELECT_LIST` or `MULTI_SELECT`, the editor exposes a Select
 | **Display Order** | Integer | Yes | Order the option appears in the dropdown / multi-select. |
 | **Active** | Boolean | Yes | Inactive options are hidden in result entry but preserved on historical results. |
 
-The sub-table supports drag-and-drop reordering (via the same drag pattern used in the Result Interpretations table) and inline add/edit. A "Configure Options..." button is the entry point.
+The sub-table supports drag-and-drop reordering and inline add/edit.
 
 ### Acceptance Criteria
 
 - [ ] Sample Types multi-select accepts ≥1 selection and emits a validation error if empty
 - [ ] Default Sample Type dropdown is disabled until at least one Sample Type is selected, and only shows values from the selected set
 - [ ] Removing the Default Sample Type from the multi-select clears the Default and shows a warning notification
-- [ ] Result Type dropdown offers exactly four options: Numeric, Select List, Multi-select, Free Text
-- [ ] Unit of Measure and Significant Digits are disabled when Result Type is not Numeric
+- [ ] Result Type dropdown (per component) offers exactly four options: Numeric, Select List, Multi-select, Free Text
+- [ ] Unit of Measure and Significant Digits are disabled per component when its Result Type is not Numeric
 - [ ] Significant Digits accepts integers 0–6
 - [ ] Default Result is optional, free text
-- [ ] Select List Options sub-table appears only for Select List and Multi-select result types
+- [ ] Select List Options sub-table appears per component only when that component's Result Type is Select List or Multi-select
 - [ ] Select List Options support drag-and-drop reordering, inline add/edit, and active/inactive toggle
 
 ---
@@ -2751,6 +3001,24 @@ CREATE TABLE test_section_assignment (
 ---
 
 ## Updated Acceptance Criteria (Complete)
+
+### Result Components (NEW in v2.4)
+- [ ] Test entity supports ≥1 result components via `test_result_component` table
+- [ ] Each component has Code (unique within test), Label, Display Order, Result Type, optional Unit / Significant Digits / Default Result, Allow Multiple Readings flag, Active flag
+- [ ] Existing tests are migrated to single-component during the v2.4 migration; legacy per-test result fields are deprecated but retained for one release cycle
+- [ ] Sample & Results section shows a Result Components sub-table; single-component tests render compactly with Code field hidden
+- [ ] Adding a second component switches the sub-table to full multi-column rendering
+- [ ] Reference Ranges and Result Interpretations attach to a component, not directly to the test (existing data is backfilled to point at the migrated default component)
+- [ ] Range Editor and Result Interpretations table show a Component selector when the test has 2+ components
+- [ ] `allow_multiple_readings` per-component flag is editable, default false
+- [ ] Unit of Measure on each NUMERIC component is a foreign key to a master `unit_of_measure` record, never a free-text string
+- [ ] Unit dropdown is a typeahead `<ComboBox>` populated from the active master list
+- [ ] Unit dropdown's last item is `+ Add new unit…`; selecting it opens an inline form for Code / Display Name / UCUM / Description
+- [ ] Adding a unit inline creates the master record, auto-selects it for the current component, and refreshes the dropdown for other components
+- [ ] Inline-add is gated by the same `admin.testCatalog.manage` permission as the rest of the editor
+- [ ] Result entry UI for components with `allow_multiple_readings = true` exposes a "+ Add Reading" affordance and stores N timestamped readings via the `result_reading` table (full result-entry spec in a separate FRS)
+- [ ] FHIR exposure: each component is one `Observation.component` (or one `Observation` per component, per deployment FHIR mapping config); all under a single `ServiceRequest`
+- [ ] Components and Panels are distinct concepts in the catalog — a multi-component test is not a panel
 
 ### Test Domain
 - [ ] Test entity has a `domain` column constrained to CLINICAL / ENVIRONMENTAL / VECTOR

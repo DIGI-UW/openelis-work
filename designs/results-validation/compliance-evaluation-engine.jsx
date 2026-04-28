@@ -57,21 +57,66 @@ const STANDARDS = [
   { id: 'std-005', name: 'PermenKES No. 32/2017', regNumber: 'PMK No. 32/2017', version: '2017-01' },
 ];
 
+// 2026-04-28 amendment: REF_RANGES gains optional `component` scope dimension.
+// Multi-regulation reference range data — same test+component can have rows for multiple standards.
 const REF_RANGES = [
-  { id: 1, test: 'Turbidity', sampleType: 'Surface Water', min: null, max: 25, unit: 'NTU', standardId: 'std-001', standard: 'PP No. 22/2021' },
-  { id: 2, test: 'Turbidity', sampleType: 'Drinking Water', min: null, max: 5, unit: 'NTU', standardId: 'std-003', standard: 'WHO-DWG-4' },
-  { id: 3, test: 'Turbidity', sampleType: '(any)', min: null, max: 25, unit: 'NTU', standardId: null, standard: '(generic)' },
-  { id: 4, test: 'pH', sampleType: 'Surface Water', min: 6.0, max: 9.0, unit: '—', standardId: 'std-001', standard: 'PP No. 22/2021' },
-  { id: 5, test: 'pH', sampleType: 'Drinking Water', min: 6.5, max: 8.5, unit: '—', standardId: 'std-003', standard: 'WHO-DWG-4' },
-  { id: 6, test: 'Total Coliform', sampleType: 'Surface Water', min: null, max: 5000, unit: 'MPN/100mL', standardId: 'std-001', standard: 'PP No. 22/2021' },
-  { id: 7, test: 'Total Coliform', sampleType: 'Drinking Water', min: 0, max: 0, unit: 'MPN/100mL', standardId: 'std-003', standard: 'WHO-DWG-4' },
+  // Single-component tests with multiple regulation rows (same test, different bounds per standard)
+  { id: 1, test: 'Turbidity', component: null, sampleType: 'Surface Water', min: null, max: 25, unit: 'NTU', standardId: 'std-001', standard: 'PP No. 22/2021' },
+  { id: 2, test: 'Turbidity', component: null, sampleType: 'Drinking Water', min: null, max: 5, unit: 'NTU', standardId: 'std-003', standard: 'WHO-DWG-4' },
+  { id: 3, test: 'Turbidity', component: null, sampleType: '(any)', min: null, max: 25, unit: 'NTU', standardId: null, standard: '(generic)' },
+  { id: 4, test: 'pH', component: null, sampleType: 'Surface Water', min: 6.0, max: 9.0, unit: '—', standardId: 'std-001', standard: 'PP No. 22/2021' },
+  { id: 5, test: 'pH', component: null, sampleType: 'Drinking Water', min: 6.5, max: 8.5, unit: '—', standardId: 'std-003', standard: 'WHO-DWG-4' },
+  { id: 6, test: 'Total Coliform', component: null, sampleType: 'Surface Water', min: null, max: 5000, unit: 'MPN/100mL', standardId: 'std-001', standard: 'PP No. 22/2021' },
+  { id: 7, test: 'Total Coliform', component: null, sampleType: 'Drinking Water', min: 0, max: 0, unit: 'MPN/100mL', standardId: 'std-003', standard: 'WHO-DWG-4' },
+  // Multi-component test: Noise Pollution = (heading, dB level). Same regulation, different component bounds.
+  { id: 8, test: 'Noise Pollution Survey', component: 'Heading (°)', sampleType: 'Ambient Air', min: 0, max: 360, unit: '°', standardId: null, standard: '(no eval — informational)' },
+  { id: 9, test: 'Noise Pollution Survey', component: 'Sound Pressure (dB)', sampleType: 'Ambient Air (Daytime)', min: null, max: 70, unit: 'dB', standardId: 'std-noise-id', standard: 'PP No. 41/1999' },
+  { id: 10, test: 'Noise Pollution Survey', component: 'Sound Pressure (dB)', sampleType: 'Ambient Air (Daytime)', min: null, max: 65, unit: 'dB', standardId: 'std-who-noise', standard: 'WHO Env Noise' },
 ];
 
+// 2026-04-28 amendment: `sources` is now an ARRAY of (regulation, threshold, flag) tuples — one per applicable regulation.
+// Multi-component results split into per-component rows. Repeated readings tied by `readingGroupId`.
 const RESULT_ROWS = [
-  { id: 1, accession: 'ENV-2026-0412.001', test: 'Turbidity', value: '18', unit: 'NTU', flag: 'Normal', source: { type: 'compliance', label: 'PP No. 22/2021 — ≤ 25 NTU' } },
-  { id: 2, accession: 'ENV-2026-0412.001', test: 'pH', value: '7.2', unit: '—', flag: 'Normal', source: { type: 'compliance', label: 'PP No. 22/2021 — 6.0 – 9.0' } },
-  { id: 3, accession: 'ENV-2026-0412.001', test: 'Total Coliform', value: '6800', unit: 'MPN/100mL', flag: 'Abnormal', source: { type: 'compliance', label: 'PP No. 22/2021 — ≤ 5000 MPN/100mL' } },
-  { id: 4, accession: 'ENV-2026-0412.001', test: 'Field Notes (free text)', value: 'Collected 50m downstream of discharge', unit: '', flag: null, source: null },
+  // Multi-regulation: same test (Turbidity) evaluated against PP 22/2021 AND WHO-DWG-4 simultaneously
+  { id: 1, accession: 'ENV-2026-0412.001', test: 'Turbidity', component: null, value: '18', unit: 'NTU',
+    sources: [
+      { reg: 'PP No. 22/2021', flag: 'Normal', label: '≤ 25 NTU' },
+      { reg: 'WHO-DWG-4', flag: 'Critical', label: '≤ 5 NTU' },
+    ]},
+  { id: 2, accession: 'ENV-2026-0412.001', test: 'pH', component: null, value: '7.2', unit: '—',
+    sources: [
+      { reg: 'PP No. 22/2021', flag: 'Normal', label: '6.0 – 9.0' },
+      { reg: 'WHO-DWG-4', flag: 'Normal', label: '6.5 – 8.5' },
+    ]},
+  // Multi-regulation with one regulation having no applicable threshold
+  { id: 3, accession: 'ENV-2026-0412.001', test: 'Total Coliform', component: null, value: '6800', unit: 'MPN/100mL',
+    sources: [
+      { reg: 'PP No. 22/2021', flag: 'Abnormal', label: '≤ 5000 MPN/100mL' },
+      { reg: 'WHO-DWG-4', flag: 'Critical', label: '0 MPN/100mL' },
+    ]},
+  // Multi-component test with repeated readings: noise pollution survey, 3 readings around the building
+  // Each reading produces (heading, dB) tuple. Heading is informational (no flag). dB evaluates against PP 41/1999 + WHO.
+  { id: 100, accession: 'ENV-2026-0412.005', test: 'Noise Pollution Survey', component: 'Heading (°)',
+    value: '90', unit: '°', readingGroupId: 'rg-1', readingLabel: 'Reading 1 — North face',
+    sources: [{ reg: '(informational)', flag: null, label: 'no compliance threshold' }] },
+  { id: 101, accession: 'ENV-2026-0412.005', test: 'Noise Pollution Survey', component: 'Sound Pressure (dB)',
+    value: '72', unit: 'dB', readingGroupId: 'rg-1', readingLabel: 'Reading 1 — North face',
+    sources: [
+      { reg: 'PP No. 41/1999', flag: 'Abnormal', label: '≤ 70 dB (daytime ambient)' },
+      { reg: 'WHO Env Noise', flag: 'Critical', label: '≤ 65 dB (daytime)' },
+    ]},
+  { id: 102, accession: 'ENV-2026-0412.005', test: 'Noise Pollution Survey', component: 'Heading (°)',
+    value: '180', unit: '°', readingGroupId: 'rg-2', readingLabel: 'Reading 2 — East face',
+    sources: [{ reg: '(informational)', flag: null, label: 'no compliance threshold' }] },
+  { id: 103, accession: 'ENV-2026-0412.005', test: 'Noise Pollution Survey', component: 'Sound Pressure (dB)',
+    value: '64', unit: 'dB', readingGroupId: 'rg-2', readingLabel: 'Reading 2 — East face',
+    sources: [
+      { reg: 'PP No. 41/1999', flag: 'Normal', label: '≤ 70 dB (daytime ambient)' },
+      { reg: 'WHO Env Noise', flag: 'Normal', label: '≤ 65 dB (daytime)' },
+    ]},
+  // Free-text result for comparison (no flag at all)
+  { id: 4, accession: 'ENV-2026-0412.001', test: 'Field Notes (free text)', component: null,
+    value: 'Collected 50m downstream of discharge', unit: '', sources: null },
 ];
 
 const FLAG_TAG = {
@@ -137,17 +182,23 @@ export default function S05MockupV2() {
                   <TableHead>
                     <TableRow>
                       <TableHeader>Test</TableHeader>
+                      <TableHeader style={{ background: '#fcf4d6' }}>Component (new col 2026-04-28)</TableHeader>
                       <TableHeader>Sample Type</TableHeader>
                       <TableHeader>Min</TableHeader>
                       <TableHeader>Max</TableHeader>
                       <TableHeader>Unit</TableHeader>
-                      <TableHeader style={{ background: '#fcf4d6' }}>Compliance Standard (new column)</TableHeader>
+                      <TableHeader style={{ background: '#fcf4d6' }}>Compliance Standard (new col v2)</TableHeader>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {filteredRanges.map(r => (
                       <TableRow key={r.id}>
                         <TableCell>{r.test}</TableCell>
+                        <TableCell>
+                          {r.component
+                            ? <Tag type="cyan" size="sm">{r.component}</Tag>
+                            : <span style={{ color: '#8d8d8d', fontSize: 12, fontStyle: 'italic' }}>(single-component)</span>}
+                        </TableCell>
                         <TableCell>{r.sampleType}</TableCell>
                         <TableCell>{r.min ?? '—'}</TableCell>
                         <TableCell>{r.max ?? '—'}</TableCell>
@@ -189,21 +240,22 @@ export default function S05MockupV2() {
             </NewRegion>
           </TabPanel>
 
-          {/* ── Scene 2 — Results Entry expanded detail ─────────────── */}
+          {/* ── Scene 2 — Results Entry: side-by-side flags + multi-component (2026-04-28) ── */}
           <TabPanel>
-            <h3 style={{ margin: '16px 0' }}>Results Entry — Expanded Result Detail with Threshold Source</h3>
+            <h3 style={{ margin: '16px 0' }}>Results Entry — Side-by-Side Flags + Multi-Component Rendering</h3>
             <p style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
-              The per-result inline indicator itself is <strong>unchanged</strong> — existing OE
-              Normal/Abnormal/Critical pattern. The only v2.0 addition is a one-line "Threshold source"
-              annotation in the expanded result detail. <strong>No regulation banner</strong> on the
-              page header (dropped from v1.0).
+              <strong>2026-04-28 amendments visible here:</strong> (1) when an order has ≥2 selected regulations,
+              the inline indicator shows a Tag <em>per regulation</em> side by side; (2) the threshold-source annotation
+              in expanded detail becomes a list (one line per regulation that emitted a flag);
+              (3) multi-component tests (e.g., noise pollution = heading + dB) render one row per component;
+              repeated readings group under a reading-group header.
             </p>
 
             <ExistingRegion>
               <Tile>
-                <h5>Results Entry — Order ENV-2026-0412</h5>
+                <h5>Results Entry — Order ENV-2026-0412 (selected regulations: PP No. 22/2021 + WHO-DWG-4)</h5>
                 <p style={{ fontSize: 12, color: '#525252' }}>
-                  Existing page chrome · 4 result rows · click row to expand
+                  Existing page chrome · multi-regulation evaluation visible inline · click row to expand
                 </p>
               </Tile>
             </ExistingRegion>
@@ -214,51 +266,90 @@ export default function S05MockupV2() {
                   <TableHead>
                     <TableRow>
                       <TableHeader>Accession</TableHeader>
-                      <TableHeader>Test</TableHeader>
+                      <TableHeader>Test / Component</TableHeader>
                       <TableHeader>Result</TableHeader>
                       <TableHeader>Unit</TableHeader>
-                      <TableHeader>Flag (existing)</TableHeader>
+                      <TableHeader style={{ background: '#fcf4d6' }}>Flags — per regulation (new pattern)</TableHeader>
                       <TableHeader></TableHeader>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {RESULT_ROWS.map(r => (
-                      <React.Fragment key={r.id}>
-                        <TableRow>
-                          <TableCell><code style={{ fontSize: 12 }}>{r.accession}</code></TableCell>
-                          <TableCell>{r.test}</TableCell>
-                          <TableCell><strong>{r.value}</strong></TableCell>
-                          <TableCell>{r.unit}</TableCell>
-                          <TableCell>
-                            {r.flag
-                              ? <Tag type={FLAG_TAG[r.flag].type} size="sm">{FLAG_TAG[r.flag].label}</Tag>
-                              : <span style={{ color: '#8d8d8d', fontSize: 12 }}>—</span>}
-                          </TableCell>
-                          <TableCell>
-                            <Button kind="ghost" size="sm" renderIcon={View}
-                              onClick={() => setExpandedResultId(expandedResultId === r.id ? null : r.id)}>
-                              {expandedResultId === r.id ? 'Collapse' : 'Expand'}
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                        {expandedResultId === r.id && (
+                    {RESULT_ROWS.map((r, i) => {
+                      // Render a reading-group header row before the first row of a new readingGroup
+                      const isNewReadingGroup = r.readingGroupId && (i === 0 || RESULT_ROWS[i - 1].readingGroupId !== r.readingGroupId);
+                      return (
+                        <React.Fragment key={r.id}>
+                          {isNewReadingGroup && (
+                            <TableRow style={{ background: '#fff8e1' }}>
+                              <TableCell colSpan={6} style={{ fontSize: 12, fontWeight: 600, color: '#491d8b' }}>
+                                ↳ {r.readingLabel} · reading group {r.readingGroupId}
+                              </TableCell>
+                            </TableRow>
+                          )}
                           <TableRow>
-                            <TableCell colSpan={6} style={{ background: '#f4f4f4', padding: 0 }}>
-                              <NewRegion label="S-05 v2 expanded detail">
-                                <div style={{ padding: 12 }}>
-                                  <h5 style={{ marginBottom: 8 }}>Result Detail — {r.test}</h5>
-                                  {r.source ? (
-                                    <Stack orientation="horizontal" gap={2} style={{ alignItems: 'center', marginBottom: 8 }}>
-                                      <Tag type="purple" size="sm">Threshold source</Tag>
-                                      <span style={{ fontSize: 13, fontFamily: 'monospace' }}>{r.source.label}</span>
-                                    </Stack>
-                                  ) : (
-                                    <p style={{ fontSize: 12, color: '#525252', fontStyle: 'italic' }}>
-                                      No reference range matched — no flag applied.
-                                    </p>
-                                  )}
-                                  <p style={{ fontSize: 12, color: '#525252' }}>
-                                    Existing override / comment / audit-trail fields below — unchanged.
+                            <TableCell><code style={{ fontSize: 12 }}>{r.accession}</code></TableCell>
+                            <TableCell>
+                              {r.component ? (
+                                <span>
+                                  <span style={{ color: '#525252' }}>{r.test} ·</span>{' '}
+                                  <Tag type="cyan" size="sm">{r.component}</Tag>
+                                </span>
+                              ) : r.test}
+                            </TableCell>
+                            <TableCell><strong>{r.value}</strong></TableCell>
+                            <TableCell>{r.unit}</TableCell>
+                            <TableCell>
+                              {r.sources && r.sources.length > 0 ? (
+                                <Stack orientation="horizontal" gap={1} style={{ flexWrap: 'wrap' }}>
+                                  {r.sources.map((src, j) => (
+                                    <span key={j} style={{ fontSize: 11, whiteSpace: 'nowrap' }}>
+                                      <Tag type="purple" size="sm">{src.reg}</Tag>{' '}
+                                      {src.flag
+                                        ? <Tag type={FLAG_TAG[src.flag].type} size="sm">{FLAG_TAG[src.flag].label}</Tag>
+                                        : <span style={{ color: '#8d8d8d', fontStyle: 'italic' }}>— informational</span>}
+                                    </span>
+                                  ))}
+                                </Stack>
+                              ) : (
+                                <span style={{ color: '#8d8d8d', fontSize: 12 }}>—</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Button kind="ghost" size="sm" renderIcon={View}
+                                onClick={() => setExpandedResultId(expandedResultId === r.id ? null : r.id)}>
+                                {expandedResultId === r.id ? 'Collapse' : 'Expand'}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                          {expandedResultId === r.id && (
+                            <TableRow>
+                              <TableCell colSpan={6} style={{ background: '#f4f4f4', padding: 0 }}>
+                                <NewRegion label="S-05 v2 expanded detail (2026-04-28: list, not single line)">
+                                  <div style={{ padding: 12 }}>
+                                    <h5 style={{ marginBottom: 8 }}>
+                                      Result Detail — {r.test}
+                                      {r.component && <span> · <Tag type="cyan" size="sm">{r.component}</Tag></span>}
+                                      {r.readingLabel && <span style={{ fontSize: 12, color: '#525252' }}> · {r.readingLabel}</span>}
+                                    </h5>
+                                    {r.sources && r.sources.length > 0 ? (
+                                      <div style={{ marginBottom: 8 }}>
+                                        <Tag type="purple" size="sm">Threshold sources</Tag>
+                                        <ul style={{ marginTop: 8, marginLeft: 16, fontSize: 13 }}>
+                                          {r.sources.map((src, j) => (
+                                            <li key={j} style={{ fontFamily: 'monospace' }}>
+                                              <strong>{src.reg}</strong> — {src.label}
+                                              {src.flag && <> · <Tag type={FLAG_TAG[src.flag].type} size="sm">{FLAG_TAG[src.flag].label}</Tag></>}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    ) : (
+                                      <p style={{ fontSize: 12, color: '#525252', fontStyle: 'italic' }}>
+                                        No reference range matched — no flag applied.
+                                      </p>
+                                    )}
+                                    <p style={{ fontSize: 12, color: '#525252' }}>
+                                      Existing override / comment / audit-trail fields below — unchanged.
                                   </p>
                                 </div>
                               </NewRegion>
@@ -266,7 +357,7 @@ export default function S05MockupV2() {
                           </TableRow>
                         )}
                       </React.Fragment>
-                    ))}
+                    )})}
                   </TableBody>
                 </Table>
               </Tile>

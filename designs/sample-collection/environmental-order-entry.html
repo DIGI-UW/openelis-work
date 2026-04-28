@@ -210,7 +210,7 @@
       const [step, setStep] = useState(0);
       const [branch, setBranch] = useState(REFERRAL ? 'REGULATION_DRIVEN' : null);
       const [site] = useState(SITE);
-      const [standard, setStandard] = useState(null);
+      const [standards, setStandards] = useState([]);  // 2026-04-28 multi-regulation: array, not single object
       const [showThresholds, setShowThresholds] = useState(false);
       const [adhocRegRef, setAdhocRegRef] = useState('');
       const [manifest, setManifest] = useState([]);
@@ -233,7 +233,7 @@
 
       // ── Branch handlers ──
       const pickBranch = (b) => {
-        if (branch && branch !== b && (standard || manifest.length || adhocRegRef)) {
+        if (branch && branch !== b && (standards.length || manifest.length || adhocRegRef)) {
           setShowSwitch({ from: branch, to: b });
           return;
         }
@@ -241,17 +241,44 @@
       };
       const confirmSwitch = () => {
         setBranch(showSwitch.to);
-        setStandard(null);
+        setStandards([]);
         setManifest([]);
         setAdhocRegRef('');
         setDeselected(new Set());
         setShowSwitch(null);
       };
 
-      // ── Standard handlers ──
-      const pickStandard = (s) => {
-        setStandard(s);
-        setManifest(s.sampleTypeIds.map(id => ({ sampleTypeId:id, quantity:0, isOverride:false })));
+      // ── Standard handlers — 2026-04-28: M:N multi-regulation ──
+      const recomputeManifest = (currentStds) => {
+        if (currentStds.length === 0) { setManifest([]); return; }
+        const coverageMap = new Map();
+        currentStds.forEach(std => std.sampleTypeIds.forEach(id => {
+          if (!coverageMap.has(id)) coverageMap.set(id, []);
+          coverageMap.get(id).push(std.id);
+        }));
+        setManifest(prev => {
+          const unioned = Array.from(coverageMap.entries()).map(([id, coverageIds]) => {
+            const existing = prev.find(r => r.sampleTypeId === id);
+            return { sampleTypeId: id, quantity: existing?.quantity || 0, coverageStandardIds: coverageIds, isOverride: false };
+          });
+          const overrides = prev.filter(r => r.isOverride && !coverageMap.has(r.sampleTypeId));
+          return [...unioned, ...overrides];
+        });
+      };
+      const addStandard = (s) => {
+        setStandards(prev => {
+          if (prev.find(x => x.id === s.id)) return prev;
+          const next = [...prev, s];
+          recomputeManifest(next);
+          return next;
+        });
+      };
+      const removeStandard = (id) => {
+        setStandards(prev => {
+          const next = prev.filter(s => s.id !== id);
+          recomputeManifest(next);
+          return next;
+        });
       };
 
       // ── Manifest handlers ──
@@ -262,8 +289,8 @@
       const addType = (id) => {
         setManifest(m => {
           if (m.find(r => r.sampleTypeId === id)) return m;
-          const isFromStd = !!standard?.sampleTypeIds.includes(id);
-          return [...m, { sampleTypeId:id, quantity:1, isOverride:!isFromStd }];
+          const coverageStandardIds = standards.filter(s => s.sampleTypeIds.includes(id)).map(s => s.id);
+          return [...m, { sampleTypeId:id, quantity:1, coverageStandardIds, isOverride: coverageStandardIds.length === 0 }];
         });
         setShowAddType(false);
       };
@@ -272,11 +299,28 @@
       const total = useMemo(() => manifest.reduce((s,r) => s + r.quantity, 0), [manifest]);
       const activeTypes = useMemo(() => manifest.filter(r => r.quantity > 0).map(r => r.sampleTypeId), [manifest]);
 
+      // 2026-04-28 multi-regulation: union+dedup tests across selected standards with coverage
       const groups = useMemo(() => {
-        if (!standard || !activeTypes.length) return [];
-        return TESTS_BY_STANDARD[standard.id] || [];
-      }, [standard, activeTypes]);
+        if (standards.length === 0 || !activeTypes.length) return [];
+        const testMap = new Map();
+        standards.forEach(std => {
+          (TESTS_BY_STANDARD[std.id] || []).forEach(g => {
+            g.tests.forEach(t => {
+              const key = t.id;
+              if (!testMap.has(key)) testMap.set(key, { groupName: g.group, test: t, coverageStandardIds: [std.id] });
+              else testMap.get(key).coverageStandardIds.push(std.id);
+            });
+          });
+        });
+        const groupMap = new Map();
+        testMap.forEach(entry => {
+          if (!groupMap.has(entry.groupName)) groupMap.set(entry.groupName, []);
+          groupMap.get(entry.groupName).push({ ...entry.test, coverageStandardIds: entry.coverageStandardIds });
+        });
+        return Array.from(groupMap.entries()).map(([group, tests]) => ({ group, tests }));
+      }, [standards, activeTypes]);
       const totalTests = useMemo(() => groups.reduce((s,g) => s + g.tests.length, 0), [groups]);
+      const sharedTests = useMemo(() => groups.flatMap(g => g.tests).filter(t => t.coverageStandardIds.length > 1).length, [groups]);
       const selTests = useMemo(() => {
         let n = 0;
         groups.forEach(g => g.tests.forEach(t => { if (!deselected.has(t.id)) n++; }));
@@ -335,7 +379,7 @@
         });
       };
 
-      const canAdvance1 = total > 0 && collMethod && (branch === 'AD_HOC' || (branch === 'REGULATION_DRIVEN' && standard));
+      const canAdvance1 = total > 0 && collMethod && (branch === 'AD_HOC' || (branch === 'REGULATION_DRIVEN' && standards.length > 0));
 
       return (
         <div>
@@ -433,56 +477,62 @@
                 </div>
               )}
 
-              {/* Compliance Standard (regulation-driven only) */}
+              {/* Compliance Standards (regulation-driven only) — 2026-04-28 multi-regulation */}
               {branch === 'REGULATION_DRIVEN' && (
                 <div className="tile">
-                  <h4>Compliance Standard</h4>
+                  <h4>Compliance Standards</h4>
+                  <p className="helper" style={{ marginBottom: 12 }}>
+                    Select <strong>one or more</strong> standards. Tests, thresholds, and downstream evaluation will be union'd across all selected standards. All weighted equally (no "primary").
+                  </p>
                   <div className="form-field">
-                    <label>Compliance Standard</label>
-                    <select value={standard?.id || ''} onChange={(e) => {
+                    <label>Add Compliance Standard ({standards.length} selected)</label>
+                    <select value="" onChange={(e) => {
                       const s = STANDARDS.find(x => x.id === e.target.value);
-                      if (s) pickStandard(s);
+                      if (s) addStandard(s);
+                      e.target.value = '';
                     }}>
                       <option value="">Search by regulation number, name, or issuing body…</option>
-                      {STANDARDS.map(s => (
+                      {STANDARDS.filter(s => !standards.find(ss => ss.id === s.id)).map(s => (
                         <option key={s.id} value={s.id}>{s.reg} — {s.name}</option>
                       ))}
                     </select>
-                    <span className="helper">Type the regulation number from your paperwork (e.g. PP No. 22/2021)</span>
+                    <span className="helper">Type the regulation number from your paperwork (e.g. PP No. 22/2021). Add more by repeating.</span>
                   </div>
 
-                  {standard && (
-                    <div className="standard-card" style={{ marginTop:'1rem' }}>
-                      <div style={{ marginBottom:'1rem' }}>
-                        <span className="field-label">Regulation Number</span>
-                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                          <span className="reg-num-large">{standard.reg}</span>
-                          <button className="btn-icon" title="Copy regulation number" onClick={() => navigator.clipboard?.writeText(standard.reg)}>📋</button>
-                          <span className="tag tag-green">Active</span>
+                  {/* Selected Standards Stack — one card per selection */}
+                  {standards.length > 0 && (
+                    <div style={{ display:'flex', flexDirection:'column', gap:12, marginTop:16 }}>
+                      {standards.map((std, idx) => (
+                        <div key={std.id} className="standard-card">
+                          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom: 8 }}>
+                            <div style={{ flex: 1 }}>
+                              <span className="field-label">#{idx + 1} · Regulation Number</span>
+                              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                                <span className="reg-num-large">{std.reg}</span>
+                                <button className="btn-icon" title="Copy regulation number" onClick={() => navigator.clipboard?.writeText(std.reg)}>📋</button>
+                                <span className="tag tag-green">Active</span>
+                              </div>
+                            </div>
+                            <button className="btn btn-ghost" onClick={() => removeStandard(std.id)} style={{ fontSize: 12 }}>
+                              ✕ Remove
+                            </button>
+                          </div>
+                          <div className="grid grid-4">
+                            <div style={{ gridColumn:'span 2' }}>
+                              <span className="field-label">Standard Name</span>
+                              <span className="field-value" style={{ fontWeight: 500 }}>{std.name}</span>
+                            </div>
+                            <div>
+                              <span className="field-label">Issuing Body</span>
+                              <span className="field-value">{std.body}</span>
+                            </div>
+                            <div>
+                              <span className="field-label">Version · Tests</span>
+                              <span className="field-value">{std.ver} · {std.tests}</span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="grid grid-5">
-                        <div style={{ gridColumn:'span 2' }}>
-                          <span className="field-label">Standard Name</span>
-                          <span className="field-value" style={{ fontWeight:500 }}>{standard.name}</span>
-                        </div>
-                        <div>
-                          <span className="field-label">Issuing Body</span>
-                          <span className="field-value">{standard.body}</span>
-                        </div>
-                        <div>
-                          <span className="field-label">Version / Effective</span>
-                          <span className="field-value">{standard.ver} · {standard.date}</span>
-                        </div>
-                        <div>
-                          <span className="field-label">Linked Tests</span>
-                          <span className="field-value">{standard.tests}</span>
-                        </div>
-                      </div>
-                      <button className="btn btn-ghost" style={{ marginTop:8 }}
-                              onClick={() => setShowThresholds(!showThresholds)}>
-                        {showThresholds ? '▴ Hide Thresholds' : '▾ View Thresholds'}
-                      </button>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -562,7 +612,14 @@
                                        onChange={(e) => setQty(row.sampleTypeId, e.target.value)} />
                               </td>
                               <td>
-                                {row.isOverride && <span className="tag tag-purple">Not in Standard</span>}
+                                {/* 2026-04-28: per-row coverage tags showing which standards include this sample type */}
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                  {row.coverageStandardIds && row.coverageStandardIds.map(stdId => {
+                                    const std = STANDARDS.find(s => s.id === stdId);
+                                    return std ? <span key={stdId} className="tag tag-purple">{std.reg}</span> : null;
+                                  })}
+                                  {row.isOverride && <span className="tag tag-warm-gray">Not in any selected standard</span>}
+                                </div>
                               </td>
                               <td>
                                 <button className="btn-icon" title="Remove" onClick={() => removeRow(row.sampleTypeId)}>🗑</button>
@@ -575,7 +632,7 @@
                   ) : (
                     <p className="step-helper">
                       {branch === 'REGULATION_DRIVEN'
-                        ? 'Select a compliance standard to pre-populate sample types.'
+                        ? 'Select one or more compliance standards above to pre-populate sample types (union, deduplicated).'
                         : 'Add sample types to begin.'}
                     </p>
                   )}
@@ -596,13 +653,13 @@
                 </div>
               )}
 
-              {/* Suggested Tests (regulation-driven, after manifest has sample types) */}
-              {branch === 'REGULATION_DRIVEN' && standard && activeTypes.length > 0 && (
+              {/* Suggested Tests (regulation-driven, after manifest has sample types) — 2026-04-28 multi-regulation: union+dedup */}
+              {branch === 'REGULATION_DRIVEN' && standards.length > 0 && activeTypes.length > 0 && (
                 <div className="tile">
                   <h4>Suggested Tests</h4>
                   <div className="notification">
-                    Based on <strong>{standard.reg}</strong> and <strong>{activeTypes.length}</strong> sample types,
-                    {' '}<strong>{totalTests}</strong> tests have been suggested. <strong>{selTests}</strong> selected.
+                    Based on <strong>{standards.length} standards</strong> ({standards.map(s => s.reg).join(' + ')}) and <strong>{activeTypes.length}</strong> sample types,
+                    {' '}<strong>{totalTests}</strong> unique tests suggested ({sharedTests} shared across multiple standards). <strong>{selTests}</strong> selected.
                   </div>
                   {groups.length > 0 ? (
                     <div className="accordion-group">
@@ -622,13 +679,15 @@
                                     <th>Test</th>
                                     <th>LOINC</th>
                                     <th>Unit</th>
-                                    <th>Threshold</th>
+                                    <th>Threshold(s) — per standard</th>
+                                    <th>Covered by</th>
                                     <th></th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {g.tests.map(t => {
                                     const checked = !deselected.has(t.id);
+                                    const isShared = t.coverageStandardIds.length > 1;
                                     return (
                                       <tr key={t.id}>
                                         <td><input type="checkbox" checked={checked} onChange={() => {
@@ -641,7 +700,31 @@
                                         <td>{t.name}</td>
                                         <td><code>{t.loinc}</code></td>
                                         <td>{t.unit}</td>
-                                        <td><strong>{t.threshold}</strong></td>
+                                        <td>
+                                          {isShared ? (
+                                            <div style={{ display:'flex', flexDirection:'column', gap: 2 }}>
+                                              {t.coverageStandardIds.map(stdId => {
+                                                const std = STANDARDS.find(s => s.id === stdId);
+                                                return (
+                                                  <div key={stdId} style={{ fontSize: 12 }}>
+                                                    <span className="tag tag-purple">{std?.reg}</span>{' '}
+                                                    <strong>{t.threshold}</strong>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          ) : (
+                                            <strong>{t.threshold}</strong>
+                                          )}
+                                        </td>
+                                        <td>
+                                          <div style={{ display:'flex', flexWrap:'wrap', gap: 4 }}>
+                                            {t.coverageStandardIds.map(stdId => {
+                                              const std = STANDARDS.find(s => s.id === stdId);
+                                              return std ? <span key={stdId} className="tag tag-purple">{std.reg}</span> : null;
+                                            })}
+                                          </div>
+                                        </td>
                                         <td>{checked && <span className="tag tag-blue">Suggested</span>}</td>
                                       </tr>
                                     );
@@ -655,7 +738,7 @@
                     </div>
                   ) : (
                     <div className="notification warning">
-                      No tests are linked to this standard for the selected sample types. Add tests manually.
+                      No tests are linked to any selected standard for the selected sample types. Add tests manually or remove a standard.
                     </div>
                   )}
                 </div>

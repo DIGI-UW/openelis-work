@@ -48,6 +48,10 @@ A single front-of-house reception clerk may serve multiple domain-assigned lab u
 
 OpenELIS-to-OpenELIS referrals are not a separate branch but an **entry path**: they arrive via the Order Dashboard's Incoming queue (driven by FHIR Task), open Step 1 pre-populated, with branch auto-set from the FHIR payload.
 
+> **⚠️ 2026-04-28 amendment — multi-regulation orders.** The Compliance Standard ComboBox is now a **MultiSelect**: an order may be governed by ≥1 regulation simultaneously (e.g., a drinking-water sample evaluated against both PP No. 22/2021 and WHO-DWG-4 in the same submission). Suggested tests union + deduplicate across selected standards. Sample manifest pre-population unions across all selected standards. Each suggested test is annotated with which standards govern it. The data model becomes M:N — the single `complianceStandardId` columns on Order are replaced by an `order_compliance_standard` join table (symmetric — no "primary" regulation). Downstream specs (S-05 v2.0 result evaluation, S-06 Laporan Hasil) consume the join and evaluate / render per regulation.
+>
+> Multi-component test results (e.g., noise pollution = heading° + dB level + N readings from a device) are handled at the test catalog level in a parallel thread. From the order entry perspective, a multi-component test still appears as one test on the order; component definition + result entry rendering happens downstream in the test catalog admin (Casey's other thread) and S-05 v2.0 (results entry).
+
 ---
 
 ## 2. Problem Statement
@@ -229,23 +233,33 @@ Site is a required field for both branches.
 
 ---
 
-#### 5.1.5 Compliance Standard (Regulation-driven branch only)
+#### 5.1.5 Compliance Standards (Regulation-driven branch only) — MultiSelect
 
-**ID:** ENV-1-005
+**ID:** ENV-1-005 (amended 2026-04-28 for multi-regulation orders)
 **Priority:** P0
 **Requirement:**
-On the Regulation-driven branch, the Compliance Standard section SHALL appear after the Sampling Site section. The section contains:
+On the Regulation-driven branch, the Compliance Standards section SHALL appear after the Sampling Site section. **An order may select one or more compliance standards** — orders evaluated against ≥2 regulations are common in environmental labs (e.g., drinking water assessed against both national standard PP No. 22/2021 and WHO drinking-water guidelines). The section contains:
 
-- **Section header:** "Compliance Standard" with info tooltip: "Select the regulatory standard for this order. This determines which tests and thresholds apply."
-- **Standard ComboBox** (required): Typeahead search filtered to ACTIVE compliance standards (per S-01 BR-001). Each ComboBox row displays standard name, **regulation number prominently in monospace**, issuing body, and a green "Active" status Tag. The regulation number is the primary lookup anchor — reception receives paperwork stamped with a regulation number (e.g., "PP No. 22/2021") and types it directly into the search to find the matching standard. Typeahead filters by name, issuing body, OR regulation number.
-- **Selected Standard Card** (read-only, appears after selection): displays
+- **Section header:** "Compliance Standards" with info tooltip: "Select one or more regulatory standards. Tests, thresholds, and downstream evaluation will be union'd across all selected standards."
+- **Standard MultiSelect** (required, ≥1): Carbon `MultiSelect` with typeahead, filtered to ACTIVE compliance standards (per S-01 BR-001). Each item displays standard name, **regulation number prominently in monospace**, issuing body, and a green "Active" status Tag. The regulation number remains the primary lookup anchor — reception types regulation numbers from paperwork (e.g., "PP No. 22/2021", "WHO-DWG-4") to add each one. Typeahead filters by name, issuing body, OR regulation number.
+- **Selected Standards Stack** (read-only, appears below the MultiSelect with one card per selected standard): each card displays
   - Standard name (large, bold)
-  - **Regulation number (large, monospace, copy-able with click-to-copy icon)** — prominent because it's the primary identifier on downstream reports and paperwork
+  - **Regulation number (large, monospace, copy-able with click-to-copy icon)**
   - Issuing body, version, effective date
-  - Linked test count
+  - Linked test count for that standard
   - "Active" status Tag
-  - "View Thresholds" link → opens an inline accordion showing parameter groups + threshold values; does not navigate away
-- **Site-type prioritization:** when the selected site has a `siteType` (e.g., WATER_SOURCE), standards whose `applicableSampleTypes` include matching types are listed first. A "Show All Standards" toggle removes the prioritization.
+  - **Remove** (✕) button — un-selects this standard
+  - "View Thresholds" link → opens an inline accordion for that standard's parameter groups + thresholds; does not navigate away
+- **All standards are equal weight (symmetric M:N).** No "primary" regulation. Display order in the stack matches selection order.
+- **Site-type prioritization** in the typeahead unchanged: standards matching the site's `siteType` appear first.
+
+**Acceptance Criteria:**
+
+- [ ] MultiSelect component used (not single-select ComboBox)
+- [ ] At least one standard required to submit a regulation-driven order
+- [ ] One Selected Standard Card per selection, removable independently
+- [ ] Click-to-copy on each regulation number
+- [ ] No "primary" designation in UI or data model — all selected standards weighted equally
 
 **Acceptance Criteria:**
 
@@ -262,22 +276,37 @@ On the Regulation-driven branch, the Compliance Standard section SHALL appear af
 
 ---
 
-#### 5.1.6 Suggested Tests (Regulation-driven branch only)
+#### 5.1.6 Suggested Tests (Regulation-driven branch only) — Union + Dedup
 
-**ID:** ENV-1-006
+**ID:** ENV-1-006 (amended 2026-04-28 for multi-regulation orders)
 **Priority:** P0
 **Requirement:**
-After the Compliance Standard is selected and the Sample Manifest contains at least one sample type (ENV-1-009), the Suggested Tests section SHALL display tests filtered to those that:
-(a) have an active ComplianceThreshold linked to the selected standard, AND
+After ≥1 Compliance Standard is selected and the Sample Manifest contains at least one sample type (ENV-1-009), the Suggested Tests section SHALL display tests filtered to those that:
+(a) have an active ComplianceThreshold linked to **at least one of the selected standards**, AND
 (b) are applicable to at least one of the manifest's sample types.
+
+**Union + Deduplication.** Tests common to multiple selected standards appear **once** (deduplicated by `test_id`) — they are NOT shown N times. Tests unique to a single regulation are also shown once. Each suggested test row carries a "covered by" annotation listing every selected standard that governs it.
 
 Presentation:
 
-- An `InlineNotification` (kind="info") above the test list: "Based on {standard name} and {N} sample types, {M} tests have been suggested."
-- Tests organized by Parameter Group (Carbon `Accordion`); group sort order matches the standard's configuration; tests within a group sorted alphabetically.
-- Each suggested test pre-selected with a `Tag` (kind="blue", label="Suggested").
-- Group header shows "{selected} of {total}" counts.
-- User can deselect any test, add tests not linked to the standard via a "Add additional tests" link, or clear all suggestions.
+- An `InlineNotification` (kind="info") above the test list: "Based on {N standards} and {M sample types}, {K} unique tests have been suggested. {K_shared} tests are shared across multiple standards."
+- Tests organized by Parameter Group (Carbon `Accordion`); group sort order matches the **first selected** standard's configuration (deterministic; ties broken by group name).
+- Each suggested test row shows:
+  - Test name + LOINC + unit
+  - **Coverage annotation** — small Tag(s) showing which selected standards govern this test, e.g., `[PP 22/2021]` or `[PP 22/2021] [WHO-DWG-4]` if shared. Tag color matches each standard's accent.
+  - Threshold preview: when shared across standards, the row is expandable to show per-standard thresholds side-by-side (e.g., pH: PP 22/2021 = 6.0–9.0, WHO-DWG-4 = 6.5–8.5)
+  - Pre-selected by default with a `Tag` (kind="blue", label="Suggested")
+- Group header shows "{selected} of {total}" counts (across the deduplicated set).
+- User can deselect any test, add non-suggested tests via "Add additional tests", or clear all.
+
+**Acceptance Criteria:**
+
+- [ ] Tests with thresholds linked to ≥1 selected standard appear in the suggestion list
+- [ ] Each test appears exactly once even when shared across multiple standards
+- [ ] Each suggested test row shows a coverage annotation listing all selected standards that govern it
+- [ ] Shared tests with different thresholds across standards expandable to side-by-side threshold preview
+- [ ] InlineNotification reports both unique-test count and shared-test count
+- [ ] If a selected standard has no linked tests for the manifest's sample types, the InlineNotification (kind="warning") names that standard specifically
 
 **Acceptance Criteria:**
 
@@ -343,7 +372,7 @@ The Sample Manifest section SHALL appear on both branches. It captures **how man
 [+ Add Other Sample Type]
 ```
 
-On the Regulation-driven branch, the table pre-populates with the standard's `applicableSampleTypes` checked-off-empty (quantity 0). Reception checks the types they have and enters the quantity. "Add Other Sample Type" opens a ComboBox of the full system sample-type catalog; added types receive a `Tag` (kind="purple", label="Not in Standard") and a tooltip.
+On the Regulation-driven branch, the table pre-populates with the **union of every selected standard's `applicableSampleTypes`**, deduplicated by sample type ID, all quantity 0. Each row is annotated with which standards include that sample type (small coverage Tags, like Suggested Tests in §5.1.6). Reception checks the types they have and enters quantities. "Add Other Sample Type" opens a ComboBox of the full system sample-type catalog; added types receive a `Tag` (kind="purple", label="Not in any selected standard") and a tooltip.
 
 On the Ad-hoc branch, the table starts empty; reception clicks "+ Add Sample Type" to add rows.
 
@@ -589,16 +618,29 @@ The Step 3 footer contains:
 
 ### 6.1 Modified Entities
 
-**Order (extended):**
+**Order (extended) — multi-regulation amendment 2026-04-28:**
+
+The single `complianceStandardId` / `complianceStandardVersion` / `complianceStandardName` / `regulationNumber` columns are **replaced by a join table** (`order_compliance_standard`) supporting M:N. All selected regulations are equal weight (no "primary").
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `branch` | Enum | Yes | REGULATION_DRIVEN \| AD_HOC |
-| `complianceStandardId` | Long (FK) | Yes if regulation-driven | FK → ComplianceStandard.id |
-| `complianceStandardVersion` | String(50) | Yes if regulation-driven | Snapshot at order time |
-| `complianceStandardName` | String(255) | Yes if regulation-driven | Denormalized for reporting |
-| `regulationNumber` | String(100) | Yes if regulation-driven | From standard, snapshot |
 | `regulatoryReferenceAdhoc` | String(500) | No | Free-text, ad-hoc branch only |
+
+**OrderComplianceStandard (new join table — replaces single FK columns):**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `orderId` | Long (FK) | Yes | FK → orders.id |
+| `complianceStandardId` | Long (FK) | Yes | FK → compliance_standard.id |
+| `complianceStandardVersion` | String(50) | Yes | Snapshot at order time (per-standard version lock) |
+| `complianceStandardName` | String(255) | Yes | Denormalized for reporting |
+| `regulationNumber` | String(100) | Yes | From standard, snapshot |
+| `selectionOrder` | Integer | Yes | Order of selection at order entry; drives display order in stack and certificate header |
+| `addedAt` | Timestamp | Yes | When this regulation was attached to the order |
+| `addedByUserId` | Long (FK) | Yes | Audit |
+
+Primary key: `(orderId, complianceStandardId)`. The join enforces "each regulation appears at most once per order."
 | `siteId` | Long (FK) | Yes | FK → SamplingSite.id |
 | `referralSourceId` | Long (FK) | No | FK → external lab/source; non-null = referral order |
 | `referralFhirTaskId` | String(100) | No | Inbound FHIR Task ID for traceability |
@@ -627,12 +669,24 @@ The Step 3 footer contains:
 ### 6.2 Database Schema Changes
 
 ```sql
+-- Order-level columns
 ALTER TABLE orders ADD COLUMN branch VARCHAR(20) NOT NULL DEFAULT 'REGULATION_DRIVEN';
-ALTER TABLE orders ADD COLUMN compliance_standard_id BIGINT REFERENCES compliance_standard(id);
-ALTER TABLE orders ADD COLUMN compliance_standard_version VARCHAR(50);
-ALTER TABLE orders ADD COLUMN compliance_standard_name VARCHAR(255);
-ALTER TABLE orders ADD COLUMN regulation_number VARCHAR(100);
 ALTER TABLE orders ADD COLUMN regulatory_reference_adhoc VARCHAR(500);
+
+-- 2026-04-28 amendment: M:N join replacing single-FK regulation columns
+CREATE TABLE order_compliance_standard (
+    order_id BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    compliance_standard_id BIGINT NOT NULL REFERENCES compliance_standard(id),
+    compliance_standard_version VARCHAR(50) NOT NULL,
+    compliance_standard_name VARCHAR(255) NOT NULL,
+    regulation_number VARCHAR(100) NOT NULL,
+    selection_order INTEGER NOT NULL,
+    added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    added_by_user_id BIGINT NOT NULL REFERENCES users(id),
+    PRIMARY KEY (order_id, compliance_standard_id)
+);
+CREATE INDEX idx_ocs_order ON order_compliance_standard(order_id);
+CREATE INDEX idx_ocs_standard ON order_compliance_standard(compliance_standard_id);
 ALTER TABLE orders ADD COLUMN site_id BIGINT REFERENCES sampling_site(id);
 ALTER TABLE orders ADD COLUMN referral_source_id BIGINT REFERENCES referral_source(id);
 ALTER TABLE orders ADD COLUMN referral_fhir_task_id VARCHAR(100);
@@ -703,7 +757,7 @@ Companion mockup: `S03-environmental-order-entry-mockup.jsx` (also rewritten for
 
 ## 9. Business Rules
 
-**BR-001:** Regulation-driven orders MUST have a compliance standard selected before submitting Step 1. Ad-hoc orders do not.
+**BR-001 (amended 2026-04-28):** Regulation-driven orders MUST have **at least one** compliance standard selected before submitting Step 1. Multiple standards may be selected; all are weighted equally (symmetric M:N — no "primary" designation). Ad-hoc orders do not select any.
 
 **BR-002:** The compliance standard version stored on the order is a **snapshot** from order creation time. Subsequent supersession of the standard does not affect existing orders' evaluation.
 

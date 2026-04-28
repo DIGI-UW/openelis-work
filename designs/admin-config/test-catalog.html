@@ -441,19 +441,102 @@
     }
 
     function SampleResultsTab() {
-      const [resultType, setResultType] = useState('Numeric');
-      const [selectOptions, setSelectOptions] = useState([
+      // Master Units of Measure list (would come from an API call in production)
+      const [unitsOfMeasure, setUnitsOfMeasure] = useState([
+        // Clinical
+        { id: 1, code: 'mg/dL', display: 'mg/dL', ucum: 'mg/dL' },
+        { id: 2, code: 'mmol/L', display: 'mmol/L', ucum: 'mmol/L' },
+        { id: 3, code: 'g/dL', display: 'g/dL', ucum: 'g/dL' },
+        { id: 4, code: 'IU/L', display: 'IU/L', ucum: '[IU]/L' },
+        { id: 5, code: '%', display: 'percent', ucum: '%' },
+        { id: 6, code: 'mmHg', display: 'mmHg', ucum: 'mm[Hg]' },
+        { id: 7, code: 'µL', display: 'microliter', ucum: 'uL' },
+        { id: 8, code: 'K/µL', display: 'thousand per µL', ucum: '10*3/uL' },
+        // Environmental
+        { id: 20, code: 'NTU', display: 'Nephelometric Turbidity Units', ucum: '[NTU]' },
+        { id: 21, code: 'mg/L', display: 'mg/L', ucum: 'mg/L' },
+        { id: 22, code: 'µg/L', display: 'µg/L', ucum: 'ug/L' },
+        { id: 23, code: 'ppm', display: 'parts per million', ucum: '[ppm]' },
+        { id: 24, code: 'dB', display: 'decibels', ucum: 'B[SPL]' },
+        { id: 25, code: '°', display: 'degrees', ucum: 'deg' },
+        { id: 26, code: '°C', display: 'degrees Celsius', ucum: 'Cel' },
+        { id: 27, code: 'pH', display: 'pH', ucum: '[pH]' },
+        // Vector
+        { id: 40, code: 'count', display: 'count', ucum: '{count}' },
+        { id: 41, code: 'copies/µL', display: 'copies per µL', ucum: '{copies}/uL' },
+      ]);
+
+      const [components, setComponents] = useState([
+        { id: 1, code: 'PRIMARY', label: 'Result', resultType: 'Numeric', unitId: 1, significantDigits: 0, defaultResult: '', allowMultipleReadings: false, active: true },
+      ]);
+      const [selectOptions] = useState([
         { id: 1, value: 'Positive', display: 'Positive', active: true },
         { id: 2, value: 'Negative', display: 'Negative', active: true },
         { id: 3, value: 'Indeterminate', display: 'Indeterminate', active: true },
       ]);
       const [showInterpModal, setShowInterpModal] = useState(false);
 
+      // Inline add-unit state
+      const [addUnitForComponent, setAddUnitForComponent] = useState(null); // component id triggering the add
+      const [newUnit, setNewUnit] = useState({ code: '', display: '', ucum: '', description: '' });
+
+      const isMulti = components.length > 1;
+
+      const onUnitChange = (componentId, value) => {
+        if (value === '__ADD_NEW__') {
+          setAddUnitForComponent(componentId);
+          setNewUnit({ code: '', display: '', ucum: '', description: '' });
+        } else {
+          updateComponent(componentId, 'unitId', parseInt(value));
+        }
+      };
+
+      const submitNewUnit = () => {
+        if (!newUnit.code.trim()) return;
+        const newId = Math.max(...unitsOfMeasure.map(u => u.id)) + 1;
+        const created = { id: newId, code: newUnit.code.trim(), display: newUnit.display.trim() || newUnit.code.trim(), ucum: newUnit.ucum.trim() };
+        setUnitsOfMeasure(prev => [...prev, created]);
+        if (addUnitForComponent !== null) {
+          updateComponent(addUnitForComponent, 'unitId', newId);
+        }
+        setAddUnitForComponent(null);
+        setNewUnit({ code: '', display: '', ucum: '', description: '' });
+      };
+
+      const cancelAddUnit = () => {
+        setAddUnitForComponent(null);
+        setNewUnit({ code: '', display: '', ucum: '', description: '' });
+      };
+
+      const updateComponent = (id, field, value) => {
+        setComponents(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c));
+      };
+
+      const addComponent = () => {
+        const newId = Math.max(...components.map(c => c.id)) + 1;
+        const presets = [
+          { code: 'HEADING', label: 'Heading', unit: '°' },
+          { code: 'TEMPERATURE', label: 'Temperature', unit: '°C' },
+          { code: 'COMPONENT_' + newId, label: 'Component ' + newId, unit: '' },
+        ];
+        const preset = presets[Math.min(newId - 2, presets.length - 1)];
+        setComponents(prev => [...prev, {
+          id: newId, code: preset.code, label: preset.label, resultType: 'Numeric',
+          unit: preset.unit, significantDigits: 0, defaultResult: '',
+          allowMultipleReadings: false, active: true,
+        }]);
+      };
+
+      const removeComponent = (id) => {
+        if (components.length <= 1) return;
+        setComponents(prev => prev.filter(c => c.id !== id));
+      };
+
       return (
         <div>
           <div className="section-header">
             <h2>Sample & Results Configuration</h2>
-            <p>Define sample types and result format</p>
+            <p>Define sample types and the labeled result fields produced by this test</p>
           </div>
 
           <div className="form-group">
@@ -473,42 +556,160 @@
             <select><option>Select...</option></select>
           </div>
 
-          <div className="form-group">
-            <label className="required">Result Type</label>
-            <select value={resultType} onChange={(e) => setResultType(e.target.value)}>
-              <option value="Numeric">Numeric</option>
-              <option value="Select List">Select List</option>
-              <option value="Multi-select">Multi-select</option>
-              <option value="Free Text">Free Text</option>
-            </select>
+          <div className="section-divider"></div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>Result Components</h3>
+              <p style={{ margin: '4px 0 0 0', fontSize: 12, color: '#525252' }}>
+                {isMulti
+                  ? `${components.length} components — this test produces multiple labeled values per order.`
+                  : 'Single-component test (default). Add components for tests that produce multiple labeled values like noise = level + heading or BP = systolic + diastolic.'}
+              </p>
+            </div>
+            <button className="btn btn-secondary btn-sm" onClick={addComponent}>+ Add Component</button>
           </div>
 
-          {resultType === 'Numeric' && (
-            <>
-              <div className="form-group">
-                <label>Unit of Measure</label>
-                <select><option>mg/dL</option><option>mmol/L</option><option>g/dL</option></select>
+          <div className="table-container" style={{ marginBottom: 12 }}>
+            <table className="data-table" style={{ fontSize: '13px' }}>
+              <thead>
+                <tr>
+                  {isMulti && <th style={{ width: 32 }}>≡</th>}
+                  {isMulti && <th>Code</th>}
+                  <th>Label</th>
+                  <th>Result Type</th>
+                  <th>Unit</th>
+                  <th>Sig Digits</th>
+                  <th>Default</th>
+                  <th>Multi-reading</th>
+                  <th>Active</th>
+                  {isMulti && <th>Actions</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {components.map(c => (
+                  <tr key={c.id}>
+                    {isMulti && <td>≡</td>}
+                    {isMulti && (
+                      <td>
+                        <input type="text" value={c.code} onChange={e => updateComponent(c.id, 'code', e.target.value.toUpperCase())} className="mono" style={{ width: 120, padding: 4, border: '1px solid #d0d0d0', borderRadius: 3, textTransform: 'uppercase' }} />
+                      </td>
+                    )}
+                    <td>
+                      <input type="text" value={c.label} onChange={e => updateComponent(c.id, 'label', e.target.value)} style={{ width: '100%', padding: 4, border: '1px solid #d0d0d0', borderRadius: 3 }} />
+                    </td>
+                    <td>
+                      <select value={c.resultType} onChange={e => updateComponent(c.id, 'resultType', e.target.value)} style={{ padding: 4, border: '1px solid #d0d0d0', borderRadius: 3 }}>
+                        <option>Numeric</option>
+                        <option>Select List</option>
+                        <option>Multi-select</option>
+                        <option>Free Text</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select
+                        value={c.unitId ?? ''}
+                        onChange={e => onUnitChange(c.id, e.target.value)}
+                        disabled={c.resultType !== 'Numeric'}
+                        style={{ width: 130, padding: 4, border: '1px solid #d0d0d0', borderRadius: 3, opacity: c.resultType === 'Numeric' ? 1 : 0.5, fontSize: 12 }}
+                        title={c.resultType !== 'Numeric' ? 'Unit only applies to NUMERIC components' : 'Pick from Master Lists, or add a new unit inline'}
+                      >
+                        <option value="">— select —</option>
+                        {unitsOfMeasure.map(u => (
+                          <option key={u.id} value={u.id}>{u.code}</option>
+                        ))}
+                        <option disabled style={{ borderTop: '1px solid #d0d0d0' }}>──────────</option>
+                        <option value="__ADD_NEW__">+ Add new unit…</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input type="number" min="0" max="6" value={c.significantDigits} onChange={e => updateComponent(c.id, 'significantDigits', parseInt(e.target.value) || 0)} disabled={c.resultType !== 'Numeric'} style={{ width: 60, padding: 4, border: '1px solid #d0d0d0', borderRadius: 3, opacity: c.resultType === 'Numeric' ? 1 : 0.5 }} />
+                    </td>
+                    <td>
+                      <input type="text" value={c.defaultResult} onChange={e => updateComponent(c.id, 'defaultResult', e.target.value)} placeholder="—" style={{ width: 90, padding: 4, border: '1px solid #d0d0d0', borderRadius: 3 }} />
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <label style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }} title="Allow multiple timestamped readings per order under this component">
+                        <input type="checkbox" checked={c.allowMultipleReadings} onChange={e => updateComponent(c.id, 'allowMultipleReadings', e.target.checked)} style={{ cursor: 'pointer' }} />
+                      </label>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <input type="checkbox" checked={c.active} onChange={e => updateComponent(c.id, 'active', e.target.checked)} style={{ cursor: 'pointer' }} />
+                    </td>
+                    {isMulti && (
+                      <td>
+                        <button className="btn-ghost btn-sm" style={{ color: '#da1e28' }} onClick={() => removeComponent(c.id)} disabled={components.length <= 1}>×</button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {addUnitForComponent !== null && (
+            <div className="inline-form" style={{ background: '#e3f2fd', borderColor: '#0f62fe', borderStyle: 'solid', marginBottom: 12 }}>
+              <strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>Add New Unit of Measure</strong>
+              <p style={{ fontSize: 11, color: '#525252', margin: '0 0 10px 0' }}>
+                Adds a new unit to <strong>Master Lists → Units of Measure</strong> and selects it for the current component. Visible to all tests deployment-wide.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 2 }}>Code *</label>
+                  <input
+                    type="text"
+                    value={newUnit.code}
+                    onChange={e => setNewUnit({ ...newUnit, code: e.target.value })}
+                    placeholder="e.g., µg/m³"
+                    autoFocus
+                    style={{ width: '100%', padding: 6, border: '1px solid #d0d0d0', borderRadius: 3, fontFamily: 'monospace' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 2 }}>Display Name</label>
+                  <input
+                    type="text"
+                    value={newUnit.display}
+                    onChange={e => setNewUnit({ ...newUnit, display: e.target.value })}
+                    placeholder="defaults to Code"
+                    style={{ width: '100%', padding: 6, border: '1px solid #d0d0d0', borderRadius: 3 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 2 }}>UCUM Code</label>
+                  <input
+                    type="text"
+                    value={newUnit.ucum}
+                    onChange={e => setNewUnit({ ...newUnit, ucum: e.target.value })}
+                    placeholder="e.g., ug/m3"
+                    style={{ width: '100%', padding: 6, border: '1px solid #d0d0d0', borderRadius: 3, fontFamily: 'monospace' }}
+                  />
+                </div>
               </div>
-              <div className="form-group">
-                <label>Significant Digits</label>
-                <input type="number" min="0" max="6" />
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-primary btn-sm" onClick={submitNewUnit} disabled={!newUnit.code.trim()}>Add Unit</button>
+                <button className="btn btn-secondary btn-sm" onClick={cancelAddUnit}>Cancel</button>
               </div>
-            </>
+            </div>
           )}
 
-          <div className="form-group">
-            <label>Default Result Value</label>
-            <input type="text" />
+          <div className="info-banner">
+            <span className="info-banner-icon">ℹ️</span>
+            Each component becomes its own FHIR Observation under one ServiceRequest. Components from one biological measurement share <code className="mono">effectiveDateTime</code>; co-collection can be expressed via <code className="mono">Observation.derivedFrom</code> or <code className="mono">hasMember</code>. Components are not the same as Panels — see the Panels section for ordering multiple separate tests together.
           </div>
 
-          {(resultType === 'Select List' || resultType === 'Multi-select') && (
+          {components.some(c => c.resultType === 'Select List' || c.resultType === 'Multi-select') && (
             <div className="tile">
-              <div className="tile-header">Select List Options</div>
+              <div className="tile-header">
+                Select List Options
+                {isMulti && <span style={{ fontSize: 11, fontWeight: 'normal', color: '#525252', marginLeft: 8 }}>(per component — showing first applicable)</span>}
+              </div>
               <div className="table-container" style={{ marginBottom: 12 }}>
                 <table className="data-table" style={{ fontSize: '12px' }}>
                   <thead>
                     <tr>
                       <th>≡</th>
+                      {isMulti && <th>Component</th>}
                       <th>Value</th>
                       <th>Display Order</th>
                       <th>Active</th>
@@ -516,15 +717,19 @@
                     </tr>
                   </thead>
                   <tbody>
-                    {selectOptions.map(opt => (
-                      <tr key={opt.id}>
-                        <td>≡</td>
-                        <td><code className="mono">{opt.value}</code></td>
-                        <td>1</td>
-                        <td><input type="checkbox" checked={opt.active} /></td>
-                        <td><button className="btn-ghost btn-sm">Edit</button> <button className="btn-ghost btn-sm">Delete</button></td>
-                      </tr>
-                    ))}
+                    {selectOptions.map(opt => {
+                      const firstSelectComp = components.find(c => c.resultType === 'Select List' || c.resultType === 'Multi-select');
+                      return (
+                        <tr key={opt.id}>
+                          <td>≡</td>
+                          {isMulti && <td><code className="mono">{firstSelectComp?.code || '—'}</code></td>}
+                          <td><code className="mono">{opt.value}</code></td>
+                          <td>1</td>
+                          <td><input type="checkbox" defaultChecked={opt.active} /></td>
+                          <td><button className="btn-ghost btn-sm">Edit</button> <button className="btn-ghost btn-sm">Delete</button></td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -546,6 +751,7 @@
               <thead>
                 <tr>
                   <th>≡</th>
+                  {isMulti && <th>Component</th>}
                   <th>Code</th>
                   <th>Label</th>
                   <th>Value/Range</th>
@@ -564,11 +770,12 @@
                 ].map((int, idx) => (
                   <tr key={idx}>
                     <td>≡</td>
+                    {isMulti && <td><code className="mono">{components[0].code}</code></td>}
                     <td><code className="mono">{int.code}</code></td>
                     <td><span className={`tag tag-${int.color === 'red' ? 'red' : int.color === 'orange' ? 'warm-gray' : int.color === 'yellow' ? 'gray' : int.color}`}>{int.label}</span></td>
                     <td>{int.value}</td>
                     <td style={{ fontSize: '11px', color: '#525252', maxWidth: 200 }}>{int.text.substring(0, 40)}...</td>
-                    <td><input type="checkbox" checked={true} /></td>
+                    <td><input type="checkbox" defaultChecked={true} /></td>
                     <td><button className="btn-ghost btn-sm">Edit</button> <button className="btn-ghost btn-sm">Delete</button></td>
                   </tr>
                 ))}

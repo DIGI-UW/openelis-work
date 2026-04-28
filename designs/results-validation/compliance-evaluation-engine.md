@@ -14,9 +14,14 @@
 
 OpenELIS already has a reference-range mechanism that drives the per-result green/yellow/red indicator on the results entry page. The existing `evaluateResult()` function compares numeric values against a `referenceRange` row scoped by test (and optionally sample type, age, sex). Result entry shows the indicator inline next to each result; validation displays the same indicator at sign-off.
 
-**S-05 v2.0 adds one new scope dimension to that existing mechanism: compliance standard.** When a regulation-driven order is in scope, the evaluator looks for a reference range row matching the order's `complianceStandardId`. If found, it uses those bounds. If not, it falls back to the test's generic reference range (existing behavior). Tests with no regulation-specific bounds AND no generic range simply show no indicator — same as a clinical test with no reference range configured.
+**S-05 v2.0 adds two new scope dimensions to that existing mechanism: compliance standard and component.** When a regulation-driven order is in scope, the evaluator looks for reference range rows matching each of the order's selected `complianceStandardIds`. If the test is multi-component (e.g., noise pollution = heading° + dB level), the evaluator looks up a range per component independently. The existing fallback chain (regulation-specific → demographic → generic → no flag) holds.
 
-This means **no new entity, no new evaluator, no new audit trail, no new UI banner, no parallel evaluation pattern**. Just one nullable FK on `referenceRange` and a small change to the lookup query.
+This means **no new entity, no new evaluator, no new audit trail, no new UI banner, no parallel evaluation pattern**. Just two nullable scope columns on `referenceRange` and a slightly extended lookup query.
+
+> **⚠️ 2026-04-28 amendment — multi-regulation + multi-component.**
+> - **Multi-regulation:** S-03 v2.0 was amended same day to support ≥1 compliance standard per order via the `order_compliance_standard` join. The S-05 evaluator now runs the range lookup **once per selected standard**, returning N flags per result (one per regulation). The result entry inline indicator shows them **side-by-side** when more than one applies. Threshold-source annotation in expanded result detail becomes a list (one line per regulation that returned a flag).
+> - **Multi-component:** Tests may produce N labelled values per result instance (e.g., heading° + dB level). Component definitions live on the test catalog (Casey's parallel thread); S-05 just consumes them. `referenceRange` gains a nullable `component_id` so the same regulation can have different ranges for the heading vs the dB level. Result entry renders one input row per component; each evaluates independently.
+> - **Repeated readings:** A test instance may produce multiple tuples of components (e.g., a noise survey takes N readings around a building, each producing heading° + dB). These ride OE's existing `result` row pattern (Option α from the design call) — multiple result rows tied by a `reading_group_id`, each row carrying a component reference. S-05's evaluator runs per (reading, component, regulation) — same lookup chain, just iterated.
 
 ## 2. What Changed from v1.0
 
@@ -64,16 +69,25 @@ CREATE INDEX idx_referencerange_compliance ON reference_range(compliance_standar
 
 NULL values mean "generic / clinical reference range" (existing semantic). Non-NULL values scope the row to a specific compliance standard at a specific version.
 
-### 4.2 Evaluator Lookup Order
+### 4.2 Evaluator Lookup Order (amended 2026-04-28)
 
-**FR-02.** `evaluateResult(test, sample, value, order)` SHALL look up the applicable reference range in this order:
+**FR-02.** `evaluateResult(test, sample, value, component, order)` SHALL look up the applicable reference range(s).
 
-1. If `order.complianceStandardId` is non-NULL: look for a `referenceRange` row matching `(test_id, compliance_standard_id, compliance_standard_version)` from the order's stored snapshot. If found, use it.
-2. Otherwise (or if step 1 misses): look for demographic-scoped range matching `(test_id, sample_type_id, age_range, sex)`. Existing behavior.
-3. Otherwise: look for the test's generic range matching `(test_id)`. Existing behavior.
-4. Otherwise: return no flag.
+**For each selected compliance standard on the order** (read from `order_compliance_standard` join, ordered by `selectionOrder`):
 
-The evaluation result remains the existing `Normal | Abnormal | Critical` flag set — no new tier.
+1. Look for a `referenceRange` row matching `(test_id, component_id, compliance_standard_id, compliance_standard_version)` using that standard's snapshotted version. If found → emit a flag tagged with this standard.
+2. If not, fall back to `(test_id, component_id, compliance_standard_id, NULL)` (any version of that standard). If found → emit a flag.
+3. If still no match: skip to next selected standard. (No demographic fallback for regulation-scoped lookups — regulations are absolute.)
+
+**After iterating all selected standards** (or if the order has no standards selected, e.g., ad-hoc branch):
+
+4. Demographic-scoped range matching `(test_id, component_id, sample_type_id, age_range, sex)` → emit a flag tagged "demographic".
+5. Generic range matching `(test_id, component_id)` → emit a flag tagged "generic".
+6. If nothing matched: return no flag.
+
+`component_id` is NULL for single-component tests (existing OE behavior). For multi-component tests, the evaluator runs steps 1–6 once per component.
+
+**The function returns a list of (flag, source) tuples**, one per applicable regulation plus optionally one demographic/generic. Existing `Normal | Abnormal | Critical` flag set unchanged — no new tier.
 
 ### 4.3 Reference Range Admin UI
 
@@ -81,30 +95,66 @@ The evaluation result remains the existing `Normal | Abnormal | Critical` flag s
 
 The form to add/edit a range gains a single Select field: "Compliance Standard (optional)" — same set of active standards from S-01.
 
-### 4.4 Expanded Result Detail — Threshold Source Line
+### 4.4 Expanded Result Detail — Threshold Source List (amended 2026-04-28)
 
-**FR-04.** When an evaluated result is expanded on the results entry page or validation page, the panel SHALL include a one-line "Threshold source" annotation:
+**FR-04.** When an evaluated result is expanded on the results entry page or validation page, the panel SHALL include a "Threshold sources" annotation. **One line per regulation that emitted a flag**, plus optionally a demographic / generic line if those were the only matches.
 
-- If regulation-scoped range used: "PP No. 22/2021 — ≤ 25 NTU"
-- If generic range used: "Generic reference range — ≤ 25 NTU"
-- If no range matched: omit the line
+Examples:
+
+- Single-regulation order: `Threshold source · PP No. 22/2021 — ≤ 25 NTU`
+- Multi-regulation order with shared threshold: two lines:
+  - `PP No. 22/2021 — ≤ 25 NTU`
+  - `WHO-DWG-4 — ≤ 5 NTU`
+- Multi-regulation order with one match + one miss (one regulation has no threshold for this test):
+  - `PP No. 22/2021 — ≤ 25 NTU`
+  - `WHO-DWG-4 — no applicable threshold` (tagged in muted color so the miss is visible but quiet)
+- Generic-only fallback: `Generic reference range — ≤ 25 NTU`
+- Multi-component: one section header per component, each with its own threshold sources list
 
 This replaces the v1.0 "Compliance Detail Tile" — same information, simpler render, no new component.
+
+### 4.5 Result Entry Inline Indicator (amended 2026-04-28)
+
+**FR-04a.** The per-result inline flag indicator on the results entry page SHALL adapt to the number of applicable regulations:
+
+- **0 or 1 applicable regulation:** existing OE behavior — single Normal/Abnormal/Critical Tag.
+- **≥2 applicable regulations:** small grouped Tag pattern — one Tag per regulation, side by side, each labelled with the standard's short name + the per-regulation flag color. Example: `[PP 22/2021: ✓] [WHO-DWG-4: ⚠]`.
+- **Multi-component test:** flags shown per component, with the component label. Example for a noise test: `Heading: [PP 22/2021: ✓]` on one row, `dB level: [PP 22/2021: ⚠] [WHO-NOISE: ✕]` on the next.
+
+Hover or expand reveals the threshold source(s) per FR-04.
 
 ### 4.5 Version Lock
 
 **FR-05.** Range lookup uses the order's stored `complianceStandardVersion` (snapshot taken at order creation per S-03 v2.0 §5.1.5). If the standard is superseded after order entry, the order continues to use the original version's ranges. Same semantics as v1.0; just enforced by the version column on the lookup rather than a separate evaluation entity.
 
-## 5. Data Model
+## 5. Data Model (amended 2026-04-28)
 
 ```sql
--- Two columns on existing reference_range table
+-- Original v2.0 columns
 ALTER TABLE reference_range ADD COLUMN compliance_standard_id BIGINT REFERENCES compliance_standard(id);
 ALTER TABLE reference_range ADD COLUMN compliance_standard_version VARCHAR(50);
+
+-- 2026-04-28 amendment: component scope dimension for multi-component tests
+ALTER TABLE reference_range ADD COLUMN component_id BIGINT REFERENCES test_component(id);
+
+-- Indexes
 CREATE INDEX idx_referencerange_compliance ON reference_range(compliance_standard_id) WHERE compliance_standard_id IS NOT NULL;
+CREATE INDEX idx_referencerange_component ON reference_range(component_id) WHERE component_id IS NOT NULL;
+
+-- 2026-04-28 amendment: result rows gain optional component + reading_group references
+-- (test_component definitions live on the test catalog — Casey's parallel thread —
+--  but result-side columns belong here so the evaluator can pick the right range)
+ALTER TABLE result ADD COLUMN component_id BIGINT REFERENCES test_component(id);
+ALTER TABLE result ADD COLUMN reading_group_id BIGINT;  -- groups multiple readings of a multi-component test
+CREATE INDEX idx_result_reading_group ON result(reading_group_id) WHERE reading_group_id IS NOT NULL;
 ```
 
-That's it. No new entity. No new join table.
+The `referenceRange` table now has up to **three nullable scope dimensions** layered on (test, sample_type, age, sex):
+- `compliance_standard_id` (NULL = generic, non-NULL = regulation-scoped)
+- `compliance_standard_version` (only meaningful when `compliance_standard_id` is non-NULL)
+- `component_id` (NULL = single-component test, non-NULL = multi-component scope)
+
+No new entity introduced. The `test_component` table is owned by the test catalog spec (parallel thread).
 
 ## 6. API Endpoints
 
