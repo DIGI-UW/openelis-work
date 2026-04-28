@@ -160,21 +160,33 @@
 - id: test-catalog
   type: mockup
   path: designs/admin-config/test-catalog.jsx
+  preview: designs/admin-config/test-catalog.html
   category: admin-config
-  description: Comprehensive test catalog management
+  description: >
+    Test Catalog admin editor v2.3 — 14-section routed editor covering identity, result types,
+    ranges, sample storage, panels, analyzers, alerts, AMR mapping, regulatory compliance
+    thresholds, LOINC/SNOMED/CIEL/OCL terminology, and order entry configuration. Replaces
+    five separate admin pages (Test, Section, Panel, Method, Reagent). v2.3 adds Terminology
+    Mappings section, Sample & Results Configuration, click-to-open row interaction, 226 i18n keys.
   paired_with: test-catalog-spec
-  links: {}
+  links:
+    jira: ["OGC-173"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog
   added: "2026-03-03"
+  updated: "2026-04-27"
+  status: draft
 
 - id: test-catalog-spec
   type: spec
   path: designs/admin-config/test-catalog.md
   category: admin-config
-  description: Test catalog FRS
+  description: Test Catalog Management FRS v2.3 — JSX-FRS reconciliation pass with 226 i18n keys, Terminology Mappings, Sample & Results Configuration, and Alert Rules taxonomy reconciliation
   paired_with: test-catalog
   links:
     jira: ["OGC-173"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog
   added: "2026-03-03"
+  updated: "2026-04-27"
 
 # ─── Analyzer Integration ───────────────────────────────────
 
@@ -833,6 +845,54 @@
   links: {}
   added: "2026-03-18"
 
+- id: patient-report-redesign-spec
+  type: spec
+  path: designs/reports/patient-report-redesign.md
+  category: results-validation
+  description: >
+    Patient Report visual redesign spec — Carbon-aligned layout, accreditation logo, digital
+    signature block, reference range display, result interpretation flagging. Ships two JRXML
+    templates: patient_letter.jrxml (US Letter) and patient_a4.jrxml (A4), selected via Admin →
+    General Configuration → Printed Reports Configuration. Includes Jasper coordinate-level
+    implementation notes.
+  paired_with: patient-report-redesign-preview
+  links:
+    github: https://github.com/DIGI-UW/openelis-work/issues/102
+  tags:
+    - reports
+    - patient-report
+    - jasper
+    - jrxml
+    - iso-15189
+    - A4
+    - letter
+  added: "2026-04-24"
+  updated: "2026-04-27"
+
+- id: patient-report-redesign-preview
+  type: mockup
+  path: designs/reports/patient-report-redesign.html
+  category: results-validation
+  description: >
+    HTML preview of the patient report redesign — renders at US Letter and A4 dimensions with
+    a paper-size toggle in the banner. No build step required; open in any browser.
+  paired_with: patient-report-redesign-spec
+  links: {}
+  added: "2026-04-24"
+  updated: "2026-04-27"
+
+- id: patient-report-letter-jrxml
+  type: reference-data
+  path: designs/reports/patient_letter.jrxml
+  category: results-validation
+  description: >
+    JasperReports JRXML template for the patient report (US Letter, 8.5×11 in). Ready-to-use
+    implementation file — rename to patient_letter.jrxml in OpenELIS-Global-2
+    src/main/resources/reports/. Companion A4 template (patient_a4.jrxml) ships separately.
+  paired_with: patient-report-redesign-spec
+  links: {}
+  added: "2026-04-27"
+
 # ─── RBAC (Role-Based Access Control) ─────────────────────────
 
 - id: rbac-ui-mockup
@@ -1195,11 +1255,26 @@
   type: spec
   path: designs/quality/batch-workplan-reagent-qc.md
   category: quality
-  description: Batch Workplan with Reagent QC Integration FRS v1.0
+  description: >
+    Batch Workplan with Reagent QC Integration FRS v1.1. Aligns with merged Westgard QC engine
+    (OGC-41, PR #3390): QC inline entry fires QCResultCreatedEvent → async Westgard evaluator;
+    QC frequency moved from Reagent to QCControlLot; QcRun entity removed (uses QCResult);
+    PER_SHIFT frequency added; NCE override links to QCResult + QCRuleViolation audit trail.
   paired_with: batch-workplan-reagent-qc
   links:
     jira: [OGC-427]
   added: "2026-03-16"
+  updated: "2026-04-27"
+
+- id: batch-workplan-reagent-qc-changelog
+  type: spec
+  path: designs/quality/batch-workplan-reagent-qc-CHANGELOG-v1-to-v1.1.md
+  category: quality
+  description: Section-by-section diff and rationale for the v1.0 → v1.1 revision of the Batch Workplan with Reagent QC FRS
+  paired_with: batch-workplan-reagent-qc-spec
+  links:
+    jira: [OGC-427]
+  added: "2026-04-27"
 
 - id: analyzer-manual-qc
   type: mockup
@@ -1314,10 +1389,26 @@
   spec: designs/system/fhir-outbound-push.md
   category: system
   description: Event-driven FHIR R4 outbound push to national hub — bundle assembly, retry queue, delivery log, and admin config for endpoint/auth/per-resource toggles
+  related: [fhir-publication-settings]
   links:
     github: https://github.com/DIGI-UW/openelis-work/issues/62
     gallery: https://digi-uw.github.io/openelis-work/#/system/fhir-outbound-push
   added: "2026-03-24"
+
+- id: fhir-publication-settings
+  type: mockup
+  path: designs/system/fhir-publication-settings.jsx
+  category: system
+  description: >
+    Admin configuration page for FHIR R4 outbound publication — endpoint URL, per-resource
+    toggles (DiagnosticReport, Observation, ServiceRequest, Device, Organization), auth modes
+    (API key, OAuth 2.0, Basic auth, Private Key JWT with public key upload), DHIS2 push URL,
+    and live connection test. Companion admin UI for the FHIR Outbound Push pipeline (OGC-446).
+  related: [fhir-outbound-push]
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/system/fhir-publication-settings
+  added: "2026-04-27"
+  status: draft
 
 - id: storage-disposition-fhir
   type: both
@@ -1809,6 +1900,21 @@
     - QC
     - infection-rate
   added: "2026-04-20"
+  updated: "2026-04-27"
+  status: draft
+
+- id: vector-surveillance-reporting-fhir-considerations
+  type: spec
+  path: designs/vector-surveillance/vector-surveillance-reporting-fhir-considerations.md
+  category: vector-surveillance
+  description: >
+    V-04 FHIR architecture considerations — FHIR R4 coverage assessment for vector surveillance
+    data, extension design aligned with WHO Vector Surveillance DAK/FHIR IG, CodeSystem URI
+    namespacing under openelis-global.org/fhir/, and implementation guidance for Piotr's review.
+  related: [vector-surveillance-reporting]
+  links:
+    jira: ["OGC-527"]
+  added: "2026-04-27"
   status: draft
 
 - id: lh-delivery-sent-messages
@@ -2054,6 +2160,7 @@
     - crosswalk
     - planning
   added: "2026-04-24"
+  updated: "2026-04-27"
   status: draft
 
 - id: eqa-v2-ept-platform-crosswalk

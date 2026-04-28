@@ -28,15 +28,24 @@ The dev is not starting from a blank Jasper file. They open the existing `patien
 1. **Insert a `<style>` block** at the top of the JRXML with the tokens from §6 (includes B&W-safe redundancy styles per §17). (2 min)
 2. **Move and resize** the elements inside the `Accession Number` group header frame — from the current 11-cell grid to the two-column card in the new layout (§7.2). (~12 min, the biggest edit)
 3. **Replace** the hard-coded `"  Nom, Prenom(s)"` static text with `$P{localization}.get("patientName")`. Add the i18n key to `MessageResources_*.properties`. (2 min)
-4. **Adjust detail-row elements** — add the row-highlight conditional style, the abnormal arrow glyph (↑/↓) and method sub-line per §7.5, change font sizes per §6, nudge column widths. (~6 min)
+4. **Adjust detail-row elements** — add the row-highlight conditional style (including the **critical** variant — 6pt left-rule, double-arrow ⇈/⇊, inline CRITICAL chip), the abnormal arrow glyph (↑/↓) and method sub-line per §7.5, change font sizes per §6, nudge column widths. (~7 min)
 5. **Rebuild the legend** in the column footer — replace the two concatenated text lines with five separate `<textField>` cells using the new legend labels (§7.6). (~3 min)
 6. **Add the accreditation logo slot** to the existing person-group footer (§7.7a) and clean up stranded backcolor values (`#FF9999`, `#66FF66`, `#33FFFF` → `#FFFFFF`). (~2 min)
-7. **Duplicate to A4** — copy `patient_letter.jrxml` → `patient_a4.jrxml`, change `pageWidth="612"` to `595`, `pageHeight="792"` to `842`, and scale the six horizontal widths called out in §16. (~3 min)
-8. **Smoke test** both templates with the standard patient report fixture — verify the arrow glyph prints in B&W, the method sub-line appears when populated, and the accreditation logo renders (or stays blank via `onErrorType="Blank"` when the image parameter is null). (~3 min)
+7. **Add round-4 row additions** — HIL specimen-quality chip slot (§7.5 — dormant placeholder per §18), method sub-line conditional for R-flag rows (performing-lab disclosure per §7.5), and the critical-notification footnote row (§7.5). (~5 min)
+8. **Add round-4 page additions** — version/supersedes line under the corrected banner (§7.1a) and the Critical Value Notifications appendix on the last page of each accession (§7.9). (~4 min)
+9. **Duplicate to A4** — copy `patient_letter.jrxml` → `patient_a4.jrxml`, change `pageWidth="612"` to `595`, `pageHeight="792"` to `842`, and scale the six horizontal widths called out in §16. (~3 min)
+10. **Smoke test** both templates with the standard patient report fixture — verify the arrow glyph prints in B&W, the method sub-line appears when populated, the accreditation logo renders (or stays blank via `onErrorType="Blank"` when the image parameter is null), the HIL chip stays blank when `specimenQualityFlags` is null (dormant — see §18), the critical-notification footnote prints when `criticalNotifiedTo` is non-empty, the performing-lab line replaces the method sub-line on R-flag rows, and the version-supersedes line prints when `reportVersion > 1`. (~4 min)
 
-Total: ~33 min. An experienced Jasper dev will go faster.
+Total: ~46 min. An experienced Jasper dev will go faster. The +12 min vs round 3 is round-4 row/page additions plus their smoke-test variants.
 
-**Backend sub-task (separate dev, not counted in the 33 min):** expose `methodName` on `PatientReportBean` — see §14 "Related backend work".
+**Backend sub-tasks (separate dev, not counted in the 46 min):**
+
+- (a) Expose `methodName` on `PatientReportBean` — small, see §14(a).
+- (b) Derive `HH`/`LL` into the existing `alerts` string from `ResultLimit.criticalLow`/`criticalHigh` — small, see §14(b).
+- (c) Expose `performingLabName` + `performingLabAccreditation` on `PatientReportBean` from the existing referral-lab record — small, see §14(c).
+- (d) Add critical-notification audit log + expose to bean — medium, new audit table, see §14(d).
+- (e) Add report-version tracking + expose to bean — medium, new version-history table or extension to existing audit, see §14(e).
+- (f) **HIL specimen-quality** — large, separate epic spanning analyzer framework, schema, parser, and validator UI. Out of this ticket. See §18 for the placeholder + epic scope.
 
 **Deferred to follow-on tickets** (documented here so the next dev can pick them up without re-specifying):
 
@@ -100,8 +109,15 @@ Paste this inside `<jasperReport>` after the `<parameter>` / before the `<queryS
 <style name="ColHeader" fontName="SansSerif" size="7" isBold="true" forecolor="#525252" pdfFontName="Helvetica-Bold"/>
 <style name="ResultValue" fontName="SansSerif" size="9" forecolor="#161616" pdfFontName="Helvetica"/>
 <style name="ResultValueAbnormal" fontName="SansSerif" size="9" isBold="true" forecolor="#da1e28" pdfFontName="Helvetica-Bold"/>
+<style name="ResultValueCritical" fontName="SansSerif" size="9.5" isBold="true" forecolor="#a00000" pdfFontName="Helvetica-Bold"/>
 <style name="ResultArrow" fontName="SansSerif" size="10" isBold="true" forecolor="#161616" pdfFontName="Helvetica-Bold"/>
+<style name="ResultArrowCritical" fontName="SansSerif" size="11" isBold="true" forecolor="#a00000" pdfFontName="Helvetica-Bold"/>
+<style name="CriticalChip" fontName="SansSerif" size="7" isBold="true" forecolor="#FFFFFF" backcolor="#a00000" pdfFontName="Helvetica-Bold" mode="Opaque"/>
 <style name="MethodSubline" fontName="SansSerif" size="7" forecolor="#6f6f6f" pdfFontName="Helvetica"/>
+<style name="ReferralLabSubline" fontName="SansSerif" size="7" isItalic="true" forecolor="#525252" pdfFontName="Helvetica-Oblique"/>
+<style name="HilChip" fontName="Monospaced" size="7" isBold="true" forecolor="#525252" backcolor="#fff8c5" pdfFontName="Courier-Bold" mode="Opaque"/>
+<style name="NotifAudit" fontName="SansSerif" size="7" isItalic="true" forecolor="#6f6f6f" pdfFontName="Helvetica-Oblique"/>
+<style name="VersionMeta" fontName="SansSerif" size="8" isItalic="true" forecolor="#FFFFFF" pdfFontName="Helvetica-Oblique"/>
 <style name="NoteRow" fontName="SansSerif" size="8" isItalic="true" forecolor="#525252" backcolor="#f4f4f4" pdfFontName="Helvetica-Oblique"/>
 <style name="Legend" fontName="SansSerif" size="7" forecolor="#525252" pdfFontName="Helvetica"/>
 <style name="PageFooterText" fontName="SansSerif" size="7" forecolor="#6f6f6f" pdfFontName="Helvetica"/>
@@ -109,6 +125,7 @@ Paste this inside `<jasperReport>` after the `<parameter>` / before the `<queryS
 <!-- Rule colors -->
 <!-- Brand navy rule  #295785  – used on section underline, p2 strip accent -->
 <!-- Error rule       #da1e28  – abnormal high / abnormal flag -->
+<!-- Critical rule    #a00000  – critical high / critical low (6pt, thicker than abnormal) -->
 <!-- Info rule        #0043ce  – abnormal low -->
 <!-- Divider          #e0e0e0  – generic subtle rule -->
 <!-- Divider strong   #c6c6c6  – column header underline -->
@@ -120,6 +137,16 @@ Jasper supports `<conditionalStyle>` inside a `<style>`. Add this to the result-
 
 ```xml
 <style name="ResultRow" fontName="SansSerif" size="9" forecolor="#161616">
+  <!-- Critical branches must be evaluated FIRST — HH/LL are a superset of abnormal
+       so an "HH" result would otherwise match the "H" branch and lose the critical tint. -->
+  <conditionalStyle>
+    <conditionExpression><![CDATA["HH".equals($F{alerts})]]></conditionExpression>
+    <style backcolor="#ffe0e0" forecolor="#161616" mode="Opaque" isBold="true"/>
+  </conditionalStyle>
+  <conditionalStyle>
+    <conditionExpression><![CDATA["LL".equals($F{alerts})]]></conditionExpression>
+    <style backcolor="#ffe0e0" forecolor="#161616" mode="Opaque" isBold="true"/>
+  </conditionalStyle>
   <conditionalStyle>
     <conditionExpression><![CDATA[$F{abnormalResult} == Boolean.TRUE && "H".equals($F{alerts})]]></conditionExpression>
     <style backcolor="#fff1f1" forecolor="#161616" mode="Opaque"/>
@@ -153,6 +180,21 @@ All coordinates assume the existing 552pt column width (pageWidth 612, L/R margi
 
 - The existing `"correctedReport"` banner textField at `0 93 552 22` — change size from 13 to 11, add `mode="Opaque" backcolor="#b38600" forecolor="#FFFFFF"` so it becomes a colored bar (only renders when `$F{correctedResult}` is true — existing `printWhenExpression` preserved).
 - The existing `$R{report.results} + " " + $F{completeFlag}` textField at `1 115 550 23` — demote to a right-aligned small chip: reduce to `420 115 131 16`, style `FacilityMeta`, add surrounding `<ellipse>` or rounded rectangle with `backcolor="#e8e8e8"` (for "Complete") or `#fcf4d6` (for "Partial"). Logic via conditional style on the completeFlag value.
+
+### 7.1a Corrected report — version + supersedes line
+
+When `correctedResult == true`, the existing corrected banner is followed by a small version line that names this issue, names the issue it supersedes, and summarizes what changed. This satisfies ISO 15189 §7.4.1.7 (a corrected report must identify the version it supersedes) and gives the clinician a one-glance answer to "what's different?"
+
+| Element | Position (x y w h) | Content | Style |
+|---|---|---|---|
+| Version meta line | `0 115 552 14` | `$P{localization}.get("reportVersionLabel") + " v" + $P{reportVersion} + " — " + $P{localization}.get("supersedes") + " v" + ($P{reportVersion} - 1) + " " + $P{localization}.get("issuedOn") + " " + $P{priorVersionDate} + ". " + $P{localization}.get("changes") + ": " + $P{correctionSummary}` | VersionMeta — sits inside the corrected banner's gold backcolor (`#b38600`); italic white, 8pt |
+| `printWhenExpression` | — | `$P{correctedResult} == Boolean.TRUE && $P{reportVersion} != null && $P{reportVersion} > 1` | — |
+
+When the report is the first issue, all three parameters (`reportVersion`, `priorVersionDate`, `correctionSummary`) are null and this line silently suppresses. When the report is the first *corrected* issue (v2), the line reads e.g. `Report v2 — Supersedes v1 issued 12 Apr 2026 10:24. Changes: Hemoglobin corrected from 11.3 to 12.3 g/dL.`
+
+**Banner height adjustment:** the corrected banner's textField at `0 93 552 22` extends to `0 93 552 36` to host the version line. The banner itself remains a single `<frame>` with `mode="Opaque" backcolor="#b38600"` so both lines sit on the same gold background.
+
+**Parameters added** (see §10 update): `reportVersion` (Integer), `priorVersionDate` (String), `priorVersionId` (String, used in the appendix index), `correctionSummary` (String). All four are populated by the bean populator from the new report-version-history audit (§14(e)) — null-safe on first issues.
 
 ### 7.2 Accession group header — first page frame (current height 84pt → new height 120pt)
 
@@ -242,19 +284,25 @@ Remove the outer `<frame>` with 0.5pt pen on all sides — it's visually heavy a
 
 | Element | Position | Content | Style |
 |---|---|---|---|
-| Left-edge accent | line `0 0 3 22` | — | conditional via §6: **solid** `#da1e28` when abnormal high, **dashed 2-2** `#0043ce` when abnormal low (`pen lineStyle="Dashed"`), transparent otherwise. Line style is the non-color redundant cue per §17. |
-| Row background | rectangle `3 0 549 22` | — | uses ResultRow conditional style |
+| Left-edge accent — **abnormal** | line `0 0 3 22` | — | conditional via §6: **solid** `#da1e28` when abnormal high, **dashed 2-2** `#0043ce` when abnormal low (`pen lineStyle="Dashed"`), transparent otherwise. Line style is the non-color redundant cue per §17. |
+| Left-edge accent — **critical** | line `0 0 6 22` (overlay, wider) | — | `#a00000`, solid, pen 6.0 — renders **only** when `"HH".equals($F{alerts}) \|\| "LL".equals($F{alerts})`. Prints on top of the 3pt abnormal rule; the extra width is the non-color redundant cue so a B&W photocopy shows a visibly thicker bar on critical rows. |
+| Row background | rectangle `3 0 549 22` | — | uses ResultRow conditional style (includes critical branch at `#ffe0e0`) |
 | Test name | `8 2 210 14` | `$F{testName}` markup="html" | ResultValue, with `padding-left: 14` when `parentMarker == false && panelName != null` (panel child) |
-| Method sub-line | `8 15 320 8` | `$F{methodName}` | MethodSubline (7pt muted), `printWhenExpression="$F{methodName} != null && !$F{methodName}.isEmpty()"` — indents match the test-name column |
+| Method sub-line — **default** | `8 15 240 8` | `$P{localization}.get("method") + ": " + $F{methodName}` | MethodSubline (7pt muted), `printWhenExpression="$F{methodName} != null && !$F{methodName}.isEmpty() && (!\"R\".equals($F{alerts}) && !$F{alerts}.contains(\"R\"))"` — indents match the test-name column. Renders for non-R results that have a method. |
+| Method sub-line — **R-flag (referral) variant** | `8 15 320 8` | `$P{localization}.get("performedBy") + " " + $F{performingLabName}` | ReferralLabSubline (7pt italic muted), `printWhenExpression="$F{alerts} != null && $F{alerts}.contains(\"R\")"` — replaces the method sub-line when the test was referred to an external lab. ISO 15189 §7.4.1.6 (referral-lab disclosure — performing-lab identification). The receiving lab's accreditation status is *not* rendered here because OpenELIS does not model external labs' accreditation scopes — see §14(c) for the rationale. The Test Accreditation epic (parent + 4 sub-issues) handles **report-level** accreditation rendering for the home lab's tests via header logos. |
+| HIL chip (placeholder — see §18) | `250 15 60 8` | `$F{specimenQualityFlags}` (e.g. `H+ I− L−`) | HilChip (7pt mono bold, fff8c5 yellow background), `printWhenExpression="$F{specimenQualityFlags} != null && !$F{specimenQualityFlags}.isEmpty()"` — **dormant** until the HIL backend epic ships. Field is parameterized; the cell stays blank on every row until the populator can supply the value. |
 | Specimen sort | `224 2 40 18` | `$F{sampleSortOrder}` | ResultValue, center, mono |
-| Arrow glyph | `256 2 10 18` | Unicode `\u2191` when `"H".equals($F{alerts})`, `\u2193` when `"L".equals($F{alerts})`, empty otherwise | ResultArrow, center — **the B&W-safe abnormal signal** (visible in any monochrome photocopy) |
-| Result value | `268 2 90 18` | `$F{result}` markup="styled", text-align right | ResultValueAbnormal when `abnormalResult == true`, else ResultValue |
-| Reference range | `362 2 100 18` | `$F{testRefRange}` | ResultValue, muted |
+| Arrow glyph | `256 2 10 18` | Unicode `\u2191` when `"H".equals($F{alerts})`, `\u2193` when `"L".equals($F{alerts})`, `\u21C8` (⇈) when `"HH".equals($F{alerts})`, `\u21CA` (⇊) when `"LL".equals($F{alerts})`, empty otherwise | ResultArrow (abnormal) / ResultArrowCritical (HH/LL), center — **the B&W-safe abnormal signal** (visible in any monochrome photocopy). Double-arrow carries the critical distinction through B&W. |
+| Result value | `268 2 70 18` | `$F{result}` markup="styled", text-align right | ResultValueCritical when `"HH".equals($F{alerts}) \|\| "LL".equals($F{alerts})`, ResultValueAbnormal when `abnormalResult == true`, else ResultValue. Width trimmed from 90→70 to make room for the CRITICAL chip. |
+| CRITICAL chip | `340 4 52 14` | `$P{localization}.get("critical")` | CriticalChip, center — `printWhenExpression="\"HH\".equals($F{alerts}) \|\| \"LL\".equals($F{alerts})"`. Uppercase pill renders only on critical rows; 2pt padding on each side. |
+| Reference range | `362 2 100 18` | `$F{testRefRange}` | ResultValue, muted — **shifts right by 22pt to `384 2 78 18` when the chip prints** (use a `printWhen`-paired pair of textFields, or position conditionally). On non-critical rows, width stays at 100. |
 | Units | `466 2 54 18` | `$F{uom}` | ResultValue, muted |
-| Flag | `524 2 28 18` | `$F{alerts}` markup="html" | ResultValueAbnormal, center |
+| Flag | `524 2 28 18` | `$F{alerts}` markup="html" | ResultValueAbnormal (H/L/*) or ResultValueCritical (HH/LL), center |
 | Bottom divider | line `3 29 549 1` | — | #e0e0e0 |
 
 Panel parent row uses the ResultRow conditional style's `parentMarker` branch (bg #f4f4f4, bold). Panel child rows (where `parentMarker == false`) indent the test name by 14pt. The method sub-line also prints inside panel-child rows but suppresses (via printWhen) on panel-parent rows, where it's semantically redundant (the parent aggregates multiple child methods).
+
+**Critical-row semantics.** The critical branch is triggered exclusively by the `alerts` field value being `"HH"` (critically high) or `"LL"` (critically low). The bean populator computes this from the existing `ResultLimit.criticalLow` / `ResultLimit.criticalHigh` thresholds at report-generation time and writes `HH` / `LL` into the `alerts` string — no new bean field is introduced. See §14 "Related backend work" for the populator change.
 
 **Optional note row (16pt, conditional on `$F{note} != null`):**
 
@@ -265,22 +313,37 @@ Panel parent row uses the ResultRow conditional style's `parentMarker` branch (b
 | Note label | `28 23 40 12` | "Note" (or `$P{localization}.get("note")`, new key) | BlockLabel |
 | Note text | `72 23 478 14` | `$F{note}` markup="styled" | NoteRow |
 
+**Optional critical-notification footnote row (14pt, conditional on `$F{criticalNotifiedTo} != null`):**
+
+When a critical (HH/LL) result was notified to a clinician, the audit trail prints directly under the result row (or under the operator note row, if both are present). Renders with a phone-call glyph at the indicator position so it's visually distinct from operator notes. Cumulatively listed in the §7.9 appendix on the last page.
+
+| Element | Position (relative to band, post-note-row offset) | Content | Style |
+|---|---|---|---|
+| Background | rectangle `22 38 530 14` (or `22 22 530 14` when no note row) | — | fill #fff8e8 (subtle amber tint to distinguish from grey note row) |
+| Phone glyph | `28 39 12 12` | `☎` (☎) | NotifAudit (7pt italic), text-align center |
+| Label | `42 39 80 12` | `$P{localization}.get("criticalNotified")` | BlockLabel (uppercase 7pt) |
+| Notification text | `124 39 426 12` | `$F{criticalNotifiedTo} + " " + $F{criticalNotifiedAt} + " · " + $P{localization}.get("readback") + " " + $F{criticalReadbackBy} + " " + $F{criticalReadbackAt}` | NotifAudit (7pt italic) |
+| `printWhenExpression` | — | `$F{criticalNotifiedTo} != null && !$F{criticalNotifiedTo}.isEmpty()` | — |
+
+The four fields (`criticalNotifiedTo`, `criticalNotifiedAt`, `criticalNotifiedBy`, `criticalReadbackBy`, `criticalReadbackAt`) are populated by the new critical-notification audit log (§14(d)) on the bean. Null-safe — when no notification was logged for this result, the row suppresses entirely. When a critical result has no recorded notification, the populator should leave the fields null and the row silently omits — but a separate validator-side AC ensures critical results without notifications are flagged before validation, not after print.
+
 ### 7.6 Section group footer & column footer
 
 Leave the section group footer empty (as it is now).
 
 **Column footer (current 30pt, keep 30pt):**
 
-Replace the two concatenated text lines with five one-line legend items plus a clinical-conclusion block that renders only on the last page of the accession.
+Replace the two concatenated text lines with six one-line legend items plus a clinical-conclusion block that renders only on the last page of the accession.
 
 | Element | Position | Content | Style |
 |---|---|---|---|
-| "Legend" label | `0 2 50 14` | `$R{report.legend}` | BlockLabel |
-| H flag | `52 2 120 14` | `<b><color red>H</color></b> ` + `$R{report.aboveNormal}` markup="html" | Legend |
-| L flag | `172 2 120 14` | `<b><color blue>L</color></b> ` + `$R{report.belowNormal}` | Legend |
-| * flag | `292 2 100 14` | `<b><color red>*</color></b> ` + `$R{report.abnormal}` | Legend |
-| R flag | `392 2 80 14` | `<b>R</b> ` + `$R{report.extLabReference}` | Legend |
-| C flag | `472 2 80 14` | `<b>C</b> ` + `$R{report.confirmTest}` | Legend |
+| "Legend" label | `0 2 40 14` | `$R{report.legend}` | BlockLabel |
+| H flag | `42 2 100 14` | `<b><color red>H</color></b> ` + `$R{report.aboveNormal}` markup="html" | Legend |
+| L flag | `144 2 100 14` | `<b><color blue>L</color></b> ` + `$R{report.belowNormal}` | Legend |
+| * flag | `246 2 80 14` | `<b><color red>*</color></b> ` + `$R{report.abnormal}` | Legend |
+| HH/LL flag | `328 2 120 14` | `<b><color=#a00000>HH</color></b> / <b><color=#a00000>LL</color></b> ` + `$P{localization}.get("critical")` markup="html" — uses `⇈`/`⇊` glyphs in the label `<b>⇈⇊</b> Critical` if the localization bundle carries the glyphs; otherwise falls back to `HH / LL` | Legend |
+| R flag | `450 2 50 14` | `<b>R</b> ` + `$R{report.extLabReference}` | Legend |
+| C flag | `502 2 50 14` | `<b>C</b> ` + `$R{report.confirmTest}` | Legend |
 | Top rule | line `0 0 552 1` | — | #e0e0e0 |
 
 **Conclusion block** (new, optional) — render only if `$F{conclusion} != null && !$F{conclusion}.isEmpty()`. Place in the column footer or a new summary band:
@@ -338,6 +401,35 @@ Replace the current three-element layout with a clean three-column footer:
 | Right: page X of Y | `432 6 120 12` | `"Page " + $V{PAGE_NUMBER} + " " + $P{localization}.get("about") + " " + $V{PAGE_NUMBER}` (keep the existing Group-evaluated "of Y" pattern) | PageFooterText, right |
 | Top rule | line `0 0 552 1` | — | #e0e0e0 |
 
+### 7.9 Critical Value Notifications appendix (last page only)
+
+When the accession contains one or more critical (HH/LL) results, a small appendix table prints on the last page of the accession, between the optional Conclusion block and the Sign-off footer. This is the regulator-friendly aggregated audit trail (per CAP/CLSI critical-value reporting expectations); the per-row footnote (§7.5) is the clinician-friendly point-of-context view. Both source from the same audit fields — duplication is intentional.
+
+The appendix renders only when the dataset has at least one row with `criticalNotifiedTo != null`. If no criticals were notified across the entire accession, the appendix suppresses entirely.
+
+**Appendix band — full-width, variable height (one row per notification, ~12pt each):**
+
+| Element | Position (x y w h) | Content | Style |
+|---|---|---|---|
+| Top rule | line `0 0 552 1` | — | #c6c6c6, pen 1.5 |
+| Section title | `0 4 552 14` | `$P{localization}.get("criticalNotificationsAppendix")` | SectionTitle, uppercase, brand navy |
+| Subtitle | `0 20 552 10` | `$P{localization}.get("criticalNotificationsSubtitle")` (e.g. "Per CAP/CLSI critical-value reporting policy") | FieldLabel, italic |
+| Table top rule | line `0 36 552 1` | — | #161616 |
+| Col: Test | `0 38 160 12` | `$P{localization}.get("test")` | ColHeader |
+| Col: Result | `162 38 80 12` | `$P{localization}.get("outcome")` | ColHeader, right |
+| Col: Notified | `244 38 130 12` | `$P{localization}.get("notifiedRecipient")` | ColHeader |
+| Col: At | `376 38 60 12` | `$P{localization}.get("notifiedAt")` | ColHeader |
+| Col: By | `438 38 56 12` | `$P{localization}.get("notifiedBy")` | ColHeader |
+| Col: Readback | `496 38 56 12` | `$P{localization}.get("readback")` | ColHeader |
+| Header underline | line `0 51 552 1` | — | #c6c6c6 |
+| Repeating row band | `0 0 552 12` | — | one per notification — driven by a sub-dataset `criticalNotifications` on the bean |
+
+**Sub-dataset:** the appendix iterates a list `$P{criticalNotifications}` on `PatientReportBean` — a `List<CriticalNotificationEntry>` where each entry has `testName`, `result`, `notifiedTo`, `notifiedAt`, `notifiedBy`, `readbackBy`, `readbackAt`. The populator builds this list once at report-gen time by scanning all critical-flagged results in the accession and joining their notification audit records.
+
+**Layout note:** the appendix uses a `<subreport>` rather than an inline band so the row count varies cleanly. JRXML pattern: a one-band subreport `patient_critical_notifications.jrxml` (~150 lines, very small) embedded at the appendix slot. Same approach we use for the page-header and -footer subreports today.
+
+**Empty-state:** when the parent `criticalNotifications` list is empty, the entire appendix `printWhenExpression="$P{criticalNotifications} != null && !$P{criticalNotifications}.isEmpty()"` suppresses — including the section title rule. No empty-table artifact prints.
+
 ## 8. i18n keys — additions & fixes
 
 ### Fix
@@ -361,6 +453,25 @@ Add these to the message-resource bundles (English + French at minimum). The key
 | `patientName` | Last name, First name | Nom, Prénom(s) |
 | `method` | Method | Méthode |
 | `accreditedBy` | Accredited by | Accrédité par |
+| `critical` | Critical | Critique |
+| `criticalAbove` | Critical — above panic range | Critique — supérieur à la valeur panique |
+| `criticalBelow` | Critical — below panic range | Critique — inférieur à la valeur panique |
+| `performedBy` | Performed by | Effectué par |
+| `criticalNotified` | Critical notified | Critique notifié |
+| `readback` | readback | confirmation |
+| `criticalNotificationsAppendix` | Critical Value Notifications | Notifications de valeurs critiques |
+| `criticalNotificationsSubtitle` | Audit log of critical-result notifications for this accession | Journal d'audit des notifications de valeurs critiques pour cette demande |
+| `notifiedRecipient` | Notified recipient | Destinataire notifié |
+| `notifiedAt` | Time | Heure |
+| `notifiedBy` | By | Par |
+| `reportVersionLabel` | Report | Rapport |
+| `supersedes` | Supersedes | Remplace |
+| `issuedOn` | issued on | émis le |
+| `changes` | Changes | Modifications |
+| `specimenQuality` | Specimen quality | Qualité du prélèvement |
+| `hemolyzed` | Hemolyzed | Hémolysé |
+| `icteric` | Icteric | Ictérique |
+| `lipemic` | Lipemic | Lipémique |
 
 All other keys (`idNational`, `ordinanceNo`, `program`, `prescriber`, `referringSite`, `orderDate`, `receiptDate`, `patientCode`, `specimenCollectTimes`, `labInfomation`, `signValidation`, `test`, `specimen`, `outcome`, `referenceValue`, `unit`, `alert`, `status`, `analysisReport`, `correctedReport`, `about`, `reportDate`, `date`) are already used in the current JRXML and keep their existing translations.
 
@@ -391,7 +502,7 @@ All other keys (`idNational`, `ordinanceNo`, `program`, `prescriber`, `referring
 | 21 | `testName` | String | Detail col @ (0,0) w=111 | Detail col 1 | Panel children indent 14pt |
 | 22 | `result` | String | Detail col @ (146,0) w=117, right-aligned | Detail col 4 "Result", right-aligned tabular | ResultValueAbnormal when abnormal |
 | 23 | `analysisStatus` | String | Detail col @ (263,0) w=60 | Detail col (inline with result, small caps) OR drop from visible — evaluate with stakeholders; current content often redundant with `result` | See open question Q2 |
-| 24 | `alerts` | String | Detail col @ (323,0) w=34, center | Detail col 6 "Flag" + drives row conditional styling | |
+| 24 | `alerts` | String | Detail col @ (323,0) w=34, center | Detail col 6 "Flag" + drives row conditional styling | Valid values: `H` (abnormal high), `L` (abnormal low), `*` (abnormal generic), `HH` (critical high — **new**), `LL` (critical low — **new**), `R` (external reference), `C` (confirmation). HH/LL are set by the bean populator when the result crosses `ResultLimit.criticalLow` / `ResultLimit.criticalHigh` — see §14 Related backend work. |
 | 25 | `testRefRange` | String | Detail col @ (357,0) w=117 | Detail col 5 "Reference range" | Muted color |
 | 26 | `uom` | String | Detail col @ (474,0) w=79 | Detail col 6 "Units" | Muted color |
 | 27 | `note` | String | Secondary row @ (10,18) w=543, bg #F5F5F5 | Secondary row indented under result, bg #f4f4f4, italic muted | Uses `$F{note} != null` printWhen |
@@ -406,7 +517,15 @@ All other keys (`idNational`, `ordinanceNo`, `program`, `prescriber`, `referring
 | 36 | `patientSiteNumber` | String | Not currently placed | Optional — Patient block supplementary row when populated | |
 | 37 | `sampleId` | String | Not currently placed | Optional — adjacent to Accession # when different from accessionNumber | |
 | 38 | `orderFinishDate` | String | Passed to header subreport | Unchanged — still in header subreport | |
-| 39 | `methodName` | String | **Not on bean today** — see §14 Related backend work | Detail row sub-line at `8 15 320 8`, MethodSubline style (7pt muted), `printWhen="$F{methodName} != null && !$F{methodName}.isEmpty()"` | New field — ISO 15189 §7.4 examination procedure disclosure |
+| 39 | `methodName` | String | **Not on bean today** — see §14(a) Related backend work | Detail row sub-line at `8 15 240 8`, MethodSubline style (7pt muted), `printWhen` requires non-empty AND alerts not containing "R" | New field — ISO 15189 §7.4 examination procedure disclosure |
+| 40 | `performingLabName` | String | **Not on bean today** — see §14(c) | Detail row sub-line at `8 15 320 8` (replaces method sub-line for R-flag rows), ReferralLabSubline style | New field — ISO 15189 §7.4.1.6 referral-lab disclosure (performing-lab identification only). Receiving-lab accreditation is out of scope — OpenELIS doesn't model external labs' accreditation scopes; see §14(c) rationale. |
+| 41 | `criticalNotifiedTo` | String | **Not on bean today** — see §14(d) | Detail-row critical-notification footnote at `124 39 426 12`; also drives §7.9 appendix row | New field — recipient of critical-value verbal notification |
+| 42 | `criticalNotifiedAt` | String | **Not on bean today** — see §14(d) | Same row as above | New field — timestamp of notification |
+| 43 | `criticalNotifiedBy` | String | **Not on bean today** — see §14(d) | §7.9 appendix only (caller's initials); not on per-row footnote to keep it compact | New field — initials of notifier |
+| 44 | `criticalReadbackBy` | String | **Not on bean today** — see §14(d) | Per-row footnote + §7.9 appendix | New field — initials of recipient confirming readback |
+| 45 | `criticalReadbackAt` | String | **Not on bean today** — see §14(d) | Per-row footnote + §7.9 appendix | New field — timestamp of readback confirmation |
+| 46 | `specimenQualityFlags` | String | **Not on bean today** — dormant, see §18 (HIL backend epic) | Detail row HIL chip at `250 15 60 8`, HilChip style (7pt mono on yellow). Renders blank on every row until the HIL backend epic ships. | New field — Hemolysis/Icterus/Lipemia interference codes per ASTM LIS01-A2 (e.g. `H+ I− L−`) |
+| 47 | `criticalNotifications` | List | **Not on bean today** — see §14(d) | §7.9 appendix sub-dataset on the last page of the accession | New parameter — `List<CriticalNotificationEntry>` aggregating all per-row notifications across the accession |
 
 ## 10. Parameters (all retained)
 
@@ -429,6 +548,11 @@ All other keys (`idNational`, `ordinanceNo`, `program`, `prescriber`, `referring
 | `imagesPath` | String | Signature image path |
 | `accreditationImage` | InputStream | **New.** PNG/JPEG of the accreditation mark. Rendered in the sign-off slot per §7.7a. Null-safe via `onErrorType="Blank"`. |
 | `accreditationNumber` | String | **New.** Free-text accreditation reference (e.g. `"ISO 15189:2022 · ACC-2024-0142"`). Rendered below the mark when non-empty. |
+| `reportVersion` | Integer | **New.** Issue number of this report — `1` for the first issue, `2` for the first corrected issue, etc. Drives §7.1a version line via `printWhen` on `> 1`. Null-safe (treated as 1 when null). |
+| `priorVersionDate` | String | **New.** Date the immediately-prior version was issued (formatted via deployment locale). Rendered in §7.1a. |
+| `priorVersionId` | String | **New.** Identifier of the immediately-prior version of this report (e.g. accession + issue suffix). Used in the §7.9 appendix for cross-reference. |
+| `correctionSummary` | String | **New.** Short free-text summary of what changed between this issue and the prior. Rendered in §7.1a (e.g. `"Hemoglobin corrected from 11.3 to 12.3 g/dL"`). |
+| `criticalNotifications` | List<CriticalNotificationEntry> | **New.** Aggregated list of all critical-result notifications for this accession. Drives the §7.9 appendix sub-report. Null-safe — when empty, the appendix suppresses entirely. Each entry: `testName`, `result`, `notifiedTo`, `notifiedAt`, `notifiedBy`, `readbackBy`, `readbackAt`. |
 
 ## 11. Acceptance criteria
 
@@ -445,7 +569,14 @@ All other keys (`idNational`, `ordinanceNo`, `program`, `prescriber`, `referring
 - [ ] AC9. No hard-coded English or French strings appear in the JRXML visible elements. Running the report with `localization` set to a French `ResourceBundle` produces a fully French PDF. Running with English produces a fully English PDF.
 - [ ] AC10. The sign-off block at the bottom of the last page of each person-group shows the laboratory information, the `RTSign.jpg` image (or a blank space if the image is missing — `onErrorType="Blank"` is preserved), the director name, and the report date. **(deferred — §7.7)**
 - [ ] AC11. The page footer on every page shows "Report generated [datetime]" on the left, accession + patient code in the center, and "Page X of Y" on the right. `usePageNumbers == "false"` suppresses the page-number portion. **(deferred — §7.8)**
-- [ ] AC12. The legend in the column footer shows five labeled flags (H / L / * / R / C) pulled from the `$R{report.*}` bundle.
+- [ ] AC12. The legend in the column footer shows six labeled flags (H / L / * / HH-LL / R / C) pulled from the `$R{report.*}` bundle and the new `critical` localization key.
+- [ ] AC13. When a result row's `alerts` field equals `"HH"` or `"LL"`, the row renders with: row background `#ffe0e0`, a 6pt-wide `#a00000` left-edge rule (visibly thicker than the 3pt abnormal rule), a double-arrow glyph (`⇈` for HH, `⇊` for LL) in the arrow column, a bold darker-red result value (ResultValueCritical style, 9.5pt, `#a00000`), and an inline uppercase CRITICAL chip to the right of the result value. In B&W photocopy, the same row is identifiable by the thicker left-edge rule, double-arrow glyph, and solid black CRITICAL pill without depending on color.
+- [ ] AC14. When `alerts` equals `"H"` or `"L"` (non-critical abnormal), none of the critical visual treatments render (no 6pt rule, no double arrow, no CRITICAL chip) — only the standard 3pt rule + single arrow + abnormal tint from AC3/AC4.
+- [ ] AC15. **(round 4 — performing lab):** When `alerts` contains `"R"`, the method sub-line at position `8 15 ...` renders `Performed by {performingLabName}` instead of `Method: {methodName}`. The receiving lab's accreditation status is *not* concatenated to this line — see §14(c) rationale. When `alerts` does not contain `"R"`, the method sub-line renders the method as before. Report-level accreditation (home-lab tests via header logos) is governed separately by the Test Accreditation epic Sub-4.
+- [ ] AC16. **(round 4 — critical notification footnote):** When a critical (HH/LL) result row has `criticalNotifiedTo != null`, a 14pt footnote row prints directly under the row (or under the operator note row, when both are present) with: phone glyph (☎), uppercase "Critical notified" label, recipient name, notification timestamp, "readback" label, readback initials, readback timestamp. Background is `#fff8e8` (subtle amber tint, distinguishable from the grey operator-note tint). When `criticalNotifiedTo` is null, no footnote prints.
+- [ ] AC17. **(round 4 — critical notification appendix):** When the accession contains at least one critical result with `criticalNotifiedTo != null`, a Critical Value Notifications appendix prints on the last page of the accession with one row per notification (test, result, notified-to, time, by, readback). Header reads `$P{localization}.get("criticalNotificationsAppendix")`. When no critical notifications exist for the accession, the appendix suppresses entirely.
+- [ ] AC18. **(round 4 — version + supersedes line):** When `correctedResult == true && reportVersion > 1`, a small italic white line renders inside the gold corrected banner reading `Report v{reportVersion} — Supersedes v{reportVersion-1} issued {priorVersionDate}. Changes: {correctionSummary}.` When `reportVersion <= 1` or null, the line suppresses and the banner renders as before.
+- [ ] AC19. **(round 4 — HIL chip dormant):** The HIL chip at `250 15 60 8` is wired to the `specimenQualityFlags` field with `printWhen` non-empty. When the field is null (the default — and the only state until the §18 backend epic ships), the cell renders blank and the row layout is unchanged. When the field is non-null (post-epic), the chip prints with HilChip style (7pt mono bold on yellow `#fff8c5`).
 
 **Letter/A4 equivalence ACs** (first-round merge):
 
@@ -477,15 +608,114 @@ All other keys (`idNational`, `ordinanceNo`, `program`, `prescriber`, `referring
 
 ### Related backend work (separate sub-ticket)
 
-The `methodName` field referenced in §7.5 and §9 row 39 is **not** currently populated on `PatientReportBean`. Before the JRXML method sub-line can render, a small backend change is needed:
+Two backend changes are needed before the JRXML redesign can render the new visual signals. Both are small and live in the same populator(s) that already fill `PatientReportBean`.
+
+**(a) Expose `methodName` on `PatientReportBean`** (for the §7.5 method sub-line):
 
 1. Add `private String methodName;` + getter/setter to `org.openelisglobal.reports.action.implementation.reportBeans.PatientReportBean`.
 2. In the bean populator (typically `PatientReport.setPatientInfo()` or the loop that walks `AnalysisItem` → `Analysis` → `Method`), set `methodName` from `analysis.getMethod().getMethodName()` when the method is non-null.
 3. Null-safety: leave `methodName = null` when the analysis has no method assigned. The JRXML `printWhen` already handles the null case.
 
-**Effort:** ~15 min for a dev familiar with the reports subsystem. **Files touched:** `PatientReportBean.java`, one populator class. **No DB change.** **No API contract change.** The backend ticket can ship in the same PR as the JRXML redesign or ship just before.
+**(b) Derive critical flags (`HH` / `LL`) into the existing `alerts` string** (for the §7.5 critical row treatment + §11 AC13):
 
-The existing `AnalysisItem` already carries method information in OpenELIS-Global-2 — this is a plumb-it-through change, not a net-new domain model.
+No new bean field. The `alerts` string that feeds the flag column is extended from three values (`H` / `L` / `*`) to five (`H` / `L` / `HH` / `LL` / `*`), computed from the existing `ResultLimit` thresholds at report-generation time.
+
+1. In the same populator loop that currently computes the `abnormalResult` boolean and the `alerts` string from `ResultLimit.normalLow` / `normalHigh`, add a threshold check against `ResultLimit.criticalLow` / `ResultLimit.criticalHigh` (both nullable).
+2. Precedence: critical beats abnormal. Compute in this order so an `HH` result never comes out as `H`:
+   - If `criticalHigh != null && result >= criticalHigh` → `alerts = "HH"`, `abnormalResult = true`.
+   - Else if `criticalLow != null && result <= criticalLow` → `alerts = "LL"`, `abnormalResult = true`.
+   - Else if `result > normalHigh` → `alerts = "H"`, `abnormalResult = true`. (unchanged)
+   - Else if `result < normalLow` → `alerts = "L"`, `abnormalResult = true`. (unchanged)
+   - Else → `alerts = ""`, `abnormalResult = false`. (unchanged)
+3. Non-numeric results: skip the critical check entirely — `ResultLimit.criticalLow`/`High` are numeric, so non-numeric results fall through to the existing `"*"` generic-abnormal path if the analyzer flagged them.
+4. Legacy compatibility: deployments whose `ResultLimit` rows have never populated the critical columns (both null) behave identically to today — no HH/LL ever emitted, no visual regression.
+
+**Effort:** ~15 min for methodName (a), ~25 min for critical derivation (b) — including a unit test that covers the precedence order. **Files touched:** `PatientReportBean.java` (only for `methodName`), one or two populator classes (for both changes). **No DB change.** **No API contract change.** Both tickets can ship in the same PR as the JRXML redesign or ship just before.
+
+The existing `AnalysisItem` already carries method information in OpenELIS-Global-2, and the existing `ResultLimit` already carries `criticalLow` / `criticalHigh` — both changes are plumb-it-through wiring, not net-new domain model.
+
+**(c) Expose `performingLabName` on `PatientReportBean`** (for the §7.5 R-flag method sub-line replacement + §11 AC15):
+
+OpenELIS already tracks referral labs via the `Referral` entity (FHIR-aligned, used by the existing referred-sample-management flow per spec OGC-62). The bean populator just plumbs the lab name through:
+
+1. Add `private String performingLabName;` + getter/setter to `PatientReportBean`.
+2. In the populator, when `analysis.getReferral() != null`: set `performingLabName = referral.getReferredToLab().getName()`.
+3. Null-safety: when there's no referral, the field stays null. The JRXML `printWhen` only fires the R-flag path when `alerts` contains `"R"`, which itself is set only when there's an active referral.
+
+**Effort:** ~15 min — pure plumb-through, no schema change.
+
+**Important — accreditation reference is *not* a lab-entity concept in OpenELIS.** Test accreditation in OpenELIS is modeled per (test × accrediting body) — not per-lab. This is governed by the **Test Accreditation epic** (parent + 4 sub-issues, currently in design):
+
+- `github-issue-2-accreditation-parent.md` — epic overview
+- `github-issue-3-accreditation-sub1-data-api.md` — `accrediting_body` + `test_accreditation` tables
+- `github-issue-4-accreditation-sub2-bodies-admin.md` — Accrediting Bodies admin UI
+- `github-issue-5-accreditation-sub3-test-accreditations.md` — Test Accreditations admin UI
+- `github-issue-6-accreditation-sub4-report-render.md` — patient report render: header logos + notes line
+
+That epic's **Sub-4 already handles report-level accreditation rendering** via per-body visibility-mode evaluation (`ANY_ACCREDITED_TEST` or `PERCENTAGE`) — the report header gets one logo per qualifying body, side-by-side, plus a notes-section line listing contributing bodies. Earlier rounds of this redesign added a single hardcoded `accreditationImage` parameter (§7.7a, round 2) for the home-lab director sign-off — that's compatible with the epic but not the same surface as Sub-4's header logos.
+
+**Reconciliation note:** §7.7a's single hardcoded image will be **superseded by Sub-4** when the epic ships. Both can coexist on the JRXML during the transition (the `accreditationImage` parameter stays parameterized; deployments simply pass null once Sub-4 is live and the new render service handles header logos). No template change needed at cutover.
+
+**For the R-flag (referral) row specifically — what about the *receiving* lab's accreditation?** That is a *distinct* concern:
+
+- The Test Accreditation epic tracks **the home lab's** accreditation status of its tests. ISO 15189 §7.4.1.6 says when a test is referred out, the report must identify the performing lab; the home lab remains accountable for the report.
+- Tracking **the receiving (referral) lab's** accreditation per-test would require modeling external labs' accreditation scopes — a meaningfully bigger data model (external-lab catalogs, scope-of-accreditation lookup, currency-of-accreditation tracking). This is its own design effort, not in scope for either this redesign or the Test Accreditation epic.
+- For round 4 we therefore render only the lab name on R-flag rows. If a future ticket adds receiving-lab accreditation, the JRXML simply gets a second sub-line slot and a second bean field — no rework of what ships now.
+
+**(d) Critical-value notification audit log + populator exposure** (for §7.5 footnote + §7.9 appendix + §11 AC16, AC17):
+
+This is the largest of the round-4 backend additions. Two pieces:
+
+**(d.1) Workflow side — capture the notification.** The validator UI needs a "Notify critical" affordance on result-review screens. When a tech validates a result that the system flags as HH/LL, a modal appears requiring: recipient name, callback timestamp (auto-suggested as now), notifier initials (auto-from-session-user), readback initials, readback timestamp. The modal is non-dismissable until either filled or explicitly deferred (with a justification). Persisted to a new `result_critical_notification` audit table with FK to `result.id`.
+
+**(d.2) Report side — surface the notification on the bean.** The `PatientReportBean` populator joins `result_critical_notification` for each critical-flagged result and populates `criticalNotifiedTo`/`At`/`By`/`ReadbackBy`/`ReadbackAt` on the per-result entry. It also builds a `List<CriticalNotificationEntry> criticalNotifications` parameter (one entry per notification across the entire accession) for the §7.9 appendix.
+
+Schema sketch:
+
+```
+result_critical_notification
+  id              BIGSERIAL PK
+  result_id       FK → result(id) NOT NULL
+  notified_to     VARCHAR(120)  NOT NULL  -- recipient name, free-text
+  notified_at     TIMESTAMP     NOT NULL
+  notified_by_id  FK → systemuser(id) NOT NULL  -- caller
+  readback_by     VARCHAR(80)             -- recipient initials confirming readback
+  readback_at     TIMESTAMP
+  notes           TEXT                    -- optional ("recipient out of clinic; left voicemail")
+  created_on      TIMESTAMP DEFAULT now()
+  index on (result_id), (notified_at)
+```
+
+**Effort:** ~3–5 days for an engineer familiar with the validator UI + bean populators. Ships as its own ticket (not the same PR as the report redesign). Deployments without the audit table return null on every notification field; the report renders as if no notifications were logged. Backwards compatible.
+
+**(e) Report version tracking + populator exposure** (for §7.1a + §7.9 appendix cross-ref + §11 AC18):
+
+Today OpenELIS has a `correctedResult` boolean but no version-history. ISO 15189 §7.4.1.7 wants every issued report to identify the version it supersedes; this requires either:
+
+**Option e-1** — extend the existing `printed_report` audit log (if one exists) with a `report_version` column and a self-FK `prior_version_id`. Verify the audit log exists first; if not, create it.
+
+**Option e-2** — add a new `patient_report_issue` table:
+
+```
+patient_report_issue
+  id                BIGSERIAL PK
+  accession_number  VARCHAR(40) NOT NULL
+  report_version    INT NOT NULL
+  prior_version_id  FK → self.id NULL
+  issued_at         TIMESTAMP NOT NULL
+  issued_by_id      FK → systemuser(id) NOT NULL
+  correction_summary TEXT  -- only populated when this is a corrected issue
+  pdf_blob_ref      VARCHAR(200)  -- optional pointer to the actual PDF for legal retention
+  index on (accession_number, report_version)
+```
+
+The bean populator looks up the immediately-prior issue when `correctedResult == true` and surfaces `reportVersion`, `priorVersionDate`, `priorVersionId`, `correctionSummary` to the JRXML. On first issue (`reportVersion == 1`), all four are null and the §7.1a line suppresses.
+
+**Correction summary source:** ideally the validator UI captures a free-text "what changed" prompt at the moment of correction, persisted to `correction_summary`. Falls back to `"See prior version"` if no summary was captured.
+
+**Effort:** ~3–4 days for either option, including the validator-UI prompt for correction summary. Ships as its own ticket.
+
+**(f) HIL specimen-quality — out of this ticket entirely.** See §18 for the full backend epic placeholder. The JRXML wires the field today but renders blank until the epic ships.
 
 ---
 
@@ -632,6 +862,8 @@ Many OpenELIS deployments print reports on monochrome lasers or photocopy verifi
 | Abnormal high | Row tint `#fff1f1` + left-edge **solid** `#da1e28` | **Bold** result value + **`↑`** arrow glyph (U+2191) + "H" flag in alerts column | §7.5 |
 | Abnormal low | Row tint `#f0f6ff` + left-edge **dashed** `#0043ce` | **Bold** result value + **`↓`** arrow glyph (U+2193) + "L" flag + **dashed** left-edge (still visible as pattern in B&W) | §7.5 |
 | Abnormal generic (`alerts == "*"`) | Row tint `#fff1f1` + left-edge solid `#da1e28` | Bold result value + `*` in alerts column | §7.5 |
+| **Critical high** (`alerts == "HH"`) | Row tint `#ffe0e0` (darker than abnormal) + left-edge **6pt solid** `#a00000` (twice as thick as abnormal rule) + inline red CRITICAL chip | **Bold darker** result value (ResultValueCritical `#a00000`) + **`⇈`** double-arrow glyph (U+21C8) + "HH" flag in alerts column + **solid black CRITICAL pill** (inverse-contrast chip prints as black box with white text — unmistakable in any B&W output) + **visibly thicker left-edge rule** | §7.5 |
+| **Critical low** (`alerts == "LL"`) | Row tint `#ffe0e0` + left-edge **6pt solid** `#a00000` + inline red CRITICAL chip | **Bold darker** result value + **`⇊`** double-arrow glyph (U+21CA) + "LL" flag + **solid black CRITICAL pill** + thicker rule. Critical uses solid (not dashed) rule even for lows because the thickness itself is the redundancy — a dashed 6pt rule reads as a broken pattern in photocopy. | §7.5 |
 | Panel parent row | Bg `#f4f4f4` (prints as pale gray in B&W, identical signal) | **Bold** testName + no color dependency | §7.5 |
 | Corrected report banner | Bg `#b38600` gold | Bg prints as mid-gray; add a **1pt black top + bottom border** and **uppercase bold** text | §7.1 *(deferred)* |
 | Section title | Forecolor `#295785` navy (prints as mid-gray) | **Uppercase** + **1pt black** underline rule (already black in §7.4) | §7.4 |
@@ -648,13 +880,46 @@ If (c) fails, something is relying on color-only cue. The most common culprit is
 
 In B&W photocopy, any sub-7pt text risks becoming unreadable. This spec floors:
 
-- Result value: 9pt (unchanged)
+- Result value: 9pt (unchanged); **9.5pt for critical** (ResultValueCritical)
 - Method sub-line: 7pt (at the floor — do not reduce)
 - Legend: 7pt (at the floor)
 - Page footer: 7pt (at the floor)
 - Alert flag single char: 9pt
+- CRITICAL chip: 7pt bold uppercase (at the floor — the inverse-contrast white-on-red fill carries the visibility)
 
 Anything 6pt or smaller (current JRXML has none) is forbidden going forward.
+
+---
+
+## 18. HIL specimen-quality — backend epic (out of this ticket)
+
+**Status:** Report-level visual *designed*; backend data capture *deferred to a separate epic*.
+
+The JRXML reserves a HIL chip slot in the result-row method-sub-line area (§7.5, position `250 15 60 8`, HilChip style) and parameterizes it on a `specimenQualityFlags` field on `PatientReportBean`. The chip prints when the field is non-null and renders blank otherwise. **Today, on every deployment, the field is null** — there is nowhere in OpenELIS that this data is captured, so nothing flows to the bean, so the chip stays blank. No regression. No empty-cell artifact. No clinical risk.
+
+The backend epic is what will eventually populate the field. It is its own design effort and Casey will scope it separately (per 2026-04-27 conversation).
+
+**Why the visual ships dormant in this round:** when the epic completes and the field starts producing values, no JRXML or i18n change is needed. The chip lights up across every existing deployment automatically. This is the same pattern we use for the §7.7a accreditation logo (parameter exists today; deployments populate when ready).
+
+**Epic scope (for the future spec — not implementation here):**
+
+The HIL data path crosses six layers. Each is a discrete deliverable.
+
+1. **Schema migration.** Add `specimen_quality_flags VARCHAR(10)` to the `result` table. Format: ASTM LIS01-A2 codes (`H`/`I`/`L` followed by `+`/`−` for present/absent, e.g. `H+I−L−`). Liquibase changeset; no data backfill (legacy results stay null).
+2. **JPA entity update.** Add `specimenQualityFlags` String field to `Result.java` value-holder + getter/setter. Existing reads/writes are unaffected; the field is null by default.
+3. **Generic ASTM 1.2 profile spec extension** (specs/012-generic-astm). Add a new mapping slot — call it `specimen_quality_field_mapping` — to the per-analyzer profile. Slot defines: the source ASTM segment + field-position carrying HIL codes for that analyzer (e.g. Roche cobas emits HIL in OBX-8; Sysmex XN emits in a comment-record; Abbott Architect uses a manufacturer-specific extended OBX field).
+4. **Per-analyzer mapping doc updates.** Each existing integration spec (Madagascar Hjra, Indonesia VL, every analyzer with a 1.2-style profile) gets its `specimen_quality_field_mapping` slot filled in. Some analyzers don't emit HIL; for those, the slot stays null and the analyzer never produces an HIL flag — no change to existing behavior.
+5. **Analyzer plugin parser change.** The generic-ASTM parser reads the new mapping slot and, when populated, extracts the HIL codes from the analyzer payload and writes them to `result.specimen_quality_flags`. Per-analyzer custom parsers (the ones not yet on the 1.2-profile pattern) get the same logic via their own implementations.
+6. **Validator UI display.** The result-review screen renders the HIL chip next to the result value so techs can see interference at validation time. Carbon Tag with the same `#fff8c5` background; clickable to expand to a tooltip explaining "Hemolyzed, Icterus absent, Lipemia absent" in the deployment language.
+7. **Populator exposure on `PatientReportBean`.** The smallest piece. Plumb `result.specimenQualityFlags` through to the bean's `specimenQualityFlags` field. ~10 minutes once steps 1–6 exist.
+
+**Why this matters clinically.** A marginally-hemolyzed potassium result reads as a real critical hyperkalemia (potassium leaks out of red cells when they lyse). Without the HIL flag the clinician treats a fake number; with it, the clinician knows to recollect and waits before treating. Same problem class for icterus (interferes with bilirubin and some chemistry assays) and lipemia (interferes with optical-density-based assays).
+
+**Estimated effort:** 2–4 weeks total across the epic. Schema + entity + populator are small; the analyzer profile + per-analyzer mapping + parser + UI work is the bulk. Multiple analyzers can ship in parallel once the framework is in place.
+
+**Tracking:** new Jira epic to be opened by Casey. Reference back to this spec section once the epic doc exists.
+
+**Acceptance for this ticket:** the HIL chip slot in `patient_letter.jrxml` and `patient_a4.jrxml` parameterizes on `$F{specimenQualityFlags}` with a `printWhen`-guarded textField. Smoke test verifies the chip stays blank on the standard fixture (where the field is null). When the future epic populates the field, no JRXML change is needed.
 
 ---
 

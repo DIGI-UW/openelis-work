@@ -216,7 +216,7 @@ Recommended framing:
 
 | Q | Decision | Impact on V2 scope |
 |---|---|---|
-| Q1 — Participant-result data path (R1) | **B — Separate `eqa_participant_result` entity** with draft → reviewed → submitted → scored lifecycle, linked to `eqa_result` once provider returns score | V2.1 data model |
+| Q1 — Participant-result data path (R1) | **B — Separate `eqa_participant_result` entity** with per-row `submission_status` (`draft → validated_partial → submitted → scored`) linked to `eqa_result` once provider returns score; cycle-level `ready_to_submit` state (formerly labeled `reviewed`) gates auto-submission per FR-V2.1-04 | V2.1 data model |
 | Q2 — In-house scheme approach (R2, G9) | **C — Polymorphic `eqa_scheme` with `scheme_type` discriminator** (`international_pt \| regional_pt \| inter_lab_split \| in_house`); BR-004 becomes conditional | V2.1 data model |
 | Q3 — Mockup authority | **B — Implementation reference, port to Carbon**; `eqa-enrollment.jsx` preserves IA/field-list/flow, engineering rebuilds in `@carbon/react` for V2 | Applies to every V2 story; historical mockup stays as design reference |
 | Q4 — CAPA approach | **D — Tiered EQA → NCE integration** (not new CAPA tables). NCE module already provides `nce_capa` + `nce_effectiveness_review`; EQA becomes a trigger source | V2.3 NCE hook |

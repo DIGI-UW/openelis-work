@@ -17,7 +17,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Panel | [panel.jsx](designs/admin-config/panel.jsx) | [panel.md](designs/admin-config/panel.md) |
 | Range Editor | [range-editor.jsx](designs/admin-config/range-editor.jsx) | [range-editor.md](designs/admin-config/range-editor.md) |
 | Result Options | [result-options.jsx](designs/admin-config/result-options.jsx) | [result-options.md](designs/admin-config/result-options.md) |
-| Test Catalog | [test-catalog.jsx](designs/admin-config/test-catalog.jsx) | [test-catalog.md](designs/admin-config/test-catalog.md) |
+| Test Catalog | [test-catalog.jsx](designs/admin-config/test-catalog.jsx) · [preview](designs/admin-config/test-catalog.html) | [test-catalog.md](designs/admin-config/test-catalog.md) |
 | RBAC Management | [rbac-ui-mockup.html](designs/rbac/rbac-ui-mockup.html) | [rbac-revamp-prd.md](designs/rbac/rbac-revamp-prd.md) |
 | Password Policy Enhancements | [password-enhancements.jsx](designs/admin-config/password-enhancements.jsx) | [password-enhancements.md](designs/admin-config/password-enhancements.md) |
 | Catalog Subscription | [catalog-subscription-carbon.jsx](designs/admin-config/catalog-subscription-carbon.jsx) \| [preview](designs/admin-config/catalog-subscription.html) | [catalog-subscription.md](designs/admin-config/catalog-subscription.md) |
@@ -40,7 +40,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Vector Specimen Types & Taxonomy | [vector-reference-data.jsx](designs/vector-surveillance/vector-reference-data.jsx) | [vector-reference-data.md](designs/vector-surveillance/vector-reference-data.md) |
 | Vector Collection Workflow | [vector-collection-workflow.jsx](designs/vector-surveillance/vector-collection-workflow.jsx) · [preview](designs/vector-surveillance/vector-collection-workflow.html) | [vector-collection-workflow.md](designs/vector-surveillance/vector-collection-workflow.md) |
 | Vector Testing & Identification | [vector-testing-identification.jsx](designs/vector-surveillance/vector-testing-identification.jsx) · [preview](designs/vector-surveillance/vector-testing-identification.html) | [vector-testing-identification.md](designs/vector-surveillance/vector-testing-identification.md) |
-| Vector Surveillance Reporting | [vector-surveillance-reporting.jsx](designs/vector-surveillance/vector-surveillance-reporting.jsx) · [preview](designs/vector-surveillance/vector-surveillance-reporting.html) | [vector-surveillance-reporting.md](designs/vector-surveillance/vector-surveillance-reporting.md) |
+| Vector Surveillance Reporting | [vector-surveillance-reporting.jsx](designs/vector-surveillance/vector-surveillance-reporting.jsx) · [preview](designs/vector-surveillance/vector-surveillance-reporting.html) | [vector-surveillance-reporting.md](designs/vector-surveillance/vector-surveillance-reporting.md) · [FHIR considerations](designs/vector-surveillance/vector-surveillance-reporting-fhir-considerations.md) |
 
 ## Analyzer Integration
 
@@ -112,7 +112,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | EQA V2 Epic & Stories | [preview](designs/quality/eqa-v2-preview.html) | [eqa-v2-epic-and-stories.md](designs/quality/eqa-v2-epic-and-stories.md) |
 | EQA V2 Design Critique | — | [eqa-v2-critique.md](designs/quality/eqa-v2-critique.md) |
 | Westgard Dashboard | [westgard-dashboard.jsx](designs/quality/westgard-dashboard.jsx) | [westgard-rules.md](designs/quality/westgard-rules.md) |
-| Batch Workplan with Reagent QC | [batch-workplan-reagent-qc.jsx](designs/quality/batch-workplan-reagent-qc.jsx) | [batch-workplan-reagent-qc.md](designs/quality/batch-workplan-reagent-qc.md) |
+| Batch Workplan with Reagent QC | [batch-workplan-reagent-qc.jsx](designs/quality/batch-workplan-reagent-qc.jsx) | [batch-workplan-reagent-qc.md](designs/quality/batch-workplan-reagent-qc.md) · [changelog](designs/quality/batch-workplan-reagent-qc-CHANGELOG-v1-to-v1.1.md) |
 | Analyzer Manual QC | [analyzer-manual-qc.jsx](designs/quality/analyzer-manual-qc.jsx) | [analyzer-manual-qc.md](designs/quality/analyzer-manual-qc.md) |
 | WHONET Integration | — | [whonet-integration.md](designs/quality/whonet-integration.md) |
 
@@ -133,7 +133,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Feature | Mockup | Spec |
 |---------|--------|------|
 | Patient Report Print Queue | [patient-report-print-queue.jsx](designs/reports/patient-report-print-queue.jsx) | [patient-report-print-queue.md](designs/reports/patient-report-print-queue.md) |
-| Patient Report Redesign | [preview](designs/reports/patient-report-redesign.html) | [patient-report-redesign.md](designs/reports/patient-report-redesign.md) |
+| Patient Report Redesign | [preview](designs/reports/patient-report-redesign.html) · [patient_letter.jrxml](designs/reports/patient_letter.jrxml) | [patient-report-redesign.md](designs/reports/patient-report-redesign.md) |
 | Positivity Rate Report | [positivity-rate.jsx](designs/reports/positivity-rate.jsx) | [positivity-rate.md](designs/reports/positivity-rate.md) |
 | Disease Surveillance Dashboard | [disease-surveillance-dashboard.jsx](designs/reports/disease-surveillance-dashboard.jsx) | [disease-surveillance-dashboard.md](designs/reports/disease-surveillance-dashboard.md) |
 | Custom Data Export | [custom-data-export.jsx](designs/reports/custom-data-export.jsx) | [custom-data-export.md](designs/reports/custom-data-export.md) |
@@ -161,6 +161,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Help Menu | [help-menu.jsx](designs/system/help-menu.jsx) | [help-menu.md](designs/system/help-menu.md) |
 | Analyzer Import | [analyzer-import.jsx](designs/system/analyzer-import.jsx) | [analyzer-import.md](designs/system/analyzer-import.md) |
 | FHIR Outbound Push | [fhir-outbound-push.jsx](designs/system/fhir-outbound-push.jsx) | [fhir-outbound-push.md](designs/system/fhir-outbound-push.md) |
+| FHIR Publication Settings | [fhir-publication-settings.jsx](designs/system/fhir-publication-settings.jsx) | — |
 | Lab Management Dashboard | [lab-management-dashboard.html](designs/system/lab-management-dashboard.html) | [lab-management-dashboard.md](designs/system/lab-management-dashboard.md) |
 | Catalyst Lab Data Assistant | [Figma](https://www.figma.com/make/poDXKSr2IBgKbbjB1Fh9Sj/OpenELIS-Global-Template--Copy-?node-id=0-1) | — |
 | Electronic Signature | [electronic-signature.jsx](designs/system/electronic-signature.jsx) | [electronic-signature.md](designs/system/electronic-signature.md) |
