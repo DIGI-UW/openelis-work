@@ -1,597 +1,373 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>S-08 Environmental QC Rules — Preview</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'IBM Plex Sans', sans-serif; background: #f4f4f4; color: #161616; }
-
-  /* Tab bar */
-  .tab-bar { background: #262626; padding: 8px 16px; display: flex; gap: 4px; align-items: center; position: sticky; top: 0; z-index: 50; }
-  .tab-btn { background: transparent; color: #fff; border: none; padding: 6px 16px; font-size: 13px; cursor: pointer; border-radius: 4px; opacity: 0.7; font-family: inherit; }
-  .tab-btn.active { background: #0f62fe; opacity: 1; }
-  .tab-bar .spacer { flex: 1; }
-  .tab-bar .version { color: #c6c6c6; font-size: 11px; }
-
-  .screen { display: none; }
-  .screen.active { display: block; }
-
-  /* Shared */
-  .page-header { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 24px 32px 16px; }
-  .breadcrumb { font-size: 14px; color: #6f6f6f; margin-bottom: 4px; }
-  .page-header h1 { font-size: 28px; font-weight: 400; margin: 4px 0; }
-  .page-header p { font-size: 14px; color: #6f6f6f; }
-  .content { padding: 24px 32px; max-width: 900px; }
-
-  /* Banner */
-  .banner { padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8; font-size: 14px; border-radius: 0; }
-  .banner-warning { background: #fcf4d6; border: 1px solid #f1c21b; color: #6e4b00; }
-  .banner-success { background: #defbe6; border: 1px solid #0e6027; color: #0e6027; }
-  .banner-danger { background: #fff1f1; border: 1px solid #da1e28; color: #da1e28; }
-  .banner .close-btn { margin-left: auto; background: none; border: none; cursor: pointer; font-size: 16px; color: inherit; }
-
-  /* Accordion */
-  .accordion { background: #fff; border: 1px solid #e0e0e0; margin-bottom: -1px; }
-  .accordion-header { width: 100%; background: none; border: none; padding: 12px 16px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: #262626; text-align: left; font-family: inherit; }
-  .accordion-header:hover { background: #f4f4f4; }
-  .accordion-header .desc { font-size: 12px; font-weight: 400; color: #8d8d8d; margin-left: 4px; }
-  .accordion-header .tag-enabled { padding: 2px 10px; border-radius: 24px; font-size: 12px; font-weight: 500; background: #defbe6; color: #0e6027; }
-  .accordion-header .tag-disabled { padding: 2px 10px; border-radius: 24px; font-size: 12px; font-weight: 500; background: #f4f4f4; color: #6f6f6f; }
-  .accordion-header .spacer { flex: 1; }
-  .accordion-body { padding: 0 16px 20px; border-top: 1px solid #e0e0e0; display: none; }
-  .accordion-body.open { display: block; }
-
-  /* Form fields */
-  .field-row { display: flex; flex-direction: column; gap: 16px; padding-top: 16px; }
-  .field-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .field-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-  .field-label { display: block; font-size: 12px; font-weight: 500; color: #525252; margin-bottom: 4px; }
-  .field-input, .field-select { padding: 8px 12px; font-size: 14px; border: 1px solid #c6c6c6; background: #fff; color: #262626; width: 100%; font-family: inherit; }
-  .checkbox-row { display: flex; align-items: center; gap: 12px; }
-  .checkbox-row input[type="checkbox"] { width: 18px; height: 18px; }
-  .param-list { font-size: 13px; color: #6f6f6f; padding: 8px 0; }
-
-  /* Buttons */
-  .btn-primary { background: #0f62fe; color: #fff; border: none; padding: 11px 24px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; }
-  .btn-primary:hover { background: #0353e9; }
-  .btn-secondary { background: none; border: 1px solid #c6c6c6; padding: 11px 24px; font-size: 14px; cursor: pointer; font-family: inherit; color: #393939; }
-  .btn-danger { background: #da1e28; color: #fff; border: none; padding: 8px 20px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; }
-  .btn-danger:disabled { background: #c6c6c6; cursor: not-allowed; }
-  .btn-ghost { background: none; border: 1px solid #c6c6c6; padding: 8px 20px; font-size: 14px; cursor: pointer; font-family: inherit; color: #393939; }
-  .btn-success { background: #24a148; color: #fff; border: none; padding: 11px 24px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; }
-  .btn-row { display: flex; gap: 12px; margin-top: 24px; }
-
-  /* DataTable */
-  .data-table { width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; border: 1px solid #e0e0e0; }
-  .data-table th { padding: 10px 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6f6f6f; text-transform: uppercase; letter-spacing: 0.5px; background: #f4f4f4; border-bottom: 1px solid #e0e0e0; }
-  .data-table td { padding: 10px 12px; vertical-align: middle; border-bottom: 1px solid #e0e0e0; }
-  .data-table tr:last-child td { border-bottom: none; }
-
-  /* Tags */
-  .tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 24px; font-size: 12px; font-weight: 500; white-space: nowrap; }
-  .tag-field-blank { background: #edf5ff; color: #0f62fe; }
-  .tag-trip-blank { background: #f6f2ff; color: #8a3ffc; }
-  .tag-duplicate { background: #d9fbfb; color: #009d9a; }
-  .tag-spike { background: #fcf4d6; color: #6e4b00; }
-  .tag-pass { background: #defbe6; color: #0e6027; }
-  .tag-fail { background: #fff1f1; color: #da1e28; }
-  .tag-pending { background: #f4f4f4; color: #6f6f6f; }
-
-  /* QC count badge */
-  .fail-badge { font-size: 16px; padding: 2px 10px; border-radius: 24px; background: #fff1f1; color: #da1e28; font-weight: 600; margin-left: 8px; }
-
-  /* Order summary card */
-  .summary-card { background: #fff; border: 1px solid #e0e0e0; padding: 20px; margin-bottom: 16px; }
-  .summary-card h3 { font-size: 14px; font-weight: 600; color: #393939; margin-bottom: 12px; }
-  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; }
-  .summary-grid .label { color: #6f6f6f; display: inline-block; width: 120px; }
-
-  /* Modal */
-  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
-  .modal-overlay.hidden { display: none; }
-  .modal { background: #fff; width: 520px; border-radius: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-  .modal-header { padding: 20px 24px; border-bottom: 1px solid #e0e0e0; }
-  .modal-header h2 { font-size: 20px; font-weight: 400; }
-  .modal-body { padding: 20px 24px; }
-  .modal-footer { padding: 16px 24px; border-top: 1px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 12px; }
-  textarea.justification { width: 100%; min-height: 80px; padding: 8px 12px; font-size: 14px; border: 1px solid #c6c6c6; font-family: inherit; resize: vertical; }
-  .modal-check { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
-  .modal-check input { width: 18px; height: 18px; margin-top: 2px; }
-  .modal-check label { font-size: 13px; color: #393939; line-height: 1.4; }
-  .char-error { font-size: 12px; color: #da1e28; margin-top: 4px; display: none; }
-
-  /* Warning banner with description */
-  .banner-detail { align-items: flex-start; }
-  .banner-detail .banner-icon { flex-shrink: 0; margin-top: 2px; font-size: 18px; }
-  .banner-detail .banner-title { font-weight: 600; margin-bottom: 4px; }
-  .banner-detail .banner-desc { font-size: 13px; }
-
-  .dim { color: #8d8d8d; }
-</style>
+  <meta charset="UTF-8">
+  <title>S-08 v2.0: QC Result Evaluation & Validation Warning — In Context</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner { background: #491d8b; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .oe-shell { background: #f4f4f4; min-height: 100vh; }
+    .oe-topbar { background: #161616; color: #fff; height: 48px; display: flex; align-items: center; padding: 0 16px; gap: 16px; }
+    .oe-topbar .logo { font-weight: 600; font-size: 14px; }
+    .oe-topbar .nav-item { font-size: 13px; opacity: 0.7; cursor: pointer; }
+    .oe-topbar .nav-item:hover { opacity: 1; }
+    .oe-topbar .spacer { flex: 1; }
+    .oe-topbar .user { font-size: 12px; opacity: 0.7; }
+    .oe-breadcrumb { background: #fff; padding: 8px 24px; border-bottom: 1px solid #e0e0e0; font-size: 12px; color: #525252; }
+    .oe-breadcrumb a { color: #0f62fe; text-decoration: none; }
+    .oe-breadcrumb .sep { margin: 0 6px; color: #c6c6c6; }
+    .oe-page { padding: 16px 24px; max-width: 1300px; margin: 0 auto; }
+    .oe-page-header { background: #fff; padding: 16px 24px; border-bottom: 1px solid #e0e0e0; }
+    .oe-page-title { font-size: 28px; font-weight: 300; margin: 0; }
+    .oe-page-subtitle { font-size: 14px; color: #525252; margin: 4px 0 0 0; }
+    .tile { background: #fff; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid #e0e0e0; }
+    .tile h5 { font-size: 14px; font-weight: 600; margin: 0 0 0.75rem 0; }
+    .form-field { margin-bottom: 0.75rem; }
+    .form-field label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; }
+    .form-field input, .form-field textarea {
+      width: 100%; padding: 8px 12px; border: none; border-bottom: 2px solid #8d8d8d;
+      font-size: 14px; background: #f4f4f4; outline: none; box-sizing: border-box;
+    }
+    .grid { display: grid; gap: 1rem; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .helper { font-size: 12px; color: #525252; }
+    .btn { padding: 6px 14px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; }
+    .btn-ghost { background: transparent; color: #0f62fe; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-primary:disabled { background: #c6c6c6; color: #8d8d8d; cursor: not-allowed; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 8px 12px; background: #f4f4f4; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e0e0e0; }
+    th.new-col { background: #fcf4d6; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
+    td code { font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: #f4f4f4; padding: 2px 6px; }
+    td input[type="number"] { width: 80px; padding: 4px 8px; }
+    .tag { display: inline-block; padding: 2px 10px; border-radius: 24px; font-size: 12px; font-weight: 500; }
+    .tag-purple { background: #e8daff; color: #491d8b; }
+    .tag-gray { background: #e0e0e0; color: #161616; }
+    .tag-cyan { background: #bae6ff; color: #003a6d; }
+    .tag-green { background: #defbe6; color: #0e6027; }
+    .tag-red { background: #ffd7d9; color: #a2191f; }
+    .new-region { border: 2px dashed #f1c21b; border-radius: 6px; padding: 12px; position: relative; margin-bottom: 1rem; }
+    .new-region::before {
+      content: 'S-08 v2 NEW'; position: absolute; top: -11px; left: 12px;
+      background: #f1c21b; color: #000; font-size: 11px; font-weight: 700;
+      padding: 1px 8px; border-radius: 4px; z-index: 2;
+    }
+    .scenes { background: #393939; color: #fff; display: flex; padding: 0; }
+    .scene { padding: 10px 16px; cursor: pointer; font-size: 13px; border-right: 1px solid #525252; }
+    .scene:hover { background: #525252; }
+    .scene.active { background: #0f62fe; font-weight: 600; }
+    .notification.warning { padding: 12px 16px; border-left: 3px solid #f1c21b; background: #fff8e1; margin-bottom: 12px; font-size: 13px; }
+    .notification.warning strong { font-weight: 600; display: block; margin-bottom: 4px; }
+    .ack-box { margin-top: 16px; padding: 16px; border: 1px solid #e0e0e0; background: #fcf4d6; }
+    .actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; }
+    .stack-h { display: flex; gap: 8px; align-items: center; }
+    .badge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .domain-badge.purple { background: #e8daff; color: #491d8b; padding: 2px 10px; border-radius: 24px; font-size: 12px; font-weight: 500; }
+    .filter-bar { display: flex; gap: 12px; align-items: flex-end; padding: 12px; background: #fff; border-bottom: 1px solid #e0e0e0; }
+    .cds-tabs { display: flex; border-bottom: 1px solid #e0e0e0; background: #fff; }
+    .cds-tab { padding: 12px 20px; cursor: pointer; font-size: 14px; border-bottom: 2px solid transparent; }
+    .cds-tab.active { border-bottom-color: #0f62fe; font-weight: 600; color: #161616; background: #f4f4f4; }
+  </style>
 </head>
 <body>
+  <div class="preview-banner">⚡ S-08 v2.0 — QC Result Evaluation + Validation Warning — IN-CONTEXT preview (Protocol Config + Sample Creation removed)</div>
+  <div id="root"></div>
 
-<!-- Tab Bar -->
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="switchScreen('config')">S-01 → QC Protocol Config</button>
-  <button class="tab-btn" onclick="switchScreen('qctab')">Results → QC Tab</button>
-  <button class="tab-btn" onclick="switchScreen('acknowledge')">Validation → QC Warning</button>
-  <div class="spacer"></div>
-  <span class="version">S-08 Environmental QC Rules — Preview v1.0</span>
-</div>
+  <script type="text/babel">
+    const { useState } = React;
 
-<!-- ================================================================ -->
-<!-- SCREEN 1: QC Protocol Configuration                              -->
-<!-- ================================================================ -->
-<div id="screen-config" class="screen active">
-  <div class="page-header">
-    <div class="breadcrumb">⚙ Admin / Compliance Standards / PP No. 22/2021</div>
-    <h1>QC Protocol</h1>
-    <p>Configure environmental quality control requirements for this standard</p>
-  </div>
+    const TESTS = [
+      { id: 't-014', name: 'Lead (Pb)', unit: 'mg/L', blankThreshold: 0.003, rpd: 20, recovery: 20, domain: 'Environmental' },
+      { id: 't-015', name: 'Mercury (Hg)', unit: 'mg/L', blankThreshold: 0.0001, rpd: 20, recovery: 20, domain: 'Environmental' },
+      { id: 't-005', name: 'pH', unit: '—', blankThreshold: '', rpd: 5, recovery: 10, domain: 'Environmental' },
+      { id: 't-008', name: 'COD', unit: 'mg/L', blankThreshold: 5, rpd: 25, recovery: 20, domain: 'Environmental' },
+    ];
 
-  <div class="content">
-    <div id="save-banner" class="banner banner-success" style="display:none;">
-      ✓ QC protocol saved.
-      <button class="close-btn" onclick="document.getElementById('save-banner').style.display='none'">&times;</button>
-    </div>
+    const RESULTS = [
+      { id: 1, accession: 'ENV-2026-0412.001', test: 'Lead (Pb)', result: '0.05 mg/L', qcType: null, qcEval: null, detail: null },
+      { id: 2, accession: 'ENV-2026-0412.001', test: 'Mercury (Hg)', result: '0.0008 mg/L', qcType: null, qcEval: null, detail: null },
+      { id: 3, accession: 'ENV-2026-0412.002', test: 'Lead (Pb)', result: '0.04 mg/L', qcType: null, qcEval: null, detail: null },
+      { id: 4, accession: 'QC-BLNK-001', test: 'Lead (Pb)', result: '0.001 mg/L', qcType: 'BLANK', qcEval: 'PASS', detail: '0.001 ≤ 0.003 (threshold)' },
+      { id: 5, accession: 'QC-BLNK-001', test: 'Mercury (Hg)', result: '0.0003 mg/L', qcType: 'BLANK', qcEval: 'FAIL', detail: '0.0003 > 0.0001 threshold (potential contamination)' },
+      { id: 6, accession: 'QC-DUP-001', test: 'Lead (Pb)', result: '0.052 mg/L', qcType: 'DUPLICATE', qcEval: 'PASS', detail: 'RPD = 3.9% (threshold 20%); parent ENV-2026-0412.001' },
+      { id: 7, accession: 'QC-CTRL-001', test: 'Lead (Pb)', result: '0.078 mg/L', qcType: 'CONTROL', qcEval: 'FAIL', detail: 'Recovery 78% (window 80–120%); expected 0.100' },
+    ];
 
-    <!-- Field Blank -->
-    <div class="accordion">
-      <button class="accordion-header" onclick="toggleAccordion(this)">
-        <span class="chevron">▼</span>
-        <span>🧪</span>
-        <span>Field Blank</span>
-        <span class="desc">— Detect contamination from collection equipment</span>
-        <span class="spacer"></span>
-        <span class="tag-enabled">Enabled</span>
-      </button>
-      <div class="accordion-body open">
-        <div class="field-row">
-          <div class="checkbox-row">
-            <label class="field-label" style="margin-bottom:0">Enabled</label>
-            <input type="checkbox" checked>
-          </div>
-          <div class="field-grid-2">
-            <div>
-              <label class="field-label">Frequency</label>
-              <select class="field-select">
-                <option selected>Every sampling event</option>
-                <option>1 per N samples</option>
-              </select>
+    const QC_TAG = {
+      PASS: { cls: 'tag-green', label: 'QC Pass' },
+      FAIL: { cls: 'tag-red', label: 'QC Fail' },
+      N_A: { cls: 'tag-gray', label: 'QC N/A' },
+    };
+
+    function Topbar() {
+      return (
+        <div className="oe-topbar">
+          <span className="logo">OpenELIS Global</span>
+          <span className="nav-item">Home</span>
+          <span className="nav-item">Order</span>
+          <span className="nav-item">Results</span>
+          <span className="nav-item">Validation</span>
+          <span className="nav-item">Admin</span>
+          <span className="spacer"></span>
+          <span className="user">caseyi · Validator</span>
+        </div>
+      );
+    }
+
+    function Breadcrumb({ trail }) {
+      return (
+        <div className="oe-breadcrumb">
+          {trail.map((t, i) => (
+            <span key={i}>
+              {i > 0 && <span className="sep">›</span>}
+              {i < trail.length - 1 ? <a href="#">{t}</a> : <strong>{t}</strong>}
+            </span>
+          ))}
+        </div>
+      );
+    }
+
+    function PageHeader({ title, subtitle }) {
+      return (
+        <div className="oe-page-header">
+          <h1 className="oe-page-title">{title}</h1>
+          {subtitle && <p className="oe-page-subtitle">{subtitle}</p>}
+        </div>
+      );
+    }
+
+    function Scene1_TestCatalog() {
+      return (
+        <div>
+          <Breadcrumb trail={['Admin', 'Test Catalog Management', 'Test Catalog Editor']} />
+          <PageHeader title="Test Catalog" subtitle="S-08 v2 adds three QC threshold columns per env/vector test." />
+          <div className="oe-page">
+            <div className="filter-bar">
+              <div className="form-field" style={{ minWidth: 280, marginBottom: 0 }}>
+                <label>Search</label><input placeholder="Test name or LOINC..." />
+              </div>
+              <div className="form-field" style={{ marginBottom: 0 }}>
+                <label>Domain</label>
+                <select defaultValue="Environmental">
+                  <option>All</option><option>Clinical</option><option>Environmental</option><option>Vector</option>
+                </select>
+              </div>
             </div>
-          </div>
-          <div class="field-grid-3">
-            <div>
-              <label class="field-label">Lower Bound</label>
-              <input type="number" class="field-input" value="0">
+
+            <div className="tile" style={{ marginTop: 16 }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Test Name</th>
+                    <th>Unit</th>
+                    <th>Domain</th>
+                    <th className="new-col">Blank Threshold (new)</th>
+                    <th className="new-col">RPD Threshold % (new)</th>
+                    <th className="new-col">Recovery Window ± % (new)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {TESTS.map(t => (
+                    <tr key={t.id}>
+                      <td>{t.name}</td>
+                      <td>{t.unit}</td>
+                      <td><span className="tag tag-purple">{t.domain}</span></td>
+                      <td><input type="number" defaultValue={t.blankThreshold} step={0.001} /></td>
+                      <td><input type="number" defaultValue={t.rpd} min={0} max={100} /></td>
+                      <td><input type="number" defaultValue={t.recovery} min={0} max={100} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="helper" style={{ marginTop: 8 }}>
+                ⚠️ Yellow columns = new from S-08 v2. Visible only for env/vector tests. Drives <code>evaluateQc()</code> at result-save time.
+              </p>
             </div>
-            <div>
-              <label class="field-label">Upper Bound</label>
-              <input type="number" class="field-input" value="1">
-            </div>
-            <div>
-              <label class="field-label">Unit</label>
-              <select class="field-select">
-                <option>Percent (%)</option>
-                <option>Absolute Value</option>
-                <option selected>Relative to MDL</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class="field-label">Parameters</label>
-            <div class="param-list">All Parameters (pH, Turbidity, Lead, E. coli, Odor)</div>
           </div>
         </div>
-      </div>
-    </div>
+      );
+    }
 
-    <!-- Trip Blank -->
-    <div class="accordion">
-      <button class="accordion-header" onclick="toggleAccordion(this)">
-        <span class="chevron">▶</span>
-        <span>🚚</span>
-        <span>Trip Blank</span>
-        <span class="desc">— Detect contamination during transport</span>
-        <span class="spacer"></span>
-        <span class="tag-enabled">Enabled</span>
-      </button>
-      <div class="accordion-body">
-        <div class="field-row">
-          <div class="checkbox-row">
-            <label class="field-label" style="margin-bottom:0">Enabled</label>
-            <input type="checkbox" checked>
-          </div>
-          <div class="field-grid-2">
-            <div>
-              <label class="field-label">Frequency</label>
-              <select class="field-select">
-                <option selected>Every sampling event</option>
-                <option>1 per N samples</option>
-              </select>
+    function Scene2_ResultsEntry() {
+      return (
+        <div>
+          <Breadcrumb trail={['Results', 'Result Entry', 'ENV-2026-0412']} />
+          <PageHeader title="Results Entry — Order ENV-2026-0412" subtitle="Expanded results panel with QC Status column added by S-08 v2." />
+          <div className="oe-page">
+            <div className="tile">
+              <div className="badge-row">
+                <span className="domain-badge purple">Environmental</span>
+                <span className="helper">Site: WS-001 Ciliwung · 3 client samples · 4 QC samples</span>
+              </div>
             </div>
-          </div>
-          <div class="field-grid-3">
-            <div>
-              <label class="field-label">Lower Bound</label>
-              <input type="number" class="field-input" value="0">
+
+            <div className="cds-tabs">
+              <div className="cds-tab active">Results</div>
+              <div className="cds-tab">Compliance (S-05)</div>
+              <div className="cds-tab">History</div>
             </div>
-            <div>
-              <label class="field-label">Upper Bound</label>
-              <input type="number" class="field-input" value="1">
+
+            <div className="tile">
+              <h5>Results Table</h5>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Accession</th><th>Test</th><th>Result</th><th>Sample Kind</th>
+                    <th className="new-col">QC Status (new)</th>
+                    <th className="new-col">Detail (new)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {RESULTS.map(r => {
+                    const tag = r.qcEval ? QC_TAG[r.qcEval] : null;
+                    return (
+                      <tr key={r.id}>
+                        <td><code>{r.accession}</code></td>
+                        <td>{r.test}</td>
+                        <td><strong>{r.result}</strong></td>
+                        <td>
+                          {r.qcType
+                            ? <span className={`tag ${r.qcType === 'BLANK' ? 'tag-gray' : r.qcType === 'DUPLICATE' ? 'tag-cyan' : 'tag-green'}`}>{r.qcType}</span>
+                            : <span className="helper">Client sample</span>}
+                        </td>
+                        <td>{tag ? <span className={`tag ${tag.cls}`}>{tag.label}</span> : <span className="helper">—</span>}</td>
+                        <td>
+                          <span style={{ fontSize: 12, color: r.qcEval === 'FAIL' ? '#a2191f' : '#525252' }}>
+                            {r.detail || '—'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <p className="helper" style={{ marginTop: 8 }}>
+                ⚠️ Yellow columns = new from S-08 v2. <code>evaluateQc()</code> runs at result-save time. Failures surface as a warning on the validation screen (Scene 3).
+              </p>
             </div>
-            <div>
-              <label class="field-label">Unit</label>
-              <select class="field-select">
-                <option>Percent (%)</option>
-                <option>Absolute Value</option>
-                <option selected>Relative to MDL</option>
-              </select>
+
+            <div className="tile">
+              <div className="actions">
+                <button className="btn btn-ghost">Save Draft</button>
+                <button className="btn btn-primary">Save Results</button>
+              </div>
             </div>
-          </div>
-          <div>
-            <label class="field-label">Parameters</label>
-            <div class="param-list">All Parameters (pH, Turbidity, Lead, E. coli, Odor)</div>
           </div>
         </div>
-      </div>
-    </div>
+      );
+    }
 
-    <!-- Duplicate Sample -->
-    <div class="accordion">
-      <button class="accordion-header" onclick="toggleAccordion(this)">
-        <span class="chevron">▶</span>
-        <span>📋</span>
-        <span>Duplicate Sample</span>
-        <span class="desc">— Assess measurement precision via RPD</span>
-        <span class="spacer"></span>
-        <span class="tag-enabled">Enabled</span>
-      </button>
-      <div class="accordion-body">
-        <div class="field-row">
-          <div class="checkbox-row">
-            <label class="field-label" style="margin-bottom:0">Enabled</label>
-            <input type="checkbox" checked>
-          </div>
-          <div class="field-grid-2">
-            <div>
-              <label class="field-label">Frequency</label>
-              <select class="field-select">
-                <option>Every sampling event</option>
-                <option selected>1 per N samples</option>
-              </select>
+    function Scene3_Validation() {
+      const [ack, setAck] = useState(false);
+      const [just, setJust] = useState('');
+      const failures = RESULTS.filter(r => r.qcEval === 'FAIL');
+      const canRelease = failures.length === 0 || (ack && just.trim().length > 0);
+      return (
+        <div>
+          <Breadcrumb trail={['Validation', 'Pending Validation', 'ENV-2026-0412']} />
+          <PageHeader title="Validation — Order ENV-2026-0412" subtitle="Validator review screen. QC failures block release until acknowledged." />
+          <div className="oe-page">
+            <div className="tile">
+              <div className="badge-row">
+                <span className="domain-badge purple">Environmental</span>
+                <span className="helper">3 client results validated · 4 QC results auto-evaluated</span>
+              </div>
             </div>
-            <div>
-              <label class="field-label">N</label>
-              <input type="number" class="field-input" value="10" min="1">
+
+            <div className="tile">
+              <h5>Client Results (existing validation flow)</h5>
+              <table>
+                <thead><tr><th>Accession</th><th>Test</th><th>Result</th><th>Compliance</th></tr></thead>
+                <tbody>
+                  {RESULTS.filter(r => !r.qcType).map(r => (
+                    <tr key={r.id}>
+                      <td><code>{r.accession}</code></td>
+                      <td>{r.test}</td>
+                      <td><strong>{r.result}</strong></td>
+                      <td><span className="tag tag-green">Pass</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
-          <div class="field-grid-3">
-            <div>
-              <label class="field-label">Lower Bound</label>
-              <input type="number" class="field-input" value="0">
+
+            <div className="new-region">
+              <div className="tile" style={{ marginBottom: 0 }}>
+                <div className="notification warning">
+                  <strong>⚠ QC failures detected — {failures.length} of {RESULTS.filter(r => r.qcType).length} QC samples failed acceptance criteria</strong>
+                  Review and acknowledge below before releasing results.
+                </div>
+
+                <h5 style={{ marginTop: 16 }}>Failed QC Samples</h5>
+                <table>
+                  <thead><tr><th>QC Sample</th><th>Type</th><th>Test</th><th>Result</th><th>Detail</th></tr></thead>
+                  <tbody>
+                    {failures.map(r => (
+                      <tr key={r.id}>
+                        <td><code>{r.accession}</code></td>
+                        <td><span className={`tag ${r.qcType === 'BLANK' ? 'tag-gray' : 'tag-green'}`}>{r.qcType}</span></td>
+                        <td>{r.test}</td>
+                        <td><strong>{r.result}</strong></td>
+                        <td><span style={{ fontSize: 12, color: '#a2191f' }}>{r.detail}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                <div className="ack-box">
+                  <h5>Required Acknowledgment</h5>
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, fontWeight: 'normal' }}>
+                    <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} style={{ marginTop: 2 }} />
+                    I have reviewed the QC failures and assessed their impact on the result release.
+                  </label>
+                  <div className="form-field" style={{ marginTop: 12 }}>
+                    <label>Justification (required, max 500 chars)</label>
+                    <textarea rows={2} maxLength={500} value={just} onChange={(e) => setJust(e.target.value)}
+                              placeholder="Why are these results acceptable to release despite QC failure?"></textarea>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <label class="field-label">Upper Bound</label>
-              <input type="number" class="field-input" value="20">
+
+            <div className="tile">
+              <div className="actions">
+                <button className="btn btn-ghost">Return to Analyst</button>
+                <button className="btn btn-primary" disabled={!canRelease}>
+                  {canRelease ? 'Release Results' : 'Acknowledge + justify to release'}
+                </button>
+              </div>
             </div>
-            <div>
-              <label class="field-label">Unit</label>
-              <select class="field-select">
-                <option selected>Percent (%)</option>
-                <option>Absolute Value</option>
-                <option>Relative to MDL</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class="field-label">Parameters</label>
-            <div class="param-list">All Parameters (pH, Turbidity, Lead, E. coli, Odor)</div>
           </div>
         </div>
-      </div>
-    </div>
+      );
+    }
 
-    <!-- Spike Recovery -->
-    <div class="accordion">
-      <button class="accordion-header" onclick="toggleAccordion(this)">
-        <span class="chevron">▶</span>
-        <span>💉</span>
-        <span>Spike Recovery</span>
-        <span class="desc">— Verify analyte recovery in sample matrix</span>
-        <span class="spacer"></span>
-        <span class="tag-disabled">Disabled</span>
-      </button>
-      <div class="accordion-body">
-        <div class="field-row">
-          <div class="checkbox-row">
-            <label class="field-label" style="margin-bottom:0">Enabled</label>
-            <input type="checkbox">
+    function App() {
+      const [scene, setScene] = useState(0);
+      const scenes = [
+        { label: '1 — Test Catalog (QC threshold columns)', cmp: <Scene1_TestCatalog /> },
+        { label: '2 — Results Entry (QC Status)', cmp: <Scene2_ResultsEntry /> },
+        { label: '3 — Validation (warning + acknowledgment)', cmp: <Scene3_Validation /> },
+      ];
+      return (
+        <div className="oe-shell">
+          <Topbar />
+          <div className="scenes">
+            {scenes.map((s, i) => (
+              <div key={i} className={`scene ${scene === i ? 'active' : ''}`} onClick={() => setScene(i)}>{s.label}</div>
+            ))}
           </div>
-          <div class="field-grid-2">
-            <div>
-              <label class="field-label">Frequency</label>
-              <select class="field-select">
-                <option selected>Every sampling event</option>
-                <option>1 per N samples</option>
-              </select>
-            </div>
-          </div>
-          <div class="field-grid-3">
-            <div>
-              <label class="field-label">Lower Bound</label>
-              <input type="number" class="field-input" value="75">
-            </div>
-            <div>
-              <label class="field-label">Upper Bound</label>
-              <input type="number" class="field-input" value="125">
-            </div>
-            <div>
-              <label class="field-label">Unit</label>
-              <select class="field-select">
-                <option selected>Percent (%)</option>
-                <option>Absolute Value</option>
-                <option>Relative to MDL</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class="field-label">Parameters</label>
-            <div class="param-list">All Parameters (pH, Turbidity, Lead, E. coli, Odor)</div>
-          </div>
+          {scenes[scene].cmp}
         </div>
-      </div>
-    </div>
+      );
+    }
 
-    <button class="btn-primary" style="margin-top:24px" onclick="document.getElementById('save-banner').style.display='flex'">
-      Save QC Protocol
-    </button>
-  </div>
-</div>
-
-<!-- ================================================================ -->
-<!-- SCREEN 2: QC Tab on Results Entry                                -->
-<!-- ================================================================ -->
-<div id="screen-qctab" class="screen">
-  <div class="page-header">
-    <div class="breadcrumb">🧪 Results Entry / ENV-2026-001 / Expanded Panel</div>
-    <h1>QC <span class="fail-badge">⚠ 1</span></h1>
-    <p>QC Status: 7 passed, 1 failed, 0 pending of 8 evaluations</p>
-  </div>
-
-  <div class="content" style="max-width:1100px">
-    <div class="banner banner-warning">
-      ⚠ QC Warning: 1 quality control check(s) failed for this order. Review before releasing results.
-    </div>
-
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>QC Type</th>
-          <th>Lab Number</th>
-          <th>Parameter</th>
-          <th>QC Result</th>
-          <th>Parent Result</th>
-          <th>Calculated</th>
-          <th>Acceptance</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><span class="tag tag-field-blank">🧪 Field Blank</span></td>
-          <td style="font-weight:500;font-size:13px">ENV-2026-001-FB</td>
-          <td>Lead (Pb)</td>
-          <td>0.001 mg/L</td>
-          <td class="dim">—</td>
-          <td class="dim">—</td>
-          <td style="font-size:13px">&lt; MDL (0.003)</td>
-          <td><span class="tag tag-pass">✓ Pass</span></td>
-        </tr>
-        <tr>
-          <td><span class="tag tag-field-blank">🧪 Field Blank</span></td>
-          <td style="font-weight:500;font-size:13px">ENV-2026-001-FB</td>
-          <td>pH</td>
-          <td>6.9 pH</td>
-          <td class="dim">—</td>
-          <td class="dim">—</td>
-          <td style="font-size:13px">&lt; MDL</td>
-          <td><span class="tag tag-pass">✓ Pass</span></td>
-        </tr>
-        <tr>
-          <td><span class="tag tag-field-blank">🧪 Field Blank</span></td>
-          <td style="font-weight:500;font-size:13px">ENV-2026-001-FB</td>
-          <td>E. coli</td>
-          <td>0 CFU/100mL</td>
-          <td class="dim">—</td>
-          <td class="dim">—</td>
-          <td style="font-size:13px">&lt; MDL</td>
-          <td><span class="tag tag-pass">✓ Pass</span></td>
-        </tr>
-        <tr style="background:#fff8f8">
-          <td><span class="tag tag-trip-blank">🚚 Trip Blank</span></td>
-          <td style="font-weight:500;font-size:13px">ENV-2026-001-TB</td>
-          <td>Lead (Pb)</td>
-          <td style="font-weight:600;color:#da1e28">0.004 mg/L</td>
-          <td class="dim">—</td>
-          <td class="dim">—</td>
-          <td style="font-size:13px">&lt; MDL (0.003)</td>
-          <td><span class="tag tag-fail">✗ Fail</span></td>
-        </tr>
-        <tr>
-          <td><span class="tag tag-trip-blank">🚚 Trip Blank</span></td>
-          <td style="font-weight:500;font-size:13px">ENV-2026-001-TB</td>
-          <td>pH</td>
-          <td>7.0 pH</td>
-          <td class="dim">—</td>
-          <td class="dim">—</td>
-          <td style="font-size:13px">&lt; MDL</td>
-          <td><span class="tag tag-pass">✓ Pass</span></td>
-        </tr>
-        <tr>
-          <td><span class="tag tag-duplicate">📋 Duplicate</span></td>
-          <td style="font-weight:500;font-size:13px">ENV-2026-001-DUP</td>
-          <td>Lead (Pb)</td>
-          <td>0.030 mg/L</td>
-          <td>0.032 mg/L</td>
-          <td>RPD: 6.5%</td>
-          <td style="font-size:13px">≤20%</td>
-          <td><span class="tag tag-pass">✓ Pass</span></td>
-        </tr>
-        <tr>
-          <td><span class="tag tag-duplicate">📋 Duplicate</span></td>
-          <td style="font-weight:500;font-size:13px">ENV-2026-001-DUP</td>
-          <td>E. coli</td>
-          <td>52 CFU/100mL</td>
-          <td>45 CFU/100mL</td>
-          <td>RPD: 14.4%</td>
-          <td style="font-size:13px">≤20%</td>
-          <td><span class="tag tag-pass">✓ Pass</span></td>
-        </tr>
-        <tr>
-          <td><span class="tag tag-duplicate">📋 Duplicate</span></td>
-          <td style="font-weight:500;font-size:13px">ENV-2026-001-DUP</td>
-          <td>Turbidity</td>
-          <td>4.1 NTU</td>
-          <td>3.8 NTU</td>
-          <td>RPD: 7.6%</td>
-          <td style="font-size:13px">≤20%</td>
-          <td><span class="tag tag-pass">✓ Pass</span></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ================================================================ -->
-<!-- SCREEN 3: QC Warning + Acknowledgment Modal                      -->
-<!-- ================================================================ -->
-<div id="screen-acknowledge" class="screen">
-  <div class="page-header">
-    <div class="breadcrumb">🛡 Validation / ENV-2026-001</div>
-    <h1>Validate and Release</h1>
-    <p>Intake Point A — Citarum River (SITE-042) · PP No. 22/2021</p>
-  </div>
-
-  <div class="content">
-    <!-- Warning banner (shown before acknowledgment) -->
-    <div id="ack-warning" class="banner banner-warning banner-detail">
-      <span class="banner-icon">⚠</span>
-      <div>
-        <div class="banner-title">QC Warning: 1 quality control check(s) failed for this order.</div>
-        <div class="banner-desc">Trip Blank — Lead (Pb): 0.004 mg/L detected (acceptance: &lt; MDL 0.003 mg/L). Review the QC tab before releasing results.</div>
-      </div>
-    </div>
-
-    <!-- Success banner (shown after acknowledgment) -->
-    <div id="ack-success" class="banner banner-success" style="display:none;">
-      ✓ QC failures acknowledged by Dr. Bambang Sutrisno on 04/04/2026 16:40 WIB
-    </div>
-
-    <!-- Order summary -->
-    <div class="summary-card">
-      <h3>Order Summary</h3>
-      <div class="summary-grid">
-        <div><span class="label">Lab Number:</span> ENV-2026-001</div>
-        <div><span class="label">Tests:</span> 5 (all results entered)</div>
-        <div><span class="label">Compliance:</span> <span class="tag tag-fail">✗ Non-Compliant</span></div>
-        <div><span class="label">QC Status:</span> <span class="tag tag-fail">✗ 1 Failure</span></div>
-      </div>
-    </div>
-
-    <!-- Action buttons -->
-    <div id="ack-buttons" class="btn-row">
-      <button id="btn-validate" class="btn-primary" onclick="openModal()">Validate and Release</button>
-      <button class="btn-secondary">Cancel</button>
-    </div>
-    <div id="ack-released" class="btn-row" style="display:none">
-      <button class="btn-success" disabled>✓ Released</button>
-    </div>
-  </div>
-</div>
-
-<!-- Acknowledgment Modal -->
-<div id="ack-modal" class="modal-overlay hidden">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Acknowledge QC Failures</h2>
-    </div>
-    <div class="modal-body">
-      <div class="banner banner-danger" style="margin-bottom:16px;font-size:13px;">
-        ⚠ 1 QC failure detected. You must provide justification to release results.
-      </div>
-      <div style="margin-bottom:16px">
-        <label class="field-label">Justification <span style="color:#da1e28">*</span></label>
-        <textarea id="justification" class="justification" placeholder="Explain why results are being released despite QC failure (min. 10 characters)..." oninput="validateModal()"></textarea>
-        <div id="char-error" class="char-error">Justification is required (minimum 10 characters).</div>
-      </div>
-      <div class="modal-check">
-        <input type="checkbox" id="ack-checkbox" onchange="validateModal()">
-        <label for="ack-checkbox">I have reviewed the QC failures and accept responsibility for releasing these results</label>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
-      <button id="btn-confirm" class="btn-danger" disabled onclick="confirmRelease()">Confirm Release</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// Tab switching
-function switchScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('screen-' + id).classList.add('active');
-  event.target.classList.add('active');
-}
-
-// Accordion toggle
-function toggleAccordion(btn) {
-  const body = btn.nextElementSibling;
-  const chevron = btn.querySelector('.chevron');
-  const isOpen = body.classList.contains('open');
-  if (isOpen) {
-    body.classList.remove('open');
-    chevron.textContent = '▶';
-  } else {
-    body.classList.add('open');
-    chevron.textContent = '▼';
-  }
-}
-
-// Modal handling
-function openModal() {
-  document.getElementById('ack-modal').classList.remove('hidden');
-}
-function closeModal() {
-  document.getElementById('ack-modal').classList.add('hidden');
-}
-function validateModal() {
-  const text = document.getElementById('justification').value;
-  const checked = document.getElementById('ack-checkbox').checked;
-  const btn = document.getElementById('btn-confirm');
-  const err = document.getElementById('char-error');
-
-  if (text.length > 0 && text.length < 10) {
-    err.style.display = 'block';
-  } else {
-    err.style.display = 'none';
-  }
-
-  btn.disabled = !(text.length >= 10 && checked);
-}
-function confirmRelease() {
-  closeModal();
-  document.getElementById('ack-warning').style.display = 'none';
-  document.getElementById('ack-success').style.display = 'flex';
-  document.getElementById('ack-buttons').style.display = 'none';
-  document.getElementById('ack-released').style.display = 'flex';
-}
-</script>
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
 </body>
 </html>

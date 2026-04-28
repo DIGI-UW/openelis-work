@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S-03: Environmental Order Entry — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner {
+      background: #0f62fe; color: #fff;
+      padding: 6px 1rem; font-size: 12px; font-family: monospace;
+    }
+    .preview-content { padding: 1rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .tile { background: #fff; padding: 1.5rem; margin-bottom: 1rem; border: 1px solid #e0e0e0; }
+    .tile h4 { font-size: 16px; font-weight: 600; margin-bottom: 1rem; color: #161616; }
+    .tile h5 { font-size: 14px; font-weight: 600; margin-bottom: 0.75rem; color: #161616; }
+
+    .grid { display: grid; gap: 1rem; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .grid-6 { grid-template-columns: repeat(6, 1fr); }
+
+    .field-label { font-size: 12px; color: #525252; margin-bottom: 4px; display: block; }
+    .field-value { font-size: 14px; color: #161616; }
+    .mono { font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+
+    .tag { display: inline-block; padding: 2px 10px; border-radius: 24px; font-size: 12px; font-weight: 500; vertical-align: middle; }
+    .tag-green { background: #defbe6; color: #0e6027; }
+    .tag-blue { background: #d0e2ff; color: #002d9c; }
+    .tag-purple { background: #e8daff; color: #491d8b; }
+    .tag-teal { background: #d9fbfb; color: #004144; }
+    .tag-gray { background: #e0e0e0; color: #161616; }
+    .tag-warm-gray { background: #f7e9d0; color: #5e4118; }
+    .tag-red { background: #ffd7d9; color: #a2191f; }
+
+    .btn { padding: 8px 16px; font-size: 14px; font-weight: 500; border: none; border-radius: 0; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-primary:hover { background: #0353e9; }
+    .btn-secondary { background: #e0e0e0; color: #161616; }
+    .btn-secondary:hover { background: #c6c6c6; }
+    .btn-ghost { background: transparent; color: #0f62fe; padding: 4px 8px; font-size: 13px; }
+    .btn-ghost:hover { background: rgba(15,98,254,0.08); }
+    .btn-danger { background: #da1e28; color: #fff; }
+    .btn-danger:hover { background: #ba1b23; }
+
+    .site-card { border-left: 3px solid #24a148; padding: 1rem; background: #f6fef8; margin-top: 0.5rem; }
+    .standard-card { border-left: 3px solid #0f62fe; padding: 1rem; background: #edf5ff; margin-top: 0.75rem; }
+
+    .combobox-wrapper { position: relative; max-width: 600px; }
+    .combobox-input { width: 100%; padding: 10px 12px; border: none; border-bottom: 2px solid #8d8d8d; font-size: 14px; font-family: inherit; background: #fff; outline: none; }
+    .combobox-input:focus { border-bottom-color: #0f62fe; }
+    .combobox-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e0e0e0; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 10; max-height: 300px; overflow-y: auto; display: none; }
+    .combobox-dropdown.open { display: block; }
+    .combobox-option { padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f4f4f4; font-size: 13px; }
+    .combobox-option:hover { background: #e5f6ff; }
+    .combobox-option .option-sub { font-size: 11px; color: #525252; margin-top: 2px; }
+    .combobox-helper { font-size: 12px; color: #525252; margin-top: 4px; }
+
+    .form-field { margin-bottom: 1rem; }
+    .form-field label { display: block; font-size: 12px; font-weight: 500; color: #161616; margin-bottom: 6px; }
+    .form-field input, .form-field select, .form-field textarea {
+      width: 100%; padding: 8px 12px; border: none; border-bottom: 2px solid #8d8d8d;
+      font-size: 14px; font-family: inherit; background: #fff; outline: none;
+    }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-bottom-color: #0f62fe; }
+    .form-field textarea { resize: vertical; min-height: 60px; }
+    .form-field .helper { font-size: 12px; color: #525252; margin-top: 4px; }
+    .form-field input[readonly] { color: #525252; background: #f4f4f4; }
+
+    .accordion-group { border: 1px solid #e0e0e0; margin-top: 1rem; }
+    .accordion-header { padding: 12px 16px; background: #f4f4f4; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 500; font-size: 14px; border-bottom: 1px solid #e0e0e0; user-select: none; }
+    .accordion-header:hover { background: #e8e8e8; }
+    .accordion-body { padding: 0; display: none; }
+    .accordion-body.open { display: block; }
+
+    .test-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; border-bottom: 1px solid #f4f4f4; font-size: 13px; }
+    .test-row:last-child { border-bottom: none; }
+    .test-row label { display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 13px; }
+    .test-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #0f62fe; cursor: pointer; }
+    .test-threshold { font-size: 12px; color: #525252; text-align: right; min-width: 120px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 8px 12px; background: #f4f4f4; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e0e0e0; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; }
+    td code { font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: #f4f4f4; padding: 2px 6px; }
+
+    .notification { padding: 12px 16px; border-left: 3px solid; margin-bottom: 1rem; font-size: 13px; }
+    .notification-info { border-color: #0f62fe; background: #edf5ff; }
+    .notification-warning { border-color: #f1c21b; background: #fff8e1; }
+    .notification strong { font-weight: 600; }
+
+    .progress-bar { display: flex; gap: 0; margin-bottom: 1rem; background: #fff; border: 1px solid #e0e0e0; }
+    .progress-step { flex: 1; padding: 12px 16px; text-align: center; font-size: 13px; position: relative; border-right: 1px solid #e0e0e0; }
+    .progress-step:last-child { border-right: none; }
+    .progress-step.current { background: #d0e2ff; color: #002d9c; font-weight: 600; }
+    .progress-step.complete { background: #defbe6; color: #0e6027; }
+    .progress-step.pending { background: #f4f4f4; color: #525252; }
+    .progress-step .step-num { font-weight: 700; }
+
+    .context-card { background: #fff; padding: 1rem 1.5rem; border: 1px solid #e0e0e0; border-left: 4px solid #0f62fe; margin-bottom: 1rem; }
+    .context-card .grid { align-items: center; }
+
+    .qa-check { border-left: 3px solid; padding: 12px 16px; background: #fff; margin-bottom: 8px; }
+    .qa-check.complete { border-color: #24a148; }
+    .qa-check.warning { border-color: #f1c21b; }
+    .qa-check.error { border-color: #da1e28; }
+    .qa-check .check-label { font-weight: 500; font-size: 14px; }
+    .qa-check .check-value { font-size: 13px; color: #525252; margin-top: 2px; }
+
+    .actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 1.5rem; }
+
+    .hidden { display: none; }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4, .grid-6 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    ⚡ Visual Preview — S-03: Environmental Order Entry Integration &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application
+  </div>
+  <div class="preview-content" id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useCallback, useMemo } = React;
+
+    // ─── Mock Data ─────────────────────────────────────────────────
+    const ALL_SAMPLE_TYPES = [
+      { id:'st-001', name:'Surface Water', code:'WATER_SURFACE' },
+      { id:'st-002', name:'Drinking Water', code:'WATER_DRINKING' },
+      { id:'st-003', name:'Groundwater', code:'WATER_GROUND' },
+      { id:'st-004', name:'Effluent / Wastewater', code:'WATER_EFFLUENT' },
+      { id:'st-005', name:'Ambient Air', code:'AIR_AMBIENT' },
+      { id:'st-006', name:'Emission / Stack', code:'AIR_EMISSION' },
+      { id:'st-007', name:'Topsoil', code:'SOIL_TOP' },
+      { id:'st-008', name:'Sediment', code:'SOIL_SEDIMENT' },
+      { id:'st-009', name:'Sludge', code:'WASTE_SLUDGE' },
+      { id:'st-010', name:'Biota / Tissue', code:'BIO_TISSUE' },
+      { id:'st-011', name:'Other', code:'OTHER' },
+    ];
+
+    const STANDARDS = [
+      { id:'std-001', name:'PP No. 22/2021 — Baku Mutu Air Permukaan', body:'Pemerintah RI', reg:'PP 22/2021', ver:'2021-01', date:'2021-02-02', tests:42, sampleTypeIds:['st-001','st-003','st-004'] },
+      { id:'std-002', name:'PP No. 41/1999 — Baku Mutu Udara Ambien', body:'Pemerintah RI', reg:'PP 41/1999', ver:'1999-01', date:'1999-05-26', tests:18, sampleTypeIds:['st-005','st-006'] },
+      { id:'std-003', name:'WHO Drinking Water Guidelines (4th Ed)', body:'WHO', reg:'WHO-DWG-4', ver:'2011-01', date:'2011-01-01', tests:56, sampleTypeIds:['st-002','st-003'] },
+      { id:'std-004', name:'PP No. 101/2014 — Pengelolaan Limbah B3', body:'Pemerintah RI', reg:'PP 101/2014', ver:'2014-01', date:'2014-10-17', tests:31, sampleTypeIds:['st-007','st-008','st-009','st-001'] },
+      { id:'std-005', name:'PermenKES No. 32/2017 — Baku Mutu Air Minum', body:'Kemenkes RI', reg:'PMK 32/2017', ver:'2017-01', date:'2017-05-12', tests:38, sampleTypeIds:['st-002'] },
+    ];
+
+    const TEST_GROUPS = [
+      { group:'Physical Parameters', tests:[
+        { id:'t1', name:'Temperature', loinc:'8310-5', unit:'°C', thr:'± 3 from ambient' },
+        { id:'t2', name:'Total Dissolved Solids (TDS)', loinc:'3745-7', unit:'mg/L', thr:'≤ 1000' },
+        { id:'t3', name:'Total Suspended Solids (TSS)', loinc:'4808-2', unit:'mg/L', thr:'≤ 50' },
+        { id:'t4', name:'Turbidity', loinc:'61020-8', unit:'NTU', thr:'≤ 25' },
+      ]},
+      { group:'Chemical Parameters', tests:[
+        { id:'t5', name:'pH', loinc:'11558-4', unit:'—', thr:'6.0 – 9.0' },
+        { id:'t6', name:'Dissolved Oxygen (DO)', loinc:'19218-7', unit:'mg/L', thr:'≥ 4' },
+        { id:'t7', name:'BOD₅', loinc:'5839-3', unit:'mg/L', thr:'≤ 3' },
+        { id:'t8', name:'COD', loinc:'5840-1', unit:'mg/L', thr:'≤ 25' },
+        { id:'t9', name:'Ammonia (NH₃-N)', loinc:'1971-1', unit:'mg/L', thr:'≤ 0.5' },
+        { id:'t10', name:'Nitrate (NO₃-N)', loinc:'3030-4', unit:'mg/L', thr:'≤ 10' },
+        { id:'t11', name:'Phosphate (PO₄-P)', loinc:'14879-1', unit:'mg/L', thr:'≤ 0.2' },
+      ]},
+      { group:'Microbiological Parameters', tests:[
+        { id:'t12', name:'Total Coliform', loinc:'5794-0', unit:'MPN/100mL', thr:'≤ 5000' },
+        { id:'t13', name:'Fecal Coliform (E. coli)', loinc:'5799-9', unit:'MPN/100mL', thr:'≤ 1000' },
+      ]},
+      { group:'Heavy Metals', tests:[
+        { id:'t14', name:'Lead (Pb)', loinc:'5671-0', unit:'mg/L', thr:'≤ 0.03' },
+        { id:'t15', name:'Mercury (Hg)', loinc:'5688-4', unit:'mg/L', thr:'≤ 0.001' },
+        { id:'t16', name:'Cadmium (Cd)', loinc:'5614-0', unit:'mg/L', thr:'≤ 0.01' },
+      ]},
+    ];
+
+    const SITE = {
+      code:'WS-001', name:'Sungai Ciliwung — Manggarai', type:'Water Source', subtype:'River',
+      region:'DKI Jakarta', district:'Jakarta Selatan', gps:'-6.1885, 106.8114',
+      zone:'Urban', collections:47, lastCollection:'2026-03-28'
+    };
+
+    // ─── App Component ─────────────────────────────────────────────
+    function App() {
+      const [step, setStep] = useState(0);
+      const [selectedStd, setSelectedStd] = useState(null);
+      const [showDropdown, setShowDropdown] = useState(false);
+      const [searchText, setSearchText] = useState('');
+      const [showThresholds, setShowThresholds] = useState(false);
+      const [deselected, setDeselected] = useState({});
+      const [openGroups, setOpenGroups] = useState({'Physical Parameters':true, 'Chemical Parameters':true, 'Microbiological Parameters':true, 'Heavy Metals':true});
+      const [method, setMethod] = useState('');
+      const [regRef, setRegRef] = useState('');
+      const [regOverride, setRegOverride] = useState(false);
+
+      // Sample type selection state
+      const [checkedSamples, setCheckedSamples] = useState({});
+      const [overrideSamples, setOverrideSamples] = useState({}); // IDs added via override
+      const [showOverrideBox, setShowOverrideBox] = useState(false);
+      const [overrideSearch, setOverrideSearch] = useState('');
+      const [showOverrideDropdown, setShowOverrideDropdown] = useState(false);
+      const [testsShown, setTestsShown] = useState(false); // whether test suggestion has been triggered
+
+      const filteredStds = STANDARDS.filter(s =>
+        s.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        s.reg.toLowerCase().includes(searchText.toLowerCase()) ||
+        s.body.toLowerCase().includes(searchText.toLowerCase())
+      );
+
+      const totalTests = TEST_GROUPS.reduce((s,g) => s + g.tests.length, 0);
+      const selectedCount = TEST_GROUPS.reduce((s,g) => s + g.tests.filter(t => !deselected[t.id]).length, 0);
+
+      function selectStandard(std) {
+        setSelectedStd(std);
+        setShowDropdown(false);
+        setSearchText(`${std.name} (${std.reg})`);
+        setDeselected({});
+        setCheckedSamples({});
+        setOverrideSamples({});
+        setTestsShown(false);
+        if (!regOverride) setRegRef(`${std.reg} — ${std.name}`);
+      }
+
+      function clearStandard() {
+        setSelectedStd(null);
+        setSearchText('');
+        setRegRef('');
+        setRegOverride(false);
+        setDeselected({});
+        setCheckedSamples({});
+        setOverrideSamples({});
+        setTestsShown(false);
+      }
+
+      function toggleSample(id) {
+        setCheckedSamples(prev => ({...prev, [id]: !prev[id]}));
+      }
+
+      function addOverrideSample(st) {
+        setCheckedSamples(prev => ({...prev, [st.id]: true}));
+        setOverrideSamples(prev => ({...prev, [st.id]: true}));
+        setShowOverrideBox(false);
+        setOverrideSearch('');
+      }
+
+      function triggerTestSuggestion() {
+        setTestsShown(true);
+        setDeselected({});
+      }
+
+      const checkedCount = Object.values(checkedSamples).filter(Boolean).length;
+
+      // Sample types from the standard
+      const stdSampleTypes = selectedStd ? ALL_SAMPLE_TYPES.filter(st => selectedStd.sampleTypeIds.includes(st.id)) : [];
+      // Override sample types (not in standard)
+      const overrideSampleTypeList = ALL_SAMPLE_TYPES.filter(st => overrideSamples[st.id] && !(selectedStd?.sampleTypeIds || []).includes(st.id));
+      // Available for override combobox
+      const allShownIds = new Set([...(selectedStd?.sampleTypeIds || []), ...Object.keys(overrideSamples).filter(k => overrideSamples[k])]);
+      const availableOverrides = ALL_SAMPLE_TYPES.filter(st => !allShownIds.has(st.id));
+      const filteredOverrides = availableOverrides.filter(st =>
+        st.name.toLowerCase().includes(overrideSearch.toLowerCase()) ||
+        st.code.toLowerCase().includes(overrideSearch.toLowerCase())
+      );
+
+      function toggleGroup(g) {
+        setOpenGroups(prev => ({...prev, [g]: !prev[g]}));
+      }
+
+      function toggleTest(id) {
+        setDeselected(prev => ({...prev, [id]: !prev[id]}));
+      }
+
+      return (
+        <div>
+          {/* Progress Bar */}
+          <div className="progress-bar">
+            <div className={`progress-step ${step===0?'current':step>0?'complete':'pending'}`}>
+              <span className="step-num">1</span> Enter Order
+            </div>
+            <div className={`progress-step ${step===1?'current':step>1?'complete':'pending'}`}>
+              <span className="step-num">2</span> Collect Sample
+            </div>
+            <div className={`progress-step ${step===2?'current':step>2?'complete':'pending'}`}>
+              <span className="step-num">3</span> Label & Store
+            </div>
+            <div className={`progress-step ${step===3?'current':'pending'}`}>
+              <span className="step-num">4</span> QA Review
+            </div>
+          </div>
+
+          {/* ════════ STEP 1: ENTER ORDER ════════ */}
+          {step === 0 && (<div>
+            {/* Lab Number + Workflow Tag */}
+            <div className="tile">
+              <div className="grid grid-3">
+                <div>
+                  <span className="field-label">Lab Number</span>
+                  <span className="field-value" style={{fontWeight:700, fontSize:18}}>ENV-2026-0412</span>
+                </div>
+                <div>
+                  <span className="tag tag-purple">Environmental</span>
+                </div>
+                <div style={{textAlign:'right'}}>
+                  <span className="field-label">Program</span>
+                  <span className="field-value">Water Quality Monitoring</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Sampling Site (from S-02) ────────────────── */}
+            <div className="tile">
+              <h4>Sampling Site</h4>
+              <div className="site-card">
+                <div className="grid grid-6" style={{alignItems:'start'}}>
+                  <div style={{gridColumn:'span 2'}}>
+                    <p style={{fontWeight:600, fontSize:15}}>{SITE.code} — {SITE.name}</p>
+                    <div style={{marginTop:4}}>
+                      <span className="tag tag-teal">{SITE.type}</span>
+                      <span className="tag tag-gray" style={{marginLeft:4}}>{SITE.subtype}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="field-label">Region / District</span>
+                    <span className="field-value">{SITE.region} &gt; {SITE.district}</span>
+                  </div>
+                  <div>
+                    <span className="field-label">GPS</span>
+                    <span className="field-value mono">{SITE.gps}</span>
+                  </div>
+                  <div>
+                    <span className="field-label">Zone</span>
+                    <span className="field-value">{SITE.zone}</span>
+                  </div>
+                  <div>
+                    <span className="field-label">Collections</span>
+                    <span className="field-value">{SITE.collections} (last: {SITE.lastCollection})</span>
+                  </div>
+                </div>
+                <div style={{marginTop:12}}>
+                  <button className="btn-ghost">Change Site</button>
+                  <button className="btn-ghost" style={{marginLeft:8}}>Clear</button>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Compliance Standard (ENV-1-001) ─────────── */}
+            <div className="tile">
+              <h4>Compliance Standard</h4>
+              <div className="form-field">
+                <label>Compliance Standard *</label>
+                <div className="combobox-wrapper">
+                  <input
+                    className="combobox-input"
+                    placeholder="Search standards by name or regulation number..."
+                    value={searchText}
+                    onChange={e => { setSearchText(e.target.value); setShowDropdown(true); if(selectedStd) clearStandard(); }}
+                    onFocus={() => { if(!selectedStd) setShowDropdown(true); }}
+                  />
+                  <div className={`combobox-dropdown ${showDropdown && !selectedStd ? 'open' : ''}`}>
+                    {filteredStds.map(s => (
+                      <div key={s.id} className="combobox-option" onClick={() => selectStandard(s)}>
+                        <div><strong>{s.name}</strong></div>
+                        <div className="option-sub">{s.body} · {s.reg} · <span className="tag tag-green" style={{fontSize:10,padding:'1px 6px'}}>Active</span> · {s.tests} tests</div>
+                      </div>
+                    ))}
+                    {filteredStds.length === 0 && (
+                      <div className="combobox-option" style={{color:'#8d8d8d', fontStyle:'italic'}}>No matching standards found</div>
+                    )}
+                  </div>
+                </div>
+                <div className="combobox-helper">Select the regulatory standard for this order</div>
+              </div>
+
+              {selectedStd && (
+                <div className="standard-card">
+                  <div className="grid grid-6" style={{alignItems:'start'}}>
+                    <div style={{gridColumn:'span 2'}}>
+                      <p style={{fontWeight:600, fontSize:14}}>{selectedStd.name}</p>
+                      <span className="tag tag-green" style={{marginTop:4}}>Active</span>
+                    </div>
+                    <div>
+                      <span className="field-label">Issuing Body</span>
+                      <span className="field-value">{selectedStd.body}</span>
+                    </div>
+                    <div>
+                      <span className="field-label">Regulation Number</span>
+                      <span className="field-value">{selectedStd.reg}</span>
+                    </div>
+                    <div>
+                      <span className="field-label">Version / Effective</span>
+                      <span className="field-value">{selectedStd.ver} ({selectedStd.date})</span>
+                    </div>
+                    <div>
+                      <span className="field-label">Linked Tests</span>
+                      <span className="field-value" style={{fontWeight:600, fontSize:18}}>{selectedStd.tests}</span>
+                    </div>
+                  </div>
+                  <div style={{marginTop:12}}>
+                    <button className="btn-ghost" onClick={() => setShowThresholds(!showThresholds)}>
+                      {showThresholds ? '▾ Hide Thresholds' : '▸ View Thresholds'}
+                    </button>
+                    <button className="btn-ghost" style={{marginLeft:8}} onClick={clearStandard}>Clear Standard</button>
+                  </div>
+
+                  {showThresholds && (
+                    <div className="accordion-group" style={{marginTop:12}}>
+                      {TEST_GROUPS.map(g => (
+                        <div key={g.group}>
+                          <div className="accordion-header" onClick={() => toggleGroup(g.group)}>
+                            <span>{g.group} ({g.tests.length} tests)</span>
+                            <span>{openGroups[g.group] ? '▾' : '▸'}</span>
+                          </div>
+                          <div className={`accordion-body ${openGroups[g.group] ? 'open' : ''}`}>
+                            <table>
+                              <thead><tr><th>Test</th><th>LOINC</th><th>Unit</th><th>Threshold</th></tr></thead>
+                              <tbody>
+                                {g.tests.map(t => (
+                                  <tr key={t.id}><td>{t.name}</td><td><code>{t.loinc}</code></td><td>{t.unit}</td><td><strong>{t.thr}</strong></td></tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* ── Sample Type Selection (ENV-2-001) ──────── */}
+            {selectedStd && (
+              <div className="tile">
+                <h4>Select Available Samples</h4>
+                <p style={{fontSize:13, color:'#525252', marginBottom:16}}>
+                  Check the sample types you have collected for this order. Tests will be suggested based on your selections.
+                </p>
+
+                <div className="grid grid-2" style={{gap:8, marginBottom:12}}>
+                  {stdSampleTypes.map(st => (
+                    <label key={st.id} style={{display:'flex', alignItems:'center', gap:8, cursor:'pointer', fontSize:13, padding:'4px 0'}}>
+                      <input type="checkbox" checked={!!checkedSamples[st.id]} onChange={() => toggleSample(st.id)}
+                        style={{width:18, height:18, accentColor:'#0f62fe', cursor:'pointer'}} />
+                      {st.name} <span style={{fontSize:11, color:'#525252'}}>({st.code})</span>
+                    </label>
+                  ))}
+
+                  {overrideSampleTypeList.map(st => (
+                    <label key={st.id} style={{display:'flex', alignItems:'center', gap:8, cursor:'pointer', fontSize:13, padding:'4px 0'}}>
+                      <input type="checkbox" checked={!!checkedSamples[st.id]} onChange={() => toggleSample(st.id)}
+                        style={{width:18, height:18, accentColor:'#0f62fe', cursor:'pointer'}} />
+                      {st.name} <span style={{fontSize:11, color:'#525252'}}>({st.code})</span>
+                      <span className="tag tag-purple" style={{fontSize:10, padding:'1px 6px', marginLeft:4}}>Not in Standard</span>
+                    </label>
+                  ))}
+                </div>
+
+                {showOverrideBox ? (
+                  <div style={{maxWidth:400, marginBottom:12}}>
+                    <div className="form-field" style={{marginBottom:4}}>
+                      <label>Add Other Sample Type</label>
+                      <div className="combobox-wrapper" style={{maxWidth:400}}>
+                        <input className="combobox-input" placeholder="Search all sample types..."
+                          value={overrideSearch}
+                          onChange={e => { setOverrideSearch(e.target.value); setShowOverrideDropdown(true); }}
+                          onFocus={() => setShowOverrideDropdown(true)}
+                        />
+                        <div className={`combobox-dropdown ${showOverrideDropdown ? 'open' : ''}`}>
+                          {filteredOverrides.map(st => (
+                            <div key={st.id} className="combobox-option" onClick={() => addOverrideSample(st)}>
+                              <div><strong>{st.name}</strong></div>
+                              <div className="option-sub">{st.code}</div>
+                            </div>
+                          ))}
+                          {filteredOverrides.length === 0 && (
+                            <div className="combobox-option" style={{color:'#8d8d8d', fontStyle:'italic'}}>No more sample types available</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <button className="btn-ghost" onClick={() => { setShowOverrideBox(false); setOverrideSearch(''); setShowOverrideDropdown(false); }}>Cancel</button>
+                  </div>
+                ) : (
+                  <button className="btn-ghost" onClick={() => setShowOverrideBox(true)}>+ Add Other Sample Type</button>
+                )}
+
+                <p style={{fontSize:12, color:'#525252', marginTop:8}}>
+                  {checkedCount} sample types selected
+                </p>
+
+                {checkedCount > 0 && !testsShown && (
+                  <button className="btn btn-primary" style={{marginTop:12, fontSize:13, padding:'6px 16px'}}
+                    onClick={triggerTestSuggestion}>
+                    Suggest Tests for Selected Samples
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* ── Suggested Test Panel (ENV-2-001) ────────── */}
+            {selectedStd && testsShown && (
+              <div className="tile">
+                <h4>Suggested Tests</h4>
+                <div className="notification notification-info">
+                  <strong>Based on {selectedStd.name} and {checkedCount} selected sample types,</strong> {totalTests} tests have been suggested. You can add or remove tests below.
+                </div>
+                <p style={{fontSize:13, color:'#525252', margin:'8px 0'}}>
+                  {selectedCount} of {totalTests} tests selected
+                </p>
+
+                <div className="accordion-group">
+                  {TEST_GROUPS.map(g => {
+                    const gSelected = g.tests.filter(t => !deselected[t.id]).length;
+                    return (
+                      <div key={g.group}>
+                        <div className="accordion-header" onClick={() => toggleGroup(g.group)}>
+                          <span>{g.group} — {gSelected}/{g.tests.length} selected</span>
+                          <span>{openGroups[g.group] ? '▾' : '▸'}</span>
+                        </div>
+                        <div className={`accordion-body ${openGroups[g.group] ? 'open' : ''}`}>
+                          {g.tests.map(t => (
+                            <div className="test-row" key={t.id}>
+                              <label>
+                                <input type="checkbox" checked={!deselected[t.id]} onChange={() => toggleTest(t.id)} />
+                                {t.name}
+                                <span className="tag tag-blue" style={{marginLeft:6, fontSize:10, padding:'1px 6px'}}>Suggested</span>
+                              </label>
+                              <span className="test-threshold">{t.thr} {t.unit}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={{marginTop:12}}>
+                  <button className="btn-ghost">+ Add Test Manually</button>
+                </div>
+              </div>
+            )}
+
+            {/* ── Collection Conditions (ENV-3-001) ──────── */}
+            <div className="tile">
+              <h4>Collection Conditions</h4>
+              <div className="grid grid-3">
+                <div className="form-field">
+                  <label>Collection Method *</label>
+                  <select value={method} onChange={e => setMethod(e.target.value)}>
+                    <option value="">Select collection method...</option>
+                    <option>Manual Grab</option>
+                    <option>Composite (Time)</option>
+                    <option>Composite (Flow)</option>
+                    <option>Automated Sampler</option>
+                    <option>Passive</option>
+                    <option>Trap Collection</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div className="form-field">
+                  <label>Water Temperature (°C)</label>
+                  <input type="number" placeholder="e.g., 28.5" step="0.1" min="-50" max="100" />
+                  <div className="helper">Measured at collection point</div>
+                </div>
+                <div className="form-field">
+                  <label>Ambient Temperature (°C)</label>
+                  <input type="number" placeholder="e.g., 31.2" step="0.1" min="-50" max="100" />
+                </div>
+                <div className="form-field">
+                  <label>Weather Conditions</label>
+                  <select>
+                    <option value="">Select weather conditions...</option>
+                    <option>Clear</option><option>Cloudy</option><option>Rain</option>
+                    <option>Storm</option><option>Wind</option><option>Other</option>
+                  </select>
+                </div>
+                <div className="form-field">
+                  <label>Preservation Method</label>
+                  <input type="text" placeholder="e.g., HNO3 acidification, 4°C cooler" />
+                </div>
+                <div className="form-field">
+                  <label style={{display:'flex', alignItems:'center', gap:6}}>
+                    Regulatory Reference
+                    {!regOverride && selectedStd && (
+                      <span style={{fontSize:11, color:'#525252', fontStyle:'italic', fontWeight:400}}>
+                        🔒 Auto-populated from standard
+                      </span>
+                    )}
+                  </label>
+                  <div style={{position:'relative'}}>
+                    <input
+                      type="text"
+                      value={regRef}
+                      readOnly={!regOverride && !!selectedStd}
+                      onChange={e => setRegRef(e.target.value)}
+                      placeholder="Enter regulatory reference..."
+                    />
+                    {!regOverride && selectedStd && (
+                      <button className="btn-ghost" style={{position:'absolute', right:0, top:0}}
+                        onClick={() => { setRegOverride(true); setRegRef(''); }}>
+                        Override
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="form-field" style={{marginTop:8}}>
+                <label>Field Notes</label>
+                <textarea placeholder="Enter field observations..." maxLength={1000}></textarea>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="actions">
+              <button className="btn btn-secondary">Save Draft</button>
+              <button className="btn btn-primary" onClick={() => setStep(1)}>Save & Next →</button>
+            </div>
+          </div>)}
+
+          {/* ════════ STEPS 2–4: CONTEXT CARD + PLACEHOLDER ════════ */}
+          {step > 0 && (<div>
+            {/* Order Context Card (ENV-6-001) */}
+            <div className="context-card">
+              <div className="grid grid-4" style={{alignItems:'center'}}>
+                <div>
+                  <span className="field-label">Lab Number</span>
+                  <span className="field-value" style={{fontWeight:700, fontSize:16}}>ENV-2026-0412</span>
+                </div>
+                <div>
+                  <span className="field-label">Site</span>
+                  <span className="field-value">{SITE.code} — {SITE.name}</span>
+                </div>
+                <div>
+                  <span className="field-label">Compliance Standard</span>
+                  {selectedStd ? (
+                    <div>
+                      <span className="field-value">{selectedStd.reg}</span>
+                      <span className="tag tag-green" style={{marginLeft:6}}>Active</span>
+                    </div>
+                  ) : <span style={{color:'#8d8d8d'}}>—</span>}
+                </div>
+                <div>
+                  <span className="field-label">Tests / Status</span>
+                  <span className="field-value">{selectedCount} tests</span>
+                  <span className="tag tag-blue" style={{marginLeft:6}}>
+                    {step===1 ? 'Collecting' : step===2 ? 'Labeling' : 'QA Review'}
+                  </span>
+                </div>
+              </div>
+              {selectedStd && (
+                <button className="btn-ghost" style={{marginTop:8}}>▸ View Thresholds</button>
+              )}
+            </div>
+
+            {/* Step content placeholder */}
+            <div className="tile">
+              <h4>
+                {step===1 && 'Step 2 — Collect Sample'}
+                {step===2 && 'Step 3 — Label & Store'}
+                {step===3 && 'Step 4 — QA Review'}
+              </h4>
+              <p style={{color:'#525252', marginBottom:16}}>
+                {step === 1 && checkedCount > 0 && (
+                  <span>
+                    <strong>{checkedCount} sample types</strong> auto-populated from Step 1 selections. Confirm or adjust below.
+                    <br/><br/>
+                  </span>
+                )}
+                See Sample Collection Redesign FRS for full step specification. The Order Context Card above persists the compliance standard on all steps.
+              </p>
+
+              {/* QA Environmental Completeness (ENV-8-001) */}
+              {step === 3 && (
+                <div>
+                  <h5 style={{marginTop:24}}>Environmental Completeness</h5>
+                  <div className="grid grid-2">
+                    <div className="qa-check complete">
+                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                        <span className="check-label">Sampling Site</span>
+                        <span className="tag tag-green">Complete</span>
+                      </div>
+                      <div className="check-value">{SITE.code} — {SITE.name}</div>
+                    </div>
+                    <div className="qa-check complete">
+                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                        <span className="check-label">Compliance Standard</span>
+                        <span className="tag tag-green">Complete</span>
+                      </div>
+                      <div className="check-value">{selectedStd ? selectedStd.reg : '—'}</div>
+                    </div>
+                    <div className="qa-check complete">
+                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                        <span className="check-label">Collection Method</span>
+                        <span className="tag tag-green">Complete</span>
+                      </div>
+                      <div className="check-value">{method || 'Manual Grab'}</div>
+                    </div>
+                    <div className="qa-check warning">
+                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                        <span className="check-label">GPS Coordinates</span>
+                        <span className="tag tag-warm-gray">Incomplete</span>
+                      </div>
+                      <div className="check-value" style={{color:'#b28600'}}>GPS not recorded</div>
+                      <button className="btn-ghost" style={{marginTop:4, fontSize:12}}>Go to Step 2 →</button>
+                    </div>
+                    <div className="qa-check complete">
+                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                        <span className="check-label">Collection Conditions</span>
+                        <span className="tag tag-green">Complete</span>
+                      </div>
+                      <div className="check-value">5 of 6 fields completed</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Step navigation */}
+            <div style={{display:'flex', justifyContent:'space-between', marginTop:16}}>
+              <button className="btn btn-secondary" onClick={() => setStep(Math.max(0, step-1))}>
+                ← Previous
+              </button>
+              {step < 3 ? (
+                <button className="btn btn-primary" onClick={() => setStep(step+1)}>
+                  Save & Next →
+                </button>
+              ) : (
+                <div style={{display:'flex', gap:12}}>
+                  <button className="btn btn-danger">Return to Step</button>
+                  <button className="btn btn-primary">Approve for Testing</button>
+                </div>
+              )}
+            </div>
+          </div>)}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

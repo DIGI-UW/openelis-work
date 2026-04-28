@@ -366,18 +366,99 @@ function BasicInfoSection({ test, setTest }) {
  * SampleResultsSection — sample types, result type (NUMERIC/SELECT_LIST/MULTI_SELECT/FREE_TEXT), units, interpretations
  */
 function SampleResultsSection({ test, setTest }) {
-  const [resultType, setResultType] = useState('NUMERIC');
-  const [selectOptions, setSelectOptions] = useState([
+  // Master Units of Measure (would come from API in production: GET /api/master-lists/units-of-measure)
+  const [unitsOfMeasure, setUnitsOfMeasure] = useState([
+    { id: 1, code: 'mg/dL', display: 'mg/dL', ucum: 'mg/dL' },
+    { id: 2, code: 'mmol/L', display: 'mmol/L', ucum: 'mmol/L' },
+    { id: 3, code: 'g/dL', display: 'g/dL', ucum: 'g/dL' },
+    { id: 4, code: 'IU/L', display: 'IU/L', ucum: '[IU]/L' },
+    { id: 5, code: '%', display: 'percent', ucum: '%' },
+    { id: 6, code: 'mmHg', display: 'mmHg', ucum: 'mm[Hg]' },
+    { id: 7, code: 'µL', display: 'microliter', ucum: 'uL' },
+    { id: 8, code: 'K/µL', display: 'thousand per µL', ucum: '10*3/uL' },
+    { id: 20, code: 'NTU', display: 'Nephelometric Turbidity Units', ucum: '[NTU]' },
+    { id: 21, code: 'mg/L', display: 'mg/L', ucum: 'mg/L' },
+    { id: 22, code: 'µg/L', display: 'µg/L', ucum: 'ug/L' },
+    { id: 23, code: 'ppm', display: 'parts per million', ucum: '[ppm]' },
+    { id: 24, code: 'dB', display: 'decibels', ucum: 'B[SPL]' },
+    { id: 25, code: '°', display: 'degrees', ucum: 'deg' },
+    { id: 26, code: '°C', display: 'degrees Celsius', ucum: 'Cel' },
+    { id: 27, code: 'pH', display: 'pH', ucum: '[pH]' },
+    { id: 40, code: 'count', display: 'count', ucum: '{count}' },
+    { id: 41, code: 'copies/µL', display: 'copies per µL', ucum: '{copies}/uL' },
+  ]);
+
+  const [components, setComponents] = useState([
+    { id: 1, code: 'PRIMARY', label: 'Result', resultType: 'NUMERIC', unitId: 1, significantDigits: 0, defaultResult: '', allowMultipleReadings: false, active: true },
+  ]);
+  const [selectOptions] = useState([
     { id: 1, value: 'Positive', display: 'Positive', active: true },
     { id: 2, value: 'Negative', display: 'Negative', active: true },
     { id: 3, value: 'Indeterminate', display: 'Indeterminate', active: true },
   ]);
   const [showInterpModal, setShowInterpModal] = useState(false);
 
+  // Inline add-unit state
+  const [addUnitForComponent, setAddUnitForComponent] = useState(null);
+  const [newUnit, setNewUnit] = useState({ code: '', display: '', ucum: '', description: '' });
+
+  const isMulti = components.length > 1;
+
+  const updateComponent = (id, field, value) => {
+    setComponents(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c));
+  };
+
+  const onUnitChange = (componentId, value) => {
+    if (value === '__ADD_NEW__') {
+      setAddUnitForComponent(componentId);
+      setNewUnit({ code: '', display: '', ucum: '', description: '' });
+    } else {
+      updateComponent(componentId, 'unitId', parseInt(value, 10));
+    }
+  };
+
+  const submitNewUnit = () => {
+    if (!newUnit.code.trim()) return;
+    const newId = Math.max(...unitsOfMeasure.map(u => u.id)) + 1;
+    const created = { id: newId, code: newUnit.code.trim(), display: newUnit.display.trim() || newUnit.code.trim(), ucum: newUnit.ucum.trim() };
+    setUnitsOfMeasure(prev => [...prev, created]);
+    if (addUnitForComponent !== null) {
+      updateComponent(addUnitForComponent, 'unitId', newId);
+    }
+    setAddUnitForComponent(null);
+    setNewUnit({ code: '', display: '', ucum: '', description: '' });
+  };
+
+  const cancelAddUnit = () => {
+    setAddUnitForComponent(null);
+    setNewUnit({ code: '', display: '', ucum: '', description: '' });
+  };
+
+  const addComponent = () => {
+    const newId = Math.max(...components.map(c => c.id)) + 1;
+    const presets = [
+      { code: 'HEADING', label: 'Heading', unit: '°' },
+      { code: 'TEMPERATURE', label: 'Temperature', unit: '°C' },
+    ];
+    const preset = presets[Math.min(newId - 2, presets.length - 1)] || { code: `COMPONENT_${newId}`, label: `Component ${newId}`, unit: '' };
+    setComponents(prev => [...prev, {
+      id: newId, code: preset.code, label: preset.label, resultType: 'NUMERIC',
+      unit: preset.unit, significantDigits: 0, defaultResult: '',
+      allowMultipleReadings: false, active: true,
+    }]);
+  };
+
+  const removeComponent = (id) => {
+    if (components.length <= 1) return;
+    setComponents(prev => prev.filter(c => c.id !== id));
+  };
+
+  const firstSelectComp = components.find(c => c.resultType === 'SELECT_LIST' || c.resultType === 'MULTI_SELECT');
+
   return (
     <div>
       <h2>{t('admin.testCatalog.sampleResults.header.title', 'Sample & Results Configuration')}</h2>
-      <p>{t('admin.testCatalog.sampleResults.header.subtitle', 'Define sample types and result format')}</p>
+      <p>{t('admin.testCatalog.sampleResults.header.subtitle', 'Define sample types and the labeled result fields produced by this test')}</p>
 
       <div style={{ marginBottom: '16px' }}>
         <label>{t('admin.testCatalog.sampleResults.label.sampleTypes', 'Sample Type(s)') + ' *'}</label>
@@ -395,48 +476,165 @@ function SampleResultsSection({ test, setTest }) {
         <SelectItem text={t('admin.testCatalog.common.option.select', 'Select...')} value="" />
       </Select>
 
-      <Select
-        labelText={t('admin.testCatalog.sampleResults.label.resultType', 'Result Type') + ' *'}
-        value={resultType}
-        onChange={(e) => setResultType(e.target.value)}
-        style={{ marginBottom: '16px' }}
-      >
-        <SelectItem text="NUMERIC" value="NUMERIC" />
-        <SelectItem text="SELECT_LIST" value="SELECT_LIST" />
-        <SelectItem text="MULTI_SELECT" value="MULTI_SELECT" />
-        <SelectItem text="FREE_TEXT" value="FREE_TEXT" />
-      </Select>
+      <hr style={{ border: 'none', borderTop: '2px solid #e0e0e0', margin: '24px 0' }} />
 
-      {resultType === 'NUMERIC' && (
-        <>
-          <Select labelText={t('admin.testCatalog.sampleResults.label.unitOfMeasure', 'Unit of Measure')} style={{ marginBottom: '16px' }}>
-            <SelectItem text="mg/dL" value="mg/dL" />
-            <SelectItem text="mmol/L" value="mmol/L" />
-            <SelectItem text="g/dL" value="g/dL" />
-          </Select>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 600 }}>{t('admin.testCatalog.sampleResults.header.resultComponents', 'Result Components')}</h3>
+          <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#525252' }}>
+            {isMulti
+              ? t('admin.testCatalog.sampleResults.helper.multiComponent', `${components.length} components — this test produces multiple labeled values per order.`)
+              : t('admin.testCatalog.sampleResults.helper.singleComponent', 'Single-component test (default). Add components for tests that produce multiple labeled values like noise = level + heading or BP = systolic + diastolic.')}
+          </p>
+        </div>
+        <Button kind="secondary" size="sm" renderIcon={Add} onClick={addComponent}>
+          {t('admin.testCatalog.sampleResults.action.addComponent', 'Add Component')}
+        </Button>
+      </div>
 
-          <NumberInput
-            labelText={t('admin.testCatalog.sampleResults.label.significantDigits', 'Significant Digits')}
-            min={0}
-            max={6}
-            style={{ marginBottom: '16px' }}
-          />
-        </>
+      <div style={{ fontSize: '13px', marginBottom: '12px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e0e0e0', borderRadius: '4px' }}>
+          <thead>
+            <tr style={{ background: '#f4f4f4', borderBottom: '2px solid #d0d0d0' }}>
+              {isMulti && <th style={{ padding: '8px', textAlign: 'left', width: '32px' }}>≡</th>}
+              {isMulti && <th style={{ padding: '8px', textAlign: 'left' }}>Code</th>}
+              <th style={{ padding: '8px', textAlign: 'left' }}>Label</th>
+              <th style={{ padding: '8px', textAlign: 'left' }}>Result Type</th>
+              <th style={{ padding: '8px', textAlign: 'left' }}>Unit</th>
+              <th style={{ padding: '8px', textAlign: 'left' }}>Sig Digits</th>
+              <th style={{ padding: '8px', textAlign: 'left' }}>Default</th>
+              <th style={{ padding: '8px', textAlign: 'center' }}>Multi-reading</th>
+              <th style={{ padding: '8px', textAlign: 'center' }}>Active</th>
+              {isMulti && <th style={{ padding: '8px', textAlign: 'left' }}>Actions</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {components.map(c => (
+              <tr key={c.id} style={{ borderBottom: '1px solid #e0e0e0' }}>
+                {isMulti && <td style={{ padding: '8px' }}>≡</td>}
+                {isMulti && (
+                  <td style={{ padding: '4px' }}>
+                    <TextInput id={`comp-code-${c.id}`} labelText="" hideLabel value={c.code} onChange={e => updateComponent(c.id, 'code', e.target.value.toUpperCase())} size="sm" style={{ fontFamily: 'monospace', textTransform: 'uppercase', minWidth: '120px' }} />
+                  </td>
+                )}
+                <td style={{ padding: '4px' }}>
+                  <TextInput id={`comp-label-${c.id}`} labelText="" hideLabel value={c.label} onChange={e => updateComponent(c.id, 'label', e.target.value)} size="sm" />
+                </td>
+                <td style={{ padding: '4px' }}>
+                  <Select id={`comp-rt-${c.id}`} labelText="" hideLabel value={c.resultType} onChange={e => updateComponent(c.id, 'resultType', e.target.value)} size="sm">
+                    <SelectItem text="NUMERIC" value="NUMERIC" />
+                    <SelectItem text="SELECT_LIST" value="SELECT_LIST" />
+                    <SelectItem text="MULTI_SELECT" value="MULTI_SELECT" />
+                    <SelectItem text="FREE_TEXT" value="FREE_TEXT" />
+                  </Select>
+                </td>
+                <td style={{ padding: '4px' }}>
+                  <Select
+                    id={`comp-unit-${c.id}`}
+                    labelText=""
+                    hideLabel
+                    value={c.unitId !== null && c.unitId !== undefined ? String(c.unitId) : ''}
+                    onChange={e => onUnitChange(c.id, e.target.value)}
+                    disabled={c.resultType !== 'NUMERIC'}
+                    size="sm"
+                    title={c.resultType !== 'NUMERIC' ? 'Unit only applies to NUMERIC components' : 'Pick from Master Lists, or add a new unit inline'}
+                  >
+                    <SelectItem value="" text="— select —" />
+                    {unitsOfMeasure.map(u => (
+                      <SelectItem key={u.id} value={String(u.id)} text={u.code} />
+                    ))}
+                    <SelectItem value="__ADD_NEW__" text="+ Add new unit…" />
+                  </Select>
+                </td>
+                <td style={{ padding: '4px' }}>
+                  <NumberInput id={`comp-sd-${c.id}`} labelText="" hideLabel value={c.significantDigits} onChange={(_, { value }) => updateComponent(c.id, 'significantDigits', value || 0)} min={0} max={6} disabled={c.resultType !== 'NUMERIC'} size="sm" style={{ width: '70px' }} />
+                </td>
+                <td style={{ padding: '4px' }}>
+                  <TextInput id={`comp-def-${c.id}`} labelText="" hideLabel value={c.defaultResult} onChange={e => updateComponent(c.id, 'defaultResult', e.target.value)} placeholder="—" size="sm" style={{ minWidth: '80px' }} />
+                </td>
+                <td style={{ padding: '8px', textAlign: 'center' }}>
+                  <Checkbox id={`comp-mr-${c.id}`} labelText="" hideLabel checked={c.allowMultipleReadings} onChange={(_, { checked }) => updateComponent(c.id, 'allowMultipleReadings', checked)} title="Allow multiple timestamped readings per order under this component" />
+                </td>
+                <td style={{ padding: '8px', textAlign: 'center' }}>
+                  <Checkbox id={`comp-act-${c.id}`} labelText="" hideLabel checked={c.active} onChange={(_, { checked }) => updateComponent(c.id, 'active', checked)} />
+                </td>
+                {isMulti && (
+                  <td style={{ padding: '8px' }}>
+                    <Button kind="ghost" size="sm" hasIconOnly iconDescription="Remove" renderIcon={Close} onClick={() => removeComponent(c.id)} disabled={components.length <= 1} style={{ color: '#da1e28' }}><Close /></Button>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {addUnitForComponent !== null && (
+        <Tile style={{ background: '#e3f2fd', borderColor: '#0f62fe', marginBottom: '12px', padding: '16px' }}>
+          <h4 style={{ marginTop: 0, marginBottom: '4px', fontSize: '13px' }}>
+            {t('admin.testCatalog.sampleResults.header.addNewUnit', 'Add New Unit of Measure')}
+          </h4>
+          <p style={{ fontSize: '11px', color: '#525252', margin: '0 0 12px 0' }}>
+            {t('admin.testCatalog.sampleResults.helper.addNewUnit', 'Adds a new unit to Master Lists → Units of Measure and selects it for the current component. Visible to all tests deployment-wide.')}
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+            <TextInput
+              id="new-unit-code"
+              labelText={t('admin.testCatalog.sampleResults.label.unitCode', 'Code') + ' *'}
+              value={newUnit.code}
+              onChange={e => setNewUnit({ ...newUnit, code: e.target.value })}
+              placeholder="e.g., µg/m³"
+              size="sm"
+            />
+            <TextInput
+              id="new-unit-display"
+              labelText={t('admin.testCatalog.sampleResults.label.unitDisplay', 'Display Name')}
+              value={newUnit.display}
+              onChange={e => setNewUnit({ ...newUnit, display: e.target.value })}
+              placeholder={t('admin.testCatalog.sampleResults.placeholder.unitDisplay', 'defaults to Code')}
+              size="sm"
+            />
+            <TextInput
+              id="new-unit-ucum"
+              labelText={t('admin.testCatalog.sampleResults.label.unitUcum', 'UCUM Code')}
+              value={newUnit.ucum}
+              onChange={e => setNewUnit({ ...newUnit, ucum: e.target.value })}
+              placeholder="e.g., ug/m3"
+              size="sm"
+            />
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button kind="primary" size="sm" onClick={submitNewUnit} disabled={!newUnit.code.trim()}>
+              {t('admin.testCatalog.sampleResults.action.addUnit', 'Add Unit')}
+            </Button>
+            <Button kind="secondary" size="sm" onClick={cancelAddUnit}>
+              {t('admin.testCatalog.common.button.cancel', 'Cancel')}
+            </Button>
+          </div>
+        </Tile>
       )}
 
-      <TextInput
-        labelText={t('admin.testCatalog.sampleResults.label.defaultResultValue', 'Default Result Value')}
+      <InlineNotification
+        kind="info"
+        lowContrast
+        hideCloseButton
+        title=""
+        subtitle={t('admin.testCatalog.sampleResults.notification.fhirComponents', 'Each component becomes its own FHIR Observation under one ServiceRequest. Components from one biological measurement share effectiveDateTime; co-collection can be expressed via Observation.derivedFrom or hasMember. Components are not the same as Panels — see the Panels section for ordering multiple separate tests together.')}
         style={{ marginBottom: '16px' }}
       />
 
-      {(resultType === 'SELECT_LIST' || resultType === 'MULTI_SELECT') && (
+      {firstSelectComp && (
         <Tile style={{ marginBottom: '16px', padding: '16px' }}>
-          <h4 style={{ marginTop: 0 }}>{t('admin.testCatalog.sampleResults.header.selectListOptions', 'Select List Options')}</h4>
+          <h4 style={{ marginTop: 0 }}>
+            {t('admin.testCatalog.sampleResults.header.selectListOptions', 'Select List Options')}
+            {isMulti && <span style={{ fontSize: '11px', fontWeight: 'normal', color: '#525252', marginLeft: '8px' }}>(per component — showing first applicable)</span>}
+          </h4>
           <div style={{ fontSize: '12px', marginBottom: '12px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f4f4f4', borderBottom: '1px solid #d0d0d0' }}>
                   <th style={{ padding: '8px', textAlign: 'left' }}>≡</th>
+                  {isMulti && <th style={{ padding: '8px', textAlign: 'left' }}>Component</th>}
                   <th style={{ padding: '8px', textAlign: 'left' }}>Value</th>
                   <th style={{ padding: '8px', textAlign: 'left' }}>Display Order</th>
                   <th style={{ padding: '8px', textAlign: 'left' }}>Active</th>
@@ -447,10 +645,11 @@ function SampleResultsSection({ test, setTest }) {
                 {selectOptions.map((opt) => (
                   <tr key={opt.id} style={{ borderBottom: '1px solid #e0e0e0' }}>
                     <td style={{ padding: '8px' }}>≡</td>
+                    {isMulti && <td style={{ padding: '8px', fontFamily: 'monospace' }}>{firstSelectComp.code}</td>}
                     <td style={{ padding: '8px', fontFamily: 'monospace' }}>{opt.value}</td>
                     <td style={{ padding: '8px' }}>1</td>
                     <td style={{ padding: '8px' }}>
-                      <Checkbox checked={opt.active} id={`opt-${opt.id}`} />
+                      <Checkbox defaultChecked={opt.active} id={`opt-${opt.id}`} labelText="" hideLabel />
                     </td>
                     <td style={{ padding: '8px' }}>
                       <Button kind="ghost" size="sm">Edit</Button>
@@ -479,6 +678,7 @@ function SampleResultsSection({ test, setTest }) {
           <thead>
             <tr style={{ background: '#f4f4f4', borderBottom: '2px solid #d0d0d0' }}>
               <th style={{ padding: '8px', textAlign: 'left' }}>≡</th>
+              {isMulti && <th style={{ padding: '8px', textAlign: 'left' }}>Component</th>}
               <th style={{ padding: '8px', textAlign: 'left' }}>Code</th>
               <th style={{ padding: '8px', textAlign: 'left' }}>Label</th>
               <th style={{ padding: '8px', textAlign: 'left' }}>Value/Range</th>
@@ -495,6 +695,7 @@ function SampleResultsSection({ test, setTest }) {
             ].map((int, idx) => (
               <tr key={idx} style={{ borderBottom: '1px solid #e0e0e0' }}>
                 <td style={{ padding: '8px' }}>≡</td>
+                {isMulti && <td style={{ padding: '8px', fontFamily: 'monospace' }}>{components[0].code}</td>}
                 <td style={{ padding: '8px', fontFamily: 'monospace' }}>{int.code}</td>
                 <td style={{ padding: '8px' }}>
                   <Tag type={int.type}>{int.label}</Tag>
@@ -502,7 +703,7 @@ function SampleResultsSection({ test, setTest }) {
                 <td style={{ padding: '8px' }}>{int.value}</td>
                 <td style={{ padding: '8px', fontSize: '11px', maxWidth: '200px' }}>{int.text}</td>
                 <td style={{ padding: '8px' }}>
-                  <Checkbox checked id={`int-${idx}`} />
+                  <Checkbox defaultChecked id={`int-${idx}`} labelText="" hideLabel />
                 </td>
                 <td style={{ padding: '8px' }}>
                   <Button kind="ghost" size="sm">Edit</Button>

@@ -1,106 +1,428 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1720 962" width="1720" height="962">
+<svg viewBox="0 0 1900 1320" xmlns="http://www.w3.org/2000/svg" font-family="'IBM Plex Sans', system-ui, sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#161616"/>
+    </marker>
+    <marker id="ar-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#0f62fe"/>
+    </marker>
+    <marker id="ar-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#491d8b"/>
+    </marker>
+    <style>
+      .lane-label { fill: #fff; font-size: 14px; font-weight: 600; letter-spacing: 0.06em; }
+      .box-title { font-size: 13px; font-weight: 600; fill: #161616; }
+      .box-meta { font-size: 11px; fill: #525252; }
+      .box-meta-mono { font-size: 11px; fill: #525252; font-family: 'IBM Plex Mono', monospace; }
+      .v2-bullet { font-size: 10px; fill: #491d8b; }
+      .step-num { font-size: 24px; font-weight: 700; fill: #491d8b; }
+      .step-title { font-size: 16px; font-weight: 700; fill: #161616; }
+      .footer { font-size: 11px; fill: #525252; }
+    </style>
+  </defs>
 
-<defs>
-  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
-          markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-    <path d="M 0 0 L 10 5 L 0 10 z" fill="#000"/>
-  </marker>
-</defs>
+  <!-- Title bar -->
+  <rect width="1900" height="62" fill="#161616"/>
+  <text x="32" y="30" fill="#fff" font-size="22" font-weight="600">Environmental Workflow</text>
+  <text x="276" y="30" fill="#a8a8a8" font-size="14">S-03 v2.0 — 3-step wizard at Reception</text>
+  <text x="32" y="52" fill="#8d8d8d" font-size="11">post-2026-04-25 simplification audit · OGC-527 · digi-uw.github.io/openelis-work · single-page Step 1, no clinical/env workflow toggle</text>
+  <rect x="1700" y="18" width="172" height="28" rx="14" fill="#e8daff"/>
+  <text x="1786" y="37" text-anchor="middle" fill="#491d8b" font-size="13" font-weight="600">Domain: Environmental</text>
 
-<rect width="100%" height="100%" fill="#ffffff"/>
-<text x="860.0" y="34" font-family="'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="700" fill="#111" text-anchor="middle">Environmental Workflow — OpenELIS Global</text><text x="860.0" y="58" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#555" text-anchor="middle">Epic OGC-527 · Swimlanes: Admin → Reception → Lab Tech → Validation → Reporting</text>
-<rect x="160" y="88" width="22" height="14" rx="3" ry="3" fill="#e8e8e8" stroke="#555555" stroke-width="1.4"/>
-<text x="188" y="100" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#222">Existing OpenELIS</text>
-<rect x="327" y="88" width="22" height="14" rx="3" ry="3" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.4"/>
-<text x="355" y="100" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#222">Spec Complete</text>
-<rect x="466" y="88" width="22" height="14" rx="3" ry="3" fill="#f5f5f5" stroke="#999999" stroke-width="1.4" stroke-dasharray="6,4"/>
-<text x="494" y="100" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#222">Not Started</text>
-<rect x="591" y="88" width="22" height="14" rx="3" ry="3" fill="#e6f4ff" stroke="#1976d2" stroke-width="1.4"/>
-<text x="619" y="100" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#222">Primary path</text>
-<rect x="0" y="122" width="1720" height="162" fill="#f8f9fa"/><rect x="0" y="122" width="140" height="162" fill="#2b3a4a"/><text x="70.0" y="208.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Admin</text>
-<rect x="160" y="138" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
-<text x="285.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Compliance Standards</text>
-<text x="285.0" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-01 · OGC-528</text>
-<rect x="428" y="138" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
-<text x="553.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Sampling Site Registry</text>
-<text x="553.0" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-02 · OGC-531</text>
-<rect x="696" y="138" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
-<text x="821.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Panel Admin / Test Catalog</text>
-<text x="821.0" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing (OGC-173 redesign)</text>
-<rect x="964" y="138" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
-<text x="1089.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Referral / Subcontract</text>
-<text x="1089.0" y="176" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Partners</text>
-<text x="1089.0" y="196" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing + S-14 extension</text>
-<rect x="1232" y="138" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
-<text x="1357.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">QC Rules Config</text>
-<text x="1357.0" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-08 · OGC-554</text>
-<rect x="1500" y="138" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
-<text x="1625.0" y="160" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Analyst Assignment</text>
-<text x="1625.0" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-10</text>
-<rect x="0" y="284" width="1720" height="162" fill="#f1f5fb"/><rect x="0" y="284" width="140" height="162" fill="#2b3a4a"/><text x="70.0" y="370.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Reception</text>
-<rect x="160" y="300" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
-<text x="285.0" y="322" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Step 1: Enter Order</text>
-<text x="285.0" y="342" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Compliance Std OR ad-hoc ·</text>
-<text x="285.0" y="356" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Domain=ENV</text>
-<text x="285.0" y="370" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Sample Collection Redesign + S-03</text>
-<text x="285.0" y="384" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">· OGC-537 + S-04</text>
-<rect x="428" y="300" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
-<text x="553.0" y="322" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Step 2: Collect Sample</text>
-<text x="553.0" y="342" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Sample type, collection date/time</text>
-<text x="553.0" y="356" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">starts hold-time clock</text>
-<text x="553.0" y="370" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Sample Collection Redesign</text>
-<line x1="412" y1="365.0" x2="426" y2="365.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
-<rect x="696" y="300" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
-<text x="821.0" y="322" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Step 3: Label &amp; Store</text>
-<text x="821.0" y="342" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">LABNO + barcode, cold-chain</text>
-<text x="821.0" y="356" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">storage location</text>
-<text x="821.0" y="370" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Sample Collection Redesign</text>
-<line x1="680" y1="365.0" x2="694" y2="365.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
-<rect x="964" y="300" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
-<text x="1089.0" y="322" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Step 4: QA Review</text>
-<text x="1089.0" y="342" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Add QC (S-08) · NCE on hold-time</text>
-<text x="1089.0" y="356" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">+ S-09 Eligibility Gate</text>
-<line x1="948" y1="365.0" x2="962" y2="365.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
-<rect x="0" y="446" width="1720" height="162" fill="#f6f1fb"/><rect x="0" y="446" width="140" height="162" fill="#2b3a4a"/><text x="70.0" y="532.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Lab Tech</text>
-<rect x="160" y="462" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
-<text x="285.0" y="484" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Results Entry</text>
-<text x="285.0" y="504" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">per assigned panel</text>
-<text x="285.0" y="518" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing OpenELIS</text>
-<rect x="428" y="462" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
-<text x="553.0" y="484" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Compliance Evaluation Engine</text>
-<text x="553.0" y="504" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Pass / Marginal / Fail</text>
-<text x="553.0" y="518" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-05 · OGC-547</text>
-<line x1="412" y1="527.0" x2="426" y2="527.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
-<rect x="696" y="462" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
-<text x="821.0" y="484" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">NCE on anomaly</text>
-<text x="821.0" y="504" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">contamination, instrument fault,</text>
-<text x="821.0" y="518" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">hold-time · Existing OpenELIS</text>
-<rect x="964" y="462" width="250" height="130" rx="8" ry="8" fill="#f5f5f5" stroke="#999999" stroke-width="1.6" stroke-dasharray="6,4"/>
-<text x="1089.0" y="484" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Instrument QC Gating</text>
-<text x="1089.0" y="504" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-11</text>
-<rect x="0" y="608" width="1720" height="162" fill="#fbf6f1"/><rect x="0" y="608" width="140" height="162" fill="#2b3a4a"/><text x="70.0" y="694.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Validation</text>
-<rect x="160" y="624" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
-<text x="285.0" y="646" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Approve / Reject / Rerun</text>
-<text x="285.0" y="666" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing OpenELIS</text>
-<rect x="428" y="624" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
-<text x="553.0" y="646" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Sign-off — Final Authority</text>
-<text x="553.0" y="666" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing + S-12 dual-verification</text>
-<text x="553.0" y="680" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">(SILNAS addendum)</text>
-<line x1="412" y1="689.0" x2="426" y2="689.0" stroke="#000" stroke-width="2.5" marker-end="url(#arrow)"/>
-<rect x="0" y="770" width="1720" height="162" fill="#f1fbf6"/><rect x="0" y="770" width="140" height="162" fill="#2b3a4a"/><text x="70.0" y="856.0" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">Reporting</text>
-<rect x="160" y="786" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
-<text x="285.0" y="808" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Laporan Hasil / Sertifikat</text>
-<text x="285.0" y="828" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Formal PDF, dual e-sig, LH</text>
-<text x="285.0" y="842" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">numbering</text>
-<text x="285.0" y="856" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-06 · OGC-552</text>
-<rect x="428" y="786" width="250" height="130" rx="8" ry="8" fill="#c8e6c9" stroke="#1b5e20" stroke-width="1.6"/>
-<text x="553.0" y="808" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Environmental Dashboard</text>
-<text x="553.0" y="828" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">trends, exceedance, drill-down</text>
-<text x="553.0" y="842" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">S-07 · OGC-553 + S-07a map</text>
-<rect x="696" y="786" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
-<text x="821.0" y="808" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">NCE Report</text>
-<text x="821.0" y="828" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing OpenELIS</text>
-<rect x="964" y="786" width="250" height="130" rx="8" ry="8" fill="#e8e8e8" stroke="#555555" stroke-width="1.6"/>
-<text x="1089.0" y="808" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#111" text-anchor="middle">Activity Report</text>
-<text x="1089.0" y="828" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Existing OpenELIS</text>
+  <!-- ============== ADMIN LANE ============== -->
+  <rect x="0" y="62" width="1900" height="220" fill="#f4f4f4"/>
+  <rect x="0" y="62" width="100" height="220" fill="#393939"/>
+  <text class="lane-label" x="50" y="172" text-anchor="middle" transform="rotate(-90 50 172)">ADMIN</text>
+  <text x="50" y="270" text-anchor="middle" fill="#a8a8a8" font-size="9">pre-conditions</text>
+
+  <!-- Compliance Standards -->
+  <g transform="translate(124,86)">
+    <rect width="200" height="88" rx="4" fill="#fff" stroke="#24a148" stroke-width="2"/>
+    <text class="box-title" x="14" y="24">Compliance Standards</text>
+    <text class="box-meta-mono" x="14" y="44">S-01 · OGC-528</text>
+    <text class="box-meta" x="14" y="62">Regulation registry</text>
+    <text class="box-meta" x="14" y="78">PP No. 22/2021, WHO, etc.</text>
+  </g>
+
+  <!-- Sampling Site Registry -->
+  <g transform="translate(344,86)">
+    <rect width="200" height="88" rx="4" fill="#fff" stroke="#24a148" stroke-width="2"/>
+    <text class="box-title" x="14" y="24">Sampling Site Registry</text>
+    <text class="box-meta-mono" x="14" y="44">S-02 · OGC-531</text>
+    <text class="box-meta" x="14" y="62">Geo + zone metadata</text>
+    <text class="box-meta" x="14" y="78">Site type → standard match</text>
+  </g>
+
+  <!-- Test Catalog (extended) -->
+  <g transform="translate(564,86)">
+    <rect width="240" height="120" rx="4" fill="#fff" stroke="#f1c21b" stroke-width="2" stroke-dasharray="6,3"/>
+    <rect x="-1" y="-1" width="60" height="16" fill="#f1c21b"/>
+    <text x="29" y="11" text-anchor="middle" font-size="9" font-weight="700" fill="#161616">v2.0</text>
+    <text class="box-title" x="14" y="34">Test Catalog (extended)</text>
+    <text class="box-meta-mono" x="14" y="52">existing · OGC-173</text>
+    <text class="v2-bullet" x="14" y="72">+ SOP holding-time (S-03d v2)</text>
+    <text class="v2-bullet" x="14" y="88">+ QC thresholds — RPD/Recovery/Blank (S-08 v2)</text>
+    <text class="box-meta-mono" x="14" y="108">OGC-593 · OGC-554</text>
+  </g>
+
+  <!-- SampleType + Acceptance Criteria -->
+  <g transform="translate(824,86)">
+    <rect width="240" height="120" rx="4" fill="#fff" stroke="#f1c21b" stroke-width="2" stroke-dasharray="6,3"/>
+    <rect x="-1" y="-1" width="60" height="16" fill="#f1c21b"/>
+    <text x="29" y="11" text-anchor="middle" font-size="9" font-weight="700" fill="#161616">v2.0</text>
+    <text class="box-title" x="14" y="34">SampleType Admin</text>
+    <text class="box-meta-mono" x="14" y="52">existing · OGC-296</text>
+    <text class="v2-bullet" x="14" y="72">+ Domain enum (S-04 · OGC-538)</text>
+    <text class="v2-bullet" x="14" y="88">+ Acceptance Criteria tab (S-09 v2)</text>
+    <text class="box-meta-mono" x="14" y="108">OGC-580 · 6th tab</text>
+  </g>
+
+  <!-- Lab Unit Config -->
+  <g transform="translate(1084,86)">
+    <rect width="240" height="120" rx="4" fill="#fff" stroke="#f1c21b" stroke-width="2" stroke-dasharray="6,3"/>
+    <rect x="-1" y="-1" width="60" height="16" fill="#f1c21b"/>
+    <text x="29" y="11" text-anchor="middle" font-size="9" font-weight="700" fill="#161616">v2.0</text>
+    <text class="box-title" x="14" y="34">Lab Unit Config</text>
+    <text class="box-meta-mono" x="14" y="52">existing OE</text>
+    <text class="v2-bullet" x="14" y="72">+ Required-By Required (GENERIC)</text>
+    <text class="v2-bullet" x="14" y="88">+ Eligibility Gate Behavior (S-09)</text>
+    <text class="box-meta-mono" x="14" y="108">OGC-625 · OGC-580</text>
+  </g>
+
+  <!-- Refer Out / Subcontract -->
+  <g transform="translate(1344,86)">
+    <rect width="240" height="120" rx="4" fill="#fff" stroke="#f1c21b" stroke-width="2" stroke-dasharray="6,3"/>
+    <rect x="-1" y="-1" width="60" height="16" fill="#f1c21b"/>
+    <text x="29" y="11" text-anchor="middle" font-size="9" font-weight="700" fill="#161616">v2.0</text>
+    <text class="box-title" x="14" y="34">Refer Out / Referral</text>
+    <text class="box-meta-mono" x="14" y="52">existing OE</text>
+    <text class="v2-bullet" x="14" y="72">+ Subcontract metadata panel</text>
+    <text class="v2-bullet" x="14" y="88">+ 5-state status workflow</text>
+    <text class="box-meta-mono" x="14" y="108">S-14 · OGC-624 (replaces S-03c)</text>
+  </g>
+
+  <!-- Roadmap items -->
+  <g transform="translate(1604,86)">
+    <rect width="180" height="120" rx="4" fill="#f4f4f4" stroke="#8d8d8d" stroke-width="1.5" stroke-dasharray="4,2"/>
+    <text class="box-title" x="14" y="24" fill="#525252">Future addendums</text>
+    <text class="box-meta" x="14" y="44">S-10 Distribution</text>
+    <text class="box-meta" x="14" y="58">S-11 Instrument QC Gating</text>
+    <text class="box-meta" x="14" y="72">S-12 Verif. pipeline</text>
+    <text class="box-meta" x="14" y="86">S-15 Bulk import re-scope</text>
+    <text class="box-meta" x="14" y="106" font-style="italic">not in v1</text>
+  </g>
+
+  <text x="120" y="240" font-size="11" fill="#491d8b" font-style="italic">⬆ Yellow dashed = v2.0 extensions to existing admin pages (additive, no parallel infrastructure)</text>
+
+  <!-- ============== RECEPTION LANE — 3-STEP WIZARD ============== -->
+  <rect x="0" y="282" width="1900" height="320" fill="#f6f2ff"/>
+  <rect x="0" y="282" width="100" height="320" fill="#491d8b"/>
+  <text class="lane-label" x="50" y="442" text-anchor="middle" transform="rotate(-90 50 442)">RECEPTION</text>
+  <text x="50" y="540" text-anchor="middle" fill="#d4bbff" font-size="9">3-step wizard</text>
+  <text x="50" y="554" text-anchor="middle" fill="#d4bbff" font-size="9">single-page</text>
+  <text x="50" y="568" text-anchor="middle" fill="#d4bbff" font-size="9">Step 1</text>
+
+  <!-- FHIR Referral entry path -->
+  <g transform="translate(124,300)">
+    <rect width="220" height="60" rx="4" fill="#bae6ff" stroke="#003a6d" stroke-width="1.5"/>
+    <text class="box-title" x="14" y="22">📨 FHIR Referral-in</text>
+    <text class="box-meta" x="14" y="38">opens Step 1 pre-populated</text>
+    <text class="box-meta-mono" x="14" y="52">S-03 v2.0 §14 · S-14 OGC-624</text>
+  </g>
+  <!-- arrow from FHIR -> Step 1 -->
+  <line x1="344" y1="330" x2="380" y2="430" stroke="#003a6d" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ar-b)"/>
+
+  <!-- STEP 1 -->
+  <g transform="translate(124,380)">
+    <rect width="500" height="200" rx="6" fill="#fff" stroke="#491d8b" stroke-width="3"/>
+    <rect x="0" y="0" width="500" height="34" fill="#491d8b" rx="6"/>
+    <rect x="0" y="20" width="500" height="14" fill="#491d8b"/>
+    <text x="20" y="22" font-size="12" font-weight="700" fill="#fff" letter-spacing="0.04em">STEP 1 — BRANCH &amp; ORDER SETUP</text>
+    <text x="20" y="48" font-size="11" fill="#491d8b" font-weight="600">single page · no in-page sub-stepper</text>
+    <text x="20" y="68" class="box-meta">🎯 Branch tile selector — Regulation-driven / Ad-hoc</text>
+    <text x="20" y="84" class="box-meta">📍 Site (S-02) + Standard ComboBox (regulation-driven only)</text>
+    <text x="20" y="100" class="box-meta">📋 Sample Manifest — quantity table + CSV bulk upload</text>
+    <text x="20" y="116" class="box-meta">🧪 Suggested Tests (filtered by standard + manifest types)</text>
+    <text x="20" y="132" class="box-meta">⚙️ Default Conditions + Sampling Uncertainty (absorbed S-03b)</text>
+    <text x="20" y="148" class="box-meta">📅 Required-By date+time (GENERIC) + SOP auto-calc (S-03d)</text>
+    <text x="20" y="164" class="box-meta">🏷️ Domain Badge persistent · Referral Tag if applicable</text>
+    <line x1="20" y1="172" x2="480" y2="172" stroke="#e0e0e0" stroke-width="1"/>
+    <text x="20" y="188" class="box-meta-mono">OGC-537 · OGC-538 · OGC-625 · OGC-593</text>
+  </g>
+
+  <!-- arrow Step 1 -> Step 2 -->
+  <line x1="624" y1="480" x2="700" y2="480" stroke="#161616" stroke-width="2.5" marker-end="url(#ar)"/>
+
+  <!-- STEP 2 -->
+  <g transform="translate(700,380)">
+    <rect width="440" height="200" rx="6" fill="#fff" stroke="#491d8b" stroke-width="3"/>
+    <rect x="0" y="0" width="440" height="34" fill="#491d8b" rx="6"/>
+    <rect x="0" y="20" width="440" height="14" fill="#491d8b"/>
+    <text x="20" y="22" font-size="12" font-weight="700" fill="#fff" letter-spacing="0.04em">STEP 2 — LABEL &amp; STORE</text>
+    <text x="20" y="48" font-size="11" fill="#491d8b" font-weight="600">per-sample table · rows from Step 1 manifest</text>
+    <text x="20" y="68" class="box-meta">🏷️ Accession + Barcode (auto-gen, scanner input)</text>
+    <text x="20" y="84" class="box-meta">⏱️ Collection Date/Time → starts hold-time clock (S-03d)</text>
+    <text x="20" y="100" class="box-meta">🧊 Receipt Condition (Acceptable / Cold-chain Broken / …)</text>
+    <text x="20" y="116" class="box-meta">📦 Storage Location + bulk-apply controls</text>
+    <text x="20" y="132" class="box-meta">⚠️ Hold-time-exceeded indicator (drives Step 3 NCE)</text>
+    <line x1="20" y1="172" x2="420" y2="172" stroke="#e0e0e0" stroke-width="1"/>
+    <text x="20" y="188" class="box-meta-mono">OGC-537 §5.2 · OGC-593 (S-03d v2)</text>
+  </g>
+
+  <!-- arrow Step 2 -> Step 3 -->
+  <line x1="1140" y1="480" x2="1216" y2="480" stroke="#161616" stroke-width="2.5" marker-end="url(#ar)"/>
+
+  <!-- STEP 3 -->
+  <g transform="translate(1216,380)">
+    <rect width="500" height="200" rx="6" fill="#fff" stroke="#491d8b" stroke-width="3"/>
+    <rect x="0" y="0" width="500" height="34" fill="#491d8b" rx="6"/>
+    <rect x="0" y="20" width="500" height="14" fill="#491d8b"/>
+    <text x="20" y="22" font-size="12" font-weight="700" fill="#fff" letter-spacing="0.04em">STEP 3 — QA/QC + INTAKE ACCEPTANCE</text>
+    <text x="20" y="48" font-size="11" fill="#491d8b" font-weight="600">per-sample NCE + QC quick-add</text>
+    <text x="20" y="68" class="box-meta">⚠️ Per-sample NCE button → existing OE NCE dialog</text>
+    <text x="20" y="84" class="box-meta">✓ Eligibility tag (S-09 v2): Eligible / Review / —</text>
+    <text x="20" y="100" class="box-meta">📋 Acceptance Criteria side panel (auto-eval from Step 2)</text>
+    <text x="20" y="116" class="box-meta">🔄 Resample sample action (S-09 v2 — new 3rd radio)</text>
+    <text x="20" y="132" class="box-meta">🧫 QC quick-add: + Blank · + Duplicate · + Control</text>
+    <text x="20" y="148" class="box-meta">📤 Submit Batch → bench (non-rejected only)</text>
+    <line x1="20" y1="172" x2="480" y2="172" stroke="#e0e0e0" stroke-width="1"/>
+    <text x="20" y="188" class="box-meta-mono">OGC-537 §5.3 · OGC-580 (S-09 v2 layered)</text>
+  </g>
+
+  <!-- ============== LAB TECH LANE ============== -->
+  <rect x="0" y="602" width="1900" height="180" fill="#edf5ff"/>
+  <rect x="0" y="602" width="100" height="180" fill="#0f62fe"/>
+  <text class="lane-label" x="50" y="692" text-anchor="middle" transform="rotate(-90 50 692)">LAB TECH</text>
+  <text x="50" y="772" text-anchor="middle" fill="#a6c8ff" font-size="9">bench</text>
+
+  <!-- Results Entry -->
+  <g transform="translate(124,624)">
+    <rect width="200" height="120" rx="4" fill="#fff" stroke="#8d8d8d" stroke-width="1.5"/>
+    <text class="box-title" x="14" y="24">Results Entry</text>
+    <text class="box-meta" x="14" y="42">per assigned panel</text>
+    <text class="box-meta-mono" x="14" y="60">existing OE</text>
+    <line x1="14" y1="72" x2="186" y2="72" stroke="#e0e0e0" stroke-width="1"/>
+    <text class="box-meta" x="14" y="88">+ QC Status column</text>
+    <text class="box-meta" x="14" y="102">  for QC samples</text>
+    <text class="v2-bullet" x="14" y="116">S-08 v2 · OGC-554</text>
+  </g>
+
+  <!-- Three evaluators (parallel) -->
+  <g transform="translate(344,624)">
+    <rect width="240" height="120" rx="4" fill="#fff" stroke="#24a148" stroke-width="2"/>
+    <text class="box-title" x="14" y="24">evaluateResult()</text>
+    <text class="box-meta" x="14" y="42">clinical reference range flags</text>
+    <text class="box-meta-mono" x="14" y="60">existing OE</text>
+    <line x1="14" y1="72" x2="226" y2="72" stroke="#e0e0e0" stroke-width="1"/>
+    <text class="box-meta" x="14" y="92">runs alongside the two new</text>
+    <text class="box-meta" x="14" y="106">evaluators below at save time</text>
+  </g>
+
+  <g transform="translate(604,624)">
+    <rect width="240" height="120" rx="4" fill="#fff" stroke="#24a148" stroke-width="2"/>
+    <text class="box-title" x="14" y="24">evaluateCompliance()</text>
+    <text class="box-meta" x="14" y="42">Pass / Marginal / Fail</text>
+    <text class="box-meta" x="14" y="58">vs regulatory thresholds</text>
+    <text class="box-meta-mono" x="14" y="76">S-05 · OGC-547</text>
+    <line x1="14" y1="86" x2="226" y2="86" stroke="#e0e0e0" stroke-width="1"/>
+    <text class="box-meta" x="14" y="104">three-tier callout in tech UI</text>
+  </g>
+
+  <g transform="translate(864,624)">
+    <rect width="240" height="120" rx="4" fill="#fff" stroke="#f1c21b" stroke-width="2" stroke-dasharray="6,3"/>
+    <rect x="-1" y="-1" width="60" height="16" fill="#f1c21b"/>
+    <text x="29" y="11" text-anchor="middle" font-size="9" font-weight="700" fill="#161616">v2.0</text>
+    <text class="box-title" x="14" y="34">evaluateQc()</text>
+    <text class="box-meta" x="14" y="50">QC samples only</text>
+    <text class="box-meta" x="14" y="66">RPD / Recovery / Blank</text>
+    <text class="box-meta-mono" x="14" y="84">S-08 v2 · OGC-554</text>
+    <line x1="14" y1="92" x2="226" y2="92" stroke="#e0e0e0" stroke-width="1"/>
+    <text class="v2-bullet" x="14" y="110">drives validation warning →</text>
+  </g>
+
+  <!-- NCE on anomaly -->
+  <g transform="translate(1124,624)">
+    <rect width="200" height="120" rx="4" fill="#fff" stroke="#8d8d8d" stroke-width="1.5"/>
+    <text class="box-title" x="14" y="24">NCE on anomaly</text>
+    <text class="box-meta" x="14" y="42">contamination · instrument fault</text>
+    <text class="box-meta" x="14" y="58">hold-time violation</text>
+    <text class="box-meta-mono" x="14" y="76">existing OE NCE</text>
+    <line x1="14" y1="86" x2="186" y2="86" stroke="#e0e0e0" stroke-width="1"/>
+    <text class="box-meta" x="14" y="104">flag + note rides sample</text>
+  </g>
+
+  <!-- arrow from Step 3 down -->
+  <line x1="1466" y1="600" x2="1466" y2="624" stroke="#161616" stroke-width="2.5" marker-end="url(#ar)"/>
+  <text x="1480" y="616" font-size="10" fill="#525252">to bench</text>
+
+  <!-- ============== VALIDATION LANE ============== -->
+  <rect x="0" y="782" width="1900" height="170" fill="#d9fbfb"/>
+  <rect x="0" y="782" width="100" height="170" fill="#005d5d"/>
+  <text class="lane-label" x="50" y="867" text-anchor="middle" transform="rotate(-90 50 867)">VALIDATION</text>
+
+  <g transform="translate(124,802)">
+    <rect width="220" height="130" rx="4" fill="#fff" stroke="#8d8d8d" stroke-width="1.5"/>
+    <text class="box-title" x="14" y="24">Review</text>
+    <text class="box-meta" x="14" y="42">all results + per-analyte</text>
+    <text class="box-meta" x="14" y="58">compliance + NCEs + QC evals</text>
+    <text class="box-meta-mono" x="14" y="76">existing OE</text>
+  </g>
+
+  <!-- QC failure warning gate -->
+  <g transform="translate(364,802)">
+    <rect width="320" height="130" rx="4" fill="#fff" stroke="#f1c21b" stroke-width="2" stroke-dasharray="6,3"/>
+    <rect x="-1" y="-1" width="60" height="16" fill="#f1c21b"/>
+    <text x="29" y="11" text-anchor="middle" font-size="9" font-weight="700" fill="#161616">v2.0</text>
+    <text class="box-title" x="14" y="34">QC Failure Warning Gate</text>
+    <text class="box-meta" x="14" y="52">⚠ Inline warning banner if any qcEvaluation = FAIL</text>
+    <text class="box-meta" x="14" y="68">☑ Acknowledgment checkbox required</text>
+    <text class="box-meta" x="14" y="84">📝 Justification TextArea required (max 500)</text>
+    <text class="box-meta" x="14" y="100">→ audit-logged to validation_qc_acknowledgment</text>
+    <text class="box-meta-mono" x="14" y="120">S-08 v2 · OGC-554</text>
+  </g>
+
+  <g transform="translate(704,802)">
+    <rect width="200" height="130" rx="4" fill="#fff" stroke="#8d8d8d" stroke-width="1.5"/>
+    <text class="box-title" x="14" y="24">Approve / Reject /</text>
+    <text class="box-title" x="14" y="42">Request rerun</text>
+    <text class="box-meta-mono" x="14" y="62">existing OE</text>
+    <text class="box-meta" x="14" y="80" font-style="italic">final authority — no</text>
+    <text class="box-meta" x="14" y="94" font-style="italic">supervisor escalation</text>
+    <text class="box-meta" x="14" y="108" font-style="italic">queue (v1)</text>
+  </g>
+
+  <g transform="translate(924,802)">
+    <rect width="200" height="130" rx="4" fill="#f4f4f4" stroke="#8d8d8d" stroke-width="1.5" stroke-dasharray="4,2"/>
+    <text class="box-title" x="14" y="24" fill="#525252">Sign-off</text>
+    <text class="box-meta" x="14" y="42">Verificator → Validator</text>
+    <text class="box-meta" x="14" y="58">dual pipeline (SILNAS)</text>
+    <text class="box-meta-mono" x="14" y="76">S-12 · not in v1</text>
+  </g>
+
+  <!-- arrow from validation → reporting -->
+  <line x1="1124" y1="867" x2="1230" y2="867" stroke="#161616" stroke-width="2.5" marker-end="url(#ar)"/>
+  <text x="1140" y="858" font-size="10" fill="#525252">released</text>
+
+  <!-- ============== REPORTING LANE ============== -->
+  <rect x="0" y="952" width="1900" height="240" fill="#fff8e1"/>
+  <rect x="0" y="952" width="100" height="240" fill="#a47600"/>
+  <text class="lane-label" x="50" y="1072" text-anchor="middle" transform="rotate(-90 50 1072)">REPORTING</text>
+
+  <!-- Laporan Hasil -->
+  <g transform="translate(124,972)">
+    <rect width="280" height="200" rx="4" fill="#fff" stroke="#24a148" stroke-width="2"/>
+    <text class="box-title" x="14" y="24">📄 Laporan Hasil / Sertifikat</text>
+    <text class="box-title" x="14" y="40">Hasil Uji</text>
+    <text class="box-meta" x="14" y="60">formal customer-facing PDF</text>
+    <text class="box-meta" x="14" y="76">dual e-signature · sequential LH#</text>
+    <text class="box-meta" x="14" y="92">batch ZIP export</text>
+    <line x1="14" y1="104" x2="266" y2="104" stroke="#e0e0e0" stroke-width="1"/>
+    <text class="v2-bullet" x="14" y="124">+ QC Summary section (S-08 v2)</text>
+    <text class="box-meta" x="14" y="140">  type · acceptance · computed metric</text>
+    <text class="box-meta" x="14" y="156">  failed = footnote flag</text>
+    <text class="box-meta-mono" x="14" y="186">S-06 · OGC-552</text>
+  </g>
+
+  <!-- Env Dashboard + Worklist -->
+  <g transform="translate(424,972)">
+    <rect width="280" height="200" rx="4" fill="#fff" stroke="#24a148" stroke-width="2"/>
+    <text class="box-title" x="14" y="24">📊 Env Dashboard</text>
+    <text class="box-meta" x="14" y="42">Compliance trend lines</text>
+    <text class="box-meta" x="14" y="58">Exceedance summary</text>
+    <text class="box-meta" x="14" y="74">Site comparison · drill-down</text>
+    <text class="box-meta-mono" x="14" y="94">S-07 · OGC-553 (Sprint 5)</text>
+    <line x1="14" y1="104" x2="266" y2="104" stroke="#e0e0e0" stroke-width="1"/>
+    <text class="v2-bullet" x="14" y="124">+ Chart PNG/PDF Export</text>
+    <text class="box-meta-mono" x="14" y="140">  S-07b · OGC-602</text>
+    <text class="box-meta" x="14" y="160" font-style="italic">+ S-07a Map view</text>
+    <text class="box-meta" x="14" y="174" font-style="italic">  not started</text>
+  </g>
+
+  <!-- Env Worklist with Deadline -->
+  <g transform="translate(724,972)">
+    <rect width="280" height="200" rx="4" fill="#fff" stroke="#f1c21b" stroke-width="2" stroke-dasharray="6,3"/>
+    <rect x="-1" y="-1" width="60" height="16" fill="#f1c21b"/>
+    <text x="29" y="11" text-anchor="middle" font-size="9" font-weight="700" fill="#161616">v2.0</text>
+    <text class="box-title" x="14" y="34">⏱ Env / Vector Worklist</text>
+    <text class="box-meta" x="14" y="54">existing testing worklist</text>
+    <line x1="14" y1="64" x2="266" y2="64" stroke="#e0e0e0" stroke-width="1"/>
+    <text class="v2-bullet" x="14" y="84">+ Deadline column with</text>
+    <text class="v2-bullet" x="14" y="100">  color-coded indicator</text>
+    <text class="box-meta" x="14" y="120">  ≥24h green / 4–24h amber</text>
+    <text class="box-meta" x="14" y="136">  &lt;4h magenta / past red</text>
+    <text class="box-meta" x="14" y="152" font-style="italic">updates live</text>
+    <text class="box-meta-mono" x="14" y="186">S-03d v2 · OGC-593</text>
+  </g>
+
+  <!-- LH Delivery + NCE Report + Activity Report -->
+  <g transform="translate(1024,972)">
+    <rect width="220" height="92" rx="4" fill="#fff" stroke="#24a148" stroke-width="2"/>
+    <text class="box-title" x="14" y="24">📨 LH Delivery Notification</text>
+    <text class="box-meta" x="14" y="42">Sent Messages tab</text>
+    <text class="box-meta" x="14" y="58">per-channel ✓/✕ delivery</text>
+    <text class="box-meta-mono" x="14" y="78">S-06b · OGC-587 (Sprint 5)</text>
+  </g>
+
+  <g transform="translate(1024,1078)">
+    <rect width="220" height="92" rx="4" fill="#fff" stroke="#8d8d8d" stroke-width="1.5"/>
+    <text class="box-title" x="14" y="24">📋 NCE Report</text>
+    <text class="box-meta" x="14" y="42">all flags in period</text>
+    <text class="box-meta-mono" x="14" y="60">existing OE</text>
+    <text class="box-title" x="14" y="80">📊 Activity Report</text>
+  </g>
+
+  <g transform="translate(1264,972)">
+    <rect width="280" height="200" rx="4" fill="#fff" stroke="#f1c21b" stroke-width="2" stroke-dasharray="6,3"/>
+    <rect x="-1" y="-1" width="60" height="16" fill="#f1c21b"/>
+    <text x="29" y="11" text-anchor="middle" font-size="9" font-weight="700" fill="#161616">v2.0</text>
+    <text class="box-title" x="14" y="34">🔁 Resample Notification</text>
+    <text class="box-meta" x="14" y="54">on Resample sample-action</text>
+    <text class="box-meta" x="14" y="70">at Step 3 → triggers</text>
+    <text class="box-meta" x="14" y="86">customer email/SMS via</text>
+    <text class="box-meta" x="14" y="102">existing Notification Admin</text>
+    <text class="box-meta" x="14" y="118">+ link to new Draft order</text>
+    <text class="box-meta-mono" x="14" y="186">S-09 v2 · OGC-580</text>
+  </g>
+
+  <g transform="translate(1564,972)">
+    <rect width="220" height="200" rx="4" fill="#fff" stroke="#24a148" stroke-width="2"/>
+    <text class="box-title" x="14" y="24">↩ FHIR Task ack</text>
+    <text class="box-meta" x="14" y="42">routes results back</text>
+    <text class="box-meta" x="14" y="58">to upstream lab</text>
+    <text class="box-meta" x="14" y="74">on referral orders</text>
+    <text class="box-meta-mono" x="14" y="94">S-03 v2 §14.5 · S-14</text>
+    <text class="box-meta-mono" x="14" y="108">OGC-624</text>
+    <line x1="14" y1="120" x2="206" y2="120" stroke="#e0e0e0" stroke-width="1"/>
+    <text class="box-meta" x="14" y="140">Task.status = accepted</text>
+    <text class="box-meta" x="14" y="156">→ rejected (with reason)</text>
+    <text class="box-meta" x="14" y="172">→ completed</text>
+  </g>
+
+  <!-- ============== FOOTER / LEGEND ============== -->
+  <rect x="0" y="1192" width="1900" height="128" fill="#f4f4f4"/>
+  <text x="32" y="1216" font-size="14" font-weight="600" fill="#161616">Legend</text>
+
+  <!-- Legend boxes -->
+  <g transform="translate(32,1228)">
+    <rect width="20" height="20" fill="#fff" stroke="#8d8d8d" stroke-width="1.5"/>
+    <text x="32" y="14" font-size="12" fill="#161616">Existing OpenELIS — reused as-is</text>
+  </g>
+  <g transform="translate(280,1228)">
+    <rect width="20" height="20" fill="#fff" stroke="#24a148" stroke-width="2"/>
+    <text x="32" y="14" font-size="12" fill="#161616">Spec Complete (v1) — FRS + mockup + ticket</text>
+  </g>
+  <g transform="translate(620,1228)">
+    <rect width="20" height="20" fill="#fff" stroke="#f1c21b" stroke-width="2" stroke-dasharray="4,2"/>
+    <rect width="20" height="6" fill="#f1c21b"/>
+    <text x="32" y="14" font-size="12" fill="#161616">Spec Complete v2.0 (2026-04-25 audit)</text>
+  </g>
+  <g transform="translate(950,1228)">
+    <rect width="20" height="20" fill="#f4f4f4" stroke="#8d8d8d" stroke-width="1.5" stroke-dasharray="4,2"/>
+    <text x="32" y="14" font-size="12" fill="#161616">Not started — roadmap item</text>
+  </g>
+
+  <text x="32" y="1278" font-size="12" font-weight="600" fill="#161616">Five v2.0 ticket changes:</text>
+  <text x="200" y="1278" font-size="11" fill="#525252">S-03 v2.0 (OGC-537) · S-08 v2.0 (OGC-554, ~30%) · S-03d v2.0 Parts B+C only (OGC-593) · S-09 v2.0 rebased + moved S7→S3 (OGC-580) · S-03b absorbed (OGC-603 closed) · S-03c → S-14 (OGC-590 closed → OGC-624 created) · GENERIC Required-By (OGC-625, was S-03d Part A)</text>
+
+  <text x="32" y="1304" font-size="11" fill="#525252">Last updated: 2026-04-25 · Source: S-03 v2.0 FRS · Sprint plan v15 · Roadmap doc v2.0</text>
 </svg>
