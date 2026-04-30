@@ -1,6 +1,6 @@
 /**
- * V-04 Vector Surveillance Reporting — React Mockup (v1.3)
- * Spec: vector-surveillance-reporting.md (v1.3)
+ * V-04 Vector Surveillance Reporting — React Mockup (v1.4)
+ * Spec: vector-surveillance-reporting.md (v1.4)
  * Jira: OGC-585 (Epic: OGC-527)
  *
  * This component is the OpenELIS embedding shell for the Superset dashboard.
@@ -11,6 +11,15 @@
  *  2. Error state     — Superset unreachable / token fetch failed
  *  3. Connected state — iframe with embedded Superset dashboard
  *  4. Infrastructure  — architecture diagram tab (design reference)
+ *
+ * v1.4 changes (vector expert validation pass):
+ *  - Trap type stratification reactivated (V-04 §17.2 → completed). Dashboard #1 and #5
+ *    gain trap-type filter dropdowns (passive traps + active collection methods).
+ *  - Dashboard #4 gains a third toggle option: Sporozoite Rate (%). Same numerator as
+ *    Observed, rescaled to per-100. Auto-disabled when positive_resolution_pct < 95%.
+ *  - Lifecycle stage stratification across surveillance views; Dashboard #4 defaults
+ *    to ADULT-only with toggle to include other stages.
+ *  - NEW §6.6 Export Adapters — eWARS + SILANTOR CSV (column lists pending schema docs).
  *
  * v1.3 changes (FRS crosswalk April 2026):
  *  - V-04 v1.1 — trap_type removed from views and FHIR mapping (deferred per §17.2);
@@ -107,8 +116,13 @@ const ConnectionTag = ({ status }) => {
 function SimulatedDashboard({ dateFrom, dateTo, site }) {
   const siteName = SITES.find(s => s.id === site)?.name || 'All Sites';
   // v1.3 — MIR metric toggle for Dashboard #4 (ContentSwitcher pattern)
-  const [mirMode, setMirMode] = useState('observed'); // 'observed' | 'classic'
+  // v1.4: 3-way toggle — observed | classic | sporozoite
+  const [mirMode, setMirMode] = useState('observed');
+  // v1.4: lifecycle + trap type filters (default ADULT, all trap types)
+  const [lifecycleFilter, setLifecycleFilter] = useState('ADULT');
+  const [trapTypeFilter, setTrapTypeFilter] = useState('ALL');
   const positiveResolutionPct = 67; // simulated — would come from API
+  const sporozoiteAvailable = positiveResolutionPct >= 95;
   return (
     <div style={{
       width: '100%', height: '100%', background: '#1c1c1c', borderRadius: 4,
@@ -141,9 +155,34 @@ function SimulatedDashboard({ dateFrom, dateTo, site }) {
 
       {/* Chart grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '0 16px 16px', flex: 1, minHeight: 0 }}>
-        {/* Collection Density Trend (renamed from Trap Catch Rate per V-04 v1.1; trap-type stratification deferred to §17.2) */}
+        {/* Collection Density Trend (v1.4: trap type stratification reactivated; lifecycle filter added) */}
         <div style={{ background: '#2a2a2a', borderRadius: 4, padding: 16, display: 'flex', flexDirection: 'column' }}>
-          <p style={{ color: '#fff', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Collection Density — Trend (organisms per collection event)</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8, flexWrap: 'wrap' }}>
+            <p style={{ color: '#fff', fontSize: 13, fontWeight: 600, margin: 0 }}>Collection Density — Trend</p>
+            {/* v1.4: trap type + lifecycle filter chips */}
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center', fontSize: 10 }}>
+              <select value={lifecycleFilter}
+                      onChange={e => setLifecycleFilter(e.target.value)}
+                      style={{ fontSize: 10, padding: '2px 4px', background: '#1c1c1c', color: '#ccc', border: '1px solid #525252', cursor: 'pointer' }}>
+                <option value="ADULT">Adult (default)</option>
+                <option value="ALL">All stages</option>
+                <option value="LARVA">Larva</option>
+                <option value="PUPA">Pupa</option>
+                <option value="EGG">Egg</option>
+              </select>
+              <select value={trapTypeFilter}
+                      onChange={e => setTrapTypeFilter(e.target.value)}
+                      style={{ fontSize: 10, padding: '2px 4px', background: '#1c1c1c', color: '#ccc', border: '1px solid #525252', cursor: 'pointer' }}>
+                <option value="ALL">All trap types</option>
+                <option value="BG_SENTINEL">BG-Sentinel</option>
+                <option value="CDC_LIGHT_TRAP">CDC light trap</option>
+                <option value="GRAVID_TRAP">Gravid trap</option>
+                <option value="OVITRAP">Ovitrap</option>
+                <option value="HUMAN_LANDING">Human-landing</option>
+              </select>
+            </div>
+          </div>
+          <p style={{ color: '#888', fontSize: 11, marginBottom: 8 }}>organisms per collection event</p>
           <div style={{ flex: 1, position: 'relative' }}>
             <svg width="100%" height="100%" viewBox="0 0 400 120" preserveAspectRatio="none">
               <polyline points="0,100 50,85 100,60 150,70 200,45 250,55 300,30 350,40 400,25"
@@ -201,21 +240,62 @@ function SimulatedDashboard({ dateFrom, dateTo, site }) {
               <button role="tab" aria-selected={mirMode === 'observed'}
                       onClick={() => setMirMode('observed')}
                       style={{ padding: '4px 8px', background: mirMode === 'observed' ? '#fff' : 'transparent', color: mirMode === 'observed' ? '#161616' : '#ccc', border: 'none', cursor: 'pointer' }}>
-                Observed
+                Observed /1k
               </button>
               <button role="tab" aria-selected={mirMode === 'classic'}
                       onClick={() => setMirMode('classic')}
                       style={{ padding: '4px 8px', background: mirMode === 'classic' ? '#fff' : 'transparent', color: mirMode === 'classic' ? '#161616' : '#ccc', border: 'none', borderLeft: '1px solid #525252', cursor: 'pointer' }}>
                 Classical MIR
               </button>
+              {/* v1.4: Sporozoite Rate (%) — third toggle, gated on resolution >= 95% */}
+              <button role="tab" aria-selected={mirMode === 'sporozoite'}
+                      disabled={!sporozoiteAvailable}
+                      onClick={() => sporozoiteAvailable && setMirMode('sporozoite')}
+                      title={sporozoiteAvailable
+                        ? 'Sporozoite Rate (%) — anchored on VR-07 microscopy (V-03 §A.5.9)'
+                        : `Disabled — needs ≥ 95% deconvolution coverage (currently ${positiveResolutionPct}%)`}
+                      style={{
+                        padding: '4px 8px',
+                        background: mirMode === 'sporozoite' ? '#a56eff' : 'transparent',
+                        color: mirMode === 'sporozoite' ? '#fff' : '#a56eff',
+                        border: 'none',
+                        borderLeft: '1px solid #525252',
+                        cursor: sporozoiteAvailable ? 'pointer' : 'not-allowed',
+                        opacity: sporozoiteAvailable ? 1 : 0.45,
+                        fontWeight: 600,
+                      }}>
+                Sporozoite %
+              </button>
             </div>
+          </div>
+
+          {/* v1.4: Lifecycle filter — sporozoite rate is meaningful only for adult females */}
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 10, color: '#888', marginBottom: 6 }}>
+            <span style={{ textTransform: 'uppercase', letterSpacing: 0.4 }}>Stratify:</span>
+            <select value={lifecycleFilter}
+                    onChange={e => setLifecycleFilter(e.target.value)}
+                    style={{ fontSize: 10, padding: '2px 4px', background: '#2a2a2a', color: '#ccc', border: '1px solid #525252' }}>
+              <option value="ADULT">Lifecycle: Adult only (default)</option>
+              <option value="ADULT_PUPA">Lifecycle: Adult + Pupa</option>
+              <option value="ALL">Lifecycle: All stages</option>
+            </select>
+            {!sporozoiteAvailable && (
+              <span style={{ color: '#f1c21b', marginLeft: 8 }}>
+                ⚠ Sporozoite Rate disabled — needs ≥ 95% deconvolution coverage
+              </span>
+            )}
           </div>
 
           {/* Partial-resolution warning (per Item 5 acceptance criteria) */}
           {positiveResolutionPct < 100 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: '#f1c21b', marginBottom: 6 }}>
               <span style={{ display: 'inline-block', width: 12, height: 12, background: '#f1c21b', borderRadius: '50%', color: '#161616', fontWeight: 700, textAlign: 'center', lineHeight: '12px', fontSize: 9 }}>!</span>
-              <span>Partial resolution: {positiveResolutionPct}% of positive pools deconvoluted. {mirMode === 'observed' ? 'Observed uses classical fallback for the rest.' : 'Switch to Observed for exact counts.'}</span>
+              <span>
+                Partial resolution: {positiveResolutionPct}% of positive pools deconvoluted.{' '}
+                {mirMode === 'observed' && 'Observed uses classical fallback for the rest.'}
+                {mirMode === 'classic' && 'Switch to Observed for exact counts.'}
+                {mirMode === 'sporozoite' && 'Sporozoite Rate uses fallback for un-resolved pools.'}
+              </span>
             </div>
           )}
 
@@ -232,25 +312,28 @@ function SimulatedDashboard({ dateFrom, dateTo, site }) {
               {[
                 // observed = exact descendant positive count when resolved; classical fallback otherwise
                 // classic  = (positive_pools / total_organisms) × 1000
+                // sporozoite = same numerator as observed, rescaled to per-100 (% form)
                 { species: 'Ae. aegypti',  observed: [2.1, 4.8, 9.6, 14.2], classic: [2.1, 4.8, 8.3, 12.4] },
                 { species: 'Cx. quinque.', observed: [0,   1.2, 2.0,  3.1], classic: [0,   1.2, 2.0,  3.1] },
                 { species: 'An. barb.',    observed: [0,   0,   0.8,  1.5], classic: [0,   0,   0.8,  1.5] },
               ].map(row => {
-                const active  = mirMode === 'classic' ? row.classic  : row.observed;
-                const compare = mirMode === 'classic' ? row.observed : row.classic;
+                // v1.4: 3-way mode resolution
+                const sporozoite = row.observed.map(v => Number((v / 10).toFixed(2)));
+                const active = mirMode === 'classic' ? row.classic
+                             : mirMode === 'sporozoite' ? sporozoite
+                             : row.observed;
+                const colorScale = mirMode === 'sporozoite' ? 1.5 : 15;
                 return (
                   <tr key={row.species}>
                     <td style={{ color: '#ccc', paddingRight: 8, paddingBottom: 4 }}>{row.species}</td>
                     {active.map((v, i) => {
-                      const intensity = Math.min(v / 15, 1);
+                      const intensity = Math.min(v / colorScale, 1);
                       const bg = v === 0 ? '#1c1c1c' : `rgba(218, 30, 40, ${0.15 + intensity * 0.85})`;
-                      // Tooltip shows BOTH metrics + resolution % per Item 5 acceptance criteria
-                      const tip = mirMode === 'classic'
-                        ? `Classical: ${v}\nObserved: ${compare[i]}\nResolution: ${positiveResolutionPct}%`
-                        : `Observed: ${v}\nClassical: ${compare[i]}\nResolution: ${positiveResolutionPct}%`;
+                      // v1.4: tooltip shows ALL THREE metrics + resolution % per Dashboard #4 acceptance criteria
+                      const tip = `Observed (per 1k): ${row.observed[i]}\nClassical MIR (per 1k): ${row.classic[i]}\nSporozoite Rate (%): ${sporozoite[i]}\nResolution: ${positiveResolutionPct}%`;
                       return (
                         <td key={i} title={tip}
-                            style={{ background: bg, textAlign: 'center', color: v > 7 ? '#fff' : '#ccc', padding: '3px 8px', borderRadius: 2 }}>
+                            style={{ background: bg, textAlign: 'center', color: intensity > 0.5 ? '#fff' : '#ccc', padding: '3px 8px', borderRadius: 2 }}>
                           {v || '—'}
                         </td>
                       );
