@@ -1,8 +1,8 @@
 # Vector Surveillance Reporting
 ## Functional Requirements Specification — v1.0
 
-**Version:** 1.3
-**Date:** 2026-04-24
+**Version:** 1.4
+**Date:** 2026-04-26
 **Status:** Draft for Review
 **Jira:** TBD (Epic: [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
 **Technology:** Java Spring Framework, Carbon React, Apache Superset, HAPI FHIR, Google Open Health Stack (SQL-on-FHIR)
@@ -10,6 +10,7 @@
 
 ### Change Log
 
+- **v1.4 (2026-04-26 — vector expert validation pass):** Reactivated trap type stratification across §7.1 (FHIR Specimen mapping), §8.1 (vector_collection_samples view), §8.5 (vector_collection_density_daily), and Dashboards #1 + #5 — driven by V-02 v2.4 reactivating Trap Type capture at intake. Added `sporozoite_rate_pct` derived column in §8.4 (vector_mir_weekly view) for Plasmodium individual-level confirmation; Dashboard #4 gains a third toggle option ("Sporozoite Rate (%)") alongside the existing mir_classic and infection_rate_per_1000 metrics. Added lifecycle_stage stratification across all surveillance views; Dashboard #4 defaults to ADULT-only with an opt-in toggle to include other stages. Added new §6.6 Export Adapters — eWARS and SILANTOR CSV exporters (row-per-pool, weekly cadence, manual button + scheduled email-out; column-list specifics pending schema docs from the expert; trap_type explicitly omitted from both export schemas per expert confirmation). Added §17.4 V-04d API Push to deferred future scope. Lifecycle stage and trap type both flow from V-02 v2.4 Sample fields through the FHIR pipeline.
 - **v1.3 (2026-04-24 — infection rate accuracy for deconvoluted pools):** Rewrote §8.4 `vector_mir_weekly` to compute two metrics side-by-side: `mir_classic` (classical formula, conservative lower bound) and `infection_rate_per_1000` (uses exact positive counts when pool deconvolution is COMPLETE; falls back to classical assumption of 1 positive per unresolved positive pool). Added `positive_resolution_pct` diagnostic so report readers can judge how trustworthy the hybrid metric is. Rewrote BR-V04-001. Updated Dashboard #4 to show both metrics. Added §17.3 future-scope note for MLE-based PooledInfRate-style estimator (deferred — requires iterative solver, not expressible in pure SQL). Acceptance criteria added.
 - **v1.2 (2026-04-24 — QC exclusion):** Added explicit QC sample handling. Surveillance aggregates (MIR, density) now filter out QC samples by traversing the existing OpenELIS `analysis_qaevent` join table. Per OpenELIS architecture, QC is identified at the Analysis level (a Sample is QC if any of its Analyses has a linked QaEvent record — Positive Control, Negative Control, Blank, Duplicate). New FR-V04-QC-001/002/003. New §8.6 `vector_qc_monitoring` view. New Dashboard #7 "QC Pass Rate". New BR-V04-008. Updated FHIR §7.3 DiagnosticReport mapping with `qaEventType` extension. Acceptance criteria for QC exclusion added.
 - **v1.1 (2026-04-24 — alignment with simplified V-02/V-03):** Removed `trap_type` from FHIR Specimen mapping, OHS analytics views, and dashboard groupings — trap type is designed in the backend but currently out of scope for V-02 intake (no data captured). Replaced `pool_flag` references with derived `is_pool = (quantity > 1)` to match V-02 v2.2+ data model. Renamed `specimen_count` → `organism_count` consistently. Renamed `vector_trap_catch_daily` view → `vector_collection_density_daily` and metric `catch_rate` → `organisms_per_event` to reflect the post-trap-type entomological metric. Added §17.2 deferred-feature note for trap type. Dashboard #1 and #5 titles updated.
@@ -37,8 +38,9 @@
 16. Acceptance Criteria
 17. Future Scope
     - 17.1 V-04b — In-App Outbreak Alerts
-    - 17.2 Trap Type Reactivation (Deferred)
+    - 17.2 Trap Type Reactivation — ✅ Completed v1.4
     - 17.3 V-04c — MLE-based Infection Rate Estimation (Deferred)
+    - 17.4 V-04d — eWARS / SILANTOR API Push (Deferred from v1.4)
 
 ---
 
@@ -263,24 +265,54 @@ V-04 delivers vector surveillance analytics to OpenELIS operators without requir
 
 **FR-V04-EMB-009 (RLS — deferrable):** When row-level security is enabled, the guest token request MUST include an `rls` array containing a SQL filter clause scoped to the authenticated OpenELIS user's assigned sites (e.g., `site_id IN (1, 3, 7)`). This requires the OpenELIS user entity to have a `assignedSites` relationship. This requirement MUST be skipped for single-tenant deployments.
 
+### 6.6 Export Adapters — eWARS + SILANTOR (v1.4)
+
+> **Status:** FR-shape spec complete in v1.4. Column-list specifics for both adapters are pending schema documentation from the vector expert; the implementation guide will lock the column list before build. API push (rather than CSV upload) is deferred to V-04d (§17.4).
+
+**FR-V04-EXP-001:** OpenELIS Reports → Vector Surveillance MUST provide two CSV export adapters covering the regulatory submission paths used by Indonesian programs: the **eWARS Exporter** (Early Warning, Alert and Response System) and the **SILANTOR Exporter** (Sistem Informasi Laporan Pemantauan Vektor). Both adapters MUST support **manual trigger** (button click on the dashboard page) and **scheduled trigger** (weekly cron, configurable per-deployment, with optional email-out to a configured recipient list).
+
+**FR-V04-EXP-002:** Both adapters MUST aggregate at the **row-per-pool** level (not row-per-week-per-site aggregate). The data source is `vector_pathogen_results` filtered to the requested period — one row per Sample × pathogen test result. The receiving authority performs its own aggregation. This was confirmed with the vector expert as the standard ingestion shape for both platforms.
+
+**FR-V04-EXP-003:** Both adapters MUST exclude `trap_type_code`, `trap_type_name`, and Collection Context fields from the export payload. Per the vector expert, neither eWARS nor SILANTOR tracks trap-type or bionomics metadata at the export layer — those fields stay in the internal V-04 dashboards but are NOT submitted to the authority. The structural rule mirrors the QC exclusion pattern (BR-V04-008) — adapter views filter columns at the SQL projection layer.
+
+**FR-V04-EXP-004:** QC samples MUST be excluded from both export adapters per BR-V04-008 (the existing QC structural exclusion). Only `is_qc = FALSE` rows are submitted.
+
+**FR-V04-EXP-005 — eWARS Adapter.** Output format: CSV conforming to Indonesia's eWARS data-set schema (DHIS2-based; column list pending schema docs from the vector expert). Cadence: weekly. Filename pattern: `ewars_vector_{site_code}_{iso_year}_W{iso_week}.csv`. Encoding: UTF-8 with BOM. Content scope: `vector_pathogen_results` rows with `is_qc = FALSE` for the reporting period.
+
+**FR-V04-EXP-006 — SILANTOR Adapter.** Output format: CSV conforming to Kemenkes Subdit Vektor SILANTOR schema (column list pending schema docs from the vector expert). Cadence: weekly. Filename pattern: `silantor_vector_{site_code}_{iso_year}_W{iso_week}.csv`. Encoding: UTF-8 with BOM. Content scope: same as eWARS adapter — `vector_pathogen_results` rows with `is_qc = FALSE`.
+
+**FR-V04-EXP-007 — Permissions.** New permission keys: `vectorReport.exportEwars` (granted to Lab Manager, Vector Surveillance Coordinator, Epidemiologist by default) and `vectorReport.exportSilantor` (same default grants). The two are separately gated because some deployments may use only one of the two platforms.
+
+**FR-V04-EXP-008 — Audit.** Each export run (manual or scheduled) MUST be logged with: timestamp, exporter (eWARS / SILANTOR), reporting period (iso_year, iso_week), row count, triggering user (or "scheduled"), and whether email-out was attempted. Logs are retained per the standard OpenELIS audit retention policy.
+
+**FR-V04-EXP-009 — UI placement.** The two export buttons MUST be added to the dashboard page header alongside the existing "Export PDF" and "Open in Superset ↗" buttons (per FR-V04-EMB-007/008). Placement: a new "Export to Authority ▾" dropdown menu with eWARS and SILANTOR as menu items; only items the user has permission for SHALL be visible.
+
+> **Implementation note.** When the schema docs arrive, this section will be augmented with the column-by-column mapping (per adapter): which `vector_pathogen_results` field maps to which CSV column, value transformations (e.g., DHIS2 expects ISO 8601 dates, etc.), and any coding-system mappings (organism_group → DHIS2 option set, panel_loinc → DHIS2 data element identifier). The current spec locks the FR-level shape only.
+
 ---
 
 ## 7. FHIR Resource Mapping
 
 ### 7.1 Sample (VECTOR domain) → FHIR Specimen
 
-> Aligned with V-02 v2.2+ — the source entity is the existing `Sample`, not a separate `CollectionLot`. Trap type is designed in the backend but currently out of scope for V-02 intake; see §17.2 for deferred reactivation.
+> Aligned with V-02 v2.4 — the source entity is the existing `Sample`. **Trap type is reactivated in v1.4** (was previously deferred per §17.2). Lifecycle stage and Collection Context fields added per V-02 v2.4 are also pushed.
 
 | Sample field | FHIR Specimen path | Notes |
 |---|---|---|
 | `id` | `Specimen.identifier[0].value` | System: `https://openelis-global.org/sample` |
 | `lab_number` | `Specimen.identifier[1].value` | Display label (e.g., `VCT-2026-000042`) |
-| `sampling_site_id` | `Specimen.collection.collector` | Reference to Location (nullable; V-02 makes site optional) |
+| `sampling_site_id` | `Specimen.collection.collector` | Reference to Location (nullable; V-02 makes site optional). For child Aliquots, V-03 v1.13 adds an optional per-Aliquot `collection_location_id` override — pushed as the same field on the Aliquot's Specimen resource. |
 | `received_at` | `Specimen.collection.collectedDateTime` | ISO 8601 — V-02 records lab receipt; collection date upstream of OpenELIS not captured |
 | `quantity` | `Specimen.collection.quantity` | `Quantity` resource: `{ value: <int>, unit: "organisms" }` |
 | — (derived) | `Specimen.note[0].text` | `"isPool:{quantity>1}"` — derived at push time |
 | `identificationStatus` | `Specimen.status` | `available` = COMPLETE, `unavailable` = NOT_STARTED, `unsatisfactory` = IN_PROGRESS |
 | `sample_type_id` (organism group) | `Specimen.type.coding[0].code` | System: `https://openelis-global.org/organism-group` |
+| **`trap_type_id`** *(reactivated v1.4)* | `Specimen.type.coding[1].code` | System: `https://openelis-global.org/trap-type`. Sourced from the `VECTOR_TRAP_TYPE` Dictionary category (V-03 Appendix A.7.10 — passive traps + collection methods). |
+| **`lifecycle_stage`** *(v1.4)* | `Specimen.extension[lifecycleStage]` | Custom extension URL: `https://openelis-global.org/extension/lifecycleStage`. Values from `VECTOR_LIFECYCLE_STAGE` Dictionary (V-03 Appendix A.7.9): EGG / LARVA / PUPA / ADULT / UNKNOWN. |
+| **`collection_time_of_day`** *(v1.4)* | `Specimen.extension[collectionTimeOfDay]` | Custom extension. From V-02 v2.4 Collection Context accordion. |
+| **`resting_context`** *(v1.4)* | `Specimen.extension[restingContext]` | Custom extension. From V-02 v2.4 Collection Context accordion. |
+| **`human_biting_catch`** *(v1.4)* | `Specimen.extension[humanBitingCatch]` | Custom extension; valueBoolean. From V-02 v2.4 Collection Context accordion. |
+| **`collection_context_notes`** *(v1.4)* | `Specimen.note[1].text` | Free-text. From V-02 v2.4. |
 | `deconvolutionStatus` | `Specimen.extension[deconvolutionStatus]` | Custom extension URL |
 | `parent_aliquot_id` | `Specimen.parent` | Set on child aliquots; references parent Specimen |
 
@@ -330,15 +362,16 @@ All views live in the `vector_analytics` Postgres schema. The OHS `sql-on-fhir` 
 
 ### 8.1 `vector_collection_samples`
 
-> Renamed from `vector_collection_lots` to align with V-02's Sample entity (the term "lot" is no longer used). Trap type fields removed — see §17.2 for deferred reactivation.
+> Renamed from `vector_collection_lots` to align with V-02's Sample entity (the term "lot" is no longer used). **Trap type and lifecycle stage reactivated in v1.4** per V-02 v2.4. Collection Context fields also surfaced.
 
 ```sql
 CREATE OR REPLACE VIEW vector_analytics.vector_collection_samples AS
 SELECT
     s.id                              AS sample_fhir_id,
     s.lab_number                      AS lab_number,
-    s.site_id                         AS site_id,
-    s.site_name                       AS site_name,
+    -- v1.13: per-Aliquot collection_location_id may override parent's site
+    COALESCE(s.aliquot_collection_location_id, s.site_id)     AS site_id,
+    COALESCE(s.aliquot_collection_location_name, s.site_name) AS site_name,
     s.collection_date::date           AS collection_date,
     EXTRACT(ISOYEAR FROM s.collection_date::date)  AS iso_year,
     EXTRACT(WEEK   FROM s.collection_date::date)   AS iso_week,
@@ -348,6 +381,15 @@ SELECT
     s.identification_status           AS identification_status,
     s.deconvolution_status            AS deconvolution_status,
     s.parent_sample_fhir_id           AS parent_sample_fhir_id,  -- null for top-level samples; set for aliquots
+    -- v1.4 trap type reactivation (Specimen.type.coding[1])
+    s.trap_type_code                  AS trap_type_code,
+    s.trap_type_name                  AS trap_type_name,
+    -- v1.4 lifecycle stage from Specimen.extension[lifecycleStage]
+    s.lifecycle_stage                 AS lifecycle_stage,
+    -- v1.4 Collection Context fields (V-02 v2.4)
+    s.collection_time_of_day          AS collection_time_of_day,
+    s.resting_context                 AS resting_context,
+    s.human_biting_catch::boolean     AS human_biting_catch,
     -- QC derivation: a Sample is QC if any of its Analyses has a linked AnalysisQaEvent (OpenELIS pattern).
     -- Pulled in OHS via DiagnosticReport.extension[qaEventType].
     EXISTS (
@@ -493,6 +535,14 @@ SELECT
         (SUM(inferred_positive_organisms)::numeric / NULLIF(SUM(organism_count), 0)) * 1000,
         2
     )                                     AS infection_rate_per_1000,
+    -- sporozoite_rate_pct (added v1.4) — same numerator as infection_rate_per_1000, just rescaled to %
+    -- and conventionally only meaningful for malaria with deconvolution-to-individuals + microscopy confirmation
+    -- (Plasmodium Speciation Panel + VR-07 reflex → Sporozoite Confirmation Panel; V-03 Appendix A.5.9).
+    -- Display only when positive_resolution_pct >= 95% per Dashboard #4 rules.
+    ROUND(
+        (SUM(inferred_positive_organisms)::numeric / NULLIF(SUM(organism_count), 0)) * 100,
+        2
+    )                                     AS sporozoite_rate_pct,
     -- Diagnostic — % of positive pools that have been deconvoluted.
     -- 100% → infection_rate_per_1000 equals the true observed infection rate.
     -- 0%   → infection_rate_per_1000 equals mir_classic.
@@ -585,11 +635,11 @@ All six charts are assembled into the **"Vector Surveillance Overview"** dashboa
 
 | # | Chart name | Type | Source view | X axis | Y axis / Metric | Notes |
 |---|---|---|---|---|---|---|
-| 1 | **Collection Density — Trend** | Line chart | `vector_collection_density_daily` | `collection_date` (weekly aggregate) | `organisms_per_event` (avg) | Grouped by `site_name`; threshold reference line configurable. (Renamed from "Trap Catch Rate" — trap-type stratification deferred per §17.2.) |
-| 2 | **Species Distribution** | Pie / Donut | `vector_specimen_ids` | — | COUNT per `species_name` | Filterable by site, date range, `confidence = CONFIRMED` |
+| 1 | **Collection Density — Trend** | Line chart | `vector_collection_density_daily` | `collection_date` (weekly aggregate) | `organisms_per_event` (avg) | Grouped by `site_name`; **trap type filter added v1.4** (Dictionary-backed, includes passive traps + collection methods); lifecycle stage filter (default ADULT). Threshold reference line configurable. |
+| 2 | **Species Distribution** | Pie / Donut | `vector_specimen_ids` | — | COUNT per `species_name` | Filterable by site, date range, `confidence = CONFIRMED`, lifecycle stage |
 | 3 | **Pathogen Positivity Rate** | Bar chart | `vector_pathogen_results` | `iso_week` | `is_positive` (% of rows) | Grouped by `panel_name`; stacked by site |
-| 4 | **Infection Rate by Species × Panel** | Heatmap (toggle) | `vector_mir_weekly` | `iso_week` | `infection_rate_per_1000` (default) / `mir_classic` (toggle) | Rows = `species_name`; color = quartile. Toggle in chart header switches metric. Tooltip shows BOTH metrics plus `positive_resolution_pct` so users understand divergence. When `positive_resolution_pct < 100%`, the chart displays a small warning glyph indicating partial resolution. |
-| 5 | **Site Comparison — Collection Density** | Bar chart | `vector_collection_density_daily` | `site_name` | `organisms_per_event` (period avg) | Horizontal bars; color by `organism_group`. (Renamed from "Catch Rate"). |
+| 4 | **Infection Rate by Species × Panel** | Heatmap (3-way toggle, v1.4) | `vector_mir_weekly` | `iso_week` | `infection_rate_per_1000` (default) / `mir_classic` / **`sporozoite_rate_pct` (v1.4)** | Rows = `species_name`; color = quartile. Toggle in chart header switches metric. Tooltip shows ALL THREE metrics plus `positive_resolution_pct`. When `positive_resolution_pct < 95%`, the Sporozoite Rate toggle is disabled with hover hint "Insufficient deconvolution coverage for sporozoite rate." When `positive_resolution_pct < 100%`, the chart displays a small warning glyph indicating partial resolution. **Defaults to ADULT lifecycle stage**; toggle to include other stages. |
+| 5 | **Site Comparison — Collection Density** | Bar chart | `vector_collection_density_daily` | `site_name` | `organisms_per_event` (period avg) | Horizontal bars; color by `organism_group`; **trap type stratification added v1.4** (multi-select filter). |
 | 6 | **KPI Summary Tiles** | Big Number | All views | — | Total samples · Total organisms · Active sites · Highest MIR this week | 4-tile header row on dashboard. Counts exclude QC samples per FR-V04-QC-002. |
 | 7 | **QC Pass Rate** | Bar chart | `vector_qc_monitoring` | `iso_week` | `qc_pass_rate_pct` | Grouped by `qa_event_type`; one stack per site. Threshold reference line at 95% (configurable). Renders below the surveillance dashboard, under a clear "Quality Control" section divider. Per FR-V04-QC-003. |
 
@@ -976,9 +1026,15 @@ CREATE TABLE vector_alert_threshold (
 );
 ```
 
-### 17.2 Trap Type Reactivation (Deferred)
+### 17.2 Trap Type Reactivation — ✅ Completed v1.4
 
-**Status:** Designed in the OpenELIS backend but currently out of scope for V-02 intake (per the V-02 v2.3 simplification pass). Trap type fields exist on the underlying entities and remain queryable for legacy/imported records but are not collected via the current V-02 workflow and are therefore omitted from the V-04 v1.1 analytics surface.
+**Status:** ~~Designed in the OpenELIS backend but currently out of scope for V-02 intake~~ → **Reactivated in V-02 v2.4 + V-04 v1.4** (vector expert validation pass). Trap type is now captured at intake (V-02 §4.2 Step 1), surfaces through the FHIR pipeline (§7.1), is exposed in the OHS view (§8.1), and stratifies Dashboards #1 + #5 (§9). The trap type Dictionary category (V-03 Appendix A.7.10) covers both passive traps (BG-Sentinel, CDC light trap, gravid trap, ovitrap) and active collection methods (human-landing collection, aspirator, sweep net) per the expert's confirmation.
+
+**Carve-out preserved from the deferred state:** trap type is **not** included in the eWARS or SILANTOR export adapters (§6.6) — those platforms do not track trap-type at the export layer. Trap stratification is internal to V-04 dashboards only.
+
+The remainder of this section is preserved as historical context for the original deferral rationale:
+
+**Original deferred status:** Designed in the OpenELIS backend but currently out of scope for V-02 intake (per the V-02 v2.3 simplification pass). Trap type fields exist on the underlying entities and remain queryable for legacy/imported records but are not collected via the current V-02 workflow and are therefore omitted from the V-04 v1.1 analytics surface.
 
 **Reactivation path (no ETL re-run required):**
 
@@ -1011,3 +1067,23 @@ CREATE TABLE vector_alert_threshold (
 **Surveillance value.** Programs already submitting MIR figures to national health authorities will continue to use `mir_classic` because that is what the authority requires. MLE infection rate would be an internal analytical layer for outbreak signal detection and entomological research, not a reporting metric. This is why deferral is acceptable for V-04 v1.3.
 
 **Design hook in V-04 v1.3:** The `vector_mir_weekly` view's column ordering and naming (`mir_classic` vs. `infection_rate_per_1000`) leaves room for a future `mle_infection_rate` column to be added without renaming or breaking existing dashboards.
+
+### 17.4 V-04d — eWARS / SILANTOR API Push (Deferred from v1.4)
+
+**Status:** Considered in V-04 v1.4 design and deferred to a future release. v1.4 ships CSV exporters (§6.6) as the v1 submission path; API push is the next iteration.
+
+**Background.** v1.4 §6.6 implements **CSV exporters** for eWARS and SILANTOR — manual button + scheduled email-out, weekly cadence, row-per-pool. This was confirmed with the vector expert as the current standard ingestion shape for both Indonesian platforms. The expert also flagged that both platforms are evolving toward API ingestion (eWARS via DHIS2 Web API; SILANTOR's API is roadmap, not yet specified). API push will be the right architecture once those endpoints stabilise.
+
+**Why deferred.** Three reasons:
+
+1. **eWARS/SILANTOR API specs are not stabilised** — building against an unfrozen API guarantees rework. CSV is the lowest-friction path that meets the v1 reporting requirement today.
+2. **Auth model is unclear** — DHIS2 supports basic auth, OAuth2, and PAT; SILANTOR's auth model isn't published. Each requires a different credential admin surface.
+3. **Failure handling is more complex** — CSV submissions are idempotent (re-upload the same file) and human-reviewable; API submissions need retry queues, dedup logic, and reconciliation views. The v1 timeline doesn't have room for that scaffolding.
+
+**Implementation options when V-04d lands:**
+
+- Extend V-04's existing FHIR outbound push pipeline (already pushes to HAPI FHIR) with eWARS DHIS2 + SILANTOR adapters. Auth credentials live in OpenELIS system properties (encrypted at rest).
+- Add a Submission Queue UI showing pending / submitted / failed records, with manual retry.
+- Replace or supplement §6.6 CSV exporters; they SHOULD remain as a fallback path.
+
+**Design hook in V-04 v1.4:** §6.6 export adapters are isolated from the dashboard layer and from the OHS views — adding API adapters is purely additive (new adapter classes, no view changes, no dashboard changes). The CSV-vs-API choice is configurable per deployment.

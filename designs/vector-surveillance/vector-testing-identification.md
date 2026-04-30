@@ -1,8 +1,8 @@
 # Vector Testing & Identification
 ## Functional Requirements Specification — v1.0
 
-**Version:** 1.11
-**Date:** 2026-04-25
+**Version:** 1.13
+**Date:** 2026-04-26
 **Status:** Draft for Review
 **Jira:** TBD (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
 **Technology:** Java Spring Framework, Carbon React (`@carbon/react`)
@@ -10,6 +10,8 @@
 
 ### Change Log
 
+- **v1.13 (2026-04-26 — vector expert validation pass):** Added per-Aliquot collection location override fields (`collectionLocation` FK to S-02 SamplingSite + `collectionNotes` TextArea) supporting multi-site pool deconvolution. Added per-specimen `lifecycleStage` override on VectorSpecimenIdentification (defaults to inheriting Sample's stage from V-02 v2.4); UI hides `physiologicalState` field when `lifecycleStage != ADULT`. Added new Appendix A.5.9 — Sporozoite Confirmation Panel with microscopy test (salivary-gland dissection — definitive sporozoite-stage identification, individual-level only). Added new seed reflex rule VR-07 — fires on confirmed *Plasmodium* species-specific positive at the individual level (`organism_count = 1`) → outputs Sporozoite Confirmation Panel. Extended Appendix A.7 with 4 new Dictionary categories: VECTOR_TRAP_TYPE (passive traps + active collection methods), VECTOR_LIFECYCLE_STAGE, VECTOR_COLLECTION_TIME_OF_DAY, VECTOR_RESTING_CONTEXT. Updated §4.3 deconvolution narrative noting standard practice of deconvolution-to-individuals for malaria sporozoite-rate calculation.
+- **v1.12 (2026-04-26 — seed data formalization + integrity safeguards):** Tightened Appendix A.5 from "SHOULD be pre-loaded" to "SHALL ship with OpenELIS as seed data when the Vector domain is enabled" — matching A.2 reflex rule wording. Added new Appendix A.7 — Seed Dictionary Categories — defining 8 result-enumeration Dictionary categories (Pathogen Detection Result; Plasmodium Drug Resistance Variants; Insecticide Resistance Genotype; WHO Insecticide Susceptibility Class; Bloodmeal Host Species; Plasmodium Species; Virus Isolation Result; Physiological State) with seed entries and the Tests that reference them. Strengthened A.3 Panel Pre-requisites with explicit **remap admin behavior** for when labs modify the seed Test Catalog: deactivated reflex rules surface a Remap action; deleting a referenced Panel triggers a warning and offers remap before deletion; Admin → Reflex Rules adds a Health status column. New BR-V03-016 (reflex rule integrity) and BR-V03-017 (Dictionary category seed). Cross-references added in §5 (physiologicalState may be Dictionary-backed) and §9 (i18n keys cross-ref to A.7).
 - **v1.11 (2026-04-25 — characterization in scope):** Promoted blood meal analysis, *Plasmodium* drug-resistance genotyping, and vector insecticide-resistance testing into V-03 v1.0 scope based on lab-tech feedback. Added `physiologicalState` enum field to VectorSpecimenIdentification (UNFED / BLOOD_FED / HALF_GRAVID / GRAVID per Detinova age-grading classification). Added VR-06 Plasmodium Drug Resistance reflex rule (fires on confirmed *P. falciparum* positive). Added three new seed Panels to Appendix A.5: Mosquito Blood-Meal Identification Panel, Plasmodium Drug Resistance Panel, Vector Insecticide Resistance Panel. Identification form gets a `physiologicalState` Select; the form auto-suggests the Blood-Meal Panel when state = BLOOD_FED. §14 Future Scope trimmed to host-range expansion and regional variants only (the workflows themselves are now shipped). New FR-V03-ID-012 (physiological state field), BR-V03-014 (blood meal suggestion). New i18n keys for physiological state strings.
 - **v1.10 (2026-04-24 — characterization scope fence):** Added explicit out-of-scope statement to §2 Problem Statement naming pathogen drug-resistance genotyping, vector insecticide-resistance testing, and blood-meal analysis. Added new §14 Future Scope section with subsections 14.1 (V-03b drug resistance), 14.2 (V-03c insecticide resistance), 14.3 (V-03d blood meal), and 14.4 (cross-cutting reflex coverage note). All three workflows are enabled today via lab-authored Reflex Rules and Panels — only the platform-level seed data is deferred. §14.3 flags an optional future `physiologicalState` enum on VectorSpecimenIdentification as a possible small additive change.
 - **v1.9 (2026-04-24 — reflex integration):** Extended BR-V03-012 to cover reflex rule evaluation at aliquot creation (eager) and as results are validated (lazy). Reflex-generated test orders are ADDED to copied parent orders, not substituted. Provenance (copied / reflex / manual) now required on every order. Added new permission key `reflex.vector.edit`. Added Appendix A — Vector Seed Reflex Rules (VR-01 through VR-05) and Recommended Default Vector Test Catalog. BR-V03-011 updated to reference BR-V03-012. FR-V03-DEC-005.3 updated to reference BR-V03-012. New §1 Executive Summary sentence noting reflex-driven speciation/characterization pattern. New §12 Reflex Integration acceptance criteria block.
@@ -61,7 +63,14 @@
     - 14.3 Insecticide formulation expansion
     - 14.4 Vectorial Capacity Calculation
     - 14.5 Reflex Engine Coverage Note
-Appendix A — Vector Seed Reflex Rules & Recommended Default Test Catalog
+Appendix A — Vector Seed Reflex Rules, Default Test Catalog & Dictionary Categories
+    - A.1 Seed Rule Conventions
+    - A.2 Seed Rule Inventory (VR-01..VR-06)
+    - A.3 Panel Pre-requisites & Reflex Rule Integrity (v1.12)
+    - A.4 Lab-Authored Rule Extensions
+    - A.5 Default Vector Test Catalog (Seed Data)
+    - A.6 LOINC Coding Note
+    - A.7 Seed Dictionary Categories (v1.12)
 
 ---
 
@@ -284,7 +293,9 @@ V-03 adds species identification and pathogen screening workflows to the vector 
 
 Each child specimen receives a real accession number and barcode so lab operations can track it as a physical object. The parent-child relationship is maintained via the existing aliquot parent pointer on the OpenELIS Sample/accession object — no new `parentLotId` field is introduced.
 
-Child Aliquots SHALL inherit from the parent Sample: sampling site (if set on parent). They SHALL also inherit the parent's organism group and species identification (if already set on the parent) as defaults; either MAY be explicitly re-identified on the child if re-examination is performed. Child specimens SHALL inherit the parent's Panel and test order list as defaults; the coordinator MAY add or remove tests on the child's re-test order before submission.
+Child Aliquots SHALL inherit from the parent Sample: sampling site (if set on parent — note v1.13 adds an optional per-Aliquot `collection_location` override for multi-site pools), lifecycle stage (parent's value, with optional per-specimen override on VectorSpecimenIdentification per v1.13). They SHALL also inherit the parent's organism group and species identification (if already set on the parent) as defaults; either MAY be explicitly re-identified on the child if re-examination is performed. Child specimens SHALL inherit the parent's Panel and test order list as defaults; the coordinator MAY add or remove tests on the child's re-test order before submission.
+
+> **v1.13 — Sporozoite-rate workflow note.** For malaria surveillance programs that report sporozoite rate, the standard practice is to deconvolute positive screening pools all the way to individuals (`organism_count = 1`) so that each positive can be confirmed via salivary-gland microscopy (Appendix A.5.9 Sporozoite Confirmation Panel). The microscopy test is destructive and only works on individual specimens — it cannot be run on a pool. Reflex rule VR-07 (Appendix A.2) fires automatically on confirmed *Plasmodium* positives at the individual level to add the Sporozoite Confirmation Panel to the test order list. The resulting positive count feeds the `sporozoite_rate_pct` derived metric in V-04 §8.4 (Dashboard #4 third toggle option).
 
 **FR-V03-DEC-007:** After pools are saved, the Sample Identification Detail page SHALL display a single **unified pool + specimen table** (one table, not two stacked). Pool header rows (grey/purple by depth) appear within the table at the appropriate position; specimen rows follow immediately below their pool, indented with tree connectors (└╴/├╴). Each pool header row SHALL display: pool label (species-named when auto-by-species), lab number (LABNO.X), organism count, and a **↗ Split** action button when the pool contains more than one specimen and has not been further split. When ↗ Split is used on a sub-pool, the child pool rows appear nested beneath the parent pool row — the parent row is preserved and NOT replaced. This pattern is recursive: a sub-pool can itself be split into further sub-pools at any depth, producing LABNO.X-Y-Z notation. A **Re-split** action is not available at the top level once any specimen has been physically prepared (ISO 17025 §7.5). The column header reads 'Pool / Specimen' when pools are assigned; 'Specimen' when no pools exist.
 
@@ -314,7 +325,8 @@ Child Aliquots SHALL inherit from the parent Sample: sampling site (if set on pa
 | identifiedAt | Timestamp | Yes | Server-set on create |
 | notes | String(500) | No | |
 | molecularRecord | VectorMolecularRecord | No | FK, one-to-one (null if method = MORPHOLOGICAL) |
-| physiologicalState | Enum(UNFED, BLOOD_FED, HALF_GRAVID, GRAVID, UNKNOWN) | No | **Added v1.11.** Detinova age-grading classification. UNKNOWN = not assessed. Used to drive Blood-Meal Panel suggestion (BR-V03-014) and surveillance vectorial-capacity calculations. Applies to female mosquitoes only — labs MAY leave NULL for males or non-mosquito specimens. |
+| physiologicalState | Enum(UNFED, BLOOD_FED, HALF_GRAVID, GRAVID, UNKNOWN) | No | **Added v1.11.** Detinova age-grading classification. UNKNOWN = not assessed. Used to drive Blood-Meal Panel suggestion (BR-V03-014) and surveillance vectorial-capacity calculations. Applies to female mosquitoes only — labs MAY leave NULL for males or non-mosquito specimens. **v1.12 cross-ref:** the enum values are also represented as Dictionary category `VECTOR_PHYSIOLOGICAL_STATE` (Appendix A.7.8). **v1.13 UI rule:** the field SHALL be hidden in the identification form when the parent Sample's `lifecycleStage != ADULT` (Detinova classification is meaningful only for adults — see V-02 v2.4 lifecycle stage). |
+| lifecycleStage | Enum(EGG, LARVA, PUPA, ADULT, UNKNOWN) | No | **Added v1.13.** Per-specimen override of the parent Sample's `lifecycleStage` (set in V-02 Step 1 per V-02 v2.4). Defaults to inheriting parent's value. Use case: rare situation where a tech IDs a specimen at a different lifecycle stage than the pool was labeled with at intake. Backed by Dictionary category `VECTOR_LIFECYCLE_STAGE` (Appendix A.7.9). |
 
 **VectorMolecularRecord**
 
@@ -351,6 +363,15 @@ Child Aliquots SHALL inherit from the parent Sample: sampling site (if set on pa
 | `quantity` | INTEGER | **New field.** Number of organisms in this pool or aliquot. Minimum 1. Required for all VECTOR-domain Samples. |
 | `deconvolutionStatus` | Enum(NOT_APPLICABLE, PENDING, IN_PROGRESS, COMPLETE) | **New field.** Default NOT_APPLICABLE. Set to PENDING on positive result when quantity > 1. |
 | `identificationStatus` | Enum(NOT_STARTED, IN_PROGRESS, COMPLETE) | **New field.** Default NOT_STARTED. Updated as species ID is performed. |
+
+> **v2.4 (V-02) cross-reference.** Sample also gains `lifecycle_stage`, `trap_type_id`, `collection_time_of_day`, `resting_context`, `human_biting_catch`, and `collection_context_notes` per V-02 v2.4. Those fields are V-02-owned (set at intake); V-03 reads them but does not modify them.
+
+**Aliquot** — Modified (existing entity, v1.13)
+
+| Field | Type | Notes |
+|---|---|---|
+| `collection_location_id` | FK → SamplingSite (S-02), nullable | **New field, v1.13.** Per-aliquot collection location override. Defaults to NULL → child Aliquot inherits parent Sample's `sampling_site_id`. Set when a deconvoluted pool came from multiple traps or micro-sites within a broader site. V-04 surveillance views resolve site as `COALESCE(aliquot.collection_location_id, parent.sampling_site_id)`. |
+| `collection_notes` | TEXT (≤ 500 chars) | **New field, v1.13.** Free-text per-aliquot collection narrative. Captures tech notes about the specific physical preparation, sub-pool sourcing, or any aliquot-level context that doesn't fit the parent Sample's `collection_context_notes` field (V-02 v2.4). Optional. |
 
 **VectorSpecimen entity — REMOVED for pooling purposes**
 
@@ -464,6 +485,10 @@ See interactive HTML preview: `vector-testing-identification.html`
 **BR-V03-014 (added v1.11):** Setting `physiologicalState = BLOOD_FED` on a VectorSpecimenIdentification SHALL surface a *suggestion* to add the Mosquito Blood-Meal Identification Panel (Appendix A.5.6) to the specimen's test orders. The system SHALL NOT auto-order the panel — the suggestion is dismissable, and the lab tech explicitly accepts via UI action. This is intentional: blood-meal analysis is situational (some surveillance programs always run it on blood-fed specimens, others run it only for specific host-preference studies). The suggestion is recorded as `Notes: "Blood-meal panel suggested but not ordered"` if dismissed, for audit completeness.
 
 **BR-V03-015 (added v1.11):** When VR-06 (Plasmodium Drug Resistance) reflex fires on a confirmed *P. falciparum* positive, the resulting test orders inherit the standard reflex provenance ("reflex:VR-06") per BR-V03-012 §4. Drug-resistance results MAY be flagged for export to national reference databases (WHO Global Malaria Programme drug resistance surveillance) via the existing FHIR outbound push pipeline; the export flag is configured at the Panel level on the Plasmodium Drug Resistance Panel and is not a per-result UI choice.
+
+**BR-V03-016 (added v1.12 — reflex rule integrity):** Reflex rules whose target Panel has been removed or deactivated SHALL be automatically deactivated and marked as `BROKEN` health status. Admins SHALL be able to remap a `BROKEN` rule's target Panel to any active Panel with matching `panelDomain` via the Reflex Rules admin (per A.3.2). Deletion of a Panel referenced by one or more `ACTIVE` reflex rules SHALL trigger a blocking warning Modal in the Panel admin offering remap, continue-with-auto-deactivation, or cancel (per A.3.3). The intent is to prevent silent surveillance feature breakage when labs modify their Test Catalog.
+
+**BR-V03-017 (added v1.12 — Dictionary category seed):** The Dictionary categories enumerated in Appendix A.7 SHALL ship with OpenELIS as seed data when the Vector domain is enabled, alongside the seed Panels (A.5) and seed Reflex Rules (A.2). Each seeded Test in A.5 SHALL reference its result Dictionary category by stable category code so that labs MAY add, deactivate, or relabel individual Dictionary entries within a category without breaking Test definitions. Removal of an entire Dictionary category SHALL trigger a startup warning equivalent to the Panel pre-requisite check (A.3.1) for any Test referencing it.
 
 ---
 
@@ -712,7 +737,7 @@ The reflex engine extended in BR-V03-012 has now demonstrated coverage of specia
 
 ---
 
-## Appendix A — Vector Seed Reflex Rules & Recommended Default Test Catalog
+## Appendix A — Vector Seed Reflex Rules, Default Test Catalog & Dictionary Categories
 
 This appendix defines the Reflex Rules and supporting Panel/test catalog entries that SHALL ship with OpenELIS as pre-configured seed data when the Vector domain is enabled. Seed rules are Active = true by default on a new installation, are managed through the existing Admin → Reflex Rules page (filtered by domain = VECTOR), and require the `reflex.vector.edit` permission to modify or deactivate.
 
@@ -736,18 +761,42 @@ All seed rules conform to the following:
 | VR-04 | Zika Confirmation | Zika Screening Panel | Any result outside normal range | Zika Confirmation Panel | Fires on Zika RT-PCR positive. Confirmation panel typically referred out to reference lab (PRNT capability). |
 | VR-05 | Chikungunya Confirmation | Chikungunya Screening Panel | Any result outside normal range | Chikungunya Confirmation Panel | Fires on CHIKV RT-PCR or IgM positive. Confirmation includes genotype/lineage determination. |
 | VR-06 | Plasmodium Drug Resistance | Plasmodium Speciation Panel | *P. falciparum* species-specific PCR result outside normal range | Plasmodium Drug Resistance Panel | **Added v1.11.** Fires only on *P. falciparum* positive (other species are not yet associated with widespread drug resistance markers). WHO Global Malaria Programme reference set: pfkelch13, pfcrt, pfmdr1, dhfr, dhps. Labs MAY constrain to individual specimens (`quantity = 1`) to avoid running expensive sequencing on unresolved pools — recommended default. |
+| VR-07 | Sporozoite Confirmation | Plasmodium Speciation Panel | Any *Plasmodium* species-specific result outside normal range AND specimen `quantity = 1` (individual level only) | Sporozoite Confirmation Panel | **Added v1.13.** Fires only on individual specimens (post-deconvolution to pools-of-one) — microscopy is destructive and cannot be run on pools. Outputs the Mosquito Salivary Gland Microscopy test (A.5.9) which provides the definitive sporozoite-stage identification needed for sporozoite-rate calculation (V-04 §8.4 `sporozoite_rate_pct`). Confirms the WHO standard sporozoite-rate methodology. |
 
-### A.3 Panel Pre-requisites
+### A.3 Panel Pre-requisites & Reflex Rule Integrity (v1.12)
 
-Each seed reflex rule references an output Panel that MUST exist in the Panel catalog. On application startup, the Reflex Engine SHALL check each active seed rule's output Panel. If the referenced Panel is missing or inactive, the rule SHALL be deactivated automatically and a warning logged to the admin audit trail with message key `warning.reflex.seedPanelMissing` and the rule identifier. This prevents runtime failures when a lab deploys without the full pathogen surveillance test catalog. The rule remains in configuration (Active = false) and the admin can re-enable it once the missing Panel is added.
+#### A.3.1 Startup pre-requisite check
+
+Each seed reflex rule references an output Panel that MUST exist in the Panel catalog. On application startup, the Reflex Engine SHALL check each active seed rule's output Panel. If the referenced Panel is missing or inactive, the rule SHALL be deactivated automatically and a warning logged to the admin audit trail with message key `warning.reflex.seedPanelMissing` and the rule identifier. This prevents runtime failures when a lab deploys without the full pathogen surveillance test catalog.
+
+#### A.3.2 Admin remap surface (per BR-V03-016)
+
+The Admin → Reflex Rules page SHALL display a **Health** status column for every reflex rule with three values: `ACTIVE` (green), `INACTIVE` (gray — admin-disabled), or `BROKEN` (red — auto-deactivated due to missing target Panel).
+
+When an admin opens a `BROKEN` reflex rule, the rule editor SHALL show:
+
+1. A red `InlineNotification` naming the missing Panel and the date the auto-deactivation occurred.
+2. A **"Remap target Panel"** action that opens a `ComboBox` of currently-active Panels with `panelDomain = VECTOR`, sorted by similarity to the original (organism group match first, then panel-name fuzzy match). The admin can choose a replacement Panel and Save — this re-activates the rule with the new target.
+3. A **"Reactivate when Panel is restored"** option that keeps the rule in `BROKEN` state but flags it for automatic re-activation if a Panel matching the original stable ID is added back.
+4. A **"Disable rule"** option that moves it to `INACTIVE` (admin-chosen).
+
+#### A.3.3 Pre-deletion warning (per BR-V03-016)
+
+When an admin attempts to deactivate or delete a Panel referenced by one or more `ACTIVE` reflex rules, the Panel admin SHALL display a **blocking warning Modal** listing the affected rules and offering three paths: (a) "Remap rules to a different Panel" — opens the same `ComboBox` as A.3.2.2 above, applied as a batch; (b) "Continue and let rules auto-deactivate" — proceeds with deletion, rules transition to `BROKEN` on next startup check; (c) "Cancel". This prevents silent integration breakage when labs modify their Test Catalog.
+
+#### A.3.4 Test catalog edits within a Panel
+
+Tests within a Panel MAY be added or removed by a lab admin without affecting reflex rule integrity, because reflex rules reference Panels by stable ID, not by individual Tests. A reflex rule whose target Panel has had Tests removed will continue to fire — the resulting child aliquot simply runs whatever Tests the Panel currently contains. This is intentional: it lets labs locally tailor the test menu (adding regional variants, removing tests they don't perform) without breaking the seed reflex chain.
 
 ### A.4 Lab-Authored Rule Extensions
 
 Labs MAY author additional reflex rules through Admin → Reflex Rules. Lab-authored rules follow the same structure as seed rules but carry a "Lab-Authored — created by [user] on [date]" provenance tag. A lab-authored rule MAY target the same trigger Panel as a seed rule; in that case both rules fire (ADD semantics), producing cumulative reflex output. This supports local customisation (e.g., a lab adding a drug-resistance genotyping reflex on top of the standard Malaria Speciation reflex) without requiring seed rule modification.
 
-### A.5 Recommended Default Vector Test Catalog
+### A.5 Default Vector Test Catalog (Seed Data)
 
-The following Panels and constituent tests SHOULD be pre-loaded into the VECTOR Test Catalog on OpenELIS installations that enable Vector surveillance. Labs MAY modify, replace, or extend any entry; the seed reflex rules in A.2 reference Panels by stable ID so edits to test membership do not break reflex linkage.
+The following Panels and constituent Tests **SHALL** ship with OpenELIS as seed data when the Vector domain is enabled — matching the seed reflex rule wording in A.2. The implementation artifact is a Liquibase changeset (or equivalent install-time fixture) that creates the Panel entities, the constituent Test entities, and their PanelTest join entries. The Dictionary categories that back the Tests' result enumerations ship alongside per Appendix A.7.
+
+Labs MAY modify, replace, or extend any seed entry post-install. Seed reflex rules in A.2 reference Panels by stable ID, so edits to Test membership within a Panel do not break the rule chain (per A.3.4). Removal or deactivation of a referenced Panel triggers the integrity behavior described in A.3.2 and A.3.3.
 
 All panels carry `panelDomain = VECTOR`. Where an organism group is specified, the panel is suggested (not restricted) at order entry when the sample's organism group matches (FR-V03-PNL-004).
 
@@ -918,6 +967,201 @@ Drug-resistance results MAY be flagged for export to national WHO reference data
 
 Labs SHOULD add bioassays for the specific insecticide formulations used in their region (e.g., Bendiocarb, Pirimiphos-methyl, Clothianidin) — the WHO procedure is applicable to any compound. Substrate sample type is typically a leg-aliquot of the source specimen.
 
+#### A.5.9 Sporozoite Confirmation (v1.13)
+
+**Panel: Sporozoite Confirmation Panel (vector)**
+
+- Organism Group: Mosquito (*Anopheles*)
+- Description: Definitive sporozoite-stage identification on individual *Anopheles* specimens following confirmed *Plasmodium* species ID. Target of VR-07 reflex (Appendix A.2). **Individual-level only** — the constituent test (salivary-gland microscopy) is destructive and cannot be run on pools.
+- Workflow position: After pool screening (A.5.1) returns positive → reflex VR-01 (Malaria Speciation) outputs Plasmodium Speciation Panel → if positive at the individual level (post-deconvolution to `quantity = 1`), reflex VR-07 fires → Sporozoite Confirmation Panel. The microscopy result feeds the V-04 §8.4 `sporozoite_rate_pct` derived metric.
+
+| Test Name | Method | LOINC (approx) | Result Type | Notes |
+|---|---|---|---|---|
+| Sporozoite Microscopy (Salivary Gland Dissection) | Microscopy | — (local code; vector microscopy not LOINC-standardized) | POS / NEG (Dictionary `VECTOR_PATHOGEN_RESULT`) | Destructive test — requires individual specimen; mosquito's salivary glands are dissected and examined for *Plasmodium* sporozoites under microscopy. The original WHO/CDC gold standard for sporozoite-rate determination. Optional secondary fields: oocyst count (numeric, midgut dissection if also performed), microscopist initials (TextInput). |
+
+Programs that use molecular methods (sporozoite-specific PCR targeting CSP gene or 18S rRNA at the salivary-gland-extract level) MAY add a second test to this panel — but microscopy is the canonical anchor for routine surveillance per WHO methodology.
+
 ### A.6 LOINC Coding Note
 
 LOINC codes marked "(approx)" are the closest commonly-used clinical-equivalent codes that have been extended for vector surveillance use; the specimen source is "Arthropod, Mosquito" rather than human. Where a vector-specific LOINC code exists, it SHOULD be used; where no LOINC code exists, labs MAY assign local codes in their Test Catalog (the Test entity supports local code + LOINC code side by side). Vector surveillance test coding is evolving; this list represents best-available mappings as of 2026-04 and SHOULD be reviewed against the current LOINC database (loinc.org) at deployment time. Seed rules reference Panels by stable ID, not by LOINC, so LOINC updates do not require reflex rule changes.
+
+### A.7 Seed Dictionary Categories (v1.12)
+
+**Purpose.** OpenELIS uses Dictionary entities for enumerated values (test results, classifications, status codes). Each Test in A.5 that returns a categorical result references a Dictionary Category for its result options. This appendix defines the Dictionary Categories and seed entries that SHALL ship alongside the Panels and Tests in A.5 (per BR-V03-017).
+
+**Conventions.**
+- Categories are referenced by stable **Category Code** (e.g., `VECTOR_PATHOGEN_RESULT`). Code does not change after release; display label is i18n-translatable.
+- Seed entries are listed by **Entry Code** (stable identifier, used in cross-references) and **Display Label** (translatable per §9 Localization).
+- Labs MAY add lab-authored entries within a category but SHOULD NOT remove seed entries (deactivate instead).
+- Removal of an entire Category triggers the integrity check per BR-V03-017.
+
+#### A.7.1 `VECTOR_PATHOGEN_RESULT` — Pathogen Detection Result
+
+Used by all binary POS/NEG pathogen tests across A.5.1–A.5.5.
+
+| Entry Code | Display Label | Notes |
+|---|---|---|
+| POSITIVE | Positive | Maps to `is_positive = true` in V-04 surveillance views |
+| NEGATIVE | Negative | |
+| EQUIVOCAL | Equivocal / Indeterminate | Excluded from MIR numerator and denominator (BR-V04-001) |
+| INVALID | Invalid | Test failed quality control; re-run required |
+
+Used by: All Tests in A.5.1 (Malaria Screening + Speciation), A.5.2 (Dengue Screening + Serotyping), A.5.3 (Arbovirus Screening + Confirmation), A.5.4 (Zika Screening + Confirmation), A.5.5 (Chikungunya Screening + Confirmation), A.5.6 (Bloodmeal host-specific PCRs).
+
+#### A.7.2 `PLASMODIUM_SPECIES` — Plasmodium Species Call
+
+Used for explicit species call results from sequencing-based tests in A.5.1 speciation panel and A.5.7 drug resistance.
+
+| Entry Code | Display Label | Notes |
+|---|---|---|
+| P_FALCIPARUM | *P. falciparum* | Drives VR-06 reflex rule trigger (per FR-V03-RFX) |
+| P_VIVAX | *P. vivax* | |
+| P_MALARIAE | *P. malariae* | |
+| P_OVALE | *P. ovale* | |
+| P_KNOWLESI | *P. knowlesi* | Optional — labs in Southeast Asia activate; deactivated by default elsewhere |
+| MIXED | Mixed infection | Multiple species detected in the same specimen |
+| INDETERMINATE | Indeterminate | |
+
+#### A.7.3 `PLASMODIUM_DRUG_RESISTANCE_VARIANT` — Drug Resistance Variant Calls
+
+Used by A.5.7 sequencing tests. One Dictionary category per locus is recommended for clarity, but a single combined category with structured codes is also acceptable. Below is the seed structure using prefixed codes.
+
+| Entry Code | Display Label | Marker | Resistance association |
+|---|---|---|---|
+| PFKELCH13_WT | Wild type (pfkelch13) | pfkelch13 | Susceptible |
+| PFKELCH13_C580Y | C580Y | pfkelch13 | Artemisinin partial resistance (WHO-tracked) |
+| PFKELCH13_R539T | R539T | pfkelch13 | Artemisinin partial resistance |
+| PFKELCH13_Y493H | Y493H | pfkelch13 | Artemisinin partial resistance |
+| PFKELCH13_I543T | I543T | pfkelch13 | Artemisinin partial resistance |
+| PFKELCH13_P553L | P553L | pfkelch13 | Artemisinin partial resistance |
+| PFKELCH13_OTHER | Other variant (sequence captured) | pfkelch13 | Lab review required |
+| PFCRT_K76 | K76 (wild type) | pfcrt | Chloroquine-susceptible |
+| PFCRT_76T | 76T | pfcrt | Chloroquine-resistant |
+| PFMDR1_Y86 | Y86 | pfmdr1 | Multiple-drug resistance contributor |
+| PFMDR1_Y184 | Y184 | pfmdr1 | |
+| PFMDR1_S1034 | S1034 | pfmdr1 | |
+| PFMDR1_N1042 | N1042 | pfmdr1 | |
+| PFMDR1_D1246 | D1246 | pfmdr1 | |
+| DHFR_S108 | S108 | dhfr | Pyrimethamine resistance |
+| DHFR_N51 | N51I | dhfr | |
+| DHFR_R59 | R59 | dhfr | |
+| DHFR_I164 | I164L | dhfr | High-grade SP resistance |
+| DHPS_A437 | A437G | dhps | Sulfadoxine resistance |
+| DHPS_K540 | K540E | dhps | |
+| DHPS_A581 | A581G | dhps | |
+| DHPS_A613 | A613S | dhps | |
+
+Labs SHOULD review against the current WHO Antimalarial Resistance Surveillance Reference at deployment time and add lab-authored entries for newly tracked variants. Reference set updates are documented as future scope in §14.2.
+
+#### A.7.4 `INSECTICIDE_RESISTANCE_GENOTYPE` — Insecticide Resistance Genotype
+
+Used by A.5.8 kdr-East, kdr-West, and ace-1 tests.
+
+| Entry Code | Display Label | Notes |
+|---|---|---|
+| RR | Resistant homozygote | Two resistance alleles |
+| RS | Heterozygote | One resistance, one susceptible |
+| SS | Susceptible homozygote | Two susceptible alleles |
+| INDETERMINATE | Indeterminate | Failed amplification or unclear electropherogram |
+
+#### A.7.5 `WHO_INSECTICIDE_SUSCEPTIBILITY_CLASS` — WHO Bottle Bioassay Susceptibility Class
+
+Used by A.5.8 bioassay tests. Per WHO 2022 standard procedure.
+
+| Entry Code | Display Label | Mortality threshold |
+|---|---|---|
+| SUSCEPTIBLE | Susceptible | ≥ 98% mortality at 24h |
+| POSSIBLY_RESISTANT | Possibly resistant | 90–97% mortality at 24h |
+| RESISTANT | Resistant | < 90% mortality at 24h |
+
+Numeric % mortality is captured as a numeric result field on the same Test alongside this categorical interpretation.
+
+#### A.7.6 `BLOODMEAL_HOST_SPECIES` — Bloodmeal Host Species
+
+Used by A.5.6 host-specific cytb PCRs. Default seed covers six urban/rural workhorse hosts; future scope in §14.1 (sylvatic / wildlife / regional livestock expansions).
+
+| Entry Code | Display Label | Notes |
+|---|---|---|
+| HUMAN | Human (*Homo sapiens*) | |
+| BOVINE | Cattle (*Bos taurus*) | |
+| CANINE | Dog (*Canis familiaris*) | |
+| AVIAN_GENERIC | Avian (proxy: chicken — *Gallus gallus*) | Used as urban-context avian proxy; labs SHOULD add specific avian hosts as needed |
+| PORCINE | Pig (*Sus scrofa*) | |
+| CAPRINE | Goat (*Capra hircus*) | |
+| MIXED | Mixed-host bloodmeal | Multiple host signals on the same specimen |
+| NEGATIVE | No host detected | Bloodmeal too degraded or non-target species |
+
+#### A.7.7 `VIRUS_ISOLATION_RESULT` — Virus Isolation Result
+
+Used by A.5.3 (Arbovirus Confirmation Panel) and A.5.5 (Chikungunya virus isolation).
+
+| Entry Code | Display Label | Notes |
+|---|---|---|
+| ISOLATED | Isolated | Cytopathic effect observed and confirmed |
+| NOT_ISOLATED | Not isolated | No CPE after standard observation period |
+| INCONCLUSIVE | Inconclusive | Suspected CPE but unconfirmable; resample recommended |
+
+#### A.7.8 `VECTOR_PHYSIOLOGICAL_STATE` — Detinova Physiological State
+
+Used by VectorSpecimenIdentification.physiologicalState (FR-V03-ID-012). The values are also enumerated as a Java enum (per §5 Data Model), but the Dictionary category provides display flexibility and i18n.
+
+| Entry Code | Display Label | Notes |
+|---|---|---|
+| UNFED | Unfed | Female, no recent blood meal |
+| BLOOD_FED | Blood-fed | Female, recent blood meal — triggers Blood-Meal Panel suggestion (FR-V03-ID-013) |
+| HALF_GRAVID | Half-gravid | Partial blood digestion + early oocyte development |
+| GRAVID | Gravid | Fully developed eggs, ready to oviposit |
+| UNKNOWN | Unknown / not assessed | Default value; used for males, non-mosquito specimens, or when state is not assessed |
+
+#### A.7.9 `VECTOR_LIFECYCLE_STAGE` — Lifecycle Stage (v1.13)
+
+Used by Sample.lifecycleStage (V-02 v2.4) and VectorSpecimenIdentification.lifecycleStage (per-specimen override added v1.13).
+
+| Entry Code | Display Label | Notes |
+|---|---|---|
+| EGG | Egg | Pre-aquatic (Aedes ovitrap collections) |
+| LARVA | Larva | Aquatic immature; mosquitoes have 4 instars (L1–L4) — labs MAY add per-instar entries |
+| PUPA | Pupa | Aquatic immature, pre-emergence |
+| ADULT | Adult | Default lifecycle stage for surveillance trapping; physiologicalState (Detinova) is meaningful only at this stage |
+| UNKNOWN | Unknown / not assessed | Default value |
+
+> **Cross-vector note.** Tick lifecycle is distinct (egg / larva / nymph / adult) — labs that work with ticks MAY add a NYMPH entry to this category. The base seed targets the Indonesia mosquito-primary case.
+
+#### A.7.10 `VECTOR_TRAP_TYPE` — Trap Type / Collection Method (v1.13 — extended from V-02 v2.4)
+
+Used by Sample.trapTypeId (V-02 v2.4). Includes both passive trap types and active collection methods (per the vector expert's confirmation that "trap type" in lab terminology covers both).
+
+| Entry Code | Display Label | Category | Notes |
+|---|---|---|---|
+| BG_SENTINEL | BG-Sentinel trap | Passive trap | *Aedes*-targeted, attractant-baited |
+| CDC_LIGHT_TRAP | CDC light trap | Passive trap | *Anopheles*-targeted, used overnight |
+| GRAVID_TRAP | Gravid trap | Passive trap | Captures egg-laying females; behaviorally distinct from light traps |
+| OVITRAP | Ovitrap | Passive trap | Collects eggs (lifecycleStage = EGG) |
+| HUMAN_LANDING | Human-landing collection | Active collection | Direct collection while specimens land on collector — drives Human Biting Rate calculations |
+| ASPIRATOR | Aspirator | Active collection | Indoor resting-mosquito collection |
+| SWEEP_NET | Sweep net | Active collection | Outdoor active collection in vegetation |
+| OTHER | Other (specify in notes) | — | Free-text fallback |
+
+#### A.7.11 `VECTOR_COLLECTION_TIME_OF_DAY` — Collection Time of Day (v1.13)
+
+Used by Sample.collectionTimeOfDay (V-02 v2.4). Drives biting-time analysis.
+
+| Entry Code | Display Label | Notes |
+|---|---|---|
+| DAWN | Dawn | Crepuscular morning |
+| DAYLIGHT | Daylight | Daytime |
+| DUSK | Dusk | Crepuscular evening |
+| NIGHT | Night | Nocturnal |
+| UNKNOWN | Unknown | Default |
+
+#### A.7.12 `VECTOR_RESTING_CONTEXT` — Resting Context (v1.13)
+
+Used by Sample.restingContext (V-02 v2.4). Drives endophily / exophily classification.
+
+| Entry Code | Display Label | Notes |
+|---|---|---|
+| INDOOR | Indoor (endophilic) | Specimen captured resting indoors |
+| OUTDOOR | Outdoor (exophilic) | Specimen captured resting outdoors |
+| UNKNOWN | Unknown | Default |
+
+> **Implementation note.** Where an OpenELIS Test entity historically stores result enumerations directly via the `result_value` enum on the Test definition, devs MAY model the seed Dictionary categories above as `result_value` enums on each Test entity rather than as standalone Dictionary entries — whichever pattern matches OpenELIS's existing Test result modeling. The contract from the FRS perspective is: **the categorical values listed above SHALL be available as result options for the Tests that reference them**. The exact storage shape (Dictionary entity vs. embedded enum vs. constraint table) is a build-time decision documented in the implementation guide rather than re-specified here. Categories A.7.9–A.7.12 are particularly likely to be standalone Dictionary entries (rather than embedded enums) since they're referenced from Sample / VectorSpecimenIdentification rather than from individual Tests.

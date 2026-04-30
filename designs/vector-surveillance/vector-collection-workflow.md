@@ -1,8 +1,8 @@
 # Vector Collection Workflow (V-02)
 ## Functional Requirements Specification — v2.0
 
-**Version:** 2.3
-**Date:** 2026-04-23
+**Version:** 2.4
+**Date:** 2026-04-26
 **Status:** Draft for Review
 **Jira:** [OGC-581](https://uwdigi.atlassian.net/browse/OGC-581) (Epic: OGC-527)
 **Technology:** Java Spring Framework, Carbon React
@@ -10,6 +10,7 @@
 
 ### Change Log
 
+- **v2.4 (2026-04-26 — vector expert validation pass):** Reactivated trap type capture in Step 1 (Aedes co-primary surveillance need; previously deferred per V-04 §17.2). Added Lifecycle Stage Select on Step 1 (egg / larva / pupa / adult / unknown) — pools are stage-pure at intake. Added optional Collection Context accordion on Step 1 with three structured fields (collectionTimeOfDay, restingContext, humanBitingCatch) plus a free-text collectionContextNotes TextArea. Sample data model adds 5 new fields: `trap_type_id`, `lifecycle_stage`, `collection_time_of_day`, `resting_context`, `human_biting_catch`, plus a `collection_context_notes` TextArea. New i18n keys, new validation rules. Drives V-03 v1.13 (downstream) and V-04 v1.4 (surveillance stratification).
 - **v2.3 (2026-04-24 — clarify pass):** Fixed quantity data model note (was incorrectly labelled "NEW field"). Added FR-V02-QA back-navigation rule and QA type source spec. Clarify pass: QA sample type sourced from existing OpenELIS QA catalog; QA samples receive own VCT accessions and appear in V-03 worklist. Back-navigation rule added to FR-V02-S2-002.
 - **v2.3 (2026-04-24):** Trap type removed from UI — not captured in this workflow. Sampling site search label simplified to "Site name or code". Domain toggle removed from page header — Vector lab unit always loads Vector context, no toggle shown. Section heading chips removed for cleaner layout.
 - **v2.2 (2026-04-23):** Data model correction — `quantity` field already exists on the OpenELIS Sample entity; no new field is introduced. For VECTOR-domain samples the unit of measure field is suppressed in the UI (always "organisms", not user-editable).
@@ -93,8 +94,19 @@ V-02 adds **Vector** as a third domain option in the Sample Collection Redesign 
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | Organism Group | ComboBox | Yes | Sourced from V-01 VectorGroup catalog (active only). This is the vector "sample type" — e.g., Mosquito, Tick, Rodent. Displayed as "Organism Group" in the UI; maps to `sample_type_id` (VECTOR-domain SampleType) internally. |
+| **Lifecycle Stage** *(added v2.4)* | Select | No | Detinova-adjacent enum: EGG / LARVA / PUPA / ADULT / UNKNOWN (default UNKNOWN). Pools are typically stage-pure at intake (an Aedes ovitrap collection is all eggs; a CDC light trap collection is all adults). Drives V-04 surveillance stratification (adults vs. larvae reported separately). Backed by `VECTOR_LIFECYCLE_STAGE` Dictionary category (V-03 Appendix A.7). |
 | Quantity | NumberInput (integer) | Yes | Number of organisms received. Minimum 1. Label: "Quantity (organisms)". |
+| **Trap Type / Collection Method** *(reactivated v2.4)* | ComboBox | No | Optional. Sourced from `VECTOR_TRAP_TYPE` Dictionary category (V-03 Appendix A.7) — covers both passive traps (BG-Sentinel, CDC light trap, gravid trap, ovitrap) and active collection methods (human-landing collection, aspirator, sweep net). Maps to `trap_type_id` on the Sample entity. Drives V-04 dashboard stratification. **Note:** trap type is captured for internal surveillance dashboards; it is *not* included in the eWARS or SILANTOR export adapters per V-04 §6.6 (those platforms don't track trap type). |
 | Sampling Site | ComboBox | No | Optional. Sourced from S-02 SamplingSite registry. Records which site the specimens came from. Label: "Site name or code". |
+
+**FR-V02-S1-002a (added v2.4):** Below the intake fields, an optional **Collection Context** Carbon `Accordion` (collapsed by default) MUST be available, containing four optional fields. Labs that don't capture this leave the accordion collapsed; nothing is required.
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| Time of Day | Select | No | DAWN / DAYLIGHT / DUSK / NIGHT / UNKNOWN. Drives biting-time analysis. Backed by `VECTOR_COLLECTION_TIME_OF_DAY` Dictionary category (V-03 Appendix A.7). |
+| Resting Context | Select | No | INDOOR / OUTDOOR / UNKNOWN. Drives endophily / exophily classification. Backed by `VECTOR_RESTING_CONTEXT` Dictionary category. |
+| Human-Biting Catch | Toggle | No | Boolean. Set true when this collection came from a human-landing catch (drives Human Biting Rate / EIR-related downstream calcs if those are added later). |
+| Collection Context Notes | TextArea | No | Free-form, max 500 chars. Captures field team's narrative — weather, trap conditions, anomalies, anything that doesn't fit the structured fields. |
 
 **FR-V02-S1-003:** Below the intake fields, a **Test / Panel selection section** MUST appear, identical in behaviour to the standard order entry test selection component, filtered to panels and tests with `panelDomain = VECTOR` (or `sampleDomain = VECTOR` for individual tests). At least one test or panel MUST be selected before Step 1 can be submitted.
 
@@ -103,7 +115,7 @@ V-02 adds **Vector** as a third domain option in the Sample Collection Redesign 
 **FR-V02-S1-005:** On submission of Step 1, the system MUST:
 1. Create a `Sample` record (sampleDomain=VECTOR) with status `DRAFT`
 2. Assign a lab number using module code `VCT`
-3. Link the selected Organism Group (as SampleType), Quantity, Sampling Site (if provided), and test orders
+3. Link the selected Organism Group (as SampleType), Lifecycle Stage, Quantity, Trap Type (if provided), Sampling Site (if provided), Collection Context fields (if provided), and test orders
 
 ---
 
@@ -135,19 +147,27 @@ V-02 adds **Vector** as a third domain option in the Sample Collection Redesign 
 
 ## 5. Data Model
 
-### Existing Entity: Sample (no new fields)
+### Existing Entity: Sample — modified in v2.4
 
-V-02 creates standard OpenELIS Sample records with `sampleDomain = VECTOR`. **No new fields are introduced.** The `quantity` field already exists on the Sample entity. For VECTOR-domain samples, the unit of measure field is suppressed in the UI — it is not displayed or editable, and is treated as "organisms" implicitly. All fields used (sample_type_id, quantity, sampling_site_id, received_at, received_by_user_id, status, lab_number) exist in the current Sample entity.
+V-02 creates standard OpenELIS Sample records with `sampleDomain = VECTOR`. The `quantity` field already exists on the Sample entity. For VECTOR-domain samples, the unit of measure field is suppressed in the UI — it is not displayed or editable, and is treated as "organisms" implicitly. **v2.4 adds five new fields to support trap type capture, lifecycle stratification, and collection context** (per the vector expert validation pass). All additions are optional / nullable; existing samples are not impacted.
 
 | UI Field | Sample Field | Type | Notes |
 |---|---|---|---|
 | Organism Group | `sample_type_id` | FK → SampleType (sampleDomain=VECTOR) | Displayed as "Organism Group"; user selects from VectorGroup-mapped SampleTypes |
+| **Lifecycle Stage** *(v2.4)* | `lifecycle_stage` | VARCHAR(30) | Enum-shaped; backed by `VECTOR_LIFECYCLE_STAGE` Dictionary. Default UNKNOWN. Optional. |
 | Quantity | `quantity` | INTEGER | Number of organisms received; minimum 1. Field already exists on Sample entity — no schema change required. |
-| Sampling Site | `sampling_site_id` | FK → SamplingSite, nullable | Optional context field |
+| **Trap Type / Collection Method** *(v2.4)* | `trap_type_id` | FK → Dictionary (`VECTOR_TRAP_TYPE` category) | Reactivated from V-04 §17.2 deferred state. Optional. Drives surveillance stratification but is omitted from eWARS/SILANTOR exports. |
+| Sampling Site | `sampling_site_id` | FK → SamplingSite, nullable | Optional context field. Note: V-03 v1.13 adds per-Aliquot `collection_location` override for multi-site pools. |
+| **Collection Time of Day** *(v2.4)* | `collection_time_of_day` | VARCHAR(20) | Enum-shaped; backed by `VECTOR_COLLECTION_TIME_OF_DAY` Dictionary. Optional. |
+| **Resting Context** *(v2.4)* | `resting_context` | VARCHAR(20) | Enum-shaped; backed by `VECTOR_RESTING_CONTEXT` Dictionary. Optional. |
+| **Human-Biting Catch** *(v2.4)* | `human_biting_catch` | BOOLEAN | Default FALSE. Optional. |
+| **Collection Context Notes** *(v2.4)* | `collection_context_notes` | TEXT (≤ 500 chars) | Free-form. Optional. |
 | Lab receipt date/time | `received_at` | TIMESTAMP WITH TIME ZONE | Auto-set on Step 2 entry |
 | Received by | `received_by_user_id` | FK → SystemUser | Auto-set from logged-in user |
 | Status | `status` | ENUM: DRAFT / RECEIVED / PROCESSING / TESTED / ARCHIVED | |
 | Lab number | `lab_number` | VARCHAR(50) | Module code VCT |
+
+**v2.4 schema impact:** five additive nullable columns on the existing Sample entity, no new entities, no migrations beyond the Liquibase changeset that adds the columns and seeds the four Dictionary categories (V-03 Appendix A.7).
 
 ---
 
@@ -207,6 +227,12 @@ Sample Collection → Step 1 (Enter Order, Vector domain) → Step 2 (Label & St
 
 **BR-V02-007:** Sampling site is optional. A Sample MAY have a null `sampling_site_id`. When provided, it is for traceability only and does not affect workflow routing.
 
+**BR-V02-008 (added v2.4):** Trap Type is optional but is captured for surveillance stratification (V-04 Dashboards #1, #5). When provided, it is sourced from the `VECTOR_TRAP_TYPE` Dictionary category which includes both passive traps (BG-Sentinel, CDC light trap, gravid trap, ovitrap) and active collection methods (human-landing collection, aspirator, sweep net). Trap type is NOT included in the eWARS or SILANTOR export adapters (V-04 §6.6) — those platforms do not track trap type.
+
+**BR-V02-009 (added v2.4):** Lifecycle Stage is optional and defaults to UNKNOWN when not specified. Pools are typically stage-pure at intake. When set, V-04 surveillance views stratify by lifecycle stage so that adult and immature-stage data are reported separately. The V-03 identification form uses lifecycleStage to decide whether to show the `physiologicalState` field (Detinova classification only meaningful when `lifecycleStage = ADULT`).
+
+**BR-V02-010 (added v2.4):** Collection Context fields (timeOfDay, restingContext, humanBitingCatch, contextNotes) are all optional and have no impact on workflow routing. They are captured for downstream bionomics analysis and audit. The `collection_context_notes` TextArea is capped at 500 characters.
+
 ---
 
 ## 9. Localization
@@ -234,6 +260,31 @@ Sample Collection → Step 1 (Enter Order, Vector domain) → Step 2 (Label & St
 | `error.vectorOrder.quantityRequired` | Quantity is required. |
 | `error.vectorOrder.quantityMin` | Quantity must be at least 1. |
 | `error.vectorOrder.testRequired` | Select at least one test or panel. |
+| `label.vectorOrder.lifecycleStage` | Lifecycle Stage |
+| `label.vectorOrder.lifecycleStage.egg` | Egg |
+| `label.vectorOrder.lifecycleStage.larva` | Larva |
+| `label.vectorOrder.lifecycleStage.pupa` | Pupa |
+| `label.vectorOrder.lifecycleStage.adult` | Adult |
+| `label.vectorOrder.lifecycleStage.unknown` | Unknown / not assessed |
+| `label.vectorOrder.trapType` | Trap Type / Collection Method |
+| `placeholder.vectorOrder.trapType` | Search trap types… |
+| `heading.vectorOrder.collectionContext` | Collection Context |
+| `helper.vectorOrder.collectionContext` | Optional — field-team capture for bionomics analysis |
+| `label.vectorOrder.collectionTimeOfDay` | Time of Day |
+| `label.vectorOrder.collectionTimeOfDay.dawn` | Dawn |
+| `label.vectorOrder.collectionTimeOfDay.daylight` | Daylight |
+| `label.vectorOrder.collectionTimeOfDay.dusk` | Dusk |
+| `label.vectorOrder.collectionTimeOfDay.night` | Night |
+| `label.vectorOrder.collectionTimeOfDay.unknown` | Unknown |
+| `label.vectorOrder.restingContext` | Resting Context |
+| `label.vectorOrder.restingContext.indoor` | Indoor (endophilic) |
+| `label.vectorOrder.restingContext.outdoor` | Outdoor (exophilic) |
+| `label.vectorOrder.restingContext.unknown` | Unknown |
+| `label.vectorOrder.humanBitingCatch` | Human-Biting Catch |
+| `helper.vectorOrder.humanBitingCatch` | Specimen came from a human-landing collection |
+| `label.vectorOrder.collectionContextNotes` | Collection Notes |
+| `placeholder.vectorOrder.collectionContextNotes` | Weather, trap conditions, anomalies… |
+| `error.vectorOrder.collectionContextNotesMax` | Notes must be 500 characters or less. |
 
 ---
 
@@ -245,6 +296,12 @@ Sample Collection → Step 1 (Enter Order, Vector domain) → Step 2 (Label & St
 | Quantity | Required; integer ≥ 1 | `error.vectorOrder.quantityRequired` / `error.vectorOrder.quantityMin` |
 | Tests / Panel | At least one required | `error.vectorOrder.testRequired` |
 | Sampling Site | Optional; if provided must resolve to an active SamplingSite record | — |
+| Lifecycle Stage | Optional; one of EGG / LARVA / PUPA / ADULT / UNKNOWN; defaults to UNKNOWN | — |
+| Trap Type | Optional; if provided must resolve to an active `VECTOR_TRAP_TYPE` Dictionary entry | — |
+| Collection Time of Day | Optional; one of DAWN / DAYLIGHT / DUSK / NIGHT / UNKNOWN | — |
+| Resting Context | Optional; one of INDOOR / OUTDOOR / UNKNOWN | — |
+| Human-Biting Catch | Optional boolean; defaults to FALSE | — |
+| Collection Context Notes | Optional; max 500 chars | `error.vectorOrder.collectionContextNotesMax` |
 
 ---
 
@@ -279,6 +336,12 @@ Sample Collection → Step 1 (Enter Order, Vector domain) → Step 2 (Label & St
 - [ ] Completing the QA screen advances Sample status to PROCESSING
 - [ ] The sample appears in the V-03 identification worklist after reaching PROCESSING
 - [ ] Editing a sample in PROCESSING, TESTED, or ARCHIVED status is blocked (read-only)
+- [ ] Step 1 displays the Lifecycle Stage Select with options Egg / Larva / Pupa / Adult / Unknown (default Unknown)
+- [ ] Step 1 displays the Trap Type / Collection Method ComboBox sourced from `VECTOR_TRAP_TYPE` Dictionary entries (passive traps + active collection methods)
+- [ ] Step 1 includes an optional Collection Context accordion (collapsed by default) with Time of Day, Resting Context, Human-Biting Catch, and Notes
+- [ ] All five new v2.4 fields persist on the Sample entity (lifecycle_stage, trap_type_id, collection_time_of_day, resting_context, human_biting_catch, collection_context_notes)
+- [ ] All five new fields are optional and the form can be submitted with any/all left blank
+- [ ] Trap type is omitted from eWARS and SILANTOR exports (per V-04 §6.6) but appears in V-04 internal dashboards
 
 ### Non-Functional
 

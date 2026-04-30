@@ -1,7 +1,23 @@
+/**
+ * V-02 Vector Collection Workflow — React Mockup (v2.4)
+ * Spec: vector-collection-workflow.md (v2.4)
+ * Jira: OGC-581 (Epic: OGC-527)
+ *
+ * v2.4 changes (vector expert validation pass, April 2026):
+ *  - Reactivated Trap Type / Collection Method ComboBox in Step 1 (Aedes co-primary
+ *    surveillance need; previously deferred per V-04 §17.2). Dictionary covers both
+ *    passive traps and active collection methods.
+ *  - Added Lifecycle Stage Select in Step 1 (egg / larva / pupa / adult / unknown).
+ *  - Added Collection Context optional accordion (collapsed by default) with time of day,
+ *    resting context, human-biting catch toggle, and free-text notes.
+ *  - 5 new optional fields on the Sample entity (lifecycle_stage, trap_type_id,
+ *    collection_time_of_day, resting_context, human_biting_catch, collection_context_notes).
+ */
+
 import React, { useState, useCallback } from 'react';
 import {
   Grid, Column, Stack,
-  TextInput, Select, SelectItem, NumberInput, ComboBox,
+  TextInput, Select, SelectItem, NumberInput, ComboBox, Toggle, TextArea,
   Button, Tag, InlineNotification, DataTable, TableContainer,
   Table, TableHead, TableRow, TableHeader, TableBody, TableCell,
   TableSelectRow, TableSelectAll, TableBatchActions, TableBatchAction,
@@ -28,6 +44,19 @@ const SAMPLING_SITES = [
   { id: 'bpp03', label: 'BPP-03 — Tanjung Priok' },
 ];
 
+// v2.4 — VECTOR_TRAP_TYPE Dictionary seed (V-03 Appendix A.7.10)
+// Includes both passive traps and active collection methods per the vector expert's confirmation.
+const TRAP_TYPES = [
+  { id: 'BG_SENTINEL',    label: 'BG-Sentinel trap',           category: 'Passive trap' },
+  { id: 'CDC_LIGHT_TRAP', label: 'CDC light trap',             category: 'Passive trap' },
+  { id: 'GRAVID_TRAP',    label: 'Gravid trap',                category: 'Passive trap' },
+  { id: 'OVITRAP',        label: 'Ovitrap',                    category: 'Passive trap' },
+  { id: 'HUMAN_LANDING',  label: 'Human-landing collection',   category: 'Active collection' },
+  { id: 'ASPIRATOR',      label: 'Aspirator',                  category: 'Active collection' },
+  { id: 'SWEEP_NET',      label: 'Sweep net',                  category: 'Active collection' },
+  { id: 'OTHER',          label: 'Other (specify in notes)',   category: 'Other' },
+];
+
 const AVAILABLE_TESTS = [
   { id: 'dengue-panel', name: 'Dengue Surveillance Panel', type: 'Panel', method: 'ELISA / PCR', defaultSelected: true },
   { id: 'pf-pcr',      name: 'Plasmodium falciparum PCR', type: 'Test',  method: 'RT-PCR',     defaultSelected: true },
@@ -43,6 +72,13 @@ function Step1EnterOrder({ onNext }) {
   const [quantity, setQuantity]           = useState(25);
   const [samplingSite, setSamplingSite]   = useState(SAMPLING_SITES[0]);
   const [requester, setRequester]         = useState('SILNAS Indonesia — Malaria Programme');
+  // v2.4 new state — lifecycle, trap type, collection context
+  const [lifecycleStage, setLifecycleStage]                 = useState('ADULT');
+  const [trapType, setTrapType]                             = useState(TRAP_TYPES[1]); // CDC light trap default
+  const [collectionTimeOfDay, setCollectionTimeOfDay]       = useState('UNKNOWN');
+  const [restingContext, setRestingContext]                 = useState('UNKNOWN');
+  const [humanBitingCatch, setHumanBitingCatch]             = useState(false);
+  const [collectionContextNotes, setCollectionContextNotes] = useState('');
   const [selectedTests, setSelectedTests] = useState(
     new Set(AVAILABLE_TESTS.filter(t => t.defaultSelected).map(t => t.id))
   );
@@ -110,7 +146,7 @@ function Step1EnterOrder({ onNext }) {
           {t('heading.vectorOrder.specimenDetails', 'Specimen Details')}
         </h4>
         <Grid>
-          <Column lg={8} md={4}>
+          <Column lg={6} md={4}>
             <ComboBox
               id="organism-group"
               titleText={<>{t('label.vectorOrder.organismGroup', 'Organism Group')} <span style={{ color: '#da1e28' }}>*</span></>}
@@ -122,7 +158,23 @@ function Step1EnterOrder({ onNext }) {
               onChange={({ selectedItem }) => setOrganismGroup(selectedItem)}
             />
           </Column>
+          {/* v2.4: Lifecycle Stage Select — pools are stage-pure at intake */}
           <Column lg={4} md={4}>
+            <Select
+              id="lifecycle-stage"
+              labelText={t('label.vectorOrder.lifecycleStage', 'Lifecycle Stage')}
+              helperText={t('helperText.vectorOrder.lifecycleStage', 'Egg / larva / pupa / adult; pools are typically stage-pure.')}
+              defaultValue={lifecycleStage || 'UNKNOWN'}
+              onChange={e => setLifecycleStage(e.target.value)}
+            >
+              <SelectItem value="UNKNOWN" text={t('label.vectorOrder.lifecycleStage.unknown', 'Unknown / not assessed')} />
+              <SelectItem value="EGG"     text={t('label.vectorOrder.lifecycleStage.egg', 'Egg')} />
+              <SelectItem value="LARVA"   text={t('label.vectorOrder.lifecycleStage.larva', 'Larva')} />
+              <SelectItem value="PUPA"    text={t('label.vectorOrder.lifecycleStage.pupa', 'Pupa')} />
+              <SelectItem value="ADULT"   text={t('label.vectorOrder.lifecycleStage.adult', 'Adult')} />
+            </Select>
+          </Column>
+          <Column lg={2} md={4}>
             <NumberInput
               id="quantity"
               label={<>{t('label.vectorOrder.quantity', 'Quantity (organisms)')} <span style={{ color: '#da1e28' }}>*</span></>}
@@ -130,6 +182,19 @@ function Step1EnterOrder({ onNext }) {
               min={1}
               value={quantity}
               onChange={(e, { value }) => setQuantity(value)}
+            />
+          </Column>
+          {/* v2.4: Trap Type / Collection Method ComboBox — reactivated from V-04 §17.2 */}
+          <Column lg={8} md={4}>
+            <ComboBox
+              id="trap-type"
+              titleText={t('label.vectorOrder.trapType', 'Trap Type / Collection Method')}
+              helperText={t('helperText.vectorOrder.trapType', 'Includes passive traps (BG-Sentinel, CDC light trap, gravid trap, ovitrap) and active collection methods (human-landing, aspirator, sweep net).')}
+              placeholder={t('placeholder.vectorOrder.trapType', 'Search trap types…')}
+              items={TRAP_TYPES}
+              itemToString={item => item?.label ?? ''}
+              selectedItem={trapType}
+              onChange={({ selectedItem }) => setTrapType(selectedItem)}
             />
           </Column>
           <Column lg={8} md={4}>
@@ -144,7 +209,7 @@ function Step1EnterOrder({ onNext }) {
               onChange={({ selectedItem }) => setSamplingSite(selectedItem)}
             />
           </Column>
-          <Column lg={8} md={4}>
+          <Column lg={16} md={8}>
             <TextInput
               id="requester"
               labelText={t('label.vectorOrder.requester', 'Requester / Organisation')}
@@ -153,6 +218,67 @@ function Step1EnterOrder({ onNext }) {
             />
           </Column>
         </Grid>
+
+        {/* v2.4: Collection Context optional accordion (collapsed by default) */}
+        <Accordion style={{ marginTop: 'var(--cds-spacing-05)' }}>
+          <AccordionItem
+            title={t('heading.vectorOrder.collectionContext', 'Collection Context')}
+            open={false}
+          >
+            <p style={{ fontSize: 12, color: '#525252', marginBottom: 'var(--cds-spacing-04)' }}>
+              {t('helper.vectorOrder.collectionContext', 'Optional — field-team capture for bionomics analysis.')}
+            </p>
+            <Grid>
+              <Column lg={5} md={4}>
+                <Select
+                  id="collection-time-of-day"
+                  labelText={t('label.vectorOrder.collectionTimeOfDay', 'Time of Day')}
+                  defaultValue={collectionTimeOfDay || 'UNKNOWN'}
+                  onChange={e => setCollectionTimeOfDay(e.target.value)}
+                >
+                  <SelectItem value="UNKNOWN"  text="Unknown" />
+                  <SelectItem value="DAWN"     text="Dawn" />
+                  <SelectItem value="DAYLIGHT" text="Daylight" />
+                  <SelectItem value="DUSK"     text="Dusk" />
+                  <SelectItem value="NIGHT"    text="Night" />
+                </Select>
+              </Column>
+              <Column lg={5} md={4}>
+                <Select
+                  id="resting-context"
+                  labelText={t('label.vectorOrder.restingContext', 'Resting Context')}
+                  defaultValue={restingContext || 'UNKNOWN'}
+                  onChange={e => setRestingContext(e.target.value)}
+                >
+                  <SelectItem value="UNKNOWN" text="Unknown" />
+                  <SelectItem value="INDOOR"  text="Indoor (endophilic)" />
+                  <SelectItem value="OUTDOOR" text="Outdoor (exophilic)" />
+                </Select>
+              </Column>
+              <Column lg={6} md={4}>
+                <Toggle
+                  id="human-biting-catch"
+                  labelText={t('label.vectorOrder.humanBitingCatch', 'Human-Biting Catch')}
+                  helperText={t('helper.vectorOrder.humanBitingCatch', 'Specimen came from a human-landing collection')}
+                  toggled={humanBitingCatch}
+                  onToggle={setHumanBitingCatch}
+                />
+              </Column>
+              <Column lg={16} md={8}>
+                <TextArea
+                  id="collection-context-notes"
+                  labelText={t('label.vectorOrder.collectionContextNotes', 'Collection Notes')}
+                  placeholder={t('placeholder.vectorOrder.collectionContextNotes', 'Weather, trap conditions, anomalies…')}
+                  rows={2}
+                  maxCount={500}
+                  enableCounter
+                  value={collectionContextNotes}
+                  onChange={e => setCollectionContextNotes(e.target.value)}
+                />
+              </Column>
+            </Grid>
+          </AccordionItem>
+        </Accordion>
       </Tile>
 
       {/* Tests & Panels */}

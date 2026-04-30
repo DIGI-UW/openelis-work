@@ -276,64 +276,106 @@ On the Regulation-driven branch, the Compliance Standards section SHALL appear a
 
 ---
 
-#### 5.1.6 Suggested Tests (Regulation-driven branch only) — Union + Dedup
+#### 5.1.6 Test Selection — Branch-Aware UX (rewritten 2026-04-29)
 
-**ID:** ENV-1-006 (amended 2026-04-28 for multi-regulation orders)
+**ID:** ENV-1-006 (rewritten 2026-04-29 — branch-aware UX after Casey review)
 **Priority:** P0
 **Requirement:**
-After ≥1 Compliance Standard is selected and the Sample Manifest contains at least one sample type (ENV-1-009), the Suggested Tests section SHALL display tests filtered to those that:
-(a) have an active ComplianceThreshold linked to **at least one of the selected standards**, AND
-(b) are applicable to at least one of the manifest's sample types.
+Test selection on Step 1 takes one of two visual shapes depending on branch. Both shapes are gated behind the manifest having at least one sample type with quantity ≥ 1 — until then, the section displays helper text "Add a sample type with quantity ≥ 1 to the manifest below to choose tests." Both shapes filter their visible test catalog by the union of sample types active in the manifest.
 
-**Union + Deduplication.** Tests common to multiple selected standards appear **once** (deduplicated by `test_id`) — they are NOT shown N times. Tests unique to a single regulation are also shown once. Each suggested test row carries a "covered by" annotation listing every selected standard that governs it.
+##### 5.1.6.A Regulation-driven branch — Pre-loaded Test Plan
 
-Presentation:
+When ≥ 1 compliance standard is selected, the system SHALL automatically load **every test linked to any selected standard's ComplianceThresholds** (deduped union — a test that appears in two standards is loaded once and ordered once). Reception sees a compact, scannable Test Plan rather than a discovery picker.
 
-- An `InlineNotification` (kind="info") above the test list: "Based on {N standards} and {M sample types}, {K} unique tests have been suggested. {K_shared} tests are shared across multiple standards."
-- Tests organized by Parameter Group (Carbon `Accordion`); group sort order matches the **first selected** standard's configuration (deterministic; ties broken by group name).
-- Each suggested test row shows:
-  - Test name + LOINC + unit
-  - **Coverage annotation** — small Tag(s) showing which selected standards govern this test, e.g., `[PP 22/2021]` or `[PP 22/2021] [WHO-DWG-4]` if shared. Tag color matches each standard's accent.
-  - Threshold preview: when shared across standards, the row is expandable to show per-standard thresholds side-by-side (e.g., pH: PP 22/2021 = 6.0–9.0, WHO-DWG-4 = 6.5–8.5)
-  - Pre-selected by default with a `Tag` (kind="blue", label="Suggested")
-- Group header shows "{selected} of {total}" counts (across the deduplicated set).
-- User can deselect any test, add non-suggested tests via "Add additional tests", or clear all.
+**Layout:**
+
+```
+Test Plan from Selected Regulations
+14 tests will run on each sample (from PP No. 22/2021 + Permenkes 32/2017, 3 shared)
+
+☑ pH                            LOINC 11558-4    [PP 22/2021] [Permenkes 32/2017]
+☑ Total Dissolved Solids        LOINC 3745-7     [PP 22/2021]
+☑ Lead (Pb)                     LOINC 5671-0     [PP 22/2021] [Permenkes 32/2017]
+☑ Total Coliform                LOINC 5794-0     [PP 22/2021]
+…  (deduped union, all checked by default — uncheck to drop from this order)
+
+⚠ 2 tests blocked by missing sample types
+   • Mercury (Hg) needs Drinking Water (st-002) — quantity is 0
+     [+ Add 1 to manifest]   [Skip this test]
+   • BOD₅ needs Surface Water (st-001) — quantity is 0
+     [+ Add 1 to manifest]   [Skip this test]
+
+[+ Add a test or panel not in the regulations]   ← reveals a small ComboBox picker
+```
+
+**Component behavior:**
+- **Pre-loaded list** — checkbox list, all checked by default, deduped across selected standards. Each row shows test name, LOINC, unit, and one or more regulation tags showing coverage.
+- **Blocked-by-missing-sample list** — separate compact warning region listing tests that *would* run if a required sample type had quantity ≥ 1. Each blocked entry offers two affordances: "+ Add 1 to manifest" (jumps focus to the manifest row, adds quantity 1) and "Skip this test" (removes from order; sample type stays at 0).
+- **Add-extra affordance** — a single "+ Add a test or panel not in the regulations" button reveals a compact ComboBox typeahead picker scoped to the active sample types. Lets reception bolt on extras (e.g., a client-requested pH check on a chemistry-only regulation order). Selected extras render as additional rows below the pre-loaded list with an `[Ad-hoc]` tag instead of regulation tags.
+- **No two-stack panel/test discovery UI** — that's reserved for the ad-hoc branch (§5.1.6.B).
+
+##### 5.1.6.B Ad-hoc branch — Full OE Order Panels + Order Tests Picker
+
+When no regulation is selected (ad-hoc branch), test selection SHALL use **the existing OpenELIS clinical order entry test selection component** — two stacked sections, "Order Panels" above "Order Tests", each rendered as a chip strip + typeahead search + scrollable checkbox list (matches the clinical order entry pattern verbatim).
+
+```
+Order Panels
+[ Surface Water Physical+Chemical ✕ ]
+[ 🔍 Choose Available panel ]
+☑ Surface Water Physical+Chemical
+☐ Drinking Water Quality
+☐ Coliform Microbiological
+…
+
+Order Tests
+[ pH ✕ ] [ Lead (Pb) ✕ ] [ Total Coliform ✕ ] …
+[ 🔍 Choose Available Test ]
+☐ Temperature
+☑ pH
+…
+```
+
+Key behaviors (inherited from existing OE clinical order entry, unchanged):
+- Selecting a panel auto-adds its constituent tests to the Order Tests selected list. Tests remain individually visible; removing a panel does not auto-remove its constituent tests (panel = grouping convenience).
+- Tests selected via panel inclusion render as checked + disabled in the available-tests checkbox list.
+- Typeahead search filters within each section.
+- Checkbox click toggles selection; chip ✕ removes selection.
+- Both lists are filtered to entries whose `applicableSampleTypes` intersect the manifest's active sample types.
+- Nothing is pre-checked.
+
+##### Common (both branches)
+- Section is hidden until at least one manifest row has quantity ≥ 1.
+- All selected tests apply to **every sample row** in the manifest at Step 2 (per-sample test override deferred — BR-007).
 
 **Acceptance Criteria:**
 
-- [ ] Tests with thresholds linked to ≥1 selected standard appear in the suggestion list
-- [ ] Each test appears exactly once even when shared across multiple standards
-- [ ] Each suggested test row shows a coverage annotation listing all selected standards that govern it
-- [ ] Shared tests with different thresholds across standards expandable to side-by-side threshold preview
-- [ ] InlineNotification reports both unique-test count and shared-test count
-- [ ] If a selected standard has no linked tests for the manifest's sample types, the InlineNotification (kind="warning") names that standard specifically
-
-**Acceptance Criteria:**
-
-- [ ] Section appears only on the Regulation-driven branch
-- [ ] Suggested tests filtered by both standard AND manifest sample types
-- [ ] InlineNotification names standard, sample-type count, test count
-- [ ] Tests grouped by Parameter Group in a collapsible Accordion
-- [ ] "Suggested" tag on each pre-selected test
-- [ ] User can deselect individual tests or add non-suggested tests
-- [ ] Group header shows selected/total counts
-- [ ] If no tests are linked, an InlineNotification (kind="warning") instructs the user to add tests manually
+- [ ] Section is hidden when manifest has no active sample types (quantity ≥ 1)
+- [ ] Regulation-driven branch shows a single deduped pre-loaded list (all checked) — no two-stack picker
+- [ ] Each pre-loaded test displays one or more regulation tags showing which standard(s) cover it
+- [ ] Tests linked to a regulation but blocked by 0-quantity sample type appear in a separate warning region with "+ Add 1 to manifest" and "Skip this test" affordances
+- [ ] "+ Add a test or panel not in the regulations" button reveals a compact ComboBox picker scoped to active sample types
+- [ ] Ad-hoc tests added via the extra picker render with an [Ad-hoc] tag
+- [ ] Ad-hoc branch shows the full OE Order Panels + Order Tests two-stack component (chip strip + typeahead + checkbox list per section)
+- [ ] Ad-hoc branch starts with all checkboxes empty
+- [ ] Both branches filter their visible options by manifest active sample types
+- [ ] All selected tests apply to every sample row at Step 2
 
 ---
 
-#### 5.1.7 Test Catalog Picker (Ad-hoc branch only)
+#### 5.1.7 Test Selection — Sample-Type Filter
 
-**ID:** ENV-1-007
+**ID:** ENV-1-007 (rewritten 2026-04-29)
 **Priority:** P0
 **Requirement:**
-On the Ad-hoc branch, in place of the Compliance Standard + Suggested Tests sections, a free Test Catalog Picker SHALL appear. The picker uses Carbon `MultiSelect` or a searchable test-list table sourced from the existing test catalog (OGC-49). No standard-based filtering or threshold context applies.
+Both branches' test selection UIs SHALL filter their visible options by the manifest's active sample types (rows with quantity ≥ 1). Filter rule: a test or panel is shown only if at least one of its `applicableSampleTypes` is present in the active manifest sample types.
+
+For the regulation-driven branch, this filter is applied **after** the pre-loaded union — so a test linked to a regulation but whose required sample types are all at quantity 0 surfaces in the "blocked by missing sample types" region rather than vanishing silently.
 
 **Acceptance Criteria:**
 
-- [ ] Section appears only on the Ad-hoc branch
-- [ ] All Active tests in the catalog are selectable
-- [ ] No threshold/standard context displayed
-- [ ] Selected tests apply to all samples in the manifest by default
+- [ ] Visible test catalog (ad-hoc) and ComboBox add-extra picker (regulation-driven) are filtered by `applicableSampleTypes ∩ activeManifestSampleTypes`
+- [ ] Regulation-driven blocked tests do not silently disappear — they appear in the blocked-by-missing-sample region
+- [ ] As manifest sample type quantities change, the filtered options update reactively
 
 ---
 
@@ -420,7 +462,7 @@ A Default Collection Conditions section SHALL appear on both branches. Fields ar
 | Sampling Uncertainty Value | NumberInput | No (configurable required per program) | Positive decimal, 0.00–999.99, 2 decimal places. ISO 17025 field-collection uncertainty. (Absorbed from S-03b.) |
 | Sampling Uncertainty Unit | Select | No (paired with Value) | `%` (Relative) · `mg/L` · `μg/L` · `CFU/100 mL` · `Other` (with free-text input when selected) |
 
-Values entered here apply as defaults to **all samples** in the manifest. Per-sample override is captured at Step 2 (Label & Store). Site metadata pre-populates Zone, GPS defaults, etc.
+Values entered here apply as defaults to **all samples** in the manifest. Per-sample collection-condition overrides are deferred to a P1 follow-up — for v2.0, defaults from this section apply uniformly to every sample in the batch. Site metadata pre-populates Zone, GPS defaults, etc.
 
 Administrators can configure per-program field sets via the Program configuration in Admin (extending existing "Additional Order Information" pattern).
 
@@ -460,49 +502,37 @@ This sub-section is hidden when the order has no parent specimens.
 
 ### 5.2 Step 2 — Label & Store
 
-#### 5.2.1 Per-Sample Row Generation
+> **2026-04-29 simplification.** Step 2 reuses the existing OpenELIS labeling and storage pattern. This spec does **not** redesign the per-sample labeling UI. The existing pattern handles row generation, accession assignment, barcode entry, collection date/time, receipt condition, storage-location picker, and bulk-apply controls. The only env-specific additions on this step are (1) sample type is sourced from the Step 1 manifest and is read-only, and (2) the hold-time clock starts when Collection Date/Time is recorded. Everything else inherits unchanged.
+
+#### 5.2.1 Reuse Existing OpenELIS Label & Storage Pattern
 
 **ID:** ENV-2-001
 **Priority:** P0
 **Requirement:**
-Step 2 SHALL render a table with one row per physical sample, generated from the Step 1 Sample Manifest. Quantity 5 of Surface Water + quantity 3 of Groundwater → 8 rows. CSV-uploaded rows carry their per-sample data forward as pre-populated row values.
+Step 2 SHALL render the existing OpenELIS per-sample labeling and storage UI for the rows generated from the Step 1 Sample Manifest (one row per physical sample; quantity 5 of Surface Water + quantity 3 of Groundwater → 8 rows). CSV-uploaded rows carry their per-sample data forward as pre-populated row values.
 
-Each row contains:
+Two env-specific deltas vs. the existing pattern:
 
-- Row index
-- Sample Type (locked from Step 1; not editable here)
-- Accession Number (auto-generated; configurable scheme; editable to support pre-printed barcode reuse)
-- Barcode field (linked to Accession; can be scanned with a hardware scanner)
-- Collection Date/Time (DateTimePicker; defaults from Step 1 conditions or CSV value)
-- Receipt Condition (Select: Acceptable / Cold-chain Broken / Container Damaged / Insufficient Volume / Other)
-- Storage Location (configurable picker → freezer/fridge/shelf)
-- Per-sample Notes (TextInput, optional)
+1. **Sample Type is locked** — sourced from the Step 1 manifest, displayed read-only.
+2. **Hold-time clock starts** when Collection Date/Time is entered (see §5.2.2 below).
 
-Bulk-apply controls above the table:
-
-- "Apply storage location to all" — applies the selected location to every row
-- "Apply collection date/time to all" — for batches collected at the same moment
+All other fields and behaviors (Accession Number scheme, Barcode field, Collection Date/Time picker, Receipt Condition picklist, Storage Location picker, Per-sample Notes, bulk-apply controls) inherit from the existing OpenELIS labeling and storage module.
 
 **Acceptance Criteria:**
 
 - [ ] One row per physical sample, generated from Step 1 quantities
 - [ ] Sample Type is locked, not editable on this step
-- [ ] Accession Number auto-generated; editable to support pre-printed barcodes
-- [ ] Barcode field accepts scanner input
-- [ ] Collection Date/Time uses Carbon DateTimePicker
-- [ ] Receipt Condition is required to advance
-- [ ] Storage Location picker reuses existing Storage Management module
-- [ ] Bulk-apply controls work as described
+- [ ] All other Step 2 fields and bulk-apply controls match the existing OpenELIS labeling/storage pattern (no custom UI)
 - [ ] Per-sample CSV-uploaded values pre-populate the row
 
 ---
 
-#### 5.2.2 Hold-Time Clock Start
+#### 5.2.2 Hold-Time Clock Start (Env-specific)
 
 **ID:** ENV-2-002
 **Priority:** P0
 **Requirement:**
-When Collection Date/Time is recorded for a sample at Step 2, the system SHALL start the hold-time clock for that sample. Hold-time durations are derived from the test catalog (per-test hold-time) and the selected compliance standard (regulation-driven branch). The system computes a per-sample latest-acceptable analysis time and stores it on the sample.
+When Collection Date/Time is recorded for a sample at Step 2, the system SHALL start the hold-time clock for that sample. Hold-time durations are derived from the test catalog (per-test hold-time) and the selected compliance standard(s) (regulation-driven branch — when multiple standards apply, the strictest hold-time wins). The system computes a per-sample latest-acceptable analysis time and stores it on the sample.
 
 If at the moment of Step 2 recording, the hold-time has already been exceeded for one or more linked tests, the row displays a red "Hold-time exceeded" indicator. The sample is not blocked — it advances to Step 3 where the lab tech decides whether to flag NCE and/or reject.
 

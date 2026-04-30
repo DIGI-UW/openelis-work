@@ -19,7 +19,7 @@
  * Dependencies: @carbon/react, @carbon/icons-react
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Grid, Column, Stack,
   ClickableTile,
@@ -86,6 +86,35 @@ const MOCK_TESTS_BY_STANDARD = {
   ],
 };
 
+// 2026-04-28 (rewritten same day): flat test catalog for the existing-OE Order Tests pattern
+// Each test carries: applicableSampleTypes[], complianceStandardIds[] (which standards have thresholds for it)
+const MOCK_TEST_CATALOG = [
+  { id: 't-001', name: 'Temperature', loinc: '8310-5', unit: '°C', applicableSampleTypes: ['st-001', 'st-002', 'st-003', 'st-004'], complianceStandardIds: ['std-001'] },
+  { id: 't-002', name: 'Total Dissolved Solids (TDS)', loinc: '3745-7', unit: 'mg/L', applicableSampleTypes: ['st-001', 'st-002', 'st-003', 'st-004'], complianceStandardIds: ['std-001', 'std-003'] },
+  { id: 't-003', name: 'Total Suspended Solids (TSS)', loinc: '4808-2', unit: 'mg/L', applicableSampleTypes: ['st-001', 'st-004'], complianceStandardIds: ['std-001'] },
+  { id: 't-004', name: 'Turbidity', loinc: '61020-8', unit: 'NTU', applicableSampleTypes: ['st-001', 'st-002', 'st-003'], complianceStandardIds: ['std-001', 'std-003'] },
+  { id: 't-005', name: 'pH', loinc: '11558-4', unit: '—', applicableSampleTypes: ['st-001', 'st-002', 'st-003', 'st-004'], complianceStandardIds: ['std-001', 'std-003'] },
+  { id: 't-006', name: 'Dissolved Oxygen (DO)', loinc: '19218-7', unit: 'mg/L', applicableSampleTypes: ['st-001'], complianceStandardIds: ['std-001'] },
+  { id: 't-007', name: 'BOD₅', loinc: '5839-3', unit: 'mg/L', applicableSampleTypes: ['st-001', 'st-004'], complianceStandardIds: ['std-001'] },
+  { id: 't-008', name: 'COD', loinc: '5840-1', unit: 'mg/L', applicableSampleTypes: ['st-001', 'st-004'], complianceStandardIds: ['std-001'] },
+  { id: 't-012', name: 'Total Coliform', loinc: '5794-0', unit: 'MPN/100mL', applicableSampleTypes: ['st-001', 'st-002', 'st-003'], complianceStandardIds: ['std-001', 'std-003'] },
+  { id: 't-013', name: 'Fecal Coliform', loinc: '5799-9', unit: 'MPN/100mL', applicableSampleTypes: ['st-001', 'st-003'], complianceStandardIds: ['std-001'] },
+  { id: 't-014', name: 'Lead (Pb)', loinc: '5671-0', unit: 'mg/L', applicableSampleTypes: ['st-001', 'st-002', 'st-003', 'st-004', 'st-007', 'st-008'], complianceStandardIds: ['std-001', 'std-003', 'std-004'] },
+  { id: 't-015', name: 'Mercury (Hg)', loinc: '5688-4', unit: 'mg/L', applicableSampleTypes: ['st-001', 'st-002', 'st-004'], complianceStandardIds: ['std-001', 'std-003'] },
+];
+
+// Panels — bundles of tests. Selecting a panel adds its tests; tests can also be selected individually.
+const MOCK_PANELS = [
+  { id: 'p-001', name: 'Surface Water Physical+Chemical', applicableSampleTypes: ['st-001'],
+    testIds: ['t-001', 't-002', 't-003', 't-004', 't-005', 't-006', 't-007', 't-008'], complianceStandardIds: ['std-001'] },
+  { id: 'p-002', name: 'Drinking Water Quality', applicableSampleTypes: ['st-002'],
+    testIds: ['t-002', 't-004', 't-005', 't-012', 't-014', 't-015'], complianceStandardIds: ['std-003'] },
+  { id: 'p-003', name: 'Coliform Microbiological', applicableSampleTypes: ['st-001', 'st-002', 'st-003'],
+    testIds: ['t-012', 't-013'], complianceStandardIds: ['std-001'] },
+  { id: 'p-004', name: 'Heavy Metals (Pb, Hg)', applicableSampleTypes: ['st-001', 'st-002', 'st-007', 'st-008'],
+    testIds: ['t-014', 't-015'], complianceStandardIds: ['std-001', 'std-003', 'std-004'] },
+];
+
 const MOCK_SITE = {
   code: 'WS-001', name: 'Sungai Ciliwung — Manggarai', type: 'Water Source', subtype: 'River',
   region: 'DKI Jakarta', district: 'Jakarta Selatan', gps: '-6.1885, 106.8114',
@@ -131,6 +160,37 @@ export default function EnvironmentalOrderEntryV2({
   const [showAllStandards, setShowAllStandards] = useState(false);
   const [adhocTests, setAdhocTests] = useState([]);
   const [adhocRegRef, setAdhocRegRef] = useState('');
+  // 2026-04-28 (rewritten same day): two-section OE pattern — Order Panels + Order Tests
+  const [selectedPanelIds, setSelectedPanelIds] = useState([]);  // Set-like array
+  const [selectedTestIds, setSelectedTestIds] = useState([]);
+  const [panelSearch, setPanelSearch] = useState('');
+  const [testSearch, setTestSearch] = useState('');
+
+  // Regulation-driven smart pre-selection: pre-check panels/tests whose complianceStandardIds
+  // intersect any selected standard. Re-runs when selectedStandards or branch changes.
+  // Ad-hoc branch resets to empty.
+  useEffect(() => {
+    if (branch === 'AD_HOC') {
+      setSelectedPanelIds([]);
+      setSelectedTestIds([]);
+      return;
+    }
+    if (branch === 'REGULATION_DRIVEN' && selectedStandards.length > 0) {
+      const stdIdSet = new Set(selectedStandards.map(s => s.id));
+      const matchingPanelIds = MOCK_PANELS
+        .filter(p => p.complianceStandardIds.some(id => stdIdSet.has(id)))
+        .map(p => p.id);
+      const matchingTestIds = MOCK_TEST_CATALOG
+        .filter(t => t.complianceStandardIds.some(id => stdIdSet.has(id)))
+        .map(t => t.id);
+      setSelectedPanelIds(matchingPanelIds);
+      setSelectedTestIds(matchingTestIds);
+    } else if (branch === 'REGULATION_DRIVEN' && selectedStandards.length === 0) {
+      setSelectedPanelIds([]);
+      setSelectedTestIds([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branch, selectedStandards]);
   const [manifest, setManifest] = useState([]);   // [{ sampleTypeId, quantity, coverageStandardIds: [], isOverride }]
   const [deselectedTestIds, setDeselectedTestIds] = useState(new Set());
   const [showAddSampleType, setShowAddSampleType] = useState(false);
@@ -613,30 +673,8 @@ export default function EnvironmentalOrderEntryV2({
             </Tile>
           )}
 
-          {/* ── Test Catalog Picker (AD-HOC ONLY) ─────────────────────── */}
-          {branch === 'AD_HOC' && (
-            <Tile>
-              <h4 style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-                {t('heading.order.testCatalog', 'Tests')}
-              </h4>
-              <p style={{ fontSize: '13px', color: 'var(--cds-text-secondary)', marginBottom: 'var(--cds-spacing-04)' }}>
-                {t('label.order.testCatalog.helper', 'Pick tests from the catalog. These will run for every sample in this batch.')}
-              </p>
-              <MultiSelect
-                id="adhoc-tests"
-                titleText={t('label.order.testCatalog', 'Test Catalog')}
-                label={t('placeholder.order.tests.search', 'Search tests…')}
-                items={[
-                  { id: 't-005', label: 'pH (LOINC 11558-4)' },
-                  { id: 't-002', label: 'TDS (LOINC 3745-7)' },
-                  { id: 't-014', label: 'Lead (Pb) (LOINC 5671-0)' },
-                  { id: 't-015', label: 'Mercury (Hg) (LOINC 5688-4)' },
-                ]}
-                itemToString={(item) => item ? item.label : ''}
-                onChange={({ selectedItems }) => setAdhocTests(selectedItems)}
-              />
-            </Tile>
-          )}
+          {/* (Old Ad-hoc Test Catalog MultiSelect removed 2026-04-28 —
+              replaced by unified Order Panels + Order Tests section below) */}
 
           {/* ── Regulatory Reference (AD-HOC ONLY) ────────────────────── */}
           {branch === 'AD_HOC' && (
@@ -763,123 +801,143 @@ export default function EnvironmentalOrderEntryV2({
             </Tile>
           )}
 
-          {/* ── Suggested Tests (REGULATION-DRIVEN, after manifest has sample types) ── */}
-          {/* 2026-04-28 amendment: union+dedup across selectedStandards; per-test coverage tags */}
-          {branch === 'REGULATION_DRIVEN' && selectedStandards.length > 0 && activeManifestSampleTypes.length > 0 && (
-            <Tile>
-              <h4 style={{ marginBottom: 'var(--cds-spacing-04)' }}>
-                {t('heading.order.suggestedTests', 'Suggested Tests')}
-              </h4>
-              {(() => {
-                const allTests = suggestedTestGroups.flatMap(g => g.tests);
-                const sharedCount = allTests.filter(t => t.coverageStandardIds.length > 1).length;
-                const stdRegs = selectedStandards.map(s => s.regulationNumber).join(' + ');
-                return (
-                  <InlineNotification
-                    kind="info"
-                    title=""
-                    subtitle={`Based on ${selectedStandards.length} standards (${stdRegs}) and ${activeManifestSampleTypes.length} sample types, ${suggestedTestCount} unique tests suggested (${sharedCount} shared across multiple standards). ${selectedSuggestedTestCount} selected.`}
-                    hideCloseButton
-                    lowContrast
-                    style={{ marginBottom: 'var(--cds-spacing-04)' }}
-                  />
-                );
-              })()}
+          {/* ── Test Selection — existing OE Order Panels + Order Tests pattern (rewritten 2026-04-28) ── */}
+          {/* Single component for both branches. Filtered to manifest sample types. */}
+          {/* Regulation branch: pre-checks panels/tests linked to ≥1 selected standard. Ad-hoc: starts blank. */}
+          {branch && activeManifestSampleTypes.length > 0 && (() => {
+            // Filter panels/tests to manifest sample types
+            const visiblePanels = MOCK_PANELS.filter(p =>
+              p.applicableSampleTypes.some(st => activeManifestSampleTypes.includes(st)));
+            const visibleTests = MOCK_TEST_CATALOG.filter(t =>
+              t.applicableSampleTypes.some(st => activeManifestSampleTypes.includes(st)));
 
-              {suggestedTestGroups.length > 0 ? (
-                <Accordion>
-                  {suggestedTestGroups.map(group => {
-                    const selectedInGroup = group.tests.filter(test => !deselectedTestIds.has(test.id)).length;
-                    return (
-                      <AccordionItem
-                        key={group.group}
-                        title={`${group.group} (${selectedInGroup} of ${group.tests.length} selected)`}
-                        open
-                      >
-                        <Table size="sm">
-                          <TableHead>
-                            <TableRow>
-                              <TableHeader style={{ width: '40px' }}></TableHeader>
-                              <TableHeader>{t('label.test.name', 'Test')}</TableHeader>
-                              <TableHeader>{t('label.test.loinc', 'LOINC')}</TableHeader>
-                              <TableHeader>{t('label.test.unit', 'Unit')}</TableHeader>
-                              <TableHeader>{t('label.test.threshold', 'Threshold(s) — per standard')}</TableHeader>
-                              <TableHeader>{t('label.test.coverage', 'Covered by')}</TableHeader>
-                              <TableHeader></TableHeader>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {group.tests.map(test => {
-                              const selected = !deselectedTestIds.has(test.id);
-                              const isShared = test.coverageStandardIds.length > 1;
-                              return (
-                                <TableRow key={test.id}>
-                                  <TableCell>
-                                    <Checkbox
-                                      id={`test-${test.id}`}
-                                      labelText=""
-                                      checked={selected}
-                                      onChange={() => {
-                                        setDeselectedTestIds(prev => {
-                                          const next = new Set(prev);
-                                          selected ? next.add(test.id) : next.delete(test.id);
-                                          return next;
-                                        });
-                                      }}
-                                    />
-                                  </TableCell>
-                                  <TableCell>{test.name}</TableCell>
-                                  <TableCell><code style={{ fontSize: '12px' }}>{test.loinc}</code></TableCell>
-                                  <TableCell>{test.unit}</TableCell>
-                                  <TableCell>
-                                    {/* Side-by-side per-standard threshold preview when shared */}
-                                    {isShared ? (
-                                      <Stack gap={1}>
-                                        {test.coverageStandardIds.map(stdId => {
-                                          const std = MOCK_STANDARDS.find(s => s.id === stdId);
-                                          return (
-                                            <span key={stdId} style={{ fontSize: 12 }}>
-                                              <Tag type="purple" size="sm">{std?.regulationNumber}</Tag>{' '}
-                                              <strong>{test.threshold}</strong>
-                                            </span>
-                                          );
-                                        })}
-                                      </Stack>
-                                    ) : (
-                                      <strong>{test.threshold}</strong>
-                                    )}
-                                  </TableCell>
-                                  <TableCell>
-                                    <Stack orientation="horizontal" gap={1} style={{ flexWrap: 'wrap' }}>
-                                      {test.coverageStandardIds.map(stdId => {
-                                        const std = MOCK_STANDARDS.find(s => s.id === stdId);
-                                        return std ? <Tag key={stdId} type="purple" size="sm">{std.regulationNumber}</Tag> : null;
-                                      })}
-                                    </Stack>
-                                  </TableCell>
-                                  <TableCell>
-                                    {selected && <Tag type="blue" size="sm">{t('tag.order.suggestedTest', 'Suggested')}</Tag>}
-                                  </TableCell>
-                                </TableRow>
-                              );
-                            })}
-                          </TableBody>
-                        </Table>
-                      </AccordionItem>
-                    );
-                  })}
-                </Accordion>
-              ) : (
-                <InlineNotification
-                  kind="warning"
-                  title=""
-                  subtitle={t('message.order.noLinkedTests', 'No tests are linked to any selected standard for the selected sample types. Add tests manually or remove a standard.')}
-                  hideCloseButton
-                  lowContrast
+            // Apply typeahead filter
+            const filteredPanels = panelSearch
+              ? visiblePanels.filter(p => p.name.toLowerCase().includes(panelSearch.toLowerCase()))
+              : visiblePanels;
+            const filteredTests = testSearch
+              ? visibleTests.filter(t => t.name.toLowerCase().includes(testSearch.toLowerCase()) || t.loinc.includes(testSearch))
+              : visibleTests;
+
+            // Tests effectively selected = explicitly selected ∪ tests pulled in by selected panels
+            const panelIncludedTestIds = new Set(
+              selectedPanelIds.flatMap(pid => MOCK_PANELS.find(p => p.id === pid)?.testIds || []));
+            const allSelectedTestIds = new Set([...selectedTestIds, ...panelIncludedTestIds]);
+
+            const togglePanel = (id) => setSelectedPanelIds(prev =>
+              prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+            const toggleTest = (id) => setSelectedTestIds(prev =>
+              prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+            return (
+              <Tile>
+                <h4 style={{ marginBottom: 4 }}>{t('heading.order.testSelection', 'Test Selection')}</h4>
+                <p style={{ fontSize: 12, color: 'var(--cds-text-secondary)', marginBottom: 'var(--cds-spacing-04)' }}>
+                  Existing OE Order Panels + Order Tests pattern. Panels and tests are filtered to your selected sample types.
+                  All checked tests apply to <strong>every sample row</strong> at Step 2 (per-sample override deferred — BR-007).
+                  {branch === 'REGULATION_DRIVEN' && selectedStandards.length > 0 &&
+                    ' Pre-checked = covered by ≥1 selected standard.'}
+                </p>
+
+                {/* ─── Order Panels section ─── */}
+                <h5 style={{ marginTop: 'var(--cds-spacing-04)', marginBottom: 'var(--cds-spacing-02)' }}>
+                  {t('heading.order.panels', 'Order Panels')}
+                </h5>
+                {selectedPanelIds.length > 0 && (
+                  <Stack orientation="horizontal" gap={1} style={{ flexWrap: 'wrap', marginBottom: 'var(--cds-spacing-03)' }}>
+                    {selectedPanelIds.map(pid => {
+                      const p = MOCK_PANELS.find(x => x.id === pid);
+                      return p ? (
+                        <Tag key={pid} type="green" size="md" filter onClose={() => togglePanel(pid)}>
+                          {p.name}
+                        </Tag>
+                      ) : null;
+                    })}
+                  </Stack>
+                )}
+                <p style={{ fontSize: 12, color: 'var(--cds-text-secondary)', marginBottom: 4 }}>
+                  {t('label.order.panelSearch', 'Search through the available panels')}
+                </p>
+                <TextInput
+                  id="panel-search"
+                  labelText=""
+                  hideLabel
+                  placeholder={t('placeholder.order.panelSearch', '🔍  Choose Available panel')}
+                  value={panelSearch}
+                  onChange={(e) => setPanelSearch(e.target.value)}
+                  size="sm"
                 />
-              )}
-            </Tile>
-          )}
+                <div style={{ maxHeight: 180, overflowY: 'auto', border: '1px solid var(--cds-border-subtle)', padding: 'var(--cds-spacing-03)', marginTop: 4 }}>
+                  {filteredPanels.length === 0 ? (
+                    <p style={{ fontSize: 12, color: 'var(--cds-text-secondary)', fontStyle: 'italic' }}>
+                      No panels match.
+                    </p>
+                  ) : (
+                    filteredPanels.map(p => (
+                      <Checkbox
+                        key={p.id}
+                        id={`panel-${p.id}`}
+                        labelText={p.name}
+                        checked={selectedPanelIds.includes(p.id)}
+                        onChange={() => togglePanel(p.id)}
+                      />
+                    ))
+                  )}
+                </div>
+
+                {/* ─── Order Tests section ─── */}
+                <h5 style={{ marginTop: 'var(--cds-spacing-05)', marginBottom: 'var(--cds-spacing-02)' }}>
+                  {t('heading.order.tests', 'Order Tests')}
+                </h5>
+                {allSelectedTestIds.size > 0 && (
+                  <Stack orientation="horizontal" gap={1} style={{ flexWrap: 'wrap', marginBottom: 'var(--cds-spacing-03)' }}>
+                    {[...allSelectedTestIds].map(tid => {
+                      const t = MOCK_TEST_CATALOG.find(x => x.id === tid);
+                      const fromPanel = panelIncludedTestIds.has(tid) && !selectedTestIds.includes(tid);
+                      return t ? (
+                        <Tag key={tid} type={fromPanel ? 'cool-gray' : 'magenta'} size="md"
+                             filter={!fromPanel}
+                             onClose={!fromPanel ? () => toggleTest(tid) : undefined}>
+                          {t.name}
+                          {fromPanel && <span style={{ fontSize: 10, marginLeft: 4 }}>· via panel</span>}
+                        </Tag>
+                      ) : null;
+                    })}
+                  </Stack>
+                )}
+                <p style={{ fontSize: 12, color: 'var(--cds-text-secondary)', marginBottom: 4 }}>
+                  {t('label.order.testSearch', 'Search through the available tests')}
+                </p>
+                <TextInput
+                  id="test-search"
+                  labelText=""
+                  hideLabel
+                  placeholder={t('placeholder.order.testSearch', '🔍  Choose Available Test')}
+                  value={testSearch}
+                  onChange={(e) => setTestSearch(e.target.value)}
+                  size="sm"
+                />
+                <div style={{ maxHeight: 220, overflowY: 'auto', border: '1px solid var(--cds-border-subtle)', padding: 'var(--cds-spacing-03)', marginTop: 4 }}>
+                  {filteredTests.length === 0 ? (
+                    <p style={{ fontSize: 12, color: 'var(--cds-text-secondary)', fontStyle: 'italic' }}>
+                      No tests match.
+                    </p>
+                  ) : (
+                    filteredTests.map(test => (
+                      <Checkbox
+                        key={test.id}
+                        id={`test-${test.id}`}
+                        labelText={test.name}
+                        checked={selectedTestIds.includes(test.id) || panelIncludedTestIds.has(test.id)}
+                        disabled={panelIncludedTestIds.has(test.id) && !selectedTestIds.includes(test.id)}
+                        onChange={() => toggleTest(test.id)}
+                      />
+                    ))
+                  )}
+                </div>
+              </Tile>
+            );
+          })()}
 
           {/* ── Default Collection Conditions (always when branch chosen) ── */}
           {branch && (
@@ -888,7 +946,7 @@ export default function EnvironmentalOrderEntryV2({
                 {t('heading.order.collectionConditions', 'Default Collection Conditions')}
               </h4>
               <p style={{ fontSize: '12px', color: 'var(--cds-text-secondary)', marginBottom: 'var(--cds-spacing-04)' }}>
-                {t('label.order.collectionConditions.helper', 'Defaults applied to all samples. Per-sample overrides at Step 2.')}
+                {t('label.order.collectionConditions.helper', 'Defaults applied to all samples in this batch.')}
               </p>
               <Grid>
                 <Column lg={6} md={4} sm={4}>
@@ -1011,101 +1069,28 @@ export default function EnvironmentalOrderEntryV2({
           ════════════════════════════════════════════════════════════════ */}
       {currentStep === 1 && (
         <Stack gap={5}>
-          <Tile>
+          {/* 2026-04-29 simplification: Step 2 reuses the existing OpenELIS labeling and storage pattern.
+              No custom UI is designed in this spec. Placeholder tile shown below; the only env-specific
+              deltas are (a) Sample Type sourced read-only from Step 1 manifest, and (b) hold-time clock
+              starts when Collection Date/Time is entered. */}
+          <Tile style={{ background: '#f4f4f4', border: '1px dashed #8d8d8d' }}>
             <h4 style={{ marginBottom: 'var(--cds-spacing-04)' }}>
               {t('heading.order.labelStore', 'Label & Store')}
             </h4>
-            <p style={{ fontSize: '13px', color: 'var(--cds-text-secondary)', marginBottom: 'var(--cds-spacing-05)' }}>
-              {t('label.order.labelStore.helper', 'Per-sample accession + barcode + collection date/time + receipt condition + storage. Bulk-apply controls at the top.')}
+            <p style={{ fontSize: '13px', color: 'var(--cds-text-secondary)', marginBottom: 'var(--cds-spacing-04)' }}>
+              {t('label.order.labelStore.placeholder', 'This step reuses the existing OpenELIS labeling and storage UI for the {{count}} sample row(s) generated from Step 1. No custom Env UI is designed here.', { count: sampleRows.length })}
             </p>
-
-            {/* Bulk apply controls */}
-            <Stack orientation="horizontal" gap={4} style={{ marginBottom: 'var(--cds-spacing-05)', alignItems: 'flex-end' }}>
-              <Select
-                id="bulk-storage"
-                labelText={t('label.order.label.bulkApplyStorage', 'Apply storage location to all')}
-                value={bulkStorage}
-                onChange={(e) => setBulkStorage(e.target.value)}
-              >
-                <SelectItem value="" text={t('placeholder.bulk.storage', 'Pick a location to bulk-apply…')} />
-                {MOCK_STORAGE_LOCATIONS.map(loc => <SelectItem key={loc} value={loc} text={loc} />)}
-              </Select>
-              <Button kind="tertiary" size="sm" onClick={applyBulkStorage} disabled={!bulkStorage}>
-                {t('button.bulk.apply', 'Apply to all')}
-              </Button>
-            </Stack>
-
-            {/* Per-sample table */}
-            <Table size="md">
-              <TableHead>
-                <TableRow>
-                  <TableHeader>#</TableHeader>
-                  <TableHeader>{t('label.sample.type', 'Sample Type')}</TableHeader>
-                  <TableHeader>{t('label.order.label.accession', 'Accession')}</TableHeader>
-                  <TableHeader>{t('label.order.label.barcode', 'Barcode')}</TableHeader>
-                  <TableHeader>{t('label.order.label.collectionDateTime', 'Collected')}</TableHeader>
-                  <TableHeader>{t('label.order.label.receiptCondition', 'Receipt')}</TableHeader>
-                  <TableHeader>{t('label.order.label.storageLocation', 'Storage')}</TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sampleRows.map(row => (
-                  <TableRow key={row.id}>
-                    <TableCell>{row.rowIndex}</TableCell>
-                    <TableCell>{row.sampleType?.name}</TableCell>
-                    <TableCell><code style={{ fontSize: '12px' }}>{row.accession}</code></TableCell>
-                    <TableCell>
-                      <TextInput
-                        id={`barcode-${row.id}`}
-                        labelText=""
-                        hideLabel
-                        size="sm"
-                        placeholder={t('placeholder.barcode', 'Scan or type…')}
-                        value={row.barcode}
-                        onChange={(e) => updateSampleRow(row.id, { barcode: e.target.value })}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextInput
-                        id={`dt-${row.id}`}
-                        labelText=""
-                        hideLabel
-                        size="sm"
-                        placeholder="YYYY-MM-DD HH:mm"
-                        value={row.collectionDateTime}
-                        onChange={(e) => updateSampleRow(row.id, { collectionDateTime: e.target.value })}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        id={`recv-${row.id}`}
-                        labelText=""
-                        hideLabel
-                        size="sm"
-                        value={row.receiptCondition}
-                        onChange={(e) => updateSampleRow(row.id, { receiptCondition: e.target.value })}
-                      >
-                        <SelectItem value="" text="—" />
-                        {RECEIPT_CONDITIONS.map(rc => <SelectItem key={rc} value={rc} text={rc} />)}
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        id={`stor-${row.id}`}
-                        labelText=""
-                        hideLabel
-                        size="sm"
-                        value={row.storageLocation}
-                        onChange={(e) => updateSampleRow(row.id, { storageLocation: e.target.value })}
-                      >
-                        <SelectItem value="" text="—" />
-                        {MOCK_STORAGE_LOCATIONS.map(loc => <SelectItem key={loc} value={loc} text={loc} />)}
-                      </Select>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div style={{ background: '#fff', border: '1px solid #e0e0e0', padding: '12px 16px', fontSize: '12px', color: '#525252' }}>
+              <strong>Env-specific behaviors layered on the existing pattern:</strong>
+              <ul style={{ margin: '6px 0 0 18px', padding: 0 }}>
+                <li>Sample Type for each row is sourced from the Step 1 manifest (read-only).</li>
+                <li>Hold-time clock starts when Collection Date/Time is entered (per-test hold-time × strictest standard).</li>
+                <li>Hold-time-exceeded rows show a red indicator; not blocked — flows to Step 3 for NCE decision.</li>
+              </ul>
+            </div>
+            <p style={{ fontSize: '12px', color: '#525252', marginTop: 'var(--cds-spacing-04)', fontStyle: 'italic' }}>
+              {sampleRows.length} sample row{sampleRows.length === 1 ? '' : 's'} ready for OE label/storage entry.
+            </p>
           </Tile>
 
           <Tile>

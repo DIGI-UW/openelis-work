@@ -1,7 +1,17 @@
 /**
- * V-03 Vector Testing & Identification — React Mockup (v1.3)
- * Spec: vector-testing-identification.md (v1.11)
- * Jira: OGC-582 / OGC-583 (OGC-527 epic)
+ * V-03 Vector Testing & Identification — React Mockup (v1.4)
+ * Spec: vector-testing-identification.md (v1.13)
+ * Jira: OGC-582 (OGC-527 epic)
+ *
+ * v1.4 changes (vector expert validation pass, April 2026):
+ *  - Aliquot per-pool collection location override (collectionLocation FK + collectionNotes
+ *    TextArea) supporting multi-site pool deconvolution. Surfaces in the deconvolution UI.
+ *  - VR-07 Sporozoite Confirmation reflex preview shown in deconvolution-to-individuals path
+ *    (when an individual confirmed positive for Plasmodium triggers the salivary-gland
+ *    microscopy panel A.5.9).
+ *  - 4 new Dictionary categories referenced (VECTOR_LIFECYCLE_STAGE, VECTOR_TRAP_TYPE,
+ *    VECTOR_COLLECTION_TIME_OF_DAY, VECTOR_RESTING_CONTEXT) — most surface in V-02 v2.4
+ *    intake; this mockup shows them as informational sample header context.
  *
  * v1.3 changes (lab-tech feedback, April 2026):
  *  - SpecimenIdForm now includes a Physiological State Select (Detinova classification)
@@ -408,14 +418,57 @@ function DeconvolutionModal({ open, onClose, lotId }) {
               </li>
               <li>
                 <Tag size="sm" type="cyan">VR-01 reflex</Tag>{' '}
-                Plasmodium Speciation Panel (added by Malaria Speciation rule — Appendix A)
+                Plasmodium Speciation Panel (added by Malaria Speciation rule — Appendix A.2)
               </li>
+              {/* v1.4: VR-07 sporozoite confirmation reflex — fires when deconvolution goes to individuals */}
+              {organismsPerAliquot === 1 && (
+                <li>
+                  <Tag size="sm" type="purple">VR-07 reflex</Tag>{' '}
+                  Sporozoite Confirmation Panel <em>(individual-level only — fires on confirmed Plasmodium positive; A.5.9 microscopy)</em>
+                </li>
+              )}
             </ul>
             <p style={{ fontSize: 11, color: '#525252', marginTop: 6 }}>
               Provenance is recorded on each order per BR-V03-012 §4. Lab admin can edit reflex rules at Admin → Reflex Rules (requires reflex.vector.edit).
+              {organismsPerAliquot === 1 && (
+                <> Sporozoite microscopy is destructive and only runs on individuals; deconvolution-to-individuals enables sporozoite-rate calculation per V-04 §8.4.</>
+              )}
             </p>
           </div>
         </Tile>
+
+        {/* v1.4: per-Aliquot collection location override — for multi-site pools */}
+        <Accordion>
+          <AccordionItem
+            title="Per-aliquot collection location override (v1.13)"
+            open={false}
+          >
+            <p style={{ fontSize: 12, color: '#525252', marginBottom: 'var(--cds-spacing-04)' }}>
+              Optional. By default, all child aliquots inherit the parent Sample's Sampling Site ({lotId}). If this pool was assembled from multiple traps or micro-sites, set per-aliquot location overrides here.
+            </p>
+            <Grid condensed>
+              <Column lg={8} md={4}>
+                <ComboBox
+                  id="aliquot-collection-location"
+                  titleText="Override Sampling Site for selected aliquot(s)"
+                  placeholder="Search sampling sites…"
+                  items={[]}
+                  itemToString={i => i?.label ?? ''}
+                />
+              </Column>
+              <Column lg={16} md={8}>
+                <TextArea
+                  id="aliquot-collection-notes"
+                  labelText="Aliquot Collection Notes"
+                  placeholder="Tech notes about this specific physical preparation…"
+                  rows={2}
+                  maxCount={500}
+                  enableCounter
+                />
+              </Column>
+            </Grid>
+          </AccordionItem>
+        </Accordion>
 
         {/* Soft warning — non-blocking */}
         {exceedsParent && (

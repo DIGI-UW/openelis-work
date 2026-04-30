@@ -140,7 +140,7 @@
   <div class="preview-content" id="root"></div>
 
   <script type="text/babel">
-    const { useState, useCallback, useMemo, Fragment } = React;
+    const { useState, useCallback, useMemo, useEffect, Fragment } = React;
 
     // ─── Mock data ──────────────────────────────────────────────
     const ALL_SAMPLE_TYPES = [
@@ -185,6 +185,33 @@
         ]},
       ],
     };
+
+    // 2026-04-28 (rewritten same day): flat test catalog + panels for OE Order Panels + Order Tests pattern
+    const TEST_CATALOG = [
+      { id:'t-001', name:'Temperature', loinc:'8310-5', unit:'°C', sampleTypeIds:['st-001','st-002','st-003','st-004'], stdIds:['std-001'] },
+      { id:'t-002', name:'TDS', loinc:'3745-7', unit:'mg/L', sampleTypeIds:['st-001','st-002','st-003','st-004'], stdIds:['std-001','std-003'] },
+      { id:'t-003', name:'TSS', loinc:'4808-2', unit:'mg/L', sampleTypeIds:['st-001','st-004'], stdIds:['std-001'] },
+      { id:'t-004', name:'Turbidity', loinc:'61020-8', unit:'NTU', sampleTypeIds:['st-001','st-002','st-003'], stdIds:['std-001','std-003'] },
+      { id:'t-005', name:'pH', loinc:'11558-4', unit:'—', sampleTypeIds:['st-001','st-002','st-003','st-004'], stdIds:['std-001','std-003'] },
+      { id:'t-006', name:'Dissolved Oxygen', loinc:'19218-7', unit:'mg/L', sampleTypeIds:['st-001'], stdIds:['std-001'] },
+      { id:'t-007', name:'BOD₅', loinc:'5839-3', unit:'mg/L', sampleTypeIds:['st-001','st-004'], stdIds:['std-001'] },
+      { id:'t-008', name:'COD', loinc:'5840-1', unit:'mg/L', sampleTypeIds:['st-001','st-004'], stdIds:['std-001'] },
+      { id:'t-012', name:'Total Coliform', loinc:'5794-0', unit:'MPN/100mL', sampleTypeIds:['st-001','st-002','st-003'], stdIds:['std-001','std-003'] },
+      { id:'t-013', name:'Fecal Coliform', loinc:'5799-9', unit:'MPN/100mL', sampleTypeIds:['st-001','st-003'], stdIds:['std-001'] },
+      { id:'t-014', name:'Lead (Pb)', loinc:'5671-0', unit:'mg/L', sampleTypeIds:['st-001','st-002','st-003','st-004','st-007','st-008'], stdIds:['std-001','std-003','std-004'] },
+      { id:'t-015', name:'Mercury (Hg)', loinc:'5688-4', unit:'mg/L', sampleTypeIds:['st-001','st-002','st-004'], stdIds:['std-001','std-003'] },
+    ];
+
+    const PANELS = [
+      { id:'p-001', name:'Surface Water Physical+Chemical', sampleTypeIds:['st-001'],
+        testIds:['t-001','t-002','t-003','t-004','t-005','t-006','t-007','t-008'], stdIds:['std-001'] },
+      { id:'p-002', name:'Drinking Water Quality', sampleTypeIds:['st-002'],
+        testIds:['t-002','t-004','t-005','t-012','t-014','t-015'], stdIds:['std-003'] },
+      { id:'p-003', name:'Coliform Microbiological', sampleTypeIds:['st-001','st-002','st-003'],
+        testIds:['t-012','t-013'], stdIds:['std-001'] },
+      { id:'p-004', name:'Heavy Metals (Pb, Hg)', sampleTypeIds:['st-001','st-002','st-007','st-008'],
+        testIds:['t-014','t-015'], stdIds:['std-001','std-003','std-004'] },
+    ];
 
     const SITE = {
       code:'WS-001', name:'Sungai Ciliwung — Manggarai', type:'Water Source', subtype:'River',
@@ -299,33 +326,150 @@
       const total = useMemo(() => manifest.reduce((s,r) => s + r.quantity, 0), [manifest]);
       const activeTypes = useMemo(() => manifest.filter(r => r.quantity > 0).map(r => r.sampleTypeId), [manifest]);
 
-      // 2026-04-28 multi-regulation: union+dedup tests across selected standards with coverage
-      const groups = useMemo(() => {
-        if (standards.length === 0 || !activeTypes.length) return [];
-        const testMap = new Map();
-        standards.forEach(std => {
-          (TESTS_BY_STANDARD[std.id] || []).forEach(g => {
-            g.tests.forEach(t => {
-              const key = t.id;
-              if (!testMap.has(key)) testMap.set(key, { groupName: g.group, test: t, coverageStandardIds: [std.id] });
-              else testMap.get(key).coverageStandardIds.push(std.id);
-            });
-          });
+      // 2026-04-29 (rewritten): Branch-aware test selection
+      // — Regulation-driven: pre-loaded deduped Test Plan + blocked-by-missing-sample + add-extra
+      // — Ad-hoc: existing OE Panels + Tests two-stack UI
+      // Both gated behind ≥1 manifest row with quantity > 0.
+
+      // Ad-hoc branch state
+      const [selectedPanelIds, setSelectedPanelIds] = useState([]);
+      const [selectedTestIds, setSelectedTestIds] = useState([]);
+      const [panelSearch, setPanelSearch] = useState('');
+      const [testSearch, setTestSearch] = useState('');
+
+      // Regulation-driven branch state
+      const [deselectedRegTestIds, setDeselectedRegTestIds] = useState(new Set());
+      const [extraRegTestIds, setExtraRegTestIds] = useState([]);
+      const [showAddExtra, setShowAddExtra] = useState(false);
+      const [addExtraSearch, setAddExtraSearch] = useState('');
+
+      // Reset selection state when branch or standards change
+      useEffect(() => {
+        setSelectedPanelIds([]);
+        setSelectedTestIds([]);
+        setPanelSearch('');
+        setTestSearch('');
+        setDeselectedRegTestIds(new Set());
+        setExtraRegTestIds([]);
+        setShowAddExtra(false);
+        setAddExtraSearch('');
+      }, [branch, standards]);
+
+      // ── Regulation-driven memos ──
+      // All tests linked to any selected standard (deduped, with covering reg ids)
+      const regulationTests = useMemo(() => {
+        if (branch !== 'REGULATION_DRIVEN' || standards.length === 0) return [];
+        const stdIds = new Set(standards.map(s => s.id));
+        return TEST_CATALOG
+          .filter(t => t.stdIds.some(id => stdIds.has(id)))
+          .map(t => ({ ...t, coveringStdIds: t.stdIds.filter(id => stdIds.has(id)) }));
+      }, [branch, standards]);
+      // Tests where at least one applicable sample type is active in manifest
+      const regTestActive = useMemo(() => {
+        const activeSet = new Set(activeTypes);
+        return regulationTests.filter(t => t.sampleTypeIds.some(st => activeSet.has(st)));
+      }, [regulationTests, activeTypes]);
+      // Tests blocked because all their applicable sample types are at quantity 0 (or not in manifest)
+      const regTestBlocked = useMemo(() => {
+        const activeSet = new Set(activeTypes);
+        return regulationTests.filter(t => !t.sampleTypeIds.some(st => activeSet.has(st)));
+      }, [regulationTests, activeTypes]);
+      // Final ordered tests on regulation branch = active included + extras
+      const regulationOrderedTests = useMemo(() => {
+        if (branch !== 'REGULATION_DRIVEN') return [];
+        const list = regTestActive.filter(t => !deselectedRegTestIds.has(t.id))
+          .map(t => ({ ...t, source: 'REGULATION' }));
+        const includedIds = new Set(list.map(t => t.id));
+        extraRegTestIds.forEach(id => {
+          if (!includedIds.has(id)) {
+            const t = TEST_CATALOG.find(x => x.id === id);
+            if (t) list.push({ ...t, source: 'EXTRA' });
+          }
         });
-        const groupMap = new Map();
-        testMap.forEach(entry => {
-          if (!groupMap.has(entry.groupName)) groupMap.set(entry.groupName, []);
-          groupMap.get(entry.groupName).push({ ...entry.test, coverageStandardIds: entry.coverageStandardIds });
-        });
-        return Array.from(groupMap.entries()).map(([group, tests]) => ({ group, tests }));
-      }, [standards, activeTypes]);
-      const totalTests = useMemo(() => groups.reduce((s,g) => s + g.tests.length, 0), [groups]);
-      const sharedTests = useMemo(() => groups.flatMap(g => g.tests).filter(t => t.coverageStandardIds.length > 1).length, [groups]);
-      const selTests = useMemo(() => {
-        let n = 0;
-        groups.forEach(g => g.tests.forEach(t => { if (!deselected.has(t.id)) n++; }));
+        return list;
+      }, [branch, regTestActive, deselectedRegTestIds, extraRegTestIds]);
+
+      // Add-extra picker: tests not already pre-loaded by regs, filtered by active sample types + search
+      const addExtraCandidates = useMemo(() => {
+        if (branch !== 'REGULATION_DRIVEN') return [];
+        const activeSet = new Set(activeTypes);
+        const regTestIdSet = new Set(regulationTests.map(t => t.id));
+        const extraSet = new Set(extraRegTestIds);
+        return TEST_CATALOG.filter(t =>
+          !regTestIdSet.has(t.id) &&
+          !extraSet.has(t.id) &&
+          t.sampleTypeIds.some(st => activeSet.has(st)) &&
+          (!addExtraSearch ||
+            t.name.toLowerCase().includes(addExtraSearch.toLowerCase()) ||
+            t.loinc.includes(addExtraSearch))
+        );
+      }, [branch, activeTypes, regulationTests, extraRegTestIds, addExtraSearch]);
+
+      const toggleRegTest = (id) => setDeselectedRegTestIds(prev => {
+        const n = new Set(prev);
+        n.has(id) ? n.delete(id) : n.add(id);
         return n;
-      }, [groups, deselected]);
+      });
+      const removeExtra = (id) => setExtraRegTestIds(prev => prev.filter(x => x !== id));
+      const addExtra = (id) => {
+        setExtraRegTestIds(prev => prev.includes(id) ? prev : [...prev, id]);
+        setAddExtraSearch('');
+      };
+      const skipBlocked = (id) => setDeselectedRegTestIds(prev => {
+        const n = new Set(prev);
+        n.add(id);
+        return n;
+      });
+
+      // ── Ad-hoc branch memos (existing OE Panels + Tests two-stack) ──
+      const testsFromPanels = useMemo(() => {
+        const ids = new Set();
+        selectedPanelIds.forEach(pid => {
+          const p = PANELS.find(x => x.id === pid);
+          if (p) p.testIds.forEach(tid => ids.add(tid));
+        });
+        return ids;
+      }, [selectedPanelIds]);
+
+      const visiblePanels = useMemo(() => {
+        if (!activeTypes.length) return [];
+        const activeSet = new Set(activeTypes);
+        return PANELS.filter(p =>
+          p.sampleTypeIds.some(id => activeSet.has(id)) &&
+          (!panelSearch || p.name.toLowerCase().includes(panelSearch.toLowerCase()))
+        );
+      }, [activeTypes, panelSearch]);
+      const visibleTests = useMemo(() => {
+        if (!activeTypes.length) return [];
+        const activeSet = new Set(activeTypes);
+        return TEST_CATALOG.filter(t =>
+          t.sampleTypeIds.some(id => activeSet.has(id)) &&
+          (!testSearch || t.name.toLowerCase().includes(testSearch.toLowerCase()) || t.loinc.includes(testSearch))
+        );
+      }, [activeTypes, testSearch]);
+
+      const togglePanel = (id) => setSelectedPanelIds(prev =>
+        prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+      );
+      const toggleTest = (id) => {
+        if (testsFromPanels.has(id)) return;
+        setSelectedTestIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+      };
+      const removePanelChip = (id) => setSelectedPanelIds(prev => prev.filter(x => x !== id));
+      const removeTestChip = (id) => {
+        if (testsFromPanels.has(id)) return;
+        setSelectedTestIds(prev => prev.filter(x => x !== id));
+      };
+
+      const adhocSelectedCount = useMemo(() => {
+        const all = new Set([...selectedTestIds, ...Array.from(testsFromPanels)]);
+        return all.size;
+      }, [selectedTestIds, testsFromPanels]);
+
+      // Combined for canAdvance
+      const totalSelectedTests = branch === 'REGULATION_DRIVEN'
+        ? regulationOrderedTests.length
+        : adhocSelectedCount;
 
       // ── Step 2 handlers ──
       const advanceTo2 = () => {
@@ -379,7 +523,8 @@
         });
       };
 
-      const canAdvance1 = total > 0 && collMethod && (branch === 'AD_HOC' || (branch === 'REGULATION_DRIVEN' && standards.length > 0));
+      const canAdvance1 = total > 0 && collMethod && totalSelectedTests > 0 &&
+        (branch === 'AD_HOC' || (branch === 'REGULATION_DRIVEN' && standards.length > 0));
 
       return (
         <div>
@@ -538,25 +683,8 @@
                 </div>
               )}
 
-              {/* Test Catalog Picker (ad-hoc only) */}
-              {branch === 'AD_HOC' && (
-                <div className="tile">
-                  <h4>Tests</h4>
-                  <p className="step-helper">Pick tests from the catalog. These will run for every sample in this batch.</p>
-                  <div className="form-field">
-                    <label>Test Catalog</label>
-                    <select multiple style={{ minHeight:120 }}>
-                      <option>pH (LOINC 11558-4)</option>
-                      <option>TDS (LOINC 3745-7)</option>
-                      <option>Lead (Pb) (LOINC 5671-0)</option>
-                      <option>Mercury (Hg) (LOINC 5688-4)</option>
-                      <option>BOD₅ (LOINC 5839-3)</option>
-                      <option>COD (LOINC 5840-1)</option>
-                    </select>
-                    <span className="helper">Hold Cmd/Ctrl to select multiple</span>
-                  </div>
-                </div>
-              )}
+              {/* Test Catalog Picker (ad-hoc only) — 2026-04-28 REMOVED.
+                  Unified Order Panels + Order Tests section below now serves both branches. */}
 
               {/* Regulatory Reference (ad-hoc only) */}
               {branch === 'AD_HOC' && (
@@ -653,92 +781,243 @@
                 </div>
               )}
 
-              {/* Suggested Tests (regulation-driven, after manifest has sample types) — 2026-04-28 multi-regulation: union+dedup */}
+              {/* Test Selection — 2026-04-29 (rewritten): Branch-aware UX
+                  Regulation: pre-loaded deduped Test Plan + blocked-by-missing-sample + add-extra
+                  Ad-hoc: existing OE Panels + Tests two-stack
+                  Both gated behind ≥1 manifest row with quantity > 0 */}
+              {branch && activeTypes.length === 0 && manifest.length > 0 && (
+                <div className="tile">
+                  <h4>Test Selection</h4>
+                  <p className="step-helper">
+                    Add a sample type with quantity ≥ 1 to the manifest above to choose tests.
+                  </p>
+                </div>
+              )}
+
+              {/* ─── Regulation-driven branch: Pre-loaded Test Plan ─── */}
               {branch === 'REGULATION_DRIVEN' && standards.length > 0 && activeTypes.length > 0 && (
                 <div className="tile">
-                  <h4>Suggested Tests</h4>
-                  <div className="notification">
-                    Based on <strong>{standards.length} standards</strong> ({standards.map(s => s.reg).join(' + ')}) and <strong>{activeTypes.length}</strong> sample types,
-                    {' '}<strong>{totalTests}</strong> unique tests suggested ({sharedTests} shared across multiple standards). <strong>{selTests}</strong> selected.
-                  </div>
-                  {groups.length > 0 ? (
-                    <div className="accordion-group">
-                      {groups.map(g => {
-                        const sel = g.tests.filter(t => !deselected.has(t.id)).length;
+                  <h4>Test Plan from Selected Regulations</h4>
+                  <p className="step-helper">
+                    <strong>{regulationOrderedTests.length} test{regulationOrderedTests.length === 1 ? '' : 's'}</strong> will run on each sample
+                    {standards.length > 0 && <> · pre-loaded from {standards.map(s => s.reg).join(' + ')}</>}
+                    {regTestActive.length !== regulationTests.length && <> · {regTestBlocked.length} blocked by missing sample types</>}.
+                  </p>
+
+                  {regTestActive.length === 0 && extraRegTestIds.length === 0 ? (
+                    <div className="notification warning" style={{ marginBottom:'1rem' }}>
+                      No tests linked to the selected standard{standards.length > 1 ? 's' : ''} can run on the active sample types. Adjust the manifest or add tests manually.
+                    </div>
+                  ) : (
+                    <div style={{ border:'1px solid #e0e0e0', borderRadius:4, marginBottom:'1rem' }}>
+                      {regulationOrderedTests.map(t => {
+                        const isExtra = t.source === 'EXTRA';
                         return (
-                          <div key={g.group}>
-                            <div className="accordion-header">
-                              <span>{g.group} ({sel} of {g.tests.length} selected)</span>
-                              <span>▾</span>
+                          <label key={t.id} style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'10px 12px', borderBottom:'1px solid #f4f4f4', cursor:'pointer' }}>
+                            <input type="checkbox" checked={true}
+                                   onChange={() => isExtra ? removeExtra(t.id) : toggleRegTest(t.id)}
+                                   style={{ marginTop:3 }} />
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontWeight:500 }}>
+                                {t.name} <span style={{ fontWeight:400, color:'#525252', fontSize:12 }}>· {t.unit} · LOINC <code>{t.loinc}</code></span>
+                              </div>
+                              <div style={{ fontSize:12, color:'#525252', marginTop:4, display:'flex', flexWrap:'wrap', gap:4 }}>
+                                {isExtra ? (
+                                  <span className="tag tag-warm-gray" style={{ fontSize:10 }}>Ad-hoc</span>
+                                ) : (
+                                  (t.coveringStdIds || t.stdIds.filter(sid => standards.some(s => s.id === sid))).map(sid => {
+                                    const std = STANDARDS.find(s => s.id === sid);
+                                    return std ? <span key={sid} className="tag tag-purple" style={{ fontSize:10 }}>{std.reg}</span> : null;
+                                  })
+                                )}
+                              </div>
                             </div>
-                            <div className="accordion-body">
-                              <table>
-                                <thead>
-                                  <tr>
-                                    <th style={{ width:30 }}></th>
-                                    <th>Test</th>
-                                    <th>LOINC</th>
-                                    <th>Unit</th>
-                                    <th>Threshold(s) — per standard</th>
-                                    <th>Covered by</th>
-                                    <th></th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {g.tests.map(t => {
-                                    const checked = !deselected.has(t.id);
-                                    const isShared = t.coverageStandardIds.length > 1;
-                                    return (
-                                      <tr key={t.id}>
-                                        <td><input type="checkbox" checked={checked} onChange={() => {
-                                          setDeselected(prev => {
-                                            const n = new Set(prev);
-                                            checked ? n.add(t.id) : n.delete(t.id);
-                                            return n;
-                                          });
-                                        }} /></td>
-                                        <td>{t.name}</td>
-                                        <td><code>{t.loinc}</code></td>
-                                        <td>{t.unit}</td>
-                                        <td>
-                                          {isShared ? (
-                                            <div style={{ display:'flex', flexDirection:'column', gap: 2 }}>
-                                              {t.coverageStandardIds.map(stdId => {
-                                                const std = STANDARDS.find(s => s.id === stdId);
-                                                return (
-                                                  <div key={stdId} style={{ fontSize: 12 }}>
-                                                    <span className="tag tag-purple">{std?.reg}</span>{' '}
-                                                    <strong>{t.threshold}</strong>
-                                                  </div>
-                                                );
-                                              })}
-                                            </div>
-                                          ) : (
-                                            <strong>{t.threshold}</strong>
-                                          )}
-                                        </td>
-                                        <td>
-                                          <div style={{ display:'flex', flexWrap:'wrap', gap: 4 }}>
-                                            {t.coverageStandardIds.map(stdId => {
-                                              const std = STANDARDS.find(s => s.id === stdId);
-                                              return std ? <span key={stdId} className="tag tag-purple">{std.reg}</span> : null;
-                                            })}
-                                          </div>
-                                        </td>
-                                        <td>{checked && <span className="tag tag-blue">Suggested</span>}</td>
-                                      </tr>
-                                    );
-                                  })}
-                                </tbody>
-                              </table>
+                          </label>
+                        );
+                      })}
+                      {/* Show deselected reg tests as struck-through "add back" entries */}
+                      {regTestActive.filter(t => deselectedRegTestIds.has(t.id)).map(t => (
+                        <label key={t.id} style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'10px 12px', borderBottom:'1px solid #f4f4f4', cursor:'pointer', opacity:0.5 }}>
+                          <input type="checkbox" checked={false} onChange={() => toggleRegTest(t.id)} style={{ marginTop:3 }} />
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontWeight:500, textDecoration:'line-through' }}>
+                              {t.name} <span style={{ fontWeight:400, color:'#525252', fontSize:12 }}>· {t.unit} · LOINC <code>{t.loinc}</code></span>
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* ── Blocked tests (sample type quantity = 0) ── */}
+                  {regTestBlocked.length > 0 && (
+                    <div style={{ background:'#fff8e1', border:'1px solid #f1c21b', borderRadius:4, padding:'12px 16px', marginBottom:'1rem' }}>
+                      <div style={{ fontWeight:600, marginBottom:8, fontSize:13 }}>
+                        ⚠ {regTestBlocked.length} test{regTestBlocked.length === 1 ? '' : 's'} blocked by missing sample type{regTestBlocked.length === 1 ? '' : 's'}
+                      </div>
+                      {regTestBlocked.map(t => {
+                        const missingSampleTypes = t.sampleTypeIds
+                          .map(stId => ALL_SAMPLE_TYPES.find(st => st.id === stId))
+                          .filter(Boolean)
+                          .filter(st => !activeTypes.includes(st.id));
+                        return (
+                          <div key={t.id} style={{ padding:'8px 0', borderTop:'1px solid #f1c21b', fontSize:13 }}>
+                            <div style={{ fontWeight:500 }}>{t.name} <span style={{ fontWeight:400, color:'#525252', fontSize:12 }}>· LOINC <code>{t.loinc}</code></span></div>
+                            <div style={{ fontSize:12, color:'#525252', marginTop:4 }}>
+                              Needs: {missingSampleTypes.map(st => st.name).join(' or ')} (quantity is 0)
+                            </div>
+                            <div style={{ display:'flex', gap:8, marginTop:6, alignItems:'center' }}>
+                              {missingSampleTypes.map(st => (
+                                <button key={st.id} className="btn btn-ghost" style={{ fontSize:12, padding:'2px 8px' }}
+                                        onClick={() => addType(st.id)}>
+                                  + Add 1 {st.name} to manifest
+                                </button>
+                              ))}
+                              <span style={{ color:'#c6c6c6' }}>·</span>
+                              <button className="btn btn-ghost" style={{ fontSize:12, padding:'2px 8px', color:'#525252' }}
+                                      onClick={() => skipBlocked(t.id)}>
+                                Skip this test
+                              </button>
                             </div>
                           </div>
                         );
                       })}
                     </div>
+                  )}
+
+                  {/* ── Add a test or panel not in the regulations ── */}
+                  {!showAddExtra ? (
+                    <button className="btn btn-ghost" style={{ fontSize:13 }} onClick={() => setShowAddExtra(true)}>
+                      + Add a test or panel not in the regulations
+                    </button>
                   ) : (
-                    <div className="notification warning">
-                      No tests are linked to any selected standard for the selected sample types. Add tests manually or remove a standard.
+                    <div style={{ background:'#f4f4f4', border:'1px solid #e0e0e0', borderRadius:4, padding:'12px 16px' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:8 }}>
+                        <strong style={{ fontSize:13 }}>Add ad-hoc test (filtered to active sample types)</strong>
+                        <span style={{ flex:1 }} />
+                        <button className="btn btn-ghost" style={{ fontSize:12 }} onClick={() => { setShowAddExtra(false); setAddExtraSearch(''); }}>Done</button>
+                      </div>
+                      <input type="text" placeholder="🔍 Search by test name or LOINC…" value={addExtraSearch}
+                             onChange={(e) => setAddExtraSearch(e.target.value)}
+                             style={{ width:'100%', marginBottom:8 }} />
+                      <div style={{ maxHeight:200, overflowY:'auto', background:'#fff', border:'1px solid #e0e0e0', borderRadius:4 }}>
+                        {addExtraCandidates.length === 0 ? (
+                          <p className="step-helper" style={{ padding:'8px 12px' }}>No additional tests match.</p>
+                        ) : addExtraCandidates.slice(0, 25).map(t => (
+                          <div key={t.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderBottom:'1px solid #f4f4f4' }}>
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontWeight:500, fontSize:13 }}>{t.name} <span style={{ fontWeight:400, color:'#525252', fontSize:12 }}>· {t.unit} · LOINC <code>{t.loinc}</code></span></div>
+                            </div>
+                            <button className="btn btn-ghost" style={{ fontSize:12, padding:'2px 8px' }} onClick={() => addExtra(t.id)}>+ Add</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {regulationOrderedTests.length === 0 && (
+                    <div className="notification warning" style={{ marginTop:'1rem' }}>
+                      No tests in this order. Add a test or fix a blocked one above.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ─── Ad-hoc branch: full OE Panels + Tests two-stack ─── */}
+              {branch === 'AD_HOC' && activeTypes.length > 0 && (
+                <div className="tile">
+                  <h4>Test Selection</h4>
+                  <p className="step-helper">
+                    Pick order panels and/or individual tests from the catalog. Filtered to the {activeTypes.length} sample type{activeTypes.length === 1 ? '' : 's'} in this batch.
+                  </p>
+
+                  <div className="grid grid-2" style={{ alignItems:'start' }}>
+                    {/* Order Panels */}
+                    <div>
+                      <div style={{ fontWeight:600, marginBottom:8 }}>
+                        Order Panels <span style={{ color:'#525252', fontWeight:400 }}>({selectedPanelIds.length} selected)</span>
+                      </div>
+                      {selectedPanelIds.length > 0 && (
+                        <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8, padding:8, background:'#f4f4f4', borderRadius:4 }}>
+                          {selectedPanelIds.map(pid => {
+                            const p = PANELS.find(x => x.id === pid);
+                            return p ? (
+                              <span key={pid} className="tag tag-blue" style={{ display:'inline-flex', alignItems:'center', gap:6 }}>
+                                {p.name}
+                                <button onClick={() => removePanelChip(pid)} style={{ background:'none', border:'none', cursor:'pointer', color:'#0f62fe', padding:0, fontSize:14, lineHeight:1 }}>✕</button>
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
+                      <input type="text" placeholder="🔍 Search panels…" value={panelSearch}
+                             onChange={(e) => setPanelSearch(e.target.value)}
+                             style={{ width:'100%', marginBottom:8 }} />
+                      <div style={{ maxHeight:240, overflowY:'auto', border:'1px solid #e0e0e0', borderRadius:4 }}>
+                        {visiblePanels.length === 0 ? (
+                          <p className="step-helper" style={{ padding:'1rem' }}>No panels match the selected sample types.</p>
+                        ) : visiblePanels.map(p => {
+                          const checked = selectedPanelIds.includes(p.id);
+                          return (
+                            <label key={p.id} style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'8px 12px', borderBottom:'1px solid #f4f4f4', cursor:'pointer' }}>
+                              <input type="checkbox" checked={checked} onChange={() => togglePanel(p.id)} style={{ marginTop:3 }} />
+                              <div style={{ flex:1 }}>
+                                <div style={{ fontWeight:500 }}>{p.name}</div>
+                                <div style={{ fontSize:12, color:'#525252' }}>{p.testIds.length} tests</div>
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Order Tests */}
+                    <div>
+                      <div style={{ fontWeight:600, marginBottom:8 }}>
+                        Order Tests <span style={{ color:'#525252', fontWeight:400 }}>({adhocSelectedCount} total selected, {testsFromPanels.size} via panels)</span>
+                      </div>
+                      {selectedTestIds.length > 0 && (
+                        <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8, padding:8, background:'#f4f4f4', borderRadius:4 }}>
+                          {selectedTestIds.map(tid => {
+                            const t = TEST_CATALOG.find(x => x.id === tid);
+                            return t ? (
+                              <span key={tid} className="tag tag-blue" style={{ display:'inline-flex', alignItems:'center', gap:6 }}>
+                                {t.name}
+                                <button onClick={() => removeTestChip(tid)} style={{ background:'none', border:'none', cursor:'pointer', color:'#0f62fe', padding:0, fontSize:14, lineHeight:1 }}>✕</button>
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
+                      <input type="text" placeholder="🔍 Search tests by name or LOINC…" value={testSearch}
+                             onChange={(e) => setTestSearch(e.target.value)}
+                             style={{ width:'100%', marginBottom:8 }} />
+                      <div style={{ maxHeight:240, overflowY:'auto', border:'1px solid #e0e0e0', borderRadius:4 }}>
+                        {visibleTests.length === 0 ? (
+                          <p className="step-helper" style={{ padding:'1rem' }}>No tests match the selected sample types.</p>
+                        ) : visibleTests.map(t => {
+                          const fromPanel = testsFromPanels.has(t.id);
+                          const checked = fromPanel || selectedTestIds.includes(t.id);
+                          return (
+                            <label key={t.id} style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'8px 12px', borderBottom:'1px solid #f4f4f4', cursor: fromPanel ? 'not-allowed' : 'pointer', opacity: fromPanel ? 0.7 : 1 }}>
+                              <input type="checkbox" checked={checked} disabled={fromPanel} onChange={() => toggleTest(t.id)} style={{ marginTop:3 }} />
+                              <div style={{ flex:1 }}>
+                                <div style={{ fontWeight:500 }}>{t.name} <span style={{ fontWeight:400, color:'#525252', fontSize:12 }}>{t.unit && `· ${t.unit}`}</span></div>
+                                <div style={{ fontSize:12, color:'#525252' }}>
+                                  LOINC <code>{t.loinc}</code>
+                                  {fromPanel && <> · <span className="tag tag-warm-gray" style={{ fontSize:10 }}>via panel</span></>}
+                                </div>
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {adhocSelectedCount === 0 && (
+                    <div className="notification warning" style={{ marginTop:'1rem' }}>
+                      No tests selected. Pick at least one panel or test before continuing.
                     </div>
                   )}
                 </div>
@@ -748,7 +1027,7 @@
               {branch && (
                 <div className="tile">
                   <h4>Default Collection Conditions</h4>
-                  <p className="step-helper">Defaults applied to all samples. Per-sample overrides at Step 2.</p>
+                  <p className="step-helper">Defaults applied to all samples in this batch.</p>
                   <div className="grid grid-3">
                     <div className="form-field">
                       <label>Collection Method *</label>
@@ -830,59 +1109,25 @@
               ════════════════════════════════════════════════════════ */}
           {step === 1 && (
             <Fragment>
-              <div className="tile">
+              {/* 2026-04-29 simplification: Step 2 reuses the existing OpenELIS labeling and storage pattern.
+                  Placeholder tile shown below — no custom Env UI is designed in this spec.
+                  Env-specific deltas: (a) Sample Type read-only from Step 1, (b) hold-time clock starts on collection date/time entry. */}
+              <div className="tile" style={{ background:'#f4f4f4', border:'1px dashed #8d8d8d' }}>
                 <h4>Label & Store</h4>
-                <p className="step-helper">Per-sample accession, barcode, collection date/time, receipt condition, and storage. Use bulk-apply controls for batches collected together.</p>
-
-                <div style={{ display:'flex', gap:12, alignItems:'flex-end', marginBottom:'1rem' }}>
-                  <div className="form-field" style={{ flex:1, marginBottom:0 }}>
-                    <label>Apply storage location to all</label>
-                    <select value={bulkStorage} onChange={(e) => setBulkStorage(e.target.value)}>
-                      <option value="">Pick a location to bulk-apply…</option>
-                      {STORAGE.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </div>
-                  <button className="btn btn-tertiary" onClick={applyBulk} disabled={!bulkStorage}>Apply to all</button>
+                <p className="step-helper">
+                  This step reuses the existing OpenELIS labeling and storage UI for the {sampleRows.length} sample row{sampleRows.length === 1 ? '' : 's'} generated from Step 1. No custom Env UI is designed here.
+                </p>
+                <div style={{ background:'#fff', border:'1px solid #e0e0e0', padding:'12px 16px', fontSize:12, color:'#525252' }}>
+                  <strong>Env-specific behaviors layered on the existing pattern:</strong>
+                  <ul style={{ margin:'6px 0 0 18px', padding:0 }}>
+                    <li>Sample Type for each row is sourced from the Step 1 manifest (read-only).</li>
+                    <li>Hold-time clock starts when Collection Date/Time is entered (per-test hold-time × strictest standard).</li>
+                    <li>Hold-time-exceeded rows show a red indicator; not blocked — flows to Step 3 for NCE decision.</li>
+                  </ul>
                 </div>
-
-                <table>
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Sample Type</th>
-                      <th>Accession</th>
-                      <th>Barcode</th>
-                      <th>Collected</th>
-                      <th>Receipt</th>
-                      <th>Storage</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sampleRows.map(r => (
-                      <tr key={r.id}>
-                        <td>{r.idx}</td>
-                        <td>{r.type?.name}</td>
-                        <td><code>{r.accession}</code></td>
-                        <td><input type="text" placeholder="Scan or type…" value={r.barcode}
-                                   onChange={(e) => updRow(r.id, { barcode:e.target.value })} /></td>
-                        <td><input type="text" placeholder="YYYY-MM-DD HH:mm" value={r.dt}
-                                   onChange={(e) => updRow(r.id, { dt:e.target.value })} /></td>
-                        <td>
-                          <select value={r.cond} onChange={(e) => updRow(r.id, { cond:e.target.value })}>
-                            <option value="">—</option>
-                            {RECEIPT_CONDS.map(c => <option key={c} value={c}>{c}</option>)}
-                          </select>
-                        </td>
-                        <td>
-                          <select value={r.storage} onChange={(e) => updRow(r.id, { storage:e.target.value })}>
-                            <option value="">—</option>
-                            {STORAGE.map(s => <option key={s} value={s}>{s}</option>)}
-                          </select>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <p style={{ fontSize:12, color:'#525252', marginTop:12, fontStyle:'italic' }}>
+                  {sampleRows.length} sample row{sampleRows.length === 1 ? '' : 's'} ready for OE label/storage entry.
+                </p>
               </div>
 
               <div className="tile">
