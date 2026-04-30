@@ -49,6 +49,9 @@
     .tag-green { background: #defbe6; color: #0e6027; }
     .tag-magenta { background: #ffd6e8; color: #740937; }
     .tag-red { background: #ffd7d9; color: #a2191f; }
+    .tag-yellow { background: #fcf4d6; color: #684e00; }
+    .tag-orange { background: #ffe2cc; color: #8a3800; }
+    .tag-warm-gray { background: #e8e6e1; color: #525252; }
     .new-region { border: 2px dashed #f1c21b; border-radius: 6px; padding: 12px; position: relative; margin-bottom: 1rem; }
     .new-region::before {
       content: attr(data-label); position: absolute; top: -11px; left: 12px;
@@ -102,49 +105,87 @@
       { id: 10, test: 'Noise Pollution Survey', component: 'Sound Pressure (dB)', sampleType: 'Ambient Air (Daytime)', min: null, max: 65, unit: 'dB', standard: 'WHO Env Noise' },
     ];
 
-    const RESULTS = [
-      { id: 1, accession: 'ENV-2026-0412.001', test: 'Turbidity', component: null, value: '18', unit: 'NTU',
-        sources: [
-          { reg: 'PP No. 22/2021', flag: 'Normal', label: '≤ 25 NTU' },
-          { reg: 'WHO-DWG-4', flag: 'Critical', label: '≤ 5 NTU' },
-        ]},
-      { id: 2, accession: 'ENV-2026-0412.001', test: 'pH', component: null, value: '7.2', unit: '—',
-        sources: [
-          { reg: 'PP No. 22/2021', flag: 'Normal', label: '6.0 – 9.0' },
-          { reg: 'WHO-DWG-4', flag: 'Normal', label: '6.5 – 8.5' },
-        ]},
-      { id: 3, accession: 'ENV-2026-0412.001', test: 'Total Coliform', component: null, value: '6800', unit: 'MPN/100mL',
-        sources: [
-          { reg: 'PP No. 22/2021', flag: 'Abnormal', label: '≤ 5000 MPN/100mL' },
-          { reg: 'WHO-DWG-4', flag: 'Critical', label: '0 MPN/100mL' },
-        ]},
-      // Multi-component noise pollution with two reading groups
-      { id: 100, accession: 'ENV-2026-0412.005', test: 'Noise Pollution Survey', component: 'Heading (°)',
-        value: '90', unit: '°', readingGroupId: 'rg-1', readingLabel: 'Reading 1 — North face',
-        sources: [{ reg: '(informational)', flag: null, label: 'no compliance threshold' }] },
-      { id: 101, accession: 'ENV-2026-0412.005', test: 'Noise Pollution Survey', component: 'Sound Pressure (dB)',
-        value: '72', unit: 'dB', readingGroupId: 'rg-1', readingLabel: 'Reading 1 — North face',
-        sources: [
-          { reg: 'PP No. 41/1999', flag: 'Abnormal', label: '≤ 70 dB' },
-          { reg: 'WHO Env Noise', flag: 'Critical', label: '≤ 65 dB' },
-        ]},
-      { id: 102, accession: 'ENV-2026-0412.005', test: 'Noise Pollution Survey', component: 'Heading (°)',
-        value: '180', unit: '°', readingGroupId: 'rg-2', readingLabel: 'Reading 2 — East face',
-        sources: [{ reg: '(informational)', flag: null, label: 'no compliance threshold' }] },
-      { id: 103, accession: 'ENV-2026-0412.005', test: 'Noise Pollution Survey', component: 'Sound Pressure (dB)',
-        value: '64', unit: 'dB', readingGroupId: 'rg-2', readingLabel: 'Reading 2 — East face',
-        sources: [
-          { reg: 'PP No. 41/1999', flag: 'Normal', label: '≤ 70 dB' },
-          { reg: 'WHO Env Noise', flag: 'Normal', label: '≤ 65 dB' },
-        ]},
-      { id: 4, accession: 'ENV-2026-0412.001', test: 'Field Notes (free text)', component: null,
-        value: 'Collected 50m downstream', unit: '', sources: null },
+    // 2026-04-29 (rewritten): structured by test session → reading groups → component results.
+    // Per-regulation chips replace combined-status rollup. Reading groups are dynamic for tests
+    // where allowsMultipleReadings === true.
+    const INITIAL_RESULT_TESTS = [
+      {
+        id: 'rt-001', accession: 'ENV-2026-0412.001', test: 'Turbidity', unit: 'NTU',
+        components: [null], allowsMultipleReadings: false,
+        readingGroups: [
+          { id: 'rg-001-1', label: null, results: [
+            { component: null, value: '18', evaluations: [
+              { reg: 'PP No. 22/2021', status: 'PASS', label: '≤ 25 NTU' },
+              { reg: 'WHO-DWG-4', status: 'FAIL', label: '≤ 5 NTU' },
+            ]},
+          ]},
+        ],
+      },
+      {
+        id: 'rt-002', accession: 'ENV-2026-0412.001', test: 'pH', unit: '—',
+        components: [null], allowsMultipleReadings: false,
+        readingGroups: [
+          { id: 'rg-002-1', label: null, results: [
+            { component: null, value: '7.2', evaluations: [
+              { reg: 'PP No. 22/2021', status: 'PASS', label: '6.0 – 9.0' },
+              { reg: 'WHO-DWG-4', status: 'PASS', label: '6.5 – 8.5' },
+            ]},
+          ]},
+        ],
+      },
+      {
+        id: 'rt-003', accession: 'ENV-2026-0412.001', test: 'Total Coliform', unit: 'MPN/100mL',
+        components: [null], allowsMultipleReadings: false,
+        readingGroups: [
+          { id: 'rg-003-1', label: null, results: [
+            { component: null, value: '4900', evaluations: [
+              { reg: 'PP No. 22/2021', status: 'BORDERLINE', label: '≤ 5000 MPN/100mL' },
+              { reg: 'WHO-DWG-4', status: 'FAIL', label: '0 MPN/100mL' },
+            ]},
+          ]},
+        ],
+      },
+      // Multi-component, multi-reading noise pollution
+      {
+        id: 'rt-noise', accession: 'ENV-2026-0412.005', test: 'Noise Pollution Survey', unit: 'mixed',
+        components: ['Heading (°)', 'Sound Pressure (dB)'], allowsMultipleReadings: true,
+        readingGroups: [
+          { id: 'rg-noise-1', label: 'Reading 1 — North face', results: [
+            { component: 'Heading (°)', value: '90', evaluations: [
+              { reg: '(informational)', status: 'INFO', label: 'no threshold' },
+            ]},
+            { component: 'Sound Pressure (dB)', value: '72', evaluations: [
+              { reg: 'PP No. 41/1999', status: 'FAIL', label: '≤ 70 dB' },
+              { reg: 'WHO Env Noise', status: 'FAIL', label: '≤ 65 dB' },
+            ]},
+          ]},
+          { id: 'rg-noise-2', label: 'Reading 2 — East face', results: [
+            { component: 'Heading (°)', value: '180', evaluations: [
+              { reg: '(informational)', status: 'INFO', label: 'no threshold' },
+            ]},
+            { component: 'Sound Pressure (dB)', value: '64', evaluations: [
+              { reg: 'PP No. 41/1999', status: 'PASS', label: '≤ 70 dB' },
+              { reg: 'WHO Env Noise', status: 'PASS', label: '≤ 65 dB' },
+            ]},
+          ]},
+        ],
+      },
+      {
+        id: 'rt-notes', accession: 'ENV-2026-0412.001', test: 'Field Notes (free text)', unit: '',
+        components: [null], allowsMultipleReadings: false,
+        readingGroups: [
+          { id: 'rg-notes-1', label: null, results: [
+            { component: null, value: 'Collected 50m downstream', evaluations: [] },
+          ]},
+        ],
+      },
     ];
 
-    const FLAG_CLS = {
-      Normal: { cls: 'tag-green', label: '✓ Normal' },
-      Abnormal: { cls: 'tag-magenta', label: '⚠ Abnormal' },
-      Critical: { cls: 'tag-red', label: '✕ Critical' },
+    const STATUS_CLS = {
+      PASS: 'tag-green',
+      FAIL: 'tag-red',
+      BORDERLINE: 'tag-yellow',
+      INFO: 'tag-warm-gray',
     };
 
     function Topbar() {
@@ -185,99 +226,81 @@
     }
 
     function Scene1_RangeAdmin() {
-      const [filter, setFilter] = useState('All');
-      const filtered = useMemo(() => {
-        if (filter === 'All') return RANGES;
-        return RANGES.filter(r => r.standard === filter);
-      }, [filter]);
+      // 2026-04-29 split: this admin page only shows STANDALONE ranges (compliance_standard_id IS NULL).
+      // Regulation-scoped ranges live in Compliance Standard Admin (S-01).
+      const standaloneRanges = useMemo(() =>
+        RANGES.filter(r => r.standard === '(generic)' || r.standard?.startsWith('(no eval'))
+      , []);
       return (
         <div>
           <Breadcrumb trail={['Admin', 'Reference Data', 'Reference Ranges']} />
-          <PageHeader title="Reference Range Management" subtitle="S-05 v2 adds Compliance Standard as one new scope dimension. NULL = generic clinical range. Non-NULL = regulation-scoped." />
+          <PageHeader title="Reference Range Management" subtitle="2026-04-29 split: this admin only manages standalone (non-regulation) ranges. Regulation-scoped ranges are managed in Compliance Standard Admin (S-01)." />
           <div className="oe-page">
+
+            {/* New banner: split direction */}
+            <div className="info-tile" style={{ marginBottom: 16 }}>
+              <h5>Where do regulation-scoped ranges live?</h5>
+              <p style={{ fontSize: 13, margin: 0 }}>
+                Reference ranges scoped to a compliance standard (e.g., PP No. 22/2021's Turbidity ≤ 25 NTU) are managed inside <strong>Compliance Standard Admin → Edit Standard → Ranges</strong> (see <strong>S-01</strong>). Borderline proximity is configured per standard there too.
+                {' '}This screen only manages standalone (non-regulation) ranges, used when a test is ordered with no regulation attached.
+              </p>
+            </div>
+
             <div className="existing-region">
               <div className="tile">
-                <h5>Reference Range Admin (existing OE page)</h5>
-                <p className="helper">Gates: <code>referenceRange.edit</code> · No new permission key</p>
+                <h5>Reference Range Admin (existing OE page) — standalone only</h5>
+                <p className="helper">Gates: <code>referenceRange.edit</code> · No new permission key · Filter: rows where <code>compliance_standard_id IS NULL</code></p>
               </div>
             </div>
 
-            <div className="new-region" data-label="S-05 v2 NEW">
+            <div className="existing-region">
               <div className="tile" style={{ marginBottom: 0 }}>
                 <div className="filter-bar" style={{ padding: 0, borderBottom: 'none' }}>
-                  <div className="form-field" style={{ marginBottom: 0 }}>
-                    <label>Compliance Standard (new filter)</label>
-                    <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ minWidth: 240 }}>
-                      <option value="All">All</option>
-                      <option value="(generic)">(generic)</option>
-                      {STANDARDS.map(s => <option key={s.id} value={s.regNumber}>{s.regNumber}</option>)}
-                    </select>
-                  </div>
-                  <button className="btn btn-primary">+ Add Reference Range</button>
+                  <button className="btn btn-primary">+ Add Standalone Reference Range</button>
+                  <span className="helper" style={{ marginLeft: 12 }}>To add a regulation-scoped range, go to Compliance Standard Admin (S-01).</span>
                 </div>
 
                 <table style={{ marginTop: 12 }}>
                   <thead>
                     <tr>
                       <th>Test</th>
-                      <th className="new-col">Component (new col 2026-04-28)</th>
                       <th>Sample Type</th>
                       <th>Min</th>
                       <th>Max</th>
                       <th>Unit</th>
-                      <th className="new-col">Compliance Standard (new col v2)</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map(r => (
+                    {standaloneRanges.length === 0 ? (
+                      <tr><td colSpan="5" className="helper" style={{ padding: 24, textAlign: 'center', fontStyle: 'italic' }}>
+                        No standalone ranges. Most env tests are regulation-scoped — check Compliance Standard Admin (S-01).
+                      </td></tr>
+                    ) : standaloneRanges.map(r => (
                       <tr key={r.id}>
                         <td>{r.test}</td>
-                        <td>
-                          {r.component
-                            ? <span className="tag" style={{ background:'#bae6ff', color:'#003a6d' }}>{r.component}</span>
-                            : <span style={{ color: '#8d8d8d', fontSize: 12, fontStyle: 'italic' }}>(single-component)</span>}
-                        </td>
                         <td>{r.sampleType}</td>
                         <td>{r.min ?? '—'}</td>
                         <td>{r.max ?? '—'}</td>
                         <td>{r.unit}</td>
-                        <td>
-                          {r.standard === '(generic)' || r.standard?.startsWith('(no eval')
-                            ? <span style={{ color: '#525252', fontSize: 12, fontStyle: 'italic' }}>{r.standard}</span>
-                            : <span className="tag tag-purple">{r.standard}</span>}
-                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
                 <p className="helper" style={{ marginTop: 8 }}>
-                  ⚠️ Yellow column = new from S-05 v2. Showing {filtered.length} of {RANGES.length} rows.
+                  Showing {standaloneRanges.length} standalone range{standaloneRanges.length === 1 ? '' : 's'}.
+                  {' '}<strong>{RANGES.length - standaloneRanges.length}</strong> regulation-scoped ranges are hidden — manage them in Compliance Standard Admin (S-01).
                 </p>
               </div>
             </div>
 
-            <div className="new-region" data-label="S-05 v2 form addition">
-              <div className="tile" style={{ marginBottom: 0 }}>
-                <h5>Add / Edit Reference Range — form gains one field</h5>
-                <div className="grid grid-4">
-                  <div className="form-field"><label>Test</label><input value="Turbidity" readOnly /></div>
-                  <div className="form-field"><label>Sample Type</label><input value="Surface Water" readOnly /></div>
-                  <div className="form-field"><label>Min</label><input type="number" /></div>
-                  <div className="form-field"><label>Max</label><input type="number" defaultValue={25} /></div>
-                </div>
-                <div style={{ background: '#fcf4d6', padding: 8, borderRadius: 4, maxWidth: 400 }}>
-                  <div className="form-field" style={{ marginBottom: 0 }}>
-                    <label>Compliance Standard (new — optional)</label>
-                    <select defaultValue="std-001">
-                      <option value="">(generic — no compliance standard)</option>
-                      {STANDARDS.map(s => <option key={s.id} value={s.id}>{s.regNumber}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <p className="helper" style={{ marginTop: 8 }}>
-                  ⚠️ Yellow field = new from S-05 v2. NULL = generic; non-NULL scopes the row to that standard.
-                </p>
-              </div>
+            <div className="info-tile">
+              <h5>2026-04-29 admin split — what changed</h5>
+              <ul>
+                <li>✅ Existing OE Reference Range Admin stays clean (no new column, no compliance-standard filter)</li>
+                <li>✅ Regulation-scoped ranges (compliance_standard_id IS NOT NULL) are owned by S-01's Compliance Standard editor</li>
+                <li>✅ Borderline proximity is also configured per standard in S-01</li>
+                <li>📋 Evaluator path: regulation supersedes standalone. Standalone only fires if the order has no regulation.</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -285,19 +308,63 @@
     }
 
     function Scene2_ResultsEntry() {
-      const [expandedId, setExpandedId] = useState(3);
+      const [resultTests, setResultTests] = useState(INITIAL_RESULT_TESTS);
+
+      const addReading = (testId) => {
+        setResultTests(prev => prev.map(rt => {
+          if (rt.id !== testId) return rt;
+          const nextIdx = rt.readingGroups.length + 1;
+          // Clone the first reading group's component shape but with empty values for the new reading
+          const template = rt.readingGroups[0]?.results || [];
+          return {
+            ...rt,
+            readingGroups: [
+              ...rt.readingGroups,
+              {
+                id: `${rt.id}-rg-${nextIdx}`,
+                label: `Reading ${nextIdx} — (new)`,
+                results: template.map(r => ({ component: r.component, value: '', evaluations: [] })),
+              },
+            ],
+          };
+        }));
+      };
+
+      const removeReading = (testId, rgId) => {
+        setResultTests(prev => prev.map(rt => {
+          if (rt.id !== testId) return rt;
+          if (rt.readingGroups.length <= 1) return rt; // keep at least one
+          return { ...rt, readingGroups: rt.readingGroups.filter(rg => rg.id !== rgId) };
+        }));
+      };
+
+      const renderEvaluationChips = (evaluations) => {
+        if (!evaluations || evaluations.length === 0) {
+          return <span className="helper">—</span>;
+        }
+        return (
+          <div style={{ display:'flex', flexWrap:'wrap', gap: 4 }}>
+            {evaluations.map((ev, j) => (
+              <span key={j} className={`tag ${STATUS_CLS[ev.status]}`} style={{ fontSize: 11, whiteSpace: 'nowrap' }}>
+                {ev.status} — {ev.reg}
+              </span>
+            ))}
+          </div>
+        );
+      };
+
       return (
         <div>
           <Breadcrumb trail={['Results', 'Result Entry', 'ENV-2026-0412']} />
           <PageHeader
             title="Results Entry — Order ENV-2026-0412 (selected regulations: PP No. 22/2021 + WHO-DWG-4)"
-            subtitle="2026-04-28 amendments: side-by-side per-regulation flags · threshold-source list (not single line) · multi-component rendering with reading-group headers."
+            subtitle="2026-04-29 simplification: per-regulation status chips (PASS / FAIL / BORDERLINE — RegName) · dynamic reading groups for multi-reading tests · dropped threshold-source expanded detail."
           />
           <div className="oe-page">
             <div className="existing-region">
               <div className="tile">
-                <h5>Existing Results Entry chrome — multi-regulation evaluation visible inline</h5>
-                <p className="helper">Per-result inline flag is the existing OE Tag pattern; v2 amendment layers it once per applicable regulation.</p>
+                <h5>Existing Results Entry chrome — env compliance evaluation surfaces inline</h5>
+                <p className="helper">Per-row chips show one chip per applicable regulation. PASS=green · BORDERLINE=yellow · FAIL=red · INFO=warm-gray (no threshold).</p>
               </div>
             </div>
 
@@ -309,105 +376,88 @@
                       <th>Accession</th>
                       <th>Test / Component</th>
                       <th>Result</th>
-                      <th>Unit</th>
-                      <th className="new-col">Flags — per regulation (new pattern)</th>
+                      <th className="new-col">Status — per regulation</th>
                       <th></th>
                     </tr>
                   </thead>
                   <tbody>
-                    {RESULTS.map((r, i) => {
-                      const isNewReadingGroup = r.readingGroupId && (i === 0 || RESULTS[i - 1].readingGroupId !== r.readingGroupId);
-                      return (
-                        <React.Fragment key={r.id}>
-                          {isNewReadingGroup && (
-                            <tr style={{ background: '#fff8e1' }}>
-                              <td colSpan="6" style={{ fontSize: 12, fontWeight: 600, color: '#491d8b' }}>
-                                ↳ {r.readingLabel} · reading group {r.readingGroupId}
-                              </td>
-                            </tr>
-                          )}
-                          <tr>
-                            <td><code>{r.accession}</code></td>
-                            <td>
-                              {r.component ? (
-                                <span>
-                                  <span style={{ color:'#525252' }}>{r.test} ·</span>{' '}
-                                  <span className="tag" style={{ background:'#bae6ff', color:'#003a6d' }}>{r.component}</span>
-                                </span>
-                              ) : r.test}
-                            </td>
-                            <td><strong>{r.value}</strong></td>
-                            <td>{r.unit}</td>
-                            <td>
-                              {r.sources && r.sources.length > 0 ? (
-                                <div style={{ display:'flex', flexWrap:'wrap', gap: 4 }}>
-                                  {r.sources.map((src, j) => (
-                                    <span key={j} style={{ fontSize: 11, whiteSpace: 'nowrap' }}>
-                                      <span className="tag tag-purple">{src.reg}</span>{' '}
-                                      {src.flag
-                                        ? <span className={`tag ${FLAG_CLS[src.flag].cls}`}>{FLAG_CLS[src.flag].label}</span>
-                                        : <span className="helper" style={{ fontStyle:'italic' }}>— informational</span>}
-                                    </span>
-                                  ))}
-                                </div>
-                              ) : (
-                                <span className="helper">—</span>
-                              )}
-                            </td>
-                            <td>
-                              <button className="btn btn-ghost" onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}>
-                                {expandedId === r.id ? '▴ Collapse' : '▾ Expand'}
+                    {resultTests.map(rt => (
+                      <React.Fragment key={rt.id}>
+                        {/* Test header row */}
+                        <tr style={{ background: '#f4f4f4' }}>
+                          <td><code>{rt.accession}</code></td>
+                          <td colSpan="3" style={{ fontWeight: 600 }}>
+                            {rt.test}
+                            {rt.components.length > 1 && (
+                              <span style={{ fontSize: 11, color: '#525252', fontWeight: 400, marginLeft: 8 }}>
+                                · multi-component ({rt.components.length}) · {rt.readingGroups.length} reading{rt.readingGroups.length === 1 ? '' : 's'}
+                              </span>
+                            )}
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            {rt.allowsMultipleReadings && (
+                              <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => addReading(rt.id)}>
+                                + Add reading
                               </button>
-                            </td>
-                          </tr>
-                          {expandedId === r.id && (
-                            <tr>
-                              <td colSpan="6" className="expanded-row">
-                                <div className="new-region" data-label="S-05 v2 expanded detail (2026-04-28: list, not single line)" style={{ margin: 8 }}>
-                                  <div className="expanded-content">
-                                    <h5>
-                                      Result Detail — {r.test}
-                                      {r.component && <span> · <span className="tag" style={{ background:'#bae6ff', color:'#003a6d' }}>{r.component}</span></span>}
-                                      {r.readingLabel && <span style={{ fontSize: 12, color: '#525252' }}> · {r.readingLabel}</span>}
-                                    </h5>
-                                    {r.sources && r.sources.length > 0 ? (
-                                      <div style={{ marginBottom: 8 }}>
-                                        <span className="tag tag-purple">Threshold sources</span>
-                                        <ul style={{ marginTop: 8, marginLeft: 16, fontSize: 13 }}>
-                                          {r.sources.map((src, j) => (
-                                            <li key={j} style={{ fontFamily: 'monospace' }}>
-                                              <strong>{src.reg}</strong> — {src.label}
-                                              {src.flag && <> · <span className={`tag ${FLAG_CLS[src.flag].cls}`}>{FLAG_CLS[src.flag].label}</span></>}
-                                            </li>
-                                          ))}
-                                        </ul>
-                                      </div>
-                                    ) : (
-                                      <p className="helper" style={{ fontStyle: 'italic' }}>No reference range matched — no flag applied.</p>
-                                    )}
-                                    <p className="helper">Existing override / comment / audit-trail fields below — unchanged.</p>
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
+                            )}
+                          </td>
+                        </tr>
+                        {/* Reading groups */}
+                        {rt.readingGroups.map((rg, rgIdx) => (
+                          <React.Fragment key={rg.id}>
+                            {rg.label && (
+                              <tr style={{ background: '#fff8e1' }}>
+                                <td></td>
+                                <td colSpan="3" style={{ fontSize: 12, fontWeight: 600, color: '#491d8b' }}>
+                                  ↳ {rg.label}
+                                </td>
+                                <td style={{ textAlign: 'right' }}>
+                                  {rt.readingGroups.length > 1 && (
+                                    <button className="btn btn-ghost" style={{ fontSize: 11, color: '#a2191f' }}
+                                            onClick={() => removeReading(rt.id, rg.id)}>
+                                      ✕ Remove
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            )}
+                            {rg.results.map((r, ri) => (
+                              <tr key={`${rg.id}-${ri}`}>
+                                <td></td>
+                                <td>
+                                  {r.component ? (
+                                    <span style={{ paddingLeft: rg.label ? 16 : 0 }}>
+                                      <span className="tag" style={{ background:'#bae6ff', color:'#003a6d' }}>{r.component}</span>
+                                    </span>
+                                  ) : <span style={{ color: '#525252', fontStyle: 'italic', fontSize: 12 }}>(single value)</span>}
+                                </td>
+                                <td>
+                                  {r.value
+                                    ? <span><strong>{r.value}</strong> <span style={{ color: '#525252', fontSize: 12 }}>{rt.unit !== 'mixed' ? rt.unit : ''}</span></span>
+                                    : <span className="helper" style={{ fontStyle: 'italic' }}>— pending</span>}
+                                </td>
+                                <td>{renderEvaluationChips(r.evaluations)}</td>
+                                <td></td>
+                              </tr>
+                            ))}
+                          </React.Fragment>
+                        ))}
+                      </React.Fragment>
+                    ))}
                   </tbody>
                 </table>
               </div>
             </div>
 
             <div className="info-tile">
-              <h5>2026-04-28 amendments demonstrated above</h5>
+              <h5>2026-04-29 simplifications demonstrated above</h5>
               <ul>
-                <li>✅ Side-by-side flags when ≥2 regulations apply (rows 1, 2, 3 — Turbidity / pH / Coliform)</li>
-                <li>✅ Multi-component rendering with reading-group headers (rows 100–103 — noise pollution survey, 2 readings × 2 components)</li>
-                <li>✅ Threshold-source LIST in expanded detail (was single line in v1)</li>
-                <li>❌ Still no regulation banner at top — context lives in the order, not the screen</li>
-                <li>❌ Still no new flag tier — existing Normal/Abnormal/Critical do the work</li>
-                <li>❌ Categorical observations still in S-05a (OGC-639), separate ticket</li>
+                <li>✅ Per-regulation status chip — single chip per reg per result row, format <code>STATUS — RegName</code></li>
+                <li>✅ Color rule: PASS green · BORDERLINE yellow · FAIL red · INFO warm-gray (informational, no threshold)</li>
+                <li>✅ Reading groups stay (with header label) but are now dynamic — click <strong>+ Add reading</strong> on the multi-reading test header to append a new reading group with empty values</li>
+                <li>✅ Dropped: threshold-source list in expanded detail · combined-status rollup chip · fancy multi-row threshold preview</li>
+                <li>📋 Borderline trigger TBD per env evaluation policy — placeholder shown for Total Coliform (4900 of 5000 PP No. 22/2021 limit)</li>
+                <li>📋 Categorical observations still in S-05a (OGC-639) — separate ticket</li>
               </ul>
             </div>
           </div>

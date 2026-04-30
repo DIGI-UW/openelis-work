@@ -1,18 +1,18 @@
 /**
- * S-05 v2.0 â Regulation-Scoped Reference Ranges
+ * S-05 v2.0 — Regulation-Scoped Reference Ranges
  * Reframed from v1.0 (Compliance Evaluation Engine) on 2026-04-26.
  *
  * 2026-04-29 reconciliation: S-05 v2.0 introduces NO schema changes of its own.
  * Regulation-scoped thresholds live on `ComplianceThreshold` (S-01-owned, gaining
  * borderline fields in S-01 v1.2). Standalone ranges live on `referenceRange`
- * (existing OE, unchanged). The two are mutually exclusive at evaluation time â
+ * (existing OE, unchanged). The two are mutually exclusive at evaluation time —
  * regulation supersedes standalone.
  *
  * 2 scenes:
- *   1. Reference Range Admin â STANDALONE ONLY. Regulation-scoped ranges are
+ *   1. Reference Range Admin — STANDALONE ONLY. Regulation-scoped ranges are
  *      managed in Compliance Standard Admin (S-01). Banner points there.
- *   2. Results Entry â per-regulation status chips (PASS / FAIL / BORDERLINE /
- *      INFO â RegName), one chip per applicable regulation, plus dynamic
+ *   2. Results Entry — per-regulation status chips (PASS / FAIL / BORDERLINE /
+ *      INFO — RegName), one chip per applicable regulation, plus dynamic
  *      reading-group "+ Add reading" affordance for multi-reading tests.
  *      Same chip pattern is inherited by Validation (no separate UX).
  */
@@ -40,10 +40,10 @@ const ExistingRegion = ({ children, label = 'EXISTING' }) => (
   </div>
 );
 
-// âââ Mock data ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Mock data ──────────────────────────────────────────────────────
 
 const STANDARDS = [
-  { id: 'std-001', name: 'PP No. 22/2021 â Baku Mutu Air Permukaan', regNumber: 'PP No. 22/2021', version: '2021-01' },
+  { id: 'std-001', name: 'PP No. 22/2021 — Baku Mutu Air Permukaan', regNumber: 'PP No. 22/2021', version: '2021-01' },
   { id: 'std-003', name: 'WHO Drinking Water Guidelines (4th Ed)', regNumber: 'WHO-DWG-4', version: '2011-01' },
   { id: 'std-005', name: 'PermenKES No. 32/2017', regNumber: 'PMK No. 32/2017', version: '2017-01' },
 ];
@@ -53,10 +53,10 @@ const STANDARDS = [
 const STANDALONE_RANGES = [
   { id: 1, test: 'Hemoglobin', sampleType: 'Whole Blood (clinical)', min: 12.0, max: 16.0, unit: 'g/dL' },
   { id: 2, test: 'Glucose', sampleType: 'Serum (clinical)', min: 70, max: 110, unit: 'mg/dL' },
-  { id: 3, test: 'pH', sampleType: '(any, no regulation)', min: 6.5, max: 8.5, unit: 'â' },
+  { id: 3, test: 'pH', sampleType: '(any, no regulation)', min: 6.5, max: 8.5, unit: '—' },
 ];
 
-// 2026-04-29 (rewritten): structured by test session â reading groups â component results.
+// 2026-04-29 (rewritten): structured by test session → reading groups → component results.
 // Per-regulation status chips replace combined-status rollup. Reading groups are dynamic
 // for tests where allowsMultipleReadings === true.
 const INITIAL_RESULT_TESTS = [
@@ -66,20 +66,20 @@ const INITIAL_RESULT_TESTS = [
     readingGroups: [
       { id: 'rg-001-1', label: null, results: [
         { component: null, value: '18', evaluations: [
-          { reg: 'PP No. 22/2021', status: 'PASS', label: 'â¤ 25 NTU' },
-          { reg: 'WHO-DWG-4', status: 'FAIL', label: 'â¤ 5 NTU' },
+          { reg: 'PP No. 22/2021', status: 'PASS', label: '≤ 25 NTU' },
+          { reg: 'WHO-DWG-4', status: 'FAIL', label: '≤ 5 NTU' },
         ]},
       ]},
     ],
   },
   {
-    id: 'rt-002', accession: 'ENV-2026-0412.001', test: 'pH', unit: 'â',
+    id: 'rt-002', accession: 'ENV-2026-0412.001', test: 'pH', unit: '—',
     components: [null], allowsMultipleReadings: false,
     readingGroups: [
       { id: 'rg-002-1', label: null, results: [
         { component: null, value: '7.2', evaluations: [
-          { reg: 'PP No. 22/2021', status: 'PASS', label: '6.0 â 9.0' },
-          { reg: 'WHO-DWG-4', status: 'PASS', label: '6.5 â 8.5' },
+          { reg: 'PP No. 22/2021', status: 'PASS', label: '6.0 – 9.0' },
+          { reg: 'WHO-DWG-4', status: 'PASS', label: '6.5 – 8.5' },
         ]},
       ]},
     ],
@@ -92,7 +92,7 @@ const INITIAL_RESULT_TESTS = [
         // 4900 hits PP 22's borderline window (per-standard config in S-01 v1.2)
         // but is well inside FAIL territory for WHO-DWG-4 (limit = 0)
         { component: null, value: '4900', evaluations: [
-          { reg: 'PP No. 22/2021', status: 'BORDERLINE', label: 'â¤ 5000 MPN/100mL' },
+          { reg: 'PP No. 22/2021', status: 'BORDERLINE', label: '≤ 5000 MPN/100mL' },
           { reg: 'WHO-DWG-4', status: 'FAIL', label: '0 MPN/100mL' },
         ]},
       ]},
@@ -101,24 +101,24 @@ const INITIAL_RESULT_TESTS = [
   // Multi-component, multi-reading noise pollution survey
   {
     id: 'rt-noise', accession: 'ENV-2026-0412.005', test: 'Noise Pollution Survey', unit: 'mixed',
-    components: ['Heading (Â°)', 'Sound Pressure (dB)'], allowsMultipleReadings: true,
+    components: ['Heading (°)', 'Sound Pressure (dB)'], allowsMultipleReadings: true,
     readingGroups: [
-      { id: 'rg-noise-1', label: 'Reading 1 â North face', results: [
-        { component: 'Heading (Â°)', value: '90', evaluations: [
+      { id: 'rg-noise-1', label: 'Reading 1 — North face', results: [
+        { component: 'Heading (°)', value: '90', evaluations: [
           { reg: '(informational)', status: 'INFO', label: 'no threshold' },
         ]},
         { component: 'Sound Pressure (dB)', value: '72', evaluations: [
-          { reg: 'PP No. 41/1999', status: 'FAIL', label: 'â¤ 70 dB' },
-          { reg: 'WHO Env Noise', status: 'FAIL', label: 'â¤ 65 dB' },
+          { reg: 'PP No. 41/1999', status: 'FAIL', label: '≤ 70 dB' },
+          { reg: 'WHO Env Noise', status: 'FAIL', label: '≤ 65 dB' },
         ]},
       ]},
-      { id: 'rg-noise-2', label: 'Reading 2 â East face', results: [
-        { component: 'Heading (Â°)', value: '180', evaluations: [
+      { id: 'rg-noise-2', label: 'Reading 2 — East face', results: [
+        { component: 'Heading (°)', value: '180', evaluations: [
           { reg: '(informational)', status: 'INFO', label: 'no threshold' },
         ]},
         { component: 'Sound Pressure (dB)', value: '64', evaluations: [
-          { reg: 'PP No. 41/1999', status: 'PASS', label: 'â¤ 70 dB' },
-          { reg: 'WHO Env Noise', status: 'PASS', label: 'â¤ 65 dB' },
+          { reg: 'PP No. 41/1999', status: 'PASS', label: '≤ 70 dB' },
+          { reg: 'WHO Env Noise', status: 'PASS', label: '≤ 65 dB' },
         ]},
       ]},
     ],
@@ -137,7 +137,7 @@ const INITIAL_RESULT_TESTS = [
 // Carbon Tag types per S-05 v2.0 status:
 //   PASS = green (within range)
 //   FAIL = red (out of range)
-//   BORDERLINE = warm-gray-on-yellow (within standard's borderline window â config in S-01)
+//   BORDERLINE = warm-gray-on-yellow (within standard's borderline window — config in S-01)
 //   INFO = cool-gray (no applicable threshold)
 const STATUS_TAG_TYPE = {
   PASS: 'green',
@@ -146,13 +146,13 @@ const STATUS_TAG_TYPE = {
   INFO: 'cool-gray',
 };
 
-// âââ Component ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Component ──────────────────────────────────────────────────────
 
 export default function S05MockupV2() {
   const [scene, setScene] = useState(0);
   const [resultTests, setResultTests] = useState(INITIAL_RESULT_TESTS);
 
-  // ââ Scene 2 reading-group handlers (dynamic + Add reading) ââ
+  // ── Scene 2 reading-group handlers (dynamic + Add reading) ──
   const addReading = (testId) => {
     setResultTests(prev => prev.map(rt => {
       if (rt.id !== testId) return rt;
@@ -164,7 +164,7 @@ export default function S05MockupV2() {
           ...rt.readingGroups,
           {
             id: `${rt.id}-rg-${nextIdx}`,
-            label: `Reading ${nextIdx} â (new)`,
+            label: `Reading ${nextIdx} — (new)`,
             results: template.map(r => ({ component: r.component, value: '', evaluations: [] })),
           },
         ],
@@ -182,13 +182,13 @@ export default function S05MockupV2() {
 
   const renderEvaluationChips = (evaluations) => {
     if (!evaluations || evaluations.length === 0) {
-      return <span style={{ color: '#8d8d8d', fontSize: 12 }}>â</span>;
+      return <span style={{ color: '#8d8d8d', fontSize: 12 }}>—</span>;
     }
     return (
       <Stack orientation="horizontal" gap={1} style={{ flexWrap: 'wrap' }}>
         {evaluations.map((ev, j) => (
           <Tag key={j} type={STATUS_TAG_TYPE[ev.status]} size="sm" title={ev.label}>
-            {ev.status} â {ev.reg}
+            {ev.status} — {ev.reg}
           </Tag>
         ))}
       </Stack>
@@ -199,25 +199,25 @@ export default function S05MockupV2() {
     <div style={{ padding: 24, maxWidth: 1300, margin: '0 auto' }}>
       <Tabs selectedIndex={scene} onChange={({ selectedIndex }) => setScene(selectedIndex)}>
         <TabList aria-label="Scene">
-          <Tab>1 â Reference Range Admin (standalone only â see S-01 for regulation-scoped)</Tab>
-          <Tab>2 â Results Entry (per-regulation chips + dynamic reading groups)</Tab>
+          <Tab>1 — Reference Range Admin (standalone only — see S-01 for regulation-scoped)</Tab>
+          <Tab>2 — Results Entry (per-regulation chips + dynamic reading groups)</Tab>
         </TabList>
         <TabPanels>
 
-          {/* ââ Scene 1 â Reference Range Admin (standalone only) âââââââ */}
+          {/* ── Scene 1 — Reference Range Admin (standalone only) ─────── */}
           <TabPanel>
-            <h3 style={{ margin: '16px 0' }}>Reference Range Admin â standalone (non-regulation) only</h3>
+            <h3 style={{ margin: '16px 0' }}>Reference Range Admin — standalone (non-regulation) only</h3>
             <p style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
               <strong>2026-04-29 split.</strong> The existing OE Reference Range Admin manages only standalone ranges
               (where <code>compliance_standard_id IS NULL</code>), used when a test is ordered with no regulation.
-              Regulation-scoped thresholds â including borderline windows â are managed in <strong>Compliance Standard
-              Admin (S-01) â Edit Standard â Thresholds</strong>.
+              Regulation-scoped thresholds — including borderline windows — are managed in <strong>Compliance Standard
+              Admin (S-01) → Edit Standard → Thresholds</strong>.
             </p>
 
             <InlineNotification
               kind="info"
               title="Where do regulation-scoped thresholds live?"
-              subtitle="Reference ranges scoped to a compliance standard (e.g., PP No. 22/2021's Turbidity â¤ 25 NTU) are managed inside Compliance Standard Admin â Edit Standard â Thresholds (see S-01 v1.2). Borderline windows are configured per-threshold there too."
+              subtitle="Reference ranges scoped to a compliance standard (e.g., PP No. 22/2021's Turbidity ≤ 25 NTU) are managed inside Compliance Standard Admin → Edit Standard → Thresholds (see S-01 v1.2). Borderline windows are configured per-threshold there too."
               hideCloseButton
               lowContrast
               style={{ maxWidth: '100%', marginBottom: 16 }}
@@ -225,9 +225,9 @@ export default function S05MockupV2() {
 
             <ExistingRegion>
               <Tile>
-                <h5 style={{ marginBottom: 8 }}>Reference Range Management â standalone only</h5>
+                <h5 style={{ marginBottom: 8 }}>Reference Range Management — standalone only</h5>
                 <p style={{ fontSize: 12, color: '#525252', marginBottom: 12 }}>
-                  Existing admin page Â· gates: <code>referenceRange.edit</code> Â· Filter: <code>compliance_standard_id IS NULL</code>
+                  Existing admin page · gates: <code>referenceRange.edit</code> · Filter: <code>compliance_standard_id IS NULL</code>
                 </p>
 
                 <Stack orientation="horizontal" gap={3} style={{ marginBottom: 12, alignItems: 'center' }}>
@@ -253,15 +253,15 @@ export default function S05MockupV2() {
                     {STANDALONE_RANGES.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={5} style={{ textAlign: 'center', fontStyle: 'italic', color: '#525252', padding: 24 }}>
-                          No standalone ranges. Most env tests are regulation-scoped â manage them in S-01.
+                          No standalone ranges. Most env tests are regulation-scoped — manage them in S-01.
                         </TableCell>
                       </TableRow>
                     ) : STANDALONE_RANGES.map(r => (
                       <TableRow key={r.id}>
                         <TableCell>{r.test}</TableCell>
                         <TableCell>{r.sampleType}</TableCell>
-                        <TableCell>{r.min ?? 'â'}</TableCell>
-                        <TableCell>{r.max ?? 'â'}</TableCell>
+                        <TableCell>{r.min ?? '—'}</TableCell>
+                        <TableCell>{r.max ?? '—'}</TableCell>
                         <TableCell>{r.unit}</TableCell>
                       </TableRow>
                     ))}
@@ -270,13 +270,13 @@ export default function S05MockupV2() {
 
                 <p style={{ fontSize: 12, color: '#525252', marginTop: 8 }}>
                   Showing {STANDALONE_RANGES.length} standalone range{STANDALONE_RANGES.length === 1 ? '' : 's'}.
-                  Regulation-scoped thresholds (`ComplianceThreshold` rows) are hidden â manage them in Compliance Standard Admin (S-01).
+                  Regulation-scoped thresholds (`ComplianceThreshold` rows) are hidden — manage them in Compliance Standard Admin (S-01).
                 </p>
               </Tile>
             </ExistingRegion>
 
             <Tile style={{ background: '#edf5ff', borderLeft: '3px solid #0f62fe' }}>
-              <h5 style={{ marginBottom: 8 }}>2026-04-29 admin split â what changed</h5>
+              <h5 style={{ marginBottom: 8 }}>2026-04-29 admin split — what changed</h5>
               <ul style={{ fontSize: 13, marginLeft: 16 }}>
                 <li>Existing OE Reference Range Admin stays clean (no new column, no compliance-standard filter)</li>
                 <li>Regulation-scoped thresholds are owned by S-01's Compliance Standard editor (`ComplianceThreshold` entity, not `referenceRange`)</li>
@@ -286,14 +286,14 @@ export default function S05MockupV2() {
             </Tile>
           </TabPanel>
 
-          {/* ââ Scene 2 â Results Entry: per-reg chips + dynamic reading groups ââ */}
+          {/* ── Scene 2 — Results Entry: per-reg chips + dynamic reading groups ── */}
           <TabPanel>
             <h3 style={{ margin: '16px 0' }}>
-              Results Entry â Per-Regulation Status Chips + Dynamic Reading Groups
+              Results Entry — Per-Regulation Status Chips + Dynamic Reading Groups
             </h3>
             <p style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
               <strong>2026-04-29 simplification.</strong> One chip per applicable regulation, format
-              <code style={{ margin: '0 4px' }}>STATUS â RegName</code>. Colors: PASS green / BORDERLINE yellow /
+              <code style={{ margin: '0 4px' }}>STATUS — RegName</code>. Colors: PASS green / BORDERLINE yellow /
               FAIL red / INFO cool-gray (no applicable threshold). Multi-reading tests get a
               <strong> + Add reading</strong> button on the test header. Same chip pattern is inherited verbatim by
               the Validation page (no separate UX).
@@ -302,10 +302,10 @@ export default function S05MockupV2() {
             <ExistingRegion>
               <Tile>
                 <h5 style={{ marginBottom: 4 }}>
-                  Order ENV-2026-0412 â selected regulations: PP No. 22/2021 + WHO-DWG-4
+                  Order ENV-2026-0412 — selected regulations: PP No. 22/2021 + WHO-DWG-4
                 </h5>
                 <p style={{ fontSize: 12, color: '#525252' }}>
-                  Existing page chrome Â· per-row chips render alongside the result value, no expand-detail panel needed
+                  Existing page chrome · per-row chips render alongside the result value, no expand-detail panel needed
                 </p>
               </Tile>
             </ExistingRegion>
@@ -318,7 +318,7 @@ export default function S05MockupV2() {
                       <TableHeader>Accession</TableHeader>
                       <TableHeader>Test / Component</TableHeader>
                       <TableHeader>Result</TableHeader>
-                      <TableHeader>Status â per regulation</TableHeader>
+                      <TableHeader>Status — per regulation</TableHeader>
                       <TableHeader></TableHeader>
                     </TableRow>
                   </TableHead>
@@ -332,7 +332,7 @@ export default function S05MockupV2() {
                             {rt.test}
                             {rt.components.length > 1 && (
                               <span style={{ fontSize: 11, color: '#525252', fontWeight: 400, marginLeft: 8 }}>
-                                Â· multi-component ({rt.components.length}) Â· {rt.readingGroups.length} reading{rt.readingGroups.length === 1 ? '' : 's'}
+                                · multi-component ({rt.components.length}) · {rt.readingGroups.length} reading{rt.readingGroups.length === 1 ? '' : 's'}
                               </span>
                             )}
                           </TableCell>
@@ -352,7 +352,7 @@ export default function S05MockupV2() {
                               <TableRow style={{ background: '#fff8e1' }}>
                                 <TableCell></TableCell>
                                 <TableCell colSpan={3} style={{ fontSize: 12, fontWeight: 600, color: '#491d8b' }}>
-                                  â³ {rg.label}
+                                  ↳ {rg.label}
                                 </TableCell>
                                 <TableCell style={{ textAlign: 'right' }}>
                                   {rt.readingGroups.length > 1 && (
@@ -380,7 +380,7 @@ export default function S05MockupV2() {
                                 <TableCell>
                                   {r.value
                                     ? <span><strong>{r.value}</strong> <span style={{ color: '#525252', fontSize: 12 }}>{rt.unit !== 'mixed' ? rt.unit : ''}</span></span>
-                                    : <span style={{ color: '#525252', fontSize: 12, fontStyle: 'italic' }}>â pending</span>}
+                                    : <span style={{ color: '#525252', fontSize: 12, fontStyle: 'italic' }}>— pending</span>}
                                 </TableCell>
                                 <TableCell>{renderEvaluationChips(r.evaluations)}</TableCell>
                                 <TableCell></TableCell>
@@ -398,13 +398,13 @@ export default function S05MockupV2() {
             <Tile style={{ background: '#edf5ff', borderLeft: '3px solid #0f62fe' }}>
               <h5 style={{ marginBottom: 8 }}>2026-04-29 simplifications demonstrated above</h5>
               <ul style={{ fontSize: 13, marginLeft: 16 }}>
-                <li>Per-regulation status chip â single chip per reg per result row, format <code>STATUS â RegName</code></li>
-                <li>Color rule: PASS green Â· BORDERLINE yellow Â· FAIL red Â· INFO cool-gray (no threshold)</li>
-                <li>Reading groups stay (with header label) but are now dynamic â click <strong>+ Add reading</strong> on the multi-reading test header to append a new reading group with empty values</li>
-                <li>Dropped: threshold-source list in expanded detail Â· combined-status rollup chip Â· per-standard threshold preview block</li>
+                <li>Per-regulation status chip — single chip per reg per result row, format <code>STATUS — RegName</code></li>
+                <li>Color rule: PASS green · BORDERLINE yellow · FAIL red · INFO cool-gray (no threshold)</li>
+                <li>Reading groups stay (with header label) but are now dynamic — click <strong>+ Add reading</strong> on the multi-reading test header to append a new reading group with empty values</li>
+                <li>Dropped: threshold-source list in expanded detail · combined-status rollup chip · per-standard threshold preview block</li>
                 <li>BORDERLINE example: Total Coliform 4900 sits in PP No. 22/2021's borderline window (configured in S-01 v1.2) but well into FAIL territory for WHO-DWG-4 (limit = 0)</li>
-                <li>Categorical observations remain S-05a (OGC-639) â separate ticket</li>
-                <li>Same chip pattern renders verbatim on the Validation page â no separate UX (FR-04a)</li>
+                <li>Categorical observations remain S-05a (OGC-639) — separate ticket</li>
+                <li>Same chip pattern renders verbatim on the Validation page — no separate UX (FR-04a)</li>
               </ul>
             </Tile>
           </TabPanel>
