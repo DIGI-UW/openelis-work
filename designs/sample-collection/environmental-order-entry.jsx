@@ -383,7 +383,7 @@ export default function EnvironmentalOrderEntryV2({
     setShowAddSampleType(false);
   }, [selectedStandards]);
 
-  const removeManifestRow = useCallback((sampleTypeId) => {
+  const removeManifestType = useCallback((sampleTypeId) => {
     setManifest(prev => prev.filter(r => r.sampleTypeId !== sampleTypeId));
   }, []);
 
