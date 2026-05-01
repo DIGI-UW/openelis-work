@@ -1,13 +1,20 @@
 # Environmental Order Entry — Standalone (Domain-Assigned Lab)
 ## Functional Requirements Specification — v2.0
 
-**Version:** 2.0 (rewrite of v1.0)
-**Date:** 2026-04-25
+**Version:** 2.0 (rewrite of v1.0; amendments through 2026-05-01)
+**Date:** 2026-04-25 (last amended 2026-05-01)
 **Status:** Draft for Review
 **Jira:** [OGC-537](https://uwdigi.atlassian.net/browse/OGC-537) (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
 **Technology:** Java Spring Framework, Carbon React (`@carbon/react`)
-**Related Modules:** Compliance Standards Administration (S-01, OGC-528), Sampling Site Registry (S-02, OGC-531), Test Catalog (OGC-49), Storage Management (existing), NCE / Non-Conformance Events (existing)
+**Related Modules:** Compliance Standards Administration (S-01, OGC-528), Sampling Site Registry (S-02, OGC-531), **Organization Registry** (existing OE), Test Catalog (OGC-49) — env subsection for Container Types, **Program / Questionnaire Builder** (existing OE — amended for domain picker), Storage Management (existing), NCE / Non-Conformance Events (existing), Sample Collection Redesign (precedent for CSV bulk upload UX)
 **Supersedes:** v1.0 (which was framed as an "integration" extending a clinical baseline; v2.0 reframes as a standalone env order entry screen for domain-assigned labs)
+
+> **2026-05-01 amendment.** Step 1 gains five capabilities to align env order entry with the clinical AMAP backend shape and the Sample Collection Redesign's CSV intake UX. Summary:
+> 1. **Submitter** at order level → maps to the existing Organization entity (mirrors clinical AMAP backend; the customer/requestor for the entire order, e.g., "Plaza Senayan Cooling Tower Ops" or "Dinas Pendidikan DKI Jakarta — Water Safety Program"). New §5.1.12.
+> 2. **Program** at order level (optional) → renders a lab-configurable FHIR Questionnaire as inline dynamic fields (e.g., school name, building age, tower ID). The existing Program/Questionnaire Builder gains a domain picker so labs can scope a Program to ENVIRONMENTAL. New §5.1.13.
+> 3. **Sample Intake — CSV Bulk Upload + Per-Sample Manifest** (was §5.1.9 "Sample Manifest" — restructured). CSV upload is now first; the manifest is a per-sample row table (no longer aggregate quantity), with one row per physical sample. Each row carries new per-sample fields (see #4). When CSV sample types don't match or are missing, reception reconciles via bulk-or-individual apply from the regulation's suggested types OR the broader test catalog. Templates: Standard, 10×10 Box, 96-Well Plate (env-flavored).
+> 4. **Per-sample fields** (NEW columns on the manifest): GPS (free text), Location Details (free text), Address (free text), Container Type (ComboBox with type-ahead + custom — list lives in Test Catalog admin → Env subsection).
+> 5. **Report NCE button** in the page action bar — opens the existing OE NCE dialog scoped to the order (or a specific sample if one is highlighted). Mirrors QA-3 from Sample Collection Redesign. Reuses existing infrastructure.
 
 ---
 
@@ -128,19 +135,21 @@ Permissions reused from existing keys (no new permission keys introduced):
 **ID:** ENV-1-001
 **Priority:** P0
 **Requirement:**
-Step 1 SHALL render as a single-page form with all sections visible on one scroll. There is no in-page sub-wizard, no Next/Back navigation within Step 1. The page contains the following sections in order, with conditional rendering driven by the selected branch:
+Step 1 SHALL render as a single-page form with all sections visible on one scroll. There is no in-page sub-wizard, no Next/Back navigation within Step 1. The page contains the following sections in order, with conditional rendering driven by the selected branch (numbering reflects 2026-05-01 amendment):
 
-1. Lab Number + Domain Badge + Referral Tag (always)
+1. Action Bar — Lab Number + Domain Badge + Referral Tag + **Report NCE button** (always)
 2. Order Type Tile (always)
-3. Sampling Site (always)
-4. Compliance Standard (Regulation-driven branch only)
-5. Suggested Tests (Regulation-driven branch only — auto-populated; deselectable)
-6. Test Catalog Picker (Ad-hoc branch only)
-7. Regulatory Reference (Ad-hoc branch only — optional free-text)
-8. Sample Manifest (always — quantity table + CSV upload)
-9. Default Collection Conditions (always)
-10. Pool/Aliquot sub-section (referral-pre-filled orders with `Specimen.parent[]` only)
-11. Footer actions: Save Draft, Submit Order, Cancel
+3. **Submitter** (always — Organization)
+4. Sampling Site (always)
+5. **Program** (optional — renders a FHIR Questionnaire's dynamic fields when selected)
+6. Compliance Standard (Regulation-driven branch only)
+7. Test Selection (regulation-driven: pre-loaded plan; ad-hoc: full OE Order Panels + Order Tests picker)
+8. Regulatory Reference (Ad-hoc branch only — optional free-text)
+9. **Sample Intake** (always — A. CSV Bulk Upload, then B. Per-Sample Manifest table)
+10. Default Collection Conditions (always)
+11. Pool/Aliquot sub-section (referral-pre-filled orders with `Specimen.parent[]` only)
+12. Required-By date+time (GENERIC)
+13. Footer actions: Save Draft, Submit Order, Cancel
 
 **Acceptance Criteria:**
 
@@ -149,19 +158,21 @@ Step 1 SHALL render as a single-page form with all sections visible on one scrol
 - [ ] Carbon `Stack` and `Tile` components used for section grouping
 - [ ] Page is keyboard-navigable end-to-end via Tab key
 - [ ] WCAG 2.1 AA color contrast on all text + section borders
+- [ ] Action bar is sticky on scroll so the Report NCE button stays accessible from any section
 
 ---
 
-#### 5.1.2 Lab Number, Domain Badge, Referral Tag
+#### 5.1.2 Action Bar — Lab Number, Domain Badge, Referral Tag, Report NCE button
 
-**ID:** ENV-1-002
+**ID:** ENV-1-002 (amended 2026-05-01 — Report NCE button added)
 **Priority:** P0
 **Requirement:**
-The page header SHALL display:
+The page action bar SHALL be a sticky-on-scroll horizontal bar at the top of Step 1 displaying:
 
 - **Lab Number** — auto-generated, read-only TextInput (e.g., `ENV-2026-0412`). Format configurable per lab unit.
 - **Domain Badge** — Carbon `Tag` displayed adjacent to the Lab Number. Color and label reflect the lab unit's assigned domain: purple "Environmental", teal "Vector", blue "Clinical". Badge is always visible. Hover tooltip: "This order belongs to {Lab Name} ({Domain})". The badge persists on Steps 2 and 3 so reception can disambiguate when juggling orders across domains.
 - **Referral Tag** — Carbon `Tag` (kind="cyan") displayed only when the order originated from an inbound FHIR referral (`order.referralSource != null`). Label format: "Referral: {source lab name}". Click opens a side panel with the full referral payload for inspection.
+- **Report NCE button** (NEW 2026-05-01) — right-aligned Carbon `Button kind="ghost"` with the existing OE NCE icon. Clicking opens the existing OE NCE dialog scoped to the order. The dialog's existing scope selector (Sample / Order, per Sample Collection Redesign QA-3) lets reception flag a per-sample NCE if a specific sample row was highlighted on the page when the button was pressed. Reuses existing OE infrastructure — coded reasons, severity, accept-with-flag vs. reject decisions, audit trail. No new NCE component is introduced; this spec only mounts the button on Step 1.
 
 **Acceptance Criteria:**
 
@@ -171,6 +182,10 @@ The page header SHALL display:
 - [ ] Referral Tag renders only when `referralSource` is non-null
 - [ ] Referral Tag click opens the referral payload side panel
 - [ ] Tooltip on Domain Badge hover names the lab unit
+- [ ] Report NCE button is visible on Step 1 in the sticky action bar
+- [ ] Report NCE button opens the existing OE NCE dialog (no new dialog component)
+- [ ] When a per-sample row is focused/highlighted on the page, the dialog opens with scope = Sample for that row; otherwise scope = Order
+- [ ] Reuses the existing OE coded-reason picklist, severity, and reject/accept decisions verbatim
 
 ---
 
@@ -397,50 +412,131 @@ This field exists to capture audit-trail context when a paper requisition refere
 
 ---
 
-#### 5.1.9 Sample Manifest
+#### 5.1.9 Sample Intake — CSV Bulk Upload + Per-Sample Manifest (rewritten 2026-05-01)
 
-**ID:** ENV-1-009
+> **2026-05-01 restructure.** Was "Sample Manifest" — an aggregate quantity table (e.g., "5 × Surface Water"). Now restructured as a per-sample table (one row per physical sample) with CSV bulk upload as the primary intake path. Each manifest row carries new per-sample fields (GPS, Location Details, Address, Container Type) per the 2026-05-01 amendment. Uses the CSV Bulk Upload UX precedent established in the Sample Collection Redesign (COL-6 / COL-7 / COL-8 / COL-9).
+
+**ID:** ENV-1-009 (rewritten 2026-05-01)
 **Priority:** P0
 **Requirement:**
-The Sample Manifest section SHALL appear on both branches. It captures **how many of each sample type** are in this batch. The manifest can be entered three ways, all available simultaneously:
+The Sample Intake section SHALL appear on both branches and is composed of two stacked sub-sections — A. CSV Bulk Upload (primary intake) and B. Per-Sample Manifest (the resolved table reception works against). Manual entry alone is supported (no CSV); CSV upload populates the table and reception edits per row before submitting.
 
-**Entry method 1 — Sample Type Quantity Table (default):**
+##### 5.1.9.A CSV Bulk Upload
+
+**Templates.** Three downloadable CSV templates, env-flavored (precedent: Sample Collection Redesign COL-6):
+
+| Template | Use case | Required columns | Optional columns |
+|----------|----------|------------------|------------------|
+| **Standard (flat list)** | One row per sample, no spatial layout | `sample_type_code`, `container_type` | `gps`, `location_details`, `address`, `collection_dt`, `collector`, `notes` |
+| **10×10 Box Layout** | Pre-positioned samples in a storage box | `position` (e.g., `A3`), `sample_type_code`, `container_type` | same as Standard |
+| **96-Well Plate** | Plate-laid-out samples for high-throughput intake | `well` (e.g., `A1`–`H12`), `sample_type_code`, `container_type` | same as Standard |
+
+Each template downloads as `.csv` with header row, an example row, and column-comment lines explaining accepted values. Sample-type and container-type values may be supplied as a stable `code` (e.g., `st-001`, `cont-whirlpak`) or a human-readable `name` (e.g., `Surface Water`, `Whirl-Pak Bag`); the parser tries code first, then name.
+
+**Upload control.** A two-tile section (precedent: Sample Collection Redesign mockup §Bulk Import from CSV):
+
+- **Left tile — Download CSV Template:** three buttons (Standard / 10×10 Box / 96-Well Plate) wired to the corresponding template download endpoint.
+- **Right tile — Upload CSV File:** drag-and-drop area + click-to-browse. Accepts `.csv`, max 5 MB.
+
+**Preview + row-level validation.** On upload, the system parses the file and renders a preview DataTable with row-level status indicators:
+
+- ✓ Valid (green) — row passes all validation checks.
+- ⚠ Mismatch (yellow) — sample_type_code does not match a known sample type, OR container_type does not match a known container, OR a required column is missing/blank.
+- ✗ Error (red) — row is structurally malformed (e.g., bad date format, non-numeric where numeric required) and cannot be repaired inline.
+
+Status pill summary at the top of the preview: `{N} parsed · {V} valid · {W} need attention · {E} errors`. Cells with mismatches render as inline-editable widgets so reception can fix them in place — see §5.1.9.A.1 reconciliation UX below. Cells that are clean render read-only.
+
+**Sample-type reconciliation UX (§5.1.9.A.1).** When a CSV row's `sample_type_code` doesn't match a system type or is missing, the cell renders as an inline ComboBox with two reconciliation sources stacked in the dropdown:
 
 ```
-☑ Surface Water           [  5  ]   (Standard sample type)
-☑ Groundwater             [  3  ]
-☐ Drinking Water          [  0  ]
-☐ Effluent / Wastewater   [  0  ]
-[+ Add Other Sample Type]
+[ Choose sample type… ▾ ]
+┌────────────────────────────────────────────┐
+│ Suggested by selected regulation(s)         │
+│   • Surface Water (PP No. 22/2021)          │
+│   • Drinking Water (Permenkes 32/2017)      │
+│   • Cooling Water (PP No. 22/2021)          │
+│ ─────────────────────────────────────────── │
+│ Or pick from full Test Catalog               │
+│   [type to search…]                          │
+└────────────────────────────────────────────┘
 ```
 
-On the Regulation-driven branch, the table pre-populates with the **union of every selected standard's `applicableSampleTypes`**, deduplicated by sample type ID, all quantity 0. Each row is annotated with which standards include that sample type (small coverage Tags, like Suggested Tests in §5.1.6). Reception checks the types they have and enters quantities. "Add Other Sample Type" opens a ComboBox of the full system sample-type catalog; added types receive a `Tag` (kind="purple", label="Not in any selected standard") and a tooltip.
+Above the preview table when ≥ 2 rows share the same mismatch value, a banner offers a bulk action: **"2 rows have an unknown sample type 'creek_water'. [Apply same fix to all 2 rows ▾]"**. Selecting a value from the bulk dropdown applies it to every matching mismatch row in a single operation.
 
-On the Ad-hoc branch, the table starts empty; reception clicks "+ Add Sample Type" to add rows.
+The same reconciliation pattern applies to **Container Type** mismatches, drawing the suggestion list from the OE Test Catalog → Env subsection (the env-scoped container-type list maintained there) and the broader Test Catalog as fallback.
 
-**Entry method 2 — CSV bulk upload:**
-A `FileUploader` accepts a CSV manifest with columns: `sample_type_code, quantity, [optional collection_dt, optional collection_subsite, optional collection_notes]`. Upload parses the file, summarizes detected rows in a confirmation dialog ("Detected: 8 Surface Water, 3 Groundwater. Apply to manifest?"), and either populates or appends to the existing manifest based on user choice. Per-sample CSV columns (collection_dt, etc.) carry forward to Step 2 as pre-populated row values.
+**Action footer.** Two buttons:
 
-**Entry method 3 — Drag/drop or click-add inline rows:**
-"+ Add Sample Type" button at the bottom of the table adds a new row with a ComboBox in the type column.
+- **Fix Issues** — focuses the first unresolved mismatch row.
+- **Import {V} Valid Samples** — imports rows currently in ✓ Valid state into the per-sample manifest table (§5.1.9.B). Mismatch and error rows stay in the preview for reception to repair or discard. Reception can re-import after fixes by clicking the button again.
 
-**Total samples count** displayed below the table: "Total: {N} samples in this batch."
+##### 5.1.9.B Per-Sample Manifest Table
 
-**Validation:** at least one sample type with quantity ≥ 1 is required to submit Step 1. Quantity must be a positive integer; max 999 per type.
+After CSV import (or via manual "+ Add sample row" or via the regulation suggestion strip), each physical sample is represented by one row in the manifest table. There is no aggregate quantity column — quantity is implicit (one row per sample).
+
+**Quick-add strip — regulation-suggested sample types (NEW 2026-05-01).** When the order is on the Regulation-driven branch and ≥ 1 standard is selected, the deduped union of the standards' `applicableSampleTypes` SHALL render above the per-sample manifest table as a horizontal strip of suggestion chips. The strip is **pre-loaded — no click required to reveal**. Each chip shows:
+
+- Sample type name
+- Coverage tag(s) — which selected regulation(s) include this sample type
+- A small NumberInput (`0–99`) — the count of rows to add
+- An `+ Add {N}` button — when clicked, appends N rows of that sample type to the per-sample manifest, each with empty per-sample fields (Container Type, GPS, Location Details, Address) for reception to fill in. The NumberInput resets to `0` after the add.
+
+This gives reception two complementary intake paths on the Regulation-driven branch:
+
+| Path | Use case |
+|------|----------|
+| **CSV upload** (§5.1.9.A) | Pre-collected samples with full per-sample data already known offline (e.g., school courier with twelve labeled bottles) |
+| **Quick-add strip** (here) | Regulation-driven entry where reception types a count per suggested type, then fills in per-row details on the bench |
+| **+ Add sample row** | Manual addition of one row at a time; useful for ad-hoc samples or override types not in the regulation's suggestions |
+
+All three paths produce rows in the same per-sample manifest table; rows are indistinguishable after creation.
+
+| Column | Type | Required | Notes |
+|--------|------|----------|-------|
+| `#` | Auto | — | Row index, 1-based |
+| Sample Type | ComboBox | Yes | From OE sample-type catalog. Regulation-driven branch annotates with coverage Tags showing which regulation(s) include this type. Ad-hoc branch shows a "Not in any selected standard" Tag if applicable. |
+| **Container Type** | ComboBox + custom | Yes | **NEW (2026-05-01).** ComboBox with type-ahead from the OE Test Catalog → Env subsection's container-type list. Allow custom entry — typed values are persisted on the row but flagged for admin review. |
+| **GPS** | TextInput (free text) | No | **NEW (2026-05-01).** Free text, max 100 chars. Convention: `lat, lon` (e.g., `-6.1885, 106.8114`). Not validated for format — labs may capture `MGRS`, plus codes, or notes. |
+| **Location Details** | TextInput (free text) | No | **NEW (2026-05-01).** Free text, max 500 chars. Per-sample sub-site descriptor (e.g., `Tower A — return loop`, `North playground — by goalpost`). |
+| **Address** | TextInput (free text) | No | **NEW (2026-05-01).** Free text, max 500 chars. Per-sample street/postal address when distinct from the Sampling Site's address. |
+| Collection Date/Time | DateTimePicker | No (Step 1) | Optional in Step 1; required by Step 2. Carried forward from CSV when supplied. |
+| Notes | TextInput | No | Free text, max 255 chars. |
+| Actions | — | — | `🗑` row delete; row select for "highlight" so the Action Bar Report NCE button targets that row. |
+
+**Bulk-apply controls** above the table (mirror Sample Collection Redesign precedent):
+
+- "Apply Container Type to all" — applies the picked container to every row.
+- "Apply GPS to all" — for sites with a single coordinate.
+
+**"+ Add sample row"** at the bottom — adds an empty row with the Sample Type ComboBox open.
+
+**Total samples count** below the table: `Total: {N} samples in this batch.`
+
+**Validation:** ≥ 1 row with a valid Sample Type AND a valid Container Type is required to submit Step 1. Per-sample fields (GPS / Location / Address / Collection Date) are optional at Step 1 — Step 2 (Label & Store) flags any per-sample required-by-the-existing-OE-pattern omissions.
 
 **Acceptance Criteria:**
 
-- [ ] Table renders on both branches
-- [ ] Regulation-driven pre-populates with standard's applicable sample types (quantity 0)
-- [ ] Ad-hoc starts empty
-- [ ] Quantities accept positive integers up to 999
-- [ ] "Add Other Sample Type" opens system catalog ComboBox
-- [ ] Override sample types display "Not in Standard" tag (regulation-driven only)
-- [ ] CSV upload parses, summarizes, and asks before applying
-- [ ] CSV per-sample columns carry forward to Step 2
+- [ ] CSV templates download with env-flavored columns (Standard, 10×10 Box, 96-Well Plate)
+- [ ] CSV upload accepts `.csv` up to 5 MB via drag-drop or click-browse
+- [ ] Preview table shows row-level Valid / Mismatch / Error status with summary pills
+- [ ] Sample-type mismatch cells render an inline ComboBox with regulation-suggested types and full-catalog search
+- [ ] Container-type mismatch cells render an inline ComboBox sourced from the OE Test Catalog Env subsection
+- [ ] Bulk-apply banner appears when ≥ 2 rows share the same mismatch value, and applies the chosen value to every match
+- [ ] "Import N Valid Samples" promotes only ✓ Valid rows into the per-sample manifest table; mismatches and errors stay in the preview for repair
+- [ ] Per-sample manifest table renders one row per physical sample (no aggregate quantity column)
+- [ ] Each row supports Container Type, GPS, Location Details, Address, Collection Date/Time, and Notes
+- [ ] Container Type ComboBox is type-ahead from OE Test Catalog Env subsection with custom entry allowed
+- [ ] GPS / Location Details / Address are free-text; not format-validated
+- [ ] "Apply Container Type to all" and "Apply GPS to all" bulk controls work as described
+- [ ] "+ Add sample row" appends a new empty row
+- [ ] On the Regulation-driven branch, a quick-add strip pre-loads the deduped union of selected standards' applicable sample types, no click required to reveal
+- [ ] Each suggestion chip shows the sample type name, coverage tag(s), a NumberInput, and an "+ Add N" button
+- [ ] Clicking "+ Add N" appends N rows of that sample type to the per-sample manifest with empty per-sample fields
+- [ ] NumberInput resets to 0 after a successful add
 - [ ] Total samples count updates dynamically
-- [ ] At least one sample with quantity ≥ 1 required to submit
-- [ ] Suggested test list (regulation-driven) updates as manifest sample types change
+- [ ] ≥ 1 row with valid Sample Type AND Container Type required to submit
+- [ ] Manual entry without CSV is fully supported
+- [ ] CSV-imported rows are indistinguishable from manually-entered rows after import (same edit affordances)
 
 ---
 
@@ -497,6 +593,67 @@ This sub-section is hidden when the order has no parent specimens.
 - [ ] Local aliquot LABNOs follow the X-Y scheme
 - [ ] Deconvolution mapping table is visible
 - [ ] Hidden when no parent specimens are present
+
+---
+
+#### 5.1.12 Submitter (Organization) — NEW 2026-05-01
+
+**ID:** ENV-1-012
+**Priority:** P0
+**Requirement:**
+Every env order SHALL carry a **Submitter** — the customer/requestor for the entire order. The Submitter section appears below the Order Type tile and above Sampling Site, on both branches.
+
+**Backend mapping.** Submitter is stored as a foreign key to the existing OE **Organization** entity. This mirrors the clinical AMAP backend shape ("Add Many at Provider/Patient" — clinical multi-order screen uses the existing Organization entity for the requesting facility). No new entity, no new schema migration. The env screen reads/writes the same `order.requestingOrganizationId` column the clinical AMAP path writes to.
+
+**UI.** Carbon `ComboBox` with type-ahead against the active set of Organizations the user can see (per existing OE permission model). Beneath the ComboBox: a small **+ Create new Organization** affordance that opens the existing OE Organization create modal (no env-specific create flow — the existing modal handles all required fields). After creation, the new Organization is auto-selected on the Submitter ComboBox.
+
+**Selected Submitter Card.** When an Organization is picked, a Tile renders below the ComboBox showing: Organization name, address (if recorded), primary contact name + email + phone (if recorded), and a small "X orders in last 90 days" stat (from existing OE order history). Card has a `Change` button to re-open the picker.
+
+**Distinction from Sampling Site.** The Submitter is *who pays / requests* (e.g., `Plaza Senayan Cooling Tower Operations`); the Sampling Site is *where the samples come from* (e.g., site code `PSN-CT-01`). One Submitter may own many Sites; one Site may be sampled for multiple Submitters over time.
+
+**Validation.** Required to submit Step 1.
+
+**Acceptance Criteria:**
+
+- [ ] Submitter section renders on both branches between Order Type and Sampling Site
+- [ ] ComboBox provides type-ahead search of OE Organizations
+- [ ] "+ Create new Organization" opens the existing OE Organization create modal verbatim
+- [ ] Selected Submitter Card shows name, address, primary contact, recent order count
+- [ ] Selection persists in `order.requestingOrganizationId` (existing column, no new schema)
+- [ ] Required to submit Step 1
+- [ ] Mirrors clinical AMAP backend mapping (data parity)
+
+---
+
+#### 5.1.13 Program (FHIR Questionnaire — Optional) — NEW 2026-05-01
+
+**ID:** ENV-1-013
+**Priority:** P1
+**Requirement:**
+The Program section SHALL appear below Sampling Site and above Compliance Standard, on both branches, and is **optional**. When reception selects a Program, the system renders the Program's associated FHIR Questionnaire as inline dynamic fields, capturing program-specific metadata (e.g., school name + building age + last plumbing inspection for a "School Water Safety Program," or tower ID + loop name + last cleaning date for a "Cooling Tower Compliance" program).
+
+**Reuses existing OE Program/Questionnaire Builder.** The Program admin already exists in OpenELIS; this spec does **not** redesign it. The only amendment required upstream is a **domain picker** on the Program admin record so labs can scope a Program to `ENVIRONMENTAL` (or `CLINICAL` / `VECTOR` / `BOTH`). On the env order entry screen, the Program ComboBox filters to programs where `program.domain ∈ {ENVIRONMENTAL, BOTH}`.
+
+**UI.**
+- **ComboBox (`Program (optional)`)** — type-ahead from active env-domain Programs. Below the field: helper text *"Select a program to capture program-specific metadata. Programs are configured in Admin → Programs."*
+- When a Program is selected, the Questionnaire renders below the ComboBox as a **Tile** containing the dynamic field set. Field types come from the Questionnaire definition (text, number, date, select, boolean, attachment, etc.). All fields are saved as `order.programResponses` (a FHIR `QuestionnaireResponse` resource serialized into the order). Required fields (per the Questionnaire) block Step 1 submission with the same validation pattern used for OE's existing fields; optional fields don't.
+- **Change Program** button on the Tile re-opens the picker. Switching Programs prompts a confirmation if any answers were entered: "Switching programs will clear {N} program-specific answers. Continue?"
+- **Clear Program** removes the Program association and clears `programResponses`.
+
+**Persistence.** Stored as a FHIR `QuestionnaireResponse` linked to the order via `order.programResponseId`. The Questionnaire itself lives in the existing OE Questionnaire registry, versioned by the Program admin.
+
+**Acceptance Criteria:**
+
+- [ ] Program section renders on both branches between Sampling Site and Compliance Standard
+- [ ] ComboBox lists active Programs with `domain ∈ {ENVIRONMENTAL, BOTH}`
+- [ ] Selecting a Program renders its Questionnaire as inline dynamic fields
+- [ ] Required Questionnaire fields block Step 1 submission with field-level error
+- [ ] Optional Questionnaire fields don't block submission
+- [ ] Switching Programs with answers entered prompts a confirmation
+- [ ] Clearing the Program removes the association and the answers
+- [ ] Answers persist as a FHIR `QuestionnaireResponse` linked to the order
+
+**Upstream dependency:** Existing Program/Questionnaire Builder gains a `domain` picker (ENVIRONMENTAL / CLINICAL / VECTOR / BOTH). Tracked separately — small amendment, ~1 dev-day. Cross-reference with the Program admin Jira ticket (TBD).
 
 ---
 
@@ -677,11 +834,15 @@ Primary key: `(orderId, complianceStandardId)`. The join enforces "each regulati
 | `parentSpecimenIds` | String[] | No | For pool/aliquot referrals |
 | Default conditions: `defaultCollectionMethod`, `defaultWaterTemperature`, `defaultAmbientTemperature`, `defaultWeatherConditions`, `defaultPreservationMethod`, `defaultFieldNotes` | (various) | (varies) | Defaults applied to all samples |
 
-**Sample (extended):**
+**Sample (extended; per-sample fields added 2026-05-01):**
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `sampleType` | Enum/FK | Yes | From manifest |
+| `containerType` | String(100) | Yes | **NEW (2026-05-01).** Stable code from OE Test Catalog → Env subsection. Custom values allowed; flagged for admin review. |
+| `gpsRaw` | String(100) | No | **NEW (2026-05-01).** Free text; convention `lat, lon` but accepts MGRS / plus codes / labs' free notes. Not format-validated. |
+| `locationDetails` | String(500) | No | **NEW (2026-05-01).** Free text; per-sample sub-site descriptor. |
+| `address` | String(500) | No | **NEW (2026-05-01).** Free text; per-sample address when distinct from the Site's address. |
 | `accessionNumber` | String(50) | Yes | Auto or user-entered |
 | `barcode` | String(100) | Yes | Linked to accession |
 | `collectionDateTime` | Timestamp | Yes | Starts hold-time clock |
@@ -695,6 +856,14 @@ Primary key: `(orderId, complianceStandardId)`. The join enforces "each regulati
 | `qcExpectedValues` | JSON | No | qcType = CONTROL only; per-parameter expected values |
 | `qcBlankSubtype` | Enum | No | qcType = BLANK only: FIELD \| TRIP \| EQUIPMENT \| METHOD \| OTHER |
 | `nceId` | Long (FK) | No | Existing NCE entity reference |
+
+**Order (additions 2026-05-01):**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `requestingOrganizationId` | Long (FK) | Yes | **NEW (2026-05-01).** FK → existing Organization entity. The Submitter — order-level customer/requestor. Mirrors clinical AMAP backend mapping (no new schema; this column already exists for clinical). |
+| `programId` | Long (FK) | No | **NEW (2026-05-01).** FK → existing Program entity (env-domain via the new `program.domain` field). |
+| `programResponseId` | Long (FK) | No | **NEW (2026-05-01).** FK → FHIR `QuestionnaireResponse` linked to the order. Populated when a Program is selected and its Questionnaire is answered. |
 
 ### 6.2 Database Schema Changes
 
@@ -736,6 +905,27 @@ ALTER TABLE sample ADD COLUMN storage_location_id BIGINT REFERENCES storage_loca
 ALTER TABLE sample ADD COLUMN hold_time_expires_at TIMESTAMP;
 ALTER TABLE sample ADD COLUMN qc_type VARCHAR(20);
 ALTER TABLE sample ADD COLUMN qc_parent_sample_id BIGINT REFERENCES sample(id);
+
+-- 2026-05-01 amendment: per-sample env fields (Container Type, GPS, Location Details, Address)
+ALTER TABLE sample ADD COLUMN container_type VARCHAR(100);
+ALTER TABLE sample ADD COLUMN gps_raw VARCHAR(100);
+ALTER TABLE sample ADD COLUMN location_details VARCHAR(500);
+ALTER TABLE sample ADD COLUMN address VARCHAR(500);
+
+-- 2026-05-01 amendment: order-level Submitter (reuses existing Organization),
+-- Program (env-domain), and Program response (FHIR QuestionnaireResponse).
+-- requesting_organization_id may already exist on the orders table from clinical AMAP;
+-- if so, this migration is a no-op for that column.
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS requesting_organization_id BIGINT REFERENCES organization(id);
+ALTER TABLE orders ADD COLUMN program_id BIGINT REFERENCES program(id);
+ALTER TABLE orders ADD COLUMN program_response_id BIGINT REFERENCES questionnaire_response(id);
+CREATE INDEX idx_orders_requesting_organization ON orders(requesting_organization_id) WHERE requesting_organization_id IS NOT NULL;
+CREATE INDEX idx_orders_program ON orders(program_id) WHERE program_id IS NOT NULL;
+
+-- 2026-05-01 amendment: domain picker on Program (small upstream change)
+-- Owned by Program/Questionnaire Builder spec; included here for cross-reference.
+-- ALTER TABLE program ADD COLUMN domain VARCHAR(20) NOT NULL DEFAULT 'CLINICAL';
+-- (allowed values: CLINICAL, ENVIRONMENTAL, VECTOR, BOTH)
 ALTER TABLE sample ADD COLUMN qc_material_name VARCHAR(255);
 ALTER TABLE sample ADD COLUMN qc_material_source VARCHAR(255);
 ALTER TABLE sample ADD COLUMN qc_expected_values JSONB;
