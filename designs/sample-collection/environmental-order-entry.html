@@ -232,6 +232,51 @@
     const REFERRAL = null; // set to { name:'Lab XYZ Bandung', fhirTaskId:'task-987' } to demo referral state
     const HAS_PARENT_SPECIMENS = false;
 
+    // ─── 2026-05-01 amendment: Submitter (Organization), Program (Questionnaire), Container Types ─
+    const ORGANIZATIONS = [
+      { id:'org-001', name:'Plaza Senayan Cooling Tower Operations', address:'Jl. Asia Afrika, Senayan, Jakarta', contact:'Bapak Andi · andi@psn.co.id · +62 21 555 0042', recent:14 },
+      { id:'org-002', name:'Dinas Pendidikan DKI Jakarta — Water Safety Program', address:'Jl. Gatot Subroto, Jakarta Selatan', contact:'Ibu Lestari · lestari@dinaspendidikan.dki.go.id · +62 21 555 0193', recent:48 },
+      { id:'org-003', name:'PT Inkindo Jaya — Discharge Compliance', address:'Bekasi Industrial Park', contact:'Ibu Siti · siti@inkindo.co.id', recent:6 },
+      { id:'org-004', name:'BAPPEDA Bogor — River Monitoring', address:'Jl. Pajajaran, Bogor', contact:'Pak Hadi · hadi@bappeda.bogor.go.id', recent:23 },
+    ];
+
+    const PROGRAMS = [
+      { id:'prog-001', name:'School Water Safety Program', domain:'ENVIRONMENTAL',
+        questionnaire:[
+          { code:'school-name', label:'School Name', type:'text', required:true },
+          { code:'building-age', label:'Building Age (years)', type:'number', required:false },
+          { code:'last-plumbing-inspection', label:'Last Plumbing Inspection', type:'date', required:false },
+          { code:'student-count', label:'Approx. student count', type:'number', required:false },
+        ]},
+      { id:'prog-002', name:'Cooling Tower Compliance', domain:'ENVIRONMENTAL',
+        questionnaire:[
+          { code:'tower-id', label:'Tower ID', type:'text', required:true },
+          { code:'loop-name', label:'Loop / Circuit', type:'select', options:['Open recirculating','Once-through','Closed loop','Make-up'], required:true },
+          { code:'last-cleaning-date', label:'Last cleaning / disinfection date', type:'date', required:false },
+        ]},
+      { id:'prog-003', name:'Industrial Discharge Monitoring', domain:'ENVIRONMENTAL',
+        questionnaire:[
+          { code:'discharge-point', label:'Discharge Point ID', type:'text', required:true },
+          { code:'flow-rate', label:'Flow Rate (m³/h)', type:'number', required:false },
+          { code:'permit-number', label:'Discharge Permit Number', type:'text', required:false },
+        ]},
+    ];
+
+    // Container types live in OE Test Catalog → Env subsection. Seeded list, custom allowed.
+    const CONTAINER_TYPES = [
+      'Whirl-Pak bag',
+      'Glass amber bottle (250 mL)',
+      'Glass amber bottle (1 L)',
+      'Sterile polypropylene bottle (250 mL)',
+      'Sterile polypropylene bottle (1 L)',
+      'Vacuum sample bag (Tedlar)',
+      'Composite jerry can (5 L)',
+      'Composite jerry can (10 L)',
+      'Sediment trap jar',
+      'Filter cassette (47 mm)',
+      'Sterile cooler (insulated)',
+    ];
+
     // ─── App ─────────────────────────────────────────────────────
     function App() {
       const [step, setStep] = useState(0);
@@ -244,6 +289,99 @@
       const [deselected, setDeselected] = useState(new Set());
       const [showAddType, setShowAddType] = useState(false);
       const [showSwitch, setShowSwitch] = useState(null);
+
+      // 2026-05-01: Submitter (Organization)
+      const [submitter, setSubmitter] = useState(null);
+      const [submitterSearch, setSubmitterSearch] = useState('');
+
+      // 2026-05-01: Program (FHIR Questionnaire)
+      const [program, setProgram] = useState(null);
+      const [programResponses, setProgramResponses] = useState({});
+
+      // 2026-05-01: CSV bulk upload + per-sample manifest
+      const [sampleRowsManifest, setSampleRowsManifest] = useState([]);  // per-sample rows (NEW shape)
+      const [csvPreview, setCsvPreview] = useState(null);  // null when no CSV uploaded; otherwise { rows, summary }
+      const DEMO_CSV_PREVIEW = {
+        filename:'plaza_senayan_2026-05-01.csv',
+        template:'Standard',
+        rows:[
+          { row:1, sampleType:'Cooling Water', container:'Whirl-Pak bag', gps:'-6.2249, 106.7984', loc:'Tower A — return loop', addr:'Plaza Senayan, Jl. Asia Afrika', dt:'2026-05-01 07:42', collector:'Bapak Andi', status:'VALID', mismatchField:null },
+          { row:2, sampleType:'Cooling Water', container:'Whirl-Pak bag', gps:'-6.2251, 106.7986', loc:'Tower B — return loop', addr:'Plaza Senayan, Jl. Asia Afrika', dt:'2026-05-01 07:48', collector:'Bapak Andi', status:'VALID', mismatchField:null },
+          { row:3, sampleType:'creek_water', container:'Glass bottle 1L', gps:'-6.2255, 106.7990', loc:'Make-up source', addr:'Plaza Senayan', dt:'2026-05-01 07:53', collector:'Bapak Andi', status:'MISMATCH_TYPE', mismatchField:'sampleType' },
+          { row:4, sampleType:'Cooling Water', container:'Mason jar', gps:'-6.2249, 106.7980', loc:'Tower A — supply', addr:'Plaza Senayan', dt:'2026-05-01 07:55', collector:'Bapak Andi', status:'MISMATCH_CONT', mismatchField:'container' },
+        ],
+      };
+
+      const totalCsvRows = csvPreview?.rows.length || 0;
+      const validCsvRows = csvPreview?.rows.filter(r => r.status === 'VALID').length || 0;
+      const mismatchCsvRows = csvPreview?.rows.filter(r => r.status.startsWith('MISMATCH')).length || 0;
+
+      const importValidCsv = () => {
+        if (!csvPreview) return;
+        const valid = csvPreview.rows.filter(r => r.status === 'VALID');
+        setSampleRowsManifest(prev => [
+          ...prev,
+          ...valid.map((r, i) => ({
+            id:`csv-${Date.now()}-${i}`,
+            sampleType:r.sampleType,
+            container:r.container,
+            gps:r.gps,
+            loc:r.loc,
+            addr:r.addr,
+            dt:r.dt,
+            notes:'',
+          })),
+        ]);
+        // remove valid rows from preview, leave mismatches behind
+        setCsvPreview(p => ({ ...p, rows: p.rows.filter(r => r.status !== 'VALID') }));
+      };
+      const reconcileCsvRow = (rowId, field, value) => {
+        setCsvPreview(p => ({ ...p, rows: p.rows.map(r => r.row === rowId
+          ? { ...r, [field]:value, status:'VALID', mismatchField:null }
+          : r) }));
+      };
+      const addManifestRow = () => {
+        setSampleRowsManifest(prev => [...prev, {
+          id:`m-${Date.now()}`, sampleType:'', container:'', gps:'', loc:'', addr:'', dt:'', notes:'',
+        }]);
+      };
+      // 2026-05-01 (later same day): add N rows of a suggested sample type from regulation suggestions
+      const [suggestQty, setSuggestQty] = useState({});  // { sampleTypeId: number }
+      const addSuggestedRows = (sampleType, qty) => {
+        if (qty <= 0) return;
+        setSampleRowsManifest(prev => {
+          const next = [...prev];
+          for (let k = 0; k < qty; k++) {
+            next.push({
+              id:`m-${Date.now()}-${k}`,
+              sampleType:sampleType.name, container:'', gps:'', loc:'', addr:'', dt:'', notes:'',
+            });
+          }
+          return next;
+        });
+        setSuggestQty(prev => ({ ...prev, [sampleType.id]:0 }));
+      };
+      // Suggestions = deduped union of selected regulations' applicable sample types.
+      const regulationSuggestions = useMemo(() => {
+        if (branch !== 'REGULATION_DRIVEN' || standards.length === 0) return [];
+        const ids = new Set();
+        const out = [];
+        standards.forEach(s => (s.sampleTypeIds || []).forEach(stId => {
+          if (ids.has(stId)) return;
+          ids.add(stId);
+          const st = ALL_SAMPLE_TYPES.find(x => x.id === stId);
+          if (!st) return;
+          const coveringStds = standards.filter(x => (x.sampleTypeIds || []).includes(stId));
+          out.push({ ...st, coveringStds });
+        }));
+        return out;
+      }, [branch, standards]);
+      const updateManifestRow = (id, p) => {
+        setSampleRowsManifest(rows => rows.map(r => r.id === id ? { ...r, ...p } : r));
+      };
+      const removeManifestRow = (id) => {
+        setSampleRowsManifest(rows => rows.filter(r => r.id !== id));
+      };
 
       const [collMethod, setCollMethod] = useState('');
       const [waterT, setWaterT] = useState('');
@@ -323,8 +461,17 @@
       };
       const removeRow = (sid) => setManifest(m => m.filter(r => r.sampleTypeId !== sid));
 
-      const total = useMemo(() => manifest.reduce((s,r) => s + r.quantity, 0), [manifest]);
-      const activeTypes = useMemo(() => manifest.filter(r => r.quantity > 0).map(r => r.sampleTypeId), [manifest]);
+      // 2026-05-01: derive total + active sample types from new per-sample manifest rows.
+      // Match by sample type NAME against ALL_SAMPLE_TYPES catalog, since CSV/free-text rows store names.
+      const total = useMemo(() => sampleRowsManifest.length, [sampleRowsManifest]);
+      const activeTypes = useMemo(() => {
+        const seen = new Set();
+        sampleRowsManifest.forEach(r => {
+          const st = ALL_SAMPLE_TYPES.find(x => x.name.toLowerCase() === (r.sampleType || '').toLowerCase());
+          if (st) seen.add(st.id);
+        });
+        return Array.from(seen);
+      }, [sampleRowsManifest]);
 
       // 2026-04-29 (rewritten): Branch-aware test selection
       // — Regulation-driven: pre-loaded deduped Test Plan + blocked-by-missing-sample + add-extra
@@ -472,17 +619,21 @@
         : adhocSelectedCount;
 
       // ── Step 2 handlers ──
+      // 2026-05-01: advanceTo2 reads from per-sample manifest rows directly (one-to-one).
       const advanceTo2 = () => {
         const rows = [];
         let i = 1;
-        manifest.forEach(r => {
-          const st = ALL_SAMPLE_TYPES.find(s => s.id === r.sampleTypeId);
-          for (let k = 0; k < r.quantity; k++) {
-            rows.push({
-              id:`s-${i}`, idx:i, type:st,
-              accession:`ENV-2026-0412.${String(i).padStart(3,'0')}`,
-              barcode:'', dt:'', cond:'', storage:'',
-            });
+        sampleRowsManifest.forEach(r => {
+          const st = ALL_SAMPLE_TYPES.find(s => s.name.toLowerCase() === (r.sampleType || '').toLowerCase());
+          rows.push({
+            id:`s-${i}`, idx:i, type:st || { name:r.sampleType, code:'?' },
+            container:r.container, gps:r.gps, loc:r.loc, addr:r.addr,
+            accession:`ENV-2026-0412.${String(i).padStart(3,'0')}`,
+            barcode:'', dt:r.dt || '', cond:'', storage:'',
+          });
+          i++;
+          // dummy loop boundary preserved for diff stability
+          for (let k = 0; k < 0; k++) {
             i++;
           }
         });
@@ -544,15 +695,15 @@
             </div>
           </div>
 
-          {/* ── Lab Number + Domain Badge + Referral Tag (always) ─ */}
-          <div className="tile">
-            <div className="header-row">
-              <div className="lab-no form-field">
+          {/* ── Action Bar — Lab Number + Domain Badge + Referral Tag + Report NCE button (2026-05-01) ─ */}
+          <div className="tile" style={{ position:'sticky', top:0, zIndex:10, marginBottom:'1rem' }}>
+            <div className="header-row" style={{ display:'flex', alignItems:'flex-end', gap:16 }}>
+              <div className="lab-no form-field" style={{ marginBottom:0 }}>
                 <label>Lab Number</label>
                 <input type="text" value="ENV-2026-0412" readOnly />
                 <span className="helper">Auto-generated</span>
               </div>
-              <div className="badges">
+              <div className="badges" style={{ flex:1 }}>
                 <span className={`tag ${DOMAIN_TAGS[LAB_UNIT.domain]}`} title={`This order belongs to ${LAB_UNIT.name} (${LAB_UNIT.domain})`}>
                   {LAB_UNIT.domain}
                 </span>
@@ -560,6 +711,12 @@
                   <span className="tag tag-cyan">📥 Referral: {REFERRAL.name}</span>
                 )}
               </div>
+              {/* 2026-05-01: Report NCE button — opens existing OE NCE dialog scoped to order (or sample if a row is highlighted) */}
+              <button className="btn btn-ghost"
+                      style={{ border:'1px solid #da1e28', color:'#da1e28', fontSize:13 }}
+                      onClick={() => alert('Opens existing OE NCE dialog (scope: Order or Sample). No new dialog component — wires existing infra onto Step 1.')}>
+                ⚠ Report NCE
+              </button>
             </div>
           </div>
 
@@ -587,6 +744,50 @@
                   <p className="branch-helper">ⓘ Auto-set when order arrives from referral. You can override.</p>
                 )}
               </div>
+
+              {/* ── Submitter (Organization) — NEW 2026-05-01 ───────────── */}
+              {branch && (
+                <div className="tile">
+                  <h4>Submitter</h4>
+                  <p className="step-helper">The customer or program requesting this order. Maps to the existing OE Organization entity (mirrors clinical AMAP backend).</p>
+                  {!submitter ? (
+                    <div className="form-field" style={{ position:'relative' }}>
+                      <label>Organization *</label>
+                      <input type="text"
+                             placeholder="Search organizations…"
+                             value={submitterSearch}
+                             onChange={(e) => setSubmitterSearch(e.target.value)} />
+                      {submitterSearch && (
+                        <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'#fff', border:'1px solid #e0e0e0', borderTop:'none', maxHeight:200, overflowY:'auto', zIndex:5 }}>
+                          {ORGANIZATIONS.filter(o => o.name.toLowerCase().includes(submitterSearch.toLowerCase())).map(o => (
+                            <div key={o.id} style={{ padding:'8px 12px', cursor:'pointer', borderBottom:'1px solid #f4f4f4' }}
+                                 onClick={() => { setSubmitter(o); setSubmitterSearch(''); }}>
+                              <div style={{ fontWeight:500 }}>{o.name}</div>
+                              <div style={{ fontSize:12, color:'#525252' }}>{o.address}</div>
+                            </div>
+                          ))}
+                          <div style={{ padding:'8px 12px', borderTop:'1px solid #e0e0e0', background:'#f4f4f4' }}>
+                            <a href="#" style={{ color:'#0f62fe', fontSize:13 }}>+ Create new Organization</a>
+                          </div>
+                        </div>
+                      )}
+                      <span className="helper">Existing OE Organization picker — same modal as clinical AMAP for create-new.</span>
+                    </div>
+                  ) : (
+                    <div style={{ background:'#f4f4f4', padding:'12px 16px', borderRadius:4, display:'flex', gap:16 }}>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontWeight:600 }}>{submitter.name}</div>
+                        <div style={{ fontSize:12, color:'#525252', marginTop:2 }}>{submitter.address}</div>
+                        <div style={{ fontSize:12, color:'#525252', marginTop:2 }}>{submitter.contact}</div>
+                        <div style={{ fontSize:11, color:'#525252', marginTop:6 }}>
+                          <span className="tag tag-blue" style={{ fontSize:10 }}>{submitter.recent} orders in last 90 days</span>
+                        </div>
+                      </div>
+                      <button className="btn btn-ghost" onClick={() => setSubmitter(null)}>Change</button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Sampling Site (always when branch chosen) */}
               {branch && (
@@ -619,6 +820,54 @@
                       <button className="btn btn-ghost">✕ Clear</button>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* ── Program (FHIR Questionnaire — Optional) — NEW 2026-05-01 ── */}
+              {branch && (
+                <div className="tile">
+                  <h4>Program <span style={{ fontWeight:400, color:'#525252', fontSize:13 }}>(optional)</span></h4>
+                  <p className="step-helper">Select a program to capture program-specific metadata. Programs are configured in Admin → Programs and scoped to the env domain.</p>
+                  <div className="form-field">
+                    <label>Program</label>
+                    <select value={program?.id || ''}
+                            onChange={(e) => {
+                              const p = PROGRAMS.find(x => x.id === e.target.value);
+                              setProgram(p || null);
+                              setProgramResponses({});
+                            }}>
+                      <option value="">— No program —</option>
+                      {PROGRAMS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </div>
+                  {program && (
+                    <div style={{ background:'#f4f4f4', padding:'12px 16px', borderRadius:4, marginTop:12 }}>
+                      <div style={{ fontSize:11, color:'#525252', letterSpacing:1, marginBottom:8, textTransform:'uppercase' }}>
+                        ⓘ Rendered from FHIR Questionnaire · {program.name}
+                      </div>
+                      <div className="grid grid-2" style={{ gap:12 }}>
+                        {program.questionnaire.map(q => (
+                          <div key={q.code} className="form-field" style={{ marginBottom:0 }}>
+                            <label>{q.label}{q.required && ' *'}</label>
+                            {q.type === 'select' ? (
+                              <select value={programResponses[q.code] || ''}
+                                      onChange={(e) => setProgramResponses(r => ({ ...r, [q.code]:e.target.value }))}>
+                                <option value="">Select…</option>
+                                {q.options.map(o => <option key={o} value={o}>{o}</option>)}
+                              </select>
+                            ) : q.type === 'date' ? (
+                              <input type="date" value={programResponses[q.code] || ''}
+                                     onChange={(e) => setProgramResponses(r => ({ ...r, [q.code]:e.target.value }))} />
+                            ) : (
+                              <input type={q.type === 'number' ? 'number' : 'text'}
+                                     value={programResponses[q.code] || ''}
+                                     onChange={(e) => setProgramResponses(r => ({ ...r, [q.code]:e.target.value }))} />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -703,80 +952,227 @@
                 </div>
               )}
 
-              {/* Sample Manifest */}
+              {/* ── Sample Intake — CSV Bulk Upload + Per-Sample Manifest (rewritten 2026-05-01) ── */}
               {branch && (
                 <div className="tile">
-                  <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:'1rem' }}>
-                    <h4 style={{ flex:1, marginBottom:0 }}>Sample Manifest</h4>
-                    <span className="file-uploader-stub">📎 Upload CSV manifest</span>
+                  <h4>Sample Intake</h4>
+                  <p className="step-helper">Upload a CSV of pre-collected samples (primary path), or add rows manually below. One row = one physical sample. Each row carries Container Type, GPS, Location Details, Address.</p>
+
+                  {/* ─ A. CSV Bulk Upload ─ */}
+                  <div style={{ background:'#f4f4f4', padding:'12px 16px', borderRadius:4, marginBottom:'1rem' }}>
+                    <div style={{ fontWeight:600, marginBottom:8 }}>A. CSV Bulk Upload</div>
+                    <div style={{ display:'flex', gap:16, marginBottom:12 }}>
+                      <div style={{ flex:1, padding:16, background:'#fff', border:'2px dashed #c6c6c6', textAlign:'center', borderRadius:4 }}>
+                        <div style={{ fontSize:13, fontWeight:500, marginBottom:6 }}>⬇ Download CSV Template</div>
+                        <div style={{ fontSize:11, color:'#525252', marginBottom:10 }}>Pre-formatted env columns (sample type, container type, GPS, location, address, collection date/time, collector, notes).</div>
+                        <div style={{ display:'flex', gap:6, justifyContent:'center', flexWrap:'wrap' }}>
+                          <button className="btn btn-ghost" style={{ fontSize:12, border:'1px solid #0f62fe' }}>Standard</button>
+                          <button className="btn btn-ghost" style={{ fontSize:12, border:'1px solid #c6c6c6', color:'#525252' }}>10×10 Box</button>
+                          <button className="btn btn-ghost" style={{ fontSize:12, border:'1px solid #c6c6c6', color:'#525252' }}>96-Well Plate</button>
+                        </div>
+                      </div>
+                      <div style={{ flex:1, padding:16, background:'#edf5ff', border:'2px dashed #0f62fe', textAlign:'center', borderRadius:4, cursor:'pointer' }}
+                           onClick={() => setCsvPreview(DEMO_CSV_PREVIEW)}>
+                        <div style={{ fontSize:13, fontWeight:500, marginBottom:6, color:'#0f62fe' }}>⬆ Upload CSV File</div>
+                        <div style={{ fontSize:11, color:'#525252' }}>Drag &amp; drop or click to browse.<br/>.csv up to 5 MB.</div>
+                        {!csvPreview && <div style={{ fontSize:10, color:'#525252', marginTop:8, fontStyle:'italic' }}>(click to load demo preview)</div>}
+                      </div>
+                    </div>
+
+                    {/* CSV Preview Table */}
+                    {csvPreview && (
+                      <div style={{ background:'#fff', border:'1px solid #e0e0e0', borderRadius:4 }}>
+                        <div style={{ padding:'10px 14px', background:'#f4f4f4', borderBottom:'1px solid #e0e0e0', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:13 }}>
+                            <span style={{ fontWeight:500 }}>Preview: {csvPreview.filename}</span>
+                            <span className="tag tag-blue" style={{ fontSize:10 }}>{totalCsvRows} parsed</span>
+                            <span className="tag" style={{ background:'#defbe6', color:'#0e6027', fontSize:10 }}>{validCsvRows} valid</span>
+                            {mismatchCsvRows > 0 && <span className="tag" style={{ background:'#fcf4d6', color:'#684e00', fontSize:10 }}>{mismatchCsvRows} need attention</span>}
+                          </div>
+                          <button className="btn btn-ghost" style={{ fontSize:12 }} onClick={() => setCsvPreview(null)}>Clear</button>
+                        </div>
+                        {/* Bulk-apply banner for repeat mismatches */}
+                        {mismatchCsvRows > 0 && (
+                          <div style={{ padding:'8px 14px', background:'#fff8e1', borderBottom:'1px solid #f1c21b', fontSize:12, color:'#525252' }}>
+                            ⚡ <strong>Bulk fix:</strong> if multiple rows share the same unknown value, fix one and apply to all.
+                          </div>
+                        )}
+                        <div style={{ overflowX:'auto' }}>
+                          <table style={{ fontSize:11 }}>
+                            <thead>
+                              <tr>
+                                <th>#</th><th>Sample Type</th><th>Container</th><th>GPS</th><th>Location</th><th>Address</th><th>Status</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {csvPreview.rows.map(r => (
+                                <tr key={r.row} style={r.status !== 'VALID' ? { background:'#fff8e1' } : {}}>
+                                  <td>{r.row}</td>
+                                  <td>
+                                    {r.mismatchField === 'sampleType' ? (
+                                      <select style={{ border:'1px solid #da1e28', background:'#fff8e1', fontSize:11 }}
+                                              value=""
+                                              onChange={(e) => reconcileCsvRow(r.row, 'sampleType', e.target.value)}>
+                                        <option value="" disabled>⚠ {r.sampleType} — pick…</option>
+                                        <optgroup label="Suggested by selected regulation(s)">
+                                          {standards.flatMap(s => s.sampleTypeIds || []).filter((v,i,a) => a.indexOf(v) === i).map(stId => {
+                                            const st = ALL_SAMPLE_TYPES.find(x => x.id === stId);
+                                            return st ? <option key={stId} value={st.name}>{st.name}</option> : null;
+                                          })}
+                                        </optgroup>
+                                        <optgroup label="Or pick from full Test Catalog">
+                                          {ALL_SAMPLE_TYPES.map(st => <option key={st.id} value={st.name}>{st.name}</option>)}
+                                        </optgroup>
+                                      </select>
+                                    ) : r.sampleType}
+                                  </td>
+                                  <td>
+                                    {r.mismatchField === 'container' ? (
+                                      <select style={{ border:'1px solid #da1e28', background:'#fff8e1', fontSize:11 }}
+                                              value=""
+                                              onChange={(e) => reconcileCsvRow(r.row, 'container', e.target.value)}>
+                                        <option value="" disabled>⚠ {r.container} — pick…</option>
+                                        <optgroup label="OE Test Catalog → Env subsection">
+                                          {CONTAINER_TYPES.map(c => <option key={c} value={c}>{c}</option>)}
+                                        </optgroup>
+                                      </select>
+                                    ) : r.container}
+                                  </td>
+                                  <td><code style={{ fontSize:10 }}>{r.gps}</code></td>
+                                  <td>{r.loc}</td>
+                                  <td style={{ maxWidth:140, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.addr}</td>
+                                  <td>
+                                    {r.status === 'VALID' && <span style={{ color:'#0e6027' }}>✓ Valid</span>}
+                                    {r.status === 'MISMATCH_TYPE' && <span style={{ color:'#684e00' }}>⚠ Unknown type</span>}
+                                    {r.status === 'MISMATCH_CONT' && <span style={{ color:'#684e00' }}>⚠ Unknown container</span>}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <div style={{ padding:'10px 14px', borderTop:'1px solid #e0e0e0', display:'flex', gap:10, justifyContent:'flex-end' }}>
+                          <button className="btn btn-ghost" style={{ fontSize:12 }}>Fix Issues</button>
+                          <button className="btn btn-primary" style={{ fontSize:12 }}
+                                  onClick={importValidCsv}
+                                  disabled={validCsvRows === 0}>
+                            Import {validCsvRows} Valid Sample{validCsvRows === 1 ? '' : 's'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {manifest.length > 0 ? (
-                    <table>
-                      <thead>
-                        <tr>
-                          <th style={{ width:30 }}></th>
-                          <th>Sample Type</th>
-                          <th>Code</th>
-                          <th style={{ width:120 }}>Quantity</th>
-                          <th></th>
-                          <th style={{ width:30 }}></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {manifest.map(row => {
-                          const st = ALL_SAMPLE_TYPES.find(s => s.id === row.sampleTypeId);
+                  {/* ─ B. Per-Sample Manifest Table ─ */}
+                  <div style={{ fontWeight:600, marginBottom:8 }}>B. Per-Sample Manifest <span style={{ fontWeight:400, color:'#525252', fontSize:13 }}>(one row = one physical sample)</span></div>
+
+                  {/* 2026-05-01: Quick-add strip — regulation-suggested sample types with per-suggestion qty stepper.
+                      Pre-loaded; no click needed to reveal. Type a number, hit Add, and N rows appear below. */}
+                  {branch === 'REGULATION_DRIVEN' && regulationSuggestions.length > 0 && (
+                    <div style={{ background:'#f4f4f4', padding:'10px 14px', borderRadius:4, marginBottom:12 }}>
+                      <div style={{ fontSize:12, color:'#525252', marginBottom:8, letterSpacing:0.5 }}>
+                        ⚡ <strong>Quick-add from regulation suggestions</strong> · {standards.map(s => s.reg).join(' + ')} · type a count, hit Add to create N rows
+                      </div>
+                      <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+                        {regulationSuggestions.map(st => {
+                          const qty = suggestQty[st.id] || 0;
                           return (
-                            <tr key={row.sampleTypeId}>
-                              <td>
-                                <input type="checkbox" checked={row.quantity > 0}
-                                       onChange={(e) => setQty(row.sampleTypeId, e.target.checked ? (row.quantity || 1) : 0)} />
-                              </td>
-                              <td>{st?.name}</td>
-                              <td><code>{st?.code}</code></td>
-                              <td>
-                                <input type="number" min={0} max={999}
-                                       value={row.quantity}
-                                       onChange={(e) => setQty(row.sampleTypeId, e.target.value)} />
-                              </td>
-                              <td>
-                                {/* 2026-04-28: per-row coverage tags showing which standards include this sample type */}
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                                  {row.coverageStandardIds && row.coverageStandardIds.map(stdId => {
-                                    const std = STANDARDS.find(s => s.id === stdId);
-                                    return std ? <span key={stdId} className="tag tag-purple">{std.reg}</span> : null;
-                                  })}
-                                  {row.isOverride && <span className="tag tag-warm-gray">Not in any selected standard</span>}
-                                </div>
-                              </td>
-                              <td>
-                                <button className="btn-icon" title="Remove" onClick={() => removeRow(row.sampleTypeId)}>🗑</button>
-                              </td>
-                            </tr>
+                            <div key={st.id}
+                                 style={{ display:'flex', alignItems:'center', gap:6,
+                                          background:'#fff', border:'1px solid #e0e0e0', borderRadius:4,
+                                          padding:'6px 10px', fontSize:12 }}>
+                              <span style={{ fontWeight:500 }}>{st.name}</span>
+                              <div style={{ display:'flex', gap:2 }}>
+                                {st.coveringStds.map(s => (
+                                  <span key={s.id} className="tag tag-purple" style={{ fontSize:10, padding:'1px 6px' }}>{s.reg}</span>
+                                ))}
+                              </div>
+                              <input type="number" min={0} max={99}
+                                     value={qty}
+                                     onChange={(e) => setSuggestQty(p => ({ ...p, [st.id]:Math.max(0, parseInt(e.target.value) || 0) }))}
+                                     style={{ width:50, padding:'2px 6px', fontSize:12 }}
+                                     placeholder="0" />
+                              <button className="btn btn-ghost"
+                                      style={{ fontSize:11, padding:'2px 8px',
+                                               color: qty > 0 ? '#0f62fe' : '#a8a8a8',
+                                               border:'1px solid ' + (qty > 0 ? '#0f62fe' : '#e0e0e0') }}
+                                      onClick={() => addSuggestedRows(st, qty)}
+                                      disabled={qty <= 0}>
+                                + Add {qty || ''}
+                              </button>
+                            </div>
                           );
                         })}
-                      </tbody>
-                    </table>
-                  ) : (
-                    <p className="step-helper">
-                      {branch === 'REGULATION_DRIVEN'
-                        ? 'Select one or more compliance standards above to pre-populate sample types (union, deduplicated).'
-                        : 'Add sample types to begin.'}
-                    </p>
+                      </div>
+                    </div>
                   )}
 
+                  {sampleRowsManifest.length === 0 ? (
+                    <p className="step-helper" style={{ background:'#f4f4f4', padding:'12px 16px', borderRadius:4 }}>
+                      No samples yet. Upload a CSV above, or click <strong>+ Add sample row</strong> below to start manually.
+                    </p>
+                  ) : (
+                    <div style={{ overflowX:'auto', border:'1px solid #e0e0e0', borderRadius:4 }}>
+                      <table style={{ fontSize:12 }}>
+                        <thead>
+                          <tr>
+                            <th>#</th><th>Sample Type</th><th>Container</th><th>GPS</th><th>Location Details</th><th>Address</th><th>Collected</th><th></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sampleRowsManifest.map((r, i) => (
+                            <tr key={r.id}>
+                              <td>{i + 1}</td>
+                              <td>
+                                <input type="text" value={r.sampleType}
+                                       onChange={(e) => updateManifestRow(r.id, { sampleType:e.target.value })}
+                                       list="sample-types-list" style={{ width:140, fontSize:12 }} />
+                              </td>
+                              <td>
+                                <input type="text" value={r.container}
+                                       onChange={(e) => updateManifestRow(r.id, { container:e.target.value })}
+                                       list="container-types-list" style={{ width:160, fontSize:12 }} />
+                              </td>
+                              <td>
+                                <input type="text" value={r.gps}
+                                       onChange={(e) => updateManifestRow(r.id, { gps:e.target.value })}
+                                       placeholder="lat, lon" style={{ width:130, fontSize:12 }} />
+                              </td>
+                              <td>
+                                <input type="text" value={r.loc}
+                                       onChange={(e) => updateManifestRow(r.id, { loc:e.target.value })}
+                                       style={{ width:160, fontSize:12 }} />
+                              </td>
+                              <td>
+                                <input type="text" value={r.addr}
+                                       onChange={(e) => updateManifestRow(r.id, { addr:e.target.value })}
+                                       style={{ width:160, fontSize:12 }} />
+                              </td>
+                              <td>
+                                <input type="text" value={r.dt}
+                                       onChange={(e) => updateManifestRow(r.id, { dt:e.target.value })}
+                                       placeholder="YYYY-MM-DD HH:mm" style={{ width:130, fontSize:12 }} />
+                              </td>
+                              <td>
+                                <button className="btn-icon" title="Remove" onClick={() => removeManifestRow(r.id)}>🗑</button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {/* datalists for type-ahead */}
+                      <datalist id="sample-types-list">
+                        {ALL_SAMPLE_TYPES.map(st => <option key={st.id} value={st.name} />)}
+                      </datalist>
+                      <datalist id="container-types-list">
+                        {CONTAINER_TYPES.map(c => <option key={c} value={c} />)}
+                      </datalist>
+                    </div>
+                  )}
                   <div style={{ display:'flex', alignItems:'center', gap:12, marginTop:'1rem' }}>
-                    {showAddType ? (
-                      <select onChange={(e) => e.target.value && addType(e.target.value)} defaultValue="">
-                        <option value="" disabled>Pick a sample type to add…</option>
-                        {ALL_SAMPLE_TYPES.filter(st => !manifest.find(m => m.sampleTypeId === st.id))
-                                         .map(st => <option key={st.id} value={st.id}>{st.name} ({st.code})</option>)}
-                      </select>
-                    ) : (
-                      <button className="btn btn-ghost" onClick={() => setShowAddType(true)}>+ Add Other Sample Type</button>
-                    )}
+                    <button className="btn btn-ghost" onClick={addManifestRow}>+ Add sample row</button>
                     <span style={{ flex:1 }} />
-                    <span className="total-samples"><strong>Total: {total} samples in this batch</strong></span>
+                    <span className="total-samples"><strong>Total: {sampleRowsManifest.length} sample{sampleRowsManifest.length === 1 ? '' : 's'} in this batch</strong></span>
                   </div>
                 </div>
               )}
@@ -784,12 +1180,12 @@
               {/* Test Selection — 2026-04-29 (rewritten): Branch-aware UX
                   Regulation: pre-loaded deduped Test Plan + blocked-by-missing-sample + add-extra
                   Ad-hoc: existing OE Panels + Tests two-stack
-                  Both gated behind ≥1 manifest row with quantity > 0 */}
-              {branch && activeTypes.length === 0 && manifest.length > 0 && (
+                  Both gated behind ≥1 per-sample manifest row with a recognized sample type (2026-05-01 amendment) */}
+              {branch && activeTypes.length === 0 && sampleRowsManifest.length > 0 && (
                 <div className="tile">
                   <h4>Test Selection</h4>
                   <p className="step-helper">
-                    Add a sample type with quantity ≥ 1 to the manifest above to choose tests.
+                    Add a sample row with a recognized Sample Type in the Sample Intake table above to choose tests.
                   </p>
                 </div>
               )}
