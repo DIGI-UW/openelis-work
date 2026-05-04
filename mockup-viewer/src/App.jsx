@@ -632,6 +632,19 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-554', 'OGC-527'],
     tags: ['quality', 'QC', 'environmental', 'vector', 'field-blank', 'trip-blank', 'duplicate', 'spike-recovery'],
   },
+  {
+    name: 'QA Menu v0.5 (IA Rehome)',
+    category: 'quality',
+    component: null,
+    description: 'IA rehome for all existing QA-adjacent features — lands before v1 MVP. Three pillars: Statistical QC / EQA / QMS & Improvement. Rehomes QC Dashboard, EQA, NCE Register, and Audit Trail under a top-level Quality Assurance sidenav; 301 redirects on all legacy URLs. Madagascar GRIST UAT: LO-07-02 PASS, LO-07-03 SPLIT, LO-07-04 PASS.',
+    specPath: 'designs/quality/qa-menu-v0.5.md',
+    htmlUrl: 'designs/quality/qa-menu-v0.5.html',
+    added: '2026-05-01',
+    status: 'draft',
+    githubIssue: null,
+    jira: [],
+    tags: ['quality', 'QA-menu', 'IA', 'rehome', 'tech-debt', 'QC', 'EQA', 'NCE', 'audit-trail', 'Madagascar', 'GRIST'],
+  },
 
   // ─── Vector Surveillance ───
   {
