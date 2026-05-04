@@ -2246,3 +2246,68 @@
     gallery: "https://digi-uw.github.io/openelis-work/#/quality/qa-menu-v0.5"
   added: "2026-05-01"
   status: draft
+
+- id: qa-v1-mvp
+  type: html
+  path: designs/quality/qa-v1-preview.html
+  spec: designs/quality/qa-v1-mvp-frs.md
+  category: quality
+  description: "MVP QA menu — QI Dashboard with four KPI tiles (TAT, Rejection Rate, Amendment Rate, NCE Pulse), three REST wrappers, per-tile detail placeholders, and QA Officer role. ~45–55h."
+  links:
+    github: null
+    jira: null
+    gallery: "https://digi-uw.github.io/openelis-work/#/quality/qa-v1-mvp"
+  added: "2026-05-04"
+  status: draft
+
+- id: qa-v2
+  type: html
+  path: designs/quality/qa-v2-preview.html
+  spec: null
+  category: quality
+  description: "v2 QA menu — Electronic Signature Log, Accreditation Status IA shell (community-led), full rehome stubs for all four pillars."
+  links:
+    github: null
+    jira: null
+    gallery: "https://digi-uw.github.io/openelis-work/#/quality/qa-v2"
+  added: "2026-05-04"
+  status: draft
+
+- id: qa-final
+  type: html
+  path: designs/quality/qa-final-preview.html
+  spec: null
+  category: quality
+  description: "End-state QA menu — all four pillars live, full QI Dashboard with heatmap + Pareto, QI Configuration, NCE modernization + CAPA, EQA V2, Accreditation Status, daily-focused QA Overview."
+  links:
+    github: null
+    jira: null
+    gallery: "https://digi-uw.github.io/openelis-work/#/quality/qa-final"
+  added: "2026-05-04"
+  status: draft
+
+- id: qa-westgard-phase2
+  type: html
+  path: designs/quality/qa-westgard-phase2-preview.html
+  spec: designs/quality/qa-westgard-phase2-frs.md
+  category: quality
+  description: "Westgard Phase 2 — alert banner, NCE auto-create, sigma metrics, and QC export. Three priority tiers; Tier 1 ~10–14h (core), Tiers 2–3 ~18–27h (add-on/community)."
+  links:
+    github: null
+    jira: null
+    gallery: "https://digi-uw.github.io/openelis-work/#/quality/qa-westgard-phase2"
+  added: "2026-05-04"
+  status: draft
+
+- id: qa-release-budget-calculator
+  type: html
+  path: designs/quality/qa-release-budget-calculator.html
+  spec: designs/quality/qa-release-plan.md
+  category: quality
+  description: "Interactive QA release budget calculator — toggle items and presets to see total hours across the full release plan."
+  links:
+    github: null
+    jira: null
+    gallery: "https://digi-uw.github.io/openelis-work/#/quality/qa-release-budget-calculator"
+  added: "2026-05-04"
+  status: draft

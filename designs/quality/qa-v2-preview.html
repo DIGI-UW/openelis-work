@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QA Menu v2 — Preview</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+  <style>
+    :root { --rail-w: 256px; --header-h: 48px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #f4f4f4; color: #161616; }
+
+    .app-header {
+      height: var(--header-h); background: #161616; color: #fff;
+      display: flex; align-items: center; padding: 0 1rem; gap: 1rem;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .app-header .brand { font-size: 0.875rem; font-weight: 500; letter-spacing: 0.04em; }
+    .app-header .brand .sub { opacity: 0.7; font-weight: 400; margin-left: 0.5rem; }
+    .app-header .spacer { flex: 1; }
+    .app-header .user-chip { font-size: 0.8125rem; opacity: 0.85; padding: 0.25rem 0.5rem; border: 1px solid #393939; }
+
+    .layout { display: flex; min-height: calc(100vh - var(--header-h)); }
+    .rail {
+      width: var(--rail-w); flex: 0 0 var(--rail-w);
+      background: #fff; border-right: 1px solid #e0e0e0;
+      display: flex; flex-direction: column;
+      position: sticky; top: var(--header-h); height: calc(100vh - var(--header-h));
+      overflow-y: auto;
+    }
+    .main { flex: 1; padding: 1.5rem 2rem; max-width: 100%; overflow-x: auto; }
+
+    .rail-title { padding: 1rem 1rem 0.5rem 1rem; font-size: 0.75rem; letter-spacing: 0.06em; color: #525252; text-transform: uppercase; }
+    .rail-bucket {
+      display: flex; align-items: center; width: 100%;
+      padding: 0.625rem 1rem; font-size: 0.875rem; color: #161616;
+      background: transparent; border: 0; border-left: 3px solid transparent;
+      cursor: pointer; text-align: left; font-family: inherit;
+    }
+    .rail-bucket:hover { background: #e5e5e5; }
+    .rail-bucket.current { background: #edf5ff; border-left-color: #0f62fe; font-weight: 600; }
+    .rail-bucket.is-new { color: #0043ce; }
+    .rail-bucket .icon { margin-right: 0.625rem; flex: 0 0 20px; display: inline-flex; justify-content: center; }
+    .rail-bucket .label { flex: 1; }
+    .rail-bucket .new-tag { font-size: 0.625rem; background: #defbe6; color: #0e6027; padding: 0.0625rem 0.375rem; border-radius: 8px; margin-left: 0.375rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .rail-bucket .chev { flex: 0 0 16px; opacity: 0.6; font-size: 0.75rem; transition: transform 0.12s; margin-left: 0.25rem; }
+    .rail-bucket.expanded .chev { transform: rotate(180deg); }
+    .rail-bucket.collapsed .chev { transform: rotate(0deg); }
+    .rail-children { display: none; background: #fafafa; border-top: 1px solid #f0f0f0; }
+    .rail-bucket.expanded + .rail-children { display: block; }
+
+    .rail-pillar {
+      display: flex; align-items: center; width: 100%;
+      padding: 0.5rem 1rem 0.5rem 2.25rem; font-size: 0.8125rem;
+      background: transparent; border: 0; cursor: pointer; text-align: left; font-family: inherit;
+      color: #161616; font-weight: 500;
+    }
+    .rail-pillar:hover { background: #e8e8e8; }
+    .rail-pillar.current { background: #e0e0e0; font-weight: 600; }
+    .rail-pillar .chev { font-size: 0.625rem; margin-left: auto; opacity: 0.6; transition: transform 0.12s; }
+    .rail-pillar.expanded .chev { transform: rotate(180deg); }
+
+    .rail-pillar-children { display: none; }
+    .rail-pillar.expanded + .rail-pillar-children { display: block; }
+    .rail-page {
+      display: flex; align-items: center; width: 100%;
+      padding: 0.4375rem 1rem 0.4375rem 3.5rem; font-size: 0.8125rem; color: #525252;
+      background: transparent; border: 0; border-left: 3px solid transparent;
+      cursor: pointer; text-align: left; font-family: inherit;
+    }
+    .rail-page:hover { background: #ececec; }
+    .rail-page.current { background: #edf5ff; border-left-color: #0f62fe; font-weight: 600; color: #161616; }
+    .rail-page .pill {
+      margin-left: auto; font-size: 0.625rem; padding: 0.0625rem 0.375rem; border-radius: 8px;
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .rail-page .pill.new { background: #defbe6; color: #0e6027; }
+    .rail-page .pill.rehome { background: #e0e0e0; color: #525252; }
+
+    .crumb { font-size: 0.8125rem; color: #525252; margin-bottom: 0.5rem; }
+    .crumb a { color: #0f62fe; text-decoration: none; cursor: pointer; }
+    .crumb a:hover { text-decoration: underline; }
+    .crumb .sep { margin: 0 0.375rem; }
+    .crumb .current { color: #161616; font-weight: 500; }
+
+    h1.page-title { font-size: 1.75rem; font-weight: 300; margin: 0 0 0.25rem 0; letter-spacing: -0.01em; }
+    p.page-sub { color: #525252; margin: 0 0 1.5rem 0; font-size: 0.9375rem; }
+
+    /* Five-question strip */
+    .question-strip {
+      background: #fff; border: 1px solid #e0e0e0; padding: 0; margin-bottom: 1.25rem;
+    }
+    .question-strip h2 {
+      font-size: 0.6875rem; letter-spacing: 0.08em; color: #525252; text-transform: uppercase;
+      margin: 0; padding: 0.875rem 1rem 0.5rem;
+    }
+    .question-row {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 0.875rem;
+      padding: 0.625rem 1rem; align-items: center;
+      border-top: 1px solid #f0f0f0; cursor: pointer;
+      transition: background 0.08s;
+    }
+    .question-row:hover { background: #fafafa; }
+    .question-strip h2 + .question-row { border-top: 1px solid #e0e0e0; }
+    .q-icon { font-size: 1rem; width: 24px; text-align: center; }
+    .q-icon.green { color: #198038; }
+    .q-icon.amber { color: #f1c21b; }
+    .q-icon.red { color: #da1e28; }
+    .q-icon.gray { color: #a8a8a8; }
+    .q-text { display: flex; flex-direction: column; gap: 0.125rem; }
+    .q-label { font-size: 0.875rem; font-weight: 500; color: #161616; }
+    .q-answer { font-size: 0.8125rem; color: #525252; }
+    .q-arrow { color: #a8a8a8; font-size: 0.875rem; }
+
+    .strip-footer {
+      padding: 0.5rem 1rem; font-size: 0.75rem; color: #6f6f6f;
+      border-top: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;
+    }
+    .strip-footer .refresh { color: #0f62fe; cursor: pointer; }
+
+    /* Pillar tiles on QA Overview */
+    .pillar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .pillar-tile {
+      background: #fff; padding: 1rem; border: 1px solid #e0e0e0;
+      cursor: pointer; transition: background 0.12s, box-shadow 0.12s;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      border-left: 3px solid transparent; min-height: 160px;
+    }
+    .pillar-tile:hover { background: #fafafa; border-left-color: #0f62fe; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+    .pillar-tile.placeholder { background: #f7f7f7; border-style: dashed; }
+    .pillar-tile.placeholder:hover { box-shadow: none; }
+    .pillar-tile .head { display: flex; align-items: center; gap: 0.5rem; }
+    .pillar-tile h3 { font-size: 0.9375rem; font-weight: 600; margin: 0; flex: 1; }
+    .pillar-tile .info-icon { color: #a8a8a8; font-size: 0.875rem; }
+    .pillar-tile .status-line { display: flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; }
+    .pillar-tile .status-line .icon { font-size: 1rem; }
+    .pillar-tile .status-line .icon.green { color: #198038; }
+    .pillar-tile .status-line .icon.amber { color: #f1c21b; }
+    .pillar-tile .status-line .icon.red { color: #da1e28; }
+    .pillar-tile .secondary { font-size: 0.8125rem; color: #525252; }
+    .pillar-tile .tertiary { font-size: 0.75rem; color: #6f6f6f; }
+    .pillar-tile .deep-link { font-size: 0.75rem; color: #0f62fe; margin-top: auto; padding-top: 0.5rem; }
+    .pillar-tile .soon-pill {
+      display: inline-block; font-size: 0.625rem; background: #e0e0e0; color: #525252;
+      padding: 0.0625rem 0.375rem; border-radius: 8px;
+      letter-spacing: 0.04em; text-transform: uppercase; margin-left: 0.375rem;
+    }
+
+    /* Pillar landing tile grid (within Statistical QC, QMS, etc.) */
+    .leaf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+    .leaf-tile {
+      background: #fff; padding: 1rem; border: 1px solid #e0e0e0;
+      cursor: pointer; transition: background 0.12s;
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .leaf-tile:hover { background: #fafafa; border-color: #0f62fe; }
+    .leaf-tile h3 { font-size: 0.9375rem; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 0.5rem; }
+    .leaf-tile p { font-size: 0.8125rem; color: #525252; margin: 0; line-height: 1.5; }
+    .leaf-tile .tag {
+      font-size: 0.625rem; padding: 0.0625rem 0.375rem; border-radius: 8px;
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .leaf-tile .tag.new { background: #defbe6; color: #0e6027; }
+    .leaf-tile .tag.rehome { background: #e0e0e0; color: #525252; }
+
+    /* QI Dashboard tiles (carried from v1) */
+    .qi-header {
+      display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem;
+      background: #fff; border: 1px solid #e0e0e0; margin-bottom: 1rem;
+    }
+    .qi-header label { font-size: 0.75rem; color: #525252; text-transform: uppercase; letter-spacing: 0.04em; }
+    .qi-header select { font-family: inherit; font-size: 0.875rem; padding: 0.25rem 0.5rem; border: 1px solid #c6c6c6; background: #fff; }
+    .qi-header .timestamp { color: #6f6f6f; font-size: 0.8125rem; margin-left: auto; }
+    .qi-header .refresh-btn {
+      font-family: inherit; font-size: 0.8125rem; padding: 0.25rem 0.625rem;
+      background: #fff; border: 1px solid #c6c6c6; cursor: pointer; color: #161616;
+    }
+    .qi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .qi-tile {
+      background: #fff; padding: 1.125rem; border: 1px solid #e0e0e0;
+      display: flex; flex-direction: column; gap: 0.5rem; cursor: pointer;
+      transition: background 0.12s, box-shadow 0.12s;
+    }
+    .qi-tile:hover { background: #fafafa; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+    .qi-tile.green { border-top: 3px solid #198038; }
+    .qi-tile.amber { border-top: 3px solid #f1c21b; }
+    .qi-tile.red { border-top: 3px solid #da1e28; }
+    .qi-tile.blue { border-top: 3px solid #0f62fe; }
+    .qi-tile .head { display: flex; align-items: center; }
+    .qi-tile .head h3 { font-size: 0.875rem; font-weight: 600; margin: 0; flex: 1; }
+    .qi-tile .head .icons { color: #a8a8a8; font-size: 0.8125rem; }
+    .qi-tile .primary { display: flex; align-items: baseline; gap: 0.5rem; }
+    .qi-tile .primary .value { font-size: 1.75rem; font-weight: 300; letter-spacing: -0.01em; }
+    .qi-tile .primary .delta { font-size: 0.8125rem; }
+    .qi-tile .delta.good { color: #198038; }
+    .qi-tile .delta.bad { color: #da1e28; }
+    .qi-tile .delta.flat { color: #6f6f6f; }
+    .qi-tile .progress-track { position: relative; background: #e8e8e8; height: 6px; }
+    .qi-tile .progress-fill { position: absolute; left: 0; top: 0; bottom: 0; }
+    .qi-tile .progress-fill.green { background: #24a148; }
+    .qi-tile .progress-fill.amber { background: #f1c21b; }
+    .qi-tile .progress-fill.red { background: #da1e28; }
+    .qi-tile .progress-marker { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #161616; }
+    .qi-tile .target-line { font-size: 0.75rem; color: #525252; }
+    .qi-tile .secondary { font-size: 0.8125rem; color: #525252; }
+    .qi-tile .deep-link { font-size: 0.75rem; color: #0f62fe; margin-top: auto; padding-top: 0.25rem; }
+
+    /* Detail / list pages */
+    .detail-placeholder { background: #fff; padding: 2rem; border: 1px solid #e0e0e0; }
+    .detail-placeholder .sub-banner {
+      background: #edf5ff; border-left: 3px solid #0f62fe;
+      padding: 0.5rem 0.75rem; font-size: 0.8125rem; color: #002d9c;
+      margin-bottom: 1.25rem;
+    }
+    .detail-filters { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+    .detail-filters .filter {
+      padding: 0.375rem 0.625rem; background: #f4f4f4; border: 1px solid #e0e0e0;
+      font-size: 0.8125rem; color: #525252;
+    }
+    .detail-filters .filter.add { background: #fff; cursor: pointer; color: #0f62fe; border-color: #0f62fe; }
+    .detail-filters .spacer { flex: 1; }
+    .detail-filters .export-btn {
+      padding: 0.375rem 0.75rem; background: #fff; border: 1px solid #c6c6c6;
+      font-size: 0.8125rem; color: #161616; cursor: pointer; font-family: inherit;
+    }
+    .detail-filters .export-btn:hover { background: #f4f4f4; }
+    .detail-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    .detail-table th {
+      background: #f4f4f4; padding: 0.5rem 0.75rem; text-align: left;
+      font-weight: 500; font-size: 0.8125rem; color: #525252; border-bottom: 1px solid #e0e0e0;
+    }
+    .detail-table td { padding: 0.625rem 0.75rem; border-bottom: 1px solid #f0f0f0; }
+    .detail-table tr:hover td { background: #fafafa; }
+    .detail-table tr.drillable { cursor: pointer; }
+    .detail-table tr.drillable:hover td { background: #edf5ff; }
+    .detail-table .nce-link { color: #0f62fe; cursor: pointer; }
+    .detail-table .nce-link:hover { text-decoration: underline; }
+    .detail-table .test-cat-pill { display: inline-block; font-size: 0.6875rem; background: #e8daff; color: #491d8b; padding: 0.0625rem 0.375rem; border-radius: 10px; }
+    .detail-table .num-cell { text-align: right; font-variant-numeric: tabular-nums; }
+    .detail-table .drill-arrow { color: #0f62fe; opacity: 0.4; margin-left: 0.5rem; }
+    .detail-table tr.drillable:hover .drill-arrow { opacity: 1; }
+    .detail-table .action-pill {
+      display: inline-block; font-size: 0.6875rem; padding: 0.0625rem 0.375rem; border-radius: 10px;
+    }
+    .detail-table .action-pill.validated { background: #d0e2ff; color: #002d9c; }
+    .detail-table .action-pill.released { background: #defbe6; color: #0e6027; }
+    .detail-table .action-pill.amended { background: #fff1c2; color: #6f4700; }
+    .detail-table .action-pill.rejected { background: #ffd7d9; color: #750e13; }
+    .detail-table .action-pill.acknowledged { background: #e8daff; color: #491d8b; }
+    .detail-table .action-pill.signed-off { background: #d1e0ff; color: #003a9b; }
+
+    .detail-section-title { font-size: 0.875rem; font-weight: 600; margin: 1.25rem 0 0.625rem 0; color: #161616; }
+    .detail-section-title:first-child { margin-top: 0; }
+
+    .chart-row { display: grid; grid-template-columns: minmax(220px, 1fr) 2fr; gap: 1.5rem; align-items: start; margin-bottom: 1.25rem; }
+    @media (max-width: 800px) { .chart-row { grid-template-columns: 1fr; } }
+
+    .pie-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+    .pie-svg { display: block; }
+    .legend { display: flex; flex-direction: column; gap: 0.25rem; align-self: stretch; }
+    .legend-row { display: flex; align-items: center; font-size: 0.8125rem; color: #393939; gap: 0.5rem; }
+    .legend-swatch { width: 12px; height: 12px; flex: 0 0 12px; border-radius: 2px; }
+    .legend-row .label { flex: 1; }
+    .legend-row .value { color: #6f6f6f; font-variant-numeric: tabular-nums; }
+
+    .bar-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .bar-row { display: grid; grid-template-columns: 140px 1fr 70px; gap: 0.75rem; align-items: center; font-size: 0.8125rem; }
+    .bar-label { color: #393939; }
+    .bar-track { background: #e8e8e8; height: 14px; position: relative; }
+    .bar-fill { background: #0f62fe; height: 100%; }
+    .bar-fill.amber { background: #f1c21b; }
+    .bar-fill.red { background: #da1e28; }
+    .bar-value { color: #6f6f6f; font-variant-numeric: tabular-nums; text-align: right; }
+
+    .preview-note {
+      background: #fdf6dd; border-left: 3px solid #f1c21b;
+      padding: 0.625rem 0.875rem; margin-bottom: 1.25rem;
+      font-size: 0.8125rem; color: #684e00;
+    }
+    .placeholder {
+      background: #fff; border: 1px dashed #c6c6c6; padding: 3rem 1.5rem;
+      text-align: center; color: #525252;
+    }
+    .placeholder h2 { margin: 0 0 0.5rem 0; font-weight: 400; color: #161616; }
+    .placeholder p { margin: 0 0 0.5rem 0; font-size: 0.875rem; }
+    .placeholder .hint {
+      display: inline-block; margin-top: 1rem; padding: 0.375rem 0.75rem;
+      background: #edf5ff; color: #0043ce; font-size: 0.75rem;
+    }
+
+    .rehome-note {
+      background: #d0e2ff; border-left: 3px solid #0f62fe;
+      padding: 0.75rem 1rem; margin-bottom: 1.25rem;
+      font-size: 0.8125rem; color: #002d9c;
+    }
+    .rehome-note strong { color: #002d9c; }
+    .rehome-note code { background: rgba(0,0,0,0.06); padding: 0.0625rem 0.25rem; font-size: 0.8125rem; }
+
+    .stub-app-frame {
+      background: #fafafa; border: 1px dashed #c6c6c6; padding: 2rem;
+      text-align: center; color: #6f6f6f; font-size: 0.875rem;
+    }
+    .stub-app-frame .frame-title { font-weight: 600; color: #393939; margin-bottom: 0.25rem; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, Fragment } = React;
+
+    /*
+     * v2 (cumulative from v1) ships:
+     *   - Everything from v1 (QA top-level menu, QI Dashboard MVP, drill-throughs)
+     *   - QA Overview landing page (now meaningful with multiple live pillars)
+     *   - Statistical QC pillar with rehomed pages: Westgard Rules, Run Review & L-J
+     *   - QMS & Improvement pillar with: NCE Register (rehomed), Audit Trail (rehomed), E-Sig Log (NEW)
+     *   - Permission registry expanded for the new pillars
+     *
+     * Still placeholder until later versions:
+     *   - Quality Indicators pillar (still MVP from v1; full version + Critical Callback in v8)
+     *   - Accreditation Status (lands in v3)
+     *   - EQA pillar (V2 build in v10–v11; until then, redirects to existing top-level EQA page)
+     */
+
+    const TOP_LEVEL = [
+      { slug: 'home', label: 'Home', icon: '🏠' },
+      { slug: 'order', label: 'Order', icon: '📋' },
+      { slug: 'results', label: 'Results', icon: '🧪' },
+      { slug: 'patient', label: 'Patient', icon: '👤' },
+      { slug: 'sample', label: 'Sample', icon: '🩸' },
+      { slug: 'qa', label: 'Quality Assurance', icon: '⚖️', isNew: true,
+        children: [
+          { slug: 'overview', label: 'QA Overview' },
+          { slug: 'qc', label: 'Statistical QC', kind: 'pillar', children: [
+            { slug: 'westgard', label: 'Westgard Rules', tag: 'rehome' },
+            { slug: 'run-review', label: 'Run Review & L-J', tag: 'rehome' },
+          ] },
+          { slug: 'eqa', label: 'EQA', kind: 'pillar-placeholder' },
+          { slug: 'qi', label: 'Quality Indicators', kind: 'pillar', children: [
+            { slug: 'dashboard', label: 'QI Dashboard' },
+          ] },
+          { slug: 'qms', label: 'QMS & Improvement', kind: 'pillar', children: [
+            { slug: 'nce-register', label: 'NCE Register', tag: 'rehome' },
+            { slug: 'audit-trail', label: 'Audit Trail', tag: 'rehome' },
+            { slug: 'esig-log', label: 'E-Sig Log', tag: 'new' },
+            { slug: 'accreditation', label: 'Accreditation Status', tag: 'soon' },
+          ] },
+        ] },
+      { slug: 'eqa-legacy', label: 'EQA', icon: '🎯' },  // existing EQA stays for v2; rehomes in v10
+      { slug: 'reports', label: 'Reports', icon: '📊' },
+      { slug: 'admin', label: 'Administration', icon: '⚙️' },
+    ];
+
+    function parseHash() {
+      const raw = window.location.hash.replace(/^#/, '') || '/qa/overview';
+      const parts = raw.split('/').filter(Boolean);
+      if (parts[0] !== 'qa') return { kind: 'overview' };
+      if (parts.length === 1 || parts[1] === 'overview') return { kind: 'overview' };
+
+      // QC pillar
+      if (parts[1] === 'qc') {
+        if (parts.length === 2) return { kind: 'qc-landing' };
+        if (parts[2] === 'westgard') return { kind: 'rehome', page: 'westgard' };
+        if (parts[2] === 'run-review') return { kind: 'rehome', page: 'run-review' };
+      }
+      // EQA placeholder
+      if (parts[1] === 'eqa') return { kind: 'eqa-placeholder' };
+
+      // QI pillar
+      if (parts[1] === 'qi') {
+        if (parts.length === 2) return { kind: 'qi-landing' };
+        if (parts[2] === 'dashboard') {
+          if (parts[3] === 'detail') return { kind: 'qi-detail', tile: parts[4] || 'rejection-rate', sub: parts[5] || null, arg: parts[6] || null };
+          return { kind: 'qi-dashboard' };
+        }
+      }
+      // QMS pillar
+      if (parts[1] === 'qms') {
+        if (parts.length === 2) return { kind: 'qms-landing' };
+        if (parts[2] === 'nce-register') return { kind: 'rehome', page: 'nce-register' };
+        if (parts[2] === 'audit-trail') return { kind: 'rehome', page: 'audit-trail' };
+        if (parts[2] === 'esig-log') return { kind: 'esig-log', detail: parts[3] || null };
+        if (parts[2] === 'accreditation') return { kind: 'accreditation-placeholder' };
+      }
+      return { kind: 'overview' };
+    }
+
+    function useRoute() {
+      const [route, setRoute] = useState(parseHash());
+      useEffect(() => {
+        const onHash = () => setRoute(parseHash());
+        window.addEventListener('hashchange', onHash);
+        return () => window.removeEventListener('hashchange', onHash);
+      }, []);
+      return route;
+    }
+    const go = (h) => { window.location.hash = h; };
+
+    /* --------------------------- App shell --------------------------- */
+
+    function AppHeader() {
+      return (
+        <div className="app-header">
+          <span className="brand">OpenELIS Global<span className="sub">— v2 preview</span></span>
+          <span className="spacer"></span>
+          <span className="user-chip">Casey · QA Officer</span>
+        </div>
+      );
+    }
+
+    function Rail({ route }) {
+      const isQA = ['overview','qc-landing','qi-landing','qi-dashboard','qi-detail','qms-landing','rehome','esig-log','eqa-placeholder','accreditation-placeholder'].includes(route.kind);
+      const expandedPillar =
+        ['qc-landing'].includes(route.kind) ? 'qc' :
+        (route.kind === 'rehome' && ['westgard','run-review'].includes(route.page)) ? 'qc' :
+        ['qi-landing','qi-dashboard','qi-detail'].includes(route.kind) ? 'qi' :
+        ['qms-landing','esig-log','accreditation-placeholder'].includes(route.kind) ? 'qms' :
+        (route.kind === 'rehome' && ['nce-register','audit-trail'].includes(route.page)) ? 'qms' :
+        null;
+
+      const isCurrentLeaf = (pillar, slug) => {
+        if (pillar === 'qc') {
+          if (slug === 'westgard'   && route.kind === 'rehome' && route.page === 'westgard') return true;
+          if (slug === 'run-review' && route.kind === 'rehome' && route.page === 'run-review') return true;
+        }
+        if (pillar === 'qi') {
+          if (slug === 'dashboard' && (route.kind === 'qi-dashboard' || route.kind === 'qi-detail')) return true;
+        }
+        if (pillar === 'qms') {
+          if (slug === 'nce-register' && route.kind === 'rehome' && route.page === 'nce-register') return true;
+          if (slug === 'audit-trail'  && route.kind === 'rehome' && route.page === 'audit-trail') return true;
+          if (slug === 'esig-log'     && route.kind === 'esig-log') return true;
+          if (slug === 'accreditation' && route.kind === 'accreditation-placeholder') return true;
+        }
+        return false;
+      };
+
+      return (
+        <aside className="rail">
+          <div className="rail-title">Navigation</div>
+          {TOP_LEVEL.map(item => (
+            <Fragment key={item.slug}>
+              {item.children ? (
+                <Fragment>
+                  <button className={`rail-bucket ${isQA ? 'expanded current' : 'collapsed'} ${item.isNew ? 'is-new' : ''}`}>
+                    <span className="icon">{item.icon}</span>
+                    <span className="label">{item.label}</span>
+                    {item.isNew && <span className="new-tag">New</span>}
+                    <span className="chev">▾</span>
+                  </button>
+                  <div className="rail-children">
+                    {item.children.map(child => {
+                      if (!child.children) {
+                        // Leaf inside QA (Overview, EQA placeholder)
+                        const targetMap = {
+                          'overview': '/qa/overview',
+                          'eqa': '/qa/eqa',
+                        };
+                        const isCurrent =
+                          (child.slug === 'overview' && route.kind === 'overview') ||
+                          (child.slug === 'eqa' && route.kind === 'eqa-placeholder');
+                        return (
+                          <button key={child.slug}
+                            className={`rail-pillar ${isCurrent ? 'current' : ''}`}
+                            onClick={() => go(targetMap[child.slug])}>
+                            <span>{child.label}</span>
+                            {child.kind === 'pillar-placeholder' && <span className="pill rehome" style={{marginLeft:'auto', fontSize:'0.625rem', padding:'0.0625rem 0.375rem', borderRadius:'8px', background:'#e0e0e0', color:'#525252', textTransform:'uppercase', letterSpacing:'0.04em'}}>see legacy</span>}
+                          </button>
+                        );
+                      }
+                      // Pillar with children (QC, QI, QMS)
+                      const isExpanded = expandedPillar === child.slug;
+                      const isCurrentPillar = isExpanded;
+                      return (
+                        <Fragment key={child.slug}>
+                          <button className={`rail-pillar ${isExpanded ? 'expanded' : ''} ${isCurrentPillar ? 'current' : ''}`}
+                            onClick={() => {
+                              const map = { qc: '/qa/qc', qi: '/qa/qi', qms: '/qa/qms' };
+                              go(map[child.slug]);
+                            }}>
+                            <span>{child.label}</span>
+                            <span className="chev">▾</span>
+                          </button>
+                          <div className="rail-pillar-children" style={{ display: isExpanded ? 'block' : 'none' }}>
+                            {child.children.map(leaf => (
+                              <button key={leaf.slug}
+                                className={`rail-page ${isCurrentLeaf(child.slug, leaf.slug) ? 'current' : ''}`}
+                                onClick={() => {
+                                  const path = `/qa/${child.slug}/${leaf.slug === 'dashboard' ? 'dashboard' : leaf.slug}`;
+                                  go(path);
+                                }}>
+                                <span>{leaf.label}</span>
+                                {leaf.tag === 'new' && <span className="pill new">New</span>}
+                                {leaf.tag === 'rehome' && <span className="pill rehome">rehomed</span>}
+                                {leaf.tag === 'soon' && <span className="pill rehome">soon</span>}
+                              </button>
+                            ))}
+                          </div>
+                        </Fragment>
+                      );
+                    })}
+                  </div>
+                </Fragment>
+              ) : (
+                <button className="rail-bucket"
+                  onClick={() => { /* visual context only */ }}>
+                  <span className="icon">{item.icon}</span>
+                  <span className="label">{item.label}</span>
+                </button>
+              )}
+            </Fragment>
+          ))}
+        </aside>
+      );
+    }
+
+    function Crumb({ items }) {
+      return (
+        <div className="crumb">
+          {items.map((it, i) => (
+            <Fragment key={i}>
+              {i > 0 && <span className="sep">›</span>}
+              {it.target && i < items.length - 1
+                ? <a onClick={() => go(it.target)}>{it.label}</a>
+                : <span className={i === items.length - 1 ? 'current' : ''}>{it.label}</span>}
+            </Fragment>
+          ))}
+        </div>
+      );
+    }
+
+    function PreviewNote() {
+      return (
+        <div className="preview-note">
+          <strong>v2 — what ships (cumulative from v1):</strong> QA Overview becomes meaningful (3 of 4 pillars
+          live). NCE menu rehomes to <code>/qa/qms/nce-register</code> (legacy page at new URL).
+          Audit Trail rehomes. Westgard / Levey-Jennings rehome under Statistical QC.
+          Electronic Signature Log ships as a new page. EQA + Accreditation Status remain placeholder until v3 / v10–v11.
+          ~30–40h estimated.
+        </div>
+      );
+    }
+
+    /* --------------------------- QA Overview --------------------------- */
+
+    const QUESTIONS = [
+      { num: 1, label: 'Are runs in control?', answer: '47 of 47 QC runs in control · last review 2d ago',
+        status: 'green', target: '/qa/qc' },
+      { num: 2, label: 'How did EQA perform last cycle?', answer: 'EQA V2 performance dashboard — coming in v10–v11',
+        status: 'gray', target: '/qa/eqa' },
+      { num: 3, label: 'Are QIs on target?', answer: '3 of 4 indicators within target · 1 amber',
+        status: 'amber', target: '/qa/qi/dashboard' },
+      { num: 4, label: 'Open critical NCEs?', answer: '5 critical pending acknowledgment',
+        status: 'red', target: '/qa/qms/nce-register' },
+      { num: 5, label: 'Accreditation status?', answer: 'Accreditation Status registry — coming in v3',
+        status: 'gray', target: '/qa/qms/accreditation' },
+    ];
+
+    const PILLARS = [
+      { id: 'qc', label: 'Statistical QC',
+        statusIcon: '✓', statusKind: 'green', statusText: '47 of 47 runs in control',
+        secondary: '2 sections · Last review 2d ago',
+        deepLink: '/qa/qc', deepLinkLabel: 'View Statistical QC ↗' },
+      { id: 'eqa', label: 'EQA (Proficiency Testing)', placeholder: true,
+        line1: 'Coming in v10–v11', line2: 'EQA V2 build (cycle/scheme model, lab performance dashboard).',
+        line3: 'In the meantime, the legacy EQA page lives at top-level /eqa.',
+        deepLink: '/qa/eqa', deepLinkLabel: 'View placeholder ↗' },
+      { id: 'qi', label: 'Quality Indicators',
+        statusIcon: '⚠', statusKind: 'amber', statusText: '3 of 4 within target',
+        secondary: '4 enabled QIs · Window: rolling 30d',
+        deepLink: '/qa/qi/dashboard', deepLinkLabel: 'View QI Dashboard ↗' },
+      { id: 'qms', label: 'QMS & Improvement',
+        statusIcon: '✗', statusKind: 'red', statusText: '5 critical NCEs pending',
+        secondary: '3 CAPAs in progress · Audit Trail + E-Sig Log live',
+        deepLink: '/qa/qms', deepLinkLabel: 'View QMS pillar ↗' },
+    ];
+
+    function QAOverview() {
+      return (
+        <Fragment>
+          <Crumb items={[{ label: 'Quality Assurance', target: '/qa/overview' }, { label: 'QA Overview' }]} />
+          <h1 className="page-title">QA Overview</h1>
+          <p className="page-sub">Five questions ISO 15189:2022 expects you to answer at any moment, plus pillar rollups.</p>
+          <PreviewNote />
+
+          <section className="question-strip">
+            <h2>Five quality questions</h2>
+            {QUESTIONS.map(q => (
+              <div key={q.num} className="question-row" onClick={() => go(q.target)}>
+                <span className={`q-icon ${q.status}`}>
+                  {q.status === 'green' && '✓'}
+                  {q.status === 'amber' && '⚠'}
+                  {q.status === 'red' && '✗'}
+                  {q.status === 'gray' && '—'}
+                </span>
+                <span className="q-text">
+                  <span className="q-label">{q.num}. {q.label}</span>
+                  <span className="q-answer">{q.answer}</span>
+                </span>
+                <span className="q-arrow">→</span>
+              </div>
+            ))}
+            <div className="strip-footer">
+              <span>Last recomputed: 4 minutes ago</span>
+              <span className="refresh">↻ Refresh</span>
+            </div>
+          </section>
+
+          <h2 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 0.75rem 0' }}>Pillars</h2>
+          <div className="pillar-grid">
+            {PILLARS.map(p => (
+              <div key={p.id} className={`pillar-tile ${p.placeholder ? 'placeholder' : ''}`}
+                onClick={() => p.deepLink && go(p.deepLink)}>
+                <div className="head">
+                  <h3>{p.label}</h3>
+                  {p.placeholder && <span className="soon-pill">v10–v11</span>}
+                  <span className="info-icon" title="Pillar info">ⓘ</span>
+                </div>
+                {p.placeholder ? (
+                  <Fragment>
+                    <div className="secondary">{p.line1}</div>
+                    <div className="tertiary">{p.line2}</div>
+                    {p.line3 && <div className="tertiary" style={{ marginTop:'0.25rem' }}>{p.line3}</div>}
+                  </Fragment>
+                ) : (
+                  <Fragment>
+                    <div className="status-line">
+                      <span className={`icon ${p.statusKind}`}>
+                        {p.statusKind === 'green' && '✓'}
+                        {p.statusKind === 'amber' && '⚠'}
+                        {p.statusKind === 'red' && '✗'}
+                      </span>
+                      <span style={{ fontWeight: 500 }}>{p.statusText}</span>
+                    </div>
+                    <div className="secondary">{p.secondary}</div>
+                  </Fragment>
+                )}
+                <div className="deep-link">{p.deepLinkLabel}</div>
+              </div>
+            ))}
+          </div>
+        </Fragment>
+      );
+    }
+
+    /* --------------------------- Pillar landings --------------------------- */
+
+    function QCLanding() {
+      return (
+        <Fragment>
+          <Crumb items={[{ label: 'Quality Assurance', target: '/qa/overview' }, { label: 'Statistical QC' }]} />
+          <h1 className="page-title">Statistical QC</h1>
+          <p className="page-sub">Internal quality control — Westgard rules and Levey-Jennings review.</p>
+
+          <div className="rehome-note">
+            <strong>v2 rehome:</strong> Westgard Rules and Run Review & Levey-Jennings keep their existing UI but
+            now live under Quality Assurance instead of Validation. Old paths 301-redirect.
+          </div>
+
+          <div className="leaf-grid">
+            <div className="leaf-tile" onClick={() => go('/qa/qc/westgard')}>
+              <h3>Westgard Rules <span className="tag rehome">Rehomed</span></h3>
+              <p>Multi-rule QC configuration per test (1-2s, 1-3s, 2-2s, R-4s, 4-1s, 10-x). Existing page; new URL.</p>
+              <p style={{ fontSize:'0.75rem', color:'#0f62fe' }}>Open ↗</p>
+            </div>
+            <div className="leaf-tile" onClick={() => go('/qa/qc/run-review')}>
+              <h3>Run Review &amp; Levey-Jennings <span className="tag rehome">Rehomed</span></h3>
+              <p>Per-run QC review with Levey-Jennings charts. Sign-off and rule violations. Existing page; new URL.</p>
+              <p style={{ fontSize:'0.75rem', color:'#0f62fe' }}>Open ↗</p>
+            </div>
+          </div>
+        </Fragment>
+      );
+    }
+
+    function QILanding() {
+      // For v2, QI pillar still has only the MVP dashboard. Redirect-style landing.
+      return (
+        <Fragment>
+          <Crumb items={[{ label: 'Quality Assurance', target: '/qa/overview' }, { label: 'Quality Indicators' }]} />
+          <h1 className="page-title">Quality Indicators</h1>
+          <p className="page-sub">Pillar-3 indicators. v2 still ships the MVP dashboard from v1; full configuration + per-QI detail pages arrive in v8.</p>
+
+          <div className="leaf-grid">
+            <div className="leaf-tile" onClick={() => go('/qa/qi/dashboard')}>
+              <h3>QI Dashboard</h3>
+              <p>4 KPI tiles: Average TAT, Rejection Rate, Amendment Rate, NCE Pulse. Drill-through to lab unit / test breakdowns.</p>
+              <p style={{ fontSize:'0.75rem', color:'#0f62fe' }}>Open ↗</p>
+            </div>
+          </div>
+        </Fragment>
+      );
+    }
+
+    function QMSLanding() {
+      return (
+        <Fragment>
+          <Crumb items={[{ label: 'Quality Assurance', target: '/qa/overview' }, { label: 'QMS & Improvement' }]} />
+          <h1 className="page-title">QMS &amp; Improvement</h1>
+          <p className="page-sub">Quality management system — non-conformities, audit trail, signatures, and (in v3) accreditation status.</p>
+
+          <div className="rehome-note">
+            <strong>v2 changes:</strong> NCE menu rehomed to <code>/qa/qms/nce-register</code> (legacy UI; modern register lands in v4).
+            Audit Trail rehomed from Admin (Admin cross-link preserved). Electronic Signature Log ships new.
+            Accreditation Status registry arrives in v3.
+          </div>
+
+          <div className="leaf-grid">
+            <div className="leaf-tile" onClick={() => go('/qa/qms/nce-register')}>
+              <h3>NCE Register <span className="tag rehome">Rehomed</span></h3>
+              <p>Non-conformity events. Existing UI at the new URL. Modern register UI arrives in v4.</p>
+              <p style={{ fontSize:'0.75rem', color:'#0f62fe' }}>Open ↗</p>
+            </div>
+            <div className="leaf-tile" onClick={() => go('/qa/qms/audit-trail')}>
+              <h3>Audit Trail <span className="tag rehome">Rehomed</span></h3>
+              <p>Configuration / record audit log, rehomed from Admin. Existing UI. Admin cross-link preserved so old muscle memory still works.</p>
+              <p style={{ fontSize:'0.75rem', color:'#0f62fe' }}>Open ↗</p>
+            </div>
+            <div className="leaf-tile" onClick={() => go('/qa/qms/esig-log')}>
+              <h3>Electronic Signature Log <span className="tag new">New</span></h3>
+              <p>Filterable read-only log of every e-signature event in the system. CSV / PDF export for inspectors. Reads from the existing <code>electronic_signature</code> table — no UNION ALL required.</p>
+              <p style={{ fontSize:'0.75rem', color:'#0f62fe' }}>Open ↗</p>
+            </div>
+            <div className="leaf-tile" style={{ background:'#f7f7f7', borderStyle:'dashed' }}
+              onClick={() => go('/qa/qms/accreditation')}>
+              <h3>Accreditation Status <span className="tag rehome">v3</span></h3>
+              <p>Lab-attested accreditation registry (CAP, ISO 15189, custom). Coming in v3.</p>
+              <p style={{ fontSize:'0.75rem', color:'#6f6f6f' }}>Placeholder ↗</p>
+            </div>
+          </div>
+        </Fragment>
+      );
+    }
+
+    /* --------------------------- Rehome stubs --------------------------- */
+
+    const REHOME_PAGES = {
+      'westgard':       { title: 'Westgard Rules',                oldPath: '/Validation/WestgardRules',                description: 'Multi-rule QC configuration per test.' },
+      'run-review':     { title: 'Run Review & Levey-Jennings',   oldPath: '/Validation/RunReview',                     description: 'Per-run QC review and sign-off.' },
+      'nce-register':   { title: 'NCE Register (legacy)',         oldPath: '/NonConform/Dashboard',                     description: 'Non-conformity events list and detail.' },
+      'audit-trail':    { title: 'Audit Trail',                   oldPath: '/Admin/AuditTrail',                         description: 'Configuration and record-change audit log.' },
+    };
+
+    function RehomePage({ page }) {
+      const meta = REHOME_PAGES[page];
+      const breadcrumbItems = page === 'westgard' || page === 'run-review'
+        ? [
+            { label: 'Quality Assurance', target: '/qa/overview' },
+            { label: 'Statistical QC', target: '/qa/qc' },
+            { label: meta.title }
+          ]
+        : page === 'nce-register'
+          ? [
+              { label: 'Quality Assurance', target: '/qa/overview' },
+              { label: 'QMS & Improvement', target: '/qa/qms' },
+              { label: meta.title }
+            ]
+          : [
+              { label: 'Quality Assurance', target: '/qa/overview' },
+              { label: 'QMS & Improvement', target: '/qa/qms' },
+              { label: meta.title }
+            ];
+
+      return (
+        <Fragment>
+          <Crumb items={breadcrumbItems} />
+          <h1 className="page-title">{meta.title}</h1>
+          <p className="page-sub">{meta.description}</p>
+
+          <div className="rehome-note">
+            <strong>v2 rehome — UI unchanged.</strong> This page still renders the existing OpenELIS UI; only the
+            URL and breadcrumb changed. Old path <code>{meta.oldPath}</code> issues a 301 to the new URL for one major release.
+            {page === 'nce-register' && (
+              <Fragment>
+                <br /><br />
+                The modern NCE Register (Carbon Carbon-based, with the FRS v3.1 list+filter+detail+analytics
+                experience) arrives in v4. v2 only changes where this page lives in the menu.
+              </Fragment>
+            )}
+            {page === 'audit-trail' && (
+              <Fragment>
+                <br /><br />
+                Cross-link preserved from <code>Admin → Audit Trail</code> so administrators with muscle memory still find it.
+              </Fragment>
+            )}
+          </div>
+
+          <div className="stub-app-frame">
+            <div className="frame-title">[ Existing OpenELIS {meta.title} UI renders here ]</div>
+            Same component, same data, same controls.<br />
+            v2 mockup omits the page body intentionally — only the IA position changed.
+          </div>
+        </Fragment>
+      );
+    }
+
+    /* --------------------------- E-Sig Log (new) --------------------------- */
+
+    const ESIG_ROWS = [
+      { ts: '2026-04-23 10:14', signer: 'A. Johnson', role: 'Lab Tech', action: 'Validated', kind: 'validated', artifact: 'Result R-44218', recordType: 'RESULT', reason: 'Routine validation', priorState: 'Authored', newState: 'Validated', ip: '10.0.4.27', ua: 'Chrome 124 / macOS' },
+      { ts: '2026-04-23 09:52', signer: 'M. Garcia', role: 'QA Officer', action: 'Acknowledged', kind: 'acknowledged', artifact: 'NCE-20260423-007', recordType: 'NCE_EVENT', reason: 'Critical hemolysis — investigating', priorState: 'Open', newState: 'Acknowledged', ip: '10.0.4.31', ua: 'Chrome 124 / macOS' },
+      { ts: '2026-04-23 09:41', signer: 'J. Smith', role: 'Lab Tech', action: 'Amended', kind: 'amended', artifact: 'Result R-44209', recordType: 'RESULT', reason: 'Corrected calculation error', priorState: '7.2 mmol/L', newState: '5.1 mmol/L', ip: '10.0.4.18', ua: 'Firefox 123 / Windows' },
+      { ts: '2026-04-23 08:33', signer: 'L. Tran', role: 'Lab Tech', action: 'Released', kind: 'released', artifact: 'Result R-44196', recordType: 'RESULT', reason: 'Validated and released', priorState: 'Validated', newState: 'Released', ip: '10.0.4.42', ua: 'Chrome 124 / macOS' },
+      { ts: '2026-04-22 17:08', signer: 'J. Smith', role: 'Lab Tech', action: 'Rejected', kind: 'rejected', artifact: 'Sample LAB-26-04388', recordType: 'SAMPLE', reason: 'Hemolysis', priorState: 'Received', newState: 'Rejected', ip: '10.0.4.18', ua: 'Firefox 123 / Windows' },
+      { ts: '2026-04-22 15:48', signer: 'A. Johnson', role: 'Lab Tech', action: 'Signed off', kind: 'signed-off', artifact: 'QC run QC-2026-04-22-AM', recordType: 'QC_RUN', reason: 'All within control limits', priorState: 'Pending', newState: 'Signed-off', ip: '10.0.4.27', ua: 'Chrome 124 / macOS' },
+      { ts: '2026-04-22 14:22', signer: 'M. Garcia', role: 'QA Officer', action: 'Validated', kind: 'validated', artifact: 'Result R-44131', recordType: 'RESULT', reason: 'Routine validation', priorState: 'Authored', newState: 'Validated', ip: '10.0.4.31', ua: 'Chrome 124 / macOS' },
+      { ts: '2026-04-22 11:17', signer: 'J. Smith', role: 'Lab Tech', action: 'Amended', kind: 'amended', artifact: 'Result R-44089', recordType: 'RESULT', reason: 'Re-quantified after rerun', priorState: '6.8%', newState: '7.3%', ip: '10.0.4.18', ua: 'Firefox 123 / Windows' },
+    ];
+
+    function ESigLog({ detail }) {
+      const [expanded, setExpanded] = useState(null);
+      const toggle = i => setExpanded(expanded === i ? null : i);
+
+      return (
+        <Fragment>
+          <Crumb items={[
+            { label: 'Quality Assurance', target: '/qa/overview' },
+            { label: 'QMS & Improvement', target: '/qa/qms' },
+            { label: 'Electronic Signature Log' }
+          ]} />
+          <h1 className="page-title">Electronic Signature Log</h1>
+          <p className="page-sub">Read-only log of every e-signature event. Filter, export, and drill through to artifacts.</p>
+
+          <div className="detail-placeholder">
+            <div className="sub-banner">
+              <strong>Data source:</strong> existing <code>electronic_signature</code> table (record_type discriminator + signer_id + signed_at + client_ip + user_agent + signature_meaning). No UNION ALL across heterogeneous audit tables. Login + config-change events excluded — those are on Audit Trail.
+            </div>
+
+            <div className="detail-filters">
+              <span className="filter">Date range: Rolling 30d</span>
+              <span className="filter">Signer: All</span>
+              <span className="filter">Action: All</span>
+              <span className="filter">Artifact type: All</span>
+              <span className="filter">Reason contains…</span>
+              <span className="filter add">+ Add filter</span>
+              <span className="spacer"></span>
+              <button className="export-btn">⬇ Export CSV</button>
+              <button className="export-btn">⬇ Export PDF</button>
+            </div>
+
+            <table className="detail-table">
+              <thead>
+                <tr>
+                  <th style={{ width: 140 }}>When</th>
+                  <th>Signer</th>
+                  <th>Action</th>
+                  <th>Artifact</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ESIG_ROWS.map((r, i) => (
+                  <Fragment key={i}>
+                    <tr style={{ cursor: 'pointer' }} onClick={() => toggle(i)}>
+                      <td>{r.ts}</td>
+                      <td>{r.signer} <span style={{ color:'#6f6f6f', fontSize:'0.75rem' }}>· {r.role}</span></td>
+                      <td><span className={`action-pill ${r.kind}`}>{r.action}</span></td>
+                      <td><span className="nce-link">{r.artifact}</span></td>
+                      <td>{r.reason}</td>
+                    </tr>
+                    {expanded === i && (
+                      <tr>
+                        <td colSpan={5} style={{ background:'#f7f7f7' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', padding: '0.75rem 0', fontSize: '0.8125rem' }}>
+                            <div>
+                              <div style={{ fontWeight: 600, color:'#525252', fontSize:'0.6875rem', textTransform:'uppercase', letterSpacing:'0.04em', marginBottom: 4 }}>State change</div>
+                              <div>{r.priorState} → {r.newState}</div>
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 600, color:'#525252', fontSize:'0.6875rem', textTransform:'uppercase', letterSpacing:'0.04em', marginBottom: 4 }}>From</div>
+                              <div>{r.ip}</div>
+                              <div style={{ color: '#6f6f6f' }}>{r.ua}</div>
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 600, color:'#525252', fontSize:'0.6875rem', textTransform:'uppercase', letterSpacing:'0.04em', marginBottom: 4 }}>Record</div>
+                              <div>record_type: {r.recordType}</div>
+                              <div><a style={{ color:'#0f62fe', cursor:'pointer' }}>View full audit trail for this artifact ↗</a></div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+
+            <div style={{ marginTop:'0.75rem', fontSize:'0.75rem', color:'#6f6f6f', display:'flex', justifyContent:'space-between' }}>
+              <span>Showing 1–{ESIG_ROWS.length} of 312 · Page size 25 ▾</span>
+              <span>‹ Prev · 1 · 2 · 3 · … · Next ›</span>
+            </div>
+          </div>
+        </Fragment>
+      );
+    }
+
+    /* --------------------------- Placeholders for v3 / v10 --------------------------- */
+
+    function EQAPlaceholder() {
+      return (
+        <Fragment>
+          <Crumb items={[{ label: 'Quality Assurance', target: '/qa/overview' }, { label: 'EQA' }]} />
+          <h1 className="page-title">EQA (Proficiency Testing)</h1>
+          <p className="page-sub">Pillar landing — placeholder until EQA V2 ships in v10–v11.</p>
+
+          <div className="placeholder">
+            <h2>EQA pillar arrives in v10–v11</h2>
+            <p>EQA V2 is fully specified but not yet built. v10 ships the cycle/scheme model, My EQA participant view, and EQA Lab Performance dashboard. v11 adds Follow-Up Queue, Analyst Competency, and EQA Program Management rehome.</p>
+            <p>Until then, the legacy EQA pages remain at top-level <code>/eqa</code>.</p>
+            <span className="hint">v10–v11 — cycle/scheme model + 5 EQA stories</span>
+          </div>
+        </Fragment>
+      );
+    }
+
+    function AccreditationPlaceholder() {
+      return (
+        <Fragment>
+          <Crumb items={[
+            { label: 'Quality Assurance', target: '/qa/overview' },
+            { label: 'QMS & Improvement', target: '/qa/qms' },
+            { label: 'Accreditation Status' }
+          ]} />
+          <h1 className="page-title">Accreditation Status</h1>
+          <p className="page-sub">Placeholder until v3.</p>
+
+          <div className="placeholder">
+            <h2>Accreditation Status registry arrives in v3</h2>
+            <p>Lab-attested accreditation registry (lab declares which accreditations it holds, with expiration dates, scope, and certificate uploads). Plus a "QA evidence at a glance" section linking to existing QA surfaces.</p>
+            <p>Replaces the earlier evidence-rollup approach with a self-attestation model — easier to manage in incomplete-information state.</p>
+            <span className="hint">v3 — single new accreditation_record table + small migration</span>
+          </div>
+        </Fragment>
+      );
+    }
+
+    /* --------------------------- QI Dashboard (carried from v1) --------------------------- */
+
+    const QI_TILES = [
+      { id: 'tat', label: 'Average TAT', value: '18h 47m', delta: '↓ 0:32', deltaKind: 'good',
+        bandKind: 'blue',
+        secondary: 'Across 12 lab units · Slowest: Microbiology (61h 12m)',
+        drillTo: '/qa/qi/dashboard/detail/tat',
+        isCount: true, target: 'vs prior 30d' },
+      { id: 'rejection-rate', label: 'Rejection Rate', value: '1.7%', delta: '↓ 0.3%', deltaKind: 'good',
+        bandKind: 'green', fill: 85, target: 'Target < 2%',
+        secondary: '42 rejected of 2,471 test orders · Worst: Hematology (3.2%)',
+        marker: 100, drillTo: '/qa/qi/dashboard/detail/rejection-rate' },
+      { id: 'amendment-rate', label: 'Amendment Rate', value: '0.31%', delta: '↑ 0.05%', deltaKind: 'bad',
+        bandKind: 'amber', fill: 62, target: 'Target < 0.5%',
+        secondary: '8 amended of 2,580 released',
+        marker: 100, drillTo: '/qa/qi/dashboard/detail/amendment-rate' },
+      { id: 'nce-pulse', label: 'NCE Pulse', value: '5', delta: 'critical pending ack', deltaKind: 'flat',
+        bandKind: 'red', fill: 100, target: '3 CAPAs overdue',
+        secondary: 'Click to view in NCE Register',
+        marker: 0, drillTo: '/qa/qi/dashboard/detail/nce-pulse', isCount: true },
+    ];
+
+    function QIDashboard() {
+      return (
+        <Fragment>
+          <Crumb items={[
+            { label: 'Quality Assurance', target: '/qa/overview' },
+            { label: 'Quality Indicators', target: '/qa/qi' },
+            { label: 'QI Dashboard' }
+          ]} />
+          <h1 className="page-title">QI Dashboard</h1>
+          <p className="page-sub">Four quality indicators that compute from data already in OpenELIS.</p>
+
+          <div className="preview-note">
+            <strong>Same MVP as v1.</strong> Configurable thresholds, Critical Callback Compliance, and full per-QI detail pages arrive in v8.
+          </div>
+
+          <div className="qi-header">
+            <label htmlFor="window">Reporting window</label>
+            <select id="window" defaultValue="rolling30d">
+              <option value="rolling7d">Rolling 7 days</option>
+              <option value="rolling30d">Rolling 30 days</option>
+              <option value="rolling90d">Rolling 90 days</option>
+              <option value="ytd">Year to date</option>
+            </select>
+            <span className="timestamp">Last recomputed: 2m ago</span>
+            <button className="refresh-btn">↻ Refresh</button>
+          </div>
+
+          <div className="qi-grid">
+            {QI_TILES.map(t => (
+              <div key={t.id} className={`qi-tile ${t.bandKind}`} onClick={() => go(t.drillTo)}>
+                <div className="head">
+                  <h3>{t.label}</h3>
+                  <span className="icons">ⓘ</span>
+                </div>
+                <div className="primary">
+                  <span className="value">{t.value}</span>
+                  <span className={`delta ${t.deltaKind}`}>{t.delta}</span>
+                </div>
+                {!t.isCount && (
+                  <Fragment>
+                    <div className="progress-track">
+                      <div className={`progress-fill ${t.bandKind}`} style={{ width: `${t.fill}%` }} />
+                      {t.marker < 100 && <div className="progress-marker" style={{ left: `${t.marker}%` }} />}
+                    </div>
+                    <div className="target-line">{t.target}</div>
+                  </Fragment>
+                )}
+                {t.isCount && <div className="target-line">{t.target}</div>}
+                <div className="secondary">{t.secondary}</div>
+                <div className="deep-link">View detail ↗</div>
+              </div>
+            ))}
+          </div>
+        </Fragment>
+      );
+    }
+
+    function QIDetail({ tile }) {
+      // Carry-forward v1 detail behavior — concise version pointing at v1 for full breakdowns.
+      return (
+        <Fragment>
+          <Crumb items={[
+            { label: 'Quality Assurance', target: '/qa/overview' },
+            { label: 'Quality Indicators', target: '/qa/qi' },
+            { label: 'QI Dashboard', target: '/qa/qi/dashboard' },
+            { label: tile.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }
+          ]} />
+          <h1 className="page-title">{tile.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} — Detail</h1>
+          <p className="page-sub">Detail page (carried forward unchanged from v1 MVP).</p>
+
+          <div className="detail-placeholder">
+            <div className="sub-banner">
+              <strong>Same as v1 MVP.</strong> Detail-page breakdowns for Average TAT (lab unit → test) and Rejection Rate (pie + lab unit + test bar charts) live in <code>qa-v1-preview.html</code>. v2 carries them forward unchanged. Full v8 per-QI detail pages add heatmap, Pareto, per-test threshold breakdown.
+            </div>
+            <div className="placeholder">
+              <h2>Open the v1 mockup for the live drill-through</h2>
+              <p>Open <code>qa-v1-preview.html#/qa/qi-dashboard/detail/{tile}</code> in a browser to see the working drill-through.</p>
+            </div>
+          </div>
+        </Fragment>
+      );
+    }
+
+    /* --------------------------- App --------------------------- */
+
+    function App() {
+      const route = useRoute();
+      let body;
+      if (route.kind === 'overview') body = <QAOverview />;
+      else if (route.kind === 'qc-landing') body = <QCLanding />;
+      else if (route.kind === 'qi-landing') body = <QILanding />;
+      else if (route.kind === 'qi-dashboard') body = <QIDashboard />;
+      else if (route.kind === 'qi-detail') body = <QIDetail tile={route.tile} />;
+      else if (route.kind === 'qms-landing') body = <QMSLanding />;
+      else if (route.kind === 'rehome') body = <RehomePage page={route.page} />;
+      else if (route.kind === 'esig-log') body = <ESigLog detail={route.detail} />;
+      else if (route.kind === 'eqa-placeholder') body = <EQAPlaceholder />;
+      else if (route.kind === 'accreditation-placeholder') body = <AccreditationPlaceholder />;
+      else body = <QAOverview />;
+
+      return (
+        <Fragment>
+          <AppHeader />
+          <div className="layout">
+            <Rail route={route} />
+            <main className="main">{body}</main>
+          </div>
+        </Fragment>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
