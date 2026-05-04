@@ -2233,3 +2233,16 @@
     - planning
   added: "2026-04-24"
   status: draft
+
+- id: qa-menu-v0.5
+  type: html
+  path: designs/quality/qa-menu-v0.5.html
+  spec: designs/quality/qa-menu-v0.5.md
+  category: quality
+  description: "IA rehome for all existing QA-adjacent features before v1 MVP — Statistical QC / EQA / QMS pillars, legacy URL redirects, GRIST UAT alignment."
+  links:
+    github: null
+    jira: null
+    gallery: "https://digi-uw.github.io/openelis-work/#/quality/qa-menu-v0.5"
+  added: "2026-05-01"
+  status: draft
