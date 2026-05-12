@@ -271,6 +271,19 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 101,
     tags: ['admin', 'roadmap', 'planning', 'phase-5'],
   },
+  {
+    name: 'Test Rules Authoring Redesign — MVP',
+    category: 'admin-config',
+    component: null,
+    description: 'Unified replacement for the legacy Reflex Tests Management and Calculated Value Tests Management admin pages — one route at /admin/testRules. List view mixes Rules + Calculations + Algorithms + Multi-step calcs. Inline row expansion for simple rule authoring; dedicated full-width editors for Reflex (WHEN/THEN compose + formula bar), Numeric Calc (formula bar + live preview + flowchart), and Coded Calc (decision table, e.g. TB GenoType interpretation). Algorithm-as-graph canvas is Phase 2 reference. All five previews are cross-linked — open the list view and click through. FRS: 43 numbered FRs, full AST data model, 29 acceptance criteria, ~100 i18n keys.',
+    specPath: 'designs/admin-config/test-rules-mvp-frs.md',
+    htmlUrl: 'designs/admin-config/test-rules-list-view-preview.html',
+    added: '2026-05-12',
+    status: 'draft',
+    githubIssue: null,
+    jira: [],
+    tags: ['admin', 'test-rules', 'reflex', 'calculated-values', 'decision-table', 'formula-bar', 'analyzer-parameters', 'predicate-vocabulary', 'MVP', 'global'],
+  },
 
   // ─── Analyzer Integration ───
   {

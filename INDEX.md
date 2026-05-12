@@ -31,6 +31,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Admin Shell | [preview](designs/admin-config/admin-shell.html) | [admin-shell.md](designs/admin-config/admin-shell.md) |
 | Admin Pattern Library | [preview](designs/admin-config/admin-pattern-library.html) | [admin-pattern-library.md](designs/admin-config/admin-pattern-library.md) |
 | Admin Phase 5 Roadmap | — | [admin-phase5-roadmap.md](designs/admin-config/admin-phase5-roadmap.md) |
+| Test Rules Authoring — MVP | [list view ⬢](designs/admin-config/test-rules-list-view-preview.html) · [reflex editor](designs/admin-config/reflex-tests-redesign-preview.html) · [calc formula bar](designs/admin-config/calculated-values-redesign-v2-preview.html) · [calc decision table](designs/admin-config/calc-decision-table-preview.html) · [algorithm canvas (Ph2)](designs/admin-config/algorithm-as-graph-preview.html) | [test-rules-mvp-frs.md](designs/admin-config/test-rules-mvp-frs.md) |
 
 ## Vector Surveillance
 
