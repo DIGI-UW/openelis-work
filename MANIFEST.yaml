@@ -2311,3 +2311,21 @@
     gallery: "https://digi-uw.github.io/openelis-work/#/quality/qa-release-budget-calculator"
   added: "2026-05-04"
   status: draft
+
+- id: test-rules-mvp
+  type: html
+  path: designs/admin-config/test-rules-list-view-preview.html
+  spec: designs/admin-config/test-rules-mvp-frs.md
+  category: admin-config
+  description: "Unified Test Rules authoring page replacing legacy Reflex Tests Management and Calculated Value Tests Management. List view with inline expansion; dedicated editors for Reflex (WHEN/THEN), Numeric Calc (formula bar), and Coded Calc (decision table). Algorithm canvas is Phase 2 reference. All five previews are cross-linked."
+  related:
+    - designs/admin-config/reflex-tests-redesign-preview.html
+    - designs/admin-config/calculated-values-redesign-v2-preview.html
+    - designs/admin-config/calc-decision-table-preview.html
+    - designs/admin-config/algorithm-as-graph-preview.html
+  links:
+    github: null
+    jira: null
+    gallery: "https://digi-uw.github.io/openelis-work/#/admin-config/test-rules-mvp"
+  added: "2026-05-12"
+  status: draft

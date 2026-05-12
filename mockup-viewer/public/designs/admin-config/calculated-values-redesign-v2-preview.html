@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculated Value Rules v2 — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner {
+      background: #0f62fe; color: #fff;
+      padding: 6px 1rem; font-size: 12px; font-family: monospace;
+    }
+    .preview-content { padding: 1rem 2rem 4rem; max-width: 1480px; margin: 0 auto; }
+    .breadcrumb { font-size: 12px; color: #525252; margin: 0.5rem 0 0.25rem; }
+    .breadcrumb a { color: #0f62fe; text-decoration: none; }
+
+    .brief-banner {
+      background: #edf5ff; border-left: 3px solid #0f62fe;
+      padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 13px; color: #161616;
+    }
+    .brief-banner strong { color: #0043ce; }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex; gap: 0.5rem; align-items: center; justify-content: space-between;
+      background: #fff; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-bottom: none;
+    }
+    .toolbar-left { display: flex; gap: 0.5rem; align-items: center; }
+    .search-input {
+      border: none; border-bottom: 1px solid #8d8d8d; padding: 6px 10px; width: 280px;
+      font-size: 14px; background: #f4f4f4;
+    }
+    .filter-pill {
+      background: #f4f4f4; padding: 4px 10px; font-size: 12px; border-radius: 999px;
+      cursor: pointer; border: 1px solid #e0e0e0;
+    }
+    .browse-btn {
+      background: #fff; padding: 4px 12px; font-size: 12px; border: 1px solid #0f62fe;
+      color: #0f62fe; cursor: pointer;
+    }
+    .browse-btn.open { background: #0f62fe; color: #fff; }
+
+    /* Library drawer */
+    .library-drawer {
+      background: #fff; border: 1px solid #e0e0e0; border-bottom: none;
+      padding: 1rem;
+    }
+    .library-drawer h4 { margin: 0 0 0.5rem; font-size: 13px; }
+    .library-search {
+      width: 320px; padding: 6px 10px; border: none; border-bottom: 1px solid #8d8d8d;
+      background: #f4f4f4; font-size: 14px; margin-bottom: 0.75rem;
+    }
+    .library-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;
+    }
+    .library-card {
+      padding: 0.75rem 1rem; border: 1px solid #e0e0e0; cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .library-card:hover { border-color: #0f62fe; background: #f4f9ff; }
+    .library-card .name { font-weight: 600; font-size: 13px; color: #161616; }
+    .library-card .formula {
+      font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #525252; margin-top: 4px;
+    }
+    .library-card .src { font-size: 10px; color: #8d8d8d; margin-top: 4px; }
+
+    /* DataTable rules */
+    table.cds--data-table { width: 100%; }
+    table.cds--data-table th { font-size: 12px; }
+    table.cds--data-table td { vertical-align: top; padding: 0.75rem 1rem; }
+    .rule-name { font-weight: 600; color: #161616; }
+
+    /* Tokenized rendering shared */
+    .tok-var { color: #0043ce; font-weight: 600; }
+    .tok-fn { color: #491d8b; font-weight: 600; }
+    .tok-attr { color: #a2191f; font-weight: 600; }
+    .tok-op { color: #d12771; font-weight: 600; }
+    .tok-num { color: #198038; font-weight: 600; }
+    .tok-paren { color: #525252; }
+    .tok-unknown {
+      color: #a2191f; text-decoration: underline wavy #da1e28; text-underline-offset: 3px;
+    }
+
+    .rule-summary {
+      font-family: 'IBM Plex Mono', monospace; font-size: 12px; margin-top: 4px;
+    }
+
+    /* Expanded editor */
+    .expanded-tile {
+      padding: 1.25rem; background: #f4f4f4; border-top: 2px solid #0f62fe;
+    }
+    .editor-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
+    }
+    .panel {
+      background: #fff; padding: 1rem; border: 1px solid #e0e0e0;
+    }
+    .panel h4 {
+      margin: 0 0 0.75rem; font-size: 14px; font-weight: 600;
+      color: #161616; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .panel h4 .pill {
+      background: #e8daff; color: #491d8b; font-size: 10px;
+      padding: 2px 8px; border-radius: 999px; font-weight: 500;
+    }
+    .panel h4 .pill.green { background: #defbe6; color: #0e6027; }
+    .panel h4 .pill.warn { background: #fff8e1; color: #b28600; }
+    .panel-section { margin-top: 1rem; }
+    .panel-section:first-child { margin-top: 0; }
+    .badge-row { display: flex; gap: 6px; margin-bottom: 0.75rem; flex-wrap: wrap; }
+
+    /* Formula bar — textarea + overlay */
+    .formula-bar-wrap {
+      position: relative; background: #fff; border: 1px solid #8d8d8d;
+      font-family: 'IBM Plex Mono', monospace; font-size: 14px;
+      padding: 10px 12px;
+      transition: border-color 0.15s;
+    }
+    .formula-bar-wrap:focus-within { border-color: #0f62fe; outline: 2px solid #0f62fe; outline-offset: -2px; }
+    .formula-overlay {
+      position: absolute; top: 10px; left: 12px; right: 12px;
+      pointer-events: none; white-space: pre-wrap; word-wrap: break-word;
+      font-family: inherit; font-size: inherit; line-height: 1.4;
+      color: #161616;
+    }
+    .formula-input {
+      position: relative; width: 100%; min-height: 1.4em; resize: vertical;
+      border: none; outline: none; background: transparent;
+      font-family: inherit; font-size: inherit; line-height: 1.4;
+      color: transparent; caret-color: #161616;
+    }
+    .formula-prompt {
+      font-size: 11px; color: #525252; margin-top: 4px; display: flex; gap: 0.5rem;
+    }
+    .formula-prompt .err { color: #a2191f; }
+    .formula-prompt .ok { color: #0e6027; }
+
+    /* Autocomplete dropdown */
+    .ac-pop {
+      position: absolute; top: 100%; left: 0; right: 0; margin-top: 2px;
+      background: #fff; border: 1px solid #8d8d8d; max-height: 200px; overflow-y: auto;
+      z-index: 10; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
+    }
+    .ac-item {
+      padding: 6px 10px; cursor: pointer; display: flex; justify-content: space-between;
+    }
+    .ac-item:hover, .ac-item.sel { background: #edf5ff; }
+    .ac-item .ac-meta { color: #6f6f6f; font-size: 11px; font-family: 'IBM Plex Mono', monospace; }
+    .ac-item .ac-kind {
+      font-size: 10px; padding: 1px 6px; border-radius: 999px; align-self: center;
+    }
+    .ac-kind.var { background: #d0e2ff; color: #0043ce; }
+    .ac-kind.fn { background: #e8daff; color: #491d8b; }
+    .ac-kind.attr { background: #fff1f1; color: #a2191f; }
+
+    /* Math view */
+    .math-view {
+      background: #fafafa; border: 1px solid #e0e0e0; padding: 1rem;
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      font-size: 15px;
+    }
+    .math-pill {
+      display: inline-flex; flex-direction: column; align-items: flex-start;
+      padding: 4px 10px; border-radius: 4px; line-height: 1.1;
+    }
+    .math-pill.var { background: #d0e2ff; color: #0043ce; }
+    .math-pill.attr { background: #fff1f1; color: #a2191f; }
+    .math-pill.fn { background: #e8daff; color: #491d8b; }
+    .math-pill .label { font-weight: 600; font-size: 14px; }
+    .math-pill .units { font-size: 10px; opacity: 0.75; }
+    .math-op {
+      color: #d12771; font-weight: 700; font-size: 18px; padding: 0 2px;
+    }
+    .math-num {
+      background: #defbe6; color: #0e6027; padding: 4px 10px; border-radius: 4px;
+      font-weight: 600;
+    }
+    .math-fraction {
+      display: inline-flex; flex-direction: column; align-items: center;
+      padding: 0 4px;
+    }
+    .math-fraction .top, .math-fraction .bot { padding: 2px 4px; }
+    .math-fraction .bar { border-top: 2px solid #161616; width: 100%; margin: 2px 0; }
+    .math-paren { font-size: 22px; color: #525252; }
+
+    /* Sample-type scope */
+    .scope-block {
+      background: #f4f4f4; padding: 0.75rem; border: 1px solid #e0e0e0;
+    }
+    .scope-toggle {
+      display: flex; gap: 1rem; margin-bottom: 0.5rem;
+    }
+    .scope-toggle label {
+      font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px;
+    }
+    .scope-chips {
+      display: flex; gap: 4px; flex-wrap: wrap; align-items: center;
+      padding: 6px; background: #fff; border: 1px solid #e0e0e0; min-height: 38px;
+    }
+    .scope-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #d0e2ff; color: #0043ce;
+      padding: 2px 4px 2px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: 600;
+    }
+    .scope-chip .x {
+      cursor: pointer; padding: 0 6px; opacity: 0.6;
+      font-size: 14px; line-height: 1;
+    }
+    .scope-chip .x:hover { opacity: 1; }
+    .scope-add {
+      background: none; border: 1px dashed #8d8d8d; color: #525252;
+      padding: 2px 10px; font-size: 12px; cursor: pointer; border-radius: 999px;
+    }
+    .scope-add:hover { border-color: #0f62fe; color: #0f62fe; }
+    .scope-empty { color: #6f6f6f; font-style: italic; font-size: 12px; }
+    .scope-pop {
+      background: #fff; border: 1px solid #8d8d8d; padding: 4px 0; margin-top: 4px;
+      max-height: 200px; overflow-y: auto; width: 200px;
+    }
+    .scope-pop .opt {
+      padding: 4px 12px; font-size: 13px; cursor: pointer;
+    }
+    .scope-pop .opt:hover { background: #edf5ff; }
+    .scope-pop .opt.checked { color: #0f62fe; font-weight: 600; }
+
+    /* Variable/function side panel */
+    .var-panel { background: #f4f4f4; padding: 0.75rem; }
+    .var-tabs { display: flex; gap: 0; border-bottom: 1px solid #e0e0e0; margin-bottom: 0.5rem; }
+    .var-tab {
+      padding: 6px 12px; cursor: pointer; font-size: 13px; color: #525252;
+      border-bottom: 2px solid transparent;
+    }
+    .var-tab.active { color: #0f62fe; border-bottom-color: #0f62fe; font-weight: 600; }
+    .var-search {
+      width: 100%; padding: 4px 8px; font-size: 13px; border: none;
+      border-bottom: 1px solid #8d8d8d; background: #fff; margin-bottom: 0.5rem;
+    }
+    .var-list { max-height: 220px; overflow-y: auto; }
+    .var-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 8px; cursor: pointer; font-size: 13px;
+    }
+    .var-item:hover { background: #e8e8e8; }
+    .var-item .vlabel { display: flex; flex-direction: column; }
+    .var-item .vname { color: #161616; }
+    .var-item .vmeta { font-size: 11px; color: #6f6f6f; font-family: 'IBM Plex Mono', monospace; }
+    .var-item .vinsert {
+      background: #0f62fe; color: #fff; border: none; padding: 2px 8px;
+      font-size: 11px; cursor: pointer;
+    }
+
+    /* Live preview */
+    .preview-row {
+      display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;
+    }
+    .preview-row label { flex: 0 0 180px; font-size: 13px; color: #161616; }
+    .preview-row input {
+      flex: 1; padding: 4px 8px; font-size: 13px;
+      border: none; border-bottom: 1px solid #8d8d8d; background: #f4f4f4;
+    }
+    .preview-row select {
+      flex: 1; padding: 4px 8px; font-size: 13px;
+      border: none; border-bottom: 1px solid #8d8d8d; background: #f4f4f4;
+    }
+    .preview-row .units { flex: 0 0 60px; font-size: 12px; color: #6f6f6f; }
+
+    .computed {
+      background: #defbe6; border-left: 3px solid #198038;
+      padding: 0.75rem 1rem; margin-top: 0.75rem;
+    }
+    .computed .label { font-size: 11px; color: #0e6027; text-transform: uppercase; letter-spacing: 0.5px; }
+    .computed .value { font-size: 28px; font-weight: 600; color: #0e6027; font-family: 'IBM Plex Mono', monospace; }
+    .computed .units { font-size: 14px; color: #525252; margin-left: 6px; }
+    .computed .flag { font-size: 12px; color: #525252; margin-top: 4px; }
+
+    /* Flowchart for branching rules */
+    .flow-wrap {
+      background: #fafafa; border: 1px solid #e0e0e0; padding: 1.25rem;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .flow-diamond {
+      background: #fff; border: 2px solid #b28600;
+      transform: rotate(45deg); width: 140px; height: 140px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .flow-diamond .inner {
+      transform: rotate(-45deg); text-align: center; font-size: 12px; padding: 6px;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    .flow-branches {
+      display: flex; gap: 2rem; margin-top: 1.5rem; width: 100%;
+      justify-content: center; align-items: flex-start;
+    }
+    .flow-branch {
+      flex: 1; max-width: 360px; background: #fff; border: 1px solid #e0e0e0;
+      padding: 0.75rem;
+    }
+    .flow-branch .label {
+      font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+      display: inline-block; margin-bottom: 0.5rem;
+    }
+    .flow-branch.true .label { background: #defbe6; color: #0e6027; }
+    .flow-branch.false .label { background: #d0e2ff; color: #0043ce; }
+    .flow-branch .formula {
+      font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+      background: #fafafa; padding: 8px; border-left: 3px solid #c6c6c6;
+    }
+    .flow-arrow {
+      color: #525252; font-size: 20px; margin: 0 0.5rem;
+    }
+
+    /* Validation tests */
+    .vt-row {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 30px; gap: 0.5rem;
+      align-items: center; padding: 6px 0; font-size: 13px;
+      border-bottom: 1px solid #f4f4f4;
+    }
+    .vt-row .vt-name { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+    .vt-row .vt-pass { color: #0e6027; font-weight: 600; }
+    .vt-row .vt-fail { color: #a2191f; font-weight: 600; }
+
+    .footer-actions {
+      display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;
+    }
+    .compact-hint { font-size: 11px; color: #6f6f6f; margin-top: 4px; font-style: italic; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    Visual Preview v2 — Calculated Value Rules &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application
+  </div>
+  <div style="background: #f4f4f4; border-bottom: 1px solid #c6c6c6; padding: 8px 2rem; font-size: 13px; color: #525252;">
+    <a href="test-rules-list-view-preview.html" style="color: #0f62fe; text-decoration: none; font-weight: 600;">← Test Rules list view</a>
+    &nbsp;/&nbsp;
+    <strong>Numeric Calculation editor</strong>
+    &nbsp;<span style="color: #6f6f6f;">— what expands inline when you click a calc row with a <em>numeric</em> destination. For a <em>coded</em> destination, see <a href="calc-decision-table-preview.html" style="color: #0f62fe;">the decision-table editor</a>.</span>
+  </div>
+  <div class="preview-content" id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, useRef, useEffect } = React;
+
+    // ========================================================================
+    // DOMAIN DATA
+    // ========================================================================
+    const TEST_RESULTS = [
+      { id: 'TC',     name: 'Total Cholesterol',     loinc: '2093-3',  units: 'mg/dL', sample: 'Serum' },
+      { id: 'HDL',    name: 'HDL Cholesterol',       loinc: '2085-9',  units: 'mg/dL', sample: 'Serum' },
+      { id: 'TRIG',   name: 'Triglycerides',         loinc: '2571-8',  units: 'mg/dL', sample: 'Serum' },
+      { id: 'SCr',    name: 'Serum Creatinine',      loinc: '2160-0',  units: 'mg/dL', sample: 'Serum' },
+      { id: 'NA',     name: 'Sodium',                loinc: '2951-2',  units: 'mmol/L', sample: 'Serum' },
+      { id: 'K',      name: 'Potassium',             loinc: '2823-3',  units: 'mmol/L', sample: 'Serum' },
+      { id: 'CL',     name: 'Chloride',              loinc: '2075-0',  units: 'mmol/L', sample: 'Serum' },
+      { id: 'HCO3',   name: 'Bicarbonate',           loinc: '1963-8',  units: 'mmol/L', sample: 'Serum' },
+      { id: 'ALB',    name: 'Albumin',               loinc: '1751-7',  units: 'g/dL',   sample: 'Serum' },
+      { id: 'CA',     name: 'Calcium, Total',        loinc: '17861-6', units: 'mg/dL',  sample: 'Serum' },
+      { id: 'BIL',    name: 'Bilirubin, Total',      loinc: '1975-2',  units: 'mg/dL',  sample: 'Serum' },
+      { id: 'INR',    name: 'INR',                   loinc: '6301-6',  units: '',       sample: 'Plasma' },
+      { id: 'WT',     name: 'Body Weight',           loinc: '29463-7', units: 'kg',     sample: 'Whole Blood' },
+      { id: 'HT',     name: 'Body Height',           loinc: '8302-2',  units: 'm',      sample: 'Whole Blood' },
+      { id: 'ALT',    name: 'ALT',                   loinc: '1742-6',  units: 'U/L',    sample: 'Serum' },
+      { id: 'AST',    name: 'AST',                   loinc: '1920-8',  units: 'U/L',    sample: 'Serum' },
+    ];
+    const PATIENT_ATTRS = [
+      { id: 'Age', name: 'Age', units: 'years' },
+      { id: 'Sex', name: 'Sex (M/F)', units: '(M/F)' },
+      { id: 'Weight', name: 'Weight', units: 'kg' },
+    ];
+    const FUNCTIONS = [
+      { id: 'min',   name: 'min(a, b)',     desc: 'Smaller of two values' },
+      { id: 'max',   name: 'max(a, b)',     desc: 'Larger of two values' },
+      { id: 'mean',  name: 'mean(a, ...)',  desc: 'Arithmetic mean' },
+      { id: 'log',   name: 'log(x)',        desc: 'Natural log' },
+      { id: 'pow',   name: 'pow(x, n)',     desc: 'x raised to n' },
+      { id: 'round', name: 'round(x, n)',   desc: 'Round to n decimals' },
+      { id: 'if',    name: 'if(cond, a, b)',desc: 'Conditional — true branch a, false branch b' },
+      { id: 'eq',    name: 'eq(a, b)',      desc: 'Equality test' },
+    ];
+
+    const VAR_BY_ID  = Object.fromEntries(TEST_RESULTS.map(v => [v.id, v]));
+    const ATTR_BY_ID = Object.fromEntries(PATIENT_ATTRS.map(v => [v.id, v]));
+    const FN_BY_ID   = Object.fromEntries(FUNCTIONS.map(v => [v.id, v]));
+
+    // ========================================================================
+    // TOKENIZER — for syntax highlighting and linting
+    // ========================================================================
+    function tokenize(text) {
+      const re = /(\d+(?:\.\d+)?)|([A-Za-z_][A-Za-z0-9_]*)|([+\-*\/=<>])|([(),])|(\s+)|(.)/g;
+      const out = [];
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        if (m[1]) out.push({ kind: 'num', text: m[1] });
+        else if (m[2]) {
+          const id = m[2];
+          if (VAR_BY_ID[id])  out.push({ kind: 'var', text: id });
+          else if (FN_BY_ID[id])   out.push({ kind: 'fn',  text: id });
+          else if (ATTR_BY_ID[id]) out.push({ kind: 'attr',text: id });
+          else out.push({ kind: 'unknown', text: id });
+        }
+        else if (m[3]) out.push({ kind: 'op', text: m[3] });
+        else if (m[4]) out.push({ kind: 'paren', text: m[4] });
+        else if (m[5]) out.push({ kind: 'ws', text: m[5] });
+        else out.push({ kind: 'other', text: m[6] });
+      }
+      return out;
+    }
+
+    function lint(tokens) {
+      const issues = [];
+      const unknowns = tokens.filter(t => t.kind === 'unknown');
+      if (unknowns.length) {
+        issues.push({ kind: 'err', msg: `Unknown identifier${unknowns.length > 1 ? 's' : ''}: ${unknowns.map(u => u.text).join(', ')}` });
+      }
+      // paren balance
+      let depth = 0;
+      for (const t of tokens) {
+        if (t.kind === 'paren' && t.text === '(') depth++;
+        else if (t.kind === 'paren' && t.text === ')') depth--;
+        if (depth < 0) { issues.push({ kind: 'err', msg: 'Unmatched closing paren' }); break; }
+      }
+      if (depth > 0) issues.push({ kind: 'err', msg: `${depth} unclosed paren${depth > 1 ? 's' : ''}` });
+      // unit awareness — sample heuristic: TRIG/5 fine, but Weight + Height would warn
+      // (skipped here in mockup to keep code shorter)
+      return issues;
+    }
+
+    // ========================================================================
+    // SAMPLE-TYPE SCOPE — apply to all sample types, or a selected subset
+    // ========================================================================
+    const ALL_SAMPLE_TYPES = [
+      'Serum', 'Plasma', 'Whole Blood', 'EDTA Tube', 'Dry Tube', 'DBS',
+      'Urines', 'Fluid', 'Sputum', 'Respiratory Swab',
+      'Tissue antemortem', 'Tissue post mortem',
+      'Histopathology specimen', 'Immunohistochemistry specimen'
+    ];
+
+    function SampleScope({ mode, selected, onModeChange, onChange }) {
+      const [popOpen, setPopOpen] = useState(false);
+      const remaining = ALL_SAMPLE_TYPES.filter(s => !selected.includes(s));
+      return (
+        <div className="scope-block">
+          <div style={{ fontSize: 11, color: '#525252', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            Applies to
+          </div>
+          <div className="scope-toggle">
+            <label>
+              <input type="radio" checked={mode === 'all'}
+                     onChange={() => onModeChange('all')} />
+              All sample types
+            </label>
+            <label>
+              <input type="radio" checked={mode === 'selected'}
+                     onChange={() => onModeChange('selected')} />
+              Selected sample types
+            </label>
+          </div>
+          {mode === 'selected' && (
+            <>
+              <div className="scope-chips">
+                {selected.length === 0 && <span className="scope-empty">No sample types selected — rule will not fire</span>}
+                {selected.map(s => (
+                  <span key={s} className="scope-chip">
+                    {s}
+                    <span className="x" onClick={() => onChange(selected.filter(x => x !== s))}>×</span>
+                  </span>
+                ))}
+                {remaining.length > 0 && (
+                  <button className="scope-add" onClick={() => setPopOpen(o => !o)}>
+                    + Add sample type ▾
+                  </button>
+                )}
+              </div>
+              {popOpen && (
+                <div className="scope-pop">
+                  {remaining.map(s => (
+                    <div key={s} className="opt" onClick={() => { onChange([...selected, s]); setPopOpen(false); }}>
+                      {s}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="compact-hint">
+                The rule writes the calculated value back to the same sample type the inputs came from.
+                If multiple are selected, the same formula evaluates separately for each sample type.
+              </div>
+            </>
+          )}
+          {mode === 'all' && (
+            <div className="compact-hint">
+              Rule fires whenever every input test has a numeric result, regardless of sample type.
+              Useful when a test can be ordered on multiple specimens (e.g. Creatinine on Serum or Plasma).
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ========================================================================
+    // FORMULA BAR — textarea with syntax-highlighted overlay
+    // ========================================================================
+    function FormulaBar({ value, onChange, autocompleteAt, suggestions, onPick }) {
+      const tokens = tokenize(value);
+      const issues = lint(tokens);
+      const taRef = useRef(null);
+
+      return (
+        <div>
+          <div className="formula-bar-wrap">
+            <div className="formula-overlay">
+              {tokens.map((t, i) => (
+                <span key={i} className={t.kind === 'ws' ? '' : `tok-${t.kind}`}>{t.text}</span>
+              ))}
+              {value === '' && <span style={{ color: '#a8a8a8' }}>Type a formula… (autocomplete on test names, LOINC, functions)</span>}
+            </div>
+            <textarea
+              ref={taRef}
+              className="formula-input"
+              value={value}
+              onChange={e => onChange(e.target.value)}
+              spellCheck={false}
+              rows={Math.max(1, value.split('\n').length)}
+            />
+            {suggestions && suggestions.length > 0 && (
+              <div className="ac-pop">
+                {suggestions.map((s, i) => (
+                  <div key={s.id} className={'ac-item' + (i === 0 ? ' sel' : '')} onClick={() => onPick(s)}>
+                    <span>
+                      <span className={'ac-kind ' + s.kind}>{s.kind === 'fn' ? 'fn' : s.kind === 'attr' ? 'attr' : 'test'}</span>
+                      &nbsp;<strong>{s.id}</strong> &nbsp;<span style={{ color: '#525252' }}>{s.name}</span>
+                    </span>
+                    <span className="ac-meta">{s.meta}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="formula-prompt">
+            {issues.length === 0
+              ? <span className="ok">✓ Valid syntax · {tokens.filter(t=>t.kind==='var').length} variable(s) referenced</span>
+              : issues.map((i, idx) => <span key={idx} className="err">⚠ {i.msg}</span>)}
+            <span style={{ marginLeft: 'auto', color: '#0f62fe', cursor: 'pointer' }}>
+              Press @ for variable picker · Ctrl+Space for functions
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    // ========================================================================
+    // MATH VIEW — render formula in math notation with colored variable pills
+    // ========================================================================
+    function MathPill({ kind, name, units }) {
+      return (
+        <span className={'math-pill ' + kind}>
+          <span className="label">{name}</span>
+          {units && <span className="units">{units}</span>}
+        </span>
+      );
+    }
+    function MathOp({ op }) { return <span className="math-op">{op}</span>; }
+    function MathNum({ n }) { return <span className="math-num">{n}</span>; }
+    function MathFraction({ top, bot }) {
+      return (
+        <span className="math-fraction">
+          <span className="top">{top}</span>
+          <span className="bar"></span>
+          <span className="bot">{bot}</span>
+        </span>
+      );
+    }
+
+    // LDL: TC − HDL − (Trig / 5)
+    function LDLMathView() {
+      return (
+        <div className="math-view">
+          <MathPill kind="var" name="Total Cholesterol" units="mg/dL" />
+          <MathOp op="−" />
+          <MathPill kind="var" name="HDL" units="mg/dL" />
+          <MathOp op="−" />
+          <MathFraction
+            top={<MathPill kind="var" name="Triglycerides" units="mg/dL" />}
+            bot={<MathNum n="5" />}
+          />
+        </div>
+      );
+    }
+
+    // eGFR: rendered top of formula (the parts before the conditional split)
+    function EGFRMathView() {
+      return (
+        <div className="math-view">
+          <MathNum n="142" />
+          <MathOp op="×" />
+          <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: '#491d8b', fontWeight: 600 }}>min</span>
+          <span className="math-paren">(</span>
+          <MathFraction
+            top={<MathPill kind="var" name="SCr" units="mg/dL" />}
+            bot={<span style={{ fontFamily: 'monospace', color: '#491d8b' }}>κ</span>}
+          />
+          <span style={{ color: '#d12771' }}>,</span>
+          <MathNum n="1" />
+          <span className="math-paren">)</span>
+          <MathOp op="^" />
+          <span style={{ fontFamily: 'monospace', color: '#491d8b' }}>α</span>
+          <MathOp op="×" />
+          <span style={{ fontStyle: 'italic', color: '#6f6f6f' }}>… (κ, α depend on Sex — see branches below)</span>
+        </div>
+      );
+    }
+
+    // ========================================================================
+    // VARIABLE / FUNCTION SIDE PANEL
+    // ========================================================================
+    function VariablePanel({ onInsert }) {
+      const [tab, setTab] = useState('tests');
+      const [q, setQ] = useState('');
+      const items = tab === 'tests' ? TEST_RESULTS
+                  : tab === 'attrs' ? PATIENT_ATTRS
+                  : FUNCTIONS;
+      const filtered = items.filter(i =>
+        (i.name + (i.id || '') + (i.desc || '') + (i.loinc || '')).toLowerCase().includes(q.toLowerCase())
+      );
+      return (
+        <div className="var-panel">
+          <div className="var-tabs">
+            <div className={'var-tab' + (tab === 'tests' ? ' active' : '')} onClick={() => setTab('tests')}>Test Results</div>
+            <div className={'var-tab' + (tab === 'attrs' ? ' active' : '')} onClick={() => setTab('attrs')}>Patient Attributes</div>
+            <div className={'var-tab' + (tab === 'fns'   ? ' active' : '')} onClick={() => setTab('fns')}>Functions</div>
+          </div>
+          <input
+            className="var-search"
+            placeholder={'Search ' + (tab === 'tests' ? 'test name, LOINC' : tab === 'attrs' ? 'attribute' : 'function') + '…'}
+            value={q} onChange={e => setQ(e.target.value)}
+          />
+          <div className="var-list">
+            {filtered.map(item => (
+              <div key={item.id} className="var-item" onClick={() => onInsert(item, tab)}>
+                <div className="vlabel">
+                  <span className="vname">{item.name}</span>
+                  <span className="vmeta">
+                    {tab === 'tests' && `${item.id} · ${item.units} · ${item.sample}${item.loinc ? ' · LOINC ' + item.loinc : ''}`}
+                    {tab === 'attrs' && `${item.id} · ${item.units}`}
+                    {tab === 'fns' && item.desc}
+                  </span>
+                </div>
+                <button className="vinsert">Insert</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ========================================================================
+    // LDL EDITOR — pure arithmetic, formula bar + math view
+    // ========================================================================
+    function LDLEditor() {
+      const [formula, setFormula] = useState('TC - HDL - TRIG / 5');
+      const [tc, setTc] = useState(195);
+      const [hdl, setHdl] = useState(48);
+      const [trig, setTrig] = useState(150);
+      const [advanced, setAdvanced] = useState(false);
+      // Sample-type scope — LDL is valid on Serum or Plasma (fasting)
+      const [scopeMode, setScopeMode] = useState('selected');
+      const [scopeSelected, setScopeSelected] = useState(['Serum', 'Plasma']);
+      const scopeSummary = scopeMode === 'all'
+        ? 'All sample types'
+        : scopeSelected.length === 0 ? 'no sample types — will not fire'
+        : scopeSelected.join(', ');
+
+      const ldl = Math.round(tc - hdl - trig / 5);
+      const flag = ldl < 100 ? 'Optimal (<100)'
+                  : ldl < 130 ? 'Near optimal (100–129)'
+                  : ldl < 160 ? 'Borderline high (130–159)'
+                  : ldl < 190 ? 'High (160–189)'
+                  : 'Very high (≥190)';
+
+      // Mock autocomplete: when current word is a partial identifier
+      const cursorWord = (formula.match(/[A-Za-z_][A-Za-z0-9_]*$/) || [''])[0];
+      const suggestions = cursorWord.length > 0
+        ? [...TEST_RESULTS.map(t => ({ id: t.id, name: t.name, kind: 'var', meta: `${t.units} · ${t.sample}${t.loinc ? ' · '+t.loinc : ''}` })),
+           ...FUNCTIONS.map(f => ({ id: f.id, name: f.name, kind: 'fn', meta: f.desc })),
+           ...PATIENT_ATTRS.map(a => ({ id: a.id, name: a.name, kind: 'attr', meta: a.units }))]
+            .filter(s => s.id.toLowerCase().startsWith(cursorWord.toLowerCase()) && s.id !== cursorWord)
+            .slice(0, 5)
+        : [];
+
+      const insertFromPicker = (item, tab) => {
+        const id = item.id;
+        setFormula(f => (f.endsWith(' ') || f === '') ? f + id : f + ' ' + id);
+      };
+      const onPickAc = (s) => {
+        setFormula(f => f.replace(/[A-Za-z_][A-Za-z0-9_]*$/, s.id));
+      };
+
+      return (
+        <tr>
+          <td colSpan={6} style={{ padding: 0, background: '#f4f4f4' }}>
+            <div className="expanded-tile">
+              <div className="badge-row">
+                <span className="cds--tag cds--tag--blue">Editing</span>
+                <span className="cds--tag cds--tag--green">Active</span>
+                <span className="cds--tag cds--tag--warm-gray">Applies to: {scopeSummary}</span>
+                <span className="cds--tag cds--tag--teal">Output: mg/dL</span>
+              </div>
+
+              <div className="editor-grid">
+                {/* LEFT — formula bar + math view + side panel */}
+                <div className="panel">
+                  <h4>Rule definition <span className="pill">Formula bar</span></h4>
+
+                  <div className="panel-section">
+                    <label style={{ fontSize: 12, color: '#525252' }}>Rule name</label>
+                    <input type="text" defaultValue="LDL Cholesterol (Friedewald)"
+                           style={{ width: '100%', padding: 6, border: 'none', borderBottom: '1px solid #8d8d8d', background: '#f4f4f4' }} />
+                  </div>
+
+                  <div className="panel-section">
+                    <SampleScope
+                      mode={scopeMode} selected={scopeSelected}
+                      onModeChange={setScopeMode} onChange={setScopeSelected}
+                    />
+                  </div>
+
+                  <div className="panel-section">
+                    <label style={{ fontSize: 12, color: '#525252', display: 'block', marginBottom: 4 }}>
+                      Formula
+                    </label>
+                    <FormulaBar
+                      value={formula}
+                      onChange={setFormula}
+                      suggestions={suggestions}
+                      onPick={onPickAc}
+                    />
+                  </div>
+
+                  <div className="panel-section">
+                    <label style={{ fontSize: 12, color: '#525252', display: 'block', marginBottom: 4 }}>
+                      Rendered (read-only)
+                    </label>
+                    <LDLMathView />
+                    <div className="compact-hint">
+                      Variables shown with units. Reviewers sign off on this view, not the text.
+                    </div>
+                  </div>
+
+                  <div className="panel-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <div>
+                      <label style={{ fontSize: 12, color: '#525252', display: 'block', marginBottom: 4 }}>
+                        Insert from library
+                      </label>
+                      <VariablePanel onInsert={insertFromPicker} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 12, color: '#525252', display: 'block', marginBottom: 4 }}>
+                        Output (Final Result)
+                      </label>
+                      <div style={{ padding: 8, background: '#f4f4f4' }}>
+                        <div style={{ marginBottom: 6 }}>
+                          <span style={{ fontSize: 11, color: '#6f6f6f' }}>Destination test</span>
+                          <select defaultValue="LDL"
+                                  style={{ display: 'block', width: '100%', padding: 6, border: 'none', borderBottom: '1px solid #8d8d8d', background: '#fff', marginTop: 2 }}>
+                            <option value="LDL">LDL Cholesterol (LOINC 13457-7)</option>
+                          </select>
+                        </div>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <div style={{ flex: 1 }}>
+                            <span style={{ fontSize: 11, color: '#6f6f6f' }}>Units</span>
+                            <select defaultValue="mg/dL"
+                                    style={{ display: 'block', width: '100%', padding: 6, border: 'none', borderBottom: '1px solid #8d8d8d', background: '#fff', marginTop: 2 }}>
+                              <option>mg/dL</option><option>mmol/L</option>
+                            </select>
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <span style={{ fontSize: 11, color: '#6f6f6f' }}>Decimals</span>
+                            <input type="number" defaultValue="0"
+                                   style={{ display: 'block', width: '100%', padding: 6, border: 'none', borderBottom: '1px solid #8d8d8d', background: '#fff', marginTop: 2 }} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* RIGHT — live preview + validation tests */}
+                <div className="panel">
+                  <h4>Live preview <span className="pill green">Sandbox</span></h4>
+                  <div className="panel-section">
+                    <span className="compact-hint" style={{ display: 'block', marginBottom: 8 }}>
+                      Edit the formula on the left or change inputs here. Output recomputes live.
+                    </span>
+                    <div className="preview-row">
+                      <label>Total Cholesterol (TC)</label>
+                      <input type="number" value={tc} onChange={e => setTc(+e.target.value || 0)} />
+                      <span className="units">mg/dL</span>
+                    </div>
+                    <div className="preview-row">
+                      <label>HDL Cholesterol (HDL)</label>
+                      <input type="number" value={hdl} onChange={e => setHdl(+e.target.value || 0)} />
+                      <span className="units">mg/dL</span>
+                    </div>
+                    <div className="preview-row">
+                      <label>Triglycerides (TRIG)</label>
+                      <input type="number" value={trig} onChange={e => setTrig(+e.target.value || 0)} />
+                      <span className="units">mg/dL</span>
+                    </div>
+
+                    <div className="computed">
+                      <div className="label">Computed LDL</div>
+                      <div>
+                        <span className="value">{ldl}</span>
+                        <span className="units">mg/dL</span>
+                      </div>
+                      <div className="flag">Flag: {flag}</div>
+                      {trig >= 400 && (
+                        <div className="cds--inline-notification cds--inline-notification--warning"
+                             style={{ marginTop: 8, padding: '6px 10px', fontSize: 12 }}>
+                          ⚠ Friedewald is not valid when Triglycerides ≥ 400 mg/dL. Direct LDL recommended.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="panel-section">
+                    <label style={{ fontSize: 12, color: '#525252', display: 'block', marginBottom: 6 }}>
+                      Validation tests &nbsp;
+                      <button onClick={() => setAdvanced(a => !a)}
+                              style={{ fontSize: 11, background: 'none', border: 'none', color: '#0f62fe', cursor: 'pointer' }}>
+                        {advanced ? 'Hide' : 'Show all'}
+                      </button>
+                    </label>
+                    <div className="vt-row" style={{ fontWeight: 600, fontSize: 11, color: '#525252', borderBottom: '1px solid #e0e0e0' }}>
+                      <span>Inputs</span><span>Expected</span><span>Got</span><span></span>
+                    </div>
+                    <div className="vt-row">
+                      <span className="vt-name">TC=195, HDL=48, Trig=150</span>
+                      <span>117</span><span className="vt-pass">117 ✓</span><span></span>
+                    </div>
+                    <div className="vt-row">
+                      <span className="vt-name">TC=240, HDL=35, Trig=200</span>
+                      <span>165</span><span className="vt-pass">165 ✓</span><span></span>
+                    </div>
+                    {advanced && (
+                      <>
+                        <div className="vt-row">
+                          <span className="vt-name">TC=180, HDL=60, Trig=90</span>
+                          <span>102</span><span className="vt-pass">102 ✓</span><span></span>
+                        </div>
+                        <div className="vt-row">
+                          <span className="vt-name">TC=220, HDL=40, Trig=420</span>
+                          <span>—</span><span className="vt-fail">— (skip: Trig≥400)</span><span></span>
+                        </div>
+                      </>
+                    )}
+                    <button className="cds--btn cds--btn--ghost" style={{ marginTop: 6, fontSize: 12 }}>+ Add validation case</button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="footer-actions">
+                <button className="cds--btn cds--btn--ghost">Run validation tests</button>
+                <button className="cds--btn cds--btn--secondary">Cancel</button>
+                <button className="cds--btn cds--btn--primary">Save changes</button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      );
+    }
+
+    // ========================================================================
+    // eGFR EDITOR — branching, formula bar + flowchart panel
+    // ========================================================================
+    function EGFREditor() {
+      const [formula, setFormula] = useState(
+        "if(eq(Sex, F),\n  142 * pow(min(SCr/0.7, 1), -0.241) * pow(max(SCr/0.7, 1), -1.200) * pow(0.9938, Age) * 1.012,\n  142 * pow(min(SCr/0.9, 1), -0.302) * pow(max(SCr/0.9, 1), -1.200) * pow(0.9938, Age))"
+      );
+      const [scr, setScr] = useState(1.1);
+      const [age, setAge] = useState(54);
+      const [sex, setSex] = useState('F');
+      // eGFR: Serum and Plasma both valid for creatinine
+      const [scopeMode, setScopeMode] = useState('selected');
+      const [scopeSelected, setScopeSelected] = useState(['Serum', 'Plasma']);
+      const scopeSummary = scopeMode === 'all'
+        ? 'All sample types'
+        : scopeSelected.length === 0 ? 'no sample types — will not fire'
+        : scopeSelected.join(', ');
+
+      const k = sex === 'F' ? 0.7 : 0.9;
+      const a1 = sex === 'F' ? -0.241 : -0.302;
+      const sexBoost = sex === 'F' ? 1.012 : 1;
+      const egfr = Math.round(
+        142 * Math.pow(Math.min(scr/k, 1), a1) * Math.pow(Math.max(scr/k, 1), -1.2) * Math.pow(0.9938, age) * sexBoost
+      );
+      const stage = egfr >= 90 ? 'G1 (≥90)'
+                  : egfr >= 60 ? 'G2 (60–89)'
+                  : egfr >= 45 ? 'G3a (45–59)'
+                  : egfr >= 30 ? 'G3b (30–44)'
+                  : egfr >= 15 ? 'G4 (15–29)' : 'G5 (<15)';
+
+      return (
+        <tr>
+          <td colSpan={6} style={{ padding: 0, background: '#f4f4f4' }}>
+            <div className="expanded-tile">
+              <div className="badge-row">
+                <span className="cds--tag cds--tag--blue">Editing</span>
+                <span className="cds--tag cds--tag--green">Active</span>
+                <span className="cds--tag cds--tag--warm-gray">Applies to: {scopeSummary}</span>
+                <span className="cds--tag cds--tag--teal">Output: mL/min/1.73m²</span>
+                <span className="cds--tag cds--tag--purple">Branching · 2 paths</span>
+              </div>
+
+              <div className="editor-grid">
+                {/* LEFT — formula bar */}
+                <div className="panel">
+                  <h4>Rule definition <span className="pill">Formula bar</span> <span className="pill warn">Branching detected</span></h4>
+
+                  <div className="panel-section">
+                    <label style={{ fontSize: 12, color: '#525252' }}>Rule name</label>
+                    <input type="text" defaultValue="eGFR (CKD-EPI 2021, race-free)"
+                           style={{ width: '100%', padding: 6, border: 'none', borderBottom: '1px solid #8d8d8d', background: '#f4f4f4' }} />
+                  </div>
+
+                  <div className="panel-section">
+                    <SampleScope
+                      mode={scopeMode} selected={scopeSelected}
+                      onModeChange={setScopeMode} onChange={setScopeSelected}
+                    />
+                  </div>
+
+                  <div className="panel-section">
+                    <label style={{ fontSize: 12, color: '#525252', display: 'block', marginBottom: 4 }}>
+                      Formula
+                    </label>
+                    <FormulaBar value={formula} onChange={setFormula} suggestions={[]} onPick={() => {}} />
+                  </div>
+
+                  <div className="panel-section">
+                    <label style={{ fontSize: 12, color: '#525252', display: 'block', marginBottom: 4 }}>
+                      Branch view <span className="compact-hint" style={{ display: 'inline' }}>— appears automatically when formula uses <code>if()</code></span>
+                    </label>
+                    <div className="flow-wrap">
+                      <div className="flow-diamond"><div className="inner">eq(<span className="tok-attr">Sex</span>, F)</div></div>
+                      <div className="flow-branches">
+                        <div className="flow-branch true">
+                          <div className="label">True · Female</div>
+                          <div className="formula">
+                            <span className="tok-num">142</span> <span className="tok-op">*</span> <span className="tok-fn">pow</span>(<span className="tok-fn">min</span>(<span className="tok-var">SCr</span>/<span className="tok-num">0.7</span>, <span className="tok-num">1</span>), <span className="tok-num">-0.241</span>) <span className="tok-op">*</span><br/>
+                            <span className="tok-fn">pow</span>(<span className="tok-fn">max</span>(<span className="tok-var">SCr</span>/<span className="tok-num">0.7</span>, <span className="tok-num">1</span>), <span className="tok-num">-1.200</span>) <span className="tok-op">*</span><br/>
+                            <span className="tok-fn">pow</span>(<span className="tok-num">0.9938</span>, <span className="tok-attr">Age</span>) <span className="tok-op">*</span> <span className="tok-num">1.012</span>
+                          </div>
+                        </div>
+                        <div className="flow-branch false">
+                          <div className="label">False · Male</div>
+                          <div className="formula">
+                            <span className="tok-num">142</span> <span className="tok-op">*</span> <span className="tok-fn">pow</span>(<span className="tok-fn">min</span>(<span className="tok-var">SCr</span>/<span className="tok-num">0.9</span>, <span className="tok-num">1</span>), <span className="tok-num">-0.302</span>) <span className="tok-op">*</span><br/>
+                            <span className="tok-fn">pow</span>(<span className="tok-fn">max</span>(<span className="tok-var">SCr</span>/<span className="tok-num">0.9</span>, <span className="tok-num">1</span>), <span className="tok-num">-1.200</span>) <span className="tok-op">*</span><br/>
+                            <span className="tok-fn">pow</span>(<span className="tok-num">0.9938</span>, <span className="tok-attr">Age</span>)
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ marginTop: '0.75rem' }}>
+                        <button className="cds--btn cds--btn--ghost" style={{ fontSize: 12 }}>+ Add branch (e.g. pediatric)</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* RIGHT — live preview */}
+                <div className="panel">
+                  <h4>Live preview <span className="pill green">Sandbox</span></h4>
+                  <div className="panel-section">
+                    <div className="preview-row">
+                      <label>Serum Creatinine (SCr)</label>
+                      <input type="number" step="0.1" value={scr} onChange={e => setScr(+e.target.value || 0)} />
+                      <span className="units">mg/dL</span>
+                    </div>
+                    <div className="preview-row">
+                      <label>Age</label>
+                      <input type="number" value={age} onChange={e => setAge(+e.target.value || 0)} />
+                      <span className="units">years</span>
+                    </div>
+                    <div className="preview-row">
+                      <label>Sex</label>
+                      <select value={sex} onChange={e => setSex(e.target.value)}>
+                        <option value="F">F</option><option value="M">M</option>
+                      </select>
+                      <span className="units"></span>
+                    </div>
+
+                    <div className="computed">
+                      <div className="label">Computed eGFR</div>
+                      <div>
+                        <span className="value">{egfr}</span>
+                        <span className="units">mL/min/1.73m²</span>
+                      </div>
+                      <div className="flag">CKD stage: {stage}</div>
+                      <div className="flag" style={{ color: '#525252' }}>
+                        Branch taken: <strong>{sex === 'F' ? 'True · Female' : 'False · Male'}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="panel-section">
+                    <label style={{ fontSize: 12, color: '#525252', display: 'block', marginBottom: 6 }}>
+                      Validation tests
+                    </label>
+                    <div className="vt-row" style={{ fontWeight: 600, fontSize: 11, color: '#525252', borderBottom: '1px solid #e0e0e0' }}>
+                      <span>Inputs</span><span>Expected</span><span>Got</span><span></span>
+                    </div>
+                    <div className="vt-row">
+                      <span className="vt-name">SCr=1.1, Age=54, Sex=F</span>
+                      <span>61</span><span className="vt-pass">61 ✓</span><span></span>
+                    </div>
+                    <div className="vt-row">
+                      <span className="vt-name">SCr=0.9, Age=40, Sex=M</span>
+                      <span>105</span><span className="vt-pass">105 ✓</span><span></span>
+                    </div>
+                    <div className="vt-row">
+                      <span className="vt-name">SCr=2.4, Age=68, Sex=F</span>
+                      <span>21</span><span className="vt-pass">21 ✓</span><span></span>
+                    </div>
+                    <button className="cds--btn cds--btn--ghost" style={{ marginTop: 6, fontSize: 12 }}>+ Add validation case</button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="footer-actions">
+                <button className="cds--btn cds--btn--ghost">Run validation tests</button>
+                <button className="cds--btn cds--btn--secondary">Cancel</button>
+                <button className="cds--btn cds--btn--primary">Save changes</button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      );
+    }
+
+    // ========================================================================
+    // RULE LIST DATA — with rich tokenized summaries
+    // ========================================================================
+    const RULES = [
+      { id: 1, name: 'BMI', status: 'active',
+        formula: 'WT / pow(HT, 2)',
+        destination: 'BMI (kg/m²)', scope: 'all',  scopeList: [],
+        edited: '2026-04-12 by m.kone' },
+      { id: 2, name: 'LDL Cholesterol (Friedewald)', status: 'active',
+        formula: 'TC - HDL - TRIG / 5',
+        destination: 'LDL Cholesterol (mg/dL)', scope: 'selected', scopeList: ['Serum', 'Plasma'],
+        edited: '2026-04-28 by p.diallo' },
+      { id: 3, name: 'eGFR (CKD-EPI 2021)', status: 'active', branching: true,
+        formula: 'if(eq(Sex, F), 142 * pow(min(SCr/0.7,1), -0.241) * ..., 142 * pow(min(SCr/0.9,1), -0.302) * ...)',
+        destination: 'eGFR (mL/min/1.73m²)', scope: 'selected', scopeList: ['Serum', 'Plasma'],
+        edited: '2026-03-04 by p.diallo' },
+      { id: 4, name: 'Anion Gap', status: 'active',
+        formula: 'NA - (CL + HCO3)',
+        destination: 'Anion Gap (mmol/L)', scope: 'selected', scopeList: ['Serum'],
+        edited: '2026-02-18 by m.kone' },
+      { id: 5, name: 'Corrected Calcium', status: 'active',
+        formula: 'CA + 0.8 * (4 - ALB)',
+        destination: 'Corrected Calcium (mg/dL)', scope: 'selected', scopeList: ['Serum'],
+        edited: '2026-04-21 by m.kone' },
+      { id: 6, name: 'AST/ALT Ratio (De Ritis)', status: 'active',
+        formula: 'AST / ALT',
+        destination: 'AST/ALT Ratio', scope: 'selected', scopeList: ['Serum'],
+        edited: '2026-03-30 by m.kone' },
+      { id: 7, name: 'MELD-Na', status: 'disabled', branching: true,
+        formula: 'round(...) + ... (capped 6–40)',
+        destination: 'MELD Score', scope: 'selected', scopeList: ['Serum'],
+        edited: '2025-11-09 by p.diallo' },
+      { id: 8, name: 'Albumin Conversion mg/dL → g/L', status: 'active',
+        formula: 'ALB * 10',
+        destination: 'Albumin g/L', scope: 'all', scopeList: [],
+        edited: '2026-01-15 by m.kone' },
+    ];
+
+    function FormulaSummary({ text }) {
+      const tokens = tokenize(text);
+      return (
+        <span className="rule-summary">
+          {tokens.map((t, i) => (
+            <span key={i} className={t.kind === 'ws' ? '' : `tok-${t.kind}`}>{t.text}</span>
+          ))}
+        </span>
+      );
+    }
+
+    // ========================================================================
+    // FORMULA LIBRARY DRAWER (replaces the rigid templates strip)
+    // ========================================================================
+    const LIBRARY = [
+      { name: 'BMI',                    formula: 'Weight / Height²',                   src: 'WHO' },
+      { name: 'LDL (Friedewald)',       formula: 'TC − HDL − Trig/5',                  src: 'Friedewald 1972' },
+      { name: 'LDL (Martin-Hopkins)',   formula: 'TC − HDL − Trig/adjFactor(Trig,nonHDL)', src: 'Martin 2013' },
+      { name: 'eGFR (CKD-EPI 2021)',    formula: '142 × min(SCr/κ,1)^α × … × Age × Sex',src: 'NKF-ASN 2021' },
+      { name: 'eGFR (MDRD)',            formula: '175 × SCr^-1.154 × Age^-0.203 × …',  src: 'Levey 1999' },
+      { name: 'Cockcroft-Gault CrCl',   formula: '(140−Age)×Wt / (72×SCr) × 0.85 if F',src: 'Cockcroft 1976' },
+      { name: 'Anion Gap',              formula: 'Na − (Cl + HCO₃)',                   src: 'standard' },
+      { name: 'Corrected Calcium',      formula: 'Ca + 0.8 × (4 − Albumin)',           src: 'Payne 1973' },
+      { name: 'MELD-Na',                formula: 'MELD + 1.32×(137−Na) − 0.033×MELD×(137−Na)', src: 'OPTN' },
+      { name: 'Child-Pugh score',       formula: 'sum of 5 categorical points',        src: 'Pugh 1973' },
+      { name: 'A:G Ratio',              formula: 'Alb / (Total Protein − Alb)',        src: 'standard' },
+      { name: 'Globulin',               formula: 'Total Protein − Albumin',            src: 'standard' },
+      { name: 'Bilirubin direct→indirect', formula: 'Total Bili − Direct Bili',        src: 'standard' },
+      { name: 'BUN/Creatinine ratio',   formula: 'BUN / Creatinine',                   src: 'standard' },
+      { name: 'Free water deficit',     formula: '0.6 × Wt × (Na/140 − 1)',            src: 'Adrogue 2000' },
+      { name: 'Fractional excretion Na', formula: '(UNa×Cr) / (PNa×UCr) × 100',         src: 'standard' },
+    ];
+
+    function LibraryDrawer({ onClose }) {
+      const [q, setQ] = useState('');
+      const filtered = LIBRARY.filter(t =>
+        (t.name + t.formula + t.src).toLowerCase().includes(q.toLowerCase())
+      );
+      return (
+        <div className="library-drawer">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <h4>Formula library &nbsp;<span style={{ fontWeight: 400, fontSize: 11, color: '#6f6f6f' }}>{LIBRARY.length} entries · search by name, citation, or formula text</span></h4>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#525252', fontSize: 16 }}>✕</button>
+          </div>
+          <input
+            className="library-search"
+            placeholder="Search formulas (e.g. 'eGFR', 'Friedewald', 'Calcium')…"
+            value={q} onChange={e => setQ(e.target.value)}
+          />
+          <div className="library-grid">
+            {filtered.map(tpl => (
+              <div key={tpl.name} className="library-card">
+                <div className="name">{tpl.name}</div>
+                <div className="formula">{tpl.formula}</div>
+                <div className="src">{tpl.src}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 8, fontSize: 11, color: '#6f6f6f' }}>
+            Picking a template prefills the formula bar and copies its validation cases. You can edit either freely afterward.
+          </div>
+        </div>
+      );
+    }
+
+    // ========================================================================
+    // APP
+    // ========================================================================
+    function App() {
+      const [expandedId, setExpandedId] = useState(2); // LDL pre-expanded
+      const [briefOpen, setBriefOpen] = useState(true);
+      const [libraryOpen, setLibraryOpen] = useState(false);
+
+      return (
+        <div>
+          <div className="breadcrumb">
+            <a href="#">Home</a> / <a href="#">Admin Management</a> / <span>Calculated Value Rules</span>
+          </div>
+          <h1 style={{ fontSize: 28, fontWeight: 400, margin: '0.5rem 0 1rem' }}>
+            Calculated Value Rules
+          </h1>
+
+          {briefOpen && (
+            <div className="brief-banner">
+              <strong>v2 design brief:</strong> Formula bar with syntax highlighting, autocomplete,
+              and inline linting is the primary input — power users type, beginners discover via
+              the side panel. A read-only <em>math view</em> renders the same formula in proper
+              notation with units (the QA artifact reviewers sign off on). When the formula uses
+              <code> if()</code>, a flowchart panel appears showing each branch separately. Templates
+              live behind a searchable library, not a rigid strip. <strong>Sample-type scope</strong>
+              lets the rule apply to <em>all</em> sample types or to a <em>selected subset</em> —
+              e.g. LDL fires on both Serum and Plasma; eGFR fires on Serum and Plasma; BMI applies
+              to all sample types. The list view shows the scope on each rule.
+              Both LDL (arithmetic) and eGFR (branching) editors are pre-expanded so you can compare.
+              <button onClick={() => setBriefOpen(false)}
+                      style={{ float: 'right', background: 'none', border: 'none', cursor: 'pointer', color: '#525252' }}>✕</button>
+            </div>
+          )}
+
+          {/* Toolbar */}
+          <div className="toolbar">
+            <div className="toolbar-left">
+              <input className="search-input" placeholder="Search rules by name, test, or destination…" />
+              <span className="filter-pill">Status: All ▾</span>
+              <span className="filter-pill">Sample: All ▾</span>
+              <span className="filter-pill">Destination: All ▾</span>
+            </div>
+            <div>
+              <button className={'browse-btn' + (libraryOpen ? ' open' : '')}
+                      onClick={() => setLibraryOpen(o => !o)}
+                      style={{ marginRight: 8 }}>
+                Browse formula library
+              </button>
+              <button className="cds--btn cds--btn--primary">+ New calculation</button>
+            </div>
+          </div>
+
+          {libraryOpen && <LibraryDrawer onClose={() => setLibraryOpen(false)} />}
+
+          {/* Rule list */}
+          <div className="cds--data-table-container" style={{ background: '#fff', border: '1px solid #e0e0e0', borderTop: 'none' }}>
+            <table className="cds--data-table">
+              <thead>
+                <tr>
+                  <th style={{ width: 40 }}></th>
+                  <th style={{ width: 90 }}>Status</th>
+                  <th>Rule</th>
+                  <th>Destination</th>
+                  <th style={{ width: 180 }}>Last edited</th>
+                  <th style={{ width: 60 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {RULES.map(rule => (
+                  <React.Fragment key={rule.id}>
+                    <tr style={{ background: expandedId === rule.id ? '#edf5ff' : 'transparent' }}>
+                      <td>
+                        <button
+                          onClick={() => setExpandedId(expandedId === rule.id ? null : rule.id)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: '#0f62fe' }}>
+                          {expandedId === rule.id ? '▾' : '▸'}
+                        </button>
+                      </td>
+                      <td>
+                        {rule.status === 'active'
+                          ? <span className="cds--tag cds--tag--green">Active</span>
+                          : <span className="cds--tag cds--tag--gray">Disabled</span>}
+                        {rule.branching && <span className="cds--tag cds--tag--purple" style={{ marginLeft: 4 }}>Branching</span>}
+                      </td>
+                      <td>
+                        <div className="rule-name">{rule.name}</div>
+                        <FormulaSummary text={rule.formula} />
+                      </td>
+                      <td style={{ fontSize: 13 }}>
+                        <div>{rule.destination}</div>
+                        <div style={{ fontSize: 11, color: '#6f6f6f', marginTop: 2 }}>
+                          {rule.scope === 'all'
+                            ? <span style={{ color: '#0043ce' }}>→ all sample types</span>
+                            : <>→ {rule.scopeList.map((s, i) => (
+                                <span key={s} className="cds--tag cds--tag--cool-gray" style={{ marginRight: 2, fontSize: 10 }}>{s}</span>
+                              ))}</>}
+                        </div>
+                      </td>
+                      <td style={{ fontSize: 12, color: '#6f6f6f' }}>{rule.edited}</td>
+                      <td>
+                        <span style={{ cursor: 'pointer', color: '#525252' }}>⋮</span>
+                      </td>
+                    </tr>
+                    {expandedId === rule.id && rule.id === 2 && <LDLEditor />}
+                    {expandedId === rule.id && rule.id === 3 && <EGFREditor />}
+                    {expandedId === rule.id && rule.id !== 2 && rule.id !== 3 && (
+                      <tr>
+                        <td colSpan={6} style={{ padding: '1rem 2rem', background: '#f4f4f4', fontSize: 13, color: '#525252' }}>
+                          (Editor for <strong>{rule.name}</strong> would render in the same formula-bar layout.
+                          {rule.branching ? ' Flowchart panel would appear because this rule uses if().' : ' No flowchart panel — pure arithmetic.'})
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ marginTop: '1.5rem', fontSize: 12, color: '#525252', lineHeight: 1.6 }}>
+            <strong>What changed vs. v1:</strong> Chip canvas removed as the primary input — typing in
+            the formula bar is faster and beginners still get discovery through the side panel.
+            Math-view rendering moved beneath the bar as the read-only QA artifact. Flowchart panel
+            now appears <em>only</em> when the formula uses <code>if()</code> — eGFR and MELD-Na get
+            it, BMI and LDL don't. Templates moved from a fixed six-card strip into a searchable
+            library drawer with citations (Friedewald 1972, NKF-ASN 2021, Cockcroft 1976, etc.).
+            Both the formula bar and the math view are <em>views on the same AST</em> — typing
+            updates both, picking a template populates both.
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

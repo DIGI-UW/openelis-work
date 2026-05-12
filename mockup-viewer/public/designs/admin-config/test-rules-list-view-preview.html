@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Rules — Unified List View — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner {
+      background: #0f62fe; color: #fff;
+      padding: 6px 1rem; font-size: 12px; font-family: monospace;
+    }
+    .preview-content { padding: 1rem 2rem 4rem; max-width: 1480px; margin: 0 auto; }
+    .breadcrumb { font-size: 12px; color: #525252; margin: 0.5rem 0 0.25rem; }
+    .breadcrumb a { color: #0f62fe; text-decoration: none; }
+
+    .brief-banner {
+      background: #edf5ff; border-left: 3px solid #0f62fe;
+      padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 13px; color: #161616;
+    }
+    .brief-banner strong { color: #0043ce; }
+
+    /* Token rendering */
+    .tok-var { color: #0043ce; font-weight: 600; }
+    .tok-fn { color: #491d8b; font-weight: 600; }
+    .tok-attr { color: #a2191f; font-weight: 600; }
+    .tok-op { color: #d12771; font-weight: 600; }
+    .tok-bool { color: #8a3ffc; font-weight: 700; }
+    .tok-num { color: #198038; font-weight: 600; }
+    .tok-str { color: #0e6027; }
+    .tok-paren { color: #525252; }
+    .tok-pred { color: #0072c3; font-weight: 600; }
+    .phrase {
+      display: inline-flex; align-items: baseline; gap: 4px;
+      background: #f4f9ff; padding: 2px 8px; border-radius: 4px;
+      font-family: 'IBM Plex Sans', sans-serif; font-size: 12px;
+      color: #161616; margin: 0 2px;
+    }
+    .phrase strong { font-weight: 600; color: #161616; }
+    .phrase em { color: #0072c3; font-style: normal; font-weight: 500; }
+
+    .summary {
+      font-family: 'IBM Plex Mono', monospace; font-size: 12px; margin-top: 4px;
+    }
+
+    /* Type chips */
+    .type-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px;
+      text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .type-chip.rule  { background: #d0e2ff; color: #0043ce; }
+    .type-chip.algo  { background: #e8daff; color: #491d8b; }
+    .type-chip.calc  { background: #defbe6; color: #0e6027; }
+    .type-chip.mcalc { background: #fff8e1; color: #b28600; }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex; gap: 0.5rem; align-items: center; justify-content: space-between;
+      background: #fff; padding: 0.5rem 1rem; border: 1px solid #e0e0e0; border-bottom: none;
+    }
+    .toolbar-left { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+    .search-input {
+      border: none; border-bottom: 1px solid #8d8d8d; padding: 6px 10px; width: 260px;
+      font-size: 14px; background: #f4f4f4;
+    }
+    .filter-pill {
+      background: #f4f4f4; padding: 4px 10px; font-size: 12px; border-radius: 999px;
+      cursor: pointer; border: 1px solid #e0e0e0;
+    }
+    .filter-pill.active { background: #d0e2ff; color: #0043ce; border-color: #4589ff; }
+
+    /* New button + menu */
+    .new-btn-wrap { position: relative; display: inline-block; }
+    .new-menu {
+      position: absolute; top: 100%; right: 0; margin-top: 4px;
+      background: #fff; border: 1px solid #c6c6c6;
+      min-width: 280px; z-index: 5;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .new-menu .item {
+      padding: 10px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 2px;
+      border-bottom: 1px solid #f4f4f4;
+    }
+    .new-menu .item:hover { background: #edf5ff; }
+    .new-menu .item:last-child { border-bottom: none; }
+    .new-menu .item-name { font-size: 13px; font-weight: 600; color: #161616; }
+    .new-menu .item-desc { font-size: 11px; color: #6f6f6f; }
+
+    /* Data table */
+    table.cds--data-table { width: 100%; background: #fff; border: 1px solid #e0e0e0; border-top: none; }
+    table.cds--data-table th { font-size: 12px; }
+    table.cds--data-table td { vertical-align: top; padding: 0.75rem 1rem; }
+    .rule-name { font-weight: 600; color: #161616; }
+
+    .when-then {
+      display: flex; align-items: center; gap: 0.5rem; margin-top: 4px;
+      flex-wrap: wrap;
+    }
+    .when-then .label {
+      font-size: 10px; padding: 2px 6px; border-radius: 999px; font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .when-then .label.w { background: #fff8e1; color: #b28600; }
+    .when-then .label.t { background: #defbe6; color: #0e6027; }
+    .when-then .arrow { color: #525252; }
+    .summary-text {
+      font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    }
+
+    /* Tests involved column */
+    .test-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+    .test-chip {
+      background: #f4f4f4; color: #161616;
+      padding: 2px 8px; border-radius: 4px; font-size: 11px;
+      font-family: 'IBM Plex Mono', monospace;
+      cursor: pointer; border: 1px solid #e0e0e0;
+    }
+    .test-chip.input  { border-color: #a2191f; color: #a2191f; }
+    .test-chip.output { border-color: #198038; color: #0e6027; }
+    .test-chip.both   { border-color: #0043ce; color: #0043ce; }
+    .test-chip:hover { background: #edf5ff; border-color: #0f62fe; color: #0f62fe; }
+
+    /* Open-in-editor link for algos / multi-step */
+    .open-editor-row {
+      background: #f4f4f4; padding: 1rem 1.5rem; border-top: 2px solid #491d8b;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .open-editor-row.calc { border-color: #b28600; }
+    .open-editor-row .left { display: flex; flex-direction: column; gap: 4px; }
+    .open-editor-row .title { font-size: 14px; font-weight: 600; }
+    .open-editor-row .desc { font-size: 12px; color: #525252; }
+    .open-editor-row .right { display: flex; gap: 0.5rem; align-items: center; }
+
+    /* Inline rule editor (when simple rule is expanded) */
+    .inline-rule-editor {
+      background: #f4f4f4; padding: 1.25rem; border-top: 2px solid #0f62fe;
+    }
+    .inline-rule-editor .editor-grid {
+      display: grid; grid-template-columns: 1.2fr 1fr; gap: 1rem;
+    }
+    .panel {
+      background: #fff; padding: 1rem; border: 1px solid #e0e0e0;
+    }
+    .panel h4 {
+      margin: 0 0 0.75rem; font-size: 14px; font-weight: 600;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .panel h4 .pill {
+      background: #d0e2ff; color: #0043ce; font-size: 10px;
+      padding: 2px 8px; border-radius: 999px; font-weight: 500;
+    }
+    .field-row { display: flex; gap: 0.75rem; margin-bottom: 0.5rem; align-items: end; }
+    .field-row label { font-size: 12px; color: #525252; display: block; margin-bottom: 4px; }
+    .field-row input, .field-row select {
+      padding: 6px 10px; border: none; border-bottom: 1px solid #8d8d8d;
+      background: #f4f4f4; font-size: 13px; width: 100%;
+    }
+    .footer-actions {
+      display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.75rem;
+    }
+
+    /* Side panel — test catalog cross-reference */
+    .layout-grid {
+      display: grid; grid-template-columns: 1fr 320px; gap: 1rem;
+    }
+    .side-panel {
+      background: #fff; border: 1px solid #e0e0e0; padding: 1rem;
+      align-self: start; position: sticky; top: 1rem;
+    }
+    .side-panel h4 {
+      margin: 0 0 0.5rem; font-size: 13px; font-weight: 600;
+    }
+    .side-panel .test-card {
+      padding: 8px 10px; border: 1px solid #e0e0e0; margin-bottom: 6px;
+      font-size: 12px;
+    }
+    .side-panel .test-card .tname { font-weight: 600; color: #161616; }
+    .side-panel .test-card .tmeta {
+      font-size: 11px; color: #6f6f6f; font-family: 'IBM Plex Mono', monospace;
+    }
+    .side-panel .test-card .role {
+      font-size: 10px; padding: 1px 6px; border-radius: 3px;
+      margin-right: 4px;
+    }
+    .side-panel .test-card .role.input  { background: #fff1f1; color: #a2191f; }
+    .side-panel .test-card .role.output { background: #defbe6; color: #0e6027; }
+    .side-panel .test-card .role.intermediate { background: #d0e2ff; color: #0043ce; }
+    .catalog-link {
+      display: block; margin-top: 0.75rem; padding: 0.5rem; background: #edf5ff;
+      font-size: 12px; color: #0043ce; text-decoration: none; text-align: center;
+      border: 1px solid #4589ff;
+    }
+    .catalog-link:hover { background: #d0e2ff; }
+
+    .compact-hint { font-size: 11px; color: #6f6f6f; font-style: italic; }
+
+    /* Empty state */
+    .empty-state {
+      padding: 3rem 2rem; text-align: center;
+      background: #fff; border: 1px solid #e0e0e0; border-top: none;
+    }
+    .empty-state .icon { font-size: 32px; color: #8d8d8d; margin-bottom: 0.5rem; }
+    .empty-state .title { font-size: 16px; font-weight: 600; color: #161616; margin-bottom: 4px; }
+    .empty-state .desc { font-size: 13px; color: #525252; margin-bottom: 1rem; }
+
+    /* Batch action bar — shows when items are selected */
+    .batch-bar {
+      display: flex; align-items: center; gap: 0.5rem; justify-content: space-between;
+      background: #0043ce; color: #fff; padding: 0.5rem 1rem;
+      border: 1px solid #0043ce; border-bottom: none;
+    }
+    .batch-bar .count { font-size: 13px; font-weight: 600; }
+    .batch-bar .actions { display: flex; gap: 0.5rem; }
+    .batch-bar button {
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff;
+      padding: 4px 10px; font-size: 12px; cursor: pointer;
+    }
+    .batch-bar button:hover { background: rgba(255,255,255,0.25); }
+    .batch-bar button.danger { border-color: #fa4d56; }
+    .batch-bar .clear { background: none; border: none; color: #fff; cursor: pointer; padding: 4px; }
+
+    /* Counts row */
+    .count-row {
+      display: flex; gap: 1.5rem; margin-bottom: 0.75rem; font-size: 13px; color: #525252;
+    }
+    .count-row .c { display: flex; align-items: center; gap: 6px; }
+    .count-row .num {
+      font-weight: 600; font-size: 16px; color: #161616;
+    }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    Visual Preview — Test Rules unified list view &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application
+  </div>
+  <div id="boot-status" style="padding: 1rem 2rem; font-size: 13px; color: #525252; font-family: monospace;">
+    Loading… <span id="boot-detail">if this message persists, check the browser console for errors.</span>
+  </div>
+  <div class="preview-content" id="root"></div>
+
+  <script>
+    // Visible boot diagnostics so the page never silently dies on a CDN miss.
+    window.addEventListener('error', function (e) {
+      var s = document.getElementById('boot-status');
+      if (s) {
+        s.style.background = '#fff1f1';
+        s.style.color = '#a2191f';
+        s.style.borderLeft = '3px solid #da1e28';
+        s.innerHTML = '<strong>Error:</strong> ' + (e.message || 'unknown') +
+          (e.filename ? ' &nbsp; <em>' + e.filename + ':' + e.lineno + '</em>' : '');
+      }
+    });
+    function _checkDeps() {
+      var missing = [];
+      if (typeof React === 'undefined') missing.push('React');
+      if (typeof ReactDOM === 'undefined') missing.push('ReactDOM');
+      if (typeof Babel === 'undefined') missing.push('Babel');
+      var s = document.getElementById('boot-detail');
+      if (missing.length) {
+        s.textContent = 'Missing dependencies: ' + missing.join(', ') + '. Check the network tab for blocked CDNs (cdnjs.cloudflare.com, unpkg.com).';
+        s.style.color = '#a2191f';
+      } else {
+        s.textContent = 'Dependencies loaded. Mounting…';
+      }
+    }
+    window.addEventListener('load', _checkDeps);
+  </script>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    const KNOWN_TESTS = ['TSH','FT4','HIV_Screen','HIV_Conf','HIV_Tie','HIV_Status','TC','HDL','TRIG','LDL','SCr','Bili','INR','Na','MELD_Na','WBC','Diff','HGB','Retic','GLU','Lactate','Nitrites','Leuk','UC','StrepA','ThroatCx','CA','ALB','CorrCa','WT','HT','BMI','Trep','RPR','TPPA','Syph_Final','Sputum','GeneXpert','DST','TB_Final'];
+    const KEYWORDS = ['AND','OR','NOT','IN'];
+    const PREDICATES = ['isNormal','isOutsideNormal','isAboveNormal','isBelowNormal','isCritical','isCriticallyHigh','isCriticallyLow','isFlagged','changedSignificantly','isReactive','isPositive','isAnyOf'];
+    function tokenize(text) {
+      const re = /("[^"]*")|(\d+(?:\.\d+)?)|([A-Za-z_][A-Za-z0-9_]*)|(==|!=|>=|<=|>|<|=|\+|-|\*|\/)|([(),])|(\s+)|(.)/g;
+      const out = []; let m;
+      while ((m = re.exec(text)) !== null) {
+        if (m[1]) out.push({k:'str', t:m[1]});
+        else if (m[2]) out.push({k:'num', t:m[2]});
+        else if (m[3]) {
+          if (KEYWORDS.includes(m[3].toUpperCase())) out.push({k:'bool', t:m[3]});
+          else if (PREDICATES.includes(m[3])) out.push({k:'pred', t:m[3]});
+          else if (['min','max','log','ln','round','if','eq','pow'].includes(m[3])) out.push({k:'fn', t:m[3]});
+          else if (['Age','Sex','Sample'].includes(m[3])) out.push({k:'attr', t:m[3]});
+          else if (KNOWN_TESTS.includes(m[3])) out.push({k:'var', t:m[3]});
+          else out.push({k:'var', t:m[3]});
+        }
+        else if (m[4]) out.push({k:'op', t:m[4]});
+        else if (m[5]) out.push({k:'paren', t:m[5]});
+        else if (m[6]) out.push({k:'ws', t:m[6]});
+        else out.push({k:'other', t:m[7]});
+      }
+      return out;
+    }
+    const PREDICATE_SHORT = {
+      isNormal: 'is within normal',
+      isOutsideNormal: 'is outside normal',
+      isAboveNormal: 'is above normal',
+      isBelowNormal: 'is below normal',
+      isCritical: 'is critical',
+      isCriticallyHigh: 'is critically high',
+      isCriticallyLow: 'is critically low',
+      isFlagged: 'is flagged',
+      changedSignificantly: 'changed significantly',
+      isReactive: 'is reactive',
+      isPositive: 'is positive',
+      isAnyOf: 'is one of…',
+    };
+
+    function Tokenized({ text }) {
+      const tokens = tokenize(text);
+      const out = [];
+      let i = 0;
+      while (i < tokens.length) {
+        const t = tokens[i];
+        if (t.k === 'pred' &&
+            tokens[i+1] && tokens[i+1].k === 'paren' && tokens[i+1].t === '(' &&
+            tokens[i+2] && tokens[i+2].k === 'var' &&
+            tokens[i+3] && tokens[i+3].k === 'paren' && tokens[i+3].t === ')') {
+          const phrase = PREDICATE_SHORT[t.t];
+          const testId = tokens[i+2].t;
+          if (phrase) {
+            out.push(
+              <span key={i} className="phrase">
+                <strong>{testId}</strong> <em>{phrase}</em>
+              </span>
+            );
+            i += 4;
+            continue;
+          }
+        }
+        out.push(<span key={i} className={t.k === 'ws' ? '' : 'tok-' + t.k}>{t.t}</span>);
+        i++;
+      }
+      return <span className="summary-text">{out}</span>;
+    }
+
+    // ========================================================================
+    // UNIFIED RULES DATA — mix of types
+    // ========================================================================
+    const ITEMS = [
+      {
+        id: 1, type: 'rule', name: 'TSH abnormal → reflex Free T4',
+        status: 'active',
+        summary: { kind: 'whenThen', when: 'isOutsideNormal(TSH)', then: 'Order Free T4' },
+        tests: [{ id: 'TSH', role: 'input' }, { id: 'FT4', role: 'output' }],
+        trigger: 'On TSH result',
+        edited: '2026-04-22 by m.kone',
+      },
+      {
+        id: 2, type: 'algo', name: 'HIV 3-test national algorithm',
+        status: 'active',
+        summary: { kind: 'algo', nodes: 3, ends: 4, paths: 'Screen → Confirm → Tiebreaker' },
+        tests: [
+          { id: 'HIV_Screen', role: 'input' }, { id: 'HIV_Conf', role: 'intermediate' },
+          { id: 'HIV_Tie', role: 'intermediate' }, { id: 'HIV_Status', role: 'output' }
+        ],
+        trigger: 'On HIV_Status order',
+        edited: '2026-04-30 by p.diallo',
+      },
+      {
+        id: 3, type: 'calc', name: 'LDL Cholesterol (Friedewald)',
+        status: 'active',
+        summary: { kind: 'formula', text: 'LDL = TC - HDL - TRIG / 5' },
+        tests: [{ id: 'TC', role: 'input' }, { id: 'HDL', role: 'input' }, { id: 'TRIG', role: 'input' }, { id: 'LDL', role: 'output' }],
+        trigger: 'On all inputs resulted',
+        edited: '2026-04-28 by p.diallo',
+      },
+      {
+        id: 12, type: 'calc', name: 'TB GenoType Resistance Interpretation', outputKind: 'coded',
+        status: 'active',
+        summary: { kind: 'formula', text: 'Decision table: 4 rules + Otherwise · maps band pattern + melting points to 6 categories' },
+        tests: [
+          { id: 'TB_GT', role: 'input' },
+          { id: 'TB_INTERP', role: 'output' }
+        ],
+        trigger: 'On TB_GT result',
+        edited: '2026-05-08 by m.kone',
+      },
+      {
+        id: 4, type: 'mcalc', name: 'MELD-Na (Liver allocation)',
+        status: 'active',
+        summary: { kind: 'mcalc', steps: 6, finalText: 'MELD_Na (capped 6–40)' },
+        tests: [
+          { id: 'SCr', role: 'input' }, { id: 'Bili', role: 'input' },
+          { id: 'INR', role: 'input' }, { id: 'Na', role: 'input' },
+          { id: 'MELD_Na', role: 'output' }
+        ],
+        trigger: 'On all inputs resulted',
+        edited: '2026-03-22 by p.diallo',
+      },
+      {
+        id: 5, type: 'rule', name: 'WBC critically high → manual differential',
+        status: 'active',
+        summary: { kind: 'whenThen', when: 'isCriticallyHigh(WBC)', then: 'Order Manual Diff' },
+        tests: [{ id: 'WBC', role: 'input' }, { id: 'Diff', role: 'output' }],
+        trigger: 'On WBC result',
+        edited: '2026-03-12 by m.kone',
+      },
+      {
+        id: 6, type: 'calc', name: 'BMI', status: 'active',
+        summary: { kind: 'formula', text: 'BMI = WT / pow(HT, 2)' },
+        tests: [{ id: 'WT', role: 'input' }, { id: 'HT', role: 'input' }, { id: 'BMI', role: 'output' }],
+        trigger: 'On WT + HT resulted',
+        edited: '2026-04-12 by m.kone',
+      },
+      {
+        id: 7, type: 'rule', name: 'Urine dipstick positive → culture',
+        status: 'active',
+        summary: { kind: 'whenThen', when: '(Nitrites == "Positive" OR Leuk IN ("++","+++"))', then: 'Order Urine Culture' },
+        tests: [{ id: 'Nitrites', role: 'input' }, { id: 'Leuk', role: 'input' }, { id: 'UC', role: 'output' }],
+        trigger: 'On dipstick result',
+        edited: '2026-02-28 by m.kone',
+      },
+      {
+        id: 8, type: 'algo', name: 'TB cascade (GeneXpert → DST)',
+        status: 'disabled',
+        summary: { kind: 'algo', nodes: 4, ends: 6, paths: 'Sputum → GX → DST → 2nd-line' },
+        tests: [
+          { id: 'Sputum', role: 'input' }, { id: 'GeneXpert', role: 'intermediate' },
+          { id: 'DST', role: 'intermediate' }, { id: 'TB_Final', role: 'output' }
+        ],
+        trigger: 'On TB_Final order',
+        edited: '2026-01-04 by p.diallo',
+      },
+      {
+        id: 9, type: 'calc', name: 'Corrected Calcium', status: 'active',
+        summary: { kind: 'formula', text: 'CorrCa = CA + 0.8 * (4 - ALB)' },
+        tests: [{ id: 'CA', role: 'input' }, { id: 'ALB', role: 'input' }, { id: 'CorrCa', role: 'output' }],
+        trigger: 'On Ca + Alb resulted',
+        edited: '2026-04-21 by m.kone',
+      },
+      {
+        id: 10, type: 'rule', name: 'Critical glucose → alert + lactate',
+        status: 'active',
+        summary: { kind: 'whenThen', when: 'isCritical(GLU)', then: 'Critical Alert + STAT Lactate' },
+        tests: [{ id: 'GLU', role: 'input' }, { id: 'Lactate', role: 'output' }],
+        trigger: 'On GLU result',
+        edited: '2026-04-05 by m.kone',
+      },
+      {
+        id: 11, type: 'algo', name: 'Syphilis reverse algorithm',
+        status: 'active',
+        summary: { kind: 'algo', nodes: 3, ends: 4, paths: 'Treponemal → RPR → TPPA' },
+        tests: [
+          { id: 'Trep', role: 'input' }, { id: 'RPR', role: 'intermediate' },
+          { id: 'TPPA', role: 'intermediate' }, { id: 'Syph_Final', role: 'output' }
+        ],
+        trigger: 'On Syph_Final order',
+        edited: '2025-11-29 by p.diallo',
+      },
+    ];
+
+    // Counts
+    const COUNTS = ITEMS.reduce((acc, x) => {
+      acc[x.type] = (acc[x.type] || 0) + 1;
+      acc.total++;
+      if (x.status === 'active') acc.active++;
+      return acc;
+    }, { total: 0, active: 0 });
+
+    function TestChips({ tests }) {
+      return (
+        <div className="test-chips">
+          {tests.map(t => (
+            <span key={t.id} className={'test-chip ' + t.role} title={
+              t.role === 'input' ? 'Read by this rule' :
+              t.role === 'output' ? 'Written by this rule (test in catalog)' :
+              'Decision step in the algorithm'
+            }>
+              {t.id}
+            </span>
+          ))}
+        </div>
+      );
+    }
+
+    function ItemSummary({ item }) {
+      const s = item.summary;
+      if (s.kind === 'whenThen') {
+        return (
+          <div className="when-then">
+            <span className="label w">WHEN</span>
+            <Tokenized text={s.when} />
+            <span className="arrow">→</span>
+            <span className="label t">THEN</span>
+            <span style={{ color: '#0e6027', fontFamily: "'IBM Plex Mono', monospace", fontSize: 12 }}>{s.then}</span>
+          </div>
+        );
+      }
+      if (s.kind === 'formula') {
+        return <div className="summary"><Tokenized text={s.text} /></div>;
+      }
+      if (s.kind === 'algo') {
+        return (
+          <div className="summary" style={{ display: 'flex', gap: 12, alignItems: 'center', color: '#525252' }}>
+            <span><strong>{s.nodes}</strong> decision steps · <strong>{s.ends}</strong> end states</span>
+            <span style={{ color: '#491d8b', fontFamily: 'monospace' }}>{s.paths}</span>
+          </div>
+        );
+      }
+      if (s.kind === 'mcalc') {
+        return (
+          <div className="summary" style={{ color: '#525252' }}>
+            <strong>{s.steps}</strong> named intermediates → <span style={{ color: '#0e6027', fontFamily: 'monospace' }}>{s.finalText}</span>
+          </div>
+        );
+      }
+      return null;
+    }
+
+    function TypeChip({ type }) {
+      const labels = { rule: 'Rule', algo: 'Algorithm', calc: 'Calc', mcalc: 'Multi-step Calc' };
+      return <span className={'type-chip ' + type}>{labels[type]}</span>;
+    }
+
+    // ========================================================================
+    // INLINE RULE EDITOR (only for type='rule' — simple WHEN/THEN)
+    // ========================================================================
+    function InlineRuleEditor({ item }) {
+      const [when, setWhen] = useState(item.summary.when);
+      // Which dedicated preview corresponds to this item?
+      const dedicatedPreview = item.type === 'rule' ? 'reflex-tests-redesign-preview.html'
+        : (item.type === 'calc' && item.outputKind === 'coded') ? 'calc-decision-table-preview.html'
+        : 'calculated-values-redesign-v2-preview.html';
+      const editorName = item.type === 'rule' ? 'Reflex rule editor'
+        : (item.type === 'calc' && item.outputKind === 'coded') ? 'Coded Calculation editor (Decision Table)'
+        : 'Numeric Calculation editor (Formula bar)';
+      return (
+        <tr>
+          <td colSpan={7} style={{ padding: 0, background: '#f4f4f4' }}>
+            <div className="inline-rule-editor">
+              {/* Cross-preview navigation banner */}
+              <div style={{
+                background: '#edf5ff', border: '1px solid #4589ff', borderLeft: '3px solid #0f62fe',
+                padding: '0.5rem 0.75rem', marginBottom: 12, fontSize: 12, color: '#0043ce',
+                display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap'
+              }}>
+                <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 700 }}>
+                  Editor preview
+                </span>
+                <span style={{ color: '#525252' }}>
+                  This is the inline editor for a <strong>{item.type === 'rule' ? 'Reflex rule' : 'Calculation'}</strong>.
+                  See the full-width version with all states + interactivity:
+                </span>
+                <a href={dedicatedPreview}
+                   style={{ marginLeft: 'auto', background: '#0f62fe', color: '#fff', padding: '4px 12px',
+                            textDecoration: 'none', fontSize: 12, fontWeight: 600, borderRadius: 3 }}>
+                  Open {editorName} →
+                </a>
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                <span className="cds--tag cds--tag--blue">Editing inline</span>
+                <span className="cds--tag cds--tag--green">Active</span>
+                <span className="cds--tag cds--tag--warm-gray">Single decision point</span>
+              </div>
+
+              <div className="editor-grid">
+                <div className="panel">
+                  <h4>Rule definition <span className="pill">WHEN / THEN</span></h4>
+                  <div className="field-row">
+                    <div style={{ flex: 1 }}>
+                      <label>Name</label>
+                      <input type="text" defaultValue={item.name} />
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#b28600', background: '#fff8e1', display: 'inline-block', padding: '3px 10px', borderRadius: 999, marginBottom: 6 }}>WHEN</div>
+                    <div style={{ background: '#fff', border: '1px solid #8d8d8d', padding: '8px 12px', fontFamily: 'IBM Plex Mono', fontSize: 14 }}>
+                      <Tokenized text={when} />
+                    </div>
+                    <div className="compact-hint" style={{ marginTop: 4 }}>
+                      Inline formula bar — same syntax as the algorithm decision tables.
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#0e6027', background: '#defbe6', display: 'inline-block', padding: '3px 10px', borderRadius: 999, marginBottom: 6 }}>THEN</div>
+                    <div style={{ background: '#fff', border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13 }}>
+                      <span style={{ background: '#d0e2ff', color: '#0043ce', padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, marginRight: 6 }}>Order Test</span>
+                      {item.summary.then}
+                    </div>
+                  </div>
+                </div>
+                <div className="panel">
+                  <h4>Test catalog references <span className="pill" style={{ background: '#e8daff', color: '#491d8b' }}>FYI</span></h4>
+                  <div className="compact-hint" style={{ marginBottom: 8 }}>
+                    Every test this rule touches is a real entry in the Test Catalog. Click any chip to jump to its catalog page.
+                  </div>
+                  {item.tests.map(t => (
+                    <div key={t.id} style={{ padding: 6, borderBottom: '1px solid #f4f4f4', display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                      <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{t.id}</span>
+                      <span style={{ color: '#6f6f6f' }}>
+                        {t.role === 'input' ? 'Reads result' : t.role === 'output' ? 'Writes result' : 'Decision step'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="footer-actions">
+                <button className="cds--btn cds--btn--secondary">Cancel</button>
+                <button className="cds--btn cds--btn--primary">Save changes</button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      );
+    }
+
+    // ========================================================================
+    // OPEN-IN-EDITOR ROW (for algo / mcalc — full-page editors)
+    // ========================================================================
+    function OpenEditorRow({ item }) {
+      const isCalc = item.type === 'mcalc';
+      return (
+        <tr>
+          <td colSpan={7} style={{ padding: 0, background: '#f4f4f4' }}>
+            <div className={'open-editor-row' + (isCalc ? ' calc' : '')}>
+              <div className="left">
+                <div className="title">
+                  This is a {item.type === 'algo' ? 'multi-step algorithm' : 'multi-step calculation'} —
+                  it doesn't edit inline.
+                </div>
+                <div className="desc">
+                  {item.type === 'algo'
+                    ? `${item.summary.nodes} decision steps wired together with ${item.summary.ends} end states. The workflow editor takes over a full screen so the graph has room to breathe.`
+                    : `${item.summary.steps} named intermediate values feeding a final output. The multi-step editor shows the dependency graph plus each step's formula bar.`}
+                </div>
+                <div className="desc" style={{ marginTop: 4 }}>
+                  Tests touched: <TestChips tests={item.tests} />
+                </div>
+              </div>
+              <div className="right">
+                <span style={{ background: '#f1c21b', color: '#6b4a00', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 700, alignSelf: 'center', marginRight: 8 }}>PHASE 2</span>
+                <a href="algorithm-as-graph-preview.html"
+                   style={{ background: '#0f62fe', color: '#fff', padding: '6px 14px', textDecoration: 'none',
+                            fontSize: 12, fontWeight: 600, borderRadius: 3 }}>
+                  Open in {item.type === 'algo' ? 'Algorithm Editor' : 'Multi-step Editor'} →
+                </a>
+              </div>
+            </div>
+          </td>
+        </tr>
+      );
+    }
+
+    // ========================================================================
+    // SIDE PANEL — Test Catalog cross-reference for a selected item
+    // ========================================================================
+    function CatalogPanel({ item }) {
+      if (!item) {
+        return (
+          <div className="side-panel">
+            <h4>Test catalog references</h4>
+            <div className="compact-hint">
+              Click any rule, algorithm, or multi-step calc to see which tests it touches and how.
+            </div>
+          </div>
+        );
+      }
+      return (
+        <div className="side-panel">
+          <h4>Tests touched by "{item.name}"</h4>
+          <div className="compact-hint" style={{ marginBottom: 8 }}>
+            Every test below is a real entry in the Test Catalog. The rule is glue between them — it doesn't create new test types.
+          </div>
+          {item.tests.map(t => (
+            <div key={t.id} className="test-card">
+              <div className="tname">
+                <span className={'role ' + t.role}>{t.role}</span>
+                {t.id}
+              </div>
+              <div className="tmeta">
+                {t.role === 'input' && 'Rule reads this test\'s result'}
+                {t.role === 'output' && 'Rule writes a result back to this test'}
+                {t.role === 'intermediate' && 'Algorithm orders this test at a decision step'}
+              </div>
+            </div>
+          ))}
+          <a href="#" className="catalog-link">→ Open Test Catalog</a>
+          <h4 style={{ marginTop: 16 }}>Trigger mode</h4>
+          <div style={{ fontSize: 12, color: '#525252' }}>
+            <strong>{item.trigger}</strong>
+          </div>
+          <div className="compact-hint" style={{ marginTop: 4 }}>
+            {item.trigger.includes('order')
+              ? 'Provider orders the output test; the rule cascade runs underneath. Provider doesn\'t see the cascade.'
+              : 'Rule reads the trigger result and decides what (if anything) to order next.'}
+          </div>
+        </div>
+      );
+    }
+
+    // ========================================================================
+    // APP
+    // ========================================================================
+    function App() {
+      const [expandedId, setExpandedId] = useState(1);
+      const [newMenuOpen, setNewMenuOpen] = useState(false);
+      const [typeFilter, setTypeFilter] = useState('all');
+      const [briefOpen, setBriefOpen] = useState(true);
+      const [selectedIds, setSelectedIds] = useState(new Set());
+      const [demoEmpty, setDemoEmpty] = useState(false);  // For showcasing empty state
+
+      const selected = ITEMS.find(i => i.id === expandedId);
+      const filtered = demoEmpty ? [] : (typeFilter === 'all' ? ITEMS : ITEMS.filter(i => i.type === typeFilter));
+
+      const toggleSel = (id) => setSelectedIds(s => {
+        const ns = new Set(s); if (ns.has(id)) ns.delete(id); else ns.add(id); return ns;
+      });
+      const allSelected = filtered.length > 0 && filtered.every(i => selectedIds.has(i.id));
+      const toggleAll = () => {
+        if (allSelected) setSelectedIds(s => { const ns = new Set(s); filtered.forEach(i => ns.delete(i.id)); return ns; });
+        else setSelectedIds(s => { const ns = new Set(s); filtered.forEach(i => ns.add(i.id)); return ns; });
+      };
+      const clearSel = () => setSelectedIds(new Set());
+
+      return (
+        <div>
+          <div className="breadcrumb">
+            <a href="#">Home</a> / <a href="#">Admin Management</a> / <span>Test Rules</span>
+          </div>
+          <h1 style={{ fontSize: 28, fontWeight: 400, margin: '0.5rem 0 1rem' }}>
+            Test Rules <span style={{ fontSize: 12, color: '#6f6f6f', fontWeight: 400, marginLeft: 8 }}>rules · algorithms · multi-step calculations</span>
+          </h1>
+
+          {briefOpen && (
+            <div className="brief-banner">
+              <strong>Design brief:</strong> One page for everything that wires Test Catalog entries
+              together — simple rules (WHEN/THEN reflex or arithmetic calc), algorithms (multi-step
+              workflows like HIV 3-test), and multi-step calculations (MELD-Na). The list view shows
+              all three types with type-aware summaries. <strong>Predicates</strong> like{' '}
+              <span className="tok-pred">isOutsideNormal(TSH)</span>,{' '}
+              <span className="tok-pred">isCriticallyHigh(WBC)</span>, and{' '}
+              <span className="tok-pred">isCritical(GLU)</span> replace hardcoded numeric thresholds —
+              the actual range comes from the Test Catalog, so a range change updates every rule
+              automatically. Simple rules expand <em>inline</em>; algorithms and multi-step calcs
+              open in <em>dedicated full-screen editors</em>. Every rule type reads and writes
+              ordinary tests in the Test Catalog.
+              <button onClick={() => setBriefOpen(false)}
+                      style={{ float: 'right', background: 'none', border: 'none', cursor: 'pointer', color: '#525252' }}>✕</button>
+            </div>
+          )}
+
+          {/* Counts */}
+          <div className="count-row">
+            <div className="c"><span className="num">{COUNTS.total}</span> total</div>
+            <div className="c"><span className="num">{COUNTS.active}</span> active</div>
+            <div className="c"><TypeChip type="rule" /> <span className="num">{COUNTS.rule || 0}</span></div>
+            <div className="c"><TypeChip type="algo" /> <span className="num">{COUNTS.algo || 0}</span></div>
+            <div className="c"><TypeChip type="calc" /> <span className="num">{COUNTS.calc || 0}</span></div>
+            <div className="c"><TypeChip type="mcalc" /> <span className="num">{COUNTS.mcalc || 0}</span></div>
+          </div>
+
+          {/* Toolbar */}
+          <div className="toolbar">
+            <div className="toolbar-left">
+              <input className="search-input" placeholder="Search by name, test, or formula text…" />
+              <span className={'filter-pill' + (typeFilter === 'all' ? ' active' : '')} onClick={() => setTypeFilter('all')}>All types</span>
+              <span className={'filter-pill' + (typeFilter === 'rule' ? ' active' : '')} onClick={() => setTypeFilter('rule')}>Rules</span>
+              <span className={'filter-pill' + (typeFilter === 'algo' ? ' active' : '')} onClick={() => setTypeFilter('algo')}>Algorithms</span>
+              <span className={'filter-pill' + (typeFilter === 'calc' ? ' active' : '')} onClick={() => setTypeFilter('calc')}>Calcs</span>
+              <span className={'filter-pill' + (typeFilter === 'mcalc' ? ' active' : '')} onClick={() => setTypeFilter('mcalc')}>Multi-step</span>
+              <span className="filter-pill">Status: All ▾</span>
+              <span className="filter-pill">Trigger test ▾</span>
+            </div>
+            <div className="new-btn-wrap">
+              <button className="cds--btn cds--btn--primary" style={{ fontSize: 13 }}
+                      onClick={() => setNewMenuOpen(o => !o)}>+ New ▾</button>
+              {newMenuOpen && (
+                <div className="new-menu">
+                  <div className="item" onClick={() => setNewMenuOpen(false)}>
+                    <div className="item-name"><TypeChip type="rule" /> &nbsp;Simple rule</div>
+                    <div className="item-desc">One condition → one or more actions. Inline editor. Use for TSH reflex, critical alerts, single-condition reflexes.</div>
+                  </div>
+                  <div className="item" onClick={() => setNewMenuOpen(false)}>
+                    <div className="item-name"><TypeChip type="algo" /> &nbsp;Algorithm</div>
+                    <div className="item-desc">Multiple decision steps wired together. Workflow editor. Use for HIV cascade, TB cascade, syphilis reverse algorithm.</div>
+                  </div>
+                  <div className="item" onClick={() => setNewMenuOpen(false)}>
+                    <div className="item-name"><TypeChip type="calc" /> &nbsp;Simple calculation</div>
+                    <div className="item-desc">One formula bar. Inline editor. Use for BMI, A:G ratio, anion gap.</div>
+                  </div>
+                  <div className="item" onClick={() => setNewMenuOpen(false)}>
+                    <div className="item-name"><TypeChip type="mcalc" /> &nbsp;Multi-step calculation</div>
+                    <div className="item-desc">Named intermediates feeding a final output. Multi-step editor. Use for MELD-Na, eGFR with caps, full CKD-EPI.</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Batch action bar appears when items are selected */}
+          {selectedIds.size > 0 && (
+            <div className="batch-bar" role="region" aria-label="Bulk actions">
+              <span className="count">{selectedIds.size} selected</span>
+              <div className="actions">
+                <button>Enable</button>
+                <button>Disable</button>
+                <button>Export CSV</button>
+                <button className="danger">Delete…</button>
+              </div>
+              <button className="clear" aria-label="Clear selection" onClick={clearSel}>✕</button>
+            </div>
+          )}
+
+          {/* Empty state when there are no rules to show */}
+          {filtered.length === 0 ? (
+            <div className="empty-state">
+              <div className="icon">📋</div>
+              <div className="title">No rules yet</div>
+              <div className="desc">
+                {demoEmpty
+                  ? 'This is the empty state — the page when a fresh deployment has no rules configured.'
+                  : 'No rules match your filters. Try clearing them or change the search.'}
+              </div>
+              <button className="cds--btn cds--btn--primary">+ Create your first rule</button>
+              <div style={{ marginTop: 8 }}>
+                <button className="cds--btn cds--btn--ghost"
+                        onClick={() => setDemoEmpty(d => !d)}
+                        style={{ fontSize: 11 }}>
+                  {demoEmpty ? '← Restore demo rules' : 'Show empty state'}
+                </button>
+              </div>
+            </div>
+          ) : (
+          <div className="layout-grid">
+            <div>
+              <div style={{ marginBottom: 8 }}>
+                <button className="cds--btn cds--btn--ghost"
+                        onClick={() => setDemoEmpty(d => !d)}
+                        style={{ fontSize: 11 }}>
+                  {demoEmpty ? '← Restore demo rules' : 'Show empty state'}
+                </button>
+              </div>
+              <table className="cds--data-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: 36 }}>
+                      <input type="checkbox" checked={allSelected} onChange={toggleAll}
+                             aria-label="Select all rules" />
+                    </th>
+                    <th style={{ width: 40 }}></th>
+                    <th style={{ width: 130 }}>Type</th>
+                    <th style={{ width: 80 }}>Status</th>
+                    <th>Name / summary</th>
+                    <th>Tests touched</th>
+                    <th style={{ width: 150 }}>Trigger</th>
+                    <th style={{ width: 60 }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(item => {
+                    const isExpanded = expandedId === item.id;
+                    const isSelected = selectedIds.has(item.id);
+                    return (
+                    <React.Fragment key={item.id}>
+                      <tr style={{ background: isSelected ? '#edf5ff' : (isExpanded ? '#edf5ff' : 'transparent') }}>
+                        <td onClick={e => e.stopPropagation()}>
+                          <input type="checkbox" checked={isSelected}
+                                 onChange={() => toggleSel(item.id)}
+                                 aria-label={`Select ${item.name}`} />
+                        </td>
+                        <td style={{ cursor: 'pointer' }} onClick={() => setExpandedId(isExpanded ? null : item.id)}>
+                          <button aria-expanded={isExpanded}
+                                  aria-label={isExpanded ? 'Collapse rule' : 'Expand rule'}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: '#0f62fe', padding: '4px 8px' }}>
+                            {isExpanded ? '▾' : '▸'}
+                          </button>
+                        </td>
+                        <td><TypeChip type={item.type} /></td>
+                        <td>
+                          {item.status === 'active'
+                            ? <span className="cds--tag cds--tag--green">Active</span>
+                            : <span className="cds--tag cds--tag--gray">Disabled</span>}
+                        </td>
+                        <td>
+                          <div className="rule-name">{item.name}</div>
+                          <ItemSummary item={item} />
+                        </td>
+                        <td><TestChips tests={item.tests} /></td>
+                        <td style={{ fontSize: 12, color: '#525252' }}>{item.trigger}</td>
+                        <td><span style={{ cursor: 'pointer', color: '#525252' }}>⋮</span></td>
+                      </tr>
+                      {isExpanded && (item.type === 'rule' || item.type === 'calc') && <InlineRuleEditor item={item} />}
+                      {isExpanded && (item.type === 'algo' || item.type === 'mcalc') && <OpenEditorRow item={item} />}
+                    </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <p style={{ fontSize: 11, color: '#6f6f6f', marginTop: 6, fontStyle: 'italic' }}>
+                Select rows via the checkbox at left to reveal the batch action bar (Enable / Disable / Export / Delete).
+              </p>
+            </div>
+            <CatalogPanel item={selected} />
+          </div>
+          )}
+
+          <div style={{ marginTop: '1.5rem', fontSize: 12, color: '#525252', lineHeight: 1.6 }}>
+            <strong>Data-model recap:</strong> every test referenced by a rule — input, intermediate
+            decision step, or output — is a regular entry in the Test Catalog. A rule is glue between
+            existing catalog entries. <em>Algorithm</em> and <em>multi-step calculation</em> introduce
+            no new result types; they just write into ordinary tests. Reporting, validation, manual
+            override, and FHIR ServiceRequest / Observation interoperability all work without
+            modification. The Test Catalog itself gets a corresponding cross-reference:
+            each test card shows "Used by 2 rules, 1 algorithm" so you can navigate from either side.
+            <br/><br/>
+            <strong>Trigger modes:</strong> rules trigger on a result; algorithms can trigger either
+            on a result (legacy reflex pattern) or on an order of the final-output test (cascade is
+            invisible to the provider). The trigger mode is a top-level field on the algorithm — same
+            distinction that Beckman REMISOL and Roche cobas IT use for cascades.
+          </div>
+        </div>
+      );
+    }
+
+    try {
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+      var s = document.getElementById('boot-status');
+      if (s) s.style.display = 'none';
+    } catch (e) {
+      var s = document.getElementById('boot-status');
+      if (s) {
+        s.style.background = '#fff1f1';
+        s.style.color = '#a2191f';
+        s.style.borderLeft = '3px solid #da1e28';
+        s.innerHTML = '<strong>Render error:</strong> ' + e.message + '<pre style="font-size:11px;">' + (e.stack || '').split('\n').slice(0,6).join('\n') + '</pre>';
+      }
+    }
+  </script>
+</body>
+</html>
