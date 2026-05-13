@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HelpViewer — OpenELIS Preview (new-tab mode)</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #525252; margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #161616; }
+    .preview-banner {
+      background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace;
+    }
+    /* Two-pane split simulating the user's screen — OpenELIS tab on the left,
+       Help tab on the right. */
+    .split { display: flex; gap: 8px; padding: 12px; height: calc(100vh - 26px - 38px); box-sizing: border-box; }
+    .pane { flex: 1; background: #fff; display: flex; flex-direction: column; box-shadow: 0 4px 16px rgba(0,0,0,0.2); border-radius: 4px; overflow: hidden; min-width: 0; }
+    /* Browser-tab chrome */
+    .chrome { background: #393939; padding: 6px 8px 0 8px; }
+    .chrome .tab {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #f4f4f4; color: #161616;
+      padding: 6px 12px 6px 10px; border-radius: 6px 6px 0 0; font-size: 12px;
+      max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .chrome .tab .fav { width: 12px; height: 12px; background: #0f62fe; border-radius: 50%; flex: 0 0 auto; }
+    .chrome .url {
+      background: #161616; color: #c6c6c6; padding: 4px 8px; font-size: 11px; font-family: monospace;
+      margin-top: 4px; border-radius: 2px;
+    }
+    .pane-body { flex: 1; overflow: auto; background: #fff; }
+
+    /* ---- OpenELIS pane (left) ---- */
+    .oe-header { background: #161616; color: #fff; height: 36px; display: flex; align-items: center; padding: 0 12px; position: sticky; top: 0; z-index: 5; }
+    .oe-header .brand { font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .oe-header .globe { width: 16px; height: 16px; background: #0f62fe; border-radius: 50%; }
+    .oe-header .actions { margin-left: auto; display: flex; }
+    .oe-header .actions button { background: transparent; border: 0; color: #fff; width: 36px; height: 36px; cursor: pointer; font-size: 14px; position: relative; }
+    .oe-header .actions button.help-active { background: #393939; }
+    .oe-help-panel {
+      position: absolute; top: 36px; right: 0; width: 220px; background: #262626; color: #fff;
+      padding: 8px 0; box-shadow: 0 2px 6px rgba(0,0,0,0.3); z-index: 6;
+    }
+    .oe-help-panel a {
+      display: flex; align-items: center; gap: 6px; padding: 8px 12px;
+      color: #fff; text-decoration: none; font-size: 12px;
+    }
+    .oe-help-panel a:hover { background: #393939; }
+    .oe-help-panel a .mini { width: 12px; height: 12px; border: 1px solid currentColor; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; }
+    .oe-help-panel a.in-app { color: #78a9ff; }
+    .oe-help-panel small { color: #8d8d8d; padding: 0 12px; font-size: 10px; display: block; margin: 4px 0; }
+
+    .oe-dashboard { padding: 12px; }
+    .oe-dashboard h2 { font-size: 14px; font-weight: 400; margin: 0 0 8px 0; color: #525252; }
+    .oe-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .oe-tile { background: #f4f4f4; border-left: 3px solid #24a148; padding: 12px; font-size: 11px; position: relative; }
+    .oe-tile .lbl { color: #525252; font-size: 10px; line-height: 1.2; }
+    .oe-tile .num { font-size: 20px; font-weight: 300; margin-top: 6px; }
+    .oe-tile .icon { position: absolute; right: 8px; top: 8px; opacity: 0.4; font-size: 14px; }
+    .oe-breadcrumb { padding: 4px 12px; font-size: 11px; color: #525252; background: #f4f4f4; border-bottom: 1px solid #e0e0e0; }
+
+    /* ---- Help pane (right) ---- */
+    .help-header { background: #161616; color: #fff; height: 48px; display: flex; align-items: center; padding: 0 12px; position: sticky; top: 0; z-index: 5; gap: 12px; }
+    .help-header .brand { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+    .help-header .help-search {
+      flex: 1; max-width: 280px;
+    }
+    .help-header .help-search input {
+      width: 100%; background: #525252; border: 0; color: #fff; padding: 8px 12px; height: 32px; font-size: 13px;
+    }
+    .help-header .help-search input::placeholder { color: #c6c6c6; }
+    .help-header .return {
+      margin-left: auto; background: transparent; border: 0; color: #fff; padding: 0 12px; height: 48px;
+      font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+    }
+    .help-header .return:hover { background: #393939; }
+
+    .help-grid { display: flex; height: calc(100% - 48px); }
+    .help-side {
+      width: 200px; min-width: 200px; background: #f4f4f4; border-right: 1px solid #e0e0e0;
+      padding: 8px 0; overflow-y: auto;
+    }
+    .help-side .toc { list-style: none; padding: 0; margin: 0; }
+    .help-side .toc-group { font-weight: 600; padding: 6px 12px; font-size: 12px; }
+    .help-side .toc-children { list-style: none; padding: 0; margin: 0 0 8px 0; }
+    .help-side .toc-children li a {
+      display: block; padding: 4px 12px 4px 24px; font-size: 11px; color: #525252; text-decoration: none;
+      border-left: 3px solid transparent;
+    }
+    .help-side .toc-children li a.active { background: #fff; border-left-color: var(--brand-primary, #0f62fe); color: #161616; font-weight: 600; }
+    .help-bread a { color: var(--brand-primary, #0f62fe); }
+    .help-side .toc-children li a:hover { background: #e0e0e0; color: #161616; }
+    .help-side .toc-children li ul a { padding-left: 36px; color: #8d8d8d; font-size: 10px; }
+
+    .help-main { flex: 1; padding: 12px 16px; overflow-y: auto; min-width: 0; }
+    .help-bread { font-size: 11px; color: #525252; margin-bottom: 8px; }
+    .help-bread a { color: #0f62fe; text-decoration: none; }
+    .help-bread a:hover { text-decoration: underline; }
+
+    .oe-help-content h1 { font-size: 20px; font-weight: 300; margin: 0 0 8px 0; }
+    .oe-help-content h1 strong { font-weight: 600; }
+    .oe-help-content h2 { font-size: 14px; font-weight: 600; margin: 16px 0 6px 0; }
+    .oe-help-content h2 strong { font-weight: 600; }
+    .oe-help-content p { margin: 0 0 8px 0; font-size: 12px; }
+    .oe-help-content ol, .oe-help-content ul { margin: 0 0 8px 0; padding-left: 18px; font-size: 12px; }
+    .oe-help-content li > p { margin: 0; }
+    .oe-help-content code { font-family: 'IBM Plex Mono', monospace; font-size: 0.85em; background: #f4f4f4; padding: 1px 3px; border-radius: 2px; }
+    .oe-help-content figure.oe-help-figure {
+      background: repeating-linear-gradient(45deg, #f4f4f4, #f4f4f4 8px, #fff 8px, #fff 16px);
+      border: 1px dashed #c6c6c6; padding: 24px 12px; text-align: center; color: #525252; font-size: 11px;
+      margin: 12px 0;
+    }
+    .oe-help-content figure figcaption { font-size: 10px; font-style: italic; color: #525252; margin-top: 4px; }
+    .oe-help-content aside.oe-help-callout {
+      border-left: 3px solid; padding: 8px 12px; margin: 12px 0; font-size: 11px;
+    }
+    .oe-help-content aside.oe-help-callout p:last-child { margin-bottom: 0; }
+    .oe-help-content aside.oe-help-callout--note    { background: #e5f6ff; border-left-color: #0072c3; }
+    .oe-help-content aside.oe-help-callout--warning { background: #fcf4d6; border-left-color: #f1c21b; }
+    .oe-help-content table { border-collapse: collapse; width: 100%; font-size: 11px; }
+    .oe-help-content table th { background: #f4f4f4; text-align: left; padding: 6px 10px; border-bottom: 1px solid #c6c6c6; font-weight: 600; }
+    .oe-help-content table td { padding: 6px 10px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+
+    /* Annotation pointing from the menu to the new help tab */
+    .annotation {
+      position: absolute; top: 60px; left: 48%; z-index: 20;
+      background: #fff; border: 2px solid #0f62fe; border-radius: 6px;
+      padding: 6px 10px; font-size: 11px; color: #161616; font-family: 'IBM Plex Sans', sans-serif;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2); pointer-events: none;
+      max-width: 200px; text-align: center;
+    }
+    .annotation::before {
+      content: ""; position: absolute; top: 50%; right: 100%; transform: translateY(-50%);
+      border: 8px solid transparent; border-right-color: #0f62fe;
+    }
+    .annotation::after {
+      content: "→"; display: inline-block; margin-left: 4px; color: #0f62fe;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-banner">
+    Visual Preview — In-App Help opens in a new browser tab. Use the branding buttons at the top of the React app to simulate different deployments.
+  </div>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    const MANIFEST = {
+      pages: [
+        { slug: 'user-manual', title: 'User Manual', parentSlug: null, children: [
+          { slug: 'part-1-navigating', title: 'PART 1: Navigating', parentSlug: 'user-manual',
+            headings: [
+              { level: 1, text: 'Introduction', slug: 'introduction' },
+              { level: 2, text: 'How to login', slug: 'how-to-login' },
+              { level: 2, text: 'Change language', slug: 'change-language' },
+            ], children: [] },
+          { slug: 'part-2-troubleshooting', title: 'PART 2: Quick Troubleshooting', parentSlug: 'user-manual', headings: [], children: [] },
+          { slug: 'part-4-entering-lab-orders', title: 'PART 4: Entering Lab Orders', parentSlug: 'user-manual', headings: [], children: [] },
+          { slug: 'part-12-entering-results', title: 'PART 12: Entering Lab Results', parentSlug: 'user-manual', headings: [], children: [] },
+          { slug: 'part-13-validation', title: 'PART 13: Results Validation', parentSlug: 'user-manual', headings: [], children: [] },
+        ]},
+        { slug: 'admin-manual', title: 'Admin Manual', parentSlug: null, children: [
+          { slug: 'admin-part-5-dictionary', title: 'PART 5: Dictionary', parentSlug: 'admin-manual', headings: [], children: [] },
+          { slug: 'admin-part-7b-analyzer-management', title: 'PART 7 B: Analyzer Management', parentSlug: 'admin-manual',
+            headings: [
+              { level: 2, text: 'Navigation', slug: 'navigation' },
+              { level: 2, text: 'Field reference', slug: 'field-reference' },
+            ], children: [] },
+        ]},
+      ]
+    };
+
+    const PAGE_HTML = {
+      'part-1-navigating': `
+        <h1 id="introduction"><strong>Introduction</strong></h1>
+        <p>The OpenELIS Global system is made up of a variety of concise screens and workflows
+        to help with the collection, management, and reporting of laboratory data.</p>
+        <h2 id="how-to-login"><strong>How to login to OpenELIS</strong></h2>
+        <p>To login you will require a <strong>username</strong> and <strong>password</strong>
+        obtained from your administrator.</p>
+        <ol><li><p>Type your <strong>username</strong> and <strong>password</strong>.</p></li>
+        <li><p>Click <strong>Submit</strong>.</p></li></ol>
+        <figure class="oe-help-figure"><img alt=""/><figcaption><em>Screenshot — Login page</em></figcaption></figure>
+        <aside class="oe-help-callout oe-help-callout--note" role="note">
+          <p><strong>Note:</strong> Access is for authorized personnel only.</p>
+        </aside>
+      `,
+      'admin-part-7b-analyzer-management': `
+        <h1><strong>Analyzer Management</strong></h1>
+        <p>Configure laboratory analyzers, monitor errors, define types.</p>
+        <h2 id="navigation"><strong>Navigation</strong></h2>
+        <table>
+          <thead><tr><th>Sub-page</th><th>Purpose</th><th>Required Role</th></tr></thead>
+          <tbody>
+            <tr><td>Configuration</td><td>Configure instruments</td><td><code>Administrator</code></td></tr>
+            <tr><td>Errors</td><td>Monitor import errors</td><td><code>Lab Manager</code></td></tr>
+            <tr><td>Types</td><td>Define templates</td><td><code>Administrator</code></td></tr>
+          </tbody>
+        </table>
+        <aside class="oe-help-callout oe-help-callout--note" role="note">
+          <p><strong>Note:</strong> Inactive analyzers retain historical results.</p>
+        </aside>
+      `,
+      'part-2-troubleshooting': `
+        <h1><strong>Quick Troubleshooting</strong></h1>
+        <aside class="oe-help-callout oe-help-callout--warning" role="note">
+          <p><strong>Warning:</strong> If the Save button is not active, check that all required
+          fields (marked with a red asterisk *) have values.</p>
+        </aside>
+      `
+    };
+
+    function flattenPages(pages, out = []) {
+      pages.forEach(p => { out.push(p); if (p.children?.length) flattenPages(p.children, out); });
+      return out;
+    }
+    function buildBreadcrumb(pages, slug) {
+      const flat = flattenPages(pages);
+      const bySlug = new Map(flat.map(p => [p.slug, p]));
+      const trail = []; let cur = bySlug.get(slug);
+      while (cur) { trail.unshift(cur); cur = cur.parentSlug ? bySlug.get(cur.parentSlug) : null; }
+      return trail;
+    }
+
+    function OpenELISPane({ helpOpen, onToggleHelp, onClickManual, branding }) {
+      return (
+        <div className="pane">
+          <div className="chrome">
+            <div className="tab"><span className="fav" style={{ background: branding.primaryColor }}></span>{branding.siteName}</div>
+            <div className="url">https://openelis.example.org/home</div>
+          </div>
+          <div className="pane-body" style={{ position: 'relative' }}>
+            <header className="oe-header">
+              <div className="brand"><span className="globe" style={{ background: branding.primaryColor }}></span>{branding.siteName}</div>
+              <div className="actions">
+                <button title="Search">🔍</button>
+                <button title="Notifications">🔔</button>
+                <button title="User">👤</button>
+                <button title="Help" className={helpOpen ? 'help-active' : ''} onClick={onToggleHelp}>?</button>
+              </div>
+            </header>
+            {helpOpen && (
+              <div className="oe-help-panel">
+                <a href="#" className="in-app" onClick={(e) => { e.preventDefault(); onClickManual(); }}>
+                  <span className="mini">?</span>User Manual
+                </a>
+                <small>↑ Opens in a new tab</small>
+                <a href="#" onClick={(e) => e.preventDefault()}><span className="mini">?</span>Video Tutorials</a>
+                <a href="#" onClick={(e) => e.preventDefault()}><span className="mini">?</span>Release Notes</a>
+              </div>
+            )}
+            <div className="oe-breadcrumb">Home /</div>
+            <div className="oe-dashboard">
+              <div className="oe-tiles">
+                <div className="oe-tile"><span className="icon">⏱</span><div className="lbl">In Progress<br/>Awaiting Result Entry</div><div className="num">21</div></div>
+                <div className="oe-tile"><span className="icon">📋</span><div className="lbl">Ready For Validation<br/>Awaiting Review</div><div className="num">3</div></div>
+                <div className="oe-tile"><span className="icon">✅</span><div className="lbl">Orders Completed Today</div><div className="num">4</div></div>
+                <div className="oe-tile"><span className="icon">⚠</span><div className="lbl">Partially Complete<br/>Awaiting Remaining</div><div className="num">0</div></div>
+                <div className="oe-tile"><span className="icon">📄</span><div className="lbl">Orders Entered Today</div><div className="num">1</div></div>
+                <div className="oe-tile"><span className="icon">⊘</span><div className="lbl">Orders Rejected Today</div><div className="num">0</div></div>
+                <div className="oe-tile"><span className="icon">🖨</span><div className="lbl">UnPrinted Results Today</div><div className="num">1</div></div>
+                <div className="oe-tile"><span className="icon">✉</span><div className="lbl">Electronic Orders</div><div className="num">0</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function HelpPane({ activeSlug, setActiveSlug, searchQuery, setSearchQuery, onReturn, opened, branding }) {
+      const searchResults = useMemo(() => {
+        if (searchQuery.length < 2) return null;
+        const q = searchQuery.toLowerCase();
+        return flattenPages(MANIFEST.pages).filter(p =>
+          p.title.toLowerCase().includes(q) ||
+          (p.headings || []).some(h => h.text.toLowerCase().includes(q))
+        );
+      }, [searchQuery]);
+
+      const breadcrumb = buildBreadcrumb(MANIFEST.pages, activeSlug);
+      const html = PAGE_HTML[activeSlug] || `<h1>${activeSlug}</h1><p>Page body…</p>`;
+
+      const handleContentClick = (e) => {
+        const a = e.target.closest('a');
+        if (a) { const href = a.getAttribute('href'); if (href?.startsWith('/help/')) { e.preventDefault(); setActiveSlug(href.replace('/help/','')); } }
+      };
+
+      if (!opened) {
+        return (
+          <div className="pane" style={{ background: '#262626', color: '#c6c6c6', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '24px' }}>
+            <div>
+              <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.4 }}>📑</div>
+              <div style={{ fontSize: '14px', maxWidth: '280px' }}>
+                Click <strong>"User Manual"</strong> in the left window's <strong>?</strong> menu to open this tab.
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="pane">
+          <div className="chrome">
+            <div className="tab"><span className="fav" style={{ background: branding.primaryColor }}></span>{branding.siteName} Help</div>
+            <div className="url">https://openelis.example.org/help/{activeSlug}</div>
+          </div>
+          <div className="pane-body" style={{ display: 'flex', flexDirection: 'column' }}>
+            <header className="help-header">
+              <div className="brand"><span style={{ width: 16, height: 16, background: branding.primaryColor, borderRadius: '50%', display: 'inline-block' }}></span>{branding.siteName} Help</div>
+              <div className="help-search">
+                <input
+                  placeholder="Search help…"
+                  aria-label="Search help"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <button className="return" onClick={onReturn} title="Close this tab and return to OpenELIS">
+                ↩ Return to OpenELIS
+              </button>
+            </header>
+
+            <div className="help-grid">
+              <aside className="help-side">
+                {searchResults === null ? (
+                  <ul className="toc">
+                    {MANIFEST.pages.map(p => (
+                      <li key={p.slug}>
+                        <div className="toc-group">{p.title}</div>
+                        <ul className="toc-children">
+                          {p.children.map(c => (
+                            <li key={c.slug}>
+                              <a href={`/help/${c.slug}`}
+                                 className={c.slug === activeSlug ? 'active' : ''}
+                                 onClick={(e) => { e.preventDefault(); setActiveSlug(c.slug); }}>{c.title}</a>
+                              {c.slug === activeSlug && c.headings?.length > 0 && (
+                                <ul>{c.headings.map(h => (
+                                  <li key={h.slug}><a href={`/help/${c.slug}#${h.slug}`} onClick={(e) => e.preventDefault()}>{h.text}</a></li>
+                                ))}</ul>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </li>
+                    ))}
+                  </ul>
+                ) : searchResults.length === 0 ? (
+                  <div style={{ padding: '12px', fontSize: '11px', color: '#8d8d8d' }}>No results for "{searchQuery}"</div>
+                ) : (
+                  <ul className="toc">
+                    <li>
+                      <div className="toc-group">Results ({searchResults.length})</div>
+                      <ul className="toc-children">
+                        {searchResults.map(r => (
+                          <li key={r.slug}>
+                            <a href={`/help/${r.slug}`}
+                               className={r.slug === activeSlug ? 'active' : ''}
+                               onClick={(e) => { e.preventDefault(); setActiveSlug(r.slug); setSearchQuery(''); }}>{r.title}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  </ul>
+                )}
+              </aside>
+
+              <main className="help-main">
+                <div className="help-bread">
+                  {breadcrumb.map((b, i, arr) => (
+                    <span key={b.slug}>
+                      {i < arr.length - 1
+                        ? <a href={`/help/${b.slug}`} onClick={(e) => { e.preventDefault(); setActiveSlug(b.slug); }}>{b.title}</a>
+                        : <span>{b.title}</span>}
+                      {i < arr.length - 1 && <span style={{ margin: '0 6px', color: '#8d8d8d' }}>/</span>}
+                    </span>
+                  ))}
+                </div>
+                <div className="oe-help-content" onClick={handleContentClick} dangerouslySetInnerHTML={{ __html: html }} />
+              </main>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const BRANDS = {
+      'default':    { siteName: 'OpenELIS Global',     primaryColor: '#0f62fe', secondaryColor: '#64748b', accentColor: '#0891b2' },
+      'madagascar': { siteName: 'Madagascar OpenELIS', primaryColor: '#0f5e3b', secondaryColor: '#525252', accentColor: '#fcd116' },
+      'indonesia':  { siteName: 'Indonesia OpenELIS',  primaryColor: '#c8102e', secondaryColor: '#525252', accentColor: '#161616' },
+    };
+
+    function App() {
+      const [helpPanelOpen, setHelpPanelOpen] = useState(false);
+      const [helpTabOpened, setHelpTabOpened] = useState(false);
+      const [activeSlug, setActiveSlug] = useState('part-1-navigating');
+      const [searchQuery, setSearchQuery] = useState('');
+      const [brandKey, setBrandKey] = useState('madagascar');
+      const branding = BRANDS[brandKey];
+
+      // Apply the brand primary color as a CSS variable on body, so styles can pick it up.
+      React.useEffect(() => {
+        document.body.style.setProperty('--brand-primary', branding.primaryColor);
+      }, [branding]);
+
+      const handleClickManual = () => { setHelpPanelOpen(false); setHelpTabOpened(true); };
+      const handleReturn = () => { setHelpTabOpened(false); };
+
+      return (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#262626', color: '#fff', fontSize: '12px' }}>
+            <span style={{ marginRight: '6px' }}>Simulated deployment branding:</span>
+            {Object.entries(BRANDS).map(([key, b]) => (
+              <button
+                key={key}
+                onClick={() => setBrandKey(key)}
+                style={{
+                  background: key === brandKey ? b.primaryColor : '#393939',
+                  color: '#fff', border: 0, padding: '4px 10px',
+                  fontSize: '11px', fontFamily: 'monospace', cursor: 'pointer',
+                  borderRadius: '2px', outline: key === brandKey ? '2px solid #fff' : 'none',
+                }}
+              >{b.siteName}</button>
+            ))}
+            <span style={{ marginLeft: 'auto', opacity: 0.7 }}>
+              Picks up from <code>GET /rest/site-branding/</code> in production
+            </span>
+          </div>
+          <div className="split">
+            <OpenELISPane
+              helpOpen={helpPanelOpen}
+              onToggleHelp={() => setHelpPanelOpen(!helpPanelOpen)}
+              onClickManual={handleClickManual}
+              branding={branding}
+            />
+            <HelpPane
+              opened={helpTabOpened}
+              activeSlug={activeSlug}
+              setActiveSlug={setActiveSlug}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              onReturn={handleReturn}
+              branding={branding}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
