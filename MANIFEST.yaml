@@ -677,6 +677,7 @@
   related:
     - designs/system/help-menu.jsx
     - designs/system/in-app-help-checklist.md
+    - designs/system/in-app-help-dev-bundle.zip
   links:
     github: 44
     jira: null
