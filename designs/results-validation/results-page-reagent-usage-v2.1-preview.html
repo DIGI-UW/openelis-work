@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reagent Usage Capture — Results Entry v2.1 Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner {
+      background: #0f62fe; color: #fff;
+      padding: 6px 1rem; font-size: 12px; font-family: monospace;
+    }
+    .preview-content { padding: 1rem 2rem; max-width: 1100px; margin: 0 auto; }
+    .scenario-toggle {
+      display: flex; gap: 0.5rem; margin-bottom: 1.5rem; align-items: center;
+      padding: 0.75rem 1rem; background: #fff; border: 1px solid #e0e0e0;
+    }
+    .scenario-toggle label { font-size: 0.875rem; font-weight: 600; margin-right: 0.5rem; }
+    .scenario-toggle button {
+      padding: 0.25rem 0.75rem; border: 1px solid #c6c6c6; background: #fff; cursor: pointer;
+      font-size: 0.75rem;
+    }
+    .scenario-toggle button.active { background: #0f62fe; color: #fff; border-color: #0f62fe; }
+    .test-header {
+      padding: 0.75rem 1rem; background: #fff; border: 1px solid #e0e0e0;
+      margin-bottom: 1rem; font-size: 0.875rem;
+    }
+    .test-header strong { font-family: 'IBM Plex Mono', monospace; }
+    .lot-card { padding: 0.875rem; border: 1px solid #e0e0e0; background: #fff; margin-bottom: 0.5rem; }
+    .lot-card.selected { border: 2px solid #0f62fe; background: #edf5ff; }
+    .lot-card.fifo { border: 1px dashed #009d9a; }
+    .lot-card.expired { opacity: 0.45; cursor: not-allowed; background: #fff1f1; }
+    .lot-card-header { display: flex; align-items: center; gap: 0.5rem; }
+    .lot-card-header input[type="radio"] { margin: 0; }
+    .lot-card-header strong { font-family: 'IBM Plex Mono', monospace; font-size: 0.875rem; }
+    .lot-meta { font-size: 0.75rem; color: #525252; margin-top: 0.25rem; }
+    .qty-row {
+      margin-top: 0.875rem; padding-top: 0.875rem; border-top: 1px solid #e0e0e0;
+      display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;
+    }
+    .qty-input { display: flex; flex-direction: column; }
+    .qty-input label { font-size: 0.75rem; margin-bottom: 0.25rem; color: #525252; }
+    .qty-input input, .qty-input select {
+      padding: 0.375rem 0.5rem; border: 1px solid #8d8d8d; background: #f4f4f4;
+      font-family: inherit; font-size: 0.875rem; min-width: 100px;
+    }
+    .qty-static-unit { padding: 0.375rem 0; font-size: 0.875rem; align-self: flex-end; }
+    .reset-btn {
+      padding: 0.25rem 0.75rem; border: none; background: transparent; color: #0f62fe;
+      cursor: pointer; font-size: 0.75rem; font-family: inherit;
+      align-self: flex-end;
+    }
+    .reset-btn:hover { background: #e8e8e8; }
+    .override-row { margin-top: 0.875rem; }
+    .override-row label { font-size: 0.75rem; color: #525252; display: block; margin-bottom: 0.25rem; }
+    .override-row input {
+      width: 100%; padding: 0.375rem 0.5rem; border: 1px solid #da1e28;
+      background: #fff5f5; font-family: inherit; font-size: 0.875rem;
+    }
+    .footer-summary {
+      margin-top: 1.5rem; padding: 0.75rem 1rem;
+      background: #f4f4f4; border-left: 3px solid #0f62fe;
+      font-size: 0.875rem; color: #161616;
+    }
+    .reagent-section h5 { margin: 0 0 0.5rem 0; font-size: 0.9375rem; font-weight: 600; }
+    .reagent-section { margin-bottom: 1.5rem; }
+    .required-asterisk { color: #da1e28; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    ⚡ Visual Preview — Reagent Usage Capture (v2.1) &nbsp;|&nbsp; OpenELIS Results Entry &nbsp;|&nbsp; Method &amp; Reagents Tab &nbsp;|&nbsp; Not a live application
+  </div>
+  <div class="preview-content" id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    // ----- Mock data -----
+    const SCENARIOS = {
+      'manual-cbc': {
+        label: 'Manual CBC (REQUIRED)',
+        captureMode: 'REQUIRED',
+        testName: 'Complete Blood Count — manual differential',
+        labNumber: 'LAB-2026-04881',
+        patient: 'Aïcha Diallo',
+        reagents: [
+          {
+            id: 'cellpack', name: 'Cellpack DCL', unit: 'mL',
+            defaultQuantity: 2.0, overrideTolerancePct: 25, allowedUnits: ['mL'],
+            lots: [
+              { lotNumber: 'LOT-2024-0892', expires: '12/20/2026', remaining: '15%',
+                remainingQuantity: 30, lotSize: 200, reorderThreshold: 50,
+                avgDailyConsumption: 9, fifoRank: 1, status: 'expiring-soon' },
+              { lotNumber: 'LOT-2024-1234', expires: '01/15/2027', remaining: '85%',
+                remainingQuantity: 170, lotSize: 200, reorderThreshold: 50,
+                avgDailyConsumption: 9, fifoRank: 2, status: 'ok' },
+              { lotNumber: 'LOT-2024-1567', expires: '02/28/2027', remaining: '100%',
+                remainingQuantity: 200, lotSize: 200, reorderThreshold: 50,
+                avgDailyConsumption: 9, fifoRank: 3, status: 'ok' },
+            ],
+          },
+          {
+            id: 'lyser', name: 'Lysercell WNR', unit: 'mL',
+            defaultQuantity: 1.0, overrideTolerancePct: 25, allowedUnits: ['mL'],
+            lots: [
+              { lotNumber: 'LOT-2024-5678', expires: '12/25/2026', remaining: '45%',
+                remainingQuantity: 90, lotSize: 200, reorderThreshold: 50,
+                avgDailyConsumption: 6, fifoRank: 1, status: 'expiring-soon' },
+            ],
+          },
+          {
+            id: 'wright', name: 'Wright-Giemsa stain', unit: 'drops',
+            defaultQuantity: 8, overrideTolerancePct: 30, allowedUnits: ['drops', 'mL'],
+            lots: [
+              { lotNumber: 'WG-2026-0042', expires: '06/01/2027', remaining: '78%',
+                remainingQuantity: 780, lotSize: 1000, reorderThreshold: 200,
+                avgDailyConsumption: 12, fifoRank: 1, status: 'ok' },
+            ],
+          },
+        ],
+      },
+      'rapid-hiv': {
+        label: 'Rapid HIV (OPTIONAL)',
+        captureMode: 'OPTIONAL',
+        testName: 'HIV 1/2 Rapid Screen',
+        labNumber: 'LAB-2026-04882',
+        patient: 'Mamadou Sow',
+        reagents: [
+          {
+            id: 'hiv-cassette', name: 'Determine HIV Early Detect cassette', unit: 'tests',
+            defaultQuantity: 1, overrideTolerancePct: 0, allowedUnits: ['tests'],
+            lots: [
+              { lotNumber: 'DET-2025-1102', expires: '08/14/2027', remaining: '8%',
+                remainingQuantity: 4, lotSize: 50, reorderThreshold: 5,
+                avgDailyConsumption: 3, fifoRank: 1, status: 'ok' },
+            ],
+          },
+          {
+            id: 'hiv-buffer', name: 'Determine running buffer', unit: 'drops',
+            defaultQuantity: 1, overrideTolerancePct: 0, allowedUnits: ['drops'],
+            lots: [
+              { lotNumber: 'BUF-2025-0980', expires: '08/14/2027', remaining: '40%',
+                remainingQuantity: 400, lotSize: 1000, reorderThreshold: 100,
+                avgDailyConsumption: 3, fifoRank: 1, status: 'ok' },
+            ],
+          },
+        ],
+      },
+      'analyzer-chem': {
+        label: 'Analyzer chemistry (HIDDEN)',
+        captureMode: 'HIDDEN',
+        testName: 'Comprehensive Metabolic Panel — Sysmex BX-3010',
+        labNumber: 'LAB-2026-04883',
+        patient: 'Ibrahima Touré',
+        reagents: [],
+      },
+    };
+
+    // ----- Helpers -----
+    function isOverThreshold(quantity, defaultQty, tolerancePct = 25) {
+      if (!defaultQty || defaultQty === 0) return false;
+      return (Math.abs(quantity - defaultQty) / defaultQty) * 100 > tolerancePct;
+    }
+
+    function projectedDays(lot, quantity) {
+      if (!lot.avgDailyConsumption) return null;
+      const after = lot.remainingQuantity - quantity;
+      return Math.max(0, Math.floor(after / lot.avgDailyConsumption));
+    }
+
+    // ----- Components -----
+    function ReagentBlock({ reagent, selection, captureMode, onChange }) {
+      const selectedLot = reagent.lots.find(l => l.lotNumber === selection?.lotNumber);
+      const showOverride = selection?.quantityUsed != null
+        && isOverThreshold(selection.quantityUsed, reagent.defaultQuantity, reagent.overrideTolerancePct);
+      const showReset = selection?.quantityUsed != null
+        && selection.quantityUsed !== reagent.defaultQuantity;
+      const requiredMissing = captureMode === 'REQUIRED'
+        && (!selection?.lotNumber || !selection?.quantityUsed || selection.quantityUsed <= 0);
+
+      const lowStock = useMemo(() => {
+        if (!selectedLot || !selection?.quantityUsed) return null;
+        const after = selectedLot.remainingQuantity - selection.quantityUsed;
+        if (after < selectedLot.reorderThreshold) {
+          return { lot: selectedLot.lotNumber, days: projectedDays(selectedLot, selection.quantityUsed) };
+        }
+        return null;
+      }, [selectedLot, selection?.quantityUsed]);
+
+      const overridePct = showOverride
+        ? Math.round(((selection.quantityUsed - reagent.defaultQuantity) / reagent.defaultQuantity) * 100)
+        : 0;
+
+      const multiUnit = (reagent.allowedUnits || []).length > 1;
+
+      return (
+        <div className="reagent-section">
+          <h5>
+            {reagent.name}
+            {captureMode === 'REQUIRED' && <span className="required-asterisk"> *</span>}
+          </h5>
+
+          {reagent.lots.map(lot => {
+            const isSelected = selection?.lotNumber === lot.lotNumber;
+            const cls = ['lot-card'];
+            if (isSelected) cls.push('selected');
+            else if (lot.fifoRank === 1) cls.push('fifo');
+            if (lot.status === 'expired') cls.push('expired');
+
+            return (
+              <div
+                key={lot.lotNumber}
+                className={cls.join(' ')}
+                onClick={() => lot.status !== 'expired' && onChange({
+                  lotNumber: lot.lotNumber,
+                  quantityUsed: reagent.defaultQuantity,
+                  unit: reagent.unit,
+                })}
+              >
+                <div className="lot-card-header">
+                  <input type="radio" checked={isSelected} readOnly />
+                  <strong>{lot.lotNumber}</strong>
+                  {lot.fifoRank === 1 && (
+                    <span className="cds--tag cds--tag--teal">FIFO Suggested</span>
+                  )}
+                  {lot.status === 'expiring-soon' && (
+                    <span className="cds--tag cds--tag--warm-gray">Expiring</span>
+                  )}
+                </div>
+                <div className="lot-meta">
+                  Exp: {lot.expires} • {lot.remaining} remaining ({lot.remainingQuantity} {reagent.unit})
+                </div>
+
+                {isSelected && (
+                  <>
+                    <div className="qty-row">
+                      <div className="qty-input">
+                        <label htmlFor={`qty-${reagent.id}`}>Quantity Used</label>
+                        <input
+                          id={`qty-${reagent.id}`}
+                          type="number" min="0" step={reagent.unit === 'mL' ? '0.1' : '1'}
+                          value={selection?.quantityUsed ?? reagent.defaultQuantity}
+                          onChange={e => onChange({
+                            ...selection,
+                            quantityUsed: Number(e.target.value),
+                          })}
+                          onClick={e => e.stopPropagation()}
+                        />
+                      </div>
+
+                      {multiUnit ? (
+                        <div className="qty-input">
+                          <label htmlFor={`unit-${reagent.id}`}>Unit</label>
+                          <select
+                            id={`unit-${reagent.id}`}
+                            value={selection?.unit || reagent.unit}
+                            onChange={e => onChange({ ...selection, unit: e.target.value })}
+                            onClick={e => e.stopPropagation()}
+                          >
+                            {reagent.allowedUnits.map(u => <option key={u} value={u}>{u}</option>)}
+                          </select>
+                        </div>
+                      ) : (
+                        <div className="qty-static-unit">{reagent.unit}</div>
+                      )}
+
+                      {showReset && (
+                        <button
+                          className="reset-btn"
+                          onClick={e => {
+                            e.stopPropagation();
+                            onChange({ ...selection, quantityUsed: reagent.defaultQuantity });
+                          }}
+                        >
+                          ↻ Reset to default {reagent.defaultQuantity} {reagent.unit}
+                        </button>
+                      )}
+                    </div>
+
+                    {showOverride && (
+                      <div className="override-row" onClick={e => e.stopPropagation()}>
+                        <div className="cds--inline-notification cds--inline-notification--warning cds--inline-notification--low-contrast" style={{maxWidth: 'none', marginBottom: '0.5rem'}}>
+                          <div className="cds--inline-notification__details">
+                            <div className="cds--inline-notification__text-wrapper">
+                              <p className="cds--inline-notification__subtitle">
+                                {overridePct}% above default — provide override reason.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <label>Override reason</label>
+                        <input
+                          type="text"
+                          placeholder="Why is the quantity outside the typical range?"
+                          value={selection?.overrideReason || ''}
+                          onChange={e => onChange({ ...selection, overrideReason: e.target.value })}
+                        />
+                      </div>
+                    )}
+
+                    {lowStock && (
+                      <div className="cds--inline-notification cds--inline-notification--warning cds--inline-notification--low-contrast" style={{marginTop:'0.875rem', maxWidth:'none'}} onClick={e => e.stopPropagation()}>
+                        <div className="cds--inline-notification__details">
+                          <div className="cds--inline-notification__text-wrapper">
+                            <p className="cds--inline-notification__subtitle">
+                              Saving this result will leave {lowStock.lot} below reorder threshold (estimated {lowStock.days ?? '—'} days of stock remaining). Notify your inventory officer.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            );
+          })}
+
+          {requiredMissing && !selection?.lotNumber && (
+            <div className="cds--inline-notification cds--inline-notification--error cds--inline-notification--low-contrast" style={{maxWidth:'none', marginTop:'0.5rem'}}>
+              <div className="cds--inline-notification__details">
+                <div className="cds--inline-notification__text-wrapper">
+                  <p className="cds--inline-notification__subtitle">
+                    This test requires reagent capture. Select a lot and enter a quantity for {reagent.name}.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function App() {
+      const [scenarioKey, setScenarioKey] = useState('manual-cbc');
+      const scenario = SCENARIOS[scenarioKey];
+      const [selections, setSelections] = useState({});
+
+      const update = (reagentId, patch) => {
+        setSelections(prev => ({ ...prev, [reagentId]: { reagentId, ...patch } }));
+      };
+
+      // Reset selections when scenario changes
+      const handleScenarioChange = (key) => {
+        setScenarioKey(key);
+        setSelections({});
+      };
+
+      const totalCost = useMemo(() => {
+        let cost = 0;
+        let allHaveCost = true;
+        scenario.reagents.forEach(r => {
+          const sel = selections[r.id];
+          if (sel?.quantityUsed && sel?.lotNumber) {
+            // Synthetic cost: 0.10 per unit
+            cost += sel.quantityUsed * 0.10;
+          } else if (sel?.quantityUsed) {
+            allHaveCost = false;
+          }
+        });
+        return allHaveCost && cost > 0 ? cost.toFixed(2) : null;
+      }, [scenario, selections]);
+
+      const reagentCount = Object.values(selections).filter(s => s.lotNumber).length;
+
+      return (
+        <div>
+          <h2 style={{margin: '1rem 0', fontSize: '1.25rem', fontWeight: 600}}>
+            Method &amp; Reagents Tab — Reagent Usage Capture
+          </h2>
+
+          <div className="scenario-toggle">
+            <label>Scenario:</label>
+            {Object.keys(SCENARIOS).map(k => (
+              <button
+                key={k}
+                className={k === scenarioKey ? 'active' : ''}
+                onClick={() => handleScenarioChange(k)}
+              >
+                {SCENARIOS[k].label}
+              </button>
+            ))}
+          </div>
+
+          <div className="test-header">
+            <strong>{scenario.labNumber}</strong> · {scenario.patient} · {scenario.testName}
+            <br/>
+            <span style={{fontSize: '0.75rem', color: '#525252'}}>
+              <code>reagentCaptureMode = {scenario.captureMode}</code>
+            </span>
+          </div>
+
+          {scenario.captureMode === 'HIDDEN' ? (
+            <div className="cds--inline-notification cds--inline-notification--info cds--inline-notification--low-contrast" style={{maxWidth: 'none'}}>
+              <div className="cds--inline-notification__details">
+                <div className="cds--inline-notification__text-wrapper">
+                  <p className="cds--inline-notification__subtitle">
+                    Reagent Lots Used block is hidden for this test. The analyzer reports lot and per-test consumption automatically; the Method &amp; Reagents tab still shows the analyzer selection but no manual reagent capture is required.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <h3 style={{fontSize: '1rem', margin: '1rem 0 0.75rem 0'}}>Reagent Lots Used</h3>
+              {scenario.reagents.map(reagent => (
+                <ReagentBlock
+                  key={reagent.id}
+                  reagent={reagent}
+                  selection={selections[reagent.id]}
+                  captureMode={scenario.captureMode}
+                  onChange={patch => update(reagent.id, patch)}
+                />
+              ))}
+
+              <div className="cds--inline-notification cds--inline-notification--info cds--inline-notification--low-contrast" style={{maxWidth:'none'}}>
+                <div className="cds--inline-notification__details">
+                  <div className="cds--inline-notification__text-wrapper">
+                    <p className="cds--inline-notification__subtitle">
+                      Lots marked "FIFO Suggested" are the oldest unexpired lots. Select them to ensure proper stock rotation.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="footer-summary">
+                <strong>Selected:</strong> Manual method · {reagentCount} reagent {reagentCount === 1 ? 'lot' : 'lots'}
+                {totalCost && ` · Est. consumable cost: $${totalCost}`}
+              </div>
+            </>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

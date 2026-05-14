@@ -136,6 +136,10 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Patient Demographics Mockup | [validation-patient-demographics-mockup.jsx](designs/validation-page/validation-patient-demographics-mockup.jsx) | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
 | Patient Demographics FRS | — | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
 | Compliance Evaluation Engine | [compliance-evaluation-engine.jsx](designs/results-validation/compliance-evaluation-engine.jsx) | [compliance-evaluation-engine.md](designs/results-validation/compliance-evaluation-engine.md) |
+| HIL Specimen Quality | [hil-specimen-quality.jsx](designs/results-validation/hil-specimen-quality.jsx) · [preview](designs/results-validation/hil-specimen-quality-preview.html) | [hil-specimen-quality.md](designs/results-validation/hil-specimen-quality.md) |
+| Reagent Usage on Result Entry v1 | [results-page-reagent-usage-v1.jsx](designs/results-validation/results-page-reagent-usage-v1.jsx) · [preview](designs/results-validation/results-page-reagent-usage-v1-preview.html) | [results-page-reagent-usage-v1.md](designs/results-validation/results-page-reagent-usage-v1.md) · [checklist](designs/results-validation/results-page-reagent-usage-v1-checklist.md) · [bahasa](designs/results-validation/results-page-reagent-usage-v1-bahasa.md) |
+| Reagent Usage on Result Entry v2.1 | [results-page-reagent-usage-v2.1.jsx](designs/results-validation/results-page-reagent-usage-v2.1.jsx) · [preview](designs/results-validation/results-page-reagent-usage-v2.1-preview.html) | — |
+
 ## Reports
 
 | Feature | Mockup | Spec |
