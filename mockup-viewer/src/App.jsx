@@ -948,6 +948,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/reports/lh-delivery-sent-messages.jsx')),
     description: 'S-06b Addendum — LH Delivery Notification: Sent Messages global main-menu tab. Per-channel delivery status (Email ✓/✗, WhatsApp ✓/✗) for Laporan Hasil, clinical, and future notifications. Extends OGC-437 (TextIt SMS) + OGC-439 (Email/SMTP) triggers with LH_COMPLETED event. Resend flow, delivery log modal, and secure customer download page with 30-day token.',
     specPath: 'designs/reports/lh-delivery-sent-messages.md',
+    htmlUrl: 'designs/reports/lh-delivery-sent-messages-preview.html',
     added: '2026-04-20',
     status: 'draft',
     githubIssue: 83,

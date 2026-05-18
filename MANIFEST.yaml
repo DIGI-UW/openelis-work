@@ -1921,6 +1921,7 @@
   type: jsx
   path: designs/reports/lh-delivery-sent-messages.jsx
   spec: designs/reports/lh-delivery-sent-messages.md
+  preview: designs/reports/lh-delivery-sent-messages-preview.html
   category: vector-surveillance
   description: >
     S-06b Addendum to Laporan Hasil — LH Delivery Notification & Sent Messages Tab.
