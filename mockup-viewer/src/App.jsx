@@ -158,6 +158,18 @@ export const MOCKUP_REGISTRY = [
     tags: ['compliance', 'ISO-15189', 'standards', 'vector', 'environmental'],
   },
   {
+    name: 'Sample Type Management',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/sample-type-management.jsx')),
+    description: 'Centralized Sample Type Management module (OGC-296) — unified admin interface replacing fragmented sample type configuration. List view with search, filtering, and bulk actions. 5-tab editor: Basic Info, Display Order (drag-and-drop), Associated Tests (bidirectional), Storage & Disposal, and WHONET Mapping. Maps specimen types to WHONET codes for AMR surveillance exports. Route: /admin/sample-type-management.',
+    specPath: 'designs/admin-config/sample-type-management.md',
+    added: '2026-05-14',
+    status: 'draft',
+    githubIssue: null,
+    jira: ['OGC-296'],
+    tags: ['sample-type', 'admin', 'WHONET', 'AMR', 'storage', 'OGC-296', 'global'],
+  },
+  {
     name: 'Sample Type Domain Classification',
     category: 'vector-surveillance',
     component: React.lazy(() => import('@designs/admin-config/sample-type-domain-classification.jsx')),
