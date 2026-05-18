@@ -170,7 +170,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Feature | Mockup | Spec |
 |---------|--------|------|
 | Audit Trail | [audit-trail.jsx](designs/system/audit-trail.jsx) | [audit-trail.md](designs/system/audit-trail.md) |
-| Help Menu | [help-menu.jsx](designs/system/help-menu.jsx) | [help-menu.md](designs/system/help-menu.md) |
+| In-App Help System | [help-menu.jsx](designs/system/help-menu.jsx) · [preview](designs/system/in-app-help-preview.html) | [help-menu.md](designs/system/help-menu.md) · [checklist](designs/system/in-app-help-checklist.md) · [dev bundle.zip](designs/system/in-app-help-dev-bundle.zip) |
 | Analyzer Import | [analyzer-import.jsx](designs/system/analyzer-import.jsx) | [analyzer-import.md](designs/system/analyzer-import.md) |
 | FHIR Outbound Push | [fhir-outbound-push.jsx](designs/system/fhir-outbound-push.jsx) | [fhir-outbound-push.md](designs/system/fhir-outbound-push.md) |
 | FHIR Publication Settings | [fhir-publication-settings.jsx](designs/system/fhir-publication-settings.jsx) | — |

@@ -668,23 +668,22 @@
   links: {}
   added: "2026-03-03"
 
-- id: help-menu
-  type: mockup
-  path: designs/system/help-menu.jsx
+- id: in-app-help-system
+  type: html
+  path: designs/system/in-app-help-preview.html
+  spec: designs/system/help-menu.md
   category: system
-  description: In-app help menu and documentation links
-  paired_with: help-menu-spec
-  links: {}
-  added: "2026-03-03"
-
-- id: help-menu-spec
-  type: spec
-  path: designs/system/help-menu.md
-  category: system
-  description: Help menu FRS
-  paired_with: help-menu
-  links: {}
-  added: "2026-03-03"
+  description: "Contextual in-app help viewer — slide-over panel, page-aware articles, full-text search, feedback, community escape hatch. FRS v1.0 with full data model, i18n keys, acceptance criteria, and checklist."
+  related:
+    - designs/system/help-menu.jsx
+    - designs/system/in-app-help-checklist.md
+    - designs/system/in-app-help-dev-bundle.zip
+  links:
+    github: 44
+    jira: null
+    gallery: "https://digi-uw.github.io/openelis-work/#/system/in-app-help-system"
+  added: "2026-05-12"
+  status: draft
 
 - id: analyzer-import
   type: mockup
