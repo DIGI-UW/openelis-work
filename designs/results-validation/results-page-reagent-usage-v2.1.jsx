@@ -243,7 +243,7 @@ function ReagentBlock({ reagent, selection, onSelect, onQuantityChange, onUnitCh
 // Reagent Lot Selection block — top-level export
 // ---------------------------------------------------------------------
 export default function ReagentLotSelection({
-  reagents,                          // AvailableReagent[]
+  reagents = [],                     // AvailableReagent[]
   selections,                        // selectedReagentLots[]
   captureMode = CAPTURE_MODE.OPTIONAL,
   onSelectionsChange,
