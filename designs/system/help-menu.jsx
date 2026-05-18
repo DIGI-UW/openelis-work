@@ -30,7 +30,15 @@ import {
   Link as CarbonLink,
 } from '@carbon/react';
 import { Logout, Help as HelpIcon } from '@carbon/icons-react';
-import { useParams, useHistory } from 'react-router-dom';
+// Router hooks — replaced with hash-based mocks for mockup-viewer compatibility
+const useParams = () => {
+  const hash = window.location?.hash || '';
+  const match = hash.match(/#\/help\/([^\/]+)/);
+  return { slug: match ? match[1] : undefined };
+};
+const useHistory = () => ({
+  push: (path) => { if (typeof window !== 'undefined') window.location.hash = path.replace(/^\//, ''); },
+});
 
 const t = (key, fallback) => fallback || key;
 
@@ -81,7 +89,7 @@ function useReturnToOpenElis(history) {
       (() => { try { return window.opener.location.origin === window.location.origin; }
                catch { return false; } })();
     if (sameOriginOpener) { window.close(); return; }
-    history.push('/home');
+    if (typeof window !== 'undefined') window.location.hash = 'home';
   }, [history]);
 }
 
