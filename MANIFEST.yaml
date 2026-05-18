@@ -2330,3 +2330,16 @@
     gallery: "https://digi-uw.github.io/openelis-work/#/admin-config/test-rules-mvp"
   added: "2026-05-12"
   status: draft
+
+- id: sample-type-management
+  type: mockup
+  path: designs/admin-config/sample-type-management.jsx
+  spec: designs/admin-config/sample-type-management.md
+  category: admin-config
+  description: "Centralized Sample Type Management (OGC-296) — list view + 5-tab editor (Basic Info, Display Order, Associated Tests, Storage & Disposal, WHONET Mapping). Route: /admin/sample-type-management."
+  links:
+    github: null
+    jira: OGC-296
+    gallery: "https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-management"
+  added: "2026-05-14"
+  status: draft
