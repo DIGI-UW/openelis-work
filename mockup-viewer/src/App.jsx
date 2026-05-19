@@ -72,10 +72,10 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Barcode Labels v2',
     category: 'admin-config',
-    component: React.lazy(() => import('@designs/admin-config/barcode-labels-v2.jsx')),
+    component: React.lazy(() => import('@designs/admin-config/barcode-labels.jsx')),
     description: 'Admin-configurable label preset system — lab admins define custom label types with dimensions, barcode style, and content fields; Test Catalog declares label requirements; Order Entry aggregates into a deterministic label workload',
-    specPath: 'designs/admin-config/barcode-labels-v2.md',
-    htmlUrl: 'designs/admin-config/barcode-labels-v2.html',
+    specPath: 'designs/admin-config/barcode-labels.md',
+    htmlUrl: 'designs/admin-config/barcode-labels.html',
     added: '2026-05-18',
     status: 'draft',
     jira: ['OGC-285'],

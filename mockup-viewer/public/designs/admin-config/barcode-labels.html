@@ -373,6 +373,9 @@
     fields rendered on the label. Test catalog entries link to one or more presets to drive automatic
     label generation at order time.
   </p>
+  <p class="page-sub" style="font-style:italic; color:#6f6f6f; margin-top:-0.25rem;">
+    Site-wide settings (preprinted barcode) remain on the legacy Barcode Configuration page.
+  </p>
 
   <div class="notification notif-info">
     <span class="notif-icon" aria-hidden="true">
@@ -755,6 +758,9 @@
                     </svg>
                   </span>
                   Locked · Required
+                </span>
+                <span class="field-rendering-hint" style="display:block; font-size:0.6875rem; color:#525252; margin-top:4px;">
+                  Per-order labels render the <strong>order number</strong> (e.g., <code style="font-family:'IBM Plex Mono',monospace">24ORD00152</code>); per-sample labels render the <strong>sample number</strong> (e.g., <code style="font-family:'IBM Plex Mono',monospace">24ORD00152.1</code>).
                 </span>
               </div>
               <button class="btn-icon" disabled aria-label="Move up">
@@ -1498,8 +1504,13 @@
         </svg>
         <div style="flex:1;">
           <div style="color:#0e6027; font-weight:600;">Order saved successfully.</div>
-          <div style="color:#393939; font-size:0.8125rem; margin-top:2px;">Lab number assigned:
-            <span class="pd-num">24ORD00152</span>
+          <div style="color:#393939; font-size:0.8125rem; margin-top:2px;">
+            Order number: <span class="pd-num">24ORD00152</span>
+            <span style="color:#a8a8a8; margin:0 4px;">·</span>
+            Sample numbers: <span class="pd-num">24ORD00152.1</span>, <span class="pd-num">24ORD00152.2</span>
+          </div>
+          <div style="color:#525252; font-size:0.6875rem; margin-top:4px; font-style:italic;">
+            Per-order labels render the order number; per-sample labels render each sample's number.
           </div>
         </div>
       </div>
@@ -1637,6 +1648,7 @@ function showScreen(id) {
   // scroll to top of section
   window.scrollTo({ top: 0, behavior: 'auto' });
 }
+
 </script>
 </body>
 </html>

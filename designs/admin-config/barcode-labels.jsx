@@ -10,6 +10,8 @@
  * no barcode-dimension dropdown, integer mm only, Lab Number locked + first.
  * v2.3 adds per-scope flags (printsPerOrder / printsPerSample) plus four
  * independent quantity fields (default/max per order, default/max per sample).
+ * v2.5 trims the site-wide preprinted-barcode settings out of scope — they
+ * already exist on the legacy /MasterListsPage#barcodeConfiguration surface.
  */
 
 import React, { useState, useMemo } from 'react';
@@ -780,7 +782,10 @@ function PresetEditorModal({ preset, onChange, onCancel, onSave }) {
               Pick from the full system field set ({AVAILABLE_FIELD_LIBRARY.length} fields).
               Use the picker below to add or remove fields, then reorder with the arrow
               buttons. Lab Number is locked, always required, and pinned to the first
-              position.
+              position. <strong>Per-order labels render the order number</strong> (e.g.,{' '}
+              <code style={{ fontFamily: 'IBM Plex Mono, monospace' }}>24ORD00152</code>);{' '}
+              <strong>per-sample labels render the sample number</strong> (e.g.,{' '}
+              <code style={{ fontFamily: 'IBM Plex Mono, monospace' }}>24ORD00152.1</code>).
             </p>
 
             <div style={{ marginBottom: '0.75rem' }}>
@@ -1595,8 +1600,13 @@ function PostSavePrintDialog({
               Order Saved Successfully
             </div>
             <div style={{ fontSize: '0.8125rem', color: '#393939', marginTop: 2 }}>
-              Lab Number:{' '}
+              Order number:{' '}
               <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontWeight: 600 }}>24ORD00152</span>
+              {' · '}
+              Sample numbers:{' '}
+              <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontWeight: 600 }}>24ORD00152.1</span>
+              ,{' '}
+              <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontWeight: 600 }}>24ORD00152.2</span>
             </div>
           </div>
         </div>

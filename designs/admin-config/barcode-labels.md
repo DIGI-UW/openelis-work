@@ -2,7 +2,7 @@
 
 ## Functional Requirements Specification
 
-**Version:** 2.3 (per-scope quantities — separate per-order / per-sample flags)
+**Version:** 2.5 (trimmed Barcode Settings to a pointer at existing surface)
 **Date:** 2026-05-18
 **Author:** Casey Iiams-Hauser (filed via Cowork)
 **Module:** Administration → Master Lists → Label Presets · Test Catalog → Labels tab · Order Entry → Add Order step
@@ -140,7 +140,7 @@ A reorderable list of fields that will appear on the label. Each row:
 
 | Field | Source |
 |---|---|
-| Lab Number | always required, always present, locked at position 1 |
+| Lab Number | always required, always present, locked at position 1. **Rendered value depends on the label's scope at print time**: per-order labels render the **order number** (e.g., `24ORD00152`); per-sample labels render the **sample number** (e.g., `24ORD00152.1` for sample 1, `.2` for sample 2). For presets that are both per-order and per-sample, the rendered value matches the row the label was generated for. |
 | Patient Name | patient master |
 | Patient ID | patient master |
 | Patient Date of Birth | patient master |
@@ -159,7 +159,7 @@ A reorderable list of fields that will appear on the label. Each row:
 
 ### 2.5 Localization
 
-i18n key prefix for this surface: `admin.labelPresets.*` (resolved via Spring `MessageSource`). The FRS specifies the prefix only; FE engineers define individual keys at implementation. French and English are the primary translations for v2 release; see §11 for the full localization budget.
+i18n key prefix for this surface: `admin.labelPresets.*` (resolved via Spring `MessageSource`). The FRS specifies the prefix only; FE engineers define individual keys at implementation. French and English are the primary translations for v2 release; see §12 for the full localization budget.
 
 ### 2.6 Lifecycle Operations
 
@@ -169,7 +169,7 @@ i18n key prefix for this surface: `admin.labelPresets.*` (resolved via Spring `M
 | **Save as new** (Duplicate) | Clones the preset; user must enter a new name before save. |
 | **Deactivate** | Sets `is_active = false`. Preset disappears from "+ Add Label Type" pickers but persists everywhere it's already linked. Historical orders are unaffected. Reactivation is one click. |
 | **Hard Delete** | Not supported. Presets that have never been referenced anywhere can be removed via a separate admin tool; otherwise deactivate. |
-| **Edit** | Editing a preset's dimensions or content fields takes effect for all future labels printed against that preset. Historical orders re-print using the snapshot rules in §6.3. |
+| **Edit** | Editing a preset's dimensions or content fields takes effect for all future labels printed against that preset. Historical orders re-print using the snapshot rules in §7.3. |
 
 ### 2.7 System Preset Migration
 
@@ -209,7 +209,7 @@ At v2 release, a migration runs against every site:
 
 In the new Test Editor (delivered by OGC-746 v1 epic), Labels is the 8th SideNav entry, between "Panels" and "Terminology Mappings".
 
-**Compatibility with OGC-761:** When this v2 ships, the OGC-761 implementation (which constrains the Labels tab to the 4 system fixed presets) is superseded by the full preset picker described here. OGC-761's `test_label_preset_link` table is reused without dropping any columns; this release adds `allow_override` per §3.5 / §6.2.
+**Compatibility with OGC-761:** When this v2 ships, the OGC-761 implementation (which constrains the Labels tab to the 4 system fixed presets) is superseded by the full preset picker described here. OGC-761's `test_label_preset_link` table is reused without dropping any columns; this release adds `allow_override` per §3.5 / §7.2.
 
 ### 3.2 Per-Test Linked Presets Table
 
@@ -251,16 +251,16 @@ The `test_label_preset_link` table was introduced by OGC-761. Its existing colum
 
 In v2 this release reinterprets the two integer columns as **per-sample overrides only**:
 
-- `default_qty` → overrides `label_preset.default_per_sample` for this test. (Documented in code comments and the ALTER block in §6.2; column name retained for backward compatibility with OGC-761.)
+- `default_qty` → overrides `label_preset.default_per_sample` for this test. (Documented in code comments and the ALTER block in §7.2; column name retained for backward compatibility with OGC-761.)
 - `max_qty` → overrides `label_preset.max_per_sample` for this test.
 
 This release adds **one** new column conceptually:
 
 - `allow_override` (BOOLEAN) — controls whether Order Entry users can adjust the qty for the per-sample cell.
 
-A CHECK constraint added in §6.2 ensures rows in `test_label_preset_link` reference only presets where `prints_per_sample = true`; linking an order-only preset (`prints_per_order = true` AND `prints_per_sample = false`) to a test is rejected.
+A CHECK constraint added in §7.2 ensures rows in `test_label_preset_link` reference only presets where `prints_per_sample = true`; linking an order-only preset (`prints_per_order = true` AND `prints_per_sample = false`) to a test is rejected.
 
-The canonical DDL for this change is the ALTER statement in **§6.2** — that is the source of truth; the list above is descriptive only. A separate new table `test_label_config` (defined in §6.2) carries the test-level master `allow_order_entry_override` toggle.
+The canonical DDL for this change is the ALTER statement in **§7.2** — that is the source of truth; the list above is descriptive only. A separate new table `test_label_config` (defined in §7.2) carries the test-level master `allow_order_entry_override` toggle.
 
 ### 3.6 Localization
 
@@ -341,15 +341,27 @@ A pinned bottom row summing each column, displayed as bold numbers. A right-alig
 
 The post-save print dialog defined in OGC-284 §3.4 continues to work. The dialog dynamically lists every preset with a non-zero count in the saved order. Each preset gets its own Print button so the technician can route different sizes / stock types to different printers as needed. There is no per-cell or per-preset confirmation step in v2 — all presets behave the same way at print time.
 
+**Lab Number rendering at print time:** when the print pipeline generates each label, the Lab Number content field renders the order's accession number for per-order labels (one label → one value: the order number) and the sample's accession number for per-sample labels (one label per sample → each label gets that sample's number, e.g., `24ORD00152.1`, `24ORD00152.2`). When a preset is both per-order AND per-sample, it produces N+1 distinct labels — one for the order and one per sample — each rendered with its own Lab Number value. See §2.4 for the full system field set.
+
 ### 4.7 Localization
 
 i18n key prefix for this surface: `orderEntry.labels.*`.
 
 ---
 
-## 5. Functional Requirements
+## 5. Existing Site-Wide Settings (out of scope)
 
-### 5.1 Label Presets — Master Lists
+### 5.1 Preprinted Barcode Accession Number
+
+The legacy Barcode Configuration page at `/MasterListsPage#barcodeConfiguration` already ships a site-wide **Use Preprinted Barcode Accession Number** toggle and an associated **Preprinted Barcode Prefix** field. These settings persist as `site_information.barcode.preprinted.use_order_entry_format` (boolean) and `site_information.barcode.preprinted.prefix` (string).
+
+**This release does NOT move, rebuild, or supersede that surface.** Label Presets is the new per-preset admin surface; the existing Barcode Configuration page continues to host site-wide barcode settings unchanged.
+
+---
+
+## 6. Functional Requirements
+
+### 6.1 Label Presets — Master Lists
 
 | ID | Requirement |
 |---|---|
@@ -362,7 +374,7 @@ i18n key prefix for this surface: `orderEntry.labels.*`.
 | LP-7 | System SHALL validate that `max_per_order ≥ default_per_order`, `max_per_sample ≥ default_per_sample`, and all are non-negative integers. At least one scope (`prints_per_order` or `prints_per_sample`) MUST be true. |
 | LP-8 | System SHALL persist Lab Number as a required, locked, first-position field on every preset. |
 
-### 5.2 Test Catalog — Labels Tab
+### 6.2 Test Catalog — Labels Tab
 
 | ID | Requirement |
 |---|---|
@@ -373,7 +385,7 @@ i18n key prefix for this surface: `orderEntry.labels.*`.
 | TL-5 | System SHALL aggregate per-sample label requirements across all tests in an order by taking the highest `test_label_preset_link.default_qty` per preset. (Per-order quantities are not test-driven; they're configured at the preset level.) |
 | TL-6 | System SHALL fall back to `label_preset.default_per_sample` when an order contains no tests linked to that preset. |
 
-### 5.3 Order Entry
+### 6.3 Order Entry
 
 | ID | Requirement |
 |---|---|
@@ -381,24 +393,24 @@ i18n key prefix for this surface: `orderEntry.labels.*`.
 | OE-2 | System SHALL display, per cell, a source `<Tag>` indicating whether the value came from a test ("from Test X") or system default. |
 | OE-3 | Cells whose driving test has `allow_override = false` SHALL be read-only with a lock icon. When multiple tests link the same preset and any one of them has `allow_override = false`, the cell SHALL be locked (most-restrictive wins per §4.4.1). |
 | OE-4 | System SHALL display a live Total row summing each column. |
-| OE-5 | System SHALL persist the entered label quantities with the order upon Save, including a JSONB snapshot of each preset's config (see §6.3). |
+| OE-5 | System SHALL persist the entered label quantities with the order upon Save, including a JSONB snapshot of each preset's config (see §7.3). |
 | OE-6 | Reprinting from Order View SHALL use the snapshot stored with the order, not the current `label_preset` config. |
 
-### 5.4 Migration & Backward Compatibility
+### 6.4 Migration & Backward Compatibility
 
 | ID | Requirement |
 |---|---|
 | MG-1 | At v2 release, system SHALL create one `label_preset` row per existing v1 system label type, populated from `site_information.barcode.*` keys. |
 | MG-2 | System SHALL set `is_system = true` on each migrated preset. |
 | MG-3 | Existing OGC-761 `test_label_preset_link` rows SHALL continue to function unchanged after the schema additions; new columns receive their schema defaults. |
-| MG-4 | Existing v1 orders SHALL continue to print labels against their snapshot rules (see §6.3). |
+| MG-4 | Existing v1 orders SHALL continue to print labels against their snapshot rules (see §7.3). |
 | MG-5 | Legacy `site_information.barcode.*` keys SHALL be retained as read-only mirrors for one release cycle and removed in the subsequent maintenance migration (see §2.7). |
 
 ---
 
-## 6. Data Model
+## 7. Data Model
 
-### 6.1 New Tables
+### 7.1 New Tables
 
 ```sql
 CREATE TABLE label_preset (
@@ -435,7 +447,7 @@ CREATE TABLE label_preset_field (
 
 Note: `source_type` is constrained to a single value (`SYSTEM`) in v2; the column exists to allow a future migration to introduce additional source types (user-defined custom fields, query-driven fields) without an `ALTER TYPE` round trip. See §1.5 for what was deferred.
 
-### 6.2 Modified Tables
+### 7.2 Modified Tables
 
 ```sql
 -- existing from OGC-761; adds the override-control column.
@@ -450,7 +462,7 @@ CREATE TABLE test_label_config (
 
 The OGC-761 `test_label_preset_link` table is assumed to already exist at v2 release with columns: `id`, `test_id`, `preset_id`, `default_qty`, `max_qty`. This release adds only `allow_override`.
 
-### 6.3 Snapshot Rule for Historical Orders
+### 7.3 Snapshot Rule for Historical Orders
 
 When labels are saved with an order (in the Order Entry Labels section), the system writes one `order_label_request` row per `(sample, preset)` pair, including a frozen JSONB `preset_snapshot` capturing the preset config and the per-test link settings that drove the quantity at save time. Reprinting from Order View renders this snapshot, not the current preset config — protecting historical orders from admin edits.
 
@@ -466,7 +478,7 @@ CREATE TABLE order_label_request (
 );
 ```
 
-#### 6.3.1 Canonical `preset_snapshot` JSONB shape
+#### 7.3.1 Canonical `preset_snapshot` JSONB shape
 
 The snapshot MUST conform to the following structure. Reprints read from this shape only; new fields added to `label_preset` in future releases do not retroactively appear in historical snapshots.
 
@@ -502,7 +514,7 @@ Notes on the shape:
 
 ---
 
-## 7. API Endpoints
+## 8. API Endpoints
 
 All endpoints follow the standard Spring Boot error envelope on failure (HTTP status + `{ "timestamp", "status", "error", "message", "path" }`). Auth scope per endpoint is listed in the **Scope** column.
 
@@ -520,7 +532,7 @@ All endpoints follow the standard Spring Boot error envelope on failure (HTTP st
 | GET | `/api/orders/{id}/labels` | Get persisted label request for an order (uses snapshot). | `order.read` |
 | GET | `/api/barcode/print/{orderId}/{presetId}` | Generate PDF for a preset's labels for the order (uses snapshot). | `order.read` |
 
-### 7.1 Request / response examples
+### 8.1 Request / response examples
 
 **`POST /api/labelPresets`** — create a new preset.
 
@@ -647,7 +659,7 @@ The `locked: true` flag mirrors the §4.4.1 most-restrictive rule: any linked te
 
 ---
 
-## 8. Acceptance Criteria
+## 9. Acceptance Criteria
 
 ### Label Presets — Master Lists
 - [ ] **AC-1** — Admin opens Master Lists → Label Presets and sees the 5 system presets (Order, Specimen, Block, Slide, Freezer) pre-seeded.
@@ -672,7 +684,7 @@ The `locked: true` flag mirrors the §4.4.1 most-restrictive rule: any linked te
 - [ ] **AC-16** — Override-locked cells in Order Entry render read-only with a lock icon when **any** linked test has `allow_override = false` (most-restrictive wins per §4.4.1).
 - [ ] **AC-17** — Aggregation: same preset on two tests with different defaults uses the higher value.
 - [ ] **AC-18** — Total row sums each column live as cells change.
-- [ ] **AC-19** — Order Save writes `order_label_request` rows including a JSONB `preset_snapshot` per the §6.3.1 shape.
+- [ ] **AC-19** — Order Save writes `order_label_request` rows including a JSONB `preset_snapshot` per the §7.3.1 shape.
 - [ ] **AC-20** — Reprint from Order View uses `order_label_request.preset_snapshot`, not the current `label_preset` config; subsequent edits to the preset do not change the rendered label.
 
 ### Migration
@@ -688,7 +700,7 @@ The `locked: true` flag mirrors the §4.4.1 most-restrictive rule: any linked te
 
 ---
 
-## 9. Dependencies
+## 10. Dependencies
 
 | Dependency | Status | Notes |
 |---|---|---|
@@ -701,7 +713,7 @@ The `locked: true` flag mirrors the §4.4.1 most-restrictive rule: any linked te
 
 ---
 
-## 10. Open Questions
+## 11. Open Questions
 
 | # | Question | Owner |
 |---|---|---|
@@ -712,7 +724,7 @@ The `locked: true` flag mirrors the §4.4.1 most-restrictive rule: any linked te
 
 ---
 
-## 11. Localization
+## 12. Localization
 
 OpenELIS Global localizes via Spring `MessageSource` keys. This FRS specifies the i18n key prefix per surface; FE engineers define individual keys at implementation. The prefixes used in this release:
 
@@ -728,7 +740,7 @@ OpenELIS Global localizes via Spring `MessageSource` keys. This FRS specifies th
 
 ---
 
-## 12. Future Considerations (v3+)
+## 13. Future Considerations (v3+)
 
 - **User-defined custom content fields** — free-text and fixed-value rows on a preset (the original v2 proposal, deferred for MVP).
 - **Live preview pane** — graphical in-editor render of the label as the admin configures it.
@@ -741,7 +753,7 @@ OpenELIS Global localizes via Spring `MessageSource` keys. This FRS specifies th
 
 ---
 
-## 13. References
+## 14. References
 
 - [OGC-285 in Jira](https://uwdigi.atlassian.net/browse/OGC-285)
 - [OGC-284 cohesive FRS](./barcode-config.md) — v1 spec + implementation gap analysis

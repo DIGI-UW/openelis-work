@@ -1642,9 +1642,9 @@
 
 - id: barcode-labels-v2
   type: jsx
-  path: designs/admin-config/barcode-labels-v2.jsx
-  spec: designs/admin-config/barcode-labels-v2.md
-  preview: designs/admin-config/barcode-labels-v2.html
+  path: designs/admin-config/barcode-labels.jsx
+  spec: designs/admin-config/barcode-labels.md
+  preview: designs/admin-config/barcode-labels.html
   category: admin-config
   description: >
     Admin-configurable label preset system — lab admins define custom label types
@@ -1653,8 +1653,9 @@
   links:
     jira: ["OGC-285"]
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/barcode-labels-v2
-    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/barcode-labels-v2.html
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/barcode-labels.html
   added: "2026-05-18"
+  updated: "2026-05-19"
 
 - id: patient-id-card-scanning
   type: mockup
