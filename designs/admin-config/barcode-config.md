@@ -1,11 +1,15 @@
-# OpenELIS Global - Barcode Label Configuration v1
+# OpenELIS Global — Barcode Labels v1: Order & Specimen Label Configuration
+
 ## Functional Requirements Specification
 
-**Version:** 1.0  
-**Date:** December 2025  
-**Module:** Administration → Master Lists → Barcode Configuration  
-**Route:** `/MasterListsPage#barcodeConfiguration`  
-**Related:** Order Entry (Add Order step)
+**Version:** 1.2 (scope-narrowed to Order + Specimen; Block / Slide / Freezer migrate to OGC-285)
+**Original Date:** December 2025
+**Rewrite Date:** 2026-05-18
+**Author:** Casey Iiams-Hauser (rewrite via Cowork)
+**Module:** Administration → Master Lists → Barcode Configuration
+**Route:** `/MasterListsPage#barcodeConfiguration`
+**Jira:** [OGC-284](https://uwdigi.atlassian.net/browse/OGC-284) (Done — superseded by OGC-285; see §10)
+**Successor:** [OGC-285](https://uwdigi.atlassian.net/browse/OGC-285) — Barcode Labels v2: Configurable Label Preset Management
 
 ---
 
@@ -13,277 +17,80 @@
 
 ### 1.1 Purpose
 
-Enhance the barcode label configuration and printing workflow to support additional label types (Freezer) and allow users to customize label quantities during order entry rather than relying solely on system defaults.
+Establish OpenELIS Global's baseline barcode-label configuration: a minimal admin page that lets a lab administrator set the default count, max count, dimensions, and optional content for the two label types every deployment uses — **Order** and **Specimen**.
+
+Any additional label types a site needs (Block, Slide, Freezer, custom presets) are out of scope here and ship through the configurable Label Preset system in **[OGC-285](https://uwdigi.atlassian.net/browse/OGC-285) — Barcode Labels v2**, which lets admins activate, rename, or extend label presets without code changes.
 
 ### 1.2 Problem Statement
 
-Current limitations:
-- **Fixed label types**: Only Order and Specimen labels are fully configurable; Block and Slide have dimensions only, no Freezer support
-- **No user control at order entry**: Users cannot adjust label quantities when registering samples
-- **Default-only printing**: System applies default counts without allowing per-order customization
+| Limitation | Impact |
+|---|---|
+| **Hard-coded label-type list** | The original admin page hard-coded every label type (Order, Specimen, Block, Slide, Freezer) as a permanent column. Any site without pathology or storage workflows still saw the unused types. Sites that needed a sixth type had no way to add one. |
+| **Same admin page mixed required and rarely-used types** | The page was crowded with Block / Slide / Freezer columns that only a minority of deployments configured, making the common Order / Specimen workflow harder to scan. |
 
 ### 1.3 Solution Summary
 
-- Add Freezer label type to Barcode Configuration page
-- Add default/max count settings for Block and Slide labels
-- Add "Labels" section to Order Entry (Add Order step)
-- Allow per-order/per-sample label quantity customization
-- PDF-based printing after order save
+Two coordinated changes, split across two tickets:
+
+1. **v1 (this FRS, OGC-284) — Barcode Configuration admin page.** The admin page is intentionally minimal: it configures **only the two system-default label types, Order and Specimen** (default count, max count, dimensions, optional content fields). This is the baseline every OpenELIS deployment needs.
+2. **v2 ([OGC-285](https://uwdigi.atlassian.net/browse/OGC-285)) — everything else.** Block, Slide, Freezer, and any other site-specific label types ship as **seeded Label Presets** that admins activate on the new Label Presets admin page if they need them. The Order Entry Labels section (per-order quantity entry) and the post-save print dialog (per-type PDFs) also ship as part of OGC-285, not here.
+
+The split reflects Casey's decision (May 2026): keep v1 flexible — show only Order and Specimen by default, and let admins add additional label types and per-order quantities through v2 rather than baking a fixed five-type list into the platform.
 
 ### 1.4 Users
 
 | Role | Benefits |
-|------|----------|
-| Lab Technician | Customize label counts per order, print specific label types |
-| Pathology Staff | Generate block/slide/freezer labels at sample registration |
-| Lab Administrator | Configure label types and defaults |
+|---|---|
+| Lab Administrator | Configure default count, max count, dimensions, and optional content for the Order and Specimen label types every deployment uses. |
+| Lab Technician | Print Order and Specimen labels at the per-order default unless a max increase is needed; v2 adds the per-order quantity controls. |
 
 ---
 
-## 2. Barcode Configuration Page Updates
+## 2. Barcode Configuration Page (Order + Specimen Only)
 
-### 2.1 Current State
+### 2.1 Scope
 
-The Barcode Configuration page (`/MasterListsPage#barcodeConfiguration`) currently supports:
-- **Order** labels (default count, max count, dimensions)
-- **Specimen** labels (default count, max count, dimensions)
-- **Block** labels (dimensions only)
-- **Slide** labels (dimensions only)
+The Barcode Configuration page at `/MasterListsPage#barcodeConfiguration` configures the two system-default label types every OpenELIS deployment uses:
 
-### 2.2 Proposed Changes
+- **Order** labels — one or more per order
+- **Specimen** labels — one or more per specimen container
 
-Add **Freezer** label configuration and expand Block/Slide settings:
+All other label types (Block, Slide, Freezer, site-specific) are managed in **OGC-285 → Label Presets** and are not configurable here.
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ Number Bar Code Label                                                    │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│ Default Bar Code Labels                                                  │
-│ Indicate the default number of bar code labels which should be printed  │
-│ with every order and specimen.                                          │
-│                                                                          │
-│ Order              Specimen            Block              Slide          │
-│ ┌────────────┐    ┌────────────┐     ┌────────────┐    ┌────────────┐   │
-│ │     2      │    │     1      │     │     0      │    │     0      │   │
-│ └────────────┘    └────────────┘     └────────────┘    └────────────┘   │
-│                                                                          │
-│ Freezer                                                                  │
-│ ┌────────────┐                                                          │
-│ │     0      │                                                          │
-│ └────────────┘                                                          │
-│                                                                          │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│ Maximum Bar Code Labels                                                  │
-│ Indicate the maximum number of bar code labels that can be printed for  │
-│ each order or specimen. Once the maximum has been reached, a user will  │
-│ be unable to print additional labels.                                   │
-│                                                                          │
-│ Order              Specimen            Block              Slide          │
-│ ┌────────────┐    ┌────────────┐     ┌────────────┐    ┌────────────┐   │
-│ │    10      │    │     5      │     │    20      │    │    50      │   │
-│ └────────────┘    └────────────┘     └────────────┘    └────────────┘   │
-│                                                                          │
-│ Freezer                                                                  │
-│ ┌────────────┐                                                          │
-│ │    10      │                                                          │
-│ └────────────┘                                                          │
-│                                                                          │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│ Bar Code Label Elements                                                  │
-│ Check the box next to the optional elements that should appear on       │
-│ bar code labels. Lab Number is always included.                         │
-│                                                                          │
-│ Mandatory Elements (all label types):                                   │
-│ • Lab Number                                                            │
-│                                                                          │
-│ Optional Elements:                                                       │
-│                                                                          │
-│ Order Labels:                           Specimen Labels:                 │
-│ ☐ Patient Name                          ☐ Patient Name                  │
-│ ☐ Patient ID                            ☐ Patient ID                    │
-│ ☐ Patient Date of Birth                 ☐ Patient Date of Birth         │
-│ ☐ Site ID                               ☐ Collection Date and Time      │
-│                                         ☐ Collected By                  │
-│                                         ☐ Tests                         │
-│                                         ☐ Patient Sex                   │
-│                                                                          │
-│ Block Labels:                           Slide Labels:                    │
-│ ☐ Patient ID                            ☐ Patient ID                    │
-│ ☐ Block ID                              ☐ Slide ID                      │
-│ ☐ Specimen Type                         ☐ Stain Type                    │
-│ ☐ Case Number                           ☐ Block ID                      │
-│                                         ☐ Case Number                   │
-│                                                                          │
-│ Freezer Labels:                                                          │
-│ ☐ Patient ID                                                            │
-│ ☐ Storage Location                                                      │
-│ ☐ Specimen Type                                                         │
-│ ☐ Collection Date                                                       │
-│ ☐ Expiry Date                                                           │
-│                                                                          │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│ Dimensions Bar Code Label                                                │
-│ Indicate the dimensions that bar code labels should conform to when     │
-│ printing.                                                                │
-│                                                                          │
-│ Order                              Specimen                              │
-│ Height ┌────────────┐             Height ┌────────────┐                 │
-│        │   25.4     │                    │   25.4     │                 │
-│        └────────────┘                    └────────────┘                 │
-│        Enter values in: mm               Enter values in: mm            │
-│ Width  ┌────────────┐             Width  ┌────────────┐                 │
-│        │   76.2     │                    │   76.2     │                 │
-│        └────────────┘                    └────────────┘                 │
-│        Enter values in: mm               Enter values in: mm            │
-│                                                                          │
-│ Block                              Slide                                 │
-│ Height ┌────────────┐             Height ┌────────────┐                 │
-│        │   25.4     │                    │   12.7     │                 │
-│        └────────────┘                    └────────────┘                 │
-│        Enter values in: mm               Enter values in: mm            │
-│ Width  ┌────────────┐             Width  ┌────────────┐                 │
-│        │   76.2     │                    │   44.5     │                 │
-│        └────────────┘                    └────────────┘                 │
-│        Enter values in: mm               Enter values in: mm            │
-│                                                                          │
-│ Freezer                                                                  │
-│ Height ┌────────────┐                                                   │
-│        │   25.4     │                                                   │
-│        └────────────┘                                                   │
-│        Enter values in: mm                                              │
-│ Width  ┌────────────┐                                                   │
-│        │   50.8     │                                                   │
-│        └────────────┘                                                   │
-│        Enter values in: mm                                              │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+### 2.2 Settings Matrix
+
+| Setting | Order | Specimen |
+|---|---|---|
+| Default count | ✓ | ✓ |
+| Max count | ✓ | ✓ |
+| Height (mm) | ✓ | ✓ |
+| Width (mm) | ✓ | ✓ |
+
+### 2.3 Optional Content Fields (Label Elements)
+
+Each label type has its own "Barcode Label Elements" checkbox list for optional content. Lab Number is always required (cannot be unchecked).
+
+| Label Type | Mandatory | Optional |
+|---|---|---|
+| Order | Lab Number | Patient Name, Patient ID, Patient DOB, Site ID |
+| Specimen | Lab Number | Patient Name, Patient ID, Patient DOB, Collection Date/Time, Collected By, Tests, Patient Sex |
+
+### 2.4 Validation Rules
+
+| Rule | Enforcement |
+|---|---|
+| Default count is a non-negative integer | Field-level validation on blur. |
+| Max count is a positive integer | Field-level validation on blur. |
+| Default ≤ Max | Cross-field validation on save (Order and Specimen). |
+| Height and Width are positive decimals (mm) | Field-level validation. |
 
 ---
 
-## 3. Order Entry - Labels Section
+## 3. Order Entry — Labels Section (Shipping in OGC-285)
 
-### 3.1 Location
+The Order Entry Labels section (per-order quantity entry on Add Order Step 4) and the post-save print dialog (per-type PDFs with editable quantities) **ship as part of [OGC-285 — Barcode Labels v2](https://uwdigi.atlassian.net/browse/OGC-285)**. Until v2 lands, order save continues to print labels through the existing combined-PDF flow.
 
-Add new "Labels" section on the **Add Order** step (Step 4), positioned between the existing **ORDER** section and the **RESULT REPORTING** section.
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ Test Request                                                             │
-│                                                                          │
-│ [✓ Patient Info] [✓ Program Selection] [✓ Add Sample] [● Add Order]     │
-│                                                                          │
-│ ┌─ ORDER ───────────────────────────────────────────────────────────┐   │
-│ │  Lab Number, Priority, Request Date, Received Date, Site, etc.    │   │
-│ └───────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-│ ┌─ LABELS (NEW) ────────────────────────────────────────────────────┐   │
-│ │  Configure label quantities for this order                        │   │
-│ └───────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-│ ┌─ RESULT REPORTING ────────────────────────────────────────────────┐   │
-│ │  ...                                                               │   │
-│ └───────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-### 3.2 UI Design - Label Configuration
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ LABELS                                                                   │
-│                                                                          │
-│ Configure the number of labels to generate when this order is saved.    │
-│                                                                          │
-│ ┌─────────────────────────────────────────────────────────────────────┐ │
-│ │                                                                     │ │
-│ │  Item                    Order  Specimen  Block  Slide  Freezer    │ │
-│ │  ─────────────────────────────────────────────────────────────────  │ │
-│ │                                                                     │ │
-│ │  📋 Order                [ 2 ]    —        —      —       —        │ │
-│ │                                                                     │ │
-│ │  ─────────────────────────────────────────────────────────────────  │ │
-│ │                                                                     │ │
-│ │  🧪 Sample 1 - Blood     —      [ 1 ]   [ 0 ]  [ 0 ]   [ 0 ]       │ │
-│ │     (EDTA Tube)                                                     │ │
-│ │                                                                     │ │
-│ │  ─────────────────────────────────────────────────────────────────  │ │
-│ │                                                                     │ │
-│ │  🧪 Sample 2 - Tissue    —      [ 1 ]   [ 4 ]  [ 8 ]   [ 2 ]       │ │
-│ │     (Formalin Container)                                            │ │
-│ │                                                                     │ │
-│ └─────────────────────────────────────────────────────────────────────┘ │
-│                                                                          │
-│  Total Labels: Order: 2 | Specimen: 2 | Block: 4 | Slide: 8 | Freezer: 2│
-│                                                                          │
-│  ℹ️ Labels will be available to print after the order is saved and a    │
-│     lab number is assigned.                                              │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-### 3.3 Behavior
-
-| Element | Behavior |
-|---------|----------|
-| **Order row** | Only shows Order label count (other types N/A) |
-| **Sample rows** | Shows Specimen, Block, Slide, Freezer counts |
-| **Default values** | Pre-populated from Barcode Configuration defaults |
-| **Number inputs** | Editable, validated against max limits |
-| **Total Labels** | Live summary of all labels to be generated |
-| **Save behavior** | Label quantities saved with order; printing offered after save |
-
-**Important:** The lab number is not assigned until the order is saved. Therefore, label printing must occur AFTER the save dialog, not before.
-
-### 3.4 Post-Save Label Printing
-
-After the order is successfully saved and a lab number is assigned, the system presents a label printing dialog:
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ ✓ Order Saved Successfully                                               │
-│                                                                          │
-│ Lab Number: 24ORD00152                                                   │
-│                                                                          │
-│ ┌─ Print Labels ────────────────────────────────────────────────────┐   │
-│ │                                                                    │   │
-│ │  Each label type opens as a PDF in a new tab for printing.        │   │
-│ │  Different sizes must be printed separately.                      │   │
-│ │                                                                    │   │
-│ │  Label Type              Qty       Size              Action       │   │
-│ │  ─────────────────────────────────────────────────────────────────│   │
-│ │  Order Labels             2        25.4 × 76.2 mm   [🖨️ Print]   │   │
-│ │  Specimen Labels          2        25.4 × 76.2 mm   [🖨️ Print]   │   │
-│ │  Block Labels             4        25.4 × 76.2 mm   [🖨️ Print]   │   │
-│ │  Slide Labels             8        12.7 × 44.5 mm   [🖨️ Print]   │   │
-│ │  Freezer Labels           2        25.4 × 50.8 mm   [🖨️ Print]   │   │
-│ │                                                                    │   │
-│ └────────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-│                                                    [Done]                │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-### 3.5 Print Handling
-
-Each label type generates a **separate PDF** that opens in a new browser tab:
-- User prints from the browser's native print dialog
-- Different label sizes require different paper/stock, hence separate PDFs
-- Freezer labels use more expensive cryogenic-resistant stock (smaller size)
-
-| Print Action | Behavior |
-|--------------|----------|
-| **Print button (per type)** | Opens PDF in new tab with labels of that type |
-| **Done** | Closes dialog; returns to Order View |
-| **Reprint from Order View** | Same print buttons available on Order View page |
-
-The PDF is sized to match the configured label dimensions, allowing the user to select the appropriate printer and paper in the browser print dialog.
+See `barcode-labels-v2.md` §3 (Enhanced Order Entry) and §4 (Post-Save Print Dialog) for the full design. The v2 post-save dialog supports **editable quantities inline** so a technician who entered the wrong count at order entry can correct it in the dialog before pressing Print.
 
 ---
 
@@ -292,139 +99,135 @@ The PDF is sized to match the configured label dimensions, allowing the user to 
 ### 4.1 Barcode Configuration
 
 | ID | Requirement |
-|----|-------------|
-| BC-1 | System SHALL support Freezer label type with default count, max count, and dimensions |
-| BC-2 | System SHALL support Block label default count and max count |
-| BC-3 | System SHALL support Slide label default count and max count |
-| BC-4 | System SHALL validate dimension values are positive numbers |
-| BC-5 | System SHALL validate default count ≤ max count |
+|---|---|
+| BC-1 | System SHALL support Order and Specimen label types with default count, max count, height, and width. |
+| BC-2 | System SHALL validate dimension values are positive decimals. |
+| BC-3 | System SHALL validate default count ≤ max count for both Order and Specimen. |
 
-### 4.2 Order Entry Labels Section
+### 4.2 Order Entry & Post-Save Printing
 
-| ID | Requirement |
-|----|-------------|
-| OE-1 | System SHALL display Labels section on Add Order step |
-| OE-2 | System SHALL position Labels section between ORDER and RESULT REPORTING |
-| OE-3 | System SHALL pre-populate label counts from Barcode Configuration defaults |
-| OE-4 | System SHALL display one row for the Order with Order label count |
-| OE-5 | System SHALL display one row per Sample with Specimen, Block, Slide, Freezer counts |
-| OE-6 | User MAY edit label counts within allowed range (0 to max) |
-| OE-7 | System SHALL display running total of labels by type |
-| OE-8 | System SHALL save label quantities with order when Save is clicked |
-| OE-9 | System SHALL NOT allow printing until order is saved and lab number assigned |
-
-### 4.3 Post-Save Label Printing
-
-| ID | Requirement |
-|----|-------------|
-| PS-1 | After successful order save, system SHALL display label printing dialog |
-| PS-2 | Each label type SHALL have a Print button |
-| PS-3 | Print button SHALL open a PDF in a new browser tab |
-| PS-4 | PDF SHALL be sized to match configured label dimensions |
-| PS-5 | User MAY close dialog without printing (print later from Order View) |
-| PS-6 | System SHALL allow re-printing labels from Order View page |
-| PS-7 | System SHALL track number of labels printed per order (for max limit enforcement) |
-
-### 4.4 Label Content
-
-| Label Type | Mandatory Elements | Optional Elements |
-|------------|-------------------|-------------------|
-| Order | Lab Number | Patient Name, Patient ID, Patient DOB, Site ID |
-| Specimen | Lab Number | Patient Name, Patient ID, Patient DOB, Collection Date/Time, Collected By, Tests, Patient Sex |
-| Block | Lab Number | Patient ID, Block ID, Specimen Type, Case Number |
-| Slide | Lab Number | Patient ID, Slide ID, Stain Type, Block ID, Case Number |
-| Freezer | Lab Number | Patient ID, Storage Location, Specimen Type, Collection Date, Expiry Date |
-
-**Note:** Only the Lab Number is mandatory on all label types. All other fields are optional to support varying lab requirements and scenarios where certain data may not be available or appropriate to include.
+Covered by OGC-285. See `barcode-labels-v2.md` §4 for the Enhanced Order Entry FRs and §5 for the post-save print dialog FRs (including editable per-row quantities).
 
 ---
 
-## 5. Data Model Updates
+## 5. Data Model
 
-### 5.1 site_information Updates
+### 5.1 site_information Keys (Order + Specimen)
+
+The Barcode Configuration page reads and writes the existing `site_information` keys for Order and Specimen. No new keys are introduced by v1.
 
 | Key | Type | Description |
-|-----|------|-------------|
-| `barcode.freezer.default` | Integer | Default freezer labels per sample |
-| `barcode.freezer.max` | Integer | Maximum freezer labels per sample |
-| `barcode.freezer.height` | Decimal | Freezer label height (mm) |
-| `barcode.freezer.width` | Decimal | Freezer label width (mm) |
-| `barcode.block.default` | Integer | Default block labels per sample |
-| `barcode.block.max` | Integer | Maximum block labels per sample |
-| `barcode.slide.default` | Integer | Default slide labels per sample |
-| `barcode.slide.max` | Integer | Maximum slide labels per sample |
+|---|---|---|
+| `barcode.order.default` | Integer | Default order labels per order |
+| `barcode.order.max` | Integer | Max order labels per order |
+| `barcode.order.height` | Decimal | Order label height (mm) |
+| `barcode.order.width` | Decimal | Order label width (mm) |
+| `barcode.specimen.default` | Integer | Default specimen labels per specimen |
+| `barcode.specimen.max` | Integer | Max specimen labels per specimen |
+| `barcode.specimen.height` | Decimal | Specimen label height (mm) |
+| `barcode.specimen.width` | Decimal | Specimen label width (mm) |
 
-### 5.2 Order Label Request (Transient)
+> **Note on legacy keys.** Earlier builds of OGC-284 also persisted `barcode.{block,slide,freezer}.*` keys. Those keys remain readable in production but are not editable on the v1 admin page; they migrate to `label_preset` rows at the OGC-285 cut-over (see §10).
 
-```typescript
-interface OrderLabelRequest {
-  orderId: string;
-  orderLabels: number;
-  samples: SampleLabelRequest[];
-}
+### 5.2 Per-Order Label Persistence & Print Tracking
 
-interface SampleLabelRequest {
-  sampleId: string;
-  specimenLabels: number;
-  blockLabels: number;
-  slideLabels: number;
-  freezerLabels: number;
-}
-```
+The transient per-order label request, persistent per-order label quantities, and `order_label_print_log` schema move to OGC-285 along with the Order Entry section that produces them. See `barcode-labels-v2.md` §6 (Data Model).
 
 ---
 
 ## 6. API Endpoints
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/barcode/config` | Get barcode configuration |
-| PUT | `/api/barcode/config` | Update barcode configuration |
-| GET | `/api/barcode/print/{orderId}/{labelType}` | Generate PDF for label type (opens in new tab) |
-| GET | `/api/barcode/print/{orderId}/{labelType}/{sampleId}` | Generate PDF for specific sample's labels |
+|---|---|---|
+| GET | `/api/barcode/config` | Read barcode configuration (Order + Specimen settings). |
+| PUT | `/api/barcode/config` | Update barcode configuration (Order + Specimen settings). |
+
+Per-preset print endpoints (`/api/barcode/print/{orderId}/{presetId}`) are introduced by OGC-285. See `barcode-labels-v2.md` §7.
 
 ---
 
 ## 7. Acceptance Criteria
 
-### Barcode Configuration
-- [ ] **AC-1**: Freezer label type appears on Barcode Configuration page
-- [ ] **AC-2**: Freezer has default count, max count, height, and width settings
-- [ ] **AC-3**: Block has default count and max count settings
-- [ ] **AC-4**: Slide has default count and max count settings
-- [ ] **AC-5**: Settings persist after save
-
-### Order Entry Labels Section
-- [ ] **AC-6**: Labels section appears on Add Order step
-- [ ] **AC-7**: Labels section positioned between ORDER and RESULT REPORTING
-- [ ] **AC-8**: Order row shows Order label count only
-- [ ] **AC-9**: Sample rows show Specimen, Block, Slide, Freezer counts
-- [ ] **AC-10**: Default values pre-populated from Barcode Configuration
-- [ ] **AC-11**: User can edit counts within 0 to max range
-- [ ] **AC-12**: Total labels summary updates in real-time
-- [ ] **AC-13**: Label quantities saved with order on Save
-
-### Post-Save Label Printing
-- [ ] **AC-14**: After save, label printing dialog appears with assigned lab number
-- [ ] **AC-15**: Each label type has a Print button that opens a PDF in a new browser tab
-- [ ] **AC-16**: PDF is sized to match configured label dimensions
-- [ ] **AC-17**: User can close dialog and print later from Order View
-- [ ] **AC-18**: Labels can be reprinted from Order View page
+### Barcode Configuration (Order + Specimen)
+- [ ] **AC-1** — Order and Specimen each have configurable default count, max count, height, and width on the admin page.
+- [ ] **AC-2** — Order and Specimen each have configurable optional content fields per §2.3.
+- [ ] **AC-3** — Validation prevents default > max for both Order and Specimen, and rejects non-positive dimensions; errors render inline.
+- [ ] **AC-4** — Settings persist after Save and are reflected on subsequent label print jobs.
 
 ---
 
 ## 8. Dependencies
 
-| Dependency | Description |
-|------------|-------------|
-| PDF generation library | For generating label PDFs (e.g., iText, Apache PDFBox) |
-| Barcode generation | For generating Code128/QR codes on labels |
+| Dependency | Status |
+|---|---|
+| PDF generation library | In production (used by existing label flow). |
+| Barcode generation library | In production. |
 
 ---
 
-## 9. Future Considerations (v2)
+## 9. Future Considerations
 
-See separate FRS for Phase 2:
-- Dynamic label presets (admin-configurable)
-- Custom label names, contents, and dimensions
-- Test catalog integration for default label counts per test
+This v1 release covers fixed system label types. The Barcode Labels v2 release ([OGC-285](https://uwdigi.atlassian.net/browse/OGC-285)) adds:
+
+- Admin-configurable dynamic label presets (custom names, dimensions, barcode style, content fields)
+- Test Catalog integration — per-test default label counts
+- Order Entry aggregation rules driven by tests-on-order
+
+See `barcode-labels-v2.md` for the full v2 FRS.
+
+---
+
+## 10. Implementation History & v2 Migration (May 2026)
+
+> **Status:** OGC-284 was closed as **Done** in early 2026. A May 2026 audit reviewed what shipped against the original FRS scope. The remaining FRS surfaces are not being filed as a v1 follow-up — they are picked up natively by **[OGC-285 — Barcode Labels v2](https://uwdigi.atlassian.net/browse/OGC-285)**, which is a better home for them than retrofitting v1.
+
+### 10.1 What shipped under OGC-284
+
+| Surface | Outcome |
+|---|---|
+| Order + Specimen default count, max count, dimensions, content fields | ✅ Shipped as documented in §2. Persisted in `site_information` under `barcode.order.*` and `barcode.specimen.*`. |
+| Block + Slide default and max counts | ✅ Settings landed on the Barcode Configuration page in early 2026. Persisted in `site_information` under `barcode.{block,slide}.*`. |
+| Freezer label type (default, max, height, width, content fields) | ✅ Settings landed on the Barcode Configuration page in early 2026. Persisted in `site_information` under `barcode.freezer.*`. |
+| Combined-PDF print at order save | ✅ Continues to work as-is (all label types printed together as one job, sized to the Order label dimensions). |
+
+### 10.2 Superseded by OGC-285 (v2)
+
+The following surfaces from the original v1 FRS are **not being filed as a v1 follow-up ticket**. They ship as part of **[OGC-285 — Barcode Labels v2](https://uwdigi.atlassian.net/browse/OGC-285)**:
+
+| Original v1 surface | OGC-285 disposition |
+|---|---|
+| Block / Slide / Freezer settings on the admin page | Migrate from the v1 Barcode Configuration page into v2 **Label Presets** as seeded presets (`p-ffpe`, `p-slide`, `p-cryo`, etc.). Admins activate them on the Label Presets admin page if their deployment needs them; sites that don't need pathology or storage labels simply leave them inactive. |
+| Order Entry → Add Order Step 4 Labels section (per-row, per-type quantity entry) | Built as part of v2's **Enhanced Order Entry** view, with quantities driven by Test Catalog linkage and editable per row. |
+| Post-save print dialog with per-type Print buttons + Skip / Print Later | Built as part of v2's **Enhanced Order Entry** view; sized per active preset; supports editable quantities at the dialog so a tech can correct counts before printing. |
+| Per-type PDF endpoint (`/api/barcode/print/{orderId}/{labelType}`) | Built under OGC-285 as `/api/barcode/print/{orderId}/{presetId}` (preset-scoped instead of fixed-type-scoped). |
+| Per-type reprint on Order View | Built under OGC-285 alongside the per-preset Print buttons. |
+
+### 10.3 Inherited acceptance criteria
+
+The new sample-registration "Label & Store" step described in [OGC-358](https://uwdigi.atlassian.net/browse/OGC-358) is still backlog. Its label-printing acceptance criteria (LBL-2) are picked up by OGC-285's Enhanced Order Entry view, which the new UI flow will consume directly — no separate inherited-AC entry is needed.
+
+### 10.4 Impact
+
+| Stakeholder | Impact |
+|---|---|
+| Sites that use only Order + Specimen labels | None — the v1 admin page covers their full configuration need. |
+| Pathology / storage sites | Continue to use the existing combined-PDF print path until OGC-285 ships. Block, Slide, and Freezer settings remain editable through the legacy `site_information` keys but no longer appear on the v1 admin page. |
+
+### 10.5 Disposition
+
+- **OGC-284 stays Done.** v1.2 of this FRS narrows its admin-page scope to Order + Specimen to match what the platform should expose at the baseline level.
+- **Legacy `site_information.barcode.{block,slide,freezer}.*` keys remain in production** and continue to drive the existing combined-PDF print until OGC-285 migrates them into `label_preset` rows.
+- **Users continue to use the existing combined-PDF print** at order save until v2 ships the per-type post-save dialog with editable quantities.
+- **No v1 follow-up ticket required.** The remaining v1 FRS surfaces are tracked under OGC-285.
+
+---
+
+## 11. References
+
+- [OGC-284 in Jira](https://uwdigi.atlassian.net/browse/OGC-284) — this ticket (Done; v1 baseline configuration)
+- [OGC-285 — Barcode Labels v2 in Jira](https://uwdigi.atlassian.net/browse/OGC-285) — successor; carries the Block / Slide / Freezer presets, Order Entry Labels section, and post-save print dialog
+- [OGC-358 — new UI Label & Store step](https://uwdigi.atlassian.net/browse/OGC-358) — consumes the v2 Enhanced Order Entry view
+- v1 mockup: `barcode-config.jsx`
+- v2 FRS: `barcode-labels-v2.md`
+- v2 mockup: `barcode-labels-v2.jsx`
+- [BARCODE CONFIGURATION user guide on Confluence](https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/452132880/BARCODE+CONFIGURATION) — admin documentation by Taib

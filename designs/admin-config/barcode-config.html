@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barcode Configuration — Barcode Labels v1 (OGC-284) — Order + Specimen</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css" />
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'IBM Plex Sans', Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; color: #161616; }
+
+    /* ── Page layout ─────────────────────────────────────────────── */
+    .page-wrap { padding: 1.5rem 2rem 3rem 2rem; max-width: 1280px; margin: 0 auto; }
+    .breadcrumb { font-size: 0.75rem; color: #525252; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: #0f62fe; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb span.sep { margin: 0 0.375rem; color: #8d8d8d; }
+    h1.page-title { font-size: 1.75rem; font-weight: 400; margin: 0 0 0.25rem 0; color: #161616; }
+    p.page-desc { font-size: 0.875rem; color: #525252; margin: 0 0 1.5rem 0; max-width: 60rem; }
+
+    /* ── Section card ────────────────────────────────────────────── */
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 2px; margin-bottom: 1.5rem; overflow: hidden; }
+    .section-head { padding: 1rem 1.25rem; border-bottom: 1px solid #e0e0e0; background: #fafafa; }
+    .section-head h2 { margin: 0; font-size: 1rem; font-weight: 600; color: #161616; }
+    .section-head p.section-sub { margin: 0.375rem 0 0 0; font-size: 0.8125rem; color: #525252; }
+    .section-body { padding: 1.25rem; }
+
+    .subgroup { margin-bottom: 2rem; }
+    .subgroup:last-child { margin-bottom: 0; }
+    .subgroup h3 { font-size: 0.875rem; font-weight: 600; margin: 0 0 0.25rem 0; color: #161616; }
+    .subgroup p.subgroup-help { font-size: 0.8125rem; color: #525252; margin: 0 0 0.875rem 0; max-width: 60rem; }
+
+    /* ── Buttons (Carbon-flavored) ───────────────────────────────── */
+    .btn { padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 500; border: none; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 0.375rem; transition: background .15s; font-family: inherit; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-primary:hover { background: #0050e6; }
+    .btn-secondary { background: transparent; color: #0f62fe; border: 1px solid #0f62fe; }
+    .btn-secondary:hover { background: #e8f0fe; }
+    .btn-ghost { background: transparent; color: #0f62fe; border: 1px solid transparent; }
+    .btn-ghost:hover { background: #e8f0fe; }
+    .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }
+
+    /* ── Form inputs ─────────────────────────────────────────────── */
+    label.field-label { display: block; font-size: 0.75rem; font-weight: 600; color: #525252; margin-bottom: 0.375rem; }
+    .label-row { display: flex; align-items: center; gap: 0.5rem; }
+    .num-input { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #8d8d8d; background: #fff;
+      font-size: 0.875rem; font-family: inherit; outline: none; }
+    .num-input:focus { border-color: #0f62fe; box-shadow: 0 0 0 2px #0f62fe33; }
+    .input-suffix { display: flex; align-items: center; }
+    .input-suffix .num-input { border-right: none; }
+    .input-suffix .suffix-tag { padding: 0.5rem 0.625rem; background: #e0e0e0; border: 1px solid #8d8d8d;
+      font-size: 0.75rem; color: #525252; }
+    .help-text { font-size: 0.6875rem; color: #6f6f6f; margin-top: 0.25rem; }
+
+    /* ── Number grid (2 cols — Order + Specimen scope) ───────────── */
+    .num-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; max-width: 32rem; }
+    @media (max-width: 800px) { .num-grid { grid-template-columns: 1fr; max-width: 100%; } }
+
+    /* ── NEW badge ───────────────────────────────────────────────── */
+    .new-badge { display: inline-flex; align-items: center; padding: 0.0625rem 0.4375rem;
+      font-size: 0.625rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+      background: #defbe6; color: #0e6027; border-radius: 10rem; border: 1px solid #24a148; margin-left: 0.375rem; }
+
+    /* ── Label-elements (2-col checkbox grid — Order + Specimen) ─── */
+    .elements-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; max-width: 56rem; }
+    @media (max-width: 700px) { .elements-grid { grid-template-columns: 1fr; max-width: 100%; } }
+    .elements-col { background: #f4f4f4; border: 1px solid #e0e0e0; border-radius: 2px; padding: 0.875rem; }
+    .elements-col-title { font-size: 0.875rem; font-weight: 600; color: #161616; margin-bottom: 0.625rem;
+      padding-bottom: 0.5rem; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 0.25rem; }
+    .elements-col-title .col-title-text { display: inline-flex; align-items: center; }
+    .checkbox-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.3125rem 0;
+      font-size: 0.8125rem; color: #161616; }
+    .checkbox-row.locked { color: #525252; font-style: italic; }
+    .checkbox-row input[type=checkbox] { width: 1rem; height: 1rem; cursor: pointer; accent-color: #0f62fe; flex-shrink: 0; }
+    .checkbox-row input[type=checkbox]:disabled { cursor: not-allowed; opacity: 0.65; }
+    .lock-icon { font-size: 0.75rem; color: #6f6f6f; margin-left: auto; }
+
+    /* ── Dimensions grid (2 cols — Order + Specimen) ─────────────── */
+    .dim-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; max-width: 56rem; }
+    @media (max-width: 700px) { .dim-grid { grid-template-columns: 1fr; max-width: 100%; } }
+    .dim-card { background: #f4f4f4; border: 1px solid #e0e0e0; border-radius: 2px; padding: 0.875rem 1rem; }
+    .dim-card-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.75rem; display: flex;
+      align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem; }
+    .dim-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
+
+    /* ── Footer / save area ──────────────────────────────────────── */
+    .save-bar { display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem;
+      padding: 1rem 0 0 0; }
+    .save-bar .btn-primary { padding: 0.75rem 1.5rem; min-width: 8rem; }
+    .notification { padding: 0.875rem 1rem; margin-top: 1rem; border-left: 4px solid; font-size: 0.875rem;
+      display: flex; align-items: center; gap: 0.5rem; }
+    .notification-success { background: #defbe6; border-color: #24a148; color: #0e6027; }
+    .notification.faded { opacity: 0.55; }
+
+    /* ── Divider banner between live page and appendix ───────────── */
+    .gap-divider { margin: 3rem 0 0 0; padding: 1.25rem 1.5rem; background: #edf5ff;
+      border: 1px solid #a6c8ff; border-left: 4px solid #0f62fe; border-radius: 2px; text-align: center;
+      font-size: 0.9375rem; font-weight: 600; color: #002d9c; box-shadow: 0 2px 6px rgba(0,0,0,.05); }
+    .gap-divider .gap-emoji { font-size: 1.25rem; margin-right: 0.375rem; }
+    .gap-divider .gap-sub { display: block; font-size: 0.75rem; font-weight: 500; color: #0043ce;
+      margin-top: 0.375rem; letter-spacing: 0.02em; }
+
+    /* ── Appendix wrapper (OGC-285 v2 design preview) ─────────────── */
+    .appendix-wrap { position: relative; margin-top: 1rem; padding: 0 0 2rem 0;
+      background: #f4f8ff; border: 1px solid #a6c8ff; border-radius: 2px; }
+    .appendix-sticky { position: sticky; top: 0; z-index: 10; background: #edf5ff;
+      border-bottom: 1px solid #a6c8ff; padding: 0.625rem 1.25rem; font-size: 0.75rem;
+      font-weight: 600; color: #002d9c; text-align: center; letter-spacing: 0.02em; }
+    .appendix-inner { padding: 1.5rem 2rem 0 2rem; }
+    .appendix-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 2px;
+      margin-bottom: 1.5rem; }
+    .appendix-section-head { padding: 0.875rem 1.25rem; background: #fafafa; border-bottom: 1px solid #e0e0e0;
+      display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+    .appendix-section-head h2 { font-size: 1rem; font-weight: 600; margin: 0; color: #161616; }
+    .appendix-section-head .frs-ref { font-size: 0.6875rem; font-weight: 600; color: #002d9c;
+      background: #edf5ff; border: 1px solid #a6c8ff; padding: 0.125rem 0.5rem; border-radius: 10rem;
+      text-transform: uppercase; letter-spacing: 0.04em; }
+    .appendix-section-body { padding: 1.25rem; }
+    .appendix-section-body .preview-note { font-size: 0.75rem; color: #6f6f6f; font-style: italic;
+      margin-bottom: 1rem; }
+
+    /* ── Step indicator (order entry preview) ────────────────────── */
+    .stepper { display: flex; align-items: center; gap: 0; margin-bottom: 1.25rem;
+      background: #f4f4f4; border: 1px solid #e0e0e0; padding: 0.625rem 1rem; }
+    .step { display: flex; align-items: center; gap: 0.375rem; font-size: 0.8125rem; color: #525252; }
+    .step.done { color: #0e6027; }
+    .step.active { color: #0f62fe; font-weight: 600; }
+    .step-mark { display: inline-flex; align-items: center; justify-content: center;
+      width: 1.25rem; height: 1.25rem; border-radius: 50%; font-size: 0.6875rem; font-weight: 700;
+      background: #e0e0e0; color: #525252; }
+    .step.done .step-mark { background: #24a148; color: #fff; }
+    .step.active .step-mark { background: #0f62fe; color: #fff; }
+    .step-sep { width: 2rem; height: 1px; background: #c6c6c6; margin: 0 0.5rem; }
+
+    /* ── Collapsed order section ─────────────────────────────────── */
+    .collapsed-section { background: #fff; border: 1px solid #e0e0e0; margin-bottom: 0.75rem; }
+    .collapsed-section-head { padding: 0.625rem 1rem; display: flex; align-items: center;
+      justify-content: space-between; font-size: 0.875rem; font-weight: 600; color: #525252;
+      background: #f4f4f4; cursor: default; }
+    .chevron { font-size: 0.625rem; color: #6f6f6f; }
+
+    /* ── Labels-section preview table (Order Entry §3) ───────────── */
+    .labels-table { width: 100%; border-collapse: collapse; font-size: 0.875rem;
+      background: #fff; border: 1px solid #e0e0e0; }
+    .labels-table thead tr { background: #e0e0e0; }
+    .labels-table th { padding: 0.625rem 0.875rem; text-align: center; font-size: 0.75rem;
+      font-weight: 600; color: #525252; text-transform: uppercase; letter-spacing: 0.02em; }
+    .labels-table th.col-row { text-align: left; min-width: 14rem; }
+    .labels-table td { padding: 0.625rem 0.875rem; border-bottom: 1px solid #f0f0f0;
+      text-align: center; vertical-align: middle; }
+    .labels-table td.col-row { text-align: left; font-weight: 500; }
+    .labels-table tr:last-child td { border-bottom: none; }
+    .labels-table tr.total-row { background: #f4f4f4; font-weight: 700; }
+    .labels-table tr.total-row td { color: #161616; }
+    .labels-table .qty-input { width: 3.5rem; padding: 0.25rem 0.375rem; border: 1px solid #8d8d8d;
+      background: #fff; font-size: 0.875rem; text-align: center; font-family: inherit; }
+    .labels-table .qty-dash { color: #c6c6c6; font-size: 1rem; }
+    .labels-table .qty-input.qty-zero { color: #8d8d8d; }
+
+    .info-banner { display: flex; gap: 0.5rem; padding: 0.75rem 1rem; margin-top: 1rem;
+      background: #edf5ff; border-left: 4px solid #0f62fe; font-size: 0.8125rem; color: #0043ce;
+      border-radius: 0 2px 2px 0; }
+
+    /* ── Modal-style print dialog (Appendix §3.4) ────────────────── */
+    .modal-card { max-width: 38rem; margin: 0 auto; background: #fff; border: 1px solid #c6c6c6;
+      border-radius: 4px; box-shadow: 0 6px 24px rgba(0,0,0,0.12); overflow: hidden; }
+    .modal-head { background: #defbe6; padding: 1rem 1.25rem; border-bottom: 1px solid #24a148; }
+    .modal-head .modal-title { font-size: 1rem; font-weight: 600; color: #0e6027;
+      display: flex; align-items: center; gap: 0.5rem; }
+    .modal-head .modal-sub { font-size: 0.8125rem; color: #0e6027; margin-top: 0.25rem;
+      font-family: 'IBM Plex Mono', monospace; }
+    .modal-body { padding: 1.25rem; }
+    .modal-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    .modal-table thead tr { background: #f4f4f4; }
+    .modal-table th { padding: 0.5rem 0.625rem; text-align: left; font-size: 0.6875rem;
+      font-weight: 700; color: #525252; text-transform: uppercase; letter-spacing: 0.04em; }
+    .modal-table th.col-num, .modal-table td.col-num { text-align: center; }
+    .modal-table th.col-act, .modal-table td.col-act { text-align: right; }
+    .modal-table td { padding: 0.5rem 0.625rem; border-bottom: 1px solid #f0f0f0; }
+    .modal-table tr:last-child td { border-bottom: none; }
+    .print-btn { padding: 0.3125rem 0.625rem; background: #fff; color: #0f62fe;
+      border: 1px solid #0f62fe; cursor: pointer; font-size: 0.75rem; font-weight: 500;
+      font-family: inherit; display: inline-flex; align-items: center; gap: 0.25rem; }
+    .print-btn:hover { background: #e8f0fe; }
+    .print-btn.printed { background: #defbe6; color: #0e6027; border-color: #24a148; }
+    .modal-foot { padding: 0.875rem 1.25rem; background: #fafafa; border-top: 1px solid #e0e0e0;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
+    .modal-foot .skip-link { color: #0f62fe; font-size: 0.8125rem; text-decoration: none;
+      background: none; border: none; cursor: pointer; padding: 0.375rem 0; font-family: inherit; }
+    .modal-foot .skip-link:hover { text-decoration: underline; }
+    .modal-footnote { margin-top: 0.875rem; padding: 0.625rem 0.875rem; background: #f4f4f4;
+      font-size: 0.75rem; color: #525252; border-left: 3px solid #8d8d8d; font-style: italic; }
+
+    /* ── Small helpers ───────────────────────────────────────────── */
+    .muted { color: #6f6f6f; }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     LIVE PAGE: Barcode Configuration (admin) — §2 of the FRS
+============================================================ -->
+<div class="page-wrap">
+
+  <div class="breadcrumb">
+    <a href="#">Administration</a><span class="sep" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <a href="#">Master Lists</a><span class="sep" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span aria-current="page"><strong>Barcode Configuration</strong></span>
+  </div>
+  <h1 class="page-title">Barcode Configuration</h1>
+  <p class="page-desc">
+    Configure how barcode labels are generated for the two system-default label
+    types every OpenELIS deployment uses — <strong>Order</strong> and
+    <strong>Specimen</strong>. Additional label types (Block, Slide, Freezer,
+    site-specific) are managed in
+    <a href="#" style="color:#0f62fe; text-decoration:none;">Label Presets</a>
+    under OGC-285.
+  </p>
+
+  <!-- ────────────────────────────────────────────────────────────
+       Section 1: Number Bar Code Label (defaults + max)
+  ──────────────────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Number Bar Code Label</h2>
+      <p class="section-sub">
+        Indicate the default number of bar code labels which should be printed
+        with every order and specimen.
+      </p>
+    </div>
+    <div class="section-body">
+
+      <!-- Default counts -->
+      <div class="subgroup">
+        <h3>Default Bar Code Labels</h3>
+        <p class="subgroup-help">
+          The default value pre-fills the Labels section in Order Entry. Users may
+          override the default per order, up to the maximum.
+        </p>
+        <div class="num-grid">
+          <div>
+            <label class="field-label">Order</label>
+            <input class="num-input" type="number" value="2" min="0" />
+          </div>
+          <div>
+            <label class="field-label">Specimen</label>
+            <input class="num-input" type="number" value="1" min="0" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Max counts -->
+      <div class="subgroup">
+        <h3>Maximum Bar Code Labels</h3>
+        <p class="subgroup-help">
+          The maximum number of labels that may be printed for a single order or specimen.
+          Once reached, users cannot print additional labels of that type.
+        </p>
+        <div class="num-grid">
+          <div>
+            <label class="field-label">Order</label>
+            <input class="num-input" type="number" value="10" min="0" />
+          </div>
+          <div>
+            <label class="field-label">Specimen</label>
+            <input class="num-input" type="number" value="5" min="0" />
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ────────────────────────────────────────────────────────────
+       Section 2: Bar Code Label Elements (optional content)
+  ──────────────────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Bar Code Label Elements</h2>
+      <p class="section-sub">
+        Check the box next to the optional elements that should appear on bar code labels.
+        Lab Number is always included.
+      </p>
+    </div>
+    <div class="section-body">
+
+      <div class="elements-grid">
+
+        <!-- Order -->
+        <div class="elements-col">
+          <div class="elements-col-title">
+            <span class="col-title-text">Order</span>
+          </div>
+          <div class="checkbox-row locked">
+            <input type="checkbox" checked disabled />
+            <span>Lab Number</span>
+            <span class="lock-icon" title="Always included" aria-label="Locked — always included"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;"><rect x="2" y="5.5" width="8" height="5.5" rx="0.5" stroke="currentColor" stroke-width="1" fill="none"/><path d="M3.5 5.5V3.5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1" fill="none"/></svg></span>
+          </div>
+          <label class="checkbox-row"><input type="checkbox" checked /> Patient Name</label>
+          <label class="checkbox-row"><input type="checkbox" checked /> Patient ID</label>
+          <label class="checkbox-row"><input type="checkbox" checked /> Patient DOB</label>
+          <label class="checkbox-row"><input type="checkbox" checked /> Site ID</label>
+        </div>
+
+        <!-- Specimen -->
+        <div class="elements-col">
+          <div class="elements-col-title">
+            <span class="col-title-text">Specimen</span>
+          </div>
+          <div class="checkbox-row locked">
+            <input type="checkbox" checked disabled />
+            <span>Lab Number</span>
+            <span class="lock-icon" title="Always included" aria-label="Locked — always included"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;"><rect x="2" y="5.5" width="8" height="5.5" rx="0.5" stroke="currentColor" stroke-width="1" fill="none"/><path d="M3.5 5.5V3.5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1" fill="none"/></svg></span>
+          </div>
+          <label class="checkbox-row"><input type="checkbox" checked /> Patient Name</label>
+          <label class="checkbox-row"><input type="checkbox" checked /> Patient ID</label>
+          <label class="checkbox-row"><input type="checkbox" checked /> Patient DOB</label>
+          <label class="checkbox-row"><input type="checkbox" checked /> Collection Date/Time</label>
+          <label class="checkbox-row"><input type="checkbox" checked /> Collected By</label>
+          <label class="checkbox-row"><input type="checkbox" checked /> Tests</label>
+          <label class="checkbox-row"><input type="checkbox" /> Patient Sex</label>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ────────────────────────────────────────────────────────────
+       Section 3: Bar Code Label Dimensions
+  ──────────────────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Bar Code Label Dimensions</h2>
+      <p class="section-sub">
+        Indicate the dimensions that bar code labels should conform to when printing.
+        Values are in millimeters.
+      </p>
+    </div>
+    <div class="section-body">
+
+      <div class="dim-grid">
+
+        <!-- Order -->
+        <div class="dim-card">
+          <div class="dim-card-title">Order</div>
+          <div class="dim-fields">
+            <div>
+              <label class="field-label">Height</label>
+              <div class="input-suffix">
+                <input class="num-input" type="number" value="25.4" step="0.1" />
+                <span class="suffix-tag">mm</span>
+              </div>
+            </div>
+            <div>
+              <label class="field-label">Width</label>
+              <div class="input-suffix">
+                <input class="num-input" type="number" value="76.2" step="0.1" />
+                <span class="suffix-tag">mm</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Specimen -->
+        <div class="dim-card">
+          <div class="dim-card-title">Specimen</div>
+          <div class="dim-fields">
+            <div>
+              <label class="field-label">Height</label>
+              <div class="input-suffix">
+                <input class="num-input" type="number" value="25.4" step="0.1" />
+                <span class="suffix-tag">mm</span>
+              </div>
+            </div>
+            <div>
+              <label class="field-label">Width</label>
+              <div class="input-suffix">
+                <input class="num-input" type="number" value="76.2" step="0.1" />
+                <span class="suffix-tag">mm</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ────────────────────────────────────────────────────────────
+       Save footer
+  ──────────────────────────────────────────────────────────── -->
+  <div class="save-bar">
+    <button class="btn btn-secondary">Cancel</button>
+    <button class="btn btn-primary" id="save-btn" onclick="flashSave()">Save</button>
+  </div>
+
+  <!-- Faded success banner — shown statically in this preview so reviewers see the post-save UX -->
+  <div class="notification notification-success faded" role="status" aria-live="polite" id="save-notif">
+    <span aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;"><path d="M3.5 8.5l3 3 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span>
+    <span><strong>Saved.</strong> Barcode configuration saved successfully.</span>
+  </div>
+
+</div>
+
+<!-- ============================================================
+     DIVIDER BANNER — transition into OGC-285 (v2) design preview
+============================================================ -->
+<div class="page-wrap" style="padding-top: 0; padding-bottom: 0;">
+  <div class="gap-divider" role="note">
+    <span class="gap-emoji" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.25" fill="none"/><path d="M10 6v4.5l3 1.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span>
+    Designed for OGC-285 (Barcode Labels v2) — preview of the upcoming Order Entry surfaces
+    <span class="gap-sub">
+      The two sections below (Order Entry → Labels section, and Post-Save Print Dialog
+      with editable per-row quantities) ship as part of
+      <a href="https://uwdigi.atlassian.net/browse/OGC-285" style="color:#0043ce;">OGC-285</a>,
+      not v1. See §10 of the v1 FRS and the full v2 mockup at
+      <code>barcode-labels-v2.html</code>.
+    </span>
+  </div>
+</div>
+
+<!-- ============================================================
+     APPENDIX — Designed for OGC-285 (v2 preview)
+============================================================ -->
+<div class="appendix-wrap">
+
+  <div class="appendix-sticky">
+    Designed for OGC-285 (Barcode Labels v2) — see the v1 FRS §10 for the disposition
+  </div>
+
+  <div class="appendix-inner">
+
+    <!-- ────────────────────────────────────────────────────────
+         Appendix A: Order Entry → Add Order Step 4 — Labels Section
+         (Ships in OGC-285)
+    ──────────────────────────────────────────────────────────── -->
+    <div class="appendix-section">
+      <div class="appendix-section-head">
+        <h2>Appendix A — Order Entry, Step 4: Labels Section</h2>
+        <span class="frs-ref">OGC-285 · v2 preview</span>
+      </div>
+      <div class="appendix-section-body">
+        <p class="preview-note">
+          Mock-up of the Labels section that sits inside the Order Entry "Add Order"
+          wizard (Step 4) under OGC-285. Each row is one item that produces labels;
+          each column is one of the active label presets. Per-row quantities pre-fill
+          from the admin defaults (Order + Specimen, plus any activated v2 presets)
+          but stay user-editable up to the per-type maximum.
+        </p>
+
+        <!-- Step indicator -->
+        <div class="stepper" aria-label="Order entry steps">
+          <div class="step done"><span class="step-mark" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 5.25l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span> Patient Info</div>
+          <div class="step-sep" aria-hidden="true"></div>
+          <div class="step done"><span class="step-mark" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 5.25l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span> Program Selection</div>
+          <div class="step-sep" aria-hidden="true"></div>
+          <div class="step done"><span class="step-mark" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 5.25l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span> Add Sample</div>
+          <div class="step-sep" aria-hidden="true"></div>
+          <div class="step active"><span class="step-mark">4</span> Add Order</div>
+        </div>
+
+        <!-- Collapsed parent "ORDER" section header -->
+        <div class="collapsed-section">
+          <div class="collapsed-section-head">
+            <span>ORDER</span>
+            <span class="chevron" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span>
+          </div>
+        </div>
+
+        <!-- Labels section table -->
+        <table class="labels-table" aria-label="Labels to print for this order">
+          <thead>
+            <tr>
+              <th class="col-row">Item</th>
+              <th>Order</th>
+              <th>Specimen</th>
+              <th>Block</th>
+              <th>Slide</th>
+              <th>Freezer</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-row">Order</td>
+              <td><input class="qty-input" type="number" value="2" min="0" /></td>
+              <td><span class="qty-dash">—</span></td>
+              <td><span class="qty-dash">—</span></td>
+              <td><span class="qty-dash">—</span></td>
+              <td><span class="qty-dash">—</span></td>
+            </tr>
+            <tr>
+              <td class="col-row">
+                Sample 1 &mdash; Blood
+                <div class="muted" style="font-size:0.75rem;">EDTA Tube</div>
+              </td>
+              <td><span class="qty-dash">—</span></td>
+              <td><input class="qty-input" type="number" value="1" min="0" /></td>
+              <td><input class="qty-input qty-zero" type="number" value="0" min="0" /></td>
+              <td><input class="qty-input qty-zero" type="number" value="0" min="0" /></td>
+              <td><input class="qty-input qty-zero" type="number" value="0" min="0" /></td>
+            </tr>
+            <tr>
+              <td class="col-row">
+                Sample 2 &mdash; Tissue
+                <div class="muted" style="font-size:0.75rem;">Formalin Container</div>
+              </td>
+              <td><span class="qty-dash">—</span></td>
+              <td><input class="qty-input" type="number" value="1" min="0" /></td>
+              <td><input class="qty-input" type="number" value="4" min="0" /></td>
+              <td><input class="qty-input" type="number" value="8" min="0" /></td>
+              <td><input class="qty-input" type="number" value="2" min="0" /></td>
+            </tr>
+            <tr class="total-row">
+              <td class="col-row">Total</td>
+              <td>2</td>
+              <td>2</td>
+              <td>4</td>
+              <td>8</td>
+              <td>2</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="info-banner" role="note">
+          <span aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; flex-shrink: 0;"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.25" fill="none"/><circle cx="8" cy="5" r="0.75" fill="currentColor"/><path d="M8 7.5v4.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg></span>
+          <span>
+            Labels will be available to print after the order is saved and a lab number
+            is assigned.
+          </span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ────────────────────────────────────────────────────────
+         Appendix B: Post-Save Print Dialog (Ships in OGC-285)
+         — Editable inline quantities so a tech can correct counts
+         before pressing Print.
+    ──────────────────────────────────────────────────────────── -->
+    <div class="appendix-section">
+      <div class="appendix-section-head">
+        <h2>Appendix B — Post-Save Print Dialog (Editable Quantities)</h2>
+        <span class="frs-ref">OGC-285 · v2 preview</span>
+      </div>
+      <div class="appendix-section-body">
+        <p class="preview-note">
+          When the order is saved and a lab number is assigned, this modal appears with
+          one row per active label type. Each row's quantity is <strong>editable inline</strong>
+          before printing — useful if the tech entered the wrong count at order entry
+          and needs to correct it (e.g., scaling up Specimen labels to match the actual
+          number of aliquots being created). Each Print button opens a separate PDF in
+          a new tab so the user can swap label stock between print jobs.
+        </p>
+        <div class="info-banner" role="note" style="margin-bottom: 1rem;">
+          <span aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; flex-shrink: 0;"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.25" fill="none"/><circle cx="8" cy="5" r="0.75" fill="currentColor"/><path d="M8 7.5v4.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg></span>
+          <span>
+            You can adjust quantities here if needed before printing — e.g., if you'll
+            create 4 aliquots, set Specimen Labels to match.
+          </span>
+        </div>
+
+        <div class="modal-card">
+          <div class="modal-head">
+            <div class="modal-title">
+              <span aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;"><path d="M3.5 8.5l3 3 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span>
+              <span>Order Saved Successfully</span>
+            </div>
+            <div class="modal-sub">Lab Number: 24ORD00152</div>
+          </div>
+
+          <div class="modal-body">
+            <table class="modal-table">
+              <thead>
+                <tr>
+                  <th>Label Type</th>
+                  <th class="col-num">Qty (editable)</th>
+                  <th>Size</th>
+                  <th class="col-act">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Order Labels</td>
+                  <td class="col-num"><input class="qty-input" type="number" value="2" min="0" max="10" aria-label="Order labels quantity" onchange="markRecalc(this)" /></td>
+                  <td class="mono" style="font-size:0.75rem;">25.4 × 76.2 mm</td>
+                  <td class="col-act"><button class="print-btn" aria-label="Print labels"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="vertical-align: middle;"><rect x="4" y="2.5" width="8" height="3.5" stroke="currentColor" stroke-width="1.25" fill="none"/><rect x="2.5" y="6" width="11" height="6" rx="0.5" stroke="currentColor" stroke-width="1.25" fill="none"/><rect x="4.5" y="9.5" width="7" height="4" stroke="currentColor" stroke-width="1.25" fill="none"/><circle cx="11.5" cy="8" r="0.5" fill="currentColor"/></svg> Print</button></td>
+                </tr>
+                <tr>
+                  <td>Specimen Labels</td>
+                  <td class="col-num"><input class="qty-input" type="number" value="2" min="0" max="5" aria-label="Specimen labels quantity" onchange="markRecalc(this)" /></td>
+                  <td class="mono" style="font-size:0.75rem;">25.4 × 76.2 mm</td>
+                  <td class="col-act"><button class="print-btn" aria-label="Print labels"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="vertical-align: middle;"><rect x="4" y="2.5" width="8" height="3.5" stroke="currentColor" stroke-width="1.25" fill="none"/><rect x="2.5" y="6" width="11" height="6" rx="0.5" stroke="currentColor" stroke-width="1.25" fill="none"/><rect x="4.5" y="9.5" width="7" height="4" stroke="currentColor" stroke-width="1.25" fill="none"/><circle cx="11.5" cy="8" r="0.5" fill="currentColor"/></svg> Print</button></td>
+                </tr>
+                <tr>
+                  <td>Block Labels <span class="muted" style="font-size:0.6875rem;">(v2 preset)</span></td>
+                  <td class="col-num"><input class="qty-input" type="number" value="4" min="0" max="20" aria-label="Block labels quantity" onchange="markRecalc(this)" /></td>
+                  <td class="mono" style="font-size:0.75rem;">25.4 × 76.2 mm</td>
+                  <td class="col-act"><button class="print-btn" aria-label="Print labels"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="vertical-align: middle;"><rect x="4" y="2.5" width="8" height="3.5" stroke="currentColor" stroke-width="1.25" fill="none"/><rect x="2.5" y="6" width="11" height="6" rx="0.5" stroke="currentColor" stroke-width="1.25" fill="none"/><rect x="4.5" y="9.5" width="7" height="4" stroke="currentColor" stroke-width="1.25" fill="none"/><circle cx="11.5" cy="8" r="0.5" fill="currentColor"/></svg> Print</button></td>
+                </tr>
+                <tr>
+                  <td>Slide Labels <span class="muted" style="font-size:0.6875rem;">(v2 preset)</span></td>
+                  <td class="col-num"><input class="qty-input" type="number" value="8" min="0" max="50" aria-label="Slide labels quantity" onchange="markRecalc(this)" /></td>
+                  <td class="mono" style="font-size:0.75rem;">12.7 × 44.5 mm</td>
+                  <td class="col-act"><button class="print-btn" aria-label="Print labels"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="vertical-align: middle;"><rect x="4" y="2.5" width="8" height="3.5" stroke="currentColor" stroke-width="1.25" fill="none"/><rect x="2.5" y="6" width="11" height="6" rx="0.5" stroke="currentColor" stroke-width="1.25" fill="none"/><rect x="4.5" y="9.5" width="7" height="4" stroke="currentColor" stroke-width="1.25" fill="none"/><circle cx="11.5" cy="8" r="0.5" fill="currentColor"/></svg> Print</button></td>
+                </tr>
+                <tr>
+                  <td>Freezer Labels <span class="muted" style="font-size:0.6875rem;">(v2 preset)</span></td>
+                  <td class="col-num"><input class="qty-input" type="number" value="2" min="0" max="10" aria-label="Freezer labels quantity" onchange="markRecalc(this)" /></td>
+                  <td class="mono" style="font-size:0.75rem;">25.4 × 50.8 mm</td>
+                  <td class="col-act"><button class="print-btn" aria-label="Print labels"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="vertical-align: middle;"><rect x="4" y="2.5" width="8" height="3.5" stroke="currentColor" stroke-width="1.25" fill="none"/><rect x="2.5" y="6" width="11" height="6" rx="0.5" stroke="currentColor" stroke-width="1.25" fill="none"/><rect x="4.5" y="9.5" width="7" height="4" stroke="currentColor" stroke-width="1.25" fill="none"/><circle cx="11.5" cy="8" r="0.5" fill="currentColor"/></svg> Print</button></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="modal-footnote" id="recalc-hint">
+              Each label type opens as a separate PDF in a new tab so different stocks
+              can be used. Quantity edits are saved with the order on first Print.
+            </div>
+          </div>
+
+          <div class="modal-foot">
+            <button class="skip-link">Skip — Print Later</button>
+            <button class="btn btn-primary btn-sm">Done</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Tiny enhancement: clicking "Save" on the live page briefly un-fades the
+  // success banner so reviewers can see the toast at full opacity.
+  function flashSave() {
+    var n = document.getElementById('save-notif');
+    if (!n) return;
+    n.classList.remove('faded');
+    setTimeout(function () { n.classList.add('faded'); }, 2200);
+  }
+
+  // Print buttons in the appendix modal flip to a "Printed" state when clicked.
+  document.querySelectorAll('.print-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      b.classList.add('printed');
+      b.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="vertical-align: middle;"><path d="M3.5 8.5l3 3 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg> Printed';
+    });
+  });
+
+  // When a user edits a quantity in the post-save dialog, surface a brief
+  // "Recalculate totals" hint so reviewers can see the editable-quantity affordance.
+  function markRecalc(el) {
+    var hint = document.getElementById('recalc-hint');
+    if (!hint) return;
+    var original = hint.dataset.original || hint.textContent;
+    hint.dataset.original = original;
+    hint.textContent = 'Quantity adjusted — totals will recalculate on Print.';
+    hint.style.borderLeftColor = '#0f62fe';
+    hint.style.color = '#0043ce';
+    hint.style.background = '#edf5ff';
+    clearTimeout(window._recalcTimer);
+    window._recalcTimer = setTimeout(function () {
+      hint.textContent = original;
+      hint.style.borderLeftColor = '#8d8d8d';
+      hint.style.color = '#525252';
+      hint.style.background = '#f4f4f4';
+    }, 2500);
+  }
+</script>
+
+</body>
+</html>
