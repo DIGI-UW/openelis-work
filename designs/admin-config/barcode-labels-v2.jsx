@@ -1,80 +1,30 @@
 /**
  * Barcode Labels v2 — Configurable Label Preset Management
- * Jira: OGC-285
- * Related v1: OGC-284 (Barcode Labels v1)
- * Relates to: OGC-761 (v2.5 Test Catalog Labels tab — consumes this preset system)
+ * Jira: OGC-285 · Related v1: OGC-284 · Consumed by: OGC-761 (v2.5 Labels tab)
  *
- * Three views demonstrating: (1) Master Lists → Label Presets admin,
- * (2) Test Catalog → Labels tab consuming presets, (3) Enhanced Order Entry
- * with aggregation rules and source badges.
+ * Three views: (1) Master Lists → Label Presets admin, (2) Test Catalog →
+ * Labels tab consuming presets, (3) Enhanced Order Entry with two tables
+ * (Order Labels + Sample Labels) and post-save Print Dialog.
  *
- * MVP scope (post Casey decisions):
- *   - No custom content fields — content rows are picked from the system field set only.
- *   - No live SVG label preview — the editor is form fields only.
- *   - No manual-confirm generation mode — all linked presets generate automatically.
- *   - View 3 ends with a fully-rendered post-save Print Dialog (one Print button per preset).
- *   - View 3 demonstrates a Lock affordance when the test catalog disables override.
- *   - View 2 sidenav matches the v2.5 v1 list (9 items, no Reagents / Alerts / Reflex / Compliance yet).
+ * MVP scope: no custom content fields, no live preview, no manual-confirm,
+ * no barcode-dimension dropdown, integer mm only, Lab Number locked + first.
+ * v2.3 adds per-scope flags (printsPerOrder / printsPerSample) plus four
+ * independent quantity fields (default/max per order, default/max per sample).
  */
 
 import React, { useState, useMemo } from 'react';
 import {
-  Grid,
-  Column,
-  Stack,
-  Tabs,
-  TabList,
-  Tab,
-  TabPanels,
-  TabPanel,
-  DataTable,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableHeader,
-  TableBody,
-  TableCell,
-  TableToolbar,
-  TableToolbarContent,
-  TableToolbarSearch,
-  Button,
-  IconButton,
-  Tag,
-  Toggle,
-  TextInput,
-  NumberInput,
-  Dropdown,
-  Checkbox,
-  InlineNotification,
-  Modal,
-  Form,
-  FormGroup,
-  Breadcrumb,
-  BreadcrumbItem,
-  Tile,
-  Tooltip,
+  Stack, Tabs, TabList, Tab, TabPanels, TabPanel,
+  DataTable, TableContainer, Table, TableHead, TableRow, TableHeader, TableBody, TableCell,
+  TableToolbar, TableToolbarContent, TableToolbarSearch,
+  Button, IconButton, Tag, Toggle, TextInput, NumberInput, Dropdown,
+  FilterableMultiSelect, Checkbox, InlineNotification, Modal, Form, FormGroup,
+  Breadcrumb, BreadcrumbItem, Tile, Tooltip,
 } from '@carbon/react';
 import {
-  Plus,
-  Edit,
-  Copy,
-  Trash2,
-  Eye,
-  GripVertical,
-  ArrowUp,
-  ArrowDown,
-  Lock,
-  Printer,
-  Info,
-  CheckCircle2,
-  AlertTriangle,
-  X,
-  FlaskConical,
-  Layers,
-  Barcode,
-  QrCode,
-  ChevronRight,
+  Plus, Edit, Copy, Trash2, Eye, GripVertical, ArrowUp, ArrowDown, Lock,
+  Printer, Info, CheckCircle2, AlertTriangle, X, FlaskConical, Layers,
+  Barcode, QrCode, ChevronRight,
 } from 'lucide-react';
 
 // =============================================================================
@@ -83,15 +33,10 @@ import {
 
 const INITIAL_PRESETS = [
   {
-    id: 'p-order',
-    name: 'Order Label',
-    isDefault: true,
-    category: 'Order',
-    height: 25.4,
-    width: 76.2,
-    barcodeType: 'Code128',
-    barcodeSize: 'Medium',
-    isActive: true,
+    id: 'p-order', name: 'Order Label', isDefault: true,
+    height: 25, width: 76, barcodeType: 'Code128', isActive: true,
+    printsPerOrder: true, printsPerSample: false,
+    defaultPerOrder: 2, maxPerOrder: 10, defaultPerSample: 0, maxPerSample: 0,
     fields: [
       { id: 'lab-number', label: 'Lab Number', locked: true, required: true },
       { id: 'patient-name', label: 'Patient Name', locked: false, required: true },
@@ -102,35 +47,25 @@ const INITIAL_PRESETS = [
     description: 'Default order-level label printed when an order is created.',
   },
   {
-    id: 'p-specimen',
-    name: 'Specimen Label',
-    isDefault: true,
-    category: 'Specimen',
-    height: 25.4,
-    width: 76.2,
-    barcodeType: 'Code128',
-    barcodeSize: 'Medium',
-    isActive: true,
+    id: 'p-specimen', name: 'Specimen Label', isDefault: true,
+    height: 25, width: 76, barcodeType: 'Code128', isActive: true,
+    printsPerOrder: false, printsPerSample: true,
+    defaultPerOrder: 0, maxPerOrder: 0, defaultPerSample: 1, maxPerSample: 5,
     fields: [
       { id: 'lab-number', label: 'Lab Number', locked: true, required: true },
       { id: 'patient-name', label: 'Patient Name', locked: false, required: true },
       { id: 'patient-id', label: 'Patient ID', locked: false, required: true },
-      { id: 'collection-date', label: 'Collection Date', locked: false, required: true },
+      { id: 'collection-date', label: 'Collection Date and Time', locked: false, required: true },
       { id: 'specimen-type', label: 'Specimen Type', locked: false, required: false },
       { id: 'collected-by', label: 'Collected By', locked: false, required: false },
     ],
     description: 'Default specimen-level label printed per sample container.',
   },
   {
-    id: 'p-block',
-    name: 'Block Label',
-    isDefault: true,
-    category: 'Pathology',
-    height: 25.4,
-    width: 50.8,
-    barcodeType: 'Code128',
-    barcodeSize: 'Small',
-    isActive: true,
+    id: 'p-block', name: 'Block Label', isDefault: true,
+    height: 25, width: 50, barcodeType: 'Code128', isActive: true,
+    printsPerOrder: false, printsPerSample: true,
+    defaultPerOrder: 0, maxPerOrder: 0, defaultPerSample: 0, maxPerSample: 20,
     fields: [
       { id: 'lab-number', label: 'Lab Number', locked: true, required: true },
       { id: 'block-id', label: 'Block ID', locked: false, required: true },
@@ -140,103 +75,83 @@ const INITIAL_PRESETS = [
     description: 'Histology paraffin block identifier.',
   },
   {
-    id: 'p-slide',
-    name: 'Slide Label',
-    isDefault: true,
-    category: 'Pathology',
-    height: 12.7,
-    width: 44.5,
-    barcodeType: 'DataMatrix',
-    barcodeSize: 'Small',
-    isActive: true,
+    id: 'p-slide', name: 'Slide Label', isDefault: true,
+    height: 13, width: 44, barcodeType: 'DataMatrix', isActive: true,
+    printsPerOrder: false, printsPerSample: true,
+    defaultPerOrder: 0, maxPerOrder: 0, defaultPerSample: 0, maxPerSample: 50,
     fields: [
       { id: 'lab-number', label: 'Lab Number', locked: true, required: true },
       { id: 'slide-id', label: 'Slide ID', locked: false, required: true },
-      { id: 'stain', label: 'Stain Type', locked: false, required: true },
+      { id: 'stain-type', label: 'Stain Type', locked: false, required: true },
       { id: 'block-id', label: 'Block ID', locked: false, required: false },
     ],
     description: 'Microscope slide label — small, 2D barcode preferred.',
   },
   {
-    id: 'p-cryo',
-    name: 'Cryo Vial Label',
-    isDefault: false,
-    category: 'Storage',
-    height: 25.4,
-    width: 25.4,
-    barcodeType: 'QR',
-    barcodeSize: 'Small',
-    isActive: true,
+    id: 'p-freezer', name: 'Freezer Label', isDefault: true,
+    height: 25, width: 50, barcodeType: 'Code128', isActive: true,
+    printsPerOrder: false, printsPerSample: true,
+    defaultPerOrder: 0, maxPerOrder: 0, defaultPerSample: 0, maxPerSample: 10,
+    fields: [
+      { id: 'lab-number', label: 'Lab Number', locked: true, required: true },
+      { id: 'storage-location', label: 'Storage Location', locked: false, required: true },
+      { id: 'expiry-date', label: 'Expiry Date', locked: false, required: true },
+      { id: 'specimen-type', label: 'Specimen Type', locked: false, required: false },
+    ],
+    description: 'Long-term storage label for freezer racks and boxes.',
+  },
+  {
+    id: 'p-cryo', name: 'Cryo Vial Label', isDefault: false,
+    height: 25, width: 25, barcodeType: 'QR', isActive: true,
+    printsPerOrder: false, printsPerSample: true,
+    defaultPerOrder: 0, maxPerOrder: 0, defaultPerSample: 2, maxPerSample: 10,
     fields: [
       { id: 'lab-number', label: 'Lab Number', locked: true, required: true },
       { id: 'patient-id', label: 'Patient ID', locked: false, required: true },
       { id: 'storage-location', label: 'Storage Location', locked: false, required: true },
       { id: 'specimen-type', label: 'Specimen Type', locked: false, required: false },
-      { id: 'collection-date', label: 'Collection Date', locked: false, required: false },
+      { id: 'collection-date', label: 'Collection Date and Time', locked: false, required: false },
     ],
     description: 'Square label for cryogenic vial caps. QR code recommended.',
   },
   {
-    id: 'p-aliquot',
-    name: 'Aliquot Label',
-    isDefault: false,
-    category: 'Specimen',
-    height: 19.0,
-    width: 38.1,
-    barcodeType: 'Code128',
-    barcodeSize: 'Small',
-    isActive: true,
+    id: 'p-aliquot', name: 'Aliquot Label', isDefault: false,
+    height: 19, width: 38, barcodeType: 'Code128', isActive: true,
+    printsPerOrder: false, printsPerSample: true,
+    defaultPerOrder: 0, maxPerOrder: 0, defaultPerSample: 4, maxPerSample: 20,
     fields: [
       { id: 'lab-number', label: 'Lab Number', locked: true, required: true },
-      { id: 'aliquot-seq', label: 'Aliquot Sequence', locked: false, required: true },
-      { id: 'volume', label: 'Volume (mL)', locked: false, required: false },
-      { id: 'parent-id', label: 'Parent Sample ID', locked: false, required: true },
+      { id: 'patient-id', label: 'Patient ID', locked: false, required: true },
+      { id: 'specimen-type', label: 'Specimen Type', locked: false, required: false },
+      { id: 'collection-date', label: 'Collection Date and Time', locked: false, required: false },
     ],
     description: 'Daughter-tube aliquot derived from a primary specimen.',
   },
   {
-    id: 'p-ffpe',
-    name: 'FFPE Block',
-    isDefault: false,
-    category: 'Pathology',
-    height: 25.4,
-    width: 50.8,
-    barcodeType: 'Code128',
-    barcodeSize: 'Medium',
-    isActive: true,
+    id: 'p-ffpe', name: 'FFPE Block', isDefault: false,
+    height: 25, width: 50, barcodeType: 'Code128', isActive: true,
+    printsPerOrder: false, printsPerSample: true,
+    defaultPerOrder: 0, maxPerOrder: 0, defaultPerSample: 4, maxPerSample: 12,
     fields: [
       { id: 'lab-number', label: 'Lab Number', locked: true, required: true },
       { id: 'block-id', label: 'Block ID', locked: false, required: true },
       { id: 'patient-id', label: 'Patient ID', locked: false, required: true },
       { id: 'case-number', label: 'Case Number', locked: false, required: false },
-      { id: 'fixative', label: 'Fixative', locked: false, required: false },
     ],
     description: 'Formalin-fixed paraffin-embedded tissue block label.',
   },
   {
-    id: 'p-cyto',
-    name: 'Cytology Smear',
-    isDefault: false,
-    category: 'Pathology',
-    height: 12.7,
-    width: 44.5,
-    barcodeType: 'DataMatrix',
-    barcodeSize: 'Small',
-    isActive: false,
+    id: 'p-cyto', name: 'Cytology Smear', isDefault: false,
+    height: 13, width: 44, barcodeType: 'DataMatrix', isActive: false,
+    printsPerOrder: false, printsPerSample: true,
+    defaultPerOrder: 0, maxPerOrder: 0, defaultPerSample: 2, maxPerSample: 10,
     fields: [
       { id: 'lab-number', label: 'Lab Number', locked: true, required: true },
       { id: 'slide-id', label: 'Slide ID', locked: false, required: true },
-      { id: 'prep-method', label: 'Prep Method', locked: false, required: false },
+      { id: 'stain-type', label: 'Stain Type', locked: false, required: false },
     ],
     description: 'Cytology smear slide. Deactivated pending pathology workflow review.',
   },
-];
-
-const CATEGORY_ITEMS = [
-  { id: 'Order', text: 'Order' },
-  { id: 'Specimen', text: 'Specimen' },
-  { id: 'Pathology', text: 'Pathology' },
-  { id: 'Storage', text: 'Storage' },
 ];
 
 const BARCODE_TYPE_ITEMS = [
@@ -245,33 +160,25 @@ const BARCODE_TYPE_ITEMS = [
   { id: 'DataMatrix', text: 'DataMatrix (2D, small footprint)' },
 ];
 
-const BARCODE_SIZE_ITEMS = [
-  { id: 'Small', text: 'Small' },
-  { id: 'Medium', text: 'Medium' },
-  { id: 'Large', text: 'Large' },
-];
-
+// Full system content field set from v2 FRS §2.4. Lab Number is locked + always
+// required + first position; it is NOT included in the picker. The remaining 15
+// fields are selectable via FilterableMultiSelect in the editor.
 const AVAILABLE_FIELD_LIBRARY = [
   { id: 'patient-name', label: 'Patient Name' },
   { id: 'patient-id', label: 'Patient ID' },
   { id: 'patient-dob', label: 'Patient Date of Birth' },
   { id: 'patient-sex', label: 'Patient Sex' },
-  { id: 'collection-date', label: 'Collection Date' },
-  { id: 'collected-by', label: 'Collected By' },
-  { id: 'specimen-type', label: 'Specimen Type' },
   { id: 'site-id', label: 'Site ID' },
-  { id: 'tests', label: 'Tests Ordered' },
+  { id: 'collection-date', label: 'Collection Date and Time' },
+  { id: 'collected-by', label: 'Collected By' },
+  { id: 'tests', label: 'Tests' },
+  { id: 'specimen-type', label: 'Specimen Type' },
   { id: 'block-id', label: 'Block ID' },
   { id: 'slide-id', label: 'Slide ID' },
-  { id: 'stain', label: 'Stain Type' },
+  { id: 'stain-type', label: 'Stain Type' },
   { id: 'case-number', label: 'Case Number' },
   { id: 'storage-location', label: 'Storage Location' },
   { id: 'expiry-date', label: 'Expiry Date' },
-  { id: 'aliquot-seq', label: 'Aliquot Sequence' },
-  { id: 'volume', label: 'Volume (mL)' },
-  { id: 'parent-id', label: 'Parent Sample ID' },
-  { id: 'fixative', label: 'Fixative' },
-  { id: 'prep-method', label: 'Prep Method' },
 ];
 
 // =============================================================================
@@ -299,34 +206,45 @@ const INITIAL_TEST_LABEL_LINKS = [
 // SEED DATA — Enhanced Order Entry (view 3)
 // =============================================================================
 
-// For the Order Entry view: which tests were ordered and what they contribute.
-// Each row represents an entity (the order itself, or a sample container).
-// Each cell is keyed by presetId; values are { qty, source, allowOverride? } or null when N/A.
+// View 3 split: two tables — Order Labels (one row, per-order columns) and Sample Labels
+// (one row per sample, per-sample columns).
+//
+// Per-order presets: any active preset where printsPerOrder is true.
+// Per-sample presets: any active preset where printsPerSample is true AND it's linked
+// to a test on this order (or, when nothing is linked, the system per-sample defaults).
+//
+// Each Sample Labels cell is { qty, source, allowOverride } or null when N/A.
 // `allowOverride: false` means the test catalog locks the quantity — the cell renders
 // as a read-only display with a Lock icon instead of a NumberInput.
-const ORDER_ENTRY_ROWS = [
-  {
-    id: 'order',
-    label: 'Order',
-    description: 'Order-level labels (1 per order)',
-    cells: {
-      'p-order': { qty: 2, source: 'system default', allowOverride: true },
-      'p-specimen': null,
-      'p-slide': null,
-      'p-ffpe': null,
-      'p-cryo': null,
-    },
+
+// Active per-order preset IDs for this scenario.
+const ACTIVE_ORDER_LABEL_PRESETS = ['p-order'];
+
+// Active per-sample preset IDs for this scenario — union of presets linked to tests
+// on the order (Specimen, Slide, Cryo Vial, FFPE Block).
+const ACTIVE_SAMPLE_LABEL_PRESETS = ['p-specimen', 'p-slide', 'p-cryo', 'p-ffpe'];
+
+// Single Order row: one cell per per-order preset. Pre-populated from preset.defaultPerOrder.
+const ORDER_LABEL_ROW = {
+  id: 'order',
+  label: 'Order',
+  description: 'One row per order. Per-order quantities are lab-wide, not test-driven.',
+  cells: {
+    'p-order': { qty: 2, max: 10 },
   },
+};
+
+// Sample rows: one row per sample container on the order.
+const SAMPLE_LABEL_ROWS = [
   {
     id: 'sample-1',
     label: 'Sample 1 — Blood / EDTA',
     description: 'CBC with Differential, HIV Rapid',
     cells: {
-      'p-order': null,
       'p-specimen': { qty: 1, source: 'from CBC', allowOverride: true },
       'p-slide': null,
-      'p-ffpe': null,
       'p-cryo': { qty: 2, source: 'system default', allowOverride: true },
+      'p-ffpe': null,
     },
   },
   {
@@ -334,34 +252,42 @@ const ORDER_ENTRY_ROWS = [
     label: 'Sample 2 — Tissue (lymph node)',
     description: 'Histopathology, IHC panel',
     cells: {
-      'p-order': null,
       'p-specimen': { qty: 1, source: 'from Histopath', allowOverride: true },
       // Locked: Histopath test catalog disables override on Slide Label.
       'p-slide': { qty: 8, source: 'from Histopath', allowOverride: false },
-      'p-ffpe': { qty: 4, source: 'from Histopath', allowOverride: true },
       'p-cryo': null,
+      'p-ffpe': { qty: 4, source: 'from Histopath', allowOverride: true },
     },
   },
 ];
-
-// Subset of presets actually used in this order (derived from selected tests)
-const ACTIVE_ORDER_PRESETS = ['p-order', 'p-specimen', 'p-slide', 'p-ffpe', 'p-cryo'];
 
 // =============================================================================
 // UTILITY — small helpers
 // =============================================================================
 
-const categoryTagType = (category) => {
-  switch (category) {
-    case 'Order': return 'blue';
-    case 'Specimen': return 'teal';
-    case 'Pathology': return 'magenta';
-    case 'Storage': return 'cyan';
-    default: return 'gray';
-  }
+const findPreset = (presets, id) => presets.find((p) => p.id === id);
+
+// Style for the locked-cell pill used in View 3 sample cells.
+const LOCKED_PILL_STYLE = {
+  display: 'inline-flex', alignItems: 'center', gap: 6,
+  padding: '0.375rem 0.5rem', background: '#f4f4f4',
+  border: '1px solid #e0e0e0', borderRadius: 2,
+  color: '#393939', fontSize: '0.875rem', fontWeight: 500,
+  cursor: 'help', width: 'fit-content',
 };
 
-const findPreset = (presets, id) => presets.find((p) => p.id === id);
+// Source-tag renderer for View 3 sample cells.
+function SourceTag({ source }) {
+  const isFromTest = source.startsWith('from');
+  return (
+    <Tag size="sm" type={isFromTest ? 'teal' : 'cool-gray'} style={{ width: 'fit-content' }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+        {isFromTest ? <FlaskConical size={10} /> : <CheckCircle2 size={10} />}
+        {source}
+      </span>
+    </Tag>
+  );
+}
 
 // =============================================================================
 // VIEW 1 — Admin: Master Lists → Label Presets
@@ -378,12 +304,16 @@ function LabelPresetsAdminView() {
       id: `p-new-${Date.now()}`,
       name: '',
       isDefault: false,
-      category: 'Specimen',
-      height: 25.4,
-      width: 50.8,
+      height: 25,
+      width: 50,
       barcodeType: 'Code128',
-      barcodeSize: 'Medium',
       isActive: true,
+      printsPerOrder: false,
+      printsPerSample: true,
+      defaultPerOrder: 0,
+      maxPerOrder: 0,
+      defaultPerSample: 1,
+      maxPerSample: 5,
       fields: [
         { id: 'lab-number', label: 'Lab Number', locked: true, required: true },
       ],
@@ -431,7 +361,6 @@ function LabelPresetsAdminView() {
 
   const headers = [
     { key: 'name', header: 'Preset Name' },
-    { key: 'category', header: 'Category' },
     { key: 'dimensions', header: 'Dimensions (H × W mm)' },
     { key: 'barcodeType', header: 'Barcode Type' },
     { key: 'status', header: 'Status' },
@@ -442,8 +371,7 @@ function LabelPresetsAdminView() {
     id: p.id,
     name: p.name,
     isDefault: p.isDefault,
-    category: p.category,
-    dimensions: `${p.height.toFixed(1)} × ${p.width.toFixed(1)}`,
+    dimensions: `${p.height} × ${p.width}`,
     barcodeType: p.barcodeType,
     status: p.isActive ? 'Active' : 'Inactive',
     _preset: p,
@@ -488,7 +416,7 @@ function LabelPresetsAdminView() {
         <InlineNotification
           kind="info"
           title="Defaults are protected"
-          subtitle="Order Label, Specimen Label, Block Label, and Slide Label are system defaults — they can be edited and deactivated, but not deleted."
+          subtitle="Order Label, Specimen Label, Block Label, Slide Label, and Freezer Label are system defaults — they can be edited but not renamed or deactivated."
           lowContrast
           hideCloseButton
         />
@@ -499,9 +427,6 @@ function LabelPresetsAdminView() {
               <TableToolbar>
                 <TableToolbarContent>
                   <TableToolbarSearch placeholder="Search presets" persistent />
-                  <Button kind="ghost" size="sm" onClick={() => {}}>
-                    Filter by category
-                  </Button>
                 </TableToolbarContent>
               </TableToolbar>
               <Table {...getTableProps()} size="md">
@@ -531,11 +456,8 @@ function LabelPresetsAdminView() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Tag type={categoryTagType(preset.category)} size="sm">{preset.category}</Tag>
-                        </TableCell>
-                        <TableCell>
                           <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '0.8125rem' }}>
-                            {preset.height.toFixed(1)} × {preset.width.toFixed(1)}
+                            {preset.height} × {preset.width}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -545,7 +467,9 @@ function LabelPresetsAdminView() {
                             ) : preset.barcodeType === 'DataMatrix' ? (
                               <Layers size={14} />
                             ) : (
-                              <Barcode size={14} />
+                              <Barcode
+                                size={14}
+                              />
                             )}
                             {preset.barcodeType}
                           </div>
@@ -641,25 +565,40 @@ function PresetEditorModal({ preset, onChange, onCancel, onSave }) {
     onChange({ ...preset, fields });
   };
 
-  const [addPickerOpen, setAddPickerOpen] = useState(false);
-  const [selectedNewField, setSelectedNewField] = useState(null);
+  // Only system fields from AVAILABLE_FIELD_LIBRARY can be added (no custom
+  // free-text/fixed-value sources in MVP). MultiSelect's initialSelectedItems
+  // reflects existing preset fields; toggling ON appends, OFF removes (locked
+  // fields can never be removed).
+  const existingFieldIds = useMemo(
+    () => new Set(preset.fields.map((f) => f.id)),
+    [preset.fields]
+  );
 
-  // Only system fields from AVAILABLE_FIELD_LIBRARY can be added. There is no
-  // free-text or fixed-value custom field source in MVP.
-  const fieldOptionsForAdd = useMemo(() => {
-    const existing = new Set(preset.fields.map((f) => f.id));
-    return AVAILABLE_FIELD_LIBRARY.filter((f) => !existing.has(f.id));
-  }, [preset.fields]);
+  const initialSelectedFieldItems = useMemo(
+    () => AVAILABLE_FIELD_LIBRARY.filter((f) => existingFieldIds.has(f.id)),
+    [existingFieldIds]
+  );
 
-  const addField = () => {
-    if (!selectedNewField) return;
-    const fields = [
-      ...preset.fields,
-      { ...selectedNewField, locked: false, required: false },
-    ];
-    onChange({ ...preset, fields });
-    setSelectedNewField(null);
-    setAddPickerOpen(false);
+  const onFieldsMultiSelectChange = ({ selectedItems }) => {
+    const selectedIds = new Set(selectedItems.map((i) => i.id));
+    // Keep locked fields first, in their original order.
+    const lockedFields = preset.fields.filter((f) => f.locked);
+    // Keep currently selected unlocked fields in their existing order.
+    const keptUnlocked = preset.fields.filter(
+      (f) => !f.locked && selectedIds.has(f.id)
+    );
+    const keptIds = new Set([
+      ...lockedFields.map((f) => f.id),
+      ...keptUnlocked.map((f) => f.id),
+    ]);
+    // Append newly added fields in the order the library lists them.
+    const newlyAdded = AVAILABLE_FIELD_LIBRARY
+      .filter((f) => selectedIds.has(f.id) && !keptIds.has(f.id))
+      .map((f) => ({ ...f, locked: false, required: false }));
+    onChange({
+      ...preset,
+      fields: [...lockedFields, ...keptUnlocked, ...newlyAdded],
+    });
   };
 
   return (
@@ -691,17 +630,6 @@ function PresetEditorModal({ preset, onChange, onCancel, onSave }) {
                 onChange={(e) => updateField('description', e.target.value)}
                 placeholder="Short note for other admins"
               />
-              <Dropdown
-                id="preset-category"
-                titleText="Category"
-                label="Choose category"
-                items={CATEGORY_ITEMS}
-                itemToString={(item) => (item ? item.text : '')}
-                selectedItem={CATEGORY_ITEMS.find((c) => c.id === preset.category)}
-                onChange={({ selectedItem }) =>
-                  selectedItem && updateField('category', selectedItem.id)
-                }
-              />
             </Stack>
           </FormGroup>
 
@@ -710,58 +638,165 @@ function PresetEditorModal({ preset, onChange, onCancel, onSave }) {
               <NumberInput
                 id="preset-height"
                 label="Height"
-                helperText="Enter values in mm"
+                helperText="Enter whole millimetres"
                 value={preset.height}
                 min={5}
                 max={200}
-                step={0.1}
-                onChange={(e, { value }) => updateField('height', parseFloat(value) || 0)}
+                step={1}
+                onChange={(e, { value }) => updateField('height', parseInt(value) || 0)}
               />
               <NumberInput
                 id="preset-width"
                 label="Width"
-                helperText="Enter values in mm"
+                helperText="Enter whole millimetres"
                 value={preset.width}
                 min={5}
                 max={200}
-                step={0.1}
-                onChange={(e, { value }) => updateField('width', parseFloat(value) || 0)}
+                step={1}
+                onChange={(e, { value }) => updateField('width', parseInt(value) || 0)}
               />
             </div>
           </FormGroup>
 
           <FormGroup legendText="Barcode">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <Dropdown
-                id="preset-barcode-type"
-                titleText="Barcode type"
-                label="Choose barcode type"
-                items={BARCODE_TYPE_ITEMS}
-                itemToString={(item) => (item ? item.text : '')}
-                selectedItem={BARCODE_TYPE_ITEMS.find((c) => c.id === preset.barcodeType)}
-                onChange={({ selectedItem }) =>
-                  selectedItem && updateField('barcodeType', selectedItem.id)
+            <Dropdown
+              id="preset-barcode-type"
+              titleText="Barcode type"
+              label="Choose barcode type"
+              helperText="Physical dimensions above determine the rendered footprint."
+              items={BARCODE_TYPE_ITEMS}
+              itemToString={(item) => (item ? item.text : '')}
+              selectedItem={BARCODE_TYPE_ITEMS.find((c) => c.id === preset.barcodeType)}
+              onChange={({ selectedItem }) =>
+                selectedItem && updateField('barcodeType', selectedItem.id)
+              }
+            />
+          </FormGroup>
+
+          <FormGroup legendText="Print Scope & Quantities">
+            <p style={{ fontSize: '0.75rem', color: '#525252', marginBottom: '0.75rem' }}>
+              Per-order labels print once for the entire order. Per-sample labels print once for
+              each sample on the order. Most labels are per-sample (Specimen, Block, Slide,
+              Freezer). The Order Label is typically per-order. At least one scope must be
+              selected.
+            </p>
+            <Stack gap={4}>
+              <Checkbox
+                id="prints-per-order"
+                labelText="Per order — prints once per order"
+                checked={preset.printsPerOrder}
+                onChange={(_, { checked }) =>
+                  updateField('printsPerOrder', checked)
                 }
               />
-              <Dropdown
-                id="preset-barcode-size"
-                titleText="Barcode size"
-                label="Choose size"
-                items={BARCODE_SIZE_ITEMS}
-                itemToString={(item) => (item ? item.text : '')}
-                selectedItem={BARCODE_SIZE_ITEMS.find((c) => c.id === preset.barcodeSize)}
-                onChange={({ selectedItem }) =>
-                  selectedItem && updateField('barcodeSize', selectedItem.id)
+              {preset.printsPerOrder && (
+                <div
+                  style={{
+                    marginLeft: '1.5rem',
+                    display: 'flex',
+                    gap: '1rem',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <NumberInput
+                    id="default-per-order"
+                    label="Default per order"
+                    helperText="Fallback in the Order row at order entry."
+                    value={preset.defaultPerOrder}
+                    min={0}
+                    step={1}
+                    onChange={(e, { value }) =>
+                      updateField('defaultPerOrder', parseInt(value) || 0)
+                    }
+                  />
+                  <NumberInput
+                    id="max-per-order"
+                    label="Max per order"
+                    helperText="Caps the Order row NumberInput."
+                    value={preset.maxPerOrder}
+                    min={preset.defaultPerOrder}
+                    step={1}
+                    onChange={(e, { value }) =>
+                      updateField('maxPerOrder', parseInt(value) || 0)
+                    }
+                  />
+                </div>
+              )}
+              <Checkbox
+                id="prints-per-sample"
+                labelText="Per sample — prints once per each sample"
+                checked={preset.printsPerSample}
+                onChange={(_, { checked }) =>
+                  updateField('printsPerSample', checked)
                 }
               />
-            </div>
+              {preset.printsPerSample && (
+                <div
+                  style={{
+                    marginLeft: '1.5rem',
+                    display: 'flex',
+                    gap: '1rem',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <NumberInput
+                    id="default-per-sample"
+                    label="Default per sample"
+                    helperText="Used when no test-link override exists."
+                    value={preset.defaultPerSample}
+                    min={0}
+                    step={1}
+                    onChange={(e, { value }) =>
+                      updateField('defaultPerSample', parseInt(value) || 0)
+                    }
+                  />
+                  <NumberInput
+                    id="max-per-sample"
+                    label="Max per sample"
+                    helperText="Caps each Sample row cell."
+                    value={preset.maxPerSample}
+                    min={preset.defaultPerSample}
+                    step={1}
+                    onChange={(e, { value }) =>
+                      updateField('maxPerSample', parseInt(value) || 0)
+                    }
+                  />
+                </div>
+              )}
+              {!preset.printsPerOrder && !preset.printsPerSample && (
+                <InlineNotification
+                  kind="warning"
+                  lowContrast
+                  hideCloseButton
+                  title="At least one scope required"
+                  subtitle="Select Per order, Per sample, or both before saving."
+                />
+              )}
+            </Stack>
           </FormGroup>
 
           <FormGroup legendText="Content fields">
             <p style={{ fontSize: '0.75rem', color: '#525252', marginBottom: '0.5rem' }}>
-              Pick from the system field set. Drag handles are stubs in this mockup —
-              use the arrow buttons to reorder. Lab Number is locked and always required.
+              Pick from the full system field set ({AVAILABLE_FIELD_LIBRARY.length} fields).
+              Use the picker below to add or remove fields, then reorder with the arrow
+              buttons. Lab Number is locked, always required, and pinned to the first
+              position.
             </p>
+
+            <div style={{ marginBottom: '0.75rem' }}>
+              <FilterableMultiSelect
+                id="content-fields-picker"
+                titleText="Add content fields"
+                helperText="Type to filter — all 15 system fields are available."
+                placeholder="Search fields"
+                items={AVAILABLE_FIELD_LIBRARY}
+                itemToString={(item) => (item ? item.label : '')}
+                initialSelectedItems={initialSelectedFieldItems}
+                onChange={onFieldsMultiSelectChange}
+                selectionFeedback="top-after-reopen"
+              />
+            </div>
+
             <div style={{ border: '1px solid #e0e0e0', borderRadius: 2 }}>
               {preset.fields.map((field, idx) => (
                 <div
@@ -826,55 +861,6 @@ function PresetEditorModal({ preset, onChange, onCancel, onSave }) {
                 </div>
               ))}
             </div>
-
-            {addPickerOpen ? (
-              <div
-                style={{
-                  marginTop: '0.75rem',
-                  padding: '0.75rem',
-                  background: '#f4f4f4',
-                  borderRadius: 2,
-                  display: 'flex',
-                  gap: '0.5rem',
-                  alignItems: 'flex-end',
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <Dropdown
-                    id="add-system-field"
-                    titleText="Add field from system field set"
-                    label="Choose a field"
-                    items={fieldOptionsForAdd}
-                    itemToString={(item) => (item ? item.label : '')}
-                    selectedItem={selectedNewField}
-                    onChange={({ selectedItem }) => setSelectedNewField(selectedItem)}
-                  />
-                </div>
-                <Button size="sm" onClick={addField} disabled={!selectedNewField}>
-                  Add
-                </Button>
-                <Button
-                  size="sm"
-                  kind="ghost"
-                  onClick={() => {
-                    setAddPickerOpen(false);
-                    setSelectedNewField(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            ) : (
-              <Button
-                kind="ghost"
-                size="sm"
-                renderIcon={() => <Plus size={14} />}
-                onClick={() => setAddPickerOpen(true)}
-                style={{ marginTop: '0.5rem' }}
-              >
-                Add Field
-              </Button>
-            )}
           </FormGroup>
 
           <FormGroup legendText="Status">
@@ -907,7 +893,7 @@ function TestCatalogLabelsView() {
   const [autoIncludeOrderLabel, setAutoIncludeOrderLabel] = useState(true);
 
   const activePresets = INITIAL_PRESETS.filter((p) => p.isActive);
-  const presetItems = activePresets.map((p) => ({ id: p.id, text: p.name, category: p.category }));
+  const presetItems = activePresets.map((p) => ({ id: p.id, text: p.name }));
 
   const updateLink = (id, patch) => {
     setLinks(links.map((l) => (l.id === id ? { ...l, ...patch } : l)));
@@ -931,15 +917,7 @@ function TestCatalogLabelsView() {
   return (
     <div style={{ display: 'flex', minHeight: 'calc(100vh - 120px)' }}>
       {/* Mocked Test Editor SideNav */}
-      <aside
-        style={{
-          width: 260,
-          background: '#ffffff',
-          borderRight: '1px solid #e0e0e0',
-          padding: '1rem 0',
-          flexShrink: 0,
-        }}
-      >
+      <aside style={{ width: 260, background: '#ffffff', borderRight: '1px solid #e0e0e0', padding: '1rem 0', flexShrink: 0 }}>
         <div style={{ padding: '0 1rem 0.75rem', borderBottom: '1px solid #e0e0e0', marginBottom: '0.75rem' }}>
           <p style={{ fontSize: '0.75rem', color: '#525252', textTransform: 'uppercase', letterSpacing: 0.5 }}>
             Test Editor
@@ -952,32 +930,18 @@ function TestCatalogLabelsView() {
           </p>
         </div>
         <nav>
-          {[
-            'Basic Info',
-            'Sample & Results',
-            'Methods',
-            'Ranges',
-            'Sample Storage',
-            'Display Order',
-            'Panels',
-            'Labels',
-            'Terminology Mappings',
-          ].map((label) => {
+          {['Basic Info', 'Sample & Results', 'Methods', 'Ranges', 'Sample Storage', 'Display Order', 'Panels', 'Labels', 'Terminology Mappings'].map((label) => {
             const active = label === 'Labels';
             return (
               <div
                 key={label}
                 style={{
-                  padding: '0.5rem 1rem',
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
+                  padding: '0.5rem 1rem', fontSize: '0.875rem', cursor: 'pointer',
                   background: active ? '#e0e0e0' : 'transparent',
                   borderLeft: active ? '3px solid #0f62fe' : '3px solid transparent',
                   color: active ? '#161616' : '#525252',
                   fontWeight: active ? 600 : 400,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 }}
               >
                 {label}
@@ -1065,11 +1029,8 @@ function TestCatalogLabelsView() {
                           />
                           {preset && (
                             <div style={{ marginTop: '0.375rem' }}>
-                              <Tag size="sm" type={categoryTagType(preset.category)}>
-                                {preset.category}
-                              </Tag>
-                              <span style={{ fontSize: '0.75rem', color: '#525252', marginLeft: 6 }}>
-                                {preset.height.toFixed(1)} × {preset.width.toFixed(1)} mm · {preset.barcodeType}
+                              <span style={{ fontSize: '0.75rem', color: '#525252' }}>
+                                {preset.height} × {preset.width} mm · {preset.barcodeType}
                               </span>
                             </div>
                           )}
@@ -1205,13 +1166,35 @@ function TestCatalogLabelsView() {
 // =============================================================================
 
 function OrderEntryPreviewView() {
-  const [rows, setRows] = useState(ORDER_ENTRY_ROWS);
+  // Per-order table state: one row, one cell per per-order preset column.
+  const [orderRow, setOrderRow] = useState(ORDER_LABEL_ROW);
+  // Per-sample table state: one row per sample, one cell per per-sample preset column.
+  const [sampleRows, setSampleRows] = useState(SAMPLE_LABEL_ROWS);
 
-  const activePresets = ACTIVE_ORDER_PRESETS.map((id) => findPreset(INITIAL_PRESETS, id)).filter(Boolean);
+  // Resolve the active preset objects for both tables, filtered by isActive +
+  // the relevant scope flag.
+  const orderPresets = ACTIVE_ORDER_LABEL_PRESETS
+    .map((id) => findPreset(INITIAL_PRESETS, id))
+    .filter((p) => p && p.isActive && p.printsPerOrder);
 
-  const updateCell = (rowId, presetId, qty) => {
-    setRows(
-      rows.map((r) =>
+  const samplePresets = ACTIVE_SAMPLE_LABEL_PRESETS
+    .map((id) => findPreset(INITIAL_PRESETS, id))
+    .filter((p) => p && p.isActive && p.printsPerSample);
+
+  const updateOrderCell = (presetId, qty) => {
+    if (!orderRow.cells[presetId]) return;
+    setOrderRow({
+      ...orderRow,
+      cells: {
+        ...orderRow.cells,
+        [presetId]: { ...orderRow.cells[presetId], qty },
+      },
+    });
+  };
+
+  const updateSampleCell = (rowId, presetId, qty) => {
+    setSampleRows(
+      sampleRows.map((r) =>
         r.id !== rowId || !r.cells[presetId]
           ? r
           : { ...r, cells: { ...r.cells, [presetId]: { ...r.cells[presetId], qty } } }
@@ -1219,15 +1202,28 @@ function OrderEntryPreviewView() {
     );
   };
 
-  const totals = useMemo(() => {
+  // Per-order totals: just the order row's per-preset qty.
+  const orderTotals = useMemo(() => {
     const t = {};
-    activePresets.forEach((p) => {
-      t[p.id] = rows.reduce((sum, r) => sum + (r.cells[p.id]?.qty || 0), 0);
+    orderPresets.forEach((p) => {
+      t[p.id] = orderRow.cells[p.id]?.qty || 0;
     });
     return t;
-  }, [rows, activePresets]);
+  }, [orderRow, orderPresets]);
 
-  const grandTotal = Object.values(totals).reduce((a, b) => a + b, 0);
+  // Per-sample totals: sum across all sample rows per preset column.
+  const sampleTotals = useMemo(() => {
+    const t = {};
+    samplePresets.forEach((p) => {
+      t[p.id] = sampleRows.reduce((sum, r) => sum + (r.cells[p.id]?.qty || 0), 0);
+    });
+    return t;
+  }, [sampleRows, samplePresets]);
+
+  const orderTotalCount = Object.values(orderTotals).reduce((a, b) => a + b, 0);
+  const sampleTotalCount = Object.values(sampleTotals).reduce((a, b) => a + b, 0);
+  const grandTotal = orderTotalCount + sampleTotalCount;
+  const sampleCount = sampleRows.length;
 
   return (
     <div style={{ padding: '1.5rem 2rem' }}>
@@ -1243,9 +1239,11 @@ function OrderEntryPreviewView() {
             Labels
           </h2>
           <p style={{ fontSize: '0.875rem', color: '#525252', maxWidth: 760 }}>
-            Review the labels that will be generated for this order. Counts are pre-populated from the
-            test catalog configuration and aggregated across the tests on each sample. Adjust within
-            the maximum allowed, or accept the suggested values.
+            Review the labels that will be generated for this order. The Order Labels table
+            shows labels that print once for the entire order; the Sample Labels table shows
+            labels that print once per sample. Counts pre-populate from the preset defaults
+            (Order Labels) or the test catalog (Sample Labels) and can be overridden within
+            the maximum allowed.
           </p>
         </div>
 
@@ -1265,21 +1263,20 @@ function OrderEntryPreviewView() {
           </div>
         </Tile>
 
+        {/* === ORDER LABELS TABLE === */}
         <Tile>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Labels to print</h3>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Order Labels</h3>
               <p style={{ fontSize: '0.8125rem', color: '#525252' }}>
-                Columns are derived from the active presets linked to the ordered tests. Empty cells
-                indicate the preset doesn't apply to that row.
+                Labels that print once for the entire order. Quantities are configured at the
+                preset level and apply lab-wide regardless of which tests are ordered.
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <Tag type="blue" size="sm">
-                <Printer size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />
-                {grandTotal} labels total
-              </Tag>
-            </div>
+            <Tag type="blue" size="sm">
+              <Printer size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+              {orderTotalCount} order label{orderTotalCount === 1 ? '' : 's'}
+            </Tag>
           </div>
 
           <TableContainer>
@@ -1287,12 +1284,12 @@ function OrderEntryPreviewView() {
               <TableHead>
                 <TableRow>
                   <TableHeader style={{ width: 240 }}>Entity</TableHeader>
-                  {activePresets.map((p) => (
+                  {orderPresets.map((p) => (
                     <TableHeader key={p.id}>
                       <div>
                         <div style={{ fontWeight: 600 }}>{p.name}</div>
                         <div style={{ fontSize: '0.75rem', color: '#525252', fontWeight: 400 }}>
-                          {p.height.toFixed(1)} × {p.width.toFixed(1)} mm
+                          {p.height} × {p.width} mm · max {p.maxPerOrder}
                         </div>
                       </div>
                     </TableHeader>
@@ -1300,7 +1297,94 @@ function OrderEntryPreviewView() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {rows.map((row) => (
+                <TableRow>
+                  <TableCell>
+                    <div style={{ fontWeight: 500 }}>{orderRow.label}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#525252', marginTop: 2 }}>
+                      {orderRow.description}
+                    </div>
+                  </TableCell>
+                  {orderPresets.map((p) => {
+                    const cell = orderRow.cells[p.id];
+                    if (!cell) {
+                      return (
+                        <TableCell key={p.id} style={{ textAlign: 'center', color: '#a8a8a8' }}>
+                          —
+                        </TableCell>
+                      );
+                    }
+                    return (
+                      <TableCell key={p.id}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 110 }}>
+                          <NumberInput
+                            id={`oe-order-${p.id}`}
+                            label=""
+                            hideLabel
+                            size="sm"
+                            value={cell.qty}
+                            min={0}
+                            max={p.maxPerOrder}
+                            onChange={(e, { value }) =>
+                              updateOrderCell(p.id, parseInt(value) || 0)
+                            }
+                          />
+                        </div>
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+                <TableRow style={{ background: '#f4f4f4' }}>
+                  <TableCell style={{ fontWeight: 600 }}>Total labels by preset</TableCell>
+                  {orderPresets.map((p) => (
+                    <TableCell key={p.id}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Printer size={14} />
+                        <span style={{ fontWeight: 600, fontSize: '0.9375rem' }}>{orderTotals[p.id]}</span>
+                      </div>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Tile>
+
+        {/* === SAMPLE LABELS TABLE === */}
+        <Tile>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Sample Labels</h3>
+              <p style={{ fontSize: '0.8125rem', color: '#525252' }}>
+                Labels that print once per sample. Columns are derived from the per-sample
+                presets linked to the ordered tests. Empty cells indicate the preset doesn't
+                apply to that sample.
+              </p>
+            </div>
+            <Tag type="blue" size="sm">
+              <Printer size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+              {sampleTotalCount} sample label{sampleTotalCount === 1 ? '' : 's'}
+            </Tag>
+          </div>
+
+          <TableContainer>
+            <Table size="md">
+              <TableHead>
+                <TableRow>
+                  <TableHeader style={{ width: 240 }}>Sample</TableHeader>
+                  {samplePresets.map((p) => (
+                    <TableHeader key={p.id}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>{p.name}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#525252', fontWeight: 400 }}>
+                          {p.height} × {p.width} mm · max {p.maxPerSample}
+                        </div>
+                      </div>
+                    </TableHeader>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {sampleRows.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell>
                       <div style={{ fontWeight: 500 }}>{row.label}</div>
@@ -1308,7 +1392,7 @@ function OrderEntryPreviewView() {
                         {row.description}
                       </div>
                     </TableCell>
-                    {activePresets.map((p) => {
+                    {samplePresets.map((p) => {
                       const cell = row.cells[p.id];
                       if (!cell) {
                         return (
@@ -1322,26 +1406,8 @@ function OrderEntryPreviewView() {
                         <TableCell key={p.id}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 110 }}>
                             {locked ? (
-                              <Tooltip
-                                align="top"
-                                label="Quantity locked by test catalog"
-                              >
-                                <div
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: 6,
-                                    padding: '0.375rem 0.5rem',
-                                    background: '#f4f4f4',
-                                    border: '1px solid #e0e0e0',
-                                    borderRadius: 2,
-                                    color: '#393939',
-                                    fontSize: '0.875rem',
-                                    fontWeight: 500,
-                                    cursor: 'help',
-                                    width: 'fit-content',
-                                  }}
-                                >
+                              <Tooltip align="top" label="Quantity locked by test catalog">
+                                <div style={LOCKED_PILL_STYLE}>
                                   <Lock size={12} color="#525252" />
                                   <span>{cell.qty}</span>
                                 </div>
@@ -1354,26 +1420,13 @@ function OrderEntryPreviewView() {
                                 size="sm"
                                 value={cell.qty}
                                 min={0}
-                                max={20}
+                                max={p.maxPerSample}
                                 onChange={(e, { value }) =>
-                                  updateCell(row.id, p.id, parseInt(value) || 0)
+                                  updateSampleCell(row.id, p.id, parseInt(value) || 0)
                                 }
                               />
                             )}
-                            <Tag
-                              size="sm"
-                              type={cell.source.startsWith('from') ? 'teal' : 'cool-gray'}
-                              style={{ width: 'fit-content' }}
-                            >
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                                {cell.source.startsWith('from') ? (
-                                  <FlaskConical size={10} />
-                                ) : (
-                                  <CheckCircle2 size={10} />
-                                )}
-                                {cell.source}
-                              </span>
-                            </Tag>
+                            <SourceTag source={cell.source} />
                           </div>
                         </TableCell>
                       );
@@ -1382,11 +1435,11 @@ function OrderEntryPreviewView() {
                 ))}
                 <TableRow style={{ background: '#f4f4f4' }}>
                   <TableCell style={{ fontWeight: 600 }}>Total labels by preset</TableCell>
-                  {activePresets.map((p) => (
+                  {samplePresets.map((p) => (
                     <TableCell key={p.id}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <Printer size={14} />
-                        <span style={{ fontWeight: 600, fontSize: '0.9375rem' }}>{totals[p.id]}</span>
+                        <span style={{ fontWeight: 600, fontSize: '0.9375rem' }}>{sampleTotals[p.id]}</span>
                       </div>
                     </TableCell>
                   ))}
@@ -1407,6 +1460,17 @@ function OrderEntryPreviewView() {
               </Tag>{' '}
               = pulled from Master Lists → Label Presets defaults.
             </p>
+          </div>
+        </Tile>
+
+        <Tile style={{ background: '#f4f4f4' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <Printer size={18} color="#0f62fe" />
+            <div style={{ flex: 1, fontSize: '0.8125rem', color: '#393939' }}>
+              <strong>Total across both tables:</strong> {grandTotal} labels (
+              {orderTotalCount} order + {sampleTotalCount} sample across {sampleCount}{' '}
+              sample{sampleCount === 1 ? '' : 's'}).
+            </div>
           </div>
         </Tile>
 
@@ -1436,7 +1500,15 @@ function OrderEntryPreviewView() {
           </div>
         </div>
 
-        <PostSavePrintDialog rows={rows} activePresets={activePresets} totals={totals} />
+        <PostSavePrintDialog
+          orderRow={orderRow}
+          orderPresets={orderPresets}
+          orderTotals={orderTotals}
+          sampleRows={sampleRows}
+          samplePresets={samplePresets}
+          sampleTotals={sampleTotals}
+          sampleCount={sampleCount}
+        />
       </Stack>
     </div>
   );
@@ -1448,45 +1520,74 @@ function OrderEntryPreviewView() {
 // without clicking Save. A "PREVIEW" tag marks it.
 // =============================================================================
 
-function PostSavePrintDialog({ rows, activePresets, totals }) {
-  // Build one row per preset that has a non-zero total across the order.
-  const presetRows = activePresets
-    .filter((p) => (totals[p.id] || 0) > 0)
+function PostSavePrintDialog({
+  orderRow,
+  orderPresets,
+  orderTotals,
+  sampleRows,
+  samplePresets,
+  sampleTotals,
+  sampleCount,
+}) {
+  // Build one entry per preset with a non-zero total, across both tables.
+  // Order-scope rows come first (system seed order), then sample-scope rows.
+  const orderPresetRows = orderPresets
+    .filter((p) => (orderTotals[p.id] || 0) > 0)
     .map((p) => {
-      // Collect the row-level descriptions that drove this preset's count.
-      const contributingRows = rows
-        .filter((r) => r.cells[p.id] && r.cells[p.id].qty > 0)
-        .map((r) => r.label.replace(/ —.*$/, ''));
+      const qtyPerOrder = orderRow.cells[p.id]?.qty || 0;
       return {
-        id: p.id,
+        id: `order-${p.id}`,
         name: p.name,
-        qty: totals[p.id],
-        dim: `${p.height.toFixed(1)} × ${p.width.toFixed(1)} mm`,
-        meta: contributingRows.length === 1 ? contributingRows[0] : `${contributingRows.length} sources`,
+        qty: orderTotals[p.id],
+        // Cap edits in the dialog at the preset's per-order max.
+        max: p.maxPerOrder || 0,
+        dim: `${p.height} × ${p.width} mm`,
+        scope: 'Per order',
+        // "1 × order = 2 labels"
+        math: `${qtyPerOrder} × order = ${orderTotals[p.id]} label${orderTotals[p.id] === 1 ? '' : 's'}`,
       };
     });
 
+  const samplePresetRows = samplePresets
+    .filter((p) => (sampleTotals[p.id] || 0) > 0)
+    .map((p) => {
+      const contributingSamples = sampleRows.filter(
+        (r) => r.cells[p.id] && r.cells[p.id].qty > 0
+      );
+      // If all contributing samples share a qty, render the clean "n × m samples"
+      // form; otherwise render the sum of varying qtys for transparency.
+      const qtys = contributingSamples.map((r) => r.cells[p.id].qty);
+      const allSame = qtys.length > 0 && qtys.every((q) => q === qtys[0]);
+      let math;
+      if (allSame) {
+        const qty = qtys[0];
+        math = `${qty} × ${contributingSamples.length} sample${
+          contributingSamples.length === 1 ? '' : 's'
+        } = ${sampleTotals[p.id]} label${sampleTotals[p.id] === 1 ? '' : 's'}`;
+      } else {
+        math = `${qtys.join(' + ')} across ${contributingSamples.length} samples = ${
+          sampleTotals[p.id]
+        } labels`;
+      }
+      return {
+        id: `sample-${p.id}`,
+        name: p.name,
+        qty: sampleTotals[p.id],
+        // Per-sample preset max × number of contributing samples gives the
+        // dialog-level cap (each sample's contribution is bounded by maxPerSample).
+        max: (p.maxPerSample || 0) * Math.max(contributingSamples.length, 1),
+        dim: `${p.height} × ${p.width} mm`,
+        scope: 'Per sample',
+        math,
+      };
+    });
+
+  const presetRows = [...orderPresetRows, ...samplePresetRows];
+
   return (
-    <Tile
-      style={{
-        background: '#ffffff',
-        border: '1px solid #c6c6c6',
-        borderTop: '3px solid #24a148',
-        padding: 0,
-        marginTop: '0.5rem',
-      }}
-    >
+    <Tile style={{ background: '#ffffff', border: '1px solid #c6c6c6', borderTop: '3px solid #24a148', padding: 0, marginTop: '0.5rem' }}>
       {/* Header */}
-      <div
-        style={{
-          padding: '1rem 1.25rem',
-          borderBottom: '1px solid #e0e0e0',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          gap: '1rem',
-        }}
-      >
+      <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e0e0e0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem' }}>
           <CheckCircle2 size={20} color="#24a148" style={{ flexShrink: 0, marginTop: 2 }} />
           <div>
@@ -1495,13 +1596,36 @@ function PostSavePrintDialog({ rows, activePresets, totals }) {
             </div>
             <div style={{ fontSize: '0.8125rem', color: '#393939', marginTop: 2 }}>
               Lab Number:{' '}
-              <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontWeight: 600 }}>
-                24ORD00152
-              </span>
+              <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontWeight: 600 }}>24ORD00152</span>
             </div>
           </div>
         </div>
         <Tag type="blue" size="sm">PREVIEW</Tag>
+      </div>
+
+      {/* Editable-quantity helper banner */}
+      <div
+        role="note"
+        style={{
+          margin: '0.5rem 1rem 0',
+          padding: '0.625rem 0.875rem',
+          background: '#edf5ff',
+          borderLeft: '3px solid #0f62fe',
+          fontSize: '0.8125rem',
+          color: '#161616',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '0.5rem',
+        }}
+      >
+        <span aria-hidden="true" style={{ flexShrink: 0, marginTop: 1 }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6.5" stroke="#0f62fe" strokeWidth="1.25" fill="none"/><circle cx="8" cy="5" r="0.75" fill="#0f62fe"/><path d="M8 7.5v4.5" stroke="#0f62fe" strokeWidth="1.25" strokeLinecap="round"/></svg>
+        </span>
+        <span>
+          <strong>You can adjust quantities below before printing if needed.</strong>{' '}
+          For example, if you'll create 4 aliquots, set Specimen Label to match. Per-type
+          totals recalculate on Print and are saved to the order.
+        </span>
       </div>
 
       {/* Body — one row per preset */}
@@ -1511,7 +1635,8 @@ function PostSavePrintDialog({ rows, activePresets, totals }) {
             <TableHead>
               <TableRow>
                 <TableHeader>Label</TableHeader>
-                <TableHeader style={{ width: 80 }}>Qty</TableHeader>
+                <TableHeader style={{ width: 100 }}>Scope</TableHeader>
+                <TableHeader style={{ width: 130 }}>Qty (editable)</TableHeader>
                 <TableHeader style={{ width: 160 }}>Dimensions</TableHeader>
                 <TableHeader style={{ width: 140, textAlign: 'right' }}>{''}</TableHeader>
               </TableRow>
@@ -1522,13 +1647,27 @@ function PostSavePrintDialog({ rows, activePresets, totals }) {
                   <TableCell>
                     <div style={{ fontWeight: 500 }}>{r.name}</div>
                     <div style={{ fontSize: '0.75rem', color: '#525252', marginTop: 2 }}>
-                      {r.meta}
+                      {r.math}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontWeight: 600 }}>
-                      ×{r.qty}
-                    </span>
+                    <Tag size="sm" type={r.scope === 'Per order' ? 'cyan' : 'teal'}>
+                      {r.scope}
+                    </Tag>
+                  </TableCell>
+                  <TableCell>
+                    <NumberInput
+                      id={`pd-qty-${r.id}`}
+                      hideLabel
+                      label={`${r.name} quantity`}
+                      value={r.qty}
+                      min={0}
+                      max={r.max || undefined}
+                      size="sm"
+                      // Static mockup — onChange is a no-op; engineering wires the
+                      // recalculate-totals behavior at build time.
+                      onChange={() => {}}
+                    />
                   </TableCell>
                   <TableCell>
                     <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '0.8125rem', color: '#393939' }}>
@@ -1552,18 +1691,7 @@ function PostSavePrintDialog({ rows, activePresets, totals }) {
       </div>
 
       {/* Footer */}
-      <div
-        style={{
-          padding: '0.75rem 1.25rem 1rem',
-          borderTop: '1px solid #e0e0e0',
-          marginTop: '0.5rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '0.75rem',
-          flexWrap: 'wrap',
-        }}
-      >
+      <div style={{ padding: '0.75rem 1.25rem 1rem', borderTop: '1px solid #e0e0e0', marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
         <p style={{ fontSize: '0.75rem', color: '#525252', flex: 1, minWidth: 240 }}>
           Each label type opens as a separate PDF in a new tab so different stocks can be used.
           Reprint anytime from Order View.
@@ -1587,16 +1715,7 @@ export default function BarcodeLabelsV2() {
   return (
     <div style={{ fontFamily: 'IBM Plex Sans, -apple-system, BlinkMacSystemFont, sans-serif', minHeight: '100vh', background: '#f4f4f4' }}>
       {/* Banner / global header strip */}
-      <div
-        style={{
-          background: '#161616',
-          color: '#ffffff',
-          padding: '0.75rem 2rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
+      <div style={{ background: '#161616', color: '#ffffff', padding: '0.75rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>OpenELIS Global</span>
           <span style={{ fontSize: '0.75rem', color: '#a8a8a8' }}>
@@ -1609,10 +1728,7 @@ export default function BarcodeLabelsV2() {
         </div>
       </div>
 
-      <Tabs
-        selectedIndex={activeView}
-        onChange={({ selectedIndex }) => setActiveView(selectedIndex)}
-      >
+      <Tabs selectedIndex={activeView} onChange={({ selectedIndex }) => setActiveView(selectedIndex)}>
         <TabList aria-label="Barcode Labels v2 views" contained>
           <Tab>1 · Admin: Label Presets</Tab>
           <Tab>2 · Test Catalog → Labels</Tab>

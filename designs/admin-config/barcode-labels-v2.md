@@ -2,7 +2,7 @@
 
 ## Functional Requirements Specification
 
-**Version:** 2.1 (MVP scope cut)
+**Version:** 2.3 (per-scope quantities — separate per-order / per-sample flags)
 **Date:** 2026-05-18
 **Author:** Casey Iiams-Hauser (filed via Cowork)
 **Module:** Administration → Master Lists → Label Presets · Test Catalog → Labels tab · Order Entry → Add Order step
@@ -33,9 +33,9 @@ The v1 barcode label system (OGC-284) hardcodes the five system label types. Thi
 
 This release adds two new admin surfaces and one Order Entry enhancement:
 
-1. **Master Lists → Label Presets** — admins create, edit, duplicate, deactivate, and configure custom label presets. Each preset defines dimensions, barcode style, and a selection of system content fields.
-2. **Test Catalog → Labels tab** — for each test, admins link one or more presets and set default quantity, max quantity, and whether order-entry override is allowed. Replaces the 4-fixed-preset constraint that ships with OGC-761.
-3. **Enhanced Order Entry** — when tests are selected, the Labels section is built dynamically from the union of presets across all tests in the order. Quantities pre-populate from the per-test config; cells show which test drove each count so the technician understands the source.
+1. **Master Lists → Label Presets** — admins create, edit, duplicate, deactivate, and configure custom label presets. Each preset defines dimensions, barcode style, a selection of system content fields, and **print scope** (per-order, per-sample, or both) with independent default and max quantities for each scope.
+2. **Test Catalog → Labels tab** — for each test, admins link one or more per-sample presets and set default per-sample quantity, max per-sample quantity, and whether order-entry override is allowed. Tests apply to samples, so per-order quantities are configured only at the preset level. Replaces the 4-fixed-preset constraint that ships with OGC-761.
+3. **Enhanced Order Entry** — when tests are selected, the Labels section renders two tables. The Order Labels table lists per-order presets with a single row for the order. The Sample Labels table lists per-sample presets with one row per sample, columns built dynamically from the union of presets linked to tests in the order. Quantities pre-populate from the per-test config; cells show which test drove each count so the technician understands the source.
 
 ### 1.4 Users
 
@@ -80,15 +80,14 @@ Carbon `<DataTable>` with click-to-open rows. Columns:
 | Column | Source | Notes |
 |---|---|---|
 | Preset Name | `label_preset.name` | Unique within the lab. |
-| Category | `label_preset.category` | One of: Order / Specimen / Pathology / Storage. Drives default behavior at Order Entry (e.g., Order category appears on the order row only). |
-| Dimensions | `label_preset.height_mm × label_preset.width_mm` | Rendered as "25.4 × 76.2 mm". |
+| Dimensions | `label_preset.height_mm × label_preset.width_mm` | Rendered as "25 × 76 mm". |
 | Barcode Type | `label_preset.barcode_type` | Code 128 / QR / DataMatrix. |
 | Status | `label_preset.is_active` | `<Tag type="green">Active</Tag>` or `<Tag type="gray">Inactive</Tag>`. |
 | Actions | — | Edit · Duplicate · Deactivate. No hard Delete — see §2.6. |
 
-**System presets** (the 5 originally-shipped types: Order / Specimen / Block / Slide / Freezer) are seeded by migration with `is_system = true` and cannot be renamed or deactivated. They can be edited (dimensions, content fields, default/max counts) but their category and name are locked.
+**System presets** (the 5 originally-shipped types: Order / Specimen / Block / Slide / Freezer) are seeded by migration with `is_system = true` and cannot be renamed or deactivated. They can be edited (dimensions, content fields, default/max counts, scope flags) but their name is locked. The seeded "Order Label" preset is seeded with `prints_per_order = true` and `prints_per_sample = false`; the other four are seeded with `prints_per_order = false` and `prints_per_sample = true`. The scope flags on system presets remain editable in case a site wants to change a system preset's scope (e.g., also print Specimen Label at the order level). See §4.3.
 
-**Filter bar** (collapsible): Category, Barcode Type, Status. URL-reflected state.
+**Filter bar** (collapsible): Barcode Type, Status. URL-reflected state.
 
 **"+ Add Label Preset"** button opens the editor in a Carbon `<Modal>` (not a side panel — preset config is a substantial form).
 
@@ -98,21 +97,35 @@ Sections, top to bottom:
 
 **Basic Info**
 - Preset Name (TextInput, required, unique-within-lab validation on blur)
-- Category (Dropdown: Order / Specimen / Pathology / Storage) — required. Drives Order Entry layout (see §4).
 - Active (Toggle, default On)
 
 **Dimensions**
-- Height (NumberInput, mm, step 0.1, required, min 5 max 200)
-- Width (NumberInput, mm, step 0.1, required, min 5 max 200)
-- Helper text: "Match the dimensions of your label stock. Common sizes: 25.4 × 76.2 mm (standard), 25.4 × 50.8 mm (small), 12.7 × 44.5 mm (slide)."
+- Height (NumberInput, mm, step 1, required, min 5 max 200)
+- Width (NumberInput, mm, step 1, required, min 5 max 200)
+- Helper text: "Match the dimensions of your label stock. Common sizes: 25 × 76 mm (standard), 25 × 50 mm (small), 13 × 44 mm (slide)."
 
 **Barcode Settings**
 - Barcode Type (Dropdown: Code 128 / QR / DataMatrix)
-- Barcode Size (Dropdown: Small / Medium / Large) — applies a sizing class to the rendered barcode area.
 
-**Default Counts**
-- Default Qty (NumberInput, integer ≥ 0) — system-level fallback used in Order Entry when no per-test override exists.
-- Max Qty (NumberInput, integer ≥ Default Qty).
+**Print Scope & Quantities**
+
+The admin declares whether the preset prints at the order level, the sample level, or both. At least one scope MUST be selected; the editor blocks Save if neither checkbox is checked.
+
+- **Per order — prints once per order** (Carbon `<Checkbox>`)
+  - When checked, the following NumberInputs are revealed:
+    - Default per order (NumberInput, integer ≥ 0) — system-level fallback used in the Order row at Order Entry.
+    - Max per order (NumberInput, integer ≥ Default per order) — caps the Order row cell's NumberInput.
+- **Per sample — prints once per sample** (Carbon `<Checkbox>`)
+  - When checked, the following NumberInputs are revealed:
+    - Default per sample (NumberInput, integer ≥ 0) — system-level fallback used in the Sample row cells when no per-test override exists.
+    - Max per sample (NumberInput, integer ≥ Default per sample) — caps each Sample row cell's NumberInput.
+
+Validation: at least one of the two checkboxes MUST be checked. If only Per order is checked, the per-sample inputs are hidden; if only Per sample is checked, the per-order inputs are hidden. If both are checked, both groups are shown.
+
+Helper text under the scope checkboxes: "Per-order labels print once for the entire order. Per-sample labels print once for each sample in the order. Most labels are per-sample (Specimen, Block, Slide, Freezer). The Order Label is typically per-order."
+
+**Content Fields**
+- A FilterableMultiSelect picker populated with the complete system field set enumerated in §2.4 (15 fields). The admin can choose any subset; the chosen fields are then displayed in §2.4's reorderable list. Lab Number is always present, locked at position 1, and not selectable in the picker.
 
 ### 2.4 Editor — Content Fields
 
@@ -123,7 +136,7 @@ A reorderable list of fields that will appear on the label. Each row:
 - Required toggle (locked On for Lab Number; user-controlled for all others)
 - Remove button (locked for Lab Number)
 
-**System fields** available to add (multi-select picker, filtering out fields already added). v2 only supports this fixed set; user-defined custom fields are out of scope for MVP and deferred to v3+.
+**System fields** available to add. The §2.3 Content Fields picker (FilterableMultiSelect) is populated from this complete set of 15 system fields, filtering out fields already added. v2 only supports this fixed set; user-defined custom fields are out of scope for MVP and deferred to v3+.
 
 | Field | Source |
 |---|---|
@@ -152,7 +165,7 @@ i18n key prefix for this surface: `admin.labelPresets.*` (resolved via Spring `M
 
 | Operation | Behavior |
 |---|---|
-| **Save** | Validates name uniqueness, dimensions, and `max_qty ≥ default_qty`. Writes `label_preset` + `label_preset_field` rows. Updates an `updated_at` audit timestamp. |
+| **Save** | Validates name uniqueness, dimensions, scope (`prints_per_order OR prints_per_sample`), and per-scope max ≥ default. Writes `label_preset` + `label_preset_field` rows. Updates an `updated_at` audit timestamp. |
 | **Save as new** (Duplicate) | Clones the preset; user must enter a new name before save. |
 | **Deactivate** | Sets `is_active = false`. Preset disappears from "+ Add Label Type" pickers but persists everywhere it's already linked. Historical orders are unaffected. Reactivation is one click. |
 | **Hard Delete** | Not supported. Presets that have never been referenced anywhere can be removed via a separate admin tool; otherwise deactivate. |
@@ -168,9 +181,23 @@ At v2 release, a migration runs against every site:
    - **Block** — `barcode.block.default`, `barcode.block.max`, `barcode.block.height`, `barcode.block.width`
    - **Slide** — `barcode.slide.default`, `barcode.slide.max`, `barcode.slide.height`, `barcode.slide.width`
    - **Freezer** — `barcode.freezer.default`, `barcode.freezer.max`, `barcode.freezer.height`, `barcode.freezer.width`
-2. Create five rows in `label_preset` with `is_system = true`, named "Order Label", "Specimen Label", "Block Label", "Slide Label", "Freezer Label". Category set respectively. Dimensions copied from `site_information`.
+2. Create five rows in `label_preset` with `is_system = true`, named "Order Label", "Specimen Label", "Block Label", "Slide Label", "Freezer Label". Scope flags are seeded as follows:
+   - **Order Label** — `prints_per_order = true`, `prints_per_sample = false`
+   - **Specimen Label** — `prints_per_order = false`, `prints_per_sample = true`
+   - **Block Label** — `prints_per_order = false`, `prints_per_sample = true`
+   - **Slide Label** — `prints_per_order = false`, `prints_per_sample = true`
+   - **Freezer Label** — `prints_per_order = false`, `prints_per_sample = true`
+
+   Dimensions copied from `site_information`.
 3. Create `label_preset_field` rows matching the current Barcode Configuration "Barcode Label Elements" checkboxes for each type (Lab Number always required; the optional fields per type from OGC-284 §2.3 carry over).
-4. **Default and max counts MOVE** from `site_information.barcode.*.default` / `barcode.*.max` keys into the new `label_preset.default_qty` and `label_preset.max_qty` columns. These columns become the canonical source.
+4. **Default and max counts MOVE** from `site_information.barcode.{type}.default` / `barcode.{type}.max` keys into the new per-scope quantity columns. The mapping is scope-aware:
+   - **Order** — `prints_per_order = true`; `default_per_order = site_information.barcode.order.default`; `max_per_order = site_information.barcode.order.max`. The per-sample columns receive their schema defaults (`default_per_sample = 0`, `max_per_sample = 10`) but are inert because `prints_per_sample = false`.
+   - **Specimen** — `prints_per_sample = true`; `default_per_sample = site_information.barcode.specimen.default`; `max_per_sample = site_information.barcode.specimen.max`. The per-order columns receive their schema defaults but are inert.
+   - **Block** — `prints_per_sample = true`; `default_per_sample = site_information.barcode.block.default`; `max_per_sample = site_information.barcode.block.max`.
+   - **Slide** — `prints_per_sample = true`; `default_per_sample = site_information.barcode.slide.default`; `max_per_sample = site_information.barcode.slide.max`.
+   - **Freezer** — `prints_per_sample = true`; `default_per_sample = site_information.barcode.freezer.default`; `max_per_sample = site_information.barcode.freezer.max`.
+
+   These per-scope columns on `label_preset` become the canonical source for default and max quantities. Legacy `site_information.barcode.*` keys are retained read-only for one release cycle as the rollback mirror described below.
 
 **Move-vs-mirror resolution:** the legacy `site_information.barcode.*` keys are retained as **read-only mirrors for one release cycle only**. They are NOT actively dual-written by the application; the migration writes them once at cutover and the app then ignores them. The mirror exists solely to support emergency rollback to v2.0 if the v2 release stalls in production. A follow-up migration in the next release (v2.x) removes the legacy keys entirely once all callers are confirmed migrated.
 
@@ -186,17 +213,21 @@ In the new Test Editor (delivered by OGC-746 v1 epic), Labels is the 8th SideNav
 
 ### 3.2 Per-Test Linked Presets Table
 
+Tests apply to samples, not to orders directly. The Labels tab therefore only links **per-sample presets** to tests; the per-order scope is controlled exclusively by the preset's own `prints_per_order` flag and `default_per_order` / `max_per_order` values. The Preset dropdown is filtered to active presets where `prints_per_sample = true`. Presets that are `prints_per_order = true` AND `prints_per_sample = false` (order-only presets) are excluded from this picker because there is nothing to override.
+
 Carbon `<DataTable>` columns:
 
 | Column | Notes |
 |---|---|
-| Preset | `<Dropdown>` populated with all active presets, excluding any already linked to this test. Includes system presets and custom presets. |
-| Default Qty | NumberInput, integer ≥ 0. |
-| Max Qty | NumberInput, integer ≥ Default Qty. |
-| Allow Override | `<Checkbox>` — when on, the user can change the qty at Order Entry within the Max Qty range. When off, the qty is locked at Default Qty. |
+| Preset | `<Dropdown>` populated with active presets where `prints_per_sample = true`, excluding any already linked to this test. Includes system per-sample presets (Specimen / Block / Slide / Freezer) and any custom per-sample presets. |
+| Default Per Sample | NumberInput, integer ≥ 0. Overrides the preset's own `default_per_sample` for this specific test only. |
+| Max Per Sample | NumberInput, integer ≥ Default Per Sample. Overrides the preset's own `max_per_sample` for this specific test only. |
+| Allow Override | `<Checkbox>` — when on, the user can change the qty at Order Entry within the Max Per Sample range. When off, the qty is locked at Default Per Sample. |
 | Actions | Remove from this test. |
 
-**"+ Add Label Type"** button opens a `<Dropdown>` picker with the active presets minus any already linked.
+**"+ Add Label Type"** button opens a `<Dropdown>` picker with active per-sample presets minus any already linked.
+
+The Mode column from earlier drafts is deliberately not present; the Test Catalog only overrides per-sample quantities, never per-order.
 
 ### 3.3 Test-Level Toggles
 
@@ -206,7 +237,7 @@ Above the table:
 
 ### 3.4 Order Entry Preview
 
-Below the linked presets table, a small "Order Entry Preview" card renders a Carbon `<StructuredList>` summary of how this test's labels will appear in Order Entry — preset name, category, default qty, override status. No graphical label preview is rendered (live preview is out of scope; see §1.5).
+Below the linked presets table, a small "Order Entry Preview" card renders a Carbon `<StructuredList>` summary of how this test's labels will appear in Order Entry — preset name, default qty, override status. No graphical label preview is rendered (live preview is out of scope; see §1.5).
 
 ### 3.5 Schema reference (additions to existing OGC-761 table)
 
@@ -215,12 +246,19 @@ The `test_label_preset_link` table was introduced by OGC-761. Its existing colum
 - `id` (BIGSERIAL PRIMARY KEY)
 - `test_id` (BIGINT, FK to `test`)
 - `preset_id` (BIGINT, FK to `label_preset`)
-- `default_qty` (INTEGER)
-- `max_qty` (INTEGER)
+- `default_qty` (INTEGER) — override of `label_preset.default_per_sample`; column name retained for OGC-761 back-compat
+- `max_qty` (INTEGER) — override of `label_preset.max_per_sample`; column name retained for OGC-761 back-compat
+
+In v2 this release reinterprets the two integer columns as **per-sample overrides only**:
+
+- `default_qty` → overrides `label_preset.default_per_sample` for this test. (Documented in code comments and the ALTER block in §6.2; column name retained for backward compatibility with OGC-761.)
+- `max_qty` → overrides `label_preset.max_per_sample` for this test.
 
 This release adds **one** new column conceptually:
 
-- `allow_override` (BOOLEAN) — controls whether Order Entry users can adjust the qty.
+- `allow_override` (BOOLEAN) — controls whether Order Entry users can adjust the qty for the per-sample cell.
+
+A CHECK constraint added in §6.2 ensures rows in `test_label_preset_link` reference only presets where `prints_per_sample = true`; linking an order-only preset (`prints_per_order = true` AND `prints_per_sample = false`) to a test is rejected.
 
 The canonical DDL for this change is the ALTER statement in **§6.2** — that is the source of truth; the list above is descriptive only. A separate new table `test_label_config` (defined in §6.2) carries the test-level master `allow_order_entry_override` toggle.
 
@@ -238,31 +276,46 @@ The Labels section on Order Entry → Add Order step (Step 4), positioned betwee
 
 ### 4.2 Dynamic Column Construction
 
-The columns rendered in the Labels section are not fixed. They are computed each time the user adds or removes a test from the order:
+The Labels section renders as **two separate tables** — Order Labels and Sample Labels — each with independently computed columns.
 
-1. Compute the union of presets linked to all tests in the order via `test_label_preset_link`.
-2. Add any system presets (Order, Specimen) that should always be present per their category default.
-3. Sort columns deterministically: system presets first (Order, Specimen, Block, Slide, Freezer in that order), then custom presets alphabetically.
+**Order Labels table columns:**
+1. All active presets with `prints_per_order = true`, regardless of whether any test on the order linked them. (Per-order presets are lab-wide, not test-driven.)
+2. Sort: system presets first (in seed order), then custom presets alphabetically.
 
-If no tests are selected, the columns fall back to the 5 system presets (Order / Specimen / Block / Slide / Freezer) — matching OGC-284 default behavior. This prevents a confusing empty state.
+**Sample Labels table columns:**
+1. Compute the union of presets linked to all tests in the order via `test_label_preset_link`, restricted to those with `prints_per_sample = true`.
+2. If no tests are selected, fall back to active system presets where `prints_per_sample = true` (Specimen / Block / Slide / Freezer).
+3. Sort: system presets first, then custom presets alphabetically.
 
 ### 4.3 Row Construction
 
+Two tables, each with its own row structure:
+
+**Order Labels table:**
 | Row | Cells |
 |---|---|
-| Order | One cell per "Order" category preset. Other category cells render `—`. |
-| Sample 1 | One cell per "Specimen" / "Pathology" / "Storage" category preset that applies to this sample type. Order category cells render `—`. |
-| Sample N | Same as Sample 1. |
-| **Total** | Live sum per column. |
+| Order | One cell per per-order preset column. Defaults from `preset.default_per_order`; max from `preset.max_per_order`. |
+| **Total** | Live sum across columns. |
+
+**Sample Labels table:**
+| Row | Cells |
+|---|---|
+| Sample 1 | One cell per per-sample preset column. Aggregation rules apply (see §4.4). |
+| Sample N | Same. |
+| **Total** | Live sum per column across all samples. |
+
+A preset that has both `prints_per_order = true` and `prints_per_sample = true` appears in both tables independently — the per-order quantity defaults from `preset.default_per_order` (single row), and the per-sample quantity defaults from the test-link override or `preset.default_per_sample`.
 
 ### 4.4 Cell Behavior
 
-Each editable cell is a Carbon `<NumberInput>` pre-populated using this resolution order:
+**Order Labels cells** are Carbon `<NumberInput>` pre-populated with `preset.default_per_order`. Max = `preset.max_per_order`. No source tag (per-order quantities are lab-wide, not test-driven).
 
-1. **Test-driven default** — if the order contains tests linked to this preset, take the highest `default_qty` across those test links. (E.g., if Test A says default 2 and Test B says default 3, the cell starts at 3.) The cell shows a small `<Tag>` below: "from Test B".
-2. **System default** — if no tests in the order link to this preset, fall back to `label_preset.default_qty`. The cell shows `<Tag>`: "system default".
+**Sample Labels cells** are Carbon `<NumberInput>` pre-populated using this resolution order:
 
-Max range = highest `max_qty` across linked tests, or `label_preset.max_qty` if no test links. Validation: `0 ≤ entered_value ≤ max`.
+1. **Test-driven default** — if the order contains tests linked to this preset, take the highest `default_per_sample` across those test links. (E.g., if Test A overrides to 2 and Test B overrides to 3, the cell starts at 3.) The cell shows a small `<Tag>` below: "from Test B".
+2. **Preset default** — if no tests in the order link to this preset, fall back to `preset.default_per_sample`. The cell shows `<Tag>`: "system default".
+
+Max range = highest `max_per_sample` across linked tests, or `preset.max_per_sample` if no test links. Validation: `0 ≤ entered_value ≤ max`.
 
 If any linked test has `allow_override = false`, that cell is read-only and shows a small lock icon with tooltip "Quantity locked by test catalog".
 
@@ -286,7 +339,7 @@ A pinned bottom row summing each column, displayed as bold numbers. A right-alig
 
 ### 4.6 Post-Save Print Dialog Compatibility
 
-The post-save print dialog defined in OGC-284 §3.4 continues to work. The dialog dynamically lists every preset with a non-zero count in the saved order, grouped by category. Each preset gets its own Print button so the technician can route different sizes / stock types to different printers as needed. There is no per-cell or per-preset confirmation step in v2 — all presets behave the same way at print time.
+The post-save print dialog defined in OGC-284 §3.4 continues to work. The dialog dynamically lists every preset with a non-zero count in the saved order. Each preset gets its own Print button so the technician can route different sizes / stock types to different printers as needed. There is no per-cell or per-preset confirmation step in v2 — all presets behave the same way at print time.
 
 ### 4.7 Localization
 
@@ -301,12 +354,12 @@ i18n key prefix for this surface: `orderEntry.labels.*`.
 | ID | Requirement |
 |---|---|
 | LP-1 | System SHALL display a Label Presets list view at `/MasterListsPage#labelPresets`. |
-| LP-2 | Admin MAY create a new preset with a unique name, category, dimensions, and barcode settings. |
+| LP-2 | Admin MAY create a new preset with a unique name, dimensions, and barcode settings. |
 | LP-3 | Admin MAY select content fields from the system field set (see §2.4) and arrange them in display order. |
 | LP-4 | Admin MAY duplicate a preset via "Save as new", clearing the name field for required entry. |
 | LP-5 | Admin MAY deactivate a preset; deactivated presets persist on historical orders but disappear from "+ Add Label Type" pickers. |
 | LP-6 | System SHALL prevent renaming or deactivating any `is_system = true` preset. |
-| LP-7 | System SHALL validate that `max_qty ≥ default_qty` and both are non-negative integers. |
+| LP-7 | System SHALL validate that `max_per_order ≥ default_per_order`, `max_per_sample ≥ default_per_sample`, and all are non-negative integers. At least one scope (`prints_per_order` or `prints_per_sample`) MUST be true. |
 | LP-8 | System SHALL persist Lab Number as a required, locked, first-position field on every preset. |
 
 ### 5.2 Test Catalog — Labels Tab
@@ -317,8 +370,8 @@ i18n key prefix for this surface: `orderEntry.labels.*`.
 | TL-2 | Admin MAY link any active preset to a test with default qty, max qty, and allow-override flag. |
 | TL-3 | System SHALL prevent linking the same preset to the same test twice. |
 | TL-4 | System SHALL display an Order Entry Preview (Carbon `<StructuredList>`) summarizing the configuration. |
-| TL-5 | System SHALL aggregate label requirements across all tests in an order by taking the highest `default_qty` per preset. |
-| TL-6 | System SHALL fall back to `label_preset.default_qty` when an order contains no tests linked to that preset. |
+| TL-5 | System SHALL aggregate per-sample label requirements across all tests in an order by taking the highest `test_label_preset_link.default_qty` per preset. (Per-order quantities are not test-driven; they're configured at the preset level.) |
+| TL-6 | System SHALL fall back to `label_preset.default_per_sample` when an order contains no tests linked to that preset. |
 
 ### 5.3 Order Entry
 
@@ -349,20 +402,23 @@ i18n key prefix for this surface: `orderEntry.labels.*`.
 
 ```sql
 CREATE TABLE label_preset (
-  id            BIGSERIAL PRIMARY KEY,
-  name          VARCHAR(120) NOT NULL,
-  category      VARCHAR(20) NOT NULL CHECK (category IN ('ORDER','SPECIMEN','PATHOLOGY','STORAGE')),
-  height_mm     NUMERIC(6,2) NOT NULL CHECK (height_mm BETWEEN 5 AND 200),
-  width_mm      NUMERIC(6,2) NOT NULL CHECK (width_mm BETWEEN 5 AND 200),
-  barcode_type  VARCHAR(20) NOT NULL CHECK (barcode_type IN ('CODE_128','QR','DATAMATRIX')),
-  barcode_size  VARCHAR(10) NOT NULL DEFAULT 'MEDIUM' CHECK (barcode_size IN ('SMALL','MEDIUM','LARGE')),
-  default_qty   INTEGER NOT NULL DEFAULT 0 CHECK (default_qty >= 0),
-  max_qty       INTEGER NOT NULL DEFAULT 10 CHECK (max_qty >= default_qty),
-  is_system     BOOLEAN NOT NULL DEFAULT false,
-  is_active     BOOLEAN NOT NULL DEFAULT true,
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  CONSTRAINT label_preset_name_uniq UNIQUE (name)
+  id                  BIGSERIAL PRIMARY KEY,
+  name                VARCHAR(120) NOT NULL,
+  height_mm           INTEGER NOT NULL CHECK (height_mm BETWEEN 5 AND 200),
+  width_mm            INTEGER NOT NULL CHECK (width_mm BETWEEN 5 AND 200),
+  barcode_type        VARCHAR(20) NOT NULL CHECK (barcode_type IN ('CODE_128','QR','DATAMATRIX')),
+  prints_per_order    BOOLEAN NOT NULL DEFAULT false,
+  prints_per_sample   BOOLEAN NOT NULL DEFAULT true,
+  default_per_order   INTEGER NOT NULL DEFAULT 0 CHECK (default_per_order >= 0),
+  max_per_order       INTEGER NOT NULL DEFAULT 10 CHECK (max_per_order >= default_per_order),
+  default_per_sample  INTEGER NOT NULL DEFAULT 0 CHECK (default_per_sample >= 0),
+  max_per_sample      INTEGER NOT NULL DEFAULT 10 CHECK (max_per_sample >= default_per_sample),
+  is_system           BOOLEAN NOT NULL DEFAULT false,
+  is_active           BOOLEAN NOT NULL DEFAULT true,
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT label_preset_name_uniq UNIQUE (name),
+  CONSTRAINT label_preset_scope_required CHECK (prints_per_order OR prints_per_sample)
 );
 
 CREATE TABLE label_preset_field (
@@ -402,7 +458,7 @@ When labels are saved with an order (in the Order Entry Labels section), the sys
 CREATE TABLE order_label_request (
   id              BIGSERIAL PRIMARY KEY,
   order_id        BIGINT NOT NULL,
-  sample_id       BIGINT,                  -- null for Order-category labels
+  sample_id       BIGINT,                  -- null for order-level labels
   preset_id       BIGINT NOT NULL REFERENCES label_preset(id),
   qty             INTEGER NOT NULL CHECK (qty >= 0),
   preset_snapshot JSONB NOT NULL,          -- frozen copy of preset + fields + link settings at save time
@@ -419,11 +475,9 @@ The snapshot MUST conform to the following structure. Reprints read from this sh
   "preset": {
     "id": 17,
     "name": "Specimen Label",
-    "category": "SPECIMEN",
-    "height_mm": 25.4,
-    "width_mm": 76.2,
-    "barcode_type": "CODE_128",
-    "barcode_size": "MEDIUM"
+    "height_mm": 25,
+    "width_mm": 76,
+    "barcode_type": "CODE_128"
   },
   "fields": [
     { "field_key": "LAB_NUMBER",   "field_label": "Lab Number",   "is_required": true,  "display_order": 1 },
@@ -454,7 +508,7 @@ All endpoints follow the standard Spring Boot error envelope on failure (HTTP st
 
 | Method | Endpoint | Description | Scope |
 |---|---|---|---|
-| GET | `/api/labelPresets` | List presets (filter: category, status). | `admin.barcode.manage` |
+| GET | `/api/labelPresets` | List presets (filter: status). | `admin.barcode.manage` |
 | POST | `/api/labelPresets` | Create preset (with content fields in body). | `admin.barcode.manage` |
 | GET | `/api/labelPresets/{id}` | Read preset detail. | `admin.barcode.manage` |
 | PUT | `/api/labelPresets/{id}` | Update preset. | `admin.barcode.manage` |
@@ -474,11 +528,9 @@ Request:
 ```json
 {
   "name": "Cryo Vial Label",
-  "category": "STORAGE",
-  "height_mm": 25.4,
-  "width_mm": 25.4,
+  "height_mm": 25,
+  "width_mm": 25,
   "barcode_type": "QR",
-  "barcode_size": "SMALL",
   "default_qty": 1,
   "max_qty": 4,
   "is_active": true,
@@ -495,13 +547,15 @@ Success response (`201 Created`):
 {
   "id": 42,
   "name": "Cryo Vial Label",
-  "category": "STORAGE",
-  "height_mm": 25.4,
-  "width_mm": 25.4,
+  "height_mm": 25,
+  "width_mm": 25,
   "barcode_type": "QR",
-  "barcode_size": "SMALL",
-  "default_qty": 1,
-  "max_qty": 4,
+  "prints_per_order": false,
+  "prints_per_sample": true,
+  "default_per_order": 0,
+  "max_per_order": 0,
+  "default_per_sample": 1,
+  "max_per_sample": 4,
   "is_system": false,
   "is_active": true,
   "created_at": "2026-05-18T14:00:00Z",
@@ -559,23 +613,29 @@ Request:
 Success response (`200 OK`):
 ```json
 {
-  "columns": [
-    { "preset_id": 1,  "name": "Order Label",    "category": "ORDER",     "is_system": true,  "max_qty": 10 },
-    { "preset_id": 17, "name": "Specimen Label", "category": "SPECIMEN",  "is_system": true,  "max_qty": 5  },
-    { "preset_id": 24, "name": "Slide Label",    "category": "PATHOLOGY", "is_system": true,  "max_qty": 12 }
+  "order_columns": [
+    { "preset_id": 1, "name": "Order Label", "is_system": true, "max": 10 }
   ],
-  "rows": [
+  "sample_columns": [
+    { "preset_id": 17, "name": "Specimen Label", "is_system": true, "max": 5  },
+    { "preset_id": 24, "name": "Slide Label",    "is_system": true, "max": 12 }
+  ],
+  "order_row": {
+    "cells": [
+      { "preset_id": 1, "default": 2, "max": 10, "locked": false, "source": "preset_default" }
+    ]
+  },
+  "sample_rows": [
     {
-      "row_type": "ORDER",
+      "sample_id_local": "S1",
       "cells": [
-        { "preset_id": 1,  "default": 1, "max": 10, "locked": false, "source": "system_default" }
+        { "preset_id": 17, "default": 1, "max": 5,  "locked": false, "source": "test", "source_test_id": 412, "source_test_name": "CBC" }
       ]
     },
     {
-      "row_type": "SAMPLE",
       "sample_id_local": "S2",
       "cells": [
-        { "preset_id": 17, "default": 1, "max": 5,  "locked": false, "source": "test", "source_test_id": 412, "source_test_name": "CBC" },
+        { "preset_id": 17, "default": 1, "max": 5,  "locked": false, "source": "test", "source_test_id": 518, "source_test_name": "Tissue Biopsy" },
         { "preset_id": 24, "default": 4, "max": 12, "locked": true,  "source": "test", "source_test_id": 518, "source_test_name": "Tissue Biopsy" }
       ]
     }
@@ -591,12 +651,12 @@ The `locked: true` flag mirrors the §4.4.1 most-restrictive rule: any linked te
 
 ### Label Presets — Master Lists
 - [ ] **AC-1** — Admin opens Master Lists → Label Presets and sees the 5 system presets (Order, Specimen, Block, Slide, Freezer) pre-seeded.
-- [ ] **AC-2** — Admin creates a new "Cryo Vial Label" preset (25.4 × 25.4 mm, QR, category Storage, fields Lab Number + Storage Location + Expiry Date) and saves successfully.
+- [ ] **AC-2** — Admin creates a new "Cryo Vial Label" preset (25 × 25 mm, QR, fields Lab Number + Storage Location + Expiry Date) and saves successfully.
 - [ ] **AC-3** — Admin attempts to deactivate a system preset → blocked with an inline error.
 - [ ] **AC-4** — Preset Name uniqueness is enforced; attempting to save a duplicate name produces a field-level error.
 - [ ] **AC-5** — Admin deactivates a custom preset → preset disappears from "+ Add Label Type" pickers but historical orders linked to it still print.
 - [ ] **AC-6** — "Save as new" requires a different name before save succeeds.
-- [ ] **AC-7** — Validation: `max_qty < default_qty` blocks save with a field-level error.
+- [ ] **AC-7** — Validation: `max_per_order < default_per_order` or `max_per_sample < default_per_sample` blocks save with a field-level error. Attempting to save with both scope flags off also blocks save.
 
 ### Test Catalog — Labels Tab
 - [ ] **AC-8** — Labels SideNav entry appears in the Test Editor.
@@ -617,7 +677,7 @@ The `locked: true` flag mirrors the §4.4.1 most-restrictive rule: any linked te
 
 ### Migration
 - [ ] **AC-21** — Running the v2 migration creates exactly 5 system presets per site, with dimensions copied from `site_information.barcode.*` keys.
-- [ ] **AC-22** — Migration moves `site_information.barcode.*.default` and `barcode.*.max` values into `label_preset.default_qty` / `label_preset.max_qty`; legacy keys mirror read-only for one release cycle; the subsequent maintenance release migration removes them.
+- [ ] **AC-22** — Migration maps `site_information.barcode.order.{default,max}` into `label_preset.default_per_order` / `max_per_order` for the seeded Order Label preset; the other four (Specimen, Block, Slide, Freezer) map into `default_per_sample` / `max_per_sample`. Legacy keys mirror read-only for one release cycle; the subsequent maintenance release migration removes them.
 - [ ] **AC-23** — Existing OGC-284 orders continue to print labels correctly after migration.
 - [ ] **AC-24** — OGC-761 `test_label_preset_link` rows persist and remain valid after the schema additions; `allow_override` populates to its schema default (`true`).
 

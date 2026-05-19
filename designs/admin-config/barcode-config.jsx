@@ -10,41 +10,31 @@ import React, { useState } from 'react';
 // Carbon-DSL handoff artifact. Engineering should consume the v2 mockup at
 // designs/admin-config/barcode-labels-v2.jsx for Carbon component patterns.
 //
-// Scope: covers §2 of the v1 FRS (Barcode Configuration admin page) only.
-// The Order Entry Labels section (§3.1–§3.3) and post-save print dialog (§3.4)
-// from the v1 FRS are NOT rendered here — they are the not-yet-shipped surfaces
-// documented in §10 Implementation Gap Analysis. The HTML preview at
-// designs/admin-config/barcode-config.html sketches those surfaces in a
-// clearly-marked "Not yet shipped" appendix; for the v2 workflow including
-// configurable presets, see designs/admin-config/barcode-labels-v2.jsx
-// (Jira OGC-285).
+// Scope (v1.2 — May 2026): the admin page configures ONLY the two system-
+// default label types every OpenELIS deployment uses — Order and Specimen.
+// Block, Slide, Freezer, and any other site-specific label types are managed
+// in OGC-285 (Barcode Labels v2) as activatable seeded Label Presets.
+//
+// The Order Entry Labels section and the post-save print dialog (including
+// editable per-row quantities) also ship as part of OGC-285. They are
+// previewed in designs/admin-config/barcode-config.html under a clearly-marked
+// "Designed for OGC-285 (Barcode Labels v2)" appendix; the full v2 design is
+// at designs/admin-config/barcode-labels-v2.jsx.
 // ============================================================================
 
 export default function BarcodeConfigurationPage() {
   const [config, setConfig] = useState({
-    // Default counts
+    // Default counts (Order + Specimen only — v1 admin scope)
     orderDefault: 2,
     specimenDefault: 1,
-    blockDefault: 0,
-    slideDefault: 0,
-    freezerDefault: 0,
     // Max counts
     orderMax: 10,
     specimenMax: 5,
-    blockMax: 20,
-    slideMax: 50,
-    freezerMax: 10,
     // Dimensions
     orderHeight: 25.4,
     orderWidth: 76.2,
     specimenHeight: 25.4,
     specimenWidth: 76.2,
-    blockHeight: 25.4,
-    blockWidth: 76.2,
-    slideHeight: 12.7,
-    slideWidth: 44.5,
-    freezerHeight: 25.4,
-    freezerWidth: 50.8,
     // Other settings
     useOrderEntryFormat: false,
     preprinterPrefix: 'LNSP',
@@ -53,15 +43,12 @@ export default function BarcodeConfigurationPage() {
   const [saved, setSaved] = useState(false);
   const [validationErrors, setValidationErrors] = useState([]);
 
-  // BC-5 cross-field validation: Default ≤ Max for every label type.
+  // BC-3 cross-field validation: Default ≤ Max for Order and Specimen.
   const validateConfig = (c) => {
     const errors = [];
     const pairs = [
       ['Order', c.orderDefault, c.orderMax],
       ['Specimen', c.specimenDefault, c.specimenMax],
-      ['Block', c.blockDefault, c.blockMax],
-      ['Slide', c.slideDefault, c.slideMax],
-      ['Freezer', c.freezerDefault, c.freezerMax],
     ];
     pairs.forEach(([label, def, max]) => {
       if (Number(def) > Number(max)) {
@@ -136,8 +123,9 @@ export default function BarcodeConfigurationPage() {
     },
     grid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(5, 1fr)',
+      gridTemplateColumns: 'repeat(2, 1fr)',
       gap: '16px',
+      maxWidth: '480px',
     },
     grid2: {
       display: 'grid',
@@ -331,45 +319,6 @@ export default function BarcodeConfigurationPage() {
                   min="0"
                 />
               </div>
-              <div>
-                <label style={styles.label}>
-                  Block
-                  <span style={styles.newBadge}>NEW</span>
-                </label>
-                <input
-                  type="number"
-                  style={styles.inputSmall}
-                  value={config.blockDefault}
-                  onChange={(e) => setConfig({ ...config, blockDefault: parseInt(e.target.value) || 0 })}
-                  min="0"
-                />
-              </div>
-              <div>
-                <label style={styles.label}>
-                  Slide
-                  <span style={styles.newBadge}>NEW</span>
-                </label>
-                <input
-                  type="number"
-                  style={styles.inputSmall}
-                  value={config.slideDefault}
-                  onChange={(e) => setConfig({ ...config, slideDefault: parseInt(e.target.value) || 0 })}
-                  min="0"
-                />
-              </div>
-              <div>
-                <label style={styles.label}>
-                  Freezer
-                  <span style={styles.newBadge}>NEW</span>
-                </label>
-                <input
-                  type="number"
-                  style={styles.inputSmall}
-                  value={config.freezerDefault}
-                  onChange={(e) => setConfig({ ...config, freezerDefault: parseInt(e.target.value) || 0 })}
-                  min="0"
-                />
-              </div>
             </div>
           </div>
 
@@ -379,7 +328,7 @@ export default function BarcodeConfigurationPage() {
               Maximum Bar Code Labels
             </h3>
             <p style={{ fontSize: '13px', color: '#666', marginBottom: '16px' }}>
-              Indicate the maximum number of bar code labels that can be printed for each order or specimen. 
+              Indicate the maximum number of bar code labels that can be printed for each order or specimen.
               Once the maximum has been reached, a user will be unable to print additional labels.
             </p>
             <div style={styles.grid}>
@@ -400,45 +349,6 @@ export default function BarcodeConfigurationPage() {
                   style={styles.inputSmall}
                   value={config.specimenMax}
                   onChange={(e) => setConfig({ ...config, specimenMax: parseInt(e.target.value) || 0 })}
-                  min="0"
-                />
-              </div>
-              <div>
-                <label style={styles.label}>
-                  Block
-                  <span style={styles.newBadge}>NEW</span>
-                </label>
-                <input
-                  type="number"
-                  style={styles.inputSmall}
-                  value={config.blockMax}
-                  onChange={(e) => setConfig({ ...config, blockMax: parseInt(e.target.value) || 0 })}
-                  min="0"
-                />
-              </div>
-              <div>
-                <label style={styles.label}>
-                  Slide
-                  <span style={styles.newBadge}>NEW</span>
-                </label>
-                <input
-                  type="number"
-                  style={styles.inputSmall}
-                  value={config.slideMax}
-                  onChange={(e) => setConfig({ ...config, slideMax: parseInt(e.target.value) || 0 })}
-                  min="0"
-                />
-              </div>
-              <div>
-                <label style={styles.label}>
-                  Freezer
-                  <span style={styles.newBadge}>NEW</span>
-                </label>
-                <input
-                  type="number"
-                  style={styles.inputSmall}
-                  value={config.freezerMax}
-                  onChange={(e) => setConfig({ ...config, freezerMax: parseInt(e.target.value) || 0 })}
                   min="0"
                 />
               </div>
@@ -464,7 +374,7 @@ export default function BarcodeConfigurationPage() {
 
           {/* Optional Elements */}
           <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '16px' }}>Optional Elements</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
             {/* Order Labels */}
             <div style={{ backgroundColor: '#fafafa', padding: '16px', borderRadius: '8px' }}>
               <div style={{ fontWeight: 600, marginBottom: '12px' }}>Order Labels</div>
@@ -522,86 +432,6 @@ export default function BarcodeConfigurationPage() {
                 </label>
               </div>
             </div>
-
-            {/* Block Labels */}
-            <div style={{ backgroundColor: '#fafafa', padding: '16px', borderRadius: '8px' }}>
-              <div style={{ fontWeight: 600, marginBottom: '12px' }}>Block Labels</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={styles.checkbox}>
-                  <input type="checkbox" style={styles.checkboxInput} defaultChecked />
-                  Patient ID
-                </label>
-                <label style={styles.checkbox}>
-                  <input type="checkbox" style={styles.checkboxInput} defaultChecked />
-                  Block ID
-                </label>
-                <label style={styles.checkbox}>
-                  <input type="checkbox" style={styles.checkboxInput} defaultChecked />
-                  Specimen Type
-                </label>
-                <label style={styles.checkbox}>
-                  <input type="checkbox" style={styles.checkboxInput} />
-                  Case Number
-                </label>
-              </div>
-            </div>
-
-            {/* Slide Labels */}
-            <div style={{ backgroundColor: '#fafafa', padding: '16px', borderRadius: '8px' }}>
-              <div style={{ fontWeight: 600, marginBottom: '12px' }}>Slide Labels</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={styles.checkbox}>
-                  <input type="checkbox" style={styles.checkboxInput} defaultChecked />
-                  Patient ID
-                </label>
-                <label style={styles.checkbox}>
-                  <input type="checkbox" style={styles.checkboxInput} defaultChecked />
-                  Slide ID
-                </label>
-                <label style={styles.checkbox}>
-                  <input type="checkbox" style={styles.checkboxInput} defaultChecked />
-                  Stain Type
-                </label>
-                <label style={styles.checkbox}>
-                  <input type="checkbox" style={styles.checkboxInput} />
-                  Block ID
-                </label>
-                <label style={styles.checkbox}>
-                  <input type="checkbox" style={styles.checkboxInput} />
-                  Case Number
-                </label>
-              </div>
-            </div>
-
-            {/* Freezer Labels */}
-            <div style={{ backgroundColor: '#fafafa', padding: '16px', borderRadius: '8px', border: '2px solid #0f62fe' }}>
-              <div style={{ fontWeight: 600, marginBottom: '12px' }}>
-                Freezer Labels
-                <span style={styles.newBadge}>NEW</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={styles.checkbox}>
-                  <input type="checkbox" style={styles.checkboxInput} defaultChecked />
-                  Patient ID
-                </label>
-                <label style={styles.checkbox}>
-                  <input type="checkbox" style={styles.checkboxInput} defaultChecked />
-                  Storage Location
-                </label>
-                <label style={styles.checkbox}>
-                  <input type="checkbox" style={styles.checkboxInput} defaultChecked />
-                  Specimen Type
-                </label>
-                <label style={styles.checkbox}>
-                  <input type="checkbox" style={styles.checkboxInput} />
-                  Collection Date
-                </label>
-                <label style={styles.checkbox}>
-                  <input type="checkbox" style={styles.checkboxInput} />
-                  Expiry Date
-                </label>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -649,7 +479,7 @@ export default function BarcodeConfigurationPage() {
           </p>
         </div>
         <div style={styles.sectionBody}>
-          <div style={styles.grid3}>
+          <div style={styles.grid2}>
             {/* Order */}
             <div style={styles.dimensionGroup}>
               <div style={styles.dimensionTitle}>Order</div>
@@ -698,90 +528,6 @@ export default function BarcodeConfigurationPage() {
                   style={styles.inputSmall}
                   value={config.specimenWidth}
                   onChange={(e) => setConfig({ ...config, specimenWidth: parseFloat(e.target.value) || 0 })}
-                  step="0.1"
-                />
-                <div style={styles.helperText}>Enter values in: mm</div>
-              </div>
-            </div>
-
-            {/* Block */}
-            <div style={styles.dimensionGroup}>
-              <div style={styles.dimensionTitle}>Block</div>
-              <div style={styles.fieldGroup}>
-                <label style={styles.label}>Height</label>
-                <input
-                  type="number"
-                  style={styles.inputSmall}
-                  value={config.blockHeight}
-                  onChange={(e) => setConfig({ ...config, blockHeight: parseFloat(e.target.value) || 0 })}
-                  step="0.1"
-                />
-                <div style={styles.helperText}>Enter values in: mm</div>
-              </div>
-              <div>
-                <label style={styles.label}>Width</label>
-                <input
-                  type="number"
-                  style={styles.inputSmall}
-                  value={config.blockWidth}
-                  onChange={(e) => setConfig({ ...config, blockWidth: parseFloat(e.target.value) || 0 })}
-                  step="0.1"
-                />
-                <div style={styles.helperText}>Enter values in: mm</div>
-              </div>
-            </div>
-
-            {/* Slide */}
-            <div style={styles.dimensionGroup}>
-              <div style={styles.dimensionTitle}>Slide</div>
-              <div style={styles.fieldGroup}>
-                <label style={styles.label}>Height</label>
-                <input
-                  type="number"
-                  style={styles.inputSmall}
-                  value={config.slideHeight}
-                  onChange={(e) => setConfig({ ...config, slideHeight: parseFloat(e.target.value) || 0 })}
-                  step="0.1"
-                />
-                <div style={styles.helperText}>Enter values in: mm</div>
-              </div>
-              <div>
-                <label style={styles.label}>Width</label>
-                <input
-                  type="number"
-                  style={styles.inputSmall}
-                  value={config.slideWidth}
-                  onChange={(e) => setConfig({ ...config, slideWidth: parseFloat(e.target.value) || 0 })}
-                  step="0.1"
-                />
-                <div style={styles.helperText}>Enter values in: mm</div>
-              </div>
-            </div>
-
-            {/* Freezer - NEW */}
-            <div style={{ ...styles.dimensionGroup, border: '2px solid #0f62fe' }}>
-              <div style={styles.dimensionTitle}>
-                Freezer
-                <span style={styles.newBadge}>NEW</span>
-              </div>
-              <div style={styles.fieldGroup}>
-                <label style={styles.label}>Height</label>
-                <input
-                  type="number"
-                  style={styles.inputSmall}
-                  value={config.freezerHeight}
-                  onChange={(e) => setConfig({ ...config, freezerHeight: parseFloat(e.target.value) || 0 })}
-                  step="0.1"
-                />
-                <div style={styles.helperText}>Enter values in: mm</div>
-              </div>
-              <div>
-                <label style={styles.label}>Width</label>
-                <input
-                  type="number"
-                  style={styles.inputSmall}
-                  value={config.freezerWidth}
-                  onChange={(e) => setConfig({ ...config, freezerWidth: parseFloat(e.target.value) || 0 })}
                   step="0.1"
                 />
                 <div style={styles.helperText}>Enter values in: mm</div>

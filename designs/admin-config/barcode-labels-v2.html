@@ -96,9 +96,62 @@
     /* ── Source pills inside table cells ── */
     .source-tag { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.0625rem 0.4375rem;
       font-size: 0.6875rem; font-weight: 500; border-radius: 10rem; white-space: nowrap; }
-    .source-tag.from { background: #d9fbfb; color: #005d5d; }
-    .source-tag.default { background: #dde1e6; color: #343a3f; }
+    .source-tag.from,
+    .source-tag.from-test { background: #d9fbfb; color: #005d5d; }
+    .source-tag.default,
+    .source-tag.preset-default { background: #dde1e6; color: #343a3f; }
     .source-icon { width: 10px; height: 10px; display: inline-block; }
+
+    /* ── Print Scope & Quantities (editor) ── */
+    .form-group { border: 1px solid #e0e0e0; padding: 0.875rem 1rem; background: #f4f4f4; }
+    .form-group-legend { font-size: 0.75rem; font-weight: 600; color: #525252;
+      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.625rem; }
+    .checkbox-row { display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.875rem; color: #161616; margin-top: 0.5rem; }
+    .checkbox-row:first-of-type { margin-top: 0; }
+    .checkbox-row input[type=checkbox] { width: 16px; height: 16px; accent-color: #0f62fe; flex-shrink: 0; }
+    .checkbox-row label { font-weight: 500; cursor: pointer; }
+    .scope-fields { display: flex; gap: 1rem; margin-left: 1.5rem; margin-top: 0.5rem;
+      padding: 0.5rem 0.75rem; background: #fff; border: 1px solid #e0e0e0; flex-wrap: wrap;
+      transition: opacity .15s; }
+    .scope-fields.disabled { opacity: 0.4; pointer-events: none; }
+    .scope-fields label { display: flex; flex-direction: column; gap: 0.25rem;
+      font-size: 0.75rem; font-weight: 500; color: #525252; }
+    .scope-fields input[type=number] { width: 90px; padding: 0.375rem 0.5rem;
+      border: 1px solid #8d8d8d; font-size: 0.875rem; }
+    .form-group-hint { font-size: 0.75rem; color: #6f6f6f; margin-top: 0.625rem; font-style: italic; }
+
+    /* ── Order/Sample labels tables (View 3 split) ── */
+    .order-labels-table, .sample-labels-table { width: 100%; border-collapse: collapse;
+      font-size: 0.875rem; background: #fff; }
+    .order-labels-table th, .sample-labels-table th { background: #e0e0e0; text-align: left;
+      padding: 0.75rem 1rem; font-size: 0.75rem; font-weight: 600; color: #525252;
+      border-bottom: 1px solid #c6c6c6; }
+    .order-labels-table td, .sample-labels-table td { padding: 0.75rem 1rem;
+      border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+    .order-labels-table tr:last-child td, .sample-labels-table tr:last-child td { border-bottom: none; }
+    .order-labels-table tr.total-row, .sample-labels-table tr.total-row { background: #f4f4f4; }
+    .order-labels-table tr.total-row td, .sample-labels-table tr.total-row td { font-weight: 600; }
+    .order-labels-table input[type=number],
+    .sample-labels-table input[type=number] { width: 64px; padding: 0.375rem 0.5rem;
+      border: 1px solid #8d8d8d; font-size: 0.875rem; background: #fff; }
+    .order-labels-table td.empty-cell, .sample-labels-table td.empty-cell {
+      text-align: center; color: #a8a8a8; font-size: 1rem; }
+    .order-labels-table .source-tag, .sample-labels-table .source-tag { margin-top: 4px; }
+    .sample-name { font-weight: 500; color: #161616; font-size: 0.875rem; }
+    .sample-desc { font-size: 0.75rem; color: #6f6f6f; margin-top: 2px; }
+    .dim-mono { font-family: 'IBM Plex Mono', monospace; font-size: 0.6875rem;
+      color: #6f6f6f; font-weight: 400; }
+
+    /* Locked cell (test-catalog-locked quantity) */
+    .locked-cell { display: inline-flex; align-items: center; gap: 0.375rem;
+      padding: 0.375rem 0.625rem; background: #f4f4f4; border: 1px dashed #8d8d8d;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.875rem; font-weight: 600;
+      color: #161616; }
+    .locked-cell .lock-icon { color: #6f6f6f; }
+
+    /* Section title shared for View 3 */
+    .section-title { font-size: 1rem; font-weight: 600; margin: 0 0 0.5rem 0; color: #161616; }
 
     /* ── Lock icon ── */
     .lock-icon { display: inline-flex; align-items: center; justify-content: center;
@@ -243,6 +296,13 @@
     .print-dialog .pd-row .pd-name { font-size: 0.875rem; font-weight: 500; }
     .print-dialog .pd-row .pd-meta { font-size: 0.75rem; color: #6f6f6f; margin-top: 2px; }
     .print-dialog .pd-row .pd-qty { font-family: 'IBM Plex Mono', monospace; font-size: 0.875rem; }
+    .print-dialog .pd-row .pd-qty-input { font-family: 'IBM Plex Mono', monospace; font-size: 0.875rem;
+      width: 4.5rem; padding: 0.375rem 0.5rem; border: 1px solid #8d8d8d; background: #fff;
+      text-align: center; }
+    .print-dialog .pd-row .pd-qty-input:focus { outline: 2px solid #0f62fe; outline-offset: -2px; border-color: #0f62fe; }
+    .print-dialog .pd-qty-hint { margin: 0.5rem 0 0.75rem 0; padding: 0.625rem 0.875rem;
+      background: #edf5ff; border-left: 3px solid #0f62fe; font-size: 0.8125rem; color: #161616;
+      display: flex; align-items: flex-start; gap: 0.5rem; }
     .print-dialog .pd-row .pd-dim { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: #525252; }
     .print-dialog .pd-footer { display: flex; justify-content: space-between; align-items: center;
       padding: 0.875rem 1.25rem; border-top: 1px solid #e0e0e0; background: #f4f4f4; }
@@ -332,14 +392,7 @@
 
   <div class="table-wrap">
     <div class="toolbar">
-      <input type="text" class="toolbar-search" placeholder="Search presets by name or category…" />
-      <select class="filter-select">
-        <option>All Categories</option>
-        <option>Order</option>
-        <option>Specimen</option>
-        <option>Pathology</option>
-        <option>Storage</option>
-      </select>
+      <input type="text" class="toolbar-search" placeholder="Search presets by name…" />
       <select class="filter-select">
         <option>All Barcode Types</option>
         <option>Code 128</option>
@@ -358,7 +411,6 @@
       <thead>
         <tr>
           <th>Preset Name</th>
-          <th>Category</th>
           <th>Dimensions (H × W mm)</th>
           <th>Barcode Type</th>
           <th>Status</th>
@@ -380,8 +432,7 @@
             </div>
             <div class="name-desc">Order-level label printed when an order is created.</div>
           </td>
-          <td><span class="tag tag-blue">Order</span></td>
-          <td><span class="mono">25.4 × 76.2</span></td>
+          <td><span class="mono">25 × 76</span></td>
           <td>
             <span class="row-flex">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252"
@@ -414,8 +465,7 @@
             </div>
             <div class="name-desc">Default specimen-level label printed per sample container.</div>
           </td>
-          <td><span class="tag tag-teal">Specimen</span></td>
-          <td><span class="mono">25.4 × 76.2</span></td>
+          <td><span class="mono">25 × 76</span></td>
           <td>
             <span class="row-flex">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252"
@@ -448,8 +498,7 @@
             </div>
             <div class="name-desc">Histology paraffin block identifier.</div>
           </td>
-          <td><span class="tag tag-magenta">Pathology</span></td>
-          <td><span class="mono">25.4 × 76.2</span></td>
+          <td><span class="mono">25 × 76</span></td>
           <td>
             <span class="row-flex">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252"
@@ -482,8 +531,7 @@
             </div>
             <div class="name-desc">Microscope slide label — small footprint, 2D barcode preferred.</div>
           </td>
-          <td><span class="tag tag-magenta">Pathology</span></td>
-          <td><span class="mono">12.7 × 44.5</span></td>
+          <td><span class="mono">13 × 44</span></td>
           <td>
             <span class="row-flex">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252"
@@ -516,8 +564,7 @@
             </div>
             <div class="name-desc">Long-term storage container label for freezer racks.</div>
           </td>
-          <td><span class="tag tag-cyan">Storage</span></td>
-          <td><span class="mono">25.4 × 50.8</span></td>
+          <td><span class="mono">25 × 50</span></td>
           <td>
             <span class="row-flex">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252"
@@ -545,8 +592,7 @@
             </div>
             <div class="name-desc">Square label for cryogenic vial caps. QR code recommended.</div>
           </td>
-          <td><span class="tag tag-cyan">Storage</span></td>
-          <td><span class="mono">25.4 × 25.4</span></td>
+          <td><span class="mono">25 × 25</span></td>
           <td>
             <span class="row-flex">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252"
@@ -573,8 +619,7 @@
             </div>
             <div class="name-desc">Daughter-tube aliquot derived from a primary specimen.</div>
           </td>
-          <td><span class="tag tag-teal">Specimen</span></td>
-          <td><span class="mono">19.0 × 38.1</span></td>
+          <td><span class="mono">19 × 38</span></td>
           <td>
             <span class="row-flex">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252"
@@ -602,8 +647,7 @@
             </div>
             <div class="name-desc">Formalin-fixed paraffin-embedded tissue block label.</div>
           </td>
-          <td><span class="tag tag-magenta">Pathology</span></td>
-          <td><span class="mono">25.4 × 50.8</span></td>
+          <td><span class="mono">25 × 50</span></td>
           <td>
             <span class="row-flex">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252"
@@ -649,18 +693,9 @@
         <div class="editor-section">
           <h4>1. Basic Info</h4>
           <div class="form-row">
-            <div class="form-col">
+            <div class="form-col" style="flex-basis:100%;">
               <label class="field-label">Preset name *</label>
               <input type="text" value="Cryo Vial Label" />
-            </div>
-            <div class="form-col">
-              <label class="field-label">Category *</label>
-              <select>
-                <option>Order</option>
-                <option>Specimen</option>
-                <option>Pathology</option>
-                <option selected>Storage</option>
-              </select>
             </div>
           </div>
           <div class="form-row">
@@ -678,11 +713,11 @@
           <div class="form-row">
             <div class="form-col narrow">
               <label class="field-label">Height (mm)</label>
-              <input type="text" value="25.4" />
+              <input type="number" step="1" value="25" />
             </div>
             <div class="form-col narrow">
               <label class="field-label">Width (mm)</label>
-              <input type="text" value="25.4" />
+              <input type="number" step="1" value="25" />
             </div>
             <div class="form-col">
               <label class="field-label">Barcode type</label>
@@ -692,29 +727,25 @@
                 <option>DataMatrix (2D, small footprint)</option>
               </select>
             </div>
-            <div class="form-col">
-              <label class="field-label">Barcode size</label>
-              <select>
-                <option selected>Small</option>
-                <option>Medium</option>
-                <option>Large</option>
-              </select>
-            </div>
           </div>
-          <div class="form-hint mt-1">2D barcodes (QR / DataMatrix) save space on small labels.</div>
+          <div class="form-hint mt-1">Dimensions are whole millimeters. 2D barcodes (QR / DataMatrix) save space on small labels.</div>
         </div>
 
         <!-- 3. Content Fields -->
         <div class="editor-section">
           <h4>3. Content Fields</h4>
           <p class="form-hint" style="margin: 0 0 0.5rem 0;">
-            Pick from the system field set. Use the arrows to set print order.
+            All 16 system fields are listed below. Check the fields to include on this preset.
+            Lab Number is always required and locked to position 1. Use the arrows to set print order
+            for the checked fields.
           </p>
           <div class="fields-list">
+            <!-- 1. Lab Number (locked, always required, first position) -->
             <div class="field-row locked">
               <span class="field-grip" aria-hidden="true">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
               </span>
+              <span class="field-checkbox"><input type="checkbox" checked disabled aria-label="Lab Number included" /></span>
               <div class="field-name">
                 Lab Number
                 <span class="tag tag-gray tag-sm">
@@ -723,84 +754,284 @@
                       <path d="M24 14h-2v-4a6 6 0 0 0-12 0v4H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V16a2 2 0 0 0-2-2zm-8 12a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm4-12h-8v-4a4 4 0 0 1 8 0z"/>
                     </svg>
                   </span>
-                  Locked
+                  Locked · Required
                 </span>
               </div>
-              <span class="field-checkbox"><input type="checkbox" checked disabled /> Required</span>
               <button class="btn-icon" disabled aria-label="Move up">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
               </button>
               <button class="btn-icon" disabled aria-label="Move down">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
               </button>
-              <button class="btn-icon" disabled aria-label="Remove field">
-                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M17.4 16 24 9.4 22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6z"/></svg>
-              </button>
             </div>
+
+            <!-- 2. Patient Name -->
             <div class="field-row">
               <span class="field-grip" aria-hidden="true">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
               </span>
+              <span class="field-checkbox"><input type="checkbox" aria-label="Include Patient Name" /></span>
+              <div class="field-name">Patient Name</div>
+              <button class="btn-icon" aria-label="Move up">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
+              </button>
+              <button class="btn-icon" aria-label="Move down">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
+              </button>
+            </div>
+
+            <!-- 3. Patient ID -->
+            <div class="field-row">
+              <span class="field-grip" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
+              </span>
+              <span class="field-checkbox"><input type="checkbox" checked aria-label="Include Patient ID" /></span>
               <div class="field-name">Patient ID</div>
-              <span class="field-checkbox"><input type="checkbox" checked /> Required</span>
               <button class="btn-icon" aria-label="Move up">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
               </button>
               <button class="btn-icon" aria-label="Move down">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
               </button>
-              <button class="btn-icon" aria-label="Remove field">
-                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M17.4 16 24 9.4 22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6z"/></svg>
-              </button>
             </div>
+
+            <!-- 4. Patient Date of Birth -->
             <div class="field-row">
               <span class="field-grip" aria-hidden="true">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
               </span>
-              <div class="field-name">Storage Location</div>
-              <span class="field-checkbox"><input type="checkbox" checked /> Required</span>
+              <span class="field-checkbox"><input type="checkbox" aria-label="Include Patient Date of Birth" /></span>
+              <div class="field-name">Patient Date of Birth</div>
               <button class="btn-icon" aria-label="Move up">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
               </button>
               <button class="btn-icon" aria-label="Move down">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
               </button>
-              <button class="btn-icon" aria-label="Remove field">
-                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M17.4 16 24 9.4 22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6z"/></svg>
-              </button>
             </div>
+
+            <!-- 5. Patient Sex -->
             <div class="field-row">
               <span class="field-grip" aria-hidden="true">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
               </span>
+              <span class="field-checkbox"><input type="checkbox" aria-label="Include Patient Sex" /></span>
+              <div class="field-name">Patient Sex</div>
+              <button class="btn-icon" aria-label="Move up">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
+              </button>
+              <button class="btn-icon" aria-label="Move down">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
+              </button>
+            </div>
+
+            <!-- 6. Site ID -->
+            <div class="field-row">
+              <span class="field-grip" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
+              </span>
+              <span class="field-checkbox"><input type="checkbox" aria-label="Include Site ID" /></span>
+              <div class="field-name">Site ID</div>
+              <button class="btn-icon" aria-label="Move up">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
+              </button>
+              <button class="btn-icon" aria-label="Move down">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
+              </button>
+            </div>
+
+            <!-- 7. Collection Date and Time -->
+            <div class="field-row">
+              <span class="field-grip" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
+              </span>
+              <span class="field-checkbox"><input type="checkbox" aria-label="Include Collection Date and Time" /></span>
+              <div class="field-name">Collection Date and Time</div>
+              <button class="btn-icon" aria-label="Move up">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
+              </button>
+              <button class="btn-icon" aria-label="Move down">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
+              </button>
+            </div>
+
+            <!-- 8. Collected By -->
+            <div class="field-row">
+              <span class="field-grip" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
+              </span>
+              <span class="field-checkbox"><input type="checkbox" aria-label="Include Collected By" /></span>
+              <div class="field-name">Collected By</div>
+              <button class="btn-icon" aria-label="Move up">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
+              </button>
+              <button class="btn-icon" aria-label="Move down">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
+              </button>
+            </div>
+
+            <!-- 9. Tests -->
+            <div class="field-row">
+              <span class="field-grip" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
+              </span>
+              <span class="field-checkbox"><input type="checkbox" aria-label="Include Tests" /></span>
+              <div class="field-name">Tests</div>
+              <button class="btn-icon" aria-label="Move up">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
+              </button>
+              <button class="btn-icon" aria-label="Move down">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
+              </button>
+            </div>
+
+            <!-- 10. Specimen Type -->
+            <div class="field-row">
+              <span class="field-grip" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
+              </span>
+              <span class="field-checkbox"><input type="checkbox" checked aria-label="Include Specimen Type" /></span>
               <div class="field-name">Specimen Type</div>
-              <span class="field-checkbox"><input type="checkbox" /> Required</span>
               <button class="btn-icon" aria-label="Move up">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
               </button>
               <button class="btn-icon" aria-label="Move down">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
               </button>
-              <button class="btn-icon" aria-label="Remove field">
-                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M17.4 16 24 9.4 22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6z"/></svg>
-              </button>
             </div>
+
+            <!-- 11. Block ID -->
             <div class="field-row">
               <span class="field-grip" aria-hidden="true">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
               </span>
-              <div class="field-name">Expiry Date</div>
-              <span class="field-checkbox"><input type="checkbox" /> Required</span>
+              <span class="field-checkbox"><input type="checkbox" aria-label="Include Block ID" /></span>
+              <div class="field-name">Block ID</div>
               <button class="btn-icon" aria-label="Move up">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
               </button>
               <button class="btn-icon" aria-label="Move down">
                 <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
               </button>
-              <button class="btn-icon" aria-label="Remove field">
-                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M17.4 16 24 9.4 22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6z"/></svg>
+            </div>
+
+            <!-- 12. Slide ID -->
+            <div class="field-row">
+              <span class="field-grip" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
+              </span>
+              <span class="field-checkbox"><input type="checkbox" aria-label="Include Slide ID" /></span>
+              <div class="field-name">Slide ID</div>
+              <button class="btn-icon" aria-label="Move up">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
+              </button>
+              <button class="btn-icon" aria-label="Move down">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
               </button>
             </div>
+
+            <!-- 13. Stain Type -->
+            <div class="field-row">
+              <span class="field-grip" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
+              </span>
+              <span class="field-checkbox"><input type="checkbox" aria-label="Include Stain Type" /></span>
+              <div class="field-name">Stain Type</div>
+              <button class="btn-icon" aria-label="Move up">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
+              </button>
+              <button class="btn-icon" aria-label="Move down">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
+              </button>
+            </div>
+
+            <!-- 14. Case Number -->
+            <div class="field-row">
+              <span class="field-grip" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
+              </span>
+              <span class="field-checkbox"><input type="checkbox" aria-label="Include Case Number" /></span>
+              <div class="field-name">Case Number</div>
+              <button class="btn-icon" aria-label="Move up">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
+              </button>
+              <button class="btn-icon" aria-label="Move down">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
+              </button>
+            </div>
+
+            <!-- 15. Storage Location -->
+            <div class="field-row">
+              <span class="field-grip" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
+              </span>
+              <span class="field-checkbox"><input type="checkbox" checked aria-label="Include Storage Location" /></span>
+              <div class="field-name">Storage Location</div>
+              <button class="btn-icon" aria-label="Move up">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
+              </button>
+              <button class="btn-icon" aria-label="Move down">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
+              </button>
+            </div>
+
+            <!-- 16. Expiry Date -->
+            <div class="field-row">
+              <span class="field-grip" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><circle cx="12" cy="8" r="2"/><circle cx="20" cy="8" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="12" cy="24" r="2"/><circle cx="20" cy="24" r="2"/></svg>
+              </span>
+              <span class="field-checkbox"><input type="checkbox" checked aria-label="Include Expiry Date" /></span>
+              <div class="field-name">Expiry Date</div>
+              <button class="btn-icon" aria-label="Move up">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 4 6 14l1.4 1.4 7.6-7.6V28h2V7.8l7.6 7.6L26 14z"/></svg>
+              </button>
+              <button class="btn-icon" aria-label="Move down">
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16 28 6 18l1.4-1.4 7.6 7.6V4h2v20.2l7.6-7.6L26 18z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Print Scope & Quantities -->
+        <div class="editor-section">
+          <h4>4. Print Scope &amp; Quantities</h4>
+          <p class="form-hint" style="margin: 0 0 0.625rem 0;">
+            Choose when this preset prints and how many copies are generated by default. At least
+            one scope must be selected. Sub-fields for the unselected scope are grayed but still
+            visible so reviewers can see both default and max in context.
+          </p>
+          <div class="form-group">
+            <div class="form-group-legend">Print Scope &amp; Quantities</div>
+
+            <div class="checkbox-row">
+              <input type="checkbox" id="prints-per-order" />
+              <label for="prints-per-order">Per order — prints once per order</label>
+            </div>
+            <!-- per-order sub-fields: not checked so grayed/disabled-looking, but still shown -->
+            <div class="scope-fields scope-per-order disabled" aria-label="Per-order quantities (disabled — scope not selected)">
+              <label>Default per order
+                <input type="number" value="0" min="0" step="1" />
+              </label>
+              <label>Max per order
+                <input type="number" value="10" min="0" step="1" />
+              </label>
+            </div>
+
+            <div class="checkbox-row" style="margin-top: 0.875rem;">
+              <input type="checkbox" id="prints-per-sample" checked />
+              <label for="prints-per-sample">Per sample — prints once per each sample</label>
+            </div>
+            <!-- per-sample sub-fields: checked, fully active -->
+            <div class="scope-fields scope-per-sample" aria-label="Per-sample quantities">
+              <label>Default per sample
+                <input type="number" value="2" min="0" step="1" />
+              </label>
+              <label>Max per sample
+                <input type="number" value="10" min="0" step="1" />
+              </label>
+            </div>
+
+            <div class="form-group-hint">At least one scope must be selected.</div>
           </div>
         </div>
 
@@ -910,7 +1141,7 @@
                 <span class="name-primary">Specimen Label</span>
                 <span class="tag tag-teal tag-sm">Specimen</span>
               </div>
-              <div class="name-desc"><span class="mono">25.4 × 76.2</span> · Code 128</div>
+              <div class="name-desc"><span class="mono">25 × 76</span> · Code 128</div>
             </td>
             <td>
               <div class="num-input">
@@ -948,7 +1179,7 @@
                   </svg>
                 </span>
               </div>
-              <div class="name-desc"><span class="mono">12.7 × 44.5</span> · Code 128</div>
+              <div class="name-desc"><span class="mono">13 × 44</span> · Code 128</div>
             </td>
             <td>
               <div class="num-input">
@@ -1121,145 +1352,107 @@
     </div>
   </div>
 
-  <!-- Labels matrix table -->
-  <div class="table-wrap">
-    <table class="order-labels">
+  <!-- ORDER LABELS table (scope: per-order) -->
+  <h3 class="section-title">Order Labels</h3>
+  <p class="tile-sub" style="margin: 0 0 0.5rem 0;">
+    Presets whose scope is <em>Per order</em>. Quantity is multiplied once per order.
+  </p>
+  <div class="table-wrap" style="margin-bottom: 1.5rem;">
+    <table class="order-labels-table">
       <thead>
         <tr>
-          <th class="entity-cell">Entity</th>
-          <th class="qty-cell">
-            <div>Order Label</div>
-            <div style="font-weight:400; color:#6f6f6f;" class="mono">25.4 × 76.2 mm</div>
-          </th>
-          <th class="qty-cell">
-            <div>Specimen Label</div>
-            <div style="font-weight:400; color:#6f6f6f;" class="mono">25.4 × 76.2 mm</div>
-          </th>
-          <th class="qty-cell">
-            <div>Slide Label</div>
-            <div style="font-weight:400; color:#6f6f6f;" class="mono">12.7 × 44.5 mm</div>
-          </th>
-          <th class="qty-cell">
-            <div>FFPE Block</div>
-            <div style="font-weight:400; color:#6f6f6f;" class="mono">25.4 × 50.8 mm</div>
-          </th>
-          <th class="qty-cell">
-            <div>Cryo Vial Label</div>
-            <div style="font-weight:400; color:#6f6f6f;" class="mono">25.4 × 25.4 mm</div>
-          </th>
+          <th style="width: 160px;">Row</th>
+          <th>Order Label<br/><span class="dim-mono">25 × 76 mm</span></th>
         </tr>
       </thead>
       <tbody>
-        <!-- ROW: Order -->
         <tr>
+          <td><strong>Order</strong></td>
           <td>
-            <div class="name-primary">Order</div>
-            <div class="name-desc">Order-level labels (1 per order)</div>
-          </td>
-          <td>
-            <div class="qty-with-source">
-              <div class="num-input">
-                <input type="text" value="2" />
-                <button class="num-btn" tabindex="-1">−</button>
-                <button class="num-btn" tabindex="-1">+</button>
-              </div>
-              <span class="source-tag default">system default</span>
-            </div>
-          </td>
-          <td class="empty-cell">—</td>
-          <td class="empty-cell">—</td>
-          <td class="empty-cell">—</td>
-          <td class="empty-cell">—</td>
-        </tr>
-
-        <!-- ROW: Sample 1 — CBC + HIV Rapid both yield 1 specimen label; highest wins, CBC first alphabetically -->
-        <tr>
-          <td>
-            <div class="name-primary">Sample 1</div>
-            <div class="name-desc">Blood / EDTA · CBC with Differential, HIV Rapid</div>
-          </td>
-          <td class="empty-cell">—</td>
-          <td>
-            <div class="qty-with-source">
-              <div class="num-input">
-                <input type="text" value="1" />
-                <button class="num-btn" tabindex="-1">−</button>
-                <button class="num-btn" tabindex="-1">+</button>
-              </div>
-              <span class="source-tag from">from CBC + HIV Rapid</span>
-            </div>
-          </td>
-          <td class="empty-cell">—</td>
-          <td class="empty-cell">—</td>
-          <td>
-            <div class="qty-with-source">
-              <div class="num-input">
-                <input type="text" value="0" />
-                <button class="num-btn" tabindex="-1">−</button>
-                <button class="num-btn" tabindex="-1">+</button>
-              </div>
-              <span class="source-tag default">system default</span>
-            </div>
+            <input type="number" value="2" min="0" max="10" step="1" aria-label="Order Label quantity" />
+            <div class="source-tag preset-default">preset default</div>
           </td>
         </tr>
-
-        <!-- ROW: Sample 2 -->
-        <tr>
-          <td>
-            <div class="name-primary">Sample 2</div>
-            <div class="name-desc">Tissue / Formalin · Biopsy panel (Histopath + IHC)</div>
-          </td>
-          <td class="empty-cell">—</td>
-          <td>
-            <div class="qty-with-source">
-              <div class="num-input">
-                <input type="text" value="1" />
-                <button class="num-btn" tabindex="-1">−</button>
-                <button class="num-btn" tabindex="-1">+</button>
-              </div>
-              <span class="source-tag from">from Biopsy</span>
-            </div>
-          </td>
-          <td>
-            <div class="qty-with-source">
-              <div class="num-input">
-                <input type="text" value="8" />
-                <button class="num-btn" tabindex="-1">−</button>
-                <button class="num-btn" tabindex="-1">+</button>
-              </div>
-              <span class="source-tag from">from Biopsy</span>
-            </div>
-          </td>
-          <td>
-            <div class="qty-with-source">
-              <div class="num-input">
-                <input type="text" value="4" />
-                <button class="num-btn" tabindex="-1">−</button>
-                <button class="num-btn" tabindex="-1">+</button>
-              </div>
-              <span class="source-tag from">from Biopsy</span>
-            </div>
-          </td>
-          <td>
-            <div class="qty-with-source">
-              <div class="num-input">
-                <input type="text" value="2" />
-                <button class="num-btn" tabindex="-1">−</button>
-                <button class="num-btn" tabindex="-1">+</button>
-              </div>
-              <span class="source-tag from">from Biopsy</span>
-            </div>
-          </td>
-        </tr>
-
-        <!-- ROW: Total -->
         <tr class="total-row">
           <td><strong>Total</strong></td>
-          <td><strong class="mono">2</strong></td>
-          <td><strong class="mono">2</strong></td>
-          <td><strong class="mono">8</strong></td>
-          <td><strong class="mono">4</strong></td>
-          <td><strong class="mono">2</strong></td>
+          <td><strong>2</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SAMPLE LABELS table (scope: per-sample) -->
+  <h3 class="section-title" style="margin-top: 2rem;">Sample Labels</h3>
+  <p class="tile-sub" style="margin: 0 0 0.5rem 0;">
+    Presets whose scope is <em>Per sample</em>. Quantity is multiplied once per sample row.
+  </p>
+  <div class="table-wrap">
+    <table class="sample-labels-table">
+      <thead>
+        <tr>
+          <th style="width: 240px;">Sample</th>
+          <th>Specimen Label<br/><span class="dim-mono">25 × 76 mm</span></th>
+          <th>Slide Label<br/><span class="dim-mono">13 × 44 mm</span></th>
+          <th>FFPE Block<br/><span class="dim-mono">25 × 50 mm</span></th>
+          <th>Cryo Vial Label<br/><span class="dim-mono">25 × 25 mm</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Sample 1: CBC + HIV Rapid; both yield 1 specimen label aggregated; cryo defaults from preset -->
+        <tr>
+          <td>
+            <div class="sample-name">Sample 1</div>
+            <div class="sample-desc">Blood / EDTA · CBC with Differential, HIV Rapid</div>
+          </td>
+          <td>
+            <input type="number" value="1" min="0" max="5" aria-label="Specimen Label qty for Sample 1" />
+            <div class="source-tag from-test">from CBC + HIV Rapid</div>
+          </td>
+          <td class="empty-cell">—</td>
+          <td class="empty-cell">—</td>
+          <td>
+            <input type="number" value="0" min="0" max="10" aria-label="Cryo Vial Label qty for Sample 1" />
+            <div class="source-tag preset-default">preset default</div>
+          </td>
+        </tr>
+
+        <!-- Sample 2: Histopath; slide is locked (strict count from test catalog) -->
+        <tr>
+          <td>
+            <div class="sample-name">Sample 2</div>
+            <div class="sample-desc">Tissue / Formalin · Histopath</div>
+          </td>
+          <td>
+            <input type="number" value="1" min="0" max="5" aria-label="Specimen Label qty for Sample 2" />
+            <div class="source-tag from-test">from Histopath</div>
+          </td>
+          <td>
+            <div class="locked-cell">
+              8
+              <span class="lock-icon" aria-label="Quantity locked by test catalog" title="Locked by test catalog">
+                <svg viewBox="0 0 32 32" width="12" height="12" fill="currentColor" aria-hidden="true">
+                  <path d="M24 14h-2v-4a6 6 0 0 0-12 0v4H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V16a2 2 0 0 0-2-2zm-8 12a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm4-12h-8v-4a4 4 0 0 1 8 0z"/>
+                </svg>
+              </span>
+            </div>
+            <div class="source-tag from-test">from Histopath</div>
+          </td>
+          <td>
+            <input type="number" value="4" min="0" max="12" aria-label="FFPE Block qty for Sample 2" />
+            <div class="source-tag from-test">from Histopath</div>
+          </td>
+          <td>
+            <input type="number" value="2" min="0" max="10" aria-label="Cryo Vial Label qty for Sample 2" />
+            <div class="source-tag from-test">from Histopath</div>
+          </td>
+        </tr>
+
+        <tr class="total-row">
+          <td><strong>Total</strong></td>
+          <td><strong>2</strong></td>
+          <td><strong>8</strong></td>
+          <td><strong>4</strong></td>
+          <td><strong>2</strong></td>
         </tr>
       </tbody>
     </table>
@@ -1267,10 +1460,17 @@
 
   <div style="margin-top: 0.5rem; font-size: 0.75rem; color:#525252;">
     <strong>Source legend:</strong>
-    <span class="source-tag from" style="margin: 0 0.25rem;">from [test]</span>
+    <span class="source-tag from-test" style="margin: 0 0.25rem;">from [test]</span>
     derived from the test catalog's Labels tab.
-    <span class="source-tag default" style="margin: 0 0.25rem;">system default</span>
+    <span class="source-tag preset-default" style="margin: 0 0.25rem;">preset default</span>
     pulled from Master Lists → Label Presets defaults.
+    <span class="locked-cell" style="margin: 0 0.25rem; padding: 0.125rem 0.4375rem; font-size: 0.75rem;">
+      N
+      <span class="lock-icon" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="10" height="10" fill="currentColor"><path d="M24 14h-2v-4a6 6 0 0 0-12 0v4H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V16a2 2 0 0 0-2-2zm-8 12a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm4-12h-8v-4a4 4 0 0 1 8 0z"/></svg>
+      </span>
+    </span>
+    quantity locked by the test catalog (override disabled).
   </div>
 
   <!-- Action buttons -->
@@ -1304,14 +1504,23 @@
         </div>
       </div>
 
+      <div class="pd-qty-hint" role="note">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="flex-shrink:0; margin-top:1px;"><circle cx="8" cy="8" r="6.5" stroke="#0f62fe" stroke-width="1.25" fill="none"/><circle cx="8" cy="5" r="0.75" fill="#0f62fe"/><path d="M8 7.5v4.5" stroke="#0f62fe" stroke-width="1.25" stroke-linecap="round"/></svg>
+        <span>
+          <strong>You can adjust quantities below before printing if needed.</strong>
+          For example, if you'll create 4 aliquots, set Specimen Label to match. Each
+          per-type total recalculates on Print and is saved to the order.
+        </span>
+      </div>
+
       <div class="pd-rows">
         <div class="pd-row">
           <div>
             <div class="pd-name">Order Label</div>
-            <div class="pd-meta">Order-level labels</div>
+            <div class="pd-meta">1 × order = 2 labels</div>
           </div>
-          <div><span class="pd-qty">×2</span></div>
-          <div><span class="pd-dim">25.4 × 76.2 mm</span></div>
+          <div><input class="pd-qty-input" type="number" value="2" min="0" max="10" aria-label="Order Label quantity" /></div>
+          <div><span class="pd-dim">25 × 76 mm</span></div>
           <div><button class="btn btn-primary btn-sm" aria-label="Print Order Label">
             <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M26 12V4H6v8H2v12h4v4h20v-4h4V12zM8 6h16v6H8zm16 20H8v-8h16zm4-4h-2v-4H6v4H4V14h24z"/><path d="M10 20h12v2H10zm0 3h12v2H10z"/></svg>
             Print
@@ -1320,10 +1529,10 @@
         <div class="pd-row">
           <div>
             <div class="pd-name">Specimen Label</div>
-            <div class="pd-meta">2 samples · Blood, Tissue</div>
+            <div class="pd-meta">1 × 2 samples = 2 labels</div>
           </div>
-          <div><span class="pd-qty">×2</span></div>
-          <div><span class="pd-dim">25.4 × 76.2 mm</span></div>
+          <div><input class="pd-qty-input" type="number" value="2" min="0" max="10" aria-label="Specimen Label quantity" /></div>
+          <div><span class="pd-dim">25 × 76 mm</span></div>
           <div><button class="btn btn-primary btn-sm" aria-label="Print Specimen Label">
             <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M26 12V4H6v8H2v12h4v4h20v-4h4V12zM8 6h16v6H8zm16 20H8v-8h16zm4-4h-2v-4H6v4H4V14h24z"/><path d="M10 20h12v2H10zm0 3h12v2H10z"/></svg>
             Print
@@ -1332,10 +1541,10 @@
         <div class="pd-row">
           <div>
             <div class="pd-name">Slide Label</div>
-            <div class="pd-meta">From Biopsy panel · Sample 2</div>
+            <div class="pd-meta">8 × 1 sample = 8 labels</div>
           </div>
-          <div><span class="pd-qty">×8</span></div>
-          <div><span class="pd-dim">12.7 × 44.5 mm</span></div>
+          <div><input class="pd-qty-input" type="number" value="8" min="0" max="50" aria-label="Slide Label quantity" /></div>
+          <div><span class="pd-dim">13 × 44 mm</span></div>
           <div><button class="btn btn-primary btn-sm" aria-label="Print Slide Label">
             <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M26 12V4H6v8H2v12h4v4h20v-4h4V12zM8 6h16v6H8zm16 20H8v-8h16zm4-4h-2v-4H6v4H4V14h24z"/><path d="M10 20h12v2H10zm0 3h12v2H10z"/></svg>
             Print
@@ -1344,10 +1553,10 @@
         <div class="pd-row">
           <div>
             <div class="pd-name">FFPE Block</div>
-            <div class="pd-meta">From Biopsy panel · Sample 2</div>
+            <div class="pd-meta">4 × 1 sample = 4 labels</div>
           </div>
-          <div><span class="pd-qty">×4</span></div>
-          <div><span class="pd-dim">25.4 × 50.8 mm</span></div>
+          <div><input class="pd-qty-input" type="number" value="4" min="0" max="20" aria-label="FFPE Block quantity" /></div>
+          <div><span class="pd-dim">25 × 50 mm</span></div>
           <div><button class="btn btn-primary btn-sm" aria-label="Print FFPE Block">
             <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M26 12V4H6v8H2v12h4v4h20v-4h4V12zM8 6h16v6H8zm16 20H8v-8h16zm4-4h-2v-4H6v4H4V14h24z"/><path d="M10 20h12v2H10zm0 3h12v2H10z"/></svg>
             Print
@@ -1356,17 +1565,23 @@
         <div class="pd-row">
           <div>
             <div class="pd-name">Cryo Vial Label</div>
-            <div class="pd-meta">From Biopsy panel · Sample 2 · QR code</div>
+            <div class="pd-meta">2 × 1 sample = 2 labels</div>
           </div>
-          <div><span class="pd-qty">×2</span></div>
-          <div><span class="pd-dim">25.4 × 25.4 mm</span></div>
+          <div><input class="pd-qty-input" type="number" value="2" min="0" max="10" aria-label="Cryo Vial Label quantity" /></div>
+          <div><span class="pd-dim">25 × 25 mm</span></div>
           <div><button class="btn btn-primary btn-sm" aria-label="Print Cryo Vial Label">
             <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M26 12V4H6v8H2v12h4v4h20v-4h4V12zM8 6h16v6H8zm16 20H8v-8h16zm4-4h-2v-4H6v4H4V14h24z"/><path d="M10 20h12v2H10zm0 3h12v2H10z"/></svg>
             Print
           </button></div>
         </div>
       </div>
-      <p class="form-hint" style="margin-top: 0.875rem;">
+
+      <div style="margin-top: 0.875rem; padding: 0.625rem 0.875rem; background: #edf5ff;
+        border-left: 3px solid #0f62fe; font-size: 0.875rem; color: #161616;">
+        <strong>Total: 18 labels across 5 types</strong>
+      </div>
+
+      <p class="form-hint" style="margin-top: 0.625rem;">
         Each label type opens as a separate PDF in a new tab so different stocks can be used.
         Reprint anytime from Order View.
       </p>
