@@ -2362,3 +2362,42 @@
     gallery: "https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-management"
   added: "2026-05-14"
   status: draft
+
+- id: hil-specimen-quality
+  type: html
+  path: designs/results-validation/hil-specimen-quality-preview.html
+  spec: designs/results-validation/hil-specimen-quality.md
+  category: results-validation
+  description: "End-to-end HIL (Hemolysis/Icterus/Lipemia) specimen quality capture — analyzer ingestion, validator UI, patient report chip, admin threshold config. Extends Generic ASTM 1.2 profile."
+  links:
+    github: null
+    jira: null
+    gallery: "https://digi-uw.github.io/openelis-work/#/results-validation/hil-specimen-quality"
+  added: "2026-04-27"
+  status: draft
+
+- id: results-page-reagent-usage-v1
+  type: html
+  path: designs/results-validation/results-page-reagent-usage-v1-preview.html
+  spec: designs/results-validation/results-page-reagent-usage-v1.md
+  category: results-validation
+  description: "Reagent lot usage capture at result entry — Method & Reagents tab with lot selection, expiry display, and usage logging. Interim v1."
+  links:
+    github: null
+    jira: null
+    gallery: "https://digi-uw.github.io/openelis-work/#/results-validation/results-page-reagent-usage-v1"
+  added: "2026-04-27"
+  status: draft
+
+- id: results-page-reagent-usage-v2-1
+  type: html
+  path: designs/results-validation/results-page-reagent-usage-v2.1-preview.html
+  spec: designs/results-validation/results-page-reagent-usage-v1.md
+  category: results-validation
+  description: "Reagent usage v2.1 — drop-in replacement for ReagentLotSelection block with refined lot picker UX and inline expiry warnings."
+  links:
+    github: null
+    jira: null
+    gallery: "https://digi-uw.github.io/openelis-work/#/results-validation/results-page-reagent-usage-v2-1"
+  added: "2026-04-27"
+  status: draft

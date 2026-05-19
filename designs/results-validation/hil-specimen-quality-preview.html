@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HIL Specimen Quality — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; color: #161616; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .preview-content { padding: 1rem 2rem; max-width: 1440px; margin: 0 auto; }
+
+    /* Tab nav at top */
+    .surface-nav {
+      display: flex; gap: 4px; border-bottom: 1px solid #c6c6c6;
+      margin-bottom: 1.5rem;
+    }
+    .surface-nav button {
+      background: transparent; border: none; padding: 12px 20px;
+      font-family: 'IBM Plex Sans', sans-serif; font-size: 14px;
+      cursor: pointer; color: #525252; border-bottom: 3px solid transparent;
+    }
+    .surface-nav button.active { color: #0f62fe; border-bottom-color: #0f62fe; font-weight: 600; }
+    .surface-nav button:hover:not(.active) { color: #161616; background: #e0e0e0; }
+
+    /* Breadcrumb */
+    .bc { font-size: 12px; color: #525252; margin-bottom: 1rem; }
+    .bc a { color: #0f62fe; text-decoration: none; }
+    .bc a:hover { text-decoration: underline; }
+    .bc .sep { margin: 0 6px; color: #c6c6c6; }
+    .bc .current { color: #161616; }
+
+    /* Page header */
+    .page h2 { margin: 0 0 0.5rem 0; font-weight: 400; font-size: 28px; letter-spacing: 0.16px; }
+    .page .desc { color: #525252; max-width: 720px; margin-bottom: 1.5rem; line-height: 1.45; }
+
+    /* Severity scale notification */
+    .info-banner {
+      background: #edf5ff; border-left: 3px solid #0f62fe;
+      padding: 12px 16px; margin-bottom: 1.5rem; max-width: 920px;
+    }
+    .info-banner strong { display: block; margin-bottom: 2px; }
+    .info-banner .sub { font-size: 13px; color: #525252; }
+
+    /* Carbon table styles work on plain table */
+    table.cds--data-table { width: 100%; }
+    .cds--data-table thead { background: #f4f4f4; }
+    .cds--data-table th { font-weight: 600; font-size: 14px; text-align: left;
+                          padding: 12px 16px; border-bottom: 1px solid #c6c6c6; color: #161616; }
+    .cds--data-table td { padding: 12px 16px; border-bottom: 1px solid #e0e0e0; color: #161616; vertical-align: middle; }
+    .cds--data-table tr.global-row td { background: #e8e8e8; font-weight: 500; }
+    .cds--data-table tr.expanded-row > td { padding: 0; background: #fff; }
+    .cds--data-table tr.validated-row td { background: #f4f4f4; opacity: 0.65; }
+
+    /* Toolbar */
+    .toolbar { display: flex; justify-content: flex-end; padding: 12px 0; gap: 8px; }
+
+    /* Buttons (Carbon CSS) */
+    .cds--btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; padding: 11px 16px;
+                 border: 1px solid transparent; cursor: pointer; line-height: 18px; }
+    .cds--btn--primary { background: #0f62fe; color: #fff; }
+    .cds--btn--primary:hover { background: #0353e9; }
+    .cds--btn--primary:disabled { background: #c6c6c6; color: #8d8d8d; cursor: not-allowed; }
+    .cds--btn--ghost { background: transparent; color: #0f62fe; }
+    .cds--btn--ghost:hover { background: #e8e8e8; }
+    .cds--btn--danger { background: #da1e28; color: #fff; }
+    .cds--btn--danger--ghost { background: transparent; color: #da1e28; border: 1px solid #da1e28; }
+    .cds--btn--sm { padding: 7px 12px; font-size: 13px; }
+    .cds--btn--md { padding: 10px 16px; font-size: 14px; }
+
+    /* Tag (Carbon) */
+    .cds--tag { display: inline-block; padding: 2px 8px; font-size: 12px; font-weight: 400;
+                 border-radius: 16px; line-height: 18px; }
+    .cds--tag--green { background: #defbe6; color: #0e6027; }
+    .cds--tag--red { background: #ffd7d9; color: #a2191f; }
+    .cds--tag--purple { background: #e8daff; color: #6929c4; }
+    .cds--tag--warm-gray { background: #e0e0e0; color: #525252; }
+    .cds--tag--blue { background: #d0e2ff; color: #0043ce; }
+    .cds--tag--teal { background: #9ef0f0; color: #005d5d; }
+
+    /* HIL chip styling — yellow mono per FRS */
+    .hil-chip {
+      display: inline-block; background: #fff8c5; color: #525252;
+      font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700;
+      padding: 1px 6px; margin-left: 8px; border: 1px solid #e8d967; border-radius: 2px;
+      letter-spacing: 0.04em;
+    }
+
+    /* CRITICAL chip from round-3 patient report */
+    .critical-chip {
+      display: inline-block; background: #a00000; color: #fff; font-size: 9px; font-weight: 700;
+      padding: 1px 5px; letter-spacing: 0.08em; text-transform: uppercase; margin-left: 6px;
+      border-radius: 2px;
+    }
+
+    /* Inputs */
+    .cds--text-input, .cds--number-input, .cds--text-area, .cds--combo-box-input {
+      width: 100%; border: none; border-bottom: 1px solid #8d8d8d;
+      background: #f4f4f4; padding: 11px 16px; font-size: 14px; font-family: inherit;
+    }
+    .cds--text-input:focus, .cds--number-input:focus, .cds--text-area:focus { outline: 2px solid #0f62fe; outline-offset: -2px; }
+    .cds--label { display: block; font-size: 12px; color: #525252; margin-bottom: 6px; }
+    .cds--form-helper-text { font-size: 12px; color: #525252; margin-top: 4px; }
+    .cds--form-requirement { font-size: 12px; color: #da1e28; margin-top: 4px; }
+
+    /* Tile */
+    .cds--tile { background: #f4f4f4; padding: 1rem; }
+
+    /* Modal (simulated) */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(22, 22, 22, 0.5); z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal {
+      background: #fff; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .modal-header { padding: 1.5rem 1.5rem 0.75rem; }
+    .modal-header h3 { margin: 0; font-size: 20px; font-weight: 400; }
+    .modal-body { padding: 0 1.5rem 1.5rem; }
+    .modal-footer { display: flex; }
+    .modal-footer .cds--btn { flex: 1; padding: 16px; border-radius: 0; min-height: 64px; }
+
+    .warning-notification {
+      background: #fdf6dd; border-left: 3px solid #f1c21b;
+      padding: 12px 16px; margin-bottom: 1rem;
+    }
+    .warning-notification strong { display: block; }
+
+    /* Severity legend */
+    .sev-legend {
+      display: inline-flex; gap: 8px; align-items: center; font-size: 12px; color: #525252;
+      padding: 4px 8px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 2px;
+    }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    ⚡ Visual Preview — HIL Specimen Quality &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application
+  </div>
+  <div class="preview-content" id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+    const t = (key, fallback) => fallback || key;
+
+    // ---- Mock data ----
+    const MOCK_GLOBAL = {
+      id: 'global', scope: 'GLOBAL', testCode: null, testName: null,
+      hChip: 1, hWarn: 2, iChip: 1, iWarn: 2, lChip: 1, lWarn: 2,
+    };
+    const INITIAL_OVERRIDES = [
+      { id: 't1', scope: 'TEST', testCode: 'POT', testName: 'Potassium', sectionName: 'Chemistry',
+        hChip: 1, hWarn: 1, iChip: 1, iWarn: 2, lChip: 1, lWarn: 2 },
+      { id: 't2', scope: 'TEST', testCode: 'LDH', testName: 'Lactate dehydrogenase', sectionName: 'Chemistry',
+        hChip: 1, hWarn: 1, iChip: 1, iWarn: 2, lChip: 1, lWarn: 2 },
+      { id: 't3', scope: 'TEST', testCode: 'AST', testName: 'Aspartate aminotransferase', sectionName: 'Chemistry',
+        hChip: 1, hWarn: 1, iChip: 1, iWarn: 2, lChip: 1, lWarn: 2 },
+      { id: 't4', scope: 'TEST', testCode: 'FHB', testName: 'Free hemoglobin', sectionName: 'Chemistry',
+        hChip: 1, hWarn: 1, iChip: 1, iWarn: 3, lChip: 1, lWarn: 3 },
+      { id: 't5', scope: 'TEST', testCode: 'TBI', testName: 'Total bilirubin', sectionName: 'Chemistry',
+        hChip: 1, hWarn: 2, iChip: 1, iWarn: 1, lChip: 1, lWarn: 2 },
+    ];
+
+    const TEST_OPTIONS = [
+      { id: 'CRE', label: 'Creatinine (CRE)' },
+      { id: 'GLU', label: 'Glucose (GLU)' },
+      { id: 'ALT', label: 'Alanine aminotransferase (ALT)' },
+      { id: 'NA',  label: 'Sodium (NA)' },
+      { id: 'CA',  label: 'Calcium (CA)' },
+      { id: 'TRG', label: 'Triglycerides (TRG)' },
+    ];
+
+    const INITIAL_VALIDATOR_ROWS = [
+      { id: 'r1', testCode: 'POT', testName: 'Potassium', value: '6.8', unit: 'mmol/L', refRange: '3.5 – 5.0',
+        alerts: 'HH', method: 'Indirect ISE · Roche cobas c311',
+        hil: { h: 2, i: 0, l: 0, source: 'ANALYZER', enteredBy: null, enteredAt: null, note: null } },
+      { id: 'r2', testCode: 'GLU', testName: 'Glucose', value: '5.1', unit: 'mmol/L', refRange: '3.9 – 6.1',
+        alerts: '', method: 'Hexokinase · Roche cobas c311',
+        hil: { h: 1, i: 0, l: 0, source: 'ANALYZER', enteredBy: null, enteredAt: null, note: null } },
+      { id: 'r3', testCode: 'TBI', testName: 'Total bilirubin', value: '54', unit: 'µmol/L', refRange: '< 21',
+        alerts: 'H', method: 'Diazo · Roche cobas c311',
+        hil: { h: 0, i: 2, l: 0, source: 'ANALYZER', enteredBy: null, enteredAt: null, note: null } },
+      { id: 'r4', testCode: 'WBC', testName: 'White cell count', value: '11.2', unit: '10⁹/L', refRange: '4.0 – 10.0',
+        alerts: 'H', method: 'Flow cytometry · Sysmex XN-1000',
+        hil: { h: null, i: null, l: null, source: null, enteredBy: null, enteredAt: null, note: null } },
+    ];
+
+    function severityGlyph(s) {
+      if (s === null || s === undefined) return '−';
+      return ['−', '+', '++', '+++'][s] || '?';
+    }
+    function maxIndex(hil) { return Math.max(hil.h ?? -1, hil.i ?? -1, hil.l ?? -1); }
+    function shouldRenderChip(hil) { return maxIndex(hil) >= 1; }
+    function chipKindFor(hil) {
+      const m = maxIndex(hil);
+      if (m >= 3) return 'red';
+      if (m >= 2) return 'purple';
+      if (m >= 1) return 'warm-gray';
+      return null;
+    }
+    function formatHilString(hil) {
+      return `H${severityGlyph(hil.h)} I${severityGlyph(hil.i)} L${severityGlyph(hil.l)}`;
+    }
+    function severityWord(s) {
+      if (s === null || s === undefined) return 'not measured';
+      return ['absent', 'mild', 'moderate', 'severe'][s];
+    }
+    function resolveThreshold(testCode, overrides, global) {
+      return overrides.find(o => o.testCode === testCode) || global;
+    }
+    function shouldWarn(hil, threshold) {
+      return (hil.h !== null && hil.h >= threshold.hWarn)
+          || (hil.i !== null && hil.i >= threshold.iWarn)
+          || (hil.l !== null && hil.l >= threshold.lWarn);
+    }
+
+    // ---- HIL Chip ----
+    function HilChip({ hil }) {
+      if (!shouldRenderChip(hil)) return null;
+      const kind = chipKindFor(hil);
+      const tooltip = `${severityWord(hil.h)} hemolysis · ${severityWord(hil.i)} icterus · ${severityWord(hil.l)} lipemia`;
+      return (
+        <span className="hil-chip" title={tooltip}>
+          {formatHilString(hil)}
+          <span style={{ marginLeft: 6, padding: '0 4px',
+                        background: kind === 'red' ? '#a2191f' : kind === 'purple' ? '#6929c4' : '#525252',
+                        color: '#fff', borderRadius: 2, fontSize: 9, fontWeight: 700,
+                        textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            {kind === 'red' ? 'severe' : kind === 'purple' ? 'mod' : 'mild'}
+          </span>
+        </span>
+      );
+    }
+
+    // ---- Surface 1: Admin ----
+    function AdminThresholdsPage() {
+      const [overrides, setOverrides] = useState(INITIAL_OVERRIDES);
+      const [global, setGlobal] = useState(MOCK_GLOBAL);
+      const [expandedRow, setExpandedRow] = useState(null);
+      const [showCreateModal, setShowCreateModal] = useState(false);
+      const [confirmDelete, setConfirmDelete] = useState(null);
+
+      const toggleRow = (id) => setExpandedRow(prev => prev === id ? null : id);
+
+      const handleSaveRow = (id, edits) => {
+        if (id === 'global') setGlobal(prev => ({ ...prev, ...edits }));
+        else setOverrides(prev => prev.map(o => o.id === id ? { ...o, ...edits } : o));
+        setExpandedRow(null);
+      };
+
+      const handleDelete = (id) => {
+        setOverrides(prev => prev.filter(o => o.id !== id));
+        setConfirmDelete(null);
+        setExpandedRow(null);
+      };
+
+      const allRows = [global, ...overrides];
+
+      return (
+        <div className="page">
+          <div className="bc">
+            <a href="#">Admin</a><span className="sep">›</span>
+            <a href="#">Test Catalog Management</a><span className="sep">›</span>
+            <span className="current">HIL thresholds</span>
+          </div>
+
+          <h2>HIL specimen-quality thresholds</h2>
+          <p className="desc">
+            Set lab-wide and per-test thresholds for hemolysis, icterus, and lipemia.
+            Thresholds determine when a result row shows the HIL chip and when releasing the result
+            requires a typed reason.
+          </p>
+
+          <div className="info-banner">
+            <strong>Severity scale</strong>
+            <div className="sub">0 = absent · 1 = mild · 2 = moderate · 3 = severe. Warn-at must be ≥ chip-at for each interference type.</div>
+          </div>
+
+          <div className="cds--data-table-container">
+            <div className="toolbar">
+              <button className="cds--btn cds--btn--primary cds--btn--md"
+                      onClick={() => setShowCreateModal(true)}>
+                + Add per-test override
+              </button>
+            </div>
+            <table className="cds--data-table">
+              <thead>
+                <tr>
+                  <th>Test</th>
+                  <th style={{ width: 80, textAlign: 'center' }}>H chip ≥</th>
+                  <th style={{ width: 80, textAlign: 'center' }}>H warn ≥</th>
+                  <th style={{ width: 80, textAlign: 'center' }}>I chip ≥</th>
+                  <th style={{ width: 80, textAlign: 'center' }}>I warn ≥</th>
+                  <th style={{ width: 80, textAlign: 'center' }}>L chip ≥</th>
+                  <th style={{ width: 80, textAlign: 'center' }}>L warn ≥</th>
+                  <th style={{ width: 100 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {allRows.map(row => {
+                  const isGlobal = row.scope === 'GLOBAL';
+                  const isExpanded = expandedRow === row.id;
+                  const overridden = (k) => !isGlobal && row[k] !== global[k];
+                  return (
+                    <React.Fragment key={row.id}>
+                      <tr className={isGlobal ? 'global-row' : ''}>
+                        <td>
+                          {isGlobal ? (
+                            <strong>GLOBAL — applies to all tests not overridden below</strong>
+                          ) : (
+                            <span>
+                              <strong>{row.testName}</strong>
+                              <span style={{ color: '#525252', marginLeft: 8, fontSize: 12 }}>
+                                {row.testCode} · {row.sectionName}
+                              </span>
+                            </span>
+                          )}
+                        </td>
+                        {['hChip','hWarn','iChip','iWarn','lChip','lWarn'].map(k => (
+                          <td key={k} style={{ textAlign: 'center',
+                                              fontWeight: overridden(k) ? 700 : 400,
+                                              color: overridden(k) ? '#a2191f' : 'inherit' }}>
+                            {row[k]}
+                          </td>
+                        ))}
+                        <td>
+                          <button className="cds--btn cds--btn--ghost cds--btn--sm"
+                                  onClick={() => toggleRow(row.id)}>
+                            {isExpanded ? '▴ Cancel' : '▾ Edit'}
+                          </button>
+                        </td>
+                      </tr>
+                      {isExpanded && (
+                        <tr className="expanded-row">
+                          <td colSpan={8}>
+                            <ThresholdEditPanel
+                              row={row}
+                              isGlobal={isGlobal}
+                              onSave={(e) => handleSaveRow(row.id, e)}
+                              onCancel={() => setExpandedRow(null)}
+                              onDelete={isGlobal ? null : () => setConfirmDelete(row.id)}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {showCreateModal && (
+            <CreateOverrideModal
+              existing={overrides.map(o => o.testCode)}
+              defaults={global}
+              onCreate={(row) => { setOverrides(prev => [...prev, { ...row, id: `t${Date.now()}` }]); setShowCreateModal(false); }}
+              onCancel={() => setShowCreateModal(false)}
+            />
+          )}
+
+          {confirmDelete && (
+            <div className="modal-overlay" onClick={() => setConfirmDelete(null)}>
+              <div className="modal" onClick={e => e.stopPropagation()}>
+                <div className="modal-header"><h3>Delete per-test override?</h3></div>
+                <div className="modal-body">
+                  <p>The test will revert to GLOBAL thresholds at the next validation or report render. Existing audit-log entries are preserved.</p>
+                </div>
+                <div className="modal-footer">
+                  <button className="cds--btn cds--btn--ghost" onClick={() => setConfirmDelete(null)}>Cancel</button>
+                  <button className="cds--btn cds--btn--danger" onClick={() => handleDelete(confirmDelete)}>Delete</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function ThresholdEditPanel({ row, isGlobal, onSave, onCancel, onDelete }) {
+      const [edits, setEdits] = useState({
+        hChip: row.hChip, hWarn: row.hWarn,
+        iChip: row.iChip, iWarn: row.iWarn,
+        lChip: row.lChip, lWarn: row.lWarn,
+      });
+      const validation = {
+        h: edits.hWarn >= edits.hChip,
+        i: edits.iWarn >= edits.iChip,
+        l: edits.lWarn >= edits.lChip,
+      };
+      const allValid = validation.h && validation.i && validation.l;
+
+      return (
+        <div style={{ padding: '1.25rem', background: '#fff' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem' }}>
+            {[['h','Hemolysis'], ['i','Icterus'], ['l','Lipemia']].map(([k, label]) => (
+              <div key={k}>
+                <h5 style={{ marginTop: 0, marginBottom: 8 }}>{label}</h5>
+                <div style={{ marginBottom: 12 }}>
+                  <label className="cds--label">Chip at severity ≥</label>
+                  <input className="cds--text-input" type="number" min="1" max="3"
+                         value={edits[`${k}Chip`]}
+                         onChange={e => setEdits(p => ({ ...p, [`${k}Chip`]: Number(e.target.value) }))} />
+                  <div className="cds--form-helper-text">Below this, no chip on the result row.</div>
+                </div>
+                <div>
+                  <label className="cds--label">Warn-modal at severity ≥</label>
+                  <input className="cds--text-input" type="number" min="1" max="3"
+                         value={edits[`${k}Warn`]}
+                         style={!validation[k] ? { borderBottomColor: '#da1e28', outline: '2px solid #da1e28' } : {}}
+                         onChange={e => setEdits(p => ({ ...p, [`${k}Warn`]: Number(e.target.value) }))} />
+                  {!validation[k] ? (
+                    <div className="cds--form-requirement">Warn-at must be ≥ chip-at.</div>
+                  ) : (
+                    <div className="cds--form-helper-text">At this severity, releasing the result requires a typed reason.</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
+            <button className="cds--btn cds--btn--primary cds--btn--sm"
+                    disabled={!allValid} onClick={() => onSave(edits)}>Save</button>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={onCancel}>Cancel</button>
+            {onDelete && (
+              <button className="cds--btn cds--btn--danger--ghost cds--btn--sm"
+                      style={{ marginLeft: 'auto' }} onClick={onDelete}>Delete override</button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function CreateOverrideModal({ existing, defaults, onCreate, onCancel }) {
+      const [test, setTest] = useState(null);
+      const [edits, setEdits] = useState({
+        hChip: defaults.hChip, hWarn: defaults.hWarn,
+        iChip: defaults.iChip, iWarn: defaults.iWarn,
+        lChip: defaults.lChip, lWarn: defaults.lWarn,
+      });
+      const isDup = test && existing.includes(test.id);
+      const valid = test && !isDup
+        && edits.hWarn >= edits.hChip && edits.iWarn >= edits.iChip && edits.lWarn >= edits.lChip;
+
+      return (
+        <div className="modal-overlay" onClick={onCancel}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header"><h3>Add per-test threshold override</h3></div>
+            <div className="modal-body">
+              <div style={{ marginBottom: 16 }}>
+                <label className="cds--label">Test</label>
+                <select className="cds--text-input"
+                        onChange={e => setTest(TEST_OPTIONS.find(o => o.id === e.target.value))}>
+                  <option value="">Search test code or name…</option>
+                  {TEST_OPTIONS.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+                </select>
+                {isDup && <div className="cds--form-requirement">A threshold override already exists for this test.</div>}
+              </div>
+              {[['h','Hemolysis'], ['i','Icterus'], ['l','Lipemia']].map(([k, label]) => (
+                <div key={k} style={{ marginBottom: 12 }}>
+                  <h6 style={{ margin: '8px 0 4px' }}>{label}</h6>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <div>
+                      <label className="cds--label">Chip at ≥</label>
+                      <input className="cds--text-input" type="number" min="1" max="3"
+                             value={edits[`${k}Chip`]}
+                             onChange={e => setEdits(p => ({ ...p, [`${k}Chip`]: Number(e.target.value) }))} />
+                    </div>
+                    <div>
+                      <label className="cds--label">Warn at ≥</label>
+                      <input className="cds--text-input" type="number" min="1" max="3"
+                             value={edits[`${k}Warn`]}
+                             onChange={e => setEdits(p => ({ ...p, [`${k}Warn`]: Number(e.target.value) }))} />
+                      {edits[`${k}Warn`] < edits[`${k}Chip`] && (
+                        <div className="cds--form-requirement">Warn-at must be ≥ chip-at.</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="modal-footer">
+              <button className="cds--btn cds--btn--ghost" onClick={onCancel}>Cancel</button>
+              <button className="cds--btn cds--btn--primary" disabled={!valid}
+                      onClick={() => valid && onCreate({
+                        scope: 'TEST', testCode: test.id,
+                        testName: test.label.replace(/\s*\([^)]+\)\s*$/, ''),
+                        sectionName: 'Chemistry',
+                        ...edits,
+                      })}>
+                Add override
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ---- Surface 2: Validator ----
+    function ValidatorPage() {
+      const [rows, setRows] = useState(INITIAL_VALIDATOR_ROWS);
+      const [warnModal, setWarnModal] = useState(null);
+      const [manualEntryRow, setManualEntryRow] = useState(null);
+      const [validated, setValidated] = useState([]);
+
+      const handleValidate = (row) => {
+        const threshold = resolveThreshold(row.testCode, INITIAL_OVERRIDES, MOCK_GLOBAL);
+        if (shouldWarn(row.hil, threshold)) {
+          setWarnModal({ rowId: row.id, threshold, reason: '' });
+        } else {
+          setValidated(prev => [...prev, row.id]);
+        }
+      };
+
+      const handleOverride = () => {
+        setValidated(prev => [...prev, warnModal.rowId]);
+        setWarnModal(null);
+      };
+
+      const handleManualSave = (rowId, hil) => {
+        setRows(prev => prev.map(r => r.id === rowId
+          ? { ...r, hil: { ...hil, source: 'MANUAL', enteredBy: 'AKM (current user)', enteredAt: new Date().toLocaleTimeString() } }
+          : r));
+        setManualEntryRow(null);
+      };
+
+      return (
+        <div className="page">
+          <div className="bc">
+            <a href="#">Results</a><span className="sep">›</span>
+            <span className="current">Result validation</span>
+          </div>
+          <h2>Result validation</h2>
+          <p className="desc">
+            Accession DJ25-000187 · Doe, John M. · Sample collected 14 Apr 2026 08:55. Review each result and click Validate to release.
+          </p>
+
+          <div className="info-banner" style={{ background: '#fdf6dd', borderLeftColor: '#f1c21b' }}>
+            <strong>Try the flow</strong>
+            <div className="sub">
+              Click <strong>Validate</strong> on Potassium → modal appears (severe-on-sensitive-test triggers warn).
+              Click on Glucose → no modal (mild on glucose, below GLOBAL warn threshold).
+              Click <strong>Add HIL</strong> on White cell count → manual entry inline.
+            </div>
+          </div>
+
+          <div className="cds--data-table-container">
+            <table className="cds--data-table">
+              <thead>
+                <tr>
+                  <th>Test</th>
+                  <th>Result</th>
+                  <th>Reference range</th>
+                  <th style={{ width: 80 }}>Units</th>
+                  <th style={{ width: 80 }}>Alerts</th>
+                  <th style={{ width: 240 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(data => {
+                  const isValidated = validated.includes(data.id);
+                  const showAddHil = data.hil.source === null && !isValidated;
+                  return (
+                    <React.Fragment key={data.id}>
+                      <tr className={isValidated ? 'validated-row' : ''}>
+                        <td>
+                          <strong>{data.testName}</strong>
+                          <div style={{ fontSize: 12, color: '#6f6f6f', fontStyle: 'italic', marginTop: 2 }}>
+                            {data.method}
+                          </div>
+                        </td>
+                        <td>
+                          <span style={{ fontWeight: data.alerts ? 600 : 400, color: data.alerts === 'HH' ? '#a00000' : (data.alerts ? '#a2191f' : '#161616') }}>
+                            {data.alerts === 'HH' && '⇈ '}
+                            {data.value}
+                          </span>
+                          {data.alerts === 'HH' && <span className="critical-chip">Critical</span>}
+                          <HilChip hil={data.hil} />
+                        </td>
+                        <td>{data.refRange}</td>
+                        <td>{data.unit}</td>
+                        <td>
+                          {data.alerts && (
+                            <span className={'cds--tag ' + (data.alerts === 'HH' ? 'cds--tag--red' : 'cds--tag--red')}>
+                              {data.alerts}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ whiteSpace: 'nowrap' }}>
+                          {showAddHil && (
+                            <button className="cds--btn cds--btn--ghost cds--btn--sm"
+                                    onClick={() => setManualEntryRow(data.id)}>+ Add HIL</button>
+                          )}
+                          {!isValidated && (
+                            <button className="cds--btn cds--btn--primary cds--btn--sm"
+                                    style={{ marginLeft: 4 }}
+                                    onClick={() => handleValidate(data)}>Validate</button>
+                          )}
+                          {isValidated && <span className="cds--tag cds--tag--green">Released</span>}
+                        </td>
+                      </tr>
+                      {manualEntryRow === data.id && (
+                        <tr className="expanded-row">
+                          <td colSpan={6}>
+                            <ManualEntryPanel
+                              initial={data.hil}
+                              onSave={(hil) => handleManualSave(data.id, hil)}
+                              onCancel={() => setManualEntryRow(null)}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {warnModal && (
+            <WarnReleaseModal
+              row={rows.find(r => r.id === warnModal.rowId)}
+              threshold={warnModal.threshold}
+              reason={warnModal.reason}
+              onReasonChange={v => setWarnModal(p => ({ ...p, reason: v }))}
+              onOverride={handleOverride}
+              onCancel={() => setWarnModal(null)}
+            />
+          )}
+        </div>
+      );
+    }
+
+    function ManualEntryPanel({ initial, onSave, onCancel }) {
+      const [hil, setHil] = useState({
+        h: initial.h ?? '', i: initial.i ?? '', l: initial.l ?? '', note: initial.note ?? '',
+      });
+      const valid = hil.h !== '' || hil.i !== '' || hil.l !== '';
+      const numOrNull = v => v === '' ? null : Number(v);
+
+      return (
+        <div style={{ padding: '1.25rem', background: '#fff' }}>
+          <h5 style={{ marginTop: 0 }}>Add specimen-quality flags</h5>
+          <p style={{ color: '#525252', fontSize: 13, marginBottom: 16 }}>
+            0 = absent · 1 = mild · 2 = moderate · 3 = severe. Leave blank for "not measured".
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+            {[['h','Hemolysis'], ['i','Icterus'], ['l','Lipemia']].map(([k, label]) => (
+              <div key={k}>
+                <label className="cds--label">{label}</label>
+                <input className="cds--text-input" type="number" min="0" max="3"
+                       value={hil[k]}
+                       onChange={e => setHil(p => ({ ...p, [k]: e.target.value === '' ? '' : Number(e.target.value) }))} />
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 16 }}>
+            <label className="cds--label">Note (optional)</label>
+            <textarea className="cds--text-area" rows="2"
+                      placeholder="e.g. Sample slightly cloudy on receipt; flagged at intake."
+                      value={hil.note}
+                      onChange={e => setHil(p => ({ ...p, note: e.target.value }))} />
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+            <button className="cds--btn cds--btn--primary cds--btn--sm" disabled={!valid}
+                    onClick={() => onSave({ h: numOrNull(hil.h), i: numOrNull(hil.i), l: numOrNull(hil.l), note: hil.note || null })}>
+              Apply
+            </button>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={onCancel}>Cancel</button>
+          </div>
+        </div>
+      );
+    }
+
+    function WarnReleaseModal({ row, threshold, reason, onReasonChange, onOverride, onCancel }) {
+      const breaches = [];
+      if (row.hil.h !== null && row.hil.h >= threshold.hWarn)
+        breaches.push(`${severityWord(row.hil.h)} hemolysis (≥ ${threshold.hWarn} threshold for ${row.testName})`);
+      if (row.hil.i !== null && row.hil.i >= threshold.iWarn)
+        breaches.push(`${severityWord(row.hil.i)} icterus (≥ ${threshold.iWarn} threshold for ${row.testName})`);
+      if (row.hil.l !== null && row.hil.l >= threshold.lWarn)
+        breaches.push(`${severityWord(row.hil.l)} lipemia (≥ ${threshold.lWarn} threshold for ${row.testName})`);
+
+      const reasonValid = reason.trim().length >= 8;
+
+      return (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 640 }}>
+            <div className="modal-header" style={{ borderBottom: '1px solid #e0e0e0' }}>
+              <h3 style={{ color: '#a2191f' }}>⚠ Specimen quality threshold exceeded</h3>
+            </div>
+            <div className="modal-body">
+              <div className="warning-notification">
+                <strong>{row.testName}: {row.value} {row.unit}</strong>
+                <div style={{ fontSize: 13, color: '#525252', marginTop: 2 }}>
+                  Reference: {row.refRange}{row.alerts ? ` · ${row.alerts}` : ''}
+                </div>
+              </div>
+              <p style={{ fontWeight: 600, marginBottom: 8 }}>Threshold breaches:</p>
+              <ul style={{ paddingLeft: 20, margin: '0 0 16px' }}>
+                {breaches.map((b, i) => <li key={i} style={{ marginBottom: 4 }}>{b}</li>)}
+              </ul>
+              <label className="cds--label">Release reason (required)</label>
+              <textarea className="cds--text-area" rows="3"
+                        placeholder="e.g. Sample recollection refused by patient; result released with clinical note."
+                        value={reason}
+                        onChange={e => onReasonChange(e.target.value)} />
+              {reason.length > 0 && !reasonValid && (
+                <div className="cds--form-requirement">Release reason must be at least 8 characters.</div>
+              )}
+              <p style={{ fontSize: 12, color: '#525252', fontStyle: 'italic', marginTop: 12 }}>
+                Override and release will be audit-logged with your user, the timestamp, this reason, and a snapshot of the breached threshold(s).
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="cds--btn cds--btn--ghost" onClick={onCancel}>Cancel — return to validator</button>
+              <button className="cds--btn cds--btn--danger" disabled={!reasonValid} onClick={onOverride}>Override and release</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ---- Surface 3: Patient report illustration ----
+    function ReportIllustration() {
+      const ROWS = [
+        { test: 'Potassium', method: 'Indirect ISE · Roche cobas c311', value: '6.8', ref: '3.5 – 5.0', uom: 'mmol/L', flag: 'HH', hil: { h: 2, i: 0, l: 0 }, critical: true },
+        { test: 'Total bilirubin', method: 'Diazo · Roche cobas c311', value: '54', ref: '< 21', uom: 'µmol/L', flag: 'H', hil: { h: 0, i: 2, l: 0 }, critical: false },
+        { test: 'Triglycerides', method: 'GPO-PAP · Roche cobas c311', value: '4.8', ref: '< 1.7', uom: 'mmol/L', flag: 'H', hil: { h: 0, i: 0, l: 3 }, critical: false },
+        { test: 'Glucose', method: 'Hexokinase · Roche cobas c311', value: '5.1', ref: '3.9 – 6.1', uom: 'mmol/L', flag: '', hil: { h: 1, i: 0, l: 0 }, critical: false },
+      ];
+
+      return (
+        <div className="page">
+          <h2>Patient report — HIL chip rendering</h2>
+          <p className="desc">
+            Illustrates how the HIL chip from this feature lights up the dormant slot designed in
+            <code style={{ background: '#f4f4f4', padding: '0 4px', margin: '0 4px' }}>patient-report-redesign-spec.md §18</code>.
+            The JRXML wires the field today; once this feature ships, the chip renders on every deployment that emits HIL or has techs entering it manually.
+          </p>
+
+          <div style={{ background: '#fff', padding: '1.5rem', maxWidth: 720, fontFamily: 'IBM Plex Sans, sans-serif',
+                       border: '1px solid #c6c6c6' }}>
+            <div style={{ borderTop: '1.5px solid #161616', paddingTop: 6, marginBottom: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em',
+                           textTransform: 'uppercase', color: '#295785' }}>
+                Chemistry · Serum · SST
+              </div>
+            </div>
+            {ROWS.map((r, i) => (
+              <div key={i} style={{
+                padding: '8px 0', borderBottom: '1px solid #e0e0e0',
+                display: 'grid',
+                gridTemplateColumns: '3fr 0.6fr 1.4fr 1.4fr 0.8fr 0.5fr',
+                gap: 8, alignItems: 'baseline',
+                paddingLeft: r.critical ? 6 : 8,
+                borderLeft: r.critical ? '6px solid #a00000' : '3px solid transparent',
+                background: r.critical ? '#ffe0e0' : 'transparent',
+              }}>
+                <span>
+                  <strong>{r.test}</strong>
+                  <div style={{ fontSize: 9, color: '#6f6f6f', marginTop: 1 }}>
+                    Method: {r.method}
+                    {shouldRenderChip(r.hil) && (
+                      <span style={{
+                        display: 'inline-block', background: '#fff8c5', border: '1px solid #e8d967',
+                        fontFamily: 'IBM Plex Mono, monospace', fontSize: 9, fontWeight: 700,
+                        padding: '0 4px', marginLeft: 8, borderRadius: 2, color: '#525252',
+                        letterSpacing: '0.04em',
+                      }}>
+                        {formatHilString(r.hil)}
+                      </span>
+                    )}
+                  </div>
+                </span>
+                <span style={{ textAlign: 'center', fontFamily: 'IBM Plex Mono, monospace', fontSize: 10, color: '#6f6f6f' }}>SR</span>
+                <span style={{ textAlign: 'right', fontWeight: r.critical ? 700 : 500,
+                              color: r.critical ? '#a00000' : (r.flag ? '#da1e28' : '#161616') }}>
+                  {r.critical && '⇈ '}
+                  {r.value}
+                  {r.critical && <span className="critical-chip">Critical</span>}
+                </span>
+                <span style={{ color: '#525252', fontSize: 12 }}>{r.ref}</span>
+                <span style={{ color: '#525252', fontSize: 12 }}>{r.uom}</span>
+                <span style={{ textAlign: 'center', fontWeight: 700,
+                              color: r.flag === 'HH' ? '#a00000' : (r.flag ? '#da1e28' : '#525252') }}>
+                  {r.flag}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p style={{ marginTop: 16, fontSize: 13, color: '#525252', maxWidth: 720, fontStyle: 'italic' }}>
+            Potassium row demonstrates the full stack: critical value (round-3 redesign — 6pt rule, ⇈ glyph,
+            CRITICAL chip) co-rendering with the new HIL chip on the method sub-line. The yellow chip is
+            unambiguous in B&W photocopy too — its tonal contrast survives grayscale.
+            Glucose shows mild hemolysis at the global default `chip_at = 1` — visible on the report,
+            but no validator warning fires because `glucose hWarn = 2` (global default) is above the
+            sample's severity 1.
+          </p>
+        </div>
+      );
+    }
+
+    // ---- Surface 4: Profile snippet ----
+    function ProfileSnippet() {
+      return (
+        <div className="page">
+          <h2>Generic ASTM 1.2 profile — HIL slot</h2>
+          <p className="desc">
+            The Generic ASTM 1.2 profile schema gains a new optional <code>specimen_quality_field_mapping</code> block.
+            Per FRS §3.2 FR-1 → FR-7. Two reference profiles ship with v1 (Roche cobas c311, Sysmex XN-1000) so other deployments have a copy-paste starting point.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div style={{ background: '#161616', color: '#f4f4f4', padding: '1rem',
+                         fontFamily: 'IBM Plex Mono, monospace', fontSize: 12, lineHeight: 1.55,
+                         overflowX: 'auto' }}>
+              <div style={{ color: '#a2191f', marginBottom: 8 }}># cobas-c311-profile.yaml</div>
+              <div style={{ color: '#fa75a6' }}>analyzer_id:</div> COBAS_C311_001<br/>
+              <div style={{ color: '#fa75a6' }}>protocol:</div> ASTM-LIS01-A2<br/>
+              <div style={{ marginTop: 8 }}>... existing profile content ...</div>
+              <div style={{ marginTop: 16, color: '#42be65' }}># NEW: HIL field mapping (FRS §3.2)</div>
+              <div style={{ color: '#fa75a6' }}>specimen_quality_field_mapping:</div><br/>
+              &nbsp;&nbsp;<span style={{ color: '#fa75a6' }}>hemolysis:</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>source:</span> OBX<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>field_position:</span> <span style={{ color: '#ff7eb6' }}>8</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>transform:</span> numeric_to_severity<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>transform_config:</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>thresholds:</span> [50, 100, 200]<br/>
+              &nbsp;&nbsp;<span style={{ color: '#fa75a6' }}>icterus:</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>source:</span> OBX<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>field_position:</span> <span style={{ color: '#ff7eb6' }}>8</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>pattern:</span> <span style={{ color: '#42be65' }}>"I([0-9]+)"</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>transform:</span> numeric_to_severity<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>transform_config:</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>thresholds:</span> [10, 30, 60]<br/>
+              &nbsp;&nbsp;<span style={{ color: '#fa75a6' }}>lipemia:</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>source:</span> OBX<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>field_position:</span> <span style={{ color: '#ff7eb6' }}>8</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>pattern:</span> <span style={{ color: '#42be65' }}>"L([0-9]+)"</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>transform:</span> numeric_to_severity<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>transform_config:</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>thresholds:</span> [50, 150, 300]<br/>
+            </div>
+            <div style={{ background: '#161616', color: '#f4f4f4', padding: '1rem',
+                         fontFamily: 'IBM Plex Mono, monospace', fontSize: 12, lineHeight: 1.55,
+                         overflowX: 'auto' }}>
+              <div style={{ color: '#a2191f', marginBottom: 8 }}># sysmex-xn-profile.yaml</div>
+              <div style={{ color: '#fa75a6' }}>analyzer_id:</div> SYSMEX_XN_1000_001<br/>
+              <div style={{ color: '#fa75a6' }}>protocol:</div> HL7v2.5<br/>
+              <div style={{ marginTop: 8 }}>... existing profile content ...</div>
+              <div style={{ marginTop: 16, color: '#42be65' }}># NEW: HIL field mapping</div>
+              <div style={{ color: '#fa75a6' }}>specimen_quality_field_mapping:</div><br/>
+              &nbsp;&nbsp;<span style={{ color: '#fa75a6' }}>hemolysis:</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>source:</span> NTE<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>pattern:</span> <span style={{ color: '#42be65' }}>"H([+\\-]+)"</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>transform:</span> code_to_severity<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>transform_config:</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>mapping:</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>"-":</span> <span style={{ color: '#ff7eb6' }}>0</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>"+":</span> <span style={{ color: '#ff7eb6' }}>1</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>"++":</span> <span style={{ color: '#ff7eb6' }}>2</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style={{ color: '#82cfff' }}>"+++":</span> <span style={{ color: '#ff7eb6' }}>3</span><br/>
+              <div style={{ marginTop: 8, color: '#a2191f' }}># icterus and lipemia: same shape, omitted for brevity</div>
+            </div>
+          </div>
+          <p style={{ marginTop: 16, fontSize: 13, color: '#525252', maxWidth: 920, fontStyle: 'italic' }}>
+            The generic ASTM/HL7 parser reads the slot at parse time, applies the transform, and writes
+            severity (0–3) to <code style={{ background: '#f4f4f4', padding: '0 4px' }}>result.hemolysis_index</code> /
+            <code style={{ background: '#f4f4f4', padding: '0 4px' }}>icterus_index</code> /
+            <code style={{ background: '#f4f4f4', padding: '0 4px' }}>lipemia_index</code>. New analyzers
+            ship via <strong>profile-data-only changes</strong> in subsequent deployments — no Java code, no
+            PR to OpenELIS Global, no restart. Threshold values come from each manufacturer's EP07
+            interference reference.
+          </p>
+        </div>
+      );
+    }
+
+    function App() {
+      const [tab, setTab] = useState(0);
+      const TABS = [
+        { label: 'Admin: HIL Thresholds', component: <AdminThresholdsPage /> },
+        { label: 'Validator: Chip + Manual + Warn', component: <ValidatorPage /> },
+        { label: 'Patient report rendering', component: <ReportIllustration /> },
+        { label: 'Analyzer profile snippet', component: <ProfileSnippet /> },
+      ];
+      return (
+        <div>
+          <div className="surface-nav">
+            {TABS.map((t, i) => (
+              <button key={i} className={i === tab ? 'active' : ''} onClick={() => setTab(i)}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+          {TABS[tab].component}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
