@@ -1628,14 +1628,33 @@
   type: jsx
   path: designs/admin-config/barcode-config.jsx
   spec: designs/admin-config/barcode-config.md
+  preview: designs/admin-config/barcode-config.html
   category: admin-config
   description: >
-    Barcode label configuration and printing — template design, field mapping,
-    label previews, and bulk print queue for sample collection labels.
+    Barcode label v1 — freezer labels and order entry label configuration,
+    field mapping, and system label type setup (OGC-284 gap analysis + v1.1 rewrite).
   links:
-    jira: ["OGC-527"]
+    jira: ["OGC-284"]
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/barcode-config
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/barcode-config.html
   added: "2026-04-13"
+  updated: "2026-05-18"
+
+- id: barcode-labels-v2
+  type: jsx
+  path: designs/admin-config/barcode-labels-v2.jsx
+  spec: designs/admin-config/barcode-labels-v2.md
+  preview: designs/admin-config/barcode-labels-v2.html
+  category: admin-config
+  description: >
+    Admin-configurable label preset system — lab admins define custom label types
+    with dimensions, barcode style, and content fields; Test Catalog declares
+    label requirements; Order Entry aggregates into a deterministic label workload.
+  links:
+    jira: ["OGC-285"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/barcode-labels-v2
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/barcode-labels-v2.html
+  added: "2026-05-18"
 
 - id: patient-id-card-scanning
   type: mockup

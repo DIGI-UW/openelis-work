@@ -1,8 +1,23 @@
 import React, { useState } from 'react';
 
 // ============================================================================
-// BARCODE CONFIGURATION PAGE MOCKUP
+// BARCODE CONFIGURATION PAGE MOCKUP — Barcode Labels v1 (OGC-284), ADMIN SURFACE ONLY
 // Administration → Master Lists → Barcode Configuration
+//
+// ⚠️ This mockup is for VISUAL FIDELITY ONLY — it uses raw HTML elements with
+// inline styles instead of @carbon/react components. It accurately represents
+// what the current admin page looks like to lab admins, but is NOT a
+// Carbon-DSL handoff artifact. Engineering should consume the v2 mockup at
+// designs/admin-config/barcode-labels-v2.jsx for Carbon component patterns.
+//
+// Scope: covers §2 of the v1 FRS (Barcode Configuration admin page) only.
+// The Order Entry Labels section (§3.1–§3.3) and post-save print dialog (§3.4)
+// from the v1 FRS are NOT rendered here — they are the not-yet-shipped surfaces
+// documented in §10 Implementation Gap Analysis. The HTML preview at
+// designs/admin-config/barcode-config.html sketches those surfaces in a
+// clearly-marked "Not yet shipped" appendix; for the v2 workflow including
+// configurable presets, see designs/admin-config/barcode-labels-v2.jsx
+// (Jira OGC-285).
 // ============================================================================
 
 export default function BarcodeConfigurationPage() {
@@ -36,8 +51,36 @@ export default function BarcodeConfigurationPage() {
   });
 
   const [saved, setSaved] = useState(false);
+  const [validationErrors, setValidationErrors] = useState([]);
+
+  // BC-5 cross-field validation: Default ≤ Max for every label type.
+  const validateConfig = (c) => {
+    const errors = [];
+    const pairs = [
+      ['Order', c.orderDefault, c.orderMax],
+      ['Specimen', c.specimenDefault, c.specimenMax],
+      ['Block', c.blockDefault, c.blockMax],
+      ['Slide', c.slideDefault, c.slideMax],
+      ['Freezer', c.freezerDefault, c.freezerMax],
+    ];
+    pairs.forEach(([label, def, max]) => {
+      if (Number(def) > Number(max)) {
+        errors.push(`${label}: default (${def}) cannot exceed max (${max}).`);
+      }
+      if (Number(def) < 0 || Number(max) < 0) {
+        errors.push(`${label}: counts must be non-negative.`);
+      }
+    });
+    return errors;
+  };
 
   const handleSave = () => {
+    const errors = validateConfig(config);
+    setValidationErrors(errors);
+    if (errors.length > 0) {
+      setSaved(false);
+      return;
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -223,8 +266,33 @@ export default function BarcodeConfigurationPage() {
       </div>
 
       {saved && (
-        <div style={styles.successBanner}>
-          ✓ Barcode configuration saved successfully
+        <div
+          style={styles.successBanner}
+          role="status"
+          aria-live="polite"
+        >
+          <span aria-hidden="true" style={{ marginRight: '8px' }}>✓</span>
+          <span><strong>Saved.</strong> Barcode configuration saved successfully.</span>
+        </div>
+      )}
+
+      {validationErrors.length > 0 && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          style={{
+            ...styles.successBanner,
+            background: '#fff1f1',
+            border: '1px solid #da1e28',
+            color: '#a2191f',
+          }}
+        >
+          <strong>Cannot save — validation errors:</strong>
+          <ul style={{ margin: '8px 0 0 20px', padding: 0 }}>
+            {validationErrors.map((err, i) => (
+              <li key={i}>{err}</li>
+            ))}
+          </ul>
         </div>
       )}
 
