@@ -2401,3 +2401,72 @@
     gallery: "https://digi-uw.github.io/openelis-work/#/results-validation/results-page-reagent-usage-v2-1"
   added: "2026-04-27"
   status: draft
+
+- id: environmental-lhu
+  type: both
+  path: designs/vector-surveillance/environmental-lhu.jsx
+  spec: designs/vector-surveillance/environmental-lhu.md
+  preview: designs/vector-surveillance/environmental-lhu-annotated.html
+  category: vector-surveillance
+  description: >
+    Environmental Laporan Hasil Uji v2.0 — printable test result report for env samples
+    (air, water, soil, sediment, food). v2.0 adds ISO/IEC 17025:2017 §7.8 report-face
+    blocks (disclaimer, decision rule, end-of-report marker, reproduction restriction),
+    conditional measurement uncertainty (U) column, subcontract disclosure, sampling
+    responsibility flag, method validation status annotations, and amendment workflow.
+    Inherits S-06 letterhead, e-signature, and print config. Multi-matrix result table
+    with compliance icons, KAN accreditation handling, and Baku Mutu regulatory reference.
+    Real data from PT. Unggulrejo Wasono & RS Permata Depok.
+  links:
+    jira: ["OGC-552", "OGC-527"]
+    gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-lhu
+    preview: https://digi-uw.github.io/openelis-work/designs/vector-surveillance/environmental-lhu-annotated.html
+  tags:
+    - environmental
+    - report
+    - ISO-17025
+    - KAN
+    - laporan-hasil
+    - Indonesia
+    - SILNAS
+    - measurement-uncertainty
+    - decision-rule
+  added: "2026-04-28"
+  updated: "2026-05-26"
+  status: draft
+
+- id: vector-lhu
+  type: both
+  path: designs/vector-surveillance/vector-lhu.jsx
+  spec: designs/vector-surveillance/vector-lhu.md
+  preview: designs/vector-surveillance/vector-lhu-annotated.html
+  category: vector-surveillance
+  description: >
+    Vector Laporan Hasil Uji v2.0 — printable surveillance report for BBLKM/Labkesmas.
+    Four result-table modes: Species ID (PCR + arbovirus serotype/genotype), Surveillance
+    Indices (MIR + MLE with 95% CIs per WHO 2021), Larval Population (HI/CI/BI + ABJ vs
+    Kemenkes 95% target), and Mode D Pupae Per Person Index (PPI) per WHO 2003 / Focks et
+    al. 2000. v2.0 adds ISO 17025 §7.8 report-face blocks, trap type, lure, deployment
+    period, hierarchical geographic resolution (province → kelurahan → RT/RW), and
+    deployment-configurable risk thresholds (PAHO 2017 + Permenkes 50/2017). Real data
+    from BBLKM Jakarta Aedes aegypti specimens.
+  links:
+    jira: ["OGC-552", "OGC-527"]
+    gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-lhu
+    preview: https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-lhu-annotated.html
+  tags:
+    - vector
+    - surveillance
+    - report
+    - ISO-17025
+    - WHO
+    - PAHO
+    - ABJ
+    - PPI
+    - MLE
+    - laporan-hasil
+    - Indonesia
+    - SILNAS
+  added: "2026-04-28"
+  updated: "2026-05-26"
+  status: draft
