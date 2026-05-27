@@ -561,20 +561,26 @@
 - id: cytology-case-view
   type: mockup
   path: designs/pathology/cytology-case-view.jsx
+  preview: designs/pathology/cytology-case-view.html
   category: pathology
-  description: Cytology case view with Bethesda System wizard workflow
+  description: Bethesda 2014 cytology case view — accordion layout grounded in real cytology schema, HPV sibling-Analysis display, anti-anchoring ASCCP recommendation UX, critical-result acknowledgment hook for HSIL+ findings
   paired_with: cytology-case-view-spec
-  links: {}
+  links:
+    preview: https://digi-uw.github.io/openelis-work/designs/pathology/cytology-case-view.html
+    gallery: https://digi-uw.github.io/openelis-work/#/pathology/cytology-case-view
   added: "2026-03-03"
+  updated: "2026-05-27"
 
 - id: cytology-case-view-spec
   type: spec
   path: designs/pathology/cytology-case-view.md
   category: pathology
-  description: Cytology case view FRS — Bethesda System algorithm interface
+  description: Cytology Case View FRS v2 — Bethesda 2014 workflow with Lab Context, real-schema data model (one new table cytology_recommendation), critical-result ack hook, anti-anchoring ASCCP UX
   paired_with: cytology-case-view
-  links: {}
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/pathology/cytology-case-view
   added: "2026-03-03"
+  updated: "2026-05-27"
 
 - id: cytology-bethesda-data-dictionary
   type: reference-data
