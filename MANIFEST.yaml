@@ -559,11 +559,10 @@
   added: "2026-03-03"
 
 - id: cytology-case-view
-  type: mockup
-  path: designs/pathology/cytology-case-view.jsx
-  preview: designs/pathology/cytology-case-view.html
+  type: html
+  path: designs/pathology/cytology-case-view.html
   category: pathology
-  description: Bethesda 2014 cytology case view — accordion layout grounded in real cytology schema, HPV sibling-Analysis display, anti-anchoring ASCCP recommendation UX, critical-result acknowledgment hook for HSIL+ findings
+  description: Bethesda 2014 cytology case view — interactive Carbon HTML preview. Accordion layout grounded in real cytology schema, HPV sibling-Analysis display, anti-anchoring ASCCP recommendation UX, critical-result acknowledgment hook for HSIL+ findings
   paired_with: cytology-case-view-spec
   links:
     preview: https://digi-uw.github.io/openelis-work/designs/pathology/cytology-case-view.html

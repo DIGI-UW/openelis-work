@@ -567,7 +567,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Cytology Case View',
     category: 'pathology',
-    component: React.lazy(() => import('@designs/pathology/cytology-case-view.jsx')),
+    component: null,
     description: 'Bethesda 2014 cytology case view — accordion layout grounded in real cytology_sample/cytology_diagnosis schema, HPV sibling-Analysis read-only display, anti-anchoring ASCCP recommendation UX, critical-result acknowledgment hook for HSIL+ findings.',
     specPath: 'designs/pathology/cytology-case-view.md',
     htmlUrl: 'designs/pathology/cytology-case-view.html',
