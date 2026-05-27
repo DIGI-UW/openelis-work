@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>M-09 WHONET Export — Preview v1</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; color: #161616; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .preview-banner strong { background: #fff; color: #0f62fe; padding: 1px 6px; border-radius: 2px; margin: 0 4px; }
+    .app-header { background: #161616; color: #f4f4f4; padding: 0 1rem; height: 48px; display: flex; align-items: center; gap: 1rem; font-size: 14px; }
+    .breadcrumbs { padding: 0.75rem 2rem; background: #fff; border-bottom: 1px solid #e0e0e0; font-size: 13px; color: #525252; }
+    .breadcrumbs a { color: #0f62fe; text-decoration: none; }
+    .layout { display: grid; grid-template-columns: 220px 1fr; }
+    .sidenav { background: #fff; border-right: 1px solid #e0e0e0; min-height: calc(100vh - 100px); padding: 1rem 0; }
+    .sidenav-section { padding: 0.5rem 1rem; font-size: 11px; color: #525252; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 0.5rem; }
+    .sidenav-item { padding: 0.5rem 1rem 0.5rem 1.5rem; font-size: 14px; cursor: pointer; }
+    .sidenav-item.active { background: #e0e0e0; border-left: 3px solid #0f62fe; padding-left: calc(1.5rem - 3px); font-weight: 600; }
+    .main { padding: 1.5rem 2rem 4rem; max-width: 1080px; }
+    h1 { font-size: 28px; font-weight: 300; margin: 0 0 1rem 0; }
+
+    .section { background: #fff; border: 1px solid #e0e0e0; margin-bottom: 1rem; padding: 1.25rem 1.5rem; }
+    .section h2 { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 0.75rem 0; padding-bottom: 0.5rem; border-bottom: 1px solid #e0e0e0; color: #525252; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.75rem; }
+    .form-field label { font-size: 11px; color: #525252; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 4px; display: block; }
+    .form-field input, .form-field select { width: 100%; box-sizing: border-box; padding: 0.5rem 0.75rem; font-size: 14px; border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; }
+    .form-field .helper { font-size: 11px; color: #6f6f6f; margin-top: 4px; }
+    .quick-buttons { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    .quick-buttons button { padding: 4px 10px; font-size: 12px; background: transparent; border: 1px solid #c9c9c9; cursor: pointer; }
+    .quick-buttons button:hover { background: #e5e5e5; }
+
+    .checkbox-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem; margin: 0.5rem 0; }
+    .checkbox-row { font-size: 14px; padding: 0.25rem 0; }
+    .checkbox-row label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+    .radio-row { display: flex; gap: 1rem; padding: 0.25rem 0; font-size: 14px; flex-wrap: wrap; }
+    .radio-row label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+    .nested-block { margin-left: 1.25rem; padding: 0.5rem 0; font-size: 13px; }
+
+    .preview-card { background: #fff; border: 1px solid #e0e0e0; padding: 1.25rem 1.5rem; margin-top: 1.5rem; }
+    .preview-card h2 { font-size: 18px; font-weight: 400; margin: 0 0 0.75rem 0; }
+    .preview-summary { background: #edf5ff; padding: 0.75rem 1rem; border-left: 3px solid #0f62fe; font-size: 13px; margin-bottom: 1rem; }
+    .preview-summary .row { display: flex; gap: 1.5rem; }
+    .preview-summary .row strong { display: block; font-size: 24px; font-weight: 300; }
+    .preview-summary .row .label { font-size: 11px; color: #525252; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .warning-banner { background: #fef0c7; border-left: 3px solid #f1c21b; padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 13px; }
+    .warning-banner strong { color: #6a3500; }
+    .warning-banner .warning-item { padding: 4px 0; display: flex; gap: 0.75rem; align-items: center; }
+    .warning-banner button { margin-left: auto; }
+
+    .sample-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'IBM Plex Mono', monospace; }
+    .sample-table th { padding: 0.4rem 0.5rem; background: #f4f4f4; border-bottom: 1px solid #e0e0e0; text-align: left; font-size: 10px; font-weight: 600; color: #525252; text-transform: uppercase; letter-spacing: 0.5px; }
+    .sample-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid #f4f4f4; }
+    .sample-table .first-marker { display: inline-block; padding: 1px 5px; background: #defbe6; color: #044317; border-radius: 3px; font-weight: 700; font-size: 10px; }
+    .sample-table .repeat-marker { display: inline-block; padding: 1px 5px; background: #fef0c7; color: #6a3500; border-radius: 3px; font-weight: 700; font-size: 10px; }
+
+    .footer-actions { background: #fff; padding: 1rem 1.5rem; border: 1px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
+
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; font-size: 14px; font-family: inherit; border: 1px solid transparent; cursor: pointer; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-tertiary { background: transparent; color: #0f62fe; border-color: #0f62fe; }
+    .btn-ghost { background: transparent; color: #0f62fe; }
+    .btn-sm { padding: 0.25rem 0.75rem; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="preview-banner">
+    M-09 WHONET Export Preview · <strong>v1.0</strong> · Phase 1B · See <strong>m-09-whonet-export-frs-v1.md</strong> + <strong>whonet-export-design-review-v1.md</strong>
+  </div>
+
+  <div class="app-header">
+    <span style="font-weight: 600;">OpenELIS Global</span><span style="opacity: 0.7;">|</span>
+    <span>Reports</span>
+    <div style="margin-left: auto; font-size: 13px;">Asha Patel · Surveillance Officer</div>
+  </div>
+
+  <div class="breadcrumbs"><a href="#">Home</a> / <a href="#">Reports</a> / WHONET Export</div>
+
+  <div class="layout">
+    <aside class="sidenav">
+      <div class="sidenav-section">Reports</div>
+      <div class="sidenav-item active">WHONET Export</div>
+      <div class="sidenav-item">Patient Reports</div>
+      <div class="sidenav-item">QI Reports</div>
+      <div class="sidenav-item">Export History</div>
+    </aside>
+
+    <main class="main">
+      <h1>WHONET Export Generator</h1>
+
+      <div class="section">
+        <h2>Date range</h2>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Start date *</label>
+            <input type="text" value="2026-04-01" />
+          </div>
+          <div class="form-field">
+            <label>End date *</label>
+            <input type="text" value="2026-04-30" />
+          </div>
+        </div>
+        <div class="quick-buttons">
+          <button>This Month</button>
+          <button>Last Month</button>
+          <button>This Quarter</button>
+          <button>Custom</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Filters</h2>
+        <div class="form-row">
+          <div>
+            <label style="font-size: 11px; color: #525252; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Specimen types</label>
+            <div class="checkbox-list">
+              <div class="checkbox-row"><label><input type="checkbox" checked /> Blood</label></div>
+              <div class="checkbox-row"><label><input type="checkbox" checked /> Urine</label></div>
+              <div class="checkbox-row"><label><input type="checkbox" checked /> Respiratory</label></div>
+              <div class="checkbox-row"><label><input type="checkbox" checked /> Wound</label></div>
+              <div class="checkbox-row"><label><input type="checkbox" checked /> CSF</label></div>
+              <div class="checkbox-row"><label><input type="checkbox" /> Stool</label></div>
+            </div>
+          </div>
+          <div>
+            <label style="font-size: 11px; color: #525252; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Organisms</label>
+            <div class="radio-row" style="flex-direction: column; gap: 0.25rem;">
+              <label><input type="radio" name="org-filter" checked /> All organisms</label>
+              <label><input type="radio" name="org-filter" /> Select specific...</label>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 0.75rem;">
+          <label style="font-size: 11px; color: #525252; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Patient origins</label>
+          <div class="radio-row">
+            <label><input type="checkbox" checked /> Inpatient</label>
+            <label><input type="checkbox" checked /> Outpatient</label>
+            <label><input type="checkbox" checked /> ICU</label>
+            <label><input type="checkbox" /> Emergency</label>
+            <label><input type="checkbox" /> Long-term Care</label>
+          </div>
+        </div>
+
+        <div style="margin-top: 0.75rem;">
+          <label style="font-size: 11px; color: #525252; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Significance</label>
+          <div class="radio-row">
+            <label><input type="checkbox" checked /> Clinically Significant</label>
+            <label><input type="checkbox" /> Not Significant</label>
+            <label><input type="checkbox" /> Probable Contaminant</label>
+          </div>
+        </div>
+
+        <div class="checkbox-row" style="margin-top: 0.75rem;">
+          <label><input type="checkbox" /> Include screening / surveillance cultures</label>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Deduplication (WHO GLASS-aligned)</h2>
+        <div class="checkbox-row" style="margin-bottom: 0.5rem;">
+          <label><input type="checkbox" checked /> <strong>Apply first-isolate deduplication</strong></label>
+        </div>
+        <div class="nested-block">
+          <div style="margin-bottom: 0.5rem;">
+            <strong>Window length:</strong>
+            <select style="border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; padding: 2px 6px; margin-left: 6px;">
+              <option selected>7 days</option><option>14 days</option><option>30 days</option><option>Episode-based</option>
+            </select>
+          </div>
+          <div style="margin-bottom: 0.5rem;"><strong>Window basis:</strong>
+            <label style="margin-left: 0.5rem;"><input type="radio" name="basis" checked /> Collection date</label>
+            <label style="margin-left: 1rem;"><input type="radio" name="basis" /> Result release date</label>
+          </div>
+          <div style="margin-bottom: 0.5rem;"><strong>Scope:</strong>
+            <label style="margin-left: 0.5rem;"><input type="radio" name="scope" checked /> Any source</label>
+            <label style="margin-left: 1rem;"><input type="radio" name="scope" /> Same source only</label>
+          </div>
+          <div style="margin-bottom: 0.5rem;"><strong>Significance:</strong>
+            <label style="margin-left: 0.5rem;"><input type="radio" name="sig" checked /> Exclude probable contaminants first</label>
+          </div>
+          <div style="margin-bottom: 0.5rem;"><strong>Repeat row handling:</strong>
+            <label style="margin-left: 0.5rem;"><input type="radio" name="repeat" checked /> Drop repeats</label>
+            <label style="margin-left: 1rem;"><input type="radio" name="repeat" /> Include with R marker</label>
+          </div>
+          <div><strong>Susceptibility profile:</strong>
+            <label style="margin-left: 0.5rem;"><input type="radio" name="prof" checked /> Insensitive (same organism = repeat)</label>
+            <label style="margin-left: 1rem;"><input type="radio" name="prof" /> Sensitive (different antibiogram = different isolate)</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Output</h2>
+        <div style="margin-bottom: 0.5rem;">
+          <strong>Format:</strong>
+          <label style="margin-left: 0.5rem;"><input type="radio" name="format" checked /> WHONET CSV</label>
+          <label style="margin-left: 1rem;"><input type="radio" name="format" /> WHONET TXT (tab-separated)</label>
+          <label style="margin-left: 1rem;"><input type="radio" name="format" /> Custom delimited</label>
+        </div>
+        <div class="checkbox-row"><label><input type="checkbox" checked /> Include intermediate (I) results</label></div>
+        <div class="checkbox-row"><label><input type="checkbox" checked /> Include phenotype flag columns (ESBL, MRSA, CRE, VRE, MDR, XDR, PDR)</label></div>
+        <div class="checkbox-row"><label><input type="checkbox" /> Include patient demographics (last name, first name)</label></div>
+        <div class="checkbox-row"><label><input type="checkbox" checked /> Include lab profile file (one-time bootstrap)</label></div>
+      </div>
+
+      <!-- Preview card -->
+      <div class="preview-card">
+        <h2>Preview</h2>
+
+        <div class="preview-summary">
+          <div class="row">
+            <div><span class="label">Total in range</span><strong>489</strong></div>
+            <div><span class="label">After significance filter</span><strong>412</strong></div>
+            <div><span class="label">After deduplication</span><strong>312</strong></div>
+            <div><span class="label">Validation</span><strong style="font-size: 18px;">0 errors · 4 warnings</strong></div>
+          </div>
+        </div>
+
+        <div class="warning-banner">
+          <strong>⚠ 4 warnings (advisory):</strong>
+          <div class="warning-item">
+            • 1 organism unmapped to WHONET code: <em>Burkholderia cepacia complex</em>
+            <button class="btn btn-tertiary btn-sm">Map now</button>
+          </div>
+          <div class="warning-item">• 3 isolates older than 5 years (review for inclusion)</div>
+          <div class="warning-item">• Date range spans 30 days (typical export size)</div>
+          <div class="warning-item">• 12 isolates flagged as screening; excluded from export per filter</div>
+        </div>
+
+        <div style="font-size: 13px; color: #525252; margin-bottom: 0.5rem;">Sample rows (first 8 of 312):</div>
+        <table class="sample-table">
+          <thead>
+            <tr>
+              <th>COUNTRY</th><th>LAB</th><th>PATIENT_ID</th><th>SEX</th><th>AGE</th><th>AGE_UNIT</th><th>SPEC_NUM</th><th>SPEC_DATE</th><th>SPEC_TYPE</th><th>INST_TYPE</th><th>ORG</th><th>FIRST_OR_REPEAT</th><th>BREAKPOINT_STD</th><th>ESBL_CONFIRM</th><th>MRSA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>PNG</td><td>CPHL</td><td>12345678</td><td>M</td><td>56</td><td>Y</td><td>BC24-0892</td><td>2026-04-11</td><td>bl</td><td>EME</td><td>eco</td><td><span class="first-marker">F</span></td><td>EUCAST14</td><td>P</td><td></td></tr>
+            <tr><td>PNG</td><td>CPHL</td><td>12345679</td><td>F</td><td>34</td><td>Y</td><td>UC24-0455</td><td>2026-04-12</td><td>ur</td><td>OUT</td><td>eco</td><td><span class="first-marker">F</span></td><td>EUCAST14</td><td>N</td><td></td></tr>
+            <tr><td>PNG</td><td>CPHL</td><td>12345680</td><td>F</td><td>73</td><td>Y</td><td>BC24-0891</td><td>2026-04-13</td><td>bl</td><td>INP</td><td>kpn</td><td><span class="first-marker">F</span></td><td>EUCAST14</td><td>P</td><td></td></tr>
+            <tr><td>PNG</td><td>CPHL</td><td>12345681</td><td>M</td><td>64</td><td>Y</td><td>WC24-0118</td><td>2026-04-14</td><td>ws</td><td>INP</td><td>sau</td><td><span class="first-marker">F</span></td><td>EUCAST14</td><td></td><td>P</td></tr>
+            <tr><td>PNG</td><td>CPHL</td><td>12345681</td><td>M</td><td>64</td><td>Y</td><td>WC24-0118</td><td>2026-04-14</td><td>ws</td><td>INP</td><td>pae</td><td><span class="first-marker">F</span></td><td>EUCAST14</td><td></td><td></td></tr>
+            <tr><td>PNG</td><td>CPHL</td><td>12345682</td><td>F</td><td>8</td><td>M</td><td>CC24-0089</td><td>2026-04-15</td><td>cs</td><td>ICU</td><td>spn</td><td><span class="first-marker">F</span></td><td>EUCAST14</td><td></td><td></td></tr>
+            <tr><td>PNG</td><td>CPHL</td><td>12345683</td><td>M</td><td>35</td><td>Y</td><td>SC24-0205</td><td>2026-04-16</td><td>sp</td><td>OUT</td><td>kpn</td><td><span class="first-marker">F</span></td><td>EUCAST14</td><td>N</td><td></td></tr>
+            <tr><td>PNG</td><td>CPHL</td><td>12345679</td><td>F</td><td>34</td><td>Y</td><td>UC24-0464</td><td>2026-04-19</td><td>ur</td><td>OUT</td><td>eco</td><td><span class="repeat-marker">R</span></td><td>EUCAST14</td><td>N</td><td></td></tr>
+          </tbody>
+        </table>
+        <div style="font-size: 12px; color: #6f6f6f; margin-top: 0.5rem; font-family: 'IBM Plex Mono', monospace;">+ 16 per-antibiotic columns: AMP, AMC, SXT, CFZ, CRO, FEP, MEM, ETP, CIP, LVX, GEN, AMK, TOB, FOS, NIT, ATM</div>
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn btn-ghost">Back to filters</button>
+        <button class="btn btn-tertiary">Re-preview</button>
+        <button class="btn btn-primary">Generate &amp; Download</button>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

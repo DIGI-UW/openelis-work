@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>M-04 Isolate Modal — Preview v1</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <style>
+    body { background: #525252; margin: 0; font-family: 'IBM Plex Sans', sans-serif; color: #161616; padding: 1rem; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; margin: -1rem -1rem 1rem -1rem; }
+    .preview-banner strong { background: #fff; color: #0f62fe; padding: 1px 6px; border-radius: 2px; margin: 0 4px; }
+
+    .modal-shell { background: #fff; max-width: 880px; margin: 0 auto; border: 1px solid #161616; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+    .modal-header { padding: 1rem 1.5rem; border-bottom: 1px solid #e0e0e0; }
+    .modal-header h2 { font-size: 20px; font-weight: 400; margin: 0; }
+    .modal-header .subtitle { font-size: 13px; color: #525252; margin-top: 4px; }
+    .modal-body { padding: 1rem 1.5rem; max-height: 80vh; overflow-y: auto; }
+    .modal-footer { padding: 0.75rem 1.5rem; border-top: 1px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+    .section { margin-bottom: 1.5rem; }
+    .section h3 { font-size: 14px; font-weight: 600; margin: 0 0 0.75rem 0; padding-bottom: 0.25rem; border-bottom: 1px solid #e0e0e0; color: #161616; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.75rem; }
+    .form-field { font-size: 14px; }
+    .form-field label { display: block; font-size: 11px; color: #525252; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .form-field input, .form-field select, .form-field textarea { width: 100%; box-sizing: border-box; padding: 0.5rem 0.75rem; font-size: 14px; border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; font-family: inherit; }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline: 2px solid #0f62fe; outline-offset: -2px; }
+    .form-field .helper { font-size: 11px; color: #6f6f6f; margin-top: 4px; }
+    .form-field .macro-hint { font-size: 11px; color: #0f62fe; margin-top: 4px; }
+    .form-field textarea { min-height: 72px; resize: vertical; }
+
+    .read-only-value { padding: 0.5rem 0.75rem; background: #f4f4f4; font-size: 14px; color: #525252; border-bottom: 1px solid #e0e0e0; }
+    .reidentification-banner { padding: 0.75rem; background: #f6f2ff; border-left: 3px solid #8a3ffc; font-size: 13px; margin-bottom: 1rem; }
+    .reidentification-banner strong { color: #491d8b; }
+
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; font-size: 14px; font-family: inherit; border: 1px solid transparent; cursor: pointer; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-tertiary { background: transparent; color: #0f62fe; border-color: #0f62fe; }
+    .btn-ghost { background: transparent; color: #0f62fe; }
+  </style>
+</head>
+<body>
+  <div class="preview-banner">
+    M-04 Isolate Modal Preview · <strong>v1.0</strong> · Edit-mode example (Isolate 1, fully populated) · See <strong>m-04-case-workbench-core-frs-v1.md §5</strong>
+  </div>
+
+  <div class="modal-shell">
+    <div class="modal-header">
+      <h2>Edit Isolate — Isolate 1</h2>
+      <div class="subtitle">Case MC-2024-001234 · Sample BC24-0892 (blood) · MARTINEZ, Carlos</div>
+    </div>
+    <div class="modal-body">
+      <div class="section">
+        <h3>Preliminary ID</h3>
+        <div class="form-field">
+          <label>Gram Stain Observations</label>
+          <textarea>Gram negative rods, many. No yeast or other organisms observed.</textarea>
+          <div class="macro-hint">[.] Type period for macros. Category: <code>gramStain</code></div>
+        </div>
+        <div class="form-field" style="margin-top: 0.75rem;">
+          <label>Colony Morphology</label>
+          <textarea>Lactose-fermenting colonies on MacConkey agar, many. Mucoid appearance on BAP.</textarea>
+          <div class="macro-hint">[.] Type period for macros. Category: <code>colony</code></div>
+        </div>
+        <div class="form-field" style="margin-top: 0.75rem;">
+          <label>Preliminary ID Notes</label>
+          <input type="text" value="Probable Enterobacterales. Subcultured to BAP and MAC at 24h." />
+          <div class="macro-hint">[.] Type period for macros. Category: <code>culture</code></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Final ID</h3>
+        <div class="form-row">
+          <div class="form-field">
+            <label>ID Method *</label>
+            <select>
+              <option>Manual biochemistry</option>
+              <option selected>VITEK 2</option>
+              <option>MALDI-TOF</option>
+              <option>PCR / Molecular</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>ID Confidence %</label>
+            <input type="number" value="99.5" min="0" max="100" step="0.1" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Organism *</label>
+            <select>
+              <option selected>Escherichia coli (eco)</option>
+              <option>Klebsiella pneumoniae (kpn)</option>
+              <option>Enterobacter cloacae (eco_complex)</option>
+              <option>Search more...</option>
+            </select>
+            <div class="helper">Search organism master</div>
+          </div>
+          <div class="form-field">
+            <label>WHONET Code (auto)</label>
+            <div class="read-only-value">eco</div>
+          </div>
+        </div>
+        <div class="form-field" style="margin-top: 0.75rem;">
+          <label>Final ID Notes</label>
+          <textarea>Confirmed by VITEK 2 GN ID card. Identification consistent with subculture morphology and Gram stain. No subspecies determination performed.</textarea>
+          <div class="macro-hint">[.] Type period for macros. Category: <code>culture</code></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Significance</h3>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Significance *</label>
+            <select>
+              <option selected>Clinically Significant</option>
+              <option>Not Significant</option>
+              <option>Probable Contaminant</option>
+              <option>Colonizer</option>
+              <option>Indeterminate</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Default AST Panel</label>
+            <select>
+              <option selected>GN-STD — Gram-negative standard (16 antibiotics)</option>
+              <option>GN-UR — Gram-negative urinary (8 antibiotics)</option>
+              <option>Search panels...</option>
+            </select>
+            <div class="helper">Auto-selected from organism default. Override if needed.</div>
+          </div>
+        </div>
+        <div class="form-field" style="margin-top: 0.75rem;">
+          <label>Clinical Notes</label>
+          <textarea>Patient with clinical signs of sepsis. Blood culture from sterile site; significance is unambiguous regardless of single-bottle vs paired set status.</textarea>
+          <div class="macro-hint">[.] Type period for macros. Category: <code>culture</code></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost">Cancel</button>
+      <button class="btn btn-primary">Save</button>
+    </div>
+  </div>
+
+  <!-- Second example showing reidentification mode -->
+  <div style="margin-top: 2rem;"></div>
+  <div class="preview-banner" style="background: #8a3ffc;">
+    Reidentification mode — example showing organism correction from K. pneumoniae (v1) to E. coli (v2) · See M-04 §5.3
+  </div>
+
+  <div class="modal-shell">
+    <div class="modal-header">
+      <h2>Reidentify Isolate — Isolate 1 (creating Version 2)</h2>
+      <div class="subtitle">Case MC-2024-001234 · Sample BC24-0892 (blood) · MARTINEZ, Carlos</div>
+    </div>
+    <div class="modal-body">
+      <div class="reidentification-banner">
+        <strong>You are creating Version 2 of Isolate 1.</strong> The previous version (Klebsiella pneumoniae) and its AST Runs are preserved. AST results will NOT auto-re-interpret; review applicability against the new organism manually after save.
+      </div>
+
+      <div class="section">
+        <h3>Reason for reidentification</h3>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Reason *</label>
+            <select>
+              <option>ID method rerun</option>
+              <option selected>Species reassignment</option>
+              <option>Contamination reclass</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Reviewer</label>
+            <div class="read-only-value">Dr. A. Adeyemi (current user)</div>
+          </div>
+        </div>
+        <div class="form-field" style="margin-top: 0.75rem;">
+          <label>Reidentification description *</label>
+          <textarea>Re-identified by MALDI-TOF as Klebsiella pneumoniae. Original VITEK 2 ID of E. coli (99.5% confidence) was a misidentification. AST profile is consistent with the new organism; no AST changes required at this time.</textarea>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Updated identification</h3>
+        <div class="form-row">
+          <div class="form-field">
+            <label>ID Method *</label>
+            <select>
+              <option>VITEK 2</option>
+              <option selected>MALDI-TOF</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>ID Confidence %</label>
+            <input type="number" value="99.9" min="0" max="100" step="0.1" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Organism *</label>
+            <select>
+              <option>Escherichia coli (eco)</option>
+              <option selected>Klebsiella pneumoniae (kpn)</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>WHONET Code (auto)</label>
+            <div class="read-only-value">kpn</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost">Cancel</button>
+      <button class="btn btn-primary">Save & start Amendment</button>
+    </div>
+  </div>
+</body>
+</html>

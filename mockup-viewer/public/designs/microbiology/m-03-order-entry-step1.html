@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>M-03 Order Entry Step 1 — Microbiology Hook Preview v1</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; color: #161616; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .preview-banner strong { background: #fff; color: #0f62fe; padding: 1px 6px; border-radius: 2px; margin: 0 4px; }
+    .app-header { background: #161616; color: #f4f4f4; padding: 0 1rem; height: 48px; display: flex; align-items: center; gap: 1rem; font-size: 14px; }
+    .breadcrumbs { padding: 0.75rem 2rem; background: #fff; border-bottom: 1px solid #e0e0e0; font-size: 13px; color: #525252; }
+    .breadcrumbs a { color: #0f62fe; text-decoration: none; }
+    .main { padding: 1.5rem 2rem 6rem; max-width: 980px; margin: 0 auto; }
+    h1 { font-size: 28px; font-weight: 300; margin: 0 0 0.5rem 0; }
+    .step-stepper { display: flex; align-items: center; gap: 0.5rem; margin: 1.5rem 0 2rem; }
+    .step { display: flex; align-items: center; gap: 0.5rem; font-size: 13px; color: #525252; }
+    .step .num { width: 28px; height: 28px; border-radius: 50%; background: #e0e0e0; color: #525252; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
+    .step.active .num { background: #0f62fe; color: #fff; }
+    .step.active { color: #161616; font-weight: 600; }
+    .step-connector { flex: 1; height: 1px; background: #e0e0e0; }
+
+    .section-card { background: #fff; padding: 1.5rem; border: 1px solid #e0e0e0; margin-bottom: 1rem; }
+    .section-card h2 { font-size: 18px; font-weight: 400; margin: 0 0 1rem 0; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-field label { font-size: 11px; color: #525252; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 4px; display: block; }
+    .form-field input, .form-field select, .form-field textarea { width: 100%; box-sizing: border-box; padding: 0.5rem 0.75rem; font-size: 14px; border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; font-family: inherit; }
+    .form-field textarea { min-height: 60px; resize: vertical; }
+    .form-field .helper { font-size: 11px; color: #6f6f6f; margin-top: 4px; }
+    .form-field .macro-hint { font-size: 11px; color: #0f62fe; margin-top: 4px; }
+    .checkbox-row { font-size: 14px; padding: 0.5rem 0; }
+    .checkbox-row label { display: flex; gap: 8px; align-items: start; cursor: pointer; }
+
+    /* Micro details nested card */
+    .micro-detail-card { background: #f6f9ff; border: 1px solid #c9d8f5; border-left: 4px solid #0f62fe; padding: 1.25rem 1.5rem; margin-top: 0.75rem; }
+    .micro-detail-card .info-banner { padding: 0.5rem 0.75rem; background: #edf5ff; border-left: 3px solid #0f62fe; margin-bottom: 1rem; font-size: 13px; display: flex; gap: 0.5rem; align-items: center; }
+    .micro-detail-card h3 { font-size: 14px; font-weight: 600; margin: 0 0 0.75rem 0; text-transform: uppercase; letter-spacing: 0.5px; color: #0043ce; }
+
+    .footer-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e0e0e0; padding: 0.75rem 2rem; display: flex; align-items: center; gap: 1rem; }
+    .footer-bar .spacer { flex: 1; }
+
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; font-size: 14px; font-family: inherit; border: 1px solid transparent; cursor: pointer; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-tertiary { background: transparent; color: #0f62fe; border-color: #0f62fe; }
+    .btn-ghost { background: transparent; color: #0f62fe; }
+  </style>
+</head>
+<body>
+  <div class="preview-banner">
+    M-03 Order Entry Step 1 (Microbiology) Preview · <strong>v1.0</strong> · Phase 1A · See <strong>m-03-order-entry-micro-hook-frs-v1.md</strong>
+  </div>
+
+  <div class="app-header">
+    <span style="font-weight: 600;">OpenELIS Global</span><span style="opacity: 0.7;">|</span>
+    <span>Order Entry</span>
+    <div style="margin-left: auto; font-size: 13px;">Maria Vega · Order Entry Clerk</div>
+  </div>
+
+  <div class="breadcrumbs"><a href="#">Home</a> / <a href="#">Order Entry</a> / New Order</div>
+
+  <main class="main">
+    <h1>New Order</h1>
+
+    <div class="step-stepper">
+      <div class="step active"><span class="num">1</span>Program Selection</div>
+      <div class="step-connector"></div>
+      <div class="step"><span class="num">2</span>Sample</div>
+      <div class="step-connector"></div>
+      <div class="step"><span class="num">3</span>Add Order</div>
+      <div class="step-connector"></div>
+      <div class="step"><span class="num">4</span>Review</div>
+    </div>
+
+    <section class="section-card">
+      <h2>Program Selection</h2>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label>Program *</label>
+          <select>
+            <option>Routine Testing</option>
+            <option selected>Microbiology</option>
+            <option>HIV Program</option>
+            <option>TB Program</option>
+            <option>EQA / Proficiency Testing</option>
+          </select>
+          <div class="helper">Selecting Microbiology will create a Case for culture and susceptibility testing.</div>
+        </div>
+        <div class="form-field">
+          <label>Tests selected (Step 1)</label>
+          <input type="text" value="Blood Culture (Standard)" />
+          <div class="helper">Default culture protocol will populate from selected test.</div>
+        </div>
+      </div>
+
+      <!-- Microbiology nested details -->
+      <div class="micro-detail-card">
+        <div class="info-banner">
+          <span style="font-size: 18px;">🦠</span>
+          <span>This will create a Microbiology Case for culture and susceptibility testing.</span>
+        </div>
+
+        <h3>Microbiology Program Details</h3>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Culture Protocol *</label>
+            <select>
+              <option selected>Blood Culture Standard (FA + FN; 5 days; 35°C; aerobic + anaerobic)</option>
+              <option>Urine Routine (BAP + MAC; 48h; 35°C; aerobic)</option>
+              <option>Respiratory Standard (BAP + CHOC + MAC; 48h; 35°C + CO₂)</option>
+              <option>Wound Culture (BAP + MAC + CNA + THIO; 48h; aerobic + anaerobic)</option>
+              <option>CSF Urgent (BAP + CHOC; 48h; 35°C + CO₂)</option>
+              <option>Stool Enteric (MAC + SS + XLD + Campy; 48h; mixed atmospheres)</option>
+            </select>
+            <div class="helper">Defaulted from the selected test; override if needed.</div>
+          </div>
+          <div class="form-field">
+            <label>Patient Origin</label>
+            <select>
+              <option>(unknown)</option>
+              <option>Inpatient (INP)</option>
+              <option>Outpatient (OUT)</option>
+              <option>ICU (ICU)</option>
+              <option selected>Emergency (EME)</option>
+              <option>Long-term Care (LTC)</option>
+            </select>
+            <div class="helper">Used in WHONET export (Phase 1B).</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Number of Sets</label>
+            <input type="number" value="1" min="1" max="10" />
+            <div class="helper">For blood cultures, typical is 2 sets from different sites.</div>
+          </div>
+          <div class="form-field">
+            <label>Department / Ward</label>
+            <input type="text" value="ER · Adult" />
+          </div>
+        </div>
+
+        <div class="form-field" style="margin-bottom: 0.75rem;">
+          <label>Clinical History</label>
+          <textarea>Fever 39.2, hypotension, possible sepsis. .abx2w</textarea>
+          <div class="macro-hint">[.] Type period for macros. Category: <code>clinical</code></div>
+        </div>
+
+        <div class="checkbox-row">
+          <label><input type="checkbox" checked /> Patient has recent antibiotic exposure (within 2 weeks)</label>
+        </div>
+
+        <div class="checkbox-row">
+          <label><input type="checkbox" checked /> Notify clinician immediately for positive blood culture</label>
+        </div>
+      </div>
+    </section>
+
+    <div style="font-size: 13px; color: #525252; margin: 0.75rem 0;">
+      <strong>Step 2 (Sample)</strong> and <strong>Step 3 (Add Order)</strong> follow standard OE pattern. Priority is set on Step 3, <em>not</em> here on Step 1.
+    </div>
+  </main>
+
+  <div class="footer-bar">
+    <button class="btn btn-ghost">Cancel</button>
+    <div class="spacer"></div>
+    <button class="btn btn-tertiary">Save Draft</button>
+    <button class="btn btn-primary">Continue to Sample →</button>
+  </div>
+</body>
+</html>
