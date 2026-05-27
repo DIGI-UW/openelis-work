@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cytology Case View — OpenELIS Preview (v2)</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; color: #161616; }
+    .preview-banner {
+      background: #0f62fe; color: #fff;
+      padding: 6px 1rem; font-size: 12px; font-family: 'IBM Plex Mono', monospace;
+    }
+    .preview-content { max-width: 1440px; margin: 0 auto; }
+    .page-shell { background: #fff; padding: 0 0 2rem 0; min-height: 100vh; }
+    .breadcrumb-bar { padding: 0.5rem 2rem; border-bottom: 1px solid #e0e0e0; font-size: 12px; }
+    .breadcrumb-bar a { color: #0f62fe; text-decoration: none; }
+    .breadcrumb-bar a:hover { text-decoration: underline; }
+    .page-title { padding: 1rem 2rem 0.5rem; font-size: 28px; font-weight: 300; }
+    .patient-header {
+      background: #f4f4f4; padding: 0.75rem 2rem; margin: 0 2rem;
+      border-left: 4px solid #0f62fe; display: flex; gap: 2rem; align-items: center;
+      font-size: 14px;
+    }
+    .patient-header strong { font-weight: 600; }
+    .layout { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; padding: 1.5rem 2rem; }
+    .work-column { display: flex; flex-direction: column; gap: 0.75rem; }
+    .section-card {
+      background: #fff; border: 1px solid #e0e0e0;
+    }
+    .section-header {
+      padding: 0.875rem 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between;
+      background: #fff; border-bottom: 1px solid transparent;
+      font-size: 16px; font-weight: 600;
+      user-select: none;
+    }
+    .section-header.locked { cursor: not-allowed; opacity: 0.6; }
+    .section-header.open { border-bottom: 1px solid #e0e0e0; }
+    .section-header .chev { transition: transform 0.2s; }
+    .section-header.open .chev { transform: rotate(180deg); }
+    .section-body { padding: 1rem; display: none; background: #fff; }
+    .section-body.open { display: block; }
+    .summary-panel {
+      background: #fff; border: 1px solid #e0e0e0; padding: 1rem;
+      position: sticky; top: 1rem; align-self: start;
+      font-size: 14px;
+    }
+    .summary-panel h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 0.5rem; color: #525252; }
+    .summary-panel .row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid #f4f4f4; }
+    .summary-panel .row:last-of-type { border-bottom: none; }
+    .summary-panel .label { color: #525252; }
+    .summary-panel .value { font-weight: 600; }
+    .slide-list { margin-top: 1rem; }
+    .slide-item { padding: 0.5rem; background: #f4f4f4; margin-bottom: 0.25rem; font-size: 13px; display: flex; justify-content: space-between; }
+    .radio-row { display: flex; flex-direction: column; gap: 0.5rem; margin: 0.5rem 0; }
+    .radio-row label { display: flex; gap: 0.5rem; align-items: flex-start; cursor: pointer; padding: 0.25rem; }
+    .radio-row label:hover { background: #f4f4f4; }
+    .radio-row .desc { color: #525252; font-size: 12px; margin-top: 2px; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group .label { display: block; font-size: 12px; font-weight: 600; color: #525252; margin-bottom: 0.25rem; letter-spacing: 0.02em; }
+    .pill-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .finding-card {
+      border: 1px solid #e0e0e0; padding: 0.75rem;
+      margin-bottom: 0.5rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: all 0.15s;
+    }
+    .finding-card:hover { background: #f4f4f4; }
+    .finding-card.selected { border-color: #0f62fe; border-width: 2px; background: #edf5ff; }
+    .finding-label { font-weight: 500; }
+    .finding-sub { font-size: 12px; color: #525252; margin-top: 2px; }
+    .meta-grid { display: grid; grid-template-columns: 200px 1fr; row-gap: 0.5rem; font-size: 14px; }
+    .meta-grid .k { color: #525252; }
+    .meta-grid .v { font-weight: 500; }
+    .ascccp-panel {
+      background: #f4f4f4; padding: 1rem;
+      border-left: 3px solid #fa4d56;
+      margin-top: 0.5rem;
+    }
+    .ascccp-panel.locked { opacity: 0.55; background: #f4f4f4; border-left-color: #c6c6c6; }
+    .ascccp-suggestion-text {
+      padding: 0.75rem; background: #fff; border: 1px solid #e0e0e0;
+      font-style: italic; margin: 0.5rem 0;
+    }
+    .ascccp-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    .ascccp-footer { font-size: 12px; color: #525252; margin-top: 0.5rem; font-style: italic; }
+    .critical-banner {
+      background: #fff8e1; border-left: 4px solid #f1c21b;
+      padding: 0.75rem 1rem; margin-bottom: 1rem;
+      display: flex; gap: 0.75rem; align-items: flex-start;
+    }
+    .critical-banner .icon { color: #f1c21b; font-size: 18px; font-weight: 700; }
+    .critical-banner-strong { background: #fff1f1; border-left-color: #da1e28; }
+    .critical-banner-strong .icon { color: #da1e28; }
+    .unsat-banner { background: #edf5ff; border-left: 4px solid #0f62fe; padding: 0.75rem 1rem; margin-bottom: 1rem; }
+    .hpv-pill { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.5rem; background: #f4f4f4; }
+    .hpv-pill .hpv-label { font-size: 11px; color: #525252; text-transform: uppercase; }
+    .action-bar {
+      background: #fff; border-top: 1px solid #e0e0e0;
+      padding: 1rem 2rem; display: flex; justify-content: space-between;
+      gap: 0.75rem; align-items: center;
+    }
+    .action-bar .status { font-size: 13px; color: #525252; }
+    .btn-group { display: flex; gap: 0.5rem; }
+    .toast {
+      position: fixed; right: 1rem; top: 4rem; max-width: 360px;
+      background: #defbe6; border-left: 3px solid #24a148;
+      padding: 0.75rem 1rem; font-size: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      animation: slideIn 0.2s;
+    }
+    @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    select.cds--select-input, .cds--text-input, textarea {
+      font-family: inherit; font-size: 14px; padding: 0.5rem;
+      border: none; border-bottom: 1px solid #8d8d8d; background: #f4f4f4;
+      width: 100%; box-sizing: border-box;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    .checkbox-row { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.25rem 0; }
+    .checkbox-row label { display: flex; gap: 0.5rem; align-items: center; cursor: pointer; padding: 0.2rem; }
+    .checkbox-row label:hover { background: #f4f4f4; }
+    .sub-checkbox-row { padding-left: 1.75rem; }
+  </style>
+</head>
+<body>
+  <div class="preview-banner">
+    ⚡ Visual Preview &nbsp;|&nbsp; Cytology Case View v2 &nbsp;|&nbsp; Route: <code>/CytologyCaseView/:cytologySampleId</code> &nbsp;|&nbsp; OpenELIS Design Mockup — not a live application
+  </div>
+  <div class="preview-content">
+    <div class="page-shell" id="root"></div>
+  </div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    // ---- Realistic case data ----
+    const CASE = {
+      labNumber: '24CYT000042',
+      requestDate: '2026-05-22',
+      patient: { name: 'SMITH, MARY', dob: '1985-06-15', age: 40, sex: 'F' },
+      sampleId: 'UN-2026-2847',
+      provider: 'Dr. Jennifer Williams',
+      specimenType: 'ThinPrep (liquid-based)',
+      clinicalHistory: 'Routine screening. LMP 2026-05-01. No symptoms. Last Pap 2021 — NILM.',
+      priorPap: 'NILM (2021)',
+      slides: [
+        { n: 1, type: 'ThinPrep', loc: 'Cytology bench A · slot 12' },
+        { n: 2, type: 'ThinPrep', loc: 'Cytology bench A · slot 13' },
+      ],
+      hpv: { tested: true, status: 'POSITIVE', hpv16: 'POSITIVE', hpv18: 'NEGATIVE', otherHr: 'NEGATIVE', method: 'Cobas HPV' },
+      assignedTo: 'Dr. R. Patel, Cytopathologist',
+      status: 'SCREENING',
+    };
+
+    // Bethesda 2014 findings (each from the actual cytology_epithelial_cell_abnomalit_* dictionaries)
+    const SQUAMOUS_FINDINGS = [
+      { code: 'ASCUS',     label: 'ASC-US',                 sub: 'Atypical squamous cells of undetermined significance', risk: 'LOW' },
+      { code: 'ASCH',      label: 'ASC-H',                  sub: 'Atypical squamous cells, cannot exclude HSIL',         risk: 'INTERMEDIATE' },
+      { code: 'LSIL',      label: 'LSIL',                   sub: 'Low-grade squamous intraepithelial lesion',            risk: 'LOW' },
+      { code: 'HSIL',      label: 'HSIL',                   sub: 'High-grade squamous intraepithelial lesion',           risk: 'HIGH' },
+      { code: 'HSIL_INV',  label: 'HSIL — suspicious for invasion', sub: 'High-grade with features suspicious for invasion', risk: 'HIGH' },
+      { code: 'SCC',       label: 'Squamous cell carcinoma', sub: 'Invasive squamous carcinoma',                          risk: 'MALIGNANT' },
+    ];
+
+    const GLANDULAR_FINDINGS = [
+      { code: 'AGC_ENDO_NOS',    label: 'AGC — Endocervical, NOS',                  risk: 'INTERMEDIATE' },
+      { code: 'AGC_ENDOM_NOS',   label: 'AGC — Endometrial, NOS',                   risk: 'INTERMEDIATE' },
+      { code: 'AGC_NOS',         label: 'AGC — Glandular cells, NOS',               risk: 'INTERMEDIATE' },
+      { code: 'AGC_FN_ENDO',     label: 'AGC favor neoplastic — Endocervical',      risk: 'HIGH' },
+      { code: 'AGC_FN_NOS',      label: 'AGC favor neoplastic — NOS',               risk: 'HIGH' },
+      { code: 'AIS',             label: 'AIS — Endocervical adenocarcinoma in situ', risk: 'HIGH' },
+      { code: 'ADENO_ENDO',      label: 'Adenocarcinoma — Endocervical',            risk: 'MALIGNANT' },
+      { code: 'ADENO_ENDOM',     label: 'Adenocarcinoma — Endometrial',             risk: 'MALIGNANT' },
+      { code: 'ADENO_EXTRA',     label: 'Adenocarcinoma — Extrauterine',            risk: 'MALIGNANT' },
+      { code: 'ADENO_NOS',       label: 'Adenocarcinoma — NOS',                     risk: 'MALIGNANT' },
+    ];
+
+    const ORGANISMS = [
+      'Trichomonas vaginalis',
+      'Candida spp.',
+      'Shift in flora suggestive of bacterial vaginosis',
+      'Actinomyces spp.',
+      'Cellular changes consistent with Herpes simplex virus',
+      'Cellular changes consistent with Cytomegalovirus',
+    ];
+
+    const NON_NEOPLASTIC = [
+      'Reactive cellular changes',
+      'Glandular cells status post hysterectomy',
+      'Atrophy',
+      'Pregnancy-related changes',
+    ];
+    const REACTIVE_SUB = ['Inflammation (includes typical repair)', 'Radiation', 'Intrauterine contraceptive device (IUD)'];
+
+    const ADEQUACY_LIMITATIONS = [
+      'Partially obscuring blood',
+      'Partially obscuring inflammation',
+      'Scant cellularity',
+      'Absent transformation zone / endocervical component',
+    ];
+
+    const UNSAT_REASONS = [
+      'Specimen rejected: unlabeled or broken slide',
+      'Specimen processed but unsatisfactory: scant squamous cellularity',
+      'Specimen processed but unsatisfactory: obscuring blood (>75%)',
+      'Specimen processed but unsatisfactory: obscuring inflammation (>75%)',
+    ];
+
+    // ASCCP suggestion engine (simplified 2019 matrix)
+    function asccpSuggest(squamousFinding, hpvStatus, hpv16, age) {
+      if (!squamousFinding) return null;
+      const code = squamousFinding.code;
+      if (hpvStatus === 'PENDING' || hpvStatus === 'UNAVAILABLE') {
+        return { code: 'PENDING', text: 'HPV result pending; ASCCP suggestion requires HPV co-test result.', risk: squamousFinding.risk, pending: true };
+      }
+      if (code === 'HSIL' || code === 'HSIL_INV') {
+        return { code: 'COLPO_IMMEDIATE', text: 'Immediate colposcopy or expedited treatment acceptable for non-pregnant patients ≥ 25 years.', risk: 'HIGH' };
+      }
+      if (code === 'SCC') return { code: 'GYN_ONC_URGENT', text: 'Urgent referral to gynecologic oncology.', risk: 'MALIGNANT' };
+      if (code === 'ASCH') return { code: 'COLPO', text: 'Colposcopy recommended.', risk: 'INTERMEDIATE' };
+      if (code === 'ASCUS') return hpvStatus === 'POSITIVE'
+        ? { code: 'COLPO', text: 'Colposcopy recommended (ASC-US + HPV positive).', risk: 'INTERMEDIATE' }
+        : { code: 'REPEAT_3Y', text: 'Repeat co-test in 3 years.', risk: 'LOW' };
+      if (code === 'LSIL') return hpvStatus === 'POSITIVE'
+        ? { code: 'COLPO', text: 'Colposcopy recommended (LSIL + HPV positive).', risk: 'INTERMEDIATE' }
+        : { code: 'REPEAT_1Y', text: 'Repeat co-test in 1 year.', risk: 'LOW' };
+      return null;
+    }
+
+    // Risk → Carbon Tag kind
+    const RISK_TAG = {
+      LOW:          { kind: 'warm-gray', label: 'Low risk' },
+      INTERMEDIATE: { kind: 'magenta',   label: 'Intermediate' },
+      HIGH:         { kind: 'red',       label: 'High risk' },
+      MALIGNANT:    { kind: 'red',       label: 'Malignant', strong: true },
+    };
+
+    function Tag({ kind, children, strong }) {
+      return (
+        <span className={`cds--tag cds--tag--${kind}`} style={strong ? { background: '#da1e28', color: '#fff' } : {}}>
+          {children}
+        </span>
+      );
+    }
+
+    function Section({ id, title, badge, open, onToggle, locked, lockedHint, children }) {
+      return (
+        <div className="section-card">
+          <div
+            className={`section-header${open ? ' open' : ''}${locked ? ' locked' : ''}`}
+            onClick={() => !locked && onToggle()}
+            role="button"
+            tabIndex={locked ? -1 : 0}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span>{title}</span>
+              {badge}
+            </div>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              {locked && <span style={{ fontSize: 12, color: '#525252' }}>{lockedHint}</span>}
+              <span className="chev">▾</span>
+            </span>
+          </div>
+          <div className={`section-body${open ? ' open' : ''}`}>{children}</div>
+        </div>
+      );
+    }
+
+    function App() {
+      // State
+      const [openSections, setOpenSections] = useState({ info: false, adequacy: true, interp: true, recomm: true });
+      const toggle = (id) => setOpenSections(s => ({ ...s, [id]: !s[id] }));
+
+      const [adequacy, setAdequacy] = useState('SATISFACTORY'); // SATISFACTORY | SATISFACTORY_LIMITED | UNSATISFACTORY
+      const [limitations, setLimitations] = useState([ADEQUACY_LIMITATIONS[3]]); // pre-selected: absent transformation zone
+
+      const [category, setCategory] = useState('EPITHELIAL'); // NILM | EPITHELIAL | OTHER
+      const [abnType, setAbnType] = useState('SQUAMOUS');     // SQUAMOUS | GLANDULAR | BOTH
+      const [squamous, setSquamous] = useState(SQUAMOUS_FINDINGS[3]); // pre-selected HSIL for the demo
+      const [glandular, setGlandular] = useState(null);
+
+      const [organisms, setOrganisms] = useState([]);
+      const [nonNeo, setNonNeo] = useState([]);
+
+      const [userRec, setUserRec] = useState('');
+      const [usedSystem, setUsedSystem] = useState(false);
+      const [toastMsg, setToastMsg] = useState(null);
+
+      const showToast = (msg) => {
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(null), 2500);
+      };
+
+      const isUnsat = adequacy === 'UNSATISFACTORY';
+      const interpDisabled = isUnsat;
+
+      // Risk computation
+      const dominantFinding = useMemo(() => {
+        if (interpDisabled) return null;
+        if (category !== 'EPITHELIAL') return null;
+        return squamous || glandular;
+      }, [interpDisabled, category, squamous, glandular]);
+
+      const isCritical = dominantFinding && (dominantFinding.risk === 'HIGH' || dominantFinding.risk === 'MALIGNANT');
+
+      // ASCCP suggestion
+      const hpvStatus = CASE.hpv.status; // POSITIVE
+      const suggestion = useMemo(
+        () => asccpSuggest(squamous, hpvStatus, CASE.hpv.hpv16 === 'POSITIVE', CASE.patient.age),
+        [squamous, hpvStatus]
+      );
+
+      const ascccpUnlocked = userRec.trim().length > 0;
+
+      const handleUseThis = () => {
+        if (!suggestion || suggestion.pending) return;
+        setUserRec(suggestion.text);
+        setUsedSystem(true);
+        showToast('Your recommendation was replaced with the ASCCP suggestion. You can still edit before signing out.');
+      };
+
+      const handleCopy = () => {
+        if (!suggestion || suggestion.pending) return;
+        if (navigator.clipboard) navigator.clipboard.writeText(suggestion.text);
+        showToast('Copied to clipboard.');
+      };
+
+      // Summary panel values
+      const adequacyLabel = {
+        SATISFACTORY: 'Satisfactory',
+        SATISFACTORY_LIMITED: 'Satisfactory — limited',
+        UNSATISFACTORY: 'Unsatisfactory'
+      }[adequacy];
+      const categoryLabel = isUnsat ? 'N/A (unsat)' : ({ NILM: 'NILM', EPITHELIAL: 'Epithelial abn.', OTHER: 'Other' }[category]);
+      const findingLabel = interpDisabled
+        ? '—'
+        : category === 'EPITHELIAL'
+            ? (abnType === 'BOTH'
+                ? `${squamous ? squamous.label : '—'} / ${glandular ? glandular.label : '—'}`
+                : (squamous || glandular || { label: '—' }).label)
+            : (category === 'NILM' ? 'NILM' : 'Other');
+
+      // ----- Render -----
+      return (
+        <>
+          {/* Breadcrumb */}
+          <nav className="breadcrumb-bar" aria-label="breadcrumb">
+            <a href="#">Home</a> &nbsp;/&nbsp;
+            <a href="#">Cytology</a> &nbsp;/&nbsp;
+            <a href="#">Dashboard</a> &nbsp;/&nbsp;
+            <span>Case {CASE.labNumber}</span>
+          </nav>
+
+          <h1 className="page-title">Cytology Case — {CASE.labNumber}</h1>
+
+          {/* Patient header */}
+          <div className="patient-header">
+            <strong>{CASE.patient.name}</strong>
+            <span>DOB {CASE.patient.dob} ({CASE.patient.age} y)</span>
+            <span>{CASE.patient.sex}</span>
+            <span style={{ marginLeft: 'auto' }}>
+              <Tag kind="blue">{CASE.status}</Tag>
+              <span style={{ marginLeft: '0.5rem' }}>Assigned: {CASE.assignedTo}</span>
+            </span>
+          </div>
+
+          <div className="layout">
+            {/* LEFT — work column */}
+            <div className="work-column">
+
+              {/* 1. Case Information (collapsed by default) */}
+              <Section
+                id="info"
+                title="1. Case Information"
+                badge={<span style={{ fontSize: 12, color: '#525252' }}>Read only</span>}
+                open={openSections.info}
+                onToggle={() => toggle('info')}
+              >
+                <div className="meta-grid">
+                  <div className="k">Lab number</div><div className="v">{CASE.labNumber}</div>
+                  <div className="k">Request date</div><div className="v">{CASE.requestDate}</div>
+                  <div className="k">Specimen type</div><div className="v">{CASE.specimenType}</div>
+                  <div className="k">Provider</div><div className="v">{CASE.provider}</div>
+                  <div className="k">Clinical history</div><div className="v">{CASE.clinicalHistory}</div>
+                  <div className="k">Most recent prior Pap</div><div className="v">{CASE.priorPap}</div>
+                </div>
+              </Section>
+
+              {/* 2. Specimen Adequacy */}
+              <Section
+                id="adequacy"
+                title="2. Specimen Adequacy"
+                badge={<Tag kind={adequacy === 'UNSATISFACTORY' ? 'red' : 'green'}>{adequacyLabel}</Tag>}
+                open={openSections.adequacy}
+                onToggle={() => toggle('adequacy')}
+              >
+                <div className="form-group">
+                  <span className="label">Adequacy decision</span>
+                  <div className="radio-row">
+                    <label>
+                      <input type="radio" name="adequacy" checked={adequacy === 'SATISFACTORY'} onChange={() => { setAdequacy('SATISFACTORY'); setLimitations([]); }} />
+                      <span><strong>Satisfactory for evaluation</strong><div className="desc">Cellularity adequate, transformation zone present, no obscuring factors</div></span>
+                    </label>
+                    <label>
+                      <input type="radio" name="adequacy" checked={adequacy === 'SATISFACTORY_LIMITED'} onChange={() => setAdequacy('SATISFACTORY_LIMITED')} />
+                      <span><strong>Satisfactory but limited by…</strong><div className="desc">Specimen can still be interpreted, but limitations are noted in the report</div></span>
+                    </label>
+                    <label>
+                      <input type="radio" name="adequacy" checked={adequacy === 'UNSATISFACTORY'} onChange={() => setAdequacy('UNSATISFACTORY')} />
+                      <span><strong>Unsatisfactory for evaluation</strong><div className="desc">Specimen cannot be evaluated; recommendation will be "Repeat collection"</div></span>
+                    </label>
+                  </div>
+                </div>
+
+                {adequacy === 'SATISFACTORY_LIMITED' && (
+                  <div className="form-group">
+                    <span className="label">Limitations (Bethesda 2014 dictionary)</span>
+                    <div className="checkbox-row">
+                      {ADEQUACY_LIMITATIONS.map(l => (
+                        <label key={l}>
+                          <input
+                            type="checkbox"
+                            checked={limitations.includes(l)}
+                            onChange={() => setLimitations(prev => prev.includes(l) ? prev.filter(x => x !== l) : [...prev, l])}
+                          />
+                          <span>{l}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {adequacy === 'UNSATISFACTORY' && (
+                  <div className="form-group">
+                    <span className="label">Reason (required)</span>
+                    <select className="cds--select-input" defaultValue={UNSAT_REASONS[1]}>
+                      {UNSAT_REASONS.map(r => <option key={r}>{r}</option>)}
+                    </select>
+                  </div>
+                )}
+
+                <div style={{ fontSize: 12, color: '#525252', marginTop: '0.5rem' }}>
+                  ↳ Backed by <code>cytology_specimen_adequacy</code> + <code>cytology_specimen_adequacy_value</code>.
+                  resultType = DICTIONARY (use Carbon multi-select). Free-text fallback also supported by the existing schema (T result type).
+                </div>
+              </Section>
+
+              {/* 3. Interpretation */}
+              <Section
+                id="interp"
+                title="3. Interpretation (Bethesda 2014)"
+                badge={isCritical
+                  ? <Tag kind="red" strong={dominantFinding.risk === 'MALIGNANT'}>{dominantFinding.risk}</Tag>
+                  : (category === 'NILM' ? <Tag kind="green">NILM</Tag> : (dominantFinding ? <Tag kind={RISK_TAG[dominantFinding.risk].kind}>{RISK_TAG[dominantFinding.risk].label}</Tag> : null))}
+                open={openSections.interp}
+                onToggle={() => toggle('interp')}
+                locked={interpDisabled}
+                lockedHint={interpDisabled ? 'Disabled — specimen is unsatisfactory' : null}
+              >
+                {isUnsat && (
+                  <div className="unsat-banner">
+                    Specimen is unsatisfactory; no Bethesda interpretation required. The case may be signed out with the recommendation "Repeat collection".
+                  </div>
+                )}
+
+                {!isUnsat && (
+                  <>
+                    {/* Critical banner */}
+                    {isCritical && (
+                      <div className={`critical-banner${dominantFinding.risk === 'MALIGNANT' ? ' critical-banner-strong' : ''}`} role="alert">
+                        <span className="icon">⚠</span>
+                        <div>
+                          <strong>Critical result detected.</strong> This finding ({dominantFinding.label}) will trigger a critical-result acknowledgment event on sign-out, surfacing in the Alerts Dashboard for the ordering clinician's queue.
+                          <div style={{ fontSize: 12, marginTop: '0.25rem', color: '#525252' }}>
+                            Behavior is gated by feature flag <code>criticalResultAcknowledgmentEnabled</code>; sign-out is not blocked if the global Critical Ack module is not deployed.
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* General Categorization */}
+                    <div className="form-group">
+                      <span className="label">General categorization (Bethesda)</span>
+                      <div className="radio-row">
+                        <label>
+                          <input type="radio" name="cat" checked={category === 'NILM'} onChange={() => setCategory('NILM')} />
+                          <span><strong>Negative for Intraepithelial Lesion or Malignancy (NILM)</strong>
+                            <div className="desc">Negative findings; organisms and non-neoplastic findings can still be reported below</div></span>
+                        </label>
+                        <label>
+                          <input type="radio" name="cat" checked={category === 'EPITHELIAL'} onChange={() => setCategory('EPITHELIAL')} />
+                          <span><strong>Epithelial Cell Abnormality</strong>
+                            <div className="desc">Squamous or glandular cell abnormality identified</div></span>
+                        </label>
+                        <label>
+                          <input type="radio" name="cat" checked={category === 'OTHER'} onChange={() => setCategory('OTHER')} />
+                          <span><strong>Other</strong>
+                            <div className="desc">e.g. endometrial cells in a woman ≥ 45 (Bethesda treats this as NILM-with-note)</div></span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* NILM sub-sections */}
+                    {category === 'NILM' && (
+                      <>
+                        <div className="form-group">
+                          <span className="label">Organisms identified ({ORGANISMS.length} dictionary options · <code>cytology_diagnosis_organisms</code>)</span>
+                          <div className="checkbox-row">
+                            {ORGANISMS.map(o => (
+                              <label key={o}>
+                                <input type="checkbox" checked={organisms.includes(o)} onChange={() => setOrganisms(prev => prev.includes(o) ? prev.filter(x => x !== o) : [...prev, o])} />
+                                <span>{o}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="form-group">
+                          <span className="label">Non-neoplastic findings (<code>cytology_non-neoplastic_cellular_variations</code> + <code>cytology_reactive_cellular_changes</code>)</span>
+                          <div className="checkbox-row">
+                            {NON_NEOPLASTIC.map(n => (
+                              <label key={n}>
+                                <input type="checkbox" checked={nonNeo.includes(n)} onChange={() => setNonNeo(prev => prev.includes(n) ? prev.filter(x => x !== n) : [...prev, n])} />
+                                <span>{n}</span>
+                              </label>
+                            ))}
+                          </div>
+                          {nonNeo.includes('Reactive cellular changes') && (
+                            <div className="checkbox-row sub-checkbox-row" style={{ marginTop: '0.5rem' }}>
+                              {REACTIVE_SUB.map(r => (
+                                <label key={r}><input type="checkbox" /> <span>{r}</span></label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Epithelial sub-section */}
+                    {category === 'EPITHELIAL' && (
+                      <>
+                        <div className="form-group">
+                          <span className="label">Type of epithelial abnormality</span>
+                          <div className="radio-row" style={{ flexDirection: 'row', gap: '1.5rem' }}>
+                            <label><input type="radio" name="abnType" checked={abnType === 'SQUAMOUS'} onChange={() => { setAbnType('SQUAMOUS'); setGlandular(null); }} /> <span>Squamous cell</span></label>
+                            <label><input type="radio" name="abnType" checked={abnType === 'GLANDULAR'} onChange={() => { setAbnType('GLANDULAR'); setSquamous(null); }} /> <span>Glandular cell</span></label>
+                            <label><input type="radio" name="abnType" checked={abnType === 'BOTH'} onChange={() => setAbnType('BOTH')} /> <span>Both</span></label>
+                          </div>
+                        </div>
+
+                        {(abnType === 'SQUAMOUS' || abnType === 'BOTH') && (
+                          <div className="form-group">
+                            <span className="label">Squamous finding (<code>cytology_epithelial_cell_abnomalit_squamous</code>)</span>
+                            {SQUAMOUS_FINDINGS.map(f => (
+                              <div
+                                key={f.code}
+                                className={`finding-card${squamous && squamous.code === f.code ? ' selected' : ''}`}
+                                onClick={() => setSquamous(f)}
+                              >
+                                <div>
+                                  <div className="finding-label">{f.label}</div>
+                                  <div className="finding-sub">{f.sub}</div>
+                                </div>
+                                <Tag kind={RISK_TAG[f.risk].kind} strong={RISK_TAG[f.risk].strong}>{RISK_TAG[f.risk].label}</Tag>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {(abnType === 'GLANDULAR' || abnType === 'BOTH') && (
+                          <div className="form-group">
+                            <span className="label">Glandular finding (<code>cytology_epithelial_cell_abnomalit_glandular</code>)</span>
+                            {GLANDULAR_FINDINGS.map(f => (
+                              <div
+                                key={f.code}
+                                className={`finding-card${glandular && glandular.code === f.code ? ' selected' : ''}`}
+                                onClick={() => setGlandular(f)}
+                              >
+                                <div>
+                                  <div className="finding-label">{f.label}</div>
+                                </div>
+                                <Tag kind={RISK_TAG[f.risk].kind} strong={RISK_TAG[f.risk].strong}>{RISK_TAG[f.risk].label}</Tag>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Other sub-section */}
+                    {category === 'OTHER' && (
+                      <div className="form-group">
+                        <span className="label">Other finding (free text, stored as <code>cytology_diagnosis_result_map.category=OTHER, result_type=T</code>)</span>
+                        <textarea defaultValue="Endometrial cells present in a woman ≥ 45 years of age. Per Bethesda 2014, reported as a finding under Other; correlation with clinical history recommended." />
+                      </div>
+                    )}
+                  </>
+                )}
+
+                <div style={{ fontSize: 12, color: '#525252', marginTop: '0.5rem' }}>
+                  ↳ Persists via <code>cytology_diagnosis</code> (negative_diagnosis bool) + N×<code>cytology_diagnosis_result_map</code> rows. No new tables.
+                </div>
+              </Section>
+
+              {/* 4. Recommendation */}
+              <Section
+                id="recomm"
+                title="4. Recommendation"
+                badge={userRec.trim().length > 0
+                  ? (usedSystem ? <Tag kind="purple">From ASCCP</Tag> : <Tag kind="teal">User entered</Tag>)
+                  : <Tag kind="gray">Pending</Tag>}
+                open={openSections.recomm}
+                onToggle={() => toggle('recomm')}
+                locked={interpDisabled}
+                lockedHint={interpDisabled ? 'Use "Repeat collection" for unsat' : null}
+              >
+                <div className="form-group">
+                  <span className="label">Your recommendation <span style={{ color: '#da1e28' }}>*</span></span>
+                  <textarea
+                    value={userRec}
+                    onChange={(e) => { setUserRec(e.target.value); if (usedSystem) setUsedSystem(false); }}
+                    placeholder="Enter your clinical recommendation based on the findings. The ASCCP suggestion panel below unlocks once you have entered your own recommendation."
+                  />
+                  <div style={{ fontSize: 12, color: '#525252', marginTop: '0.25rem' }}>
+                    Anti-anchoring: ASCCP suggestion stays locked until you type a recommendation here. This is intentional.
+                  </div>
+                </div>
+
+                {/* ASCCP suggestion panel */}
+                <div className={`ascccp-panel${ascccpUnlocked ? '' : ' locked'}`}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong>💡 ASCCP 2019 guideline suggestion</strong>
+                    {suggestion && !suggestion.pending && (
+                      <Tag kind={RISK_TAG[suggestion.risk].kind} strong={RISK_TAG[suggestion.risk].strong}>
+                        {RISK_TAG[suggestion.risk].label}
+                      </Tag>
+                    )}
+                  </div>
+
+                  {!ascccpUnlocked && (
+                    <div style={{ marginTop: '0.5rem', fontSize: 13, color: '#525252' }}>
+                      🔒 Enter your own recommendation above to unlock the ASCCP suggestion.
+                    </div>
+                  )}
+
+                  {ascccpUnlocked && suggestion && (
+                    <>
+                      <div style={{ fontSize: 13, marginTop: '0.5rem', color: '#525252' }}>
+                        Based on cytology <strong>{squamous ? squamous.label : (glandular ? glandular.label : '—')}</strong>
+                        {' '}× HPV{' '}
+                        <strong>{CASE.hpv.status}</strong>{CASE.hpv.hpv16 === 'POSITIVE' ? ' (HPV-16 +)' : ''}
+                        {' '}× age <strong>{CASE.patient.age}</strong>:
+                      </div>
+                      <div className="ascccp-suggestion-text">{suggestion.text}</div>
+                      {!suggestion.pending && (
+                        <div className="ascccp-actions">
+                          <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={handleCopy}>📋 Copy</button>
+                          <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={handleUseThis}>↑ Use this</button>
+                        </div>
+                      )}
+                      <div className="ascccp-footer">Source: 2019 ASCCP Risk-Based Management Consensus Guidelines. Simplified v1 matrix — full ASCCP risk tables planned for v2.</div>
+                    </>
+                  )}
+                </div>
+
+                {ascccpUnlocked && (
+                  <div className="form-group" style={{ marginTop: '1rem' }}>
+                    <span className="label">Additional comments (optional)</span>
+                    <textarea placeholder="Any further notes for the report. Appears in the Bethesda 2014 'Additional Notes' section of the PDF." />
+                  </div>
+                )}
+
+                <div style={{ fontSize: 12, color: '#525252', marginTop: '0.5rem' }}>
+                  ↳ Persists via new <code>cytology_recommendation</code> table: user_text, system_code, system_text, system_risk_level, used_system_suggestion (bool), additional_comments. Envers-audited.
+                </div>
+              </Section>
+
+            </div>
+
+            {/* RIGHT — sticky summary panel */}
+            <aside>
+              <div className="summary-panel">
+                <h3>Case Summary</h3>
+                <div className="row">
+                  <span className="label">Adequacy</span>
+                  <span className="value"><Tag kind={adequacy === 'UNSATISFACTORY' ? 'red' : 'green'}>{adequacyLabel}</Tag></span>
+                </div>
+                <div className="row">
+                  <span className="label">Category</span>
+                  <span className="value">{categoryLabel}</span>
+                </div>
+                <div className="row">
+                  <span className="label">Finding</span>
+                  <span className="value">
+                    {findingLabel}{' '}
+                    {isCritical && <Tag kind="red" strong={dominantFinding && dominantFinding.risk === 'MALIGNANT'}>⚠ Critical</Tag>}
+                  </span>
+                </div>
+                <div className="row">
+                  <span className="label">HPV cotest</span>
+                  <span className="value" style={{ textAlign: 'right' }}>
+                    <div><Tag kind={CASE.hpv.status === 'POSITIVE' ? 'red' : 'green'}>{CASE.hpv.status}</Tag></div>
+                    <div style={{ fontSize: 11, color: '#525252', marginTop: 2 }}>HPV-16 {CASE.hpv.hpv16} · HPV-18 {CASE.hpv.hpv18}</div>
+                  </span>
+                </div>
+                <div className="row">
+                  <span className="label">Recommendation</span>
+                  <span className="value">{userRec.trim().length > 0 ? (usedSystem ? 'ASCCP guideline' : 'User entered') : 'Pending'}</span>
+                </div>
+
+                <h3 style={{ marginTop: '1.5rem' }}>HPV co-test (read-only)</h3>
+                <div className="hpv-pill">
+                  <div className="hpv-label">Source: sibling Analysis on Sample {CASE.sampleId}</div>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <Tag kind={CASE.hpv.status === 'POSITIVE' ? 'red' : 'green'}>{CASE.hpv.status}</Tag>
+                    <Tag kind={CASE.hpv.hpv16 === 'POSITIVE' ? 'red' : 'gray'}>HPV-16 {CASE.hpv.hpv16}</Tag>
+                    <Tag kind={CASE.hpv.hpv18 === 'POSITIVE' ? 'red' : 'gray'}>HPV-18 {CASE.hpv.hpv18}</Tag>
+                    <Tag kind="gray">Other HR {CASE.hpv.otherHr}</Tag>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#525252' }}>Method: {CASE.hpv.method}</div>
+                </div>
+
+                <h3 style={{ marginTop: '1.5rem' }}>Slides ({CASE.slides.length})</h3>
+                <div className="slide-list">
+                  {CASE.slides.map(s => (
+                    <div key={s.n} className="slide-item">
+                      <span>Slide #{s.n} · {s.type}</span>
+                      <span style={{ fontSize: 11, color: '#525252' }}>{s.loc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </aside>
+          </div>
+
+          {/* Action bar */}
+          <div className="action-bar">
+            <div className="status">
+              Status: <strong>{CASE.status}</strong>
+              {isCritical && <span style={{ marginLeft: '1rem' }}><Tag kind="red">⚠ Critical-result case</Tag></span>}
+            </div>
+            <div className="btn-group">
+              <button className="cds--btn cds--btn--ghost">Discard changes</button>
+              <button className="cds--btn cds--btn--secondary">Save draft</button>
+              <button
+                className="cds--btn cds--btn--primary"
+                disabled={isUnsat ? false : (userRec.trim().length === 0)}
+              >
+                Sign out & finalize
+              </button>
+            </div>
+          </div>
+
+          {toastMsg && <div className="toast">{toastMsg}</div>}
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
