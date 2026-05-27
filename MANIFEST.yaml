@@ -418,33 +418,192 @@
   links: {}
   added: "2026-03-06"
 
-# ─── Microbiology ───────────────────────────────────────────
+# ─── Microbiology — M-* bundle (supersedes amr-module / OGC-293) ───────────
 
-- id: amr-module
+- id: m-00-micro-module-parent
+  type: spec
+  path: designs/microbiology/m-00-micro-module-parent.md
+  category: microbiology
+  description: >
+    M-00 spine spec: glossary, RBAC, data model overview, phase plan, OOS, v1.1 → v2 diff map.
+  links:
+    jira: ["OGC-782"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-00-microbiology-module-parent
+  added: "2026-05-15"
+
+- id: m-nfr-non-functional-requirements
+  type: spec
+  path: designs/microbiology/m-nfr-non-functional-requirements.md
+  category: microbiology
+  description: >
+    M-NFR: 10 cross-cutting NFRs (offline, scale, audit, a11y, perf, retention, i18n, security, browser, DB).
+  links:
+    jira: ["OGC-783"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-nfr-non-functional-requirements
+  added: "2026-05-15"
+
+- id: m-01-amr-reference-data
+  type: spec
+  path: designs/microbiology/m-01-amr-reference-data.md
+  category: microbiology
+  description: >
+    M-01: Organism / Antibiotic / AST Panel / Culture Protocol masters with WHONET codes.
+  links:
+    jira: ["OGC-786"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-01-amr-reference-data-organism-master
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-01-organism-master.html
+  added: "2026-05-15"
+
+- id: m-02-breakpoint-catalog
+  type: spec
+  path: designs/microbiology/m-02-breakpoint-catalog.md
+  category: microbiology
+  description: >
+    M-02: Versioned CLSI + EUCAST breakpoint tables; snapshot-at-write.
+  links:
+    jira: ["OGC-787"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-02-breakpoint-catalog
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-02-breakpoint-catalog.html
+  added: "2026-05-15"
+
+- id: m-03-order-entry-micro-hook
+  type: spec
+  path: designs/microbiology/m-03-order-entry-micro-hook.md
+  category: microbiology
+  description: >
+    M-03: Order Entry Step 1 amendment — six micro fields when Program = MICROBIOLOGY.
+  links:
+    jira: ["OGC-789"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-03-order-entry-micro-hook
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-03-order-entry-step1.html
+  added: "2026-05-15"
+
+- id: m-04-case-workbench-core
+  type: spec
+  path: designs/microbiology/m-04-case-workbench-core.md
+  category: microbiology
+  description: >
+    M-04: Case + Isolate + Timeline + Reports + state machine + amendment workflow.
+  links:
+    jira: ["OGC-790"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-04-case-workbench-core-case-detail
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-detail.html
+  added: "2026-05-15"
+
+- id: m-04-isolate-modal
   type: mockup
-  path: designs/microbiology/amr-module.jsx
+  path: designs/microbiology/m-04-isolate-modal.html
   category: microbiology
-  description: Antimicrobial resistance testing and reporting module
-  paired_with: amr-module-spec
-  links: {}
-  added: "2026-03-03"
+  description: >
+    M-04 Isolate Modal: add/edit + reidentification mode.
+  links:
+    jira: ["OGC-790"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-04-isolate-modal
+  added: "2026-05-15"
 
-- id: amr-module-spec
+- id: m-05-ast-entry-and-interpretation
   type: spec
-  path: designs/microbiology/amr-module.md
+  path: designs/microbiology/m-05-ast-entry-and-interpretation.md
   category: microbiology
-  description: AMR module FRS
-  paired_with: amr-module
-  links: {}
-  added: "2026-03-03"
+  description: >
+    M-05: AST Setup + AST Edit with BreakpointLookupService and inline override mechanism.
+  links:
+    jira: ["OGC-791"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-05-ast-entry-interpretation
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-05-ast-edit-modal.html
+  added: "2026-05-15"
 
-- id: case-workbench-spec
+- id: m-06-expert-rules-engine
   type: spec
-  path: designs/microbiology/case-workbench.md
+  path: designs/microbiology/m-06-expert-rules-engine.md
   category: microbiology
-  description: Microbiology case workbench spec
-  links: {}
-  added: "2026-03-03"
+  description: >
+    M-06: Expert Rules engine — MRSA, D-test, ESBL, cascade, intrinsic verification. Phase 1B.
+  links:
+    jira: ["OGC-793"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-06-expert-rules-engine
+  added: "2026-05-15"
+
+- id: m-07-pending-cultures
+  type: spec
+  path: designs/microbiology/m-07-worklists.md
+  category: microbiology
+  description: >
+    M-07 Pending Cultures: primary morning-rounds worklist with stage-based row highlighting.
+  links:
+    jira: ["OGC-792"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-07-pending-cultures-worklist
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-pending-cultures.html
+  added: "2026-05-15"
+
+- id: m-07-ast-worklist
+  type: mockup
+  path: designs/microbiology/m-07-ast-worklist.html
+  category: microbiology
+  description: >
+    M-07 AST Worklist: focused susceptibility queue with flag chips. Phase 1A+.
+  links:
+    jira: ["OGC-792"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-07-ast-worklist
+  added: "2026-05-15"
+
+- id: m-08-macro-library
+  type: spec
+  path: designs/microbiology/m-08-macro-library.md
+  category: microbiology
+  description: >
+    M-08: Cross-cutting macro library — .code → expanded text. 85 seeded defaults across 8 categories.
+  links:
+    jira: ["OGC-788"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-08-macro-library
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-08-macro-library.html
+  added: "2026-05-15"
+
+- id: m-09-whonet-export
+  type: spec
+  path: designs/microbiology/m-09-whonet-export.md
+  category: microbiology
+  description: >
+    M-09: WHONET surveillance export with dedup, validation, phenotype flag columns. Phase 1B.
+  links:
+    jira: ["OGC-794"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-09-whonet-export
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-09-whonet-export.html
+  added: "2026-05-15"
+
+- id: m-10-hub-subscription
+  type: spec
+  path: designs/microbiology/m-10-hub-subscription.md
+  category: microbiology
+  description: >
+    M-10: Unified Hub admin for breakpoint + WHONET code + organism/antibiotic updates. Phase 1B.
+  links:
+    jira: ["OGC-795"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-10-hub-subscription
+  added: "2026-05-15"
+
+- id: m-11-critical-result-acknowledgment
+  type: spec
+  path: designs/microbiology/m-11-critical-result-acknowledgment.md
+  category: microbiology
+  description: >
+    M-11: Polymorphic critical-notification rework. Co-ships with Phase 1A+.
+  links:
+    jira: ["OGC-785"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-11-critical-result-acknowledgment
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-11-critical-notifications.html
+  added: "2026-05-15"
+
+- id: m-12-test-reagent-linkage
+  type: spec
+  path: designs/microbiology/m-12-test-reagent-linkage.md
+  category: microbiology
+  description: >
+    M-12: Test → Reagent linkage (ISO 15189 §7.3). General OE foundation; parallel pre-track.
+  links:
+    jira: ["OGC-784"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-12-test-to-reagent-linkage
+  added: "2026-05-15"
 
 # ─── Non-Conforming Events (NCE) ───────────────────────────
 
