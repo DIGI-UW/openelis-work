@@ -2475,3 +2475,32 @@
   added: "2026-04-28"
   updated: "2026-05-26"
   status: draft
+
+- id: programs-management
+  type: jsx
+  path: designs/admin-config/programs-management.jsx
+  spec: designs/admin-config/programs-management.md
+  preview: designs/admin-config/programs-management.html
+  category: admin-config
+  description: >
+    Programs admin rework — adds Domain (Clinical/Environmental/Vector) field
+    matching Test Catalog and Lab Units pattern; moves under Admin → Test Management;
+    Carbon ContentSwitcher for Visual Builder ↔ JSON modes; auto-saving question cards;
+    inline answer-options editor for Choice/Checkbox; live "Example" preview pane.
+  links:
+    jira: []
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/programs-management
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/programs-management.html
+  tags:
+    - admin
+    - programs
+    - test-management
+    - domain
+    - fhir-questionnaire
+    - visual-builder
+    - json
+    - live-preview
+    - order-entry
+    - global
+  added: "2026-05-27"
+  status: draft

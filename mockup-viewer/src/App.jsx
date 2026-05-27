@@ -309,6 +309,18 @@ export const MOCKUP_REGISTRY = [
     jira: [],
     tags: ['admin', 'test-rules', 'reflex', 'calculated-values', 'decision-table', 'formula-bar', 'analyzer-parameters', 'predicate-vocabulary', 'MVP', 'global'],
   },
+  {
+    name: 'Programs Management',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/programs-management.jsx')),
+    description: 'Programs admin rework — adds Domain (Clinical/Environmental/Vector) field matching the Test Catalog and Lab Units pattern; moves the page back under Admin → Test Management; replaces the Edit JSON toggle with a Carbon ContentSwitcher (Visual Builder ↔ JSON); auto-saving question cards with OverflowMenu actions; inline answer-options editor for Choice/Checkbox; live "Example" preview pane rendering the questionnaire as it appears at order entry. Pattern source: OGC-748.',
+    specPath: 'designs/admin-config/programs-management.md',
+    htmlUrl: 'designs/admin-config/programs-management.html',
+    added: '2026-05-27',
+    status: 'draft',
+    jira: [],
+    tags: ['admin', 'programs', 'test-management', 'domain', 'fhir-questionnaire', 'visual-builder', 'json', 'live-preview', 'order-entry', 'global'],
+  },
 
   // ─── Analyzer Integration ───
   {
