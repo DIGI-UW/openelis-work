@@ -2663,3 +2663,55 @@
     - global
   added: "2026-05-27"
   status: draft
+
+- id: results-entry-expanded-uncertainty
+  type: both
+  path: designs/results-validation/results-entry-expanded-uncertainty.jsx
+  spec: designs/results-validation/results-entry-expanded-uncertainty.md
+  preview: designs/results-validation/results-entry-expanded-uncertainty.html
+  category: results-validation
+  description: >
+    Results Entry screen enhancement for OGC-775 (S-15a MVP). Adds an optional
+    U (k=2) numeric column to the results table for ISO 17025 §7.8.3.1(c)
+    expanded measurement uncertainty capture. Backward-compatible — labs without
+    uncertainty leave the cell blank. The LHU v2.0 conditional U column reads
+    this value when populated. MVP scope only.
+  links:
+    jira: ["OGC-775", "OGC-552", "OGC-527"]
+    gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-expanded-uncertainty
+    preview: https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-expanded-uncertainty.html
+  tags:
+    - results-entry
+    - iso-17025
+    - measurement-uncertainty
+    - lhu-v2
+  added: "2026-05-28"
+  status: draft
+
+- id: collection-lot-trap-details
+  type: both
+  path: designs/vector-surveillance/collection-lot-trap-details.jsx
+  spec: designs/vector-surveillance/collection-lot-trap-details.md
+  preview: designs/vector-surveillance/collection-lot-trap-details.html
+  category: vector-surveillance
+  description: >
+    V-02 Vector Collection Workflow form enhancement for OGC-777 (V-05a STRETCH).
+    Adds a "Trap Configuration" section to the existing CollectionLot edit form
+    with four new optional fields: lure, deployment_start, deployment_end,
+    storage_temperature_c. WHO entomological surveillance reproducibility
+    requirements. Backward-compatible — existing CollectionLots remain valid
+    with NULL values. LHU Mode A footnote auto-degrades when fields are null.
+    STRETCH: partner labs do not yet capture this granularity.
+  links:
+    jira: ["OGC-777", "OGC-552", "OGC-527"]
+    gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/collection-lot-trap-details
+    preview: https://digi-uw.github.io/openelis-work/designs/vector-surveillance/collection-lot-trap-details.html
+  tags:
+    - vector
+    - collection-lot
+    - trap-configuration
+    - WHO
+    - lhu-v2
+    - stretch
+  added: "2026-05-28"
+  status: draft

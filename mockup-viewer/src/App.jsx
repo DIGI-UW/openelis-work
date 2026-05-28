@@ -1136,6 +1136,16 @@ export const MOCKUP_REGISTRY = [
     tags: ['compliance', 'evaluation', 'environmental', 'vector', 'results', 'thresholds'],
   },
   {
+    name: 'Results Entry — Expanded Uncertainty (U) Capture',
+    category: 'results-validation',
+    component: React.lazy(() => import('@designs/results-validation/results-entry-expanded-uncertainty.jsx')),
+    description: 'Results Entry screen enhancement (OGC-775, S-15a MVP) — adds an optional U (k=2) numeric column to the results table for ISO 17025 §7.8.3.1(c) expanded measurement uncertainty capture. Backward-compatible: labs without uncertainty leave the cell blank. The LHU v2.0 (OGC-552) conditional U column reads this value when populated. MVP scope only — no tooltips, admin toggle, or method-level prefill; those land in S-15a v2 if needed.',
+    specPath: 'designs/results-validation/results-entry-expanded-uncertainty.md',
+    htmlUrl: 'designs/results-validation/results-entry-expanded-uncertainty.html',
+    added: '2026-05-28',
+    status: 'draft',
+  },
+  {
     name: 'Reusable Categorical Vocabulary',
     category: 'vector-surveillance',
     component: null,
@@ -1173,6 +1183,16 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     relatedTo: ['Laporan Hasil — Compliance Report'],
     tags: ['report', 'vector-surveillance', 'laporan-hasil', 'LHU', 'pdf', 'certificate', 'Indonesia', 'SILNAS', 'KAN', 'mosquito', 'entomology'],
+  },
+  {
+    name: 'Collection Lot — Trap Details',
+    category: 'vector-surveillance',
+    component: React.lazy(() => import('@designs/vector-surveillance/collection-lot-trap-details.jsx')),
+    description: 'V-02 Vector Collection Workflow form enhancement (OGC-777, V-05a STRETCH) — adds a "Trap Configuration" section to the existing CollectionLot edit form with four new optional fields: lure, deployment_start, deployment_end, storage_temperature_c. WHO entomological surveillance reproducibility requirements. Backward-compatible: existing CollectionLots remain valid with NULL values. LHU Mode A footnote auto-degrades when fields are null. STRETCH: partner labs do not yet capture this granularity.',
+    specPath: 'designs/vector-surveillance/collection-lot-trap-details.md',
+    htmlUrl: 'designs/vector-surveillance/collection-lot-trap-details.html',
+    added: '2026-05-28',
+    status: 'draft',
   },
   {
     name: 'Laporan Hasil — Compliance Report',
