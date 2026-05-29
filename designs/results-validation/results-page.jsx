@@ -252,9 +252,23 @@ const INITIAL_RESULTS = [
       critical: { low: 50,  high: 400, lowMsg: "Critical hypoglycemia — Glucose < 50 mg/dL", highMsg: "Critical hyperglycemia — Glucose > 400 mg/dL" },
       valid:    { low: 20,  high: 600 },
     },
+    // BR-036: range selected by demographics (CLSI EP28-A3c). Other configured ranges
+    // for this test (Pediatric, Pregnancy, Geriatric) would also exist in Test Catalog.
+    selectedRangeLabel: "Adult Female (18–65y)",
     resultType: "N",
     result: "142",
     currentResult: "98",
+    // BR-035: prior modification chain — visible in the Modification History banner.
+    // ALCOA+ "Original" retrievability per CFR Part 11 §11.10(e) / ISO 15189 §7.5.2.
+    modificationHistory: [
+      { id: 1, fromValue: "145", toValue: "142", modifiedBy: "K. Davis", modifiedAt: "12/18/2025 11:50",
+        reason: "Tech transcription correction — instrument printout shows 142 mg/dL, not 145." },
+    ],
+    // BR-037: aliquots derived from this sample
+    aliquots: [
+      { id: "DEV01260000000000001-022.1", purpose: "Test", linkedTest: "HbA1c", status: "Created", createdAt: "12/18/2025 11:30", createdBy: "K. Davis", storage: "—" },
+      { id: "DEV01260000000000001-022.2", purpose: "Retention", linkedTest: null, status: "In-Storage", createdAt: "12/18/2025 11:32", createdBy: "K. Davis", storage: "Freezer A → Rack 3 → Shelf 1 → Box 4 (Pos C-02)" },
+    ],
     status: "awaiting-validation",
     method: { id: "AUTO", source: "analyzer" },
     analyzer: "CC501",
@@ -726,12 +740,18 @@ function InterpretationSection({ result }) {
 // ---------------------------------------------------------------------------
 // Method & Reagents — always-visible inline section (was a tab)
 // ---------------------------------------------------------------------------
-function MethodSection({ result }) {
+function MethodSection({ result, requireReagentLots = false, onReagentSelectedChange = null }) {
   const [open, setOpen] = useState(true);
   const [methodId, setMethodId] = useState(result.method?.id || "MAN");
   const [analyzerId, setAnalyzerId] = useState(result.analyzer || "");
   const [methodDetails, setMethodDetails] = useState("");
+  const [selectedLotId, setSelectedLotId] = useState(null);
   const isAuto = methodId === "AUTO" || methodId === "SEMIAUTO";
+
+  const handleLotSelect = (lotId) => {
+    setSelectedLotId(lotId);
+    if (onReagentSelectedChange) onReagentSelectedChange(true);
+  };
 
   return (
     <div className="border-b border-gray-200">
@@ -784,28 +804,39 @@ function MethodSection({ result }) {
             </div>
           </div>
 
-          {/* Reagent lots — FIFO suggestion */}
+          {/* Reagent lots — FIFO suggestion. BR-034: lot required for Save when site config is ON. */}
           <div className="bg-white border border-gray-200">
-            <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase tracking-wide text-gray-500">
-              {t("heading.reagent.lots","Reagent Lots (FIFO suggested)")}
+            <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase tracking-wide text-gray-500 flex justify-between items-center">
+              <span>{t("heading.reagent.lots","Reagent Lots (FIFO suggested)")}</span>
+              {requireReagentLots && !selectedLotId && (
+                <Tag kind="red">Required for Save (ISO 15189 §6.4.4)</Tag>
+              )}
+              {requireReagentLots && selectedLotId && (
+                <Tag kind="green">✓ Lot selected</Tag>
+              )}
             </div>
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="w-8"></th>
                   {["Reagent", "Lot Number", "Expires", "Remaining", "FIFO"].map(h => (
                     <th key={h} className="text-left px-3 py-2 font-semibold text-gray-600">{t(`column.reagent.${h.toLowerCase().replace(/ /g,"")}`, h)}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                <tr className="bg-amber-50 border-b border-gray-100">
+                <tr className={`border-b border-gray-100 ${selectedLotId === "LOT-2024-0892" ? "bg-blue-50" : "bg-amber-50"}`}>
+                  <td className="px-2 py-2"><input type="radio" name={`lot-${result.id}`}
+                    checked={selectedLotId === "LOT-2024-0892"} onChange={() => handleLotSelect("LOT-2024-0892")} /></td>
                   <td className="px-3 py-2">Cellpack DCL</td>
                   <td className="px-3 py-2 font-mono">LOT-2024-0892</td>
                   <td className="px-3 py-2 text-yellow-700 font-medium">12/20/2024 ⚠</td>
                   <td className="px-3 py-2">15%</td>
                   <td className="px-3 py-2"><Tag kind="blue">{t("label.reagent.useFirst","Use First")}</Tag></td>
                 </tr>
-                <tr>
+                <tr className={selectedLotId === "LOT-2024-1234" ? "bg-blue-50" : ""}>
+                  <td className="px-2 py-2"><input type="radio" name={`lot-${result.id}`}
+                    checked={selectedLotId === "LOT-2024-1234"} onChange={() => handleLotSelect("LOT-2024-1234")} /></td>
                   <td className="px-3 py-2">Cellpack DCL</td>
                   <td className="px-3 py-2 font-mono">LOT-2024-1234</td>
                   <td className="px-3 py-2">01/15/2025</td>
@@ -814,6 +845,12 @@ function MethodSection({ result }) {
                 </tr>
               </tbody>
             </table>
+            {requireReagentLots && !selectedLotId && (
+              <div className="px-3 py-2 bg-red-50 border-t border-red-200 text-xs text-red-700">
+                <AlertCircle className="w-3 h-3 inline mr-1" />
+                {t("warn.reagent.required","A reagent lot is required by site configuration (ISO 15189 §6.4.4 traceability). Select a lot to enable Save.")}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -902,6 +939,399 @@ function ProgramInfoSection({ program }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Modification History Banner — NEW for v3.1 (ISO HIGH A3 / CFR Part 11 §11.10(e))
+// Renders when result.modificationHistory[] has entries. Surfaces the original
+// value alongside the current value so validators don't have to dig through
+// audit_trail to verify a result hasn't been silently altered.
+// ---------------------------------------------------------------------------
+function ModificationHistoryBanner({ history }) {
+  const [expandAll, setExpandAll] = useState(false);
+  if (!history || history.length === 0) return null;
+  const mostRecent = history[history.length - 1];
+  const original = history[0].fromValue;
+  const current  = mostRecent.toValue;
+
+  return (
+    <div className="border-b border-amber-200 bg-amber-50 px-4 py-2.5">
+      <div className="flex items-start gap-3">
+        <Pencil className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+        <div className="flex-1 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-amber-900">{t("heading.modification.history","Modification History")}</span>
+            <span className="text-amber-700">
+              <span className="font-semibold">{t("label.modification.original","Original")}:</span> <span className="font-mono">{original}</span>
+              <span className="mx-1.5">→</span>
+              <span className="font-semibold">{t("label.modification.current","Current")}:</span> <span className="font-mono">{current}</span>
+            </span>
+            <span className="text-amber-600">·</span>
+            <span className="text-amber-800">{mostRecent.modifiedBy}</span>
+            <span className="text-amber-600">·</span>
+            <span className="text-amber-700">{mostRecent.modifiedAt}</span>
+          </div>
+          <div className="text-amber-700 mt-1">
+            <span className="font-semibold">{t("label.modification.reason","Reason")}:</span> {mostRecent.reason}
+          </div>
+          {history.length > 1 && (
+            <>
+              <button onClick={() => setExpandAll(e => !e)}
+                className="mt-1 text-xs text-amber-700 hover:underline">
+                {expandAll ? "Hide history" : t("button.modification.viewAll","View all history ({count})").replace("{count}", history.length)}
+              </button>
+              {expandAll && (
+                <ol className="mt-1.5 ml-4 space-y-1 list-decimal text-amber-700">
+                  {history.map(h => (
+                    <li key={h.id} className="text-xs">
+                      <span className="font-mono">{h.fromValue} → {h.toValue}</span> · {h.modifiedBy} · {h.modifiedAt} — <em>{h.reason}</em>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Aliquots Section — NEW for v3.1 (ISO HIGH I1 / BR-037)
+// Surfaces sample splits (LABNO.X-Y) inline so techs can create retention,
+// send-out, or test aliquots without leaving Results Entry.
+// ---------------------------------------------------------------------------
+const ALIQUOT_PURPOSES = ["Test", "Retention", "Send-out", "Pool", "Pour-off"];
+const ALIQUOT_STATUS_KIND = {
+  "Created": "blue", "In-Storage": "teal", "Sent": "magenta",
+  "Used": "gray", "Destroyed": "red",
+};
+
+function AliquotsSection({ result, userHasAnalystPerm = true, userHasReceptionPerm = true }) {
+  const [open, setOpen] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [aliquots, setAliquots] = useState(result.aliquots || []);
+  const [count, setCount] = useState(1);
+  const [purpose, setPurpose] = useState("Test");
+  const [linkedTest, setLinkedTest] = useState("");
+  const [destStorage, setDestStorage] = useState("");
+  const [reason, setReason] = useState("");
+
+  const canCreate = userHasAnalystPerm || userHasReceptionPerm;
+  const canDestroy = userHasAnalystPerm;
+
+  const handleCreate = () => {
+    const baseSuffix = aliquots.length + 1;
+    const newOnes = Array.from({ length: Number(count) || 1 }, (_, i) => ({
+      id: `${result.labNumber}-${result.sequenceNumber}.${baseSuffix + i}`,
+      purpose,
+      linkedTest: purpose === "Test" ? linkedTest : null,
+      status: destStorage ? "In-Storage" : "Created",
+      createdAt: new Date().toLocaleString(),
+      createdBy: "Current User",
+      storage: destStorage || "—",
+      reason: reason || null,
+    }));
+    setAliquots(prev => [...prev, ...newOnes]);
+    setShowCreate(false);
+    setCount(1); setPurpose("Test"); setLinkedTest(""); setDestStorage(""); setReason("");
+  };
+
+  const isPool = result.sample?.isPool || result.poolMembers;
+
+  return (
+    <div className="border-b border-gray-200">
+      <SectionHeader
+        label={<><Microscope className="w-4 h-4 inline mr-1.5 text-gray-500" />{t("heading.aliquots","Aliquots")}</>}
+        open={open} onToggle={() => setOpen(o => !o)}
+        badge={aliquots.length ? `(${aliquots.length})` : null}
+      />
+      {open && (
+        <div className="px-4 py-3 bg-white">
+          {/* Pool composition (vector deployments) — read-only header above table */}
+          {isPool && (
+            <div className="mb-3 p-2 bg-purple-50 border-l-4 border-purple-400 text-xs">
+              <div className="font-semibold text-purple-800 mb-1">{t("message.aliquot.poolHeading","Pool composition")}:</div>
+              <div className="font-mono text-purple-700">
+                {(result.poolMembers || []).join(", ") || "—"}
+              </div>
+            </div>
+          )}
+
+          {aliquots.length === 0 ? (
+            <p className="text-xs text-gray-400">{t("message.aliquot.empty","No aliquots from this sample yet.")}</p>
+          ) : (
+            <div className="border border-gray-200">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    {[
+                      { key: "column.aliquot.id", label: "Aliquot ID" },
+                      { key: "column.aliquot.purpose", label: "Purpose" },
+                      { key: "column.aliquot.linkedTest", label: "Linked Test" },
+                      { key: "column.aliquot.status", label: "Status" },
+                      { key: "column.aliquot.created", label: "Created" },
+                      { key: "column.aliquot.storage", label: "Storage" },
+                      { key: "column.actions", label: "Actions" },
+                    ].map(h => (
+                      <th key={h.key} className="text-left px-2 py-2 font-semibold text-gray-600">{t(h.key, h.label)}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {aliquots.map(a => (
+                    <tr key={a.id} className="border-b border-gray-100">
+                      <td className="px-2 py-2 font-mono text-gray-800">{a.id}</td>
+                      <td className="px-2 py-2"><Tag kind="blue">{a.purpose}</Tag></td>
+                      <td className="px-2 py-2 text-gray-600">{a.linkedTest || "—"}</td>
+                      <td className="px-2 py-2"><Tag kind={ALIQUOT_STATUS_KIND[a.status] || "gray"}>{a.status}</Tag></td>
+                      <td className="px-2 py-2 text-gray-500"><div>{a.createdAt}</div><div className="text-gray-400">{a.createdBy}</div></td>
+                      <td className="px-2 py-2 text-gray-600 font-mono text-xxs">{a.storage}</td>
+                      <td className="px-2 py-2">
+                        <button title={t("button.aliquot.printLabel","Print Label")} className="p-1 hover:bg-gray-100"><FileText className="w-3 h-3 text-gray-500" /></button>
+                        {canDestroy && a.status !== "Destroyed" && (
+                          <>
+                            <button title={t("button.aliquot.markUsed","Mark Used")} className="p-1 hover:bg-gray-100"><Check className="w-3 h-3 text-gray-500" /></button>
+                            <button title={t("button.aliquot.destroy","Destroy")} className="p-1 hover:bg-red-50"><Trash2 className="w-3 h-3 text-red-500" /></button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {showCreate ? (
+            <div className="mt-3 border border-blue-200 bg-blue-50 p-3 space-y-2">
+              <div className="text-sm font-semibold text-blue-800">{t("button.aliquot.create","Create aliquot")}</div>
+              <div className="grid grid-cols-4 gap-2 text-xs">
+                <div>
+                  <label className="block text-gray-600 mb-0.5">{t("label.aliquot.count","How many aliquots?")}</label>
+                  <input type="number" min={1} max={20} value={count} onChange={e => setCount(e.target.value)}
+                    className="w-full border border-gray-300 py-1 px-2" />
+                </div>
+                <div>
+                  <label className="block text-gray-600 mb-0.5">{t("label.aliquot.purpose","Purpose")}</label>
+                  <select value={purpose} onChange={e => setPurpose(e.target.value)}
+                    className="w-full border border-gray-300 py-1 px-2 bg-white">
+                    {ALIQUOT_PURPOSES.map(p => <option key={p}>{p}</option>)}
+                  </select>
+                </div>
+                {purpose === "Test" && (
+                  <div>
+                    <label className="block text-gray-600 mb-0.5">{t("label.aliquot.linkedTest","Test to perform")}</label>
+                    <input type="text" value={linkedTest} onChange={e => setLinkedTest(e.target.value)}
+                      placeholder="HbA1c, Lipid panel…"
+                      className="w-full border border-gray-300 py-1 px-2" />
+                  </div>
+                )}
+                <div>
+                  <label className="block text-gray-600 mb-0.5">{t("label.aliquot.destination","Destination storage")}</label>
+                  <input type="text" value={destStorage} onChange={e => setDestStorage(e.target.value)}
+                    placeholder="Optional — opens LocationPicker"
+                    className="w-full border border-gray-300 py-1 px-2" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-0.5 text-xs">{t("label.aliquot.reason","Reason / Notes")}</label>
+                <input type="text" value={reason} onChange={e => setReason(e.target.value)}
+                  className="w-full border border-gray-300 py-1 px-2 text-xs" />
+              </div>
+              <div className="flex gap-2">
+                <button onClick={handleCreate}
+                  className="px-3 py-1.5 bg-blue-700 text-white text-xs font-medium hover:bg-blue-800">
+                  {t("button.aliquot.confirmCreate","Create")}
+                </button>
+                <button onClick={() => setShowCreate(false)} className="px-3 py-1.5 border border-gray-300 text-xs text-gray-600 hover:bg-gray-100">{t("button.cancel","Cancel")}</button>
+              </div>
+              <div className="text-xs text-blue-700">
+                {t("help.aliquot.suffix","New aliquots get suffix LABNO.X-N (next available number).")}
+              </div>
+            </div>
+          ) : (
+            canCreate && (
+              <button onClick={() => setShowCreate(true)}
+                className="mt-2 flex items-center gap-1 text-xs text-blue-700 hover:underline">
+                <Plus className="w-3 h-3" /> {t("button.aliquot.create","Create aliquot")}
+              </button>
+            )
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Critical Value Notification Form — NEW for v3.1 (ISO HIGH A1 / CLSI GP47)
+// Structured replacement for the v3.0 single-click "I Acknowledge" button.
+// Captures CLSI GP47-compliant notification record: recipient, role, method,
+// read-back text, time, escalation log. Required to unblock Save.
+// ---------------------------------------------------------------------------
+function CriticalNotificationForm({ result, criticalMsg, onConfirm, onCancel, defaultClinician }) {
+  const [recipient, setRecipient]     = useState(defaultClinician || "");
+  const [recipientRole, setRole]      = useState("clinician");
+  const [method, setMethod]           = useState("phone");
+  const [readBack, setReadBack]       = useState("");
+  const [time, setTime]               = useState(new Date().toLocaleString());
+  const [firstOk, setFirstOk]         = useState(true);
+  const [escalations, setEscalations] = useState([]);
+  const [notes, setNotes]             = useState("");
+
+  const canSubmit = recipient.trim() && readBack.trim() && time && (firstOk || escalations.length > 0);
+
+  const addEscalation = () => {
+    setEscalations(prev => [...prev, { id: Date.now(), attempt: prev.length + 2, method: "phone", recipient: "", time: new Date().toLocaleString(), outcome: "no-answer" }]);
+  };
+
+  const removeEscalation = (id) => setEscalations(prev => prev.filter(e => e.id !== id));
+  const updateEscalation = (id, key, val) => setEscalations(prev => prev.map(e => e.id === id ? { ...e, [key]: val } : e));
+
+  return (
+    <div className="border border-orange-300 bg-orange-50 mx-4 mb-3 p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm font-semibold text-orange-900">
+          <AlertTriangle className="w-4 h-4" />
+          {t("heading.criticalNotification","Critical Value — Notification Form")}
+        </div>
+        <button onClick={onCancel} className="text-gray-400 hover:text-gray-700"><X className="w-4 h-4" /></button>
+      </div>
+
+      <p className="text-xs text-orange-800">
+        <strong>{criticalMsg}.</strong> {t("help.criticalNotification.intro","Per CLSI GP47 and ISO 15189 §7.5.1.4, the responsible clinician must be notified and the notification documented with verbatim read-back before this result can be saved.")}
+      </p>
+
+      <div className="grid grid-cols-3 gap-2 text-xs">
+        <div>
+          <label className="block text-gray-700 mb-0.5">{t("label.criticalNotification.recipient","Recipient")} <span className="text-red-500">*</span></label>
+          <input type="text" value={recipient} onChange={e => setRecipient(e.target.value)}
+            placeholder="Dr. Williams"
+            className="w-full border border-gray-300 py-1.5 px-2 bg-white" />
+        </div>
+        <div>
+          <label className="block text-gray-700 mb-0.5">{t("label.criticalNotification.recipientRole","Role")} <span className="text-red-500">*</span></label>
+          <select value={recipientRole} onChange={e => setRole(e.target.value)}
+            className="w-full border border-gray-300 py-1.5 px-2 bg-white">
+            <option value="clinician">{t("criticalNotification.role.clinician","Clinician")}</option>
+            <option value="nurse">{t("criticalNotification.role.nurse","Nurse")}</option>
+            <option value="oncall">{t("criticalNotification.role.oncall","On-call clinician")}</option>
+            <option value="patient">{t("criticalNotification.role.patient","Patient (direct)")}</option>
+            <option value="other">{t("criticalNotification.role.other","Other")}</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-gray-700 mb-0.5">{t("label.criticalNotification.method","Method of communication")} <span className="text-red-500">*</span></label>
+          <select value={method} onChange={e => setMethod(e.target.value)}
+            className="w-full border border-gray-300 py-1.5 px-2 bg-white">
+            <option value="phone">{t("criticalNotification.method.phone","Phone")}</option>
+            <option value="inperson">{t("criticalNotification.method.inperson","In-person")}</option>
+            <option value="secureMsg">{t("criticalNotification.method.secureMsg","Secure message")}</option>
+            <option value="pager">{t("criticalNotification.method.pager","Pager")}</option>
+            <option value="other">{t("criticalNotification.method.other","Other")}</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-700 mb-0.5">{t("label.criticalNotification.readBack","Read-back text")} <span className="text-red-500">*</span></label>
+        <textarea rows={2} value={readBack} onChange={e => setReadBack(e.target.value)}
+          placeholder={t("placeholder.criticalNotification.readBack","Verbatim what the recipient read back to confirm the value…")}
+          className="w-full border border-gray-300 py-1.5 px-2 text-xs bg-white resize-none" />
+        <div className="text-xs text-gray-500 mt-0.5">{t("help.criticalNotification.readBack","Example: \"Glucose 142 mg/dL on patient Smith DOB 5/22/1985 — confirmed critical hyperglycemia, will follow up.\"")}</div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs text-gray-700 mb-0.5">{t("label.criticalNotification.time","Time of notification")} <span className="text-red-500">*</span></label>
+          <input type="text" value={time} onChange={e => setTime(e.target.value)}
+            className="w-full border border-gray-300 py-1.5 px-2 text-xs bg-white" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-700 mb-0.5">{t("label.criticalNotification.firstSuccessful","First attempt successful?")}</label>
+          <div className="flex gap-3 mt-1.5 text-xs">
+            <label className="flex items-center gap-1"><input type="radio" checked={firstOk} onChange={() => setFirstOk(true)} /> Yes</label>
+            <label className="flex items-center gap-1"><input type="radio" checked={!firstOk} onChange={() => setFirstOk(false)} /> No</label>
+          </div>
+        </div>
+      </div>
+
+      {!firstOk && (
+        <div className="border border-orange-200 bg-white p-2 space-y-2">
+          <div className="text-xs font-semibold text-orange-900">{t("label.criticalNotification.escalationLog","Escalation log")}</div>
+          {escalations.length === 0 && (
+            <div className="text-xs text-gray-500">{t("help.escalation.empty","Add at least one escalation attempt.")}</div>
+          )}
+          {escalations.map(e => (
+            <div key={e.id} className="grid grid-cols-5 gap-1.5 text-xs items-end">
+              <div>
+                <label className="block text-gray-600">Attempt</label>
+                <input type="number" value={e.attempt} onChange={ev => updateEscalation(e.id, "attempt", ev.target.value)}
+                  className="w-full border border-gray-300 py-1 px-2" />
+              </div>
+              <div>
+                <label className="block text-gray-600">Method</label>
+                <select value={e.method} onChange={ev => updateEscalation(e.id, "method", ev.target.value)}
+                  className="w-full border border-gray-300 py-1 px-2 bg-white">
+                  <option value="phone">Phone</option>
+                  <option value="pager">Pager</option>
+                  <option value="inperson">In-person</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-600">Recipient</label>
+                <input type="text" value={e.recipient} onChange={ev => updateEscalation(e.id, "recipient", ev.target.value)}
+                  className="w-full border border-gray-300 py-1 px-2" />
+              </div>
+              <div>
+                <label className="block text-gray-600">Outcome</label>
+                <select value={e.outcome} onChange={ev => updateEscalation(e.id, "outcome", ev.target.value)}
+                  className="w-full border border-gray-300 py-1 px-2 bg-white">
+                  <option value="no-answer">No answer</option>
+                  <option value="voicemail">Left voicemail</option>
+                  <option value="busy">Busy</option>
+                  <option value="wrong-number">Wrong number</option>
+                  <option value="escalated">Escalated to supervisor</option>
+                  <option value="reached">Reached</option>
+                </select>
+              </div>
+              <button onClick={() => removeEscalation(e.id)} className="px-1.5 py-1.5 hover:bg-red-50 text-red-500">
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+          <button onClick={addEscalation} className="text-xs text-blue-700 hover:underline">
+            <Plus className="w-3 h-3 inline" /> Add attempt
+          </button>
+        </div>
+      )}
+
+      <div>
+        <label className="block text-xs text-gray-700 mb-0.5">{t("label.criticalNotification.additionalNotes","Additional notes")} <span className="text-gray-400 font-normal">(optional)</span></label>
+        <input type="text" value={notes} onChange={e => setNotes(e.target.value)}
+          className="w-full border border-gray-300 py-1.5 px-2 text-xs" />
+      </div>
+
+      <div className="flex gap-2 pt-1 items-center">
+        <button onClick={() => canSubmit && onConfirm({ recipient, recipientRole, method, readBack, time, firstOk, escalations, notes })}
+          disabled={!canSubmit}
+          className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${
+            canSubmit ? "bg-orange-600 text-white hover:bg-orange-700" : "bg-gray-200 text-gray-400 cursor-not-allowed"
+          }`}>
+          <Check className="w-3.5 h-3.5" />
+          {t("button.criticalNotification.submit","Confirm Notification")}
+        </button>
+        <button onClick={onCancel} className="px-3 py-1.5 border border-gray-300 text-xs text-gray-600 hover:bg-gray-100">{t("button.cancel","Cancel")}</button>
+        {!canSubmit && (
+          <span className="text-xs text-gray-500 italic">
+            {!recipient.trim() ? "Recipient required" : !readBack.trim() ? "Read-back required" : (!firstOk && escalations.length === 0) ? "Escalation entry required" : ""}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -1532,11 +1962,16 @@ const PANEL_TABS = [
   { key: "history", label: "History", Icon: History },
 ];
 
-function ExpandedPanel({ result, onSave, onNceSubmit }) {
+function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true }) {
   const [activeTab, setActiveTab]           = useState("qaqc");
   const [resultValue, setResultValue]       = useState(result.result);
   const [showNceForm, setShowNceForm]       = useState(false);
   const [criticalAcknowledged, setCriticalAcknowledged] = useState(false);
+  // BR-033: structured GP47 notification record
+  const [showCriticalForm, setShowCriticalForm]         = useState(false);
+  const [criticalNotificationRecord, setCriticalNotificationRecord] = useState(null);
+  // BR-034: reagent lot gate
+  const [reagentLotSelected, setReagentLotSelected]     = useState(false);
 
   const isModification   = result.status === "awaiting-validation" || result.status === "released";
   const isReleasedResult = result.status === "released";
@@ -1550,10 +1985,13 @@ function ExpandedPanel({ result, onSave, onNceSubmit }) {
   const hasValue     = (resultValue || "").toString().trim() !== "";
   const isDirty      = resultValue !== result.result;
   const noteRequired = isModification && modifyConfirmed;
+  // BR-034: reagent lot required by site config (ISO 15189 §6.4.4)
+  const reagentGateOk = !requireReagentLots || reagentLotSelected;
   const canSave      = hasValue
     && (!isCritical || criticalAcknowledged)
     && (!isReleasedResult || modifyConfirmed)
-    && (!noteRequired || modificationNote.trim() !== "");
+    && (!noteRequired || modificationNote.trim() !== "")
+    && reagentGateOk;
 
   const handleResultChange = (val) => {
     setResultValue(val);
@@ -1600,12 +2038,20 @@ function ExpandedPanel({ result, onSave, onNceSubmit }) {
       )}
 
       {/* Always-visible sections — in priority order */}
+      {/* Modification History banner — at top per BR-035; only renders when history exists */}
+      <ModificationHistoryBanner history={result.modificationHistory} />
+
       <NotesSection result={result} />
       <InterpretationSection result={result} />
-      <MethodSection result={result} />
+      <MethodSection
+        result={result}
+        requireReagentLots={requireReagentLots}
+        onReagentSelectedChange={setReagentLotSelected}
+      />
       <OrderInfoSection orderInfo={result.orderInfo} />
       <ProgramInfoSection program={result.program} />
       <StorageSection result={result} />
+      <AliquotsSection result={result} />
       <ReferralSection result={result} />
       <AttachmentsSection result={result} />
 
@@ -1627,10 +2073,16 @@ function ExpandedPanel({ result, onSave, onNceSubmit }) {
           </div>
         </div>
 
-        <div className="text-xs text-gray-500">
-          {t("label.range.ref","Ref")}: <span className="font-mono text-gray-800">{result.normalRange} {result.unit}</span>
+        <div className="text-xs text-gray-500 flex items-center flex-wrap gap-2">
+          <span>{t("label.range.ref","Ref")}: <span className="font-mono text-gray-800">{result.normalRange} {result.unit}</span></span>
+          {/* BR-036: selected demographic-aware range label */}
+          {result.selectedRangeLabel && (
+            <Tag kind="purple" title={t("help.range.demographicSelection","Reference range selected based on patient demographics at sample collection date (CLSI EP28-A3c).")}>
+              {t("label.referenceRange.label","Range")}: {result.selectedRangeLabel}
+            </Tag>
+          )}
           {result.rangeBounds?.critical && (
-            <span className="ml-2 text-orange-600">{t("label.range.critical","Critical")}: &lt;{result.rangeBounds.critical.low} or &gt;{result.rangeBounds.critical.high}</span>
+            <span className="text-orange-600">{t("label.range.critical","Critical")}: &lt;{result.rangeBounds.critical.low} or &gt;{result.rangeBounds.critical.high}</span>
           )}
         </div>
 
@@ -1651,7 +2103,8 @@ function ExpandedPanel({ result, onSave, onNceSubmit }) {
               !hasValue                                  ? t("title.save.missingValue","Enter a result value to save")
               : isReleasedResult && !modifyConfirmed     ? t("title.save.confirmRelease","Confirm the modification warning above before saving")
               : noteRequired && !modificationNote.trim() ? t("title.save.missingReason","A reason for modification is required")
-              : isCritical && !criticalAcknowledged      ? t("title.save.ackCritical","Acknowledge the critical value before saving")
+              : isCritical && !criticalAcknowledged      ? t("title.save.ackCritical","Complete the Critical Notification Form before saving")
+              : !reagentGateOk                            ? t("warn.reagent.required","A reagent lot is required by site configuration (ISO 15189 §6.4.4 traceability). Select a lot to enable Save.")
               : t("title.save.esig","Save will prompt for e-signature")
             }
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -1688,26 +2141,47 @@ function ExpandedPanel({ result, onSave, onNceSubmit }) {
         </div>
       )}
 
-      {/* Critical value acknowledgment */}
-      {isCritical && !criticalAcknowledged && (
+      {/* Critical value notification — CLSI GP47 structured form */}
+      {isCritical && !criticalAcknowledged && !showCriticalForm && (
         <div className="flex items-start gap-3 px-4 py-3 bg-orange-50 border-b-2 border-orange-500">
           <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <div className="font-semibold text-orange-900 text-sm">{t("heading.critical","Critical Value — Physician Notification Required")}</div>
             <div className="text-xs text-orange-800 mt-0.5">
-              {criticalMsg}. {t("message.critical","Per laboratory policy, the responsible clinician must be notified before or upon result reporting. Acknowledgment will be recorded in the global Alerts dashboard.")}
+              {criticalMsg}. {t("message.critical.structured","Per CLSI GP47 and ISO 15189 §7.5.1.4, the responsible clinician must be notified and the notification documented with verbatim read-back before this result can be saved.")}
             </div>
           </div>
-          <button onClick={() => setCriticalAcknowledged(true)}
+          <button onClick={() => setShowCriticalForm(true)}
             className="px-3 py-2 bg-orange-600 text-white text-xs font-semibold hover:bg-orange-700 flex-shrink-0 whitespace-nowrap rounded-sm">
-            {t("button.critical.ack","I Acknowledge")}
+            {t("button.criticalNotification.open","Open Notification Form")}
           </button>
         </div>
       )}
-      {isCritical && criticalAcknowledged && (
+      {isCritical && showCriticalForm && !criticalAcknowledged && (
+        <CriticalNotificationForm
+          result={result}
+          criticalMsg={criticalMsg}
+          defaultClinician={result.orderInfo?.clinician}
+          onConfirm={(payload) => {
+            setCriticalNotificationRecord(payload);
+            setCriticalAcknowledged(true);
+            setShowCriticalForm(false);
+          }}
+          onCancel={() => setShowCriticalForm(false)}
+        />
+      )}
+      {isCritical && criticalAcknowledged && criticalNotificationRecord && (
         <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 border-b border-orange-200 text-xs text-orange-700">
-          <Check className="w-3.5 h-3.5 text-orange-600" />
-          {t("message.critical.ack","Critical value acknowledged — clinician notification confirmed and logged to Alerts dashboard. You may now save.")}
+          <Check className="w-3.5 h-3.5 text-orange-600 flex-shrink-0" />
+          <span>
+            {t("message.criticalNotification.summary","Notified {recipient} at {time} via {method} — read-back confirmed")
+              .replace("{recipient}", criticalNotificationRecord.recipient)
+              .replace("{time}", criticalNotificationRecord.time)
+              .replace("{method}", criticalNotificationRecord.method)}
+            {criticalNotificationRecord.escalations?.length > 0 && (
+              <span className="ml-2 text-orange-600">· {criticalNotificationRecord.escalations.length} escalation attempt(s) logged</span>
+            )}
+          </span>
         </div>
       )}
 
@@ -1834,6 +2308,8 @@ export default function ResultsPageRedesign() {
   const [piiByRole, setPiiByRole]               = useState(true);     // PATIENT_DATA_ON_RESULTS_BY_ROLE
   const [userHasPatientPerm, setUserHasPatientPerm] = useState(true); // current user perm
   const [userHasValidatorPerm, setUserHasValidatorPerm] = useState(true); // current user has Validator bundle
+  // BR-034: requireReagentLotsForResults site config (default ON for ISO-accredited labs)
+  const [requireReagentLots, setRequireReagentLots] = useState(true);
   // Workplan deep-link source
   const [workplanSource, setWorkplanSource] = useState(null);
   // Server-side pagination indicator (stub)
@@ -1984,6 +2460,14 @@ export default function ResultsPageRedesign() {
               className={`relative inline-flex h-4 w-8 cursor-pointer rounded-full border-2 border-transparent ${userHasPatientPerm ? "bg-green-600" : "bg-red-500"}`}>
               <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow ${userHasPatientPerm ? "translate-x-4" : "translate-x-0"}`} />
             </button>
+          </span>
+          <span className="flex items-center gap-2 px-3 py-1 bg-white border border-blue-200 rounded text-gray-600">
+            <span className="font-semibold text-gray-500 uppercase tracking-wide text-xs">Require reagent lot?</span>
+            <button onClick={() => setRequireReagentLots(v => !v)}
+              className={`relative inline-flex h-4 w-8 cursor-pointer rounded-full border-2 border-transparent ${requireReagentLots ? "bg-amber-600" : "bg-gray-300"}`}>
+              <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow ${requireReagentLots ? "translate-x-4" : "translate-x-0"}`} />
+            </button>
+            <span className={requireReagentLots ? "text-amber-700 font-medium" : "text-gray-400"}>{requireReagentLots ? "ON" : "OFF"}</span>
           </span>
           <span className="flex items-center gap-2 px-3 py-1 bg-white border border-blue-200 rounded text-gray-600">
             <span className="font-semibold text-gray-500 uppercase tracking-wide text-xs">Validator?</span>
@@ -2217,8 +2701,18 @@ export default function ResultsPageRedesign() {
                     {/* Current Result — shadow value */}
                     <td className="px-3 py-3 whitespace-nowrap">{renderCurrentResult(result)}</td>
 
-                    {/* Status */}
-                    <td className="px-3 py-3"><StatusTag status={result.status} /></td>
+                    {/* Status — w/ optional Modified pill from BR-035 */}
+                    <td className="px-3 py-3">
+                      <StatusTag status={result.status} />
+                      {result.modificationHistory?.length > 0 && (
+                        <div className="mt-1">
+                          <Tag kind="warm-gray" title={`${result.modificationHistory.length} prior modification(s) — see History banner in expanded panel`}>
+                            <Pencil className="w-3 h-3 inline mr-0.5" />
+                            {t("label.row.modifiedTag","Modified")}
+                          </Tag>
+                        </div>
+                      )}
+                    </td>
 
                     {/* Flags */}
                     <td className="px-3 py-3 whitespace-nowrap">
@@ -2295,7 +2789,12 @@ export default function ResultsPageRedesign() {
                   {isExpanded && !isCancelled && (
                     <tr key={`${result.id}-exp`} className="bg-gray-50">
                       <td colSpan={TABLE_HEADERS.length + 1} className="p-0">
-                        <ExpandedPanel result={result} onSave={handleSaveInitiate} onNceSubmit={handleNceSubmit} />
+                        <ExpandedPanel
+                          result={result}
+                          onSave={handleSaveInitiate}
+                          onNceSubmit={handleNceSubmit}
+                          requireReagentLots={requireReagentLots}
+                        />
                       </td>
                     </tr>
                   )}

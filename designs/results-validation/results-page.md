@@ -139,12 +139,14 @@ Pending → Entered → Awaiting Validation → Released
 7. **Order Info** — collapsible (default open) ← was a tab
 8. **Program Info** — collapsible (default open) ← NEW (conditional: rendered only when `result.program` is set)
 9. **Storage Location** — collapsible (default open) ← NEW
-10. **Referral** — collapsible (default open) ← was a tab
-11. **Attachments** — collapsible (default open) ← was a tab
-12. **Result Entry Action Bar** — value input + range hint + Report Non-Conformity Event (NCE) button + Save (E-sign)
-13. **Conditional banners** — Invalid range / Critical acknowledgment
-14. **NCE Inline Form** (conditional — opens on Report NCE click)
-15. **Tabs:** QA/QC · History
+10. **Aliquots** — collapsible (default open) ← NEW (ISO/HIGH I1; conditional when sample has any aliquots OR user has Analyst/Reception bundle)
+11. **Referral** — collapsible (default open) ← was a tab
+12. **Attachments** — collapsible (default open) ← was a tab
+13. **Modification History** — banner at top of panel (conditional) ← NEW (ISO/HIGH A3; appears when result has any saved modifications)
+14. **Result Entry Action Bar** — value input + range hint + Report Non-Conformity Event (NCE) button + Save (E-sign)
+15. **Conditional banners** — Invalid range / Critical Communication Form (structured) / Reagent-lot-required warning
+16. **NCE Inline Form** (conditional — opens on Report NCE click)
+17. **Tabs:** QA/QC · History
 
 ### Notes Section
 
@@ -161,7 +163,7 @@ System-suggested interpretation banner (when applicable) + clickable interpretat
 | Method | `Select` | Per-row method override populated from `/rest/displayList/METHODS` (Manual / Automated / Semi-Automated / Point of Care) |
 | Analyzer | `Select` (conditional) | Only shown when method = Automated or Semi-Automated; populated from `/rest/test/{testId}/analyzers`; shows status + QC indicator |
 | Method Details | `TextInput` | Optional. Supports macros: `MAN-DIFF` `MAN-HEM` `MAN-MICRO` `QNS` `CLOT` `HEMOLYZED` `LIPEMIC` (type + space → expand) |
-| Reagent Lots | inline table | FIFO suggestion: oldest unexpired lot gets "Use First" tag; expiring lots get amber warning; expired lots disabled |
+| Reagent Lots | inline table | FIFO suggestion: oldest unexpired lot gets "Use First" tag; expiring lots get amber warning; expired lots disabled. **Required for Save when `requireReagentLotsForResults` site flag is ON** (ISO 15189 §6.4.4). When ON and no lot selected: inline warning + Save disabled with explanatory tooltip. Default ON for ISO-accredited deployments. |
 
 ### Order Info Section
 
@@ -204,13 +206,112 @@ API:
 - `POST /rest/storage/sample-items/assign` — first assignment
 - `POST /rest/storage/sample-items/move` — re-assignment (requires `reason`)
 
+### Aliquots Section — NEW (ISO HIGH I1)
+
+**Purpose:** Surface and manage aliquots derived from this sample. Aliquoting (splitting one sample into N portions, each with its own accession suffix `LABNO.X-Y`) is a core lab workflow that today lives in a separate `/Aliquot` page; moving it inline here matches the tech's mental model — when entering a result they often need to create a retention aliquot, send-out aliquot, or pooled-sample aliquot in the same workstation breath.
+
+**Layout:**
+- Section header: "Aliquots" + count badge.
+- Inline table with columns: **Aliquot ID** (`LABNO.X-Y`), **Purpose** (Test / Retention / Send-out / Pool / Pour-off), **Linked Test** (when Purpose=Test), **Status** (Created / In-Storage / Sent / Used / Destroyed), **Created** (date · by-whom), **Storage** (Freezer path or "—"), **Actions** (View / Print Label / Mark Used / Destroy).
+- Below the table: **Create aliquot** affordance — opens an inline mini-form with: (a) **How many aliquots?** numeric input (default 1), (b) **Purpose** select, (c) when Purpose=Test: a Test Catalog picker; when Purpose=Send-out: opens linked Referral fields, (d) **Destination storage** (optional — opens LocationPicker), (e) **Reason / Notes** (optional textarea). On submit, auto-assigns the next `LABNO.X-N` suffixes, creates the aliquot rows, optionally orders linked tests, and prints labels.
+
+**Pool composition (vector deployments):** When the source sample is a pool (per memory `project_vector_referral_deconvolution`), the Aliquots section additionally displays the pool composition (member specimen IDs) above the aliquot table. This is read-only at Results Entry; pool authoring happens at Sample Reception.
+
+**Role attachment:** Both **Analyst** and **SampleReception** bundles can create aliquots from Results Entry. Aliquot destroy/mark-used actions require **Analyst** (Reception techs can create but not destroy).
+
+**API:**
+- `GET /rest/samples/{sampleId}/aliquots` — list
+- `POST /rest/samples/{sampleId}/aliquots` — create one or more
+- `PATCH /rest/aliquots/{aliquotId}` — update status (mark used, destroy)
+
+**Conditional rendering:** Section always rendered when the user has Analyst or SampleReception bundle. Empty state when no aliquots exist: "No aliquots from this sample. [Create aliquot]"
+
 ### Referral Section
 
-Checkbox: "Refer this test to an external laboratory". When checked, reveals: Referral Reason (Select, required), Institute (Select, required), Test to Perform (TextInput, prefilled with current test), Sent Date (DatePicker, defaults to today).
+Checkbox: "Refer this test to an external laboratory". When checked, reveals: Referral Reason (Select, required), Institute (Select, required), Test to Perform (TextInput, prefilled with current test), Sent Date (DatePicker, defaults to today). When triggered as the disposition of an NCE (BR-032), the form auto-fills.
 
 ### Attachments Section
 
 List view: file icon, name, size, source tag (Order Entry purple / Result Entry teal), uploader, date, download button (always), delete button (Result Entry only). Files from Order Entry are read-only. New upload via `FileUploader`; supports JPEG, PNG, PDF.
+
+### Modification History Banner — NEW (ISO HIGH A3 / CFR Part 11 §11.10(e))
+
+**Purpose:** Make the original value visible in the UI — not just buried in audit_trail. ISO 15189 §7.5.2 and 21 CFR Part 11 §11.10(e) require that the original observation remain retrievable when a result is amended.
+
+**Rendering:** When `result.modificationHistory[]` has one or more entries, a stable banner renders at the top of the expanded panel (above Notes, below Patient Banner / Program Banner / modification-notice strip). For each prior modification entry, display:
+
+```
+[Pencil icon]  Original: 142 mg/dL  →  Modified: 138 mg/dL  ·  J. Smith · 12/19/2025 14:32
+              Reason: "Corrected from instrument printout (calibration drift detected late)."
+              [View all history (N)] ▾
+```
+
+When multiple modifications exist, only the most recent transition is shown by default; clicking "View all history (N)" expands a full chronological list (`original → mod1 → mod2 → … → current`) with reason + actor + timestamp for each step. A small Tag in the table row (`Modified` in `warm-gray` kind) signals to validators scanning the list that this result has prior history.
+
+**Data model:** `result.modificationHistory[]` — array of `{ id, fromValue, toValue, modifiedBy, modifiedAt, reason, action }` where `action` is `RESULT_MODIFIED` or `RESULT_MODIFIED_RELEASED`. Backend derives this from existing audit_trail rows scoped to `analysis_id` — no schema addition required (the trail itself becomes the source of truth, just surfaced).
+
+**Validator visibility:** On the Validation page (separate spec), this banner displays identically and is read-only; validators reviewing a modification chain see the full history before approving.
+
+### Demographic-Aware Reference Ranges — NEW (ISO HIGH B2 / CLSI EP28-A3c)
+
+**Purpose:** A single range per test is insufficient for ISO 15189 §7.5.1.4 ("biological reference data") and CLSI EP28-A3c. Pediatric, pregnancy, and geriatric reference intervals differ for many analytes (creatinine, hemoglobin, alkaline phosphatase, etc.).
+
+**Data model change:** Replace the v3.0 `result.rangeBounds` (single range) with `Test.referenceRanges[]` — an ordered array of ranges with selection criteria. Each entry has:
+
+```typescript
+interface ReferenceRange {
+  id: string;
+  // Selection criteria — all that are non-null must match the patient at sample collection date
+  ageMin?: number;         // years (use fractional for neonates: 0.0833 = 1 month)
+  ageMax?: number;         // exclusive
+  sex?: 'M' | 'F' | 'U';
+  lifeStage?: 'neonate' | 'pediatric' | 'adolescent' | 'adult' | 'pregnant' | 'geriatric';
+  // Range values
+  normalLow: number; normalHigh: number;
+  criticalLow?: number; criticalHigh?: number; criticalLowMsg?: string; criticalHighMsg?: string;
+  validLow?: number; validHigh?: number;
+  unit: string;
+  // For display
+  label: string;            // "Adult Female (18-65y)" — shown next to selected range
+}
+```
+
+**Selection rule:** at expand time, the frontend (or backend if pre-computed) picks the **most specific** matching range. Specificity = count of non-null selection criteria that match. Ties broken by Test Catalog priority order. When no range matches, fall back to the lowest-priority "default" range and display a yellow warning Tag: **"⚠ No reference range for this demographic — using default."**
+
+**UI:** The selected range's `label` appears as a small Tag next to the displayed range in both the table row and the expanded action bar. Hovering the Tag opens a Popover showing the selection criteria + a list of other configured ranges for this test (so the tech can see why this range was selected).
+
+**Validation-page parity:** Same selection logic applies on the Validation page so the validator sees the same range as the tech did.
+
+**Migration:** Existing tests configured with one range get a single `referenceRanges[0]` entry with no selection criteria (matches any patient). Multi-range configuration is a Test Catalog Admin task (separate spec).
+
+### Critical Value Communication Form — NEW / EXPANDED (ISO HIGH A1 / CLSI GP47)
+
+**Replaces the v3.0 "I Acknowledge" single-click button.** CLSI GP47 (Critical Result Communication) requires documented evidence of: (a) who was notified, (b) by what method, (c) what was read back to confirm receipt, (d) when, and (e) escalation history when initial attempts failed. A single click does not satisfy this.
+
+**Trigger:** When the entered result is in the `critical` range tier, the existing "Critical Value — Physician Notification Required" banner displays. The single "I Acknowledge" button is replaced by **"Open Notification Form"**. Save remains blocked.
+
+**Form fields (all on one inline panel — no modal):**
+
+| Field | Type | Required | Source |
+|---|---|---|---|
+| **Recipient** | Select (auto-populated with order's clinician on file) + free-text override | ✓ | `order.clinician` default; allows "Other — specify" |
+| **Recipient role** | Select | ✓ | Clinician / Nurse / On-call clinician / Patient (direct) / Other |
+| **Method of communication** | Radio | ✓ | Phone / In-person / Secure message / Pager / Other (with free-text) |
+| **Read-back text** | TextArea | ✓ | The verbatim words read back by the recipient confirming they understood the value. CLSI GP47 §5.4.2. |
+| **Time of notification** | Date+Time | ✓ | Auto-filled with `now`; editable for backfilling phone-tag scenarios |
+| **First attempt successful?** | Yes/No toggle | ✓ | When "No", reveals an escalation log: |
+| **Escalation log** (conditional) | Repeatable rows | when first attempt failed | Each row: attempt #, method, recipient, time, outcome (no answer / left voicemail / busy / wrong number / escalated to supervisor). Min 1 row when triggered. |
+| **Additional notes** | TextArea | optional | Anything else relevant — e.g. "Patient also notified directly per family request" |
+
+**On submit (Confirm Notification button):**
+1. POST to `/rest/alerts/critical-acknowledgment` with the full structured payload.
+2. On success: ack pill replaces the form ("Notified Dr. Williams at 12/18/2025 12:04 via Phone — read-back confirmed"). Save unblocks.
+3. On failure: follow BR-025 retry policy (toast + queued replay).
+4. Audit: `CRITICAL_NOTIFICATION_LOGGED` row written to `audit_trail` with the full payload, plus the existing `CRITICAL_ACK`.
+
+**Modification:** Once a critical notification has been logged, the form collapses to a read-only summary card. Editing requires the Validator bundle and produces a new modification-history entry (per A3).
+
+**Validator visibility:** On the Validation page, the structured notification record is shown read-only above the result; validators verify the read-back text is meaningful before releasing.
 
 ### QA/QC Tab
 
@@ -405,8 +506,9 @@ The redesign introduces fields not present in OpenELIS today. Each must be backe
 
 | New / Extended Field | Today's State | Action Required |
 |---|---|---|
-| `Test.criticalRange.lowMsg` / `highMsg` | Test catalog has `lowerCritical` / `higherCritical` numeric only | **Schema:** Add `criticalRangeLowMsg`, `criticalRangeHighMsg` text columns to `test` table. `@Audited`. |
-| `Test.validRange.low` / `validRange.high` | Not present | **Schema:** Add `validRangeLow`, `validRangeHigh` numeric columns. `@Audited`. |
+| `Test.referenceRanges[]` (replaces single `Test.normalRange` + `Test.lowerCritical` / `higherCritical`) | Single range only | **Schema:** New `test_reference_range` table with one row per range variant. Columns: `id`, `test_id`, `age_min`, `age_max`, `sex`, `life_stage`, `normal_low`, `normal_high`, `critical_low`, `critical_high`, `critical_low_msg`, `critical_high_msg`, `valid_low`, `valid_high`, `unit`, `label`, `priority`. `@Audited`. Existing single-range data migrates as one entry with no selection criteria. **Per CLSI EP28-A3c and ISO 15189 §7.5.1.4** (BR-036). |
+| `critical_notification` table | Not present | **Schema:** New `critical_notification` table. Columns: `id`, `analysis_id`, `value`, `recipient`, `recipient_role`, `method`, `read_back_text`, `notified_at`, `first_attempt_successful`, `escalation_log` (JSONB), `additional_notes`, `logged_by`, `logged_at`. `@Audited`. Captures CLSI GP47 structured notification record per critical result (BR-033). |
+| `aliquot` table | Aliquot tracking exists in `/Aliquot` page; data model exists but not surfaced on Results Entry | **No new schema** if existing aliquot table covers ID, source-sample link, purpose, status, storage, created-by/at, suffix. **API surface required:** `GET /rest/samples/{sampleId}/aliquots`, `POST /rest/samples/{sampleId}/aliquots`, `PATCH /rest/aliquots/{aliquotId}`. (BR-037) |
 | `Test.interpretationOptions[]` | Not present as structured data; some interpretation text in `result_options` for D type | **Schema:** New `test_interpretation` table linked to `test`; columns: code, label, color, range_text, body. `@Audited`. **Follow-up spec required:** Test Catalog Admin page must be extended to manage these rows; until that lands, interpretation options are seeded per-test via SQL migration. |
 | `Test.suggestedInterpretation` (auto) | Not present | **Server logic:** Match entered numeric value against `test_interpretation.range_text` bounds to suggest interpretation. No new schema beyond interpretation table. |
 | ~~`Result.cascadingMultiSelect (C)` resultType~~ | *Deferred to a separate spec* | **Moved to §Future Considerations.** Extending the `result_type` enum requires a sweep across HL7 export, FHIR export, reports, Validation, and Test Catalog admin to confirm no downstream consumer breaks. Out of scope for v3. |
@@ -427,6 +529,9 @@ The redesign introduces fields not present in OpenELIS today. Each must be backe
 | `ALERT_FOR_INVALID_RESULTS` | ON | Fire notification on invalid-range save (existing) |
 | `allowResultRejection` | ON | Whether NCE Disposition includes "Reject result + reason" option (existing, repurposed) |
 | `results.entry.unifiedRoute` | ON for new installs; **OFF** for upgrades during migration | When OFF, legacy six routes remain; when ON, they redirect to `/Results` |
+| `requireReagentLotsForResults` | ON for new ISO-accredited installs; **OFF** for upgrades and non-accredited deployments | When ON, Save is blocked unless at least one reagent lot is selected per ISO 15189 §6.4.4 (BR-034) |
+| `criticalNotification.requireReadBack` | ON | When ON, the structured Critical Communication Form is required (CLSI GP47 / BR-033). When OFF, falls back to single-click ack for legacy parity |
+| `useRetroCIStudyForms` | OFF | Render hardcoded RETROCI ARV/EID/VL/Indeterminate forms inside Program Info section (existing) |
 
 ---
 
@@ -462,7 +567,10 @@ For every state-changing action, an entry is written to `audit_trail`:
 | File NCE | `NCE_CREATED` | `nce_id` | `{ severity, disposition, category, subcategory }` |
 | Apply NCE disposition | `NCE_DISPOSITION_APPLIED` | `nce_id` + `analysis_id` | `{ disposition }` |
 | Critical value acknowledged | `CRITICAL_ACK` | `analysis_id` | `{ value, ackBy, criticalMsg }` |
+| Critical notification logged (structured CLSI GP47 form) | `CRITICAL_NOTIFICATION_LOGGED` | `analysis_id` | `{ value, recipient, recipientRole, method, readBackText, notifiedAt, escalationCount }` |
 | Critical value ack failed (Alerts unreachable) | `CRITICAL_ACK_FAILED` | `analysis_id` | `{ value, errorCode, queuedForReplay }` |
+| Aliquot created | `ALIQUOT_CREATED` | `sample_id` + `aliquot_id` | `{ count, purpose, linkedTestId? }` |
+| Aliquot status changed (Used / Destroyed / Sent) | `ALIQUOT_STATUS_CHANGED` | `aliquot_id` | `{ fromStatus, toStatus, reason? }` |
 | Stale-page conflict detected | `STALE_PAGE_CONFLICT` | `analysis_id` | `{ savedBy, savedAt }` |
 | Upload attachment | `ATTACHMENT_UPLOADED` | `analysis_id` + `attachment_id` | `{ filename, size }` |
 | Delete attachment (result-entry only) | `ATTACHMENT_DELETED` | `attachment_id` | `{ filename }` |
@@ -482,6 +590,9 @@ Reads are NOT audited. All `audit_trail` entries auto-capture actor from Spring 
 | `eqa_sample.priority` (new attribute) | Yes | EQA tracking |
 | `sample_item.storage_location` link | Yes (existing in storage module) | Sample chain-of-custody |
 | `audit_trail` entries themselves | No | Append-only by design |
+| `critical_notification` (new table — structured GP47 record) | Yes | Compliance / patient safety |
+| `aliquot` (new table) | Yes | Sample chain-of-custody |
+| `aliquot_status_history` (new table) | No | Append-only state transitions |
 
 ---
 
@@ -507,6 +618,66 @@ Reads are NOT audited. All `audit_trail` entries auto-capture actor from Spring 
 | `column.actions` | Actions |
 | `heading.programInfo` | Program Info |
 | `help.programInfo.readonly` | Program-captured fields are read-only here. Edit them on the originating order. |
+| `heading.aliquots` | Aliquots |
+| `column.aliquot.id` | Aliquot ID |
+| `column.aliquot.purpose` | Purpose |
+| `column.aliquot.linkedTest` | Linked Test |
+| `column.aliquot.status` | Status |
+| `column.aliquot.created` | Created |
+| `column.aliquot.storage` | Storage |
+| `aliquot.purpose.test` | Test |
+| `aliquot.purpose.retention` | Retention |
+| `aliquot.purpose.sendout` | Send-out |
+| `aliquot.purpose.pool` | Pool |
+| `aliquot.purpose.pouroff` | Pour-off |
+| `aliquot.status.created` | Created |
+| `aliquot.status.inStorage` | In-Storage |
+| `aliquot.status.sent` | Sent |
+| `aliquot.status.used` | Used |
+| `aliquot.status.destroyed` | Destroyed |
+| `button.aliquot.create` | Create aliquot |
+| `button.aliquot.printLabel` | Print Label |
+| `button.aliquot.markUsed` | Mark Used |
+| `button.aliquot.destroy` | Destroy |
+| `label.aliquot.count` | How many aliquots? |
+| `label.aliquot.purpose` | Purpose |
+| `label.aliquot.linkedTest` | Test to perform |
+| `label.aliquot.destination` | Destination storage |
+| `label.aliquot.reason` | Reason / Notes |
+| `message.aliquot.empty` | No aliquots from this sample yet. |
+| `message.aliquot.poolHeading` | Pool composition |
+| `heading.criticalNotification` | Critical Value — Notification Form |
+| `button.criticalNotification.open` | Open Notification Form |
+| `button.criticalNotification.submit` | Confirm Notification |
+| `label.criticalNotification.recipient` | Recipient |
+| `label.criticalNotification.recipientRole` | Role |
+| `label.criticalNotification.method` | Method of communication |
+| `label.criticalNotification.readBack` | Read-back text |
+| `placeholder.criticalNotification.readBack` | Verbatim what the recipient read back to confirm the value… |
+| `label.criticalNotification.time` | Time of notification |
+| `label.criticalNotification.firstSuccessful` | First attempt successful? |
+| `label.criticalNotification.escalationLog` | Escalation log |
+| `label.criticalNotification.additionalNotes` | Additional notes |
+| `message.criticalNotification.summary` | Notified {recipient} at {time} via {method} — read-back confirmed |
+| `criticalNotification.method.phone` | Phone |
+| `criticalNotification.method.inperson` | In-person |
+| `criticalNotification.method.secureMsg` | Secure message |
+| `criticalNotification.method.pager` | Pager |
+| `criticalNotification.method.other` | Other |
+| `criticalNotification.role.clinician` | Clinician |
+| `criticalNotification.role.nurse` | Nurse |
+| `criticalNotification.role.oncall` | On-call clinician |
+| `criticalNotification.role.patient` | Patient (direct) |
+| `criticalNotification.role.other` | Other |
+| `warn.reagent.required` | A reagent lot is required by site configuration (ISO 15189 §6.4.4 traceability). Select a lot to enable Save. |
+| `heading.modification.history` | Modification History |
+| `label.modification.original` | Original |
+| `label.modification.current` | Current |
+| `label.modification.reason` | Reason |
+| `button.modification.viewAll` | View all history ({count}) |
+| `label.row.modifiedTag` | Modified |
+| `label.referenceRange.label` | Range |
+| `warn.referenceRange.fallback` | No reference range for this demographic — using default |
 | `labUnit.placeholder` | Select Test Unit… |
 | `labUnit.hematology` | Hematology |
 | `labUnit.chemistry` | Chemistry |
@@ -669,6 +840,16 @@ Audit: Every Critical Ack attempt (success OR failure) writes one row to `audit_
 
 **BR-032 — Result Cell Conflict Resolution at NCE Disposition = Refer:** When NCE Disposition is set to "Refer out", the form auto-fills the Referral section with: referral reason = "NCE-driven referral", institute = blank (user must select), test = current test, sent date = today.
 
+**BR-033 — Critical Value Notification Documentation (CLSI GP47):** When a result enters the `critical` range tier, the Save action MUST be gated behind a structured Critical Value Communication Form. The form MUST capture, at minimum: recipient identity, recipient role, communication method, verbatim read-back text, time of notification. When the first notification attempt was not successful (no answer / wrong number / etc.), an Escalation Log MUST be filled with at least one additional attempt record. On successful submission, a `CRITICAL_NOTIFICATION_LOGGED` audit entry is written and Save is unblocked. A single-click acknowledgment without these fields is NOT acceptable for ISO 15189 / CLSI GP47 compliance.
+
+**BR-034 — Reagent Lot Capture Required for Save (ISO 15189 §6.4.4):** When the site config `requireReagentLotsForResults` is ON (default ON for new deployments), Save MUST be blocked until the user has selected at least one reagent lot in the Method & Reagents section. The block presents an inline warning ("Reagent lot is required by site configuration for ISO 15189 §6.4.4 traceability."). When the flag is OFF, current optional behavior applies. Migration: existing deployments default OFF for one minor version, then default ON for new installs.
+
+**BR-035 — Original Value Retrievability (ISO 15189 §7.5.2 / 21 CFR Part 11 §11.10(e)):** When a result has been modified (one or more `RESULT_MODIFIED` or `RESULT_MODIFIED_RELEASED` audit entries), the original value MUST be visible in the expanded panel without requiring a separate audit-log lookup. The Modification History banner displays at the top of the panel and surfaces: `original → current` transition pair, each prior actor and timestamp, each reason. When more than one modification exists, only the most recent transition is shown by default; an expand control reveals the full chronological chain. The original value MUST NEVER be deleted from the system; modifications append to history rather than overwriting.
+
+**BR-036 — Demographic-Aware Reference Range Selection (CLSI EP28-A3c):** Each `Test` MAY have multiple `referenceRanges[]` entries differentiated by `ageMin`, `ageMax`, `sex`, and `lifeStage` selection criteria. At result expansion, the system MUST select the **most specific** matching range (highest count of matching non-null selection criteria), with ties broken by Test Catalog ordering. When no range matches the patient's demographics at sample collection date, the system MUST fall back to the lowest-priority "default" range AND display a warning Tag ("No reference range for this demographic — using default"). The selected range's label MUST be visible to the tech via a Tag next to the displayed range; a Popover on the Tag MUST show the selection criteria and list other configured ranges.
+
+**BR-037 — Aliquot Lifecycle (Vector pool deconvolution + general send-out):** An aliquot derived from a sample MUST inherit the source sample's accession with a suffix (`LABNO.X-Y` where X is the source ordinal and Y is the aliquot ordinal). Aliquots have an independent status lifecycle (Created / In-Storage / Sent / Used / Destroyed) tracked separately from the source sample. Creating an aliquot for a Test purpose MUST create a new analysis row linked to the aliquot; creating an aliquot for Retention or Send-out MUST NOT create new test rows. Aliquot creation from Results Entry requires Analyst OR SampleReception bundle. Destroy / mark-used actions require Analyst.
+
 ---
 
 ## Acceptance Criteria
@@ -772,6 +953,41 @@ Audit: Every Critical Ack attempt (success OR failure) writes one row to `audit_
 ### NCE Disposition → Refer-out Auto-Fill
 - [ ] When NCE Disposition is set to "Refer out", Referral section opens automatically with reason="NCE-driven referral" pre-filled and Refer checkbox checked **[BR-032]**
 - [ ] Institute field remains unselected — user must choose
+
+### Critical Value Communication Form (ISO HIGH A1 / CLSI GP47)
+- [ ] When result enters critical tier, "Open Notification Form" button replaces single-click "I Acknowledge" **[BR-033]**
+- [ ] Form requires: Recipient, Recipient Role, Method, Read-back text, Time of notification **[BR-033]**
+- [ ] When First-attempt-successful=No, Escalation Log is required with at least one entry **[BR-033]**
+- [ ] Submit triggers POST to `/rest/alerts/critical-acknowledgment` with the full structured payload + writes `CRITICAL_NOTIFICATION_LOGGED` to audit_trail **[BR-033]**
+- [ ] After successful log, form collapses to read-only summary card; Save unblocks **[BR-033]**
+- [ ] Editing a logged notification requires Validator bundle and creates a modification-history entry **[BR-033, BR-035]**
+
+### Reagent Lot Capture Gate (ISO HIGH A2 / ISO 15189 §6.4.4)
+- [ ] When site config `requireReagentLotsForResults` is ON, Save is blocked until at least one reagent lot is selected **[BR-034]**
+- [ ] Inline warning shown next to Save button explaining the block **[BR-034]**
+- [ ] When config is OFF, current optional behavior applies **[BR-034]**
+
+### Modification History Banner (ISO HIGH A3 / CFR Part 11)
+- [ ] When `result.modificationHistory[]` has entries, a banner renders at the top of the expanded panel **[BR-035]**
+- [ ] Banner shows: original → current value, actor, timestamp, reason **[BR-035]**
+- [ ] When multiple modifications exist, only most recent shown by default; expand control reveals full chain **[BR-035]**
+- [ ] Table row shows a small "Modified" Tag in warm-gray for rows with any modification history **[BR-035]**
+- [ ] Original value MUST NEVER be deleted; modifications append-only **[BR-035]**
+
+### Demographic-Aware Reference Range Selection (ISO HIGH B2 / CLSI EP28-A3c)
+- [ ] System selects the most specific matching `referenceRange` for the patient at sample collection date **[BR-036]**
+- [ ] Selection criteria: ageMin, ageMax, sex, lifeStage all considered; ties broken by Test Catalog priority **[BR-036]**
+- [ ] When no range matches, falls back to default + displays warning Tag "No reference range for this demographic" **[BR-036]**
+- [ ] Selected range's label shown next to displayed range as a Tag; Popover lists all configured ranges **[BR-036]**
+
+### Aliquots Section (ISO HIGH I1)
+- [ ] Aliquots section always rendered when user has Analyst or SampleReception bundle **[BR-037]**
+- [ ] Table shows existing aliquots: Aliquot ID (`LABNO.X-Y`), Purpose, Linked Test, Status, Created, Storage, Actions **[BR-037]**
+- [ ] "Create aliquot" form: count, purpose, linked test (when purpose=Test), destination storage, reason/notes **[BR-037]**
+- [ ] Submitting auto-assigns `LABNO.X-N` suffixes and creates analysis rows for Test-purpose aliquots **[BR-037]**
+- [ ] Destroy / Mark Used actions require Analyst bundle **[BR-037]**
+- [ ] Pool composition surfaced read-only above the aliquot table when sample is a pool (vector deployments)
+- [ ] Audit: `ALIQUOT_CREATED` and `ALIQUOT_STATUS_CHANGED` rows written
 
 ### Patient Privacy Precedence
 - [ ] Site-wide `showPatientName=true` overrides role-based mask **[BR-026]**
