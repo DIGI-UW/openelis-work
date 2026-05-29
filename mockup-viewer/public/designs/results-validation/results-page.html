@@ -130,6 +130,9 @@
   <div class="preview-banner">
     ⚡ Visual Preview — Results Entry v3 &nbsp;|&nbsp; Route: <code>/Results</code> &nbsp;|&nbsp; OpenELIS Global &nbsp;|&nbsp; Not a live application
   </div>
+  <div style="background:#fff8e1; border-bottom:1px solid #f1c21b; padding:6px 16px; font-size:11px; color:#6f4e00;">
+    ℹ Mockup uses Tailwind classes for portable preview. <strong>Production must use @carbon/react</strong> components — see §Carbon Component Map + §Carbon Implementation Notes in the FRS.
+  </div>
   <div class="breadcrumb-bar">
     <a href="#">Home</a> / <a href="#">Workplan</a> / <strong>Results</strong>
     <span style="float:right; opacity:0.7;">Server page <strong>1</strong> / 3 &nbsp; ‹ ›</span>
@@ -494,6 +497,29 @@
                                     <div><div className="field-label">Received Date/Time</div><div className="field-value">12/18/2025 07:30</div></div>
                                     <div><div className="field-label">Fasting Status</div><div className="field-value">Fasting (12 hours)</div></div>
                                     <div style={{ gridColumn: 'span 2' }}><div className="field-label">Clinical History</div><div className="field-value">Follow-up for prediabetes, weight loss program</div></div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Program Info — NEW for v3 — appears only when result.program is set */}
+                              <div className="section">
+                                <div className="section-header">
+                                  <span>📚 Program Info <span className="section-badge" style={{ color:'#8a3ffc' }}>EQA Round 4</span></span>
+                                  <span>▼</span>
+                                </div>
+                                <div className="section-body">
+                                  <div className="grid-3">
+                                    <div><div className="field-label">EQA Panel ID</div><div className="field-value" style={{ fontFamily:'IBM Plex Mono, monospace' }}>EQA-CHEM-2025-Q4-PANEL-07</div></div>
+                                    <div><div className="field-label">Round Number</div><div className="field-value">4</div></div>
+                                    <div><div className="field-label">Specimen Code</div><div className="field-value" style={{ fontFamily:'IBM Plex Mono, monospace' }}>S-2025-Q4-022</div></div>
+                                    <div><div className="field-label">Expected Analyte</div><div className="field-value">Glucose</div></div>
+                                    <div><div className="field-label">Submission Deadline</div><div className="field-value">12/20/2025 23:59</div></div>
+                                    <div><div className="field-label">Lab Code (Provider)</div><div className="field-value" style={{ fontFamily:'IBM Plex Mono, monospace' }}>MG-LAB-018</div></div>
+                                    <div style={{ gridColumn: 'span 2' }}><div className="field-label">Round Coordinator</div><div className="field-value">Dr. F. Andriantefison</div></div>
+                                    <div style={{ gridColumn: 'span 3' }}><div className="field-label">Provider Comments</div><div className="field-value">Sample stable at 2–8 °C for 14 days from receipt.</div></div>
+                                  </div>
+                                  <div style={{ marginTop: 12, fontSize: 11, color: '#a8a8a8', fontStyle: 'italic' }}>
+                                    Program-captured fields are read-only here. Edit them on the originating order.
                                   </div>
                                 </div>
                               </div>

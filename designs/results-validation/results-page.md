@@ -137,13 +137,14 @@ Pending → Entered → Awaiting Validation → Released
 5. **Interpretation** — collapsible (default open)
 6. **Method & Reagents** — collapsible (default open) ← was a tab
 7. **Order Info** — collapsible (default open) ← was a tab
-8. **Storage Location** — collapsible (default open) ← NEW
-9. **Referral** — collapsible (default open) ← was a tab
-10. **Attachments** — collapsible (default open) ← was a tab
-11. **Result Entry Action Bar** — value input + range hint + Report NCE button + Save (E-sign)
-12. **Conditional banners** — Invalid range / Critical acknowledgment
-13. **NCE Inline Form** (conditional — opens on Report NCE click)
-14. **Tabs:** QA/QC · History
+8. **Program Info** — collapsible (default open) ← NEW (conditional: rendered only when `result.program` is set)
+9. **Storage Location** — collapsible (default open) ← NEW
+10. **Referral** — collapsible (default open) ← was a tab
+11. **Attachments** — collapsible (default open) ← was a tab
+12. **Result Entry Action Bar** — value input + range hint + Report Non-Conformity Event (NCE) button + Save (E-sign)
+13. **Conditional banners** — Invalid range / Critical acknowledgment
+14. **NCE Inline Form** (conditional — opens on Report NCE click)
+15. **Tabs:** QA/QC · History
 
 ### Notes Section
 
@@ -165,6 +166,30 @@ System-suggested interpretation banner (when applicable) + clickable interpretat
 ### Order Info Section
 
 3-column grid: Clinician, Phone, Department, Priority, Collection Date/Time, Received Date/Time, Fasting Status, Clinical History, Diagnosis. Multi-line fields (History, Diagnosis) span the row. All fields read-only on Results page (edited in Order Entry).
+
+### Program Info Section — NEW
+
+**Conditional rendering:** This section appears only when `result.program` is set (i.e. the order is linked to a program — EQA round, RETROCI ARV / EID / VL / Indeterminate study, or any custom program). When no program is linked, the section is hidden entirely (not a collapsed empty state).
+
+**Purpose:** Programs capture additional metadata at Order Entry that techs need to see during result entry: study identifiers, visit numbers, treatment regimen, expected analytes, panel codes, EQA round metadata, etc. Without surfacing these fields here, techs have to navigate back to the order to see context that affects how they interpret or report the result.
+
+**Layout:** Section header shows `BookOpen` icon + "Program Info" + program name as a magenta badge. Body is a 3-column grid of up to 15 fields. Field rendering:
+
+| Field type | Layout |
+|---|---|
+| `text` (short) | 1-column cell with uppercase field label + value |
+| `text` (long, e.g. clinical notes, provider comments) | Full-row span (col-span-3) |
+| `datetime` | 1-column cell, value formatted to locale |
+| `longtext` | Full-row span (col-span-3) |
+| `enum` | 1-column cell with value as Tag |
+
+**Read-only on Results page.** Fields are edited on the originating order (Order Entry page) or via the program admin. A muted help line under the grid states: *"Program-captured fields are read-only here. Edit them on the originating order."*
+
+**Data model:** `result.program.fields[]` — array of `{ label, value, type }` objects, up to 15 items. The field set is config-driven per program type (declared in Test Catalog program configuration), so an EQA program surfaces panel ID / round number / expected analyte / coordinator while a RETROCI VL study surfaces regimen / prior VL / adherence / visit number.
+
+**RETROCI study forms:** When the `useRetroCIStudyForms` feature flag is ON, the Program Info section is the surface where hardcoded RETROCI ARV / EID / VL / Indeterminate fields render. The hardcoded field set per study type is documented in the RETROCI program spec (separate document); this section is the renderer.
+
+**EQA-specific fields:** Standard EQA fields shown by default: EQA Panel ID, Round Number, Specimen Code, Expected Analyte, Submission Deadline, Lab Code (Provider), Round Coordinator, Provider Comments.
 
 ### Storage Location Section — NEW
 
@@ -306,9 +331,32 @@ API: `POST /rest/non-conformity-events` with `{ result, disposition, rejectionRe
 
 ---
 
+## Carbon Implementation Notes
+
+The mockup intentionally uses Tailwind utility classes and raw HTML elements (`<select>`, `<input>`, `<table>`, custom toggle/tab divs) so the gallery preview can render without a Webpack build step or `@carbon/react` install. **Production implementation MUST use `@carbon/react`**. The Component Map below binds each UI element to its Carbon component.
+
+**Patterns the Tailwind mockup intentionally does NOT demonstrate** — devs implementing this MUST use the Carbon equivalents instead of the visual mockup pattern:
+
+| Mockup shows | Production must use |
+|---|---|
+| Custom toggleable `<div>` for collapsible sections | `Accordion` + `AccordionItem` |
+| Custom tab bar with border-bottom highlight | `Tabs` + `Tab` + `TabList` + `TabPanels` + `TabPanel` |
+| Custom modal overlay div for E-Sig | `Modal` + `PasswordInput` + `ModalFooter` |
+| `<details>` element for M-type result | `MultiSelect` (`selectionFeedback="fixed"`) |
+| Inline `<table>` for results | `DataTable` + `TableExpandRow` + `TableExpandedRow` |
+| Fixed-position toast stack | `ToastNotification` rendered via portal |
+| Inline LocationPicker stub | `ComposedModal` + custom drill-down tree component |
+| Inline file-upload placeholder | `FileUploader` / `CompactFileInput` |
+| Manual `<input type="date">` + `<input type="time">` | `DatePicker` + `DatePickerInput` + `TimePicker` + `TimePickerSelect` |
+| `<select>` elements with native styling | `Select` + `SelectItem` (or `Dropdown` for searchable) |
+| `<textarea>` | `TextArea` |
+| Status badge `<span>` with rolled colors | `Tag` with `type` prop |
+
+The Tailwind mockup is acceptable as a *design reference* but **must not be copy-pasted as implementation code**. The intent of each rendered element maps to a Carbon component in the table below.
+
 ## Carbon Component Map
 
-The mockup uses Tailwind/HTML for portability; production implementation MUST use `@carbon/react`. This map binds each UI element to its Carbon component.
+This map binds each UI element to its Carbon component.
 
 | UI Element | `@carbon/react` Component | Notes |
 |---|---|---|
@@ -359,9 +407,9 @@ The redesign introduces fields not present in OpenELIS today. Each must be backe
 |---|---|---|
 | `Test.criticalRange.lowMsg` / `highMsg` | Test catalog has `lowerCritical` / `higherCritical` numeric only | **Schema:** Add `criticalRangeLowMsg`, `criticalRangeHighMsg` text columns to `test` table. `@Audited`. |
 | `Test.validRange.low` / `validRange.high` | Not present | **Schema:** Add `validRangeLow`, `validRangeHigh` numeric columns. `@Audited`. |
-| `Test.interpretationOptions[]` | Not present as structured data; some interpretation text in `result_options` for D type | **Schema:** New `test_interpretation` table linked to `test`; columns: code, label, color, range_text, body. `@Audited`. |
+| `Test.interpretationOptions[]` | Not present as structured data; some interpretation text in `result_options` for D type | **Schema:** New `test_interpretation` table linked to `test`; columns: code, label, color, range_text, body. `@Audited`. **Follow-up spec required:** Test Catalog Admin page must be extended to manage these rows; until that lands, interpretation options are seeded per-test via SQL migration. |
 | `Test.suggestedInterpretation` (auto) | Not present | **Server logic:** Match entered numeric value against `test_interpretation.range_text` bounds to suggest interpretation. No new schema beyond interpretation table. |
-| `Result.cascadingMultiSelect (C)` resultType | `result_type` enum lacks 'C' today | **Schema:** Extend `result_type` enum to include 'C'. **New table:** `cascading_result_parent` + `cascading_result_child` mapping. Out of scope for v1 implementation. |
+| ~~`Result.cascadingMultiSelect (C)` resultType~~ | *Deferred to a separate spec* | **Moved to §Future Considerations.** Extending the `result_type` enum requires a sweep across HL7 export, FHIR export, reports, Validation, and Test Catalog admin to confirm no downstream consumer breaks. Out of scope for v3. |
 | `Result.disposition` (Cancel/Reject/Retest/Refer) | Disposition split across `result.status` + `referral` + `rejection` paths | **Server logic:** Persist disposition as part of the linked `NonConformityEvent` (no new column on `result`); on disposition application, drive existing status/referral side-effects. |
 | `Alerts.criticalAcknowledgment` | Alerts dashboard exists; not wired to Results Entry | **API:** New `POST /rest/alerts/critical-acknowledgment` endpoint. Payload: `{ resultId, value, ackBy, ackAt, criticalMsg }`. |
 | `SampleItem.storageLocation` | Exists today via `/rest/storage/sample-items` | **No new schema** — wire existing API into the Storage Section. |
@@ -392,9 +440,9 @@ The redesign introduces fields not present in OpenELIS today. Each must be backe
 | Enter / Modify result value | `Analyst` |
 | Save (e-sign) result | `Analyst` |
 | File NCE | `Analyst` |
-| Assign / move storage location | `Analyst` |
+| Assign / move storage location | `Analyst` OR `SampleReception` | Storage assignment happens both at sample receiving (Reception techs) AND during result entry (Analysts re-shelving post-run). Either bundle grants access; the action is the same. |
 | View patient name when PII masking is on | `PatientResults` permission bundle (existing) |
-| Modify Released result | `Validator` (existing — supervisors only) |
+| Modify Released result | `Validator` (existing — supervisors only); non-Validators see a disabled "Modify Result" button with tooltip "Released-result modification requires Validator permission." |
 
 **No new permission keys introduced.** Per `feedback_openelis_admin_permissions`, OpenELIS uses binary admin + per-module role bundles, not per-action permission keys.
 
@@ -407,11 +455,14 @@ For every state-changing action, an entry is written to `audit_trail`:
 | Save first result | `RESULT_SAVED` | `analysis_id` | `{ value, method, analyzer, reagentLots[] }` |
 | Modify Awaiting Validation result | `RESULT_MODIFIED` | `analysis_id` | `{ prevValue, newValue, reason }` |
 | Modify Released result | `RESULT_MODIFIED_RELEASED` | `analysis_id` | `{ prevValue, newValue, reason }` (additional Envers row on Released-result modification) |
+| Save interpretation (no value change) | `INTERPRETATION_SAVED` | `analysis_id` | `{ interpretationCode, textLength }` (don't audit body text — too noisy + may contain PII-adjacent free text) |
+| Add note | `NOTE_ADDED` | `analysis_id` + `note_id` | `{ type, bodyLength }` (don't audit body text) |
 | Assign storage location | `STORAGE_ASSIGNED` | `sample_item_id` | `{ locationPath }` |
 | Move storage location | `STORAGE_MOVED` | `sample_item_id` | `{ fromPath, toPath, reason }` |
 | File NCE | `NCE_CREATED` | `nce_id` | `{ severity, disposition, category, subcategory }` |
 | Apply NCE disposition | `NCE_DISPOSITION_APPLIED` | `nce_id` + `analysis_id` | `{ disposition }` |
 | Critical value acknowledged | `CRITICAL_ACK` | `analysis_id` | `{ value, ackBy, criticalMsg }` |
+| Critical value ack failed (Alerts unreachable) | `CRITICAL_ACK_FAILED` | `analysis_id` | `{ value, errorCode, queuedForReplay }` |
 | Stale-page conflict detected | `STALE_PAGE_CONFLICT` | `analysis_id` | `{ savedBy, savedAt }` |
 | Upload attachment | `ATTACHMENT_UPLOADED` | `analysis_id` + `attachment_id` | `{ filename, size }` |
 | Delete attachment (result-entry only) | `ATTACHMENT_DELETED` | `attachment_id` | `{ filename }` |
@@ -451,6 +502,25 @@ Reads are NOT audited. All `audit_trail` entries auto-capture actor from Spring 
 | `column.normalrange` | Normal Range |
 | `column.result` | Result |
 | `column.currentresult` | Current Result |
+| `column.status` | Status |
+| `column.flags` | Flags |
+| `column.actions` | Actions |
+| `heading.programInfo` | Program Info |
+| `help.programInfo.readonly` | Program-captured fields are read-only here. Edit them on the originating order. |
+| `labUnit.placeholder` | Select Test Unit… |
+| `labUnit.hematology` | Hematology |
+| `labUnit.chemistry` | Chemistry |
+| `labUnit.microbiology` | Microbiology |
+| `labUnit.serology` | Serology-Immunology |
+| `title.action.modifyReleasedBlocked` | Released-result modification requires Validator permission |
+| `column.samplePatient` | Sample / Patient |
+| `column.testDate` | Test Date |
+| `column.analyzerResult` | Analyzer Result |
+| `column.testName` | Test Name |
+| `column.sample` | Sample |
+| `column.normalRange` | Normal Range |
+| `column.result` | Result |
+| `column.currentResult` | Current Result |
 | `column.status` | Status |
 | `column.flags` | Flags |
 | `column.actions` | Actions |
@@ -568,7 +638,16 @@ Reads are NOT audited. All `audit_trail` entries auto-capture actor from Spring 
 
 **BR-024 — NCE Disposition is the Only Reject Path:** Result rejection MUST flow through an NCE record. The legacy standalone Reject column is removed. `allowResultRejection=false` hides the "Reject result + reason" option from the NCE Disposition radio group; it does NOT disable the entire NCE flow.
 
-**BR-025 — Critical Acknowledgment → Alerts Dashboard:** Acknowledging a critical value on Results Entry MUST POST to `/rest/alerts/critical-acknowledgment` before the Save action proceeds. If the Alerts POST fails, the Save fails with an error toast and the user is prompted to retry. The Critical Ack is a hard gate.
+**BR-025 — Critical Acknowledgment → Alerts Dashboard:** Acknowledging a critical value on Results Entry MUST POST to `/rest/alerts/critical-acknowledgment` before the Save action proceeds. The Critical Ack is a hard gate. Retry semantics:
+
+| Failure mode | UI behavior | Server behavior |
+|---|---|---|
+| Network error / 5xx | `ActionableNotification kind="error"` toast with `actionButtonLabel="Retry"` + explanatory body ("The Alerts service is unreachable. Your acknowledgment has been queued for replay."). Save remains blocked until ack succeeds OR user explicitly cancels. | Backend queues the ack write to a durable replay queue when the Alerts service is unreachable for > 5 seconds. Replay attempts every 30 s for 10 min, then alerts SysAdmin role users. |
+| 4xx (validation rejection) | Toast `kind="error"` with the server's error message. Save remains blocked. No retry button (user must correct input). | Returns the validation error; does not queue. |
+| Success | Silent — Save proceeds immediately. | Ack written to `critical_acknowledgments` table + linked to `audit_trail` entry `CRITICAL_ACK`. |
+| Timeout > 10 s | Same as Network error. | Same as Network error. |
+
+Audit: Every Critical Ack attempt (success OR failure) writes one row to `audit_trail` with action `CRITICAL_ACK` or `CRITICAL_ACK_FAILED` so the failure mode is itself traceable for compliance review.
 
 **BR-026 — PII Masking Precedence:** `results.entry.showPatientName` (site-wide override) takes precedence over `PATIENT_DATA_ON_RESULTS_BY_ROLE` (role-based mask). When the site-wide override is ON, the patient name is shown regardless of user role.
 
@@ -616,6 +695,16 @@ Reads are NOT audited. All `audit_trail` entries auto-capture actor from Spring 
 - [ ] C type documented as out-of-scope-for-v1 with implementation plan in Dependencies **[BR-027]**
 - [ ] Current Result column shows previous value with dictionary IDs resolved to labels for D/M types
 
+### Program Info Section (NEW)
+- [ ] Program Info section appears only when `result.program` is set; hidden entirely otherwise
+- [ ] Section header shows BookOpen icon + program name as a magenta badge
+- [ ] Fields render in a 3-column grid, up to 15 fields
+- [ ] `longtext` and long `text` fields span all 3 columns
+- [ ] All fields read-only with help text noting they are edited on the order
+- [ ] EQA programs show Panel ID, Round Number, Specimen Code, Expected Analyte, Submission Deadline, Lab Code, Round Coordinator, Provider Comments by default
+- [ ] RETROCI study programs render hardcoded ARV / EID / VL / Indeterminate field sets when `useRetroCIStudyForms` flag is ON
+- [ ] Section placed between Order Info and Storage Location
+
 ### Storage Location Section (NEW)
 - [ ] Storage section always visible in expanded panel
 - [ ] When unassigned, "Assign storage location" primary button shown with help text
@@ -652,7 +741,10 @@ Reads are NOT audited. All `audit_trail` entries auto-capture actor from Spring 
 
 ### Critical Acknowledgment
 - [ ] Acknowledgment POSTs to `/rest/alerts/critical-acknowledgment` before Save proceeds **[BR-025]**
-- [ ] If Alerts POST fails, Save fails with retry prompt **[BR-025]**
+- [ ] On network/5xx failure, ActionableNotification with retry button shown; Save blocked **[BR-025]**
+- [ ] Backend queues ack for replay (every 30s for 10min) when Alerts service unreachable >5s **[BR-025]**
+- [ ] On 4xx, error toast shown; Save blocked; no retry button **[BR-025]**
+- [ ] Both success and failure paths write to `audit_trail` (`CRITICAL_ACK` / `CRITICAL_ACK_FAILED`) **[BR-025]**
 
 ### Inline NCE Form
 - [ ] Severity radios with descriptions (Critical/Major/Minor)
@@ -671,7 +763,15 @@ Reads are NOT audited. All `audit_trail` entries auto-capture actor from Spring 
 - [ ] Reflex tests list shown in toast when triggered **[BR-028]**
 - [ ] Calculated tests list shown in toast when triggered **[BR-028]**
 - [ ] STAT result fires Validator-role notification stub **[BR-029]**
-- [ ] Stale-page conflict shows warning toast and reloads **[BR-030]**
+- [ ] Stale-page conflict — when backend reports another user has saved any row in the current page batch, frontend shows warning toast and reloads list with the conflicting row marked `failedValidation=true` **[BR-030]**
+
+### Permissions on Modify Released
+- [ ] Non-Validator users see disabled "Modify Result" button on Released rows with tooltip explaining the Validator-permission requirement
+- [ ] Validator users see normal enabled "Modify Result" button on Released rows
+
+### NCE Disposition → Refer-out Auto-Fill
+- [ ] When NCE Disposition is set to "Refer out", Referral section opens automatically with reason="NCE-driven referral" pre-filled and Refer checkbox checked **[BR-032]**
+- [ ] Institute field remains unselected — user must choose
 
 ### Patient Privacy Precedence
 - [ ] Site-wide `showPatientName=true` overrides role-based mask **[BR-026]**
@@ -728,7 +828,7 @@ Listed in §Data Dependencies. Summary: 2 columns added to `test`, 1 column adde
 
 ## Future Considerations
 
-1. **Cascading Multi-Select (C) implementation** — Documented in spec; not in v1 mockup. Implementation requires `cascading_result_parent` + `cascading_result_child` tables and a 2-step UI (parent Select → child MultiSelect). Used for organism → AST drug panel and similar nested findings.
+1. **Cascading Multi-Select (C) implementation** — Not in v1. Implementation requires extending the `result_type` enum to include 'C' and adding `cascading_result_parent` + `cascading_result_child` tables and a 2-step UI (parent Select → child MultiSelect). Used for nested findings like organism → antibiotic sensitivity panels. **Prerequisite:** dependency review across HL7 export, FHIR export, reports, Validation, and Test Catalog admin to confirm no downstream consumer breaks on the enum extension. Track as its own spec.
 2. **Bulk Save** — Select multiple rows in the table for batch e-sign.
 3. **Custom Worklists** — Save filter combinations as named worklists.
 4. **Real-Time Updates** — WebSocket for live analyzer-import updates.

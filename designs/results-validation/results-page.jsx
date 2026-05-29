@@ -5,6 +5,23 @@
  *                   /StatusResults, /RangeResults, /result)
  * SideNav: Results → (default view; search-by filters surface as facets)
  *
+ * ─────────────────────────────────────────────────────────────────────────
+ *   IMPORTANT — IMPLEMENTATION NOTE
+ *   This mockup uses Tailwind utility classes + raw HTML elements
+ *   (<select>, <input>, <table>, <button>) for portable rendering
+ *   in the gallery preview. Production implementation MUST use
+ *   @carbon/react components per the §Carbon Component Map section
+ *   of results-page-v3-frs.md. Patterns the Tailwind mockup does NOT
+ *   demonstrate but MUST be used in production:
+ *     - Carbon Tabs / Tab / TabList / TabPanels / TabPanel
+ *     - Carbon Modal / ComposedModal (for E-Sig + Storage Picker)
+ *     - Carbon FileUploader / CompactFileInput
+ *     - Carbon ToastNotification / ActionableNotification
+ *     - Carbon Accordion + AccordionItem (for collapsible sections)
+ *     - Carbon DataTable + TableExpandRow + TableExpandedRow
+ *     - Carbon NumberInput / Select / Dropdown / MultiSelect / TextArea
+ * ─────────────────────────────────────────────────────────────────────────
+ *
  * v3 changes vs v2.x:
  *   - Drop in-page tabs for Method, Order Info, Referral, Attachments → always-visible sections
  *   - Keep tabs for QA/QC + History only (low-frequency surfaces)
@@ -42,7 +59,7 @@ import {
   FileText, Microscope, Paperclip, History, FlaskConical, Send,
   Plus, Trash2, Download, X, Info, Shield, ClipboardList,
   MessageSquare, AlertCircle, ExternalLink, Pencil,
-  Copy, MapPin, Calendar, Clock, KeyRound, Bell, RefreshCw, Lock
+  Copy, MapPin, Calendar, Clock, KeyRound, Bell, RefreshCw, Lock, BookOpen
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -105,11 +122,11 @@ function genNceNumber() {
 // Mock data — mixed result types so the polymorphic cell is exercised
 // ---------------------------------------------------------------------------
 const LAB_UNITS = [
-  { id: "",            name: "Select Test Unit…" },
-  { id: "hematology",  name: "Hematology" },
-  { id: "chemistry",   name: "Chemistry" },
-  { id: "microbiology",name: "Microbiology" },
-  { id: "serology",    name: "Serology-Immunology" },
+  { id: "",            nameKey: "labUnit.placeholder",   defaultName: "Select Test Unit…" },
+  { id: "hematology",  nameKey: "labUnit.hematology",    defaultName: "Hematology" },
+  { id: "chemistry",   nameKey: "labUnit.chemistry",     defaultName: "Chemistry" },
+  { id: "microbiology",nameKey: "labUnit.microbiology",  defaultName: "Microbiology" },
+  { id: "serology",    nameKey: "labUnit.serology",      defaultName: "Serology-Immunology" },
 ];
 
 const METHODS_LOOKUP = [
@@ -244,7 +261,23 @@ const INITIAL_RESULTS = [
     analyzerResult: "Cobas c 501",
     flags: ["above-normal", "delta-check"],
     nonconforming: false,
-    program: { name: "EQA Round 4", dueDate: "12/20/2025", priority: "URGENT" },
+    program: {
+      name: "EQA Round 4",
+      dueDate: "12/20/2025",
+      priority: "URGENT",
+      // Up to 15 program-captured fields rendered by ProgramInfoSection.
+      // Field set is config-driven per program type (EQA vs. RETROCI ARV/EID/VL vs. custom study).
+      fields: [
+        { label: "EQA Panel ID",         value: "EQA-CHEM-2025-Q4-PANEL-07", type: "text" },
+        { label: "Round Number",         value: "4", type: "text" },
+        { label: "Specimen Code",        value: "S-2025-Q4-022", type: "text" },
+        { label: "Expected Analyte",     value: "Glucose", type: "text" },
+        { label: "Submission Deadline",  value: "12/20/2025 23:59", type: "datetime" },
+        { label: "Lab Code (Provider)",  value: "MG-LAB-018", type: "text" },
+        { label: "Round Coordinator",    value: "Dr. F. Andriantefison", type: "text" },
+        { label: "Provider Comments",    value: "Sample stable at 2–8 °C for 14 days from receipt.", type: "longtext" },
+      ],
+    },
     storage: { path: "Refrigerator B → Shelf 1 → Box 12", coords: "Pos A-09", condition: "2–8 °C" },
     previousResults: [
       { date: "12/01/2025", value: "98",  unit: "mg/dL", delta: null },
@@ -829,6 +862,43 @@ function OrderInfoSection({ orderInfo }) {
                 <div className="text-sm text-gray-800">{f.value}</div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Program Info — always-visible inline section (NEW for v3)
+// Renders fields captured at Order Entry by the linked program (EQA round,
+// RETROCI ARV/EID/VL study, custom programs). Up to 15 fields. Read-only here
+// — fields are edited in Order Entry. Hidden entirely when no program is linked.
+// ---------------------------------------------------------------------------
+function ProgramInfoSection({ program }) {
+  const [open, setOpen] = useState(true);
+  if (!program || !program.fields || program.fields.length === 0) return null;
+
+  return (
+    <div className="border-b border-gray-200">
+      <SectionHeader
+        label={<><BookOpen className="w-4 h-4 inline mr-1.5 text-gray-500" />{t("heading.programInfo","Program Info")}</>}
+        open={open}
+        onToggle={() => setOpen(o => !o)}
+        badge={<span className="text-xs text-purple-700 font-medium">{program.name}</span>}
+      />
+      {open && (
+        <div className="px-4 py-3 bg-white">
+          <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+            {program.fields.map(f => (
+              <div key={f.label} className={f.type === "longtext" ? "col-span-3" : ""}>
+                <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">{f.label}</div>
+                <div className="text-sm text-gray-800">{f.value || <span className="text-gray-300">—</span>}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 text-xs text-gray-400 italic">
+            {t("help.programInfo.readonly","Program-captured fields are read-only here. Edit them on the originating order.")}
           </div>
         </div>
       )}
@@ -1534,6 +1604,7 @@ function ExpandedPanel({ result, onSave, onNceSubmit }) {
       <InterpretationSection result={result} />
       <MethodSection result={result} />
       <OrderInfoSection orderInfo={result.orderInfo} />
+      <ProgramInfoSection program={result.program} />
       <StorageSection result={result} />
       <ReferralSection result={result} />
       <AttachmentsSection result={result} />
@@ -1762,6 +1833,7 @@ export default function ResultsPageRedesign() {
   const [showPatientNames, setShowPatientNames] = useState(false);    // site-wide override
   const [piiByRole, setPiiByRole]               = useState(true);     // PATIENT_DATA_ON_RESULTS_BY_ROLE
   const [userHasPatientPerm, setUserHasPatientPerm] = useState(true); // current user perm
+  const [userHasValidatorPerm, setUserHasValidatorPerm] = useState(true); // current user has Validator bundle
   // Workplan deep-link source
   const [workplanSource, setWorkplanSource] = useState(null);
   // Server-side pagination indicator (stub)
@@ -1871,9 +1943,20 @@ export default function ResultsPageRedesign() {
     return matchSearch && matchStatus;
   }), [results, searchQuery, statusFilter]);
 
+  // Explicit i18n key per column — translators don't need to guess the slug,
+  // and renaming the visible label doesn't silently break translations.
   const TABLE_HEADERS = [
-    "Sample / Patient", "Test Date", "Analyzer Result", "Test Name", "Sample",
-    "Normal Range", "Result", "Current Result", "Status", "Flags", "Actions"
+    { key: "column.samplePatient",  label: "Sample / Patient" },
+    { key: "column.testDate",       label: "Test Date" },
+    { key: "column.analyzerResult", label: "Analyzer Result" },
+    { key: "column.testName",       label: "Test Name" },
+    { key: "column.sample",         label: "Sample" },
+    { key: "column.normalRange",    label: "Normal Range" },
+    { key: "column.result",         label: "Result" },
+    { key: "column.currentResult",  label: "Current Result" },
+    { key: "column.status",         label: "Status" },
+    { key: "column.flags",          label: "Flags" },
+    { key: "column.actions",        label: "Actions" },
   ];
 
   return (
@@ -1900,6 +1983,13 @@ export default function ResultsPageRedesign() {
             <button onClick={() => setUserHasPatientPerm(v => !v)}
               className={`relative inline-flex h-4 w-8 cursor-pointer rounded-full border-2 border-transparent ${userHasPatientPerm ? "bg-green-600" : "bg-red-500"}`}>
               <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow ${userHasPatientPerm ? "translate-x-4" : "translate-x-0"}`} />
+            </button>
+          </span>
+          <span className="flex items-center gap-2 px-3 py-1 bg-white border border-blue-200 rounded text-gray-600">
+            <span className="font-semibold text-gray-500 uppercase tracking-wide text-xs">Validator?</span>
+            <button onClick={() => setUserHasValidatorPerm(v => !v)}
+              className={`relative inline-flex h-4 w-8 cursor-pointer rounded-full border-2 border-transparent ${userHasValidatorPerm ? "bg-green-600" : "bg-red-500"}`}>
+              <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow ${userHasValidatorPerm ? "translate-x-4" : "translate-x-0"}`} />
             </button>
           </span>
           <span className="flex items-center gap-2 px-3 py-1 bg-white border border-blue-200 rounded text-gray-600">
@@ -1950,7 +2040,7 @@ export default function ResultsPageRedesign() {
             <div className="text-xs text-gray-500 mb-1">{t("label.labUnit","Lab Unit")} <span className="text-red-500">*</span></div>
             <select className="w-full border border-gray-400 bg-gray-50 text-sm py-2 px-2 focus:outline-none focus:ring-1 focus:ring-blue-600"
               value={labUnit} onChange={e => setLabUnit(e.target.value)}>
-              {LAB_UNITS.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+              {LAB_UNITS.map(u => <option key={u.id} value={u.id}>{t(u.nameKey, u.defaultName)}</option>)}
             </select>
           </div>
 
@@ -2014,7 +2104,7 @@ export default function ResultsPageRedesign() {
             <tr className="bg-gray-100 border-b border-gray-300">
               <th className="w-10" />
               {TABLE_HEADERS.map(h => (
-                <th key={h} className="text-left px-3 py-3 text-xs font-semibold uppercase tracking-wide text-gray-600 whitespace-nowrap">{t(`column.${h.toLowerCase().replace(/[^a-z]/g,"")}`, h)}</th>
+                <th key={h.key} className="text-left px-3 py-3 text-xs font-semibold uppercase tracking-wide text-gray-600 whitespace-nowrap">{t(h.key, h.label)}</th>
               ))}
             </tr>
           </thead>
@@ -2158,16 +2248,28 @@ export default function ResultsPageRedesign() {
                         const isModification = result.status === "awaiting-validation" || result.status === "released";
                         const isReleased     = result.status === "released";
                         if (isModification) {
+                          // BR + F-19: Modifying a Released result requires Validator bundle.
+                          // Non-validators see a disabled button with explanatory tooltip.
+                          const releasedBlocked = isReleased && !userHasValidatorPerm;
                           return (
                             <button
-                              onClick={() => setExpandedId(isExpanded ? null : result.id)}
+                              onClick={() => !releasedBlocked && setExpandedId(isExpanded ? null : result.id)}
+                              disabled={releasedBlocked}
                               className={`flex items-center gap-1 px-2 py-1 text-xs whitespace-nowrap border font-medium ${
-                                isReleased
+                                releasedBlocked
+                                  ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                                  : isReleased
                                   ? "border-amber-500 text-amber-700 hover:bg-amber-50"
                                   : "border-blue-600 text-blue-700 hover:bg-blue-50"
                               }`}
-                              title={isReleased ? t("title.action.modifyReleased","Result has been validated — click to modify") : t("title.action.modifyQueued","Modify this saved result")}>
-                              <Pencil className="w-3 h-3" />
+                              title={
+                                releasedBlocked
+                                  ? t("title.action.modifyReleasedBlocked","Released-result modification requires Validator permission")
+                                  : isReleased
+                                  ? t("title.action.modifyReleased","Result has been validated — click to modify")
+                                  : t("title.action.modifyQueued","Modify this saved result")
+                              }>
+                              {releasedBlocked ? <Lock className="w-3 h-3" /> : <Pencil className="w-3 h-3" />}
                               {t("button.modify","Modify Result")}
                             </button>
                           );
