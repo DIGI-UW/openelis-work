@@ -1586,7 +1586,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/sample-collection/inter-lab-transfer.html',
     added: '2026-04-27',
     status: 'draft',
-    relatedTo: ['Subcontract Management'],
+    relatedTo: ['Subcontract Management', 'Reference Lab Results'],
     jira: ['OGC-527'],
     tags: ['referral', 'inter-lab', 'subcontract', 'environmental', 'vector', 'clinical', 'chain-of-custody', 'ISO-17025'],
   },
