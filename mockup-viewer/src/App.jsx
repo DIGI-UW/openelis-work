@@ -1586,9 +1586,23 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/sample-collection/inter-lab-transfer.html',
     added: '2026-04-27',
     status: 'draft',
-    relatedTo: ['Subcontract Management'],
+    relatedTo: ['Subcontract Management', 'Reference Lab Results'],
     jira: ['OGC-527'],
     tags: ['referral', 'inter-lab', 'subcontract', 'environmental', 'vector', 'clinical', 'chain-of-custody', 'ISO-17025'],
+  },
+
+  {
+    name: 'Reference Lab Results',
+    category: 'sample-collection',
+    component: React.lazy(() => import('@designs/sample-collection/reference-lab-results.jsx')),
+    description: 'New SideNav item under Sample Shipment. Outstanding / Returned-needs-action / History views for tracking the data lifecycle of referrals after physical shipment. Migrates ReferralStatus enum to FHIR Task states; adds manual-entry path for non-OpenELIS reference labs; Accept/Reject with terminal close + re-collection notification; Box.Reconciled gate. Supersedes OGC-624 state-model scope.',
+    specPath: 'designs/sample-collection/reference-lab-results.md',
+    htmlUrl: 'designs/sample-collection/reference-lab-results.html',
+    added: '2026-05-28',
+    status: 'draft',
+    relatedTo: ['Inter-Lab Transfer'],
+    jira: ['OGC-796'],
+    tags: ['referral', 'reference-lab', 'FHIR', 'sample-shipment', 'Madagascar', 'global', 'reconciliation', 'inter-lab'],
   },
 
   {
