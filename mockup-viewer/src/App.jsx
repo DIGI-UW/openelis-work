@@ -1592,6 +1592,20 @@ export const MOCKUP_REGISTRY = [
   },
 
   {
+    name: 'Reference Lab Results',
+    category: 'sample-collection',
+    component: React.lazy(() => import('@designs/sample-collection/reference-lab-results.jsx')),
+    description: 'New SideNav item under Sample Shipment. Outstanding / Returned-needs-action / History views for tracking the data lifecycle of referrals after physical shipment. Migrates ReferralStatus enum to FHIR Task states; adds manual-entry path for non-OpenELIS reference labs; Accept/Reject with terminal close + re-collection notification; Box.Reconciled gate. Supersedes OGC-624 state-model scope.',
+    specPath: 'designs/sample-collection/reference-lab-results.md',
+    htmlUrl: 'designs/sample-collection/reference-lab-results.html',
+    added: '2026-05-28',
+    status: 'draft',
+    relatedTo: ['Inter-Lab Transfer'],
+    jira: ['OGC-796'],
+    tags: ['referral', 'reference-lab', 'FHIR', 'sample-shipment', 'Madagascar', 'global', 'reconciliation', 'inter-lab'],
+  },
+
+  {
     name: 'Pre-Analytical Eligibility Gate',
     category: 'sample-collection',
     component: React.lazy(() => import('@designs/sample-collection/pre-analytical-eligibility-gate.jsx')),
