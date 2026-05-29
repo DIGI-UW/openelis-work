@@ -584,7 +584,8 @@ function PatientBanner({ patient, orderInfo }) {
 // ---------------------------------------------------------------------------
 function NotesSection({ result }) {
   const [notes, setNotes] = useState(result.notes);
-  const [open, setOpen] = useState(true);
+  // H2 smart default: open when notes exist; collapsed when empty
+  const [open, setOpen] = useState((result.notes?.length || 0) > 0 || !!result.pastNotesLegacy);
   const [showForm, setShowForm] = useState(false);
   const [newNote, setNewNote] = useState("");
   const [noteType, setNoteType] = useState("internal");
@@ -671,7 +672,8 @@ function NotesSection({ result }) {
 // Always-visible Interpretation section
 // ---------------------------------------------------------------------------
 function InterpretationSection({ result }) {
-  const [open, setOpen] = useState(true);
+  // H2 smart default: open when a suggestion exists or templates are available
+  const [open, setOpen] = useState(!!result.suggestedInterpretation || (result.interpretationOptions?.length || 0) > 0);
   const [selected, setSelected] = useState(result.suggestedInterpretation?.code || null);
   const [text, setText] = useState(result.suggestedInterpretation?.text || "");
 
@@ -741,7 +743,8 @@ function InterpretationSection({ result }) {
 // Method & Reagents — always-visible inline section (was a tab)
 // ---------------------------------------------------------------------------
 function MethodSection({ result, requireReagentLots = false, onReagentSelectedChange = null }) {
-  const [open, setOpen] = useState(true);
+  // H2 smart default: open when reagent gate is ON (so the user immediately sees the lot picker)
+  const [open, setOpen] = useState(requireReagentLots);
   const [methodId, setMethodId] = useState(result.method?.id || "MAN");
   const [analyzerId, setAnalyzerId] = useState(result.analyzer || "");
   const [methodDetails, setMethodDetails] = useState("");
@@ -862,7 +865,8 @@ function MethodSection({ result, requireReagentLots = false, onReagentSelectedCh
 // Order Info — always-visible inline section (was a tab)
 // ---------------------------------------------------------------------------
 function OrderInfoSection({ orderInfo }) {
-  const [open, setOpen] = useState(true);
+  // H2 smart default: closed — read-only context, available on demand
+  const [open, setOpen] = useState(false);
   if (!orderInfo || Object.keys(orderInfo).length === 0) {
     return (
       <div className="border-b border-gray-200">
@@ -913,6 +917,8 @@ function OrderInfoSection({ orderInfo }) {
 // — fields are edited in Order Entry. Hidden entirely when no program is linked.
 // ---------------------------------------------------------------------------
 function ProgramInfoSection({ program }) {
+  // H2 smart default: open when shown (already conditional on program existing).
+  // Program context is the reason the order exists, so always-open when present is correct.
   const [open, setOpen] = useState(true);
   if (!program || !program.fields || program.fields.length === 0) return null;
 
@@ -1011,7 +1017,13 @@ const ALIQUOT_STATUS_KIND = {
 };
 
 function AliquotsSection({ result, userHasAnalystPerm = true, userHasReceptionPerm = true }) {
-  const [open, setOpen] = useState(true);
+  // H2 smart default: open when aliquots exist or this is a pool sample;
+  // closed when empty (most clinical lab units rarely aliquot routine results).
+  // TODO: lab-unit-aware default — thread labUnit through and default open for
+  // microbiology / pathology / vector.
+  const [open, setOpen] = useState(
+    (result.aliquots?.length || 0) > 0 || !!(result.sample?.isPool || result.poolMembers)
+  );
   const [showCreate, setShowCreate] = useState(false);
   const [aliquots, setAliquots] = useState(result.aliquots || []);
   const [count, setCount] = useState(1);
@@ -1179,11 +1191,20 @@ function CriticalNotificationForm({ result, criticalMsg, onConfirm, onCancel, de
   const [method, setMethod]           = useState("phone");
   const [readBack, setReadBack]       = useState("");
   const [time, setTime]               = useState(new Date().toLocaleString());
-  const [firstOk, setFirstOk]         = useState(true);
+  // H3 progressive disclosure: Step 2 reveals after Step 1 is filled.
+  // outcome: null = not yet decided | 'reached' | 'notReached'
+  const [outcome, setOutcome]         = useState(null);
   const [escalations, setEscalations] = useState([]);
   const [notes, setNotes]             = useState("");
 
-  const canSubmit = recipient.trim() && readBack.trim() && time && (firstOk || escalations.length > 0);
+  // Step 1 (Recipient + Time) must be filled before Step 2 shows
+  const step1Complete = recipient.trim() && time;
+  // Submit gates: read-back captured AND (reached OR at least one escalation has outcome=reached + read-back)
+  const escalationHasReached = escalations.some(e => e.outcome === "reached");
+  const canSubmit = step1Complete && (
+    (outcome === "reached" && readBack.trim()) ||
+    (outcome === "notReached" && escalationHasReached && readBack.trim())
+  );
 
   const addEscalation = () => {
     setEscalations(prev => [...prev, { id: Date.now(), attempt: prev.length + 2, method: "phone", recipient: "", time: new Date().toLocaleString(), outcome: "no-answer" }]);
@@ -1206,118 +1227,174 @@ function CriticalNotificationForm({ result, criticalMsg, onConfirm, onCancel, de
         <strong>{criticalMsg}.</strong> {t("help.criticalNotification.intro","Per CLSI GP47 and ISO 15189 §7.5.1.4, the responsible clinician must be notified and the notification documented with verbatim read-back before this result can be saved.")}
       </p>
 
-      <div className="grid grid-cols-3 gap-2 text-xs">
-        <div>
-          <label className="block text-gray-700 mb-0.5">{t("label.criticalNotification.recipient","Recipient")} <span className="text-red-500">*</span></label>
-          <input type="text" value={recipient} onChange={e => setRecipient(e.target.value)}
-            placeholder="Dr. Williams"
-            className="w-full border border-gray-300 py-1.5 px-2 bg-white" />
+      {/* ── STEP 1 — who, role, how, when ── */}
+      <div className="space-y-2">
+        <div className="text-xs font-semibold uppercase tracking-wide text-orange-900">
+          {t("heading.criticalNotification.step1","Step 1 · Who are you contacting?")}
         </div>
-        <div>
-          <label className="block text-gray-700 mb-0.5">{t("label.criticalNotification.recipientRole","Role")} <span className="text-red-500">*</span></label>
-          <select value={recipientRole} onChange={e => setRole(e.target.value)}
-            className="w-full border border-gray-300 py-1.5 px-2 bg-white">
-            <option value="clinician">{t("criticalNotification.role.clinician","Clinician")}</option>
-            <option value="nurse">{t("criticalNotification.role.nurse","Nurse")}</option>
-            <option value="oncall">{t("criticalNotification.role.oncall","On-call clinician")}</option>
-            <option value="patient">{t("criticalNotification.role.patient","Patient (direct)")}</option>
-            <option value="other">{t("criticalNotification.role.other","Other")}</option>
-          </select>
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <div>
+            <label className="block text-gray-700 mb-0.5">{t("label.criticalNotification.recipient","Recipient")} <span className="text-red-500">*</span></label>
+            <input type="text" value={recipient} onChange={e => setRecipient(e.target.value)}
+              placeholder="Dr. Williams" autoFocus
+              className="w-full border border-gray-300 py-1.5 px-2 bg-white" />
+            {defaultClinician && recipient !== defaultClinician && (
+              <button onClick={() => setRecipient(defaultClinician)} className="text-xs text-blue-700 hover:underline mt-0.5">
+                Use order clinician: {defaultClinician}
+              </button>
+            )}
+          </div>
+          <div>
+            <label className="block text-gray-700 mb-0.5">{t("label.criticalNotification.recipientRole","Role")}</label>
+            <select value={recipientRole} onChange={e => setRole(e.target.value)}
+              className="w-full border border-gray-300 py-1.5 px-2 bg-white">
+              <option value="clinician">{t("criticalNotification.role.clinician","Clinician")}</option>
+              <option value="nurse">{t("criticalNotification.role.nurse","Nurse")}</option>
+              <option value="oncall">{t("criticalNotification.role.oncall","On-call clinician")}</option>
+              <option value="patient">{t("criticalNotification.role.patient","Patient (direct)")}</option>
+              <option value="other">{t("criticalNotification.role.other","Other")}</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-gray-700 mb-0.5">{t("label.criticalNotification.method","Method")}</label>
+            <select value={method} onChange={e => setMethod(e.target.value)}
+              className="w-full border border-gray-300 py-1.5 px-2 bg-white">
+              <option value="phone">{t("criticalNotification.method.phone","Phone")}</option>
+              <option value="inperson">{t("criticalNotification.method.inperson","In-person")}</option>
+              <option value="secureMsg">{t("criticalNotification.method.secureMsg","Secure message")}</option>
+              <option value="pager">{t("criticalNotification.method.pager","Pager")}</option>
+              <option value="other">{t("criticalNotification.method.other","Other")}</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label className="block text-gray-700 mb-0.5">{t("label.criticalNotification.method","Method of communication")} <span className="text-red-500">*</span></label>
-          <select value={method} onChange={e => setMethod(e.target.value)}
-            className="w-full border border-gray-300 py-1.5 px-2 bg-white">
-            <option value="phone">{t("criticalNotification.method.phone","Phone")}</option>
-            <option value="inperson">{t("criticalNotification.method.inperson","In-person")}</option>
-            <option value="secureMsg">{t("criticalNotification.method.secureMsg","Secure message")}</option>
-            <option value="pager">{t("criticalNotification.method.pager","Pager")}</option>
-            <option value="other">{t("criticalNotification.method.other","Other")}</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-xs text-gray-700 mb-0.5">{t("label.criticalNotification.readBack","Read-back text")} <span className="text-red-500">*</span></label>
-        <textarea rows={2} value={readBack} onChange={e => setReadBack(e.target.value)}
-          placeholder={t("placeholder.criticalNotification.readBack","Verbatim what the recipient read back to confirm the value…")}
-          className="w-full border border-gray-300 py-1.5 px-2 text-xs bg-white resize-none" />
-        <div className="text-xs text-gray-500 mt-0.5">{t("help.criticalNotification.readBack","Example: \"Glucose 142 mg/dL on patient Smith DOB 5/22/1985 — confirmed critical hyperglycemia, will follow up.\"")}</div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs text-gray-700 mb-0.5">{t("label.criticalNotification.time","Time of notification")} <span className="text-red-500">*</span></label>
-          <input type="text" value={time} onChange={e => setTime(e.target.value)}
-            className="w-full border border-gray-300 py-1.5 px-2 text-xs bg-white" />
-        </div>
-        <div>
-          <label className="block text-xs text-gray-700 mb-0.5">{t("label.criticalNotification.firstSuccessful","First attempt successful?")}</label>
-          <div className="flex gap-3 mt-1.5 text-xs">
-            <label className="flex items-center gap-1"><input type="radio" checked={firstOk} onChange={() => setFirstOk(true)} /> Yes</label>
-            <label className="flex items-center gap-1"><input type="radio" checked={!firstOk} onChange={() => setFirstOk(false)} /> No</label>
+        <div className="grid grid-cols-3 gap-2 text-xs items-end">
+          <div className="col-span-2">
+            <label className="block text-gray-700 mb-0.5">{t("label.criticalNotification.time","Time")} <span className="text-red-500">*</span></label>
+            <div className="flex gap-1">
+              <input type="text" value={time} onChange={e => setTime(e.target.value)}
+                className="flex-1 border border-gray-300 py-1.5 px-2 bg-white" />
+              <button type="button" onClick={() => setTime(new Date().toLocaleString())}
+                className="px-2 py-1.5 border border-gray-300 hover:bg-gray-100 text-gray-700 whitespace-nowrap">
+                Now
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {!firstOk && (
-        <div className="border border-orange-200 bg-white p-2 space-y-2">
-          <div className="text-xs font-semibold text-orange-900">{t("label.criticalNotification.escalationLog","Escalation log")}</div>
-          {escalations.length === 0 && (
-            <div className="text-xs text-gray-500">{t("help.escalation.empty","Add at least one escalation attempt.")}</div>
-          )}
-          {escalations.map(e => (
-            <div key={e.id} className="grid grid-cols-5 gap-1.5 text-xs items-end">
-              <div>
-                <label className="block text-gray-600">Attempt</label>
-                <input type="number" value={e.attempt} onChange={ev => updateEscalation(e.id, "attempt", ev.target.value)}
-                  className="w-full border border-gray-300 py-1 px-2" />
-              </div>
-              <div>
-                <label className="block text-gray-600">Method</label>
-                <select value={e.method} onChange={ev => updateEscalation(e.id, "method", ev.target.value)}
-                  className="w-full border border-gray-300 py-1 px-2 bg-white">
-                  <option value="phone">Phone</option>
-                  <option value="pager">Pager</option>
-                  <option value="inperson">In-person</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-gray-600">Recipient</label>
-                <input type="text" value={e.recipient} onChange={ev => updateEscalation(e.id, "recipient", ev.target.value)}
-                  className="w-full border border-gray-300 py-1 px-2" />
-              </div>
-              <div>
-                <label className="block text-gray-600">Outcome</label>
-                <select value={e.outcome} onChange={ev => updateEscalation(e.id, "outcome", ev.target.value)}
-                  className="w-full border border-gray-300 py-1 px-2 bg-white">
-                  <option value="no-answer">No answer</option>
-                  <option value="voicemail">Left voicemail</option>
-                  <option value="busy">Busy</option>
-                  <option value="wrong-number">Wrong number</option>
-                  <option value="escalated">Escalated to supervisor</option>
-                  <option value="reached">Reached</option>
-                </select>
-              </div>
-              <button onClick={() => removeEscalation(e.id)} className="px-1.5 py-1.5 hover:bg-red-50 text-red-500">
-                <X className="w-3 h-3" />
+      {/* ── STEP 2 — outcome ── reveals only when Step 1 is filled */}
+      {step1Complete && (
+        <div className="border-t border-orange-200 pt-3 space-y-2">
+          <div className="text-xs font-semibold uppercase tracking-wide text-orange-900">
+            {t("heading.criticalNotification.step2","Step 2 · What happened?")}
+          </div>
+          {outcome === null && (
+            <div className="flex gap-2">
+              <button onClick={() => setOutcome("reached")}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-3 border border-green-500 bg-green-50 text-green-800 text-xs font-semibold hover:bg-green-100">
+                <Check className="w-4 h-4" />
+                {t("button.criticalNotification.reached","Reached on this attempt")}
+              </button>
+              <button onClick={() => { setOutcome("notReached"); if (escalations.length === 0) addEscalation(); }}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-3 border border-amber-500 bg-amber-50 text-amber-800 text-xs font-semibold hover:bg-amber-100">
+                <AlertTriangle className="w-4 h-4" />
+                {t("button.criticalNotification.notReached","Could not reach — log escalation")}
               </button>
             </div>
-          ))}
-          <button onClick={addEscalation} className="text-xs text-blue-700 hover:underline">
-            <Plus className="w-3 h-3 inline" /> Add attempt
-          </button>
+          )}
+
+          {outcome === "reached" && (
+            <div className="bg-green-50 border border-green-200 p-2 space-y-2">
+              <div className="flex items-center gap-2 text-xs">
+                <Check className="w-3.5 h-3.5 text-green-700" />
+                <span className="text-green-800 font-semibold">Reached {recipient} via {method}</span>
+                <button onClick={() => { setOutcome(null); setReadBack(""); }} className="ml-auto text-xs text-gray-500 hover:text-gray-700 hover:underline">Change</button>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-700 mb-0.5">{t("label.criticalNotification.readBack","Read-back text")} <span className="text-red-500">*</span></label>
+                <textarea rows={2} value={readBack} onChange={e => setReadBack(e.target.value)}
+                  placeholder={t("placeholder.criticalNotification.readBack","Verbatim what the recipient read back to confirm the value…")}
+                  className="w-full border border-gray-300 py-1.5 px-2 text-xs bg-white resize-none" />
+                <div className="text-xs text-gray-500 mt-0.5">{t("help.criticalNotification.readBack","Example: \"Glucose 142 mg/dL on patient Smith DOB 5/22/1985 — confirmed critical hyperglycemia, will follow up.\"")}</div>
+              </div>
+            </div>
+          )}
+
+          {outcome === "notReached" && (
+            <div className="border border-amber-200 bg-white p-2 space-y-2">
+              <div className="flex items-center gap-2 text-xs">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
+                <span className="text-amber-800 font-semibold">{t("label.criticalNotification.escalationLog","Escalation log")}</span>
+                <button onClick={() => { setOutcome(null); setEscalations([]); setReadBack(""); }} className="ml-auto text-xs text-gray-500 hover:text-gray-700 hover:underline">Change</button>
+              </div>
+              {escalations.map((e, idx) => (
+                <div key={e.id} className="bg-gray-50 border border-gray-200 p-2 space-y-1">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="font-semibold text-gray-700">Attempt {idx + 2}</span>
+                    <button onClick={() => removeEscalation(e.id)} className="ml-auto px-1 py-0.5 hover:bg-red-50 text-red-500">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5 text-xs">
+                    <div>
+                      <label className="block text-gray-600 mb-0.5">Method</label>
+                      <select value={e.method} onChange={ev => updateEscalation(e.id, "method", ev.target.value)}
+                        className="w-full border border-gray-300 py-1 px-2 bg-white">
+                        <option value="phone">Phone</option>
+                        <option value="pager">Pager</option>
+                        <option value="inperson">In-person</option>
+                        <option value="secureMsg">Secure msg</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-gray-600 mb-0.5">Recipient</label>
+                      <input type="text" value={e.recipient} onChange={ev => updateEscalation(e.id, "recipient", ev.target.value)}
+                        className="w-full border border-gray-300 py-1 px-2" />
+                    </div>
+                    <div>
+                      <label className="block text-gray-600 mb-0.5">Outcome</label>
+                      <select value={e.outcome} onChange={ev => updateEscalation(e.id, "outcome", ev.target.value)}
+                        className="w-full border border-gray-300 py-1 px-2 bg-white">
+                        <option value="no-answer">No answer</option>
+                        <option value="voicemail">Left voicemail</option>
+                        <option value="busy">Busy</option>
+                        <option value="wrong-number">Wrong number</option>
+                        <option value="escalated">Escalated to supervisor</option>
+                        <option value="reached">✓ Reached</option>
+                      </select>
+                    </div>
+                  </div>
+                  {e.outcome === "reached" && (
+                    <div className="mt-2">
+                      <label className="block text-xs text-gray-700 mb-0.5">Read-back from this attempt <span className="text-red-500">*</span></label>
+                      <textarea rows={2} value={readBack} onChange={ev => setReadBack(ev.target.value)}
+                        placeholder={t("placeholder.criticalNotification.readBack","Verbatim what the recipient read back…")}
+                        className="w-full border border-gray-300 py-1 px-2 text-xs bg-white resize-none" />
+                    </div>
+                  )}
+                </div>
+              ))}
+              <button onClick={addEscalation} className="text-xs text-blue-700 hover:underline">
+                <Plus className="w-3 h-3 inline" /> Add another attempt
+              </button>
+              {!escalationHasReached && (
+                <div className="text-xs text-amber-700 italic">
+                  Keep logging attempts until you reach the recipient. Then capture the read-back to enable Submit.
+                </div>
+              )}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs text-gray-700 mb-0.5">{t("label.criticalNotification.additionalNotes","Additional notes")} <span className="text-gray-400 font-normal">(optional)</span></label>
+            <input type="text" value={notes} onChange={e => setNotes(e.target.value)}
+              className="w-full border border-gray-300 py-1.5 px-2 text-xs" />
+          </div>
         </div>
       )}
 
-      <div>
-        <label className="block text-xs text-gray-700 mb-0.5">{t("label.criticalNotification.additionalNotes","Additional notes")} <span className="text-gray-400 font-normal">(optional)</span></label>
-        <input type="text" value={notes} onChange={e => setNotes(e.target.value)}
-          className="w-full border border-gray-300 py-1.5 px-2 text-xs" />
-      </div>
-
-      <div className="flex gap-2 pt-1 items-center">
-        <button onClick={() => canSubmit && onConfirm({ recipient, recipientRole, method, readBack, time, firstOk, escalations, notes })}
+      <div className="flex gap-2 pt-1 items-center border-t border-orange-200">
+        <button onClick={() => canSubmit && onConfirm({ recipient, recipientRole, method, readBack, time, firstOk: outcome === "reached", escalations, notes })}
           disabled={!canSubmit}
           className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${
             canSubmit ? "bg-orange-600 text-white hover:bg-orange-700" : "bg-gray-200 text-gray-400 cursor-not-allowed"
@@ -1328,7 +1405,11 @@ function CriticalNotificationForm({ result, criticalMsg, onConfirm, onCancel, de
         <button onClick={onCancel} className="px-3 py-1.5 border border-gray-300 text-xs text-gray-600 hover:bg-gray-100">{t("button.cancel","Cancel")}</button>
         {!canSubmit && (
           <span className="text-xs text-gray-500 italic">
-            {!recipient.trim() ? "Recipient required" : !readBack.trim() ? "Read-back required" : (!firstOk && escalations.length === 0) ? "Escalation entry required" : ""}
+            {!recipient.trim() ? "Recipient required"
+             : !step1Complete ? "Complete Step 1 to continue"
+             : outcome === null ? "Step 2: Did you reach them?"
+             : !readBack.trim() ? "Read-back required"
+             : ""}
           </span>
         )}
       </div>
@@ -1340,7 +1421,8 @@ function CriticalNotificationForm({ result, criticalMsg, onConfirm, onCancel, de
 // Storage Location — always-visible inline section (NEW)
 // ---------------------------------------------------------------------------
 function StorageSection({ result }) {
-  const [open, setOpen] = useState(true);
+  // H2 smart default: open when Unassigned (prompts the tech); closed when storage already set
+  const [open, setOpen] = useState(!result.storage?.path);
   const [showPicker, setShowPicker] = useState(false);
   const [storage, setStorage] = useState(result.storage);
   const [moveReason, setMoveReason] = useState("");
@@ -1442,8 +1524,9 @@ function StorageSection({ result }) {
 // Referral — always-visible inline section (was a tab)
 // ---------------------------------------------------------------------------
 function ReferralSection({ result }) {
-  const [open, setOpen] = useState(true);
   const [referred, setReferred] = useState(!!result.referral);
+  // H2 smart default: open only when already referred; closed otherwise
+  const [open, setOpen] = useState(!!result.referral);
   const [reason, setReason] = useState("");
   const [institute, setInstitute] = useState("");
   const [testName, setTestName] = useState(result.testName);
@@ -1503,8 +1586,9 @@ function ReferralSection({ result }) {
 // Attachments — always-visible inline section (was a tab)
 // ---------------------------------------------------------------------------
 function AttachmentsSection({ result }) {
-  const [open, setOpen] = useState(true);
   const attachments = result.attachments || [];
+  // H2 smart default: open when attachments exist; closed when empty
+  const [open, setOpen] = useState(attachments.length > 0);
   return (
     <div className="border-b border-gray-200">
       <SectionHeader
@@ -2037,31 +2121,24 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true 
         </div>
       )}
 
-      {/* Always-visible sections — in priority order */}
       {/* Modification History banner — at top per BR-035; only renders when history exists */}
       <ModificationHistoryBanner history={result.modificationHistory} />
 
-      <NotesSection result={result} />
-      <InterpretationSection result={result} />
-      <MethodSection
-        result={result}
-        requireReagentLots={requireReagentLots}
-        onReagentSelectedChange={setReagentLotSelected}
-      />
-      <OrderInfoSection orderInfo={result.orderInfo} />
-      <ProgramInfoSection program={result.program} />
-      <StorageSection result={result} />
-      <AliquotsSection result={result} />
-      <ReferralSection result={result} />
-      <AttachmentsSection result={result} />
+      {/* ═══════════════════════════════════════════════════════════════════
+          PRIMARY ACTION BLOCK (H1) — Action bar + conditional banners + NCE form
+          Moved here from below the inline sections so the bench tech's most
+          frequent task (enter value, save) is reachable without scrolling
+          past 9 sections of context they won't typically need.
+          ═══════════════════════════════════════════════════════════════════ */}
 
       {/* Result entry action bar */}
-      <div className="flex flex-wrap items-end gap-4 px-4 py-3 bg-white border-b border-gray-200">
+      <div className="flex flex-wrap items-end gap-4 px-4 py-3 bg-white border-b-2 border-blue-600 shadow-sm">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">{t("label.result.value","Result Value")}</div>
           <div className="flex items-baseline gap-2">
             {result.resultType === "N" ? (
               <input type="text" value={resultValue} onChange={e => handleResultChange(e.target.value)} placeholder="—"
+                autoFocus
                 className={`w-28 border-b-2 focus:outline-none text-sm font-mono py-1 ${RANGE_INPUT_BORDER[resultState] || "border-gray-400"} ${resultState === "invalid" ? "bg-red-50 text-red-900" : resultState === "critical" ? "bg-orange-50 text-orange-900" : resultState === "abnormal" ? "bg-yellow-50 text-yellow-900" : "bg-transparent"}`} />
             ) : (
               <span className="text-sm font-mono text-gray-700">{resultValue || "—"}</span>
@@ -2075,7 +2152,6 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true 
 
         <div className="text-xs text-gray-500 flex items-center flex-wrap gap-2">
           <span>{t("label.range.ref","Ref")}: <span className="font-mono text-gray-800">{result.normalRange} {result.unit}</span></span>
-          {/* BR-036: selected demographic-aware range label */}
           {result.selectedRangeLabel && (
             <Tag kind="purple" title={t("help.range.demographicSelection","Reference range selected based on patient demographics at sample collection date (CLSI EP28-A3c).")}>
               {t("label.referenceRange.label","Range")}: {result.selectedRangeLabel}
@@ -2095,7 +2171,6 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true 
             </button>
           )}
 
-          {/* Save Result — wrapped in ESignatureButton stub */}
           <button
             onClick={() => canSave && onSave(result.id, resultValue, modificationNote)}
             disabled={!canSave}
@@ -2116,7 +2191,7 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true 
         </div>
       </div>
 
-      {/* Modification note */}
+      {/* Modification note (when modifying a previously saved result) */}
       {noteRequired && (
         <div className="px-4 py-3 bg-white border-b border-gray-200">
           <label className="block text-xs font-semibold text-gray-700 mb-1">
@@ -2131,10 +2206,10 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true 
 
       {/* Invalid range warning */}
       {isInvalid && (
-        <div className="flex items-start gap-3 px-4 py-3 bg-red-900 border-b border-red-700">
-          <AlertCircle className="w-4 h-4 text-red-300 flex-shrink-0 mt-0.5" />
-          <div className="flex-1 text-red-100 text-xs">
-            <span className="font-semibold text-red-50">{t("heading.invalid","Result outside valid range")} — </span>
+        <div className="flex items-start gap-3 px-4 py-3 bg-red-50 border-b border-red-300">
+          <AlertCircle className="w-4 h-4 text-red-700 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 text-red-900 text-xs">
+            <span className="font-semibold">{t("heading.invalid","Result outside valid range")} — </span>
             {resultValue} {result.unit} is outside the physiologically valid range of {result.rangeBounds.valid.low}–{result.rangeBounds.valid.high} {result.unit}.
             {" "}{t("message.invalid","Verify the result and repeat analysis if necessary. Do not report until confirmed.")}
           </div>
@@ -2185,9 +2260,30 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true 
         </div>
       )}
 
+      {/* NCE inline form */}
       {showNceForm && (
         <ReportNceForm result={result} onSubmit={handleNceSubmit} onCancel={() => setShowNceForm(false)} />
       )}
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          SECONDARY CONTEXT — inline sections (H1 + H2 smart-default-open)
+          Default open state per section is computed from row context so
+          empty / irrelevant sections collapse on first view.
+          ═══════════════════════════════════════════════════════════════════ */}
+
+      <NotesSection result={result} />
+      <InterpretationSection result={result} />
+      <MethodSection
+        result={result}
+        requireReagentLots={requireReagentLots}
+        onReagentSelectedChange={setReagentLotSelected}
+      />
+      <OrderInfoSection orderInfo={result.orderInfo} />
+      <ProgramInfoSection program={result.program} />
+      <StorageSection result={result} />
+      <AliquotsSection result={result} />
+      <ReferralSection result={result} />
+      <AttachmentsSection result={result} />
 
       {/* Tabs — QA/QC + History only */}
       <div className="bg-gray-50 border-b border-gray-200">

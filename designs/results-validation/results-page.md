@@ -290,18 +290,35 @@ interface ReferenceRange {
 
 **Trigger:** When the entered result is in the `critical` range tier, the existing "Critical Value — Physician Notification Required" banner displays. The single "I Acknowledge" button is replaced by **"Open Notification Form"**. Save remains blocked.
 
-**Form fields (all on one inline panel — no modal):**
+**Form layout (Usability H3) — progressive disclosure across two steps:**
+
+The form is broken into two visually separated steps. Step 2 only reveals once Step 1 has the minimum fields filled. This reduces friction at the moment of patient-safety stress.
+
+**Step 1 — "Who are you contacting?"** (always visible):
 
 | Field | Type | Required | Source |
 |---|---|---|---|
-| **Recipient** | Select (auto-populated with order's clinician on file) + free-text override | ✓ | `order.clinician` default; allows "Other — specify" |
-| **Recipient role** | Select | ✓ | Clinician / Nurse / On-call clinician / Patient (direct) / Other |
-| **Method of communication** | Radio | ✓ | Phone / In-person / Secure message / Pager / Other (with free-text) |
-| **Read-back text** | TextArea | ✓ | The verbatim words read back by the recipient confirming they understood the value. CLSI GP47 §5.4.2. |
-| **Time of notification** | Date+Time | ✓ | Auto-filled with `now`; editable for backfilling phone-tag scenarios |
-| **First attempt successful?** | Yes/No toggle | ✓ | When "No", reveals an escalation log: |
-| **Escalation log** (conditional) | Repeatable rows | when first attempt failed | Each row: attempt #, method, recipient, time, outcome (no answer / left voicemail / busy / wrong number / escalated to supervisor). Min 1 row when triggered. |
-| **Additional notes** | TextArea | optional | Anything else relevant — e.g. "Patient also notified directly per family request" |
+| **Recipient** | TextInput with "Use order clinician" quick-fill button | ✓ | `order.clinician` defaulted into the field; "Use order clinician" button shown when the user has typed something else |
+| **Recipient role** | Select | optional (defaults to Clinician) | Clinician / Nurse / On-call clinician / Patient (direct) / Other |
+| **Method of communication** | Select | optional (defaults to Phone) | Phone / In-person / Secure message / Pager / Other |
+| **Time of notification** | TextInput + [Now] button | ✓ | Auto-filled with `now`; [Now] button refreshes the value; manual edit supported for backfill |
+
+**Step 2 — "What happened?"** (reveals when Recipient + Time are filled). Two buttons:
+
+| Button | Reveals |
+|---|---|
+| **✓ Reached on this attempt** (green) | Read-back textarea (required). Submit unblocks when read-back is filled. |
+| **⚠ Could not reach — log escalation** (amber) | Escalation log panel with one attempt entry pre-added. Each entry has Method / Recipient / Outcome. When outcome=`reached` on any entry, a Read-back textarea appears inline for that entry; Submit unblocks when read-back is captured. |
+
+A "Change" link in Step 2 lets the user go back and re-pick the outcome if they made a mistake.
+
+| Field (Step 2) | Type | Required | Source |
+|---|---|---|---|
+| **Read-back text** | TextArea | ✓ on the reached-attempt | The verbatim words read back by the recipient confirming they understood the value. CLSI GP47 §5.4.2. |
+| **Escalation entry: Method** | Select | when not reached | Phone / Pager / In-person / Secure message |
+| **Escalation entry: Recipient** | TextInput | when not reached | Whoever was attempted on this escalation |
+| **Escalation entry: Outcome** | Select | when not reached | No answer / Left voicemail / Busy / Wrong number / Escalated to supervisor / ✓ Reached |
+| **Additional notes** | TextInput | optional | Anything else relevant — e.g. "Patient also notified directly per family request" |
 
 **On submit (Confirm Notification button):**
 1. POST to `/rest/alerts/critical-acknowledgment` with the full structured payload.
@@ -431,6 +448,47 @@ The standalone Reject column is removed. Reject becomes a **Result Disposition**
 API: `POST /rest/non-conformity-events` with `{ result, disposition, rejectionReason?, ...nceFields }`
 
 ---
+
+## Responsive Design — Breakpoints
+
+OpenELIS is deployed across desktop workstations and bench tablets. The layout adapts at four breakpoints:
+
+| Viewport | Layout |
+|---|---|
+| **≥1440px (large desktop)** | Full 11-column table + 3-column grids in expanded panel sections |
+| **1024–1439px (standard desktop / landscape tablet)** | Full table; sections wrap to 2-column grids when needed |
+| **768–1023px (portrait tablet)** | "Compact columns" mode — hide Analyzer Result and Current Result columns (accessible via the Columns overflow menu); section grids stack to single-column |
+| **<768px (small tablet / phone)** | "Card row" layout — each row becomes a vertical card showing Accession + Patient + Test + Result input + Status + Expand toggle. Expanded panel sections stack single-column. Action bar sticks to the bottom of the card. *Note: v3 mockup demonstrates the table layout; card layout is deferred to a polish spec but the breakpoint plan is fixed here so the implementation slot is reserved.* |
+
+**Touch targets:** All interactive elements meet WCAG 2.5.5 (24×24 CSS pixels minimum, 44×44 preferred for primary actions). Critical Acknowledgment button, Save (E-Sign) button, and section expand chevrons use the 44×44 minimum.
+
+**Column hiding policy:** When a column is hidden by the breakpoint, its data is still accessible via the expanded row. The Columns overflow menu (Carbon DataTable `ColumnControl`) lets users re-show hidden columns when viewport space allows.
+
+## Information Architecture — Expanded Panel Order (Usability H1)
+
+**Primary action block (top of expanded panel):** Patient Banner → Program Banner (conditional) → Modification History banner (conditional) → Modification notice (conditional) → **Action bar (Result Value + Range hint + Report NCE + Save)** → Modification reason (conditional) → Invalid range banner (conditional) → Critical Notification Form (conditional) → NCE inline form (conditional).
+
+**Secondary context block (below primary action):** Notes → Interpretation → Method & Reagents → Order Info → Program Info (conditional) → Storage Location → Aliquots → Referral → Attachments → Tabs (QA/QC, History).
+
+**Rationale (H1):** The bench tech's primary task is enter value → save. Putting the action bar at the top of the expanded panel means the tech doesn't scroll past 9 context sections to reach the field they're filling in. Context sections live below the action and serve as on-demand reference, not workflow steps.
+
+## Section Default-Open Behavior (Usability H2)
+
+Each inline section computes its own default-open state from row context. Empty or irrelevant sections collapse on first view; only sections that need attention auto-open.
+
+| Section | Default open when |
+|---|---|
+| **Notes** | `result.notes.length > 0` OR `result.pastNotesLegacy` exists |
+| **Interpretation** | `result.suggestedInterpretation` exists OR `result.interpretationOptions.length > 0` |
+| **Method & Reagents** | `requireReagentLotsForResults` flag is ON (so the gate is immediately visible) |
+| **Order Info** | Closed by default (read-only context, accessible on demand) |
+| **Program Info** | Open when shown (conditional on `result.program` existing) |
+| **Storage Location** | Open when sample's storage path is unset (prompts the tech to assign); closed when storage is already set |
+| **Aliquots** | Open when aliquots exist OR sample is a pool; closed otherwise. *Future enhancement:* lab-unit-aware default (open for Microbiology / Pathology / Vector even when empty) |
+| **Referral** | Open when result has an existing referral; closed otherwise. Auto-opens when NCE Disposition = Refer-out (BR-032) |
+| **Attachments** | Open when attachments exist; closed otherwise |
+
+**Behavior:** Section header chevron remains a manual toggle. The smart default applies only to the first render when the row is expanded; subsequent open/close actions persist for the session.
 
 ## Carbon Implementation Notes
 
@@ -647,6 +705,10 @@ Reads are NOT audited. All `audit_trail` entries auto-capture actor from Spring 
 | `message.aliquot.empty` | No aliquots from this sample yet. |
 | `message.aliquot.poolHeading` | Pool composition |
 | `heading.criticalNotification` | Critical Value — Notification Form |
+| `heading.criticalNotification.step1` | Step 1 · Who are you contacting? |
+| `heading.criticalNotification.step2` | Step 2 · What happened? |
+| `button.criticalNotification.reached` | Reached on this attempt |
+| `button.criticalNotification.notReached` | Could not reach — log escalation |
 | `button.criticalNotification.open` | Open Notification Form |
 | `button.criticalNotification.submit` | Confirm Notification |
 | `label.criticalNotification.recipient` | Recipient |
