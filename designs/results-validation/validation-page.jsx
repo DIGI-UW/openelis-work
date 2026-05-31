@@ -1,100 +1,76 @@
-import React, { useState, useCallback, useMemo, Fragment } from "react";
+/**
+ * Validation Page — Interactive Preview v3
+ * OpenELIS Global · Parallel to Results Entry v3 architecture
+ * Route: /Validation (replaces /RoutineValidation, /TechnicalValidation, /SupervisorValidation)
+ * SideNav: Validation
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ *   IMPORTANT — IMPLEMENTATION NOTE
+ *   This mockup uses Tailwind utility classes + raw HTML elements
+ *   (<select>, <input>, <table>, <button>) for portable rendering
+ *   in the gallery preview. Production implementation MUST use
+ *   @carbon/react components per the §Carbon Component Map section
+ *   of validation-page-v3-frs.md. Patterns the Tailwind mockup does
+ *   NOT demonstrate but MUST be used in production:
+ *     - Carbon Tabs / Tab / TabList / TabPanels / TabPanel
+ *     - Carbon Modal / ComposedModal (for E-Sig)
+ *     - Carbon ToastNotification / ActionableNotification
+ *     - Carbon Accordion + AccordionItem (for collapsible sections)
+ *     - Carbon DataTable + TableExpandRow + TableExpandedRow + TableSelectRow
+ *     - Carbon Select / Dropdown / MultiSelect / TextArea
+ * ─────────────────────────────────────────────────────────────────────────
+ *
+ * v3 changes vs v2.1:
+ *   - Action bar at top of expanded panel (Usability H1 parity with Results Entry)
+ *   - Smart default-open per section (Usability H2)
+ *   - 6-tab layout → inline sections + 2 tabs (QA/QC, History)
+ *   - Modification History banner at top of expanded panel (CFR Part 11 §11.10(e))
+ *   - Critical Notification Display panel (read-only view of tech's GP47 record;
+ *     "Log Notification Now" backfill affordance when missing)
+ *   - Storage Location section (read-only)
+ *   - Aliquots section (read-only)
+ *   - Program Info section (read-only, up to 15 fields)
+ *   - Polymorphic Result display — Dictionary (D) and Multi-Checkbox (M) labels resolved
+ *   - Demographic-Aware Range Tag (CLSI EP28-A3c parity)
+ *   - E-Signature modal on Release (Part 11)
+ *   - Stale-page conflict guard
+ *   - Patient avatar + copy-accession + nonconforming legend strip
+ *   - PII visibility precedence (site-wide > role-based; matches Results Entry BR-026)
+ *   - Workplan deep-link breadcrumb
+ *   - Server-side pagination indicator (top)
+ *
+ * v3 preserves from v2.1 (OGC-343 scope):
+ *   - Multi-level validation pipeline (0–5 levels)
+ *   - Admin Validation Configuration page (rendered as stub here; full impl in v2.1 file)
+ *   - Auto-validation
+ *   - Per-lab-unit overrides
+ *   - Role-based queue filtering
+ *   - Validation progress timeline (now inside an inline section)
+ */
+
+import React, { useState, useMemo, Fragment } from "react";
 import {
-  Search, ChevronDown, ChevronRight, ChevronUp, Filter, Shield, ShieldCheck, ShieldAlert,
-  Check, CheckCircle2, XCircle, AlertTriangle, TrendingUp, TrendingDown, RotateCcw,
-  Clock, User, Settings, Plus, Minus, Info, Eye, EyeOff, Lock, Unlock, X, Bot,
-  FileText, Beaker, History, Activity, Layers, ArrowRight, GripVertical, Pencil,
-  CircleDot, Circle, CheckCircle, ChevronLeft, ChevronsLeft, ChevronsRight, MoreHorizontal,
-  Building2, FlaskConical, Microscope, Thermometer, Droplets, Zap
+  Search, Filter, Shield, ShieldCheck, ShieldAlert, Check, CheckCircle2, XCircle,
+  AlertTriangle, AlertCircle, TrendingUp, TrendingDown, RotateCcw, Clock, User,
+  Settings, Plus, Minus, Info, Eye, EyeOff, Lock, X, Bot, FileText, Beaker, History,
+  Activity, Layers, ArrowRight, ChevronDown, ChevronRight, ChevronUp, Pencil,
+  CircleDot, Circle, CheckCircle, Building2, FlaskConical, Microscope, Thermometer,
+  Droplets, Zap, KeyRound, MapPin, BookOpen, Copy, Bell, Send, MessageSquare,
+  Paperclip, ClipboardList
 } from "lucide-react";
 
-// ═══════════════════════════════════════════════════════════════
-// OpenELIS Global — Validation Configuration & Page Mockup v2.1
-// Two views: Admin Config + Validation Page
-// v2.1: Added Enhancement E — Notes, Interpretation, full tab bar, range highlighting, NCE badges
-// ═══════════════════════════════════════════════════════════════
-
-// --- Localization Tag System ---
-const i18n = {
-  // Admin Config
-  "label.admin.validation.title": "Validation Configuration",
-  "label.admin.validation.subtitle": "Configure how results are validated before release",
-  "label.admin.validation.labDefault": "Lab-Wide Default",
-  "label.admin.validation.labUnitOverrides": "Lab Unit Overrides",
-  "label.admin.validation.trigger": "Validation Trigger",
-  "label.admin.validation.trigger.none": "No Results (auto-release all)",
-  "label.admin.validation.trigger.all": "All Results",
-  "label.admin.validation.trigger.abnormal": "Abnormal Results Only",
-  "label.admin.validation.levelsRequired": "Validations Required",
-  "label.admin.validation.level": "Validation Level",
-  "label.admin.validation.role": "Required Role (must hold result.validate permission)",
-  "label.admin.validation.role.hint": "Only roles with the result.validate permission are shown. Use the Role Builder to grant this permission to additional roles.",
-  "label.admin.validation.role.noRoles": "No roles currently hold the result.validate permission. Use the Role Builder to assign this permission before configuring validation levels.",
-  "label.admin.validation.addLevel": "Add Validation Level",
-  "label.admin.validation.removeLevel": "Remove Level",
-  "label.admin.validation.source.default": "Default",
-  "label.admin.validation.source.override": "Override",
-  "label.admin.validation.editOverride": "Edit Override",
-  "label.admin.validation.resetDefault": "Reset to Default",
-  "label.admin.validation.willRelease": "Results will be released after final validation",
-  "label.admin.validation.willAutoRelease": "Results will auto-release on save (no manual validation)",
-  "label.admin.validation.willAutoReleaseNormal": "Normal results will auto-release; abnormal results require validation",
-  "label.admin.validation.saved": "Validation configuration saved successfully",
-  // Validation Page
-  "label.validation.title": "Result Validation",
-  "label.validation.subtitle": "Review and validate results before release",
-  "label.validation.count": "awaiting your validation",
-  "label.validation.progress": "Level {0} of {1}",
-  "label.validation.progress.complete": "Validated by {0} on {1}",
-  "label.validation.progress.awaiting": "Awaiting validation",
-  "label.validation.progress.awaitingYou": "Awaiting your validation",
-  "label.validation.action.validate": "Validate ({0} of {1})",
-  "label.validation.action.validateRelease": "Validate & Release",
-  "label.validation.action.retest": "Retest",
-  "label.validation.batch.validateRelease": "Validate & Release Selected",
-  "label.validation.batch.validate": "Validate Selected — advances to next level",
-  "label.validation.batch.validateMixed": "Validate Selected — {0} will release, {1} will advance",
-  "label.validation.autoValidated": "Auto-validated",
-  "label.validation.autoValidated.toggle": "Show auto-validated results",
-  "label.validation.config.info": "{0}: {1} validation level(s), {2}",
-  // Audit
-  "label.audit.autoValidate.normalResult": "Auto-validated: Result within normal range (abnormal-only trigger)",
-  "label.audit.autoValidate.zeroLevels": "Auto-validated: 0 validation levels configured",
-  "label.audit.autoValidate.noValidation": "Auto-validated: Validation trigger set to 'No Results'",
-};
-
-const t = (key, ...args) => {
-  let text = i18n[key] || key;
+// ─────────────────────────────────────────────────────────────────────────
+// i18n stub
+// ─────────────────────────────────────────────────────────────────────────
+const t = (key, fallback, ...args) => {
+  let text = fallback || key;
   args.forEach((arg, i) => { text = text.replace(`{${i}}`, arg); });
   return text;
 };
 
-// --- Mock Data ---
-// Populated from GET /api/roles?permission=result.validate
-// Only roles holding the "result.validate" permission appear here.
-// Currently only the built-in "Validation" role has this permission;
-// additional roles will appear as admins assign the permission via the Role Builder.
-//
-// Mockup shows a future state where the site has granted result.validate
-// to additional custom roles via Role Builder:
-const ROLES_WITH_VALIDATE_PERMISSION = [
-  { id: "role-validation", name: "Validation" },
-  // ↓ These would only appear after an admin grants result.validate via Role Builder
-  { id: "role-supervisor", name: "Supervisor" },
-  { id: "role-lab-manager", name: "Lab Manager" },
-  { id: "role-senior-tech", name: "Senior Technician" },
-];
-
-const LAB_UNITS = [
-  { id: "lu-hem", name: "Hematology", icon: Droplets },
-  { id: "lu-chem", name: "Chemistry", icon: FlaskConical },
-  { id: "lu-micro", name: "Microbiology", icon: Microscope },
-  { id: "lu-sero", name: "Serology", icon: Beaker },
-  { id: "lu-ua", name: "Urinalysis", icon: Thermometer },
-  { id: "lu-mol", name: "Molecular", icon: Zap },
-];
-
-// --- Range evaluation (mirrors Results Entry logic) ---
+// ─────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────
 function evaluateResult(value, rangeBounds) {
   const num = parseFloat(value);
   if (value === "" || value == null || isNaN(num) || !rangeBounds) return "normal";
@@ -105,1204 +81,1537 @@ function evaluateResult(value, rangeBounds) {
   return "normal";
 }
 
-const RANGE_CELL_BG   = { normal: "", abnormal: "bg-yellow-50", critical: "bg-orange-50", invalid: "bg-red-950" };
-const RANGE_CELL_TEXT  = { normal: "text-gray-800", abnormal: "text-yellow-900", critical: "text-orange-900", invalid: "text-red-100" };
-const RANGE_FLAG_BADGE = { abnormal: "bg-yellow-100 text-yellow-800", critical: "bg-orange-100 text-orange-900", invalid: "bg-red-900 text-red-100" };
+function colorHash(str, palette) {
+  let h = 0;
+  for (let i = 0; i < (str || "").length; i++) h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  return palette[Math.abs(h) % palette.length];
+}
+
+const AVATAR_PALETTE = ["#0f62fe", "#8a3ffc", "#198038", "#ff832b", "#d12771", "#005d5d"];
+
+// ─────────────────────────────────────────────────────────────────────────
+// Tokens
+// ─────────────────────────────────────────────────────────────────────────
+const COLOR = {
+  green:  { bg:"bg-green-100",  text:"text-green-800",  border:"border-green-400" },
+  red:    { bg:"bg-red-100",    text:"text-red-800",    border:"border-red-400" },
+  blue:   { bg:"bg-blue-100",   text:"text-blue-800",   border:"border-blue-400" },
+  purple: { bg:"bg-purple-100", text:"text-purple-800", border:"border-purple-400" },
+  teal:   { bg:"bg-teal-100",   text:"text-teal-800",   border:"border-teal-400" },
+  amber:  { bg:"bg-amber-100",  text:"text-amber-800",  border:"border-amber-400" },
+  gray:   { bg:"bg-gray-200",   text:"text-gray-700",   border:"border-gray-400" },
+  "warm-gray": { bg:"bg-stone-200", text:"text-stone-700", border:"border-stone-400" },
+  magenta:{ bg:"bg-fuchsia-100",text:"text-fuchsia-800",border:"border-fuchsia-400" },
+};
+
+const RANGE_INPUT_BORDER = { normal:"border-gray-300", abnormal:"border-yellow-500", critical:"border-orange-500", invalid:"border-red-800" };
+const RANGE_CELL_BG = { normal:"", abnormal:"bg-yellow-50", critical:"bg-orange-50", invalid:"bg-red-950" };
+const RANGE_CELL_TEXT = { normal:"text-gray-700", abnormal:"text-yellow-900", critical:"text-orange-900", invalid:"text-red-100" };
+const RANGE_FLAG_BADGE = { abnormal:"bg-yellow-100 text-yellow-800", critical:"bg-orange-100 text-orange-900", invalid:"bg-red-900 text-red-100" };
+
+// ─────────────────────────────────────────────────────────────────────────
+// Mock data — mixed result types + critical notification record + modification history + aliquots + program info + storage
+// ─────────────────────────────────────────────────────────────────────────
+const LAB_UNITS = [
+  { id: "lu-hem", name: "Hematology", icon: Droplets },
+  { id: "lu-chem", name: "Chemistry", icon: FlaskConical },
+  { id: "lu-micro", name: "Microbiology", icon: Microscope },
+  { id: "lu-sero", name: "Serology", icon: Beaker },
+];
 
 const MOCK_RESULTS = [
+  // R1 — routine normal result, multi-level (Hematology requires 2)
   {
-    id: "r1", labNumber: "DEV01260000001234", patientId: "3456789", patientName: "Test, Patient A",
-    sex: "M", age: "14y", dob: "01/11/2012", test: "WBC", sampleType: "Whole Blood",
-    analyzer: "Sysmex XN-L", rangeText: "4.00-10.00", unit: "x10^9/L", result: "7.5",
-    rangeBounds: { normal: { low: 4.0, high: 10.0 }, critical: { low: 2.0, high: 30.0 }, valid: { low: 0.1, high: 100.0 } },
-    isNormal: true, flags: [], enteredBy: "J. Smith", enteredAt: "10:30",
-    labUnit: "Hematology", qcStatus: "pass",
-    validationLevelsRequired: 2, validationLevelCurrent: 1,
-    validationHistory: [],
-    notes: [],
-    interpretation: null,
-    nce: null,
-    orderInfo: { clinician: "Dr. Chen", orderDate: "02/28/2026", priority: "Routine", clinicalNotes: "Annual physical", collection: "Venipuncture, left arm" },
-    attachments: [],
-    referral: null,
+    id: "r1", labNumber: "DEV01260000001234", sequenceNumber: "017-1",
+    patient: { name: "Test, Patient A", id: "3456789", dob: "01/11/2012", sex: "M", age: "14y" },
+    test: "WBC", testCode: "LOINC 6690-2", sampleType: "Whole Blood", analyzer: "Sysmex XN-L",
+    rangeText: "4.00-10.00", unit: "x10⁹/L", selectedRangeLabel: "Pediatric Male (10–17y)",
+    result: "7.5", currentResult: "", resultType: "N",
+    rangeBounds: { normal: { low:4.0, high:10.0 }, critical: { low:2.0, high:30.0 }, valid: { low:0.1, high:100.0 } },
+    isNormal: true, flags: [], nonconforming: false,
+    enteredBy: "J. Smith", enteredAt: "10:30 02/26/2026", labUnit: "Hematology", qcStatus: "pass",
+    validationLevelsRequired: 2, validationLevelCurrent: 1, validationHistory: [],
+    notes: [], pastNotesLegacy: "",
+    interpretation: null, modificationHistory: [], criticalNotificationRecord: null,
+    nce: null, program: null, storage: { path: null, coords: null, condition: null },
+    aliquots: [], programFields: null,
+    orderInfo: { clinician: "Dr. Chen", clinicianPhone: "+1 555-0111", department: "Pediatrics",
+                 orderDate: "02/26/2026", priority: "Routine",
+                 collectionDate: "02/26/2026 09:00", receivedDate: "02/26/2026 09:45",
+                 clinicalNotes: "Annual physical, mild fatigue" },
+    method: { id: "AUTO", label: "Automated", reagentLot: "LOT-2026-A45", reagentExpiry: "08/2026" },
+    attachments: [], referral: null,
   },
+  // R2 — critical glucose, single-level Chem, modified result, with full GP47 notification record
   {
-    id: "r2", labNumber: "DEV01260000001234", patientId: "3456789", patientName: "Test, Patient A",
-    sex: "M", age: "14y", dob: "01/11/2012", test: "RBC", sampleType: "Whole Blood",
-    analyzer: "Sysmex XN-L", rangeText: "4.50-5.50", unit: "x10^12/L", result: "3.90",
-    rangeBounds: { normal: { low: 4.5, high: 5.5 }, critical: { low: 2.0, high: 8.0 }, valid: { low: 0.5, high: 15.0 } },
-    isNormal: false, flags: ["below-normal"], enteredBy: "J. Smith", enteredAt: "10:30",
-    labUnit: "Hematology", qcStatus: "pass",
-    validationLevelsRequired: 2, validationLevelCurrent: 1,
-    validationHistory: [],
+    id: "r2", labNumber: "DEV01260000001235", sequenceNumber: "022-1",
+    patient: { name: "Smith, Jane", id: "7891234", dob: "03/22/1985", sex: "F", age: "41y", nationalId: "TZ-100487291" },
+    test: "Glucose, Fasting", testCode: "LOINC 1558-6", sampleType: "Serum", analyzer: "Cobas c 501",
+    rangeText: "70-99", unit: "mg/dL", selectedRangeLabel: "Adult Female (18–65y)",
+    result: "442", currentResult: "98", resultType: "N",
+    rangeBounds: { normal: { low:70, high:99 }, critical: { low:50, high:400 }, valid: { low:20, high:600 } },
+    isNormal: false, flags: ["above-normal","delta-check"], nonconforming: false,
+    enteredBy: "M. Jones", enteredAt: "11:18 02/26/2026", labUnit: "Chemistry", qcStatus: "pass",
+    validationLevelsRequired: 1, validationLevelCurrent: 1, validationHistory: [],
     notes: [
-      { id: 1, date: "02/26/2026 10:32", author: "J. Smith", type: "internal", body: "Slightly below range — patient has known iron deficiency. Correlate with ferritin." }
+      { id: 1, date: "02/26/2026 11:20", author: "M. Jones", type: "internal",
+        body: "Fasting glucose confirmed — patient fasted >8 hrs." },
+      { id: 2, date: "02/26/2026 11:30", author: "M. Jones", type: "internal",
+        body: "[Modification reason] Initial entry was 152, retested and rechecked — printout shows 442. Critical hyperglycemia." },
     ],
-    interpretation: { code: "RBC-ANEMOD", label: "Mild Anemia", text: "RBC count slightly below reference range. Suggests mild anemia. Recommend correlation with Hgb, Hct, and reticulocyte count." },
-    nce: null,
-    orderInfo: { clinician: "Dr. Chen", orderDate: "02/28/2026", priority: "Routine", clinicalNotes: "Annual physical", collection: "Venipuncture, left arm" },
-    attachments: [],
-    referral: null,
-  },
-  {
-    id: "r3", labNumber: "DEV01260000001235", patientId: "7891234", patientName: "Test, Patient B",
-    sex: "F", age: "45y", dob: "03/22/1981", test: "Glucose", sampleType: "Serum",
-    analyzer: "Indiko Plus", rangeText: "70-100", unit: "mg/dL", result: "142",
-    rangeBounds: { normal: { low: 70, high: 100 }, critical: { low: 40, high: 500 }, valid: { low: 10, high: 1000 } },
-    isNormal: false, flags: ["above-normal"], enteredBy: "M. Jones", enteredAt: "11:15",
-    labUnit: "Chemistry", qcStatus: "pass",
-    validationLevelsRequired: 1, validationLevelCurrent: 1,
-    validationHistory: [],
-    notes: [
-      { id: 2, date: "02/26/2026 11:18", author: "M. Jones", type: "internal", body: "Fasting glucose confirmed — patient was fasting >8hrs." },
-      { id: 3, date: "02/26/2026 11:20", author: "M. Jones", type: "internal", body: "[Modification reason] Initial entry was 152, rechecked and corrected to 142." },
+    pastNotesLegacy: "",
+    interpretation: { code: "GLU-CRIT", label: "Critical Hyperglycemia",
+      text: "Glucose >400 mg/dL is critically elevated. Immediate physician notification required. Consider DKA workup." },
+    // BR-V3-003: tech's CLSI GP47 form record from Results Entry
+    criticalNotificationRecord: {
+      recipient: "Dr. Williams", recipientRole: "clinician", method: "phone",
+      readBack: "Glucose 442 mg/dL on patient Smith DOB 03/22/1985 — confirmed critical hyperglycemia, will follow up with HbA1c order and IV insulin protocol.",
+      time: "02/26/2026 11:32",
+      escalations: [],
+      additionalNotes: "",
+      loggedBy: "M. Jones",
+    },
+    modificationHistory: [
+      { id: 1, fromValue: "152", toValue: "442", modifiedBy: "M. Jones", modifiedAt: "02/26/2026 11:30",
+        reason: "Initial entry was 152, retested and rechecked — printout shows 442. Critical hyperglycemia." },
     ],
-    interpretation: { code: "GLU-DM", label: "Diabetes Mellitus", text: "Fasting glucose ≥126 mg/dL is consistent with diabetes mellitus. Recommend confirmation with repeat fasting glucose or HbA1c." },
     nce: null,
-    orderInfo: { clinician: "Dr. Patel", orderDate: "02/27/2026", priority: "Urgent", clinicalNotes: "Suspected T2DM, recent weight loss", collection: "Venipuncture, right arm, fasting" },
-    attachments: [{ id: 1, name: "glucose-qc-printout.pdf", size: "124 KB", date: "02/26/2026" }],
+    program: { name: "EQA Round 4", priority: "URGENT", dueDate: "12/20/2025" },
+    storage: { path: "Refrigerator B → Shelf 1 → Box 12", coords: "Pos A-09", condition: "2–8 °C" },
+    aliquots: [
+      { id: "DEV01260000001235-022.1", purpose: "Test", linkedTest: "HbA1c", status: "Created",
+        createdAt: "02/26/2026 11:32", createdBy: "M. Jones", storage: "—" },
+      { id: "DEV01260000001235-022.2", purpose: "Retention", linkedTest: null, status: "In-Storage",
+        createdAt: "02/26/2026 11:33", createdBy: "M. Jones",
+        storage: "Freezer A → Rack 3 → Shelf 1 → Box 4 (Pos C-02)" },
+    ],
+    programFields: [
+      { label: "EQA Panel ID", value: "EQA-CHEM-2025-Q4-PANEL-07", type: "text" },
+      { label: "Round Number", value: "4", type: "text" },
+      { label: "Specimen Code", value: "S-2025-Q4-022", type: "text" },
+      { label: "Expected Analyte", value: "Glucose", type: "text" },
+      { label: "Submission Deadline", value: "12/20/2025 23:59", type: "datetime" },
+      { label: "Round Coordinator", value: "Dr. F. Andriantefison", type: "text" },
+    ],
+    orderInfo: { clinician: "Dr. Patel", clinicianPhone: "+1 555-0222", department: "Endocrinology",
+                 orderDate: "02/26/2026", priority: "STAT",
+                 collectionDate: "02/26/2026 07:00", receivedDate: "02/26/2026 07:30",
+                 clinicalNotes: "Suspected T2DM, recent weight loss, polydipsia" },
+    method: { id: "AUTO", label: "Automated", reagentLot: "LOT-2026-G12", reagentExpiry: "06/2026" },
+    attachments: [{ id: 1, name: "Cobas-printout-022.pdf", size: "124 KB", date: "02/26/2026" }],
     referral: null,
   },
+  // R3 — HIV Rapid, dictionary single (D) result type, multi-level
   {
-    id: "r4", labNumber: "DEV01260000001235", patientId: "7891234", patientName: "Test, Patient B",
-    sex: "F", age: "45y", dob: "03/22/1981", test: "Creatinine", sampleType: "Serum",
-    analyzer: "Indiko Plus", rangeText: "0.6-1.2", unit: "mg/dL", result: "0.9",
-    rangeBounds: { normal: { low: 0.6, high: 1.2 }, critical: { low: 0.2, high: 15.0 }, valid: { low: 0.1, high: 30.0 } },
-    isNormal: true, flags: [], enteredBy: "M. Jones", enteredAt: "11:15",
-    labUnit: "Chemistry", qcStatus: "pass",
-    validationLevelsRequired: 1, validationLevelCurrent: 1,
-    validationHistory: [],
-    notes: [],
-    interpretation: null,
-    nce: null,
-    orderInfo: { clinician: "Dr. Patel", orderDate: "02/27/2026", priority: "Urgent", clinicalNotes: "Suspected T2DM, recent weight loss", collection: "Venipuncture, right arm, fasting" },
-    attachments: [],
-    referral: null,
-  },
-  {
-    id: "r5", labNumber: "DEV01260000001236", patientId: "5678901", patientName: "Test, Patient C",
-    sex: "M", age: "62y", dob: "09/15/1963", test: "Hemoglobin", sampleType: "Whole Blood",
-    analyzer: "Sysmex XN-L", rangeText: "13.0-17.0", unit: "g/dL", result: "10.2",
-    rangeBounds: { normal: { low: 13.0, high: 17.0 }, critical: { low: 7.0, high: 20.0 }, valid: { low: 1.0, high: 25.0 } },
-    isNormal: false, flags: ["below-normal", "delta-check"], enteredBy: "A. Lee", enteredAt: "09:45",
-    labUnit: "Hematology", qcStatus: "pass",
+    id: "r3", labNumber: "DEV01260000001236", sequenceNumber: "031-1",
+    patient: { name: "Test, Patient C", id: "5678901", dob: "09/15/1963", sex: "M", age: "62y" },
+    test: "HIV 1/2 Rapid", testCode: "LOINC 49580-4", sampleType: "Whole Blood", analyzer: "MANUAL",
+    rangeText: "—", unit: "", selectedRangeLabel: null,
+    result: "HIV_R", currentResult: "", resultType: "D",
+    dictionaryOptions: [
+      { id: "HIV_NR", label: "Non-Reactive" },
+      { id: "HIV_R",  label: "Reactive" },
+      { id: "HIV_IND",label: "Indeterminate" },
+      { id: "HIV_INV",label: "Invalid" },
+    ],
+    rangeBounds: null, isNormal: false, flags: [], nonconforming: false,
+    enteredBy: "A. Lee", enteredAt: "09:45 02/26/2026", labUnit: "Serology", qcStatus: "pass",
     validationLevelsRequired: 2, validationLevelCurrent: 2,
     validationHistory: [
       { level: 1, validatedBy: "Dr. Williams", validatedAt: "02/26/2026 10:15", role: "Supervisor", action: "VALIDATE" }
     ],
     notes: [
-      { id: 4, date: "02/26/2026 09:50", author: "A. Lee", type: "internal", body: "Significant drop from previous result (14.1 g/dL). Delta check triggered at -27.7%." },
-      { id: 5, date: "02/26/2026 10:16", author: "Dr. Williams", type: "validation", body: "Level 1 review: confirmed with instrument QC. Forwarding for final validation." },
+      { id: 3, date: "02/26/2026 09:50", author: "A. Lee", type: "internal", body: "Strong reactive line at 60s. Repeating per SOP." },
+      { id: 4, date: "02/26/2026 10:16", author: "Dr. Williams", type: "validation", body: "Level 1: Confirmed reactive on repeat. Send for confirmatory Western Blot." },
     ],
-    interpretation: { code: "HGB-ANEMSEV", label: "Moderate Anemia", text: "Hemoglobin significantly below reference range with notable delta from previous. Consider GI bleed workup." },
-    nce: null,
-    orderInfo: { clinician: "Dr. Adams", orderDate: "02/26/2026", priority: "Stat", clinicalNotes: "Post-operative day 2, complaint of dizziness", collection: "Venipuncture, right arm" },
-    attachments: [],
-    referral: null,
+    pastNotesLegacy: "",
+    interpretation: { code: "HIV-REACTIVE", label: "Reactive — Send for Confirmation",
+      text: "Reactive on screening rapid test. Confirmatory testing (Western Blot or HIV-1/2 differentiation) required per algorithm." },
+    criticalNotificationRecord: null,
+    modificationHistory: [], nce: null, program: null,
+    storage: { path: "Refrigerator A → Shelf 2 → Box 6", coords: "Pos B-12", condition: "2–8 °C" },
+    aliquots: [], programFields: null,
+    orderInfo: { clinician: "Dr. Adams", department: "Infectious Disease",
+                 orderDate: "02/26/2026", priority: "Routine",
+                 collectionDate: "02/26/2026 09:00", receivedDate: "02/26/2026 09:30",
+                 clinicalNotes: "Pre-employment screening + risk-based test" },
+    method: { id: "MAN", label: "Manual", reagentLot: "LOT-2026-HIV-K33", reagentExpiry: "07/2026" },
+    attachments: [], referral: null,
   },
+  // R4 — Stool O&P, multi-checkbox (M) result type
   {
-    id: "r6", labNumber: "DEV01260000001237", patientId: "1234567", patientName: "Test, Patient D",
-    sex: "F", age: "28y", dob: "07/04/1997", test: "TSH", sampleType: "Serum",
-    analyzer: "VIDAS", rangeText: "0.4-4.0", unit: "mIU/L", result: "2.1",
-    rangeBounds: { normal: { low: 0.4, high: 4.0 }, critical: { low: 0.1, high: 10.0 }, valid: { low: 0.01, high: 100.0 } },
-    isNormal: true, flags: [], enteredBy: "K. Brown", enteredAt: "08:20",
-    labUnit: "Chemistry", qcStatus: "pass",
-    validationLevelsRequired: 1, validationLevelCurrent: 1,
-    validationHistory: [],
-    isAutoValidated: true,
-    notes: [],
-    interpretation: null,
-    nce: null,
-    orderInfo: { clinician: "Dr. Liu", orderDate: "02/25/2026", priority: "Routine", clinicalNotes: "Thyroid screening", collection: "Venipuncture, left arm" },
-    attachments: [],
-    referral: null,
+    id: "r4", labNumber: "DEV01260000001237", sequenceNumber: "045-1",
+    patient: { name: "Johnson, Robert", id: "5551234", dob: "08/12/1970", sex: "M", age: "55y" },
+    test: "Stool — Microscopy (Ova & Parasites)", testCode: "LOINC 624-7", sampleType: "Stool", analyzer: "MANUAL — Microscopy",
+    rangeText: "—", unit: "", selectedRangeLabel: null,
+    result: "OVA_GL,OVA_EH", currentResult: "OVA_NEG", resultType: "M",
+    dictionaryOptions: [
+      { id: "OVA_AL", label: "Ascaris lumbricoides" },
+      { id: "OVA_TT", label: "Trichuris trichiura" },
+      { id: "OVA_HW", label: "Hookworm" },
+      { id: "OVA_GL", label: "Giardia lamblia" },
+      { id: "OVA_EH", label: "Entamoeba histolytica" },
+      { id: "OVA_SM", label: "Schistosoma mansoni" },
+      { id: "OVA_NEG",label: "No parasites seen" },
+    ],
+    rangeBounds: null, isNormal: false, flags: [], nonconforming: false,
+    enteredBy: "K. Brown", enteredAt: "12:10 02/26/2026", labUnit: "Microbiology", qcStatus: "pass",
+    validationLevelsRequired: 1, validationLevelCurrent: 1, validationHistory: [],
+    notes: [], pastNotesLegacy: "",
+    interpretation: null, criticalNotificationRecord: null, modificationHistory: [],
+    nce: null, program: null,
+    storage: { path: "Specimen Cabinet — Stool → Shelf 2", coords: "Pos 14", condition: "RT" },
+    aliquots: [], programFields: null,
+    orderInfo: { clinician: "Dr. Asha Iyer", department: "Gastroenterology",
+                 orderDate: "02/26/2026", priority: "Routine",
+                 collectionDate: "02/26/2026 09:00", receivedDate: "02/26/2026 11:00",
+                 clinicalNotes: "Recurrent abdominal pain, recent travel to East Africa" },
+    method: { id: "MAN", label: "Manual", reagentLot: "—", reagentExpiry: "—" },
+    attachments: [], referral: null,
   },
+  // R5 — Critical Hgb without notification record (validator backfill scenario)
   {
-    id: "r7", labNumber: "DEV01260000001238", patientId: "2345678", patientName: "Test, Patient E",
-    sex: "M", age: "55y", dob: "08/12/1970", test: "Potassium", sampleType: "Serum",
-    analyzer: "Indiko Plus", rangeText: "3.5-5.0", unit: "mmol/L", result: "7.8",
-    rangeBounds: { normal: { low: 3.5, high: 5.0 }, critical: { low: 2.5, high: 6.5 }, valid: { low: 1.0, high: 15.0 } },
-    isNormal: false, flags: ["above-normal"], enteredBy: "J. Smith", enteredAt: "09:10",
-    labUnit: "Chemistry", qcStatus: "pass",
-    validationLevelsRequired: 1, validationLevelCurrent: 1,
-    validationHistory: [],
+    id: "r5", labNumber: "DEV01260000001238", sequenceNumber: "052-1",
+    patient: { name: "Test, Patient D", id: "1234567", dob: "07/04/1997", sex: "F", age: "28y" },
+    test: "Hemoglobin", testCode: "LOINC 718-7", sampleType: "Whole Blood", analyzer: "Sysmex XN-L",
+    rangeText: "12.0-16.0", unit: "g/dL", selectedRangeLabel: "Adult Female (18–65y)",
+    result: "5.8", currentResult: "14.1", resultType: "N",
+    rangeBounds: { normal: { low:12, high:16 }, critical: { low:7, high:20 }, valid: { low:1, high:25 } },
+    isNormal: false, flags: ["below-normal","delta-check"], nonconforming: false,
+    enteredBy: "A. Lee", enteredAt: "09:45 02/26/2026", labUnit: "Hematology", qcStatus: "pass",
+    validationLevelsRequired: 2, validationLevelCurrent: 1, validationHistory: [],
     notes: [
-      { id: 6, date: "02/26/2026 09:12", author: "J. Smith", type: "internal", body: "Hemolyzed specimen — likely pseudohyperkalemia. NCE filed." },
+      { id: 5, date: "02/26/2026 09:50", author: "A. Lee", type: "internal",
+        body: "Significant drop from previous (14.1 → 5.8). Delta check triggered. Verified with manual recount." },
     ],
-    interpretation: null,
-    nce: { number: "NCE-20260226-0891", status: "open", category: "Pre-Analytical", subcategory: "Specimen Integrity", severity: "Major" },
-    orderInfo: { clinician: "Dr. Adams", orderDate: "02/26/2026", priority: "Stat", clinicalNotes: "Cardiac monitoring", collection: "Venipuncture, difficult draw" },
-    attachments: [],
-    referral: null,
-    status: "cancelled",
+    pastNotesLegacy: "",
+    interpretation: { code: "HGB-CRIT", label: "Critical Anemia",
+      text: "Hgb < 7.0 g/dL is critically low. Immediate physician notification required. Consider transfusion workup." },
+    // BR-V3-003: Notification record MISSING — validator must backfill before releasing
+    criticalNotificationRecord: null,
+    modificationHistory: [],
+    nce: null, program: null,
+    storage: { path: "Refrigerator B → Shelf 2 → Box 18", coords: "Pos D-04", condition: "2–8 °C" },
+    aliquots: [], programFields: null,
+    orderInfo: { clinician: "Dr. Adams", department: "Emergency",
+                 orderDate: "02/26/2026", priority: "STAT",
+                 collectionDate: "02/26/2026 09:00", receivedDate: "02/26/2026 09:30",
+                 clinicalNotes: "Post-op day 2, dizziness, hypotensive" },
+    method: { id: "AUTO", label: "Automated", reagentLot: "LOT-2026-A45", reagentExpiry: "08/2026" },
+    attachments: [], referral: null,
+  },
+  // R6 — Auto-validated normal
+  {
+    id: "r6", labNumber: "DEV01260000001239", sequenceNumber: "060-1",
+    patient: { name: "Patient F", id: "9999999", dob: "06/10/1985", sex: "F", age: "40y" },
+    test: "TSH", testCode: "LOINC 3016-3", sampleType: "Serum", analyzer: "VIDAS",
+    rangeText: "0.4-4.0", unit: "mIU/L", selectedRangeLabel: "Adult Female (18–65y)",
+    result: "2.1", currentResult: "", resultType: "N",
+    rangeBounds: { normal: { low:0.4, high:4.0 }, critical: { low:0.1, high:10 }, valid: { low:0.01, high:100 } },
+    isNormal: true, flags: [], nonconforming: false,
+    enteredBy: "K. Brown", enteredAt: "08:20 02/26/2026", labUnit: "Chemistry", qcStatus: "pass",
+    validationLevelsRequired: 1, validationLevelCurrent: 1, validationHistory: [], isAutoValidated: true,
+    notes: [], pastNotesLegacy: "",
+    interpretation: null, criticalNotificationRecord: null, modificationHistory: [],
+    nce: null, program: null, storage: { path: null }, aliquots: [], programFields: null,
+    orderInfo: { clinician: "Dr. Liu", priority: "Routine",
+                 collectionDate: "02/26/2026 08:00", receivedDate: "02/26/2026 08:15",
+                 clinicalNotes: "Thyroid screening" },
+    method: { id: "AUTO", label: "Automated", reagentLot: "LOT-2026-V99", reagentExpiry: "09/2026" },
+    attachments: [], referral: null,
   },
 ];
 
+// ─────────────────────────────────────────────────────────────────────────
+// Tiny reusable components
+// ─────────────────────────────────────────────────────────────────────────
+function Tag({ kind = "gray", children, title }) {
+  const c = COLOR[kind] || COLOR.gray;
+  return (
+    <span title={title}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${c.bg} ${c.text}`}>
+      {children}
+    </span>
+  );
+}
 
-// ═══════════════════════════════════════════════
-// COMPONENT: Admin Validation Configuration Page
-// ═══════════════════════════════════════════════
-const AdminValidationConfig = () => {
-  const [labDefault, setLabDefault] = useState({
-    trigger: "all",
-    levelsRequired: 1,
-    levels: [{ number: 1, roleId: "role-validation" }],
-  });
+function PatientAvatar({ patient, size = 28 }) {
+  const initials = (patient.name || "").split(",").map(p => p.trim()[0] || "").join("").slice(0,2).toUpperCase();
+  const bg = colorHash(patient.id || patient.name, AVATAR_PALETTE);
+  return (
+    <span aria-hidden="true" style={{ width:size, height:size, background:bg }}
+      className="inline-flex items-center justify-center rounded-full text-white text-xs font-semibold flex-shrink-0">
+      {initials}
+    </span>
+  );
+}
 
-  const [unitOverrides, setUnitOverrides] = useState({
-    "lu-hem": {
-      trigger: "all",
-      levelsRequired: 2,
-      levels: [
-        { number: 1, roleId: "role-supervisor" },
-        { number: 2, roleId: "role-lab-manager" },
-      ],
-    },
-    "lu-micro": {
-      trigger: "all",
-      levelsRequired: 2,
-      levels: [
-        { number: 1, roleId: "role-senior-tech" },
-        { number: 2, roleId: "role-supervisor" },
-      ],
-    },
-    "lu-chem": {
-      trigger: "abnormal",
-      levelsRequired: 1,
-      levels: [{ number: 1, roleId: "role-validation" }],
-    },
-  });
+function CopyButton({ text }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button onClick={() => { if (navigator?.clipboard) navigator.clipboard.writeText(text).catch(()=>{}); setCopied(true); setTimeout(()=>setCopied(false), 1500); }}
+      title="Copy" className="p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-800">
+      {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
+    </button>
+  );
+}
 
-  const [expandedUnit, setExpandedUnit] = useState(null);
-  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+function SectionHeader({ label, open, onToggle, badge, action }) {
+  return (
+    <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-200 cursor-pointer select-none hover:bg-gray-100"
+      onClick={onToggle}>
+      <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+        {label}
+        {badge && <span className="text-xs font-normal text-gray-400">{badge}</span>}
+      </div>
+      <div className="flex items-center gap-2">
+        {action}
+        {open ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+      </div>
+    </div>
+  );
+}
 
-  const handleSave = () => {
-    setShowSaveSuccess(true);
-    setTimeout(() => setShowSaveSuccess(false), 3000);
-  };
-
-  const addLevel = (config, setConfig) => {
-    if (config.levelsRequired >= 5) return;
-    const newLevel = config.levelsRequired + 1;
-    setConfig({
-      ...config,
-      levelsRequired: newLevel,
-      levels: [...config.levels, { number: newLevel, roleId: "role-validation" }],
-    });
-  };
-
-  const removeLevel = (config, setConfig) => {
-    if (config.levelsRequired <= 0) return;
-    setConfig({
-      ...config,
-      levelsRequired: config.levelsRequired - 1,
-      levels: config.levels.slice(0, -1),
-    });
-  };
-
-  const getTriggerDescription = (trigger, levels) => {
-    if (trigger === "none" || levels === 0) return t("label.admin.validation.willAutoRelease");
-    if (trigger === "abnormal") return t("label.admin.validation.willAutoReleaseNormal");
-    return t("label.admin.validation.willRelease");
-  };
-
-  const getTriggerBadge = (trigger) => {
-    const styles = {
-      none: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-      all: "bg-blue-50 text-blue-700 border border-blue-200",
-      abnormal: "bg-amber-50 text-amber-700 border border-amber-200",
-    };
-    const labels = {
-      none: t("label.admin.validation.trigger.none"),
-      all: t("label.admin.validation.trigger.all"),
-      abnormal: t("label.admin.validation.trigger.abnormal"),
-    };
-    return <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${styles[trigger]}`}>{labels[trigger]}</span>;
-  };
-
-  const overrideCount = Object.keys(unitOverrides).length;
-  const autoReleaseCount = LAB_UNITS.filter(u => {
-    const ov = unitOverrides[u.id];
-    if (ov) return ov.trigger === "none" || ov.levelsRequired === 0;
-    return labDefault.trigger === "none" || labDefault.levelsRequired === 0;
-  }).length;
-
-  const ConfigPanel = ({ config, onChange, isLabUnit = false }) => {
-    const triggerColor = config.trigger === "none" ? "border-l-emerald-400" :
-      config.trigger === "abnormal" ? "border-l-amber-400" : "border-l-blue-400";
-
-    return (
-      <div className={`bg-white rounded-lg border border-gray-200 border-l-4 ${triggerColor}`}>
-        <div className="p-5 space-y-5">
-          {/* Trigger */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-3">
-              {t("label.admin.validation.trigger")}
-            </label>
-            <div className="space-y-2">
-              {[
-                { value: "none", label: t("label.admin.validation.trigger.none"), desc: "Skip validation entirely — results release when saved", icon: Zap },
-                { value: "all", label: t("label.admin.validation.trigger.all"), desc: "Every result must be manually validated before release", icon: Shield },
-                { value: "abnormal", label: t("label.admin.validation.trigger.abnormal"), desc: "Normal results auto-release; abnormal results require validation", icon: ShieldAlert },
-              ].map(opt => (
-                <label key={opt.value} className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${config.trigger === opt.value ? "border-teal-400 bg-teal-50/50 shadow-sm" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}>
-                  <input type="radio" name={`trigger-${isLabUnit || 'default'}`} value={opt.value} checked={config.trigger === opt.value}
-                    onChange={() => onChange({ ...config, trigger: opt.value })}
-                    className="mt-1 accent-teal-600" />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <opt.icon className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm font-medium text-gray-800">{opt.label}</span>
-                    </div>
-                    <span className="text-xs text-gray-500 mt-0.5 block">{opt.desc}</span>
-                  </div>
-                </label>
-              ))}
-            </div>
+// ─────────────────────────────────────────────────────────────────────────
+// Modification History Banner (parity with Results Entry v3 / BR-V3-014)
+// ─────────────────────────────────────────────────────────────────────────
+function ModificationHistoryBanner({ history }) {
+  const [expandAll, setExpandAll] = useState(false);
+  if (!history || history.length === 0) return null;
+  const mostRecent = history[history.length - 1];
+  const original = history[0].fromValue;
+  const current  = mostRecent.toValue;
+  return (
+    <div className="border-b border-amber-200 bg-amber-50 px-4 py-2.5">
+      <div className="flex items-start gap-3">
+        <Pencil className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+        <div className="flex-1 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-amber-900">Modification History</span>
+            <span className="text-amber-700">
+              <span className="font-semibold">Original:</span> <span className="font-mono">{original}</span>
+              <span className="mx-1.5">→</span>
+              <span className="font-semibold">Current:</span> <span className="font-mono">{current}</span>
+            </span>
+            <span className="text-amber-600">·</span>
+            <span className="text-amber-800">{mostRecent.modifiedBy}</span>
+            <span className="text-amber-600">·</span>
+            <span className="text-amber-700">{mostRecent.modifiedAt}</span>
           </div>
-
-          {/* Levels Required */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-2">
-              {t("label.admin.validation.levelsRequired")}
-            </label>
-            <div className="flex items-center gap-3">
-              <button onClick={() => removeLevel(config, onChange)}
-                disabled={config.levelsRequired <= 0}
-                className="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
-                <Minus className="w-4 h-4" />
+          <div className="text-amber-700 mt-1"><span className="font-semibold">Reason:</span> {mostRecent.reason}</div>
+          {history.length > 1 && (
+            <>
+              <button onClick={() => setExpandAll(e => !e)} className="mt-1 text-xs text-amber-700 hover:underline">
+                {expandAll ? "Hide history" : `View all history (${history.length})`}
               </button>
-              <div className="w-12 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center font-bold text-lg text-gray-800">
-                {config.levelsRequired}
-              </div>
-              <button onClick={() => addLevel(config, onChange)}
-                disabled={config.levelsRequired >= 5}
-                className="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
-                <Plus className="w-4 h-4" />
-              </button>
-              <span className="text-sm text-gray-500">
-                {config.levelsRequired === 0 ? "No manual validation" : `${config.levelsRequired} validation level${config.levelsRequired > 1 ? "s" : ""}`}
-              </span>
-            </div>
-          </div>
-
-          {/* Level Role Assignments */}
-          {config.levelsRequired > 0 && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-1">
-                {t("label.admin.validation.role")}
-              </label>
-              <p className="text-xs text-gray-500 mb-3">
-                Only roles with the <code className="px-1 py-0.5 bg-gray-100 rounded text-xs font-mono">result.validate</code> permission are shown. Use the Role Builder to grant this permission to additional roles.
-              </p>
-              {ROLES_WITH_VALIDATE_PERMISSION.length === 0 ? (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2 text-sm text-amber-800">
-                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>No roles currently hold the <code className="px-1 py-0.5 bg-amber-100 rounded text-xs font-mono">result.validate</code> permission. Use the Role Builder to assign this permission before configuring validation levels.</span>
-                </div>
-              ) : (
-              <div className="space-y-2">
-                {config.levels.map((level, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex items-center justify-center w-7 h-7 rounded-full bg-teal-100 text-teal-700 text-xs font-bold flex-shrink-0">
-                      {level.number}
-                    </div>
-                    <div className="text-sm text-gray-600 font-medium w-16 flex-shrink-0">
-                      Level {level.number}
-                    </div>
-                    <select value={level.roleId}
-                      onChange={(e) => {
-                        const newLevels = [...config.levels];
-                        newLevels[idx] = { ...newLevels[idx], roleId: e.target.value };
-                        onChange({ ...config, levels: newLevels });
-                      }}
-                      className="flex-1 h-9 px-3 rounded-lg border border-gray-300 text-sm bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none">
-                      {ROLES_WITH_VALIDATE_PERMISSION.map(r => (
-                        <option key={r.id} value={r.id}>{r.name}</option>
-                      ))}
-                    </select>
-                    {idx === config.levels.length - 1 && config.levelsRequired > 0 && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-medium whitespace-nowrap">
-                        Releases result
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
+              {expandAll && (
+                <ol className="mt-1.5 ml-4 space-y-1 list-decimal text-amber-700">
+                  {history.map(h => (
+                    <li key={h.id} className="text-xs">
+                      <span className="font-mono">{h.fromValue} → {h.toValue}</span> · {h.modifiedBy} · {h.modifiedAt} — <em>{h.reason}</em>
+                    </li>
+                  ))}
+                </ol>
               )}
-            </div>
+            </>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-          {/* Behavior Summary */}
-          <div className={`rounded-lg p-3 flex items-start gap-2.5 text-sm ${
-            config.trigger === "none" || config.levelsRequired === 0
-              ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
-              : config.trigger === "abnormal"
-                ? "bg-amber-50 border border-amber-200 text-amber-800"
-                : "bg-blue-50 border border-blue-200 text-blue-800"
-          }`}>
-            <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>{getTriggerDescription(config.trigger, config.levelsRequired)}</span>
+// ─────────────────────────────────────────────────────────────────────────
+// Critical Notification Display — BR-V3-003 (S-01 Policy A modified)
+// Read-only view of the GP47 record captured at Results Entry.
+// "Log Notification Now" affordance when the record is missing on a critical result.
+// ─────────────────────────────────────────────────────────────────────────
+function CriticalNotificationDisplay({ record, isCritical, onBackfill, onRejectForReNotification }) {
+  // Only render when result is in critical tier
+  if (!isCritical) return null;
+
+  if (record) {
+    return (
+      <div className="border-b-2 border-orange-200 bg-orange-50 px-4 py-3">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-orange-700 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 text-xs space-y-1">
+            <div className="font-semibold text-orange-900 text-sm">
+              🚨 Critical Value Notification — Logged at Results Entry
+            </div>
+            <div className="text-orange-800">
+              <span className="font-semibold">Recipient:</span> {record.recipient}
+              <span className="text-orange-600 ml-1">({record.recipientRole})</span>
+              <span className="mx-2">·</span>
+              <span className="font-semibold">Method:</span> {record.method}
+              <span className="mx-2">·</span>
+              <span className="font-semibold">Time:</span> {record.time}
+            </div>
+            <div className="text-orange-900 bg-white border border-orange-200 px-2 py-1.5 mt-1">
+              <span className="font-semibold text-xs">Read-back:</span>
+              <span className="italic ml-1">"{record.readBack}"</span>
+            </div>
+            <div className="text-orange-700 text-xs">
+              <span className="font-semibold">Escalations:</span> {record.escalations?.length || 0}
+              {(record.escalations?.length || 0) === 0 && <span className="ml-1">(reached on first attempt)</span>}
+              <span className="mx-2">·</span>
+              <span className="font-semibold">Logged by:</span> {record.loggedBy}
+              <span className="mx-2">·</span>
+              <span className="italic">Audit: CRITICAL_NOTIFICATION_LOGGED</span>
+            </div>
           </div>
         </div>
       </div>
     );
-  };
+  }
 
+  // Missing record — backfill or reject
   return (
-    <div className="space-y-6">
-      {/* Success Toast */}
-      {showSaveSuccess && (
-        <div className="fixed top-4 right-4 z-50 bg-emerald-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-[slideIn_0.3s_ease-out]">
-          <CheckCircle2 className="w-5 h-5" />
-          <span className="text-sm font-medium">{t("label.admin.validation.saved")}</span>
-        </div>
-      )}
-
-      {/* Summary Banner */}
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200 p-4">
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-800">{labDefault.levelsRequired}</div>
-            <div className="text-xs text-gray-500 mt-0.5">Default validation levels</div>
+    <div className="border-b-2 border-red-500 bg-red-50 px-4 py-3">
+      <div className="flex items-start gap-3">
+        <AlertCircle className="w-5 h-5 text-red-700 flex-shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <div className="font-semibold text-red-900 text-sm">⚠ Critical Value — No Notification Record on File</div>
+          <div className="text-xs text-red-800 mt-1">
+            This critical result was saved without a structured CLSI GP47 notification record.
+            Validator must verify physician notification happened before releasing, OR
+            reject the result back to the tech to capture the notification record.
           </div>
-          <div className="text-center border-x border-gray-200">
-            <div className="text-2xl font-bold text-blue-600">{overrideCount}</div>
-            <div className="text-xs text-gray-500 mt-0.5">Lab units with overrides</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-emerald-600">{autoReleaseCount}</div>
-            <div className="text-xs text-gray-500 mt-0.5">Auto-releasing all results</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Lab-Wide Default */}
-      <div>
-        <h3 className="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
-          <Building2 className="w-5 h-5 text-teal-600" />
-          {t("label.admin.validation.labDefault")}
-        </h3>
-        <ConfigPanel config={labDefault} onChange={setLabDefault} />
-      </div>
-
-      {/* Lab Unit Overrides */}
-      <div>
-        <h3 className="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
-          <Layers className="w-5 h-5 text-teal-600" />
-          {t("label.admin.validation.labUnitOverrides")}
-        </h3>
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3">Lab Unit</th>
-                <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3">Source</th>
-                <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3">Trigger</th>
-                <th className="text-center text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3">Levels</th>
-                <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3">Roles</th>
-                <th className="text-right text-xs font-semibold text-gray-600 uppercase tracking-wider px-4 py-3">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {LAB_UNITS.map((unit) => {
-                const override = unitOverrides[unit.id];
-                const effective = override || labDefault;
-                const isOverride = !!override;
-                const isExpanded = expandedUnit === unit.id;
-                const Icon = unit.icon;
-
-                return (
-                  <Fragment key={unit.id}>
-                    <tr className={`border-b border-gray-100 transition-colors ${isExpanded ? "bg-teal-50/30" : "hover:bg-gray-50"}`}>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Icon className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm font-medium text-gray-800">{unit.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isOverride ? "bg-purple-50 text-purple-700 border border-purple-200" : "bg-gray-100 text-gray-600 border border-gray-200"}`}>
-                          {isOverride ? t("label.admin.validation.source.override") : t("label.admin.validation.source.default")}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">{getTriggerBadge(effective.trigger)}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className="text-sm font-bold text-gray-800">{effective.levelsRequired}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1 flex-wrap">
-                          {effective.levels.map((l, i) => (
-                            <span key={i} className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
-                              {ROLES_WITH_VALIDATE_PERMISSION.find(r => r.id === l.roleId)?.name}
-                            </span>
-                          ))}
-                          {effective.levelsRequired === 0 && <span className="text-xs text-gray-400 italic">None</span>}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button onClick={() => setExpandedUnit(isExpanded ? null : unit.id)}
-                            className="text-xs px-3 py-1.5 rounded-lg border border-teal-300 text-teal-700 hover:bg-teal-50 font-medium transition-colors">
-                            {isExpanded ? "Close" : t("label.admin.validation.editOverride")}
-                          </button>
-                          {isOverride && (
-                            <button onClick={() => {
-                              const next = { ...unitOverrides };
-                              delete next[unit.id];
-                              setUnitOverrides(next);
-                            }}
-                              className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 font-medium transition-colors">
-                              {t("label.admin.validation.resetDefault")}
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                    {isExpanded && (
-                      <tr>
-                        <td colSpan={6} className="px-4 py-4 bg-gray-50/50 border-b border-gray-200">
-                          <ConfigPanel
-                            config={override || { ...labDefault }}
-                            onChange={(newConfig) => setUnitOverrides({ ...unitOverrides, [unit.id]: newConfig })}
-                            isLabUnit={unit.id}
-                          />
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Save */}
-      <div className="flex justify-end">
-        <button onClick={handleSave}
-          className="px-6 py-2.5 rounded-lg bg-teal-600 text-white font-medium text-sm hover:bg-teal-700 transition-colors shadow-sm">
-          Save Configuration
-        </button>
-      </div>
-    </div>
-  );
-};
-
-
-// ═══════════════════════════════════════════════════════
-// COMPONENT: Notes Section (always-visible, collapsible)
-// ═══════════════════════════════════════════════════════
-const NotesSection = ({ notes: initialNotes }) => {
-  const [notes, setNotes] = useState(initialNotes || []);
-  const [isOpen, setIsOpen] = useState(true);
-  const [newNote, setNewNote] = useState("");
-
-  const handleAddNote = () => {
-    if (!newNote.trim()) return;
-    setNotes(prev => [...prev, {
-      id: Date.now(), date: new Date().toLocaleString(), author: "Current Validator", type: "validation", body: newNote.trim()
-    }]);
-    setNewNote("");
-  };
-
-  const noteTypeBadge = (type) => {
-    const styles = {
-      internal: "bg-gray-100 text-gray-600",
-      external: "bg-blue-50 text-blue-700",
-      modification: "bg-amber-50 text-amber-700",
-      validation: "bg-teal-50 text-teal-700",
-    };
-    return <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${styles[type] || styles.internal}`}>{type}</span>;
-  };
-
-  return (
-    <div className="border-b border-gray-200">
-      <button onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 hover:bg-gray-100 transition-colors">
-        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-          <FileText className="w-4 h-4 text-gray-500" />
-          {t("label.validation.notes", "Notes")}
-          {notes.length > 0 && <span className="text-xs font-medium bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">{notes.length}</span>}
-        </div>
-        {isOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-      </button>
-      {isOpen && (
-        <div className="px-4 py-3 space-y-2 bg-white">
-          {notes.length === 0 && (
-            <div className="text-sm text-gray-400 italic py-1">{t("label.validation.notes.empty", "No notes on this result.")}</div>
-          )}
-          {notes.map(note => (
-            <div key={note.id} className="flex gap-3 text-sm py-1.5 border-b border-gray-50 last:border-0">
-              <div className="flex-shrink-0 mt-0.5">{noteTypeBadge(note.type)}</div>
-              <div className="flex-1 min-w-0">
-                <div className="text-gray-800">{note.body}</div>
-                <div className="text-xs text-gray-400 mt-0.5">{note.author} · {note.date}</div>
-              </div>
-            </div>
-          ))}
-          {/* Add Note form */}
-          <div className="flex gap-2 mt-2 pt-2 border-t border-gray-100">
-            <input
-              type="text" value={newNote} onChange={e => setNewNote(e.target.value)}
-              placeholder={t("placeholder.validation.notes.add", "Add a validation note...")}
-              className="flex-1 h-8 px-3 text-sm border border-gray-300 rounded focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none"
-              onKeyDown={e => { if (e.key === "Enter") handleAddNote(); }}
-            />
-            <button onClick={handleAddNote} disabled={!newNote.trim()}
-              className="px-3 h-8 text-xs font-semibold bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-              {t("button.validation.notes.save", "Save Note")}
+          <div className="flex gap-2 mt-2">
+            <button onClick={onBackfill}
+              className="px-3 py-1.5 bg-orange-600 text-white text-xs font-semibold hover:bg-orange-700">
+              Log Notification Now
+            </button>
+            <button onClick={onRejectForReNotification}
+              className="px-3 py-1.5 border border-red-400 text-red-700 text-xs font-medium hover:bg-red-50">
+              Reject for re-notification
             </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
-};
+}
 
-// ═══════════════════════════════════════════════════════════
-// COMPONENT: Interpretation Section (always-visible, read-only)
-// ═══════════════════════════════════════════════════════════
-const InterpretationSection = ({ interpretation }) => {
-  const [isOpen, setIsOpen] = useState(true);
+// ─────────────────────────────────────────────────────────────────────────
+// Inline sections — all read-only on validator side (BR-V3-006)
+// ─────────────────────────────────────────────────────────────────────────
+function NotesSection({ result, onAddNote }) {
+  const [open, setOpen] = useState((result.notes?.length || 0) > 0 || !!result.pastNotesLegacy);
+  const [showForm, setShowForm] = useState(false);
+  const [newNote, setNewNote] = useState("");
 
   return (
     <div className="border-b border-gray-200">
-      <button onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 hover:bg-gray-100 transition-colors">
-        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-          <Microscope className="w-4 h-4 text-gray-500" />
-          {t("label.validation.interpretation", "Interpretation")}
-        </div>
-        {isOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-      </button>
-      {isOpen && (
-        <div className="px-4 py-3 bg-white">
-          {!interpretation ? (
-            <div className="text-sm text-gray-400 italic">{t("label.validation.interpretation.empty", "No interpretation entered.")}</div>
-          ) : (
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold bg-purple-50 text-purple-700 px-2 py-0.5 rounded">{interpretation.label}</span>
-                <span className="text-xs text-gray-400">{interpretation.code}</span>
+      <SectionHeader
+        label={<><MessageSquare className="w-4 h-4 inline mr-1.5 text-gray-500" />Notes</>}
+        open={open} onToggle={() => setOpen(o => !o)}
+        badge={result.notes?.length ? `(${result.notes.length})` : null}
+      />
+      {open && (
+        <div className="px-4 py-3 bg-white space-y-2">
+          {(result.notes || []).length === 0 && !showForm && (
+            <p className="text-xs text-gray-400">No notes yet.</p>
+          )}
+          {(result.notes || []).map(note => (
+            <div key={note.id} className="flex gap-3 text-sm">
+              <div className="flex-1 border-l-2 border-gray-200 pl-3">
+                <div className="flex gap-2 text-xs text-gray-400 mb-0.5 flex-wrap">
+                  <span>{note.date}</span>
+                  <span className="text-gray-500 font-medium">{note.author}</span>
+                  <Tag kind={
+                    note.type === "validation" ? "teal"
+                    : note.type === "internal" ? "purple"
+                    : "warm-gray"
+                  }>
+                    {note.type === "validation" ? "Validation"
+                     : note.type === "internal" ? "In Lab Only"
+                     : "Send with Result"}
+                  </Tag>
+                </div>
+                <div className="text-gray-800 text-sm whitespace-pre-line">{note.body}</div>
               </div>
-              <div className="text-sm text-gray-700">{interpretation.text}</div>
+            </div>
+          ))}
+          {result.pastNotesLegacy && (
+            <div className="text-xs text-gray-500 border-l-2 border-gray-100 pl-3 italic">
+              <div className="font-medium text-gray-400 mb-0.5">Past notes (legacy):</div>
+              <div className="whitespace-pre-line text-gray-600">{result.pastNotesLegacy}</div>
+            </div>
+          )}
+
+          {/* Validators can ADD notes — BR-V3-007 */}
+          {showForm ? (
+            <div className="bg-gray-50 border border-gray-200 p-3 space-y-2">
+              <div className="text-xs text-gray-500">Type: <Tag kind="teal">Validation</Tag></div>
+              <textarea rows={2} value={newNote} onChange={e => setNewNote(e.target.value)}
+                placeholder="Add a validation note…" autoFocus
+                className="w-full border border-gray-300 text-sm p-2 resize-none focus:outline-none focus:ring-1 focus:ring-teal-600" />
+              <div className="flex gap-2">
+                <button onClick={() => { if (newNote.trim()) { onAddNote?.(newNote); setNewNote(""); setShowForm(false); } }}
+                  className="px-3 py-1 bg-teal-700 text-white text-xs font-medium hover:bg-teal-800">Save Note</button>
+                <button onClick={() => setShowForm(false)}
+                  className="px-3 py-1 border border-gray-300 text-xs text-gray-600 hover:bg-gray-100">Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setShowForm(true)}
+              className="flex items-center gap-1 text-xs text-teal-700 hover:underline">
+              <Plus className="w-3 h-3" /> Add Validation Note
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InterpretationSection({ interpretation }) {
+  const [open, setOpen] = useState(!!interpretation);
+  return (
+    <div className="border-b border-gray-200">
+      <SectionHeader
+        label={<><Microscope className="w-4 h-4 inline mr-1.5 text-gray-500" />Interpretation</>}
+        open={open} onToggle={() => setOpen(o => !o)}
+        action={<span className="text-xs text-gray-400 italic">Read-only</span>}
+      />
+      {open && (
+        <div className="px-4 py-3 bg-white">
+          {interpretation ? (
+            <div>
+              <div className="text-sm font-semibold text-gray-800 mb-1">{interpretation.label}
+                <span className="ml-2 text-xs text-gray-400 font-mono">{interpretation.code}</span>
+              </div>
+              <div className="text-sm text-gray-700 whitespace-pre-line">{interpretation.text}</div>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 italic">No interpretation entered.</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MethodSection({ method }) {
+  const [open, setOpen] = useState(!!method?.reagentLot);
+  return (
+    <div className="border-b border-gray-200">
+      <SectionHeader
+        label={<><FlaskConical className="w-4 h-4 inline mr-1.5 text-gray-500" />Method & Reagents</>}
+        open={open} onToggle={() => setOpen(o => !o)}
+        action={<span className="text-xs text-gray-400 italic">Read-only</span>}
+      />
+      {open && (
+        <div className="px-4 py-3 bg-white">
+          <div className="grid grid-cols-3 gap-x-6 gap-y-3 text-sm">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">Method</div>
+              <div className="text-gray-800">{method?.label || "—"}</div>
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">Reagent Lot</div>
+              <div className="text-gray-800 font-mono">{method?.reagentLot || "—"}</div>
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">Lot Expiry</div>
+              <div className="text-gray-800">{method?.reagentExpiry || "—"}</div>
+            </div>
+          </div>
+          <div className="mt-3 text-xs text-gray-400 italic">
+            Read-only on validator. To change, reject back to tech for re-entry.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OrderInfoSection({ orderInfo }) {
+  const [open, setOpen] = useState(false);
+  if (!orderInfo) return null;
+  const fields = [
+    { label: "Clinician", value: orderInfo.clinician },
+    { label: "Phone", value: orderInfo.clinicianPhone },
+    { label: "Department", value: orderInfo.department },
+    { label: "Priority", value: orderInfo.priority },
+    { label: "Collection Date/Time", value: orderInfo.collectionDate },
+    { label: "Received Date/Time", value: orderInfo.receivedDate },
+    { label: "Clinical Notes", value: orderInfo.clinicalNotes, span2: true },
+  ].filter(f => f.value);
+  return (
+    <div className="border-b border-gray-200">
+      <SectionHeader
+        label={<><ClipboardList className="w-4 h-4 inline mr-1.5 text-gray-500" />Order Info</>}
+        open={open} onToggle={() => setOpen(o => !o)}
+        action={<span className="text-xs text-gray-400 italic">Read-only</span>}
+      />
+      {open && (
+        <div className="px-4 py-3 bg-white">
+          <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+            {fields.map(f => (
+              <div key={f.label} className={f.span2 ? "col-span-2" : ""}>
+                <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">{f.label}</div>
+                <div className="text-sm text-gray-800">{f.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProgramInfoSection({ program, programFields }) {
+  const [open, setOpen] = useState(true);
+  if (!programFields || programFields.length === 0) return null;
+  return (
+    <div className="border-b border-gray-200">
+      <SectionHeader
+        label={<><BookOpen className="w-4 h-4 inline mr-1.5 text-gray-500" />Program Info</>}
+        open={open} onToggle={() => setOpen(o => !o)}
+        badge={<span className="text-xs text-purple-700 font-medium">{program?.name}</span>}
+        action={<span className="text-xs text-gray-400 italic">Read-only</span>}
+      />
+      {open && (
+        <div className="px-4 py-3 bg-white">
+          <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+            {programFields.map(f => (
+              <div key={f.label} className={f.type === "longtext" ? "col-span-3" : ""}>
+                <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">{f.label}</div>
+                <div className="text-sm text-gray-800">{f.value || <span className="text-gray-300">—</span>}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StorageSection({ storage }) {
+  const hasLocation = !!storage?.path;
+  // H2 default: open when assigned (validator benefits from chain-of-custody visibility)
+  const [open, setOpen] = useState(hasLocation);
+  return (
+    <div className="border-b border-gray-200">
+      <SectionHeader
+        label={<><MapPin className="w-4 h-4 inline mr-1.5 text-gray-500" />Storage Location</>}
+        open={open} onToggle={() => setOpen(o => !o)}
+        badge={hasLocation ? null : "Unassigned"}
+        action={<span className="text-xs text-gray-400 italic">Read-only</span>}
+      />
+      {open && (
+        <div className="px-4 py-3 bg-white">
+          {hasLocation ? (
+            <div className="grid grid-cols-3 gap-x-6 gap-y-3 text-sm">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">Location</div>
+                <div className="text-gray-800 font-mono">{storage.path}</div>
+              </div>
+              {storage.coords && (
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">Position</div>
+                  <div className="text-gray-800 font-mono">{storage.coords}</div>
+                </div>
+              )}
+              {storage.condition && (
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">Condition</div>
+                  <div className="text-gray-800">{storage.condition}</div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">
+              <strong className="text-gray-700">Unassigned</strong> — This sample item has no storage record.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AliquotsSection({ aliquots }) {
+  const [open, setOpen] = useState((aliquots?.length || 0) > 0);
+  if ((aliquots?.length || 0) === 0) return null;
+  return (
+    <div className="border-b border-gray-200">
+      <SectionHeader
+        label={<><Microscope className="w-4 h-4 inline mr-1.5 text-gray-500" />Aliquots (from this sample)</>}
+        open={open} onToggle={() => setOpen(o => !o)}
+        badge={`(${aliquots.length})`}
+        action={<span className="text-xs text-gray-400 italic">Read-only</span>}
+      />
+      {open && (
+        <div className="px-4 py-3 bg-white">
+          <table className="w-full text-xs border border-gray-200">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                {["Aliquot ID", "Purpose", "Linked Test", "Status", "Created", "Storage"].map(h => (
+                  <th key={h} className="text-left px-2 py-2 font-semibold text-gray-600">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {aliquots.map(a => (
+                <tr key={a.id} className="border-b border-gray-100">
+                  <td className="px-2 py-2 font-mono text-gray-800">{a.id}</td>
+                  <td className="px-2 py-2"><Tag kind="blue">{a.purpose}</Tag></td>
+                  <td className="px-2 py-2 text-gray-600">{a.linkedTest || "—"}</td>
+                  <td className="px-2 py-2"><Tag kind={a.status === "In-Storage" ? "teal" : "blue"}>{a.status}</Tag></td>
+                  <td className="px-2 py-2 text-gray-500"><div>{a.createdAt}</div><div className="text-gray-400">{a.createdBy}</div></td>
+                  <td className="px-2 py-2 text-gray-600 font-mono">{a.storage}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="mt-2 text-xs text-gray-400 italic">
+            Read-only on validator. Aliquot creation/destroy happens at Results Entry or Sample Reception.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReferralSection({ referral }) {
+  const [open, setOpen] = useState(!!referral);
+  return (
+    <div className="border-b border-gray-200">
+      <SectionHeader
+        label={<><Send className="w-4 h-4 inline mr-1.5 text-gray-500" />Referral</>}
+        open={open} onToggle={() => setOpen(o => !o)}
+        badge={referral ? <Tag kind="amber">Referred</Tag> : null}
+        action={<span className="text-xs text-gray-400 italic">Read-only</span>}
+      />
+      {open && (
+        <div className="px-4 py-3 bg-white">
+          {referral ? (
+            <div className="text-sm text-gray-800">
+              Referred to <strong>{referral.lab}</strong> on {referral.date} — Status: {referral.status}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 italic">No referral information.</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AttachmentsSection({ attachments }) {
+  const list = attachments || [];
+  const [open, setOpen] = useState(list.length > 0);
+  return (
+    <div className="border-b border-gray-200">
+      <SectionHeader
+        label={<><Paperclip className="w-4 h-4 inline mr-1.5 text-gray-500" />Attachments</>}
+        open={open} onToggle={() => setOpen(o => !o)}
+        badge={list.length ? `(${list.length})` : null}
+        action={<span className="text-xs text-gray-400 italic">Read-only</span>}
+      />
+      {open && (
+        <div className="px-4 py-3 bg-white">
+          {list.length === 0 ? (
+            <p className="text-xs text-gray-400 italic">No attachments.</p>
+          ) : (
+            <div className="space-y-2">
+              {list.map(att => (
+                <div key={att.id} className="flex items-center gap-3 p-2 bg-gray-50 border border-gray-200 text-sm">
+                  <FileText className="w-4 h-4 text-red-500 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate text-gray-800">{att.name}</div>
+                    <div className="text-xs text-gray-400">{att.size} · {att.date}</div>
+                  </div>
+                  <button className="text-xs text-teal-600 hover:text-teal-700 font-medium">View</button>
+                </div>
+              ))}
             </div>
           )}
         </div>
       )}
     </div>
   );
-};
+}
 
-
-// ═══════════════════════════════════════════════════
-// COMPONENT: Expanded Tabs (6-tab bar matching Results Entry)
-// ═══════════════════════════════════════════════════
-const ExpandedTabs = ({ result }) => {
-  const [activeTab, setActiveTab] = useState("method");
-  const tabs = [
-    { id: "method",      label: t("label.validation.tab.method", "Method & Reagents") },
-    { id: "orderInfo",   label: t("label.validation.tab.orderInfo", "Order Info") },
-    { id: "attachments", label: t("label.validation.tab.attachments", "Attachments") },
-    { id: "qaqc",        label: t("label.validation.tab.qaqc", "QA/QC") },
-    { id: "history",     label: t("label.validation.tab.history", "History") },
-    { id: "referral",    label: t("label.validation.tab.referral", "Referral") },
-  ];
-
+// ─────────────────────────────────────────────────────────────────────────
+// Validation Progress Timeline (multi-level pipeline — preserved from v2.1)
+// Now lives inside an inline section labeled "Validation Pipeline"
+// ─────────────────────────────────────────────────────────────────────────
+function ValidationPipelineSection({ result }) {
+  const [open, setOpen] = useState(result.validationLevelsRequired > 1);
+  if (result.validationLevelsRequired <= 1) return null;
+  const levels = [];
+  for (let i = 1; i <= result.validationLevelsRequired; i++) {
+    const histEntry = (result.validationHistory || []).find(h => h.level === i);
+    levels.push({ number: i, completed: !!histEntry, history: histEntry });
+  }
   return (
-    <div className="mx-6 bg-white rounded-b-lg border border-gray-200 overflow-hidden mb-1">
-      <div className="flex border-b border-gray-200">
-        {tabs.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === tab.id ? "text-teal-700 border-b-2 border-teal-600 bg-teal-50/30" : "text-gray-500 hover:text-gray-700"}`}>
-            {tab.label}
-          </button>
-        ))}
-      </div>
-      <div className="p-4">
-        {activeTab === "method" && (
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Analyzer</div>
-              <div className="text-gray-800">{result.analyzer}</div>
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Method</div>
-              <div className="text-gray-800">Automated counting / Impedance</div>
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Reagent Lot / Expiry</div>
-              <div className="text-gray-800">Lot 2026-A45 · Exp 08/2026</div>
-            </div>
-          </div>
-        )}
-        {activeTab === "orderInfo" && (
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{t("label.validation.orderInfo.clinician", "Ordering Clinician")}</div>
-              <div className="text-gray-800">{result.orderInfo?.clinician || "—"}</div>
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{t("label.validation.orderInfo.date", "Order Date")}</div>
-              <div className="text-gray-800">{result.orderInfo?.orderDate || "—"}</div>
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{t("label.validation.orderInfo.priority", "Priority")}</div>
-              <div className="text-gray-800">
-                {result.orderInfo?.priority === "Stat" ? (
-                  <span className="text-xs font-bold px-2 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">{result.orderInfo.priority}</span>
-                ) : (
-                  result.orderInfo?.priority || "—"
+    <div className="border-b border-gray-200">
+      <SectionHeader
+        label={<><ShieldCheck className="w-4 h-4 inline mr-1.5 text-teal-600" />Validation Pipeline</>}
+        open={open} onToggle={() => setOpen(o => !o)}
+        badge={<span className="text-xs text-teal-700 font-medium">Level {result.validationLevelCurrent}/{result.validationLevelsRequired}</span>}
+      />
+      {open && (
+        <div className="px-4 py-3 bg-white">
+          <div className="space-y-2">
+            {levels.map(level => (
+              <div key={level.number} className="flex items-center gap-3">
+                {level.completed
+                  ? <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                  : level.number === result.validationLevelCurrent
+                    ? <CircleDot className="w-5 h-5 text-teal-500 flex-shrink-0" />
+                    : <Circle className="w-5 h-5 text-gray-300 flex-shrink-0" />}
+                <div className={`flex-1 text-sm ${level.completed ? "text-gray-600" : level.number === result.validationLevelCurrent ? "text-teal-700 font-medium" : "text-gray-400"}`}>
+                  <span className="font-medium">Level {level.number}</span>
+                  {level.completed && level.history && (
+                    <span className="text-gray-500"> — {level.history.role} · {level.history.validatedBy} on {level.history.validatedAt}</span>
+                  )}
+                  {!level.completed && level.number === result.validationLevelCurrent && (
+                    <span className="text-teal-600"> — Awaiting your validation</span>
+                  )}
+                  {!level.completed && level.number > result.validationLevelCurrent && (
+                    <span className="text-gray-400"> — Pending</span>
+                  )}
+                </div>
+                {level.number === result.validationLevelsRequired && (
+                  <Tag kind="teal">Releases</Tag>
                 )}
               </div>
-            </div>
-            <div className="col-span-2">
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{t("label.validation.orderInfo.clinicalNotes", "Clinical Notes")}</div>
-              <div className="text-gray-800">{result.orderInfo?.clinicalNotes || "—"}</div>
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{t("label.validation.orderInfo.collection", "Specimen Collection")}</div>
-              <div className="text-gray-800">{result.orderInfo?.collection || "—"}</div>
-            </div>
+            ))}
           </div>
-        )}
-        {activeTab === "attachments" && (
-          <div>
-            {(result.attachments || []).length === 0 ? (
-              <div className="text-sm text-gray-400 italic">{t("label.validation.attachments.empty", "No attachments.")}</div>
-            ) : (
-              <div className="space-y-2">
-                {result.attachments.map(att => (
-                  <div key={att.id} className="flex items-center gap-3 p-2 rounded border border-gray-100 hover:bg-gray-50">
-                    <FileText className="w-4 h-4 text-gray-400" />
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-800">{att.name}</div>
-                      <div className="text-xs text-gray-400">{att.size} · {att.date}</div>
-                    </div>
-                    <button className="text-xs text-teal-600 hover:text-teal-700 font-medium">View</button>
-                  </div>
-                ))}
-              </div>
-            )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// E-Signature Modal (release-only — Part 11)
+// ─────────────────────────────────────────────────────────────────────────
+function ESignatureModal({ open, onSign, onCancel, batch }) {
+  const [password, setPassword] = useState("");
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 z-40 flex items-center justify-center">
+      <div className="bg-white p-5 w-96 shadow-xl border border-gray-200">
+        <div className="flex items-center gap-2 mb-3">
+          <Lock className="w-5 h-5 text-teal-700" />
+          <h3 className="text-base font-semibold text-gray-900">E-Signature Required — Result Release</h3>
+        </div>
+        <p className="text-xs text-gray-600 mb-3">
+          You are about to release <strong>{batch.count}</strong> result(s) for <span className="font-mono">{batch.context}</span>.
+          Per lab policy, validations that release results to clinicians must be e-signed (Part 11 §11.50, ISO 15189 §7.5.1.2).
+        </p>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Password</label>
+        <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+          autoComplete="current-password"
+          className="w-full border border-gray-300 text-sm py-1.5 px-2 mb-3"
+          placeholder="Enter your password to sign" />
+        <p className="text-xs text-gray-400 mb-3">Meaning: APPROVED · Record type: RESULT_VALIDATION</p>
+        <div className="flex justify-end gap-2">
+          <button onClick={onCancel} className="px-3 py-1.5 border border-gray-300 text-xs text-gray-600 hover:bg-gray-100">Cancel</button>
+          <button onClick={() => { onSign(); setPassword(""); }} disabled={!password}
+            className={`px-3 py-1.5 text-xs font-medium ${password ? "bg-teal-700 text-white hover:bg-teal-800" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}>
+            Sign &amp; Release
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Polymorphic Result display — D/M dictionary resolution
+// ─────────────────────────────────────────────────────────────────────────
+function renderResultValue(result) {
+  if (!result.result) return <span className="text-gray-300">—</span>;
+  if (result.resultType === "D") {
+    const opt = result.dictionaryOptions?.find(o => o.id === result.result);
+    return <span className="font-medium">{opt?.label || result.result}</span>;
+  }
+  if (result.resultType === "M") {
+    const ids = (result.result || "").split(",").filter(Boolean);
+    const labels = ids.map(id => result.dictionaryOptions?.find(o => o.id === id)?.label || id);
+    return <span className="font-medium">{labels.join(", ")}</span>;
+  }
+  return <span className="font-mono">{result.result}</span>;
+}
+
+function renderCurrentResult(result) {
+  if (!result.currentResult) return <span className="text-xs text-gray-300">—</span>;
+  if (result.resultType === "D") {
+    const opt = result.dictionaryOptions?.find(o => o.id === result.currentResult);
+    return <span className="text-xs text-gray-500">{opt?.label || result.currentResult}</span>;
+  }
+  if (result.resultType === "M") {
+    const ids = (result.currentResult || "").split(",").filter(Boolean);
+    const labels = ids.map(id => result.dictionaryOptions?.find(o => o.id === id)?.label || id);
+    return <span className="text-xs text-gray-500">{labels.join(", ") || "—"}</span>;
+  }
+  return <span className="text-xs text-gray-500 font-mono">{result.currentResult} {result.unit}</span>;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Expanded Panel — primary action block at top + inline sections + tabs
+// ─────────────────────────────────────────────────────────────────────────
+const PANEL_TABS = [
+  { key: "qaqc", label: "QA/QC", Icon: Shield },
+  { key: "history", label: "History", Icon: History },
+];
+
+function ExpandedPanel({ result, onValidate, onReject, onRetest, onAddNote, onBackfillCriticalNotification, requireESigOnRelease = true }) {
+  const [activeTab, setActiveTab] = useState("qaqc");
+  const [showRejectForm, setShowRejectForm] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [showRetestForm, setShowRetestForm] = useState(false);
+  const [retestReason, setRetestReason] = useState("");
+
+  const isCriticalTier = evaluateResult(result.result, result.rangeBounds) === "critical";
+  const isInvalidTier  = evaluateResult(result.result, result.rangeBounds) === "invalid";
+  const isFinal        = result.validationLevelCurrent >= result.validationLevelsRequired;
+  const hasCriticalNotification = !!result.criticalNotificationRecord;
+  // BR-V3-002: e-sig only gated on RELEASE (final-level validate)
+  const releaseRequiresESig = isFinal && requireESigOnRelease;
+
+  // BR-V3-003: missing critical notification on critical result blocks Validate
+  const blockedByMissingNotification = isCriticalTier && !hasCriticalNotification;
+
+  const validateLabel = isFinal ? "Validate & Release" : `Validate (Lv ${result.validationLevelCurrent}/${result.validationLevelsRequired}) — Advance`;
+  const validateTooltip = blockedByMissingNotification
+    ? "Cannot release a critical result without a CLSI GP47 notification record. Use 'Log Notification Now' above or Reject for re-notification."
+    : releaseRequiresESig ? "Validate will prompt for e-signature before release."
+    : "Validate without e-sig (intermediate level).";
+
+  return (
+    <div className="border-t border-gray-200">
+      {/* Patient banner */}
+      <div className="flex flex-wrap items-center gap-4 px-4 py-2 bg-gray-100 border-b border-gray-200 text-sm">
+        <PatientAvatar patient={result.patient} size={36} />
+        <span className="font-semibold text-gray-900">{result.patient.name}</span>
+        <span className="text-gray-400 text-xs">ID: <strong className="text-gray-700">{result.patient.id}</strong></span>
+        {result.patient.nationalId && <span className="text-gray-400 text-xs">Nat'l ID: <strong className="text-gray-700">{result.patient.nationalId}</strong></span>}
+        <span className="text-gray-400 text-xs">DOB: <strong className="text-gray-700">{result.patient.dob}</strong></span>
+        <span className="text-gray-400 text-xs">Sex: <strong className="text-gray-700">{result.patient.sex}</strong></span>
+        <span className="text-gray-400 text-xs">Age: <strong className="text-gray-700">{result.patient.age}</strong></span>
+        {result.orderInfo?.clinician && <span className="text-gray-400 text-xs">Clinician: <strong className="text-gray-700">{result.orderInfo.clinician}</strong></span>}
+        {result.orderInfo?.priority === "STAT" && <Tag kind="red">STAT</Tag>}
+      </div>
+
+      {/* Program banner */}
+      {result.program && (
+        <div className={`flex items-center justify-between px-4 py-2 border-b text-xs ${
+          result.program.priority === "CRITICAL" ? "bg-red-50 border-red-200" :
+          result.program.priority === "URGENT"   ? "bg-amber-50 border-amber-200" :
+                                                   "bg-purple-50 border-purple-200"
+        }`}>
+          <div className="flex items-center gap-2">
+            <Shield className={`w-3.5 h-3.5 ${
+              result.program.priority === "CRITICAL" ? "text-red-600" :
+              result.program.priority === "URGENT"   ? "text-amber-600" :
+                                                       "text-purple-600"
+            }`} />
+            <Tag kind={result.program.priority === "URGENT" ? "amber" : result.program.priority === "CRITICAL" ? "red" : "purple"}>
+              EQA — {result.program.priority === "URGENT" ? "Urgent" : result.program.priority === "CRITICAL" ? "Critical" : "Standard"}
+            </Tag>
+            <span className="text-gray-700 font-semibold">{result.program.name}</span>
+            {result.program.dueDate && <span className="text-gray-500">Due: {result.program.dueDate}</span>}
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Modification History banner */}
+      <ModificationHistoryBanner history={result.modificationHistory} />
+
+      {/* Critical Notification Display */}
+      <CriticalNotificationDisplay
+        record={result.criticalNotificationRecord}
+        isCritical={isCriticalTier}
+        onBackfill={() => onBackfillCriticalNotification?.(result.id)}
+        onRejectForReNotification={() => { setShowRejectForm(true); setRejectReason("No CLSI GP47 notification record on file. Re-enter and capture notification before re-validation."); }}
+      />
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          PRIMARY ACTION BLOCK (H1 parity) — action bar at top
+          ═══════════════════════════════════════════════════════════════════ */}
+      <div className="flex flex-wrap items-end gap-4 px-4 py-3 bg-white border-b-2 border-teal-600 shadow-sm">
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Result Value (Read-only)</div>
+          <div className="flex items-baseline gap-2">
+            <span className={`text-base font-bold ${
+              isInvalidTier ? "text-red-900" :
+              isCriticalTier ? "text-orange-900" :
+              result.flags?.includes("above-normal") || result.flags?.includes("below-normal") ? "text-yellow-900" :
+              "text-gray-900"
+            }`}>
+              {renderResultValue(result)}
+            </span>
+            <span className="text-xs text-gray-500">{result.unit}</span>
+            {isCriticalTier && <Tag kind="red">Critical</Tag>}
+            {isInvalidTier && <Tag kind="red">Invalid</Tag>}
+            {result.flags?.includes("above-normal") && <span className="text-red-600 font-bold text-xs">H</span>}
+            {result.flags?.includes("below-normal") && <span className="text-blue-600 font-bold text-xs">L</span>}
+            {result.flags?.includes("delta-check") && <span className="text-amber-600 font-bold text-xs" title="Delta check exceeded">Δ</span>}
+          </div>
+        </div>
+
+        <div className="text-xs text-gray-500 flex items-center flex-wrap gap-2">
+          <span>Ref: <span className="font-mono text-gray-800">{result.rangeText} {result.unit}</span></span>
+          {/* BR-V3-005: demographic-aware range Tag */}
+          {result.selectedRangeLabel && (
+            <Tag kind="purple" title="Reference range selected based on patient demographics at sample collection date (CLSI EP28-A3c).">
+              Range: {result.selectedRangeLabel}
+            </Tag>
+          )}
+          {result.testCode && <span className="text-gray-400 font-mono text-xs">{result.testCode}</span>}
+        </div>
+
+        <div className="flex gap-2 ml-auto flex-wrap items-center">
+          {/* Retest */}
+          <button onClick={() => setShowRetestForm(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-amber-400 text-amber-700 text-xs font-medium hover:bg-amber-50">
+            <RotateCcw className="w-3.5 h-3.5" />
+            Request Retest
+          </button>
+
+          {/* Reject */}
+          <button onClick={() => setShowRejectForm(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-red-400 text-red-700 text-xs font-medium hover:bg-red-50">
+            <XCircle className="w-3.5 h-3.5" />
+            Reject
+          </button>
+
+          {/* Validate (primary) */}
+          <button
+            onClick={() => !blockedByMissingNotification && onValidate?.(result.id, releaseRequiresESig)}
+            disabled={blockedByMissingNotification}
+            title={validateTooltip}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+              blockedByMissingNotification ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+              : isFinal ? "bg-teal-700 text-white hover:bg-teal-800"
+              : "border border-teal-600 text-teal-700 hover:bg-teal-50"
+            }`}>
+            {isFinal && releaseRequiresESig ? <KeyRound className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
+            {validateLabel}
+          </button>
+        </div>
+      </div>
+
+      {/* Reject inline form */}
+      {showRejectForm && (
+        <div className="px-4 py-3 bg-red-50 border-b border-red-200">
+          <label className="block text-xs font-semibold text-red-900 mb-1">
+            Reject Reason <span className="text-red-700">*</span>
+            <span className="font-normal text-gray-500 ml-1">(required — sends result back to Pending; tech re-enters)</span>
+          </label>
+          <textarea rows={2} value={rejectReason} onChange={e => setRejectReason(e.target.value)}
+            placeholder="Why are you rejecting this result?"
+            className="w-full border border-gray-300 text-xs p-2 focus:outline-none focus:ring-1 focus:ring-red-600 resize-none" />
+          <div className="flex gap-2 mt-2">
+            <button onClick={() => { if (rejectReason.trim()) { onReject?.(result.id, rejectReason); setShowRejectForm(false); } }}
+              className="px-3 py-1.5 bg-red-700 text-white text-xs font-medium hover:bg-red-800">
+              Confirm Reject
+            </button>
+            <button onClick={() => setShowRejectForm(false)}
+              className="px-3 py-1.5 border border-gray-300 text-xs text-gray-600 hover:bg-gray-100">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Retest inline form */}
+      {showRetestForm && (
+        <div className="px-4 py-3 bg-amber-50 border-b border-amber-200">
+          <label className="block text-xs font-semibold text-amber-900 mb-1">
+            Retest Reason <span className="text-red-700">*</span>
+            <span className="font-normal text-gray-500 ml-1">(creates a retest order; pipeline restarts at Level 1)</span>
+          </label>
+          <textarea rows={2} value={retestReason} onChange={e => setRetestReason(e.target.value)}
+            placeholder="Why is a retest needed?"
+            className="w-full border border-gray-300 text-xs p-2 focus:outline-none focus:ring-1 focus:ring-amber-600 resize-none" />
+          <div className="flex gap-2 mt-2">
+            <button onClick={() => { if (retestReason.trim()) { onRetest?.(result.id, retestReason); setShowRetestForm(false); } }}
+              className="px-3 py-1.5 bg-amber-600 text-white text-xs font-medium hover:bg-amber-700">
+              Confirm Retest
+            </button>
+            <button onClick={() => setShowRetestForm(false)}
+              className="px-3 py-1.5 border border-gray-300 text-xs text-gray-600 hover:bg-gray-100">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Invalid range warning */}
+      {isInvalidTier && (
+        <div className="flex items-start gap-3 px-4 py-3 bg-red-50 border-b border-red-300">
+          <AlertCircle className="w-4 h-4 text-red-700 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 text-red-900 text-xs">
+            <span className="font-semibold">Result outside physiologically valid range</span> —
+            this value is outside the test's configured valid range. Verify before releasing.
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          SECONDARY CONTEXT — inline sections (smart default-open per H2)
+          ═══════════════════════════════════════════════════════════════════ */}
+      <ValidationPipelineSection result={result} />
+      <NotesSection result={result} onAddNote={(body) => onAddNote?.(result.id, body)} />
+      <InterpretationSection interpretation={result.interpretation} />
+      <MethodSection method={result.method} />
+      <OrderInfoSection orderInfo={result.orderInfo} />
+      <ProgramInfoSection program={result.program} programFields={result.programFields} />
+      <StorageSection storage={result.storage} />
+      <AliquotsSection aliquots={result.aliquots} />
+      <ReferralSection referral={result.referral} />
+      <AttachmentsSection attachments={result.attachments} />
+
+      {/* Tabs — QA/QC + History only */}
+      <div className="bg-gray-50 border-b border-gray-200">
+        <div className="flex overflow-x-auto">
+          {PANEL_TABS.map(({ key, label, Icon }) => (
+            <button key={key} onClick={() => setActiveTab(key)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-xs whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === key
+                  ? "border-teal-700 text-teal-700 font-semibold bg-white"
+                  : "border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+              }`}>
+              <Icon className="w-3.5 h-3.5" />
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-gray-50 p-4">
         {activeTab === "qaqc" && (
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">QC Status</div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">QC Status</div>
               <div className={`inline-flex items-center gap-1 text-sm font-medium ${result.qcStatus === "pass" ? "text-emerald-700" : "text-red-700"}`}>
                 <div className={`w-2.5 h-2.5 rounded-full ${result.qcStatus === "pass" ? "bg-emerald-400" : "bg-red-400"}`} />
                 {result.qcStatus === "pass" ? "Passed" : "Failed"}
               </div>
             </div>
             <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Control Values</div>
-              <div className="text-gray-800">L1: 4.85 (4.5-5.2) · L2: 9.10 (8.5-9.8)</div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">Control Values</div>
+              <div className="text-gray-800">L1: 4.85 (4.5–5.2) · L2: 9.10 (8.5–9.8)</div>
             </div>
             <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Last QC Run</div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">Last QC Run</div>
               <div className="text-gray-800">02/26/2026 08:00</div>
             </div>
           </div>
         )}
         {activeTab === "history" && (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left text-xs font-semibold text-gray-500 uppercase py-2 pr-4">Date</th>
-                <th className="text-left text-xs font-semibold text-gray-500 uppercase py-2 pr-4">Result</th>
-                <th className="text-left text-xs font-semibold text-gray-500 uppercase py-2 pr-4">Unit</th>
-                <th className="text-left text-xs font-semibold text-gray-500 uppercase py-2 pr-4">Delta</th>
-                <th className="text-left text-xs font-semibold text-gray-500 uppercase py-2">Validated By</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-600">
-              <tr className="border-b border-gray-50">
-                <td className="py-2 pr-4">02/26/2026</td>
-                <td className={`py-2 pr-4 font-bold ${!result.isNormal ? "text-orange-600" : "text-gray-800"}`}>{result.result}</td>
-                <td className="py-2 pr-4">{result.unit}</td>
-                <td className="py-2 pr-4">{result.flags?.includes("delta-check") ? <span className="text-red-500 font-medium">-27.7%</span> : "—"}</td>
-                <td className="py-2 italic text-gray-400">Awaiting</td>
-              </tr>
-              <tr className="border-b border-gray-50">
-                <td className="py-2 pr-4">02/20/2026</td>
-                <td className="py-2 pr-4 font-medium">14.1</td>
-                <td className="py-2 pr-4">{result.unit}</td>
-                <td className="py-2 pr-4">—</td>
-                <td className="py-2">Dr. Williams (Level 1), Dr. Adams (Level 2)</td>
-              </tr>
-              <tr>
-                <td className="py-2 pr-4">02/12/2026</td>
-                <td className="py-2 pr-4 font-medium">14.5</td>
-                <td className="py-2 pr-4">{result.unit}</td>
-                <td className="py-2 pr-4">+2.8%</td>
-                <td className="py-2">Dr. Williams (Level 1), Dr. Adams (Level 2)</td>
-              </tr>
-            </tbody>
-          </table>
-        )}
-        {activeTab === "referral" && (
-          <div className="text-sm text-gray-400 italic">{result.referral ? `Referred to ${result.referral.lab} on ${result.referral.date} — Status: ${result.referral.status}` : t("label.validation.referral.empty", "No referral information.")}</div>
+          <div className="text-sm text-gray-500">
+            Previous results for this patient and test would appear here, with delta computation
+            and prior validator names. (Demo content omitted for preview compactness.)
+          </div>
         )}
       </div>
     </div>
   );
-};
+}
 
+// ─────────────────────────────────────────────────────────────────────────
+// Toast banner
+// ─────────────────────────────────────────────────────────────────────────
+function ToastBanner({ toasts, onClose }) {
+  if (!toasts.length) return null;
+  return (
+    <div className="fixed top-4 right-4 z-50 space-y-2 max-w-md w-full">
+      {toasts.map(t => (
+        <div key={t.id} className={`flex items-start gap-3 p-3 shadow-lg border-l-4 text-sm ${
+          t.kind === "success" ? "bg-green-50 border-green-500" :
+          t.kind === "error" ? "bg-red-50 border-red-500" :
+          t.kind === "warning" ? "bg-amber-50 border-amber-500" :
+          "bg-blue-50 border-blue-500"
+        }`}>
+          <div className="flex-1 text-gray-800">{t.message}</div>
+          <button onClick={() => onClose(t.id)} className="text-gray-400 hover:text-gray-700">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-// ═══════════════════════════════════════════
-// COMPONENT: Validation Page (Updated v2.1)
-// ═══════════════════════════════════════════
-const ValidationPage = () => {
-  const [hasSearched, setHasSearched] = useState(true);
+// ─────────────────────────────────────────────────────────────────────────
+// Main Validation Page
+// ─────────────────────────────────────────────────────────────────────────
+function ValidationPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLabUnit, setSelectedLabUnit] = useState("lu-hem");
-  const [selectedRows, setSelectedRows] = useState(new Set());
-  const [expandedRow, setExpandedRow] = useState("r5");
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [labUnit, setLabUnit] = useState("");
+  const [statusFilter, setStatusFilter] = useState("awaiting-validation");
   const [showAutoValidated, setShowAutoValidated] = useState(false);
-  const [showRetestModal, setShowRetestModal] = useState(false);
-  const [retestReason, setRetestReason] = useState("");
+  const [showStat, setShowStat] = useState(false);
+  const [expandedId, setExpandedId] = useState("r2");
+  const [selectedRows, setSelectedRows] = useState(new Set());
+  const [toasts, setToasts] = useState([]);
+  const [esigOpen, setEsigOpen] = useState(false);
+  const [esigPayload, setEsigPayload] = useState(null);
+  // Site config simulation toggles
+  const [showPatientNames, setShowPatientNames] = useState(false);
+  const [userHasPatientPerm, setUserHasPatientPerm] = useState(true);
+  const [requireESigOnRelease, setRequireESigOnRelease] = useState(true);
+  const [workplanSource, setWorkplanSource] = useState(null);
+  const [serverPage, setServerPage] = useState({ current: 1, total: 1 });
 
-  const displayedResults = useMemo(() => {
-    let results = MOCK_RESULTS.filter(r => !r.isAutoValidated || showAutoValidated);
-    return results;
-  }, [showAutoValidated]);
+  // PII precedence (matches Results Entry BR-026)
+  const shouldShowName = showPatientNames;
+  const shouldMaskPII = !showPatientNames && !userHasPatientPerm;
 
-  const normalCount = displayedResults.filter(r => r.isNormal && !r.isAutoValidated).length;
-  const abnormalCount = displayedResults.filter(r => !r.isNormal && !r.isAutoValidated).length;
-  const flaggedCount = displayedResults.filter(r => r.flags?.includes("delta-check")).length;
-  const autoCount = MOCK_RESULTS.filter(r => r.isAutoValidated).length;
+  const addToast = (message, kind = "success") => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, message, kind }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 6000);
+  };
 
-  const toggleRow = (id) => {
+  const displayed = useMemo(() => MOCK_RESULTS.filter(r => {
+    if (!showAutoValidated && r.isAutoValidated) return false;
+    if (showStat && r.orderInfo?.priority !== "STAT") return false;
+    if (statusFilter === "released" && r.status !== "released") return false;
+    return true;
+  }), [showAutoValidated, showStat, statusFilter]);
+
+  const handleValidate = (resultId, requiresESig) => {
+    if (requiresESig) {
+      const r = MOCK_RESULTS.find(x => x.id === resultId);
+      setEsigPayload({ resultIds: [resultId], count: 1, context: r?.labNumber });
+      setEsigOpen(true);
+    } else {
+      addToast("Result advanced to next validation level.", "success");
+      setExpandedId(null);
+    }
+  };
+
+  const handleEsigSigned = () => {
+    const count = esigPayload?.count || 0;
+    addToast(`${count} result(s) released to clinician — e-signed.`, "success");
+    setEsigOpen(false);
+    setExpandedId(null);
+    setEsigPayload(null);
+  };
+
+  const handleReject = (resultId, reason) => {
+    addToast(`Result rejected — sent back to Pending. Reason logged: "${reason.slice(0, 50)}${reason.length > 50 ? '…' : ''}"`, "warning");
+    setExpandedId(null);
+  };
+
+  const handleRetest = (resultId, reason) => {
+    addToast(`Retest order created. Pipeline restarts at Level 1 when retest result lands.`, "warning");
+    setExpandedId(null);
+  };
+
+  const handleAddNote = (resultId, body) => {
+    addToast("Validation note saved.", "success");
+  };
+
+  const handleBackfillCriticalNotification = (resultId) => {
+    addToast("Opening Critical Notification Form for backfill — full GP47 form would appear here (audited as CRITICAL_NOTIFICATION_LOGGED_BY_VALIDATOR).", "warning");
+  };
+
+  const toggleSelect = (id) => {
     const next = new Set(selectedRows);
-    next.has(id) ? next.delete(id) : next.add(id);
+    if (next.has(id)) next.delete(id); else next.add(id);
     setSelectedRows(next);
   };
 
-  const toggleAll = () => {
-    if (selectedRows.size === displayedResults.filter(r => !r.isAutoValidated).length) {
-      setSelectedRows(new Set());
+  const selectedBatch = displayed.filter(r => selectedRows.has(r.id) && !r.isAutoValidated);
+  const willRelease = selectedBatch.filter(r => r.validationLevelCurrent >= r.validationLevelsRequired);
+  const willAdvance = selectedBatch.filter(r => r.validationLevelCurrent < r.validationLevelsRequired);
+  const batchLabel = selectedBatch.length === 0 ? "Validate Selected"
+    : willRelease.length === selectedBatch.length ? `Validate & Release Selected (${selectedBatch.length})`
+    : willAdvance.length === selectedBatch.length ? `Validate Selected (${selectedBatch.length}) — advance`
+    : `Validate Selected (${selectedBatch.length}) — ${willRelease.length} release, ${willAdvance.length} advance`;
+
+  const handleBatchValidate = () => {
+    if (willRelease.length > 0 && requireESigOnRelease) {
+      setEsigPayload({ resultIds: selectedBatch.map(r => r.id), count: selectedBatch.length, context: `${selectedBatch.length} accessions` });
+      setEsigOpen(true);
     } else {
-      setSelectedRows(new Set(displayedResults.filter(r => !r.isAutoValidated).map(r => r.id)));
+      addToast(`${selectedBatch.length} result(s) validated — ${willRelease.length} released, ${willAdvance.length} advanced.`, "success");
+      setSelectedRows(new Set());
     }
   };
 
-  const selectNormal = () => {
-    setSelectedRows(new Set(displayedResults.filter(r => r.isNormal && !r.isAutoValidated).map(r => r.id)));
-  };
-
-  const getSelectedBatchLabel = () => {
-    const selected = displayedResults.filter(r => selectedRows.has(r.id));
-    const willRelease = selected.filter(r => r.validationLevelCurrent >= r.validationLevelsRequired);
-    const willAdvance = selected.filter(r => r.validationLevelCurrent < r.validationLevelsRequired);
-    if (willRelease.length === selected.length) return t("label.validation.batch.validateRelease") + ` (${selected.length})`;
-    if (willAdvance.length === selected.length) return `Validate Selected (${selected.length}) — advances to next level`;
-    return `Validate Selected (${selected.length}) — ${willRelease.length} will release, ${willAdvance.length} will advance`;
-  };
-
-  const getFlagIcon = (flag) => {
-    switch (flag) {
-      case "above-normal": return <TrendingUp className="w-4 h-4 text-orange-500" />;
-      case "below-normal": return <TrendingDown className="w-4 h-4 text-yellow-600" />;
-      case "delta-check": return <AlertTriangle className="w-4 h-4 text-red-500" />;
-      default: return null;
-    }
-  };
-
-  const ValidationProgressBadge = ({ result }) => {
-    if (result.validationLevelsRequired <= 1) return null;
-    return (
-      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200 font-medium">
-        <Layers className="w-3 h-3" />
-        {t("label.validation.progress", result.validationLevelCurrent, result.validationLevelsRequired)}
-      </span>
-    );
-  };
-
-  const ValidationProgressTimeline = ({ result }) => {
-    const levels = [];
-    for (let i = 1; i <= result.validationLevelsRequired; i++) {
-      const histEntry = result.validationHistory.find(h => h.level === i);
-      levels.push({ number: i, completed: !!histEntry, history: histEntry });
-    }
-    return (
-      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-3">
-        <div className="flex items-center gap-2 mb-3">
-          <ShieldCheck className="w-4 h-4 text-teal-600" />
-          <span className="text-sm font-semibold text-gray-800">Validation Progress</span>
-        </div>
-        <div className="space-y-2">
-          {levels.map((level, idx) => (
-            <div key={idx} className="flex items-center gap-3">
-              {level.completed ? (
-                <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-              ) : level.number === result.validationLevelCurrent ? (
-                <CircleDot className="w-5 h-5 text-teal-500 flex-shrink-0" />
-              ) : (
-                <Circle className="w-5 h-5 text-gray-300 flex-shrink-0" />
-              )}
-              <div className={`flex-1 text-sm ${level.completed ? "text-gray-600" : level.number === result.validationLevelCurrent ? "text-teal-700 font-medium" : "text-gray-400"}`}>
-                <span className="font-medium">Level {level.number}</span>
-                {level.completed && level.history && (
-                  <span className="text-gray-500"> — {level.history.role} · {t("label.validation.progress.complete", level.history.validatedBy, level.history.validatedAt)}</span>
-                )}
-                {!level.completed && level.number === result.validationLevelCurrent && (
-                  <span className="text-teal-600"> — {t("label.validation.progress.awaitingYou")}</span>
-                )}
-                {!level.completed && level.number > result.validationLevelCurrent && (
-                  <span className="text-gray-400"> — {t("label.validation.progress.awaiting")}</span>
-                )}
-              </div>
-              {level.number === result.validationLevelsRequired && (
-                <span className="text-xs px-1.5 py-0.5 rounded bg-teal-50 text-teal-600 border border-teal-200 font-medium">Releases</span>
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500 flex items-center gap-1.5">
-          <Info className="w-3.5 h-3.5" />
-          Hematology requires 2 validations for all results
-        </div>
-      </div>
-    );
-  };
-
-  const ActionButton = ({ result }) => {
-    const isFinal = result.validationLevelCurrent >= result.validationLevelsRequired;
-    if (result.isAutoValidated) {
-      return (
-        <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-500 font-medium flex items-center gap-1">
-          <Bot className="w-3 h-3" />
-          {t("label.validation.autoValidated")}
-        </span>
-      );
-    }
-    return (
-      <div className="flex items-center gap-1.5">
-        <button onClick={() => setShowRetestModal(true)}
-          className="text-xs px-2.5 py-1.5 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 font-medium transition-colors">
-          {t("label.validation.action.retest")}
-        </button>
-        <button className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors ${
-          isFinal
-            ? "bg-teal-600 text-white hover:bg-teal-700 shadow-sm"
-            : "border border-teal-400 text-teal-700 hover:bg-teal-50"
-        }`}>
-          {isFinal
-            ? t("label.validation.action.validateRelease")
-            : t("label.validation.action.validate", result.validationLevelCurrent, result.validationLevelsRequired)
-          }
-        </button>
-      </div>
-    );
-  };
+  const TABLE_HEADERS = [
+    { key: "select", label: "" }, { key: "expand", label: "" },
+    { key: "samplePatient", label: "Sample / Patient" },
+    { key: "sex", label: "Sex" }, { key: "age", label: "Age (D-M-Y)" },
+    { key: "test", label: "Test" }, { key: "analyzer", label: "Analyzer" },
+    { key: "result", label: "Result" }, { key: "currentResult", label: "Current Result" },
+    { key: "range", label: "Range" }, { key: "status", label: "Status" },
+    { key: "flags", label: "Flags" }, { key: "validation", label: "Validation" },
+  ];
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <Shield className="w-6 h-6 text-teal-600" />
-            {t("label.validation.title")}
-          </h2>
-          <p className="text-sm text-gray-500 mt-0.5">{t("label.validation.subtitle")}</p>
-        </div>
-        <div className="bg-teal-50 border border-teal-200 rounded-lg px-4 py-2 text-right">
-          <div className="text-2xl font-bold text-teal-700">{displayedResults.filter(r => !r.isAutoValidated).length}</div>
-          <div className="text-xs text-teal-600">{t("label.validation.count")}</div>
-        </div>
+    <div className="min-h-screen bg-gray-100 font-sans text-sm">
+      <ToastBanner toasts={toasts} onClose={(id) => setToasts(prev => prev.filter(t => t.id !== id))} />
+      <ESignatureModal open={esigOpen} onSign={handleEsigSigned} onCancel={() => { setEsigOpen(false); setEsigPayload(null); }}
+        batch={esigPayload || { count: 0, context: "" }} />
+
+      {/* Preview banner */}
+      <div className="bg-teal-50 border-b-2 border-teal-600 px-4 py-2 flex flex-wrap items-center gap-3 text-xs">
+        <span className="text-teal-700 font-semibold">🎨 Preview v3 — Validation</span>
+        <span className="text-gray-500">— Parallel to Results Entry v3 architecture</span>
+        <span className="ml-auto flex flex-wrap items-center gap-3">
+          <span className="flex items-center gap-2 px-3 py-1 bg-white border border-teal-200 rounded text-gray-600">
+            <span className="font-semibold text-gray-500 uppercase tracking-wide text-xs">Site:</span>
+            <span className="text-gray-700">Show patient name</span>
+            <button onClick={() => setShowPatientNames(v => !v)}
+              className={`relative inline-flex h-4 w-8 cursor-pointer rounded-full ${showPatientNames ? "bg-teal-600" : "bg-gray-300"}`}>
+              <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow ${showPatientNames ? "translate-x-4" : "translate-x-0"}`} />
+            </button>
+          </span>
+          <span className="flex items-center gap-2 px-3 py-1 bg-white border border-teal-200 rounded text-gray-600">
+            <span className="font-semibold text-gray-500 uppercase tracking-wide text-xs">Role PII:</span>
+            <span className="text-gray-700">User has PatientResults perm</span>
+            <button onClick={() => setUserHasPatientPerm(v => !v)}
+              className={`relative inline-flex h-4 w-8 cursor-pointer rounded-full ${userHasPatientPerm ? "bg-green-600" : "bg-red-500"}`}>
+              <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow ${userHasPatientPerm ? "translate-x-4" : "translate-x-0"}`} />
+            </button>
+          </span>
+          <span className="flex items-center gap-2 px-3 py-1 bg-white border border-teal-200 rounded text-gray-600">
+            <span className="font-semibold text-gray-500 uppercase tracking-wide text-xs">E-Sig on release?</span>
+            <button onClick={() => setRequireESigOnRelease(v => !v)}
+              className={`relative inline-flex h-4 w-8 cursor-pointer rounded-full ${requireESigOnRelease ? "bg-teal-600" : "bg-gray-300"}`}>
+              <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow ${requireESigOnRelease ? "translate-x-4" : "translate-x-0"}`} />
+            </button>
+          </span>
+          <span className="flex items-center gap-2 px-3 py-1 bg-white border border-teal-200 rounded text-gray-600">
+            <span className="font-semibold text-gray-500 uppercase tracking-wide text-xs">Workplan?</span>
+            <button onClick={() => setWorkplanSource(v => v ? null : "WorkPlanByTest")}
+              className={`relative inline-flex h-4 w-8 cursor-pointer rounded-full ${workplanSource ? "bg-purple-600" : "bg-gray-300"}`}>
+              <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow ${workplanSource ? "translate-x-4" : "translate-x-0"}`} />
+            </button>
+          </span>
+        </span>
       </div>
 
-      {/* Config Info Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5 flex items-center gap-2 text-sm text-blue-800">
-        <Info className="w-4 h-4 flex-shrink-0" />
-        <span className="font-medium">Hematology:</span> 2 validation levels, All Results ·
-        <span className="font-medium ml-1">Chemistry:</span> 1 level, Abnormal Only
+      {/* Shell header */}
+      <div className="bg-gray-900 text-white px-4 py-3 flex items-center gap-2 text-sm">
+        <span className="text-teal-400 font-bold">OpenELIS Global</span>
+        <span className="text-gray-500">›</span>
+        <span>Home</span>
+        {workplanSource && (<>
+          <span className="text-gray-500">›</span>
+          <span>Workplan</span>
+        </>)}
+        <span className="text-gray-500">›</span>
+        <span>Validation</span>
       </div>
 
-      {/* Search Bar */}
-      <div className="flex items-center gap-3">
-        <div className="w-48">
-          <select value={selectedLabUnit} onChange={(e) => setSelectedLabUnit(e.target.value)}
-            className="w-full h-10 px-3 rounded-lg border border-gray-300 text-sm bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none">
+      {/* Page heading */}
+      <div className="bg-white border-b border-gray-200 px-4 py-5">
+        <h1 className="text-2xl font-light text-gray-900 flex items-center gap-2">
+          <Shield className="w-6 h-6 text-teal-600" />
+          Result Validation
+        </h1>
+        <p className="text-gray-500 text-xs mt-0.5">Review and validate results before release to the clinical chart</p>
+      </div>
+
+      {/* Toolbar */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex flex-wrap gap-3 items-end">
+        <div className="flex-1 min-w-52 relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <input type="text"
+            className="w-full pl-8 pr-3 py-2 border border-gray-400 bg-gray-50 text-sm focus:outline-none focus:ring-1 focus:ring-teal-600"
+            placeholder="Search by accession, patient, or test…"
+            value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+        </div>
+        <div className="min-w-44">
+          <div className="text-xs text-gray-500 mb-1">Lab Unit</div>
+          <select className="w-full border border-gray-400 bg-gray-50 text-sm py-2 px-2 focus:outline-none focus:ring-1 focus:ring-teal-600"
+            value={labUnit} onChange={(e) => setLabUnit(e.target.value)}>
             <option value="">All Lab Units</option>
             {LAB_UNITS.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
         </div>
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input type="text" placeholder="Search by lab number, patient ID, or test name..."
-            value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-10 pl-10 pr-4 rounded-lg border border-gray-300 text-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none" />
+        <div className="flex items-center gap-2 text-xs text-gray-500 ml-auto">
+          <button onClick={() => setServerPage(p => ({ ...p, current: Math.max(1, p.current-1) }))}
+            className="p-1 border border-gray-300 hover:bg-gray-100 disabled:opacity-40" disabled={serverPage.current === 1}>‹</button>
+          <span>Server page <strong className="text-gray-700">{serverPage.current}</strong> / {serverPage.total}</span>
+          <button onClick={() => setServerPage(p => ({ ...p, current: Math.min(p.total, p.current+1) }))}
+            className="p-1 border border-gray-300 hover:bg-gray-100 disabled:opacity-40" disabled={serverPage.current === serverPage.total}>›</button>
         </div>
-        <button onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-          className={`h-10 px-3 rounded-lg border text-sm font-medium flex items-center gap-1.5 transition-colors ${showAdvancedFilters ? "border-teal-400 bg-teal-50 text-teal-700" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
-          <Filter className="w-4 h-4" />
-          Filters
-        </button>
       </div>
 
-      {/* Quick Stats */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <span className="text-xs px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium cursor-pointer hover:bg-emerald-100 transition-colors">
-          Normal: {normalCount}
-        </span>
-        <span className="text-xs px-3 py-1.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200 font-medium cursor-pointer hover:bg-orange-100 transition-colors">
-          Abnormal: {abnormalCount}
-        </span>
-        <span className="text-xs px-3 py-1.5 rounded-full bg-red-50 text-red-700 border border-red-200 font-medium cursor-pointer hover:bg-red-100 transition-colors">
-          Flagged: {flaggedCount}
-        </span>
-        <div className="h-4 w-px bg-gray-300" />
-        <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer hover:text-gray-700 transition-colors">
-          <input type="checkbox" checked={showAutoValidated} onChange={() => setShowAutoValidated(!showAutoValidated)}
-            className="accent-teal-600 rounded" />
-          <Bot className="w-3.5 h-3.5" />
-          {t("label.validation.autoValidated.toggle")} ({autoCount})
+      {/* Filter chips + stats */}
+      <div className="bg-white border-b border-gray-200 px-4 py-2 flex flex-wrap gap-2 items-center">
+        <span className="text-xs text-gray-500 font-medium mr-1">Show:</span>
+        {[
+          { key: "awaiting-validation", label: "Awaiting Validation" },
+          { key: "released", label: "Released" },
+          { key: "all", label: "All" },
+        ].map(s => (
+          <button key={s.key} onClick={() => setStatusFilter(s.key)}
+            className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+              statusFilter === s.key ? "bg-gray-800 border-gray-800 font-semibold text-white"
+                                     : "border-gray-200 text-gray-500 hover:bg-gray-100"
+            }`}>{s.label}</button>
+        ))}
+        <button onClick={() => setShowStat(s => !s)}
+          className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+            showStat ? "bg-red-600 border-red-600 font-semibold text-white"
+                     : "border-gray-200 text-gray-500 hover:bg-gray-100"
+          }`}>STAT only</button>
+        <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer ml-3">
+          <input type="checkbox" checked={showAutoValidated} onChange={() => setShowAutoValidated(v => !v)} />
+          <Bot className="w-3.5 h-3.5" /> Show auto-validated
         </label>
+        <span className="ml-auto text-xs text-gray-400">{displayed.length} result{displayed.length !== 1 ? "s" : ""}</span>
       </div>
 
-      {/* Batch Actions */}
-      <div className="bg-white rounded-lg border border-gray-200 px-4 py-2.5 flex items-center gap-3">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={selectedRows.size > 0 && selectedRows.size === displayedResults.filter(r => !r.isAutoValidated).length}
-            onChange={toggleAll} className="accent-teal-600 rounded" />
-          <span className="text-sm text-gray-600">Select All</span>
-        </label>
-        <button onClick={selectNormal}
-          className="text-sm text-teal-700 hover:text-teal-800 font-medium transition-colors">
-          Select Normal ({normalCount})
-        </button>
-        <div className="h-4 w-px bg-gray-300" />
-        <span className="text-sm text-gray-500">{selectedRows.size} selected</span>
+      {/* Nonconforming legend */}
+      <div className="bg-orange-50 border-b border-orange-200 px-4 py-2 flex items-center gap-2 text-xs text-orange-900">
+        <AlertTriangle className="w-3.5 h-3.5 text-orange-600" />
+        = Sample or Order is nonconforming or Test has been rejected
+      </div>
+
+      {/* Batch action bar */}
+      <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-3">
+        <span className="text-xs text-gray-500">{selectedRows.size} selected</span>
         <div className="flex-1" />
-        <button disabled={selectedRows.size === 0} onClick={() => setShowRetestModal(true)}
-          className="text-sm px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 font-medium disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
-          Retest Selected
-        </button>
-        <button disabled={selectedRows.size === 0}
-          className="text-sm px-4 py-1.5 rounded-lg bg-teal-600 text-white font-medium hover:bg-teal-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-sm">
-          {selectedRows.size > 0 ? getSelectedBatchLabel() : "Validate Selected"}
+        <button onClick={handleBatchValidate} disabled={selectedBatch.length === 0}
+          className="px-4 py-1.5 bg-teal-700 text-white text-xs font-medium hover:bg-teal-800 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
+          {willRelease.length > 0 && requireESigOnRelease ? <KeyRound className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
+          {batchLabel}
         </button>
       </div>
 
       {/* Results Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <table className="w-full">
+      <div className="mx-4 mt-4 bg-white border border-gray-200 shadow-sm overflow-x-auto">
+        <table className="w-full border-collapse text-sm min-w-max">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="w-8 px-3 py-2.5"></th>
-              <th className="w-8 px-1 py-2.5"></th>
-              <th className="w-5 px-1 py-2.5"></th>
-              <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-3 py-2.5">Sample / Patient</th>
-              <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-3 py-2.5">Test</th>
-              <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-3 py-2.5">Analyzer</th>
-              <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-3 py-2.5">Range</th>
-              <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-3 py-2.5">Result</th>
-              <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-3 py-2.5">Level</th>
-              <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-3 py-2.5">Flags</th>
-              <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider px-3 py-2.5">Entered</th>
-              <th className="text-right text-xs font-semibold text-gray-600 uppercase tracking-wider px-3 py-2.5">Actions</th>
+            <tr className="bg-gray-100 border-b border-gray-300">
+              {TABLE_HEADERS.map(h => (
+                <th key={h.key} className="text-left px-3 py-3 text-xs font-semibold uppercase tracking-wide text-gray-600 whitespace-nowrap">{h.label}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {displayedResults.map((result) => {
-              const isExpanded = expandedRow === result.id;
-              const isSelected = selectedRows.has(result.id);
-
+            {displayed.map(result => {
+              const isExpanded = expandedId === result.id;
+              const isAuto = !!result.isAutoValidated;
+              const tier = evaluateResult(result.result, result.rangeBounds);
               return (
                 <Fragment key={result.id}>
-                  {/* Collapsed Row */}
-                  <tr className={`border-b border-gray-100 transition-colors cursor-pointer ${
-                    result.isAutoValidated ? "bg-gray-50/50 opacity-70" :
-                    isSelected ? "bg-teal-50/30" :
-                    !result.isNormal ? "hover:bg-orange-50/30" : "hover:bg-gray-50"
+                  <tr className={`border-b border-gray-100 transition-colors ${
+                    isExpanded ? "bg-teal-50" :
+                    isAuto ? "bg-gray-50 opacity-75" :
+                    "hover:bg-gray-50"
                   }`}>
-                    <td className="px-3 py-2.5">
-                      {!result.isAutoValidated && (() => {
-                        const hasOpenNce = result.nce && result.nce.status === "open";
-                        return hasOpenNce ? (
-                          <input type="checkbox" disabled title={t("label.validation.nce.cannotValidate", "Cannot validate — open NCE")}
-                            className="accent-gray-400 rounded cursor-not-allowed opacity-50" />
-                        ) : (
-                          <input type="checkbox" checked={isSelected} onChange={() => toggleRow(result.id)}
-                            className="accent-teal-600 rounded" />
-                        );
-                      })()}
-                    </td>
-                    <td className="px-1 py-2.5">
-                      <button onClick={() => setExpandedRow(isExpanded ? null : result.id)}>
-                        {isExpanded
-                          ? <ChevronDown className="w-4 h-4 text-gray-400" />
-                          : <ChevronRight className="w-4 h-4 text-gray-400" />}
-                      </button>
-                    </td>
-                    <td className="px-1 py-2.5">
-                      <div className={`w-2.5 h-2.5 rounded-full ${result.qcStatus === "pass" ? "bg-emerald-400" : "bg-red-400"}`}
-                        title={result.qcStatus === "pass" ? "QC Passed" : "QC Failed"} />
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <div className="text-sm font-mono font-medium text-gray-800">{result.labNumber}</div>
-                      <div className="text-xs text-gray-500">{result.patientId} · {result.sex}/{result.age}</div>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <div className="text-sm font-medium text-gray-800">{result.test}</div>
-                      <div className="text-xs text-gray-500">{result.sampleType}</div>
-                    </td>
-                    <td className="px-3 py-2.5 text-sm text-gray-600">{result.analyzer}</td>
-                    <td className="px-3 py-2.5">
-                      <div className="text-sm text-gray-600">{result.rangeText}</div>
-                      <div className="text-xs text-gray-400">{result.unit}</div>
-                    </td>
-                    <td className={`px-3 py-2.5 ${RANGE_CELL_BG[evaluateResult(result.result, result.rangeBounds)] || ""}`}>
-                      <span className={`text-sm font-bold ${RANGE_CELL_TEXT[evaluateResult(result.result, result.rangeBounds)] || "text-gray-800"}`}>
-                        {result.result}
-                      </span>
-                      {evaluateResult(result.result, result.rangeBounds) !== "normal" && (
-                        <span className={`ml-1.5 text-xs font-semibold px-1 py-0.5 rounded ${RANGE_FLAG_BADGE[evaluateResult(result.result, result.rangeBounds)] || ""}`}>
-                          {evaluateResult(result.result, result.rangeBounds) === "abnormal" ? (parseFloat(result.result) > (result.rangeBounds?.normal?.high || 0) ? "H" : "L") : evaluateResult(result.result, result.rangeBounds) === "critical" ? "C" : "!"}
-                        </span>
+                    <td className="px-3 py-3 w-10">
+                      {!isAuto && (
+                        <input type="checkbox" checked={selectedRows.has(result.id)}
+                          onChange={() => toggleSelect(result.id)} className="accent-teal-600" />
                       )}
                     </td>
-                    <td className="px-3 py-2.5">
-                      <ValidationProgressBadge result={result} />
+                    <td className="px-3 py-3 w-10">
+                      <button onClick={() => setExpandedId(isExpanded ? null : result.id)}
+                        className="p-1 hover:bg-gray-200 rounded">
+                        {isExpanded ? <ChevronDown className="w-4 h-4 text-teal-700" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
+                      </button>
                     </td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-1 flex-wrap">
-                        {result.flags?.map((f, i) => <span key={i}>{getFlagIcon(f)}</span>)}
-                        {result.nce && (
-                          <span className={`px-1.5 py-0.5 rounded border text-xs font-semibold tracking-wide ${result.nce.status === "open" ? "bg-teal-50 text-teal-700 border-teal-300" : "bg-gray-100 text-gray-500 border-gray-300"}`}
-                            title={`NCE ${result.nce.number} · ${result.nce.category} / ${result.nce.subcategory} · ${result.nce.severity} · ${result.nce.status}`}>
-                            NCE
-                          </span>
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <PatientAvatar patient={result.patient} size={28} />
+                        <div>
+                          <div className="flex items-center gap-1">
+                            <span className="font-mono text-xs text-gray-700">{result.labNumber}-{result.sequenceNumber}</span>
+                            <CopyButton text={`${result.labNumber}-${result.sequenceNumber}`} />
+                            {result.nonconforming && (
+                              <span title="Sample or order is nonconforming" className="ml-1 text-orange-600">
+                                <AlertTriangle className="w-3 h-3 inline" />
+                              </span>
+                            )}
+                          </div>
+                          {shouldMaskPII ? (
+                            <div className="text-xs text-gray-400 italic mt-0.5">— — —</div>
+                          ) : shouldShowName ? (
+                            <div className="text-xs font-medium text-gray-800 mt-0.5">{result.patient.name}</div>
+                          ) : (
+                            <div className="text-xs text-gray-500 mt-0.5">ID {result.patient.id}</div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 text-xs text-gray-600">{result.patient.sex}</td>
+                    <td className="px-3 py-3 text-xs text-gray-600">{result.patient.age}</td>
+                    <td className="px-3 py-3 max-w-48">
+                      <div className="font-medium text-gray-900">{result.test}</div>
+                      {result.testCode && <div className="text-xs text-gray-400 mt-0.5 font-mono">{result.testCode}</div>}
+                    </td>
+                    <td className="px-3 py-3 text-xs text-gray-600 whitespace-nowrap">{result.analyzer}</td>
+                    <td className={`px-3 py-3 ${RANGE_CELL_BG[tier] || ""}`}>
+                      <span className={`text-sm ${RANGE_CELL_TEXT[tier] || "text-gray-800"} ${tier !== "normal" ? "font-bold" : ""}`}>
+                        {renderResultValue(result)}
+                      </span>
+                      <span className="text-xs text-gray-400 ml-1">{result.unit}</span>
+                    </td>
+                    <td className="px-3 py-3 whitespace-nowrap">{renderCurrentResult(result)}</td>
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      <div className="text-xs font-mono text-gray-700">{result.rangeText}</div>
+                      {result.selectedRangeLabel && (
+                        <Tag kind="purple" title="Reference range selected based on patient demographics (CLSI EP28-A3c).">
+                          {result.selectedRangeLabel}
+                        </Tag>
+                      )}
+                    </td>
+                    <td className="px-3 py-3">
+                      {isAuto ? (
+                        <Tag kind="gray"><Bot className="w-3 h-3 inline mr-0.5" />Auto</Tag>
+                      ) : (
+                        <Tag kind="warm-gray">Awaiting Val.</Tag>
+                      )}
+                      {result.modificationHistory?.length > 0 && (
+                        <div className="mt-1">
+                          <Tag kind="warm-gray" title="This result has been modified — see History banner in expanded panel">
+                            <Pencil className="w-3 h-3 inline mr-0.5" />Modified
+                          </Tag>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      <div className="flex gap-1 items-center flex-wrap">
+                        {result.flags?.includes("above-normal") && <span className="text-red-600 font-bold text-xs">H</span>}
+                        {result.flags?.includes("below-normal") && <span className="text-blue-600 font-bold text-xs">L</span>}
+                        {result.flags?.includes("delta-check") && <span className="text-amber-600 font-bold text-xs" title="Delta check">Δ</span>}
+                        {tier === "critical" && <span className={`px-1 py-0.5 rounded text-xs font-bold ${RANGE_FLAG_BADGE.critical}`}>C</span>}
+                        {tier === "invalid" && <span className={`px-1 py-0.5 rounded text-xs font-bold ${RANGE_FLAG_BADGE.invalid}`}>!</span>}
+                        {result.nce && <Tag kind="teal" title={`NCE ${result.nce.number}`}>NCE</Tag>}
+                        {result.criticalNotificationRecord && (
+                          <Tag kind="green" title="CLSI GP47 notification logged at Results Entry">📞</Tag>
                         )}
-                        {(result.notes || []).length > 0 && (
-                          <span className="text-xs text-gray-400" title={`${result.notes.length} note(s)`}>
-                            <FileText className="w-3 h-3 inline" />
-                          </span>
+                        {tier === "critical" && !result.criticalNotificationRecord && (
+                          <Tag kind="red" title="Critical value WITHOUT notification record — backfill required">⚠</Tag>
                         )}
                       </div>
                     </td>
-                    <td className="px-3 py-2.5">
-                      <div className="text-xs text-gray-500">{result.enteredBy}</div>
-                      <div className="text-xs text-gray-400">{result.enteredAt}</div>
-                    </td>
-                    <td className="px-3 py-2.5 text-right">
-                      <ActionButton result={result} />
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      {result.validationLevelsRequired > 1 && (
+                        <Tag kind={result.validationLevelCurrent >= result.validationLevelsRequired ? "teal" : "blue"}
+                          title={`At Level ${result.validationLevelCurrent} of ${result.validationLevelsRequired}`}>
+                          {result.validationHistory?.length > 0 && <Check className="w-3 h-3 inline mr-0.5" />}
+                          Validation {result.validationLevelCurrent}/{result.validationLevelsRequired}
+                        </Tag>
+                      )}
                     </td>
                   </tr>
-
-                  {/* Expanded Row — Full Detail Panel (Enhancement E) */}
                   {isExpanded && (
-                    <tr>
-                      <td colSpan={12} className="bg-gray-50/50 border-b border-gray-200">
-                        {/* Patient Banner */}
-                        <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="w-9 h-9 rounded-full bg-teal-100 flex items-center justify-center">
-                              <User className="w-5 h-5 text-teal-600" />
-                            </div>
-                            <div>
-                              <div className="text-sm font-semibold text-gray-800">{result.patientName}</div>
-                              <div className="text-xs text-gray-500">DOB: {result.dob} · ID: {result.patientId} · {result.sex} / {result.age}</div>
-                            </div>
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Entered by <span className="font-medium">{result.enteredBy}</span> at {result.enteredAt}
-                          </div>
-                        </div>
-
-                        {/* Validation Progress Timeline */}
-                        {result.validationLevelsRequired > 1 && (
-                          <div className="px-6 py-2">
-                            <ValidationProgressTimeline result={result} />
-                          </div>
-                        )}
-
-                        {/* Delta Check Alert */}
-                        {result.flags?.includes("delta-check") && (
-                          <div className="mx-6 mt-2 bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2">
-                            <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                            <div>
-                              <div className="text-sm font-semibold text-red-800">{t("label.validation.deltaAlert", "Delta Check Alert")}</div>
-                              <div className="text-xs text-red-600">Previous: 14.1 g/dL (02/20/2026) · Change: -27.7% · Threshold: 20%</div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Range alert banners */}
-                        {evaluateResult(result.result, result.rangeBounds) === "critical" && (
-                          <div className="mx-6 mt-2 bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center gap-2">
-                            <AlertTriangle className="w-4 h-4 text-orange-600 flex-shrink-0" />
-                            <div>
-                              <div className="text-sm font-semibold text-orange-800">{t("label.validation.range.critical", "Critical Value")}</div>
-                              <div className="text-xs text-orange-700">Result is outside critical/panic range. Verify result and clinical significance.</div>
-                            </div>
-                          </div>
-                        )}
-                        {evaluateResult(result.result, result.rangeBounds) === "invalid" && (
-                          <div className="mx-6 mt-2 bg-red-900 border border-red-700 rounded-lg p-3 flex items-center gap-2">
-                            <AlertTriangle className="w-4 h-4 text-red-300 flex-shrink-0" />
-                            <div>
-                              <div className="text-sm font-semibold text-red-100">{t("label.validation.range.invalid", "Invalid Range")}</div>
-                              <div className="text-xs text-red-200">Result is outside valid physiological range. Recommend investigation and retest.</div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* ── Always-visible: Notes (view + add) ── */}
-                        <div className="mx-6 mt-3 bg-white rounded-t-lg border border-gray-200 border-b-0 overflow-hidden">
-                          <NotesSection notes={result.notes} />
-                        </div>
-
-                        {/* ── Always-visible: Interpretation (read-only) ── */}
-                        <div className="mx-6 bg-white border-x border-gray-200 overflow-hidden">
-                          <InterpretationSection interpretation={result.interpretation} />
-                        </div>
-
-                        {/* Result Summary & Info */}
-                        <div className="mx-6 bg-white border-x border-b border-gray-200 p-4">
-                          <div className="grid grid-cols-4 gap-4">
-                            <div>
-                              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">{t("label.validation.resultValue", "Result Value")}</label>
-                              <div className="flex items-center gap-2">
-                                <span className={`text-sm font-bold px-2 py-1 rounded ${RANGE_CELL_BG[evaluateResult(result.result, result.rangeBounds)] || "bg-gray-50"} ${RANGE_CELL_TEXT[evaluateResult(result.result, result.rangeBounds)] || "text-gray-800"}`}>
-                                  {result.result}
-                                </span>
-                                <span className="text-sm text-gray-500">{result.unit}</span>
-                                {evaluateResult(result.result, result.rangeBounds) === "abnormal" && <span className="text-xs font-semibold text-yellow-700 bg-yellow-100 px-1.5 py-0.5 rounded">{t("label.validation.range.abnormal", "Abnormal")}</span>}
-                                {evaluateResult(result.result, result.rangeBounds) === "critical" && <span className="text-xs font-semibold text-orange-900 bg-orange-100 px-1.5 py-0.5 rounded">{t("label.validation.range.critical", "Critical")}</span>}
-                                {evaluateResult(result.result, result.rangeBounds) === "invalid"  && <span className="text-xs font-semibold text-red-100 bg-red-800 px-1.5 py-0.5 rounded">{t("label.validation.range.invalid", "Invalid")}</span>}
-                              </div>
-                            </div>
-                            <div>
-                              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">{t("label.validation.normalRange", "Normal Range")}</label>
-                              <div className="text-sm text-gray-800 mt-2">{result.rangeText} {result.unit}</div>
-                            </div>
-                            <div>
-                              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">{t("label.validation.method", "Method / Analyzer")}</label>
-                              <div className="text-sm text-gray-800 mt-2">{result.analyzer}</div>
-                            </div>
-                            <div>
-                              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">{t("label.validation.labUnit", "Lab Unit")}</label>
-                              <div className="text-sm text-gray-800 mt-2">{result.labUnit}</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* ── Full 6-Tab Bar ── */}
-                        <ExpandedTabs result={result} />
-
-                        {/* Row Actions */}
-                        <div className="mx-6 mb-4 mt-3 flex items-center justify-between">
-                          <div className="text-xs text-gray-500">
-                            Lab #: {result.labNumber} · Test: {result.test}
-                          </div>
-                          <ActionButton result={result} />
-                        </div>
+                    <tr className="bg-gray-50">
+                      <td colSpan={TABLE_HEADERS.length} className="p-0">
+                        <ExpandedPanel result={result}
+                          onValidate={handleValidate}
+                          onReject={handleReject}
+                          onRetest={handleRetest}
+                          onAddNote={handleAddNote}
+                          onBackfillCriticalNotification={handleBackfillCriticalNotification}
+                          requireESigOnRelease={requireESigOnRelease} />
                       </td>
                     </tr>
                   )}
@@ -1312,145 +1621,56 @@ const ValidationPage = () => {
           </tbody>
         </table>
       </div>
-
-      {/* Pagination */}
-      <div className="flex items-center justify-between text-sm text-gray-500">
-        <div>Showing 1–{displayedResults.length} of {displayedResults.length} results</div>
-        <div className="flex items-center gap-1">
-          <button className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-30" disabled>
-            <ChevronsLeft className="w-4 h-4" />
-          </button>
-          <button className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-30" disabled>
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button className="w-8 h-8 rounded-lg bg-teal-600 text-white font-medium text-sm">1</button>
-          <button className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50">
-            <ChevronRight className="w-4 h-4" />
-          </button>
-          <button className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50">
-            <ChevronsRight className="w-4 h-4" />
-          </button>
-          <select className="ml-2 h-8 px-2 rounded-lg border border-gray-200 text-sm">
-            <option>25 / page</option>
-            <option>50 / page</option>
-            <option>100 / page</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Retest Modal */}
-      {showRetestModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-[500px] overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gray-50">
-              <div className="flex items-center gap-2">
-                <RotateCcw className="w-5 h-5 text-amber-600" />
-                <span className="font-semibold text-gray-800">Send for Retest</span>
-              </div>
-              <button onClick={() => { setShowRetestModal(false); setRetestReason(""); }}
-                className="w-8 h-8 rounded-lg hover:bg-gray-200 flex items-center justify-center transition-colors">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="p-5 space-y-4">
-              <p className="text-sm text-gray-600">
-                This result will be sent back for retesting. The status will be reset to "Pending" and the validation pipeline will restart from level 1.
-              </p>
-              <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-1.5">
-                  Retest Reason <span className="text-red-500">*</span>
-                </label>
-                <textarea value={retestReason} onChange={(e) => setRetestReason(e.target.value)}
-                  placeholder="Enter the reason for requesting a retest..."
-                  rows={3}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none resize-none" />
-              </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2 text-xs text-blue-700">
-                <Info className="w-4 h-4 flex-shrink-0 mt-0" />
-                Retest requests are logged in the audit trail with your user ID and timestamp. All previous validation steps will need to be repeated.
-              </div>
-            </div>
-            <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-gray-200 bg-gray-50">
-              <button onClick={() => { setShowRetestModal(false); setRetestReason(""); }}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors">
-                Cancel
-              </button>
-              <button disabled={!retestReason.trim()}
-                className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm">
-                Confirm Retest
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="h-8" />
     </div>
   );
-};
+}
 
-
-// ═══════════════════════════════════════
-// MAIN APP: Tab switching between views
-// ═══════════════════════════════════════
-export default function App() {
-  const [activeView, setActiveView] = useState("validation");
-
+// ─────────────────────────────────────────────────────────────────────────
+// Admin Validation Configuration — STUB (OGC-343)
+// Full v2.1 implementation preserved in /designs/results-validation/validation-page.jsx history.
+// This stub provides the link target so the view toggle remains functional;
+// no scope changes from v2.1.
+// ─────────────────────────────────────────────────────────────────────────
+function AdminValidationConfig() {
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header Bar */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center">
-              <FlaskConical className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-bold text-gray-800">OpenELIS Global</span>
-          </div>
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-            <button onClick={() => setActiveView("admin")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === "admin" ? "bg-white text-gray-800 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
-              <span className="flex items-center gap-1.5">
-                <Settings className="w-4 h-4" />
-                Admin Config
-              </span>
-            </button>
-            <button onClick={() => setActiveView("validation")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === "validation" ? "bg-white text-gray-800 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
-              <span className="flex items-center gap-1.5">
-                <Shield className="w-4 h-4" />
-                Validation Page
-              </span>
-            </button>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <User className="w-4 h-4" />
-            <span>Dr. Adams (Lab Manager)</span>
-          </div>
+    <div className="min-h-screen bg-gray-100 p-8 font-sans text-sm">
+      <div className="max-w-3xl mx-auto bg-white border border-gray-200 p-6">
+        <h1 className="text-xl font-light text-gray-900 mb-2">Admin → Validation Configuration</h1>
+        <p className="text-sm text-gray-500 mb-4">OGC-343 — Multi-Level Pipeline + Auto-Validation + Per-Unit Overrides</p>
+        <div className="border-l-4 border-blue-500 bg-blue-50 p-4 text-sm text-blue-900">
+          <strong>v3.0 note:</strong> The Admin Validation Configuration page is preserved unchanged from v2.1 (OGC-343 scope).
+          See the v2.1 mockup file history for the full configuration UI (lab-wide default, per-unit overrides,
+          permission-filtered role dropdowns, summary banner, validation trigger options).
+          v3.0 changes affect only the Validation Page itself, not the admin configuration surface.
+        </div>
+        <div className="mt-4 text-xs text-gray-500 italic">
+          Switch to "Validation Page" view above to see v3.0 changes.
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-6 py-3">
-        <div className="text-sm text-gray-500 flex items-center gap-1.5">
-          {activeView === "admin" ? (
-            <>
-              <span className="hover:text-teal-600 cursor-pointer">Admin</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-              <span className="text-gray-800 font-medium">Validation Configuration</span>
-            </>
-          ) : (
-            <>
-              <span className="hover:text-teal-600 cursor-pointer">Results</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-              <span className="text-gray-800 font-medium">Validation</span>
-            </>
-          )}
-        </div>
+// ─────────────────────────────────────────────────────────────────────────
+// Top-level view toggle
+// ─────────────────────────────────────────────────────────────────────────
+export default function ValidationMockupV3() {
+  const [view, setView] = useState("validation");
+  return (
+    <div>
+      <div className="bg-gray-900 text-white px-4 py-2 flex items-center gap-3 text-xs">
+        <span className="font-semibold">Validation v3 Mockup — view:</span>
+        <button onClick={() => setView("validation")}
+          className={`px-3 py-1 ${view === "validation" ? "bg-teal-600 text-white" : "border border-gray-600 text-gray-300 hover:bg-gray-800"}`}>
+          Validation Page (v3)
+        </button>
+        <button onClick={() => setView("admin")}
+          className={`px-3 py-1 ${view === "admin" ? "bg-teal-600 text-white" : "border border-gray-600 text-gray-300 hover:bg-gray-800"}`}>
+          Admin Config (v2.1 — unchanged)
+        </button>
       </div>
-
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 pb-12">
-        {activeView === "admin" ? <AdminValidationConfig /> : <ValidationPage />}
-      </div>
+      {view === "validation" ? <ValidationPage /> : <AdminValidationConfig />}
     </div>
   );
 }
