@@ -779,20 +779,33 @@
 - id: results-page
   type: mockup
   path: designs/results-validation/results-page.jsx
+  preview: designs/results-validation/results-page.html
   category: results-validation
-  description: Main results entry and review page
+  description: >
+    Unified Results Entry (v3) — consolidates 6 legacy routes (/LogbookResults,
+    /PatientResults, /AccessionResults, /StatusResults, /RangeResults, /result)
+    into /Results. Adds Storage Location section, polymorphic Result cell (N/D/M),
+    NCE-driven Result Disposition (Cancel/Reject/Retest/Refer), inline
+    Method/Order/Storage/Referral sections, e-signature on Save, and Critical
+    Acknowledgment to Alerts dashboard.
   paired_with: results-page-spec
-  links: {}
+  links:
+    jira: ["OGC-517"]
+    gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-page
+    preview: https://digi-uw.github.io/openelis-work/designs/results-validation/results-page.html
   added: "2026-03-03"
+  updated: "2026-05-28"
 
 - id: results-page-spec
   type: spec
   path: designs/results-validation/results-page.md
   category: results-validation
-  description: Results page FRS
+  description: Results Entry v3 FRS — full specification with Lab Context, User Stories, Carbon Component Map, Data Dependencies, Permissions & Audit, and Migration Notes.
   paired_with: results-page
-  links: {}
+  links:
+    jira: ["OGC-517"]
   added: "2026-03-03"
+  updated: "2026-05-28"
 
 - id: validation-page
   type: mockup

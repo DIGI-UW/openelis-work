@@ -1,1820 +1,1135 @@
-# Results Entry Page Redesign
-## Functional Requirements Specification — v2.0
+# Results Entry — Functional Requirements Specification v3.0
 
-**Version:** 2.1
-**Date:** 2026-03-30
+**Version:** 3.0
+**Date:** 2026-05-28
 **Status:** Draft for Review
-**Jira:** [TBD — assign on story creation]
-**Technology:** Java Spring Framework, Carbon React (`@carbon/react`)
-**Related Modules:** Test Catalog, Order Entry, Validation, Reagent Inventory, EQA/Program Management
+**Jira:** [TBD — `/breakdown` will create Epic + child stories]
+**Mockup:** `results-page-v3-mockup.jsx`
+**Preview:** `results-page-v3-preview.html`
+**Technology:** Java Spring Framework + Carbon React (`@carbon/react`)
+**Replaces:** `results-page-requirements-v2.1.md`
+**Related Modules:** Test Catalog · Order Entry · Validation · Reagent Inventory · Storage Tracking · EQA · Non-Conformity (NCE) · Alerts Dashboard · Critical Result Acknowledgment
 
 ---
 
-## Table of Contents
+## Lab Context
 
-1. Overview & Problem Statement
-2. Design Goals
-3. Start State / Page Load Behavior
-4. Unified Search & Filters
-5. Results Table
-6. Expanded Detail Panel
-7. Method & Reagents Tab
-8. Order Info Tab
-9. Attachments Tab
-10. History Tab
-11. QA/QC Tab
-12. Referral Tab
-13. Row Actions & Keyboard Navigation
-14. Data Requirements & API Endpoints
-15. Business Rules
-16. Localization (i18n)
-17. Validation Rules
-18. Security & Permissions
-19. Acceptance Criteria
-20. Migration Notes
-21. Admin Configuration — Results Entry
+### Current State
+
+Bench technicians (techs) enter results all day from a handful of routes that look the same but search differently. In production OpenELIS Global, six URLs (`/LogbookResults`, `/PatientResults`, `/AccessionResults`, `/StatusResults`, `/RangeResults`, `/result`) all render the same React component (`SearchResultForm`) — only the search filter at the top changes. After picking a Test Unit (Hematology, Chemistry, etc.) the tech sees a table of pending samples and enters values for each one. Values can be numeric (Hemoglobin g/dL), single-choice from a dictionary (HIV Rapid: Non-Reactive / Reactive / Indeterminate / Invalid), multi-choice (stool ova & parasites — multiple organisms per slide), or free text. The tech also documents method (Manual, Automated, Point-of-Care), which analyzer fed the value, reagent lot numbers, attachments (printouts, requisitions), notes for the validator, and — increasingly — where the sample is now stored (Freezer A → Rack 2 → Box 7). If something is wrong with the sample, the tech files a Non-Conformity Event (NCE) describing what happened and what to do with the result (cancel it, reject it, retest, refer to another lab). At the end, a single Save button at the bottom commits the batch; that Save is wrapped in an e-signature flow that requires the tech to re-type their password, because the act of authoring a result is regulated.
+
+### Pain
+
+Six routes that share a single component create a maintenance burden but don't help the tech: they choose the URL from a sidenav with five sub-items they have to memorize. The expanded-row editor mixes always-needed actions (Method, Storage, Refer) with rarely-needed ones (Attachments, QA/QC history) on the same plane, so techs scroll past important fields to find what they want. Storage location lives in a hierarchical picker that's hard to discover — many samples sit unassigned because nobody knows where to click. Reject result and Refer test are two different surfaces (a column and a checkbox) even though both are really *outcomes of an NCE*; this fragments the workflow and means rejections happen without an NCE record being filed (audit gap). Critical values can be saved without acknowledgment in the current build; the global Alerts dashboard exists but isn't wired to result entry. Polymorphic result types (dictionary, multi-checkbox, cascading) are implemented in code today but the recent redesign mockups only document numeric entry, so devs would not know to preserve the existing dictionary / multi-select / cascading patterns. Reagent kit fields are commented out in the source ("re-enable after new inventory frontend integration") so reagent tracking degrades silently as the inventory frontend lags. Patient data masking has two parallel mechanisms (site-wide `showPatientName` toggle and role-based `PATIENT_DATA_ON_RESULTS_BY_ROLE`) that don't agree on precedence.
+
+### What Changes
+
+The six routes collapse into one **Results** page with a single search bar that intelligently parses lab number, patient ID, accession, or test name, plus a Lab Unit selector. Inside an expanded row, the always-needed sections — Notes, Interpretation, Method & Reagents, Order Info, **Storage Location** (new), Referral, Attachments — are visible as collapsible always-on panels in priority order. The secondary surfaces (QA/QC, History) are tabs. **Storage** gets a dedicated section with a clear "Assign storage location" or "Move storage location" affordance; unassigned samples are visible at a glance. **Result Disposition** moves from two separate surfaces into the inline NCE form: techs choose Cancel / Reject (with reason) / Retest / Refer-out from inside the NCE itself, so a result can never be rejected without an audit-trail-grade NCE record. **Critical values** require acknowledgment that is now logged to the global Alerts dashboard before Save is enabled. **Polymorphic result types** (N, D, M, C) are documented end-to-end so devs preserve the dictionary / multi-checkbox patterns when porting to Carbon. **PII visibility** harmonizes into a clear precedence: site-wide `showPatientName` overrides role-based masking; when neither is on, the row shows ID + sex + age but never the name. **Save** is unchanged in spirit (mandatory e-signature, batch commit) but the result-list response now carries `reflexTests` and `calculatedTests` so the post-save toast can name the downstream accessions instead of just saying "Done."
+
+---
+
+## User Stories
+
+1. **As a Hematology bench tech**, I want to enter Hemoglobin values for the day's pending samples in one screen and see the normal range, critical range, and previous value alongside each, so I can flag concerning results without leaving the page.
+2. **As a Microbiology tech**, I want to record ova-and-parasite findings as a multi-checkbox against a fixed organism dictionary, so I don't free-text organism names that downstream reports can't aggregate.
+3. **As a tech**, I want to assign a freezer location to every sample I process today, so the lab can find it during reflex testing or follow-up, and so unassigned samples show up in a freezer-audit report.
+4. **As a tech**, when a sample is unusable, I want to file an NCE that captures what happened *and* directly chooses whether the result is Cancelled, Rejected, Retested, or Referred-out, so the disposition and the audit record can never drift apart.
+5. **As a validator**, I want results saved with e-signature, with reflex and calculated tests visibly listed in the save confirmation, so I know what other accessions are waiting for me in the validation queue.
+6. **As a lab manager**, I want a single Results page (not six) so new staff learn one screen, and so we have one place to fix bugs.
+
+---
+
+## Navigation & URL
+
+| Item | Value |
+|---|---|
+| **Route** | `/Results` (canonical) |
+| **Replaces routes** | `/LogbookResults`, `/PatientResults`, `/AccessionResults`, `/StatusResults`, `/RangeResults`, `/result` (all redirected to `/Results` with appropriate URL params) |
+| **Workplan deep-link** | `/Results?source=WorkPlanByTest` (or `ByPanel` / `ByTestSection` / `ByPriority`) adds a "Workplan" link to the breadcrumb |
+| **Deep-link params** | `?labNumber=`, `?patientId=`, `?accession=`, `?labUnit=`, `?status=`, `?from=`, `?to=` |
+| **SideNav** | `Results` (top-level) — sub-items removed; route consolidation |
+| **Breadcrumb** | `Home / Results` (or `Home / Workplan / Results` when `?source=WorkPlan*`) |
+| **i18n** | `nav.results`, `nav.workplan`, `breadcrumb.home` |
 
 ---
 
 ## Overview
 
-Redesign of the Results Entry page to consolidate growing functionality, add interpretation workflow, surface QA/QC metadata, and unify search across multiple entry points.
+Redesigned Results Entry page consolidates the six legacy routes into a single `/Results` page with smart search, restructured expanded-row layout (always-visible sections + 2 tabs), and full coverage of features present in the live system that prior mockups had dropped (storage, polymorphic result types, NCE-driven result disposition, e-signature).
 
-## Current Pain Points
+### Design Goals
 
-| Issue | Description |
-|-------|-------------|
-| **Fragmented Search** | Separate pages for searching by lab number, lab unit, patient, test/date/status |
-| **Cluttered Interface** | Options added piecemeal have accumulated in expandable rows |
-| **Missing Interpretations** | No way to select/enter clinical interpretations for results |
-| **Hidden QA/QC Data** | Control results and flags not visible during result entry |
-| **Program Context Missing** | EQA due dates and program metadata not displayed |
-
----
-
-## Design Goals
-
-1. **Unified Search** - Single search interface with smart parsing and filters
-2. **Streamlined Primary View** - Keep familiar row-based worklist, declutter
-3. **Interpretation Workflow** - Suggestions from test catalog + free text
-4. **QA/QC Visibility** - Surface control status and flags prominently
-5. **Program Context** - Display EQA, PT, and program metadata when relevant
-6. **Deprioritize Infrequent Actions** - Referrals tucked away in tab
+1. **One page, six search modes** — Unified search bar + Lab Unit selector replace `/LogbookResults`, `/PatientResults`, `/AccessionResults`, `/StatusResults`, `/RangeResults`, `/result`.
+2. **Inline-first expanded panel** — Notes, Interpretation, Method, Order Info, Storage, Referral, Attachments are always-visible collapsible sections in priority order. Only QA/QC and History are tabs.
+3. **NCE-driven disposition** — Reject / Cancel / Retest / Refer-out are options *inside* the inline NCE form, not separate columns. Every result disposition produces an NCE record.
+4. **Polymorphic result types fully supported** — Numeric (N), dictionary single-select (D), and dictionary multi-checkbox (M) shown in mockup; cascading multi-select (C) documented in spec.
+5. **Storage as a first-class section** — Assign / move storage location is visible immediately, not buried.
+6. **Critical Acknowledgment writes to Alerts dashboard** — Per global TODO, critical-value acks are logged to the central Alerts feed.
+7. **Carbon component fidelity** — Component Map (§Carbon Component Map) specifies exact `@carbon/react` component per UI element.
 
 ---
 
 ## Start State / Page Load Behavior
 
-### Initial Page Load
+When the user arrives at `/Results` with no URL parameters, the page shows the search toolbar and an empty-state message. Results load only after a deliberate action (Lab Unit selection, search query, or filter application). Empty/loading/no-results states match v2.x behavior. Lab Unit selection persists for the browser session.
 
-When the Results Entry page first loads, **no results are displayed**. The page shows an empty state with clear instructions for the user to begin searching.
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                                                                             │
-│                         🔍                                                  │
-│                                                                             │
-│               Search for results to begin                                   │
-│                                                                             │
-│     Enter a lab number, patient name, or patient ID in the search box      │
-│     above, or select a Lab Unit to view pending results.                   │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Rationale for Empty Start State
-
-| Reason | Description |
-|--------|-------------|
-| **Performance** | Loading all pending results across all lab units on page load would be slow and resource-intensive |
-| **User Intent** | Technicians typically arrive with a specific sample or patient in mind |
-| **Reduced Noise** | Prevents information overload from displaying thousands of pending results |
-| **Clear Action Path** | Empty state with instructions guides user to take explicit action |
-
-### Triggering Results Load
-
-Results are loaded when the user performs one of the following actions:
-
-| Action | Behavior |
-|--------|----------|
-| **Search Query** | Enter text in search bar and press Enter or click Search |
-| **Select Lab Unit** | Choose a lab unit from the dropdown filter |
-| **Apply Advanced Filters** | Click "Apply Filters" in the advanced filter panel |
-
-### Default Filter Values on Load
-
-| Filter | Default Value | Notes |
-|--------|---------------|-------|
-| **Lab Unit** | None (blank) | Must be selected to load results |
-| **Status** | Pending | Pre-selected but not applied until search/filter action |
-| **Lab Number Range** | None | Empty fields |
-| **Order Date Range** | None | Empty fields |
-| **Tests / Panels** | All | No specific tests selected |
-
-### Loading State
-
-When results are being fetched:
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                                                                             │
-│                         ◌ Loading...                                        │
-│                                                                             │
-│               Fetching results for Hematology...                            │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### No Results Found State
-
-When a search or filter returns zero results:
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                                                                             │
-│                         📋                                                  │
-│                                                                             │
-│               No results found                                              │
-│                                                                             │
-│     No pending results match your search criteria.                          │
-│     Try adjusting your filters or search terms.                             │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Persisting User Context
-
-| Context | Persistence | Notes |
-|---------|-------------|-------|
-| **Lab Unit Selection** | Session | Persists until browser tab closed or user changes |
-| **Search Query** | None | Cleared on page refresh |
-| **Advanced Filters** | None | Reset to defaults on page refresh |
-| **Expanded Row** | None | All rows collapse on page refresh |
-
-### URL Parameters (Future Enhancement)
-
-Support deep-linking with URL parameters to pre-populate search:
-
-| Parameter | Example | Description |
-|-----------|---------|-------------|
-| `labNumber` | `?labNumber=DEV01250000000001` | Pre-fill search with lab number |
-| `patientId` | `?patientId=3456789` | Pre-fill search with patient ID |
-| `labUnit` | `?labUnit=hematology` | Pre-select lab unit filter |
-| `status` | `?status=pending` | Pre-select status filter |
-
-This allows linking directly from other pages (e.g., Order Entry, Patient Chart) to the Results page with context pre-filled.
+URL parameters pre-populate filters and auto-trigger the search. Workplan deep-links (`?source=WorkPlanByTest|ByPanel|ByTestSection|ByPriority`) add a "Workplan" crumb to the breadcrumb chain.
 
 ---
 
-## Unified Search & Filters
+## Search & Filters
 
-### Smart Search Bar
+Single search input parses lab number, accession, patient ID, patient name. Quick filter for **Lab Unit** is required. Date From / Date To always visible. Advanced filters panel (toggle "Advanced"): Lab Number / Range, Order Date Range, Tests / Panels (multi-select), Status. Status defaults to **Pending**. Active filters appear as removable chips.
 
-Single search input that intelligently parses:
-- **Lab Number** (also called Order Number) - e.g., `DEV01250000000000`
-- **Patient Name** - e.g., `Smith, Jane` or `Jane Smith`
-- **Patient ID** - e.g., `3456789`
-- **Accession Number** - e.g., `001-1`
+**Server-side pagination indicator** appears in the toolbar showing `Server page X / Y` with prev/next icons (separate from the client-side Carbon Pagination at the table footer). Server pagination is invoked when the result set exceeds the server-page batch size (100 rows default).
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ 🔍 Search by lab number, patient name/ID, or accession...                   │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Quick Filters (Always Visible)
-
-| Filter | Options | Default |
-|--------|---------|---------|
-| **Lab Unit** | Chemistry, Hematology, Microbiology, Serology, etc. | None (blank) |
-
-**Note:** Lab Unit must be selected before results load. This prevents loading all results across all units and improves performance.
-
-### Advanced Filters (Expandable Panel)
-
-Toggle via "Advanced" button. Panel expands below quick filters.
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ LAB NUMBER / RANGE                      ORDER DATE RANGE                    │
-│ ┌────────────────┐ to ┌──────────────┐  ┌──────┐ to ┌──────┐               │
-│ │ From...        │    │ To (optional)│  │      │    │      │               │
-│ └────────────────┘    └──────────────┘  └──────┘    └──────┘               │
-│ Enter single lab number or range                                            │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ TESTS / PANELS                          STATUS                              │
-│ ┌─────────────────────────────────────┐ ┌───────────┐                      │
-│ │ [CBC ×] [WBC ×] Add...              │ │ Pending ▾ │                      │
-│ └─────────────────────────────────────┘ └───────────┘                      │
-│ Select multiple tests or panels                                             │
-│                                                                             │
-│                              [Clear All Filters]    [Apply Filters]         │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-| Filter | Type | Default | Description |
-|--------|------|---------|-------------|
-| **Lab Number / Range** | Text (from/to) | None | Single lab number or range of lab numbers |
-| **Order Date Range** | Date range (from/to) | None | Filter by order date range |
-| **Tests / Panels** | Multi-select with search | All | Combined filter for tests and panels |
-| **Status** | Dropdown | **Pending** | Filter by result status |
-
-### Lab Number / Range Filter
-
-Allows filtering by a single lab number or a range:
-
-- **Single lab number**: Enter in "From" field only, leave "To" blank
-- **Range**: Enter start in "From" and end in "To"
-- Supports partial matching for convenience
-
-```
-Examples:
-- Single:  From: DEV01250000000001  To: (blank)
-- Range:   From: DEV01250000000001  To: DEV01250000000099
-```
-
-### Tests / Panels Multi-Select
-
-Combined field that allows selection of multiple tests and/or panels:
-
-- Type to search available tests and panels
-- Panels shown in grouped section at top of dropdown
-- Individual tests shown below panels
-- Selected items appear as removable chips
-- Selecting a panel includes all tests in that panel
-- Can mix panel and individual test selections
-
-```
-┌─────────────────────────────────┐
-│ Search tests or panels...       │
-├─────────────────────────────────┤
-│ PANELS                          │
-│   Complete Blood Count (CBC)    │
-│   Basic Metabolic Panel         │
-│   Comprehensive Metabolic Panel │
-├─────────────────────────────────┤
-│ TESTS                           │
-│   WBC                           │
-│   RBC                           │
-│   Hemoglobin                    │
-│   Glucose                       │
-│   Creatinine                    │
-└─────────────────────────────────┘
-```
-
-### Status Filter Options
-
-| Value | Description |
-|-------|-------------|
-| Pending | Results awaiting entry (default) |
-| All Status | Show all results regardless of status |
-| Entered | Results entered but not validated |
-| Awaiting Validation | Results waiting for supervisor review |
-| Released | Results released to patient/provider |
-| Cancelled | Cancelled results |
-
-### Active Filter Display
-
-Show active filters as removable chips:
-```
-Showing: [Status: Pending ×]  •  127 results
-```
-
+---
 
 ## Results Table
 
-### Column Layout
+### Columns (left to right)
 
 | Column | Width | Content |
-|--------|-------|---------|
-| **Expand/QC** | 60px | Chevron + QC status dot |
-| **Sample/Patient** | 180px | Lab number, patient ID, sex, age (name hidden until expanded) |
-| **Test** | 180px | Test name, sample type, program badge |
-| **Analyzer** | 100px | Analyzer name with icon |
-| **Range** | 100px | Normal range + unit |
-| **Result** | 180px | Input field (numeric or select list) |
-| **Status** | 80px | Status badge |
-| **Flags** | 80px | Flag icons |
-| **Actions** | 80px | Save + Note button |
+|---|---|---|
+| Expand | 40px | Chevron |
+| **Sample / Patient** | 240px | Patient avatar (initials, color-hashed) + accession (`labNumber-sequenceNumber`) + copy-to-clipboard button + nonconforming icon (if `nonconforming=true`) + (one of: full name / `ID · sex · age` / masked) + EQA priority badge (if `isEqaSample`) |
+| **Test Date** | 140px | Inline editable date picker + time picker stacked; disallowFutureDate |
+| **Analyzer Result** | 120px | Text label of which analyzer (or "MANUAL", "MANUAL — Microscopy", etc.) fed the row |
+| **Test Name** | 200px | Test name (strike-through if Cancelled) |
+| **Sample** | 100px | Sample type (Whole Blood, Serum, Stool…) |
+| **Normal Range** | 110px | Reference range + unit |
+| **Result** | 140px | **Polymorphic by `resultType`:** numeric input (live range tier styling) / single Select (D) / multi-checkbox details (M) / cascading multi-select (C, see Dependencies) / text input (R/A) |
+| **Current Result** | 110px | Read-only shadow value (previous result); for D/M/C, resolves dictionary IDs to labels |
+| **Status** | 110px | Carbon Tag (Pending / Entered / Awaiting Validation / Released / Cancelled) |
+| **Flags** | 100px | H · L · Δ · C · ! · NCE — additive |
+| **Actions** | 100px | Save (with KeyRound icon — denotes e-sig) / Modify Result (Pencil) / NCE Tag (when Cancelled) |
 
-### Patient Privacy
+### Patient Privacy — Three Layers (Harmonized)
 
-In collapsed row view:
-- Patient **name is hidden** - only shown when row is expanded
-- Shows patient ID, sex, and **age** (calculated from DOB)
-- Full patient details (name, DOB) displayed in expanded patient info banner
+| Layer | Setting | Behavior when ON |
+|---|---|---|
+| 1. Site-wide override | Admin config `results.entry.showPatientName` (default: off) | Show full patient name in every row |
+| 2. Role-based mask | App config `PATIENT_DATA_ON_RESULTS_BY_ROLE` (default: off) + current user's `PatientResults` permission | If config on AND user lacks perm: mask patient line to `— — —`; else show ID + sex + age |
+| 3. Default | Both off / user has perm | Show ID + sex + age (no name) |
 
-### Result Row States
+**Precedence:** Layer 1 overrides Layer 2. If `showPatientName=true`, full name is always shown regardless of role.
 
-| Status | Visual Treatment |
-|--------|------------------|
-| **Pending** | Default styling, awaiting result entry |
-| **Entered** | Blue status badge, result entered but not validated |
-| **Awaiting Validation** | Amber status badge, waiting for supervisor review |
-| **Released** | Green status badge, result released to patient/provider |
-| **Cancelled** | Gray status badge with strikethrough styling |
-
-### Status Workflow
+### Result Status Workflow
 
 ```
-┌─────────┐     Enter      ┌─────────┐    Validate   ┌──────────────────┐
-│ Pending │ ──────────────>│ Entered │ ─────────────>│ Awaiting         │
-└─────────┘                └─────────┘               │ Validation       │
-     │                          │                    └────────┬─────────┘
-     │                          │                             │
-     │         Cancel           │         Cancel              │ Approve
-     └──────────────────────────┴─────────────────┐           │
-                                                  ▼           ▼
-                                            ┌───────────┐ ┌──────────┐
-                                            │ Cancelled │ │ Released │
-                                            └───────────┘ └──────────┘
+Pending → Entered → Awaiting Validation → Released
+   ↓         ↓             ↓
+                       (Modify → returns to Awaiting Validation, requires reason)
+   ↓         ↓             ↓
+                Cancelled (via NCE with Disposition=CANCEL)
 ```
-
-| Transition | Description |
-|------------|-------------|
-| Pending → Entered | Result value entered |
-| Entered → Awaiting Validation | Tech submits for review (if validation required) |
-| Entered → Released | Direct release (if no validation required) |
-| Awaiting Validation → Released | Supervisor approves result |
-| Any → Cancelled | Result cancelled (e.g., wrong test, sample issue) |
-
-### Additional Visual States
-
-| State | Visual Treatment |
-|-------|------------------|
-| **Flagged** | Orange/red input border, flag icons |
-| **Expanded** | Teal background highlight |
-
-### QC Status Indicator
-
-Small colored dot next to expand chevron:
-- 🟢 Green = QC Passed
-- 🟡 Yellow = QC Warning
-- 🔴 Red = QC Failed
-- ⚪ Gray = No QC Data
-
-### Flag Icons
-
-All badges render in the Flags column and may appear simultaneously. They are additive — multiple badges can coexist on a single row.
-
-| Badge | Display | Color | Tooltip |
-|-------|---------|-------|---------|
-| **H** (above normal) | Bold letter | Red | "Above normal range" |
-| **L** (below normal) | Bold letter | Blue | "Below normal range" |
-| **Δ** (delta check) | Greek letter | Amber | "Delta check threshold exceeded" |
-| **C** (critical/panic) | Filled pill | Orange | "Critical/panic value — acknowledgment required" |
-| **!** (invalid range) | Filled pill | Dark red | "Outside physiologically valid range" |
-| **NCE** (non-conformity) | Outlined pill | Teal (open) / Gray (closed) | NCE number · category / subcategory · severity · status |
-
-The C and ! badges are derived dynamically from the result value and the test's range configuration. The NCE badge is driven by the presence of one or more linked NCE records on the result.
 
 ---
 
-## Expanded Detail Panel
+## Expanded Panel — Always-Visible Sections + 2 Tabs
 
-When a row is expanded, show a tabbed interface with contextual information.
+### Section Order (top to bottom)
 
-### Patient Info Banner
-
-Displayed at the top of expanded panel, showing full patient details (hidden in collapsed view for privacy):
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ PATIENT              PATIENT ID       DOB            SEX      AGE           │
-│ Test, Patient        3456789          01/11/2011     M        14 years      │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+1. **Patient Banner** — Avatar + full name + IDs + DOB + sex + age + clinician + dept + priority Tag
+2. **Program Banner** (conditional) — EQA Round badge + due date + Open program details
+3. **Modification notice** (conditional) — when status = Awaiting Validation or Released
+4. **Notes** — collapsible (default open)
+5. **Interpretation** — collapsible (default open)
+6. **Method & Reagents** — collapsible (default open) ← was a tab
+7. **Order Info** — collapsible (default open) ← was a tab
+8. **Program Info** — collapsible (default open) ← NEW (conditional: rendered only when `result.program` is set)
+9. **Storage Location** — collapsible (default open) ← NEW
+10. **Aliquots** — collapsible (default open) ← NEW (ISO/HIGH I1; conditional when sample has any aliquots OR user has Analyst/Reception bundle)
+11. **Referral** — collapsible (default open) ← was a tab
+12. **Attachments** — collapsible (default open) ← was a tab
+13. **Modification History** — banner at top of panel (conditional) ← NEW (ISO/HIGH A3; appears when result has any saved modifications)
+14. **Result Entry Action Bar** — value input + range hint + Report Non-Conformity Event (NCE) button + Save (E-sign)
+15. **Conditional banners** — Invalid range / Critical Communication Form (structured) / Reagent-lot-required warning
+16. **NCE Inline Form** (conditional — opens on Report NCE click)
+17. **Tabs:** QA/QC · History
 
 ### Notes Section
 
-Notes table displayed above Interpretation. Shows existing notes and allows adding new notes.
+Structured notes (date · author · type tag · body) plus a **Past Notes (legacy)** sub-panel that preserves linebreaks from legacy plain-text notes. Add new note with type radio (In Lab Only / Send with Result), default In Lab Only.
+
+### Interpretation Section
+
+System-suggested interpretation banner (when applicable) + clickable interpretation options (color-coded) that copy text into a textarea. Textarea supports interpretation-code macros (e.g. `HGB-NL` + space → expanded text). User can edit. Clear button resets.
+
+### Method & Reagents Section
+
+| Field | Carbon component | Notes |
+|---|---|---|
+| Method | `Select` | Per-row method override populated from `/rest/displayList/METHODS` (Manual / Automated / Semi-Automated / Point of Care) |
+| Analyzer | `Select` (conditional) | Only shown when method = Automated or Semi-Automated; populated from `/rest/test/{testId}/analyzers`; shows status + QC indicator |
+| Method Details | `TextInput` | Optional. Supports macros: `MAN-DIFF` `MAN-HEM` `MAN-MICRO` `QNS` `CLOT` `HEMOLYZED` `LIPEMIC` (type + space → expand) |
+| Reagent Lots | inline table | FIFO suggestion: oldest unexpired lot gets "Use First" tag; expiring lots get amber warning; expired lots disabled. **Required for Save when `requireReagentLotsForResults` site flag is ON** (ISO 15189 §6.4.4). When ON and no lot selected: inline warning + Save disabled with explanatory tooltip. Default ON for ISO-accredited deployments. |
+
+### Order Info Section
+
+3-column grid: Clinician, Phone, Department, Priority, Collection Date/Time, Received Date/Time, Fasting Status, Clinical History, Diagnosis. Multi-line fields (History, Diagnosis) span the row. All fields read-only on Results page (edited in Order Entry).
+
+### Program Info Section — NEW
+
+**Conditional rendering:** This section appears only when `result.program` is set (i.e. the order is linked to a program — EQA round, RETROCI ARV / EID / VL / Indeterminate study, or any custom program). When no program is linked, the section is hidden entirely (not a collapsed empty state).
+
+**Purpose:** Programs capture additional metadata at Order Entry that techs need to see during result entry: study identifiers, visit numbers, treatment regimen, expected analytes, panel codes, EQA round metadata, etc. Without surfacing these fields here, techs have to navigate back to the order to see context that affects how they interpret or report the result.
+
+**Layout:** Section header shows `BookOpen` icon + "Program Info" + program name as a magenta badge. Body is a 3-column grid of up to 15 fields. Field rendering:
+
+| Field type | Layout |
+|---|---|
+| `text` (short) | 1-column cell with uppercase field label + value |
+| `text` (long, e.g. clinical notes, provider comments) | Full-row span (col-span-3) |
+| `datetime` | 1-column cell, value formatted to locale |
+| `longtext` | Full-row span (col-span-3) |
+| `enum` | 1-column cell with value as Tag |
+
+**Read-only on Results page.** Fields are edited on the originating order (Order Entry page) or via the program admin. A muted help line under the grid states: *"Program-captured fields are read-only here. Edit them on the originating order."*
+
+**Data model:** `result.program.fields[]` — array of `{ label, value, type }` objects, up to 15 items. The field set is config-driven per program type (declared in Test Catalog program configuration), so an EQA program surfaces panel ID / round number / expected analyte / coordinator while a RETROCI VL study surfaces regimen / prior VL / adherence / visit number.
+
+**RETROCI study forms:** When the `useRetroCIStudyForms` feature flag is ON, the Program Info section is the surface where hardcoded RETROCI ARV / EID / VL / Indeterminate fields render. The hardcoded field set per study type is documented in the RETROCI program spec (separate document); this section is the renderer.
+
+**EQA-specific fields:** Standard EQA fields shown by default: EQA Panel ID, Round Number, Specimen Code, Expected Analyte, Submission Deadline, Lab Code (Provider), Round Coordinator, Provider Comments.
+
+### Storage Location Section — NEW
+
+| State | UI |
+|---|---|
+| **Unassigned** | Section header shows badge "Unassigned". Body shows muted help text and an "Assign storage location" primary button. |
+| **Assigned** | Body shows the full path (Freezer → Rack → Shelf → Box), position coordinate, condition (e.g. −20 °C), and a "Move storage location" secondary button. |
+| **Picker open** | Inline panel with 4-column grid of freezer/refrigerator tiles. Drill-down to Rack → Shelf → Box → Position. On Move (existing location), a **Reason for move** text input is required before Confirm is enabled. |
+
+API:
+- `GET /rest/storage/sample-items/{sampleItemId}` — current assignment
+- `POST /rest/storage/sample-items/assign` — first assignment
+- `POST /rest/storage/sample-items/move` — re-assignment (requires `reason`)
+
+### Aliquots Section — NEW (ISO HIGH I1)
+
+**Purpose:** Surface and manage aliquots derived from this sample. Aliquoting (splitting one sample into N portions, each with its own accession suffix `LABNO.X-Y`) is a core lab workflow that today lives in a separate `/Aliquot` page; moving it inline here matches the tech's mental model — when entering a result they often need to create a retention aliquot, send-out aliquot, or pooled-sample aliquot in the same workstation breath.
+
+**Layout:**
+- Section header: "Aliquots" + count badge.
+- Inline table with columns: **Aliquot ID** (`LABNO.X-Y`), **Purpose** (Test / Retention / Send-out / Pool / Pour-off), **Linked Test** (when Purpose=Test), **Status** (Created / In-Storage / Sent / Used / Destroyed), **Created** (date · by-whom), **Storage** (Freezer path or "—"), **Actions** (View / Print Label / Mark Used / Destroy).
+- Below the table: **Create aliquot** affordance — opens an inline mini-form with: (a) **How many aliquots?** numeric input (default 1), (b) **Purpose** select, (c) when Purpose=Test: a Test Catalog picker; when Purpose=Send-out: opens linked Referral fields, (d) **Destination storage** (optional — opens LocationPicker), (e) **Reason / Notes** (optional textarea). On submit, auto-assigns the next `LABNO.X-N` suffixes, creates the aliquot rows, optionally orders linked tests, and prints labels.
+
+**Pool composition (vector deployments):** When the source sample is a pool (per memory `project_vector_referral_deconvolution`), the Aliquots section additionally displays the pool composition (member specimen IDs) above the aliquot table. This is read-only at Results Entry; pool authoring happens at Sample Reception.
+
+**Role attachment:** Both **Analyst** and **SampleReception** bundles can create aliquots from Results Entry. Aliquot destroy/mark-used actions require **Analyst** (Reception techs can create but not destroy).
+
+**API:**
+- `GET /rest/samples/{sampleId}/aliquots` — list
+- `POST /rest/samples/{sampleId}/aliquots` — create one or more
+- `PATCH /rest/aliquots/{aliquotId}` — update status (mark used, destroy)
+
+**Conditional rendering:** Section always rendered when the user has Analyst or SampleReception bundle. Empty state when no aliquots exist: "No aliquots from this sample. [Create aliquot]"
+
+### Referral Section
+
+Checkbox: "Refer this test to an external laboratory". When checked, reveals: Referral Reason (Select, required), Institute (Select, required), Test to Perform (TextInput, prefilled with current test), Sent Date (DatePicker, defaults to today). When triggered as the disposition of an NCE (BR-032), the form auto-fills.
+
+### Attachments Section
+
+List view: file icon, name, size, source tag (Order Entry purple / Result Entry teal), uploader, date, download button (always), delete button (Result Entry only). Files from Order Entry are read-only. New upload via `FileUploader`; supports JPEG, PNG, PDF.
+
+### Modification History Banner — NEW (ISO HIGH A3 / CFR Part 11 §11.10(e))
+
+**Purpose:** Make the original value visible in the UI — not just buried in audit_trail. ISO 15189 §7.5.2 and 21 CFR Part 11 §11.10(e) require that the original observation remain retrievable when a result is amended.
+
+**Rendering:** When `result.modificationHistory[]` has one or more entries, a stable banner renders at the top of the expanded panel (above Notes, below Patient Banner / Program Banner / modification-notice strip). For each prior modification entry, display:
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ 💬 Notes                                                                     │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ DATE/TIME          AUTHOR       TYPE              NOTE                      │
-│ 12/18/2025 09:45   J. Smith     [In Lab Only]     Sample hemolyzed, may...  │
-│ 12/18/2025 10:15   M. Johnson   [Send with Result] Patient on anticoag...   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                              [💬 New Note]  │
-└─────────────────────────────────────────────────────────────────────────────┘
+[Pencil icon]  Original: 142 mg/dL  →  Modified: 138 mg/dL  ·  J. Smith · 12/19/2025 14:32
+              Reason: "Corrected from instrument printout (calibration drift detected late)."
+              [View all history (N)] ▾
 ```
 
-**Note:** Notes section is always visible in expanded panel. "New Note" button at bottom right opens the note input form.
+When multiple modifications exist, only the most recent transition is shown by default; clicking "View all history (N)" expands a full chronological list (`original → mod1 → mod2 → … → current`) with reason + actor + timestamp for each step. A small Tag in the table row (`Modified` in `warm-gray` kind) signals to validators scanning the list that this result has prior history.
 
-| Field | Description |
-|-------|-------------|
-| **Date/Time** | When note was added |
-| **Author** | Who added the note |
-| **Type** | "In Lab Only" or "Send with Result" |
-| **Note** | Note body text |
+**Data model:** `result.modificationHistory[]` — array of `{ id, fromValue, toValue, modifiedBy, modifiedAt, reason, action }` where `action` is `RESULT_MODIFIED` or `RESULT_MODIFIED_RELEASED`. Backend derives this from existing audit_trail rows scoped to `analysis_id` — no schema addition required (the trail itself becomes the source of truth, just surfaced).
 
-#### Note Types (replaces internal/external)
+**Validator visibility:** On the Validation page (separate spec), this banner displays identically and is read-only; validators reviewing a modification chain see the full history before approving.
 
-| Type | Description |
-|------|-------------|
-| **In Lab Only** | Internal note visible only to lab staff (default) |
-| **Send with Result** | Note included on result report sent to clinician/patient |
+### Demographic-Aware Reference Ranges — NEW (ISO HIGH B2 / CLSI EP28-A3c)
 
-#### Adding Notes
+**Purpose:** A single range per test is insufficient for ISO 15189 §7.5.1.4 ("biological reference data") and CLSI EP28-A3c. Pediatric, pregnancy, and geriatric reference intervals differ for many analytes (creatinine, hemoglobin, alkaline phosphatase, etc.).
 
-- Click "New Note" button at bottom right of Notes section
-- Note input form expands with radio buttons for type
-- Select note type (defaults to "In Lab Only")
-- Enter note text
-- Click "Save Note" to save
-- Click "Cancel" to close without saving
-
-### Interpretation Section (Always Visible)
-
-The interpretation section appears below notes. Clicking an interpretation option copies its text into the textarea.
-
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│ 📄 Interpretation                                                               │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                 │
-│ AVAILABLE INTERPRETATIONS (click to use)    INTERPRETATION TEXT        [Clear] │
-│ ┌─────────────────────────────────────────┐ ┌─────────────────────────────────┐│
-│ │ ⚡ Suggested: [Diabetes Mellitus] ✓     │ │ Fasting glucose ≥126 mg/dL is  ││
-│ │    Fasting glucose ≥126 mg/dL is        │ │ consistent with diabetes       ││
-│ │    consistent with diabetes mellitus... │ │ mellitus. Recommend            ││
-│ └─────────────────────────────────────────┘ │ confirmation with repeat       ││
-│ ┌─────────────────────────────────────────┐ │ fasting glucose or HbA1c.      ││
-│ │ [Normal] GLU-NL (70-99)                 │ │ Clinical correlation advised.  ││
-│ │    Fasting glucose within normal...     │ │                                ││
-│ └─────────────────────────────────────────┘ │                                ││
-│ ┌─────────────────────────────────────────┐ └─────────────────────────────────┘│
-│ │ [Impaired Fasting Glucose] GLU-IFG      │                                    │
-│ │    Fasting glucose in prediabetic...    │                                    │
-│ └─────────────────────────────────────────┘                                    │
-│ ┌─────────────────────────────────────────┐                                    │
-│ │ [Critical Value] GLU-CRIT (<50 or >400) │                                    │
-│ │    CRITICAL VALUE - Immediate...        │                                    │
-│ └─────────────────────────────────────────┘                                    │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
-
-| Element | Description |
-|---------|-------------|
-| **Suggested Interpretation** | System-suggested interpretation with clinical description text |
-| **Available Options** | Clinical interpretations with badges, codes, ranges, and description text |
-| **Click to Select** | Clicking any option selects it and copies text to textarea |
-| **Selected State** | Shows checkmark and highlighted border when selected |
-| **Interpretation Text** | Multi-line textarea auto-populated on selection, editable |
-| **Clear Button** | Clears textarea and deselects interpretation |
-
-#### Clinical Interpretation Examples
-
-Interpretations should include meaningful clinical context, not just high/low labels:
-
-| Simple Label | Clinical Interpretation |
-|--------------|------------------------|
-| High | Leukocytosis, Diabetes Mellitus, Polycythemia |
-| Low | Leukopenia, Mild Anemia, Hypoglycemia |
-| Normal | Within normal limits with clinical context |
-| Critical | Critical value requiring immediate notification |
-
-#### Interpretation Workflow
-
-1. **System Suggestion** - Based on entered result and configured interpretation ranges
-2. **Click to Select** - Click any interpretation option to select it
-3. **Auto-fill Text** - Clinical interpretation text automatically populates textarea
-4. **Visual Feedback** - Selected option shows checkmark and highlighted border
-5. **Free Text Override** - User can edit or replace interpretation text
-6. **Clear Option** - Clear button resets selection and text
-
-#### Interpretation Code Macros
-
-The Interpretation Text field supports typing interpretation codes directly. Type a code and press space to expand it to the full interpretation text.
-
-**Usage:** Type `WBC-NL` or `GLU-DM` in the textarea, press space → code expands to full clinical interpretation text, and the corresponding interpretation option is auto-selected.
-
-**Example Codes:**
-
-| Code | Expansion |
-|------|-----------|
-| `WBC-NL` | White blood cell count within normal limits. No evidence of infection or hematologic abnormality. |
-| `WBC-LEUK` | Elevated WBC count. May indicate infection, inflammation, stress response, or hematologic disorder. |
-| `GLU-DM` | Fasting glucose ≥126 mg/dL is consistent with diabetes mellitus. Recommend confirmation with repeat fasting glucose or HbA1c. |
-| `GLU-IFG` | Fasting glucose in prediabetic range. Recommend lifestyle modifications and periodic monitoring. |
-| `RBC-ANEMOD` | RBC count slightly below reference range. Suggests mild anemia. |
-
-**Note:** All interpretation codes defined in the Test Catalog are available as macros. Method codes (e.g., MAN-HEM, QNS) work only in the Method Details field.
-
-### Program Banner (Conditional)
-
-If result is associated with a program (EQA, PT), show banner below interpretation:
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ 📄 EQA Round 4                                        View Program Details →│
-│    Due: 12/20/2025                                                          │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Tab Structure
-
-| Tab | Icon | Purpose | Priority |
-|-----|------|---------|----------|
-| **Method & Reagents** | FlaskConical | Select analyzer and reagent lots | Primary (Default) |
-| **Order Info** | ClipboardList | Custom order fields from program | Secondary |
-| **Attachments** | Paperclip | View/upload file attachments | Secondary |
-| **History** | History | Previous results, delta check | Secondary |
-| **QA/QC** | CheckCircle | Control results, flags, analyzer status | Secondary |
-| **Referral** | Send | Refer to reference lab | Tertiary (infrequent) |
-
-**Note:** Interpretation is displayed at the top of the expanded panel for easy access, above the program banner and tabs.
-
----
-
-## Method & Reagents Tab (NEW)
-
-This tab allows techs to document which method and reagent lots were used for the test.
-
-### Method Selection
-
-Two method options are always available:
-
-| Method | Description |
-|--------|-------------|
-| **Manual** | Default option. Manual entry without analyzer. Includes optional text field for details. |
-| **Analyzer** | Result from automated analyzer. Shows list of available analyzers when selected. |
-
-**Behavior:**
-- **Manual is always the default** when opening a result
-- For **Analyzer Import** results: Automatically switches to Analyzer and pre-selects the import source
-- Selecting Manual clears any analyzer selection
-- **Method selection is required** but defaults to Manual
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ Method                                                                       │
-│                                                                              │
-│ ◉ Manual                                                          [default] │
-│   Manual entry without analyzer                                              │
-│                                                                              │
-│ ○ Analyzer                                                                   │
-│   Result from automated analyzer                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Manual Method Details
-
-When Manual is selected, an optional text field appears for entering method details.
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ Method Details (optional)                                                    │
-│ ┌─────────────────────────────────────────────────────────────────────────┐ │
-│ │ Enter details or type a macro code (e.g., MAN-HEM, QNS, CLOT)...       │ │
-│ └─────────────────────────────────────────────────────────────────────────┘ │
-│ ⚡ Macro codes: Type a code and press space to expand.                      │
-│    [MAN-HEM] [MAN-MICRO] [MAN-DIFF] [QNS] [CLOT] +4 more                   │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-#### Macro Codes
-
-The text field supports macro-style codes that expand to full text when followed by a space:
-
-**Method Macros (for Method Details field only):**
-
-| Code | Expansion |
-|------|-----------|
-| `MAN-HEM` | Manual count performed using hemocytometer with improved Neubauer chamber. |
-| `MAN-MICRO` | Manual microscopic examination performed. |
-| `MAN-DIFF` | Manual differential count performed on stained blood smear. |
-| `MAN-RECOUNT` | Result verified by manual recount. |
-| `MAN-DIL` | Sample diluted prior to manual count. |
-| `QNS` | Quantity not sufficient for automated analysis. |
-| `CLOT` | Sample contained clots, manual method required. |
-| `LIPEMIC` | Lipemic sample, manual verification performed. |
-| `HEMOLYZED` | Hemolyzed sample, result may be affected. |
-
-**Usage:** Type the code in the Method Details field, then press space. The code will be replaced with the full text.
-
-**Note:** Interpretation codes work separately in the Interpretation Text field (see Interpretation Section).
-
-### Analyzer Selection
-
-When Analyzer method is selected, displays analyzers linked to this test in the Test Catalog.
-
-| Field | Description |
-|-------|-------------|
-| **Radio Selection** | Single selection from available analyzers |
-| **Analyzer Name** | Display name of the analyzer |
-| **Status** | Online / Offline / Available indicator |
-| **Last Calibrated** | Date/time of last calibration |
-| **QC Status** | Pass / Fail badge |
-
-**Behavior:**
-- Only shows analyzers linked to the specific test in Test Catalog
-- Excludes "Manual" from analyzer list (Manual is a separate method)
-- Analyzers with failed QC show warning but remain selectable (with confirmation)
-- For **Analyzer Import** results: Pre-selected based on import source, editable
-- For **Manual method switch to Analyzer**: No analyzer pre-selected; user must choose
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ Select Analyzer                                                              │
-│                                                                              │
-│ ○ Sysmex XN-L                               [QC ✓] [online]                 │
-│   Last calibrated: 12/18/2025 06:00                                         │
-│                                                                              │
-│ ○ Sysmex XS-1000i                           [QC ✓] [online]                 │
-│   Last calibrated: 12/18/2025 05:45                                         │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Reagent Lot Selection
-
-For each reagent linked to the test in the **Test Catalog**, display available lots with FIFO suggestion.
-
-**Reagent Source:** Reagents are defined in the Test Catalog under the test's linked Method. Only reagents configured for the test appear here.
-
-| Field | Description |
-|-------|-------------|
-| **Reagent Name** | Name of the reagent (from test method) |
-| **Lot Number** | Lot identifier (monospace font) |
-| **FIFO Suggested Badge** | Shows "FIFO Suggested" badge on oldest unexpired lot |
-| **Expiring Badge** | Warning badge if lot expires within 7 days |
-| **Expiration Date** | Lot expiration date |
-| **Remaining** | Percentage of lot remaining |
-| **Received Date** | Date lot was received (for FIFO ordering) |
-
-**FIFO Logic:**
-1. Lots sorted by received date (oldest first)
-2. Oldest unexpired lot gets "FIFO Suggested" badge with highlighted border (teal dashed)
-3. **No lot is pre-selected** - user must explicitly choose
-4. Expired lots are grayed out and not selectable
-5. Expiring lots (within 7 days) show amber warning badge
-
-**Selection is optional** - results can be accepted without specifying reagent lots. FIFO suggestions are visually prominent to guide proper stock rotation.
-
-**Visual States:**
-
-| State | Border | Background | Notes |
-|-------|--------|------------|-------|
-| **FIFO Suggested** | Teal | Light teal | Default selection |
-| **Expiring Soon** | Amber | Light amber | Warning badge shown |
-| **Expired** | Red | Light red | Disabled, not selectable |
-| **Normal** | Gray | White | Standard lot |
-| **Selected** | Teal + ring | Light teal | User selection |
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ Reagent Lots Used                                                           │
-│                                                                             │
-│ Cellpack DCL                                                                │
-│ ┌─────────────────────────────────────────────────────────────────────────┐ │
-│ │ ◉ LOT-2024-0892  [FIFO] [Expiring]                                      │ │
-│ │   Exp: 12/20/2024 • 15% remaining                                       │ │
-│ ├─────────────────────────────────────────────────────────────────────────┤ │
-│ │ ○ LOT-2024-1234                                                         │ │
-│ │   Exp: 01/15/2025 • 85% remaining                                       │ │
-│ ├─────────────────────────────────────────────────────────────────────────┤ │
-│ │ ○ LOT-2024-1567                                                         │ │
-│ │   Exp: 02/28/2025 • 100% remaining                                      │ │
-│ └─────────────────────────────────────────────────────────────────────────┘ │
-│                                                                             │
-│ Lysercell WNR                                                               │
-│ ┌─────────────────────────────────────────────────────────────────────────┐ │
-│ │ ◉ LOT-2024-5678  [FIFO] [Expiring]                                      │ │
-│ │   Exp: 12/25/2024 • 45% remaining                                       │ │
-│ └─────────────────────────────────────────────────────────────────────────┘ │
-│                                                                             │
-│ ┌─────────────────────────────────────────────────────────────────────────┐ │
-│ │ ⚡ FIFO Suggestion: Oldest unexpired lots are pre-selected to ensure    │ │
-│ │    proper stock rotation.                                                │ │
-│ └─────────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Footer Summary
-
-Shows selected analyzer and reagent count:
-```
-Selected: Sysmex XN-L • 3 reagent lots
-```
-
-### Data Requirements
+**Data model change:** Replace the v3.0 `result.rangeBounds` (single range) with `Test.referenceRanges[]` — an ordered array of ranges with selection criteria. Each entry has:
 
 ```typescript
-interface AvailableAnalyzer {
+interface ReferenceRange {
   id: string;
-  name: string;
-  status: 'online' | 'offline' | 'available';
-  lastCalibrated?: string;
-  qcStatus: 'pass' | 'warning' | 'fail' | 'none';
-}
-
-interface ReagentLot {
-  lotNumber: string;
-  received: string;      // Date received (for FIFO ordering)
-  expires: string;       // Expiration date
-  remaining: string;     // Percentage remaining
-  fifoRank: number;      // 1 = oldest unexpired
-  status: 'ok' | 'expiring-soon' | 'expired';
-}
-
-interface AvailableReagent {
-  id: string;
-  name: string;
-  lots: ReagentLot[];
-}
-```
-
-### API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/tests/{testId}/analyzers` | Get analyzers linked to test |
-| GET | `/api/tests/{testId}/reagents` | Get required reagents with available lots |
-| GET | `/api/reagents/{reagentId}/lots` | Get available lots for reagent (FIFO ordered) |
-
----
-
-## Order Info Tab (NEW)
-
-Displays custom order information from the program fields. This includes up to 15 fields from order forms.
-
-### Available Fields
-
-| Field | Description |
-|-------|-------------|
-| **Ordering Clinician** | Name and contact info of ordering provider |
-| **Department** | Ordering department |
-| **Priority** | Routine, STAT, etc. (color-coded badge) |
-| **Collection Date/Time** | When sample was collected |
-| **Received Date/Time** | When sample was received in lab |
-| **Fasting Status** | Patient fasting status |
-| **Clinical History** | Relevant clinical information |
-| **Diagnosis** | ICD codes and diagnosis |
-| **Medication List** | Current medications |
-| **Special Instructions** | Special handling or testing instructions |
-| **Insurance Provider** | Insurance information |
-| **Authorization Number** | Pre-authorization number |
-| *(Additional fields)* | Up to 15 custom fields from program |
-
-### Layout
-
-Fields displayed in 3-column grid, with multi-line fields spanning 2 columns.
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ ORDERING CLINICIAN       DEPARTMENT           PRIORITY                      │
-│ Dr. Sarah Williams       Internal Medicine    [Routine]                     │
-│ +1 555-0123                                                                 │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ COLLECTION DATE/TIME     RECEIVED DATE/TIME   FASTING STATUS               │
-│ 12/18/2025 08:30        12/18/2025 09:00     Non-fasting                   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ CLINICAL HISTORY                              DIAGNOSIS                     │
-│ Annual checkup, patient reports fatigue       R53.83 - Other fatigue       │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Data Source
-
-Order info is populated from:
-- Program-specific custom fields
-- Order entry form data
-- HL7 message data (OBR, ORC segments)
-
----
-
-## Attachments Tab (NEW)
-
-Allows viewing files attached at order entry and uploading new files to the result.
-
-### Attachments Table
-
-| Column | Description |
-|--------|-------------|
-| **File** | File name with type icon (PDF, image, etc.) |
-| **Size** | File size (e.g., "245 KB") |
-| **Source** | "Order Entry" or "Result Entry" badge |
-| **Uploaded By** | User who uploaded the file |
-| **Date** | Upload date/time |
-| **Actions** | Download and Delete (if allowed) buttons |
-
-### File Sources
-
-| Source | Badge Color | Delete Allowed |
-|--------|-------------|----------------|
-| **Order Entry** | Purple | No - files from order cannot be deleted |
-| **Result Entry** | Teal | Yes - lab staff can remove files they uploaded |
-
-### Layout
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ Attachments                                                 [📤 Upload File]│
-├─────────────────────────────────────────────────────────────────────────────┤
-│ FILE                    SIZE    SOURCE        UPLOADED BY   DATE    ACTIONS │
-│ 📄 Requisition_Form.pdf 245 KB  [Order Entry] Order Entry   12/18   ⬇       │
-│ 🖼 Previous_Scan.jpg    1.2 MB  [Result Entry] J. Smith     12/18   ⬇ 🗑    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ ⚡ Files attached at order entry cannot be deleted.                         │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Empty State
-
-When no attachments exist:
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              📎 No attachments                              │
-│              Upload files or view attachments from order entry              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Supported File Types
-
-- PDF documents
-- Images (JPG, PNG, GIF)
-- Office documents (DOC, DOCX, XLS, XLSX)
-- Text files
-
-### Actions
-
-| Action | Icon | Description |
-|--------|------|-------------|
-| **Upload File** | Upload | Opens file picker to attach new file |
-| **Download** | Download | Downloads the file |
-| **Delete** | Trash | Removes file (only for Result Entry files) |
-
----
-
-## History Tab
-
-### Previous Results Table
-
-| Column | Description |
-|--------|-------------|
-| **Date** | Result date |
-| **Result** | Value + unit |
-| **Status** | Normal/Abnormal badge |
-| **Change** | % change from previous |
-
-### Delta Check Alert
-
-If delta check threshold exceeded, show alert banner:
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ ⚠ Delta Check Alert                                                         │
-│   Change of +44.9% from previous value (98) exceeds threshold of 20%       │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## QA/QC Tab
-
-### Control Results Section
-
-Display control results for the analyzer/test:
-
-```
-┌─────────────────────────────────────┐
-│ ✓ Level 1         Value: 5.2  PASS │
-├─────────────────────────────────────┤
-│ ✓ Level 2         Value: 12.1 PASS │
-└─────────────────────────────────────┘
-```
-
-### Flags & Alerts Section
-
-Display any active warnings:
-
-| Alert Type | Visual |
-|------------|--------|
-| **Reagent Warning** | Amber banner with expiry info |
-| **Analyzer Status** | Status indicator with last calibration |
-| **Overall QC Status** | Summary badge (Pass/Warning/Fail) |
-
----
-
-## Referral Tab
-
-Deprioritized since infrequently used. Fields enabled only when "Refer this test" checkbox is selected.
-
-### Fields
-
-| Field | Type |
-|-------|------|
-| **Refer Checkbox** | Enable/disable referral fields |
-| **Referral Reason** | Dropdown |
-| **Institute** | Dropdown |
-| **Test to Perform** | Dropdown (pre-filled with current test) |
-| **Sent Date** | Date picker |
-
----
-
-## Row Actions
-
-### Inline Actions (Always Visible)
-
-| Action | Icon | Description |
-|--------|------|-------------|
-| **Save Result** | ✓ Check | Visible only when status is Entered. Saves result value and sends to Validation queue. |
-
-### Expanded Row Actions
-
-| Action | Description |
-|--------|-------------|
-| **Save Result** | Save the entered result value and move it to the Validation queue (status → Awaiting Validation). Acceptance by a validator happens on the separate Validation page. |
-
-### Notes Button (in Notes Section)
-
-The primary way to add notes is via the "New Note" button at the bottom right of the Notes section in the expanded panel.
-
----
-
-## Keyboard Navigation
-
-| Key | Action |
-|-----|--------|
-| **↓ / ↑** | Navigate between rows |
-| **Enter** | Expand/collapse current row |
-| **Tab** | Move to next input field |
-| **Ctrl+Enter** | Save current result (sends to Validation queue) |
-
----
-
-## Data Requirements
-
-### Result Object
-
-```typescript
-interface Result {
-  id: string;
-  labNumber: string;
-  accession: string;
-  patient: {
-    name: string;
-    id: string;
-    dob: string;
-    sex: 'M' | 'F' | 'O';
-  };
-  testDate: string;
-  testName: string;
-  testId: string;
-  sampleType: string;
-  normalRange: string;
+  // Selection criteria — all that are non-null must match the patient at sample collection date
+  ageMin?: number;         // years (use fractional for neonates: 0.0833 = 1 month)
+  ageMax?: number;         // exclusive
+  sex?: 'M' | 'F' | 'U';
+  lifeStage?: 'neonate' | 'pediatric' | 'adolescent' | 'adult' | 'pregnant' | 'geriatric';
+  // Range values
+  normalLow: number; normalHigh: number;
+  criticalLow?: number; criticalHigh?: number; criticalLowMsg?: string; criticalHighMsg?: string;
+  validLow?: number; validHigh?: number;
   unit: string;
-  result: string;
-  status: 'pending' | 'entered' | 'awaiting-validation' | 'released' | 'cancelled';
-  
-  // Method Selection
-  method: 'manual' | 'analyzer';         // Method type (defaults to 'manual')
-  methodNotes?: string;                   // Optional notes/details for manual method
-  
-  // Analyzer & Reagent Selection (only when method === 'analyzer')
-  analyzer?: string;                      // Selected analyzer name
-  analyzerId?: string;                    // Selected analyzer ID
-  selectedReagentLots?: {                 // Selected reagent lots
-    reagentId: string;
-    reagentName: string;
-    lotNumber: string;
-  }[];
-  availableAnalyzers?: AvailableAnalyzer[];  // Loaded on expand
-  availableReagents?: AvailableReagent[];    // Loaded on expand
-  
-  flags: Flag[];
-  program?: {
-    name: string;
-    dueDate: string;
-    type: 'eqa' | 'pt' | 'custom';
-  };
-  previousResults: PreviousResult[];
-  suggestedInterpretation?: Interpretation;
-  interpretationOptions: Interpretation[];
-  selectedInterpretation?: Interpretation;
-  interpretationText?: string;
-  qcStatus: 'pass' | 'warning' | 'fail' | 'none';
-  controlResults?: ControlResult[];
-  deltaCheck?: DeltaCheck;
-  reagentFlag?: string;
-  analyzerFlag?: string;
-  
-  // Notes
-  notes: Note[];
-  
-  // Attachments
-  attachments: Attachment[];
-  
-  // Order Info (custom program fields)
-  orderInfo?: {
-    clinician?: string;
-    clinicianPhone?: string;
-    department?: string;
-    priority?: string;
-    collectionDate?: string;
-    receivedDate?: string;
-    clinicalHistory?: string;
-    diagnosis?: string;
-    fastingStatus?: string;
-    medicationList?: string;
-    specialInstructions?: string;
-    insuranceProvider?: string;
-    authorizationNumber?: string;
-    // ... up to 15 custom fields
-  };
-}
-
-interface Note {
-  id: string;
-  date: string;
-  author: string;
-  type: 'internal' | 'external';  // internal = "In Lab Only", external = "Send with Result"
-  body: string;
-}
-
-interface Attachment {
-  id: string;
-  name: string;
-  type: 'pdf' | 'image' | 'doc' | 'other';
-  size: string;
-  uploadedBy: string;
-  uploadedAt: string;
-  source: 'order' | 'result';  // order = from order entry, result = uploaded during result entry
+  // For display
+  label: string;            // "Adult Female (18-65y)" — shown next to selected range
 }
 ```
 
-### API Endpoints
+**Selection rule:** at expand time, the frontend (or backend if pre-computed) picks the **most specific** matching range. Specificity = count of non-null selection criteria that match. Ties broken by Test Catalog priority order. When no range matches, fall back to the lowest-priority "default" range and display a yellow warning Tag: **"⚠ No reference range for this demographic — using default."**
 
-| Method | Endpoint | Description | Permission |
-|--------|----------|-------------|------------|
-| GET | `/api/results` | List results with filters | `results.view` |
-| GET | `/api/results/{id}` | Get single result with full details | `results.view` |
-| PUT | `/api/results/{id}` | Update result value | `results.modify` |
-| POST | `/api/results/{id}/save` | Save result value — moves status to Awaiting Validation | `results.modify` |
-| POST | `/api/results/{id}/nce` | File NCE and cancel result | `results.modify` |
-| GET | `/api/results/{id}/history` | Get previous results | `results.view` |
-| GET | `/api/results/{id}/qc` | Get QC data for result | `results.view` |
-| POST | `/api/results/{id}/interpretation` | Save interpretation | `results.modify` |
-| POST | `/api/results/{id}/refer` | Create referral | `results.refer` |
-| GET | `/api/results/{id}/notes` | Get notes for result | `results.view` |
-| POST | `/api/results/{id}/notes` | Add note to result | `results.notes.add` |
-| GET | `/api/results/{id}/attachments` | Get attachments for result | `results.view` |
-| POST | `/api/results/{id}/attachments` | Upload attachment to result | `results.attachments.upload` |
-| DELETE | `/api/results/{id}/attachments/{attachmentId}` | Delete attachment (result entry only) | `results.attachments.delete` |
-| GET | `/api/macros` | Get all method macro codes with expansions | `results.view` |
-| GET | `/api/tests/{testId}/interpretations` | Get interpretation codes for a test (usable as macros) | `results.view` |
-| GET | `/api/tests/{testId}/analyzers` | Get analyzers linked to test | `results.view` |
-| GET | `/api/tests/{testId}/reagents` | Get required reagents with available lots | `results.view` |
+**UI:** The selected range's `label` appears as a small Tag next to the displayed range in both the table row and the expanded action bar. Hovering the Tag opens a Popover showing the selection criteria + a list of other configured ranges for this test (so the tech can see why this range was selected).
 
-### Query Parameters for Search
+**Validation-page parity:** Same selection logic applies on the Validation page so the validator sees the same range as the tech did.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `q` | string | Smart search query |
-| `labUnit` | string | Filter by lab unit (required) |
-| `labNumberFrom` | string | Filter by lab number range start |
-| `labNumberTo` | string | Filter by lab number range end (optional) |
-| `status` | string | Filter by status (default: pending) |
-| `orderDateFrom` | date | Filter by order date range start |
-| `orderDateTo` | date | Filter by order date range end |
-| `testIds` | string[] | Filter by test ID(s) - supports multiple |
-| `panelIds` | string[] | Filter by panel ID(s) - supports multiple |
-| `page` | number | Page number |
-| `pageSize` | number | Results per page (default 25) |
+**Migration:** Existing tests configured with one range get a single `referenceRanges[0]` entry with no selection criteria (matches any patient). Multi-range configuration is a Test Catalog Admin task (separate spec).
 
----
+### Critical Value Communication Form — NEW / EXPANDED (ISO HIGH A1 / CLSI GP47)
 
-## Acceptance Criteria
+**Replaces the v3.0 "I Acknowledge" single-click button.** CLSI GP47 (Critical Result Communication) requires documented evidence of: (a) who was notified, (b) by what method, (c) what was read back to confirm receipt, (d) when, and (e) escalation history when initial attempts failed. A single click does not satisfy this.
 
-### Unified Search
-- [ ] Single search bar accepts lab number, patient name/ID, accession
-- [ ] Quick filter for lab unit always visible (no "All" option)
-- [ ] Lab unit must be selected before results load (blank by default)
-- [ ] Advanced filters panel toggles via "Advanced" button
-- [ ] Advanced filters include: Lab Number/Range, Order Date Range, Tests/Panels, Status
-- [ ] Lab Number/Range supports single value or from/to range
-- [ ] Tests/Panels is a multi-select field with search
-- [ ] Tests/Panels dropdown shows panels grouped at top, tests below
-- [ ] Selected tests/panels appear as removable chips
-- [ ] Order Date Range supports from/to date selection
-- [ ] Status filter defaults to "Pending"
-- [ ] Active filters displayed as removable chips
-- [ ] Result count displayed
-- [ ] "Clear All Filters" resets to defaults
-- [ ] "Apply Filters" applies filter changes
+**Trigger:** When the entered result is in the `critical` range tier, the existing "Critical Value — Physician Notification Required" banner displays. The single "I Acknowledge" button is replaced by **"Open Notification Form"**. Save remains blocked.
 
-### Results Table
-- [ ] Row displays sample info, test, analyzer, range, result input, status, flags, actions
-- [ ] Patient name hidden in collapsed row (shows patient ID and age instead)
-- [ ] Age calculated from DOB and displayed in collapsed view
-- [ ] Full patient details (name, DOB) shown only when row expanded
-- [ ] QC status indicator (colored dot) visible on each row
-- [ ] Flag icons display with tooltips
-- [ ] Result input adapts to test type (numeric input vs select list)
-- [ ] Flagged results show highlighted input border
-- [ ] Row expands on click to show detail panel
+**Form layout (Usability H3) — progressive disclosure across two steps:**
 
-### Method & Reagents Tab
-- [ ] Shows as default tab when row expanded
-- [ ] Method selection shows "Manual" and "Analyzer" options
-- [ ] "Manual" is selected by default
-- [ ] Manual option shows optional "Method Details" text field
-- [ ] Method details text field supports method macro code expansion (type code + space)
-- [ ] Method macros include: MAN-HEM, MAN-MICRO, MAN-DIFF, QNS, CLOT, LIPEMIC, HEMOLYZED
-- [ ] Method macros do NOT include interpretation codes
-- [ ] Selecting "Analyzer" shows list of available analyzers
-- [ ] Selecting "Manual" clears analyzer selection
-- [ ] Analyzer list excludes "Manual" (Manual is now a separate method option)
-- [ ] For analyzer imports, pre-selects Analyzer method and source analyzer
-- [ ] Displays reagents linked to test (from Test Catalog) with available lot options
-- [ ] Lots sorted by FIFO (oldest received first)
-- [ ] Oldest unexpired lot shows "FIFO Suggested" badge with highlighted border
-- [ ] No reagent lot pre-selected by default
-- [ ] Expiring lots (within 7 days) show warning badge
-- [ ] Expired lots grayed out and not selectable
-- [ ] Info banner explains FIFO logic
-- [ ] Footer shows selected method and reagent count
-- [ ] Reagent selections are optional (not required to accept)
+The form is broken into two visually separated steps. Step 2 only reveals once Step 1 has the minimum fields filled. This reduces friction at the moment of patient-safety stress.
 
-### Interpretation Section
-- [ ] Appears below notes in expanded panel
-- [ ] Shows system-suggested interpretation with clinical description text
-- [ ] Lists all available interpretations with color badges, codes, ranges, and clinical text
-- [ ] Interpretations include clinical context (e.g., "Diabetes Mellitus" not just "High")
-- [ ] Clicking any interpretation option selects it and copies text to textarea
-- [ ] Selected interpretation shows checkmark and highlighted border
-- [ ] Multi-line textarea for interpretation text
-- [ ] Auto-fills text from test catalog when interpretation clicked
-- [ ] Interpretation text field supports interpretation code macros (type code + space)
-- [ ] Typing interpretation code (e.g., WBC-NL, GLU-DM) and pressing space expands to full text
-- [ ] Code expansion also auto-selects the matching interpretation option
-- [ ] Interpretation codes do NOT work in Method Details field (those use method macros)
-- [ ] User can edit or override interpretation text after selection
-- [ ] Clear button resets selection and clears textarea
-- [ ] Help text shows shortcut instructions for code expansion
+**Step 1 — "Who are you contacting?"** (always visible):
 
-### History Tab
-- [ ] Shows previous results in table format
-- [ ] Displays delta (% change) from previous
-- [ ] Delta check alert banner when threshold exceeded
-- [ ] "No previous results" empty state
+| Field | Type | Required | Source |
+|---|---|---|---|
+| **Recipient** | TextInput with "Use order clinician" quick-fill button | ✓ | `order.clinician` defaulted into the field; "Use order clinician" button shown when the user has typed something else |
+| **Recipient role** | Select | optional (defaults to Clinician) | Clinician / Nurse / On-call clinician / Patient (direct) / Other |
+| **Method of communication** | Select | optional (defaults to Phone) | Phone / In-person / Secure message / Pager / Other |
+| **Time of notification** | TextInput + [Now] button | ✓ | Auto-filled with `now`; [Now] button refreshes the value; manual edit supported for backfill |
+
+**Step 2 — "What happened?"** (reveals when Recipient + Time are filled). Two buttons:
+
+| Button | Reveals |
+|---|---|
+| **✓ Reached on this attempt** (green) | Read-back textarea (required). Submit unblocks when read-back is filled. |
+| **⚠ Could not reach — log escalation** (amber) | Escalation log panel with one attempt entry pre-added. Each entry has Method / Recipient / Outcome. When outcome=`reached` on any entry, a Read-back textarea appears inline for that entry; Submit unblocks when read-back is captured. |
+
+A "Change" link in Step 2 lets the user go back and re-pick the outcome if they made a mistake.
+
+| Field (Step 2) | Type | Required | Source |
+|---|---|---|---|
+| **Read-back text** | TextArea | ✓ on the reached-attempt | The verbatim words read back by the recipient confirming they understood the value. CLSI GP47 §5.4.2. |
+| **Escalation entry: Method** | Select | when not reached | Phone / Pager / In-person / Secure message |
+| **Escalation entry: Recipient** | TextInput | when not reached | Whoever was attempted on this escalation |
+| **Escalation entry: Outcome** | Select | when not reached | No answer / Left voicemail / Busy / Wrong number / Escalated to supervisor / ✓ Reached |
+| **Additional notes** | TextInput | optional | Anything else relevant — e.g. "Patient also notified directly per family request" |
+
+**On submit (Confirm Notification button):**
+1. POST to `/rest/alerts/critical-acknowledgment` with the full structured payload.
+2. On success: ack pill replaces the form ("Notified Dr. Williams at 12/18/2025 12:04 via Phone — read-back confirmed"). Save unblocks.
+3. On failure: follow BR-025 retry policy (toast + queued replay).
+4. Audit: `CRITICAL_NOTIFICATION_LOGGED` row written to `audit_trail` with the full payload, plus the existing `CRITICAL_ACK`.
+
+**Modification:** Once a critical notification has been logged, the form collapses to a read-only summary card. Editing requires the Validator bundle and produces a new modification-history entry (per A3).
+
+**Validator visibility:** On the Validation page, the structured notification record is shown read-only above the result; validators verify the read-back text is meaningful before releasing.
 
 ### QA/QC Tab
-- [ ] Displays control results with pass/fail status
-- [ ] Shows reagent warnings (e.g., expiring)
-- [ ] Shows analyzer status
-- [ ] Overall QC status summary
 
-### Referral Tab
-- [ ] Checkbox to enable referral fields
-- [ ] Fields disabled until checkbox selected
-- [ ] Referral reason, institute, test, sent date fields
-
-### Patient Info Banner
-- [ ] Displays at top of expanded panel
-- [ ] Shows patient name (hidden in collapsed view)
-- [ ] Shows patient ID, DOB, sex, and calculated age
-
-### Notes Section
-- [ ] Notes section always visible in expanded panel
-- [ ] Notes table shows date/time, author, type, and body
-- [ ] Note type shown as "In Lab Only" or "Send with Result" badge
-- [ ] "New Note" button at bottom right of notes section
-- [ ] Clicking "New Note" expands note input form
-- [ ] Note type radio buttons default to "In Lab Only"
-- [ ] Can switch note type to "Send with Result"
-- [ ] "Save Note" button saves new note
-- [ ] "Cancel" button closes input without saving
-- [ ] Empty state shows "No notes for this result"
-
-### Order Info Tab
-- [ ] Displays order information from program fields
-- [ ] Shows up to 15 custom fields
-- [ ] Includes clinician, department, priority, dates
-- [ ] Shows clinical history, diagnosis, medications
-- [ ] Fields displayed in 3-column grid layout
-
-### Attachments Tab
-- [ ] Shows list of files attached to order or result
-- [ ] Table displays file name, size, source, uploaded by, date, actions
-- [ ] File type icon shows (PDF, image)
-- [ ] Source badge: "Order Entry" (purple) or "Result Entry" (teal)
-- [ ] "Upload File" button at top right
-- [ ] Download button for all files
-- [ ] Delete button only for "Result Entry" files
-- [ ] Order Entry files cannot be deleted
-- [ ] Empty state with paperclip icon when no attachments
-- [ ] Info banner explains file source rules
-
-### Program Context
-- [ ] Program banner displays below interpretation when result associated with EQA/PT
-- [ ] Shows program name and due date
-- [ ] Link to program details
-
-### Actions
-- [ ] "Save Result" (blue) shown in Actions column for first entry when a value is present **[BR-018]**
-- [ ] "Modify Result" (outline blue) shown for Awaiting Validation; opens expanded panel **[BR-018]**
-- [ ] "Modify Result" (outline amber) shown for Released; opens expanded panel **[BR-018]**
-- [ ] No button shown when result field is empty **[BR-018]**
-- [ ] Released amber confirmation banner blocks modification fields until confirmed **[BR-018]**
-- [ ] Reason for modification textarea required for all modifications before save enabled **[BR-018]**
-- [ ] Modification reason auto-saved as internal note with prefix "[Modification reason]" **[BR-018]**
-- [ ] Saving first entry moves status to Awaiting Validation **[BR-013]**
-- [ ] Modifying queued or released result returns status to Awaiting Validation **[BR-018]**
-- [ ] "New Note" button in Notes section opens inline note input
-
-### Pagination
-- [ ] Default 25 results per page
-- [ ] Options for 50, 100 per page
-- [ ] Page navigation controls
-- [ ] Result count display
-
----
-
-## Migration Notes
-
-### From Current Design
-
-| Current | New |
-|---------|-----|
-| Separate search pages | Unified search with filters |
-| Methods dropdown in expanded row | Moved to test catalog configuration |
-| Upload file button | Moved to separate import screen |
-| Storage location in expanded row | Available in Order Info tab |
-| Referral always visible | Moved to Referral tab (deprioritized) |
-| Internal/External notes | Renamed to "In Lab Only" / "Send with Result" |
-| Save Draft / Accept buttons | Replaced with single "Save Result" action that sends to Validation queue |
-| Patient name always visible | Hidden until row expanded (privacy) |
-| DOB shown | Age calculated and shown instead |
-
-### New Features
-
-- Interpretation selection and text (click to copy)
-- QA/QC visibility (controls, flags)
-- Program context banner
-- Delta check alerts
-- Previous results history
-- Flag icons in main row
-- Notes section (always visible with "New Note" button)
-
-### Cross-Module Harmonization Note
-
-The note types "In Lab Only" and "Send with Result" replace the legacy "Internal" / "External" terminology. **All other modules that display or create notes (Validation, Order Entry, Patient Chart) must adopt this same terminology** to ensure UI consistency. This rename should be tracked as a separate harmonization task and applied to the Validation page FRS (validation-page-requirements-v2.1-stage1.md) and any other affected specs.
-
----
-
-## Business Rules
-
-**BR-001:** Results MUST NOT load on page entry until the user explicitly triggers a search via lab unit selection, search query submission, or filter application. Passive page load must show the empty start state.
-
-**BR-002:** Lab Unit selection MUST be a required pre-condition before any result set is loaded. Results from all lab units must never be loaded simultaneously.
-
-**BR-003:** The Lab Unit selection MUST persist for the duration of the browser session. It resets only on tab close or explicit user change.
-
-**BR-004:** Patient name MUST NOT be displayed in the collapsed row view. Only patient ID, sex, and calculated age (from DOB) are shown. Full patient details (name, DOB) are revealed only when the row is expanded.
-
-**BR-005:** Age MUST be calculated dynamically from the patient's date of birth at display time, not stored as a static value.
-
-**BR-006:** The Method field defaults to "Manual" when a result row is first expanded. It switches to "Analyzer" automatically only when the result was imported from an analyzer integration.
-
-**BR-007:** Reagent lot selection is optional. A result MUST be acceptable without specifying reagent lots. The FIFO suggestion is a visual guide, not a required field.
-
-**BR-008:** FIFO reagent suggestion MUST select the oldest unexpired lot (by received date) for each reagent. Expired lots MUST be excluded from selection. Lots expiring within 7 days MUST display an amber "Expiring" warning badge.
-
-**BR-009:** If a user attempts to select an analyzer with a failed QC status, the system MUST present a confirmation dialog before allowing the selection to proceed.
-
-**BR-010:** Notes default to type "In Lab Only". The user must explicitly select "Send with Result" to change visibility. "In Lab Only" notes MUST NOT appear on patient-facing result reports.
-
-**BR-011:** Files attached at Order Entry (source = `order`) MUST NOT be deletable from the Results Entry screen, regardless of user role. Only files uploaded during Results Entry (source = `result`) may be deleted.
-
-**BR-012:** The delta check threshold is configured per-test in the Test Catalog. When the absolute percentage change from the most recent previous result exceeds this threshold, a delta check alert MUST be displayed in the History tab.
-
-**BR-013:** The Save Result action MUST validate that a result value has been entered before proceeding. If the result field is empty, the action must be blocked and an inline error displayed. Saving a result sets its status to Awaiting Validation — final acceptance is performed by a validator on the Validation page, not on Results Entry.
-
-**BR-014:** Interpretation codes typed in the Method Details field MUST NOT expand. Method macros typed in the Interpretation Text field MUST NOT expand. Each field only recognizes its own code set.
-
-**BR-015 — Result Range Tiers:** Each test in the Test Catalog defines up to three numeric range bands. Results are visually classified into one of four tiers on the Results Entry page, evaluated in priority order:
-
-| Tier | Trigger condition | Visual | Action required |
-|------|-------------------|--------|-----------------|
-| **Normal** | Value within normal range | No highlight | None |
-| **Abnormal** | Outside normal range but within critical range | Yellow background / yellow border on input | None — H/L flag displayed |
-| **Critical** | Outside critical (panic) range but within valid range | Orange background / orange border on input; "C" badge in flags column | Tech must click **I Acknowledge** before Save is enabled |
-| **Invalid** | Outside physiologically valid range | Dark red background; "!" badge in flags column | Dark red warning banner displayed; result should not be saved until verified |
-
-The three range types stored in the Test Catalog per test are:
-- `normalRange` — expected reference interval for the population (e.g., 4.00–10.00 x10⁹/L for WBC)
-- `criticalRange` (panic range) — values requiring immediate physician notification (e.g., <2.0 or >30.0 x10⁹/L for WBC)
-- `validRange` — physiologically possible range; values outside this indicate instrument error (e.g., 0.1–100.0 x10⁹/L for WBC)
-
-**BR-016 — Critical Value Acknowledgment:** When a result value falls in the critical tier, the Save Result button MUST be disabled. A bright orange banner MUST be displayed stating the critical value, the specific condition (e.g., "Critical hyperkalemia — K⁺ > 6.5 mmol/L"), and a mandatory notification reminder. The tech MUST click the "I Acknowledge" button to confirm physician notification has been or will be made before the Save button becomes active. The acknowledgment is reset if the result value is modified after acknowledging.
-
-**BR-017 — Invalid Range Warning:** When a result value falls outside the valid (physiological) range, a dark red warning banner MUST be displayed below the action bar. The banner text must identify the value, the valid range, and instruct the technician to verify and repeat analysis. The Save button is NOT blocked for invalid-range values (so the tech can still correct the entry), but the banner serves as a strong visual alert.
-
-**BR-018 — Result Modification Workflow:** Saving a result value that has previously been saved (status = Awaiting Validation or Released) is treated as a modification, not a first entry. The following rules apply:
-
-| Condition | Button label | Additional requirement |
-|-----------|--------------|------------------------|
-| Result has no prior saved value (status = Pending or Entered) | **Save Result** | None |
-| Result already saved, not yet validated (status = Awaiting Validation) | **Modify Result** | Reason for modification note required |
-| Result has been validated (status = Released) | **Modify Result** (amber) | Confirmation acknowledgment + reason note required |
-
-**Modify Result — Awaiting Validation:** An informational banner is shown in the expanded panel notifying the tech they are modifying a queued result. A "Reason for modification" textarea is shown and must be filled before the Modify Result button is active. On submission, the reason is automatically appended to the result's internal notes as an audit entry and the result remains in the Awaiting Validation queue.
-
-**Modify Result — Released:** A full-width amber warning banner is shown at the top of the expanded panel stating the result has been validated and may have been reported to the clinician. The tech must explicitly click "I understand — proceed" before the modification fields appear. A reason note is then required, as above. On submission the result is returned to Awaiting Validation status for re-approval by a validator.
-
-**BR-019 (renumbered from previous BR-019) — Non-Conformity Flag:** [unchanged]
-
-**BR-020 — Search Input:** The search bar placeholder text MUST indicate that barcode scanning is supported, in addition to manual text entry. Barcode scanners typically operate as keyboard wedge devices and populate the search field directly on scan.
-
-**BR-019 — Non-Conformity Flag:** A result that has one or more associated NCE records MUST display a teal "NCE" badge in the Flags column of the results table. The badge MUST be present regardless of the NCE's status (open or closed) and regardless of whether the result itself is cancelled. Hovering the badge MUST show a tooltip containing the NCE number, category, subcategory, severity, and status. When an NCE is closed, the badge MUST render in a muted gray style to distinguish resolved events from open ones. The NCE badge co-exists with all other flags (H, L, Δ, C, !) — it is additive, not replacing any existing flag.
-
-The NCE badge applies in the following scenarios:
-- A result has a pre-existing NCE filed against the sample or order (imported from NCE module linkage)
-- The tech files a new NCE via the "Report Non-Conformity" inline form during Results Entry (the badge appears immediately after submission without a page reload)
-
----
-
-## Localization (i18n)
-
-All UI text is externalized via `t(key, fallback)`. The following keys must be added to the OpenELIS message properties files. Key convention: `[category].[feature].[identifier]`.
-
-### Page Structure
-
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `heading.results.pageTitle` | Results Entry |
-| `heading.results.pageSubtitle` | Enter and manage test results |
-| `heading.results.resultCount` | results found |
-
-### Search & Filters
-
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `label.results.search` | Search |
-| `placeholder.results.search` | Search or scan barcode — lab number, patient ID, test name… |
-| `label.results.labUnit` | Lab Unit |
-| `placeholder.results.labUnit` | Select Lab Unit... |
-| `button.results.search` | Search |
-| `button.results.advanced` | Filters |
-| `button.results.clearFilters` | Clear |
-| `button.results.applyFilters` | Apply Filters |
-| `label.results.filter.labNumberFrom` | Lab Number From |
-| `placeholder.results.filter.labNumberFrom` | e.g., DEV0125... |
-| `label.results.filter.labNumberTo` | Lab Number To |
-| `placeholder.results.filter.labNumberTo` | To (optional) |
-| `label.results.filter.dateFrom` | Date From |
-| `label.results.filter.dateTo` | Date To |
-| `label.results.filter.testSection` | Test Section |
-| `label.results.filter.status` | Status |
-| `label.results.filter.allStatuses` | All Statuses |
-| `label.results.filter.pending` | Pending |
-| `label.results.filter.entered` | Entered |
-
-### Empty & Loading States
-
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `heading.results.emptyState` | Search to View Results |
-| `message.results.emptyState` | Select a lab unit or enter a search term to view pending results. |
-| `message.results.loading` | Loading results... |
-| `message.results.noResults` | No results found matching your criteria. |
-
-### Results Table Headers
-
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `label.results.table.samplePatient` | Sample / Patient |
-| `label.results.table.test` | Test |
-| `label.results.table.analyzer` | Analyzer |
-| `label.results.table.range` | Range |
-| `label.results.table.result` | Result |
-| `label.results.table.status` | Status |
-| `label.results.table.flags` | Flags |
-| `placeholder.results.table.resultInput` | Enter result |
-| `label.results.flag.aboveNormal` | Above normal range |
-| `label.results.flag.belowNormal` | Below normal range |
-| `label.results.flag.deltaCheck` | Delta check threshold exceeded |
-| `label.results.flag.critical` | Critical/panic value — acknowledgment required |
-| `label.results.flag.invalid` | Outside physiologically valid range |
-| `label.results.flag.nce` | NCE |
-| `label.results.range.abnormal` | Abnormal |
-| `label.results.range.critical` | Critical |
-| `label.results.range.invalid` | Invalid |
-| `heading.results.critical.title` | Critical Value — Physician Notification Required |
-| `message.results.critical.body` | Per laboratory policy, the responsible clinician must be notified before or upon result reporting. |
-| `button.results.critical.acknowledge` | I Acknowledge |
-| `message.results.critical.acknowledged` | Critical value acknowledged — clinician notification confirmed. You may now save. |
-| `heading.results.invalid.warning` | Result outside valid range |
-| `message.results.invalid.body` | Verify the result and repeat analysis if necessary. Do not report until confirmed. |
-
-### Status Badge Labels
-
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `label.results.status.pending` | Pending |
-| `label.results.status.entered` | Entered |
-| `label.results.status.awaitingValidation` | Awaiting Validation |
-| `label.results.status.released` | Released |
-| `label.results.status.cancelled` | Cancelled |
-
-### Patient Info Banner
-
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `label.results.patient.patient` | Patient |
-| `label.results.patient.patientId` | Patient ID |
-| `label.results.patient.dob` | DOB |
-| `label.results.patient.sex` | Sex |
-| `label.results.patient.age` | Age |
-| `label.results.patient.ageYears` | years |
-
-### Notes Section
-
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `heading.results.notes` | Notes |
-| `label.results.notes.dateTime` | Date/Time |
-| `label.results.notes.author` | Author |
-| `label.results.notes.type` | Type |
-| `label.results.notes.note` | Note |
-| `label.results.notes.inLabOnly` | In Lab Only |
-| `label.results.notes.sendWithResult` | Send with Result |
-| `button.results.notes.newNote` | New Note |
-| `label.results.notes.newNote` | New Note |
-| `button.results.notes.saveNote` | Save Note |
-| `button.results.notes.cancel` | Cancel |
-| `placeholder.results.notes.text` | Enter note... |
-| `message.results.notes.empty` | No notes for this result. |
-
-### Interpretation Section
-
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `heading.results.interpretation` | Interpretation |
-| `label.results.interpretation.available` | Available Interpretations |
-| `label.results.interpretation.clickToUse` | (click to use) |
-| `label.results.interpretation.suggested` | Suggested: |
-| `label.results.interpretation.selected` | ✓ Selected |
-| `label.results.interpretation.text` | Interpretation Text |
-| `button.results.interpretation.clear` | Clear |
-| `placeholder.results.interpretation.text` | Click an interpretation option, or type a code (e.g., WBC-NL) and press space to expand... |
-| `message.results.interpretation.shortcutHint` | Shortcut: Type an interpretation code and press space to expand. |
-
-### Method & Reagents Tab
-
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `label.results.method.title` | Method |
-| `label.results.method.manual` | Manual |
-| `label.results.method.manualDescription` | Manual entry without analyzer |
-| `label.results.method.manualDefault` | default |
-| `label.results.method.analyzer` | Analyzer |
-| `label.results.method.analyzerDescription` | Result from automated analyzer |
-| `label.results.method.details` | Method Details |
-| `label.results.method.detailsOptional` | (optional) |
-| `placeholder.results.method.details` | Enter details or type a macro code (e.g., MAN-HEM, QNS, CLOT)... |
-| `message.results.method.macroHint` | Macro codes: Type a code and press space to expand. |
-| `label.results.analyzer.select` | Select Analyzer |
-| `label.results.reagent.title` | Reagent Lots Used |
-| `label.results.reagent.fifoSuggested` | FIFO Suggested |
-| `label.results.reagent.expiring` | Expiring |
-| `message.results.reagent.fifoHint` | Lots marked "FIFO Suggested" are the oldest unexpired lots. Select them to ensure proper stock rotation. |
-
-### Tab Labels
-
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `label.results.tab.method` | Method & Reagents |
-| `label.results.tab.orderInfo` | Order Info |
-| `label.results.tab.attachments` | Attachments |
-| `label.results.tab.history` | History |
-| `label.results.tab.qaqc` | QA/QC |
-| `label.results.tab.referral` | Referral |
-
-### Attachments Tab
-
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `heading.results.attachments` | Attachments |
-| `button.results.attachments.upload` | Upload File |
-| `label.results.attachments.file` | File |
-| `label.results.attachments.size` | Size |
-| `label.results.attachments.source` | Source |
-| `label.results.attachments.uploadedBy` | Uploaded By |
-| `label.results.attachments.date` | Date |
-| `label.results.attachments.actions` | Actions |
-| `label.results.attachments.orderEntry` | Order Entry |
-| `label.results.attachments.resultEntry` | Result Entry |
-| `message.results.attachments.empty` | No attachments |
-| `message.results.attachments.emptyHint` | Upload files or view attachments from order entry |
-| `message.results.attachments.orderEntryNotice` | Files attached at order entry are marked "Order Entry" and cannot be deleted. |
+Overall status banner (pass / warning / fail / none). Control results table with level, value, expected range, pass/fail. Analyzer status + last calibrated timestamp.
 
 ### History Tab
 
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `heading.results.history` | Previous Results |
-| `label.results.history.date` | Date |
-| `label.results.history.result` | Result |
-| `label.results.history.status` | Status |
-| `label.results.history.change` | Change |
-| `heading.results.deltaCheck` | Delta Check Alert |
-| `message.results.deltaCheck` | Change of {change} from previous value ({previous}) exceeds threshold of {threshold} |
-| `message.results.history.empty` | No previous results for this test |
+Delta-check alert banner (when threshold exceeded). Previous results table with today highlighted; for D/M result types, dictionary IDs resolved to labels. Empty state when no history.
 
-### QA/QC Tab
+---
 
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `heading.results.qaqc.controlResults` | Control Results |
-| `heading.results.qaqc.selectedMethod` | Selected Method |
-| `label.results.qaqc.status.pass` | QC Status: Passed |
-| `message.results.qaqc.allPass` | All controls within acceptable range |
-| `label.results.qaqc.online` | Online |
-| `label.results.qaqc.offline` | Offline |
-| `label.results.qaqc.manualEntry` | Manual entry |
+## Polymorphic Result Cell — Result Types
 
-### Actions & Row Footer
+| Code | Type | Input | Live Validation |
+|---|---|---|---|
+| **N** | Numeric | `NumberInput` with parsed value | range tier (normal / abnormal / critical / invalid) drives input border + cell background + flag badges (H/L/C/!) |
+| **D** | Dictionary single-select | `Select` (or `Dropdown`) over `dictionaryResults` | none — value validated against allowed set |
+| **M** | Dictionary multi-checkbox | Carbon `MultiSelect` (or details/summary pattern in compact rows) | CSV of selected dictionary IDs |
+| **C** | Cascading multi-select | Parent `Select` → child `MultiSelect` (organism → AST drug panel) | declared in spec; **out of scope for v1 mockup** — see Dependencies |
+| **R** | Remark (single-line text) | `TextInput` | none |
+| **A** | Alpha (paragraph text) | `TextArea` (1 row, expands) | none |
 
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `button.results.save` | Save Result |
-| `button.results.addNote` | Note |
-| `label.results.footer.method` | Method: |
-| `label.results.footer.reagentLots` | reagent lots |
-| `label.results.footer.noReagentLots` | No reagent lots |
-| `label.results.footer.selectAnalyzer` | Select analyzer |
+### Numeric (N) — Range Tier Evaluation
 
-### Pagination
+Evaluation order: `invalid` (outside physiologically valid range) → `critical` (panic) → `abnormal` (outside normal but inside critical) → `normal`.
 
-| i18n Key | Default English Text |
-|----------|----------------------|
-| `label.results.pagination.showing` | Showing |
-| `label.results.pagination.to` | to |
-| `label.results.pagination.of` | of |
-| `label.results.pagination.results` | results |
-| `label.results.pagination.show` | Show |
-| `label.results.pagination.perPage` | per page |
-| `button.results.pagination.previous` | Previous |
-| `button.results.pagination.next` | Next |
+| Tier | Visual | Save behavior |
+|---|---|---|
+| Normal | No highlight | Save enabled |
+| Abnormal | Yellow border + yellow cell background + "H"/"L" flag | Save enabled |
+| Critical | Orange border + orange cell background + "C" flag + critical banner in expanded panel | **Save disabled until "I Acknowledge" clicked. Acknowledgment is logged to Alerts dashboard.** |
+| Invalid | Dark red border + dark red cell + "!" flag + invalid banner | Save NOT disabled (so tech can correct); dark red banner warns to verify and repeat |
+
+### Acknowledgment → Alerts Dashboard
+
+Per `project_critical_result_ack_global_todo`, critical-value acknowledgment from this page MUST POST to the Alerts service so the central Alerts dashboard reflects: result identifier, tech who acknowledged, timestamp, and message. The Save action does not complete until the ack is recorded.
+
+---
+
+## Save Workflow
+
+### Action Bar
+
+| Element | Carbon component | Notes |
+|---|---|---|
+| Result Value | `NumberInput` (N) / `Select` (D) / `MultiSelect` (M) / `TextInput` (R) / `TextArea` (A) | Live range tier styling for N |
+| Range hint | text | "Ref: 16.00–20.00 g/dL · Critical: <7.0 or >25.0" |
+| Report Non-Conformity | `Button kind="tertiary"` w/ Warning icon | Opens inline NCE form |
+| Save / Modify Result | `Button kind="primary"` w/ KeyRound icon | Triggers e-signature modal |
+
+### E-Signature Modal
+
+| Field | Source |
+|---|---|
+| Title | "E-Signature Required" |
+| Body | "You are about to save N result(s) for accession X. Per lab policy, results must be e-signed before they enter the validation queue." |
+| Meaning | `AUTHORED` (sent to backend) |
+| Record type | `RESULT_BATCH` |
+| Record id | First analysisId in batch |
+| Password | required `PasswordInput` |
+| Cancel | Returns to Result Entry without saving |
+| Sign & Save | POSTs to `/rest/LogbookResults` with `eSignature` envelope |
+
+First-use-per-session: an additional Certification flow may be required (covered by existing `ESignatureButton`).
+
+### Post-Save Behavior
+
+| Outcome | UI |
+|---|---|
+| Plain save | Toast: "Result saved and queued for validation." |
+| Reflex tests fired | Same toast adds: `Reflex tests created: <accession list>` |
+| Calculated tests fired | Same toast adds: `Calculated tests: <test name list>` |
+| STAT priority | Same toast adds: "STAT result — validators have been notified." Backend additionally fires an in-app Notification to every user with the Validator role bundle. |
+| Modification of previously-saved result | Toast: "Result modified and returned to Validation queue." |
+| **Stale-page conflict** | Toast (warning): "Result has been saved by another user — refreshing the page." Page reloads; conflicting rows show in error state. |
+
+### Modification Workflow
+
+| Status when re-saving | Button label | Additional requirement |
+|---|---|---|
+| Pending / Entered | **Save** | None |
+| Awaiting Validation | **Modify Result** | Reason-for-modification text required; reason auto-appended to result's internal notes as `[Modification reason] …`; status stays Awaiting Validation |
+| Released | **Modify Result** (amber) | (a) Confirm amber warning banner → (b) reason text required; status returns to Awaiting Validation for re-approval |
+
+---
+
+## Inline NCE Form — Result Disposition (Replaces Reject Column)
+
+The standalone Reject column is removed. Reject becomes a **Result Disposition** option inside the Report NCE form. Every result that is voided, rejected, retested, or referred-out from Results Entry produces a Non-Conformity record.
+
+### NCE Form Fields
+
+| Field | Required | Notes |
+|---|---|---|
+| NCE number | Auto | Format `NCE-YYYYMMDD-NNNN` |
+| Auto-linked context | — | Read-only: test name + lab number + result value (or "not entered") |
+| Category | ✓ | Pre-Analytical / Analytical / Post-Analytical / Administrative |
+| Subcategory | ✓ | Dependent on Category |
+| Severity | ✓ | **Radio with description:** Critical (patient safety risk) / Major (significant quality impact) / Minor (limited impact) |
+| Title | — | Short summary |
+| Description | — | What happened, when, how discovered |
+| Immediate Action | — | What was done to contain |
+| Suspected Causes | — | Likely root causes |
+| Proposed Action | — | Recommended corrective action |
+| **Result Disposition** | ✓ | One of: **Cancel result** (default, voids result) / **Reject result + reason** (permanently deletes; requires rejection reason) / **Retest** (result stays Pending; retest order created; Workplan-tracked) / **Refer out** (opens Referral section with reason pre-filled) |
+| Rejection reason | ✓ when Disposition=Reject | Select from `REJECTION_REASONS` dictionary (Hemolyzed / QNS / Clotted / Incorrect container / Mislabeled / Sample expired / Other) |
+
+### Disposition → Status Mapping
+
+| Disposition | Resulting status | Side-effect |
+|---|---|---|
+| Cancel result | `cancelled` | NCE record created; result value voided |
+| Reject result + reason | `cancelled` (result row deleted) | NCE record created; `RejectionReason` stored on NCE |
+| Retest | `pending` | NCE record created; retest order auto-generated; tracked in Workplan |
+| Refer out | `awaiting-validation` (referred) | NCE record created; Referral section pre-filled with NCE-derived reason |
+
+API: `POST /rest/non-conformity-events` with `{ result, disposition, rejectionReason?, ...nceFields }`
+
+---
+
+## Responsive Design — Breakpoints
+
+OpenELIS is deployed across desktop workstations and bench tablets. The layout adapts at four breakpoints:
+
+| Viewport | Layout |
+|---|---|
+| **≥1440px (large desktop)** | Full 11-column table + 3-column grids in expanded panel sections |
+| **1024–1439px (standard desktop / landscape tablet)** | Full table; sections wrap to 2-column grids when needed |
+| **768–1023px (portrait tablet)** | "Compact columns" mode — hide Analyzer Result and Current Result columns (accessible via the Columns overflow menu); section grids stack to single-column |
+| **<768px (small tablet / phone)** | "Card row" layout — each row becomes a vertical card showing Accession + Patient + Test + Result input + Status + Expand toggle. Expanded panel sections stack single-column. Action bar sticks to the bottom of the card. *Note: v3 mockup demonstrates the table layout; card layout is deferred to a polish spec but the breakpoint plan is fixed here so the implementation slot is reserved.* |
+
+**Touch targets:** All interactive elements meet WCAG 2.5.5 (24×24 CSS pixels minimum, 44×44 preferred for primary actions). Critical Acknowledgment button, Save (E-Sign) button, and section expand chevrons use the 44×44 minimum.
+
+**Column hiding policy:** When a column is hidden by the breakpoint, its data is still accessible via the expanded row. The Columns overflow menu (Carbon DataTable `ColumnControl`) lets users re-show hidden columns when viewport space allows.
+
+## Information Architecture — Expanded Panel Order (Usability H1)
+
+**Primary action block (top of expanded panel):** Patient Banner → Program Banner (conditional) → Modification History banner (conditional) → Modification notice (conditional) → **Action bar (Result Value + Range hint + Report NCE + Save)** → Modification reason (conditional) → Invalid range banner (conditional) → Critical Notification Form (conditional) → NCE inline form (conditional).
+
+**Secondary context block (below primary action):** Notes → Interpretation → Method & Reagents → Order Info → Program Info (conditional) → Storage Location → Aliquots → Referral → Attachments → Tabs (QA/QC, History).
+
+**Rationale (H1):** The bench tech's primary task is enter value → save. Putting the action bar at the top of the expanded panel means the tech doesn't scroll past 9 context sections to reach the field they're filling in. Context sections live below the action and serve as on-demand reference, not workflow steps.
+
+## Section Default-Open Behavior (Usability H2)
+
+Each inline section computes its own default-open state from row context. Empty or irrelevant sections collapse on first view; only sections that need attention auto-open.
+
+| Section | Default open when |
+|---|---|
+| **Notes** | `result.notes.length > 0` OR `result.pastNotesLegacy` exists |
+| **Interpretation** | `result.suggestedInterpretation` exists OR `result.interpretationOptions.length > 0` |
+| **Method & Reagents** | `requireReagentLotsForResults` flag is ON (so the gate is immediately visible) |
+| **Order Info** | Closed by default (read-only context, accessible on demand) |
+| **Program Info** | Open when shown (conditional on `result.program` existing) |
+| **Storage Location** | Open when sample's storage path is unset (prompts the tech to assign); closed when storage is already set |
+| **Aliquots** | Open when aliquots exist OR sample is a pool; closed otherwise. *Future enhancement:* lab-unit-aware default (open for Microbiology / Pathology / Vector even when empty) |
+| **Referral** | Open when result has an existing referral; closed otherwise. Auto-opens when NCE Disposition = Refer-out (BR-032) |
+| **Attachments** | Open when attachments exist; closed otherwise |
+
+**Behavior:** Section header chevron remains a manual toggle. The smart default applies only to the first render when the row is expanded; subsequent open/close actions persist for the session.
+
+## Carbon Implementation Notes
+
+The mockup intentionally uses Tailwind utility classes and raw HTML elements (`<select>`, `<input>`, `<table>`, custom toggle/tab divs) so the gallery preview can render without a Webpack build step or `@carbon/react` install. **Production implementation MUST use `@carbon/react`**. The Component Map below binds each UI element to its Carbon component.
+
+**Patterns the Tailwind mockup intentionally does NOT demonstrate** — devs implementing this MUST use the Carbon equivalents instead of the visual mockup pattern:
+
+| Mockup shows | Production must use |
+|---|---|
+| Custom toggleable `<div>` for collapsible sections | `Accordion` + `AccordionItem` |
+| Custom tab bar with border-bottom highlight | `Tabs` + `Tab` + `TabList` + `TabPanels` + `TabPanel` |
+| Custom modal overlay div for E-Sig | `Modal` + `PasswordInput` + `ModalFooter` |
+| `<details>` element for M-type result | `MultiSelect` (`selectionFeedback="fixed"`) |
+| Inline `<table>` for results | `DataTable` + `TableExpandRow` + `TableExpandedRow` |
+| Fixed-position toast stack | `ToastNotification` rendered via portal |
+| Inline LocationPicker stub | `ComposedModal` + custom drill-down tree component |
+| Inline file-upload placeholder | `FileUploader` / `CompactFileInput` |
+| Manual `<input type="date">` + `<input type="time">` | `DatePicker` + `DatePickerInput` + `TimePicker` + `TimePickerSelect` |
+| `<select>` elements with native styling | `Select` + `SelectItem` (or `Dropdown` for searchable) |
+| `<textarea>` | `TextArea` |
+| Status badge `<span>` with rolled colors | `Tag` with `type` prop |
+
+The Tailwind mockup is acceptable as a *design reference* but **must not be copy-pasted as implementation code**. The intent of each rendered element maps to a Carbon component in the table below.
+
+## Carbon Component Map
+
+This map binds each UI element to its Carbon component.
+
+| UI Element | `@carbon/react` Component | Notes |
+|---|---|---|
+| Page table | `DataTable` + `TableExpandRow` + `TableExpandedRow` | Replace raw `<table>` |
+| Test Unit dropdown | `Select` + `SelectItem` | Required indicator with `labelText` + `helperText` |
+| Search input | `Search` | with `placeholder`, scan-barcode-friendly |
+| Date From/To | `DatePicker` + `DatePickerInput` (range) | `dateFormat="d/m/Y"` |
+| Test Date (per-row inline) | `DatePicker` + `TimePicker` + `TimePickerSelect` | Date + hh + mm stacked |
+| Status filter chips | `FilterableMultiSelect` or rolled `Tag` w/ `filter` prop | Carbon `Tag` `filter={true}` |
+| Patient avatar | Custom — initials in color-hashed circle | Carbon does not ship an Avatar component; use a lightweight wrapper |
+| Status badge | `Tag` w/ `type="green\|blue\|warm-gray\|red\|gray"` | StatusTag mapping in spec |
+| Flag badges (H/L/Δ/C/!) | `Tag` (compact) or `<span>` w/ inline styles | C and ! use `kind="red"`/custom for orange |
+| Result input (numeric) | `NumberInput` | with `invalidText`, `step`, `min`, `max` |
+| Result input (dictionary single) | `Select` or `Dropdown` | over `dictionaryOptions` |
+| Result input (dictionary multi) | `MultiSelect` | `selectionFeedback="fixed"` |
+| Result input (cascading) | `Select` (parent) → `MultiSelect` (child) | C type — out of scope for v1 mockup |
+| Result input (text) | `TextInput` / `TextArea` | per resultType |
+| Range tier banners | `InlineNotification` `kind="warning\|error\|info"` | Critical = warning; Invalid = error |
+| Critical Ack button | `Button kind="danger"` | logs to Alerts on click |
+| Section header (collapsible) | `Accordion` + `AccordionItem` or custom toggleable `Tile` | use Carbon Accordion for collapsibility |
+| Notes table | `StructuredList` or inline `<div>` rows | with `Tag` for type badge |
+| Note type radio | `RadioButtonGroup` + `RadioButton` | "In Lab Only" / "Send with Result" |
+| Method dropdown | `Select` | populated from `/rest/displayList/METHODS` |
+| Analyzer dropdown | `Select` (or `Dropdown` for searchable) | from `/rest/test/{testId}/analyzers` |
+| Storage Picker | Inline `Tile` grid + drill-down; production: custom `LocationPickerModal` | full freezer/rack/shelf/box hierarchy |
+| Storage "Reason for move" | `TextInput` | required when moving existing location |
+| Refer checkbox | `Checkbox` | gates the referral form |
+| Referral Reason / Institute | `Select` | from `/rest/displayList/REFERRAL_REASONS`, `/rest/displayList/REFERRAL_ORGANIZATIONS` |
+| File upload | `FileUploader` / `CompactFileInput` | image/PDF, base64 |
+| Toast | `ToastNotification` | reflex/calc lists appear in body |
+| E-signature modal | `Modal` + `PasswordInput` | mandatory flow |
+| Report NCE button | `Button kind="tertiary"` w/ `renderIcon={Warning}` | opens inline NCE form |
+| NCE Severity radios | `RadioButtonGroup` with `legendText` | Critical / Major / Minor with helper text |
+| NCE Result Disposition | `RadioButtonGroup` (custom-styled tiles) or `Tile` grid | Cancel / Reject / Retest / Refer |
+| Rejection reason | `Select` | conditional on Disposition=Reject |
+| Save (E-Sign) button | `Button kind="primary"` w/ `renderIcon={KeyRound}` | triggers ESignature flow |
+| Pagination (bottom) | `Pagination` | items per page 10/20/30/50/100 |
+| Pagination (server, top) | inline icon `Button` x2 + text indicator | shows `current/total`, page size 100 |
+| Nonconforming legend | `InlineNotification` (low) or inline `Tag` + text | always-visible above table |
+
+---
+
+## Data Dependencies — Named Entities & Attributes
+
+The redesign introduces fields not present in OpenELIS today. Each must be backed by a real entity attribute (per `feedback_reuse_existing_data_elements`).
+
+| New / Extended Field | Today's State | Action Required |
+|---|---|---|
+| `Test.referenceRanges[]` (replaces single `Test.normalRange` + `Test.lowerCritical` / `higherCritical`) | Single range only | **Schema:** New `test_reference_range` table with one row per range variant. Columns: `id`, `test_id`, `age_min`, `age_max`, `sex`, `life_stage`, `normal_low`, `normal_high`, `critical_low`, `critical_high`, `critical_low_msg`, `critical_high_msg`, `valid_low`, `valid_high`, `unit`, `label`, `priority`. `@Audited`. Existing single-range data migrates as one entry with no selection criteria. **Per CLSI EP28-A3c and ISO 15189 §7.5.1.4** (BR-036). |
+| `critical_notification` table | Not present | **Schema:** New `critical_notification` table. Columns: `id`, `analysis_id`, `value`, `recipient`, `recipient_role`, `method`, `read_back_text`, `notified_at`, `first_attempt_successful`, `escalation_log` (JSONB), `additional_notes`, `logged_by`, `logged_at`. `@Audited`. Captures CLSI GP47 structured notification record per critical result (BR-033). |
+| `aliquot` table | Aliquot tracking exists in `/Aliquot` page; data model exists but not surfaced on Results Entry | **No new schema** if existing aliquot table covers ID, source-sample link, purpose, status, storage, created-by/at, suffix. **API surface required:** `GET /rest/samples/{sampleId}/aliquots`, `POST /rest/samples/{sampleId}/aliquots`, `PATCH /rest/aliquots/{aliquotId}`. (BR-037) |
+| `Test.interpretationOptions[]` | Not present as structured data; some interpretation text in `result_options` for D type | **Schema:** New `test_interpretation` table linked to `test`; columns: code, label, color, range_text, body. `@Audited`. **Follow-up spec required:** Test Catalog Admin page must be extended to manage these rows; until that lands, interpretation options are seeded per-test via SQL migration. |
+| `Test.suggestedInterpretation` (auto) | Not present | **Server logic:** Match entered numeric value against `test_interpretation.range_text` bounds to suggest interpretation. No new schema beyond interpretation table. |
+| ~~`Result.cascadingMultiSelect (C)` resultType~~ | *Deferred to a separate spec* | **Moved to §Future Considerations.** Extending the `result_type` enum requires a sweep across HL7 export, FHIR export, reports, Validation, and Test Catalog admin to confirm no downstream consumer breaks. Out of scope for v3. |
+| `Result.disposition` (Cancel/Reject/Retest/Refer) | Disposition split across `result.status` + `referral` + `rejection` paths | **Server logic:** Persist disposition as part of the linked `NonConformityEvent` (no new column on `result`); on disposition application, drive existing status/referral side-effects. |
+| `Alerts.criticalAcknowledgment` | Alerts dashboard exists; not wired to Results Entry | **API:** New `POST /rest/alerts/critical-acknowledgment` endpoint. Payload: `{ resultId, value, ackBy, ackAt, criticalMsg }`. |
+| `SampleItem.storageLocation` | Exists today via `/rest/storage/sample-items` | **No new schema** — wire existing API into the Storage Section. |
+| `result.reflexTests[]`, `calculatedTests[]` in save response | Backend computes reflex/calc on save; not currently in REST response | **API:** `POST /rest/LogbookResults` response augmented with `reflexTests: [accession]` and `calculatedTests: [testName]` so the toast can name them. |
+| `Result.method` (per-row override) | `result.method` text column exists today | **No new schema.** UI surfaces existing field. |
+| `EQA priority` (STANDARD/URGENT/CRITICAL) | EQA module tracks rounds; priority per sample not stored as enum | **Schema:** Add `eqa_sample.priority` enum column (STANDARD default). `@Audited`. |
+| `Patient.nationalId` in row | Exists; not always displayed | **No schema change** — surface existing field, respect PII mask. |
+
+### Feature Flags Introduced
+
+| Flag | Default | Purpose |
+|---|---|---|
+| `results.entry.showPatientName` | OFF | Site-wide PII override (existing) |
+| `PATIENT_DATA_ON_RESULTS_BY_ROLE` | OFF | Role-based PII mask (existing) |
+| `ALERT_FOR_INVALID_RESULTS` | ON | Fire notification on invalid-range save (existing) |
+| `allowResultRejection` | ON | Whether NCE Disposition includes "Reject result + reason" option (existing, repurposed) |
+| `results.entry.unifiedRoute` | ON for new installs; **OFF** for upgrades during migration | When OFF, legacy six routes remain; when ON, they redirect to `/Results` |
+| `requireReagentLotsForResults` | ON for new ISO-accredited installs; **OFF** for upgrades and non-accredited deployments | When ON, Save is blocked unless at least one reagent lot is selected per ISO 15189 §6.4.4 (BR-034) |
+| `criticalNotification.requireReadBack` | ON | When ON, the structured Critical Communication Form is required (CLSI GP47 / BR-033). When OFF, falls back to single-click ack for legacy parity |
+| `useRetroCIStudyForms` | OFF | Render hardcoded RETROCI ARV/EID/VL/Indeterminate forms inside Program Info section (existing) |
+
+---
+
+## Permissions & Audit
+
+### Role Attachment
+
+| Action | Role Bundle |
+|---|---|
+| View Results page | `Analyst` (existing; binary, all analysts get all results-view) |
+| Enter / Modify result value | `Analyst` |
+| Save (e-sign) result | `Analyst` |
+| File NCE | `Analyst` |
+| Assign / move storage location | `Analyst` OR `SampleReception` | Storage assignment happens both at sample receiving (Reception techs) AND during result entry (Analysts re-shelving post-run). Either bundle grants access; the action is the same. |
+| View patient name when PII masking is on | `PatientResults` permission bundle (existing) |
+| Modify Released result | `Validator` (existing — supervisors only); non-Validators see a disabled "Modify Result" button with tooltip "Released-result modification requires Validator permission." |
+
+**No new permission keys introduced.** Per `feedback_openelis_admin_permissions`, OpenELIS uses binary admin + per-module role bundles, not per-action permission keys.
+
+### Audit Trail Events
+
+For every state-changing action, an entry is written to `audit_trail`:
+
+| Action | `audit_trail.action` | Target | Payload summary |
+|---|---|---|---|
+| Save first result | `RESULT_SAVED` | `analysis_id` | `{ value, method, analyzer, reagentLots[] }` |
+| Modify Awaiting Validation result | `RESULT_MODIFIED` | `analysis_id` | `{ prevValue, newValue, reason }` |
+| Modify Released result | `RESULT_MODIFIED_RELEASED` | `analysis_id` | `{ prevValue, newValue, reason }` (additional Envers row on Released-result modification) |
+| Save interpretation (no value change) | `INTERPRETATION_SAVED` | `analysis_id` | `{ interpretationCode, textLength }` (don't audit body text — too noisy + may contain PII-adjacent free text) |
+| Add note | `NOTE_ADDED` | `analysis_id` + `note_id` | `{ type, bodyLength }` (don't audit body text) |
+| Assign storage location | `STORAGE_ASSIGNED` | `sample_item_id` | `{ locationPath }` |
+| Move storage location | `STORAGE_MOVED` | `sample_item_id` | `{ fromPath, toPath, reason }` |
+| File NCE | `NCE_CREATED` | `nce_id` | `{ severity, disposition, category, subcategory }` |
+| Apply NCE disposition | `NCE_DISPOSITION_APPLIED` | `nce_id` + `analysis_id` | `{ disposition }` |
+| Critical value acknowledged | `CRITICAL_ACK` | `analysis_id` | `{ value, ackBy, criticalMsg }` |
+| Critical notification logged (structured CLSI GP47 form) | `CRITICAL_NOTIFICATION_LOGGED` | `analysis_id` | `{ value, recipient, recipientRole, method, readBackText, notifiedAt, escalationCount }` |
+| Critical value ack failed (Alerts unreachable) | `CRITICAL_ACK_FAILED` | `analysis_id` | `{ value, errorCode, queuedForReplay }` |
+| Aliquot created | `ALIQUOT_CREATED` | `sample_id` + `aliquot_id` | `{ count, purpose, linkedTestId? }` |
+| Aliquot status changed (Used / Destroyed / Sent) | `ALIQUOT_STATUS_CHANGED` | `aliquot_id` | `{ fromStatus, toStatus, reason? }` |
+| Stale-page conflict detected | `STALE_PAGE_CONFLICT` | `analysis_id` | `{ savedBy, savedAt }` |
+| Upload attachment | `ATTACHMENT_UPLOADED` | `analysis_id` + `attachment_id` | `{ filename, size }` |
+| Delete attachment (result-entry only) | `ATTACHMENT_DELETED` | `attachment_id` | `{ filename }` |
+| Refer test | `RESULT_REFERRED` | `analysis_id` + `referral_id` | `{ reason, institute }` |
+
+Reads are NOT audited. All `audit_trail` entries auto-capture actor from Spring Security context.
+
+### Envers Coverage
+
+| Entity | `@Audited`? | Rationale |
+|---|---|---|
+| `Result` | Yes (existing) | Clinical data |
+| `NonConformityEvent` | Yes | Compliance / quality |
+| `Test.criticalRangeLowMsg`, `highMsg` (new attributes) | Yes | Configuration |
+| `Test.validRangeLow`, `validRangeHigh` (new attributes) | Yes | Configuration |
+| `test_interpretation` (new table) | Yes | Configuration |
+| `eqa_sample.priority` (new attribute) | Yes | EQA tracking |
+| `sample_item.storage_location` link | Yes (existing in storage module) | Sample chain-of-custody |
+| `audit_trail` entries themselves | No | Append-only by design |
+| `critical_notification` (new table — structured GP47 record) | Yes | Compliance / patient safety |
+| `aliquot` (new table) | Yes | Sample chain-of-custody |
+| `aliquot_status_history` (new table) | No | Append-only state transitions |
+
+---
+
+## Localization
+
+(Inherits all i18n keys from v2.1 plus the following new keys.)
+
+| i18n Key | English |
+|---|---|
+| `nav.results` | Results |
+| `nav.workplan` | Workplan |
+| `breadcrumb.home` | Home |
+| `column.samplepatient` | Sample / Patient |
+| `column.testdate` | Test Date |
+| `column.analyzerresult` | Analyzer Result |
+| `column.testname` | Test Name |
+| `column.sample` | Sample |
+| `column.normalrange` | Normal Range |
+| `column.result` | Result |
+| `column.currentresult` | Current Result |
+| `column.status` | Status |
+| `column.flags` | Flags |
+| `column.actions` | Actions |
+| `heading.programInfo` | Program Info |
+| `help.programInfo.readonly` | Program-captured fields are read-only here. Edit them on the originating order. |
+| `heading.aliquots` | Aliquots |
+| `column.aliquot.id` | Aliquot ID |
+| `column.aliquot.purpose` | Purpose |
+| `column.aliquot.linkedTest` | Linked Test |
+| `column.aliquot.status` | Status |
+| `column.aliquot.created` | Created |
+| `column.aliquot.storage` | Storage |
+| `aliquot.purpose.test` | Test |
+| `aliquot.purpose.retention` | Retention |
+| `aliquot.purpose.sendout` | Send-out |
+| `aliquot.purpose.pool` | Pool |
+| `aliquot.purpose.pouroff` | Pour-off |
+| `aliquot.status.created` | Created |
+| `aliquot.status.inStorage` | In-Storage |
+| `aliquot.status.sent` | Sent |
+| `aliquot.status.used` | Used |
+| `aliquot.status.destroyed` | Destroyed |
+| `button.aliquot.create` | Create aliquot |
+| `button.aliquot.printLabel` | Print Label |
+| `button.aliquot.markUsed` | Mark Used |
+| `button.aliquot.destroy` | Destroy |
+| `label.aliquot.count` | How many aliquots? |
+| `label.aliquot.purpose` | Purpose |
+| `label.aliquot.linkedTest` | Test to perform |
+| `label.aliquot.destination` | Destination storage |
+| `label.aliquot.reason` | Reason / Notes |
+| `message.aliquot.empty` | No aliquots from this sample yet. |
+| `message.aliquot.poolHeading` | Pool composition |
+| `heading.criticalNotification` | Critical Value — Notification Form |
+| `heading.criticalNotification.step1` | Step 1 · Who are you contacting? |
+| `heading.criticalNotification.step2` | Step 2 · What happened? |
+| `button.criticalNotification.reached` | Reached on this attempt |
+| `button.criticalNotification.notReached` | Could not reach — log escalation |
+| `button.criticalNotification.open` | Open Notification Form |
+| `button.criticalNotification.submit` | Confirm Notification |
+| `label.criticalNotification.recipient` | Recipient |
+| `label.criticalNotification.recipientRole` | Role |
+| `label.criticalNotification.method` | Method of communication |
+| `label.criticalNotification.readBack` | Read-back text |
+| `placeholder.criticalNotification.readBack` | Verbatim what the recipient read back to confirm the value… |
+| `label.criticalNotification.time` | Time of notification |
+| `label.criticalNotification.firstSuccessful` | First attempt successful? |
+| `label.criticalNotification.escalationLog` | Escalation log |
+| `label.criticalNotification.additionalNotes` | Additional notes |
+| `message.criticalNotification.summary` | Notified {recipient} at {time} via {method} — read-back confirmed |
+| `criticalNotification.method.phone` | Phone |
+| `criticalNotification.method.inperson` | In-person |
+| `criticalNotification.method.secureMsg` | Secure message |
+| `criticalNotification.method.pager` | Pager |
+| `criticalNotification.method.other` | Other |
+| `criticalNotification.role.clinician` | Clinician |
+| `criticalNotification.role.nurse` | Nurse |
+| `criticalNotification.role.oncall` | On-call clinician |
+| `criticalNotification.role.patient` | Patient (direct) |
+| `criticalNotification.role.other` | Other |
+| `warn.reagent.required` | A reagent lot is required by site configuration (ISO 15189 §6.4.4 traceability). Select a lot to enable Save. |
+| `heading.modification.history` | Modification History |
+| `label.modification.original` | Original |
+| `label.modification.current` | Current |
+| `label.modification.reason` | Reason |
+| `button.modification.viewAll` | View all history ({count}) |
+| `label.row.modifiedTag` | Modified |
+| `label.referenceRange.label` | Range |
+| `warn.referenceRange.fallback` | No reference range for this demographic — using default |
+| `labUnit.placeholder` | Select Test Unit… |
+| `labUnit.hematology` | Hematology |
+| `labUnit.chemistry` | Chemistry |
+| `labUnit.microbiology` | Microbiology |
+| `labUnit.serology` | Serology-Immunology |
+| `title.action.modifyReleasedBlocked` | Released-result modification requires Validator permission |
+| `column.samplePatient` | Sample / Patient |
+| `column.testDate` | Test Date |
+| `column.analyzerResult` | Analyzer Result |
+| `column.testName` | Test Name |
+| `column.sample` | Sample |
+| `column.normalRange` | Normal Range |
+| `column.result` | Result |
+| `column.currentResult` | Current Result |
+| `column.status` | Status |
+| `column.flags` | Flags |
+| `column.actions` | Actions |
+| `heading.storage` | Storage Location |
+| `label.storage.unassigned` | Unassigned |
+| `label.storage.path` | Location |
+| `label.storage.position` | Position |
+| `label.storage.condition` | Condition |
+| `button.storage.assign` | Assign storage location |
+| `button.storage.move` | Move storage location |
+| `label.storage.moveReason` | Reason for move |
+| `placeholder.storage.moveReason` | Why is this sample being moved? |
+| `heading.storage.picker` | Choose a location |
+| `help.storage.unassigned` | This sample item has no storage record. Assign a location to enable freezer tracking. |
+| `help.storage.picker` | Drill down through Freezer → Rack → Shelf → Box → Position. |
+| `button.storage.confirmAssign` | Confirm assign |
+| `button.storage.confirmMove` | Confirm move |
+| `label.nce.disposition` | Result Disposition |
+| `help.nce.disposition` | What happens to this result? |
+| `label.nce.disp.cancel` | Cancel result |
+| `help.nce.disp.cancel` | Result is voided. No value reported. Most common for pre-analytical NCEs. |
+| `label.nce.disp.reject` | Reject result + reason |
+| `help.nce.disp.reject` | Result is permanently deleted. Requires a rejection reason. Use sparingly. |
+| `label.nce.disp.retest` | Retest — request new sample / repeat |
+| `help.nce.disp.retest` | Result stays pending. A retest order is created. Track via Workplan. |
+| `label.nce.disp.refer` | Refer out to external lab |
+| `help.nce.disp.refer` | Result is referred. Opens the Referral section above with reason pre-filled. |
+| `label.nce.rejectReason` | Rejection reason |
+| `placeholder.nce.rejectReason` | Select a rejection reason… |
+| `warn.nce.reject` | Rejecting permanently deletes test results. This action cannot be undone. |
+| `label.nce.title` | Title |
+| `label.nce.description` | Description |
+| `label.nce.immediateAction` | Immediate Action |
+| `label.nce.suspectedCauses` | Suspected Causes |
+| `label.nce.proposedAction` | Proposed Action |
+| `label.nce.severity.critical` | Critical |
+| `help.nce.severity.critical` | Patient safety risk |
+| `label.nce.severity.major` | Major |
+| `help.nce.severity.major` | Significant quality impact |
+| `label.nce.severity.minor` | Minor |
+| `help.nce.severity.minor` | Limited impact |
+| `heading.esig` | E-Signature Required |
+| `message.esig.intro` | You are about to save |
+| `message.esig.results` | result(s) for |
+| `message.esig.policy` | Per lab policy, results must be e-signed before they enter the validation queue. |
+| `label.esig.password` | Password |
+| `placeholder.esig.password` | Enter your password to sign |
+| `help.esig.meaning` | Meaning: AUTHORED · Record type: RESULT_BATCH |
+| `button.esig.sign` | Sign & Save |
+| `button.save.esig` | Save (E-Sign) |
+| `legend.nonconforming` | Sample or Order is nonconforming or Test has been rejected |
+| `tooltip.nonconforming` | Sample or order is nonconforming |
+| `label.serverPage` | Server page |
+| `label.patient.id` | ID |
+| `label.patient.nationalId` | National ID |
+| `label.patient.dob` | DOB |
+| `label.patient.sex` | Sex |
+| `label.patient.age` | Age |
+| `label.notes.legacy` | Past notes (legacy, plain text) |
+| `label.method.select` | Method |
+| `label.analyzer.select` | Analyzer |
+| `placeholder.analyzer.select` | Select analyzer… |
+| `label.method.details` | Method Details |
+| `placeholder.method.details` | Type MAN-DIFF, MAN-HEM, QNS, CLOT, HEMOLYZED then space to expand… |
+| `help.method.macros` | Macros: MAN-DIFF · MAN-HEM · MAN-MICRO · QNS · CLOT · HEMOLYZED · LIPEMIC |
+| `heading.reagent.lots` | Reagent Lots (FIFO suggested) |
+| `label.reagent.useFirst` | Use First |
+| `label.reagent.next` | Next |
+| `label.referral.refer` | Refer this test to an external laboratory |
+| `label.referral.referred` | Referred |
+| `placeholder.result.select` | Select… |
+| `placeholder.result.multiselect` | Click to select… |
+| `toast.saved` | Result saved and queued for validation. |
+| `toast.modified` | Result modified and returned to Validation queue. |
+| `toast.nce.created` | NCE |
+| `toast.nce.dispositionApplied` | created. Disposition |
+| `toast.nce.followup` | Open NCE module to complete investigation. |
+| `warn.stalePage` | Result has been saved by another user — refreshing the page. |
+| `label.range.ref` | Ref |
+| `label.range.abnormal` | Abnormal |
+| `label.range.critical` | Critical |
+| `label.range.invalid` | Invalid |
+| `heading.critical` | Critical Value — Physician Notification Required |
+| `message.critical` | Per laboratory policy, the responsible clinician must be notified before or upon result reporting. Acknowledgment will be recorded in the global Alerts dashboard. |
+| `button.critical.ack` | I Acknowledge |
+| `message.critical.ack` | Critical value acknowledged — clinician notification confirmed and logged to Alerts dashboard. You may now save. |
 
 ---
 
 ## Validation Rules
 
+(Inherits from v2.1 plus:)
+
 | Field | Rule | Error i18n Key |
-|-------|------|----------------|
-| **Result Value** | Required before Save | `error.results.resultRequired` |
-| **Result Value (numeric)** | Must be a valid number when test type is numeric | `error.results.resultNumeric` |
-| **Lab Unit** | Required to trigger search (cannot search without selecting lab unit OR entering a query) | `error.results.labUnitRequired` |
-| **Lab Number Range** | If "To" is provided, "From" is required | `error.results.labNumberFromRequired` |
-| **Lab Number Range** | "To" value must be ≥ "From" value | `error.results.labNumberRangeInvalid` |
-| **Order Date Range** | If "To" is provided, "From" is required | `error.results.dateFromRequired` |
-| **Order Date Range** | "To" date must be ≥ "From" date | `error.results.dateRangeInvalid` |
-| **Note Text** | Required if Add Note form is open and Save is clicked | `error.results.noteTextRequired` |
-| **Interpretation Code Macro** | If typed code does not match any known code, it stays as plain text (no error, silent non-match) | — |
-| **Referral Reason** | Required when "Refer this test" checkbox is checked | `error.results.referralReasonRequired` |
-| **Referral Institute** | Required when "Refer this test" checkbox is checked | `error.results.referralInstituteRequired` |
+|---|---|---|
+| Storage move reason | Required when moving an existing location (not on first assign) | `error.storage.moveReasonRequired` |
+| NCE Severity | Required to submit NCE | `error.nce.severityRequired` |
+| NCE Subcategory | Required when Category selected | `error.nce.subcategoryRequired` |
+| NCE Rejection Reason | Required when Disposition = Reject | `error.nce.rejectReasonRequired` |
+| E-sig password | Required to complete Save | `error.esig.passwordRequired` |
+| Result value (D type) | Must be one of `dictionaryOptions` IDs | `error.result.invalidDictionaryValue` |
+| Result value (M type) | All comma-separated IDs must exist in `dictionaryOptions` | `error.result.invalidMultiselectValue` |
 
 ---
 
-## Security & Permissions
+## Business Rules
 
-All write operations require explicit permission key enforcement at both UI layer (hide or disable control) and API layer (HTTP 403 for unauthorized requests).
+(Inherits BR-001 to BR-020 from v2.1; the following are added or amended.)
 
-| Action | Required Permission Key | UI Behavior if Denied | API Response if Denied |
-|--------|------------------------|-----------------------|------------------------|
-| View results list | `results.view` | Results Entry page hidden from menu | HTTP 403 |
-| Enter / update result value | `results.modify` | Result input field read-only | HTTP 403 on PUT |
-| Save result (send to Validation) | `results.modify` | Save button hidden | HTTP 403 on POST `/save` |
-| Save interpretation | `results.modify` | Interpretation section read-only | HTTP 403 on POST `/interpretation` |
-| Add note | `results.notes.add` | "New Note" button hidden | HTTP 403 on POST `/notes` |
-| Upload attachment | `results.attachments.upload` | "Upload File" button hidden | HTTP 403 on POST `/attachments` |
-| Delete attachment (result entry only) | `results.attachments.delete` | Delete button hidden | HTTP 403 on DELETE `/attachments/{id}` |
-| Refer test to reference lab | `results.refer` | Referral tab hidden | HTTP 403 on POST `/refer` |
+**BR-021 — Unified Route Migration:** When `results.entry.unifiedRoute` is ON, `/LogbookResults`, `/PatientResults`, `/AccessionResults`, `/StatusResults`, `/RangeResults`, and `/result` MUST 301-redirect to `/Results` with appropriate query-string preservation. When OFF, legacy routes remain functional. Default ON for new installs; OFF for in-place upgrades for one minor version.
 
-### Role Defaults
+**BR-022 — Workplan Deep-Link Breadcrumb:** When the URL contains `?source=WorkPlan*`, the breadcrumb MUST include a "Workplan" crumb before "Results". The crumb links back to the originating Workplan view.
 
-| Role | Default Permissions |
-|------|---------------------|
-| Lab Technician | `results.view`, `results.modify`, `results.notes.add`, `results.attachments.upload` |
-| Lab Supervisor | All above + `results.refer`, `results.attachments.delete` |
-| Lab Manager | All permissions |
-| System Administrator | All permissions |
+**BR-023 — Storage Location First-Time Assign:** A first-time `Assign storage location` does NOT require a reason. A subsequent `Move storage location` DOES require a reason. Both produce audit_trail entries (`STORAGE_ASSIGNED` / `STORAGE_MOVED`).
 
-**Note:** Role defaults are configurable per-site. The above represents the recommended baseline configuration.
+**BR-024 — NCE Disposition is the Only Reject Path:** Result rejection MUST flow through an NCE record. The legacy standalone Reject column is removed. `allowResultRejection=false` hides the "Reject result + reason" option from the NCE Disposition radio group; it does NOT disable the entire NCE flow.
+
+**BR-025 — Critical Acknowledgment → Alerts Dashboard:** Acknowledging a critical value on Results Entry MUST POST to `/rest/alerts/critical-acknowledgment` before the Save action proceeds. The Critical Ack is a hard gate. Retry semantics:
+
+| Failure mode | UI behavior | Server behavior |
+|---|---|---|
+| Network error / 5xx | `ActionableNotification kind="error"` toast with `actionButtonLabel="Retry"` + explanatory body ("The Alerts service is unreachable. Your acknowledgment has been queued for replay."). Save remains blocked until ack succeeds OR user explicitly cancels. | Backend queues the ack write to a durable replay queue when the Alerts service is unreachable for > 5 seconds. Replay attempts every 30 s for 10 min, then alerts SysAdmin role users. |
+| 4xx (validation rejection) | Toast `kind="error"` with the server's error message. Save remains blocked. No retry button (user must correct input). | Returns the validation error; does not queue. |
+| Success | Silent — Save proceeds immediately. | Ack written to `critical_acknowledgments` table + linked to `audit_trail` entry `CRITICAL_ACK`. |
+| Timeout > 10 s | Same as Network error. | Same as Network error. |
+
+Audit: Every Critical Ack attempt (success OR failure) writes one row to `audit_trail` with action `CRITICAL_ACK` or `CRITICAL_ACK_FAILED` so the failure mode is itself traceable for compliance review.
+
+**BR-026 — PII Masking Precedence:** `results.entry.showPatientName` (site-wide override) takes precedence over `PATIENT_DATA_ON_RESULTS_BY_ROLE` (role-based mask). When the site-wide override is ON, the patient name is shown regardless of user role.
+
+**BR-027 — Polymorphic Result Cell Rendering:** The result cell MUST render the input variant matching `result.resultType`:
+- `N` = numeric input with live range tier styling
+- `D` = single-select Select over `dictionaryOptions`
+- `M` = multi-checkbox stored as CSV of `dictionaryOptions` IDs
+- `C` = cascading multi-select (parent → child); **out of scope for v1 implementation, documented for future**
+- `R` = single-line text input
+- `A` = multi-line text area
+
+**BR-028 — Reflex / Calculated Tests in Save Response:** The save endpoint MUST return `reflexTests` and `calculatedTests` arrays in the response. The frontend toast MUST list them so techs know which downstream accessions to expect in the Validation queue.
+
+**BR-029 — STAT Validator Notification:** Saving a result whose linked order priority is `STAT` MUST fire an in-app Notification to every user with the Validator role bundle. The Notification body includes the lab number, test name, and value.
+
+**BR-030 — Stale-Page Conflict Guard:** When the save endpoint detects another user has saved any row in the current page batch between page load and save attempt, the response MUST mark conflicting rows as `failedValidation=true` and the frontend MUST display a warning toast and reload the results list.
+
+**BR-031 — Method Override:** The per-row Method dropdown stores its selection on the result's `method` text column. When Method = Automated or Semi-Automated, the Analyzer dropdown is shown and required. When Method = Manual or Point of Care, the Analyzer dropdown is hidden.
+
+**BR-032 — Result Cell Conflict Resolution at NCE Disposition = Refer:** When NCE Disposition is set to "Refer out", the form auto-fills the Referral section with: referral reason = "NCE-driven referral", institute = blank (user must select), test = current test, sent date = today.
+
+**BR-033 — Critical Value Notification Documentation (CLSI GP47):** When a result enters the `critical` range tier, the Save action MUST be gated behind a structured Critical Value Communication Form. The form MUST capture, at minimum: recipient identity, recipient role, communication method, verbatim read-back text, time of notification. When the first notification attempt was not successful (no answer / wrong number / etc.), an Escalation Log MUST be filled with at least one additional attempt record. On successful submission, a `CRITICAL_NOTIFICATION_LOGGED` audit entry is written and Save is unblocked. A single-click acknowledgment without these fields is NOT acceptable for ISO 15189 / CLSI GP47 compliance.
+
+**BR-034 — Reagent Lot Capture Required for Save (ISO 15189 §6.4.4):** When the site config `requireReagentLotsForResults` is ON (default ON for new deployments), Save MUST be blocked until the user has selected at least one reagent lot in the Method & Reagents section. The block presents an inline warning ("Reagent lot is required by site configuration for ISO 15189 §6.4.4 traceability."). When the flag is OFF, current optional behavior applies. Migration: existing deployments default OFF for one minor version, then default ON for new installs.
+
+**BR-035 — Original Value Retrievability (ISO 15189 §7.5.2 / 21 CFR Part 11 §11.10(e)):** When a result has been modified (one or more `RESULT_MODIFIED` or `RESULT_MODIFIED_RELEASED` audit entries), the original value MUST be visible in the expanded panel without requiring a separate audit-log lookup. The Modification History banner displays at the top of the panel and surfaces: `original → current` transition pair, each prior actor and timestamp, each reason. When more than one modification exists, only the most recent transition is shown by default; an expand control reveals the full chronological chain. The original value MUST NEVER be deleted from the system; modifications append to history rather than overwriting.
+
+**BR-036 — Demographic-Aware Reference Range Selection (CLSI EP28-A3c):** Each `Test` MAY have multiple `referenceRanges[]` entries differentiated by `ageMin`, `ageMax`, `sex`, and `lifeStage` selection criteria. At result expansion, the system MUST select the **most specific** matching range (highest count of matching non-null selection criteria), with ties broken by Test Catalog ordering. When no range matches the patient's demographics at sample collection date, the system MUST fall back to the lowest-priority "default" range AND display a warning Tag ("No reference range for this demographic — using default"). The selected range's label MUST be visible to the tech via a Tag next to the displayed range; a Popover on the Tag MUST show the selection criteria and list other configured ranges.
+
+**BR-038 — Note Model: Visibility × Context (dual axis):** Every note on a result carries two independent attributes:
+
+| Axis | Values | Meaning |
+|---|---|---|
+| **`note.visibility`** | `internal` (default) / `external` | `external` notes appear on the patient / clinician report. `internal` notes are in-lab-only. |
+| **`note.context`** | `entry` / `modification` / `validation` | Workflow stage when the note was authored. Drives display badge but does NOT determine visibility. |
+
+The two axes are independent: a tech-authored entry-context note can be either In Lab Only OR Send with Result, at the tech's discretion. The "Add Note" form on the Results Entry page presents a visibility radio (default `internal`) so the tech explicitly chooses whether the note flows to the patient report. The display shows both badges (context + visibility) so anyone reading the note knows where it ends up.
+
+**Audit:** When a note's `visibility` is `external`, the `NOTE_ADDED` audit_trail entry MUST include `visibility: "external"` in the payload. Changing visibility on an existing note is treated as a state change and produces a separate `NOTE_VISIBILITY_CHANGED` audit entry.
+
+**Patient report rendering:** Downstream patient/clinician report generation filters by `visibility === "external"`. Notes with `visibility=internal` never reach the report regardless of context. This is the single decision point for patient-report inclusion — context (entry / modification / validation) is metadata, not a gating signal.
+
+**Migration:** Legacy `note.type` field aliases:
+- `note.type === "internal"` → `{ visibility: "internal", context: "entry" }`
+- `note.type === "external"` → `{ visibility: "external", context: "entry" }`
+- `note.type === "modification"` → `{ visibility: "internal", context: "modification" }`
+- `note.type === "validation"` (only appears in Validation page data, but supported here for cross-page consistency) → `{ visibility: "internal", context: "validation" }`
+
+---
+
+**BR-037 — Aliquot Lifecycle (Vector pool deconvolution + general send-out):** An aliquot derived from a sample MUST inherit the source sample's accession with a suffix (`LABNO.X-Y` where X is the source ordinal and Y is the aliquot ordinal). Aliquots have an independent status lifecycle (Created / In-Storage / Sent / Used / Destroyed) tracked separately from the source sample. Creating an aliquot for a Test purpose MUST create a new analysis row linked to the aliquot; creating an aliquot for Retention or Send-out MUST NOT create new test rows. Aliquot creation from Results Entry requires Analyst OR SampleReception bundle. Destroy / mark-used actions require Analyst.
 
 ---
 
 ## Acceptance Criteria
 
-### Unified Search
-- [ ] Single search bar accepts lab number, patient name/ID, accession **[Search]**
-- [ ] Quick filter for lab unit always visible (no "All" option) **[Search]**
-- [ ] Lab unit must be selected before results load (blank by default) **[BR-002]**
-- [ ] Advanced filters panel toggles via "Advanced" button **[Search]**
-- [ ] Advanced filters include: Lab Number/Range, Order Date Range, Tests/Panels, Status **[Search]**
-- [ ] Lab Number/Range supports single value or from/to range **[Search]**
-- [ ] Tests/Panels is a multi-select field with search **[Search]**
-- [ ] Tests/Panels dropdown shows panels grouped at top, tests below **[Search]**
-- [ ] Selected tests/panels appear as removable chips **[Search]**
-- [ ] Order Date Range supports from/to date selection **[Search]**
-- [ ] Status filter defaults to "Pending" **[Search]**
-- [ ] Active filters displayed as removable chips **[Search]**
-- [ ] Result count displayed **[Search]**
-- [ ] "Clear All Filters" resets to defaults **[Search]**
-- [ ] "Apply Filters" applies filter changes **[Search]**
+### Unified Route & Navigation
+- [ ] `/Results` is the canonical route; all 6 legacy routes 301-redirect to it when `results.entry.unifiedRoute` is ON **[BR-021]**
+- [ ] Workplan deep-link adds "Workplan" crumb to the breadcrumb **[BR-022]**
+- [ ] Server-side pagination indicator (top, prev/next) appears when result set spans multiple server pages
 
-### Results Table
-- [ ] Row displays sample info, test, analyzer, range, result input, status, flags, actions **[Table]**
-- [ ] Patient name hidden in collapsed row (shows patient ID and age instead) **[BR-004]**
-- [ ] Age calculated from DOB and displayed in collapsed view **[BR-005]**
-- [ ] Full patient details (name, DOB) shown only when row expanded **[BR-004]**
-- [ ] QC status indicator (colored dot) visible on each row **[Table]**
-- [ ] Flag icons display with tooltips **[Table]**
-- [ ] Result input adapts to test type (numeric input vs select list) **[Table]**
-- [ ] Flagged results show highlighted input border **[Table]**
-- [ ] Abnormal result (outside normal range): yellow border on input, yellow cell background **[BR-015]**
-- [ ] Critical result (outside panic range): orange border, orange cell background, "C" badge in Flags column **[BR-015]**
-- [ ] Invalid result (outside valid range): dark red border, dark red cell background, "!" badge in Flags column **[BR-015]**
-- [ ] Critical value acknowledgment banner shown in expanded panel; Save button disabled until "I Acknowledge" clicked **[BR-016]**
-- [ ] Acknowledgment resets when result value is changed after acknowledging **[BR-016]**
-- [ ] Invalid range warning banner shown in dark red in expanded panel; Save button NOT blocked **[BR-017]**
-- [ ] NCE badge (teal, outlined) shown in Flags column when result has one or more linked NCEs **[BR-019]**
-- [ ] NCE badge tooltip shows NCE number, category, subcategory, severity, and status **[BR-019]**
-- [ ] NCE badge renders in muted gray when NCE status is "closed" **[BR-019]**
-- [ ] NCE badge appears immediately after tech files an NCE via the inline form, without page reload **[BR-019]**
-- [ ] NCE badge coexists with H, L, Δ, C, and ! badges in the same Flags cell **[BR-019]**
-- [ ] Row expands on click to show detail panel **[Table]**
+### Sample / Patient Column
+- [ ] Patient avatar (color-hashed initials) displayed
+- [ ] Accession number includes copy-to-clipboard button
+- [ ] Nonconforming icon shown when `result.nonconforming=true`
+- [ ] EQA priority badge (STANDARD/URGENT/CRITICAL) displayed when `result.isEqaSample`
+- [ ] Patient name shown OR ID+sex+age shown OR masked, per BR-026 precedence
 
-### Method & Reagents Tab
-- [ ] Shows as default tab when row expanded **[BR-006]**
-- [ ] Method selection shows "Manual" and "Analyzer" options **[Method]**
-- [ ] "Manual" is selected by default **[BR-006]**
-- [ ] Manual option shows optional "Method Details" text field **[Method]**
-- [ ] Method details text field supports method macro code expansion (type code + space) **[BR-014]**
-- [ ] Selecting "Analyzer" shows list of available analyzers **[Method]**
-- [ ] Selecting "Manual" clears analyzer selection **[Method]**
-- [ ] Analyzer with failed QC shows confirmation dialog before selection **[BR-009]**
-- [ ] Displays reagents linked to test with available lot options **[Method]**
-- [ ] Lots sorted by FIFO (oldest received first) **[BR-008]**
-- [ ] Oldest unexpired lot shows "FIFO Suggested" badge **[BR-008]**
-- [ ] Expiring lots (within 7 days) show warning badge **[BR-008]**
-- [ ] Expired lots not selectable **[BR-008]**
-- [ ] Reagent selections are optional (not required to accept) **[BR-007]**
+### Inline Test Date + Time
+- [ ] Test Date column has inline `DatePicker` + `TimePicker` per row, disallowFutureDate
 
-### Interpretation Section
-- [ ] Appears below notes in expanded panel **[Interpretation]**
-- [ ] Shows system-suggested interpretation **[Interpretation]**
-- [ ] Lists all available interpretations with color badges, codes, ranges **[Interpretation]**
-- [ ] Clicking any interpretation option selects it and copies text to textarea **[Interpretation]**
-- [ ] Interpretation text field supports interpretation code macros **[BR-014]**
-- [ ] Clear button resets selection and clears textarea **[Interpretation]**
+### Polymorphic Result Cell
+- [ ] N type renders numeric input with live range tier styling **[BR-027]**
+- [ ] D type renders single Select over `dictionaryOptions` **[BR-027]**
+- [ ] M type renders multi-checkbox stored as CSV **[BR-027]**
+- [ ] C type documented as out-of-scope-for-v1 with implementation plan in Dependencies **[BR-027]**
+- [ ] Current Result column shows previous value with dictionary IDs resolved to labels for D/M types
 
-### Notes Section
-- [ ] Notes section always visible in expanded panel **[Notes]**
-- [ ] Notes table shows date/time, author, type, and body **[Notes]**
-- [ ] Note type shown as "In Lab Only" or "Send with Result" badge **[BR-010]**
-- [ ] "New Note" button at bottom right of notes section **[Notes]**
-- [ ] Note type defaults to "In Lab Only" **[BR-010]**
-- [ ] "Save Note" and "Cancel" buttons functional **[Notes]**
-- [ ] Empty state shows "No notes for this result" **[Notes]**
+### Program Info Section (NEW)
+- [ ] Program Info section appears only when `result.program` is set; hidden entirely otherwise
+- [ ] Section header shows BookOpen icon + program name as a magenta badge
+- [ ] Fields render in a 3-column grid, up to 15 fields
+- [ ] `longtext` and long `text` fields span all 3 columns
+- [ ] All fields read-only with help text noting they are edited on the order
+- [ ] EQA programs show Panel ID, Round Number, Specimen Code, Expected Analyte, Submission Deadline, Lab Code, Round Coordinator, Provider Comments by default
+- [ ] RETROCI study programs render hardcoded ARV / EID / VL / Indeterminate field sets when `useRetroCIStudyForms` flag is ON
+- [ ] Section placed between Order Info and Storage Location
 
-### Attachments Tab
-- [ ] Source badge: "Order Entry" (purple) or "Result Entry" (teal) **[Attachments]**
-- [ ] Delete button only for "Result Entry" files **[BR-011]**
-- [ ] Order Entry files cannot be deleted — button hidden **[BR-011]**
-- [ ] Upload, Download, and Delete actions functional **[Attachments]**
+### Storage Location Section (NEW)
+- [ ] Storage section always visible in expanded panel
+- [ ] When unassigned, "Assign storage location" primary button shown with help text
+- [ ] When assigned, full path + position + condition displayed with "Move storage location" button
+- [ ] Storage picker shows freezer/refrigerator tiles with drill-down
+- [ ] Move requires "Reason for move" text input before Confirm enables **[BR-023]**
+- [ ] First assign does NOT require a reason **[BR-023]**
+- [ ] Audit trail entries written on assign + move
 
-### History Tab
-- [ ] Shows previous results in table format **[History]**
-- [ ] Displays delta (% change) from previous **[History]**
-- [ ] Delta check alert banner when threshold exceeded **[BR-012]**
+### Method & Reagents Section (inline; was a tab)
+- [ ] Method dropdown shows Manual/Automated/Semi-Auto/POC
+- [ ] Analyzer dropdown shown only when Method ∈ {Automated, Semi-Automated} **[BR-031]**
+- [ ] Reagent Lots table shows FIFO-suggested lot with "Use First" badge
+- [ ] Expiring lots (within 7 days) show amber warning badge
 
-### Actions
-- [ ] "Save Result" button validates result value is entered before proceeding **[BR-013]**
-- [ ] Saving result moves status to Awaiting Validation — no accept action exists on this page **[BR-013]**
-- [ ] "Save Result" is the only bottom action (no Save Draft, no Accept) **[Actions]**
+### Referral Section (inline; was a tab)
+- [ ] Checkbox toggles referral fields
+- [ ] When NCE Disposition = Refer, Referral section auto-fills **[BR-032]**
+
+### Order Info Section (inline; was a tab)
+- [ ] 3-column grid layout
+- [ ] Multi-line fields (history, diagnosis) span the row
+- [ ] All fields read-only on Results page
+
+### Attachments Section (inline; was a tab)
+- [ ] Order Entry files marked purple, Result Entry files marked teal
+- [ ] Delete button only for Result Entry files **[BR-011]**
+- [ ] Upload via Carbon FileUploader (JPEG/PNG/PDF)
+
+### Tabs (only QA/QC + History remain)
+- [ ] QA/QC tab shows overall + per-control table + analyzer status
+- [ ] History tab shows previous results with delta computation
+- [ ] No other tabs in the expanded panel
+
+### Critical Acknowledgment
+- [ ] Acknowledgment POSTs to `/rest/alerts/critical-acknowledgment` before Save proceeds **[BR-025]**
+- [ ] On network/5xx failure, ActionableNotification with retry button shown; Save blocked **[BR-025]**
+- [ ] Backend queues ack for replay (every 30s for 10min) when Alerts service unreachable >5s **[BR-025]**
+- [ ] On 4xx, error toast shown; Save blocked; no retry button **[BR-025]**
+- [ ] Both success and failure paths write to `audit_trail` (`CRITICAL_ACK` / `CRITICAL_ACK_FAILED`) **[BR-025]**
+
+### Inline NCE Form
+- [ ] Severity radios with descriptions (Critical/Major/Minor)
+- [ ] Title, Description, Immediate Action, Suspected Causes, Proposed Action fields all present
+- [ ] Result Disposition radio with 4 options: Cancel / Reject / Retest / Refer **[BR-024]**
+- [ ] Rejection reason Select shown when Disposition=Reject (required) **[BR-024]**
+- [ ] "Reject result + reason" option hidden when `allowResultRejection=false` **[BR-024]**
+- [ ] Disposition status mapping per BR table (Cancel→cancelled, Reject→cancelled (deleted), Retest→pending, Refer→awaiting-validation w/ referral pre-fill)
+
+### E-Signature on Save
+- [ ] Save button opens E-Signature modal with password input
+- [ ] Modal body shows result count + accession context
+- [ ] Save POST includes eSignature envelope (meaning=AUTHORED, recordType=RESULT_BATCH)
+
+### Post-Save Toasts
+- [ ] Reflex tests list shown in toast when triggered **[BR-028]**
+- [ ] Calculated tests list shown in toast when triggered **[BR-028]**
+- [ ] STAT result fires Validator-role notification stub **[BR-029]**
+- [ ] Stale-page conflict — when backend reports another user has saved any row in the current page batch, frontend shows warning toast and reloads list with the conflicting row marked `failedValidation=true` **[BR-030]**
+
+### Permissions on Modify Released
+- [ ] Non-Validator users see disabled "Modify Result" button on Released rows with tooltip explaining the Validator-permission requirement
+- [ ] Validator users see normal enabled "Modify Result" button on Released rows
+
+### NCE Disposition → Refer-out Auto-Fill
+- [ ] When NCE Disposition is set to "Refer out", Referral section opens automatically with reason="NCE-driven referral" pre-filled and Refer checkbox checked **[BR-032]**
+- [ ] Institute field remains unselected — user must choose
+
+### Critical Value Communication Form (ISO HIGH A1 / CLSI GP47)
+- [ ] When result enters critical tier, "Open Notification Form" button replaces single-click "I Acknowledge" **[BR-033]**
+- [ ] Form requires: Recipient, Recipient Role, Method, Read-back text, Time of notification **[BR-033]**
+- [ ] When First-attempt-successful=No, Escalation Log is required with at least one entry **[BR-033]**
+- [ ] Submit triggers POST to `/rest/alerts/critical-acknowledgment` with the full structured payload + writes `CRITICAL_NOTIFICATION_LOGGED` to audit_trail **[BR-033]**
+- [ ] After successful log, form collapses to read-only summary card; Save unblocks **[BR-033]**
+- [ ] Editing a logged notification requires Validator bundle and creates a modification-history entry **[BR-033, BR-035]**
+
+### Reagent Lot Capture Gate (ISO HIGH A2 / ISO 15189 §6.4.4)
+- [ ] When site config `requireReagentLotsForResults` is ON, Save is blocked until at least one reagent lot is selected **[BR-034]**
+- [ ] Inline warning shown next to Save button explaining the block **[BR-034]**
+- [ ] When config is OFF, current optional behavior applies **[BR-034]**
+
+### Modification History Banner (ISO HIGH A3 / CFR Part 11)
+- [ ] When `result.modificationHistory[]` has entries, a banner renders at the top of the expanded panel **[BR-035]**
+- [ ] Banner shows: original → current value, actor, timestamp, reason **[BR-035]**
+- [ ] When multiple modifications exist, only most recent shown by default; expand control reveals full chain **[BR-035]**
+- [ ] Table row shows a small "Modified" Tag in warm-gray for rows with any modification history **[BR-035]**
+- [ ] Original value MUST NEVER be deleted; modifications append-only **[BR-035]**
+
+### Demographic-Aware Reference Range Selection (ISO HIGH B2 / CLSI EP28-A3c)
+- [ ] System selects the most specific matching `referenceRange` for the patient at sample collection date **[BR-036]**
+- [ ] Selection criteria: ageMin, ageMax, sex, lifeStage all considered; ties broken by Test Catalog priority **[BR-036]**
+- [ ] When no range matches, falls back to default + displays warning Tag "No reference range for this demographic" **[BR-036]**
+- [ ] Selected range's label shown next to displayed range as a Tag; Popover lists all configured ranges **[BR-036]**
+
+### Aliquots Section (ISO HIGH I1)
+- [ ] Aliquots section always rendered when user has Analyst or SampleReception bundle **[BR-037]**
+- [ ] Table shows existing aliquots: Aliquot ID (`LABNO.X-Y`), Purpose, Linked Test, Status, Created, Storage, Actions **[BR-037]**
+- [ ] "Create aliquot" form: count, purpose, linked test (when purpose=Test), destination storage, reason/notes **[BR-037]**
+- [ ] Submitting auto-assigns `LABNO.X-N` suffixes and creates analysis rows for Test-purpose aliquots **[BR-037]**
+- [ ] Destroy / Mark Used actions require Analyst bundle **[BR-037]**
+- [ ] Pool composition surfaced read-only above the aliquot table when sample is a pool (vector deployments)
+- [ ] Audit: `ALIQUOT_CREATED` and `ALIQUOT_STATUS_CHANGED` rows written
+
+### Patient Privacy Precedence
+- [ ] Site-wide `showPatientName=true` overrides role-based mask **[BR-026]**
+- [ ] Role-based mask hides name when `PATIENT_DATA_ON_RESULTS_BY_ROLE=true` AND user lacks `PatientResults` perm **[BR-026]**
+
+### Nonconforming Legend
+- [ ] Always-visible legend strip above the results table
+
+### Notes — Legacy Past Notes
+- [ ] Legacy plain-text notes (with linebreaks) rendered alongside structured notes
 
 ### Non-Functional
-- [ ] All UI strings wrapped in `t(key, fallback)` — no hardcoded English strings in JSX
-- [ ] All i18n keys listed in this Localization section are present in the message properties file
-- [ ] Results list loads within 3 seconds for a lab unit with up to 500 pending results
-- [ ] Row expansion loads method/reagent/QC data within 1 second (lazy-loaded on expand)
-- [ ] Permissions enforced at API layer — all write endpoints return HTTP 403 for unauthorized users
-- [ ] Feature tested with French locale to verify no layout breakage from longer strings
-- [ ] WCAG 2.1 AA compliance verified: keyboard navigation, screen reader labels, color contrast
-- Order Info tab with custom program fields
-- Attachments tab (view order files, upload result files)
-- Patient info banner (expanded view only)
-- Patient privacy (name hidden until expanded)
+- [ ] All UI strings wrapped in `t(key, fallback)`
+- [ ] All i18n keys present in message properties file
+- [ ] Carbon Component Map respected — no raw HTML where Carbon component exists
+- [ ] Audit trail entries written per table in §Permissions & Audit
+- [ ] Envers `@Audited` annotation set per table
+- [ ] WCAG 2.1 AA: keyboard navigation, screen reader labels, color contrast
+- [ ] French locale tested — no layout breakage from longer strings
 
 ---
 
-## Admin Configuration — Results Entry
+## Migration Notes
 
-This section specifies configuration options accessible via **Admin → General Configuration → Results Entry Configuration**. These settings control behavior of the Results Entry page at the site level and do not require a code deployment to change.
+### Routes Retired
 
----
+| Old | New |
+|---|---|
+| `/LogbookResults` | `/Results?labUnit=...` (redirect) |
+| `/PatientResults` | `/Results?patientId=...` (redirect) |
+| `/AccessionResults` | `/Results?accession=...` (redirect) |
+| `/StatusResults` | `/Results?status=...` (redirect) |
+| `/RangeResults` | `/Results?labNumberFrom=...&labNumberTo=...` (redirect) |
+| `/result` | `/Results` (redirect) |
 
-### Setting: Show Patient Name in Results List
+### UI Patterns Retired
 
-**Config key:** `results.entry.showPatientName`
-**Type:** Boolean (toggle)
-**Default:** `false`
-**Scope:** Site-wide (applies to all users at the site)
-**Location in Admin UI:** Admin › General Configuration › Results Entry Configuration
+| Old | New | Rationale |
+|---|---|---|
+| Accept Unconditionally (OGC-745) 3-state inline guard | **Removed** | Workflow rejected by Casey 2026-05-28; relies on validator review instead |
+| Standalone Reject column | NCE Disposition radio | Forces every rejection to file an NCE — closes audit gap **[BR-024]** |
+| Method tab | Inline Method & Reagents section | Used every save; doesn't belong behind a tab |
+| Order Info tab | Inline Order Info section | Read-only context; always visible |
+| Attachments tab | Inline Attachments section | Often empty; section header collapses cleanly when so |
+| Referral tab | Inline Referral section | Checkbox-gated; matches live app pattern |
+| Plain Save button | Save (E-Sign) | E-signature was always mandatory; UI now reflects it |
+| Internal / External note types | "In Lab Only" / "Send with Result" | Terminology harmonization (v2.x carryover) |
 
-#### Description
+### Schema Migrations Required
 
-Controls whether the patient's full name is visible in the **collapsed row** of the Results Entry table. This setting addresses the fact that different lab environments have different privacy postures:
-
-- High-privacy environments (shared screens, open lab floors, accreditation requirements) should leave this **off** — the collapsed row shows patient ID, sex, and calculated age only.
-- Labs where patient name is essential for rapid identification during bench work may turn this **on**.
-
-Regardless of this setting, the patient's full name is **always visible** in the expanded detail panel (PatientBanner) when a row is opened, as that view is intended for single-sample focused review.
-
-#### Behavior When Off (Default)
-
-The collapsed table row shows:
-```
-DEV01250000000000
-ID 3456789 · M · 14y
-```
-
-No patient name is visible. The tech can confirm identity by expanding the row if needed.
-
-#### Behavior When On
-
-The collapsed table row shows:
-```
-DEV01250000000000
-Test, Patient
-```
-
-The patient's full name (Last, First format) is shown instead of the ID + sex + age line. Both the lab number and patient name are visible to anyone who can see the screen.
-
-#### Rationale
-
-| Concern | Notes |
-|---------|-------|
-| **ISO 15189 / HIPAA** | Some accreditation bodies and data protection laws restrict PII display in shared-screen or multi-user workstation environments. The off default protects most installations. |
-| **Operational efficiency** | For labs where techs know their patients (e.g. small clinics), having the name visible speeds up triage without requiring an expand. |
-| **Consistency** | Other OpenELIS views (Sample Reception, Validation) surface patient name more prominently; this setting brings Results Entry into alignment for labs that prefer it. |
-
-#### Admin UI Specification
-
-Location: **Admin › General Configuration › Results Entry Configuration**
-
-```
-Results Entry Configuration
-───────────────────────────────────────────────────────
-
-Display Options
-  ┌───────────────────────────────────────────────────────────────────┐
-  │  Show patient name in results list                          ● Off │
-  │  When off, the collapsed row shows patient ID, sex, and age.      │
-  │  The full name is always shown in the expanded detail panel.      │
-  └───────────────────────────────────────────────────────────────────┘
-
-                                           [ Cancel ]  [ Save Settings ]
-```
-
-Component: `Toggle` (`@carbon/react`) with helper text.
-
-#### Implementation Notes
-
-| Item | Detail |
-|------|--------|
-| **Config storage** | `site_information` table, key `results.entry.showPatientName`, value `true`/`false` |
-| **API endpoint** | `GET /rest/siteInformation` returns this key alongside other site settings |
-| **Frontend read** | On Results Entry page load, read config from site info API; store in page-level state |
-| **Re-render scope** | Changing this setting requires a page reload to take effect (not real-time) |
-| **Audit trail** | Admin save events for site configuration are already logged by the existing site info audit mechanism — no additional logging needed |
-| **i18n key** | `admin.config.resultsEntry.showPatientName` |
-
-#### Acceptance Criteria
-
-- [ ] Setting toggle visible at Admin › General Configuration › Results Entry Configuration
-- [ ] Default value is `false` (patient name hidden) for all new installations
-- [ ] When `false`: collapsed row shows `ID [id] · [sex] · [age]y` — no name
-- [ ] When `true`: collapsed row shows patient full name (Last, First)
-- [ ] Expanded panel PatientBanner always shows full name regardless of setting
-- [ ] Search by patient name in the search bar works regardless of setting
-- [ ] Setting persists across page reloads and user sessions
-- [ ] Change to setting takes effect after page reload (no live update required)
-- [ ] Setting is site-wide — no per-user or per-role override in this version
+Listed in §Data Dependencies. Summary: 2 columns added to `test`, 1 column added to `eqa_sample`, 1 new table (`test_interpretation`), 1 enum extension (`result_type` += 'C'), 1 future-use table family (`cascading_result_*`). All new attributes `@Audited`.
 
 ---
 
 ## Future Considerations
 
-1. **Bulk Actions** - Select multiple results for batch accept/reject
-2. **Worklist Views** - Save custom filter combinations as named worklists
-3. **Real-time Updates** - WebSocket for live result updates from analyzers
-4. **Mobile Optimization** - Responsive design for tablet use at bench
-5. **Per-role patient name visibility** - Allow role-based override of the `showPatientName` setting (e.g. supervisors always see names, bench techs do not)
-5. **Audit Trail** - Full history of changes visible in expanded panel
+1. **Cascading Multi-Select (C) implementation** — Not in v1. Implementation requires extending the `result_type` enum to include 'C' and adding `cascading_result_parent` + `cascading_result_child` tables and a 2-step UI (parent Select → child MultiSelect). Used for nested findings like organism → antibiotic sensitivity panels. **Prerequisite:** dependency review across HL7 export, FHIR export, reports, Validation, and Test Catalog admin to confirm no downstream consumer breaks on the enum extension. Track as its own spec.
+2. **Bulk Save** — Select multiple rows in the table for batch e-sign.
+3. **Custom Worklists** — Save filter combinations as named worklists.
+4. **Real-Time Updates** — WebSocket for live analyzer-import updates.
+5. **Mobile / Tablet Optimization** — Bench-tablet responsive layout.
+6. **Reagent Inventory Frontend Integration** — Re-enable the test-kit / reagent inventory columns when the inventory frontend stabilizes (currently commented out in source per `LogbookResultsRestController.java` lines 332-346).
