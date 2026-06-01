@@ -331,8 +331,6 @@
                           {r.flags.includes("L") && <span className="flag-L">L</span>}{" "}
                           {r.flags.includes("d") && <span className="flag-d">Δ</span>}{" "}
                           {r.flags.includes("C") && <span className="flag-C">C</span>}{" "}
-                          {r.notifBadge === "✓" && <span className="cds--tag cds--tag--green" title="CLSI GP47 notification logged at Results Entry">📞</span>}
-                          {r.notifBadge === "⚠" && <span className="cds--tag cds--tag--red" title="Critical without notification record — backfill required">⚠</span>}
                         </td>
                         <td>
                           {r.validation && (
@@ -390,31 +388,12 @@
                                 </div>
                               </div>
 
-                              {/* Critical Notification Display — READ-ONLY (tech logged at Results Entry) */}
-                              <div className="crit-notif-panel">
-                                <div style={{ display:'flex', gap:8, alignItems:'flex-start' }}>
-                                  <span style={{ fontSize: 18 }}>🚨</span>
-                                  <div style={{ flex:1, fontSize:12 }}>
-                                    <div style={{ color:'#8a3800', fontWeight: 600, fontSize: 13 }}>
-                                      Critical Value Notification — Logged at Results Entry
-                                    </div>
-                                    <div style={{ color:'#6f4e00', marginTop: 4 }}>
-                                      <strong>Recipient:</strong> Dr. Williams <span style={{ color:'#8a3800' }}>(Clinician)</span>
-                                      <span style={{ margin:'0 8px' }}>·</span>
-                                      <strong>Method:</strong> Phone
-                                      <span style={{ margin:'0 8px' }}>·</span>
-                                      <strong>Time:</strong> 02/26/2026 11:32
-                                    </div>
-                                    <div className="crit-notif-readback">
-                                      <strong>Read-back:</strong> "Glucose 442 mg/dL on patient Smith DOB 03/22/1985 — confirmed critical hyperglycemia, will follow up with HbA1c order and IV insulin protocol."
-                                    </div>
-                                    <div style={{ color:'#6f4e00', marginTop: 4 }}>
-                                      <strong>Escalations:</strong> 0 (reached on first attempt)
-                                      <span style={{ margin:'0 8px' }}>·</span>
-                                      <strong>Logged by:</strong> M. Jones
-                                      <span style={{ margin:'0 8px' }}>·</span>
-                                      <em>Audit: CRITICAL_NOTIFICATION_LOGGED</em>
-                                    </div>
+                              {/* Critical Value awareness banner — uses existing critical flag system, no fabricated GP47 record */}
+                              <div style={{ background: '#fff1e6', borderBottom: '1px solid #ff832b', padding: '10px 16px' }}>
+                                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 12 }}>
+                                  <span style={{ color: '#8a3800', fontSize: 16 }}>⚠</span>
+                                  <div style={{ flex: 1, color: '#8a3800' }}>
+                                    <strong>Critical value</strong> — Confirm clinician acknowledgment via the existing notes / critical-flag audit before releasing.
                                   </div>
                                 </div>
                               </div>

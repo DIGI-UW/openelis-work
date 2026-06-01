@@ -32,7 +32,7 @@ The Validation page is restructured to mirror Results Entry v3: an **inline-firs
 ## User Stories
 
 1. **As a routine validator**, I want to see the result, the demographic-aware reference range, the prior value, who entered it, when, and any modification history — all in one expanded view — so I can sign or reject without clicking through tabs or navigating away.
-2. **As a supervisor validator on a critical result**, I want to read the verbatim notification record (who was called, what was read back, when) before I release, so I have evidence that CLSI GP47 was followed.
+2. **As a supervisor validator on a critical result**, I want to see the critical flag prominently and any notes the tech captured about physician notification, so I can confirm acknowledgment evidence before releasing.
 3. **As a Level 2 validator on a multi-level result**, I want to see which Level 1 validator already signed off, when, and on what role basis, so I know the result has passed the lower review and I'm acting as the final gate.
 4. **As a validator reviewing a modified result**, I want the original value and modification reason visible at the top of the panel, so I can verify the correction was legitimate before releasing.
 5. **As a lab manager**, I want to configure validation levels per-lab-unit, restrict each level to a specific role, and enable auto-validation for normal results in low-risk units, so my staff spends review time only where it's needed.
@@ -61,7 +61,7 @@ Restructured Validation page mirrors the Results Entry v3 expanded-panel archite
 ### Design Goals
 
 1. **Parity with Results Entry v3** — Validator sees the same expanded-panel structure the tech used; everything is read-only except Notes (validators add validation notes) and the action bar.
-2. **Critical context visible at a glance** — Modification History banner and Critical Notification record are top-of-panel, no clicks needed.
+2. **Critical context visible at a glance** — Modification History banner and a light Critical Value awareness banner sit at the top of the expanded panel; the validator's evidence for clinician acknowledgment comes from existing notes and the critical flag (no fabricated GP47 record).
 3. **Demographic-aware ranges** — Selected reference range label visible next to value (e.g. "Range: Pediatric Female (1–5y)").
 4. **No tabs for primary context** — Notes / Interpretation / Method / Order Info / Program Info / Storage / Aliquots / Referral / Attachments are always-visible (collapsible) sections; only QA/QC + History remain tabs.
 5. **E-signature on release** — Final-level validation that releases the result to the clinician requires e-sig (Part 11 §11.50).
@@ -145,7 +145,7 @@ Always-visible strip above the table: `⚠ = Sample or Order is nonconforming or
 1. **Patient Banner** — Avatar + full name + IDs + DOB + sex + age (D-M-Y) + clinician + dept + priority Tag
 2. **Program Banner** (conditional — EQA / RETROCI study with priority badge)
 3. **Modification History Banner** (conditional — when `result.modificationHistory[]` has entries)
-4. **Critical Notification Display Panel** (conditional — when `result.criticalNotificationRecord` exists)
+4. **Critical Value Awareness Banner** (conditional — when result is in critical tier)
 5. **═══ PRIMARY ACTION BLOCK ═══**
 6. **Action Bar** — `Validate at Level N` / `Validate & Release` / `Reject + Reason` / `Request Retest` / `Forward to Level N+1` — context-aware labels per BR-V3-001
 7. **Conditional banners** — Invalid range warning / Critical-value tier acknowledgment confirmation / Stale-page conflict
@@ -161,29 +161,24 @@ Always-visible strip above the table: `⚠ = Sample or Order is nonconforming or
 17. **Attachments** (read-only view; validator cannot add or delete) — H2 default open when attachments exist
 18. **Tabs:** QA/QC · History
 
-### Critical Notification Display Panel — NEW (S-01: Policy A — tech-only ack; validator views)
+### Critical Value Awareness Banner — REVISED
 
-When `result.criticalNotificationRecord` is populated (the tech filled out the CLSI GP47 form at Results Entry), this panel renders read-only at the top of the expanded panel, between Modification History and the Action Bar:
+**Important scope clarification:** OpenELIS Global today does NOT track a structured CLSI GP47 read-back / recipient / escalation record at the validation level. Earlier v3 drafts described a "Critical Notification Display" panel that read a `criticalNotificationRecord` and offered a "Log Notification Now" backfill flow — that was fabricated; the underlying data does not exist in the current data model. This section has been revised to reflect what actually ships.
+
+**What's actually shown on Validation:** When the result is in the critical tier, a light awareness banner appears at the top of the expanded panel (between Modification History and the Action Bar). The banner is a reminder, not an interactive surface:
 
 ```
-🚨 Critical Value Notification — Reviewed at Results Entry
-   Recipient: Dr. Williams (Clinician)  ·  Method: Phone  ·  Time: 02/26/2026 11:32
-   Read-back: "Glucose 142 mg/dL on patient Smith — confirmed critical hyperglycemia,
-              will follow up with HbA1c order."
-   Escalations: 0  (reached on first attempt)
-   Logged by: J. Smith  ·  Audit trail: CRITICAL_NOTIFICATION_LOGGED
+⚠ Critical value — Confirm clinician acknowledgment via the existing notes / critical-flag audit before releasing.
 ```
 
-When `result.criticalNotificationRecord` is empty but the result is in critical tier:
-```
-⚠ Critical Value — No Notification Record on File
-  This critical result was saved without a structured CLSI GP47 notification record.
-  Validator must verify physician notification happened before releasing, OR
-  reject the result back to the tech to capture the notification record.
-  [Log Notification Now] [Reject for re-notification]
-```
+That's it. No fabricated recipient/method/read-back fields. The validator's evidence for clinician acknowledgment comes from the **existing** mechanisms:
+- The H / L / Δ / C / ! flag badges that already exist in OpenELIS today
+- Notes (any visibility) authored by the tech indicating clinician was notified
+- The audit_trail entries already produced by the current Critical Acknowledgment system (if implemented per Results Entry v3 BR-016, which IS a documented new schema addition on that side)
 
-The "Log Notification Now" affordance opens the same Critical Notification Form used at Results Entry, allowing the validator to backfill the GP47 record before releasing. This is the only scenario where a validator authors a notification record. Audit: `CRITICAL_NOTIFICATION_LOGGED_BY_VALIDATOR` (distinct from the tech action so retrospective audits can identify backfilled records).
+**Future-state link:** Results Entry v3 BR-033 proposes a NEW `critical_notification` table to capture structured CLSI GP47 records. That spec explicitly flags it as new schema. **IF and WHEN** that work lands, a follow-up spec can add a read-only display of the GP47 record here. Until then, this Validation spec does not depend on it and does not block Validate based on its presence.
+
+**Validate is NOT gated on critical notification status.** The validator releases or holds based on their professional judgment, supported by the existing flag/notes/audit evidence — same as today.
 
 ### Modification History Banner
 
@@ -215,7 +210,7 @@ Read-only. Path + position + condition. No Assign/Move buttons. If `result.stora
 
 ### Critical Acknowledgment Ownership — S-01 Decision
 
-**Policy A modified:** Critical-value acknowledgment via CLSI GP47 structured form happens at Results Entry by the tech. The validator views the record read-only (panel above). The validator does NOT need to re-acknowledge unless the record is missing — in which case the affordance "Log Notification Now" opens the same form for backfill. This matches typical clinical lab practice (CLSI GP47 doesn't require dual acknowledgment) while keeping the audit-trail integrity intact.
+**Policy A (revised):** OpenELIS today does not store a structured CLSI GP47 read-back record. The validator's evidence that the responsible clinician was acknowledged comes from the existing notes (tech-authored, especially "Send with Result" notes) and the critical-flag audit history. The Validation page does NOT block release on a missing "notification record" — that gating concept belongs to Results Entry if/when the new `critical_notification` table proposed in Results Entry v3 BR-033 ships. Until then, the Validation page surfaces a light awareness banner and trusts the validator's professional judgment supported by the existing audit evidence.
 
 ### Multi-Level Validation × Disposition — S-02 Decision
 
@@ -303,7 +298,7 @@ This mockup uses Tailwind utility classes + raw HTML for portable preview. Produ
 | Action bar buttons | `Button kind="primary\|secondary\|danger\|danger--ghost\|tertiary"` |
 | E-Signature Modal | `Modal` + `PasswordInput` + `ModalFooter` |
 | Modification History banner | `Tile` w/ amber theme + expandable detail |
-| Critical Notification Display | `Tile` w/ orange theme + read-only fields |
+| Critical Value awareness banner | `InlineNotification kind="warning"` (low) — informational only |
 | Notes section | `StructuredList` or custom; new note via `TextArea` + `Button` |
 | Inline NCE form (for validator-initiated NCE) | `Form` + `Select` (severity radios + disposition radios) |
 | Toast | `ToastNotification` |
@@ -333,7 +328,6 @@ This mockup uses Tailwind utility classes + raw HTML for portable preview. Produ
 
 | Entity | Field | Notes |
 |---|---|---|
-| `Result` | `criticalNotificationRecord` (FK to `critical_notification`) | When tech captured GP47 form at Results Entry; surfaced in Validation panel |
 | `Result` | `modificationHistory[]` (derived from audit_trail) | Surfaced in Validation banner |
 | `Result` | `referenceRange` (selected at expansion) | Already in Results Entry v3 |
 
@@ -346,7 +340,6 @@ This mockup uses Tailwind utility classes + raw HTML for portable preview. Produ
 | Reject result | `RESULT_REJECTED` | `analysis_id` | `{ reason, byLevel }` |
 | Request retest | `RESULT_RETEST_REQUESTED` | `analysis_id` | `{ reason, retestAnalysisId }` |
 | Add validation note | `VALIDATION_NOTE_ADDED` | `analysis_id` | `{ bodyLength }` |
-| Backfill critical notification | `CRITICAL_NOTIFICATION_LOGGED_BY_VALIDATOR` | `analysis_id` | `{ recipient, method, time, escalationCount }` |
 | Stale-page conflict (validation) | `STALE_PAGE_CONFLICT_VALIDATION` | `analysis_id` | `{ conflictingValidator, conflictingAt }` |
 
 ### Envers Coverage
@@ -359,12 +352,11 @@ This mockup uses Tailwind utility classes + raw HTML for portable preview. Produ
 
 | Method | Path | Permission | Notes |
 |---|---|---|---|
-| GET | `/api/v1/validation/results` | `result.validate` | List with all v3 fields (modificationHistory, criticalNotificationRecord, referenceRange.label, polymorphic resultType, storage, aliquots, programFields) |
+| GET | `/api/v1/validation/results` | `result.validate` | List with all v3 fields (modificationHistory, referenceRange.label, polymorphic resultType, storage, aliquots, programFields) |
 | POST | `/api/v1/validation/validate` | `result.validate` | Validate batch; releases at final level (e-sig payload required when releasing); advances at intermediate |
 | POST | `/api/v1/validation/reject` | `result.validate` | Reject batch; reason required |
 | POST | `/api/v1/validation/retest` | `result.validate` | Request retest; reason required |
 | POST | `/api/v1/validation/results/{id}/notes` | `result.validate` | Add validation note |
-| POST | `/api/v1/validation/results/{id}/critical-notification` | `result.validate` | Backfill GP47 record |
 
 All endpoints honor the multi-level pipeline rules per OGC-343 (queue filtering by role + level, separation of entry-author and validator, etc.).
 
@@ -378,7 +370,7 @@ All endpoints honor the multi-level pipeline rules per OGC-343 (queue filtering 
 
 **BR-V3-002 — E-Signature on Release (Part 11):** Validations that release results to the clinical chart MUST be e-signed (meaning=APPROVED, recordType=RESULT_VALIDATION). Intermediate-level validations that advance to the next level are NOT e-sig gated. Reject and Retest actions are NOT e-sig gated. Site flag `validation.requireESigOnRelease` controls this gate (default ON).
 
-**BR-V3-003 — Critical Notification Display:** When `result.criticalNotificationRecord` is populated, the Critical Notification Display panel renders read-only at the top of the expanded panel. When the record is missing AND the result is in critical tier, the panel shows a warning + "Log Notification Now" affordance that opens the same GP47 form used at Results Entry. Validator-authored records are audited with `CRITICAL_NOTIFICATION_LOGGED_BY_VALIDATOR` (distinct from tech-authored).
+**BR-V3-003 — Critical Value Awareness Banner (revised):** When the result is in the critical range tier, a light awareness banner renders at the top of the expanded panel reminding the validator to confirm clinician acknowledgment via the existing notes / critical-flag audit. The banner is informational only — it does NOT gate the Validate action, does NOT display any fabricated CLSI GP47 record, and does NOT offer a backfill flow. OpenELIS today does not track structured GP47 notification metadata at the validation level; if Results Entry v3 BR-033 lands and creates a `critical_notification` table, a follow-up spec can add read-only display of that record here.
 
 **BR-V3-004 — Polymorphic Result Display:** D-type and M-type results MUST resolve dictionary IDs to human-readable labels in the table cell, expanded panel, and history view. The raw ID is never surfaced to the validator.
 
@@ -390,7 +382,7 @@ All endpoints honor the multi-level pipeline rules per OGC-343 (queue filtering 
 
 **BR-V3-008 — Stale-Page Conflict Guard:** Backend detects when another validator has acted on any row in the current page batch between page load and validate attempt. Conflicting rows are marked `failedValidation=true` and the frontend reloads the queue with a warning toast.
 
-**BR-V3-009 — Critical Acknowledgment Ownership (S-01 Policy A modified):** Critical-value acknowledgment is captured at Results Entry by the tech (CLSI GP47 form). The validator views the record read-only and does NOT need to re-acknowledge. The exception is when the record is missing on a critical-tier result: the validator can backfill via the "Log Notification Now" affordance, audited as `CRITICAL_NOTIFICATION_LOGGED_BY_VALIDATOR`.
+**BR-V3-009 — Critical Acknowledgment Ownership (revised):** OpenELIS today does not track a structured GP47 read-back record at the validation level. The validator confirms clinician acknowledgment via the existing notes + critical-flag audit evidence. If Results Entry v3 BR-033 ships and creates a `critical_notification` table, a follow-up spec can wire a read-only display here. The Validation page does NOT block Validate on critical-notification status; that is a Results-Entry-side gating concern only.
 
 **BR-V3-010 — Disposition × Multi-Level (S-02):** Per the table in §Multi-Level Validation × Disposition. Cancel / Reject delete from validation chain; Retest restarts at level 1 when retest result lands; Refer-out moves to "Referred — awaiting external" lane.
 
@@ -431,14 +423,7 @@ The two axes are independent: a Validation-context note can be either In Lab Onl
 
 | i18n Key | English |
 |---|---|
-| `heading.validation.criticalNotification` | Critical Value Notification — Reviewed at Results Entry |
-| `heading.validation.criticalNotification.missing` | Critical Value — No Notification Record on File |
-| `message.validation.criticalNotification.missing` | This critical result was saved without a structured CLSI GP47 notification record. Validator must verify physician notification happened before releasing, OR reject the result back to the tech to capture the notification record. |
-| `button.validation.criticalNotification.logNow` | Log Notification Now |
-| `button.validation.criticalNotification.rejectForReNotification` | Reject for re-notification |
-| `label.validation.criticalNotification.escalations` | Escalations |
-| `label.validation.criticalNotification.firstAttempt` | reached on first attempt |
-| `label.validation.criticalNotification.loggedBy` | Logged by |
+| `message.validation.criticalAwareness` | Critical value — Confirm clinician acknowledgment via the existing notes / critical-flag audit before releasing. |
 | `heading.validation.modification.history` | Modification History |
 | `label.validation.range.demographicSelected` | Range selected by demographics |
 | `warn.validation.range.fallback` | No reference range for this demographic — using default |
@@ -485,11 +470,10 @@ The two axes are independent: a Validation-context note can be either In Lab Onl
 - [ ] Smart default-open per BR-V3-015: each section computes initial state from row context
 - [ ] Only 2 tabs (QA/QC + History); all other sections are inline collapsibles
 
-### Critical Notification Display
-- [ ] When `criticalNotificationRecord` is populated, panel renders read-only at top of expanded panel **[BR-V3-003]**
-- [ ] Panel shows recipient, role, method, read-back text, time, escalation count, logged-by **[BR-V3-003]**
-- [ ] When record is missing on a critical-tier result, warning panel + "Log Notification Now" affordance shown **[BR-V3-003]**
-- [ ] Validator backfill writes `CRITICAL_NOTIFICATION_LOGGED_BY_VALIDATOR` audit entry **[BR-V3-003]**
+### Critical Value Awareness
+- [ ] When result is in the critical tier, light awareness banner renders at top of expanded panel **[BR-V3-003]**
+- [ ] Banner is informational only — does NOT gate Validate, does NOT display GP47 record, does NOT offer backfill **[BR-V3-003]**
+- [ ] Validator's evidence for clinician acknowledgment comes from existing notes + critical-flag audit; no fabricated UI **[BR-V3-003, BR-V3-009]**
 
 ### Modification History Banner
 - [ ] Banner renders at top of expanded panel when `modificationHistory[]` has entries
@@ -580,10 +564,10 @@ The two axes are independent: a Validation-context note can be either In Lab Onl
 |---|---|
 | 6-tab expanded panel (Method / Order / Attachments / QA/QC / History / Referral) | Inline-first with 2 tabs only (QA/QC + History); other 4 become inline sections |
 | Notes + Interpretation always visible (v2.1 Enhancement E) | Notes + Interpretation always visible (preserved); also added to v3 inline-first layout |
-| No Storage / Aliquots / Program Info / Modification History / Critical Notification surfaces | All added as inline read-only sections / banners |
+| No Storage / Aliquots / Program Info / Modification History surfaces | All added as inline read-only sections / banners. Critical-value awareness is a light banner only — no fabricated GP47 record display until a `critical_notification` table actually ships. |
 | Range tier coloring only (v2.1 Enhancement E) | Range tier coloring + Demographic Range Tag |
 | Save button only — no e-sig | Save = e-sig modal when releasing (final level) |
-| Validator can re-ack critical (v2.1 implied via banner) | Validator views GP47 record read-only; backfills only when missing (S-01 Policy A modified) |
+| Validator can re-ack critical (v2.1 implied via banner) | Validator sees light awareness banner only; no fabricated GP47 record display (revised — earlier v3 drafts proposed this but the data doesn't exist today) |
 | D/M result types not explicitly supported | Polymorphic display with dictionary ID → label resolution |
 | Note types `internal` / `external` | Renamed to `In Lab Only` / `Send with Result` (parity with Results Entry) |
 

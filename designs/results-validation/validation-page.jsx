@@ -132,7 +132,7 @@ const MOCK_RESULTS = [
     enteredBy: "J. Smith", enteredAt: "10:30 02/26/2026", labUnit: "Hematology", qcStatus: "pass",
     validationLevelsRequired: 2, validationLevelCurrent: 1, validationHistory: [],
     notes: [], pastNotesLegacy: "",
-    interpretation: null, modificationHistory: [], criticalNotificationRecord: null,
+    interpretation: null, modificationHistory: [],
     nce: null, program: null, storage: { path: null, coords: null, condition: null },
     aliquots: [], programFields: null,
     orderInfo: { clinician: "Dr. Chen", clinicianPhone: "+1 555-0111", department: "Pediatrics",
@@ -162,15 +162,6 @@ const MOCK_RESULTS = [
     pastNotesLegacy: "",
     interpretation: { code: "GLU-CRIT", label: "Critical Hyperglycemia",
       text: "Glucose >400 mg/dL is critically elevated. Immediate physician notification required. Consider DKA workup." },
-    // BR-V3-003: tech's CLSI GP47 form record from Results Entry
-    criticalNotificationRecord: {
-      recipient: "Dr. Williams", recipientRole: "clinician", method: "phone",
-      readBack: "Glucose 442 mg/dL on patient Smith DOB 03/22/1985 — confirmed critical hyperglycemia, will follow up with HbA1c order and IV insulin protocol.",
-      time: "02/26/2026 11:32",
-      escalations: [],
-      additionalNotes: "",
-      loggedBy: "M. Jones",
-    },
     modificationHistory: [
       { id: 1, fromValue: "152", toValue: "442", modifiedBy: "M. Jones", modifiedAt: "02/26/2026 11:30",
         reason: "Initial entry was 152, retested and rechecked — printout shows 442. Critical hyperglycemia." },
@@ -232,8 +223,7 @@ const MOCK_RESULTS = [
     pastNotesLegacy: "",
     interpretation: { code: "HIV-REACTIVE", label: "Reactive — Send for Confirmation",
       text: "Reactive on screening rapid test. Confirmatory testing (Western Blot or HIV-1/2 differentiation) required per algorithm." },
-    criticalNotificationRecord: null,
-    modificationHistory: [], nce: null, program: null,
+        modificationHistory: [], nce: null, program: null,
     storage: { path: "Refrigerator A → Shelf 2 → Box 6", coords: "Pos B-12", condition: "2–8 °C" },
     aliquots: [], programFields: null,
     orderInfo: { clinician: "Dr. Adams", department: "Infectious Disease",
@@ -263,7 +253,7 @@ const MOCK_RESULTS = [
     enteredBy: "K. Brown", enteredAt: "12:10 02/26/2026", labUnit: "Microbiology", qcStatus: "pass",
     validationLevelsRequired: 1, validationLevelCurrent: 1, validationHistory: [],
     notes: [], pastNotesLegacy: "",
-    interpretation: null, criticalNotificationRecord: null, modificationHistory: [],
+    interpretation: null, modificationHistory: [],
     nce: null, program: null,
     storage: { path: "Specimen Cabinet — Stool → Shelf 2", coords: "Pos 14", condition: "RT" },
     aliquots: [], programFields: null,
@@ -293,8 +283,7 @@ const MOCK_RESULTS = [
     interpretation: { code: "HGB-CRIT", label: "Critical Anemia",
       text: "Hgb < 7.0 g/dL is critically low. Immediate physician notification required. Consider transfusion workup." },
     // BR-V3-003: Notification record MISSING — validator must backfill before releasing
-    criticalNotificationRecord: null,
-    modificationHistory: [],
+        modificationHistory: [],
     nce: null, program: null,
     storage: { path: "Refrigerator B → Shelf 2 → Box 18", coords: "Pos D-04", condition: "2–8 °C" },
     aliquots: [], programFields: null,
@@ -317,7 +306,7 @@ const MOCK_RESULTS = [
     enteredBy: "K. Brown", enteredAt: "08:20 02/26/2026", labUnit: "Chemistry", qcStatus: "pass",
     validationLevelsRequired: 1, validationLevelCurrent: 1, validationHistory: [], isAutoValidated: true,
     notes: [], pastNotesLegacy: "",
-    interpretation: null, criticalNotificationRecord: null, modificationHistory: [],
+    interpretation: null, modificationHistory: [],
     nce: null, program: null, storage: { path: null }, aliquots: [], programFields: null,
     orderInfo: { clinician: "Dr. Liu", priority: "Routine",
                  collectionDate: "02/26/2026 08:00", receivedDate: "02/26/2026 08:15",
@@ -427,71 +416,28 @@ function ModificationHistoryBanner({ history }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Critical Notification Display — BR-V3-003 (S-01 Policy A modified)
-// Read-only view of the GP47 record captured at Results Entry.
-// "Log Notification Now" affordance when the record is missing on a critical result.
+// Critical Value indicator (BR-V3-003, revised)
+// OpenELIS today does NOT track a structured CLSI GP47 read-back record at
+// the validation level. The validator sees the existing critical flag
+// (orange C badge + "Critical" tag from range tier evaluation) and any
+// "[Critical acknowledged]" note the tech may have added at Results Entry.
+// No fabricated panel, no fabricated backfill flow.
+//
+// If a structured GP47 critical_notification table is later added (per
+// Results Entry v3 BR-033, which IS new functionality being proposed),
+// then a future spec can wire a read-only display of that record here.
+// Until then, this component renders a light awareness banner only when
+// the row is in critical tier — pointing the validator at the existing
+// notes and flag system as the source of acknowledgment evidence.
 // ─────────────────────────────────────────────────────────────────────────
-function CriticalNotificationDisplay({ record, isCritical, onBackfill, onRejectForReNotification }) {
-  // Only render when result is in critical tier
+function CriticalAwarenessBanner({ isCritical }) {
   if (!isCritical) return null;
-
-  if (record) {
-    return (
-      <div className="border-b-2 border-orange-200 bg-orange-50 px-4 py-3">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-orange-700 flex-shrink-0 mt-0.5" />
-          <div className="flex-1 text-xs space-y-1">
-            <div className="font-semibold text-orange-900 text-sm">
-              🚨 Critical Value Notification — Logged at Results Entry
-            </div>
-            <div className="text-orange-800">
-              <span className="font-semibold">Recipient:</span> {record.recipient}
-              <span className="text-orange-600 ml-1">({record.recipientRole})</span>
-              <span className="mx-2">·</span>
-              <span className="font-semibold">Method:</span> {record.method}
-              <span className="mx-2">·</span>
-              <span className="font-semibold">Time:</span> {record.time}
-            </div>
-            <div className="text-orange-900 bg-white border border-orange-200 px-2 py-1.5 mt-1">
-              <span className="font-semibold text-xs">Read-back:</span>
-              <span className="italic ml-1">"{record.readBack}"</span>
-            </div>
-            <div className="text-orange-700 text-xs">
-              <span className="font-semibold">Escalations:</span> {record.escalations?.length || 0}
-              {(record.escalations?.length || 0) === 0 && <span className="ml-1">(reached on first attempt)</span>}
-              <span className="mx-2">·</span>
-              <span className="font-semibold">Logged by:</span> {record.loggedBy}
-              <span className="mx-2">·</span>
-              <span className="italic">Audit: CRITICAL_NOTIFICATION_LOGGED</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Missing record — backfill or reject
   return (
-    <div className="border-b-2 border-red-500 bg-red-50 px-4 py-3">
-      <div className="flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-red-700 flex-shrink-0 mt-0.5" />
-        <div className="flex-1">
-          <div className="font-semibold text-red-900 text-sm">⚠ Critical Value — No Notification Record on File</div>
-          <div className="text-xs text-red-800 mt-1">
-            This critical result was saved without a structured CLSI GP47 notification record.
-            Validator must verify physician notification happened before releasing, OR
-            reject the result back to the tech to capture the notification record.
-          </div>
-          <div className="flex gap-2 mt-2">
-            <button onClick={onBackfill}
-              className="px-3 py-1.5 bg-orange-600 text-white text-xs font-semibold hover:bg-orange-700">
-              Log Notification Now
-            </button>
-            <button onClick={onRejectForReNotification}
-              className="px-3 py-1.5 border border-red-400 text-red-700 text-xs font-medium hover:bg-red-50">
-              Reject for re-notification
-            </button>
-          </div>
+    <div className="border-b border-orange-200 bg-orange-50 px-4 py-2.5">
+      <div className="flex items-start gap-3 text-xs">
+        <AlertTriangle className="w-4 h-4 text-orange-700 flex-shrink-0 mt-0.5" />
+        <div className="flex-1 text-orange-900">
+          <span className="font-semibold">Critical value</span> — Confirm clinician acknowledgment via the existing notes / critical-flag audit before releasing.
         </div>
       </div>
     </div>
@@ -1010,7 +956,7 @@ const PANEL_TABS = [
   { key: "history", label: "History", Icon: History },
 ];
 
-function ExpandedPanel({ result, onValidate, onReject, onRetest, onAddNote, onBackfillCriticalNotification, requireESigOnRelease = true }) {
+function ExpandedPanel({ result, onValidate, onReject, onRetest, onAddNote, requireESigOnRelease = true }) {
   const [activeTab, setActiveTab] = useState("qaqc");
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -1020,17 +966,12 @@ function ExpandedPanel({ result, onValidate, onReject, onRetest, onAddNote, onBa
   const isCriticalTier = evaluateResult(result.result, result.rangeBounds) === "critical";
   const isInvalidTier  = evaluateResult(result.result, result.rangeBounds) === "invalid";
   const isFinal        = result.validationLevelCurrent >= result.validationLevelsRequired;
-  const hasCriticalNotification = !!result.criticalNotificationRecord;
   // BR-V3-002: e-sig only gated on RELEASE (final-level validate)
   const releaseRequiresESig = isFinal && requireESigOnRelease;
 
-  // BR-V3-003: missing critical notification on critical result blocks Validate
-  const blockedByMissingNotification = isCriticalTier && !hasCriticalNotification;
-
   const validateLabel = isFinal ? "Validate & Release" : `Validate (Lv ${result.validationLevelCurrent}/${result.validationLevelsRequired}) — Advance`;
-  const validateTooltip = blockedByMissingNotification
-    ? "Cannot release a critical result without a CLSI GP47 notification record. Use 'Log Notification Now' above or Reject for re-notification."
-    : releaseRequiresESig ? "Validate will prompt for e-signature before release."
+  const validateTooltip = releaseRequiresESig
+    ? "Validate will prompt for e-signature before release."
     : "Validate without e-sig (intermediate level).";
 
   return (
@@ -1073,13 +1014,8 @@ function ExpandedPanel({ result, onValidate, onReject, onRetest, onAddNote, onBa
       {/* Modification History banner */}
       <ModificationHistoryBanner history={result.modificationHistory} />
 
-      {/* Critical Notification Display */}
-      <CriticalNotificationDisplay
-        record={result.criticalNotificationRecord}
-        isCritical={isCriticalTier}
-        onBackfill={() => onBackfillCriticalNotification?.(result.id)}
-        onRejectForReNotification={() => { setShowRejectForm(true); setRejectReason("No CLSI GP47 notification record on file. Re-enter and capture notification before re-validation."); }}
-      />
+      {/* Critical Value awareness banner — uses existing critical flag system, not a fabricated GP47 record */}
+      <CriticalAwarenessBanner isCritical={isCriticalTier} />
 
       {/* ═══════════════════════════════════════════════════════════════════
           PRIMARY ACTION BLOCK (H1 parity) — action bar at top
@@ -1133,13 +1069,11 @@ function ExpandedPanel({ result, onValidate, onReject, onRetest, onAddNote, onBa
 
           {/* Validate (primary) */}
           <button
-            onClick={() => !blockedByMissingNotification && onValidate?.(result.id, releaseRequiresESig)}
-            disabled={blockedByMissingNotification}
+            onClick={() => onValidate?.(result.id, releaseRequiresESig)}
             title={validateTooltip}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
-              blockedByMissingNotification ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : isFinal ? "bg-teal-700 text-white hover:bg-teal-800"
-              : "border border-teal-600 text-teal-700 hover:bg-teal-50"
+              isFinal ? "bg-teal-700 text-white hover:bg-teal-800"
+                      : "border border-teal-600 text-teal-700 hover:bg-teal-50"
             }`}>
             <CheckCircle className="w-3.5 h-3.5" />
             {validateLabel}
@@ -1356,10 +1290,6 @@ function ValidationPage() {
   const handleAddNote = (resultId, body, visibility) => {
     const visLabel = visibility === "external" ? "Send with Result" : "In Lab Only";
     addToast(`Validation note saved — visibility: ${visLabel}.`, "success");
-  };
-
-  const handleBackfillCriticalNotification = (resultId) => {
-    addToast("Opening Critical Notification Form for backfill — full GP47 form would appear here (audited as CRITICAL_NOTIFICATION_LOGGED_BY_VALIDATOR).", "warning");
   };
 
   const toggleSelect = (id) => {
@@ -1632,12 +1562,6 @@ function ValidationPage() {
                         {tier === "critical" && <span className={`px-1 py-0.5 rounded text-xs font-bold ${RANGE_FLAG_BADGE.critical}`}>C</span>}
                         {tier === "invalid" && <span className={`px-1 py-0.5 rounded text-xs font-bold ${RANGE_FLAG_BADGE.invalid}`}>!</span>}
                         {result.nce && <Tag kind="teal" title={`NCE ${result.nce.number}`}>NCE</Tag>}
-                        {result.criticalNotificationRecord && (
-                          <Tag kind="green" title="CLSI GP47 notification logged at Results Entry">📞</Tag>
-                        )}
-                        {tier === "critical" && !result.criticalNotificationRecord && (
-                          <Tag kind="red" title="Critical value WITHOUT notification record — backfill required">⚠</Tag>
-                        )}
                       </div>
                     </td>
                     <td className="px-3 py-3 whitespace-nowrap">
@@ -1658,7 +1582,6 @@ function ValidationPage() {
                           onReject={handleReject}
                           onRetest={handleRetest}
                           onAddNote={handleAddNote}
-                          onBackfillCriticalNotification={handleBackfillCriticalNotification}
                           requireESigOnRelease={requireESigOnRelease} />
                       </td>
                     </tr>
