@@ -112,12 +112,22 @@ const RANGE_FLAG_BADGE = { abnormal:"bg-yellow-100 text-yellow-800", critical:"b
 // ─────────────────────────────────────────────────────────────────────────
 // Mock data — mixed result types + critical notification record + modification history + aliquots + program info + storage
 // ─────────────────────────────────────────────────────────────────────────
+// Each lab unit carries a domain attribute (CLINICAL / ENVIRONMENTAL / VECTOR).
+// Lab Unit selection drives currentDomain — no per-result domain branching needed.
 const LAB_UNITS = [
-  { id: "lu-hem", name: "Hematology", icon: Droplets },
-  { id: "lu-chem", name: "Chemistry", icon: FlaskConical },
-  { id: "lu-micro", name: "Microbiology", icon: Microscope },
-  { id: "lu-sero", name: "Serology", icon: Beaker },
+  { id: "lu-hem",   name: "Hematology",          icon: Droplets,     domain: "CLINICAL" },
+  { id: "lu-chem",  name: "Chemistry",           icon: FlaskConical, domain: "CLINICAL" },
+  { id: "lu-micro", name: "Microbiology",        icon: Microscope,   domain: "CLINICAL" },
+  { id: "lu-sero",  name: "Serology",            icon: Beaker,       domain: "CLINICAL" },
+  { id: "lu-wq",    name: "Water Quality",       icon: Droplets,     domain: "ENVIRONMENTAL" },
+  { id: "lu-vec",   name: "Vector Surveillance", icon: Microscope,   domain: "VECTOR" },
 ];
+
+const DOMAIN_BADGE = {
+  CLINICAL:      { label: "Clinical",      kind: "blue" },
+  ENVIRONMENTAL: { label: "Environmental", kind: "green" },
+  VECTOR:        { label: "Vector",        kind: "purple" },
+};
 
 const MOCK_RESULTS = [
   // R1 — routine normal result, multi-level (Hematology requires 2)
@@ -312,6 +322,98 @@ const MOCK_RESULTS = [
                  collectionDate: "02/26/2026 08:00", receivedDate: "02/26/2026 08:15",
                  clinicalNotes: "Thyroid screening" },
     method: { id: "AUTO", label: "Automated", reagentLot: "LOT-2026-V99", reagentExpiry: "09/2026" },
+    attachments: [], referral: null,
+  },
+  // ENVIRONMENTAL demo row — Water Quality lab unit
+  // Patient block becomes Site block; no Sex/Age columns; regulatory limit Tag replaces demographic
+  {
+    id: "ev1", labNumber: "ENV01260000000000004", sequenceNumber: "001-1",
+    domain: "ENVIRONMENTAL",
+    patient: { name: "Mwanza Water Tap A-14", id: "WQ-2026-091", dob: "—", sex: "—", age: "—" },
+    site: { siteName: "Mwanza Water Tap A-14", gps: "−2.5147°S 32.9175°E", source: "Drinking water — chlorinated" },
+    test: "E. coli (MPN/100 mL)", testCode: "LOINC 41863-2", sampleType: "Water (drinking)",
+    analyzer: "MANUAL — Membrane filtration",
+    rangeText: "0 (regulatory)", unit: "MPN/100 mL", selectedRangeLabel: null,
+    regulatoryLimit: "WHO/EPA: 0 MPN/100 mL (drinking water)",
+    result: "0", currentResult: "", resultType: "N",
+    rangeBounds: { normal: { low: 0, high: 0 }, critical: { low: -1, high: 1 }, valid: { low: 0, high: 10000 } },
+    isNormal: true, flags: [], nonconforming: false,
+    enteredBy: "Field Tech (J. Mukasa)", enteredAt: "08:30 12/18/2025", labUnit: "Water Quality", qcStatus: "pass",
+    validationLevelsRequired: 1, validationLevelCurrent: 1, validationHistory: [],
+    notes: [], pastNotesLegacy: "",
+    interpretation: null, modificationHistory: [],
+    nce: null,
+    program: { name: "Mwanza Water Quality Surveillance Q4", priority: "STANDARD" },
+    storage: { path: "Refrigerator — Env → Shelf 1 → Box 2", coords: "Pos A-03", condition: "2–8 °C" },
+    aliquots: [],
+    programFields: [
+      { label: "Surveillance Program",     value: "Lake Victoria Drinking Water Monitoring", type: "text" },
+      { label: "Site ID",                  value: "MWZ-WQ-A14", type: "text" },
+      { label: "Utility Operator",         value: "Mwanza Urban Water Authority (MWAUWASA)", type: "text" },
+      { label: "Regulatory Reference",     value: "WHO 4th ed. §11.2; EPA SDWA §141.21", type: "longtext" },
+      { label: "Chain of Custody Form",    value: "COC-MWZ-2025-Q4-091", type: "text" },
+    ],
+    orderInfo: { clinician: "J. Mukasa (Field Sampling Officer)", clinicianPhone: "+255 28 250 0000",
+      department: "Environmental Surveillance",
+      orderDate: "12/18/2025", priority: "Routine",
+      collectionDate: "12/18/2025 07:30", receivedDate: "12/18/2025 08:00",
+      clinicalNotes: "Routine quarterly drinking-water surveillance; post-chlorination tap" },
+    method: { id: "MAN", label: "Manual", reagentLot: "LOT-2026-EC-A12", reagentExpiry: "04/2027" },
+    attachments: [{ id: 1, name: "COC-MWZ-Q4-091.pdf", size: "188 KB", date: "12/18/2025" }],
+    referral: null,
+  },
+  // VECTOR demo row — Vector Surveillance lab unit
+  // Patient block becomes Trap block; Aliquots show pool composition; D-type result
+  {
+    id: "vec1", labNumber: "VEC01260000000000005", sequenceNumber: "012-1",
+    domain: "VECTOR",
+    patient: { name: "TRAP-2026-091 / An. gambiae × 5", id: "TRAP-2026-091", dob: "—", sex: "—", age: "—" },
+    trap: { trapId: "TRAP-2026-091", gps: "−2.4128°S 32.8521°E", trapType: "CDC light trap",
+            setDate: "12/16/2025 18:30", habitatNotes: "Rural village fringe; standing water 50m; LLIN ~75%" },
+    test: "Plasmodium falciparum (pool PCR)", testCode: "LOINC LP14249-0",
+    sampleType: "Mosquito pool (5 specimens)", analyzer: "Bio-Rad CFX96 (qPCR)",
+    rangeText: "—", unit: "", selectedRangeLabel: null,
+    result: "PF_NEG", currentResult: "", resultType: "D",
+    dictionaryOptions: [
+      { id: "PF_NEG", label: "Negative" },
+      { id: "PF_POS", label: "Positive (Plasmodium falciparum detected)" },
+      { id: "PF_INV", label: "Invalid (control failure)" },
+    ],
+    rangeBounds: null, isNormal: true, flags: [], nonconforming: false,
+    enteredBy: "M. Bahari (Vector Lab)", enteredAt: "10:05 12/18/2025", labUnit: "Vector Surveillance", qcStatus: "pass",
+    validationLevelsRequired: 1, validationLevelCurrent: 1, validationHistory: [],
+    notes: [
+      { id: 1, date: "12/18/2025 09:55", author: "M. Bahari", context: "entry", visibility: "internal",
+        body: "Pool extracted using standard CTAB protocol. RNA integrity confirmed by gel." },
+    ],
+    pastNotesLegacy: "",
+    interpretation: null, modificationHistory: [],
+    nce: null,
+    program: { name: "Lake Zone Malaria Vector Surveillance — IRS Cycle 4", priority: "STANDARD" },
+    storage: { path: "Freezer C (Vector) → Rack 1 → Shelf 2 → Box 7", coords: "Pos B-08", condition: "−80 °C" },
+    aliquots: [
+      { id: "VEC01260000000000005-012.1", purpose: "Retention", linkedTest: "—",
+        status: "In-Storage", createdAt: "12/17/2025 11:00", createdBy: "Field Tech",
+        storage: "Freezer C → Rack 1 → Shelf 2 → Box 7 (Pos B-09)" },
+      { id: "VEC01260000000000005-012.2", purpose: "Pool", linkedTest: "P. falciparum pool PCR",
+        status: "Used", createdAt: "12/17/2025 11:00", createdBy: "Field Tech", storage: "—" },
+    ],
+    sample: { isPool: true,
+      poolMembers: ["VEC01260000000000005-012.1-A","-012.1-B","-012.1-C","-012.1-D","-012.1-E"] },
+    programFields: [
+      { label: "Surveillance Program",   value: "Lake Zone Malaria Vector Monitoring", type: "text" },
+      { label: "Program Officer",        value: "Dr. R. Mwita (NMCP)", type: "text" },
+      { label: "Surveillance Cycle",     value: "IRS Cycle 4 (Q4 2025)", type: "text" },
+      { label: "Mosquito Species (ID)",  value: "Anopheles gambiae s.l.", type: "text" },
+      { label: "Pool Size",              value: "5 specimens", type: "text" },
+      { label: "Habitat Notes",          value: "Rural village fringe; standing water 50m from trap", type: "longtext" },
+    ],
+    orderInfo: { clinician: "M. Bahari (Field Vector Collector)", clinicianPhone: "+255 28 250 0099",
+      department: "Vector Surveillance Lab",
+      orderDate: "12/17/2025", priority: "Routine",
+      collectionDate: "12/17/2025 06:15", receivedDate: "12/17/2025 11:00",
+      clinicalNotes: "Routine pool. Site historical Pf positivity ~3% (2024)." },
+    method: { id: "AUTO", label: "Automated", reagentLot: "LOT-2026-PCR-K22", reagentExpiry: "10/2026" },
     attachments: [], referral: null,
   },
 ];
@@ -1409,6 +1511,21 @@ function ValidationPage() {
             {LAB_UNITS.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
         </div>
+
+        {/* Domain badge — derived from selected Lab Unit (CLINICAL / ENVIRONMENTAL / VECTOR) */}
+        {(() => {
+          const selectedUnit = LAB_UNITS.find(u => u.id === labUnit);
+          if (!selectedUnit?.domain) return null;
+          const cfg = DOMAIN_BADGE[selectedUnit.domain];
+          return (
+            <div className="flex flex-col gap-1">
+              <div className="text-xs text-gray-500">Domain</div>
+              <Tag kind={cfg.kind} title="Domain inferred from the selected Lab Unit. Cannot be changed per-result.">
+                {cfg.label}
+              </Tag>
+            </div>
+          );
+        })()}
         <div className="flex items-center gap-2 text-xs text-gray-500 ml-auto">
           <button onClick={() => setServerPage(p => ({ ...p, current: Math.max(1, p.current-1) }))}
             className="p-1 border border-gray-300 hover:bg-gray-100 disabled:opacity-40" disabled={serverPage.current === 1}>‹</button>

@@ -277,6 +277,85 @@ When the backend detects another validator validated any row in the validator's 
 
 ---
 
+## Cross-Domain Support — CLINICAL / ENVIRONMENTAL / VECTOR
+
+OpenELIS supports three sample domains (`CLINICAL`, `ENVIRONMENTAL`, `VECTOR` — per the domain enum, no `BOTH`). The same Validation page (`/Validation`) flexes across all three. **No separate validation pages, no parallel routes.**
+
+### Lab Unit drives domain context
+
+Validators arrive at the Validation page from a Lab Unit selection. Each Lab Unit carries a `domain` attribute, and the page derives `currentDomain` from that selection. Lab Unit is already required to load the validation queue, so the domain context is implicit.
+
+### Domain badge in toolbar
+
+Next to the Lab Unit selector, a small **Domain badge** displays the active domain (`Clinical` / `Environmental` / `Vector`) so the validator always knows the context they're reviewing.
+
+### What changes per domain on the Validation page
+
+| Surface | CLINICAL | ENVIRONMENTAL | VECTOR |
+|---|---|---|---|
+| **Patient Banner** (expanded panel) | Full patient details | **Site/Source block** | **Trap block** |
+| **Sex column** in table | ✓ shown | hidden | hidden |
+| **Age (D-M-Y) column** in table | ✓ shown | hidden | hidden |
+| **Sample / Patient column** | Patient avatar + name + ID | Site name + sample source | Trap ID + species |
+| **PII masking config** | applies (site-wide + role-based per BR-V3-012) | n/a | n/a |
+| **Order Info section labels** | clinical labels | env labels (Collector / Site Authority / Sampling Date / Sample Source / Site Conditions) | vector labels (Field Collector / Surveillance Program / Trap Set Date / Trap Type / Habitat) |
+| **Program Info section** | EQA / RETROCI / Clinical Studies | Surveillance Program (utility ID, monitoring schedule) | IRM / Surveillance Cycle / Vector Program ID |
+| **Demographic-aware Range Tag** | "Adult Female (18–65y)", "Pediatric Male (1–5y)" | replaced with **"Regulatory Limit"** Tag (e.g. "EPA MCL 0.3 mg/L") | replaced with **"Surveillance Threshold"** Tag or hidden when result is categorical |
+| **Critical-value awareness banner copy** | "Confirm clinician acknowledgment…" | "Confirm regulatory contact acknowledgment…" | "Confirm surveillance team acknowledgment…" |
+| **Pool composition block** (Aliquots section) | hidden | hidden | ✓ shown when sample is a pool — primary use case for vector pool deconvolution |
+| **Multi-level validation pipeline** | applies | applies | applies — pipeline configuration is per Lab Unit |
+| **Auto-validation** | applies | applies | applies |
+| **Reject for re-entry** (S-03) | applies | applies | applies |
+| **Validate / Retest / Reject actions** | applies | applies | applies |
+| **E-Signature on Release** | applies (Part 11) | applies (regulatory submission) | applies |
+| **Stale-page conflict guard** | applies | applies | applies |
+| **Modification History banner** | applies | applies | applies |
+
+### Validator-relevant notes per domain
+
+- **CLINICAL:** Validator is releasing the result to a clinician's chart. "Send with Result" means it reaches the clinician report.
+- **ENVIRONMENTAL:** Validator is releasing the result to a regulatory record / utility report. "Send with Result" means it flows into the regulatory submission. The result might also feed a public-health surveillance dashboard.
+- **VECTOR:** Validator is releasing the result to a surveillance feed (IRM database, malaria surveillance, etc.). "Send with Result" means it joins the surveillance dataset. Pool deconvolution often triggers follow-up individual-mosquito tests; that workflow surfaces via the Aliquots section's read-only display.
+
+### i18n key conventions for domain-aware labels
+
+Domain-namespaced keys with a fallback to clinical defaults:
+
+```
+label.validation.banner.recipient.clinical       # "Confirm clinician acknowledgment"
+label.validation.banner.recipient.env            # "Confirm regulatory contact acknowledgment"
+label.validation.banner.recipient.vector         # "Confirm surveillance team acknowledgment"
+```
+
+### Components hidden / shown by domain on Validation
+
+| Component | CLINICAL | ENVIRONMENTAL | VECTOR |
+|---|---|---|---|
+| PatientBanner | ✓ | hidden — SiteBanner replaces | hidden — TrapBanner replaces |
+| SiteBanner | hidden | ✓ | hidden |
+| TrapBanner | hidden | hidden | ✓ |
+| Sex column | ✓ | hidden | hidden |
+| Age (D-M-Y) column | ✓ | hidden | hidden |
+| PII masking toggles in toolbar | ✓ | hidden | hidden |
+| Demographic Range Tag | ✓ | replaced with Regulatory Limit Tag | replaced or hidden |
+| Pool composition (Aliquots section) | hidden | hidden | ✓ when pool |
+| Domain badge in toolbar | ✓ "Clinical" | ✓ "Environmental" | ✓ "Vector" |
+
+### Acceptance criteria — cross-domain on Validation
+
+- [ ] Lab Unit options expose a `domain` attribute
+- [ ] On Lab Unit selection, `currentDomain` is derived and the page renders accordingly
+- [ ] Domain badge displays next to the Lab Unit selector
+- [ ] CLINICAL: full PatientBanner, Sex + Age columns visible, PII masking config applies, demographic range Tag shown
+- [ ] ENVIRONMENTAL: SiteBanner replaces PatientBanner; Sex/Age columns hidden; PII config hidden; Regulatory Limit Tag replaces demographic Tag
+- [ ] VECTOR: TrapBanner replaces PatientBanner; Sex/Age columns hidden; pool composition surfaced when applicable; demographic Tag hidden
+- [ ] Order Info labels swap per domain via i18n key suffix
+- [ ] Critical-value awareness banner recipient phrasing adapts per domain
+- [ ] No domain selector at the result level — domain is fixed per Lab Unit
+- [ ] Multi-level pipeline + auto-validation + reject/retest + e-sig on release behave identically across domains
+
+---
+
 ## Carbon Implementation Notes
 
 This mockup uses Tailwind utility classes + raw HTML for portable preview. Production implementation MUST use `@carbon/react` per the Component Map below. Patterns the Tailwind mockup does NOT demonstrate that MUST be used in production: Carbon `Tabs` / `Modal` (e-sig) / `FileUploader` / `ToastNotification` / `Accordion` / `DataTable` / `NumberInput` / `Select` / `MultiSelect` / `TextArea`.
