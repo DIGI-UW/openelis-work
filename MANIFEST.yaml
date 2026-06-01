@@ -2728,3 +2728,39 @@
     - stretch
   added: "2026-05-28"
   status: draft
+
+- id: reference-lab-results
+  type: both
+  path: designs/sample-collection/reference-lab-results.jsx
+  spec: designs/sample-collection/reference-lab-results.md
+  preview: designs/sample-collection/reference-lab-results.html
+  category: sample-collection
+  description: >
+    New SideNav item under Sample Shipment at /SampleShipment/reference-lab-results.
+    Tracks the data lifecycle of every referred sample after physical shipment:
+    Outstanding, Returned-needs-action, and History views. Migrates ReferralStatus
+    enum to FHIR Task states (draft/requested/received/in-progress/completed plus
+    cancelled/rejected). Adds visible two-line "Enter result" button for manual
+    posting from non-OpenELIS reference labs. Accept = reception (peer already
+    validated); Reject = terminal close + clinician notification via OGC-589 +
+    Alerts feature trigger. Box.Reconciled gate prevents closing a Box until all
+    contained referrals are terminal. Companion docs in the same folder:
+    -dev-primer.md (narrative walkthrough), -breakdown.md (1 Epic + 14 stories
+    across 3 sprints), -brainstorm.md (problem framing + locked decisions),
+    -analyze-report.md (/analyze quality scan). Supersedes the state-model
+    scope of OGC-624 (Inter-Lab Transfer).
+  links:
+    jira: ["OGC-796", "OGC-797", "OGC-798", "OGC-799", "OGC-800", "OGC-801", "OGC-802", "OGC-803", "OGC-804", "OGC-805", "OGC-806", "OGC-807", "OGC-808", "OGC-809", "OGC-810"]
+    gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/reference-lab-results
+    preview: https://digi-uw.github.io/openelis-work/designs/sample-collection/reference-lab-results.html
+  tags:
+    - referral
+    - reference-lab
+    - FHIR
+    - sample-shipment
+    - reconciliation
+    - inter-lab
+    - madagascar
+    - global
+  added: "2026-05-28"
+  status: draft
