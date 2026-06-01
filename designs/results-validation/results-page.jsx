@@ -2071,8 +2071,12 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true,
   const noteRequired = isModification && modifyConfirmed;
   // BR-034: reagent lot required by site config (ISO 15189 §6.4.4)
   const reagentGateOk = !requireReagentLots || reagentLotSelected;
+  // BR-025 (revised): critical acknowledgment NEVER blocks Save. Saving a critical
+  // result fires an Alerts pending-ack task; the tech (or whoever's assigned) acks
+  // later from Results Entry, Alerts dashboard, or Validation. Blocking the save
+  // works against patient safety — the whole point of the critical alert is to
+  // accelerate the result reaching the clinical workflow.
   const canSave      = hasValue
-    && (!isCritical || criticalAcknowledged)
     && (!isReleasedResult || modifyConfirmed)
     && (!noteRequired || modificationNote.trim() !== "")
     && reagentGateOk;
@@ -2178,8 +2182,8 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true,
               !hasValue                                  ? t("title.save.missingValue","Enter a result value to save")
               : isReleasedResult && !modifyConfirmed     ? t("title.save.confirmRelease","Confirm the modification warning above before saving")
               : noteRequired && !modificationNote.trim() ? t("title.save.missingReason","A reason for modification is required")
-              : isCritical && !criticalAcknowledged      ? t("title.save.ackCritical","Complete the Critical Notification Form before saving")
               : !reagentGateOk                            ? t("warn.reagent.required","A reagent lot is required by site configuration (ISO 15189 §6.4.4 traceability). Select a lot to enable Save.")
+              : isCritical && !criticalAcknowledged      ? t("title.save.criticalPending","Saves now — critical-value acknowledgment will be a pending task in Alerts.")
               : t("title.save.esig","Save will prompt for e-signature")
             }
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -2216,21 +2220,26 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true,
         </div>
       )}
 
-      {/* Critical value acknowledgment — BR-033 (revised, opt-in upgrade).
-          Default (flag OFF): single-click "I Acknowledge" + Alerts POST satisfies ISO 15189 §7.4.5.
-          Opt-in (flag ON): structured CLSI GP47 form replaces the single-click ack. */}
+      {/* Critical value banner — BR-025 + BR-033 (revised). SAVE IS NOT BLOCKED.
+          Saving fires an Alerts pending-ack task; the tech (or whoever's assigned)
+          acknowledges later from Results Entry, Alerts dashboard, or Validation.
+          The banner persists on the row until acknowledged.
+
+          Default (flag OFF): "Acknowledge — clinician notified" button stays alongside Save.
+          Opt-in (flag ON): "Open Notification Form" button (structured GP47 record).
+          Either way, Save works immediately — both flows are parallel to Save, not gating. */}
       {isCritical && !criticalAcknowledged && !showCriticalForm && !requireReadBack && (
         <div className="flex items-start gap-3 px-4 py-3 bg-orange-50 border-b-2 border-orange-500">
           <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <div className="font-semibold text-orange-900 text-sm">{t("heading.critical","Critical Value — Physician Notification Required")}</div>
             <div className="text-xs text-orange-800 mt-0.5">
-              {criticalMsg}. {t("message.critical.baseline","Per lab policy, the responsible clinician must be notified. Click below to acknowledge — the event is logged to the Alerts dashboard. Add a Note if helpful for context.")}
+              {criticalMsg}. {t("message.critical.baseline","Save immediately to get this result to the validator + chart — the system will track acknowledgment as a pending task in Alerts. Acknowledge after notifying the clinician, anytime from this row, the Alerts dashboard, or the Validation page.")}
             </div>
           </div>
           <button onClick={() => setCriticalAcknowledged(true)}
             className="px-3 py-2 bg-orange-600 text-white text-xs font-semibold hover:bg-orange-700 flex-shrink-0 whitespace-nowrap rounded-sm">
-            {t("button.critical.ack","I Acknowledge — clinician notified")}
+            {t("button.critical.ack","Acknowledge — clinician notified")}
           </button>
         </div>
       )}
@@ -2240,7 +2249,7 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true,
           <div className="flex-1">
             <div className="font-semibold text-orange-900 text-sm">{t("heading.critical","Critical Value — Physician Notification Required")}</div>
             <div className="text-xs text-orange-800 mt-0.5">
-              {criticalMsg}. {t("message.critical.structured","Per site policy (CAP-level documentation), capture a structured CLSI GP47 record with verbatim read-back before saving.")}
+              {criticalMsg}. {t("message.critical.structured","Save immediately to get this result to the validator. Per site policy (CAP-level documentation), also capture a structured CLSI GP47 record with verbatim read-back — can be completed alongside or after Save.")}
             </div>
           </div>
           <button onClick={() => setShowCriticalForm(true)}
@@ -2266,7 +2275,7 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true,
       {isCritical && criticalAcknowledged && !criticalNotificationRecord && (
         <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 border-b border-orange-200 text-xs text-orange-700">
           <Check className="w-3.5 h-3.5 text-orange-600 flex-shrink-0" />
-          {t("message.critical.ack.baseline","Critical value acknowledged — logged to Alerts dashboard. You may now save.")}
+          {t("message.critical.ack.baseline","Critical value acknowledged — logged to Alerts dashboard. Pending task cleared.")}
         </div>
       )}
       {isCritical && criticalAcknowledged && criticalNotificationRecord && (
@@ -2499,11 +2508,19 @@ export default function ResultsPageRedesign() {
     const reflexes = prevResult?.testName?.toLowerCase().includes("glucose") ? [`${prevResult.labNumber}-2`] : [];
     const calculations = prevResult?.testName?.toLowerCase().includes("hemoglobin") ? ["MCH", "MCHC"] : [];
 
+    // BR-025 (revised): if critical and not yet acknowledged, save still proceeds
+    // and the toast notes the pending-ack task in Alerts.
+    const wasCriticalTier = evaluateResult(value, prevResult?.rangeBounds) === "critical";
+    const criticalAckPending = wasCriticalTier; // would consult result.criticalAckStatus in production
+    const baseMessage = isModification
+      ? t("toast.modified","Result modified and returned to Validation queue.")
+      : t("toast.saved","Result saved and queued for validation.");
+    const message = criticalAckPending
+      ? `${baseMessage} ${t("toast.criticalAckPending","Critical value — acknowledgment pending in Alerts dashboard.")}`
+      : baseMessage;
     addToast(
-      isModification
-        ? t("toast.modified","Result modified and returned to Validation queue.")
-        : t("toast.saved","Result saved and queued for validation."),
-      "success",
+      message,
+      criticalAckPending ? "warning" : "success",
       { reflexes, calculations, notifyValidators: isStat }
     );
     setEsigPayload(null);

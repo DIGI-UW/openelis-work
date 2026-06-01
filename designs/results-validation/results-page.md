@@ -288,7 +288,7 @@ interface ReferenceRange {
 
 **Replaces the v3.0 "I Acknowledge" single-click button.** CLSI GP47 (Critical Result Communication) requires documented evidence of: (a) who was notified, (b) by what method, (c) what was read back to confirm receipt, (d) when, and (e) escalation history when initial attempts failed. A single click does not satisfy this.
 
-**Trigger:** When the entered result is in the `critical` range tier, the existing "Critical Value — Physician Notification Required" banner displays. The single "I Acknowledge" button is replaced by **"Open Notification Form"**. Save remains blocked.
+**Trigger:** When the entered result is in the `critical` range tier and the site flag `criticalNotification.requireReadBack` is ON, the critical banner shows an **"Open Notification Form"** button alongside the Save button. **Save is NOT blocked** — the tech can save first (recommended for patient safety; the result reaches the validator + clinician channel immediately) and capture the GP47 structured record alongside or after. The structured record is linked back to the result via `analysis_id` and to the Alerts ack via `alerts_ack_id` regardless of which click came first.
 
 **Form layout (Usability H3) — progressive disclosure across two steps:**
 
@@ -321,8 +321,8 @@ A "Change" link in Step 2 lets the user go back and re-pick the outcome if they 
 | **Additional notes** | TextInput | optional | Anything else relevant — e.g. "Patient also notified directly per family request" |
 
 **On submit (Confirm Notification button):**
-1. POST to `/rest/alerts/critical-acknowledgment` with the full structured payload.
-2. On success: ack pill replaces the form ("Notified Dr. Williams at 12/18/2025 12:04 via Phone — read-back confirmed"). Save unblocks.
+1. POST to `/rest/alerts/critical-acknowledgment` with the full structured payload — this converts the pending-ack task into an acknowledged-with-structured-record task.
+2. On success: ack pill replaces the form ("Notified Dr. Williams at 12/18/2025 12:04 via Phone — read-back confirmed"). **Save is not affected by this flow — the tech may have already saved the result.**
 3. On failure: follow BR-025 retry policy (toast + queued replay).
 4. Audit: `CRITICAL_NOTIFICATION_LOGGED` row written to `audit_trail` with the full payload, plus the existing `CRITICAL_ACK`.
 
@@ -359,7 +359,7 @@ Evaluation order: `invalid` (outside physiologically valid range) → `critical`
 |---|---|---|
 | Normal | No highlight | Save enabled |
 | Abnormal | Yellow border + yellow cell background + "H"/"L" flag | Save enabled |
-| Critical | Orange border + orange cell background + "C" flag + critical banner in expanded panel | **Save disabled until "I Acknowledge" clicked. Acknowledgment is logged to Alerts dashboard.** |
+| Critical | Orange border + orange cell background + "C" flag + critical banner in expanded panel | **Save is NOT blocked.** Result reaches the validator and the patient chart immediately — that's the whole point of a critical-value alert. Saving fires an Alerts dashboard notification + creates a pending-ack task; the tech (or whoever was assigned) acknowledges from Results Entry, the Alerts dashboard, or the Validation page anytime after save. Audit captures both timestamps independently. |
 | Invalid | Dark red border + dark red cell + "!" flag + invalid banner | Save NOT disabled (so tech can correct); dark red banner warns to verify and repeat |
 
 ### Acknowledgment → Alerts Dashboard
@@ -871,16 +871,41 @@ Reads are NOT audited. All `audit_trail` entries auto-capture actor from Spring 
 
 **BR-024 — NCE Disposition is the Only Reject Path:** Result rejection MUST flow through an NCE record. The legacy standalone Reject column is removed. `allowResultRejection=false` hides the "Reject result + reason" option from the NCE Disposition radio group; it does NOT disable the entire NCE flow.
 
-**BR-025 — Critical Acknowledgment → Alerts Dashboard:** Acknowledging a critical value on Results Entry MUST POST to `/rest/alerts/critical-acknowledgment` before the Save action proceeds. The Critical Ack is a hard gate. Retry semantics:
+**BR-025 — Critical Acknowledgment → Alerts Dashboard (Save NEVER blocked):**
 
-| Failure mode | UI behavior | Server behavior |
-|---|---|---|
-| Network error / 5xx | `ActionableNotification kind="error"` toast with `actionButtonLabel="Retry"` + explanatory body ("The Alerts service is unreachable. Your acknowledgment has been queued for replay."). Save remains blocked until ack succeeds OR user explicitly cancels. | Backend queues the ack write to a durable replay queue when the Alerts service is unreachable for > 5 seconds. Replay attempts every 30 s for 10 min, then alerts SysAdmin role users. |
-| 4xx (validation rejection) | Toast `kind="error"` with the server's error message. Save remains blocked. No retry button (user must correct input). | Returns the validation error; does not queue. |
-| Success | Silent — Save proceeds immediately. | Ack written to `critical_acknowledgments` table + linked to `audit_trail` entry `CRITICAL_ACK`. |
-| Timeout > 10 s | Same as Network error. | Same as Network error. |
+**The principle:** A critical value is a patient-safety alert. The system's job is to get that value to the clinical workflow *fast* — to the validator queue, to the patient chart, to the clinician's Notification feed. Blocking the save behind an acknowledgment screen delays the very thing the alert is meant to accelerate. Real-world bench techs "hurry up on the reporting if it's critical" — the design must match that instinct, not fight it.
 
-Audit: Every Critical Ack attempt (success OR failure) writes one row to `audit_trail` with action `CRITICAL_ACK` or `CRITICAL_ACK_FAILED` so the failure mode is itself traceable for compliance review.
+**Save flow on a critical value:**
+1. Tech clicks Save. Save proceeds **immediately** — no acknowledgment prompt, no Alerts POST gate.
+2. Backend persists the result (status → Awaiting Validation), and asynchronously:
+   - POSTs to `/rest/alerts/critical-acknowledgment` to create a **pending-ack task** in the Alerts dashboard with the result reference, value, critical message, and a `pending_since` timestamp.
+   - Writes `CRITICAL_DETECTED` audit entry (auto, server-side).
+   - Marks the result with `criticalAckStatus = "pending"`.
+3. Tech sees a success toast: *"Result saved. Critical value — acknowledgment pending in Alerts dashboard."*
+4. Tech (or any user with `results.modify` + `results.notes.add`) can later click **"Acknowledge critical value"** from any of three surfaces:
+   - The Results Entry row's expanded panel (the critical banner persists on the row until ack'd)
+   - The Alerts dashboard (cross-result task list)
+   - The Validation page's expanded panel (if validator is the one calling the clinician)
+5. Acknowledgment click → write `CRITICAL_ACK` audit entry + `criticalAckStatus = "acknowledged"` + clear the pending task.
+
+**Async failure handling (no impact on Save):**
+- The Alerts POST is fire-and-forget from the user's perspective. The backend queues it for replay if Alerts is unreachable.
+- If the POST fails entirely (5+ minutes of retries), a SysAdmin notification fires; the result still saved correctly and reached the validator.
+- Save was never gated on the Alerts call; the user's workflow is uninterrupted.
+
+**Audit evidence (ISO 15189 §7.4.5 compliance):**
+- `CRITICAL_DETECTED` (auto, on save): timestamp + actor (tech) + value + critical message
+- `CRITICAL_ACK` (later, by whoever ack'd): timestamp + actor + optional notification context
+- The pair of timestamps + actor records is sufficient documented evidence per ISO 15189 §7.4.5. Same as if the ack were synchronous — just decoupled in time.
+
+**What about the GP47 form (BR-033)?**
+When the site has opted into the structured form, it works the same way: the form opens from the critical banner, and the tech can complete it before OR after Save. The form's `alerts_ack_id` links it to the Alerts pending task regardless of order — if completed after Save, it converts the pending task to an acknowledged-with-structured-record state.
+
+**What about results that age in "pending ack" state?**
+The Alerts dashboard surfaces aging unacknowledged criticals. Site config `criticalAck.escalationMinutes` (default 60) determines when an unacknowledged critical escalates to supervisor/lab manager Notifications. This is a Lab Manager admin concern, not a per-result gate.
+
+**Validator-side behavior:**
+The Validation page does NOT block Validate-and-Release based on `criticalAckStatus`. A validator can release a critical result with a pending ack — same rationale: don't slow the clinical chart. The Validation banner shows the ack status read-only so the validator knows whether ack is pending or complete. If pending, the validator can ack from there.
 
 **BR-026 — PII Masking Precedence:** `results.entry.showPatientName` (site-wide override) takes precedence over `PATIENT_DATA_ON_RESULTS_BY_ROLE` (role-based mask). When the site-wide override is ON, the patient name is shown regardless of user role.
 
@@ -911,7 +936,7 @@ CLSI GP47 (Critical Result Communication) is a **CLSI guideline** — recommende
 **Behavior — baseline (flag OFF, default for everyone):**
 - When the result enters the `critical` tier, the tech sees the existing critical banner.
 - A single "I Acknowledge — clinician notified" button satisfies the ack gate.
-- Click → write `CRITICAL_ACK` audit entry → POST to Alerts dashboard (BR-025) → Save unblocks.
+- Click → write `CRITICAL_ACK` audit entry + POST to Alerts dashboard (BR-025), converting the pending task to acknowledged. **Save is independent — the tech may have already saved, or may save after acking; either order is fine.**
 - The tech is encouraged (but not required) to add a Note (any visibility) capturing notification context.
 - This is sufficient for ISO 15189 §7.4.5 evidence.
 
@@ -1038,12 +1063,16 @@ The two axes are independent: a tech-authored entry-context note can be either I
 - [ ] History tab shows previous results with delta computation
 - [ ] No other tabs in the expanded panel
 
-### Critical Acknowledgment
-- [ ] Acknowledgment POSTs to `/rest/alerts/critical-acknowledgment` before Save proceeds **[BR-025]**
-- [ ] On network/5xx failure, ActionableNotification with retry button shown; Save blocked **[BR-025]**
-- [ ] Backend queues ack for replay (every 30s for 10min) when Alerts service unreachable >5s **[BR-025]**
-- [ ] On 4xx, error toast shown; Save blocked; no retry button **[BR-025]**
-- [ ] Both success and failure paths write to `audit_trail` (`CRITICAL_ACK` / `CRITICAL_ACK_FAILED`) **[BR-025]**
+### Critical Acknowledgment (Save NEVER blocked)
+- [ ] Saving a critical result proceeds immediately — no acknowledgment prompt, no Alerts POST gate **[BR-025]**
+- [ ] Backend asynchronously POSTs to `/rest/alerts/critical-acknowledgment` to create a pending-ack task + writes `CRITICAL_DETECTED` audit + marks `criticalAckStatus=pending` **[BR-025]**
+- [ ] Save success toast says: "Result saved. Critical value — acknowledgment pending in Alerts dashboard." **[BR-025]**
+- [ ] Tech, supervisor, or designated user can later acknowledge from Results Entry row, Alerts dashboard, OR Validation page **[BR-025]**
+- [ ] Acknowledgment click writes `CRITICAL_ACK` audit entry + sets `criticalAckStatus=acknowledged` + clears pending task **[BR-025]**
+- [ ] Async Alerts POST failure retries server-side; SysAdmin notified after sustained failure. Result save itself is unaffected **[BR-025]**
+- [ ] Audit evidence for ISO 15189 §7.4.5 is the timestamp pair `CRITICAL_DETECTED` (save) + `CRITICAL_ACK` (later) with actors and optional context **[BR-025]**
+- [ ] Aging unacknowledged criticals escalate via Alerts dashboard per site config `criticalAck.escalationMinutes` (default 60) **[BR-025]**
+- [ ] Validation page does NOT block release on `criticalAckStatus=pending` — validator can release; ack stays as a follow-up task **[BR-025]**
 
 ### Inline NCE Form
 - [ ] Severity radios with descriptions (Critical/Major/Minor)
@@ -1074,7 +1103,7 @@ The two axes are independent: a tech-authored entry-context note can be either I
 
 ### Critical Value Acknowledgment (Baseline — flag OFF, default)
 - [ ] When result enters critical tier, the critical banner shows a single "I Acknowledge — clinician notified" button **[BR-033]**
-- [ ] Click → writes `CRITICAL_ACK` audit + POSTs to Alerts (BR-025) + Save unblocks **[BR-033]**
+- [ ] Click → writes `CRITICAL_ACK` audit + POSTs to Alerts (BR-025) — **Save is independent** and may have already happened **[BR-033]**
 - [ ] Tech is encouraged but not required to add a Note (any visibility) capturing notification context **[BR-033]**
 - [ ] This is the default behavior for all new and existing deployments **[BR-033]**
 
@@ -1085,7 +1114,7 @@ The two axes are independent: a tech-authored entry-context note can be either I
 - [ ] When First-attempt-successful=No, Escalation Log is required with at least one entry **[BR-033]**
 - [ ] Submit triggers POST to `/rest/alerts/critical-acknowledgment` + writes BOTH `CRITICAL_ACK` (baseline) AND `CRITICAL_NOTIFICATION_LOGGED` (extended) audit entries **[BR-033]**
 - [ ] Structured record persists to `critical_notification` table with `alerts_ack_id` FK to the Alerts ack — single acknowledgment system, GP47 form is a richer attachment **[BR-033]**
-- [ ] After successful log, form collapses to read-only summary card; Save unblocks **[BR-033]**
+- [ ] After successful log, form collapses to read-only summary card. **Save is independent** of the form — tech may have already saved, or save after; either order is valid **[BR-033]**
 - [ ] Editing a logged notification requires Validator bundle and creates a modification-history entry **[BR-033, BR-035]**
 - [ ] When the flag is OFF (default), this UI does not appear; baseline single-click ack applies instead
 
