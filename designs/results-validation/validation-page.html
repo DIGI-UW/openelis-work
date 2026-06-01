@@ -239,7 +239,7 @@
             <button className="cds--btn cds--btn--secondary cds--btn--sm" disabled>Reject Selected</button>
             <button className="cds--btn cds--btn--secondary cds--btn--sm" disabled>Request Retest</button>
             <button className="cds--btn cds--btn--primary cds--btn--sm" disabled style={{ background: '#007d79' }}>
-              🔑 Validate &amp; Release Selected
+              Validate &amp; Release Selected
             </button>
           </div>
 
@@ -439,15 +439,21 @@
                                   <div style={{ fontFamily:'IBM Plex Mono, monospace', fontSize: 11, color:'#a8a8a8', marginTop: 4 }}>LOINC 1558-6</div>
                                 </div>
                                 <div className="actions-end">
-                                  <button className="cds--btn cds--btn--secondary cds--btn--sm" style={{ borderColor: '#f1c21b', color: '#8a3800' }}>
+                                  <button style={{
+                                    background: '#fff', border: '1px solid #f1c21b', color: '#8a3800',
+                                    padding: '6px 14px', fontSize: 12, fontWeight: 500, cursor: 'pointer'
+                                  }}>
                                     ↻ Request Retest
                                   </button>
                                   <button onClick={() => setShowRejectForm(s => !s)}
-                                    className="cds--btn cds--btn--danger--ghost cds--btn--sm">
+                                    style={{
+                                      background: '#fff', border: '1px solid #da1e28', color: '#a2191f',
+                                      padding: '6px 14px', fontSize: 12, fontWeight: 500, cursor: 'pointer'
+                                    }}>
                                     ✗ Reject
                                   </button>
                                   <button className="cds--btn cds--btn--primary cds--btn--sm" style={{ background: '#007d79' }}>
-                                    🔑 Validate &amp; Release
+                                    Validate &amp; Release
                                   </button>
                                 </div>
                               </div>

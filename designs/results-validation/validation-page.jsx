@@ -1141,7 +1141,7 @@ function ExpandedPanel({ result, onValidate, onReject, onRetest, onAddNote, onBa
               : isFinal ? "bg-teal-700 text-white hover:bg-teal-800"
               : "border border-teal-600 text-teal-700 hover:bg-teal-50"
             }`}>
-            {isFinal && releaseRequiresESig ? <KeyRound className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
+            <CheckCircle className="w-3.5 h-3.5" />
             {validateLabel}
           </button>
         </div>
@@ -1526,7 +1526,7 @@ function ValidationPage() {
         <div className="flex-1" />
         <button onClick={handleBatchValidate} disabled={selectedBatch.length === 0}
           className="px-4 py-1.5 bg-teal-700 text-white text-xs font-medium hover:bg-teal-800 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
-          {willRelease.length > 0 && requireESigOnRelease ? <KeyRound className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
+          <CheckCircle className="w-3.5 h-3.5" />
           {batchLabel}
         </button>
       </div>
