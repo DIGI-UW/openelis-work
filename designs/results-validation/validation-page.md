@@ -1,677 +1,666 @@
-# Validation Screen Enhancements
-## Functional Requirements Specification — v2.0
+# Validation Page — Functional Requirements Specification v3.0
 
-**Version:** 2.1
-**Date:** 2026-04-01
+**Version:** 3.0
+**Date:** 2026-05-30
 **Status:** Draft for Review
-**Jira:** OGC-291 (Validation), OGC-343
-**Gallery:** [Validation Page Mockup](https://digi-uw.github.io/openelis-work/#/results-validation/validation-page)
-**Technology:** Java Spring Framework, Carbon React
-**Related Modules:** Validation, Results Entry, Reference Ranges, Admin Configuration
+**Jira:** OGC-291 (Validation Page), OGC-343 (Multi-Level Pipeline + Admin Config)
+**Mockup:** `validation-page-v3-mockup.jsx`
+**Preview:** `validation-page-v3-preview.html`
+**Technology:** Java Spring Framework + Carbon React (`@carbon/react`)
+**Supersedes:** `validation-page-requirements-v2.1.md`
+**Companion spec:** `results-page-v3-frs.md` (parallel architecture)
+**Related Modules:** Results Entry · Reference Ranges · Storage · Aliquots · NCE · Alerts Dashboard · EQA · Order Programs
 
 ---
 
-## Table of Contents
+## Lab Context
 
-1. Executive Summary
-2. Problem Statement
-3. User Roles & Permissions
-4. Functional Requirements
-5. Data Model
-6. API Endpoints
-7. UI Design
-8. Business Rules
-9. Localization
-10. Validation Rules
-11. Security & Permissions
-12. Acceptance Criteria
+### Current State
 
----
+After a bench tech finishes entering a result (Results Entry page, FRS `results-page-v3-frs.md`), the result moves into a Validation queue. A validator — usually a Supervisor, Senior Tech, or Lab Manager — opens the Validation page, sees a list of results waiting for review, examines each one against the patient demographics, normal range, QC status, and prior history, then either **releases** the result to the clinician's chart, **forwards** it to a higher validation level (when the lab is configured for multi-level validation), **rejects** it back to the tech for re-entry, or **requests a retest** if the sample needs to be redrawn. In production OpenELIS Global today, this page exists but shows limited context — validators see the test name, value, normal range, who entered it, and a brief expanded view; they often need to click out to the patient record, lab order, or instrument printout to gather enough context to confidently sign. Multi-level validation (OGC-343) adds a configurable pipeline of 0–5 sequential review levels, each gated by a role with the `result.validate` permission; the same admin page supports per-lab-unit overrides and auto-validation for results that don't need human review (e.g. all-normal results in low-risk labs).
 
-## 1. Executive Summary
+### Pain
 
-This specification covers a staged set of enhancements to the OpenELIS Global validation screen. These changes improve validator confidence in result correctness and support configurable multi-level validation workflows.
+Validators today work without the full clinical context the tech had at entry time. They see *the number* but not the **storage location** (relevant when the validator wants to suggest a retest pulled from frozen aliquot), not the **structured critical-value notification record** (so they can't verify the tech followed CLSI GP47 read-back protocol on a panic value), not the **modification history** (so a result that was silently corrected after first save looks identical to one that was right the first time), not the **demographic-aware reference range** (so a validator reviewing a 3-month-old's hemoglobin sees the adult range and may flag a perfectly normal pediatric value as abnormal), and not the **Program Info** (so an EQA submission missing a panel code or a study order missing a visit number gets released and then has to be retracted by the program coordinator). The expanded-row layout uses a 6-tab bar — Method, Order Info, Attachments, QA/QC, History, Referral — which forces a validator to click through tabs to find context that should be visible at a glance. Critical-tier results and modifications carry no visible chain-of-custody at the validator level; the audit trail is in the database but not on screen, so the validator has to trust that what they see is what was saved. Patient-data masking has two parallel mechanisms (site-wide and role-based) that don't agree on precedence. And there's no stale-page guard — two validators reviewing the same accession can both press Save and create conflicting state.
 
-**Enhancement A — Patient Demographics (Sex & Age):** Adds patient biological sex and age (Days-Months-Years format, calculated at sample collection date) as inline columns in the results table and in the patient header. Enables validators to verify that normal/reference ranges are appropriate for the patient's demographic profile without navigating away.
+### What Changes
 
-**Enhancement B — Multi-Level Validation Column:** When the lab is configured for more than one validation level, a new "Validation" column appears in the results table showing the current level (e.g., "Validation 1/2"). This column is hidden for single-level labs to avoid visual noise.
-
-**Enhancement C — Context-Aware Save Button:** The Save button label dynamically reflects what will happen when clicked — showing counts of results that will be released versus advanced to the next validation level.
-
-**Enhancement D — Validation History Tooltip:** Hovering or clicking the validation level tag reveals a tooltip showing the full validation progress: which levels are complete, who validated at each level and when, and which level is currently awaiting action.
-
-**Enhancement E — Expanded Detail Panel Parity with Results Entry:** Brings the validation expanded row panel into alignment with the Results Entry page's expanded panel. Adds always-visible Notes section (view and add), Interpretation section (read-only review), full tab bar (Method & Reagents, Order Info, Attachments, QA/QC, History, Referral), result range tier highlighting (normal/abnormal/critical/invalid), and NCE badge visibility — so validators have full clinical context without navigating away.
+The Validation page is restructured to mirror Results Entry v3: an **inline-first expanded panel** with the validate/reject/retest **action bar at the top**, then always-visible collapsible sections for Notes / Interpretation / Method & Reagents / Order Info / Program Info / Storage Location / Aliquots / Referral / Attachments — all **read-only on the validator side**, with QA/QC and History remaining as the only two tabs. A **Modification History banner** at the top of every expanded panel makes prior corrections immediately visible. A **Critical Notification Display panel** shows the CLSI GP47 record the tech captured at Results Entry — recipient, role, method, read-back text, time, escalation log — so the validator can confirm the notification loop was closed before releasing. **Demographic-aware reference ranges** display the selected range label (e.g. "Adult Female (18–65y)") next to the value, so a pediatric ranges issue is impossible to miss. The action bar is **e-signature-gated** when the action releases the result to the clinician (final level), so every release of a clinical-grade result has a Part 11 / ISO 15189 §7.5.1.2 attribution. **PII visibility precedence** is harmonized with Results Entry (site-wide override > role-based mask). A **stale-page conflict guard** detects when another validator validates the same accession and surfaces a toast + reload. **Polymorphic result display** correctly renders Dictionary (D) and Multi-Checkbox (M) result types — resolving dictionary IDs to human-readable labels for the validator. The Admin Validation Configuration page (OGC-343) and multi-level pipeline are preserved as-is from v2.1, now linked to the new structured panel.
 
 ---
 
-## 2. Problem Statement
+## User Stories
 
-### 2.1 Demographics Gap (Enhancement A)
-
-**Current state:** Validators can see the test name, result value, and normal range, but cannot see the patient's sex or age. To verify that the reference range is appropriate (e.g., pediatric vs. adult, male vs. female for analytes like creatinine or hemoglobin), validators must navigate away to the patient record, mentally calculate the age, then return. This disrupts workflow and increases the risk of approving results against incorrect reference ranges.
-
-**Impact:** Mismatched reference ranges can lead to false normal/abnormal classifications. In pediatric and neonatal care, where reference ranges shift rapidly with age, the risk is especially acute.
-
-**Proposed solution:** Display patient sex (single letter: M/F/U) and age (Days-Months-Years format) as two new table columns and in the patient header.
-
-### 2.2 Multi-Level Validation Visibility (Enhancements B, C, D)
-
-**Current state:** When a lab configures multi-level validation (e.g., supervisor review followed by lab manager sign-off), the validation screen shows no indication of which level the result is currently at, who has already validated, or what the Save action will do (release vs. advance). Validators operate without context about where a result sits in the approval chain.
-
-**Impact:** Validators may not realize a result still needs additional sign-offs, leading to confusion about why a result wasn't released after they saved. Supervisors reviewing second-level results have no quick way to see who performed the first validation, requiring them to check audit logs.
-
-**Proposed solution:** (B) Add a "Validation X/Y" column that appears only when multi-level validation is active. (C) Make the Save button label reflect the outcome of the current action. (D) Provide a tooltip on the level tag showing the complete validation chain with names and timestamps.
-
-### 2.3 Incomplete Detail Context (Enhancement E)
-
-**Current state:** The validation expanded row shows only a result value input, normal range, method/analyzer, and three tabs (Method & Reagents, History, QA/QC). Validators cannot see notes left by the lab technician during entry, interpretation context, order information, attachments, referral status, or NCE flags. To review this information, they must navigate to the Results Entry page or patient record, losing their place in the validation queue.
-
-**Impact:** Validators make approval decisions without full context. A tech may have left a note explaining an anomalous value ("hemolyzed specimen, recollected, result confirmed on repeat"), but the validator cannot see it. Critical or abnormal range highlighting is absent, so validators must mentally compare every value against the reference range. NCE flags are invisible, meaning a validator might approve a result that has a pending non-conformity event.
-
-**Proposed solution:** Mirror the Results Entry expanded panel structure in the validation view: always-visible Notes section (view and add new validation notes), read-only Interpretation display, full 6-tab bar (Method & Reagents, Order Info, Attachments, QA/QC, History, Referral), result range tier color coding, and NCE badge display in the flags column.
+1. **As a routine validator**, I want to see the result, the demographic-aware reference range, the prior value, who entered it, when, and any modification history — all in one expanded view — so I can sign or reject without clicking through tabs or navigating away.
+2. **As a supervisor validator on a critical result**, I want to see the critical flag prominently and any notes the tech captured about physician notification, so I can confirm acknowledgment evidence before releasing.
+3. **As a Level 2 validator on a multi-level result**, I want to see which Level 1 validator already signed off, when, and on what role basis, so I know the result has passed the lower review and I'm acting as the final gate.
+4. **As a validator reviewing a modified result**, I want the original value and modification reason visible at the top of the panel, so I can verify the correction was legitimate before releasing.
+5. **As a lab manager**, I want to configure validation levels per-lab-unit, restrict each level to a specific role, and enable auto-validation for normal results in low-risk units, so my staff spends review time only where it's needed.
+6. **As a validator with limited PatientResults permission**, I want patient identifiers masked unless site policy explicitly shows them, so I don't see PHI I'm not entitled to.
 
 ---
 
-## 3. User Roles & Permissions
+## Navigation & URL
 
-| Role | Access Level | Notes |
+| Item | Value |
+|---|---|
+| **Route** | `/Validation` (canonical; replaces `/RoutineValidation`, `/TechnicalValidation`, `/SupervisorValidation` legacy routes) |
+| **Workplan deep-link** | `/Validation?source=WorkPlanByTest` (or `ByPanel` / `ByTestSection` / `ByPriority`) adds a "Workplan" link to the breadcrumb |
+| **Deep-link params** | `?labUnit=`, `?status=`, `?level=`, `?accession=`, `?from=`, `?to=` |
+| **Admin config page route** | `/admin/validation-configuration` (separate, OGC-343 scope) |
+| **SideNav** | `Validation` (top-level) |
+| **Breadcrumb** | `Home / Validation` (or `Home / Workplan / Validation` when `?source=WorkPlan*`) |
+| **i18n** | `nav.validation`, `nav.workplan`, `breadcrumb.home` |
+
+---
+
+## Overview
+
+Restructured Validation page mirrors the Results Entry v3 expanded-panel architecture: action bar at top, always-visible inline sections in priority order, only QA/QC + History as tabs. All result-context sections are **read-only** on the validator side — the validator's role is review-and-decide, not author. Adds visible Modification History, Critical Notification Display, Demographic-aware Range Tag, polymorphic Dictionary/Multi-Checkbox display, e-signature on release, stale-page guard, and PII precedence parity with Results Entry. The multi-level pipeline (OGC-343) and Admin Validation Configuration page are preserved unchanged from v2.1.
+
+### Design Goals
+
+1. **Parity with Results Entry v3** — Validator sees the same expanded-panel structure the tech used; everything is read-only except Notes (validators add validation notes) and the action bar.
+2. **Critical context visible at a glance** — Modification History banner and a light Critical Value awareness banner sit at the top of the expanded panel; the validator's evidence for clinician acknowledgment comes from existing notes and the critical flag (no fabricated GP47 record).
+3. **Demographic-aware ranges** — Selected reference range label visible next to value (e.g. "Range: Pediatric Female (1–5y)").
+4. **No tabs for primary context** — Notes / Interpretation / Method / Order Info / Program Info / Storage / Aliquots / Referral / Attachments are always-visible (collapsible) sections; only QA/QC + History remain tabs.
+5. **E-signature on release** — Final-level validation that releases the result to the clinician requires e-sig (Part 11 §11.50).
+6. **Stale-page conflict detection** — Two-validator collision surfaces a toast + reload, never silent data loss.
+7. **Multi-level pipeline preserved** — OGC-343 admin config, auto-validation, per-unit overrides, role-based queue filtering all unchanged.
+
+---
+
+## Start State / Page Load
+
+When a validator arrives at `/Validation`, the page shows the search toolbar + filter chips + an initial query that defaults to "results awaiting your validation" — filtered to the validator's role and current pending level. Empty state shows a friendly "Nothing in your queue right now" message. URL deep-link params pre-populate filters. Workplan deep-links add the breadcrumb crumb.
+
+---
+
+## Search & Filters
+
+- **Search bar** — Parses accession, patient ID, patient name, test name. Smart parsing hint below input.
+- **Lab Unit selector** — Required (matches validator's assigned units).
+- **Date From / Date To** — Default last 7 days.
+- **Status filter chips** — Default "Awaiting Validation"; chips: All / Awaiting Validation / Released / Cancelled.
+- **Level filter** — When multi-level config is active, chips for each level the validator can act on (e.g. "Level 1 (8)", "Level 2 (3)").
+- **STAT filter chip** — Auto-prioritizes STAT results to top of list when toggled.
+- **"Show auto-validated"** toggle — Reveals auto-validated results (read-only, audit view) per OGC-343.
+- **Advanced filters panel** — Accession range, Tests/Panels multi-select, Patient ID, Has NCE filter.
+- **Server-side pagination indicator** (top) — `Server page X / Y` + prev/next, separate from client Carbon Pagination (bottom).
+- **Active filters** displayed as removable chips with count.
+
+---
+
+## Results Table
+
+### Columns (left to right)
+
+| Column | Width | Content |
 |---|---|---|
-| Routine Validator | View | Sees sex and age on routine validation screen |
-| Technical Validator | View | Sees sex and age on technical validation screen |
-| Supervisor Validator | View | Sees sex and age on supervisor validation screen |
-| Lab Technician (no validate perm) | None | Cannot access validation screen |
+| Select | 40px | Carbon Checkbox |
+| Expand | 40px | Chevron |
+| **Sample / Patient** | 240px | Patient avatar + accession + copy button + nonconforming icon + (name OR ID·sex·age OR masked per PII precedence) + EQA priority badge |
+| **Sex** | 60px | M / F / U (single letter) |
+| **Age (D-M-Y)** | 100px | `XD-YM-ZY` calculated at sample collection date |
+| **Test** | 180px | Test name + LOINC code (when configured) |
+| **Analyzer** | 120px | Analyzer name or "MANUAL" |
+| **Result** | 140px | **Polymorphic by `resultType`:** value (N) with range tier coloring / dictionary label (D) / labels CSV (M) — all read-only |
+| **Current Result** | 110px | Prior value (read-only); for D/M, dictionary IDs resolved to labels |
+| **Range** | 120px | Reference range + unit + Range Tag (demographic-selected) |
+| **Status** | 100px | Carbon Tag |
+| **Flags** | 120px | H · L · Δ · C · ! · NCE · Modified — additive |
+| **Validation** | 110px | "Validation X/Y" tag (conditional on multi-level config); checkmark for completed levels; teal at final |
+| **Save** | 40px | Inline Carbon Checkbox to include row in batch Validate |
 
-**Required permission keys:**
+### Patient Privacy — Three Layers (Mirrors Results Entry BR-026)
 
-- `result.validate` — Existing permission; no new permission key required. Sex and age are read-only display fields that inherit access from the validation screen itself.
+| Layer | Setting | Behavior when ON |
+|---|---|---|
+| 1. Site-wide override | `results.entry.showPatientName` (default OFF) | Show full patient name in every row |
+| 2. Role-based mask | `PATIENT_DATA_ON_RESULTS_BY_ROLE` + current user's `PatientResults` permission | Mask patient line to `— — —` when config ON + user lacks perm |
+| 3. Default | both OFF / user has perm | Show ID + sex + age (no name) |
+
+**Precedence:** Layer 1 > Layer 2. Same as Results Entry.
+
+### Nonconforming legend
+
+Always-visible strip above the table: `⚠ = Sample or Order is nonconforming or Test has been rejected` (matches Results Entry pattern).
+
+### Batch action bar (above table)
+
+| Element | Behavior |
+|---|---|
+| Save All Normal | Select all rows where `isNormal=true` AND `isNonconforming=false` |
+| Save All Results | Select all rows where `isNonconforming=false` |
+| **Save (E-Sign) — context-aware label** | When ≥1 selected: dynamic label per BR-009. Triggers batch e-sig modal. |
+| Reject Selected | Sends selected rows back to Pending; reason note required |
+| Request Retest | Marks selected for retest; creates retest order; pipeline restarts at Level 1 |
 
 ---
 
-## 4. Functional Requirements
+## Expanded Panel — Always-Visible Sections + 2 Tabs (mirrors Results Entry v3 H1/H2)
 
-### 4.1 Patient Header Display
+### Section Order (top to bottom)
 
-**FR-HDR-001:** The patient information header on the validation screen MUST display the patient's biological sex as the full word ("Male", "Female", or "Unknown").
+1. **Patient Banner** — Avatar + full name + IDs + DOB + sex + age (D-M-Y) + clinician + dept + priority Tag
+2. **Program Banner** (conditional — EQA / RETROCI study with priority badge)
+3. **Modification History Banner** (conditional — when `result.modificationHistory[]` has entries)
+4. **Critical Value Awareness Banner** (conditional — when result is in critical tier)
+5. **═══ PRIMARY ACTION BLOCK ═══**
+6. **Action Bar** — `Validate at Level N` / `Validate & Release` / `Reject + Reason` / `Request Retest` / `Forward to Level N+1` — context-aware labels per BR-V3-001
+7. **Conditional banners** — Invalid range warning / Critical-value tier acknowledgment confirmation / Stale-page conflict
+8. **═══ SECONDARY CONTEXT BLOCK ═══**
+9. **Notes** (validators ADD validation notes; tech notes are read-only) — H2 default open when notes exist
+10. **Interpretation** (read-only display) — H2 default open when interpretation exists
+11. **Method & Reagents** (read-only display — Method, Analyzer, Reagent Lot + Expiry) — H2 default open when reagent lot present
+12. **Order Info** (read-only) — H2 default closed
+13. **Program Info** (read-only — up to 15 program-captured fields) — H2 default open when shown
+14. **Storage Location** (read-only — path + position + condition; no Move action on validator side) — H2 default open when assigned (so validator sees chain-of-custody)
+15. **Aliquots** (read-only display of derived aliquots with status; validator cannot create) — H2 default open when aliquots exist
+16. **Referral** (read-only) — H2 default open when referred
+17. **Attachments** (read-only view; validator cannot add or delete) — H2 default open when attachments exist
+18. **Tabs:** QA/QC · History
 
-**FR-HDR-002:** The patient information header MUST display the patient's age in Days-Months-Years format (e.g., "0D-3M-25Y") calculated as of the sample collection date.
+### Critical Value Awareness Banner — REVISED
 
-**FR-HDR-003:** If the patient's date of birth is not recorded in the system, the age field MUST display "Unknown" instead of a calculated value.
+**Important scope clarification:** OpenELIS Global today does NOT track a structured CLSI GP47 read-back / recipient / escalation record at the validation level. Earlier v3 drafts described a "Critical Notification Display" panel that read a `criticalNotificationRecord` and offered a "Log Notification Now" backfill flow — that was fabricated; the underlying data does not exist in the current data model. This section has been revised to reflect what actually ships.
 
-**FR-HDR-004:** If the patient's sex is not recorded in the system, the sex field MUST display "Unknown".
+**What's actually shown on Validation:** When the result is in the critical tier, a light awareness banner appears at the top of the expanded panel (between Modification History and the Action Bar). The banner is a reminder, not an interactive surface:
 
-**FR-HDR-005:** The sex display in the header MUST use a Carbon `Tag` component with `kind="blue"` for visual distinction.
+```
+⚠ Critical value — Confirm clinician acknowledgment via the existing notes / critical-flag audit before releasing.
+```
 
-### 4.2 DataTable Column Display
+That's it. No fabricated recipient/method/read-back fields. The validator's evidence for clinician acknowledgment comes from the **existing** mechanisms:
+- The H / L / Δ / C / ! flag badges that already exist in OpenELIS today
+- Notes (any visibility) authored by the tech indicating clinician was notified
+- The audit_trail entries already produced by the current Critical Acknowledgment system (if implemented per Results Entry v3 BR-016, which IS a documented new schema addition on that side)
 
-**FR-TBL-001:** The validation results DataTable MUST include a "Sex" column displaying the patient's biological sex as a single letter: "M" (Male), "F" (Female), or "U" (Unknown).
+**Future-state link:** Results Entry v3 BR-033 proposes a NEW `critical_notification` table to capture structured CLSI GP47 records. That spec explicitly flags it as new schema. **IF and WHEN** that work lands, a follow-up spec can add a read-only display of the GP47 record here. Until then, this Validation spec does not depend on it and does not block Validate based on its presence.
 
-**FR-TBL-002:** The validation results DataTable MUST include an "Age" column displaying the patient's age in D-M-Y format (e.g., "0D-3M-25Y") calculated as of the sample collection date.
+**Validate is NOT gated on critical notification status.** The validator releases or holds based on their professional judgment, supported by the existing flag/notes/audit evidence — same as today.
 
-**FR-TBL-003:** The Sex and Age columns MUST be positioned after the patient name/ID columns and before the test name column, so that demographic context is visible before the validator reads the result and reference range.
+### Modification History Banner
 
-**FR-TBL-004:** The Sex and Age columns MUST be sortable to allow validators to group results by patient demographics when reviewing batches.
+Identical to Results Entry: shows `original → current` with actor, timestamp, reason. Multi-modification chain expandable. Read-only.
 
-**FR-TBL-005:** When a patient's date of birth is missing, the Age column MUST display "—" (em dash).
+### Polymorphic Result Display
 
-**FR-TBL-006:** When a patient's sex is missing, the Sex column MUST display "U".
+| Type | Display |
+|---|---|
+| **N** numeric | Value as monospace text + range tier coloring (yellow/orange/red) + Demographic Range Tag |
+| **D** dictionary single | Resolved label (not ID): "Reactive" rather than "HIV_R" |
+| **M** dictionary multi | Comma-joined labels: "Giardia lamblia, Entamoeba histolytica" rather than "OVA_GL,OVA_EH" |
+| **C** cascading | Parent → child(ren) display (out of scope for v3.0 implementation; documented for future) |
+| **R / A** | Text as entered |
 
-### 4.3 Age Calculation
+All read-only on validator. To change a value, validator rejects the row back to the tech with a reason note (S-03 decision: read-only with reject-for-re-entry; cleaner audit trail than inline editing).
 
-**FR-AGE-001:** Age MUST be calculated as: `sampleCollectionDate - patient.dateOfBirth`, expressed as the number of complete years, remaining complete months, and remaining days.
+### Demographic-Aware Reference Range Display
 
-**FR-AGE-002:** The format MUST be `[D]D-[M]M-[Y]Y` where D = days, M = months, Y = years. Examples: "15D-0M-0Y" (15-day-old neonate), "0D-6M-2Y" (2 years 6 months old), "0D-0M-45Y" (45 years old).
+Mirrors Results Entry §Demographic-Aware Reference Ranges (BR-036). Validator sees the same Range Tag the tech saw, e.g. `Range: Pediatric Female (1–5y)`. Hovering the Tag reveals a Popover showing why this range was selected (matching criteria) and listing other configured ranges for the test. When no range matches the patient demographics, the warning Tag `⚠ No reference range for this demographic — using default` is shown, and the validator should review extra carefully or reject.
 
-**FR-AGE-003:** Age calculation MUST use the sample collection date recorded on the order, NOT the current system date or the validation date.
+### Aliquots Display
 
-**FR-AGE-004:** If the sample collection date is missing, the system MUST fall back to the order entry date for age calculation and display an informational indicator (e.g., "~" prefix) to signal the approximation.
+Read-only table listing aliquots derived from this sample (LABNO.X-Y suffix, purpose, linked test, status, storage). Validator cannot create or destroy aliquots. Visible to validator for chain-of-custody — useful when a result is referred or retested using a known-good aliquot.
 
-### 4.4 Multi-Level Validation Column (Enhancement B)
+### Storage Display
 
-**FR-LVL-001:** When the lab is configured for more than one validation level (`levelsRequired > 1`), the results table MUST display a "Validation" column showing the result's current position in the validation chain.
+Read-only. Path + position + condition. No Assign/Move buttons. If `result.storage.path` is null, displays `Unassigned`. Validators rarely care about storage during routine validation, but for referrals and retests it's relevant to know where the source sample is. H2 default: open when assigned.
 
-**FR-LVL-002:** The Validation column MUST display a tag showing "Validation X/Y" where X is the current validation level and Y is the total levels required (e.g., "Validation 1/2", "Validation 2/2").
+### Critical Acknowledgment Ownership — S-01 Decision
 
-**FR-LVL-003:** When the result has completed one or more previous validation levels (i.e., `validationLevelCurrent > 1`), the tag MUST include a checkmark icon to indicate prior levels are complete.
+**Policy A (revised):** OpenELIS today does not store a structured CLSI GP47 read-back record. The validator's evidence that the responsible clinician was acknowledged comes from the existing notes (tech-authored, especially "Send with Result" notes) and the critical-flag audit history. The Validation page does NOT block release on a missing "notification record" — that gating concept belongs to Results Entry if/when the new `critical_notification` table proposed in Results Entry v3 BR-033 ships. Until then, the Validation page surfaces a light awareness banner and trusts the validator's professional judgment supported by the existing audit evidence.
 
-**FR-LVL-004:** When the result is at its final validation level (`validationLevelCurrent == validationLevelsRequired`), the tag MUST use a visually distinct style (teal background) to signal that saving will release the result.
+### Multi-Level Validation × Disposition — S-02 Decision
 
-**FR-LVL-005:** When the result is at an intermediate level (not final), the tag MUST use a different style (blue background) to signal that saving will advance the result to the next level.
+When the validator chooses Disposition = Cancel / Reject / Retest / Refer-out via the inline NCE form, behavior depends on the validation level:
 
-**FR-LVL-006:** The Validation column MUST be hidden entirely when the lab is configured for single-level validation (`levelsRequired == 1`) to avoid visual clutter. The table structure MUST remain unchanged for single-level labs.
-
-**FR-LVL-007:** The Validation column MUST be positioned between the "Result" column and the "Save" checkbox column.
-
-### 4.5 Context-Aware Save Button (Enhancement C)
-
-**FR-SAV-001:** When multi-level validation is active and one or more results are checked for saving, the Save button label MUST dynamically reflect the outcome of the save action.
-
-**FR-SAV-002:** If all checked results are at their final validation level, the Save button MUST read: `Save — validates & releases N result(s)` where N is the count.
-
-**FR-SAV-003:** If all checked results are at an intermediate level, the Save button MUST read: `Save — advances N result(s) to next level` where N is the count.
-
-**FR-SAV-004:** If the checked results include a mix of final-level and intermediate-level results, the Save button MUST read: `Save — N will release, M will advance` where N and M are the respective counts.
-
-**FR-SAV-005:** When no results are checked, or when the lab uses single-level validation, the Save button MUST display the default label "Save".
-
-**FR-SAV-006:** The Save button label MUST update in real time as the user checks or unchecks individual Save checkboxes, Save All Normal, or Save All Results.
-
-### 4.6 Validation History Tooltip (Enhancement D)
-
-**FR-TIP-001:** Hovering over or clicking the validation level tag (FR-LVL-002) MUST display a tooltip/popover showing the full validation progress for that result.
-
-**FR-TIP-002:** The tooltip MUST display each validation level as a row containing: the level number, the required role name (e.g., "Supervisor", "Lab Manager"), and the status.
-
-**FR-TIP-003:** For completed validation levels, the tooltip MUST show: a checkmark icon, the validator's name, and the date/time of validation (e.g., "Dr. Williams — 03/01/2026 10:15").
-
-**FR-TIP-004:** For the current (in-progress) validation level, the tooltip MUST show: an open circle icon and the text "Awaiting your validation".
-
-**FR-TIP-005:** For future (not-yet-reached) validation levels, the tooltip MUST show: a dimmed circle icon and the text "Pending".
-
-**FR-TIP-006:** The tooltip MUST include a title "Validation Progress" at the top.
-
-**FR-TIP-007:** The tooltip MUST dismiss when the user moves the mouse away from the tag (on hover) or clicks outside the tooltip (on click).
-
-### 4.7 Expanded Panel — Notes Section (Enhancement E)
-
-**FR-NOTE-001:** The expanded validation panel MUST include an always-visible, collapsible Notes section positioned above the tab bar, matching the layout of the Results Entry expanded panel.
-
-**FR-NOTE-002:** The Notes section MUST display all existing notes for the result, including notes added during Results Entry, modification reason notes (prefixed `[Modification reason]`), and any prior validation notes.
-
-**FR-NOTE-003:** Each note MUST display: author name, date/time, note type badge (internal / external / modification), and body text.
-
-**FR-NOTE-004:** Validators MUST be able to add new notes via an inline "Add Note" form within the Notes section. New notes are tagged with type "validation" and the current validator's identity.
-
-**FR-NOTE-005:** The "Add Note" form MUST contain a text area and a "Save Note" button. The button MUST be disabled when the text area is empty.
-
-**FR-NOTE-006:** Notes added during validation MUST persist immediately (saved to the result's note list via API) and appear in the Notes section without requiring a page refresh.
-
-**FR-NOTE-007:** The Notes section header MUST show a count badge indicating the total number of notes (e.g., "Notes (3)").
-
-### 4.8 Expanded Panel — Interpretation Section (Enhancement E)
-
-**FR-INTERP-001:** The expanded validation panel MUST include an always-visible, collapsible Interpretation section positioned below Notes and above the tab bar.
-
-**FR-INTERP-002:** The Interpretation section MUST display any interpretation entered during Results Entry, including: the selected interpretation template (if any) and the free-text interpretation body.
-
-**FR-INTERP-003:** The Interpretation section is read-only on the Validation page. Validators can review but not edit interpretations. Interpretation authoring remains on the Results Entry page.
-
-**FR-INTERP-004:** If no interpretation was entered during Results Entry, the section MUST display a muted placeholder: "No interpretation entered."
-
-### 4.9 Expanded Panel — Full Tab Bar (Enhancement E)
-
-**FR-TAB-001:** The expanded validation panel MUST include the same 6-tab bar as the Results Entry expanded panel: Method & Reagents (default), Order Info, Attachments, QA/QC, History, Referral.
-
-**FR-TAB-002:** The **Method & Reagents** tab MUST show the analyzer name, method, and reagent lot/expiry information associated with the result.
-
-**FR-TAB-003:** The **Order Info** tab MUST show the order details: ordering clinician, order date, priority, clinical notes, and specimen collection information.
-
-**FR-TAB-004:** The **Attachments** tab MUST display any files attached to the result (images, PDFs, instrument printouts). Validators can view but not add attachments from the Validation page.
-
-**FR-TAB-005:** The **QA/QC** tab MUST show QC status, control values, and Levey-Jennings context for the result's analyte/instrument combination.
-
-**FR-TAB-006:** The **History** tab MUST show previous results for the same patient and test, including dates, values, deltas, and who validated each.
-
-**FR-TAB-007:** The **Referral** tab MUST show referral status if the result was referred to or from an external lab, including the referring lab name, referral date, and status.
-
-### 4.10 Result Range Tier Highlighting (Enhancement E)
-
-**FR-RANGE-001:** The result value in both the collapsed row and expanded panel MUST be color-coded according to the same range tier classification used on the Results Entry page: Normal (default), Abnormal (yellow), Critical (orange), Invalid (dark red).
-
-**FR-RANGE-002:** Range evaluation MUST use the `rangeBounds` data (normal, critical, valid ranges) returned by the API for each result.
-
-**FR-RANGE-003:** The Flags column MUST display range badges (H, L, C, !) matching the Results Entry page's flag system.
-
-**FR-RANGE-004:** On the Validation page, range highlighting is informational only — it does NOT gate the validate/advance action. Validators can approve results regardless of range tier.
-
-### 4.11 NCE Badge Display (Enhancement E)
-
-**FR-NCE-001:** When a result has a linked Non-Conformity Event, the Flags column MUST display an "NCE" badge: teal for open NCEs, gray for closed NCEs.
-
-**FR-NCE-002:** The NCE badge tooltip MUST show: NCE number, category, subcategory, severity, and status — matching the Results Entry page badge behavior.
-
-**FR-NCE-003:** Results with open NCEs that have status "Cancelled" MUST still appear in the validation list (if their lab unit is selected) but their validate checkbox MUST be disabled with a tooltip: "Cannot validate — open NCE."
+| Validator action | Status mapping |
+|---|---|
+| **Validate** at intermediate level (level N < total) | Advances to level N+1; result stays in validation chain |
+| **Validate** at final level (level N == total) | Releases to clinician (with e-sig); leaves validation chain |
+| **Reject (no NCE)** | Returns to Pending; tech must re-enter; pipeline restarts at level 1 when retest result lands |
+| **NCE Disposition = Cancel** | Result cancelled immediately; leaves validation chain; NCE record retained |
+| **NCE Disposition = Reject + reason** | Result deleted (per BR-024); NCE retained; leaves validation chain |
+| **NCE Disposition = Retest** | Status returns to Pending; retest order auto-created; pipeline restarts at level 1 when retest result lands |
+| **NCE Disposition = Refer-out** | Status moves to "Referred — awaiting external"; leaves validation chain; re-enters at level 1 when external result lands |
 
 ---
 
-## 5. Data Model
+## Multi-Level Validation Pipeline (preserved from OGC-343)
 
-### New Entities
+Unchanged from v2.1 § Multi-Level Validation:
+- 0–5 sequential validation levels
+- Each level gated by a role with `result.validate` permission
+- Config snapshot onto result at entry time (changing config does not retroactively affect in-flight results)
+- User who entered the result cannot validate at any level
+- Same user can validate at multiple levels (no separation-of-duties requirement enforced; can be added via custom rule)
+- Context-aware action button labels (single-level vs intermediate vs final)
+- Role-based queue filtering
+- Validation progress timeline in expanded row
 
-None — no new database entities are required.
+## Auto-Validation (preserved from OGC-343)
+
+Unchanged from v2.1: Results auto-validate when `validations_required = 0`, trigger = "No Results", or (trigger = "Abnormal Only" AND result is normal). System-generated `validation_history` entry with `validatedBy=SYSTEM`, `action=AUTO_VALIDATE`.
+
+## Admin Validation Configuration (preserved from OGC-343)
+
+Unchanged from v2.1 § Admin Configuration. Lives at `/admin/validation-configuration`. Lab-wide default + per-lab-unit overrides + permission-filtered role dropdowns + Summary Banner.
+
+---
+
+## E-Signature on Release — NEW (Part 11 §11.50 / §11.70 / §11.100 / §11.200)
+
+When the validator's action releases the result to the clinician's chart (final-level validation OR single-level validation), the Save button triggers an e-sig modal:
+
+| Field | Source |
+|---|---|
+| Title | "E-Signature Required — Result Release" |
+| Body | "You are about to release N result(s) for accession X. Per lab policy, validations that release results to clinicians must be e-signed (Part 11 §11.50, ISO 15189 §7.5.1.2)." |
+| Meaning | `APPROVED` |
+| Record type | `RESULT_VALIDATION` (distinct from `RESULT_BATCH` used at Results Entry) |
+| Record id | First analysis_id in batch |
+| Password | required PasswordInput |
+| Cancel | Returns to Validation page without releasing |
+| Sign & Release | POSTs to `/api/v1/validation/validate` with `eSignature` envelope |
+
+**When NOT required:** Intermediate-level validation that advances to the next level (not yet released). Reject and Retest actions also don't require e-sig (they don't release to clinician). The e-sig is *specifically* gated on releasing to the clinical chart.
+
+**Configurable:** Site flag `validation.requireESigOnRelease` (default ON for ISO-accredited deployments; OFF for upgrades). Same precedent as `requireReagentLotsForResults` at Results Entry.
+
+---
+
+## Stale-Page Conflict Guard — NEW (mirrors Results Entry BR-030)
+
+When the backend detects another validator validated any row in the validator's current batch between page load and the validate attempt, the response marks conflicting rows as `failedValidation=true` and the frontend displays a warning toast + reloads the queue. Audit: `STALE_PAGE_CONFLICT_VALIDATION` row written for each affected accession.
+
+---
+
+## Cross-Domain Support — CLINICAL / ENVIRONMENTAL / VECTOR
+
+OpenELIS supports three sample domains (`CLINICAL`, `ENVIRONMENTAL`, `VECTOR` — per the domain enum, no `BOTH`). The same Validation page (`/Validation`) flexes across all three. **No separate validation pages, no parallel routes.**
+
+### Lab Unit drives domain context
+
+Validators arrive at the Validation page from a Lab Unit selection. Each Lab Unit carries a `domain` attribute, and the page derives `currentDomain` from that selection. Lab Unit is already required to load the validation queue, so the domain context is implicit.
+
+### Domain badge in toolbar
+
+Next to the Lab Unit selector, a small **Domain badge** displays the active domain (`Clinical` / `Environmental` / `Vector`) so the validator always knows the context they're reviewing.
+
+### What changes per domain on the Validation page
+
+| Surface | CLINICAL | ENVIRONMENTAL | VECTOR |
+|---|---|---|---|
+| **Patient Banner** (expanded panel) | Full patient details | **Site/Source block** | **Trap block** |
+| **Sex column** in table | ✓ shown | hidden | hidden |
+| **Age (D-M-Y) column** in table | ✓ shown | hidden | hidden |
+| **Sample / Patient column** | Patient avatar + name + ID | Site name + sample source | Trap ID + species |
+| **PII masking config** | applies (site-wide + role-based per BR-V3-012) | n/a | n/a |
+| **Order Info section labels** | clinical labels | env labels (Collector / Site Authority / Sampling Date / Sample Source / Site Conditions) | vector labels (Field Collector / Surveillance Program / Trap Set Date / Trap Type / Habitat) |
+| **Program Info section** | EQA / RETROCI / Clinical Studies | Surveillance Program (utility ID, monitoring schedule) | IRM / Surveillance Cycle / Vector Program ID |
+| **Demographic-aware Range Tag** | "Adult Female (18–65y)", "Pediatric Male (1–5y)" | replaced with **"Regulatory Limit"** Tag (e.g. "EPA MCL 0.3 mg/L") | replaced with **"Surveillance Threshold"** Tag or hidden when result is categorical |
+| **Critical-value awareness banner copy** | "Confirm clinician acknowledgment…" | "Confirm regulatory contact acknowledgment…" | "Confirm surveillance team acknowledgment…" |
+| **Pool composition block** (Aliquots section) | hidden | hidden | ✓ shown when sample is a pool — primary use case for vector pool deconvolution |
+| **Multi-level validation pipeline** | applies | applies | applies — pipeline configuration is per Lab Unit |
+| **Auto-validation** | applies | applies | applies |
+| **Reject for re-entry** (S-03) | applies | applies | applies |
+| **Validate / Retest / Reject actions** | applies | applies | applies |
+| **E-Signature on Release** | applies (Part 11) | applies (regulatory submission) | applies |
+| **Stale-page conflict guard** | applies | applies | applies |
+| **Modification History banner** | applies | applies | applies |
+
+### Validator-relevant notes per domain
+
+- **CLINICAL:** Validator is releasing the result to a clinician's chart. "Send with Result" means it reaches the clinician report.
+- **ENVIRONMENTAL:** Validator is releasing the result to a regulatory record / utility report. "Send with Result" means it flows into the regulatory submission. The result might also feed a public-health surveillance dashboard.
+- **VECTOR:** Validator is releasing the result to a surveillance feed (IRM database, malaria surveillance, etc.). "Send with Result" means it joins the surveillance dataset. Pool deconvolution often triggers follow-up individual-mosquito tests; that workflow surfaces via the Aliquots section's read-only display.
+
+### i18n key conventions for domain-aware labels
+
+Domain-namespaced keys with a fallback to clinical defaults:
+
+```
+label.validation.banner.recipient.clinical       # "Confirm clinician acknowledgment"
+label.validation.banner.recipient.env            # "Confirm regulatory contact acknowledgment"
+label.validation.banner.recipient.vector         # "Confirm surveillance team acknowledgment"
+```
+
+### Components hidden / shown by domain on Validation
+
+| Component | CLINICAL | ENVIRONMENTAL | VECTOR |
+|---|---|---|---|
+| PatientBanner | ✓ | hidden — SiteBanner replaces | hidden — TrapBanner replaces |
+| SiteBanner | hidden | ✓ | hidden |
+| TrapBanner | hidden | hidden | ✓ |
+| Sex column | ✓ | hidden | hidden |
+| Age (D-M-Y) column | ✓ | hidden | hidden |
+| PII masking toggles in toolbar | ✓ | hidden | hidden |
+| Demographic Range Tag | ✓ | replaced with Regulatory Limit Tag | replaced or hidden |
+| Pool composition (Aliquots section) | hidden | hidden | ✓ when pool |
+| Domain badge in toolbar | ✓ "Clinical" | ✓ "Environmental" | ✓ "Vector" |
+
+### Acceptance criteria — cross-domain on Validation
+
+- [ ] Lab Unit options expose a `domain` attribute
+- [ ] On Lab Unit selection, `currentDomain` is derived and the page renders accordingly
+- [ ] Domain badge displays next to the Lab Unit selector
+- [ ] CLINICAL: full PatientBanner, Sex + Age columns visible, PII masking config applies, demographic range Tag shown
+- [ ] ENVIRONMENTAL: SiteBanner replaces PatientBanner; Sex/Age columns hidden; PII config hidden; Regulatory Limit Tag replaces demographic Tag
+- [ ] VECTOR: TrapBanner replaces PatientBanner; Sex/Age columns hidden; pool composition surfaced when applicable; demographic Tag hidden
+- [ ] Order Info labels swap per domain via i18n key suffix
+- [ ] Critical-value awareness banner recipient phrasing adapts per domain
+- [ ] No domain selector at the result level — domain is fixed per Lab Unit
+- [ ] Multi-level pipeline + auto-validation + reject/retest + e-sig on release behave identically across domains
+
+---
+
+## Carbon Implementation Notes
+
+This mockup uses Tailwind utility classes + raw HTML for portable preview. Production implementation MUST use `@carbon/react` per the Component Map below. Patterns the Tailwind mockup does NOT demonstrate that MUST be used in production: Carbon `Tabs` / `Modal` (e-sig) / `FileUploader` / `ToastNotification` / `Accordion` / `DataTable` / `NumberInput` / `Select` / `MultiSelect` / `TextArea`.
+
+## Carbon Component Map
+
+| UI Element | `@carbon/react` Component |
+|---|---|
+| Page table | `DataTable` + `TableExpandRow` + `TableExpandedRow` + `TableSelectAll` + `TableSelectRow` |
+| Search input | `Search` |
+| Lab Unit, Status, Level filters | `Select` + `SelectItem` (or `Dropdown` for searchable) |
+| Status filter chips | `Tag` with `filter={true}` |
+| Patient avatar | Custom (Carbon has no Avatar) — initials in color-hashed circle |
+| Status badge | `Tag` w/ `type` prop |
+| Flag badges | `Tag` (compact) or `<span>` |
+| Result display (read-only) | `<span>` with conditional class for range tier |
+| Range Tag (demographic) | `Tag kind="purple"` + Popover for criteria |
+| Validation Level Tag | `Tag kind="warm-gray"` (intermediate) or `kind="teal"` (final) + Popover tooltip |
+| Action bar buttons | `Button kind="primary\|secondary\|danger\|danger--ghost\|tertiary"` |
+| E-Signature Modal | `Modal` + `PasswordInput` + `ModalFooter` |
+| Modification History banner | `Tile` w/ amber theme + expandable detail |
+| Critical Value awareness banner | `InlineNotification kind="warning"` (low) — informational only |
+| Notes section | `StructuredList` or custom; new note via `TextArea` + `Button` |
+| Inline NCE form (for validator-initiated NCE) | `Form` + `Select` (severity radios + disposition radios) |
+| Toast | `ToastNotification` |
+| Pagination | `Pagination` (bottom) + custom server-pagination indicator (top) |
+| Nonconforming legend | `InlineNotification kind="warning"` (low-severity) |
+| Accordion (collapsible sections) | `Accordion` + `AccordionItem` |
+| Tabs (QA/QC + History) | `Tabs` + `Tab` + `TabList` + `TabPanels` + `TabPanel` |
+
+---
+
+## Responsive Design — Breakpoints (mirrors Results Entry Q1)
+
+| Viewport | Layout |
+|---|---|
+| **≥1440px** | Full table + 3-col grids in expanded sections |
+| **1024–1439px** | Full table; sections wrap to 2-col grids |
+| **768–1023px** | Hide Sex / Age / Analyzer / Current Result columns (accessible via Columns overflow menu); single-column section grids |
+| **<768px** | Card-row layout (each row = vertical card); expanded panel sections stack single-column; action bar sticks to card bottom. *v3.0 mockup demonstrates table layout; card layout deferred to a polish spec.* |
+
+**Touch targets:** WCAG 2.5.5 (24×24 min, 44×44 for primary actions: Validate & Release, Reject, Retest, expand chevrons).
+
+---
+
+## Data Model
 
 ### Modified Entities
 
-No schema changes required. The data needed already exists:
-
-| Source Entity | Field | Type | Notes |
-|---|---|---|---|
-| Patient | sex | String | Already stored ("M", "F", null) |
-| Patient | dateOfBirth | Date | Already stored |
-| Sample | collectionDate | Date | Already stored on the sample/order |
-| LabConfig | levelsRequired | Integer | Already stored; default 1 |
-| LabConfig | levels[] | Array | Already stored; each entry has level number and role name |
-| ValidationHistory | level | Integer | Already stored per result |
-| ValidationHistory | validatedBy | String | Already stored |
-| ValidationHistory | validatedAt | Timestamp | Already stored |
-| ValidationHistory | role | String | Already stored |
-| ValidationHistory | action | String | Already stored ("VALIDATE", "REJECT", etc.) |
-
-### Computed Fields (API response only)
-
-| Field | Type | Computation | Notes |
-|---|---|---|---|
-| patientAge | String | `collectionDate - dateOfBirth` → "XD-YM-ZY" | Calculated server-side per result |
-| patientSex | String | Direct from Patient.sex, defaulting to "U" | Normalized for display |
-| validationLevelsRequired | Integer | From LabConfig (lab-wide or unit override) | Per-result for display |
-| validationLevelCurrent | Integer | Next validation level needed for this result | 1-indexed |
-| validationHistory | Array | List of completed validation entries | Includes who, when, role, action |
-
----
-
-## 6. API Endpoints
-
-No new endpoints required. The existing validation results endpoint must be modified:
-
-| Method | Path | Change | Permission |
-|---|---|---|---|
-| GET | `/api/v1/validation/results` | Add demographics and validation-level fields to each result item | `result.validate` |
-
-**Response field additions (v2.1 — includes Enhancement E fields):**
-
-```json
-{
-  "results": [
-    {
-      "accessionNumber": "...",
-      "patientName": "...",
-      "patientSex": "M",
-      "patientAge": "0D-3M-25Y",
-      "patientAgeApproximate": false,
-      "testName": "...",
-      "result": "...",
-      "normalRange": "...",
-      "rangeBounds": {
-        "normal": { "low": 4.0, "high": 10.0 },
-        "critical": { "low": 2.0, "high": 30.0 },
-        "valid": { "low": 0.1, "high": 100.0 }
-      },
-      "validationLevelsRequired": 2,
-      "validationLevelCurrent": 1,
-      "validationHistory": [
-        {
-          "level": 1,
-          "validatedBy": "Dr. Williams",
-          "validatedAt": "2026-03-01T10:15:00Z",
-          "role": "Supervisor",
-          "action": "VALIDATE"
-        }
-      ],
-      "notes": [
-        {
-          "id": 1,
-          "date": "2026-03-01T09:30:00Z",
-          "author": "J. Smith",
-          "type": "internal",
-          "body": "Hemolyzed specimen, recollected and confirmed on repeat."
-        }
-      ],
-      "interpretation": {
-        "code": "RBC-ANEMOD",
-        "label": "Mild Anemia",
-        "text": "RBC count slightly below reference range. Recommend correlation with Hgb, Hct, and reticulocyte count."
-      },
-      "nce": {
-        "number": "NCE-20260301-1234",
-        "status": "open",
-        "category": "Analytical",
-        "subcategory": "Instrument Malfunction",
-        "severity": "Minor"
-      },
-      "orderInfo": {
-        "orderingClinician": "Dr. Chen",
-        "orderDate": "2026-02-28",
-        "priority": "Routine",
-        "clinicalNotes": "Annual checkup",
-        "collectionInfo": "Venipuncture, left arm"
-      },
-      "attachments": [],
-      "referral": null
-    }
-  ]
-}
-```
-
-**Field definitions:**
-
-- `patientSex`: "M", "F", or "U"
-- `patientAge`: Formatted D-M-Y string, or null if DOB is missing
-- `patientAgeApproximate`: Boolean — true if collection date was missing and order entry date was used instead
-- `rangeBounds`: Object — normal, critical, and valid range boundaries for client-side range tier evaluation (same structure as Results Entry API)
-- `validationLevelsRequired`: Integer — total validation levels configured for this result's lab unit (from LabConfig or unit override)
-- `validationLevelCurrent`: Integer — the validation level this result is currently awaiting (1-indexed; equals `validationLevelsRequired` at the final level)
-- `validationHistory`: Array — list of completed validation entries, each with `level`, `validatedBy`, `validatedAt`, `role`, and `action`
-- `notes`: Array — all notes on the result (from entry, modification, or validation), each with `id`, `date`, `author`, `type`, and `body`
-- `interpretation`: Object or null — interpretation entered during Results Entry, with `code`, `label`, and `text`
-- `nce`: Object or null — linked Non-Conformity Event, with `number`, `status`, `category`, `subcategory`, `severity`
-- `orderInfo`: Object — order details including clinician, date, priority, clinical notes, collection info
-- `attachments`: Array — file attachment metadata
-- `referral`: Object or null — referral details if applicable
-
-**New endpoint for validation notes:**
-
-| Method | Path | Description | Permission |
-|---|---|---|---|
-| POST | `/api/v1/validation/results/{id}/notes` | Add a validation note to a result | `result.validate` |
-
-**Request body:**
-
-```json
-{
-  "body": "Confirmed with repeat testing. Validated.",
-  "type": "validation"
-}
-```
-
----
-
-## 7. UI Design
-
-### Companion Mockups
-
-| Mockup | Scope | Notes |
+| Entity | Field | Notes |
 |---|---|---|
-| `validation-page-stage1-demographics-mockup.jsx` | Stage 1 flat table with Demographics + Validation column + Save button + Tooltip | Primary reference for implementation |
-| `validation-page-mockup-v3-demographics.jsx` | Expanded-row view with demographics in both table and patient banner | Future stage reference |
-| `validation-page-stage1-mockup.jsx` | Stage 1 baseline without demographics | Before/after comparison |
+| `Result` | `modificationHistory[]` (derived from audit_trail) | Surfaced in Validation banner |
+| `Result` | `referenceRange` (selected at expansion) | Already in Results Entry v3 |
 
-### Navigation Path
+### New Audit Events
 
-Validation → Routine Results / Technical Validation / Supervisor Validation
+| Action | `audit_trail.action` | Target | Payload |
+|---|---|---|---|
+| Validate result (intermediate) | `RESULT_VALIDATED_INTERMEDIATE` | `analysis_id` | `{ level, role }` |
+| Validate result (release) | `RESULT_RELEASED` | `analysis_id` | `{ level, role, esignaturePresent }` |
+| Reject result | `RESULT_REJECTED` | `analysis_id` | `{ reason, byLevel }` |
+| Request retest | `RESULT_RETEST_REQUESTED` | `analysis_id` | `{ reason, retestAnalysisId }` |
+| Add validation note | `VALIDATION_NOTE_ADDED` | `analysis_id` | `{ bodyLength }` |
+| Stale-page conflict (validation) | `STALE_PAGE_CONFLICT_VALIDATION` | `analysis_id` | `{ conflictingValidator, conflictingAt }` |
 
-### Key Screens
+### Envers Coverage
 
-1. **Validation Results List** — Enhanced with Sex and Age columns, conditional Validation column, context-aware Save button, and validation history tooltips.
-
-### Interaction Patterns
-
-- **Read-only demographics** — Sex and Age columns are display-only, no edit behavior
-- **Sortable columns** — Sex and Age columns support click-to-sort
-- **Conditional Validation column** — Appears only when `levelsRequired > 1`; hidden for single-level labs
-- **Validation level tag** — Interactive: hover or click reveals history tooltip
-- **Tooltip dismiss** — Mouse-leave or click-outside dismisses the validation history tooltip
-- **Dynamic Save label** — Updates in real time as checkboxes are toggled
+`Result`, `ValidationHistory`, `NonConformityEvent`, `CriticalNotification` all `@Audited` (matches Results Entry).
 
 ---
 
-## 8. Business Rules
+## API Endpoints
 
-### Demographics (Enhancement A)
+| Method | Path | Permission | Notes |
+|---|---|---|---|
+| GET | `/api/v1/validation/results` | `result.validate` | List with all v3 fields (modificationHistory, referenceRange.label, polymorphic resultType, storage, aliquots, programFields) |
+| POST | `/api/v1/validation/validate` | `result.validate` | Validate batch; releases at final level (e-sig payload required when releasing); advances at intermediate |
+| POST | `/api/v1/validation/reject` | `result.validate` | Reject batch; reason required |
+| POST | `/api/v1/validation/retest` | `result.validate` | Request retest; reason required |
+| POST | `/api/v1/validation/results/{id}/notes` | `result.validate` | Add validation note |
 
-**BR-001:** Age MUST always be calculated relative to the sample collection date, not the current date or the validation date.
-
-**BR-002:** If dateOfBirth is null, age displays as "—" (em dash) in the table and "Unknown" in the header.
-
-**BR-003:** If sex is null or not one of the recognized values, it MUST normalize to "U" (Unknown).
-
-**BR-004:** The age calculation MUST handle edge cases: same-day collection (0D-0M-0Y for a newborn), leap years, and month-boundary crossings.
-
-**BR-005:** If sample collection date is missing but order entry date exists, use order entry date and set `patientAgeApproximate = true`. The UI MUST indicate the approximation with a "~" prefix (e.g., "~0D-3M-25Y").
-
-**BR-006:** Sex and age display MUST be consistent across all validation levels (routine, technical, supervisor). No level-specific differences.
-
-### Multi-Level Validation (Enhancements B, C, D)
-
-**BR-007:** The Validation column MUST only appear when `levelsRequired > 1`. For single-level labs (`levelsRequired == 1`), the column MUST be completely absent from the DOM — not merely hidden.
-
-**BR-008:** Saving a result at an intermediate validation level (`validationLevelCurrent < validationLevelsRequired`) MUST advance it to the next level. Saving at the final level MUST release the result.
-
-**BR-009:** The Save button label MUST reflect the combined effect of all currently checked results. It MUST update immediately (no debounce) when checkboxes change.
-
-**BR-010:** The validation history tooltip MUST show entries only for completed levels. It MUST NOT display history for the current or future levels beyond the status indicator.
-
-**BR-011:** When "Save All Normal" is checked, only results where `isNonconforming == false` are included. When "Save All Results" is checked, all results are included regardless of nonconforming status.
-
-**BR-012:** A result's `validationLevelCurrent` MUST be derived from its `validationHistory` — it equals `max(history.level) + 1`, capped at `validationLevelsRequired`. If no history exists, the current level is 1.
-
-### Expanded Panel Parity (Enhancement E)
-
-**BR-013:** Notes from all sources (entry, modification, prior validation) MUST be displayed in chronological order, oldest first. New validation notes appear at the bottom.
-
-**BR-014:** Validation notes added via the expanded panel MUST be persisted immediately via API and MUST NOT require a page-level save action. The note save is independent of the validate action.
-
-**BR-015:** The Interpretation section MUST be read-only on the Validation page. The validator's role is to review and approve, not to author interpretations.
-
-**BR-016:** Range tier evaluation on the Validation page MUST use the same `evaluateResult(value, rangeBounds)` function as Results Entry: invalid → critical → abnormal → normal, evaluated in that priority order.
-
-**BR-017:** Range highlighting on the Validation page is purely informational. Unlike Results Entry (where critical values gate the save action), the validator can approve any result regardless of range tier. No acknowledgment gate is required.
-
-**BR-018:** NCE badges on the Validation page MUST render from the same `nce` data structure as Results Entry. Open NCEs disable the validate checkbox; closed NCEs are informational only.
-
-**BR-019:** The full 6-tab bar tab data (Order Info, Attachments, Referral) is lazy-loaded on expand — the initial validation results list API returns only the summary fields. Detail data is fetched on demand when the row is expanded.
+All endpoints honor the multi-level pipeline rules per OGC-343 (queue filtering by role + level, separation of entry-author and validator, etc.).
 
 ---
 
-## 9. Localization
+## Business Rules
 
-All UI text is externalized. The following i18n keys must be added to the message properties files:
+(Inherits all v2.1 rules BR-001 through BR-019 from OGC-291/OGC-343 unchanged. The following v3 rules are added.)
 
-| i18n Key | Default English Text |
+**BR-V3-001 — Context-aware action button label:** The primary Validate button label adapts to the row state. Single-level config or final level → "Validate & Release". Intermediate level → "Validate (Lv N/M)". Batch with mixed levels → "Validate Selected (N) — X will release, Y will advance" (mirrors v2.1 BR-009).
+
+**BR-V3-002 — E-Signature on Release (Part 11):** Validations that release results to the clinical chart MUST be e-signed (meaning=APPROVED, recordType=RESULT_VALIDATION). Intermediate-level validations that advance to the next level are NOT e-sig gated. Reject and Retest actions are NOT e-sig gated. Site flag `validation.requireESigOnRelease` controls this gate (default ON).
+
+**BR-V3-003 — Critical Value Awareness Banner (revised):** When the result is in the critical range tier, a light awareness banner renders at the top of the expanded panel reminding the validator to confirm clinician acknowledgment via the existing notes / critical-flag audit. The banner is informational only — it does NOT gate the Validate action, does NOT display any fabricated CLSI GP47 record, and does NOT offer a backfill flow. OpenELIS today does not track structured GP47 notification metadata at the validation level; if Results Entry v3 BR-033 lands and creates a `critical_notification` table, a follow-up spec can add read-only display of that record here.
+
+**BR-V3-004 — Polymorphic Result Display:** D-type and M-type results MUST resolve dictionary IDs to human-readable labels in the table cell, expanded panel, and history view. The raw ID is never surfaced to the validator.
+
+**BR-V3-005 — Demographic-Aware Range Display:** The selected `referenceRange.label` MUST appear next to the displayed range in both the table row and the expanded panel. A Popover on the Tag shows selection criteria and other configured ranges for the test. When no range matches, the warning Tag is shown.
+
+**BR-V3-006 — Read-Only Sections:** Method & Reagents, Order Info, Program Info, Storage, Aliquots, Referral, and Attachments sections are read-only on the Validation page. To modify any of these, the validator MUST reject the result back to the tech with a reason note. This enforces a clean audit trail — only the tech (or admin tools) modify result-context data.
+
+**BR-V3-007 — Validation Notes:** Notes section on the Validation page allows ADDING notes (type = `validation`). Existing notes from Results Entry are read-only. Validation notes are persisted immediately upon save (independent of the validate action).
+
+**BR-V3-008 — Stale-Page Conflict Guard:** Backend detects when another validator has acted on any row in the current page batch between page load and validate attempt. Conflicting rows are marked `failedValidation=true` and the frontend reloads the queue with a warning toast.
+
+**BR-V3-009 — Critical Acknowledgment Ownership (revised):** OpenELIS today does not track a structured GP47 read-back record at the validation level. The validator confirms clinician acknowledgment via the existing notes + critical-flag audit evidence. If Results Entry v3 BR-033 ships and creates a `critical_notification` table, a follow-up spec can wire a read-only display here. The Validation page does NOT block Validate on critical-notification status; that is a Results-Entry-side gating concern only.
+
+**BR-V3-010 — Disposition × Multi-Level (S-02):** Per the table in §Multi-Level Validation × Disposition. Cancel / Reject delete from validation chain; Retest restarts at level 1 when retest result lands; Refer-out moves to "Referred — awaiting external" lane.
+
+**BR-V3-011 — Validator Editability of D/M (S-03):** Validators MAY NOT edit Dictionary (D) or Multi-Checkbox (M) result values inline. To change the value, the validator must reject the row back to the tech for re-entry. This decision optimizes for audit-trail cleanliness over workflow speed.
+
+**BR-V3-012 — PII Visibility Precedence:** Mirrors Results Entry BR-026 exactly. Site-wide `results.entry.showPatientName` overrides role-based `PATIENT_DATA_ON_RESULTS_BY_ROLE` mask.
+
+**BR-V3-013 — Workplan Deep-Link Breadcrumb:** Mirrors Results Entry BR-022. When `?source=WorkPlan*` is in the URL, breadcrumb includes "Workplan" crumb.
+
+**BR-V3-014 — Action Bar at Top (Usability H1 parity):** Action bar (Validate / Reject / Retest / Forward) is at the top of the expanded panel, immediately below conditional banners. Always-visible inline context sections live below the action bar.
+
+**BR-V3-016 — Note Model: Visibility × Context (dual axis):** Every note on a result carries two independent attributes:
+
+| Axis | Values | Meaning |
+|---|---|---|
+| **`note.visibility`** | `internal` (default) / `external` | `external` notes appear on the patient / clinician report. `internal` notes are in-lab-only. |
+| **`note.context`** | `entry` / `modification` / `validation` | Workflow stage when the note was authored. Drives display badge but does NOT determine visibility. |
+
+The two axes are independent: a Validation-context note can be either In Lab Only OR Send with Result, at the validator's discretion. The "Add Note" form on the Validation page MUST present a visibility radio (default `internal`) so the validator explicitly chooses whether the note flows to the patient report. The display MUST show both badges (context + visibility) so consumers can scan whether a note is going out to the clinician.
+
+**External notes audit:** When a note's `visibility` is `external`, the audit trail entry MUST include `visibility: "external"` in the payload — this surfaces in compliance audits as a signal that lab-authored content reached the patient record. Changing visibility on an existing note is treated as a state change and produces a separate audit entry.
+
+**Patient report rendering:** Downstream patient/clinician report generation (out of scope for this spec) filters by `visibility === "external"`. Tech-authored entry-context notes with `visibility=external` appear alongside validator-authored validation-context notes with `visibility=external`; the report does not distinguish by context, only by visibility.
+
+**Migration:** Legacy `note.type` field aliases:
+- `note.type === "internal"` → `{ visibility: "internal", context: "entry" }` (or the relevant context)
+- `note.type === "external"` → `{ visibility: "external", context: "entry" }`
+- `note.type === "validation"` → `{ visibility: "internal", context: "validation" }` (default visibility on legacy validation notes is internal; can be edited by the validator)
+- `note.type === "modification"` → `{ visibility: "internal", context: "modification" }`
+
+**BR-V3-015 — Smart Default-Open (Usability H2 parity):** Each inline section computes its initial open state from row context. Notes open when notes exist. Interpretation open when interpretation exists. Method & Reagents open when reagent lot information is present. Order Info closed by default. Program Info open when shown. Storage open when assigned (validator-side default differs from Results Entry which opens when Unassigned — because validators benefit from seeing chain-of-custody confirmation). Aliquots open when aliquots exist. Referral open when referred. Attachments open when files exist.
+
+---
+
+## Localization
+
+(Inherits v2.1 keys. New v3 keys:)
+
+| i18n Key | English |
 |---|---|
-| **New keys (this feature)** | |
-| `label.validation.patientSex` | Sex |
-| `label.validation.patientAge` | Age (D-M-Y) |
-| `label.validation.sex.male` | Male |
-| `label.validation.sex.female` | Female |
-| `label.validation.sex.unknown` | Unknown |
-| `label.validation.sex.male.short` | M |
-| `label.validation.sex.female.short` | F |
-| `label.validation.sex.unknown.short` | U |
-| `label.validation.age.unknown` | Unknown |
-| `label.validation.age.approximate.tooltip` | Age is approximate — sample collection date was not recorded |
-| `heading.validation.patientInfo` | Patient Information |
-| `label.validation.patientId` | Patient ID |
-| `label.validation.collectionDate` | Collection Date |
-| **New keys (Enhancement B — Validation Column)** | |
-| `label.validation.level` | Validation |
-| `label.validation.level.progress` | Validation {current}/{total} |
-| `label.validation.level.tooltip.title` | Validation Progress |
-| `label.validation.level.tooltip.complete` | Level {level} ({role}) |
-| `label.validation.level.tooltip.awaiting` | Awaiting your validation |
-| `label.validation.level.tooltip.pending` | Pending |
-| **New keys (Enhancement C — Save Button)** | |
-| `button.validation.save.release` | Save — validates & releases {count} result(s) |
-| `button.validation.save.advance` | Save — advances {count} result(s) to next level |
-| `button.validation.save.mixed` | Save — {releaseCount} will release, {advanceCount} will advance |
-| **New keys (Enhancement E — Expanded Panel)** | |
-| `label.validation.notes` | Notes |
-| `label.validation.notes.count` | Notes ({count}) |
-| `label.validation.notes.add` | Add Note |
-| `button.validation.notes.save` | Save Note |
-| `placeholder.validation.notes.add` | Add a validation note... |
-| `label.validation.notes.type.internal` | Internal |
-| `label.validation.notes.type.external` | External |
-| `label.validation.notes.type.modification` | Modification |
-| `label.validation.notes.type.validation` | Validation |
-| `label.validation.notes.empty` | No notes on this result. |
-| `label.validation.interpretation` | Interpretation |
-| `label.validation.interpretation.empty` | No interpretation entered. |
-| `label.validation.tab.method` | Method & Reagents |
-| `label.validation.tab.orderInfo` | Order Info |
-| `label.validation.tab.attachments` | Attachments |
-| `label.validation.tab.qaqc` | QA/QC |
-| `label.validation.tab.history` | History |
-| `label.validation.tab.referral` | Referral |
-| `label.validation.range.abnormal` | Abnormal |
-| `label.validation.range.critical` | Critical |
-| `label.validation.range.invalid` | Invalid |
-| `label.validation.nce` | NCE |
-| `label.validation.nce.tooltip` | NCE {number} · {category} / {subcategory} · {severity} · {status} |
-| `label.validation.nce.cannotValidate` | Cannot validate — open NCE |
-| `label.validation.orderInfo.clinician` | Ordering Clinician |
-| `label.validation.orderInfo.date` | Order Date |
-| `label.validation.orderInfo.priority` | Priority |
-| `label.validation.orderInfo.clinicalNotes` | Clinical Notes |
-| `label.validation.orderInfo.collection` | Specimen Collection |
-| `label.validation.attachments.empty` | No attachments. |
-| `label.validation.referral.empty` | No referral information. |
-| `message.validation.noteSaved` | Note saved. |
-| **Existing keys (verified in mockup)** | |
-| `label.validation.accessionNumber` | Accession # |
-| `label.validation.patientName` | Patient |
-| `label.validation.testName` | Test |
-| `label.validation.result` | Result |
-| `label.validation.unit` | Unit |
-| `label.validation.normalRange` | Normal Range |
-| `label.validation.status` | Status |
-| `label.validation.status.pending` | Pending |
-| `label.validation.status.accepted` | Accepted |
-| `label.validation.status.rejected` | Rejected |
-| `label.validation.resultsDescription` | Review results and verify reference ranges against patient sex and age. |
-| `heading.validation.routine` | Routine Validation |
-| `heading.validation.results` | Results Pending Validation |
+| `message.validation.criticalAwareness` | Critical value — Confirm clinician acknowledgment via the existing notes / critical-flag audit before releasing. |
+| `heading.validation.modification.history` | Modification History |
+| `label.validation.range.demographicSelected` | Range selected by demographics |
+| `warn.validation.range.fallback` | No reference range for this demographic — using default |
+| `heading.validation.aliquots` | Aliquots (from this sample) |
+| `heading.validation.storage` | Storage Location |
+| `heading.validation.programInfo` | Program Info |
+| `help.validation.readonly` | Read-only on validator — to change, reject back to tech |
+| `heading.esig.release` | E-Signature Required — Result Release |
+| `message.esig.release.intro` | You are about to release |
+| `message.esig.release.results` | result(s) for |
+| `message.esig.release.policy` | Per lab policy, validations that release results to clinicians must be e-signed (Part 11 §11.50, ISO 15189 §7.5.1.2). |
+| `button.esig.signRelease` | Sign & Release |
+| `warn.staleValidation` | Result has been validated by another user — refreshing the queue. |
+| `column.validation.sex` | Sex |
+| `column.validation.age` | Age (D-M-Y) |
+| `column.validation.test` | Test |
+| `column.validation.analyzer` | Analyzer |
+| `column.validation.result` | Result |
+| `column.validation.currentResult` | Current Result |
+| `column.validation.range` | Range |
+| `column.validation.status` | Status |
+| `column.validation.flags` | Flags |
+| `column.validation.validation` | Validation |
+| `column.validation.save` | Save |
+| `label.row.modifiedTag` | Modified |
+| `legend.nonconforming` | Sample or Order is nonconforming or Test has been rejected |
 | `placeholder.validation.search` | Search by accession, patient, or test... |
-| `button.validation.accept` | Accept |
-| `button.validation.reject` | Reject |
-| `button.validation.acceptSelected` | Accept Selected |
-| `button.validation.rejectSelected` | Reject Selected |
-| `button.validation.save` | Save |
-| `message.validation.accepted` | Results validated successfully. |
-| `message.validation.rejected` | Results rejected. |
-| `nav.home` | Home |
-| `nav.validation` | Validation |
-| `nav.validation.routine` | Routine Results |
+| `button.validation.batch.reject` | Reject Selected |
+| `button.validation.batch.retest` | Request Retest |
+| `button.validation.batch.validateRelease` | Validate & Release Selected |
+| `button.validation.action.validate` | Validate |
+| `button.validation.action.validateRelease` | Validate & Release |
+| `button.validation.action.advance` | Validate (Lv {current}/{total}) — Advance |
+| `button.validation.action.reject` | Reject |
+| `button.validation.action.retest` | Request Retest |
+| `button.validation.action.forward` | Forward to Level {level} |
 
 ---
 
-## 10. Validation Rules
+## Acceptance Criteria
 
-No form validation rules apply — all new display fields are read-only. Server-side validation of the age calculation and level tracking is covered by unit tests.
+### Page Architecture (Usability parity)
+- [ ] Expanded panel uses inline-first layout per BR-V3-014: action bar at top, sections below
+- [ ] Smart default-open per BR-V3-015: each section computes initial state from row context
+- [ ] Only 2 tabs (QA/QC + History); all other sections are inline collapsibles
 
-| Computation | Rule | Handling |
-|---|---|---|
-| Age calculation | DOB must not be after collection date | Display "—" if DOB > collection date (data error) |
-| Sex normalization | Must be "M", "F", or null | Normalize anything else to "U" |
-| Validation level bounds | `validationLevelCurrent` must be between 1 and `validationLevelsRequired` | Clamp to valid range; log warning |
-| History consistency | Each history entry's level must be < `validationLevelCurrent` | Ignore out-of-range entries; log warning |
-| Save action integrity | Cannot save a result if `validationLevelCurrent` is 0 or has already been fully released | Disable Save checkbox for released results |
+### Critical Value Awareness
+- [ ] When result is in the critical tier, light awareness banner renders at top of expanded panel **[BR-V3-003]**
+- [ ] Banner is informational only — does NOT gate Validate, does NOT display GP47 record, does NOT offer backfill **[BR-V3-003]**
+- [ ] Validator's evidence for clinician acknowledgment comes from existing notes + critical-flag audit; no fabricated UI **[BR-V3-003, BR-V3-009]**
 
----
+### Modification History Banner
+- [ ] Banner renders at top of expanded panel when `modificationHistory[]` has entries
+- [ ] Shows `original → current`, actor, timestamp, reason
+- [ ] Multi-modification chain expandable
+- [ ] Table row shows "Modified" warm-gray Tag in Status/Flags column
 
-## 11. Security & Permissions
+### Polymorphic Result Display
+- [ ] D-type cell shows dictionary label (not ID) **[BR-V3-004]**
+- [ ] M-type cell shows comma-joined labels **[BR-V3-004]**
+- [ ] Cells are read-only — no inline editing **[BR-V3-011]**
 
-| Action | Required Permission | UI Behavior if Denied |
-|---|---|---|
-| View validation screen (including sex/age, validation levels) | `result.validate` | Page not shown in menu |
-| Perform validation (save/advance/release) | `result.validate` | Save button disabled |
-| Add validation note | `result.validate` | Add Note form not shown |
-| View notes, interpretation, attachments, order info | `result.validate` | Hidden (inherits from page access) |
+### Demographic-Aware Range Display
+- [ ] Selected `referenceRange.label` shown as Tag next to displayed range **[BR-V3-005]**
+- [ ] Popover on Tag shows selection criteria + other configured ranges
+- [ ] When no range matches, warning Tag "⚠ No reference range for this demographic — using default" shown
 
-No new permissions are introduced. Sex, age, and validation level information are read-only display fields. The validation history tooltip shows only names of validators who have already acted — this is existing audit data, not a new access grant. RBAC is unchanged from the current system.
+### Read-Only Sections
+- [ ] Method & Reagents, Order Info, Program Info, Storage, Aliquots, Referral, Attachments all read-only **[BR-V3-006]**
+- [ ] Each section has a small "Read-only — to change, reject back to tech" help text
+- [ ] No Save/Edit/Add/Delete affordances anywhere except Notes (validator can add)
 
----
+### Validation Notes
+- [ ] Notes section allows ADDING new notes with type=`validation` **[BR-V3-007]**
+- [ ] Existing notes (entry, modification, prior validation) are read-only
+- [ ] New note persists immediately via API; appears without page refresh **[BR-V3-007]**
+- [ ] Note count badge updates after adding
 
-## 12. Acceptance Criteria
+### E-Signature on Release
+- [ ] Final-level Validate action triggers e-sig modal **[BR-V3-002]**
+- [ ] Modal body shows result count + accession context
+- [ ] Save POST includes eSignature envelope (meaning=APPROVED, recordType=RESULT_VALIDATION) **[BR-V3-002]**
+- [ ] Intermediate-level Validate, Reject, and Retest actions do NOT require e-sig **[BR-V3-002]**
+- [ ] Site flag `validation.requireESigOnRelease` controls the gate
 
-### Enhancement A — Patient Demographics
+### Stale-Page Conflict
+- [ ] Backend reports conflicts; frontend shows warning toast + reloads queue **[BR-V3-008]**
+- [ ] Conflicting rows marked `failedValidation=true`
+- [ ] Audit: `STALE_PAGE_CONFLICT_VALIDATION` row written
 
-- [ ] DataTable includes "Sex" column with single letter ("M"/"F"/"U")
-- [ ] DataTable includes "Age (D-M-Y)" column with Days-Months-Years format
-- [ ] Sex and Age columns are positioned between Sample Info and Test Name
-- [ ] Age is calculated from sample collection date, not current date
-- [ ] Sex and Age columns are sortable
-- [ ] When DOB is missing, table shows "—" for age
-- [ ] When sex is missing, table shows "U"
-- [ ] When collection date is missing, age uses order entry date with "~" prefix in amber italic
-- [ ] Neonatal patient (e.g., 3-month-old) shows age like "4D-3M-0Y"
-- [ ] Sex and age display on routine, technical, and supervisor validation levels
+### Multi-Level Disposition Mapping (S-02)
+- [ ] Validate intermediate → advances to next level **[BR-V3-010]**
+- [ ] Validate final → releases (with e-sig) **[BR-V3-010]**
+- [ ] Reject (no NCE) → returns to Pending; pipeline restarts at level 1 **[BR-V3-010]**
+- [ ] NCE Disposition=Cancel → cancelled, leaves chain **[BR-V3-010]**
+- [ ] NCE Disposition=Reject → deleted, leaves chain **[BR-V3-010]**
+- [ ] NCE Disposition=Retest → returns to Pending; pipeline restarts **[BR-V3-010]**
+- [ ] NCE Disposition=Refer → moves to "Referred — awaiting external" lane **[BR-V3-010]**
 
-### Enhancement B — Multi-Level Validation Column
+### Demographics Columns (preserved from v2.1 Enhancement A)
+- [ ] Sex column shows M/F/U
+- [ ] Age (D-M-Y) column shows `XD-YM-ZY` calculated at sample collection date
+- [ ] Both columns sortable; hidden behind Columns overflow menu at <1024px viewport
 
-- [ ] "Validation" column appears when `levelsRequired > 1`
-- [ ] "Validation" column is hidden when `levelsRequired == 1`
-- [ ] Tag shows "Validation X/Y" with correct level numbers
-- [ ] Tag at intermediate level uses blue styling
-- [ ] Tag at final level uses teal styling with checkmark icon
-- [ ] Tag at level 1 (no prior validations) shows no checkmark icon
-- [ ] Column is positioned between Result and Save columns
+### Multi-Level Column (preserved from v2.1 Enhancement B)
+- [ ] Validation column appears only when `levelsRequired > 1`
+- [ ] Tag shows "Validation X/Y"; teal at final, blue/warm-gray at intermediate; checkmark for prior completed levels
+- [ ] Popover on Tag shows full validation progress with names and timestamps
 
-### Enhancement C — Context-Aware Save Button
+### Context-Aware Save Button (preserved from v2.1 Enhancement C)
+- [ ] Save button label adapts to mix of selected results (release/advance/mixed)
+- [ ] Updates immediately on checkbox toggle
 
-- [ ] Save button reads "Save" when nothing is checked
-- [ ] Save button reads "Save" for single-level labs regardless of what is checked
-- [ ] Checking results at final level shows "Save — validates & releases N result(s)"
-- [ ] Checking results at intermediate level shows "Save — advances N result(s) to next level"
-- [ ] Checking a mix of final and intermediate results shows "Save — N will release, M will advance"
-- [ ] Label updates immediately when checkboxes are toggled
-- [ ] "Save All Normal" correctly excludes nonconforming results from count
-- [ ] "Save All Results" includes all results in count
+### PII Visibility Precedence (matches Results Entry BR-026)
+- [ ] Site-wide `showPatientName` overrides role-based mask **[BR-V3-012]**
 
-### Enhancement D — Validation History Tooltip
+### Workplan Deep-Link Breadcrumb
+- [ ] `?source=WorkPlan*` adds "Workplan" crumb to breadcrumb **[BR-V3-013]**
 
-- [ ] Hovering over the validation tag shows the tooltip
-- [ ] Clicking the validation tag shows the tooltip
-- [ ] Tooltip title reads "Validation Progress"
-- [ ] Completed levels show checkmark icon, validator name, and date/time
-- [ ] Current level shows open circle icon and "Awaiting your validation"
-- [ ] Future levels show dimmed circle icon and "Pending"
-- [ ] Tooltip dismisses on mouse-leave
-- [ ] Tooltip dismisses on click-outside
+### Auto-Validation (preserved from OGC-343)
+- [ ] Auto-validated results toggle on; Bot icon badge; read-only
 
-### Enhancement E — Expanded Panel Parity
-
-#### Notes
-- [ ] Notes section is always visible in expanded panel, above tab bar
-- [ ] All existing notes display in chronological order with author, date, type badge, and body
-- [ ] Modification reason notes display with "[Modification reason]" prefix and distinct badge
-- [ ] Validator can add a new note via inline "Add Note" form
-- [ ] New note persists immediately via API without requiring page-level save
-- [ ] Note count badge updates when a note is added
-- [ ] Empty state shows "No notes on this result."
-
-#### Interpretation
-- [ ] Interpretation section is always visible in expanded panel, below Notes
-- [ ] Displays selected interpretation template label and free-text body from Results Entry
-- [ ] Section is read-only — no edit controls
-- [ ] Empty state shows "No interpretation entered."
-
-#### Full Tab Bar
-- [ ] Tab bar shows 6 tabs: Method & Reagents, Order Info, Attachments, QA/QC, History, Referral
-- [ ] Method & Reagents tab shows analyzer, method, reagent lot/expiry
-- [ ] Order Info tab shows clinician, order date, priority, clinical notes, collection info
-- [ ] Attachments tab lists file attachments (view-only)
-- [ ] QA/QC tab shows control values and QC status
-- [ ] History tab shows previous results with dates, values, deltas, and validators
-- [ ] Referral tab shows referral status or "No referral information"
-- [ ] Tab data lazy-loads on expand
-
-#### Range Tier Highlighting
-- [ ] Result values color-coded: normal (default), abnormal (yellow), critical (orange), invalid (dark red)
-- [ ] Flags column shows H, L, C, ! badges matching Results Entry
-- [ ] Range highlighting is informational — does NOT gate validate action
-- [ ] Range evaluation uses same `evaluateResult()` logic as Results Entry
-
-#### NCE Badges
-- [ ] Teal NCE badge shown in Flags column for open NCEs
-- [ ] Gray NCE badge shown for closed NCEs
-- [ ] NCE badge tooltip shows number, category, subcategory, severity, status
-- [ ] Validate checkbox disabled for results with open NCEs
-- [ ] Disabled checkbox shows tooltip: "Cannot validate — open NCE"
+### Admin Validation Configuration (preserved from OGC-343)
+- [ ] Lab-wide default + per-unit overrides + permission-filtered role dropdowns + Summary Banner unchanged
 
 ### Non-Functional
+- [ ] All UI strings wrapped in `t(key, fallback)`
+- [ ] Carbon Component Map respected
+- [ ] Audit trail entries written per §Data Model
+- [ ] WCAG 2.1 AA compliance (production using `@carbon/react`)
+- [ ] French locale tested — no layout breakage
 
-- [ ] All UI strings use i18n keys — no hardcoded English
-- [ ] Page load time is not measurably degraded
-- [ ] Permissions enforced at API level (HTTP 403 for unauthorized access)
-- [ ] Feature tested with French language file to verify i18n
-- [ ] Single-level lab UI is visually identical to pre-enhancement layout (no Validation column visible)
+---
 
-### Integration
+## Migration Notes
 
-- [ ] Existing validation workflow (accept/reject/save) is unaffected by the new columns
-- [ ] Reference Ranges module is NOT modified — this feature is display-only
-- [ ] Validation history entries are created by the existing audit system — no new audit writes required
-- [ ] Notes added on Validation page are visible on Results Entry page (shared note list)
-- [ ] Interpretation entered on Results Entry page is visible on Validation page (read-only)
-- [ ] NCE badge data consistent between Results Entry and Validation pages
-- [ ] Range bounds from same source as Results Entry (test/analyte configuration)
-- [ ] Validation notes API (`POST /api/v1/validation/results/{id}/notes`) returns 403 for users without `result.validate`
+| v2.1 | v3.0 |
+|---|---|
+| 6-tab expanded panel (Method / Order / Attachments / QA/QC / History / Referral) | Inline-first with 2 tabs only (QA/QC + History); other 4 become inline sections |
+| Notes + Interpretation always visible (v2.1 Enhancement E) | Notes + Interpretation always visible (preserved); also added to v3 inline-first layout |
+| No Storage / Aliquots / Program Info / Modification History surfaces | All added as inline read-only sections / banners. Critical-value awareness is a light banner only — no fabricated GP47 record display until a `critical_notification` table actually ships. |
+| Range tier coloring only (v2.1 Enhancement E) | Range tier coloring + Demographic Range Tag |
+| Save button only — no e-sig | Save = e-sig modal when releasing (final level) |
+| Validator can re-ack critical (v2.1 implied via banner) | Validator sees light awareness banner only; no fabricated GP47 record display (revised — earlier v3 drafts proposed this but the data doesn't exist today) |
+| D/M result types not explicitly supported | Polymorphic display with dictionary ID → label resolution |
+| Note types `internal` / `external` | Renamed to `In Lab Only` / `Send with Result` (parity with Results Entry) |
+
+**Backward compatibility:** All v2.1 enhancements A through E remain functional. The Admin Validation Configuration page (OGC-343) is unchanged. Existing single-level labs see no change to the Validation column (still hidden). Multi-level labs see the same column with the new Popover behavior.
+
+---
+
+## Future Considerations
+
+1. **Card-row responsive layout** (`<768px` breakpoint impl)
+2. **Validator session-scoped e-sig token** (15-min sliding window — usability parity with Results Entry M2)
+3. **Bulk Validate across pages** (currently per-page batch only)
+4. **Custom Validation Worklists** (save filter combos as named queries)
+5. **Real-time queue updates** (WebSocket push when new results arrive at validator's level)
+6. **Cascading (C) Result Type display** (parallel to Results Entry future spec)
+7. **Validator dashboard view** — across-lab-unit summary of queue depth + critical/STAT counts
+8. **Audit Replay view** — full chain of custody for a single result from order to release, on a single screen

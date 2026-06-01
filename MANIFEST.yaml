@@ -810,11 +810,24 @@
 - id: validation-page
   type: mockup
   path: designs/results-validation/validation-page.jsx
+  preview: designs/results-validation/validation-page.html
   category: results-validation
-  description: Result validation workflow
+  description: >
+    Validation Page v3 — parity with Results Entry v3 architecture.
+    Inline-first expanded panel (action bar at top, sections below, only
+    QA/QC + History as tabs), Modification History banner, polymorphic
+    Dictionary / Multi-Checkbox display, demographic-aware reference range
+    Tag, dual-axis note model (visibility × context), e-signature on
+    Release, stale-page conflict guard. Cross-domain ready (CLINICAL /
+    ENVIRONMENTAL / VECTOR via Lab Unit context). Preserves OGC-343
+    multi-level pipeline and admin configuration unchanged.
   paired_with: validation-page-spec
-  links: {}
+  links:
+    jira: ["OGC-291", "OGC-343"]
+    gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/validation-page
+    preview: https://digi-uw.github.io/openelis-work/designs/results-validation/validation-page.html
   added: "2026-03-03"
+  updated: "2026-06-01"
 
 - id: validation-page-spec
   type: spec
