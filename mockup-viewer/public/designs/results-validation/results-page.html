@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results Entry v3 — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; color: #161616; }
+    .preview-banner {
+      background: #0f62fe; color: #fff;
+      padding: 6px 1rem; font-size: 12px; font-family: monospace;
+    }
+    .breadcrumb-bar { background: #161616; color: #f4f4f4; padding: 6px 16px; font-size: 12px; }
+    .breadcrumb-bar a { color: #78a9ff; text-decoration: none; }
+    .page-head { background: #fff; padding: 20px 24px; border-bottom: 1px solid #e0e0e0; }
+    .page-head h1 { margin: 0; font-size: 24px; font-weight: 300; }
+    .page-head p { margin: 4px 0 0; color: #525252; font-size: 12px; }
+    .toolbar { background: #fff; padding: 12px 24px; border-bottom: 1px solid #e0e0e0; display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+    .field-stack { display: flex; flex-direction: column; gap: 4px; }
+    .field-stack label { font-size: 12px; color: #525252; font-weight: 400; }
+    .req-asterisk { color: #da1e28; }
+    .filter-bar { background: #fff; padding: 8px 24px; border-bottom: 1px solid #e0e0e0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .filter-bar .filter-chip {
+      background: #fff; border: 1px solid #e0e0e0; padding: 4px 12px; border-radius: 16px; font-size: 12px; cursor: pointer;
+    }
+    .filter-bar .filter-chip.active { background: #161616; color: #fff; border-color: #161616; font-weight: 600; }
+    .nonconforming-legend {
+      background: #fff8e1; border-bottom: 1px solid #f1c21b; padding: 8px 24px; font-size: 12px; display: flex; align-items: center; gap: 8px;
+      color: #8a3800;
+    }
+    .results-table-wrap { margin: 16px 24px; background: #fff; border: 1px solid #e0e0e0; }
+    .results-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .results-table th { text-align: left; padding: 12px; background: #f4f4f4; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #525252; font-weight: 600; border-bottom: 1px solid #e0e0e0; white-space: nowrap; }
+    .results-table td { padding: 12px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+    .results-table tr.expanded > td { background: #edf5ff; }
+    .results-table tr.cancelled td { opacity: 0.5; }
+    .avatar { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; color: #fff; font-weight: 600; font-size: 11px; flex-shrink: 0; vertical-align: middle; }
+    .acc-mono { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #393939; }
+    .small { font-size: 12px; color: #525252; }
+    .copy-btn { background: none; border: none; color: #525252; cursor: pointer; padding: 2px; vertical-align: middle; }
+    .copy-btn:hover { background: #e0e0e0; }
+    .result-input { width: 96px; border: none; border-bottom: 2px solid #525252; background: transparent; padding: 2px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+    .result-input.abnormal { border-color: #f1c21b; background: #fff8e1; color: #6f4e00; }
+    .result-input.critical { border-color: #ff832b; background: #fff1e6; color: #8a3800; }
+    .result-input.invalid  { border-color: #570408; background: #520408; color: #fff1f1; }
+    .range-tier-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 6px; }
+    .range-tier-badge.abnormal { background: #fcf4d6; color: #6f4e00; }
+    .range-tier-badge.critical { background: #fff1e6; color: #8a3800; }
+    .range-tier-badge.invalid { background: #520408; color: #ffd7d9; }
+    .flag-H { color: #da1e28; font-weight: 700; }
+    .flag-L { color: #0f62fe; font-weight: 700; }
+    .flag-d { color: #c4920a; font-weight: 700; }
+    .flag-C { padding: 1px 6px; background: #fff1e6; color: #8a3800; border-radius: 4px; font-size: 11px; font-weight: 700; }
+    .flag-I { padding: 1px 6px; background: #520408; color: #ffd7d9; border-radius: 4px; font-size: 11px; font-weight: 700; }
+    .pat-line { font-size: 11px; color: #6f6f6f; margin-top: 2px; }
+    .pat-name { font-size: 13px; color: #161616; font-weight: 500; margin-top: 2px; }
+    .pat-masked { font-style: italic; color: #a8a8a8; margin-top: 2px; }
+    .nc-icon { color: #ff832b; margin-left: 4px; }
+
+    /* Expanded panel */
+    .expanded-panel { background: #fff; border-top: 1px solid #e0e0e0; }
+    .pat-banner { background: #e0e0e0; padding: 10px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 13px; }
+    .pat-banner .pat-banner-label { color: #6f6f6f; font-size: 11px; }
+    .pat-banner .pat-banner-value { color: #161616; font-weight: 500; }
+    .prog-banner { padding: 8px 16px; display: flex; align-items: center; gap: 8px; font-size: 12px; border-bottom: 1px solid #e0e0e0; }
+    .prog-banner.urgent { background: #fff8e1; border-color: #f1c21b; color: #6f4e00; }
+    .prog-banner.standard { background: #f6f2ff; border-color: #d4bbff; color: #491d8b; }
+
+    .section { border-bottom: 1px solid #e0e0e0; }
+    .section-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 16px; background: #f4f4f4; cursor: pointer; font-size: 13px; font-weight: 600; color: #393939;
+    }
+    .section-header:hover { background: #e8e8e8; }
+    .section-body { padding: 16px; background: #fff; }
+    .section-badge { font-size: 11px; color: #a8a8a8; font-weight: 400; margin-left: 6px; }
+
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px 24px; }
+    .grid-3 .field-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #6f6f6f; font-weight: 600; margin-bottom: 2px; }
+    .grid-3 .field-value { font-size: 13px; color: #161616; }
+
+    /* NCE form */
+    .nce-form { background: #fef9e7; border: 1px solid #f1c21b; margin: 12px 16px; padding: 12px; }
+    .nce-form-head { display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: #8a3800; }
+    .nce-disp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .nce-disp-tile { border: 1px solid #e0e0e0; background: #fff; padding: 8px; display: flex; gap: 8px; cursor: pointer; align-items: flex-start; }
+    .nce-disp-tile.selected { border-color: #f1c21b; background: #fff8e1; }
+    .nce-disp-tile .tile-title { font-weight: 600; font-size: 12px; color: #161616; display: block; }
+    .nce-disp-tile .tile-help { font-size: 11px; color: #525252; }
+
+    /* Action bar */
+    .action-bar { background: #fff; padding: 12px 16px; border-bottom: 1px solid #e0e0e0; display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+    .action-bar .ref-text { font-size: 11px; color: #525252; }
+    .action-bar .actions-end { margin-left: auto; display: flex; gap: 8px; }
+
+    /* Critical / invalid banners */
+    .critical-banner { background: #fff1e6; border-bottom: 2px solid #ff832b; padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start; }
+    .critical-banner .body { flex: 1; }
+    .critical-banner .title { color: #8a3800; font-weight: 600; font-size: 13px; }
+    .critical-banner .text { color: #6f4e00; font-size: 12px; margin-top: 2px; }
+
+    /* Carbon overrides — minor tweaks for inline use */
+    .cds--tag { vertical-align: middle; margin: 0 2px; }
+    .cds--btn { cursor: pointer; }
+
+    /* Tabs */
+    .tabs-bar { display: flex; border-bottom: 1px solid #e0e0e0; background: #f4f4f4; }
+    .tabs-bar .tab { padding: 10px 16px; font-size: 12px; color: #525252; cursor: pointer; border-bottom: 2px solid transparent; }
+    .tabs-bar .tab.active { color: #0f62fe; font-weight: 600; background: #fff; border-bottom-color: #0f62fe; }
+    .tab-panel { padding: 16px; background: #fff; }
+
+    /* Storage picker */
+    .storage-picker { background: #edf5ff; border: 1px solid #a6c8ff; padding: 12px; margin-top: 12px; }
+    .storage-picker .freezer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0; }
+    .storage-picker .freezer-tile { background: #fff; border: 1px solid #c6c6c6; padding: 12px 8px; text-align: center; font-size: 12px; cursor: pointer; }
+    .storage-picker .freezer-tile:hover { background: #d0e2ff; border-color: #4589ff; }
+
+    /* Inline date+time stack */
+    .dt-stack { display: flex; flex-direction: column; gap: 4px; }
+    .dt-row { display: flex; align-items: center; gap: 4px; }
+    .dt-row input { font-size: 12px; padding: 2px 4px; border: 1px solid transparent; background: transparent; }
+    .dt-row input:focus { border-color: #0f62fe; outline: none; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    ⚡ Visual Preview — Results Entry v3 &nbsp;|&nbsp; Route: <code>/Results</code> &nbsp;|&nbsp; OpenELIS Global &nbsp;|&nbsp; Not a live application
+  </div>
+  <div style="background:#fff8e1; border-bottom:1px solid #f1c21b; padding:6px 16px; font-size:11px; color:#6f4e00;">
+    ℹ Mockup uses Tailwind classes for portable preview. <strong>Production must use @carbon/react</strong> components — see §Carbon Component Map + §Carbon Implementation Notes in the FRS.
+  </div>
+  <div class="breadcrumb-bar">
+    <a href="#">Home</a> / <a href="#">Workplan</a> / <strong>Results</strong>
+    <span style="float:right; opacity:0.7;">Server page <strong>1</strong> / 3 &nbsp; ‹ ›</span>
+  </div>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, Fragment } = React;
+
+    const palette = ["#0f62fe", "#8a3ffc", "#198038", "#ff832b", "#d12771", "#005d5d"];
+    const colorHash = (s) => { let h=0; for (let i=0;i<(s||"").length;i++) h=((h<<5)-h+s.charCodeAt(i))|0; return palette[Math.abs(h)%palette.length]; };
+
+    function Avatar({ name, id, size=28 }) {
+      const initials = (name||"").split(",").map(p=>p.trim()[0]||"").join("").slice(0,2).toUpperCase();
+      return <span className="avatar" style={{ width:size, height:size, background: colorHash(id||name) }}>{initials}</span>;
+    }
+
+    function ResultsApp() {
+      const [expanded, setExpanded] = useState("2");          // glucose row expanded by default
+      const [activeTab, setActiveTab] = useState("qaqc");
+      const [showNce, setShowNce] = useState(false);
+      const [showStoragePicker, setShowStoragePicker] = useState(false);
+      const [disposition, setDisposition] = useState("CANCEL");
+
+      const rows = [
+        { id:"1", lab:"DEV01260000000000000-017", patient:{name:"Loy, Mbugaa", id:"3456789", sex:"M", age:"5d"}, td:"28/05/2026", tt:"09:30",
+          analyzer:"MANUAL", test:"Hemoglobin", sample:"Whole Blood", range:"16.00 - 20.00", unit:"g/dL",
+          rtype:"N", result:"", current:"", status:"pending", flags:[], nc:false, ncePill:null, eqa:null },
+        { id:"2", lab:"DEV01260000000000001-022", patient:{name:"Smith, Jane", id:"7891234", sex:"F", age:"40y"}, td:"28/05/2026", tt:"10:15",
+          analyzer:"Cobas c 501", test:"Glucose, Fasting", sample:"Serum", range:"70 - 99", unit:"mg/dL",
+          rtype:"N", result:"142", current:"98", status:"awaiting-validation", flags:["H","d"], nc:false, ncePill:null,
+          eqa:{ tag:"EQA — Urgent", kind:"red" } },
+        { id:"3", lab:"DEV01260000000000002-031", patient:{name:"Test, Patient", id:"3456790", sex:"M", age:"0y"}, td:"28/05/2026", tt:"11:45",
+          analyzer:"MANUAL", test:"HIV 1/2 Rapid", sample:"Whole Blood", range:"—", unit:"",
+          rtype:"D", result:"", current:"", status:"pending", flags:[], nc:true, ncePill:null, eqa:null },
+        { id:"4", lab:"DEV01260000000000003-045", patient:{name:"Johnson, Robert", id:"5551234", sex:"M", age:"66y"}, td:"28/05/2026", tt:"12:10",
+          analyzer:"MANUAL — Microscopy", test:"Stool — Microscopy (O&P)", sample:"Stool", range:"—", unit:"",
+          rtype:"M", result:"Giardia lamblia, Entamoeba histolytica", current:"No parasites seen", status:"awaiting-validation", flags:[], nc:false, ncePill:null, eqa:null },
+      ];
+
+      const RANGE_INPUT_CLASS = { abnormal: "abnormal", critical: "critical", invalid: "invalid" };
+
+      return (
+        <Fragment>
+          <div className="page-head">
+            <h1>Results</h1>
+            <p>Enter and manage test results for pending laboratory orders</p>
+          </div>
+
+          {/* Toolbar */}
+          <div className="toolbar">
+            <div className="field-stack" style={{ flex:1, minWidth: 220 }}>
+              <label>Search</label>
+              <div className="cds--search cds--search--sm">
+                <input className="cds--search-input" placeholder="Search or scan barcode — lab number, patient ID, test name, accession…" />
+              </div>
+            </div>
+            <div className="field-stack" style={{ minWidth: 180 }}>
+              <label>Lab Unit <span className="req-asterisk">*</span></label>
+              <div className="cds--select">
+                <select className="cds--select-input">
+                  <option>Hematology</option>
+                  <option>Chemistry</option>
+                  <option>Microbiology</option>
+                  <option>Serology-Immunology</option>
+                </select>
+              </div>
+            </div>
+            <div className="field-stack">
+              <label>Date From</label>
+              <input className="cds--date-picker__input" type="date" defaultValue="2026-05-28" />
+            </div>
+            <div className="field-stack">
+              <label>Date To</label>
+              <input className="cds--date-picker__input" type="date" defaultValue="2026-05-28" />
+            </div>
+            <button className="cds--btn cds--btn--primary">Load Results</button>
+          </div>
+
+          {/* Status filter chips */}
+          <div className="filter-bar">
+            <span style={{ fontSize: 12, color: '#525252', fontWeight: 500, marginRight: 4 }}>Show:</span>
+            {[["All",4],["pending",2],["awaiting-validation",2]].map(([s,n]) => (
+              <button key={s} className={"filter-chip " + (s==="pending" ? "active" : "")}>{s} ({n})</button>
+            ))}
+            <span style={{ marginLeft: 'auto', fontSize: 12, color: '#a8a8a8' }}>4 results</span>
+          </div>
+
+          {/* Nonconforming legend */}
+          <div className="nonconforming-legend">
+            <span style={{ color: '#ff832b' }}>⚠</span> = Sample or Order is nonconforming or Test has been rejected
+          </div>
+
+          {/* Table */}
+          <div className="results-table-wrap">
+            <table className="results-table">
+              <thead>
+                <tr>
+                  <th style={{ width: 32 }}></th>
+                  <th>Sample / Patient</th>
+                  <th>Test Date</th>
+                  <th>Analyzer Result</th>
+                  <th>Test Name</th>
+                  <th>Sample</th>
+                  <th>Normal Range</th>
+                  <th>Result</th>
+                  <th>Current Result</th>
+                  <th>Status</th>
+                  <th>Flags</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(r => {
+                  const isExp = expanded === r.id;
+                  return (
+                    <Fragment key={r.id}>
+                      <tr className={isExp ? "expanded" : ""}>
+                        <td>
+                          <button onClick={() => setExpanded(isExp ? null : r.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#525252', padding:4 }}>
+                            {isExp ? "▼" : "▶"}
+                          </button>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                            <Avatar name={r.patient.name} id={r.patient.id} />
+                            <div>
+                              <div>
+                                <span className="acc-mono">{r.lab}</span>
+                                <button className="copy-btn" title="Copy accession">📋</button>
+                                {r.nc && <span className="nc-icon" title="Sample or order is nonconforming">⚠</span>}
+                              </div>
+                              {r.id === "2" ? (
+                                <div className="pat-line">ID {r.patient.id} · {r.patient.sex} · {r.patient.age}</div>
+                              ) : (
+                                <div className="pat-line">ID {r.patient.id} · {r.patient.sex} · {r.patient.age}</div>
+                              )}
+                              {r.eqa && <div style={{ marginTop: 2 }}>
+                                <span className="cds--tag cds--tag--red" style={{ fontSize: 11 }}>{r.eqa.tag}</span>
+                              </div>}
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="dt-stack">
+                            <div className="dt-row">📅 <input type="date" defaultValue="2026-05-28" /></div>
+                            <div className="dt-row">⏰ <input type="time" defaultValue={r.tt} /></div>
+                          </div>
+                        </td>
+                        <td className="small">{r.analyzer}</td>
+                        <td><strong>{r.test}</strong></td>
+                        <td className="small">{r.sample}</td>
+                        <td><span className="acc-mono">{r.range}</span> <span className="small">{r.unit}</span></td>
+                        <td>
+                          {r.rtype === "N" && (
+                            r.result === "142" ? (
+                              <Fragment>
+                                <input className="result-input critical" defaultValue={r.result} />
+                                <span className="range-tier-badge critical">Critical</span>
+                              </Fragment>
+                            ) : (
+                              <input className="result-input" defaultValue={r.result} placeholder="—" />
+                            )
+                          )}
+                          {r.rtype === "D" && (
+                            <div className="cds--select"><select className="cds--select-input" defaultValue="">
+                              <option value="">Select…</option>
+                              <option>Non-Reactive</option>
+                              <option>Reactive</option>
+                              <option>Indeterminate</option>
+                              <option>Invalid</option>
+                            </select></div>
+                          )}
+                          {r.rtype === "M" && (
+                            <details style={{ fontSize: 12, fontFamily: 'IBM Plex Mono, monospace' }}>
+                              <summary style={{ cursor: 'pointer' }}>{r.result}</summary>
+                              <div style={{ padding: 8, background: '#fff', border: '1px solid #e0e0e0', marginTop: 4 }}>
+                                {["Ascaris lumbricoides","Trichuris trichiura","Hookworm","Giardia lamblia","Entamoeba histolytica","Schistosoma mansoni","No parasites seen"].map(o => (
+                                  <label key={o} style={{ display: 'block', fontSize: 12, padding: '2px 0' }}>
+                                    <input type="checkbox" defaultChecked={r.result.includes(o)} /> {o}
+                                  </label>
+                                ))}
+                              </div>
+                            </details>
+                          )}
+                        </td>
+                        <td className="small">
+                          {r.current
+                            ? <span className="acc-mono">{r.current}</span>
+                            : <span style={{ color: '#c6c6c6' }}>—</span>}
+                        </td>
+                        <td>
+                          <span className={"cds--tag cds--tag--" + (
+                            r.status === "released" ? "green" :
+                            r.status === "awaiting-validation" ? "warm-gray" :
+                            r.status === "entered" ? "blue" :
+                            "gray"
+                          )}>{r.status.replace(/-/g," ")}</span>
+                        </td>
+                        <td>
+                          {r.flags.includes("H") && <span className="flag-H">H</span>}{" "}
+                          {r.flags.includes("L") && <span className="flag-L">L</span>}{" "}
+                          {r.flags.includes("d") && <span className="flag-d">Δ</span>}{" "}
+                          {r.result === "142" && <span className="flag-C" title="Critical/panic">C</span>}
+                          {r.flags.length === 0 && r.result !== "142" && <span style={{ color: '#c6c6c6' }}>—</span>}
+                        </td>
+                        <td>
+                          {r.result && r.status === "pending" && (
+                            <button className="cds--btn cds--btn--primary cds--btn--sm">🔑 Save</button>
+                          )}
+                          {r.result && r.status === "awaiting-validation" && (
+                            <button className="cds--btn cds--btn--secondary cds--btn--sm">✎ Modify</button>
+                          )}
+                        </td>
+                      </tr>
+
+                      {/* Expanded panel — only on row 2 (glucose, critical value) */}
+                      {isExp && r.id === "2" && (
+                        <tr>
+                          <td colSpan={12} style={{ padding: 0, background: '#f4f4f4' }}>
+                            <div className="expanded-panel">
+                              {/* Patient banner */}
+                              <div className="pat-banner">
+                                <Avatar name={r.patient.name} id={r.patient.id} size={36} />
+                                <span style={{ fontWeight: 600 }}>{r.patient.name}</span>
+                                <span><span className="pat-banner-label">ID:</span> <span className="pat-banner-value">{r.patient.id}</span></span>
+                                <span><span className="pat-banner-label">National ID:</span> <span className="pat-banner-value">TZ-100487291</span></span>
+                                <span><span className="pat-banner-label">DOB:</span> <span className="pat-banner-value">05/22/1985</span></span>
+                                <span><span className="pat-banner-label">Sex:</span> <span className="pat-banner-value">{r.patient.sex}</span></span>
+                                <span><span className="pat-banner-label">Age:</span> <span className="pat-banner-value">{r.patient.age}</span></span>
+                                <span><span className="pat-banner-label">Clinician:</span> <span className="pat-banner-value">Dr. Michael Chen</span></span>
+                                <span><span className="pat-banner-label">Dept:</span> <span className="pat-banner-value">Endocrinology</span></span>
+                                <span className="cds--tag cds--tag--red">STAT</span>
+                              </div>
+
+                              {/* EQA program banner */}
+                              <div className="prog-banner urgent">
+                                <span>🛡️</span>
+                                <span className="cds--tag cds--tag--red">EQA — Urgent</span>
+                                <strong>EQA Round 4</strong>
+                                <span>Due: 12/20/2025</span>
+                                <a href="#" style={{ marginLeft: 'auto', color: '#6f4e00' }}>View Program Details ↗</a>
+                              </div>
+
+                              {/* Modification notice */}
+                              <div style={{ padding: '8px 16px', background: '#edf5ff', borderBottom: '1px solid #a6c8ff', fontSize: 12, color: '#0043ce' }}>
+                                ✎ This result is queued for validation. Modifying it requires a reason note — changes will remain in the Validation queue.
+                              </div>
+
+                              {/* Notes section */}
+                              <div className="section">
+                                <div className="section-header">
+                                  <span>💬 Notes <span className="section-badge">(1)</span></span>
+                                  <span>▼</span>
+                                </div>
+                                <div className="section-body">
+                                  <div style={{ borderLeft: '2px solid #e0e0e0', paddingLeft: 12, marginBottom: 8 }}>
+                                    <div style={{ fontSize: 11, color: '#6f6f6f', display: 'flex', gap: 8 }}>
+                                      <span>12/18/2025 11:30</span>
+                                      <span style={{ fontWeight: 500 }}>K. Davis</span>
+                                      <span className="cds--tag cds--tag--teal">Send with Result</span>
+                                    </div>
+                                    <div style={{ fontSize: 13, marginTop: 2 }}>Patient confirmed 12-hour fast prior to collection.</div>
+                                  </div>
+                                  <button style={{ fontSize: 12, color: '#0f62fe', background: 'none', border: 'none', cursor: 'pointer' }}>+ New Note</button>
+                                </div>
+                              </div>
+
+                              {/* Interpretation section */}
+                              <div className="section">
+                                <div className="section-header">
+                                  <span>🔬 Interpretation</span>
+                                  <span>▼</span>
+                                </div>
+                                <div className="section-body">
+                                  <div style={{ padding: 10, background: '#edf5ff', borderLeft: '4px solid #0f62fe', marginBottom: 12, fontSize: 12 }}>
+                                    <strong style={{ color: '#0043ce' }}>Suggestion:</strong> Diabetes Mellitus — Fasting glucose ≥126 mg/dL is consistent with diabetes mellitus. Recommend confirmation with repeat fasting glucose or HbA1c.
+                                  </div>
+                                  <div style={{ display: 'flex', gap: 16 }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0, maxWidth: 220 }}>
+                                      {[
+                                        { code: "GLU-NL",  label: "Normal", range: "70–99", kind: "green" },
+                                        { code: "GLU-IFG", label: "Impaired Fasting Glucose", range: "100–125", kind: "gray" },
+                                        { code: "GLU-DM",  label: "Diabetes Mellitus", range: "≥126", kind: "red", selected: true },
+                                      ].map(opt => (
+                                        <div key={opt.code} style={{
+                                          padding: 8, border: opt.selected ? '2px solid #da1e28' : '1px solid #e0e0e0',
+                                          background: opt.selected ? '#fff1f1' : '#fff', fontSize: 12, cursor: 'pointer'
+                                        }}>
+                                          <div style={{ fontWeight: 600 }}>{opt.label}</div>
+                                          <span className={"cds--tag cds--tag--" + opt.kind} style={{ fontSize: 10 }}>{opt.range}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <textarea style={{ flex: 1, minHeight: 80, border: '1px solid #e0e0e0', padding: 8, fontSize: 12 }}
+                                      defaultValue="Fasting glucose ≥126 mg/dL is consistent with diabetes mellitus. Recommend confirmation with repeat fasting glucose or HbA1c." />
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Method & Reagents — INLINE (was a tab) */}
+                              <div className="section">
+                                <div className="section-header">
+                                  <span>🧪 Method &amp; Reagents</span>
+                                  <span>▼</span>
+                                </div>
+                                <div className="section-body">
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1.3fr', gap: 12, marginBottom: 12 }}>
+                                    <div className="field-stack">
+                                      <label className="field-label" style={{ fontSize: 10, textTransform: 'uppercase' }}>Method</label>
+                                      <div className="cds--select"><select className="cds--select-input"><option>Automated</option><option>Manual</option><option>Semi-Automated</option><option>Point of Care</option></select></div>
+                                    </div>
+                                    <div className="field-stack">
+                                      <label className="field-label" style={{ fontSize: 10, textTransform: 'uppercase' }}>Analyzer</label>
+                                      <div className="cds--select"><select className="cds--select-input"><option>Cobas c 501 (Online ✓)</option><option>Cobas c 311 (Offline)</option></select></div>
+                                    </div>
+                                    <div className="field-stack">
+                                      <label className="field-label" style={{ fontSize: 10, textTransform: 'uppercase' }}>Method Details <span style={{ textTransform: 'none', fontWeight: 400, color: '#a8a8a8' }}>(optional)</span></label>
+                                      <input className="cds--text-input" placeholder="MAN-DIFF · MAN-HEM · QNS · CLOT · HEMOLYZED · LIPEMIC" />
+                                    </div>
+                                  </div>
+                                  <div style={{ border: '1px solid #e0e0e0', background: '#fff' }}>
+                                    <div style={{ padding: '8px 12px', background: '#f4f4f4', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: '#525252', borderBottom: '1px solid #e0e0e0' }}>Reagent Lots (FIFO suggested)</div>
+                                    <table style={{ width: '100%', fontSize: 12 }}>
+                                      <thead><tr style={{ background: '#f4f4f4' }}>
+                                        {["Reagent","Lot Number","Expires","Remaining","FIFO"].map(h => <th key={h} style={{ padding: '6px 12px', textAlign: 'left', fontSize: 11 }}>{h}</th>)}
+                                      </tr></thead>
+                                      <tbody>
+                                        <tr style={{ background: '#fff8e1' }}>
+                                          <td style={{ padding: '6px 12px' }}>Glucose HK Gen.3</td>
+                                          <td style={{ padding: '6px 12px', fontFamily: 'IBM Plex Mono, monospace' }}>LOT-2026-0421</td>
+                                          <td style={{ padding: '6px 12px', color: '#6f4e00', fontWeight: 500 }}>06/05/2026 ⚠</td>
+                                          <td style={{ padding: '6px 12px' }}>12%</td>
+                                          <td style={{ padding: '6px 12px' }}><span className="cds--tag cds--tag--blue">Use First</span></td>
+                                        </tr>
+                                        <tr>
+                                          <td style={{ padding: '6px 12px' }}>Glucose HK Gen.3</td>
+                                          <td style={{ padding: '6px 12px', fontFamily: 'IBM Plex Mono, monospace' }}>LOT-2026-0517</td>
+                                          <td style={{ padding: '6px 12px' }}>08/15/2026</td>
+                                          <td style={{ padding: '6px 12px' }}>87%</td>
+                                          <td style={{ padding: '6px 12px', color: '#a8a8a8' }}>Next</td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Order Info — INLINE (was a tab) */}
+                              <div className="section">
+                                <div className="section-header">
+                                  <span>📋 Order Info</span>
+                                  <span>▼</span>
+                                </div>
+                                <div className="section-body">
+                                  <div className="grid-3">
+                                    <div><div className="field-label">Ordering Clinician</div><div className="field-value">Dr. Michael Chen</div></div>
+                                    <div><div className="field-label">Phone</div><div className="field-value">+1 555-0456</div></div>
+                                    <div><div className="field-label">Department</div><div className="field-value">Endocrinology</div></div>
+                                    <div><div className="field-label">Priority</div><div className="field-value"><span className="cds--tag cds--tag--red">STAT</span></div></div>
+                                    <div><div className="field-label">Collection Date/Time</div><div className="field-value">12/18/2025 07:00</div></div>
+                                    <div><div className="field-label">Received Date/Time</div><div className="field-value">12/18/2025 07:30</div></div>
+                                    <div><div className="field-label">Fasting Status</div><div className="field-value">Fasting (12 hours)</div></div>
+                                    <div style={{ gridColumn: 'span 2' }}><div className="field-label">Clinical History</div><div className="field-value">Follow-up for prediabetes, weight loss program</div></div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Program Info — NEW for v3 — appears only when result.program is set */}
+                              <div className="section">
+                                <div className="section-header">
+                                  <span>📚 Program Info <span className="section-badge" style={{ color:'#8a3ffc' }}>EQA Round 4</span></span>
+                                  <span>▼</span>
+                                </div>
+                                <div className="section-body">
+                                  <div className="grid-3">
+                                    <div><div className="field-label">EQA Panel ID</div><div className="field-value" style={{ fontFamily:'IBM Plex Mono, monospace' }}>EQA-CHEM-2025-Q4-PANEL-07</div></div>
+                                    <div><div className="field-label">Round Number</div><div className="field-value">4</div></div>
+                                    <div><div className="field-label">Specimen Code</div><div className="field-value" style={{ fontFamily:'IBM Plex Mono, monospace' }}>S-2025-Q4-022</div></div>
+                                    <div><div className="field-label">Expected Analyte</div><div className="field-value">Glucose</div></div>
+                                    <div><div className="field-label">Submission Deadline</div><div className="field-value">12/20/2025 23:59</div></div>
+                                    <div><div className="field-label">Lab Code (Provider)</div><div className="field-value" style={{ fontFamily:'IBM Plex Mono, monospace' }}>MG-LAB-018</div></div>
+                                    <div style={{ gridColumn: 'span 2' }}><div className="field-label">Round Coordinator</div><div className="field-value">Dr. F. Andriantefison</div></div>
+                                    <div style={{ gridColumn: 'span 3' }}><div className="field-label">Provider Comments</div><div className="field-value">Sample stable at 2–8 °C for 14 days from receipt.</div></div>
+                                  </div>
+                                  <div style={{ marginTop: 12, fontSize: 11, color: '#a8a8a8', fontStyle: 'italic' }}>
+                                    Program-captured fields are read-only here. Edit them on the originating order.
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Storage Location — NEW inline section */}
+                              <div className="section">
+                                <div className="section-header">
+                                  <span>📍 Storage Location</span>
+                                  <span>▼</span>
+                                </div>
+                                <div className="section-body">
+                                  <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                                    <div style={{ flex: 1, minWidth: 240 }}>
+                                      <div className="field-label">Location</div>
+                                      <div style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 13 }}>Refrigerator B → Shelf 1 → Box 12</div>
+                                    </div>
+                                    <div>
+                                      <div className="field-label">Position</div>
+                                      <div style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 13 }}>Pos A-09</div>
+                                    </div>
+                                    <div>
+                                      <div className="field-label">Condition</div>
+                                      <div style={{ fontSize: 13 }}>2–8 °C</div>
+                                    </div>
+                                    <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={() => setShowStoragePicker(s => !s)}>Move storage location</button>
+                                  </div>
+                                  {showStoragePicker && (
+                                    <div className="storage-picker">
+                                      <strong style={{ color: '#0043ce' }}>Choose a location</strong>
+                                      <div className="freezer-grid">
+                                        {["Freezer A","Freezer B","Freezer C","Refrigerator A"].map(f => <div key={f} className="freezer-tile">{f}</div>)}
+                                      </div>
+                                      <div style={{ fontSize: 11, color: '#0043ce', marginBottom: 8 }}>Drill down Freezer → Rack → Shelf → Box → Position.</div>
+                                      <div className="field-stack">
+                                        <label style={{ fontSize: 12 }}>Reason for move <span className="req-asterisk">*</span></label>
+                                        <input className="cds--text-input" placeholder="Why is this sample being moved?" />
+                                      </div>
+                                      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                                        <button className="cds--btn cds--btn--primary cds--btn--sm">Confirm move</button>
+                                        <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setShowStoragePicker(false)}>Cancel</button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Referral — INLINE (was a tab) */}
+                              <div className="section">
+                                <div className="section-header">
+                                  <span>📨 Referral</span>
+                                  <span>▼</span>
+                                </div>
+                                <div className="section-body">
+                                  <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
+                                    <input type="checkbox" /> <span style={{ fontSize: 13 }}>Refer this test to an external laboratory</span>
+                                  </label>
+                                </div>
+                              </div>
+
+                              {/* Attachments — INLINE (was a tab) */}
+                              <div className="section">
+                                <div className="section-header">
+                                  <span>📎 Attachments <span className="section-badge">(1)</span></span>
+                                  <span>▼</span>
+                                </div>
+                                <div className="section-body">
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 8, background: '#f4f4f4', border: '1px solid #e0e0e0', fontSize: 13 }}>
+                                    <span style={{ color: '#da1e28' }}>📄</span>
+                                    <div style={{ flex: 1 }}>
+                                      <div style={{ fontWeight: 500 }}>Insurance_Auth.pdf</div>
+                                      <div style={{ fontSize: 11, color: '#a8a8a8' }}>89 KB · Order Entry · 12/18/2025 06:45</div>
+                                    </div>
+                                    <span className="cds--tag cds--tag--purple">Order Entry</span>
+                                    <button className="cds--btn cds--btn--ghost cds--btn--sm">↓</button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Action bar */}
+                              <div className="action-bar">
+                                <div className="field-stack">
+                                  <label style={{ fontSize: 10, textTransform: 'uppercase', color: '#525252', fontWeight: 600 }}>Result Value</label>
+                                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                                    <input className="result-input critical" defaultValue="142" />
+                                    <span className="small">mg/dL</span>
+                                    <span className="range-tier-badge critical">Critical</span>
+                                  </div>
+                                </div>
+                                <div className="ref-text">
+                                  Ref: <span className="acc-mono">70 - 99 mg/dL</span>
+                                  <span style={{ marginLeft: 8, color: '#ff832b' }}>Critical: &lt;50 or &gt;400</span>
+                                </div>
+                                <div className="actions-end">
+                                  <button onClick={() => setShowNce(s => !s)} className="cds--btn cds--btn--tertiary cds--btn--sm" style={{ borderColor: '#f1c21b', color: '#8a3800' }}>
+                                    ⚠ Report Non-Conformity
+                                  </button>
+                                  <button className="cds--btn cds--btn--primary cds--btn--sm">🔑 Save (E-Sign)</button>
+                                </div>
+                              </div>
+
+                              {/* Critical banner — appears for this row */}
+                              <div className="critical-banner">
+                                <span style={{ fontSize: 18 }}>⚠</span>
+                                <div className="body">
+                                  <div className="title">Critical Value — Physician Notification Required</div>
+                                  <div className="text">Critical hyperglycemia — Glucose &gt; 400 mg/dL. Per laboratory policy, the responsible clinician must be notified before or upon result reporting. <strong>Acknowledgment will be recorded in the global Alerts dashboard.</strong></div>
+                                </div>
+                                <button className="cds--btn cds--btn--danger cds--btn--sm" style={{ flexShrink: 0 }}>I Acknowledge</button>
+                              </div>
+
+                              {/* NCE Form — toggled */}
+                              {showNce && (
+                                <div className="nce-form">
+                                  <div className="nce-form-head">
+                                    <span>⚠ Report Non-Conformity Event</span>
+                                    <button onClick={() => setShowNce(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                                  </div>
+                                  <p style={{ fontSize: 11, color: '#6f4e00', margin: '8px 0' }}>
+                                    Filing an NCE creates a Non-Conformity record linked to this result. Use the Result Disposition field below to choose what happens to the result.
+                                  </p>
+                                  <div style={{ background: '#fff', padding: 6, fontSize: 11, color: '#525252', marginBottom: 8 }}>
+                                    <strong>Auto-linked: </strong>Glucose, Fasting · DEV01260000000000001-022 · Result: 142
+                                  </div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
+                                    <div className="field-stack">
+                                      <label style={{ fontSize: 11 }}>Category <span className="req-asterisk">*</span></label>
+                                      <div className="cds--select"><select className="cds--select-input"><option>Pre-Analytical</option><option>Analytical</option><option>Post-Analytical</option><option>Administrative</option></select></div>
+                                    </div>
+                                    <div className="field-stack">
+                                      <label style={{ fontSize: 11 }}>Subcategory <span className="req-asterisk">*</span></label>
+                                      <div className="cds--select"><select className="cds--select-input"><option>Specimen Integrity</option><option>Container Issue</option></select></div>
+                                    </div>
+                                    <div>
+                                      <label style={{ fontSize: 11 }}>Severity <span className="req-asterisk">*</span></label>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+                                        <label style={{ fontSize: 11 }}><input type="radio" name="sev"/> <strong>Critical</strong> <span style={{ color:'#a8a8a8' }}>— Patient safety risk</span></label>
+                                        <label style={{ fontSize: 11 }}><input type="radio" name="sev"/> <strong>Major</strong> <span style={{ color:'#a8a8a8' }}>— Significant quality impact</span></label>
+                                        <label style={{ fontSize: 11 }}><input type="radio" name="sev" defaultChecked/> <strong>Minor</strong> <span style={{ color:'#a8a8a8' }}>— Limited impact</span></label>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div style={{ borderTop: '1px solid #f1c21b', paddingTop: 12 }}>
+                                    <label style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: '#8a3800', display: 'block', marginBottom: 6 }}>
+                                      Result Disposition <span className="req-asterisk">*</span>
+                                      <span style={{ fontWeight: 400, color: '#525252', textTransform: 'none', marginLeft: 6 }}>— What happens to this result?</span>
+                                    </label>
+                                    <div className="nce-disp-grid">
+                                      {[
+                                        { id: "CANCEL", title: "Cancel result", help: "Result is voided. No value reported. Most common for pre-analytical NCEs." },
+                                        { id: "REJECT", title: "Reject result + reason", help: "Result is permanently deleted. Requires a rejection reason. Use sparingly." },
+                                        { id: "RETEST", title: "Retest — request new sample / repeat", help: "Result stays pending. A retest order is created. Track via Workplan." },
+                                        { id: "REFER",  title: "Refer out to external lab", help: "Result is referred. Opens the Referral section above with reason pre-filled." },
+                                      ].map(d => (
+                                        <label key={d.id} className={"nce-disp-tile" + (disposition === d.id ? " selected" : "")}>
+                                          <input type="radio" name="disp" checked={disposition === d.id} onChange={() => setDisposition(d.id)} />
+                                          <span>
+                                            <span className="tile-title">{d.title}</span>
+                                            <span className="tile-help">{d.help}</span>
+                                          </span>
+                                        </label>
+                                      ))}
+                                    </div>
+                                    {disposition === "REJECT" && (
+                                      <div style={{ marginTop: 8 }}>
+                                        <label style={{ fontSize: 11 }}>Rejection reason <span className="req-asterisk">*</span></label>
+                                        <div className="cds--select" style={{ marginTop: 4 }}>
+                                          <select className="cds--select-input"><option>Select a rejection reason…</option><option>Hemolyzed sample</option><option>Insufficient quantity (QNS)</option></select>
+                                        </div>
+                                        <div style={{ fontSize: 11, color: '#da1e28', marginTop: 4 }}>⚠ Rejecting permanently deletes test results. This action cannot be undone.</div>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+                                    <button className="cds--btn cds--btn--primary cds--btn--sm" style={{ background: '#c4920a' }}>Submit NCE &amp; Apply Disposition</button>
+                                    <button onClick={() => setShowNce(false)} className="cds--btn cds--btn--ghost cds--btn--sm">Cancel</button>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Tabs — QA/QC + History only */}
+                              <div className="tabs-bar">
+                                <div className={"tab " + (activeTab === "qaqc" ? "active" : "")} onClick={() => setActiveTab("qaqc")}>🛡️ QA/QC</div>
+                                <div className={"tab " + (activeTab === "history" ? "active" : "")} onClick={() => setActiveTab("history")}>📜 History</div>
+                              </div>
+                              <div className="tab-panel">
+                                {activeTab === "qaqc" && (
+                                  <Fragment>
+                                    <div style={{ padding: 12, background: '#defbe6', border: '1px solid #b6e8c4', display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+                                      <span style={{ background: '#24a148', width: 12, height: 12, borderRadius: 6 }}></span>
+                                      <strong>QC Pass</strong>
+                                      <span style={{ marginLeft: 'auto', fontSize: 11, color: '#525252' }}>Analyzer: Online · Last calibrated: 12/18/2025 06:15</span>
+                                    </div>
+                                    <div style={{ border: '1px solid #e0e0e0', background: '#fff' }}>
+                                      <div style={{ padding: '6px 12px', background: '#f4f4f4', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: '#525252' }}>Control Results</div>
+                                      {[
+                                        { lvl: "Level 1", val: "85", exp: "82 ± 5", st: "pass" },
+                                        { lvl: "Level 2", val: "210", exp: "208 ± 12", st: "pass" },
+                                      ].map((c, i) => (
+                                        <div key={i} style={{ padding: '6px 12px', display: 'flex', gap: 16, alignItems: 'center', borderTop: i ? '1px solid #f4f4f4' : 'none', fontSize: 12 }}>
+                                          <span style={{ background: '#24a148', width: 8, height: 8, borderRadius: 4 }}></span>
+                                          <span style={{ fontWeight: 500, width: 60 }}>{c.lvl}</span>
+                                          <span style={{ fontFamily: 'IBM Plex Mono, monospace' }}>{c.val}</span>
+                                          <span style={{ color: '#a8a8a8' }}>Expected: {c.exp}</span>
+                                          <span style={{ marginLeft: 'auto', color: '#24a148', fontWeight: 600, fontSize: 11 }}>PASS</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </Fragment>
+                                )}
+                                {activeTab === "history" && (
+                                  <Fragment>
+                                    <div style={{ padding: 12, background: '#fff8e1', borderLeft: '4px solid #f1c21b', marginBottom: 12, fontSize: 13 }}>
+                                      <strong>Delta Check Alert:</strong> Changed <strong>+44.9%</strong> from previous (98 → 142 mg/dL). Threshold: 20%
+                                    </div>
+                                    <div style={{ border: '1px solid #e0e0e0' }}>
+                                      <div style={{ padding: '8px 12px', background: '#edf5ff', display: 'flex', gap: 24, alignItems: 'center', fontSize: 13, fontWeight: 600 }}>
+                                        <span style={{ width: 100, fontSize: 11, color: '#525252', fontWeight: 400 }}>Today</span>
+                                        <span style={{ fontFamily: 'IBM Plex Mono, monospace', width: 80 }}>142 mg/dL</span>
+                                        <span className="cds--tag cds--tag--blue">Current</span>
+                                      </div>
+                                      {[
+                                        { date: "12/01/2025", val: "98", delta: null },
+                                        { date: "11/01/2025", val: "102", delta: "+4.1%" },
+                                      ].map((p, i) => (
+                                        <div key={i} style={{ padding: '8px 12px', display: 'flex', gap: 24, alignItems: 'center', borderTop: '1px solid #f4f4f4', fontSize: 13 }}>
+                                          <span style={{ width: 100, fontSize: 11, color: '#a8a8a8' }}>{p.date}</span>
+                                          <span style={{ fontFamily: 'IBM Plex Mono, monospace', width: 80 }}>{p.val} mg/dL</span>
+                                          <span style={{ fontSize: 11, color: '#525252' }}>{p.delta || "—"}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </Fragment>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Fragment>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<ResultsApp />);
+  </script>
+</body>
+</html>
