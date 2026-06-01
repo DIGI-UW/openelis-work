@@ -288,7 +288,7 @@ interface ReferenceRange {
 
 **Replaces the v3.0 "I Acknowledge" single-click button.** CLSI GP47 (Critical Result Communication) requires documented evidence of: (a) who was notified, (b) by what method, (c) what was read back to confirm receipt, (d) when, and (e) escalation history when initial attempts failed. A single click does not satisfy this.
 
-**Trigger:** When the entered result is in the `critical` range tier, the existing "Critical Value — Physician Notification Required" banner displays. The single "I Acknowledge" button is replaced by **"Open Notification Form"**. Save remains blocked.
+**Trigger:** When the entered result is in the `critical` range tier and the site flag `criticalNotification.requireReadBack` is ON, the critical banner shows an **"Open Notification Form"** button alongside the Save button. **Save is NOT blocked** — the tech can save first (recommended for patient safety; the result reaches the validator + clinician channel immediately) and capture the GP47 structured record alongside or after. The structured record is linked back to the result via `analysis_id` and to the Alerts ack via `alerts_ack_id` regardless of which click came first.
 
 **Form layout (Usability H3) — progressive disclosure across two steps:**
 
@@ -321,8 +321,8 @@ A "Change" link in Step 2 lets the user go back and re-pick the outcome if they 
 | **Additional notes** | TextInput | optional | Anything else relevant — e.g. "Patient also notified directly per family request" |
 
 **On submit (Confirm Notification button):**
-1. POST to `/rest/alerts/critical-acknowledgment` with the full structured payload.
-2. On success: ack pill replaces the form ("Notified Dr. Williams at 12/18/2025 12:04 via Phone — read-back confirmed"). Save unblocks.
+1. POST to `/rest/alerts/critical-acknowledgment` with the full structured payload — this converts the pending-ack task into an acknowledged-with-structured-record task.
+2. On success: ack pill replaces the form ("Notified Dr. Williams at 12/18/2025 12:04 via Phone — read-back confirmed"). **Save is not affected by this flow — the tech may have already saved the result.**
 3. On failure: follow BR-025 retry policy (toast + queued replay).
 4. Audit: `CRITICAL_NOTIFICATION_LOGGED` row written to `audit_trail` with the full payload, plus the existing `CRITICAL_ACK`.
 
@@ -359,7 +359,7 @@ Evaluation order: `invalid` (outside physiologically valid range) → `critical`
 |---|---|---|
 | Normal | No highlight | Save enabled |
 | Abnormal | Yellow border + yellow cell background + "H"/"L" flag | Save enabled |
-| Critical | Orange border + orange cell background + "C" flag + critical banner in expanded panel | **Save disabled until "I Acknowledge" clicked. Acknowledgment is logged to Alerts dashboard.** |
+| Critical | Orange border + orange cell background + "C" flag + critical banner in expanded panel | **Save is NOT blocked.** Result reaches the validator and the patient chart immediately — that's the whole point of a critical-value alert. Saving fires an Alerts dashboard notification + creates a pending-ack task; the tech (or whoever was assigned) acknowledges from Results Entry, the Alerts dashboard, or the Validation page anytime after save. Audit captures both timestamps independently. |
 | Invalid | Dark red border + dark red cell + "!" flag + invalid banner | Save NOT disabled (so tech can correct); dark red banner warns to verify and repeat |
 
 ### Acknowledgment → Alerts Dashboard
@@ -446,6 +446,110 @@ The standalone Reject column is removed. Reject becomes a **Result Disposition**
 | Refer out | `awaiting-validation` (referred) | NCE record created; Referral section pre-filled with NCE-derived reason |
 
 API: `POST /rest/non-conformity-events` with `{ result, disposition, rejectionReason?, ...nceFields }`
+
+---
+
+## Cross-Domain Support — CLINICAL / ENVIRONMENTAL / VECTOR
+
+OpenELIS supports three sample domains, governed by the `Domain` enum: `CLINICAL`, `ENVIRONMENTAL`, `VECTOR` (per memory `feedback_domain_enum_no_both` — no `BOTH` value at any level, ever). The same Results Entry page (`/Results`) flexes across all three; no separate mockups, no parallel routes.
+
+### Lab Unit drives domain context
+
+**Each Lab Unit carries a `domain` attribute** (`CLINICAL` | `ENVIRONMENTAL` | `VECTOR`). When the tech selects a Lab Unit, the page derives `currentDomain` from that selection and renders accordingly. Lab Units are already required to load results (BR-002), so the domain context arrives "for free" with no additional user input.
+
+**Examples:**
+
+| Lab Unit | Domain |
+|---|---|
+| Hematology, Chemistry, Microbiology, Serology, Pathology, Molecular | `CLINICAL` |
+| Water Quality, Soil, Air Quality, Food Safety | `ENVIRONMENTAL` |
+| Vector Surveillance, Entomology, Mosquito Pool Testing, Tick Surveillance | `VECTOR` |
+
+Domain is **per Lab Unit, not per result** — once the unit is picked, every result in the worklist is treated as that domain. This matches OpenELIS today (a lab unit is configured for one domain) and removes per-row branching.
+
+### Domain badge in toolbar
+
+After Lab Unit selection, a small **Domain badge** appears next to the selector showing `Clinical` (blue), `Environmental` (green), or `Vector` (purple). This makes the active domain unambiguous and serves as a constant visual anchor while the tech works.
+
+### What changes per domain
+
+| Surface | CLINICAL | ENVIRONMENTAL | VECTOR |
+|---|---|---|---|
+| **Patient Banner** in expanded panel | Full: avatar + name + ID + DOB + sex + age + clinician | **Site/Source block:** site name + GPS + collection conditions (temperature, depth, time) | **Trap block:** trap ID + GPS coordinates + collection date + species + trap type |
+| **Patient column** in table | Patient avatar + name (per PII rules) + ID | **Site name + sample type** (e.g. "Mwanza Water Tap A-14 / drinking water") | **Trap ID + species** (e.g. "TRAP-2026-091 / *An. gambiae*") |
+| **Sex / Age columns** (Validation page) | shown | **hidden** | **hidden** |
+| **PII masking config** (`showPatientName`, `PATIENT_DATA_ON_RESULTS_BY_ROLE`) | applies | **n/a** — no patient identifiers to mask | **n/a** |
+| **Order Info section labels** | Ordering Clinician / Department / Priority / Fasting / Diagnosis / Clinical History | **Collector / Site Authority / Sampling Date / Sample Source / Site Conditions / Environmental Context** | **Field Collector / Surveillance Program / Trap Set Date / Trap Type / Habitat Conditions** |
+| **Program Info section** | EQA Round / RETROCI ARV/EID/VL/Indeterminate / Clinical Studies | **Surveillance Program** (water utility ID, regulatory event ID, monitoring schedule) | **IRM Round / Surveillance Cycle / Vector Program ID** |
+| **Critical value notification recipient label** | "Clinician" / "Nurse" / "On-call clinician" | **"Site Authority" / "Utility Operator" / "Regulatory Contact"** | **"Surveillance Lead" / "Program Officer"** |
+| **"Send with Result" note visibility** | flows to **patient / clinician report** | flows to **regulatory report** | flows to **surveillance dashboard / program feed** |
+| **Reference ranges** | Demographic-aware per BR-036 (age × sex × lifeStage) | **Regulatory limits** (e.g. EPA MCL = 0.3 mg/L; WHO drinking-water guidelines). No demographic axis. | Often **categorical / count-based** (susceptible/resistant/intermediate; mosquito species counts; presence/absence) — N type with a single limit, D type with surveillance vocab |
+| **Result type usage** | mix of N / D / M / R / A | mostly N (numeric measurements with regulatory limits) | mix of N (counts, percentages), D (species ID, resistance status), M (multi-pathogen panel result on a pool) |
+| **Aliquot purposes** | Test / Retention / Send-out / Pour-off | Test / Retention / Send-out / Confirmation re-test | **Pool deconvolution** (split pool into individual mosquito tests when positive — primary use case per memory `project_vector_referral_deconvolution`) / Retention / Send-out |
+| **Storage Location** | applies | applies | applies (chain-of-custody especially important for surveillance evidence) |
+| **Modification History banner** | applies | applies | applies |
+| **E-signature on Save** | applies | applies (regulatory) | applies |
+| **Stale-page conflict guard** | applies | applies | applies |
+| **Workplan deep-link** | applies | applies | applies |
+| **Method & Reagents section** | applies | applies | applies |
+| **Notes (visibility × context dual axis)** | applies | applies (external = regulatory report) | applies (external = surveillance feed) |
+| **Critical value tier evaluation** | clinical critical ranges | regulatory MCL violation | rarely applies (mostly categorical results); when used, surveillance threshold breach |
+
+### i18n key conventions for domain-aware labels
+
+Rather than swap labels via JavaScript at render time, the spec uses **domain-namespaced i18n keys** where labels differ. The component picks the right key based on `currentDomain`:
+
+```
+label.order.clinician          // CLINICAL: "Ordering Clinician"
+label.order.clinician.env      // ENVIRONMENTAL: "Collector"
+label.order.clinician.vector   // VECTOR: "Field Collector"
+```
+
+When a domain-specific key is missing, the renderer falls back to the unsuffixed key (so untranslated labs continue to function with clinical defaults).
+
+### Components hidden / shown by domain
+
+| Component | CLINICAL | ENVIRONMENTAL | VECTOR |
+|---|---|---|---|
+| PatientBanner | ✓ | hidden — replaced by SiteBanner | hidden — replaced by TrapBanner |
+| SiteBanner | hidden | ✓ | hidden |
+| TrapBanner | hidden | hidden | ✓ |
+| PII masking toggles in toolbar | ✓ | hidden | hidden |
+| Sex column (Validation page) | ✓ | hidden | hidden |
+| Age column (Validation page) | ✓ | hidden | hidden |
+| Demographic Range Tag | ✓ | hidden — replace with "Regulatory Limit" Tag | hidden — replace with "Surveillance Threshold" Tag or category label |
+| Pool composition block (Aliquots) | hidden | hidden | ✓ when sample is a pool |
+| Domain badge | ✓ shows "Clinical" | ✓ shows "Environmental" | ✓ shows "Vector" |
+
+### Migration: lab units gain a domain attribute
+
+The `lab_unit` table already supports a `domain` column in OpenELIS today (or it's a config-time attribute on the unit). v3 requires that this attribute be populated for every lab unit. Default for any unit that lacks the column = `CLINICAL` (matches existing behavior).
+
+### Demo coverage in v3 mockups
+
+The Results Entry v3 mockup and Validation v3 mockup each include:
+- Several `CLINICAL` rows (default — Hematology, Chemistry, Microbiology, Serology)
+- At least 1 `ENVIRONMENTAL` row (Water Quality lab unit, regulatory limit, no patient)
+- At least 1 `VECTOR` row (Mosquito Pool lab unit, pool sample with composition, polymerase result)
+
+Reviewers can toggle the Lab Unit dropdown to see how the page re-renders for each domain.
+
+### Acceptance criteria — cross-domain
+
+- [ ] Lab Unit dropdown options carry a `domain` attribute (`CLINICAL` / `ENVIRONMENTAL` / `VECTOR`)
+- [ ] On Lab Unit selection, the page derives `currentDomain` and renders accordingly
+- [ ] Domain badge displays next to the Lab Unit selector
+- [ ] CLINICAL: full PatientBanner; PII config applies; demographic range Tag shown
+- [ ] ENVIRONMENTAL: SiteBanner replaces PatientBanner; PII config hidden; "Regulatory Limit" Tag replaces demographic Tag where applicable
+- [ ] VECTOR: TrapBanner replaces PatientBanner; PII config hidden; pool composition surfaced when applicable; demographic Tag hidden
+- [ ] Sex / Age columns on Validation page are hidden when domain != CLINICAL
+- [ ] Order Info labels swap per domain via i18n key suffix
+- [ ] "Send with Result" note visibility semantics:
+  - CLINICAL → patient / clinician report
+  - ENVIRONMENTAL → regulatory report
+  - VECTOR → surveillance feed
+- [ ] Critical Notification recipient role list adapts per domain (when GP47 form is enabled per BR-033)
+- [ ] No domain selector at the result level — domain is fixed per Lab Unit
 
 ---
 
@@ -565,7 +669,7 @@ The redesign introduces fields not present in OpenELIS today. Each must be backe
 | New / Extended Field | Today's State | Action Required |
 |---|---|---|
 | `Test.referenceRanges[]` (replaces single `Test.normalRange` + `Test.lowerCritical` / `higherCritical`) | Single range only | **Schema:** New `test_reference_range` table with one row per range variant. Columns: `id`, `test_id`, `age_min`, `age_max`, `sex`, `life_stage`, `normal_low`, `normal_high`, `critical_low`, `critical_high`, `critical_low_msg`, `critical_high_msg`, `valid_low`, `valid_high`, `unit`, `label`, `priority`. `@Audited`. Existing single-range data migrates as one entry with no selection criteria. **Per CLSI EP28-A3c and ISO 15189 §7.5.1.4** (BR-036). |
-| `critical_notification` table | Not present | **Schema:** New `critical_notification` table. Columns: `id`, `analysis_id`, `value`, `recipient`, `recipient_role`, `method`, `read_back_text`, `notified_at`, `first_attempt_successful`, `escalation_log` (JSONB), `additional_notes`, `logged_by`, `logged_at`. `@Audited`. Captures CLSI GP47 structured notification record per critical result (BR-033). |
+| `critical_notification` table (only when `criticalNotification.requireReadBack=ON`) | Not present | **Schema:** New `critical_notification` table — optional, only populated when the site opts in to GP47 documentation. Columns: `id`, `analysis_id`, `alerts_ack_id` (FK to existing Alerts ack record — the GP47 form is a *richer attachment* to the Alerts ack, not a parallel acknowledgment system), `value`, `recipient`, `recipient_role`, `method`, `read_back_text`, `notified_at`, `first_attempt_successful`, `escalation_log` (JSONB), `additional_notes`, `logged_by`, `logged_at`. `@Audited`. Captures CLSI GP47 structured notification record per critical result (BR-033). When the flag is OFF, this table is never written to — the baseline Critical Ack flow continues to satisfy ISO 15189 §7.4.5 via the existing Alerts dashboard. |
 | `aliquot` table | Aliquot tracking exists in `/Aliquot` page; data model exists but not surfaced on Results Entry | **No new schema** if existing aliquot table covers ID, source-sample link, purpose, status, storage, created-by/at, suffix. **API surface required:** `GET /rest/samples/{sampleId}/aliquots`, `POST /rest/samples/{sampleId}/aliquots`, `PATCH /rest/aliquots/{aliquotId}`. (BR-037) |
 | `Test.interpretationOptions[]` | Not present as structured data; some interpretation text in `result_options` for D type | **Schema:** New `test_interpretation` table linked to `test`; columns: code, label, color, range_text, body. `@Audited`. **Follow-up spec required:** Test Catalog Admin page must be extended to manage these rows; until that lands, interpretation options are seeded per-test via SQL migration. |
 | `Test.suggestedInterpretation` (auto) | Not present | **Server logic:** Match entered numeric value against `test_interpretation.range_text` bounds to suggest interpretation. No new schema beyond interpretation table. |
@@ -588,7 +692,7 @@ The redesign introduces fields not present in OpenELIS today. Each must be backe
 | `allowResultRejection` | ON | Whether NCE Disposition includes "Reject result + reason" option (existing, repurposed) |
 | `results.entry.unifiedRoute` | ON for new installs; **OFF** for upgrades during migration | When OFF, legacy six routes remain; when ON, they redirect to `/Results` |
 | `requireReagentLotsForResults` | ON for new ISO-accredited installs; **OFF** for upgrades and non-accredited deployments | When ON, Save is blocked unless at least one reagent lot is selected per ISO 15189 §6.4.4 (BR-034) |
-| `criticalNotification.requireReadBack` | ON | When ON, the structured Critical Communication Form is required (CLSI GP47 / BR-033). When OFF, falls back to single-click ack for legacy parity |
+| `criticalNotification.requireReadBack` | **OFF (all deployments)** | Optional CLSI GP47 structured form (BR-033). When OFF: single-click "I Acknowledge" + Alerts POST satisfies the critical-value gate (baseline path, ISO 15189 §7.4.5 compliant). When ON: structured GP47 form (recipient / role / method / read-back / escalation) replaces the simple ack. Opt-in for CAP-level documentation; not required for baseline ISO compliance. |
 | `useRetroCIStudyForms` | OFF | Render hardcoded RETROCI ARV/EID/VL/Indeterminate forms inside Program Info section (existing) |
 
 ---
@@ -871,16 +975,41 @@ Reads are NOT audited. All `audit_trail` entries auto-capture actor from Spring 
 
 **BR-024 — NCE Disposition is the Only Reject Path:** Result rejection MUST flow through an NCE record. The legacy standalone Reject column is removed. `allowResultRejection=false` hides the "Reject result + reason" option from the NCE Disposition radio group; it does NOT disable the entire NCE flow.
 
-**BR-025 — Critical Acknowledgment → Alerts Dashboard:** Acknowledging a critical value on Results Entry MUST POST to `/rest/alerts/critical-acknowledgment` before the Save action proceeds. The Critical Ack is a hard gate. Retry semantics:
+**BR-025 — Critical Acknowledgment → Alerts Dashboard (Save NEVER blocked):**
 
-| Failure mode | UI behavior | Server behavior |
-|---|---|---|
-| Network error / 5xx | `ActionableNotification kind="error"` toast with `actionButtonLabel="Retry"` + explanatory body ("The Alerts service is unreachable. Your acknowledgment has been queued for replay."). Save remains blocked until ack succeeds OR user explicitly cancels. | Backend queues the ack write to a durable replay queue when the Alerts service is unreachable for > 5 seconds. Replay attempts every 30 s for 10 min, then alerts SysAdmin role users. |
-| 4xx (validation rejection) | Toast `kind="error"` with the server's error message. Save remains blocked. No retry button (user must correct input). | Returns the validation error; does not queue. |
-| Success | Silent — Save proceeds immediately. | Ack written to `critical_acknowledgments` table + linked to `audit_trail` entry `CRITICAL_ACK`. |
-| Timeout > 10 s | Same as Network error. | Same as Network error. |
+**The principle:** A critical value is a patient-safety alert. The system's job is to get that value to the clinical workflow *fast* — to the validator queue, to the patient chart, to the clinician's Notification feed. Blocking the save behind an acknowledgment screen delays the very thing the alert is meant to accelerate. Real-world bench techs "hurry up on the reporting if it's critical" — the design must match that instinct, not fight it.
 
-Audit: Every Critical Ack attempt (success OR failure) writes one row to `audit_trail` with action `CRITICAL_ACK` or `CRITICAL_ACK_FAILED` so the failure mode is itself traceable for compliance review.
+**Save flow on a critical value:**
+1. Tech clicks Save. Save proceeds **immediately** — no acknowledgment prompt, no Alerts POST gate.
+2. Backend persists the result (status → Awaiting Validation), and asynchronously:
+   - POSTs to `/rest/alerts/critical-acknowledgment` to create a **pending-ack task** in the Alerts dashboard with the result reference, value, critical message, and a `pending_since` timestamp.
+   - Writes `CRITICAL_DETECTED` audit entry (auto, server-side).
+   - Marks the result with `criticalAckStatus = "pending"`.
+3. Tech sees a success toast: *"Result saved. Critical value — acknowledgment pending in Alerts dashboard."*
+4. Tech (or any user with `results.modify` + `results.notes.add`) can later click **"Acknowledge critical value"** from any of three surfaces:
+   - The Results Entry row's expanded panel (the critical banner persists on the row until ack'd)
+   - The Alerts dashboard (cross-result task list)
+   - The Validation page's expanded panel (if validator is the one calling the clinician)
+5. Acknowledgment click → write `CRITICAL_ACK` audit entry + `criticalAckStatus = "acknowledged"` + clear the pending task.
+
+**Async failure handling (no impact on Save):**
+- The Alerts POST is fire-and-forget from the user's perspective. The backend queues it for replay if Alerts is unreachable.
+- If the POST fails entirely (5+ minutes of retries), a SysAdmin notification fires; the result still saved correctly and reached the validator.
+- Save was never gated on the Alerts call; the user's workflow is uninterrupted.
+
+**Audit evidence (ISO 15189 §7.4.5 compliance):**
+- `CRITICAL_DETECTED` (auto, on save): timestamp + actor (tech) + value + critical message
+- `CRITICAL_ACK` (later, by whoever ack'd): timestamp + actor + optional notification context
+- The pair of timestamps + actor records is sufficient documented evidence per ISO 15189 §7.4.5. Same as if the ack were synchronous — just decoupled in time.
+
+**What about the GP47 form (BR-033)?**
+When the site has opted into the structured form, it works the same way: the form opens from the critical banner, and the tech can complete it before OR after Save. The form's `alerts_ack_id` links it to the Alerts pending task regardless of order — if completed after Save, it converts the pending task to an acknowledged-with-structured-record state.
+
+**What about results that age in "pending ack" state?**
+The Alerts dashboard surfaces aging unacknowledged criticals. Site config `criticalAck.escalationMinutes` (default 60) determines when an unacknowledged critical escalates to supervisor/lab manager Notifications. This is a Lab Manager admin concern, not a per-result gate.
+
+**Validator-side behavior:**
+The Validation page does NOT block Validate-and-Release based on `criticalAckStatus`. A validator can release a critical result with a pending ack — same rationale: don't slow the clinical chart. The Validation banner shows the ack status read-only so the validator knows whether ack is pending or complete. If pending, the validator can ack from there.
 
 **BR-026 — PII Masking Precedence:** `results.entry.showPatientName` (site-wide override) takes precedence over `PATIENT_DATA_ON_RESULTS_BY_ROLE` (role-based mask). When the site-wide override is ON, the patient name is shown regardless of user role.
 
@@ -902,7 +1031,42 @@ Audit: Every Critical Ack attempt (success OR failure) writes one row to `audit_
 
 **BR-032 — Result Cell Conflict Resolution at NCE Disposition = Refer:** When NCE Disposition is set to "Refer out", the form auto-fills the Referral section with: referral reason = "NCE-driven referral", institute = blank (user must select), test = current test, sent date = today.
 
-**BR-033 — Critical Value Notification Documentation (CLSI GP47):** When a result enters the `critical` range tier, the Save action MUST be gated behind a structured Critical Value Communication Form. The form MUST capture, at minimum: recipient identity, recipient role, communication method, verbatim read-back text, time of notification. When the first notification attempt was not successful (no answer / wrong number / etc.), an Escalation Log MUST be filled with at least one additional attempt record. On successful submission, a `CRITICAL_NOTIFICATION_LOGGED` audit entry is written and Save is unblocked. A single-click acknowledgment without these fields is NOT acceptable for ISO 15189 / CLSI GP47 compliance.
+**BR-033 — Critical Value Notification (Optional CLSI GP47 Upgrade):**
+
+**Scope clarification.** ISO 15189:2022 §7.4.5 (Communication of results) requires that critical results be communicated promptly with documented evidence — but the standard is performance-based, *not* prescriptive about format. The minimum compliant evidence is the existing system: critical flag + tech-authored note + audit trail timestamp + acknowledger + Alerts dashboard linkage (BR-025). That baseline already exists in OpenELIS today and satisfies ISO 15189 §7.4.5 for the majority of accredited labs.
+
+CLSI GP47 (Critical Result Communication) is a **CLSI guideline** — recommended practice, not a regulatory requirement. It's commonly cited by CAP-accredited US hospital labs as the gold standard for read-back / escalation tracking, but most ISO 15189 + WHO + public-health-program deployments do not require it. This BR is therefore positioned as an **optional upgrade**, not a baseline requirement.
+
+**Behavior — baseline (flag OFF, default for everyone):**
+- When the result enters the `critical` tier, the tech sees the existing critical banner.
+- A single "I Acknowledge — clinician notified" button satisfies the ack gate.
+- Click → write `CRITICAL_ACK` audit entry + POST to Alerts dashboard (BR-025), converting the pending task to acknowledged. **Save is independent — the tech may have already saved, or may save after acking; either order is fine.**
+- The tech is encouraged (but not required) to add a Note (any visibility) capturing notification context.
+- This is sufficient for ISO 15189 §7.4.5 evidence.
+
+**Behavior — opt-in (flag ON, `criticalNotification.requireReadBack=true`):**
+- The single-click ack is replaced by the structured Critical Value Communication Form (per §Critical Value Communication Form).
+- Form captures: recipient, role, method, read-back text, time, escalation log.
+- Submit writes both `CRITICAL_ACK` (baseline path) **and** `CRITICAL_NOTIFICATION_LOGGED` (extended path) audit entries.
+- The structured record persists to a new `critical_notification` table that is **linked to the Alerts dashboard ack record via `critical_notification.alerts_ack_id`** — the structured form is a *richer attachment to* the Alerts ack, not a parallel acknowledgment system.
+
+**Defaults:**
+- `criticalNotification.requireReadBack` defaults **OFF** for all new and existing deployments.
+- Labs that want CAP-level read-back tracking (typical US hospital, large reference lab) opt in at the admin level.
+- The baseline behavior covers the long tail of clinical labs, public health programs, and ISO 15189-only deployments.
+
+**No degradation when OFF:** Every critical result still flags, still acks, still writes to Alerts, still produces audit evidence. The flag controls only whether the *extended structured record* is captured.
+
+**Sizing for the range of deployments:**
+
+| Lab profile | Recommended config | What they get |
+|---|---|---|
+| Low-resource / rural / single-tech | Default OFF | Flag + simple ack + Alerts. Minimum overhead. |
+| Public health / PEPFAR / GFTAM | Default OFF | Same baseline + Alerts audit trail. ISO-15189 compliant. |
+| Standard ISO 15189 accredited | Default OFF (most) / ON (subset that wants richer documentation) | Baseline is sufficient for most accreditors. ON-mode for labs whose accreditor specifically asks for read-back tracking. |
+| CAP-accredited US hospital lab | ON | Full GP47 structured form, escalation log, audit-trail-grade evidence. |
+
+**Validator-page interaction (cross-ref Validation v3):** The Validation page does NOT depend on this flag or the `critical_notification` table. Validators see the existing critical flag + notes + audit evidence regardless. If/when a lab has the structured record and a future Validation spec adds a read-only display, it lives behind the same site flag.
 
 **BR-034 — Reagent Lot Capture Required for Save (ISO 15189 §6.4.4):** When the site config `requireReagentLotsForResults` is ON (default ON for new deployments), Save MUST be blocked until the user has selected at least one reagent lot in the Method & Reagents section. The block presents an inline warning ("Reagent lot is required by site configuration for ISO 15189 §6.4.4 traceability."). When the flag is OFF, current optional behavior applies. Migration: existing deployments default OFF for one minor version, then default ON for new installs.
 
@@ -1003,12 +1167,16 @@ The two axes are independent: a tech-authored entry-context note can be either I
 - [ ] History tab shows previous results with delta computation
 - [ ] No other tabs in the expanded panel
 
-### Critical Acknowledgment
-- [ ] Acknowledgment POSTs to `/rest/alerts/critical-acknowledgment` before Save proceeds **[BR-025]**
-- [ ] On network/5xx failure, ActionableNotification with retry button shown; Save blocked **[BR-025]**
-- [ ] Backend queues ack for replay (every 30s for 10min) when Alerts service unreachable >5s **[BR-025]**
-- [ ] On 4xx, error toast shown; Save blocked; no retry button **[BR-025]**
-- [ ] Both success and failure paths write to `audit_trail` (`CRITICAL_ACK` / `CRITICAL_ACK_FAILED`) **[BR-025]**
+### Critical Acknowledgment (Save NEVER blocked)
+- [ ] Saving a critical result proceeds immediately — no acknowledgment prompt, no Alerts POST gate **[BR-025]**
+- [ ] Backend asynchronously POSTs to `/rest/alerts/critical-acknowledgment` to create a pending-ack task + writes `CRITICAL_DETECTED` audit + marks `criticalAckStatus=pending` **[BR-025]**
+- [ ] Save success toast says: "Result saved. Critical value — acknowledgment pending in Alerts dashboard." **[BR-025]**
+- [ ] Tech, supervisor, or designated user can later acknowledge from Results Entry row, Alerts dashboard, OR Validation page **[BR-025]**
+- [ ] Acknowledgment click writes `CRITICAL_ACK` audit entry + sets `criticalAckStatus=acknowledged` + clears pending task **[BR-025]**
+- [ ] Async Alerts POST failure retries server-side; SysAdmin notified after sustained failure. Result save itself is unaffected **[BR-025]**
+- [ ] Audit evidence for ISO 15189 §7.4.5 is the timestamp pair `CRITICAL_DETECTED` (save) + `CRITICAL_ACK` (later) with actors and optional context **[BR-025]**
+- [ ] Aging unacknowledged criticals escalate via Alerts dashboard per site config `criticalAck.escalationMinutes` (default 60) **[BR-025]**
+- [ ] Validation page does NOT block release on `criticalAckStatus=pending` — validator can release; ack stays as a follow-up task **[BR-025]**
 
 ### Inline NCE Form
 - [ ] Severity radios with descriptions (Critical/Major/Minor)
@@ -1037,13 +1205,22 @@ The two axes are independent: a tech-authored entry-context note can be either I
 - [ ] When NCE Disposition is set to "Refer out", Referral section opens automatically with reason="NCE-driven referral" pre-filled and Refer checkbox checked **[BR-032]**
 - [ ] Institute field remains unselected — user must choose
 
-### Critical Value Communication Form (ISO HIGH A1 / CLSI GP47)
-- [ ] When result enters critical tier, "Open Notification Form" button replaces single-click "I Acknowledge" **[BR-033]**
+### Critical Value Acknowledgment (Baseline — flag OFF, default)
+- [ ] When result enters critical tier, the critical banner shows a single "I Acknowledge — clinician notified" button **[BR-033]**
+- [ ] Click → writes `CRITICAL_ACK` audit + POSTs to Alerts (BR-025) — **Save is independent** and may have already happened **[BR-033]**
+- [ ] Tech is encouraged but not required to add a Note (any visibility) capturing notification context **[BR-033]**
+- [ ] This is the default behavior for all new and existing deployments **[BR-033]**
+
+### Critical Value Communication Form (Optional — flag ON)
+*Acceptance criteria below apply only when `criticalNotification.requireReadBack` is ON at the site level.*
+- [ ] When the flag is ON and result enters critical tier, "Open Notification Form" button replaces the single-click ack **[BR-033]**
 - [ ] Form requires: Recipient, Recipient Role, Method, Read-back text, Time of notification **[BR-033]**
 - [ ] When First-attempt-successful=No, Escalation Log is required with at least one entry **[BR-033]**
-- [ ] Submit triggers POST to `/rest/alerts/critical-acknowledgment` with the full structured payload + writes `CRITICAL_NOTIFICATION_LOGGED` to audit_trail **[BR-033]**
-- [ ] After successful log, form collapses to read-only summary card; Save unblocks **[BR-033]**
+- [ ] Submit triggers POST to `/rest/alerts/critical-acknowledgment` + writes BOTH `CRITICAL_ACK` (baseline) AND `CRITICAL_NOTIFICATION_LOGGED` (extended) audit entries **[BR-033]**
+- [ ] Structured record persists to `critical_notification` table with `alerts_ack_id` FK to the Alerts ack — single acknowledgment system, GP47 form is a richer attachment **[BR-033]**
+- [ ] After successful log, form collapses to read-only summary card. **Save is independent** of the form — tech may have already saved, or save after; either order is valid **[BR-033]**
 - [ ] Editing a logged notification requires Validator bundle and creates a modification-history entry **[BR-033, BR-035]**
+- [ ] When the flag is OFF (default), this UI does not appear; baseline single-click ack applies instead
 
 ### Reagent Lot Capture Gate (ISO HIGH A2 / ISO 15189 §6.4.4)
 - [ ] When site config `requireReagentLotsForResults` is ON, Save is blocked until at least one reagent lot is selected **[BR-034]**

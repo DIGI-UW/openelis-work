@@ -121,13 +121,23 @@ function genNceNumber() {
 // ---------------------------------------------------------------------------
 // Mock data — mixed result types so the polymorphic cell is exercised
 // ---------------------------------------------------------------------------
+// Each lab unit carries a domain attribute (CLINICAL / ENVIRONMENTAL / VECTOR).
+// Lab Unit selection drives currentDomain — no per-result domain branching needed.
 const LAB_UNITS = [
-  { id: "",            nameKey: "labUnit.placeholder",   defaultName: "Select Test Unit…" },
-  { id: "hematology",  nameKey: "labUnit.hematology",    defaultName: "Hematology" },
-  { id: "chemistry",   nameKey: "labUnit.chemistry",     defaultName: "Chemistry" },
-  { id: "microbiology",nameKey: "labUnit.microbiology",  defaultName: "Microbiology" },
-  { id: "serology",    nameKey: "labUnit.serology",      defaultName: "Serology-Immunology" },
+  { id: "",            nameKey: "labUnit.placeholder",   defaultName: "Select Test Unit…",       domain: null },
+  { id: "hematology",  nameKey: "labUnit.hematology",    defaultName: "Hematology",              domain: "CLINICAL" },
+  { id: "chemistry",   nameKey: "labUnit.chemistry",     defaultName: "Chemistry",               domain: "CLINICAL" },
+  { id: "microbiology",nameKey: "labUnit.microbiology",  defaultName: "Microbiology",            domain: "CLINICAL" },
+  { id: "serology",    nameKey: "labUnit.serology",      defaultName: "Serology-Immunology",     domain: "CLINICAL" },
+  { id: "water-quality", nameKey: "labUnit.waterQuality", defaultName: "Water Quality",          domain: "ENVIRONMENTAL" },
+  { id: "vector",      nameKey: "labUnit.vector",        defaultName: "Vector Surveillance",     domain: "VECTOR" },
 ];
+
+const DOMAIN_BADGE = {
+  CLINICAL:      { label: "Clinical",      kind: "blue" },
+  ENVIRONMENTAL: { label: "Environmental", kind: "green" },
+  VECTOR:        { label: "Vector",        kind: "purple" },
+};
 
 const METHODS_LOOKUP = [
   { id: "MAN",     label: "Manual" },
@@ -419,6 +429,157 @@ const INITIAL_RESULTS = [
       clinicalHistory: "Recurrent abdominal pain, recent travel to East Africa",
     },
     qcData: { overall: "none", controls: [], analyzerStatus: "Manual entry", lastCalibrated: "—" },
+    interpretationOptions: [],
+    suggestedInterpretation: null,
+    deltaCheck: null,
+    referral: null,
+    nce: null,
+    isEqaSample: false,
+  },
+  // ENVIRONMENTAL demo row — Water Quality lab unit
+  // Domain inferred from labUnit attribute; "patient" block becomes Site block.
+  // No PII applies; demographic-aware range Tag is replaced with regulatory-limit Tag.
+  {
+    id: "5",
+    domain: "ENVIRONMENTAL",
+    labNumber: "ENV01260000000000004",
+    sequenceNumber: "001-1",
+    // For env, "patient" carries the SITE identifier so existing components work
+    patient: { name: "Mwanza Water Tap A-14", id: "WQ-2026-091", sex: "—", dob: "—", nationalId: null },
+    site: { siteName: "Mwanza Water Tap A-14", gps: "−2.5147°S 32.9175°E", source: "Drinking water — chlorinated", collectionConditions: "10 °C ambient · post-flush 3 min" },
+    testDate: "12/18/2025", testTime: "08:00",
+    testName: "E. coli (MPN/100 mL)", testCode: "LOINC 41863-2",
+    sampleType: "Water (drinking)",
+    normalRange: "0 (regulatory)", unit: "MPN/100 mL",
+    rangeBounds: {
+      normal:   { low: 0, high: 0 },
+      critical: { low: -1, high: 1, lowMsg: null, highMsg: "Regulatory MCL violation — E. coli detected in drinking water (WHO + EPA: 0 MPN/100 mL)" },
+      valid:    { low: 0, high: 10000 },
+    },
+    selectedRangeLabel: null, // demographic-aware label hidden; regulatory limit shown via separate Tag (documented in FRS)
+    regulatoryLimit: "WHO/EPA: 0 MPN/100 mL (drinking water)",
+    resultType: "N", result: "", currentResult: "",
+    status: "pending",
+    method: { id: "MAN", source: "manual" }, analyzer: null, analyzerResult: "MANUAL — Membrane filtration",
+    flags: [], nonconforming: false,
+    program: { name: "Mwanza Water Quality Surveillance — Q4 2025", priority: "STANDARD",
+      fields: [
+        { label: "Surveillance Program",    value: "Lake Victoria Drinking Water Monitoring", type: "text" },
+        { label: "Site ID",                 value: "MWZ-WQ-A14", type: "text" },
+        { label: "Utility Operator",        value: "Mwanza Urban Water Authority (MWAUWASA)", type: "text" },
+        { label: "Sampling Cycle",          value: "Quarterly — Q4 2025", type: "text" },
+        { label: "Regulatory Reference",    value: "WHO Guidelines for Drinking-water Quality 4th ed. §11.2; EPA SDWA §141.21", type: "longtext" },
+        { label: "Chain of Custody Form",   value: "COC-MWZ-2025-Q4-091", type: "text" },
+      ],
+    },
+    storage: { path: "Refrigerator — Env Samples → Shelf 1 → Box 2", coords: "Pos A-03", condition: "2–8 °C" },
+    previousResults: [
+      { date: "09/15/2025", value: "0", unit: "MPN/100 mL", delta: null },
+      { date: "06/15/2025", value: "0", unit: "MPN/100 mL", delta: null },
+    ],
+    notes: [], pastNotesLegacy: "",
+    attachments: [{ id: 1, name: "ChainOfCustody-MWZ-Q4-091.pdf", size: "188 KB", uploadedBy: "Field Tech (J. Mukasa)", uploadedAt: "12/18/2025 07:45", source: "order" }],
+    orderInfo: {
+      clinician: "J. Mukasa (Field Sampling Officer)", clinicianPhone: "+255 28 250 0000",
+      department: "Environmental Surveillance",
+      priority: "Routine",
+      collectionDate: "12/18/2025 07:30", receivedDate: "12/18/2025 08:00",
+      // Domain-aware: labels swap per FRS §Cross-Domain Support
+      // (Clinical labels reused here for v3 mockup demonstration; production swaps via i18n key suffix)
+      clinicalHistory: "Routine quarterly drinking-water surveillance; post-chlorination tap. Last result: 0 MPN.",
+      diagnosis: "—",
+      fastingStatus: "—",
+    },
+    qcData: {
+      overall: "pass",
+      controls: [{ level: "Positive Control", value: ">200 MPN", expected: "Positive", status: "pass" },
+                 { level: "Negative Control", value: "0 MPN", expected: "Negative", status: "pass" }],
+      analyzerStatus: "Manual — membrane filtration", lastCalibrated: "12/18/2025 06:30",
+    },
+    interpretationOptions: [],
+    suggestedInterpretation: null,
+    deltaCheck: null,
+    referral: null,
+    nce: null,
+    isEqaSample: false,
+  },
+  // VECTOR demo row — Vector Surveillance lab unit
+  // Pool sample (5 mosquitoes); Aliquots section shows pool composition + deconvolution
+  // aliquots created when pool tests positive (per memory project_vector_referral_deconvolution).
+  {
+    id: "6",
+    domain: "VECTOR",
+    labNumber: "VEC01260000000000005",
+    sequenceNumber: "012-1",
+    // For vector, "patient" carries the TRAP identifier
+    patient: { name: "TRAP-2026-091 / An. gambiae × 5", id: "TRAP-2026-091", sex: "—", dob: "—", nationalId: null },
+    trap: { trapId: "TRAP-2026-091", gps: "−2.4128°S 32.8521°E", trapType: "CDC light trap",
+            setDate: "12/16/2025 18:30", collectionDate: "12/17/2025 06:15",
+            habitatNotes: "Rural village fringe; standing water 50m; lights on overnight" },
+    testDate: "12/18/2025", testTime: "10:00",
+    testName: "Plasmodium falciparum (pool PCR)", testCode: "LOINC LP14249-0",
+    sampleType: "Mosquito pool (5 specimens)",
+    normalRange: "—", unit: "",
+    rangeBounds: null, selectedRangeLabel: null,
+    resultType: "D",
+    dictionaryOptions: [
+      { id: "PF_NEG", label: "Negative" },
+      { id: "PF_POS", label: "Positive (Plasmodium falciparum detected)" },
+      { id: "PF_INV", label: "Invalid (control failure)" },
+    ],
+    result: "", currentResult: "",
+    status: "pending",
+    method: { id: "AUTO", source: "analyzer" }, analyzer: "CFX-96-VEC",
+    analyzerResult: "Bio-Rad CFX96 (qPCR)",
+    flags: [], nonconforming: false,
+    program: { name: "Lake Zone Malaria Vector Surveillance — IRS Cycle 4", priority: "STANDARD",
+      fields: [
+        { label: "Surveillance Program",    value: "Lake Zone Malaria Vector Monitoring", type: "text" },
+        { label: "Program Officer",         value: "Dr. R. Mwita (National Malaria Control Programme)", type: "text" },
+        { label: "Surveillance Cycle",      value: "IRS Cycle 4 (Q4 2025)", type: "text" },
+        { label: "Mosquito Species (ID)",   value: "Anopheles gambiae s.l. (morphological ID; species confirmation pending)", type: "text" },
+        { label: "Pool Size",               value: "5 specimens (standard pool size for An. gambiae malaria screen)", type: "text" },
+        { label: "Trap Set Datetime",       value: "12/16/2025 18:30", type: "datetime" },
+        { label: "Trap Collection Datetime",value: "12/17/2025 06:15", type: "datetime" },
+        { label: "Habitat / Ecology Notes", value: "Rural village fringe; standing water 50m from trap; LLIN coverage ~75% per last entomological survey", type: "longtext" },
+      ],
+    },
+    storage: { path: "Freezer C (Vector) → Rack 1 → Shelf 2 → Box 7", coords: "Pos B-08", condition: "−80 °C" },
+    // Aliquots from this pool sample (LABNO.X-Y suffix). For vector pools, aliquots are
+    // pre-created for deconvolution: if pool tests positive, individual-mosquito tests
+    // are run from the retained aliquots to identify which specimen(s) were infected.
+    aliquots: [
+      { id: "VEC01260000000000005-012.1", purpose: "Retention", linkedTest: "—",
+        status: "In-Storage", createdAt: "12/17/2025 11:00", createdBy: "Field Tech",
+        storage: "Freezer C → Rack 1 → Shelf 2 → Box 7 (Pos B-09)" },
+      { id: "VEC01260000000000005-012.2", purpose: "Pool", linkedTest: "P. falciparum pool PCR",
+        status: "Used", createdAt: "12/17/2025 11:00", createdBy: "Field Tech", storage: "—" },
+    ],
+    sample: { isPool: true, poolMembers: ["VEC01260000000000005-012.1-A","-012.1-B","-012.1-C","-012.1-D","-012.1-E"] },
+    previousResults: [],
+    notes: [
+      { id: 1, date: "12/18/2025 09:55", author: "M. Bahari (Vector Lab)",
+        context: "entry", visibility: "internal",
+        body: "Pool extracted using standard CTAB protocol. RNA integrity confirmed by gel." },
+    ],
+    pastNotesLegacy: "",
+    attachments: [{ id: 1, name: "Trap-photo-TRAP-2026-091.jpg", size: "342 KB", uploadedBy: "Field Tech", uploadedAt: "12/17/2025 06:15", source: "order" }],
+    orderInfo: {
+      clinician: "M. Bahari (Field Vector Collector)", clinicianPhone: "+255 28 250 0099",
+      department: "Vector Surveillance Lab",
+      priority: "Routine",
+      collectionDate: "12/17/2025 06:15", receivedDate: "12/17/2025 11:00",
+      clinicalHistory: "Surveillance cycle 4 routine pool. Site has historical Pf positivity ~3% (2024 data).",
+      diagnosis: "—", fastingStatus: "—",
+    },
+    qcData: {
+      overall: "pass",
+      controls: [
+        { level: "Pos Ctrl (Pf DNA)", value: "Ct 28.4", expected: "Ct 26-30", status: "pass" },
+        { level: "Neg Ctrl (NTC)",     value: "No amp",  expected: "No amp",  status: "pass" },
+      ],
+      analyzerStatus: "Online", lastCalibrated: "12/01/2025",
+    },
     interpretationOptions: [],
     suggestedInterpretation: null,
     deltaCheck: null,
@@ -2046,7 +2207,7 @@ const PANEL_TABS = [
   { key: "history", label: "History", Icon: History },
 ];
 
-function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true }) {
+function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true, requireReadBack = false }) {
   const [activeTab, setActiveTab]           = useState("qaqc");
   const [resultValue, setResultValue]       = useState(result.result);
   const [showNceForm, setShowNceForm]       = useState(false);
@@ -2071,8 +2232,12 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true 
   const noteRequired = isModification && modifyConfirmed;
   // BR-034: reagent lot required by site config (ISO 15189 §6.4.4)
   const reagentGateOk = !requireReagentLots || reagentLotSelected;
+  // BR-025 (revised): critical acknowledgment NEVER blocks Save. Saving a critical
+  // result fires an Alerts pending-ack task; the tech (or whoever's assigned) acks
+  // later from Results Entry, Alerts dashboard, or Validation. Blocking the save
+  // works against patient safety — the whole point of the critical alert is to
+  // accelerate the result reaching the clinical workflow.
   const canSave      = hasValue
-    && (!isCritical || criticalAcknowledged)
     && (!isReleasedResult || modifyConfirmed)
     && (!noteRequired || modificationNote.trim() !== "")
     && reagentGateOk;
@@ -2178,8 +2343,8 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true 
               !hasValue                                  ? t("title.save.missingValue","Enter a result value to save")
               : isReleasedResult && !modifyConfirmed     ? t("title.save.confirmRelease","Confirm the modification warning above before saving")
               : noteRequired && !modificationNote.trim() ? t("title.save.missingReason","A reason for modification is required")
-              : isCritical && !criticalAcknowledged      ? t("title.save.ackCritical","Complete the Critical Notification Form before saving")
               : !reagentGateOk                            ? t("warn.reagent.required","A reagent lot is required by site configuration (ISO 15189 §6.4.4 traceability). Select a lot to enable Save.")
+              : isCritical && !criticalAcknowledged      ? t("title.save.criticalPending","Saves now — critical-value acknowledgment will be a pending task in Alerts.")
               : t("title.save.esig","Save will prompt for e-signature")
             }
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -2216,14 +2381,36 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true 
         </div>
       )}
 
-      {/* Critical value notification — CLSI GP47 structured form */}
-      {isCritical && !criticalAcknowledged && !showCriticalForm && (
+      {/* Critical value banner — BR-025 + BR-033 (revised). SAVE IS NOT BLOCKED.
+          Saving fires an Alerts pending-ack task; the tech (or whoever's assigned)
+          acknowledges later from Results Entry, Alerts dashboard, or Validation.
+          The banner persists on the row until acknowledged.
+
+          Default (flag OFF): "Acknowledge — clinician notified" button stays alongside Save.
+          Opt-in (flag ON): "Open Notification Form" button (structured GP47 record).
+          Either way, Save works immediately — both flows are parallel to Save, not gating. */}
+      {isCritical && !criticalAcknowledged && !showCriticalForm && !requireReadBack && (
         <div className="flex items-start gap-3 px-4 py-3 bg-orange-50 border-b-2 border-orange-500">
           <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <div className="font-semibold text-orange-900 text-sm">{t("heading.critical","Critical Value — Physician Notification Required")}</div>
             <div className="text-xs text-orange-800 mt-0.5">
-              {criticalMsg}. {t("message.critical.structured","Per CLSI GP47 and ISO 15189 §7.5.1.4, the responsible clinician must be notified and the notification documented with verbatim read-back before this result can be saved.")}
+              {criticalMsg}. {t("message.critical.baseline","Save immediately to get this result to the validator + chart — the system will track acknowledgment as a pending task in Alerts. Acknowledge after notifying the clinician, anytime from this row, the Alerts dashboard, or the Validation page.")}
+            </div>
+          </div>
+          <button onClick={() => setCriticalAcknowledged(true)}
+            className="px-3 py-2 bg-orange-600 text-white text-xs font-semibold hover:bg-orange-700 flex-shrink-0 whitespace-nowrap rounded-sm">
+            {t("button.critical.ack","Acknowledge — clinician notified")}
+          </button>
+        </div>
+      )}
+      {isCritical && !criticalAcknowledged && !showCriticalForm && requireReadBack && (
+        <div className="flex items-start gap-3 px-4 py-3 bg-orange-50 border-b-2 border-orange-500">
+          <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <div className="font-semibold text-orange-900 text-sm">{t("heading.critical","Critical Value — Physician Notification Required")}</div>
+            <div className="text-xs text-orange-800 mt-0.5">
+              {criticalMsg}. {t("message.critical.structured","Save immediately to get this result to the validator. Per site policy (CAP-level documentation), also capture a structured CLSI GP47 record with verbatim read-back — can be completed alongside or after Save.")}
             </div>
           </div>
           <button onClick={() => setShowCriticalForm(true)}
@@ -2232,7 +2419,7 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true 
           </button>
         </div>
       )}
-      {isCritical && showCriticalForm && !criticalAcknowledged && (
+      {isCritical && showCriticalForm && !criticalAcknowledged && requireReadBack && (
         <CriticalNotificationForm
           result={result}
           criticalMsg={criticalMsg}
@@ -2244,6 +2431,13 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true 
           }}
           onCancel={() => setShowCriticalForm(false)}
         />
+      )}
+      {/* Baseline-ack confirmation (no structured record captured) */}
+      {isCritical && criticalAcknowledged && !criticalNotificationRecord && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 border-b border-orange-200 text-xs text-orange-700">
+          <Check className="w-3.5 h-3.5 text-orange-600 flex-shrink-0" />
+          {t("message.critical.ack.baseline","Critical value acknowledged — logged to Alerts dashboard. Pending task cleared.")}
+        </div>
       )}
       {isCritical && criticalAcknowledged && criticalNotificationRecord && (
         <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 border-b border-orange-200 text-xs text-orange-700">
@@ -2406,6 +2600,11 @@ export default function ResultsPageRedesign() {
   const [userHasValidatorPerm, setUserHasValidatorPerm] = useState(true); // current user has Validator bundle
   // BR-034: requireReagentLotsForResults site config (default ON for ISO-accredited labs)
   const [requireReagentLots, setRequireReagentLots] = useState(true);
+  // BR-033 (revised): criticalNotification.requireReadBack — OPTIONAL CLSI GP47 upgrade.
+  // Default OFF for all deployments. Baseline ISO 15189 §7.4.5 compliance comes from the
+  // existing flag + simple ack + Alerts dashboard linkage (BR-025) — no structured form needed.
+  // Opt-in only for labs that want CAP-level read-back tracking.
+  const [requireReadBack, setRequireReadBack] = useState(false);
   // Workplan deep-link source
   const [workplanSource, setWorkplanSource] = useState(null);
   // Server-side pagination indicator (stub)
@@ -2470,11 +2669,19 @@ export default function ResultsPageRedesign() {
     const reflexes = prevResult?.testName?.toLowerCase().includes("glucose") ? [`${prevResult.labNumber}-2`] : [];
     const calculations = prevResult?.testName?.toLowerCase().includes("hemoglobin") ? ["MCH", "MCHC"] : [];
 
+    // BR-025 (revised): if critical and not yet acknowledged, save still proceeds
+    // and the toast notes the pending-ack task in Alerts.
+    const wasCriticalTier = evaluateResult(value, prevResult?.rangeBounds) === "critical";
+    const criticalAckPending = wasCriticalTier; // would consult result.criticalAckStatus in production
+    const baseMessage = isModification
+      ? t("toast.modified","Result modified and returned to Validation queue.")
+      : t("toast.saved","Result saved and queued for validation.");
+    const message = criticalAckPending
+      ? `${baseMessage} ${t("toast.criticalAckPending","Critical value — acknowledgment pending in Alerts dashboard.")}`
+      : baseMessage;
     addToast(
-      isModification
-        ? t("toast.modified","Result modified and returned to Validation queue.")
-        : t("toast.saved","Result saved and queued for validation."),
-      "success",
+      message,
+      criticalAckPending ? "warning" : "success",
       { reflexes, calculations, notifyValidators: isStat }
     );
     setEsigPayload(null);
@@ -2558,6 +2765,15 @@ export default function ResultsPageRedesign() {
             </button>
           </span>
           <span className="flex items-center gap-2 px-3 py-1 bg-white border border-blue-200 rounded text-gray-600">
+            <span className="font-semibold text-gray-500 uppercase tracking-wide text-xs">CLSI GP47 read-back?</span>
+            <span className="text-gray-700">criticalNotification.requireReadBack</span>
+            <button onClick={() => setRequireReadBack(v => !v)}
+              className={`relative inline-flex h-4 w-8 cursor-pointer rounded-full border-2 border-transparent ${requireReadBack ? "bg-orange-600" : "bg-gray-300"}`}>
+              <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow ${requireReadBack ? "translate-x-4" : "translate-x-0"}`} />
+            </button>
+            <span className={requireReadBack ? "text-orange-700 font-medium" : "text-gray-400"}>{requireReadBack ? "ON (CAP-level)" : "OFF (baseline)"}</span>
+          </span>
+          <span className="flex items-center gap-2 px-3 py-1 bg-white border border-blue-200 rounded text-gray-600">
             <span className="font-semibold text-gray-500 uppercase tracking-wide text-xs">Require reagent lot?</span>
             <button onClick={() => setRequireReagentLots(v => !v)}
               className={`relative inline-flex h-4 w-8 cursor-pointer rounded-full border-2 border-transparent ${requireReagentLots ? "bg-amber-600" : "bg-gray-300"}`}>
@@ -2623,6 +2839,21 @@ export default function ResultsPageRedesign() {
               {LAB_UNITS.map(u => <option key={u.id} value={u.id}>{t(u.nameKey, u.defaultName)}</option>)}
             </select>
           </div>
+
+          {/* Domain badge — derived from selected Lab Unit (CLINICAL / ENVIRONMENTAL / VECTOR) */}
+          {(() => {
+            const selectedUnit = LAB_UNITS.find(u => u.id === labUnit);
+            if (!selectedUnit?.domain) return null;
+            const cfg = DOMAIN_BADGE[selectedUnit.domain];
+            return (
+              <div className="flex flex-col gap-1">
+                <div className="text-xs text-gray-500">{t("label.domain","Domain")}</div>
+                <Tag kind={cfg.kind} title={t("help.domain","Domain inferred from the selected Lab Unit. Cannot be changed per-result.")}>
+                  {cfg.label}
+                </Tag>
+              </div>
+            );
+          })()}
 
           {["Date From", "Date To"].map(lbl => (
             <div key={lbl} className="min-w-36">
@@ -2890,6 +3121,7 @@ export default function ResultsPageRedesign() {
                           onSave={handleSaveInitiate}
                           onNceSubmit={handleNceSubmit}
                           requireReagentLots={requireReagentLots}
+                          requireReadBack={requireReadBack}
                         />
                       </td>
                     </tr>
