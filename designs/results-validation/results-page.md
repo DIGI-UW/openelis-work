@@ -910,6 +910,27 @@ Audit: Every Critical Ack attempt (success OR failure) writes one row to `audit_
 
 **BR-036 — Demographic-Aware Reference Range Selection (CLSI EP28-A3c):** Each `Test` MAY have multiple `referenceRanges[]` entries differentiated by `ageMin`, `ageMax`, `sex`, and `lifeStage` selection criteria. At result expansion, the system MUST select the **most specific** matching range (highest count of matching non-null selection criteria), with ties broken by Test Catalog ordering. When no range matches the patient's demographics at sample collection date, the system MUST fall back to the lowest-priority "default" range AND display a warning Tag ("No reference range for this demographic — using default"). The selected range's label MUST be visible to the tech via a Tag next to the displayed range; a Popover on the Tag MUST show the selection criteria and list other configured ranges.
 
+**BR-038 — Note Model: Visibility × Context (dual axis):** Every note on a result carries two independent attributes:
+
+| Axis | Values | Meaning |
+|---|---|---|
+| **`note.visibility`** | `internal` (default) / `external` | `external` notes appear on the patient / clinician report. `internal` notes are in-lab-only. |
+| **`note.context`** | `entry` / `modification` / `validation` | Workflow stage when the note was authored. Drives display badge but does NOT determine visibility. |
+
+The two axes are independent: a tech-authored entry-context note can be either In Lab Only OR Send with Result, at the tech's discretion. The "Add Note" form on the Results Entry page presents a visibility radio (default `internal`) so the tech explicitly chooses whether the note flows to the patient report. The display shows both badges (context + visibility) so anyone reading the note knows where it ends up.
+
+**Audit:** When a note's `visibility` is `external`, the `NOTE_ADDED` audit_trail entry MUST include `visibility: "external"` in the payload. Changing visibility on an existing note is treated as a state change and produces a separate `NOTE_VISIBILITY_CHANGED` audit entry.
+
+**Patient report rendering:** Downstream patient/clinician report generation filters by `visibility === "external"`. Notes with `visibility=internal` never reach the report regardless of context. This is the single decision point for patient-report inclusion — context (entry / modification / validation) is metadata, not a gating signal.
+
+**Migration:** Legacy `note.type` field aliases:
+- `note.type === "internal"` → `{ visibility: "internal", context: "entry" }`
+- `note.type === "external"` → `{ visibility: "external", context: "entry" }`
+- `note.type === "modification"` → `{ visibility: "internal", context: "modification" }`
+- `note.type === "validation"` (only appears in Validation page data, but supported here for cross-page consistency) → `{ visibility: "internal", context: "validation" }`
+
+---
+
 **BR-037 — Aliquot Lifecycle (Vector pool deconvolution + general send-out):** An aliquot derived from a sample MUST inherit the source sample's accession with a suffix (`LABNO.X-Y` where X is the source ordinal and Y is the aliquot ordinal). Aliquots have an independent status lifecycle (Created / In-Storage / Sent / Used / Destroyed) tracked separately from the source sample. Creating an aliquot for a Test purpose MUST create a new analysis row linked to the aliquot; creating an aliquot for Retention or Send-out MUST NOT create new test rows. Aliquot creation from Results Entry requires Analyst OR SampleReception bundle. Destroy / mark-used actions require Analyst.
 
 ---
