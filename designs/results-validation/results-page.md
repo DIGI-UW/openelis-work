@@ -565,7 +565,7 @@ The redesign introduces fields not present in OpenELIS today. Each must be backe
 | New / Extended Field | Today's State | Action Required |
 |---|---|---|
 | `Test.referenceRanges[]` (replaces single `Test.normalRange` + `Test.lowerCritical` / `higherCritical`) | Single range only | **Schema:** New `test_reference_range` table with one row per range variant. Columns: `id`, `test_id`, `age_min`, `age_max`, `sex`, `life_stage`, `normal_low`, `normal_high`, `critical_low`, `critical_high`, `critical_low_msg`, `critical_high_msg`, `valid_low`, `valid_high`, `unit`, `label`, `priority`. `@Audited`. Existing single-range data migrates as one entry with no selection criteria. **Per CLSI EP28-A3c and ISO 15189 §7.5.1.4** (BR-036). |
-| `critical_notification` table | Not present | **Schema:** New `critical_notification` table. Columns: `id`, `analysis_id`, `value`, `recipient`, `recipient_role`, `method`, `read_back_text`, `notified_at`, `first_attempt_successful`, `escalation_log` (JSONB), `additional_notes`, `logged_by`, `logged_at`. `@Audited`. Captures CLSI GP47 structured notification record per critical result (BR-033). |
+| `critical_notification` table (only when `criticalNotification.requireReadBack=ON`) | Not present | **Schema:** New `critical_notification` table — optional, only populated when the site opts in to GP47 documentation. Columns: `id`, `analysis_id`, `alerts_ack_id` (FK to existing Alerts ack record — the GP47 form is a *richer attachment* to the Alerts ack, not a parallel acknowledgment system), `value`, `recipient`, `recipient_role`, `method`, `read_back_text`, `notified_at`, `first_attempt_successful`, `escalation_log` (JSONB), `additional_notes`, `logged_by`, `logged_at`. `@Audited`. Captures CLSI GP47 structured notification record per critical result (BR-033). When the flag is OFF, this table is never written to — the baseline Critical Ack flow continues to satisfy ISO 15189 §7.4.5 via the existing Alerts dashboard. |
 | `aliquot` table | Aliquot tracking exists in `/Aliquot` page; data model exists but not surfaced on Results Entry | **No new schema** if existing aliquot table covers ID, source-sample link, purpose, status, storage, created-by/at, suffix. **API surface required:** `GET /rest/samples/{sampleId}/aliquots`, `POST /rest/samples/{sampleId}/aliquots`, `PATCH /rest/aliquots/{aliquotId}`. (BR-037) |
 | `Test.interpretationOptions[]` | Not present as structured data; some interpretation text in `result_options` for D type | **Schema:** New `test_interpretation` table linked to `test`; columns: code, label, color, range_text, body. `@Audited`. **Follow-up spec required:** Test Catalog Admin page must be extended to manage these rows; until that lands, interpretation options are seeded per-test via SQL migration. |
 | `Test.suggestedInterpretation` (auto) | Not present | **Server logic:** Match entered numeric value against `test_interpretation.range_text` bounds to suggest interpretation. No new schema beyond interpretation table. |
@@ -588,7 +588,7 @@ The redesign introduces fields not present in OpenELIS today. Each must be backe
 | `allowResultRejection` | ON | Whether NCE Disposition includes "Reject result + reason" option (existing, repurposed) |
 | `results.entry.unifiedRoute` | ON for new installs; **OFF** for upgrades during migration | When OFF, legacy six routes remain; when ON, they redirect to `/Results` |
 | `requireReagentLotsForResults` | ON for new ISO-accredited installs; **OFF** for upgrades and non-accredited deployments | When ON, Save is blocked unless at least one reagent lot is selected per ISO 15189 §6.4.4 (BR-034) |
-| `criticalNotification.requireReadBack` | ON | When ON, the structured Critical Communication Form is required (CLSI GP47 / BR-033). When OFF, falls back to single-click ack for legacy parity |
+| `criticalNotification.requireReadBack` | **OFF (all deployments)** | Optional CLSI GP47 structured form (BR-033). When OFF: single-click "I Acknowledge" + Alerts POST satisfies the critical-value gate (baseline path, ISO 15189 §7.4.5 compliant). When ON: structured GP47 form (recipient / role / method / read-back / escalation) replaces the simple ack. Opt-in for CAP-level documentation; not required for baseline ISO compliance. |
 | `useRetroCIStudyForms` | OFF | Render hardcoded RETROCI ARV/EID/VL/Indeterminate forms inside Program Info section (existing) |
 
 ---
@@ -902,7 +902,42 @@ Audit: Every Critical Ack attempt (success OR failure) writes one row to `audit_
 
 **BR-032 — Result Cell Conflict Resolution at NCE Disposition = Refer:** When NCE Disposition is set to "Refer out", the form auto-fills the Referral section with: referral reason = "NCE-driven referral", institute = blank (user must select), test = current test, sent date = today.
 
-**BR-033 — Critical Value Notification Documentation (CLSI GP47):** When a result enters the `critical` range tier, the Save action MUST be gated behind a structured Critical Value Communication Form. The form MUST capture, at minimum: recipient identity, recipient role, communication method, verbatim read-back text, time of notification. When the first notification attempt was not successful (no answer / wrong number / etc.), an Escalation Log MUST be filled with at least one additional attempt record. On successful submission, a `CRITICAL_NOTIFICATION_LOGGED` audit entry is written and Save is unblocked. A single-click acknowledgment without these fields is NOT acceptable for ISO 15189 / CLSI GP47 compliance.
+**BR-033 — Critical Value Notification (Optional CLSI GP47 Upgrade):**
+
+**Scope clarification.** ISO 15189:2022 §7.4.5 (Communication of results) requires that critical results be communicated promptly with documented evidence — but the standard is performance-based, *not* prescriptive about format. The minimum compliant evidence is the existing system: critical flag + tech-authored note + audit trail timestamp + acknowledger + Alerts dashboard linkage (BR-025). That baseline already exists in OpenELIS today and satisfies ISO 15189 §7.4.5 for the majority of accredited labs.
+
+CLSI GP47 (Critical Result Communication) is a **CLSI guideline** — recommended practice, not a regulatory requirement. It's commonly cited by CAP-accredited US hospital labs as the gold standard for read-back / escalation tracking, but most ISO 15189 + WHO + public-health-program deployments do not require it. This BR is therefore positioned as an **optional upgrade**, not a baseline requirement.
+
+**Behavior — baseline (flag OFF, default for everyone):**
+- When the result enters the `critical` tier, the tech sees the existing critical banner.
+- A single "I Acknowledge — clinician notified" button satisfies the ack gate.
+- Click → write `CRITICAL_ACK` audit entry → POST to Alerts dashboard (BR-025) → Save unblocks.
+- The tech is encouraged (but not required) to add a Note (any visibility) capturing notification context.
+- This is sufficient for ISO 15189 §7.4.5 evidence.
+
+**Behavior — opt-in (flag ON, `criticalNotification.requireReadBack=true`):**
+- The single-click ack is replaced by the structured Critical Value Communication Form (per §Critical Value Communication Form).
+- Form captures: recipient, role, method, read-back text, time, escalation log.
+- Submit writes both `CRITICAL_ACK` (baseline path) **and** `CRITICAL_NOTIFICATION_LOGGED` (extended path) audit entries.
+- The structured record persists to a new `critical_notification` table that is **linked to the Alerts dashboard ack record via `critical_notification.alerts_ack_id`** — the structured form is a *richer attachment to* the Alerts ack, not a parallel acknowledgment system.
+
+**Defaults:**
+- `criticalNotification.requireReadBack` defaults **OFF** for all new and existing deployments.
+- Labs that want CAP-level read-back tracking (typical US hospital, large reference lab) opt in at the admin level.
+- The baseline behavior covers the long tail of clinical labs, public health programs, and ISO 15189-only deployments.
+
+**No degradation when OFF:** Every critical result still flags, still acks, still writes to Alerts, still produces audit evidence. The flag controls only whether the *extended structured record* is captured.
+
+**Sizing for the range of deployments:**
+
+| Lab profile | Recommended config | What they get |
+|---|---|---|
+| Low-resource / rural / single-tech | Default OFF | Flag + simple ack + Alerts. Minimum overhead. |
+| Public health / PEPFAR / GFTAM | Default OFF | Same baseline + Alerts audit trail. ISO-15189 compliant. |
+| Standard ISO 15189 accredited | Default OFF (most) / ON (subset that wants richer documentation) | Baseline is sufficient for most accreditors. ON-mode for labs whose accreditor specifically asks for read-back tracking. |
+| CAP-accredited US hospital lab | ON | Full GP47 structured form, escalation log, audit-trail-grade evidence. |
+
+**Validator-page interaction (cross-ref Validation v3):** The Validation page does NOT depend on this flag or the `critical_notification` table. Validators see the existing critical flag + notes + audit evidence regardless. If/when a lab has the structured record and a future Validation spec adds a read-only display, it lives behind the same site flag.
 
 **BR-034 — Reagent Lot Capture Required for Save (ISO 15189 §6.4.4):** When the site config `requireReagentLotsForResults` is ON (default ON for new deployments), Save MUST be blocked until the user has selected at least one reagent lot in the Method & Reagents section. The block presents an inline warning ("Reagent lot is required by site configuration for ISO 15189 §6.4.4 traceability."). When the flag is OFF, current optional behavior applies. Migration: existing deployments default OFF for one minor version, then default ON for new installs.
 
@@ -1037,13 +1072,22 @@ The two axes are independent: a tech-authored entry-context note can be either I
 - [ ] When NCE Disposition is set to "Refer out", Referral section opens automatically with reason="NCE-driven referral" pre-filled and Refer checkbox checked **[BR-032]**
 - [ ] Institute field remains unselected — user must choose
 
-### Critical Value Communication Form (ISO HIGH A1 / CLSI GP47)
-- [ ] When result enters critical tier, "Open Notification Form" button replaces single-click "I Acknowledge" **[BR-033]**
+### Critical Value Acknowledgment (Baseline — flag OFF, default)
+- [ ] When result enters critical tier, the critical banner shows a single "I Acknowledge — clinician notified" button **[BR-033]**
+- [ ] Click → writes `CRITICAL_ACK` audit + POSTs to Alerts (BR-025) + Save unblocks **[BR-033]**
+- [ ] Tech is encouraged but not required to add a Note (any visibility) capturing notification context **[BR-033]**
+- [ ] This is the default behavior for all new and existing deployments **[BR-033]**
+
+### Critical Value Communication Form (Optional — flag ON)
+*Acceptance criteria below apply only when `criticalNotification.requireReadBack` is ON at the site level.*
+- [ ] When the flag is ON and result enters critical tier, "Open Notification Form" button replaces the single-click ack **[BR-033]**
 - [ ] Form requires: Recipient, Recipient Role, Method, Read-back text, Time of notification **[BR-033]**
 - [ ] When First-attempt-successful=No, Escalation Log is required with at least one entry **[BR-033]**
-- [ ] Submit triggers POST to `/rest/alerts/critical-acknowledgment` with the full structured payload + writes `CRITICAL_NOTIFICATION_LOGGED` to audit_trail **[BR-033]**
+- [ ] Submit triggers POST to `/rest/alerts/critical-acknowledgment` + writes BOTH `CRITICAL_ACK` (baseline) AND `CRITICAL_NOTIFICATION_LOGGED` (extended) audit entries **[BR-033]**
+- [ ] Structured record persists to `critical_notification` table with `alerts_ack_id` FK to the Alerts ack — single acknowledgment system, GP47 form is a richer attachment **[BR-033]**
 - [ ] After successful log, form collapses to read-only summary card; Save unblocks **[BR-033]**
 - [ ] Editing a logged notification requires Validator bundle and creates a modification-history entry **[BR-033, BR-035]**
+- [ ] When the flag is OFF (default), this UI does not appear; baseline single-click ack applies instead
 
 ### Reagent Lot Capture Gate (ISO HIGH A2 / ISO 15189 §6.4.4)
 - [ ] When site config `requireReagentLotsForResults` is ON, Save is blocked until at least one reagent lot is selected **[BR-034]**

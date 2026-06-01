@@ -2046,7 +2046,7 @@ const PANEL_TABS = [
   { key: "history", label: "History", Icon: History },
 ];
 
-function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true }) {
+function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true, requireReadBack = false }) {
   const [activeTab, setActiveTab]           = useState("qaqc");
   const [resultValue, setResultValue]       = useState(result.result);
   const [showNceForm, setShowNceForm]       = useState(false);
@@ -2216,14 +2216,31 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true 
         </div>
       )}
 
-      {/* Critical value notification — CLSI GP47 structured form */}
-      {isCritical && !criticalAcknowledged && !showCriticalForm && (
+      {/* Critical value acknowledgment — BR-033 (revised, opt-in upgrade).
+          Default (flag OFF): single-click "I Acknowledge" + Alerts POST satisfies ISO 15189 §7.4.5.
+          Opt-in (flag ON): structured CLSI GP47 form replaces the single-click ack. */}
+      {isCritical && !criticalAcknowledged && !showCriticalForm && !requireReadBack && (
         <div className="flex items-start gap-3 px-4 py-3 bg-orange-50 border-b-2 border-orange-500">
           <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <div className="font-semibold text-orange-900 text-sm">{t("heading.critical","Critical Value — Physician Notification Required")}</div>
             <div className="text-xs text-orange-800 mt-0.5">
-              {criticalMsg}. {t("message.critical.structured","Per CLSI GP47 and ISO 15189 §7.5.1.4, the responsible clinician must be notified and the notification documented with verbatim read-back before this result can be saved.")}
+              {criticalMsg}. {t("message.critical.baseline","Per lab policy, the responsible clinician must be notified. Click below to acknowledge — the event is logged to the Alerts dashboard. Add a Note if helpful for context.")}
+            </div>
+          </div>
+          <button onClick={() => setCriticalAcknowledged(true)}
+            className="px-3 py-2 bg-orange-600 text-white text-xs font-semibold hover:bg-orange-700 flex-shrink-0 whitespace-nowrap rounded-sm">
+            {t("button.critical.ack","I Acknowledge — clinician notified")}
+          </button>
+        </div>
+      )}
+      {isCritical && !criticalAcknowledged && !showCriticalForm && requireReadBack && (
+        <div className="flex items-start gap-3 px-4 py-3 bg-orange-50 border-b-2 border-orange-500">
+          <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <div className="font-semibold text-orange-900 text-sm">{t("heading.critical","Critical Value — Physician Notification Required")}</div>
+            <div className="text-xs text-orange-800 mt-0.5">
+              {criticalMsg}. {t("message.critical.structured","Per site policy (CAP-level documentation), capture a structured CLSI GP47 record with verbatim read-back before saving.")}
             </div>
           </div>
           <button onClick={() => setShowCriticalForm(true)}
@@ -2232,7 +2249,7 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true 
           </button>
         </div>
       )}
-      {isCritical && showCriticalForm && !criticalAcknowledged && (
+      {isCritical && showCriticalForm && !criticalAcknowledged && requireReadBack && (
         <CriticalNotificationForm
           result={result}
           criticalMsg={criticalMsg}
@@ -2244,6 +2261,13 @@ function ExpandedPanel({ result, onSave, onNceSubmit, requireReagentLots = true 
           }}
           onCancel={() => setShowCriticalForm(false)}
         />
+      )}
+      {/* Baseline-ack confirmation (no structured record captured) */}
+      {isCritical && criticalAcknowledged && !criticalNotificationRecord && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 border-b border-orange-200 text-xs text-orange-700">
+          <Check className="w-3.5 h-3.5 text-orange-600 flex-shrink-0" />
+          {t("message.critical.ack.baseline","Critical value acknowledged — logged to Alerts dashboard. You may now save.")}
+        </div>
       )}
       {isCritical && criticalAcknowledged && criticalNotificationRecord && (
         <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 border-b border-orange-200 text-xs text-orange-700">
@@ -2406,6 +2430,11 @@ export default function ResultsPageRedesign() {
   const [userHasValidatorPerm, setUserHasValidatorPerm] = useState(true); // current user has Validator bundle
   // BR-034: requireReagentLotsForResults site config (default ON for ISO-accredited labs)
   const [requireReagentLots, setRequireReagentLots] = useState(true);
+  // BR-033 (revised): criticalNotification.requireReadBack — OPTIONAL CLSI GP47 upgrade.
+  // Default OFF for all deployments. Baseline ISO 15189 §7.4.5 compliance comes from the
+  // existing flag + simple ack + Alerts dashboard linkage (BR-025) — no structured form needed.
+  // Opt-in only for labs that want CAP-level read-back tracking.
+  const [requireReadBack, setRequireReadBack] = useState(false);
   // Workplan deep-link source
   const [workplanSource, setWorkplanSource] = useState(null);
   // Server-side pagination indicator (stub)
@@ -2556,6 +2585,15 @@ export default function ResultsPageRedesign() {
               className={`relative inline-flex h-4 w-8 cursor-pointer rounded-full border-2 border-transparent ${userHasPatientPerm ? "bg-green-600" : "bg-red-500"}`}>
               <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow ${userHasPatientPerm ? "translate-x-4" : "translate-x-0"}`} />
             </button>
+          </span>
+          <span className="flex items-center gap-2 px-3 py-1 bg-white border border-blue-200 rounded text-gray-600">
+            <span className="font-semibold text-gray-500 uppercase tracking-wide text-xs">CLSI GP47 read-back?</span>
+            <span className="text-gray-700">criticalNotification.requireReadBack</span>
+            <button onClick={() => setRequireReadBack(v => !v)}
+              className={`relative inline-flex h-4 w-8 cursor-pointer rounded-full border-2 border-transparent ${requireReadBack ? "bg-orange-600" : "bg-gray-300"}`}>
+              <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow ${requireReadBack ? "translate-x-4" : "translate-x-0"}`} />
+            </button>
+            <span className={requireReadBack ? "text-orange-700 font-medium" : "text-gray-400"}>{requireReadBack ? "ON (CAP-level)" : "OFF (baseline)"}</span>
           </span>
           <span className="flex items-center gap-2 px-3 py-1 bg-white border border-blue-200 rounded text-gray-600">
             <span className="font-semibold text-gray-500 uppercase tracking-wide text-xs">Require reagent lot?</span>
@@ -2890,6 +2928,7 @@ export default function ResultsPageRedesign() {
                           onSave={handleSaveInitiate}
                           onNceSubmit={handleNceSubmit}
                           requireReagentLots={requireReagentLots}
+                          requireReadBack={requireReadBack}
                         />
                       </td>
                     </tr>
