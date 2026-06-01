@@ -449,6 +449,110 @@ API: `POST /rest/non-conformity-events` with `{ result, disposition, rejectionRe
 
 ---
 
+## Cross-Domain Support — CLINICAL / ENVIRONMENTAL / VECTOR
+
+OpenELIS supports three sample domains, governed by the `Domain` enum: `CLINICAL`, `ENVIRONMENTAL`, `VECTOR` (per memory `feedback_domain_enum_no_both` — no `BOTH` value at any level, ever). The same Results Entry page (`/Results`) flexes across all three; no separate mockups, no parallel routes.
+
+### Lab Unit drives domain context
+
+**Each Lab Unit carries a `domain` attribute** (`CLINICAL` | `ENVIRONMENTAL` | `VECTOR`). When the tech selects a Lab Unit, the page derives `currentDomain` from that selection and renders accordingly. Lab Units are already required to load results (BR-002), so the domain context arrives "for free" with no additional user input.
+
+**Examples:**
+
+| Lab Unit | Domain |
+|---|---|
+| Hematology, Chemistry, Microbiology, Serology, Pathology, Molecular | `CLINICAL` |
+| Water Quality, Soil, Air Quality, Food Safety | `ENVIRONMENTAL` |
+| Vector Surveillance, Entomology, Mosquito Pool Testing, Tick Surveillance | `VECTOR` |
+
+Domain is **per Lab Unit, not per result** — once the unit is picked, every result in the worklist is treated as that domain. This matches OpenELIS today (a lab unit is configured for one domain) and removes per-row branching.
+
+### Domain badge in toolbar
+
+After Lab Unit selection, a small **Domain badge** appears next to the selector showing `Clinical` (blue), `Environmental` (green), or `Vector` (purple). This makes the active domain unambiguous and serves as a constant visual anchor while the tech works.
+
+### What changes per domain
+
+| Surface | CLINICAL | ENVIRONMENTAL | VECTOR |
+|---|---|---|---|
+| **Patient Banner** in expanded panel | Full: avatar + name + ID + DOB + sex + age + clinician | **Site/Source block:** site name + GPS + collection conditions (temperature, depth, time) | **Trap block:** trap ID + GPS coordinates + collection date + species + trap type |
+| **Patient column** in table | Patient avatar + name (per PII rules) + ID | **Site name + sample type** (e.g. "Mwanza Water Tap A-14 / drinking water") | **Trap ID + species** (e.g. "TRAP-2026-091 / *An. gambiae*") |
+| **Sex / Age columns** (Validation page) | shown | **hidden** | **hidden** |
+| **PII masking config** (`showPatientName`, `PATIENT_DATA_ON_RESULTS_BY_ROLE`) | applies | **n/a** — no patient identifiers to mask | **n/a** |
+| **Order Info section labels** | Ordering Clinician / Department / Priority / Fasting / Diagnosis / Clinical History | **Collector / Site Authority / Sampling Date / Sample Source / Site Conditions / Environmental Context** | **Field Collector / Surveillance Program / Trap Set Date / Trap Type / Habitat Conditions** |
+| **Program Info section** | EQA Round / RETROCI ARV/EID/VL/Indeterminate / Clinical Studies | **Surveillance Program** (water utility ID, regulatory event ID, monitoring schedule) | **IRM Round / Surveillance Cycle / Vector Program ID** |
+| **Critical value notification recipient label** | "Clinician" / "Nurse" / "On-call clinician" | **"Site Authority" / "Utility Operator" / "Regulatory Contact"** | **"Surveillance Lead" / "Program Officer"** |
+| **"Send with Result" note visibility** | flows to **patient / clinician report** | flows to **regulatory report** | flows to **surveillance dashboard / program feed** |
+| **Reference ranges** | Demographic-aware per BR-036 (age × sex × lifeStage) | **Regulatory limits** (e.g. EPA MCL = 0.3 mg/L; WHO drinking-water guidelines). No demographic axis. | Often **categorical / count-based** (susceptible/resistant/intermediate; mosquito species counts; presence/absence) — N type with a single limit, D type with surveillance vocab |
+| **Result type usage** | mix of N / D / M / R / A | mostly N (numeric measurements with regulatory limits) | mix of N (counts, percentages), D (species ID, resistance status), M (multi-pathogen panel result on a pool) |
+| **Aliquot purposes** | Test / Retention / Send-out / Pour-off | Test / Retention / Send-out / Confirmation re-test | **Pool deconvolution** (split pool into individual mosquito tests when positive — primary use case per memory `project_vector_referral_deconvolution`) / Retention / Send-out |
+| **Storage Location** | applies | applies | applies (chain-of-custody especially important for surveillance evidence) |
+| **Modification History banner** | applies | applies | applies |
+| **E-signature on Save** | applies | applies (regulatory) | applies |
+| **Stale-page conflict guard** | applies | applies | applies |
+| **Workplan deep-link** | applies | applies | applies |
+| **Method & Reagents section** | applies | applies | applies |
+| **Notes (visibility × context dual axis)** | applies | applies (external = regulatory report) | applies (external = surveillance feed) |
+| **Critical value tier evaluation** | clinical critical ranges | regulatory MCL violation | rarely applies (mostly categorical results); when used, surveillance threshold breach |
+
+### i18n key conventions for domain-aware labels
+
+Rather than swap labels via JavaScript at render time, the spec uses **domain-namespaced i18n keys** where labels differ. The component picks the right key based on `currentDomain`:
+
+```
+label.order.clinician          // CLINICAL: "Ordering Clinician"
+label.order.clinician.env      // ENVIRONMENTAL: "Collector"
+label.order.clinician.vector   // VECTOR: "Field Collector"
+```
+
+When a domain-specific key is missing, the renderer falls back to the unsuffixed key (so untranslated labs continue to function with clinical defaults).
+
+### Components hidden / shown by domain
+
+| Component | CLINICAL | ENVIRONMENTAL | VECTOR |
+|---|---|---|---|
+| PatientBanner | ✓ | hidden — replaced by SiteBanner | hidden — replaced by TrapBanner |
+| SiteBanner | hidden | ✓ | hidden |
+| TrapBanner | hidden | hidden | ✓ |
+| PII masking toggles in toolbar | ✓ | hidden | hidden |
+| Sex column (Validation page) | ✓ | hidden | hidden |
+| Age column (Validation page) | ✓ | hidden | hidden |
+| Demographic Range Tag | ✓ | hidden — replace with "Regulatory Limit" Tag | hidden — replace with "Surveillance Threshold" Tag or category label |
+| Pool composition block (Aliquots) | hidden | hidden | ✓ when sample is a pool |
+| Domain badge | ✓ shows "Clinical" | ✓ shows "Environmental" | ✓ shows "Vector" |
+
+### Migration: lab units gain a domain attribute
+
+The `lab_unit` table already supports a `domain` column in OpenELIS today (or it's a config-time attribute on the unit). v3 requires that this attribute be populated for every lab unit. Default for any unit that lacks the column = `CLINICAL` (matches existing behavior).
+
+### Demo coverage in v3 mockups
+
+The Results Entry v3 mockup and Validation v3 mockup each include:
+- Several `CLINICAL` rows (default — Hematology, Chemistry, Microbiology, Serology)
+- At least 1 `ENVIRONMENTAL` row (Water Quality lab unit, regulatory limit, no patient)
+- At least 1 `VECTOR` row (Mosquito Pool lab unit, pool sample with composition, polymerase result)
+
+Reviewers can toggle the Lab Unit dropdown to see how the page re-renders for each domain.
+
+### Acceptance criteria — cross-domain
+
+- [ ] Lab Unit dropdown options carry a `domain` attribute (`CLINICAL` / `ENVIRONMENTAL` / `VECTOR`)
+- [ ] On Lab Unit selection, the page derives `currentDomain` and renders accordingly
+- [ ] Domain badge displays next to the Lab Unit selector
+- [ ] CLINICAL: full PatientBanner; PII config applies; demographic range Tag shown
+- [ ] ENVIRONMENTAL: SiteBanner replaces PatientBanner; PII config hidden; "Regulatory Limit" Tag replaces demographic Tag where applicable
+- [ ] VECTOR: TrapBanner replaces PatientBanner; PII config hidden; pool composition surfaced when applicable; demographic Tag hidden
+- [ ] Sex / Age columns on Validation page are hidden when domain != CLINICAL
+- [ ] Order Info labels swap per domain via i18n key suffix
+- [ ] "Send with Result" note visibility semantics:
+  - CLINICAL → patient / clinician report
+  - ENVIRONMENTAL → regulatory report
+  - VECTOR → surveillance feed
+- [ ] Critical Notification recipient role list adapts per domain (when GP47 form is enabled per BR-033)
+- [ ] No domain selector at the result level — domain is fixed per Lab Unit
+
+---
+
 ## Responsive Design — Breakpoints
 
 OpenELIS is deployed across desktop workstations and bench tablets. The layout adapts at four breakpoints:
