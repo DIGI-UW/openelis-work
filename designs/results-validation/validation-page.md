@@ -402,6 +402,25 @@ All endpoints honor the multi-level pipeline rules per OGC-343 (queue filtering 
 
 **BR-V3-014 — Action Bar at Top (Usability H1 parity):** Action bar (Validate / Reject / Retest / Forward) is at the top of the expanded panel, immediately below conditional banners. Always-visible inline context sections live below the action bar.
 
+**BR-V3-016 — Note Model: Visibility × Context (dual axis):** Every note on a result carries two independent attributes:
+
+| Axis | Values | Meaning |
+|---|---|---|
+| **`note.visibility`** | `internal` (default) / `external` | `external` notes appear on the patient / clinician report. `internal` notes are in-lab-only. |
+| **`note.context`** | `entry` / `modification` / `validation` | Workflow stage when the note was authored. Drives display badge but does NOT determine visibility. |
+
+The two axes are independent: a Validation-context note can be either In Lab Only OR Send with Result, at the validator's discretion. The "Add Note" form on the Validation page MUST present a visibility radio (default `internal`) so the validator explicitly chooses whether the note flows to the patient report. The display MUST show both badges (context + visibility) so consumers can scan whether a note is going out to the clinician.
+
+**External notes audit:** When a note's `visibility` is `external`, the audit trail entry MUST include `visibility: "external"` in the payload — this surfaces in compliance audits as a signal that lab-authored content reached the patient record. Changing visibility on an existing note is treated as a state change and produces a separate audit entry.
+
+**Patient report rendering:** Downstream patient/clinician report generation (out of scope for this spec) filters by `visibility === "external"`. Tech-authored entry-context notes with `visibility=external` appear alongside validator-authored validation-context notes with `visibility=external`; the report does not distinguish by context, only by visibility.
+
+**Migration:** Legacy `note.type` field aliases:
+- `note.type === "internal"` → `{ visibility: "internal", context: "entry" }` (or the relevant context)
+- `note.type === "external"` → `{ visibility: "external", context: "entry" }`
+- `note.type === "validation"` → `{ visibility: "internal", context: "validation" }` (default visibility on legacy validation notes is internal; can be edited by the validator)
+- `note.type === "modification"` → `{ visibility: "internal", context: "modification" }`
+
 **BR-V3-015 — Smart Default-Open (Usability H2 parity):** Each inline section computes its initial open state from row context. Notes open when notes exist. Interpretation open when interpretation exists. Method & Reagents open when reagent lot information is present. Order Info closed by default. Program Info open when shown. Storage open when assigned (validator-side default differs from Results Entry which opens when Unassigned — because validators benefit from seeing chain-of-custody confirmation). Aliquots open when aliquots exist. Referral open when referred. Attachments open when files exist.
 
 ---

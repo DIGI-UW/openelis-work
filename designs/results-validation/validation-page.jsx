@@ -221,8 +221,13 @@ const MOCK_RESULTS = [
       { level: 1, validatedBy: "Dr. Williams", validatedAt: "02/26/2026 10:15", role: "Supervisor", action: "VALIDATE" }
     ],
     notes: [
-      { id: 3, date: "02/26/2026 09:50", author: "A. Lee", type: "internal", body: "Strong reactive line at 60s. Repeating per SOP." },
-      { id: 4, date: "02/26/2026 10:16", author: "Dr. Williams", type: "validation", body: "Level 1: Confirmed reactive on repeat. Send for confirmatory Western Blot." },
+      // BR-V3-016 dual-axis: visibility (internal/external) × context (entry/modification/validation)
+      { id: 3, date: "02/26/2026 09:50", author: "A. Lee", context: "entry", visibility: "internal",
+        body: "Strong reactive line at 60s. Repeating per SOP." },
+      { id: 4, date: "02/26/2026 10:16", author: "Dr. Williams", context: "validation", visibility: "internal",
+        body: "Level 1: Confirmed reactive on repeat. Send for confirmatory Western Blot." },
+      { id: 5, date: "02/26/2026 10:18", author: "Dr. Williams", context: "validation", visibility: "external",
+        body: "Result reactive on screening. Confirmatory testing recommended per HIV testing algorithm." },
     ],
     pastNotesLegacy: "",
     interpretation: { code: "HIV-REACTIVE", label: "Reactive — Send for Confirmation",
@@ -496,10 +501,26 @@ function CriticalNotificationDisplay({ record, isCritical, onBackfill, onRejectF
 // ─────────────────────────────────────────────────────────────────────────
 // Inline sections — all read-only on validator side (BR-V3-006)
 // ─────────────────────────────────────────────────────────────────────────
+// Note model (BR-V3-016):
+//   - note.visibility — "internal" (in-lab only) | "external" (appears on patient report)
+//   - note.context    — "entry" | "modification" | "validation" (workflow stage / authorship)
+// Each note carries BOTH axes. The visibility flag is what determines whether the note
+// flows to the patient/clinician report. Context is metadata about who wrote it / when.
+function NoteContextBadge({ context }) {
+  if (context === "validation") return <Tag kind="teal">Validation</Tag>;
+  if (context === "modification") return <Tag kind="amber">Modification</Tag>;
+  return null; // entry context shown implicitly via author + timestamp
+}
+function NoteVisibilityBadge({ visibility }) {
+  if (visibility === "external") return <Tag kind="green" title="This note will appear on the patient report">📤 Send with Result</Tag>;
+  return <Tag kind="purple" title="In-lab only — does not appear on the patient report">🔒 In Lab Only</Tag>;
+}
+
 function NotesSection({ result, onAddNote }) {
   const [open, setOpen] = useState((result.notes?.length || 0) > 0 || !!result.pastNotesLegacy);
   const [showForm, setShowForm] = useState(false);
   const [newNote, setNewNote] = useState("");
+  const [visibility, setVisibility] = useState("internal"); // BR-V3-016: default In Lab Only
 
   return (
     <div className="border-b border-gray-200">
@@ -513,26 +534,26 @@ function NotesSection({ result, onAddNote }) {
           {(result.notes || []).length === 0 && !showForm && (
             <p className="text-xs text-gray-400">No notes yet.</p>
           )}
-          {(result.notes || []).map(note => (
-            <div key={note.id} className="flex gap-3 text-sm">
-              <div className="flex-1 border-l-2 border-gray-200 pl-3">
-                <div className="flex gap-2 text-xs text-gray-400 mb-0.5 flex-wrap">
-                  <span>{note.date}</span>
-                  <span className="text-gray-500 font-medium">{note.author}</span>
-                  <Tag kind={
-                    note.type === "validation" ? "teal"
-                    : note.type === "internal" ? "purple"
-                    : "warm-gray"
-                  }>
-                    {note.type === "validation" ? "Validation"
-                     : note.type === "internal" ? "In Lab Only"
-                     : "Send with Result"}
-                  </Tag>
+          {(result.notes || []).map(note => {
+            // Back-compat: older notes use note.type which is the visibility axis only
+            const noteVisibility = note.visibility ?? (note.type === "external" ? "external" : "internal");
+            const noteContext = note.context ?? (note.type === "validation" ? "validation"
+                                                : note.type === "modification" ? "modification"
+                                                : "entry");
+            return (
+              <div key={note.id} className="flex gap-3 text-sm">
+                <div className="flex-1 border-l-2 border-gray-200 pl-3">
+                  <div className="flex gap-2 text-xs text-gray-400 mb-0.5 flex-wrap items-center">
+                    <span>{note.date}</span>
+                    <span className="text-gray-500 font-medium">{note.author}</span>
+                    <NoteContextBadge context={noteContext} />
+                    <NoteVisibilityBadge visibility={noteVisibility} />
+                  </div>
+                  <div className="text-gray-800 text-sm whitespace-pre-line">{note.body}</div>
                 </div>
-                <div className="text-gray-800 text-sm whitespace-pre-line">{note.body}</div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {result.pastNotesLegacy && (
             <div className="text-xs text-gray-500 border-l-2 border-gray-100 pl-3 italic">
               <div className="font-medium text-gray-400 mb-0.5">Past notes (legacy):</div>
@@ -540,19 +561,45 @@ function NotesSection({ result, onAddNote }) {
             </div>
           )}
 
-          {/* Validators can ADD notes — BR-V3-007 */}
+          {/* Validators can ADD notes — BR-V3-007 + BR-V3-016 (visibility choice) */}
           {showForm ? (
             <div className="bg-gray-50 border border-gray-200 p-3 space-y-2">
-              <div className="text-xs text-gray-500">Type: <Tag kind="teal">Validation</Tag></div>
+              <div className="text-xs text-gray-700 mb-1">
+                Context: <Tag kind="teal">Validation</Tag>
+                <span className="text-gray-400 ml-1">(auto-set; this note is authored during validation)</span>
+              </div>
+              <div className="text-xs text-gray-700">
+                <div className="mb-1 font-medium">Visibility <span className="text-red-500">*</span></div>
+                <div className="flex gap-4 text-xs">
+                  {[
+                    { id: "internal", label: "🔒 In Lab Only", help: "Visible only to lab staff (default)" },
+                    { id: "external", label: "📤 Send with Result", help: "Appears on the patient / clinician report" },
+                  ].map(v => (
+                    <label key={v.id} className="flex items-start gap-1.5 cursor-pointer">
+                      <input type="radio" name={`note-visibility-${result.id}`} value={v.id}
+                        checked={visibility === v.id} onChange={() => setVisibility(v.id)} className="mt-0.5" />
+                      <span>
+                        <span className="font-medium">{v.label}</span>
+                        <span className="text-gray-400 block">{v.help}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
               <textarea rows={2} value={newNote} onChange={e => setNewNote(e.target.value)}
                 placeholder="Add a validation note…" autoFocus
                 className="w-full border border-gray-300 text-sm p-2 resize-none focus:outline-none focus:ring-1 focus:ring-teal-600" />
               <div className="flex gap-2">
-                <button onClick={() => { if (newNote.trim()) { onAddNote?.(newNote); setNewNote(""); setShowForm(false); } }}
+                <button onClick={() => { if (newNote.trim()) { onAddNote?.(newNote, visibility); setNewNote(""); setVisibility("internal"); setShowForm(false); } }}
                   className="px-3 py-1 bg-teal-700 text-white text-xs font-medium hover:bg-teal-800">Save Note</button>
                 <button onClick={() => setShowForm(false)}
                   className="px-3 py-1 border border-gray-300 text-xs text-gray-600 hover:bg-gray-100">Cancel</button>
               </div>
+              {visibility === "external" && (
+                <div className="text-xs text-green-700 bg-green-50 border border-green-200 p-2">
+                  <strong>This note will appear on the patient report.</strong> Make sure the wording is appropriate for the patient and clinician.
+                </div>
+              )}
             </div>
           ) : (
             <button onClick={() => setShowForm(true)}
@@ -1157,7 +1204,7 @@ function ExpandedPanel({ result, onValidate, onReject, onRetest, onAddNote, onBa
           SECONDARY CONTEXT — inline sections (smart default-open per H2)
           ═══════════════════════════════════════════════════════════════════ */}
       <ValidationPipelineSection result={result} />
-      <NotesSection result={result} onAddNote={(body) => onAddNote?.(result.id, body)} />
+      <NotesSection result={result} onAddNote={(body, visibility) => onAddNote?.(result.id, body, visibility)} />
       <InterpretationSection interpretation={result.interpretation} />
       <MethodSection method={result.method} />
       <OrderInfoSection orderInfo={result.orderInfo} />
@@ -1306,8 +1353,9 @@ function ValidationPage() {
     setExpandedId(null);
   };
 
-  const handleAddNote = (resultId, body) => {
-    addToast("Validation note saved.", "success");
+  const handleAddNote = (resultId, body, visibility) => {
+    const visLabel = visibility === "external" ? "Send with Result" : "In Lab Only";
+    addToast(`Validation note saved — visibility: ${visLabel}.`, "success");
   };
 
   const handleBackfillCriticalNotification = (resultId) => {
