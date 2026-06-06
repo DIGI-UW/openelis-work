@@ -98,6 +98,14 @@
   .fld .fh { font-size:11px; color:#6f6f6f; margin-top:3px; }
   details.ci > summary { cursor:pointer; list-style:none; font-size:14px; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; }
   details.ci > summary::-webkit-details-marker { display:none; }
+  .inline-form { border:1px solid #b28600; border-left:4px solid #b28600; background:#fffdf4; margin-bottom:1rem; }
+  .inline-form .if-h { padding:0.6rem 1rem; font-size:15px; font-weight:600; border-bottom:1px solid #f0e6c8; }
+  .inline-form .if-h .if-sub { font-weight:400; color:#8d8d8d; font-size:12px; }
+  .inline-form .if-b { padding:0.8rem 1rem; }
+  .inline-form .if-f { padding:0.6rem 1rem; border-top:1px solid #f0e6c8; display:flex; gap:0.5rem; }
+  .scan-row { display:flex; gap:0.5rem; align-items:stretch; }
+  .scan-row input { flex:1; }
+  .btn-scan { white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -110,14 +118,14 @@
   </div>
 </div>
 <div class="app-header"><span class="product">OpenELIS Global</span><span style="opacity:.6">|</span><span>Microbiology</span>
-  <div class="right"><span id="critBadge"></span><span>Olivia Mendez · Micro Tech</span></div>
+  <div class="right"><span id="critBadge"></span><span id="nceBadge"></span><span>Olivia Mendez · Micro Tech</span></div>
 </div>
 <div class="breadcrumbs"><a href="#">Home</a> / <a href="#">Microbiology</a> / <a href="#">Pending Cultures</a> / Case MC-2024-001234</div>
 <div class="case-header">
   <div class="title-row">
     <h1>Case MC-2024-001234</h1>
     <span class="stage-pill" id="stagePill">Received</span>
-    <div class="header-actions"><button class="btn b-ter b-sm" onclick="act('logCritical')">Log critical notification</button></div>
+    <div class="header-actions"><button class="btn b-ter b-sm" onclick="act('logCritical')">Log critical notification</button><button class="btn b-ter b-sm" onclick="act('reportNce')">Report NCE</button></div>
   </div>
   <div class="meta">
     <span><b>Lab #:</b> BC24-0892</span><span><b>Patient:</b> MARTINEZ, Carlos</span>
@@ -132,7 +140,7 @@
       <span class="dot d-part" style="width:11px;height:11px"></span> active
       <span class="dot d-none" style="width:11px;height:11px"></span> to do<br>Blue ring = current step.</div>
   </aside>
-  <main class="main"><div id="banner"></div><div id="sections"></div></main>
+  <main class="main"><div id="banner"></div><div id="inlineSlot"></div><div id="sections"></div></main>
 </div>
 <div id="modalRoot"></div>
 
@@ -145,7 +153,7 @@ var ABX = ['Ampicillin','Ceftriaxone','Meropenem','Gentamicin','Ciprofloxacin','
 
 var S; // state
 function fresh(){ return {
-  stage:'RECEIVED', critical:null, inoc:[], iso:[], tl:[], prelim:null, final:null, focus:'inoculation'
+  stage:'RECEIVED', critical:null, nce:null, inoc:[], iso:[], tl:[], prelim:null, final:null, focus:'inoculation'
 };}
 function logTL(cls,label,notes,by,auto){ S.tl.unshift({when:now(),cls:cls||'',label:label,notes:notes||'',by:by||'Olivia Mendez',auto:!!auto}); }
 
@@ -167,7 +175,7 @@ function seedMidway(){
 }
 
 /* ---------- derived helpers ---------- */
-var STAGE_LABEL={RECEIVED:'Received',INCUBATING:'Incubating',POSITIVE_SIGNAL:'Positive signal',GROWTH_DETECTED:'Growth detected',ORGANISM_ID:'Organism ID',AST_IN_PROGRESS:'AST in progress',READY_REVIEW:'Ready for review',PRELIM_REPORTED:'Preliminary reported',FINAL_REPORTED:'Final reported'};
+var STAGE_LABEL={RECEIVED:'Received',INCUBATING:'Incubating',POSITIVE_SIGNAL:'Positive signal',GROWTH_DETECTED:'Growth detected',ORGANISM_ID:'Organism ID',AST_IN_PROGRESS:'AST in progress',READY_REVIEW:'Ready for review',PRELIM_REPORTED:'Preliminary reported',FINAL_REPORTED:'Final reported',NO_GROWTH_FINAL:'No growth',LOST_SPECIMEN:'Specimen lost',REJECTED:'Rejected'};
 function hasGram(){ return S.iso.some(function(i){return i.gram;}); }
 function allIdentified(){ return S.iso.length>0 && S.iso.every(function(i){return i.org;}); }
 function astRuns(){ return S.iso.filter(function(i){return i.ast;}); }
@@ -184,6 +192,7 @@ function currentStep(){
 }
 function nextStepText(){
   var cs=currentStep();
+  if(['NO_GROWTH_FINAL','LOST_SPECIMEN','REJECTED'].indexOf(S.stage)>-1) return {done:true,txt:STAGE_LABEL[S.stage]+' — case closed via a non-conforming event; the test was rejected. See the Timeline for the NCE.',act:null};
   if(S.final) return {done:true,txt:'Final report released — case complete. Amendments are still possible.',act:null};
   switch(cs){
     case 'inoculation':
@@ -307,6 +316,7 @@ function secReports(){
 function render(refocus){
   document.getElementById('stagePill').textContent = STAGE_LABEL[S.stage]||S.stage;
   document.getElementById('critBadge').innerHTML = S.critical? '<span class="crit-badge">⚠ 1 critical '+(S.critical.ack?'ack':'open')+'</span>':'';
+  document.getElementById('nceBadge').innerHTML = S.nce? '<span class="crit-badge" style="background:#fff8e1;border-color:#b28600;color:#684e00">⚑ NCE: '+S.nce.sub+'</span>':'';
   document.getElementById('sidebar').innerHTML = progress();
   var ns = nextStepText();
   document.getElementById('banner').innerHTML = '<div class="nextstep'+(ns.done?' done':'')+'"><span style="font-size:18px">'+(ns.done?'✅':'🧭')+'</span><div class="txt"><b>Next step:</b> '+ns.txt+'</div>'+(ns.act?'<button class="btn b-pri b-sm" onclick="act(\''+ns.act[1].split(':')[0]+'\''+(ns.act[1].indexOf(':')>-1?','+ns.act[1].split(':')[1]:'')+')">'+ns.act[0]+'</button>':'')+'</div>';
@@ -320,24 +330,27 @@ function focusSection(key){
 }
 
 /* ---------- modal ---------- */
+// Inline action panel (not a pop-up modal) — renders in page flow per OpenELIS Principle 3.
 function openModal(title, fields, onSave, saveLabel){
-  var html='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="mh">'+title+'</div><div class="mb">';
+  var html='<div class="inline-form"><div class="if-h">'+title+' <span class="if-sub">— inline, no pop-up</span></div><div class="if-b">';
   fields.forEach(function(f){
     html+='<div class="fld"><label>'+f.label+'</label>';
     if(f.type==='select'){ html+='<select id="f_'+f.key+'">'+f.options.map(function(o){return '<option>'+o+'</option>';}).join('')+'</select>'; }
     else if(f.type==='textarea'){ html+='<textarea id="f_'+f.key+'" rows="2">'+(f.value||'')+'</textarea>'; }
+    else if(f.type==='scan'){ html+='<div class="scan-row"><input id="f_'+f.key+'" value="'+(f.value||'')+'" placeholder="'+(f.ph||'')+'"><button type="button" class="btn b-ter btn-scan" onclick="scanInto(\'f_'+f.key+'\',\''+(f.scanVal||'')+'\')">⊞ Scan</button></div>'; }
     else { html+='<input id="f_'+f.key+'" value="'+(f.value||'')+'" placeholder="'+(f.ph||'')+'">'; }
     if(f.fh) html+='<div class="fh">'+f.fh+'</div>';
     html+='</div>';
   });
-  html+='</div><div class="mf"><button class="btn b-ghost" onclick="closeModal()">Cancel</button><button class="btn b-pri" id="modalSave">'+(saveLabel||'Save')+'</button></div></div></div>';
-  var root=document.getElementById('modalRoot'); root.innerHTML=html;
+  html+='</div><div class="if-f"><button class="btn b-pri" id="modalSave">'+(saveLabel||'Save')+'</button><button class="btn b-ghost" onclick="closeModal()">Cancel</button></div></div>';
+  var root=document.getElementById('inlineSlot'); root.innerHTML=html; root.scrollIntoView({behavior:'smooth',block:'center'});
   document.getElementById('modalSave').onclick=function(){
     var vals={}; fields.forEach(function(f){ vals[f.key]=document.getElementById('f_'+f.key).value; });
     closeModal(); onSave(vals);
   };
 }
-function closeModal(){ document.getElementById('modalRoot').innerHTML=''; }
+function closeModal(){ var r=document.getElementById('inlineSlot'); if(r) r.innerHTML=''; }
+function scanInto(id,val){ var el=document.getElementById(id); if(el){ el.value = val || ('SCAN-'+Math.floor(Math.random()*9000+1000)); el.focus(); } }
 
 /* ---------- actions ---------- */
 function act(name, arg){
@@ -345,21 +358,21 @@ function act(name, arg){
     case 'startInoculation':
       openModal('Start inoculation',[
         {key:'media',label:'Media *',type:'select',options:['FA — Aerobic Blood Bottle','FN — Anaerobic Blood Bottle','BAP','MacConkey','Chocolate agar']},
-        {key:'id',label:'Bottle / plate ID',ph:'FA24012'},
-        {key:'lot',label:'Reagent lot',type:'select',options:['FA-26-04-117 (exp 2026-08-15)','FN-26-04-118 (exp 2026-08-15)','BAP-26-04-211'],fh:'From the reagent inventory (M-12). Expired/locked lots are blocked.'}
+        {key:'id',label:'Bottle / plate ID',type:'scan',ph:'scan or type, e.g. FA24012',scanVal:'FA24012',fh:'Scan the bottle/plate barcode (or type it).'},
+        {key:'lot',label:'Reagent lot',type:'select',options:['BAP-26-04-088 · exp 2026-07-30 · QC pass  (oldest — use first)','FA-26-04-117 · exp 2026-08-15 · QC pass','FN-26-04-118 · exp 2026-08-15 · QC pass'],fh:'Sorted oldest-expiry first (FIFO) — same as results-entry reagent selection. QC status shown; expired/locked lots are blocked.'}
       ],function(v){ S.inoc.push({media:v.media,src:'Primary',id:v.id||'—',lot:v.lot.split(' (')[0]}); logTL('','Inoculated',v.media+' inoculated.','Olivia Mendez',true); if(S.stage==='RECEIVED') S.stage='INCUBATING'; S.focus='inoculation'; render(); });
       break;
     case 'addSubculture':
       openModal('Add subculture',[
         {key:'media',label:'Media *',type:'select',options:['BAP','MacConkey','Chocolate agar','CLED']},
         {key:'parent',label:'Subculture from *',type:'select',options:S.inoc.map(function(x){return x.id;})},
-        {key:'id',label:'Plate ID',ph:'SC-0892A'}
+        {key:'id',label:'Plate ID',type:'scan',ph:'scan or type, e.g. SC-0892A',scanVal:'SC-0892A',fh:'Scan the plate barcode (or type it).'}
       ],function(v){ S.inoc.push({media:v.media,src:'subculture ← '+v.parent,id:v.id||'—',lot:'—'}); logTL('sub','Subculture',v.media+' subcultured from '+v.parent+'.','Olivia Mendez',true); render(); });
       break;
     case 'markPositive':
       S.stage='POSITIVE_SIGNAL'; logTL('pos','Positive signal','Instrument flagged positive.','BacT/Alert auto',true); render(); break;
     case 'markNoGrowth':
-      S.stage='FINAL_REPORTED'; S.final=now(); logTL('rep','No growth — final','Finalized as no growth after full incubation.','Olivia Mendez',false); render(); break;
+      S.stage='NO_GROWTH_FINAL'; logTL('rep','No growth — final','Finalized as no growth after full incubation.','Olivia Mendez',false); render(); break;
     case 'addIsolate':
       openModal('Add isolate',[
         {key:'gram',label:'Gram stain *',ph:'Gram negative rods, many'},
@@ -383,8 +396,8 @@ function act(name, arg){
       openModal('Set up AST — Isolate '+i2.n,[
         {key:'panel',label:'AST panel *',type:'select',options:['GN-STD (Gram-negative standard)','GP-STD','GN-UR']},
         {key:'method',label:'Method *',type:'select',options:['VITEK 2','BD Phoenix','Disk diffusion']},
-        {key:'bp',label:'Breakpoint standard',type:'select',options:['EUCAST v14.0 (active)','CLSI M100 2024'],fh:'Snapshotted on the run — historical runs keep this version.'},
-        {key:'card',label:'Card / disc lot',type:'select',options:['AST-GN-26-04-117','AST-GP-26-03-090']}
+        {key:'bp',label:'Breakpoint standard',type:'select',options:['EUCAST v14.0  (lab default — active)','CLSI M100 2024  (loaded)','CLSI M100 2025  (loaded)','EUCAST v13.0  (loaded)'],fh:'Defaults to the lab active standard, but choose any loaded standard/version per run (CLSI or EUCAST). Snapshotted on the run — switching the lab default later never changes this run. Loaded set managed in Breakpoint Catalog (M-02).'},
+        {key:'card',label:'Card / disc lot',type:'select',options:['AST-GN-26-04-117 · exp 2026-09-01 · QC pass  (oldest — use first)','AST-GN-26-05-140 · exp 2026-10-15 · QC pass'],fh:'Sorted oldest-expiry first (FIFO); QC status shown; expired/locked lots blocked. The analyzer card ID is captured from the instrument link or scanned.'}
       ],function(v){ i2.ast={status:'Awaiting results',results:[]}; logTL('ast','AST setup',v.panel+' ('+v.method+') set up for Isolate '+i2.n+'.','Olivia Mendez',true); S.stage='AST_IN_PROGRESS'; S.focus='ast'; render(); });
       break;
     case 'receiveAst':
@@ -402,6 +415,24 @@ function act(name, arg){
         {key:'msg',label:'Substance of communication',type:'textarea',value:'Gram-negative rods in blood culture; possible sepsis. Recommend broad-spectrum coverage.'},
         {key:'ack',label:'Acknowledged at time of call?',type:'select',options:['Yes — read-back','Yes — verbal','No']}
       ],function(v){ S.critical={who:v.who,ack:v.ack.indexOf('Yes')===0}; logTL('crit','Critical called',v.who+' notified ('+v.method+'). '+(v.ack.indexOf('Yes')===0?'Acknowledged ('+v.ack+').':'Not yet acknowledged.'),'Olivia Mendez',false); render(false); });
+      break;
+    case 'reportNce':
+      openModal('Report non-conforming event (NCE)',[
+        {key:'cat',label:'Category',type:'select',options:['Pre-analytical','Analytical','Post-analytical']},
+        {key:'sub',label:'Subcategory *',type:'select',options:['Specimen lost','Specimen integrity / insufficient','Contamination','Mislabel / ID mismatch','Transport / temperature','Testing error','Other']},
+        {key:'sev',label:'Severity',type:'select',options:['Minor','Major','Critical']},
+        {key:'desc',label:'What happened',type:'textarea',value:''},
+        {key:'action',label:'Test disposition',type:'select',options:['Flag only — continue processing','Reject test — reason: specimen lost','Reject test — other reason'],fh:'Reuses OE sample rejection: rejecting sets the sample status to Rejected and cancels pending tests.'}
+      ],function(v){
+        S.nce={sub:v.sub};
+        logTL('note','NCE reported',v.cat+' / '+v.sub+' ('+v.sev+'). '+(v.desc||''),'Olivia Mendez',false);
+        if(v.action.indexOf('Reject')===0){
+          var lost = v.action.indexOf('specimen lost')>-1 || v.sub==='Specimen lost';
+          logTL('note','Test rejected',(lost?'Reason: specimen lost. ':'')+'Pending tests cancelled; NCE linked.','Olivia Mendez',true);
+          S.stage = lost ? 'LOST_SPECIMEN' : 'REJECTED';
+        }
+        render();
+      },'Save NCE');
       break;
     case 'addNote':
       openModal('Add note',[{key:'type',label:'Type',type:'select',options:['General note','Plate reading','Specimen lost']},{key:'txt',label:'Note',type:'textarea'}],

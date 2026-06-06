@@ -660,6 +660,18 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'dependency-graph', 'planning'],
   },
   {
+    name: 'M-05 AST Entry \u2014 Interactive Prototype',
+    category: 'microbiology',
+    component: null,
+    description: 'Inline AST entry (no modals) \u2014 type MIC to auto-interpret; switch breakpoint standard to re-compute (EUCAST vs CLSI); inline override with revert + reading history; no-breakpoint guidance; QC-fail recovery. Analyzer results auto-ingest, no manual import.',
+    specPath: 'designs/microbiology/m-05-ast-entry-and-interpretation.md',
+    htmlUrl: 'designs/microbiology/m-05-ast-entry-prototype.html',
+    added: '2026-06-05',
+    status: 'draft',
+    jira: ['OGC-791'],
+    tags: ['microbiology', 'ast', 'interactive', 'prototype', 'mvp-1a'],
+  },
+  {
     name: 'M-08 Macro Library',
     category: 'microbiology',
     component: null,
