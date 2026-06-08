@@ -188,6 +188,104 @@
   added: "2026-03-03"
   updated: "2026-04-27"
 
+# ─── Test Catalog v2.5 ──────────────────────────────────────
+
+- id: test-catalog-frs-v2-4
+  type: spec
+  path: designs/admin-config/test-catalog/test-catalog-requirements-v2.4.md
+  category: admin-config
+  description: >
+    Test Catalog Management source-of-truth FRS (~3275 lines) — 14-section editor covering
+    identity, result types, ranges, sample storage, display order, panels, terminology mappings,
+    analyzers, alerts, AMR mapping, compliance, reagents, labels, reflex/calc, and localization
+    hardening. Covers v1 (16 epics) and v2 (8 epics) delivery waves.
+  links:
+    jira: ["OGC-747","OGC-927","OGC-928","OGC-929","OGC-748","OGC-749","OGC-930","OGC-750","OGC-751","OGC-931","OGC-758","OGC-752","OGC-756","OGC-753","OGC-754","OGC-755","OGC-757","OGC-760","OGC-761","OGC-762","OGC-763","OGC-764","OGC-765","OGC-766","OGC-767"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-frs-v2-4
+  added: "2026-05-14"
+
+- id: test-catalog-frs-v2-5
+  type: spec
+  path: designs/admin-config/test-catalog/test-catalog-requirements-v2.5.md
+  category: admin-config
+  description: >
+    Test Catalog Management v2.5 staging companion — v1/v2 wave tags applied per section,
+    11 health-check fixes (D-01 through D-11) applied inline. Use alongside FRS v2.4 for
+    implementation.
+  links:
+    jira: ["OGC-747","OGC-927","OGC-928","OGC-929","OGC-748","OGC-749","OGC-930","OGC-750","OGC-751","OGC-931","OGC-758","OGC-752","OGC-756","OGC-753","OGC-754","OGC-755","OGC-757","OGC-760","OGC-761","OGC-762","OGC-763","OGC-764","OGC-765","OGC-766","OGC-767"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-frs-v2-5
+  added: "2026-05-14"
+
+- id: test-catalog-v2-5-v1-preview
+  type: mockup
+  path: designs/admin-config/test-catalog/test-catalog-preview-v2.5-v1.html
+  preview: designs/admin-config/test-catalog/test-catalog-preview-v2.5-v1.html
+  category: admin-config
+  description: >
+    Standalone HTML preview of the v1 Test Catalog editor — 9 sections functional (Editor
+    Scaffold, Test List, Basic Info, Sample & Results, Methods, Ranges, Sample Storage,
+    Display Order, Panels, Terminology, Analyzers). Opens in any browser without a build step.
+  links:
+    jira: ["OGC-927","OGC-928","OGC-748","OGC-749","OGC-930","OGC-750","OGC-751","OGC-931","OGC-752","OGC-756","OGC-753","OGC-754","OGC-755"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-v2-5-v1-preview
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog/test-catalog-preview-v2.5-v1.html
+  added: "2026-05-14"
+
+- id: test-catalog-v2-5-design-critique
+  type: spec
+  path: designs/admin-config/test-catalog/test-catalog-v2.5-design-critique.md
+  category: admin-config
+  description: >
+    Structured critique across IA, Carbon design system, accessibility, and clinical workflow
+    — 18 punch-list items, all triaged and applied to the v2.5 FRS.
+  links:
+    jira: ["OGC-927"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-v2-5-design-critique
+  added: "2026-05-14"
+
+- id: test-catalog-v2-5-staging-review
+  type: spec
+  path: designs/admin-config/test-catalog/test-catalog-v2.5-staging-review.md
+  category: admin-config
+  description: Earlier v1/v2 staging proposal documenting the split between delivery waves; historical context for the current epic structure.
+  links:
+    jira: ["OGC-927"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-v2-5-staging-review
+  added: "2026-05-14"
+
+- id: test-catalog-v2-5-epic-restructure-plan
+  type: spec
+  path: designs/admin-config/test-catalog/test-catalog-v2.5-epic-restructure.md
+  category: admin-config
+  description: >
+    1-mockup-per-epic restructure plan converting 2 umbrella epics (OGC-746, OGC-759) into
+    24 focused epics, each sized for a 2-week sprint.
+  links:
+    jira: ["OGC-746","OGC-759","OGC-927"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-v2-5-epic-restructure-plan
+  added: "2026-05-14"
+
+- id: test-catalog-v2-5-v1-jira-story-breakdown
+  type: spec
+  path: designs/admin-config/test-catalog/test-catalog-v2.5-v1-jira.md
+  category: admin-config
+  description: Historical v1 story breakdown as originally filed under OGC-746 umbrella — 16 stories. Superseded by the per-epic restructure; preserved as reference.
+  links:
+    jira: ["OGC-747","OGC-927","OGC-928","OGC-929","OGC-748","OGC-749","OGC-930","OGC-750","OGC-751","OGC-931","OGC-758","OGC-752","OGC-756","OGC-753","OGC-754","OGC-755"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-v2-5-v1-jira-story-breakdown
+  added: "2026-05-14"
+
+- id: test-catalog-v2-5-v2-jira-story-breakdown
+  type: spec
+  path: designs/admin-config/test-catalog/test-catalog-v2.5-v2-jira.md
+  category: admin-config
+  description: Historical v2 story breakdown as originally filed under OGC-759 umbrella — 8 stories. Superseded by the per-epic restructure; preserved as reference.
+  links:
+    jira: ["OGC-760","OGC-761","OGC-762","OGC-763","OGC-764","OGC-765","OGC-766","OGC-767"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-v2-5-v2-jira-story-breakdown
+  added: "2026-05-14"
+
 # ─── Analyzer Integration ───────────────────────────────────
 
 - id: analyzer-file-upload
