@@ -1,13 +1,15 @@
 # M-06 Expert Rules Engine — Functional Requirements Specification
 
-**Version:** 1.0
-**Date:** 2026-05-15
+**Version:** 2.0 (consolidated — folds review edits inline; no separate addendum)
+**Date:** 2026-06-07
 **Module:** Microbiology → Expert Rules (Phase 1B)
 **Phase:** 1B
 **Owner:** Microbiology Module (M-00 parent)
 **Status:** Draft
 
 This spec covers the Expert Rules engine that runs against AST Run state changes and produces flags and overrides. Phase 1B feature; Phase 1A ships with manual expert review (tech and supervisor apply rules manually via overrides in M-05).
+
+> This FRS is self-contained. There is no separate addendum — every decision from the design review (Expert Review section always present with an empty state; the confirmation-test loop; reidentification → flag re-evaluation signal; decision-modal post-save behavior; reuse of the existing reflex/test-rules engine for confirmation/AST ordering) is written inline below.
 
 ---
 
@@ -25,7 +27,17 @@ Modern AST reporting is not just "here are the raw S/I/R values." Several patien
 
 M-06 introduces a rules engine that evaluates AST Run state changes, produces flags requiring review, and (after review) applies overrides via the M-05 override mechanism.
 
-### 1.2 Routes
+### 1.2 Division of responsibility — the reflex/test-rules engine orders; M-06 decides phenotype
+
+The micro cascade (positive → identify → AST → confirmation) is exactly what the existing **reflex / test-rules** engine (`test-rules-mvp-frs.md`) already does: a `Rule {type:reflex, conditionTree, actions}` evaluates a reported result and fires `OrderAction { target: test|panel, priority, reason }`. M-06 **reuses** that engine for the *ordering* decisions rather than inventing a parallel mechanism:
+
+- **Reflexes drive the *what-to-order-next* cascade.** When an expert rule's decision is "order a confirmation test" (D-test, ESBL confirmation), the order is **fired through the existing reflex/test-rules action API** — the same path the molecular/analyzer work uses — not a bespoke M-06 ordering routine.
+- **The reflex orders the AST panel from the organism default** once an organism is identified: `WHEN Organism ID is <organism> THEN order AST panel (per organism default)` — the organism's Default AST Panel (M-01) is the reflex's order target.
+- **M-06 owns the phenotype/expert-rule decisions and overrides** — the engine reads AST patterns, raises flags, applies S/I/R overrides via M-05, and stamps phenotype flags on the isolate. It does not re-implement ordering.
+
+This division (reflexes = ordering cascade; M-06 = phenotype/override decisions; the Case Workbench = workup state) is stated in M-00 and cross-referenced here.
+
+### 1.3 Routes
 
 | Surface | Route |
 |---------|-------|
@@ -34,7 +46,7 @@ M-06 introduces a rules engine that evaluates AST Run state changes, produces fl
 | Expert Review section in M-04 Case Detail | (embedded in Case Detail) |
 | Expert Review Decision modal | (modal invoked from Case Detail flags) |
 
-### 1.3 Users
+### 1.4 Users
 
 | Role | Actions |
 |------|---------|
@@ -43,13 +55,14 @@ M-06 introduces a rules engine that evaluates AST Run state changes, produces fl
 | Microbiology Technician | Review flags for own cases; apply per supervisor SOP |
 | System Administrator | All actions |
 
-### 1.4 Integration
+### 1.5 Integration
 
-- **M-05 AST Entry & Interpretation** — Engine fires on AST Run state changes (new result, override, status to COMPLETE).
+- **M-05 AST Entry & Interpretation** — Engine fires on AST Run state changes (new result, override, status to COMPLETE); applies overrides via the M-05 override mechanism.
 - **M-04 Case Workbench Core** — Expert Review section in Case Detail renders flags; Expert Review Decision modal invoked.
+- **Reflex / test-rules engine** (`test-rules-mvp-frs.md`) — confirmation-test orders and the organism-default AST panel order are fired through its `OrderAction` API (see §1.2).
 - **M-08 Macro Library** — `ast` category macros in flag decision justifications.
 - **M-09 WHONET Export** — Phenotype flag columns populated from engine outputs.
-- **M-01 AMR Reference Data** — Rules reference organism groups, antibiotic classes.
+- **M-01 AMR Reference Data** — Rules reference organism groups, antibiotic classes; the organism Default AST Panel is the reflex order target.
 
 ---
 
@@ -96,8 +109,13 @@ expert_rule_flag
 ├── decided_by (FK to user, nullable)
 ├── justification (text, macro-enabled, `ast` category, nullable)
 ├── linked_override_id (FK to micro_ast_override, nullable — set when decision results in an override)
+├── confirmation_order_id (FK to the reflex-fired order, nullable — set when decision = ORDER_CONFIRMATION; see §5.3)
+├── confirmation_result_id (FK to result, nullable — the confirmation test result that re-opens the flag; see §5.3)
+├── review_needed (bool, default false — set true when the owning isolate is reidentified; see §5.4)
 └── audit columns
 ```
+
+`confirmation_order_id`, `confirmation_result_id`, and `review_needed` are the only data-model additions in this consolidation; they close the confirmation loop and the reidentification signal without new tables.
 
 ---
 
@@ -264,7 +282,8 @@ The engine evaluates rules on:
 
 - AST Run status transition to COMPLETE (all antibiotic results landed)
 - Manual override save
-- Isolate organism update (reidentification — but per crosswalk Q4 Rule 2, **does not auto-re-run** existing flags; flags surface as "review applicability")
+- **Confirmation result landing** — when the result of a reflex-ordered confirmation test (D-test, ESBL confirmation) is reported, the engine re-opens the linked flag for decision (§5.3).
+- Isolate organism update (reidentification — per crosswalk Q4 Rule 2, **does not auto-re-run** existing flags; instead it sets `review_needed = true` on each flag for that isolate and surfaces a "review applicability" signal — §5.4).
 
 ### 4.2 Execution flow
 
@@ -298,7 +317,21 @@ For each active rule in expert_rule_definition:
 
 ## 5. Expert Review section in Case Detail
 
-When the engine fires non-auto-apply flags, they surface in the Case Detail Expert Review section:
+### 5.0 Always present, with an empty state
+
+The **Expert Review section is always rendered** in Case Detail — it does **not** appear only when flags exist. When there are no flags it shows an explicit empty state ("No expert flags") so techs always know where to look and never miss flags that arrived between visits. The section carries a one-line helper describing its purpose.
+
+Empty state:
+
+```
+┌─ Expert Review ──────────────────────────────────────────────────────────────┐
+│  Expert rules evaluate AST results and raise flags for review here.          │
+│                                                                              │
+│  No expert flags.                                                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+When the engine fires non-auto-apply flags, they surface in the section:
 
 ```
 ┌─ Expert Review ──────────────────────────────────────────────────────────────┐
@@ -306,7 +339,7 @@ When the engine fires non-auto-apply flags, they surface in the Case Detail Expe
 │  Flags requiring attention:                                                  │
 │                                                                              │
 │  ┌────────────────────────────────────────────────────────────────────────┐  │
-│  │ ⚠ Possible ESBL — Isolate 1 (E. coli)                                  │  │
+│  │ ⚠ Possible ESBL — Isolate 1 (E. coli)            [review needed]        │  │
 │  │ 3GC resistance detected: Ceftriaxone R (MIC 16). Phenotypic            │  │
 │  │ confirmation recommended.                                                │  │
 │  │                                                                          │  │
@@ -318,11 +351,16 @@ When the engine fires non-auto-apply flags, they surface in the Case Detail Expe
 │  │ [Review & Decide]                                                        │  │
 │  └────────────────────────────────────────────────────────────────────────┘  │
 │                                                                              │
+│  Awaiting confirmation:                                                      │
+│  ⏳ ESBL confirmation ordered — Isolate 2 (K. pneumoniae) → enter result    │
+│                                                                              │
 │  Resolved flags (this Case):                                                 │
 │  ✓ Cascade Reporting (urine) — auto-applied                                  │
 │                                                                              │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
+
+The `[review needed]` badge appears per-flag after the owning isolate has been reidentified (§5.4); the "Awaiting confirmation" group lists flags in `AWAITING_CONFIRMATION` with a direct path to enter the confirmation result (§5.3).
 
 ### 5.1 Expert Review Decision modal
 
@@ -336,7 +374,8 @@ Clicking "Review & Decide" opens a modal with the full flag context:
 │                                                                              │
 │  Decision: *                                                                 │
 │  (•) Order ESBL confirmation                                                 │
-│      Adds an ESBL confirmation card task to the Case                         │
+│      Orders the ESBL confirmation test via the reflex engine and keeps       │
+│      this flag open awaiting the result                                      │
 │  ( ) ESBL confirmed — apply phenotype override                               │
 │      Forces all penicillins / cephalosporins / aztreonam to R                │
 │  ( ) ESBL ruled out — AST stands                                             │
@@ -357,14 +396,34 @@ Clicking "Review & Decide" opens a modal with the full flag context:
 On save:
 
 1. `expert_rule_flag` row updated with decision, justification, decided_at, decided_by.
-2. If decision applies override: writes `micro_ast_override` rows via M-05 mechanism; links flag.flag_id → override.
-3. If decision = ORDER_CONFIRMATION: creates a sub-task on the Case for the lab to run confirmation; flag status stays AWAITING_CONFIRMATION.
+2. If decision applies override: writes `micro_ast_override` rows via M-05 mechanism; links `flag.linked_override_id` → override.
+3. If decision = ORDER_CONFIRMATION: the confirmation test is **ordered through the reflex/test-rules action API** (not a bespoke routine), the resulting order id is stored in `flag.confirmation_order_id`, and the flag status moves to `AWAITING_CONFIRMATION` (§5.3).
 4. Timeline event EXPERT_RULE_DECISION written.
 5. Phenotype flag on Isolate set (if action specifies).
 
-### 5.2 Confirmation result re-evaluation
+**Post-save behavior (decision modal):** on a successful save the **modal closes**, a **success toast** confirms the recorded decision ("Decision saved — ESBL confirmation ordered"), and the Expert Review section updates in place: an applied override moves the flag to the "Resolved flags" group; an ORDER_CONFIRMATION decision moves it to the "Awaiting confirmation" group with a link to enter the result; a "ruled out" decision closes the flag. Any created confirmation order appears as an "Awaiting confirmation" entry **with a link** to the order/result-entry point. If the save fails, the modal stays open and shows an inline error; no flag state changes.
 
-When a confirmation test result comes in (e.g., ESBL phenotypic test results entered), the tech returns to the flag and clicks ESBL confirmed / ESBL ruled out. The flag transitions to RESOLVED with the corresponding override applied.
+### 5.2 Confirmation-test loop — where the result is entered and how it re-opens the flag
+
+A flag with decision = ORDER_CONFIRMATION sits in `AWAITING_CONFIRMATION` until its confirmation result is reported. The loop is closed as follows:
+
+- **Where the confirmation result is entered.** The reflex-ordered confirmation test (D-test, ESBL phenotypic test) is a standard Test Catalog test on the case; its result is entered through the normal result-entry path **and** is reachable directly from the flag's "Awaiting confirmation" entry, which deep-links to that confirmation test's result-entry point. The confirmation result is **not** a free-form field on the flag — it is a real result so it carries its own audit, can be analyzer-pushed, and appears in the case like any other result.
+- **How recording it re-opens the flag.** When the confirmation result is reported, the engine (trigger point §4.1) sets `flag.confirmation_result_id`, transitions the flag from `AWAITING_CONFIRMATION` back to `OPEN`, and re-surfaces it in "Flags requiring attention" — now pre-annotated with the confirmation outcome (e.g., "ESBL confirmation: POSITIVE") so the tech's remaining choice is just confirmed vs. ruled-out.
+- **Closing the loop.** The tech opens the re-opened flag, picks "ESBL confirmed" (applies the override via M-05) or "ESBL ruled out" (AST stands). The flag transitions to `RESOLVED`; if an override was applied, `linked_override_id` is set and the phenotype flag is stamped on the isolate.
+
+### 5.3 Confirmation order fired through the reflex engine
+
+The confirmation order created by an ORDER_CONFIRMATION decision is not a new ordering mechanism — it is an `OrderAction { target: <confirmation test>, priority, reason }` fired through the existing reflex/test-rules action API (§1.2). This is the same path used when an organism is identified and the reflex orders the organism's Default AST panel. M-06 stores only the resulting `confirmation_order_id` on the flag to track the loop.
+
+### 5.4 Reidentification → flag re-evaluation signal
+
+Per crosswalk Q4 Rule 2, reidentifying an isolate does **not** auto-re-run existing flags (the organism that produced them may have changed, so silent re-evaluation could be wrong). Instead the engine surfaces a concrete "review applicability" signal:
+
+- A **banner on the Expert Review section** ("This isolate was reidentified — review whether its expert flags still apply").
+- A per-flag **`review needed` badge** on every flag whose owning isolate was reidentified (`flag.review_needed = true`).
+- A **"Re-evaluate flags for this isolate"** action that re-runs the engine for that isolate's current organism, clearing the `review_needed` badges and replacing stale flags with freshly evaluated ones (old flags move to Resolved/superseded with an audit note).
+
+Until the tech acts, the badges and banner persist so reidentification can never silently drop or keep an inapplicable flag.
 
 ---
 
@@ -446,28 +505,35 @@ micro_isolate_phenotype (junction)
 - **AC-M06-12**: Per crosswalk Q4 Rule 2: rule re-evaluation on reidentification is NOT automatic; flags surface as "review applicability."
 - **AC-M06-13**: NFR-05 (engine execution < 500ms per AST Run).
 - **AC-M06-14**: All actions respect permissions.
+- **AC-M06-15** *(folds C1)*: The Expert Review section is **always present** in Case Detail, including an explicit "No expert flags" empty state when no flags exist.
+- **AC-M06-16** *(folds C2)*: An ORDER_CONFIRMATION decision orders the confirmation test (via the reflex engine), moves the flag to AWAITING_CONFIRMATION, and links `confirmation_order_id`. The confirmation result is entered through the normal result-entry path (reachable from the flag's "Awaiting confirmation" entry), not a free-form flag field.
+- **AC-M06-17** *(folds C2)*: When the confirmation result is reported, the engine sets `confirmation_result_id` and re-opens the flag (AWAITING_CONFIRMATION → OPEN), pre-annotated with the confirmation outcome, so the tech can finalize confirmed vs. ruled-out.
+- **AC-M06-18** *(folds C3)*: Reidentifying an isolate sets `review_needed = true` on its flags, shows a section banner and per-flag "review needed" badge, and exposes a "Re-evaluate flags for this isolate" action; nothing is auto-re-run.
+- **AC-M06-19** *(folds C4)*: On decision save the modal closes, a success toast shows, the Expert Review section updates in place (flag moves to the correct group), and any created confirmation sub-task appears in "Awaiting confirmation" with a link; a failed save keeps the modal open with an inline error and no state change.
+- **AC-M06-20** *(reuse)*: Confirmation orders and the organism-default AST panel order are fired through the existing reflex/test-rules `OrderAction` API, not a parallel ordering mechanism.
 
 ---
 
 ## 10. i18n keys
 
-Estimated 60-80 keys including all rule names, decision labels, phenotype labels.
+Estimated 70-90 keys including all rule names, decision labels, phenotype labels, the empty-state copy (`micro.expert.empty`), the "review needed" badge (`micro.expert.flag.reviewNeeded`), the reidentification banner (`micro.expert.reidentBanner`), the re-evaluate action (`micro.expert.reEvaluate`), and the awaiting-confirmation group (`micro.expert.awaitingConfirmation`).
 
 ---
 
 ## 11. Open verification items
 
 - Confirm rule engine implementation approach (in-app vs. external rules service).
-- Confirm whether OE has any existing rules-engine infrastructure to reuse (e.g., for QC rules or alerts).
+- Confirm the reflex/test-rules `OrderAction` contract used for confirmation orders (target, priority, reason) and the order id returned for `confirmation_order_id`.
 
 ---
 
 ## 12. References
 
-- M-00 Microbiology Module Parent Specification
+- M-00 Microbiology Module Parent Specification (workflow-automation = reflex/test-rules engine; division of responsibility)
 - M-04 Case Workbench Core (Expert Review section)
 - M-05 AST Entry & Interpretation (override mechanism)
 - M-09 WHONET Export (phenotype columns)
+- `test-rules-mvp-frs.md` — existing reflex/test-rules engine (confirmation + AST-panel ordering)
 - v1.1 AMR Configuration FRS §6 (Expert Rules — superseded by M-06)
 - v1.1 Workbench FRS §11 (Expert Review — superseded by M-06)
 - CLSI M100 (Expert Rules guidance)

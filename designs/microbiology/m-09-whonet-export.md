@@ -1,7 +1,7 @@
 # M-09 WHONET Export — Functional Requirements Specification
 
-**Version:** 1.0
-**Date:** 2026-05-15
+**Version:** 2.0 (consolidated — folds review edits inline; no separate addendum)
+**Date:** 2026-06-07
 **Module:** Microbiology → WHONET Export + Admin → WHONET Mapping
 **Phase:** 1B
 **Owner:** Microbiology Module (M-00 parent)
@@ -10,6 +10,10 @@
 This spec implements the WHONET surveillance export. It builds on the substantive design review in `whonet-export-design-review-v1.md` — that doc enumerates the column set, dedup algorithm, validation rules, and file format details. This FRS formalizes those into spec form aligned with the M-* bundle structure.
 
 GLASS direct submission is **out of scope** per single-tenancy constraints (M-00 §7). OpenELIS exports WHONET files; central aggregation happens outside OE.
+
+> This FRS is self-contained. There is no separate addendum — every decision from the design review (dedup-parameter helper text; "Map now" deep-link pre-filtered to the unmapped item; lab-profile "first export" scope; AST-worklist quick-action filter contract; Phase-1B surfacing) is written inline below.
+
+> **Phase note.** Export-to-WHONET is a **Phase 1B** capability. In Phase 1A the AST-worklist "Export to WHONET" quick action and the Reports → WHONET Export entry are **surfaced but disabled**, with a "coming in Phase 1B" tooltip (matches M-07 §4.5 / AC-M07-08). The full generator described here activates in 1B.
 
 ---
 
@@ -43,8 +47,22 @@ Generate WHONET-format CSV/TXT files from finalized Cases for submission to the 
 - **M-01 AMR Reference Data** — organism/antibiotic/specimen/origin WHONET codes.
 - **M-02 Breakpoint Catalog** — breakpoint standard codes for the export column.
 - **M-06 Expert Rules Engine** — phenotype flags populate phenotype columns.
-- **M-07 Worklists** — AST Worklist "Export to WHONET" quick action invokes M-09.
+- **M-07 Worklists** — the AST Worklist "Export to WHONET" quick action invokes M-09 with filters pre-populated (Phase 1B; disabled in 1A). The route + param contract is defined in §1.5.
 - **M-10 Hub Subscription** — provides code updates.
+
+### 1.5 AST-Worklist quick-action contract
+
+The AST-Worklist "Export to WHONET" quick action (M-07 §4.5) is a deep-link into the Export Generator with filters pre-populated, so an operator viewing a filtered AST list can carry that scope straight into an export:
+
+- **Route:** `/reports/whonet-export`
+- **Query params:**
+  - `from`, `to` — date range (ISO `YYYY-MM-DD`); derived from the worklist's active date scope, else defaults to "This Month".
+  - `specimen` — repeatable specimen-type code(s) matching the worklist filter (omitted = all).
+  - `origin` — repeatable patient-origin code(s) (omitted = all).
+  - `organism` — repeatable organism id(s) when the worklist is filtered to specific organisms (omitted = all organisms).
+  - `significance` — `SIGNIFICANT` (default) | `NOT_SIGNIFICANT` | `CONTAMINANT`, repeatable.
+  - `source=ast-worklist` — provenance marker so the generator can show a "pre-filled from AST Worklist" note and a "clear filters" reset.
+- On arrival the generator populates the filter controls (§3.1) from these params; the operator can edit any of them before Preview/Generate. In Phase 1A the action renders disabled with the "coming in Phase 1B" tooltip and does not navigate.
 
 ---
 
@@ -110,7 +128,15 @@ Each sub-page is a `DataTable` showing OE entity → WHONET code mapping:
 
 Row actions: Edit Mapping · Clear Mapping. "Map" appears as a quick-action button on unmapped rows.
 
-### 2.4 Eight coded vocabularies
+### 2.4 "Map now" deep-link from the export preview
+
+When the export preview (§3.2) warns about an unmapped item, clicking **"Map now"** must open the WHONET Mapping admin **pre-filtered to that exact item** — not a blank search. The deep-link encodes the vocabulary and the specific item:
+
+- **Route:** `/admin/whonet-mapping/{vocabulary}` (e.g., `organisms`, `antibiotics`, `specimens`, `origins`, `patient-types`, `departments`, `breakpoint-standards`, `phenotypes`).
+- **Query params:** `focus={oe_entity_id}` and `unmappedOnly=true`. On arrival the list scrolls to and highlights the focused row with its Map editor expanded, and the "Show unmapped only" filter is pre-checked so the operator lands directly on the row that blocked the export.
+- After mapping, a "Back to export preview" affordance returns the operator to the in-progress export (the preview re-runs validation so the warning clears).
+
+### 2.5 Eight coded vocabularies
 
 | Vocabulary | OE source | WHONET code | Notes |
 |------------|-----------|-------------|-------|
@@ -123,7 +149,7 @@ Row actions: Edit Mapping · Clear Mapping. "Map" appears as a quick-action butt
 | Breakpoint Standards | `breakpoint_standard` | `whonet_label` field | E.g., `CLSI24`, `EUCAST14` |
 | Phenotypes | (new) `phenotype_flag_definition` (small fixed set) | `whonet_column` field | Maps OE phenotype names to WHONET column names: ESBL_SCREEN, MRSA, VRE, CRE, CARBAPENEMASE, MDR, XDR, PDR |
 
-### 2.5 Import from Hub
+### 2.6 Import from Hub
 
 When M-10 Hub Subscription ships, the "Import Hub" button pulls the latest official code lists and merges with the local mapping. Local edits are preserved; new entries from Hub are added.
 
@@ -169,11 +195,23 @@ When M-10 Hub Subscription ships, the "Import Hub" button pulls the latest offic
 │                                                                              │
 │  Apply first-isolate dedup: ☑                                               │
 │  └─ Window length: [7 days ▼]   (options: 7, 14, 30, episode-based)        │
+│     ⓘ How long after the first isolate repeats are collapsed. WHO GLASS     │
+│        default is 7 days; longer windows count fewer repeats as new.        │
 │  └─ Window basis: (•) Collection date   ( ) Result release date            │
+│     ⓘ Which date starts the window — when the specimen was collected        │
+│        (recommended) or when the result was released.                       │
 │  └─ Scope: (•) Any source   ( ) Same source only                            │
+│     ⓘ "Any source" counts one isolate per patient+organism across all       │
+│        specimen types; "Same source only" dedups within each source.        │
 │  └─ Significance handling: (•) Exclude probable contaminants first          │
+│     ⓘ Drops likely contaminants before choosing the first isolate, so a     │
+│        contaminant doesn't become the representative result.                │
 │  └─ Repeat row handling: (•) Drop repeats   ( ) Include with R marker      │
+│     ⓘ Whether collapsed repeats are removed entirely or kept and flagged    │
+│        as repeats (FIRST_OR_REPEAT = R) for the aggregator.                 │
 │  └─ Susceptibility profile: (•) Insensitive   ( ) Sensitive                │
+│     ⓘ "Sensitive" treats a changed S/I/R profile as a new isolate even      │
+│        within the window; "Insensitive" ignores profile changes.           │
 │                                                                              │
 │  ═══════ OUTPUT ═══════                                                      │
 │                                                                              │
@@ -182,7 +220,8 @@ When M-10 Hub Subscription ships, the "Import Hub" button pulls the latest offic
 │  ☑ Include intermediate (I) results                                         │
 │  ☑ Include phenotype flag columns                                           │
 │  ☐ Include patient demographics (last name, first name)                     │
-│  ☑ Include lab profile file (one-time bootstrap)                            │
+│  ☑ Include lab profile file (first export to this destination)              │
+│     ⓘ Sent once to bootstrap the destination's WHONET profile (see §4.4).   │
 │                                                                              │
 │  ──────────────────────────────────────────────────────────────────────────  │
 │                                                                              │
@@ -190,6 +229,8 @@ When M-10 Hub Subscription ships, the "Import Hub" button pulls the latest offic
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Dedup helper text (required).** Each deduplication parameter carries the inline `ⓘ` one-line explanation shown above. These are surveillance-statistics decisions most operators won't know cold — window length, window basis, scope, significance handling, repeat-row handling, and susceptibility-profile sensitivity each get a plain-language helper so the operator can pick correctly without external reference.
 
 ### 3.2 Preview mode
 
@@ -221,13 +262,15 @@ Clicking "Preview" runs the query + dedup + validation pass and shows results.
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
+The unmapped-item warning's **"Map now"** action deep-links to the WHONET Mapping admin pre-filtered to that exact item per §2.4 (route `/admin/whonet-mapping/{vocabulary}?focus={id}&unmappedOnly=true`), and returns to the preview afterward so the warning re-clears.
+
 ### 3.3 Generate mode
 
 Clicking "Generate" produces the file (per §4 output format) and the audit row:
 
 - File downloaded to the user's browser.
 - `whonet_export_run` row written (per §6 audit).
-- Optional lab profile file `(LAB_CODE)_profile.wri` packaged together (if checkbox enabled).
+- Optional lab profile file `(LAB_CODE)_profile.wri` packaged together when it is the **first export to the chosen destination** (§4.4).
 - Success notification with link to audit history.
 
 ---
@@ -263,15 +306,21 @@ Default template: `{COUNTRY}_{LAB_CODE}_{YYYY-MM-DD}_to_{YYYY-MM-DD}.csv`
 
 Lab manager can override the template per deployment.
 
-### 4.4 Lab profile file
+### 4.4 Lab profile file — "first export" scope
 
-Optional `.wri` lab profile (or current WHONET profile format `VERIFY:`) packaged with the data file on first export. Contains lab metadata, antibiotic panel definitions, and column structure. The receiving aggregator's WHONET install uses this to set up the lab's profile before importing data files.
+An optional `.wri` lab profile (or current WHONET profile format `VERIFY:`) is packaged with the data file so the receiving aggregator's WHONET install can set up the lab's profile before importing data files. It contains lab metadata, antibiotic panel definitions, and column structure.
+
+**Scope of "first export": first export *per destination*, not "ever."** The profile is bootstrap data each receiving aggregator needs once; a deployment may export to more than one destination over time (e.g., a national reference lab plus a regional one), and each needs the profile on its own first receipt. Accordingly:
+
+- The system tracks, per `delivery_destination`, whether the profile has already been sent (derived from `whonet_export_run` history for that destination).
+- The "Include lab profile file" checkbox **defaults checked for the first export to a destination and unchecked thereafter**, and is **always operator-toggleable** — the operator can see whether this is treated as a first export and force-include or force-exclude the profile (e.g., to re-send after a profile change).
+- When no destination is configured (manual download), "first export" is evaluated against the manual-download pseudo-destination so a one-off download still offers the profile once.
 
 ---
 
 ## 5. Deduplication algorithm
 
-Per `whonet-export-design-review-v1.md` §4. Default: WHO GLASS-aligned 7-day window. Parameters configurable per §3.1 UI.
+Per `whonet-export-design-review-v1.md` §4. Default: WHO GLASS-aligned 7-day window. Parameters configurable per §3.1 UI, each with the inline helper text defined there.
 
 ---
 
@@ -291,13 +340,14 @@ whonet_export_run
 ├── output_file_path (relative path or storage URL)
 ├── output_file_size (bytes)
 ├── output_file_sha256 (for integrity verification)
-├── delivery_destination (nullable — Phase 2 SFTP / email)
+├── lab_profile_included (bool — whether the profile file was packaged this run)
+├── delivery_destination (nullable — Phase 2 SFTP / email; also the key for first-export-per-destination tracking)
 ├── delivery_status (PENDING, SUCCESS, FAILED)
 ├── delivery_attempts (int)
 └── audit columns
 ```
 
-Immutable. Retained ≥ 5 years per NFR-06.
+Immutable. Retained ≥ 5 years per NFR-06. `lab_profile_included` + `delivery_destination` together drive the §4.4 first-export determination.
 
 Audit history page at `/reports/whonet-export/history` shows all past runs with re-download capability.
 
@@ -348,12 +398,17 @@ Per `whonet-export-design-review-v1.md` §8 plus:
 - **AC-M09-14**: Code Mapping admin pages (8 vocabularies) work with bulk operations.
 - **AC-M09-15**: All actions respect permissions.
 - **AC-M09-16**: NFR-05 (preview < 5s for 1000 isolates; generate < 30s for 5000), NFR-04 (a11y).
+- **AC-M09-17** *(folds E1)*: Every deduplication parameter (window length, window basis, scope, significance handling, repeat-row handling, susceptibility-profile sensitivity) shows an inline one-line helper explaining the surveillance-statistics choice.
+- **AC-M09-18** *(folds E2)*: "Map now" opens the WHONET Mapping admin pre-filtered to the exact unmapped item via `/admin/whonet-mapping/{vocabulary}?focus={id}&unmappedOnly=true`, not a blank search, and returns to the preview afterward.
+- **AC-M09-19** *(folds E3)*: The lab-profile inclusion is scoped to **first export per destination**; the checkbox defaults checked on a destination's first export and unchecked thereafter, is operator-toggleable, and the run records `lab_profile_included`.
+- **AC-M09-20** *(folds E4)*: The AST-Worklist "Export to WHONET" quick action deep-links to `/reports/whonet-export` with `from/to/specimen/origin/organism/significance/source` params per §1.5, pre-populating the generator's filters.
+- **AC-M09-21** *(Phase 1B surfacing)*: In Phase 1A the export entry points (worklist quick action, Reports menu) render disabled with a "coming in Phase 1B" tooltip and do not navigate.
 
 ---
 
 ## 10. i18n keys
 
-Estimated 80-100 keys. Pattern:
+Estimated 95-115 keys. Pattern:
 
 ```
 reports.whonetExport.title                       "WHONET Export Generator"
@@ -374,19 +429,30 @@ reports.whonetExport.filter.organisms.specific   "Select specific..."
 reports.whonetExport.filter.patientOrigins       "Patient Origins"
 reports.whonetExport.filter.significance         "Significance"
 reports.whonetExport.filter.includeScreening     "Include screening / surveillance cultures"
+reports.whonetExport.fromAstWorklist.note        "Filters pre-filled from the AST Worklist"
+reports.whonetExport.fromAstWorklist.clear       "Clear pre-filled filters"
 reports.whonetExport.dedup.applyToggle           "Apply first-isolate dedup"
 reports.whonetExport.dedup.windowLength.label    "Window length"
 reports.whonetExport.dedup.windowLength.option.7days "7 days"
 reports.whonetExport.dedup.windowLength.option.14days "14 days"
 reports.whonetExport.dedup.windowLength.option.30days "30 days"
 reports.whonetExport.dedup.windowLength.option.episode "Episode-based"
+reports.whonetExport.dedup.windowLength.help     "How long after the first isolate repeats are collapsed. WHO GLASS default is 7 days; longer windows count fewer repeats as new."
 reports.whonetExport.dedup.windowBasis.label     "Window basis"
 reports.whonetExport.dedup.windowBasis.collection "Collection date"
 reports.whonetExport.dedup.windowBasis.release   "Result release date"
+reports.whonetExport.dedup.windowBasis.help      "Which date starts the window — when the specimen was collected (recommended) or when the result was released."
 reports.whonetExport.dedup.scope.anySource       "Any source"
 reports.whonetExport.dedup.scope.sameSource      "Same source only"
+reports.whonetExport.dedup.scope.help            "\"Any source\" counts one isolate per patient+organism across all specimen types; \"Same source only\" dedups within each source."
+reports.whonetExport.dedup.significance.help      "Drops likely contaminants before choosing the first isolate, so a contaminant doesn't become the representative result."
 reports.whonetExport.dedup.repeatHandling.drop   "Drop repeats"
 reports.whonetExport.dedup.repeatHandling.include "Include with R marker"
+reports.whonetExport.dedup.repeatHandling.help   "Whether collapsed repeats are removed entirely or kept and flagged as repeats for the aggregator."
+reports.whonetExport.dedup.suscProfile.label     "Susceptibility profile"
+reports.whonetExport.dedup.suscProfile.insensitive "Insensitive"
+reports.whonetExport.dedup.suscProfile.sensitive "Sensitive"
+reports.whonetExport.dedup.suscProfile.help      "\"Sensitive\" treats a changed S/I/R profile as a new isolate even within the window; \"Insensitive\" ignores profile changes."
 reports.whonetExport.output.format               "Format"
 reports.whonetExport.output.format.csv           "WHONET CSV"
 reports.whonetExport.output.format.txt           "WHONET TXT"
@@ -394,10 +460,13 @@ reports.whonetExport.output.format.custom        "Custom delimited"
 reports.whonetExport.output.includeIntermediate  "Include intermediate (I) results"
 reports.whonetExport.output.includePhenotypeFlags "Include phenotype flag columns"
 reports.whonetExport.output.includeDemographics  "Include patient demographics (last name, first name)"
-reports.whonetExport.output.includeLabProfile    "Include lab profile file (one-time bootstrap)"
+reports.whonetExport.output.includeLabProfile    "Include lab profile file (first export to this destination)"
+reports.whonetExport.output.includeLabProfile.help "Sent once to bootstrap the destination's WHONET profile."
 reports.whonetExport.action.preview              "Preview"
 reports.whonetExport.action.generate             "Generate"
 reports.whonetExport.action.backToFilters        "Back to filters"
+reports.whonetExport.action.backToPreview        "Back to export preview"
+reports.whonetExport.phase1b.tooltip             "Coming in Phase 1B"
 reports.whonetExport.preview.summary.total       "Total isolates in date range"
 reports.whonetExport.preview.summary.afterFilter "After significance filter"
 reports.whonetExport.preview.summary.afterDedup  "After deduplication"
@@ -442,6 +511,7 @@ Carried from design review:
 - CLSI M39 / WHO M-AMR-9 first-isolate algorithm specifics
 - WHONET lab profile file format (current version)
 - Per-deployment national reference lab intake protocols
+- Confirm the route shape for the "Map now" deep-link (`/admin/whonet-mapping/{vocabulary}?focus=…`) against the final admin sidenav structure.
 
 ---
 
@@ -453,6 +523,7 @@ Carried from design review:
 - M-04 Case Workbench Core (read source)
 - M-05 AST Entry & Interpretation (AST results in `result` table)
 - M-06 Expert Rules Engine (phenotype flag values)
+- M-07 Worklists (AST-Worklist "Export to WHONET" quick action; Phase-1B disabled in 1A)
 - M-10 Hub Subscription (provides code updates)
 - **`whonet-export-design-review-v1.md`** — comprehensive design review; this FRS formalizes it
 - `amr-pre-frs-planning-v1.md` §7 (GLASS direction; M-13 removed; M-09 stays)

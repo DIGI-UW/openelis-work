@@ -72,7 +72,7 @@ The state machine is the spine of the case; the page's next-step guidance (§5) 
 | POSITIVE_SIGNAL | GROWTH_DETECTED | First isolate added **or** subculture recorded | Auto-transition |
 | GROWTH_DETECTED | ORGANISM_ID | Isolate workup begins (add/edit isolate) | Implicit on first edit |
 | ORGANISM_ID | AST_IN_PROGRESS | First AST setup saved (M-05) | `micro_ast_run` row |
-| AST_IN_PROGRESS | READY_REVIEW | All clinically-significant isolates have a complete AST run | Surfaces in worklist "Ready" |
+| AST_IN_PROGRESS | READY_REVIEW | All clinically-significant isolates have a **reviewed/accepted** AST run (analyzer results land as `RESULTS_IN`, then a tech **Accepts** → `COMPLETE`; auto-received alone does not count — see M-05 §5.6) | Surfaces in worklist "Ready" |
 | (any non-terminal, ≥1 Gram stain) | PRELIM_REPORTED | "Release preliminary" | Prelim report; distribution |
 | PRELIM_REPORTED | FINAL_REPORTED | "Release final" (checklist passes) | Final report; case locked |
 | FINAL_REPORTED | AMENDED→FINAL_REPORTED | "Amend" → "Release amended final" | New report version; originals preserved |
@@ -101,6 +101,8 @@ The Inoculation section owns media entry (not the Timeline). Its toolbar has **+
 ### 4.3 Timeline — a read-mostly activity log
 The Timeline is the log the system keeps, not a data-entry surface. Entries written by the system carry an **AUTO** badge. Its only manual action is **+ Add note**, limited to non-structured event types (general note, plate reading, lost specimen) — you never hand-enter inoculation/Gram-stain/AST events here; those are written automatically by their owning section. Default shows recent events with "show all."
 
+**Reuse the existing History / Note infrastructure (verified — see design check F-07).** The Timeline is **not** a standalone new store. Build it on OpenELIS's existing audit-history + note services: extend **`AbstractHistoryService`** (the same pattern as `NoteHistoryService`) to collate, into one `AuditTrailItem` feed, the case's row-change history (auto-captured by the audit framework — inoculation/isolate/AST edits), `analyzer_event`s, stage transitions, and **Notes**; **"+ Add note" creates an existing `Note`** (INTERNAL by default). A thin micro event-type layer maps domain actions to display badges/labels. Do **not** duplicate the audit or note storage — so `micro_timeline_event`, if retained at all, is a lightweight typing/index layer over the existing History/Note records, not a parallel log.
+
 ### 4.4 Isolates — two-pass identification
 **+ Add isolate** creates a **preliminary** isolate from Gram stain + colony morphology (`organism_id` null); this advances the case to GROWTH_DETECTED/ORGANISM_ID and auto-writes a Gram-stain timeline event. Each isolate tile shows an **ID status**:
 - **Identification pending** (amber) with a primary **Identify organism →** action;
@@ -111,6 +113,8 @@ Identification can arrive three ways: manual final ID in the isolate's inline Id
 Per-isolate AST run tables: inline rows; overridden rows shaded and **expandable to show original→override with a revert action**; the matched breakpoint level (organism-specific / group / none) is shown; "no breakpoint" rows are guided to local-SOP interpretation. "Edit AST" opens the M-05 inline AST-entry panel; "View audit" opens the override audit. Analyzer results arrive automatically (§7); a run awaiting results shows an "awaiting analyzer results" state — there is no manual import.
 
 **Breakpoint standard is chosen at AST setup and shown on the run — and it's flexible.** It defaults to the lab's active standard, but any *loaded* standard — CLSI or EUCAST, any version — can be selected **per run** (some labs run EUCAST for one organism group and CLSI for another, or pin an older version during a transition). The choice is **snapshotted** on the run so historical interpretations never change when the lab later switches its active standard. The lab's default active standard, and which standards are loaded/selectable, are managed in the Breakpoint Catalog (M-02).
+
+**Analyzer results land pre-populated and need review.** When the analyzer pushes results the run becomes **`RESULTS_IN`** (auto, no import) and the case is flagged **"AST results in — review"** on the Worklist (M-07). The AST section then offers **Accept results** (→ `COMPLETE`, audited; what "marking it good" means for pre-populated values) and **Repeat AST run** (retest = a new run, original preserved — whole panel or a single drug; reuses OE retest, also reachable via an NCE *Retest* disposition). Rows where the analyzer's own interpretation differs from our re-computed value, no-breakpoint rows, and expert-phenotype rows are flagged for attention; the run isn't "complete" (and can't feed the final-report checklist) until accepted. Full detail in M-05 §5.3–§5.7.
 
 **AST progress count.** The section header counts **completed runs / total runs**, plus an explicit tally of significant isolates **awaiting AST setup** and isolates **pending identification**. A case with two isolates where one is not yet identified must therefore never read as "1 / 1 complete" — the unidentified/un-set-up isolate is surfaced in the count (e.g. "1 / 1 runs complete · 1 pending ID"), because AST is per-isolate-run and an un-worked isolate is not "done."
 
@@ -134,7 +138,7 @@ The main column renders a **stage-keyed banner** stating the recommended next ac
 
 ## 6. Isolates — data & versioning
 ### 6.1 Preliminary vs final ID
-`micro_isolate.organism_id` is nullable until identified. Preliminary fields (Gram stain, colony) are captured at creation; final ID (organism, method, confidence, significance, default AST panel from the organism) is filled later.
+`micro_isolate.organism_id` is nullable until identified. Preliminary fields (Gram stain, colony) are captured at creation; final ID (organism, method, confidence, significance, default AST panel from the organism) is filled later. The organism's **default AST panel** (M-01) is what the **reflex orders** when AST is triggered — so the panel is chosen upstream, not freshly at AST setup; the run snapshots `ast_panel_id` + version and any tech adjustment is an audited change to the ordered analysis (see M-05 §4.1).
 ### 6.2 Significance
 `significance` pre-fills from the organism's default (M-01) and is editable per case.
 ### 6.3 Reidentification (Phase 1A+)
@@ -150,7 +154,7 @@ A general OE foundation for non-result analyzer messages. Blood-culture instrume
 ## 8. Data model
 Primary `micro_case` (1:1 with `sample`): stage, `culture_protocol` reference (see reuse note), patient_origin, department, ward, number_of_sets, is_screening_culture, clinical_history, antibiotic_exposure, critical_value_notify, prelim/final released_*, final_version, max_incubation_days, audit columns. **`assigned_tech_user_id` exists but is nullable and unused by default** — see §10 (no ownership). Envers `@Audited`.
 
-Side tables: `micro_case_inoculation` (+ **`source_inoculation_id`** nullable self-FK to distinguish subcultures from primary media — the only new field these decisions introduce), `micro_timeline_event`, `micro_isolate` (versioned), `micro_ast_run` (M-05), `micro_case_stage_transition` (audit), `analyzer_event`.
+Side tables: `micro_case_inoculation` (+ **`source_inoculation_id`** nullable self-FK to distinguish subcultures from primary media — verified genuinely new; OpenELIS `Sample`/`SampleItem` carry no parent/derived-from lineage), `micro_isolate` (versioned), `micro_ast_run` (M-05), `micro_case_stage_transition` (audit), `analyzer_event`. **The Timeline is layered on the existing `History`/`Note` infrastructure (§4.3), not a new `micro_timeline_event` log.** Concurrency reuses the existing **optimistic lock** (`@Version`/`lastupdated` on the sample entities) — surfaced as the stale-state error — plus an optional thin transient "working" flag (§10).
 
 **Reuse decisions (no new masters):**
 - **Culture protocol → existing `method`.** Drop the proposed `culture_protocol` master; model culture protocol on the existing **Method** entity (extend with `incubation_hours / temp / atmosphere / subculture_at_hours`); the test's default protocol = its default Method (`test_method.is_default`); media via `method_reagent` (M-12). Inoculation references the chosen Method.
@@ -166,7 +170,7 @@ A Case is created by the Order-Entry post-save hook (`MicroCaseService.createCas
 ---
 
 ## 10. Ownership, accountability & permissions
-**No per-case ownership.** A case is open for days–weeks and worked in shifts; it is not "owned." Work is organized by state/urgency on the shared Worklist (M-07). Accountability is **per action** — `inoculated_by`, `event_by`, AST entered/overridden by, `*_released_by`, all immutable in `audit_trail`. `assigned_tech_user_id` stays optional/off-by-default (config flag for larger labs); an optional short-lived "working on this" lock prevents double-entry (concurrency, not ownership). The case header shows **"Last activity by"**, not an owner.
+**No per-case ownership.** A case is open for days–weeks and worked in shifts; it is not "owned." Work is organized by state/urgency on the shared Worklist (M-07). Accountability is **per action** — `inoculated_by`, `event_by`, AST entered/overridden by, `*_released_by`, all immutable in `audit_trail`. `assigned_tech_user_id` stays optional/off-by-default (config flag for larger labs). Concurrency **reuses OpenELIS's existing optimistic locking** (`@Version`/`lastupdated`) — a second saver gets the stale-state error — and an optional short-lived "working on this" flag (a thin `working_on_by`/`working_on_since`, since OE has no pessimistic lock) gives a softer heads-up before double-entry. Both are concurrency aids, not ownership. The case header shows **"Last activity by"**, not an owner.
 
 **Permissions** (existing role bundles, not per-action keys): view via `micro.case.view`; bench edits via the Analyst bundle; final release / amend / reidentify via Supervisor/Manager. Report NCE and test rejection **reuse the existing NCE-create and sample-rejection permissions** (no new micro-specific keys). Every state-changing action is enforced server-side (403 on unauthorized) and audited; reads are not audited.
 

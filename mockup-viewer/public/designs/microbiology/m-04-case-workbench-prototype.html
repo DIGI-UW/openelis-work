@@ -203,7 +203,9 @@ function nextStepText(){
       return {txt:'Growth detected. Identify each isolate — manually or from the analyzer.',act:['Identify organism','identify:'+firstPending()]};
     case 'ast':
       if(astRuns().length===0) return {txt:'Isolate identified. Set up susceptibility testing (AST).',act:['Set up AST','setupAst:'+firstIdentifiedNoAst()]};
-      return {txt:'AST set up. Receive the analyzer results, then review any flagged overrides.',act:['Receive AST results','receiveAst:'+firstPendingAst()]};
+      var ri=S.iso.find(function(x){return x.ast && x.ast.status==='Results in';});
+      if(ri) return {txt:'Analyzer results are in for Isolate '+ri.n+' (pre-populated) — review and accept them.',act:['Accept results','acceptAst:'+ri.n]};
+      return {txt:'AST set up. Receive the analyzer results, then review.',act:['Receive AST results','receiveAst:'+firstPendingAst()]};
     case 'reports':
       if(!S.prelim && hasGram()) return {txt:'You can release a preliminary report now (Gram stain is available) to guide empiric therapy.',act:['Release preliminary','releasePrelim']};
       return {txt:'All AST complete. Review and release the final report.',act:['Release final','releaseFinal']};
@@ -270,8 +272,9 @@ function secIsolates(){
     var acts;
     if(!idd){ acts='<div class="acts"><button class="btn b-amber b-sm" onclick="act(\'identify\','+i.n+')">Identify organism →</button><button class="btn b-ghost b-sm" onclick="act(\'editIso\','+i.n+')">Edit prelim</button><span class="hint">AST set-up unlocks once identified</span></div>'; }
     else if(!i.ast){ acts='<div class="acts"><button class="btn b-ter b-sm" onclick="act(\'setupAst\','+i.n+')">Set up AST</button><button class="btn b-ghost b-sm" onclick="act(\'editIso\','+i.n+')">Edit</button></div>'; }
-    else if(i.ast.status!=='Complete'){ acts='<div class="acts"><button class="btn b-amber b-sm" onclick="act(\'receiveAst\','+i.n+')">Receive analyzer results</button><span class="hint">simulates the analyzer push</span></div>'; }
-    else { acts='<div class="acts"><button class="btn b-ghost b-sm" onclick="act(\'editIso\','+i.n+')">Edit</button><button class="btn b-ghost b-sm">View AST</button></div>'; }
+    else if(i.ast.status==='Awaiting results'){ acts='<div class="acts"><button class="btn b-amber b-sm" onclick="act(\'receiveAst\','+i.n+')">Receive analyzer results</button><span class="hint">simulates the analyzer push</span></div>'; }
+    else if(i.ast.status==='Results in'){ acts='<div class="acts"><button class="btn b-amber b-sm" onclick="act(\'acceptAst\','+i.n+')">Accept results</button><button class="btn b-ghost b-sm" onclick="act(\'repeatAst\','+i.n+')">Repeat AST run</button><span class="hint">results pre-populated — review &amp; accept</span></div>'; }
+    else { acts='<div class="acts"><button class="btn b-ghost b-sm" onclick="act(\'editIso\','+i.n+')">Edit</button><button class="btn b-ghost b-sm">View AST</button><button class="btn b-ghost b-sm" onclick="act(\'repeatAst\','+i.n+')">Repeat AST run</button></div>'; }
     return '<div class="iso '+(idd?'idd':'pend')+'">'+head+body+run+acts+'</div>';
   }).join('');
   return '<section class="card" id="sec-isolates"><h2>Isolates '+(S.iso.length?'<span class="count">'+S.iso.filter(function(i){return i.org;}).length+' of '+S.iso.length+' identified</span>':'')+'</h2>'+
@@ -285,8 +288,9 @@ function secAst(){
   if(runs.length===0){ body='<div class="empty">No AST runs yet. Identify an isolate, then set up AST.</div>'; }
   else { body = runs.map(function(i){
     var rows;
-    if(i.ast.status!=='Complete'){ rows='<div class="empty">Run set up — awaiting analyzer results. <button class="btn b-amber b-sm" onclick="act(\'receiveAst\','+i.n+')">Receive results</button></div>'; }
-    else { rows='<table class="t"><thead><tr><th>Antibiotic</th><th>MIC</th><th>Interp</th><th>Source</th></tr></thead><tbody>'+
+    if(i.ast.status==='Awaiting results'){ rows='<div class="empty">Run set up — awaiting analyzer results (arrive automatically). <button class="btn b-amber b-sm" onclick="act(\'receiveAst\','+i.n+')">Simulate results arriving</button></div>'; }
+    else { var rb=(i.ast.status==='Results in')?'<div style="border-left:3px solid #0f62fe;background:#edf5ff;padding:0.5rem 0.7rem;margin:0 0 0.5rem;font-size:13px">Analyzer results received (pre-populated) — review &amp; accept. <button class="btn b-pri b-sm" onclick="act(\'acceptAst\','+i.n+')">Accept results</button> <button class="btn b-ghost b-sm" onclick="act(\'repeatAst\','+i.n+')">Repeat AST run</button></div>':'';
+      rows=rb+'<table class="t"><thead><tr><th>Antibiotic</th><th>MIC (µg/mL)</th><th>Interp</th><th>Source</th></tr></thead><tbody>'+
       i.ast.results.map(function(r){return '<tr><td>'+r.abx+'</td><td>'+r.mic+'</td><td><span class="interp '+r.interp+'">'+r.interp+'</span>'+(r.ovr?' <span style="color:#8a3ffc;font-size:11px">→ '+r.interp+' ('+r.ovr+')</span>':'')+'</td><td>'+(r.ovr?'OVERRIDE':'ANALYZER')+'</td></tr>';}).join('')+'</tbody></table>'; }
     return '<div class="iso"><h3>Isolate '+i.n+' — <span class="org">'+i.org+'</span></h3>'+rows+'</div>';
   }).join(''); }
@@ -394,7 +398,7 @@ function act(name, arg){
     case 'setupAst':
       var i2=S.iso.find(function(x){return x.n==arg;}); if(!i2||!i2.org) break;
       openModal('Set up AST — Isolate '+i2.n,[
-        {key:'panel',label:'AST panel *',type:'select',options:['GN-STD (Gram-negative standard)','GP-STD','GN-UR']},
+        {key:'panel',label:'AST panel (ordered — from organism default via reflex)',type:'select',options:['GN-STD — Gram-negative standard (ordered)','GP-STD','GN-UR'],fh:'Pre-filled by the reflex from the organism’s default panel (M-01) — not a free choice. Adjusting it updates the ordered analysis, snapshots panel+version on the run, and is audited with a reason.'},
         {key:'method',label:'Method *',type:'select',options:['VITEK 2','BD Phoenix','Disk diffusion']},
         {key:'bp',label:'Breakpoint standard',type:'select',options:['EUCAST v14.0  (lab default — active)','CLSI M100 2024  (loaded)','CLSI M100 2025  (loaded)','EUCAST v13.0  (loaded)'],fh:'Defaults to the lab active standard, but choose any loaded standard/version per run (CLSI or EUCAST). Snapshotted on the run — switching the lab default later never changes this run. Loaded set managed in Breakpoint Catalog (M-02).'},
         {key:'card',label:'Card / disc lot',type:'select',options:['AST-GN-26-04-117 · exp 2026-09-01 · QC pass  (oldest — use first)','AST-GN-26-05-140 · exp 2026-10-15 · QC pass'],fh:'Sorted oldest-expiry first (FIFO); QC status shown; expired/locked lots blocked. The analyzer card ID is captured from the instrument link or scanned.'}
@@ -404,10 +408,15 @@ function act(name, arg){
       var i3=S.iso.find(function(x){return x.n==arg;}); if(!i3||!i3.ast) break;
       var interps=['R','R','S','R','I','S'];
       i3.ast.results=ABX.map(function(a,ix){ var ovr = (a==='Ceftriaxone')?'ESBL':null; return {abx:a,mic:['> 32','16','≤ 0.25','4','2','≤ 0.5'][ix],interp:interps[ix],ovr:ovr}; });
-      i3.ast.status='Complete';
-      logTL('ast','AST results received','VITEK 2 returned '+ABX.length+' antibiotics; auto-interpreted (EUCAST v14.0).','BacT/Alert auto',true);
-      if(astComplete()) S.stage='READY_REVIEW';
+      i3.ast.status='Results in';
+      logTL('ast','AST results received','VITEK 2 returned '+ABX.length+' antibiotics; auto-interpreted (EUCAST v14.0). Awaiting tech review.','BacT/Alert auto',true);
       S.focus='ast'; render(); break;
+    case 'acceptAst':
+      var ia=S.iso.find(function(x){return x.n==arg;}); if(!ia||!ia.ast) break;
+      ia.ast.status='Complete'; logTL('ast','AST reviewed & accepted','Run reviewed and marked complete.','Olivia Mendez',false);
+      if(astComplete()) S.stage='READY_REVIEW'; S.focus='ast'; render(); break;
+    case 'repeatAst':
+      logTL('ast','Repeat AST run','New AST run created (retest) — original preserved.','Olivia Mendez',false); render(); break;
     case 'logCritical':
       openModal('Log critical notification',[
         {key:'who',label:'Clinician notified *',ph:'Dr. R. Patel (ER)'},

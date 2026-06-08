@@ -1,10 +1,12 @@
 # M-00 Microbiology Module — Parent Specification
 
-**Version:** 1.0
-**Date:** 2026-05-15
+**Version:** 2.0 (consolidated — folds review edits inline; no separate addendum)
+**Date:** 2026-06-05
 **Module:** Microbiology (top-level)
 **Status:** Draft — anchors the M-01 through M-12 bundle.
 **Companion docs:** `amr-design-critique-v1.md`, `amr-micro-narrative-v1-for-devs.md`, `amr-crosswalk-working.md`, `whonet-export-design-review-v1.md`, `amr-pre-frs-planning-v1.md`
+
+> This FRS is self-contained. It folds the cross-cutting principles established in the AMR design review — **no per-case ownership (shared state-driven queue)**, **reuse of existing OE elements** (culture protocol→Method; reflex/test-rules engine drives the cascade; NCE + sample-rejection for specimen-lost; Case Timeline reuses History/Note; concurrency reuses optimistic locking), **inline interactions not modals (Principle 3)**, and the **test-designation reconciliation** (Culture-workflow attribute) as an open cross-spec item — **inline** below (see new §8.1–§8.3). There is no separate edits/addendum document. M-00's glossary, RBAC matrix, and phase plan are unchanged in structure.
 
 This is the spine spec. Every other M-* spec in the bundle references back to this doc for the glossary, the data model overview, the RBAC matrix, the phase plan, the out-of-scope statement, and the cross-cutting constraints. Read this first, then go to the spec that matches the work you're doing.
 
@@ -17,6 +19,8 @@ This is the spine spec. Every other M-* spec in the bundle references back to th
 The OpenELIS Global Microbiology Module is a new top-level area of the application that supports bacterial culture, isolate identification, antimicrobial susceptibility testing (AST), expert review, structured reporting, and surveillance export (WHONET). It models a workflow that does not fit the existing OpenELIS "Sample → Analysis → Result" pattern: micro is multi-day, multi-isolate, narrative-heavy, and produces variable numbers of results per Sample.
 
 The module replaces the v1.1 AMR FRS trio (AMR Configuration, Microbiology Case Workbench, WHONET Integration) which was correctly scoped but structurally monolithic. The new bundle decomposes into thirteen smaller, composable specs (M-01 through M-12 plus M-NFR), each addressing one well-bounded concern.
+
+Although the Case workbench is a new surface, the module is built to **reuse existing OpenELIS infrastructure wherever it fits** rather than inventing parallel mechanisms — see §8.2 for the consolidated reuse principles established in design review.
 
 ### 1.2 Scope
 
@@ -36,7 +40,7 @@ Expert Rules Engine with built-in rules (MRSA inference, D-test required, ESBL s
 |------|-----------------|
 | Microbiology Technician | Culture setup, subculture, Gram stain, organism ID, manual AST entry, preliminary report release |
 | Microbiology Supervisor | Review results, approve interpretations, release final reports, authorize amendments, manage cases |
-| Lab Manager | Full access; configure AMR reference data, AST panels, culture protocols, breakpoint catalog versions, macros |
+| Lab Manager | Full access; configure AMR reference data, AST panels, culture protocols (as Methods), breakpoint catalog versions, macros |
 | Medical Technologist | Interface with analyzers, verify automated results, troubleshoot integration issues |
 | Surveillance Officer | Generate WHONET exports, validate dedup, manage code mappings (Phase 1B) |
 | System Administrator | All permissions; user role assignments; analyzer profile management |
@@ -47,11 +51,11 @@ The Micro Module appears in the OpenELIS sidenav as a new top-level item under t
 
 ```
 Microbiology
-├── Pending Cultures           (M-07 Worklist — incubation, subculture)
-├── AST Worklist               (M-07 Worklist — susceptibility testing queue)
-├── Microbiology Dashboard     (M-07 Worklist — manager view, Phase 1B if 1A capacity tight)
+├── Worklist                   (M-07 — shared, state-driven queue; Cultures / AST grain toggle)
 └── Case Search                (M-04 — search across all cases)
 ```
+
+> **Folded review decision (D0 / shared-queue, see §8.1).** The earlier three-surface split (Pending Cultures, AST Worklist, Microbiology Dashboard) collapses into a **single shared Worklist** with a culture/AST grain toggle; the former dashboard's content (resistance hits, recent activity) folds into that page. There is **no per-case owner**, so there is no "My cases" surface. A dedicated read-only manager dashboard may return later as an optional view for larger deployments, but it is not a core Phase-1A surface.
 
 Admin areas live under the Admin top-level (per `feedback_admin_ia_vs_editor_ia`):
 
@@ -61,7 +65,7 @@ Admin
 │   ├── Organism Master
 │   ├── Antibiotic Master
 │   ├── AST Panels
-│   └── Culture Protocols
+│   └── Culture Protocols (as Methods — A-REUSE-1)
 ├── Breakpoint Catalog            (M-02)
 ├── Macro Library                 (M-08)
 ├── Hub Subscription              (M-10, Phase 1B)
@@ -79,13 +83,16 @@ Vocabulary used across the M-* bundle. Each term is bolded the first time it app
 
 | Term | Definition |
 |------|------------|
-| **Case** | Container for a single Sample's entire micro workup, from arrival through final report. One Case per micro Sample. Has a stage (lifecycle position), assigned tech, culture protocol, and timeline of events. |
+| **Case** | Container for a single Sample's entire micro workup, from arrival through final report. One Case per micro Sample. Has a stage (lifecycle position), a culture protocol (= the test's default **Method**, see A-REUSE-1), and a timeline of events. **No per-case owner** — accountability is per-action (§8.1). |
 | **Isolate** | A distinct organism identified from a Sample. Zero, one, or many per Case. Has organism (FK to Organism Master), significance, AST history. |
 | **AST Run** | A single susceptibility test event: one Isolate × one AST Panel × one Date × one Method × one Breakpoint Standard × one Tech. Has many AST Results (one per antibiotic tested). |
 | **AST Result** | One antibiotic's susceptibility result within an AST Run. Carries MIC value, MIC unit, zone diameter, interpretation (S/I/R), override flag, and breakpoint version. Stored in the existing `result` table via the multi-reading mechanism (per crosswalk Q2). |
 | **Breakpoint** | Threshold value (MIC or zone diameter) that defines S/I/R interpretation for one (antibiotic, organism, breakpoint-standard-version) combination. |
 | **Breakpoint Standard** | A reference dataset (CLSI M100, EUCAST clinical breakpoints) consisting of many Breakpoints. Versioned (CLSI M100 2024, EUCAST v14.0). |
-| **Expert Rule** | A definition that fires on AST Run state changes and either modifies results (MRSA inference forces beta-lactams to R), flags conditions (ESBL screen positive), or controls reporting (cascade suppression). Phase 1B. |
+| **Method (culture protocol)** | The existing OE `method` entity ("how a test is performed"). A culture protocol is modeled as a **Method** with a small culture-params extension (incubation hours/temp/atmosphere, subculture-at hours), not a new `culture_protocol` master (A-REUSE-1). Tests link to it via `test_method`; the order-time default culture protocol = the test's default Method. |
+| **Culture-workflow attribute** | A first-class per-test Test-Catalog attribute (distinct from the AMR/WHONET flag) that, when set, makes ordering the test create a Microbiology Case and appear in the Worklist. The authoritative Case-creation trigger (see the open cross-spec item, §8.3). |
+| **Expert Rule** | A definition that fires on AST Run state changes and either modifies results (MRSA inference forces beta-lactams to R), flags conditions (ESBL screen positive), or controls reporting (cascade suppression). Emits orders through the existing reflex/test-rules action API (§8.2). Phase 1B. |
+| **Reflex / Test-Rules engine** | The existing OE rules engine (`Rule {type:reflex, conditionTree, actions}` → `OrderAction`). It drives the micro **what-to-order-next cascade** — positive → Organism ID → AST → confirmation — and orders the AST panel (§8.2). It does **not** model the Case/Isolate/AST-Run structure; the Case Workbench owns the workup state. |
 | **Cascade Reporting** | A reporting rule that only displays second-tier antibiotics when first-tier are all R. Common for urines. Phase 1B. |
 | **WHONET** | Both a software product (Windows DB tool for AMR surveillance) and a file format (CSV/TXT export from labs to country reference labs). The module's surveillance export targets the file format. |
 | **GLASS** | WHO Global Antimicrobial Resistance and Use Surveillance System. National-level program that consumes aggregated WHONET data. **Not directly addressed by this module** — OpenELIS is single-tenant; aggregation across labs happens centrally outside OE. |
@@ -110,7 +117,8 @@ This is the canonical sketch. Each spec elaborates its corner.
 ```
 sample (existing)
    │
-   │ 1:1 post-save hook when sample.program = MICROBIOLOGY
+   │ 1:1 post-save hook when the trigger resolver fires (Culture-workflow test
+   │ on the order; manual program = MICROBIOLOGY is a derived fallback — see M-03 §2.1a, §8.3)
    ▼
 micro_case
    ├── case_id (PK)
@@ -121,8 +129,9 @@ micro_case
    │          REJECTED_AT_ACCESSIONING, CANCELLED_PRE_INOCULATION,
    │          CANCELLED_POST_INOCULATION, CANCELLED_POST_POSITIVE,
    │          LOST_SPECIMEN, LOST_SPECIMEN_POSITIVE, AMENDED)
-   ├── culture_protocol_id (FK to culture_protocol — M-01)
-   ├── assigned_tech_user_id (FK to user)
+   ├── method_id (FK to method — the culture protocol, A-REUSE-1; replaces culture_protocol_id)
+   ├── assigned_tech_user_id (FK to user — NULLABLE and unused by default; optional
+   │          opt-in assignment behind a config flag only. No per-case ownership — §8.1)
    ├── patient_origin_code (FK to coded vocabulary)
    ├── department_code (FK to coded vocabulary)
    ├── ward (free-text or coded)
@@ -139,6 +148,8 @@ micro_case
 micro_case_inoculation
    ├── inoculation_id (PK)
    ├── case_id (FK)
+   ├── source_inoculation_id (FK→self, nullable — null = primary media; set = subculture
+   │          of the referenced bottle/plate. Only new field added by the interaction edits.)
    ├── media_type (FK to media catalog)
    ├── lot_number (FK to qc_lot — M-12 via reagent linkage)
    ├── bottle_id or plate_id
@@ -147,7 +158,7 @@ micro_case_inoculation
    │
    │ feeds into
    ▼
-micro_timeline_event
+micro_timeline_event   (reuses the existing OE History/Note infrastructure — §8.2)
    ├── event_id (PK)
    ├── case_id (FK)
    ├── isolate_id (FK, nullable — some events are Case-level not Isolate-level)
@@ -184,7 +195,7 @@ micro_ast_run
    ├── run_id (PK)
    ├── case_id (FK)
    ├── isolate_id (FK to specific isolate VERSION — handles reidentification correctly)
-   ├── ast_panel_id (FK to ast_panel — M-01)
+   ├── ast_panel_id (FK to ast_panel — M-01; the panel is ordered via the reflex engine — §8.2)
    ├── breakpoint_standard_id (FK to breakpoint_standard — M-02)
    ├── breakpoint_version (denormalized for snapshot)
    ├── method (enum: VITEK_2, BD_PHOENIX, SENSITITRE, DISK_DIFFUSION, ETEST, BROTH_MICRODILUTION, MANUAL)
@@ -239,6 +250,8 @@ analyzer_event (M-04 — new channel parallel to result ingestion)
    ├── resolved_at (when downstream handler consumed)
    └── status (PENDING, HANDLED, FAILED)
 ```
+
+> **Data-model deltas folded in v2.0.** (1) `micro_case.culture_protocol_id` becomes `micro_case.method_id` (A-REUSE-1: culture protocol = the test's default Method; the standalone `culture_protocol` table is dropped from M-01 — see §3.2). (2) `micro_case.assigned_tech_user_id` is demoted to **nullable and unused by default** (no per-case ownership; §8.1). (3) `micro_case_inoculation.source_inoculation_id` (nullable self-FK) is added to distinguish subcultures from primary media — the only genuinely new field from the interaction-model edits.
 
 ### 3.2 Reference data tables (M-01)
 
@@ -295,18 +308,20 @@ ast_panel_antibiotic (junction)
    ├── report_default (enum: ALWAYS, CASCADE, SUPPRESS_UNLESS_R)
    └── (panel_id, antibiotic_id) unique
 
-culture_protocol
-   ├── protocol_id (PK)
-   ├── name
-   ├── code
-   ├── default_media_list (JSON or junction table)
-   ├── default_incubation_hours
-   ├── default_temperature_c
-   ├── default_atmosphere (enum: AEROBIC, ANAEROBIC, CO2, MICROAEROPHILIC)
-   ├── max_incubation_days (e.g. 5 for blood culture)
-   ├── active (bool)
+method (existing OE table — REUSED as the culture-protocol home, A-REUSE-1)
+   ├── method_id (PK)
+   ├── name, code, description, reference_url, is_active     (existing)
+   ├── + culture-params extension (new columns or a method_culture_params 1:1 sibling):
+   │     incubation_hours, incubation_temp_celsius,
+   │     atmosphere (enum: AEROBIC, ANAEROBIC, MICROAEROPHILIC, CAPNOPHILIC),
+   │     subculture_at_hours, max_incubation_days
    └── audit columns
+   (Linked to tests via existing test_method, with is_default per test;
+    media via method_reagent; incubator via method_instrument; SOP via method_document.
+    The standalone culture_protocol table proposed in v1.0 is DROPPED.)
 ```
+
+> **A-REUSE-1.** The v1.0 `culture_protocol` master is replaced by the existing **`method`** entity plus a small culture-params extension. M-01/M-03/M-04 reference Method (+ culture-params), not `culture_protocol`. The order-time default culture protocol = the test's default Method (`test_method.is_default`).
 
 ### 3.3 Breakpoint Catalog (M-02)
 
@@ -373,7 +388,7 @@ Per `feedback_openelis_admin_permissions`: admin menu is binary in OE today (all
 | Code | Description |
 |------|-------------|
 | `micro.case.view` | View Micro Cases |
-| `micro.case.create` | Create new Cases (triggered by Sample save; rarely manual) |
+| `micro.case.create` | Create new Cases (triggered by Sample save via the trigger resolver; rarely manual) |
 | `micro.case.edit` | Edit Case details (stage transitions, timeline events) |
 | `micro.isolate.create` | Create Isolates within a Case |
 | `micro.isolate.edit` | Edit Isolates |
@@ -384,11 +399,11 @@ Per `feedback_openelis_admin_permissions`: admin menu is binary in OE today (all
 | `micro.report.preliminary` | Release Preliminary Reports |
 | `micro.report.final` | Release Final Reports |
 | `micro.report.amend` | Amend a Final Report |
-| `micro.worklist.view` | View Pending Cultures and AST Worklists |
+| `micro.worklist.view` | View the Worklist |
 | `micro.expert.review` | Make Expert Review decisions (Phase 1B) |
 | `micro.expert.config` | Configure Expert Rule definitions (Phase 1B) |
 | `micro.ref.view` | View AMR Reference Data |
-| `micro.ref.manage` | Add/edit/delete organism / antibiotic / panel / protocol records |
+| `micro.ref.manage` | Add/edit/delete organism / antibiotic / panel / protocol (Method) records |
 | `micro.breakpoint.view` | View Breakpoint Catalog |
 | `micro.breakpoint.manage` | Manage Breakpoint Catalog (versions, imports, active selection) |
 | `micro.macro.view` | View Macro Library |
@@ -402,7 +417,7 @@ Per `feedback_openelis_admin_permissions`: admin menu is binary in OE today (all
 
 ### 4.2 Role assignment matrix
 
-| Role | Cases | Isolates | AST | Reports | Worklists | Reference Data | Expert | Macros | Surveillance |
+| Role | Cases | Isolates | AST | Reports | Worklist | Reference Data | Expert | Macros | Surveillance |
 |------|-------|----------|-----|---------|-----------|----------------|--------|--------|--------------|
 | Micro Tech | V, E | V, C, E | V, S, E | V, P | V | V | V, R | V | — |
 | Micro Supervisor | V, E | V, C, E, R | V, S, E, O | V, P, F, A | V | V | V, R, D | V | V |
@@ -413,6 +428,8 @@ Per `feedback_openelis_admin_permissions`: admin menu is binary in OE today (all
 
 Legend: V=View, C=Create, E=Edit, R=Reidentify, S=Setup, O=Override, P=Preliminary release, F=Final release, A=Amend, M=Manage, X=Export, D=Decide on flag.
 
+> **No per-case ownership (§8.1).** The matrix grants action-level capability. There is no "owner" role on a Case; whoever is on shift with the capability works the top of the shared queue. Accountability is captured per-action (`inoculated_by`, `event_by`, AST entered/overridden by, `*_released_by`) plus the audit trail.
+
 ---
 
 ## 5. State machine — Case stages
@@ -420,7 +437,7 @@ Legend: V=View, C=Create, E=Edit, R=Reidentify, S=Setup, O=Override, P=Prelimina
 Detailed in M-04. Summary diagram for orientation:
 
 ```
-[Sample created with program=MICROBIOLOGY]
+[Sample created; trigger resolver fires (Culture-workflow test, or manual program=MICROBIOLOGY fallback)]
                 │
                 ▼
             RECEIVED
@@ -429,7 +446,7 @@ Detailed in M-04. Summary diagram for orientation:
         │                │
         ▼                ▼
    INOCULATING       REJECTED_AT_
-        │            ACCESSIONING (terminal)
+        │            ACCESSIONING (terminal — reuses existing sample-rejection — §8.2)
         ▼
     INCUBATING ──────────────────────────────────┐
         │                                          │
@@ -441,13 +458,13 @@ Detailed in M-04. Summary diagram for orientation:
         │                                          ▼
         ▼                                  NO_GROWTH_FINAL ──┐
    GROWTH_DETECTED                                            │
-        │                                                     │
-        ▼                                                     │ late slow
-   ORGANISM_ID                                                │ grower revives
-        │                                                     │ to POSITIVE_SIGNAL
+        │  (reflex: positive → order Organism ID — §8.2)      │
         ▼                                                     │
-   AST_IN_PROGRESS                                            │
-        │                                                     │
+   ORGANISM_ID                                                │
+        │  (reflex: identified → order AST panel — §8.2)      │ late slow
+        ▼                                                     │ grower revives
+   AST_IN_PROGRESS                                            │ to POSITIVE_SIGNAL
+        │  (reflex: phenotype → order confirmation — §8.2)    │
         ▼                                                     │
    READY_REVIEW                                               │
         │                                                     │
@@ -467,11 +484,11 @@ Terminal alternative branches (any non-terminal stage above can transition):
    ── on cancellation pre-inoculation ──▶ CANCELLED_PRE_INOCULATION (terminal)
    ── on cancellation post-inoculation ─▶ CANCELLED_POST_INOCULATION (terminal)
    ── on cancellation post-positive ────▶ CANCELLED_POST_POSITIVE (terminal)
-   ── on lost specimen pre-positive ────▶ LOST_SPECIMEN (terminal)
-   ── on lost specimen post-positive ───▶ LOST_SPECIMEN_POSITIVE (terminal)
+   ── on lost specimen pre-positive ────▶ LOST_SPECIMEN (terminal — reuses NCE — §8.2)
+   ── on lost specimen post-positive ───▶ LOST_SPECIMEN_POSITIVE (terminal — reuses NCE — §8.2)
 ```
 
-Every transition is auditable. M-04 §State Transitions enumerates triggers, allowed roles, side effects per transition.
+Every transition is auditable. M-04 §State Transitions enumerates triggers, allowed roles, side effects per transition. The positive→ID→AST→confirmation cascade is driven by the existing reflex/test-rules engine (§8.2); the Case Workbench owns the workup *state* the cascade advances through.
 
 ---
 
@@ -493,7 +510,7 @@ Eleven modules ship as a coordinated release. Pre-track: M-12 Test→Reagent Lin
 | M-03 Order Entry Hook | Sprint 5 |
 | M-04 Case Workbench Core | Sprints 3-10 (largest module) |
 | M-05 AST Entry & Interpretation | Sprints 7-9 |
-| M-07 Worklists | Sprints 7-10 |
+| M-07 Worklist | Sprints 7-10 |
 | Analyzer integration | Sprints 9-11 |
 | Pilot + integration testing | Sprint 11-12 |
 
@@ -501,7 +518,7 @@ Eleven modules ship as a coordinated release. Pre-track: M-12 Test→Reagent Lin
 
 | Module | Notes |
 |--------|-------|
-| M-06 Expert Rules Engine | Built-in rules: MRSA inference, D-test, ESBL screen/confirm, cascade, intrinsic resistance |
+| M-06 Expert Rules Engine | Built-in rules: MRSA inference, D-test, ESBL screen/confirm, cascade, intrinsic resistance. Emits orders through the existing reflex/test-rules action API (§8.2). |
 | M-09 WHONET Export | Per `whonet-export-design-review-v1.md` |
 | M-10 Hub Subscription | Unified admin: breakpoints + WHONET codes + organism/antibiotic updates |
 | Additional analyzer profiles | BD Phoenix, Sensititre, BACTEC, MALDI-TOF |
@@ -533,6 +550,7 @@ The module deliberately does NOT include:
 - **Mycobacteriology / TB workflow** — fundamentally different timeline (weeks not days) and methods (MGIT, GeneXpert MTB/RIF, line probe assays). Future M-14.
 - **Fungal molds** — different incubation, morphology-based ID. Yeasts piggyback on Case shape; molds don't. Future M-15.
 - **Parasitology** — morphology-based, not culture-based. Different result shape entirely. Future M-16.
+- **Multiple culture protocols on one Sample** — the Case carries a single culture protocol (the test's default Method). A second protocol on the same specimen requires a second Sample/Case (A-MIX; see M-03 §2A). Promoting protocol to a per-Case-line or per-isolate concept is deferred.
 - **Antibiogram generation** — cumulative susceptibility reports. Phase 3 candidate.
 - **GLASS direct submission** — single-tenancy makes OE unable to aggregate across labs. Aggregation is a central activity outside OE.
 - **Real-time outbreak detection** — pattern-based alerts across recent isolates. Phase 4+.
@@ -550,23 +568,71 @@ The module deliberately does NOT include:
 - **HL7 v2 message-based external integration** — FHIR is the integration target.
 - **Custom analyzer protocols beyond the specced set** — Phase 1A: BacT/Alert + VITEK 2; Phase 1B: BD Phoenix, Sensititre, BACTEC, MALDI-TOF; others later.
 - **Reference lab referral workflow** — sending an isolate to a higher-tier lab when local can't ID. Phase 3+.
+- **Durable per-case ownership / assignment as the default** — the queue is shared and state-driven (§8.1). Optional opt-in assignment is config-gated and off by default; it is not a Phase-1A core feature.
 
 ---
 
-## 8. Cross-cutting constraints (NFRs)
+## 8. Cross-cutting constraints and principles
 
-See M-NFR for the dedicated spec. Cross-cuts that every M-* spec must honor:
+See M-NFR for the dedicated non-functional spec. The constraints below every M-* spec must honor, plus the cross-cutting **principles** established in design review (§8.1–§8.3), folded in here.
+
+**Baseline cross-cutting constraints:**
 
 - **Single-tenancy.** Per `project_no_multitenancy`, no multi-site or aggregator features in any spec.
 - **Sidenav submenus, not in-page tabs.** Per `feedback_openelis_sidenav_submenus`.
 - **Carbon for React.** All UI uses `@carbon/react` components and design tokens. Hand-rolled primitives are not acceptable.
-- **Reuse existing OE data elements where possible.** Per `feedback_reuse_existing_data_elements`. New entities are introduced only where the existing model genuinely doesn't fit.
+- **Reuse existing OE data elements where possible.** Per `feedback_reuse_existing_data_elements`. New entities are introduced only where the existing model genuinely doesn't fit. (Elaborated as concrete reuse mappings in §8.2.)
 - **i18n keys follow `module.surface.element` pattern.** Per crosswalk Q10.
 - **Offline degrades gracefully.** Per NFR-01 in M-NFR.
 - **Audit immutable.** Per NFR-03.
 - **WCAG 2.1 AA.** Per NFR-04.
 - **Critical findings plug into the polymorphic critical-notification mechanism.** Per M-11.
 - **Versioning rules.** Per crosswalk Q4: reference data versioned; results snapshot version at write; reidentification triggers selective re-evaluation, not auto.
+
+### 8.1 No per-case ownership — a shared, state-driven queue
+
+A Case is *open* for days to weeks while work happens in short, event-driven bursts (positive signal → growth → AST ready → finalize), each landing whenever it lands. In a small, shift-based lab the tech who inoculated is rarely the one on the bench when the case is next actionable. **Per-case ownership is therefore the wrong default model** — whoever is on shift when something is ready runs it.
+
+**Principle.** Drop "owner" as the organizing concept. The worklist is a **single shared board organized by state/urgency, not by person** (see M-07).
+
+- **Worklist organization:** needs-action filters (Positive · Growth to work up · AST ready · Ready to finalize · Overdue read) with a default urgency sort (STAT first, then longest-waiting). No "My cases" lens, no owner column.
+- **Accountability is per-action, not per-case.** Who did each step is captured (`inoculated_by`, `event_by`, AST entered/overridden by, `*_released_by`) plus the audit trail — that is what matters for traceability and the report.
+- **Transient "working on this" lock (optional, recommended):** a short-lived, auto-released indicator so two techs don't double-enter the same positive simultaneously. This is concurrency safety, **not** assignment.
+- **Optional opt-in assignment:** `micro_case.assigned_tech_user_id` stays in the schema but **nullable and unused by default**, behind a config flag, for occasional larger/structured deployments. Not the default lens.
+- **Case header** shows **"Last activity by"** + per-step attribution, not a single owner badge.
+- **No "Unassigned" problem:** with no owner, nothing falls through — every open case is on the shared board, surfaced by what it needs next.
+
+*Data-model impact:* none beyond demoting `assigned_tech_user_id` to optional/off-by-default (§3.1). Affects M-07 (filters + sort), M-04 (header shows last-activity, not owner), and this spec.
+
+### 8.2 Reuse existing OE elements (workflow + structure)
+
+Concrete reuse mappings established in review. New masters and bespoke mechanisms are replaced by existing OE infrastructure wherever it fits:
+
+- **Culture protocol → Method (A-REUSE-1).** A culture protocol is the existing `method` entity plus a small culture-params extension (incubation hours/temp/atmosphere, subculture-at hours, max incubation days), not a new `culture_protocol` master. Tests link via `test_method` (default = `is_default`); media via `method_reagent`; incubator via `method_instrument`; SOP via `method_document`. The order-time default culture protocol = the test's default Method (see M-03, M-01, §3.2).
+- **Reflex / test-rules engine drives the cascade (A-REUSE-2).** The existing rules engine (`Rule {type:reflex, conditionTree, actions}` → `OrderAction`) drives the micro **what-to-order-next** cascade and **orders the AST panel**:
+  - positive culture signal → order Organism ID;
+  - organism identified → order the AST panel (per-organism default);
+  - expert-rule phenotype (ESBL/MRSA) → order confirmation test (pairs with M-06);
+  - positive at < N h → trigger subculture (via analyzer params).
+
+  Analyzer parameters (time-to-positivity, morphology flags) are captured as Test Catalog **analyzer parameters** so they can drive reflex conditions — the same mechanism the molecular/analyzer work already uses. **The engine does NOT replace** the Case / Isolate / AST-Run structure or the multi-day workbench: **reflexes drive the *what-to-order-next* cascade; the Case Workbench owns the *workup state*.** M-06's expert rules emit confirmation orders **through the reflex/test-rules action API**, not a parallel mechanism.
+- **NCE + sample-rejection reused for specimen-lost (and rejection).** The LOST_SPECIMEN / LOST_SPECIMEN_POSITIVE and REJECTED_AT_ACCESSIONING transitions reuse the existing Non-Conforming-Event (NCE) and sample-rejection infrastructure rather than a micro-only mechanism.
+- **Case Timeline reuses the existing History/Note infrastructure.** The timeline is the existing OE History/Note surface; structured section saves auto-write the corresponding timeline events (the section is the system of record, the timeline is the derived activity log). The only manual timeline action is a free-text note.
+- **Concurrency reuses optimistic locking.** Stale-state detection and the offline conflict-resolution dialog (NFR-01) use the existing optimistic-locking mechanism, surfaced via `micro.error.staleState`. No new locking scheme.
+- **Other reuse (consolidated):** reagent lots → existing `reagent`/`qc_lot` via M-12; critical notifications → polymorphic `critical_notification` (M-11); organism/AST/confirmation results → standard Test Catalog tests, not new result masters.
+
+### 8.3 Inline interactions, not modals (Principle 3)
+
+The primary workflow uses **inline interactions, not modals**. Workflow actions are performed in their own structured, inline sections on the Case Detail surface (Inoculation, Isolates, AST Results, Reports), expanding in place rather than opening blocking dialogs. Modals are reserved for confirmations and short focused entry where an inline surface would be disruptive; they are not the default for routine bench work. Inline expand/collapse manages focus and announces via `aria-live` (NFR-04). This keeps the multi-day workbench scannable and keyboard-navigable, and avoids a stack of dialogs during a workup.
+
+### 8.4 Open cross-spec item — test-designation reconciliation (A-TC)
+
+**Status: open cross-spec item, owners notified.** How a test "becomes" part of the Case workflow needs a single first-class signal. The adopted resolution (recorded fully in M-03 §2.1a / §2.7) is:
+
+- Add a first-class **"Culture workflow"** per-test attribute (distinct from the AMR/WHONET surveillance flag, which it may imply). Setting it makes ordering the test **create a Microbiology Case and appear in the Worklist**, via a **single trigger resolver** — no reliance on the clerk manually picking Program = Microbiology (which survives only as a derived/visible fallback).
+- The culture protocol carried by such a test = its default **Method** (A-REUSE-1); add **`valid_organisms`** to the Test Catalog (referenced by M-01/M-03). The **AMR flag** and the **Culture-workflow flag** are separate concerns — a test may be one, both, or neither.
+
+This requires coordinated changes across **M-00 + M-01 + M-03 + Test Catalog (OGC-748)** and is flagged to the Test-Catalog owners. Until the Test Catalog lands the attribute, M-03's resolver uses the manual-Program fallback so existing deployments keep working.
 
 ---
 
@@ -580,21 +646,21 @@ Tracking what survives, dies, renames, or splits from the v1.1 trio (AMR Configu
 | AMR Config v1.1 | §3 Antibiotic Master | M-01 §3 | **Survives.** Verbatim. |
 | AMR Config v1.1 | §4 Breakpoint Tables | M-02 entirely | **Splits.** Promoted to own spec with versioning rules. |
 | AMR Config v1.1 | §5 AST Panels | M-01 §4 | **Survives.** Adds versioning per panel. |
-| AMR Config v1.1 | §6 Expert Rules | M-06 entirely | **Splits.** Phase 1B; own engine spec. |
+| AMR Config v1.1 | §6 Expert Rules | M-06 entirely | **Splits.** Phase 1B; own engine spec; emits orders via reflex/test-rules API (§8.2). |
 | AMR Config v1.1 | §7 Reporting Rules | M-06 §Cascade and §Selective | **Merges into M-06.** |
-| AMR Config v1.1 | §8 Culture Protocols | M-01 §5 | **Survives.** Light renaming. |
+| AMR Config v1.1 | §8 Culture Protocols | M-01 §5 → **Method (A-REUSE-1)** | **Survives but reused.** Culture protocol becomes the existing Method + culture-params; standalone `culture_protocol` master dropped. |
 | AMR Config v1.1 | §9 Hub Subscription | M-10 entirely | **Splits.** Unified admin in own spec. Phase 1B. |
 | AMR Config v1.1 | §10 Macro Library | M-08 entirely | **Splits.** Cross-cutting feature; promoted to own spec. |
-| AMR Config v1.1 | §11 Test Catalog Integration | M-01 cross-ref + Test Catalog v2.5 | **Survives.** Reference rather than restated. |
+| AMR Config v1.1 | §11 Test Catalog Integration | M-01 cross-ref + Test Catalog v2.5 | **Survives.** Reference rather than restated; now also carries the open Culture-workflow attribute (§8.4). |
 | AMR Config v1.1 | §12 Permissions | M-00 §4 + per-module RBAC | **Splits.** Master matrix in M-00; per-module specifics in each spec. |
 | Workbench v1.1 | §1 Overview | M-00 §1 + narrative | **Replaced.** New narrative + M-00 supersede the old overview. |
-| Workbench v1.1 | §2 Dashboard | M-07 §4 Dashboard | **Survives.** Phase 1B (slippable from 1A). |
-| Workbench v1.1 | §3 Pending Cultures Worklist | M-07 §2 | **Survives** with refinements (stage detail like "Day 2 of 5", row highlighting rules). |
-| Workbench v1.1 | §4 AST Worklist | M-07 §3 | **Survives** with refinements (flag-count column, status filters). |
-| Workbench v1.1 | §5 Order Entry hook | M-03 entirely | **Splits.** Owned by OE team, not Micro. Tightens scope. |
+| Workbench v1.1 | §2 Dashboard | M-07 (folded into Worklist) | **Folded.** No standalone dashboard; resistance hits + recent activity live on the Worklist (§1.4, M-07). |
+| Workbench v1.1 | §3 Pending Cultures Worklist | M-07 (Cultures grain) | **Survives** as a grain of the single shared Worklist; shared state-driven queue (§8.1). |
+| Workbench v1.1 | §4 AST Worklist | M-07 (AST grain) | **Survives** as a grain of the single shared Worklist. |
+| Workbench v1.1 | §5 Order Entry hook | M-03 entirely | **Splits.** Owned by OE team; trigger now the Culture-workflow attribute via a single resolver (§8.4). |
 | Workbench v1.1 | §6 Macros | M-08 | **Merged into M-08.** |
-| Workbench v1.1 | §7 Case Detail layout | M-04 §3 | **Survives** with sidenav fixes (per `feedback_openelis_sidenav_submenus`). |
-| Workbench v1.1 | §8 Timeline | M-04 §4 | **Survives.** Adds new event types per state machine. |
+| Workbench v1.1 | §7 Case Detail layout | M-04 §3 | **Survives** with sidenav fixes and inline-interaction principle (§8.3). |
+| Workbench v1.1 | §8 Timeline | M-04 §4 | **Survives.** Reuses History/Note infrastructure; auto vs. manual events (§8.2). |
 | Workbench v1.1 | §9 Isolates | M-04 §5 + reidentification versioning | **Survives** with versioning addition. |
 | Workbench v1.1 | §10 AST Results | M-05 entirely | **Splits.** Multi-reading-on-result data model per crosswalk Q2. |
 | Workbench v1.1 | §11 Expert Review | M-06 | **Phase 1B.** |
@@ -615,6 +681,8 @@ Tracking what survives, dies, renames, or splits from the v1.1 trio (AMR Configu
 - "Multi-site config sharing" references — removed per single-tenancy.
 - "Future Enhancement #11: GLASS direct API" — removed.
 - The single-monolithic-FRS structure of v1.1 — replaced by 13 composable specs.
+- The standalone `culture_protocol` master — replaced by the existing Method (§8.2, A-REUSE-1).
+- Durable per-case ownership as the default — replaced by the shared state-driven queue (§8.1).
 
 **New concepts not in v1.1:**
 
@@ -626,6 +694,7 @@ Tracking what survives, dies, renames, or splits from the v1.1 trio (AMR Configu
 - Workflow unhappy paths as explicit state transitions (M-04 §State Machine).
 - Versioning rules for reference data and rule sets (M-00 §8, M-02, M-06).
 - Quality threshold validation in WHONET export (M-09 §5).
+- Cross-cutting review principles: shared state-driven queue (§8.1), explicit OE reuse mappings (§8.2), inline-interaction principle (§8.3), and the Culture-workflow test-designation reconciliation (§8.4).
 
 ---
 
@@ -633,14 +702,15 @@ Tracking what survives, dies, renames, or splits from the v1.1 trio (AMR Configu
 
 M-00 is a doc spec; its acceptance criteria are about clarity rather than UI/data:
 
-- **AC-01**: Glossary covers every term used in any other M-* spec
-- **AC-02**: Data model overview names every new entity introduced by the bundle and indicates which spec owns each
-- **AC-03**: Phase plan lists every module in Phase 1A and Phase 1B with sprint anchors
-- **AC-04**: Out-of-scope statement is exhaustive enough that no Phase 1 stakeholder can be surprised by a missing feature
-- **AC-05**: RBAC matrix covers every action across the bundle
-- **AC-06**: v1.1 → v2 diff map covers every section of all three v1.1 FRS documents
-- **AC-07**: Cross-cutting constraints reference NFR-* in M-NFR
-- **AC-08**: All references to other M-* specs use stable identifiers (M-NN §Section)
+- **AC-01**: Glossary covers every term used in any other M-* spec (including Method-as-culture-protocol, Culture-workflow attribute, reflex/test-rules engine).
+- **AC-02**: Data model overview names every new entity introduced by the bundle and indicates which spec owns each (and reflects culture protocol → Method, the demoted `assigned_tech_user_id`, and `source_inoculation_id`).
+- **AC-03**: Phase plan lists every module in Phase 1A and Phase 1B with sprint anchors.
+- **AC-04**: Out-of-scope statement is exhaustive enough that no Phase 1 stakeholder can be surprised by a missing feature (including multi-protocol-per-sample and default per-case ownership).
+- **AC-05**: RBAC matrix covers every action across the bundle; no owner role.
+- **AC-06**: v1.1 → v2 diff map covers every section of all three v1.1 FRS documents.
+- **AC-07**: Cross-cutting constraints reference NFR-* in M-NFR, and the §8.1–§8.4 principles are stated.
+- **AC-08**: All references to other M-* specs use stable identifiers (M-NN §Section).
+- **AC-09**: The shared-queue, OE-reuse, inline-interaction, and test-designation principles (§8.1–§8.4) are recorded with their owning/affected modules.
 
 ---
 
@@ -652,15 +722,14 @@ M-00 has no UI of its own, but contributes baseline strings for the module-level
 |-----|---------------|---------|
 | `micro.module.title` | Microbiology | Sidenav top-level |
 | `micro.module.subtitle` | Bacterial culture, identification, and susceptibility testing | Module landing card |
-| `micro.nav.pendingCultures` | Pending Cultures | Sidenav |
-| `micro.nav.astWorklist` | AST Worklist | Sidenav |
-| `micro.nav.dashboard` | Dashboard | Sidenav |
+| `micro.nav.worklist` | Worklist | Sidenav |
 | `micro.nav.caseSearch` | Case Search | Sidenav |
 | `micro.case.label` | Microbiology Case | Page header pattern |
 | `micro.isolate.label` | Isolate | Generic isolate label |
 | `micro.ast.run.label` | AST Run | Generic AST run label |
+| `micro.case.lastActivityBy` | Last activity by | Case header (no owner badge — §8.1) |
 | `micro.error.permission` | You do not have permission for this action | Cross-cutting error |
-| `micro.error.staleState` | This Case has been updated by another user; please refresh | Cross-cutting error |
+| `micro.error.staleState` | This Case has been updated by another user; please refresh | Cross-cutting error (optimistic locking — §8.2) |
 | `micro.error.qcLotLocked` | The selected reagent lot is locked by QC | Cross-cutting error |
 | `micro.success.saved` | Saved successfully | Cross-cutting success |
 | `micro.confirm.terminal` | This action moves the Case to a terminal state and cannot be undone. Continue? | Cross-cutting confirmation |
@@ -674,6 +743,9 @@ M-00 has no UI of its own, but contributes baseline strings for the module-level
 - **Narrative:** `amr-micro-narrative-v1-for-devs.md`
 - **Crosswalk:** `amr-crosswalk-working.md`
 - **WHONET export design review:** `whonet-export-design-review-v1.md`
-- **OpenELIS Test Catalog v2.5:** `test-catalog-requirements-v2.5.md` (referenced for AMR sub-section)
+- **AMR/Micro FRS review edits:** A-OWN, A-REUSE-1/2/3, Principle 3 (inline), A-TC, A-MIX — folded inline (§8.1–§8.4, §3, §7)
+- **OpenELIS Test Catalog v2.5 / OGC-748:** `test-catalog-requirements-v2.5.md` (Culture-workflow attribute, AMR flag, default Method)
+- **OE Methods admin:** `methods.md` (Method reuse — A-REUSE-1)
+- **OE Test-Rules:** `test-rules-mvp-frs.md` (reflex engine — A-REUSE-2)
 - **OpenELIS Style Guide:** `openelis-style-guide-v1-foundations.md` and `openelis-style-guide-v2-patterns-inventory.md`
 - **QA Pillar narrative (sibling format):** `qa-qc-narrative-v3-for-devs.md`
