@@ -191,7 +191,7 @@ function wlCultures(){
     var st=STAGE[c.stage]; var cls='row'+(st.group==='positive'?' positive':'')+(c.pri==='STAT'?' stat':'');
     return '<tr class="'+cls+'" onclick="openCase(\''+c.mc+'\',\''+c.lab+'\')">'+
       '<td><strong>'+c.lab+'</strong></td><td>'+c.pt+'</td><td>'+c.spec+'</td>'+
-      '<td><span class="tag '+st.cls+'">'+st.label+'</span></td>'+
+      '<td><span class="tag '+st.cls+'">'+st.label+'</span>'+(c.stage==='AST'?' <span style="font-size:10px;font-weight:700;color:#0f62fe;white-space:nowrap">● results in</span>':'')+'</td>'+
       '<td class="due">'+st.due+'<div class="d2">'+st.due2(c)+'</div></td>'+
       '<td>'+pri(c.pri)+'</td><td>'+c.tech+'</td>'+
       '<td class="overflow" onclick="event.stopPropagation();rowMenu(event,\''+c.lab+'\')"><span class="dots">⋯</span></td></tr>';
@@ -206,7 +206,7 @@ function wlCultures(){
 }
 
 function wlAst(){
-  var defs=[['all','In queue','blue'],['Pending setup','Pending setup','purple'],['In progress','In progress','blue'],['Ready for review','Ready for review','green']];
+  var defs=[['all','In queue','blue'],['Pending setup','Pending setup','purple'],['In progress','In progress','blue'],['Ready for review','Results in — review','green']];
   var cards=defs.map(function(d){ var n=astRows.filter(function(r){return d[0]==='all'?true:r.status===d[0];}).length; return '<div class="card '+d[2]+(state.astFilter===d[0]?' active':'')+'" onclick="setAst(\''+d[0]+'\')"><div class="n">'+n+'</div><div class="l">'+d[1]+'</div></div>'; }).join('');
   cards += '<div class="card disabled" title="Phase 1B — Expert Rules"><div class="n">—</div><div class="l">Expert flags (1B)</div></div>';
   var rows=filteredAst().map(function(r){

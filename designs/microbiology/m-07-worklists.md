@@ -66,7 +66,8 @@ The two grains exist only because the unit of work differs (case vs. isolate-run
 
 ### 4.2 Shared, state-driven queue — no per-case ownership
 There is no case "owner." The queue is organized by **state and urgency**, not by person:
-- **Needs-action summary cards** filter the list. Cultures: Total · Incubating · Positive · Growth detected · Ready to finalize. AST: In queue · Pending setup · In progress · Ready for review · (Expert flags — 1B, disabled).
+- **Needs-action summary cards** filter the list. Cultures: Total · Incubating · Positive · Growth detected · Ready to finalize. AST: In queue · Pending setup · In progress · **Results in — review** · (Expert flags — 1B, disabled).
+- **New analyzer results flag.** When an AST run lands as `RESULTS_IN` (analyzer pushed results, not yet reviewed — M-05 §5.3), the case carries a **"● results in"** badge on its culture row and is counted in the AST grain's **Results in — review** card, so whoever's on shift sees that results arrived and need review/accept. The flag clears when the run is accepted.
 - **Default sort = urgency:** STAT first, then by stage urgency (positive/ready highest), then longest-waiting.
 - **Accountability is per-action, not per-case:** the "Last activity by" column reflects who last acted; full attribution lives on the case (`inoculated_by`, `event_by`, AST entered/overridden by, `*_released_by`) + audit_trail. `micro_case.assigned_tech_user_id` remains in the schema but **nullable and unused by default** (optional opt-in assignment behind a config flag for larger/structured labs only).
 - **Optional transient lock** (recommended): a short-lived, auto-released "being worked" indicator to prevent two techs double-entering the same positive simultaneously — concurrency safety, not ownership.

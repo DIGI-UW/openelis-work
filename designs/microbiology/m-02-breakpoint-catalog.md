@@ -1,23 +1,37 @@
 # M-02 Breakpoint Catalog — Functional Requirements Specification
 
-**Version:** 1.0
-**Date:** 2026-05-15
+**Version:** 2.0 (consolidated — folds review edits inline; no separate addendum)
+**Date:** 2026-06-07
 **Module:** Admin → Breakpoint Catalog
 **Phase:** 1A
 **Owner:** Microbiology Module (M-00 parent)
 **Status:** Draft
 
+> This FRS is self-contained. The AMR design-review edits — the Active/Loaded/Archived legibility banner + snapshot rule, the effective-date explanation, CSV row-level import errors, and the note that BreakpointLookup precedence is shown to users in M-05 — are written **inline** in the relevant sections below; there is no separate edits doc or addendum.
+
 This spec covers the versioned reference catalog of breakpoint tables — CLSI M100 (annually updated) and EUCAST clinical breakpoints (versioned). The catalog drives AST interpretation (MIC or zone → S/I/R) in M-05 and is version-aware: AST Runs snapshot the breakpoint version at result time so subsequent publisher updates don't retroactively change historical interpretations.
 
 ---
 
-## 1. Overview
+## 1. Lab Context
 
-### 1.1 Purpose
+**Current State.** A small lab interprets AST by hand against whatever printed CLSI or EUCAST table is current on the bench, then transcribes S/I/R onto the report. When the publisher issues a new annual table, the old printout is replaced and prior results are simply remembered as "interpreted under the old rules."
+
+**Pain.** There is no record of *which* breakpoint version a historical result was read against, so a result re-opened a year later can't be defended. Loading a new CLSI edition mid-year is risky because it silently changes how today's and yesterday's runs interpret. And the per-run choice — "interpret this against CLSI or EUCAST, this version or that" — lives only in the tech's head.
+
+**What Changes.** The catalog holds every loaded standard version side by side, each labelled **Active / Loaded / Archived**, with a banner and tooltips that explain what each status means and that **historical runs keep their standard version forever**. Activation takes an **effective date** so a switchover is deliberate and dated. Breakpoint-standard selection stays **flexible per AST run** (default to the active standard, but any loaded standard/version may be picked and is then snapshotted onto the run); the catalog's job is to manage which standards are loaded and which is active.
+
+---
+
+## 2. Overview
+
+### 2.1 Purpose
 
 Hold the lab's set of breakpoint reference standards. Multiple versions of each standard coexist (CLSI 2024, CLSI 2025, EUCAST v14.0, EUCAST v14.1) so the lab can transition between versions on its own schedule. The `BreakpointLookupService` (called by M-05) takes (organism, antibiotic, method, breakpoint_standard_id) and returns S/I/R thresholds.
 
-### 1.2 Routes
+**Breakpoint-standard selection is flexible per AST run.** Each AST Run picks the standard it interprets against: it **defaults to the active standard** for the relevant publisher, but the tech may select **any loaded standard or version**. Whatever is chosen is **snapshotted** onto the run (`breakpoint_standard_id` + `breakpoint_version`) and never changes afterward. The catalog manages *which standards are loaded and which is active*; the run records *which was used*.
+
+### 2.2 Routes
 
 | Surface | Route | Sidenav |
 |---------|-------|---------|
@@ -26,7 +40,7 @@ Hold the lab's set of breakpoint reference standards. Multiple versions of each 
 | Add / Edit Breakpoint Standard | (modal) | — |
 | Import breakpoints (from CSV or Hub) | (modal) | — |
 
-### 1.3 Users
+### 2.3 Users
 
 | Role | Actions |
 |------|---------|
@@ -34,21 +48,21 @@ Hold the lab's set of breakpoint reference standards. Multiple versions of each 
 | Microbiology Supervisor | View; cannot modify breakpoints |
 | System Administrator | All actions |
 
-### 1.4 Integration
+### 2.4 Integration
 
 - **M-01 Reference Data** — breakpoints FK to `organism_master` (or `organism_group` for group-level breakpoints) and `antibiotic_master`.
-- **M-05 AST Entry & Interpretation** — calls `BreakpointLookupService(organism_id, antibiotic_id, method, breakpoint_standard_id)`. Returns S, I, R thresholds.
+- **M-05 AST Entry & Interpretation** — calls `BreakpointLookupService(organism_id, antibiotic_id, method, breakpoint_standard_id)`. Returns S, I, R thresholds. **M-05 surfaces which precedence level matched** (organism-specific / group / none) so the tech can trust the interpretation — see §6.2.
 - **M-04 Case Workbench** — AST Run header records `breakpoint_standard_id` + `breakpoint_version` at setup time. Snapshots survive subsequent catalog changes.
 - **M-09 WHONET Export** — writes `breakpoint_standard` value (e.g., `CLSI_M100_2024`) into each exported AST result column.
 - **M-10 Hub Subscription** (Phase 1B) — provides automated import of new standard versions from a central repository.
 
 ---
 
-## 2. Versioning model
+## 3. Versioning model
 
 This is the heart of M-02. Two principles:
 
-### 2.1 Reference standards are versioned
+### 3.1 Reference standards are versioned
 
 A `breakpoint_standard` row represents one **version** of one publisher's standard. Examples:
 
@@ -59,7 +73,7 @@ A `breakpoint_standard` row represents one **version** of one publisher's standa
 
 Each standard owns many `breakpoint` rows. The breakpoints **only apply within that version of that standard**. The same (organism, antibiotic) pair may have different thresholds in CLSI 2024 vs. CLSI 2025; both rows coexist in the catalog.
 
-### 2.2 Results snapshot the version at write time
+### 3.2 Results snapshot the version at write time
 
 Per crosswalk Q4 Rule 1:
 
@@ -71,7 +85,9 @@ So:
 - The lab can read the historical Case and see the original interpretation that the clinician acted on.
 - WHONET exports of that AST Run show `breakpoint_standard = CLSI_M100_2024` so the receiving aggregator knows which standard was applied.
 
-### 2.3 The lab's "active" standard
+This **snapshot rule** is surfaced to the user, not just enforced in the data model — see the legibility banner and tooltips in §3.5.
+
+### 3.3 The lab's "active" standard
 
 For each publisher (CLSI, EUCAST, other), the lab has zero or one **active** standard at a time. The active standard is the one M-05's `BreakpointLookupService` defaults to for new AST Runs. The lab can have CLSI 2024 active for one period and switch to CLSI 2025 active at a controlled point.
 
@@ -85,21 +101,36 @@ Switching the active standard is a deliberate admin action:
 
 The lab can run a validation period where both standards are loaded but only one is active — useful for side-by-side runs against both before flipping over.
 
-### 2.4 Multiple publishers in parallel
+### 3.4 Multiple publishers in parallel
 
 Most labs use one publisher's breakpoints (CLSI in the US, EUCAST in Europe and most WHO-supported settings). Some labs deliberately use both — e.g., a country where the national reference lab follows EUCAST but a national-tier hospital follows CLSI for chemistry parity.
 
-M-02 supports having **both an active CLSI standard and an active EUCAST standard** simultaneously. The AST Setup modal in M-04 lets the tech pick which standard to interpret against per AST Run. Default is per the active-standard-for-this-publisher logic.
+M-02 supports having **both an active CLSI standard and an active EUCAST standard** simultaneously. The AST Setup modal in M-04 lets the tech pick which standard to interpret against per AST Run (per the flexible-per-run rule, §2.1). Default is per the active-standard-for-this-publisher logic.
+
+### 3.5 Status legibility — Active / Loaded / Archived (review edit H3)
+
+Because the three statuses carry real workflow consequences, the catalog makes them legible rather than leaving them as bare badges:
+
+- A **persistent banner** at the top of the list (§4) explains, in one line each:
+  - **Active** — the lab's current default for new AST Runs against this publisher. New runs interpret against this unless the tech picks another loaded version.
+  - **Loaded** — present and selectable per run, but not the publisher's default. Use it for a validation period or a deliberate per-run choice.
+  - **Archived** — kept for the record only; **cannot** be chosen for new runs. Still referenced by historical runs that were set up against it.
+- Each status badge in the list and detail view carries a **tooltip** with the same definition.
+- The banner also states the **snapshot rule** plainly: *"Historical AST Runs keep the standard version they were set up against — forever. Activating a new version never changes past results."*
+- On **activation**, the modal (§8) explains the **effective date**: *"New AST Runs created on or after this date default to the new version. Runs before it, and runs already set up, are unaffected."*
 
 ---
 
-## 3. List view
+## 4. List view
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ Admin / Breakpoint Catalog                                                   │
 │                                                                              │
 │ Breakpoint Standards                          [Import]  [+ Add New Version]  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ⓘ  Active = default for new runs · Loaded = selectable, not default ·        │
+│    Archived = historical only.  Historical runs keep their version forever.  │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ [Search...]   Publisher: [All ▼]   Status: [All ▼]                           │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -113,10 +144,12 @@ M-02 supports having **both an active CLSI standard and an active EUCAST standar
 └───────────────────┴───────────┴─────────┴──────┴───────────────┴────────┴───┘
 ```
 
+The **status banner (ⓘ)** above the table is the review-edit-H3 legibility affordance; each status badge in the table also carries a tooltip with the same definition.
+
 Status values:
 
 - **Active** — this is the default for new AST Runs against this publisher.
-- **Loaded** — present in catalog, available for selection, but not the publisher's default.
+- **Loaded** — present in catalog, available for per-run selection, but not the publisher's default.
 - **Archived** — preserved for historical reference; cannot be selected for new AST Runs (only referenced by old ones).
 
 Row actions (overflow menu):
@@ -127,18 +160,20 @@ Row actions (overflow menu):
 - Export to CSV
 - Compare with [other version] (Phase 1B feature; placeholder in 1A)
 
+**Empty state.** Fresh deployment before any standard is seeded: "No breakpoint standards loaded. **Import** a CLSI or EUCAST table (CSV) to begin, or wait for the Phase-1B Hub import."
+
 ---
 
-## 4. Breakpoint Standard detail view
+## 5. Breakpoint Standard detail view
 
-Clicking a row from §3 drills into the standard's detail page.
+Clicking a row from §4 drills into the standard's detail page.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ Admin / Breakpoint Catalog / CLSI M100 2024                                  │
 │                                                                              │
-│ CLSI M100 2024                                                               │
-│ Publisher: CLSI · Year: 2024 · Status: Active · 1,247 breakpoints           │
+│ CLSI M100 2024                                                  [Active ⓘ]   │
+│ Publisher: CLSI · Year: 2024 · 1,247 breakpoints · Effective 2024-01-15     │
 │ [Set as Active] [Archive] [Export CSV] [Import Update]                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ [Search by organism or antibiotic...]                                        │
@@ -156,6 +191,8 @@ Clicking a row from §3 drills into the standard's detail page.
   Showing 1-50 of 1,247   [< 1 2 3 ... 25 >]
 ```
 
+The status badge in the header carries the same Active/Loaded/Archived tooltip as the list; the **effective date** is shown alongside the publisher/year line.
+
 **Carbon components:** `DataTable` with TableToolbar (search + filters), `Pagination`. Edit / Add / Delete actions on rows for individual breakpoint adjustments.
 
 **Filters:**
@@ -168,7 +205,7 @@ Most labs **don't edit individual breakpoints**. The CLSI / EUCAST tables come a
 
 ---
 
-## 5. Breakpoint data model
+## 6. Breakpoint data model
 
 ```
 breakpoint_standard
@@ -223,11 +260,11 @@ Constraints:
 
 ---
 
-## 6. BreakpointLookupService
+## 7. BreakpointLookupService
 
 The service called by M-05 (and any future module that needs to interpret AST values).
 
-### 6.1 Signature
+### 7.1 Signature
 
 ```
 BreakpointLookupService.lookup(
@@ -247,7 +284,7 @@ BreakpointLookupService.lookup(
 }
 ```
 
-### 6.2 Lookup precedence
+### 7.2 Lookup precedence
 
 The service walks through possible matches in this order:
 
@@ -256,7 +293,9 @@ The service walks through possible matches in this order:
 3. **Group-level breakpoint** — `Enterobacterales` × `Ampicillin` × `MIC` in `CLSI M100 2024`.
 4. **No match** — return `{ matched_by: NONE }`. M-05 then displays the raw MIC/zone with interpretation "Unable to interpret — no breakpoint" and prompts manual entry of S/I/R.
 
-### 6.3 Interpretation logic
+**Precedence is shown to the user in M-05 (review edit R-05).** The `matched_by` value is surfaced next to the run header / interpretation in M-05 — "matched: organism-specific" / "matched: group-level (Enterobacterales)" / "no standard breakpoint" — so the tech knows how specific the interpretation is and can trust (or question) it. M-02 owns the service contract; the user-facing display lives in M-05 §6.
+
+### 7.3 Interpretation logic
 
 For MIC values (`threshold_comparator = LE`):
 
@@ -277,15 +316,15 @@ Edge cases:
 
 ---
 
-## 7. Import paths
+## 8. Import paths
 
-### 7.1 Hub import (Phase 1B via M-10)
+### 8.1 Hub import (Phase 1B via M-10)
 
 The dominant case. M-10 Hub Subscription pulls structured breakpoint tables from the central repository. New `breakpoint_standard` rows are added; new `breakpoint` rows populate; existing standards' `seeded = true` rows refresh from the source.
 
 In Phase 1A, breakpoint catalogs are seeded by the **initial deployment process** (data migration), not by an in-app Hub call. The Hub UI is built in Phase 1B per M-10.
 
-### 7.2 Manual CSV import (Phase 1A)
+### 8.2 Manual CSV import (Phase 1A)
 
 In Phase 1A, the lab manager can import a CSV file of breakpoints. The file format:
 
@@ -302,20 +341,28 @@ The CSV import:
 - Validates each row (organism/group exists in M-01; antibiotic exists in M-01; method is valid; thresholds are numeric).
 - Creates the `breakpoint_standard` row if it doesn't exist.
 - Creates `breakpoint` rows for each valid line.
-- Reports errors per row (e.g., "Row 47: organism 'Burkhholderia' (typo) not found — skipped").
 - Marks all imported rows as `seeded = true`.
+
+**Row-level import errors (review edit R-04).** The import does not fail wholesale on a bad row. It validates every row, imports the valid ones, and presents a **per-row error summary** so the manager can fix and re-import only the failures. Each error names the row number and the specific cause, e.g.:
+
+- *"Row 47: organism 'Burkhholderia' (typo) not found in Organism Master — skipped."*
+- *"Row 88: antibiotic code 'XYZ' not in Antibiotic Master — skipped."*
+- *"Row 102: susceptible_threshold 'n/a' is not numeric — skipped."*
+- *"Row 119: method 'gradient' invalid (expected MIC / DISK_DIFFUSION / ETEST) — skipped."*
+
+The summary shows a count ("1,243 of 1,247 rows imported; 4 skipped") with the skipped rows expandable, and offers a **download of the failed rows as CSV** for correction. Valid rows are committed regardless of the skipped ones.
 
 Phase 1A: manual import is the bootstrap mechanism. Phase 1B: replaced/augmented by Hub.
 
-### 7.3 Local edits
+### 8.3 Local edits
 
 The lab can edit individual breakpoints (rare but supported). Local edits mark the row `locally_customized = true`. Hub updates do **not** overwrite locally customized rows; they're left alone with a warning surfaced to the lab manager: "X local customizations were preserved during Hub update; review here."
 
 ---
 
-## 8. Standard activation workflow
+## 9. Standard activation workflow
 
-From the list view (§3), the row action "Set as Active" opens a modal:
+From the list view (§4), the row action "Set as Active" opens a modal:
 
 ```
 ┌─ Set CLSI M100 2025 as active? ─────────────────────────────────────────────┐
@@ -330,6 +377,8 @@ From the list view (§3), the row action "Set as Active" opens a modal:
 │ Effective date: *  ┌───────────────┐                                         │
 │                    │ 2026-06-01    📅│                                       │
 │                    └───────────────┘                                         │
+│ ⓘ New AST Runs created on or after this date default to CLSI M100 2025.     │
+│    Runs before it, and runs already set up, are unaffected.                  │
 │                                                                              │
 │ Notes (optional):                                                            │
 │ ┌──────────────────────────────────────────────────────────────────────────┐ │
@@ -343,17 +392,19 @@ From the list view (§3), the row action "Set as Active" opens a modal:
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
+The effective-date helper (ⓘ) is the review-edit-H3 explanation of what the date controls.
+
 On confirm:
 
 1. `breakpoint_standard_activation_event` row written for both standards (old → DEACTIVATED, new → ACTIVATED).
 2. `breakpoint_standard.is_active_for_publisher` flipped.
 3. `breakpoint_standard.activation_effective_date` set on the new standard.
-4. M-05 AST Setup modal default updates immediately for new AST Runs (the default standard for the publisher is reread on each AST setup).
+4. M-05 AST Setup modal default updates immediately for new AST Runs (the default standard for the publisher is reread on each AST setup); the tech can still pick any loaded version per run (§2.1).
 5. A notification appears in the Admin landing page: "CLSI standard changed to M100 2025 effective 2026-06-01."
 
 ---
 
-## 9. Side-by-side comparison (Phase 1B)
+## 10. Side-by-side comparison (Phase 1B)
 
 Phase 1B feature placeholder. Lab manager can pick two standards (typically the currently active and a candidate replacement) and see a diff:
 
@@ -365,7 +416,7 @@ The comparison view supports the validation period before a switchover. Not in P
 
 ---
 
-## 10. Permissions
+## 11. Permissions
 
 | Action | Permission |
 |--------|-----------|
@@ -375,24 +426,25 @@ The comparison view supports the validation period before a switchover. Not in P
 
 ---
 
-## 11. Acceptance criteria
+## 12. Acceptance criteria
 
-- **AC-M02-01**: List view shows all standards with Active / Loaded / Archived statuses.
-- **AC-M02-02**: Activating a standard prompts for effective date; writes audit event; flips `is_active_for_publisher`.
+- **AC-M02-01**: List view shows all standards with Active / Loaded / Archived statuses, a status-legibility banner, and per-badge tooltips (review edit H3).
+- **AC-M02-02**: Activating a standard prompts for effective date, with helper text explaining the date controls only on-or-after runs; writes audit event; flips `is_active_for_publisher` (review edit H3).
 - **AC-M02-03**: At most one Active standard per publisher at a time.
-- **AC-M02-04**: Drilldown shows up to 50 breakpoints per page with search and filter.
+- **AC-M02-04**: Drilldown shows up to 50 breakpoints per page with search and filter; the detail header shows status tooltip + effective date.
 - **AC-M02-05**: BreakpointLookupService returns correct precedence (specimen-specific > organism-specific > group-level > none).
-- **AC-M02-06**: BreakpointLookupService returns `matched_by` so M-05 can render confidence appropriately.
-- **AC-M02-07**: AST Run records the `breakpoint_standard_id` AND `breakpoint_version` (denormalized snapshot) at setup time.
-- **AC-M02-08**: After a standard transition, historical AST Runs against the prior version still show the original interpretation in Case detail views.
-- **AC-M02-09**: CSV import validates every row, surfaces errors per row, creates `seeded = true` rows.
+- **AC-M02-06**: BreakpointLookupService returns `matched_by`; M-05 displays which precedence level matched next to the interpretation (review edit R-05).
+- **AC-M02-07**: AST Run records the `breakpoint_standard_id` AND `breakpoint_version` (denormalized snapshot) at setup time; selection is flexible per run (default active, any loaded version selectable) per §2.1.
+- **AC-M02-08**: After a standard transition, historical AST Runs against the prior version still show the original interpretation; the snapshot rule is stated in the list banner.
+- **AC-M02-09**: CSV import validates every row, imports valid rows, surfaces per-row errors with row number + specific cause, and offers a failed-rows CSV download; rows marked `seeded = true` (review edit R-04).
 - **AC-M02-10**: Locally customized rows survive Hub update; flagged with warning.
 - **AC-M02-11**: Archive blocked if the standard has unresolved active AST Runs (warning: "X AST Runs in flight against this standard; complete or transition them first").
 - **AC-M02-12**: All actions respect `micro.breakpoint.view` and `micro.breakpoint.manage`.
+- **AC-M02-13**: Empty state renders before any standard is loaded.
 
 ---
 
-## 12. i18n keys
+## 13. i18n keys
 
 Estimated 35-45 keys. Pattern:
 
@@ -403,10 +455,16 @@ admin.micro.breakpoint.list.column.publisher   "Publisher"
 admin.micro.breakpoint.list.column.activeBadge "Active"
 admin.micro.breakpoint.list.column.loadedBadge "Loaded"
 admin.micro.breakpoint.list.column.archivedBadge "Archived"
+admin.micro.breakpoint.list.statusBanner       "Active = default for new runs · Loaded = selectable, not default · Archived = historical only. Historical runs keep their version forever."
+admin.micro.breakpoint.status.active.tooltip   "Default for new AST Runs against this publisher."
+admin.micro.breakpoint.status.loaded.tooltip   "Selectable per run, but not the publisher's default."
+admin.micro.breakpoint.status.archived.tooltip "Historical only — cannot be chosen for new runs."
 admin.micro.breakpoint.list.action.setActive   "Set as Active"
 admin.micro.breakpoint.list.action.archive     "Archive"
 admin.micro.breakpoint.list.action.import      "Import"
+admin.micro.breakpoint.list.empty              "No breakpoint standards loaded. Import a CLSI or EUCAST table (CSV) to begin."
 admin.micro.breakpoint.detail.header.breakpoints "{{count}} breakpoints"
+admin.micro.breakpoint.detail.effectiveDate    "Effective {{date}}"
 admin.micro.breakpoint.detail.column.method.mic "MIC"
 admin.micro.breakpoint.detail.column.method.disk "Disk"
 admin.micro.breakpoint.detail.column.method.etest "Etest"
@@ -414,28 +472,34 @@ admin.micro.breakpoint.detail.threshold.le     "≤"
 admin.micro.breakpoint.detail.threshold.ge     "≥"
 admin.micro.breakpoint.activate.modal.title    "Set {{name}} as active?"
 admin.micro.breakpoint.activate.modal.effectiveDate "Effective date"
+admin.micro.breakpoint.activate.modal.effectiveDate.helper "New AST Runs created on or after this date default to the new version. Runs before it, and runs already set up, are unaffected."
 admin.micro.breakpoint.activate.modal.helper   "AST Runs already set up against the current standard are not affected."
 admin.micro.breakpoint.import.modal.title      "Import breakpoints"
 admin.micro.breakpoint.import.csv.helper       "Upload a CSV file matching the breakpoint catalog schema"
 admin.micro.breakpoint.import.row.error        "Row {{row}}: {{message}}"
+admin.micro.breakpoint.import.summary          "{{imported}} of {{total}} rows imported; {{skipped}} skipped"
+admin.micro.breakpoint.import.downloadErrors   "Download skipped rows (CSV)"
 admin.micro.breakpoint.locallyCustomized.tooltip "This breakpoint was edited locally and differs from the imported value"
+admin.micro.breakpoint.matchedBy.organism      "Matched: organism-specific"
+admin.micro.breakpoint.matchedBy.group         "Matched: group-level ({{group}})"
+admin.micro.breakpoint.matchedBy.none          "No standard breakpoint — interpret per local SOP"
 ...
 ```
 
 ---
 
-## 13. Open verification items
+## 14. Open verification items
 
 - Confirm the existing audit infrastructure can hold `breakpoint_standard_activation_event` rows; if not, M-02 builds.
 - Confirm CSV import path conventions in OE (any existing bulk-import patterns to follow).
 
 ---
 
-## 14. References
+## 15. References
 
 - M-00 Microbiology Module Parent Specification
 - M-01 AMR Reference Data (for organism / antibiotic FK targets)
-- M-05 AST Entry & Interpretation (primary consumer)
+- M-05 AST Entry & Interpretation (primary consumer; displays `matched_by` precedence and the per-run standard picker)
 - M-04 Case Workbench Core (records breakpoint_standard_id + version on AST Run)
 - M-10 Hub Subscription (Phase 1B; provides automated import)
 - `amr-crosswalk-working.md` Q4 (versioning rules)

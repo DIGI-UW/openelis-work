@@ -47,9 +47,11 @@
     <h1>AST Run #1 — Isolate 1 · <em>Escherichia coli</em></h1>
     <p class="sub">Case MC-2024-001234 · Blood · MARTINEZ, Carlos</p>
     <div id="qcbanner"></div>
+    <div id="runmeta" style="font-size:12px;color:#525252;margin:0.2rem 0 0.5rem"></div>
+    <div id="reviewbar"></div>
     <div class="runhdr">
-      <div class="fld"><label>Panel</label><select><option>GN-STD (16 antibiotics)</option><option>GN-UR (8)</option></select></div>
-      <div class="fld"><label>Method</label><select><option>VITEK 2</option><option>Disk diffusion</option><option>Etest</option></select></div>
+      <div class="fld"><label>Panel (ordered)</label><div style="padding:0.4rem 0;font-size:13px">GN-STD (16 antibiotics) · <span style="color:#6f6f6f">ordered by reflex from <em>E. coli</em> default</span> &nbsp;<button class="btn b-ghost b-sm" onclick="toast('Adjust panel — add/drop antibiotics or pick another panel. Updates the ordered analysis + snapshots on the run, with a reason + audit. Not a free dropdown.')">Adjust ▾</button></div></div>
+      <div class="fld"><label>Method</label><select id="method" onchange="changeMethod(this.value)"><option>VITEK 2</option><option>Disk diffusion</option><option>Etest</option></select></div>
       <div class="fld"><label>Breakpoint standard</label>
         <select id="std" onchange="changeStd(this.value)">
           <option value="EUCAST v14.0">EUCAST v14.0  (lab default — active)</option>
@@ -58,12 +60,12 @@
           <option value="EUCAST v13.0">EUCAST v13.0  (loaded)</option>
         </select>
       </div>
-      <div class="fld"><label>Card / disc lot</label><select><option>AST-GN-26-04-117 · exp 2026-09-01 · QC pass  (oldest — use first)</option><option>AST-GN-26-05-140 · exp 2026-10-15 · QC pass</option></select></div>
+      <div class="fld"><label>Reagent lot</label><select><option>AST-GN-26-04-117 · exp 2026-09-01 · QC pass  (oldest — use first)</option><option>AST-GN-26-05-140 · exp 2026-10-15 · QC pass</option></select></div>
     </div>
-    <p class="fh">Breakpoint standard <strong>defaults to the lab active standard but any loaded standard/version is selectable per run</strong> (CLSI or EUCAST) — try changing it and watch the interpretations re-compute. It's snapshotted on the run, so switching the lab default later never changes this run. Card lot uses FIFO + QC like results-entry; the analyzer card ID is scanned or read from the instrument link.</p>
+    <p class="fh">Breakpoint standard <strong>defaults to the lab active standard but any loaded standard/version is selectable per run</strong> (CLSI or EUCAST) — try changing it and watch the interpretations re-compute. It's snapshotted on the run, so switching the lab default later never changes this run. <strong>Reagent lot</strong> (generic — VITEK card, Phoenix panel, MIC broth panel, Etest strip, or KB disk; reused from M-12, not method-specific) uses FIFO + QC like results-entry; the analyzer card/panel ID is scanned or read from the instrument link. <strong>Measurement follows the method:</strong> MIC in µg/mL for VITEK / Etest / broth microdilution, zone diameter in mm for disk diffusion — switch Method to watch the column change. <strong>"Source"</strong> is data provenance (analyzer / manual / override), distinct from <strong>Method</strong> (the technique).</p>
     <p class="help"><span class="ico">ⓘ</span> Enter MIC and the interpretation auto-fills against the chosen standard. Analyzer results arrive automatically (no import). To change a value, tick <strong>Override</strong> — it expands inline, keeps the original, and is revertible.</p>
     <table class="t">
-      <thead><tr><th>Antibiotic</th><th>MIC (µg/mL)</th><th>Interp</th><th>Source</th><th>Override</th><th></th></tr></thead>
+      <thead><tr><th>Antibiotic</th><th id="measHdr">MIC (µg/mL)</th><th>Interp</th><th>Source</th><th>Override</th><th></th></tr></thead>
       <tbody id="rows"></tbody>
     </table>
     <div class="toolbar">
@@ -77,45 +79,56 @@
 <div id="toastRoot"></div>
 <script>
 "use strict";
-// demo breakpoint thresholds per standard: {S:<=, R:>=}; missing drug => no breakpoint
+// MIC breakpoints (µg/mL) per standard: S = mic<=S, R = mic>=R. Missing drug => no breakpoint.
 var BP = {
   'EUCAST v14.0': {Ampicillin:{S:8,R:16}, Ceftriaxone:{S:1,R:2}, Meropenem:{S:2,R:8}, Gentamicin:{S:2,R:4}, Ciprofloxacin:{S:0.25,R:0.5}},
   'EUCAST v13.0': {Ampicillin:{S:8,R:16}, Ceftriaxone:{S:1,R:2}, Meropenem:{S:2,R:8}, Gentamicin:{S:2,R:4}, Ciprofloxacin:{S:0.5,R:1}},
   'CLSI M100 2024': {Ampicillin:{S:8,R:32}, Ceftriaxone:{S:1,R:4}, Meropenem:{S:1,R:4}, Gentamicin:{S:4,R:16}, Ciprofloxacin:{S:1,R:4}},
   'CLSI M100 2025': {Ampicillin:{S:8,R:32}, Ceftriaxone:{S:1,R:4}, Meropenem:{S:1,R:4}, Gentamicin:{S:2,R:8}, Ciprofloxacin:{S:0.25,R:1}}
 };
+// Zone-diameter breakpoints (mm) for disk diffusion: S = zone>=S, R = zone<=R (inverse of MIC). Illustrative demo values.
+var ZBP = {Ampicillin:{S:17,R:13}, Ceftriaxone:{S:23,R:19}, Meropenem:{S:23,R:15}, Gentamicin:{S:17,R:14}, Ciprofloxacin:{S:26,R:21}};
 var std = 'EUCAST v14.0';
+var method = 'VITEK 2';
+function zoneMode(){ return method === 'Disk diffusion'; }   // disk = zone (mm); else MIC (µg/mL)
+function unit(){ return zoneMode() ? 'mm' : 'µg/mL'; }
 var rows = [
-  {abx:'Ampicillin', mic:32, source:'ANALYZER'},
-  {abx:'Ceftriaxone', mic:16, source:'ANALYZER'},
-  {abx:'Meropenem', mic:0.25, source:'ANALYZER'},
-  {abx:'Gentamicin', mic:4, source:'ANALYZER'},
-  {abx:'Ciprofloxacin', mic:1, source:'ANALYZER'},
-  {abx:'Colistin', mic:'', source:'MANUAL'}   // no breakpoint in demo map
+  {abx:'Ampicillin', mic:32, zone:12, source:'ANALYZER'},
+  {abx:'Ceftriaxone', mic:16, zone:18, source:'ANALYZER', inst:'I'},
+  {abx:'Meropenem', mic:0.25, zone:28, source:'ANALYZER'},
+  {abx:'Gentamicin', mic:4, zone:16, source:'ANALYZER'},
+  {abx:'Ciprofloxacin', mic:1, zone:22, source:'ANALYZER'},
+  {abx:'Colistin', mic:'', zone:'', source:'MANUAL'}   // no breakpoint — and disk diffusion is unreliable for colistin
 ];
-var qc=false;
-function interp(abx, mic){
-  var t = BP[std][abx];
+var qc=false; var reviewed=false;
+function rowVal(r){ return zoneMode() ? r.zone : r.mic; }
+function interp(r){
+  var t = zoneMode() ? ZBP[r.abx] : BP[std][r.abx];
   if(t===undefined) return {i:'NB', matched:'none'};
-  if(mic===''||mic===null||isNaN(parseFloat(mic))) return {i:'', matched:''};
-  var m=parseFloat(mic);
-  if(m<=t.S) return {i:'S', matched:'organism-specific'};
-  if(m>=t.R) return {i:'R', matched:'organism-specific'};
+  var v=rowVal(r);
+  if(v===''||v===null||isNaN(parseFloat(v))) return {i:'', matched:''};
+  v=parseFloat(v);
+  if(zoneMode()){ if(v>=t.S) return {i:'S',matched:'organism-specific'}; if(v<=t.R) return {i:'R',matched:'organism-specific'}; return {i:'I',matched:'organism-specific'}; }
+  if(v<=t.S) return {i:'S', matched:'organism-specific'};
+  if(v>=t.R) return {i:'R', matched:'organism-specific'};
   return {i:'I', matched:'organism-specific'};
 }
 function render(){
+  document.getElementById('measHdr').textContent = zoneMode() ? 'Zone (mm)' : 'MIC (µg/mL)';
   document.getElementById('qcbanner').innerHTML = qc
     ? '<div class="banner">⚠ <b>QC fail</b> on this card (control organism out of range). Save is blocked. <button class="btn b-amber b-sm" onclick="invalidate()">Invalidate &amp; start new run</button> <button class="btn b-ghost b-sm" onclick="overrideQc()">Override QC flag (supervisor)</button></div>'
     : '';
+  document.getElementById('runmeta').innerHTML = 'Instrument: <strong>VITEK 2</strong> · loaded 07:54 · completed 11:45 · software v9.02 · AES flags: <strong>ESBL</strong> · analyzer ID: <em>E. coli</em> (99.5%) <span style="color:#8d8d8d">— informational; the isolate’s organism ID is authoritative</span>.';
+  document.getElementById('reviewbar').innerHTML = reviewed
+    ? '<div class="banner ok">✓ Results reviewed &amp; accepted by Olivia Mendez — run <strong>COMPLETE</strong> (now counts toward report readiness).</div>'
+    : (qc ? '' : '<div class="banner" style="border-left-color:#0f62fe;background:#edf5ff">Analyzer results received (pre-populated) — <strong>review &amp; accept</strong>. 1 row differs from the analyzer’s own interpretation (flagged). <button class="btn b-pri b-sm" onclick="accept()">Accept results</button> <button class="btn b-ghost b-sm" onclick="repeatRun()">Repeat AST run</button></div>');
   var html='';
   rows.forEach(function(r,ix){
-    var res = r.override ? {i:r.override.interp, matched:'override'} : interp(r.abx, r.mic);
+    var res = r.override ? {i:r.override.interp, matched:'override'} : interp(r);
     var interpCell;
     if(res.i==='NB'){ interpCell='<span class="interp NB">?</span> <span class="matched" style="color:#8d8d8d">no breakpoint — interpret per local SOP</span>'; }
-    else { interpCell = (res.i?'<span class="interp '+res.i+'">'+res.i+'</span>':'<span style="color:#bbb">—</span>') + (res.matched&&res.matched!=='override'?' <span class="matched">('+res.matched+')</span>':'') + (r.override?' <span class="matched" style="color:#8a3ffc">→ override</span>':''); }
-    var micCell = (res.i==='NB')
-      ? '<input class="mic-in" value="'+(r.mic||'')+'" oninput="setMic('+ix+',this.value)" placeholder="—">'
-      : '<input class="mic-in" value="'+(r.mic||'')+'" oninput="setMic('+ix+',this.value)">';
+    else { interpCell = (res.i?'<span class="interp '+res.i+'">'+res.i+'</span>':'<span style="color:#bbb">—</span>') + (res.matched&&res.matched!=='override'?' <span class="matched">('+res.matched+')</span>':'') + (r.override?' <span class="matched" style="color:#8a3ffc">→ override</span>':'') + ((r.inst && res.i && !r.override && r.inst!==res.i)?' <span class="matched" style="color:#b28600">⚑ analyzer said '+r.inst+'</span>':''); }
+    var micCell = '<input class="mic-in" value="'+(rowVal(r)||'')+'" oninput="setVal('+ix+',this.value)"'+(res.i==='NB'?' placeholder="—"':'')+'>';
     var ovrToggle = r.override
       ? '<span class="lnk" onclick="toggleHist('+ix+')">show original ▾</span>'
       : '<label style="font-size:12px"><input type="checkbox" onclick="openOverride('+ix+')"> override</label>';
@@ -128,25 +141,28 @@ function render(){
         '<button class="btn b-ghost b-sm" onclick="cancelOverride('+ix+')">Cancel</button></div></td></tr>';
     }
     if(r._showHist && r.override){
-      html += '<tr class="histdetail"><td colspan="6">Original ('+r.override.origSource+'): <strong>'+(r.override.origInterp||'—')+'</strong> (MIC '+(r.override.origMic||'—')+') → override <strong>'+r.override.interp+'</strong>. Reason: '+r.override.reason+'. By Olivia Mendez, just now. &nbsp; <span class="lnk" onclick="revert('+ix+')">Revert to original</span></td></tr>';
+      html += '<tr class="histdetail"><td colspan="6">Original ('+r.override.origSource+'): <strong>'+(r.override.origInterp||'—')+'</strong> ('+(r.override.origVal||'—')+' '+(r.override.origUnit||'')+') → override <strong>'+r.override.interp+'</strong>. Reason: '+r.override.reason+'. By Olivia Mendez, just now. &nbsp; <span class="lnk" onclick="revert('+ix+')">Revert to original</span></td></tr>';
     }
   });
   document.getElementById('rows').innerHTML=html;
 }
-function setMic(ix,v){ rows[ix].mic=v; rows[ix].source='MANUAL'; render(); }
+function setVal(ix,v){ if(zoneMode()) rows[ix].zone=v; else rows[ix].mic=v; rows[ix].source='MANUAL'; render(); }
+function changeMethod(v){ method=v; toast('Method = '+v+(zoneMode()?' — measuring zone diameter (mm)':' — measuring MIC (µg/mL)')); render(); }
 function changeStd(v){ std=v; toast('Re-interpreted against '+v+' (snapshotted on the run).'); render(); }
 function applyDefaults(){ toast('Re-interpreted all rows against '+std+'.'); render(); }
-function clearAll(){ if(confirm('Clear all entered results? This cannot be undone (writes an audit row).')){ rows.forEach(function(r){ r.mic=''; r.override=null; r._editing=false; r._showHist=false; }); render(); } }
+function clearAll(){ if(confirm('Clear all entered results? This cannot be undone (writes an audit row).')){ rows.forEach(function(r){ r.mic=''; r.zone=''; r.override=null; r._editing=false; r._showHist=false; }); render(); } }
 function openOverride(ix){ rows.forEach(function(r){r._editing=false;}); rows[ix]._editing=true; render(); }
 function cancelOverride(ix){ rows[ix]._editing=false; render(); }
 function saveOverride(ix){
   var nv=document.getElementById('ov_'+ix).value; var reason=document.getElementById('oj_'+ix).value||'(reason required)';
-  var cur=interp(rows[ix].abx, rows[ix].mic);
-  rows[ix].override={interp:nv, reason:reason, origInterp:cur.i, origMic:rows[ix].mic, origSource:rows[ix].source};
+  var cur=interp(rows[ix]);
+  rows[ix].override={interp:nv, reason:reason, origInterp:cur.i, origVal:rowVal(rows[ix]), origUnit:unit(), origSource:rows[ix].source};
   rows[ix]._editing=false; render(); toast('Override saved — original reading preserved + audited.');
 }
 function toggleHist(ix){ rows[ix]._showHist=!rows[ix]._showHist; render(); }
 function revert(ix){ rows[ix].override=null; rows[ix]._showHist=false; render(); toast('Reverted to the original analyzer/manual value (audited).'); }
+function accept(){ reviewed=true; render(); toast('Results accepted — run COMPLETE (reviewed_by + audit). Worklist “new results” flag cleared.'); }
+function repeatRun(){ toast('Repeat AST run created against this isolate (retest) — original preserved; whole panel or a single drug. Reuses OE retest.'); }
 function toggleQc(){ qc=!qc; render(); }
 function invalidate(){ qc=false; toast('Run invalidated; a new AST run can be set up.'); render(); }
 function overrideQc(){ qc=false; toast('QC flag overridden by supervisor (justification + audit).'); render(); }

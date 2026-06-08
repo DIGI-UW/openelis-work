@@ -1,13 +1,17 @@
 # M-03 Order Entry Micro Hook — Functional Requirements Specification
 
-**Version:** 1.0
-**Date:** 2026-05-15
+**Version:** 2.0 (consolidated — folds review edits inline; no separate addendum)
+**Date:** 2026-06-05
 **Module:** Order Entry (existing OE module) — Microbiology-specific extension
 **Phase:** 1A
 **Owner:** Order Entry team (Microbiology Module M-00 is consumer)
 **Status:** Draft
 
-This spec describes a small amendment to the existing OE Order Entry wizard: when the user selects "Microbiology" as the program in Step 1, six micro-specific fields appear within that same step's surface area. No new wizard step. This amendment lives in OE because it modifies the OE workflow; Micro is the consumer.
+> This FRS is self-contained. It folds the AMR design-review edits (A-TC test-designation reconciliation, A-MIX mixed/multi-protocol handling, A-REUSE-1 culture-protocol→Method) **inline** below. There is no separate edits/addendum document.
+
+This spec describes a small amendment to the existing OE Order Entry wizard: when an order routes to the Microbiology Case workflow, six micro-specific fields appear within Step 1's surface area. No new wizard step. This amendment lives in OE because it modifies the OE workflow; Micro is the consumer.
+
+**What changed from v1.0.** v1.0 hung Case creation on the OE clerk manually picking **Program = Microbiology** in Step 1. The design review (item A-TC) found this is the single largest cross-spec gap: there is no test attribute that says "ordering this test starts a Microbiology Case," so a clerk could order a Blood Culture under "Routine" and silently get no Case. v2.0 moves the trigger to a first-class **"Culture workflow" test attribute** (distinct from the AMR/WHONET surveillance flag) and routes through a **single trigger resolver** (§2.1a). The manual Program pick survives only as a derived/visible fallback, never the relied-upon mechanism. Per A-REUSE-1, the culture protocol is the test's **default Method**, not a new `culture_protocol` master.
 
 ---
 
@@ -15,9 +19,9 @@ This spec describes a small amendment to the existing OE Order Entry wizard: whe
 
 ### 1.1 Purpose
 
-Capture the micro-specific information at order time that downstream Micro Module workflows depend on: culture protocol, patient origin, number of sets, clinical history, antibiotic exposure flag, and critical-notification preference.
+Capture the micro-specific information at order time that downstream Micro Module workflows depend on: culture protocol (= the test's default Method, per A-REUSE-1), patient origin, number of sets, clinical history, antibiotic exposure flag, and critical-notification preference.
 
-These fields appear conditionally — only when Program = MICROBIOLOGY. For all other programs (Routine, HIV, TB, EQA), the existing Step 1 renders unchanged.
+These fields appear conditionally — only when the order routes to the Microbiology Case workflow (determined by the trigger resolver of §2.1a). For all other orders (Routine, HIV, TB, EQA), the existing Step 1 renders unchanged.
 
 ### 1.2 Routes
 
@@ -36,15 +40,16 @@ These fields appear conditionally — only when Program = MICROBIOLOGY. For all 
 ### 1.4 Integration
 
 - **OE Order Entry wizard** — primary host. M-03 adds a conditional section to Step 1.
+- **Test Catalog (OGC-748)** — source of the **Culture-workflow** test attribute and the test's default **Method** (culture protocol). See §2.1a and A-TC reconciliation (§2.7).
 - **M-04 Case Workbench Core** — consumes the micro fields when creating the Case on Sample save.
-- **M-01 Reference Data** — Culture Protocol dropdown references the Culture Protocol master.
+- **M-01 Reference Data** — the culture-protocol picker resolves to the test's default **Method** (A-REUSE-1), not a standalone Culture Protocol master.
 - **M-08 Macro Library** — Clinical History field is macro-enabled with `clinical` category.
 
 ---
 
-## 2. Step 1 Program Selection — Microbiology branch
+## 2. Step 1 — routing an order to the Microbiology Case workflow
 
-### 2.1 Existing Program dropdown
+### 2.1 Existing Program dropdown (now a derived signal, not the trigger)
 
 The existing OE Step 1 has a Program dropdown:
 
@@ -53,19 +58,29 @@ The existing OE Step 1 has a Program dropdown:
 - TB Program
 - EQA / Proficiency Testing
 - (other site-specific programs)
+- **Microbiology** (still selectable, but **no longer the primary trigger** — see §2.1a)
 
-M-03 adds:
+In v1.0 the clerk's manual choice of `Program = MICROBIOLOGY` was the only thing that created a Case. v2.0 demotes this to a derived/visible signal: the **Culture-workflow test attribute** is the authority. When a clerk adds a Culture-workflow test, the workflow routes itself and the Program is **auto-selected to Microbiology** (visible, but derived). The clerk no longer has to remember to pick the program, which removes the "clerk forgot the program → no Case" failure mode.
 
-- **Microbiology** ← triggers the conditional micro fields
+### 2.1a Single trigger resolver — the "Culture workflow" test attribute (A-TC)
 
-### 2.2 When Microbiology is selected
+**Decision (A-TC, recommended option 1).** Case creation is driven by a first-class per-test attribute, resolved in one place:
 
-The Step 1 form expands inline (no modal, no new step) to show the micro fields. The expansion is in a `Tile` styled as a sub-section to make the relationship clear.
+- **Culture-workflow attribute.** The Test Catalog (OGC-748) carries a per-test boolean/category **"Culture workflow"** — "Set *Culture workflow* to make this test create a Microbiology Case and appear in the Worklist." This is **distinct from the AMR/WHONET flag**, which is a *surveillance* marker ("Enable for WHONET export and antimicrobial-resistance surveillance"). A test can be Culture-workflow only, AMR-only, both, or neither. They are separate concerns and must not be conflated.
+- **Trigger resolver.** The hook is built behind a **single trigger resolver** — one function `resolveMicroCaseTrigger(order)` that the OE wizard and the Sample-save hook both call. It returns `true` when **any test on the order has Culture workflow = true**. This is the *only* place the trigger decision is made; the conditional micro fields (§2.2), the info banner (§2.6), the auto-set of Program (§2.1), and the Case-creation hook (§5) all consult the resolver, never a scattered `program == MICROBIOLOGY` string check.
+- **Derived Program fallback.** If a deployment has not yet flagged its culture tests, the resolver also returns `true` when `Program = MICROBIOLOGY` is manually selected, so existing data and manual entry keep working. Program-driven creation is a fallback path, not the design intent.
+- **Culture protocol = the test's default Method (A-REUSE-1).** When the resolver fires, the protocol picker is pre-filled from the test's **default Method** (`test_method.is_default`), not from a `default_culture_protocol_id` field and not from a new `culture_protocol` master. See §2.3 and A-TC (§2.7).
+
+*Rationale:* one resolver = one source of truth for "does this order start a Case," and it keys off a real test attribute rather than a clerk's memory.
+
+### 2.2 When the resolver fires (Culture-workflow test on the order)
+
+The Step 1 form expands inline (no modal, no new step) to show the micro fields. The expansion is in a `Tile` styled as a sub-section to make the relationship clear. (When only the manual Program fallback is used, the same tile appears.)
 
 ```
 ┌─ Program Selection ─────────────────────────────────────────────────────────┐
 │                                                                              │
-│  Program: *                                                                  │
+│  Program: *  (auto-set to Microbiology by a Culture-workflow test)           │
 │  ┌──────────────────────────────────────────────────────────────────────────┐ │
 │  │ Microbiology                                                          ▼ │ │
 │  └──────────────────────────────────────────────────────────────────────────┘ │
@@ -75,11 +90,11 @@ The Step 1 form expands inline (no modal, no new step) to show the micro fields.
 │  │ 🦠 This will create a Microbiology Case for culture and susceptibility │ │
 │  │    testing.                                                             │ │
 │  │                                                                         │ │
-│  │ Culture Protocol: *                                                     │ │
+│  │ Culture Protocol (Method): *                                            │ │
 │  │ ┌─────────────────────────────────────────────────────────────────────┐ │ │
 │  │ │ Blood Culture Standard                                            ▼ │ │ │
 │  │ └─────────────────────────────────────────────────────────────────────┘ │ │
-│  │ Defaulted from the selected test; override if needed                    │ │
+│  │ Defaulted from the test's default Method; override if needed            │ │
 │  │                                                                         │ │
 │  │ Patient Origin:                                                         │ │
 │  │ ┌─────────────────────────────────────────────────────────────────────┐ │ │
@@ -111,12 +126,14 @@ The Step 1 form expands inline (no modal, no new step) to show the micro fields.
 
 | Field | Component | Required | Source / Default | Notes |
 |-------|-----------|----------|------------------|-------|
-| Culture Protocol | `ComboBox` referencing active `culture_protocol` records | Yes | Defaulted from the selected test's `default_culture_protocol_id` (via M-01); user can override | Drives downstream culture setup, max incubation days |
+| Culture Protocol (Method) | `ComboBox` referencing the active **Methods** linked to the test (A-REUSE-1) | Yes | Defaulted from the selected test's **default Method** (`test_method.is_default`); user can override with any Method linked to the test | Drives downstream culture setup; max incubation days come from the Method's culture-params extension (`incubation_hours`, `subculture_at_hours`, etc.) per A-REUSE-1 |
 | Patient Origin | `Dropdown` referencing patient_origin reference table | No | Defaulted from requesting unit/ward if known | Used in WHONET export (Phase 1B) |
-| Number of Sets | `NumberInput`, 1-10 | No | Default 1 (or 2 for blood cultures based on culture protocol) | Helper text contextual to specimen type |
+| Number of Sets | `NumberInput`, 1-10 | No | Default 1 (or 2 for blood cultures based on the Method) | Helper text contextual to specimen type |
 | Clinical History | `MacroTextarea`, `clinical` category, ≤ 1000 chars | No | Empty | Captures relevant patient context |
 | Antibiotic Exposure | `Checkbox` | No | Default false | "Patient has recent antibiotic exposure (within 2 weeks)" |
 | Critical Value Notify | `Checkbox` | No | Default true for blood culture / CSF / sterile sites; false for non-sterile sites | "Notify clinician immediately for positive [specimen type]" |
+
+> **A-REUSE-1 note.** "Culture protocol" is **the test's default Method**, not a new master. The picker lists Methods linked to the test via `test_method`; the default is the one with `is_default = true`. Incubation parameters (`incubation_hours`, `incubation_temp_celsius`, `atmosphere`, `subculture_at_hours`) are a small culture-params extension on `method`. There is no `default_culture_protocol_id` and no standalone `culture_protocol` table. M-01 drops the proposed `culture_protocol` master accordingly.
 
 ### 2.4 Priority — NOT in Step 1
 
@@ -124,7 +141,7 @@ Per the v1.1 narrative critique: priority is an Order-level concept that lives o
 
 ### 2.5 Validation
 
-- Culture Protocol is required when Program = MICROBIOLOGY.
+- Culture Protocol (Method) is required when the trigger resolver fires.
 - Number of Sets is bounded 1-10.
 - Clinical History ≤ 1000 chars.
 
@@ -132,11 +149,35 @@ Other fields are optional.
 
 ### 2.6 Info banner
 
-When Microbiology is selected, an `InlineNotification` (kind=info, lowContrast) appears at the top of the micro fields tile:
+When the trigger resolver fires (a Culture-workflow test is added, or Program = Microbiology is manually selected), an `InlineNotification` (kind=info, lowContrast) appears at the top of the micro fields tile:
 
 > 🦠 This will create a Microbiology Case for culture and susceptibility testing.
 
 This tells the order entry clerk that downstream Case creation will happen on Sample save. (The icon may be optional based on Carbon style guidelines; emoji used here for clarity in the spec sketch.)
+
+### 2.7 A-TC reconciliation — the test-designation gap, resolved here
+
+This subsection records the cross-spec reconciliation that v2.0 folds in, so the trigger is unambiguous for implementers across M-00, M-01, M-03, and the Test Catalog (OGC-748).
+
+**The gap v1.0 had.** v1.0 created the Case when a Sample saved with `program = MICROBIOLOGY` (AC-M03-13), a program the clerk picked manually. The Test Catalog (OGC-748) has no micro `program` value, no `default_culture_protocol_id`, and no `valid_organisms`; its one real per-test flag is the **AMR flag**, which is a WHONET/surveillance marker, not a "run the culture workflow" marker. So nothing tied a test to Case creation, and the AMR flag did not trigger a Case.
+
+**The resolution v2.0 adopts (A-TC option 1).**
+
+1. A first-class **"Culture workflow"** test attribute on the Test (distinct from, but able to imply, the AMR flag). Tests with it set: (a) carry their culture protocol as the test's **default Method** (A-REUSE-1) and `valid_organisms` (added to the Test Catalog, referenced by M-01/M-03), and (b) **auto-route the order to the Microbiology Case workflow when ordered** — no separate manual Program pick required.
+2. The manual Program pick is retained as a derived/visible fallback only (§2.1).
+3. Culture protocol = the test's default **Method** (`test_method.is_default`); no `default_culture_protocol_id`, no new `culture_protocol` master. The **AMR flag** and the **Culture-workflow flag** are separate concerns — a test can be one, both, or neither.
+
+**Editor helper text (Test Catalog).** "Set *Culture workflow* to make this test create a Microbiology Case and appear in the Worklist." That single sentence keeps the workflow extensible to tests added later.
+
+---
+
+## 2A. Mixed and multi-protocol orders (A-MIX)
+
+M-04 makes the Case **1:1 with a Sample** (`sample_id` unique) with a **single culture protocol** (the test's default Method). Three mixes get explicit handling:
+
+- **Micro + non-micro tests on one Sample.** The non-micro analyses follow the normal Sample → Analysis → Result path. The **Case covers only the micro workup**: it does **not** show or block on the chemistry results, and releasing the micro report is independent of the non-micro analyses. The trigger resolver fires for the micro test(s) only; the non-micro tests are unaffected.
+- **Multiple culture protocols on one Sample** (e.g. bacterial + fungal/mycobacterial culture of the same specimen). The single-protocol model **cannot represent this in Phase 1A**. **Decision: out of scope for Phase 1A — one culture protocol per Case; a second protocol requires a second Sample/Case.** If a clerk adds two Culture-workflow tests whose default Methods differ on one Sample, the wizard surfaces an inline notification: "This sample has two culture protocols; enter a second sample for the second protocol." (Promoting protocol to a per-Case-line or per-isolate concept is deferred.)
+- **Paired sets** (e.g. 2 blood-culture bottles from different sites): handled via `number_of_sets` on one Case — unchanged. The downstream UI shows per-set positivity.
 
 ---
 
@@ -171,24 +212,21 @@ M-03 does not modify Step 3.
 
 When the Order Entry wizard completes and Sample is saved:
 
-1. Sample row created in `sample` table with `program = MICROBIOLOGY`.
-2. The micro-specific fields are persisted (either on the Sample row if the existing OE schema supports program-specific columns, or in a `micro_order_data` sibling table — exact location verified during implementation per crosswalk Q1 sibling pattern).
-3. Sample post-save hook fires `MicroCaseService.createCaseForSample(sample_id)`.
-4. M-04 creates `micro_case` row with stage RECEIVED.
+1. Sample row created in `sample` table. For micro-routed orders, `program = MICROBIOLOGY` is recorded (auto-set by the resolver, §2.1).
+2. The micro-specific fields are persisted (either on the Sample row if the existing OE schema supports program-specific columns, or in a `micro_order_data` sibling table — exact location verified during implementation per crosswalk Q1 sibling pattern). The chosen culture protocol is stored as the resolved **Method** reference (A-REUSE-1).
+3. The Sample post-save hook calls the **single trigger resolver** (`resolveMicroCaseTrigger`, §2.1a); when it returns true it fires `MicroCaseService.createCaseForSample(sample_id)`.
+4. M-04 creates one `micro_case` row with stage RECEIVED, scoped to the micro workup only (A-MIX). A second culture protocol on the same Sample is not created here (out of scope, §2A).
 
-The user is returned to the standard OE post-save destination; the Micro module handles the Case visibility from its own surfaces (Pending Cultures Worklist).
+The user is returned to the standard OE post-save destination; the Micro module handles the Case visibility from its own surfaces (the Worklist).
 
 ---
 
 ## 6. Conditional rendering
 
-The Microbiology Program Details tile is shown only when:
+The Microbiology Program Details tile is shown only when the **trigger resolver** (§2.1a) returns true — i.e. when a Culture-workflow test is on the order (primary) or `Program = MICROBIOLOGY` is manually selected (fallback).
 
-- Program = MICROBIOLOGY in the dropdown.
-
-When the user changes the dropdown to something else, the tile collapses (with confirmation if data was entered: "Discard Microbiology details?").
-
-When the user re-selects Microbiology, the tile re-appears with any previously entered values preserved within the same session.
+- When the user removes the last Culture-workflow test, or changes the Program away from Microbiology, the tile collapses (with confirmation if data was entered: "Discard Microbiology details?").
+- When a Culture-workflow test is re-added (or Microbiology re-selected), the tile re-appears with any previously entered values preserved within the same session.
 
 ---
 
@@ -196,43 +234,46 @@ When the user re-selects Microbiology, the tile re-appears with any previously e
 
 | Action | Permission |
 |--------|-----------|
-| See Microbiology in the Program dropdown | `micro.case.create` (typically granted to OE clerks at sites that do micro) |
+| Order a Culture-workflow test / see Microbiology in the Program dropdown | `micro.case.create` (typically granted to OE clerks at sites that do micro) |
 | Fill micro fields | Same (no separate permission) |
 
-Sites that don't do micro don't need the permission; the dropdown won't show Microbiology.
+Sites that don't do micro don't flag any test as Culture-workflow and don't grant the permission; the dropdown won't show Microbiology and no Case is created.
 
 ---
 
 ## 8. Acceptance criteria
 
-- **AC-M03-01**: Microbiology appears in the Program dropdown for users with `micro.case.create` permission.
-- **AC-M03-02**: Selecting Microbiology renders the Program Details tile inline.
-- **AC-M03-03**: Culture Protocol dropdown shows active records from M-01.
-- **AC-M03-04**: Selecting a test with a default protocol pre-fills the dropdown.
-- **AC-M03-05**: Patient Origin dropdown shows seeded values from M-01 §6.2.
+- **AC-M03-01**: Ordering a test with **Culture workflow = true** routes the order to the Microbiology Case workflow via the single trigger resolver (§2.1a), and auto-sets Program = Microbiology (derived/visible).
+- **AC-M03-02**: The trigger resolver also returns true on the manual `Program = MICROBIOLOGY` fallback; both paths render the Program Details tile inline.
+- **AC-M03-03**: Culture-protocol picker lists the **Methods** linked to the test (A-REUSE-1); no `culture_protocol` master is referenced.
+- **AC-M03-04**: Selecting a Culture-workflow test pre-fills the picker with the test's **default Method** (`test_method.is_default`).
+- **AC-M03-05**: Patient Origin dropdown shows seeded values from M-01.
 - **AC-M03-06**: Clinical History supports macro expansion (`clinical` category).
 - **AC-M03-07**: Antibiotic Exposure checkbox saves correctly.
 - **AC-M03-08**: Critical Value Notify checkbox default varies by specimen type.
 - **AC-M03-09**: Priority is NOT in Step 1 micro fields (lives on Step 3 per existing OE).
-- **AC-M03-10**: Validation: Culture Protocol required when Program = MICROBIOLOGY.
-- **AC-M03-11**: Info banner displays when Microbiology selected.
-- **AC-M03-12**: Changing Program away from Microbiology with data entered prompts confirmation.
-- **AC-M03-13**: On Sample save, Case is auto-created in stage RECEIVED.
-- **AC-M03-14**: All micro-specific fields are persisted and available to M-04.
-- **AC-M03-15**: NFR-04 (a11y) — micro fields keyboard-reachable.
+- **AC-M03-10**: Validation: Culture Protocol (Method) required when the trigger resolver fires.
+- **AC-M03-11**: Info banner displays when the resolver fires.
+- **AC-M03-12**: Removing the last Culture-workflow test (or changing Program away from Microbiology) with data entered prompts confirmation.
+- **AC-M03-13**: On Sample save, the **single trigger resolver** is consulted and, when true, a Case is auto-created in stage RECEIVED. No separate `program == MICROBIOLOGY` string check exists outside the resolver.
+- **AC-M03-14**: All micro-specific fields are persisted and available to M-04; the culture protocol is stored as the resolved Method reference.
+- **AC-M03-15**: The **Culture-workflow** attribute and the **AMR/WHONET** flag are independent — a test may be one, both, or neither; the AMR flag alone does **not** trigger a Case.
+- **AC-M03-16**: Mixed micro + non-micro on one Sample creates a Case scoped to the micro workup only; the Case does not block on or display non-micro results (A-MIX).
+- **AC-M03-17**: Two differing culture protocols on one Sample are rejected with the "enter a second sample" notification (out of scope for Phase 1A, A-MIX).
+- **AC-M03-18**: NFR-04 (a11y) — micro fields keyboard-reachable.
 
 ---
 
 ## 9. i18n keys
 
-Estimated 20-25 keys. Pattern:
+Estimated 22-28 keys. Pattern:
 
 ```
 orderEntry.step1.program.option.microbiology      "Microbiology"
 orderEntry.step1.microbiology.tile.title          "Microbiology Program Details"
 orderEntry.step1.microbiology.banner              "This will create a Microbiology Case for culture and susceptibility testing."
-orderEntry.step1.microbiology.field.cultureProtocol.label "Culture Protocol"
-orderEntry.step1.microbiology.field.cultureProtocol.helper "Defaulted from the selected test; override if needed"
+orderEntry.step1.microbiology.field.cultureProtocol.label "Culture Protocol (Method)"
+orderEntry.step1.microbiology.field.cultureProtocol.helper "Defaulted from the test's default Method; override if needed"
 orderEntry.step1.microbiology.field.patientOrigin.label "Patient Origin"
 orderEntry.step1.microbiology.field.patientOrigin.option.inpatient "Inpatient"
 orderEntry.step1.microbiology.field.patientOrigin.option.outpatient "Outpatient"
@@ -247,6 +288,7 @@ orderEntry.step1.microbiology.field.clinicalHistory.helper "Macros: `clinical` (
 orderEntry.step1.microbiology.field.antibioticExposure.label "Patient has recent antibiotic exposure (within 2 weeks)"
 orderEntry.step1.microbiology.field.criticalNotify.label "Notify clinician immediately for positive {{specimenType}}"
 orderEntry.step1.microbiology.error.cultureProtocolRequired "Culture Protocol is required for Microbiology orders"
+orderEntry.step1.microbiology.notice.twoProtocols "This sample has two culture protocols; enter a second sample for the second protocol."
 orderEntry.step1.microbiology.confirm.discard.title "Discard Microbiology details?"
 orderEntry.step1.microbiology.confirm.discard.message "You have entered Microbiology details. Changing the Program will discard them."
 orderEntry.step1.microbiology.confirm.discard.confirm "Discard"
@@ -256,18 +298,21 @@ orderEntry.step1.microbiology.confirm.discard.confirm "Discard"
 
 ## 10. Open verification items
 
+- Confirm the Test Catalog (OGC-748) lands the **Culture-workflow** attribute and `valid_organisms`, and exposes the test's default **Method** for the resolver to read (A-TC cross-spec item, tracked in M-00).
 - Confirm exact location to persist micro-specific Order fields: on `sample` table (program-specific columns) vs. `micro_order_data` sibling table.
-- Confirm OE Sample-save hook mechanism (per M-04 §3.2 — Case creation hook).
-- Confirm existing Program dropdown's render mechanism for conditional content.
+- Confirm OE Sample-save hook mechanism (per M-04 §3.2 — Case creation hook) calls the single trigger resolver.
+- Confirm existing Program dropdown's render mechanism for conditional content (now keyed off the resolver).
 
 ---
 
 ## 11. References
 
-- M-00 Microbiology Module Parent Specification
-- M-04 Case Workbench Core (consumes saved micro fields on Case creation)
-- M-01 AMR Reference Data (Culture Protocol, Patient Origin references)
+- M-00 Microbiology Module Parent Specification (cross-cutting principles; A-TC tracked as an open cross-spec item)
+- M-04 Case Workbench Core (consumes saved micro fields on Case creation; 1:1 Case↔Sample; A-MIX scope)
+- M-01 AMR Reference Data (culture protocol = Method via A-REUSE-1; `valid_organisms`; Patient Origin)
+- Test Catalog (OGC-748) — Culture-workflow attribute, AMR flag, default Method
 - M-08 Macro Library (`clinical` category for Clinical History field)
 - Existing OE Order Entry wizard (Step 1 / Step 2 / Step 3 documentation)
+- AMR/Micro FRS review edits — A-TC, A-MIX, A-REUSE-1 (folded inline here)
 - `amr-micro-narrative-v1-for-devs.md` Phase 1 §Pre-analytical
 - v1.1 Workbench FRS §5 Order Entry hook (superseded by M-03)
