@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Catalog Management — v2.5 v1 Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .preview-banner strong { background: #fff; color: #0f62fe; padding: 1px 6px; border-radius: 2px; margin: 0 4px; }
+    .layout { display: grid; grid-template-columns: 256px 1fr; min-height: calc(100vh - 28px); }
+    .sidenav { background: #fff; border-right: 1px solid #e0e0e0; padding: 0; }
+    .sidenav-header { padding: 1rem; border-bottom: 1px solid #e0e0e0; font-weight: 600; font-size: 14px; color: #161616; }
+    .sidenav-item { padding: 0.75rem 1rem; cursor: pointer; font-size: 14px; color: #161616; display: flex; align-items: center; justify-content: space-between; border-left: 3px solid transparent; }
+    .sidenav-item:hover { background: #e5e5e5; }
+    .sidenav-item-active { background: #e0e0e0; border-left-color: #0f62fe; font-weight: 600; }
+    .sidenav-item-disabled { color: #a8a8a8; }
+    .sidenav-item .v2-pill { font-size: 10px; background: #e8daff; color: #491d8b; padding: 1px 6px; border-radius: 10px; font-weight: 600; letter-spacing: 0.5px; }
+    .main { padding: 1.5rem 2rem; overflow-x: auto; }
+    .breadcrumb { font-size: 13px; color: #525252; margin-bottom: 0.75rem; }
+    .breadcrumb a { color: #0f62fe; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .page-title { font-size: 28px; font-weight: 300; margin: 0 0 0.25rem 0; color: #161616; }
+    .page-subtitle { font-size: 14px; color: #525252; margin-bottom: 1.5rem; }
+    .section-card { background: #fff; padding: 1.5rem; margin-bottom: 1rem; border: 1px solid #e0e0e0; }
+    .section-title { font-size: 20px; font-weight: 400; margin: 0 0 0.5rem 0; color: #161616; }
+    .section-helper { font-size: 13px; color: #525252; margin-bottom: 1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-field label { display: block; font-size: 12px; color: #525252; margin-bottom: 4px; font-weight: 400; }
+    .form-field input, .form-field select, .form-field textarea { width: 100%; box-sizing: border-box; padding: 0.5rem 0.75rem; font-size: 14px; border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; font-family: inherit; }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline: 2px solid #0f62fe; outline-offset: -2px; }
+    .form-field .helper { font-size: 12px; color: #6f6f6f; margin-top: 4px; }
+    .checkbox-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 14px; }
+    .checkbox-row input[type="checkbox"] { margin: 0; }
+    .radio-row { display: flex; gap: 1.5rem; margin: 0.5rem 0; font-size: 14px; }
+    .radio-row label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+    .data-table-wrapper { border: 1px solid #e0e0e0; }
+    .data-table { width: 100%; border-collapse: collapse; background: #fff; font-size: 14px; }
+    .data-table th { text-align: left; padding: 0.75rem 1rem; background: #f4f4f4; font-weight: 600; color: #161616; border-bottom: 1px solid #e0e0e0; font-size: 12px; }
+    .data-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
+    .data-table tr.clickable { cursor: pointer; }
+    .data-table tr.clickable:hover { background: #f4f4f4; }
+    .data-table tr.row-selected { background: #e5e5e5; }
+    .test-name-link { color: #0f62fe; font-weight: 400; cursor: pointer; }
+    .test-name-link:hover { text-decoration: underline; }
+    .filter-bar { display: flex; gap: 0.75rem; align-items: end; flex-wrap: wrap; margin-bottom: 1rem; padding: 1rem; background: #fff; border: 1px solid #e0e0e0; }
+    .filter-bar .form-field { min-width: 160px; }
+    .filter-bar .form-field-search { min-width: 280px; flex: 1; }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; font-size: 14px; font-family: inherit; border: 1px solid transparent; cursor: pointer; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-primary:hover { background: #0353e9; }
+    .btn-secondary { background: #393939; color: #fff; }
+    .btn-tertiary { background: transparent; color: #0f62fe; border-color: #0f62fe; }
+    .btn-ghost { background: transparent; color: #0f62fe; }
+    .btn-ghost:hover { background: #e5e5e5; }
+    .btn-danger { background: transparent; color: #da1e28; border-color: #da1e28; }
+    .btn-sm { padding: 0.25rem 0.75rem; font-size: 12px; }
+    .pill, .tag-pill { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+    .tag-blue { background: #d0e2ff; color: #0043ce; }
+    .tag-teal { background: #9ef0f0; color: #003a6d; }
+    .tag-purple { background: #e8daff; color: #491d8b; }
+    .tag-green { background: #a7f0ba; color: #044317; }
+    .tag-red { background: #ffd7d9; color: #750e13; }
+    .tag-magenta { background: #ffd6e8; color: #9f1853; }
+    .tag-warm-gray { background: #e0e0e0; color: #525252; }
+    .tag-yellow { background: #fdd13a; color: #161616; }
+    .stage-pill { background: #d0e2ff; color: #0043ce; }
+    .accordion-item { border-top: 1px solid #e0e0e0; }
+    .accordion-header { padding: 0.75rem 1rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; background: #fff; font-weight: 400; }
+    .accordion-header:hover { background: #f4f4f4; }
+    .accordion-content { padding: 1rem; background: #f4f4f4; }
+    .coverage-card { background: #fff; padding: 1rem; border: 1px solid #e0e0e0; }
+    .coverage-card-complete { border-left: 3px solid #24a148; }
+    .coverage-card-issues { border-left: 3px solid #da1e28; }
+    .issue-card { background: #fff1f1; padding: 0.75rem; margin-top: 0.5rem; border-left: 3px solid #da1e28; }
+    .info-banner { padding: 0.75rem 1rem; background: #edf5ff; border-left: 3px solid #0f62fe; font-size: 13px; color: #002d9c; margin-bottom: 1rem; }
+    .info-banner-warning { background: #fcf4d6; border-left-color: #f1c21b; color: #684e00; }
+    .info-banner-coming-soon { background: #f4f0ff; border-left-color: #8a3ffc; color: #491d8b; }
+    .empty-state { text-align: center; padding: 3rem 1rem; background: #fff; border: 1px solid #e0e0e0; }
+    .empty-state-title { font-size: 18px; margin-bottom: 0.5rem; color: #161616; }
+    .empty-state-helper { font-size: 14px; color: #525252; margin-bottom: 1rem; }
+    .pagination { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: #fff; border: 1px solid #e0e0e0; border-top: 0; font-size: 13px; color: #525252; }
+    .editor-header { display: flex; justify-content: space-between; align-items: end; margin-bottom: 1.5rem; }
+    .editor-header-actions { display: flex; gap: 0.5rem; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .small-label { font-size: 12px; color: #525252; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem; }
+    .badge-count { background: #393939; color: #fff; font-size: 11px; padding: 1px 6px; border-radius: 10px; }
+    .sub-section { padding: 0.75rem 0; border-top: 1px dashed #e0e0e0; margin-top: 0.75rem; }
+    .preview-help { background: #f4f4f4; padding: 0.75rem; border: 1px dashed #c6c6c6; font-size: 12px; color: #525252; margin-top: 0.5rem; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    ⚡ Visual Preview — Test Catalog Management <strong>v2.5 v1</strong> | OpenELIS Design Mockup | Not a live application | <strong>v1 ships 9 sections</strong>; v2 sections (Labels / Reagents / Alerts / Reflex &amp; Calc / Compliance) are hidden until v2 ships
+  </div>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+    const t = (key, fallback) => fallback;
+
+    // ============== MOCK DATA ==============
+    const MOCK_TESTS = [
+      { id: 1, name: 'Fasting Glucose', section: 'Chemistry', sampleType: 'Serum', resultType: 'Numeric', loinc: '1558-6', status: 'Active', domain: 'CLINICAL', amr: false },
+      { id: 2, name: 'Hemoglobin A1c', section: 'Chemistry', sampleType: 'Whole Blood', resultType: 'Numeric', loinc: '4548-4', status: 'Active', domain: 'CLINICAL', amr: false },
+      { id: 3, name: 'HIV Rapid Test', section: 'Serology', sampleType: 'Whole Blood', resultType: 'Select List', loinc: '68961-2', status: 'Active', domain: 'CLINICAL', amr: false },
+      { id: 4, name: 'Ampicillin Susceptibility', section: 'Microbiology', sampleType: 'Isolate', resultType: 'Select List', loinc: '18864-9', status: 'Active', domain: 'CLINICAL', amr: true, whonet: 'AMP' },
+      { id: 5, name: 'Ciprofloxacin Susceptibility', section: 'Microbiology', sampleType: 'Isolate', resultType: 'Select List', loinc: '18906-8', status: 'Active', domain: 'CLINICAL', amr: true, whonet: 'CIP' },
+      { id: 6, name: 'Total Bilirubin (Neonatal)', section: 'Chemistry', sampleType: 'Serum', resultType: 'Numeric', loinc: '1975-2', status: 'Active', domain: 'CLINICAL', amr: false },
+      { id: 7, name: 'Water Turbidity', section: 'Environmental', sampleType: 'Water', resultType: 'Numeric', loinc: '—', status: 'Active', domain: 'ENVIRONMENTAL', amr: false },
+      { id: 8, name: 'Noise Pollution Survey', section: 'Environmental', sampleType: 'Air', resultType: 'Numeric', loinc: '—', status: 'Active', domain: 'ENVIRONMENTAL', amr: false },
+      { id: 9, name: 'Aedes Pool RT-PCR Dengue', section: 'Molecular', sampleType: 'Mosquito Pool', resultType: 'Select List', loinc: '—', status: 'Active', domain: 'VECTOR', amr: false },
+      { id: 10, name: 'CBC with Differential', section: 'Hematology', sampleType: 'Whole Blood', resultType: 'Numeric', loinc: '57021-8', status: 'Active', domain: 'CLINICAL', amr: false },
+      { id: 11, name: 'Total Cholesterol', section: 'Chemistry', sampleType: 'Serum', resultType: 'Numeric', loinc: '2093-3', status: 'Inactive', domain: 'CLINICAL', amr: false },
+      { id: 12, name: 'Blood Pressure', section: 'Vitals', sampleType: 'In-vivo', resultType: 'Numeric', loinc: '85354-9', status: 'Active', domain: 'CLINICAL', amr: false },
+    ];
+
+    // v1 SideNav: 9 sections. v2 entries (Labels, Reagents, Alerts, Reflex & Calc, Compliance) are hidden — they appear when v2 ships.
+    const SECTIONS = [
+      { id: 'basic', label: 'Basic Info' },
+      { id: 'sample', label: 'Sample & Results' },
+      { id: 'methods', label: 'Methods' },
+      { id: 'ranges', label: 'Ranges' },
+      { id: 'storage', label: 'Sample Storage' },
+      { id: 'order', label: 'Display Order' },
+      { id: 'panels', label: 'Panels' },
+      { id: 'terminology', label: 'Terminology' },
+      { id: 'analyzers', label: 'Analyzers' },
+    ];
+
+    // ============== ATOMS ==============
+    function DomainTag({ domain }) {
+      if (domain === 'CLINICAL') return <span className="pill tag-blue">CLINICAL</span>;
+      if (domain === 'ENVIRONMENTAL') return <span className="pill tag-teal">ENVIRONMENTAL</span>;
+      if (domain === 'VECTOR') return <span className="pill tag-purple">VECTOR</span>;
+      return null;
+    }
+    function StatusTag({ status }) {
+      if (status === 'Active') return <span className="pill tag-green">Active</span>;
+      if (status === 'Inactive') return <span className="pill tag-warm-gray">Inactive</span>;
+      return <span className="pill tag-warm-gray">{status}</span>;
+    }
+    function StagePill({ stage }) {
+      return <span className={`pill stage-pill`} style={{ background: stage === 'v1' ? '#d0e2ff' : '#e8daff', color: stage === 'v1' ? '#0043ce' : '#491d8b' }}>{stage}</span>;
+    }
+
+    // ============== TEST LIST VIEW ==============
+    function TestListView({ onOpen }) {
+      const [filtersOpen, setFiltersOpen] = useState(false);
+      const [search, setSearch] = useState('');
+      const [section, setSection] = useState('All');
+      const [sampleType, setSampleType] = useState('All');
+      const [resultType, setResultType] = useState('All');
+      const [status, setStatus] = useState('All');
+      const [domain, setDomain] = useState('All');
+      const [amr, setAmr] = useState('All');
+
+      const filtered = MOCK_TESTS.filter(test => {
+        if (search && !test.name.toLowerCase().includes(search.toLowerCase())) return false;
+        if (section !== 'All' && test.section !== section) return false;
+        if (sampleType !== 'All' && test.sampleType !== sampleType) return false;
+        if (resultType !== 'All' && test.resultType !== resultType) return false;
+        if (status !== 'All' && test.status !== status) return false;
+        if (domain !== 'All' && test.domain !== domain) return false;
+        if (amr === 'AMR' && !test.amr) return false;
+        if (amr === 'Non-AMR' && test.amr) return false;
+        return true;
+      });
+
+      const activeFilters = [section, sampleType, resultType, status, domain, amr].filter(v => v !== 'All').length;
+
+      return (
+        <div>
+          <div className="breadcrumb">
+            <a>Admin</a> &nbsp;›&nbsp; Test Catalog Management
+          </div>
+          <div className="editor-header">
+            <div>
+              <h1 className="page-title">Test Catalog Management</h1>
+              <div className="page-subtitle">Manage laboratory tests, panels, and configurations</div>
+            </div>
+            <div className="editor-header-actions">
+              <button className="btn btn-tertiary btn-sm" onClick={() => setFiltersOpen(!filtersOpen)}>
+                Filters {activeFilters > 0 && <span className="badge-count">{activeFilters}</span>}
+              </button>
+              <button className="btn btn-primary" onClick={() => onOpen('new')}>+ Add Test</button>
+            </div>
+          </div>
+
+          <div className="form-field form-field-search" style={{ marginBottom: '1rem' }}>
+            <input type="text" placeholder="Search tests..." value={search} onChange={e => setSearch(e.target.value)} />
+          </div>
+
+          {filtersOpen && (
+            <div className="filter-bar">
+              <div className="form-field">
+                <label>Section</label>
+                <select value={section} onChange={e => setSection(e.target.value)}>
+                  <option>All</option><option>Chemistry</option><option>Hematology</option><option>Serology</option><option>Microbiology</option><option>Molecular</option><option>Environmental</option><option>Vitals</option>
+                </select>
+              </div>
+              <div className="form-field">
+                <label>Sample Type</label>
+                <select value={sampleType} onChange={e => setSampleType(e.target.value)}>
+                  <option>All</option><option>Serum</option><option>Whole Blood</option><option>Isolate</option><option>Water</option><option>Air</option><option>Mosquito Pool</option><option>In-vivo</option>
+                </select>
+              </div>
+              <div className="form-field">
+                <label>Result Type</label>
+                <select value={resultType} onChange={e => setResultType(e.target.value)}>
+                  <option>All</option><option>Numeric</option><option>Select List</option><option>Multi-select</option><option>Free Text</option>
+                </select>
+              </div>
+              <div className="form-field">
+                <label>Status</label>
+                <select value={status} onChange={e => setStatus(e.target.value)}>
+                  <option>All</option><option>Active</option><option>Inactive</option>
+                </select>
+              </div>
+              <div className="form-field">
+                <label>Domain</label>
+                <select value={domain} onChange={e => setDomain(e.target.value)}>
+                  <option>All</option><option value="CLINICAL">Clinical</option><option value="ENVIRONMENTAL">Environmental</option><option value="VECTOR">Vector</option>
+                </select>
+              </div>
+              <div className="form-field">
+                <label>AMR</label>
+                <select value={amr} onChange={e => setAmr(e.target.value)}>
+                  <option>All</option><option value="AMR">AMR Only</option><option value="Non-AMR">Non-AMR</option>
+                </select>
+              </div>
+              {activeFilters > 0 && (
+                <button className="btn btn-ghost btn-sm" onClick={() => { setSection('All'); setSampleType('All'); setResultType('All'); setStatus('All'); setDomain('All'); setAmr('All'); }}>Clear All</button>
+              )}
+            </div>
+          )}
+
+          <div className="data-table-wrapper">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Test Name</th>
+                  <th>Domain</th>
+                  <th>Section</th>
+                  <th>Sample Type</th>
+                  <th>Result Type</th>
+                  <th>LOINC</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(test => (
+                  <tr key={test.id} className="clickable" onClick={() => onOpen(test.id)}>
+                    <td>
+                      <span className="test-name-link">{test.name}</span>
+                      {test.amr && <span className="pill tag-purple" title={`WHONET: ${test.whonet}`} style={{ marginLeft: 8 }}>AMR</span>}
+                    </td>
+                    <td><DomainTag domain={test.domain} /></td>
+                    <td>{test.section}</td>
+                    <td>{test.sampleType}</td>
+                    <td>{test.resultType}</td>
+                    <td><code style={{ fontSize: 12, color: '#525252' }}>{test.loinc}</code></td>
+                    <td><StatusTag status={test.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="pagination">
+              <span>Showing 1–{filtered.length} of {filtered.length} tests</span>
+              <span>Page 1 of 1 · 25 per page</span>
+            </div>
+          </div>
+
+          <div className="preview-help" style={{ marginTop: '1rem' }}>
+            <strong>v1 behavior:</strong> Click any row to open the editor. No Actions column. Filter state and pagination reflected in the URL. Each row is keyboard-focusable; Enter opens the editor.
+          </div>
+        </div>
+      );
+    }
+
+    // ============== BASIC INFO ==============
+    function BasicInfoSection({ test, setTest, onActivateClick }) {
+      const isAMR = !!test.amr;
+      return (
+        <div className="section-card">
+          <h2 className="section-title">Basic Information <StagePill stage="v1" /></h2>
+          <div className="form-row">
+            <div className="form-field">
+              <label>Test Name *</label>
+              <input value={test.name} onChange={e => setTest({...test, name: e.target.value})} />
+            </div>
+            <div className="form-field">
+              <label>Reporting Name</label>
+              <input defaultValue={test.name} placeholder="Name for patient reports" />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field">
+              <label>Test Code *</label>
+              <input defaultValue="GLU-F" placeholder="e.g., GLU-F" />
+            </div>
+            <div className="form-field">
+              <label>Description</label>
+              <input defaultValue="Fasting blood glucose measurement" />
+            </div>
+          </div>
+
+          <div className="sub-section">
+            <div className="small-label">Test Domain *</div>
+            <div className="radio-row">
+              <label><input type="radio" name="domain" checked={test.domain === 'CLINICAL'} onChange={() => setTest({...test, domain: 'CLINICAL'})} /> Clinical</label>
+              <label><input type="radio" name="domain" checked={test.domain === 'ENVIRONMENTAL'} onChange={() => setTest({...test, domain: 'ENVIRONMENTAL'})} /> Environmental</label>
+              <label><input type="radio" name="domain" checked={test.domain === 'VECTOR'} onChange={() => setTest({...test, domain: 'VECTOR'})} /> Vector</label>
+            </div>
+            <div className="helper" style={{ fontSize: 12, color: '#6f6f6f' }}>Patient-facing tests are Clinical. Water/air/soil/food = Environmental. Mosquito/tick/rodent surveillance = Vector. Changing domain after creation prompts a confirmation modal.</div>
+          </div>
+
+          <div className="sub-section">
+            <div className="small-label">Status &amp; Visibility</div>
+            <div className="checkbox-row"><input type="checkbox" defaultChecked /> Active</div>
+            <div className="checkbox-row"><input type="checkbox" defaultChecked /> Orderable</div>
+            <div className="checkbox-row"><input type="checkbox" /> Internal QA — No Results Release <span style={{ fontSize: 12, color: '#6f6f6f', marginLeft: 8 }}>(results will not appear on patient reports — not the EQA participant workflow surface)</span></div>
+            <div className="preview-help" style={{ marginTop: 8 }}>
+              <strong>Activation gate:</strong> if Coverage Validation has unresolved gaps when admin sets the test Active, the <em>Activation Acknowledgment modal</em> appears. Admin can either fill the gaps or proceed by explicitly acknowledging that the test won't be validated for the missing demographics (logged to <code>test_activation_acknowledgment</code>). <button className="btn btn-ghost btn-sm" onClick={onActivateClick}>Demo: trigger Activation modal</button>
+            </div>
+          </div>
+
+          <div className="sub-section">
+            <div className="small-label">Antimicrobial Resistance (AMR) Test</div>
+            <div className="checkbox-row">
+              <input type="checkbox" checked={isAMR} onChange={() => setTest({...test, amr: !isAMR})} />
+              Enable for WHONET export and antimicrobial resistance surveillance
+            </div>
+            {isAMR && (
+              <div style={{ marginTop: 12, padding: 12, background: '#f4f4f4', border: '1px solid #e0e0e0' }}>
+                <div className="form-row-3">
+                  <div className="form-field">
+                    <label>WHONET Antibiotic Code *</label>
+                    <select defaultValue="AMP"><option>AMP</option><option>CIP</option><option>GEN</option><option>VAN</option></select>
+                  </div>
+                  <div className="form-field">
+                    <label>Antibiotic Class</label>
+                    <select defaultValue="Penicillins"><option>Penicillins</option><option>Fluoroquinolones</option><option>Cephalosporins</option><option>Glycopeptides</option></select>
+                  </div>
+                  <div className="form-field">
+                    <label>Test Method</label>
+                    <select defaultValue="Disk Diffusion"><option>Disk Diffusion</option><option>MIC</option><option>E-test</option></select>
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-field">
+                    <label>Breakpoint Standard</label>
+                    <select defaultValue="CLSI 2024"><option>CLSI 2024</option><option>EUCAST 2024</option><option>Custom</option></select>
+                  </div>
+                  <div className="form-field">
+                    <label>Disk Potency (µg)</label>
+                    <input type="number" defaultValue="10" />
+                  </div>
+                </div>
+                <div className="info-banner">This test will be included in WHONET exports.</div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ============== SAMPLE & RESULTS ==============
+    function SampleResultsSection({ test }) {
+      const [components, setComponents] = useState(test.id === 12 ? [
+        { code: 'SYSTOLIC', label: 'Systolic', type: 'NUMERIC', unit: 'mmHg', sigDigits: 0, defaultResult: '', multi: false, active: true, order: 1 },
+        { code: 'DIASTOLIC', label: 'Diastolic', type: 'NUMERIC', unit: 'mmHg', sigDigits: 0, defaultResult: '', multi: false, active: true, order: 2 },
+      ] : [
+        { code: 'PRIMARY', label: test.name, type: 'NUMERIC', unit: 'mg/dL', sigDigits: 1, defaultResult: '', multi: false, active: true, order: 1 },
+      ]);
+      const isMulti = components.length > 1;
+
+      return (
+        <div className="section-card">
+          <h2 className="section-title">Sample &amp; Result Configuration <StagePill stage="v1" /></h2>
+
+          <div className="form-row">
+            <div className="form-field">
+              <label>Sample Type(s) *</label>
+              <div style={{ padding: '0.5rem 0.75rem', background: '#f4f4f4', borderBottom: '1px solid #8d8d8d', display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
+                <span className="pill tag-warm-gray" style={{ background: '#e0e0e0', color: '#161616', padding: '2px 6px 2px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>Serum <span style={{ cursor: 'pointer', fontWeight: 600 }}>✕</span></span>
+                <input type="text" placeholder="Type to search…" style={{ flex: 1, minWidth: 100, border: 0, background: 'transparent', outline: 'none', fontSize: 14 }} />
+                <span style={{ color: '#525252', fontSize: 12 }}>▾</span>
+              </div>
+              <div className="helper" style={{ fontSize: 12, color: '#6f6f6f', marginTop: 4 }}>Carbon `&lt;FilterableMultiSelect&gt;` — typeahead scales to dozens of sample types (clinical + environmental + vector).</div>
+            </div>
+            <div className="form-field">
+              <label>Default Sample Type</label>
+              <div style={{ padding: '0.5rem 0.75rem', background: '#f4f4f4', borderBottom: '1px solid #8d8d8d', display: 'flex', alignItems: 'center' }}>
+                <input type="text" defaultValue="Serum" style={{ flex: 1, border: 0, background: 'transparent', outline: 'none', fontSize: 14 }} />
+                <span style={{ color: '#525252', fontSize: 12 }}>▾</span>
+              </div>
+              <div className="helper" style={{ fontSize: 12, color: '#6f6f6f', marginTop: 4 }}>Carbon `&lt;ComboBox&gt;` — typeahead scoped to selected Sample Types.</div>
+            </div>
+          </div>
+
+          <div className="sub-section">
+            <div className="small-label">Result Components ({components.length})</div>
+            <div className="section-helper">A single test can produce N labeled subresult values. Single-component (default) renders compactly. Add a row to make this a multi-component test.</div>
+            <div className="data-table-wrapper" style={{ marginTop: '0.5rem' }}>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    {isMulti && <th>Code</th>}
+                    <th>Label</th>
+                    <th>Result Type</th>
+                    <th>Unit</th>
+                    <th>Sig Digits</th>
+                    <th>Default</th>
+                    <th>Multi-Reading</th>
+                    <th>Active</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {components.map((c, i) => (
+                    <tr key={i}>
+                      {isMulti && <td><code style={{ fontSize: 12 }}>{c.code}</code></td>}
+                      <td>{c.label}</td>
+                      <td><span className="pill tag-blue">{c.type === 'NUMERIC' ? 'Numeric' : c.type}</span></td>
+                      <td>{c.unit}</td>
+                      <td>{c.sigDigits}</td>
+                      <td>{c.defaultResult || '—'}</td>
+                      <td>{c.multi ? '✓' : '—'}</td>
+                      <td>{c.active ? '✓' : '—'}</td>
+                      <td><button className="btn btn-ghost btn-sm">Edit</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <button className="btn btn-tertiary btn-sm" style={{ marginTop: '0.5rem' }} onClick={() => setComponents([...components, { code: 'NEW_'+components.length, label: 'New Component', type: 'NUMERIC', unit: '', sigDigits: 0, defaultResult: '', multi: false, active: true, order: components.length+1 }])}>+ Add Component</button>
+            <div className="preview-help" style={{ marginTop: '0.5rem' }}>
+              <strong>Unit ComboBox:</strong> typeahead from `unit_of_measure` master list with "+ Add new unit…" sentinel at the bottom that opens an inline form (Code / Display Name / UCUM / Description) without leaving the editor. <strong>FHIR mapping:</strong> one Observation per component, all under one ServiceRequest. Co-collection via shared effectiveDateTime + optional derivedFrom/hasMember.
+            </div>
+          </div>
+
+          {isMulti ? (
+            <div className="sub-section">
+              <div className="small-label">Per-Component Configuration</div>
+              <div className="section-helper">Multi-component tests wrap each component's Select List Options + Result Interpretations in a dedicated accordion item below. Expand a component to configure it; collapse to compare across components.</div>
+              {components.map((c, ci) => (
+                <div key={ci} className="accordion-item">
+                  <div className="accordion-header">
+                    <div>
+                      <strong>{c.label}</strong> &nbsp; <code style={{ fontSize: 11 }}>{c.code}</code> &nbsp;
+                      <span className="badge-count" style={{ marginLeft: 8 }}>2 interpretations</span>
+                    </div>
+                    <button className="btn btn-ghost btn-sm">{ci === 0 ? 'Collapse' : 'Expand'}</button>
+                  </div>
+                  {ci === 0 && (
+                    <div className="accordion-content">
+                      <div style={{ fontSize: 12, color: '#525252', marginBottom: 8 }}>Result Interpretations for {c.label}</div>
+                      <button className="btn btn-ghost btn-sm">Copy from Test…</button> <button className="btn btn-tertiary btn-sm">+ Add Interpretation</button>
+                      <div className="data-table-wrapper" style={{ marginTop: '0.5rem' }}>
+                        <table className="data-table">
+                          <thead><tr><th>Code</th><th>Label</th><th>Value/Range</th><th>Interpretation Text</th><th>Active</th><th></th></tr></thead>
+                          <tbody>
+                            {c.code === 'SYSTOLIC' ? (
+                              <>
+                                <tr><td><code>HTN-3</code></td><td><span className="pill tag-red">Hypertensive Crisis</span></td><td>&gt;180</td><td>Immediate clinical evaluation. Possible end-organ damage.</td><td>✓</td><td><button className="btn btn-ghost btn-sm">Edit</button></td></tr>
+                                <tr><td><code>HTN-2</code></td><td><span className="pill tag-warm-gray">Hypertensive</span></td><td>140-179</td><td>Stage 2 hypertension. Recommend lifestyle + medication review.</td><td>✓</td><td><button className="btn btn-ghost btn-sm">Edit</button></td></tr>
+                              </>
+                            ) : (
+                              <>
+                                <tr><td><code>DBP-H</code></td><td><span className="pill tag-red">Diastolic High</span></td><td>&gt;120</td><td>Hypertensive crisis (diastolic). Immediate evaluation.</td><td>✓</td><td><button className="btn btn-ghost btn-sm">Edit</button></td></tr>
+                                <tr><td><code>DBP-N</code></td><td><span className="pill tag-green">Normal</span></td><td>60-80</td><td>Diastolic within normal limits.</td><td>✓</td><td><button className="btn btn-ghost btn-sm">Edit</button></td></tr>
+                              </>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="sub-section">
+              <div className="small-label">Result Interpretations</div>
+              <div className="section-helper">Interpretive labels and clinical guidance added as external notes when a result matches the configured value criteria. <button className="btn btn-ghost btn-sm">Copy from Test…</button> <button className="btn btn-tertiary btn-sm">+ Add Interpretation</button></div>
+              <div className="data-table-wrapper">
+                <table className="data-table">
+                  <thead><tr><th>Code</th><th>Label</th><th>Value/Range</th><th>Interpretation Text</th><th>Active</th><th></th></tr></thead>
+                  <tbody>
+                    <tr><td><code>GLU-CRIT-H</code></td><td><span className="pill tag-red">Critical High</span></td><td>&gt;400</td><td>CRITICAL: Glucose severely elevated. Immediate clinical attention required.</td><td>✓</td><td><button className="btn btn-ghost btn-sm">Edit</button></td></tr>
+                    <tr><td><code>GLU-HI</code></td><td><span className="pill tag-yellow">High</span></td><td>&gt;126</td><td>Elevated fasting glucose. Consider diabetes screening.</td><td>✓</td><td><button className="btn btn-ghost btn-sm">Edit</button></td></tr>
+                    <tr><td><code>GLU-NL</code></td><td><span className="pill tag-green">Normal</span></td><td>70-99</td><td>Fasting glucose within normal limits.</td><td>✓</td><td><button className="btn btn-ghost btn-sm">Edit</button></td></tr>
+                    <tr><td><code>GLU-LO</code></td><td><span className="pill tag-yellow">Low</span></td><td>&lt;70</td><td>Hypoglycemia. Evaluate for symptoms and underlying cause.</td><td>✓</td><td><button className="btn btn-ghost btn-sm">Edit</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ============== METHODS ==============
+    function MethodsSection() {
+      return (
+        <div className="section-card">
+          <h2 className="section-title">Methods <StagePill stage="v1" /></h2>
+          <div className="section-helper">Methods used to perform this test. Set a default; configure shortcodes for fast entry at result time. <button className="btn btn-tertiary btn-sm">+ Link Method</button> <button className="btn btn-ghost btn-sm">+ Create New Method</button> <button className="btn btn-ghost btn-sm">Copy from Test…</button></div>
+          <div className="data-table-wrapper">
+            <table className="data-table">
+              <thead><tr><th>Method Name</th><th>Code (Shortcode)</th><th>Default</th><th>Effective Date</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>Hexokinase Method</td><td><code>HEX</code></td><td>✓</td><td>2024-01-01</td><td><button className="btn btn-ghost btn-sm">Edit</button> <button className="btn btn-ghost btn-sm">Remove</button></td></tr>
+                <tr><td>Glucose Oxidase Method</td><td><code>GOX</code></td><td></td><td>2024-01-01</td><td><button className="btn btn-ghost btn-sm">Edit</button> <button className="btn btn-ghost btn-sm">Remove</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="preview-help">Inline-create flow: clicking "+ Create New Method" expands an inline form (name + shortcode); on save, the new method is created in Master Lists AND linked to this test in one step.</div>
+        </div>
+      );
+    }
+
+    // ============== RANGES ==============
+    function RangesSection({ test }) {
+      const [coverageOpen, setCoverageOpen] = useState(true);
+      const isNeonatal = test.name.includes('Bilirubin') || test.name.includes('Neonatal');
+
+      return (
+        <div className="section-card">
+          <h2 className="section-title">Reference Ranges <StagePill stage="v1" /></h2>
+          <div className="section-helper">Define age and sex-specific reference ranges for this test. <button className="btn btn-tertiary btn-sm" onClick={() => setCoverageOpen(!coverageOpen)}>{coverageOpen ? 'Hide' : 'Show'} Coverage Validation</button></div>
+
+          {coverageOpen && (
+            <div style={{ marginBottom: '1rem' }}>
+              <div className="small-label">Age Coverage Validation</div>
+              <div className="grid-2">
+                <div className="coverage-card coverage-card-complete">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <strong><span className="pill tag-blue">Male</span> Complete Coverage</strong>
+                    <span style={{ color: '#24a148' }}>✓</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: '#525252' }}>All age ranges from birth to maximum age are covered.</div>
+                </div>
+                <div className={`coverage-card ${isNeonatal ? 'coverage-card-complete' : 'coverage-card-issues'}`}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <strong><span className="pill tag-magenta">Female</span> {isNeonatal ? 'Complete Coverage' : '1 Issue Found'}</strong>
+                    <span style={{ color: isNeonatal ? '#24a148' : '#da1e28' }}>{isNeonatal ? '✓' : '⚠'}</span>
+                  </div>
+                  {!isNeonatal && (
+                    <div className="issue-card">
+                      <div style={{ fontWeight: 600, fontSize: 11, color: '#da1e28', marginBottom: 4 }}>GAP</div>
+                      <div style={{ fontSize: 13 }}>55 days to 1 year</div>
+                      <div style={{ fontSize: 12, color: '#525252', marginTop: 4 }}>Suggested values from adjacent range: Low=1, High=130</div>
+                      <button className="btn btn-primary btn-sm" style={{ marginTop: 8 }}>Fill Gap</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="accordion-item">
+            <div className="accordion-header">
+              <div><span className="pill tag-green">Normal</span> <span style={{ marginLeft: 8 }}>Clinical reference values</span> <span className="badge-count" style={{ marginLeft: 8 }}>{isNeonatal ? 8 : 4}</span></div>
+              <button className="btn btn-ghost btn-sm">+ Add Normal</button>
+            </div>
+            <div className="accordion-content">
+              <table className="data-table">
+                <thead><tr><th>Sex</th><th>Age From</th><th>Age To</th><th>Low</th><th>High</th><th></th></tr></thead>
+                <tbody>
+                  {isNeonatal ? (
+                    <>
+                      <tr><td><span className="pill tag-warm-gray">All</span></td><td>0 hours</td><td>23 hours</td><td>—</td><td>7.9</td><td><button className="btn btn-ghost btn-sm">Edit</button></td></tr>
+                      <tr><td><span className="pill tag-warm-gray">All</span></td><td>24 hours</td><td>35 hours</td><td>—</td><td>10.9</td><td><button className="btn btn-ghost btn-sm">Edit</button></td></tr>
+                      <tr><td><span className="pill tag-warm-gray">All</span></td><td>36 hours</td><td>47 hours</td><td>—</td><td>13.9</td><td><button className="btn btn-ghost btn-sm">Edit</button></td></tr>
+                      <tr><td><span className="pill tag-warm-gray">All</span></td><td>48 hours</td><td>71 hours</td><td>—</td><td>14.9</td><td><button className="btn btn-ghost btn-sm">Edit</button></td></tr>
+                      <tr><td><span className="pill tag-warm-gray">All</span></td><td>72 hours</td><td>13 days</td><td>—</td><td>17.9</td><td><button className="btn btn-ghost btn-sm">Edit</button></td></tr>
+                      <tr><td><span className="pill tag-warm-gray">All</span></td><td>14 days</td><td>∞</td><td>—</td><td>15.0</td><td><button className="btn btn-ghost btn-sm">Edit</button></td></tr>
+                    </>
+                  ) : (
+                    <>
+                      <tr><td><span className="pill tag-warm-gray">All</span></td><td>0 days</td><td>∞</td><td>70</td><td>99</td><td><button className="btn btn-ghost btn-sm">Edit</button> <button className="btn btn-ghost btn-sm">Copy to other sex</button></td></tr>
+                    </>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="accordion-item">
+            <div className="accordion-header"><div><span className="pill tag-red">Critical</span> <span style={{ marginLeft: 8 }}>Panic values requiring immediate clinical action</span> <span className="badge-count" style={{ marginLeft: 8 }}>2</span></div><button className="btn btn-ghost btn-sm">+ Add Critical</button></div>
+          </div>
+          <div className="accordion-item">
+            <div className="accordion-header"><div><span className="pill tag-blue">Valid</span> <span style={{ marginLeft: 8 }}>Expected possible values</span> <span className="badge-count" style={{ marginLeft: 8 }}>1</span></div><button className="btn btn-ghost btn-sm">+ Add Valid</button></div>
+          </div>
+          <div className="accordion-item">
+            <div className="accordion-header"><div><span className="pill tag-purple">Reporting</span> <span style={{ marginLeft: 8 }}>Instrument limits</span> <span className="badge-count" style={{ marginLeft: 8 }}>1</span></div><button className="btn btn-ghost btn-sm">+ Add Reporting</button></div>
+          </div>
+        </div>
+      );
+    }
+
+    // ============== SAMPLE STORAGE ==============
+    function SampleStorageSection() {
+      return (
+        <div className="section-card">
+          <h2 className="section-title">Sample Storage <StagePill stage="v1" /></h2>
+          <div className="section-helper">Define storage conditions, duration, disposal, and special handling for this test's samples.</div>
+
+          <div className="form-row">
+            <div className="form-field">
+              <label>Storage Conditions *</label>
+              <select defaultValue="Refrigerator (2°C to 8°C)">
+                <option>Ultra-low freezer (-80°C to -60°C)</option>
+                <option>Freezer (-30°C to -15°C)</option>
+                <option>Refrigerator (2°C to 8°C)</option>
+                <option>Cool room (15°C to 18°C)</option>
+                <option>Room temperature (18°C to 25°C)</option>
+                <option>Custom (specify below)</option>
+              </select>
+            </div>
+            <div className="form-field">
+              <label>Maximum Storage Duration *</label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input type="number" defaultValue="7" style={{ flex: 1 }} />
+                <select defaultValue="Days" style={{ flex: 1 }}><option>Hours</option><option>Days</option><option>Weeks</option><option>Months</option></select>
+              </div>
+            </div>
+          </div>
+
+          <div className="form-field">
+            <label>Stability Notes</label>
+            <textarea rows={2} defaultValue="Stable for 7 days refrigerated, 1 month frozen"></textarea>
+          </div>
+
+          <div className="sub-section">
+            <div className="small-label">Special Handling Requirements</div>
+            <div className="grid-2">
+              <div className="checkbox-row"><input type="checkbox" /> Protect from light</div>
+              <div className="checkbox-row"><input type="checkbox" /> Do not freeze</div>
+              <div className="checkbox-row"><input type="checkbox" /> Do not refrigerate</div>
+              <div className="checkbox-row"><input type="checkbox" /> Keep upright</div>
+              <div className="checkbox-row"><input type="checkbox" defaultChecked /> Centrifuge before storage</div>
+              <div className="checkbox-row"><input type="checkbox" defaultChecked /> Aliquot before storage</div>
+            </div>
+          </div>
+
+          <div className="sub-section">
+            <div className="small-label">Disposal Requirements</div>
+            <div className="form-row">
+              <div className="form-field">
+                <label>Disposal Method *</label>
+                <select defaultValue="Biohazard/Infectious waste bin"><option>Biohazard/Infectious waste bin</option><option>Sharps container</option><option>Chemical deactivation</option><option>Incineration</option><option>Autoclave then general waste</option></select>
+              </div>
+              <div className="form-field">
+                <label>Disposal Timeframe</label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input type="number" defaultValue="30" style={{ flex: 1 }} />
+                  <select defaultValue="Days" style={{ flex: 1 }}><option>Days</option><option>Weeks</option><option>Months</option></select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="sub-section">
+            <div className="small-label">Override Restricted</div>
+            <div className="checkbox-row"><input type="checkbox" /> Lock storage and disposal settings — order entry staff cannot modify these for this test.</div>
+            <div className="helper" style={{ fontSize: 12, color: '#6f6f6f' }}>Use for tests where sample handling must be strictly controlled (e.g., HIV, controlled substances).</div>
+          </div>
+
+          <div className="preview-help"><strong>v1 scope:</strong> Audit trail table is created in v1's schema migration but write triggers light up in v2.</div>
+        </div>
+      );
+    }
+
+    // ============== PANELS ==============
+    function PanelsSection() {
+      const [expanded, setExpanded] = useState(0); // index of expanded panel (0 = first)
+      const selectedPanels = [
+        { name: 'Basic Metabolic Panel', count: 8, position: 3, total: 9, tests: ['Glucose', 'BUN', 'THIS TEST', 'Creatinine', 'Sodium', 'Potassium', 'Chloride', 'CO2', 'Calcium'] },
+        { name: 'Diabetes Screening', count: 3, position: 1, total: 4, tests: ['THIS TEST', 'Hemoglobin A1c', 'Random Glucose', 'Glucose Tolerance'] },
+      ];
+      return (
+        <div className="section-card">
+          <h2 className="section-title">Panel Membership <StagePill stage="v1" /></h2>
+          <div className="section-helper">Add this test to one or more panels. Each selected panel appears below as an expandable row — expand to set this test's position within that panel via drag-drop, numeric input, or keyboard arrows.</div>
+
+          {/* Typeahead picker + separate Create button */}
+          <div style={{ display: 'flex', alignItems: 'end', gap: '0.75rem', marginBottom: '1rem' }}>
+            <div className="form-field" style={{ flex: 1 }}>
+              <label>Add this test to panel</label>
+              <div style={{ padding: '0.5rem 0.75rem', background: '#f4f4f4', borderBottom: '1px solid #8d8d8d', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <input type="text" placeholder="Type to search panels…" style={{ flex: 1, minWidth: 100, border: 0, background: 'transparent', outline: 'none', fontSize: 14 }} />
+                <span style={{ color: '#525252', fontSize: 12 }}>▾</span>
+              </div>
+              <div className="helper" style={{ fontSize: 12, color: '#6f6f6f', marginTop: 4 }}>Carbon `&lt;FilterableMultiSelect&gt;` — typeahead scales to dozens of panels.</div>
+            </div>
+            <button className="btn btn-tertiary" style={{ whiteSpace: 'nowrap' }}>+ Create New Panel</button>
+          </div>
+
+          {/* Expandable selected panels */}
+          {selectedPanels.map((p, i) => (
+            <div key={i} className="accordion-item">
+              <div className="accordion-header" onClick={() => setExpanded(expanded === i ? -1 : i)}>
+                <div>
+                  <strong>{p.name}</strong> &nbsp; <span className="badge-count">{p.count} tests</span> &nbsp;
+                  <span style={{ fontSize: 12, color: '#525252' }}>Position {p.position} of {p.total}</span>
+                </div>
+                <button className="btn btn-ghost btn-sm">{expanded === i ? 'Collapse' : 'Expand'}</button>
+              </div>
+              {expanded === i && (
+                <div className="accordion-content">
+                  <div className="grid-2" style={{ gap: '1rem' }}>
+                    <div>
+                      <label style={{ fontSize: 12, color: '#525252' }}>Position in {p.name}</label>
+                      <input type="number" defaultValue={p.position} style={{ width: 80, padding: '0.25rem 0.5rem' }} /> <span style={{ fontSize: 13, color: '#525252' }}>of {p.total}</span>
+                      <div className="helper" style={{ fontSize: 12, color: '#6f6f6f', marginTop: 4 }}>Numeric input commits on Enter / blur. Arrow Up/Down on a focused row also reorders.</div>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 12, color: '#525252' }}>Position Preview — drag the highlighted row</label>
+                      <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 0 }}>
+                        {p.tests.map((t, ti) => {
+                          const isThis = t === 'THIS TEST';
+                          return (
+                            <div key={ti} style={{ padding: '0.4rem 0.75rem', borderBottom: ti < p.tests.length - 1 ? '1px solid #e0e0e0' : 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', background: isThis ? '#edf5ff' : '#fff', cursor: isThis ? 'grab' : 'default' }}>
+                              {isThis && <span style={{ color: '#0f62fe', cursor: 'grab' }} title="Drag to reorder">≡</span>}
+                              {!isThis && <span style={{ width: 14 }}></span>}
+                              <span style={{ fontSize: 12, color: '#525252', width: 20 }}>{ti + 1}.</span>
+                              {isThis ? <strong style={{ color: '#0f62fe' }}>← This test</strong> : <span style={{ fontSize: 13 }}>{t}</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+
+          <div className="preview-help" style={{ marginTop: '1rem' }}><strong>Pattern:</strong> typeahead picker adds panels; each selected panel is an expandable accordion row; expanded body shows position editor (drag, numeric, keyboard) + preview list. Removing a panel from the picker un-links the test from it.</div>
+        </div>
+      );
+    }
+
+    // ============== DISPLAY ORDER ==============
+    function DisplayOrderSection() {
+      const [sampleType, setSampleType] = useState('Serum');
+      const orderedTests = sampleType === 'Serum'
+        ? ['Fasting Glucose', 'Total Cholesterol', 'HDL Cholesterol', 'LDL Cholesterol', 'Triglycerides', 'Total Bilirubin', 'Direct Bilirubin', 'ALT', 'AST', 'Alkaline Phosphatase']
+        : ['Hemoglobin A1c', 'CBC with Differential', 'HIV Rapid Test', 'Blood Type', 'Reticulocyte Count'];
+      return (
+        <div className="section-card">
+          <h2 className="section-title">Display Order <StagePill stage="v1" /></h2>
+          <div className="section-helper">Reorder tests within a sample type. This order determines the sequence in order entry, result entry, worklists, and reports. Drag the handle <code style={{ background: '#f4f4f4', padding: '0 4px' }}>≡</code> to reorder, or focus a row and use Arrow Up/Down. Changes auto-save on drop.</div>
+
+          <div className="form-field" style={{ marginBottom: '1rem', maxWidth: 320 }}>
+            <label>Sample Type</label>
+            <div style={{ padding: '0.5rem 0.75rem', background: '#f4f4f4', borderBottom: '1px solid #8d8d8d', display: 'flex', alignItems: 'center' }}>
+              <input type="text" value={sampleType} onChange={e => setSampleType(e.target.value)} style={{ flex: 1, border: 0, background: 'transparent', outline: 'none', fontSize: 14 }} />
+              <span style={{ color: '#525252', fontSize: 12 }}>▾</span>
+            </div>
+            <div className="helper" style={{ fontSize: 12, color: '#6f6f6f', marginTop: 4 }}>Carbon `&lt;ComboBox&gt;` — typeahead.</div>
+          </div>
+
+          <div style={{ background: '#fff', border: '1px solid #e0e0e0' }}>
+            {orderedTests.map((t, i) => (
+              <div key={i} style={{ padding: '0.5rem 0.75rem', borderBottom: i < orderedTests.length - 1 ? '1px solid #e0e0e0' : 'none', display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'grab' }}>
+                <span style={{ color: '#0f62fe' }} title="Drag to reorder">≡</span>
+                <span style={{ fontSize: 12, color: '#525252', width: 24, textAlign: 'right' }}>{i + 1}.</span>
+                <span style={{ fontSize: 14 }}>{t}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="preview-help" style={{ marginTop: '1rem' }}><strong>Pulled into v1</strong> from v2 — drag-drop infrastructure already exists in OpenELIS, so there's no reason to defer this section. Order persists to <code>test_sample_type.display_order</code>. Auto-save on drop.</div>
+        </div>
+      );
+    }
+
+    // ============== TERMINOLOGY ==============
+    function TerminologySection() {
+      return (
+        <div className="section-card">
+          <h2 className="section-title">Terminology Mappings <StagePill stage="v1" /></h2>
+          <div className="section-helper">Link this test to standard terminology codes for interoperability. <button className="btn btn-tertiary btn-sm">+ Add Mapping</button></div>
+          <div className="data-table-wrapper">
+            <table className="data-table">
+              <thead><tr><th>Source</th><th>Code</th><th>Relationship</th><th></th></tr></thead>
+              <tbody>
+                <tr><td><span className="pill tag-blue">LOINC</span></td><td><code>1558-6</code></td><td>Same As</td><td><button className="btn btn-ghost btn-sm">Edit</button> <button className="btn btn-ghost btn-sm">Remove</button></td></tr>
+                <tr><td><span className="pill tag-teal">SNOMED CT</span></td><td><code>271061004</code></td><td>Same As</td><td><button className="btn btn-ghost btn-sm">Edit</button> <button className="btn btn-ghost btn-sm">Remove</button></td></tr>
+                <tr><td><span className="pill tag-purple">CIEL</span></td><td><code>887</code></td><td>Same As</td><td><button className="btn btn-ghost btn-sm">Edit</button> <button className="btn btn-ghost btn-sm">Remove</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="preview-help"><strong>v1:</strong> add/edit/delete individual mappings. <strong>v2:</strong> bulk import + mapping conflict detection across tests.</div>
+        </div>
+      );
+    }
+
+    // ============== ANALYZERS (read-only) ==============
+    function AnalyzersSection() {
+      return (
+        <div className="section-card">
+          <h2 className="section-title">Analyzers <StagePill stage="v1" /> <span className="pill tag-warm-gray" style={{ fontSize: 10, marginLeft: 8 }}>READ-ONLY</span></h2>
+          <div className="section-helper">Analyzers that can run this test, derived from the analyzer test-code mappings. To add or remove an analyzer for this test, edit the analyzer's record at Administration → Master Lists → Analyzers.</div>
+          <div className="data-table-wrapper">
+            <table className="data-table">
+              <thead><tr><th>Analyzer</th><th>Location</th><th>Serial Number</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><a className="test-name-link">Cobas C311</a></td><td>Chemistry Lab — Bench 2</td><td>SN-784512</td><td><span className="pill tag-green">Online</span></td></tr>
+                <tr><td><a className="test-name-link">Architect c4000</a></td><td>Chemistry Lab — Bench 1</td><td>SN-998211</td><td><span className="pill tag-green">Online</span></td></tr>
+                <tr><td><a className="test-name-link">Cobas Integra 400+</a></td><td>STAT Lab</td><td>SN-100455</td><td><span className="pill tag-warm-gray">Maintenance</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="info-banner" style={{ marginTop: '1rem' }}><strong>This list is read-only.</strong> The analyzer→test-code mapping is the source of truth and lives with each analyzer's record. To add or remove an analyzer for this test, go to <strong>Administration → Master Lists → Analyzers → [analyzer name] → test code mappings</strong>. Clicking an analyzer's name above takes you directly to its record.</div>
+        </div>
+      );
+    }
+
+    // ============== ACTIVATION ACKNOWLEDGMENT MODAL ==============
+    function ActivationAckModal({ open, onClose, onConfirm, gaps }) {
+      const [acknowledged, setAcknowledged] = useState(false);
+      if (!open) return null;
+      return (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(22,22,22,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', width: 560, maxWidth: '90vw' }}>
+            <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e0e0e0' }}>
+              <h3 style={{ margin: 0, fontSize: 20, fontWeight: 400 }}>Activate test with incomplete coverage?</h3>
+            </div>
+            <div style={{ padding: '1rem 1.5rem' }}>
+              <p style={{ marginTop: 0, fontSize: 14, color: '#161616' }}>This test has unresolved Coverage Validation gaps:</p>
+              <ul style={{ fontSize: 13, color: '#525252', paddingLeft: '1.25rem' }}>
+                {gaps.map((g, i) => <li key={i}>{g}</li>)}
+              </ul>
+              <div className="info-banner info-banner-warning" style={{ marginTop: '1rem' }}>
+                Results from patients in these demographics will not be evaluated against the missing ranges. No H/L flag will be applied; critical-range gaps will not trigger critical alerts. Acknowledgment is logged and re-presented if the gap pattern changes.
+              </div>
+              <div className="checkbox-row" style={{ marginTop: '1rem' }}>
+                <input type="checkbox" checked={acknowledged} onChange={e => setAcknowledged(e.target.checked)} />
+                I understand this test will not be validated against the listed demographics.
+              </div>
+            </div>
+            <div style={{ padding: '0.75rem 1.5rem', borderTop: '1px solid #e0e0e0', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+              <button className="btn btn-tertiary" onClick={onClose}>Fill gaps now</button>
+              <button className="btn btn-primary" disabled={!acknowledged} style={{ opacity: acknowledged ? 1 : 0.5 }} onClick={() => acknowledged && onConfirm()}>Activate anyway</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ============== SAVE AS NEW TEST MODAL ==============
+    function SaveAsNewModal({ open, onClose, originalName }) {
+      const [name, setName] = useState(originalName + ' (copy)');
+      const [code, setCode] = useState('');
+      if (!open) return null;
+      return (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(22,22,22,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', width: 480, maxWidth: '90vw' }}>
+            <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e0e0e0' }}>
+              <h3 style={{ margin: 0, fontSize: 20, fontWeight: 400 }}>Save as new test</h3>
+            </div>
+            <div style={{ padding: '1rem 1.5rem' }}>
+              <p style={{ marginTop: 0, fontSize: 13, color: '#525252' }}>Clones the current test's configuration (Domain, AMR settings, components, ranges, methods, panels, terminology, analyzers, sample storage) into a new test. Enter the new identity below.</p>
+              <div className="form-field" style={{ marginBottom: '1rem' }}>
+                <label>New Test Name *</label>
+                <input value={name} onChange={e => setName(e.target.value)} />
+              </div>
+              <div className="form-field">
+                <label>New Test Code *</label>
+                <input value={code} onChange={e => setCode(e.target.value)} placeholder="e.g., GLU-F-COPY" />
+              </div>
+            </div>
+            <div style={{ padding: '0.75rem 1.5rem', borderTop: '1px solid #e0e0e0', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+              <button className="btn btn-tertiary" onClick={onClose}>Cancel</button>
+              <button className="btn btn-primary" disabled={!name || !code} onClick={onClose}>Create new test</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ============== TEST EDITOR ==============
+    function TestEditor({ test, setTest, onBack }) {
+      const [currentSection, setCurrentSection] = useState('basic');
+      const [saveAsNewOpen, setSaveAsNewOpen] = useState(false);
+      const [activationModalOpen, setActivationModalOpen] = useState(false);
+      const currentSec = SECTIONS.find(s => s.id === currentSection);
+      // Demo coverage-gap data for the Activation modal
+      const demoGaps = ['Female · Normal range · 56 days to 1 year (not covered)'];
+
+      return (
+        <div>
+          <div className="breadcrumb">
+            <a onClick={onBack} style={{ cursor: 'pointer' }}>Admin</a> &nbsp;›&nbsp;
+            <a onClick={onBack} style={{ cursor: 'pointer' }}>Test Catalog Management</a> &nbsp;›&nbsp;
+            <strong>{test.name}</strong> &nbsp;›&nbsp;
+            {currentSec.label}
+          </div>
+          <div className="editor-header">
+            <div>
+              <h1 className="page-title">Edit Test: {test.name}</h1>
+              <div className="page-subtitle">Configure all test properties in one place</div>
+            </div>
+            <div className="editor-header-actions">
+              <button className="btn btn-tertiary" onClick={onBack}>Cancel</button>
+              <button className="btn btn-tertiary" onClick={() => setSaveAsNewOpen(true)}>Save as new test…</button>
+              <button className="btn btn-primary">Save Test</button>
+            </div>
+          </div>
+
+          <div className="layout">
+            <div className="sidenav">
+              <div className="sidenav-header">{test.name}</div>
+              {SECTIONS.map(sec => (
+                <div
+                  key={sec.id}
+                  className={`sidenav-item ${currentSection === sec.id ? 'sidenav-item-active' : ''}`}
+                  onClick={() => setCurrentSection(sec.id)}
+                >
+                  <span>{sec.label}</span>
+                </div>
+              ))}
+            </div>
+            <div className="main" style={{ padding: '0 0 0 1.5rem' }}>
+              {(test.domain === 'ENVIRONMENTAL' || test.domain === 'VECTOR') && currentSection === 'ranges' && (
+                <div className="info-banner info-banner-warning">This is an {test.domain === 'ENVIRONMENTAL' ? 'Environmental' : 'Vector'} test. Compliance thresholds (v2) are typically the primary evaluation surface for this domain. Configure clinical reference ranges only if your lab also reports them for QA or staff use.</div>
+              )}
+              {currentSection === 'basic' && <BasicInfoSection test={test} setTest={setTest} onActivateClick={() => setActivationModalOpen(true)} />}
+              {currentSection === 'sample' && <SampleResultsSection test={test} />}
+              {currentSection === 'methods' && <MethodsSection />}
+              {currentSection === 'ranges' && <RangesSection test={test} />}
+              {currentSection === 'storage' && <SampleStorageSection />}
+              {currentSection === 'order' && <DisplayOrderSection />}
+              {currentSection === 'panels' && <PanelsSection />}
+              {currentSection === 'terminology' && <TerminologySection />}
+              {currentSection === 'analyzers' && <AnalyzersSection />}
+            </div>
+          </div>
+
+          <SaveAsNewModal open={saveAsNewOpen} onClose={() => setSaveAsNewOpen(false)} originalName={test.name} />
+          <ActivationAckModal open={activationModalOpen} onClose={() => setActivationModalOpen(false)} onConfirm={() => setActivationModalOpen(false)} gaps={demoGaps} />
+        </div>
+      );
+    }
+
+    // ============== APP ==============
+    function App() {
+      const [view, setView] = useState('list');
+      const [openTestId, setOpenTestId] = useState(null);
+      const initialTest = openTestId === 'new'
+        ? { id: 'new', name: 'New Test', domain: 'CLINICAL', amr: false }
+        : MOCK_TESTS.find(t => t.id === openTestId);
+      const [editTest, setEditTest] = useState(initialTest);
+
+      const openEditor = (testId) => {
+        setOpenTestId(testId);
+        const t = testId === 'new'
+          ? { id: 'new', name: 'New Test', domain: 'CLINICAL', amr: false }
+          : MOCK_TESTS.find(t => t.id === testId);
+        setEditTest(t);
+        setView('editor');
+      };
+
+      const backToList = () => { setView('list'); setOpenTestId(null); };
+
+      return (
+        <div style={{ padding: '1.5rem 2rem' }}>
+          {view === 'list' && <TestListView onOpen={openEditor} />}
+          {view === 'editor' && editTest && <TestEditor test={editTest} setTest={setEditTest} onBack={backToList} />}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
