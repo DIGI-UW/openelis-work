@@ -573,6 +573,19 @@
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-worklists-prototype.html
   added: "2026-06-05"
 
+- id: m-05-ast-entry-prototype
+  type: mockup
+  path: designs/microbiology/m-05-ast-entry-prototype.html
+  category: microbiology
+  description: >
+    M-05 AST entry inline interactive prototype — auto-interpret, flexible breakpoint, inline override + revert, QC-fail recovery; canonical interactive mockup.
+  paired_with: m-05-ast-entry-and-interpretation
+  links:
+    jira: ["OGC-791"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-05-ast-entry-interactive-prototype
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-05-ast-entry-prototype.html
+  added: "2026-06-05"
+
 - id: amr-micro-dependency-graph
   type: image
   path: designs/microbiology/amr-micro-dependency-graph.svg
