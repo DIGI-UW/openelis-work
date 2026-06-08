@@ -901,6 +901,32 @@
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-12-test-to-reagent-linkage-frs-v1-0
   added: "2026-05-15"
 
+- id: m-10-hub-subscription-frs-v1
+  type: spec
+  path: designs/microbiology/m-10-hub-subscription-frs-v1.md
+  category: microbiology
+  description: >
+    M-10 Hub Subscription — FRS v1.0 (2026-05-15). Unified admin for breakpoint + WHONET code +
+    organism/antibiotic master updates from a central repository. OE pulls; never pushes. Phase 1B.
+    Formal structured baseline.
+  links:
+    jira: ["OGC-795"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-10-hub-subscription-frs-v1-0
+  added: "2026-05-15"
+
+- id: m-nfr-non-functional-requirements-frs-v1
+  type: spec
+  path: designs/microbiology/m-nfr-non-functional-requirements-frs-v1.md
+  category: microbiology
+  description: >
+    M-NFR Non-Functional Requirements — FRS v1.0 (2026-05-15). Cross-cutting non-functional
+    requirements: performance, scalability, reliability, observability, security, accessibility.
+    Formal structured baseline.
+  links:
+    jira: ["OGC-782"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-nfr-non-functional-requirements-frs-v1-0
+  added: "2026-05-15"
+
 # ─── Non-Conforming Events (NCE) ───────────────────────────
 
 - id: nce-analytics

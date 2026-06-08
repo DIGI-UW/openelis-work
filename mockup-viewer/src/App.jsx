@@ -952,6 +952,28 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-784'],
     tags: ['microbiology', 'reagent-linkage', 'iso-15189', 'frs', 'v1', 'mvp-1a'],
   },
+  {
+    name: 'M-10 Hub Subscription — FRS v1.0',
+    category: 'microbiology',
+    component: null,
+    description: 'Formal FRS v1.0 (2026-05-15) — Unified admin for breakpoint + WHONET code + organism/antibiotic master updates from a central repository. OE pulls; never pushes. Phase 1B. Initial structured baseline.',
+    specPath: 'designs/microbiology/m-10-hub-subscription-frs-v1.md',
+    added: '2026-05-15',
+    status: 'draft',
+    jira: ['OGC-795'],
+    tags: ['microbiology', 'hub-subscription', 'reference-data', 'frs', 'v1', 'phase-1b'],
+  },
+  {
+    name: 'M-NFR Non-Functional Requirements — FRS v1.0',
+    category: 'microbiology',
+    component: null,
+    description: 'Formal FRS v1.0 (2026-05-15) — Cross-cutting non-functional requirements for the microbiology module: performance, scalability, reliability, observability, security, accessibility. Initial structured baseline.',
+    specPath: 'designs/microbiology/m-nfr-non-functional-requirements-frs-v1.md',
+    added: '2026-05-15',
+    status: 'draft',
+    jira: ['OGC-782'],
+    tags: ['microbiology', 'non-functional', 'cross-cutting', 'frs', 'v1', 'mvp-1a'],
+  },
 
   // ─── NCE ───
   {
