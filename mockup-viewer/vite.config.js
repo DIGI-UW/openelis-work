@@ -279,6 +279,10 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test-setup.js'],
+    // Render-heavy smoke tests over a growing gallery; raise timeouts so a slow
+    // CI runner doesn't trip the 5s default (some tests already run ~5.5s locally).
+    testTimeout: 30000,
+    hookTimeout: 30000,
   },
   resolve: {
     alias: {
@@ -296,13 +300,4 @@ export default defineConfig({
       allow: [path.resolve(__dirname, '..')],
     },
   },
-test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: ['./src/test-setup.js'],
-    testTimeout: 30000,
-    hookTimeout: 30000,
-  },
 });
-    hookTimeout: 30000,
-  },
