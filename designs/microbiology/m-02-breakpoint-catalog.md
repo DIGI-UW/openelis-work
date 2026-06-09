@@ -85,7 +85,7 @@ So:
 - The lab can read the historical Case and see the original interpretation that the clinician acted on.
 - WHONET exports of that AST Run show `breakpoint_standard = CLSI_M100_2024` so the receiving aggregator knows which standard was applied.
 
-This **snapshot rule** is surfaced to the user, not just enforced in the data model — see the legibility banner and tooltips in §3.5.
+This **snapshot rule** is surfaced to the user, not just enforced in the data model — see the legibility banner and tooltips in §3.6.
 
 ### 3.3 The lab's "active" standard
 
@@ -107,7 +107,36 @@ Most labs use one publisher's breakpoints (CLSI in the US, EUCAST in Europe and 
 
 M-02 supports having **both an active CLSI standard and an active EUCAST standard** simultaneously. The AST Setup modal in M-04 lets the tech pick which standard to interpret against per AST Run (per the flexible-per-run rule, §2.1). Default is per the active-standard-for-this-publisher logic.
 
-### 3.5 Status legibility — Active / Loaded / Archived (review edit H3)
+### 3.5 WHO TB critical concentrations (publisher: WHO_TB)
+
+For *Mycobacterium tuberculosis* complex drug-susceptibility testing (DST), interpretation does **not** use an MIC/zone S-I-R clinical breakpoint. Instead WHO defines, per drug × DST method, a single **critical concentration (CC)** — the lowest drug concentration that inhibits growth of wild-type (susceptible) strains. A TB isolate that grows at the critical concentration is **Resistant**; one that does not is **Susceptible**. There is no "Intermediate" category. WHO additionally publishes **clinical breakpoints (CB)** for some drugs at higher concentrations, but the Phase-1A/1B catalog models the **critical concentration → R/S** rule that drives phenotypic TB DST.
+
+WHO critical concentrations are added to the catalog as a **third breakpoint-standard publisher alongside CLSI and EUCAST**, versioned the same way (per the WHO technical-report guidance year — e.g., `WHO TB 2021`, `WHO TB 2023`). They participate in the identical **Active / Loaded / Archived** status model, the **effective-date** activation workflow, and the **per-run snapshot** rule already described above: a TB AST Run records `breakpoint_standard_id` + `breakpoint_version` at setup and keeps that WHO version forever, even after the lab loads a newer WHO TB guidance.
+
+Critical concentrations are **method-specific** — the same drug has different CCs by DST method. The catalog therefore carries a CC row per **drug × method**, where method is one of:
+
+- **MGIT** (automated liquid culture, e.g., BACTEC MGIT 960)
+- **LJ** (Löwenstein-Jensen solid medium, proportion method)
+- **AGAR_PROPORTION** (7H10 / 7H11 agar proportion method)
+
+```
+WHO TB 2023  (publisher: WHO_TB)
+┌────────────────────────┬─────────────┬─────────────────┬─────────────────────┐
+│ Organism / Group       │ Drug        │ Method          │ Critical Conc. (R if ≥)│
+├────────────────────────┼─────────────┼─────────────────┼─────────────────────┤
+│ M. tuberculosis complex│ Rifampicin  │ MGIT            │ 0.5 µg/mL           │
+│ M. tuberculosis complex│ Rifampicin  │ LJ              │ 40 µg/mL            │
+│ M. tuberculosis complex│ Isoniazid   │ MGIT            │ 0.1 µg/mL           │
+│ M. tuberculosis complex│ Levofloxacin│ MGIT            │ 1.0 µg/mL           │
+│ M. tuberculosis complex│ Bedaquiline │ MGIT            │ 1.0 µg/mL           │
+└────────────────────────┴─────────────┴─────────────────┴─────────────────────┘
+```
+
+**Critical concentration is not a molecular result.** Phenotypic DST against a critical concentration is what this section covers. Molecular resistance detection — **GeneXpert MTB/RIF** (rpoB → rifampicin resistance) and **line probe assays (LPA)** for isoniazid/rifampicin/fluoroquinolone/aminoglycoside resistance — is reported as a **genotypic resistance flag on the isolate**, captured in M-14 (Mycobacteriology/TB), **not** through `BreakpointLookupService`. There is no concentration to look up for a molecular call; the result is the assay's R/S/indeterminate verdict per locus.
+
+**Data-model note.** WHO TB CC rows reuse the existing `breakpoint` table with two adjustments captured in §6: `publisher = WHO_TB` on the standard, and the breakpoint row stores a single `critical_concentration` value with `interpretation_model = CRITICAL_CONCENTRATION` (R if measured concentration ≥ CC, else S) rather than the S/I/R triad. The `method` enum gains the TB DST methods (`MGIT`, `LJ`, `AGAR_PROPORTION`). The Active/Loaded/Archived + snapshot machinery is unchanged.
+
+### 3.6 Status legibility — Active / Loaded / Archived (review edit H3)
 
 Because the three statuses carry real workflow consequences, the catalog makes them legible rather than leaving them as bare badges:
 
@@ -211,7 +240,7 @@ Most labs **don't edit individual breakpoints**. The CLSI / EUCAST tables come a
 breakpoint_standard
 ├── standard_id (UUID PK)
 ├── name (text, e.g., "CLSI M100 2024")
-├── publisher (enum: CLSI, EUCAST, OTHER)
+├── publisher (enum: CLSI, EUCAST, WHO_TB, OTHER)
 ├── version_label (text, e.g., "M100" or "v14.0")
 ├── version_year (int, e.g., 2024)
 ├── effective_from (date, nullable — when this standard became active in the field)
@@ -230,12 +259,14 @@ breakpoint
 ├── standard_id (FK to breakpoint_standard)
 ├── organism_id (FK to organism_master, nullable — null if group-level)
 ├── organism_group_id (FK to organism_group, nullable — null if organism-specific)
-├── antibiotic_id (FK to antibiotic_master)
-├── method (enum: DISK_DIFFUSION, MIC, ETEST)
+├── antibiotic_id (FK to antibiotic_master — for TB, the anti-TB drug)
+├── method (enum: DISK_DIFFUSION, MIC, ETEST, MGIT, LJ, AGAR_PROPORTION — last three TB DST)
 ├── specimen_type_filter (FK to sample type, nullable — e.g., urine-specific breakpoint)
-├── susceptible_threshold (numeric)
-├── intermediate_threshold (numeric, nullable — for S/R-only entries)
-├── resistant_threshold (numeric)
+├── interpretation_model (enum: SIR, CRITICAL_CONCENTRATION — default SIR; CRITICAL_CONCENTRATION for WHO_TB)
+├── susceptible_threshold (numeric, nullable — null for CRITICAL_CONCENTRATION rows)
+├── intermediate_threshold (numeric, nullable — for S/R-only entries; null for TB CC)
+├── resistant_threshold (numeric, nullable — null for CRITICAL_CONCENTRATION rows)
+├── critical_concentration (numeric, nullable — set only for CRITICAL_CONCENTRATION rows; R if tested conc. ≥ this)
 ├── threshold_comparator (enum: LE, GE — "S ≤ value" vs "S ≥ value" — disk diffusion is GE for S, MIC is LE for S)
 ├── units (text, e.g., "ug/mL" or "mm")
 ├── notes (text, nullable — e.g., "for uncomplicated UTIs only")
@@ -313,6 +344,24 @@ Edge cases:
 
 - Standard has S ≤ X, R ≥ Y with no I (S/R only): zone X+1 through Y-1 → I (computed) only if `intermediate_threshold` is set; otherwise return error.
 - Lab-customized breakpoints flagged with `locally_customized = true` get a "custom" badge in M-04 AST result display so the supervisor knows the value isn't the publisher's default.
+
+### 7.4 Critical-concentration interpretation (TB DST — WHO_TB standards)
+
+`BreakpointLookupService` is extended for TB phenotypic DST. When the AST Run's interpretation method = **`CRITICAL_CONCENTRATION`** (set on TB DST runs — see M-14) and the chosen standard's publisher is `WHO_TB`, the service does **not** return an S/I/R threshold triad. Instead it looks up the **critical concentration** for `(M. tuberculosis complex [or organism], drug, method ∈ {MGIT, LJ, AGAR_PROPORTION}, breakpoint_standard_id)` and returns:
+
+```
+→ {
+   critical_concentration: numeric,        // the CC value
+   interpretation_model: CRITICAL_CONCENTRATION,
+   units: text,                            // e.g., "ug/mL"
+   matched_by: ORGANISM | GROUP | NONE,
+   notes: text | null
+}
+```
+
+The R/S call is binary: the measured/tested concentration **≥ critical concentration → Resistant**, otherwise **Susceptible**. There is no Intermediate category for TB CC interpretation. M-14 records the phenotypic R/S per drug × method on the TB DST run, snapshotting `breakpoint_standard_id` + `breakpoint_version` exactly as the bacterial path does.
+
+**Molecular resistance is out of this service.** Xpert MTB/RIF and LPA results are genotypic R/S flags recorded on the isolate by M-14; they are **not** a breakpoint lookup (there is no concentration). The service is consulted only for phenotypic critical-concentration DST.
 
 ---
 
@@ -441,6 +490,8 @@ The comparison view supports the validation period before a switchover. Not in P
 - **AC-M02-11**: Archive blocked if the standard has unresolved active AST Runs (warning: "X AST Runs in flight against this standard; complete or transition them first").
 - **AC-M02-12**: All actions respect `micro.breakpoint.view` and `micro.breakpoint.manage`.
 - **AC-M02-13**: Empty state renders before any standard is loaded.
+- **AC-M02-14**: WHO TB critical-concentration standards (publisher `WHO_TB`, e.g., WHO TB 2021 / 2023) load, version, activate (with effective date), and snapshot onto TB DST runs using the identical Active/Loaded/Archived + per-run snapshot machinery as CLSI/EUCAST; CC rows are stored per drug × method (MGIT / LJ / AGAR_PROPORTION) with `interpretation_model = CRITICAL_CONCENTRATION`.
+- **AC-M02-15**: When an AST Run's interpretation method = `CRITICAL_CONCENTRATION` (TB DST per M-14), `BreakpointLookupService` returns the critical concentration and a binary R/S (R if tested concentration ≥ CC, else S; no Intermediate); molecular resistance (Xpert/LPA) is recorded by M-14 as a genotypic flag and is **not** a breakpoint lookup.
 
 ---
 
@@ -506,3 +557,5 @@ admin.micro.breakpoint.matchedBy.none          "No standard breakpoint — inter
 - `amr-pre-frs-planning-v1.md` §4 (versioning + time edge cases)
 - CLSI M100 reference standard (current version)
 - EUCAST clinical breakpoints reference
+- WHO technical report on critical concentrations for TB DST (WHO TB 2021 / 2023 guidance)
+- M-14 Mycobacteriology / TB (consumer of CRITICAL_CONCENTRATION interpretation; owns molecular Xpert/LPA flags)

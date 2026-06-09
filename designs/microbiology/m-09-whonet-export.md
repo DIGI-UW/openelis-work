@@ -17,6 +17,40 @@ GLASS direct submission is **out of scope** per single-tenancy constraints (M-00
 
 ---
 
+## 0. Design goal — least operator effort ("painless WHONET")
+
+Surveillance export is a chore labs skip when it's painful. The design target is that a routine export costs **three clicks and zero decisions**, and that the upfront mapping burden is **near-zero out of the box**. Six levers, each reuse-first:
+
+### 0.1 Reuse the WHONET export that already exists (verified in code)
+OpenELIS-Global **already ships a WHONET export**: `WHONetReportService` / `WHONETCSVRoutineColumnBuilder` / `WHONETExportRoutineByDate`, reached from the live **Reports → WHONET Export** menu (`menu_reports_whonet_export`), building rows off `Sample`/**`SampleItem`** by date range. **M-09 extends this seam — it does not build a parallel generator.** What exists today is a rudimentary precursor: a flat **long-format** dump (one row per antibiotic result; columns NATIONAL_ID, …, SPECIMEN_TYPE, ANTIBIOTIC, ORGANISM, RESULT, TEST_METHOD, GPS) with organism/antibiotic as **names, no WHONET code mapping, no first-isolate dedup, no isolate-wide pivot, no phenotype/profile/TB**. M-09's job is to upgrade that builder to true WHONET output; the **query, CSV plumbing, and menu entry are reused**, and the existing `SampleItem` keying matches M-04 §2A. (Reframes §3/§5/§6 as extensions of `WHONetReportService`; see §11.)
+
+### 0.2 Kill the mapping chore — most of it is already mapped elsewhere
+Mapping vocabularies by hand is the single biggest pain and the usual reason exports stall. But most of the mapping **already exists** and should be read, not rebuilt:
+- **Antibiotic + breakpoint-standard WHONET codes already live in the Test Catalog.** The v2.5 AMR flag carries the **WHONET antibiotic code, class, breakpoint standard, and disk potency in `test_amr_config`** (OGC-748). M-09 **reads these through** — it does **not** maintain a separate Antibiotics mapping. (So the M-09 mapping admin shrinks to the vocabularies the catalog doesn't cover — see §2.) Where the catalog is the source, the M-09 "Antibiotics" / "Breakpoint Standards" views are **read-through with an "edit in Test Catalog" deep-link**, not an editable parallel store.
+- **Ship WHONET organism/specimen/origin codes in the M-01 seed data** from a bundled **WHONET dictionary** reference pack, so the common catalog is already mapped on install — the operator never maps *Escherichia coli*.
+- **Suggestions are a deterministic lookup, not a matcher we build (keep the lift small).** For the residue that isn't pre-seeded, a suggestion is produced by, in order: **(a)** exact match on **normalized name** (lowercase, trim, strip punctuation/qualifiers) between the OE entity and the bundled WHONET dictionary; **(b)** a **join on a shared terminology code** the entity already carries — SNOMED/LOINC via the existing **OCL/CIEL** link, since the WHONET dictionary crosswalks to those. Both are plain dictionary lookups against the bundled pack — **no fuzzy/ML matching in MVP**. Anything that matches neither has **no suggestion** and falls to manual mapping. Because a human **confirms every suggestion before it is applied**, a wrong-but-exact name collision is caught at confirm time — there's no correctness risk and nothing to "train."
+- Surfaced as **bulk "confirm suggested mappings"** (accept-all / per-row) rather than per-row data entry.
+- **The real lift is the bundled WHONET dictionary pack + keeping it current** (the **M-10 Hub** refreshes it and fills new entries) — not matching logic. *Optional later:* fuzzy/token-similarity suggestions for near-miss names, explicitly out of MVP scope.
+- Net effect: the operator confirms a short list and manually maps only genuinely local/custom items in a few non-catalog vocabularies — a handful, not hundreds.
+
+> **Open reconciliation (flag, do not silently restructure).** In OpenELIS an antibiotic susceptibility *is a Test*, so its WHONET code naturally lives on `test_amr_config` (Test Catalog), which **overlaps with M-01's proposed `antibiotic_master.whonet_code`**. Source of truth should be **one** of them — recommend the Test Catalog AMR config (where the lab already configures the test), with M-01/M-09 reading it. Resolve before build; M-01's antibiotic-master mapping may collapse into a read-through. (Organisms still need the M-01 `organism_master` code, since an organism is not a Test.)
+
+### 0.3 Surface readiness against the right denominator — what you're actually exporting
+The readiness number is only meaningful against a **target set**, and the target is **not** the whole master (labs carry hundreds of organisms they never report). The denominator is the **distinct codes that actually appear in the results in scope to export** — the organisms on finalized isolates, the antibiotics with AST results, the specimen types, origins, and phenotypes present in the cases for the selected period (or the unexported backlog). So readiness reads, e.g., *"of the 47 organisms you reported this period, 45 are WHONET-mapped — 2 isolates would be dropped"* — computed from real data (`SELECT DISTINCT organism_id FROM micro_isolate` on finalized cases in range, etc.), answering the only question that matters: **will the export drop anything?** A secondary "whole active catalog" coverage figure is an optional forward-looking view; the **used-set** figure is the actionable one and the one the export preview already needs to compute. Surfaced on the WHONET Mapping landing and as a small management-dashboard tile (reuse), so unmapped items are handled proactively, not discovered mid-export.
+
+### 0.4 One-click happy path — sensible defaults, advanced hidden
+The dedup block (§3.1, six surveillance-statistics controls) **collapses to a single line** — *"First-isolate de-duplication: WHO GLASS standard (7-day)"* — behind an **"Adjust (advanced)"** disclosure. Date range defaults to **Last Month**; filters default to **all clinically-significant**. The routine path is **open → Preview → Generate**, no parameter decisions. The six controls and their helper text (§3.1) remain, just not in the operator's face.
+
+### 0.5 Configure-once, then unattended (the real endgame)
+The genuinely painless steady state is **scheduled auto-delivery** (§7): set destination + monthly cadence + a saved filter once, and it runs and delivers (SFTP/email) with **no operator action**, pinging someone only on failure or when new unmapped items appear. Reuse OpenELIS's existing scheduled-job mechanism if present (verify — see §11); otherwise a scheduled task. This turns the monthly chore into an exception-only notification.
+
+### 0.6 Where a consolidated FHIR server exists, the lab does almost nothing (M-15)
+The least-effort path of all: on a deployment wired to the consolidated FHIR server, results flow out as **FHIR (M-15)** and the **central server performs the WHONET code mapping + cross-lab aggregation + GLASS generation** — so the lab does **no per-lab WHONET mapping and no file handling**. The WHONET file path here is the **fallback** for labs / NCCs without that server. Effort ranking: **FHIR push (M-15) < scheduled file (§0.5) < manual file (§3)**. Pick the lowest a deployment can support.
+
+> **Net:** out of the box the catalog is mostly pre-mapped (§0.2); readiness keeps it that way (§0.3); a routine run is three clicks (§0.4); a configured lab runs unattended (§0.5); a FHIR-connected lab barely touches it (§0.6) — all extending the export already in the codebase (§0.1).
+
+---
+
 ## 1. Overview
 
 ### 1.1 Purpose
@@ -49,6 +83,7 @@ Generate WHONET-format CSV/TXT files from finalized Cases for submission to the 
 - **M-06 Expert Rules Engine** — phenotype flags populate phenotype columns.
 - **M-07 Worklists** — the AST Worklist "Export to WHONET" quick action invokes M-09 with filters pre-populated (Phase 1B; disabled in 1A). The route + param contract is defined in §1.5.
 - **M-10 Hub Subscription** — provides code updates.
+- **M-14 Mycobacteriology / TB** — source of TB species ID, phenotypic DST (R/S by WHO critical concentration), and molecular resistance flags (Xpert MTB/RIF, LPA) for the WHONET TB export (§4.5).
 
 ### 1.5 AST-Worklist quick-action contract
 
@@ -140,14 +175,18 @@ When the export preview (§3.2) warns about an unmapped item, clicking **"Map no
 
 | Vocabulary | OE source | WHONET code | Notes |
 |------------|-----------|-------------|-------|
-| Organisms | `organism_master` | `whonet_code` field | Per M-01 §2.4; 3-5 lowercase char |
-| Antibiotics | `antibiotic_master` | `whonet_code` field | Per M-01 §3.3; 3-4 uppercase char |
-| Specimens | existing OE sample type vocab | new `whonet_code` field | E.g., `bl` (blood), `ur` (urine) — per M-01 §6.1 |
-| Origins | (new) `patient_origin` | new `whonet_code` field | INP / OUT / ICU / EME / LTC / UNK per M-01 §6.2 |
-| Patient Types | (new) `patient_type` (small enum) | `whonet_code` field | Adult / Pediatric / Neonate / Unknown |
-| Departments | existing OE department vocab | new `whonet_code` field | Per M-01 §6.3 |
-| Breakpoint Standards | `breakpoint_standard` | `whonet_label` field | E.g., `CLSI24`, `EUCAST14` |
-| Phenotypes | (new) `phenotype_flag_definition` (small fixed set) | `whonet_column` field | Maps OE phenotype names to WHONET column names: ESBL_SCREEN, MRSA, VRE, CRE, CARBAPENEMASE, MDR, XDR, PDR |
+**M-09 owns the mapping only for the vocabularies the Test Catalog does not already carry.** Antibiotics and Breakpoint Standards are **sourced read-through from the Test Catalog AMR config** (`test_amr_config`, OGC-748) — M-09 shows them with an "edit in Test Catalog" deep-link, not an editable parallel store.
+
+| Vocabulary | Owner / source | WHONET code | Notes |
+|------------|----------------|-------------|-------|
+| Organisms | `organism_master` (M-01) | `whonet_code` field | M-09-owned mapping; an organism is not a Test. Per M-01 §2.4; 3-5 lowercase char |
+| **Antibiotics** | **Test Catalog AMR config (`test_amr_config`, OGC-748)** | WHONET antibiotic code (already there) | **Read-through, not re-mapped here** — an antibiotic *is* a Test; edit in Test Catalog. (See §0.2 reconciliation re: M-01 `antibiotic_master`.) |
+| Specimens | existing OE sample type vocab | new `whonet_code` field | M-09-owned. E.g., `bl` (blood), `ur` (urine) — per M-01 §6.1 |
+| Origins | (new) `patient_origin` | new `whonet_code` field | M-09-owned. INP / OUT / ICU / EME / LTC / UNK per M-01 §6.2 |
+| Patient Types | (new) `patient_type` (small enum) | `whonet_code` field | M-09-owned. Adult / Pediatric / Neonate / Unknown |
+| Departments | existing OE department vocab | new `whonet_code` field | M-09-owned. Per M-01 §6.3 |
+| **Breakpoint Standards** | **Test Catalog AMR config / `breakpoint_standard` (M-02)** | `whonet_label` | **Read-through** from the catalog/M-02; e.g., `CLSI24`, `EUCAST14`, `WHO_TB_2023` |
+| Phenotypes | (new) `phenotype_flag_definition` (small fixed set) | `whonet_column` field | M-09-owned. Maps OE phenotype names to WHONET column names: ESBL_SCREEN, MRSA, VRE, CRE, CARBAPENEMASE, MDR, XDR, PDR |
 
 ### 2.6 Import from Hub
 
@@ -316,6 +355,20 @@ An optional `.wri` lab profile (or current WHONET profile format `VERIFY:`) is p
 - The "Include lab profile file" checkbox **defaults checked for the first export to a destination and unchecked thereafter**, and is **always operator-toggleable** — the operator can see whether this is treated as a first export and force-include or force-exclude the profile (e.g., to re-send after a profile change).
 - When no destination is configured (manual download), "first export" is evaluated against the manual-download pseudo-destination so a one-off download still offers the profile once.
 
+### 4.5 WHONET TB export
+
+WHONET natively supports tuberculosis surveillance data, and the national AMR surveillance requirement explicitly calls for TB to be included ("including TB"). M-09 therefore exports TB results in the **WHONET TB format** so TB flows through the same national-surveillance pipeline as bacterial AMR — there is no separate TB export tool.
+
+TB results originate in **M-14 (Mycobacteriology / TB)**. The export carries three TB-specific result kinds:
+
+- **Species identification** — *M. tuberculosis* complex vs. specific NTM species, mapped to the WHONET organism code (the same `whonet_code` mapping vocabulary as bacterial organisms, §2.5, extended with the mycobacterial species the lab reports).
+- **Phenotypic DST as R/S by critical concentration** — per anti-TB drug × DST method (MGIT / LJ / agar proportion). Because TB DST is interpreted against a **WHO critical concentration** (M-02 §3.5, §7.4) and is binary (R/S, no Intermediate), each tested drug maps to a WHONET TB AST column carrying the R/S call plus the method, exactly as bacterial AST results map to per-antibiotic columns (§4.2 AST-results block). The exported `BREAKPOINT_STANDARD` column records the WHO TB standard version used (e.g., `WHO_TB_2023`), reusing the breakpoint-standard mapping vocabulary.
+- **Molecular resistance from Xpert / LPA** — genotypic resistance verdicts from GeneXpert MTB/RIF (rifampicin) and line probe assays (isoniazid, rifampicin, fluoroquinolones, aminoglycosides) are carried as **molecular resistance flag columns** (e.g., `RIF_XPERT`, `INH_LPA`, `FQ_LPA`), distinct from the phenotypic DST columns so the aggregator can see genotype and phenotype side by side. These reuse the phenotype/flag-mapping machinery (§2.5 Phenotypes vocabulary), extended with the TB molecular flags rather than a new mechanism.
+
+**This reuses the existing export machinery.** The same query → dedup → field-mapping → file-generation pipeline (§3, §5) produces the TB file; only the **code-mapping tables** (organisms extended with mycobacterial species, a TB-drugs antibiotic mapping, the WHO_TB breakpoint-standard label, and the TB molecular flags) are extended. Deduplication (first-isolate logic, §5) applies per patient + *M. tuberculosis* complex over the configured window the same way it applies to bacterial isolates. TB cases are included in the standard export filters (specimen, origin, significance) and surface in the same preview/validation/audit surfaces. Operators do not configure a separate TB pipeline.
+
+> **Forward reference.** Centralized GLASS reporting (WHONET aggregation and a consolidated-FHIR path) is specified separately. This section covers only the WHONET TB file export from a single OpenELIS deployment.
+
 ---
 
 ## 5. Deduplication algorithm
@@ -403,6 +456,8 @@ Per `whonet-export-design-review-v1.md` §8 plus:
 - **AC-M09-19** *(folds E3)*: The lab-profile inclusion is scoped to **first export per destination**; the checkbox defaults checked on a destination's first export and unchecked thereafter, is operator-toggleable, and the run records `lab_profile_included`.
 - **AC-M09-20** *(folds E4)*: The AST-Worklist "Export to WHONET" quick action deep-links to `/reports/whonet-export` with `from/to/specimen/origin/organism/significance/source` params per §1.5, pre-populating the generator's filters.
 - **AC-M09-21** *(Phase 1B surfacing)*: In Phase 1A the export entry points (worklist quick action, Reports menu) render disabled with a "coming in Phase 1B" tooltip and do not navigate.
+- **AC-M09-22** *(WHONET TB export)*: TB results from M-14 export in the WHONET TB format — species ID (mapped organism code), phenotypic DST as R/S by WHO critical concentration per drug × method (MGIT / LJ / agar proportion) with the WHO_TB breakpoint-standard version in `BREAKPOINT_STANDARD`, and molecular resistance flags from Xpert/LPA in dedicated flag columns distinct from the phenotypic DST columns — reusing the existing dedup, field-mapping, preview, validation, and audit machinery (no separate TB pipeline).
+- **AC-M09-23** *(WHONET TB export)*: TB code mappings (mycobacterial species, anti-TB drugs, WHO_TB standard label, TB molecular flags) are configured through the same WHONET Mapping admin vocabularies (§2.5), with unmapped TB items surfaced via the standard preview warning + "Map now" deep-link.
 
 ---
 
@@ -507,6 +562,9 @@ admin.whonetMapping.action.clearMapping          "Clear Mapping"
 
 Carried from design review:
 
+- **Reconcile with the existing export (§0.1).** Inventory `WHONetReportService` / `WHONETCSVRoutineColumnBuilder` / `WHONETExportRoutineByDate` and the `getWHONetRows(low, high)` query; decide the upgrade path (extend the column builder to wide isolate-format + code mapping + dedup, vs. a new builder reusing the service+menu). The existing long-format dump and its column set are the starting point, not a competing design.
+- **WHONET dictionary pack (§0.2 — the real lift; partly de-risked).** WHONET's organism/specimen/antibiotic code lists are **published and free** (WHONET/BacLink are distributed free by WHO; codes appear in the WHONET Antimicrobial Codes document and the WHONET-for-GLASS materials) — so a bundled pack is feasible. **Still to confirm:** a **machine-readable** form (the public artifact is a PDF) and explicit **redistribution terms** for shipping the codes in M-01 seed. **Concrete crosswalk source found:** the open-source **AMR package for R** maintains code mappings for ~79,000 microbial species and ~620 antimicrobials **including LOINC and SNOMED CT, and supports WHONET data** — a ready, maintained dataset for both the seed pack and the shared-code suggestion join, rather than assembling a crosswalk by hand. Evaluate its licence (GPL-family) and packaging for use as the reference source. Suggestions remain deterministic exact-name + shared-code lookups against this pack — **no matcher to build**; fuzzy matching is explicitly deferred.
+- **Scheduler for unattended delivery (§0.5).** Verify whether OpenELIS already has a scheduled-job / cron mechanism (and SFTP/email delivery) to reuse, or whether a scheduled task must be added.
 - Current WHONET column set + method suffix conventions
 - CLSI M39 / WHO M-AMR-9 first-isolate algorithm specifics
 - WHONET lab profile file format (current version)
@@ -525,5 +583,6 @@ Carried from design review:
 - M-06 Expert Rules Engine (phenotype flag values)
 - M-07 Worklists (AST-Worklist "Export to WHONET" quick action; Phase-1B disabled in 1A)
 - M-10 Hub Subscription (provides code updates)
+- M-14 Mycobacteriology / TB (source of TB species ID, phenotypic DST, and Xpert/LPA molecular flags for the WHONET TB export, §4.5)
 - **`whonet-export-design-review-v1.md`** — comprehensive design review; this FRS formalizes it
 - `amr-pre-frs-planning-v1.md` §7 (GLASS direction; M-13 removed; M-09 stays)
