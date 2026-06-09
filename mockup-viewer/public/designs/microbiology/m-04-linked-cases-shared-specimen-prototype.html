@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linked Cases — Shared Specimen (Bacterial + TB) — Interactive Prototype</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+  .preview-banner strong { background:#fff; color:#0f62fe; padding:1px 6px; border-radius:2px; margin:0 4px; }
+  .preview-banner .what { display:block; margin-top:4px; font-family:'IBM Plex Sans',sans-serif; font-size:12px; opacity:0.95; line-height:1.5; }
+  .demobar { background:#161616; color:#f4f4f4; font-size:12px; padding:0.5rem 1rem; display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; }
+  .demobar b { color:#78a9ff; }
+  .demobar button { font-size:12px; background:#393939; color:#f4f4f4; border:1px solid #6f6f6f; border-radius:3px; padding:3px 9px; cursor:pointer; }
+  .demobar button.on { background:#0f62fe; border-color:#0f62fe; }
+  .app-header { background:#161616; color:#f4f4f4; padding:0 1rem; height:44px; display:flex; align-items:center; gap:1rem; font-size:14px; }
+  .app-header .product { font-weight:600; }
+  .breadcrumbs { padding:0.5rem 2rem; background:#fff; border-bottom:1px solid #e0e0e0; font-size:13px; color:#525252; }
+  .breadcrumbs a { color:#0f62fe; text-decoration:none; cursor:pointer; }
+  .wrap { padding:1.25rem 2rem 4rem; max-width:1060px; }
+  h2.page { font-size:22px; font-weight:300; margin:0 0 0.25rem; }
+  .sub { font-size:13px; color:#6f6f6f; margin:0 0 1rem; }
+  /* worklist table */
+  table.t { width:100%; border-collapse:collapse; font-size:13px; background:#fff; border:1px solid #e0e0e0; }
+  table.t th { text-align:left; padding:0.5rem 0.7rem; background:#f4f4f4; font-weight:600; border-bottom:1px solid #e0e0e0; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; color:#525252; }
+  table.t td { padding:0.55rem 0.7rem; border-bottom:1px solid #eee; vertical-align:middle; }
+  tr.click { cursor:pointer; } tr.click:hover td { background:#edf5ff; }
+  .wf-tag { display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:700; }
+  .wf-tag.bact { background:#d0e2ff; color:#0043ce; } .wf-tag.tb { background:#e8daff; color:#491d8b; }
+  .stage { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; background:#e0e0e0; color:#393939; }
+  .stage.pos { background:#ffd7d9; color:#750e13; } .stage.ready{background:#a7f0ba;color:#044317;} .stage.run{background:#d0e2ff;color:#0043ce;}
+  .linkmark { font-size:11px; color:#8a3ffc; font-weight:600; white-space:nowrap; }
+  .specgroup td { background:#faf7ff !important; border-top:2px solid #e8daff; }
+  .specgroup-label { font-size:11px; color:#6f6f6f; padding:0.3rem 0.7rem; }
+  .priority-stat { color:#da1e28; font-weight:700; }
+  /* case header */
+  .case-header { background:#fff; padding:1rem 2rem; border:1px solid #e0e0e0; }
+  .case-header .title-row { display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap; }
+  .case-header h1 { font-size:23px; font-weight:300; margin:0; }
+  .case-header .meta { margin-top:0.5rem; font-size:13px; color:#525252; }
+  .case-header .meta span { margin-right:1rem; }
+  .sib-chip { display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:16px; font-size:12px; font-weight:600; cursor:pointer; border:1px dashed #8a3ffc; background:#f6f2ff; color:#491d8b; }
+  .sib-chip:hover { background:#efe6ff; }
+  .sib-chip .dotc { width:8px; height:8px; border-radius:50%; }
+  .specbar { background:#f6f2ff; border:1px solid #e8daff; border-radius:3px; padding:0.6rem 0.9rem; font-size:12.5px; color:#491d8b; margin-top:0.8rem; display:flex; align-items:center; gap:0.6rem; }
+  .body-card { background:#fff; border:1px solid #e0e0e0; border-top:none; padding:1rem 2rem 1.5rem; font-size:13px; color:#393939; }
+  .secnote { color:#6f6f6f; }
+  /* order entry */
+  .oe { background:#fff; border:1px solid #e0e0e0; padding:1.2rem 1.5rem; max-width:640px; }
+  .oe h3 { font-size:14px; margin:0 0 0.8rem; }
+  .chk { display:flex; align-items:center; gap:0.5rem; font-size:14px; padding:0.35rem 0; }
+  .oe-preview { margin-top:1rem; background:#edf5ff; border-left:3px solid #0f62fe; padding:0.8rem 1rem; border-radius:2px; font-size:13px; }
+  .oe-preview .case-line { display:flex; align-items:center; gap:8px; padding:3px 0; }
+  code { background:#e8e8e8; padding:0 4px; border-radius:3px; font-size:12px; }
+  .hint { font-size:12px; color:#6f6f6f; margin-top:0.5rem; }
+</style>
+</head>
+<body>
+<div class="preview-banner">
+  PREVIEW MOCKUP <strong>M-04 §2A / §4.1a</strong> Shared specimen → <strong>linked Cases</strong> (Bacterial + TB on one sputum)
+  <span class="what">Case keyed to <code>SampleItem × workflow_type</code>: one physical specimen = one SampleItem = up to one Case per workflow, sharing <code>sample_item_id</code>. No double accessioning. Two independent Cases, surfaced to each other.</span>
+</div>
+<div class="demobar">
+  <b>VIEW:</b>
+  <button id="vW" class="on" onclick="show('worklist')">Worklist (grouped siblings)</button>
+  <button id="vB" onclick="show('bact')">Bacteriology case</button>
+  <button id="vT" onclick="show('tb')">TB case</button>
+  <button id="vO" onclick="show('oe')">Order entry (2-case preview)</button>
+  <span style="margin-left:auto;opacity:0.8;">In the Worklist, click the linked sputum rows to open each case.</span>
+</div>
+
+<div class="app-header"><span class="product">OpenELIS Global</span><span>· Microbiology</span></div>
+<div class="breadcrumbs" id="bc"><a onclick="show('worklist')">Worklist</a></div>
+
+<div class="wrap" id="stage"></div>
+
+<script>
+// Specimen S-9912 (sputum) drives BOTH a bacterial case and a TB case — same sample_item_id.
+function worklistView(){
+  return `
+  <h2 class="page">Microbiology Worklist</h2>
+  <p class="sub">Cultures grain · shared, state-driven queue · rows sharing a specimen are grouped.</p>
+  <table class="t">
+    <thead><tr><th>Lab # / Specimen</th><th>Patient</th><th>Workflow</th><th>Stage</th><th>Due action</th><th>Priority</th><th>Last activity</th></tr></thead>
+    <tbody>
+      <tr class="click" onclick="show('bact')"><td>BC-0471 · Blood</td><td>K. Mensah, 60M</td><td><span class="wf-tag bact">🧫 Bacteriology</span></td><td><span class="stage pos">Positive · Day 1</span></td><td>Subculture &amp; Gram stain</td><td class="priority-stat">STAT</td><td>10:02 · j.santos</td></tr>
+
+      <tr class="specgroup"><td colspan="7"><span class="specgroup-label">⛓ <strong>Specimen S-9912 · Sputum</strong> — 2 workflows, same physical specimen (<code>sample_item_id 9912</code>)</span></td></tr>
+      <tr class="click" onclick="show('bact')" style="background:#fbf9ff;"><td style="padding-left:1.4rem;">MB-0473 · Sputum</td><td>A. Okeke, 45F</td><td><span class="wf-tag bact">🧫 Bacteriology</span> <span class="linkmark">⛓ linked</span></td><td><span class="stage ready">Ready to finalize · Day 3</span></td><td>Release final report</td><td>Routine</td><td>08:40 · r.adeyemi</td></tr>
+      <tr class="click" onclick="show('tb')" style="background:#fbf9ff;"><td style="padding-left:1.4rem;">MB-0474 · Sputum</td><td>A. Okeke, 45F</td><td><span class="wf-tag tb">🫁 Mycobacteriology – TB</span> <span class="linkmark">⛓ linked</span></td><td><span class="stage run">Culture · Day 12 (MGIT)</span></td><td>Read MGIT / await growth</td><td>Routine</td><td>07:15 · r.adeyemi</td></tr>
+
+      <tr class="click" onclick="show('tb')"><td>MB-0468 · CSF</td><td>L. Diallo, 7M</td><td><span class="wf-tag tb">🫁 Mycobacteriology – TB</span></td><td><span class="stage run">DST · pending</span></td><td>Enter DST result</td><td class="priority-stat">Urgent</td><td>Yesterday · t.nguyen</td></tr>
+    </tbody>
+  </table>
+  <p class="hint">The two <strong>S-9912 · Sputum</strong> rows are <em>one physical specimen</em> (one SampleItem) worked as two independent cases — bacterial finishing on Day 3, TB still culturing on Day 12. They are grouped by <code>sample_item_id</code>, not merged: each keeps its own stage, due action, and report.</p>`;
+}
+
+function caseHeader(which){
+  var isBact = which==='bact';
+  var me = isBact
+    ? {no:'MB-0473', wf:'bact', wflabel:'🧫 Bacteriology', stage:'Ready to finalize · Day 3', sib:'tb', sibLabel:'🫁 TB — Culture, Day 12', sibColor:'#8a3ffc'}
+    : {no:'MB-0474', wf:'tb', wflabel:'🫁 Mycobacteriology – TB', stage:'Culture · Day 12 (MGIT)', sib:'bact', sibLabel:'🧫 Bacteriology — Ready to finalize', sibColor:'#0043ce'};
+  var sections = isBact
+    ? 'Inoculation · Isolates (Gram + ID) · AST Results (CLSI/EUCAST) · Reports'
+    : 'Specimen processing · AFB smear · Molecular (GeneXpert/LPA) · Culture (MGIT/LJ, day-N) · Species ID · DST (WHO critical conc.) · Interim reports';
+  return `
+  <div class="case-header">
+    <div class="title-row">
+      <h1>${me.no}</h1>
+      <span class="wf-tag ${me.wf}">${me.wflabel}</span>
+      <span class="stage ${isBact?'ready':'run'}">${me.stage}</span>
+      <span style="margin-left:auto;"></span>
+      <span class="sib-chip" onclick="show('${me.sib}')"><span class="dotc" style="background:${me.sibColor};"></span>↔ same specimen · ${me.sibLabel}</span>
+    </div>
+    <div class="meta">
+      <span>A. Okeke · 45F · Ward 3 (Inpatient)</span>
+      <span>Sputum · collected 2026-06-05</span>
+      <span>Specimen: <strong>S-9912</strong> (<code>sample_item_id 9912</code>)</span>
+    </div>
+    <div class="specbar">⛓ <span>This specimen has <strong>2 workflows</strong>. You're viewing the <strong>${isBact?'Bacteriology':'TB'}</strong> case. The ${isBact?'TB':'Bacteriology'} case shares the same physical sputum — click the chip above to switch. The two cases never share results, criticals, or reports.</span></div>
+  </div>
+  <div class="body-card">
+    <strong>Sections (${isBact?'M-04 bacterial':'M-14 TB'} profile):</strong> <span class="secnote">${sections}</span>
+    <p class="secnote" style="margin-top:0.8rem;">${isBact
+      ? 'Bacterial workup uses the <strong>raw</strong> sputum. Independent lifecycle — this case can be finalized today without waiting on the weeks-long TB culture.'
+      : 'TB workup decontaminates the sputum (NALC-NaOH) into a <strong>derived aliquot</strong> of the same SampleItem, so processing here never affects the bacterial case. ~6-week lifecycle.'}</p>
+    <p class="secnote" style="margin-top:0.8rem;border-top:1px dashed #e0e0e0;padding-top:0.7rem;"><strong>How the sibling chip is computed (no inference):</strong> <code>SELECT * FROM micro_case WHERE sample_item_id = 9912 AND case_id ≠ this</code> → for each row, show its <code>workflow_type</code> as the icon+label (static map) and its live <code>stage</code> as the text. 0 siblings → no chip; the current case is excluded; the stage stays live (no copy stored).</p>
+  </div>`;
+}
+
+function oeView(){
+  return `
+  <h2 class="page">Order Entry — Step 1</h2>
+  <p class="sub">A combined order on one sputum: routine culture + TB. The wizard previews the cases it will create.</p>
+  <div class="oe">
+    <h3>Specimen: Sputum (one SampleItem)</h3>
+    <div class="chk"><input type="checkbox" checked disabled> Culture &amp; sensitivity <span class="wf-tag bact" style="margin-left:6px;">🧫 Bacteriology</span></div>
+    <div class="chk"><input type="checkbox" checked disabled> Mycobacterial culture (MGIT) <span class="wf-tag tb" style="margin-left:6px;">🫁 TB</span></div>
+    <div class="chk"><input type="checkbox" checked disabled> GeneXpert MTB/RIF <span class="wf-tag tb" style="margin-left:6px;">🫁 TB</span></div>
+    <div class="oe-preview">
+      <strong>This specimen starts 2 microbiology cases (same physical specimen):</strong>
+      <div class="case-line"><span class="wf-tag bact">🧫 Bacteriology</span> — from Culture &amp; sensitivity</div>
+      <div class="case-line"><span class="wf-tag tb">🫁 Mycobacteriology – TB</span> — from Mycobacterial culture + GeneXpert (one TB case)</div>
+      <div class="hint" style="margin-top:6px;">Both cases share <code>sample_item_id 9912</code> — no second accessioning. The resolver groups the ordered tests by (SampleItem, workflow_type) → one case per workflow.</div>
+    </div>
+  </div>`;
+}
+
+function show(v){
+  document.getElementById('vW').classList.toggle('on', v==='worklist');
+  document.getElementById('vB').classList.toggle('on', v==='bact');
+  document.getElementById('vT').classList.toggle('on', v==='tb');
+  document.getElementById('vO').classList.toggle('on', v==='oe');
+  var bc = document.getElementById('bc');
+  var stage = document.getElementById('stage');
+  var crumb = '<a onclick="show(\'worklist\')">Worklist</a>';
+  if(v==='worklist'){ bc.innerHTML=crumb; stage.innerHTML=worklistView(); }
+  else if(v==='oe'){ bc.innerHTML=crumb+' / Order Entry'; stage.innerHTML=oeView(); }
+  else { bc.innerHTML=crumb+' / '+(v==='bact'?'MB-0473 (Bacteriology)':'MB-0474 (TB)'); stage.innerHTML=caseHeader(v); }
+}
+show('worklist');
+</script>
+</body>
+</html>

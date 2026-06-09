@@ -927,6 +927,140 @@
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-nfr-non-functional-requirements-frs-v1-0
   added: "2026-05-15"
 
+# ─── Microbiology — Sync 5: TB / Antibiogram / GLASS / workflow-selection ─
+
+- id: m-13-antibiogram
+  type: spec
+  path: designs/microbiology/m-13-antibiogram.md
+  category: microbiology
+  description: >
+    M-13 Antibiogram — Cumulative %S antibiogram (CLSI M39): organism × antibiotic matrix,
+    first-isolate dedup, threshold suppression, PDF/CSV export. Phase 2.
+  links:
+    jira: ["OGC-900"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-13-antibiogram
+  added: "2026-06-08"
+
+- id: m-13-antibiogram-interactive-prototype
+  type: mockup
+  path: designs/microbiology/m-13-antibiogram-prototype.html
+  category: microbiology
+  description: >
+    M-13 Antibiogram — Interactive Prototype. Organism × antibiotic matrix, first-isolate dedup,
+    threshold suppression, PDF/CSV export.
+  links:
+    jira: ["OGC-900"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-13-antibiogram-interactive-prototype
+  added: "2026-06-08"
+
+- id: m-14-mycobacteriology-tb
+  type: spec
+  path: designs/microbiology/m-14-mycobacteriology-tb.md
+  category: microbiology
+  description: >
+    M-14 Mycobacteriology / TB — M-04 Case Workbench TB profile: smear, MGIT/LJ culture,
+    species ID, critical-concentration DST, molecular flags, staged interim reports, WHONET-TB.
+  links:
+    jira: ["OGC-901"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-14-mycobacteriology-tb
+  added: "2026-06-08"
+
+- id: m-14-tb-case-interactive-prototype
+  type: mockup
+  path: designs/microbiology/m-14-tb-case-prototype.html
+  category: microbiology
+  description: >
+    M-14 TB Case — Interactive Prototype. M-04 Case Workbench shell as a TB profile:
+    smear, MGIT/LJ culture, species ID, DST, molecular flags, staged interim reports.
+  links:
+    jira: ["OGC-901"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-14-tb-case-interactive-prototype
+  added: "2026-06-08"
+
+- id: m-15-glass-fhir-surveillance
+  type: spec
+  path: designs/microbiology/m-15-glass-fhir-surveillance.md
+  category: microbiology
+  description: >
+    M-15 GLASS — FHIR Surveillance. OE pushes finalized AMR results to a consolidated FHIR server.
+    Reuses FhirTransformService/FhirPersistanceService. Backend/admin spec; no mockup.
+  links:
+    jira: ["OGC-918"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-15-glass-fhir-surveillance
+  added: "2026-06-08"
+
+- id: amr-micro-narrative-v2
+  type: spec
+  path: designs/microbiology/amr-micro-narrative.md
+  category: microbiology
+  description: >
+    Microbiology AMR Narrative v2.0 — Phase 0 workflow-selection, Phase 7 TB, antibiogram note,
+    Phase 8 GLASS via M-15. Cross-module context doc for the full M-00–M-15 bundle.
+  links:
+    jira: ["OGC-782"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-amr-narrative-v2-0
+  added: "2026-06-08"
+
+- id: m-04-change-workflow-unassigned
+  type: mockup
+  path: designs/microbiology/m-04-change-workflow-prototype.html
+  category: microbiology
+  description: >
+    M-04 Change Workflow / Unassigned — runtime escape hatch for UNASSIGNED or mis-routed Cases.
+    3 scenarios: unassigned, mis-routed-with-results, released-blocked.
+  links:
+    jira: ["OGC-926"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-04-change-workflow-unassigned
+  added: "2026-06-08"
+
+- id: m-04-linked-cases-shared-specimen
+  type: mockup
+  path: designs/microbiology/m-04-linked-cases-shared-specimen-prototype.html
+  category: microbiology
+  description: >
+    M-04 Linked Cases — Shared Specimen. Case keyed to sample_item_id × workflow_type:
+    bacterial + TB on one sputum = two sibling Cases. Worklist grouped siblings → sibling chip.
+  links:
+    jira: ["OGC-790"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-04-linked-cases-shared-specimen
+  added: "2026-06-08"
+
+- id: m-09-whonet-painless-export
+  type: mockup
+  path: designs/microbiology/m-09-whonet-painless-prototype.html
+  category: microbiology
+  description: >
+    M-09 WHONET — Painless Export. Extends existing WHONetReportService seam: readiness indicator,
+    bulk auto-map, 3-click export with WHO-GLASS defaults, configure-once unattended delivery.
+  links:
+    jira: ["OGC-794"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-09-whonet-painless-export
+  added: "2026-06-08"
+
+- id: m-06-expert-review-inline-decision
+  type: mockup
+  path: designs/microbiology/m-06-expert-review-prototype.html
+  category: microbiology
+  description: >
+    M-06 Expert Review — Inline Decision panel: accept override / order confirmation / reject +
+    confirmation loop. Inline (no modals), per Principle 3.
+  links:
+    jira: ["OGC-793"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-06-expert-review-inline-decision
+  added: "2026-06-08"
+
+- id: m-11-critical-notification-inline
+  type: mockup
+  path: designs/microbiology/m-11-critical-notification-prototype.html
+  category: microbiology
+  description: >
+    M-11 Critical Notification — Inline. Log/Acknowledge/Close over existing OpenELIS notifications
+    entity. Open → Acknowledged → Closed. Reuses alerts dashboard as criticals filter.
+  links:
+    jira: ["OGC-785"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-11-critical-notification-inline
+  added: "2026-06-08"
+
 # ─── Non-Conforming Events (NCE) ───────────────────────────
 
 - id: nce-analytics

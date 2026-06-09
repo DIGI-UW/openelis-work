@@ -9,7 +9,9 @@
 
 This spec covers the Expert Rules engine that runs against AST Run state changes and produces flags and overrides. Phase 1B feature; Phase 1A ships with manual expert review (tech and supervisor apply rules manually via overrides in M-05).
 
-> This FRS is self-contained. There is no separate addendum — every decision from the design review (Expert Review section always present with an empty state; the confirmation-test loop; reidentification → flag re-evaluation signal; decision-modal post-save behavior; reuse of the existing reflex/test-rules engine for confirmation/AST ordering) is written inline below.
+> This FRS is self-contained. There is no separate addendum — every decision from the design review (Expert Review section always present with an empty state; the confirmation-test loop; reidentification → flag re-evaluation signal; decision-panel (inline) post-save behavior; reuse of the existing reflex/test-rules engine for confirmation/AST ordering) is written inline below.
+>
+> **Interaction model (Principle 3) — resolves design-check F-14.** The bench-facing **Expert Review Decision is an inline panel** that expands within the Case Detail Expert Review section — **not** a pop-up modal — consistent with M-04/M-05 (which log criticals and enter/override AST inline). Modals are reserved only for genuinely destructive confirmations. The **admin Expert Rule Editor** (`/admin/micro/expert-rules`) is a configuration surface, not bench work, so it may remain an overlay/page; the inline-bench rule applies to the Case Detail decision flow.
 
 ---
 
@@ -42,9 +44,9 @@ This division (reflexes = ordering cascade; M-06 = phenotype/override decisions;
 | Surface | Route |
 |---------|-------|
 | Expert Rules admin (rule definitions) | `/admin/micro/expert-rules` |
-| Expert Rule Editor modal | (modal overlay) |
+| Expert Rule Editor (admin config surface — overlay/page; admin, not bench) | (admin) |
 | Expert Review section in M-04 Case Detail | (embedded in Case Detail) |
-| Expert Review Decision modal | (modal invoked from Case Detail flags) |
+| Expert Review Decision — **inline panel** (Principle 3) | (inline expansion within the Case Detail Expert Review section) |
 
 ### 1.4 Users
 
@@ -58,7 +60,7 @@ This division (reflexes = ordering cascade; M-06 = phenotype/override decisions;
 ### 1.5 Integration
 
 - **M-05 AST Entry & Interpretation** — Engine fires on AST Run state changes (new result, override, status to COMPLETE); applies overrides via the M-05 override mechanism.
-- **M-04 Case Workbench Core** — Expert Review section in Case Detail renders flags; Expert Review Decision modal invoked.
+- **M-04 Case Workbench Core** — Expert Review section in Case Detail renders flags; the Expert Review Decision **panel expands inline** (Principle 3).
 - **Reflex / test-rules engine** (`test-rules-mvp-frs.md`) — confirmation-test orders and the organism-default AST panel order are fired through its `OrderAction` API (see §1.2).
 - **M-08 Macro Library** — `ast` category macros in flag decision justifications.
 - **M-09 WHONET Export** — Phenotype flag columns populated from engine outputs.
@@ -362,9 +364,9 @@ When the engine fires non-auto-apply flags, they surface in the section:
 
 The `[review needed]` badge appears per-flag after the owning isolate has been reidentified (§5.4); the "Awaiting confirmation" group lists flags in `AWAITING_CONFIRMATION` with a direct path to enter the confirmation result (§5.3).
 
-### 5.1 Expert Review Decision modal
+### 5.1 Expert Review Decision — inline panel
 
-Clicking "Review & Decide" opens a modal with the full flag context:
+Clicking "Review & Decide" **expands an inline panel** in place (Principle 3 — no overlay) with the full flag context:
 
 ```
 ┌─ Expert Review — Isolate 1 (E. coli) — Possible ESBL ───────────────────────┐
@@ -499,7 +501,7 @@ micro_isolate_phenotype (junction)
 - **AC-M06-06**: Cascade urine rule hides tier 2/3 antibiotics unless tier 1 all R.
 - **AC-M06-07**: Intrinsic verification flag opens when an organism reports S to its intrinsic resistance.
 - **AC-M06-08**: Expert Review section in Case Detail renders open flags.
-- **AC-M06-09**: Expert Review Decision modal applies override via M-05 mechanism.
+- **AC-M06-09**: Expert Review Decision inline panel applies override via M-05 mechanism.
 - **AC-M06-10**: Phenotype flags set on Isolate; visible in Case Detail and WHONET export.
 - **AC-M06-11**: Rule version snapshotted on flag creation.
 - **AC-M06-12**: Per crosswalk Q4 Rule 2: rule re-evaluation on reidentification is NOT automatic; flags surface as "review applicability."
@@ -509,7 +511,7 @@ micro_isolate_phenotype (junction)
 - **AC-M06-16** *(folds C2)*: An ORDER_CONFIRMATION decision orders the confirmation test (via the reflex engine), moves the flag to AWAITING_CONFIRMATION, and links `confirmation_order_id`. The confirmation result is entered through the normal result-entry path (reachable from the flag's "Awaiting confirmation" entry), not a free-form flag field.
 - **AC-M06-17** *(folds C2)*: When the confirmation result is reported, the engine sets `confirmation_result_id` and re-opens the flag (AWAITING_CONFIRMATION → OPEN), pre-annotated with the confirmation outcome, so the tech can finalize confirmed vs. ruled-out.
 - **AC-M06-18** *(folds C3)*: Reidentifying an isolate sets `review_needed = true` on its flags, shows a section banner and per-flag "review needed" badge, and exposes a "Re-evaluate flags for this isolate" action; nothing is auto-re-run.
-- **AC-M06-19** *(folds C4)*: On decision save the modal closes, a success toast shows, the Expert Review section updates in place (flag moves to the correct group), and any created confirmation sub-task appears in "Awaiting confirmation" with a link; a failed save keeps the modal open with an inline error and no state change.
+- **AC-M06-19** *(folds C4)*: On decision save the inline panel collapses, a success toast shows, the Expert Review section updates in place (flag moves to the correct group), and any created confirmation sub-task appears in "Awaiting confirmation" with a link; a failed save keeps the panel open with an inline error and no state change.
 - **AC-M06-20** *(reuse)*: Confirmation orders and the organism-default AST panel order are fired through the existing reflex/test-rules `OrderAction` API, not a parallel ordering mechanism.
 
 ---

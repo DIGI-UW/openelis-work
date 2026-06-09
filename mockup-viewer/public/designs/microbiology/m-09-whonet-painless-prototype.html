@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M-09 WHONET — Painless Export — Interactive Prototype</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+  .preview-banner strong { background:#fff; color:#0f62fe; padding:1px 6px; border-radius:2px; margin:0 4px; }
+  .preview-banner .what { display:block; margin-top:4px; font-family:'IBM Plex Sans',sans-serif; font-size:12px; opacity:0.95; line-height:1.5; }
+  .demobar { background:#161616; color:#f4f4f4; font-size:12px; padding:0.5rem 1rem; display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; }
+  .demobar b { color:#78a9ff; }
+  .demobar button { font-size:12px; background:#393939; color:#f4f4f4; border:1px solid #6f6f6f; border-radius:3px; padding:3px 9px; cursor:pointer; }
+  .demobar button.on { background:#0f62fe; border-color:#0f62fe; }
+  .app-header { background:#161616; color:#f4f4f4; padding:0 1rem; height:44px; display:flex; align-items:center; gap:1rem; font-size:14px; }
+  .app-header .product { font-weight:600; }
+  .breadcrumbs { padding:0.5rem 2rem; background:#fff; border-bottom:1px solid #e0e0e0; font-size:13px; color:#525252; }
+  .wrap { padding:1.25rem 2rem 4rem; max-width:880px; }
+  h2.page { font-size:21px; font-weight:300; margin:0 0 0.3rem; }
+  .sub { font-size:13px; color:#6f6f6f; margin:0 0 1rem; }
+  .card { background:#fff; border:1px solid #e0e0e0; padding:1.1rem 1.4rem; margin-bottom:1rem; }
+  .btn { font-family:inherit; font-size:13px; padding:0.45rem 1rem; border-radius:2px; border:1px solid #0f62fe; cursor:pointer; background:#fff; color:#0f62fe; }
+  .btn.primary { background:#0f62fe; color:#fff; } .btn.sm{font-size:12px;padding:0.3rem 0.7rem;} .btn.ghost{border-color:#8d8d8d;color:#393939;}
+  .btn:disabled { border-color:#c6c6c6; color:#a8a8a8; cursor:not-allowed; }
+  /* readiness */
+  .ready { display:flex; align-items:center; gap:1rem; margin-bottom:0.8rem; }
+  .ring { --p:98; width:74px; height:74px; border-radius:50%; flex:none;
+          background:conic-gradient(#24a148 calc(var(--p)*1%), #e0e0e0 0); display:flex; align-items:center; justify-content:center; }
+  .ring .inner { width:56px; height:56px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:15px; }
+  .ready .txt { font-size:14px; } .ready .txt b{font-size:15px;}
+  .ready .small { font-size:12px; color:#6f6f6f; }
+  table.t { width:100%; border-collapse:collapse; font-size:13px; margin-top:0.5rem; }
+  table.t th { text-align:left; padding:0.45rem 0.6rem; background:#f4f4f4; font-weight:600; border-bottom:1px solid #e0e0e0; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; color:#525252; }
+  table.t td { padding:0.45rem 0.6rem; border-bottom:1px solid #eee; vertical-align:middle; }
+  .sugg { color:#0043ce; font-weight:600; }
+  .unmapped { color:#b28600; font-weight:600; }
+  .vocab-row { display:flex; align-items:center; gap:0.6rem; padding:0.5rem 0; border-bottom:1px solid #f0f0f0; font-size:13px; }
+  .vocab-row .name { width:200px; } .vocab-row .bar { flex:1; height:8px; background:#e0e0e0; border-radius:4px; overflow:hidden; }
+  .vocab-row .bar i { display:block; height:100%; background:#24a148; }
+  .vocab-row .pct { width:230px; text-align:right; font-size:12px; color:#525252; }
+  .banner { font-size:13px; padding:0.7rem 0.9rem; border-radius:2px; margin-bottom:0.9rem; }
+  .banner.good { background:#defbe6; border-left:3px solid #24a148; }
+  .banner.info { background:#edf5ff; border-left:3px solid #0f62fe; }
+  /* quick export */
+  .qline { display:flex; align-items:center; gap:0.6rem; padding:0.7rem 0; border-bottom:1px solid #f0f0f0; font-size:14px; }
+  .qline .lbl { width:150px; color:#525252; font-size:13px; }
+  .qline .val { font-weight:600; }
+  .seg { display:inline-flex; border:1px solid #8d8d8d; border-radius:3px; overflow:hidden; }
+  .seg button { font-size:12px; background:#fff; border:none; padding:0.3rem 0.7rem; cursor:pointer; border-right:1px solid #e0e0e0; }
+  .seg button:last-child{border-right:none;} .seg button.on { background:#0f62fe; color:#fff; }
+  .disclosure { margin-top:0.5rem; font-size:13px; }
+  .disclosure summary { cursor:pointer; color:#0f62fe; }
+  .adv { background:#f7faff; border:1px solid #e0e0e0; border-radius:2px; padding:0.7rem 0.9rem; margin-top:0.5rem; font-size:12.5px; color:#525252; }
+  .adv div{padding:0.2rem 0;}
+  .steps { display:flex; gap:0.5rem; align-items:center; margin:1rem 0 0.6rem; font-size:12px; color:#6f6f6f; }
+  .steps .s { padding:3px 10px; border-radius:14px; background:#e0e0e0; }
+  .steps .s.on { background:#0f62fe; color:#fff; font-weight:600; }
+  .summary-box { background:#f4f4f4; border-radius:2px; padding:0.8rem 1rem; font-size:13px; margin:0.6rem 0; line-height:1.7; }
+  .toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:#161616; color:#fff; padding:0.6rem 1.1rem; border-radius:4px; font-size:13px; opacity:0; transition:opacity .25s; pointer-events:none; }
+  .toast.show { opacity:1; }
+  code { background:#e8e8e8; padding:0 4px; border-radius:3px; font-size:12px; }
+  .effort { display:flex; gap:0; margin:0.4rem 0 0; font-size:11.5px; }
+  .effort div { flex:1; padding:6px 8px; text-align:center; color:#fff; }
+</style>
+</head>
+<body>
+<div class="preview-banner">
+  PREVIEW MOCKUP <strong>M-09 §0</strong> Painless WHONET — readiness + auto-map, three-click export
+  <span class="what">Extends the WHONET export already in the codebase. Codes ship pre-loaded (M-01) + auto-mapped; readiness keeps gaps small; routine export is open → Preview → Generate with WHO-GLASS defaults.</span>
+</div>
+<div class="demobar">
+  <b>VIEW:</b>
+  <button id="vR" class="on" onclick="show('ready')">Mapping readiness + auto-map</button>
+  <button id="vE" onclick="show('export')">Quick export (3 clicks)</button>
+  <span style="margin-left:auto;opacity:0.85;">Effort ranking: FHIR push (M-15) &lt; scheduled file &lt; manual file.</span>
+</div>
+<div class="app-header"><span class="product">OpenELIS Global</span><span id="ctx">· Admin · WHONET Mapping</span></div>
+<div class="breadcrumbs" id="bc">Admin / WHONET Mapping</div>
+
+<div class="wrap" id="stage"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+var unmapped = [
+  { id:'o1', vocab:'organisms', name:'Local Organism XYZ (lab code LX9)', suggestion:null },
+  { id:'o2', vocab:'organisms', name:'Burkholderia cepacia complex', suggestion:'bce — Burkholderia cepacia' },
+  { id:'a1', vocab:'antibiotics', name:'Cefiderocol (in-house disk)', suggestion:'FDC — Cefiderocol' },
+  { id:'s1', vocab:'specimens', name:'Bronchoalveolar lavage (local term)', suggestion:'ll — Lower respiratory' }
+];
+
+function readyView(){
+  var total = 312, mapped = total - unmapped.length;
+  var pct = Math.round(mapped/total*100);
+  var vocabs = [
+    ['Organisms', 96, 'M-09 (organism master)'], ['Antibiotics', 100, 'Test Catalog (read-through)'],
+    ['Specimens', 97, 'M-09'], ['Origins', 100, 'M-09'],
+    ['Patient Types', 100, 'M-09'], ['Departments', 100, 'M-09'],
+    ['Breakpoint Standards', 100, 'Test Catalog (read-through)'], ['Phenotypes', 100, 'M-09']
+  ];
+  var rows = unmapped.map(function(u){
+    var act = u.suggestion
+      ? '<span class="sugg">Suggested: '+u.suggestion+'</span>'
+      : '<span class="unmapped">No match — map manually</span>';
+    var btn = u.suggestion
+      ? '<button class="btn sm" onclick="accept(\''+u.id+'\')">Accept</button>'
+      : '<button class="btn ghost sm">Map…</button>';
+    return '<tr><td>'+u.name+'</td><td style="text-transform:capitalize;">'+u.vocab+'</td><td>'+act+'</td><td style="text-align:right;">'+btn+'</td></tr>';
+  }).join('');
+  var withSugg = unmapped.filter(u=>u.suggestion).length;
+  return ''
+  + '<h2 class="page">WHONET Mapping</h2>'
+  + '<p class="sub">Readiness is measured against the codes that actually appear in the results you\'re exporting — <strong>not</strong> the whole master. Antibiotics &amp; breakpoint standards come from the Test Catalog (read-through), so you only touch the leftovers.</p>'
+  + '<div class="card">'
+    + '<div class="ready"><div class="ring" style="--p:'+pct+';"><div class="inner">'+pct+'%</div></div>'
+    + '<div class="txt"><b>'+pct+'% of what you reported this period is WHONET-mapped</b><br><span class="small">'+mapped+' of '+total+' codes used in May\'s finalized results are mapped · '+unmapped.length+' would be dropped from the export'+(withSugg?(' · '+withSugg+' have an auto-suggestion'):'')+'</span></div>'
+    + (withSugg?'<button class="btn primary" style="margin-left:auto;" onclick="acceptAll()">Accept all '+withSugg+' suggestions</button>':'') + '</div>'
+    + (unmapped.length===0
+        ? '<div class="banner good">✓ Fully mapped — every organism, drug, specimen, origin, and phenotype has a WHONET code. Exports will never block on mapping.</div>'
+        : '<div class="banner info">ⓘ Most of these were <strong>auto-suggested by name match</strong> (and OCL/SNOMED where present). Confirm in bulk; only truly local items need manual mapping.</div>')
+    + (unmapped.length? '<table class="t"><thead><tr><th>OpenELIS item</th><th>Vocabulary</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>' : '')
+  + '</div>'
+  + '<div class="card"><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#525252;font-weight:600;margin-bottom:0.6rem;">Per-vocabulary coverage</div>'
+    + vocabs.map(v=>'<div class="vocab-row"><span class="name">'+v[0]+'</span><span class="bar"><i style="width:'+v[1]+'%;"></i></span><span class="pct">'+v[1]+'% · '+v[2]+'</span></div>').join('')
+  + '</div>';
+}
+
+function exportView(){
+  return ''
+  + '<h2 class="page">WHONET Export</h2>'
+  + '<p class="sub">Routine run: open → Preview → Generate. Defaults are WHO GLASS; advanced options are tucked away.</p>'
+  + '<div class="card">'
+    + '<div class="qline"><span class="lbl">Period</span><span class="seg"><button class="on">Last month</button><button>This month</button><button>This quarter</button><button>Custom…</button></span></div>'
+    + '<div class="qline"><span class="lbl">Include</span><span class="val">All clinically-significant isolates</span> <span style="color:#6f6f6f;font-size:12px;">· all specimens, all origins</span></div>'
+    + '<div class="qline"><span class="lbl">De-duplication</span><span class="val">First-isolate — WHO GLASS standard (7-day)</span>'
+      + '<details class="disclosure" style="margin-left:auto;"><summary>Adjust (advanced)</summary></details></div>'
+    + '<div class="adv">Advanced (collapsed by default): window length · window basis · scope · significance handling · repeat-row handling · susceptibility-profile sensitivity — each with inline helper text. Most operators never open this.</div>'
+    + '<div class="qline"><span class="lbl">Format</span><span class="val">WHONET CSV</span> <span style="color:#6f6f6f;font-size:12px;">· lab profile auto-included on first send to a destination</span></div>'
+    + '<div class="steps"><span class="s on" id="st1">1 · Configure</span><span>›</span><span class="s" id="st2">2 · Preview</span><span>›</span><span class="s" id="st3">3 · Generate</span></div>'
+    + '<div id="exResult"></div>'
+    + '<div style="display:flex;gap:0.5rem;margin-top:0.6rem;"><button class="btn" id="prevBtn" onclick="doPreview()">Preview</button>'
+    + '<button class="btn primary" id="genBtn" onclick="doGenerate()" disabled>Generate</button></div>'
+  + '</div>'
+  + '<div class="card"><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#525252;font-weight:600;margin-bottom:0.4rem;">Even less effort</div>'
+    + '<div style="font-size:13px;line-height:1.6;">→ <strong>Configure once, run unattended:</strong> set a destination + monthly schedule + saved filter and the export delivers itself (SFTP/email); you\'re pinged only on failure or new unmapped items.<br>'
+    + '→ <strong>On the FHIR network:</strong> with a consolidated FHIR server (M-15), results flow as FHIR and the centre does the WHONET mapping + aggregation — the lab does nothing here.</div>'
+    + '<div class="effort"><div style="background:#24a148;">FHIR push (M-15) — least</div><div style="background:#4589ff;">Scheduled file</div><div style="background:#8d8d8d;">Manual file — most</div></div>'
+  + '</div>';
+}
+
+function accept(id){ unmapped = unmapped.filter(u=>u.id!==id); toastMsg('Mapping confirmed'); render(); }
+function acceptAll(){ unmapped = unmapped.filter(u=>!u.suggestion); toastMsg('Accepted all auto-suggested mappings'); render(); }
+
+function doPreview(){
+  document.getElementById('st2').classList.add('on');
+  document.getElementById('genBtn').disabled = false;
+  var warn = unmapped.length ? '<div class="banner info" style="margin-top:0.6rem;">ⓘ '+unmapped.length+' item(s) still unmapped — those isolates are excluded. <a href="#" onclick="show(\'ready\');return false;">Fix mapping</a></div>' : '<div class="banner good" style="margin-top:0.6rem;">✓ 0 errors, 0 unmapped — clean export.</div>';
+  document.getElementById('exResult').innerHTML =
+    '<div class="summary-box">Total isolates in range: <strong>489</strong><br>After significance filter: <strong>412</strong><br>After WHO-GLASS de-duplication: <strong>312</strong><br>Validation: <strong>0 errors</strong>, '+unmapped.length+' unmapped</div>' + warn;
+  toastMsg('Preview ready');
+}
+function doGenerate(){
+  document.getElementById('st3').classList.add('on');
+  document.getElementById('exResult').innerHTML += '<div class="banner good" style="margin-top:0.6rem;">✓ Generated <code>PNG_CPHL_2026-05-01_to_2026-05-31.csv</code> (312 isolates) · audit row written · lab profile included (first send). <a href="#">Re-download</a></div>';
+  toastMsg('Export generated');
+}
+
+function show(v){
+  document.getElementById('vR').classList.toggle('on', v==='ready');
+  document.getElementById('vE').classList.toggle('on', v==='export');
+  document.getElementById('ctx').textContent = v==='ready' ? '· Admin · WHONET Mapping' : '· Reports · WHONET Export';
+  document.getElementById('bc').textContent = v==='ready' ? 'Admin / WHONET Mapping' : 'Reports / WHONET Export';
+  document.getElementById('stage').innerHTML = v==='ready' ? readyView() : exportView();
+}
+function render(){ show(document.getElementById('vR').classList.contains('on') ? 'ready' : 'export'); }
+function toastMsg(m){ var t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+show('ready');
+</script>
+</body>
+</html>

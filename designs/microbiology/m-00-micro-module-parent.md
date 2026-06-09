@@ -18,7 +18,7 @@ This is the spine spec. Every other M-* spec in the bundle references back to th
 
 The OpenELIS Global Microbiology Module is a new top-level area of the application that supports bacterial culture, isolate identification, antimicrobial susceptibility testing (AST), expert review, structured reporting, and surveillance export (WHONET). It models a workflow that does not fit the existing OpenELIS "Sample → Analysis → Result" pattern: micro is multi-day, multi-isolate, narrative-heavy, and produces variable numbers of results per Sample.
 
-The module replaces the v1.1 AMR FRS trio (AMR Configuration, Microbiology Case Workbench, WHONET Integration) which was correctly scoped but structurally monolithic. The new bundle decomposes into thirteen smaller, composable specs (M-01 through M-12 plus M-NFR), each addressing one well-bounded concern.
+The module replaces the v1.1 AMR FRS trio (AMR Configuration, Microbiology Case Workbench, WHONET Integration) which was correctly scoped but structurally monolithic. The new bundle decomposes into smaller, composable specs (M-01 through M-14 plus M-NFR), each addressing one well-bounded concern. The bundle now also includes **M-13 Antibiogram** (cumulative susceptibility reporting) and **M-14 Mycobacteriology / TB**, both promoted into scope as planned modules (see §6 phase plan and §7).
 
 Although the Case workbench is a new surface, the module is built to **reuse existing OpenELIS infrastructure wherever it fits** rather than inventing parallel mechanisms — see §8.2 for the consolidated reuse principles established in design review.
 
@@ -30,7 +30,14 @@ Bacterial micro workflow end-to-end: order entry hook, culture setup, incubation
 
 **In scope for Phase 1B (3-4 months after 1A):**
 
-Expert Rules Engine with built-in rules (MRSA inference, D-test required, ESBL screen and confirm, cascade reporting, intrinsic resistance verification); WHONET Export Generator with code mapping admin; Hub Subscription for breakpoint and reference-data updates; additional analyzer profiles (BD Phoenix, Sensititre, BACTEC, MALDI-TOF); FHIR push for micro reports; AST Run QC integration.
+Expert Rules Engine with built-in rules (MRSA inference, D-test required, ESBL screen and confirm, cascade reporting, intrinsic resistance verification); WHONET Export Generator with code mapping admin (now **including TB**, M-09 §4.5); Hub Subscription for breakpoint and reference-data updates; additional analyzer profiles (BD Phoenix, Sensititre, BACTEC, MALDI-TOF); FHIR push for micro reports; AST Run QC integration.
+
+**Planned scope (post-1B; now in scope as planned modules):**
+
+- **M-13 Antibiogram** — cumulative susceptibility reporting (per-organism %S over a time window). Previously listed as out of scope; now a planned module.
+- **M-14 Mycobacteriology / TB** — the TB workflow (AFB smear, culture, species ID, phenotypic DST against WHO critical concentrations, molecular resistance via GeneXpert MTB/RIF and line probe assays), feeding M-02's critical-concentration interpretation and M-09's WHONET TB export. Previously out of scope; now a planned module.
+
+> **Final planned piece (still being specified).** Centralized **GLASS reporting** — WHONET aggregation across labs plus a **consolidated-FHIR** central-reporting path — is the last planned piece of the program and is being specified separately. It is not designed in this bundle; single-tenancy keeps cross-lab aggregation outside OpenELIS (see §7, glossary GLASS).
 
 **Out of scope** — see Section 7.
 
@@ -52,8 +59,13 @@ The Micro Module appears in the OpenELIS sidenav as a new top-level item under t
 ```
 Microbiology
 ├── Worklist                   (M-07 — shared, state-driven queue; Cultures / AST grain toggle)
-└── Case Search                (M-04 — search across all cases)
+├── Case Search                (M-04 — search across all cases)
+└── Antibiogram                (M-13 — cumulative susceptibility reports; planned module)
 ```
+
+> **TB (M-14)** reuses the same Worklist + Case surfaces with a TB grain/lifecycle rather than a separate top-level area; its extended (weeks-long) timeline, AFB/culture/DST steps, and molecular-flag capture are detailed in the M-14 spec. **Antibiogram (M-13)** adds a reporting surface listed above.
+
+> **How the system knows which workflow to use (the bacterial-vs-TB decision).** There is no clerk choice and no separate "TB module" the user navigates to. The ordered **test** carries a **`workflow_type`** on its Culture-workflow attribute — `BACTERIOLOGY` or `MYCOBACTERIOLOGY_TB` (`MYCOLOGY` reserved). The single M-03 trigger resolver (`resolveMicroCaseTrigger`, M-03 §2.1a) reads it and instantiates the matching **Case profile** (M-04 bacterial sections vs M-14 TB sections), **breakpoint family** (CLSI/EUCAST clinical MIC vs WHO-TB critical concentrations, M-02), **culture-protocol Method**, reflex variant, and **WHONET flavor** (M-09). One protocol per Case (A-MIX), so a specimen that needs both routine culture *and* TB is ordered as two tests → two Cases (one M-04, one M-14). This is the authoritative "which workflow" rule for the whole module.
 
 > **Folded review decision (D0 / shared-queue, see §8.1).** The earlier three-surface split (Pending Cultures, AST Worklist, Microbiology Dashboard) collapses into a **single shared Worklist** with a culture/AST grain toggle; the former dashboard's content (resistance hits, recent activity) folds into that page. There is **no per-case owner**, so there is no "My cases" surface. A dedicated read-only manager dashboard may return later as an optional view for larger deployments, but it is not a core Phase-1A surface.
 
@@ -95,7 +107,7 @@ Vocabulary used across the M-* bundle. Each term is bolded the first time it app
 | **Reflex / Test-Rules engine** | The existing OE rules engine (`Rule {type:reflex, conditionTree, actions}` → `OrderAction`). It drives the micro **what-to-order-next cascade** — positive → Organism ID → AST → confirmation — and orders the AST panel (§8.2). It does **not** model the Case/Isolate/AST-Run structure; the Case Workbench owns the workup state. |
 | **Cascade Reporting** | A reporting rule that only displays second-tier antibiotics when first-tier are all R. Common for urines. Phase 1B. |
 | **WHONET** | Both a software product (Windows DB tool for AMR surveillance) and a file format (CSV/TXT export from labs to country reference labs). The module's surveillance export targets the file format. |
-| **GLASS** | WHO Global Antimicrobial Resistance and Use Surveillance System. National-level program that consumes aggregated WHONET data. **Not directly addressed by this module** — OpenELIS is single-tenant; aggregation across labs happens centrally outside OE. |
+| **GLASS** | WHO Global Antimicrobial Resistance and Use Surveillance System. National-level program that consumes aggregated WHONET data (including TB). **Not addressed in this bundle** — OpenELIS is single-tenant; aggregation across labs happens centrally outside OE. The centralized GLASS reporting path (WHONET aggregation + a consolidated-FHIR path) is the **final planned piece of the program and is being specified separately** (§1.2). |
 | **Hub** | Central repository (managed externally) that supplies updates to the Breakpoint Catalog, Organism Master, Antibiotic Master, and WHONET code tables. OE pulls; never pushes. |
 | **Macro** | A typing shortcut: type `.code`, get expanded text. Cross-cutting OE feature with Micro as the first consumer. |
 | **Critical Result** | A clinically actionable finding requiring immediate notification to the ordering provider. In Micro: positive blood culture Gram stain (sterile site), CSF positivity, CRE, MRSA from sterile site, VRE, AFB-positive sputum (per lab SOP). |
@@ -105,12 +117,22 @@ Vocabulary used across the M-* bundle. Each term is bolded the first time it app
 | **Significance** | Clinical assessment of whether an isolate represents real infection. Values: SIGNIFICANT, NOT_SIGNIFICANT, PROBABLE_CONTAMINANT, COLONIZER, INDETERMINATE. |
 | **First Isolate** | The earliest isolate of a given organism from a given patient within a dedup window (default 7 days). Surveillance concept — only first isolates count in resistance trending. |
 | **Phenotype Flag** | A categorical resistance characteristic (MRSA, ESBL, CRE, VRE, MDR, XDR, PDR) derived from AST results by the Expert Rules engine. Carried in WHONET exports as separate columns. |
+| **AFB** | Acid-fast bacilli. Microscopy/staining (Ziehl-Neelsen or auramine) result indicating mycobacteria in a specimen; the first-line TB screening test. (M-14) |
+| **MGIT** | Mycobacteria Growth Indicator Tube — automated liquid-culture system (e.g., BACTEC MGIT 960) for TB culture and phenotypic drug-susceptibility testing. One of the TB DST methods carrying WHO critical concentrations (M-02 §3.5). |
+| **GeneXpert MTB/RIF** | Cartridge-based automated molecular assay (Xpert) that detects *M. tuberculosis* complex DNA and rifampicin-resistance mutations (rpoB) directly from specimen. A **molecular** resistance result (genotypic flag), not a phenotypic breakpoint/critical-concentration call (M-02 §7.4, M-14). |
+| **LPA (line probe assay)** | Molecular strip test detecting resistance-conferring mutations for isoniazid, rifampicin, fluoroquinolones, and aminoglycosides (e.g., GenoType MTBDR). A genotypic resistance result reported as a flag, distinct from phenotypic DST (M-14, exported in WHONET TB per M-09 §4.5). |
+| **DST (drug-susceptibility testing)** | TB susceptibility testing. **Phenotypic DST** grows the isolate at a WHO **critical concentration** by method (MGIT / Löwenstein-Jensen / agar proportion) and reports R/S; **molecular DST** (Xpert/LPA) reports genotypic resistance. (M-14) |
+| **Critical concentration** | The lowest drug concentration that inhibits growth of wild-type (susceptible) *M. tuberculosis*. TB phenotypic DST interprets **R if growth at the critical concentration, S if not** — a binary call with no Intermediate, defined per drug × method and versioned by WHO guidance year (M-02 §3.5, §7.4). |
+| **MDR-TB / pre-XDR-TB / XDR-TB** | TB resistance categories. **MDR-TB** = resistant to at least isoniazid and rifampicin. **Pre-XDR-TB** = MDR-TB plus resistance to any fluoroquinolone. **XDR-TB** = pre-XDR-TB plus resistance to at least one additional Group A drug (e.g., bedaquiline or linezolid), per the WHO definition. Derived from DST results in M-14. |
+| **Antibiogram (cumulative susceptibility)** | A periodic report summarizing the percentage of isolates of an organism that are susceptible to each antibiotic over a time window, used to guide empiric therapy. Built from first-isolate AST data (M-13). |
 
 ---
 
 ## 3. Data model overview
 
 This is the canonical sketch. Each spec elaborates its corner.
+
+> **Planned modules M-13 / M-14 (data-model note).** **M-13 Antibiogram** is a reporting module — it reads first-isolate AST data (`micro_ast_run` + `result` + first-isolate dedup, the same surveillance concept used by M-09) and introduces no new core workflow tables; any aggregate/cache tables it needs are owned by the M-13 spec. **M-14 Mycobacteriology / TB** reuses the `micro_case` / `micro_isolate` / `micro_ast_run` shapes with a TB lifecycle and adds TB-specific fields (AFB smear result, DST method ∈ {MGIT, LJ, AGAR_PROPORTION}, and **molecular resistance flags** from Xpert/LPA carried on the isolate). TB phenotypic DST interprets against WHO **critical concentrations** via M-02 (`publisher = WHO_TB`, `interpretation_model = CRITICAL_CONCENTRATION`; see M-02 §3.5, §7.4); the molecular flags are recorded by M-14, not via the breakpoint service. Both modules' tables are detailed in their own specs.
 
 ### 3.1 New tables introduced by the M-* bundle
 
@@ -122,7 +144,10 @@ sample (existing)
    ▼
 micro_case
    ├── case_id (PK)
-   ├── sample_id (FK to sample)
+   ├── sample_item_id (FK to sample_item — the physical specimen; the Case key)
+   ├── workflow_type (enum: BACTERIOLOGY, MYCOBACTERIOLOGY_TB; NULL = needs classification)
+   │          UNIQUE (sample_item_id, workflow_type) — one Case per specimen per workflow;
+   │          one specimen can hold a bacterial AND a TB Case sharing the SampleItem (M-04 §2A)
    ├── stage (enum: RECEIVED, INOCULATING, INCUBATING, POSITIVE_SIGNAL,
    │          GROWTH_DETECTED, ORGANISM_ID, AST_IN_PROGRESS, READY_REVIEW,
    │          PRELIM_REPORTED, FINAL_REPORTED, NO_GROWTH_FINAL,
@@ -525,14 +550,24 @@ Eleven modules ship as a coordinated release. Pre-track: M-12 Test→Reagent Lin
 | FHIR push for micro reports | Reuse `FRS_FHIR_Outbound_Push` infrastructure |
 | AST Run QC integration | Run-QC organism results gating release |
 
-### 6.3 Phase 2 and beyond
+### 6.3 Planned modules (post-1B; promoted into scope)
 
-- Antibiogram generation (cumulative susceptibility reports per organism over time window)
+These were previously listed as out of scope and are now **planned modules** of the program:
+
+| Module | Notes |
+|--------|-------|
+| M-13 Antibiogram | Cumulative susceptibility reports per organism over a time window, built from first-isolate AST data. Reporting module; reuses M-09's first-isolate dedup concept. |
+| M-14 Mycobacteriology / TB | TB workflow: AFB smear, culture, species ID, phenotypic DST against WHO critical concentrations (MGIT / LJ / agar proportion) via M-02, and molecular resistance via GeneXpert MTB/RIF and line probe assays. Feeds the WHONET TB export (M-09 §4.5). Reuses the Case/Isolate/AST-Run shapes with a TB lifecycle. |
+| M-15 GLASS Surveillance via Consolidated FHIR | The **last** module. Each lab pushes its finalized AMR + TB results as FHIR (DiagnosticReport + per-drug Observations, WHO AMR profiles) to a **consolidated FHIR server**, which aggregates across labs and generates the GLASS submission. Reuses OE's existing FHIR stack (`FhirTransformService`, `FhirPersistanceService`, `FhirConfig`, the EQA submission pattern) + M-09 dedup/validation. Complementary to the M-09 WHONET file path. Multi-tenant aggregation stays outside OE (single-tenancy preserved). |
+
+> **Final planned piece — now specified.** Centralized **GLASS reporting** is designed in **M-15** (`m-15-glass-fhir-surveillance.md`): the WHONET file path (M-09) plus a **consolidated-FHIR** central path. OE only pushes its own results; cross-lab aggregation + GLASS generation stay **outside** OpenELIS, so single-tenancy is preserved (§7, glossary GLASS).
+
+### 6.4 Phase 2 and beyond
+
 - Scheduled WHONET export (auto-monthly)
 - Outbreak detection (unusual resistance pattern alerts)
-- Mycobacteriology module (M-14)
-- Fungal mold module (M-15)
-- Parasitology module (M-16)
+- Fungal mold module (M-16)
+- Parasitology module (M-17)
 - Reference lab referral workflow
 - Stewardship feedback loops to prescribers
 - Multi-method AST comparison view
@@ -547,12 +582,13 @@ Eleven modules ship as a coordinated release. Pre-track: M-12 Test→Reagent Lin
 
 The module deliberately does NOT include:
 
-- **Mycobacteriology / TB workflow** — fundamentally different timeline (weeks not days) and methods (MGIT, GeneXpert MTB/RIF, line probe assays). Future M-14.
-- **Fungal molds** — different incubation, morphology-based ID. Yeasts piggyback on Case shape; molds don't. Future M-15.
-- **Parasitology** — morphology-based, not culture-based. Different result shape entirely. Future M-16.
-- **Multiple culture protocols on one Sample** — the Case carries a single culture protocol (the test's default Method). A second protocol on the same specimen requires a second Sample/Case (A-MIX; see M-03 §2A). Promoting protocol to a per-Case-line or per-isolate concept is deferred.
-- **Antibiogram generation** — cumulative susceptibility reports. Phase 3 candidate.
-- **GLASS direct submission** — single-tenancy makes OE unable to aggregate across labs. Aggregation is a central activity outside OE.
+> **Now in scope (moved out of this list).** **Mycobacteriology / TB workflow (M-14)** and **Antibiogram generation (M-13)** are no longer out of scope — they are **planned modules** (§1.2, §6.3). TB's longer timeline and molecular/critical-concentration methods are handled in M-14; cumulative susceptibility reporting is M-13.
+
+- **Fungal molds** — different incubation, morphology-based ID. Yeasts piggyback on Case shape; molds don't. Future M-16.
+- **Parasitology** — morphology-based, not culture-based. Different result shape entirely. Future M-17.
+- **Multiple culture protocols on one Sample** — each micro Case carries a single culture protocol (the test's default Method). A second protocol on the same specimen is a second Case (A-MIX; see M-03 §2A). Promoting protocol to a per-Case-line or per-isolate concept is deferred.
+  > **DECISION (was an open item; now resolved).** A micro Case is keyed to **`SampleItem` × `workflow_type`**, not `1:1` to the Sample. So one physical specimen needing both a bacterial and a TB workup is **two Cases that share one `SampleItem`** — no double accessioning, and the shared specimen is intrinsic (same `sample_item_id`) rather than a bolted-on link. This reuses OpenELIS's existing Sample → SampleItem → Analysis grain. Detail in M-04 §2A; shared-specimen UI in M-04 §4.1a + M-07.
+- **Cross-lab GLASS *aggregation*** — single-tenancy makes OE unable to aggregate across labs, so the central aggregation + GLASS dataset generation stay **outside** OE (on the NCC / consolidated FHIR server). The **OE side** — transforming and pushing each lab's own results — **is now in scope as M-15** (the final module); only the multi-lab aggregation itself is out of scope (M-15 §4.7).
 - **Real-time outbreak detection** — pattern-based alerts across recent isolates. Phase 4+.
 - **Image attachments** — plate photos, Gram stain photos. UI surface design deferred. Phase 3+.
 - **Mobile bottle barcode scanning** — requires mobile companion app. Phase 3+.
@@ -629,10 +665,11 @@ The primary workflow uses **inline interactions, not modals**. Workflow actions 
 
 **Status: open cross-spec item, owners notified.** How a test "becomes" part of the Case workflow needs a single first-class signal. The adopted resolution (recorded fully in M-03 §2.1a / §2.7) is:
 
-- Add a first-class **"Culture workflow"** per-test attribute (distinct from the AMR/WHONET surveillance flag, which it may imply). Setting it makes ordering the test **create a Microbiology Case and appear in the Worklist**, via a **single trigger resolver** — no reliance on the clerk manually picking Program = Microbiology (which survives only as a derived/visible fallback).
-- The culture protocol carried by such a test = its default **Method** (A-REUSE-1); add **`valid_organisms`** to the Test Catalog (referenced by M-01/M-03). The **AMR flag** and the **Culture-workflow flag** are separate concerns — a test may be one, both, or neither.
+- Add a first-class **Culture-workflow designation** per test, carrying a **`workflow_type`** (`BACTERIOLOGY` / `MYCOBACTERIOLOGY_TB`; `MYCOLOGY` reserved) — distinct from the AMR/WHONET surveillance flag, which it may imply. Setting it makes ordering the test **create the matching Microbiology Case profile and appear in the Worklist**, via the **single trigger resolver** — no reliance on the clerk manually picking Program = Microbiology (which survives only as a derived/visible fallback, defaulting to `BACTERIOLOGY`).
+- The culture protocol carried by such a test = its default **Method** (A-REUSE-1); add **`valid_organisms`** to the Test Catalog (referenced by M-01/M-03). The **AMR flag** and the **Culture-workflow designation** are separate concerns — a test may be one, both, or neither.
+- **Concrete home + escape hatch.** The attribute is specified for the Test Catalog v2.5 Basic Info editor in **`test-catalog-micro-workflow-attribute.md`** (one nullable `test.culture_workflow_type` enum). When a case has **no valid workflow_type** (untyped/mis-typed test), it is created `UNASSIGNED` and the **tech reclassifies it from the Case Workbench** (M-04 *Change workflow*), audited and guarded once results exist.
 
-This requires coordinated changes across **M-00 + M-01 + M-03 + Test Catalog (OGC-748)** and is flagged to the Test-Catalog owners. Until the Test Catalog lands the attribute, M-03's resolver uses the manual-Program fallback so existing deployments keep working.
+This requires coordinated changes across **M-00 + M-01 + M-03 + Test Catalog (OGC-746/OGC-748)** and is filed as a Test-Catalog story. Until the Test Catalog lands the attribute, M-03's resolver uses the manual-Program fallback so existing deployments keep working.
 
 ---
 

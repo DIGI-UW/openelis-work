@@ -7,9 +7,19 @@
 **Owner:** Microbiology Module (M-00 parent), but a general OE feature
 **Status:** Draft
 
-This spec rebuilds the critical-result notification mechanism as a polymorphic table that can attach to any clinical entity (Result, Case, Isolate, Sample). The existing `critical_result_notification` table is keyed only on `result_id`, which doesn't fit Micro's Sample-level (Gram-stain) or Case-level (per-isolate phenotype) criticals. Per crosswalk Q4, Casey confirmed: the existing table isn't really used today, so we rebuild without migration burden, and Micro is the trigger to finally do this rework that several other roadmap items have been blocked on.
+This spec adds the **documented critical-value call-back + acknowledgment loop** (the CLIA-style "who was notified, by what method, when, with read-back" record and its Open → Acknowledged → Closed lifecycle) **on top of OpenELIS's existing notification/alerts infrastructure — it does not build a second one.**
 
-> This FRS is self-contained. There is no separate addendum — every decision from the design review (header + isolate-tile entry points setting `target_type`; the Open → Acknowledged → Closed state machine with `close_reason`; clinician free-text fallback; follow-up notification) is written inline below. The feature uses the **polymorphic `critical_notification`** table (target CASE/ISOLATE/RESULT/SAMPLE) and is invoked from M-04.
+> **⚠ Reuse, do not duplicate (verified in code — Casey's steer).** OpenELIS already has the alerting path, and M-11 must surface the same functionality, not rebuild it:
+> - **In-app alerts dashboard:** the existing **`notifications`** entity/table (`id, created_date, read_at, message, user`) is the per-user alert feed. Micro criticals **surface there** — M-11 creates a `notifications` row pointing at the critical so it appears in the **existing** alerts dashboard. **M-11 does not introduce a new "Alerts Dashboard."**
+> - **Detection / trigger:** reuse the existing critical detection (test critical ranges and the **`TestNotificationService`** / `TestNotificationConfig` *Critical* nature) — M-11 does not re-detect criticals.
+> - **Outbound dispatch (SMS/email):** reuse **`TestNotificationService`** + its senders (`SMSNotification`/SMPP, email) — M-11 does not add a new sender or channel.
+> - **What M-11 genuinely adds** (and the existing pieces do not capture): a **polymorphic clinical target** (CASE / ISOLATE / SAMPLE, not just `result_id`), and the **documented call-back + read-back acknowledgment record with an Open→Acknowledged→Closed lifecycle**. The per-user `notifications.read_at` means "a lab user saw the in-app message," which is **not** the same as "Dr. Patel acknowledged the critical by read-back over the phone" — that regulated artifact is the new part.
+>
+> **Open build question (see §11):** whether to add the callback/lifecycle fields by **extending the `notifications` model** vs. a **sibling `critical_notification` record that references a `notifications` row for the in-app surface**. Either way, detection, dispatch, and the dashboard are reused; only the callback/acknowledgment/target data is new. The earlier-noted unused `critical_result_notification` (result-keyed only) is superseded by whichever path is chosen.
+
+> This FRS is self-contained. There is no separate addendum — every decision from the design review (header + isolate-tile entry points setting `target_type`; the Open → Acknowledged → Closed state machine with `close_reason`; clinician free-text fallback; follow-up notification) is written inline below. The feature stores the call-back/acknowledgment record with a **polymorphic target** (CASE/ISOLATE/RESULT/SAMPLE), is invoked from M-04, **reuses the existing `notifications` alerts dashboard for in-app surfacing and `TestNotificationService` for dispatch** (see the reuse callout above), and adds no second alerting mechanism.
+>
+> **Interaction model (Principle 3) — resolves design-check F-14.** Logging a critical, acknowledging, and closing are **inline panels** that expand in place within Case Detail (and the Result/Sample contexts) — **not** pop-up modals — consistent with M-04 (which already logs criticals inline). Modals are reserved only for a genuinely destructive confirmation. The i18n keys below retain their `…modal…` identifiers for now (a cosmetic rename to `…panel…` is deferred to build); the rendered surface is inline regardless of the key name.
 
 ---
 
@@ -20,7 +30,7 @@ This spec rebuilds the critical-result notification mechanism as a polymorphic t
 Three orthogonal needs converge in this spec:
 
 1. **Capturing critical communications** — the lab tech or supervisor calls a clinician about a critical finding. The system records who called whom, when, what was said, and tracks acknowledgment.
-2. **Surfacing unacknowledged criticals to the lab** — the existing aspirational Alerts Dashboard becomes a working surface where unacknowledged criticals appear until resolved.
+2. **Surfacing unacknowledged criticals to the lab** — they appear in the **existing alerts dashboard** (the `notifications` feed), filtered to a criticals view, until resolved. No new dashboard is built.
 3. **Supporting any clinical entity as the target** — not just AST results (chemistry-shape). Micro criticals are often pre-result (a Gram stain call is a critical communication before any antibiotics have been tested).
 
 The existing `critical_result_notification` table is keyed solely on `result_id`. M-11 replaces it with a polymorphic `critical_notification` table that supports `RESULT`, `CASE`, `ISOLATE`, or `SAMPLE` as target types. The Micro Case Workbench (M-04) is the primary invoker.
@@ -29,8 +39,8 @@ The existing `critical_result_notification` table is keyed solely on `result_id`
 
 | Surface | Route |
 |---------|-------|
-| Critical Notifications Dashboard (was the aspirational Alerts Dashboard) | `/alerts/criticals` |
-| Log Critical Notification modal | (invoked from Case Detail header / Isolate tile, Result detail, Sample detail) |
+| Criticals view of the existing Alerts Dashboard (a filter on the `notifications` feed, not a new dashboard) | `/alerts?filter=criticals` |
+| Log Critical Notification panel | (invoked from Case Detail header / Isolate tile, Result detail, Sample detail) |
 
 ### 1.3 Users
 
@@ -47,7 +57,7 @@ The existing `critical_result_notification` table is keyed solely on `result_id`
 - **M-04 Case Workbench Core** — primary invoker. Adds "Log critical notification" entry points on the **Case Detail header** (`target_type = CASE`) and on **each isolate tile** (`target_type = ISOLATE`); consumer of the M-11 model (mirrors M-04 §11 / A7).
 - **M-05 AST Entry & Interpretation** — Phase 1B: certain AST results (CRE, MRSA from sterile site, VRE) suggest critical notification via Expert Rules.
 - **Existing Results module** — chemistry and hematology critical thresholds (panic values) can log via M-11 instead of the old `critical_result_notification` table.
-- **Alerts Dashboard** — existing aspirational surface that finally gets wired with this rework.
+- **Alerts Dashboard** — the **existing** `notifications` alerts feed; M-11 surfaces open criticals there (creates a `notifications` row) and adds a criticals filter — it does not build a parallel dashboard.
 
 ---
 
@@ -101,13 +111,13 @@ A notification has three **distinct** states, tracked in `status`:
 | State | Definition | Entered when |
 |-------|-----------|--------------|
 | **OPEN** | Logged, recipient not yet confirmed to have acknowledged | On save when "Recipient acknowledged at time of call" was not checked |
-| **ACKNOWLEDGED** | Recipient has acknowledged receipt of the critical | The acknowledge action records who/via/when, **or** the "acknowledged at time of call" shortcut is used on the log modal |
+| **ACKNOWLEDGED** | Recipient has acknowledged receipt of the critical | The acknowledge action records who/via/when, **or** the "acknowledged at time of call" shortcut is used on the log panel |
 | **CLOSED** | The loop is finished and the entry is filed out of the active queue | An explicit Close action with a `close_reason` |
 
 Transition rules:
 
-- **OPEN → ACKNOWLEDGED.** Recording acknowledgment (via the Acknowledge modal §4, or the log-time "acknowledged with readback" shortcut §3.4) sets `recipient_acknowledged = true`, `acknowledged_at/by/via`, and `status = ACKNOWLEDGED`.
-- **ACKNOWLEDGED does not auto-close.** Acknowledged criticals remain visible (acknowledged-but-open) so a supervisor can confirm the loop before filing; closing is an **explicit** action. The one exception: when acknowledgment is captured via the Acknowledge modal and the operator chooses "Acknowledge and close," the system performs the acknowledge then immediately closes with `close_reason = ACKNOWLEDGED`.
+- **OPEN → ACKNOWLEDGED.** Recording acknowledgment (via the Acknowledge panel §4, or the log-time "acknowledged with readback" shortcut §3.4) sets `recipient_acknowledged = true`, `acknowledged_at/by/via`, and `status = ACKNOWLEDGED`.
+- **ACKNOWLEDGED does not auto-close.** Acknowledged criticals remain visible (acknowledged-but-open) so a supervisor can confirm the loop before filing; closing is an **explicit** action. The one exception: when acknowledgment is captured via the Acknowledge panel and the operator chooses "Acknowledge and close," the system performs the acknowledge then immediately closes with `close_reason = ACKNOWLEDGED`.
 - **→ CLOSED.** Closing requires a `close_reason`:
   - `ACKNOWLEDGED` — normal completion after the recipient acknowledged.
   - `RECONCILED` — resolved another way (e.g., result corrected/withdrawn, duplicate of a call already closed).
@@ -147,7 +157,7 @@ Phase 1A ships without this table; all criticals are manually triggered by user 
 
 ---
 
-## 3. Log Critical Notification modal
+## 3. Log Critical Notification — inline panel
 
 ### 3.1 Trigger and entry points
 
@@ -159,13 +169,13 @@ Entry points each produce a notification with the appropriate `target_type` — 
 | Case Detail isolate tile (M-04) | "Log critical notification" action on a specific **isolate tile** | ISOLATE |
 | Result Detail (existing OE) | "Log critical notification" button | RESULT |
 | Sample Detail (existing OE) | "Log critical notification" button | SAMPLE |
-| AST Edit modal (M-05) | "Log critical notification" link beside an antibiotic row | RESULT (the AST result row) |
+| AST entry panel (M-05, inline) | "Log critical notification" link beside an antibiotic row | RESULT (the AST result row) |
 
-The two Micro entry points are the **case header** (sets `target_type = CASE`) and **each isolate tile** (sets `target_type = ISOLATE`); the modal reads the invoking context to populate `target_type`/`target_id` and the read-only target header. On save the case-header unacknowledged badge appears optimistically per M-04 §11.
+The two Micro entry points are the **case header** (sets `target_type = CASE`) and **each isolate tile** (sets `target_type = ISOLATE`); the inline panel reads the invoking context to populate `target_type`/`target_id` and the read-only target header. On save the case-header unacknowledged badge appears optimistically per M-04 §11.
 
 ### 3.2 Layout
 
-`ComposedModal` size `md`.
+An **inline panel** (Carbon `Tile` / section expansion) that opens in place at the invoking context — not an overlay (Principle 3). Same field set as before; it pushes content down rather than covering it.
 
 ```
 ┌─ Log Critical Notification ─────────────────────────────────────────────────┐
@@ -233,8 +243,8 @@ The clinician field is a `ComboBox` over the existing OE provider directory, but
 2. If `recipient_acknowledged = true`, set `acknowledged_at` to notification time, `acknowledged_via`, and `status = ACKNOWLEDGED`; otherwise `status = OPEN`.
 3. Write Timeline event (if target_type is CASE or ISOLATE) of type CRITICAL_NOTIFY.
 4. Update relevant entity's "has unacknowledged critical" flag (computed; not a stored column) — the case-header badge appears optimistically (M-04 §11).
-5. Push to Alerts Dashboard queue.
-6. Close modal; return to source context.
+5. Create a **`notifications`** row (existing entity) for the relevant lab users so the open critical appears in the **existing alerts dashboard** — no separate queue.
+6. Collapse the inline panel; return to source context.
 
 ---
 
@@ -244,7 +254,7 @@ The clinician field is a `ComboBox` over the existing OE provider directory, but
 
 From the Alerts Dashboard queue, or from the Case Detail / Isolate detail surface showing an unacknowledged critical badge.
 
-### 4.2 Modal
+### 4.2 Acknowledge — inline panel
 
 ```
 ┌─ Acknowledge Critical Notification ──────────────────────────────────────────┐
@@ -349,12 +359,12 @@ Cards reflect the `status` column directly (§2.4):
 
 ### 5.4 Row actions
 
-- **Ack** — open Acknowledgment modal (if Open) → OPEN → ACKNOWLEDGED
+- **Ack** — open Acknowledgment panel (if Open) → OPEN → ACKNOWLEDGED
 - **View** — read-only detail view (if Acknowledged or Closed)
 - **Close** — explicitly mark as closed with a `close_reason` (§2.4); requires `critical.notify.acknowledge`
 - **Add follow-up** — log a follow-up notification linked to this one (§5.6)
 
-### 5.5 Close modal
+### 5.5 Close — inline panel
 
 Closing (from the row action or via "Acknowledge and close") opens a small confirm with a required `close_reason` selector (ACKNOWLEDGED / RECONCILED / DUPLICATE / ERROR). The reason offered is constrained per §2.4 (a never-acknowledged critical cannot be closed as ACKNOWLEDGED). On confirm, `closed_at/by`, `close_reason`, and `status = CLOSED` are written and audited.
 
@@ -362,7 +372,7 @@ Closing (from the row action or via "Acknowledge and close") opens a small confi
 
 A follow-up is a **new `critical_notification` row linked to the original** via `linked_notification_id`, used when the lab calls the clinician again about the same finding (e.g., the first call went unacknowledged, or new information — final ID, AST result — must be communicated). "Add follow-up":
 
-- Opens the Log Critical Notification modal **pre-filled** from the source: same `target_type`/`target_id`, same clinician (pre-selected, editable), and a short message stub referencing the prior call ("Follow-up to critical notified 2026-05-12 07:38 …").
+- Opens the Log Critical Notification panel **pre-filled** from the source: same `target_type`/`target_id`, same clinician (pre-selected, editable), and a short message stub referencing the prior call ("Follow-up to critical notified 2026-05-12 07:38 …").
 - On save, the new row's `linked_notification_id` points at the original; both appear in the queue, and the original's detail view lists its follow-ups as a linked chain so the full communication thread is visible.
 - A follow-up has its own Open → Acknowledged → Closed lifecycle independent of the original (acknowledging the follow-up does not auto-acknowledge the original, and vice versa).
 
@@ -408,7 +418,7 @@ A thin compatibility shim provides the old `critical_result_notification` API co
 ## 7. Acceptance criteria
 
 - **AC-M11-01**: New polymorphic `critical_notification` table created with the schema in §2.1 (target CASE/ISOLATE/RESULT/SAMPLE).
-- **AC-M11-02**: Log Critical Notification modal renders correctly from all entry points (Case header, Isolate tile, Result, Sample, AST row).
+- **AC-M11-02**: Log Critical Notification panel renders correctly from all entry points (Case header, Isolate tile, Result, Sample, AST row).
 - **AC-M11-03**: target_type and target_id correctly identify the entity per entry context.
 - **AC-M11-04**: All required fields validated on save.
 - **AC-M11-05**: Macro support works in the message field (`reporting` category).
@@ -416,7 +426,7 @@ A thin compatibility shim provides the old `critical_result_notification` API co
 - **AC-M11-07**: Recipient-acknowledged-at-time-of-call shortcut sets `acknowledged_at` and `status = ACKNOWLEDGED` in one step.
 - **AC-M11-08**: Alerts Dashboard renders open / acknowledged / closed correctly from the `status` column.
 - **AC-M11-09**: Filters reduce list appropriately.
-- **AC-M11-10**: Acknowledge action opens modal and updates state (OPEN → ACKNOWLEDGED).
+- **AC-M11-10**: Acknowledge action opens the inline panel and updates state (OPEN → ACKNOWLEDGED).
 - **AC-M11-11**: Migration of existing `critical_result_notification` rows preserves data integrity (including derived `status`).
 - **AC-M11-12**: Compatibility shim accepts old API requests and routes to new endpoint.
 - **AC-M11-13**: All actions respect permissions.
