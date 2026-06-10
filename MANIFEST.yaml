@@ -1294,6 +1294,40 @@
   links: {}
   added: "2026-03-03"
 
+- id: admin-validation-configuration
+  type: mockup
+  path: designs/results-validation/admin-validation-configuration.jsx
+  preview: designs/results-validation/admin-validation-configuration.html
+  category: results-validation
+  description: >
+    Admin: Validation Configuration (v3) — refresh of OGC-343 to current
+    v3 standards. Lab-wide default + per-lab-unit overrides with Domain
+    badge column (Clinical/Environmental/Vector), 0–5 sequential
+    validation levels with permission-filtered role dropdowns, three
+    Trigger modes (No Results / All Results / Abnormal Only), domain-aware
+    default suggestions, live Effective-Config Preview pane, useMultiLevelValidation
+    feature flag, schema reuse over existing Analysis.statusId + Audit
+    table (no parallel validation_history table). Companion to OGC-817
+    Validation Page v3.
+  paired_with: admin-validation-configuration-spec
+  links:
+    jira: ["OGC-343", "OGC-817", "OGC-579"]
+    gallery: https://digi-uw.github.io/openelis-work/#/results-validation/admin-validation-configuration
+    preview: https://digi-uw.github.io/openelis-work/designs/results-validation/admin-validation-configuration.html
+  added: "2026-06-10"
+  updated: "2026-06-10"
+
+- id: admin-validation-configuration-spec
+  type: spec
+  path: designs/results-validation/admin-validation-configuration.md
+  category: results-validation
+  description: Admin Validation Configuration FRS v3 — Lab Context, S-XX user stories, Carbon Component Map, cross-domain support, schema-reuse-first data model, binary Admin permissions, useMultiLevelValidation feature flag, ~50 i18n keys with .env/.vector suffixes, audit events, migration path.
+  paired_with: admin-validation-configuration
+  links:
+    jira: ["OGC-343", "OGC-817", "OGC-579"]
+  added: "2026-06-10"
+  updated: "2026-06-10"
+
 # ─── System ─────────────────────────────────────────────────
 
 - id: audit-trail
