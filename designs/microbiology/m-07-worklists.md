@@ -64,6 +64,8 @@ The Worklist is a single page with a **grain toggle**:
 
 The two grains exist only because the unit of work differs (case vs. isolate-run); they are **not** separate modules or pages.
 
+**Sibling cases on one specimen (shared `SampleItem`).** When one specimen drives two workflows (bacterial + TB on one sputum — M-04 §2A), there are **two case rows** in the Cultures grain, each with its own stage/due-action (their lifecycles differ — bacterial done in days, TB running weeks). To keep them legible they are **visually grouped**: rows sharing a `sample_item_id` show a small **"⛓ linked · 2 workflows"** marker and a workflow tag (🧫 Bacteriology / 🫁 TB), and may be displayed adjacently (grouped by specimen) when sorted by specimen. They are **not** merged into one row — each is worked independently — but the grouping + the M-04 §4.1a sibling chip make the shared specimen obvious so a tech doesn't treat them as unrelated. The grouping is computed from `sample_item_id`; no new field.
+
 ### 4.2 Shared, state-driven queue — no per-case ownership
 There is no case "owner." The queue is organized by **state and urgency**, not by person:
 - **Needs-action summary cards** filter the list. Cultures: Total · Incubating · Positive · Growth detected · Ready to finalize. AST: In queue · Pending setup · In progress · **Results in — review** · (Expert flags — 1B, disabled).

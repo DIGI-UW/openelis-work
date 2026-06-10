@@ -62,10 +62,17 @@ The state machine is the spine of the case; the page's next-step guidance (§5) 
 **Non-terminal:** RECEIVED → INCUBATING → POSITIVE_SIGNAL → GROWTH_DETECTED → ORGANISM_ID → AST_IN_PROGRESS → READY_REVIEW → PRELIM_REPORTED → FINAL_REPORTED → AMENDED.
 **Terminal:** NO_GROWTH_FINAL, REJECTED_AT_ACCESSIONING, CANCELLED_PRE_INOCULATION, CANCELLED_POST_INOCULATION, CANCELLED_POST_POSITIVE, LOST_SPECIMEN, LOST_SPECIMEN_POSITIVE.
 
+**Classification is orthogonal to these stages — and is *not* a mandatory first step, nor its own stage value.** A case carries `workflow_type` (`BACTERIOLOGY` / `MYCOBACTERIOLOGY_TB`), set automatically from the ordered test at order entry (M-03 §2.1a). In the normal path **the case is born already classified** and enters `RECEIVED` directly in its profile — it never passes through a "classify" step.
+
+**`UNASSIGNED` is not a stage** — it is simply **`workflow_type IS NULL`**, a predicate over the case, not a value in the stage enum above (so the stage machine stays purely about workup progress). A null-workflow case can only arise from the manual-Program fallback at a deployment with **no default micro workflow** configured (M-03 §2.1a) — a fully typed catalog never produces one. While `workflow_type IS NULL`, profile-dependent work (AST setup, breakpoint family, report templates) is gated and the case shows a "Needs workflow" chip + Worklist flag; the tech's **Change workflow** action (§4.9) sets the type and lifts the gate. The workflow chip is **always visible** in the header (every case shows its profile); the gate is only active while the workflow is null. So: workflow is a visible attribute on every case; classification is a one-off correction for the exception, expressed as a null check — not an extra stage or step.
+
 ### 3.2 Transition table (key rows)
 | From | To | Trigger | Side effects |
 |------|-----|---------|--------------|
-| (Sample saved, micro) | RECEIVED | Order-entry post-save hook (§9) | Case created |
+| (Sample saved, micro — **typed** test) | RECEIVED | Order-entry post-save hook (§9); resolver returned a `workflow_type` | Case created **already classified** in its profile (normal path) |
+| (Sample saved, manual fallback, **deployment default set**) | RECEIVED | Manual `Program = Microbiology`; `site_information.default_micro_workflow` set | Case created in the deployment's default workflow (e.g. bacteriology-only labs) |
+| (Sample saved, manual fallback, **no deployment default**) | RECEIVED, `workflow_type = NULL` | Manual `Program = Microbiology`; no default configured | Case created **needing classification** (`workflow_type IS NULL`); profile-dependent work gated — never auto-guessed (M-03 §2.1a) |
+| `workflow_type = NULL` | (workflow set) | Tech **Change workflow** (§4.9) | Profile instantiated (sections, breakpoint family, organism vocab, WHONET flavor); audited timeline note. *Not a stage transition — sets the classification attribute.* |
 | RECEIVED | INCUBATING | Save inoculation (§4 Inoculation) | `micro_case_inoculation` row + INOCULATION timeline event |
 | INCUBATING | POSITIVE_SIGNAL | Analyzer `POSITIVE_SIGNAL` event **or** manual "Mark positive" | Timeline event; worklist row highlights |
 | INCUBATING | NO_GROWTH_FINAL | "Mark no growth" after incubation hours met | Timeline event; final negative report |
@@ -94,6 +101,18 @@ Left sidebar (Carbon SideNav) with progress dots reflecting the state machine; s
 
 ### 4.1 Case Info — compact, collapsible
 Carried from order entry, read-only. Rendered as a **one-line collapsible summary** (order, origin, ward, number of sets, antibiotic exposure) that expands on demand, with **Clinical history surfaced first** when expanded. It mostly duplicates the case header, so it is collapsed by default — techs rarely open it.
+
+### 4.1a Sibling cases — the shared-specimen cross-link
+When a specimen drives more than one workflow (e.g. one sputum → a Bacteriology case **and** a TB case), each Case is its own record with its own lifecycle — but they share one `SampleItem`, and the UI makes that first-class so a tech never loses the connection. The case **header shows a sibling chip** for every other micro Case on the same `sample_item_id`: e.g. on the bacterial case, *"↔ same specimen · 🫁 TB — Culture, Day 12"*, which one-click navigates to the TB case (and vice-versa).
+
+**How the chip decides what to show — it's a deterministic query, not inference.** There is nothing "intelligent" here; the chip is built from one lookup and a fixed field map:
+
+- **Which siblings:** `SELECT * FROM micro_case WHERE sample_item_id = :current.sample_item_id AND case_id <> :current.case_id` (optionally also same parent `sample_id` if a deployment splits aliquots across SampleItems). No heuristics — siblinghood *is* "same SampleItem."
+- **What each chip renders, straight off the sibling row:** its **`workflow_type`** → the icon + label (🧫 Bacteriology / 🫁 TB — from a static map, the same one used in the Test Catalog and Worklist); its **`stage`** (+ day-N where the stage carries it) → the text after the dash; the **stage's status colour** (the existing stage→colour map); and the sibling's `case_id` → the navigation target. The current case is always excluded.
+- **Count / ordering:** **0 siblings → no chip** (the common case); 1 → the single chip above; >1 (rare — e.g. a future Mycology arm) → chips ordered by `workflow_type`, or a "↔ 2 related cases" roll-up that expands. 
+- **Freshness:** it reflects the sibling's live `stage`, so "Culture, Day 12" updates as that case progresses; no copy of the sibling's data is stored on this case.
+
+So the chip is a projection of existing columns (`workflow_type`, `stage`) of rows found by a single `sample_item_id` match — **purely navigational**, no new entity, and the two cases never share state, results, or release; criticals and reports stay per-case. (Worklist-side grouping of siblings is in M-07.)
 
 ### 4.2 Inoculation — the system of record for media
 The Inoculation section owns media entry (not the Timeline). Its toolbar has **+ Start inoculation** (initial bottles/plates; RECEIVED→INCUBATING) and **+ Add subculture** (requires a parent media via `source_inoculation_id`). A **Source** column shows `Primary` or `subculture ← {parent}`. Each save writes the `micro_case_inoculation` row **and** an auto Timeline event. Reagent lots are chosen via the M-12 `ReagentLotPicker` (blocks on expired/locked lots). Empty state: "No media recorded yet — **+ Start inoculation** to begin."
@@ -129,6 +148,23 @@ A **Report NCE** action sits in the case header (next to Log critical notificati
 
 **Losing a specimen is always an NCE.** "Mark lost" is a specialization of Report NCE, pre-set to subcategory **Specimen lost** with disposition **Reject test — reason: specimen lost**. Saving it (a) records the NCE linked to the sample, (b) rejects the affected test(s) with reason "specimen lost", and (c) transitions the case to LOST_SPECIMEN (LOST_SPECIMEN_POSITIVE if past positive). **No new entity:** the NCE lives in the NCE module and links to this sample; rejection reuses the existing OE rejection-with-reason mechanism; "Specimen lost" is a Pre-analytical NCE subcategory (admin-configurable). Each step writes a Timeline event.
 
+### 4.9 Change workflow — reclassify bacterial ↔ TB (the unassigned/mis-routed escape hatch)
+The case's **`workflow_type`** is normally set automatically from the ordered test (M-03 §2.1a). But two situations leave it wrong or missing, and the tech needs a way out:
+
+- **`UNASSIGNED`** — the ordered test had no `culture_workflow_type` (a deployment that hasn't typed its culture tests, or the manual Program fallback). The case is created in classification state `UNASSIGNED`, shown with an amber **"Needs workflow"** chip in the case header and surfaced on the Worklist; bench work that depends on the profile (AST setup, breakpoint family, report templates) is held until it's classified.
+- **Mis-routed** — the test was typed, but wrongly (e.g. a combined order set the case bacterial when this specimen is the TB arm).
+
+**The action.** A **Change workflow** control sits in the case header next to the workflow chip. It expands **inline** (Principle 3, no modal) to a short panel: a **Workflow type** select (Bacteriology / Mycobacteriology–TB), a required **reason**, and — because the culture protocol came from the test's default Method — a **culture-protocol Method** picker pre-filled with the chosen workflow's default Method (TB Methods for TB). Confirming:
+- re-instantiates the **case profile** (M-04 bacterial sections ↔ M-14 TB sections), the **breakpoint family** (CLSI/EUCAST ↔ WHO-TB critical concentrations, M-02), the **organism vocabulary** (M-01), the **reflex variant**, and the **WHONET flavor** (M-09);
+- writes a **stage/classification transition + a Timeline note** (reuse History/Note) recording who, when, from→to, and the reason — auditable like any other transition;
+- clears the `UNASSIGNED` chip.
+
+**Guards.** Free while the case is early (no isolates worked / no interpretive results). Once an isolate is identified or AST/DST results exist, the inline panel **warns** that reclassifying will detach profile-specific results (bacterial AST vs TB DST are different result shapes) and requires explicit confirmation; after **final report release** it is blocked (use the amendment path instead). Permission: reuse `micro.case.edit` (no new key). The reclassification never silently discards data — incompatible results are retained on the case history and flagged, not deleted.
+
+**Reclassify after surveillance export.** If the case was already exported for surveillance (WHONET M-09, or pushed to the consolidated FHIR server for GLASS, M-15) — which normally happens only post-final-release, so this is reached via the amendment path — the reclassification **marks the case for re-export/supersede** rather than leaving a stale surveillance record: M-09 re-includes it in the next run, and M-15 re-pushes an updated FHIR Bundle (idempotent on `fhir_uuid`, so the central server supersedes the prior submission). The Timeline note records that a prior surveillance submission was superseded.
+
+**Why a tech action, not a clerk re-order.** During a weeks-long workup the right person to catch "this is actually TB" is the bench tech holding the plate, not a re-order at registration. This keeps the automatic test-driven routing as the default while giving the tech a single, audited correction path — and it is the same control that resolves the `UNASSIGNED` state for un-typed deployments.
+
 ---
 
 ## 5. Next-step guidance
@@ -152,7 +188,7 @@ A general OE foundation for non-result analyzer messages. Blood-culture instrume
 ---
 
 ## 8. Data model
-Primary `micro_case` (1:1 with `sample`): stage, `culture_protocol` reference (see reuse note), patient_origin, department, ward, number_of_sets, is_screening_culture, clinical_history, antibiotic_exposure, critical_value_notify, prelim/final released_*, final_version, max_incubation_days, audit columns. **`assigned_tech_user_id` exists but is nullable and unused by default** — see §10 (no ownership). Envers `@Audited`.
+Primary `micro_case` (**keyed to `sample_item_id` + `workflow_type`, unique together** — one micro Case per physical specimen *per workflow*; see §2A): `sample_item_id` (FK to the collected `SampleItem`), `workflow_type` (`BACTERIOLOGY` / `MYCOBACTERIOLOGY_TB`; `NULL` = needs classification, §3.1), stage, `culture_protocol` reference (see reuse note), patient_origin, department, ward, number_of_sets, is_screening_culture, clinical_history, antibiotic_exposure, critical_value_notify, prelim/final released_*, final_version, max_incubation_days, audit columns. **`assigned_tech_user_id` exists but is nullable and unused by default** — see §10 (no ownership). Envers `@Audited`.
 
 Side tables: `micro_case_inoculation` (+ **`source_inoculation_id`** nullable self-FK to distinguish subcultures from primary media — verified genuinely new; OpenELIS `Sample`/`SampleItem` carry no parent/derived-from lineage), `micro_isolate` (versioned), `micro_ast_run` (M-05), `micro_case_stage_transition` (audit), `analyzer_event`. **The Timeline is layered on the existing `History`/`Note` infrastructure (§4.3), not a new `micro_timeline_event` log.** Concurrency reuses the existing **optimistic lock** (`@Version`/`lastupdated` on the sample entities) — surfaced as the stale-state error — plus an optional thin transient "working" flag (§10).
 
@@ -163,9 +199,15 @@ Side tables: `micro_case_inoculation` (+ **`source_inoculation_id`** nullable se
 ---
 
 ## 9. How a case is created (test-designation reconciliation)
-A Case is created by the Order-Entry post-save hook (`MicroCaseService.createCaseForSample`). **Open reconciliation (OGC-841):** today the trigger keys off the order-level Program = Microbiology, which is decoupled from any test attribute. The Test Catalog currently has a `domain` (CLINICAL/ENVIRONMENTAL/VECTOR — too coarse) and an AMR/WHONET flag (surveillance, not workflow), but **no "this test drives the culture workflow" designation**. Target state: a first-class **"Culture workflow"** test attribute (distinct from the AMR flag) that auto-routes the order into the Case workflow and carries `default_culture_protocol` (= default Method) + `valid_organisms`. Build the hook behind a single trigger resolver so this can change without reworking the service.
+A Case is created by the Order-Entry post-save hook (`MicroCaseService.createCasesForSample`). The hook runs the **single trigger resolver** (M-03 §2.1a) over the order's micro tests and **groups them by `(SampleItem, workflow_type)`** — creating **one `micro_case` per group**, keyed to `sample_item_id` + `workflow_type` (so one specimen can yield a bacterial *and* a TB case on the same SampleItem). The `workflow_type` comes from the ordered test's Culture-workflow designation (Test Catalog, OGC-925); the culture protocol is that test's default **Method**; `valid_organisms` is read from the test. When no `workflow_type` can be resolved (manual Program fallback, no deployment default), the case is created with `workflow_type = NULL` for tech classification (§3.1, §4.9). Building the hook behind the resolver keeps the trigger and grouping in one place.
 
-**Mixed / multi-protocol orders:** a Case is 1:1 with a Sample and has a single culture protocol. A sample with micro + non-micro tests works (non-micro follows normal results; the Case covers only the micro workup). A sample needing two culture protocols is **not** representable today — declare it out of scope for 1A (second protocol = second sample/case) or promote protocol to per-isolate later. Paired sets are handled via `number_of_sets`.
+**Mixed / multi-protocol orders — resolved by keying the Case to `SampleItem` × `workflow_type`.** A micro Case is **one workflow's workup of one physical specimen**: it is keyed to `sample_item_id` + `workflow_type` (unique together), not to the whole Sample. Consequences:
+- **Micro + non-micro tests on one specimen:** the non-micro analyses follow the normal Sample → SampleItem → Analysis → Result path; the Case covers only the micro workup on that SampleItem and neither shows nor blocks on the chemistry.
+- **Bacterial + TB on one specimen:** two micro Analyses (different `workflow_type`) on the **same `SampleItem`** → **two Cases that share one `sample_item_id`**. No second accessioning, and "same physical specimen" is intrinsic (shared SampleItem), not a bolted-on link. Each Case keeps its own protocol, breakpoints, lifecycle, and report — the bench reality (bacterial done in days, TB running weeks).
+- **Two genuinely separate specimens** (e.g. a sputum collected specifically for TB plus another for culture) come in as **two SampleItems** → two Cases naturally.
+- **Paired sets** (e.g. 2 blood-culture bottles) stay **within one Case** via `number_of_sets`.
+
+> **DECISION (resolves the prior open item).** Earlier drafts keyed the Case `1:1` to `sample_id`, which forced "bacterial + TB = two Samples" (double accessioning of one sputum). Resolved by keying to **`SampleItem` × `workflow_type`** — the reuse-aligned grain, since OpenELIS already models the physical specimen as `SampleItem` with multiple `Analysis` rows. No new linkage entity; the shared specimen *is* the shared SampleItem. (Mirrored in M-00 §7, M-03 §2A/§2.1a; UI for the shared-specimen relationship in §4.1a + M-07.)
 
 ---
 

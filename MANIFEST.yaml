@@ -753,6 +753,314 @@
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-12-test-to-reagent-linkage
   added: "2026-05-15"
 
+# ─── Microbiology — FRS v1.0 formal docs ─────────────────────────────────
+
+- id: m-00-micro-module-parent-frs-v1
+  type: spec
+  path: designs/microbiology/m-00-micro-module-parent-frs-v1.md
+  category: microbiology
+  description: >
+    M-00 Microbiology Module Parent — FRS v1.0 (2026-05-15). Spine spec: glossary, RBAC matrix,
+    data model overview, phase plan, out-of-scope. Formal structured baseline before design-review edits.
+  links:
+    jira: ["OGC-782"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-00-microbiology-module-parent-frs-v1-0
+  added: "2026-05-15"
+
+- id: m-01-amr-reference-data-frs-v1
+  type: spec
+  path: designs/microbiology/m-01-amr-reference-data-frs-v1.md
+  category: microbiology
+  description: >
+    M-01 AMR Reference Data — FRS v1.0 (2026-05-15). Organism / Antibiotic / AST Panel / Culture
+    Protocol masters with WHONET codes and groupings. Formal structured baseline.
+  links:
+    jira: ["OGC-786"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-01-amr-reference-data-frs-v1-0
+  added: "2026-05-15"
+
+- id: m-02-breakpoint-catalog-frs-v1
+  type: spec
+  path: designs/microbiology/m-02-breakpoint-catalog-frs-v1.md
+  category: microbiology
+  description: >
+    M-02 Breakpoint Catalog — FRS v1.0 (2026-05-15). Versioned CLSI + EUCAST breakpoint tables;
+    AST Runs snapshot breakpoint version at result time. Formal structured baseline.
+  links:
+    jira: ["OGC-787"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-02-breakpoint-catalog-frs-v1-0
+  added: "2026-05-15"
+
+- id: m-03-order-entry-micro-hook-frs-v1
+  type: spec
+  path: designs/microbiology/m-03-order-entry-micro-hook-frs-v1.md
+  category: microbiology
+  description: >
+    M-03 Order Entry Micro Hook — FRS v1.0 (2026-05-15). Order Entry Step 1 amendment adding
+    micro-specific fields (Culture Protocol, Patient Origin, Sets, Clinical History, etc.). Formal structured baseline.
+  links:
+    jira: ["OGC-789"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-03-order-entry-micro-hook-frs-v1-0
+  added: "2026-05-15"
+
+- id: m-04-case-workbench-core-frs-v1
+  type: spec
+  path: designs/microbiology/m-04-case-workbench-core-frs-v1.md
+  category: microbiology
+  description: >
+    M-04 Case Workbench Core — FRS v1.0 (2026-05-15). Case entity, state machine, Case Detail page,
+    Timeline, Isolate management, report release, amendment workflow, analyzer event channel.
+    Detailed formal baseline before design-review consolidation.
+  links:
+    jira: ["OGC-790"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-04-case-workbench-core-frs-v1-0
+  added: "2026-05-15"
+
+- id: m-05-ast-entry-and-interpretation-frs-v1
+  type: spec
+  path: designs/microbiology/m-05-ast-entry-and-interpretation-frs-v1.md
+  category: microbiology
+  description: >
+    M-05 AST Entry & Interpretation — FRS v1.0 (2026-05-15). AST setup and result-entry panels,
+    BreakpointLookupService (MIC/zone → S/I/R), manual override with audit, analyzer-ingested results.
+    Formal structured baseline.
+  links:
+    jira: ["OGC-791"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-05-ast-entry-interpretation-frs-v1-0
+  added: "2026-05-15"
+
+- id: m-06-expert-rules-engine-frs-v1
+  type: spec
+  path: designs/microbiology/m-06-expert-rules-engine-frs-v1.md
+  category: microbiology
+  description: >
+    M-06 Expert Rules Engine — FRS v1.0 (2026-05-15). Configurable rules engine: MRSA inference,
+    D-test, ESBL screen/confirm, cascade reporting, intrinsic resistance. Phase 1B. Formal structured baseline.
+  links:
+    jira: ["OGC-793"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-06-expert-rules-engine-frs-v1-0
+  added: "2026-05-15"
+
+- id: m-07-worklists-frs-v1
+  type: spec
+  path: designs/microbiology/m-07-worklists-frs-v1.md
+  category: microbiology
+  description: >
+    M-07 Worklists — FRS v1.0 (2026-05-15). Pending Cultures Worklist, AST Worklist, and
+    Microbiology Dashboard. Read-mostly views over Case/Isolate/AST Run state. Formal structured baseline.
+  links:
+    jira: ["OGC-792"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-07-worklists-frs-v1-0
+  added: "2026-05-15"
+
+- id: m-08-macro-library-frs-v1
+  type: spec
+  path: designs/microbiology/m-08-macro-library-frs-v1.md
+  category: microbiology
+  description: >
+    M-08 Macro Library — FRS v1.0 (2026-05-15). Cross-cutting typing shortcuts: 85 default macros
+    across 8 categories for free-text micro fields. Formal structured baseline.
+  links:
+    jira: ["OGC-788"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-08-macro-library-frs-v1-0
+  added: "2026-05-15"
+
+- id: m-09-whonet-export-frs-v1
+  type: spec
+  path: designs/microbiology/m-09-whonet-export-frs-v1.md
+  category: microbiology
+  description: >
+    M-09 WHONET Export — FRS v1.0 (2026-05-15). Surveillance export with dedup parameters,
+    validation pass, phenotype flag columns, lab profile bootstrap. Phase 1B. Formal structured baseline.
+  links:
+    jira: ["OGC-794"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-09-whonet-export-frs-v1-0
+  added: "2026-05-15"
+
+- id: m-11-critical-result-acknowledgment-frs-v1
+  type: spec
+  path: designs/microbiology/m-11-critical-result-acknowledgment-frs-v1.md
+  category: microbiology
+  description: >
+    M-11 Critical-Result Acknowledgment — FRS v1.0 (2026-05-15). Polymorphic critical-notification
+    rework (target_type: RESULT / CASE / ISOLATE / SAMPLE). Co-ships with Phase 1A+. Formal structured baseline.
+  links:
+    jira: ["OGC-785"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-11-critical-result-acknowledgment-frs-v1-0
+  added: "2026-05-15"
+
+- id: m-12-test-reagent-linkage-frs-v1
+  type: spec
+  path: designs/microbiology/m-12-test-reagent-linkage-frs-v1.md
+  category: microbiology
+  description: >
+    M-12 Test to Reagent Linkage — FRS v1.0 (2026-05-15). General OE foundation: declare required
+    reagent lots per test (ISO 15189 §7.3). Micro is the forcing function. Formal structured baseline.
+  links:
+    jira: ["OGC-784"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-12-test-to-reagent-linkage-frs-v1-0
+  added: "2026-05-15"
+
+- id: m-10-hub-subscription-frs-v1
+  type: spec
+  path: designs/microbiology/m-10-hub-subscription-frs-v1.md
+  category: microbiology
+  description: >
+    M-10 Hub Subscription — FRS v1.0 (2026-05-15). Unified admin for breakpoint + WHONET code +
+    organism/antibiotic master updates from a central repository. OE pulls; never pushes. Phase 1B.
+    Formal structured baseline.
+  links:
+    jira: ["OGC-795"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-10-hub-subscription-frs-v1-0
+  added: "2026-05-15"
+
+- id: m-nfr-non-functional-requirements-frs-v1
+  type: spec
+  path: designs/microbiology/m-nfr-non-functional-requirements-frs-v1.md
+  category: microbiology
+  description: >
+    M-NFR Non-Functional Requirements — FRS v1.0 (2026-05-15). Cross-cutting non-functional
+    requirements: performance, scalability, reliability, observability, security, accessibility.
+    Formal structured baseline.
+  links:
+    jira: ["OGC-782"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-nfr-non-functional-requirements-frs-v1-0
+  added: "2026-05-15"
+
+# ─── Microbiology — Sync 5: TB / Antibiogram / GLASS / workflow-selection ─
+
+- id: m-13-antibiogram
+  type: spec
+  path: designs/microbiology/m-13-antibiogram.md
+  category: microbiology
+  description: >
+    M-13 Antibiogram — Cumulative %S antibiogram (CLSI M39): organism × antibiotic matrix,
+    first-isolate dedup, threshold suppression, PDF/CSV export. Phase 2.
+  links:
+    jira: ["OGC-900"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-13-antibiogram
+  added: "2026-06-08"
+
+- id: m-13-antibiogram-interactive-prototype
+  type: mockup
+  path: designs/microbiology/m-13-antibiogram-prototype.html
+  category: microbiology
+  description: >
+    M-13 Antibiogram — Interactive Prototype. Organism × antibiotic matrix, first-isolate dedup,
+    threshold suppression, PDF/CSV export.
+  links:
+    jira: ["OGC-900"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-13-antibiogram-interactive-prototype
+  added: "2026-06-08"
+
+- id: m-14-mycobacteriology-tb
+  type: spec
+  path: designs/microbiology/m-14-mycobacteriology-tb.md
+  category: microbiology
+  description: >
+    M-14 Mycobacteriology / TB — M-04 Case Workbench TB profile: smear, MGIT/LJ culture,
+    species ID, critical-concentration DST, molecular flags, staged interim reports, WHONET-TB.
+  links:
+    jira: ["OGC-901"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-14-mycobacteriology-tb
+  added: "2026-06-08"
+
+- id: m-14-tb-case-interactive-prototype
+  type: mockup
+  path: designs/microbiology/m-14-tb-case-prototype.html
+  category: microbiology
+  description: >
+    M-14 TB Case — Interactive Prototype. M-04 Case Workbench shell as a TB profile:
+    smear, MGIT/LJ culture, species ID, DST, molecular flags, staged interim reports.
+  links:
+    jira: ["OGC-901"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-14-tb-case-interactive-prototype
+  added: "2026-06-08"
+
+- id: m-15-glass-fhir-surveillance
+  type: spec
+  path: designs/microbiology/m-15-glass-fhir-surveillance.md
+  category: microbiology
+  description: >
+    M-15 GLASS — FHIR Surveillance. OE pushes finalized AMR results to a consolidated FHIR server.
+    Reuses FhirTransformService/FhirPersistanceService. Backend/admin spec; no mockup.
+  links:
+    jira: ["OGC-918"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-15-glass-fhir-surveillance
+  added: "2026-06-08"
+
+- id: amr-micro-narrative-v2
+  type: spec
+  path: designs/microbiology/amr-micro-narrative.md
+  category: microbiology
+  description: >
+    Microbiology AMR Narrative v2.0 — Phase 0 workflow-selection, Phase 7 TB, antibiogram note,
+    Phase 8 GLASS via M-15. Cross-module context doc for the full M-00–M-15 bundle.
+  links:
+    jira: ["OGC-782"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-amr-narrative-v2-0
+  added: "2026-06-08"
+
+- id: m-04-change-workflow-unassigned
+  type: mockup
+  path: designs/microbiology/m-04-change-workflow-prototype.html
+  category: microbiology
+  description: >
+    M-04 Change Workflow / Unassigned — runtime escape hatch for UNASSIGNED or mis-routed Cases.
+    3 scenarios: unassigned, mis-routed-with-results, released-blocked.
+  links:
+    jira: ["OGC-926"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-04-change-workflow-unassigned
+  added: "2026-06-08"
+
+- id: m-04-linked-cases-shared-specimen
+  type: mockup
+  path: designs/microbiology/m-04-linked-cases-shared-specimen-prototype.html
+  category: microbiology
+  description: >
+    M-04 Linked Cases — Shared Specimen. Case keyed to sample_item_id × workflow_type:
+    bacterial + TB on one sputum = two sibling Cases. Worklist grouped siblings → sibling chip.
+  links:
+    jira: ["OGC-790"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-04-linked-cases-shared-specimen
+  added: "2026-06-08"
+
+- id: m-09-whonet-painless-export
+  type: mockup
+  path: designs/microbiology/m-09-whonet-painless-prototype.html
+  category: microbiology
+  description: >
+    M-09 WHONET — Painless Export. Extends existing WHONetReportService seam: readiness indicator,
+    bulk auto-map, 3-click export with WHO-GLASS defaults, configure-once unattended delivery.
+  links:
+    jira: ["OGC-794"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-09-whonet-painless-export
+  added: "2026-06-08"
+
+- id: m-06-expert-review-inline-decision
+  type: mockup
+  path: designs/microbiology/m-06-expert-review-prototype.html
+  category: microbiology
+  description: >
+    M-06 Expert Review — Inline Decision panel: accept override / order confirmation / reject +
+    confirmation loop. Inline (no modals), per Principle 3.
+  links:
+    jira: ["OGC-793"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-06-expert-review-inline-decision
+  added: "2026-06-08"
+
+- id: m-11-critical-notification-inline
+  type: mockup
+  path: designs/microbiology/m-11-critical-notification-prototype.html
+  category: microbiology
+  description: >
+    M-11 Critical Notification — Inline. Log/Acknowledge/Close over existing OpenELIS notifications
+    entity. Open → Acknowledged → Closed. Reuses alerts dashboard as criticals filter.
+  links:
+    jira: ["OGC-785"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-11-critical-notification-inline
+  added: "2026-06-08"
+
 # ─── Non-Conforming Events (NCE) ───────────────────────────
 
 - id: nce-analytics
@@ -986,6 +1294,40 @@
   links:
     jira: ["OGC-817", "OGC-291", "OGC-343"]
   added: "2026-03-03"
+
+- id: admin-validation-configuration
+  type: mockup
+  path: designs/results-validation/admin-validation-configuration.jsx
+  preview: designs/results-validation/admin-validation-configuration.html
+  category: results-validation
+  description: >
+    Admin: Validation Configuration (v3) — refresh of OGC-343 to current
+    v3 standards. Lab-wide default + per-lab-unit overrides with Domain
+    badge column (Clinical/Environmental/Vector), 0–5 sequential
+    validation levels with permission-filtered role dropdowns, three
+    Trigger modes (No Results / All Results / Abnormal Only), domain-aware
+    default suggestions, live Effective-Config Preview pane, useMultiLevelValidation
+    feature flag, schema reuse over existing Analysis.statusId + Audit
+    table (no parallel validation_history table). Companion to OGC-817
+    Validation Page v3.
+  paired_with: admin-validation-configuration-spec
+  links:
+    jira: ["OGC-343", "OGC-817", "OGC-579"]
+    gallery: https://digi-uw.github.io/openelis-work/#/results-validation/admin-validation-configuration
+    preview: https://digi-uw.github.io/openelis-work/designs/results-validation/admin-validation-configuration.html
+  added: "2026-06-10"
+  updated: "2026-06-10"
+
+- id: admin-validation-configuration-spec
+  type: spec
+  path: designs/results-validation/admin-validation-configuration.md
+  category: results-validation
+  description: Admin Validation Configuration FRS v3 — Lab Context, S-XX user stories, Carbon Component Map, cross-domain support, schema-reuse-first data model, binary Admin permissions, useMultiLevelValidation feature flag, ~50 i18n keys with .env/.vector suffixes, audit events, migration path.
+  paired_with: admin-validation-configuration
+  links:
+    jira: ["OGC-343", "OGC-817", "OGC-579"]
+  added: "2026-06-10"
+  updated: "2026-06-10"
 
 # ─── System ─────────────────────────────────────────────────
 
