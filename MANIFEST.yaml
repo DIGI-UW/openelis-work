@@ -1246,7 +1246,7 @@
     Acknowledgment to Alerts dashboard.
   paired_with: results-page-spec
   links:
-    jira: ["OGC-517"]
+    jira: ["OGC-811", "OGC-517"]
     gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-page
     preview: https://digi-uw.github.io/openelis-work/designs/results-validation/results-page.html
   added: "2026-03-03"
@@ -1259,7 +1259,7 @@
   description: Results Entry v3 FRS — full specification with Lab Context, User Stories, Carbon Component Map, Data Dependencies, Permissions & Audit, and Migration Notes.
   paired_with: results-page
   links:
-    jira: ["OGC-517"]
+    jira: ["OGC-811", "OGC-517"]
   added: "2026-03-03"
   updated: "2026-05-28"
 
@@ -1279,7 +1279,7 @@
     multi-level pipeline and admin configuration unchanged.
   paired_with: validation-page-spec
   links:
-    jira: ["OGC-291", "OGC-343"]
+    jira: ["OGC-817", "OGC-291", "OGC-343"]
     gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/validation-page
     preview: https://digi-uw.github.io/openelis-work/designs/results-validation/validation-page.html
   added: "2026-03-03"
@@ -1289,9 +1289,10 @@
   type: spec
   path: designs/results-validation/validation-page.md
   category: results-validation
-  description: Validation page FRS
+  description: Validation Page v3 FRS — full specification with inline-first restructure, dual-axis note model, cross-domain support, multi-level pipeline preserved.
   paired_with: validation-page
-  links: {}
+  links:
+    jira: ["OGC-817", "OGC-291", "OGC-343"]
   added: "2026-03-03"
 
 - id: admin-validation-configuration
@@ -1474,7 +1475,7 @@
   description: Validation page v3 mockup — adds patient sex and age (D-M-Y) columns for demographic-aware reference range verification
   paired_with: validation-patient-demographics-frs
   links:
-    jira: ["OGC-291", "OGC-343"]
+    jira: ["OGC-817", "OGC-291", "OGC-343"]
   added: "2026-03-09"
 
 - id: validation-patient-demographics-mockup
@@ -1484,7 +1485,7 @@
   description: Patient demographics display mockup — sex tag, age calculation, patient info header with Carbon components
   paired_with: validation-patient-demographics-frs
   links:
-    jira: ["OGC-291", "OGC-343"]
+    jira: ["OGC-817", "OGC-291", "OGC-343"]
   added: "2026-03-09"
 
 - id: validation-patient-demographics-frs
@@ -1494,7 +1495,7 @@
   description: Patient Sex & Age Display on Validation Screen FRS v1.0 — D-M-Y age format, sex normalization, all validation levels
   paired_with: validation-page-v3-demographics-mockup
   links:
-    jira: ["OGC-291", "OGC-343"]
+    jira: ["OGC-817", "OGC-291", "OGC-343"]
   added: "2026-03-09"
 
 - id: patient-report-print-queue
