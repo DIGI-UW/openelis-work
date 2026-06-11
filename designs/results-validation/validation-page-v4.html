@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validation (consolidated) — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+    .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+    .domain-note { padding:6px 16px; font-size:11px; }
+    .breadcrumb-bar { background:#161616; color:#f4f4f4; padding:6px 16px; font-size:12px; }
+    .breadcrumb-bar a { color:#78a9ff; text-decoration:none; }
+    .page-head { background:#fff; padding:20px 24px; border-bottom:1px solid #e0e0e0; }
+    .page-head h1 { margin:0; font-size:24px; font-weight:300; }
+    .page-head p { margin:4px 0 0; color:#525252; font-size:12px; }
+    .toolbar { background:#fff; padding:12px 24px; border-bottom:1px solid #e0e0e0; display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
+    .field-stack { display:flex; flex-direction:column; gap:4px; }
+    .field-stack label { font-size:12px; color:#525252; }
+    .req { color:#da1e28; }
+    .filter-bar { background:#fff; padding:8px 24px; border-bottom:1px solid #e0e0e0; display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:12px; }
+    .batch-bar { background:#edf5ff; border-bottom:1px solid #a6c8ff; padding:8px 24px; display:flex; align-items:center; gap:12px; font-size:13px; }
+    .table-wrap { margin:16px 24px; background:#fff; border:1px solid #e0e0e0; }
+    table.rt { width:100%; border-collapse:collapse; font-size:14px; }
+    table.rt th { text-align:left; padding:10px 12px; background:#f4f4f4; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:#525252; font-weight:600; border-bottom:1px solid #e0e0e0; white-space:nowrap; }
+    table.rt td { padding:10px 12px; border-bottom:1px solid #e0e0e0; vertical-align:top; }
+    table.rt tr.exp > td { background:#edf5ff; }
+    .mono { font-family:'IBM Plex Mono',monospace; }
+    .acc { font-family:'IBM Plex Mono',monospace; font-size:12px; color:#393939; }
+    .sub { font-size:11px; color:#6f6f6f; margin-top:2px; }
+    .small { font-size:12px; color:#525252; }
+    .icon-btn { background:none; border:none; cursor:pointer; color:#525252; padding:4px; }
+    .prov { display:inline-flex; align-items:center; gap:4px; font-size:10px; background:#e0e7ff; color:#0043ce; padding:1px 6px; border-radius:10px; margin-left:6px; }
+    .val-ro { font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600; padding-left:8px; border-left:4px solid #8d8d8d; }
+    .val-ro.normal{border-left-color:#24a148;} .val-ro.abnormal{border-left-color:#b28600;color:#5e4400;}
+    .val-ro.critical{border-left-color:#da1e28;color:#a2191f;} .val-ro.invalid{border-left-color:#8a3ffc;color:#6929c4;}
+    .flagtag { display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; }
+    .flagtag.normal{background:#defbe6;color:#0e6027;} .flagtag.abnormal{background:#fcf4d6;color:#684e00;}
+    .flagtag.critical{background:#fff1f1;color:#a2191f;} .flagtag.invalid{background:#f6f2ff;color:#6929c4;}
+    .sigchip { display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border-radius:4px; font-size:11px; font-weight:700; }
+    .sig-red { background:#fff1f1; color:#a2191f; } .sig-amber { background:#fcf4d6; color:#684e00; } .sig-purple { background:#f6f2ff; color:#6929c4; }
+
+    .panel { background:#fff; border-top:2px solid #0f62fe; }
+    .ctx-strip { background:#f2f4f8; padding:8px 16px; display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; font-size:13px; border-bottom:1px solid #dde1e6; }
+    .ctx-strip .k { color:#6f6f6f; font-size:11px; } .ctx-strip .v { font-weight:500; }
+    .review { padding:16px; background:#fff; border-bottom:1px solid #e0e0e0; }
+    .review-grid { display:grid; grid-template-columns:minmax(220px,1fr) 1fr 1fr; gap:16px 20px; }
+    .lbl { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:#6f6f6f; font-weight:600; margin-bottom:4px; }
+    .val-actions { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; align-items:center; }
+    .zone-label { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:#8d8d8d; font-weight:600; padding:10px 16px 2px; }
+    .sec { border-bottom:1px solid #e0e0e0; }
+    .sec-h { display:flex; align-items:center; gap:10px; padding:10px 16px; cursor:pointer; font-size:13px; background:#fff; }
+    .sec-h:hover { background:#f4f4f4; }
+    .sec-h .title { font-weight:600; color:#393939; } .sec-h .summary { color:#6f6f6f; font-size:12px; }
+    .sec-h .count { font-size:11px; color:#8d8d8d; }
+    .sec-b { padding:14px 16px; background:#fafafa; }
+    .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px 20px; }
+    .grid3 .k,.kv .k { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:#6f6f6f; font-weight:600; }
+    .grid3 .v,.kv .v { font-size:13px; }
+    .crit { background:#fff1f1; border-top:2px solid #da1e28; border-bottom:2px solid #da1e28; padding:12px 16px; display:flex; gap:12px; align-items:flex-start; }
+    .crit .t { color:#a2191f; font-weight:600; font-size:13px; } .crit .x { color:#750e13; font-size:12px; margin-top:2px; }
+    .note-item { border-left:2px solid #c6c6c6; padding-left:10px; margin-bottom:8px; }
+    .note-meta { font-size:11px; color:#6f6f6f; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .note-form { background:#f4f4f4; border:1px solid #e0e0e0; padding:12px; margin-top:8px; max-width:680px; }
+    .vis-opts { display:flex; gap:20px; font-size:12px; margin-top:4px; }
+    .note-ext-warn { background:#defbe6; border:1px solid #b6e8c4; padding:6px 10px; margin-top:8px; font-size:12px; color:#044317; }
+    .reject-form { background:#fff1f1; border:1px solid #ffb3b8; padding:12px; margin:0 16px 16px; }
+    .mini-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:8px; }
+    .mini-table th { background:#f4f4f4; text-align:left; padding:5px 8px; font-size:10px; text-transform:uppercase; color:#525252; }
+    .mini-table td { padding:5px 8px; border-top:1px solid #eee; }
+    .qc-chip { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; background:#defbe6; color:#0e6027; }
+    .hist-row { display:flex; gap:16px; align-items:center; padding:8px 10px; border-top:1px solid #eee; font-size:12px; }
+    .hist-row.head { background:#edf5ff; font-weight:600; border-top:none; }
+    .pager { display:flex; align-items:center; gap:8px; justify-content:flex-end; padding:8px 10px; font-size:12px; color:#525252; }
+    .cds--tag { vertical-align:middle; margin:0 2px; } .cds--btn { cursor:pointer; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    ⚡ Visual Preview — Validation (consolidated) &nbsp;|&nbsp; Route: <code>/Validation</code> &nbsp;|&nbsp; SideNav: Validation &nbsp;|&nbsp; OpenELIS Global &nbsp;|&nbsp; Not a live application
+  </div>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, Fragment } = React;
+
+    const DOMAINS = {
+      CLINICAL:{ labUnit:"Chemistry", tag:["CLINICAL","blue"], subj:"Sample / Patient", range:"Reference Range",
+        note:{bg:"#edf5ff",bd:"#a6c8ff",fg:"#0043ce",txt:"Clinical domain — supervisor reviews and releases patient results."}, kind:"patient" },
+      ENV:{ labUnit:"Water Quality", tag:["ENVIRONMENTAL","teal"], subj:"Sample / Site", range:"Regulatory Limit",
+        note:{bg:"#d9fbfb",bd:"#3ddbd9",fg:"#005d5d",txt:"Environmental domain — no patient; release against regulatory limits. Water Quality auto-release config applies."}, kind:"site" },
+      VECTOR:{ labUnit:"Vector Surveillance", tag:["VECTOR","purple"], subj:"Sample / Trap", range:"Interpretation",
+        note:{bg:"#f6f2ff",bd:"#d4bbff",fg:"#491d8b",txt:"Vector domain — mosquito pools; abnormal-only review per Vector Pool config."}, kind:"trap" },
+    };
+
+    const ROWS = {
+      CLINICAL:[
+        { id:"c1", lab:"DEV01260000000000001-022", subj:{name:"Smith, Jane",id:"7891234",sex:"F",age:"40y"},
+          method:"Cobas TaqMan", analyzer:"Leonardo", prov:"analyzer", test:"Glucose, Fasting", result:"142", unit:"mg/dL", range:"70 – 99", flag:"critical", critical:true, signals:["ack"], status:"awaiting", isAuto:false, expanded:true },
+        { id:"c2", lab:"DEV01260000000000005-009", subj:{name:"Okello, Peter",id:"3456790",sex:"M",age:"33y"},
+          method:"Sysmex XN", analyzer:"Donatello", prov:"analyzer", test:"Hemoglobin", result:"11.2", unit:"g/dL", range:"13.0 – 17.0", flag:"abnormal", signals:["qcfail","modified"], status:"awaiting", isAuto:false },
+        { id:"c3", lab:"DEV01260000000000007-014", subj:{name:"Mbugaa, Loy",id:"3456789",sex:"M",age:"5d"},
+          method:"Determine HIV-1/2", analyzer:"—", prov:"manual", test:"HIV 1/2 Rapid", result:"Reactive", unit:"", range:"Non-Reactive", flag:"abnormal", signals:["nce"], status:"awaiting", isAuto:false },
+        { id:"c5", lab:"DEV01260000000000011-003", subj:{name:"Owino, Grace",id:"3456733",sex:"F",age:"52y"},
+          method:"Cobas TaqMan", analyzer:"Leonardo", prov:"analyzer", test:"Potassium", result:"4.1", unit:"mmol/L", range:"3.5 – 5.1", flag:"normal", status:"awaiting", isAuto:false },
+        { id:"c6", lab:"DEV01260000000000012-006", subj:{name:"Banda, Joseph",id:"3456744",sex:"M",age:"45y"},
+          method:"Cobas TaqMan", analyzer:"Michelangelo", prov:"analyzer", test:"Creatinine", result:"0.9", unit:"mg/dL", range:"0.7 – 1.3", flag:"normal", status:"awaiting", isAuto:false },
+        { id:"c4", lab:"DEV01260000000000009-001", subj:{name:"Test, Ada",id:"3456712",sex:"F",age:"29y"},
+          method:"Cobas TaqMan", analyzer:"Raphael", prov:"analyzer", test:"Sodium", result:"140", unit:"mmol/L", range:"136 – 145", flag:"normal", status:"auto-validated", isAuto:true },
+      ],
+      ENV:[
+        { id:"e1", lab:"WQ-2026-000241-01", subj:{site:"Borehole BH-12",point:"Distribution — Tap 4",src:"Groundwater"},
+          method:"Membrane Filtration", analyzer:"—", prov:"manual", test:"E. coli", result:"18", unit:"CFU/100mL", range:"0 (max)", flag:"critical", critical:true, signals:["ack","nonconforming"], status:"awaiting", isAuto:false, expanded:true },
+        { id:"e3", lab:"WQ-2026-000242-01", subj:{site:"Reservoir R-3",point:"Inlet",src:"Surface water"},
+          method:"Nephelometry", analyzer:"Hach TU5200", prov:"analyzer", test:"Turbidity", result:"2.1", unit:"NTU", range:"≤ 5", flag:"normal", signals:[], status:"awaiting", isAuto:false },
+        { id:"e2", lab:"WQ-2026-000241-03", subj:{site:"Borehole BH-12",point:"Distribution — Tap 4",src:"Groundwater"},
+          method:"Electrode", analyzer:"Hanna HI98494", prov:"analyzer", test:"pH", result:"7.4", unit:"pH", range:"6.5 – 8.5", flag:"normal", status:"auto-validated", isAuto:true },
+      ],
+      VECTOR:[
+        { id:"v1", lab:"VEC-2026-00088-A1", subj:{trap:"CDC-LT 07",site:"Bagamoyo Sentinel S3",species:"An. gambiae s.l."},
+          method:"Real-time PCR (Pf)", analyzer:"Donatello", prov:"analyzer", test:"P. falciparum — Pool PCR", result:"Positive", unit:"", range:"Negative", flag:"abnormal", status:"awaiting", isAuto:false, expanded:true },
+      ],
+    };
+
+    function FlagChip({flag}){
+      if(!flag) return <span style={{color:"#c6c6c6"}}>—</span>;
+      const m={normal:{t:"Normal",i:"✓"},abnormal:{t:"Abnormal",i:"▲"},critical:{t:"Critical",i:"⚠"},invalid:{t:"Invalid",i:"⊘"}}[flag];
+      return <span className={"flagtag "+flag}>{m.i} {m.t}</span>;
+    }
+    const Twisty=({open})=><span style={{color:"#525252",width:14}}>{open?"▼":"▶"}</span>;
+    const SIGNALS={
+      nce:{t:"⚠ NCE open",cls:"sig-red"}, qcfail:{t:"✕ QC fail",cls:"sig-red"},
+      modified:{t:"✎ Modified",cls:"sig-purple"},
+      ack:{t:"Ack pending",cls:"sig-red"}, nonconforming:{t:"⚠ Nonconforming",cls:"sig-amber"},
+    };
+    function SignalChips({signals}){
+      if(!signals||!signals.length) return <span style={{color:"#c6c6c6"}}>—</span>;
+      return <span style={{display:"flex",gap:4,flexWrap:"wrap"}}>{signals.map((s,i)=>{const m=SIGNALS[s];return m?<span key={i} className={"sigchip "+m.cls}>{m.t}</span>:null;})}</span>;
+    }
+
+    function ValidationApp(){
+      const [domain,setDomain]=useState("CLINICAL");
+      const D=DOMAINS[domain]; const rows=ROWS[domain];
+      const [showAuto,setShowAuto]=useState(false);
+      const [bulkFlag,setBulkFlag]=useState(true); // set in Admin → Validation Configuration
+      const [retestNoteRequired,setRetestNoteRequired]=useState(true); // set in Admin → Validation Configuration
+      const [showReleaseConfirm,setShowReleaseConfirm]=useState(false);
+      const [expanded,setExpanded]=useState((rows.find(r=>r.expanded)||{}).id||null);
+      const [sel,setSel]=useState({});
+      const onDomain=(d)=>{ setDomain(d); setExpanded((ROWS[d].find(r=>r.expanded)||{}).id||null); setSel({}); setShowReleaseConfirm(false); };
+      const [filter,setFilter]=useState("all");
+      const hasSignal=(r)=>(r.signals&&r.signals.length>0);
+      const baseVisible=rows.filter(r=>showAuto||!r.isAuto);
+      const filterMatch=(r)=>{
+        if(filter==="all") return true;
+        if(filter==="needs") return r.status!=="auto-validated" && (r.flag!=="normal"||hasSignal(r));
+        if(filter==="critical") return r.flag==="critical";
+        if(filter==="abnormal") return r.flag==="abnormal"||r.flag==="critical";
+        return r.signals && r.signals.includes(filter);
+      };
+      const visible=baseVisible.filter(filterMatch);
+      const selCount=Object.values(sel).filter(Boolean).length;
+      // Lanes computed from the whole queue (not the active filter) so "Release all clear" stays meaningful.
+      const clearRows=baseVisible.filter(r=>r.flag==="normal" && r.status!=="auto-validated" && !hasSignal(r));
+      const needsReview=baseVisible.filter(r=>r.status!=="auto-validated" && (r.flag!=="normal" || hasSignal(r)));
+      const toggleSel=(id)=>setSel(s=>({...s,[id]:!s[id]}));
+
+      return (
+        <Fragment>
+          <div className="domain-note" style={{background:D.note.bg,borderBottom:"1px solid "+D.note.bd,color:D.note.fg}}>
+            ℹ <strong>{D.labUnit}</strong> <span className={"cds--tag cds--tag--"+D.tag[1]} style={{fontSize:10}}>{D.tag[0]}</span> — {D.note.txt}
+          </div>
+          <div className="breadcrumb-bar"><a href="#">Home</a> / <strong>Validation</strong></div>
+          <div className="page-head"><h1>Validation</h1><p>Review entered results and release them to the patient / regulatory / surveillance report</p></div>
+
+          <div className="toolbar">
+            <div className="field-stack" style={{flex:1,minWidth:240}}><label>Search</label>
+              <div className="cds--search cds--search--sm"><input className="cds--search-input" placeholder="Search — lab number, subject ID, test name…" /></div></div>
+            <div className="field-stack" style={{minWidth:200}}><label>Lab Unit <span className="req">*</span></label>
+              <div className="cds--select"><select className="cds--select-input" value={domain} onChange={e=>onDomain(e.target.value)}>
+                <option value="CLINICAL">Chemistry (Clinical)</option><option value="ENV">Water Quality (Environmental)</option><option value="VECTOR">Vector Surveillance (Vector)</option>
+              </select></div></div>
+            <div className="field-stack"><label>Date From</label><input className="cds--date-picker__input" type="date" defaultValue="2026-06-10" /></div>
+            <button className="cds--btn cds--btn--primary">Load</button>
+          </div>
+
+          <div className="filter-bar">
+            <span style={{fontWeight:500,color:"#525252"}}>Show:</span>
+            <label style={{cursor:"pointer"}}><input type="checkbox" checked={showAuto} onChange={()=>setShowAuto(s=>!s)} /> Include auto-validated</label>
+            <label style={{cursor:"pointer",marginLeft:12}}><input type="checkbox" checked={bulkFlag} onChange={()=>{setBulkFlag(s=>!s);setShowReleaseConfirm(false);}} /> <span style={{color:"#0043ce"}}>Admin flag (demo): allow bulk release of clear results</span></label>
+            <label style={{cursor:"pointer",marginLeft:12}}><input type="checkbox" checked={retestNoteRequired} onChange={()=>setRetestNoteRequired(s=>!s)} /> <span style={{color:"#0043ce"}}>Admin flag (demo): retest note required</span></label>
+            <span style={{marginLeft:"auto",color:"#8d8d8d"}}>{baseVisible.length} awaiting review</span>
+          </div>
+
+          <div className="filter-bar" style={{gap:6}}>
+            <span style={{fontWeight:500,color:"#525252",marginRight:2}}>Filter:</span>
+            {[["all","All"],["needs","Needs review"],["nce","NCE"],["qcfail","QC fail"],["modified","Modified"],["ack","Ack pending"],["critical","Critical"],["abnormal","Abnormal"]].map(([k,lbl])=>{
+              const n=k==="all"?baseVisible.length:baseVisible.filter(r=>{const f=filter;return (k==="needs")?(r.status!=="auto-validated"&&(r.flag!=="normal"||hasSignal(r))):(k==="critical")?r.flag==="critical":(k==="abnormal")?(r.flag==="abnormal"||r.flag==="critical"):(r.signals&&r.signals.includes(k));}).length;
+              const active=filter===k;
+              return <button key={k} onClick={()=>setFilter(k)} style={{padding:"3px 10px",borderRadius:14,fontSize:12,cursor:"pointer",border:"1px solid "+(active?"#161616":"#c6c6c6"),background:active?"#161616":"#fff",color:active?"#fff":"#161616",fontWeight:active?600:400}}>{lbl} {k!=="all"&&<span style={{opacity:.7}}>({n})</span>}</button>;
+            })}
+          </div>
+
+          <div className="batch-bar">
+            <span><strong>{clearRows.length}</strong> clear to release · <strong>{needsReview.length}</strong> need individual review</span>
+            {bulkFlag
+              ? <button className="cds--btn cds--btn--primary cds--btn--sm" disabled={!clearRows.length} onClick={()=>setShowReleaseConfirm(s=>!s)}>💾 Release all clear ({clearRows.length})</button>
+              : <span className="small" style={{color:"#a2191f"}}>⊘ Bulk release is disabled for this lab (Admin → Validation Configuration) — release each result individually.</span>}
+            {selCount>0 && <button className="cds--btn cds--btn--secondary cds--btn--sm">↻ Request retest ({selCount}) — note {retestNoteRequired?"required":"optional"}</button>}
+            <span className="small" style={{marginLeft:"auto"}}>Critical / abnormal / flagged results are never bulk-released — open them to review and release individually.</span>
+          </div>
+
+          {bulkFlag && showReleaseConfirm && clearRows.length>0 && (
+            <div style={{margin:"12px 24px 0",background:"#f4f9ff",border:"1px solid #a6c8ff",padding:12}}>
+              <div style={{fontWeight:600,marginBottom:6}}>Release these {clearRows.length} clear results? <span className="small" style={{fontWeight:400}}>You are e-signing this exact set.</span></div>
+              <table className="mini-table">
+                <thead><tr><th>Lab #</th><th>{D.kind==="patient"?"Patient":D.kind==="site"?"Site":"Trap"}</th><th>Test</th><th>Result</th><th>Range</th><th>Flag</th></tr></thead>
+                <tbody>{clearRows.map(r=>(
+                  <tr key={r.id}><td className="mono">{r.lab}</td>
+                    <td>{D.kind==="patient"?r.subj.name:D.kind==="site"?r.subj.site:("Trap "+r.subj.trap)}</td>
+                    <td>{r.test}</td><td className="mono">{r.result} {r.unit}</td><td className="mono">{r.range}</td><td><FlagChip flag={r.flag} /></td></tr>
+                ))}</tbody>
+              </table>
+              <div style={{display:"flex",gap:8,marginTop:10}}>
+                <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>setShowReleaseConfirm(false)}>💾 Confirm release &amp; e-sign ({clearRows.length})</button>
+                <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setShowReleaseConfirm(false)}>Cancel</button>
+              </div>
+              <div className="small" style={{marginTop:6,color:"#8d8d8d"}}>Only results that are in-range, QC-pass, no delta, not modified-after-save, not critical, and confidently range-matched qualify as "clear". The other {needsReview.length} stay in the review lane and must be opened individually.</div>
+            </div>
+          )}
+
+          <div className="table-wrap">
+            <table className="rt">
+              <thead><tr>
+                <th style={{width:28}}><input type="checkbox" onChange={e=>{const v=e.target.checked;const n={};visible.forEach(r=>n[r.id]=v);setSel(n);}} /></th>
+                <th style={{width:28}}></th>
+                <th>{D.subj}</th><th>Test</th><th>Result</th><th>{D.range}</th><th>Flag</th><th>Check before release</th><th>Status</th><th>Validation</th>
+              </tr></thead>
+              <tbody>
+                {visible.map(r=>{ const isExp=expanded===r.id; return (
+                  <Fragment key={r.id}>
+                    <tr className={isExp?"exp":""}>
+                      <td><input type="checkbox" checked={!!sel[r.id]} onChange={()=>toggleSel(r.id)} /></td>
+                      <td><button className="icon-btn" onClick={()=>setExpanded(isExp?null:r.id)}>{isExp?"▼":"▶"}</button></td>
+                      <td>
+                        <div><span className="acc">{r.lab}</span></div>
+                        {D.kind==="patient" && <div className="sub">{r.subj.name} · {r.subj.sex} · {r.subj.age}</div>}
+                        {D.kind==="site" && <div className="sub">{r.subj.site} · {r.subj.point}</div>}
+                        {D.kind==="trap" && <div className="sub">Trap {r.subj.trap} · {r.subj.species}</div>}
+                      </td>
+                      <td><strong>{r.test}</strong></td>
+                      <td><span className={"val-ro "+(r.flag||"normal")}>{r.result} <span className="small" style={{fontWeight:400}}>{r.unit}</span></span></td>
+                      <td><span className="acc">{r.range}</span> <span className="small">{r.unit}</span></td>
+                      <td><FlagChip flag={r.flag} /></td>
+                      <td><SignalChips signals={r.signals} /></td>
+                      <td><span className={"cds--tag cds--tag--"+(r.status==="auto-validated"?"teal":"warm-gray")}>{r.status==="auto-validated"?"auto-validated":"awaiting validation"}</span></td>
+                      <td>
+                        {r.status==="auto-validated"
+                          ? <span className="small">released by rule</span>
+                          : r.flag==="normal"
+                            ? <button className="cds--btn cds--btn--primary cds--btn--sm">💾 Release</button>
+                            : <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={()=>setExpanded(r.id)}>Review →</button>}
+                      </td>
+                    </tr>
+                    {isExp && <tr><td colSpan={10} style={{padding:0,background:"#eef2f8"}}>
+                      <ReviewPanel domain={domain} D={D} r={r} retestNoteRequired={retestNoteRequired} />
+                    </td></tr>}
+                  </Fragment>
+                );})}
+              </tbody>
+            </table>
+          </div>
+          <div style={{margin:"0 24px 32px",fontSize:11,color:"#8d8d8d"}}>Switch the Lab Unit selector to see Water Quality and Vector validation states. Method and Analyzer are split columns (inherited from Results Entry).</div>
+        </Fragment>
+      );
+    }
+
+    function ReviewPanel({domain,D,r,retestNoteRequired}){
+      const [open,setOpen]=useState({equip:true,notes:true,order:false,history:false,attach:false});
+      const tg=(k)=>setOpen(o=>({...o,[k]:!o[k]}));
+      const [showReject,setShowReject]=useState(false);
+      const [showRetest,setShowRetest]=useState(false);
+      const [histPage,setHistPage]=useState(1);
+      return (
+        <div className="panel">
+          <div className="ctx-strip">
+            {D.kind==="patient" && <Fragment>
+              <span className="v" style={{fontWeight:600}}>{r.subj.name}</span>
+              <span><span className="k">ID </span><span className="v">{r.subj.id}</span></span>
+              <span><span className="k">Sex/Age </span><span className="v">{r.subj.sex} · {r.subj.age}</span></span>
+              <span><span className="k">Clinician </span><span className="v">Dr. M. Chen</span></span>
+              <span className="cds--tag cds--tag--red">STAT</span></Fragment>}
+            {D.kind==="site" && <Fragment><span className="v" style={{fontWeight:600}}>{r.subj.site}</span>
+              <span><span className="k">Sampling point </span><span className="v">{r.subj.point}</span></span>
+              <span><span className="k">Source </span><span className="v">{r.subj.src}</span></span></Fragment>}
+            {D.kind==="trap" && <Fragment><span className="v" style={{fontWeight:600}}>Trap {r.subj.trap}</span>
+              <span><span className="k">Sentinel site </span><span className="v">{r.subj.site}</span></span>
+              <span><span className="k">Species </span><span className="v">{r.subj.species}</span></span></Fragment>}
+          </div>
+
+          {/* Review summary — read-only result with split method/analyzer */}
+          <div className="review">
+            <div className="review-grid">
+              <div>
+                <div className="lbl">Result under review</div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span className={"val-ro "+(r.flag||"normal")} style={{fontSize:22}}>{r.result}</span>
+                  <span className="small">{r.unit}</span><FlagChip flag={r.flag} />
+                </div>
+                <div className="small" style={{marginTop:8}}>{D.range}: <span className="acc">{r.range} {r.unit}</span></div>
+              </div>
+              <div>
+                <div className="lbl">Method</div><div className="v">{r.method}{r.prov==="analyzer" && <span className="prov">⛁ from Analyzer Run</span>}</div>
+                <div className="lbl" style={{marginTop:12}}>Analyzer instance</div><div className="v">{r.analyzer==="—"?<span className="small">Not from an instrument</span>:r.analyzer}</div>
+              </div>
+              <div>
+                <div className="lbl">Entered by</div><div className="v">K. Davis · 06/10/2026 10:15</div>
+                <div className="lbl" style={{marginTop:12}}>QC</div><div><span className="qc-chip">✓ QC Pass</span></div>
+              </div>
+            </div>
+            {r.signals && r.signals.length>0 && <div style={{marginTop:10,padding:"6px 10px",background:"#fff8f8",border:"1px solid #ffd7d9",fontSize:12,display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}><strong>Before releasing, check:</strong> <SignalChips signals={r.signals} /></div>}
+            <div className="val-actions">
+              <button className="cds--btn cds--btn--primary cds--btn--sm">💾 Validate &amp; release (E-Sign)</button>
+              <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={()=>{setShowRetest(s=>!s);setShowReject(false);}}>↻ Send for retest</button>
+              <button className="cds--btn cds--btn--danger cds--btn--sm" onClick={()=>{setShowReject(s=>!s);setShowRetest(false);}}>⚠ Reject (file NCE)</button>
+              <button className="cds--btn cds--btn--secondary cds--btn--sm">✎ Modify result (reason required)</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">⇆ Refer this test</button>
+              <span className="small" style={{marginLeft:"auto"}}>Release commits your e-signature. Reject files a non-conformity. Modify requires a reason and returns to Awaiting validation.</span>
+            </div>
+          </div>
+
+          {r.critical && <div className="crit">
+            <span style={{fontSize:18}}>⚠</span>
+            <div style={{flex:1}}>
+              <div className="t">{domain==="ENV"?"Regulatory Exceedance — acknowledge before release":"Critical Value — acknowledge before release"}</div>
+              <div className="x">{domain==="ENV"?"E. coli detected (limit 0 CFU/100 mL). Acknowledgment recorded in the Alerts dashboard; release is not blocked.":"Glucose > 400 mg/dL. Acknowledgment recorded in the Alerts dashboard; release is not blocked."}</div>
+            </div>
+            <button className="cds--btn cds--btn--danger cds--btn--sm">I Acknowledge</button></div>}
+
+          {showReject && <ValidationNce r={r} onClose={()=>setShowReject(false)} />}
+          {showRetest && <RetestForm noteRequired={retestNoteRequired} onClose={()=>setShowRetest(false)} />}
+
+          {/* Reference zone */}
+          <div className="zone-label">Review detail</div>
+          <Section open={open.equip} onClick={()=>tg("equip")} title="Reagents, QC &amp; Controls" summary="QC Pass · lot LOT-2026-0421">
+            <div style={{marginBottom:6}}><span className="qc-chip">✓ QC Pass</span> <span className="small">{r.analyzer!=="—"?r.analyzer+" · ":""}controls within range — recorded at entry (read-only here)</span></div>
+            <table className="mini-table"><thead><tr><th>Reagent</th><th>Lot</th><th>Qty used</th><th>Control</th></tr></thead>
+              <tbody><tr><td>{domain==="ENV"?"Colilert-18":domain==="VECTOR"?"Pf qPCR Mastermix":"Glucose HK Gen.3"}</td><td className="mono">LOT-2026-0421</td><td>{r.prov==="analyzer"?"—":"2.5 mL"}</td><td>{r.prov==="manual"?"Valid":"L1/L2 in range"}</td></tr></tbody></table>
+          </Section>
+          <Section open={open.notes} onClick={()=>tg("notes")} title="Notes" count="2" summary="fasting confirmed · modification reason">
+            <div className="note-item"><div className="note-meta"><span>06/10 11:20</span><span style={{fontWeight:500}}>K. Davis</span><span className="cds--tag cds--tag--blue" style={{fontSize:10}}>Entry</span><span className="cds--tag cds--tag--purple" style={{fontSize:10}}>🔒 In Lab Only</span></div><div style={{fontSize:13}}>Fasting glucose confirmed — patient fasted &gt;8 hrs.</div></div>
+            <ValidationNote />
+          </Section>
+          <Section open={open.order} onClick={()=>tg("order")} title="Order info" summary={domain==="ENV"?"Tap 4 · Groundwater":domain==="VECTOR"?"CDC-LT 07 · 25 mosquitoes":"Dr. M. Chen · STAT · Endocrinology"}>
+            <div className="grid3">
+              {domain==="ENV"?<Fragment><KV k="Sampling Point" v="Distribution — Tap 4" /><KV k="Source" v="Groundwater" /><KV k="Collected By" v="J. Mwangi" /></Fragment>
+               :domain==="VECTOR"?<Fragment><KV k="Trap" v="CDC Light Trap" /><KV k="Night" v="06/09/2026" /><KV k="Pool size" v="25" /></Fragment>
+               :<Fragment><KV k="Clinician" v="Dr. M. Chen" /><KV k="Priority" v="STAT" /><KV k="Department" v="Endocrinology" /></Fragment>}
+            </div>
+          </Section>
+          <Section open={open.history} onClick={()=>tg("history")} title="History (this analysis)" count="revisions · status" summary="3 revisions · entered 10:15">
+            <div style={{border:"1px solid #e0e0e0"}}>
+              <div className="hist-row head"><span style={{width:120}}>When</span><span style={{width:150}}>Event</span><span style={{flex:1}}>Detail</span><span style={{width:100}}>By</span></div>
+              {[{w:"06/10 11:20",e:"Note added",d:"Fasting confirmed (internal)",b:"K. Davis"},
+                {w:"06/10 10:15",e:"Result saved",d:(r.result)+" "+r.unit+" (rev 3)",b:"K. Davis"},
+                {w:"06/10 09:30",e:"Result entered",d:"98 "+r.unit+" (rev 2, corrected)",b:"A. Mode"},
+                {w:"06/10 08:05",e:"Status → In progress",d:"Assigned to "+(r.analyzer!=="—"?r.analyzer:"bench"),b:"system"}].slice((histPage-1)*3,histPage*3).map((h,i)=>(
+                <div className="hist-row" key={i}><span style={{width:120,color:"#8d8d8d"}}>{h.w}</span><span style={{width:150}}><span className="cds--tag cds--tag--blue" style={{fontSize:10}}>{h.e}</span></span><span style={{flex:1}}>{h.d}</span><span style={{width:100,color:"#525252"}}>{h.b}</span></div>
+              ))}
+              <div className="pager"><span>Page {histPage} of 2 · 25/50/100</span>
+                <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setHistPage(p=>Math.max(1,p-1))}>‹</button>
+                <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setHistPage(p=>Math.min(2,p+1))}>›</button></div>
+            </div>
+            <div className="small" style={{marginTop:6,color:"#8d8d8d"}}>This-analysis only — same model as Results Entry. Patient trends / Westgard live elsewhere.</div>
+          </Section>
+          <Section open={open.attach} onClick={()=>tg("attach")} title="Attachments" count="1" summary={domain==="ENV"?"chain-of-custody.pdf":"insurance-auth.pdf"}>
+            <div className="small">📄 {domain==="ENV"?"chain-of-custody.pdf":"insurance-auth.pdf"} · 89 KB · Order Entry</div>
+          </Section>
+        </div>
+      );
+    }
+
+    function ValidationNote(){
+      const [show,setShow]=useState(false); const [vis,setVis]=useState("internal");
+      return show ? (
+        <div className="note-form">
+          <div style={{fontSize:12,marginBottom:6}}><strong>Context:</strong> <span className="cds--tag cds--tag--teal">Validation</span> <span className="small">(auto-set — authored during validation)</span></div>
+          <div style={{fontWeight:600,fontSize:12,marginBottom:4}}>Visibility <span className="req">*</span></div>
+          <div className="vis-opts">
+            <label style={{display:"flex",gap:6,cursor:"pointer",alignItems:"flex-start"}}><input type="radio" name="vv" checked={vis==="internal"} onChange={()=>setVis("internal")} style={{marginTop:2}} /><span><strong>🔒 In Lab Only</strong><span className="small" style={{display:"block"}}>Visible only to lab staff (default)</span></span></label>
+            <label style={{display:"flex",gap:6,cursor:"pointer",alignItems:"flex-start"}}><input type="radio" name="vv" checked={vis==="external"} onChange={()=>setVis("external")} style={{marginTop:2}} /><span><strong>📤 Send with Result</strong><span className="small" style={{display:"block"}}>Appears on the report</span></span></label>
+          </div>
+          <textarea rows={2} placeholder="Add a validation note…" style={{width:"100%",marginTop:8,padding:6,fontSize:13,border:"1px solid #e0e0e0",resize:"none"}} />
+          <div style={{display:"flex",gap:8,marginTop:8}}><button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>setShow(false)}>Save note</button><button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setShow(false)}>Cancel</button></div>
+          {vis==="external" && <div className="note-ext-warn"><strong>This note will appear on the report.</strong> Make sure the wording is appropriate.</div>}
+        </div>
+      ) : <button className="cds--btn cds--btn--ghost cds--btn--sm" style={{paddingLeft:0}} onClick={()=>setShow(true)}>+ Add validation note</button>;
+    }
+
+    /* Reject via NCE — pulls the real inline NCE field set; disposition Reject/Cancel */
+    function ValidationNce({r,onClose}){
+      const [sev,setSev]=useState("MAJOR");
+      return (
+        <div className="reject-form" style={{borderColor:"#da1e28"}}>
+          <div style={{fontWeight:600,color:"#a2191f",marginBottom:6}}>⚠ Reject via Non-Conformity Event</div>
+          <div className="small" style={{marginBottom:8}}>Auto-linked: {r.test} · {r.lab} · {r.result} {r.unit} · NCE <span className="mono">NCE-2026-000419</span> (auto). Rejection is recorded as a non-conformity, not a bare reason.</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+            <div className="field-stack"><label className="lbl">Category <span className="req">*</span></label><div className="cds--select"><select className="cds--select-input"><option>Analytical</option><option>Pre-Analytical</option><option>Post-Analytical</option></select></div></div>
+            <div className="field-stack"><label className="lbl">Subcategory</label><div className="cds--select"><select className="cds--select-input"><option>QC failure</option><option>Specimen integrity</option><option>Instrument fault</option></select></div></div>
+            <div className="field-stack"><label className="lbl">Disposition <span className="req">*</span></label><div className="cds--select"><select className="cds--select-input"><option>Reject (cancel result)</option><option>Cancel</option></select></div></div>
+          </div>
+          <div style={{marginTop:8}}>
+            <label className="lbl">Severity <span className="req">*</span></label>
+            <div style={{display:"flex",gap:8,marginTop:4}}>
+              {[["CRITICAL","Critical"],["MAJOR","Major"],["MINOR","Minor"]].map(([id,t])=>(
+                <div key={id} onClick={()=>setSev(id)} style={{flex:1,border:sev===id?"2px solid #da1e28":"1px solid #c6c6c6",background:sev===id?"#fff1f1":"#fff",borderRadius:4,padding:"6px 8px",cursor:"pointer",fontSize:12,fontWeight:600}}>{t}</div>
+              ))}
+            </div>
+          </div>
+          <div style={{marginTop:8}}><label className="lbl">Description <span className="req">*</span></label><textarea rows={2} style={{width:"100%",border:"1px solid #c6c6c6",padding:6,fontSize:13,resize:"none"}} placeholder="What was wrong with this result?" /></div>
+          <div style={{display:"flex",gap:8,marginTop:10}}>
+            <button className="cds--btn cds--btn--danger cds--btn--sm">Submit NCE &amp; reject</button>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={onClose}>Cancel</button>
+            <span className="small" style={{marginLeft:"auto"}}>Same inline NCE form as Results Entry (immediate action, attachments, etc.). Reject cancels the result and links the NCE.</span>
+          </div>
+        </div>
+      );
+    }
+
+    /* Send for retest — note optional/required per Admin → Validation Configuration */
+    function RetestForm({noteRequired,onClose}){
+      return (
+        <div className="reject-form" style={{background:"#fff8e8",borderColor:"#f1c21b"}}>
+          <div style={{fontWeight:600,color:"#684e00",marginBottom:6}}>↻ Send for re-testing</div>
+          <label className="lbl">Note {noteRequired ? <span className="req">*</span> : <span style={{fontWeight:400,textTransform:"none",color:"#8d8d8d"}}>(optional)</span>}</label>
+          <textarea rows={2} style={{width:"100%",border:"1px solid #c6c6c6",padding:6,fontSize:13,resize:"none"}} placeholder={noteRequired?"Reason for retest (required by lab policy)…":"Reason for retest (optional)…"} />
+          <div style={{display:"flex",gap:8,marginTop:10}}>
+            <button className="cds--btn cds--btn--primary cds--btn--sm">Create retest order</button>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={onClose}>Cancel</button>
+            <span className="small" style={{marginLeft:"auto"}}>Note required-ness is set in Admin → Validation Configuration (currently: {noteRequired?"required":"optional"}). Retest restarts the pipeline at level 1.</span>
+          </div>
+        </div>
+      );
+    }
+
+    function Section({open,onClick,title,summary,count,children}){
+      return (<div className="sec"><div className="sec-h" onClick={onClick}><Twisty open={open} />
+        <span className="title" dangerouslySetInnerHTML={{__html:title}} />{count && <span className="count">({count})</span>}
+        {!open && summary && <span className="summary">— {summary}</span>}</div>{open && <div className="sec-b">{children}</div>}</div>);
+    }
+    function KV({k,v}){ return <div><div className="k">{k}</div><div className="v">{v}</div></div>; }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<ValidationApp />);
+  </script>
+</body>
+</html>
