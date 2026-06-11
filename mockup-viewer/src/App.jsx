@@ -1738,6 +1738,18 @@ export const MOCKUP_REGISTRY = [
     tags: ['compliance', 'notification', 'environmental', 'vector', 'SMS', 'email', 'delivery', 'laporan-hasil', 'Indonesia', 'SILNAS'],
   },
   {
+    name: 'Report Print Queue',
+    category: 'reports',
+    component: null,
+    description: 'Generic Report Print Queue v1.2 — type-agnostic queue with reportType discriminator (maps to ReportTrackingService.ReportType enum) and generation lifecycle (QUEUED → GENERATING → READY → PRINTED / FAILED). Covers patient reports in v1 scope, extensible to any long-running report. DocumentTrack + History audit infrastructure; system_module access control; Envers.',
+    specPath: 'designs/reports/report-print-queue.md',
+    htmlUrl: 'designs/reports/report-print-queue.html',
+    added: '2026-06-09',
+    status: 'draft',
+    jira: [],
+    tags: ['reports', 'print', 'queue', 'report-type', 'lifecycle', 'audit', 'iso-15189'],
+  },
+  {
     name: 'Patient Report Print Queue',
     category: 'reports',
     component: React.lazy(() => import('@designs/reports/patient-report-print-queue.jsx')),

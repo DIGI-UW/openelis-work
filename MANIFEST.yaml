@@ -1498,6 +1498,32 @@
     jira: ["OGC-817", "OGC-291", "OGC-343"]
   added: "2026-03-09"
 
+- id: report-print-queue
+  type: html
+  path: designs/reports/report-print-queue.html
+  spec: designs/reports/report-print-queue.md
+  category: reports
+  description: >
+    Generic Report Print Queue v1.2 — type-agnostic queue with reportType discriminator
+    (maps to ReportTrackingService.ReportType enum) and generation lifecycle
+    (QUEUED → GENERATING → READY → PRINTED / FAILED). v1 scope ships patient reports;
+    extensible to any long-running report. DocumentTrack + History audit; system_module
+    access control; Envers. Supersedes the patient-only v1.1 design.
+  links:
+    jira: []
+    gallery: https://digi-uw.github.io/openelis-work/#/reports/report-print-queue
+    preview: https://digi-uw.github.io/openelis-work/designs/reports/report-print-queue.html
+  tags:
+    - reports
+    - print
+    - queue
+    - report-type
+    - lifecycle
+    - audit
+    - iso-15189
+  added: "2026-06-09"
+  status: draft
+
 - id: patient-report-print-queue
   type: mockup
   path: designs/reports/patient-report-print-queue.jsx
