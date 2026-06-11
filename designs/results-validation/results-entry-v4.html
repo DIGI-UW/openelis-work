@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results Entry (consolidated) — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+    .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+    .domain-note { padding:6px 16px; font-size:11px; }
+    .breadcrumb-bar { background:#161616; color:#f4f4f4; padding:6px 16px; font-size:12px; }
+    .breadcrumb-bar a { color:#78a9ff; text-decoration:none; }
+    .page-head { background:#fff; padding:20px 24px; border-bottom:1px solid #e0e0e0; }
+    .page-head h1 { margin:0; font-size:24px; font-weight:300; }
+    .page-head p { margin:4px 0 0; color:#525252; font-size:12px; }
+    .toolbar { background:#fff; padding:12px 24px; border-bottom:1px solid #e0e0e0; display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
+    .field-stack { display:flex; flex-direction:column; gap:4px; }
+    .field-stack label { font-size:12px; color:#525252; }
+    .req { color:#da1e28; }
+    .filter-bar { background:#fff; padding:8px 24px; border-bottom:1px solid #e0e0e0; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .chip { background:#fff; border:1px solid #c6c6c6; padding:4px 12px; border-radius:16px; font-size:12px; cursor:pointer; }
+    .chip.active { background:#161616; color:#fff; border-color:#161616; font-weight:600; }
+
+    .table-wrap { margin:16px 24px; background:#fff; border:1px solid #e0e0e0; }
+    table.rt { width:100%; border-collapse:collapse; font-size:14px; }
+    table.rt th { text-align:left; padding:10px 12px; background:#f4f4f4; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:#525252; font-weight:600; border-bottom:1px solid #e0e0e0; white-space:nowrap; }
+    table.rt td { padding:10px 12px; border-bottom:1px solid #e0e0e0; vertical-align:top; }
+    table.rt tr.exp > td { background:#edf5ff; }
+    .avatar { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; color:#fff; font-weight:600; font-size:11px; flex-shrink:0; }
+    .mono { font-family:'IBM Plex Mono',monospace; }
+    .acc { font-family:'IBM Plex Mono',monospace; font-size:12px; color:#393939; }
+    .sub { font-size:11px; color:#6f6f6f; margin-top:2px; }
+    .small { font-size:12px; color:#525252; }
+    .icon-btn { background:none; border:none; cursor:pointer; color:#525252; padding:4px; }
+
+    /* High-contrast result + flags (WCAG AA) */
+    .val-cell { display:flex; align-items:center; gap:8px; }
+    .val-ro { font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600; padding-left:8px; border-left:4px solid #8d8d8d; }
+    .val-ro.normal   { border-left-color:#24a148; }
+    .val-ro.abnormal { border-left-color:#b28600; color:#5e4400; }
+    .val-ro.critical { border-left-color:#da1e28; color:#a2191f; }
+    .val-ro.invalid  { border-left-color:#8a3ffc; color:#6929c4; }
+    .result-input { width:92px; border:none; border-bottom:2px solid #161616; background:transparent; padding:2px 4px; font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:600; }
+    .flagtag { display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; line-height:1.4; }
+    .flagtag.normal   { background:#defbe6; color:#0e6027; }
+    .flagtag.abnormal { background:#fcf4d6; color:#684e00; }
+    .flagtag.critical { background:#fff1f1; color:#a2191f; }
+    .flagtag.invalid  { background:#f6f2ff; color:#6929c4; }
+    .flagtag.delta    { background:#e5f6ff; color:#00539a; }
+
+    /* Expanded panel */
+    .panel { background:#fff; border-top:2px solid #0f62fe; }
+    .ctx-strip { background:#f2f4f8; padding:8px 16px; display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; font-size:13px; border-bottom:1px solid #dde1e6; }
+    .ctx-strip .k { color:#6f6f6f; font-size:11px; }
+    .ctx-strip .v { font-weight:500; }
+
+    /* Work zone — always open, the focal point */
+    .workzone { padding:16px; background:#fff; border-bottom:1px solid #e0e0e0; }
+    .wz-grid { display:grid; grid-template-columns:minmax(240px,1fr) 1fr; gap:16px 20px; align-items:start; }
+    .wz-result { background:#f7f9ff; border:1px solid #c9d6ff; border-radius:4px; padding:12px; }
+    .lbl { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:#6f6f6f; font-weight:600; margin-bottom:4px; }
+    .prov { display:inline-flex; align-items:center; gap:4px; font-size:10px; background:#e0e7ff; color:#0043ce; padding:1px 6px; border-radius:10px; margin-left:6px; }
+    .prov.manual { background:#e0e0e0; color:#525252; }
+    .wz-actions { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; align-items:center; }
+    .notes-wrap { margin-top:16px; border-top:1px dashed #d0d0d0; padding-top:12px; }
+    .note-item { border-left:2px solid #c6c6c6; padding-left:10px; margin-bottom:8px; }
+    .note-meta { font-size:11px; color:#6f6f6f; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .note-form { background:#f4f4f4; border:1px solid #e0e0e0; padding:12px; margin-top:8px; max-width:680px; }
+    .vis-opts { display:flex; gap:20px; font-size:12px; margin-top:4px; }
+    .note-ext-warn { background:#defbe6; border:1px solid #b6e8c4; padding:6px 10px; margin-top:8px; font-size:12px; color:#044317; }
+
+    /* Sections (collapsed-but-summarized, reference zone) */
+    .zone-label { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:#8d8d8d; font-weight:600; padding:10px 16px 2px; }
+    .sec { border-bottom:1px solid #e0e0e0; }
+    .sec-h { display:flex; align-items:center; gap:10px; padding:10px 16px; cursor:pointer; font-size:13px; background:#fff; }
+    .sec-h:hover { background:#f4f4f4; }
+    .sec-h .twisty { color:#525252; width:14px; }
+    .sec-h .title { font-weight:600; color:#393939; }
+    .sec-h .summary { color:#6f6f6f; font-size:12px; margin-left:4px; }
+    .sec-h .count { font-size:11px; color:#8d8d8d; }
+    .sec-b { padding:14px 16px; background:#fafafa; }
+    .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px 20px; }
+    .grid3 .k, .kv .k { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:#6f6f6f; font-weight:600; }
+    .grid3 .v, .kv .v { font-size:13px; }
+
+    /* Combined Method/Analyzer/Reagent/QC */
+    .combo-top { display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; margin-bottom:10px; }
+    .reagent-line { display:flex; align-items:center; gap:10px; padding:8px 10px; background:#fff; border:1px solid #e0e0e0; font-size:12px; }
+    .reagent-line.warn { background:#fff8e8; border-color:#f1c21b; }
+    .qc-chip { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+    .qc-chip.pass { background:#defbe6; color:#0e6027; }
+    .qc-chip.fail { background:#fff1f1; color:#a2191f; }
+    .lotcard { border:1px solid #c6c6c6; background:#fff; padding:8px 10px; margin-bottom:6px; border-radius:4px; font-size:12px; }
+    .lotcard.fifo { border:1px dashed #009d9a; }
+    .lotcard.sel { border:2px solid #0f62fe; background:#edf5ff; }
+    .lotcard .lc-head { display:flex; align-items:center; gap:8px; }
+    .lotcard .lc-meta { color:#525252; font-size:11px; margin-top:2px; }
+    .subblock { border-top:1px solid #e0e0e0; margin-top:12px; padding-top:10px; }
+    .subblock .lbl2 { font-size:12px; font-weight:600; color:#393939; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+    .inline-fields { display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; }
+    .mini-num { width:90px; border:1px solid #8d8d8d; padding:4px 6px; font-family:'IBM Plex Mono',monospace; font-size:13px; background:#fff; }
+    .radio-row { display:flex; gap:18px; font-size:12px; margin-top:4px; }
+    .mini-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:8px; }
+    .mini-table th { background:#f4f4f4; text-align:left; padding:5px 8px; font-size:10px; text-transform:uppercase; color:#525252; }
+    .mini-table td { padding:5px 8px; border-top:1px solid #eee; }
+
+    /* Critical banner — the one full-width blocker */
+    .crit { background:#fff1f1; border-top:2px solid #da1e28; border-bottom:2px solid #da1e28; padding:12px 16px; display:flex; gap:12px; align-items:flex-start; }
+    .crit .t { color:#a2191f; font-weight:600; font-size:13px; }
+    .crit .x { color:#750e13; font-size:12px; margin-top:2px; }
+
+    /* Inline NCE */
+    .nce { background:#fbfbfb; border:1px solid #c6c6c6; border-left:4px solid #da1e28; margin:0 16px 16px; padding:14px; }
+    .nce h4 { margin:0 0 4px; font-size:13px; display:flex; align-items:center; gap:6px; }
+    .nce .ctx { background:#fff; border:1px solid #e0e0e0; padding:6px 8px; font-size:11px; color:#525252; margin:8px 0; }
+    .nce-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+    .sev { display:flex; gap:8px; margin-top:4px; }
+    .sev .card { flex:1; border:1px solid #c6c6c6; padding:6px 8px; cursor:pointer; font-size:11px; background:#fff; border-radius:4px; }
+    .sev .card.sel.crit { border-color:#da1e28; background:#fff1f1; }
+    .sev .card.sel.maj  { border-color:#ff832b; background:#fff2e8; }
+    .sev .card.sel.min  { border-color:#0f62fe; background:#edf5ff; }
+    .disp { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:6px; }
+    .disp .tile { border:1px solid #c6c6c6; background:#fff; padding:8px; cursor:pointer; font-size:11px; border-radius:4px; }
+    .disp .tile.sel { border-color:#0f62fe; background:#edf5ff; }
+    .disp .tile b { display:block; font-size:12px; }
+
+    .cds--tag { vertical-align:middle; margin:0 2px; }
+    .cds--btn { cursor:pointer; }
+    .hist-row { display:flex; gap:16px; align-items:center; padding:8px 10px; border-top:1px solid #eee; font-size:12px; }
+    .hist-row.head { background:#edf5ff; font-weight:600; border-top:none; }
+    .pager { display:flex; align-items:center; gap:8px; justify-content:flex-end; padding:8px 10px; font-size:12px; color:#525252; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    ⚡ Visual Preview — Results Entry (consolidated) &nbsp;|&nbsp; Route: <code>/Results</code> &nbsp;|&nbsp; SideNav: Workplan → Results &nbsp;|&nbsp; OpenELIS Global &nbsp;|&nbsp; Not a live application
+  </div>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, Fragment } = React;
+    const palette = ["#0f62fe","#8a3ffc","#198038","#ff832b","#d12771","#005d5d"];
+    const colorHash = (s)=>{let h=0;for(let i=0;i<(s||"").length;i++)h=((h<<5)-h+s.charCodeAt(i))|0;return palette[Math.abs(h)%palette.length];};
+    function Avatar({name,id,size=28}){
+      const ini=(name||"").split(",").map(p=>p.trim()[0]||"").join("").slice(0,2).toUpperCase();
+      return <span className="avatar" style={{width:size,height:size,background:colorHash(id||name)}}>{ini}</span>;
+    }
+    const Twisty = ({open}) => <span className="twisty">{open?"▼":"▶"}</span>;
+
+    /* ---------- Domain configuration ---------- */
+    const DOMAINS = {
+      CLINICAL: {
+        labUnit:"Chemistry", domainTag:["CLINICAL","blue"],
+        subjectHeader:"Sample / Patient",
+        rangeHeader:"Reference Range",
+        note:{bg:"#edf5ff",bd:"#a6c8ff",fg:"#0043ce",txt:"Clinical domain — results are patient-linked. Reference ranges and critical thresholds apply."},
+        ctxKind:"patient",
+      },
+      ENV: {
+        labUnit:"Water Quality", domainTag:["ENVIRONMENTAL","teal"],
+        subjectHeader:"Sample / Site",
+        rangeHeader:"Regulatory Limit",
+        note:{bg:"#d9fbfb",bd:"#3ddbd9",fg:"#005d5d",txt:"Environmental domain — no patient. Samples are linked to a sampling Site; reference ranges are replaced by regulatory limits."},
+        ctxKind:"site",
+      },
+      VECTOR: {
+        labUnit:"Vector Surveillance", domainTag:["VECTOR","purple"],
+        subjectHeader:"Sample / Trap",
+        rangeHeader:"Interpretation",
+        note:{bg:"#f6f2ff",bd:"#d4bbff",fg:"#491d8b",txt:"Vector domain — samples are mosquito pools from a Trap. Pool composition is surfaced in Aliquots; abnormal-only review."},
+        ctxKind:"trap",
+      },
+    };
+
+    /* ---------- Row data per domain ---------- */
+    const ROWS = {
+      CLINICAL: [
+        { id:"c1", lab:"DEV01260000000000000-017", subj:{name:"Loy, Mbugaa", id:"3456789", sex:"M", age:"5d"},
+          method:"Manual", analyzer:"—", prov:"manual", test:"Hemoglobin", sample:"Whole Blood", range:"13.0 – 17.0", unit:"g/dL",
+          rtype:"N", value:"", state:"EMPTY", flag:null },
+        { id:"c2", lab:"DEV01260000000000001-022", subj:{name:"Smith, Jane", id:"7891234", sex:"F", age:"40y"},
+          method:"Cobas TaqMan", analyzer:"Leonardo", prov:"analyzer", test:"Glucose, Fasting", sample:"Serum", range:"70 – 99", unit:"mg/dL",
+          rtype:"N", value:"142", state:"SAVED", flag:"critical", critical:true, expanded:true },
+        { id:"c3", lab:"DEV01260000000000002-031", subj:{name:"Okello, Peter", id:"3456790", sex:"M", age:"33y"},
+          method:"Determine HIV-1/2", analyzer:"—", prov:"manual", test:"HIV 1/2 Rapid", sample:"Whole Blood", range:"Non-Reactive", unit:"",
+          rtype:"D", value:"", state:"EMPTY", flag:null },
+        { id:"c4", lab:"DEV01260000000000003-045", subj:{name:"Johnson, Robert", id:"5551234", sex:"M", age:"66y"},
+          method:"Manual Microscopy", analyzer:"—", prov:"manual", test:"Stool — Microscopy (O&P)", sample:"Stool", range:"No parasites seen", unit:"",
+          rtype:"N", value:"Giardia lamblia", state:"SAVED", flag:"abnormal" },
+      ],
+      ENV: [
+        { id:"e1", lab:"WQ-2026-000241-01", subj:{site:"Borehole BH-12", point:"Distribution — Tap 4", src:"Groundwater"},
+          method:"Membrane Filtration", analyzer:"—", prov:"manual", test:"E. coli", sample:"Drinking Water", range:"0 CFU/100 mL (max)", unit:"CFU/100mL",
+          rtype:"N", value:"18", state:"SAVED", flag:"critical", critical:true, expanded:true },
+        { id:"e2", lab:"WQ-2026-000241-02", subj:{site:"Borehole BH-12", point:"Distribution — Tap 4", src:"Groundwater"},
+          method:"Nephelometry", analyzer:"Hach TU5200", prov:"analyzer", test:"Turbidity", sample:"Drinking Water", range:"≤ 5 NTU", unit:"NTU",
+          rtype:"N", value:"", state:"EMPTY", flag:null },
+        { id:"e3", lab:"WQ-2026-000241-03", subj:{site:"Borehole BH-12", point:"Distribution — Tap 4", src:"Groundwater"},
+          method:"Electrode", analyzer:"Hanna HI98494", prov:"analyzer", test:"pH", sample:"Drinking Water", range:"6.5 – 8.5", unit:"pH",
+          rtype:"N", value:"7.4", state:"SAVED", flag:"normal" },
+      ],
+      VECTOR: [
+        { id:"v1", lab:"VEC-2026-00088-A1", subj:{trap:"CDC-LT 07", site:"Bagamoyo Sentinel S3", species:"An. gambiae s.l."},
+          method:"Real-time PCR (Pf)", analyzer:"Donatello", prov:"analyzer", test:"Plasmodium falciparum — Pool PCR", sample:"Mosquito Pool (n=25)", range:"Negative", unit:"",
+          rtype:"D", value:"Positive", state:"SAVED", flag:"abnormal", expanded:true },
+        { id:"v2", lab:"VEC-2026-00088-A2", subj:{trap:"CDC-LT 07", site:"Bagamoyo Sentinel S3", species:"Culex spp."},
+          method:"Morphological ID", analyzer:"—", prov:"manual", test:"Species Identification", sample:"Mosquito Pool (n=40)", range:"—", unit:"",
+          rtype:"N", value:"", state:"EMPTY", flag:null },
+      ],
+    };
+
+    function FlagChip({flag}){
+      if(!flag) return <span style={{color:"#c6c6c6"}}>—</span>;
+      const map={
+        normal:{t:"Normal",i:"✓"}, abnormal:{t:"Abnormal",i:"▲"},
+        critical:{t:"Critical",i:"⚠"}, invalid:{t:"Invalid",i:"⊘"},
+      };
+      const m=map[flag]||map.normal;
+      return <span className={"flagtag "+flag}>{m.i} {m.t}</span>;
+    }
+
+    function ResultsApp(){
+      const [domain,setDomain]=useState("CLINICAL");
+      const D=DOMAINS[domain];
+      const rows=ROWS[domain];
+      // Sticky section layout — remembered per user across rows + reloads (localStorage; falls back to in-memory)
+      const loadPrefs=()=>{ try{ return JSON.parse(localStorage.getItem("oe.results.sectionPrefs")||"{}"); }catch(e){ return {}; } };
+      const [sectionPrefs,setSectionPrefs]=useState(loadPrefs);
+      const toggleSection=(k,curr)=> setSectionPrefs(p=>{ const n={...p,[k]:!curr}; try{localStorage.setItem("oe.results.sectionPrefs",JSON.stringify(n));}catch(e){} return n; });
+      const resetLayout=()=>{ try{localStorage.removeItem("oe.results.sectionPrefs");}catch(e){} setSectionPrefs({}); };
+      const defaultExp=(rows.find(r=>r.expanded)||{}).id||null;
+      const [expanded,setExpanded]=useState(defaultExp);
+      // per-row local state (edit + value)
+      const [rowState,setRowState]=useState({});
+      const getState=(r)=> rowState[r.id]?.state ?? r.state;
+      const getValue=(r)=> rowState[r.id]?.value ?? r.value;
+      const setEditing=(r)=> setRowState(s=>({...s,[r.id]:{...(s[r.id]||{value:r.value}),state:"EDITING"}}));
+      const setSaved=(r)=> setRowState(s=>({...s,[r.id]:{...(s[r.id]||{}),state:"SAVED"}}));
+      const setVal=(r,v)=> setRowState(s=>({...s,[r.id]:{...(s[r.id]||{}),value:v,state:(getState(r)==="SAVED"?"EDITING":"DIRTY")}}));
+
+      const onDomain=(d)=>{ setDomain(d); const dr=(ROWS[d].find(r=>r.expanded)||{}).id||null; setExpanded(dr); setRowState({}); };
+
+      return (
+        <Fragment>
+          <div className="domain-note" style={{background:D.note.bg,borderBottom:"1px solid "+D.note.bd,color:D.note.fg}}>
+            ℹ <strong>{D.labUnit}</strong> &nbsp;<span className={"cds--tag cds--tag--"+D.domainTag[1]} style={{fontSize:10}}>{D.domainTag[0]}</span> &nbsp;— {D.note.txt}
+          </div>
+          <div className="breadcrumb-bar"><a href="#">Home</a> / <a href="#">Workplan</a> / <strong>Results</strong></div>
+
+          <div className="page-head"><h1>Results</h1><p>Enter and manage test results for pending laboratory orders</p></div>
+
+          {/* Toolbar — Lab Unit drives the domain */}
+          <div className="toolbar">
+            <div className="field-stack" style={{flex:1,minWidth:240}}>
+              <label>Search</label>
+              <div className="cds--search cds--search--sm"><input className="cds--search-input" placeholder="Search or scan barcode — lab number, subject ID, test name…" /></div>
+            </div>
+            <div className="field-stack" style={{minWidth:200}}>
+              <label>Lab Unit <span className="req">*</span></label>
+              <div className="cds--select"><select className="cds--select-input" value={domain} onChange={e=>onDomain(e.target.value)}>
+                <option value="CLINICAL">Chemistry (Clinical)</option>
+                <option value="ENV">Water Quality (Environmental)</option>
+                <option value="VECTOR">Vector Surveillance (Vector)</option>
+              </select></div>
+            </div>
+            <div className="field-stack"><label>Date From</label><input className="cds--date-picker__input" type="date" defaultValue="2026-06-10" /></div>
+            <div className="field-stack"><label>Date To</label><input className="cds--date-picker__input" type="date" defaultValue="2026-06-10" /></div>
+            <button className="cds--btn cds--btn--primary">Load Results</button>
+          </div>
+
+          <div className="filter-bar">
+            <span style={{fontSize:12,color:"#525252",fontWeight:500,marginRight:4}}>Show:</span>
+            {["All","Pending","Awaiting validation"].map((s,i)=>(<button key={s} className={"chip "+(i===0?"active":"")}>{s}</button>))}
+            <span style={{marginLeft:"auto",fontSize:12,color:"#8d8d8d"}}>{rows.length} results · <span style={{color:"#ff832b"}}>⚠</span> = nonconforming / rejected</span>
+          </div>
+
+          <div className="table-wrap">
+            <table className="rt">
+              <thead><tr>
+                <th style={{width:28}}></th>
+                <th>{D.subjectHeader}</th>
+                <th>Test</th>
+                <th>Method</th>
+                <th>Analyzer</th>
+                <th>Sample</th>
+                <th>{D.rangeHeader}</th>
+                <th>Result</th>
+                <th>Status</th>
+                <th>Flag</th>
+                <th>Actions</th>
+              </tr></thead>
+              <tbody>
+                {rows.map(r=>{
+                  const isExp=expanded===r.id; const st=getState(r); const val=getValue(r);
+                  const editable = st==="EMPTY"||st==="DIRTY"||st==="EDITING";
+                  return (
+                    <Fragment key={r.id}>
+                      <tr className={isExp?"exp":""}>
+                        <td><button className="icon-btn" onClick={()=>setExpanded(isExp?null:r.id)}>{isExp?"▼":"▶"}</button></td>
+                        <td>
+                          <div style={{display:"flex",gap:8}}>
+                            {D.ctxKind==="patient" && <Avatar name={r.subj.name} id={r.subj.id} />}
+                            <div>
+                              <div><span className="acc">{r.lab}</span></div>
+                              {D.ctxKind==="patient" && <div className="sub">{r.subj.name} · ID {r.subj.id} · {r.subj.sex} · {r.subj.age}</div>}
+                              {D.ctxKind==="site" && <div className="sub">{r.subj.site} · {r.subj.point}</div>}
+                              {D.ctxKind==="trap" && <div className="sub">Trap {r.subj.trap} · {r.subj.species}</div>}
+                            </div>
+                          </div>
+                        </td>
+                        <td><strong>{r.test}</strong></td>
+                        <td className="small">{r.method}{r.prov==="analyzer" && <span className="prov">⛁ import</span>}</td>
+                        <td className="small">{r.analyzer}</td>
+                        <td className="small">{r.sample}</td>
+                        <td><span className="acc">{r.range}</span> <span className="small">{r.unit}</span></td>
+                        <td>
+                          {!editable
+                            ? <span className={"val-ro "+(r.flag||"normal")}>{val||"—"} <span className="small" style={{fontWeight:400}}>{r.unit}</span></span>
+                            : (r.rtype==="D"
+                                ? <div className="cds--select"><select className="cds--select-input" value={val} onChange={e=>setVal(r,e.target.value)}>
+                                    <option value="">Select…</option><option>Non-Reactive</option><option>Reactive</option><option>Positive</option><option>Negative</option><option>Indeterminate</option><option>Invalid</option></select></div>
+                                : <input className="result-input" value={val} placeholder="—" onChange={e=>setVal(r,e.target.value)} />)
+                          }
+                        </td>
+                        <td><span className={"cds--tag cds--tag--"+(st==="SAVED"?"warm-gray":st==="EMPTY"?"gray":"blue")}>{st==="SAVED"?"awaiting validation":st==="EMPTY"?"pending":"unsaved"}</span></td>
+                        <td><FlagChip flag={st==="EMPTY"?null:r.flag} /></td>
+                        <td>
+                          {st==="SAVED" && <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={()=>setEditing(r)}>✎ Edit</button>}
+                          {(st==="DIRTY"||st==="EDITING") && <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>setSaved(r)}>💾 Save</button>}
+                          {st==="EMPTY" && <span className="small" style={{color:"#a8a8a8"}}>enter a value</span>}
+                        </td>
+                      </tr>
+
+                      {isExp && <tr><td colSpan={11} style={{padding:0,background:"#eef2f8"}}>
+                        <ExpandedPanel domain={domain} D={D} r={r} st={st} val={val}
+                          editable={editable} onEdit={()=>setEditing(r)} onSave={()=>setSaved(r)} onVal={(v)=>setVal(r,v)}
+                          sectionPrefs={sectionPrefs} toggleSection={toggleSection} onResetLayout={resetLayout} />
+                      </td></tr>}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{margin:"0 24px 32px",fontSize:11,color:"#8d8d8d"}}>
+            Switch the <strong>Lab Unit</strong> selector (top) to see the Water Quality (Environmental) and Vector Surveillance (Vector) page states.
+          </div>
+        </Fragment>
+      );
+    }
+
+    /* ---------- Expanded panel: work zone + reference zone ---------- */
+    function ExpandedPanel({domain,D,r,st,val,editable,onEdit,onSave,onVal,sectionPrefs,toggleSection,onResetLayout}){
+      // Per-result smart defaults: open when THIS result has notable content. A rule fired → Interpretation opens.
+      const condDefault={ combo:true, order:false, aliquots:false, interp:(domain==="CLINICAL"), program:false, storage:false, attach:false, history:false };
+      // Precedence: remembered user choice wins; otherwise per-result default; otherwise collapsed.
+      const isOpen=(k)=> (k in sectionPrefs) ? sectionPrefs[k] : (condDefault[k]||false);
+      const tg=(k)=>toggleSection(k, isOpen(k));
+      const touched=(k)=> (k in sectionPrefs);
+      const [showNce,setShowNce]=useState(false);
+      const [referred,setReferred]=useState(false);
+      const [showReferral,setShowReferral]=useState(false);
+      const [histPage,setHistPage]=useState(1);
+
+      return (
+        <div className="panel">
+          {/* Compact context strip (clutter move #4 — one strip, not four banners) */}
+          <div className="ctx-strip">
+            {D.ctxKind==="patient" && <Fragment>
+              <span className="v" style={{fontWeight:600}}>{r.subj.name}</span>
+              <span><span className="k">ID </span><span className="v">{r.subj.id}</span></span>
+              <span><span className="k">Sex/Age </span><span className="v">{r.subj.sex} · {r.subj.age}</span></span>
+              <span><span className="k">Clinician </span><span className="v">Dr. M. Chen</span></span>
+              <span className="cds--tag cds--tag--red">STAT</span>
+            </Fragment>}
+            {D.ctxKind==="site" && <Fragment>
+              <span className="v" style={{fontWeight:600}}>{r.subj.site}</span>
+              <span><span className="k">Sampling point </span><span className="v">{r.subj.point}</span></span>
+              <span><span className="k">Source </span><span className="v">{r.subj.src}</span></span>
+              <span className="cds--tag cds--tag--teal">Regulatory</span>
+            </Fragment>}
+            {D.ctxKind==="trap" && <Fragment>
+              <span className="v" style={{fontWeight:600}}>Trap {r.subj.trap}</span>
+              <span><span className="k">Sentinel site </span><span className="v">{r.subj.site}</span></span>
+              <span><span className="k">Species </span><span className="v">{r.subj.species}</span></span>
+              <span className="cds--tag cds--tag--purple">Surveillance</span>
+            </Fragment>}
+            {referred && <span className="cds--tag cds--tag--cyan">⇆ Referred out</span>}
+          </div>
+
+          {/* WORK ZONE — the focal point, always open (clutter moves #1, #3, #11) */}
+          <div className="workzone">
+            <div className="wz-grid">
+              <div className="wz-result">
+                <div className="lbl">Result Value</div>
+                <div className="val-cell">
+                  {!editable
+                    ? <span className={"val-ro "+(r.flag||"normal")} style={{fontSize:22}}>{val||"—"}</span>
+                    : (r.rtype==="D"
+                        ? <div className="cds--select"><select className="cds--select-input" value={val} onChange={e=>onVal(e.target.value)}>
+                            <option value="">Select…</option><option>Non-Reactive</option><option>Reactive</option><option>Positive</option><option>Negative</option><option>Indeterminate</option></select></div>
+                        : <input className="result-input" style={{fontSize:20,width:120}} value={val} onChange={e=>onVal(e.target.value)} />)}
+                  <span className="small">{r.unit}</span>
+                  <FlagChip flag={r.flag} />
+                </div>
+                <div className="small" style={{marginTop:8}}>
+                  {D.rangeHeader}: <span className="acc">{r.range} {r.unit}</span>
+                  {r.critical && <span style={{color:"#a2191f",marginLeft:8}}>Critical: &lt;50 or &gt;400</span>}
+                </div>
+              </div>
+
+              <div>
+                <div className="lbl">Method {r.prov==="analyzer" && <span className="prov">⛁ from Analyzer Run</span>}</div>
+                {!editable
+                  ? <div className="grid3" style={{display:"block"}}><span className="v">{r.method}</span></div>
+                  : <div className="cds--select"><select className="cds--select-input" defaultValue={r.method}><option>{r.method}</option><option>Manual</option><option>Automated</option><option>Point of Care</option></select></div>}
+                <div className="lbl" style={{marginTop:12}}>Analyzer instance</div>
+                {!editable
+                  ? <span className="v">{r.analyzer==="—"?<span className="small">Not from an instrument</span>:r.analyzer}</span>
+                  : <div className="cds--select"><select className="cds--select-input" defaultValue={r.analyzer}>
+                      <option>{r.analyzer}</option><option>Leonardo</option><option>Donatello</option><option>Michelangelo</option><option>Raphael</option><option>— none —</option></select></div>}
+                <div className="small" style={{marginTop:6,color:"#8d8d8d"}}>Method = analyzer <em>type</em>; Analyzer = which instrument. Split from the legacy single column.</div>
+              </div>
+
+            </div>
+            <NotesBlock domain={domain} editing={st==="EDITING"} />
+
+            {/* Work-zone actions — Edit/Save (per-row), NCE (inline), Refer-out (separate action) */}
+            <div className="wz-actions">
+              {st==="SAVED" && <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={onEdit}>✎ Edit result</button>}
+              {(st==="DIRTY"||st==="EDITING") && <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={onSave}>💾 Save (E-Sign)</button>}
+              <button className="cds--btn cds--btn--tertiary cds--btn--sm" onClick={()=>setShowNce(s=>!s)} style={{borderColor:"#da1e28",color:"#a2191f"}}>⚠ Report Non-Conformity</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setShowReferral(s=>!s)}>⇆ {referred?"Referred ✓ — edit":"Refer this test"}</button>
+              <span className="small" style={{marginLeft:"auto"}}>Saving a value records your e-signature. Critical acknowledgment is a follow-up on the Alerts dashboard — never blocks Save.</span>
+            </div>
+          </div>
+
+          {/* Critical banner — the single full-width blocker, only when critical */}
+          {r.critical && (
+            <div className="crit">
+              <span style={{fontSize:18}}>⚠</span>
+              <div style={{flex:1}}>
+                <div className="t">{domain==="ENV"?"Regulatory Exceedance — Notification Required":"Critical Value — Physician Notification Required"}</div>
+                <div className="x">{domain==="ENV"
+                  ? "E. coli detected in drinking water (limit 0 CFU/100 mL). Per protocol, the water authority must be notified. Acknowledgment is recorded in the Alerts dashboard."
+                  : "Critical hyperglycemia — Glucose > 400 mg/dL. The responsible clinician must be notified. Acknowledgment is recorded in the Alerts dashboard."}</div>
+              </div>
+              <button className="cds--btn cds--btn--danger cds--btn--sm" style={{flexShrink:0}}>I Acknowledge</button>
+            </div>
+          )}
+
+          {/* Inline NCE (real InlineNceForm field set) — disposition Cancel/Reject/Retest only */}
+          {showNce && <InlineNce r={r} onClose={()=>setShowNce(false)} />}
+          {showReferral && <ReferralForm onClose={()=>setShowReferral(false)} onSave={()=>{setReferred(true);setShowReferral(false);}} />}
+
+          {/* COMBINED Reagents / QC / Controls — adopts the reagent-usage model (clutter move #5, D5/D11-D13) */}
+          <div className="zone-label">Consumables &amp; quality</div>
+          <Section open={isOpen("combo")} onClick={()=>tg("combo")} title="Reagents, QC &amp; Controls"
+            summary={(r.prov==="analyzer"?"analyzer-reported lot":"manual capture")+" · QC Pass"}>
+            <EquipmentSection domain={domain} r={r} />
+          </Section>
+
+          {/* REFERENCE ZONE — collapsed-but-summarized (clutter moves #1, #2, #7) */}
+          <div className="zone-label" style={{display:"flex",alignItems:"center",gap:8}}>
+            <span>Reference &amp; context (open as needed)</span>
+            <span style={{fontSize:10,color:"#0043ce",background:"#edf5ff",padding:"1px 6px",borderRadius:10,textTransform:"none",letterSpacing:0}}>↺ Layout remembered per user</span>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" style={{marginLeft:"auto",fontSize:11,minHeight:0,padding:"2px 8px"}} onClick={onResetLayout}>Reset layout</button>
+          </div>
+
+          <Section open={isOpen("order")} onClick={()=>tg("order")} title="Order info"
+            summary={domain==="ENV"?"Tap 4 · Groundwater · collected by J. Mwangi":domain==="VECTOR"?"CDC-LT 07 · collected 06/09 · 25 mosquitoes":"Dr. M. Chen · STAT · Endocrinology"}>
+            <div className="grid3">
+              {domain==="ENV" ? <Fragment>
+                <KV k="Sampling Point" v="Distribution — Tap 4" /><KV k="Source Type" v="Groundwater" /><KV k="Collected By" v="J. Mwangi" />
+                <KV k="Collection Date/Time" v="06/10/2026 07:10" /><KV k="Residual Chlorine" v="0.1 mg/L" /><KV k="Field Temp" v="24.6 °C" />
+              </Fragment> : domain==="VECTOR" ? <Fragment>
+                <KV k="Trap Type" v="CDC Light Trap" /><KV k="Collection Night" v="06/09/2026" /><KV k="Pool Size" v="25 mosquitoes" />
+                <KV k="Collected By" v="Field Team B" /><KV k="GPS" v="-6.4423, 38.9012" /><KV k="Habitat" v="Peri-domestic" />
+              </Fragment> : <Fragment>
+                <KV k="Ordering Clinician" v="Dr. M. Chen" /><KV k="Phone" v="+255 555-0456" /><KV k="Department" v="Endocrinology" />
+                <KV k="Priority" v="STAT" /><KV k="Collection" v="06/10/2026 07:00" /><KV k="Fasting" v="Fasting (12h)" />
+              </Fragment>}
+            </div>
+          </Section>
+
+          <Section open={isOpen("aliquots")} onClick={()=>tg("aliquots")} title={domain==="VECTOR"?"Aliquots & pool composition":"Aliquots"}
+            summary={domain==="VECTOR"?"pool of 25 · 1 sub-aliquot":"2 aliquots · create more"}>
+            <AliquotBlock domain={domain} r={r} />
+          </Section>
+
+          {domain==="CLINICAL" && (
+            <Section open={isOpen("interp")} onClick={()=>tg("interp")} title="Interpretation" count={touched("interp")?"remembered":"rule fired · auto-open"}
+              summary="enter via rule, macro, or free text">
+              <InterpretationBlock />
+            </Section>
+          )}
+
+          <Section open={isOpen("program")} onClick={()=>tg("program")} title="Program info" count={domain==="VECTOR"?"Sentinel surveillance":"EQA Round 4"}
+            summary={domain==="VECTOR"?"PMI vector sentinel · round 2":"EQA-CHEM-2025-Q4 · due 12/20"}>
+            <div className="grid3">
+              {domain==="VECTOR" ? <Fragment>
+                <KV k="Program" v="PMI Vector Sentinel" /><KV k="Round" v="2 / 2026" /><KV k="Protocol" v="WHO insecticide-resistance" />
+              </Fragment> : <Fragment>
+                <KV k="EQA Panel" v="EQA-CHEM-2025-Q4-07" /><KV k="Round" v="4" /><KV k="Deadline" v="12/20/2025 23:59" />
+              </Fragment>}
+            </div>
+            <div className="small" style={{marginTop:8,color:"#8d8d8d"}}>Program fields are read-only here — edit on the originating order.</div>
+          </Section>
+
+          <Section open={isOpen("storage")} onClick={()=>tg("storage")} title="Storage &amp; sample disposal"
+            summary={domain==="ENV"?"Cooler 2 · available":"Box 12 · Pos A-09 · available"}>
+            <div className="grid3">
+              <KV k="Location" v={domain==="ENV"?"Field Cooler 2":"Refrigerator B → Shelf 1 → Box 12"} />
+              <KV k="Position" v={domain==="ENV"?"—":"Pos A-09"} />
+              <KV k="Condition" v="2–8 °C" />
+            </div>
+            <button className="cds--btn cds--btn--secondary cds--btn--sm" style={{marginTop:8}}>Move storage location</button>
+            <SampleStatusBlock />
+          </Section>
+
+          <Section open={isOpen("attach")} onClick={()=>tg("attach")} title="Attachments" count="1"
+            summary={domain==="ENV"?"chain-of-custody.pdf":domain==="VECTOR"?"trap-log.pdf":"insurance-auth.pdf"}>
+            <div className="reagent-line">
+              <span style={{color:"#da1e28"}}>📄</span>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:500}}>{domain==="ENV"?"chain-of-custody.pdf":domain==="VECTOR"?"trap-log.pdf":"insurance-auth.pdf"}</div>
+                <div className="small">89 KB · Order Entry · 06/10/2026 06:45</div>
+              </div>
+              <span className="cds--tag cds--tag--purple">Order Entry</span>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">↓</button>
+            </div>
+          </Section>
+
+          {/* History — redefined as THIS-ANALYSIS history, inline, paginated (clutter move #10, decision D7) */}
+          <Section open={isOpen("history")} onClick={()=>tg("history")} title="History (this analysis)" count="revisions · status · retests"
+            summary="3 revisions · last released 06/10 · 1 retest">
+            <div style={{border:"1px solid #e0e0e0"}}>
+              <div className="hist-row head"><span style={{width:130}}>When</span><span style={{width:150}}>Event</span><span style={{flex:1}}>Detail</span><span style={{width:110}}>By</span></div>
+              {[
+                {when:"06/10 10:15",ev:"Result saved",detail:(r.value||"—")+" "+r.unit+" (rev 3)",by:"K. Davis"},
+                {when:"06/10 09:50",ev:"Retest ordered",detail:"Repeat requested — instrument flag",by:"K. Davis"},
+                {when:"06/10 09:30",ev:"Result entered",detail:"98 "+r.unit+" (rev 2, corrected)",by:"A. Mode"},
+                {when:"06/10 08:05",ev:"Status → In progress",detail:"Assigned to "+(r.analyzer!=="—"?r.analyzer:"bench"),by:"system"},
+                {when:"06/10 07:40",ev:"Status → Entered",detail:"Analysis created from order",by:"system"},
+              ].slice((histPage-1)*3,histPage*3).map((h,i)=>(
+                <div className="hist-row" key={i}><span style={{width:130,color:"#8d8d8d"}}>{h.when}</span><span style={{width:150}}><span className="cds--tag cds--tag--blue" style={{fontSize:10}}>{h.ev}</span></span><span style={{flex:1}}>{h.detail}</span><span style={{width:110,color:"#525252"}}>{h.by}</span></div>
+              ))}
+              <div className="pager">
+                <span>Page {histPage} of 2 · 25 / 50 / 100 per page</span>
+                <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setHistPage(p=>Math.max(1,p-1))}>‹</button>
+                <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setHistPage(p=>Math.min(2,p+1))}>›</button>
+              </div>
+            </div>
+            <div className="small" style={{marginTop:6,color:"#8d8d8d"}}>This-analysis only — revisions, status transitions, retests, corrections, notes, audit. Patient-longitudinal trends live on the patient record; Westgard rules on the QC dashboard.</div>
+          </Section>
+        </div>
+      );
+    }
+
+    function Section({open,onClick,title,summary,count,children}){
+      return (
+        <div className="sec">
+          <div className="sec-h" onClick={onClick}>
+            <Twisty open={open} />
+            <span className="title" dangerouslySetInnerHTML={{__html:title}} />
+            {count && <span className="count">({count})</span>}
+            {!open && summary && <span className="summary">— {summary}</span>}
+          </div>
+          {open && <div className="sec-b">{children}</div>}
+        </div>
+      );
+    }
+    function KV({k,v}){ return <div><div className="k">{k}</div><div className="v">{v}</div></div>; }
+
+    /* Functional Notes — dual-axis model (context × visibility), parity with the Validation page */
+    function NotesBlock({domain,editing}){
+      const [showForm,setShowForm]=useState(false);
+      const [vis,setVis]=useState("internal");
+      const ctx = editing ? ["Modification","warm-gray"] : ["Entry","blue"];
+      const seed = domain==="ENV" ? "Resample scheduled; chlorination check requested."
+        : domain==="VECTOR" ? "Pool flagged for confirmatory sequencing."
+        : "Patient confirmed 12-hour fast prior to collection.";
+      return (
+        <div className="notes-wrap">
+          <div className="lbl">Notes <span className="count">(1)</span></div>
+          <div className="note-item">
+            <div className="note-meta">
+              <span>06/10/2026 09:35</span><span style={{fontWeight:500}}>K. Davis</span>
+              <span className="cds--tag cds--tag--blue" style={{fontSize:10}}>Entry</span>
+              <span className="cds--tag cds--tag--teal" style={{fontSize:10}}>📤 Send with result</span>
+            </div>
+            <div style={{fontSize:13,marginTop:2}}>{seed}</div>
+          </div>
+          {showForm ? (
+            <div className="note-form">
+              <div style={{fontSize:12,marginBottom:6}}>
+                <strong>Context:</strong> <span className={"cds--tag cds--tag--"+ctx[1]}>{ctx[0]}</span>
+                <span className="small" style={{marginLeft:4}}>(auto-set — {editing?"you are modifying a saved result":"authored during result entry"})</span>
+              </div>
+              <div style={{fontSize:12}}>
+                <div style={{fontWeight:600,marginBottom:4}}>Visibility <span className="req">*</span></div>
+                <div className="vis-opts">
+                  <label style={{display:"flex",gap:6,cursor:"pointer",alignItems:"flex-start"}}>
+                    <input type="radio" name="visnote" checked={vis==="internal"} onChange={()=>setVis("internal")} style={{marginTop:2}} />
+                    <span><strong>🔒 In Lab Only</strong><span className="small" style={{display:"block"}}>Visible only to lab staff (default)</span></span>
+                  </label>
+                  <label style={{display:"flex",gap:6,cursor:"pointer",alignItems:"flex-start"}}>
+                    <input type="radio" name="visnote" checked={vis==="external"} onChange={()=>setVis("external")} style={{marginTop:2}} />
+                    <span><strong>📤 Send with Result</strong><span className="small" style={{display:"block"}}>Appears on the patient / clinician report</span></span>
+                  </label>
+                </div>
+              </div>
+              <textarea rows={2} placeholder="Add a note…" style={{width:"100%",marginTop:8,padding:6,fontSize:13,border:"1px solid #e0e0e0",resize:"none"}} />
+              <div style={{display:"flex",gap:8,marginTop:8}}>
+                <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>setShowForm(false)}>Save note</button>
+                <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setShowForm(false)}>Cancel</button>
+              </div>
+              {vis==="external" && <div className="note-ext-warn"><strong>This note will appear on the patient report.</strong> Make sure the wording is appropriate for the patient and clinician.</div>}
+            </div>
+          ) : (
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" style={{paddingLeft:0}} onClick={()=>setShowForm(true)}>+ Add note</button>
+          )}
+        </div>
+      );
+    }
+
+    /* Inline NCE — real field set from shipped InlineNceForm.jsx; disposition = Cancel/Reject/Retest (no Refer-out) */
+    function InlineNce({r,onClose}){
+      const [sev,setSev]=useState("MINOR");
+      const [disp,setDisp]=useState("CANCEL");
+      return (
+        <div className="nce">
+          <h4>⚠ Report Non-Conformity Event <span className="small" style={{fontWeight:400,marginLeft:"auto"}}>real InlineNceForm field set</span>
+            <button className="icon-btn" style={{marginLeft:8}} onClick={onClose}>✕</button></h4>
+          <div className="ctx"><strong>Auto-linked: </strong>{r.test} · {r.lab} · Result: {r.value||"—"} &nbsp;·&nbsp; NCE Number <span className="mono">NCE-2026-000418</span> (auto)</div>
+          <div className="nce-grid">
+            <div className="field-stack"><label className="lbl">Date of Event <span className="req">*</span></label><input className="cds--date-picker__input" type="date" defaultValue="2026-06-10" /></div>
+            <div className="field-stack"><label className="lbl">Reporting Unit <span className="req">*</span></label><div className="cds--select"><select className="cds--select-input"><option>Chemistry</option><option>Water Quality</option><option>Vector Surveillance</option></select></div></div>
+            <div className="field-stack"><label className="lbl">Reporter</label><input className="cds--text-input" defaultValue="K. Davis" readOnly /></div>
+            <div className="field-stack"><label className="lbl">Category <span className="req">*</span></label><div className="cds--select"><select className="cds--select-input"><option>Pre-Analytical</option><option>Analytical</option><option>Post-Analytical</option><option>Administrative</option></select></div></div>
+            <div className="field-stack"><label className="lbl">Subcategory</label><div className="cds--select"><select className="cds--select-input"><option>Specimen Integrity</option><option>Container Issue</option><option>Instrument Fault</option></select></div></div>
+            <div></div>
+          </div>
+          <div style={{marginTop:8}}>
+            <label className="lbl">Severity <span className="req">*</span></label>
+            <div className="sev">
+              {[["CRITICAL","crit","Critical","Patient safety risk"],["MAJOR","maj","Major","Significant impact"],["MINOR","min","Minor","Limited impact"]].map(([id,c,t,d])=>(
+                <div key={id} className={"card "+(sev===id?"sel "+c:"")} onClick={()=>setSev(id)}><strong>{t}</strong><div className="small">{d}</div></div>
+              ))}
+            </div>
+          </div>
+          <div style={{marginTop:10}}>
+            <label className="lbl">Description <span className="req">*</span></label>
+            <textarea className="cds--text-area" style={{width:"100%",minHeight:54,border:"1px solid #c6c6c6",padding:8}} placeholder="What happened, when detected, relevant context…" />
+          </div>
+          <div className="nce-grid" style={{marginTop:10,gridTemplateColumns:"1fr 1fr"}}>
+            <div className="field-stack"><label className="lbl">Immediate Action Taken</label><textarea className="cds--text-area" style={{minHeight:42,border:"1px solid #c6c6c6",padding:6}} /></div>
+            <div className="field-stack"><label className="lbl">Suspected Causes</label><textarea className="cds--text-area" style={{minHeight:42,border:"1px solid #c6c6c6",padding:6}} /></div>
+          </div>
+          <div style={{marginTop:12,borderTop:"1px solid #e0e0e0",paddingTop:10}}>
+            <label className="lbl">Result Disposition <span className="req">*</span> <span style={{textTransform:"none",fontWeight:400,color:"#8d8d8d"}}>— Refer-out is a separate row action, not a disposition</span></label>
+            <div className="disp">
+              {[["CANCEL","Cancel result","Voided. No value reported. Common for pre-analytical NCEs."],
+                ["REJECT","Reject + reason","Permanently deleted. Requires a rejection reason."],
+                ["RETEST","Retest","Stays pending. A retest order is created; track via Workplan."]].map(([id,t,d])=>(
+                <div key={id} className={"tile "+(disp===id?"sel":"")} onClick={()=>setDisp(id)}><b>{t}</b><span className="small">{d}</span></div>
+              ))}
+            </div>
+            {disp==="REJECT" && <div style={{marginTop:8}}><label className="lbl">Rejection reason <span className="req">*</span></label>
+              <div className="cds--select"><select className="cds--select-input"><option>Select…</option><option>Hemolyzed sample</option><option>Insufficient quantity (QNS)</option><option>Container leak</option></select></div>
+              <div className="small" style={{color:"#a2191f",marginTop:4}}>⚠ Rejecting permanently deletes the result. This cannot be undone.</div></div>}
+          </div>
+          <div style={{marginTop:12,display:"flex",gap:8}}>
+            <button className="cds--btn cds--btn--danger cds--btn--sm">Submit NCE &amp; apply disposition</button>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={onClose}>Cancel</button>
+            <span className="small" style={{marginLeft:"auto"}}>Attachments &amp; auto-linked sample/result included (Section 4–5 of the shipped form).</span>
+          </div>
+        </div>
+      );
+    }
+
+    /* Combined Reagents / QC / Controls — adopts the reagent-usage model + control, dilution, replicate, flags */
+    function EquipmentSection({domain,r}){
+      const isAnalyzer = r.prov==="analyzer";
+      const isRDT = r.rtype==="D";
+      const [ctrlLine,setCtrlLine]=useState("valid");
+      const [qcPass,setQcPass]=useState(true);
+      const [showRepl,setShowRepl]=useState(false);
+      const reagentName = domain==="ENV"?"Colilert-18":domain==="VECTOR"?"Pf qPCR Mastermix":(isRDT?"Determine HIV-1/2 cassette":"Glucose HK Gen.3");
+
+      return (
+        <div>
+          {/* QC / calibration status */}
+          <div className="reagent-line" style={{marginBottom:8}}>
+            <span className={"qc-chip "+(qcPass?"pass":"fail")}>{qcPass?"✓ QC Pass":"✕ QC Fail"}</span>
+            <span className="small">{isAnalyzer?r.analyzer+" · last calibrated 06/10/2026 06:15 · Levels 1 & 2 within range":"Bench run · controls recorded below"}</span>
+            {isAnalyzer && <a href="#" className="small" style={{marginLeft:"auto",color:"#0f62fe"}}>View control results</a>}
+          </div>
+
+          {/* Reagent capture — analyzer-reported vs manual per-test list (reagent-usage model) */}
+          <div className="subblock" style={{borderTop:"none",marginTop:0,paddingTop:0}}>
+            <div className="lbl2">Reagent lots used
+              {isAnalyzer
+                ? <span className="cds--tag cds--tag--gray" style={{fontSize:10}}>capture mode: analyzer-reported</span>
+                : <span className="cds--tag cds--tag--blue" style={{fontSize:10}}>capture mode: {isRDT?"required":"optional"}</span>}
+            </div>
+            {isAnalyzer ? (
+              <Fragment>
+                <div className="small" style={{marginBottom:4}}>Reported by the analyzer in its result payload — read-only. Matches the Workplan assignment (no discrepancy).</div>
+                <table className="mini-table">
+                  <thead><tr><th>Reagent</th><th>Lot</th><th>Expires</th><th>Qty used</th><th>Source</th></tr></thead>
+                  <tbody>
+                    <tr><td>{reagentName}</td><td className="mono">LOT-2026-0421</td><td>08/15/2026</td><td>—</td>
+                      <td><span className="cds--tag cds--tag--blue" style={{fontSize:10}}>Analyzer Run</span></td></tr>
+                  </tbody>
+                </table>
+              </Fragment>
+            ) : (
+              <Fragment>
+                {/* FIFO lot card (v2.1 model) + quantity used */}
+                <div className="lotcard sel">
+                  <div className="lc-head"><input type="radio" checked readOnly /> <strong className="mono">LOT-2026-0421</strong>
+                    <span className="cds--tag cds--tag--teal" style={{fontSize:10}}>FIFO Suggested</span>
+                    {isRDT && <span className="cds--tag cds--tag--warm-gray" style={{fontSize:10}}>Expiring</span>}</div>
+                  <div className="lc-meta">{reagentName} · Exp 08/15/2026 · 62% remaining (124 {isRDT?"tests":"mL"})</div>
+                  <div className="inline-fields" style={{marginTop:8}}>
+                    <div className="field-stack"><label className="lbl">Quantity used <span className="req">*</span></label>
+                      <input className="mini-num" defaultValue={isRDT?"1":"2.5"} /></div>
+                    <span className="small" style={{paddingBottom:4}}>{isRDT?"tests":"mL"}</span>
+                  </div>
+                </div>
+                {isRDT && <div className="lotcard">
+                  <div className="lc-head"><input type="radio" readOnly /> <strong className="mono">BUF-2025-0980</strong></div>
+                  <div className="lc-meta">Determine running buffer · Exp 08/14/2027 · 40% remaining</div>
+                </div>}
+                <button className="cds--btn cds--btn--ghost cds--btn--sm" style={{paddingLeft:0}}>+ Add reagent (search by name or lot)</button>
+                <div className="reagent-line warn" style={{marginTop:6}}><span>⚠</span><span className="small">Saving leaves LOT-2026-0421 below reorder threshold — notify your inventory officer.</span></div>
+                <div className="small" style={{marginTop:4,color:"#8d8d8d"}}>Records a ReagentConsumptionEvent (sourceType RESULT_ENTRY); auto-credits on void/downward edit.</div>
+              </Fragment>
+            )}
+          </div>
+
+          {/* Control capture — RDT control line and/or manual QC value (D12) */}
+          <div className="subblock">
+            <div className="lbl2">Control result <span className="small" style={{fontWeight:400}}>— reagent / kit / test control</span></div>
+            {isRDT ? (
+              <Fragment>
+                <div className="small">RDT control line for this cassette:</div>
+                <div className="radio-row">
+                  <label style={{cursor:"pointer"}}><input type="radio" name="ctrl" checked={ctrlLine==="valid"} onChange={()=>setCtrlLine("valid")} /> <strong style={{color:"#0e6027"}}>Valid</strong> — control line present</label>
+                  <label style={{cursor:"pointer"}}><input type="radio" name="ctrl" checked={ctrlLine==="invalid"} onChange={()=>setCtrlLine("invalid")} /> <strong style={{color:"#a2191f"}}>Invalid</strong> — no control line</label>
+                </div>
+                {ctrlLine==="invalid" && <div className="reagent-line" style={{marginTop:6,background:"#fff1f1",borderColor:"#da1e28"}}><span>⚠</span><span className="small">Invalid control line — result cannot be reported. Repeat the test with a new cassette.</span></div>}
+                <div className="inline-fields" style={{marginTop:8}}>
+                  <div className="field-stack"><label className="lbl">Control lot</label><input className="cds--text-input" style={{width:160}} defaultValue="DET-2025-1102" /></div>
+                </div>
+              </Fragment>
+            ) : (
+              <Fragment>
+              <div className="inline-fields">
+                <div className="field-stack"><label className="lbl">Control level</label><div className="cds--select"><select className="cds--select-input"><option>Level 1</option><option>Level 2</option></select></div></div>
+                <div className="field-stack"><label className="lbl">Control lot</label><input className="cds--text-input" style={{width:130}} defaultValue="QC-2026-031" /></div>
+                <div className="field-stack"><label className="lbl">Expected value</label><input className="mini-num" placeholder="e.g. 82" /></div>
+                <div className="field-stack"><label className="lbl">Uncertainty (±)</label><input className="mini-num" placeholder="e.g. 5" /></div>
+                <div className="field-stack"><label className="lbl">Measured value</label><input className="mini-num" defaultValue="85" /></div>
+                <div className="field-stack"><label className="lbl">Outcome</label>
+                  <div className="radio-row" style={{marginTop:0}}>
+                    <label><input type="radio" name="qc" checked={qcPass} onChange={()=>setQcPass(true)} /> Pass</label>
+                    <label><input type="radio" name="qc" checked={!qcPass} onChange={()=>setQcPass(false)} /> Fail</label>
+                  </div>
+                </div>
+              </div>
+              <div className="small" style={{marginTop:6,color:"#8d8d8d"}}>Expected value &amp; uncertainty are entered by the tech — OpenELIS doesn't know them for a manual control — or prefill if a target range is configured for this QC lot.</div>
+              </Fragment>
+            )}
+          </div>
+
+          {/* Dilution factor — quantitative only (affects reported value) */}
+          {!isRDT && (
+            <div className="subblock">
+              <div className="lbl2">Dilution</div>
+              <div className="inline-fields">
+                <div className="field-stack"><label className="lbl">Dilution factor</label><input className="mini-num" defaultValue="1" /></div>
+                <span className="small" style={{paddingBottom:4}}>Reported result = entered value × dilution factor.</span>
+              </div>
+            </div>
+          )}
+
+          {/* Replicate / repeat values — collapsed by default */}
+          <div className="subblock">
+            <div className="lbl2" style={{cursor:"pointer"}} onClick={()=>setShowRepl(v=>!v)}>{showRepl?"▼":"▶"} ↺ Replicate / repeat values <span className="small" style={{fontWeight:400}}>(optional)</span></div>
+            {showRepl && (
+              <div className="inline-fields">
+                <div className="field-stack"><label className="lbl">Rep 1</label><input className="mini-num" defaultValue={r.value||""} /></div>
+                <div className="field-stack"><label className="lbl">Rep 2</label><input className="mini-num" /></div>
+                <div className="field-stack"><label className="lbl">Rep 3</label><input className="mini-num" /></div>
+                <div className="field-stack"><label className="lbl">Mean</label><span className="acc" style={{paddingBottom:6}}>{r.value||"—"} {r.unit}</span></div>
+              </div>
+            )}
+          </div>
+
+          {/* Instrument flags — analyzer-imported, read-only */}
+          {isAnalyzer && (
+            <div className="subblock">
+              <div className="lbl2">Instrument flags <span className="small" style={{fontWeight:400}}>from analyzer payload</span></div>
+              <span className="cds--tag cds--tag--warm-gray">No clot</span>
+              <span className="cds--tag cds--tag--warm-gray">Sample OK</span>
+              <span className="cds--tag cds--tag--blue">Result above linear range — verify</span>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    /* Interpretation editor — rule (from test setup), macro insert, or free text */
+    function InterpretationBlock(){
+      // Categorical interpretation buckets configured on the test (the "rule") — auto-matched to the entered value.
+      const cats=[
+        {code:"GLU-NL",  label:"Normal", range:"70–99", kind:"green", text:"Fasting glucose within the reference range; no action indicated."},
+        {code:"GLU-IFG", label:"Impaired Fasting Glucose", range:"100–125", kind:"warm-gray", text:"Fasting glucose 100–125 mg/dL indicates impaired fasting glucose (prediabetes). Recommend lifestyle counselling and follow-up testing."},
+        {code:"GLU-DM",  label:"Diabetes Mellitus", range:"≥126", kind:"red", text:"Fasting glucose ≥126 mg/dL is consistent with diabetes mellitus. Recommend confirmation with a repeat fasting glucose or HbA1c."},
+      ];
+      const macros=[
+        {code:"REPEAT",label:"Repeat recommended",text:"Recommend repeat testing to confirm this result."},
+        {code:"NOTIFY",label:"Clinician notified",text:"Critical value — ordering clinician notified by phone."},
+        {code:"HEMOLYZED",label:"Hemolyzed specimen",text:"Specimen was hemolyzed; interpret this result with caution."},
+        {code:"DM-CONFIRM",label:"Diabetes confirmation",text:"Recommend confirmation with a repeat fasting glucose or HbA1c."}];
+      const [sel,setSel]=useState("GLU-DM");
+      const [text,setText]=useState(cats.find(c=>c.code==="GLU-DM").text);
+      const insert=(t)=> setText(prev=> prev ? (prev.replace(/\s*$/,"")+" "+t) : t);
+      const pick=(c)=>{ setSel(c.code); setText(c.text); };
+      return (
+        <div>
+          <div style={{padding:10,background:"#edf5ff",borderLeft:"4px solid #0f62fe",fontSize:12,marginBottom:12}}>
+            <strong style={{color:"#0043ce"}}>Rule match (configured on the test):</strong> the entered value <strong>142 mg/dL</strong> falls in <strong>Diabetes Mellitus (≥126)</strong>. Pick a category to apply its interpretation text, then edit as needed.
+          </div>
+          <div style={{display:"flex",gap:16,alignItems:"flex-start",flexWrap:"wrap"}}>
+            <div style={{display:"flex",flexDirection:"column",gap:6,minWidth:230}}>
+              {cats.map(c=>(
+                <div key={c.code} onClick={()=>pick(c)} style={{padding:8,border:sel===c.code?"2px solid #0f62fe":"1px solid #c6c6c6",background:sel===c.code?"#edf5ff":"#fff",cursor:"pointer",borderRadius:4}}>
+                  <div style={{fontWeight:600,fontSize:12}}>{c.label}</div>
+                  <span className={"cds--tag cds--tag--"+c.kind} style={{fontSize:10}}>{c.range} mg/dL</span>
+                  {sel===c.code && <span className="cds--tag cds--tag--blue" style={{fontSize:10}}>applied</span>}
+                </div>
+              ))}
+            </div>
+            <div style={{flex:1,minWidth:280}}>
+              <div className="inline-fields" style={{marginBottom:6}}>
+                <MacroSearch macros={macros} onPick={insert} />
+              </div>
+              <label className="lbl">Interpretation (free text)</label>
+              <textarea value={text} onChange={e=>setText(e.target.value)} rows={4}
+                placeholder="Apply a category above, insert a macro, or type free-text…"
+                style={{width:"100%",padding:8,fontSize:13,border:"1px solid #c6c6c6",resize:"vertical"}} />
+            </div>
+          </div>
+          <div className="small" style={{marginTop:8,color:"#8d8d8d"}}>Interpretation can be set three ways: a <strong>rule</strong> configured on the test (the categorical buckets above, auto-matched to the value), a <strong>macro</strong> (canned phrase inserted into the text), or <strong>free text</strong>. Rule text is a non-binding suggestion until applied or edited.</div>
+        </div>
+      );
+    }
+
+    /* Macro inline search — type a code or name to insert the canned phrase */
+    function MacroSearch({macros,onPick}){
+      const [q,setQ]=useState("");
+      const [open,setOpen]=useState(false);
+      const list=macros.filter(m=> (m.code+" "+m.label).toLowerCase().includes(q.toLowerCase()));
+      return (
+        <div className="field-stack" style={{minWidth:280,position:"relative"}}>
+          <label className="lbl">Insert macro — type a code or name</label>
+          <input className="cds--text-input" placeholder="e.g. REPEAT or “hemolyzed”" value={q}
+            onFocus={()=>setOpen(true)} onChange={e=>{setQ(e.target.value);setOpen(true);}}
+            onBlur={()=>setTimeout(()=>setOpen(false),150)} />
+          {open && (
+            <div style={{position:"absolute",top:"100%",left:0,right:0,background:"#fff",border:"1px solid #c6c6c6",zIndex:20,maxHeight:170,overflow:"auto"}}>
+              {list.length? list.map((m,i)=>(
+                <div key={i} style={{padding:"6px 8px",cursor:"pointer",borderBottom:"1px solid #f0f0f0",fontSize:12}}
+                  onMouseDown={()=>{onPick(m.text);setQ(m.code);setOpen(false);}}>
+                  <span className="mono" style={{color:"#0043ce"}}>{m.code}</span> — {m.label}
+                </div>
+              )) : <div style={{padding:"6px 8px",fontSize:12,color:"#8d8d8d"}}>No macro matches “{q}”</div>}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    /* Referral form — reference lab, reason, date (defaults to now). No "test to perform". */
+    function ReferralForm({onClose,onSave}){
+      return (
+        <div className="nce" style={{borderLeftColor:"#8a3ffc"}}>
+          <h4>⇆ Refer test to an external laboratory <button className="icon-btn" style={{marginLeft:"auto"}} onClick={onClose}>✕</button></h4>
+          <div className="nce-grid" style={{gridTemplateColumns:"1fr 1fr"}}>
+            <div className="field-stack"><label className="lbl">Reference laboratory <span className="req">*</span></label>
+              <div className="cds--select"><select className="cds--select-input">
+                <option value="">Select a reference lab…</option>
+                <option>National Reference Laboratory (NRL)</option>
+                <option>Regional Hospital Lab — Mwanza</option>
+                <option>Institut Pasteur</option>
+              </select></div></div>
+            <div className="field-stack"><label className="lbl">Referral date/time</label>
+              <input className="cds--text-input" defaultValue="06/10/2026 10:22" />
+              <span className="small" style={{color:"#8d8d8d"}}>Defaults to now; editable.</span></div>
+            <div className="field-stack" style={{gridColumn:"span 2"}}><label className="lbl">Reason for referral <span className="req">*</span></label>
+              <div className="cds--select"><select className="cds--select-input">
+                <option value="">Select a reason…</option>
+                <option>Test not performed on-site</option>
+                <option>Confirmatory testing</option>
+                <option>Equipment unavailable / down</option>
+                <option>Specialized assay</option>
+              </select></div></div>
+          </div>
+          <div style={{marginTop:12,display:"flex",gap:8}}>
+            <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={onSave}>Refer test</button>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={onClose}>Cancel</button>
+            <span className="small" style={{marginLeft:"auto"}}>Hands off to the Referrals / Sample Shipment subsystem. No "test to perform" field — the referred test is already known.</span>
+          </div>
+        </div>
+      );
+    }
+
+    /* Aliquoting — reuse existing aliquot function inside this view (numbering LABNO.X[-Y]) */
+    function AliquotBlock({domain,r}){
+      const [creating,setCreating]=useState(false);
+      const base=r.lab;
+      const rows = domain==="VECTOR"
+        ? [{n:base+".A1",c:"An. gambiae s.l. (head/thorax)",q:"25",s:"Pooled",k:"purple"},
+           {n:base+".A1-1",c:"Confirmatory sub-pool",q:"10",s:"Sub-aliquot",k:"blue"}]
+        : [{n:base+".1",c:"Serum aliquot",q:"0.5 mL",s:"Stored",k:"teal"},
+           {n:base+".2",c:"Backup aliquot",q:"0.5 mL",s:"Stored",k:"teal"}];
+      return (
+        <div>
+          <table className="mini-table">
+            <thead><tr><th>Aliquot</th><th>{domain==="VECTOR"?"Composition":"Contents"}</th><th>{domain==="VECTOR"?"Count":"Volume"}</th><th>Status</th></tr></thead>
+            <tbody>{rows.map((a,i)=>(<tr key={i}><td className="mono">{a.n}</td><td>{a.c}</td><td>{a.q}</td><td><span className={"cds--tag cds--tag--"+a.k} style={{fontSize:10}}>{a.s}</span></td></tr>))}</tbody>
+          </table>
+          {!creating
+            ? <button className="cds--btn cds--btn--secondary cds--btn--sm" style={{marginTop:8}} onClick={()=>setCreating(true)}>+ Create aliquot(s)</button>
+            : <div style={{marginTop:8,border:"1px solid #c9d6ff",background:"#f7f9ff",padding:10,borderRadius:4}}>
+                <div className="inline-fields">
+                  <div className="field-stack"><label className="lbl"># to create</label><input className="mini-num" defaultValue="1" /></div>
+                  {domain==="VECTOR"
+                    ? <div className="field-stack"><label className="lbl">Species (entered)</label><div className="cds--select"><select className="cds--select-input"><option>An. gambiae s.l.</option><option>An. funestus</option><option>Culex spp.</option><option>Aedes aegypti</option></select></div></div>
+                    : <div className="field-stack"><label className="lbl">Type</label><div className="cds--select"><select className="cds--select-input"><option>Serum</option><option>Plasma</option><option>Backup</option></select></div></div>}
+                  <div className="field-stack"><label className="lbl">{domain==="VECTOR"?"Count":"Volume"}</label><input className="mini-num" defaultValue={domain==="VECTOR"?"10":"0.5"} /></div>
+                  <div className="field-stack"><label className="lbl">Storage</label><div className="cds--select"><select className="cds--select-input"><option>Refrigerator B → Box 12</option><option>Freezer A</option></select></div></div>
+                </div>
+                <div style={{marginTop:8,display:"flex",gap:8}}>
+                  <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>setCreating(false)}>Create aliquots</button>
+                  <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setCreating(false)}>Cancel</button>
+                </div>
+              </div>}
+          <div className="small" style={{marginTop:6,color:"#8d8d8d"}}>Reuses the existing aliquot function — child sample items are numbered {base}.X{domain==="VECTOR"?"-Y for sub-pools (deconvolution)":""} and inherit storage + chain-of-custody.
+            {domain==="VECTOR" && " Pool composition (species + count) is recorded by the tech from morphological sorting / the field collection record — the system doesn't infer it."}</div>
+        </div>
+      );
+    }
+
+    /* Sample status + disposal (D13) — mark SampleItem exhausted, start disposal */
+    function SampleStatusBlock(){
+      const [used,setUsed]=useState(false);
+      const [recording,setRecording]=useState(false);
+      const total=5.0;
+      const [remaining,setRemaining]=useState(3.5);
+      const [amt,setAmt]=useState("1.0");
+      const applyUse=()=>{ const v=Math.max(0, +(remaining-(parseFloat(amt)||0)).toFixed(2)); setRemaining(v); setRecording(false); if(v===0) setUsed(true); };
+      return (
+        <div className="subblock">
+          <div className="lbl2">Sample status</div>
+          <div className="inline-fields">
+            <span className="small">Volume: <strong>{used?"0":remaining} mL</strong> remaining of {total} mL · status <strong>{used?"used up (exhausted)":"available"}</strong>.</span>
+            {!used && !recording && <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={()=>setRecording(true)}>Record amount used</button>}
+            {!used && <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={()=>{setRemaining(0);setUsed(true);}}>Mark used up</button>}
+            {used && <button className="cds--btn cds--btn--danger cds--btn--sm">Start disposal</button>}
+          </div>
+          {recording && !used && (
+            <div className="inline-fields" style={{marginTop:8}}>
+              <div className="field-stack"><label className="lbl">Amount used this test</label><input className="mini-num" value={amt} onChange={e=>setAmt(e.target.value)} /></div>
+              <span className="small" style={{paddingBottom:6}}>mL</span>
+              <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={applyUse}>Record</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setRecording(false)}>Cancel</button>
+              <span className="small" style={{paddingBottom:6}}>Decrements remaining volume — the sample is not disposed until exhausted or explicitly marked used up.</span>
+            </div>
+          )}
+          {used && <div className="reagent-line" style={{marginTop:6,background:"#fff8e8",borderColor:"#f1c21b"}}>
+            <span>♻</span><span className="small">Used-up sets the SampleItem status to exhausted and queues it for the disposal workflow (storage module). Disposal records who, when, and method.</span></div>}
+          <div className="small" style={{marginTop:6,color:"#8d8d8d"}}>Partial use records the amount consumed against the SampleItem's remaining volume; full exhaustion (or "Mark used up") triggers disposal. Dependency: confirm SampleItem tracks a remaining-volume field.</div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<ResultsApp />);
+  </script>
+</body>
+</html>

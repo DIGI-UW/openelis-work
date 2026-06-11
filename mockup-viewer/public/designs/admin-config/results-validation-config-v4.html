@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Result & Validation Configuration (consolidated) — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+    .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+    .breadcrumb-bar { background:#161616; color:#f4f4f4; padding:6px 16px; font-size:12px; }
+    .breadcrumb-bar a { color:#78a9ff; text-decoration:none; }
+    .page-head { background:#fff; padding:20px 24px; border-bottom:1px solid #e0e0e0; display:flex; align-items:flex-start; gap:12px; }
+    .page-head h1 { margin:0; font-size:24px; font-weight:300; }
+    .page-head p { margin:4px 0 0; color:#525252; font-size:12px; }
+    .layout { max-width:1200px; margin:0 auto; padding:16px 24px 48px; display:grid; grid-template-columns:200px 1fr; gap:20px; }
+    .secnav { position:sticky; top:12px; align-self:start; font-size:13px; }
+    .secnav a { display:block; padding:7px 10px; color:#393939; text-decoration:none; border-left:2px solid transparent; }
+    .secnav a:hover { background:#e8e8e8; } .secnav a.active { border-left-color:#0f62fe; color:#0f62fe; font-weight:600; background:#edf5ff; }
+    .notif { padding:10px 14px; font-size:13px; border-left:3px solid; margin-bottom:16px; display:flex; gap:10px; align-items:flex-start; }
+    .notif.info { background:#edf5ff; border-color:#0f62fe; color:#0043ce; }
+    .notif.retire { background:#fff8e8; border-color:#f1c21b; color:#684e00; }
+    .tile { background:#fff; border:1px solid #e0e0e0; padding:16px 18px; margin-bottom:16px; }
+    .tile h3 { margin:0 0 4px; font-size:15px; font-weight:600; }
+    .tile .help { font-size:12px; color:#6f6f6f; margin:0 0 14px; }
+    .lbl { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:#525252; font-weight:600; margin-bottom:6px; display:block; }
+    .radio-row { display:flex; flex-direction:column; gap:6px; font-size:13px; }
+    .radio-row label { display:flex; gap:8px; align-items:flex-start; cursor:pointer; }
+    .radio-row .rh { font-size:11px; color:#8d8d8d; }
+    .stepper { display:flex; align-items:center; }
+    .stepper button { width:30px; height:30px; border:1px solid #8d8d8d; background:#fff; cursor:pointer; font-size:16px; }
+    .stepper .val { width:44px; height:30px; border:1px solid #8d8d8d; border-left:0; border-right:0; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; }
+    .level-row { display:flex; align-items:center; gap:10px; margin-top:8px; }
+    .level-row .lv { font-size:12px; font-weight:600; width:60px; }
+    .cds--select-input { min-width:230px; }
+    .setting { display:flex; align-items:flex-start; gap:12px; padding:12px 0; border-top:1px solid #f0f0f0; }
+    .setting:first-of-type { border-top:0; }
+    .setting.indent { margin-left:40px; padding:8px 0; }
+    .switch { width:38px; height:21px; border-radius:11px; background:#8d8d8d; position:relative; cursor:pointer; flex-shrink:0; margin-top:2px; transition:background .15s; }
+    .switch.on { background:#0f62fe; } .switch.off-disabled { background:#d0d0d0; cursor:not-allowed; }
+    .switch .knob { position:absolute; top:2px; left:2px; width:17px; height:17px; border-radius:50%; background:#fff; transition:left .15s; }
+    .switch.on .knob { left:19px; }
+    .stxt b { font-size:13px; } .stxt .h { font-size:12px; color:#6f6f6f; margin-top:1px; }
+    .keytag { font-family:'IBM Plex Mono',monospace; font-size:10px; background:#f4f4f4; color:#525252; padding:1px 5px; border-radius:3px; margin-left:6px; }
+    .newtag { font-size:10px; background:#defbe6; color:#0e6027; padding:1px 6px; border-radius:10px; margin-left:6px; font-weight:700; }
+    table.cfg { width:100%; border-collapse:collapse; font-size:13px; }
+    table.cfg th { text-align:left; padding:9px 12px; background:#f4f4f4; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:#525252; font-weight:600; border-bottom:1px solid #e0e0e0; }
+    table.cfg td { padding:9px 12px; border-bottom:1px solid #e0e0e0; vertical-align:top; }
+    table.cfg tr.exp > td { background:#edf5ff; }
+    .mono { font-family:'IBM Plex Mono',monospace; } .small { font-size:12px; color:#525252; }
+    .icon-btn { background:none; border:none; cursor:pointer; color:#525252; padding:4px; }
+    .cds--btn { cursor:pointer; } .cds--tag { vertical-align:middle; margin:0 2px; }
+    .auto-tag { background:#d9fbfb; color:#005d5d; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+    .preview-box { background:#f7f9ff; border:1px solid #c9d6ff; padding:12px; font-size:13px; }
+    .preview-box .pv-line { padding:3px 0; }
+    .req { color:#da1e28; } .txtin { border:1px solid #8d8d8d; padding:6px 8px; font-size:13px; width:100%; max-width:680px; box-sizing:border-box; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    ⚡ Visual Preview — Result &amp; Validation Configuration (consolidated) &nbsp;|&nbsp; Route: <code>/admin/results-validation-configuration</code> &nbsp;|&nbsp; Working name &nbsp;|&nbsp; Not a live application
+  </div>
+  <div class="breadcrumb-bar"><a href="#">Home</a> / <a href="#">Admin Management</a> / <strong>Result &amp; Validation Configuration</strong></div>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, Fragment } = React;
+    const ROLES=["Tech II","Senior Tech","Supervisor","Lab Manager","Biologist"];
+    const DOMAIN_TAG={CLINICAL:["Clinical","blue"],ENVIRONMENTAL:["Environmental","green"],VECTOR:["Vector","purple"]};
+    const TRIGGER_LABEL={NO_RESULTS:"Auto-validate all",ALL_RESULTS:"All results",ABNORMAL_ONLY:"Abnormal only"};
+
+    const Switch=({on,onClick,disabled})=>(<div className={"switch"+(on?" on":"")+(disabled?" off-disabled":"")} onClick={disabled?undefined:onClick}><div className="knob"></div></div>);
+
+    function Setting({label,desc,keyName,on,onToggle,isNew,retired,indent,disabled,children}){
+      return (
+        <div className={"setting"+(indent?" indent":"")}>
+          {onToggle!==undefined && <Switch on={on} onClick={onToggle} disabled={disabled} />}
+          <div className="stxt" style={{flex:1}}>
+            <b>{label}</b>
+            {keyName && <span className="keytag">{keyName}</span>}
+            {isNew && <span className="newtag">NEW</span>}
+            <div className="h">{desc}</div>
+            {children}
+          </div>
+        </div>
+      );
+    }
+
+    function App(){
+      const [trigger,setTrigger]=useState("ALL_RESULTS");
+      const [levels,setLevels]=useState(["Supervisor"]);
+      const [expanded,setExpanded]=useState(null);
+      const [showAdd,setShowAdd]=useState(false);
+      const [addDomain,setAddDomain]=useState("");
+      const [s,setS]=useState({
+        alertWhenInvalidResult:false, restrictFreeTextMethodEntry:false,
+        ResultTechnicianName:false, autoFillTechNameBox:false, autoFillTechNameUser:false,
+        allowResultRejection:false, validateTechnicalRejection:true,
+        modifyNoteRequired:false, modifyRole:false, retestNoteRequired:true,
+        bulkRelease:true, showValidationFailureIcon:true, roleForPatientOnResults:false,
+      });
+      const [criticalMsg,setCriticalMsg]=useState("Critical result — notify the responsible clinician before reporting.");
+      const t=(k)=>setS(p=>({...p,[k]:!p[k]}));
+
+      const setLevelCount=(n)=>{ n=Math.max(0,Math.min(5,n));
+        if(n===0){ setTrigger("NO_RESULTS"); setLevels([]); return; }
+        setLevels(prev=>{ const nx=[...prev]; while(nx.length<n) nx.push(""); nx.length=n; return nx; });
+        if(trigger==="NO_RESULTS") setTrigger("ALL_RESULTS"); };
+      const policySentence=()=>{
+        if(levels.length===0) return "Every result auto-releases — no human review before it reaches the report.";
+        const who = trigger==="ABNORMAL_ONLY" ? "Abnormal results" : "Every result";
+        const tail = trigger==="ABNORMAL_ONLY" ? " (normal results auto-release)" : "";
+        const reviewers = levels.length===1
+          ? "one reviewer (" + (levels[0]||"role not set") + ")"
+          : levels.length + " reviewers in sequence (" + levels.map((r,i)=>"Level "+(i+1)+": "+(r||"not set")).join(", ") + ")";
+        return who + " must be reviewed by " + reviewers + " before it's released" + tail + ".";
+      };
+
+      const overrides=[
+        {unit:"Hematology",domain:"CLINICAL",trigger:"ALL_RESULTS",levels:["Tech II","Supervisor"]},
+        {unit:"Chemistry",domain:"CLINICAL",trigger:"ALL_RESULTS",levels:["Tech II","Supervisor"]},
+        {unit:"Urinalysis",domain:"CLINICAL",trigger:"ABNORMAL_ONLY",levels:["Supervisor"]},
+        {unit:"Water Quality",domain:"ENVIRONMENTAL",trigger:"NO_RESULTS",levels:[],note:"auto-release"},
+        {unit:"Vector Pools",domain:"VECTOR",trigger:"ABNORMAL_ONLY",levels:["Senior Tech"],note:"positives reviewed"},
+      ];
+
+      const NAV=[["policy","Validation policy"],["entry","Result entry"],["modrej","Modification, rejection & retest"],["release","Release & display"],["access","Access & PII"]];
+
+      return (
+        <Fragment>
+          <div className="page-head">
+            <div style={{flex:1}}>
+              <h1>Result &amp; Validation Configuration</h1>
+              <p>One page for how results are entered, modified, rejected, validated, and released.</p>
+            </div>
+            <span className="cds--tag cds--tag--green" style={{marginTop:6}}>useMultiLevelValidation — ON</span>
+          </div>
+
+          <div className="layout">
+            <nav className="secnav">
+              {NAV.map(([id,lbl],i)=><a key={id} href={"#"+id} className={i===0?"active":""}>{lbl}</a>)}
+            </nav>
+
+            <div>
+              <div className="notif retire">
+                <span>♻</span><span>Consolidates and <strong>retires</strong> the old flat <em>Result Entry Configuration</em> select-row table and the binary <em>“validate all results”</em> toggle. Each legacy setting below shows its config key; nothing is split across two pages anymore. The old Result Entry Configuration route redirects here.</span>
+              </div>
+
+              {/* 1. Validation policy */}
+              <div className="tile" id="policy">
+                <h3>Validation policy</h3>
+                <p className="help">Lab-wide default plus per-lab-unit overrides. Replaces the binary “validate all results” toggle with triggers + sequential review levels + role bindings.</p>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
+                  <div>
+                    <span className="lbl">Lab-wide default — trigger</span>
+                    <div className="radio-row">
+                      {[["NO_RESULTS","Auto-validate all results","Nothing requires review — every result auto-releases."],
+                        ["ALL_RESULTS","Require validation on all results","Every result enters the validation queue."],
+                        ["ABNORMAL_ONLY","Require validation on abnormal only","Normal results auto-release; abnormals go to the queue."]].map(([v,tt,h])=>(
+                        <label key={v}><input type="radio" name="trig" checked={trigger===v} disabled={levels.length===0 && v!=="NO_RESULTS"} onChange={()=>setTrigger(v)} /><span>{tt}<div className="rh">{h}</div></span></label>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="lbl">Validations required (0–5)</span>
+                    <div className="stepper"><button onClick={()=>setLevelCount(levels.length-1)}>−</button><div className="val">{levels.length}</div><button onClick={()=>setLevelCount(levels.length+1)}>+</button></div>
+                    <div className="small" style={{marginTop:6,color:"#6f6f6f",maxWidth:320}}>How many people must review a result before it's released. <strong>0</strong> = auto-release (no human review) · <strong>1</strong> = one reviewer · <strong>2+</strong> = reviewers in sequence, each its own level.</div>
+                    {levels.map((role,i)=>(<div className="level-row" key={i}><span className="lv">Level {i+1}</span>
+                      <div className="cds--select"><select className="cds--select-input" value={role} onChange={e=>setLevels(prev=>prev.map((r,idx)=>idx===i?e.target.value:r))}>
+                        <option value="">Select a role with Validate Results permission…</option>{ROLES.map(r=><option key={r}>{r}</option>)}</select></div></div>))}
+                    {levels.length===0 && <div className="small" style={{marginTop:8,color:"#8d8d8d"}}>0 levels → auto-validate all (replaces <span className="keytag">validate all results = Yes</span>).</div>}
+                  </div>
+                </div>
+
+                <div className="notif info" style={{marginTop:14,marginBottom:0}}>
+                  <span style={{fontWeight:600}}>In plain terms:</span><span>{policySentence()}</span>
+                </div>
+
+                <div style={{marginTop:16}}>
+                  <span className="lbl">Per-lab-unit overrides</span>
+                  <button className="cds--btn cds--btn--tertiary cds--btn--sm" style={{margin:"4px 0 10px"}} onClick={()=>{setShowAdd(s=>!s);setAddDomain("");}}>+ Configure override</button>
+                  {showAdd && <div style={{border:"1px solid #c9d6ff",background:"#f7f9ff",padding:12,marginBottom:12}}>
+                    <span className="lbl">Lab unit</span>
+                    <div className="cds--select" style={{marginBottom:8}}><select className="cds--select-input" onChange={e=>{const v=e.target.value;setAddDomain(v.includes("Water")||v.includes("Air")?"ENVIRONMENTAL":v.includes("Pool")||v.includes("Tick")?"VECTOR":v?"CLINICAL":"");}}>
+                      <option value="">Select a lab unit…</option><option>Microbiology</option><option>Serology</option><option>Air Quality</option><option>Tick Surveillance</option></select></div>
+                    {addDomain && <div className="notif info" style={{margin:0}}><span>ℹ</span><span>Domain: <span className={"cds--tag cds--tag--"+DOMAIN_TAG[addDomain][1]} style={{fontSize:10}}>{DOMAIN_TAG[addDomain][0]}</span>. New override <strong>inherits the lab-wide default</strong> ({TRIGGER_LABEL[trigger]}, {levels.length} level{levels.length===1?"":"s"}) — adjust as needed. The system does not recommend a validation posture; that’s a regulatory decision the lab owns.</span></div>}
+                  </div>}
+                  <table className="cfg">
+                    <thead><tr><th style={{width:24}}></th><th>Lab Unit</th><th>Domain</th><th>Trigger</th><th>Levels</th><th>Roles</th><th>Actions</th></tr></thead>
+                    <tbody>
+                      {overrides.map((o,i)=>{const isExp=expanded===i;const dt=DOMAIN_TAG[o.domain];return (
+                        <Fragment key={i}>
+                          <tr className={isExp?"exp":""}>
+                            <td><button className="icon-btn" onClick={()=>setExpanded(isExp?null:i)}>{isExp?"▼":"▶"}</button></td>
+                            <td><strong>{o.unit}</strong></td>
+                            <td><span className={"cds--tag cds--tag--"+dt[1]} style={{fontSize:10}}>{dt[0]}</span></td>
+                            <td>{TRIGGER_LABEL[o.trigger]}{o.note&&<span className="auto-tag" style={{marginLeft:6}}>{o.note}</span>}</td>
+                            <td className="mono">{o.levels.length}</td>
+                            <td className="small">{o.levels.length?o.levels.map((r,j)=>`L${j+1}: ${r}`).join(" → "):"—"}</td>
+                            <td><button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setExpanded(isExp?null:i)}>Edit</button><button className="icon-btn" title="Audit trail">🕓</button></td>
+                          </tr>
+                          {isExp && <tr><td colSpan={7} style={{background:"#eef2f8",padding:14}}>
+                            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
+                              <div><span className="lbl">Trigger — {o.unit}</span><div className="radio-row">{["NO_RESULTS","ALL_RESULTS","ABNORMAL_ONLY"].map(v=>(<label key={v}><input type="radio" name={"t"+i} defaultChecked={o.trigger===v} /> <span>{TRIGGER_LABEL[v]}</span></label>))}</div></div>
+                              <div><span className="lbl">Validations required</span><div className="stepper"><button>−</button><div className="val">{o.levels.length}</div><button>+</button></div>
+                                {o.levels.map((r,j)=>(<div className="level-row" key={j}><span className="lv">Level {j+1}</span><div className="cds--select"><select className="cds--select-input" defaultValue={r}>{ROLES.map(x=><option key={x}>{x}</option>)}</select></div></div>))}
+                                {o.levels.length===0 && <div className="small" style={{marginTop:8,color:"#8d8d8d"}}>Auto-release — no human review for {o.unit}.</div>}</div>
+                            </div>
+                            <div style={{marginTop:12,display:"flex",gap:8}}><button className="cds--btn cds--btn--primary cds--btn--sm">💾 Save {o.unit}</button><button className="cds--btn cds--btn--danger cds--btn--sm">Delete (revert to default)</button><button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setExpanded(null)}>Cancel</button></div>
+                          </td></tr>}
+                        </Fragment>);})}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* 2. Result entry */}
+              <div className="tile" id="entry">
+                <h3>Result entry</h3>
+                <p className="help">How values are entered at the bench.</p>
+                <Setting label="Alert when a result is outside the valid range" keyName="alertWhenInvalidResult" desc="Warn the tech when an entered value falls outside the test's valid range." on={s.alertWhenInvalidResult} onToggle={()=>t("alertWhenInvalidResult")} />
+                <Setting label="Restrict free-text method entry" keyName="restrictFreeTextMethodEntry" desc="Techs must pick a configured method; they cannot type a new method on the result." on={s.restrictFreeTextMethodEntry} onToggle={()=>t("restrictFreeTextMethodEntry")} />
+                <Setting label="Require technician name on results" keyName="ResultTechnicianName" desc="A technician name is required to enter a result (separate from the e-signature author)." on={s.ResultTechnicianName} onToggle={()=>t("ResultTechnicianName")} />
+                <Setting indent label="Show an autofill box for the tech name" keyName="autoFillTechNameBox" desc="Adds an autofill field for the technician name." on={s.autoFillTechNameBox} onToggle={()=>t("autoFillTechNameBox")} disabled={!s.ResultTechnicianName} />
+                <Setting indent label="Autofill with the logged-in user" keyName="autoFillTechNameUser" desc="Pre-fill the technician name with the signed-in user." on={s.autoFillTechNameUser} onToggle={()=>t("autoFillTechNameUser")} disabled={!s.ResultTechnicianName} />
+                <Setting label="Critical result message" keyName="customCriticalMessage" desc="Text shown on the critical-value banner at result entry and validation.">
+                  <textarea className="txtin" rows={2} style={{marginTop:8,resize:"vertical",fontFamily:"inherit"}} value={criticalMsg} onChange={e=>setCriticalMsg(e.target.value)} />
+                </Setting>
+              </div>
+
+              {/* 3. Modification, rejection & retest */}
+              <div className="tile" id="modrej">
+                <h3>Modification, rejection &amp; retest</h3>
+                <p className="help">What happens when a result is changed, rejected, or sent back for re-testing.</p>
+                <Setting label="Allow result rejection (via Non-Conformity Event)" keyName="allowResultRejection" desc="Let a user reject an individual test. Rejection is recorded as an NCE — not a bare reason." on={s.allowResultRejection} onToggle={()=>t("allowResultRejection")} />
+                <Setting label="Technical rejection is ready to validate" keyName="validateTechnicalRejection" desc="When a tech rejects a result, it moves to the validation queue rather than straight to cancelled." on={s.validateTechnicalRejection} onToggle={()=>t("validateTechnicalRejection")} />
+                <Setting label="Require a note when results are modified" keyName="modify results note required" desc="A reason note is required to change a saved result (the Edit→Save modification path)." on={s.modifyNoteRequired} onToggle={()=>t("modifyNoteRequired")} />
+                <Setting label="Require a separate role to modify results" keyName="modify results role" desc="Only users with a designated role may modify a saved result." on={s.modifyRole} onToggle={()=>t("modifyRole")}>
+                  {s.modifyRole && <div style={{marginTop:8}}><span className="lbl">Role allowed to modify</span><div className="cds--select"><select className="cds--select-input">{ROLES.map(r=><option key={r}>{r}</option>)}</select></div></div>}
+                </Setting>
+                <Setting label="Require a note when sending for retest" keyName="(new)" isNew desc="A reason note is required to send a result for re-testing. When off, the note is optional." on={s.retestNoteRequired} onToggle={()=>t("retestNoteRequired")} />
+              </div>
+
+              {/* 4. Release & display */}
+              <div className="tile" id="release">
+                <h3>Release &amp; display</h3>
+                <p className="help">How results are released on the Validation page and flagged on the Results page.</p>
+                <Setting label="Allow bulk release of “clear” results" keyName="(new)" isNew desc='Validators get a "Release all clear" action that releases only the safe lane (in-range, QC-pass, no NCE, not modified, not critical, confidently range-matched). Critical/abnormal/flagged always release one at a time. Off = per-row only.' on={s.bulkRelease} onToggle={()=>t("bulkRelease")} />
+                <Setting label="Show validation-failure icon on the Results page" keyName="showValidationFailureIcon" desc="Display an icon on the Results page when an analysis has failed validation." on={s.showValidationFailureIcon} onToggle={()=>t("showValidationFailureIcon")} />
+              </div>
+
+              {/* 5. Access & PII */}
+              <div className="tile" id="access">
+                <h3>Access &amp; PII</h3>
+                <p className="help">Who can see patient information on results.</p>
+                <Setting label="Mask patient identity for users without Patient Results access" keyName="roleForPatientOnResults" desc="When on, users who don't hold the Patient Results permission see the patient's identifying info masked as “—” on the results list; the lab number and test still show. Lab-unit role filtering always applies regardless of this setting. (Site-wide Show Patient Name still takes precedence.)" on={s.roleForPatientOnResults} onToggle={()=>t("roleForPatientOnResults")} />
+              </div>
+
+              {/* Effective preview */}
+              <div className="tile">
+                <h3>Effective configuration preview</h3>
+                <p className="help">What an analyst/validator sees after Save (lab-wide default + key options).</p>
+                <div className="preview-box">
+                  <div className="pv-line"><strong>Validation:</strong> {TRIGGER_LABEL[trigger]} · {levels.length===0?"0 levels (auto-release)":levels.map((r,i)=>`L${i+1}: ${r||"(role not set)"}`).join("  →  ")}</div>
+                  <div className="pv-line"><strong>Rejection:</strong> {s.allowResultRejection?"allowed (via NCE)":"disabled"} · <strong>Modify note:</strong> {s.modifyNoteRequired?"required":"optional"} · <strong>Retest note:</strong> {s.retestNoteRequired?"required":"optional"}</div>
+                  <div className="pv-line"><strong>Bulk release of clear results:</strong> <span className={s.bulkRelease?"auto-tag":"small"}>{s.bulkRelease?"enabled":"per-row only"}</span> · <strong>Validation-failure icon:</strong> {s.showValidationFailureIcon?"shown":"hidden"}</div>
+                  <div className="pv-line"><strong>Method entry:</strong> {s.restrictFreeTextMethodEntry?"picklist only":"free-text allowed"} · <strong>Invalid-range alert:</strong> {s.alertWhenInvalidResult?"on":"off"}</div>
+                  <div className="small" style={{marginTop:6,color:"#8d8d8d"}}>In-flight analyses keep the validation snapshot they were created under. All config changes are audited.</div>
+                </div>
+                <div style={{marginTop:12,display:"flex",gap:8}}><button className="cds--btn cds--btn--primary cds--btn--sm">💾 Save configuration</button><button className="cds--btn cds--btn--ghost cds--btn--sm">Reset</button></div>
+              </div>
+            </div>
+          </div>
+        </Fragment>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

@@ -1498,32 +1498,68 @@
     jira: ["OGC-817", "OGC-291", "OGC-343"]
   added: "2026-03-09"
 
+- id: report-print-queue
+  type: html
+  path: designs/reports/report-print-queue.html
+  spec: designs/reports/report-print-queue.md
+  category: reports
+  description: >
+    Generic Report Print Queue v1.2 — type-agnostic queue with reportType discriminator
+    (maps to ReportTrackingService.ReportType enum) and generation lifecycle
+    (QUEUED → GENERATING → READY → PRINTED / FAILED). v1 scope ships patient reports;
+    extensible to any long-running report. DocumentTrack + History audit; system_module
+    access control; Envers. Supersedes the patient-only v1.1 design.
+  links:
+    jira: []
+    gallery: https://digi-uw.github.io/openelis-work/#/reports/report-print-queue
+    preview: https://digi-uw.github.io/openelis-work/designs/reports/report-print-queue.html
+  tags:
+    - reports
+    - print
+    - queue
+    - report-type
+    - lifecycle
+    - audit
+    - iso-15189
+  added: "2026-06-09"
+  status: draft
+
 - id: patient-report-print-queue
   type: mockup
   path: designs/reports/patient-report-print-queue.jsx
+  preview: designs/reports/patient-report-print-queue.html
   category: reports
-  description: Push-based print queue for validated patient reports — auto-surfaces unprinted accessions with batch print and ISO 15189 audit trail
+  description: >
+    Push-based print queue for validated patient reports (v1.1) — auto-surfaces unprinted
+    accessions with batch print, per-report critical indicator, ISO 15189 audit trail
+    via existing DocumentTrack + History infrastructure. Reuses system_module /
+    system_role_module for access control and Envers for audit coverage.
   paired_with: patient-report-print-queue-spec
-  links: {}
+  links:
+    jira: []
+    preview: https://digi-uw.github.io/openelis-work/designs/reports/patient-report-print-queue.html
   added: "2026-03-18"
+  updated: "2026-06-09"
 
 - id: patient-report-print-queue-carbon
   type: mockup
   path: designs/reports/patient-report-print-queue-carbon.jsx
   category: reports
-  description: Full Carbon React component mockup for Patient Report Print Queue (uses @carbon/react — production reference)
+  description: Full Carbon React component mockup for Patient Report Print Queue v1.1 (uses @carbon/react — production reference, revised after /analyze)
   paired_with: patient-report-print-queue-spec
   links: {}
   added: "2026-03-18"
+  updated: "2026-06-09"
 
 - id: patient-report-print-queue-spec
   type: spec
   path: designs/reports/patient-report-print-queue.md
-  category: results-validation
-  description: Patient Report Print Queue FRS v1.0 — push-based queue, batch print, ISO 15189 compliance
+  category: reports
+  description: Patient Report Print Queue FRS v1.1 — push-based queue, batch print, critical indicator, DocumentTrack audit trail, ISO 15189 compliance. Revised after /analyze.
   paired_with: patient-report-print-queue
   links: {}
   added: "2026-03-18"
+  updated: "2026-06-09"
 
 - id: patient-report-redesign-spec
   type: spec
@@ -3181,6 +3217,37 @@
   added: "2026-05-27"
   status: draft
 
+# ─── Result & Validation Configuration — v4 ───────────────────────────────────
+- id: results-validation-config-v4
+  type: html
+  path: designs/admin-config/results-validation-config-v4.html
+  spec: designs/admin-config/results-validation-config-v4.md
+  category: admin-config
+  description: >
+    Consolidated admin page (v4) replacing the flat Result Entry Configuration table
+    and the binary validate-all-results toggle. Plain-language grouped toggles panel
+    (13 legacy settings across 4 groups), multi-level validation policy panel
+    (lab-wide default + per-lab-unit overrides, 0–5 levels, trigger modes, role selects),
+    effective-config preview, and policy sentence. Route: /admin/results-validation-configuration.
+    Drives Results Entry v4 and Validation Page v4. Indonesia / SILNAS PNG deliverable.
+  links:
+    jira: ["OGC-1016", "OGC-343"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/results-validation-config-v4
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/results-validation-config-v4.html
+  tags:
+    - admin
+    - results
+    - validation
+    - configuration
+    - v4
+    - multi-level
+    - feature-flag
+    - Indonesia
+    - SILNAS
+    - png-deliverable
+  added: "2026-06-10"
+  status: draft
+
 - id: results-entry-expanded-uncertainty
   type: both
   path: designs/results-validation/results-entry-expanded-uncertainty.jsx
@@ -3203,6 +3270,119 @@
     - measurement-uncertainty
     - lhu-v2
   added: "2026-05-28"
+  status: draft
+
+# ─── Results & Validation — v4 redesign ──────────────────────────────────────
+- id: results-entry-v4
+  type: html
+  path: designs/results-validation/results-entry-v4.html
+  spec: designs/results-validation/results-entry-v4.md
+  category: results-validation
+  description: >
+    Results Entry consolidated redesign (v4) — per-row edit-state lock, Method +
+    Analyzer split columns, inline NCE (real InlineNceForm field set), inline
+    remaining-volume / disposal trigger, dual-axis notes, contrast-ratio critical
+    flags, bulk-release action, cross-domain (Clinical/Environmental/Vector).
+    Supersedes v3 Results Page. Indonesia / SILNAS PNG deliverable.
+  links:
+    jira: ["OGC-811"]
+    gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4
+    preview: https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-v4.html
+  tags:
+    - results
+    - data-entry
+    - v4
+    - method-analyzer
+    - nce
+    - edit-state
+    - cross-domain
+    - Indonesia
+    - SILNAS
+    - png-deliverable
+  added: "2026-06-10"
+  status: draft
+
+- id: validation-page-v4
+  type: html
+  path: designs/results-validation/validation-page-v4.html
+  spec: designs/results-validation/validation-page-v4.md
+  category: results-validation
+  description: >
+    Validation Page consolidated redesign (v4) — NCE / QC-fail / modification /
+    critical-ack triage chips in the list view, smart bulk-release (excludes
+    unreviewed criticals), Method + Analyzer split columns, inline rejection
+    with NCE record, per-row review state, e-signature on release. Cross-domain.
+    Indonesia / SILNAS PNG deliverable.
+  links:
+    jira: ["OGC-817"]
+    gallery: https://digi-uw.github.io/openelis-work/#/results-validation/validation-page-v4
+    preview: https://digi-uw.github.io/openelis-work/designs/results-validation/validation-page-v4.html
+  tags:
+    - validation
+    - results
+    - review
+    - v4
+    - bulk-release
+    - nce
+    - cross-domain
+    - Indonesia
+    - SILNAS
+    - png-deliverable
+  added: "2026-06-10"
+  status: draft
+
+- id: results-validation-v4-dependency-map
+  type: html
+  path: designs/results-validation/results-validation-v4-dependency-map.html
+  category: results-validation
+  description: >
+    Interactive Mermaid dependency map for the v4 Results & Validation redesign —
+    build order across Configuration (C1–C3), Results Entry (RE1–RE7), and
+    Validation (V1–V4) slices. Green nodes ready; red nodes gated on unbuilt
+    dependencies. Reference for the implementing pipeline.
+  links:
+    jira: ["OGC-811", "OGC-817", "OGC-1016"]
+    gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-validation-v4-dependency-map
+    preview: https://digi-uw.github.io/openelis-work/designs/results-validation/results-validation-v4-dependency-map.html
+  tags:
+    - results
+    - validation
+    - v4
+    - dependency-map
+    - build-order
+    - diagram
+  added: "2026-06-10"
+  status: draft
+
+- id: results-entry-v4-decisions
+  type: spec
+  path: designs/results-validation/results-entry-v4-decisions.md
+  category: results-validation
+  description: >
+    Cross-surface design decisions log (D1–D22) for the v4 Results & Validation
+    redesign. Covers edit-state machine, inline NCE, Method/Analyzer split,
+    reagent capture, dual-axis notes, critical flags, bulk-release, rejection,
+    multi-level validation policy, config consolidation, and cross-domain behavior.
+    Referenced by all three v4 FRSs — filename kept stable so cross-links hold.
+  links:
+    jira: ["OGC-811", "OGC-817", "OGC-343"]
+    gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4-design-decisions
+  added: "2026-06-10"
+  status: draft
+
+- id: results-validation-v4-breakdown
+  type: spec
+  path: designs/results-validation/results-validation-v4-breakdown.md
+  category: results-validation
+  description: >
+    PR-sized story breakdown for the v4 Results & Validation redesign. 14 slices
+    across Configuration (C1–C3), Results Entry (RE1–RE7), and Validation (V1–V4),
+    dependency-ordered with Jira key map (OGC-1016–1030), story points, covered
+    FRS sections, and cross-cutting concerns per slice.
+  links:
+    jira: ["OGC-811", "OGC-817", "OGC-1016"]
+    gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-validation-v4-story-breakdown
+  added: "2026-06-10"
   status: draft
 
 - id: collection-lot-trap-details

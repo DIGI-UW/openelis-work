@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Result & Validation v4 — Dependency Map</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+  <style>
+    body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+    .banner { background:#0f62fe; color:#fff; padding:6px 16px; font-size:12px; font-family:monospace; }
+    .wrap { max-width:1180px; margin:0 auto; padding:20px 24px 48px; }
+    h1 { font-size:22px; font-weight:300; margin:8px 0 4px; }
+    p.sub { color:#525252; font-size:13px; margin:0 0 16px; }
+    .legend { display:flex; gap:20px; flex-wrap:wrap; font-size:12px; margin:0 0 16px; background:#fff; border:1px solid #e0e0e0; padding:10px 14px; }
+    .legend span { display:inline-flex; align-items:center; gap:6px; }
+    .sw { width:14px; height:14px; border-radius:3px; display:inline-block; border:1px solid; }
+    .sw.surface { background:#edf5ff; border-color:#0f62fe; }
+    .sw.built { background:#defbe6; border-color:#0e6027; }
+    .sw.verify { background:#fcf4d6; border-color:#b28600; }
+    .sw.gap { background:#fff1f1; border-color:#a2191f; }
+    .diagram { background:#fff; border:1px solid #e0e0e0; padding:16px; overflow:auto; }
+    .note { font-size:12px; color:#525252; margin-top:16px; background:#fff; border-left:3px solid #0f62fe; padding:10px 14px; }
+    .note ul { margin:6px 0 0; padding-left:18px; } .note li { margin:3px 0; }
+  </style>
+</head>
+<body>
+  <div class="banner">⚡ Result &amp; Validation Configuration v4 — Dependency Map &nbsp;|&nbsp; OpenELIS Global &nbsp;|&nbsp; build-sequencing reference</div>
+  <div class="wrap">
+    <h1>Result &amp; Validation v4 — dependency map</h1>
+    <p class="sub">Three surfaces (Results Entry, Validation, Result &amp; Validation Configuration) plus the platform pieces they ride on. Edges read "is needed by". Red dashed nodes are <strong>not built yet</strong> — they gate specific features and must be sequenced (or gray-stated) at breakdown.</p>
+
+    <div class="legend">
+      <span><span class="sw surface"></span> v4 surface (this work)</span>
+      <span><span class="sw built"></span> exists / available</span>
+      <span><span class="sw verify"></span> exists — verify granularity</span>
+      <span><span class="sw gap"></span> NOT built yet — gates the labelled feature</span>
+    </div>
+
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart LR
+  classDef surface fill:#edf5ff,stroke:#0f62fe,color:#0043ce,font-weight:bold;
+  classDef built fill:#defbe6,stroke:#0e6027,color:#0e6027;
+  classDef verify fill:#fcf4d6,stroke:#b28600,color:#684e00;
+  classDef gap fill:#fff1f1,stroke:#a2191f,color:#a2191f,stroke-dasharray:5 3;
+
+  subgraph SURF["v4 surfaces"]
+    direction TB
+    CFG["Result and Validation Configuration<br/>(OGC-343) — policy, flags, settings"]:::surface
+    RE["Results Entry<br/>(OGC-811)"]:::surface
+    VAL["Validation<br/>(OGC-817)"]:::surface
+  end
+
+  %% Build order within the surfaces
+  CFG -->|"validation policy: trigger / levels / roles"| VAL
+  CFG -->|"entry, modify, reject, PII settings"| RE
+  CFG -->|"bulk-release flag + retest-note flag"| VAL
+  RE -->|"writes results, method/analyzer, notes, history"| VAL
+
+  %% Platform — exists today
+  ROLE["Role / Permission<br/>(result.validate)"]:::built --> CFG
+  DOMAIN["lab_unit.domain<br/>(CLINICAL/ENV/VECTOR)"]:::built --> CFG
+  MLV["Multi-level validation backend<br/>(OGC-343 / OGC-579)"]:::built --> VAL
+  ESIG["E-signature module"]:::built --> RE
+  ESIG --> VAL
+  NCEM["NCE module<br/>(OGC-313–316, InlineNceForm)"]:::built --> RE
+  NCEM --> VAL
+  ALERTS["Alerts dashboard<br/>(critical acknowledgment)"]:::built --> RE
+  ALERTS --> VAL
+  ALQ["Aliquot function<br/>(LABNO.X-Y)"]:::built --> RE
+  REFOUT["Referrals / Sample Shipment<br/>(OGC-796…810)"]:::built --> RE
+  INV["Reagent Inventory + Forecasting<br/>(ReagentConsumptionEvent)"]:::built --> RE
+  RANGES["Demographic reference ranges<br/>(test_reference_range)"]:::built --> RE
+  RANGES -->|"range-match → Clear lane input"| VAL
+  ANALYSIS["Analysis entity<br/>(method, analyzerId, revision, status…)"]:::built --> RE
+
+  %% Workplan — exists, granularity to confirm
+  WORKPLAN["Workplan reagent-lot assignment<br/>(lot at analysis granularity?)"]:::verify -->|"reagent autofill"| RE
+
+  %% NOT BUILT — gaps that gate specific features
+  LINK["Test Catalog → Method → Reagent linkage"]:::gap -->|"per-test reagent capture (v2.1)"| RE
+  CTRL["Manual / RDT control-result persistence"]:::gap -->|"control capture"| RE
+  CTRL -->|"QC-fail signal on manual tests"| VAL
+  VOL["SampleItem remaining-volume field"]:::gap -->|"partial sample use"| RE
+  DISP["Sample disposal hand-off (storage)"]:::gap -->|"mark used-up → disposal"| RE
+  INTERP["Per-test interpretation rule config"]:::gap -->|"interpretation rule buckets"| RE
+      </pre>
+    </div>
+
+    <div class="note">
+      <strong>How to use this at breakdown (PR-sized slices):</strong>
+      <ul>
+        <li><strong>Configuration ships first.</strong> It has no upstream dependency in this set (only Role/Permission + lab_unit.domain, both present) and supplies the policy + flags both other pages read.</li>
+        <li><strong>Results Entry and Validation can start on their dependency-light slices</strong> — the table, panel hierarchy, edit-state, Method/Analyzer split, notes, this-analysis History, triage view, guarded release — none of which need the red nodes.</li>
+        <li><strong>Gate the red-node features.</strong> Reagent capture (v2.1), control capture + the QC-fail signal, partial sample use, used-up→disposal, and interpretation rules each wait on an unbuilt dependency. They should be later slices, gray-stated until their dependency lands — not in the first shippable cut.</li>
+        <li><strong>Cross-cutting:</strong> the QC-fail Clear-lane input and the control capture share the same dependency (manual/RDT control persistence) — build it once, it unblocks both pages.</li>
+      </ul>
+    </div>
+  </div>
+  <script>mermaid.initialize({ startOnLoad: true, flowchart: { curve: 'basis' } });</script>
+</body>
+</html>
