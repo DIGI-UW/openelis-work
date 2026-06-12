@@ -1946,6 +1946,17 @@ export const MOCKUP_REGISTRY = [
     tags: ['inventory', 'reagents', 'forecasting', 'stock'],
   },
   {
+    name: 'Inventory Item-Type Management',
+    category: 'inventory',
+    component: React.lazy(() => import('@designs/inventory/inventory-item-type-management.jsx')),
+    description: 'Move the hard-coded "Type of Item" list into the Data Dictionary: managed item-type admin with add/edit/deactivate, replacing hardcoded values.',
+    specPath: 'designs/inventory/inventory-item-type-management.md',
+    htmlUrl: 'designs/inventory/inventory-item-type-management.html',
+    added: '2026-06-12',
+    status: 'draft',
+    tags: ['inventory','item-type','data-dictionary','admin'],
+  },
+  {
     name: 'Reagent Forecasting Facility View',
     category: 'inventory',
     component: React.lazy(() => import('@designs/inventory/reagent-forecasting-facility.jsx')),
