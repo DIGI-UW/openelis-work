@@ -217,6 +217,22 @@
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-frs-v2-5
   added: "2026-05-14"
 
+- id: test-catalog-microbiology-workflow-attribute
+  type: mockup
+  path: designs/admin-config/test-catalog-microbiology-workflow-attribute.html
+  spec: designs/admin-config/test-catalog-microbiology-workflow-attribute.md
+  preview: designs/admin-config/test-catalog-microbiology-workflow-attribute.html
+  category: admin-config
+  description: >
+    Test Catalog Basic Info microbiology workflow attribute: a nullable culture_workflow_type
+    enum (Bacteriology / Mycobacteriology-TB) orthogonal to Domain and the AMR flag; drives
+    micro case routing (M-03/M-04). Foldable into Test Catalog v2.5 section 2.1 Basic Info.
+  links:
+    jira: ["OGC-925"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-microbiology-workflow-attribute
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-microbiology-workflow-attribute.html
+  added: "2026-06-08"
+
 - id: test-catalog-v2-5-v1-preview
   type: mockup
   path: designs/admin-config/test-catalog/test-catalog-preview-v2.5-v1.html

@@ -18,6 +18,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Range Editor | [range-editor.jsx](designs/admin-config/range-editor.jsx) | [range-editor.md](designs/admin-config/range-editor.md) |
 | Result Options | [result-options.jsx](designs/admin-config/result-options.jsx) | [result-options.md](designs/admin-config/result-options.md) |
 | Test Catalog | [test-catalog.jsx](designs/admin-config/test-catalog.jsx) · [preview](designs/admin-config/test-catalog.html) | [test-catalog.md](designs/admin-config/test-catalog.md) |
+| Test Catalog — Microbiology Workflow Attribute | [preview](designs/admin-config/test-catalog-microbiology-workflow-attribute.html) | [test-catalog-microbiology-workflow-attribute.md](designs/admin-config/test-catalog-microbiology-workflow-attribute.md) |
 | RBAC Management | [rbac-ui-mockup.html](designs/rbac/rbac-ui-mockup.html) | [rbac-revamp-prd.md](designs/rbac/rbac-revamp-prd.md) |
 | Password Policy Enhancements | [password-enhancements.jsx](designs/admin-config/password-enhancements.jsx) | [password-enhancements.md](designs/admin-config/password-enhancements.md) |
 | Catalog Subscription | [catalog-subscription-carbon.jsx](designs/admin-config/catalog-subscription-carbon.jsx) \| [preview](designs/admin-config/catalog-subscription.html) | [catalog-subscription.md](designs/admin-config/catalog-subscription.md) |
