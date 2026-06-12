@@ -912,10 +912,12 @@ export const MOCKUP_REGISTRY = [
     component: null,
     description: 'Unified admin for breakpoint + WHONET code + organism/antibiotic master updates from a central repository. OE pulls; never pushes. Phase 1B.',
     specPath: 'designs/microbiology/m-10-hub-subscription.md',
+    htmlUrl: 'designs/microbiology/m-10-hub-subscription-prototype.html',
     added: '2026-05-15',
+    updated: '2026-06-08',
     status: 'draft',
     jira: ['OGC-795'],
-    tags: ['microbiology', 'hub-subscription', 'reference-data', 'phase-1b'],
+    tags: ['microbiology', 'hub-subscription', 'reference-data', 'phase-1b', 'interactive', 'prototype'],
   },
   {
     name: 'M-11 Critical-Result Acknowledgment',
@@ -935,10 +937,12 @@ export const MOCKUP_REGISTRY = [
     component: null,
     description: 'General OE foundation: declare which reagent lots are required for a given test (ISO 15189 §7.3). Micro is the forcing function. Parallel pre-track to MVP-1A.',
     specPath: 'designs/microbiology/m-12-test-reagent-linkage.md',
+    htmlUrl: 'designs/microbiology/m-12-test-reagent-linkage-prototype.html',
     added: '2026-05-15',
+    updated: '2026-06-08',
     status: 'draft',
     jira: ['OGC-784'],
-    tags: ['microbiology', 'reagent-linkage', 'iso-15189', 'cross-cutting', 'co-ship', 'mvp-1a'],
+    tags: ['microbiology', 'reagent-linkage', 'iso-15189', 'cross-cutting', 'co-ship', 'mvp-1a', 'interactive', 'prototype'],
   },
 
   // ─── Microbiology — FRS v1.0 formal docs ────────────────────────────────
@@ -1217,15 +1221,16 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'glass', 'fhir', 'surveillance', 'fhir-server', 'phase-2'],
   },
   {
-    name: 'Microbiology AMR Narrative — v2.0',
+    name: 'Microbiology AMR Narrative — v2.1',
     category: 'microbiology',
     component: null,
-    description: 'v2.0 workflow-selection narrative: Phase 0 (workflow_type decision rule), Phase 7 (TB workup), antibiogram note (Phase 2), Phase 8 (GLASS via M-15 FHIR push). Cross-module context doc for the full M-00–M-15 bundle.',
+    description: 'v2.1 narrative: folds in four post-v2.0 decisions — Case keying is SampleItem × workflow_type (not 1:1 with Sample); WHONET (M-09) extends the existing export; M-11 critical notification reuses the notifications dashboard + TestNotificationService; Expert Review (M-06) and critical log-and-acknowledge (M-11) are inline panels, not modals. Cross-module context doc for the full M-00–M-15 bundle.',
     specPath: 'designs/microbiology/amr-micro-narrative.md',
     added: '2026-06-08',
+    updated: '2026-06-12',
     status: 'draft',
     jira: ['OGC-782'],
-    tags: ['microbiology', 'narrative', 'workflow-selection', 'tb', 'antibiogram', 'glass', 'v2'],
+    tags: ['microbiology', 'narrative', 'workflow-selection', 'tb', 'antibiogram', 'glass', 'v2.1'],
   },
 
   // ─── NCE ───

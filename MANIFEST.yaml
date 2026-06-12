@@ -738,13 +738,16 @@
 - id: m-10-hub-subscription
   type: spec
   path: designs/microbiology/m-10-hub-subscription.md
+  preview: designs/microbiology/m-10-hub-subscription-prototype.html
   category: microbiology
   description: >
     M-10: Unified Hub admin for breakpoint + WHONET code + organism/antibiotic updates. Phase 1B.
   links:
     jira: ["OGC-795"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-10-hub-subscription
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-10-hub-subscription-prototype.html
   added: "2026-05-15"
+  updated: "2026-06-08"
 
 - id: m-11-critical-result-acknowledgment
   type: spec
@@ -761,13 +764,16 @@
 - id: m-12-test-reagent-linkage
   type: spec
   path: designs/microbiology/m-12-test-reagent-linkage.md
+  preview: designs/microbiology/m-12-test-reagent-linkage-prototype.html
   category: microbiology
   description: >
     M-12: Test → Reagent linkage (ISO 15189 §7.3). General OE foundation; parallel pre-track.
   links:
     jira: ["OGC-784"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-12-test-to-reagent-linkage
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-12-test-reagent-linkage-prototype.html
   added: "2026-05-15"
+  updated: "2026-06-08"
 
 # ─── Microbiology — FRS v1.0 formal docs ─────────────────────────────────
 
@@ -1010,12 +1016,14 @@
   path: designs/microbiology/amr-micro-narrative.md
   category: microbiology
   description: >
-    Microbiology AMR Narrative v2.0 — Phase 0 workflow-selection, Phase 7 TB, antibiogram note,
-    Phase 8 GLASS via M-15. Cross-module context doc for the full M-00–M-15 bundle.
+    Microbiology AMR Narrative v2.1 — folds in four post-v2.0 decisions (SampleItem×workflow_type
+    case keying, WHONET reuse, M-11 notification reuse, inline Expert Review/critical panels).
+    Cross-module context doc for the full M-00–M-15 bundle.
   links:
     jira: ["OGC-782"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-amr-narrative-v2-0
   added: "2026-06-08"
+  updated: "2026-06-12"
 
 - id: m-04-change-workflow-unassigned
   type: mockup
