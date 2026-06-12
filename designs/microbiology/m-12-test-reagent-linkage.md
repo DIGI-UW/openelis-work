@@ -11,6 +11,12 @@
 
 This spec adds a long-deferred OE foundation: the ability to declare which reagent lots are required (or optional) for a given test. Per memory `project_reagent_test_catalog_link`, the Test → Reagent linkage doesn't exist today even though reagent concepts (lots, expiration, QC status) do. Micro is the forcing function for this work — AST cards, discs, and culture media are all reagents with lot numbers that ISO 15189 §7.3 expects traceable to each patient result.
 
+> **⚠ Reuse update (verified in code + Jira) — supersedes the old `reagent`/`qc_lot` framing below.** Two pieces already exist and M-12 must build on them, not duplicate:
+> - **In code now — the Inventory module:** `InventoryItem` (ItemType REAGENT / CARTRIDGE / kit), `InventoryLot` (lot, expiry, `LotStatus` = ACTIVE/IN_USE/EXPIRED/CONSUMED/QUARANTINED, `QCStatus` = PENDING/PASSED/FAILED/QUARANTINED), `InventoryTransaction`, and **`InventoryUsage` — which already records consumption and is keyed to `analysis_id` + `test_result_id`.** So per-result lot **consumption + traceability already has a home**; it is *not* new work.
+> - **In Jira (not code yet) — the definitional link:** the Test↔Reagent "which reagents does this test use" link (`test_reagent_link`) is planned in **Test Catalog v2.5 v2 (OGC-759)**.
+>
+> **Therefore M-12 = reuse + wire, not build:** the **`ReagentLotPicker` over `InventoryLot`** (FIFO / expiry / QC blocking from `LotStatus`/`QCStatus`) whose selection **writes an `InventoryUsage`** (consumption + traceability — reuse), consuming the `test_reagent_link` definition from OGC-759. The picker UI + the result-entry wiring are the only net-new parts; the old `reagent` / `qc_lot` references in §3 below are superseded by the Inventory module.
+
 Several parked specs benefit: Reagent Forecasting, Reagent QC, Catalog Subscription, future Phase 2 chemistry reagent tracking improvements.
 
 ---
@@ -55,8 +61,8 @@ Define the relationship between Tests and Reagents so that:
 
 ### 2.4 Integration
 
-- **Test Catalog v2.5** — adds a new Reagents tab on the Test editor (the Reagents tab already exists in v2.5 but is empty placeholder; M-12 fills it).
-- **Reagent inventory** — existing OE reagent concepts (reagent definitions, lots, QC status).
+- **Test Catalog v2.5 (OGC-759)** — owns the Reagents tab **and the `test_reagent_link` definitional table**; M-12 fills the tab content + the picker. Coordinate so the link isn't double-built.
+- **Inventory module (existing, in code)** — `InventoryItem` (REAGENT/CARTRIDGE/kit), `InventoryLot` (lot/expiry/`LotStatus`/`QCStatus`), `InventoryUsage` (consumption, keyed to `analysis_id`/`test_result_id`), `InventoryTransaction`. The `ReagentLotPicker` reads `InventoryLot` and **writes an `InventoryUsage`** on selection. Supersedes the old `reagent`/`qc_lot` for this purpose.
 - **M-04 Case Workbench Core** — Inoculation modal picks reagent lots for media types via the shared `ReagentLotPicker`.
 - **M-05 AST Entry & Interpretation** — AST Setup modal picks reagent lots for AST cards / discs via the same `ReagentLotPicker`.
 - **FRS_Reagent_Forecasting** (parked) — unblocked by this spec.
@@ -73,7 +79,8 @@ Define the relationship between Tests and Reagents so that:
 test_reagent_link
 ├── link_id (UUID PK)
 ├── test_id (FK to test catalog — existing OE table)
-├── reagent_id (FK to reagent — existing OE table)
+├── inventory_item_id (FK to InventoryItem — existing Inventory module; the reagent/cartridge/kit)
+│        NOTE: this table is owned/built by Test Catalog v2.5 (OGC-759); M-12 consumes it.
 ├── linkage_type (enum: REQUIRED, OPTIONAL, SUBSTITUTE)
 ├── consumption_unit (enum: PER_TEST, PER_RUN, PER_BATCH, PER_DAY)
 ├── consumption_quantity (numeric, default 1 — e.g., 1 card per AST Run, 1 plate per culture)
@@ -94,13 +101,16 @@ test_reagent_method_constraint (sub-junction, optional refinement)
 test (existing OE table; no schema changes; gain inverse relation)
    └── test_reagent_link (1:N via test_id)
 
-reagent (existing OE table; no schema changes; gain inverse relation)
-   └── test_reagent_link (1:N via reagent_id)
+InventoryItem (existing Inventory module — ItemType REAGENT / CARTRIDGE / kit; replaces the old `reagent`)
+   └── test_reagent_link (1:N via inventory_item_id)
 
-qc_lot (existing OE table; key surface used at result entry)
-   ├── lot_number, expires_at, status (UNLOCKED / LOCKED / EXPIRED)
-   ├── reagent_id (FK)
-   └── (existing columns)
+InventoryLot (existing — the lot-picker surface at result entry; replaces the old `qc_lot`)
+   ├── lot_number, expiry, LotStatus (ACTIVE/IN_USE/EXPIRED/CONSUMED/QUARANTINED), QCStatus (PENDING/PASSED/FAILED/QUARANTINED)
+   └── picker blocks selection when EXPIRED / QUARANTINED / QC FAILED
+
+InventoryUsage (existing — consumption is ALREADY recorded here; M-12 writes a row on lot selection)
+   ├── inventory_item_id, lot_id, analysis_id, test_result_id, quantity_used, usage_date, performed_by_user
+   └── this IS the per-result lot traceability (ISO 15189 §7.3) — reused, not rebuilt
 ```
 
 ### 3.3 Linkage semantics

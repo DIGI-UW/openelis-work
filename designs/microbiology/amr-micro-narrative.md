@@ -1,12 +1,23 @@
-# Microbiology in the Lab — A Workflow Walk-through (v2, for developers)
+# Microbiology in the Lab — A Workflow Walk-through (v2.1, for developers)
 
 **Audience:** Developers building features in the OpenELIS Global Microbiology module who have **no microbiology background**. By the end of this doc you should be able to look at any feature in the micro / AMR release and know (1) what the lab actually does that the feature is modeling, (2) what subsystem in OpenELIS the feature lives in, (3) what data it reads and writes, and (4) how it composes with the rest of OpenELIS.
 
 **Author:** Casey Iiams-Hauser
 **Date:** 2026-06-08
-**Version:** 2.0 — adds the workflow-selection routing rule, a TB / Mycobacteriology walkthrough phase, an Antibiogram note, and the forthcoming GLASS / consolidated-FHIR surveillance step. Supersedes v1.0 (2026-05-15, first dev-facing pass post-critique of the v1.1 AMR FRS trio).
+**Version:** 2.1 (2026-06-08) — folds in four post-v2.0 decisions: Case keying is SampleItem × workflow_type (not 1:1 with Sample); WHONET (M-09) extends OpenELIS's existing export rather than building new; M-11 critical notification reuses the existing notifications dashboard + TestNotificationService; and Expert Review (M-06) / critical log-and-acknowledge (M-11) are inline panels, not modals (Principle 3). See the "v2.1 updates" block below. Supersedes v2.0, which added the workflow-selection routing rule, a TB / Mycobacteriology walkthrough phase, an Antibiogram note, and the forthcoming GLASS / consolidated-FHIR surveillance step; v2.0 superseded v1.0 (2026-05-15, first dev-facing pass post-critique of the v1.1 AMR FRS trio).
 **Companion docs:** `amr-design-critique-v1.md`, `microbiology-case-workbench-frs-v1.1.md`, `amr-configuration-frs-v1.1.md`, `whonet-integration-frs-v1.1.md`, plus the M-\* FRS bundle (M-01 … M-14).
 **Sibling doc style:** Modeled on `qa-qc-narrative-v3-for-devs.md`.
+
+---
+
+## v2.1 updates (since v2.0)
+
+Four decisions made after v2.0 are folded into the phases below; summarized here so a returning reader sees the deltas at a glance:
+
+1. **Case keying = SampleItem × workflow_type (not 1:1 with Sample).** A Case is keyed on `(sample_item_id, workflow_type)`. One physical specimen (one SampleItem) can carry both a bacterial Case (M-04) and a TB Case (M-14) that **share the same `sample_item_id`** — no double accessioning. The two Cases surface each other via a **sibling cross-link chip**, and the Worklist **groups siblings**. Folded into Phase 0 and the Preamble's Case definition.
+2. **WHONET (M-09) is a reuse + painless story, not a new build.** M-09 **extends** OpenELIS's existing WHONET export (`WHONetReportService`, `WHONETCSVRoutineColumnBuilder`, the Reports→WHONET menu). Painless levers: WHONET codes ship pre-loaded (M-01 seed) and auto-map by name/OCL; the readiness "denominator" is the codes that **actually appear in the results being exported** (not the whole master); antibiotic + breakpoint-standard WHONET codes are **read-through from the Test Catalog AMR config (`test_amr_config`)**, not re-mapped; CSV is the deliverable (import into WHONET); the FHIR push (M-15) is the lowest-effort path where a consolidated FHIR server exists. Folded into Phase 6.
+3. **M-11 critical notification reuses existing infrastructure.** It surfaces in OpenELIS's **existing notifications/alerts dashboard** and dispatches via the **existing `TestNotificationService`** — it does **not** build a second alerts dashboard. M-11 adds only the documented **call-back + read-back acknowledgment loop** (Open → Acknowledged → Closed) and the **polymorphic CASE / ISOLATE / SAMPLE target**. Folded into Phases 2, 5, and 7.
+4. **Inline interactions, not modals (Principle 3).** M-06 Expert Review and M-11 critical log/acknowledge are **inline panels**, not pop-up modals (modals are reserved for destructive confirms). The admin Expert Rule Editor may remain a config surface. Folded into Phases 2, 4, and 5.
 
 ---
 
@@ -50,7 +61,7 @@ The OpenELIS Global Microbiology module is a new top-level section in the applic
 
 The module introduces three new top-level concepts beyond Sample / Analysis / Result:
 
-* **Case** — a container that wraps a single Sample's entire micro workup, from arrival through final report. One Case per Sample. Maps roughly to a Sample-level "session" but with explicit stage tracking and a timeline.
+* **Case** — a container that wraps one discipline's micro workup of one physical specimen, from arrival through final report, with explicit stage tracking and a timeline. **A Case is keyed on `(sample_item_id, workflow_type)`, not 1:1 with the Sample.** The same SampleItem (one physical specimen) can therefore carry both a bacterial Case (M-04) and a TB Case (M-14) sharing the one `sample_item_id` — no double accessioning. The two surface each other via a **sibling cross-link chip**, and the Worklist groups siblings together.
 * **Isolate** — a distinct organism identified from the Sample. Zero, one, or many per Case. Each Isolate has its own identity, significance assessment, and AST run.
 * **AST Run** — a set of antibiotic susceptibility results for one Isolate against one configured panel of antibiotics, interpreted against one breakpoint standard. One or more per Isolate.
 
@@ -84,6 +95,9 @@ The rest of this doc walks the workflow in phases, in the order a specimen moves
 
 ## Phase 0 — Workflow selection: how the module routes a micro order
 
+![Phase 0 — the ordered test routes the specimen to a bacterial or TB Case](narrative-illustrations/00-workflow-routing.png)
+*Illustration — the ordered test's `workflow_type` forks one specimen to a bacterial Case (M-04) or a TB Case (M-14).*
+
 **MVP cycle:** MVP-1A for `BACTERIOLOGY`; `MYCOBACTERIOLOGY_TB` lights up in the TB cycle (Phase 7). · **Refs:** M-03 (Order Entry hook), M-04 (Case Workbench), M-01/M-02 (reference data).
 
 ### What this phase is, in software terms
@@ -112,7 +126,9 @@ A lab does not have one micro workflow; it has a small number of **distinct disc
 
 The thing that decides which discipline a specimen belongs to is **the test the clinician ordered**, not the specimen type. The same sputum cup can be the input to a routine respiratory culture *and* to a TB workup — those are two different clinical questions, ordered as two different tests. The lab does not look at the cup and guess; it reads the order.
 
-A practical consequence the data model has to honor: **a specimen that needs both routine culture AND a TB workup is two ordered tests, and therefore two Cases — one per profile.** This is the **one-protocol-per-case rule**: a Case carries exactly one culture protocol and one workflow profile, so "culture this for ordinary bacteria *and* for mycobacteria" is structurally two Cases sharing one Sample, not one Case running two protocols. That keeps each Case's sections, breakpoints, reflexes, and export flavor unambiguous.
+A practical consequence the data model has to honor: **a specimen that needs both routine culture AND a TB workup is two ordered tests, and therefore two Cases — one per profile.** This is the **one-protocol-per-case rule**: a Case carries exactly one culture protocol and one workflow profile, so "culture this for ordinary bacteria *and* for mycobacteria" is structurally two Cases, not one Case running two protocols. That keeps each Case's sections, breakpoints, reflexes, and export flavor unambiguous.
+
+The keying is **`(sample_item_id, workflow_type)`, not 1:1 with the Sample.** The two Cases **share the one `sample_item_id`** — the physical specimen is accessioned once, and there is no double accessioning. Because they share a SampleItem, each Case surfaces the other via a **sibling cross-link chip**, and the Pending Cultures Worklist **groups siblings** so a tech sees the bacterial and TB workups of the same cup side by side.
 
 ### Walked-through scenario
 
@@ -122,10 +138,10 @@ In code:
 
 * Sample Collection writes one `sample` row, as usual.
 * The post-save hook iterates the ordered micro tests. For each, the M-03 trigger resolver reads `workflow_type` and calls `MicroCaseService.createCaseForSample(sampleId, workflowType)`.
-* Two `micro_case` rows are written against the one Sample: one with profile `BACTERIOLOGY` (protocol `RESPIRATORY_STD`), one with profile `MYCOBACTERIOLOGY_TB` (protocol `TB_MGIT_LJ`).
+* Two `micro_case` rows are written, both keyed on the **same `sample_item_id`** (the one physical specimen): one with profile `BACTERIOLOGY` (protocol `RESPIRATORY_STD`), one with profile `MYCOBACTERIOLOGY_TB` (protocol `TB_MGIT_LJ`). The keying is `(sample_item_id, workflow_type)`, so there is no double accessioning.
 * The bacterial Case renders the Phases 1-6 surfaces. The TB Case renders the Phase 7 surfaces — AFB smear, GeneXpert, MGIT/LJ culture, DST. Each Case interprets against its own breakpoint family and feeds its own export flavor.
 
-The two Cases run on their own timelines and never collide. The Sample is the only thing they share.
+The two Cases run on their own timelines and never collide. They share the one SampleItem, surface each other via a **sibling cross-link chip**, and the Worklist groups them as siblings.
 
 ### How this phase composes
 
@@ -147,6 +163,9 @@ The two Cases run on their own timelines and never collide. The Sample is the on
 ---
 
 ## Phase 1 — Pre-analytical: Order, sample arrival, accessioning, culture setup
+
+![Phase 1 — streak the specimen onto media and start incubation](narrative-illustrations/01-inoculation.png)
+*Illustration — inoculating media from the specimen (loop streak + broth/blood-culture bottles).*
 
 **MVP cycle:** MVP-1A · **Mockups:** `m-03-order-entry-step1-preview-v1.html`, `m-07-pending-cultures-preview-v1.html`, `m-01-organism-master-preview-v1.html`.
 
@@ -209,6 +228,9 @@ This is the rhythm of micro: a tech does a burst of setup work at the start of t
 
 ## Phase 2 — Analytical Day 1: Incubation, positive detection, gram stain, preliminary identification
 
+![Phase 2 — a positive blood culture and the Gram stain that guides the prelim](narrative-illustrations/02-day1-positive-gram.png)
+*Illustration — a blood culture flags positive; the Gram stain (here, Gram-negative rods) drives the preliminary report.*
+
 **MVP cycle:** MVP-1A (manual positive logging; analyzer event channel is Phase 1A+) · **Mockups:** `m-07-pending-cultures-preview-v1.html`, `m-04-case-detail-preview-v1.html`, `m-04-isolate-modal-preview-v1.html`, `m-11-critical-notifications-preview-v1.html`.
 
 ### What this phase is, in software terms
@@ -248,12 +270,12 @@ A new `micro_isolate` row is written.
 
 Olivia then needs to **call the clinician**. A Gram-negative rod in blood from a septic patient is a critical preliminary result. She picks up the phone, gets the ER, tells them "I have Gram-negative rods growing in the blood culture you sent at 0700 yesterday. The patient should be on broad-spectrum coverage _now_."
 
-She returns to the Case, clicks "Critical Value Notification," logs the call. The Case stage advances to `ORGANISM_ID`. Olivia subcultures the bottle to BAP and MAC plates, logs the Subculture timeline event, moves to the next positive row.
+She returns to the Case and opens the **inline Critical Notification panel** (not a pop-up modal — Principle 3). She logs the call there, capturing the **call-back + read-back acknowledgment** (the notification moves Open → Acknowledged → Closed once the ER reads the result back). The notification is keyed polymorphically to this **CASE** (it could equally target an ISOLATE or the SAMPLE); it surfaces in OpenELIS's **existing notifications/alerts dashboard** and dispatches through the **existing `TestNotificationService`** — M-11 does not build a second dashboard. The Case stage advances to `ORGANISM_ID`. Olivia subcultures the bottle to BAP and MAC plates, logs the Subculture timeline event, moves to the next positive row.
 
 ### How this phase composes
 
 * **← Analyzer Interface:** Blood culture instruments push POSITIVE_SIGNAL events. **This is a major dependency.** Blood culture instruments use the same ASTM / HL7 protocols as chemistry analyzers but with different message structures. A new analyzer profile is needed per instrument family.
-* **→ Critical Result Acknowledgment:** Phase 2 produces critical results that plug into the existing critical-result mechanism.
+* **→ Critical Result Acknowledgment (M-11):** Phase 2 produces critical results that **reuse OpenELIS's existing notifications/alerts dashboard and `TestNotificationService`** — no second dashboard. M-11 adds only the inline call-back + read-back acknowledgment loop (Open → Acknowledged → Closed) and the polymorphic CASE / ISOLATE / SAMPLE target.
 * **→ Patient Reports:** A preliminary report can be released as soon as the Gram stain is logged. The narrative argues for prelim release on Isolate save with Gram stain present, not on Isolate save with final ID.
 * **→ Macros (Macro Library, cross-cutting):** Three macro-enabled fields appear in this phase. The Macro Library has to be in place before Phase 2 ships.
 
@@ -275,6 +297,9 @@ She returns to the Case, clicks "Critical Value Notification," logs the call. Th
 ---
 
 ## Phase 3 — Analytical Day 2: Subculture reading, final identification, AST setup
+
+![Phase 3 — pick a colony, identify the organism, set up AST](narrative-illustrations/03-day2-id-ast.png)
+*Illustration — a colony is picked for identification and an AST plate (disk diffusion) is set up.*
 
 **MVP cycle:** MVP-1A (manual AST entry; analyzer-ingested AST is Phase 1A+) · **Mockups:** `m-04-case-detail-preview-v1.html`, `m-05-ast-edit-modal-preview-v1.html`, `m-04-isolate-modal-preview-v1.html`, `m-07-ast-worklist-preview-v1.html`, `m-02-breakpoint-catalog-preview-v1.html`.
 
@@ -351,6 +376,9 @@ The Ceftriaxone R triggers a flag in the Expert Rules section (Phase 4).
 
 ## Phase 4 — Analytical Day 2 (later): Expert Rules, supervisor review
 
+![Phase 4 — the rule engine flags a resistance phenotype for review](narrative-illustrations/04-expert-review.png)
+*Illustration — the expert-rules engine flags a phenotype (e.g. possible ESBL) for the tech to review and decide.*
+
 **MVP cycle:** **Phase 1B** — the Expert Rules engine is not in MVP-1A or 1A+. In MVP-1A, the tech and supervisor apply rules manually via overrides in the AST Edit modal (see `m-05-ast-edit-modal-preview-v1.html`, the two highlighted override rows for Ceftriaxone-ESBL and Gentamicin-cascade are exactly the kind of overrides that Phase 1B's engine will eventually auto-apply or suggest). The Expert Review section is empty in MVP-1A; populated in Phase 1B.
 
 ### What this phase is, in software terms
@@ -363,7 +391,7 @@ Expert Rules is a configurable rules engine that runs against AST Run results an
 * **Cascade reporting** (e.g., "For urines, only report ampicillin and TMP/SMX unless both are R").
 * **Intrinsic resistance verification**.
 
-Each rule has a definition, an action, and a justification field. Rules are evaluated server-side after AST results land, and produce **flags** that surface on the Case's Expert Review section.
+Each rule has a definition, an action, and a justification field. Rules are evaluated server-side after AST results land, and produce **flags** that surface on the Case's Expert Review section. That section is an **inline panel on the Case, not a pop-up modal** (Principle 3 — modals are reserved for destructive confirms); the admin Expert Rule Editor, by contrast, stays a config surface.
 
 ### Lab primer
 
@@ -385,7 +413,7 @@ It is 11:55 AM. Olivia is back at Carlos Martinez's Case. The Expert Review sect
 * **Flag 2: Cascade — third-line drugs unlocked.**
 * **Flag 3: Intrinsic resistance verification.** N/A for this case.
 
-Olivia clicks "Review & Decide" on Flag 1. She chooses "Order ESBL confirmation." After lunch, the confirmation comes back positive. She clicks "ESBL confirmed" on Flag 1. The system applies the ESBL phenotype rule: all penicillins, cephalosporins, and aztreonam are over-ridden to R.
+Olivia clicks "Review & Decide" on Flag 1, which expands the decision controls **inline in the Expert Review panel** (no modal). She chooses "Order ESBL confirmation." After lunch, the confirmation comes back positive. She clicks "ESBL confirmed" on Flag 1. The system applies the ESBL phenotype rule: all penicillins, cephalosporins, and aztreonam are over-ridden to R.
 
 Olivia clicks "Mark Ready for Review." Case stage advances to `READY_REVIEW`. Dr. Adeyemi opens the Case at 3:12 PM, walks the AST results, clicks "Release Final Report."
 
@@ -394,7 +422,7 @@ Olivia clicks "Mark Ready for Review." Case stage advances to `READY_REVIEW`. Dr
 * **← AST Results (Phase 3):** Expert Rule evaluation runs on AST Run state-change events.
 * **→ Patient Reports:** The over-ride mechanism means the report shows expert-adjusted values, not raw AST values.
 * **→ QMS / NCE:** A failed expert rule application generates an NCE.
-* **→ Alerts Dashboard:** Critical resistance findings generate alerts.
+* **→ Alerts Dashboard:** Critical resistance findings generate alerts via M-11's reuse of the **existing notifications/alerts dashboard and `TestNotificationService`** — no new dashboard.
 
 ### What you're building, by release version
 
@@ -403,7 +431,7 @@ Olivia clicks "Mark Ready for Review." Case stage advances to `READY_REVIEW`. Dr
 | Expert Rule Engine | New | Phase 1B |
 | Expert Rule definition admin page | New | Phase 1B |
 | MRSA, D-test, ESBL, cascade, intrinsic rules (built-in) | New | Phase 1B |
-| Expert Review modal | New | Phase 1B |
+| Expert Review inline panel (not a modal — Principle 3) | New | Phase 1B |
 | AST result override mechanism (preserve original) | New | MVP-1A (manual); Phase 1B (engine-driven) |
 | Supervisor review queue + final release | New | MVP-1A |
 | Critical-resistance alert integration | New | Phase 1B |
@@ -411,6 +439,9 @@ Olivia clicks "Mark Ready for Review." Case stage advances to `READY_REVIEW`. Dr
 ---
 
 ## Phase 5 — Post-analytical: Final report, amendments, communication
+
+![Phase 5 — the verified report leaves the bench for the clinician](narrative-illustrations/05-final-report.png)
+*Illustration — the verified final report is released to the clinician.*
 
 **MVP cycle:** MVP-1A (Final release only; amendment workflow is Phase 1A+) · **Mockups:** `m-04-case-detail-preview-v1.html`, `m-11-critical-notifications-preview-v1.html`.
 
@@ -420,7 +451,7 @@ Three behaviors collapse into this phase:
 
 * **Final report release** — Supervisor approves, system generates the patient report PDF, sends to ordering provider, locks the Case.
 * **Amendment** — A released Final can be amended. The amendment is a new version of the report, with audit-trailed delta. The original is never deleted.
-* **Critical-result communication audit** — Every critical phone-call notification must be logged. ISO 15189 §7.4 compliance.
+* **Critical-result communication audit (M-11)** — Every critical phone-call notification must be logged. ISO 15189 §7.4 compliance. This reuses OpenELIS's **existing notifications/alerts dashboard and `TestNotificationService`** (no second dashboard); M-11 adds the **inline** call-back + read-back acknowledgment loop (Open → Acknowledged → Closed) and the polymorphic CASE / ISOLATE / SAMPLE target. The log/acknowledge surface is an inline panel, not a modal (Principle 3).
 
 ### Lab primer
 
@@ -461,11 +492,24 @@ Two days later, the lab is contacted by the ER: "Was this really E. coli?" Dr. A
 
 ## Phase 6 — Surveillance: WHONET export
 
+![Phase 6 — finalized isolates to a de-duplicated WHONET CSV to the national reference lab](narrative-illustrations/06-whonet-export.png)
+*Illustration — finalized isolates → first-isolate de-duplicated WHONET CSV → national reference lab.*
+
 **MVP cycle:** **Phase 1B** — surveillance is out of MVP-1A and 1A+. Labs that need to submit AMR data during MVP use their existing process. **Mockups:** `m-09-whonet-export-preview-v1.html`. **GLASS direct submission is a forthcoming final step — see Phase 8 below.**
 
 ### What this phase is, in software terms
 
-WHONET is a **read-only consumer** of completed Cases. Three surfaces:
+**M-09 extends OpenELIS's existing WHONET export — it does not build a new one.** OpenELIS already ships a WHONET export: `WHONetReportService`, the `WHONETCSVRoutineColumnBuilder`, and the **Reports → WHONET** menu. M-09 widens that existing path to carry micro/AMR Case data; the new surfaces below are thin additions on top of it, not a parallel system.
+
+This is deliberately a **painless** story:
+
+* **Codes ship pre-loaded and auto-map.** WHONET organism/antibiotic codes are seeded by M-01 and **auto-mapped by name / OCL**, so most labs never hand-map anything.
+* **The readiness "denominator" is small.** Mapping readiness is measured against the codes that **actually appear in the results being exported**, *not* the whole master. A lab that only grows twenty organisms is "ready" when those twenty are mapped.
+* **Antibiotic + breakpoint-standard codes are read-through, not re-mapped.** Those WHONET codes are read directly from the **Test Catalog AMR config (`test_amr_config`)** rather than re-entered in a WHONET-specific table.
+* **CSV is the deliverable.** The generator emits a CSV that the lab imports into WHONET itself.
+* **FHIR is the lowest-effort path where available.** Where a consolidated FHIR server exists, the M-15 FHIR push (Phase 8) is the least-effort route and can stand in for the manual file.
+
+WHONET remains a **read-only consumer** of completed Cases. Three surfaces:
 
 * **WHONET Export Generator** — date range filter, specimen / organism / origin filters, output formats (CSV, TXT), deduplication.
 * **Code Mapping Admin** — confirm every organism and antibiotic in use has a WHONET code; warn on unmapped.
@@ -496,10 +540,12 @@ It is the third day of the month. The lab's QA lead, Asha, opens `/reports/whone
 
 | Feature | Status | Release |
 | --- | --- | --- |
-| WHONET Export Generator page | New | Phase 1B |
-| WHONET CSV/TXT export format | New | Phase 1B |
+| WHONET Export Generator (extends Reports→WHONET / `WHONetReportService`) | Extend | Phase 1B |
+| WHONET CSV/TXT export format (extends `WHONETCSVRoutineColumnBuilder`) | Extend | Phase 1B |
+| Codes pre-loaded (M-01 seed) + auto-map by name/OCL | New | Phase 1B |
+| Antibiotic + breakpoint-standard codes read-through from `test_amr_config` | Reuse | Phase 1B |
 | Deduplication rule | New | Phase 1B |
-| Unmapped organism warning + inline mapping | New | Phase 1B |
+| Unmapped organism warning + inline mapping (denominator = codes in the export) | New | Phase 1B |
 | WHONET Code Mapping admin page | New | Phase 1B |
 | Hub Subscription admin page (unified) | New | Phase 1B |
 | Export from AST Worklist quick action | New | Phase 1B |
@@ -508,6 +554,9 @@ It is the third day of the month. The lab's QA lead, Asha, opens `/reports/whone
 ---
 
 ## Phase 7 — Mycobacteriology / TB: the same Case Workbench, in "TB profile"
+
+![Phase 7 — TB workup: AFB smear, MGIT culture, GeneXpert](narrative-illustrations/07-tb-workup.png)
+*Illustration — the TB profile's bench steps: AFB smear, liquid (MGIT) culture, and rapid molecular (GeneXpert MTB/RIF).*
 
 **MVP cycle:** TB cycle (after the bacterial bundle is in real use). · **Refs:** M-14 (TB Case profile), M-02 WHO-TB (critical-concentration breakpoint family). · **Reuses:** M-04 (Case / Isolate / Timeline), M-05 (`micro_ast_run`), M-08 (macros), M-11 (critical notifications), M-12 (reagent / lot linkage), and the reflex cascade.
 
@@ -539,7 +588,7 @@ The throughline: each step produces a **staged interim report**, because clinici
 A sputum arrives ordered as "AFB Smear & TB Culture" (`workflow_type = MYCOBACTERIOLOGY_TB`). Phase 0 instantiates a `micro_case` with the M-14 TB profile, protocol `TB_MGIT_LJ`, stage `RECEIVED`.
 
 * **Same day — AFB smear.** The tech stains and reads the slide: 2+. She logs a `GRAM_STAIN`-equivalent smear timeline event (TB profile labels it "AFB Smear," WHO grading), stage → `SMEAR_DONE`. An interim report can release now.
-* **Same day — GeneXpert Ultra.** She runs the cartridge: **MTB detected, rifampicin resistance detected.** This is clinically urgent. The TB profile fires the M-11 critical-notification path (same mechanism as a positive blood-culture Gram stain). She logs the call, stage → `MOLECULAR_DONE`. A second interim report releases: smear 2+, MTB detected, rif-resistant.
+* **Same day — GeneXpert Ultra.** She runs the cartridge: **MTB detected, rifampicin resistance detected.** This is clinically urgent. The TB profile fires the M-11 critical-notification path (same mechanism as a positive blood-culture Gram stain — the existing notifications dashboard and `TestNotificationService`, with the inline call-back + read-back acknowledgment loop, targeting this CASE). She logs the call, stage → `MOLECULAR_DONE`. A second interim report releases: smear 2+, MTB detected, rif-resistant.
 * **Weeks — culture.** MGIT flags positive at, say, 18 days. Stage → `CULTURE_INCUBATING` → growth. An Isolate is written (same `micro_isolate` table).
 * **Species ID.** Confirmed **MTB-complex** (if it had been NTM, the DST cascade would off-ramp here and the Case would close with an NTM report). Stage → `SPECIES_ID`.
 * **DST.** A `micro_ast_run` is created with `interpretation_method = CRITICAL_CONCENTRATION`. Each TB drug returns **Resistant** or **Susceptible** at its WHO critical concentration. The phenotypic rif result is reconciled against the earlier molecular rif-resistance call. The combined isoniazid + rifampicin resistance auto-classifies the Case as **MDR**. Stage → `DST_IN_PROGRESS` → `READY_REVIEW`.
@@ -547,7 +596,7 @@ A sputum arrives ordered as "AFB Smear & TB Culture" (`workflow_type = MYCOBACTE
 
 ### How this phase composes
 
-* **← Phase 0:** the TB profile is selected by `workflow_type = MYCOBACTERIOLOGY_TB`. A specimen needing both routine culture and TB is two Cases (one-protocol-per-case rule).
+* **← Phase 0:** the TB profile is selected by `workflow_type = MYCOBACTERIOLOGY_TB`. A specimen needing both routine culture and TB is two Cases (one-protocol-per-case rule) **sharing one `sample_item_id`** — keyed `(sample_item_id, workflow_type)`, surfaced to each other via the sibling cross-link chip, grouped in the Worklist.
 * **← Reference data (M-02 WHO-TB):** the WHO critical-concentration breakpoint family is loaded alongside CLSI/EUCAST; the TB profile binds to it.
 * **↺ Reuses M-04 / M-05 / M-08 / M-11 / M-12:** Case / Isolate / Timeline, the `micro_ast_run` AST tables (with `interpretation_method = CRITICAL_CONCENTRATION`), macros, critical notifications, reagent / lot linkage.
 * **→ Reflex cascade:** GeneXpert rif-resistance and the NTM off-ramp are reflex decisions; the molecular-to-phenotypic reconciliation and MDR/pre-XDR/XDR classification are cascade outputs.
@@ -588,6 +637,9 @@ It **shares the M-09 first-isolate de-duplication rule** (one isolate per patien
 ---
 
 ## Phase 8 — Central surveillance: GLASS / consolidated-FHIR (M-15 — the last module)
+
+![Phase 8 — each lab pushes FHIR to a consolidated server that reports to GLASS](narrative-illustrations/08-glass-fhir.png)
+*Illustration — each lab pushes FHIR to the consolidated server, which aggregates across labs and reports to WHO GLASS.*
 
 The **GLASS / consolidated-FHIR central-surveillance** path is now specified in **M-15** (`m-15-glass-fhir-surveillance.md`). Each OpenELIS deployment **transforms and pushes its own finalized AMR + TB results** as FHIR (`DiagnosticReport` + per-drug `Observation`s, WHO AMR profiles) to a **consolidated FHIR server**, reusing OE's existing FHIR stack (`FhirTransformService`, `FhirPersistanceService`, `FhirConfig`, and the EQA submission pattern) plus M-09's dedup/validation. The consolidated server — the only place that sees all labs — does cross-lab first-isolate de-duplication and **generates the GLASS submission** (or a WHONET extract for a National Coordinating Centre). This is **complementary to, not a replacement for,** the manual WHONET file path (Phase 6); a deployment may use either or both. Because cross-lab aggregation stays **outside** any OE instance, single-tenancy is preserved. It is the bundle's **final** module and depends on everything above it.
 
@@ -737,7 +789,7 @@ The narrative supports a **three-cycle slice** for bacteriology, with TB and the
 * M-04 reidentification versioning
 * AST Worklist (M-07b) — focused susceptibility queue
 * Microbiology Dashboard (M-07 §4) — manager view
-* M-11 Critical-Result Acknowledgment polymorphic rebuild
+* M-11 Critical-Result Acknowledgment — adds the inline call-back + read-back loop (Open → Acknowledged → Closed) and the polymorphic CASE / ISOLATE / SAMPLE target **on top of** the existing notifications dashboard + `TestNotificationService` (no second dashboard)
 * Alerts Dashboard wiring (NFR + M-11)
 
 **Phase 1B — surveillance and expert rules.**
@@ -778,13 +830,13 @@ The GLASS / consolidated-FHIR submission path (Phase 8) is **being specified as 
 
 These items need explicit answers from the codebase before the modular FRS bundle is locked:
 
-1. **Where does** `micro_case` sit relative to `sample`? Same row with new columns? Sibling table with 1:1 FK? Sibling with 1:N? The 1:1 sibling pattern is the cleanest but doubles row writes. Note the one-protocol-per-case rule means one Sample can have N Cases (e.g., routine culture + TB), so a strict 1:1 Sample↔Case constraint is wrong.
+1. **Where does** `micro_case` sit relative to `sample` / `sample_item`? **Resolved (v2.1): the Case is keyed on `(sample_item_id, workflow_type)`, not 1:1 with the Sample.** One SampleItem can carry N Cases (e.g., a bacterial Case + a TB Case) that share the one `sample_item_id` with no double accessioning, surfaced via a sibling cross-link chip and grouped in the Worklist. The open detail for crosswalk is now narrow: confirm `sample_item` is the right anchor column in the existing schema and that the `(sample_item_id, workflow_type)` uniqueness constraint is enforceable.
 2. **Where do AST results go?** New `micro_ast_result` table, or extend the existing `result` table with a discriminator column? Trade-off: separate table is cleaner schema but separates micro from existing result-validation pipeline; extending `result` reuses validation but pollutes the chemistry-shape table. The TB profile reuses this same table with `interpretation_method = CRITICAL_CONCENTRATION`, so the column must accommodate both clinical-MIC and critical-concentration interpretations.
 3. **Is the analyzer integration pattern reusable for blood culture instruments?** Existing analyzer integrations target chemistry-shape one-result-per-test outputs. Blood culture pushes events, not results. Probably needs a new "analyzer event" channel parallel to "analyzer result." GeneXpert (TB molecular) is a similar event-shaped source.
-4. **Where do Cases write criticals?** Existing `critical_result_notification` table is keyed on Result, not Sample. Micro criticals are typically Sample-level (preliminary call) and Case-level (per-isolate findings, e.g., GeneXpert rif-R). Schema extension needed?
+4. **Where do Cases write criticals?** **Resolved direction (v2.1): M-11 reuses the existing notifications/alerts dashboard and `TestNotificationService`** rather than building a second dashboard, and adds a **polymorphic CASE / ISOLATE / SAMPLE target** plus the inline call-back + read-back acknowledgment loop (Open → Acknowledged → Closed). The crosswalk detail: the existing `critical_result_notification` table is keyed on Result, so confirm the schema extension that lets the notification target a CASE / ISOLATE / SAMPLE polymorphically.
 5. **Reagent / lot linkage to AST cards.** Test→Reagent linkage doesn't exist today. AST cards, discs, and MGIT/LJ media are reagents with lot numbers. Either Phase 1 of Micro builds the Test→Reagent linkage (heavy lift) or it ships without lot tracking on AST runs (compliance gap).
 6. **Existing organism vocabulary in OpenELIS.** Does anything resembling an organism master exist today? If yes, this is a migration; if no, it's greenfield. The organism master must also represent MTB-complex vs NTM for the TB species-ID step.
-7. **Existing WHONET hooks.** Per Test Catalog v2.5, AMR-tagged tests already carry a WHONET antibiotic code field. Is there a sibling field on organism?
+7. **Existing WHONET hooks.** **Resolved direction (v2.1): M-09 extends the existing WHONET export** (`WHONetReportService`, `WHONETCSVRoutineColumnBuilder`, Reports→WHONET) and reads antibiotic + breakpoint-standard codes **read-through from the Test Catalog AMR config (`test_amr_config`)** rather than re-mapping them. Per Test Catalog v2.5, AMR-tagged tests already carry a WHONET antibiotic code field; the crosswalk detail is whether there is a sibling field on organism, or whether the M-01 organism-master seed + name/OCL auto-map covers it.
 8. **Default culture protocols.** Where do they live? In the Test Catalog (as a default protocol field on each micro test) or as a separate Culture Protocol master? The `workflow_type` selects the protocol *family* (bacterial media vs MGIT/LJ); the specific protocol is still per-test.
 9. **Patient report template registration.** New Jasper template — what's the engine's contract for new templates? TB needs staged interim templates as well as a final.
 10. **Multi-language coverage.** Every new string needs an i18n key. The narrative names \~200 user-visible strings (more once TB sections are added).
