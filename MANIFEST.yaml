@@ -738,13 +738,16 @@
 - id: m-10-hub-subscription
   type: spec
   path: designs/microbiology/m-10-hub-subscription.md
+  preview: designs/microbiology/m-10-hub-subscription-prototype.html
   category: microbiology
   description: >
     M-10: Unified Hub admin for breakpoint + WHONET code + organism/antibiotic updates. Phase 1B.
   links:
     jira: ["OGC-795"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-10-hub-subscription
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-10-hub-subscription-prototype.html
   added: "2026-05-15"
+  updated: "2026-06-08"
 
 - id: m-11-critical-result-acknowledgment
   type: spec
@@ -761,13 +764,16 @@
 - id: m-12-test-reagent-linkage
   type: spec
   path: designs/microbiology/m-12-test-reagent-linkage.md
+  preview: designs/microbiology/m-12-test-reagent-linkage-prototype.html
   category: microbiology
   description: >
     M-12: Test → Reagent linkage (ISO 15189 §7.3). General OE foundation; parallel pre-track.
   links:
     jira: ["OGC-784"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-12-test-to-reagent-linkage
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-12-test-reagent-linkage-prototype.html
   added: "2026-05-15"
+  updated: "2026-06-08"
 
 # ─── Microbiology — FRS v1.0 formal docs ─────────────────────────────────
 
@@ -1010,12 +1016,14 @@
   path: designs/microbiology/amr-micro-narrative.md
   category: microbiology
   description: >
-    Microbiology AMR Narrative v2.0 — Phase 0 workflow-selection, Phase 7 TB, antibiogram note,
-    Phase 8 GLASS via M-15. Cross-module context doc for the full M-00–M-15 bundle.
+    Microbiology AMR Narrative v2.1 — folds in four post-v2.0 decisions (SampleItem×workflow_type
+    case keying, WHONET reuse, M-11 notification reuse, inline Expert Review/critical panels).
+    Cross-module context doc for the full M-00–M-15 bundle.
   links:
     jira: ["OGC-782"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-amr-narrative-v2-0
   added: "2026-06-08"
+  updated: "2026-06-12"
 
 - id: m-04-change-workflow-unassigned
   type: mockup
@@ -3326,3 +3334,109 @@
     - global
   added: "2026-05-28"
   status: draft
+
+- id: admin-mvp-scope
+  type: spec
+  path: designs/admin-config/admin-mvp-scope.md
+  category: admin-config
+  description: >
+    Umbrella scope/FRS for the OpenELIS admin redesign MVP.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/admin-redesign-mvp-scope
+  added: "2026-06-12"
+- id: application-properties
+  type: mockup
+  path: designs/admin-config/application-properties.html
+  spec: designs/admin-config/admin-mvp-scope.md
+  preview: designs/admin-config/application-properties.html
+  category: admin-config
+  description: >
+    Admin redesign feature surface (application-properties); spec = admin-mvp-scope.md.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/application-properties
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/application-properties.html
+  added: "2026-06-12"
+- id: feature-flags
+  type: mockup
+  path: designs/admin-config/feature-flags.html
+  spec: designs/admin-config/admin-mvp-scope.md
+  preview: designs/admin-config/feature-flags.html
+  category: admin-config
+  description: >
+    Admin redesign feature surface (feature-flags); spec = admin-mvp-scope.md.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/feature-flags
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/feature-flags.html
+  added: "2026-06-12"
+- id: menu-configuration
+  type: mockup
+  path: designs/admin-config/menu-configuration.html
+  spec: designs/admin-config/admin-mvp-scope.md
+  preview: designs/admin-config/menu-configuration.html
+  category: admin-config
+  description: >
+    Admin redesign feature surface (menu-configuration); spec = admin-mvp-scope.md.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/menu-configuration
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/menu-configuration.html
+  added: "2026-06-12"
+- id: site-information
+  type: mockup
+  path: designs/admin-config/site-information.html
+  spec: designs/admin-config/admin-mvp-scope.md
+  preview: designs/admin-config/site-information.html
+  category: admin-config
+  description: >
+    Admin redesign feature surface (site-information); spec = admin-mvp-scope.md.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/site-information
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/site-information.html
+  added: "2026-06-12"
+- id: validation-rules
+  type: mockup
+  path: designs/admin-config/validation-rules.html
+  spec: designs/admin-config/admin-mvp-scope.md
+  preview: designs/admin-config/validation-rules.html
+  category: admin-config
+  description: >
+    Admin redesign feature surface (validation-rules); spec = admin-mvp-scope.md.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/validation-rules
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/validation-rules.html
+  added: "2026-06-12"
+- id: test-notification
+  type: mockup
+  path: designs/admin-config/test-notification.html
+  spec: designs/admin-config/admin-mvp-scope.md
+  preview: designs/admin-config/test-notification.html
+  category: admin-config
+  description: >
+    Admin redesign feature surface (test-notification); spec = admin-mvp-scope.md.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-notification
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/test-notification.html
+  added: "2026-06-12"
+- id: order-patient-entry
+  type: mockup
+  path: designs/admin-config/order-patient-entry.html
+  spec: designs/admin-config/admin-mvp-scope.md
+  preview: designs/admin-config/order-patient-entry.html
+  category: admin-config
+  description: >
+    Admin redesign feature surface (order-patient-entry); spec = admin-mvp-scope.md.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/order-patient-entry
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/order-patient-entry.html
+  added: "2026-06-12"
+- id: workplan
+  type: mockup
+  path: designs/admin-config/workplan.html
+  spec: designs/admin-config/admin-mvp-scope.md
+  preview: designs/admin-config/workplan.html
+  category: admin-config
+  description: >
+    Admin redesign feature surface (workplan); spec = admin-mvp-scope.md.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/workplan
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/workplan.html
+  added: "2026-06-12"
