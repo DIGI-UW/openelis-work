@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Order & Patient Entry — Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f4f4; --surface: #ffffff; --surface-2: #f9f9f9; --surface-muted: #f4f4f4;
+    --text: #161616; --text-secondary: #525252; --text-helper: #6f6f6f;
+    --border: #e0e0e0; --border-strong: #8d8d8d;
+    --accent-info: #0f62fe; --accent-success: #24a148; --accent-danger: #da1e28;
+    --accent-info-bg: #edf5ff; --accent-success-bg: #defbe6;
+    --row-dirty: #d0e2ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; color: var(--text); }
+  .page-frame { max-width: 1200px; margin: 0 auto; padding: 1.5rem 2rem 6rem; }
+  .crumbs { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+  .crumbs a { color: var(--accent-info); text-decoration: none; }
+  h1 { font-size: 2rem; font-weight: 300; margin: 0 0 0.25rem; }
+  h2 { font-size: 1.25rem; font-weight: 500; margin: 0; }
+  h3 { font-size: 1rem; font-weight: 600; margin: 0; }
+  .subtitle { color: var(--text-secondary); margin: 0 0 1.5rem; font-size: 0.875rem; max-width: 820px; line-height: 1.5; }
+
+  .notice { margin-bottom: 1rem; padding: 0.875rem 1rem; border-left: 4px solid var(--accent-info); background: var(--accent-info-bg); border-radius: 2px; }
+  .notice.success { border-color: var(--accent-success); background: var(--accent-success-bg); }
+  .notice strong { font-size: 0.875rem; }
+  .notice .sub { margin: 0.25rem 0 0; font-size: 0.8125rem; color: var(--text-secondary); }
+  .notice a { color: var(--accent-info); }
+
+  .page-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+  .recent-trigger { background: transparent; border: 1px solid var(--border); padding: 0.375rem 0.75rem; border-radius: 2px; cursor: pointer; font: inherit; font-size: 0.8125rem; color: var(--accent-info); display: inline-flex; align-items: center; gap: 0.375rem; }
+  .recent-trigger:hover { background: var(--surface-2); }
+
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 1.25rem; margin-bottom: 1rem; }
+  .section-header { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 0.875rem; }
+  .section-desc { font-size: 0.8125rem; color: var(--text-secondary); }
+  .subgroup-header { font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary); margin: 1rem 0 0.5rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .subgroup-header:first-of-type { margin-top: 0; }
+
+  .field-row { padding: 0.75rem 0; border-top: 1px solid var(--border); }
+  .field-row:first-of-type { border-top: 0; }
+  .field-row.dirty { background: var(--row-dirty); margin: 0 -1.25rem; padding-left: 1.25rem; padding-right: 1.25rem; }
+  .field-row.disabled-dep { opacity: 0.5; }
+  .field-label { font-weight: 500; font-size: 0.875rem; cursor: help; display: flex; align-items: center; gap: 0.375rem; }
+  .field-helper { margin: 0.25rem 0 0.5rem; font-size: 0.75rem; color: var(--text-helper); line-height: 1.5; max-width: 760px; }
+
+  .bool-row { display: flex; align-items: flex-start; gap: 0.875rem; }
+  .bool-row .body { flex: 1; }
+  .toggle { width: 2.5rem; height: 1.25rem; border-radius: 999px; background: #8d8d8d; position: relative; cursor: pointer; flex-shrink: 0; border: 0; padding: 0; margin-top: 0.125rem; }
+  .toggle.on { background: var(--accent-success); }
+  .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 1rem; height: 1rem; border-radius: 50%; background: white; transition: left 0.15s; }
+  .toggle.on::after { left: 1.25rem; }
+  .text-input { width: 100%; max-width: 400px; padding: 0.5rem 0.75rem; font: inherit; font-size: 0.875rem; background: var(--surface-2); border: 0; border-bottom: 1px solid var(--border-strong); outline: 0; color: var(--text); font-family: inherit; }
+  .text-input.num { max-width: 200px; }
+  .text-input:focus { border-bottom: 2px solid var(--accent-info); }
+  .text-input:disabled { color: var(--text-secondary); background: var(--surface-muted); cursor: not-allowed; }
+  .dep-note { font-size: 0.75rem; color: var(--text-helper); font-style: italic; margin-top: 0.25rem; }
+
+  /* Sticky bottom action bar */
+  .actions-bar {
+    display: flex; gap: 0.75rem; align-items: center;
+    position: sticky; bottom: 0;
+    margin: 1.5rem -2rem -6rem;
+    padding: 0.875rem 2rem; background: var(--surface);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.04);
+    z-index: 40;
+  }
+  .actions-bar .dirty-summary { margin-left: auto; font-size: 0.8125rem; color: var(--text-secondary); }
+  .btn { padding: 0.625rem 1rem; font-size: 0.875rem; cursor: pointer; border: 0; font-family: inherit; border-radius: 2px; }
+  .btn.primary { background: var(--accent-info); color: white; }
+  .btn.primary:hover:not(:disabled) { background: #0050d9; }
+  .btn.ghost { background: transparent; color: var(--accent-info); }
+  .btn.ghost:hover:not(:disabled) { background: var(--surface-2); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Recent drawer */
+  .recent-drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 90; }
+  .recent-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 420px; max-width: 90vw; background: var(--surface); box-shadow: -2px 0 8px rgba(0,0,0,0.15); padding: 1.25rem; overflow: auto; z-index: 100; }
+  .recent-row { padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+  .recent-meta { font-size: 0.75rem; color: var(--text-secondary); }
+  .recent-field { font-family: 'IBM Plex Mono', monospace; font-size: 0.8125rem; margin: 0.25rem 0; }
+  .recent-change { font-size: 0.75rem; }
+  .tag { display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 0.6875rem; font-weight: 500; }
+  .tag.warm-gray { background: #e0e0e0; color: #393939; }
+  .tag.green { background: #defbe6; color: #044317; }
+  .tag.blue { background: #d0e2ff; color: #0c3987; }
+
+  .meta-panel { margin-top: 2rem; padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent-info); border-radius: 2px; font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.6; }
+  .meta-panel strong { color: var(--text); }
+  .meta-panel code { background: var(--surface-muted); padding: 0.0625rem 0.375rem; border-radius: 2px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+const FIELDS = [
+  // ORDER ENTRY — Sample collection
+  { section: 'order', subgroup: 'Sample collection', key: 'auto-fill collection date/time', type: 'boolean', label: 'Auto-fill collection date/time',
+    helper: 'When ON, the collection-date and collection-time fields on order entry pre-populate with the current date/time, which clerks can then override. When OFF, clerks must enter both manually. Reduces typing for labs that record samples immediately at collection.', defaultValue: false },
+  { section: 'order', subgroup: 'Sample collection', key: 'gpsCoordinatesEnabled', type: 'boolean', label: 'Capture GPS coordinates at collection',
+    helper: 'When ON, the order-entry screen reads GPS coordinates from the device and shows latitude/longitude fields tied to the sample collection location. Used for field-collection workflows where the geographic origin of a sample matters (environmental sampling, vector surveillance).', defaultValue: false },
+  { section: 'order', subgroup: 'Sample collection', key: 'gpsRequiredAccuracyMeters', type: 'integer', label: 'Required GPS accuracy (meters)',
+    helper: 'Maximum acceptable GPS accuracy in meters. If the device reports worse accuracy than this, the GPS read is rejected and the clerk is asked to retry. Set to 0 to disable accuracy checking entirely. Only active when GPS coordinates are enabled.', defaultValue: 100, dependsOn: 'gpsCoordinatesEnabled' },
+  { section: 'order', subgroup: 'Sample collection', key: 'gpsTimeoutSeconds', type: 'integer', label: 'GPS timeout (seconds)',
+    helper: 'How long the order-entry screen waits for a GPS lock before giving up and prompting the clerk to enter coordinates manually. Only active when GPS coordinates are enabled.', defaultValue: 10, dependsOn: 'gpsCoordinatesEnabled' },
+
+  // ORDER ENTRY — Order behavior
+  { section: 'order', subgroup: 'Order behavior', key: 'eqaEnabled', type: 'boolean', label: 'Show EQA checkbox on order entry',
+    helper: 'When ON, the order-entry form shows a checkbox to mark a sample as External Quality Assessment (EQA / proficiency-testing). EQA samples are flagged in result entry, validation, and reports so they\'re not mixed with real patient samples.', defaultValue: true },
+  { section: 'order', subgroup: 'Order behavior', key: 'Program', type: 'boolean', label: 'Track program per order',
+    helper: 'When ON, each order is tagged with a program (e.g. ARV, EID, VL) for reporting and stratification. When OFF, orders are flat with no program dimension. Most multi-program labs leave this ON.', defaultValue: true },
+  { section: 'order', subgroup: 'Order behavior', key: 'external orders', type: 'boolean', label: 'Allow external sites to send electronic orders',
+    helper: 'When ON, OpenELIS accepts inbound electronic order messages from external sites (via FHIR or the configured remote-source endpoint). When OFF, all orders must be created by lab staff within OpenELIS. Requires external connections to be configured (Application Properties → Integrations).', defaultValue: false },
+  { section: 'order', subgroup: 'Order behavior', key: 'contactTracingEnabled', type: 'boolean', label: 'Show contact-tracing fields',
+    helper: 'When ON, the order-entry form shows fields for capturing contacts (people the patient has been in contact with) for diseases that require contact tracing — e.g. TB, Ebola, COVID outbreaks. Used by public-health labs running surveillance programs.', defaultValue: false },
+
+  // ORDER ENTRY — Billing
+  { section: 'order', subgroup: 'Billing', key: 'trackPayment', type: 'boolean', label: 'Track patient payment for services',
+    helper: 'When ON, the order-entry form captures payment information per order (amount paid, payment method, receipt #). Used by fee-for-service labs and billing-integrated installations. When OFF, no payment data is captured.', defaultValue: true },
+  { section: 'order', subgroup: 'Billing', key: 'billingRefNumber', type: 'boolean', label: 'Show billing reference number field',
+    helper: 'When ON, a billing-reference-number field appears on order entry. Used to link OpenELIS orders to an external billing system\'s reference (e.g. a hospital claims number).', defaultValue: false },
+  { section: 'order', subgroup: 'Billing', key: 'billingRefNumberLocalization', type: 'string', label: 'Billing reference number — field label',
+    helper: 'The label shown on the billing-reference-number field — e.g. "URAP Number", "Insurance ID", "Claim #". One string, in the lab\'s primary language. Only relevant when the billing reference field is enabled.',
+    defaultValue: 'URAP Number', dependsOn: 'billingRefNumber' },
+
+  // ORDER ENTRY — Entry restrictions
+  { section: 'order', subgroup: 'Entry restrictions', key: 'restrictFreeTextProviderEntry', type: 'boolean', label: 'Restrict providers to picklist (no free text)',
+    helper: 'When ON, the "Requesting provider" field on order entry only accepts values from the Provider Management list — clerks cannot type a new provider name. When OFF, clerks can type any text. Recommended ON for data quality; require admins to add providers through Provider Management instead.', defaultValue: false },
+  { section: 'order', subgroup: 'Entry restrictions', key: 'restrictFreeTextRefSiteEntry', type: 'boolean', label: 'Restrict referring sites to picklist (no free text)',
+    helper: 'When ON, the "Referring site" field on order entry only accepts values from Organization Management. When OFF, clerks can type any text. Same data-quality tradeoff as the provider field.', defaultValue: false },
+  { section: 'order', subgroup: 'Entry restrictions', key: 'validateAccessionNumber', type: 'boolean', label: 'Validate accession number format',
+    helper: 'When ON, the lab accession number (the lab\'s own sample identifier) must match the format pattern configured in Application Properties → Operational behavior → accession format. Rejects malformed accession numbers at save time. When OFF, any text is accepted.', defaultValue: true },
+
+  // PATIENT ENTRY — Identifiers
+  { section: 'patient', subgroup: 'Identifiers', key: 'National ID required', type: 'boolean', label: 'National ID required',
+    helper: 'When ON, every new patient must have a national ID entered at registration. When OFF, national ID is optional. Set ON in countries where national ID is the canonical patient identifier; OFF where it\'s not.', defaultValue: true },
+  { section: 'patient', subgroup: 'Identifiers', key: 'Allow duplicate national ids', type: 'boolean', label: 'Allow duplicate national IDs',
+    helper: 'When ON, two or more patients can share the same national ID without OpenELIS rejecting the second registration. Useful where national IDs are imperfect (e.g. test patients, family-shared IDs). When OFF, national IDs must be unique across all patients.', defaultValue: true },
+  { section: 'patient', subgroup: 'Identifiers', key: 'Patient ID required', type: 'boolean', label: 'Lab patient ID required',
+    helper: 'When ON, every new patient must be assigned a lab patient ID (the lab\'s own internal identifier, distinct from national ID). When OFF, lab patient ID is optional. Most labs leave OFF — they generate patient IDs automatically rather than requiring clerks to enter them.', defaultValue: false },
+  { section: 'patient', subgroup: 'Identifiers', key: 'Subject number required', type: 'boolean', label: 'Study subject number required',
+    helper: 'When ON, every new patient must have a study subject number (used in clinical-study contexts to anonymize patient names). When OFF, subject number is optional. Turn ON only for installations that exclusively serve clinical studies.', defaultValue: false },
+  { section: 'patient', subgroup: 'Identifiers', key: 'Allow duplicate subject number', type: 'boolean', label: 'Allow duplicate subject numbers',
+    helper: 'When ON, two or more patients can share the same study subject number. Useful for studies with repeat enrollment. When OFF, subject numbers must be unique.', defaultValue: true },
+
+  // PATIENT ENTRY — Demographics
+  { section: 'patient', subgroup: 'Demographics', key: 'supportPatientNationality', type: 'boolean', label: 'Capture patient nationality',
+    helper: 'When ON, the patient registration form includes a nationality dropdown populated from the Nationality dictionary. When OFF, no nationality field is shown — appropriate for labs serving a single-nationality catchment.', defaultValue: true },
+  { section: 'patient', subgroup: 'Demographics', key: 'default nationality', type: 'string', label: 'Default nationality',
+    helper: 'Nationality pre-selected for new patients. Must match a value from the Nationality dictionary exactly (case-sensitive). Leave blank to require explicit selection. Only relevant when patient nationality is enabled above.',
+    defaultValue: '', dependsOn: 'supportPatientNationality' },
+  { section: 'patient', subgroup: 'Demographics', key: 'useNewAddressHierarchy', type: 'boolean', label: 'Use configurable address hierarchy',
+    helper: 'When ON, addresses use the new admin-configurable hierarchy (Geographic Unit 1, Geographic Unit 2, Address Lines 1–3) defined on Site Information. When OFF, addresses use the legacy hardcoded Health Region / District / Village structure. New installations should keep ON; legacy installations may need OFF for backward compatibility.', defaultValue: true },
+];
+
+const SECTIONS = [
+  { id: 'order',   label: 'Order entry',   desc: 'Settings that govern the order/sample-entry form. Replaces legacy Order Entry Configuration (audit C050 High — flagged as "ancient").' },
+  { id: 'patient', label: 'Patient entry', desc: 'Settings that govern the patient registration form. Replaces legacy Patient Entry Configuration (audit C047 Medium).' },
+];
+
+const SUBGROUPS_BY_SECTION = {
+  order: ['Sample collection', 'Order behavior', 'Billing', 'Entry restrictions'],
+  patient: ['Identifiers', 'Demographics'],
+};
+
+const SAMPLE_RECENT = [
+  { user: 'casey@example.org', at: '2026-05-08 16:14', field: 'gpsCoordinatesEnabled',           before: 'false', after: 'true' },
+  { user: 'admin@example.org', at: '2026-05-02 11:22', field: 'Allow duplicate national ids',    before: 'false', after: 'true' },
+  { user: 'casey@example.org', at: '2026-04-28 09:48', field: 'restrictFreeTextProviderEntry',   before: 'true',  after: 'false' },
+  { user: 'admin@example.org', at: '2026-04-15 14:10', field: 'eqaEnabled',                      before: 'false', after: 'true' },
+];
+
+function FieldRow({ field, value, isDirty, depEnabled, onChange }) {
+  const disabled = field.dependsOn && !depEnabled;
+  let input;
+  if (field.type === 'boolean') {
+    input = (
+      <div className="bool-row">
+        <button role="switch" aria-checked={!!value} aria-label={field.label}
+          disabled={disabled}
+          className={`toggle${value ? ' on' : ''}`}
+          onClick={() => !disabled && onChange(!value)} />
+        <div className="body">
+          <div className="field-label" title={`Key: ${field.key}`}>
+            {field.label}
+            {value && <span className="tag green">Enabled</span>}
+          </div>
+          <p className="field-helper">{field.helper}</p>
+          {field.dependsOn && !depEnabled && (
+            <div className="dep-note">Requires "{field.dependsOn}" to be enabled.</div>
+          )}
+        </div>
+      </div>
+    );
+  } else if (field.type === 'integer') {
+    input = (
+      <div>
+        <div className="field-label" title={`Key: ${field.key}`}>{field.label}</div>
+        <p className="field-helper">{field.helper}</p>
+        <input className="text-input num" type="number" min="0" step="1"
+               disabled={disabled} value={value}
+               onChange={(e) => onChange(Number(e.target.value))} />
+        {field.dependsOn && !depEnabled && (
+          <div className="dep-note">Requires "{field.dependsOn}" to be enabled.</div>
+        )}
+      </div>
+    );
+  } else {
+    input = (
+      <div>
+        <div className="field-label" title={`Key: ${field.key}`}>{field.label}</div>
+        <p className="field-helper">{field.helper}</p>
+        <input className="text-input" disabled={disabled} value={value || ''}
+               onChange={(e) => onChange(e.target.value)} />
+        {field.dependsOn && !depEnabled && (
+          <div className="dep-note">Requires "{field.dependsOn}" to be enabled.</div>
+        )}
+      </div>
+    );
+  }
+  return (
+    <div className={`field-row${isDirty ? ' dirty' : ''}${disabled ? ' disabled-dep' : ''}`}>
+      {input}
+    </div>
+  );
+}
+
+function App() {
+  const [values, setValues] = useState(() => {
+    const m = {}; FIELDS.forEach(f => { m[f.key] = f.defaultValue; }); return m;
+  });
+  const [dirty, setDirty] = useState(new Set());
+  const [savedNotice, setSavedNotice] = useState(false);
+  const [recentOpen, setRecentOpen] = useState(false);
+
+  const setValue = (key, v) => {
+    setValues(prev => ({ ...prev, [key]: v }));
+    setDirty(prev => { const n = new Set(prev); n.add(key); return n; });
+  };
+  const onSave = () => { setDirty(new Set()); setSavedNotice(true); setTimeout(() => setSavedNotice(false), 3000); };
+  const onDiscard = () => {
+    const m = {}; FIELDS.forEach(f => { m[f.key] = f.defaultValue; });
+    setValues(m); setDirty(new Set());
+  };
+
+  const fieldsBySectionAndSubgroup = useMemo(() => {
+    const m = {};
+    SECTIONS.forEach(s => {
+      m[s.id] = {};
+      SUBGROUPS_BY_SECTION[s.id].forEach(sg => { m[s.id][sg] = []; });
+    });
+    FIELDS.forEach(f => { m[f.section][f.subgroup].push(f); });
+    return m;
+  }, []);
+
+  return (
+    <div className="page-frame">
+      <div className="crumbs">
+        <a href="#">Admin</a> &nbsp;/&nbsp; <a href="#">Workflow Tuning</a> &nbsp;/&nbsp; <span>Order & Patient Entry</span>
+      </div>
+
+      <div className="page-header-row">
+        <div>
+          <h1>Order & Patient Entry</h1>
+          <p className="subtitle">
+            Settings that govern the order-entry form (used when a clerk creates a new test order) and the patient-registration form (used when a clerk adds a new patient). The legacy app split these across two pages; this page merges them because they're commonly tuned together at deployment time.
+          </p>
+        </div>
+        <button className="recent-trigger" onClick={() => setRecentOpen(true)}>🕐 Recent changes</button>
+      </div>
+
+      <div className="notice">
+        <strong>ⓘ See also</strong>
+        <div className="sub">
+          Charset rules (which characters are allowed in name and ID fields) live on <a href="#">Validation Rules</a>. Boolean settings on this page also appear on <a href="#">Feature Flags</a>.
+        </div>
+      </div>
+
+      {savedNotice && (
+        <div className="notice success">
+          <strong>✓ Entry settings saved.</strong>
+          <div className="sub">Changes are live. New orders and patient registrations will use the updated settings.</div>
+        </div>
+      )}
+      {dirty.size > 0 && (
+        <div className="notice">
+          <strong>Unsaved changes</strong>
+          <div className="sub">{dirty.size} setting{dirty.size === 1 ? '' : 's'} pending. Save or discard before leaving.</div>
+        </div>
+      )}
+
+      {SECTIONS.map(section => (
+        <div className="section" key={section.id}>
+          <div className="section-header">
+            <h2>{section.label}</h2>
+            <span className="section-desc">{section.desc}</span>
+          </div>
+          {SUBGROUPS_BY_SECTION[section.id].map(subgroup => (
+            <div key={subgroup}>
+              <div className="subgroup-header">{subgroup}</div>
+              {fieldsBySectionAndSubgroup[section.id][subgroup].map(field => (
+                <FieldRow key={field.key} field={field} value={values[field.key]}
+                  isDirty={dirty.has(field.key)}
+                  depEnabled={field.dependsOn ? !!values[field.dependsOn] : true}
+                  onChange={(v) => setValue(field.key, v)} />
+              ))}
+            </div>
+          ))}
+        </div>
+      ))}
+
+      <div className="actions-bar">
+        <button className="btn primary" disabled={dirty.size === 0} onClick={onSave}>💾 Save changes</button>
+        <button className="btn ghost" disabled={dirty.size === 0} onClick={onDiscard}>↺ Discard changes</button>
+        <span className="dirty-summary">
+          {dirty.size === 0 ? 'No unsaved changes.' : `${dirty.size} unsaved change${dirty.size === 1 ? '' : 's'}.`}
+        </span>
+      </div>
+
+      {recentOpen && (
+        <>
+          <div className="recent-drawer-backdrop" onClick={() => setRecentOpen(false)} />
+          <div className="recent-drawer">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+              <h3 style={{ margin: 0 }}>Recent changes</h3>
+              <button className="btn ghost" onClick={() => setRecentOpen(false)}>Close</button>
+            </div>
+            <p style={{ margin: '0 0 0.75rem', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+              Last 4 changes on this page. Full audit history is queued for Phase 6.
+            </p>
+            {SAMPLE_RECENT.map((r, i) => (
+              <div key={i} className="recent-row">
+                <div className="recent-meta">{r.at} · {r.user}</div>
+                <div className="recent-field">{r.field}</div>
+                <div className="recent-change">
+                  <span className="tag warm-gray">{r.before}</span>
+                  {' → '}
+                  <span className="tag green">{r.after}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      <div className="meta-panel">
+        <strong>About this preview.</strong> Try:<br />
+        • Flip <strong>Capture GPS coordinates</strong> off — the two GPS settings below grey out with "Requires GPS coordinates to be enabled" notes (dependency gating)<br />
+        • Flip <strong>Show billing reference number field</strong> on — the "Billing reference number — field label" string below becomes editable<br />
+        • Flip <strong>Capture patient nationality</strong> off — "Default nationality" greys out<br />
+        • Hover any field label — tooltip shows the raw key for ops/dev debugging<br />
+        • Click <strong>🕐 Recent changes</strong> — drawer with last 4 changes<br />
+        • Scroll — sticky save bar pinned at bottom
+        <br /><br />
+        <strong>Story B.2 of the admin MVP — merged.</strong> Retires legacy Order Entry Configuration (audit C050 High — "ancient") + Patient Entry Configuration (C047 Medium). Lives in <em>Workflow Tuning</em> bucket at <code>/admin/workflow-tuning/order-patient-entry</code>.
+        <br /><br />
+        <strong>Verified data model</strong> (testing.openelis-global.org, 2026-05-14): 14 Order Entry + 8 Patient Entry = 22 properties total. Mostly booleans (15+) — all surface in Feature Flags as a cross-cutting view. Two integers (GPS settings), one string (billing reference label, single-locale per Casey's banner-heading precedent). Conditional fields grey out when their parent toggle is off (GPS accuracy/timeout, billingRefNumberLocalization, default nationality).
+        <br /><br />
+        <strong>Naming note:</strong> the legacy app calls Order Entry's underlying menu "Sample Entry" (URL <code>SampleEntryConfigurationMenu</code>) — internal naming drift. The new design standardizes on "Order entry" since that's what clerks call it.
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

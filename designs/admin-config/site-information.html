@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Site Information — Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f4f4; --surface: #ffffff; --surface-2: #f9f9f9; --surface-muted: #f4f4f4;
+    --text: #161616; --text-secondary: #525252; --text-helper: #6f6f6f;
+    --border: #e0e0e0; --border-strong: #8d8d8d;
+    --accent-info: #0f62fe; --accent-success: #24a148; --accent-warn: #f1c21b; --accent-danger: #da1e28;
+    --accent-info-bg: #edf5ff; --accent-success-bg: #defbe6; --accent-warn-bg: #fcf4d6;
+    --row-dirty: #d0e2ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; color: var(--text); }
+  .page-frame { max-width: 1200px; margin: 0 auto; padding: 1.5rem 2rem 4rem; }
+  .crumbs { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+  .crumbs a { color: var(--accent-info); text-decoration: none; }
+  h1 { font-size: 2rem; font-weight: 300; margin: 0 0 0.25rem; }
+  .subtitle { color: var(--text-secondary); margin: 0 0 1.5rem; font-size: 0.875rem; max-width: 820px; line-height: 1.5; }
+
+  .notice { margin-bottom: 1rem; padding: 0.875rem 1rem; border-left: 4px solid var(--accent-info); background: var(--accent-info-bg); border-radius: 2px; }
+  .notice.success { border-color: var(--accent-success); background: var(--accent-success-bg); }
+  .notice strong { font-size: 0.875rem; }
+  .notice .sub { margin: 0.25rem 0 0; font-size: 0.8125rem; color: var(--text-secondary); }
+  .notice a { color: var(--accent-info); }
+
+  .page-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+  .toolbar { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .input-wrap { background: var(--surface-2); height: 2.5rem; border-bottom: 1px solid var(--border-strong); display: flex; align-items: center; padding: 0 0.75rem; }
+  .input-wrap input { flex: 1; border: 0; background: transparent; font: inherit; outline: 0; color: var(--text); }
+  .field-label { display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem; font-weight: 500; }
+  .counter { font-size: 0.75rem; color: var(--text-secondary); margin: 0.5rem 0 0; }
+
+  .accordion-item { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; margin-bottom: 0.5rem; }
+  .accordion-header { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.875rem 1.25rem; cursor: pointer; user-select: none; }
+  .accordion-header:hover { background: var(--surface-2); }
+  .accordion-chev { color: var(--text-secondary); width: 1rem; display: inline-flex; justify-content: center; font-size: 0.75rem; padding-top: 0.25rem; flex-shrink: 0; }
+  .accordion-titles { display: flex; flex-direction: column; gap: 0.125rem; flex: 1; min-width: 0; }
+  .accordion-title-row { display: flex; align-items: center; gap: 0.5rem; }
+  .accordion-title { font-weight: 600; font-size: 0.9375rem; }
+  .accordion-desc { font-size: 0.8125rem; color: var(--text-secondary); }
+  .accordion-body { padding: 0.5rem 1.25rem 1rem; border-top: 1px solid var(--border); }
+
+  .tag { display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 0.6875rem; font-weight: 500; }
+  .tag.gray { background: #e0e0e0; color: #393939; }
+  .tag.blue { background: #d0e2ff; color: #0c3987; }
+  .tag.red { background: #ffd7d9; color: #750e13; }
+  .tag.purple { background: #e8daff; color: #3a1a73; }
+  .tag.warm-gray { background: #e0e0e0; color: #393939; }
+  .tag.green { background: #defbe6; color: #044317; }
+
+  .prop-row { padding: 0.875rem 0; border-top: 1px solid var(--border); }
+  .prop-row:first-child { border-top: 0; }
+  .prop-row.dirty { background: var(--row-dirty); margin: 0 -1.25rem; padding-left: 1.25rem; padding-right: 1.25rem; }
+  .prop-label { display: flex; align-items: center; gap: 0.375rem; flex-wrap: wrap; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.375rem; cursor: help; }
+  .prop-label .info-dot { font-size: 0.6875rem; color: var(--text-helper); opacity: 0; transition: opacity 0.1s; }
+  .prop-label:hover .info-dot { opacity: 1; }
+  .prop-label[title]:hover { color: var(--accent-info); }
+  .prop-helper { font-size: 0.8125rem; color: var(--text-helper); margin: 0.25rem 0 0.5rem; line-height: 1.5; max-width: 720px; }
+  .text-input { width: 100%; padding: 0.5rem 0.75rem; font: inherit; font-size: 0.875rem; background: var(--surface-2); border: 0; border-bottom: 1px solid var(--border-strong); outline: 0; color: var(--text); font-family: inherit; }
+  .text-input:focus { border-bottom: 2px solid var(--accent-info); }
+  .text-input.invalid { border-bottom-color: var(--accent-danger); }
+  .text-input.invalid:focus { border-bottom: 2px solid var(--accent-danger); }
+  .text-input.mono { font-family: 'IBM Plex Mono', monospace; font-size: 0.8125rem; }
+  .input-w-short { max-width: 220px; }
+  .input-w-medium { max-width: 400px; }
+  .input-w-long { max-width: 600px; }
+  .input-w-full { max-width: 100%; }
+  .text-input.json { min-height: 5rem; resize: vertical; }
+  .field-error { font-size: 0.75rem; color: var(--accent-danger); margin-top: 0.25rem; }
+  .destructive-warning { font-size: 0.75rem; color: var(--accent-danger); margin-top: 0.375rem; padding: 0.375rem 0.625rem; background: #fff1f1; border-left: 3px solid var(--accent-danger); border-radius: 2px; max-width: 720px; }
+  .destructive-warning strong { font-weight: 600; }
+
+  .select-wrap { position: relative; }
+  .select-input { width: 100%; padding: 0.5rem 2rem 0.5rem 0.75rem; font: inherit; font-size: 0.875rem; background: var(--surface-2); border: 0; border-bottom: 1px solid var(--border-strong); outline: 0; color: var(--text); font-family: inherit; appearance: none; cursor: pointer; }
+  .select-input:focus { border-bottom: 2px solid var(--accent-info); }
+  .select-wrap::after { content: '▾'; position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 0.75rem; pointer-events: none; }
+  .pw-row { display: flex; max-width: 400px; }
+  .pw-row .text-input { border-right: 0; }
+  .pw-row .pw-toggle { background: var(--surface-2); border: 0; border-bottom: 1px solid var(--border-strong); padding: 0 0.75rem; cursor: pointer; color: var(--text-secondary); }
+  .pw-row .pw-toggle:hover { color: var(--text); }
+
+  .bool-row { display: flex; align-items: center; gap: 0.875rem; }
+  .toggle { width: 2.5rem; height: 1.25rem; border-radius: 999px; background: #8d8d8d; position: relative; cursor: pointer; flex-shrink: 0; border: 0; padding: 0; }
+  .toggle.on { background: var(--accent-success); }
+  .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 1rem; height: 1rem; border-radius: 50%; background: white; transition: left 0.15s; }
+  .toggle.on::after { left: 1.25rem; }
+  .state-label { font-size: 0.8125rem; color: var(--text-secondary); }
+
+  .multilocale-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.625rem; max-width: 720px; }
+  .multilocale-field .field-label { font-weight: 400; }
+  .multilocale-field .field-label code { background: rgba(0,0,0,0.04); padding: 0 0.25rem; }
+
+  .btn { padding: 0.625rem 1rem; font-size: 0.875rem; cursor: pointer; border: 0; font-family: inherit; border-radius: 2px; }
+  .btn.primary { background: var(--accent-info); color: white; }
+  .btn.primary:hover:not(:disabled) { background: #0050d9; }
+  .btn.ghost { background: transparent; color: var(--accent-info); }
+  .btn.ghost:hover:not(:disabled) { background: var(--surface-2); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .recent-trigger { background: transparent; border: 1px solid var(--border); padding: 0.375rem 0.75rem; border-radius: 2px; cursor: pointer; font: inherit; font-size: 0.8125rem; color: var(--accent-info); display: inline-flex; align-items: center; gap: 0.375rem; }
+  .recent-trigger:hover { background: var(--surface-2); }
+  .recent-drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 90; }
+  .recent-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 420px; max-width: 90vw; background: var(--surface); box-shadow: -2px 0 8px rgba(0,0,0,0.15); padding: 1.25rem; overflow: auto; z-index: 100; }
+  .recent-row { padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+  .recent-meta { font-size: 0.75rem; color: var(--text-secondary); }
+  .recent-field { font-family: 'IBM Plex Mono', monospace; font-size: 0.8125rem; margin: 0.25rem 0; }
+  .recent-change { font-size: 0.8125rem; }
+
+  .actions-bar {
+    display: flex; gap: 0.75rem; align-items: center;
+    position: sticky; bottom: 0;
+    margin: 1.5rem -2rem -4rem;
+    padding: 0.875rem 2rem; background: var(--surface);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.04);
+    z-index: 40;
+  }
+  .actions-bar .dirty-summary { margin-left: auto; font-size: 0.8125rem; color: var(--text-secondary); }
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
+  .modal { background: var(--surface); width: 560px; max-width: 100%; max-height: 90vh; overflow: auto; border-radius: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+  .modal-header { padding: 1rem 1.25rem 0.5rem; }
+  .modal-header h3 { font-size: 1rem; font-weight: 600; margin: 0; color: var(--accent-danger); }
+  .modal-body { padding: 0.5rem 1.25rem 1rem; }
+  .modal-footer { display: flex; border-top: 1px solid var(--border); }
+  .modal-footer button { flex: 1; padding: 1rem; border: 0; cursor: pointer; font-size: 0.875rem; }
+  .modal-footer .secondary { background: var(--surface-2); color: var(--text); }
+  .modal-footer .danger-primary { background: var(--accent-danger); color: white; }
+  .modal-footer .danger-primary:disabled { background: #d0d0d0; color: white; cursor: not-allowed; }
+  .impact-tile { background: var(--accent-warn-bg); padding: 0.875rem 1rem; margin: 1rem 0 0.5rem; border-left: 3px solid var(--accent-warn); border-radius: 2px; }
+  .impact-tile strong { font-size: 0.875rem; display: block; margin-bottom: 0.25rem; }
+  .impact-tile p { margin: 0; font-size: 0.875rem; line-height: 1.5; }
+  .confirm-input { width: 100%; padding: 0.5rem 0.75rem; font: inherit; font-size: 0.875rem; background: var(--surface-2); border: 0; border-bottom: 1px solid var(--border-strong); outline: 0; color: var(--text); font-family: 'IBM Plex Mono', monospace; }
+  .invalid-text { font-size: 0.75rem; color: var(--accent-danger); margin-top: 0.25rem; }
+
+  .meta-panel { margin-top: 2rem; padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent-info); border-radius: 2px; font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.6; }
+  .meta-panel strong { color: var(--text); }
+  .meta-panel code { background: var(--surface-muted); padding: 0.0625rem 0.375rem; border-radius: 2px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+const SAMPLE_RECENT = [
+  { user: 'casey@example.org', at: '2026-05-14 10:12', field: 'bannerHeading',                before: 'Test LIMS',     after: 'Test LIMS (per locale)' },
+  { user: 'admin@example.org', at: '2026-05-13 22:48', field: 'patientSearchPassword',        before: '••••••••',      after: '••••••••' },
+  { user: 'casey@example.org', at: '2026-05-13 09:15', field: 'electronicSignatureEnabled',   before: 'false',         after: 'true' },
+  { user: 'admin@example.org', at: '2026-05-12 16:22', field: 'TrainingInstallation',         before: 'true',          after: 'false' },
+  { user: 'casey@example.org', at: '2026-05-12 11:40', field: 'default language locale',     before: 'fr-FR',         after: 'en-US' },
+];
+
+const PROPERTIES = [
+  { domain: 'identity', key: 'bannerHeading', type: 'string', width: 'medium', label: 'Banner heading',
+    helper: 'Shown at the top of every page in OpenELIS. Usually the lab\'s display name (e.g. "Madagascar National Reference Lab"). Also appears on printed result reports.',
+    defaultValue: 'Test LIMS' },
+  { domain: 'identity', key: 'Address line 1 label', type: 'string', width: 'short', label: 'Address line 1 label',
+    helper: 'The label shown next to the first address field everywhere addresses are collected — patient registration, organization records, requesters, printed reports. Common values: Street, Road, Plot.',
+    defaultValue: 'Street' },
+  { domain: 'identity', key: 'Address line 2 label', type: 'string', width: 'short', label: 'Address line 2 label',
+    helper: 'Label for the second address line in the same surfaces as Line 1. Common: Suburb, Quarter, Camp, Section.',
+    defaultValue: 'Camp/Commune' },
+  { domain: 'identity', key: 'Address line 3 label', type: 'string', width: 'short', label: 'Address line 3 label',
+    helper: 'Label for the third address line. Common: Town, City, Locality.',
+    defaultValue: 'Town' },
+  { domain: 'identity', key: 'Geographic Unit 1 Label', type: 'string', width: 'short', label: 'Geographic Unit 1 label',
+    helper: 'The top-level geographic area used in patient and organization addresses. Common: Region, Province, State, Department.',
+    defaultValue: 'Region' },
+  { domain: 'identity', key: 'Geographic Unit 2 Label', type: 'string', width: 'short', label: 'Geographic Unit 2 label',
+    helper: 'The geographic level below Unit 1 — i.e. each Unit 1 contains one or more Unit 2 values. Used in patient and organization addresses. Common: District, County, Prefecture.',
+    defaultValue: 'District' },
+  { domain: 'identity', key: 'siteOrganizationFhirUuid', type: 'string', width: 'long', label: 'FHIR Organization UUID',
+    helper: 'The FHIR Organization resource UUID that identifies this lab in the wider network. OpenELIS uses it to filter inbound FHIR shipments — only shipments addressed to this UUID are imported. Set once during deployment; coordinate with your FHIR network administrator.',
+    destructive: true,
+    impact: 'Changing the FHIR Organization UUID immediately stops inbound FHIR shipment imports for any sender still addressing the old UUID. Every external lab and EMR that sends to this OpenELIS instance must update their routing before traffic resumes. Coordinate with your FHIR network administrator before saving.',
+    defaultValue: '' },
+
+  { domain: 'locale', key: '24 hour clock', type: 'boolean', label: 'Use 24-hour clock',
+    helper: 'When ON, times display as 14:30 throughout the app and on printed reports. When OFF, times display as 2:30 PM. Affects every timestamp shown in OpenELIS.',
+    defaultValue: true },
+  { domain: 'locale', key: 'allowLanguageChange', type: 'boolean', label: 'Allow users to change language at login',
+    helper: 'When ON, the login screen shows a language dropdown so users can choose their preferred locale. When OFF, users see the default language only and an admin must change it for them.',
+    defaultValue: true },
+  { domain: 'locale', key: 'default date locale', type: 'string', width: 'short', label: 'Default date locale',
+    helper: 'How dates render in the UI and on printed reports. "en-US" produces 5/14/2026; "fr-FR" produces 14/05/2026; "en-GB" produces 14/5/2026. Use a BCP 47 locale tag.',
+    defaultValue: 'fr-FR' },
+  { domain: 'locale', key: 'default language locale', type: 'string', width: 'short', label: 'Default language locale',
+    helper: 'The language a user sees on first login (and the only language available if "Allow users to change language" is OFF). Supported: en-US, fr-FR, ar, es, pt, hi, sw — translation files for the chosen locale must be present.',
+    defaultValue: 'en-US' },
+  { domain: 'locale', key: 'phone format', type: 'string', width: 'short', label: 'Phone number format pattern',
+    helper: 'Pattern OpenELIS expects for phone numbers in patient registration, requester contacts, and provider records. Use "x" for each required digit; other characters (spaces, dashes, parentheses) are kept literally. Examples: "xxxxxxx" = 7 raw digits; "(xxx) xxx-xxxx" = US-style.',
+    defaultValue: 'xxxxxxx' },
+  { domain: 'locale', key: 'validate phone format', type: 'boolean', label: 'Validate phone number format on entry',
+    helper: 'When ON, the pattern above is enforced — phone numbers that don\'t match are rejected at save time. When OFF, any text is accepted. Turn OFF when the lab receives patients with non-standard international numbers.',
+    defaultValue: true },
+
+  { domain: 'patient-search', key: 'patientSearchURL', type: 'url', width: 'long', label: 'National ID lookup service URL',
+    helper: 'The external data source OpenELIS queries with a national ID to retrieve patient demographics at registration time. When this lookup is enabled (see Login & workflow › Use external source for patient demographics), the registration form lets a clerk enter the patient\'s national ID and OpenELIS pre-fills name, DOB, sex, address, and other demographics from the response. The request format and expected response shape are hardcoded in OpenELIS — changing this URL to a new endpoint type requires coordination with engineering. Leave blank to disable the lookup.',
+    defaultValue: '' },
+  { domain: 'patient-search', key: 'patientSearchLogOnUser', type: 'string', width: 'medium', label: 'Lookup service username',
+    helper: 'Username OpenELIS uses to authenticate against the national ID lookup service above. Stored encrypted at rest.',
+    defaultValue: '' },
+  { domain: 'patient-search', key: 'patientSearchPassword', type: 'password', width: 'medium', label: 'Lookup service password',
+    helper: 'Password OpenELIS uses to authenticate against the national ID lookup service. Stored encrypted at rest, masked in the UI, never echoed in error logs (C039 fix).',
+    defaultValue: '' },
+
+  { domain: 'esig', key: 'electronicSignatureEnabled', type: 'boolean', label: 'Enable 21 CFR Part 11 e-signatures',
+    helper: 'When ON, result entry and validation require an explicit electronic signature — the user types their password to confirm each action. Required for 21 CFR Part 11 / FDA compliance. When OFF, results save without re-authentication. Affects every result-entry and validation action.',
+    defaultValue: true },
+  { domain: 'esig', key: 'esigSessionTimeoutMinutes', type: 'integer', width: 'short', label: 'E-sig session timeout (minutes)',
+    helper: 'Minutes before an e-signature session expires and the user must re-authenticate to continue signing. Lower values are more secure but interrupt high-volume reviewers more often. 30 minutes is the FDA-recommended default.',
+    defaultValue: 30 },
+
+  { domain: 'sample', key: 'BarCodeType', type: 'select', width: 'short', label: 'Barcode type',
+    helper: 'Barcode symbology OpenELIS prints on sample labels and accepts at scan-in. Must match what your barcode printers and scanners are configured to use. Code 128 is the standard 1D linear barcode used by most lab printers; QR is for 2D codes scanned from smartphones.',
+    options: [
+      { value: 'Code 128', label: 'Code 128 (standard linear barcode)' },
+      { value: 'QR',       label: 'QR (2D barcode)' },
+    ],
+    defaultValue: 'Code 128' },
+  { domain: 'sample', key: 'boxLabelPrefix', type: 'string', width: 'short', label: 'Shipping box label prefix',
+    helper: 'Text prefix on shipping box labels when samples are batched for outbound referral. Final format is PREFIX-YYYY-NNNN (e.g. BOX-2026-0042). The label prints automatically when a referral shipment is created.',
+    defaultValue: 'BOX' },
+  { domain: 'sample', key: 'fhirContainerTypeCode', type: 'string', width: 'short', label: 'FHIR container type code (SNOMED CT)',
+    helper: 'SNOMED CT code OpenELIS includes on outbound FHIR Specimen resources for the container type. Default 434711009 = "Specimen container". Change only if your FHIR network expects a different SNOMED concept.',
+    defaultValue: '434711009' },
+  { domain: 'sample', key: 'fhirContainerTypeDisplay', type: 'string', width: 'medium', label: 'FHIR container type display name',
+    helper: 'Human-readable display name that pairs with the SNOMED code above. Sent on outbound FHIR Specimen resources alongside the code so receivers see the friendly name in their UI.',
+    defaultValue: 'Specimen container' },
+  { domain: 'sample', key: 'fhirNonConformityCodes', type: 'json', width: 'full', label: 'FHIR non-conformity codes (SNOMED CT, JSON)',
+    helper: 'Maps each OpenELIS non-conformity reason (e.g. RECEIVED_DAMAGED, MISSING) to a SNOMED CT code. Used when reporting non-conformities via FHIR — the receiver sees a standard SNOMED code instead of OpenELIS\'s internal key. JSON object: {"INTERNAL_KEY":"SNOMED_CODE",...}.',
+    defaultValue: '{"RECEIVED_DAMAGED":"281411007","RECEIVED_LEAKED":"281412000","MISSING":"281264009","REJECTED":"123840003"}' },
+  { domain: 'sample', key: 'freezer.bacnet.udp.port', type: 'integer', width: 'short', label: 'Freezer monitoring — BACnet UDP port',
+    helper: 'UDP port OpenELIS listens on for BACnet protocol freezer telemetry. Default 47808 is the BACnet standard. Change only if your freezer-monitoring controller uses a non-standard port.',
+    defaultValue: 47808 },
+  { domain: 'sample', key: 'freezer.modbus.tcp.port', type: 'integer', width: 'short', label: 'Freezer monitoring — Modbus TCP port',
+    helper: 'TCP port OpenELIS uses to query Modbus-protocol freezers. Default 502 is the Modbus standard. Change only if your freezer-monitoring controller uses a non-standard port.',
+    defaultValue: 502 },
+
+  { domain: 'workflow', key: 'enableClientRegistry', type: 'boolean', label: 'Enable Client Registry patient search',
+    helper: 'When ON, adds a "Client Registry" option to patient lookup. OpenELIS queries the external CR server (configured separately in Application Properties › FHIR integrations › Client Registry server). Use when your country has a national patient registry.',
+    defaultValue: false },
+  { domain: 'workflow', key: 'useExternalPatientSource', type: 'boolean', label: 'Use external source for patient demographics',
+    helper: 'When ON, the patient registration form shows a "Look up by national ID" affordance: a clerk enters the patient\'s national ID, OpenELIS queries the configured National ID lookup service (see Patient search service section above), and pre-fills demographics from the response. When OFF, demographics must be entered manually for every patient. Requires the lookup service URL + credentials to be configured.',
+    defaultValue: false },
+  { domain: 'workflow', key: 'requireLabUnitAtLogin', type: 'boolean', label: 'Require Lab Unit selection at login',
+    helper: 'When ON, users must pick a Lab Unit (e.g. Hematology, Microbiology) when logging in, and orders/results are scoped to that unit. When OFF, users see all units at once. Recommended for large labs where staff only work in one section.',
+    defaultValue: false },
+  { domain: 'workflow', key: 'TrainingInstallation', type: 'boolean', label: 'Training installation (allows deletion of all data)',
+    helper: 'Marks this OpenELIS instance as a training/sandbox environment. When ON, the standard delete buttons for patients and samples — normally blocked — become functional and admins can bulk-wipe data. NEVER enable on a production lab. Use only on training environments where data is meant to be discarded.',
+    destructive: true,
+    impact: 'Enabling Training Installation marks this OpenELIS instance as a sandbox. From this point any admin can bulk-delete all patient and sample records using the standard delete affordances — operations that are normally blocked on production. This flag should NEVER be enabled on a production lab.',
+    defaultValue: false },
+];
+
+const DOMAINS = [
+  { id: 'identity',       label: 'Lab identity',           desc: 'How this lab identifies itself in the UI and in FHIR.',                  open: true  },
+  { id: 'locale',         label: 'Locale & formats',       desc: 'Date, language, phone, and clock formatting defaults.',                   open: true  },
+  { id: 'patient-search', label: 'Patient search service', desc: 'National ID lookup — enter a patient ID at registration and OpenELIS pre-fills demographics from an external data source.', open: true  },
+  { id: 'esig',           label: 'E-signature compliance', desc: '21 CFR Part 11 electronic signatures for result entry and validation.',  open: false },
+  { id: 'sample',         label: 'Sample handling',        desc: 'Barcodes, box labels, FHIR container codes, freezer monitoring ports.',  open: false },
+  { id: 'workflow',       label: 'Login & workflow',       desc: 'Patient-source selection, login behavior, training-mode safety toggle.', open: false },
+];
+
+function FieldRow({ field, value, isDirty, onChange, onDestructive }) {
+  const [touched, setTouched] = useState(false);
+  // Inline validation — URL/email blur triggers HTML5 validity check
+  const isUrl = field.type === 'url';
+  const isEmail = field.type === 'email';
+  const invalid = touched && (isUrl || isEmail) && value && !/^https?:\/\//.test(value);
+
+  // Hover tooltip carries the raw key for ops/dev debugging.
+  // No visible code chip — keeps the label clean for the actual admin user.
+  const label = (
+    <label className="prop-label" title={`Key: ${field.key}`}>
+      <span>{field.label}</span>
+      {field.destructive && <span className="tag red">⚠ Destructive</span>}
+      <span className="info-dot">ⓘ key</span>
+    </label>
+  );
+
+  // Render a select dropdown
+  const selectInput = field.type === 'select' && (
+    <div className="select-wrap input-w-medium">
+      <select className="select-input" value={value || ''}
+              onChange={(e) => onChange(e.target.value)}>
+        {field.options.map(o => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+
+  const widthClass = `input-w-${field.width || 'long'}`;
+
+  let input;
+  if (field.type === 'boolean') {
+    input = (
+      <div className="bool-row">
+        <button role="switch" aria-checked={!!value} aria-label={field.label}
+          className={`toggle${value ? ' on' : ''}`}
+          onClick={() => {
+            if (field.destructive && !value) onDestructive(field);
+            else onChange(!value);
+          }} />
+        <span className="state-label">{value ? 'Enabled' : 'Disabled'}</span>
+      </div>
+    );
+  } else if (field.type === 'select') {
+    input = selectInput;
+  } else if (field.type === 'integer') {
+    input = <input className={`text-input ${widthClass}`} type="number" min="0" step="1"
+                   value={value} onChange={(e) => onChange(Number(e.target.value))} />;
+  } else if (field.type === 'password') {
+    input = <PasswordField value={value || ''} onChange={onChange} widthClass={widthClass} />;
+  } else if (field.type === 'json') {
+    input = <textarea className={`text-input json mono ${widthClass}`} value={value || ''}
+                      onChange={(e) => onChange(e.target.value)} />;
+  } else {
+    const mono = field.type === 'url';
+    input = <input className={`text-input ${widthClass}${mono ? ' mono' : ''}${invalid ? ' invalid' : ''}`}
+                   type={field.type === 'url' ? 'url' : field.type === 'email' ? 'email' : 'text'}
+                   value={value || ''}
+                   onBlur={() => setTouched(true)}
+                   onChange={(e) => onChange(e.target.value)} />;
+  }
+
+  // Destructive non-boolean fields show a visible warning when dirty
+  const destructiveWarning = field.destructive && field.type !== 'boolean' && isDirty;
+
+  return (
+    <div className={`prop-row${isDirty ? ' dirty' : ''}`}>
+      {label}
+      {field.helper && <p className="prop-helper">{field.helper}</p>}
+      {input}
+      {invalid && <div className="field-error">{isUrl ? 'Must start with http:// or https://' : 'Invalid format'}</div>}
+      {destructiveWarning && (
+        <div className="destructive-warning">
+          ⚠ <strong>Destructive change.</strong> You'll be asked to confirm by typing the key on Save.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PasswordField({ value, onChange, widthClass }) {
+  const [shown, setShown] = useState(false);
+  return (
+    <div className={`pw-row ${widthClass || ''}`}>
+      <input className="text-input" type={shown ? 'text' : 'password'}
+             value={value} onChange={(e) => onChange(e.target.value)} />
+      <button type="button" className="pw-toggle" onClick={() => setShown(s => !s)} title={shown ? 'Hide' : 'Show'}>
+        {shown ? '🙈' : '👁'}
+      </button>
+    </div>
+  );
+}
+
+function App() {
+  const [values, setValues] = useState(() => {
+    const m = {}; PROPERTIES.forEach(p => { m[p.key] = p.defaultValue; });
+    return m;
+  });
+  const [dirty, setDirty] = useState(new Set());
+  const [search, setSearch] = useState('');
+  const [savedNotice, setSavedNotice] = useState(false);
+  const [recentOpen, setRecentOpen] = useState(false);
+  const [openDomains, setOpenDomains] = useState(() => {
+    const m = {}; DOMAINS.forEach(d => { m[d.id] = d.open; }); return m;
+  });
+  const [pendingDestructive, setPendingDestructive] = useState(null);
+  const [pendingSaveDestructive, setPendingSaveDestructive] = useState(null); // for non-boolean destructive at save time
+  const [typeToConfirm, setTypeToConfirm] = useState('');
+
+  const setValue = (key, v) => {
+    setValues(prev => ({ ...prev, [key]: v }));
+    setDirty(prev => { const n = new Set(prev); n.add(key); return n; });
+  };
+  const onSave = () => {
+    // Intercept save if any non-boolean destructive field is dirty — show confirmation modal first.
+    // Boolean destructive fields (TrainingInstallation) confirm at toggle time, so they're never dirty without confirmation.
+    const destructiveDirty = [...dirty]
+      .map(k => PROPERTIES.find(p => p.key === k))
+      .filter(p => p && p.destructive && p.type !== 'boolean');
+    if (destructiveDirty.length > 0) {
+      setPendingSaveDestructive({ field: destructiveDirty[0], all: destructiveDirty });
+      setTypeToConfirm('');
+      return;
+    }
+    setDirty(new Set()); setSavedNotice(true); setTimeout(() => setSavedNotice(false), 3000);
+  };
+  const confirmSaveDestructive = () => {
+    setPendingSaveDestructive(null); setTypeToConfirm('');
+    setDirty(new Set()); setSavedNotice(true); setTimeout(() => setSavedNotice(false), 3000);
+  };
+  const onDiscard = () => {
+    const m = {}; PROPERTIES.forEach(p => { m[p.key] = p.defaultValue; });
+    setValues(m); setDirty(new Set());
+  };
+  const toggleDomain = (id) => setOpenDomains(prev => ({ ...prev, [id]: !prev[id] }));
+
+  const matchesSearch = (field) => {
+    if (!search) return true;
+    const hay = `${field.key} ${field.label} ${field.helper || ''}`.toLowerCase();
+    return hay.includes(search.toLowerCase());
+  };
+
+  const fieldsByDomain = useMemo(() => {
+    const m = {}; DOMAINS.forEach(d => { m[d.id] = []; });
+    PROPERTIES.filter(matchesSearch).forEach(p => { m[p.domain].push(p); });
+    return m;
+  }, [search]);
+
+  const confirmDestructive = () => {
+    if (pendingDestructive) {
+      setValue(pendingDestructive.key, true);
+      setPendingDestructive(null);
+      setTypeToConfirm('');
+    }
+  };
+
+  return (
+    <div className="page-frame">
+      <div className="crumbs">
+        <a href="#">Admin</a> &nbsp;/&nbsp; <a href="#">Lab Setup</a> &nbsp;/&nbsp; <span>Site Information</span>
+      </div>
+
+      <div className="page-header-row">
+        <div>
+          <h1>Site Information</h1>
+          <p className="subtitle">
+            Who this lab is, where it is, and how it presents itself. The first page of the setup checklist for any new OpenELIS deployment.
+          </p>
+        </div>
+        <button className="recent-trigger" onClick={() => setRecentOpen(true)}>🕐 Recent changes</button>
+      </div>
+
+      <div className="notice">
+        <strong>ⓘ See also</strong>
+        <div className="sub">
+          Boolean settings on this page also appear on <a href="#">Feature Flags</a> as a cross-cutting view. Branding (logo, theme colors) is on <a href="#">Site Branding</a>.
+        </div>
+      </div>
+
+      {savedNotice && (
+        <div className="notice success">
+          <strong>✓ Site information saved.</strong>
+          <div className="sub">Changes are live. Users will see updated labels and locale on next page load.</div>
+        </div>
+      )}
+      {dirty.size > 0 && (
+        <div className="notice">
+          <strong>Unsaved changes</strong>
+          <div className="sub">{dirty.size} setting{dirty.size === 1 ? '' : 's'} pending. Save or discard before leaving.</div>
+        </div>
+      )}
+
+      <div className="toolbar">
+        <label className="field-label">Find a setting</label>
+        <div className="input-wrap">
+          <span style={{ color: 'var(--text-secondary)', marginRight: '0.5rem' }}>🔍</span>
+          <input placeholder='Search by key, label, or helper — e.g. "phone", "FHIR", "banner"'
+                 value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <p className="counter">{PROPERTIES.length} properties across {DOMAINS.length} domains</p>
+      </div>
+
+      {DOMAINS.map(domain => {
+        const fields = fieldsByDomain[domain.id];
+        if (search && fields.length === 0) return null;
+        const isOpen = search.length > 0 ? true : openDomains[domain.id];
+        const sectionDirtyCount = fields.filter(f => dirty.has(f.key)).length;
+        return (
+          <div className="accordion-item" key={domain.id}>
+            <div className="accordion-header" onClick={() => !search && toggleDomain(domain.id)}>
+              <span className="accordion-chev">{isOpen ? '▾' : '▸'}</span>
+              <div className="accordion-titles">
+                <div className="accordion-title-row">
+                  <span className="accordion-title">{domain.label}</span>
+                  {sectionDirtyCount > 0 && <span className="tag blue">{sectionDirtyCount} unsaved</span>}
+                </div>
+                <span className="accordion-desc">{domain.desc}</span>
+              </div>
+            </div>
+            {isOpen && (
+              <div className="accordion-body">
+                {fields.map(f => (
+                  <FieldRow key={f.key} field={f} value={values[f.key]} isDirty={dirty.has(f.key)}
+                            onChange={(v) => setValue(f.key, v)}
+                            onDestructive={(field) => { setPendingDestructive(field); setTypeToConfirm(''); }} />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      <div className="actions-bar">
+        <button className="btn primary" disabled={dirty.size === 0} onClick={onSave}>
+          💾 Save changes
+        </button>
+        <button className="btn ghost" disabled={dirty.size === 0} onClick={onDiscard}>↺ Discard changes</button>
+        <span className="dirty-summary">
+          {dirty.size === 0 ? 'No unsaved changes.' : `${dirty.size} unsaved change${dirty.size === 1 ? '' : 's'}.`}
+        </span>
+      </div>
+
+      {recentOpen && (
+        <>
+          <div className="recent-drawer-backdrop" onClick={() => setRecentOpen(false)} />
+          <div className="recent-drawer">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+              <h3 style={{ margin: 0 }}>Recent changes</h3>
+              <button className="btn ghost" onClick={() => setRecentOpen(false)}>Close</button>
+            </div>
+            <p style={{ margin: '0 0 0.75rem', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+              Last 5 changes on this page. Full audit history is queued for Phase 6.
+            </p>
+            {SAMPLE_RECENT.map((r, i) => (
+              <div key={i} className="recent-row">
+                <div className="recent-meta">{r.at} · {r.user}</div>
+                <div className="recent-field">{r.field}</div>
+                <div className="recent-change">
+                  <span className="tag warm-gray">{r.before}</span>
+                  {' → '}
+                  <span className="tag green">{r.after}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {pendingDestructive && (
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) { setPendingDestructive(null); setTypeToConfirm(''); } }}>
+          <div className="modal">
+            <div className="modal-header">
+              <h3>🔒 High-risk change — type to confirm</h3>
+            </div>
+            <div className="modal-body">
+              <p style={{ margin: 0, fontSize: '0.875rem' }}>
+                <strong>{pendingDestructive.label}</strong>{' '}
+                <code style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{pendingDestructive.key}</code>
+              </p>
+              <div className="impact-tile">
+                <strong>What this changes</strong>
+                <p>{pendingDestructive.impact}</p>
+              </div>
+              <div style={{ marginTop: '1rem' }}>
+                <label className="field-label">Type the setting key to confirm: <code>{pendingDestructive.key}</code></label>
+                <input className="confirm-input" value={typeToConfirm} onChange={(e) => setTypeToConfirm(e.target.value)} placeholder={pendingDestructive.key} />
+                {typeToConfirm.length > 0 && typeToConfirm !== pendingDestructive.key && (
+                  <div className="invalid-text">Key doesn't match.</div>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="secondary" onClick={() => { setPendingDestructive(null); setTypeToConfirm(''); }}>Cancel</button>
+              <button className="danger-primary" disabled={typeToConfirm !== pendingDestructive.key} onClick={confirmDestructive}>
+                Enable training installation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Save-time destructive modal — fires when admin clicks Save and a destructive non-boolean field is dirty */}
+      {pendingSaveDestructive && (
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) { setPendingSaveDestructive(null); setTypeToConfirm(''); } }}>
+          <div className="modal">
+            <div className="modal-header">
+              <h3>⚠ Confirm destructive change on save</h3>
+            </div>
+            <div className="modal-body">
+              <p style={{ margin: 0, fontSize: '0.875rem' }}>
+                You're about to save changes to <strong>{pendingSaveDestructive.field.label}</strong>{' '}
+                <code style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{pendingSaveDestructive.field.key}</code>.
+              </p>
+              <p style={{ margin: '0.75rem 0', fontSize: '0.875rem' }}>
+                Change:{' '}
+                <span className="tag warm-gray">{PROPERTIES.find(p => p.key === pendingSaveDestructive.field.key).defaultValue || '(empty)'}</span>
+                {' → '}
+                <span className="tag green">{values[pendingSaveDestructive.field.key] || '(empty)'}</span>
+              </p>
+              <div className="impact-tile">
+                <strong>What this changes</strong>
+                <p>{pendingSaveDestructive.field.impact}</p>
+              </div>
+              {pendingSaveDestructive.all.length > 1 && (
+                <p style={{ margin: '0.75rem 0', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+                  Also pending: {pendingSaveDestructive.all.slice(1).map(f => f.label).join(', ')}.
+                </p>
+              )}
+              <div style={{ marginTop: '1rem' }}>
+                <label className="field-label">Type the setting key to confirm: <code>{pendingSaveDestructive.field.key}</code></label>
+                <input className="confirm-input"
+                       value={typeToConfirm}
+                       onChange={(e) => setTypeToConfirm(e.target.value)}
+                       placeholder={pendingSaveDestructive.field.key} />
+                {typeToConfirm.length > 0 && typeToConfirm !== pendingSaveDestructive.field.key && (
+                  <div className="invalid-text">Key doesn't match.</div>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="secondary" onClick={() => { setPendingSaveDestructive(null); setTypeToConfirm(''); }}>Cancel</button>
+              <button className="danger-primary"
+                      disabled={typeToConfirm !== pendingSaveDestructive.field.key}
+                      onClick={confirmSaveDestructive}>
+                Confirm and save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="meta-panel">
+        <strong>About this preview.</strong> Try:<br />
+        • <strong>Change "FHIR Organization UUID"</strong> under Lab identity — destructive warning appears under the field; clicking Save opens a confirmation modal requiring you to type the key. Cancel returns to editing.<br />
+        • <strong>Change "Barcode type"</strong> under Sample handling — dropdown between Code 128 and QR; no more free-text typos<br />
+        • Hover any field label — tooltip shows the raw key for ops/dev debugging without cluttering the visual default<br />
+        • Read the helper text below each label — every field now explains <em>how and where</em> the value is used in OpenELIS, not just what it is<br />
+        • Expand <strong>Patient search service</strong> — password field masked with show/hide (<strong>C039 Critical fix</strong>); enter a malformed URL in the search-service field to see inline validation<br />
+        • Expand <strong>Login & workflow</strong> — toggle <strong>Training installation</strong> on for the boolean destructive type-to-confirm modal<br />
+        • Scroll — the Save / Discard bar stays pinned to the bottom of the viewport<br />
+        • Notice field inputs sized to the content (port number = narrow, JSON blob = full width)
+        <br /><br />
+        <strong>Story B.1 of the admin MVP.</strong> Retires legacy Site Information page (audit C039 Critical, C040 High, C041 High, C042 Medium). Lives in <em>Lab Setup</em> bucket at <code>/admin/lab-setup/site-information</code>. First step in the Setup Checklist on <code>/admin</code>.
+        <br /><br />
+        <strong>Audit fixes confirmed:</strong>
+        <br />• <strong>C039 Critical:</strong> <code>patientSearchPassword</code> now uses <code>PasswordInput</code> with show/hide masking. Legacy rendered the password value as plaintext in a table column.
+        <br />• <strong>C041 High:</strong> <code>bannerHeading</code> is now a clean single string (legacy stuffed multiple things into one string like <code>"English: Test LIMSFrench: Test LIMS"</code>). Per Casey 2026-05-14: labs only want one banner heading in their primary language and don't change it, so no multi-locale editor needed.
+        <br />• <strong>C040 High:</strong> legacy Select-radio + Modify flow (one field at a time) replaced with inline editing of all 29 fields at once. Bulk edits no longer require 29 round trips.
+        <br /><br />
+        <strong>Verified data model</strong> (testing.openelis-global.org, 2026-05-14): 29 properties across 6 admin-meaningful domains. ~10 booleans surface on Feature Flags as a cross-cutting view. <code>TrainingInstallation</code> is flagged destructive — enabling triggers type-to-confirm (allows bulk deletion of patient and sample data).
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
