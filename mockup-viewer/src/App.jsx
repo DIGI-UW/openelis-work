@@ -1123,15 +1123,16 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'glass', 'fhir', 'surveillance', 'fhir-server', 'phase-2'],
   },
   {
-    name: 'Microbiology AMR Narrative — v2.0',
+    name: 'Microbiology AMR Narrative — v2.1',
     category: 'microbiology',
     component: null,
-    description: 'v2.0 workflow-selection narrative: Phase 0 (workflow_type decision rule), Phase 7 (TB workup), antibiogram note (Phase 2), Phase 8 (GLASS via M-15 FHIR push). Cross-module context doc for the full M-00–M-15 bundle.',
+    description: 'v2.1 narrative: folds in four post-v2.0 decisions — Case keying is SampleItem × workflow_type (not 1:1 with Sample); WHONET (M-09) extends the existing export; M-11 critical notification reuses the notifications dashboard + TestNotificationService; Expert Review (M-06) and critical log-and-acknowledge (M-11) are inline panels, not modals. Cross-module context doc for the full M-00–M-15 bundle.',
     specPath: 'designs/microbiology/amr-micro-narrative.md',
     added: '2026-06-08',
+    updated: '2026-06-12',
     status: 'draft',
     jira: ['OGC-782'],
-    tags: ['microbiology', 'narrative', 'workflow-selection', 'tb', 'antibiogram', 'glass', 'v2'],
+    tags: ['microbiology', 'narrative', 'workflow-selection', 'tb', 'antibiogram', 'glass', 'v2.1'],
   },
 
   // ─── NCE ───

@@ -1016,12 +1016,14 @@
   path: designs/microbiology/amr-micro-narrative.md
   category: microbiology
   description: >
-    Microbiology AMR Narrative v2.0 — Phase 0 workflow-selection, Phase 7 TB, antibiogram note,
-    Phase 8 GLASS via M-15. Cross-module context doc for the full M-00–M-15 bundle.
+    Microbiology AMR Narrative v2.1 — folds in four post-v2.0 decisions (SampleItem×workflow_type
+    case keying, WHONET reuse, M-11 notification reuse, inline Expert Review/critical panels).
+    Cross-module context doc for the full M-00–M-15 bundle.
   links:
     jira: ["OGC-782"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-amr-narrative-v2-0
   added: "2026-06-08"
+  updated: "2026-06-12"
 
 - id: m-04-change-workflow-unassigned
   type: mockup
