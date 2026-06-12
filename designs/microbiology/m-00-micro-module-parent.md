@@ -176,7 +176,7 @@ micro_case_inoculation
    ├── source_inoculation_id (FK→self, nullable — null = primary media; set = subculture
    │          of the referenced bottle/plate. Only new field added by the interaction edits.)
    ├── media_type (FK to media catalog)
-   ├── lot_number (FK to qc_lot — M-12 via reagent linkage)
+   ├── lot_id (FK to InventoryLot — M-12 via the Inventory module; writes InventoryUsage on use)
    ├── bottle_id or plate_id
    ├── inoculated_at, inoculated_by
    └── notes
@@ -226,7 +226,7 @@ micro_ast_run
    ├── method (enum: VITEK_2, BD_PHOENIX, SENSITITRE, DISK_DIFFUSION, ETEST, BROTH_MICRODILUTION, MANUAL)
    ├── status (enum: PENDING_SETUP, IN_PROGRESS, READING, COMPLETE, QC_FAILED, RERUN_REQUIRED)
    ├── analyzer_card_id (nullable, instrument-side identifier)
-   ├── reagent_lot_id (FK to qc_lot — M-12)
+   ├── reagent_lot_id (FK to InventoryLot — M-12 / Inventory module)
    ├── started_at, started_by
    ├── completed_at
    └── audit columns
@@ -655,7 +655,7 @@ Concrete reuse mappings established in review. New masters and bespoke mechanism
 - **NCE + sample-rejection reused for specimen-lost (and rejection).** The LOST_SPECIMEN / LOST_SPECIMEN_POSITIVE and REJECTED_AT_ACCESSIONING transitions reuse the existing Non-Conforming-Event (NCE) and sample-rejection infrastructure rather than a micro-only mechanism.
 - **Case Timeline reuses the existing History/Note infrastructure.** The timeline is the existing OE History/Note surface; structured section saves auto-write the corresponding timeline events (the section is the system of record, the timeline is the derived activity log). The only manual timeline action is a free-text note.
 - **Concurrency reuses optimistic locking.** Stale-state detection and the offline conflict-resolution dialog (NFR-01) use the existing optimistic-locking mechanism, surfaced via `micro.error.staleState`. No new locking scheme.
-- **Other reuse (consolidated):** reagent lots → existing `reagent`/`qc_lot` via M-12; critical notifications → polymorphic `critical_notification` (M-11); organism/AST/confirmation results → standard Test Catalog tests, not new result masters.
+- **Other reuse (consolidated):** reagent lots **+ consumption/traceability** → existing **Inventory module** (`InventoryItem` / `InventoryLot` / `InventoryUsage`, the last already keyed to `analysis_id`/`test_result_id`) via M-12 — supersedes the old `reagent`/`qc_lot`; the test↔reagent definition (`test_reagent_link`) is owned by Test Catalog v2.5 (OGC-759). Critical notifications → reuse the existing `notifications` alerts dashboard + `TestNotificationService`; M-11 adds only the documented call-back/acknowledgment record + polymorphic target. Organism/AST/confirmation results → standard Test Catalog tests, not new result masters. **Specimen splitting** (TB decontamination → processed aliquot; send-out aliquots) → the existing **sample-management aliquoting workflow** (`CreateAliquot` + `sample_item_aliquot_relationship`, parent→child `SampleItem` + volume tracking), which also provides the parent/child lineage behind the shared-specimen two-Cases model (M-04 §2A, M-14 §4.1). The micro-only `source_inoculation_id` is narrowed to *media-from-media* subculture provenance, distinct from specimen aliquoting.
 
 ### 8.3 Inline interactions, not modals (Principle 3)
 
