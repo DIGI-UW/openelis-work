@@ -3331,3 +3331,38 @@
     - global
   added: "2026-05-28"
   status: draft
+
+- id: bruker-maldi-biotyper-integration-spec
+  type: spec
+  path: designs/analyzer-integration/bruker-maldi-biotyper-integration-spec-v1.1.md
+  category: analyzer-integration
+  description: >
+    Bruker MALDI Biotyper (MBT Compass IVD) microbial identification — ASTM LIS2-A2 socket or CSV
+    flat file. PNG / CPHL Port Moresby deployment.
+  links:
+    jira: ["OGC-323"]
+    gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/bruker-maldi-biotyper-integration-spec
+  added: "2026-06-12"
+
+- id: bruker-maldi-biotyper-companion-setup-guide
+  type: spec
+  path: designs/analyzer-integration/bruker-maldi-biotyper-companion-setup-guide-v1.0.md
+  category: analyzer-integration
+  description: >
+    Bruker MALDI Biotyper analyzer setup guide — instrument-side + OpenELIS configuration.
+  links:
+    jira: ["OGC-323"]
+    gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/bruker-maldi-biotyper-companion-setup-guide
+  added: "2026-06-12"
+
+- id: bd-epicenter-integration-spec
+  type: spec
+  path: designs/analyzer-integration/bd-epicenter-integration-spec-v1.0.md
+  category: analyzer-integration
+  description: >
+    BD EpiCenter microbiology / AMR data manager — ASTM LIS2-A2 (E1394-97), aggregates Phoenix/MGIT
+    susceptibility for OpenELIS. PNG / CPHL Port Moresby deployment.
+  links:
+    jira: ["OGC-434"]
+    gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/bd-epicenter-integration-spec
+  added: "2026-06-12"
