@@ -3325,3 +3325,17 @@
     - global
   added: "2026-05-28"
   status: draft
+
+- id: inventory-item-type-management
+  type: mockup
+  path: designs/inventory/inventory-item-type-management.jsx
+  spec: designs/inventory/inventory-item-type-management.md
+  preview: designs/inventory/inventory-item-type-management.html
+  category: inventory
+  description: >
+    Inventory Item-Type Management — move the hard-coded "Type of Item" list into the Data
+    Dictionary with managed add/edit/deactivate.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/inventory/inventory-item-type-management
+    preview: https://digi-uw.github.io/openelis-work/designs/inventory/inventory-item-type-management.html
+  added: "2026-06-12"
