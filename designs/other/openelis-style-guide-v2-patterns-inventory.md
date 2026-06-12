@@ -32,21 +32,25 @@ Empty sections are expected at the start. They fill in as the walkthrough progre
 |---|---|---|---|
 | Dashboard | ✅ Deep pass 2026-04-23 | ss_0943v27g2 | Tile grid, all Title Case, inconsistent tile subtitle copy |
 | Orders (add, view, modify) | ✅ Deep pass 2026-04-23 | ss_6716ziibf (Add), ss_3208cbzbr (Modify), ss_45089933r (Incoming), ss_7274j7pru (Batch) | 4-step wizard, two "Add Order" sidenav entries, misspelling found |
-| Results entry | Not started | — | — |
-| Results review | Not started | — | — |
-| Validation | Not started | — | — |
-| Patient management | Not started | — | — |
-| Reports (11 shells) | Not started | — | — |
-| Admin (28+ pages) | Not started | — | — |
-| Referrals | Not started | — | — |
-| Workplan | Not started | — | — |
-| Pathology | Not started | — | — |
-| Analyzers admin | Not started | — | — |
-| EQA | Not started | — | — |
-| Alerts | Not started | — | — |
-| Storage | Not started | — | — |
+| Results entry | ✅ Pass 2026-04-23 | (DOM-based) | Routing search patterns, sort a11y drift |
+| Results review | ✅ Pass 2026-04-23 | (DOM-based) | Covered alongside Validation |
+| Validation | ✅ Pass 2026-04-23 | (DOM-based) | Covered in sidenav sweep |
+| Patient management | ✅ Pass 2026-04-23 | (DOM-based) | Patient History, Patient Edit visited |
+| Reports (11 shells) | ✅ Sampling pass 2026-04-23 | (DOM-based) | Repeat legacy-form patterns; catalog via sidenav |
+| Admin (28+ pages) | 🟡 Partial — admin index + sidenav enum; deep pages blocked by env | (DOM-based) | Env D211/D213 blocked deep hydration on admin routes; 214 drift items across sampled pages |
+| Referrals | ✅ Pass 2026-04-23 | (DOM-based) | In sidenav sweep |
+| Workplan | ✅ Deep pass 2026-04-24 | (DOM-based) | D163–D168 logged |
+| Pathology | ✅ Deep pass 2026-04-24 | (DOM-based) | D201–D210 logged; 3 dashboards walked |
+| Analyzers admin | 🟡 Sidenav-level; instance pages hit as i18n leaks | (DOM-based) | D185/D198 logged |
+| EQA | ✅ Sidenav pass 2026-04-23 | (DOM-based) | "EQA Tests" + related items captured |
+| Alerts | ✅ Sidenav pass 2026-04-23 | (DOM-based) | — |
+| Storage | ✅ Sidenav pass 2026-04-23 | (DOM-based) | — |
 | Batch entry | ✅ Covered via Batch Order Entry | ss_7274j7pru | ALL CAPS "ORDER" section heading — outlier typography |
-| Barcode | Not started | — | — |
+| Barcode | ✅ Sidenav pass 2026-04-23 | (DOM-based) | — |
+| Immunohistochemistry | ✅ Deep pass 2026-04-24 | (DOM-based) | D201–D210 logged |
+| Cytology | ✅ Deep pass 2026-04-24 | (DOM-based) | D201–D210 logged |
+| Non-Conform | ✅ Sidenav pass 2026-04-24 | (DOM-based) | D189–D190 logged |
+| Environment / routing | ✅ Walk-revealed 2026-04-24 | (console) | D211–D213 — hydration fragility + 404→backend leak |
 
 ---
 
@@ -522,7 +526,7 @@ As new drift is found beyond what's already in v1 §12 / OGC-606, log it here. I
 | D42 | Field labels | "From Accesion Number" / "To Accesion Number" — same "Accesion" typo as D34 | High | Fix spelling; scope expands beyond Modify Order |
 | D43 | Breadcrumbs | "Referrals" page breadcrumb: `Home / ReferredOutTests /` — URL slug used as breadcrumb label | Medium | Use human-readable title ("Referrals"), not route slug |
 | D44 | Section headings | "Search Referrals By Patient" (Title Case with "By" capitalized) | Low | Sentence case per v1 §6 |
-| D45 | Empty states | `/ResultValidation` (direct nav) renders blank white page — no 404, no redirect, no error | High | Should show a clear error or redirect to dashboard |
+| D45 | Empty states | `/ResultValidation` (direct nav) renders blank white page — no 404, no redirect, no error | ~~High~~ Deferred | **2026-04-26 revalidation:** observed on dev build (testing.openelis-global.org serves 249 raw `.jsx` files; bundle download dominates). Re-test on a production build before treating as a defect. Excluded from OGC-632. |
 | D46 | Breadcrumbs | Dashboard breadcrumb shows `Home / 1.2.1.6` — app version number leaked into breadcrumb trail | Medium | Remove version from breadcrumb; keep in footer or About dialog |
 | D47 | Dashboard tiles | Tile count > visible: "Partially Completed Today", "Electronic Orders" hidden behind sidenav on first view | Low | Ensure responsive grid reflows when sidenav open; or collapse sidenav by default on dashboard |
 | D48 | Validation layout | "Ready For Validation" drill-through page has no sidenav (focus mode) but breadcrumb still shows | Medium | Document focus-mode vs standard shell as a pattern choice |
@@ -678,10 +682,44 @@ As new drift is found beyond what's already in v1 §12 / OGC-606, log it here. I
 | D198 | Analyzers submenu two-level with nested "Quality Control" | Analyzers submenu renders two flat children (Analyzers List, Error Dashboard, Analyzer Types) THEN a nested "Quality Control" group with (QC Dashboard, Rule Configuration, Control Lots). Mixed flat + nested pattern within one submenu. | Medium | Flatten or fully group. |
 | D199 | Help submenu mixes navigation + forms | Help submenu has "User Manual", "Process Documentation", "VL Form", "DBS Form". "VL Form" and "DBS Form" are probably PDFs, not help pages — mixes doc navigation with downloadable forms. | Medium | Split: Help resources vs Downloadable forms. |
 | D200 | Long sidenav without search or collapse-all | Dashboard body text enumeration shows ~30 top-level entries + ~3–5 children each = 100+ nav items. No search, no collapse-all, no persistent section state. | **High** | Add nav search + remember expanded groups per session. |
+| D201 | Pathology dashboards missing H1; tile titles are H3 | PathologyDashboard / ImmunohistochemistryDashboard / CytologyDashboard DOM walk: `document.querySelectorAll('h1')` returns empty; tile titles ("Pathology", "Cases in Progress", etc.) render as `<h3>`. Breaks doc-outline a11y across the whole specialty module. | **High** | Apply the global H1 rule from v1 Foundations — page title = H1, tile = H3 is fine once H1 exists. |
+| D202 | Specialty dashboard weekly range copy glitch | All three specialty dashboards (Pathology/IHC/Cytology) show "Complete(Week 17/04/2026 - 24/04/2026 )" — no space before `(`, EU `dd/mm/yyyy` date format, trailing space before `)`. Three separate micro-bugs baked into one string template. | **High** | Template: `Complete (week {start} – {end})`, en-dash, locale-aware date, trim whitespace. |
+| D203 | "Filters:" vs "Filters" header inconsistency across specialty dashboards | Pathology dashboard renders "Filters:" (with colon); IHC and Cytology render "Filters" (no colon). Adjacent sibling pages differ. | Low | Drop the colon — it's a section heading, not a label. |
+| D204 | Same data column named three different ways across sibling dashboards | "Technician Assigned" (Pathology) vs "Assigned Technician" (IHC) vs "Select Technician" (Cytology) — all the same column. "Pathologist Assigned" vs "Assigned Pathologist" vs "CytoPathologist Assigned" likewise. | **High** | Single canonical: "Technician", "Pathologist". Don't turn column labels into form placeholders. |
+| D205 | Medial capital "CytoPathologist" in Cytology dashboard | Column header "CytoPathologist Assigned" uses medial-capital "P". All other pages use "Cytopathologist". | Medium | Normalize: "Cytopathologist". |
+| D206 | Status column renamed to "Stage" on some specialty dashboards | Pathology + IHC dashboards use "Stage" column header; Cytology uses "Status" — same underlying concept (workflow step). Mixed terminology. | Medium | Pick one — "Stage" reads better for specimen-processing workflow. |
+| D207 | Status filter option casing drift within specialty cluster | Pathology status options all Title Case ("In Progress", "Grossing", "Slicing for Slides", "Ready for Pathologist"). Cytology options mix: "In Progress" (Title Case) + "Preparing slides" (sentence case) + "Ready for Cytopathologist" (Title Case). | **High** | Sentence case rule: "In progress", "Preparing slides", "Ready for cytopathologist". |
+| D208 | "Slicing for Slides" — Title Case treats "for" as major word | Pathology status option "Slicing for Slides" capitalizes "for" (only 3 letters — should be lowercase in Title Case too). | Low | Convert to sentence case like rest of status values. |
+| D209 | Specialty search placeholder "Search by LabNo or Family Name" — compressed term "LabNo" | Same placeholder across Pathology/IHC/Cytology. "LabNo" is neither shipbook terminology nor clearly i18n'd. Column header says "Lab Number" on same page — two spellings for one concept within 100px. | **High** | "Search by lab number or family name". |
+| D210 | Pagination footer reads "Page of 1 page" | All three specialty dashboards emit "Page [input] of 1 page" — the word "page" appears twice with an input between. Clunky template. | Medium | Standard Carbon pagination: "Page 1 of 1". |
+| D211 | React hydration fragility confirmed on specialty routes | Direct navigation to `/PathologyDashboard`, `/ImmunohistochemistryDashboard`, `/CytologyDashboard` frequently leaves `#root` empty for 15–25s before hydration completes. Intermediate reloads can also drop `#root` back to 0 children. `MasterListsPage` did not hydrate after 30s in this session. Systemic dev/prod parity issue. | ~~High~~ Deferred | **2026-04-26 revalidation:** characterized on dev build only. HTML returns in ~200ms, but the instance serves **249 separate `.jsx` files** as raw ES modules; each takes ~10s to fetch. React hydration after the last script lands is ~1.5s — not a hydration race. Time-to-populated-`#root` was 17.8s in one run, 24.5s in another. A production Vite build would bundle these into a handful of chunks and most of the blank-page time would disappear. **Do not treat as a defect until re-tested on a production build.** Excluded from OGC-632. If still reproduces on prod build → file fresh ticket with prod-build observations. |
+| D212 | Session expiry silently bounces to legacy JSP home | Navigation to `/LoginPage` while session is stale resolved to `/api/OpenELIS-Global/Home` with `<title>Test LIMS</title>` (legacy UI), with no visible redirect message or re-auth prompt in the React shell. User sees a different-looking page with no context. | **High** | Re-auth should redirect back to the React shell's login, not to legacy JSP. At minimum show a "session expired" notification. |
+| D213 | Unknown React route 404s bounce to backend raw JSON problem-detail | Direct navigation to any non-existent React path (e.g. `/OrganizationManagement`, `/ApplicationConfigurationMenu`) resolved to `/api/OpenELIS-Global/{path}` and returned a plain-text JSON body `{"type":"problemDetail.type.org.springframework.web.servlet.NoHandlerFoundException","title":"problemDetail.title...","status":404,"detail":"problemDetail...","instance":"/api/OpenELIS-Global/..."}`. No React 404 page, no styled error state, i18n keys leak to the user. | **High** | Add a React catch-all 404 route styled like the rest of the app. Resolve Spring i18n keys server-side before returning them. |
+| D214 | Admin index page copy drift — casing + term inconsistency in one view | `MasterListsPage` tile labels captured: Title Case majority ("Reflex Tests Configuration", "Provider Management", "Test Management"...) with one sentence-case outlier "Batch test reassignment and cancelation" + American-spelled "cancelation" (vs British "cancellation"). "Dictionary Menu" and "Notify User" use a pattern (category-named and verb-imperative) different from all siblings. "Legacy Admin" explicitly names the legacy UI as an option without warning. | **High** | Normalize to sentence case across all admin tiles, pick one English spelling project-wide, re-label "Notify User" → "Notifications" (category noun), flag "Legacy admin" with an "(legacy)" tag so users know the jump. |
 
 ---
+
+## Coverage note — Stage 2A specialty + admin walk (2026-04-24)
+
+This session extended the drift register from D163 → D214 covering Workplan subviews, Generic Sample create-order, Import Samples, Sample Management search, the full sidenav (100+ items), Pathology/Immunohistochemistry/Cytology dashboards, and the Admin index (`MasterListsPage`). React hydration on `testing.openelis-global.org` stalled out mid-walk — the Vite dev bundle repeatedly left `#root` empty for 15–60s on every direct route navigation, which itself is drift (D211) but also blocked deep walks into: Test Management, Menu Configuration, Localization, External Connections, Application Properties, Dictionary, Organization Management, Provider Management, Analyzer Test Names, Field Validation Configuration, List Plugins, Result Reporting Configuration, Test Notification Configuration, Batch test reassignment and cancelation, Reflex Tests Configuration, User Management, Billing, Aliquot, Notebook, Barcode, and Non-Conform list views.
+
+**Pragmatic decision:** 214 drift findings across 25+ distinct views are enough substrate to start prioritizing v2 scope. The unreached admin pages are all of the same architectural vintage (legacy-wrapped forms); a sampling pass has already captured the dominant patterns. Continue into Stage 2B (prioritization) and pick up the remaining admin pages as targeted follow-ups when specific v2 redesigns require concrete details.
+
+---
+
+## Stage 2B handoff
+
+Prioritization output: **`openelis-style-guide-v2-stage2b-prioritization.md`** (same directory).
+
+- Five scope buckets (A: copy/i18n, B: patterns, C: architecture, D: terminology, E: module redesigns)
+- ~20 high-severity findings flagged for immediate Jira filings
+- 6-sprint sequencing proposal
+- 7 open questions for product/engineering alignment
 
 ## Change log
 
 - **2026-04-23** — Inventory skeleton created. 22 pattern categories seeded. Walkthrough not yet started.
 - **2026-04-23** — Stage 2A depth pass: Dashboard + Orders (Add Order wizard step 1, Modify Order, Batch Order Entry, Incoming Orders). 10 pattern categories filled. New category #23 added (Dashboard tiles). 35 drift items logged (D01–D35). 3 High-severity items: D01 (broken sort a11y), D14 (duplicate nav entry), D31 (i18n copy bug), D34 (typo).
+- **2026-04-24** — Stage 2A broad pass: Workplan subviews, Generic Sample create-order, Import Samples, full sidenav (100+ items), Pathology/IHC/Cytology dashboards, admin index (`MasterListsPage`). Drift register extended D163 → D214 (51 new items). New high-severity themes: systemic Title Case vs sentence-case drift in column headers and filter values (D204, D207); analyzer instance names leak into i18n keys causing `MISSING_TRANSLATION` errors (D185–D188); missing H1 across specialty dashboards (D201); React hydration fragility + 404→backend JSON leak (D211, D213); session expiry bounces to legacy JSP (D212). Admin deep pages (Test Management, Menu Config, Localization, etc.) blocked by hydration; captured at sidenav level. Progress tracker updated to reflect coverage. Stage 2A ready for handoff to Stage 2B (prioritization).
+- **2026-04-24** — Stage 2B prioritization published (`openelis-style-guide-v2-stage2b-prioritization.md`). 214 drift findings grouped into 5 scope buckets with severity × effort × impact; ~20 immediate Jira filings identified; 6-sprint sequencing proposed.
+- **2026-04-26** — Bug-revalidation pass on D211 (per `openelis-bug-revalidation` skill, Method A confirmed on `/PathologyDashboard`). Resource-timing diagnostic showed the testing instance is serving 249 raw `.jsx` ES modules (dev build). HTML response = 200ms; per-script download ~10s × 249 files dominates the blank-page time; React hydration itself is ~1.5s after last script. Reclassified D211 + D45 as **dev-build artifacts pending production-build verification**. Removed from OGC-632 scope (Bucket C). OGC-632 retitled to drop "hydration" from the scope and now covers D212/D213 (P0 routing & auth defects), D46/D129/D130/D168 (version-in-breadcrumb), D75/D77/D79 (legacy JSP RFC), D113/D146/D151/D159 (nested-tabs RFC). D212 incidentally re-confirmed during the same session — `/LoginPage` direct nav after stale session resolved to `/api/OpenELIS-Global/Home` (legacy JSP `Test LIMS`). New incidental finding: `/logout` returns `"Subscription not found"` JSON instead of completing logout cleanly (logged but not yet a drift entry — pending a Stage 2A revisit).

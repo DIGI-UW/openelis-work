@@ -91,6 +91,28 @@ Out of scope:
 
 ---
 
+### Westgard Phase 2 (slot pending — coordinated with NCE v2 scope)
+
+**Effort:** ~25–35h core team (or split across community contributors)
+**Blocks on:** NCE v2 scope confirmation. If NCE v2 wires up trigger #10 (QC invalidation → auto-NCE), item 1 below resolves with NCE v2 and this slot shrinks. If not, item 1 ships here as a small follow-up.
+**Ships:** Three small functional gaps in the existing Westgard / QC Dashboard module, identified via 2026-05-04 code audit. No new pillar; extends the existing `/qa/qc/dashboard` and `/qa/qc/alerts` surfaces. Could ship as a single PR or as three independent ones.
+
+Scope:
+1. **Auto-create NCE on critical QC violations** (~6–10h). Today, a 1-3s violation is recorded in `qc_rule_violation` but doesn't auto-create an NCE — the QA Officer has to notice and file manually. Per NCE FRS v3.1, trigger #10 ("QC invalidation from Westgard") is specced for this; it just needs to be wired up. If NCE v2 covers it, this collapses; if not, this is the highest-leverage gap to close.
+2. **QC reporting / trend export** (~10–15h). Charts render on screen but no CSV/PDF export, no monthly QC summary report, no trend API. CAP / SANAS inspectors regularly ask for monthly QC summaries and today the lab has to take screenshots. Self-contained feature; **good community contribution candidate** — bounded scope, clear inputs (existing `qc_rule_violation` + `qc_control_lot` + `analyzer_results` data), clear output (CSV format + JasperReports PDF template).
+3. **Statistical-method completion + sigma metrics** (~8–12h). Today: ROLLING mean/SD recalc logic exists but isn't fully integrated into rule evaluation; MANUFACTURER_FIXED hardcoded values lack a UI for manual entry; no sigma calculation. Phase 2 completes the integration and adds basic sigma display (`sigma = (TEa − bias) / CV`). Sigma metrics are nice-to-have for advanced/sigma-tier labs; basic completion of statistical methods is the core value here.
+4. **Active-violations alert banner above summary tiles** (~4h, layout fix from 2026-05-04 UI audit). Today, the QC Dashboard summary tiles show *counts* of violations (In Control / Warning / Out of Control) but the QA Officer has to click into the Instruments or Alerts tab to see *which* analyzers are actually in violation. A simple collapsible banner above the summary tiles showing the top 3–5 unacknowledged violations (Instrument · Test · Rule · Timestamp · Severity · Acknowledge button) closes the gap with one component. Conditionally rendered when `unacknowledged_violations > 0`. Highest layout-leverage change identified in the UI audit.
+
+**Customer-visible value:** "Critical QC violations auto-create NCEs (closes the QC ↔ QMS workflow loop). Inspectors can pull monthly QC summary reports without screenshots. Sigma performance is visible per test. The dashboard surfaces *which* analyzers are in violation without a tab click — the QA Officer's most common daily question."
+
+Out of scope (stays parked indefinitely):
+- Patient-based QC / moving averages (CLSI EP25). Almost no LIMS has this; post-v3+ if ever.
+- Cross-instrument peer comparison. Niche; defer.
+- Dynamic rule recommendation (auto-suggest rule changes based on sigma). Advanced; defer.
+- Lot-expiration-soon dashboard indicator. Surfaced as a minor weakness in the UI audit; would address by adding lot-expiry rollup to the summary tiles. Worth doing if a partner lab asks; otherwise wait for natural touch.
+
+---
+
 ### v3 — Reconsider scope post-NCE-v2
 
 **Effort:** TBD
