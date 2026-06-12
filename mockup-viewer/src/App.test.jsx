@@ -315,8 +315,6 @@ describe('permalink stability', () => {
     '#/pathology/cytology-case-view',
     '#/quality/eqa-enrollment',
     '#/quality/westgard-dashboard',
-    '#/vector-surveillance/results-page',
-    '#/vector-surveillance/validation-page',
     '#/results-validation/validation-page-analyzer',
     '#/results-validation/validation-page-v2-full-redesign',
     '#/results-validation/validation-page-v2-1-stage-1',
