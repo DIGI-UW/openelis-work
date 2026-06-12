@@ -1499,67 +1499,27 @@
   added: "2026-03-09"
 
 - id: report-print-queue
-  type: html
-  path: designs/reports/report-print-queue.html
+  type: mockup
+  path: designs/reports/report-print-queue.jsx
   spec: designs/reports/report-print-queue.md
+  html: designs/reports/report-print-queue.html
   category: reports
   description: >
-    Generic Report Print Queue v1.2 — type-agnostic queue with reportType discriminator
-    (maps to ReportTrackingService.ReportType enum) and generation lifecycle
-    (QUEUED → GENERATING → READY → PRINTED / FAILED). v1 scope ships patient reports;
-    extensible to any long-running report. DocumentTrack + History audit; system_module
-    access control; Envers. Supersedes the patient-only v1.1 design.
+    Report-type-agnostic print queue (v1.2): auto-surfaces validated-but-unprinted reports;
+    completeness indicators, patient/lab-number search, print recording via existing report
+    tracking. reportType discriminator maps to ReportTrackingService.ReportType enum.
+    Generation lifecycle: QUEUED → GENERATING → READY → PRINTED / FAILED.
+    Supersedes patient-report-print-queue. OGC-1031 / OGC-431 / OGC-899.
   links:
-    jira: []
+    jira: ["OGC-1031"]
     gallery: https://digi-uw.github.io/openelis-work/#/reports/report-print-queue
     preview: https://digi-uw.github.io/openelis-work/designs/reports/report-print-queue.html
   tags:
     - reports
-    - print
-    - queue
-    - report-type
-    - lifecycle
-    - audit
-    - iso-15189
-  added: "2026-06-09"
+    - print-queue
+    - PNG
+  added: "2026-06-10"
   status: draft
-
-- id: patient-report-print-queue
-  type: mockup
-  path: designs/reports/patient-report-print-queue.jsx
-  preview: designs/reports/patient-report-print-queue.html
-  category: reports
-  description: >
-    Push-based print queue for validated patient reports (v1.1) — auto-surfaces unprinted
-    accessions with batch print, per-report critical indicator, ISO 15189 audit trail
-    via existing DocumentTrack + History infrastructure. Reuses system_module /
-    system_role_module for access control and Envers for audit coverage.
-  paired_with: patient-report-print-queue-spec
-  links:
-    jira: []
-    preview: https://digi-uw.github.io/openelis-work/designs/reports/patient-report-print-queue.html
-  added: "2026-03-18"
-  updated: "2026-06-09"
-
-- id: patient-report-print-queue-carbon
-  type: mockup
-  path: designs/reports/patient-report-print-queue-carbon.jsx
-  category: reports
-  description: Full Carbon React component mockup for Patient Report Print Queue v1.1 (uses @carbon/react — production reference, revised after /analyze)
-  paired_with: patient-report-print-queue-spec
-  links: {}
-  added: "2026-03-18"
-  updated: "2026-06-09"
-
-- id: patient-report-print-queue-spec
-  type: spec
-  path: designs/reports/patient-report-print-queue.md
-  category: reports
-  description: Patient Report Print Queue FRS v1.1 — push-based queue, batch print, critical indicator, DocumentTrack audit trail, ISO 15189 compliance. Revised after /analyze.
-  paired_with: patient-report-print-queue
-  links: {}
-  added: "2026-03-18"
-  updated: "2026-06-09"
 
 - id: patient-report-redesign-spec
   type: spec
