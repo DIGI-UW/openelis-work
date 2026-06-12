@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Test Notification Configuration — Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { margin: 0; background: var(--cds-background); font-family: 'IBM Plex Sans', system-ui, sans-serif; color: var(--cds-text-primary); }
+  .page-frame { max-width: 1600px; margin: 0 auto; padding: 1.5rem 2rem 4rem; }
+  .crumbs { font-size: 0.75rem; color: var(--cds-text-secondary); margin-bottom: 0.5rem; }
+  .crumbs a { color: var(--cds-link-primary); text-decoration: none; }
+  .crumbs a:hover { text-decoration: underline; }
+  h1 { font-size: 2rem; font-weight: 300; margin: 0 0 0.25rem; }
+  h3 { font-size: 1.125rem; font-weight: 400; margin: 0; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 0; }
+  h5 { font-size: 0.875rem; font-weight: 600; margin: 0; }
+  .subtitle { color: var(--cds-text-secondary); margin: 0 0 1.5rem; font-size: 0.875rem; max-width: 820px; }
+  .notice { margin-bottom: 1rem; }
+  .tile { background: var(--cds-layer-01); padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+  .tile.system-default { border-left: 4px solid var(--cds-support-info); }
+  .tile.inner { background: var(--cds-layer-01); margin: 1rem 2rem; padding: 1.25rem; }
+  .tile.var-card { background: var(--cds-layer-02); padding: 1rem; }
+  .row { display: flex; gap: 1rem; align-items: center; }
+  .row.wrap { flex-wrap: wrap; }
+  .field { display: flex; flex-direction: column; gap: 0.25rem; }
+  .field-label { font-size: 0.75rem; color: var(--cds-text-secondary); }
+  .field-helper { font-size: 0.75rem; color: var(--cds-text-helper); margin-top: 0.25rem; }
+  .field input, .field textarea { font: inherit; font-size: 0.875rem; background: var(--cds-field-01); border: 0; border-bottom: 1px solid var(--cds-border-strong-01); padding: 0.5rem 0.75rem; outline: 0; color: var(--cds-text-primary); width: 100%; box-sizing: border-box; }
+  .field input:focus, .field textarea:focus { border-bottom: 2px solid var(--cds-focus); }
+  .field textarea { min-height: 4rem; resize: vertical; }
+  .grid { display: grid; gap: 1rem; }
+  .grid-2-cols { grid-template-columns: 1fr 2fr; }
+  .grid-main { display: grid; gap: 1rem; grid-template-columns: 1.8fr 1fr; }
+  .toolbar { display: grid; grid-template-columns: 1fr 220px 220px; gap: 1rem; padding: 1rem; background: var(--cds-layer-01); border-bottom: 1px solid var(--cds-border-subtle-01); align-items: end; }
+  .label-small { display: block; font-size: 0.75rem; color: var(--cds-text-secondary); margin-bottom: 0.25rem; }
+  .search { display: flex; align-items: center; gap: 0.5rem; background: var(--cds-field-01); padding: 0.5rem 0.75rem; height: 2.5rem; border-bottom: 1px solid var(--cds-border-strong-01); }
+  .search input { flex: 1; border: 0; background: transparent; font: inherit; outline: 0; color: var(--cds-text-primary); }
+  .dropdown { position: relative; background: var(--cds-field-01); height: 2.5rem; border-bottom: 1px solid var(--cds-border-strong-01); display: flex; align-items: center; padding: 0 0.75rem; font-size: 0.875rem; cursor: pointer; }
+  .dropdown::after { content: '▾'; margin-left: auto; color: var(--cds-text-secondary); font-size: 0.75rem; }
+  table.cds--data-table { width: 100%; }
+  table.cds--data-table thead th { font-weight: 600; font-size: 0.8125rem; }
+  table.cds--data-table tbody td code { background: var(--cds-layer-02); padding: 0.125rem 0.4rem; border-radius: 2px; font-size: 0.8125rem; }
+  .row-dirty { background: var(--cds-notification-background-info) !important; }
+  .checkbox-cell { display: flex; align-items: center; justify-content: center; }
+  .expand-cell { width: 2.5rem; text-align: center; }
+  .actions-bar { display: flex; gap: 0.5rem; margin-top: 1.5rem; }
+  .pagination-frame { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: var(--cds-layer-01); border-top: 1px solid var(--cds-border-subtle-01); font-size: 0.875rem; }
+  .batch-actions { background: var(--cds-background-inverse); color: var(--cds-text-inverse); padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .batch-actions .count { font-weight: 600; margin-right: 1rem; }
+  .batch-actions button { background: transparent; border: 0; color: var(--cds-text-inverse); padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; }
+  .batch-actions button:hover { background: rgba(255,255,255,0.1); }
+  .batch-actions .cancel-btn { margin-left: auto; }
+  .empty { text-align: center; padding: 3rem 1rem; color: var(--cds-text-secondary); font-style: italic; }
+  .cb { display: inline-flex; align-items: center; justify-content: center; width: 1.125rem; height: 1.125rem; border: 1px solid var(--cds-icon-primary); border-radius: 1px; cursor: pointer; background: transparent; }
+  .cb.checked { background: var(--cds-icon-primary); color: var(--cds-icon-inverse); }
+  .cb.checked::after { content: '✓'; font-size: 0.875rem; line-height: 1; }
+  .toggle-row { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .toggle { width: 2.25rem; height: 1.125rem; border-radius: 999px; background: var(--cds-toggle-off); position: relative; cursor: pointer; transition: background 0.15s; }
+  .toggle.on { background: var(--cds-support-success); }
+  .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 0.875rem; height: 0.875rem; border-radius: 50%; background: white; transition: left 0.15s; }
+  .toggle.on::after { left: 1.125rem; }
+  /* Channel cards — stacked sections, NOT tabs */
+  .channel-card { background: var(--cds-layer-02); border: 1px solid var(--cds-border-subtle-01); border-radius: 2px; padding: 0.75rem 1rem; }
+  .channel-card-header { display: flex; align-items: center; gap: 0.75rem; }
+  .channel-name { font-size: 0.875rem; font-weight: 600; }
+  .meta-panel { margin-top: 2rem; padding: 1rem; background: var(--cds-layer-01); border-left: 4px solid var(--cds-support-info); font-size: 0.8125rem; color: var(--cds-text-secondary); line-height: 1.5; }
+  .meta-panel strong { color: var(--cds-text-primary); }
+  .chevron-btn { background: transparent; border: 0; cursor: pointer; padding: 0.25rem 0.5rem; font-size: 1rem; color: var(--cds-icon-primary); }
+  .var-table { width: 100%; font-size: 0.8125rem; }
+  .var-table td { padding: 0.25rem 0; vertical-align: top; }
+  .var-table td:first-child { width: 12rem; padding-right: 0.5rem; }
+  .var-table td:last-child { color: var(--cds-text-secondary); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+const CHANNELS = [
+  { id: 'patientEmail',  label: 'Patient Email',  email: false },
+  { id: 'patientSms',    label: 'Patient SMS',    email: false },
+  { id: 'providerEmail', label: 'Provider Email', email: true  },
+  { id: 'providerSms',   label: 'Provider SMS',   email: false },
+];
+
+const VARIABLES = [
+  { token: '[testName]',              desc: 'Name of the test this is for' },
+  { token: '[testResult]',            desc: 'Result of the test' },
+  { token: '[patientFirstName]',      desc: "Patient's first name" },
+  { token: '[patientLastNameInitial]', desc: "Patient's last name's initial" },
+];
+
+const SAMPLE_TESTS = [
+  { id: '373', code: 'ASMA', name: 'Actin Smooth Muscle (Immunohistochemistry specimen)', status: 'active',
+    subs: { patientEmail: false, patientSms: false, providerEmail: false, providerSms: false },
+    testDefault: { subject: '', message: '' }, overrides: {}, lastEdited: '2026-04-12' },
+  { id: '387', code: 'ALT', name: 'ALT (Serum)', status: 'active',
+    subs: { patientEmail: true, patientSms: false, providerEmail: true, providerSms: false },
+    testDefault: { subject: 'ALT result available', message: 'ALT result for [patientFirstName] [patientLastNameInitial]: [testResult]' },
+    overrides: { providerEmail: { subject: 'ALT result — [patientFirstName] [patientLastNameInitial]', message: 'The ALT result is [testResult]. Please review.', bcc: 'lab-archive@hospital.org' } },
+    lastEdited: '2026-03-28' },
+  { id: '6',  code: 'ALB-U', name: 'Albumin (Urine)', status: 'active',
+    subs: { patientEmail: false, patientSms: false, providerEmail: true, providerSms: false },
+    testDefault: { subject: '', message: '' }, overrides: {}, lastEdited: '2026-04-02' },
+  { id: '323', code: 'AMACR', name: 'AMACR (p504 s) (Immunohistochemistry specimen)', status: 'active',
+    subs: { patientEmail: false, patientSms: false, providerEmail: false, providerSms: false },
+    testDefault: { subject: '', message: '' }, overrides: {}, lastEdited: '2026-04-15' },
+  { id: '5',  code: 'AMY', name: 'Amylase (Serum)', status: 'active',
+    subs: { patientEmail: true, patientSms: true, providerEmail: true, providerSms: false },
+    testDefault: { subject: 'Amylase result', message: 'Your Amylase result is ready: [testResult].' },
+    overrides: {}, lastEdited: '2026-04-18' },
+  { id: 'hiv', code: 'HIV', name: 'HIV Antibody/Antigen', status: 'active',
+    subs: { patientEmail: false, patientSms: false, providerEmail: true, providerSms: true },
+    testDefault: { subject: 'HIV result available — confidential', message: 'A confidential result is available for review. Please contact the lab.' },
+    overrides: {
+      patientEmail: { subject: 'Lab result available', message: 'Please contact your provider to review your latest lab result.' },
+      patientSms: { subject: '', message: 'Lab result available — please contact your provider.' },
+    },
+    lastEdited: '2026-04-22' },
+  { id: 'hba1c', code: 'HBA1C', name: 'Hemoglobin A1c', status: 'active',
+    subs: { patientEmail: true, patientSms: false, providerEmail: true, providerSms: false },
+    testDefault: { subject: 'HbA1c result ready', message: 'Your HbA1c result is [testResult].' },
+    overrides: {}, lastEdited: '2026-04-20' },
+  { id: 'lft', code: 'LFT', name: 'Liver Function Panel', status: 'inactive',
+    subs: { patientEmail: false, patientSms: false, providerEmail: false, providerSms: false },
+    testDefault: { subject: '', message: '' }, overrides: {}, lastEdited: '2025-11-04' },
+];
+
+const STATUS_TAGS = { active: { kind: 'green', label: 'Active' }, inactive: { kind: 'warm-gray', label: 'Inactive' } };
+
+const FILTER_OPTIONS = [
+  { id: 'all',         label: 'All tests' },
+  { id: 'has-any',     label: 'Any channel enabled' },
+  { id: 'none',        label: 'No channels enabled' },
+  { id: 'custom-tmpl', label: 'Has custom templates' },
+];
+const STATUS_FILTER = [
+  { id: 'any',      label: 'All statuses' },
+  { id: 'active',   label: 'Active only' },
+  { id: 'inactive', label: 'Inactive only' },
+];
+
+const PAGE_SIZE = 10;
+const SYSTEM_DEFAULT_INITIAL = {
+  subject: 'Test result available',
+  message: '[testName] testing results have been finalized for Patient: [patientFirstName] [patientLastNameInitial]. Result: [testResult]',
+};
+
+function Cb({ checked, onClick, ariaLabel }) {
+  return <button type="button" role="checkbox" aria-checked={checked} aria-label={ariaLabel}
+    className={`cb${checked ? ' checked' : ''}`} onClick={onClick} />;
+}
+function Toggle({ on, onClick, label }) {
+  return <span className="toggle-row">
+    <button type="button" role="switch" aria-checked={on} aria-label={label} className={`toggle${on ? ' on' : ''}`} onClick={onClick} />
+    <span style={{ fontSize: '0.8125rem' }}>{label}</span>
+  </span>;
+}
+
+function App() {
+  const [rows, setRows] = useState(SAMPLE_TESTS);
+  const [systemDefault, setSystemDefault] = useState(SYSTEM_DEFAULT_INITIAL);
+  const [systemDefaultDirty, setSystemDefaultDirty] = useState(false);
+  const [dirty, setDirty] = useState(new Set());
+  const [expandedRow, setExpandedRow] = useState(null);
+  const [activeChannel, setActiveChannel] = useState({});
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('any');
+  const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [savedNotice, setSavedNotice] = useState(false);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
+
+  const filtered = useMemo(() => rows.filter(r => {
+    if (search && !`${r.code} ${r.name}`.toLowerCase().includes(search.toLowerCase())) return false;
+    if (statusFilter !== 'any' && r.status !== statusFilter) return false;
+    const hasAny = Object.values(r.subs).some(Boolean);
+    const hasCustom = (r.testDefault.subject || r.testDefault.message) || Object.keys(r.overrides).length > 0;
+    if (filter === 'has-any' && !hasAny) return false;
+    if (filter === 'none' && hasAny) return false;
+    if (filter === 'custom-tmpl' && !hasCustom) return false;
+    return true;
+  }), [rows, search, filter, statusFilter]);
+
+  const pageStart = (page - 1) * PAGE_SIZE;
+  const pageRows = filtered.slice(pageStart, pageStart + PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
+  const markDirty = (id) => setDirty(prev => { const n = new Set(prev); n.add(id); return n; });
+
+  const toggleSubscription = (id, channel) => {
+    setRows(prev => prev.map(r => r.id === id ? { ...r, subs: { ...r.subs, [channel]: !r.subs[channel] } } : r));
+    markDirty(id);
+  };
+  const updateTestDefault = (id, field, value) => {
+    setRows(prev => prev.map(r => r.id === id ? { ...r, testDefault: { ...r.testDefault, [field]: value } } : r));
+    markDirty(id);
+  };
+  const updateOverride = (id, channel, field, value) => {
+    setRows(prev => prev.map(r => {
+      if (r.id !== id) return r;
+      const channelOverride = { ...(r.overrides[channel] || { subject: '', message: '', bcc: '' }), [field]: value };
+      return { ...r, overrides: { ...r.overrides, [channel]: channelOverride } };
+    }));
+    markDirty(id);
+  };
+  const clearOverride = (id, channel) => {
+    setRows(prev => prev.map(r => {
+      if (r.id !== id) return r;
+      const { [channel]: _, ...rest } = r.overrides;
+      return { ...r, overrides: rest };
+    }));
+    markDirty(id);
+  };
+  const toggleSelected = (id) => setSelectedIds(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const bulkApply = (channel, value) => {
+    setRows(prev => prev.map(r => selectedIds.has(r.id) ? { ...r, subs: { ...r.subs, [channel]: value } } : r));
+    setDirty(prev => { const n = new Set(prev); selectedIds.forEach(id => n.add(id)); return n; });
+  };
+  const onSave = () => { setDirty(new Set()); setSelectedIds(new Set()); setSystemDefaultDirty(false); setSavedNotice(true); setTimeout(() => setSavedNotice(false), 3000); };
+  const onDiscard = () => { setRows(SAMPLE_TESTS); setSystemDefault(SYSTEM_DEFAULT_INITIAL); setDirty(new Set()); setSelectedIds(new Set()); setSystemDefaultDirty(false); setExpandedRow(null); };
+
+  const customTemplateTag = (row) => {
+    const hasTestDefault = !!(row.testDefault.subject || row.testDefault.message);
+    const overrideCount = Object.keys(row.overrides).length;
+    if (overrideCount > 0) return { kind: 'purple', label: `${overrideCount} override${overrideCount === 1 ? '' : 's'}` };
+    if (hasTestDefault) return { kind: 'blue',   label: 'Test default' };
+    return { kind: 'gray',   label: 'System default' };
+  };
+
+  const totalDirty = dirty.size + (systemDefaultDirty ? 1 : 0);
+
+  const getActiveChannel = (rowId) => activeChannel[rowId] || CHANNELS[0].id;
+  const setRowActiveChannel = (rowId, channelId) => setActiveChannel(prev => ({ ...prev, [rowId]: channelId }));
+
+  return (
+    <div className="page-frame">
+      <div className="crumbs">
+        <a href="#">Admin</a> &nbsp;/&nbsp; <a href="#">Subscriptions &amp; Notifications</a> &nbsp;/&nbsp; <span>Test Notification Configuration</span>
+      </div>
+
+      <h1>Test Notification Configuration</h1>
+      <p className="subtitle">
+        Configure who is notified when each test produces a result. Notifications use the most specific template available:
+        <strong> per-channel override → test default → system default</strong>.
+      </p>
+
+      <div className="notice">
+        <div className="cds--inline-notification cds--inline-notification--info cds--inline-notification--low-contrast">
+          <div className="cds--inline-notification__details"><div className="cds--inline-notification__text-wrapper">
+            <p className="cds--inline-notification__title">ⓘ Channels can be globally turned off.</p>
+            <p className="cds--inline-notification__subtitle">If patients aren't receiving notifications at all, check <a href="#">Feature Flags</a> — <code>enableEmailNotifications</code> and <code>enableSmsNotifications</code> control the messaging channels system-wide.</p>
+          </div></div>
+        </div>
+      </div>
+
+      {savedNotice && (
+        <div className="notice">
+          <div className="cds--inline-notification cds--inline-notification--success cds--inline-notification--low-contrast">
+            <div className="cds--inline-notification__details"><div className="cds--inline-notification__text-wrapper">
+              <p className="cds--inline-notification__title">Saved.</p>
+              <p className="cds--inline-notification__subtitle">Your changes are live.</p>
+            </div></div>
+          </div>
+        </div>
+      )}
+      {totalDirty > 0 && (
+        <div className="notice">
+          <div className="cds--inline-notification cds--inline-notification--info cds--inline-notification--low-contrast">
+            <div className="cds--inline-notification__details"><div className="cds--inline-notification__text-wrapper">
+              <p className="cds--inline-notification__title">Unsaved changes.</p>
+              <p className="cds--inline-notification__subtitle">{totalDirty} change{totalDirty === 1 ? '' : 's'} pending. Save or discard before leaving the page.</p>
+            </div></div>
+          </div>
+        </div>
+      )}
+
+      {/* SYSTEM DEFAULT TEMPLATE */}
+      <div className="tile system-default">
+        <div className="row" style={{ marginBottom: '0.5rem' }}>
+          <h3>System default template</h3>
+          <span className="cds--tag cds--tag--gray cds--tag--sm">Applies to all tests without overrides</span>
+        </div>
+        <p style={{ color: 'var(--cds-text-secondary)', fontSize: '0.875rem', margin: '0 0 1rem' }}>
+          Used when a test has no test-default and no per-channel override. Variables in [brackets] are replaced at send time.
+        </p>
+        <div className="grid grid-2-cols">
+          <div className="field">
+            <label className="field-label">Subject</label>
+            <input value={systemDefault.subject}
+              onChange={(e) => { setSystemDefault(p => ({ ...p, subject: e.target.value })); setSystemDefaultDirty(true); }} />
+          </div>
+          <div className="field">
+            <label className="field-label">Message</label>
+            <textarea rows={3} value={systemDefault.message}
+              onChange={(e) => { setSystemDefault(p => ({ ...p, message: e.target.value })); setSystemDefaultDirty(true); }} />
+            <div className="field-helper">Available: [testName], [testResult], [patientFirstName], [patientLastNameInitial]</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="tile" style={{ padding: 0 }}>
+        <div className="toolbar">
+          <div>
+            <label className="label-small">Search</label>
+            <div className="search">
+              <span>🔍</span>
+              <input placeholder="Search by test code or name" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+            </div>
+          </div>
+          <div>
+            <label className="label-small">Notification filter</label>
+            <div className="dropdown" onClick={() => { setShowFilterMenu(s => !s); setShowStatusMenu(false); }}>
+              {FILTER_OPTIONS.find(o => o.id === filter).label}
+            </div>
+            {showFilterMenu && (
+              <div style={{ position: 'absolute', background: 'var(--cds-layer-02)', border: '1px solid var(--cds-border-subtle-01)', zIndex: 10, marginTop: 2 }}>
+                {FILTER_OPTIONS.map(o => (
+                  <div key={o.id} style={{ padding: '0.5rem 0.75rem', cursor: 'pointer', fontSize: '0.875rem', background: filter === o.id ? 'var(--cds-layer-selected-02)' : 'transparent' }}
+                       onClick={() => { setFilter(o.id); setPage(1); setShowFilterMenu(false); }}>
+                    {o.label}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="label-small">Status filter</label>
+            <div className="dropdown" onClick={() => { setShowStatusMenu(s => !s); setShowFilterMenu(false); }}>
+              {STATUS_FILTER.find(o => o.id === statusFilter).label}
+            </div>
+            {showStatusMenu && (
+              <div style={{ position: 'absolute', background: 'var(--cds-layer-02)', border: '1px solid var(--cds-border-subtle-01)', zIndex: 10, marginTop: 2 }}>
+                {STATUS_FILTER.map(o => (
+                  <div key={o.id} style={{ padding: '0.5rem 0.75rem', cursor: 'pointer', fontSize: '0.875rem', background: statusFilter === o.id ? 'var(--cds-layer-selected-02)' : 'transparent' }}
+                       onClick={() => { setStatusFilter(o.id); setPage(1); setShowStatusMenu(false); }}>
+                    {o.label}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {selectedIds.size > 0 && (
+          <div className="batch-actions">
+            <span className="count">{selectedIds.size} selected</span>
+            {CHANNELS.map(c => (
+              <button key={c.id} onClick={() => bulkApply(c.id, true)}>Enable {c.label}</button>
+            ))}
+            <button onClick={() => CHANNELS.forEach(c => bulkApply(c.id, false))}>Disable all</button>
+            <button className="cancel-btn" onClick={() => setSelectedIds(new Set())}>Cancel</button>
+          </div>
+        )}
+
+        <div className="cds--data-table-container">
+          <table className="cds--data-table cds--data-table--md cds--data-table--zebra">
+            <thead>
+              <tr>
+                <th className="expand-cell"></th>
+                <th style={{ width: '2.5rem' }}></th>
+                <th>Code</th>
+                <th>Test name</th>
+                <th>Status</th>
+                {CHANNELS.map(c => <th key={c.id} style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>{c.label}</th>)}
+                <th>Templates</th>
+                <th>Last edited</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 ? (
+                <tr><td colSpan={11} className="empty">No tests match the current filters.</td></tr>
+              ) : pageRows.map(row => {
+                const isExpanded = expandedRow === row.id;
+                const isDirty = dirty.has(row.id);
+                const tag = customTemplateTag(row);
+                const activeCh = getActiveChannel(row.id);
+                return (
+                  <React.Fragment key={row.id}>
+                    <tr className={isDirty ? 'row-dirty' : ''}>
+                      <td className="expand-cell">
+                        <button className="chevron-btn"
+                          onClick={() => setExpandedRow(prev => prev === row.id ? null : row.id)}
+                          title={isExpanded ? 'Hide templates' : 'Edit templates'}>
+                          {isExpanded ? '▴' : '▾'}
+                        </button>
+                      </td>
+                      <td>
+                        <div className="checkbox-cell">
+                          <Cb checked={selectedIds.has(row.id)} onClick={() => toggleSelected(row.id)} ariaLabel={`Select ${row.code}`} />
+                        </div>
+                      </td>
+                      <td><code>{row.code}</code></td>
+                      <td>{row.name}</td>
+                      <td>
+                        <span className={`cds--tag cds--tag--${STATUS_TAGS[row.status].kind} cds--tag--sm`}>
+                          {STATUS_TAGS[row.status].label}
+                        </span>
+                      </td>
+                      {CHANNELS.map(c => (
+                        <td key={c.id} style={{ textAlign: 'center' }}>
+                          <div className="checkbox-cell">
+                            <Cb checked={row.subs[c.id]} onClick={() => toggleSubscription(row.id, c.id)} ariaLabel={`${c.label} for ${row.code}`} />
+                          </div>
+                        </td>
+                      ))}
+                      <td><span className={`cds--tag cds--tag--${tag.kind} cds--tag--sm`}>{tag.label}</span></td>
+                      <td style={{ color: 'var(--cds-text-secondary)', whiteSpace: 'nowrap' }}>{row.lastEdited}</td>
+                    </tr>
+
+                    {isExpanded && (
+                      <tr>
+                        <td colSpan={11} style={{ padding: 0, background: 'var(--cds-layer-02)' }}>
+                          <div className="tile inner">
+                            <h4 style={{ marginBottom: '1rem' }}>
+                              Templates for <code>{row.code}</code> — {row.name}
+                            </h4>
+
+                            <div className="grid-main">
+                              {/* LEFT: editable */}
+                              <div>
+                                {/* Test default */}
+                                <div className="row" style={{ marginBottom: '0.5rem' }}>
+                                  <h5>Test default template</h5>
+                                  <span className="cds--tag cds--tag--blue cds--tag--sm">Applies to this test, any channel without an override</span>
+                                </div>
+                                <div className="grid grid-2-cols">
+                                  <div className="field">
+                                    <label className="field-label">Subject</label>
+                                    <input value={row.testDefault.subject} placeholder="Leave blank to use system default"
+                                      onChange={(e) => updateTestDefault(row.id, 'subject', e.target.value)} />
+                                  </div>
+                                  <div className="field">
+                                    <label className="field-label">Message</label>
+                                    <textarea rows={3} value={row.testDefault.message} placeholder="Leave blank to use system default"
+                                      onChange={(e) => updateTestDefault(row.id, 'message', e.target.value)} />
+                                  </div>
+                                </div>
+
+                                {/* Per-channel overrides */}
+                                <div style={{ marginTop: '1.5rem' }}>
+                                  <h5 style={{ marginBottom: '0.25rem' }}>Per-channel overrides</h5>
+                                  <p style={{ fontSize: '0.8125rem', color: 'var(--cds-text-secondary)', margin: '0 0 0.75rem' }}>
+                                    Use these only when a specific channel needs different wording. Empty channels fall back to test default, then system default.
+                                  </p>
+                                  {/* Channels stacked as sections — not tabs */}
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    {CHANNELS.map(c => {
+                                      const ov = row.overrides[c.id] || { subject: '', message: '', bcc: '' };
+                                      const hasOverride = !!row.overrides[c.id];
+                                      return (
+                                        <div key={c.id} className="channel-card">
+                                          <div className="channel-card-header">
+                                            <strong className="channel-name">{c.label}</strong>
+                                            {hasOverride
+                                              ? <span className="cds--tag cds--tag--purple cds--tag--sm">Custom override</span>
+                                              : <span className="cds--tag cds--tag--gray cds--tag--sm">Using test default</span>}
+                                            <Toggle on={hasOverride} label={hasOverride ? 'On' : 'Off'}
+                                              onClick={() => { if (hasOverride) clearOverride(row.id, c.id); else updateOverride(row.id, c.id, 'subject', ''); }} />
+                                          </div>
+                                          {hasOverride && (
+                                            <div style={{ paddingTop: '0.75rem' }}>
+                                              <div className="grid grid-2-cols">
+                                                <div className="field">
+                                                  <label className="field-label">Subject</label>
+                                                  <input value={ov.subject} onChange={(e) => updateOverride(row.id, c.id, 'subject', e.target.value)} />
+                                                </div>
+                                                <div className="field">
+                                                  <label className="field-label">Message</label>
+                                                  <textarea rows={3} value={ov.message} onChange={(e) => updateOverride(row.id, c.id, 'message', e.target.value)} />
+                                                </div>
+                                              </div>
+                                              {c.email && (
+                                                <div className="field" style={{ marginTop: '0.75rem' }}>
+                                                  <label className="field-label">BCC (comma-separated)</label>
+                                                  <input value={ov.bcc || ''} onChange={(e) => updateOverride(row.id, c.id, 'bcc', e.target.value)} />
+                                                  <div className="field-helper">Provider Email only. Email addresses to silently CC on every notification.</div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* RIGHT: variables reference */}
+                              <div>
+                                <div className="tile var-card">
+                                  <div className="row" style={{ marginBottom: '0.5rem' }}>
+                                    <strong style={{ fontSize: '0.875rem' }}>ⓘ Available variables</strong>
+                                  </div>
+                                  <p style={{ fontSize: '0.8125rem', color: 'var(--cds-text-secondary)', margin: '0 0 0.75rem' }}>
+                                    Use these tokens in Subject or Message. Include the brackets, no whitespace.
+                                  </p>
+                                  <table className="var-table">
+                                    <tbody>
+                                      {VARIABLES.map(v => (
+                                        <tr key={v.token}>
+                                          <td><code>{v.token}</code></td>
+                                          <td>{v.desc}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div style={{ marginTop: '1.25rem' }}>
+                              <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setExpandedRow(null)}>Close</button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="pagination-frame">
+          <span>{filtered.length} test{filtered.length === 1 ? '' : 's'} · Page {page} of {totalPages}</span>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>← Previous</button>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Next →</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="actions-bar">
+        <button className="cds--btn cds--btn--primary" disabled={totalDirty === 0} onClick={onSave}
+          style={totalDirty === 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}>
+          Save changes{totalDirty > 0 ? ` (${totalDirty})` : ''}
+        </button>
+        <button className="cds--btn cds--btn--ghost" disabled={totalDirty === 0} onClick={onDiscard}
+          style={totalDirty === 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}>
+          Discard changes
+        </button>
+      </div>
+
+      <div className="meta-panel">
+        <strong>About this preview.</strong> Try: expand a test row (▾) to edit its templates inline — notice the variables sidebar; click into the "ALT" row to see a pre-populated test default + Provider Email override (note the BCC field, Provider Email only); click "HIV" to see a confidential-flow setup with both per-channel patient overrides; toggle a per-channel override on/off using the Toggle in the channel tab; use the bulk-select column to multi-select rows then enable a channel across all of them at once.
+        <br /><br />
+        <strong>Story B.3 of the admin MVP.</strong> Retires legacy <code>TestNotificationConfigMenu</code> (audit C054). Lives in the <em>Subscriptions &amp; Notifications</em> bucket at <code>/admin/subscriptions/test-notification</code>. 8 sample tests; real catalog will paginate ~176.
+        <br /><br />
+        <strong>Verified data model</strong> (testing.openelis-global.org, 2026-05-13): 4 channels per test (Patient Email, Patient SMS, Provider Email, Provider SMS); 3-tier template fallback (per-channel-per-test → test default → system default); 4 substitution variables; BCC field on Provider Email only.
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

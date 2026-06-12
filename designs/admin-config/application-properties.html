@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Application Properties — Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f4f4;
+    --surface: #ffffff;
+    --surface-2: #f9f9f9;
+    --surface-muted: #f4f4f4;
+    --text: #161616;
+    --text-secondary: #525252;
+    --text-helper: #6f6f6f;
+    --border: #e0e0e0;
+    --border-strong: #8d8d8d;
+    --accent-info: #0f62fe;
+    --accent-success: #24a148;
+    --accent-warn: #f1c21b;
+    --accent-info-bg: #edf5ff;
+    --accent-success-bg: #defbe6;
+    --accent-warn-bg: #fcf4d6;
+    --row-dirty: #d0e2ff;
+    --tag-green: #defbe6; --tag-green-fg: #044317;
+    --tag-gray: #e0e0e0;  --tag-gray-fg: #393939;
+    --tag-warm: #f1f1f1;  --tag-warm-fg: #6f6f6f;
+    --tag-blue: #d0e2ff;  --tag-blue-fg: #0c3987;
+    --tag-cyan: #dffaff;  --tag-cyan-fg: #08507a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; color: var(--text); }
+  .page-frame { max-width: 1200px; margin: 0 auto; padding: 1.5rem 2rem 4rem; }
+  .crumbs { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+  .crumbs a { color: var(--accent-info); text-decoration: none; }
+  .crumbs a:hover { text-decoration: underline; }
+  h1 { font-size: 2rem; font-weight: 300; margin: 0 0 0.25rem; color: var(--text); }
+  h2 { font-size: 1.25rem; font-weight: 500; margin: 0 0 0.75rem; color: var(--text); }
+  .subtitle { color: var(--text-secondary); margin: 0 0 1.5rem; font-size: 0.875rem; max-width: 820px; line-height: 1.5; }
+
+  .notice { margin-bottom: 1rem; padding: 0.875rem 1rem; border-left: 4px solid var(--accent-info); background: var(--accent-info-bg); border-radius: 2px; }
+  .notice.success { border-color: var(--accent-success); background: var(--accent-success-bg); }
+  .notice strong { font-size: 0.875rem; color: var(--text); }
+  .notice .sub { margin: 0.25rem 0 0; font-size: 0.8125rem; color: var(--text-secondary); }
+  .notice a { color: var(--accent-info); }
+
+  .toolbar { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+  .input-wrap { background: var(--surface-2); height: 2.5rem; border-bottom: 1px solid var(--border-strong); display: flex; align-items: center; padding: 0 0.75rem; }
+  .input-wrap input { flex: 1; border: 0; background: transparent; font: inherit; outline: 0; color: var(--text); }
+  .field-label { display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem; font-weight: 500; }
+
+  /* Top-level section (e.g. "Lab identity", "Integrations") */
+  .group { margin-bottom: 1.5rem; }
+  .group-header { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 0.75rem; }
+  .group-header h2 { margin: 0; }
+  .group-desc { font-size: 0.8125rem; color: var(--text-secondary); }
+  .advanced-toggle { background: transparent; border: 0; cursor: pointer; padding: 0; font: inherit; font-size: 0.875rem; color: var(--accent-info); display: inline-flex; align-items: center; gap: 0.25rem; }
+  .advanced-toggle:hover { text-decoration: underline; }
+
+  /* Card — a single config object */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; margin-bottom: 0.875rem; transition: border-color 0.1s; }
+  .card.disabled { background: var(--surface-2); }
+  .card:hover { border-color: var(--border-strong); }
+  .card-header { padding: 1rem 1.25rem; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+  .card-header.no-toggle { cursor: default; }
+  .card-chev { color: var(--text-secondary); width: 1rem; display: inline-flex; justify-content: center; font-size: 0.75rem; }
+  .card-title { font-size: 1rem; font-weight: 600; color: var(--text); }
+  .card-subtitle { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.125rem; }
+  .card-toolbar { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
+  .card-body { padding: 0.25rem 1.25rem 1.25rem; border-top: 1px solid var(--border); }
+  .card-body .row { padding: 0.625rem 0; }
+  .card-body .row + .row { border-top: 1px solid var(--border); }
+  .card-body .row.dirty { background: var(--row-dirty); margin: 0 -1.25rem; padding-left: 1.25rem; padding-right: 1.25rem; }
+
+  /* Status tags */
+  .tag { display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 0.6875rem; font-weight: 500; }
+  .tag.green { background: var(--tag-green); color: var(--tag-green-fg); }
+  .tag.gray { background: var(--tag-gray); color: var(--tag-gray-fg); }
+  .tag.warm { background: var(--tag-warm); color: var(--tag-warm-fg); }
+  .tag.blue { background: var(--tag-blue); color: var(--tag-blue-fg); }
+  .tag.cyan { background: var(--tag-cyan); color: var(--tag-cyan-fg); }
+  .tag.dot::before { content: '●'; margin-right: 0.25rem; }
+  .tag.dot.green::before { color: var(--accent-success); }
+  .tag.dot.warm::before { color: var(--accent-warn); }
+
+  /* Toggle */
+  .toggle { width: 2.5rem; height: 1.25rem; border-radius: 999px; background: #8d8d8d; position: relative; cursor: pointer; transition: background 0.15s; flex-shrink: 0; border: 0; padding: 0; }
+  .toggle.on { background: var(--accent-success); }
+  .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 1rem; height: 1rem; border-radius: 50%; background: white; transition: left 0.15s; }
+  .toggle.on::after { left: 1.25rem; }
+
+  /* Field row inside a card */
+  .field-row { display: grid; grid-template-columns: 220px 1fr; gap: 1rem; align-items: start; }
+  .field-row .label-cell { padding-top: 0.5rem; }
+  .field-row .label-cell .name { font-size: 0.8125rem; font-weight: 500; color: var(--text); }
+  .field-row .label-cell .raw-key { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.6875rem; color: var(--text-helper); margin-top: 0.125rem; display: block; }
+  .field-row .input-cell input.text { width: 100%; max-width: 600px; padding: 0.5rem 0.75rem; font: inherit; font-size: 0.875rem; background: var(--surface-2); border: 0; border-bottom: 1px solid var(--border-strong); outline: 0; color: var(--text); font-family: inherit; }
+  .field-row .input-cell input.text:focus { border-bottom: 2px solid var(--accent-info); }
+  .field-row .input-cell input.mono { font-family: 'IBM Plex Mono', monospace; font-size: 0.8125rem; }
+  .field-row .input-cell input.num { width: 200px; }
+  .field-row .input-cell .helper { font-size: 0.75rem; color: var(--text-helper); margin-top: 0.25rem; line-height: 1.45; }
+  .field-row .input-cell .bool-row { display: flex; align-items: center; gap: 0.75rem; padding-top: 0.25rem; }
+  .field-row .input-cell .bool-row .state-label { font-size: 0.8125rem; color: var(--text-secondary); }
+
+  .btn { padding: 0.5rem 0.875rem; font-size: 0.8125rem; cursor: pointer; border: 0; font-family: inherit; border-radius: 2px; }
+  .btn.primary { background: var(--accent-info); color: white; padding: 0.625rem 1rem; font-size: 0.875rem; }
+  .btn.primary:hover:not(:disabled) { background: #0050d9; }
+  .btn.ghost { background: transparent; color: var(--accent-info); border: 1px solid var(--accent-info); }
+  .btn.ghost:hover:not(:disabled) { background: var(--accent-info-bg); }
+  .btn.text { background: transparent; color: var(--accent-info); }
+  .btn.text:hover:not(:disabled) { background: var(--surface-2); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .actions-bar { display: flex; gap: 0.5rem; margin-top: 1.5rem; }
+
+  /* Recent Changes drawer */
+  .recent-trigger { background: transparent; border: 1px solid var(--border); padding: 0.375rem 0.75rem; border-radius: 2px; cursor: pointer; font: inherit; font-size: 0.8125rem; color: var(--accent-info); display: inline-flex; align-items: center; gap: 0.375rem; }
+  .recent-trigger:hover { background: var(--surface-2); }
+  .recent-drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 90; }
+  .recent-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 420px; max-width: 90vw; background: var(--surface); box-shadow: -2px 0 8px rgba(0,0,0,0.15); padding: 1.25rem; overflow: auto; z-index: 100; }
+  .recent-drawer h3 { margin: 0; font-size: 1.125rem; font-weight: 600; }
+  .recent-row { padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+  .recent-row:last-child { border-bottom: 0; }
+  .recent-meta { font-size: 0.75rem; color: var(--text-secondary); }
+  .recent-field { font-family: 'IBM Plex Mono', monospace; font-size: 0.8125rem; margin: 0.25rem 0; }
+  .recent-change { font-size: 0.8125rem; }
+  .page-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+
+  .advanced-section { background: var(--surface-2); border: 1px solid var(--border); border-radius: 2px; padding: 1rem 1.25rem; margin-bottom: 0.875rem; }
+  .advanced-section h3 { margin: 0 0 0.5rem; font-size: 0.9375rem; font-weight: 600; }
+  .advanced-section .field-row { padding: 0.5rem 0; border-top: 1px solid var(--border); }
+  .advanced-section .field-row:first-of-type { border-top: 0; }
+
+  .test-result { font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 2px; display: inline-flex; align-items: center; gap: 0.25rem; }
+  .test-result.success { background: var(--accent-success-bg); color: var(--tag-green-fg); }
+  .test-result.fail { background: #fff1f1; color: #750e13; }
+
+  .meta-panel { margin-top: 2rem; padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent-info); border-radius: 2px; font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.6; }
+  .meta-panel strong { color: var(--text); }
+  .meta-panel code { background: var(--surface-muted); padding: 0.0625rem 0.375rem; border-radius: 2px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+/* CONFIG OBJECTS — each is a "thing" admins configure, not an individual property */
+
+const CONFIG_CARDS = [
+  // ─── LAB IDENTITY ───────────────────────────────────────────────
+  {
+    id: 'facility', group: 'identity', title: 'Facility',
+    subtitle: 'Where this lab is and who it is in the FHIR network.',
+    defaultOpen: true,
+    fields: [
+      { key: 'facility.id',         name: 'FHIR Facility ID',  type: 'string', helper: 'Identifier this lab is known by in the FHIR network.', value: '' },
+      { key: 'facility.city',       name: 'City',              type: 'string', value: '' },
+      { key: 'facility.district',   name: 'District',          type: 'string', value: '' },
+      { key: 'facility.state',      name: 'State / Province',  type: 'string', value: '' },
+      { key: 'facility.postalcode', name: 'Postal code',       type: 'string', value: '' },
+      { key: 'facility.country',    name: 'Country',           type: 'string', value: '' },
+    ],
+  },
+  {
+    id: 'requester', group: 'identity', title: 'Default requester',
+    subtitle: 'Used on orders that arrive without an explicit requester (e.g. via referral or remote source).',
+    defaultOpen: true,
+    fields: [
+      { key: 'requester.firstName',  name: 'First name',  type: 'string', value: '' },
+      { key: 'requester.lastName',   name: 'Last name',   type: 'string', value: '' },
+      { key: 'requester.identifier', name: 'Identifier',  type: 'string', value: '' },
+      { key: 'requester.phone',      name: 'Phone',       type: 'string', value: '' },
+    ],
+  },
+
+  // ─── AUTHENTICATION ─────────────────────────────────────────────
+  {
+    id: 'saml', group: 'auth', title: 'SAML Single Sign-On',
+    subtitle: 'Authenticate users through an external identity provider (Keycloak, ADFS, Okta).',
+    enabledKey: 'login.saml', enabledValue: false,
+    fields: [
+      { key: 'login.saml.entityId',         name: 'Entity ID',           type: 'string', value: 'OpenELIS-Global_saml' },
+      { key: 'login.saml.registrationId',   name: 'Registration ID',     type: 'string', value: 'keycloak' },
+      { key: 'login.saml.metadatalocation', name: 'Metadata URL',        type: 'url',    value: 'http://keycloak.openelis.org:8080/realms/OpenELIS/protocol/saml/descriptor' },
+      { key: 'login.saml.loginpage',        name: 'Show SAML button on login page', type: 'boolean', value: true, helper: 'Adds a "Sign in with SSO" button next to the local login form.' },
+    ],
+    testable: true,
+  },
+
+  // ─── OUTBOUND MESSAGING ─────────────────────────────────────────
+  {
+    id: 'smtp', group: 'messaging', title: 'Outbound email (SMTP)',
+    subtitle: 'Used for result notifications, password resets, and admin emails.',
+    fields: [
+      { key: 'mail.from', name: 'From address', type: 'email', value: 'openelis@gmail.com' },
+      { key: 'mail.bcc',  name: 'BCC archive',  type: 'email', value: 'openelis@gmail.com', helper: 'Optional. If set, every outbound email is also sent to this address.' },
+    ],
+    testable: true,
+    note: 'SMTP host, port, and credentials are not currently editable through this page. Contact your system administrator if SMTP delivery is failing.',
+  },
+  {
+    id: 'sms', group: 'messaging', title: 'Outbound SMS (Twilio)',
+    subtitle: 'Used to send patient and provider notifications by SMS.',
+    fields: [
+      { key: 'notification.bmp.provider', name: 'SMS provider',  type: 'string', value: 'TWILIO', helper: 'Currently only TWILIO is supported.' },
+      { key: 'notification.twilio.from',  name: 'From number',   type: 'string', value: '', helper: 'Twilio phone number (e.g. +14155551234).' },
+    ],
+    testable: true,
+  },
+
+  // ─── INTEGRATIONS ───────────────────────────────────────────────
+  {
+    id: 'fhir-subscriber', group: 'integrations', title: 'FHIR Subscriber',
+    subtitle: 'OpenELIS as a FHIR subscriber — receives orders and patients from upstream FHIR servers.',
+    fields: [
+      { key: 'fhir.subscriber',           name: 'Subscriber endpoint', type: 'url', value: 'https://fhir.openelis-global.org/subscriber' },
+      { key: 'fhir.subscriber.allowHTTP', name: 'Allow plain HTTP',    type: 'boolean', value: false, helper: 'Allow non-TLS subscriber connections. Leave OFF in production.' },
+      { key: 'fhir.subscriber.resources', name: 'Subscribed resources', type: 'string', value: 'Patient,Encounter,ServiceRequest', helper: 'Comma-separated FHIR resource types to subscribe to.' },
+    ],
+    testable: true,
+  },
+  {
+    id: 'fhir-store', group: 'integrations', title: 'FHIR Store',
+    subtitle: 'The FHIR server OpenELIS writes its own resources to.',
+    fields: [
+      { key: 'fhirstore.uri',      name: 'FHIR store URI', type: 'url', value: 'https://fhirstore.openelis-global.org/fhir' },
+      { key: 'fhirstore.username', name: 'Username',       type: 'string', value: 'openelis-fhir' },
+    ],
+    testable: true,
+  },
+  {
+    id: 'providerlist', group: 'integrations', title: 'Provider list (FHIR)',
+    subtitle: 'External FHIR-backed source of healthcare providers.',
+    optional: true,
+    fields: [
+      { key: 'providerlist.fhirstore',      name: 'Provider list URL',       type: 'url',     value: '' },
+      { key: 'providerlist.poll.frequency', name: 'Poll frequency (seconds)', type: 'integer', value: 3600 },
+    ],
+    testable: true,
+  },
+  {
+    id: 'facilitylist', group: 'integrations', title: 'Facility list (FHIR)',
+    subtitle: 'External FHIR-backed source of referring labs and facilities.',
+    optional: true,
+    fields: [
+      { key: 'facilitylist.fhirstore', name: 'Facility list URL', type: 'url',    value: '' },
+      { key: 'facilitylist.auth',      name: 'Auth scheme',       type: 'string', value: 'bearer' },
+      { key: 'facilitylist.authurl',   name: 'Auth URL',          type: 'url',    value: '' },
+      { key: 'facilitylist.username',  name: 'Username',          type: 'string', value: '' },
+    ],
+    testable: true,
+  },
+  {
+    id: 'crserver', group: 'integrations', title: 'Client Registry server',
+    subtitle: 'External client registry (CR) for patient identity resolution.',
+    optional: true,
+    fields: [
+      { key: 'crserver.uri',      name: 'CR server URI', type: 'url',    value: '' },
+      { key: 'crserver.username', name: 'Username',      type: 'string', value: '' },
+    ],
+    testable: true,
+  },
+  {
+    id: 'odoo', group: 'integrations', title: 'Odoo billing',
+    subtitle: 'Integration with the Odoo ERP for billing handoff.',
+    enabledKey: 'odoo.enabled', enabledValue: false,
+    fields: [
+      { key: 'odoo.baseUrl',            name: 'Base URL',            type: 'url',    value: '' },
+      { key: 'odoo.database',           name: 'Database name',       type: 'string', value: '' },
+      { key: 'odoo.username',           name: 'Username',            type: 'string', value: '' },
+      { key: 'odoo.map.testname.locale', name: 'Test-name map locale', type: 'string', value: 'en', helper: 'Locale used when mapping test names between OpenELIS and Odoo catalogs.' },
+    ],
+    testable: true,
+  },
+  {
+    id: 'ocl', group: 'integrations', title: 'OCL terminology import',
+    subtitle: 'Defaults used when importing concepts from the Open Concept Lab.',
+    optional: true,
+    fields: [
+      { key: 'ocl.import.default.sampletype',  name: 'Default sample type', type: 'string', value: 'Whole Blood' },
+      { key: 'ocl.import.default.testsection', name: 'Default test section', type: 'string', value: '' },
+    ],
+  },
+  {
+    id: 'remote-source', group: 'integrations', title: 'Remote order source',
+    subtitle: 'External system that sends orders to OpenELIS (e.g. an EMR posting orders via REST).',
+    optional: true,
+    fields: [
+      { key: 'remote.source.uri',          name: 'Source URI',                type: 'url',     value: '' },
+      { key: 'remote.source.identifier',   name: 'Source identifier',         type: 'string',  value: '' },
+      { key: 'remote.source.updateStatus', name: 'Report status updates back', type: 'boolean', value: false, helper: 'POST result-status changes back to the remote source.' },
+      { key: 'remote.poll.frequency',      name: 'Poll frequency (seconds)',   type: 'integer', value: 600 },
+    ],
+    testable: true,
+  },
+
+  // ─── COLD-STORAGE ───────────────────────────────────────────────
+  {
+    id: 'freezer', group: 'cold-storage', title: 'Freezer monitoring',
+    subtitle: 'Modbus-based temperature monitoring for sample freezers.',
+    enabledKey: 'freezermonitoring.enabled', enabledValue: false,
+    fields: [
+      { key: 'freezermonitoring.modbus.initial-delay',  name: 'Initial delay (ms)',   type: 'integer', value: 5000 },
+      { key: 'freezermonitoring.modbus.poll-interval',  name: 'Poll interval (ms)',   type: 'integer', value: 60000 },
+      { key: 'freezermonitoring.modbus.retries',        name: 'Retries',              type: 'integer', value: 3 },
+      { key: 'freezermonitoring.modbus.timeout-millis', name: 'Timeout (ms)',         type: 'integer', value: 1000 },
+    ],
+  },
+];
+
+const GROUPS = [
+  { id: 'identity',     label: 'Lab identity',     description: 'Who this lab is and where it lives.' },
+  { id: 'auth',         label: 'Authentication',   description: 'How users sign in.' },
+  { id: 'messaging',    label: 'Outbound messaging', description: 'How OpenELIS sends email and SMS.' },
+  { id: 'integrations', label: 'Integrations',     description: 'External systems OpenELIS talks to.' },
+  { id: 'cold-storage', label: 'Cold-storage',     description: 'Freezer temperature monitoring.' },
+];
+
+const ADVANCED = {
+  operational: {
+    title: 'Operational defaults',
+    description: 'Auto-create policies, task semantics, page sizes. Most labs leave these alone.',
+    fields: [
+      { key: 'configuration.autocreate',      name: 'Auto-create missing configuration rows', type: 'boolean', value: true, helper: 'When OpenELIS starts up, automatically create any expected SystemConfiguration rows that are missing.' },
+      { key: 'configuration.dir',             name: 'Configuration directory', type: 'path', value: '/var/lib/openelis-global/configuration/backend' },
+      { key: 'menu.configuration.autocreate', name: 'Auto-create missing menu rows', type: 'boolean', value: false },
+      { key: 'program.autocreate',            name: 'Auto-create missing programs', type: 'boolean', value: false },
+      { key: 'task.useBasedOnUpdate',         name: 'Use basedOn-update task semantics', type: 'boolean', value: false },
+      { key: 'paging.displaylist.pageSize',   name: 'Display list page size',  type: 'integer', value: 50 },
+      { key: 'paging.orderprograms.pageSize', name: 'Order programs page size', type: 'integer', value: 25 },
+      { key: 'paging.patients.pageSize',     name: 'Patients page size',     type: 'integer', value: 25 },
+      { key: 'paging.results.pageSize',      name: 'Results page size',      type: 'integer', value: 50 },
+      { key: 'paging.validation.pageSize',   name: 'Validation page size',   type: 'integer', value: 50 },
+    ],
+  },
+  help: {
+    title: 'Help links',
+    description: 'URLs surfaced in the in-app Help menu.',
+    fields: [
+      { key: 'help.manual.url',        name: 'User manual',  type: 'url', value: '' },
+      { key: 'help.release-notes.url', name: 'Release notes', type: 'url', value: '' },
+      { key: 'help.tutorials.url',     name: 'Tutorials',    type: 'url', value: 'https://video.openelis-global.org' },
+    ],
+  },
+};
+
+function Field({ field, value, dirty, onChange }) {
+  const isDirty = dirty.has(field.key);
+  let input;
+  if (field.type === 'boolean') {
+    input = (
+      <div className="bool-row">
+        <button role="switch" aria-checked={!!value} aria-label={field.name}
+          className={`toggle${value ? ' on' : ''}`} onClick={() => onChange(!value)} />
+        <span className="state-label">{value ? 'Enabled' : 'Disabled'}</span>
+      </div>
+    );
+  } else if (field.type === 'integer') {
+    input = <input className="text num" type="number" min="0" step="1" value={value} onChange={(e) => onChange(Number(e.target.value))} />;
+  } else {
+    const mono = field.type === 'url' || field.type === 'path';
+    input = <input className={`text${mono ? ' mono' : ''}`} type={field.type === 'email' ? 'email' : field.type === 'url' ? 'url' : 'text'}
+      value={value || ''} onChange={(e) => onChange(e.target.value)} />;
+  }
+  return (
+    <div className={`field-row${isDirty ? ' dirty' : ''}`} style={isDirty ? { background: 'var(--row-dirty)', margin: '0 -1.25rem', padding: '0.625rem 1.25rem' } : undefined}>
+      <div className="label-cell">
+        <span className="name">{field.name}</span>
+        <code className="raw-key">{field.key}</code>
+      </div>
+      <div className="input-cell">
+        {input}
+        {field.helper && <p className="helper">{field.helper}</p>}
+      </div>
+    </div>
+  );
+}
+
+function Card({ card, values, dirty, onChange, openCards, setOpenCards }) {
+  const isEnabled = card.enabledKey ? !!values[card.enabledKey] : true;
+  const isOpen = openCards.has(card.id);
+  const [testResult, setTestResult] = useState(null);
+
+  const cardDirty = card.fields.filter(f => dirty.has(f.key)).length + (card.enabledKey && dirty.has(card.enabledKey) ? 1 : 0);
+
+  // Status determination
+  let status;
+  if (card.enabledKey && !isEnabled) {
+    status = { label: 'Disabled', cls: 'warm' };
+  } else {
+    const populated = card.fields.filter(f => values[f.key] !== '' && values[f.key] !== null && values[f.key] !== undefined && values[f.key] !== false).length;
+    const expected = card.fields.filter(f => f.type !== 'boolean').length;
+    if (card.optional && populated === 0) status = { label: 'Not configured', cls: 'warm' };
+    else if (populated >= Math.max(1, expected - 1)) status = { label: 'Configured', cls: 'green dot' };
+    else if (populated > 0) status = { label: 'Partial', cls: 'warm dot' };
+    else status = { label: 'Not configured', cls: 'warm' };
+  }
+
+  const runTest = () => {
+    setTestResult('testing');
+    setTimeout(() => setTestResult(Math.random() > 0.3 ? 'success' : 'fail'), 900);
+  };
+
+  return (
+    <div className={`card${card.enabledKey && !isEnabled ? ' disabled' : ''}`}>
+      <div className="card-header" onClick={() => setOpenCards(prev => { const n = new Set(prev); if (n.has(card.id)) n.delete(card.id); else n.add(card.id); return n; })}>
+        <span className="card-chev">{isOpen ? '▾' : '▸'}</span>
+        <div>
+          <div className="card-title">{card.title}</div>
+          <div className="card-subtitle">{card.subtitle}</div>
+        </div>
+        <div className="card-toolbar">
+          {cardDirty > 0 && <span className="tag blue">{cardDirty} unsaved</span>}
+          <span className={`tag ${status.cls}`}>{status.label}</span>
+          {card.enabledKey && (
+            <button role="switch" aria-checked={isEnabled} aria-label={`Enable ${card.title}`}
+              className={`toggle${isEnabled ? ' on' : ''}`} onClick={(e) => { e.stopPropagation(); onChange(card.enabledKey, !isEnabled); }} />
+          )}
+        </div>
+      </div>
+      {isOpen && (
+        <div className="card-body">
+          {card.note && (
+            <div style={{ background: 'var(--accent-warn-bg)', padding: '0.625rem 0.875rem', borderRadius: 2, marginBottom: '0.75rem', fontSize: '0.8125rem', borderLeft: '3px solid var(--accent-warn)' }}>
+              {card.note}
+            </div>
+          )}
+          {card.enabledKey && !isEnabled && (
+            <div style={{ padding: '0.75rem 0', fontSize: '0.8125rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+              Enable {card.title} above to configure its fields.
+            </div>
+          )}
+          {(!card.enabledKey || isEnabled) && card.fields.map(f => (
+            <Field key={f.key} field={f} value={values[f.key]} dirty={dirty} onChange={(v) => onChange(f.key, v)} />
+          ))}
+          {card.testable && (!card.enabledKey || isEnabled) && (
+            <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <button className="btn ghost" onClick={runTest} disabled={testResult === 'testing'}>
+                {testResult === 'testing' ? 'Testing…' : '↗ Test connection'}
+              </button>
+              {testResult === 'success' && <span className="test-result success">✓ Connection successful</span>}
+              {testResult === 'fail' && <span className="test-result fail">✕ Connection failed (mocked)</span>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const SAMPLE_RECENT = [
+  { user: 'casey@example.org', at: '2026-05-14 09:42', field: 'mail.from',                before: 'old@example.org',     after: 'openelis@gmail.com' },
+  { user: 'admin@example.org', at: '2026-05-13 17:08', field: 'odoo.enabled',             before: 'true',                after: 'false' },
+  { user: 'casey@example.org', at: '2026-05-13 11:30', field: 'fhirstore.uri',            before: 'http://old/fhir',     after: 'https://fhirstore.openelis-global.org/fhir' },
+  { user: 'admin@example.org', at: '2026-05-12 22:15', field: 'configuration.autocreate', before: 'false',               after: 'true' },
+  { user: 'mozzy@example.org', at: '2026-05-12 14:02', field: 'login.saml',               before: 'true',                after: 'false' },
+];
+
+function App() {
+  const [values, setValues] = useState(() => {
+    const m = {};
+    CONFIG_CARDS.forEach(c => {
+      if (c.enabledKey) m[c.enabledKey] = c.enabledValue;
+      c.fields.forEach(f => { m[f.key] = f.value; });
+    });
+    Object.values(ADVANCED).forEach(g => g.fields.forEach(f => { m[f.key] = f.value; }));
+    return m;
+  });
+  const [dirty, setDirty] = useState(new Set());
+  const [search, setSearch] = useState('');
+  const [savedNotice, setSavedNotice] = useState(false);
+  const [openCards, setOpenCards] = useState(new Set(['facility', 'requester']));
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [recentOpen, setRecentOpen] = useState(false);
+
+  const setValue = (key, v) => {
+    setValues(prev => ({ ...prev, [key]: v }));
+    setDirty(prev => { const n = new Set(prev); n.add(key); return n; });
+  };
+  const onSave = () => { setDirty(new Set()); setSavedNotice(true); setTimeout(() => setSavedNotice(false), 3000); };
+  const onDiscard = () => {
+    const m = {};
+    CONFIG_CARDS.forEach(c => {
+      if (c.enabledKey) m[c.enabledKey] = c.enabledValue;
+      c.fields.forEach(f => { m[f.key] = f.value; });
+    });
+    Object.values(ADVANCED).forEach(g => g.fields.forEach(f => { m[f.key] = f.value; }));
+    setValues(m); setDirty(new Set());
+  };
+
+  const matchesSearch = (card) => {
+    if (!search) return true;
+    const hay = `${card.title} ${card.subtitle} ${card.fields.map(f => `${f.name} ${f.key} ${f.helper || ''}`).join(' ')}`.toLowerCase();
+    return hay.includes(search.toLowerCase());
+  };
+
+  const cardsByGroup = useMemo(() => {
+    const m = {};
+    GROUPS.forEach(g => { m[g.id] = []; });
+    CONFIG_CARDS.filter(matchesSearch).forEach(c => { m[c.group].push(c); });
+    return m;
+  }, [search]);
+
+  // Auto-open cards matching the search
+  React.useEffect(() => {
+    if (!search) return;
+    const matching = CONFIG_CARDS.filter(matchesSearch).map(c => c.id);
+    setOpenCards(new Set(matching));
+  }, [search]);
+
+  return (
+    <div className="page-frame">
+      <div className="crumbs">
+        <a href="#">Admin</a> &nbsp;/&nbsp; <a href="#">System Administration</a> &nbsp;/&nbsp; <span>Application Properties</span>
+      </div>
+
+      <div className="page-header-row">
+        <div>
+          <h1>Application Properties</h1>
+          <p className="subtitle">
+            Set up the things this OpenELIS deployment connects to and depends on — lab identity, authentication, outbound messaging, integrations. Each card below is a single configurable connection or system.
+          </p>
+        </div>
+        <button className="recent-trigger" onClick={() => setRecentOpen(true)}>
+          🕐 Recent changes
+        </button>
+      </div>
+
+      <div className="notice">
+        <strong>ⓘ Boolean flags also appear on the Feature Flags page</strong>
+        <div className="sub">
+          Module toggles and cross-cutting behavior switches show up on <a href="#">Feature Flags</a> with friendly labels, categories, and impact callouts. Same underlying data — use whichever lens fits the task.
+        </div>
+      </div>
+
+      {savedNotice && (
+        <div className="notice success">
+          <strong>✓ Application properties saved.</strong>
+          <div className="sub">Changes are live.</div>
+        </div>
+      )}
+      {dirty.size > 0 && (
+        <div className="notice">
+          <strong>Unsaved changes</strong>
+          <div className="sub">{dirty.size} setting{dirty.size === 1 ? '' : 's'} pending. Save or discard before leaving.</div>
+        </div>
+      )}
+
+      <div className="toolbar">
+        <label className="field-label">Find a setting</label>
+        <div className="input-wrap">
+          <span style={{ color: 'var(--text-secondary)', marginRight: '0.5rem' }}>🔍</span>
+          <input placeholder='Search across all cards — e.g. "FHIR", "Twilio", "page size", "Modbus"'
+            value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+      </div>
+
+      {GROUPS.map(group => {
+        const cards = cardsByGroup[group.id];
+        if (cards.length === 0) return null;
+        return (
+          <div className="group" key={group.id}>
+            <div className="group-header">
+              <h2>{group.label}</h2>
+              <span className="group-desc">{group.description}</span>
+            </div>
+            {cards.map(card => (
+              <Card key={card.id} card={card} values={values} dirty={dirty}
+                onChange={setValue} openCards={openCards} setOpenCards={setOpenCards} />
+            ))}
+          </div>
+        );
+      })}
+
+      <div className="group">
+        <div className="group-header">
+          <h2>Advanced</h2>
+          <button className="advanced-toggle" onClick={() => setAdvancedOpen(!advancedOpen)}>
+            {advancedOpen ? '▾ Hide advanced' : '▸ Show advanced (operational defaults, page sizes, help links)'}
+          </button>
+        </div>
+        {advancedOpen && (
+          <div>
+            {Object.entries(ADVANCED).map(([id, g]) => (
+              <div className="advanced-section" key={id}>
+                <h3>{g.title}</h3>
+                <p style={{ margin: '0 0 0.5rem', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>{g.description}</p>
+                {g.fields.map(f => (
+                  <Field key={f.key} field={f} value={values[f.key]} dirty={dirty} onChange={(v) => setValue(f.key, v)} />
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="actions-bar">
+        <button className="btn primary" disabled={dirty.size === 0} onClick={onSave}>
+          💾 Save changes{dirty.size > 0 ? ` (${dirty.size})` : ''}
+        </button>
+        <button className="btn text" disabled={dirty.size === 0} onClick={onDiscard}>
+          ↺ Discard changes
+        </button>
+      </div>
+
+      {recentOpen && (
+        <>
+          <div className="recent-drawer-backdrop" onClick={() => setRecentOpen(false)} />
+          <div className="recent-drawer">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+              <h3>Recent changes</h3>
+              <button className="btn ghost" onClick={() => setRecentOpen(false)}>Close</button>
+            </div>
+            <p style={{ margin: '0 0 0.75rem', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+              Last 5 changes on this page. Full audit history is queued for Phase 6.
+            </p>
+            <div>
+              {SAMPLE_RECENT.map((r, i) => (
+                <div key={i} className="recent-row">
+                  <div className="recent-meta">{r.at} · {r.user}</div>
+                  <div className="recent-field">{r.field}</div>
+                  <div className="recent-change">
+                    <span className="cds--tag cds--tag--warm-gray cds--tag--sm">{r.before}</span>
+                    {' → '}
+                    <span className="cds--tag cds--tag--green cds--tag--sm">{r.after}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      <div className="meta-panel">
+        <strong>About this redesign.</strong> The legacy "Common Properties" page rendered 61 key-value rows in a flat 2-column grid — admins had to know which rows belonged together (e.g. that <code>fhirstore.uri</code> and <code>fhirstore.username</code> are one connection). This redesign collapses those into <strong>~14 logical cards</strong>, grouped into 5 task-oriented sections plus an Advanced disclosure.
+        <br /><br />
+        <strong>Try in the preview:</strong><br />
+        • Expand <strong>"SAML Single Sign-On"</strong> — see the enabled toggle in the card header gating the fields; flip it off and watch the body show "Enable to configure" instead of empty inputs<br />
+        • Expand <strong>"Outbound email (SMTP)"</strong> — click <strong>"Test connection"</strong>; mocked test simulates pass/fail<br />
+        • Expand <strong>"Odoo billing"</strong> — disabled by default with a clear status tag<br />
+        • Search <strong>"FHIR"</strong> — auto-expands matching cards (Subscriber, Store, Provider list, Facility list, Client Registry)<br />
+        • Search <strong>"page size"</strong> — also surfaces matches in Advanced<br />
+        • Edit a field — row highlights blue, card header shows "N unsaved" tag, save button activates
+        <br /><br />
+        <strong>Story B.8 of the admin MVP.</strong> Retires legacy "Common Properties" page (audit C052 Critical — highest-priority redesign target; C053 High). Lives in <em>System Administration</em> bucket at <code>/admin/system-admin/application-properties</code>.
+        <br /><br />
+        <strong>Card statuses:</strong> Configured (all expected fields populated), Partial (some fields populated), Not configured (empty optional card), Disabled (gated card with enabled toggle off). Status is visible from collapsed state so admins can scan the page and see what's set up.
+        <br /><br />
+        <strong>Test connection buttons</strong> are mocked here. In implementation, each card would call a corresponding health-check endpoint (e.g. <code>POST /admin/test/smtp</code>) and surface success/failure with details. This is the affordance the legacy page completely lacked — admins had to flip a setting, navigate elsewhere, try to use the feature, and back-trace failures.
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
