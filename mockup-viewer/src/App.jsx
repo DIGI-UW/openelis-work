@@ -210,6 +210,18 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-760','OGC-761','OGC-762','OGC-763','OGC-764','OGC-765','OGC-766','OGC-767'],
     tags: ['test-catalog', 'jira', 'v2', 'story-breakdown', 'admin'],
   },
+  {
+    name: 'Test Catalog — Microbiology Workflow Attribute',
+    category: 'admin-config',
+    component: null,
+    description: 'Test Catalog Basic Info: a nullable culture_workflow_type enum (None / Bacteriology / Mycobacteriology\u2013TB; Mycology reserved), orthogonal to Domain and the AMR flag; drives micro case routing (M-03/M-04). Foldable into Test Catalog v2.5 \u00a72.1 Basic Info.',
+    specPath: 'designs/admin-config/test-catalog-microbiology-workflow-attribute.md',
+    htmlUrl: 'designs/admin-config/test-catalog-microbiology-workflow-attribute.html',
+    added: '2026-06-08',
+    status: 'draft',
+    jira: ['OGC-925'],
+    tags: ['test-catalog', 'microbiology', 'png', 'workflow-type', 'basic-info', 'admin'],
+  },
 
   {
     name: 'RBAC Management',
