@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M-10 Hub Subscription — Interactive Prototype</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<style>
+ body{background:#f4f4f4;margin:0;font-family:'IBM Plex Sans',sans-serif;color:#161616;}
+ .pv{background:#0f62fe;color:#fff;padding:6px 1rem;font-size:12px;font-family:monospace;}
+ .pv strong{background:#fff;color:#0f62fe;padding:1px 6px;border-radius:2px;margin:0 4px;}
+ .pv .w{display:block;margin-top:4px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;opacity:.95;}
+ .ah{background:#161616;color:#f4f4f4;height:44px;display:flex;align-items:center;gap:1rem;padding:0 1rem;font-size:14px;}.ah .p{font-weight:600;}
+ .bc{background:#fff;border-bottom:1px solid #e0e0e0;padding:.5rem 2rem;font-size:13px;color:#525252;}
+ .main{padding:1.25rem 2rem 4rem;max-width:880px;}
+ h2.pg{font-size:21px;font-weight:300;margin:0 0 .3rem;}.sub{font-size:13px;color:#6f6f6f;margin:0 0 1rem;}
+ .btn{font-family:inherit;font-size:13px;padding:.45rem .9rem;border-radius:2px;border:1px solid #0f62fe;cursor:pointer;background:#fff;color:#0f62fe;}
+ .btn.primary{background:#0f62fe;color:#fff;}.btn.sm{font-size:12px;padding:.3rem .6rem;}.btn.ghost{border-color:#8d8d8d;color:#393939;}
+ .card{background:#fff;border:1px solid #e0e0e0;padding:1rem 1.3rem;margin-bottom:1rem;border-radius:2px;}
+ .conn{display:flex;align-items:center;gap:.6rem;font-size:14px;}
+ .dot{width:10px;height:10px;border-radius:50%;background:#24a148;}
+ .upd{border:1px solid #e0e0e0;border-left:4px solid #0f62fe;border-radius:2px;padding:.7rem .9rem;margin-bottom:.6rem;}
+ .upd.conflict{border-left-color:#f1c21b;background:#fffdf4;}
+ .upd .h{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;} .upd .h .r{margin-left:auto;display:flex;gap:.4rem;}
+ .code{font-family:monospace;background:#e8e8e8;padding:1px 6px;border-radius:3px;font-size:12px;}
+ .diff{font-size:12px;color:#525252;margin-top:.4rem;} .add{color:#044317;} .chg{color:#0043ce;} .warn{color:#684e00;}
+ .note{font-size:12px;color:#6f6f6f;background:#edf5ff;border-left:3px solid #0f62fe;padding:.55rem .8rem;border-radius:2px;margin-top:.6rem;line-height:1.5;}
+ .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#161616;color:#fff;padding:.6rem 1.1rem;border-radius:4px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;}.toast.show{opacity:1;}
+</style></head><body>
+<div class="pv">PREVIEW MOCKUP <strong>M-10</strong> Hub Subscription — pull updated AMR reference data
+<span class="w">Fetch official organism/antibiotic code lists and breakpoint standards from the central Hub; merge with local edits (local customizations preserved). Phase 1B.</span></div>
+<div class="ah"><span class="p">OpenELIS Global</span><span>· Admin · Hub Subscription</span></div>
+<div class="bc">Admin / Hub Subscription</div>
+<div class="main">
+ <h2 class="pg">Hub Subscription</h2>
+ <p class="sub">Keep WHONET codes and breakpoint standards current without manual CSV imports.</p>
+ <div class="card">
+  <div class="conn"><span class="dot"></span><strong>Connected</strong> — hub.openelis.org · last sync 2026-05-12 · channel: <span class="code">stable</span>
+   <span style="margin-left:auto;"></span><button class="btn ghost sm">Test connection</button><button class="btn primary sm" onclick="check()">Check for updates</button></div>
+ </div>
+ <div id="updates"></div>
+ <div class="note">Local customizations are <strong>protected</strong>: rows you've flagged as locally edited are excluded from Hub overrides and surfaced as conflicts for you to resolve, never silently replaced. Importing hands off to the relevant catalog (M-01 / M-02) and writes an audit entry; activation of a new breakpoint standard is a separate, explicit step (M-02).</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+function check(){
+ document.getElementById('updates').innerHTML=
+  upd('CLSI M100 v34 (2024)','breakpoint standard',false,'<span class="add">+ 214 new breakpoints</span> · <span class="chg">~38 changed thresholds</span> · supersedes v33 (kept, archived)')
+ +upd('WHONET organism codes — 2024 refresh','reference data',false,'<span class="add">+ 12 organisms</span> (incl. 4 mycobacterial species) · <span class="chg">3 code corrections</span>')
+ +upd('WHONET antibiotic codes — 2024','reference data',true,'<span class="warn">2 entries conflict with local customizations</span> — review before import; your edits are preserved.');
+ toast('3 updates available');
+}
+function upd(title,kind,conflict,diff){
+ return '<div class="upd'+(conflict?' conflict':'')+'"><div class="h"><strong>'+title+'</strong> <span class="code">'+kind+'</span>'
+ +(conflict?'<span style="color:#684e00;font-weight:600;">⚠ conflict</span>':'<span style="color:#044317;font-weight:600;">ready</span>')
+ +'<span class="r">'+(conflict?'<button class="btn ghost sm">Review conflicts</button>':'<button class="btn sm" onclick="imp(this)">Import &amp; merge</button>')+'</span></div>'
+ +'<div class="diff">'+diff+'</div></div>';
+}
+function imp(b){ b.textContent='Imported ✓'; b.disabled=true; toast('Imported — local edits preserved; audit written'); }
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+</script></body></html>
