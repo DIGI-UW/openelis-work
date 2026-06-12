@@ -814,10 +814,12 @@ export const MOCKUP_REGISTRY = [
     component: null,
     description: 'Unified admin for breakpoint + WHONET code + organism/antibiotic master updates from a central repository. OE pulls; never pushes. Phase 1B.',
     specPath: 'designs/microbiology/m-10-hub-subscription.md',
+    htmlUrl: 'designs/microbiology/m-10-hub-subscription-prototype.html',
     added: '2026-05-15',
+    updated: '2026-06-08',
     status: 'draft',
     jira: ['OGC-795'],
-    tags: ['microbiology', 'hub-subscription', 'reference-data', 'phase-1b'],
+    tags: ['microbiology', 'hub-subscription', 'reference-data', 'phase-1b', 'interactive', 'prototype'],
   },
   {
     name: 'M-11 Critical-Result Acknowledgment',
@@ -837,10 +839,12 @@ export const MOCKUP_REGISTRY = [
     component: null,
     description: 'General OE foundation: declare which reagent lots are required for a given test (ISO 15189 §7.3). Micro is the forcing function. Parallel pre-track to MVP-1A.',
     specPath: 'designs/microbiology/m-12-test-reagent-linkage.md',
+    htmlUrl: 'designs/microbiology/m-12-test-reagent-linkage-prototype.html',
     added: '2026-05-15',
+    updated: '2026-06-08',
     status: 'draft',
     jira: ['OGC-784'],
-    tags: ['microbiology', 'reagent-linkage', 'iso-15189', 'cross-cutting', 'co-ship', 'mvp-1a'],
+    tags: ['microbiology', 'reagent-linkage', 'iso-15189', 'cross-cutting', 'co-ship', 'mvp-1a', 'interactive', 'prototype'],
   },
 
   // ─── Microbiology — FRS v1.0 formal docs ────────────────────────────────
