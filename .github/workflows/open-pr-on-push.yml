@@ -23,27 +23,45 @@ jobs:
 
       - name: Open PR if none exists
         env:
-          # Prefer a PAT secret: PRs created with GITHUB_TOKEN do NOT trigger other
-          # workflows, so ci.yml (pull_request) and auto-merge.yml would never fire.
-          # A fine-grained PAT (Contents + Pull requests: write) stored as PR_BOT_TOKEN
-          # makes the resulting PR behave like a normal one. Falls back to GITHUB_TOKEN.
-          GH_TOKEN: ${{ secrets.PR_BOT_TOKEN || github.token }}
+          # Prefer a PAT so the resulting PR triggers ci.yml + auto-merge.yml
+          # (PRs created with GITHUB_TOKEN do NOT cascade to other workflows).
+          # If PR_BOT_TOKEN is empty or rejected, gracefully fall back to GITHUB_TOKEN.
+          PR_BOT_TOKEN: ${{ secrets.PR_BOT_TOKEN }}
+          FALLBACK_TOKEN: ${{ github.token }}
           BRANCH: ${{ github.ref_name }}
         run: |
-          set -euo pipefail
+          set -uo pipefail
 
-          existing=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open --json number --jq 'length')
-          if [ "$existing" != "0" ]; then
-            echo "A PR for $BRANCH is already open — nothing to do."
-            exit 0
-          fi
+          # Build the credential list: PAT first (only if non-empty), then GITHUB_TOKEN.
+          tokens=()
+          [ -n "${PR_BOT_TOKEN:-}" ] && tokens+=("$PR_BOT_TOKEN")
+          tokens+=("$FALLBACK_TOKEN")
 
           title=$(git log -1 --pretty=%s)
-          body=$(git log -1 --pretty=%b)
+          body=$(printf 'Auto-opened for branch `%s`.\n\n%s' "$BRANCH" "$(git log -1 --pretty=%b)")
 
-          gh pr create \
-            --repo "$GITHUB_REPOSITORY" \
-            --base main \
-            --head "$BRANCH" \
-            --title "$title" \
-            --body "$(printf 'Auto-opened for branch \`%s\`.\n\n%s' "$BRANCH" "$body")"
+          ok=0
+          for tok in "${tokens[@]}"; do
+            # Is a PR already open for this branch? (also validates the token)
+            existing=$(GH_TOKEN="$tok" gh pr list --repo "$GITHUB_REPOSITORY" \
+              --head "$BRANCH" --state open --json number --jq 'length' 2>/dev/null || echo ERR)
+            if [ "$existing" = "ERR" ]; then
+              echo "::warning::credential rejected when listing PRs; trying next"
+              continue
+            fi
+            if [ "$existing" != "0" ]; then
+              echo "A PR for $BRANCH is already open — nothing to do."
+              ok=1; break
+            fi
+            if GH_TOKEN="$tok" gh pr create --repo "$GITHUB_REPOSITORY" \
+              --base main --head "$BRANCH" --title "$title" --body "$body"; then
+              echo "PR opened for $BRANCH."
+              ok=1; break
+            fi
+            echo "::warning::PR create failed with this credential; trying next"
+          done
+
+          if [ "$ok" != "1" ]; then
+            echo "::error::could not open a PR for $BRANCH with any available credential"
+            exit 1
+          fi
