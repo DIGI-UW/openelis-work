@@ -182,13 +182,30 @@
 
 <script>
 // ---------- Mock data ----------
+//
+// `code` is persisted in the data model but NEVER displayed in the admin UI.
+// USER methods get a server-assigned 'METH-NNN' code (zero-padded, monotonic).
+// PLUGIN methods carry the plugin-supplied code as part of the integration contract.
+// MANUAL is the literal 'MANUAL'. The code is used only for stable identifiers in
+// CSV import/export, audit trails, and plugin namespacing.
 const METHODS = [
-  { id: 'm1', code: 'MANUAL',       name: 'Manual / microscopy', source: 'MANUAL', analyzerId: null, analyzerName: null, active: true },
-  { id: 'm2', code: 'HUMASTAR-300', name: 'HumaStar 300SR',      source: 'PLUGIN', analyzerId: 'a-humastar', analyzerName: 'HumaStar 300SR', active: true },
-  { id: 'm3', code: 'SYSMEX-XN350', name: 'Sysmex XN-350',       source: 'PLUGIN', analyzerId: 'a-sysmex',   analyzerName: 'Sysmex XN-350', active: true },
-  { id: 'm4', code: 'GXPT-MTB',     name: 'GeneXpert MTB/RIF',   source: 'PLUGIN', analyzerId: 'a-genexpert',analyzerName: 'GeneXpert', active: true },
-  { id: 'm5', code: 'HPLC',         name: 'HPLC',                source: 'USER',   analyzerId: null, analyzerName: null, active: true },
+  { id: 'm1', code: 'MANUAL',       name: 'Manual / microscopy', description: 'System default — always available on every test.',                          source: 'MANUAL', analyzerId: null, analyzerName: null, active: true },
+  { id: 'm2', code: 'HUMASTAR-300', name: 'HumaStar 300SR',      description: 'Random-access clinical chemistry analyzer.',                                source: 'PLUGIN', analyzerId: 'a-humastar', analyzerName: 'HumaStar 300SR', active: true },
+  { id: 'm3', code: 'SYSMEX-XN350', name: 'Sysmex XN-350',       description: 'Compact 5-part diff hematology analyzer.',                                  source: 'PLUGIN', analyzerId: 'a-sysmex',   analyzerName: 'Sysmex XN-350', active: true },
+  { id: 'm4', code: 'GXPT-MTB',     name: 'GeneXpert MTB/RIF',   description: 'Cartridge-based NAAT for TB and rifampicin resistance.',                    source: 'PLUGIN', analyzerId: 'a-genexpert',analyzerName: 'GeneXpert', active: true },
+  { id: 'm5', code: 'METH-001',     name: 'HPLC',                description: 'High-performance liquid chromatography. Used for HbA1c when the Sysmex is offline.', source: 'USER', analyzerId: null, analyzerName: null, active: true },
 ];
+
+// Server-assigned next code for new USER methods. In production this comes from
+// the API response — the UI never previews or reserves a value.
+function nextUserMethodCode() {
+  const used = METHODS
+    .map(m => /^METH-(\d+)$/.exec(m.code))
+    .filter(Boolean)
+    .map(match => parseInt(match[1], 10));
+  const next = (used.length === 0 ? 0 : Math.max(...used)) + 1;
+  return `METH-${String(next).padStart(3, '0')}`;
+}
 
 const TESTS = [
   {
@@ -267,7 +284,8 @@ function renderMethods() {
     if (methodsFilter.source === 'plugin' && methodsFilter.analyzer !== 'all' && method.analyzerId !== methodsFilter.analyzer) return false;
     if (methodsFilter.search) {
       const q = methodsFilter.search.toLowerCase();
-      if (!method.code.toLowerCase().includes(q) && !method.name.toLowerCase().includes(q)) return false;
+      // Search by Name only — `code` is internal and not displayed to admins.
+      if (!method.name.toLowerCase().includes(q)) return false;
     }
     return true;
   });
@@ -297,7 +315,7 @@ function renderMethods() {
             </select>
           </div>` : ''}
         <div class="filter-col"><label>Search</label>
-          <input type="text" placeholder="Code or name" value="${methodsFilter.search}" oninput="setMethodsFilter('search', this.value)" />
+          <input type="text" placeholder="Name" value="${methodsFilter.search}" oninput="setMethodsFilter('search', this.value)" />
         </div>
         <div class="right">
           ${canManage ? `<button class="btn primary" onclick="openAddMethodModal()">+ Add method</button>` : ''}
@@ -312,7 +330,7 @@ function renderMethods() {
       <table class="t">
         <thead><tr>
           <th style="width:3rem"></th>
-          <th>Code</th><th>Name</th><th>Source</th><th>Used by</th><th>Status</th>
+          <th>Name</th><th>Source</th><th>Used by</th><th>Status</th>
         </tr></thead>
         <tbody>
           ${filtered.map(method => {
@@ -321,13 +339,12 @@ function renderMethods() {
             return `
               <tr class="${expanded ? 'expanded' : ''}">
                 <td><button class="expand-btn" onclick="toggleMethod('${method.id}')">${expanded ? '▴' : '▾'}</button></td>
-                <td><strong>${method.code}</strong></td>
-                <td>${method.name}</td>
+                <td><strong>${method.name}</strong></td>
                 <td>${sourceTagHtml(method)}</td>
                 <td>${used}</td>
                 <td><span class="tag tag-green">${method.active ? 'Active' : 'Inactive'}</span></td>
               </tr>
-              ${expanded ? `<tr><td colspan="6"><div class="expand-panel">${renderMethodExpand(method, used)}</div></td></tr>` : ''}
+              ${expanded ? `<tr><td colspan="5"><div class="expand-panel">${renderMethodExpand(method, used)}</div></td></tr>` : ''}
             `;
           }).join('')}
         </tbody>
@@ -337,15 +354,23 @@ function renderMethods() {
 }
 
 function renderMethodExpand(method, used) {
+  const descBlock = method.description
+    ? `<div style="margin-top:0.5rem;">
+         <strong style="font-size:0.8125rem;">Description</strong>
+         <p style="margin:0.25rem 0 0; white-space:pre-wrap; font-size:0.8125rem;">${method.description}</p>
+       </div>`
+    : '';
+
   if (method.source === 'MANUAL') {
-    return `<p class="hint"><em>System-provided default — always available on every test.</em></p>`;
+    return `<p class="hint"><em>System-provided default — always available on every test.</em></p>${descBlock}`;
   }
   if (method.source === 'PLUGIN') {
     const usingTests = TESTS.filter(tt => tt.testMethods.some(tm => tm.methodId === method.id));
     return `
       <p class="hint"><em>Registered by the ${method.analyzerName} analyzer plugin.</em></p>
+      ${descBlock}
       ${usingTests.length > 0 ? `
-        <h5>Tests currently using this method</h5>
+        <h5 style="margin-top:0.75rem;">Tests currently using this method</h5>
         <ul style="margin:0.25rem 0 0 1rem; font-size:0.8125rem;">
           ${usingTests.slice(0, 10).map(tt => `<li><strong>${tt.code}</strong> — ${tt.name}</li>`).join('')}
         </ul>` : ''}
@@ -353,12 +378,7 @@ function renderMethodExpand(method, used) {
   }
   const blockDelete = used > 0;
   return `
-    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; max-width:720px;">
-      <div>
-        <label style="font-size:0.75rem;color:var(--text-muted)">Code</label>
-        <input type="text" value="${method.code}" disabled style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-subtle);background:#f4f4f4;" />
-        <div class="pm-helper">Codes can't be changed after creation.</div>
-      </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; max-width:720px;">
       <div>
         <label style="font-size:0.75rem;color:var(--text-muted)">Name</label>
         <input id="name-${method.id}" type="text" value="${method.name}" ${canManage ? '' : 'disabled'}
@@ -371,12 +391,18 @@ function renderMethodExpand(method, used) {
                  onchange="toggleMethodActive('${method.id}', this.checked)" /> ${method.active ? 'Active' : 'Inactive'}
         </div>
       </div>
+      <div style="grid-column: 1 / -1;">
+        <label style="font-size:0.75rem;color:var(--text-muted)">Description <span style="color:var(--text-muted); font-weight:400;">(optional, max 500 chars)</span></label>
+        <textarea id="description-${method.id}" rows="3" ${canManage ? '' : 'disabled'} maxlength="500"
+                  style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-subtle); font-family:inherit; font-size:0.875rem;">${method.description || ''}</textarea>
+        <div class="pm-helper">What this method does, when to use it. Shown when picking a method on a test.</div>
+      </div>
     </div>
     ${canManage ? `
       <div style="margin-top:1rem; display:flex; gap:0.5rem; justify-content:flex-end; align-items:center;">
         <button class="btn danger" ${blockDelete ? 'disabled' : ''} onclick="confirmDeleteMethod('${method.id}')">Delete</button>
         ${blockDelete ? `<span class="pm-helper">Used by ${used} tests — remove from each test first.</span>` : ''}
-        <button class="btn primary sm" onclick="saveMethodName('${method.id}')">Save</button>
+        <button class="btn primary sm" onclick="saveMethodEdits('${method.id}')">Save</button>
       </div>` : ''}
   `;
 }
@@ -436,9 +462,12 @@ function renderTestExpand(test) {
           ${test.testMethods.map(tm => {
             const method = m(tm.methodId);
             const canDel = tm.source === 'USER_ADDED' && canManage;
+            const desc = method.description
+              ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.125rem;">${method.description.length > 120 ? method.description.slice(0, 120) + '…' : method.description}</div>`
+              : '';
             return `
               <tr>
-                <td><strong>${method.code}</strong> — ${method.name}</td>
+                <td><strong>${method.name}</strong>${desc}</td>
                 <td>${testMethodSourceTag(tm)}</td>
                 <td>${tm.addedOn}</td>
                 <td>
@@ -474,7 +503,7 @@ function renderTestExpand(test) {
             const applyDisabled = !lowFilled || !highFilled || invalid;
             return `
               <tr>
-                <td><strong>${method.code}</strong></td>
+                <td><strong>${method.name}</strong></td>
                 <td><input type="number" class="${invalid ? 'inline-invalid' : ''}" value="${row.low ?? ''}" ${canManage ? '' : 'disabled'}
                            onchange="updateRangeValue('${test.id}','${tm.methodId}','low',this.value)" /></td>
                 <td><input type="number" class="${invalid ? 'inline-invalid' : ''}" value="${row.high ?? ''}" ${canManage ? '' : 'disabled'}
@@ -505,14 +534,14 @@ function renderResultEntry() {
   const methodRange = test.methodRanges.find(r => r.methodId === method.id);
   const hasMethodRange = methodRange && (methodRange.low != null || methodRange.high != null);
   const resolved = hasMethodRange
-    ? { low: methodRange.low, high: methodRange.high, units: methodRange.units, label: `Method range (${method.code})` }
+    ? { low: methodRange.low, high: methodRange.high, units: methodRange.units, label: `Method range (${method.name})` }
     : { low: test.testLevelLow, high: test.testLevelHigh, units: test.units, label: 'Test-level range' };
 
   const n = Number(reState.value);
   const out = (resolved.low != null && n < Number(resolved.low)) || (resolved.high != null && n > Number(resolved.high));
 
   const testOptions = TESTS.map(tt => `<option value="${tt.id}" ${reState.testId===tt.id?'selected':''}>${tt.code} — ${tt.name}</option>`).join('');
-  const methodOptions = allowed.map(x => `<option value="${x.id}" ${reState.methodId===x.id?'selected':''}>${x.code} — ${x.name}</option>`).join('');
+  const methodOptions = allowed.map(x => `<option value="${x.id}" ${reState.methodId===x.id?'selected':''}>${x.name}</option>`).join('');
 
   const resolvedCopy = (resolved.low == null && resolved.high == null)
     ? `${resolved.label}: not configured — no warning can fire.`
@@ -683,38 +712,41 @@ function closeModal() {
   document.getElementById('modal-bg').classList.remove('open');
 }
 
-let addMethodDraft = { code: '', name: '', active: true };
+let addMethodDraft = { name: '', description: '', active: true };
 function openAddMethodModal() {
-  addMethodDraft = { code: '', name: '', active: true };
+  addMethodDraft = { name: '', description: '', active: true };
   renderAddMethodModal();
 }
 function renderAddMethodModal() {
-  const codeErr = !addMethodDraft.code ? null
-                : !/^[A-Z0-9-]{2,16}$/.test(addMethodDraft.code) ? 'Code must be 2–16 uppercase letters, digits, or hyphens.'
-                : METHODS.some(x => x.code === addMethodDraft.code) ? 'This code is already in use.'
-                : null;
-  const nameErr = !addMethodDraft.name ? 'Name is required.' : null;
-  const canSave = !codeErr && !nameErr && addMethodDraft.code && addMethodDraft.name;
+  const nameErr = !addMethodDraft.name ? 'Name is required.'
+                : METHODS.some(x => x.source === 'USER' && x.name.trim().toLowerCase() === addMethodDraft.name.trim().toLowerCase())
+                  ? 'A method with this name already exists.'
+                  : null;
+  const descErr = (addMethodDraft.description || '').length > 500 ? 'Description must be 500 characters or fewer.' : null;
+  const canSave = !nameErr && !descErr && addMethodDraft.name;
   openModal(`
     <div class="modal-header">Add method</div>
     <div class="modal-body">
       <div class="form-row">
-        <label>Code</label>
-        <input type="text" value="${addMethodDraft.code}" placeholder="e.g. HPLC"
-               oninput="addMethodDraft.code=this.value.toUpperCase(); renderAddMethodModal();" />
-        ${codeErr ? `<div class="field-error">${codeErr}</div>` : ''}
+        <label>Name</label>
+        <input type="text" value="${addMethodDraft.name}" placeholder="e.g. HPLC"
+               oninput="addMethodDraft.name=this.value; renderAddMethodModal();" />
+        ${(addMethodDraft.name && nameErr) ? `<div class="field-error">${nameErr}</div>` : ''}
       </div>
       <div class="form-row">
-        <label>Name</label>
-        <input type="text" value="${addMethodDraft.name}"
-               oninput="addMethodDraft.name=this.value; renderAddMethodModal();" />
-        ${(addMethodDraft.code && nameErr) ? `<div class="field-error">${nameErr}</div>` : ''}
+        <label>Description <span style="color:var(--text-muted); font-weight:400;">(optional, max 500 chars)</span></label>
+        <textarea rows="3" maxlength="500"
+                  style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-subtle); font-family:inherit; font-size:0.875rem;"
+                  oninput="addMethodDraft.description=this.value; renderAddMethodModal();">${addMethodDraft.description}</textarea>
+        <div class="pm-helper">What this method does, when to use it. Shown when picking a method on a test.</div>
+        ${descErr ? `<div class="field-error">${descErr}</div>` : ''}
       </div>
       <div class="form-row">
         <label>Active</label>
         <div><input type="checkbox" ${addMethodDraft.active?'checked':''}
                onchange="addMethodDraft.active=this.checked; renderAddMethodModal();" /> ${addMethodDraft.active?'Active':'Inactive'}</div>
       </div>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin:0;">A code is assigned automatically when you save. Methods are identified by Name everywhere in the admin.</p>
     </div>
     <div class="modal-footer">
       <button class="btn ghost" onclick="closeModal()">Cancel</button>
@@ -723,9 +755,13 @@ function renderAddMethodModal() {
   `);
 }
 function saveNewMethod() {
+  // Server assigns the code; UI never previews it. Mimicking server behavior here.
+  const assignedCode = nextUserMethodCode();
   const newMethod = {
     id: `m${METHODS.length + 1}`,
-    code: addMethodDraft.code, name: addMethodDraft.name,
+    code: assignedCode,
+    name: addMethodDraft.name,
+    description: addMethodDraft.description || null,
     source: 'USER', analyzerId: null, analyzerName: null, active: addMethodDraft.active,
   };
   METHODS.push(newMethod);
@@ -735,7 +771,7 @@ function saveNewMethod() {
 function confirmDeleteMethod(id) {
   const method = m(id);
   openModal(`
-    <div class="modal-header">Delete method ${method.code}?</div>
+    <div class="modal-header">Delete method "${method.name}"?</div>
     <div class="modal-body"><p>This action cannot be undone.</p></div>
     <div class="modal-footer">
       <button class="btn ghost" onclick="closeModal()">Cancel</button>
@@ -748,11 +784,13 @@ function deleteMethod(id) {
   if (idx >= 0) METHODS.splice(idx, 1);
   render();
 }
-function saveMethodName(id) {
-  const nameEl = document.getElementById(`name-${id}`);
-  if (!nameEl) return;
+function saveMethodEdits(id) {
   const method = m(id);
-  method.name = nameEl.value;
+  if (!method) return;
+  const nameEl = document.getElementById(`name-${id}`);
+  const descEl = document.getElementById(`description-${id}`);
+  if (nameEl) method.name = nameEl.value;
+  if (descEl) method.description = descEl.value || null;
   render();
 }
 function toggleMethodActive(id, checked) {
@@ -761,9 +799,9 @@ function toggleMethodActive(id, checked) {
   render();
 }
 
-let addToTestDraft = { testId: null, mode: 'pick', pickedId: '', newCode: '', newName: '' };
+let addToTestDraft = { testId: null, mode: 'pick', pickedId: '', newName: '', newDescription: '' };
 function openAddMethodToTestModal(testId) {
-  addToTestDraft = { testId, mode: 'pick', pickedId: '', newCode: '', newName: '' };
+  addToTestDraft = { testId, mode: 'pick', pickedId: '', newName: '', newDescription: '' };
   renderAddMethodToTestModal();
 }
 function renderAddMethodToTestModal() {
@@ -779,11 +817,13 @@ function renderAddMethodToTestModal() {
     if (x.source === 'PLUGIN') return mappedAnalyzerIds.has(x.analyzerId);
     return true;
   });
-  const newCodeErr = addToTestDraft.newCode && !/^[A-Z0-9-]{2,16}$/.test(addToTestDraft.newCode)
-    ? 'Code must be 2–16 uppercase letters, digits, or hyphens.' : null;
+  const newNameErr = addToTestDraft.newName &&
+    METHODS.some(x => x.source === 'USER' && x.name.trim().toLowerCase() === addToTestDraft.newName.trim().toLowerCase())
+      ? 'A method with this name already exists.' : null;
+  const newDescErr = (addToTestDraft.newDescription || '').length > 500 ? 'Description must be 500 characters or fewer.' : null;
   const canSave = addToTestDraft.mode === 'pick'
     ? !!addToTestDraft.pickedId
-    : (!newCodeErr && addToTestDraft.newCode && addToTestDraft.newName);
+    : (!newNameErr && !newDescErr && addToTestDraft.newName);
 
   openModal(`
     <div class="modal-header">Add method to ${test.code}</div>
@@ -799,21 +839,27 @@ function renderAddMethodToTestModal() {
             <option value="">— choose —</option>
             ${pickable.map(x => {
               const suffix = x.source === 'PLUGIN' ? ` — ${x.analyzerName}` : x.source === 'USER' ? ' — user' : '';
-              return `<option value="${x.id}" ${addToTestDraft.pickedId===x.id?'selected':''}>${x.code} — ${x.name}${suffix}</option>`;
+              const descSnippet = x.description
+                ? ` · ${x.description.length > 80 ? x.description.slice(0, 80) + '…' : x.description}`
+                : '';
+              return `<option value="${x.id}" ${addToTestDraft.pickedId===x.id?'selected':''}>${x.name}${suffix}${descSnippet}</option>`;
             }).join('')}
           </select>
           ${pickable.length === 0 ? '<div class="pm-helper">No methods are available to add here. Map an analyzer to this test, or create a new method.</div>' : ''}
         </div>` : `
         <div class="form-row">
-          <label>Code</label>
-          <input type="text" value="${addToTestDraft.newCode}" oninput="addToTestDraft.newCode=this.value.toUpperCase(); renderAddMethodToTestModal();" />
-          ${newCodeErr ? `<div class="field-error">${newCodeErr}</div>` : ''}
-        </div>
-        <div class="form-row">
           <label>Name</label>
           <input type="text" value="${addToTestDraft.newName}" oninput="addToTestDraft.newName=this.value; renderAddMethodToTestModal();" />
+          ${newNameErr ? `<div class="field-error">${newNameErr}</div>` : ''}
         </div>
-        <p style="font-size:0.75rem;color:var(--text-muted);margin:0;">The new method is created in the master catalog and added to this test in one step.</p>
+        <div class="form-row">
+          <label>Description <span style="color:var(--text-muted); font-weight:400;">(optional, max 500 chars)</span></label>
+          <textarea rows="3" maxlength="500"
+                    style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-subtle); font-family:inherit; font-size:0.875rem;"
+                    oninput="addToTestDraft.newDescription=this.value; renderAddMethodToTestModal();">${addToTestDraft.newDescription}</textarea>
+          ${newDescErr ? `<div class="field-error">${newDescErr}</div>` : ''}
+        </div>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin:0;">The new method is created in the master catalog and added to this test in one step. A code is assigned automatically.</p>
       `}
     </div>
     <div class="modal-footer">
@@ -830,8 +876,13 @@ function saveAddMethodToTest() {
     const mId = addToTestDraft.pickedId;
     test.testMethods.push({ id: `tm-${test.id}-${mId}-${Date.now()}`, methodId: mId, source: 'USER_ADDED', addedOn: new Date().toISOString().slice(0,10) });
   } else {
-    const newM = { id: `m${METHODS.length + 1}`, code: addToTestDraft.newCode, name: addToTestDraft.newName,
-                   source: 'USER', analyzerId: null, analyzerName: null, active: true };
+    const newM = {
+      id: `m${METHODS.length + 1}`,
+      code: nextUserMethodCode(),
+      name: addToTestDraft.newName,
+      description: addToTestDraft.newDescription || null,
+      source: 'USER', analyzerId: null, analyzerName: null, active: true,
+    };
     METHODS.push(newM);
     test.testMethods.push({ id: `tm-${test.id}-${newM.id}`, methodId: newM.id, source: 'USER_ADDED', addedOn: new Date().toISOString().slice(0,10) });
   }

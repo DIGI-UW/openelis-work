@@ -1,8 +1,8 @@
 # Compliance Standards Administration
-## Functional Requirements Specification — v1.1
+## Functional Requirements Specification — v1.2
 
-**Version:** 1.1
-**Date:** 2026-04-21
+**Version:** 1.2
+**Date:** 2026-04-29
 **Status:** Draft for Review
 **Jira:** [OGC-528](https://uwdigi.atlassian.net/browse/OGC-528) (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
 **Technology:** Java Spring Framework, Carbon React (`@carbon/react`)
@@ -12,6 +12,7 @@
 
 - **v1.0 (2026-04-02):** Initial draft — ComplianceStandard, ParameterGroup, ComplianceThreshold entities; CSV seed + runtime import; Test Editor Compliance tab.
 - **v1.1 (2026-04-21):** Added addendum at end of document integrating T-01 multi-coding and catalog-subscription v1.1 value sets. Three changes: (A1) optional ConceptMapping on each ComplianceThreshold to record the upstream regulatory parameter concept, (A2) new optional `test_concept_mappings` CSV column for bulk-populating Test multi-codings alongside compliance thresholds, (A3) `ComplianceStandard.applicableSampleTypes` accepts ValueSet canonical URLs in addition to literal sample type names. Header-only revision — no breaking schema changes. See §13 Addendum v1.1 at end of document.
+- **v1.2 (2026-04-29):** Borderline thresholds added to ComplianceThreshold to support S-05 v2.0's `BORDERLINE` chip status. Three optional new fields: `borderlineLower`, `borderlineUpper` (numeric, for MAX / MIN / RANGE threshold types) and `borderlineValues` (string-array, for DESCRIPTIVE type). All fields are nullable / backward-compatible — existing thresholds without borderline values continue to evaluate as PASS / FAIL only. New form section in the threshold add/edit UI (FR-3-013), three new optional CSV import columns (FR-5-009), and S-05 evaluator picks BORDERLINE up directly. See §4.3 + §5 ComplianceThreshold.
 
 ---
 
@@ -130,6 +131,34 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 
 **FR-3-012:** The Compliance Thresholds tab SHALL support grouping the threshold table by Standard Name (default) or by Parameter Group, toggled via a "Group by" Select control above the table.
 
+**FR-3-013 (new in v1.2):** Each ComplianceThreshold MAY define an optional **borderline window** that drives the `BORDERLINE` status emitted by the S-05 v2.0 evaluator. The borderline window is **always optional** — a threshold without borderline values continues to emit PASS / FAIL only.
+
+The borderline window's shape depends on `thresholdType`:
+
+| thresholdType | Borderline shape | Stored fields | Evaluator behavior |
+|---------------|------------------|---------------|--------------------|
+| MAX | Upper band below the limit | `borderlineLower` (Double) — the lower edge of the band; `valueUpper` is the band's upper edge (= the MAX limit) | `borderlineLower ≤ value ≤ valueUpper` → BORDERLINE; `value > valueUpper` → FAIL; otherwise PASS |
+| MIN | Lower band above the limit | `borderlineUpper` (Double) — the upper edge of the band; `valueLower` is the band's lower edge (= the MIN limit) | `valueLower ≤ value ≤ borderlineUpper` → BORDERLINE; `value < valueLower` → FAIL; otherwise PASS |
+| RANGE | Band on either side, just inside `[valueLower, valueUpper]` | `borderlineLower` (Double, near `valueLower`) AND `borderlineUpper` (Double, near `valueUpper`) | `valueLower ≤ value < borderlineLower` OR `borderlineUpper < value ≤ valueUpper` → BORDERLINE; out-of-range → FAIL; inside `[borderlineLower, borderlineUpper]` → PASS |
+| DESCRIPTIVE | Set of borderline categorical values | `borderlineValues` (String array) — option keys from the threshold's value list | `value ∈ borderlineValues` → BORDERLINE; matches the canonical "compliant" value(s) → PASS; everything else → FAIL |
+
+Numeric borderline shapes (MAX / MIN / RANGE) and categorical (DESCRIPTIVE) are mutually exclusive — the form only renders the relevant input(s) based on `thresholdType`.
+
+**FR-3-014 (new in v1.2):** The threshold add/edit form (FR-3-008 / FR-3-009) SHALL include a collapsed "Borderline window (optional)" section below the threshold-value inputs. Expanding it reveals:
+
+- For MAX type: a single "Borderline lower edge" NumberInput (must satisfy `borderlineLower < valueUpper`).
+- For MIN type: a single "Borderline upper edge" NumberInput (must satisfy `borderlineUpper > valueLower`).
+- For RANGE type: two NumberInputs — "Borderline lower edge" and "Borderline upper edge" (must satisfy `valueLower ≤ borderlineLower ≤ borderlineUpper ≤ valueUpper`).
+- For DESCRIPTIVE type: a multi-select chip input populated from the threshold's documented categorical values, allowing the admin to mark zero or more as borderline.
+
+Inline help text under the section explains: *"Optional. Use this to flag results that are within proximity of the limit as borderline rather than passing or failing outright. The S-05 evaluator emits a yellow `BORDERLINE` chip when a value lands in this window."*
+
+**FR-3-015 (new in v1.2):** Validation rules:
+
+- Borderline numeric edges must satisfy strict ordering vs. the threshold value(s) — error key `error.complianceThreshold.borderlineOutOfRange` if violated.
+- Borderline values for DESCRIPTIVE type cannot overlap with the threshold's "compliant" value (i.e., the same value cannot be both a pass and a borderline) — error key `error.complianceThreshold.borderlineConflict`.
+- All borderline fields are optional. Absence means PASS / FAIL only behavior, identical to v1.1 semantics.
+
 ### 4.4 Standard → Test Catalog Mapping
 
 **FR-4-001:** When an administrator selects a ComplianceStandard during non-clinical registration (S-02), the system SHALL auto-suggest a test panel composed of all tests that have at least one active ComplianceThreshold linked to that standard.
@@ -155,6 +184,8 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 **FR-5-007:** For standards that already exist (matched by `standard_name` + `regulation_number`), the import SHALL update existing fields rather than creating duplicates. New parameter groups and thresholds SHALL be added to the existing standard.
 
 **FR-5-008:** The system SHALL write an audit log entry for each CSV import, recording: filename, row count, standards created/updated, thresholds created, errors skipped, importing user, and timestamp.
+
+**FR-5-009 (new in v1.2):** The CSV import format SHALL accept three optional new columns mapped to the v1.2 borderline fields: `borderline_lower` (decimal), `borderline_upper` (decimal), `borderline_values` (semicolon-separated list of categorical values). All three are optional and backward-compatible — existing seed and import files without these columns continue to import unchanged, producing thresholds with PASS / FAIL only behavior. When present, the columns SHALL be validated per FR-3-015 (numeric ordering vs. valueLower/valueUpper, categorical non-overlap with the canonical compliant value). Validation errors SHALL surface in the FR-5-004 preview table with `error.complianceThreshold.borderlineOutOfRange` or `error.complianceThreshold.borderlineConflict` as appropriate, and SHALL NOT block import of the rest of the file.
 
 ### 4.6 Deployment-Time CSV Seeding
 
@@ -237,6 +268,9 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 | valueLower | Double | No | Required for MIN, RANGE |
 | valueUpper | Double | No | Required for MAX, RANGE |
 | valueDescriptive | String (1024) | No | Required for DESCRIPTIVE |
+| **borderlineLower** | Double | No | **(v1.2)** Lower edge of borderline window — for MAX (band's lower edge) or RANGE (just inside valueLower). Validation: see FR-3-015. |
+| **borderlineUpper** | Double | No | **(v1.2)** Upper edge of borderline window — for MIN (band's upper edge) or RANGE (just inside valueUpper). Validation: see FR-3-015. |
+| **borderlineValues** | String[] (json) | No | **(v1.2)** Categorical borderline values — for DESCRIPTIVE type. Subset of the threshold's documented value list; cannot overlap with the canonical compliant value. |
 | unit | String (100) | No | Overrides test's default unit if different |
 | notes | String (1024) | No | Regulatory notes or methodology reference |
 | isActive | Boolean | Yes | Default true; false = archived threshold |
@@ -245,6 +279,16 @@ Standards can be pre-populated at deployment time via CSV files placed in a desi
 | updatedAt | Timestamp | Yes | — |
 
 **Uniqueness constraint:** (`testId`, `standardId`, `parameterGroupId`) must be unique — one threshold per test per standard per group.
+
+**v1.2 schema migration:**
+
+```sql
+-- v1.2 (2026-04-29): Borderline thresholds for S-05 v2.0
+ALTER TABLE compliance_threshold ADD COLUMN borderline_lower DOUBLE PRECISION;
+ALTER TABLE compliance_threshold ADD COLUMN borderline_upper DOUBLE PRECISION;
+ALTER TABLE compliance_threshold ADD COLUMN borderline_values JSONB;
+-- All nullable / backward-compatible: existing thresholds default to PASS/FAIL-only behavior.
+```
 
 **ComplianceImportLog**
 
@@ -458,6 +502,8 @@ All UI text is externalized. The following i18n keys must be added to the messag
 | ComplianceThreshold (MAX) | valueUpper required, numeric | `error.complianceStandard.required` |
 | ComplianceThreshold (MIN) | valueLower required, numeric | `error.complianceStandard.required` |
 | ComplianceThreshold (DESCRIPTIVE) | valueDescriptive required | `error.complianceStandard.required` |
+| ComplianceThreshold borderline (numeric) | borderline edge in strict order vs. threshold value(s) | `error.complianceThreshold.borderlineOutOfRange` |
+| ComplianceThreshold borderline (categorical) | borderlineValues do not overlap canonical compliant value | `error.complianceThreshold.borderlineConflict` |
 | ParameterGroup.name | Required, unique per standard | `error.complianceStandard.required` |
 | CSV file | Max 5MB, .csv extension | `error.complianceStandard.importFileTooLarge` |
 

@@ -34,7 +34,7 @@ import {
   Grid, Column, Stack,
   DataTable, TableContainer, Table, TableHead, TableRow, TableHeader,
   TableBody, TableCell, TableToolbar, TableToolbarContent, TableToolbarSearch,
-  TextInput, Select, SelectItem, ComboBox, NumberInput, Toggle,
+  TextInput, TextArea, Select, SelectItem, ComboBox, NumberInput, Toggle,
   Button, Tag, Tile, InlineNotification, Modal,
   RadioButtonGroup, RadioButton,
 } from '@carbon/react';
@@ -48,13 +48,30 @@ const t = (key, fallback) => fallback || key;
 
 // Master method catalog — three sources: MANUAL (seeded), USER (admin-created),
 // PLUGIN (registered by an analyzer's init hook).
+//
+// `code` is persisted in the data model but NEVER displayed in the admin UI.
+// USER methods get a server-assigned 'METH-NNN' code (zero-padded, monotonic).
+// PLUGIN methods carry the plugin-supplied code as part of the integration contract.
+// MANUAL is the literal 'MANUAL'. The code is used only for stable identifiers in
+// CSV import/export, audit trails, and plugin namespacing.
 const initialMethods = [
-  { id: 'm1', code: 'MANUAL',       name: 'Manual / microscopy', source: 'MANUAL', pluginId: null, analyzerId: null, analyzerName: null, active: true },
-  { id: 'm2', code: 'HUMASTAR-300', name: 'HumaStar 300SR',      source: 'PLUGIN', pluginId: 'humastar-plugin', analyzerId: 'a-humastar', analyzerName: 'HumaStar 300SR', active: true },
-  { id: 'm3', code: 'SYSMEX-XN350', name: 'Sysmex XN-350',       source: 'PLUGIN', pluginId: 'sysmex-plugin',   analyzerId: 'a-sysmex',   analyzerName: 'Sysmex XN-350', active: true },
-  { id: 'm4', code: 'GXPT-MTB',     name: 'GeneXpert MTB/RIF',   source: 'PLUGIN', pluginId: 'genexpert-plugin',analyzerId: 'a-genexpert',analyzerName: 'GeneXpert',     active: true },
-  { id: 'm5', code: 'HPLC',         name: 'HPLC',                source: 'USER',   pluginId: null, analyzerId: null, analyzerName: null, active: true },
+  { id: 'm1', code: 'MANUAL',       name: 'Manual / microscopy', description: 'System default — always available on every test.', source: 'MANUAL', pluginId: null, analyzerId: null, analyzerName: null, active: true },
+  { id: 'm2', code: 'HUMASTAR-300', name: 'HumaStar 300SR',      description: 'Random-access clinical chemistry analyzer.', source: 'PLUGIN', pluginId: 'humastar-plugin', analyzerId: 'a-humastar', analyzerName: 'HumaStar 300SR', active: true },
+  { id: 'm3', code: 'SYSMEX-XN350', name: 'Sysmex XN-350',       description: 'Compact 5-part diff hematology analyzer.', source: 'PLUGIN', pluginId: 'sysmex-plugin',   analyzerId: 'a-sysmex',   analyzerName: 'Sysmex XN-350', active: true },
+  { id: 'm4', code: 'GXPT-MTB',     name: 'GeneXpert MTB/RIF',   description: 'Cartridge-based NAAT for TB and rifampicin resistance.', source: 'PLUGIN', pluginId: 'genexpert-plugin',analyzerId: 'a-genexpert',analyzerName: 'GeneXpert',     active: true },
+  { id: 'm5', code: 'METH-001',     name: 'HPLC',                description: 'High-performance liquid chromatography. Used for HbA1c when the Sysmex is offline.', source: 'USER',   pluginId: null, analyzerId: null, analyzerName: null, active: true },
 ];
+
+// Server-assigned next code for new USER methods. In production this comes from
+// the API response — the UI never previews or reserves a value.
+const nextUserMethodCode = (methods) => {
+  const used = methods
+    .map(m => /^METH-(\d+)$/.exec(m.code))
+    .filter(Boolean)
+    .map(match => parseInt(match[1], 10));
+  const next = (used.length === 0 ? 0 : Math.max(...used)) + 1;
+  return `METH-${String(next).padStart(3, '0')}`;
+};
 
 // Tests. Each carries an explicit allowed-methods list (test_method rows) and a
 // per-method ranges table (test_method_range rows). In addition every test
@@ -136,7 +153,8 @@ function MethodsAdminPage({ methods, setMethods, tests, canManage }) {
     if (sourceFilter === 'plugin' && pluginAnalyzerFilter !== 'all' && m.analyzerId !== pluginAnalyzerFilter) return false;
     if (search) {
       const q = search.toLowerCase();
-      if (!m.code.toLowerCase().includes(q) && !m.name.toLowerCase().includes(q)) return false;
+      // Search by Name only — `code` is internal and not displayed to admins.
+      if (!m.name.toLowerCase().includes(q)) return false;
     }
     return true;
   });
@@ -204,7 +222,6 @@ function MethodsAdminPage({ methods, setMethods, tests, canManage }) {
             <TableHead>
               <TableRow>
                 <TableHeader style={{ width: '3rem' }} />
-                <TableHeader>{t('admin.testCatalog.methods.col.code', 'Code')}</TableHeader>
                 <TableHeader>{t('admin.testCatalog.methods.col.name', 'Name')}</TableHeader>
                 <TableHeader>{t('admin.testCatalog.methods.col.source', 'Source')}</TableHeader>
                 <TableHeader>{t('admin.testCatalog.methods.col.usedBy', 'Used by')}</TableHeader>
@@ -223,8 +240,7 @@ function MethodsAdminPage({ methods, setMethods, tests, canManage }) {
                           iconDescription={expanded ? 'Collapse' : 'Expand'}
                           onClick={() => setExpandedId(expanded ? null : m.id)} />
                       </TableCell>
-                      <TableCell><strong>{m.code}</strong></TableCell>
-                      <TableCell>{m.name}</TableCell>
+                      <TableCell><strong>{m.name}</strong></TableCell>
                       <TableCell>{sourceTag(m)}</TableCell>
                       <TableCell>{usedBy}</TableCell>
                       <TableCell>
@@ -233,7 +249,7 @@ function MethodsAdminPage({ methods, setMethods, tests, canManage }) {
                     </TableRow>
                     {expanded && (
                       <TableRow>
-                        <TableCell colSpan={6} style={{ background: 'var(--cds-layer-01)' }}>
+                        <TableCell colSpan={5} style={{ background: 'var(--cds-layer-01)' }}>
                           <MethodRowExpand method={m} usedBy={usedBy} tests={tests}
                             canManage={canManage}
                             onEdit={(next) => {
@@ -257,27 +273,31 @@ function MethodsAdminPage({ methods, setMethods, tests, canManage }) {
         <AddMethodModal methods={methods}
           onClose={() => setShowAddModal(false)}
           onSave={(draft) => {
+            // Server assigns the code; UI never previews it. We mimic the
+            // server behavior here for the mockup so demo state stays valid.
+            const assignedCode = nextUserMethodCode(methods);
             const newMethod = {
               id: `m${methods.length + 1}`,
-              code: draft.code.toUpperCase(),
+              code: assignedCode,
               name: draft.name,
+              description: draft.description || null,
               source: 'USER', pluginId: null, analyzerId: null, analyzerName: null,
               active: draft.active,
             };
             setMethods([...methods, newMethod]);
             setShowAddModal(false);
-            setToast({ kind: 'success', title: `Added method ${newMethod.code}` });
+            setToast({ kind: 'success', title: `Added method "${newMethod.name}"` });
           }} />
       )}
 
       {deleteCandidate && (
-        <Modal open modalHeading={`Delete method ${deleteCandidate.code}?`}
+        <Modal open modalHeading={`Delete method "${deleteCandidate.name}"?`}
           primaryButtonText="Delete" secondaryButtonText="Cancel"
           danger
           onRequestClose={() => setDeleteCandidate(null)}
           onRequestSubmit={() => {
             setMethods(methods.filter(x => x.id !== deleteCandidate.id));
-            setToast({ kind: 'success', title: `Deleted method ${deleteCandidate.code}` });
+            setToast({ kind: 'success', title: `Deleted method "${deleteCandidate.name}"` });
             setDeleteCandidate(null);
           }}>
           <p>This action cannot be undone.</p>
@@ -288,12 +308,22 @@ function MethodsAdminPage({ methods, setMethods, tests, canManage }) {
 }
 
 function MethodRowExpand({ method, usedBy, tests, canManage, onEdit, onRequestDelete }) {
-  const [draft, setDraft] = useState({ name: method.name, active: method.active });
+  const [draft, setDraft] = useState({
+    name: method.name,
+    description: method.description || '',
+    active: method.active,
+  });
 
   if (method.source === 'MANUAL') {
     return (
       <Stack gap={3}>
         <p><em>{t('admin.testCatalog.methods.readOnly.manual', 'System-provided default — always available on every test.')}</em></p>
+        {method.description && (
+          <div>
+            <strong>{t('admin.testCatalog.methods.field.description', 'Description')}</strong>
+            <p style={{ margin: '0.25rem 0 0', whiteSpace: 'pre-wrap' }}>{method.description}</p>
+          </div>
+        )}
       </Stack>
     );
   }
@@ -303,6 +333,12 @@ function MethodRowExpand({ method, usedBy, tests, canManage, onEdit, onRequestDe
     return (
       <Stack gap={3}>
         <p><em>{t('admin.testCatalog.methods.readOnly.plugin', `Registered by the ${method.analyzerName} analyzer plugin.`)}</em></p>
+        {method.description && (
+          <div>
+            <strong>{t('admin.testCatalog.methods.field.description', 'Description')}</strong>
+            <p style={{ margin: '0.25rem 0 0', whiteSpace: 'pre-wrap' }}>{method.description}</p>
+          </div>
+        )}
         {usingTests.length > 0 && (
           <div>
             <strong>Tests currently using this method:</strong>
@@ -317,22 +353,35 @@ function MethodRowExpand({ method, usedBy, tests, canManage, onEdit, onRequestDe
 
   // USER method
   const blockDelete = usedBy > 0;
+  const descLen = (draft.description || '').length;
+  const descError = descLen > 500 ? 'Description must be 500 characters or fewer.' : null;
+  const nameError = !draft.name ? 'Name is required.' : null;
+  const canSave = !descError && !nameError;
   return (
     <Stack gap={4}>
       <Grid narrow>
-        <Column sm={4} md={4} lg={4}>
-          <TextInput id={`code-${method.id}`} labelText={t('admin.testCatalog.methods.field.code', 'Code')} value={method.code} disabled
-            helperText={t('admin.testCatalog.methods.field.codeImmutableHelp', "Codes can't be changed after creation.")} />
-        </Column>
-        <Column sm={4} md={4} lg={4}>
+        <Column sm={4} md={4} lg={6}>
           <TextInput id={`name-${method.id}`} labelText={t('admin.testCatalog.methods.field.name', 'Name')}
             value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })}
-            disabled={!canManage} />
+            disabled={!canManage}
+            invalid={!!nameError} invalidText={nameError || ''} />
         </Column>
-        <Column sm={4} md={4} lg={4}>
+        <Column sm={4} md={4} lg={2}>
           <Toggle id={`active-${method.id}`} labelText={t('admin.testCatalog.methods.field.active', 'Active')}
             toggled={draft.active} onToggle={v => setDraft({ ...draft, active: v })}
             disabled={!canManage} />
+        </Column>
+        <Column sm={4} md={8} lg={8}>
+          <TextArea id={`description-${method.id}`}
+            labelText={t('admin.testCatalog.methods.field.description', 'Description')}
+            helperText={t('admin.testCatalog.methods.field.descriptionHelp', 'What this method does, when to use it. Shown when picking a method on a test.')}
+            value={draft.description}
+            onChange={e => setDraft({ ...draft, description: e.target.value })}
+            disabled={!canManage}
+            rows={3}
+            maxCount={500}
+            enableCounter
+            invalid={!!descError} invalidText={descError || ''} />
         </Column>
       </Grid>
       {canManage && (
@@ -347,7 +396,7 @@ function MethodRowExpand({ method, usedBy, tests, canManage, onEdit, onRequestDe
               {t('admin.testCatalog.methods.deleteBlockedUsage', `Used by ${usedBy} tests — remove from each test first.`)}
             </span>
           )}
-          <Button kind="primary" renderIcon={Save} onClick={() => onEdit(draft)}>Save</Button>
+          <Button kind="primary" renderIcon={Save} onClick={() => onEdit(draft)} disabled={!canSave}>Save</Button>
         </div>
       )}
     </Stack>
@@ -355,15 +404,14 @@ function MethodRowExpand({ method, usedBy, tests, canManage, onEdit, onRequestDe
 }
 
 function AddMethodModal({ methods, onClose, onSave }) {
-  const [draft, setDraft] = useState({ code: '', name: '', active: true });
-  const codeError = useMemo(() => {
-    if (!draft.code) return null;
-    if (!/^[A-Z0-9-]{2,16}$/.test(draft.code)) return 'Code must be 2–16 uppercase letters, digits, or hyphens.';
-    if (methods.some(m => m.code === draft.code)) return 'This code is already in use.';
-    return null;
-  }, [draft.code, methods]);
-  const nameError = !draft.name ? 'Name is required.' : null;
-  const canSave = !codeError && !nameError && draft.code && draft.name;
+  const [draft, setDraft] = useState({ name: '', description: '', active: true });
+  const [touched, setTouched] = useState({ name: false });
+
+  const nameError = !draft.name ? 'Name is required.' :
+    methods.some(m => m.source === 'USER' && m.name.trim().toLowerCase() === draft.name.trim().toLowerCase())
+      ? 'A method with this name already exists.' : null;
+  const descError = (draft.description || '').length > 500 ? 'Description must be 500 characters or fewer.' : null;
+  const canSave = !nameError && !descError && draft.name;
 
   return (
     <Modal open modalHeading={t('admin.testCatalog.methods.addCta', 'Add method')}
@@ -372,17 +420,26 @@ function AddMethodModal({ methods, onClose, onSave }) {
       onRequestClose={onClose}
       onRequestSubmit={() => onSave(draft)}>
       <Stack gap={4}>
-        <TextInput id="new-code" labelText={t('admin.testCatalog.methods.field.code', 'Code')}
-          placeholder="e.g. HPLC"
-          value={draft.code}
-          onChange={e => setDraft({ ...draft, code: e.target.value.toUpperCase() })}
-          invalid={!!codeError} invalidText={codeError || ''} />
         <TextInput id="new-name" labelText={t('admin.testCatalog.methods.field.name', 'Name')}
+          placeholder="e.g. HPLC"
           value={draft.name}
+          onBlur={() => setTouched({ ...touched, name: true })}
           onChange={e => setDraft({ ...draft, name: e.target.value })}
-          invalid={!!nameError && draft.code.length > 0} invalidText={nameError || ''} />
+          invalid={!!nameError && touched.name} invalidText={nameError || ''} />
+        <TextArea id="new-description"
+          labelText={t('admin.testCatalog.methods.field.description', 'Description')}
+          helperText={t('admin.testCatalog.methods.field.descriptionHelp', 'What this method does, when to use it. Shown when picking a method on a test.')}
+          value={draft.description}
+          onChange={e => setDraft({ ...draft, description: e.target.value })}
+          rows={3}
+          maxCount={500}
+          enableCounter
+          invalid={!!descError} invalidText={descError || ''} />
         <Toggle id="new-active" labelText={t('admin.testCatalog.methods.field.active', 'Active')}
           toggled={draft.active} onToggle={v => setDraft({ ...draft, active: v })} />
+        <p style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)', margin: 0 }}>
+          A code is assigned automatically when you save. Methods are identified by Name everywhere in the admin.
+        </p>
       </Stack>
     </Modal>
   );
@@ -581,7 +638,14 @@ function TestRowExpand({ test, methods, canManage, onChange }) {
                                                  <Tag type="cyan"       size="sm">User</Tag>;
               return (
                 <TableRow key={tm.id}>
-                  <TableCell><strong>{m?.code}</strong> — {m?.name}</TableCell>
+                  <TableCell>
+                    <div><strong>{m?.name}</strong></div>
+                    {m?.description && (
+                      <div style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)', marginTop: '0.125rem', maxWidth: '36rem' }}>
+                        {m.description.length > 120 ? `${m.description.slice(0, 120)}…` : m.description}
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell>{sourceTag}</TableCell>
                   <TableCell>{tm.addedOn}</TableCell>
                   <TableCell>
@@ -628,7 +692,7 @@ function TestRowExpand({ test, methods, canManage, onChange }) {
               const canApply = row.low != null && row.high != null && !error;
               return (
                 <TableRow key={`r-${tm.methodId}`}>
-                  <TableCell><strong>{m?.code}</strong></TableCell>
+                  <TableCell><strong>{m?.name}</strong></TableCell>
                   <TableCell>
                     <NumberInput id={`low-${tm.methodId}`} label="" hideLabel value={row.low ?? ''}
                       onChange={(_, { value }) => saveRangeRow(tm.methodId, { low: value === '' ? null : Number(value) })}
@@ -706,7 +770,7 @@ function TestRowExpand({ test, methods, canManage, onChange }) {
 function AddMethodToTestModal({ test, methods, onClose, onPickExisting, onCreateNew }) {
   const [mode, setMode] = useState('pick');
   const [pickedId, setPickedId] = useState('');
-  const [newDraft, setNewDraft] = useState({ code: '', name: '' });
+  const [newDraft, setNewDraft] = useState({ name: '', description: '' });
 
   const existingOnTest = new Set(test.testMethods.map(tm => tm.methodId));
   const pickable = methods.filter(m => {
@@ -727,8 +791,11 @@ function AddMethodToTestModal({ test, methods, onClose, onPickExisting, onCreate
   });
 
   const canSavePick = !!pickedId;
-  const newCodeError = newDraft.code && !/^[A-Z0-9-]{2,16}$/.test(newDraft.code) ? 'Code must be 2–16 uppercase letters, digits, or hyphens.' : null;
-  const canSaveNew = !newCodeError && newDraft.code && newDraft.name;
+  const newDescError = (newDraft.description || '').length > 500 ? 'Description must be 500 characters or fewer.' : null;
+  const newNameError = !newDraft.name ? null :
+    methods.some(m => m.source === 'USER' && m.name.trim().toLowerCase() === newDraft.name.trim().toLowerCase())
+      ? 'A method with this name already exists.' : null;
+  const canSaveNew = !newDescError && !newNameError && newDraft.name;
 
   return (
     <Modal open modalHeading={t('admin.testCatalog.test.methods.addCta', 'Add method')}
@@ -748,27 +815,37 @@ function AddMethodToTestModal({ test, methods, onClose, onPickExisting, onCreate
         </RadioButtonGroup>
 
         {mode === 'pick' && (
-          <ComboBox id="pick-method" titleText="Pick a method" placeholder="Search"
+          <ComboBox id="pick-method" titleText="Pick a method" placeholder="Search by name"
             items={pickable.map(m => m.id)}
             itemToString={(id) => {
               const m = methods.find(x => x.id === id);
               if (!m) return '';
               const suffix = m.source === 'PLUGIN' ? ` — ${m.analyzerName}` : m.source === 'USER' ? ' — user' : '';
-              return `${m.code} — ${m.name}${suffix}`;
+              const descSnippet = m.description
+                ? ` · ${m.description.length > 80 ? `${m.description.slice(0, 80)}…` : m.description}`
+                : '';
+              return `${m.name}${suffix}${descSnippet}`;
             }}
             onChange={({ selectedItem }) => setPickedId(selectedItem || '')} />
         )}
 
         {mode === 'create' && (
           <Stack gap={3}>
-            <TextInput id="new-method-code" labelText="Code"
-              value={newDraft.code}
-              onChange={e => setNewDraft({ ...newDraft, code: e.target.value.toUpperCase() })}
-              invalid={!!newCodeError} invalidText={newCodeError || ''} />
             <TextInput id="new-method-name" labelText="Name"
-              value={newDraft.name} onChange={e => setNewDraft({ ...newDraft, name: e.target.value })} />
+              value={newDraft.name} onChange={e => setNewDraft({ ...newDraft, name: e.target.value })}
+              invalid={!!newNameError} invalidText={newNameError || ''} />
+            <TextArea id="new-method-description"
+              labelText="Description"
+              helperText="Optional. What this method does, when to use it."
+              value={newDraft.description}
+              onChange={e => setNewDraft({ ...newDraft, description: e.target.value })}
+              rows={3}
+              maxCount={500}
+              enableCounter
+              invalid={!!newDescError} invalidText={newDescError || ''} />
             <p style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>
               The new method is created in the master catalog and added to this test in one step.
+              A code is assigned automatically.
             </p>
           </Stack>
         )}
@@ -791,7 +868,7 @@ function ResultEntryPreview({ tests, methods }) {
 
   const methodRange = test.methodRanges.find(r => r.methodId === methodForLookup?.id);
   const resolved = methodRange && (methodRange.low != null || methodRange.high != null)
-    ? { low: methodRange.low, high: methodRange.high, units: methodRange.units, source: 'method', label: `Method range (${methodForLookup.code})` }
+    ? { low: methodRange.low, high: methodRange.high, units: methodRange.units, source: 'method', label: `Method range (${methodForLookup.name})` }
     : { low: test.testLevelLow, high: test.testLevelHigh, units: test.units, source: 'test', label: 'Test-level range' };
 
   const numericValue = Number(value);
@@ -823,7 +900,7 @@ function ResultEntryPreview({ tests, methods }) {
             <Select id="re-method" labelText="Method"
               value={methodForLookup?.id || ''}
               onChange={e => setSelectedMethodId(e.target.value)}>
-              {allowedMethods.map(m => <SelectItem key={m.id} value={m.id} text={`${m.code} — ${m.name}`} />)}
+              {allowedMethods.map(m => <SelectItem key={m.id} value={m.id} text={m.name} />)}
             </Select>
           </Column>
           <Column sm={4} md={4} lg={4}>

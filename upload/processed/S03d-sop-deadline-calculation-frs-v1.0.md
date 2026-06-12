@@ -1,10 +1,22 @@
-# S-03d — SOP Deadline Calculation & Order Due Date
-## Addendum to S-03: Environmental Order Entry Integration (OGC-537)
+# S-03d — SOP Deadline Calculation [SUPERSEDED — split into v2.0 + cross-cutting ticket]
+## ⚠️ DEPRECATED — See S-03d v2.0 + cross-cutting Required-By ticket
+### Functional Requirements Specification — v1.0 [HISTORICAL]
+
+**Status (2026-04-25):** ⚠️ **SUPERSEDED.** Original v1.0 bundled three things that don't belong in the same spec: Part A (generic Required-By field on Step 1, applies to ALL order types — clinical, env, vector, EQA), Part B (SOP holding-time auto-calc, env/vector-specific), and Part C (worklist deadline color-coding, env/vector-specific). Now split:
+> - **Part A** moved to a cross-cutting OE ticket (`GENERIC-required-by-field-frs.md`) — affects all domains, doesn't belong in the Env epic.
+> - **Parts B + C** stay as the env addendum, rewritten as `S03d-sop-deadline-calculation-frs-v2.0.md`.
+>
+> Original v1.0 content preserved below for historical reference only.
+
+---
+
+# S-03d — SOP Deadline Calculation & Order Due Date [original v1.0]
+## Addendum to S-03
 ### Functional Requirements Specification — v1.0
 
 **Version:** 1.0
 **Date:** 2026-04-21
-**Status:** Draft for Review
+**Status:** ⚠️ SUPERSEDED — see header above
 **Jira:** [OGC-593](https://uwdigi.atlassian.net/browse/OGC-593)
 **Addendum to:** [S-03 FRS — Environmental Order Entry Integration](./S03-environmental-order-entry-frs-v1.0.md) / [OGC-537](https://uwdigi.atlassian.net/browse/OGC-537)
 **Parent epic:** [OGC-527 — Environmental & Vector Testing Module](https://uwdigi.atlassian.net/browse/OGC-527)

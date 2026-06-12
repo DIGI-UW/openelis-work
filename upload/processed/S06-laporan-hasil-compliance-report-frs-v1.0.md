@@ -1,10 +1,21 @@
 # Laporan Hasil — Compliance Report (Sertifikat Hasil Uji)
-## Functional Requirements Specification — v1.0
+## Functional Requirements Specification — v1.0 (amended 2026-04-28)
 
-**Version:** 1.0
-**Date:** 2026-04-05
+**Version:** 1.0 (amended in place 2026-04-28)
+**Date:** 2026-04-05 · amended 2026-04-28
 **Status:** Draft for Review
 **Jira:** [OGC-552](https://uwdigi.atlassian.net/browse/OGC-552) (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
+
+> **⚠️ 2026-04-28 amendment — multi-regulation + multi-component rendering.**
+> S-03 v2.0 was amended same day to support ≥1 compliance standard per order via the `order_compliance_standard` join. S-05 v2.0 was amended to evaluate per regulation × component. This certificate spec amends accordingly:
+>
+> - **Header lists all selected regulations** in `selectionOrder` from the order's `order_compliance_standard` join. Each regulation gets its own header line: regulation number (monospace) + standard name + issuing body + version. No "primary" — they're stacked equally.
+> - **Per-result section**: each result row shows compliance per regulation as a small grouped pattern. Visual: per-result table cell renders `[PP 22/2021: ✓ Pass · ≤25 NTU] [WHO-DWG-4: ⚠ Marginal · ≤5 NTU]`. If a regulation has no applicable threshold for that test, render `[WHO-DWG-4: — no threshold]` in muted text. Mirrors S-05 v2.0 §4.4 threshold-source list and §4.5 inline indicator patterns.
+> - **Multi-component tests** render one row per (test, component) — the existing single-row-per-result rendering generalizes. Component label appears as a sub-row indent. Each component evaluates independently per regulation.
+> - **Repeated readings** (e.g., noise survey with N readings around a building) render as a sub-table grouped by `reading_group_id`. Each reading shows its own component values + per-regulation flags.
+> - **QC Summary section** unchanged from S-08 v2.0 amendment — sits below the per-result section, lists batch QC samples + their evaluation outcomes. Independent of the multi-regulation amendment.
+>
+> Data contract additions: report generator reads `order_compliance_standard` rows for the header, and for each result reads the list of (flag, source) tuples returned by S-05 v2.0's evaluator (one per applicable regulation × component).
 **Technology:** Java Spring Framework, Carbon React (`@carbon/react`), PDF generation (server-side)
 **Related Modules:** Compliance Standards Administration (S-01, OGC-528), Sampling Site Registry (S-02, OGC-531), Environmental Order Entry (S-03, OGC-537), Compliance Evaluation Engine (S-05, OGC-547), Report-Level Electronic Signatures, Patient Report Print Queue
 
@@ -443,6 +454,23 @@ None — S-06 reads from existing entities (Order, ComplianceEvaluation, Samplin
   "notGeneratedCount": 1
 }
 ```
+
+---
+
+## 7a. Domain Variants (S06c, S06d)
+
+S06 specifies the **base** Laporan Hasil compliance report — letterhead, customer block, dates timeline, signature/verification block, page footer, certificate-numbering, e-signature integration, and audit trail. These are the chassis. Two **domain-specific variants** plug their own result-table shapes into the same chassis without forking the configuration surface or the parameter list:
+
+| Sibling FRS | Scope | Key divergence | Files |
+|---|---|---|---|
+| **S06c — Environmental LHU** (`S06c-environmental-lhu-frs-v1.0.md`) | Environmental samples — water (air minum, air limbah), food (pangan/makanan), ambient air (udara ruang), surface swabs (usap), physical conditions (pencahayaan, kebisingan, kelembaban) | Result table columns `No. \| Parameter \| Hasil Uji \| Baku Mutu \| Satuan \| Ket.` (Metode column dropped; methods in compact footnote). Multi-matrix bundling supported. KAN per-parameter asterisk; methods + accreditation coverage as compact footnote. | `S06c-environmental-lhu-preview.html`, `S06c-environmental-lhu-preview-annotated.html`, `S06c-environmental-lhu-mockup.jsx` |
+| **S06d — Vector LHU** (`S06d-vector-lhu-frs-v1.0.md`) | Vector surveillance — mosquito species ID via PCR, larval/imago surveys, infection indices (DBD, malaria, JE) | Three flexible result-table modes: A (Species ID), B (Surveillance Indices: MIR, infection rate, density, positive_resolution_%), C (Larval Population Indices: House/Container/Breteau Index, Angka Bebas Jentik). Multi-LHU number bundling supported. | `S06d-vector-lhu-preview.html`, `S06d-vector-lhu-preview-annotated.html`, `S06d-vector-lhu-mockup.jsx` |
+
+**Inheritance principle.** Both variants reuse — without redefining — the patient-report-redesign printed-report config: `headerName`, `accreditationImage`, `accreditationNumber`, `accreditationLogoPosition` (TOP/BOTTOM, default BOTTOM). The `Admin → General Configuration → Printed Reports Configuration` page from patient-report-spec §15 + addendum r5 §15.6 controls layout for **all** Laporan Hasil variants identically. No new config keys are introduced.
+
+**Annotated bilingual sibling previews.** Each variant ships two HTML previews: the canonical Indonesian-only version (production output, matches real Labkesmas convention) and an `*-annotated.html` sibling with bilingual column headers, hover tooltips, and an inline glossary panel — devel-only aid for non-Indonesian reviewers, hidden on print.
+
+**Research artifact.** `S06-lhu-crosswalk-raw.md` — bucketing + crosswalk of 37 real LHU sample PDFs (10 environmental, 1 vector, 22 clinical-skipped) collected from Indonesian Labkesmas. Used as the evidence base for both S06c and S06d field/column choices.
 
 ---
 

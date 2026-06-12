@@ -1,10 +1,18 @@
-# S-03b — Sampling Uncertainty Field
+# S-03b — Sampling Uncertainty Field [SUPERSEDED]
+## ⚠️ DEPRECATED — Absorbed into S-03 v2.0 §5.1.10
+### Functional Requirements Specification — v1.0 [HISTORICAL]
+
+**Status (2026-04-25):** ⚠️ **SUPERSEDED.** This addendum has been collapsed into the main S-03 v2.0 spec as two new optional fields in the Default Collection Conditions field set (§5.1.10). The full FRS treatment was overdesigned for what amounts to a NumberInput + Select pair. No separate Jira ticket needed — track the work as a sub-task of OGC-537. Original v1.0 content preserved below for historical reference only.
+
+---
+
+# S-03b — Sampling Uncertainty Field [original v1.0]
 ## Addendum to S-03: Environmental Order Entry Integration (OGC-537)
 ### Functional Requirements Specification — v1.0
 
 **Version:** 1.0
 **Date:** 2026-04-20
-**Status:** Draft for Review
+**Status:** ⚠️ SUPERSEDED — see header above
 **Addendum to:** [S-03 FRS — Environmental Order Entry Integration](./S03-environmental-order-entry-frs-v1.0.md) / [OGC-537](https://uwdigi.atlassian.net/browse/OGC-537)
 **Parent epic:** [OGC-527 — Environmental & Vector Testing Module](https://uwdigi.atlassian.net/browse/OGC-527)
 **Source requirement:** PRD v0.5 §3.3: "Mandatory sample data field for environmental samples — field sampling uncertainty."

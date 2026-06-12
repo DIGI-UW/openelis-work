@@ -58,15 +58,16 @@ export const MOCKUP_REGISTRY = [
     tags: ['organizations', 'sites', 'facilities', 'admin'],
   },
   {
-    name: 'Barcode Configuration',
+    name: 'Barcode Labels',
     category: 'admin-config',
-    component: React.lazy(() => import('@designs/admin-config/barcode-config.jsx')),
-    description: 'Barcode label configuration and printing — template design, field mapping, label previews, and bulk print queue for sample collection labels',
-    specPath: 'designs/admin-config/barcode-config.md',
-    added: '2026-04-13',
+    component: React.lazy(() => import('@designs/admin-config/barcode-labels.jsx')),
+    description: 'Configurable Label Preset Management — Master Lists preset CRUD with per-scope flags (per-order / per-sample) and per-scope quantities; Test Catalog Labels tab; Enhanced Order Entry (two-table layout, aggregation, source attribution, lock affordance); editable post-save Print Dialog with per-type PDFs. Replaces the legacy Block/Slide/Freezer/Order/Specimen hardcoded label types.',
+    specPath: 'designs/admin-config/barcode-labels.md',
+    htmlUrl: 'designs/admin-config/barcode-labels.html',
+    added: '2026-05-18',
     status: 'draft',
-    jira: ['OGC-527'],
-    tags: ['barcode', 'labels', 'printing', 'admin', 'configuration', 'sample-collection'],
+    jira: ['OGC-285', 'OGC-771', 'OGC-761', 'OGC-284'],
+    tags: ['barcode', 'labels', 'printing', 'admin', 'configuration', 'test-catalog', 'presets'],
   },
   {
     name: 'Panel',
@@ -224,12 +225,21 @@ export const MOCKUP_REGISTRY = [
     name: 'Reporting Ranges by Method',
     category: 'admin-config',
     component: React.lazy(() => import('@designs/admin-config/reporting-ranges-by-method.jsx')),
-    description: 'Per-method reporting ranges for Test Catalog — allowed-methods model per test, Methods admin page (P-01 table pattern), per-method range editor (inline row-expand), and CSV import extension. FRS v2.',
+    description: 'Per-method reporting ranges for Test Catalog — allowed-methods model per test, Methods admin page (P-01 table pattern; methods use Name + optional Description, code auto-assigned as METH-NNN and hidden from the UI), per-method range editor (inline row-expand), and CSV import extension. FRS v2 (2026-04-28 update).',
     specPath: 'designs/admin-config/reporting-ranges-by-method.md',
     htmlUrl: 'designs/admin-config/reporting-ranges-by-method.html',
+    mockupPath: 'designs/admin-config/reporting-ranges-by-method.jsx',
     added: '2026-04-24',
     status: 'draft',
-    githubIssue: 98,
+    // Issues live in the upstream OpenELIS-Global-2 repo, not openelis-work.
+    githubRepo: 'DIGI-UW/OpenELIS-Global-2',
+    githubIssue: 3480, // Parent epic
+    subIssues: [
+      { number: 3481, label: 'Sub-1: data + API + plugin hook' },
+      { number: 3482, label: 'Sub-2: Methods admin' },
+      { number: 3483, label: 'Sub-3: Test row-expand' },
+      { number: 3484, label: 'Sub-4: result-entry lookup' },
+    ],
     relatedTo: ['Test Catalog', 'Range Editor'],
     tags: ['admin', 'test-catalog', 'ranges', 'methods', 'reference-ranges', 'CSV'],
   },
@@ -1635,17 +1645,21 @@ function formatCommentDate(isoString) {
 }
 
 /** Fetch and display GitHub Issue comments for a design entry */
-function CommentViewer({ issueNumber, darkMode, theme: t, designName }) {
+function CommentViewer({ issueNumber, darkMode, theme: t, designName, repo }) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [liveStatus, setLiveStatus] = useState(null);
 
+  // Per-entry repo override (e.g. parent epic in a different repo).
+  const effectiveRepo = repo || GITHUB_REPO;
+  const effectiveIssuesUrl = `https://github.com/${effectiveRepo}/issues`;
+
   useEffect(() => {
     if (!issueNumber) return;
     setLoading(true);
     setError(null);
-    fetch(`https://api.github.com/repos/${GITHUB_REPO}/issues/${issueNumber}/comments`, {
+    fetch(`https://api.github.com/repos/${effectiveRepo}/issues/${issueNumber}/comments`, {
       headers: { 'Accept': 'application/vnd.github.v3+json' },
     })
       .then((res) => {
@@ -1671,7 +1685,7 @@ function CommentViewer({ issueNumber, darkMode, theme: t, designName }) {
       });
   }, [issueNumber]);
 
-  const issueUrl = `${GITHUB_ISSUES_URL}/${issueNumber}`;
+  const issueUrl = `${effectiveIssuesUrl}/${issueNumber}`;
 
   if (loading) return <div style={{ ...styles.loading, color: t.textMuted }}>Loading discussion...</div>;
   if (error) {
@@ -2171,6 +2185,23 @@ function GalleryApp() {
                 View Spec on GitHub
               </a>
             )}
+            {selectedMockup.mockupPath && (
+              <a href={GITHUB_BASE + selectedMockup.mockupPath} target="_blank" rel="noopener" style={{ ...styles.link, color: t.accent }}>
+                View JSX Mockup on GitHub
+              </a>
+            )}
+            {selectedMockup.subIssues && selectedMockup.subIssues.length > 0 && (() => {
+              const repo = selectedMockup.githubRepo || GITHUB_REPO;
+              return selectedMockup.subIssues.map((sub) => {
+                const num = typeof sub === 'number' ? sub : sub.number;
+                const label = typeof sub === 'object' && sub.label ? sub.label : `#${num}`;
+                return (
+                  <a key={num} href={`https://github.com/${repo}/issues/${num}`} target="_blank" rel="noopener" style={{ ...styles.jiraBadge, background: t.jiraBg, color: t.jiraColor, borderColor: t.jiraBorder }} onClick={(e) => e.stopPropagation()}>
+                    {label}
+                  </a>
+                );
+              });
+            })()}
             {selectedMockup.jira && selectedMockup.jira.map((key) => (
               <a key={key} href={JIRA_BASE + key} target="_blank" rel="noopener" style={{ ...styles.jiraBadge, background: t.jiraBg, color: t.jiraColor, borderColor: t.jiraBorder }} onClick={(e) => e.stopPropagation()}>
                 {key}
@@ -2211,7 +2242,7 @@ function GalleryApp() {
                 )}
                 <div style={{ ...styles.preview, background: t.previewBg, borderColor: t.border }}>
                   {activeTab === 'discussion' && hasDiscussion ? (
-                    <CommentViewer issueNumber={selectedMockup.githubIssue} darkMode={darkMode} theme={t} designName={selectedMockup.name} />
+                    <CommentViewer issueNumber={selectedMockup.githubIssue} repo={selectedMockup.githubRepo} darkMode={darkMode} theme={t} designName={selectedMockup.name} />
                   ) : activeTab === 'spec' && hasSpec ? (
                     <SpecViewer specPath={selectedMockup.specPath} />
                   ) : selectedMockup.htmlUrl ? (

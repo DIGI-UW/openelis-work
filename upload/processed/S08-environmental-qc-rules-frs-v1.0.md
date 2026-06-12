@@ -1,9 +1,25 @@
-# Environmental QC Rules
+# Environmental QC Rules [SUPERSEDED]
+## ⚠️ DEPRECATED — Reframed in S-08 v2.0 (result evaluation + validation warning only)
+### Functional Requirements Specification — v1.0 [HISTORICAL]
+
+**Status (2026-04-25):** ⚠️ **SUPERSEDED.** Original v1.0 covered four things; two are now redundant:
+> - **§5.1 QC Protocol Configuration (admin-side rule-setting per standard)** — DROPPED. Per the 2026-04-25 design decision, batch QC frequency rules are not enforced at intake; the lab user knows their regulation's requirements. No admin config needed.
+> - **§5.2 QC Sample Creation at Order Entry** — DROPPED. Already covered by S-03 v2.0 §5.3.2 (QC Sample Quick-Add — three buttons for Blank/Duplicate/Control with inline-edit table).
+> - **§5.3 QC Result Entry & Evaluation** — KEPT in S-08 v2.0.
+> - **§5.5 QC Warning on Validation** — KEPT in S-08 v2.0.
+>
+> Net effect: S-08 v2.0 is ~30% the size of v1.0, focused entirely on the downstream half (evaluating QC results against acceptance criteria + warning the validator if QC failed).
+>
+> See `S08-environmental-qc-rules-frs-v2.0.md` for the current spec. Original v1.0 content preserved below for historical reference only.
+
+---
+
+# Environmental QC Rules [original v1.0]
 ## Functional Requirements Specification — v1.0
 
 **Version:** 1.0
 **Date:** 2026-04-10
-**Status:** Draft for Review
+**Status:** ⚠️ SUPERSEDED — see header above
 **Jira:** [OGC-554](https://uwdigi.atlassian.net/browse/OGC-554) (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
 **Technology:** Java Spring Framework, Carbon React (`@carbon/react`)
 **Related Modules:** Compliance Standards Administration (S-01, OGC-528), Environmental Order Entry (S-03, OGC-537), Compliance Evaluation Engine (S-05, OGC-547), Laporan Hasil (S-06, OGC-552), Existing QC Framework (batch workplan, Westgard rules)

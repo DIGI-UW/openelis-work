@@ -1534,18 +1534,25 @@
     github_issue: 81
   added: "2026-04-13"
 
-- id: barcode-config
-  type: jsx
-  path: designs/admin-config/barcode-config.jsx
-  spec: designs/admin-config/barcode-config.md
+- id: barcode-labels
+  type: both
+  path: designs/admin-config/barcode-labels.jsx
+  preview_path: designs/admin-config/barcode-labels.html
+  spec: designs/admin-config/barcode-labels.md
   category: admin-config
   description: >
-    Barcode label configuration and printing — template design, field mapping,
-    label previews, and bulk print queue for sample collection labels.
+    Barcode Labels — final-state UI consolidating OGC-284 (v1 admin) and OGC-285
+    (v2 preset system) into a single canonical design. Master Lists → Label Presets
+    admin with per-scope flags (per-order / per-sample) and per-scope quantities;
+    Test Catalog → Labels tab; Enhanced Order Entry with two-table layout, aggregation,
+    source attribution, and lock affordance; editable post-save Print Dialog with
+    per-type PDFs. The legacy Order/Specimen/Block/Slide/Freezer hardcoded types
+    become seeded `is_system=true` presets.
   links:
-    jira: ["OGC-527"]
-    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/barcode-config
-  added: "2026-04-13"
+    jira: ["OGC-285", "OGC-771", "OGC-761", "OGC-284"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/barcode-labels
+  added: "2026-05-18"
+  status: draft
 
 - id: patient-id-card-scanning
   type: mockup

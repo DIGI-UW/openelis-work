@@ -1,9 +1,26 @@
-# Compliance Evaluation Engine
+# Compliance Evaluation Engine [SUPERSEDED]
+## ⚠️ DEPRECATED — Reframed in S-05 v2.0 as reference-range extension; tag library split to S-05a
+### Functional Requirements Specification — v1.0 [HISTORICAL]
+
+**Status (2026-04-26):** ⚠️ **SUPERSEDED.** v1.0 framed compliance evaluation as a parallel engine with its own `ComplianceEvaluation` entity, dedicated evaluator, and regulation banner on the results screen. Per the 2026-04-26 design review with Casey, that framing was overdesigned: not all tests on a regulation-driven order are governed by the regulation, and the evaluation pattern is naturally a reference-range scope dimension (like age/sex), not a separate engine.
+>
+> **v2.0 reframes** (`S05-compliance-evaluation-engine-frs-v2.0.md`):
+> - Add `compliance_standard_id` (nullable FK) to existing `referenceRange` table — same data model, one new scope dimension
+> - Existing `evaluateResult()` becomes regulation-aware via that scope; no new evaluator
+> - Drop the regulation banner from the results entry screen — per-result inline indicator matches the existing clinical normal-range pattern
+> - Drop the `ComplianceEvaluation` entity — existing result-eval audit trail covers it
+> - Drop the Descriptive Tag Library — split to **S-05a Reusable Categorical Result Vocabulary** (it's broader than env compliance and doesn't share infrastructure with the range-extension)
+>
+> Net effect: ~40% smaller spec, no parallel infrastructure. Original v1.0 content preserved below for historical reference only.
+
+---
+
+# Compliance Evaluation Engine [original v1.0]
 ## Functional Requirements Specification — v1.0
 
 **Version:** 1.0
 **Date:** 2026-04-04
-**Status:** Draft for Review
+**Status:** ⚠️ SUPERSEDED — see header above
 **Jira:** [OGC-547](https://uwdigi.atlassian.net/browse/OGC-547) (under Vector epic [OGC-527](https://uwdigi.atlassian.net/browse/OGC-527))
 **Technology:** Java Spring Framework, Carbon React (`@carbon/react`)
 **Related Modules:** Compliance Standards Administration (S-01, OGC-528), Environmental Order Entry (S-03, OGC-537), Results Entry (results-page.jsx), Validation Page, Laporan Hasil Report (S-06)
