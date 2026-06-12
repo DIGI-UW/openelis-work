@@ -15,9 +15,19 @@ import {
   RadioButtonGroup, RadioButton,
 } from '@carbon/react';
 import { Printer, Search, Renew } from '@carbon/icons-react';
-// Existing, reused components — not reimplemented (see FRS FR-2-003 / BR-012):
-import SearchPatientForm from '../patient/SearchPatientForm';
-import CustomLabNumberInput from '../common/CustomLabNumberInput';
+// Existing, reused components — not reimplemented (see FRS FR-2-003 / BR-012).
+// Gallery stubs: these components live in the main OpenELIS app and are not
+// available in the mockup viewer; rendered here as plain inputs for preview.
+const SearchPatientForm = ({ onSearchComplete }) => (
+  <div style={{ padding: '0.5rem', border: '1px dashed #8d8d8d', borderRadius: '4px', color: '#525252', fontSize: '0.875rem' }}>
+    SearchPatientForm (reused component — stub in gallery preview)
+  </div>
+);
+const CustomLabNumberInput = ({ value, onChange, labelText }) => (
+  <div style={{ padding: '0.5rem', border: '1px dashed #8d8d8d', borderRadius: '4px', color: '#525252', fontSize: '0.875rem' }}>
+    CustomLabNumberInput: {labelText} (reused component — stub in gallery preview)
+  </div>
+);
 
 const t = (key, fallback) => fallback || key;
 const BATCH_LIMIT = 50;
