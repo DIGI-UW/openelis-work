@@ -240,6 +240,221 @@
   .tag-red   { background: #fff1f1; color: #750e13; }
   .tag-blue  { background: #edf5ff; color: #0043ce; }
   .tag-gray  { background: #e0e0e0; color: #393939; }
+  .tag-purple { background: #f6f2ff; color: #6929c4; }
+  .tag-warm  { background: #fdf2e9; color: #8a3800; font-family: 'IBM Plex Mono', monospace; font-size: 10px; }
+  .tag-cool  { background: #e8eaf1; color: #1e1e3f; font-family: 'IBM Plex Mono', monospace; font-size: 10px; }
+
+  /* ───── Top-level tabs (v1.5: Dashboard / Manual Entry Helper / Admin) ───── */
+  .top-tabs { display: flex; gap: 0; border-bottom: 1px solid #e0e0e0; background: #fff; padding: 0 20px; flex-shrink: 0; }
+  .top-tab {
+    padding: 12px 16px; font-size: 14px; cursor: pointer; border: none; background: transparent;
+    border-bottom: 2px solid transparent; font-family: inherit; color: #525252; font-weight: 400;
+  }
+  .top-tab:hover { background: #f4f4f4; }
+  .top-tab.active { color: #161616; border-bottom-color: #0f62fe; font-weight: 600; }
+  .top-tab.meh { color: #6929c4; }
+  .top-tab.meh.active { color: #6929c4; border-bottom-color: #6929c4; font-weight: 600; }
+
+  /* ───── Tab panels (v1.5) ───── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ───── Manual Entry Helper ───── */
+  .meh-page { background: #f4f4f4; padding: 0; }
+  .meh-header {
+    background: #fff; padding: 16px 20px; border-bottom: 1px solid #e0e0e0;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .meh-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .meh-subtitle { font-size: 13px; color: #525252; }
+  .meh-right { display: flex; gap: 12px; align-items: flex-end; }
+
+  .meh-dev-toggle {
+    background: #fff8e1; border-left: 4px solid #f1c21b; padding: 8px 16px;
+    display: flex; align-items: center; gap: 12px; font-size: 12px; color: #5e4500;
+  }
+  .meh-dev-btn {
+    padding: 3px 10px; background: #fff; color: #161616; border: 1px solid #161616;
+    cursor: pointer; font-size: 11px; font-family: inherit;
+  }
+  .meh-dev-btn.active { background: #161616; color: #fff; }
+  .meh-dev-spacer { flex: 1; }
+  .meh-dev-hint { color: #8a6d00; font-style: italic; }
+
+  /* Sub-tabs (Aedes / Anopheles) */
+  .meh-subtabs { display: flex; padding: 0 16px; background: #f4f4f4; border-bottom: 1px solid #e0e0e0; }
+  .meh-subtab {
+    padding: 10px 16px; font-size: 14px; cursor: pointer; border: none; background: transparent;
+    border-bottom: 2px solid transparent; font-family: inherit; color: #525252;
+  }
+  .meh-subtab.active { color: #161616; border-bottom-color: #161616; font-weight: 600; background: #fff; }
+  .meh-subtab:hover:not(.active) { background: #e0e0e0; }
+
+  /* Metric Tile grid */
+  .meh-tile-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px; }
+  @media (max-width: 1180px) { .meh-tile-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 900px) { .meh-tile-grid { grid-template-columns: repeat(2, 1fr); } }
+  .meh-tile {
+    position: relative; background: #fff; padding: 20px 20px 12px;
+    min-height: 168px; display: flex; flex-direction: column;
+    border: 1px solid transparent;
+  }
+  .meh-tile.disabled { background: #f4f4f4; opacity: 0.75; }
+  .meh-tile-portal-tag { position: absolute; top: 10px; right: 12px; }
+  .meh-tile-label {
+    font-size: 13px; color: #525252; font-weight: 600;
+    margin-top: 18px; margin-bottom: 8px; padding-right: 130px;
+  }
+  .meh-tile-value {
+    font-size: 36px; font-weight: 600; line-height: 1.05; color: #161616;
+    font-family: 'IBM Plex Sans', sans-serif; flex: 1; margin-top: 4px;
+  }
+  .meh-tile-value.disabled { color: #a8a8a8; }
+  .meh-tile-value.text { font-size: 22px; }
+  .meh-tile-disabled-reason {
+    font-size: 11px; color: #8d8d8d; margin-top: -2px; margin-bottom: 6px; font-style: italic;
+  }
+  .meh-tile-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
+  .meh-copy-btn {
+    background: transparent; border: none; cursor: pointer; padding: 6px; color: #0f62fe;
+    display: inline-flex; align-items: center; gap: 4px; font-family: inherit; font-size: 12px;
+  }
+  .meh-copy-btn:hover { background: #edf5ff; }
+  .meh-copy-btn:disabled { color: #c6c6c6; cursor: not-allowed; }
+  .meh-copy-btn:disabled:hover { background: transparent; }
+
+  /* Snapshot JSON preview */
+  .meh-snapshot { padding: 0 16px 16px; }
+  .meh-snapshot summary {
+    cursor: pointer; font-size: 13px; font-weight: 600; color: #525252; padding: 6px 0;
+  }
+  .meh-snapshot pre {
+    background: #f4f4f4; padding: 12px; font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: #161616; overflow-x: auto; margin-top: 8px;
+    border-left: 3px solid #6929c4; max-height: 320px;
+  }
+
+  /* Submit area */
+  .meh-submit-area {
+    display: flex; justify-content: flex-end; gap: 8px; padding: 0 16px 16px;
+  }
+
+  /* Footer note */
+  .meh-footer {
+    padding: 0 16px 24px; font-size: 12px; color: #525252; font-style: italic;
+  }
+
+  /* Toast */
+  .toast-stack {
+    position: fixed; bottom: 16px; right: 16px; z-index: 9000;
+    display: flex; flex-direction: column; gap: 8px; max-width: 380px;
+  }
+  .toast {
+    background: #fff; border-left: 4px solid #198038;
+    padding: 12px 14px; display: flex; gap: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    animation: toastSlideIn 0.2s ease-out;
+  }
+  @keyframes toastSlideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .toast-icon { color: #198038; font-size: 16px; flex-shrink: 0; }
+  .toast-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .toast-sub { font-size: 12px; color: #525252; }
+  .toast-close {
+    margin-left: auto; background: transparent; border: none; cursor: pointer;
+    color: #525252; font-size: 16px; line-height: 1; padding: 0 4px;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: none; align-items: center; justify-content: center; z-index: 8000;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff; width: 640px; max-width: 90vw; max-height: 88vh;
+    display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  .modal-header { padding: 16px 20px 8px; border-bottom: 1px solid #e0e0e0; }
+  .modal-label { font-size: 11px; color: #525252; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .modal-title { font-size: 18px; font-weight: 600; }
+  .modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+  .modal-body p { font-size: 13px; color: #525252; margin-bottom: 12px; }
+  .modal-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13px; }
+  .modal-table th { background: #f4f4f4; padding: 8px 10px; text-align: left; font-weight: 600; font-size: 12px; }
+  .modal-table td { padding: 8px 10px; border-top: 1px solid #e0e0e0; }
+  .modal-table td.val { font-weight: 600; }
+  .modal-table td.val.na { color: #8d8d8d; font-style: italic; font-weight: 400; }
+  .modal-checkbox-row { display: flex; align-items: flex-start; gap: 8px; padding: 12px; background: #f4f4f4; border-left: 3px solid #0f62fe; }
+  .modal-checkbox-row input { margin-top: 3px; }
+  .modal-checkbox-row label { font-size: 13px; cursor: pointer; }
+  .modal-footer {
+    padding: 12px 20px; border-top: 1px solid #e0e0e0;
+    display: flex; justify-content: flex-end; gap: 8px;
+  }
+
+  /* OverflowMenu — Print Laporan Hasil */
+  .overflow-wrap { position: relative; display: inline-block; }
+  .overflow-btn {
+    background: #fff; border: 1px solid #8d8d8d; padding: 6px 10px; cursor: pointer;
+    font-family: inherit; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .overflow-btn:hover { background: #f4f4f4; }
+  .overflow-menu {
+    position: absolute; top: 100%; right: 0; background: #fff; border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1); min-width: 200px; display: none; z-index: 100;
+  }
+  .overflow-menu.open { display: block; }
+  .overflow-item { padding: 10px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f4f4f4; }
+  .overflow-item:hover { background: #f4f4f4; }
+  .overflow-item:last-child { border-bottom: none; }
+
+  /* Inline success notification */
+  .inline-success {
+    background: #defbe6; border-left: 4px solid #198038;
+    padding: 12px 16px; margin: 0 16px; display: flex; align-items: flex-start; gap: 10px;
+  }
+  .inline-success-icon { color: #198038; font-size: 16px; }
+  .inline-success-title { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+  .inline-success-sub { font-size: 12px; color: #525252; }
+  .inline-success-close { margin-left: auto; background: transparent; border: none; cursor: pointer; color: #525252; }
+
+  /* ───── Admin: Manual Entry Fields ───── */
+  .admin-page { padding: 20px; background: #fff; min-height: 100%; }
+  .admin-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .admin-subtitle { font-size: 13px; color: #525252; margin-bottom: 20px; }
+  .admin-actions { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+  .admin-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; }
+  .admin-table th {
+    background: #f4f4f4; padding: 10px 12px; text-align: left; font-weight: 600;
+    font-size: 12px; border-bottom: 1px solid #e0e0e0;
+  }
+  .admin-table td {
+    padding: 8px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: middle;
+  }
+  .admin-table td.handle { cursor: grab; color: #8d8d8d; font-size: 14px; user-select: none; }
+  .admin-table td.source { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #525252; }
+  .admin-input {
+    width: 100%; height: 32px; border: 1px solid #8d8d8d; padding: 0 8px;
+    font-size: 13px; font-family: inherit; background: #fff;
+  }
+  .admin-input:focus { outline: none; border-color: #0f62fe; box-shadow: inset 0 0 0 1px #0f62fe; }
+  .admin-select {
+    width: 100%; height: 32px; border: 1px solid #8d8d8d; padding: 0 28px 0 8px;
+    font-size: 13px; font-family: inherit; background: #fff
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23525252'/%3E%3C/svg%3E")
+      no-repeat right 8px center;
+    appearance: none;
+  }
+  .admin-toggle {
+    width: 38px; height: 20px; background: #c6c6c6; border-radius: 12px;
+    position: relative; cursor: pointer; transition: background 0.15s;
+  }
+  .admin-toggle.on { background: #0f62fe; }
+  .admin-toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+    background: #fff; border-radius: 50%; transition: left 0.15s;
+  }
+  .admin-toggle.on::after { left: 20px; }
+  .admin-save-row { margin-top: 16px; display: flex; justify-content: flex-end; gap: 8px; }
 </style>
 </head>
 <body>
@@ -306,11 +521,24 @@
   <!-- ═══════════════ MAIN ═══════════════ -->
   <div class="main">
 
-    <!-- Page header (no tabs — single-screen page) -->
+    <!-- Page header with v1.5 top-level tabs -->
     <div class="page-header">
-      <h1 class="page-title">Vector Surveillance Dashboard</h1>
+      <h1 class="page-title" data-i18n-key="vectorReport.title">Vector Surveillance Reporting</h1>
       <p class="page-breadcrumb" style="margin-bottom:14px;">Reports › Vector Surveillance</p>
     </div>
+
+    <!-- v1.5: Top-level tabs (Dashboard / Manual Entry Helper / Admin) -->
+    <div class="top-tabs">
+      <button class="top-tab active" id="tab-dashboard" onclick="setTopTab('dashboard')"
+              data-i18n-key="vectorReport.tab.dashboard">Dashboard</button>
+      <button class="top-tab meh" id="tab-meh" onclick="setTopTab('meh')"
+              data-i18n-key="vectorReport.manualEntry.tabLabel">Manual Entry Helper</button>
+      <button class="top-tab" id="tab-admin" onclick="setTopTab('admin')"
+              data-i18n-key="vectorAdmin.manualEntryFields.tabLabel">Admin: Manual Entry Fields</button>
+    </div>
+
+    <!-- ═══════════════ TAB PANEL 1 — DASHBOARD ═══════════════ -->
+    <div class="tab-panel active" id="panel-dashboard">
 
     <!-- Filter bar -->
     <div class="header-strip">
@@ -687,8 +915,182 @@
       <span class="demo-hint">Try: change Site → "BPP-01" and Apply to see per-site MIR data</span>
     </div>
 
+    </div><!-- /panel-dashboard -->
+
+    <!-- ═══════════════ TAB PANEL 2 — MANUAL ENTRY HELPER (v1.5) ═══════════════ -->
+    <div class="tab-panel" id="panel-meh">
+      <div class="meh-page">
+
+        <!-- Header with ISO week selector + Print Laporan Hasil dropdown -->
+        <div class="meh-header" data-i18n-key="vectorReport.manualEntry.pageHeader">
+          <div>
+            <div class="meh-title" data-i18n-key="vectorReport.manualEntry.title">Manual Entry Helper</div>
+            <div class="meh-subtitle" data-i18n-key="vectorReport.manualEntry.subtitle">
+              Copy this week's surveillance numbers into the SILANTOR portal
+            </div>
+          </div>
+          <div class="meh-right">
+            <div class="filter-group">
+              <label class="filter-label" data-i18n-key="vectorReport.manualEntry.weekSelector.label">Reporting week</label>
+              <select class="filter-select" id="meh-week">
+                <option value="2026-W18">Week 18, 2026 (28 Apr – 4 May)</option>
+                <option value="2026-W17">Week 17, 2026 (21–27 Apr)</option>
+                <option value="2026-W16">Week 16, 2026 (14–20 Apr)</option>
+                <option value="2026-W15">Week 15, 2026 (7–13 Apr)</option>
+              </select>
+            </div>
+            <div class="overflow-wrap">
+              <button class="overflow-btn" onclick="togglePrintMenu(event)"
+                      data-i18n-key="vectorReport.manualEntry.printLhu.button">
+                Print Laporan Hasil ▾
+              </button>
+              <div class="overflow-menu" id="print-menu">
+                <div class="overflow-item" onclick="printLhu('weekly')"
+                     data-i18n-key="vectorReport.manualEntry.printLhu.weeklySummary">Weekly Summary</div>
+                <div class="overflow-item" onclick="printLhu('detail')"
+                     data-i18n-key="vectorReport.manualEntry.printLhu.perSampleDetail">Per-Sample Detail</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dev toggle (mockup-only, not present in production) -->
+        <div class="meh-dev-toggle">
+          <span style="font-weight:600;">Mockup dev toggle:</span>
+          <span>positive_resolution_pct =</span>
+          <button class="meh-dev-btn active" id="dev-res-87" onclick="setResolution(87)">87% (sporozoite disabled)</button>
+          <button class="meh-dev-btn" id="dev-res-97" onclick="setResolution(97)">97% (sporozoite enabled)</button>
+          <span class="meh-dev-spacer"></span>
+          <span class="meh-dev-hint">Not visible in production</span>
+        </div>
+
+        <!-- Inline submit-success notification -->
+        <div id="meh-success-banner"></div>
+
+        <!-- Aedes / Anopheles sub-tabs — defaults to Aedes per brief; switch to Anopheles to see the disabled sporozoite Tile -->
+        <div class="meh-subtabs">
+          <button class="meh-subtab active" id="subtab-aedes" onclick="setSubTab('AEDES')"
+                  data-i18n-key="vectorReport.manualEntry.section.aedes">Aedes</button>
+          <button class="meh-subtab" id="subtab-anopheles" onclick="setSubTab('ANOPHELES')"
+                  data-i18n-key="vectorReport.manualEntry.section.anopheles">Anopheles</button>
+        </div>
+
+        <!-- Metric Tile grid (populated by JS based on active sub-tab) -->
+        <div class="meh-tile-grid" id="meh-tile-grid"></div>
+
+        <!-- Snapshot JSON preview -->
+        <div class="meh-snapshot">
+          <details>
+            <summary data-i18n-key="vectorReport.manualEntry.snapshotPreview.label">
+              snapshot_json preview (what "Mark week submitted" will POST)
+            </summary>
+            <pre id="meh-snapshot-json"></pre>
+          </details>
+        </div>
+
+        <!-- Submit area -->
+        <div class="meh-submit-area">
+          <button class="btn btn-primary" onclick="openMarkSubmittedModal()"
+                  data-i18n-key="vectorReport.manualEntry.markSubmitted.button">
+            Mark week submitted
+          </button>
+        </div>
+
+        <!-- Footer note -->
+        <div class="meh-footer" data-i18n-key="vectorReport.manualEntry.footerNote">
+          8 default metrics shown. Deployments can re-order, hide, relabel, or portal-tag metrics via
+          Admin → Vector → Manual Entry Fields. Pending Ida (APHL Indonesia) confirmation of the actual
+          SILANTOR portal field list.
+        </div>
+
+      </div>
+    </div><!-- /panel-meh -->
+
+    <!-- ═══════════════ TAB PANEL 3 — ADMIN: MANUAL ENTRY FIELDS ═══════════════ -->
+    <div class="tab-panel" id="panel-admin">
+      <div class="admin-page">
+        <div class="admin-title" data-i18n-key="vectorAdmin.manualEntryFields.title">
+          Admin: Manual Entry Fields
+        </div>
+        <div class="admin-subtitle" data-i18n-key="vectorAdmin.manualEntryFields.subtitle">
+          Field map controls what renders on the Manual Entry Helper screen. Changes take effect immediately.
+        </div>
+
+        <div class="admin-actions">
+          <button class="btn btn-ghost" style="border:1px solid #0f62fe;height:32px;"
+                  onclick="adminToast('Add metric form opened (mock)')"
+                  data-i18n-key="vectorAdmin.manualEntryFields.addMetric">
+            + Add metric
+          </button>
+        </div>
+
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="width:36px;"></th>
+              <th>Order</th>
+              <th>Metric source</th>
+              <th>Display label</th>
+              <th>Portal field tag</th>
+              <th>Section</th>
+              <th>Hidden</th>
+            </tr>
+          </thead>
+          <tbody id="admin-table-body"></tbody>
+        </table>
+
+        <div class="admin-save-row">
+          <button class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-primary" onclick="adminSave()"
+                  data-i18n-key="vectorAdmin.manualEntryFields.save">
+            Save changes
+          </button>
+        </div>
+      </div>
+    </div><!-- /panel-admin -->
+
   </div><!-- /main -->
 </div><!-- /shell -->
+
+<!-- ═══════════════ MODAL: Mark Week Submitted ═══════════════ -->
+<div class="modal-overlay" id="mark-submitted-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-label" id="modal-label-period">Reporting period</div>
+      <div class="modal-title" data-i18n-key="vectorReport.manualEntry.markSubmitted.modal.title">
+        Submit week to SILANTOR?
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>The following snapshot will be written to <code>vector_manual_entry_audit</code>
+      as a record of what was reported to the SILANTOR portal:</p>
+      <table class="modal-table">
+        <thead>
+          <tr><th>Metric</th><th>Value</th></tr>
+        </thead>
+        <tbody id="modal-table-body"></tbody>
+      </table>
+      <div class="modal-checkbox-row">
+        <input type="checkbox" id="modal-confirm-checkbox" onchange="onConfirmCheck()">
+        <label for="modal-confirm-checkbox"
+               data-i18n-key="vectorReport.manualEntry.markSubmitted.modal.confirmCheckbox">
+          I confirm this week's data has been entered in the SILANTOR portal
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeMarkSubmittedModal()"
+              data-i18n-key="vectorReport.manualEntry.markSubmitted.modal.cancel">Cancel</button>
+      <button class="btn btn-primary" id="modal-confirm-btn" disabled onclick="confirmMarkSubmitted()"
+              data-i18n-key="vectorReport.manualEntry.markSubmitted.modal.confirm">
+        Confirm submission
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TOAST STACK ═══════════════ -->
+<div class="toast-stack" id="toast-stack"></div>
 
 <script>
 // ═══ DATA ═══════════════════════════════════
@@ -939,6 +1341,235 @@ function navAlert(msg) {
   alert('Navigate to: ' + msg + '\n\n(This preview focuses on V-04 Vector Surveillance Reporting)');
 }
 
+// ═══ v1.5 TOP-LEVEL TABS ═════════════════════
+function setTopTab(name) {
+  ['dashboard','meh','admin'].forEach(n => {
+    document.getElementById('tab-' + n).classList.toggle('active', n === name);
+    document.getElementById('panel-' + n).classList.toggle('active', n === name);
+  });
+}
+
+// ═══ v1.5 MANUAL ENTRY HELPER ═══════════════
+// §6.6.4 default seed metrics. Same shape used by JSX SEED_METRICS.
+const MEH_SEED_METRICS = [
+  { key: 'poolsTested',           label: 'Pools tested (week)',          i18nKey: 'vectorReport.manualEntry.metric.poolsTested',           portalTag: 'F-12',  section: 'BOTH',      value: { AEDES: '247', ANOPHELES: '128' } },
+  { key: 'poolsPositive',         label: 'Pools positive (week)',        i18nKey: 'vectorReport.manualEntry.metric.poolsPositive',         portalTag: 'F-13',  section: 'BOTH',      value: { AEDES: '18',  ANOPHELES: '9'   } },
+  { key: 'confirmedPositiveOrgs', label: 'Confirmed-positive organisms', i18nKey: 'vectorReport.manualEntry.metric.confirmedPositiveOrganisms', portalTag: 'F-14',  section: 'BOTH',      value: { AEDES: '31',  ANOPHELES: '14'  } },
+  { key: 'topSpecies',            label: 'Top species (by pool count)',  i18nKey: 'vectorReport.manualEntry.metric.topSpecies',            portalTag: 'TBD',   section: 'BOTH',      value: { AEDES: 'Aedes aegypti', ANOPHELES: 'An. sundaicus' } },
+  { key: 'mirClassical',          label: 'MIR classical (per 1000)',     i18nKey: 'vectorReport.manualEntry.metric.mirClassical',          portalTag: 'F-15',  section: 'BOTH',      value: { AEDES: '8.4', ANOPHELES: '0.92' } },
+  { key: 'mirObserved',           label: 'MIR observed-with-fallback',   i18nKey: 'vectorReport.manualEntry.metric.mirObserved',           portalTag: 'F-16',  section: 'BOTH',      value: { AEDES: '12.6',ANOPHELES: '1.18' } },
+  { key: 'sitesWithPositives',    label: 'Sites with positives',         i18nKey: 'vectorReport.manualEntry.metric.sitesWithPositives',    portalTag: 'F-17',  section: 'BOTH',      value: { AEDES: '9 of 24', ANOPHELES: '3 of 24' } },
+  { key: 'sporozoiteRate',        label: 'Sporozoite rate (%)',          i18nKey: 'vectorReport.manualEntry.metric.sporozoiteRate',        portalTag: 'F-18',  section: 'ANOPHELES', value: { ANOPHELES: '0.7' }, gatedBy: 'positiveResolutionPct95' },
+];
+
+let mehActiveSection = 'AEDES';     // Brief: default sub-tab is Aedes
+let mehPositiveResolutionPct = 87;  // dev toggle default — disabled state visible when Anopheles is selected
+
+function isSporozoiteDisabled() {
+  return mehPositiveResolutionPct < 95;
+}
+
+function setResolution(pct) {
+  mehPositiveResolutionPct = pct;
+  document.getElementById('dev-res-87').classList.toggle('active', pct === 87);
+  document.getElementById('dev-res-97').classList.toggle('active', pct === 97);
+  renderMehTiles();
+}
+
+function setSubTab(section) {
+  mehActiveSection = section;
+  document.getElementById('subtab-aedes').classList.toggle('active', section === 'AEDES');
+  document.getElementById('subtab-anopheles').classList.toggle('active', section === 'ANOPHELES');
+  renderMehTiles();
+}
+
+function getVisibleMetrics() {
+  return MEH_SEED_METRICS.filter(m => m.section === 'BOTH' || m.section === mehActiveSection);
+}
+
+function renderMehTiles() {
+  const grid = document.getElementById('meh-tile-grid');
+  const visible = getVisibleMetrics();
+  grid.innerHTML = visible.map(m => {
+    const sporoDisabled = m.key === 'sporozoiteRate' && isSporozoiteDisabled();
+    const val = m.value[mehActiveSection] ?? '—';
+    const valIsText = isNaN(parseFloat(val)) && val !== '—';
+    const tagClass = m.portalTag === 'TBD' ? 'tag-warm' : 'tag-cool';
+    const disabledReason = sporoDisabled
+      ? `Sporozoite rate is disabled when positive resolution is below 95% — currently ${mehPositiveResolutionPct}%`
+      : '';
+    return `
+      <div class="meh-tile ${sporoDisabled ? 'disabled' : ''}" data-i18n-key="${m.i18nKey}">
+        <div class="meh-tile-portal-tag">
+          <span class="tag ${tagClass}" data-i18n-key="vectorReport.manualEntry.portalTag.label">SILANTOR field: ${m.portalTag}</span>
+        </div>
+        <div class="meh-tile-label" data-i18n-key="${m.i18nKey}.label">${m.label}</div>
+        <div class="meh-tile-value ${sporoDisabled ? 'disabled' : ''} ${valIsText ? 'text' : ''}">${sporoDisabled ? '—' : val}</div>
+        ${sporoDisabled ? `<div class="meh-tile-disabled-reason" data-i18n-key="vectorReport.manualEntry.sporozoite.disabled.tooltip">${disabledReason}</div>` : ''}
+        <div class="meh-tile-actions">
+          <button class="meh-copy-btn" ${sporoDisabled ? 'disabled' : ''}
+                  ${sporoDisabled ? `title="${disabledReason}"` : ''}
+                  onclick="copyMetric('${m.key}')"
+                  data-i18n-key="vectorReport.manualEntry.copy.button">
+            ⧉ Copy
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  renderSnapshotPreview();
+}
+
+function copyMetric(key) {
+  const m = MEH_SEED_METRICS.find(x => x.key === key);
+  if (!m) return;
+  const val = m.value[mehActiveSection] ?? '';
+  // In production: navigator.clipboard.writeText(val)
+  showToast(`${m.label} copied`, `Value: ${val}`);
+}
+
+function buildSnapshot() {
+  return {
+    iso_year: 2026,
+    iso_week: 18,
+    section: mehActiveSection,
+    tiles: getVisibleMetrics().map(m => {
+      const sporoDisabled = m.key === 'sporozoiteRate' && isSporozoiteDisabled();
+      if (sporoDisabled) {
+        return {
+          key: m.key,
+          label: m.label,
+          value: null,
+          disabled_reason: `positive_resolution_pct=${mehPositiveResolutionPct} < 95`,
+          portal_field_tag: m.portalTag,
+        };
+      }
+      return {
+        key: m.key,
+        label: m.label,
+        value: String(m.value[mehActiveSection] ?? ''),
+        portal_field_tag: m.portalTag,
+      };
+    }),
+  };
+}
+
+function renderSnapshotPreview() {
+  document.getElementById('meh-snapshot-json').textContent =
+    JSON.stringify(buildSnapshot(), null, 2);
+}
+
+// ═══ Print Laporan Hasil dropdown ═══
+function togglePrintMenu(e) {
+  e.stopPropagation();
+  document.getElementById('print-menu').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.getElementById('print-menu')?.classList.remove('open');
+});
+
+function printLhu(kind) {
+  document.getElementById('print-menu').classList.remove('open');
+  if (kind === 'weekly') showToast('Weekly Summary PDF requested', 'S06d Vector LHU endpoint');
+  else showToast('Per-Sample Detail PDF requested', 'S06d Vector LHU endpoint');
+}
+
+// ═══ Toast queue ═══
+function showToast(title, sub) {
+  const stack = document.getElementById('toast-stack');
+  const div = document.createElement('div');
+  div.className = 'toast';
+  div.innerHTML = `
+    <span class="toast-icon">✓</span>
+    <div>
+      <div class="toast-title">${title}</div>
+      ${sub ? `<div class="toast-sub">${sub}</div>` : ''}
+    </div>
+    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+  `;
+  stack.appendChild(div);
+  setTimeout(() => { if (div.parentElement) div.remove(); }, 4000);
+}
+
+// ═══ Mark Week Submitted Modal ═══
+function openMarkSubmittedModal() {
+  const visible = getVisibleMetrics();
+  document.getElementById('modal-label-period').textContent =
+    `Reporting period: ${document.getElementById('meh-week').value} · ${mehActiveSection}`;
+  document.getElementById('modal-table-body').innerHTML = visible.map(m => {
+    const sporoDisabled = m.key === 'sporozoiteRate' && isSporozoiteDisabled();
+    const val = m.value[mehActiveSection] ?? '—';
+    return `
+      <tr>
+        <td>${m.label} <span class="tag tag-cool" style="margin-left:6px;">${m.portalTag}</span></td>
+        <td class="val ${sporoDisabled ? 'na' : ''}">${sporoDisabled
+          ? `n/a (disabled — resolution ${mehPositiveResolutionPct}%)`
+          : val}</td>
+      </tr>
+    `;
+  }).join('');
+  document.getElementById('modal-confirm-checkbox').checked = false;
+  document.getElementById('modal-confirm-btn').disabled = true;
+  document.getElementById('mark-submitted-modal').classList.add('open');
+}
+function closeMarkSubmittedModal() {
+  document.getElementById('mark-submitted-modal').classList.remove('open');
+}
+function onConfirmCheck() {
+  const checked = document.getElementById('modal-confirm-checkbox').checked;
+  document.getElementById('modal-confirm-btn').disabled = !checked;
+}
+function confirmMarkSubmitted() {
+  const ts = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  closeMarkSubmittedModal();
+  // Inline success banner
+  document.getElementById('meh-success-banner').innerHTML = `
+    <div class="inline-success">
+      <span class="inline-success-icon">✓</span>
+      <div>
+        <div class="inline-success-title">Week marked submitted</div>
+        <div class="inline-success-sub">vector_manual_entry_audit row written at ${ts}. snapshot_json captured.</div>
+      </div>
+      <button class="inline-success-close" onclick="document.getElementById('meh-success-banner').innerHTML='';">×</button>
+    </div>
+  `;
+  showToast('Week marked submitted', 'vector_manual_entry_audit row written');
+}
+
+// ═══ Admin: Manual Entry Fields ═══
+function renderAdminTable() {
+  const body = document.getElementById('admin-table-body');
+  body.innerHTML = MEH_SEED_METRICS.map((m, i) => {
+    const metricSource = `vector_mir_weekly.${m.key === 'mirClassical' ? 'mir_classic' : m.key}`;
+    return `
+      <tr>
+        <td class="handle" title="Drag to reorder">⋮⋮</td>
+        <td>${i + 1}</td>
+        <td class="source">${metricSource}</td>
+        <td><input class="admin-input" type="text" value="${m.label}"></td>
+        <td><input class="admin-input" type="text" value="${m.portalTag}"></td>
+        <td>
+          <select class="admin-select">
+            <option ${m.section === 'AEDES' ? 'selected' : ''}>Aedes</option>
+            <option ${m.section === 'ANOPHELES' ? 'selected' : ''}>Anopheles</option>
+            <option ${m.section === 'BOTH' ? 'selected' : ''}>Both</option>
+          </select>
+        </td>
+        <td>
+          <div class="admin-toggle" onclick="this.classList.toggle('on')" role="switch" aria-label="Hidden toggle"></div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function adminSave() {
+  showToast('Field map saved', 'vector_manual_entry_field_map updated. Changes are live for Manual Entry Helper users.');
+}
+function adminToast(msg) {
+  showToast(msg, '');
+}
+
 // ═══ INIT ════════════════════════════════════
 
 // Wire up MIR metric toggle (Dashboard #4 ContentSwitcher)
@@ -963,6 +1594,10 @@ setTimeout(() => {
   if (claTab && !claTab._wired) { claTab._wired = true; claTab.addEventListener('click', () => setMirMode('classic')); }
   if (spoTab && !spoTab._wired) { spoTab._wired = true; spoTab.addEventListener('click', () => setMirMode('sporozoite')); }
 }, 1200);
+
+// v1.5 — Initial render of Manual Entry Helper + Admin tab content
+renderMehTiles();
+renderAdminTable();
 </script>
 </body>
 </html>

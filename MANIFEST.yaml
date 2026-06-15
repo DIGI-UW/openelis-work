@@ -2498,13 +2498,17 @@
   preview: designs/vector-surveillance/vector-surveillance-reporting.html
   category: vector-surveillance
   description: >
-    V-04 Vector Surveillance Reporting (v1.3) — Apache Superset embedded via guest token JWT
-    into Reports → Vector Surveillance. Six OHS SQL-on-FHIR views: vector_collection_density_daily,
-    vector_specimen_ids, vector_pathogen_results, vector_mir_weekly (dual MIR: mir_classic +
-    infection_rate_per_1000 with positive_resolution_pct), vector_collection_lots,
-    vector_qc_monitoring. QC sample exclusion via analysis_qaevent join. Dashboard #7 QC Pass
-    Rate. FHIR DiagnosticReport qaEventType extension. PDF export via headless Chromium.
-    Threshold email alerts via Superset native engine.
+    V-04 Vector Surveillance Reporting — Apache Superset dashboard embedded via guest token JWT
+    into the Reports → Vector Surveillance page, backed by an OHS SQL-on-FHIR ETL pipeline that
+    flattens HAPI FHIR resources into Postgres analytics views feeding 4–7 charts (trap catch
+    trend, species distribution, MIR heatmap, pathogen positivity).
+    NEW in v1.5 — Manual Entry Helper tab at /reports/vector-surveillance/manual-entry that
+    accelerates manual submission to the Kemenkes Subdit Vektor SILANTOR portal: large-font numeric
+    Tiles per metric with Copy IconButton, Aedes/Anopheles sub-tabs, Sporozoite-rate auto-gating
+    below 95% positive resolution, and a Mark-Week-Submitted modal that writes an audit row.
+    Admin field-map page at /admin/vector/manual-entry-fields lets deployments re-order and
+    relabel metrics without code changes; metric list, cadence, and portal field tags are marked
+    @TBD-Ida pending APHL Indonesia confirmation.
   links:
     jira: ["OGC-585", "OGC-527"]
   tags:
@@ -2519,10 +2523,12 @@
     - MIR
     - Indonesia
     - mosquito
-    - QC
-    - infection-rate
+    - manual-entry
+    - silantor
+    - kemenkes
+    - data-entry-helper
   added: "2026-04-20"
-  updated: "2026-04-27"
+  updated: "2026-05-11"
   status: draft
 
 - id: vector-surveillance-reporting-fhir-considerations
@@ -3487,3 +3493,116 @@
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/workplan
     preview: https://digi-uw.github.io/openelis-work/designs/admin-config/workplan.html
   added: "2026-06-12"
+
+- id: S06-laporan-hasil-compliance-report
+  type: both
+  path: designs/reports/S06-laporan-hasil-compliance-report-mockup.jsx
+  spec: designs/reports/S06-laporan-hasil-compliance-report-frs-v1.0.md
+  preview: designs/reports/S06-laporan-hasil-compliance-report-preview.html
+  category: reports
+  description: >
+    S-06 Laporan Hasil — formal Sertifikat Hasil Uji (Test Results Certificate) PDF generation for
+    validated environmental orders. Dual e-signature, batch ZIP download, shared Report Print
+    Configuration admin page. Amended 2026-04-28 for multi-regulation + multi-component rendering.
+    Amended 2026-06-15 with §7a Domain Variants cross-reference to S06c (Environmental LHU) and
+    S06d (Vector LHU) sibling specs.
+  links:
+    jira: ["OGC-552", "OGC-527"]
+    gallery: https://digi-uw.github.io/openelis-work/#/reports/s06-laporan-hasil-compliance-report
+  tags:
+    - report
+    - pdf
+    - compliance
+    - environmental
+    - vector
+    - certificate
+    - laporan-hasil
+    - Indonesia
+    - SILNAS
+    - KAN
+  added: "2026-04-05"
+  status: draft
+
+- id: S06c-environmental-lhu
+  type: both
+  path: designs/reports/S06c-environmental-lhu-mockup.jsx
+  spec: designs/reports/S06c-environmental-lhu-frs-v1.0.md
+  preview: designs/reports/S06c-environmental-lhu-preview.html
+  preview_annotated: designs/reports/S06c-environmental-lhu-preview-annotated.html
+  category: reports
+  description: >
+    S-06c — Environmental Laporan Hasil Uji (LHU) sibling spec to S06. Result table columns
+    `No. | Parameter | Hasil Uji | Baku Mutu | Satuan | Ket.` (Metode column dropped; methods
+    in compact footnote). Covers water (air minum, air limbah), food (pangan/makanan), ambient
+    air (udara ruang), surface swabs (usap), and physical conditions (pencahayaan, kebisingan,
+    kelembaban). KAN per-parameter asterisk; methods + accreditation coverage in compact footnote.
+    Multi-matrix bundling. Ships canonical Indonesian preview + bilingual annotated sibling.
+  links:
+    jira: ["OGC-552", "OGC-527"]
+    gallery: https://digi-uw.github.io/openelis-work/#/reports/s06c-environmental-lhu
+  tags:
+    - report
+    - pdf
+    - lhu
+    - environmental
+    - kan
+    - indonesia
+    - compliance
+    - laporan-hasil
+    - bilingual
+  added: "2026-06-15"
+  status: draft
+
+- id: S06d-vector-lhu
+  type: both
+  path: designs/reports/S06d-vector-lhu-mockup.jsx
+  spec: designs/reports/S06d-vector-lhu-frs-v1.0.md
+  preview: designs/reports/S06d-vector-lhu-preview.html
+  preview_annotated: designs/reports/S06d-vector-lhu-preview-annotated.html
+  category: reports
+  description: >
+    S-06d — Vector surveillance Laporan Hasil Uji (LHU) sibling spec to S06. Three flexible
+    result-table modes: A (Species ID via PCR), B (Surveillance Indices — MIR, infection rate,
+    density, positive_resolution_%), C (Larval Population Indices — House/Container/Breteau
+    Index, Angka Bebas Jentik). Covers mosquito species ID, larval/imago surveys, infection
+    indices (DBD, malaria, JE). Multi-LHU number bundling supported. Ships canonical Indonesian
+    preview + bilingual annotated sibling.
+  links:
+    jira: ["OGC-552", "OGC-527"]
+    gallery: https://digi-uw.github.io/openelis-work/#/reports/s06d-vector-lhu
+  tags:
+    - report
+    - pdf
+    - lhu
+    - vector
+    - surveillance
+    - pcr
+    - larva
+    - mir
+    - kan
+    - indonesia
+    - laporan-hasil
+    - bilingual
+  added: "2026-06-15"
+  status: draft
+
+- id: S06-lhu-crosswalk-raw
+  type: spec
+  path: designs/reports/S06-lhu-crosswalk-raw.md
+  category: reports
+  description: >
+    Research artifact — bucketing + crosswalk of 37 real LHU sample PDFs (10 environmental,
+    1 vector, 22 clinical-skipped) collected from Indonesian Labkesmas. Evidence base for both
+    S06c and S06d field/column choices. Not registered in App.jsx; lives in the gallery folder
+    alongside the spec it informed.
+  links:
+    jira: ["OGC-552", "OGC-527"]
+  tags:
+    - research
+    - crosswalk
+    - lhu
+    - laporan-hasil
+    - indonesia
+    - labkesmas
+  added: "2026-06-15"
+  status: draft
