@@ -21,14 +21,12 @@ import React, { useState } from 'react';
 import {
   Button,
   ButtonSet,
-  Container,
   FlexGrid,
   Row,
   Column,
   Heading,
   SelectItem,
   Select,
-  Label,
   Modal,
   FormGroup,
 } from '@carbon/react';
@@ -229,7 +227,7 @@ const VectorLHU = () => {
     <div style={{ padding: '2rem', fontFamily: 'IBM Plex Sans, sans-serif' }}>
       {/* ===== MODE SELECTOR + ACCREDITATION LOGO POSITION ===== */}
       <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
-        <Label>Select Report Mode:</Label>
+        <label>Select Report Mode:</label>
         <ButtonSet>
           <Button
             kind={selectedMode === 'A' ? 'primary' : 'secondary'}
@@ -253,7 +251,7 @@ const VectorLHU = () => {
 
         {/* Accreditation Logo Position Toggle */}
         <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <Label>Accreditation Logo Position:</Label>
+          <label>Accreditation Logo Position:</label>
           <Button
             kind={logoPosition === 'BOTTOM' ? 'primary' : 'secondary'}
             onClick={() => setLogoPosition('BOTTOM')}
