@@ -143,6 +143,9 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 
 | Feature | Mockup | Spec |
 |---------|--------|------|
+| Laporan Hasil — Compliance Report (S-06) | [S06-laporan-hasil-compliance-report-mockup.jsx](designs/reports/S06-laporan-hasil-compliance-report-mockup.jsx) \| [preview](designs/reports/S06-laporan-hasil-compliance-report-preview.html) | [S06-laporan-hasil-compliance-report-frs-v1.0.md](designs/reports/S06-laporan-hasil-compliance-report-frs-v1.0.md) |
+| Environmental LHU (S-06c) | [S06c-environmental-lhu-mockup.jsx](designs/reports/S06c-environmental-lhu-mockup.jsx) \| [preview](designs/reports/S06c-environmental-lhu-preview.html) \| [annotated](designs/reports/S06c-environmental-lhu-preview-annotated.html) | [S06c-environmental-lhu-frs-v1.0.md](designs/reports/S06c-environmental-lhu-frs-v1.0.md) |
+| Vector LHU (S-06d) | [S06d-vector-lhu-mockup.jsx](designs/reports/S06d-vector-lhu-mockup.jsx) \| [preview](designs/reports/S06d-vector-lhu-preview.html) \| [annotated](designs/reports/S06d-vector-lhu-preview-annotated.html) | [S06d-vector-lhu-frs-v1.0.md](designs/reports/S06d-vector-lhu-frs-v1.0.md) |
 | Report Print Queue | [report-print-queue.jsx](designs/reports/report-print-queue.jsx) · [preview](designs/reports/report-print-queue.html) | [report-print-queue.md](designs/reports/report-print-queue.md) |
 | Patient Report Redesign | [preview](designs/reports/patient-report-redesign.html) · [patient_letter.jrxml](designs/reports/patient_letter.jrxml) | [patient-report-redesign.md](designs/reports/patient-report-redesign.md) |
 | Positivity Rate Report | [positivity-rate.jsx](designs/reports/positivity-rate.jsx) | [positivity-rate.md](designs/reports/positivity-rate.md) |
