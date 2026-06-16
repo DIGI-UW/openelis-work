@@ -1,391 +1,312 @@
-/**
- * S-09 v2.0 — Pre-Analytical Eligibility Gate & Resampling
- * Addendum to S-03 v2.0 §5.3 (Step 3 QA/QC + Intake Acceptance)
- *
- * Rebased from v1.0:
- *   - 4-step model → 3-step model (Step 3 instead of Step 4)
- *   - Eligibility Worklist → Order Dashboard filter on status=PENDING_INTAKE
- *   - Shipment batch grouping deferred (P2)
- *   - Vector CollectionLot variant deferred (V-02)
- *
- * 4 scenes:
- *   1. SampleType Admin — new "Acceptance Criteria" tab
- *   2. Step 3 sample row + criteria checklist side panel (Eligible / Review tags)
- *   3. NCE dialog with new "Resample" radio option
- *   4. Lab Unit admin — per-domain gate behavior config
- */
+// S-09 Pre-Analytical Eligibility Gate & Resampling — v3.0 mockup
+// Route (Step 3): existing reception wizard — SideNav: Order → Add Order (Step 3 QA/QC + Intake Acceptance)
+// Route (Admin):  Admin → General Configuration → Order Entry Configuration → Sample Acceptance Checklist
+//                 (per-domain via SideNav submenu items; confirm exact OrderEntryConfiguration route against live)
+//
+// Simplification rewrite of v2.0: generic MANUAL checklist (no auto-compute engine),
+// Resample action on the existing NCE dialog, lightweight master-list config decoupled
+// from the Test Catalog editor. No new status enum, no new permission keys.
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   Grid, Column, Stack,
-  Tabs, Tab, TabList, TabPanels, TabPanel,
-  Table, TableHead, TableRow, TableHeader, TableBody, TableCell,
-  TextInput, TextArea, NumberInput, Select, SelectItem, RadioButton, RadioButtonGroup,
-  Button, Tag, Tile, InlineNotification, Modal,
-  Toggle,
+  SideNav, SideNavItems, SideNavMenu, SideNavMenuItem,
+  DataTable, TableContainer, Table, TableHead, TableRow, TableHeader,
+  TableBody, TableCell,
+  TextInput, TextArea, Select, SelectItem, RadioButton, RadioButtonGroup, Toggle,
+  Button, IconButton, InlineNotification, Tag, Modal, Tile,
+  Breadcrumb, BreadcrumbItem,
 } from '@carbon/react';
-import { Checkmark, Close, Warning, ArrowRight, Email } from '@carbon/icons-react';
+import { Add, Edit, TrashCan, Renew, ArrowUp, ArrowDown } from '@carbon/icons-react';
 
-const t = (k, f) => f || k;
+const t = (key, fallback) => fallback || key;
 
-const NewRegion = ({ children, label = 'S-09 v2 NEW' }) => (
-  <div style={{ border: '2px dashed #F1C21B', borderRadius: 6, padding: 12, position: 'relative', marginBottom: 16 }}>
-    <span style={{
-      position: 'absolute', top: -11, left: 12,
-      background: '#F1C21B', color: '#000', fontSize: 11, fontWeight: 700,
-      padding: '1px 8px', borderRadius: 4,
-    }}>{label}</span>
-    {children}
-  </div>
-);
+// ---- Mock data -------------------------------------------------------------
+const DEFAULT_ITEMS = [
+  { id: 1, label: 'Container intact and undamaged', domain: null, active: true },
+  { id: 2, label: 'Label legible and matches request', domain: null, active: true },
+  { id: 3, label: 'Sample volume / quantity adequate', domain: null, active: true },
+  { id: 4, label: 'Cold chain / temperature acceptable', domain: null, active: true },
+  { id: 5, label: 'Within acceptable transit time', domain: null, active: true },
+  { id: 6, label: 'Request paperwork / chain-of-custody present', domain: null, active: true },
+  // Domain-specific examples (appear only under their domain's checklist)
+  { id: 7, label: 'Patient identifiers match request', domain: 'CLINICAL', active: true },
+  { id: 8, label: 'Preservation medium appropriate', domain: 'ENVIRONMENTAL', active: true },
+  // (Vector has no own items in this demo → it falls back to the lab-wide list.)
+];
+const DOMAINS = ['CLINICAL', 'ENVIRONMENTAL', 'VECTOR'];
 
-const ExistingRegion = ({ children, label = 'EXISTING' }) => (
-  <div style={{ opacity: 0.72, position: 'relative', marginBottom: 16 }}>
-    <span style={{
-      position: 'absolute', top: 4, right: 8, zIndex: 1,
-      background: '#8D8D8D', color: '#fff', fontSize: 10, fontWeight: 600,
-      padding: '1px 6px', borderRadius: 3,
-    }}>{label}</span>
-    {children}
-  </div>
-);
-
-// ─── Mock Data ──────────────────────────────────────────────────────
-
-const MOCK_SAMPLES = [
-  { id: 's-1', idx: 1, type: 'Surface Water', accession: 'ENV-2026-0412.001',
-    transitH: 4, volMl: 500, tempC: 4.5, status: 'eligible' },
-  { id: 's-2', idx: 2, type: 'Surface Water', accession: 'ENV-2026-0412.002',
-    transitH: 26, volMl: 500, tempC: 6.0, status: 'review' /* transit > 24h */ },
-  { id: 's-3', idx: 3, type: 'Groundwater', accession: 'ENV-2026-0412.003',
-    transitH: 8, volMl: 250, tempC: 18.0, status: 'review' /* temp out of range, vol low */ },
+const SAMPLES = [
+  { id: 'ENV-2026-00231', type: 'Water — Surface', domain: 'ENVIRONMENTAL',
+    collected: '2026-06-15 07:10', received: '2026-06-16 09:42', transit: '26h 32m', state: 'pending' },
+  { id: 'ENV-2026-00232', type: 'Water — Ground', domain: 'ENVIRONMENTAL',
+    collected: '2026-06-16 06:55', received: '2026-06-16 09:42', transit: '2h 47m', state: 'accepted' },
+  { id: 'CLI-2026-04417', type: 'Whole Blood — EDTA', domain: 'CLINICAL',
+    collected: '2026-06-16 08:20', received: '2026-06-16 09:30', transit: '1h 10m', state: 'review' },
+  { id: 'VEC-2026-00088', type: 'Mosquito pool — CDC light trap', domain: 'VECTOR',
+    collected: '2026-06-15 19:00', received: '2026-06-16 08:15', transit: '13h 15m', state: 'pending' },
 ];
 
-const SAMPLETYPE_CRITERIA = {
-  'Surface Water': {
-    transitMaxH: 24,
-    volumeMin: 500, volumeMax: 1000,
-    tempMin: 0, tempMax: 6,
-    containers: ['Sterile bottle (HDPE)', 'Brown glass'],
-  },
-  'Groundwater': {
-    transitMaxH: 24,
-    volumeMin: 500, volumeMax: 1000,
-    tempMin: 0, tempMax: 6,
-    containers: ['Sterile bottle (HDPE)'],
-  },
-};
+const tagFor = (state) => ({
+  accepted: { kind: 'green', text: t('tag.eligibility.accepted', 'Accepted') },
+  review:   { kind: 'warm-gray', text: t('tag.eligibility.review', 'Review') },
+  pending:  { kind: 'gray', text: t('tag.eligibility.pending', 'Pending') },
+}[state]);
 
-// Label-completeness handled by existing OE label management module — not part of S-09.
-const evaluateCriteria = (sample) => {
-  const c = SAMPLETYPE_CRITERIA[sample.type];
-  if (!c) return [];
-  return [
-    { name: 'Transit time max',  pass: sample.transitH <= c.transitMaxH,
-      detail: `${sample.transitH}h vs max ${c.transitMaxH}h` },
-    { name: 'Volume in range',   pass: sample.volMl >= c.volumeMin && sample.volMl <= c.volumeMax,
-      detail: `${sample.volMl}mL vs ${c.volumeMin}–${c.volumeMax}mL` },
-    { name: 'Receipt temp in range', pass: sample.tempC >= c.tempMin && sample.tempC <= c.tempMax,
-      detail: `${sample.tempC}°C vs ${c.tempMin}–${c.tempMax}°C` },
-    { name: 'Container type valid', pass: true,
-      detail: c.containers[0] },
-  ];
-};
-
-// ─── Component ──────────────────────────────────────────────────────
-
-export default function S09MockupV2() {
-  const [scene, setScene] = useState(0);
-  const [openSampleId, setOpenSampleId] = useState(null);
-  const [showNceDialog, setShowNceDialog] = useState(false);
-  const [nceAction, setNceAction] = useState('flag');
-  const [nceReason, setNceReason] = useState('TRANSIT-EXCEEDED');
-
-  const openSample = MOCK_SAMPLES.find(s => s.id === openSampleId);
-  const criteria = openSample ? evaluateCriteria(openSample) : [];
-
-  // Scene 4
-  const [gateConfig, setGateConfig] = useState({ Clinical: 'Prompted', Env: 'Mandatory', Vector: 'Mandatory' });
+// ---- Step 3 checklist side panel ------------------------------------------
+function ChecklistPanel({ sample, items, onReportNce }) {
+  const [answers, setAnswers] = useState({});
+  const [notes, setNotes] = useState({});
+  const set = (id, v) => setAnswers((a) => ({ ...a, [id]: v }));
+  // Precedence (FR-04): domain list overrides lab-wide; lab-wide is the fallback.
+  // When a domain has its own list, lab-wide items render visible-disabled.
+  const own = items.filter((i) => i.active && i.domain === sample.domain);
+  const labWide = items.filter((i) => i.active && !i.domain);
+  const active = own.length ? own : labWide; // resolved list only; superseded items are NOT shown here (FR-04)
+  const anyFail = active.some((i) => answers[i.id] === 'FAIL');
+  // Failed items + notes are handed to the NCE dialog to pre-populate the reason (FR-07A).
+  const failed = active.filter((i) => answers[i.id] === 'FAIL')
+    .map((i) => ({ label: i.label, note: notes[i.id] || '' }));
 
   return (
-    <div style={{ padding: 24, maxWidth: 1300, margin: '0 auto' }}>
-      <Tabs selectedIndex={scene} onChange={({ selectedIndex }) => { setScene(selectedIndex); setOpenSampleId(null); }}>
-        <TabList aria-label="Scene">
-          <Tab>1 — SampleType Acceptance Criteria</Tab>
-          <Tab>2 — Step 3 with Criteria Checklist</Tab>
-          <Tab>3 — NCE Dialog (Resample option)</Tab>
-          <Tab>4 — Lab Unit Gate Config</Tab>
-        </TabList>
-        <TabPanels>
-          {/* ── Scene 1 — SampleType Admin Acceptance Criteria tab ──── */}
-          <TabPanel>
-            <h3 style={{ margin: '16px 0' }}>SampleType Admin — Acceptance Criteria Tab</h3>
-            <p style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
-              The existing SampleType admin form gains a new "Acceptance Criteria" tab where admins
-              configure rules per SampleType. Optional — if no criteria set, the gate is effectively skipped.
-            </p>
+    <Tile style={{ padding: '1rem', borderLeft: '3px solid var(--cds-border-interactive)' }}>
+      <h4 style={{ marginBottom: '0.5rem' }}>{t('label.eligibility.checklist.title', 'Acceptance checklist')} — {sample.id}</h4>
 
-            <ExistingRegion>
-              <Tile>
-                <h5>SampleType: Surface Water</h5>
-                <p style={{ fontSize: 12, color: '#525252' }}>Existing tabs: Basic Info | Domain Classification | <strong>Acceptance Criteria (NEW)</strong></p>
-              </Tile>
-            </ExistingRegion>
+      {/* Read-only context */}
+      <div style={{ background: 'var(--cds-layer-02)', padding: '0.75rem', marginBottom: '1rem', fontSize: 12 }}>
+        <strong>{sample.type}</strong> · {sample.domain}<br />
+        Collected {sample.collected} · Received {sample.received}<br />
+        {t('label.eligibility.context.transit', 'Transit time')}: <strong>{sample.transit}</strong>
+        {sample.transit.startsWith('26') &&
+          <span> &nbsp;<Tag kind="warm-gray" size="sm">long transit — your call</Tag></span>}
+      </div>
 
-            <NewRegion>
-              <Tile>
-                <h5 style={{ marginBottom: 12 }}>Acceptance Criteria — Surface Water</h5>
-                <Grid>
-                  <Column lg={4}>
-                    <NumberInput id="transit" label="Transit time max (hours)" defaultValue={24} min={0} />
-                  </Column>
-                  <Column lg={4}>
-                    <NumberInput id="vol-min" label="Volume min (mL)" defaultValue={500} />
-                  </Column>
-                  <Column lg={4}>
-                    <NumberInput id="vol-max" label="Volume max (mL)" defaultValue={1000} />
-                  </Column>
-                  <Column lg={4}>
-                    <NumberInput id="temp-min" label="Receipt temp min (°C)" defaultValue={0} step={0.1} />
-                  </Column>
-                  <Column lg={4}>
-                    <NumberInput id="temp-max" label="Receipt temp max (°C)" defaultValue={6} step={0.1} />
-                  </Column>
-                  <Column lg={12}>
-                    <TextInput id="containers" labelText="Required container types (comma-separated)"
-                               defaultValue="Sterile bottle (HDPE), Brown glass" />
-                  </Column>
-                  <Column lg={12}>
-                    <p style={{ fontSize: 12, color: '#525252', marginTop: 8 }}>
-                      <em>Note: label-completeness checks are handled by the existing OE label management module — not configured here.</em>
-                    </p>
-                  </Column>
-                </Grid>
-              </Tile>
-            </NewRegion>
-          </TabPanel>
+      <Stack gap={5}>
+        {active.map((item) => (
+          <div key={item.id}>
+            <RadioButtonGroup legendText={item.label} name={`item-${item.id}`}
+              valueSelected={answers[item.id]} onChange={(v) => set(item.id, v)}>
+              <RadioButton labelText={t('label.eligibility.answer.pass', 'Pass')} value="PASS" id={`p-${item.id}`} />
+              <RadioButton labelText={t('label.eligibility.answer.fail', 'Fail')} value="FAIL" id={`f-${item.id}`} />
+              <RadioButton labelText={t('label.eligibility.answer.na', 'N/A')} value="NA" id={`n-${item.id}`} />
+            </RadioButtonGroup>
+            {answers[item.id] === 'FAIL' &&
+              <TextInput id={`note-${item.id}`} labelText="" size="sm"
+                value={notes[item.id] || ''} onChange={(e) => setNotes((n) => ({ ...n, [item.id]: e.target.value }))}
+                placeholder={t('label.eligibility.note.placeholder', 'Optional — note any observed condition')} />}
+          </div>
+        ))}
+      </Stack>
 
-          {/* ── Scene 2 — Step 3 with criteria checklist ─────────────── */}
-          <TabPanel>
-            <h3 style={{ margin: '16px 0' }}>Step 3 (S-03 v2.0) — Per-Sample Eligibility</h3>
-            <p style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
-              Each sample row at S-03 v2.0 §5.3 now shows an Eligible / Review tag based on the auto-evaluated
-              criteria. Click <strong>Open Eligibility</strong> to inspect the per-sample checklist.
-            </p>
+      <Stack orientation="horizontal" gap={3} style={{ marginTop: '1.25rem' }}>
+        <Button kind="primary" size="sm" disabled={anyFail}>{t('button.accept', 'Accept sample')}</Button>
+        <Button kind={anyFail ? 'danger--tertiary' : 'ghost'} size="sm" onClick={() => onReportNce(failed)}>
+          {t('button.reportNce', 'Report NCE')}
+        </Button>
+      </Stack>
+    </Tile>
+  );
+}
 
-            <ExistingRegion>
-              <Tile>
-                <h5>Order ENV-2026-0412 — Step 3 (Sample Intake)</h5>
-              </Tile>
-            </ExistingRegion>
+// ---- NCE dialog with Resample action --------------------------------------
+function NceDialog({ open, onClose, sample, failed = [] }) {
+  const [action, setAction] = useState('continue');
+  // FR-07A: reason pre-populates from the failed checklist items + notes.
+  const prefill = failed.length
+    ? failed.map((f) => `${f.label}: FAIL${f.note ? ` — ${f.note}` : ''}`).join('\n')
+    : '';
+  return (
+    <Modal key={prefill} open={open} onRequestClose={onClose} modalHeading={`Report NCE — ${sample?.id}`}
+      primaryButtonText={t('button.commit', 'Commit')} secondaryButtonText={t('button.cancel', 'Cancel')}
+      onRequestSubmit={onClose}>
+      <TextArea labelText="Reason (pre-filled from failed checklist items — editable)" rows={Math.max(2, failed.length)}
+        defaultValue={prefill} />
+      <div style={{ marginTop: '1rem' }}>
+        <RadioButtonGroup legendText="Sample action" name="sample-action" orientation="vertical"
+          valueSelected={action} onChange={setAction}>
+          <RadioButton labelText={t('label.nce.sampleAction.continue', 'Continue with NCE flag')} value="continue" id="a-c" />
+          <RadioButton labelText={t('label.nce.sampleAction.reject', 'Reject sample')} value="reject" id="a-r" />
+          <RadioButton labelText={t('label.nce.sampleAction.resample', 'Resample (new)')} value="resample" id="a-rs" />
+        </RadioButtonGroup>
+        {action === 'resample' &&
+          <InlineNotification kind="info" lowContrast hideCloseButton style={{ marginTop: '0.75rem' }}
+            title="Resample"
+            subtitle={t('help.nce.sampleAction.resample',
+              'Reject this sample and create a new collection order for re-collection. The requester will be notified.')} />}
+      </div>
+    </Modal>
+  );
+}
 
-            <NewRegion>
-              <Tile>
-                <Table size="md">
-                  <TableHead>
-                    <TableRow>
-                      <TableHeader>#</TableHeader>
-                      <TableHeader>Sample Type</TableHeader>
-                      <TableHeader>Accession</TableHeader>
-                      <TableHeader style={{ background: '#fcf4d6' }}>Eligibility (new)</TableHeader>
-                      <TableHeader>NCE Button (existing)</TableHeader>
-                      <TableHeader></TableHeader>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {MOCK_SAMPLES.map(s => (
-                      <TableRow key={s.id}>
-                        <TableCell>{s.idx}</TableCell>
-                        <TableCell>{s.type}</TableCell>
-                        <TableCell><code style={{ fontSize: 12 }}>{s.accession}</code></TableCell>
-                        <TableCell>
-                          {s.status === 'eligible'
-                            ? <Tag type="green" size="sm">✓ Eligible</Tag>
-                            : <Tag type="warm-gray" size="sm">⚠ Review</Tag>}
-                        </TableCell>
-                        <TableCell>
-                          <Button kind="tertiary" size="sm" renderIcon={Warning} onClick={() => setShowNceDialog(true)}>
-                            Flag NCE
-                          </Button>
-                        </TableCell>
-                        <TableCell>
-                          <Button kind="ghost" size="sm" onClick={() => setOpenSampleId(s.id)}>
-                            Open Eligibility →
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Tile>
-            </NewRegion>
+// ---- Step 3 screen ---------------------------------------------------------
+function Step3({ items }) {
+  const [selected, setSelected] = useState(SAMPLES[0]);
+  const [nceOpen, setNceOpen] = useState(false);
+  const [nceFailed, setNceFailed] = useState([]);
+  const openNce = (failed) => { setNceFailed(failed); setNceOpen(true); };
+  return (
+    <Grid>
+      <Column lg={10} md={5} sm={4}>
+        <TableContainer title="Step 3 — QA/QC + Intake Acceptance"
+          description="Select a sample to complete its acceptance checklist">
+          <Table>
+            <TableHead><TableRow>
+              <TableHeader>Lab #</TableHeader><TableHeader>Sample type</TableHeader>
+              <TableHeader>Transit</TableHeader><TableHeader>Eligibility</TableHeader>
+            </TableRow></TableHead>
+            <TableBody>
+              {SAMPLES.map((s) => {
+                const tg = tagFor(s.state);
+                return (
+                  <TableRow key={s.id} onClick={() => setSelected(s)}
+                    isSelected={selected.id === s.id} style={{ cursor: 'pointer' }}>
+                    <TableCell>{s.id}</TableCell>
+                    <TableCell>{s.type}</TableCell>
+                    <TableCell>{s.transit}</TableCell>
+                    <TableCell><Tag kind={tg.kind} size="sm">{tg.text}</Tag></TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Column>
+      <Column lg={6} md={3} sm={4}>
+        <ChecklistPanel sample={selected} items={items} onReportNce={openNce} />
+      </Column>
+      <NceDialog open={nceOpen} onClose={() => setNceOpen(false)} sample={selected} failed={nceFailed} />
+    </Grid>
+  );
+}
 
-            {openSample && (
-              <NewRegion label="S-09 v2 Side Panel">
-                <Tile>
-                  <h5>Eligibility Checklist — {openSample.accession} ({openSample.type})</h5>
-                  <Table size="sm">
-                    <TableHead>
-                      <TableRow>
-                        <TableHeader style={{ width: 60 }}>Status</TableHeader>
-                        <TableHeader>Criterion</TableHeader>
-                        <TableHeader>Detail</TableHeader>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {criteria.map(c => (
-                        <TableRow key={c.name}>
-                          <TableCell>
-                            {c.pass
-                              ? <Tag type="green" size="sm">✓</Tag>
-                              : <Tag type="red" size="sm">✕</Tag>}
-                          </TableCell>
-                          <TableCell>{c.name}</TableCell>
-                          <TableCell><span style={{ fontSize: 12, color: c.pass ? '#525252' : '#a2191f' }}>{c.detail}</span></TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  <p style={{ fontSize: 12, color: '#525252', marginTop: 12 }}>
-                    Failing criteria pre-populate the NCE dialog reason picklist when the operator clicks Flag NCE.
-                  </p>
-                  <Stack orientation="horizontal" gap={3} style={{ marginTop: 12 }}>
-                    <Button kind="ghost" onClick={() => setOpenSampleId(null)}>Close</Button>
-                    <Button kind="primary" onClick={() => { setShowNceDialog(true); setOpenSampleId(null); }}>
-                      Flag NCE with these reasons →
-                    </Button>
-                  </Stack>
-                </Tile>
-              </NewRegion>
-            )}
-          </TabPanel>
+// ---- Checklist item master-list admin -------------------------------------
+const cap = (d) => d.charAt(0) + d.slice(1).toLowerCase();
 
-          {/* ── Scene 3 — NCE dialog with Resample option ─────────────── */}
-          <TabPanel>
-            <h3 style={{ margin: '16px 0' }}>NCE Dialog — New "Resample" Radio Option</h3>
-            <p style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
-              The existing OE NCE dialog (coded reason + decision) gains a third sample_action option: <strong>Resample</strong>.
-              On commit, Resample creates a linked new Draft order pre-populated from the original and notifies the customer.
-            </p>
+// `domain` is the SideNav-selected leaf: 'ALL' | 'CLINICAL' | 'ENVIRONMENTAL' | 'VECTOR'
+function ChecklistAdmin({ domain, items, enforcement, setEnforcement }) {
+  const isAll = domain === 'ALL';
+  const own = items.filter((i) => (isAll ? !i.domain : i.domain === domain));
+  const labWide = items.filter((i) => !i.domain);
+  const usesFallback = !isAll && own.length === 0; // domain has no list → lab-wide applies
 
-            <Button onClick={() => setShowNceDialog(true)}>Open NCE Dialog (demo)</Button>
+  return (
+    <Stack gap={6}>
+      <h3 style={{ fontWeight: 400 }}>
+        Sample Acceptance Checklist — {isAll ? 'All domains' : cap(domain)}
+      </h3>
 
-            <Modal
-              open={showNceDialog}
-              modalHeading="Flag NCE — Sample ENV-2026-0412.002"
-              primaryButtonText="Commit"
-              secondaryButtonText="Cancel"
-              onRequestClose={() => setShowNceDialog(false)}
-              onRequestSubmit={() => setShowNceDialog(false)}
-            >
-              <ExistingRegion>
-                <div style={{ marginBottom: 12 }}>
-                  <p style={{ fontSize: 12, color: '#525252', marginBottom: 6 }}>NCE Reason (existing coded picklist)</p>
-                  <Select
-                    id="nce-reason"
-                    labelText=""
-                    hideLabel
-                    value={nceReason}
-                    onChange={(e) => setNceReason(e.target.value)}
-                  >
-                    <SelectItem value="TRANSIT-EXCEEDED" text="Transit time exceeded" />
-                    <SelectItem value="COND-BROKEN" text="Cold-chain broken" />
-                    <SelectItem value="CONT-DAMAGED" text="Container damaged" />
-                    <SelectItem value="VOL-INSUFFICIENT" text="Volume insufficient" />
-                  </Select>
-                </div>
-              </ExistingRegion>
+      {!isAll && (
+        <Tile style={{ padding: '1rem' }}>
+          <Select id={`enf-${domain}`}
+            labelText={`${t('label.eligibility.enforcement', 'Checklist enforcement')} — ${cap(domain)}`}
+            value={enforcement[domain]} onChange={(e) => setEnforcement({ ...enforcement, [domain]: e.target.value })}
+            style={{ maxWidth: 360 }}>
+            <SelectItem value="MANDATORY" text={t('option.eligibility.enforcement.mandatory', 'Mandatory')} />
+            <SelectItem value="OPTIONAL" text={t('option.eligibility.enforcement.optional', 'Optional')} />
+            <SelectItem value="OFF" text={t('option.eligibility.enforcement.off', 'Off')} />
+          </Select>
+        </Tile>
+      )}
 
-              <NewRegion label="S-09 v2 NEW">
-                <p style={{ fontSize: 12, color: '#525252', marginBottom: 6 }}>Sample Action (new third radio)</p>
-                <RadioButtonGroup
-                  name="sample-action"
-                  valueSelected={nceAction}
-                  onChange={(value) => setNceAction(value)}
-                  orientation="vertical"
-                >
-                  <RadioButton id="action-flag" labelText="Continue with NCE flag (existing)" value="flag" />
-                  <RadioButton id="action-reject" labelText="Reject sample (existing)" value="reject" />
-                  <RadioButton id="action-resample" labelText="Resample — create linked new order + notify customer (NEW)" value="resample" />
-                </RadioButtonGroup>
+      {usesFallback && (
+        <InlineNotification kind="info" lowContrast hideCloseButton
+          title={`No ${cap(domain)} items configured`}
+          subtitle="The lab-wide (All domains) checklist applies for this domain. Add an item here to override it." />
+      )}
 
-                {nceAction === 'resample' && (
-                  <div style={{ marginTop: 12, padding: 12, background: '#edf5ff', borderLeft: '3px solid #0f62fe', fontSize: 13 }}>
-                    <strong>On commit:</strong>
-                    <ul style={{ marginTop: 6, marginLeft: 16 }}>
-                      <li>Original sample marked <code>REJECTED_RESAMPLING</code> (terminal)</li>
-                      <li>New Draft order created with <code>resampled_from = ENV-2026-0412</code>; site, standard, sample types, tests pre-populated</li>
-                      <li><Email size={14} style={{ verticalAlign: 'middle' }} /> Notification sent to original requester via configured channel (email or TextIt SMS)</li>
-                    </ul>
-                  </div>
-                )}
-              </NewRegion>
+      {/* This domain's own (editable) items */}
+      <TableContainer title={isAll ? 'Lab-wide items (apply unless a domain overrides)' : `${cap(domain)} items`}>
+        <Table>
+          <TableHead><TableRow>
+            <TableHeader>Order</TableHeader><TableHeader>Label</TableHeader>
+            <TableHeader>Active</TableHeader><TableHeader></TableHeader>
+          </TableRow></TableHead>
+          <TableBody>
+            {own.map((it, idx) => (
+              <TableRow key={it.id}>
+                <TableCell>
+                  <IconButton kind="ghost" size="sm" label="Up" disabled={idx === 0}><ArrowUp /></IconButton>
+                  <IconButton kind="ghost" size="sm" label="Down" disabled={idx === own.length - 1}><ArrowDown /></IconButton>
+                </TableCell>
+                <TableCell>{it.label}</TableCell>
+                <TableCell><Toggle id={`act-${it.id}`} size="sm" defaultToggled={it.active} labelA="" labelB="" /></TableCell>
+                <TableCell>
+                  <IconButton kind="ghost" size="sm" label="Edit"><Edit /></IconButton>
+                  <IconButton kind="ghost" size="sm" label="Deactivate"><TrashCan /></IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <Button kind="primary" renderIcon={Add} size="sm">{t('button.addItem', 'Add item')}</Button>
 
-              <ExistingRegion>
-                <TextArea
-                  id="nce-notes"
-                  labelText="Notes (existing free-text)"
-                  rows={2}
-                  placeholder="Additional context for the NCE record"
-                />
-              </ExistingRegion>
-            </Modal>
-          </TabPanel>
+      {/* Lab-wide items shown visible-disabled when this domain has its own list (FR-03/FR-04) */}
+      {!isAll && own.length > 0 && (
+        <TableContainer title="Lab-wide items — superseded here (edit from “All domains”)"
+          description="Shown for reference; the domain list above takes precedence.">
+          <Table>
+            <TableHead><TableRow>
+              <TableHeader>Label</TableHeader><TableHeader>Status for this domain</TableHeader>
+            </TableRow></TableHead>
+            <TableBody>
+              {labWide.map((it) => (
+                <TableRow key={it.id}>
+                  <TableCell style={{ opacity: 0.5 }}>{it.label}</TableCell>
+                  <TableCell><Tag size="sm" kind="gray">Superseded</Tag></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Stack>
+  );
+}
 
-          {/* ── Scene 4 — Lab Unit gate config ─────────────────────── */}
-          <TabPanel>
-            <h3 style={{ margin: '16px 0' }}>Lab Unit Admin — Gate Behavior per Domain</h3>
-            <p style={{ fontSize: 13, color: '#525252', marginBottom: 16 }}>
-              Each lab unit configures gate behavior per-domain: <strong>Mandatory</strong> (block submit until criteria met),
-              <strong> Prompted</strong> (show but allow override), or <strong>Disabled</strong> (criteria checklist hidden).
-              SILNAS labs configure Mandatory for all three domains.
-            </p>
+// ---- App shell -------------------------------------------------------------
+// Navigation is a Carbon SideNav with submenu items (OpenELIS IA) — NOT in-page tabs.
+export default function S09Mockup() {
+  const [route, setRoute] = useState({ screen: 'step3' });
+  const [items] = useState(DEFAULT_ITEMS);
+  const [enforcement, setEnforcement] = useState({ CLINICAL: 'OPTIONAL', ENVIRONMENTAL: 'MANDATORY', VECTOR: 'MANDATORY' });
+  const onAdmin = route.screen === 'admin';
+  const crumbTail = onAdmin
+    ? ['Admin', 'General Configuration', 'Order Entry Configuration', 'Sample Acceptance Checklist', route.domain === 'ALL' ? 'All domains' : cap(route.domain)]
+    : ['Order', 'Add Order', 'QA-QC + Intake Acceptance'];
 
-            <ExistingRegion>
-              <Tile>
-                <h5>Lab Unit — Env Lab Jakarta</h5>
-                <Grid>
-                  <Column lg={4}><TextInput id="ln" labelText="Name" value="Env Lab Jakarta" readOnly /></Column>
-                  <Column lg={4}><TextInput id="ld" labelText="Domain Assignment" value="Environmental" readOnly /></Column>
-                </Grid>
-              </Tile>
-            </ExistingRegion>
+  return (
+    <div style={{ display: 'flex' }}>
+      <SideNav isFixedNav expanded isChildOfHeader={false} aria-label="Side navigation">
+        <SideNavItems>
+          <SideNavMenu title="Order" defaultExpanded>
+            <SideNavMenuItem isActive={route.screen === 'step3'} onClick={() => setRoute({ screen: 'step3' })}>
+              QA-QC + Intake Acceptance
+            </SideNavMenuItem>
+          </SideNavMenu>
+          <SideNavMenu title="Order Entry Config · Acceptance Checklist" defaultExpanded>
+            {['ALL', ...DOMAINS].map((d) => (
+              <SideNavMenuItem key={d} isActive={onAdmin && route.domain === d}
+                onClick={() => setRoute({ screen: 'admin', domain: d })}>
+                {d === 'ALL' ? 'All domains' : cap(d)}
+              </SideNavMenuItem>
+            ))}
+          </SideNavMenu>
+        </SideNavItems>
+      </SideNav>
 
-            <NewRegion>
-              <Tile>
-                <h5 style={{ marginBottom: 12 }}>Eligibility Gate Behavior</h5>
-                <Table size="sm">
-                  <TableHead>
-                    <TableRow>
-                      <TableHeader>Domain</TableHeader>
-                      <TableHeader>Gate Behavior</TableHeader>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {['Clinical', 'Env', 'Vector'].map(d => (
-                      <TableRow key={d}>
-                        <TableCell>{d}</TableCell>
-                        <TableCell>
-                          <Select
-                            id={`gb-${d}`}
-                            labelText="" hideLabel size="sm"
-                            value={gateConfig[d]}
-                            onChange={(e) => setGateConfig(prev => ({ ...prev, [d]: e.target.value }))}
-                          >
-                            <SelectItem value="Mandatory" text="Mandatory — block submit if any sample failing" />
-                            <SelectItem value="Prompted"  text="Prompted — show but allow single-click override" />
-                            <SelectItem value="Disabled"  text="Disabled — hide criteria checklist" />
-                          </Select>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Tile>
-            </NewRegion>
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
+      <div style={{ padding: '1rem 2rem', flex: 1 }}>
+        <Breadcrumb noTrailingSlash>
+          <BreadcrumbItem href="#">Home</BreadcrumbItem>
+          {crumbTail.slice(0, -1).map((c) => <BreadcrumbItem key={c} href="#">{c}</BreadcrumbItem>)}
+          <BreadcrumbItem isCurrentPage>{crumbTail[crumbTail.length - 1]}</BreadcrumbItem>
+        </Breadcrumb>
+        <div style={{ marginTop: '1rem' }}>
+          {route.screen === 'step3'
+            ? <Step3 items={items} />
+            : <ChecklistAdmin domain={route.domain} items={items} enforcement={enforcement} setEnforcement={setEnforcement} />}
+        </div>
+      </div>
     </div>
   );
 }

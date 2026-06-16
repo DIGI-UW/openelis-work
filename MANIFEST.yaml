@@ -2404,12 +2404,14 @@
   preview: designs/sample-collection/pre-analytical-eligibility-gate.html
   category: sample-collection
   description: >
-    S-09 Pre-Analytical Eligibility Gate & Resampling — extends Step 4 (QA Review) of the
-    Sample Collection Redesign with a formal pre-analytical eligibility gate meeting ISO 15189
-    §5.4 and ISO 17025 §7.4 requirements. Adds criteria checklist, Resample sample_action on
-    existing NCE inline form, Eligibility Worklist sidebar entry, and per-SampleType acceptance
-    criteria + per-lab-unit gate behavior configuration. Layer 4 addendum to Sample Collection
-    Redesign (OGC-527 epic).
+    S-09 v3.0 Pre-Analytical Eligibility Gate & Resampling (simplification rewrite of v2.0) —
+    a generic, manually-completed sample acceptance checklist at reception Step 3, plus a Resample
+    action that rejects a sample and spawns a linked pre-populated draft order with requester
+    notification. Replaces the v2.0 auto-evaluating per-SampleType criteria engine; configuration is
+    a lightweight master list fully decoupled from the Test Catalog editor (OGC-746, Done 2026-06-15,
+    removed the SampleType admin tab v2.0 relied on). No new status enum, no new permission keys.
+    Addendum to S-03 v2.0 Environmental Order Entry (OGC-537) §5.3. Supporting docs: revisit analysis
+    + story breakdown (designs/sample-collection/S09-eligibility-gate-{analysis,breakdown}-v3.md).
   links:
     jira: ["OGC-527", "OGC-580"]
     other:
@@ -2427,6 +2429,7 @@
     - SILNAS
     - Indonesia
   added: "2026-04-16"
+  updated: "2026-06-16"
   status: draft
 
 - id: vector-collection-workflow
