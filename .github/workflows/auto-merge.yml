@@ -12,5 +12,7 @@ jobs:
       - name: Enable auto-merge (squash) once CI passes
         run: gh pr merge --auto --squash "$PR_URL"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Use a PAT so the squash-merge push triggers deploy-gallery.yml.
+          # GITHUB_TOKEN-performed merges do NOT cascade to other workflows.
+          GH_TOKEN: ${{ secrets.PR_BOT_TOKEN || secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
