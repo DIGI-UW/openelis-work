@@ -1,5 +1,23 @@
 # openelis-design — Changelog
 
+## 2026-06-18 (round 2) — Memory promoted into references + verified IA
+
+- Added `references/verified-data-models.md` — field-verified data models (App/Common
+  Properties, Site Info, Validation, WorkPlan, Order/Patient Entry, Menu Config, Test
+  Notification, Test Catalog Alerts) so /specify reuses real fields (design-addendum MUST A).
+- Promoted `references/module-inventory.md` and `references/current-state-gotchas.md` from
+  draft stubs to populated (Jira anchors OGC-527/899/1031/556, referral URL, EQA V2,
+  reagent linkage, label presets, known-broken routes from QA).
+- Added `references/jira-conventions.md` — clickable links, Done≠shipped, PR-sized slicing
+  for Claude Code, labels, no-emoji-in-funder-docs, reorg proposal (unapplied).
+- Added `references/admin-ia-inventory.md` — self-contained verified admin route snapshot
+  (no longer depends on the openelis-test-catalog-qa skill being loaded).
+- **Corrected the admin URL pattern** in SKILL.md: live app uses path-segment
+  `/MasterListsPage/<editorKey>` (e.g. `/MasterListsPage/commonproperties`), NOT the old
+  `?type=` query form. Updated IA section, examples, and JSX route comment.
+- Updated the Reference Files table to list all 8 references.
+
+
 ## 2026-06-18 — Reference docs added + governance consolidation
 - Added the support files SKILL.md referenced but that weren't shipped in the bundle:
   - `references/carbon-anti-patterns.md` (full catalog)
