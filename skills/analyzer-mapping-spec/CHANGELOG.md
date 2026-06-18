@@ -1,5 +1,20 @@
 # analyzer-mapping-spec — Changelog
 
+## 2026-06-18 (round 2) — Reuse, quality gate, coverage, exemplar
+
+- **`references/mapping-library.md`** — reusable verified fragments (qualitative value maps,
+  QC conventions, abnormal flags, transforms, per-instrument field maps) with confidence +
+  source per fragment. Start here before writing a spec; reuse instead of re-deriving.
+- **`references/spec-checklist.md`** — "unit tests for the spec": a pre-handoff quality gate
+  (grounding, record/segment coverage, QC rules, sample-message-shown-parsing, no
+  implementation direction, portfolio registration).
+- **Non-ASTM/HL7/CSV branch** in Step 1 — classify & route JSON/proprietary/genomic/print-only
+  instruments instead of forcing a fit. Classification only — no implementation direction.
+- **`references/example-spec-annotated.md`** — a complete, annotated worked example (Mindray
+  BC-5380 HL7) to calibrate quality; marked ILLUSTRATIVE, verify-against-IFU.
+- Dropped the unexplained "1.2-style profiling approach" phrase from the description.
+- Reinforced throughout: specs describe the **mapping/behavior**, not how to implement it.
+
 ## 2026-06-18 — De-stale + harmonize with openelis-design
 
 - **Scope boundary added.** This skill owns protocol/field-mapping + companion setup +
