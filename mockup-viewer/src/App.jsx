@@ -535,6 +535,31 @@ export const MOCKUP_REGISTRY = [
 
   // ─── Analyzer Integration ───
   {
+    name: 'Analyzer Types & Mapping',
+    category: 'analyzer-integration',
+    component: null,
+    description: 'Completes the Generic ASTM/HL7/Flat-file module with reusable, forkable Analyzer Types and a lab-facing GUI to map an instrument\'s tests, result values, and QC codes to the catalog. Replaces the developer-facing "Analyzer Types" plugin-registry page; guided instrument-first setup whose normal path is verify. HTML prototype + version-agnostic FRS.',
+    specPath: 'designs/analyzer-integration/analyzer-profile-mapping.md',
+    htmlUrl: 'designs/analyzer-integration/analyzer-profile-mapping.html',
+    added: '2026-06-18',
+    status: 'draft',
+    jira: ['OGC-1054'],
+    relatedTo: ['Analyzer Types & Mapping — Gap Analysis'],
+    tags: ['analyzer', 'mapping', 'profiles', 'analyzer-types', 'ASTM', 'HL7', 'flat-file', 'Madagascar'],
+  },
+  {
+    name: 'Analyzer Types & Mapping — Gap Analysis',
+    category: 'analyzer-integration',
+    component: null,
+    description: 'Functional gap analysis grounding the Analyzer Types & Mapping FRS: reviews ~20 shipped Madagascar profiles and the ASTM/HL7/flat-file addenda, surfacing the inconsistent value-handling that the feature normalizes.',
+    specPath: 'designs/analyzer-integration/analyzer-profile-mapping-gap-analysis.md',
+    added: '2026-06-18',
+    status: 'draft',
+    jira: ['OGC-1054'],
+    relatedTo: ['Analyzer Types & Mapping'],
+    tags: ['analyzer', 'mapping', 'gap-analysis', 'profiles', 'Madagascar'],
+  },
+  {
     name: 'Sysmex XP Field Mapping',
     category: 'analyzer-integration',
     component: null,

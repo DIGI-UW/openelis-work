@@ -3609,3 +3609,31 @@
     - labkesmas
   added: "2026-06-15"
   status: draft
+
+- id: analyzer-profile-mapping
+  type: html
+  path: designs/analyzer-integration/analyzer-profile-mapping.html
+  spec: designs/analyzer-integration/analyzer-profile-mapping.md
+  preview: designs/analyzer-integration/analyzer-profile-mapping.html
+  category: analyzer-integration
+  description: >
+    Analyzer Types & Mapping — reusable forkable Analyzer Types + lab-facing GUI mapping of
+    instrument tests/result values/QC codes to the catalog. Completes the Generic ASTM/HL7/Flat-file
+    module. HTML prototype + version-agnostic FRS.
+  links:
+    jira: ["OGC-1054"]
+    gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-profile-mapping
+    preview: https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-profile-mapping.html
+  added: "2026-06-18"
+
+- id: analyzer-profile-mapping-gap-analysis
+  type: spec
+  path: designs/analyzer-integration/analyzer-profile-mapping-gap-analysis.md
+  category: analyzer-integration
+  description: >
+    Functional gap analysis grounding the Analyzer Types & Mapping FRS (reviews ~20 shipped
+    Madagascar profiles + ASTM/HL7/flat-file addenda).
+  links:
+    jira: ["OGC-1054"]
+    gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-profile-mapping-gap-analysis
+  added: "2026-06-18"
