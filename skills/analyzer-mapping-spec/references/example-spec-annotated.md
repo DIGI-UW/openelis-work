@@ -21,19 +21,21 @@ Protocol: HL7 v2.3.1 over MLLP/TCP
 Plugin: generic-hl7
 Jira: OGC-XXX
 Author: [name]
-Confidence: **MEDIUM-HIGH** (shape from HL7 standard + product class; exact field positions/port not verified against the BC-5380 IFU)
+Confidence: **HIGH** for the test/LOINC panel and transport (adapted from a real seed profile); **per-deployment** for catalog test IDs. Real HL7 message captures still pending — keep field positions provisional until confirmed against a capture.
 
-▸ **Why a confidence line:** it tells the reader how much to trust the field positions. "MEDIUM-HIGH, IFU not verified" is honest and sets the dev's expectation to confirm before wiring.
+▸ **Why a confidence line:** it tells the reader exactly how much to trust each part — here the panel/transport come from a real profile, but field positions await a live capture. Honest, granular confidence beats a single blanket rating.
+
+**Source:** adapted from the Madagascar distro seed profile `configs/analyzer-profiles/hl7/mindray-bc5380.json` (`analyzer-defaults/1.0`). That's a *distro seed*, not a universal source — reuse the panel, re-verify the rest (see `profile-reuse.md`).
 
 ## 1. Overview
 - **Instrument:** Mindray BC-5380, 5-part differential hematology analyzer.
-- **Test menu:** CBC + 5-part WBC differential (WBC, RBC, HGB, HCT, PLT, NEU%, LYM%, …).
+- **Test menu:** CBC + 5-part differential (WBC, RBC, HGB, HCT, MCV, MCH, MCHC, PLT, NEUT, LYMPH, MONO, EOS, BASO).
 - **Deployment context:** [lab unit = Hematology; site].
-- **Protocol confirmed:** HL7 v2.3.1 over MLLP. *(Verify against IFU — Mindray uses HL7, not ASTM; this is a common misclassification.)*
-- **Communication mode:** SERVER — OpenELIS listens.
-- **Default TCP port:** 9100 *(ILLUSTRATIVE — confirm per install)*.
+- **Protocol confirmed:** HL7 v2.3.1 over MLLP. *(Mindray uses HL7, not ASTM — a common misclassification.)*
+- **Communication mode:** SERVER — OpenELIS listens. `mode: BOTH` in the seed (bidirectional ORM/ORR documented by vendor, not yet implemented in OE — OGC-327).
+- **TCP port / framing:** **5380**, MLLP *(from the seed profile; confirm per install)*.
 
-▸ **Why call out SERVER + port up front:** the companion guide and the firewall request both depend on it; getting it wrong blocks the whole integration.
+▸ **Why call out SERVER + port up front:** the companion guide and the firewall request both depend on it; getting it wrong blocks the whole integration. (Note: the port is **5380**, not a generic 9100 — copy it from the real profile, don't guess.)
 
 ## 2. MLLP Framing
 - Start block `0x0B`; end block `0x1C 0x0D`.
@@ -62,20 +64,25 @@ Confidence: **MEDIUM-HIGH** (shape from HL7 standard + product class; exact fiel
 
 ▸ **Why every row carries an example + a note:** "OBX-3" alone is ambiguous; `^^^WBC` + "strip `^^^`" tells the dev exactly what arrives and what to do. The note column is where the real knowledge lives.
 
-## 4. Test Code Reference (reuse the mapping-library where verified)
-| Analyzer code | Test name | Result type | Unit | Transform | OE Test ID |
-|---|---|---|---|---|---|
-| `WBC` | White Blood Cell count | NUMERIC | 10³/µL | PASSTHROUGH | TBD |
-| `HGB` | Hemoglobin | NUMERIC | g/dL | PASSTHROUGH | TBD |
-| `PLT` | Platelet count | NUMERIC | 10³/µL | PASSTHROUGH | TBD |
-| `NEU%` | Neutrophil % | NUMERIC | % | PASSTHROUGH | TBD |
+## 4. Test Code Reference (LOINC panel — reused from the seed profile)
+The **LOINC column is the reusable core** (identical for any CBC analyzer, ASTM or HL7); copy it from the seed profile, don't re-derive. Units/codes are the BC-5380's. OE Test ID is per-deployment.
 
-▸ **Why `TBD` on OE Test ID:** the mapping to the lab's catalog test is per-deployment and is *verified*, not guessed — leaving TBD is correct until matched (by LOINC) in the live catalog. Inventing an ID would be worse than TBD.
+| Analyzer code | Test name | LOINC | Unit | Result type | OE Test ID |
+|---|---|---|---|---|---|
+| `WBC` | White Blood Cells | 6690-2 | 10^3/uL | NUMERIC | TBD |
+| `HGB` | Hemoglobin | 718-7 | g/dL | NUMERIC | TBD |
+| `PLT` | Platelet Count | 777-3 | 10^3/uL | NUMERIC | TBD |
+| `NEUT` | Neutrophils | 751-8 | % | NUMERIC | TBD |
+| … | (full CBC panel per seed) | … | … | … | … |
+
+▸ **Why LOINC, not a transform column:** the profile maps the **test by LOINC** and passes the value through; it doesn't rename values. The same LOINC map is reused verbatim by the Sysmex XN (ASTM) — that's the cross-vendor/cross-protocol reuse. **Why `TBD` on OE Test ID:** the catalog match is per-deployment and *verified* (by LOINC) in the live catalog — leaving TBD is correct; inventing an ID would be worse.
+
+▸ **Default-TC deliverable:** for this profile to auto-match on a fresh install, each LOINC above must be carried by a test in the **OpenELIS Global Default test catalog**. Any that aren't (check them) are added to the Default TC as part of this spec. A **custom-TC** deployment instead maps these LOINCs to its own catalog's tests — that part is deployment-specific and not reusable.
 
 ## 5. Abnormal Flag Mapping
-Standard ASTM/HL7 flags — reused verbatim from `mapping-library.md` §3: H/L → HIGH/LOW, HH/LL → CRITICAL_HIGH/LOW, N → NORMAL.
+Protocol-standard flags — from `profile-reuse.md`: H/L → HIGH/LOW, HH/LL → CRITICAL_HIGH/LOW, N → NORMAL.
 
-▸ **Why point to the library:** this table is identical across most instruments — reuse it, don't retype and risk a typo.
+▸ **Why point to profile-reuse:** this table is the one true protocol-invariant — identical across instruments, so reuse it rather than retype and risk a typo.
 
 ## 6. QC Identification Rules (OR logic)
 | Rule type | Field | Value/pattern | Note |
@@ -112,9 +119,10 @@ OBX|3|NM|^^^PLT||145|10³/µL|150-400|L|F
 ---
 
 ## What to copy from this example
-- A justified **confidence line** and explicit "verify against IFU" honesty.
+- A **granular confidence line** + a cited **source profile**, honest about what's verified (panel/transport) vs pending (field positions until a real capture).
+- The **LOINC panel reused from an existing profile** — copied, not re-derived — with the transport/port taken from the real profile (5380, not a guessed 9100).
 - Every mapping row with an **example value + a note**.
-- **QC rules** and **abnormal flags** always present (reuse the library).
+- **QC rules** and **abnormal flags** always present (flags reused from `profile-reuse.md`).
 - A **sample message with a parse trace** as evidence.
-- Reuse of `mapping-library.md` fragments instead of retyping.
+- **No value renames in the "profile"** — map by LOINC, let result options resolve against the catalog test.
 - **No implementation direction** — describe the mapping and the instrument, not how to build the adapter.

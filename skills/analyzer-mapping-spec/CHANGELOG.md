@@ -1,10 +1,24 @@
 # analyzer-mapping-spec — Changelog
 
+## 2026-06-18 (round 3) — LOINC reuse is Default-TC-conditional
+
+- Corrected the reuse claim: a profile's LOINC panel only auto-matches a deployment whose test
+  catalog carries those LOINCs — i.e. **out of the box only on the OpenELIS Global Default test
+  catalog**. Custom-TC deployments must do their own LOINC↔catalog matching (not reusable).
+- Added a deliverable to every spec: **contribute the analyzer's LOINC-coded tests to the
+  Default TC** when missing, so the integration works out of the box on a fresh install.
+- Reflected in profile-reuse.md, SKILL.md deliverables, spec-checklist, golden example, and the
+  Jira deliverables list.
+
 ## 2026-06-18 (round 2) — Reuse, quality gate, coverage, exemplar
 
-- **`references/mapping-library.md`** — reusable verified fragments (qualitative value maps,
-  QC conventions, abnormal flags, transforms, per-instrument field maps) with confidence +
-  source per fragment. Start here before writing a spec; reuse instead of re-deriving.
+- **`references/profile-reuse.md`** — reuse mechanism grounded in the **real profile schema**
+  (`analyzer-defaults/1.0`). Teaches the correct reuse axis: the **test→LOINC panel map** is
+  reusable across vendors *and* protocols (Sysmex XN ASTM == Mindray BC-5380 HL7 for CBC), while
+  transport/QC/identifier are per-instrument. Points at distro profile sets (e.g. Madagascar
+  `configs/analyzer-profiles/`) as **examples to adapt — not a universal source** — and flags the
+  canonical/community profile home as an open question. (Replaced an earlier hand-typed
+  "mapping-library" that organized by the wrong axis and carried misleading specifics.)
 - **`references/spec-checklist.md`** — "unit tests for the spec": a pre-handoff quality gate
   (grounding, record/segment coverage, QC rules, sample-message-shown-parsing, no
   implementation direction, portfolio registration).

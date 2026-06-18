@@ -15,7 +15,7 @@ through.
 ## Grounding & sourcing
 - [ ] Every field position / segment number traces to a **named source** (vendor LIS manual + version, or a captured real message) — none are guessed.
 - [ ] Confidence rating is set and **justified** (HIGH = vendor docs; MEDIUM-HIGH = unverified UI/menu paths; VALIDATED = confirmed in production). No HIGH without a cited manual.
-- [ ] Anything reused from `references/mapping-library.md` kept its source/confidence (no ILLUSTRATIVE fragment asserted as fact).
+- [ ] If a mapping was adapted from an existing profile (per `references/profile-reuse.md`), the panel's LOINC map was reused but the **per-instrument bits (transport/port, QC field, identifier) were re-verified**, not blindly inherited; the profile's `confidence`/`notes` were carried forward.
 - [ ] Protocol was **verified, not assumed** (e.g. Mindray = HL7, not ASTM).
 
 ## Completeness — record/segment coverage
@@ -23,6 +23,7 @@ through.
 - [ ] **HL7:** every segment used is documented (MSH, PID, OBR, OBX, NTE as used); MLLP framing + ACK behavior stated.
 - [ ] **CSV:** delimiter, **encoding**, line endings, header row, and file-discovery (path, naming, poll interval, post-import action) all specified.
 - [ ] Each test code has: analyzer code, test name, result type, unit, transform, and the OpenELIS target (or `TBD` flagged).
+- [ ] **Default-TC LOINC coverage:** every analyzer test's LOINC is checked against the OpenELIS Global Default test catalog; any LOINC the Default TC doesn't carry is listed as a **Default-TC addition** so the profile auto-matches OOTB. Noted that custom-TC deployments do their own LOINC↔catalog matching (not reusable).
 - [ ] **QC identification rules** present, using **OR logic**, with concrete field/value/prefix triggers.
 - [ ] **Abnormal flag mapping** table present (or N/A for purely qualitative).
 - [ ] **Result aggregation mode** stated: `BY_SPECIMEN` (with window) or `PER_MESSAGE`.

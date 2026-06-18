@@ -64,6 +64,7 @@ Tool: createJiraIssue
 2. Companion analyzer setup guide
 3. OpenELIS analyzer profile (JSON) for Profile Library
 4. Analyzer Integration Tracker update
+5. Default-TC LOINC additions — any analyzer-test LOINC not already in the OpenELIS Global Default test catalog, contributed so the profile auto-matches OOTB (custom-TC sites do their own matching)
 
 ## Key Mappings
 [Brief summary of test codes, record types, QC rules]
