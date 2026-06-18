@@ -130,7 +130,7 @@ Constitution Principle 7 mandates this. Commit in writing to:
 - **IA Placement:** *(see IA Placement Conventions below)* declare three things together:
   1. **SideNav placement** — the full menu path: top-level group → parent → sibling order (e.g. `Admin → Configuration → Application Properties`, listed after `Print Layout`)
   2. **Breadcrumb trail** — the exact crumb chain rendered at the top of the page, including the active leaf (e.g. `Home / Admin / Configuration / Application Properties`)
-  3. **URL route** — the stable, well-formed URL the dev should wire up. Must match an existing legacy pattern (see conventions). Call out the route in `code formatting`, e.g. `/MasterListsPage?type=applicationProperties`. If extending an existing page, reuse its URL; if new, pick the pattern that fits the closest neighbor.
+  3. **URL route** — the stable, well-formed URL the dev should wire up. Must match an existing pattern (see conventions). Call out the route in `code formatting`, e.g. `/MasterListsPage/commonproperties`. If extending an existing page, reuse its URL; if new, pick the pattern that fits the closest neighbor.
 - **Permissions & Audit:** *(see `references/permissions-and-audit.md`)* declare four things together:
   1. **Role attachment** — which existing role bundle(s) grant access to this feature. Default to attaching to an existing role (Reception / Analyst / Validator / Provider / Admin / Test Catalog Manager / EQA Provider). **Do not invent granular permission keys** — OpenELIS uses binary admin + per-module role bundles, not per-action keys.
   2. **Roles Builder additions** — if the feature introduces a new module-level grant that admins toggle per role, declare: grant label (with i18n key), default role assignments on upgrade, and where it appears on the Roles Builder page. If no new grant is needed, state that explicitly: "None — accessible via existing `[Role]` bundle."
@@ -143,20 +143,24 @@ Share the brief. Adjust on feedback. Then produce the deliverables.
 
 A spec without a declared SideNav slot, breadcrumb, and URL is incomplete — devs will guess, and the result is fragmented IA and unstable URLs. These three items always travel together and must match each other (the breadcrumb chain and SideNav path describe the same hierarchy; the URL is what loads that page).
 
-**Source of truth for current patterns:** the live testing instance at `https://testing.openelis-global.org` plus the 28-URL admin inventory in the `openelis-test-catalog-qa` skill, Section 4. **Always verify against the live app** before declaring a route — memory of URL patterns can be stale. Open the existing page closest to your new feature and copy the pattern.
+**Source of truth for current patterns:** the live testing instance at `https://testing.openelis-global.org` plus the verified route snapshot in `references/admin-ia-inventory.md` (self-contained in this skill; mirrors the `openelis-test-catalog-qa` Section 4 inventory). **Always verify against the live app** before declaring a route — memory of URL patterns can be stale. Open the existing page closest to your new feature and copy the pattern (including the exact `editorKey`, which is often not the feature's plain name — Application Properties is `commonproperties`).
 
-**URL patterns currently in use (verify each against live):**
+**URL patterns currently in use (verify each against live — see `references/admin-ia-inventory.md` for the full route table):**
 
 | Pattern | When to use | Example |
 |---|---|---|
-| `/MasterListsPage?type=<editorKey>` | New React admin editor that lives under the "Master Lists" admin shell | `/MasterListsPage?type=applicationProperties` |
-| `/admin/<Resource>` | Dedicated React admin page with its own route | `/admin/menu-statement` |
+| `/MasterListsPage/<editorKey>` | React admin editor under the "Master Lists" admin shell (the common case) | `/MasterListsPage/commonproperties` |
+| `/<Resource>` | Dedicated top-level React page | `/Alerts`, `/Inventory`, `/analyzers` |
 | `/<Resource>Edit?id=<uuid>` | Per-record editor opened from a list | `/SystemUserEdit?id=...` |
-| `/api/OpenELIS-Global/<Page>` | Legacy JSP shell — only reference for not-yet-migrated pages | `/api/OpenELIS-Global/MasterListsPage` |
+| `/api/OpenELIS-Global/<Page>` | Legacy JSP shell — only reference for not-yet-migrated pages | `/api/OpenELIS-Global/ProviderMenu` |
+
+> ⚠ The admin shell uses a **path segment** (`/MasterListsPage/<editorKey>`), **not** a query
+> string (`?type=`). Earlier versions of this skill taught the `?type=` form — it's wrong
+> against the live app. IDs still go in query strings (`?id=<uuid>`).
 
 **Well-formed URL rules:**
 - Match the casing and separator of the closest neighbor. Don't mix kebab-case routes into a camelCase neighborhood (or vice versa) for cosmetic reasons.
-- The `type=` selector value must be a stable identifier — same string the menu item links to, same string the breadcrumb leaf maps to via i18n. Don't auto-generate it.
+- The `editorKey` path segment must be a stable identifier — the same string the menu item links to and the breadcrumb leaf maps to via i18n. Copy it exactly from the inventory; don't auto-generate or guess it from the feature name.
 - Path segments must be stable across navigations. No session IDs, no auto-incrementing screen tokens.
 - IDs go in query strings (`?id=<uuid>`), never as path segments, to stay consistent with existing editors.
 - Deep-linkable: pasting the URL into a new tab must load the same view. If the page has tabs or filters that matter to the bookmark, declare which ones get encoded into the URL.
@@ -170,7 +174,7 @@ A spec without a declared SideNav slot, breadcrumb, and URL is incomplete — de
 - **FRS:** Add the SideNav placement, breadcrumb chain, and URL near the top of the Overview section (or as a small "Navigation & URL" subsection if the feature touches multiple pages). The i18n keys for breadcrumb labels go in the Localization table.
 - **Mockup (JSX):** Render the breadcrumb using `<Breadcrumb>` + `<BreadcrumbItem>` from `@carbon/react` at the top of the page. Put the declared URL in a leading comment so it survives copy/paste:
   ```jsx
-  // Route: /MasterListsPage?type=applicationProperties
+  // Route: /MasterListsPage/commonproperties
   // SideNav: Admin → Configuration → Application Properties
   ```
 - **HTML preview:** Echo the route in the preview banner so reviewers see it without opening the JSX.
@@ -826,4 +830,7 @@ preview. Don't drift from the brief.
 | `references/frs-template.md` | When writing any FRS document |
 | `references/jira-template.md` | When `/breakdown` creates the Epic and child Stories |
 | `references/carbon-anti-patterns.md` | During `/analyze` Carbon fidelity pass, or self-critique before delivery |
-| `references/module-inventory.md` | When a feature touches an existing module — check pattern and Jira key |
+| `references/module-inventory.md` | When a feature touches an existing module — check pattern, route, and Jira anchor |
+| `references/verified-data-models.md` | During `/specify` Stage 1 and `/analyze` Pass G — reuse field-verified data models instead of inventing fields |
+| `references/admin-ia-inventory.md` | During `/specify` Stage 2 (IA Placement) and `/analyze` IA checks — verified admin routes + SideNav structure (self-contained; route pattern is `/MasterListsPage/<editorKey>`) |
+| `references/jira-conventions.md` | During `/breakdown` and any reporting — clickable links, Done≠shipped, PR-sized slicing, labels, no-emoji, reorg proposal |
