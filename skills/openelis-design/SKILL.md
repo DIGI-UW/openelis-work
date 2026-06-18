@@ -22,20 +22,21 @@ design-for-large-catalogs) are CRITICAL findings in `/analyze` when violated.
 
 ---
 
-## The Six Commands
+## The Seven Commands
 
-OpenELIS design work is organized into six commands, each with a distinct trigger and output.
+OpenELIS design work is organized into seven commands, each with a distinct trigger and output.
 
 | Command | Trigger phrase | What it does |
 |---|---|---|
 | `/clarify` | "What do I need to decide?", "Am I missing anything?", new feature with gaps | Structured ambiguity scan → up to 5 questions → answers encoded into spec |
+| `/crosscheck` | "Does this overlap anything?", "Are we contradicting a past decision?", "What depends on this?", new feature at brief time | Portfolio scan: overlaps, decision contradictions, and up/downstream dependencies against the decision log + spec registry |
 | `/constitution` | "Update the design rules", "Add a new principle", "What are our standards?" | View or amend `memory/constitution.md` |
 | `/specify` | "Write the spec", "Build the FRS", "Document this feature" | Full FRS + mockup + visual preview via guided dialogue |
-| `/analyze` | "Review this spec", "Check for issues", crosswalk/harmonization requests | Cross-artifact consistency report |
+| `/analyze` | "Review this spec", "Check for issues", crosswalk/harmonization requests | Cross-artifact consistency report (includes a cross-feature pass) |
 | `/checklist` | "Generate a checklist", "What should I validate?", pre-story quality gate | Domain-specific requirements quality checklist ("unit tests for English") |
 | `/breakdown` | "Break this into stories", "Plan the sprints", "Create the epic" | Slice approved mockup into 1 Epic + versioned child Stories (~20 pts each, 2-week sprints) |
 
-Commands chain naturally: a new feature typically runs `/clarify` → `/specify` → `/analyze` → `/checklist` → `/breakdown`. `/breakdown` is the only command that creates Jira tickets.
+Commands chain naturally: a new feature typically runs `/clarify` → **`/crosscheck`** → `/specify` → `/analyze` → `/checklist` → `/breakdown`. Run `/crosscheck` early (at brief time) so overlaps and contradictions surface *before* you invest in the FRS; it also runs again as a pass inside `/analyze` at the final gate. `/breakdown` is the only command that creates Jira tickets.
 
 ---
 
@@ -85,6 +86,96 @@ For each, mark status: Clear / Partial / Missing.
 **After each answer:** Update the in-progress spec or FRS section immediately. Do not defer encoding until all questions are answered.
 
 **Warning:** If the user explicitly skips clarification, proceed but note: "Downstream rework risk increases without clarification."
+
+---
+
+## `/crosscheck` — Portfolio Overlap, Contradiction & Dependency Scan
+
+**Purpose:** Stop designing each feature in a vacuum. Given a feature brief (or an
+in-progress/finished FRS), check it against everything decided and specced before, so three
+classes of mistake surface early instead of at PR time:
+
+1. **Overlap** — another spec already touches the same entity, route/page, or shared concept.
+2. **Contradiction** — the design reverses a prior decision without saying so.
+3. **Dependency gap** — it depends on something not built yet, or it changes something other
+   specs depend on.
+
+**Run it early.** The whole value is catching divergence *before* the FRS is written, so
+trigger `/crosscheck` at brief time (right after `/clarify`). It also runs automatically as a
+pass inside `/analyze` (see Pass O) for the final gate.
+
+**Inputs it reads:**
+- `references/decision-log.md` — the prior-decisions ledger (match by ID).
+- `references/spec-registry.md` — the overlap/dependency index (match by entity, route/page, shared concept).
+- `references/current-state-gotchas.md` — what's built vs not (for upstream-not-built).
+- `references/verified-data-models.md` + `references/admin-ia-inventory.md` — to normalize entity/route names so matching is reliable.
+
+**Procedure:**
+
+1. **Extract the design's footprint.** From the brief/FRS, list: entities touched, routes/pages,
+   shared concepts (e.g. Critical Acknowledgment, TAT threshold model, Domain enum, QC/validation
+   badges, ReferralStatus), and the user-visible actions (especially writes, deletes, state changes).
+2. **Overlap scan.** For each entity/route/shared-concept, find every `spec-registry.md` row that
+   also has it. Report each as an overlap with the other feature and *why it matters* (shared write
+   path, shared SideNav slot, shared model to render identically).
+3. **Contradiction scan.** For each design choice, check `decision-log.md` for an `active` decision
+   it violates. Report the decision ID, what the design does, and the conflict. (e.g. a Delete action
+   → D-002; a long Select over tests → D-007; a `?type=` route → D-012; a site filter → D-001.)
+4. **Dependency scan.**
+   - *Upstream:* does the footprint require something `current-state-gotchas.md` says isn't built
+     (EQA V2 controller, Test↔Reagent linkage, configurable label presets)? Flag as a required
+     Dependency declaration.
+   - *Downstream:* do any registry rows list this feature's entities/concepts as something *they*
+     depend on? Flag them as affected — they may need re-review.
+5. **"Are you forgetting?" sweep.** Surface sibling specs that share a concept and the cross-cutting
+   each implies (shared i18n keys, identical badge rendering, the same audit verb namespace, a
+   harmonized empty/error state). This is the "design a shared thing once" nudge.
+
+**Severity:**
+
+| Severity | Criteria |
+|---|---|
+| **CRITICAL** | Contradicts an `active` GLOBAL decision (D-001…), or depends on an unbuilt upstream with no Dependency declaration |
+| **HIGH** | Contradicts an `active` FEATURE decision, or overlaps a shared write path / shared model with no coordination noted |
+| **MEDIUM** | Overlaps a route/SideNav slot; downstream spec likely affected; shared concept rendered differently than a sibling |
+| **LOW** | Minor terminology drift vs an existing spec |
+
+**Output format:**
+```markdown
+## Crosscheck: [Feature Name]
+
+### Footprint
+- Entities: … | Routes/pages: … | Shared concepts: … | Write/delete/state actions: …
+
+### Overlaps
+| With | Shared element | Why it matters | Severity |
+|---|---|---|---|
+| QA Dashboard | TAT threshold model | must reuse, not re-define (D-015) | HIGH |
+
+### Contradictions
+| Design choice | Decision | Conflict | Severity |
+|---|---|---|---|
+| "Delete preset" button | D-002 | hard delete on a domain record | CRITICAL |
+
+### Dependencies
+- Upstream (must exist first): … (declare in FRS Dependencies)
+- Downstream (affected, may need re-review): …
+
+### You may be forgetting
+- … (shared concept to harmonize, sibling spec to align with)
+
+### Verdict
+[Clear to proceed / Resolve CRITICALs first] + recommended next step
+```
+
+**To intentionally reverse a prior decision:** don't just contradict it. Note the reversal,
+and (via `/constitution` or a decision-log edit) supersede the old decision — add the new row,
+mark the old one `superseded`. `/crosscheck` then stops flagging it.
+
+**Closing step (when run on a finished/approved feature):** append/refresh this feature's row
+in `spec-registry.md`, and add any new precedent it set to `decision-log.md`. This is what keeps
+the portfolio index from going stale — an out-of-date registry gives false confidence, which is
+worse than none.
 
 ---
 
@@ -212,6 +303,8 @@ is what lets the user **see the design right now** without any build step. Save 
 workspace folder and share a `computer://` link right away in your reply. See the HTML
 Preview Pattern section below.
 
+**Registry upkeep (closing step):** once the FRS is approved, add/refresh this feature's row in `references/spec-registry.md` (entities, routes/pages, shared concepts, upstream/downstream deps, status) and add any new precedent it set to `references/decision-log.md`. This is what keeps `/crosscheck` accurate for the next feature — skipping it lets the portfolio index rot. If `/crosscheck` wasn't run earlier, run it now before handoff.
+
 **Jira handoff:** `/specify` does NOT create Jira tickets. After delivering the FRS, mockup, and preview, ask: *"Happy with the FRS, mockup, and preview? When you give the green light I'll run `/breakdown` to slice this into an Epic with versioned sprint stories."*
 
 All Jira creation (Epic + child Stories with version labels) happens in `/breakdown`. Metadata gathering (epic linkage, labels, assignee) also moves to `/breakdown` — see that command for details.
@@ -314,6 +407,13 @@ All Jira creation (Epic + child Stories with version labels) happens in `/breakd
 - Could a backend developer with no LIMS background read this section in under 90 seconds and explain what the lab does today and what changes? If not, flag it.
 - Auto-HIGH: missing Lab Context section, or any of its three subsections absent.
 - Auto-MEDIUM: present but written in jargon, full of vague adjectives, or relying on cross-references to other FRS sections.
+
+**O. Cross-Feature Overlap & Contradiction** (runs the `/crosscheck` procedure against the finished FRS/mockup)
+- Does the design contradict any `active` decision in `references/decision-log.md`? (cite the ID)
+- Does it overlap an entity, route/page, or shared concept already in `references/spec-registry.md` without coordination noted?
+- Does it depend on an unbuilt upstream (`references/current-state-gotchas.md`) with no FRS Dependency declaration? Does it change something downstream specs rely on?
+- Is a shared concept (Critical Acknowledgment, TAT threshold model, ReferralStatus, QC/validation badges, Domain enum) rendered/modeled differently than the sibling that owns it?
+- Auto-CRITICAL: contradicts an active GLOBAL decision, or unbuilt-upstream dependency with no declaration. Auto-HIGH: contradicts an active FEATURE decision, or uncoordinated shared write path/model. See `/crosscheck` for the full procedure and output format.
 
 **Severity assignment:**
 
@@ -601,6 +701,8 @@ Then create the tickets in this order:
 
 3. **Confirm the result.** Report the Epic key and a per-version count of child Stories created. Share Jira links.
 
+4. **Registry upkeep.** Record the Epic key in this feature's `references/spec-registry.md` row, and log any sequencing/dependency decision the breakdown made (e.g. "X must ship before Y") in `references/decision-log.md` as a FEATURE decision.
+
 ### Output: relationship to other commands
 
 | Step | Produced by | When | Creates Jira? |
@@ -834,3 +936,5 @@ preview. Don't drift from the brief.
 | `references/verified-data-models.md` | During `/specify` Stage 1 and `/analyze` Pass G — reuse field-verified data models instead of inventing fields |
 | `references/admin-ia-inventory.md` | During `/specify` Stage 2 (IA Placement) and `/analyze` IA checks — verified admin routes + SideNav structure (self-contained; route pattern is `/MasterListsPage/<editorKey>`) |
 | `references/jira-conventions.md` | During `/breakdown` and any reporting — clickable links, Done≠shipped, PR-sized slicing, labels, no-emoji, reorg proposal |
+| `references/decision-log.md` | During `/crosscheck` and `/analyze` Pass O — the prior-decisions ledger to check new designs against (cite by ID) |
+| `references/spec-registry.md` | During `/crosscheck` and `/analyze` Pass O — per-feature overlap/dependency index; append a row at the end of `/specify` and `/breakdown` |

@@ -1,5 +1,20 @@
 # openelis-design — Changelog
 
+## 2026-06-18 (round 3) — Portfolio awareness: /crosscheck + decision log + spec registry
+
+- New command **/crosscheck**: scans a feature (early at brief time, and as /analyze Pass O)
+  for (1) overlap with other specs, (2) contradiction of prior decisions, (3) up/downstream
+  dependency gaps. Commands table is now Seven; chain is /clarify → /crosscheck → /specify
+  → /analyze → /checklist → /breakdown.
+- `references/decision-log.md` — ADR-lite ledger seeded with 26 decisions from memory
+  (GLOBAL + FEATURE scope, active/superseded/provisional). /crosscheck cites these by ID.
+- `references/spec-registry.md` — overlap/dependency index, one row per feature (entities,
+  routes, shared concepts, up/downstream deps). Seeded from known specs; many cells TODO.
+- /analyze gains Pass O (cross-feature overlap & contradiction).
+- /specify and /breakdown now have a closing "registry upkeep" step so the index stays fed.
+- Reference Files table lists all 10 references.
+
+
 ## 2026-06-18 (round 2) — Memory promoted into references + verified IA
 
 - Added `references/verified-data-models.md` — field-verified data models (App/Common
