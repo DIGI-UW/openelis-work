@@ -1,7 +1,7 @@
 ---
 name: analyzer-mapping-spec
 description: >
-  Build OpenELIS Global analyzer integration specifications using the 1.2-style profiling approach.
+  Build OpenELIS Global analyzer integration specifications.
   Use this skill whenever a user mentions an analyzer, instrument, LIS integration, ASTM, HL7, MLLP,
   CSV flat file, or anything related to connecting laboratory equipment to OpenELIS. Always trigger
   this skill when asked to write a spec, mapping doc, integration spec, companion guide, or Jira story
@@ -67,11 +67,24 @@ Map the device to one of the three supported integration paths:
 
 Some devices support **dual-mode** (e.g., Wondfo Finecare: ASTM real-time + CSV flat file; Cepheid GeneXpert: ASTM + HL7). Each mode gets its own Jira story and spec section.
 
+### When it's none of the three (classify and route — don't force a fit)
+
+Not every instrument output is ASTM, HL7, or delimited CSV. If the output is something else, **classify it and route it** — do not pretend it's one of the three, and do not write implementation direction for a new adapter (that's engineering's call, not the spec's):
+
+| What you have | Classification | Route |
+|---|---|---|
+| **Structured JSON / XML** (e.g. TB-Profiler JSON, a vendor REST/JSON export) | Not covered by the generic ASTM/HL7/flat-file plugins | Spec the **data contract** (fields → OpenELIS test/result, transforms, QC) as usual, but flag in the spec that **generic-plugin support does not exist** for this format → declare it as a dependency / engineering coordination item. Don't invent the adapter. |
+| **Genomic / sequencing artifacts** (FASTQ, AB1 electropherograms, `.psm` plate ZIPs) | Upstream inputs, not reportable result messages | Out of scope as a direct integration. The reportable artifact is the **downstream analysis output** (e.g. TB-Profiler JSON/CSV) — spec that instead. Note the upstream→downstream chain in the spec. |
+| **Proprietary binary** (e.g. FluoroCycler `.at`) | No open protocol | Work from the vendor's protocol docs or an exported text/CSV; if neither exists, flag as **blocked pending vendor documentation** — confidence cannot be HIGH without it. |
+| **Print-only / no digital export** | Not integrable | Out of scope; record on the tracker as "no LIS output" so it isn't re-investigated. |
+
+In every "none of the three" case the spec still describes **what the mapping is**, and explicitly names the missing capability as a dependency — it never prescribes how to build the integration.
+
 ---
 
 ## Step 2 — Write the Integration Spec (Deliverable 1)
 
-**Read `references/spec-templates.md`** before writing. It contains the full section structure for ASTM, HL7, and CSV specs.
+**Read `references/spec-templates.md`** before writing (full section structure for ASTM, HL7, CSV). **Also check `references/mapping-library.md` first** — reuse a verified value-map, QC rule, abnormal-flag table, or per-instrument fragment instead of re-deriving it. (Respect each fragment's confidence: never paste an `ILLUSTRATIVE` field position into a spec as fact.) Worked reference: `references/example-spec-annotated.md` shows a complete, annotated spec to calibrate against.
 
 Key requirements for all specs:
 - Version header: `v1.0` on first issue; bump to `v1.1`, `v2.0`, etc. on revisions
@@ -145,6 +158,12 @@ Always fetch the current page content before updating — preserve the existing 
 
 ---
 
+## Before handoff — run the spec checklist
+
+**Read `references/spec-checklist.md`** and run it against the finished spec + companion guide before marking the tracker "Spec Complete" or handing to a developer. It's the "unit tests for the spec" gate — grounding, record/segment coverage, QC rules, sample-message-shown-parsing, no implementation direction, portfolio registration. Close every gap or mark it explicit N/A.
+
+---
+
 ## Quick Reference: Key Learnings
 
 - **Instrument classification matters first** — confirm the device produces results before speccing
@@ -163,7 +182,10 @@ Always fetch the current page content before updating — preserve the existing 
 | File | When to read |
 |---|---|
 | `references/spec-templates.md` | Before writing any spec doc — full section structure for all three protocol types |
+| `references/mapping-library.md` | Before writing a spec — reuse verified value-maps, QC rules, flag tables, per-instrument fragments |
+| `references/example-spec-annotated.md` | When you want a complete, annotated worked example to calibrate quality against |
 | `references/companion-guide-template.md` | Before writing a companion setup guide |
+| `references/spec-checklist.md` | Before handoff / marking "Spec Complete" — the spec-quality gate |
 | `references/jira-confluence-patterns.md` | Before creating Jira stories or updating the Confluence tracker — incl. the Deployment Routing table |
 
 **Cross-skill references (in the `openelis-design` skill) — consult for anything UI or portfolio-related:** `references/decision-log.md` (design decisions to honor), `references/spec-registry.md` (register the integration, check overlap), `references/current-state-gotchas.md` (what's built vs not), `references/admin-ia-inventory.md` (real routes), and the **Analyzer Types & Mapping FRS** (the analyzer setup UI this skill's companion guide describes).
