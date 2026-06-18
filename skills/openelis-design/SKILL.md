@@ -127,9 +127,11 @@ pass inside `/analyze` (see Pass O) for the final gate.
      Dependency declaration.
    - *Downstream:* do any registry rows list this feature's entities/concepts as something *they*
      depend on? Flag them as affected — they may need re-review.
-5. **"Are you forgetting?" sweep.** Surface sibling specs that share a concept and the cross-cutting
-   each implies (shared i18n keys, identical badge rendering, the same audit verb namespace, a
-   harmonized empty/error state). This is the "design a shared thing once" nudge.
+5. **"Are you forgetting?" sweep.** Surface only the *forward-looking* items not already captured
+   in Overlaps/Dependencies above — the "design a shared thing once" nudges: a shared component or
+   model that several specs should converge on, a sibling spec to align with, shared i18n key /
+   audit-verb namespaces to keep from colliding. Don't restate an overlap already tabled; this
+   section is for what to *build once*, not a second copy of the findings.
 
 **Severity:**
 
@@ -144,29 +146,37 @@ pass inside `/analyze` (see Pass O) for the final gate.
 ```markdown
 ## Crosscheck: [Feature Name]
 
+**Verdict:** [✅ Clear to proceed | ⚠ Proceed with coordination | ⛔ Blocked — resolve CRITICALs first]
+— one sentence stating the single most important reason, then the recommended next step.
+Lead with this line so a reader gets the call before the detail.
+
 ### Footprint
 - Entities: … | Routes/pages: … | Shared concepts: … | Write/delete/state actions: …
 
-### Overlaps
+### Contradictions (vs decision-log)
+| Design choice | Decision | Conflict | Severity |
+|---|---|---|---|
+| "Delete preset" button | D-002 | hard delete on a domain record | CRITICAL |
+_State explicitly when there are none — a clean contradiction scan is a useful signal._
+
+### Overlaps (vs spec-registry + sibling specs)
 | With | Shared element | Why it matters | Severity |
 |---|---|---|---|
 | QA Dashboard | TAT threshold model | must reuse, not re-define (D-015) | HIGH |
 
-### Contradictions
-| Design choice | Decision | Conflict | Severity |
-|---|---|---|---|
-| "Delete preset" button | D-002 | hard delete on a domain record | CRITICAL |
-
 ### Dependencies
-- Upstream (must exist first): … (declare in FRS Dependencies)
+- Upstream (must exist first): … (declare in FRS Dependencies; CRITICAL if unbuilt + undeclared)
 - Downstream (affected, may need re-review): …
 
-### You may be forgetting
-- … (shared concept to harmonize, sibling spec to align with)
+### You may be forgetting (build-once nudges, not already tabled above)
+- … (a shared component/model to converge on; a namespace to keep clean)
 
-### Verdict
-[Clear to proceed / Resolve CRITICALs first] + recommended next step
+### Registry upkeep triggered by this run
+- Gaps found / rows to add or enrich / candidate new decisions
 ```
+Order is deliberate: **Verdict** first (the call), then Contradictions (hard stops), then
+Overlaps and Dependencies (coordination), then the build-once nudges, then upkeep. If a finding
+is already in a table, don't repeat it lower down.
 
 **To intentionally reverse a prior decision:** don't just contradict it. Note the reversal,
 and (via `/constitution` or a decision-log edit) supersede the old decision — add the new row,

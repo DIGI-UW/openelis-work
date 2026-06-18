@@ -24,7 +24,8 @@ downstream (affected by this) ←.
 | Menu Configuration | menu nodes (5 scopes) | `/MasterListsPage/*MenuManagement` (sub-routes) | Side Nav Active toggle, Feature Flags | — | every SideNav-placed feature | OGC-556 | specced |
 | Test Notification | notification config (4 channels) | `/MasterListsPage/testNotificationConfigMenu` | template fallback, substitution vars | — | Test Catalog Alerts (delivery) | ? | built/specced |
 | Test Catalog Alerts | per-test alert rules | Test Catalog → Alerts tab | **Critical Acknowledgment**, Test Notification delivery | Test Notification system | Critical-result ack feed | ? | specced |
-| Analyzer Types & Mapping | Analyzer, AnalyzerType/profile, Test dictionary | `/analyzers`, `/analyzers/types` | value/select-list maps, **Deactivate** | Test catalog (dictionary) | analyzer result import | ? | specced |
+| Analyzer Types & Mapping | Analyzer, AnalyzerType/profile (NEW), Test + result options + LOINC, Lab unit, pending/unmapped queue, QC codes | `/analyzers/types`, `/analyzers/{id}/mappings`, `/analyzers/types/{typeId}`, inline setup in `/analyzers` | value/select-list maps, **Deactivate**, LOINC 1:1 match, **search ComboBox**, **Alerts** + critical-ack, `ANALYZER_*` audit, learn-from-traffic | Test catalog (dictionary/LOINC); pending-queue (extend); **Alerts ack model (critical-ack, not built)** | Analyzer Maintenance (shared `/analyzers/{id}` namespace); Mgmt Dashboard OGC-897; Home OGC-896; Quality Control | ? | specced |
+| Analyzer Maintenance & Service | Analyzer, **EquipmentMaintenanceLog (NEW)**, StorageRoom, Dictionary (event types), Alert | `/analyzers/maintenance`, `/analyzers/{id}/configuration` (+ old admin redirect) | **Alerts** (`EQUIPMENT_MAINTENANCE_DUE`), Dictionary-extensible types, Deactivate, verifiedBy (ISO 15189) | Analyzers IA baseline (D-027); Alert entity | Mgmt Dashboard OGC-897 (equipment cards); Home OGC-896 (Lab Snapshot) | ? | specced |
 | QA Dashboard / TAT | TAT metrics (Average only v1) | QA menu | **TAT threshold model** | — | **Home-page Attention/TAT (must reuse)** | ? | specced (v1) |
 | Referral redesign | Referral, ReferralStatus enum, SampleShipment | `/SampleShipment/reference-lab-results` | **ReferralStatus** in-transit signal | FHIR referral | shipment tracking | ? | specced |
 | EQA V2 | EQA program/participant/result | `/EQADistribution`, `/EQAManagement` | EQA badges | **EQA V2 controller (NOT built)** | EQA participant oversight (separate lane) | ? | specced, blocked |
@@ -36,8 +37,16 @@ downstream (affected by this) ←.
 | Vector host index | host index | ? | Domain VECTOR | Env/Vector order entry | — | OGC-527 (story pending) | idea |
 
 ## High-overlap hotspots (watch these)
-- **Critical Acknowledgment** — touched by Test Catalog Alerts, Critical Result Ack, and the
-  home Attention feed. Design once, reference everywhere.
+- **Alerts page + AlertType/acknowledgment model** — now a four-way shared sink: Critical
+  Result Ack, Test Catalog Alerts, Analyzer Types & Mapping (unmapped codes/results), and
+  Analyzer Maintenance (`EQUIPMENT_MAINTENANCE_DUE`), plus the home Attention feed. Design the
+  AlertType taxonomy + ack model **once**; note the critical-ack direction isn't built yet.
+- **Analyzers module IA + per-analyzer route namespace** — Analyzer Types & Mapping and
+  Analyzer Maintenance both extend `/analyzers/{id}/<subpage>` and the Analyzers SideNav group,
+  written independently. Governed by D-027; both specs must converge on one route map before
+  `/breakdown`.
+- **Critical Acknowledgment** — touched by Test Catalog Alerts, Critical Result Ack, the home
+  Attention feed, and analyzer unmapped-code alerting. Design once, reference everywhere.
 - **TAT threshold model** — QA Dashboard owns it; home-page TAT must reuse (D-015).
 - **Feature Flags / Menu Config** — cut across Application Properties, Menu Configuration,
   and every SideNav-placed feature.
