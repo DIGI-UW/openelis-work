@@ -1,5 +1,18 @@
 # openelis-design — Changelog
 
+## 2026-06-18 (round 4) — First /crosscheck run folded back in
+
+- Ran /crosscheck on the Analyzer Types & Mapping FRS (vs Analyzer Maintenance FRS).
+- spec-registry.md: added the **Analyzer Maintenance & Service** row; enriched the
+  **Analyzer Types & Mapping** row (routes, shared concepts, up/downstream deps); added
+  Alerts-model and Analyzers-IA hotspots.
+- decision-log.md: added **D-027** (Analyzers is a top-level SideNav group; per-analyzer
+  detail uses `/analyzers/{id}/<subpage>`) to resolve the two specs' IA disagreement.
+- SKILL.md /crosscheck output format tuned: Verdict now leads with a clear/⚠/blocked call;
+  Contradictions section sits above Overlaps; "You may be forgetting" scoped to build-once
+  items not already tabled; added a Registry-upkeep section to the template.
+
+
 ## 2026-06-18 (round 3) — Portfolio awareness: /crosscheck + decision log + spec registry
 
 - New command **/crosscheck**: scans a feature (early at brief time, and as /analyze Pass O)

@@ -40,6 +40,7 @@
 | D-024 | No emoji checkmarks (✅/➡️/☑) in funder-facing/professional reports — prose only | tone for external audiences | reports, stakeholder updates | GLOBAL | active | no_emoji_checkmarks_in_reports |
 | D-025 | Jira "Done" ≠ shipped — confirm with Casey before claiming an OGC ticket delivered | status field lies about live state | any delivery/status claim | GLOBAL | active | jira_done_not_shipped |
 | D-026 | For a Claude Code pipeline, size slices to one reviewable PR, not story points | agent implements bigger coherent chunks; diff reviewability matters most | /breakdown slicing | GLOBAL | active | jira-conventions / pr_sized_slicing |
+| D-027 | Analyzers is a top-level SideNav group (Analyzers List / Analyzer Types / Error Dashboard / Quality Control / Maintenance); per-analyzer detail uses `/analyzers/{id}/<subpage>` (e.g. `/mappings`, `/configuration`) | live app already exposes `/analyzers`, `/analyzers/types`, `/analyzers/errors`; two analyzer specs disagreed on the baseline (Maintenance framed it as elevation from Admin→Resources, Types & Mapping treated it as existing). Single shared IA prevents route/subnav collisions | any Analyzers-module feature | FEATURE | active | crosscheck 2026-06-18 (analyzer-profile-mapping vs analyzer-maintenance); admin-ia-inventory |
 
 ---
 
