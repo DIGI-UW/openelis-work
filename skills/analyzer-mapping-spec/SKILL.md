@@ -14,11 +14,12 @@ description: >
 
 # Analyzer Mapping Spec Skill
 
-Produces the **three standard deliverables** for every analyzer integration in OpenELIS Global:
+Produces the **standard deliverables** for every analyzer integration in OpenELIS Global:
 
 1. **Integration / Mapping Spec** — technical, protocol-level document grounded in vendor protocol docs (field positions, record/segment maps, QC rules, transforms)
 2. **Companion Analyzer Setup Guide** — step-by-step setup walkthrough for lab staff
 3. **Analyzer Integration Tracker Update** — Confluence row update at the canonical tracker page
+4. **Default-TC LOINC additions** — for any analyzer test whose LOINC isn't already carried by the **OpenELIS Global Default test catalog**, contribute the LOINC-coded test to the Default TC so the profile auto-matches out of the box. (Reuse only works for Default-TC deployments; custom-TC sites do their own LOINC↔catalog matching. See `references/profile-reuse.md`.)
 
 ## Scope boundary — this skill vs. `openelis-design`
 
@@ -84,7 +85,7 @@ In every "none of the three" case the spec still describes **what the mapping is
 
 ## Step 2 — Write the Integration Spec (Deliverable 1)
 
-**Read `references/spec-templates.md`** before writing (full section structure for ASTM, HL7, CSV). **Also check `references/mapping-library.md` first** — reuse a verified value-map, QC rule, abnormal-flag table, or per-instrument fragment instead of re-deriving it. (Respect each fragment's confidence: never paste an `ILLUSTRATIVE` field position into a spec as fact.) Worked reference: `references/example-spec-annotated.md` shows a complete, annotated spec to calibrate against.
+**Read `references/spec-templates.md`** before writing (full section structure for ASTM, HL7, CSV). **Also read `references/profile-reuse.md` first** — find the closest existing analyzer profile (e.g. in a distro's `configs/analyzer-profiles/`) and adapt its panel-level LOINC map rather than re-deriving mappings; re-verify the per-instrument bits (transport/port, QC field, identifier) against the vendor manual. Respect each profile's `confidence`/`notes`. Worked reference: `references/example-spec-annotated.md` shows a complete, annotated spec to calibrate against.
 
 Key requirements for all specs:
 - Version header: `v1.0` on first issue; bump to `v1.1`, `v2.0`, etc. on revisions
@@ -182,7 +183,7 @@ Always fetch the current page content before updating — preserve the existing 
 | File | When to read |
 |---|---|
 | `references/spec-templates.md` | Before writing any spec doc — full section structure for all three protocol types |
-| `references/mapping-library.md` | Before writing a spec — reuse verified value-maps, QC rules, flag tables, per-instrument fragments |
+| `references/profile-reuse.md` | Before writing a spec — the profile schema, the LOINC/panel reuse axis, how to adapt an existing profile, and the canonical-home open question |
 | `references/example-spec-annotated.md` | When you want a complete, annotated worked example to calibrate quality against |
 | `references/companion-guide-template.md` | Before writing a companion setup guide |
 | `references/spec-checklist.md` | Before handoff / marking "Spec Complete" — the spec-quality gate |
