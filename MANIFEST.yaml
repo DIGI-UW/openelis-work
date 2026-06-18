@@ -435,6 +435,7 @@
   description: BioRad CFX Opus Real-Time PCR System analyzer connection specification — CSV/RDML export, LIMS integration via CFX Maestro
   links: {}
   added: "2026-03-05"
+  updated: "2026-06-18"
 
 - id: sysmex-xn-field-mapping
   type: spec
