@@ -428,6 +428,36 @@
   links: {}
   added: "2026-03-05"
 
+- id: minion-tbprofiler-field-mapping
+  type: spec
+  path: designs/analyzer-integration/minion-tbprofiler-field-mapping-v2.2.md
+  category: analyzer-integration
+  description: >
+    MinION (Oxford Nanopore) + TB-Profiler WGS-based TB drug-susceptibility — field mapping &
+    integration spec v2.2. Rides the existing flat-file analyzer plugin into the M-14 TB Case
+    Workbench import channel; adds a general JSON reader, a sequencing-QC block, and additive
+    M-14 molecular-result fields. Supersedes v1.0. PNG / CPHL Port Moresby (also Madagascar).
+  links:
+    jira: ["OGC-318"]
+    github_issue: 182
+    gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/minion-tb-profiler-field-mapping-spec
+  paired_with: minion-tbprofiler-setup-guide
+  added: "2026-06-22"
+
+- id: minion-tbprofiler-setup-guide
+  type: spec
+  path: designs/analyzer-integration/minion-tbprofiler-setup-guide-v1.0.md
+  category: analyzer-integration
+  description: >
+    MinION + TB-Profiler analyzer setup guide — instrument/pipeline-side + OpenELIS
+    flat-file-plugin configuration for importing TB WGS DST results into the M-14 case workbench.
+  links:
+    jira: ["OGC-318"]
+    github_issue: 182
+    gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/minion-tb-profiler-setup-guide
+  paired_with: minion-tbprofiler-field-mapping
+  added: "2026-06-22"
+
 - id: biorad-cfx-opus-analyzer-connection-spec
   type: spec
   path: designs/analyzer-integration/biorad-cfx-opus-analyzer-connection-spec.md
