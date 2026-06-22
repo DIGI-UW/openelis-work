@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QA Release Budget Calculator</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #f4f4f4; color: #161616; }
+
+    .header { background: #161616; color: #fff; padding: 1rem 1.5rem; border-bottom: 1px solid #393939; }
+    .header h1 { margin: 0; font-size: 1.125rem; font-weight: 500; }
+    .header .sub { margin: 0.25rem 0 0 0; font-size: 0.8125rem; opacity: 0.7; }
+
+    .layout { display: grid; grid-template-columns: 1fr 320px; min-height: calc(100vh - 60px); }
+    @media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
+
+    .main-col { padding: 1.5rem; overflow-y: auto; }
+    .side-col { background: #fff; border-left: 1px solid #e0e0e0; padding: 1.5rem; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+    @media (max-width: 1100px) { .side-col { position: static; height: auto; border-left: 0; border-top: 1px solid #e0e0e0; } }
+
+    /* Budget panel */
+    .budget-card { background: #fff; border: 1px solid #e0e0e0; padding: 1.25rem; margin-bottom: 1.25rem; }
+    .budget-total { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .budget-total .num { font-size: 2.5rem; font-weight: 300; letter-spacing: -0.02em; line-height: 1; }
+    .budget-total .unit { font-size: 0.875rem; color: #525252; }
+    .budget-bar { background: #e8e8e8; height: 16px; display: flex; overflow: hidden; margin-bottom: 0.75rem; }
+    .budget-bar-fill { height: 100%; transition: width 0.2s; min-width: 0; }
+    .budget-bar-fill.senior { background: #0f62fe; }
+    .budget-bar-fill.mid { background: #4589ff; }
+    .budget-bar-fill.junior { background: #78a9ff; }
+    .budget-bar-fill.community { background: #198038; }
+    .budget-legend { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.25rem 0.75rem; font-size: 0.75rem; }
+    .budget-legend-row { display: flex; align-items: center; gap: 0.375rem; }
+    .legend-swatch { width: 10px; height: 10px; flex: 0 0 10px; }
+    .legend-swatch.senior { background: #0f62fe; }
+    .legend-swatch.mid { background: #4589ff; }
+    .legend-swatch.junior { background: #78a9ff; }
+    .legend-swatch.community { background: #198038; }
+    .budget-legend-row .label { color: #525252; flex: 1; }
+    .budget-legend-row .value { font-variant-numeric: tabular-nums; font-weight: 500; }
+
+    /* What ships */
+    .ships-card { background: #fff; border: 1px solid #e0e0e0; padding: 1rem 1.25rem; }
+    .ships-card h2 { font-size: 0.6875rem; font-weight: 600; margin: 0 0 0.5rem 0; color: #525252; text-transform: uppercase; letter-spacing: 0.04em; }
+    .ships-card ul { list-style: none; margin: 0; padding: 0; font-size: 0.8125rem; }
+    .ships-card li { padding: 0.25rem 0; color: #161616; display: flex; align-items: flex-start; gap: 0.5rem; line-height: 1.4; }
+    .ships-card li::before { content: '✓'; color: #198038; font-weight: 600; flex: 0 0 14px; }
+
+    /* Presets */
+    .presets-card { background: #fff; border: 1px solid #e0e0e0; padding: 1.25rem; margin-bottom: 1.25rem; }
+    .presets-card h2 { font-size: 0.6875rem; font-weight: 600; margin: 0 0 0.75rem 0; color: #525252; text-transform: uppercase; letter-spacing: 0.04em; }
+    .preset-btn { display: block; width: 100%; padding: 0.625rem 0.75rem; background: #fff; border: 1px solid #e0e0e0; cursor: pointer; text-align: left; font-family: inherit; font-size: 0.8125rem; margin-bottom: 0.375rem; transition: background 0.08s; }
+    .preset-btn:hover { background: #f4f4f4; border-color: #0f62fe; }
+    .preset-btn .preset-name { font-weight: 500; color: #161616; }
+    .preset-btn .preset-meta { font-size: 0.75rem; color: #6f6f6f; margin-top: 0.125rem; }
+    .preset-btn.reset { color: #da1e28; border-color: #da1e28; margin-top: 0.5rem; }
+
+    /* Phase sections */
+    .phase { background: #fff; border: 1px solid #e0e0e0; margin-bottom: 1rem; }
+    .phase-header { display: grid; grid-template-columns: 24px 1fr auto auto; gap: 0.75rem; align-items: center; padding: 0.875rem 1rem; cursor: pointer; border-bottom: 1px solid transparent; }
+    .phase-header:hover { background: #fafafa; }
+    .phase.expanded .phase-header { border-bottom-color: #f0f0f0; }
+    .phase-header .toggle-checkbox { width: 16px; height: 16px; border: 1px solid #8d8d8d; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; line-height: 1; }
+    .phase-header .toggle-checkbox.all { background: #0f62fe; border-color: #0f62fe; color: #fff; }
+    .phase-header .toggle-checkbox.partial { background: #fff; border-color: #0f62fe; color: #0f62fe; }
+    .phase-header .toggle-checkbox.partial::after { content: '−'; }
+    .phase-header .toggle-checkbox.all::after { content: '✓'; }
+    .phase-header .title-block { display: flex; flex-direction: column; gap: 0.125rem; }
+    .phase-header .name { font-size: 0.9375rem; font-weight: 600; }
+    .phase-header .desc { font-size: 0.75rem; color: #6f6f6f; }
+    .phase-header .selected-count { font-size: 0.8125rem; color: #525252; font-variant-numeric: tabular-nums; }
+    .phase-header .hours { font-size: 0.875rem; font-weight: 500; color: #161616; font-variant-numeric: tabular-nums; min-width: 80px; text-align: right; }
+    .phase-header .chev { font-size: 0.75rem; color: #6f6f6f; transition: transform 0.12s; margin-left: 0.5rem; }
+    .phase.expanded .phase-header .chev { transform: rotate(90deg); }
+    .phase-body { display: none; }
+    .phase.expanded .phase-body { display: block; }
+
+    .group-header { padding: 0.625rem 1rem 0.5rem 1rem; font-size: 0.75rem; font-weight: 600; color: #525252; text-transform: uppercase; letter-spacing: 0.04em; background: #fafafa; border-bottom: 1px solid #f0f0f0; display: grid; grid-template-columns: 24px 1fr auto auto; gap: 0.75rem; align-items: center; }
+    .group-header .group-name { font-weight: 600; color: #161616; text-transform: none; letter-spacing: 0; font-size: 0.8125rem; }
+
+    .item-row { display: grid; grid-template-columns: 24px 1fr 80px 120px; gap: 0.75rem; align-items: start; padding: 0.625rem 1rem 0.75rem; border-top: 1px solid #f7f7f7; cursor: pointer; transition: background 0.08s; }
+    .item-row:hover { background: #fafafa; }
+    .item-row.selected { background: #edf5ff; }
+    .item-row .checkbox { width: 16px; height: 16px; border: 1px solid #8d8d8d; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; line-height: 1; margin-top: 2px; flex: none; }
+    .item-row .checkbox.checked { background: #0f62fe; border-color: #0f62fe; color: #fff; }
+    .item-row .checkbox.checked::after { content: '✓'; }
+    .item-row .label-block { display: flex; flex-direction: column; gap: 0.1875rem; min-width: 0; }
+    .item-row .label-row { display: flex; gap: 0.5rem; align-items: baseline; flex-wrap: wrap; }
+    .item-row .label { font-size: 0.875rem; color: #161616; font-weight: 500; }
+    .item-row .id { font-family: 'IBM Plex Mono', monospace; font-size: 0.6875rem; color: #6f6f6f; }
+    .item-row .desc { font-size: 0.75rem; color: #525252; line-height: 1.4; }
+    .item-row .hours { font-size: 0.8125rem; font-variant-numeric: tabular-nums; color: #525252; text-align: right; padding-top: 2px; }
+    .item-row .role { display: flex; gap: 0.25rem; justify-content: flex-end; padding-top: 2px; flex-wrap: wrap; }
+    .role-pill { font-size: 0.625rem; padding: 0.125rem 0.375rem; border-radius: 8px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
+    .role-pill.senior { background: #d0e2ff; color: #002d9c; }
+    .role-pill.mid { background: #b8c5e0; color: #002d9c; }
+    .role-pill.junior { background: #e8eaef; color: #525252; }
+    .role-pill.community { background: #defbe6; color: #0e6027; }
+    .role-pill.tbd { background: #fff1c2; color: #6f4700; }
+
+    /* Section title */
+    .section-intro { padding: 1rem 1rem 0.5rem; background: #fff; border: 1px solid #e0e0e0; border-bottom: 0; }
+    .section-intro h2 { margin: 0 0 0.25rem; font-size: 0.875rem; font-weight: 600; }
+    .section-intro p { margin: 0; font-size: 0.8125rem; color: #525252; }
+
+    /* Reset / all controls */
+    .controls { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .controls button { padding: 0.375rem 0.75rem; background: #fff; border: 1px solid #c6c6c6; cursor: pointer; font-family: inherit; font-size: 0.8125rem; }
+    .controls button:hover { background: #f4f4f4; }
+
+    .footnote { font-size: 0.75rem; color: #6f6f6f; margin-top: 1rem; padding: 0 0.25rem; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, Fragment } = React;
+
+    /* ============================================================
+       DATA — every item from qa-release-plan.md
+       Roles: 'senior', 'mid', 'junior', 'community', 'tbd'
+       (Some items are split: { senior: [hrs_low, hrs_high], junior: [hrs_low, hrs_high] })
+       For simplicity, role is the PRIMARY owner; community-friendly items get a community alt flag.
+       ============================================================ */
+
+    const DATA = {
+      phases: [
+        {
+          id: 'A',
+          name: 'Phase A — Foundation',
+          desc: 'Get something working. Complete QA menu + daily KPI dashboard.',
+          customerValue: [
+            'New top-level Quality Assurance menu',
+            'Three pillar landings (Statistical QC / EQA / QMS & Improvement)',
+            'Daily-focused QA Overview (Attention Required + Today + This Week + Recent Activity)',
+            'QI Dashboard MVP with 4 KPI tiles (TAT, Rejection, Amendment, NCE Pulse)',
+            'Per-tile detail pages with drill-through',
+            'Madagascar GRIST UAT can pass',
+          ],
+          groups: [
+            {
+              id: 'A.1',
+              name: 'v0.5 — IA Rehome',
+              desc: '~30–46h. Existing pages get a coherent home; FUTURE placeholders for Reagent QC + Analyzer Manual QC.',
+              items: [
+                { id: 'A.1.1',  label: 'Top-level QA sidenav + IA wiring',                                    desc: "Adds the new 'Quality Assurance' top-level menu with three pillar landings (Statistical QC / EQA / QMS). The IA scaffold every later version lands inside.",                                                                               low: 4,  high: 6,  role: 'junior' },
+                { id: 'A.1.2',  label: 'Three pillar landings (tile grids)',                                  desc: 'Each pillar gets a tile-grid landing page listing its leaves. No new functionality — just navigation surfaces.',                                                                                                                              low: 4,  high: 6,  role: 'junior' },
+                { id: 'A.1.3',  label: 'Two FUTURE-feature placeholders (Reagent QC, Manual QC)',             desc: 'Reagent QC and Analyzer Manual QC are designed but not built. Placeholder pages cross-link to GitHub design docs so testers can mark Madagascar GRIST partial-pass requirements with documented future references.',                       low: 2,  high: 3,  role: 'junior' },
+                { id: 'A.1.4',  label: 'Route mounts at new paths',                                            desc: 'Mount existing OpenELIS components (QC Dashboard, EQA pages, Audit Trail) at new URLs under /qa/. Components themselves are unchanged.',                                                                                                  low: 4,  high: 6,  role: 'junior' },
+                { id: 'A.1.5',  label: '301 redirects for legacy URLs',                                        desc: 'Old paths like /analyzers/qc/db redirect permanently to /qa/qc/dashboard. Bookmarks and saved links keep working.',                                                                                                                          low: 2,  high: 3,  role: 'mid' },
+                { id: 'A.1.6',  label: 'Permission registry (4 visibility-only keys)',                         desc: 'Register qa.view.overview / qc / eqa / qms in the flexible-roles engine. Future versions add manage-level permissions; v0.5 only adds visibility controls.',                                                                                low: 3,  high: 5,  role: 'mid' },
+                { id: 'A.1.7',  label: 'Hide legacy entry points',                                            desc: 'Remove old menu items (Validation > Westgard, Admin > Audit Trail, top-level NCE) from the sidenav. Old URLs still work via the redirects in A.1.5; only the menu chrome changes.',                                                       low: 2,  high: 3,  role: 'junior' },
+                { id: 'A.1.8',  label: 'Madagascar GRIST UAT step rewrites + fixture seed',                    desc: 'Update Madagascar UAT scripts (LO-07-02 / -03 / -04) to point at the new URLs. Add a seeded Westgard 1-3s violation to the test harness so the QC compliance requirements pass on Round 2.',                                              low: 3,  high: 5,  role: 'mid' },
+                { id: 'A.1.9',  label: 'Tests',                                                                desc: 'Test route resolution, redirects, permission gating, and pillar-landing rendering. Standard test coverage.',                                                                                                                                  low: 4,  high: 6,  role: 'junior' },
+                { id: 'A.1.10', label: 'Cross-team PR review iteration',                                       desc: 'Wall-clock time for module owners (Piotr, etc.) to review PRs touching their components. Flag-and-proceed pattern; doesn’t block merge.',                                                                                                  low: 2,  high: 3,  role: 'senior' },
+              ],
+            },
+            {
+              id: 'A.2',
+              name: 'v1 — MVP (QI Dashboard + QA Overview)',
+              desc: '~45–55h. The first net-new operational surface. Sara’s morning page.',
+              items: [
+                { id: 'A.2.1',  label: 'NCE FRS v4.0 implementation (URL re-rooting)',                          desc: 'Re-root NCE URLs from /nce/* to /qa/qms/nce/* with breadcrumb update, i18n alias mapping, and 301 redirects. NCE module functionality is unchanged; just the menu position.',                                                            low: 6,  high: 8,  role: 'mid' },
+                { id: 'A.2.2',  label: 'QA Overview daily-focused landing page',                               desc: "Sara's morning page. Attention Required action center + Today KPI snapshot + This Week stats + Pillar Status row + Recent Activity feed + collapsed Inspector Readiness section.",                                                          low: 10, high: 14, role: 'junior' },
+                { id: 'A.2.3',  label: '/rest/qi/rejection-rate wrapper',                                       desc: 'New REST endpoint computing rejection rate from existing sample_test_order joined to nce_event. Drives the QI Dashboard tile.',                                                                                                              low: 3,  high: 4,  role: 'senior' },
+                { id: 'A.2.4',  label: '/rest/qi/amendment-rate wrapper',                                       desc: 'New REST endpoint computing amendment rate from electronic_signature record_type=RESULT diffs. Drives the QI Dashboard tile. No reason data captured today; rate + count only.',                                                                low: 3,  high: 4,  role: 'senior' },
+                { id: 'A.2.5',  label: '/rest/reports/tat/compliance wrapper',                                  desc: 'Thin wrapper over the existing TAT report API. Returns aggregate average TAT in v1 (no threshold/compliance %); v8 adds the threshold parameter for compliance computation.',                                                                  low: 2,  high: 3,  role: 'senior' },
+                { id: 'A.2.6',  label: 'QI Dashboard MVP frontend (4 tiles + header + drill-through)',          desc: 'The 4-tile dashboard: TAT, Rejection Rate, Amendment Rate, NCE Pulse. Reporting-window selector + last-recomputed timestamp + refresh button + drill-through routing.',                                                                       low: 12, high: 16, role: 'junior' },
+                { id: 'A.2.7',  label: 'Detail-page placeholders × 3 (TAT lab-unit, Rejection, Amendment)',     desc: 'Drill-through pages for each KPI tile. Filterable tables with NCE links. Full detail pages with heatmap+Pareto arrive in v8.',                                                                                                                  low: 8,  high: 11, role: 'junior' },
+                { id: 'A.2.8',  label: 'NCE Pulse client-filter logic',                                         desc: 'Frontend filter on the existing /rest/nce/dashboard payload to count critical-open NCEs + overdue CAPAs. No backend change.',                                                                                                                  low: 1,  high: 1,  role: 'junior' },
+                { id: 'A.2.9',  label: 'QA Officer default role bundling',                                      desc: "Pre-bundle a 'QA Officer' default role with the v1 permission keys + all nce.* permissions. Customers get this role out of the box.",                                                                                                          low: 2,  high: 3,  role: 'mid' },
+                { id: 'A.2.10', label: 'Tests',                                                                 desc: 'Test the wrappers against fixture data + frontend tile rendering + drill-through routing.',                                                                                                                                                    low: 4,  high: 6,  role: 'junior' },
+                { id: 'A.2.11', label: 'Cross-team PR review (TAT module owners)',                              desc: 'Wall-clock for TAT module owners to review the new compliance wrapper. Flag-and-proceed.',                                                                                                                                                    low: 2,  high: 3,  role: 'senior' },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'B',
+          name: 'Phase B — Core Value',
+          desc: 'Close the QC ↔ QMS workflow loop + ship the inspector-facing log.',
+          customerValue: [
+            'Critical QC violations create NCEs automatically (NCE FRS v3.1 trigger #10 wiring)',
+            'Alert banner above QC summary tiles surfaces violations without a tab click',
+            'Electronic Signature Log with CSV + PDF export for inspectors',
+          ],
+          groups: [
+            {
+              id: 'B.1',
+              name: 'Westgard Phase 2 — Tier 1',
+              desc: '~10–14h. Recommended Phase B minimum.',
+              items: [
+                { id: 'B.1.1', label: 'Active-violations alert banner (frontend)',           desc: 'Collapsible banner above the QC Dashboard summary tiles showing the top 3-5 unacknowledged violations with inline Acknowledge buttons. Surfaces violations without making the QA Officer click into a tab.',     low: 4,  high: 4,  role: 'junior', commAlt: true },
+                { id: 'B.1.2', label: 'Auto-create NCE on critical violations (backend)',    desc: 'When a CRITICAL Westgard violation (1-3s, R-4s) is detected, automatically create an NCE per FRS v3.1 trigger #10. Closes the QC ↔ QMS workflow loop.',                                                            low: 5,  high: 8,  role: 'senior' },
+                { id: 'B.1.3', label: 'Auto-NCE link card on violation detail (frontend)',   desc: "On the violation detail page, render a 'View linked NCE' card so the analyst can jump from violation → NCE in one click.",                                                                                                low: 1,  high: 2,  role: 'junior', commAlt: true },
+              ],
+            },
+            {
+              id: 'B.2',
+              name: 'v2 — Electronic Signature Log',
+              desc: '~10–15h. Single-table query against existing electronic_signature.',
+              items: [
+                { id: 'B.2.1', label: 'Backend single-table query',           desc: 'Read endpoint against the existing electronic_signature table. Filterable by date range, signer, action, artifact type. No UNION over four tables — the audit confirmed everything is unified.',                                       low: 1, high: 2, role: 'junior', commAlt: true },
+                { id: 'B.2.2', label: 'CSV export (RFC-4180 streaming)',      desc: 'Stream the filtered log as CSV. UTF-8, RFC-4180 quoted. Inspectors get a portable record for their audit binders.',                                                                                                                            low: 2, high: 3, role: 'junior', commAlt: true },
+                { id: 'B.2.3', label: 'PDF export (JasperReports template)', desc: 'JasperReports template that renders the filtered log as a paginated PDF with lab name, date range, and signature events.',                                                                                                                       low: 2, high: 3, role: 'mid',    commAlt: true },
+                { id: 'B.2.4', label: 'Frontend filterable table + row expansion + pagination', desc: 'Carbon DataTable with filter chips, row expansion (showing prior/new state + IP + user-agent), pagination, and Export CSV / PDF buttons.',                                                                                    low: 5, high: 7, role: 'junior' },
+              ],
+            },
+            {
+              id: 'B.3',
+              name: 'NCE v2 scope confirmation',
+              desc: 'Action item, not engineering. ~30 min meeting with Piotr / Mozzy.',
+              items: [
+                { id: 'B.3.1', label: 'Confirm NCE v2 scope (determines C.2 effort)', desc: '30-minute meeting with Piotr + Mozzy to confirm what the in-progress NCE v2 build includes. Determines whether v3-v7 NCE work collapses into NCE v2 or ships separately. Highest-leverage open question in the entire plan.', low: 0, high: 0, role: 'tbd' },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'C',
+          name: 'Phase C — Add-ons',
+          desc: 'Add depth + replace v1 MVP with full QI Dashboard.',
+          customerValue: [
+            'Statistical methods complete (all 3 drive rule evaluation)',
+            'Sigma performance metrics per test',
+            'Full QI Dashboard with 5 tiles (incl. Critical Callback opt-in slot)',
+            'QI Configuration admin page with toggles + per-test overrides',
+            'Per-QI detail pages with heatmap, Pareto, per-test breakdown',
+          ],
+          groups: [
+            {
+              id: 'C.1',
+              name: 'Westgard Phase 2 — Tier 2',
+              desc: '~8–12h. Sigma metrics + statistical-method completion.',
+              items: [
+                { id: 'C.1.1', label: 'Stat-method completion (rule-evaluator integration)', desc: "Wire ROLLING / INITIAL_RUNS / MANUFACTURER_FIXED into the Westgard rule evaluator. Today the enum exists but doesn't drive evaluation. Closes the partial implementation.", low: 4, high: 6, role: 'senior' },
+                { id: 'C.1.2', label: 'MANUFACTURER_FIXED entry form (frontend)',            desc: "UI form on the Lot detail page for manually entering manufacturer-provided mean + SD per level. Today these values can't be entered through the UI.",                              low: 2, high: 3, role: 'junior' },
+                { id: 'C.1.3', label: 'SigmaMetricsService (backend)',                       desc: 'Backend service that computes σ = (TEa − bias) / CV per test. Sigma performance is the standard QC quality metric for sigma-tier labs.',                                              low: 2, high: 3, role: 'senior' },
+                { id: 'C.1.4', label: 'Sigma display tile on ControlChartDetail',            desc: "Add a 'Sigma performance' tile on the ControlChartDetail page next to the existing Mean/SD/CV stats. Shows numeric σ + grade badge (World-class / Acceptable / Marginal / Poor).",   low: 1, high: 2, role: 'junior' },
+              ],
+            },
+            {
+              id: 'C.2',
+              name: 'NCE-related work (v3–v7) — TBD pending NCE v2 scope',
+              desc: 'Effort range from 0h (NCE v2 covers all) to ~125–165h (worst case).',
+              items: [
+                { id: 'C.2.1', label: 'v4 NCE Register modernization (modern Carbon UI)',  desc: 'Replace the legacy NCE Register UI with the modern Carbon-React register from FRS v3.1. Five views (My Assignments / All NCEs / Pending Verification / Report NCE / Analytics) with row expansion and tabbed detail.', low: 40, high: 50, role: 'tbd' },
+                { id: 'C.2.2', label: 'v5 NCE Create/Report flow (11 trigger points)',     desc: 'Modern inline NCE creation form covering all 11 trigger points (sample rejection, partial rejection, result rejection, test cancellation, etc.) with context preloading from the triggering artifact.',                       low: 30, high: 40, role: 'tbd' },
+                { id: 'C.2.3', label: 'v6 NCE Analytics page (4 KPIs + 9 charts + 6 reports)', desc: 'Lab-leadership analytics for NCE/CAPA: Total / Avg Resolution / CAPA Effectiveness / Recurrence Rate KPIs + Pareto + trend + breakdowns + 6 formal reports.',                                                                  low: 30, high: 40, role: 'tbd' },
+                { id: 'C.2.4', label: 'v7 CAPA Register',                                  desc: 'Standalone CAPA list across all NCEs. View over existing nce_capa data — no new entity. Filter, sort, drill-through to parent NCE, bulk reassign + bulk mark-complete.',                                                          low: 25, high: 35, role: 'tbd' },
+              ],
+            },
+            {
+              id: 'C.3',
+              name: 'v8 — QI Dashboard full + Configuration + per-QI detail pages',
+              desc: '~50–60h. Replaces v1 MVP dashboard in place.',
+              items: [
+                { id: 'C.3.1', label: 'QI Configuration admin page (toggles + per-test overrides)', desc: 'Admin page where labs enable/disable QIs, set thresholds, and configure per-test overrides for Rejection Rate. Tier 1 = the 4 default-on QIs; Critical Callback opt-in slot (default OFF) added in D.3.', low: 10, high: 14, role: 'junior' },
+                { id: 'C.3.2', label: 'Disable cascade implementation',                              desc: 'When a QI is disabled in QI Configuration, propagate the change: tile removed from dashboard, detail page 404, alerts suppressed, NCE auto-gen suppressed where applicable. Single feature flag pattern.',         low: 6,  high: 8,  role: 'senior' },
+                { id: 'C.3.3', label: 'Three full per-QI detail pages (heatmap+Pareto+per-test)',    desc: 'Replace the placeholder detail pages from v1 MVP with full visualizations: heatmap (ordering location × test category), Pareto cumulative chart, per-test breakdown table.',                                            low: 24, high: 32, role: 'junior' },
+                { id: 'C.3.4', label: 'TAT compliance threshold parameter wiring',                   desc: 'Extend the TAT compliance wrapper to compute pass/fail when thresholdHours parameter is passed. Today the v1 wrapper returns aggregate average; v8 adds compliance %.',                                                  low: 2,  high: 3,  role: 'senior' },
+                { id: 'C.3.5', label: 'Tests',                                                       desc: 'Test the v8 dashboard end-to-end + disable cascade behavior + per-QI threshold computation.',                                                                                                                            low: 8,  high: 10, role: 'junior' },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'D',
+          name: 'Phase D — Community-ideal & nice-to-have',
+          desc: 'Self-contained scope work that doesn’t need senior hours, plus the heaviest single chunks.',
+          customerValue: [
+            'Test Accreditation Management (CRUD + report logo rendering)',
+            'QC reporting / trend export (CSV + PDF)',
+            'Critical Callback Compliance opt-in for labs that need it',
+            'EQA V2 — full participant + provider workflows',
+            'Results Entry inline NCE polish (replaces Phase-1 button)',
+          ],
+          groups: [
+            {
+              id: 'D.1',
+              name: 'v2 — Test Accreditation Management',
+              desc: '~30–46h core OR community-led. Best community contribution candidate in the entire roadmap.',
+              items: [
+                { id: 'D.1.1', label: 'Accrediting Bodies admin page (CRUD + logo + visibility mode)', desc: 'CRUD admin page: code, name, logo upload, expires_on, logo visibility mode (Any accredited test / Percentage), enrolled tests with typeahead picker. Per test-accreditation-frs.md v5.', low: 12, high: 18, role: 'community' },
+                { id: 'D.1.2', label: 'Test Accreditations pivot page (read-only with bulk-remove)',   desc: "Read-only pivot view showing every (test × body) enrollment with status chips and 'Manage on body page' deep-link. CRUD lives on the Accrediting Bodies page.",                                low: 8,  high: 12, role: 'community' },
+                { id: 'D.1.3', label: 'Backend: 2 new tables + endpoints + audit logging',             desc: 'Two new tables (accrediting_body, test_accreditation) + REST endpoints for CRUD + audit logging. Schema is small; per-body expires_on; pure (test, body) join.',                                  low: 6,  high: 10, role: 'community' },
+                { id: 'D.1.4', label: 'Patient report rendering (conditional logo + notes line)',      desc: "Conditionally render accreditation logos on patient result reports based on per-body visibility mode. Adds a notes line: 'Tests on this report are accredited by: [bodies].'",                       low: 4,  high: 6,  role: 'community' },
+              ],
+            },
+            {
+              id: 'D.2',
+              name: 'Westgard Phase 2 — Tier 3 (QC reporting / trend export)',
+              desc: '~10–15h. Self-contained CSV + PDF.',
+              items: [
+                { id: 'D.2.1', label: 'Run Detail CSV (streaming)',          desc: 'Streaming CSV export of every QC run in a date range. Columns: timestamp, instrument, test, lot, level, value, z-score, rules fired, ack status, ack user.',           low: 3, high: 4, role: 'community' },
+                { id: 'D.2.2', label: 'Violations Log CSV',                  desc: 'Streaming CSV of all violations with full ack metadata + linked NCE info. Inspector-friendly format for audit binders.',                                          low: 2, high: 3, role: 'community' },
+                { id: 'D.2.3', label: 'Monthly Summary PDF (JasperReports)', desc: 'JasperReports PDF: CAP/SANAS-ready monthly QC summary. L-J charts per test, sigma metrics, violation list, summary stats. Inspectors stop asking for screenshots.', low: 4, high: 5, role: 'community' },
+                { id: 'D.2.4', label: 'Trend Report PDF (JasperReports)',    desc: 'JasperReports PDF: cumulative bias, CV, sigma trends per test over a configurable window. Inspector dashboard format.',                                            low: 3, high: 3, role: 'community' },
+                { id: 'D.2.5', label: 'Export menu UI',                      desc: "Add 'Export ▾' button on QC Dashboard with dropdown of the four export options + parameter modal for date range + filters.",                                       low: 2, high: 2, role: 'community' },
+              ],
+            },
+            {
+              id: 'D.3',
+              name: 'v9 — Critical Callback Compliance opt-in',
+              desc: '~30–40h. Default OFF; opt-in feature.',
+              items: [
+                { id: 'D.3.1', label: 'Schema audit + possible migration', desc: 'Audit the existing critical-result callback log to confirm it captures caller / recipient / read-back / ack-time. Migration if any are missing.',                                                   low: 4,  high: 8,  role: 'senior' },
+                { id: 'D.3.2', label: 'NCE Report FRS v3.2 sub-revision',  desc: "Add the 'Critical Callback Failure' subcategory + new NCE trigger to the FRS. Required for the QI to drill through to NCEs when a callback fails.",                                                       low: 3,  high: 4,  role: 'senior' },
+                { id: 'D.3.3', label: 'Critical Callback wrapper endpoint', desc: 'REST endpoint computing compliance % from the callback log. Per the QI outline locked decisions: non-compliant default for unable-to-reach; wall-clock target measurement; overall lab target only.',     low: 4,  high: 6,  role: 'senior' },
+                { id: 'D.3.4', label: 'QI Configuration opt-in toggle',     desc: "Add the Critical Callback row to QI Configuration with 'Enabled' toggle (default OFF), threshold settings, and 'unable to reach' configurable behavior.",                                                low: 3,  high: 4,  role: 'junior' },
+                { id: 'D.3.5', label: 'Critical Callback tile + detail page', desc: '5th tile on the QI Dashboard (rendered when enabled). Detail page with time-to-ack distribution, failure breakdown by reason, drill-through to missed-callback NCEs.',                                  low: 12, high: 16, role: 'junior' },
+                { id: 'D.3.6', label: 'Tests',                              desc: 'Test the wrapper, the disable cascade, the opt-in toggle behavior, the schema migration if applicable.',                                                                                                   low: 4,  high: 6,  role: 'junior' },
+              ],
+            },
+            {
+              id: 'D.4',
+              name: 'v10–v11 — EQA V2 (5 stories + cycle/scheme model)',
+              desc: '~85–105h. Heaviest single chunk. Schema work senior; rest junior-friendly.',
+              items: [
+                { id: 'D.4.1', label: 'Cycle / scheme data model + migrations',  desc: 'Schema work for the EQA V2 cycle/scheme model. New tables for cycles, schemes, enrollments, results. Senior-only because schema decisions are hard to undo.',                                              low: 8,  high: 12, role: 'senior' },
+                { id: 'D.4.2', label: 'My EQA participant view',                 desc: 'Per-analyst view: open events, submit results, view scorecards. Matches the EQA V2 spec.',                                                                                                                          low: 14, high: 20, role: 'junior' },
+                { id: 'D.4.3', label: 'EQA Lab Performance dashboard',           desc: 'Cumulative performance across cycles and schemes. Score by cycle, per-scheme breakdown, sigma metrics where available. The provider-facing EQA dashboard.',                                                          low: 16, high: 22, role: 'junior' },
+                { id: 'D.4.4', label: 'Follow-Up Queue',                         desc: 'Failed-cycle actions tracked to resolution. Linked to NCE/CAPA workflow so failed PT samples create NCEs that get worked through the standard QA cycle.',                                                            low: 12, high: 16, role: 'junior' },
+                { id: 'D.4.5', label: 'Analyst Competency',                      desc: 'Per-analyst competency per test, derived from EQA participation. Auto-suspend if an analyst fails a cycle until reassessment.',                                                                                       low: 14, high: 20, role: 'junior' },
+                { id: 'D.4.6', label: 'EQA Program Management rehome',           desc: 'Provider-only page (gated by eqa.provider permission) for managing EQA schemes, cycles, send-outs. Most labs do not see this page.',                                                                                  low: 8,  high: 12, role: 'junior' },
+                { id: 'D.4.7', label: '/rest/eqa/cycles/latest-performance wrapper', desc: 'REST endpoint returning the most-recent-graded-cycle per scheme. Drives the QA Overview EQA tile so the daily view lights up.',                                                                                  low: 2, high: 3, role: 'mid' },
+                { id: 'D.4.8', label: 'QA Overview EQA tile lights up',          desc: 'When EQA V2 ships, the QA Overview EQA tile transitions from gray placeholder to live status. Worst-of-across-schemes rollup logic.',                                                                                low: 2,  high: 3,  role: 'junior' },
+                { id: 'D.4.9', label: 'Tests',                                   desc: 'Test the cycle/scheme model + each EQA V2 story end-to-end.',                                                                                                                                                          low: 10, high: 15, role: 'junior' },
+              ],
+            },
+            {
+              id: 'D.5',
+              name: 'v12 — Results Entry inline NCE upgrade',
+              desc: '~10–15h. Tactical polish.',
+              items: [
+                { id: 'D.5.1', label: 'Swap button handler to v3.0 inline panel',               desc: "Replace the interim 'Report NCE' button on Results Entry with the full v3.0 inline panel: Sample Action radios, auto-delta-check, NCE flag badge.",   low: 6, high: 8,  role: 'mid' },
+                { id: 'D.5.2', label: 'Sample Action radios + delta-check + NCE flag badge',    desc: 'Frontend implementation of the v3.0 NCE inline experience per nce-results-entry.md. Sample held / rejected radio cards, delta-check warning, row-level NCE flag.', low: 3, high: 4,  role: 'junior' },
+                { id: 'D.5.3', label: 'QA Officer training material refresh',                   desc: 'Update training docs to cover the new inline experience. Quick edit; communicate the change to partner labs.',                                                       low: 1, high: 2,  role: 'junior' },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'E',
+          name: 'Phase E — Wait & see (parked)',
+          desc: 'Don’t invest until a customer surfaces a specific need. Each item has a known trigger.',
+          customerValue: [
+            'Each item has a clear un-park trigger (see qa-release-plan.md §Phase E)',
+          ],
+          groups: [
+            {
+              id: 'E',
+              name: 'Parked items',
+              desc: 'Off by default; flip on to see the cost if a trigger fires.',
+              items: [
+                { id: 'E.1',  label: 'Lot expiration dashboard indicator',                         desc: 'Surface a warning when a control lot is approaching its expiration. Trigger to un-park: a partner lab reports missing a lot rollover.',                                low: 4,  high: 4,  role: 'junior' },
+                { id: 'E.2',  label: 'Patient-based QC (CLSI EP25 / moving averages)',             desc: 'Statistical QC against patient result distributions instead of control samples. Almost no LIMS implements this; advanced labs use external tools.',                       low: 40, high: 80, role: 'senior' },
+                { id: 'E.3',  label: 'Cross-instrument peer comparison',                           desc: 'Compare QC performance across multiple analyzers running the same test. Niche; useful for multi-site labs. Trigger: multi-site customer asks.',                            low: 20, high: 30, role: 'senior' },
+                { id: 'E.4',  label: 'Dynamic rule recommendation (sigma-driven auto-tuning)',     desc: 'Auto-suggest Westgard rule changes based on sigma performance. Advanced sigma-tier feature. Trigger: sigma metrics ship + a customer asks.',                                low: 30, high: 40, role: 'senior' },
+                { id: 'E.5',  label: 'Auto-NCE on non-critical Westgard violations',                desc: 'Extend Tier 1.2 to also auto-create NCEs for 1-2s, 4-1s, 10-x violations. Currently only critical (1-3s) violations auto-create. Could be noisy; left manual.',           low: 3,  high: 5,  role: 'senior' },
+                { id: 'E.6',  label: 'Time-boxable Inspector/Auditor credentials',                 desc: 'Create temporary user accounts for visiting inspectors with auto-expiry. Depends on the flexible-roles engine maturing first.',                                            low: 12, high: 20, role: 'senior' },
+                { id: 'E.7',  label: 'Accreditation Binder PDF export',                            desc: 'JasperReports PDF that bundles all accreditation evidence (QC summaries, EQA results, NCE logs, audit trail entries) into one inspector-ready binder. Heavy.',             low: 15, high: 20, role: 'mid' },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    /* ============================================================
+       PRESETS
+       ============================================================ */
+
+    const PRESETS = [
+      { id: 'foundation',      name: 'Foundation only',        desc: 'Phase A — ship something working',                     phaseIds: ['A'] },
+      { id: 'workflow',        name: 'Foundation + Core Value', desc: 'Add Westgard Tier 1 + E-Sig Log',                     phaseIds: ['A'], extraGroups: ['B.1', 'B.2'] },
+      { id: 'stretch',         name: 'Stretch goal',           desc: 'Add v8 QI full + Westgard Tier 2',                     phaseIds: ['A'], extraGroups: ['B.1','B.2','C.1','C.3'] },
+      { id: 'with-community',  name: 'Stretch + community help', desc: 'Above + Test Accreditation + Westgard Tier 3 (community)', phaseIds: ['A'], extraGroups: ['B.1','B.2','C.1','C.3','D.1','D.2'] },
+      { id: 'everything',      name: 'Everything (excl. wait & see)', desc: 'All of Phases A through D',                     phaseIds: ['A','B','C','D'] },
+    ];
+
+    /* ============================================================
+       Helpers
+       ============================================================ */
+
+    function flattenItems(data) {
+      const out = [];
+      data.phases.forEach(p => p.groups.forEach(g => g.items.forEach(it => out.push({ ...it, phaseId: p.id, groupId: g.id }))));
+      return out;
+    }
+
+    function selectAllInGroup(groupId, selected) {
+      const next = { ...selected };
+      const all = flattenItems(DATA);
+      all.filter(it => it.groupId === groupId).forEach(it => next[it.id] = true);
+      return next;
+    }
+    function deselectAllInGroup(groupId, selected) {
+      const next = { ...selected };
+      const all = flattenItems(DATA);
+      all.filter(it => it.groupId === groupId).forEach(it => delete next[it.id]);
+      return next;
+    }
+    function selectAllInPhase(phaseId, selected) {
+      const next = { ...selected };
+      const all = flattenItems(DATA);
+      all.filter(it => it.phaseId === phaseId).forEach(it => next[it.id] = true);
+      return next;
+    }
+    function deselectAllInPhase(phaseId, selected) {
+      const next = { ...selected };
+      const all = flattenItems(DATA);
+      all.filter(it => it.phaseId === phaseId).forEach(it => delete next[it.id]);
+      return next;
+    }
+
+    function applyPreset(preset, allItems) {
+      const next = {};
+      const phaseSet = new Set(preset.phaseIds || []);
+      const groupSet = new Set(preset.extraGroups || []);
+      allItems.forEach(it => {
+        if (phaseSet.has(it.phaseId) && it.phaseId !== 'E') next[it.id] = true;
+        if (groupSet.has(it.groupId)) next[it.id] = true;
+        if (it.role === 'tbd') delete next[it.id];  // never auto-select TBD
+      });
+      return next;
+    }
+
+    function computeTotals(selected, allItems) {
+      let lowSum = 0, highSum = 0;
+      const byRole = { senior: [0,0], mid: [0,0], junior: [0,0], community: [0,0], tbd: [0,0] };
+      allItems.forEach(it => {
+        if (selected[it.id]) {
+          lowSum += it.low; highSum += it.high;
+          const r = it.role in byRole ? it.role : 'tbd';
+          byRole[r][0] += it.low; byRole[r][1] += it.high;
+        }
+      });
+      return { lowSum, highSum, byRole };
+    }
+
+    /* ============================================================
+       Components
+       ============================================================ */
+
+    function App() {
+      const allItems = useMemo(() => flattenItems(DATA), []);
+      const [selected, setSelected] = useState(() => applyPreset(PRESETS[0], allItems));
+      const [expanded, setExpanded] = useState({ A: true, B: false, C: false, D: false, E: false });
+
+      const totals = useMemo(() => computeTotals(selected, allItems), [selected, allItems]);
+
+      const toggleItem = (id) => {
+        setSelected(prev => {
+          const next = { ...prev };
+          if (next[id]) delete next[id];
+          else next[id] = true;
+          return next;
+        });
+      };
+
+      const togglePhase = (phaseId) => {
+        const phaseItems = allItems.filter(it => it.phaseId === phaseId && it.role !== 'tbd');
+        const allOn = phaseItems.every(it => selected[it.id]);
+        setSelected(prev => allOn ? deselectAllInPhase(phaseId, prev) : selectAllInPhase(phaseId, prev));
+      };
+
+      const toggleGroup = (groupId) => {
+        const groupItems = allItems.filter(it => it.groupId === groupId && it.role !== 'tbd');
+        const allOn = groupItems.every(it => selected[it.id]);
+        setSelected(prev => allOn ? deselectAllInGroup(groupId, prev) : selectAllInGroup(groupId, prev));
+      };
+
+      const phaseStateOf = (phaseId) => {
+        const items = allItems.filter(it => it.phaseId === phaseId && it.role !== 'tbd');
+        const onCount = items.filter(it => selected[it.id]).length;
+        if (onCount === 0) return 'none';
+        if (onCount === items.length) return 'all';
+        return 'partial';
+      };
+
+      const groupStateOf = (groupId) => {
+        const items = allItems.filter(it => it.groupId === groupId && it.role !== 'tbd');
+        if (items.length === 0) return 'none';
+        const onCount = items.filter(it => selected[it.id]).length;
+        if (onCount === 0) return 'none';
+        if (onCount === items.length) return 'all';
+        return 'partial';
+      };
+
+      const togglePhaseExpand = (phaseId) => {
+        setExpanded(prev => ({ ...prev, [phaseId]: !prev[phaseId] }));
+      };
+
+      const applyPresetClick = (preset) => {
+        setSelected(applyPreset(preset, allItems));
+      };
+
+      const resetAll = () => setSelected({});
+
+      // What ships — derive from selected items
+      const whatShips = useMemo(() => {
+        const ships = [];
+        DATA.phases.forEach(p => {
+          if (p.id === 'E') return;
+          const phaseItems = allItems.filter(it => it.phaseId === p.id && it.role !== 'tbd');
+          const onItems = phaseItems.filter(it => selected[it.id]);
+          if (onItems.length === 0) return;
+          if (onItems.length === phaseItems.length) {
+            // Full phase — show its customer value
+            p.customerValue.forEach(v => ships.push(v));
+          } else {
+            // Partial phase — show by group
+            p.groups.forEach(g => {
+              const groupItems = allItems.filter(it => it.groupId === g.id && it.role !== 'tbd');
+              const onCount = groupItems.filter(it => selected[it.id]).length;
+              if (onCount === 0) return;
+              if (onCount === groupItems.length) ships.push(`${g.name} (full)`);
+              else ships.push(`${g.name} (${onCount} of ${groupItems.length} items)`);
+            });
+          }
+        });
+        return ships;
+      }, [selected, allItems]);
+
+      // Bar widths — proportional to total
+      const totalForBar = totals.highSum || 1;
+      const barWidth = (low, high) => `${(((low + high) / 2) / totalForBar) * 100}%`;
+
+      return (
+        <Fragment>
+          <div className="header">
+            <h1>OpenELIS QA Release — Budget Calculator</h1>
+            <p className="sub">Toggle items to see what fits in your hours. Defaults to Phase A — Foundation.</p>
+          </div>
+
+          <div className="layout">
+            <main className="main-col">
+              <div className="controls">
+                <button onClick={resetAll}>Reset all</button>
+                <button onClick={() => setSelected(applyPreset({ phaseIds: ['A','B','C','D'] }, allItems))}>
+                  Select everything (excl. wait & see)
+                </button>
+                <button onClick={() => setExpanded({ A: true, B: true, C: true, D: true, E: true })}>
+                  Expand all phases
+                </button>
+                <button onClick={() => setExpanded({ A: false, B: false, C: false, D: false, E: false })}>
+                  Collapse all phases
+                </button>
+              </div>
+
+              {DATA.phases.map(phase => {
+                const phaseState = phaseStateOf(phase.id);
+                const phaseItems = allItems.filter(it => it.phaseId === phase.id);
+                const phaseTotals = phaseItems.filter(it => selected[it.id]).reduce(
+                  (a, it) => ({ low: a.low + it.low, high: a.high + it.high }), { low: 0, high: 0 }
+                );
+                return (
+                  <section key={phase.id} className={`phase ${expanded[phase.id] ? 'expanded' : ''}`}>
+                    <div className="phase-header">
+                      <span className={`toggle-checkbox ${phaseState === 'all' ? 'all' : phaseState === 'partial' ? 'partial' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); togglePhase(phase.id); }}></span>
+                      <div className="title-block" onClick={() => togglePhaseExpand(phase.id)}>
+                        <span className="name">{phase.name}</span>
+                        <span className="desc">{phase.desc}</span>
+                      </div>
+                      <span className="hours" onClick={() => togglePhaseExpand(phase.id)}>
+                        {phaseTotals.low === phaseTotals.high
+                          ? phaseTotals.low === 0 ? '—' : `${phaseTotals.low}h`
+                          : `${phaseTotals.low}–${phaseTotals.high}h`}
+                      </span>
+                      <span className="chev" onClick={() => togglePhaseExpand(phase.id)}>▶</span>
+                    </div>
+
+                    {expanded[phase.id] && (
+                      <div className="phase-body">
+                        {phase.groups.map(group => {
+                          const groupState = groupStateOf(group.id);
+                          return (
+                            <Fragment key={group.id}>
+                              <div className="group-header">
+                                <span className={`toggle-checkbox ${groupState === 'all' ? 'all' : groupState === 'partial' ? 'partial' : ''}`}
+                                  onClick={() => toggleGroup(group.id)}></span>
+                                <div>
+                                  <div className="group-name">{group.id} — {group.name}</div>
+                                  <div style={{ fontSize: '0.6875rem', color: '#6f6f6f', textTransform: 'none', letterSpacing: 0, marginTop: '0.125rem', fontWeight: 400 }}>
+                                    {group.desc}
+                                  </div>
+                                </div>
+                              </div>
+                              {group.items.map(item => (
+                                <div key={item.id}
+                                  className={`item-row ${selected[item.id] ? 'selected' : ''}`}
+                                  onClick={() => item.role !== 'tbd' && toggleItem(item.id)}>
+                                  <span className={`checkbox ${selected[item.id] ? 'checked' : ''}`}></span>
+                                  <div className="label-block">
+                                    <div className="label-row">
+                                      <span className="label">{item.label}</span>
+                                      <span className="id">{item.id}</span>
+                                    </div>
+                                    {item.desc && <span className="desc">{item.desc}</span>}
+                                  </div>
+                                  <span className="hours">
+                                    {item.role === 'tbd' ? <span style={{ color: '#6f4700' }}>TBD</span>
+                                      : item.low === item.high ? `${item.low}h` : `${item.low}–${item.high}h`}
+                                  </span>
+                                  <span className="role">
+                                    <span className={`role-pill ${item.role}`}>{item.role}</span>
+                                    {item.commAlt && <span className="role-pill community">comm alt</span>}
+                                  </span>
+                                </div>
+                              ))}
+                            </Fragment>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </section>
+                );
+              })}
+
+              <div className="footnote">
+                Hours show low–high estimates (not midpoint). Senior dev work cannot easily be replaced by junior dev work without rework risk; junior items are interchangeable. <strong>Community alt</strong> = item could be community-led with senior review only. <strong>TBD</strong> items don't auto-select via presets — they need scope confirmation first (mostly waiting on NCE v2 scope).
+              </div>
+            </main>
+
+            <aside className="side-col">
+              <div className="budget-card">
+                <div style={{ fontSize: '0.6875rem', color: '#525252', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.375rem' }}>Total budget</div>
+                <div className="budget-total">
+                  <span className="num">{totals.lowSum === totals.highSum ? totals.lowSum : `${totals.lowSum}–${totals.highSum}`}</span>
+                  <span className="unit">hours</span>
+                </div>
+                <div className="budget-bar">
+                  {totals.byRole.senior[1] > 0 && <div className="budget-bar-fill senior" style={{ width: barWidth(totals.byRole.senior[0], totals.byRole.senior[1]) }} title={`Senior: ${totals.byRole.senior[0]}–${totals.byRole.senior[1]}h`}></div>}
+                  {totals.byRole.mid[1] > 0    && <div className="budget-bar-fill mid"    style={{ width: barWidth(totals.byRole.mid[0],    totals.byRole.mid[1]) }}    title={`Mid: ${totals.byRole.mid[0]}–${totals.byRole.mid[1]}h`}></div>}
+                  {totals.byRole.junior[1] > 0 && <div className="budget-bar-fill junior" style={{ width: barWidth(totals.byRole.junior[0], totals.byRole.junior[1]) }} title={`Junior: ${totals.byRole.junior[0]}–${totals.byRole.junior[1]}h`}></div>}
+                  {totals.byRole.community[1] > 0 && <div className="budget-bar-fill community" style={{ width: barWidth(totals.byRole.community[0], totals.byRole.community[1]) }} title={`Community: ${totals.byRole.community[0]}–${totals.byRole.community[1]}h`}></div>}
+                </div>
+                <div className="budget-legend">
+                  <div className="budget-legend-row">
+                    <span className="legend-swatch senior"></span>
+                    <span className="label">Senior</span>
+                    <span className="value">{totals.byRole.senior[0]}–{totals.byRole.senior[1]}h</span>
+                  </div>
+                  <div className="budget-legend-row">
+                    <span className="legend-swatch mid"></span>
+                    <span className="label">Mid</span>
+                    <span className="value">{totals.byRole.mid[0]}–{totals.byRole.mid[1]}h</span>
+                  </div>
+                  <div className="budget-legend-row">
+                    <span className="legend-swatch junior"></span>
+                    <span className="label">Junior</span>
+                    <span className="value">{totals.byRole.junior[0]}–{totals.byRole.junior[1]}h</span>
+                  </div>
+                  <div className="budget-legend-row">
+                    <span className="legend-swatch community"></span>
+                    <span className="label">Community</span>
+                    <span className="value">{totals.byRole.community[0]}–{totals.byRole.community[1]}h</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="presets-card">
+                <h2>Presets</h2>
+                {PRESETS.map(p => (
+                  <button key={p.id} className="preset-btn" onClick={() => applyPresetClick(p)}>
+                    <div className="preset-name">{p.name}</div>
+                    <div className="preset-meta">{p.desc}</div>
+                  </button>
+                ))}
+                <button className="preset-btn reset" onClick={resetAll}>
+                  <div className="preset-name">Reset (deselect all)</div>
+                </button>
+              </div>
+
+              <div className="ships-card">
+                <h2>What ships</h2>
+                {whatShips.length === 0 ? (
+                  <div style={{ fontSize: '0.8125rem', color: '#6f6f6f', fontStyle: 'italic' }}>
+                    Nothing selected yet. Pick a preset or toggle items to see what ships at your budget.
+                  </div>
+                ) : (
+                  <ul>
+                    {whatShips.map((s, i) => <li key={i}>{s}</li>)}
+                  </ul>
+                )}
+              </div>
+            </aside>
+          </div>
+        </Fragment>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

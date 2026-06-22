@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M-05 AST Entry — Inline Prototype</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+  .preview-banner strong { background:#fff; color:#0f62fe; padding:1px 6px; border-radius:2px; margin:0 4px; }
+  .wrap { padding:1.25rem 2rem; max-width:1000px; }
+  .card { background:#fff; border:1px solid #e0e0e0; padding:1rem 1.25rem; margin-bottom:1rem; }
+  h1 { font-size:22px; font-weight:300; margin:0 0 0.25rem; }
+  .sub { font-size:13px; color:#6f6f6f; margin:0 0 1rem; }
+  .help { font-size:12px; color:#6f6f6f; margin:0.25rem 0 0.75rem; } .help .ico{ color:#0f62fe; font-weight:700; margin-right:4px; }
+  .runhdr { display:flex; gap:1.25rem; flex-wrap:wrap; align-items:flex-end; margin-bottom:0.5rem; }
+  .fld label { display:block; font-size:11px; color:#525252; text-transform:uppercase; letter-spacing:0.4px; font-weight:600; margin-bottom:4px; }
+  .fld select, .fld input { padding:0.4rem 0.6rem; font-size:13px; border:0; border-bottom:1px solid #8d8d8d; background:#f4f4f4; font-family:inherit; }
+  .fh { font-size:11px; color:#6f6f6f; margin-top:4px; max-width:520px; }
+  table.t { width:100%; border-collapse:collapse; font-size:13px; }
+  table.t th { text-align:left; padding:0.45rem 0.6rem; background:#f4f4f4; font-weight:600; border-bottom:1px solid #e0e0e0; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; color:#525252; }
+  table.t td { padding:0.4rem 0.6rem; border-bottom:1px solid #eee; vertical-align:middle; }
+  tr.ovr td { background:#fff8e1; }
+  tr.ovrdetail td { background:#f6f2ff; }
+  tr.histdetail td { background:#f4f4f4; color:#525252; font-size:12px; }
+  .mic-in { width:74px; padding:0.25rem 0.4rem; border:1px solid #8d8d8d; background:#fff; font-family:inherit; font-size:13px; }
+  .interp { display:inline-block; padding:1px 8px; border-radius:4px; font-weight:700; font-size:11px; min-width:16px; text-align:center; }
+  .interp.S{background:#a7f0ba;color:#044317;} .interp.I{background:#fdd13a;color:#161616;} .interp.R{background:#ffd7d9;color:#750e13;} .interp.NB{background:#e0e0e0;color:#525252;}
+  .src { font-size:10px; color:#6f6f6f; }
+  .matched { font-size:10px; color:#0f62fe; }
+  .lnk { color:#0f62fe; cursor:pointer; font-size:12px; }
+  .btn { display:inline-flex; align-items:center; gap:0.35rem; padding:0.4rem 0.8rem; font-size:13px; font-family:inherit; border:1px solid transparent; cursor:pointer; }
+  .b-pri{background:#0f62fe;color:#fff;} .b-ter{background:transparent;color:#0f62fe;border-color:#0f62fe;} .b-ghost{background:transparent;color:#0f62fe;} .b-ghost:hover,.b-ter:hover{background:#e5e5e5;} .b-amber{background:#f1c21b;color:#161616;font-weight:600;} .b-sm{padding:0.25rem 0.7rem;font-size:12px;}
+  .toolbar { display:flex; gap:0.5rem; margin:0.75rem 0; flex-wrap:wrap; align-items:center; }
+  .banner { padding:0.7rem 1rem; border-left:4px solid #da1e28; background:#fff1f1; font-size:13px; margin-bottom:0.75rem; display:flex; gap:1rem; align-items:center; }
+  .banner.ok { border-left-color:#24a148; background:#defbe6; }
+  .ovrbox { padding:0.5rem 0.6rem; display:flex; gap:0.75rem; align-items:flex-end; flex-wrap:wrap; }
+  .ovrbox textarea { min-width:300px; flex:1; border:1px solid #8d8d8d; font-family:inherit; font-size:13px; padding:0.3rem; }
+  .tag-note { font-size:11px; color:#6f6f6f; }
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#161616; color:#fff; padding:0.6rem 1rem; font-size:13px; border-radius:4px; z-index:50; }
+</style>
+</head>
+<body>
+<div class="preview-banner">M-05 AST Entry · <strong>Inline prototype</strong> · no pop-up modals — setup &amp; entry are inline; override expands in the row. Auto-interpret · flexible breakpoint · no manual import.</div>
+<div class="wrap">
+  <div class="card">
+    <h1>AST Run #1 — Isolate 1 · <em>Escherichia coli</em></h1>
+    <p class="sub">Case MC-2024-001234 · Blood · MARTINEZ, Carlos</p>
+    <div id="qcbanner"></div>
+    <div id="runmeta" style="font-size:12px;color:#525252;margin:0.2rem 0 0.5rem"></div>
+    <div id="reviewbar"></div>
+    <div class="runhdr">
+      <div class="fld"><label>Panel (ordered)</label><div style="padding:0.4rem 0;font-size:13px">GN-STD (16 antibiotics) · <span style="color:#6f6f6f">ordered by reflex from <em>E. coli</em> default</span> &nbsp;<button class="btn b-ghost b-sm" onclick="toast('Adjust panel — add/drop antibiotics or pick another panel. Updates the ordered analysis + snapshots on the run, with a reason + audit. Not a free dropdown.')">Adjust ▾</button></div></div>
+      <div class="fld"><label>Method</label><select id="method" onchange="changeMethod(this.value)"><option>VITEK 2</option><option>Disk diffusion</option><option>Etest</option></select></div>
+      <div class="fld"><label>Breakpoint standard</label>
+        <select id="std" onchange="changeStd(this.value)">
+          <option value="EUCAST v14.0">EUCAST v14.0  (lab default — active)</option>
+          <option value="CLSI M100 2024">CLSI M100 2024  (loaded)</option>
+          <option value="CLSI M100 2025">CLSI M100 2025  (loaded)</option>
+          <option value="EUCAST v13.0">EUCAST v13.0  (loaded)</option>
+        </select>
+      </div>
+      <div class="fld"><label>Reagent lot</label><select><option>AST-GN-26-04-117 · exp 2026-09-01 · QC pass  (oldest — use first)</option><option>AST-GN-26-05-140 · exp 2026-10-15 · QC pass</option></select></div>
+    </div>
+    <p class="fh">Breakpoint standard <strong>defaults to the lab active standard but any loaded standard/version is selectable per run</strong> (CLSI or EUCAST) — try changing it and watch the interpretations re-compute. It's snapshotted on the run, so switching the lab default later never changes this run. <strong>Reagent lot</strong> (generic — VITEK card, Phoenix panel, MIC broth panel, Etest strip, or KB disk; reused from M-12, not method-specific) uses FIFO + QC like results-entry; the analyzer card/panel ID is scanned or read from the instrument link. <strong>Measurement follows the method:</strong> MIC in µg/mL for VITEK / Etest / broth microdilution, zone diameter in mm for disk diffusion — switch Method to watch the column change. <strong>"Source"</strong> is data provenance (analyzer / manual / override), distinct from <strong>Method</strong> (the technique).</p>
+    <p class="help"><span class="ico">ⓘ</span> Enter MIC and the interpretation auto-fills against the chosen standard. Analyzer results arrive automatically (no import). To change a value, tick <strong>Override</strong> — it expands inline, keeps the original, and is revertible.</p>
+    <table class="t">
+      <thead><tr><th>Antibiotic</th><th id="measHdr">MIC (µg/mL)</th><th>Interp</th><th>Source</th><th>Override</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="toolbar">
+      <button class="btn b-ghost b-sm" onclick="applyDefaults()">Apply defaults (re-interpret)</button>
+      <button class="btn b-ghost b-sm" onclick="clearAll()">Clear all</button>
+      <span class="tag-note">Analyzer results ingest automatically via the event channel — there is no “import” button. Unmatched pushes → Admin → Stuck analyzer events.</span>
+      <button class="btn b-ter b-sm" style="margin-left:auto" onclick="toggleQc()">Simulate analyzer QC fail</button>
+    </div>
+  </div>
+</div>
+<div id="toastRoot"></div>
+<script>
+"use strict";
+// MIC breakpoints (µg/mL) per standard: S = mic<=S, R = mic>=R. Missing drug => no breakpoint.
+var BP = {
+  'EUCAST v14.0': {Ampicillin:{S:8,R:16}, Ceftriaxone:{S:1,R:2}, Meropenem:{S:2,R:8}, Gentamicin:{S:2,R:4}, Ciprofloxacin:{S:0.25,R:0.5}},
+  'EUCAST v13.0': {Ampicillin:{S:8,R:16}, Ceftriaxone:{S:1,R:2}, Meropenem:{S:2,R:8}, Gentamicin:{S:2,R:4}, Ciprofloxacin:{S:0.5,R:1}},
+  'CLSI M100 2024': {Ampicillin:{S:8,R:32}, Ceftriaxone:{S:1,R:4}, Meropenem:{S:1,R:4}, Gentamicin:{S:4,R:16}, Ciprofloxacin:{S:1,R:4}},
+  'CLSI M100 2025': {Ampicillin:{S:8,R:32}, Ceftriaxone:{S:1,R:4}, Meropenem:{S:1,R:4}, Gentamicin:{S:2,R:8}, Ciprofloxacin:{S:0.25,R:1}}
+};
+// Zone-diameter breakpoints (mm) for disk diffusion: S = zone>=S, R = zone<=R (inverse of MIC). Illustrative demo values.
+var ZBP = {Ampicillin:{S:17,R:13}, Ceftriaxone:{S:23,R:19}, Meropenem:{S:23,R:15}, Gentamicin:{S:17,R:14}, Ciprofloxacin:{S:26,R:21}};
+var std = 'EUCAST v14.0';
+var method = 'VITEK 2';
+function zoneMode(){ return method === 'Disk diffusion'; }   // disk = zone (mm); else MIC (µg/mL)
+function unit(){ return zoneMode() ? 'mm' : 'µg/mL'; }
+var rows = [
+  {abx:'Ampicillin', mic:32, zone:12, source:'ANALYZER'},
+  {abx:'Ceftriaxone', mic:16, zone:18, source:'ANALYZER', inst:'I'},
+  {abx:'Meropenem', mic:0.25, zone:28, source:'ANALYZER'},
+  {abx:'Gentamicin', mic:4, zone:16, source:'ANALYZER'},
+  {abx:'Ciprofloxacin', mic:1, zone:22, source:'ANALYZER'},
+  {abx:'Colistin', mic:'', zone:'', source:'MANUAL'}   // no breakpoint — and disk diffusion is unreliable for colistin
+];
+var qc=false; var reviewed=false;
+function rowVal(r){ return zoneMode() ? r.zone : r.mic; }
+function interp(r){
+  var t = zoneMode() ? ZBP[r.abx] : BP[std][r.abx];
+  if(t===undefined) return {i:'NB', matched:'none'};
+  var v=rowVal(r);
+  if(v===''||v===null||isNaN(parseFloat(v))) return {i:'', matched:''};
+  v=parseFloat(v);
+  if(zoneMode()){ if(v>=t.S) return {i:'S',matched:'organism-specific'}; if(v<=t.R) return {i:'R',matched:'organism-specific'}; return {i:'I',matched:'organism-specific'}; }
+  if(v<=t.S) return {i:'S', matched:'organism-specific'};
+  if(v>=t.R) return {i:'R', matched:'organism-specific'};
+  return {i:'I', matched:'organism-specific'};
+}
+function render(){
+  document.getElementById('measHdr').textContent = zoneMode() ? 'Zone (mm)' : 'MIC (µg/mL)';
+  document.getElementById('qcbanner').innerHTML = qc
+    ? '<div class="banner">⚠ <b>QC fail</b> on this card (control organism out of range). Save is blocked. <button class="btn b-amber b-sm" onclick="invalidate()">Invalidate &amp; start new run</button> <button class="btn b-ghost b-sm" onclick="overrideQc()">Override QC flag (supervisor)</button></div>'
+    : '';
+  document.getElementById('runmeta').innerHTML = 'Instrument: <strong>VITEK 2</strong> · loaded 07:54 · completed 11:45 · software v9.02 · AES flags: <strong>ESBL</strong> · analyzer ID: <em>E. coli</em> (99.5%) <span style="color:#8d8d8d">— informational; the isolate’s organism ID is authoritative</span>.';
+  document.getElementById('reviewbar').innerHTML = reviewed
+    ? '<div class="banner ok">✓ Results reviewed &amp; accepted by Olivia Mendez — run <strong>COMPLETE</strong> (now counts toward report readiness).</div>'
+    : (qc ? '' : '<div class="banner" style="border-left-color:#0f62fe;background:#edf5ff">Analyzer results received (pre-populated) — <strong>review &amp; accept</strong>. 1 row differs from the analyzer’s own interpretation (flagged). <button class="btn b-pri b-sm" onclick="accept()">Accept results</button> <button class="btn b-ghost b-sm" onclick="repeatRun()">Repeat AST run</button></div>');
+  var html='';
+  rows.forEach(function(r,ix){
+    var res = r.override ? {i:r.override.interp, matched:'override'} : interp(r);
+    var interpCell;
+    if(res.i==='NB'){ interpCell='<span class="interp NB">?</span> <span class="matched" style="color:#8d8d8d">no breakpoint — interpret per local SOP</span>'; }
+    else { interpCell = (res.i?'<span class="interp '+res.i+'">'+res.i+'</span>':'<span style="color:#bbb">—</span>') + (res.matched&&res.matched!=='override'?' <span class="matched">('+res.matched+')</span>':'') + (r.override?' <span class="matched" style="color:#8a3ffc">→ override</span>':'') + ((r.inst && res.i && !r.override && r.inst!==res.i)?' <span class="matched" style="color:#b28600">⚑ analyzer said '+r.inst+'</span>':''); }
+    var micCell = '<input class="mic-in" value="'+(rowVal(r)||'')+'" oninput="setVal('+ix+',this.value)"'+(res.i==='NB'?' placeholder="—"':'')+'>';
+    var ovrToggle = r.override
+      ? '<span class="lnk" onclick="toggleHist('+ix+')">show original ▾</span>'
+      : '<label style="font-size:12px"><input type="checkbox" onclick="openOverride('+ix+')"> override</label>';
+    html += '<tr'+(r.override?' class="ovr"':'')+'><td>'+r.abx+'</td><td>'+micCell+'</td><td>'+interpCell+'</td><td class="src">'+(r.override?'OVERRIDE':r.source)+'</td><td>'+ovrToggle+'</td><td></td></tr>';
+    if(r._editing){
+      html += '<tr class="ovrdetail"><td colspan="6"><div class="ovrbox">'+
+        '<div class="fld"><label>New interpretation</label><select id="ov_'+ix+'"><option>R</option><option>S</option><option>I</option></select></div>'+
+        '<div class="fld" style="flex:1"><label>Justification (required) · macros: .</label><textarea id="oj_'+ix+'" rows="1" placeholder="e.g. ESBL phenotype — report cephalosporins R regardless of MIC"></textarea></div>'+
+        '<button class="btn b-pri b-sm" onclick="saveOverride('+ix+')">Save override</button>'+
+        '<button class="btn b-ghost b-sm" onclick="cancelOverride('+ix+')">Cancel</button></div></td></tr>';
+    }
+    if(r._showHist && r.override){
+      html += '<tr class="histdetail"><td colspan="6">Original ('+r.override.origSource+'): <strong>'+(r.override.origInterp||'—')+'</strong> ('+(r.override.origVal||'—')+' '+(r.override.origUnit||'')+') → override <strong>'+r.override.interp+'</strong>. Reason: '+r.override.reason+'. By Olivia Mendez, just now. &nbsp; <span class="lnk" onclick="revert('+ix+')">Revert to original</span></td></tr>';
+    }
+  });
+  document.getElementById('rows').innerHTML=html;
+}
+function setVal(ix,v){ if(zoneMode()) rows[ix].zone=v; else rows[ix].mic=v; rows[ix].source='MANUAL'; render(); }
+function changeMethod(v){ method=v; toast('Method = '+v+(zoneMode()?' — measuring zone diameter (mm)':' — measuring MIC (µg/mL)')); render(); }
+function changeStd(v){ std=v; toast('Re-interpreted against '+v+' (snapshotted on the run).'); render(); }
+function applyDefaults(){ toast('Re-interpreted all rows against '+std+'.'); render(); }
+function clearAll(){ if(confirm('Clear all entered results? This cannot be undone (writes an audit row).')){ rows.forEach(function(r){ r.mic=''; r.zone=''; r.override=null; r._editing=false; r._showHist=false; }); render(); } }
+function openOverride(ix){ rows.forEach(function(r){r._editing=false;}); rows[ix]._editing=true; render(); }
+function cancelOverride(ix){ rows[ix]._editing=false; render(); }
+function saveOverride(ix){
+  var nv=document.getElementById('ov_'+ix).value; var reason=document.getElementById('oj_'+ix).value||'(reason required)';
+  var cur=interp(rows[ix]);
+  rows[ix].override={interp:nv, reason:reason, origInterp:cur.i, origVal:rowVal(rows[ix]), origUnit:unit(), origSource:rows[ix].source};
+  rows[ix]._editing=false; render(); toast('Override saved — original reading preserved + audited.');
+}
+function toggleHist(ix){ rows[ix]._showHist=!rows[ix]._showHist; render(); }
+function revert(ix){ rows[ix].override=null; rows[ix]._showHist=false; render(); toast('Reverted to the original analyzer/manual value (audited).'); }
+function accept(){ reviewed=true; render(); toast('Results accepted — run COMPLETE (reviewed_by + audit). Worklist “new results” flag cleared.'); }
+function repeatRun(){ toast('Repeat AST run created against this isolate (retest) — original preserved; whole panel or a single drug. Reuses OE retest.'); }
+function toggleQc(){ qc=!qc; render(); }
+function invalidate(){ qc=false; toast('Run invalidated; a new AST run can be set up.'); render(); }
+function overrideQc(){ qc=false; toast('QC flag overridden by supervisor (justification + audit).'); render(); }
+function toast(m){ var r=document.getElementById('toastRoot'); r.innerHTML='<div class="toast">'+m+'</div>'; clearTimeout(window._t); window._t=setTimeout(function(){r.innerHTML='';},3800); }
+render();
+</script>
+</body>
+</html>

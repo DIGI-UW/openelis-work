@@ -51,6 +51,8 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 |---------|--------|------|
 | Sysmex XP Field Mapping | — | [sysmex-xp-field-mapping-v0.1.md](designs/analyzer-integration/sysmex-xp-field-mapping-v0.1.md) |
 | BioRad CFX Opus Connection Spec | — | [biorad-cfx-opus-analyzer-connection-spec.md](designs/analyzer-integration/biorad-cfx-opus-analyzer-connection-spec.md) |
+| MinION TB-Profiler Field Mapping Spec | — | [minion-tbprofiler-field-mapping-v2.2.md](designs/analyzer-integration/minion-tbprofiler-field-mapping-v2.2.md) |
+| MinION TB-Profiler Setup Guide | — | [minion-tbprofiler-setup-guide-v1.0.md](designs/analyzer-integration/minion-tbprofiler-setup-guide-v1.0.md) |
 | Sysmex XN-L Series Field Mapping | — | [sysmex-xn-field-mapping-v0.1.md](designs/analyzer-integration/sysmex-xn-field-mapping-v0.1.md) |
 | DNA Technology DT-Prime Field Mapping | — | [dna-technology-dtprime-field-mapping-v0.2.md](designs/analyzer-integration/dna-technology-dtprime-field-mapping-v0.2.md) |
 | Tecan Infinite F50 Connection Spec | — | [tecan-infinite-f50-analyzer-connection-spec.md](designs/analyzer-integration/tecan-infinite-f50-analyzer-connection-spec.md) |

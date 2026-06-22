@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>S-03d v2.0: SOP Holding-Time Auto-Calc — In Context</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner { background: #491d8b; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .oe-shell { background: #f4f4f4; min-height: 100vh; }
+    .oe-topbar { background: #161616; color: #fff; height: 48px; display: flex; align-items: center; padding: 0 16px; gap: 16px; }
+    .oe-topbar .logo { font-weight: 600; font-size: 14px; }
+    .oe-topbar .nav-item { font-size: 13px; opacity: 0.7; cursor: pointer; }
+    .oe-topbar .nav-item:hover { opacity: 1; }
+    .oe-topbar .spacer { flex: 1; }
+    .oe-topbar .user { font-size: 12px; opacity: 0.7; }
+    .oe-breadcrumb { background: #fff; padding: 8px 24px; border-bottom: 1px solid #e0e0e0; font-size: 12px; color: #525252; }
+    .oe-breadcrumb a { color: #0f62fe; text-decoration: none; }
+    .oe-breadcrumb .sep { margin: 0 6px; color: #c6c6c6; }
+    .oe-page { padding: 16px 24px; max-width: 1300px; margin: 0 auto; }
+    .oe-page-header { background: #fff; padding: 16px 24px; border-bottom: 1px solid #e0e0e0; }
+    .oe-page-title { font-size: 28px; font-weight: 300; margin: 0; }
+    .oe-page-subtitle { font-size: 14px; color: #525252; margin: 4px 0 0 0; }
+    .tile { background: #fff; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid #e0e0e0; }
+    .tile h5 { font-size: 14px; font-weight: 600; margin: 0 0 0.75rem 0; }
+    .form-field { margin-bottom: 0.75rem; }
+    .form-field label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; }
+    .form-field input, .form-field select {
+      width: 100%; padding: 8px 12px; border: none; border-bottom: 2px solid #8d8d8d;
+      font-size: 14px; background: #f4f4f4; outline: none; box-sizing: border-box;
+    }
+    .form-field input[readonly] { background: #e0e0e0; color: #525252; }
+    .grid { display: grid; gap: 1rem; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .helper { font-size: 12px; color: #525252; }
+    .btn { padding: 6px 14px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; }
+    .btn-ghost { background: transparent; color: #0f62fe; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 8px 12px; background: #f4f4f4; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e0e0e0; }
+    th.new-col { background: #fcf4d6; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
+    td code { font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: #f4f4f4; padding: 2px 6px; }
+    td input[type="number"] { width: 80px; padding: 4px 8px; }
+    .tag { display: inline-block; padding: 2px 10px; border-radius: 24px; font-size: 12px; font-weight: 500; }
+    .tag-green { background: #defbe6; color: #0e6027; }
+    .tag-warm-gray { background: #f7e9d0; color: #5e4118; }
+    .tag-magenta { background: #ffd6e8; color: #740937; }
+    .tag-red { background: #ffd7d9; color: #a2191f; }
+    .tag-blue { background: #d0e2ff; color: #002d9c; }
+    .tag-purple { background: #e8daff; color: #491d8b; }
+    .tag-gray { background: #e0e0e0; color: #161616; }
+    .new-region { border: 2px dashed #f1c21b; border-radius: 6px; padding: 12px; position: relative; margin-bottom: 1rem; }
+    .new-region::before {
+      content: 'S-03d v2 NEW'; position: absolute; top: -11px; left: 12px;
+      background: #f1c21b; color: #000; font-size: 11px; font-weight: 700;
+      padding: 1px 8px; border-radius: 4px; z-index: 2;
+    }
+    .scenes { background: #393939; color: #fff; display: flex; padding: 0; }
+    .scene { padding: 10px 16px; cursor: pointer; font-size: 13px; border-right: 1px solid #525252; }
+    .scene:hover { background: #525252; }
+    .scene.active { background: #0f62fe; font-weight: 600; }
+    .progress-bar { display: flex; gap: 0; margin-bottom: 1rem; background: #fff; border: 1px solid #e0e0e0; }
+    .progress-step { flex: 1; padding: 12px 16px; font-size: 13px; border-right: 1px solid #e0e0e0; }
+    .progress-step:last-child { border-right: none; }
+    .progress-step.current { background: #d0e2ff; color: #002d9c; font-weight: 600; }
+    .progress-step.pending { background: #f4f4f4; color: #525252; }
+    .progress-step .step-label { display: block; font-weight: 600; }
+    .progress-step .step-desc { font-size: 11px; color: #525252; margin-top: 2px; }
+    .badge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .domain-badge { padding: 2px 10px; border-radius: 24px; font-size: 12px; font-weight: 500; }
+    .domain-badge.purple { background: #e8daff; color: #491d8b; }
+    .notification { padding: 12px 16px; border-left: 3px solid #0f62fe; background: #edf5ff; margin-bottom: 12px; font-size: 13px; }
+    .notification strong { font-weight: 600; }
+    .filter-bar { display: flex; gap: 12px; align-items: flex-end; padding: 12px; background: #fff; border-bottom: 1px solid #e0e0e0; }
+  </style>
+</head>
+<body>
+  <div class="preview-banner">⚡ S-03d v2.0 — SOP Holding-Time Auto-Calc + Worklist Deadline Column — IN-CONTEXT preview</div>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    const TESTS = [
+      { id: 't-001', name: 'pH', loinc: '11558-4', unit: '—', holdingHours: 0.25, domain: 'Environmental' },
+      { id: 't-002', name: 'Dissolved Oxygen', loinc: '19218-7', unit: 'mg/L', holdingHours: 0.25, domain: 'Environmental' },
+      { id: 't-003', name: 'Total Coliform', loinc: '5794-0', unit: 'MPN/100mL', holdingHours: 24, domain: 'Environmental' },
+      { id: 't-004', name: 'BOD₅', loinc: '5839-3', unit: 'mg/L', holdingHours: 48, domain: 'Environmental' },
+      { id: 't-005', name: 'Lead (Pb)', loinc: '5671-0', unit: 'mg/L', holdingHours: 168, domain: 'Environmental' },
+    ];
+
+    const WORKLIST = [
+      { lab: 'ENV-2026-0410', site: 'WS-001 Ciliwung', tests: 'pH, DO, Coliform', collected: '2026-04-25 06:00', requiredBy: '2026-04-25 21:00', minutesLeft: 870 },
+      { lab: 'ENV-2026-0411', site: 'WS-002 Cisadane', tests: 'Pb, Hg', collected: '2026-04-25 04:30', requiredBy: '2026-04-25 19:30', minutesLeft: 510 },
+      { lab: 'ENV-2026-0412', site: 'WS-001 Ciliwung', tests: 'pH, BOD₅', collected: '2026-04-25 02:00', requiredBy: '2026-04-25 17:00', minutesLeft: 180 },
+      { lab: 'ENV-2026-0413', site: 'WS-003 Brantas', tests: 'Coliform', collected: '2026-04-24 22:00', requiredBy: '2026-04-25 13:00', minutesLeft: -120 },
+    ];
+
+    function deadlineTag(m) {
+      if (m < 0) return { cls: 'tag-red', label: 'Exceeded' };
+      if (m < 240) return { cls: 'tag-magenta', label: 'Imminent' };
+      if (m < 1440) return { cls: 'tag-warm-gray', label: 'Approaching' };
+      return { cls: 'tag-green', label: 'On time' };
+    }
+
+    function Topbar() {
+      return (
+        <div className="oe-topbar">
+          <span className="logo">OpenELIS Global</span>
+          <span className="nav-item">Home</span>
+          <span className="nav-item">Order</span>
+          <span className="nav-item">Worklist</span>
+          <span className="nav-item">Reports</span>
+          <span className="nav-item">Admin</span>
+          <span className="spacer"></span>
+          <span className="user">caseyi · Reception Clerk</span>
+        </div>
+      );
+    }
+
+    function Breadcrumb({ trail }) {
+      return (
+        <div className="oe-breadcrumb">
+          {trail.map((t, i) => (
+            <span key={i}>
+              {i > 0 && <span className="sep">›</span>}
+              {i < trail.length - 1 ? <a href="#">{t}</a> : <strong>{t}</strong>}
+            </span>
+          ))}
+        </div>
+      );
+    }
+
+    function PageHeader({ title, subtitle }) {
+      return (
+        <div className="oe-page-header">
+          <h1 className="oe-page-title">{title}</h1>
+          {subtitle && <p className="oe-page-subtitle">{subtitle}</p>}
+        </div>
+      );
+    }
+
+    function Scene1_Step1() {
+      const [selected, setSelected] = useState(['t-001', 't-002', 't-003']);
+      const [collected, setCollected] = useState('2026-04-25 06:00');
+      const [override, setOverride] = useState(false);
+
+      const minHold = useMemo(() => {
+        const ts = TESTS.filter(t => selected.includes(t.id));
+        if (!ts.length) return null;
+        return Math.min(...ts.map(t => t.holdingHours));
+      }, [selected]);
+
+      const driver = TESTS.filter(t => selected.includes(t.id) && t.holdingHours === minHold)[0];
+
+      const suggested = useMemo(() => {
+        if (!minHold || !collected) return null;
+        const c = new Date(collected.replace(' ', 'T'));
+        const d = new Date(c.getTime() + minHold * 3600 * 1000);
+        return d.toISOString().slice(0, 16).replace('T', ' ');
+      }, [minHold, collected]);
+
+      const toggle = (id) => setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+
+      return (
+        <div>
+          <Breadcrumb trail={['Order', 'Order Entry', 'ENV-2026-0420 — Step 1']} />
+          <PageHeader
+            title="Order ENV-2026-0420 — Step 1 (Branch & Order Setup)"
+            subtitle="Auto-calc populates the generic Required-By field when env/vector tests with SOP holding times are selected and collection date/time is known."
+          />
+          <div className="oe-page">
+            <div className="progress-bar">
+              <div className="progress-step current">
+                <span className="step-label">1 — Branch & Order Setup</span>
+                <span className="step-desc">In progress</span>
+              </div>
+              <div className="progress-step pending">
+                <span className="step-label">2 — Label & Store</span>
+                <span className="step-desc">Pending</span>
+              </div>
+              <div className="progress-step pending">
+                <span className="step-label">3 — QA/QC + Intake</span>
+                <span className="step-desc">Pending</span>
+              </div>
+            </div>
+
+            <div className="tile">
+              <div className="badge-row">
+                <span className="domain-badge purple">Environmental</span>
+                <span className="helper">Lab #: ENV-2026-0420</span>
+              </div>
+            </div>
+
+            <div className="tile">
+              <h5>Suggested Tests (existing — from S-03 v2.0)</h5>
+              <table>
+                <thead>
+                  <tr><th></th><th>Test</th><th>LOINC</th><th>Unit</th><th>SOP Max Holding (h) (S-03d)</th></tr>
+                </thead>
+                <tbody>
+                  {TESTS.map(t => (
+                    <tr key={t.id}>
+                      <td><input type="checkbox" checked={selected.includes(t.id)} onChange={() => toggle(t.id)} /></td>
+                      <td>{t.name}</td>
+                      <td><code>{t.loinc}</code></td>
+                      <td>{t.unit}</td>
+                      <td>{t.holdingHours}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="form-field" style={{ marginTop: 12 }}>
+                <label>Collection Date/Time (default)</label>
+                <input value={collected} onChange={(e) => setCollected(e.target.value)} style={{ maxWidth: 220 }} />
+              </div>
+            </div>
+
+            <div className="tile">
+              <h5>📅 Required By (generic field, OE-wide)</h5>
+              <p className="helper" style={{ marginBottom: 8 }}>
+                The Required-By field itself is GENERIC (cross-cutting OE feature). On env/vector orders,
+                S-03d auto-calculates a suggestion below.
+              </p>
+
+              <div className="new-region">
+                <div className="tile" style={{ marginBottom: 0, padding: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                    <h5 style={{ margin: 0 }}>🧮 SOP Holding-Time Auto-Calc</h5>
+                    {!override && suggested && <span className="tag tag-blue">Suggested</span>}
+                    {override && <span className="tag tag-gray">User override</span>}
+                  </div>
+                  {suggested ? (
+                    <div className="notification">
+                      Calculated: <strong>{collected}</strong> + <strong>min({minHold}h)</strong> driven by <code>{driver?.name}</code> = <strong>{suggested}</strong>.
+                      Live-updates as tests change unless overridden.
+                    </div>
+                  ) : (
+                    <p className="helper">Add tests with holding times + a collection date/time to auto-calculate.</p>
+                  )}
+                  <div className="grid grid-3">
+                    <div className="form-field">
+                      <label>Required By (auto-populated)</label>
+                      <input value={override ? '2026-04-26 09:00' : (suggested || '')} readOnly={!override} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                      <button className="btn btn-ghost" onClick={() => setOverride(!override)}>
+                        ✎ {override ? 'Re-enable auto-calc' : 'Override'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="tile">
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+                <button className="btn btn-ghost">Cancel</button>
+                <button className="btn btn-primary">Continue to Label & Store →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function Scene2_TestCatalog() {
+      return (
+        <div>
+          <Breadcrumb trail={['Admin', 'Test Catalog Management', 'Test Catalog Editor']} />
+          <PageHeader title="Test Catalog" subtitle="Manage tests, panels, and per-test configuration. S-03d adds SOP Max Holding Time per test." />
+          <div className="oe-page">
+            <div className="filter-bar">
+              <div className="form-field" style={{ minWidth: 280, marginBottom: 0 }}>
+                <label>Search</label>
+                <input placeholder="Test name or LOINC..." />
+              </div>
+              <div className="form-field" style={{ marginBottom: 0 }}>
+                <label>Domain</label>
+                <select defaultValue="Environmental">
+                  <option>All</option><option>Clinical</option><option>Environmental</option><option>Vector</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="tile" style={{ marginTop: 16 }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Test Name</th>
+                    <th>LOINC</th>
+                    <th>Unit</th>
+                    <th>Domain</th>
+                    <th className="new-col">SOP Max Holding (h) (new)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {TESTS.map(t => (
+                    <tr key={t.id}>
+                      <td>{t.name}</td>
+                      <td><code>{t.loinc}</code></td>
+                      <td>{t.unit}</td>
+                      <td><span className="tag tag-purple">{t.domain}</span></td>
+                      <td><input type="number" defaultValue={t.holdingHours} step={0.25} min={0} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="helper" style={{ marginTop: 8 }}>
+                ⚠️ Yellow column = new from S-03d v2. Visible only for tests with <code>sampleDomain</code> ∈ {`{ENVIRONMENTAL, VECTOR}`}.
+                Null means "no SOP holding time defined."
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function Scene3_Worklist() {
+      return (
+        <div>
+          <Breadcrumb trail={['Worklist', 'Environmental Testing']} />
+          <PageHeader title="Environmental Testing Worklist" subtitle="Active orders awaiting bench analysis. Deadline column flags hold-time risk." />
+          <div className="oe-page">
+            <div className="filter-bar">
+              <div className="form-field" style={{ minWidth: 240, marginBottom: 0 }}>
+                <label>Search</label>
+                <input placeholder="Lab number, site..." />
+              </div>
+              <div className="form-field" style={{ marginBottom: 0 }}>
+                <label>Domain</label>
+                <select defaultValue="Environmental">
+                  <option>Environmental</option><option>Vector</option>
+                </select>
+              </div>
+              <div className="form-field" style={{ marginBottom: 0 }}>
+                <label>Status</label>
+                <select><option>All</option><option>Pending Bench</option><option>In Progress</option></select>
+              </div>
+            </div>
+
+            <div className="tile" style={{ marginTop: 16 }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Lab Number</th>
+                    <th>Site</th>
+                    <th>Tests</th>
+                    <th>Collected</th>
+                    <th>Required By</th>
+                    <th className="new-col">Deadline (new)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {WORKLIST.map(row => {
+                    const tag = deadlineTag(row.minutesLeft);
+                    const m = Math.abs(row.minutesLeft);
+                    const h = Math.floor(m / 60);
+                    const r = m % 60;
+                    return (
+                      <tr key={row.lab}>
+                        <td><code>{row.lab}</code></td>
+                        <td>{row.site}</td>
+                        <td>{row.tests}</td>
+                        <td><span style={{ fontFamily: 'monospace', fontSize: 12 }}>{row.collected}</span></td>
+                        <td><span style={{ fontFamily: 'monospace', fontSize: 12 }}>{row.requiredBy}</span></td>
+                        <td>
+                          <span className={`tag ${tag.cls}`}>{tag.label}</span>
+                          <span style={{ fontSize: 11, color: '#525252', marginLeft: 8 }}>
+                            {row.minutesLeft >= 0 ? `${h}h ${r}m left` : `Past by ${h}h ${r}m`}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <p className="helper" style={{ marginTop: 8 }}>
+                ⚠️ Yellow column = new from S-03d v2. Color thresholds: ≥24h = green; 4–24h = warm-gray; &lt;4h = magenta; past = red. Updates live.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [scene, setScene] = useState(0);
+      const scenes = [
+        { label: '1 — Step 1 (auto-calc + Required-By)', cmp: <Scene1_Step1 /> },
+        { label: '2 — Test Catalog (SOP Holding column)', cmp: <Scene2_TestCatalog /> },
+        { label: '3 — Worklist (Deadline column)', cmp: <Scene3_Worklist /> },
+      ];
+      return (
+        <div className="oe-shell">
+          <Topbar />
+          <div className="scenes">
+            {scenes.map((s, i) => (
+              <div key={i} className={`scene ${scene === i ? 'active' : ''}`} onClick={() => setScene(i)}>{s.label}</div>
+            ))}
+          </div>
+          {scenes[scene].cmp}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

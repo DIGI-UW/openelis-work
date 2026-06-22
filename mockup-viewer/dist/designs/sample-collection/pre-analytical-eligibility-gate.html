@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S-09 Eligibility Gate v3.0 — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; }
+    .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+    .preview-content { padding:1rem 2rem; max-width:1320px; margin:0 auto; }
+    .crumb { font-size:12px; color:#525252; margin-bottom:.75rem; }
+    .layout { display:flex; gap:0; }
+    .sidenav { width:256px; flex:0 0 256px; background:#fff; border-right:1px solid #e0e0e0; min-height:480px; }
+    .nav-title { font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:#6f6f6f; padding:.9rem 1rem .3rem; }
+    .nav-item { padding:.55rem 1rem .55rem 1.5rem; font-size:13px; cursor:pointer; border-left:3px solid transparent; }
+    .nav-item:hover { background:#e8e8e8; }
+    .nav-item.active { background:#e0e0e0; border-left-color:#0f62fe; font-weight:600; }
+    .main { flex:1; padding:1rem 2rem; }
+    .panel { background:#fff; border-left:3px solid #0f62fe; padding:1rem; }
+    .ctx { background:#f4f4f4; padding:.75rem; font-size:12px; margin-bottom:1rem; line-height:1.5; }
+    table.cds--data-table td { cursor:pointer; }
+    tr.sel td { background:#e0e0e0 !important; }
+    .row-rule { padding:.6rem 0; border-bottom:1px solid #e0e0e0; }
+    .three label { margin-right:1rem; font-size:13px; }
+    .card { background:#fff; padding:1rem; margin-bottom:1rem; }
+    .modal-back { position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:50; }
+    .modal-box { background:#fff; width:520px; max-width:92vw; padding:1.25rem; }
+    .btn { font-size:13px; padding:.5rem .9rem; border:none; cursor:pointer; }
+    .btn-p { background:#0f62fe; color:#fff; } .btn-p:disabled { background:#c6c6c6; cursor:not-allowed; }
+    .btn-g { background:transparent; color:#0f62fe; } .btn-d { background:#da1e28; color:#fff; }
+    .info { background:#edf5ff; border-left:3px solid #0043ce; padding:.6rem .75rem; font-size:12px; margin-top:.75rem; }
+    h4 { margin:.2rem 0 .6rem; } h3 { margin:.2rem 0 1rem; font-weight:400; }
+    .muted { color:#6f6f6f; font-size:12px; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">⚡ Visual Preview — S-09 Pre-Analytical Eligibility Gate v3.0 (generic manual checklist + Resample) &nbsp;|&nbsp; Step 3: Order → Add Order &nbsp;|&nbsp; Admin: General Configuration → Order Entry Configuration → Sample Acceptance Checklist &nbsp;|&nbsp; Not a live application</div>
+  <div class="preview-content" id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    const DEFAULT_ITEMS = [
+      { id:1, label:'Container intact and undamaged', domain:null, active:true },
+      { id:2, label:'Label legible and matches request', domain:null, active:true },
+      { id:3, label:'Sample volume / quantity adequate', domain:null, active:true },
+      { id:4, label:'Cold chain / temperature acceptable', domain:null, active:true },
+      { id:5, label:'Within acceptable transit time', domain:null, active:true },
+      { id:6, label:'Request paperwork / chain-of-custody present', domain:null, active:true },
+      { id:7, label:'Patient identifiers match request', domain:'CLINICAL', active:true },
+      { id:8, label:'Preservation medium appropriate', domain:'ENVIRONMENTAL', active:true },
+      // (Vector has no own items in this demo → it falls back to the lab-wide list.)
+    ];
+    const DOMAINS = ['CLINICAL','ENVIRONMENTAL','VECTOR'];
+    const SAMPLES = [
+      { id:'ENV-2026-00231', type:'Water — Surface',  domain:'ENVIRONMENTAL', collected:'2026-06-15 07:10', received:'2026-06-16 09:42', transit:'26h 32m', long:true,  state:'pending' },
+      { id:'ENV-2026-00232', type:'Water — Ground',   domain:'ENVIRONMENTAL', collected:'2026-06-16 06:55', received:'2026-06-16 09:42', transit:'2h 47m',  long:false, state:'accepted' },
+      { id:'CLI-2026-04417', type:'Whole Blood — EDTA',domain:'CLINICAL',      collected:'2026-06-16 08:20', received:'2026-06-16 09:30', transit:'1h 10m',  long:false, state:'review' },
+      { id:'VEC-2026-00088', type:'Mosquito pool — CDC light trap', domain:'VECTOR', collected:'2026-06-15 19:00', received:'2026-06-16 08:15', transit:'13h 15m', long:false, state:'pending' },
+    ];
+    const TAG = { accepted:['cds--tag--green','Accepted'], review:['cds--tag--warm-gray','Review'], pending:['cds--tag--gray','Pending'] };
+
+    function Checklist({ sample, onNce }) {
+      const [ans, setAns] = useState({});
+      const [notes, setNotes] = useState({});
+      const set = (id,v) => setAns(a => ({ ...a, [id]: v }));
+      // Precedence: domain list overrides lab-wide; lab-wide is the fallback, shown visible-disabled when overridden.
+      const own = DEFAULT_ITEMS.filter(i => i.active && i.domain === sample.domain);
+      const labWide = DEFAULT_ITEMS.filter(i => i.active && !i.domain);
+      const active = own.length ? own : labWide; // resolved list only; superseded items NOT shown here (FR-04)
+      const anyFail = active.some(i => ans[i.id]==='FAIL');
+      const failed = active.filter(i => ans[i.id]==='FAIL').map(i => ({ label:i.label, note:notes[i.id]||'' }));
+      return (
+        <div className="panel">
+          <h4>Acceptance checklist — {sample.id}</h4>
+          <div className="ctx">
+            <strong>{sample.type}</strong> · {sample.domain}<br/>
+            Collected {sample.collected} · Received {sample.received}<br/>
+            Transit time: <strong>{sample.transit}</strong>
+            {sample.long && <span> &nbsp;<span className="cds--tag cds--tag--warm-gray">long transit — your call</span></span>}
+            <div className="muted" style={{marginTop:'.3rem'}}>Transit is shown for reference only — it does not auto-grade anything. Active list: <strong>{own.length ? sample.domain : 'lab-wide (no '+sample.domain.toLowerCase()+' list)'}</strong>.</div>
+          </div>
+          {active.map(it => (
+            <div className="row-rule three" key={it.id}>
+              <div style={{marginBottom:'.35rem', fontSize:13}}>{it.label}{it.domain && <span className="muted"> ({it.domain.toLowerCase()})</span>}</div>
+              {['PASS','FAIL','NA'].map(v => (
+                <label key={v}>
+                  <input type="radio" name={'i'+it.id+sample.id} checked={ans[it.id]===v} onChange={()=>set(it.id,v)} /> {v==='NA'?'N/A':v[0]+v.slice(1).toLowerCase()}
+                </label>
+              ))}
+              {ans[it.id]==='FAIL' && <input className="cds--text-input" style={{marginTop:'.4rem'}} value={notes[it.id]||''} onChange={e=>setNotes(n=>({...n,[it.id]:e.target.value}))} placeholder="Optional — note any observed condition" />}
+            </div>
+          ))}
+          <div style={{marginTop:'1.1rem'}}>
+            <button className="btn btn-p" disabled={anyFail}>Accept sample</button> &nbsp;
+            <button className={'btn '+(anyFail?'btn-d':'btn-g')} onClick={()=>onNce(failed)}>Report NCE</button>
+            {anyFail && <div className="muted" style={{marginTop:'.4rem'}}>Failed items pre-fill the NCE reason; the dialog is where Resample lives.</div>}
+          </div>
+        </div>
+      );
+    }
+
+    function NceModal({ sample, failed, onClose }) {
+      const [action, setAction] = useState('continue');
+      const prefill = (failed && failed.length)
+        ? failed.map(f => `${f.label}: FAIL${f.note ? ' — ' + f.note : ''}`).join('\n') : '';
+      return (
+        <div className="modal-back" onClick={onClose}>
+          <div className="modal-box" onClick={e=>e.stopPropagation()}>
+            <h4>Report NCE — {sample.id}</h4>
+            <div className="muted">Reason (pre-filled from failed checklist items — editable)</div>
+            <textarea className="cds--text-area" rows={Math.max(2,(failed||[]).length)} defaultValue={prefill} style={{width:'100%'}} />
+            <div style={{margin:'1rem 0 .3rem', fontSize:13, fontWeight:600}}>Sample action</div>
+            {[['continue','Continue with NCE flag'],['reject','Reject sample'],['resample','Resample (new)']].map(([v,l])=>(
+              <div key={v} style={{padding:'.25rem 0'}}>
+                <label style={{fontSize:13}}><input type="radio" name="act" checked={action===v} onChange={()=>setAction(v)} /> {l}</label>
+              </div>
+            ))}
+            {action==='resample' &&
+              <div className="info"><strong>Resample.</strong> Reject this sample and create a new collection order for re-collection, pre-populated from the original (site, tests, sample types). The requester is notified with the reason and a link. One click.</div>}
+            <div style={{marginTop:'1.1rem', textAlign:'right'}}>
+              <button className="btn btn-g" onClick={onClose}>Cancel</button> &nbsp;
+              <button className="btn btn-p" onClick={onClose}>Commit</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function Step3() {
+      const [sel, setSel] = useState(SAMPLES[0]);
+      const [nce, setNce] = useState(false);
+      const [failed, setFailed] = useState([]);
+      return (
+        <div className="cds--grid" style={{padding:0}}>
+          <div className="cds--row">
+            <div className="cds--col-lg-9">
+              <div className="cds--data-table-container">
+                <div style={{padding:'.5rem 0'}}><strong>Step 3 — QA/QC + Intake Acceptance</strong><div className="muted">Select a sample to complete its acceptance checklist</div></div>
+                <table className="cds--data-table">
+                  <thead><tr><th>Lab #</th><th>Sample type</th><th>Transit</th><th>Eligibility</th></tr></thead>
+                  <tbody>
+                    {SAMPLES.map(s => (
+                      <tr key={s.id} className={sel.id===s.id?'sel':''} onClick={()=>setSel(s)}>
+                        <td>{s.id}</td><td>{s.type}</td><td>{s.transit}</td>
+                        <td><span className={'cds--tag '+TAG[s.state][0]}>{TAG[s.state][1]}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="cds--col-lg-7">
+              <Checklist sample={sel} onNce={(f)=>{ setFailed(f); setNce(true); }} />
+            </div>
+          </div>
+          {nce && <NceModal sample={sel} failed={failed} onClose={()=>setNce(false)} />}
+        </div>
+      );
+    }
+
+    const cap = d => d.charAt(0)+d.slice(1).toLowerCase();
+
+    function Admin({ domain, enf, setEnf }) {
+      const isAll = domain==='ALL';
+      const own = DEFAULT_ITEMS.filter(i => isAll ? !i.domain : i.domain===domain);
+      const labWide = DEFAULT_ITEMS.filter(i => !i.domain);
+      const usesFallback = !isAll && own.length===0;
+      return (
+        <div>
+          <h3>Sample Acceptance Checklist — {isAll?'All domains':cap(domain)}</h3>
+          {!isAll &&
+            <div className="card">
+              <div className="muted" style={{marginBottom:'.3rem'}}>Checklist enforcement — {cap(domain)}</div>
+              <div className="cds--select"><select className="cds--select-input" value={enf[domain]} onChange={e=>setEnf({...enf,[domain]:e.target.value})} style={{maxWidth:380}}>
+                <option value="MANDATORY">Mandatory — block Step 3 until complete</option>
+                <option value="OPTIONAL">Optional — record but don't block</option>
+                <option value="OFF">Off — hide the checklist</option>
+              </select></div>
+              <div className="muted" style={{marginTop:'.4rem'}}>Enforcement is set per domain, not per lab unit — a reception clerk spans many lab units.</div>
+            </div>}
+          {usesFallback &&
+            <div className="info" style={{marginBottom:'1rem'}}><strong>No {cap(domain)} items configured.</strong> The lab-wide (All domains) checklist applies for this domain. Add an item here to override it.</div>}
+          <div className="cds--data-table-container card">
+            <strong>{isAll ? 'Lab-wide items (apply unless a domain overrides)' : cap(domain)+' items'}</strong>
+            <table className="cds--data-table" style={{marginTop:'.5rem'}}>
+              <thead><tr><th>Order</th><th>Label</th><th>Active</th><th></th></tr></thead>
+              <tbody>
+                {own.map((it,idx)=>(
+                  <tr key={it.id}>
+                    <td><button className="btn btn-g" disabled={idx===0}>↑</button><button className="btn btn-g" disabled={idx===own.length-1}>↓</button></td>
+                    <td>{it.label}</td>
+                    <td><span className={'cds--tag '+(it.active?'cds--tag--green':'cds--tag--gray')}>{it.active?'Active':'Inactive'}</span></td>
+                    <td><button className="btn btn-g">Edit</button></td>
+                  </tr>
+                ))}
+                {own.length===0 && <tr><td colSpan="4" className="muted">No items in this list.</td></tr>}
+              </tbody>
+            </table>
+            <button className="btn btn-p" style={{marginTop:'.75rem'}}>+ Add item</button>
+            <div className="muted" style={{marginTop:'.6rem'}}>Configured under Admin → General Configuration → Order Entry Configuration — navigated by domain in the SideNav, never touching the unified Test Catalog Editor.</div>
+          </div>
+          {!isAll && own.length>0 &&
+            <div className="cds--data-table-container card">
+              <strong>Lab-wide items — superseded here</strong> <span className="muted">(edit from “All domains”)</span>
+              <table className="cds--data-table" style={{marginTop:'.5rem'}}>
+                <thead><tr><th>Label</th><th>Status for this domain</th></tr></thead>
+                <tbody>
+                  {labWide.map(it=>(
+                    <tr key={it.id}><td style={{opacity:.5}}>{it.label}</td><td><span className="cds--tag cds--tag--gray">Superseded</span></td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>}
+        </div>
+      );
+    }
+
+    function App() {
+      const [route, setRoute] = useState({ screen:'step3' });
+      const [enf, setEnf] = useState({ CLINICAL:'OPTIONAL', ENVIRONMENTAL:'MANDATORY', VECTOR:'MANDATORY' });
+      const onAdmin = route.screen==='admin';
+      const crumb = onAdmin
+        ? 'Home / Admin / General Configuration / Order Entry Configuration / Sample Acceptance Checklist / ' + (route.domain==='ALL'?'All domains':cap(route.domain))
+        : 'Home / Order / Add Order / QA-QC + Intake Acceptance';
+      const navItem = (active, label, onClick) => <div className={'nav-item'+(active?' active':'')} onClick={onClick}>{label}</div>;
+      return (
+        <div className="layout">
+          <div className="sidenav">
+            <div className="nav-title">Order</div>
+            {navItem(route.screen==='step3', 'QA-QC + Intake Acceptance', ()=>setRoute({screen:'step3'}))}
+            <div className="nav-title">Order Entry Config · Acceptance Checklist</div>
+            {['ALL',...DOMAINS].map(d =>
+              navItem(onAdmin && route.domain===d, d==='ALL'?'All domains':cap(d), ()=>setRoute({screen:'admin',domain:d})))}
+          </div>
+          <div className="main">
+            <div className="crumb">{crumb}</div>
+            {route.screen==='step3' ? <Step3/> : <Admin domain={route.domain} enf={enf} setEnf={setEnf} />}
+          </div>
+        </div>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>

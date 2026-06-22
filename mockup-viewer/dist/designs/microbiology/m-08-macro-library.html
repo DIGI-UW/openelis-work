@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>M-08 Macro Library — Preview v1</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; color: #161616; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .preview-banner strong { background: #fff; color: #0f62fe; padding: 1px 6px; border-radius: 2px; margin: 0 4px; }
+    .app-header { background: #161616; color: #f4f4f4; padding: 0 1rem; height: 48px; display: flex; align-items: center; gap: 1rem; font-size: 14px; }
+    .breadcrumbs { padding: 0.75rem 2rem; background: #fff; border-bottom: 1px solid #e0e0e0; font-size: 13px; color: #525252; }
+    .breadcrumbs a { color: #0f62fe; text-decoration: none; }
+    .layout { display: grid; grid-template-columns: 240px 1fr; }
+    .sidenav { background: #fff; border-right: 1px solid #e0e0e0; min-height: calc(100vh - 100px); padding: 1rem 0; }
+    .sidenav-section { padding: 0.5rem 1rem; font-size: 11px; color: #525252; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 0.5rem; }
+    .sidenav-item { padding: 0.5rem 1rem 0.5rem 1.5rem; font-size: 14px; cursor: pointer; }
+    .sidenav-item.active { background: #e0e0e0; border-left: 3px solid #0f62fe; padding-left: calc(1.5rem - 3px); font-weight: 600; }
+    .main { padding: 1.5rem 2rem 3rem; }
+    h1 { font-size: 28px; font-weight: 300; margin: 0 0 1rem 0; display: flex; align-items: center; }
+    h1 .actions { margin-left: auto; display: flex; gap: 0.5rem; }
+    .filter-bar { background: #fff; padding: 0.75rem 1rem; border: 1px solid #e0e0e0; display: flex; gap: 0.75rem; align-items: center; font-size: 13px; }
+    .filter-bar input, .filter-bar select { padding: 0.4rem 0.6rem; font-size: 14px; border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; }
+    .filter-bar input { min-width: 280px; }
+    .filter-bar .spacer { flex: 1; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; border: 1px solid #e0e0e0; border-top: none; }
+    .data-table th { text-align: left; padding: 0.5rem 0.75rem; background: #f4f4f4; font-weight: 600; color: #161616; border-bottom: 1px solid #e0e0e0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .data-table td { padding: 0.625rem 0.75rem; border-bottom: 1px solid #f4f4f4; vertical-align: top; }
+    .code { font-family: 'IBM Plex Mono', monospace; font-size: 13px; background: #f4f4f4; color: #0f62fe; padding: 1px 6px; border-radius: 3px; }
+    .cat-tag { display: inline-block; padding: 1px 8px; font-size: 11px; border-radius: 10px; font-weight: 500; }
+    .cat-gramStain { background: #ffd6e8; color: #9f1853; }
+    .cat-colony { background: #c7e7e1; color: #054f31; }
+    .cat-culture { background: #d0e2ff; color: #0043ce; }
+    .cat-organisms { background: #e8daff; color: #491d8b; }
+    .cat-ast { background: #fef0c7; color: #6a3500; }
+    .cat-reporting { background: #a7f0ba; color: #044317; }
+    .cat-timeline { background: #9ef0f0; color: #003a6d; }
+    .cat-clinical { background: #fdd13a; color: #161616; }
+
+    /* Field-level macro example */
+    .demo-card { background: #fff; padding: 1.5rem; margin: 2rem 0 1rem; border: 1px solid #e0e0e0; border-left: 4px solid #0f62fe; }
+    .demo-card h2 { font-size: 18px; font-weight: 400; margin: 0 0 0.5rem; }
+    .demo-card .demo-sub { color: #525252; font-size: 13px; margin-bottom: 1rem; }
+    .demo-field label { font-size: 11px; color: #525252; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 4px; display: block; }
+    .demo-field textarea { width: 100%; padding: 0.5rem 0.75rem; border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; font-family: inherit; font-size: 14px; min-height: 60px; resize: vertical; box-sizing: border-box; }
+    .demo-field .macro-hint { font-size: 11px; color: #0f62fe; margin-top: 4px; }
+
+    .dropdown-demo { position: relative; display: inline-block; }
+    .dropdown-popup { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e0e0e0; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 5; max-height: 280px; overflow-y: auto; }
+    .dropdown-item { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 13px; display: flex; gap: 0.75rem; align-items: baseline; }
+    .dropdown-item:hover, .dropdown-item.highlighted { background: #edf5ff; }
+    .dropdown-item .dropdown-code { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: #0f62fe; min-width: 70px; }
+    .dropdown-item .dropdown-expansion { flex: 1; color: #161616; }
+    .dropdown-item .dropdown-cat { font-size: 10px; color: #6f6f6f; }
+
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; font-size: 14px; font-family: inherit; border: 1px solid transparent; cursor: pointer; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-tertiary { background: transparent; color: #0f62fe; border-color: #0f62fe; }
+    .btn-ghost { background: transparent; color: #0f62fe; }
+    .btn-sm { padding: 0.25rem 0.75rem; font-size: 12px; }
+    .overflow-icon { font-size: 18px; color: #525252; cursor: pointer; padding: 0 4px; }
+  </style>
+</head>
+<body>
+  <div class="preview-banner">
+    M-08 Macro Library Preview · <strong>v1.0</strong> · Cross-cutting OE feature (Micro first consumer) · See <strong>m-08-macro-library-frs-v1.md</strong>
+  </div>
+
+  <div class="app-header">
+    <span style="font-weight: 600;">OpenELIS Global</span><span style="opacity: 0.7;">|</span>
+    <span>Admin</span>
+    <div style="margin-left: auto; font-size: 13px;">Lab Manager</div>
+  </div>
+
+  <div class="breadcrumbs"><a href="#">Home</a> / <a href="#">Admin</a> / Macro Library</div>
+
+  <div class="layout">
+    <aside class="sidenav">
+      <div class="sidenav-section">Admin</div>
+      <div class="sidenav-item" style="padding-left: 1rem;">Microbiology Reference Data</div>
+      <div class="sidenav-item" style="padding-left: 1rem;">Breakpoint Catalog</div>
+      <div class="sidenav-item active">Macro Library</div>
+      <div class="sidenav-item" style="padding-left: 1rem;">Hub Subscription</div>
+      <div class="sidenav-item" style="padding-left: 1rem;">WHONET Mapping</div>
+    </aside>
+
+    <main class="main">
+      <h1>
+        Macro Library
+        <span class="actions">
+          <button class="btn btn-tertiary btn-sm">Import Defaults</button>
+          <button class="btn btn-tertiary btn-sm">Export</button>
+          <button class="btn btn-tertiary btn-sm">Bulk Edit</button>
+          <button class="btn btn-primary btn-sm">+ Add New</button>
+        </span>
+      </h1>
+
+      <div class="filter-bar">
+        <input type="text" placeholder="Search macros by code or expansion..." />
+        <select><option>Category: All</option><option>clinical</option><option>gramStain</option><option>colony</option><option>culture</option><option>organisms</option><option>ast</option><option>reporting</option><option>timeline</option></select>
+        <select><option>Status: Active</option><option>Inactive</option><option>All</option></select>
+        <div class="spacer"></div>
+        <span style="color: #6f6f6f; font-size: 12px;">85 macros · 0 user-added</span>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Code</th><th>Expansion</th><th>Category</th><th>Description</th><th>Status</th><th>Source</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="code">.gpc</span></td><td>Gram positive cocci in clusters.</td><td><span class="cat-tag cat-gramStain">gramStain</span></td><td>GPC in clusters — typical of Staphylococcus</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.gnr</span></td><td>Gram negative rods.</td><td><span class="cat-tag cat-gramStain">gramStain</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.gpcc</span></td><td>Gram positive cocci in chains.</td><td><span class="cat-tag cat-gramStain">gramStain</span></td><td>GPC in chains — typical of Streptococcus</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.wbc+</span></td><td>Many white blood cells present (&gt; 25/hpf).</td><td><span class="cat-tag cat-gramStain">gramStain</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.lact</span></td><td>Lactose-fermenting colonies on MacConkey agar.</td><td><span class="cat-tag cat-colony">colony</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.bhemo</span></td><td>Beta-hemolytic colonies on blood agar.</td><td><span class="cat-tag cat-colony">colony</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.nml</span></td><td>No growth after 5 days of incubation.</td><td><span class="cat-tag cat-culture">culture</span></td><td>For finalizing blood cultures negative</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.mix</span></td><td>Mixed flora isolated, suggestive of contamination. Clinical correlation recommended.</td><td><span class="cat-tag cat-culture">culture</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.col5</span></td><td>Colony count: ≥ 10⁵ CFU/mL (significant bacteriuria).</td><td><span class="cat-tag cat-culture">culture</span></td><td>For urine cultures</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.mrsa</span></td><td>Methicillin-resistant Staphylococcus aureus (MRSA)</td><td><span class="cat-tag cat-organisms">organisms</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.ecoli</span></td><td>Escherichia coli</td><td><span class="cat-tag cat-organisms">organisms</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.esblc</span></td><td>ESBL confirmed by phenotypic testing. All penicillins, cephalosporins, and aztreonam reported as resistant regardless of MIC.</td><td><span class="cat-tag cat-ast">ast</span></td><td>Used in AST override justification</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.dtneg</span></td><td>D-test performed, negative. Clindamycin reported as susceptible.</td><td><span class="cat-tag cat-ast">ast</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.dtpos</span></td><td>D-test positive (inducible clindamycin resistance detected). Clindamycin reported as resistant.</td><td><span class="cat-tag cat-ast">ast</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.cpec</span></td><td>Carbapenemase production confirmed. Contact infection control.</td><td><span class="cat-tag cat-ast">ast</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.final</span></td><td>Final report. No further testing indicated.</td><td><span class="cat-tag cat-reporting">reporting</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.contact</span></td><td>Critical value. Physician notified.</td><td><span class="cat-tag cat-reporting">reporting</span></td><td>Use after logging Critical Notification</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.ic</span></td><td>Infection control notified per protocol.</td><td><span class="cat-tag cat-reporting">reporting</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.sub24</span></td><td>Subcultured to BAP and MAC at 24 hours.</td><td><span class="cat-tag cat-timeline">timeline</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.vitek</span></td><td>VITEK 2 card inoculated for identification and susceptibility testing.</td><td><span class="cat-tag cat-timeline">timeline</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.sep</span></td><td>Clinical signs of sepsis. Blood cultures ordered.</td><td><span class="cat-tag cat-clinical">clinical</span></td><td>Order Entry clinical history</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+          <tr><td><span class="code">.abx2w</span></td><td>Patient received antibiotics within the past 2 weeks.</td><td><span class="cat-tag cat-clinical">clinical</span></td><td>—</td><td>Active</td><td>Seeded</td><td><span class="overflow-icon">⋮</span></td></tr>
+        </tbody>
+      </table>
+
+      <div style="padding: 0.75rem 1rem; background: #fff; border: 1px solid #e0e0e0; border-top: none; font-size: 13px; color: #525252;">
+        Showing 1-22 of 85
+      </div>
+
+      <!-- Field-level macro UI demo -->
+      <div class="demo-card">
+        <h2>Macro field in action</h2>
+        <div class="demo-sub">Example showing the dropdown that appears when a user types <code>.</code> in a <code>gramStain</code>-bound field. This is the runtime UI built into the <code>MacroTextarea</code> primitive.</div>
+
+        <div class="demo-field">
+          <label>Gram Stain Observations</label>
+          <div class="dropdown-demo">
+            <textarea placeholder="Type observation..." rows="3" style="position: relative; z-index: 1;">.g</textarea>
+            <div class="dropdown-popup">
+              <div class="dropdown-item highlighted">
+                <span class="dropdown-code">.gpc</span>
+                <span class="dropdown-expansion">Gram positive cocci in clusters.</span>
+                <span class="dropdown-cat">gramStain</span>
+              </div>
+              <div class="dropdown-item">
+                <span class="dropdown-code">.gpcc</span>
+                <span class="dropdown-expansion">Gram positive cocci in chains.</span>
+                <span class="dropdown-cat">gramStain</span>
+              </div>
+              <div class="dropdown-item">
+                <span class="dropdown-code">.gpcp</span>
+                <span class="dropdown-expansion">Gram positive cocci in pairs.</span>
+                <span class="dropdown-cat">gramStain</span>
+              </div>
+              <div class="dropdown-item">
+                <span class="dropdown-code">.gpr</span>
+                <span class="dropdown-expansion">Gram positive rods.</span>
+                <span class="dropdown-cat">gramStain</span>
+              </div>
+              <div class="dropdown-item">
+                <span class="dropdown-code">.gnr</span>
+                <span class="dropdown-expansion">Gram negative rods.</span>
+                <span class="dropdown-cat">gramStain</span>
+              </div>
+              <div class="dropdown-item">
+                <span class="dropdown-code">.gnc</span>
+                <span class="dropdown-expansion">Gram negative cocci.</span>
+                <span class="dropdown-cat">gramStain</span>
+              </div>
+              <div class="dropdown-item">
+                <span class="dropdown-code">.gnd</span>
+                <span class="dropdown-expansion">Gram negative diplococci.</span>
+                <span class="dropdown-cat">gramStain</span>
+              </div>
+            </div>
+          </div>
+          <div class="macro-hint">[.] Type period for macros · Arrow keys to navigate · Enter or Tab to select · Esc to close</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

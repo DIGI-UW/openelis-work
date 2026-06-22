@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QA Menu v1 (MVP) — Preview</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+  <style>
+    :root { --rail-w: 256px; --header-h: 48px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #f4f4f4; color: #161616; }
+
+    .app-header {
+      height: var(--header-h); background: #161616; color: #fff;
+      display: flex; align-items: center; padding: 0 1rem; gap: 1rem;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .app-header .brand { font-size: 0.875rem; font-weight: 500; letter-spacing: 0.04em; }
+    .app-header .brand .sub { opacity: 0.7; font-weight: 400; margin-left: 0.5rem; }
+    .app-header .spacer { flex: 1; }
+    .app-header .user-chip { font-size: 0.8125rem; opacity: 0.85; padding: 0.25rem 0.5rem; border: 1px solid #393939; }
+
+    .layout { display: flex; min-height: calc(100vh - var(--header-h)); }
+    .rail {
+      width: var(--rail-w); flex: 0 0 var(--rail-w);
+      background: #fff; border-right: 1px solid #e0e0e0;
+      display: flex; flex-direction: column;
+      position: sticky; top: var(--header-h); height: calc(100vh - var(--header-h));
+      overflow-y: auto;
+    }
+    .main { flex: 1; padding: 1.5rem 2rem; max-width: 100%; overflow-x: auto; }
+
+    .rail-title { padding: 1rem 1rem 0.5rem 1rem; font-size: 0.75rem; letter-spacing: 0.06em; color: #525252; text-transform: uppercase; }
+    .rail-bucket {
+      display: flex; align-items: center; width: 100%;
+      padding: 0.625rem 1rem; font-size: 0.875rem; color: #161616;
+      background: transparent; border: 0; border-left: 3px solid transparent;
+      cursor: pointer; text-align: left; font-family: inherit;
+    }
+    .rail-bucket:hover { background: #e5e5e5; }
+    .rail-bucket.current { background: #edf5ff; border-left-color: #0f62fe; font-weight: 600; }
+    .rail-bucket.is-new { color: #0043ce; }
+    .rail-bucket .icon { margin-right: 0.625rem; flex: 0 0 20px; display: inline-flex; justify-content: center; }
+    .rail-bucket .label { flex: 1; }
+    .rail-bucket .new-tag { font-size: 0.625rem; background: #defbe6; color: #0e6027; padding: 0.0625rem 0.375rem; border-radius: 8px; margin-left: 0.375rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .rail-bucket .chev { flex: 0 0 16px; opacity: 0.6; font-size: 0.75rem; transition: transform 0.12s; margin-left: 0.25rem; }
+    .rail-bucket.expanded .chev { transform: rotate(180deg); }
+    .rail-children { display: none; background: #fafafa; border-top: 1px solid #f0f0f0; }
+    .rail-bucket.expanded + .rail-children { display: block; }
+    .rail-page {
+      display: flex; align-items: center; width: 100%;
+      padding: 0.5rem 1rem 0.5rem 2.75rem; font-size: 0.8125rem; color: #393939;
+      background: transparent; border: 0; border-left: 3px solid transparent;
+      cursor: pointer; text-align: left; font-family: inherit;
+    }
+    .rail-page:hover { background: #e8e8e8; }
+    .rail-page.current { background: #edf5ff; border-left-color: #0f62fe; font-weight: 600; color: #161616; }
+
+    .crumb { font-size: 0.8125rem; color: #525252; margin-bottom: 0.5rem; }
+    .crumb a { color: #0f62fe; text-decoration: none; cursor: pointer; }
+    .crumb a:hover { text-decoration: underline; }
+    .crumb .sep { margin: 0 0.375rem; }
+    .crumb .current { color: #161616; font-weight: 500; }
+
+    h1.page-title { font-size: 1.75rem; font-weight: 300; margin: 0 0 0.25rem 0; letter-spacing: -0.01em; }
+    p.page-sub { color: #525252; margin: 0 0 1.5rem 0; font-size: 0.9375rem; }
+
+    .mvp-banner {
+      background: #fdf6dd; border-left: 3px solid #f1c21b;
+      padding: 0.625rem 0.875rem; margin-bottom: 1.25rem;
+      font-size: 0.8125rem; color: #684e00;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .mvp-banner .info-icon { font-size: 0.875rem; }
+
+    .qi-header {
+      display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem;
+      background: #fff; border: 1px solid #e0e0e0; margin-bottom: 1rem;
+    }
+    .qi-header label { font-size: 0.75rem; color: #525252; text-transform: uppercase; letter-spacing: 0.04em; }
+    .qi-header select {
+      font-family: inherit; font-size: 0.875rem; padding: 0.25rem 0.5rem;
+      border: 1px solid #c6c6c6; background: #fff;
+    }
+    .qi-header .timestamp { color: #6f6f6f; font-size: 0.8125rem; margin-left: auto; }
+    .qi-header .refresh-btn {
+      font-family: inherit; font-size: 0.8125rem; padding: 0.25rem 0.625rem;
+      background: #fff; border: 1px solid #c6c6c6; cursor: pointer; color: #161616;
+    }
+    .qi-header .refresh-btn:hover { background: #f4f4f4; }
+
+    .qi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .qi-tile {
+      background: #fff; padding: 1.125rem; border: 1px solid #e0e0e0;
+      display: flex; flex-direction: column; gap: 0.5rem; cursor: pointer;
+      transition: background 0.12s, box-shadow 0.12s;
+    }
+    .qi-tile:hover { background: #fafafa; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+    .qi-tile.green { border-top: 3px solid #198038; }
+    .qi-tile.amber { border-top: 3px solid #f1c21b; }
+    .qi-tile.red { border-top: 3px solid #da1e28; }
+    .qi-tile.blue { border-top: 3px solid #0f62fe; }
+    .qi-tile.gray { border-top: 3px solid #a8a8a8; }
+    .qi-tile .head { display: flex; align-items: center; }
+    .qi-tile .head h3 { font-size: 0.875rem; font-weight: 600; margin: 0; flex: 1; }
+    .qi-tile .head .icons { color: #a8a8a8; font-size: 0.8125rem; }
+    .qi-tile .primary { display: flex; align-items: baseline; gap: 0.5rem; }
+    .qi-tile .primary .value { font-size: 1.75rem; font-weight: 300; letter-spacing: -0.01em; }
+    .qi-tile .primary .delta { font-size: 0.8125rem; }
+    .qi-tile .delta.good { color: #198038; }
+    .qi-tile .delta.bad { color: #da1e28; }
+    .qi-tile .delta.flat { color: #6f6f6f; }
+    .qi-tile .progress-track { position: relative; background: #e8e8e8; height: 6px; }
+    .qi-tile .progress-fill { position: absolute; left: 0; top: 0; bottom: 0; }
+    .qi-tile .progress-fill.green { background: #24a148; }
+    .qi-tile .progress-fill.amber { background: #f1c21b; }
+    .qi-tile .progress-fill.red { background: #da1e28; }
+    .qi-tile .progress-marker { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #161616; }
+    .qi-tile .target-line { font-size: 0.75rem; color: #525252; }
+    .qi-tile .secondary { font-size: 0.8125rem; color: #525252; }
+    .qi-tile .deep-link { font-size: 0.75rem; color: #0f62fe; margin-top: auto; padding-top: 0.25rem; }
+
+    .detail-placeholder { background: #fff; padding: 2rem; border: 1px solid #e0e0e0; }
+    .detail-placeholder .sub-banner {
+      background: #edf5ff; border-left: 3px solid #0f62fe;
+      padding: 0.5rem 0.75rem; font-size: 0.8125rem; color: #002d9c;
+      margin-bottom: 1.25rem;
+    }
+    .detail-filters { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .detail-filters .filter {
+      padding: 0.375rem 0.625rem; background: #f4f4f4; border: 1px solid #e0e0e0;
+      font-size: 0.8125rem; color: #525252;
+    }
+    .detail-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    .detail-table th {
+      background: #f4f4f4; padding: 0.5rem 0.75rem; text-align: left;
+      font-weight: 500; font-size: 0.8125rem; color: #525252;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .detail-table td { padding: 0.625rem 0.75rem; border-bottom: 1px solid #f0f0f0; }
+    .detail-table tr:hover td { background: #fafafa; }
+    .detail-table tr.drillable { cursor: pointer; }
+    .detail-table tr.drillable:hover td { background: #edf5ff; }
+    .detail-table .nce-link { color: #0f62fe; cursor: pointer; }
+    .detail-table .nce-link:hover { text-decoration: underline; }
+    .detail-table .test-cat-pill {
+      display: inline-block; font-size: 0.6875rem; background: #e8daff; color: #491d8b;
+      padding: 0.0625rem 0.375rem; border-radius: 10px;
+    }
+    .detail-table .num-cell { text-align: right; font-variant-numeric: tabular-nums; }
+    .detail-table .drill-arrow { color: #0f62fe; opacity: 0.4; margin-left: 0.5rem; }
+    .detail-table tr.drillable:hover .drill-arrow { opacity: 1; }
+
+    /* Section title within detail page */
+    .detail-section-title {
+      font-size: 0.875rem; font-weight: 600; margin: 1.25rem 0 0.625rem 0;
+      color: #161616;
+    }
+    .detail-section-title:first-child { margin-top: 0; }
+
+    /* Two-column layout for charts on detail page */
+    .chart-row {
+      display: grid; grid-template-columns: minmax(220px, 1fr) 2fr; gap: 1.5rem;
+      align-items: start;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 800px) {
+      .chart-row { grid-template-columns: 1fr; }
+    }
+
+    /* Pie / donut chart */
+    .pie-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+    .pie-svg { display: block; }
+    .legend { display: flex; flex-direction: column; gap: 0.25rem; align-self: stretch; }
+    .legend-row { display: flex; align-items: center; font-size: 0.8125rem; color: #393939; gap: 0.5rem; }
+    .legend-swatch { width: 12px; height: 12px; flex: 0 0 12px; border-radius: 2px; }
+    .legend-row .label { flex: 1; }
+    .legend-row .value { color: #6f6f6f; font-variant-numeric: tabular-nums; }
+
+    /* Horizontal bar list */
+    .bar-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .bar-row {
+      display: grid; grid-template-columns: 140px 1fr 70px; gap: 0.75rem;
+      align-items: center; font-size: 0.8125rem;
+    }
+    .bar-label { color: #393939; }
+    .bar-track { background: #e8e8e8; height: 14px; position: relative; }
+    .bar-fill { background: #0f62fe; height: 100%; }
+    .bar-fill.amber { background: #f1c21b; }
+    .bar-fill.red { background: #da1e28; }
+    .bar-value { color: #6f6f6f; font-variant-numeric: tabular-nums; text-align: right; }
+
+    .preview-note {
+      background: #fdf6dd; border-left: 3px solid #f1c21b;
+      padding: 0.625rem 0.875rem; margin-bottom: 1.25rem;
+      font-size: 0.8125rem; color: #684e00;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, Fragment } = React;
+
+    /*
+     * v1 (MVP) — what ships:
+     *   - Top-level "Quality Assurance" with ONE child: QI Dashboard.
+     *   - 4 KPI tiles: Average TAT, Rejection Rate, Amendment Rate, NCE Pulse.
+     *   - Detail pages with breakdowns from existing data sources.
+     *
+     * Data-source notes:
+     *   - Average TAT: existing /rest/reports/tat/summary?breakdownBy=labUnit, then by test.
+     *     No threshold/compliance % — just average. Method-level drill-down requires a small
+     *     ~2-4h extension to TATReportServiceImpl (add METHOD case to breakdown switch + methodId
+     *     to TATResult). Deferred to a small future enhancement.
+     *   - Rejection Rate: by-reason / by-lab-unit / by-test breakdowns all backed by existing data
+     *     (nce_event subcategory + test + test_section).
+     *   - Amendment Rate: rate + count only (no structured "amendment reason" captured today).
+     *   - NCE Pulse: count of critical-open + overdue CAPAs from existing /rest/nce/dashboard.
+     */
+
+    const TOP_LEVEL = [
+      { slug: 'home', label: 'Home', icon: '🏠' },
+      { slug: 'order', label: 'Order', icon: '📋' },
+      { slug: 'results', label: 'Results', icon: '🧪' },
+      { slug: 'patient', label: 'Patient', icon: '👤' },
+      { slug: 'sample', label: 'Sample', icon: '🩸' },
+      { slug: 'validation', label: 'Validation', icon: '✓' },
+      { slug: 'qa', label: 'Quality Assurance', icon: '⚖️', isNew: true,
+        children: [{ slug: 'qi-dashboard', label: 'QI Dashboard' }] },
+      { slug: 'qc', label: 'Quality Control', icon: '📈' },
+      { slug: 'eqa', label: 'EQA', icon: '🎯' },
+      { slug: 'reports', label: 'Reports', icon: '📊' },
+      { slug: 'admin', label: 'Administration', icon: '⚙️' },
+    ];
+
+    function parseHash() {
+      const raw = window.location.hash.replace(/^#/, '') || '/qa/qi-dashboard';
+      const parts = raw.split('/').filter(Boolean);
+      if (parts[0] !== 'qa') return { kind: 'dashboard' };
+      if (parts[1] === 'qi-dashboard' && parts.length === 2) return { kind: 'dashboard' };
+      if (parts[1] === 'qi-dashboard' && parts[2] === 'detail') {
+        const tile = parts[3] || 'rejection-rate';
+        const sub  = parts[4] || null; // e.g., '/qa/qi-dashboard/detail/tat/lab-unit/Chemistry'
+        const arg  = parts[5] || null;
+        return { kind: 'detail', tile, sub, arg };
+      }
+      return { kind: 'dashboard' };
+    }
+    function useRoute() {
+      const [route, setRoute] = useState(parseHash());
+      useEffect(() => {
+        const onHash = () => setRoute(parseHash());
+        window.addEventListener('hashchange', onHash);
+        return () => window.removeEventListener('hashchange', onHash);
+      }, []);
+      return route;
+    }
+    const go = (h) => { window.location.hash = h; };
+
+    // Tiles use the latest data-source-correct shapes (no TAT threshold; no amendment-reason)
+    const QI_TILES = [
+      { id: 'tat', label: 'Average TAT', value: '18h 47m', delta: '↓ 0:32', deltaKind: 'good',
+        bandKind: 'blue',
+        secondary: 'Across 12 lab units · Slowest: Microbiology (61h 12m)',
+        drillTo: '/qa/qi-dashboard/detail/tat',
+        isCount: true, target: 'vs prior 30d' },
+      { id: 'rejection-rate', label: 'Rejection Rate', value: '1.7%', delta: '↓ 0.3%', deltaKind: 'good',
+        bandKind: 'green', fill: 85, target: 'Target < 2%',
+        secondary: '42 rejected of 2,471 test orders · Worst: Hematology (3.2%)',
+        marker: 100, drillTo: '/qa/qi-dashboard/detail/rejection-rate' },
+      { id: 'amendment-rate', label: 'Amendment Rate', value: '0.31%', delta: '↑ 0.05%', deltaKind: 'bad',
+        bandKind: 'amber', fill: 62, target: 'Target < 0.5%',
+        secondary: '8 amended of 2,580 released',
+        marker: 100, drillTo: '/qa/qi-dashboard/detail/amendment-rate' },
+      { id: 'nce-pulse', label: 'NCE Pulse', value: '5', delta: 'critical pending ack', deltaKind: 'flat',
+        bandKind: 'red', fill: 100, target: '3 CAPAs overdue',
+        secondary: 'Click to view in NCE Register',
+        marker: 0, drillTo: '/qa/qi-dashboard/detail/nce-pulse', isCount: true },
+    ];
+
+    function AppHeader() {
+      return (
+        <div className="app-header">
+          <span className="brand">OpenELIS Global<span className="sub">— v1 (MVP) preview</span></span>
+          <span className="spacer"></span>
+          <span className="user-chip">Casey · QA Officer</span>
+        </div>
+      );
+    }
+
+    function Rail({ route }) {
+      const isQA = route.kind === 'dashboard' || route.kind === 'detail';
+      return (
+        <aside className="rail">
+          <div className="rail-title">Navigation</div>
+          {TOP_LEVEL.map(item => (
+            <Fragment key={item.slug}>
+              {item.children ? (
+                <Fragment>
+                  <button className={`rail-bucket ${isQA ? 'expanded current' : ''} ${item.isNew ? 'is-new' : ''}`}>
+                    <span className="icon">{item.icon}</span>
+                    <span className="label">{item.label}</span>
+                    {item.isNew && <span className="new-tag">New</span>}
+                    <span className="chev">▾</span>
+                  </button>
+                  <div className="rail-children">
+                    {item.children.map(c => (
+                      <button key={c.slug}
+                        className={`rail-page ${c.slug === 'qi-dashboard' ? 'current' : ''}`}
+                        onClick={() => go(`/qa/${c.slug}`)}>
+                        <span className="label">{c.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </Fragment>
+              ) : (
+                <button className="rail-bucket">
+                  <span className="icon">{item.icon}</span>
+                  <span className="label">{item.label}</span>
+                </button>
+              )}
+            </Fragment>
+          ))}
+        </aside>
+      );
+    }
+
+    function PreviewNote() {
+      return (
+        <div className="preview-note">
+          <strong>v1 (MVP) — what ships:</strong> a new top-level Quality Assurance sidenav with the QI
+          Dashboard as its only child. Four KPI tiles + filterable detail pages. ~50h estimated.
+          Other QA-adjacent pages (Validation, EQA, NCE) stay where they are today — v2 onward
+          rehomes them into the QA menu.
+        </div>
+      );
+    }
+
+    function Crumb({ items }) {
+      return (
+        <div className="crumb">
+          {items.map((it, i) => (
+            <Fragment key={i}>
+              {i > 0 && <span className="sep">›</span>}
+              {it.target && i < items.length - 1
+                ? <a onClick={() => go(it.target)}>{it.label}</a>
+                : <span className={i === items.length - 1 ? 'current' : ''}>{it.label}</span>}
+            </Fragment>
+          ))}
+        </div>
+      );
+    }
+
+    /* ---------- Pie / donut helper ---------- */
+    function PieDonut({ slices, size = 160, innerRatio = 0.55 }) {
+      const cx = size / 2, cy = size / 2;
+      const r = size / 2 - 6;
+      const innerR = r * innerRatio;
+      const total = slices.reduce((s, x) => s + x.value, 0) || 1;
+      let acc = 0;
+
+      const polar = (radius, angle) => [cx + radius * Math.cos(angle), cy + radius * Math.sin(angle)];
+      const arc = (startAngle, endAngle) => {
+        const [sx, sy]   = polar(r, startAngle);
+        const [ex, ey]   = polar(r, endAngle);
+        const [sxi, syi] = polar(innerR, endAngle);
+        const [exi, eyi] = polar(innerR, startAngle);
+        const large = (endAngle - startAngle) > Math.PI ? 1 : 0;
+        return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey} L ${sxi} ${syi} A ${innerR} ${innerR} 0 ${large} 0 ${exi} ${eyi} Z`;
+      };
+
+      return (
+        <svg className="pie-svg" viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
+          {slices.map((s, i) => {
+            const startAngle = -Math.PI / 2 + (acc / total) * 2 * Math.PI;
+            acc += s.value;
+            const endAngle = -Math.PI / 2 + (acc / total) * 2 * Math.PI;
+            return <path key={i} d={arc(startAngle, endAngle)} fill={s.color}><title>{`${s.label}: ${s.value}`}</title></path>;
+          })}
+        </svg>
+      );
+    }
+
+    function Legend({ slices, total }) {
+      return (
+        <div className="legend">
+          {slices.map((s, i) => (
+            <div key={i} className="legend-row">
+              <span className="legend-swatch" style={{ background: s.color }}></span>
+              <span className="label">{s.label}</span>
+              <span className="value">{s.value} ({Math.round(s.value / total * 100)}%)</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function BarList({ rows, max, valueFormatter = v => v }) {
+      return (
+        <div className="bar-list">
+          {rows.map((r, i) => (
+            <div key={i} className="bar-row">
+              <span className="bar-label">{r.label}</span>
+              <div className="bar-track">
+                <div className={`bar-fill ${r.colorClass || ''}`} style={{ width: `${(r.value / max) * 100}%` }} />
+              </div>
+              <span className="bar-value">{valueFormatter(r.value)}{r.suffix ? r.suffix : ''}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    /* ---------- QI Dashboard ---------- */
+    function QIDashboard() {
+      return (
+        <Fragment>
+          <Crumb items={[
+            { label: 'Quality Assurance', target: '/qa/qi-dashboard' },
+            { label: 'QI Dashboard' }
+          ]} />
+          <h1 className="page-title">QI Dashboard</h1>
+          <p className="page-sub">Four quality indicators that compute from data already in OpenELIS.</p>
+
+          <PreviewNote />
+
+          <div className="mvp-banner">
+            <span className="info-icon">ⓘ</span>
+            <span>
+              <strong>MVP dashboard.</strong> Tiles use existing OpenELIS data + small REST wrappers.
+              Configurable thresholds, Critical Callback Compliance, and full detail pages arrive in v8.
+            </span>
+          </div>
+
+          <div className="qi-header">
+            <label htmlFor="window">Reporting window</label>
+            <select id="window" defaultValue="rolling30d">
+              <option value="rolling7d">Rolling 7 days</option>
+              <option value="rolling30d">Rolling 30 days</option>
+              <option value="rolling90d">Rolling 90 days</option>
+              <option value="ytd">Year to date</option>
+            </select>
+            <span className="timestamp">Last recomputed: 2m ago</span>
+            <button className="refresh-btn">↻ Refresh</button>
+          </div>
+
+          <div className="qi-grid">
+            {QI_TILES.map(t => (
+              <div key={t.id} className={`qi-tile ${t.bandKind}`} onClick={() => go(t.drillTo)}>
+                <div className="head">
+                  <h3>{t.label}</h3>
+                  <span className="icons">ⓘ</span>
+                </div>
+                <div className="primary">
+                  <span className="value">{t.value}</span>
+                  <span className={`delta ${t.deltaKind}`}>{t.delta}</span>
+                </div>
+                {!t.isCount && (
+                  <Fragment>
+                    <div className="progress-track">
+                      <div className={`progress-fill ${t.bandKind}`} style={{ width: `${t.fill}%` }} />
+                      {t.marker < 100 && <div className="progress-marker" style={{ left: `${t.marker}%` }} />}
+                    </div>
+                    <div className="target-line">{t.target}</div>
+                  </Fragment>
+                )}
+                {t.isCount && <div className="target-line">{t.target}</div>}
+                <div className="secondary">{t.secondary}</div>
+                <div className="deep-link">View detail ↗</div>
+              </div>
+            ))}
+          </div>
+        </Fragment>
+      );
+    }
+
+    /* ---------- TAT detail (with drill-through) ---------- */
+    // Mock data: lab unit → tests within unit
+    const TAT_LAB_UNITS = [
+      { unit: 'Chemistry',   avgHours: 18.7, samples: 1284, slowestTest: 'Lipid panel (28h)' },
+      { unit: 'Hematology',  avgHours: 14.2, samples:  812, slowestTest: 'PT/INR (19h)' },
+      { unit: 'Microbiology', avgHours: 61.2, samples:  187, slowestTest: 'Culture & sensitivity (96h)' },
+      { unit: 'Molecular',   avgHours: 32.4, samples:   94, slowestTest: 'HIV viral load (48h)' },
+      { unit: 'Immunology',  avgHours: 22.1, samples:  256, slowestTest: 'Allergen panel (36h)' },
+      { unit: 'Toxicology',  avgHours: 19.8, samples:  138, slowestTest: 'Drug screen (24h)' },
+    ];
+
+    const TAT_TESTS_BY_UNIT = {
+      'Chemistry': [
+        { test: 'Glucose',     avgHours: 4.2,  samples: 412 },
+        { test: 'Sodium',      avgHours: 4.1,  samples: 398 },
+        { test: 'Potassium',   avgHours: 4.3,  samples: 391 },
+        { test: 'Creatinine',  avgHours: 5.7,  samples: 287 },
+        { test: 'BUN',         avgHours: 5.4,  samples: 274 },
+        { test: 'TSH',         avgHours: 22.4, samples:  87 },
+        { test: 'Lipid panel', avgHours: 28.1, samples:  64 },
+        { test: 'HbA1c',       avgHours: 12.8, samples:  53 },
+      ],
+      'Hematology': [
+        { test: 'CBC',     avgHours: 8.4,  samples: 487 },
+        { test: 'PT/INR',  avgHours: 19.2, samples: 124 },
+        { test: 'D-dimer', avgHours: 17.6, samples:  98 },
+        { test: 'ESR',     avgHours: 22.4, samples:  62 },
+        { test: 'Reticulocyte count', avgHours: 14.1, samples: 41 },
+      ],
+      'Microbiology': [
+        { test: 'Culture & sensitivity', avgHours: 96.4, samples: 84 },
+        { test: 'Gram stain',            avgHours:  6.8, samples: 47 },
+        { test: 'AFB smear',             avgHours: 22.4, samples: 28 },
+        { test: 'Stool culture',         avgHours: 78.2, samples: 18 },
+      ],
+      'Molecular': [
+        { test: 'HIV viral load',  avgHours: 48.4, samples: 28 },
+        { test: 'HCV RNA',         avgHours: 36.2, samples: 22 },
+        { test: 'Hep B viral load', avgHours: 41.8, samples: 18 },
+        { test: 'GeneXpert MTB',   avgHours:  6.4, samples: 26 },
+      ],
+      'Immunology': [
+        { test: 'Allergen panel', avgHours: 36.2, samples: 47 },
+        { test: 'ANA',            avgHours: 28.4, samples: 38 },
+        { test: 'IgE total',      avgHours: 18.7, samples: 84 },
+        { test: 'Hepatitis panel', avgHours: 19.8, samples: 87 },
+      ],
+      'Toxicology': [
+        { test: 'Drug screen',     avgHours: 24.2, samples: 78 },
+        { test: 'Alcohol level',   avgHours: 12.4, samples: 32 },
+        { test: 'Heavy metals',    avgHours: 18.1, samples: 28 },
+      ],
+    };
+
+    function TatDetail({ sub, arg }) {
+      const fmt = h => {
+        const hh = Math.floor(h);
+        const mm = Math.round((h - hh) * 60);
+        return `${hh}h ${String(mm).padStart(2,'0')}m`;
+      };
+      const isLabUnit = sub === 'lab-unit';
+      const labUnit = isLabUnit ? arg : null;
+      const tests = labUnit ? (TAT_TESTS_BY_UNIT[labUnit] || []) : null;
+
+      const breadcrumbItems = isLabUnit
+        ? [
+            { label: 'Quality Assurance', target: '/qa/qi-dashboard' },
+            { label: 'QI Dashboard', target: '/qa/qi-dashboard' },
+            { label: 'Average TAT', target: '/qa/qi-dashboard/detail/tat' },
+            { label: labUnit }
+          ]
+        : [
+            { label: 'Quality Assurance', target: '/qa/qi-dashboard' },
+            { label: 'QI Dashboard', target: '/qa/qi-dashboard' },
+            { label: 'Average TAT' }
+          ];
+
+      return (
+        <Fragment>
+          <Crumb items={breadcrumbItems} />
+          <h1 className="page-title">{isLabUnit ? `Average TAT — ${labUnit}` : 'Average TAT'}</h1>
+          <p className="page-sub">
+            {isLabUnit
+              ? `Per-test breakdown for the ${labUnit} lab unit.`
+              : 'Per-lab-unit breakdown. Click a row to drill into per-test detail.'}
+          </p>
+
+          <div className="detail-placeholder">
+            <div className="sub-banner">
+              <strong>Note:</strong> Average TAT, not compliance. Drill-down: lab unit → test.
+              Method-level drill (e.g., test on different analyzers) requires a small TAT API extension
+              (~2–4h, deferred — adds <code>METHOD</code> to the breakdown enum and <code>methodId</code> to <code>TATResult</code>).
+            </div>
+            <div className="detail-filters">
+              <span className="filter">Date range: Rolling 30d</span>
+              <span className="filter">Segment: Order → Validation</span>
+              <span className="filter">Calc mode: Calendar hours</span>
+              <span className="filter">Priority: All</span>
+            </div>
+
+            {!isLabUnit && (
+              <table className="detail-table">
+                <thead>
+                  <tr>
+                    <th>Lab unit</th>
+                    <th className="num-cell">Average TAT</th>
+                    <th className="num-cell">Test orders</th>
+                    <th>Slowest test in unit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {TAT_LAB_UNITS.map((u, i) => (
+                    <tr key={i} className="drillable" onClick={() => go(`/qa/qi-dashboard/detail/tat/lab-unit/${encodeURIComponent(u.unit)}`)}>
+                      <td>{u.unit}</td>
+                      <td className="num-cell">{fmt(u.avgHours)}</td>
+                      <td className="num-cell">{u.samples.toLocaleString()}</td>
+                      <td>{u.slowestTest} <span className="drill-arrow">→</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            {isLabUnit && tests && (
+              <table className="detail-table">
+                <thead>
+                  <tr>
+                    <th>Test</th>
+                    <th className="num-cell">Average TAT</th>
+                    <th className="num-cell">Test orders</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tests.map((t, i) => (
+                    <tr key={i}>
+                      <td>{t.test}</td>
+                      <td className="num-cell">{fmt(t.avgHours)}</td>
+                      <td className="num-cell">{t.samples.toLocaleString()}</td>
+                      <td style={{ color: '#a8a8a8', fontSize: '0.75rem' }}>method drill: future enhancement</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            <div style={{ marginTop:'0.75rem', fontSize:'0.75rem', color:'#6f6f6f' }}>
+              {isLabUnit
+                ? `Showing ${tests?.length || 0} tests in ${labUnit}.`
+                : `Showing ${TAT_LAB_UNITS.length} lab units.`}
+            </div>
+          </div>
+        </Fragment>
+      );
+    }
+
+    /* ---------- Rejection detail with pie + bar charts ---------- */
+    const REJECTION_REASONS = [
+      { label: 'Hemolysis',              value: 16, color: '#0f62fe' },
+      { label: 'Clotted',                value:  8, color: '#198038' },
+      { label: 'Volume insufficient',    value:  7, color: '#f1c21b' },
+      { label: 'Wrong tube',             value:  5, color: '#da1e28' },
+      { label: 'Container compromised',  value:  3, color: '#8a3ffc' },
+      { label: 'Mislabeled',             value:  2, color: '#a8a8a8' },
+      { label: 'Other',                  value:  1, color: '#525252' },
+    ];
+
+    const REJECTION_BY_LAB_UNIT = [
+      { unit: 'Hematology',   rejected: 14, total:  442, },
+      { unit: 'Chemistry',    rejected: 18, total: 1284 },
+      { unit: 'Microbiology', rejected:  6, total:  187 },
+      { unit: 'Immunology',   rejected:  3, total:  256 },
+      { unit: 'Molecular',    rejected:  1, total:   94 },
+    ];
+
+    const REJECTION_BY_TEST = [
+      { test: 'CBC',                      rejected: 8 },
+      { test: 'Potassium',                rejected: 6 },
+      { test: 'PT/INR',                   rejected: 5 },
+      { test: 'HBA1c',                    rejected: 4 },
+      { test: 'Lipid panel',              rejected: 4 },
+      { test: 'TSH',                      rejected: 3 },
+      { test: 'Microbiology culture',     rejected: 3 },
+      { test: 'Other (35 tests)',         rejected: 9 },
+    ];
+
+    function RejectionDetail() {
+      const totalRej = REJECTION_REASONS.reduce((s, x) => s + x.value, 0);
+      const labUnitMaxPct = Math.max(...REJECTION_BY_LAB_UNIT.map(u => u.rejected / u.total));
+      const testMax = Math.max(...REJECTION_BY_TEST.map(t => t.rejected));
+
+      return (
+        <Fragment>
+          <Crumb items={[
+            { label: 'Quality Assurance', target: '/qa/qi-dashboard' },
+            { label: 'QI Dashboard', target: '/qa/qi-dashboard' },
+            { label: 'Rejection Rate' }
+          ]} />
+          <h1 className="page-title">Rejection Rate — Detail</h1>
+          <p className="page-sub">42 rejected of 2,471 test orders (1.7%) over rolling 30 days. Breakdowns by reason, lab unit, and test.</p>
+
+          <div className="detail-placeholder">
+            <div className="sub-banner">
+              <strong>Note:</strong> Rejection reasons come from <code>nce_event.subcategory</code> via
+              <code>nce_rejection_reason_mapping</code>. Lab units come from <code>test_section</code>.
+              Tests come from <code>test</code>. All real data — no vapor.
+            </div>
+            <div className="detail-filters">
+              <span className="filter">Date range: Rolling 30d</span>
+              <span className="filter">Test: All</span>
+              <span className="filter">Section: All</span>
+              <span className="filter">Reason: All</span>
+              <span className="filter" style={{ background:'#fff', cursor:'pointer', color:'#0f62fe', borderColor:'#0f62fe' }}>+ Add filter</span>
+            </div>
+
+            <div className="detail-section-title">By reason</div>
+            <div className="chart-row">
+              <div className="pie-wrap">
+                <PieDonut slices={REJECTION_REASONS} size={170} />
+              </div>
+              <Legend slices={REJECTION_REASONS} total={totalRej} />
+            </div>
+
+            <div className="detail-section-title">By lab unit</div>
+            <BarList
+              rows={REJECTION_BY_LAB_UNIT.map(u => ({
+                label: u.unit,
+                value: u.rejected / u.total * 100,
+                suffix: '%',
+                colorClass: (u.rejected / u.total) > 0.025 ? 'red' : (u.rejected / u.total) > 0.015 ? 'amber' : '',
+              }))}
+              max={labUnitMaxPct * 100}
+              valueFormatter={v => v.toFixed(2)}
+            />
+            <div style={{ marginTop:'0.5rem', fontSize:'0.75rem', color:'#6f6f6f' }}>
+              Rate per lab unit. Hematology highest (14 of 442 = 3.2%); Molecular lowest (1 of 94 = 1.1%).
+            </div>
+
+            <div className="detail-section-title">By test</div>
+            <BarList
+              rows={REJECTION_BY_TEST.map(t => ({ label: t.test, value: t.rejected }))}
+              max={testMax}
+              valueFormatter={v => v}
+            />
+            <div style={{ marginTop:'0.5rem', fontSize:'0.75rem', color:'#6f6f6f' }}>
+              Top 7 tests by rejection count + the long tail collapsed into "Other (35 tests)".
+            </div>
+
+            <div className="detail-section-title">Individual rejections</div>
+            <table className="detail-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Test</th>
+                  <th>Sample #</th>
+                  <th>Lab unit</th>
+                  <th>Reason</th>
+                  <th>NCE</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ['2026-04-22 14:08','Potassium','LAB-26-04388','Chemistry','Hemolysis','NCE-20260422-0094'],
+                  ['2026-04-22 11:17','HBA1c','LAB-26-04373','Chemistry','Wrong tube','NCE-20260422-0091'],
+                  ['2026-04-22 09:42','CBC','LAB-26-04361','Hematology','Clotted','NCE-20260422-0088'],
+                  ['2026-04-21 16:55','TSH','LAB-26-04347','Chemistry','Volume insufficient','NCE-20260421-0103'],
+                  ['2026-04-21 13:11','Lipid panel','LAB-26-04331','Chemistry','Hemolysis','NCE-20260421-0098'],
+                  ['2026-04-21 10:24','Microbiology culture','LAB-26-04318','Microbiology','Container compromised','NCE-20260421-0094'],
+                  ['2026-04-20 15:39','PT/INR','LAB-26-04302','Hematology','Clotted','NCE-20260420-0119'],
+                ].map((row, i) => (
+                  <tr key={i}>
+                    <td>{row[0]}</td>
+                    <td>{row[1]}</td>
+                    <td>{row[2]}</td>
+                    <td><span className="test-cat-pill">{row[3]}</span></td>
+                    <td>{row[4]}</td>
+                    <td><span className="nce-link">{row[5]}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div style={{ marginTop:'0.75rem', fontSize:'0.75rem', color:'#6f6f6f' }}>
+              Showing 1–7 of 42 · Page size 25 ▾
+            </div>
+          </div>
+        </Fragment>
+      );
+    }
+
+    /* ---------- Amendment detail (no reason) ---------- */
+    function AmendmentDetail() {
+      const rows = [
+        ['2026-04-22 15:48','Glucose','LAB-26-04388','7.2 mmol/L','5.1 mmol/L','J. Smith','M. Garcia','—'],
+        ['2026-04-22 11:17','HBA1c','LAB-26-04373','6.8%','7.3%','A. Johnson','J. Smith','—'],
+        ['2026-04-21 16:13','TSH','LAB-26-04341','3.2 mIU/L','0.32 mIU/L','M. Garcia','A. Johnson','NCE-20260421-0117'],
+        ['2026-04-21 12:04','Sodium','LAB-26-04322','142 mmol/L','138 mmol/L','J. Smith','M. Garcia','—'],
+        ['2026-04-20 17:51','Potassium','LAB-26-04298','4.1 mmol/L','5.6 mmol/L','A. Johnson','J. Smith','NCE-20260420-0125'],
+      ];
+      return (
+        <Fragment>
+          <Crumb items={[
+            { label: 'Quality Assurance', target: '/qa/qi-dashboard' },
+            { label: 'QI Dashboard', target: '/qa/qi-dashboard' },
+            { label: 'Amendment Rate' }
+          ]} />
+          <h1 className="page-title">Amendment Rate — Detail</h1>
+          <p className="page-sub">8 amended of 2,580 released (0.31%) over rolling 30 days.</p>
+
+          <div className="detail-placeholder">
+            <div className="sub-banner">
+              <strong>Note:</strong> OpenELIS does not currently capture a structured "amendment reason."
+              Reason column intentionally omitted. v1 ships rate + count + before/after values.
+            </div>
+            <div className="detail-filters">
+              <span className="filter">Date range: Rolling 30d</span>
+              <span className="filter">Test: All</span>
+              <span className="filter">Section: All</span>
+              <span className="filter">Validator: All</span>
+              <span className="filter">Amender: All</span>
+            </div>
+            <table className="detail-table">
+              <thead>
+                <tr>
+                  <th>Released at</th><th>Test</th><th>Sample #</th>
+                  <th>Prior value</th><th>New value</th>
+                  <th>Validator</th><th>Amender</th><th>NCE</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr key={i}>
+                    {r.map((c, j) => (
+                      c === '—' ? <td key={j} style={{color:'#a8a8a8'}}>{c}</td>
+                      : j === 7 ? <td key={j}><span className="nce-link">{c}</span></td>
+                      : <td key={j}>{c}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div style={{ marginTop:'0.75rem', fontSize:'0.75rem', color:'#6f6f6f' }}>
+              Showing 1–{rows.length} of 8 · Page size 25 ▾
+            </div>
+          </div>
+        </Fragment>
+      );
+    }
+
+    /* ---------- NCE Pulse detail ---------- */
+    function NcePulseDetail() {
+      const rows = [
+        ['2026-04-22','NCE-20260422-0094','Critical','Open','—','1'],
+        ['2026-04-22','NCE-20260422-0091','Critical','Acknowledged','J. Smith','1'],
+        ['2026-04-21','NCE-20260421-0117','Critical','Open','—','2'],
+        ['2026-04-20','NCE-20260420-0125','Critical','Acknowledged','A. Johnson','3'],
+        ['2026-04-19','NCE-20260419-0084','Critical','Open','—','4'],
+      ];
+      return (
+        <Fragment>
+          <Crumb items={[
+            { label: 'Quality Assurance', target: '/qa/qi-dashboard' },
+            { label: 'QI Dashboard', target: '/qa/qi-dashboard' },
+            { label: 'NCE Pulse' }
+          ]} />
+          <h1 className="page-title">NCE Pulse — Detail</h1>
+          <p className="page-sub">5 critical NCEs awaiting acknowledgment + 3 CAPAs overdue.</p>
+
+          <div className="detail-placeholder">
+            <div className="sub-banner">
+              <strong>Note:</strong> Drill-through routes through the existing NCE Register filtered to
+              critical-open. Full inline detail arrives with the NCE Register modernization in v4.
+            </div>
+            <div className="detail-filters">
+              <span className="filter">Severity: Critical</span>
+              <span className="filter">Status: Open + Acknowledged</span>
+              <span className="filter">Assigned: All</span>
+            </div>
+            <table className="detail-table">
+              <thead>
+                <tr>
+                  <th>Reported</th><th>NCE #</th><th>Severity</th><th>Status</th><th>Assignee</th><th>Days open</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr key={i}>
+                    <td>{r[0]}</td>
+                    <td><span className="nce-link">{r[1]}</span></td>
+                    <td><span style={{color:'#da1e28', fontWeight:600}}>{r[2]}</span></td>
+                    <td>{r[3]}</td>
+                    <td>{r[4] === '—' ? <span style={{color:'#a8a8a8'}}>{r[4]}</span> : r[4]}</td>
+                    <td className="num-cell">{r[5]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Fragment>
+      );
+    }
+
+    function App() {
+      const route = useRoute();
+      let body;
+      if (route.kind === 'detail') {
+        if (route.tile === 'tat') body = <TatDetail sub={route.sub} arg={route.arg ? decodeURIComponent(route.arg) : null} />;
+        else if (route.tile === 'rejection-rate') body = <RejectionDetail />;
+        else if (route.tile === 'amendment-rate') body = <AmendmentDetail />;
+        else if (route.tile === 'nce-pulse') body = <NcePulseDetail />;
+        else body = <QIDashboard />;
+      } else {
+        body = <QIDashboard />;
+      }
+      return (
+        <Fragment>
+          <AppHeader />
+          <div className="layout">
+            <Rail route={route} />
+            <main className="main">{body}</main>
+          </div>
+        </Fragment>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

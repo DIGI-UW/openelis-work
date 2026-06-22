@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Catalog — Microbiology Workflow Attribute — Interactive Prototype</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+  .preview-banner strong { background:#fff; color:#0f62fe; padding:1px 6px; border-radius:2px; margin:0 4px; }
+  .preview-banner .what { display:block; margin-top:4px; font-family:'IBM Plex Sans',sans-serif; font-size:12px; opacity:0.95; line-height:1.5; }
+  .demobar { background:#161616; color:#f4f4f4; font-size:12px; padding:0.5rem 1rem; display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; }
+  .demobar b { color:#78a9ff; }
+  .demobar button { font-size:12px; background:#393939; color:#f4f4f4; border:1px solid #6f6f6f; border-radius:3px; padding:3px 9px; cursor:pointer; }
+  .demobar button.on { background:#0f62fe; border-color:#0f62fe; }
+  .app-header { background:#161616; color:#f4f4f4; padding:0 1rem; height:48px; display:flex; align-items:center; gap:1rem; font-size:14px; }
+  .app-header .product { font-weight:600; }
+  .breadcrumbs { padding:0.6rem 2rem; background:#fff; border-bottom:1px solid #e0e0e0; font-size:13px; color:#525252; }
+  .breadcrumbs a { color:#0f62fe; text-decoration:none; }
+  .editor-head { background:#fff; padding:1rem 2rem 0; border-bottom:1px solid #e0e0e0; display:flex; align-items:flex-end; gap:1rem; }
+  .editor-head h1 { font-size:24px; font-weight:300; margin:0; }
+  .editor-head .code { font-size:13px; color:#6f6f6f; margin-bottom:5px; }
+  .editor-head .save { margin-left:auto; display:flex; gap:0.5rem; margin-bottom:0.6rem; }
+  .layout { display:grid; grid-template-columns:230px 1fr; }
+  .sidebar { background:#fff; border-right:1px solid #e0e0e0; min-height:calc(100vh - 200px); padding:0.5rem 0; }
+  .sidebar-group { padding:0.6rem 1rem 0.2rem; font-size:11px; color:#8d8d8d; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; }
+  .sidebar-item { padding:0.5rem 1rem; cursor:pointer; font-size:13px; border-left:3px solid transparent; }
+  .sidebar-item:hover { background:#e5e5e5; }
+  .sidebar-item.current { background:#e0e0e0; border-left-color:#0f62fe; font-weight:600; }
+  .sidebar-item.dim { color:#a8a8a8; }
+  .main { padding:1.5rem 2rem 5rem; max-width:760px; }
+  .section-title { font-size:18px; font-weight:400; margin:0 0 1.2rem; }
+  .fieldset { background:#fff; border:1px solid #e0e0e0; padding:1.2rem 1.4rem; margin-bottom:1.2rem; }
+  .fieldset h3 { font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#525252; margin:0 0 0.9rem; font-weight:600; }
+  .fieldset h3 .new { background:#0f62fe; color:#fff; font-size:9px; padding:1px 6px; border-radius:3px; margin-left:8px; letter-spacing:0.5px; }
+  .frow { margin-bottom:1rem; }
+  label.lbl { display:block; font-size:12px; color:#525252; margin-bottom:0.3rem; }
+  input.txt, select.sel { font-family:inherit; font-size:14px; padding:0.55rem 0.7rem; border:none; border-bottom:1px solid #8d8d8d; background:#f4f4f4; width:100%; max-width:420px; }
+  select.sel { cursor:pointer; }
+  .help { font-size:12px; color:#6f6f6f; margin:0.3rem 0 0; max-width:520px; line-height:1.5; }
+  .radio-row, .flag-row { display:flex; gap:1.4rem; flex-wrap:wrap; }
+  .radio-row label, .flag-row label { font-size:14px; display:flex; align-items:center; gap:0.4rem; cursor:pointer; }
+  .hint { font-size:12.5px; padding:0.6rem 0.8rem; border-radius:2px; margin-top:0.7rem; display:flex; gap:0.5rem; align-items:flex-start; line-height:1.5; max-width:540px; }
+  .hint .x { margin-left:auto; cursor:pointer; color:#525252; font-weight:700; padding:0 4px; }
+  .hint.info { background:#edf5ff; border-left:3px solid #0f62fe; }
+  .hint.warn { background:#fff8e1; border-left:3px solid #f1c21b; }
+  .hint.amr  { background:#f6f2ff; border-left:3px solid #8a3ffc; }
+  .hint.confirm { background:#fff8e1; border-left:3px solid #ff832b; }
+  .pill { display:inline-block; padding:2px 9px; border-radius:12px; font-size:11px; font-weight:600; }
+  .pill.bact { background:#d0e2ff; color:#0043ce; } .pill.tb { background:#e8daff; color:#491d8b; } .pill.none { background:#e0e0e0; color:#525252; }
+  .btn { font-family:inherit; font-size:13px; padding:0.45rem 1rem; border-radius:2px; border:1px solid #0f62fe; cursor:pointer; }
+  .btn.primary { background:#0f62fe; color:#fff; } .btn.ghost { background:#fff; color:#0f62fe; }
+  .saved-note { font-size:12px; color:#24a148; margin-top:0.4rem; min-height:16px; font-weight:600; }
+  .axis-note { font-size:12px; color:#6f6f6f; background:#f4f4f4; padding:0.5rem 0.7rem; border-radius:2px; margin-top:0.4rem; }
+  code { background:#e8e8e8; padding:0 4px; border-radius:3px; font-size:12px; }
+</style>
+</head>
+<body>
+<div class="preview-banner">
+  PREVIEW MOCKUP <strong>Test Catalog v2.5</strong> Basic Info → <strong>Microbiology workflow</strong> (OGC-925)
+  <span class="what">Where an admin sets which micro workflow a culture test starts. One nullable <code>test.culture_workflow_type</code> enum, orthogonal to Domain and the AMR flag. Spec: test-catalog-micro-workflow-attribute.md.</span>
+</div>
+<div class="demobar">
+  <b>DEMO:</b> editing a&nbsp;
+  <button id="modeNew" class="on" onclick="setMode('new')">new test</button>
+  <button id="modeExisting" onclick="setMode('existing')">existing test (has open cases)</button>
+  <span style="margin-left:auto;opacity:0.8;">Change "Microbiology workflow" to see hints + (on an existing test) the reclassification notice.</span>
+</div>
+
+<div class="app-header"><span class="product">OpenELIS Global</span><span>· Admin · Test Catalog Management</span></div>
+<div class="breadcrumbs"><a>Admin</a> / <a>Test Catalog</a> / <a>Tests</a> / <span id="bcName">New test</span></div>
+
+<div class="editor-head">
+  <div>
+    <h1 id="testName">New test</h1>
+    <div class="code" id="testCode">Code: —</div>
+  </div>
+  <div class="save">
+    <button class="btn ghost">Save as new test…</button>
+    <button class="btn primary" onclick="save()">Save Test</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-group">Configuration</div>
+    <div class="sidebar-item current">Basic Info</div>
+    <div class="sidebar-item">Sample &amp; Results</div>
+    <div class="sidebar-item">Ranges</div>
+    <div class="sidebar-item">Sample Storage</div>
+    <div class="sidebar-group">Organization</div>
+    <div class="sidebar-item">Display Order</div>
+    <div class="sidebar-item">Panels</div>
+    <div class="sidebar-item">Terminology</div>
+    <div class="sidebar-group">Resources</div>
+    <div class="sidebar-item" id="navMethods">Methods</div>
+    <div class="sidebar-item">Analyzers</div>
+  </div>
+
+  <div class="main">
+    <div class="section-title">Basic Info</div>
+
+    <div class="fieldset">
+      <h3>Identity</h3>
+      <div class="frow">
+        <label class="lbl">Test name</label>
+        <input class="txt" id="fName" value="" placeholder="e.g. Mycobacterial culture (MGIT)">
+      </div>
+      <div class="frow">
+        <label class="lbl">Code</label>
+        <input class="txt" id="fCode" value="" placeholder="e.g. TBC-MGIT" style="max-width:220px;">
+      </div>
+      <div class="frow" style="margin-bottom:0;">
+        <label class="lbl">Domain <span style="color:#da1e28;">*</span></label>
+        <div class="radio-row">
+          <label><input type="radio" name="dom" checked> Clinical</label>
+          <label><input type="radio" name="dom"> Environmental</label>
+          <label><input type="radio" name="dom"> Vector</label>
+        </div>
+        <div class="axis-note">Domain answers <em>"what kind of testing program"</em> — a TB culture is still <strong>Clinical</strong>. It does not decide the micro workflow.</div>
+      </div>
+    </div>
+
+    <div class="fieldset">
+      <h3>Status &amp; surveillance</h3>
+      <div class="frow">
+        <label class="lbl">Status flags</label>
+        <div class="flag-row">
+          <label><input type="checkbox" checked> Active</label>
+          <label><input type="checkbox" checked> Orderable</label>
+          <label><input type="checkbox"> Internal QA — No Results Release</label>
+        </div>
+      </div>
+      <div class="frow" style="margin-bottom:0;">
+        <label class="lbl">AMR / WHONET surveillance</label>
+        <div class="flag-row">
+          <label><input type="checkbox" id="amrFlag" onchange="render()"> AMR test (export to WHONET / AMR surveillance)</label>
+        </div>
+        <div class="axis-note">AMR answers <em>"export results for surveillance"</em> — independent of the workflow below. A test can be one, both, or neither.</div>
+      </div>
+    </div>
+
+    <div class="fieldset">
+      <h3>Microbiology workflow <span class="new">NEW · OGC-925</span></h3>
+      <div class="frow" style="margin-bottom:0.4rem;">
+        <label class="lbl">Microbiology workflow</label>
+        <select class="sel" id="wf" onchange="onWf()">
+          <option value="">None — not a culture-workflow test</option>
+          <option value="BACTERIOLOGY">Bacteriology → bacterial Case (M-04)</option>
+          <option value="MYCOBACTERIOLOGY_TB">Mycobacteriology – TB → TB Case (M-14)</option>
+          <option value="MYCOLOGY" disabled>Mycology (coming with the Mycology module, M-16)</option>
+        </select>
+        <p class="help">Set the microbiology workflow to make ordering this test <strong>create the matching Microbiology Case</strong> and appear in the Worklist. Bacteriology and Mycobacteriology–TB use different case profiles, breakpoints, and reports. Persisted as <code>test.culture_workflow_type</code>.</p>
+        <div style="margin-top:0.5rem;">Current: <span id="wfPill" class="pill none">None</span></div>
+        <div class="axis-note">A <strong>test-level</strong> property — not set on Methods. Methods are assigned to tests and also pick the <em>analyzer</em>; there is no workflow↔method mapping, so workflow lives here on the test. The default Method (the culture protocol) is chosen independently on the Methods tab.</div>
+      </div>
+      <div id="hintBox"></div>
+    </div>
+
+    <div class="saved-note" id="savedNote"></div>
+  </div>
+</div>
+
+<script>
+  var mode = 'new';
+  var amrDismissed = false;
+
+  function setMode(m){
+    mode = m;
+    amrDismissed = false;
+    document.getElementById('modeNew').classList.toggle('on', m==='new');
+    document.getElementById('modeExisting').classList.toggle('on', m==='existing');
+    if(m==='existing'){
+      document.getElementById('fName').value = 'Blood culture, aerobic';
+      document.getElementById('fCode').value = 'BC-AER';
+      document.getElementById('testName').textContent = 'Blood culture, aerobic';
+      document.getElementById('bcName').textContent = 'Blood culture, aerobic';
+      document.getElementById('testCode').textContent = 'Code: BC-AER';
+      document.getElementById('amrFlag').checked = true;
+      document.getElementById('wf').value = 'BACTERIOLOGY';
+    } else {
+      document.getElementById('fName').value = '';
+      document.getElementById('fCode').value = '';
+      document.getElementById('testName').textContent = 'New test';
+      document.getElementById('bcName').textContent = 'New test';
+      document.getElementById('testCode').textContent = 'Code: —';
+      document.getElementById('amrFlag').checked = false;
+      document.getElementById('wf').value = '';
+    }
+    document.getElementById('savedNote').textContent = '';
+    render();
+  }
+
+  function onWf(){ amrDismissed = false; document.getElementById('savedNote').textContent=''; render(); }
+
+  function render(){
+    var wf = document.getElementById('wf').value;
+    var amr = document.getElementById('amrFlag').checked;
+    var pill = document.getElementById('wfPill');
+    var navMethods = document.getElementById('navMethods');
+
+    if(wf===''){ pill.className='pill none'; pill.textContent='None'; }
+    else if(wf==='BACTERIOLOGY'){ pill.className='pill bact'; pill.textContent='Bacteriology'; }
+    else { pill.className='pill tb'; pill.textContent='Mycobacteriology – TB'; }
+
+    var h = '';
+    // default method hint (assume a new test has no default method; existing bacterial one does)
+    var hasDefaultMethod = (mode==='existing');
+    if(wf!=='' && !hasDefaultMethod){
+      h += '<div class="hint warn"><span>⚠</span><div>No default <strong>Method</strong> set yet. Set one on the <strong>Methods</strong> tab — it becomes this culture\'s protocol. (Not a save-block; you can configure in any order.)</div></div>';
+      navMethods.classList.add('dim');
+    } else { navMethods.classList.remove('dim'); }
+
+    if(wf==='MYCOBACTERIOLOGY_TB'){
+      h += '<div class="hint info"><span>ℹ</span><div>TB workflow: the default Method should be a <strong>TB Method</strong> (MGIT / Löwenstein-Jensen / agar proportion), and interpretation will use the <strong>WHO-TB critical-concentration</strong> breakpoint family (M-02), not the clinical S/I/R ladder.</div></div>';
+    }
+    if(wf!=='' && !amr && !amrDismissed){
+      h += '<div class="hint amr"><span>○</span><div>Most culture tests are also exported for AMR surveillance — enable <strong>AMR</strong> above if this one should be.</div><span class="x" onclick="dismissAmr()">✕</span></div>';
+    }
+    if(mode==='existing' && wf!=='BACTERIOLOGY'){
+      h += '<div class="hint confirm"><span>!</span><div><strong>Changing the workflow on an existing test.</strong> New orders will create '+(wf===''?'<em>no</em>':'<strong>'+pill.textContent+'</strong>')+' cases. <strong>Existing open cases are unaffected</strong> — a tech reclassifies an open case from the Case Workbench (M-04 “Change workflow”). Nothing is retro-reclassified.</div></div>';
+    }
+    document.getElementById('hintBox').innerHTML = h;
+  }
+
+  function dismissAmr(){ amrDismissed = true; render(); }
+
+  function save(){
+    var wf = document.getElementById('wf').value;
+    var label = wf===''?'NULL (not a culture test)':wf;
+    document.getElementById('savedNote').textContent = '✓ Saved — test.culture_workflow_type = '+label+'  (audited)';
+  }
+
+  render();
+</script>
+</body>
+</html>

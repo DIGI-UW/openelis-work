@@ -1,0 +1,1 @@
+import{e as a,d as m,P as s}from"./index-CQJppEN_.js";import{j as p}from"./index-Cs7cbrzU.js";function t({className:r,children:e,...o}){return p.jsx("form",{className:a(`${m()}--form`,r),...o,children:e})}t.propTypes={children:s.node,className:s.string};export{t as F};

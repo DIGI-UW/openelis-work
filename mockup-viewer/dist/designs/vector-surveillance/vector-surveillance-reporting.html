@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V-04 Vector Surveillance Reporting — OpenELIS Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif; background: #f4f4f4; color: #161616; }
+
+  /* ───── Preview banner ───── */
+  .preview-banner {
+    background: #0f62fe; color: #fff;
+    padding: 5px 1rem; font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+    position: sticky; top: 0; z-index: 200;
+  }
+
+  /* ───── Shell ───── */
+  .shell { display: flex; height: calc(100vh - 26px); overflow: hidden; }
+
+  /* ───── Side nav ───── */
+  .side-nav {
+    width: 256px; background: #161616; flex-shrink: 0;
+    display: flex; flex-direction: column; overflow-y: auto;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px; border-bottom: 1px solid #393939;
+    font-size: 14px; font-weight: 600; color: #fff;
+  }
+  .nav-logo-icon {
+    width: 24px; height: 24px; background: #0f62fe; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #fff; font-weight: 700;
+  }
+  .nav-section-label {
+    padding: 20px 16px 6px; font-size: 11px; font-weight: 600;
+    color: #6f6f6f; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .nav-group-title {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 16px; font-size: 13px; color: #f4f4f4; font-weight: 600;
+    cursor: pointer; user-select: none;
+  }
+  .nav-group-title:hover { background: rgba(255,255,255,0.05); }
+  .nav-chevron { font-size: 10px; color: #6f6f6f; transition: transform 0.15s; }
+  .nav-group-title.collapsed .nav-chevron { transform: rotate(-90deg); }
+  .nav-sub.collapsed { display: none; }
+  .nav-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 16px 7px 32px; font-size: 13px; color: #c6c6c6;
+    cursor: pointer; border-left: 3px solid transparent;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.05); }
+  .nav-item.active { color: #fff; border-left-color: #0f62fe; background: rgba(255,255,255,0.08); }
+  .nav-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 18px; height: 18px; padding: 0 4px;
+    background: #393939; color: #c6c6c6; border-radius: 9px;
+    font-size: 10px; font-weight: 600;
+  }
+  .nav-badge.alert { background: #da1e28; color: #fff; }
+  .nav-top-link {
+    display: flex; align-items: center; padding: 8px 16px;
+    font-size: 13px; color: #c6c6c6; cursor: pointer; border-left: 3px solid transparent;
+  }
+  .nav-top-link:hover { background: rgba(255,255,255,0.05); }
+
+  /* ───── Main area ───── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+  /* ───── Page header ───── */
+  .page-header { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 14px 20px 0; flex-shrink: 0; }
+  .page-title { font-size: 20px; font-weight: 600; margin-bottom: 2px; }
+  .page-breadcrumb { font-size: 12px; color: #525252; margin-bottom: 12px; }
+
+  /* ───── Filter bar ───── */
+  .header-strip {
+    background: #fff; border-bottom: 1px solid #e0e0e0;
+    padding: 10px 20px; display: flex; align-items: flex-end;
+    gap: 12px; flex-wrap: wrap; flex-shrink: 0;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 3px; }
+  .filter-label { font-size: 11px; color: #525252; font-weight: 600; }
+  .filter-input {
+    height: 32px; border: 1px solid #8d8d8d; padding: 0 8px; font-size: 13px;
+    font-family: inherit; background: #fff; outline: none;
+  }
+  .filter-input:focus { border-color: #0f62fe; box-shadow: inset 0 0 0 1px #0f62fe; }
+  .filter-select {
+    height: 32px; border: 1px solid #8d8d8d; padding: 0 28px 0 8px; font-size: 13px;
+    font-family: inherit; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23525252'/%3E%3C/svg%3E") no-repeat right 8px center;
+    appearance: none; outline: none;
+  }
+  .header-actions { margin-left: auto; display: flex; gap: 8px; align-items: flex-end; }
+
+  /* ───── Buttons ───── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 15px; height: 32px; font-size: 14px;
+    font-family: inherit; cursor: pointer; border: none; font-weight: 400;
+  }
+  .btn-primary { background: #0f62fe; color: #fff; }
+  .btn-primary:hover { background: #0353e9; }
+  .btn-ghost { background: transparent; color: #0f62fe; border: 1px solid transparent; }
+  .btn-ghost:hover { background: rgba(15,98,254,0.08); }
+  .btn-ghost:disabled { color: #c6c6c6; cursor: not-allowed; }
+  .btn-secondary { background: #393939; color: #fff; }
+  .btn-secondary:hover { background: #474747; }
+
+  /* ───── Token bar ───── */
+  .token-bar {
+    background: #defbe6; border-bottom: 1px solid #a7f0ba;
+    padding: 5px 20px; font-size: 12px; color: #044317;
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+  .token-bar.hidden { display: none; }
+
+  /* ───── Dashboard area ───── */
+  .dashboard-area { flex: 1; background: #f4f4f4; position: relative; min-height: 0; overflow: hidden; }
+
+  /* ───── Loading state ───── */
+  .loading-state {
+    position: absolute; inset: 0; background: #f4f4f4;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 16px;
+  }
+  .loading-state.hidden { display: none; }
+  .loading-spinner {
+    width: 48px; height: 48px; border: 4px solid #e0e0e0;
+    border-top-color: #0f62fe; border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ───── Error state ───── */
+  .error-state {
+    position: absolute; inset: 0; background: #f4f4f4;
+    display: flex; align-items: center; justify-content: center; padding: 2rem;
+  }
+  .error-state.hidden { display: none; }
+  .inline-error {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px; max-width: 560px;
+    background: #fff1f1; border-left: 4px solid #da1e28;
+  }
+  .error-icon { color: #da1e28; font-size: 20px; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+  .error-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .error-sub { font-size: 13px; color: #525252; line-height: 1.5; }
+  .error-sub code { background: #f4f4f4; padding: 1px 4px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+
+  /* ───── Connected: Superset embed shell ───── */
+  .superset-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; background: #f4f4f4; }
+  .superset-wrap.hidden { display: none; }
+
+  /* Thin embed-boundary indicator (simulates iframe edge) */
+  .embed-label {
+    background: #e8f5e9; border-bottom: 1px solid #a7f0ba;
+    padding: 3px 16px; font-size: 11px; color: #044317;
+    font-family: 'IBM Plex Mono', monospace; flex-shrink: 0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .embed-label-dot { width: 7px; height: 7px; background: #24a148; border-radius: 50%; }
+
+  /* The simulated iframe content */
+  .iframe-sim { flex: 1; overflow-y: auto; background: #fff; }
+
+  /* ───── Superset dashboard header (light) ───── */
+  .ss-header {
+    background: #f4f4f4; border-bottom: 1px solid #e0e0e0;
+    padding: 10px 20px; display: flex; align-items: center; gap: 12px;
+  }
+  .ss-header-title { font-size: 14px; font-weight: 600; color: #161616; }
+  .ss-header-meta { margin-left: auto; font-size: 12px; color: #525252; }
+
+  /* ───── KPI grid ───── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #e0e0e0; border-bottom: 1px solid #e0e0e0; }
+  .kpi-tile { background: #fff; padding: 20px 24px; }
+  .kpi-label { font-size: 12px; color: #525252; margin-bottom: 6px; }
+  .kpi-value { font-size: 32px; font-weight: 700; color: #161616; line-height: 1; margin-bottom: 4px; }
+  .kpi-value.alert { color: #da1e28; }
+  .kpi-sub { font-size: 12px; color: #0f62fe; }
+  .kpi-sub.neutral { color: #525252; }
+
+  /* ───── Chart grid ───── */
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #e0e0e0; padding-bottom: 1px; }
+  .chart-tile { background: #fff; padding: 20px; }
+  .chart-title { font-size: 13px; font-weight: 600; color: #161616; margin-bottom: 14px; }
+  .chart-source { color: #8d8d8d; font-size: 10px; margin-top: 10px; font-family: 'IBM Plex Mono', monospace; }
+  .chart-legend { display: flex; gap: 16px; margin-top: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #525252; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ───── Donut ───── */
+  .donut-wrap { display: flex; align-items: center; gap: 20px; }
+  .donut-legend { flex: 1; }
+  .donut-legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .donut-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .donut-legend-name { font-size: 12px; color: #161616; flex: 1; }
+  .donut-legend-pct { font-size: 12px; font-weight: 600; }
+  .donut-legend-n { font-size: 11px; color: #8d8d8d; }
+
+  /* ───── MIR heatmap ───── */
+  .heatmap-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .heatmap-table th { color: #525252; text-align: center; font-weight: 600; padding-bottom: 8px; font-size: 11px; }
+  .heatmap-table th:first-child { text-align: left; }
+  .heatmap-table td { text-align: center; padding: 6px 10px; }
+  .heatmap-table td:first-child { text-align: left; color: #161616; padding-right: 16px; white-space: nowrap; font-size: 12px; }
+
+  /* ───── Positivity bars ───── */
+  .pos-block { margin-bottom: 16px; }
+  .pos-block-label { font-size: 12px; color: #525252; margin-bottom: 5px; font-weight: 600; }
+  .pos-bars { display: flex; gap: 3px; }
+  .pos-bar-col { flex: 1; }
+  .pos-bar-outer {
+    background: #f4f4f4; border: 1px solid #e0e0e0; border-radius: 2px;
+    height: 28px; position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pos-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; }
+  .pos-bar-val { position: relative; z-index: 1; font-size: 11px; font-weight: 600; color: #161616; }
+  .pos-bar-val.on-color { color: #fff; }
+  .pos-week-labels { display: flex; gap: 3px; margin-top: 3px; }
+  .pos-week-label { flex: 1; text-align: center; color: #8d8d8d; font-size: 10px; }
+
+  /* ───── Demo controls ───── */
+  .demo-controls {
+    background: #e0e0e0; padding: 8px 16px;
+    display: flex; gap: 10px; align-items: center; flex-shrink: 0; flex-wrap: wrap;
+    border-top: 1px solid #c6c6c6;
+  }
+  .demo-label { font-size: 12px; color: #525252; font-weight: 600; }
+  .demo-hint { font-size: 11px; color: #6f6f6f; margin-left: 4px; }
+
+  /* ───── Tags ───── */
+  .tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font-size: 12px; border-radius: 2px; }
+  .tag-green { background: #defbe6; color: #044317; }
+  .tag-red   { background: #fff1f1; color: #750e13; }
+  .tag-blue  { background: #edf5ff; color: #0043ce; }
+  .tag-gray  { background: #e0e0e0; color: #393939; }
+  .tag-purple { background: #f6f2ff; color: #6929c4; }
+  .tag-warm  { background: #fdf2e9; color: #8a3800; font-family: 'IBM Plex Mono', monospace; font-size: 10px; }
+  .tag-cool  { background: #e8eaf1; color: #1e1e3f; font-family: 'IBM Plex Mono', monospace; font-size: 10px; }
+
+  /* ───── Top-level tabs (v1.5: Dashboard / Manual Entry Helper / Admin) ───── */
+  .top-tabs { display: flex; gap: 0; border-bottom: 1px solid #e0e0e0; background: #fff; padding: 0 20px; flex-shrink: 0; }
+  .top-tab {
+    padding: 12px 16px; font-size: 14px; cursor: pointer; border: none; background: transparent;
+    border-bottom: 2px solid transparent; font-family: inherit; color: #525252; font-weight: 400;
+  }
+  .top-tab:hover { background: #f4f4f4; }
+  .top-tab.active { color: #161616; border-bottom-color: #0f62fe; font-weight: 600; }
+  .top-tab.meh { color: #6929c4; }
+  .top-tab.meh.active { color: #6929c4; border-bottom-color: #6929c4; font-weight: 600; }
+
+  /* ───── Tab panels (v1.5) ───── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ───── Manual Entry Helper ───── */
+  .meh-page { background: #f4f4f4; padding: 0; }
+  .meh-header {
+    background: #fff; padding: 16px 20px; border-bottom: 1px solid #e0e0e0;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .meh-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .meh-subtitle { font-size: 13px; color: #525252; }
+  .meh-right { display: flex; gap: 12px; align-items: flex-end; }
+
+  .meh-dev-toggle {
+    background: #fff8e1; border-left: 4px solid #f1c21b; padding: 8px 16px;
+    display: flex; align-items: center; gap: 12px; font-size: 12px; color: #5e4500;
+  }
+  .meh-dev-btn {
+    padding: 3px 10px; background: #fff; color: #161616; border: 1px solid #161616;
+    cursor: pointer; font-size: 11px; font-family: inherit;
+  }
+  .meh-dev-btn.active { background: #161616; color: #fff; }
+  .meh-dev-spacer { flex: 1; }
+  .meh-dev-hint { color: #8a6d00; font-style: italic; }
+
+  /* Sub-tabs (Aedes / Anopheles) */
+  .meh-subtabs { display: flex; padding: 0 16px; background: #f4f4f4; border-bottom: 1px solid #e0e0e0; }
+  .meh-subtab {
+    padding: 10px 16px; font-size: 14px; cursor: pointer; border: none; background: transparent;
+    border-bottom: 2px solid transparent; font-family: inherit; color: #525252;
+  }
+  .meh-subtab.active { color: #161616; border-bottom-color: #161616; font-weight: 600; background: #fff; }
+  .meh-subtab:hover:not(.active) { background: #e0e0e0; }
+
+  /* Metric Tile grid */
+  .meh-tile-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px; }
+  @media (max-width: 1180px) { .meh-tile-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 900px) { .meh-tile-grid { grid-template-columns: repeat(2, 1fr); } }
+  .meh-tile {
+    position: relative; background: #fff; padding: 20px 20px 12px;
+    min-height: 168px; display: flex; flex-direction: column;
+    border: 1px solid transparent;
+  }
+  .meh-tile.disabled { background: #f4f4f4; opacity: 0.75; }
+  .meh-tile-portal-tag { position: absolute; top: 10px; right: 12px; }
+  .meh-tile-label {
+    font-size: 13px; color: #525252; font-weight: 600;
+    margin-top: 18px; margin-bottom: 8px; padding-right: 130px;
+  }
+  .meh-tile-value {
+    font-size: 36px; font-weight: 600; line-height: 1.05; color: #161616;
+    font-family: 'IBM Plex Sans', sans-serif; flex: 1; margin-top: 4px;
+  }
+  .meh-tile-value.disabled { color: #a8a8a8; }
+  .meh-tile-value.text { font-size: 22px; }
+  .meh-tile-disabled-reason {
+    font-size: 11px; color: #8d8d8d; margin-top: -2px; margin-bottom: 6px; font-style: italic;
+  }
+  .meh-tile-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
+  .meh-copy-btn {
+    background: transparent; border: none; cursor: pointer; padding: 6px; color: #0f62fe;
+    display: inline-flex; align-items: center; gap: 4px; font-family: inherit; font-size: 12px;
+  }
+  .meh-copy-btn:hover { background: #edf5ff; }
+  .meh-copy-btn:disabled { color: #c6c6c6; cursor: not-allowed; }
+  .meh-copy-btn:disabled:hover { background: transparent; }
+
+  /* Snapshot JSON preview */
+  .meh-snapshot { padding: 0 16px 16px; }
+  .meh-snapshot summary {
+    cursor: pointer; font-size: 13px; font-weight: 600; color: #525252; padding: 6px 0;
+  }
+  .meh-snapshot pre {
+    background: #f4f4f4; padding: 12px; font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: #161616; overflow-x: auto; margin-top: 8px;
+    border-left: 3px solid #6929c4; max-height: 320px;
+  }
+
+  /* Submit area */
+  .meh-submit-area {
+    display: flex; justify-content: flex-end; gap: 8px; padding: 0 16px 16px;
+  }
+
+  /* Footer note */
+  .meh-footer {
+    padding: 0 16px 24px; font-size: 12px; color: #525252; font-style: italic;
+  }
+
+  /* Toast */
+  .toast-stack {
+    position: fixed; bottom: 16px; right: 16px; z-index: 9000;
+    display: flex; flex-direction: column; gap: 8px; max-width: 380px;
+  }
+  .toast {
+    background: #fff; border-left: 4px solid #198038;
+    padding: 12px 14px; display: flex; gap: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    animation: toastSlideIn 0.2s ease-out;
+  }
+  @keyframes toastSlideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .toast-icon { color: #198038; font-size: 16px; flex-shrink: 0; }
+  .toast-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .toast-sub { font-size: 12px; color: #525252; }
+  .toast-close {
+    margin-left: auto; background: transparent; border: none; cursor: pointer;
+    color: #525252; font-size: 16px; line-height: 1; padding: 0 4px;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: none; align-items: center; justify-content: center; z-index: 8000;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff; width: 640px; max-width: 90vw; max-height: 88vh;
+    display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  .modal-header { padding: 16px 20px 8px; border-bottom: 1px solid #e0e0e0; }
+  .modal-label { font-size: 11px; color: #525252; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .modal-title { font-size: 18px; font-weight: 600; }
+  .modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+  .modal-body p { font-size: 13px; color: #525252; margin-bottom: 12px; }
+  .modal-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13px; }
+  .modal-table th { background: #f4f4f4; padding: 8px 10px; text-align: left; font-weight: 600; font-size: 12px; }
+  .modal-table td { padding: 8px 10px; border-top: 1px solid #e0e0e0; }
+  .modal-table td.val { font-weight: 600; }
+  .modal-table td.val.na { color: #8d8d8d; font-style: italic; font-weight: 400; }
+  .modal-checkbox-row { display: flex; align-items: flex-start; gap: 8px; padding: 12px; background: #f4f4f4; border-left: 3px solid #0f62fe; }
+  .modal-checkbox-row input { margin-top: 3px; }
+  .modal-checkbox-row label { font-size: 13px; cursor: pointer; }
+  .modal-footer {
+    padding: 12px 20px; border-top: 1px solid #e0e0e0;
+    display: flex; justify-content: flex-end; gap: 8px;
+  }
+
+  /* OverflowMenu — Print Laporan Hasil */
+  .overflow-wrap { position: relative; display: inline-block; }
+  .overflow-btn {
+    background: #fff; border: 1px solid #8d8d8d; padding: 6px 10px; cursor: pointer;
+    font-family: inherit; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .overflow-btn:hover { background: #f4f4f4; }
+  .overflow-menu {
+    position: absolute; top: 100%; right: 0; background: #fff; border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1); min-width: 200px; display: none; z-index: 100;
+  }
+  .overflow-menu.open { display: block; }
+  .overflow-item { padding: 10px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f4f4f4; }
+  .overflow-item:hover { background: #f4f4f4; }
+  .overflow-item:last-child { border-bottom: none; }
+
+  /* Inline success notification */
+  .inline-success {
+    background: #defbe6; border-left: 4px solid #198038;
+    padding: 12px 16px; margin: 0 16px; display: flex; align-items: flex-start; gap: 10px;
+  }
+  .inline-success-icon { color: #198038; font-size: 16px; }
+  .inline-success-title { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+  .inline-success-sub { font-size: 12px; color: #525252; }
+  .inline-success-close { margin-left: auto; background: transparent; border: none; cursor: pointer; color: #525252; }
+
+  /* ───── Admin: Manual Entry Fields ───── */
+  .admin-page { padding: 20px; background: #fff; min-height: 100%; }
+  .admin-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .admin-subtitle { font-size: 13px; color: #525252; margin-bottom: 20px; }
+  .admin-actions { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+  .admin-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; }
+  .admin-table th {
+    background: #f4f4f4; padding: 10px 12px; text-align: left; font-weight: 600;
+    font-size: 12px; border-bottom: 1px solid #e0e0e0;
+  }
+  .admin-table td {
+    padding: 8px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: middle;
+  }
+  .admin-table td.handle { cursor: grab; color: #8d8d8d; font-size: 14px; user-select: none; }
+  .admin-table td.source { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #525252; }
+  .admin-input {
+    width: 100%; height: 32px; border: 1px solid #8d8d8d; padding: 0 8px;
+    font-size: 13px; font-family: inherit; background: #fff;
+  }
+  .admin-input:focus { outline: none; border-color: #0f62fe; box-shadow: inset 0 0 0 1px #0f62fe; }
+  .admin-select {
+    width: 100%; height: 32px; border: 1px solid #8d8d8d; padding: 0 28px 0 8px;
+    font-size: 13px; font-family: inherit; background: #fff
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23525252'/%3E%3C/svg%3E")
+      no-repeat right 8px center;
+    appearance: none;
+  }
+  .admin-toggle {
+    width: 38px; height: 20px; background: #c6c6c6; border-radius: 12px;
+    position: relative; cursor: pointer; transition: background 0.15s;
+  }
+  .admin-toggle.on { background: #0f62fe; }
+  .admin-toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+    background: #fff; border-radius: 50%; transition: left 0.15s;
+  }
+  .admin-toggle.on::after { left: 20px; }
+  .admin-save-row { margin-top: 16px; display: flex; justify-content: flex-end; gap: 8px; }
+</style>
+</head>
+<body>
+
+<div class="preview-banner">
+  ⚡ Visual Preview — V-04 Vector Surveillance Reporting &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application
+</div>
+
+<div class="shell">
+
+  <!-- ═══════════════ SIDE NAV ═══════════════ -->
+  <nav class="side-nav">
+    <div class="nav-logo">
+      <div class="nav-logo-icon">OE</div>
+      OpenELIS Global
+    </div>
+
+    <div class="nav-section-label">Vector Surveillance</div>
+
+    <div class="nav-group-title" onclick="toggleGroup('grp-collection', this)">
+      <span>Vector Collection</span><span class="nav-chevron">▾</span>
+    </div>
+    <div class="nav-sub" id="grp-collection">
+      <div class="nav-item" onclick="navAlert('V-02: Collection Lots')">
+        <span>Collection Lots</span><span class="nav-badge">7</span>
+      </div>
+      <div class="nav-item" onclick="navAlert('V-02: New Collection Lot')">New Collection Lot</div>
+    </div>
+
+    <div class="nav-group-title" onclick="toggleGroup('grp-id', this)">
+      <span>Vector Identification</span><span class="nav-chevron">▾</span>
+    </div>
+    <div class="nav-sub" id="grp-id">
+      <div class="nav-item" onclick="navAlert('V-03: Pending ID')">
+        <span>Pending ID</span><span class="nav-badge">4</span>
+      </div>
+      <div class="nav-item" onclick="navAlert('V-03: In Progress')">
+        <span>In Progress</span><span class="nav-badge">1</span>
+      </div>
+      <div class="nav-item" onclick="navAlert('V-03: Deconvolution')">
+        <span>Deconvolution</span><span class="nav-badge alert">2</span>
+      </div>
+      <div class="nav-item" onclick="navAlert('V-03: Complete')">
+        <span>Complete</span><span class="nav-badge">14</span>
+      </div>
+    </div>
+
+    <div class="nav-group-title" onclick="toggleGroup('grp-reports', this)">
+      <span>Reports</span><span class="nav-chevron">▾</span>
+    </div>
+    <div class="nav-sub" id="grp-reports">
+      <div class="nav-item active"><span>Vector Surveillance</span></div>
+      <div class="nav-item" onclick="navAlert('Environmental Compliance')">Environmental Compliance</div>
+      <div class="nav-item" onclick="navAlert('Laporan Hasil')">Laporan Hasil</div>
+    </div>
+
+    <div style="margin-top:16px;border-top:1px solid #393939;padding-top:8px;">
+      <div class="nav-top-link" onclick="navAlert('Admin → Vector Specimen Types')">
+        ⚙ Admin: Vector Config
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <div class="main">
+
+    <!-- Page header with v1.5 top-level tabs -->
+    <div class="page-header">
+      <h1 class="page-title" data-i18n-key="vectorReport.title">Vector Surveillance Reporting</h1>
+      <p class="page-breadcrumb" style="margin-bottom:14px;">Reports › Vector Surveillance</p>
+    </div>
+
+    <!-- v1.5: Top-level tabs (Dashboard / Manual Entry Helper / Admin) -->
+    <div class="top-tabs">
+      <button class="top-tab active" id="tab-dashboard" onclick="setTopTab('dashboard')"
+              data-i18n-key="vectorReport.tab.dashboard">Dashboard</button>
+      <button class="top-tab meh" id="tab-meh" onclick="setTopTab('meh')"
+              data-i18n-key="vectorReport.manualEntry.tabLabel">Manual Entry Helper</button>
+      <button class="top-tab" id="tab-admin" onclick="setTopTab('admin')"
+              data-i18n-key="vectorAdmin.manualEntryFields.tabLabel">Admin: Manual Entry Fields</button>
+    </div>
+
+    <!-- ═══════════════ TAB PANEL 1 — DASHBOARD ═══════════════ -->
+    <div class="tab-panel active" id="panel-dashboard">
+
+    <!-- Filter bar -->
+    <div class="header-strip">
+      <div class="filter-group">
+        <label class="filter-label">Date From</label>
+        <input type="date" class="filter-input" id="date-from" value="2026-01-01">
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Date To</label>
+        <input type="date" class="filter-input" id="date-to" value="2026-04-20">
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Site</label>
+        <select class="filter-select" id="site-select">
+          <option value="all">All Sites</option>
+          <option value="BPP-01">Bojongsoang — BPP-01</option>
+          <option value="BPP-02">Margahayu — BPP-02</option>
+          <option value="BPP-03">Antapani — BPP-03</option>
+          <option value="CIL-02">Cileunyi — CIL-02</option>
+          <option value="JAT-01">Jatisari — JAT-01</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="applyFilters()">Apply</button>
+      <div class="header-actions">
+        <button class="btn btn-ghost" id="btn-export" onclick="alert('Exports the dashboard as a PDF via Superset headless Chromium.\n\nFR-V04-DASH-003')" disabled>
+          ↓ Export PDF
+        </button>
+        <button class="btn btn-ghost" id="btn-open-superset" onclick="alert('Opens the dashboard directly in Superset at:\n/superset/dashboard/vec-surv-overview-001/')" disabled>
+          Open in Superset ↗
+        </button>
+      </div>
+    </div>
+
+    <!-- Token bar -->
+    <div class="token-bar hidden" id="token-bar">
+      <span>🔑</span>
+      <span id="token-countdown">Guest token active — expires in 5:00 · auto-refreshes silently (BR-V04-004)</span>
+    </div>
+
+    <!-- Dashboard area -->
+    <div class="dashboard-area">
+
+      <!-- Loading -->
+      <div class="loading-state" id="state-loading">
+        <div class="loading-spinner"></div>
+        <p style="color:#525252;font-size:14px;">Fetching dashboard session…</p>
+        <p style="color:#8d8d8d;font-size:12px;font-family:'IBM Plex Mono',monospace;">POST /api/v1/vector/superset/guest-token</p>
+      </div>
+
+      <!-- Error -->
+      <div class="error-state hidden" id="state-error">
+        <div class="inline-error">
+          <div class="error-icon">✕</div>
+          <div>
+            <p class="error-title">The vector surveillance dashboard is temporarily unavailable.</p>
+            <p class="error-sub">
+              Could not reach the Superset analytics service. Check that the
+              <code>superset</code> Docker service is running and accessible at <code>/superset</code>.
+            </p>
+            <button class="btn btn-ghost" style="margin-top:10px;padding:0 10px;" onclick="simulateLoading()">↺ Retry</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connected -->
+      <div class="superset-wrap hidden" id="state-connected">
+
+        <!-- Embed boundary label (dev-visible annotation; would not appear in production) -->
+        <div class="embed-label">
+          <span class="embed-label-dot"></span>
+          <span>Embedded Superset dashboard &nbsp;·&nbsp; <code style="font-family:inherit">&lt;iframe src="/superset/embedded/vec-surv-overview-001?token={jwt}"&gt;</code></span>
+        </div>
+
+        <!-- Simulated iframe content -->
+        <div class="iframe-sim">
+
+          <!-- Superset inner header -->
+          <div class="ss-header">
+            <span class="ss-header-title">Vector Surveillance Overview</span>
+            <span class="ss-header-meta" id="ss-meta">All Sites &nbsp;·&nbsp; 2026-01-01 → 2026-04-20</span>
+          </div>
+
+          <!-- KPI row -->
+          <div class="kpi-grid" id="kpi-grid">
+            <!-- populated by JS -->
+          </div>
+
+          <!-- 2×2 charts -->
+          <div class="chart-grid">
+
+            <!-- 1: Collection density trend (v1.4: trap type stratification reactivated per V-04 §17.2 → completed) -->
+            <div class="chart-tile">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px;flex-wrap:wrap;">
+                <p class="chart-title" style="margin-bottom:0;">Collection Density — Trend (organisms per collection event)</p>
+                <!-- v1.4: lifecycle stage + trap type filter chips -->
+                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                  <span style="font-size:10px;color:#525252;text-transform:uppercase;letter-spacing:0.4px;">Filter:</span>
+                  <select style="font-size:11px;padding:3px 6px;border:1px solid #c6c6c6;background:#fff;cursor:pointer;">
+                    <option>Lifecycle: Adult (default)</option>
+                    <option>Lifecycle: All stages</option>
+                    <option>Lifecycle: Larva</option>
+                    <option>Lifecycle: Pupa</option>
+                    <option>Lifecycle: Egg</option>
+                  </select>
+                  <select style="font-size:11px;padding:3px 6px;border:1px solid #c6c6c6;background:#fff;cursor:pointer;">
+                    <option>Trap type: All</option>
+                    <option>BG-Sentinel only</option>
+                    <option>CDC light trap only</option>
+                    <option>Gravid trap only</option>
+                    <option>Ovitrap only</option>
+                    <option>Human-landing only</option>
+                  </select>
+                </div>
+              </div>
+              <svg width="100%" height="120" viewBox="0 0 400 120" preserveAspectRatio="none">
+                <line x1="0" y1="20"  x2="400" y2="20"  stroke="#e0e0e0" stroke-width="1"/>
+                <line x1="0" y1="55"  x2="400" y2="55"  stroke="#e0e0e0" stroke-width="1"/>
+                <line x1="0" y1="90"  x2="400" y2="90"  stroke="#e0e0e0" stroke-width="1"/>
+                <text x="0"   y="17" fill="#8d8d8d" font-size="8" text-anchor="start">60</text>
+                <text x="0"   y="52" fill="#8d8d8d" font-size="8" text-anchor="start">40</text>
+                <text x="0"   y="87" fill="#8d8d8d" font-size="8" text-anchor="start">20</text>
+                <!-- BPP-01 solid blue -->
+                <polyline points="0,95 50,80 100,58 150,65 200,42 250,50 300,28 350,36 400,22"
+                  fill="none" stroke="#0f62fe" stroke-width="2.5"/>
+                <!-- BPP-02 dashed teal -->
+                <polyline points="0,88 50,92 100,75 150,80 200,65 250,58 300,50 350,52 400,44"
+                  fill="none" stroke="#007d79" stroke-width="2" stroke-dasharray="5 3"/>
+                <text x="0"   y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W9</text>
+                <text x="50"  y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W10</text>
+                <text x="100" y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W11</text>
+                <text x="150" y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W12</text>
+                <text x="200" y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W13</text>
+                <text x="250" y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W14</text>
+                <text x="300" y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W15</text>
+                <text x="350" y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W16</text>
+                <text x="400" y="112" fill="#8d8d8d" font-size="8" text-anchor="middle">W17</text>
+              </svg>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-dot" style="background:#0f62fe"></span>BPP-01</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#007d79;border-radius:0"></span>BPP-02</span>
+              </div>
+              <p class="chart-source">Superset line chart · vector_collection_density_daily</p>
+            </div>
+
+            <!-- 2: Species distribution donut -->
+            <div class="chart-tile">
+              <p class="chart-title">Species Distribution (confirmed identifications)</p>
+              <div class="donut-wrap">
+                <svg width="110" height="110" viewBox="0 0 100 100" style="flex-shrink:0">
+                  <circle cx="50" cy="50" r="35" fill="none" stroke="#0f62fe" stroke-width="20"
+                    stroke-dasharray="131 82" stroke-dashoffset="0"/>
+                  <circle cx="50" cy="50" r="35" fill="none" stroke="#007d79" stroke-width="20"
+                    stroke-dasharray="60 153" stroke-dashoffset="-131"/>
+                  <circle cx="50" cy="50" r="35" fill="none" stroke="#f1c21b" stroke-width="20"
+                    stroke-dasharray="22 191" stroke-dashoffset="-191"/>
+                  <circle cx="50" cy="50" r="22" fill="#fff"/>
+                  <text x="50" y="47" text-anchor="middle" fill="#161616" font-size="11" font-weight="700">4,820</text>
+                  <text x="50" y="58" text-anchor="middle" fill="#8d8d8d" font-size="8">specimens</text>
+                </svg>
+                <div class="donut-legend">
+                  <div class="donut-legend-row">
+                    <span class="donut-legend-dot" style="background:#0f62fe"></span>
+                    <span class="donut-legend-name">Ae. aegypti</span>
+                    <span class="donut-legend-pct" style="color:#0f62fe">62%</span>
+                    <span class="donut-legend-n">&nbsp;(2,988)</span>
+                  </div>
+                  <div class="donut-legend-row">
+                    <span class="donut-legend-dot" style="background:#007d79"></span>
+                    <span class="donut-legend-name">Cx. quinquefasciatus</span>
+                    <span class="donut-legend-pct" style="color:#007d79">28%</span>
+                    <span class="donut-legend-n">&nbsp;(1,350)</span>
+                  </div>
+                  <div class="donut-legend-row">
+                    <span class="donut-legend-dot" style="background:#f1c21b"></span>
+                    <span class="donut-legend-name">An. barbirostris</span>
+                    <span class="donut-legend-pct" style="color:#a67f00">10%</span>
+                    <span class="donut-legend-n">&nbsp;(482)</span>
+                  </div>
+                </div>
+              </div>
+              <p class="chart-source">Superset donut · vector_specimen_ids</p>
+            </div>
+
+            <!-- 3: Infection Rate heatmap (V-04 v1.4 — three-way metric toggle: Observed / Classical / Sporozoite Rate; lifecycle filter; trap type stratification reactivated) -->
+            <div class="chart-tile">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px;flex-wrap:wrap;">
+                <p class="chart-title" style="margin-bottom:0;">Infection Rate × Species</p>
+                <!-- v1.4: 3-way ContentSwitcher — Observed / Classical MIR / Sporozoite Rate (%) -->
+                <div role="tablist" style="display:inline-flex;border:1px solid #c6c6c6;border-radius:0;font-size:11px;font-weight:500;line-height:1;">
+                  <button id="mir-tab-observed" role="tab" aria-selected="true"
+                          style="padding:6px 10px;background:#161616;color:#fff;border:none;cursor:pointer;">Observed /1,000 (default)</button>
+                  <button id="mir-tab-classic" role="tab" aria-selected="false"
+                          style="padding:6px 10px;background:#fff;color:#161616;border:none;border-left:1px solid #c6c6c6;cursor:pointer;">Classical MIR /1,000</button>
+                  <button id="mir-tab-sporozoite" role="tab" aria-selected="false"
+                          style="padding:6px 10px;background:#fff;color:#a56eff;border:none;border-left:1px solid #c6c6c6;cursor:pointer;font-weight:600;"
+                          title="Sporozoite Rate (%) — anchored on microscopy from VR-07 reflex; requires deconvolution-to-individuals (positive_resolution_pct ≥ 95%)">
+                    Sporozoite Rate (%)
+                  </button>
+                </div>
+              </div>
+              <!-- v1.4: lifecycle stage filter — sporozoite rate is meaningful only for adult females -->
+              <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+                <span style="font-size:10px;color:#525252;text-transform:uppercase;letter-spacing:0.4px;">Stratify:</span>
+                <select style="font-size:11px;padding:3px 6px;border:1px solid #c6c6c6;background:#fff;cursor:pointer;">
+                  <option>Lifecycle: Adult only (default)</option>
+                  <option>Lifecycle: Adult + Pupa</option>
+                  <option>Lifecycle: All stages</option>
+                </select>
+                <span id="sporozoite-availability-hint" style="font-size:10px;color:#a67f00;display:none;">Sporozoite Rate disabled — needs ≥ 95% deconvolution coverage</span>
+              </div>
+              <table class="heatmap-table" id="mir-table"><!-- populated by JS --></table>
+              <!-- Partial resolution warning glyph — surfaces when positive_resolution_pct < 100 (per FR-V04 / Item 5) -->
+              <div id="mir-resolution-warning" style="display:flex;align-items:center;gap:6px;font-size:11px;color:#a67f00;margin-top:6px;">
+                <span style="display:inline-block;width:14px;height:14px;background:#f1c21b;border-radius:50%;color:#161616;font-weight:700;text-align:center;line-height:14px;font-size:10px;">!</span>
+                <span>Partial resolution: 67% of positive pools deconvoluted this period. Observed metric uses classical fallback for the remainder.</span>
+              </div>
+              <p class="chart-source">Superset heatmap · vector_mir_weekly &nbsp;·&nbsp; <strong>Observed</strong>: exact descendant positive count for resolved pools, classical fallback (1 per pool) when unresolved (per 1,000 organisms) &nbsp;·&nbsp; <strong>Classical MIR</strong>: (positive pools ÷ total organisms) × 1,000 &nbsp;·&nbsp; <strong>Sporozoite Rate</strong>: same numerator as Observed but rescaled to %, anchored on VR-07 microscopy confirmation (V-03 §A.5.9) — disabled when resolution &lt; 95% &nbsp;·&nbsp; CONFIRMED results only · QC excluded</p>
+            </div>
+
+            <!-- 4: Pathogen positivity -->
+            <div class="chart-tile">
+              <p class="chart-title">Pathogen Positivity Rate (% positive pools, last 4 weeks)</p>
+
+              <div class="pos-block">
+                <div class="pos-block-label">NS1 RT-PCR — Dengue</div>
+                <div class="pos-bars">
+                  <div class="pos-bar-col"><div class="pos-bar-outer">
+                    <div class="pos-bar-fill" style="width:24%;background:#f1c21b66"></div>
+                    <span class="pos-bar-val">8%</span>
+                  </div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer">
+                    <div class="pos-bar-fill" style="width:36%;background:#f1c21b88"></div>
+                    <span class="pos-bar-val">12%</span>
+                  </div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer">
+                    <div class="pos-bar-fill" style="width:54%;background:#f1c21b"></div>
+                    <span class="pos-bar-val">18%</span>
+                  </div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer">
+                    <div class="pos-bar-fill" style="width:72%;background:#da1e28"></div>
+                    <span class="pos-bar-val on-color">24%</span>
+                  </div></div>
+                </div>
+                <div class="pos-week-labels">
+                  <span class="pos-week-label">W13</span><span class="pos-week-label">W14</span>
+                  <span class="pos-week-label">W15</span><span class="pos-week-label">W16 ⚠</span>
+                </div>
+              </div>
+
+              <div class="pos-block">
+                <div class="pos-block-label">Malaria (PCR)</div>
+                <div class="pos-bars">
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:6%;background:#0f62fe55"></div><span class="pos-bar-val">2%</span></div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:6%;background:#0f62fe55"></div><span class="pos-bar-val">2%</span></div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:12%;background:#0f62fe88"></div><span class="pos-bar-val">4%</span></div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:9%;background:#0f62fe77"></div><span class="pos-bar-val">3%</span></div></div>
+                </div>
+                <div class="pos-week-labels">
+                  <span class="pos-week-label">W13</span><span class="pos-week-label">W14</span>
+                  <span class="pos-week-label">W15</span><span class="pos-week-label">W16</span>
+                </div>
+              </div>
+
+              <div class="pos-block" style="margin-bottom:0">
+                <div class="pos-block-label">Chikungunya RT-PCR</div>
+                <div class="pos-bars">
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:0%"></div><span class="pos-bar-val">0%</span></div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:3%;background:#007d7944"></div><span class="pos-bar-val">1%</span></div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:6%;background:#007d7966"></div><span class="pos-bar-val">2%</span></div></div>
+                  <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:15%;background:#007d79"></div><span class="pos-bar-val">5%</span></div></div>
+                </div>
+                <div class="pos-week-labels">
+                  <span class="pos-week-label">W13</span><span class="pos-week-label">W14</span>
+                  <span class="pos-week-label">W15</span><span class="pos-week-label">W16</span>
+                </div>
+              </div>
+
+              <p class="chart-source">Superset bar chart · vector_pathogen_results &nbsp;·&nbsp; red = exceeds threshold</p>
+            </div>
+
+          </div><!-- /chart-grid -->
+
+          <!-- ═══ Quality Control section (V-04 v1.2 — Dashboard #7) ═══ -->
+          <!-- Visually separated from surveillance charts to avoid implying QC samples flow into MIR/density -->
+          <div style="border-top:8px solid #f4f4f4;padding:18px 0 6px 0;margin-top:18px;">
+            <div style="display:flex;align-items:center;gap:8px;padding:0 4px 12px 4px;">
+              <span style="display:inline-block;width:10px;height:10px;background:#0f62fe;border-radius:50%;"></span>
+              <span style="font-size:13px;font-weight:600;color:#161616;letter-spacing:0.16px;text-transform:uppercase;">Quality Control</span>
+              <span style="font-size:11px;color:#525252;">QC samples are excluded from surveillance aggregates above (per BR-V04-008).</span>
+            </div>
+
+            <div class="chart-tile">
+              <p class="chart-title">QC Pass Rate (per QA event type · last 8 weeks)</p>
+
+              <!-- 95% reference line + bars per QA event type, stacked by site -->
+              <div style="position:relative;padding:8px 0 22px 0;">
+
+                <!-- 95% threshold reference line annotation -->
+                <div style="position:absolute;top:6px;right:0;font-size:10px;color:#525252;">
+                  Threshold: <strong style="color:#198038;">≥ 95%</strong>
+                </div>
+
+                <div class="pos-block" style="margin-top:14px;">
+                  <div class="pos-block-label">Positive Control (expected POS)</div>
+                  <div class="pos-bars">
+                    <div class="pos-bar-col"><div class="pos-bar-outer">
+                      <div class="pos-bar-fill" style="width:96%;background:#198038"></div>
+                      <span class="pos-bar-val on-color">96%</span>
+                    </div></div>
+                    <div class="pos-bar-col"><div class="pos-bar-outer">
+                      <div class="pos-bar-fill" style="width:100%;background:#198038"></div>
+                      <span class="pos-bar-val on-color">100%</span>
+                    </div></div>
+                    <div class="pos-bar-col"><div class="pos-bar-outer">
+                      <div class="pos-bar-fill" style="width:92%;background:#f1c21b"></div>
+                      <span class="pos-bar-val">92% ⚠</span>
+                    </div></div>
+                    <div class="pos-bar-col"><div class="pos-bar-outer">
+                      <div class="pos-bar-fill" style="width:100%;background:#198038"></div>
+                      <span class="pos-bar-val on-color">100%</span>
+                    </div></div>
+                  </div>
+                  <div class="pos-week-labels">
+                    <span class="pos-week-label">W13</span><span class="pos-week-label">W14</span>
+                    <span class="pos-week-label">W15 ⚠</span><span class="pos-week-label">W16</span>
+                  </div>
+                </div>
+
+                <div class="pos-block">
+                  <div class="pos-block-label">Negative Control (expected NEG)</div>
+                  <div class="pos-bars">
+                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:100%;background:#198038"></div><span class="pos-bar-val on-color">100%</span></div></div>
+                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:100%;background:#198038"></div><span class="pos-bar-val on-color">100%</span></div></div>
+                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:100%;background:#198038"></div><span class="pos-bar-val on-color">100%</span></div></div>
+                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:100%;background:#198038"></div><span class="pos-bar-val on-color">100%</span></div></div>
+                  </div>
+                  <div class="pos-week-labels">
+                    <span class="pos-week-label">W13</span><span class="pos-week-label">W14</span>
+                    <span class="pos-week-label">W15</span><span class="pos-week-label">W16</span>
+                  </div>
+                </div>
+
+                <div class="pos-block" style="margin-bottom:0">
+                  <div class="pos-block-label">Blank (expected NEG)</div>
+                  <div class="pos-bars">
+                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:100%;background:#198038"></div><span class="pos-bar-val on-color">100%</span></div></div>
+                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:88%;background:#da1e28"></div><span class="pos-bar-val on-color">88% ⚠</span></div></div>
+                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:100%;background:#198038"></div><span class="pos-bar-val on-color">100%</span></div></div>
+                    <div class="pos-bar-col"><div class="pos-bar-outer"><div class="pos-bar-fill" style="width:100%;background:#198038"></div><span class="pos-bar-val on-color">100%</span></div></div>
+                  </div>
+                  <div class="pos-week-labels">
+                    <span class="pos-week-label">W13</span><span class="pos-week-label">W14 ⚠</span>
+                    <span class="pos-week-label">W15</span><span class="pos-week-label">W16</span>
+                  </div>
+                </div>
+
+              </div>
+              <p class="chart-source">Superset bar chart · vector_qc_monitoring &nbsp;·&nbsp; pass = result matches expectation (POS for Positive Control, NEG for Negative Control / Blank); Duplicate concordance computed downstream</p>
+            </div>
+          </div>
+          <!-- ═══ /Quality Control section ═══ -->
+
+        </div><!-- /iframe-sim -->
+      </div><!-- /superset-wrap -->
+
+    </div><!-- /dashboard-area -->
+
+    <!-- Demo controls -->
+    <div class="demo-controls">
+      <span class="demo-label">Preview controls:</span>
+      <button class="btn btn-secondary" style="height:28px;font-size:12px;" onclick="simulateLoading()">Simulate token fetch (loading)</button>
+      <button class="btn btn-secondary" style="height:28px;font-size:12px;" onclick="simulateError()">Simulate error state</button>
+      <button class="btn btn-secondary" style="height:28px;font-size:12px;" onclick="simulateConnected()">Simulate connected</button>
+      <span class="demo-hint">Try: change Site → "BPP-01" and Apply to see per-site MIR data</span>
+    </div>
+
+    </div><!-- /panel-dashboard -->
+
+    <!-- ═══════════════ TAB PANEL 2 — MANUAL ENTRY HELPER (v1.5) ═══════════════ -->
+    <div class="tab-panel" id="panel-meh">
+      <div class="meh-page">
+
+        <!-- Header with ISO week selector + Print Laporan Hasil dropdown -->
+        <div class="meh-header" data-i18n-key="vectorReport.manualEntry.pageHeader">
+          <div>
+            <div class="meh-title" data-i18n-key="vectorReport.manualEntry.title">Manual Entry Helper</div>
+            <div class="meh-subtitle" data-i18n-key="vectorReport.manualEntry.subtitle">
+              Copy this week's surveillance numbers into the SILANTOR portal
+            </div>
+          </div>
+          <div class="meh-right">
+            <div class="filter-group">
+              <label class="filter-label" data-i18n-key="vectorReport.manualEntry.weekSelector.label">Reporting week</label>
+              <select class="filter-select" id="meh-week">
+                <option value="2026-W18">Week 18, 2026 (28 Apr – 4 May)</option>
+                <option value="2026-W17">Week 17, 2026 (21–27 Apr)</option>
+                <option value="2026-W16">Week 16, 2026 (14–20 Apr)</option>
+                <option value="2026-W15">Week 15, 2026 (7–13 Apr)</option>
+              </select>
+            </div>
+            <div class="overflow-wrap">
+              <button class="overflow-btn" onclick="togglePrintMenu(event)"
+                      data-i18n-key="vectorReport.manualEntry.printLhu.button">
+                Print Laporan Hasil ▾
+              </button>
+              <div class="overflow-menu" id="print-menu">
+                <div class="overflow-item" onclick="printLhu('weekly')"
+                     data-i18n-key="vectorReport.manualEntry.printLhu.weeklySummary">Weekly Summary</div>
+                <div class="overflow-item" onclick="printLhu('detail')"
+                     data-i18n-key="vectorReport.manualEntry.printLhu.perSampleDetail">Per-Sample Detail</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dev toggle (mockup-only, not present in production) -->
+        <div class="meh-dev-toggle">
+          <span style="font-weight:600;">Mockup dev toggle:</span>
+          <span>positive_resolution_pct =</span>
+          <button class="meh-dev-btn active" id="dev-res-87" onclick="setResolution(87)">87% (sporozoite disabled)</button>
+          <button class="meh-dev-btn" id="dev-res-97" onclick="setResolution(97)">97% (sporozoite enabled)</button>
+          <span class="meh-dev-spacer"></span>
+          <span class="meh-dev-hint">Not visible in production</span>
+        </div>
+
+        <!-- Inline submit-success notification -->
+        <div id="meh-success-banner"></div>
+
+        <!-- Aedes / Anopheles sub-tabs — defaults to Aedes per brief; switch to Anopheles to see the disabled sporozoite Tile -->
+        <div class="meh-subtabs">
+          <button class="meh-subtab active" id="subtab-aedes" onclick="setSubTab('AEDES')"
+                  data-i18n-key="vectorReport.manualEntry.section.aedes">Aedes</button>
+          <button class="meh-subtab" id="subtab-anopheles" onclick="setSubTab('ANOPHELES')"
+                  data-i18n-key="vectorReport.manualEntry.section.anopheles">Anopheles</button>
+        </div>
+
+        <!-- Metric Tile grid (populated by JS based on active sub-tab) -->
+        <div class="meh-tile-grid" id="meh-tile-grid"></div>
+
+        <!-- Snapshot JSON preview -->
+        <div class="meh-snapshot">
+          <details>
+            <summary data-i18n-key="vectorReport.manualEntry.snapshotPreview.label">
+              snapshot_json preview (what "Mark week submitted" will POST)
+            </summary>
+            <pre id="meh-snapshot-json"></pre>
+          </details>
+        </div>
+
+        <!-- Submit area -->
+        <div class="meh-submit-area">
+          <button class="btn btn-primary" onclick="openMarkSubmittedModal()"
+                  data-i18n-key="vectorReport.manualEntry.markSubmitted.button">
+            Mark week submitted
+          </button>
+        </div>
+
+        <!-- Footer note -->
+        <div class="meh-footer" data-i18n-key="vectorReport.manualEntry.footerNote">
+          8 default metrics shown. Deployments can re-order, hide, relabel, or portal-tag metrics via
+          Admin → Vector → Manual Entry Fields. Pending Ida (APHL Indonesia) confirmation of the actual
+          SILANTOR portal field list.
+        </div>
+
+      </div>
+    </div><!-- /panel-meh -->
+
+    <!-- ═══════════════ TAB PANEL 3 — ADMIN: MANUAL ENTRY FIELDS ═══════════════ -->
+    <div class="tab-panel" id="panel-admin">
+      <div class="admin-page">
+        <div class="admin-title" data-i18n-key="vectorAdmin.manualEntryFields.title">
+          Admin: Manual Entry Fields
+        </div>
+        <div class="admin-subtitle" data-i18n-key="vectorAdmin.manualEntryFields.subtitle">
+          Field map controls what renders on the Manual Entry Helper screen. Changes take effect immediately.
+        </div>
+
+        <div class="admin-actions">
+          <button class="btn btn-ghost" style="border:1px solid #0f62fe;height:32px;"
+                  onclick="adminToast('Add metric form opened (mock)')"
+                  data-i18n-key="vectorAdmin.manualEntryFields.addMetric">
+            + Add metric
+          </button>
+        </div>
+
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="width:36px;"></th>
+              <th>Order</th>
+              <th>Metric source</th>
+              <th>Display label</th>
+              <th>Portal field tag</th>
+              <th>Section</th>
+              <th>Hidden</th>
+            </tr>
+          </thead>
+          <tbody id="admin-table-body"></tbody>
+        </table>
+
+        <div class="admin-save-row">
+          <button class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-primary" onclick="adminSave()"
+                  data-i18n-key="vectorAdmin.manualEntryFields.save">
+            Save changes
+          </button>
+        </div>
+      </div>
+    </div><!-- /panel-admin -->
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- ═══════════════ MODAL: Mark Week Submitted ═══════════════ -->
+<div class="modal-overlay" id="mark-submitted-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-label" id="modal-label-period">Reporting period</div>
+      <div class="modal-title" data-i18n-key="vectorReport.manualEntry.markSubmitted.modal.title">
+        Submit week to SILANTOR?
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>The following snapshot will be written to <code>vector_manual_entry_audit</code>
+      as a record of what was reported to the SILANTOR portal:</p>
+      <table class="modal-table">
+        <thead>
+          <tr><th>Metric</th><th>Value</th></tr>
+        </thead>
+        <tbody id="modal-table-body"></tbody>
+      </table>
+      <div class="modal-checkbox-row">
+        <input type="checkbox" id="modal-confirm-checkbox" onchange="onConfirmCheck()">
+        <label for="modal-confirm-checkbox"
+               data-i18n-key="vectorReport.manualEntry.markSubmitted.modal.confirmCheckbox">
+          I confirm this week's data has been entered in the SILANTOR portal
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeMarkSubmittedModal()"
+              data-i18n-key="vectorReport.manualEntry.markSubmitted.modal.cancel">Cancel</button>
+      <button class="btn btn-primary" id="modal-confirm-btn" disabled onclick="confirmMarkSubmitted()"
+              data-i18n-key="vectorReport.manualEntry.markSubmitted.modal.confirm">
+        Confirm submission
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TOAST STACK ═══════════════ -->
+<div class="toast-stack" id="toast-stack"></div>
+
+<script>
+// ═══ DATA ═══════════════════════════════════
+
+const SITE_DATA = {
+  all: {
+    kpi: [
+      { label: 'Total Samples',         value: '312',   sub: '↑ 18 this week',        alert: false },
+      { label: 'Total Organisms',       value: '4,820', sub: '↑ 240 this week',       alert: false },
+      { label: 'Active Sites',          value: '5',     sub: 'of 7 reporting',        alert: false, neutral: true },
+      { label: 'Highest MIR (W16)',     value: '12.4',  sub: 'BPP-01 · Ae. aegypti', alert: true  },
+    ],
+    // V-04 v1.3 — two metrics, both per-thousand-organisms.
+    // observed = exact descendant positive count when deconvolution is COMPLETE; classical fallback otherwise (1 per positive pool).
+    // classic  = (positive pools / total organisms) × 1000 — every positive pool counted as 1.
+    mirObserved: [
+      { species: 'Ae. aegypti',          vals: [2.1, 4.8, 9.6, 14.2] },
+      { species: 'Cx. quinquefasciatus', vals: [0,   1.2, 2.0,  3.1] },
+      { species: 'An. barbirostris',     vals: [0,   0,   0.8,  1.5] },
+    ],
+    mirClassic: [
+      { species: 'Ae. aegypti',          vals: [2.1, 4.8, 8.3, 12.4] },
+      { species: 'Cx. quinquefasciatus', vals: [0,   1.2, 2.0,  3.1] },
+      { species: 'An. barbirostris',     vals: [0,   0,   0.8,  1.5] },
+    ],
+    positiveResolutionPct: 67,  // % of positive pools deconvoluted in this period
+  },
+  'BPP-01': {
+    kpi: [
+      { label: 'Total Samples',         value: '87',    sub: '↑ 6 this week',          alert: false },
+      { label: 'Total Organisms',       value: '1,340', sub: '↑ 80 this week',         alert: false },
+      { label: 'Active Sites',          value: '1',     sub: 'Bojongsoang',            alert: false, neutral: true },
+      { label: 'Highest MIR (W16)',     value: '12.4',  sub: 'Ae. aegypti · NS1',      alert: true  },
+    ],
+    mirObserved: [
+      { species: 'Ae. aegypti',          vals: [3.1, 6.2, 11.4, 14.2] },
+      { species: 'Cx. quinquefasciatus', vals: [0,   0.8,  1.2,  2.0] },
+      { species: 'An. barbirostris',     vals: [0,   0,    0,    0.5] },
+    ],
+    mirClassic: [
+      { species: 'Ae. aegypti',          vals: [3.1, 6.2,  9.8, 12.4] },
+      { species: 'Cx. quinquefasciatus', vals: [0,   0.8,  1.2,  2.0] },
+      { species: 'An. barbirostris',     vals: [0,   0,    0,    0.5] },
+    ],
+    positiveResolutionPct: 100,  // BPP-01 has fully deconvoluted positive pools — Sporozoite Rate available for this site
+  },
+};
+
+// Active metric mode for the heatmap toggle (FR Item 5 / Dashboard #4)
+let mirMode = 'observed';  // 'observed' | 'classic'
+
+function getD(site) { return SITE_DATA[site] || SITE_DATA['all']; }
+
+// ═══ RENDER ══════════════════════════════════
+
+function renderKPI(site) {
+  const d = getD(site);
+  document.getElementById('kpi-grid').innerHTML = d.kpi.map(k => `
+    <div class="kpi-tile">
+      <p class="kpi-label">${k.label}</p>
+      <p class="kpi-value${k.alert ? ' alert' : ''}">${k.value}</p>
+      <p class="kpi-sub${k.neutral ? ' neutral' : ''}">${k.sub}</p>
+    </div>
+  `).join('');
+}
+
+function renderMIR(site) {
+  const d = getD(site);
+  const weeks = ['W13','W14','W15','W16'];
+  // v1.4: 3-way toggle — Observed (per 1k) / Classical MIR (per 1k) / Sporozoite Rate (%)
+  // Sporozoite values = same numerator as Observed, just rescaled to per-100 (% form).
+  const observedRows = d.mirObserved;
+  const classicRows  = d.mirClassic;
+  const sporozoiteRows = d.mirObserved.map(row => ({
+    species: row.species,
+    vals: row.vals.map(v => Number((v / 10).toFixed(2)))  // /1000 → /100 = same numerator, %
+  }));
+  const activeRows  = mirMode === 'classic' ? classicRows : (mirMode === 'sporozoite' ? sporozoiteRows : observedRows);
+  const unitLabel   = mirMode === 'sporozoite' ? '%' : '/1k';
+  const colorScale  = mirMode === 'sporozoite' ? 1.5 : 15;  // sporozoite values are 10x smaller; scale color accordingly
+
+  let html = `<thead><tr><th>Species / Panel</th>${weeks.map(w=>`<th>${w}</th>`).join('')}</tr></thead><tbody>`;
+  activeRows.forEach((row, ri) => {
+    html += `<tr><td>${row.species}</td>`;
+    row.vals.forEach((v, ci) => {
+      const obsV = observedRows[ri].vals[ci];
+      const claV = classicRows[ri].vals[ci];
+      const spoV = sporozoiteRows[ri].vals[ci];
+      const intensity = Math.min(v / colorScale, 1);
+      let bg, color;
+      if (v === 0) {
+        bg = '#f4f4f4'; color = '#8d8d8d';
+      } else if (intensity < 0.33) {
+        bg = `rgba(241,194,27,${(0.2 + intensity * 0.6).toFixed(2)})`; color = '#161616';
+      } else {
+        bg = `rgba(218,30,40,${(0.3 + intensity * 0.7).toFixed(2)})`; color = intensity > 0.5 ? '#fff' : '#161616';
+      }
+      // Tooltip shows ALL THREE metrics + resolution % per Dashboard #4 acceptance criteria
+      const tooltip = `Observed (per 1k): ${obsV}\nClassical MIR (per 1k): ${claV}\nSporozoite Rate (%): ${spoV}\nResolution: ${d.positiveResolutionPct}%`;
+      const display = v || '—';
+      html += `<td style="background:${bg};color:${color};font-weight:600" title="${tooltip}">${display}${v ? '' : ''}</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody>`;
+  document.getElementById('mir-table').innerHTML = html;
+
+  // Toggle the partial-resolution warning glyph based on resolution %
+  const warn = document.getElementById('mir-resolution-warning');
+  if (warn) {
+    if (d.positiveResolutionPct < 100) {
+      warn.style.display = 'flex';
+      const fallbackHint = mirMode === 'observed'
+        ? 'Observed metric uses classical fallback for the remainder.'
+        : (mirMode === 'sporozoite'
+            ? 'Sporozoite Rate is disabled when resolution < 95% — currently showing classical fallback values for un-resolved pools.'
+            : 'Switch to Observed for exact counts where resolved.');
+      warn.querySelector('span:last-child').textContent =
+        `Partial resolution: ${d.positiveResolutionPct}% of positive pools deconvoluted this period. ${fallbackHint}`;
+    } else {
+      warn.style.display = 'none';
+    }
+  }
+
+  // v1.4: gate Sporozoite Rate availability when resolution < 95%
+  const spoTab = document.getElementById('mir-tab-sporozoite');
+  const spoHint = document.getElementById('sporozoite-availability-hint');
+  if (spoTab) {
+    const enabled = d.positiveResolutionPct >= 95;
+    spoTab.disabled = !enabled;
+    spoTab.style.opacity = enabled ? '1' : '0.45';
+    spoTab.style.cursor = enabled ? 'pointer' : 'not-allowed';
+    if (spoHint) spoHint.style.display = enabled ? 'none' : 'inline';
+  }
+}
+
+function setMirMode(mode) {
+  // v1.4: 3 modes — observed | classic | sporozoite
+  mirMode = mode;
+  const obsTab = document.getElementById('mir-tab-observed');
+  const claTab = document.getElementById('mir-tab-classic');
+  const spoTab = document.getElementById('mir-tab-sporozoite');
+  // Don't allow sporozoite mode if it's disabled
+  if (mode === 'sporozoite' && spoTab && spoTab.disabled) { return; }
+  if (obsTab && claTab && spoTab) {
+    const baseActive = 'padding:6px 10px;color:#fff;background:#161616;border:none;cursor:pointer;';
+    const baseInactive = 'padding:6px 10px;background:#fff;color:#161616;border:none;cursor:pointer;';
+    obsTab.setAttribute('style', mode === 'observed' ? baseActive : baseInactive);
+    claTab.setAttribute('style', (mode === 'classic' ? baseActive : baseInactive) + 'border-left:1px solid #c6c6c6;');
+    spoTab.setAttribute('style', (mode === 'sporozoite'
+      ? 'padding:6px 10px;background:#a56eff;color:#fff;border:none;cursor:pointer;font-weight:600;'
+      : 'padding:6px 10px;background:#fff;color:#a56eff;border:none;cursor:pointer;font-weight:600;') + 'border-left:1px solid #c6c6c6;');
+    obsTab.setAttribute('aria-selected', mode === 'observed');
+    claTab.setAttribute('aria-selected', mode === 'classic');
+    spoTab.setAttribute('aria-selected', mode === 'sporozoite');
+  }
+  const site = document.getElementById('site-select').value;
+  renderMIR(site);
+  return;
+}
+
+// Original two-tab styling preserved as no-op so older code paths don't break
+function _setMirMode_legacy(mode) {
+  mirMode = mode;
+  const obsTab = document.getElementById('mir-tab-observed');
+  const claTab = document.getElementById('mir-tab-classic');
+  if (obsTab && claTab) {
+    const activeStyle = 'padding:6px 10px;background:#161616;color:#fff;border:none;cursor:pointer;';
+    const inactiveStyle = 'padding:6px 10px;background:#fff;color:#161616;border:none;cursor:pointer;';
+    if (mode === 'observed') {
+      obsTab.setAttribute('style', activeStyle);
+      claTab.setAttribute('style', inactiveStyle + 'border-left:1px solid #c6c6c6;');
+      obsTab.setAttribute('aria-selected', 'true');
+      claTab.setAttribute('aria-selected', 'false');
+    } else {
+      obsTab.setAttribute('style', inactiveStyle);
+      claTab.setAttribute('style', activeStyle + 'border-left:1px solid #c6c6c6;');
+      obsTab.setAttribute('aria-selected', 'false');
+      claTab.setAttribute('aria-selected', 'true');
+    }
+  }
+  const site = document.getElementById('site-select').value;
+  renderMIR(site);
+}
+
+function updateMeta() {
+  const sel = document.getElementById('site-select');
+  const from = document.getElementById('date-from').value;
+  const to   = document.getElementById('date-to').value;
+  const site = sel.value;
+  const siteName = site === 'all' ? 'All Sites' : sel.options[sel.selectedIndex].text;
+  document.getElementById('ss-meta').textContent = siteName + '  ·  ' + from + ' → ' + to;
+}
+
+// ═══ CONNECTION STATES ═══════════════════════
+
+function setState(s) {
+  document.getElementById('state-loading').classList.toggle('hidden', s !== 'loading');
+  document.getElementById('state-error').classList.toggle('hidden', s !== 'error');
+  document.getElementById('state-connected').classList.toggle('hidden', s !== 'connected');
+  document.getElementById('token-bar').classList.toggle('hidden', s !== 'connected');
+  document.getElementById('btn-export').disabled = s !== 'connected';
+  document.getElementById('btn-open-superset').disabled = s !== 'connected';
+  if (s === 'connected') startTokenTimer(); else stopTokenTimer();
+}
+
+function simulateLoading() {
+  setState('loading');
+  setTimeout(() => {
+    const site = document.getElementById('site-select').value;
+    renderKPI(site); renderMIR(site); updateMeta();
+    setState('connected');
+  }, 1100);
+}
+function simulateError()     { setState('error'); }
+function simulateConnected() {
+  const site = document.getElementById('site-select').value;
+  renderKPI(site); renderMIR(site); updateMeta();
+  setState('connected');
+}
+function applyFilters() { simulateLoading(); }
+
+// ═══ TOKEN COUNTDOWN ════════════════════════
+
+let tokenSec = 300, tokenIv = null;
+
+function startTokenTimer() {
+  stopTokenTimer();
+  tokenSec = 300;
+  tokenIv = setInterval(() => {
+    tokenSec--;
+    if (tokenSec <= 0) { tokenSec = 300; } // silent refresh
+    const m = Math.floor(tokenSec / 60);
+    const s = String(tokenSec % 60).padStart(2,'0');
+    const el = document.getElementById('token-countdown');
+    if (el) el.textContent = `Guest token active — expires in ${m}:${s} · auto-refreshes silently (BR-V04-004)`;
+  }, 1000);
+}
+function stopTokenTimer() { if (tokenIv) { clearInterval(tokenIv); tokenIv = null; } }
+
+// ═══ NAV ════════════════════════════════════
+
+function toggleGroup(id, titleEl) {
+  document.getElementById(id).classList.toggle('collapsed');
+  titleEl.classList.toggle('collapsed');
+}
+function navAlert(msg) {
+  alert('Navigate to: ' + msg + '\n\n(This preview focuses on V-04 Vector Surveillance Reporting)');
+}
+
+// ═══ v1.5 TOP-LEVEL TABS ═════════════════════
+function setTopTab(name) {
+  ['dashboard','meh','admin'].forEach(n => {
+    document.getElementById('tab-' + n).classList.toggle('active', n === name);
+    document.getElementById('panel-' + n).classList.toggle('active', n === name);
+  });
+}
+
+// ═══ v1.5 MANUAL ENTRY HELPER ═══════════════
+// §6.6.4 default seed metrics. Same shape used by JSX SEED_METRICS.
+const MEH_SEED_METRICS = [
+  { key: 'poolsTested',           label: 'Pools tested (week)',          i18nKey: 'vectorReport.manualEntry.metric.poolsTested',           portalTag: 'F-12',  section: 'BOTH',      value: { AEDES: '247', ANOPHELES: '128' } },
+  { key: 'poolsPositive',         label: 'Pools positive (week)',        i18nKey: 'vectorReport.manualEntry.metric.poolsPositive',         portalTag: 'F-13',  section: 'BOTH',      value: { AEDES: '18',  ANOPHELES: '9'   } },
+  { key: 'confirmedPositiveOrgs', label: 'Confirmed-positive organisms', i18nKey: 'vectorReport.manualEntry.metric.confirmedPositiveOrganisms', portalTag: 'F-14',  section: 'BOTH',      value: { AEDES: '31',  ANOPHELES: '14'  } },
+  { key: 'topSpecies',            label: 'Top species (by pool count)',  i18nKey: 'vectorReport.manualEntry.metric.topSpecies',            portalTag: 'TBD',   section: 'BOTH',      value: { AEDES: 'Aedes aegypti', ANOPHELES: 'An. sundaicus' } },
+  { key: 'mirClassical',          label: 'MIR classical (per 1000)',     i18nKey: 'vectorReport.manualEntry.metric.mirClassical',          portalTag: 'F-15',  section: 'BOTH',      value: { AEDES: '8.4', ANOPHELES: '0.92' } },
+  { key: 'mirObserved',           label: 'MIR observed-with-fallback',   i18nKey: 'vectorReport.manualEntry.metric.mirObserved',           portalTag: 'F-16',  section: 'BOTH',      value: { AEDES: '12.6',ANOPHELES: '1.18' } },
+  { key: 'sitesWithPositives',    label: 'Sites with positives',         i18nKey: 'vectorReport.manualEntry.metric.sitesWithPositives',    portalTag: 'F-17',  section: 'BOTH',      value: { AEDES: '9 of 24', ANOPHELES: '3 of 24' } },
+  { key: 'sporozoiteRate',        label: 'Sporozoite rate (%)',          i18nKey: 'vectorReport.manualEntry.metric.sporozoiteRate',        portalTag: 'F-18',  section: 'ANOPHELES', value: { ANOPHELES: '0.7' }, gatedBy: 'positiveResolutionPct95' },
+];
+
+let mehActiveSection = 'AEDES';     // Brief: default sub-tab is Aedes
+let mehPositiveResolutionPct = 87;  // dev toggle default — disabled state visible when Anopheles is selected
+
+function isSporozoiteDisabled() {
+  return mehPositiveResolutionPct < 95;
+}
+
+function setResolution(pct) {
+  mehPositiveResolutionPct = pct;
+  document.getElementById('dev-res-87').classList.toggle('active', pct === 87);
+  document.getElementById('dev-res-97').classList.toggle('active', pct === 97);
+  renderMehTiles();
+}
+
+function setSubTab(section) {
+  mehActiveSection = section;
+  document.getElementById('subtab-aedes').classList.toggle('active', section === 'AEDES');
+  document.getElementById('subtab-anopheles').classList.toggle('active', section === 'ANOPHELES');
+  renderMehTiles();
+}
+
+function getVisibleMetrics() {
+  return MEH_SEED_METRICS.filter(m => m.section === 'BOTH' || m.section === mehActiveSection);
+}
+
+function renderMehTiles() {
+  const grid = document.getElementById('meh-tile-grid');
+  const visible = getVisibleMetrics();
+  grid.innerHTML = visible.map(m => {
+    const sporoDisabled = m.key === 'sporozoiteRate' && isSporozoiteDisabled();
+    const val = m.value[mehActiveSection] ?? '—';
+    const valIsText = isNaN(parseFloat(val)) && val !== '—';
+    const tagClass = m.portalTag === 'TBD' ? 'tag-warm' : 'tag-cool';
+    const disabledReason = sporoDisabled
+      ? `Sporozoite rate is disabled when positive resolution is below 95% — currently ${mehPositiveResolutionPct}%`
+      : '';
+    return `
+      <div class="meh-tile ${sporoDisabled ? 'disabled' : ''}" data-i18n-key="${m.i18nKey}">
+        <div class="meh-tile-portal-tag">
+          <span class="tag ${tagClass}" data-i18n-key="vectorReport.manualEntry.portalTag.label">SILANTOR field: ${m.portalTag}</span>
+        </div>
+        <div class="meh-tile-label" data-i18n-key="${m.i18nKey}.label">${m.label}</div>
+        <div class="meh-tile-value ${sporoDisabled ? 'disabled' : ''} ${valIsText ? 'text' : ''}">${sporoDisabled ? '—' : val}</div>
+        ${sporoDisabled ? `<div class="meh-tile-disabled-reason" data-i18n-key="vectorReport.manualEntry.sporozoite.disabled.tooltip">${disabledReason}</div>` : ''}
+        <div class="meh-tile-actions">
+          <button class="meh-copy-btn" ${sporoDisabled ? 'disabled' : ''}
+                  ${sporoDisabled ? `title="${disabledReason}"` : ''}
+                  onclick="copyMetric('${m.key}')"
+                  data-i18n-key="vectorReport.manualEntry.copy.button">
+            ⧉ Copy
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  renderSnapshotPreview();
+}
+
+function copyMetric(key) {
+  const m = MEH_SEED_METRICS.find(x => x.key === key);
+  if (!m) return;
+  const val = m.value[mehActiveSection] ?? '';
+  // In production: navigator.clipboard.writeText(val)
+  showToast(`${m.label} copied`, `Value: ${val}`);
+}
+
+function buildSnapshot() {
+  return {
+    iso_year: 2026,
+    iso_week: 18,
+    section: mehActiveSection,
+    tiles: getVisibleMetrics().map(m => {
+      const sporoDisabled = m.key === 'sporozoiteRate' && isSporozoiteDisabled();
+      if (sporoDisabled) {
+        return {
+          key: m.key,
+          label: m.label,
+          value: null,
+          disabled_reason: `positive_resolution_pct=${mehPositiveResolutionPct} < 95`,
+          portal_field_tag: m.portalTag,
+        };
+      }
+      return {
+        key: m.key,
+        label: m.label,
+        value: String(m.value[mehActiveSection] ?? ''),
+        portal_field_tag: m.portalTag,
+      };
+    }),
+  };
+}
+
+function renderSnapshotPreview() {
+  document.getElementById('meh-snapshot-json').textContent =
+    JSON.stringify(buildSnapshot(), null, 2);
+}
+
+// ═══ Print Laporan Hasil dropdown ═══
+function togglePrintMenu(e) {
+  e.stopPropagation();
+  document.getElementById('print-menu').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.getElementById('print-menu')?.classList.remove('open');
+});
+
+function printLhu(kind) {
+  document.getElementById('print-menu').classList.remove('open');
+  if (kind === 'weekly') showToast('Weekly Summary PDF requested', 'S06d Vector LHU endpoint');
+  else showToast('Per-Sample Detail PDF requested', 'S06d Vector LHU endpoint');
+}
+
+// ═══ Toast queue ═══
+function showToast(title, sub) {
+  const stack = document.getElementById('toast-stack');
+  const div = document.createElement('div');
+  div.className = 'toast';
+  div.innerHTML = `
+    <span class="toast-icon">✓</span>
+    <div>
+      <div class="toast-title">${title}</div>
+      ${sub ? `<div class="toast-sub">${sub}</div>` : ''}
+    </div>
+    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+  `;
+  stack.appendChild(div);
+  setTimeout(() => { if (div.parentElement) div.remove(); }, 4000);
+}
+
+// ═══ Mark Week Submitted Modal ═══
+function openMarkSubmittedModal() {
+  const visible = getVisibleMetrics();
+  document.getElementById('modal-label-period').textContent =
+    `Reporting period: ${document.getElementById('meh-week').value} · ${mehActiveSection}`;
+  document.getElementById('modal-table-body').innerHTML = visible.map(m => {
+    const sporoDisabled = m.key === 'sporozoiteRate' && isSporozoiteDisabled();
+    const val = m.value[mehActiveSection] ?? '—';
+    return `
+      <tr>
+        <td>${m.label} <span class="tag tag-cool" style="margin-left:6px;">${m.portalTag}</span></td>
+        <td class="val ${sporoDisabled ? 'na' : ''}">${sporoDisabled
+          ? `n/a (disabled — resolution ${mehPositiveResolutionPct}%)`
+          : val}</td>
+      </tr>
+    `;
+  }).join('');
+  document.getElementById('modal-confirm-checkbox').checked = false;
+  document.getElementById('modal-confirm-btn').disabled = true;
+  document.getElementById('mark-submitted-modal').classList.add('open');
+}
+function closeMarkSubmittedModal() {
+  document.getElementById('mark-submitted-modal').classList.remove('open');
+}
+function onConfirmCheck() {
+  const checked = document.getElementById('modal-confirm-checkbox').checked;
+  document.getElementById('modal-confirm-btn').disabled = !checked;
+}
+function confirmMarkSubmitted() {
+  const ts = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  closeMarkSubmittedModal();
+  // Inline success banner
+  document.getElementById('meh-success-banner').innerHTML = `
+    <div class="inline-success">
+      <span class="inline-success-icon">✓</span>
+      <div>
+        <div class="inline-success-title">Week marked submitted</div>
+        <div class="inline-success-sub">vector_manual_entry_audit row written at ${ts}. snapshot_json captured.</div>
+      </div>
+      <button class="inline-success-close" onclick="document.getElementById('meh-success-banner').innerHTML='';">×</button>
+    </div>
+  `;
+  showToast('Week marked submitted', 'vector_manual_entry_audit row written');
+}
+
+// ═══ Admin: Manual Entry Fields ═══
+function renderAdminTable() {
+  const body = document.getElementById('admin-table-body');
+  body.innerHTML = MEH_SEED_METRICS.map((m, i) => {
+    const metricSource = `vector_mir_weekly.${m.key === 'mirClassical' ? 'mir_classic' : m.key}`;
+    return `
+      <tr>
+        <td class="handle" title="Drag to reorder">⋮⋮</td>
+        <td>${i + 1}</td>
+        <td class="source">${metricSource}</td>
+        <td><input class="admin-input" type="text" value="${m.label}"></td>
+        <td><input class="admin-input" type="text" value="${m.portalTag}"></td>
+        <td>
+          <select class="admin-select">
+            <option ${m.section === 'AEDES' ? 'selected' : ''}>Aedes</option>
+            <option ${m.section === 'ANOPHELES' ? 'selected' : ''}>Anopheles</option>
+            <option ${m.section === 'BOTH' ? 'selected' : ''}>Both</option>
+          </select>
+        </td>
+        <td>
+          <div class="admin-toggle" onclick="this.classList.toggle('on')" role="switch" aria-label="Hidden toggle"></div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function adminSave() {
+  showToast('Field map saved', 'vector_manual_entry_field_map updated. Changes are live for Manual Entry Helper users.');
+}
+function adminToast(msg) {
+  showToast(msg, '');
+}
+
+// ═══ INIT ════════════════════════════════════
+
+// Wire up MIR metric toggle (Dashboard #4 ContentSwitcher)
+document.addEventListener('DOMContentLoaded', () => {
+  const obsTab = document.getElementById('mir-tab-observed');
+  const claTab = document.getElementById('mir-tab-classic');
+  const spoTab = document.getElementById('mir-tab-sporozoite');
+  if (obsTab) obsTab.addEventListener('click', () => setMirMode('observed'));
+  if (claTab) claTab.addEventListener('click', () => setMirMode('classic'));
+  if (spoTab) spoTab.addEventListener('click', () => setMirMode('sporozoite'));
+});
+
+setState('loading');
+setTimeout(() => {
+  renderKPI('all'); renderMIR('all'); updateMeta();
+  setState('connected');
+  // Also wire up tabs in case DOMContentLoaded already fired
+  const obsTab = document.getElementById('mir-tab-observed');
+  const claTab = document.getElementById('mir-tab-classic');
+  const spoTab = document.getElementById('mir-tab-sporozoite');
+  if (obsTab && !obsTab._wired) { obsTab._wired = true; obsTab.addEventListener('click', () => setMirMode('observed')); }
+  if (claTab && !claTab._wired) { claTab._wired = true; claTab.addEventListener('click', () => setMirMode('classic')); }
+  if (spoTab && !spoTab._wired) { spoTab._wired = true; spoTab.addEventListener('click', () => setMirMode('sporozoite')); }
+}, 1200);
+
+// v1.5 — Initial render of Manual Entry Helper + Admin tab content
+renderMehTiles();
+renderAdminTable();
+</script>
+</body>
+</html>

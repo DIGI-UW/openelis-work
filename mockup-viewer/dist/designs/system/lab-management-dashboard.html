@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenELIS Management Dashboard — Preview v1</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css" />
+  <style>
+    :root {
+      --rail-w: 240px;
+      --header-h: 48px;
+      --c-bg: #f4f4f4;
+      --c-card: #ffffff;
+      --c-border: #e0e0e0;
+      --c-text: #161616;
+      --c-muted: #525252;
+      --c-link: #0f62fe;
+      --c-link-bg: #edf5ff;
+      --c-good: #198038;
+      --c-good-bg: #defbe6;
+      --c-warn: #f1c21b;
+      --c-warn-bg: #fcf4d6;
+      --c-bad: #da1e28;
+      --c-bad-bg: #ffe0e0;
+      --c-info: #0043ce;
+      --c-info-bg: #d0e2ff;
+      --c-tb: #ee538b;
+      --c-hiv: #6929c4;
+      --c-malaria: #009d9a;
+      --c-amr: #ff832b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: var(--c-bg); color: var(--c-text); font-size: 0.875rem; }
+
+    /* Preview banner */
+    .preview-banner { background: var(--c-link); color: #fff; padding: 6px 1.5rem; font-size: 0.75rem; font-family: monospace; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .preview-banner .route { opacity: 0.85; }
+
+    /* App header */
+    .app-header { height: var(--header-h); background: #161616; color: #fff; display: flex; align-items: center; padding: 0 1rem; gap: 1rem; }
+    .app-header .brand { font-size: 0.875rem; font-weight: 500; letter-spacing: 0.04em; }
+    .app-header .brand .sub { opacity: 0.7; font-weight: 400; margin-left: 0.5rem; }
+    .app-header .spacer { flex: 1; }
+    .app-header .user-chip { font-size: 0.8125rem; opacity: 0.85; padding: 0.25rem 0.5rem; border: 1px solid #393939; }
+
+    /* Layout */
+    .layout { display: flex; min-height: 700px; }
+    .rail { width: var(--rail-w); flex: 0 0 var(--rail-w); background: #fff; border-right: 1px solid var(--c-border); }
+    .main { flex: 1; padding: 1.125rem 1.5rem 2.5rem 1.5rem; max-width: 100%; overflow-x: auto; }
+
+    /* Side rail */
+    .rail-title { padding: 0.875rem 1rem 0.375rem 1rem; font-size: 0.6875rem; letter-spacing: 0.06em; color: var(--c-muted); text-transform: uppercase; }
+    .rail-item { display: flex; align-items: center; width: 100%; padding: 0.5625rem 1rem; font-size: 0.8125rem; color: var(--c-text); background: transparent; border: 0; border-left: 3px solid transparent; cursor: pointer; text-align: left; font-family: inherit; }
+    .rail-item:hover { background: #e8e8e8; }
+    .rail-item.current { background: var(--c-link-bg); border-left-color: var(--c-link); font-weight: 600; }
+    .rail-item .icon { margin-right: 0.5625rem; width: 16px; display: inline-flex; justify-content: center; opacity: 0.8; }
+    .rail-item .label { flex: 1; }
+    .rail-item.nested { padding-left: 2.5rem; font-size: 0.75rem; color: var(--c-muted); }
+    .rail-item.nested.current { color: var(--c-text); }
+
+    /* Breadcrumb */
+    .crumb { font-size: 0.8125rem; color: var(--c-muted); margin-bottom: 0.4375rem; }
+    .crumb .current { color: var(--c-text); font-weight: 500; }
+    .crumb .sep { margin: 0 0.375rem; }
+    .crumb a { color: var(--c-link); text-decoration: none; }
+
+    /* Page header strip */
+    .page-header { background: #fff; border: 1px solid var(--c-border); padding: 0.875rem 1.125rem; margin-bottom: 0.875rem; display: flex; align-items: flex-end; justify-content: space-between; gap: 1.25rem; flex-wrap: wrap; }
+    .page-header h1 { font-size: 1.25rem; font-weight: 300; margin: 0; letter-spacing: -0.01em; }
+    .page-header .sub { font-size: 0.8125rem; color: var(--c-muted); margin: 0.1875rem 0 0 0; }
+    .page-header .controls { display: flex; align-items: center; gap: 0.5rem; }
+    .page-header .scope { display: flex; border: 1px solid var(--c-border); }
+    .page-header .scope button { background: #fff; border: 0; padding: 0.375rem 0.625rem; font-size: 0.75rem; cursor: pointer; font-family: inherit; color: var(--c-text); border-right: 1px solid var(--c-border); }
+    .page-header .scope button:last-child { border-right: 0; }
+    .page-header .scope button.active { background: var(--c-link-bg); color: var(--c-link); font-weight: 600; }
+    .page-header .ico-btn { background: #fff; border: 1px solid var(--c-border); padding: 0.375rem 0.625rem; font-size: 0.75rem; cursor: pointer; font-family: inherit; color: var(--c-text); display: inline-flex; align-items: center; gap: 0.375rem; }
+
+    /* Section header */
+    .section-head { display: flex; align-items: baseline; justify-content: space-between; margin: 1.125rem 0 0.4375rem 0; gap: 0.5rem; flex-wrap: wrap; }
+    .section-head h2 { font-size: 0.9375rem; font-weight: 600; margin: 0; letter-spacing: 0.02em; }
+    .section-head .meta { font-size: 0.75rem; color: var(--c-muted); }
+    .section-head .meta a { color: var(--c-link); text-decoration: none; }
+
+    /* KPI strip — 5 tiles */
+    .kpi-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.625rem; }
+    .kpi { background: #fff; border: 1px solid var(--c-border); border-top: 3px solid var(--c-link); padding: 0.75rem 0.875rem; }
+    .kpi.good { border-top-color: var(--c-good); }
+    .kpi.warn { border-top-color: var(--c-warn); }
+    .kpi .lbl { font-size: 0.6875rem; color: var(--c-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .kpi .val { font-size: 1.4375rem; font-weight: 300; margin: 0.3125rem 0 0.1875rem 0; line-height: 1; letter-spacing: -0.02em; }
+    .kpi .val .unit { font-size: 0.6875rem; color: var(--c-muted); margin-left: 0.25rem; font-weight: 400; }
+    .kpi .delta { font-size: 0.6875rem; color: var(--c-muted); display: flex; align-items: center; gap: 0.25rem; }
+    .kpi .delta .up { color: var(--c-good); font-weight: 600; }
+    .kpi .delta .down { color: var(--c-good); font-weight: 600; }
+    .kpi .delta .bad { color: var(--c-bad); font-weight: 600; }
+    .kpi-spark { width: 100%; height: 24px; display: block; margin-top: 0.375rem; }
+    .kpi-spark .line { fill: none; stroke: var(--c-link); stroke-width: 1.5; }
+    .kpi-spark .area { fill: var(--c-link); opacity: 0.08; }
+    .kpi-spark .dot { fill: var(--c-link); }
+    .kpi.good .kpi-spark .line, .kpi.good .kpi-spark .dot { stroke: var(--c-good); fill: var(--c-good); }
+    .kpi.good .kpi-spark .area { fill: var(--c-good); opacity: 0.08; }
+    .kpi.good .kpi-spark .dot { stroke: none; }
+
+    /* Surveillance — 4 program cards */
+    .surv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+    .surv-card { background: #fff; border: 1px solid var(--c-border); border-top: 3px solid var(--c-link); padding: 0.875rem 1rem; }
+    .surv-card.tb { border-top-color: var(--c-tb); }
+    .surv-card.hiv { border-top-color: var(--c-hiv); }
+    .surv-card.malaria { border-top-color: var(--c-malaria); }
+    .surv-card.amr { border-top-color: var(--c-amr); }
+    .surv-card .prog-head { display: flex; align-items: center; justify-content: space-between; }
+    .surv-card .prog-name { font-size: 0.875rem; font-weight: 600; }
+    .surv-card .prog-volume { font-size: 0.6875rem; color: var(--c-muted); }
+    .surv-card .metric-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed #e8e8e8; }
+    .surv-card .metric-row:first-of-type { border-top: 0; padding-top: 0; }
+    .surv-card .metric-name { font-size: 0.75rem; color: var(--c-text); }
+    .surv-card .metric-name .det { color: var(--c-muted); font-size: 0.6875rem; }
+    .surv-card .metric-val { font-size: 0.9375rem; font-weight: 500; color: var(--c-text); }
+    .surv-card .metric-val .trend { font-size: 0.6875rem; color: var(--c-muted); margin-left: 0.25rem; font-weight: 400; }
+    .surv-card .micro-bar { width: 50px; height: 6px; background: #f0f0f0; display: inline-block; margin-left: 0.4375rem; vertical-align: middle; position: relative; }
+    .surv-card .micro-bar .fill { height: 100%; background: var(--c-link); display: block; }
+    .surv-card.tb .micro-bar .fill { background: var(--c-tb); }
+    .surv-card.hiv .micro-bar .fill { background: var(--c-hiv); }
+    .surv-card.malaria .micro-bar .fill { background: var(--c-malaria); }
+    .surv-card .footnote { font-size: 0.625rem; color: var(--c-muted); margin-top: 0.5rem; padding-top: 0.4375rem; border-top: 1px solid #f0f0f0; }
+    .surv-card .footnote a { color: var(--c-link); text-decoration: none; }
+
+    /* AMR antibiogram heatmap */
+    .amr-card { background: #fff; border: 1px solid var(--c-border); border-top: 3px solid var(--c-amr); padding: 0.875rem 1rem; grid-column: span 4; margin-top: 0.625rem; }
+    .amr-card .ab-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
+    .amr-card .ab-title { font-size: 0.875rem; font-weight: 600; }
+    .amr-card .ab-meta { font-size: 0.6875rem; color: var(--c-muted); }
+    .ab-table { width: 100%; border-collapse: collapse; font-size: 0.6875rem; }
+    .ab-table th { background: #f4f4f4; color: var(--c-muted); font-weight: 500; padding: 0.4375rem 0.5rem; text-align: center; border: 1px solid var(--c-border); white-space: nowrap; }
+    .ab-table th.organism { text-align: left; min-width: 130px; background: #fff; }
+    .ab-table td { padding: 0.4375rem 0.5rem; text-align: center; border: 1px solid var(--c-border); font-weight: 500; }
+    .ab-table td.organism { text-align: left; font-weight: 500; background: #fafafa; }
+    .ab-table td.organism .ct { font-size: 0.625rem; color: var(--c-muted); font-weight: 400; margin-left: 0.25rem; }
+    .ab-table td .pct { font-size: 0.6875rem; }
+    .ab-table td.r-low { background: #defbe6; color: #0e6027; }
+    .ab-table td.r-mid { background: #fcf4d6; color: #6f4700; }
+    .ab-table td.r-high { background: #ffe5d9; color: #8a3800; }
+    .ab-table td.r-crit { background: #ffe0e0; color: #a2191f; }
+    .ab-table td.r-na { background: #fafafa; color: #c6c6c6; }
+
+    /* Workload + TAT side-by-side */
+    .work-tat { display: grid; grid-template-columns: 1.2fr 1fr; gap: 0.875rem; }
+    .wcard { background: #fff; border: 1px solid var(--c-border); padding: 0.875rem 1rem; }
+    .wcard h3 { font-size: 0.8125rem; font-weight: 600; margin: 0 0 0.5rem 0; }
+
+    /* Workload stacked area (SVG) */
+    .stacked-area { width: 100%; height: 140px; display: block; }
+
+    /* TAT table */
+    .tat-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+    .tat-table th { background: #f4f4f4; color: var(--c-muted); font-weight: 500; padding: 0.4375rem 0.5rem; text-align: left; border-bottom: 1px solid var(--c-border); text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.625rem; }
+    .tat-table th.num { text-align: right; }
+    .tat-table td { padding: 0.5rem; border-bottom: 1px solid #f0f0f0; }
+    .tat-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .tat-table td.section { font-weight: 500; }
+    .tat-table tr:hover td { background: #fafafa; }
+    .tat-table .bar { height: 4px; background: var(--c-link); display: inline-block; vertical-align: middle; margin-right: 0.4375rem; }
+
+    /* Quality rollup */
+    .quality-grid { display: grid; grid-template-columns: 1.4fr 2fr; gap: 0.875rem; }
+    .qrole { background: #fff; border: 1px solid var(--c-border); padding: 1rem 1.125rem; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .qrole .score { font-size: 3rem; font-weight: 200; letter-spacing: -0.04em; color: var(--c-good); line-height: 1; }
+    .qrole .score-label { font-size: 0.75rem; color: var(--c-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 0.3125rem; }
+    .qrole .score-delta { font-size: 0.75rem; color: var(--c-good); margin-top: 0.5rem; }
+    .qrole .score-note { font-size: 0.6875rem; color: var(--c-muted); margin-top: 0.4375rem; text-align: center; max-width: 220px; }
+    .qbreakdown { background: #fff; border: 1px solid var(--c-border); padding: 0.875rem 1rem; }
+    .qbreakdown h3 { font-size: 0.8125rem; font-weight: 600; margin: 0 0 0.5rem 0; }
+    .qrow { display: grid; grid-template-columns: 130px 1fr 60px 50px; align-items: center; padding: 0.4375rem 0; border-bottom: 1px solid #f0f0f0; font-size: 0.75rem; gap: 0.4375rem; }
+    .qrow:last-child { border-bottom: 0; }
+    .qrow .lbl { color: var(--c-muted); }
+    .qrow .meter { background: #f4f4f4; height: 7px; position: relative; }
+    .qrow .meter .fill { height: 100%; background: var(--c-good); }
+    .qrow .meter .fill.warn { background: var(--c-warn); }
+    .qrow .meter .fill.bad { background: var(--c-bad); }
+    .qrow .val { font-weight: 500; text-align: right; }
+    .qrow .wt { color: var(--c-muted); font-size: 0.6875rem; text-align: right; }
+
+    /* Equipment lifecycle */
+    .equip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.625rem; }
+    .equip-card { background: #fff; border: 1px solid var(--c-border); padding: 0.75rem 0.875rem; }
+    .equip-card .equip-head { display: flex; justify-content: space-between; align-items: baseline; }
+    .equip-card .name { font-size: 0.8125rem; font-weight: 600; }
+    .equip-card .status-tag { font-size: 0.625rem; padding: 0.125rem 0.4375rem; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; }
+    .equip-card .status-tag.online { background: var(--c-good-bg); color: #0e6027; }
+    .equip-card .status-tag.warn { background: var(--c-warn-bg); color: #6f4700; }
+    .equip-card .status-tag.offline { background: var(--c-bad-bg); color: #a2191f; }
+    .equip-card .uptime { font-size: 1.0625rem; font-weight: 400; margin: 0.4375rem 0 0.125rem 0; }
+    .equip-card .uptime .unit { font-size: 0.6875rem; color: var(--c-muted); margin-left: 0.1875rem; font-weight: 400; }
+    .equip-card .equip-meta { font-size: 0.6875rem; color: var(--c-muted); margin-top: 0.375rem; line-height: 1.5; }
+    .equip-card .equip-meta .due { color: var(--c-warn); font-weight: 500; }
+    .equip-card .equip-meta .overdue { color: var(--c-bad); font-weight: 500; }
+
+    /* Stock */
+    .stock-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 0.75rem; }
+    .stock-card { background: #fff; border: 1px solid var(--c-border); padding: 0.875rem 1rem; }
+    .stock-card h3 { font-size: 0.8125rem; font-weight: 600; margin: 0 0 0.5rem 0; }
+    .stock-row { display: grid; grid-template-columns: 1fr 100px 70px; align-items: center; padding: 0.4375rem 0; border-bottom: 1px solid #f0f0f0; font-size: 0.75rem; gap: 0.4375rem; }
+    .stock-row:last-child { border-bottom: 0; }
+    .stock-row .reagent .name { font-weight: 500; }
+    .stock-row .reagent .lot { color: var(--c-muted); font-size: 0.6875rem; }
+    .stock-row .meter { background: #f4f4f4; height: 7px; position: relative; }
+    .stock-row .meter .fill { height: 100%; background: var(--c-good); }
+    .stock-row .meter .fill.warn { background: var(--c-warn); }
+    .stock-row .meter .fill.bad { background: var(--c-bad); }
+    .stock-row .qty { font-size: 0.75rem; text-align: right; }
+    .stock-row .qty .pct { color: var(--c-muted); font-size: 0.6875rem; }
+    .stock-card .empty-note { font-size: 0.6875rem; color: var(--c-muted); padding: 0.4375rem 0; border-top: 1px dashed #e8e8e8; margin-top: 0.4375rem; }
+    .alert-list { display: flex; flex-direction: column; gap: 0.4375rem; }
+    .alert-item { font-size: 0.75rem; padding: 0.4375rem 0.625rem; border-left: 3px solid var(--c-warn); background: var(--c-warn-bg); color: #6f4700; }
+    .alert-item.bad { border-left-color: var(--c-bad); background: var(--c-bad-bg); color: #a2191f; }
+    .alert-item .l { font-weight: 600; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.125rem; display: block; }
+
+    /* Export bar */
+    .export-bar { background: #fff; border: 1px solid var(--c-border); padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 0.625rem; flex-wrap: wrap; }
+    .export-bar .lbl { font-size: 0.8125rem; color: var(--c-muted); }
+    .export-bar .actions { display: flex; gap: 0.4375rem; }
+    .export-bar .btn { background: #fff; border: 1px solid var(--c-border); padding: 0.375rem 0.75rem; font-size: 0.75rem; cursor: pointer; font-family: inherit; color: var(--c-text); display: inline-flex; align-items: center; gap: 0.375rem; }
+    .export-bar .btn:hover { background: var(--c-link-bg); border-color: var(--c-link); color: var(--c-link); }
+
+    /* Designer note */
+    .dn { background: #fdf6dd; border-left: 3px solid var(--c-warn); padding: 0.625rem 0.875rem; margin-bottom: 0.875rem; font-size: 0.75rem; color: #684e00; line-height: 1.5; }
+    .dn strong { color: #684e00; }
+    .dn code { background: rgba(0,0,0,0.06); padding: 0 0.1875rem; font-size: 0.6875rem; }
+  </style>
+</head>
+<body>
+
+<div class="preview-banner">
+  <span>OpenELIS Management Dashboard — design preview v1</span>
+  <span class="route">Route: <code>/dashboards/management</code> · SideNav: Dashboards → Management Overview</span>
+</div>
+
+<header class="app-header">
+  <span class="brand">OpenELIS Global<span class="sub">· CPHL Port Moresby</span></span>
+  <span class="spacer"></span>
+  <span class="user-chip">Dr. Joseph K · Director</span>
+</header>
+
+<div class="layout">
+  <nav class="rail" aria-label="Main navigation">
+    <div class="rail-title">Workspace</div>
+    <button class="rail-item"><span class="icon">⌂</span><span class="label">Home</span></button>
+    <button class="rail-item"><span class="icon">＋</span><span class="label">Order Entry</span></button>
+    <button class="rail-item"><span class="icon">⚕</span><span class="label">Patient Management</span></button>
+    <button class="rail-item"><span class="icon">▤</span><span class="label">Workplan</span></button>
+    <button class="rail-item"><span class="icon">✓</span><span class="label">Results Validation</span></button>
+    <button class="rail-item"><span class="icon">⎙</span><span class="label">Reports</span></button>
+    <div class="rail-title">Dashboards</div>
+    <button class="rail-item current"><span class="icon">▦</span><span class="label">Management Overview</span></button>
+    <button class="rail-item nested"><span class="label">Surveillance detail</span></button>
+    <button class="rail-item nested"><span class="label">Equipment detail</span></button>
+    <div class="rail-title">Modules</div>
+    <button class="rail-item"><span class="icon">◐</span><span class="label">Quality Assurance</span></button>
+    <button class="rail-item"><span class="icon">⇄</span><span class="label">Sample Shipment</span></button>
+    <button class="rail-item"><span class="icon">📦</span><span class="label">Inventory</span></button>
+    <button class="rail-item"><span class="icon">⚙</span><span class="label">Admin</span></button>
+  </nav>
+
+  <main class="main">
+    <div class="crumb">
+      <a href="#">Home</a><span class="sep">/</span><a href="#">Dashboards</a><span class="sep">/</span><span class="current">Management Overview</span>
+    </div>
+
+    <div class="dn">
+      <strong>Management Dashboard — strategic / aggregate view.</strong>
+      Audience: lab director, section heads, MoH stakeholders. Time scope is 30/90/quarter/YTD/year (different from Home's today/week/month). Adaptive rules from the home page apply: cards hide when their feature isn't enabled at the deployment. Stock section is shown live for CPHL (just starting); AMR antibiogram is gated on AST entry (enabled in 2.4+).
+    </div>
+
+    <!-- Header strip -->
+    <div class="page-header">
+      <div>
+        <h1>Management Overview</h1>
+        <p class="sub">CPHL Port Moresby · Last 30 days · 4,247 samples processed</p>
+      </div>
+      <div class="controls">
+        <div class="scope" role="tablist" aria-label="Time scope">
+          <button type="button">7d</button>
+          <button class="active" type="button">30d</button>
+          <button type="button">90d</button>
+          <button type="button">Quarter</button>
+          <button type="button">YTD</button>
+          <button type="button">Year</button>
+        </div>
+        <button class="ico-btn" type="button">↻ Refresh</button>
+      </div>
+    </div>
+
+    <!-- KPI strip -->
+    <div class="kpi-strip">
+      <div class="kpi">
+        <div class="lbl">Total samples</div>
+        <div class="val">4,247 <span class="unit">in 30d</span></div>
+        <div class="delta"><span class="up">↑</span> +8.4% vs. prior 30d (3,919)</div>
+        <svg class="kpi-spark" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
+          <path class="area" d="M0,18 L10,16 L20,14 L30,12 L40,10 L50,11 L60,9 L70,8 L80,7 L90,5 L100,4 L100,24 L0,24 Z"></path>
+          <path class="line" d="M0,18 L10,16 L20,14 L30,12 L40,10 L50,11 L60,9 L70,8 L80,7 L90,5 L100,4"></path>
+          <circle class="dot" cx="100" cy="4" r="1.8"></circle>
+        </svg>
+      </div>
+      <div class="kpi good">
+        <div class="lbl">Median TAT</div>
+        <div class="val">26h <span class="unit">vs. 31h prior</span></div>
+        <div class="delta"><span class="down">↓</span> 5h faster (median)</div>
+        <svg class="kpi-spark" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
+          <path class="area" d="M0,5 L10,7 L20,6 L30,9 L40,8 L50,10 L60,12 L70,14 L80,15 L90,17 L100,18 L100,24 L0,24 Z"></path>
+          <path class="line" d="M0,5 L10,7 L20,6 L30,9 L40,8 L50,10 L60,12 L70,14 L80,15 L90,17 L100,18"></path>
+          <circle class="dot" cx="100" cy="18" r="1.8"></circle>
+        </svg>
+      </div>
+      <div class="kpi good">
+        <div class="lbl">On-time completion</div>
+        <div class="val">91.2 <span class="unit">% within target</span></div>
+        <div class="delta"><span class="up">↑</span> +2.7pp (target ≥ 90%)</div>
+        <svg class="kpi-spark" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
+          <path class="area" d="M0,18 L10,17 L20,15 L30,16 L40,13 L50,11 L60,12 L70,9 L80,8 L90,6 L100,5 L100,24 L0,24 Z"></path>
+          <path class="line" d="M0,18 L10,17 L20,15 L30,16 L40,13 L50,11 L60,12 L70,9 L80,8 L90,6 L100,5"></path>
+          <circle class="dot" cx="100" cy="5" r="1.8"></circle>
+        </svg>
+      </div>
+      <div class="kpi">
+        <div class="lbl">Rejection rate</div>
+        <div class="val">1.8 <span class="unit">% of intake</span></div>
+        <div class="delta"><span class="down">↓</span> −0.4pp (target &lt; 2%)</div>
+        <svg class="kpi-spark" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
+          <path class="area" d="M0,8 L10,9 L20,11 L30,10 L40,13 L50,12 L60,14 L70,15 L80,16 L90,17 L100,18 L100,24 L0,24 Z"></path>
+          <path class="line" d="M0,8 L10,9 L20,11 L30,10 L40,13 L50,12 L60,14 L70,15 L80,16 L90,17 L100,18"></path>
+          <circle class="dot" cx="100" cy="18" r="1.8"></circle>
+        </svg>
+      </div>
+      <div class="kpi good">
+        <div class="lbl">QC pass rate</div>
+        <div class="val">96.4 <span class="unit">% LJ within 2SD</span></div>
+        <div class="delta"><span class="up">↑</span> +0.8pp</div>
+        <svg class="kpi-spark" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
+          <path class="area" d="M0,12 L10,11 L20,10 L30,10 L40,9 L50,8 L60,9 L70,7 L80,6 L90,5 L100,4 L100,24 L0,24 Z"></path>
+          <path class="line" d="M0,12 L10,11 L20,10 L30,10 L40,9 L50,8 L60,9 L70,7 L80,6 L90,5 L100,4"></path>
+          <circle class="dot" cx="100" cy="4" r="1.8"></circle>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Disease surveillance -->
+    <div class="section-head">
+      <h2>Disease surveillance</h2>
+      <span class="meta"><a href="#">Open surveillance detail ↗</a> · positivity rates over current scope · DHIS2 export deferred to v2</span>
+    </div>
+    <div class="surv-grid">
+      <!-- TB -->
+      <div class="surv-card tb">
+        <div class="prog-head">
+          <span class="prog-name">Tuberculosis</span>
+          <span class="prog-volume">412 tests · 30d</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">GeneXpert MTB-detected <span class="det">(of 287 tested)</span></span>
+          <span class="metric-val">8.2%<span class="micro-bar"><span class="fill" style="width:32%"></span></span></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">RIF resistance <span class="det">(of MTB-positive)</span></span>
+          <span class="metric-val">4.1%<span class="micro-bar"><span class="fill" style="width:18%"></span></span></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">AFB smear positivity</span>
+          <span class="metric-val">5.7%<span class="micro-bar"><span class="fill" style="width:22%"></span></span></span>
+        </div>
+        <div class="footnote">Trend: positivity stable vs. prior 30d · <a href="#">Open detail ↗</a></div>
+      </div>
+
+      <!-- HIV -->
+      <div class="surv-card hiv">
+        <div class="prog-head">
+          <span class="prog-name">HIV</span>
+          <span class="prog-volume">1,089 tests · 30d</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">VL suppression <span class="det">(&lt; 1000 cp/mL)</span></span>
+          <span class="metric-val">78.4%<span class="micro-bar"><span class="fill" style="width:78%"></span></span></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">EID positivity <span class="det">(infants &lt; 18mo)</span></span>
+          <span class="metric-val">2.1%<span class="micro-bar"><span class="fill" style="width:9%"></span></span></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">Rapid test positivity</span>
+          <span class="metric-val">1.3%<span class="micro-bar"><span class="fill" style="width:6%"></span></span></span>
+        </div>
+        <div class="footnote">VL suppression ↑ 2.1pp vs. prior 30d · <a href="#">Open detail ↗</a></div>
+      </div>
+
+      <!-- Malaria -->
+      <div class="surv-card malaria">
+        <div class="prog-head">
+          <span class="prog-name">Malaria</span>
+          <span class="prog-volume">1,524 tests · 30d</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">RDT positive</span>
+          <span class="metric-val">24.1%<span class="micro-bar"><span class="fill" style="width:50%"></span></span></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">Microscopy positive</span>
+          <span class="metric-val">26.8%<span class="micro-bar"><span class="fill" style="width:55%"></span></span></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">Species: Pf / Pv / mixed</span>
+          <span class="metric-val">89 / 8 / 3<span class="micro-bar"><span class="fill" style="width:89%"></span></span></span>
+        </div>
+        <div class="footnote">Pf dominance · positivity ↑ 3.4pp (seasonal rise) · <a href="#">Open detail ↗</a></div>
+      </div>
+
+      <!-- AMR -->
+      <div class="surv-card amr">
+        <div class="prog-head">
+          <span class="prog-name">AMR</span>
+          <span class="prog-volume">218 isolates · 30d</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">Carbapenem-resistant <span class="det">(Enterobacterales)</span></span>
+          <span class="metric-val">11.7%<span class="micro-bar"><span class="fill" style="width:27%"></span></span></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">MRSA <span class="det">(of S. aureus)</span></span>
+          <span class="metric-val">19.4%<span class="micro-bar"><span class="fill" style="width:38%"></span></span></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">3rd-gen ceph resistance <span class="det">(E. coli)</span></span>
+          <span class="metric-val">42.6%<span class="micro-bar"><span class="fill" style="width:64%"></span></span></span>
+        </div>
+        <div class="footnote">Antibiogram below · AST entry enabled (2.4+) · <a href="#">Open detail ↗</a></div>
+      </div>
+    </div>
+
+    <!-- AMR antibiogram heatmap -->
+    <div class="amr-card">
+      <div class="ab-head">
+        <span class="ab-title">Antibiogram — % resistant by organism × antibiotic (30d, n ≥ 10 isolates)</span>
+        <span class="ab-meta">Source: AST entry (introduced 2.4) · CLSI breakpoints</span>
+      </div>
+      <table class="ab-table" aria-label="Antibiogram">
+        <thead>
+          <tr>
+            <th class="organism">Organism</th>
+            <th>Amp</th>
+            <th>Amox/clav</th>
+            <th>Cefotaxime</th>
+            <th>Ceftriaxone</th>
+            <th>Cipro</th>
+            <th>Gent</th>
+            <th>Meropenem</th>
+            <th>Vanco</th>
+            <th>Cotrim</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="organism">E. coli <span class="ct">(n=68)</span></td>
+            <td class="r-crit"><span class="pct">72%</span></td>
+            <td class="r-mid"><span class="pct">38%</span></td>
+            <td class="r-high"><span class="pct">42%</span></td>
+            <td class="r-high"><span class="pct">43%</span></td>
+            <td class="r-high"><span class="pct">51%</span></td>
+            <td class="r-mid"><span class="pct">22%</span></td>
+            <td class="r-low"><span class="pct">3%</span></td>
+            <td class="r-na"><span class="pct">—</span></td>
+            <td class="r-crit"><span class="pct">68%</span></td>
+          </tr>
+          <tr>
+            <td class="organism">K. pneumoniae <span class="ct">(n=41)</span></td>
+            <td class="r-crit"><span class="pct">100%</span></td>
+            <td class="r-high"><span class="pct">56%</span></td>
+            <td class="r-crit"><span class="pct">61%</span></td>
+            <td class="r-crit"><span class="pct">62%</span></td>
+            <td class="r-high"><span class="pct">49%</span></td>
+            <td class="r-mid"><span class="pct">29%</span></td>
+            <td class="r-mid"><span class="pct">14%</span></td>
+            <td class="r-na"><span class="pct">—</span></td>
+            <td class="r-high"><span class="pct">58%</span></td>
+          </tr>
+          <tr>
+            <td class="organism">S. aureus <span class="ct">(n=37)</span></td>
+            <td class="r-crit"><span class="pct">92%</span></td>
+            <td class="r-mid"><span class="pct">19%</span></td>
+            <td class="r-na"><span class="pct">—</span></td>
+            <td class="r-na"><span class="pct">—</span></td>
+            <td class="r-mid"><span class="pct">24%</span></td>
+            <td class="r-low"><span class="pct">8%</span></td>
+            <td class="r-na"><span class="pct">—</span></td>
+            <td class="r-low"><span class="pct">0%</span></td>
+            <td class="r-mid"><span class="pct">27%</span></td>
+          </tr>
+          <tr>
+            <td class="organism">P. aeruginosa <span class="ct">(n=22)</span></td>
+            <td class="r-na"><span class="pct">—</span></td>
+            <td class="r-na"><span class="pct">—</span></td>
+            <td class="r-na"><span class="pct">—</span></td>
+            <td class="r-mid"><span class="pct">36%</span></td>
+            <td class="r-mid"><span class="pct">23%</span></td>
+            <td class="r-mid"><span class="pct">18%</span></td>
+            <td class="r-mid"><span class="pct">14%</span></td>
+            <td class="r-na"><span class="pct">—</span></td>
+            <td class="r-na"><span class="pct">—</span></td>
+          </tr>
+          <tr>
+            <td class="organism">A. baumannii <span class="ct">(n=14)</span></td>
+            <td class="r-na"><span class="pct">—</span></td>
+            <td class="r-na"><span class="pct">—</span></td>
+            <td class="r-crit"><span class="pct">79%</span></td>
+            <td class="r-crit"><span class="pct">79%</span></td>
+            <td class="r-crit"><span class="pct">71%</span></td>
+            <td class="r-crit"><span class="pct">64%</span></td>
+            <td class="r-high"><span class="pct">43%</span></td>
+            <td class="r-na"><span class="pct">—</span></td>
+            <td class="r-na"><span class="pct">—</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Workload + TAT detail -->
+    <div class="section-head">
+      <h2>Workload &amp; turnaround time</h2>
+      <span class="meta">By section, last 30d</span>
+    </div>
+    <div class="work-tat">
+      <div class="wcard">
+        <h3>Workload by section (daily, 30d)</h3>
+        <svg class="stacked-area" viewBox="0 0 600 140" preserveAspectRatio="none" aria-hidden="true">
+          <!-- Stacked-area layers, bottom to top: Heme, Chem, Micro, Mol, Immuno -->
+          <path d="M0,140 L20,118 L40,122 L60,110 L80,114 L100,108 L120,116 L140,98 L160,104 L180,112 L200,96 L220,104 L240,90 L260,98 L280,86 L300,94 L320,82 L340,88 L360,76 L380,82 L400,72 L420,80 L440,66 L460,74 L480,62 L500,70 L520,58 L540,68 L560,54 L580,62 L600,52 L600,140 Z" fill="#6929c4" opacity="0.85"></path>
+          <path d="M0,140 L20,124 L40,128 L60,118 L80,122 L100,114 L120,124 L140,108 L160,114 L180,120 L200,106 L220,114 L240,100 L260,108 L280,98 L300,106 L320,94 L340,100 L360,88 L380,94 L400,86 L420,94 L440,80 L460,88 L480,76 L500,84 L520,72 L540,82 L560,68 L580,76 L600,68 L600,140 Z" fill="#1192e8" opacity="0.85"></path>
+          <path d="M0,140 L20,130 L40,134 L60,126 L80,128 L100,122 L120,130 L140,118 L160,122 L180,128 L200,116 L220,122 L240,112 L260,118 L280,110 L300,116 L320,108 L340,112 L360,102 L380,108 L400,100 L420,106 L440,96 L460,102 L480,92 L500,98 L520,88 L540,96 L560,84 L580,90 L600,84 L600,140 Z" fill="#007d79" opacity="0.85"></path>
+          <path d="M0,140 L20,134 L40,138 L60,130 L80,134 L100,128 L120,134 L140,124 L160,128 L180,132 L200,124 L220,128 L240,118 L260,124 L280,118 L300,122 L320,116 L340,118 L360,110 L380,116 L400,108 L420,114 L440,104 L460,110 L480,102 L500,108 L520,98 L540,106 L560,94 L580,100 L600,94 L600,140 Z" fill="#fa4d56" opacity="0.85"></path>
+          <path d="M0,140 L20,138 L40,140 L60,134 L80,138 L100,132 L120,138 L140,128 L160,132 L180,136 L200,128 L220,132 L240,124 L260,128 L280,122 L300,126 L320,122 L340,124 L360,116 L380,122 L400,114 L420,118 L440,110 L460,116 L480,108 L500,112 L520,104 L540,110 L560,100 L580,106 L600,100 L600,140 Z" fill="#fcc931" opacity="0.85"></path>
+        </svg>
+        <div style="display:flex; justify-content:space-between; font-size:0.625rem; color:var(--c-muted); margin-top:0.25rem;">
+          <span>30d ago</span>
+          <span>15d</span>
+          <span>Today</span>
+        </div>
+        <div style="display:flex; gap:0.625rem; margin-top:0.5rem; flex-wrap:wrap; font-size:0.6875rem; color:var(--c-muted);">
+          <span><span style="display:inline-block;width:8px;height:8px;background:#fcc931;margin-right:4px;vertical-align:middle;"></span>Immunology</span>
+          <span><span style="display:inline-block;width:8px;height:8px;background:#fa4d56;margin-right:4px;vertical-align:middle;"></span>Molecular</span>
+          <span><span style="display:inline-block;width:8px;height:8px;background:#007d79;margin-right:4px;vertical-align:middle;"></span>Microbiology</span>
+          <span><span style="display:inline-block;width:8px;height:8px;background:#1192e8;margin-right:4px;vertical-align:middle;"></span>Chemistry</span>
+          <span><span style="display:inline-block;width:8px;height:8px;background:#6929c4;margin-right:4px;vertical-align:middle;"></span>Hematology</span>
+        </div>
+      </div>
+
+      <div class="wcard">
+        <h3>TAT by section (median, 30d)</h3>
+        <table class="tat-table">
+          <thead>
+            <tr>
+              <th>Section</th>
+              <th class="num">Samples</th>
+              <th class="num">Median</th>
+              <th class="num">P90</th>
+              <th class="num">On-time %</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="section">Hematology</td><td class="num">1,247</td><td class="num"><span class="bar" style="width:18px"></span>14h</td><td class="num">22h</td><td class="num">95.1</td></tr>
+            <tr><td class="section">Chemistry</td><td class="num">1,089</td><td class="num"><span class="bar" style="width:22px"></span>18h</td><td class="num">28h</td><td class="num">92.4</td></tr>
+            <tr><td class="section">Microbiology</td><td class="num">624</td><td class="num"><span class="bar" style="width:54px"></span>62h</td><td class="num">98h</td><td class="num">81.7</td></tr>
+            <tr><td class="section">Molecular</td><td class="num">412</td><td class="num"><span class="bar" style="width:36px"></span>36h</td><td class="num">54h</td><td class="num">88.6</td></tr>
+            <tr><td class="section">Immunology</td><td class="num">488</td><td class="num"><span class="bar" style="width:24px"></span>21h</td><td class="num">32h</td><td class="num">93.0</td></tr>
+            <tr><td class="section">Other</td><td class="num">387</td><td class="num"><span class="bar" style="width:20px"></span>17h</td><td class="num">26h</td><td class="num">94.6</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Quality rollup -->
+    <div class="section-head">
+      <h2>Quality rollup</h2>
+      <span class="meta">Composite score · 30d · weights configurable via <a href="#">QI Configuration ↗</a> · <a href="#">QI Dashboard ↗</a></span>
+    </div>
+    <div class="quality-grid">
+      <div class="qrole">
+        <div class="score">92</div>
+        <div class="score-label">Composite quality</div>
+        <div class="score-delta">↑ +1.4 vs. prior 30d</div>
+        <div class="score-note">Weighted: QC pass × 0.30, EQA × 0.25, NCE rate × 0.25, amendment rate × 0.20</div>
+      </div>
+      <div class="qbreakdown">
+        <h3>Components</h3>
+        <div class="qrow">
+          <span class="lbl">QC pass rate</span>
+          <div class="meter"><div class="fill" style="width:96%"></div></div>
+          <span class="val">96.4%</span>
+          <span class="wt">×0.30</span>
+        </div>
+        <div class="qrow">
+          <span class="lbl">EQA performance</span>
+          <div class="meter"><div class="fill" style="width:88%"></div></div>
+          <span class="val">88.0%</span>
+          <span class="wt">×0.25</span>
+        </div>
+        <div class="qrow">
+          <span class="lbl">NCE inverse</span>
+          <div class="meter"><div class="fill" style="width:98%"></div></div>
+          <span class="val">98.2%</span>
+          <span class="wt">×0.25</span>
+        </div>
+        <div class="qrow">
+          <span class="lbl">Amendment rate inverse</span>
+          <div class="meter"><div class="fill warn" style="width:89%"></div></div>
+          <span class="val">89.0%</span>
+          <span class="wt">×0.20</span>
+        </div>
+        <div class="qrow" style="border-top:1px solid var(--c-border); padding-top:0.5rem; margin-top:0.1875rem;">
+          <span class="lbl" style="color:var(--c-text);font-weight:600;">Composite</span>
+          <div class="meter"><div class="fill" style="width:92%"></div></div>
+          <span class="val" style="font-weight:600;">92.4</span>
+          <span class="wt">—</span>
+        </div>
+        <div style="font-size:0.6875rem; color:var(--c-muted); margin-top:0.5rem; padding-top:0.4375rem; border-top:1px dashed #e8e8e8;">
+          Weights resolve from QI Configuration per lab. Defaults shipped: QC 0.30, EQA 0.25, NCE 0.25, Amendment 0.20. <a href="#" style="color:var(--c-link); text-decoration:none;">Edit weights ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Equipment activity -->
+    <div class="section-head">
+      <h2>Equipment activity</h2>
+      <span class="meta">Per-analyzer recent activity · sample counts in current scope (30d) · maintenance &amp; service tracked in a separate roadmap epic</span>
+    </div>
+    <div class="equip-grid">
+      <div class="equip-card">
+        <div class="equip-head"><span class="name">Sysmex XN-550</span><span class="status-tag online">Active</span></div>
+        <div class="uptime">1,247 <span class="unit">samples · 30d</span></div>
+        <div class="equip-meta">
+          Hematology<br>
+          Last activity: <strong>2m ago</strong>
+        </div>
+      </div>
+      <div class="equip-card">
+        <div class="equip-head"><span class="name">Abbott Architect c4000</span><span class="status-tag online">Active</span></div>
+        <div class="uptime">1,089 <span class="unit">samples · 30d</span></div>
+        <div class="equip-meta">
+          Chemistry<br>
+          Last activity: <strong>8m ago</strong>
+        </div>
+      </div>
+      <div class="equip-card">
+        <div class="equip-head"><span class="name">GeneXpert IV</span><span class="status-tag warn">Quiet</span></div>
+        <div class="uptime">412 <span class="unit">samples · 30d</span></div>
+        <div class="equip-meta">
+          Molecular (TB, HIV VL)<br>
+          Last activity: <span class="due">4h ago</span>
+        </div>
+      </div>
+      <div class="equip-card">
+        <div class="equip-head"><span class="name">VITEK 2 Compact</span><span class="status-tag online">Active</span></div>
+        <div class="uptime">218 <span class="unit">isolates · 30d</span></div>
+        <div class="equip-meta">
+          AST entry (2.4)<br>
+          Last activity: <strong>1h ago</strong>
+        </div>
+      </div>
+      <div class="equip-card">
+        <div class="equip-head"><span class="name">BD Phoenix M50</span><span class="status-tag online">Active</span></div>
+        <div class="uptime">142 <span class="unit">isolates · 30d</span></div>
+        <div class="equip-meta">
+          AST entry (2.4)<br>
+          Last activity: <strong>32m ago</strong>
+        </div>
+      </div>
+      <div class="equip-card">
+        <div class="equip-head"><span class="name">Roche cobas 4800</span><span class="status-tag offline">No activity</span></div>
+        <div class="uptime">0 <span class="unit">samples · last 48h</span></div>
+        <div class="equip-meta">
+          Molecular (HIV VL)<br>
+          Last activity: <span class="overdue">2d ago</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock + inventory -->
+    <div class="section-head">
+      <h2>Stock &amp; inventory</h2>
+      <span class="meta">Reagents on hand · CPHL is operationalizing inventory; data fills in as it's captured · <a href="#">Inventory module ↗</a></span>
+    </div>
+    <div class="stock-grid">
+      <div class="stock-card">
+        <h3>Critical reagents — on hand</h3>
+        <div class="stock-row">
+          <div class="reagent"><div class="name">GeneXpert MTB/RIF cartridges</div><div class="lot">Lot CX-23114 · exp Aug 2026</div></div>
+          <div class="meter"><div class="fill" style="width:68%"></div></div>
+          <div class="qty">142 / 210<br><span class="pct">68%</span></div>
+        </div>
+        <div class="stock-row">
+          <div class="reagent"><div class="name">HIV VL cartridges (Roche)</div><div class="lot">Lot HV-104 · exp Sep 2026</div></div>
+          <div class="meter"><div class="fill warn" style="width:24%"></div></div>
+          <div class="qty">28 / 120<br><span class="pct">24%</span></div>
+        </div>
+        <div class="stock-row">
+          <div class="reagent"><div class="name">Malaria RDT kits</div><div class="lot">Lot MR-2419 · exp Nov 2026</div></div>
+          <div class="meter"><div class="fill" style="width:81%"></div></div>
+          <div class="qty">486 / 600<br><span class="pct">81%</span></div>
+        </div>
+        <div class="stock-row">
+          <div class="reagent"><div class="name">VITEK AST cards (GN)</div><div class="lot">Lot VK-887 · exp Jul 2026</div></div>
+          <div class="meter"><div class="fill bad" style="width:11%"></div></div>
+          <div class="qty">12 / 100<br><span class="pct">11%</span></div>
+        </div>
+        <div class="stock-row">
+          <div class="reagent"><div class="name">Mueller-Hinton agar plates</div><div class="lot">In-house batch</div></div>
+          <div class="meter"><div class="fill" style="width:74%"></div></div>
+          <div class="qty">220 / 300<br><span class="pct">74%</span></div>
+        </div>
+        <div class="empty-note">More items appear as CPHL captures inventory through Receive Stock workflow.</div>
+      </div>
+
+      <div class="stock-card">
+        <h3>Expiring in 30 days</h3>
+        <div class="alert-list">
+          <div class="alert-item bad">
+            <span class="l">Expires 18 days</span>
+            VITEK AST cards (GN) · Lot VK-887 · 12 remaining
+          </div>
+          <div class="alert-item">
+            <span class="l">Expires 23 days</span>
+            Mueller-Hinton agar plates · in-house batch · 220 remaining
+          </div>
+          <div class="alert-item">
+            <span class="l">Expires 28 days</span>
+            HIV VL cartridges · Lot HV-099 · 8 remaining
+          </div>
+        </div>
+      </div>
+
+      <div class="stock-card">
+        <h3>Reorder alerts</h3>
+        <div class="alert-list">
+          <div class="alert-item bad">
+            <span class="l">Below reorder point</span>
+            VITEK AST cards (GN) · 12 of 100 · order placed 02 Jun
+          </div>
+          <div class="alert-item">
+            <span class="l">Approaching reorder point</span>
+            HIV VL cartridges · 28 of 120 · suggest reorder this week
+          </div>
+          <div class="alert-item">
+            <span class="l">Approaching reorder point</span>
+            GeneXpert cartridges · 142 of 210 · suggest reorder next 2 weeks
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export bar -->
+    <div class="export-bar">
+      <span class="lbl">Snapshot the current view for MoH reporting, donor reports, or board materials.</span>
+      <div class="actions">
+        <button class="btn" type="button">⎙ Export PDF</button>
+        <button class="btn" type="button">📊 Download CSV</button>
+        <button class="btn" type="button">📅 Schedule report</button>
+      </div>
+    </div>
+
+    <div class="dn" style="margin-top: 1rem;">
+      <strong>Dependencies and adjacent epics:</strong>
+      (1) <em>Surveillance program mapping</em> — new lookup table joining <code>Test → SurveillanceProgram</code>; contained schema add, prerequisite for the Surveillance section (in scope for this epic) · (2) <em>QI weight configuration</em> — composite quality weights live in QI Configuration; dashboard reads whatever weights resolved per lab (in scope, ships with this epic) · (3) <em>AMR antibiogram</em> — depends on AST entry shipping (2.4+); v1 of this dashboard shows the antibiogram for deployments on 2.4+, fallback to organism counts only on older versions · (4) <em>DHIS2 export</em> — out of scope for v1, scheduled report send deferred to v2 · (5) <em>Equipment maintenance &amp; service tracking</em> — <strong>separate epic on the roadmap</strong>; v1 renders last-activity only, derived from analyzer integration timestamps. Maintenance and calibration fields appear when that epic ships.
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>
