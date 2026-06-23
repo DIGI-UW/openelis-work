@@ -23,7 +23,32 @@ drain source files to `processed/`; flag anything OPEN > 7 days.
 | design/s06-lhu-domain-variants | https://github.com/DIGI-UW/openelis-work/pull/166 | 2026-06-15 | **MERGED** (PR #166, verified on main 2026-06-16) | Landed on main via combined PR #166 (head commit 37325f6, merged 2026-06-15 23:19 UTC). S06c-environmental-lhu + S06d-vector-lhu registry entries + designs/reports/ files confirmed on main; base S06 route slug unchanged (`#/vector-surveillance/laporan-hasil-compliance-report`). Gallery permalink comment for the two new sibling specs posted to OGC-552 this run. S06 Laporan Hasil chassis gets two domain-variant siblings — S06c Environmental LHU (canonical Indonesian preview + bilingual annotated sibling) and S06d Vector LHU (3 result-table modes: Species ID / Surveillance Indices / Larval Population). Also renamed gallery S06 base files to align with S06X naming convention (`laporan-hasil-compliance-report.{md,jsx,html}` → `S06-laporan-hasil-compliance-report-{frs-v1.0.md,mockup.jsx,preview.html}`). Adds §7a "Domain Variants" cross-reference to S06 base FRS, including the bilingual annotated previews. Each variant has its own FRS, mockup, and annotated preview wiring. Files: S06c-environmental-lhu-{frs-v1.0.md,mockup.jsx,preview.html,preview-annotated.html} + S06d-vector-lhu-{frs-v1.0.md,mockup.jsx,preview.html,preview-annotated.html} + S06-lhu-crosswalk-raw.md (research artifact). MANIFEST + App.jsx registry + INDEX + public/ mirror refreshed. |
 | chore/fix-pages-deploy-trigger | https://github.com/DIGI-UW/openelis-work/pull/169 | 2026-06-17 | **MERGED** (PR #169, verified on main 2026-06-17 — HEAD is the #169 merge commit 2494648; remote branch deleted) | **Fixes the stuck Pages deploy.** Root cause: auto-merge.yml merged via GITHUB_TOKEN, which does NOT trigger deploy-gallery.yml — so the published gallery froze at the last human merge (8764f85, 2026-06-12). #166/#167/#168 all auto-merged via the bot token → never deployed. Fix: auto-merge uses PR_BOT_TOKEN fallback so the merge push cascades to the deploy; deploy-gallery deploy+upload steps also run on workflow_dispatch (manual escape hatch). Commit a1ce292. To publish the backlog now: merge this PR manually (human merge triggers deploy) OR push an empty commit to main OR run the deploy workflow manually after this lands. Current main verified clean (both VectorLHU render fine; no undefined @carbon imports anywhere). |
 | design/s09-eligibility-gate-v3 | https://github.com/DIGI-UW/openelis-work/compare/main...design/s09-eligibility-gate-v3?expand=1 | 2026-06-16 | **MERGED** (content byte-identical on main, verified 2026-06-17; remote branch deleted — squash-merge so tip is not an ancestor. All 5 files md5-match: FRS/jsx/html + analysis + breakdown docs; App.jsx registry shows v3.0. Source files drained to processed/.) | S-09 Pre-Analytical Eligibility Gate **v2.0 → v3.0** simplification rewrite (OGC-580; epic OGC-527). Update-in-place: overwrote canonical `designs/sample-collection/pre-analytical-eligibility-gate.{md,jsx,html}` (slug/route unchanged → `#/sample-collection/pre-analytical-eligibility-gate`) + public/ mirror; added supporting docs `S09-eligibility-gate-{analysis,breakdown}-v3.md`. v3 drops the auto-evaluating per-SampleType criteria engine for a generic manual acceptance checklist at Step 3 + Resample-spawns-draft-order; config is a lightweight master list decoupled from the Test Catalog editor (OGC-746 removed the SampleType tab v2.0 relied on). No new status enum / permission keys. App.jsx + MANIFEST descriptions bumped + `updated: 2026-06-16`. Commit 5b83a7d. Local vitest could not complete (sandbox worker-pool hang, S-09-unrelated); new jsx + App.jsx Babel-parse clean and mockup is self-contained — required `test` CI check gates the auto-merge. **PLAN-ONLY breakdown: no Jira epic/story restructuring performed.** Gallery permalink comment posted to OGC-580 this run. |
-| chore/ledger-reconcile-2026-06-22 | https://github.com/DIGI-UW/openelis-work/compare/main...chore/ledger-reconcile-2026-06-22?expand=1 | 2026-06-22 | **OPEN** (connector PR-create 403 — GitHub App lacks pull_requests:write; opened via compare URL) | Doc-only: syncs the stale origin ledger (was frozen at 06-15) up to current reality + adds the 2026-06-22 reconciliation entry. Auto-merge + required `test` check will land it on green. Next run: verify MERGED and drain. |
+| chore/ledger-reconcile-2026-06-22 | https://github.com/DIGI-UW/openelis-work/compare/main...chore/ledger-reconcile-2026-06-22?expand=1 | 2026-06-22 | **MERGED** (PR #181, auto-merged on green — test+build checks SUCCESS; opened on push by the auto-opener, not the connector) | Doc-only: syncs the stale origin ledger (was frozen at 06-15) up to current reality + adds the 2026-06-22 reconciliation entry. Auto-merge + required `test` check will land it on green. **Verified MERGED on main 2026-06-23** (06-22 reconciliation entry present on origin's ledger; remote branch deleted). Doc-only → nothing to drain. |
+| design/minion-tbprofiler | https://github.com/DIGI-UW/openelis-work/pull/183 | 2026-06-22 | **MERGED** (PR #183, verified on main 2026-06-23 — remote branch deleted/squash-merged; both spec files present on `origin/main`, App.jsx registry lines ~596–619, MANIFEST ~431–458, and INDEX rows all carry the entries) | MinION + TB-Profiler field-mapping spec v2.2 (re-anchored on flat-file plugin + M-14 import channel) + companion setup guide registered as two spec-only analyzer-integration entries. Source had been mis-staged in the retired `OpenELIS Feature Design/upload/` folder; relocated + registered last session, already drained to `upload/processed/noncanon-retired-2026-06-22/`. GitHub discussion #182; linked OGC-318 (supersedes v1.0). designs/analyzer-integration/minion-tbprofiler-{field-mapping-v2.2,setup-guide-v1.0}.md + App.jsx registry + MANIFEST + INDEX. Tests 230/230. Slug unchanged → no new Jira permalink. |
+
+## Reconciliation — 2026-06-23 (scheduled run)
+- **Both previously-open ledger items are now MERGED. No OPEN or stranded PRs remain.**
+  - `design/minion-tbprofiler` (PR #183, was OPEN, pushed 2026-06-22 → 1 day old, not stranded) →
+    **MERGED**. Verified on `origin/main` (HEAD `f0328d7`): remote branch deleted (squash-merge);
+    both spec files present — `designs/analyzer-integration/minion-tbprofiler-field-mapping-v2.2.md`
+    + `minion-tbprofiler-setup-guide-v1.0.md`; App.jsx MOCKUP_REGISTRY (lines ~596–619), MANIFEST
+    (~431–458), and INDEX rows all carry the two entries.
+  - `chore/ledger-reconcile-2026-06-22` (PR #181) → **MERGED** confirmed. Origin's `PENDING-PRS.md`
+    carries the 2026-06-22 reconciliation entry; remote branch deleted. Doc-only → nothing to drain.
+- **Source drain:** none needed. The MinION sources were drained last session to
+  `upload/processed/noncanon-retired-2026-06-22/`; the ledger-reconcile PR was doc-only.
+- **Canonical `upload/` reconcile (md5 vs full designs/ + public tree, 535 files):** no design
+  artifacts staged. Only `PENDING-PRS.md`, `README.md`, `.gitkeep`, and the same three carried-over
+  non-design working drafts — `v04-v1.5-jira-comment-draft.md`,
+  `s06-lhu-domain-variants-jira-comment-draft.md`, `v04-v1.5-ida-brief.md` (two "what shipped"
+  changelog drafts + an unsent brief to Ida, no gallery counterpart). Left in place for Casey to
+  post manually. **Nothing upload-newer, nothing genuinely new → no design push.**
+- **Anomaly cleared.** The retired non-canonical `OpenELIS Feature Design/upload/` folder (flagged
+  last run with 9 stale microbiology files) now holds only its `README.md` pointer — cleaned up.
+- **Jira (Step 11):** nothing changed (no new/changed slugs) → no new or changed gallery permalinks
+  to post. MinION slug unchanged since its OGC-318 permalink last session.
+- **This run pushes a doc-only ledger sync** (`chore/ledger-reconcile-2026-06-23`) so origin's
+  ledger reflects the MinION MERGED status + this entry; auto-opener + required `test` check land it.
 
 ## Reconciliation — 2026-06-22 (scheduled run)
 - **No OPEN or stranded PRs.** Every row in the ledger is MERGED; all content verified live on
@@ -53,6 +78,13 @@ drain source files to `processed/`; flag anything OPEN > 7 days.
   leftovers, not new work — recommend draining to `processed/` or deleting. Not processed (not in
   canonical `upload/`; content already on main).
 - **Jira (Step 11):** nothing changed → no new or changed gallery permalinks to post.
+
+- **Late add (post-run, interactive):** Casey flagged a TB-Profiler spec that had been mis-staged in
+  the **retired** `OpenELIS Feature Design/upload/` folder (so the scheduled scan correctly missed it —
+  it only reads canonical `upload/`). Registered this session: MinION + TB-Profiler field-mapping spec
+  v2.2 + companion setup guide → two spec-only `analyzer-integration` entries (branch
+  `design/minion-tbprofiler`, PR #183, GitHub discussion #182, OGC-318). Tests 230/230. Source drained
+  to `upload/processed/noncanon-retired-2026-06-22/`.
 
 ## Reconciliation — 2026-06-19 (scheduled run)
 - **The one previously-OPEN PR is now MERGED. No stranded PRs remain; nothing OPEN.**
