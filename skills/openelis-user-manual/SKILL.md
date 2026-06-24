@@ -83,21 +83,32 @@ Crops are full-resolution, so the section text stays legible in the doc.
   prefer cropped sections over full-page where legibility matters. Italic gray captions.
 - Required `ImageRun` `type` + `altText`. Validate with the docx skill's `validate.py`.
 
-## Confluence publishing (only on explicit go)
-Getting screenshots into Confluence — pick by effort:
-1. **Word import (least effort, recommended):** Confluence → Insert → "Import Word document" on the
-   generated `.docx`. Images are embedded in the docx, so they import inline in one shot; do a light
-   formatting cleanup after.
-2. **Automated (REST), if a Confluence API token is available:** upload each PNG as a page attachment
-   (`POST /rest/api/content/{id}/child/attachment`, multipart, run from the Mac), then publish a
-   storage-format body that references them with `<ac:image><ri:attachment ri:filename="..."/></ac:image>`.
-   The Atlassian MCP connector can create/update the page body but **cannot upload attachments**, so
-   image embedding needs the REST token (or the Word-import path).
-3. **Manual image-drop (in a pinch):** publish the prose via the connector (storage format), and for
-   every figure emit an **empty paragraph as a drop slot** preceded by a grey hint line
-   `<p><em style="color:#999">[ drop image: images/NN-name.png — then delete this line ]</em></p>`.
-   Deliver the labeled PNGs named to match. The reader drags each image into the empty slot and deletes
-   the hint. Always leave a blank `<p/>` between text blocks so there's somewhere to drop.
+## Confluence publishing — automated, images and all (WORKING)
+Alongside the `.docx`, emit a **Confluence storage-format XHTML** + an `images/` folder; the publisher
+uploads the PNGs as page attachments and embeds them. Verified end-to-end (the Atlassian MCP can write
+a page body but cannot upload attachments, so we use the REST publisher).
+
+Storage XHTML format: prose + plain captions, with each image slot a token on its own line:
+`<p>{{IMG:01-search.png}}</p>` (one per screenshot; the matching PNG lives in `images/`). The publisher
+replaces each token with `<ac:image><ri:attachment ri:filename="01-search.png"/></ac:image>`.
+
+Publish (run on Casey's Mac; token lives in `~/.openelis/confluence.env`, never in chat):
+```
+cd ~/Documents/OpenELIS\ QA/docs-manual/publish
+# new draft for review (parent 1189609473 = "New User Manual sections to be verified", space OG):
+python3 confluence-publish.py --create --space OG --parent 1189609473 \
+  --title "<Feature> (draft — verify)" --xhtml <section>.xhtml --images <section>/images
+# update an existing page instead:
+python3 confluence-publish.py --page <pageId> --xhtml <section>.xhtml --images <dir>
+```
+Re-runs are idempotent (attachments matched by filename, page version bumped). `--dry-run` previews.
+Always publish a **draft under 1189609473 for verification first**; promote to the live manual only
+after Casey signs off. The script + a worked Add-a-Patient example live in
+`openelis-work/docs-manual/publish/` (see its README).
+
+Fallbacks: **Word import** (Confluence → Insert → Import Word document on the `.docx` — images come
+inline, needs no token) or **manual drag** (publish prose with empty `<p/>` slots + a grey
+`[ drop image: ... ]` hint per figure; reader drags the PNG in).
 
 Caption rule (all paths): captions describe the screen for the reader only — **never** include
 "captured", "captured automatically", or tool/provenance wording; that would force a cleanup pass.

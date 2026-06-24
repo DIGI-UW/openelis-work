@@ -9,8 +9,10 @@ the `openelis-user-manual` skill owns *turning them into a doc + screenshots + a
    handoff block (below) — one per feature.
 2. **Manual run** (a separate chat, can run in parallel per feature) invokes the `openelis-user-manual`
    skill, which: captures screenshots/video via `openelis-screenshots`, builds the Word doc (overview +
-   numbered steps + cropped images), and registers a **drift contract** in
-   `OpenELIS QA/docs-manual/contracts.json`.
+   numbered steps + cropped images), emits a Confluence storage XHTML + `images/`, **publishes a draft
+   to Confluence with the screenshots embedded** (`docs-manual/publish/confluence-publish.py` →
+   parent 1189609473 "New User Manual sections to be verified", space OG), and registers a **drift
+   contract** in `OpenELIS QA/docs-manual/contracts.json`.
 3. **Drift watch** (`openelis-docs-drift-weekly`, Mondays 07:36) re-checks every contract and updates
    `docs-manual/drift-report.json`; the **OpenELIS Doc Freshness Tracker** artifact shows per-section
    UI drift + per-feature manual-page staleness.
