@@ -946,5 +946,6 @@ preview. Don't drift from the brief.
 | `references/verified-data-models.md` | During `/specify` Stage 1 and `/analyze` Pass G — reuse field-verified data models instead of inventing fields |
 | `references/admin-ia-inventory.md` | During `/specify` Stage 2 (IA Placement) and `/analyze` IA checks — verified admin routes + SideNav structure (self-contained; route pattern is `/MasterListsPage/<editorKey>`) |
 | `references/jira-conventions.md` | During `/breakdown` and any reporting — clickable links, Done≠shipped, PR-sized slicing, labels, no-emoji, reorg proposal |
+| `references/ogc-workflow.md` | The LIVE OGC Lean workflow — statuses, Acceptance gate, Reject Count, Contract field, per-Epic docs. Read when creating epics/stories or reporting. |
 | `references/decision-log.md` | During `/crosscheck` and `/analyze` Pass O — the prior-decisions ledger to check new designs against (cite by ID) |
 | `references/spec-registry.md` | During `/crosscheck` and `/analyze` Pass O — per-feature overlap/dependency index; append a row at the end of `/specify` and `/breakdown` |
