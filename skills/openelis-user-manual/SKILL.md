@@ -38,9 +38,18 @@ actually happens; log behavior to confirm.
 
 ## Outline (use this shape)
 - **Title** (feature/workflow name).
-- **Overview / context** — 2-4 sentences: what it is, who uses it, when and why. Name the workflow
-  shape (e.g., "a three-step reception wizard"). State prerequisites/permissions and where to find
-  it (menu path + route).
+- **At a glance** — a compact label/value table BEFORE the steps (this is a job aid, not just feature
+  docs). Five fields, in order:
+  - **Purpose** — the task in the user's terms ("Register a new patient so they can be linked to test orders").
+  - **You'll end up with** — the outcome/output ("A saved patient record, searchable when creating orders").
+  - **Who does this** — the typical role, ALWAYS with the caveat that access is permission-based and
+    configurable: "Reception staff. Access is set by user permissions and can be configured by your
+    administrator." Don't publish an exact role/permission matrix — OpenELIS access is configurable per
+    deployment (admin is largely all-or-nothing); naming precise permissions won't hold across sites.
+  - **Before you start** — the data/materials needed (IDs, the physical samples, a chosen standard, etc.).
+  - **Where** — the menu path (Main menu → … → …).
+- **Overview / context** (optional, for richer flows) — 2-4 sentences naming the workflow shape; skip
+  if the "At a glance" block already says enough.
 - **Step-by-step** — numbered steps, imperative voice, one cropped screenshot per pertinent step
   with a figure caption. Call out required fields and any gates ("Save & Next stays disabled until…").
 - **Field reference** — a table of the key fields and notes.
