@@ -30,6 +30,12 @@ spec, omit it or label it clearly as not-yet-available.
 ## Per-feature handoff block (copy one per feature)
 ```
 ### <Feature / workflow name>
+# "At a glance" job-aid header inputs (lead the page; access stays a soft "typical role + configurable")
+- purpose (the task in the user's terms):
+- output / what you end up with:
+- who typically does this (role only — access is permission-based & configurable; no exact matrix):
+- materials/data needed before starting:
+# capture + verification
 - capability id (from features-inventory):
 - instance + base URL:           # clinical → testing.openelis-global.org · env/vector → indonesiademo.openelis-global.org
 - route(s):                      # see openelis-work/skills/openelis-screenshots/routes.md
