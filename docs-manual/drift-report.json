@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-24T17:36:56.264Z",
+  "generatedAt": "2026-06-24T18:07:00.908Z",
   "sections": [
     {
       "id": "add-patient",
@@ -11,7 +11,62 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T17:36:41.319Z"
+      "checkedAt": "2026-06-24T18:05:28.157Z"
+    },
+    {
+      "id": "analyzer-file-import",
+      "title": "Analyzer file import",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T18:05:30.802Z"
+    },
+    {
+      "id": "analyzer-framework",
+      "title": "Analyzer integration framework",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T18:05:33.454Z"
+    },
+    {
+      "id": "barcode-labels",
+      "title": "Barcode label management",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T18:05:36.104Z"
+    },
+    {
+      "id": "electronic-lab-notebook",
+      "title": "Electronic lab notebook",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T18:05:38.762Z"
+    },
+    {
+      "id": "electronic-signatures",
+      "title": "Electronic signatures",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T18:05:44.052Z"
     },
     {
       "id": "environmental-order-results",
@@ -23,7 +78,106 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T17:36:56.258Z"
+      "checkedAt": "2026-06-24T18:07:00.902Z"
+    },
+    {
+      "id": "eqa",
+      "title": "EQA / proficiency testing",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T18:05:52.006Z"
+    },
+    {
+      "id": "nce-capa",
+      "title": "Non-conforming events (NCE) & CAPA",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T18:05:59.988Z"
+    },
+    {
+      "id": "order-entry",
+      "title": "Order & sample entry",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T18:06:09.030Z"
+    },
+    {
+      "id": "organizations-management",
+      "title": "Organizations management",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T18:06:11.677Z"
+    },
+    {
+      "id": "patient-order-enhancements",
+      "title": "Patient & order enhancements",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T18:06:16.981Z"
+    },
+    {
+      "id": "result-validation",
+      "title": "Result validation",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T18:06:24.930Z"
+    },
+    {
+      "id": "results-entry",
+      "title": "Results entry",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T18:06:32.897Z"
+    },
+    {
+      "id": "sample-shipment-referral",
+      "title": "Sample shipment & referral",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T18:06:38.227Z"
+    },
+    {
+      "id": "sample-storage-management",
+      "title": "Sample storage management",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T18:06:46.228Z"
     }
   ]
 }
