@@ -11,7 +11,15 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T18:05:28.157Z"
+      "checkedAt": "2026-06-24T18:05:28.157Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/patient"
+        ],
+        "latest": null
+      }
     },
     {
       "id": "analyzer-file-import",
@@ -78,7 +86,16 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T18:07:00.902Z"
+      "checkedAt": "2026-06-24T18:07:00.902Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/order",
+          "frontend/src/components/addOrder"
+        ],
+        "latest": null
+      }
     },
     {
       "id": "eqa",

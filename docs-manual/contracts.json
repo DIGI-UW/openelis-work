@@ -20,7 +20,11 @@
             "First Name"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/patient"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "analyzer-file-import",
@@ -132,7 +136,12 @@
             "Search"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/order",
+        "frontend/src/components/addOrder"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "eqa",
