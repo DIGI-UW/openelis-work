@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-24T19:10:00.853Z",
+  "generatedAt": "2026-06-24T19:26:51.020Z",
   "sections": [
     {
       "id": "add-patient",
@@ -11,7 +11,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:08:28.632Z",
+      "checkedAt": "2026-06-24T19:25:18.703Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -30,7 +30,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:08:31.276Z"
+      "checkedAt": "2026-06-24T19:25:21.337Z"
     },
     {
       "id": "analyzer-framework",
@@ -41,7 +41,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:08:33.915Z"
+      "checkedAt": "2026-06-24T19:25:23.978Z"
     },
     {
       "id": "barcode-labels",
@@ -52,7 +52,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:08:36.549Z"
+      "checkedAt": "2026-06-24T19:25:26.627Z"
     },
     {
       "id": "electronic-lab-notebook",
@@ -63,7 +63,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:08:39.196Z"
+      "checkedAt": "2026-06-24T19:25:29.274Z"
     },
     {
       "id": "electronic-signatures",
@@ -74,7 +74,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:08:44.473Z"
+      "checkedAt": "2026-06-24T19:25:34.552Z"
     },
     {
       "id": "environmental-order-results",
@@ -86,7 +86,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:10:00.848Z",
+      "checkedAt": "2026-06-24T19:26:51.014Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -106,7 +106,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:08:52.394Z"
+      "checkedAt": "2026-06-24T19:25:42.454Z"
     },
     {
       "id": "nce-capa",
@@ -117,7 +117,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:09:00.413Z"
+      "checkedAt": "2026-06-24T19:25:50.388Z"
     },
     {
       "id": "order-entry",
@@ -128,7 +128,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:09:09.422Z"
+      "checkedAt": "2026-06-24T19:25:59.354Z"
     },
     {
       "id": "organizations-management",
@@ -139,7 +139,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:09:12.049Z"
+      "checkedAt": "2026-06-24T19:26:01.983Z"
     },
     {
       "id": "patient-order-enhancements",
@@ -150,7 +150,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:09:17.310Z"
+      "checkedAt": "2026-06-24T19:26:07.244Z"
     },
     {
       "id": "result-validation",
@@ -161,7 +161,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:09:25.179Z"
+      "checkedAt": "2026-06-24T19:26:15.130Z"
     },
     {
       "id": "results-entry",
@@ -172,7 +172,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:09:33.129Z"
+      "checkedAt": "2026-06-24T19:26:23.077Z"
     },
     {
       "id": "sample-shipment-referral",
@@ -183,7 +183,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:09:38.432Z"
+      "checkedAt": "2026-06-24T19:26:28.386Z"
     },
     {
       "id": "sample-storage-management",
@@ -194,7 +194,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:09:46.379Z"
+      "checkedAt": "2026-06-24T19:26:36.307Z"
     }
   ]
 }
