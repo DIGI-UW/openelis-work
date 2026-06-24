@@ -101,7 +101,7 @@ python3 confluence-publish.py --create --space OG --parent 1189609473 \
 # update an existing page instead:
 python3 confluence-publish.py --page <pageId> --xhtml <section>.xhtml --images <dir>
 ```
-Images are auto-sized with `ac:width` (default max 680px; small images keep native size — never
+Images are auto-sized with `ac:width` (default max 1020px; small images keep native size — never
 upscaled) so screenshots don't render at full resolution; override with `--max-width`.
 Re-runs are idempotent (attachments matched by filename, page version bumped). `--dry-run` previews.
 The publisher ships inside this skill at `publish/confluence-publish.py` (also in

@@ -89,7 +89,7 @@ def main():
     ap.add_argument("--page"); ap.add_argument("--create", action="store_true")
     ap.add_argument("--parent"); ap.add_argument("--space"); ap.add_argument("--title")
     ap.add_argument("--xhtml", required=True); ap.add_argument("--images", required=True)
-    ap.add_argument("--max-width", type=int, default=680, help="max display width in px; small images keep native size")
+    ap.add_argument("--max-width", type=int, default=1020, help="max display width in px; small images keep native size")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
     base, auth = load_creds()
