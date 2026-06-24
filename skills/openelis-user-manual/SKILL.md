@@ -84,9 +84,24 @@ Crops are full-resolution, so the section text stays legible in the doc.
 - Required `ImageRun` `type` + `altText`. Validate with the docx skill's `validate.py`.
 
 ## Confluence publishing (only on explicit go)
-Convert the approved content to Confluence storage format and create/update under the user-manual
-space via the Atlassian connector. Link the new page from the relevant manual index. Keep the
-walkthrough video as an attachment or linked asset.
+Getting screenshots into Confluence — pick by effort:
+1. **Word import (least effort, recommended):** Confluence → Insert → "Import Word document" on the
+   generated `.docx`. Images are embedded in the docx, so they import inline in one shot; do a light
+   formatting cleanup after.
+2. **Automated (REST), if a Confluence API token is available:** upload each PNG as a page attachment
+   (`POST /rest/api/content/{id}/child/attachment`, multipart, run from the Mac), then publish a
+   storage-format body that references them with `<ac:image><ri:attachment ri:filename="..."/></ac:image>`.
+   The Atlassian MCP connector can create/update the page body but **cannot upload attachments**, so
+   image embedding needs the REST token (or the Word-import path).
+3. **Manual image-drop (in a pinch):** publish the prose via the connector (storage format), and for
+   every figure emit an **empty paragraph as a drop slot** preceded by a grey hint line
+   `<p><em style="color:#999">[ drop image: images/NN-name.png — then delete this line ]</em></p>`.
+   Deliver the labeled PNGs named to match. The reader drags each image into the empty slot and deletes
+   the hint. Always leave a blank `<p/>` between text blocks so there's somewhere to drop.
+
+Caption rule (all paths): captions describe the screen for the reader only — **never** include
+"captured", "captured automatically", or tool/provenance wording; that would force a cleanup pass.
+Link the new page from the relevant manual index; keep the walkthrough video as a linked asset.
 
 ## Provenance & staleness (feeds the Doc Freshness Tracker)
 Every page you author must register a **provenance + drift contract** so it can be watched for going
