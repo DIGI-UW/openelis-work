@@ -53,6 +53,17 @@ spec, omit it or label it clearly as not-yet-available.
 - **Priority suggestion:** lead with shipped/production capabilities that lab staff use daily and that
   have no manual yet; defer in-development and "designed — ready to build" items.
 
+## Training materials (related, but not per-feature yet)
+The training archive (Google Drive `1FTFNxqQEg…`, linked in the inventory `meta.training_folder`) is
+organized by **cohort/country + audience** (End User / Super User Admin / Leadership / TOT), not by
+feature — and much of it is **"OpenELIS Classic" (old JSP UI)**, i.e. stale against the React app.
+So:
+- Treat the Classic end-user decks as the **stale baseline to replace**, not a source to map to.
+- **New per-feature training assets should be derived from the user-manual pages** this pipeline
+  produces (same verified steps + screenshots), so manual and training stay in lockstep.
+- Don't populate per-capability `docs.training_doc` from this folder; it's linked at the program level
+  only until materials are reorganized by feature.
+
 ## Pointers
 - Skills: `openelis-work/skills/openelis-user-manual/`, `openelis-work/skills/openelis-screenshots/`
 - Routes: `openelis-work/skills/openelis-screenshots/routes.md`
