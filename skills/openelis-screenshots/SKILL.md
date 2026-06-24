@@ -77,6 +77,17 @@ per-spec `pii`). Deliver the PNGs from `docs-media/<id>/` to wherever the site a
 - Media is **not committed** by default (`.gitignore` covers `docs-media/`, `.auth/`,
   `test-results/`). To publish, copy PNGs out to the gallery/site repo or attach to Confluence.
 
+## Drift baselines & contracts (so a page can be watched for going stale)
+When you capture a section for the manual, also register its **UI-drift contract** in
+`docs-manual/contracts.json`: the section `id`, the `base` instance, `capturedVersion`, and per
+`route` the on-load `anchors[]` (headings / field labels / buttons the screenshots depend on). The
+captured PNGs in `docs-media/<id>/` are the visual baseline; the anchors are the structural baseline.
+`tests/docs/drift.check.spec.ts` re-checks the anchors and writes `docs-manual/drift-report.json`,
+which the weekly `openelis-docs-drift-weekly` task commits to `DIGI-UW/openelis-work` and the
+**OpenELIS Doc Freshness Tracker** artifact displays. Prefer the anchor/structural check over raw
+pixel-diffing for this data-driven app (lab numbers, dates, and dashboards change every run, so pixel
+diffs false-positive). Keep anchors to stable on-load text.
+
 ## Done well =
 Every targeted capability has ≥1 labeled PNG that shows the real screen (no session modal, PII
 masked) plus a `walkthrough.webm`, and the run reports all specs passing.

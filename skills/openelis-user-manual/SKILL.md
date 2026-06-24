@@ -88,6 +88,25 @@ Convert the approved content to Confluence storage format and create/update unde
 space via the Atlassian connector. Link the new page from the relevant manual index. Keep the
 walkthrough video as an attachment or linked asset.
 
+## Provenance & staleness (feeds the Doc Freshness Tracker)
+Every page you author must register a **provenance + drift contract** so it can be watched for going
+stale. Add/extend an entry in `OpenELIS QA/docs-manual/contracts.json`:
+- `id`, `title`, `manualDoc`, `captureSpec`
+- `base` (the instance the manual documents) and `capturedVersion` (OpenELIS version captured against)
+- `routes[]` — each with `path` and `anchors[]`: the on-load headings / field labels / buttons the
+  manual relies on (e.g., "Lab Number", "Save & Next", "New Patient"). Pick anchors visible on
+  initial load so the check doesn't false-positive on interactive-only elements.
+
+`tests/docs/drift.check.spec.ts` visits each route and asserts the anchors exist; it writes
+`docs-manual/drift-report.json` with per-section status: **ok** (anchors present, version matches) ·
+**review** (instance version ≠ capturedVersion) · **drift** (a documented control is missing → the
+UI changed, re-capture and re-verify) · **error** (route failed). The weekly `openelis-docs-drift-weekly`
+scheduled task re-runs it, commits the report to `DIGI-UW/openelis-work` (`docs-manual/`), and the
+**OpenELIS Doc Freshness Tracker** artifact renders it in its "Manual section UI drift" card. So when
+this skill ships a page, it also makes that page self-monitoring: if the screen later changes, the
+tracker flags the exact section and missing control. Re-run the capture and rebuild the doc, then
+bump `capturedVersion`.
+
 ## Definition of done
 Overview gives real context; every step is verified against the live build (no spec-only claims);
 images are cropped and legible with captions; PII masked; a walkthrough video accompanies it; the
