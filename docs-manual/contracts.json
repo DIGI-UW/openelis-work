@@ -1,0 +1,41 @@
+{
+  "_comment": "Provenance + UI-drift contracts for OpenELIS user-manual sections. Each section maps to the manual doc it backs, the live instance + routes it documents, and the on-load UI anchors (headings / labels / buttons) the manual relies on. The drift check (tests/docs/drift.check.spec.ts) visits each route and asserts the anchors still exist; missing anchors => the manual section may be stale. 'capturedVersion' is the OpenELIS version the screenshots were taken against.",
+  "sections": [
+    {
+      "id": "environmental-order-results",
+      "title": "Environmental Order Entry & Results",
+      "manualDoc": "OpenELIS Feature Design/Environmental-Order-Entry-and-Results-User-Manual.docx",
+      "captureSpec": "tests/docs/environmental-order-results.docs.spec.ts",
+      "base": "https://indonesiademo.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/order/environmental/enter",
+          "anchors": ["Enter Order", "Lab Number", "Sampling Site", "Default Collection Conditions", "Applicable Compliance Standards", "Per-Sample Manifest", "Save & Next"]
+        },
+        {
+          "path": "/EnvironmentalDashboard",
+          "anchors": ["Environmental Compliance Dashboard", "Exceedance Summary"]
+        },
+        {
+          "path": "/GenericSample/Results",
+          "anchors": ["Result Entry", "Search"]
+        }
+      ]
+    },
+    {
+      "id": "add-patient",
+      "title": "Adding a Patient",
+      "manualDoc": "OpenELIS Feature Design/Add-a-Patient-User-Manual.docx",
+      "captureSpec": "tests/docs/add-patient.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/PatientManagement",
+          "anchors": ["Add Or Modify Patient", "Search for Patient", "New Patient", "Patient Id", "Last Name", "First Name"]
+        }
+      ]
+    }
+  ]
+}

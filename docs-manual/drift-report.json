@@ -1,0 +1,29 @@
+{
+  "generatedAt": "2026-06-24T17:36:56.264Z",
+  "sections": [
+    {
+      "id": "add-patient",
+      "title": "Adding a Patient",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "OpenELIS Feature Design/Add-a-Patient-User-Manual.docx",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T17:36:41.319Z"
+    },
+    {
+      "id": "environmental-order-results",
+      "title": "Environmental Order Entry & Results",
+      "base": "https://indonesiademo.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "OpenELIS Feature Design/Environmental-Order-Entry-and-Results-User-Manual.docx",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-06-24T17:36:56.258Z"
+    }
+  ]
+}
