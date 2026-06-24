@@ -114,6 +114,9 @@ Fallbacks: **Word import** (Confluence → Insert → Import Word document on th
 inline, needs no token) or **manual drag** (publish prose with empty `<p/>` slots + a grey
 `[ drop image: ... ]` hint per figure; reader drags the PNG in).
 
+Terminology: the left navigation is the **Main menu** — write "Main menu → …", never "left menu",
+"side menu", or "sidebar".
+
 Caption rule (all paths): captions describe the screen for the reader only — **never** include
 "captured", "captured automatically", or tool/provenance wording; that would force a cleanup pass.
 Link the new page from the relevant manual index; keep the walkthrough video as a linked asset.
