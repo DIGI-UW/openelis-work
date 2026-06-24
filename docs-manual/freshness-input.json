@@ -1,0 +1,1192 @@
+{
+  "generated": "2026-06-24",
+  "counts": {
+    "total": 67,
+    "by_maturity": {
+      "production": 37,
+      "planned": 9,
+      "beta": 6,
+      "in-development": 10,
+      "available": 5
+    },
+    "with_manual_page": 24,
+    "shipped_without_manual": 24
+  },
+  "capabilities": [
+    {
+      "id": "order-entry",
+      "name": "Order & sample entry",
+      "area": "Core Lab Workflows",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "v3.1",
+      "jira": [
+        "OGC-356"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/261423127",
+      "manual_status": null,
+      "last_change_release": "3.2.1.5",
+      "last_change_date": "2026-04-11"
+    },
+    {
+      "id": "results-entry",
+      "name": "Results entry",
+      "area": "Core Lab Workflows",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "v3.1",
+      "jira": [
+        "OGC-811"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278626329",
+      "manual_status": null,
+      "last_change_release": "3.2.1.8",
+      "last_change_date": "2026-05-04"
+    },
+    {
+      "id": "result-validation",
+      "name": "Result validation",
+      "area": "Core Lab Workflows",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "v3.1",
+      "jira": [
+        "OGC-291",
+        "OGC-343"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/284196875",
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "electronic-lab-notebook",
+      "name": "Electronic lab notebook",
+      "area": "Core Lab Workflows",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.x",
+      "jira": [
+        "OGC-53"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/991821864",
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "electronic-signatures",
+      "name": "Electronic signatures",
+      "area": "Core Lab Workflows",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.5",
+      "jira": [
+        "OGC-302"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1242759175",
+      "manual_status": null,
+      "last_change_release": "3.2.1.5",
+      "last_change_date": "2026-04-11"
+    },
+    {
+      "id": "informed-consent",
+      "name": "Informed consent capture",
+      "area": "Core Lab Workflows",
+      "domain": [
+        "clinical"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.7",
+      "jira": [
+        "OGC-557",
+        "OGC-558"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.1.7",
+      "last_change_date": "2026-05-01"
+    },
+    {
+      "id": "patient-order-enhancements",
+      "name": "Patient & order enhancements",
+      "area": "Core Lab Workflows",
+      "domain": [
+        "clinical"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.6",
+      "jira": [
+        "OGC-66"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189642248",
+      "manual_status": "draft",
+      "last_change_release": "3.2.1.8",
+      "last_change_date": "2026-05-04"
+    },
+    {
+      "id": "sample-storage-management",
+      "name": "Sample storage management",
+      "area": "Sample & Storage",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.x",
+      "jira": [],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1047658526",
+      "manual_status": null,
+      "last_change_release": "3.2.1.7",
+      "last_change_date": "2026-05-01"
+    },
+    {
+      "id": "sample-shipment-referral",
+      "name": "Sample shipment & referral",
+      "area": "Sample & Storage",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.5",
+      "jira": [
+        "OGC-62",
+        "OGC-624"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1046118450",
+      "manual_status": null,
+      "last_change_release": "3.2.1.5",
+      "last_change_date": "2026-04-11"
+    },
+    {
+      "id": "partial-sample-usage",
+      "name": "Partial sample usage & tags",
+      "area": "Sample & Storage",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "planned",
+      "since": null,
+      "jira": [],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189543964",
+      "manual_status": "draft",
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "westgard-qc",
+      "name": "Westgard QC rules & dashboard",
+      "area": "Quality & Compliance",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.7",
+      "jira": [
+        "OGC-41"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1188429833",
+      "manual_status": "draft",
+      "last_change_release": "3.2.1.7",
+      "last_change_date": "2026-05-01"
+    },
+    {
+      "id": "eqa",
+      "name": "EQA / proficiency testing",
+      "area": "Quality & Compliance",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "beta",
+      "since": "3.2.1.4",
+      "jira": [
+        "OGC-61",
+        "OGC-608"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189773314",
+      "manual_status": "draft",
+      "last_change_release": "3.2.1.4",
+      "last_change_date": "2026-03-31"
+    },
+    {
+      "id": "nce-capa",
+      "name": "Non-conforming events (NCE) & CAPA",
+      "area": "Quality & Compliance",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "beta",
+      "since": "3.2.1.4",
+      "jira": [
+        "OGC-313",
+        "OGC-314",
+        "OGC-315",
+        "OGC-316"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278888457",
+      "manual_status": null,
+      "last_change_release": "3.2.1.5",
+      "last_change_date": "2026-04-11"
+    },
+    {
+      "id": "audit-trail",
+      "name": "System-level audit trail",
+      "area": "Quality & Compliance",
+      "domain": [
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.5",
+      "jira": [],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.1.5",
+      "last_change_date": "2026-04-11"
+    },
+    {
+      "id": "analyzer-manual-qc",
+      "name": "Analyzer manual QC recording",
+      "area": "Quality & Compliance",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "in-development",
+      "since": null,
+      "jira": [
+        "OGC-426",
+        "OGC-428"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "batch-workplan-reagent-qc",
+      "name": "Batch workplan + reagent QC",
+      "area": "Quality & Compliance",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "in-development",
+      "since": null,
+      "jira": [
+        "OGC-427"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "domain-aware-labs",
+      "name": "Domain-aware labs (clinical / environmental / vector)",
+      "area": "Environmental & Vector Surveillance",
+      "domain": [
+        "clinical",
+        "environmental",
+        "vector"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.x",
+      "jira": [
+        "OGC-527",
+        "OGC-538",
+        "OGC-361"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "compliance-standards-engine",
+      "name": "Compliance standards engine",
+      "area": "Environmental & Vector Surveillance",
+      "domain": [
+        "environmental",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": null,
+      "jira": [
+        "OGC-528",
+        "OGC-547",
+        "OGC-768"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "sampling-site-registry",
+      "name": "Sampling site registry",
+      "area": "Environmental & Vector Surveillance",
+      "domain": [
+        "environmental",
+        "vector"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.x",
+      "jira": [
+        "OGC-531"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "environmental-order-entry",
+      "name": "Environmental order entry",
+      "area": "Environmental & Vector Surveillance",
+      "domain": [
+        "environmental"
+      ],
+      "maturity": "in-development",
+      "since": null,
+      "jira": [
+        "OGC-537",
+        "OGC-768"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "vector-collection",
+      "name": "Vector collection workflow",
+      "area": "Environmental & Vector Surveillance",
+      "domain": [
+        "vector"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.x",
+      "jira": [
+        "OGC-581"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "vector-identification",
+      "name": "Vector testing & identification",
+      "area": "Environmental & Vector Surveillance",
+      "domain": [
+        "vector"
+      ],
+      "maturity": "production",
+      "since": null,
+      "jira": [
+        "OGC-582"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "vector-taxonomy",
+      "name": "Vector specimen types & taxonomy",
+      "area": "Environmental & Vector Surveillance",
+      "domain": [
+        "vector"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.x",
+      "jira": [
+        "OGC-555"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "compliance-reports-lhu",
+      "name": "Certificate-of-analysis reports (Laporan Hasil)",
+      "area": "Environmental & Vector Surveillance",
+      "domain": [
+        "environmental",
+        "vector"
+      ],
+      "maturity": "production",
+      "since": null,
+      "jira": [
+        "OGC-552"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "vector-surveillance-reporting",
+      "name": "Vector surveillance reporting",
+      "area": "Environmental & Vector Surveillance",
+      "domain": [
+        "vector"
+      ],
+      "maturity": "in-development",
+      "since": null,
+      "jira": [
+        "OGC-585",
+        "OGC-779"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "analyzer-framework",
+      "name": "Analyzer integration framework",
+      "area": "Analyzer & Instrument Integration",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.4",
+      "jira": [
+        "OGC-324",
+        "OGC-325"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1186365449",
+      "manual_status": null,
+      "last_change_release": "3.2.1.7",
+      "last_change_date": "2026-05-01"
+    },
+    {
+      "id": "analyzer-file-import",
+      "name": "Analyzer file import",
+      "area": "Analyzer & Instrument Integration",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.6",
+      "jira": [
+        "OGC-324",
+        "OGC-344"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1047265314",
+      "manual_status": null,
+      "last_change_release": "3.2.1.7",
+      "last_change_date": "2026-05-01"
+    },
+    {
+      "id": "outbound-order-dispatch",
+      "name": "Outbound order dispatch",
+      "area": "Analyzer & Instrument Integration",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.10",
+      "jira": [
+        "OGC-773"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.1.10",
+      "last_change_date": "2026-06-04"
+    },
+    {
+      "id": "instrument-library",
+      "name": "Validated instrument library",
+      "area": "Analyzer & Instrument Integration",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.4",
+      "jira": [
+        "OGC-335",
+        "OGC-323",
+        "OGC-348",
+        "OGC-416",
+        "OGC-434"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.1.4",
+      "last_change_date": "2026-03-31"
+    },
+    {
+      "id": "analyzer-import-tool",
+      "name": "Analyzer import tool",
+      "area": "Analyzer & Instrument Integration",
+      "domain": [
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.x",
+      "jira": [],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "management-dashboard",
+      "name": "Management dashboard",
+      "area": "Reporting & Dashboards",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "in-development",
+      "since": null,
+      "jira": [
+        "OGC-897"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189740580",
+      "manual_status": "draft",
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "disease-surveillance-dashboard",
+      "name": "Disease surveillance dashboard",
+      "area": "Reporting & Dashboards",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "in-development",
+      "since": null,
+      "jira": [
+        "OGC-433"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "custom-data-export",
+      "name": "Custom data export",
+      "area": "Reporting & Dashboards",
+      "domain": [
+        "cross-cutting"
+      ],
+      "maturity": "in-development",
+      "since": null,
+      "jira": [
+        "OGC-479"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189576725",
+      "manual_status": "draft",
+      "last_change_release": "3.2.1.4",
+      "last_change_date": "2026-03-31"
+    },
+    {
+      "id": "positivity-rate",
+      "name": "Positivity rate report & widget",
+      "area": "Reporting & Dashboards",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "beta",
+      "since": "3.2.1.x",
+      "jira": [
+        "OGC-433"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "patient-report-print-queue",
+      "name": "Patient report print queue",
+      "area": "Reporting & Dashboards",
+      "domain": [
+        "clinical"
+      ],
+      "maturity": "beta",
+      "since": "3.2.1.x",
+      "jira": [
+        "OGC-431",
+        "OGC-1031"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "final-pdf-report",
+      "name": "Final PDF patient report layout",
+      "area": "Reporting & Dashboards",
+      "domain": [
+        "clinical"
+      ],
+      "maturity": "in-development",
+      "since": null,
+      "jira": [
+        "OGC-302",
+        "OGC-932"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "report-macro-library",
+      "name": "Report comments / macro library",
+      "area": "Reporting & Dashboards",
+      "domain": [
+        "cross-cutting"
+      ],
+      "maturity": "planned",
+      "since": null,
+      "jira": [
+        "OGC-788"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "tat-report",
+      "name": "Turnaround time report & dashboard",
+      "area": "Reporting & Dashboards",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.5",
+      "jira": [
+        "OGC-307",
+        "OGC-310"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.1.5",
+      "last_change_date": "2026-04-11"
+    },
+    {
+      "id": "facility-reagent-stock",
+      "name": "Facility reagent stock view",
+      "area": "Reporting & Dashboards",
+      "domain": [
+        "cross-cutting"
+      ],
+      "maturity": "in-development",
+      "since": null,
+      "jira": [
+        "OGC-436",
+        "OGC-438"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189675014",
+      "manual_status": "draft",
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "fhir-r4-api",
+      "name": "FHIR R4 API",
+      "area": "Interoperability",
+      "domain": [
+        "cross-cutting",
+        "platform"
+      ],
+      "maturity": "production",
+      "since": "v3.1",
+      "jira": [],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.1.5",
+      "last_change_date": "2026-04-11"
+    },
+    {
+      "id": "hie-deployment",
+      "name": "HIE-ready deployment",
+      "area": "Interoperability",
+      "domain": [
+        "platform"
+      ],
+      "maturity": "production",
+      "since": "v3.1",
+      "jira": [],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "fhir-outbound-push",
+      "name": "Automatic result sharing (FHIR)",
+      "area": "Interoperability",
+      "domain": [
+        "cross-cutting",
+        "platform"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.9",
+      "jira": [],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.1.9",
+      "last_change_date": "2026-05-19"
+    },
+    {
+      "id": "two-way-fhir",
+      "name": "Two-way FHIR communication",
+      "area": "Interoperability",
+      "domain": [
+        "cross-cutting",
+        "platform"
+      ],
+      "maturity": "planned",
+      "since": null,
+      "jira": [],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "unified-test-editor",
+      "name": "Unified test editor",
+      "area": "Test Catalog & Admin",
+      "domain": [
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": null,
+      "jira": [
+        "OGC-173",
+        "OGC-189",
+        "OGC-214",
+        "OGC-224"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/257228825",
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "range-editor",
+      "name": "Reference range editor",
+      "area": "Test Catalog & Admin",
+      "domain": [
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": null,
+      "jira": [
+        "OGC-758",
+        "OGC-931",
+        "OGC-751"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "organizations-management",
+      "name": "Organizations management",
+      "area": "Test Catalog & Admin",
+      "domain": [
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.x",
+      "jira": [
+        "OGC-272",
+        "OGC-535"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1188790284",
+      "manual_status": "draft",
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "terminology-ocl",
+      "name": "Standardized terminology",
+      "area": "Test Catalog & Admin",
+      "domain": [
+        "cross-cutting",
+        "platform"
+      ],
+      "maturity": "production",
+      "since": null,
+      "jira": [
+        "OGC-349"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/256737340",
+      "manual_status": null,
+      "last_change_release": "3.2.1.5",
+      "last_change_date": "2026-04-11"
+    },
+    {
+      "id": "barcode-labels",
+      "name": "Barcode label management",
+      "area": "Test Catalog & Admin",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.4",
+      "jira": [
+        "OGC-284",
+        "OGC-285"
+      ],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/256737330",
+      "manual_status": null,
+      "last_change_release": "3.2.1.4",
+      "last_change_date": "2026-03-31"
+    },
+    {
+      "id": "notifications",
+      "name": "Test notifications & SMS gateways",
+      "area": "Test Catalog & Admin",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "beta",
+      "since": "3.2.1.4",
+      "jira": [
+        "OGC-437",
+        "OGC-435",
+        "OGC-436"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.1.9",
+      "last_change_date": "2026-05-19"
+    },
+    {
+      "id": "admin-modernization",
+      "name": "Modernized administration",
+      "area": "Test Catalog & Admin",
+      "domain": [
+        "cross-cutting",
+        "platform"
+      ],
+      "maturity": "beta",
+      "since": "3.2.1.7",
+      "jira": [
+        "OGC-635"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "rbac",
+      "name": "Access control & permissions",
+      "area": "Test Catalog & Admin",
+      "domain": [
+        "platform",
+        "cross-cutting"
+      ],
+      "maturity": "planned",
+      "since": null,
+      "jira": [],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1187840003",
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "amr-module",
+      "name": "AMR module & WHONET",
+      "area": "Pathology & Microbiology",
+      "domain": [
+        "clinical"
+      ],
+      "maturity": "planned",
+      "since": null,
+      "jira": [
+        "OGC-782"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "micro-case-workbench",
+      "name": "Microbiology case workbench",
+      "area": "Pathology & Microbiology",
+      "domain": [
+        "clinical"
+      ],
+      "maturity": "planned",
+      "since": null,
+      "jira": [
+        "OGC-782"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "ihc-case-view",
+      "name": "Immunohistochemistry (IHC) case view",
+      "area": "Pathology & Microbiology",
+      "domain": [
+        "clinical"
+      ],
+      "maturity": "production",
+      "since": null,
+      "jira": [],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/279248897",
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "cytology-case-view",
+      "name": "Cytology case view",
+      "area": "Pathology & Microbiology",
+      "domain": [
+        "clinical"
+      ],
+      "maturity": "production",
+      "since": null,
+      "jira": [],
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278560771",
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "catalyst-ai",
+      "name": "Catalyst AI suite",
+      "area": "Platform & AI",
+      "domain": [
+        "platform"
+      ],
+      "maturity": "planned",
+      "since": null,
+      "jira": [
+        "OGC-70",
+        "OGC-113"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "help-menu",
+      "name": "In-app help system",
+      "area": "Platform & AI",
+      "domain": [
+        "platform"
+      ],
+      "maturity": "planned",
+      "since": null,
+      "jira": [],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "white-labeling",
+      "name": "White labeling",
+      "area": "Platform & AI",
+      "domain": [
+        "platform"
+      ],
+      "maturity": "planned",
+      "since": null,
+      "jira": [],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "react-vite-migration",
+      "name": "Modernized user interface",
+      "area": "Platform & AI",
+      "domain": [
+        "platform"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.7",
+      "jira": [],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.1.7",
+      "last_change_date": "2026-05-01"
+    },
+    {
+      "id": "security-hardening",
+      "name": "Strengthened data security",
+      "area": "Platform & AI",
+      "domain": [
+        "platform"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.5",
+      "jira": [
+        "OGC-150"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.1.5",
+      "last_change_date": "2026-04-11"
+    },
+    {
+      "id": "live-logging",
+      "name": "System monitoring & logs",
+      "area": "Platform & AI",
+      "domain": [
+        "platform"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.10",
+      "jira": [],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.1.10",
+      "last_change_date": "2026-06-04"
+    },
+    {
+      "id": "blood-bank-component-types",
+      "name": "Blood component type configuration",
+      "area": "Blood Bank & Transfusion",
+      "domain": [
+        "clinical"
+      ],
+      "maturity": "available",
+      "since": null,
+      "jira": [
+        "OGC-455"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "blood-unit-inventory",
+      "name": "Blood unit inventory & reception",
+      "area": "Blood Bank & Transfusion",
+      "domain": [
+        "clinical"
+      ],
+      "maturity": "available",
+      "since": null,
+      "jira": [
+        "OGC-457"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "patient-blood-bank-record",
+      "name": "Patient blood bank record",
+      "area": "Blood Bank & Transfusion",
+      "domain": [
+        "clinical"
+      ],
+      "maturity": "available",
+      "since": null,
+      "jira": [
+        "OGC-459"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "pretransfusion-testing",
+      "name": "Pre-transfusion testing & crossmatch",
+      "area": "Blood Bank & Transfusion",
+      "domain": [
+        "clinical"
+      ],
+      "maturity": "available",
+      "since": null,
+      "jira": [
+        "OGC-454"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "blood-issue-emergency-release",
+      "name": "Blood issue & emergency release",
+      "area": "Blood Bank & Transfusion",
+      "domain": [
+        "clinical"
+      ],
+      "maturity": "available",
+      "since": null,
+      "jira": [
+        "OGC-461"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    },
+    {
+      "id": "reagent-forecasting-national",
+      "name": "Reagent forecasting (national / regional)",
+      "area": "Reporting & Dashboards",
+      "domain": [
+        "cross-cutting"
+      ],
+      "maturity": "in-development",
+      "since": null,
+      "jira": [],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": null,
+      "last_change_date": null
+    }
+  ]
+}
