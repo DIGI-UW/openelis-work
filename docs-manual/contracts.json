@@ -38,7 +38,12 @@
             "Import"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/analyzers",
+        "frontend/src/components/genericSample"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "analyzer-framework",
@@ -52,7 +57,11 @@
             "Analyzer Types"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/analyzers"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "barcode-labels",
@@ -66,7 +75,12 @@
             "Print Bar Code Labels"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/printBarcode",
+        "frontend/src/components/barcodeWorkflow"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "electronic-lab-notebook",
@@ -80,7 +94,11 @@
             "Notebook"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/notebook"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "electronic-signatures",
@@ -100,7 +118,12 @@
             "Validation"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/esignature",
+        "frontend/src/components/validation"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "environmental-order-results",
@@ -167,7 +190,11 @@
             "EQA Results & Analysis"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/eqa"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "nce-capa",
@@ -193,7 +220,11 @@
             "Nonconforming Events Corrective Action"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/nonconform"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "order-entry",
@@ -219,7 +250,13 @@
             "Enter Order"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/order",
+        "frontend/src/components/addOrder",
+        "frontend/src/components/sample"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "organizations-management",
@@ -233,7 +270,11 @@
             "Admin dashboard"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "patient-order-enhancements",
@@ -253,7 +294,11 @@
             "Patient History"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/patient"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "result-validation",
@@ -279,7 +324,11 @@
             "Validation"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/validation"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "results-entry",
@@ -305,7 +354,11 @@
             "Results"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/resultPage"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "sample-shipment-referral",
@@ -325,7 +378,11 @@
             "Referrals"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/shipment"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
       "id": "sample-storage-management",
@@ -351,7 +408,12 @@
             "Cold Storage Dashboard"
           ]
         }
-      ]
+      ],
+      "uiPaths": [
+        "frontend/src/components/storage",
+        "frontend/src/components/coldStorage"
+      ],
+      "capturedDate": "2026-06-24"
     }
   ]
 }

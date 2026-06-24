@@ -30,7 +30,16 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:25:21.337Z"
+      "checkedAt": "2026-06-24T19:25:21.337Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/analyzers",
+          "frontend/src/components/genericSample"
+        ],
+        "latest": null
+      }
     },
     {
       "id": "analyzer-framework",
@@ -41,7 +50,15 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:25:23.978Z"
+      "checkedAt": "2026-06-24T19:25:23.978Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/analyzers"
+        ],
+        "latest": null
+      }
     },
     {
       "id": "barcode-labels",
@@ -52,7 +69,16 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:25:26.627Z"
+      "checkedAt": "2026-06-24T19:25:26.627Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/printBarcode",
+          "frontend/src/components/barcodeWorkflow"
+        ],
+        "latest": null
+      }
     },
     {
       "id": "electronic-lab-notebook",
@@ -63,7 +89,15 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:25:29.274Z"
+      "checkedAt": "2026-06-24T19:25:29.274Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/notebook"
+        ],
+        "latest": null
+      }
     },
     {
       "id": "electronic-signatures",
@@ -74,7 +108,16 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:25:34.552Z"
+      "checkedAt": "2026-06-24T19:25:34.552Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/esignature",
+          "frontend/src/components/validation"
+        ],
+        "latest": null
+      }
     },
     {
       "id": "environmental-order-results",
@@ -106,7 +149,15 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:25:42.454Z"
+      "checkedAt": "2026-06-24T19:25:42.454Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/eqa"
+        ],
+        "latest": null
+      }
     },
     {
       "id": "nce-capa",
@@ -117,7 +168,15 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:25:50.388Z"
+      "checkedAt": "2026-06-24T19:25:50.388Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/nonconform"
+        ],
+        "latest": null
+      }
     },
     {
       "id": "order-entry",
@@ -128,7 +187,17 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:25:59.354Z"
+      "checkedAt": "2026-06-24T19:25:59.354Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/order",
+          "frontend/src/components/addOrder",
+          "frontend/src/components/sample"
+        ],
+        "latest": null
+      }
     },
     {
       "id": "organizations-management",
@@ -139,7 +208,19 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:26:01.983Z"
+      "checkedAt": "2026-06-24T19:26:01.983Z",
+      "codeChanged": {
+        "count": 1,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/admin"
+        ],
+        "latest": {
+          "date": "2026-06-24T12:26:33Z",
+          "msg": "fixes for Test Catalogue v1 (#3764)",
+          "sha": "0720567"
+        }
+      }
     },
     {
       "id": "patient-order-enhancements",
@@ -150,7 +231,15 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:26:07.244Z"
+      "checkedAt": "2026-06-24T19:26:07.244Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/patient"
+        ],
+        "latest": null
+      }
     },
     {
       "id": "result-validation",
@@ -161,7 +250,15 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:26:15.130Z"
+      "checkedAt": "2026-06-24T19:26:15.130Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/validation"
+        ],
+        "latest": null
+      }
     },
     {
       "id": "results-entry",
@@ -172,7 +269,15 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:26:23.077Z"
+      "checkedAt": "2026-06-24T19:26:23.077Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/resultPage"
+        ],
+        "latest": null
+      }
     },
     {
       "id": "sample-shipment-referral",
@@ -183,7 +288,15 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:26:28.386Z"
+      "checkedAt": "2026-06-24T19:26:28.386Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/shipment"
+        ],
+        "latest": null
+      }
     },
     {
       "id": "sample-storage-management",
@@ -194,7 +307,16 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-06-24T19:26:36.307Z"
+      "checkedAt": "2026-06-24T19:26:36.307Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/storage",
+          "frontend/src/components/coldStorage"
+        ],
+        "latest": null
+      }
     }
   ]
 }
