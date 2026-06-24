@@ -1,5 +1,7 @@
 # openelis-design — Changelog
 
+- 2026-06-23 — Added references/ogc-workflow.md and updated jira-conventions.md for the now-LIVE OGC Lean workflow (Acceptance gate, Reject Count, Contract field, per-Epic Feature Doc).
+
 ## 2026-06-18 (round 4) — First /crosscheck run folded back in
 
 - Ran /crosscheck on the Analyzer Types & Mapping FRS (vs Analyzer Maintenance FRS).
