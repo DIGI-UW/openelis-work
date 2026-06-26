@@ -23,6 +23,9 @@ import App, {
   STATUS_DEFAULT,
   explainCode,
   glossary,
+  JOURNEYS,
+  findMockupByName,
+  journeyFromHash,
   sanitizeComment,
   buildStatusChangeUrl,
   parseStatusFromComment,
@@ -1015,5 +1018,54 @@ describe('glossary modal', () => {
     expect(screen.getByText(/Minimum Inhibitory Concentration/)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /close glossary/i }));
     expect(screen.queryByRole('heading', { name: 'Glossary' })).toBeNull();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Guided journeys
+// ═══════════════════════════════════════════════════════════════
+
+describe('JOURNEYS', () => {
+  it('every step references a real registry entry with an embeddable mockup', () => {
+    JOURNEYS.forEach((j) => {
+      expect(j.id).toBeTruthy();
+      expect(j.steps.length).toBeGreaterThan(0);
+      j.steps.forEach((s) => {
+        const m = findMockupByName(s.name);
+        expect(m, `Journey "${j.id}" step "${s.name}" not found in registry`).not.toBeNull();
+        expect(m.htmlUrl, `Journey "${j.id}" step "${s.name}" has no embeddable htmlUrl`).toBeTruthy();
+        expect(s.blurb).toBeTruthy();
+      });
+    });
+  });
+  it('journey ids are unique', () => {
+    const ids = JOURNEYS.map((j) => j.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
+describe('journeyFromHash', () => {
+  it('resolves a valid journey hash', () => {
+    const j = JOURNEYS[0];
+    expect(journeyFromHash(`#/journey/${j.id}`)).toBe(j);
+  });
+  it('returns null for non-journey or unknown hashes', () => {
+    expect(journeyFromHash('#/microbiology/m-02-breakpoint-catalog')).toBeNull();
+    expect(journeyFromHash('#/journey/does-not-exist')).toBeNull();
+    expect(journeyFromHash('')).toBeNull();
+  });
+});
+
+describe('journey stepper', () => {
+  beforeEach(() => { window.location.hash = ''; });
+  it('opens a journey from its hash and advances with Next', async () => {
+    const user = userEvent.setup();
+    const j = JOURNEYS[0];
+    window.location.hash = `#/journey/${j.id}`;
+    render(<App />);
+    expect(screen.getByRole('heading', { name: new RegExp(j.title) })).toBeInTheDocument();
+    expect(screen.getByText(/STEP 1 OF/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Next/ }));
+    expect(screen.getByText(/STEP 2 OF/)).toBeInTheDocument();
   });
 });
