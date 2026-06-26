@@ -1185,6 +1185,21 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'non-functional', 'cross-cutting', 'frs', 'v1', 'mvp-1a'],
   },
 
+  // ─── Microbiology — Guided Workflow Walkthrough (sequences the split prototypes) ─
+
+  {
+    name: 'Microbiology — Guided Workflow Walkthrough',
+    category: 'microbiology',
+    component: null,
+    description: 'Guided step-through that sequences the split micro prototypes into one flow — per step a description + the embedded mockup + Prev/Next, with a Bacterial/TB branch toggle. Covers admin/config setup → order & routing → bacterial or TB work-up → reporting.',
+    specPath: 'designs/microbiology/amr-micro-narrative.md',
+    htmlUrl: 'designs/microbiology/amr-micro-workflow-flow.html',
+    added: '2026-06-25',
+    status: 'draft',
+    jira: ['OGC-782'],
+    tags: ['microbiology', 'walkthrough', 'flow', 'guided', 'interactive'],
+  },
+
   // ─── Microbiology — Sync 5: TB / Antibiogram / GLASS / workflow-selection ─
 
   {
