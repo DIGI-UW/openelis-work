@@ -26,6 +26,7 @@ import App, {
   JOURNEYS,
   findMockupByName,
   journeyFromHash,
+  thumbUrl,
   sanitizeComment,
   buildStatusChangeUrl,
   parseStatusFromComment,
@@ -1041,6 +1042,20 @@ describe('JOURNEYS', () => {
   it('journey ids are unique', () => {
     const ids = JOURNEYS.map((j) => j.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
+describe('thumbUrl', () => {
+  it('builds a thumbnail path for HTML mockups', () => {
+    const html = MOCKUP_REGISTRY.find((m) => m.htmlUrl);
+    const url = thumbUrl(html);
+    expect(url).toMatch(/thumbnails\/.+\.jpg$/);
+    expect(url).toContain(html.category + '__');
+  });
+  it('returns null for entries without an HTML mockup', () => {
+    const specOnly = MOCKUP_REGISTRY.find((m) => !m.htmlUrl && !m.component && !m.figmaUrl);
+    if (specOnly) expect(thumbUrl(specOnly)).toBeNull();
+    expect(thumbUrl(null)).toBeNull();
   });
 });
 
