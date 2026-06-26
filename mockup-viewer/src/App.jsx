@@ -2399,6 +2399,52 @@ export const categoryBlurbs = {
   'other': 'Designs not yet sorted into a module.',
 };
 
+/** Design-code prefixes used in mockup names (e.g. "M-04", "S-03c", "V-01"). */
+export const codePrefixes = {
+  'M': 'Microbiology / AMR module spec',
+  'S': 'Standards & Environmental module spec',
+  'V': 'Vector Surveillance module spec',
+  'F': 'Foundational / cross-cutting spec',
+  'OGC': 'OpenELIS Global Jira ticket',
+};
+
+/** Plain-language glossary for non-developer browsers. Grouped for the modal. */
+export const glossary = [
+  { group: 'Design codes', terms: [
+    { term: 'M-##', def: 'Microbiology / AMR module spec (e.g. M-04 Case Workbench).' },
+    { term: 'S-##', def: 'Standards & Environmental module spec.' },
+    { term: 'V-##', def: 'Vector Surveillance module spec.' },
+    { term: 'OGC-####', def: 'A Jira ticket in the OpenELIS Global project.' },
+    { term: 'FRS', def: 'Functional Requirements Specification — the formal write-up of a feature.' },
+  ]},
+  { group: 'Antimicrobial resistance (AMR)', terms: [
+    { term: 'AMR', def: 'Antimicrobial Resistance — when microbes stop responding to drugs.' },
+    { term: 'AST', def: 'Antimicrobial Susceptibility Testing — testing which drugs still work on an isolate.' },
+    { term: 'MIC', def: 'Minimum Inhibitory Concentration — lowest drug concentration that stops growth (µg/mL).' },
+    { term: 'S / I / R', def: 'Susceptible / Intermediate / Resistant — the interpreted AST result.' },
+    { term: 'Breakpoint', def: 'The MIC/zone cutoff that turns a measurement into S, I, or R.' },
+    { term: 'Antibiogram', def: 'A cumulative report of % susceptibility for each bug–drug pair.' },
+    { term: 'Isolate', def: 'A single organism grown (isolated) from a patient specimen.' },
+    { term: 'CLSI / EUCAST', def: 'The two standards bodies that publish breakpoint tables.' },
+    { term: 'WHONET / GLASS', def: 'WHO tools/system for AMR surveillance data and global reporting.' },
+  ]},
+  { group: 'Lab & quality', terms: [
+    { term: 'LIMS', def: 'Laboratory Information Management System — what OpenELIS is.' },
+    { term: 'QC', def: 'Quality Control — running known samples to verify the test is working.' },
+    { term: 'EQA', def: 'External Quality Assessment — proficiency testing against other labs.' },
+    { term: 'TAT', def: 'Turn-Around Time — how long a test takes from order to result.' },
+    { term: 'NCE', def: 'Non-Conformance Event — a logged deviation from procedure.' },
+    { term: 'FHIR / HL7 / LOINC', def: 'Health-data interoperability standards for exchanging results and codes.' },
+  ]},
+];
+
+/** Map a mockup name to a short code-prefix explanation, or null if it has no code. */
+export function explainCode(name) {
+  const m = /^([A-Z]{1,3})-[A-Z0-9]+[a-z]?\b/.exec(name || '');
+  if (!m) return null;
+  return codePrefixes[m[1]] || null;
+}
+
 /** Determine entry type for visual distinction */
 export function getEntryType(mockup) {
   if (mockup.htmlUrl) return 'html';
@@ -3081,6 +3127,7 @@ function GalleryApp() {
   const [activeTag, setActiveTag] = useState(null);
   const [detailTab, setDetailTab] = useState('preview'); // 'preview' or 'spec'
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'draft', 'review', 'approved'
+  const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [localStatuses, setLocalStatuses] = useState(() => {
     // Load persisted status overrides from localStorage
     try {
@@ -3193,6 +3240,39 @@ function GalleryApp() {
 
   return (
     <div style={{ ...styles.container, background: t.bg, color: t.text }} data-theme={darkMode ? 'dark' : 'light'}>
+      {glossaryOpen && (
+        <div
+          onClick={() => setGlossaryOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '6vh 16px', overflowY: 'auto' }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: t.cardBg, color: t.text, border: `1px solid ${t.border}`, borderRadius: 12, maxWidth: 640, width: '100%', padding: 24, boxShadow: '0 12px 40px rgba(0,0,0,0.35)' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <h2 style={{ margin: 0, fontSize: 20, color: t.text }}>Glossary</h2>
+              <button onClick={() => setGlossaryOpen(false)} aria-label="Close glossary"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, lineHeight: 1, color: t.textMuted }}>×</button>
+            </div>
+            <p style={{ margin: '0 0 8px', fontSize: 13, color: t.textSecondary }}>
+              Quick decoder for the design codes and lab acronyms used across the gallery.
+            </p>
+            {glossary.map((g) => (
+              <div key={g.group} style={{ marginTop: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4, color: t.accent, marginBottom: 6 }}>{g.group}</div>
+                <dl style={{ margin: 0 }}>
+                  {g.terms.map((tm) => (
+                    <div key={tm.term} style={{ display: 'flex', gap: 12, padding: '5px 0', borderTop: `1px solid ${t.border}` }}>
+                      <dt style={{ flex: '0 0 120px', fontWeight: 600, fontSize: 13, color: t.text }}>{tm.term}</dt>
+                      <dd style={{ margin: 0, fontSize: 13, color: t.textSecondary, lineHeight: 1.45 }}>{tm.def}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <header style={{ ...styles.header, borderBottomColor: t.headerBorder }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -3259,6 +3339,14 @@ function GalleryApp() {
             <option key={key} value={key}>{statusConfig[key].icon} {statusConfig[key].label}</option>
           ))}
         </select>
+        <button
+          onClick={() => setGlossaryOpen(true)}
+          style={{ ...styles.statusSelect, background: t.searchBg, borderColor: t.borderInput, color: t.text, cursor: 'pointer', whiteSpace: 'nowrap' }}
+          title="Decode the M-/S-/V- codes and lab acronyms"
+          aria-label="Open glossary"
+        >
+          ❔ Glossary
+        </button>
         <div style={styles.tabs}>
           {categories.map((cat) => (
             <button
@@ -3330,6 +3418,14 @@ function GalleryApp() {
             {selectedMockup.description}
             <span style={{ ...styles.dateTag, color: t.textFaint }}>Added {formatDate(selectedMockup.added || DEFAULT_ADDED)}</span>
           </p>
+          {explainCode(selectedMockup.name) && (
+            <p style={{ margin: '-8px 0 16px', fontSize: 13, color: t.textMuted }}>
+              <button onClick={() => setGlossaryOpen(true)} style={{ background: 'none', border: 'none', padding: 0, color: t.accent, cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}>
+                {selectedMockup.name.match(/^[A-Z]{1,3}-[A-Z0-9]+[a-z]?/)[0]}
+              </button>
+              {' — '}{explainCode(selectedMockup.name)}.
+            </p>
+          )}
           {selectedMockup.relatedTo && selectedMockup.relatedTo.length > 0 && (
             <div style={styles.relatedRow}>
               <span style={{ color: t.textMuted, fontSize: 13 }}>See also:</span>
