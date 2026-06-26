@@ -30,6 +30,13 @@ import App, {
 // Unit tests — pure functions & data integrity
 // ═══════════════════════════════════════════════════════════════
 
+// Leave the Explore landing (default home) and show the flat grid of all mockups.
+// The landing page is the default view; grid-oriented tests enter the grid first.
+function enterGrid() {
+  const allTab = screen.getAllByRole('button').find((b) => /^All \(/.test(b.textContent.trim()));
+  fireEvent.click(allTab);
+}
+
 describe('toSlug', () => {
   it('converts a simple name to lowercase kebab-case', () => {
     expect(toSlug('Data Dictionary')).toBe('data-dictionary');
@@ -367,6 +374,7 @@ describe('App component', () => {
 
   it('renders all cards in default "all" view', () => {
     render(<App />);
+    enterGrid();
     // Each card has a title h3 — count them
     const titles = screen.getAllByRole('heading', { level: 3 });
     expect(titles.length).toBe(MOCKUP_REGISTRY.length);
@@ -430,6 +438,7 @@ describe('App component', () => {
   it('clicking a card opens the detail view', async () => {
     const user = userEvent.setup();
     render(<App />);
+    enterGrid();
 
     // Click the first card
     const firstEntry = MOCKUP_REGISTRY[0];
@@ -444,6 +453,7 @@ describe('App component', () => {
   it('back button returns to gallery view', async () => {
     const user = userEvent.setup();
     render(<App />);
+    enterGrid();
 
     // Open a card — click on the h3 title specifically
     const firstEntry = MOCKUP_REGISTRY[0];
@@ -465,6 +475,7 @@ describe('App component', () => {
   it('detail view shows spec link for entries with specPath', async () => {
     const user = userEvent.setup();
     render(<App />);
+    enterGrid();
 
     // Find an entry with a specPath
     const entryWithSpec = MOCKUP_REGISTRY.find(m => m.specPath);
@@ -478,6 +489,7 @@ describe('App component', () => {
   it('detail view shows Jira badges for entries with jira keys', async () => {
     const user = userEvent.setup();
     render(<App />);
+    enterGrid();
 
     // Find an entry with Jira keys
     const entryWithJira = MOCKUP_REGISTRY.find(m => m.jira && m.jira.length > 0);
@@ -492,6 +504,7 @@ describe('App component', () => {
 
   it('card view shows Jira badges for entries with jira keys', () => {
     render(<App />);
+    enterGrid();
 
     const entryWithJira = MOCKUP_REGISTRY.find(m => m.jira && m.jira.length > 0);
     // The Jira badge should appear in the card grid
@@ -502,6 +515,7 @@ describe('App component', () => {
 
   it('cards show "has spec" badge for non-spec-only entries with specPath', () => {
     render(<App />);
+    enterGrid();
     const specBadges = screen.getAllByText('has spec');
     // "has spec" only shown for entries that have a specPath AND are not spec-only type
     const entriesWithSpecAndMockup = MOCKUP_REGISTRY.filter(m =>
@@ -524,6 +538,7 @@ describe('App component', () => {
   it('detail view shows Mockup Preview / Spec Document tabs for entries with both', async () => {
     const user = userEvent.setup();
     render(<App />);
+    enterGrid();
 
     // Find an entry with both a component and a specPath
     const entryWithBoth = MOCKUP_REGISTRY.find(m => m.component && m.specPath);
@@ -536,6 +551,7 @@ describe('App component', () => {
   it('detail view shows Spec Document tab for spec-only entries', async () => {
     const user = userEvent.setup();
     render(<App />);
+    enterGrid();
 
     // Find a spec-only entry (no component, no htmlUrl, no figmaUrl, but has specPath)
     const specOnly = MOCKUP_REGISTRY.find(m => !m.component && !m.htmlUrl && !m.figmaUrl && m.specPath);
@@ -549,6 +565,7 @@ describe('App component', () => {
   it('clicking Spec Document tab switches to spec view', async () => {
     const user = userEvent.setup();
     render(<App />);
+    enterGrid();
 
     // Find an entry with both a component and a specPath
     const entryWithBoth = MOCKUP_REGISTRY.find(m => m.component && m.specPath);
@@ -753,6 +770,7 @@ describe('GitHub Issues integration', () => {
   it('entries with githubIssue show Discussion tab in detail view', async () => {
     const user = userEvent.setup();
     render(<App />);
+    enterGrid();
 
     const entryWithIssue = MOCKUP_REGISTRY.find(m => m.githubIssue);
     if (!entryWithIssue) return; // skip if none wired yet
@@ -764,6 +782,7 @@ describe('GitHub Issues integration', () => {
   it('entries without githubIssue do NOT show Discussion tab', async () => {
     const user = userEvent.setup();
     render(<App />);
+    enterGrid();
 
     const entryWithoutIssue = MOCKUP_REGISTRY.find(m => !m.githubIssue && m.component);
     if (!entryWithoutIssue) return;
