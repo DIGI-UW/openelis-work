@@ -1,0 +1,1 @@
+function c(s){return`${s/16}rem`}const S={lg:{width:c(1056)}},t=8;function n(s){return c(t*s)}const i=n(.25),o=n(.5),a=n(1),p=n(1.5),g=n(2),e=n(3),r=n(4),b=n(5),m=n(6),u=n(8),f=n(10),z=n(12),F=n(20),U=[i,o,a,p,g,e,r,b,m,u,f,z,F];export{S as b,U as s};

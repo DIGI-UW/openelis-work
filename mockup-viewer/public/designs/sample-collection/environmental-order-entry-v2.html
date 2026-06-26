@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S-03 v2.0: Environmental Order Entry — Standalone (Domain-Assigned Lab)</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner {
+      background: #491d8b; color: #fff;
+      padding: 6px 1rem; font-size: 12px; font-family: monospace;
+    }
+    .preview-content { padding: 1rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .tile { background: #fff; padding: 1.5rem; margin-bottom: 1rem; border: 1px solid #e0e0e0; }
+    .tile h4 { font-size: 16px; font-weight: 600; margin: 0 0 1rem 0; color: #161616; }
+    .tile h5 { font-size: 14px; font-weight: 600; margin: 0 0 0.5rem 0; color: #161616; }
+    .tile p { margin: 0; }
+
+    .grid { display: grid; gap: 1rem; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .grid-5 { grid-template-columns: repeat(5, 1fr); }
+    .grid-6 { grid-template-columns: repeat(6, 1fr); }
+
+    .field-label { font-size: 12px; color: #525252; margin-bottom: 4px; display: block; }
+    .field-value { font-size: 14px; color: #161616; }
+    .mono { font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+    .reg-num-large { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: #161616; letter-spacing: -0.5px; }
+
+    .tag { display: inline-block; padding: 2px 10px; border-radius: 24px; font-size: 12px; font-weight: 500; vertical-align: middle; }
+    .tag-green { background: #defbe6; color: #0e6027; }
+    .tag-blue { background: #d0e2ff; color: #002d9c; }
+    .tag-purple { background: #e8daff; color: #491d8b; }
+    .tag-teal { background: #d9fbfb; color: #004144; }
+    .tag-cyan { background: #bae6ff; color: #003a6d; }
+    .tag-gray { background: #e0e0e0; color: #161616; }
+    .tag-magenta { background: #ffd6e8; color: #740937; }
+    .tag-red { background: #ffd7d9; color: #a2191f; }
+
+    .btn { padding: 8px 16px; font-size: 14px; font-weight: 500; border: none; border-radius: 0; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-primary:hover { background: #0353e9; }
+    .btn-primary:disabled { background: #c6c6c6; color: #8d8d8d; cursor: not-allowed; }
+    .btn-secondary { background: #393939; color: #fff; }
+    .btn-secondary:hover { background: #4c4c4c; }
+    .btn-tertiary { background: #fff; color: #0f62fe; border: 1px solid #0f62fe; }
+    .btn-tertiary:hover { background: #edf5ff; }
+    .btn-ghost { background: transparent; color: #0f62fe; padding: 6px 12px; font-size: 13px; }
+    .btn-ghost:hover { background: rgba(15,98,254,0.08); }
+    .btn-icon { background: transparent; color: #525252; padding: 4px; cursor: pointer; border: none; }
+    .btn-icon:hover { color: #0f62fe; }
+
+    .branch-tile { padding: 1.25rem; border: 1px solid #e0e0e0; cursor: pointer; transition: all 0.15s; background: #fff; min-height: 130px; }
+    .branch-tile:hover { background: #f4f4f4; }
+    .branch-tile.selected { border: 2px solid #0f62fe; background: #edf5ff; }
+    .branch-tile h5 { color: #161616; }
+    .branch-tile p { font-size: 13px; color: #525252; margin-top: 0.5rem; }
+    .branch-helper { font-size: 12px; color: #525252; margin-top: 1rem; }
+    .branch-helper svg { vertical-align: middle; }
+
+    .site-card { border-left: 3px solid #24a148; padding: 1rem; background: #f6fef8; }
+    .standard-card { border-left: 3px solid #0f62fe; padding: 1rem; background: #edf5ff; }
+    .pool-card { border-left: 3px solid #1192e8; padding: 1rem; background: #e5f6ff; }
+
+    .form-field { margin-bottom: 0.75rem; }
+    .form-field label { display: block; font-size: 12px; font-weight: 500; color: #161616; margin-bottom: 6px; }
+    .form-field input, .form-field select, .form-field textarea {
+      width: 100%; padding: 8px 12px; border: none; border-bottom: 2px solid #8d8d8d;
+      font-size: 14px; font-family: inherit; background: #f4f4f4; outline: none; box-sizing: border-box;
+    }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-bottom-color: #0f62fe; background: #fff; }
+    .form-field textarea { resize: vertical; min-height: 60px; }
+    .form-field .helper { font-size: 12px; color: #525252; margin-top: 4px; }
+    .form-field input[readonly] { color: #525252; background: #e0e0e0; }
+    .form-field input[type="number"] { max-width: 100px; }
+
+    .accordion-group { border: 1px solid #e0e0e0; }
+    .accordion-header { padding: 12px 16px; background: #f4f4f4; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 500; font-size: 14px; user-select: none; }
+    .accordion-header:hover { background: #e8e8e8; }
+    .accordion-body { padding: 0; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 10px 12px; background: #f4f4f4; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e0e0e0; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
+    td code { font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: #f4f4f4; padding: 2px 6px; }
+    td input, td select { padding: 4px 8px; font-size: 13px; }
+
+    .notification { padding: 12px 16px; border-left: 3px solid; margin-bottom: 1rem; font-size: 13px; background: #edf5ff; border-color: #0f62fe; }
+    .notification.warning { background: #fff8e1; border-color: #f1c21b; }
+    .notification strong { font-weight: 600; }
+
+    .progress-bar { display: flex; gap: 0; margin-bottom: 1rem; background: #fff; border: 1px solid #e0e0e0; }
+    .progress-step { flex: 1; padding: 12px 16px; font-size: 13px; position: relative; border-right: 1px solid #e0e0e0; cursor: pointer; }
+    .progress-step:last-child { border-right: none; }
+    .progress-step.current { background: #d0e2ff; color: #002d9c; font-weight: 600; }
+    .progress-step.complete { background: #defbe6; color: #0e6027; }
+    .progress-step.pending { background: #f4f4f4; color: #525252; }
+    .progress-step .step-label { display: block; font-weight: 600; }
+    .progress-step .step-desc { font-size: 11px; color: #525252; margin-top: 2px; }
+
+    .header-row { display: flex; align-items: flex-end; gap: 1rem; }
+    .header-row .lab-no { flex: 0 0 280px; }
+    .header-row .badges { flex: 1; display: flex; gap: 8px; align-items: center; }
+
+    .actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 0.5rem; }
+
+    .qc-buttons { display: flex; gap: 8px; align-items: center; }
+    .qc-buttons h4 { flex: 1; margin: 0; }
+
+    .total-samples { font-size: 13px; color: #161616; }
+    .total-samples strong { font-weight: 600; }
+
+    .file-uploader-stub {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 12px; border: 1px dashed #8d8d8d; background: #f4f4f4;
+      font-size: 13px; cursor: pointer;
+    }
+    .file-uploader-stub:hover { background: #e8e8e8; }
+
+    .helper-inline { font-size: 12px; color: #525252; margin-top: 4px; }
+    .step-helper { font-size: 13px; color: #525252; margin-bottom: 1rem; }
+
+    .footer-actions { display: flex; gap: 12px; justify-content: flex-end; align-items: center; }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4, .grid-5, .grid-6 { grid-template-columns: 1fr; }
+      .header-row { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-banner">
+    ⚡ Visual Preview — S-03 v2.0: Environmental Order Entry — Standalone &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application
+  </div>
+  <div class="preview-content" id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useCallback, useMemo, useEffect, Fragment } = React;
+
+    // ─── Mock data ──────────────────────────────────────────────
+    const ALL_SAMPLE_TYPES = [
+      { id:'st-001', name:'Surface Water', code:'WATER_SURFACE' },
+      { id:'st-002', name:'Drinking Water', code:'WATER_DRINKING' },
+      { id:'st-003', name:'Groundwater', code:'WATER_GROUND' },
+      { id:'st-004', name:'Effluent / Wastewater', code:'WATER_EFFLUENT' },
+      { id:'st-005', name:'Ambient Air', code:'AIR_AMBIENT' },
+      { id:'st-006', name:'Emission / Stack', code:'AIR_EMISSION' },
+      { id:'st-007', name:'Topsoil', code:'SOIL_TOP' },
+      { id:'st-008', name:'Sediment', code:'SOIL_SEDIMENT' },
+      { id:'st-009', name:'Sludge', code:'WASTE_SLUDGE' },
+      { id:'st-010', name:'Biota / Tissue', code:'BIO_TISSUE' },
+      { id:'st-011', name:'Other', code:'OTHER' },
+    ];
+
+    const STANDARDS = [
+      { id:'std-001', name:'Baku Mutu Air Permukaan', body:'Pemerintah RI', reg:'PP No. 22/2021', ver:'2021-01', date:'2021-02-02', tests:42, sampleTypeIds:['st-001','st-003','st-004'] },
+      { id:'std-002', name:'Baku Mutu Udara Ambien', body:'Pemerintah RI', reg:'PP No. 41/1999', ver:'1999-01', date:'1999-05-26', tests:18, sampleTypeIds:['st-005','st-006'] },
+      { id:'std-003', name:'WHO Drinking Water Guidelines (4th Ed)', body:'World Health Organization', reg:'WHO-DWG-4', ver:'2011-01', date:'2011-01-01', tests:56, sampleTypeIds:['st-002','st-003'] },
+      { id:'std-004', name:'Pengelolaan Limbah B3', body:'Pemerintah RI', reg:'PP No. 101/2014', ver:'2014-01', date:'2014-10-17', tests:31, sampleTypeIds:['st-007','st-008','st-009','st-001'] },
+      { id:'std-005', name:'Baku Mutu Air Minum', body:'Kemenkes RI', reg:'PMK No. 32/2017', ver:'2017-01', date:'2017-05-12', tests:38, sampleTypeIds:['st-002'] },
+    ];
+
+    const TESTS_BY_STANDARD = {
+      'std-001': [
+        { group:'Physical Parameters', tests:[
+          { id:'t-001', name:'Temperature', loinc:'8310-5', unit:'°C', threshold:'± 3 from ambient' },
+          { id:'t-002', name:'TDS', loinc:'3745-7', unit:'mg/L', threshold:'≤ 1000' },
+          { id:'t-003', name:'TSS', loinc:'4808-2', unit:'mg/L', threshold:'≤ 50' },
+          { id:'t-004', name:'Turbidity', loinc:'61020-8', unit:'NTU', threshold:'≤ 25' },
+        ]},
+        { group:'Chemical Parameters', tests:[
+          { id:'t-005', name:'pH', loinc:'11558-4', unit:'—', threshold:'6.0 – 9.0' },
+          { id:'t-006', name:'Dissolved Oxygen', loinc:'19218-7', unit:'mg/L', threshold:'≥ 4' },
+          { id:'t-007', name:'BOD₅', loinc:'5839-3', unit:'mg/L', threshold:'≤ 3' },
+          { id:'t-008', name:'COD', loinc:'5840-1', unit:'mg/L', threshold:'≤ 25' },
+        ]},
+        { group:'Microbiological', tests:[
+          { id:'t-012', name:'Total Coliform', loinc:'5794-0', unit:'MPN/100mL', threshold:'≤ 5000' },
+          { id:'t-013', name:'Fecal Coliform', loinc:'5799-9', unit:'MPN/100mL', threshold:'≤ 1000' },
+        ]},
+      ],
+    };
+
+    // 2026-04-28 (rewritten same day): flat test catalog + panels for OE Order Panels + Order Tests pattern
+    const TEST_CATALOG = [
+      { id:'t-001', name:'Temperature', loinc:'8310-5', unit:'°C', sampleTypeIds:['st-001','st-002','st-003','st-004'], stdIds:['std-001'] },
+      { id:'t-002', name:'TDS', loinc:'3745-7', unit:'mg/L', sampleTypeIds:['st-001','st-002','st-003','st-004'], stdIds:['std-001','std-003'] },
+      { id:'t-003', name:'TSS', loinc:'4808-2', unit:'mg/L', sampleTypeIds:['st-001','st-004'], stdIds:['std-001'] },
+      { id:'t-004', name:'Turbidity', loinc:'61020-8', unit:'NTU', sampleTypeIds:['st-001','st-002','st-003'], stdIds:['std-001','std-003'] },
+      { id:'t-005', name:'pH', loinc:'11558-4', unit:'—', sampleTypeIds:['st-001','st-002','st-003','st-004'], stdIds:['std-001','std-003'] },
+      { id:'t-006', name:'Dissolved Oxygen', loinc:'19218-7', unit:'mg/L', sampleTypeIds:['st-001'], stdIds:['std-001'] },
+      { id:'t-007', name:'BOD₅', loinc:'5839-3', unit:'mg/L', sampleTypeIds:['st-001','st-004'], stdIds:['std-001'] },
+      { id:'t-008', name:'COD', loinc:'5840-1', unit:'mg/L', sampleTypeIds:['st-001','st-004'], stdIds:['std-001'] },
+      { id:'t-012', name:'Total Coliform', loinc:'5794-0', unit:'MPN/100mL', sampleTypeIds:['st-001','st-002','st-003'], stdIds:['std-001','std-003'] },
+      { id:'t-013', name:'Fecal Coliform', loinc:'5799-9', unit:'MPN/100mL', sampleTypeIds:['st-001','st-003'], stdIds:['std-001'] },
+      { id:'t-014', name:'Lead (Pb)', loinc:'5671-0', unit:'mg/L', sampleTypeIds:['st-001','st-002','st-003','st-004','st-007','st-008'], stdIds:['std-001','std-003','std-004'] },
+      { id:'t-015', name:'Mercury (Hg)', loinc:'5688-4', unit:'mg/L', sampleTypeIds:['st-001','st-002','st-004'], stdIds:['std-001','std-003'] },
+    ];
+
+    const PANELS = [
+      { id:'p-001', name:'Surface Water Physical+Chemical', sampleTypeIds:['st-001'],
+        testIds:['t-001','t-002','t-003','t-004','t-005','t-006','t-007','t-008'], stdIds:['std-001'] },
+      { id:'p-002', name:'Drinking Water Quality', sampleTypeIds:['st-002'],
+        testIds:['t-002','t-004','t-005','t-012','t-014','t-015'], stdIds:['std-003'] },
+      { id:'p-003', name:'Coliform Microbiological', sampleTypeIds:['st-001','st-002','st-003'],
+        testIds:['t-012','t-013'], stdIds:['std-001'] },
+      { id:'p-004', name:'Heavy Metals (Pb, Hg)', sampleTypeIds:['st-001','st-002','st-007','st-008'],
+        testIds:['t-014','t-015'], stdIds:['std-001','std-003','std-004'] },
+    ];
+
+    const SITE = {
+      code:'WS-001', name:'Sungai Ciliwung — Manggarai', type:'Water Source', subtype:'River',
+      region:'DKI Jakarta', district:'Jakarta Selatan', gps:'-6.1885, 106.8114',
+      zone:'Urban', total:47, last:'2026-03-28',
+    };
+
+    const COLLECTION_METHODS = ['Manual Grab','Composite (Time)','Composite (Flow)','Automated Sampler','Passive','Trap Collection','Other'];
+    const WEATHER = ['Clear','Cloudy','Rain','Storm','Wind','Other'];
+    const RECEIPT_CONDS = ['Acceptable','Cold-chain Broken','Container Damaged','Insufficient Volume','Other'];
+    const STORAGE = ['Fridge A — Shelf 1','Fridge A — Shelf 2','Freezer B — Rack 3','Ambient Shelf C-12'];
+    const BLANK_SUBTYPES = ['Field','Trip','Equipment','Method','Other'];
+
+    const LAB_UNIT = { name:'Env Lab — Jakarta', domain:'Environmental' };
+    const DOMAIN_TAGS = { Environmental:'tag-purple', Vector:'tag-teal', Clinical:'tag-blue' };
+
+    // Demo: simulate an inbound referral
+    const REFERRAL = null; // set to { name:'Lab XYZ Bandung', fhirTaskId:'task-987' } to demo referral state
+    const HAS_PARENT_SPECIMENS = false;
+
+    // ─── 2026-05-01 amendment: Submitter (Organization), Program (Questionnaire), Container Types ─
+    const ORGANIZATIONS = [
+      { id:'org-001', name:'Plaza Senayan Cooling Tower Operations', address:'Jl. Asia Afrika, Senayan, Jakarta', contact:'Bapak Andi · andi@psn.co.id · +62 21 555 0042', recent:14 },
+      { id:'org-002', name:'Dinas Pendidikan DKI Jakarta — Water Safety Program', address:'Jl. Gatot Subroto, Jakarta Selatan', contact:'Ibu Lestari · lestari@dinaspendidikan.dki.go.id · +62 21 555 0193', recent:48 },
+      { id:'org-003', name:'PT Inkindo Jaya — Discharge Compliance', address:'Bekasi Industrial Park', contact:'Ibu Siti · siti@inkindo.co.id', recent:6 },
+      { id:'org-004', name:'BAPPEDA Bogor — River Monitoring', address:'Jl. Pajajaran, Bogor', contact:'Pak Hadi · hadi@bappeda.bogor.go.id', recent:23 },
+    ];
+
+    // Requestors (contact persons) — searched & stored exactly like the clinical requesting provider.
+    const CONTACTS = [
+      { id:'c-001', first:'Andi', last:'Wijaya', phone:'+62 21 555 0042', fax:'', email:'andi@psn.co.id', dept:'Facilities', org:'org-001' },
+      { id:'c-002', first:'Lestari', last:'Putri', phone:'+62 21 555 0193', fax:'', email:'lestari@dinaspendidikan.dki.go.id', dept:'Water Safety', org:'org-002' },
+      { id:'c-003', first:'Siti', last:'Rahayu', phone:'+62 21 555 0211', fax:'', email:'siti@inkindo.co.id', dept:'Compliance', org:'org-003' },
+    ];
+
+    const PROGRAMS = [
+      { id:'prog-001', name:'School Water Safety Program', domain:'ENVIRONMENTAL',
+        questionnaire:[
+          { code:'school-name', label:'School Name', type:'text', required:true },
+          { code:'building-age', label:'Building Age (years)', type:'number', required:false },
+          { code:'last-plumbing-inspection', label:'Last Plumbing Inspection', type:'date', required:false },
+          { code:'student-count', label:'Approx. student count', type:'number', required:false },
+        ]},
+      { id:'prog-002', name:'Cooling Tower Compliance', domain:'ENVIRONMENTAL',
+        questionnaire:[
+          { code:'tower-id', label:'Tower ID', type:'text', required:true },
+          { code:'loop-name', label:'Loop / Circuit', type:'select', options:['Open recirculating','Once-through','Closed loop','Make-up'], required:true },
+          { code:'last-cleaning-date', label:'Last cleaning / disinfection date', type:'date', required:false },
+        ]},
+      { id:'prog-003', name:'Industrial Discharge Monitoring', domain:'ENVIRONMENTAL',
+        questionnaire:[
+          { code:'discharge-point', label:'Discharge Point ID', type:'text', required:true },
+          { code:'flow-rate', label:'Flow Rate (m³/h)', type:'number', required:false },
+          { code:'permit-number', label:'Discharge Permit Number', type:'text', required:false },
+        ]},
+    ];
+
+    // Container types live in OE Test Catalog → Env subsection. Seeded list, custom allowed.
+    const CONTAINER_TYPES = [
+      'Whirl-Pak bag',
+      'Glass amber bottle (250 mL)',
+      'Glass amber bottle (1 L)',
+      'Sterile polypropylene bottle (250 mL)',
+      'Sterile polypropylene bottle (1 L)',
+      'Vacuum sample bag (Tedlar)',
+      'Composite jerry can (5 L)',
+      'Composite jerry can (10 L)',
+      'Sediment trap jar',
+      'Filter cassette (47 mm)',
+      'Sterile cooler (insulated)',
+    ];
+
+    // ─── App ─────────────────────────────────────────────────────
+    function App() {
+      const [step, setStep] = useState(0);
+      const [branch, setBranch] = useState(REFERRAL ? 'REGULATION_DRIVEN' : null);
+      const [site] = useState(SITE);
+      const [standards, setStandards] = useState([]);  // 2026-04-28 multi-regulation: array, not single object
+      const [showThresholds, setShowThresholds] = useState(false);
+      const [adhocRegRef, setAdhocRegRef] = useState('');
+      const [manifest, setManifest] = useState([]);
+      const [deselected, setDeselected] = useState(new Set());
+      const [showAddType, setShowAddType] = useState(false);
+      const [showSwitch, setShowSwitch] = useState(null);
+
+      // 2026-05-01: Submitter (Organization)
+      const [submitter, setSubmitter] = useState(null);
+      const [submitterSearch, setSubmitterSearch] = useState('');
+      // Order Entry config: whether free-text / add-new requester entries are allowed (admin-controlled).
+      // Flip to false to preview the "disabled by your administrator" state.
+      const allowNewRequester = true;
+      // Requestor (contact person) — searched & stored like the clinical provider.
+      const [contact, setContact] = useState(null);
+      const [contactSearch, setContactSearch] = useState('');
+      // Edit-locks: a record pulled from search is read-only until the user clicks Edit
+      // (prevents accidental keystrokes from persisting changes to a saved org/contact).
+      const [orgEdit, setOrgEdit] = useState(false);
+      const [contactEdit, setContactEdit] = useState(false);
+
+      // 2026-05-01: Program (FHIR Questionnaire)
+      const [program, setProgram] = useState(null);
+      const [programResponses, setProgramResponses] = useState({});
+
+      // 2026-05-01: CSV bulk upload + per-sample manifest
+      const [sampleRowsManifest, setSampleRowsManifest] = useState([]);  // per-sample rows (NEW shape)
+      const [csvPreview, setCsvPreview] = useState(null);  // null when no CSV uploaded; otherwise { rows, summary }
+      const DEMO_CSV_PREVIEW = {
+        filename:'plaza_senayan_2026-05-01.csv',
+        template:'Standard',
+        rows:[
+          { row:1, sampleType:'Cooling Water', container:'Whirl-Pak bag', gps:'-6.2249, 106.7984', loc:'Tower A — return loop', addr:'Plaza Senayan, Jl. Asia Afrika', dt:'2026-05-01 07:42', collector:'Bapak Andi', status:'VALID', mismatchField:null },
+          { row:2, sampleType:'Cooling Water', container:'Whirl-Pak bag', gps:'-6.2251, 106.7986', loc:'Tower B — return loop', addr:'Plaza Senayan, Jl. Asia Afrika', dt:'2026-05-01 07:48', collector:'Bapak Andi', status:'VALID', mismatchField:null },
+          { row:3, sampleType:'creek_water', container:'Glass bottle 1L', gps:'-6.2255, 106.7990', loc:'Make-up source', addr:'Plaza Senayan', dt:'2026-05-01 07:53', collector:'Bapak Andi', status:'MISMATCH_TYPE', mismatchField:'sampleType' },
+          { row:4, sampleType:'Cooling Water', container:'Mason jar', gps:'-6.2249, 106.7980', loc:'Tower A — supply', addr:'Plaza Senayan', dt:'2026-05-01 07:55', collector:'Bapak Andi', status:'MISMATCH_CONT', mismatchField:'container' },
+        ],
+      };
+
+      const totalCsvRows = csvPreview?.rows.length || 0;
+      const validCsvRows = csvPreview?.rows.filter(r => r.status === 'VALID').length || 0;
+      const mismatchCsvRows = csvPreview?.rows.filter(r => r.status.startsWith('MISMATCH')).length || 0;
+
+      const importValidCsv = () => {
+        if (!csvPreview) return;
+        const valid = csvPreview.rows.filter(r => r.status === 'VALID');
+        setSampleRowsManifest(prev => [
+          ...prev,
+          ...valid.map((r, i) => ({
+            id:`csv-${Date.now()}-${i}`,
+            sampleType:r.sampleType,
+            container:r.container,
+            gps:r.gps,
+            loc:r.loc,
+            addr:r.addr,
+            dt:r.dt,
+            notes:'',
+          })),
+        ]);
+        // remove valid rows from preview, leave mismatches behind
+        setCsvPreview(p => ({ ...p, rows: p.rows.filter(r => r.status !== 'VALID') }));
+      };
+      const reconcileCsvRow = (rowId, field, value) => {
+        setCsvPreview(p => ({ ...p, rows: p.rows.map(r => r.row === rowId
+          ? { ...r, [field]:value, status:'VALID', mismatchField:null }
+          : r) }));
+      };
+      const addManifestRow = () => {
+        setSampleRowsManifest(prev => [...prev, {
+          id:`m-${Date.now()}`, sampleType:'', container:'', gps:'', loc:'', addr:'', dt:'', notes:'',
+        }]);
+      };
+      // 2026-05-01 (later same day): add N rows of a suggested sample type from regulation suggestions
+      const [suggestQty, setSuggestQty] = useState({});  // { sampleTypeId: number }
+      const addSuggestedRows = (sampleType, qty) => {
+        if (qty <= 0) return;
+        setSampleRowsManifest(prev => {
+          const next = [...prev];
+          for (let k = 0; k < qty; k++) {
+            next.push({
+              id:`m-${Date.now()}-${k}`,
+              sampleType:sampleType.name, container:'', gps:'', loc:'', addr:'', dt:'', notes:'',
+            });
+          }
+          return next;
+        });
+        setSuggestQty(prev => ({ ...prev, [sampleType.id]:0 }));
+      };
+      // Suggestions = deduped union of selected regulations' applicable sample types.
+      const regulationSuggestions = useMemo(() => {
+        if (branch !== 'REGULATION_DRIVEN' || standards.length === 0) return [];
+        const ids = new Set();
+        const out = [];
+        standards.forEach(s => (s.sampleTypeIds || []).forEach(stId => {
+          if (ids.has(stId)) return;
+          ids.add(stId);
+          const st = ALL_SAMPLE_TYPES.find(x => x.id === stId);
+          if (!st) return;
+          const coveringStds = standards.filter(x => (x.sampleTypeIds || []).includes(stId));
+          out.push({ ...st, coveringStds });
+        }));
+        return out;
+      }, [branch, standards]);
+      const updateManifestRow = (id, p) => {
+        setSampleRowsManifest(rows => rows.map(r => r.id === id ? { ...r, ...p } : r));
+      };
+      const removeManifestRow = (id) => {
+        setSampleRowsManifest(rows => rows.filter(r => r.id !== id));
+      };
+
+      const [collMethod, setCollMethod] = useState('');
+      const [waterT, setWaterT] = useState('');
+      const [ambientT, setAmbientT] = useState('');
+      const [weather, setWeather] = useState('');
+      const [preserv, setPreserv] = useState('');
+      const [notes, setNotes] = useState('');
+
+      const [sampleRows, setSampleRows] = useState([]);
+      const [bulkStorage, setBulkStorage] = useState('');
+
+      const [qcSamples, setQcSamples] = useState([]);
+      const [nces, setNces] = useState({});
+
+      // ── Branch handlers ──
+      const pickBranch = (b) => {
+        if (branch && branch !== b && (standards.length || manifest.length || adhocRegRef)) {
+          setShowSwitch({ from: branch, to: b });
+          return;
+        }
+        setBranch(b);
+      };
+      const confirmSwitch = () => {
+        setBranch(showSwitch.to);
+        setStandards([]);
+        setManifest([]);
+        setAdhocRegRef('');
+        setDeselected(new Set());
+        setShowSwitch(null);
+      };
+
+      // ── Standard handlers — 2026-04-28: M:N multi-regulation ──
+      const recomputeManifest = (currentStds) => {
+        if (currentStds.length === 0) { setManifest([]); return; }
+        const coverageMap = new Map();
+        currentStds.forEach(std => std.sampleTypeIds.forEach(id => {
+          if (!coverageMap.has(id)) coverageMap.set(id, []);
+          coverageMap.get(id).push(std.id);
+        }));
+        setManifest(prev => {
+          const unioned = Array.from(coverageMap.entries()).map(([id, coverageIds]) => {
+            const existing = prev.find(r => r.sampleTypeId === id);
+            return { sampleTypeId: id, quantity: existing?.quantity || 0, coverageStandardIds: coverageIds, isOverride: false };
+          });
+          const overrides = prev.filter(r => r.isOverride && !coverageMap.has(r.sampleTypeId));
+          return [...unioned, ...overrides];
+        });
+      };
+      const addStandard = (s) => {
+        setStandards(prev => {
+          if (prev.find(x => x.id === s.id)) return prev;
+          const next = [...prev, s];
+          recomputeManifest(next);
+          return next;
+        });
+      };
+      const removeStandard = (id) => {
+        setStandards(prev => {
+          const next = prev.filter(s => s.id !== id);
+          recomputeManifest(next);
+          return next;
+        });
+      };
+
+      // ── Manifest handlers ──
+      const setQty = (sid, q) => {
+        const qty = Math.max(0, Math.min(999, parseInt(q) || 0));
+        setManifest(m => m.map(r => r.sampleTypeId === sid ? { ...r, quantity:qty } : r));
+      };
+      const addType = (id) => {
+        setManifest(m => {
+          if (m.find(r => r.sampleTypeId === id)) return m;
+          const coverageStandardIds = standards.filter(s => s.sampleTypeIds.includes(id)).map(s => s.id);
+          return [...m, { sampleTypeId:id, quantity:1, coverageStandardIds, isOverride: coverageStandardIds.length === 0 }];
+        });
+        setShowAddType(false);
+      };
+      const removeRow = (sid) => setManifest(m => m.filter(r => r.sampleTypeId !== sid));
+
+      // 2026-05-01: derive total + active sample types from new per-sample manifest rows.
+      // Match by sample type NAME against ALL_SAMPLE_TYPES catalog, since CSV/free-text rows store names.
+      const total = useMemo(() => sampleRowsManifest.length, [sampleRowsManifest]);
+      const activeTypes = useMemo(() => {
+        const seen = new Set();
+        sampleRowsManifest.forEach(r => {
+          const st = ALL_SAMPLE_TYPES.find(x => x.name.toLowerCase() === (r.sampleType || '').toLowerCase());
+          if (st) seen.add(st.id);
+        });
+        return Array.from(seen);
+      }, [sampleRowsManifest]);
+
+      // 2026-04-29 (rewritten): Branch-aware test selection
+      // — Regulation-driven: pre-loaded deduped Test Plan + blocked-by-missing-sample + add-extra
+      // — Ad-hoc: existing OE Panels + Tests two-stack UI
+      // Both gated behind ≥1 manifest row with quantity > 0.
+
+      // Ad-hoc branch state
+      const [selectedPanelIds, setSelectedPanelIds] = useState([]);
+      const [selectedTestIds, setSelectedTestIds] = useState([]);
+      const [panelSearch, setPanelSearch] = useState('');
+      const [testSearch, setTestSearch] = useState('');
+
+      // Regulation-driven branch state
+      const [deselectedRegTestIds, setDeselectedRegTestIds] = useState(new Set());
+      const [extraRegTestIds, setExtraRegTestIds] = useState([]);
+      const [showAddExtra, setShowAddExtra] = useState(false);
+      const [addExtraSearch, setAddExtraSearch] = useState('');
+
+      // Reset selection state when branch or standards change
+      useEffect(() => {
+        setSelectedPanelIds([]);
+        setSelectedTestIds([]);
+        setPanelSearch('');
+        setTestSearch('');
+        setDeselectedRegTestIds(new Set());
+        setExtraRegTestIds([]);
+        setShowAddExtra(false);
+        setAddExtraSearch('');
+      }, [branch, standards]);
+
+      // ── Regulation-driven memos ──
+      // All tests linked to any selected standard (deduped, with covering reg ids)
+      const regulationTests = useMemo(() => {
+        if (branch !== 'REGULATION_DRIVEN' || standards.length === 0) return [];
+        const stdIds = new Set(standards.map(s => s.id));
+        return TEST_CATALOG
+          .filter(t => t.stdIds.some(id => stdIds.has(id)))
+          .map(t => ({ ...t, coveringStdIds: t.stdIds.filter(id => stdIds.has(id)) }));
+      }, [branch, standards]);
+      // Tests where at least one applicable sample type is active in manifest
+      const regTestActive = useMemo(() => {
+        const activeSet = new Set(activeTypes);
+        return regulationTests.filter(t => t.sampleTypeIds.some(st => activeSet.has(st)));
+      }, [regulationTests, activeTypes]);
+      // Tests blocked because all their applicable sample types are at quantity 0 (or not in manifest)
+      const regTestBlocked = useMemo(() => {
+        const activeSet = new Set(activeTypes);
+        return regulationTests.filter(t => !t.sampleTypeIds.some(st => activeSet.has(st)));
+      }, [regulationTests, activeTypes]);
+      // Final ordered tests on regulation branch = active included + extras
+      const regulationOrderedTests = useMemo(() => {
+        if (branch !== 'REGULATION_DRIVEN') return [];
+        const list = regTestActive.filter(t => !deselectedRegTestIds.has(t.id))
+          .map(t => ({ ...t, source: 'REGULATION' }));
+        const includedIds = new Set(list.map(t => t.id));
+        extraRegTestIds.forEach(id => {
+          if (!includedIds.has(id)) {
+            const t = TEST_CATALOG.find(x => x.id === id);
+            if (t) list.push({ ...t, source: 'EXTRA' });
+          }
+        });
+        return list;
+      }, [branch, regTestActive, deselectedRegTestIds, extraRegTestIds]);
+
+      // Add-extra picker: tests not already pre-loaded by regs, filtered by active sample types + search
+      const addExtraCandidates = useMemo(() => {
+        if (branch !== 'REGULATION_DRIVEN') return [];
+        const activeSet = new Set(activeTypes);
+        const regTestIdSet = new Set(regulationTests.map(t => t.id));
+        const extraSet = new Set(extraRegTestIds);
+        return TEST_CATALOG.filter(t =>
+          !regTestIdSet.has(t.id) &&
+          !extraSet.has(t.id) &&
+          t.sampleTypeIds.some(st => activeSet.has(st)) &&
+          (!addExtraSearch ||
+            t.name.toLowerCase().includes(addExtraSearch.toLowerCase()) ||
+            t.loinc.includes(addExtraSearch))
+        );
+      }, [branch, activeTypes, regulationTests, extraRegTestIds, addExtraSearch]);
+
+      const toggleRegTest = (id) => setDeselectedRegTestIds(prev => {
+        const n = new Set(prev);
+        n.has(id) ? n.delete(id) : n.add(id);
+        return n;
+      });
+      const removeExtra = (id) => setExtraRegTestIds(prev => prev.filter(x => x !== id));
+      const addExtra = (id) => {
+        setExtraRegTestIds(prev => prev.includes(id) ? prev : [...prev, id]);
+        setAddExtraSearch('');
+      };
+      const skipBlocked = (id) => setDeselectedRegTestIds(prev => {
+        const n = new Set(prev);
+        n.add(id);
+        return n;
+      });
+
+      // ── Ad-hoc branch memos (existing OE Panels + Tests two-stack) ──
+      const testsFromPanels = useMemo(() => {
+        const ids = new Set();
+        selectedPanelIds.forEach(pid => {
+          const p = PANELS.find(x => x.id === pid);
+          if (p) p.testIds.forEach(tid => ids.add(tid));
+        });
+        return ids;
+      }, [selectedPanelIds]);
+
+      const visiblePanels = useMemo(() => {
+        if (!activeTypes.length) return [];
+        const activeSet = new Set(activeTypes);
+        return PANELS.filter(p =>
+          p.sampleTypeIds.some(id => activeSet.has(id)) &&
+          (!panelSearch || p.name.toLowerCase().includes(panelSearch.toLowerCase()))
+        );
+      }, [activeTypes, panelSearch]);
+      const visibleTests = useMemo(() => {
+        if (!activeTypes.length) return [];
+        const activeSet = new Set(activeTypes);
+        return TEST_CATALOG.filter(t =>
+          t.sampleTypeIds.some(id => activeSet.has(id)) &&
+          (!testSearch || t.name.toLowerCase().includes(testSearch.toLowerCase()) || t.loinc.includes(testSearch))
+        );
+      }, [activeTypes, testSearch]);
+
+      const togglePanel = (id) => setSelectedPanelIds(prev =>
+        prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+      );
+      const toggleTest = (id) => {
+        if (testsFromPanels.has(id)) return;
+        setSelectedTestIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+      };
+      const removePanelChip = (id) => setSelectedPanelIds(prev => prev.filter(x => x !== id));
+      const removeTestChip = (id) => {
+        if (testsFromPanels.has(id)) return;
+        setSelectedTestIds(prev => prev.filter(x => x !== id));
+      };
+
+      const adhocSelectedCount = useMemo(() => {
+        const all = new Set([...selectedTestIds, ...Array.from(testsFromPanels)]);
+        return all.size;
+      }, [selectedTestIds, testsFromPanels]);
+
+      // Combined for canAdvance
+      const totalSelectedTests = branch === 'REGULATION_DRIVEN'
+        ? regulationOrderedTests.length
+        : adhocSelectedCount;
+
+      // ── Step 2 handlers ──
+      // 2026-05-01: advanceTo2 reads from per-sample manifest rows directly (one-to-one).
+      const advanceTo2 = () => {
+        const rows = [];
+        let i = 1;
+        sampleRowsManifest.forEach(r => {
+          const st = ALL_SAMPLE_TYPES.find(s => s.name.toLowerCase() === (r.sampleType || '').toLowerCase());
+          rows.push({
+            id:`s-${i}`, idx:i, type:st || { name:r.sampleType, code:'?' },
+            container:r.container, gps:r.gps, loc:r.loc, addr:r.addr,
+            accession:`ENV-2026-0412.${String(i).padStart(3,'0')}`,
+            barcode:'', dt:r.dt || '', cond:'', storage:'',
+          });
+          i++;
+          // dummy loop boundary preserved for diff stability
+          for (let k = 0; k < 0; k++) {
+            i++;
+          }
+        });
+        setSampleRows(rows);
+        setStep(1);
+      };
+      const updRow = (id, p) => setSampleRows(r => r.map(x => x.id === id ? {...x, ...p} : x));
+      const applyBulk = () => {
+        if (!bulkStorage) return;
+        setSampleRows(r => r.map(x => ({ ...x, storage:bulkStorage })));
+      };
+
+      // ── Step 3 handlers ──
+      const addQc = (type) => {
+        const idx = qcSamples.filter(q => q.type === type).length + 1;
+        const prefix = type === 'BLANK' ? 'BLNK' : type === 'DUPLICATE' ? 'DUP' : 'CTRL';
+        setQcSamples(q => [...q, {
+          id:`qc-${q.length+1}`,
+          qcId:`QC-${prefix}-${String(idx).padStart(3,'0')}`,
+          type,
+          subtype: type === 'BLANK' ? 'Field' : '',
+          parent: '',
+          materialName: '',
+          materialSource: '',
+          storage: '',
+        }]);
+      };
+      const updQc = (id, p) => setQcSamples(q => q.map(x => x.id === id ? {...x, ...p} : x));
+      const rmQc = (id) => setQcSamples(q => q.filter(x => x.id !== id));
+
+      const flagNce = (sid) => {
+        setNces(prev => {
+          const cur = prev[sid];
+          if (!cur) return { ...prev, [sid]:{ code:'COND-BROKEN', decision:'flag' } };
+          if (cur.decision === 'flag') return { ...prev, [sid]:{ code:'HOLD-EXCEEDED', decision:'reject' } };
+          const { [sid]:_, ...rest } = prev;
+          return rest;
+        });
+      };
+
+      const canAdvance1 = total > 0 && collMethod && totalSelectedTests > 0 &&
+        (branch === 'AD_HOC' || (branch === 'REGULATION_DRIVEN' && standards.length > 0));
+
+      return (
+        <div>
+          {/* ── Progress Indicator ─────────────────────────────── */}
+          <div className="progress-bar">
+            <div className={`progress-step ${step === 0 ? 'current' : step > 0 ? 'complete' : 'pending'}`} onClick={() => setStep(0)}>
+              <span className="step-label">1 — Branch & Order Setup</span>
+              <span className="step-desc">Branch, site, manifest, conditions</span>
+            </div>
+            <div className={`progress-step ${step === 1 ? 'current' : step > 1 ? 'complete' : 'pending'}`} onClick={() => sampleRows.length && setStep(1)}>
+              <span className="step-label">2 — Label & Store</span>
+              <span className="step-desc">Per-sample labeling, storage</span>
+            </div>
+            <div className={`progress-step ${step === 2 ? 'current' : 'pending'}`} onClick={() => sampleRows.length && setStep(2)}>
+              <span className="step-label">3 — QA / QC + Intake</span>
+              <span className="step-desc">NCE, QC samples, submit batch</span>
+            </div>
+          </div>
+
+          {/* ── Action Bar — Lab Number + Domain Badge + Referral Tag + Report NCE button (2026-05-01) ─ */}
+          <div className="tile" style={{ position:'sticky', top:0, zIndex:10, marginBottom:'1rem' }}>
+            <div className="header-row" style={{ display:'flex', alignItems:'flex-end', gap:16 }}>
+              <div className="lab-no form-field" style={{ marginBottom:0 }}>
+                <label>Lab Number</label>
+                <input type="text" value="ENV-2026-0412" readOnly />
+                <span className="helper">Auto-generated</span>
+              </div>
+              <div className="badges" style={{ flex:1 }}>
+                <span className={`tag ${DOMAIN_TAGS[LAB_UNIT.domain]}`} title={`This order belongs to ${LAB_UNIT.name} (${LAB_UNIT.domain})`}>
+                  {LAB_UNIT.domain}
+                </span>
+                {REFERRAL && (
+                  <span className="tag tag-cyan">📥 Referral: {REFERRAL.name}</span>
+                )}
+              </div>
+              {/* 2026-05-01: Report NCE button — opens existing OE NCE dialog scoped to order (or sample if a row is highlighted) */}
+              <button className="btn btn-ghost"
+                      style={{ border:'1px solid #da1e28', color:'#da1e28', fontSize:13 }}
+                      onClick={() => alert('Opens existing OE NCE dialog (scope: Order or Sample). No new dialog component — wires existing infra onto Step 1.')}>
+                ⚠ Report NCE
+              </button>
+            </div>
+          </div>
+
+          {/* ════════════════════════════════════════════════════════
+              STEP 1 — Branch & Order Setup (single page)
+              ════════════════════════════════════════════════════════ */}
+          {step === 0 && (
+            <Fragment>
+              {/* Branch Selector */}
+              <div className="tile">
+                <h4>Order Type</h4>
+                <div className="grid grid-2">
+                  <div className={`branch-tile ${branch === 'REGULATION_DRIVEN' ? 'selected' : ''}`}
+                       onClick={() => pickBranch('REGULATION_DRIVEN')}>
+                    <h5>Regulation-driven</h5>
+                    <p>Order is governed by a compliance standard. Tests will be suggested based on the standard's linked thresholds.</p>
+                  </div>
+                  <div className={`branch-tile ${branch === 'AD_HOC' ? 'selected' : ''}`}
+                       onClick={() => pickBranch('AD_HOC')}>
+                    <h5>Ad-hoc</h5>
+                    <p>Site-driven. Pick tests freely from the catalog. Optional regulatory reference for audit trail.</p>
+                  </div>
+                </div>
+                {REFERRAL && (
+                  <p className="branch-helper">ⓘ Auto-set when order arrives from referral. You can override.</p>
+                )}
+              </div>
+
+              {/* ── Submitter (Organization) — NEW 2026-05-01 ───────────── */}
+              {branch && (
+                <div className="tile">
+                  <h4>Requester</h4>
+                  <p className="step-helper">The customer requesting this order: a <b>Requesting Organization</b> (the company) plus a <b>Requestor</b> (the contact person). At least one is required. Free-text is allowed or restricted per the Order Entry configuration; new values are saved for reuse.</p>
+                  {!submitter ? (
+                    <div className="form-field" style={{ position:'relative' }}>
+                      <label>Requesting Organization</label>
+                      <input type="text"
+                             placeholder="Search organizations…"
+                             value={submitterSearch}
+                             onChange={(e) => setSubmitterSearch(e.target.value)} />
+                      {submitterSearch && (
+                        <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'#fff', border:'1px solid #e0e0e0', borderTop:'none', maxHeight:200, overflowY:'auto', zIndex:5 }}>
+                          {ORGANIZATIONS.filter(o => o.name.toLowerCase().includes(submitterSearch.toLowerCase())).map(o => (
+                            <div key={o.id} style={{ padding:'8px 12px', cursor:'pointer', borderBottom:'1px solid #f4f4f4' }}
+                                 onClick={() => { setSubmitter(o); setSubmitterSearch(''); setOrgEdit(false); }}>
+                              <div style={{ fontWeight:500 }}>{o.name}</div>
+                              <div style={{ fontSize:12, color:'#525252' }}>{o.address}</div>
+                            </div>
+                          ))}
+                          {/* Add-new is gated by the Order Entry config. allowNewRequester=true → enabled link; false → disabled note. */}
+                          <div style={{ padding:'8px 12px', borderTop:'1px solid #e0e0e0', background:'#f4f4f4' }}>
+                            {allowNewRequester ? (
+                              <a href="#" style={{ color:'#0f62fe', fontSize:13 }} onClick={(e) => { e.preventDefault(); setSubmitter({ id:'new', name: submitterSearch || 'New organization', address:'', recent:0, contact:'' }); setSubmitterSearch(''); setOrgEdit(true); }}>+ Add new organization</a>
+                            ) : (
+                              <span style={{ color:'#8d8d8d', fontSize:13, fontStyle:'italic' }} title="Enable free-text entry in Admin → General Configuration → Order Entry">+ Add new organization — disabled by your administrator</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      <span className="helper">Same search/store mechanism as the clinical requesting provider. Adding a new organization is available only when the Order Entry configuration allows free-text entry; otherwise it is shown disabled with a clear admin message.</span>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ background:'#f4f4f4', padding:'12px 16px', borderRadius:4, display:'flex', gap:16 }}>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontWeight:600 }}>{submitter.name}</div>
+                          <div style={{ fontSize:12, color:'#525252', marginTop:2 }}>{submitter.address}</div>
+                          <div style={{ fontSize:11, color:'#525252', marginTop:6 }}>
+                            <span className="tag tag-blue" style={{ fontSize:10 }}>{submitter.recent} orders in last 90 days</span>
+                          </div>
+                        </div>
+                        <button className="btn btn-ghost" onClick={() => setSubmitter(null)}>Change</button>
+                      </div>
+                      {/* Full Organization field set — read-only when pulled from search; Edit unlocks (avoids accidental persisted changes). */}
+                      <div style={{ marginTop:12 }}>
+                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                          <label>Organization details</label>
+                          {submitter.id !== 'new' && (
+                            <a href="#" style={{ color:'#0f62fe', fontSize:12 }} onClick={(e) => { e.preventDefault(); setOrgEdit(!orgEdit); }}>{orgEdit ? 'Done editing' : 'Edit details'}</a>
+                          )}
+                        </div>
+                        <p className="helper" style={{ marginTop:0 }}>{orgEdit ? 'Editing — changes are saved to this organization for reuse.' : 'Pulled from the registry (read-only). Click Edit details to change — prevents accidental edits.'}</p>
+                        <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+                          <div className="form-field" style={{ flex:2, minWidth:200 }}><label>Address / City</label><input type="text" defaultValue={submitter.address||''} placeholder="Street, city" disabled={!orgEdit} /></div>
+                          <div className="form-field" style={{ flex:1, minWidth:120 }}><label>Phone</label><input type="text" placeholder="Organization phone" disabled={!orgEdit} /></div>
+                          <div className="form-field" style={{ flex:1, minWidth:120 }}><label>Fax</label><input type="text" placeholder="Organization fax" disabled={!orgEdit} /></div>
+                          <div className="form-field" style={{ flex:1, minWidth:160 }}><label>Email</label><input type="text" placeholder="org@example.org" disabled={!orgEdit} /></div>
+                        </div>
+                      </div>
+                      {/* Requestor (contact person) — searched & stored exactly like the clinical requesting provider. */}
+                      <div style={{ marginTop:12 }}>
+                        <label>Requestor (contact person)</label>
+                        <p className="helper" style={{ marginTop:0 }}>The person who placed the order. Search the contact registry (same mechanism as the clinical requesting provider); the full record is editable and saved for reuse. At least one of Requesting Organization or Requestor is required.</p>
+                        {!contact ? (
+                          <div className="form-field" style={{ position:'relative' }}>
+                            <input type="text" placeholder="Search requestors by name…" value={contactSearch}
+                                   onChange={(e) => setContactSearch(e.target.value)} />
+                            {contactSearch && (
+                              <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'#fff', border:'1px solid #e0e0e0', borderTop:'none', maxHeight:200, overflowY:'auto', zIndex:5 }}>
+                                {CONTACTS.filter(c => (c.first+' '+c.last).toLowerCase().includes(contactSearch.toLowerCase())).map(c => (
+                                  <div key={c.id} style={{ padding:'8px 12px', cursor:'pointer', borderBottom:'1px solid #f4f4f4' }}
+                                       onClick={() => { setContact(c); setContactSearch(''); setContactEdit(false); }}>
+                                    <div style={{ fontWeight:500 }}>{c.first} {c.last}</div>
+                                    <div style={{ fontSize:12, color:'#525252' }}>{c.dept} · {c.email || c.phone}</div>
+                                  </div>
+                                ))}
+                                <div style={{ padding:'8px 12px', borderTop:'1px solid #e0e0e0', background:'#f4f4f4' }}>
+                                  {allowNewRequester ? (
+                                    <a href="#" style={{ color:'#0f62fe', fontSize:13 }} onClick={(e) => { e.preventDefault(); setContact({ id:'new', first:'', last:'', phone:'', fax:'', email:'', dept:'' }); setContactSearch(''); setContactEdit(true); }}>+ Add new requestor / contact</a>
+                                  ) : (
+                                    <span style={{ color:'#8d8d8d', fontSize:13, fontStyle:'italic' }} title="Enable free-text entry in Admin → General Configuration → Order Entry">+ Add new requestor — disabled by your administrator</span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            <span className="helper">Adding a new requestor is available only when the Order Entry configuration allows free-text entry; otherwise it is shown disabled with a clear admin message.</span>
+                          </div>
+                        ) : (
+                          <div>
+                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+                              <span className="helper" style={{ margin:0 }}>{contactEdit ? 'Editing — changes are saved to this requestor for reuse.' : 'Pulled from the registry (read-only). Click Edit details to change — prevents accidental edits.'}</span>
+                              <span>
+                                {contact.id !== 'new' && (
+                                  <a href="#" style={{ color:'#0f62fe', fontSize:12, marginRight:12 }} onClick={(e) => { e.preventDefault(); setContactEdit(!contactEdit); }}>{contactEdit ? 'Done editing' : 'Edit details'}</a>
+                                )}
+                                <button className="btn btn-ghost" onClick={() => { setContact(null); setContactEdit(false); }}>Change</button>
+                              </span>
+                            </div>
+                            <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+                              <div className="form-field" style={{ flex:1, minWidth:120 }}><label>First Name</label><input type="text" defaultValue={contact.first} placeholder="First name" disabled={!contactEdit} /></div>
+                              <div className="form-field" style={{ flex:1, minWidth:120 }}><label>Last Name</label><input type="text" defaultValue={contact.last} placeholder="Last name" disabled={!contactEdit} /></div>
+                              <div className="form-field" style={{ flex:1, minWidth:120 }}><label>Phone</label><input type="text" defaultValue={contact.phone} placeholder="Phone" disabled={!contactEdit} /></div>
+                              <div className="form-field" style={{ flex:1, minWidth:120 }}><label>Fax</label><input type="text" defaultValue={contact.fax} placeholder="Fax" disabled={!contactEdit} /></div>
+                              <div className="form-field" style={{ flex:1, minWidth:160 }}><label>Email</label><input type="text" defaultValue={contact.email} placeholder="Email" disabled={!contactEdit} /></div>
+                              <div className="form-field" style={{ flex:1, minWidth:140 }}><label>Department</label><input type="text" defaultValue={contact.dept} placeholder="Department / unit" disabled={!contactEdit} /></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Sampling Site (always when branch chosen) */}
+              {branch && (
+                <div className="tile">
+                  <h4>Sampling Site</h4>
+                  <div className="site-card">
+                    <div className="grid grid-5">
+                      <div style={{ gridColumn:'span 2' }}>
+                        <p style={{ fontWeight:600, fontSize:14 }}>{site.code} — {site.name}</p>
+                        <div style={{ marginTop:4 }}>
+                          <span className="tag tag-teal">{site.type}</span>
+                          <span className="tag tag-gray" style={{ marginLeft:4 }}>{site.subtype}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="field-label">Region</span>
+                        <span className="field-value">{site.region} &gt; {site.district}</span>
+                      </div>
+                      <div>
+                        <span className="field-label">GPS</span>
+                        <span className="field-value mono">{site.gps}</span>
+                      </div>
+                      <div>
+                        <span className="field-label">Zone / Collections</span>
+                        <span className="field-value">{site.zone} · {site.total} (last: {site.last})</span>
+                      </div>
+                    </div>
+                    <div className="actions" style={{ marginTop:'1rem' }}>
+                      <button className="btn btn-ghost">✎ Change Site</button>
+                      <button className="btn btn-ghost">✕ Clear</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Program (FHIR Questionnaire — Optional) — NEW 2026-05-01 ── */}
+              {branch && (
+                <div className="tile">
+                  <h4>Program <span style={{ fontWeight:400, color:'#525252', fontSize:13 }}>(optional)</span></h4>
+                  <p className="step-helper">Select a program to capture program-specific metadata. Programs are configured in Admin → Programs and scoped to the env domain.</p>
+                  <div className="form-field">
+                    <label>Program</label>
+                    <select value={program?.id || ''}
+                            onChange={(e) => {
+                              const p = PROGRAMS.find(x => x.id === e.target.value);
+                              setProgram(p || null);
+                              setProgramResponses({});
+                            }}>
+                      <option value="">— No program —</option>
+                      {PROGRAMS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </div>
+                  {program && (
+                    <div style={{ background:'#f4f4f4', padding:'12px 16px', borderRadius:4, marginTop:12 }}>
+                      <div style={{ fontSize:11, color:'#525252', letterSpacing:1, marginBottom:8, textTransform:'uppercase' }}>
+                        ⓘ Rendered from FHIR Questionnaire · {program.name}
+                      </div>
+                      <div className="grid grid-2" style={{ gap:12 }}>
+                        {program.questionnaire.map(q => (
+                          <div key={q.code} className="form-field" style={{ marginBottom:0 }}>
+                            <label>{q.label}{q.required && ' *'}</label>
+                            {q.type === 'select' ? (
+                              <select value={programResponses[q.code] || ''}
+                                      onChange={(e) => setProgramResponses(r => ({ ...r, [q.code]:e.target.value }))}>
+                                <option value="">Select…</option>
+                                {q.options.map(o => <option key={o} value={o}>{o}</option>)}
+                              </select>
+                            ) : q.type === 'date' ? (
+                              <input type="date" value={programResponses[q.code] || ''}
+                                     onChange={(e) => setProgramResponses(r => ({ ...r, [q.code]:e.target.value }))} />
+                            ) : (
+                              <input type={q.type === 'number' ? 'number' : 'text'}
+                                     value={programResponses[q.code] || ''}
+                                     onChange={(e) => setProgramResponses(r => ({ ...r, [q.code]:e.target.value }))} />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Compliance Standards (regulation-driven only) — 2026-04-28 multi-regulation */}
+              {branch === 'REGULATION_DRIVEN' && (
+                <div className="tile">
+                  <h4>Compliance Standards</h4>
+                  <p className="helper" style={{ marginBottom: 12 }}>
+                    Select <strong>one or more</strong> standards. Tests, thresholds, and downstream evaluation will be union'd across all selected standards. All weighted equally (no "primary").
+                  </p>
+                  <div className="form-field">
+                    <label>Add Compliance Standard ({standards.length} selected)</label>
+                    <select value="" onChange={(e) => {
+                      const s = STANDARDS.find(x => x.id === e.target.value);
+                      if (s) addStandard(s);
+                      e.target.value = '';
+                    }}>
+                      <option value="">Search by regulation number, name, or issuing body…</option>
+                      {STANDARDS.filter(s => !standards.find(ss => ss.id === s.id)).map(s => (
+                        <option key={s.id} value={s.id}>{s.reg} — {s.name}</option>
+                      ))}
+                    </select>
+                    <span className="helper">Type the regulation number from your paperwork (e.g. PP No. 22/2021). Add more by repeating.</span>
+                  </div>
+
+                  {/* Selected Standards Stack — one card per selection */}
+                  {standards.length > 0 && (
+                    <div style={{ display:'flex', flexDirection:'column', gap:12, marginTop:16 }}>
+                      {standards.map((std, idx) => (
+                        <div key={std.id} className="standard-card">
+                          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom: 8 }}>
+                            <div style={{ flex: 1 }}>
+                              <span className="field-label">#{idx + 1} · Regulation Number</span>
+                              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                                <span className="reg-num-large">{std.reg}</span>
+                                <button className="btn-icon" title="Copy regulation number" onClick={() => navigator.clipboard?.writeText(std.reg)}>📋</button>
+                                <span className="tag tag-green">Active</span>
+                              </div>
+                            </div>
+                            <button className="btn btn-ghost" onClick={() => removeStandard(std.id)} style={{ fontSize: 12 }}>
+                              ✕ Remove
+                            </button>
+                          </div>
+                          <div className="grid grid-4">
+                            <div style={{ gridColumn:'span 2' }}>
+                              <span className="field-label">Standard Name</span>
+                              <span className="field-value" style={{ fontWeight: 500 }}>{std.name}</span>
+                            </div>
+                            <div>
+                              <span className="field-label">Issuing Body</span>
+                              <span className="field-value">{std.body}</span>
+                            </div>
+                            <div>
+                              <span className="field-label">Version · Tests</span>
+                              <span className="field-value">{std.ver} · {std.tests}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Test Catalog Picker (ad-hoc only) — 2026-04-28 REMOVED.
+                  Unified Order Panels + Order Tests section below now serves both branches. */}
+
+              {/* Regulatory Reference (ad-hoc only) */}
+              {branch === 'AD_HOC' && (
+                <div className="tile">
+                  <div className="form-field" style={{ marginBottom:0 }}>
+                    <label>Regulatory Reference (optional)</label>
+                    <textarea
+                      value={adhocRegRef}
+                      onChange={(e) => setAdhocRegRef(e.target.value)}
+                      maxLength={500}
+                      rows={2}
+                      placeholder="e.g., requisition references PP No. 22/2021 but client is requesting partial test panel only"
+                    />
+                    <span className="helper">Note any regulation referenced on the requisition. Optional — for audit trail only.</span>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Sample Intake — CSV Bulk Upload + Per-Sample Manifest (rewritten 2026-05-01) ── */}
+              {branch && (
+                <div className="tile">
+                  <h4>Sample Intake</h4>
+                  <p className="step-helper">Upload a CSV of pre-collected samples (primary path), or add rows manually below. One row = one physical sample. Each row carries Container Type, GPS, Location Details, Address.</p>
+
+                  {/* ─ A. CSV Bulk Upload ─ */}
+                  <div style={{ background:'#f4f4f4', padding:'12px 16px', borderRadius:4, marginBottom:'1rem' }}>
+                    <div style={{ fontWeight:600, marginBottom:8 }}>A. CSV Bulk Upload</div>
+                    <div style={{ display:'flex', gap:16, marginBottom:12 }}>
+                      <div style={{ flex:1, padding:16, background:'#fff', border:'2px dashed #c6c6c6', textAlign:'center', borderRadius:4 }}>
+                        <div style={{ fontSize:13, fontWeight:500, marginBottom:6 }}>⬇ Download CSV Template</div>
+                        <div style={{ fontSize:11, color:'#525252', marginBottom:10 }}>Pre-formatted env columns (sample type, container type, GPS, location, address, collection date/time, collector, notes).</div>
+                        <div style={{ display:'flex', gap:6, justifyContent:'center', flexWrap:'wrap' }}>
+                          <button className="btn btn-ghost" style={{ fontSize:12, border:'1px solid #0f62fe' }}>Standard</button>
+                          <button className="btn btn-ghost" style={{ fontSize:12, border:'1px solid #c6c6c6', color:'#525252' }}>10×10 Box</button>
+                          <button className="btn btn-ghost" style={{ fontSize:12, border:'1px solid #c6c6c6', color:'#525252' }}>96-Well Plate</button>
+                        </div>
+                      </div>
+                      <div style={{ flex:1, padding:16, background:'#edf5ff', border:'2px dashed #0f62fe', textAlign:'center', borderRadius:4, cursor:'pointer' }}
+                           onClick={() => setCsvPreview(DEMO_CSV_PREVIEW)}>
+                        <div style={{ fontSize:13, fontWeight:500, marginBottom:6, color:'#0f62fe' }}>⬆ Upload CSV File</div>
+                        <div style={{ fontSize:11, color:'#525252' }}>Drag &amp; drop or click to browse.<br/>.csv up to 5 MB.</div>
+                        {!csvPreview && <div style={{ fontSize:10, color:'#525252', marginTop:8, fontStyle:'italic' }}>(click to load demo preview)</div>}
+                      </div>
+                    </div>
+
+                    {/* CSV Preview Table */}
+                    {csvPreview && (
+                      <div style={{ background:'#fff', border:'1px solid #e0e0e0', borderRadius:4 }}>
+                        <div style={{ padding:'10px 14px', background:'#f4f4f4', borderBottom:'1px solid #e0e0e0', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:13 }}>
+                            <span style={{ fontWeight:500 }}>Preview: {csvPreview.filename}</span>
+                            <span className="tag tag-blue" style={{ fontSize:10 }}>{totalCsvRows} parsed</span>
+                            <span className="tag" style={{ background:'#defbe6', color:'#0e6027', fontSize:10 }}>{validCsvRows} valid</span>
+                            {mismatchCsvRows > 0 && <span className="tag" style={{ background:'#fcf4d6', color:'#684e00', fontSize:10 }}>{mismatchCsvRows} need attention</span>}
+                          </div>
+                          <button className="btn btn-ghost" style={{ fontSize:12 }} onClick={() => setCsvPreview(null)}>Clear</button>
+                        </div>
+                        {/* Bulk-apply banner for repeat mismatches */}
+                        {mismatchCsvRows > 0 && (
+                          <div style={{ padding:'8px 14px', background:'#fff8e1', borderBottom:'1px solid #f1c21b', fontSize:12, color:'#525252' }}>
+                            ⚡ <strong>Bulk fix:</strong> if multiple rows share the same unknown value, fix one and apply to all.
+                          </div>
+                        )}
+                        <div style={{ overflowX:'auto' }}>
+                          <table style={{ fontSize:11 }}>
+                            <thead>
+                              <tr>
+                                <th>#</th><th>Sample Type</th><th>Container</th><th>GPS</th><th>Location</th><th>Address</th><th>Status</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {csvPreview.rows.map(r => (
+                                <tr key={r.row} style={r.status !== 'VALID' ? { background:'#fff8e1' } : {}}>
+                                  <td>{r.row}</td>
+                                  <td>
+                                    {r.mismatchField === 'sampleType' ? (
+                                      <select style={{ border:'1px solid #da1e28', background:'#fff8e1', fontSize:11 }}
+                                              value=""
+                                              onChange={(e) => reconcileCsvRow(r.row, 'sampleType', e.target.value)}>
+                                        <option value="" disabled>⚠ {r.sampleType} — pick…</option>
+                                        <optgroup label="Suggested by selected regulation(s)">
+                                          {standards.flatMap(s => s.sampleTypeIds || []).filter((v,i,a) => a.indexOf(v) === i).map(stId => {
+                                            const st = ALL_SAMPLE_TYPES.find(x => x.id === stId);
+                                            return st ? <option key={stId} value={st.name}>{st.name}</option> : null;
+                                          })}
+                                        </optgroup>
+                                        <optgroup label="Or pick from full Test Catalog">
+                                          {ALL_SAMPLE_TYPES.map(st => <option key={st.id} value={st.name}>{st.name}</option>)}
+                                        </optgroup>
+                                      </select>
+                                    ) : r.sampleType}
+                                  </td>
+                                  <td>
+                                    {r.mismatchField === 'container' ? (
+                                      <select style={{ border:'1px solid #da1e28', background:'#fff8e1', fontSize:11 }}
+                                              value=""
+                                              onChange={(e) => reconcileCsvRow(r.row, 'container', e.target.value)}>
+                                        <option value="" disabled>⚠ {r.container} — pick…</option>
+                                        <optgroup label="OE Test Catalog → Env subsection">
+                                          {CONTAINER_TYPES.map(c => <option key={c} value={c}>{c}</option>)}
+                                        </optgroup>
+                                      </select>
+                                    ) : r.container}
+                                  </td>
+                                  <td><code style={{ fontSize:10 }}>{r.gps}</code></td>
+                                  <td>{r.loc}</td>
+                                  <td style={{ maxWidth:140, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.addr}</td>
+                                  <td>
+                                    {r.status === 'VALID' && <span style={{ color:'#0e6027' }}>✓ Valid</span>}
+                                    {r.status === 'MISMATCH_TYPE' && <span style={{ color:'#684e00' }}>⚠ Unknown type</span>}
+                                    {r.status === 'MISMATCH_CONT' && <span style={{ color:'#684e00' }}>⚠ Unknown container</span>}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <div style={{ padding:'10px 14px', borderTop:'1px solid #e0e0e0', display:'flex', gap:10, justifyContent:'flex-end' }}>
+                          <button className="btn btn-ghost" style={{ fontSize:12 }}>Fix Issues</button>
+                          <button className="btn btn-primary" style={{ fontSize:12 }}
+                                  onClick={importValidCsv}
+                                  disabled={validCsvRows === 0}>
+                            Import {validCsvRows} Valid Sample{validCsvRows === 1 ? '' : 's'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ─ B. Per-Sample Manifest Table ─ */}
+                  <div style={{ fontWeight:600, marginBottom:8 }}>B. Per-Sample Manifest <span style={{ fontWeight:400, color:'#525252', fontSize:13 }}>(one row = one physical sample)</span></div>
+
+                  {/* 2026-05-01: Quick-add strip — regulation-suggested sample types with per-suggestion qty stepper.
+                      Pre-loaded; no click needed to reveal. Type a number, hit Add, and N rows appear below. */}
+                  {branch === 'REGULATION_DRIVEN' && regulationSuggestions.length > 0 && (
+                    <div style={{ background:'#f4f4f4', padding:'10px 14px', borderRadius:4, marginBottom:12 }}>
+                      <div style={{ fontSize:12, color:'#525252', marginBottom:8, letterSpacing:0.5 }}>
+                        ⚡ <strong>Quick-add from regulation suggestions</strong> · {standards.map(s => s.reg).join(' + ')} · type a count, hit Add to create N rows
+                      </div>
+                      <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+                        {regulationSuggestions.map(st => {
+                          const qty = suggestQty[st.id] || 0;
+                          return (
+                            <div key={st.id}
+                                 style={{ display:'flex', alignItems:'center', gap:6,
+                                          background:'#fff', border:'1px solid #e0e0e0', borderRadius:4,
+                                          padding:'6px 10px', fontSize:12 }}>
+                              <span style={{ fontWeight:500 }}>{st.name}</span>
+                              <div style={{ display:'flex', gap:2 }}>
+                                {st.coveringStds.map(s => (
+                                  <span key={s.id} className="tag tag-purple" style={{ fontSize:10, padding:'1px 6px' }}>{s.reg}</span>
+                                ))}
+                              </div>
+                              <input type="number" min={0} max={99}
+                                     value={qty}
+                                     onChange={(e) => setSuggestQty(p => ({ ...p, [st.id]:Math.max(0, parseInt(e.target.value) || 0) }))}
+                                     style={{ width:50, padding:'2px 6px', fontSize:12 }}
+                                     placeholder="0" />
+                              <button className="btn btn-ghost"
+                                      style={{ fontSize:11, padding:'2px 8px',
+                                               color: qty > 0 ? '#0f62fe' : '#a8a8a8',
+                                               border:'1px solid ' + (qty > 0 ? '#0f62fe' : '#e0e0e0') }}
+                                      onClick={() => addSuggestedRows(st, qty)}
+                                      disabled={qty <= 0}>
+                                + Add {qty || ''}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {sampleRowsManifest.length === 0 ? (
+                    <p className="step-helper" style={{ background:'#f4f4f4', padding:'12px 16px', borderRadius:4 }}>
+                      No samples yet. Upload a CSV above, or click <strong>+ Add sample row</strong> below to start manually.
+                    </p>
+                  ) : (
+                    <div style={{ overflowX:'auto', border:'1px solid #e0e0e0', borderRadius:4 }}>
+                      <table style={{ fontSize:12 }}>
+                        <thead>
+                          <tr>
+                            <th>#</th><th>Sample Type</th><th>Container</th><th>GPS</th><th>Location Details</th><th>Address</th><th>Collected</th><th></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sampleRowsManifest.map((r, i) => (
+                            <tr key={r.id}>
+                              <td>{i + 1}</td>
+                              <td>
+                                <input type="text" value={r.sampleType}
+                                       onChange={(e) => updateManifestRow(r.id, { sampleType:e.target.value })}
+                                       list="sample-types-list" style={{ width:140, fontSize:12 }} />
+                              </td>
+                              <td>
+                                <input type="text" value={r.container}
+                                       onChange={(e) => updateManifestRow(r.id, { container:e.target.value })}
+                                       list="container-types-list" style={{ width:160, fontSize:12 }} />
+                              </td>
+                              <td>
+                                <input type="text" value={r.gps}
+                                       onChange={(e) => updateManifestRow(r.id, { gps:e.target.value })}
+                                       placeholder="lat, lon" style={{ width:130, fontSize:12 }} />
+                              </td>
+                              <td>
+                                <input type="text" value={r.loc}
+                                       onChange={(e) => updateManifestRow(r.id, { loc:e.target.value })}
+                                       style={{ width:160, fontSize:12 }} />
+                              </td>
+                              <td>
+                                <input type="text" value={r.addr}
+                                       onChange={(e) => updateManifestRow(r.id, { addr:e.target.value })}
+                                       style={{ width:160, fontSize:12 }} />
+                              </td>
+                              <td>
+                                <input type="text" value={r.dt}
+                                       onChange={(e) => updateManifestRow(r.id, { dt:e.target.value })}
+                                       placeholder="YYYY-MM-DD HH:mm" style={{ width:130, fontSize:12 }} />
+                              </td>
+                              <td>
+                                <button className="btn-icon" title="Remove" onClick={() => removeManifestRow(r.id)}>🗑</button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {/* datalists for type-ahead */}
+                      <datalist id="sample-types-list">
+                        {ALL_SAMPLE_TYPES.map(st => <option key={st.id} value={st.name} />)}
+                      </datalist>
+                      <datalist id="container-types-list">
+                        {CONTAINER_TYPES.map(c => <option key={c} value={c} />)}
+                      </datalist>
+                    </div>
+                  )}
+                  <div style={{ display:'flex', alignItems:'center', gap:12, marginTop:'1rem' }}>
+                    <button className="btn btn-ghost" onClick={addManifestRow}>+ Add sample row</button>
+                    <span style={{ flex:1 }} />
+                    <span className="total-samples"><strong>Total: {sampleRowsManifest.length} sample{sampleRowsManifest.length === 1 ? '' : 's'} in this batch</strong></span>
+                  </div>
+                </div>
+              )}
+
+              {/* Test Selection — 2026-04-29 (rewritten): Branch-aware UX
+                  Regulation: pre-loaded deduped Test Plan + blocked-by-missing-sample + add-extra
+                  Ad-hoc: existing OE Panels + Tests two-stack
+                  Both gated behind ≥1 per-sample manifest row with a recognized sample type (2026-05-01 amendment) */}
+              {branch && activeTypes.length === 0 && sampleRowsManifest.length > 0 && (
+                <div className="tile">
+                  <h4>Test Selection</h4>
+                  <p className="step-helper">
+                    Add a sample row with a recognized Sample Type in the Sample Intake table above to choose tests.
+                  </p>
+                </div>
+              )}
+
+              {/* ─── Regulation-driven branch: Pre-loaded Test Plan ─── */}
+              {branch === 'REGULATION_DRIVEN' && standards.length > 0 && activeTypes.length > 0 && (
+                <div className="tile">
+                  <h4>Test Plan from Selected Regulations</h4>
+                  <p className="step-helper">
+                    <strong>{regulationOrderedTests.length} test{regulationOrderedTests.length === 1 ? '' : 's'}</strong> will run on each sample
+                    {standards.length > 0 && <> · pre-loaded from {standards.map(s => s.reg).join(' + ')}</>}
+                    {regTestActive.length !== regulationTests.length && <> · {regTestBlocked.length} blocked by missing sample types</>}.
+                  </p>
+
+                  {regTestActive.length === 0 && extraRegTestIds.length === 0 ? (
+                    <div className="notification warning" style={{ marginBottom:'1rem' }}>
+                      No tests linked to the selected standard{standards.length > 1 ? 's' : ''} can run on the active sample types. Adjust the manifest or add tests manually.
+                    </div>
+                  ) : (
+                    <div style={{ border:'1px solid #e0e0e0', borderRadius:4, marginBottom:'1rem' }}>
+                      {regulationOrderedTests.map(t => {
+                        const isExtra = t.source === 'EXTRA';
+                        return (
+                          <label key={t.id} style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'10px 12px', borderBottom:'1px solid #f4f4f4', cursor:'pointer' }}>
+                            <input type="checkbox" checked={true}
+                                   onChange={() => isExtra ? removeExtra(t.id) : toggleRegTest(t.id)}
+                                   style={{ marginTop:3 }} />
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontWeight:500 }}>
+                                {t.name} <span style={{ fontWeight:400, color:'#525252', fontSize:12 }}>· {t.unit} · LOINC <code>{t.loinc}</code></span>
+                              </div>
+                              <div style={{ fontSize:12, color:'#525252', marginTop:4, display:'flex', flexWrap:'wrap', gap:4 }}>
+                                {isExtra ? (
+                                  <span className="tag tag-warm-gray" style={{ fontSize:10 }}>Ad-hoc</span>
+                                ) : (
+                                  (t.coveringStdIds || t.stdIds.filter(sid => standards.some(s => s.id === sid))).map(sid => {
+                                    const std = STANDARDS.find(s => s.id === sid);
+                                    return std ? <span key={sid} className="tag tag-purple" style={{ fontSize:10 }}>{std.reg}</span> : null;
+                                  })
+                                )}
+                              </div>
+                            </div>
+                          </label>
+                        );
+                      })}
+                      {/* Show deselected reg tests as struck-through "add back" entries */}
+                      {regTestActive.filter(t => deselectedRegTestIds.has(t.id)).map(t => (
+                        <label key={t.id} style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'10px 12px', borderBottom:'1px solid #f4f4f4', cursor:'pointer', opacity:0.5 }}>
+                          <input type="checkbox" checked={false} onChange={() => toggleRegTest(t.id)} style={{ marginTop:3 }} />
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontWeight:500, textDecoration:'line-through' }}>
+                              {t.name} <span style={{ fontWeight:400, color:'#525252', fontSize:12 }}>· {t.unit} · LOINC <code>{t.loinc}</code></span>
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* ── Blocked tests (sample type quantity = 0) ── */}
+                  {regTestBlocked.length > 0 && (
+                    <div style={{ background:'#fff8e1', border:'1px solid #f1c21b', borderRadius:4, padding:'12px 16px', marginBottom:'1rem' }}>
+                      <div style={{ fontWeight:600, marginBottom:8, fontSize:13 }}>
+                        ⚠ {regTestBlocked.length} test{regTestBlocked.length === 1 ? '' : 's'} blocked by missing sample type{regTestBlocked.length === 1 ? '' : 's'}
+                      </div>
+                      {regTestBlocked.map(t => {
+                        const missingSampleTypes = t.sampleTypeIds
+                          .map(stId => ALL_SAMPLE_TYPES.find(st => st.id === stId))
+                          .filter(Boolean)
+                          .filter(st => !activeTypes.includes(st.id));
+                        return (
+                          <div key={t.id} style={{ padding:'8px 0', borderTop:'1px solid #f1c21b', fontSize:13 }}>
+                            <div style={{ fontWeight:500 }}>{t.name} <span style={{ fontWeight:400, color:'#525252', fontSize:12 }}>· LOINC <code>{t.loinc}</code></span></div>
+                            <div style={{ fontSize:12, color:'#525252', marginTop:4 }}>
+                              Needs: {missingSampleTypes.map(st => st.name).join(' or ')} (quantity is 0)
+                            </div>
+                            <div style={{ display:'flex', gap:8, marginTop:6, alignItems:'center' }}>
+                              {missingSampleTypes.map(st => (
+                                <button key={st.id} className="btn btn-ghost" style={{ fontSize:12, padding:'2px 8px' }}
+                                        onClick={() => addType(st.id)}>
+                                  + Add 1 {st.name} to manifest
+                                </button>
+                              ))}
+                              <span style={{ color:'#c6c6c6' }}>·</span>
+                              <button className="btn btn-ghost" style={{ fontSize:12, padding:'2px 8px', color:'#525252' }}
+                                      onClick={() => skipBlocked(t.id)}>
+                                Skip this test
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* ── Add a test or panel not in the regulations ── */}
+                  {!showAddExtra ? (
+                    <button className="btn btn-ghost" style={{ fontSize:13 }} onClick={() => setShowAddExtra(true)}>
+                      + Add a test or panel not in the regulations
+                    </button>
+                  ) : (
+                    <div style={{ background:'#f4f4f4', border:'1px solid #e0e0e0', borderRadius:4, padding:'12px 16px' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:8 }}>
+                        <strong style={{ fontSize:13 }}>Add ad-hoc test (filtered to active sample types)</strong>
+                        <span style={{ flex:1 }} />
+                        <button className="btn btn-ghost" style={{ fontSize:12 }} onClick={() => { setShowAddExtra(false); setAddExtraSearch(''); }}>Done</button>
+                      </div>
+                      <input type="text" placeholder="🔍 Search by test name or LOINC…" value={addExtraSearch}
+                             onChange={(e) => setAddExtraSearch(e.target.value)}
+                             style={{ width:'100%', marginBottom:8 }} />
+                      <div style={{ maxHeight:200, overflowY:'auto', background:'#fff', border:'1px solid #e0e0e0', borderRadius:4 }}>
+                        {addExtraCandidates.length === 0 ? (
+                          <p className="step-helper" style={{ padding:'8px 12px' }}>No additional tests match.</p>
+                        ) : addExtraCandidates.slice(0, 25).map(t => (
+                          <div key={t.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderBottom:'1px solid #f4f4f4' }}>
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontWeight:500, fontSize:13 }}>{t.name} <span style={{ fontWeight:400, color:'#525252', fontSize:12 }}>· {t.unit} · LOINC <code>{t.loinc}</code></span></div>
+                            </div>
+                            <button className="btn btn-ghost" style={{ fontSize:12, padding:'2px 8px' }} onClick={() => addExtra(t.id)}>+ Add</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {regulationOrderedTests.length === 0 && (
+                    <div className="notification warning" style={{ marginTop:'1rem' }}>
+                      No tests in this order. Add a test or fix a blocked one above.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ─── Ad-hoc branch: full OE Panels + Tests two-stack ─── */}
+              {branch === 'AD_HOC' && activeTypes.length > 0 && (
+                <div className="tile">
+                  <h4>Test Selection</h4>
+                  <p className="step-helper">
+                    Pick order panels and/or individual tests from the catalog. Filtered to the {activeTypes.length} sample type{activeTypes.length === 1 ? '' : 's'} in this batch.
+                  </p>
+
+                  <div className="grid grid-2" style={{ alignItems:'start' }}>
+                    {/* Order Panels */}
+                    <div>
+                      <div style={{ fontWeight:600, marginBottom:8 }}>
+                        Order Panels <span style={{ color:'#525252', fontWeight:400 }}>({selectedPanelIds.length} selected)</span>
+                      </div>
+                      {selectedPanelIds.length > 0 && (
+                        <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8, padding:8, background:'#f4f4f4', borderRadius:4 }}>
+                          {selectedPanelIds.map(pid => {
+                            const p = PANELS.find(x => x.id === pid);
+                            return p ? (
+                              <span key={pid} className="tag tag-blue" style={{ display:'inline-flex', alignItems:'center', gap:6 }}>
+                                {p.name}
+                                <button onClick={() => removePanelChip(pid)} style={{ background:'none', border:'none', cursor:'pointer', color:'#0f62fe', padding:0, fontSize:14, lineHeight:1 }}>✕</button>
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
+                      <input type="text" placeholder="🔍 Search panels…" value={panelSearch}
+                             onChange={(e) => setPanelSearch(e.target.value)}
+                             style={{ width:'100%', marginBottom:8 }} />
+                      <div style={{ maxHeight:240, overflowY:'auto', border:'1px solid #e0e0e0', borderRadius:4 }}>
+                        {visiblePanels.length === 0 ? (
+                          <p className="step-helper" style={{ padding:'1rem' }}>No panels match the selected sample types.</p>
+                        ) : visiblePanels.map(p => {
+                          const checked = selectedPanelIds.includes(p.id);
+                          return (
+                            <label key={p.id} style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'8px 12px', borderBottom:'1px solid #f4f4f4', cursor:'pointer' }}>
+                              <input type="checkbox" checked={checked} onChange={() => togglePanel(p.id)} style={{ marginTop:3 }} />
+                              <div style={{ flex:1 }}>
+                                <div style={{ fontWeight:500 }}>{p.name}</div>
+                                <div style={{ fontSize:12, color:'#525252' }}>{p.testIds.length} tests</div>
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Order Tests */}
+                    <div>
+                      <div style={{ fontWeight:600, marginBottom:8 }}>
+                        Order Tests <span style={{ color:'#525252', fontWeight:400 }}>({adhocSelectedCount} total selected, {testsFromPanels.size} via panels)</span>
+                      </div>
+                      {selectedTestIds.length > 0 && (
+                        <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8, padding:8, background:'#f4f4f4', borderRadius:4 }}>
+                          {selectedTestIds.map(tid => {
+                            const t = TEST_CATALOG.find(x => x.id === tid);
+                            return t ? (
+                              <span key={tid} className="tag tag-blue" style={{ display:'inline-flex', alignItems:'center', gap:6 }}>
+                                {t.name}
+                                <button onClick={() => removeTestChip(tid)} style={{ background:'none', border:'none', cursor:'pointer', color:'#0f62fe', padding:0, fontSize:14, lineHeight:1 }}>✕</button>
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
+                      <input type="text" placeholder="🔍 Search tests by name or LOINC…" value={testSearch}
+                             onChange={(e) => setTestSearch(e.target.value)}
+                             style={{ width:'100%', marginBottom:8 }} />
+                      <div style={{ maxHeight:240, overflowY:'auto', border:'1px solid #e0e0e0', borderRadius:4 }}>
+                        {visibleTests.length === 0 ? (
+                          <p className="step-helper" style={{ padding:'1rem' }}>No tests match the selected sample types.</p>
+                        ) : visibleTests.map(t => {
+                          const fromPanel = testsFromPanels.has(t.id);
+                          const checked = fromPanel || selectedTestIds.includes(t.id);
+                          return (
+                            <label key={t.id} style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'8px 12px', borderBottom:'1px solid #f4f4f4', cursor: fromPanel ? 'not-allowed' : 'pointer', opacity: fromPanel ? 0.7 : 1 }}>
+                              <input type="checkbox" checked={checked} disabled={fromPanel} onChange={() => toggleTest(t.id)} style={{ marginTop:3 }} />
+                              <div style={{ flex:1 }}>
+                                <div style={{ fontWeight:500 }}>{t.name} <span style={{ fontWeight:400, color:'#525252', fontSize:12 }}>{t.unit && `· ${t.unit}`}</span></div>
+                                <div style={{ fontSize:12, color:'#525252' }}>
+                                  LOINC <code>{t.loinc}</code>
+                                  {fromPanel && <> · <span className="tag tag-warm-gray" style={{ fontSize:10 }}>via panel</span></>}
+                                </div>
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {adhocSelectedCount === 0 && (
+                    <div className="notification warning" style={{ marginTop:'1rem' }}>
+                      No tests selected. Pick at least one panel or test before continuing.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Default Collection Conditions */}
+              {branch && (
+                <div className="tile">
+                  <h4>Default Collection Conditions</h4>
+                  <p className="step-helper">Defaults applied to all samples in this batch.</p>
+                  <div className="grid grid-3">
+                    <div className="form-field">
+                      <label>Collection Method</label>
+                      <select value={collMethod} onChange={(e) => setCollMethod(e.target.value)}>
+                        <option value="">Select… (optional)</option>
+                        {COLLECTION_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                      <p className="step-helper">Optional — how the sample was/will be collected. Leave blank if not applicable.</p>
+                    </div>
+                    <div className="form-field">
+                      <label>Water Temp (°C)</label>
+                      <input type="number" min={-50} max={100} step={0.1} value={waterT} onChange={(e) => setWaterT(e.target.value)} />
+                    </div>
+                    <div className="form-field">
+                      <label>Ambient Temp (°C)</label>
+                      <input type="number" min={-50} max={100} step={0.1} value={ambientT} onChange={(e) => setAmbientT(e.target.value)} />
+                    </div>
+                    <div className="form-field">
+                      <label>Weather</label>
+                      <select value={weather} onChange={(e) => setWeather(e.target.value)}>
+                        <option value="">Select…</option>
+                        {WEATHER.map(w => <option key={w} value={w}>{w}</option>)}
+                      </select>
+                    </div>
+                    <div className="form-field" style={{ gridColumn:'span 2' }}>
+                      <label>Preservation Method</label>
+                      <input type="text" maxLength={255} placeholder="e.g., HNO3 acidification, 4°C cooler"
+                             value={preserv} onChange={(e) => setPreserv(e.target.value)} />
+                    </div>
+                    <div className="form-field" style={{ gridColumn:'span 3' }}>
+                      <label>Field Notes</label>
+                      <textarea rows={2} maxLength={1000} placeholder="Enter field observations…"
+                                value={notes} onChange={(e) => setNotes(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Pool/Aliquot subsection (only when referral has parent specimens) */}
+              {HAS_PARENT_SPECIMENS && (
+                <div className="tile">
+                  <h4>Pool / Aliquot</h4>
+                  <div className="notification">
+                    Parent specimens detected in referral payload. Local aliquot LABNOs assigned automatically.
+                  </div>
+                  <table style={{ marginTop:'1rem' }}>
+                    <thead>
+                      <tr>
+                        <th>Parent Specimen (sender)</th>
+                        <th>Local Aliquot LABNO</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><code>POOL-XYZ-2026-09</code></td>
+                        <td><code>ENV-2026-0412.1-3</code></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Footer */}
+              {branch && (
+                <div className="tile">
+                  <div className="footer-actions">
+                    <button className="btn btn-ghost">Cancel</button>
+                    <button className="btn btn-secondary">💾 Save Draft</button>
+                    <button className="btn btn-primary" disabled={!canAdvance1} onClick={advanceTo2}>
+                      Continue to Label & Store →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </Fragment>
+          )}
+
+          {/* ════════════════════════════════════════════════════════
+              STEP 2 — Label & Store
+              ════════════════════════════════════════════════════════ */}
+          {step === 1 && (
+            <Fragment>
+              {/* 2026-04-29 simplification: Step 2 reuses the existing OpenELIS labeling and storage pattern.
+                  Placeholder tile shown below — no custom Env UI is designed in this spec.
+                  Env-specific deltas: (a) Sample Type read-only from Step 1, (b) hold-time clock starts on collection date/time entry. */}
+              <div className="tile" style={{ background:'#f4f4f4', border:'1px dashed #8d8d8d' }}>
+                <h4>Label & Store</h4>
+                <p className="step-helper">
+                  This step reuses the existing OpenELIS labeling and storage UI for the {sampleRows.length} sample row{sampleRows.length === 1 ? '' : 's'} generated from Step 1. No custom Env UI is designed here.
+                </p>
+                <div style={{ background:'#fff', border:'1px solid #e0e0e0', padding:'12px 16px', fontSize:12, color:'#525252' }}>
+                  <strong>Env-specific behaviors layered on the existing pattern:</strong>
+                  <ul style={{ margin:'6px 0 0 18px', padding:0 }}>
+                    <li>Sample Type for each row is sourced from the Step 1 manifest (read-only).</li>
+                    <li>Hold-time clock starts when Collection Date/Time is entered (per-test hold-time × strictest standard).</li>
+                    <li>Hold-time-exceeded rows show a red indicator; not blocked — flows to Step 3 for NCE decision.</li>
+                  </ul>
+                </div>
+                <p style={{ fontSize:12, color:'#525252', marginTop:12, fontStyle:'italic' }}>
+                  {sampleRows.length} sample row{sampleRows.length === 1 ? '' : 's'} ready for OE label/storage entry.
+                </p>
+              </div>
+
+              <div className="tile">
+                <div className="footer-actions">
+                  <button className="btn btn-ghost" onClick={() => setStep(0)}>← Back</button>
+                  <button className="btn btn-secondary">💾 Save Draft</button>
+                  <button className="btn btn-primary" onClick={() => setStep(2)}>Continue to QA / QC →</button>
+                </div>
+              </div>
+            </Fragment>
+          )}
+
+          {/* ════════════════════════════════════════════════════════
+              STEP 3 — QA / QC + Intake
+              ════════════════════════════════════════════════════════ */}
+          {step === 2 && (
+            <Fragment>
+              <div className="tile">
+                <h4>Sample Intake (NCE / Reject)</h4>
+                <p className="step-helper">Click <strong>Flag NCE</strong> on any sample to assign a coded reason and accept-with-flag or reject. Reuses the existing OpenELIS NCE button pattern.</p>
+
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Sample Type</th>
+                      <th>Accession</th>
+                      <th>Receipt</th>
+                      <th>Hold-time</th>
+                      <th>NCE</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sampleRows.map(r => {
+                      const nce = nces[r.id];
+                      const exceeded = r.idx % 3 === 0;
+                      return (
+                        <tr key={r.id}>
+                          <td>{r.idx}</td>
+                          <td>{r.type?.name}</td>
+                          <td><code>{r.accession}</code></td>
+                          <td>{r.cond || '—'}</td>
+                          <td>
+                            {exceeded
+                              ? <span className="tag tag-red">Exceeded</span>
+                              : <span className="tag tag-green">OK</span>}
+                          </td>
+                          <td>
+                            {nce ? (
+                              <span style={{ display:'inline-flex', alignItems:'center', gap:8 }}>
+                                <span className={`tag ${nce.decision === 'reject' ? 'tag-red' : 'tag-magenta'}`}>{nce.code}</span>
+                                <span style={{ fontSize:14 }}>{nce.decision === 'reject' ? '✕' : '⚠'}</span>
+                                <button className="btn btn-ghost" style={{ padding:'2px 6px' }} onClick={() => flagNce(r.id)}>Edit</button>
+                              </span>
+                            ) : (
+                              <button className="btn btn-tertiary" style={{ padding:'4px 10px', fontSize:12 }} onClick={() => flagNce(r.id)}>⚠ Flag NCE</button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="tile">
+                <div className="qc-buttons">
+                  <h4>QC Samples</h4>
+                  <button className="btn btn-primary" onClick={() => addQc('BLANK')}>+ Blank</button>
+                  <button className="btn btn-primary" onClick={() => addQc('DUPLICATE')}>+ Duplicate</button>
+                  <button className="btn btn-primary" onClick={() => addQc('CONTROL')}>+ Control</button>
+                </div>
+
+                {qcSamples.length > 0 ? (
+                  <table style={{ marginTop:'1rem' }}>
+                    <thead>
+                      <tr>
+                        <th>QC ID</th>
+                        <th>Type</th>
+                        <th>Detail</th>
+                        <th>Expected Value(s)</th>
+                        <th>Storage</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {qcSamples.map(q => (
+                        <tr key={q.id}>
+                          <td><code>{q.qcId}</code></td>
+                          <td>
+                            <span className={`tag ${q.type === 'BLANK' ? 'tag-gray' : q.type === 'DUPLICATE' ? 'tag-cyan' : 'tag-green'}`}>{q.type}</span>
+                          </td>
+                          <td>
+                            {q.type === 'BLANK' && (
+                              <select value={q.subtype} onChange={(e) => updQc(q.id, { subtype:e.target.value })}>
+                                {BLANK_SUBTYPES.map(s => <option key={s} value={s}>{s}</option>)}
+                              </select>
+                            )}
+                            {q.type === 'DUPLICATE' && (
+                              <select value={q.parent} onChange={(e) => updQc(q.id, { parent:e.target.value })}>
+                                <option value="">Pick parent…</option>
+                                {sampleRows.map(s => <option key={s.id} value={s.id}>{s.accession}</option>)}
+                              </select>
+                            )}
+                            {q.type === 'CONTROL' && (
+                              <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+                                <input type="text" placeholder="Material name (e.g., NIST 1640a)"
+                                       value={q.materialName} onChange={(e) => updQc(q.id, { materialName:e.target.value })} />
+                                <input type="text" placeholder="Source (vendor, lot)"
+                                       value={q.materialSource} onChange={(e) => updQc(q.id, { materialSource:e.target.value })} />
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            {q.type === 'CONTROL' && <span className="helper-inline">Edit per parameter →</span>}
+                            {q.type === 'DUPLICATE' && <span className="helper-inline">inherits from parent</span>}
+                            {q.type === 'BLANK' && <span className="helper-inline">—</span>}
+                          </td>
+                          <td>
+                            <select value={q.storage} onChange={(e) => updQc(q.id, { storage:e.target.value })}>
+                              <option value="">—</option>
+                              {STORAGE.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                          </td>
+                          <td><button className="btn-icon" onClick={() => rmQc(q.id)}>🗑</button></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="step-helper">No QC samples added. Click a button above to add one.</p>
+                )}
+              </div>
+
+              <div className="tile">
+                <div className="footer-actions">
+                  <button className="btn btn-ghost" onClick={() => setStep(1)}>← Back</button>
+                  <button className="btn btn-secondary">💾 Save Draft</button>
+                  <button className="btn btn-primary">Submit Batch →</button>
+                </div>
+              </div>
+            </Fragment>
+          )}
+
+          {/* ── Branch Switch Modal ─────────────────────────────── */}
+          {showSwitch && (
+            <div style={{
+              position:'fixed', top:0, left:0, right:0, bottom:0,
+              background:'rgba(22,22,22,0.5)',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              zIndex:100,
+            }}>
+              <div className="tile" style={{ maxWidth:480, margin:0 }}>
+                <h4>Switch order type?</h4>
+                <p style={{ fontSize:14, color:'#525252', marginBottom:'1rem' }}>
+                  Switching order type will clear the standard, tests, manifest, and regulatory reference. Continue?
+                </p>
+                <div className="footer-actions">
+                  <button className="btn btn-ghost" onClick={() => setShowSwitch(null)}>Keep current</button>
+                  <button className="btn btn-primary" onClick={confirmSwitch}>Continue and clear</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

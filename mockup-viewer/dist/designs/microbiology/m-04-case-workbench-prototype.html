@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microbiology Case Workbench — Interactive Prototype</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+  .preview-banner strong { background:#fff; color:#0f62fe; padding:1px 6px; border-radius:2px; margin:0 4px; }
+  .demobar { background:#161616; color:#f4f4f4; font-size:12px; padding:0.5rem 1rem; display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; }
+  .demobar b { color:#78a9ff; }
+  .demobar .right { margin-left:auto; display:flex; gap:0.5rem; }
+  .app-header { background:#161616; color:#f4f4f4; padding:0 1rem; height:48px; display:flex; align-items:center; gap:1rem; font-size:14px; }
+  .app-header .product { font-weight:600; }
+  .app-header .right { margin-left:auto; display:flex; gap:1rem; align-items:center; font-size:13px; }
+  .breadcrumbs { padding:0.6rem 2rem; background:#fff; border-bottom:1px solid #e0e0e0; font-size:13px; color:#525252; }
+  .breadcrumbs a { color:#0f62fe; text-decoration:none; }
+  .case-header { background:#fff; padding:1rem 2rem; border-bottom:1px solid #e0e0e0; }
+  .case-header .title-row { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+  .case-header h1 { font-size:26px; font-weight:300; margin:0; }
+  .case-header .header-actions { margin-left:auto; display:flex; gap:0.5rem; }
+  .stage-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:16px; font-size:13px; font-weight:600; background:#d0e2ff; color:#0043ce; }
+  .case-header .meta { margin-top:0.5rem; font-size:13px; color:#525252; }
+  .case-header .meta span { margin-right:1rem; }
+  .layout { display:grid; grid-template-columns:240px 1fr; }
+  .sidebar { background:#fff; border-right:1px solid #e0e0e0; min-height:calc(100vh - 160px); padding:1rem 0; }
+  .sidebar-header { padding:0.5rem 1rem 0.75rem; font-size:11px; color:#525252; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; }
+  .sidebar-item { padding:0.55rem 1rem; cursor:pointer; font-size:14px; display:flex; align-items:center; gap:0.5rem; border-left:3px solid transparent; }
+  .sidebar-item:hover { background:#e5e5e5; }
+  .sidebar-item.current { background:#e0e0e0; border-left-color:#0f62fe; font-weight:600; }
+  .dot { width:16px; height:16px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex:none; }
+  .d-done { background:#24a148; color:#fff; }
+  .d-part { background:#f1c21b; color:#161616; }
+  .d-none { background:#e0e0e0; color:#8d8d8d; }
+  .d-current { box-shadow:0 0 0 2px #0f62fe; }
+  .sidebar-item .sub { font-size:11px; color:#6f6f6f; margin-left:auto; }
+  .main { padding:1.25rem 2rem 5rem; max-width:1000px; }
+  .card { background:#fff; padding:1.1rem 1.4rem; margin-bottom:1rem; border:1px solid #e0e0e0; scroll-margin-top:12px; }
+  .card.focus-pulse { animation:pulse 1.4s ease-out 1; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(15,98,254,0.5);} 100%{box-shadow:0 0 0 8px rgba(15,98,254,0);} }
+  .card h2 { font-size:17px; font-weight:400; margin:0 0 0.25rem 0; display:flex; align-items:center; gap:0.5rem; }
+  .card h2 .count { font-size:12px; background:#e0e0e0; color:#525252; padding:2px 8px; border-radius:10px; font-weight:500; }
+  .help { font-size:12px; color:#6f6f6f; margin:0 0 0.75rem 0; }
+  .help .ico { color:#0f62fe; font-weight:700; margin-right:4px; }
+  .toolbar { display:flex; gap:0.5rem; margin-bottom:0.75rem; flex-wrap:wrap; }
+  .empty { font-size:13px; color:#8d8d8d; padding:0.5rem 0 0.25rem; }
+  table.t { width:100%; border-collapse:collapse; font-size:13px; }
+  table.t th { text-align:left; padding:0.4rem 0.6rem; background:#f4f4f4; font-weight:600; border-bottom:1px solid #e0e0e0; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; color:#525252; }
+  table.t td { padding:0.4rem 0.6rem; border-bottom:1px solid #eee; }
+  .from { font-size:11px; color:#6f6f6f; }
+  .tl { padding:0.55rem 0; border-bottom:1px solid #eee; display:grid; grid-template-columns:120px 1fr 100px; gap:0.8rem; font-size:13px; align-items:start; }
+  .tl:last-child { border-bottom:none; }
+  .tl .when { color:#525252; }
+  .tl .by { color:#525252; text-align:right; font-style:italic; font-size:12px; }
+  .ttag { display:inline-block; padding:1px 6px; font-size:10px; border-radius:4px; font-weight:600; margin-right:6px; background:#d0e2ff; color:#0043ce; }
+  .ttag.pos { background:#ffd7d9; color:#750e13; } .ttag.sub{background:#9ef0f0;color:#003a6d;} .ttag.gram{background:#c7e7e1;color:#054f31;} .ttag.ast{background:#e8daff;color:#491d8b;} .ttag.rep{background:#a7f0ba;color:#044317;} .ttag.note{background:#e0e0e0;color:#393939;} .ttag.crit{background:#fff1f1;color:#750e13;border:1px solid #fa4d56;}
+  .auto { display:inline-block; font-size:9px; font-weight:700; letter-spacing:0.5px; background:#e8e8e8; color:#6f6f6f; border:1px solid #c6c6c6; border-radius:3px; padding:0 4px; margin-left:6px; }
+  .iso { border:1px solid #e0e0e0; padding:0.9rem; margin-bottom:0.7rem; }
+  .iso.pend { border-left:3px solid #f1c21b; background:#fffdf4; }
+  .iso.idd { border-left:3px solid #24a148; }
+  .iso h3 { font-size:15px; font-weight:400; margin:0 0 0.3rem; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; }
+  .iso .org { font-style:italic; }
+  .idstat { font-size:11px; font-weight:600; padding:2px 8px; border-radius:10px; }
+  .idstat.ok { background:#a7f0ba; color:#044317; } .idstat.pend { background:#fdd13a; color:#161616; }
+  .iso .fr { font-size:13px; margin:3px 0; } .iso .fr .l { color:#525252; margin-right:5px; }
+  .runbox { background:#f4f4f4; padding:0.4rem 0.6rem; margin-top:0.5rem; font-size:12px; border-left:3px solid #0f62fe; }
+  .acts { margin-top:0.6rem; display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center; }
+  .hint { font-size:11px; color:#8d8d8d; }
+  .interp { display:inline-block; padding:1px 7px; border-radius:4px; font-weight:700; font-size:11px; }
+  .interp.S{background:#a7f0ba;color:#044317;} .interp.I{background:#fdd13a;color:#161616;} .interp.R{background:#ffd7d9;color:#750e13;}
+  .nextstep { border-left:4px solid #0f62fe; background:#edf5ff; padding:0.8rem 1rem; margin-bottom:1rem; font-size:14px; display:flex; gap:0.7rem; align-items:center; }
+  .nextstep.done { border-left-color:#24a148; background:#defbe6; }
+  .nextstep .txt { flex:1; }
+  .checklist { list-style:none; padding:0; margin:0.4rem 0; font-size:13px; }
+  .checklist li { padding:2px 0; }
+  .ok2 { color:#24a148; font-weight:700; } .no2 { color:#da1e28; font-weight:700; }
+  .report-row { font-size:13px; padding:0.35rem 0; border-bottom:1px solid #eee; }
+  .btn { display:inline-flex; align-items:center; gap:0.35rem; padding:0.45rem 0.9rem; font-size:13px; font-family:inherit; border:1px solid transparent; cursor:pointer; border-radius:0; }
+  .btn:disabled { opacity:0.45; cursor:not-allowed; }
+  .b-pri { background:#0f62fe; color:#fff; } .b-pri:hover:not(:disabled){background:#0353e9;}
+  .b-sec { background:#393939; color:#fff; }
+  .b-ter { background:transparent; color:#0f62fe; border-color:#0f62fe; } .b-ter:hover:not(:disabled){background:#e5e5e5;}
+  .b-ghost { background:transparent; color:#0f62fe; } .b-ghost:hover:not(:disabled){background:#e5e5e5;}
+  .b-amber { background:#f1c21b; color:#161616; font-weight:600; }
+  .b-sm { padding:0.25rem 0.7rem; font-size:12px; }
+  .crit-badge { display:inline-flex; gap:4px; padding:2px 8px; background:#fff1f1; border:1px solid #fa4d56; color:#750e13; border-radius:4px; font-size:11px; font-weight:600; }
+  /* modal */
+  .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:50; }
+  .modal { background:#fff; width:560px; max-width:92vw; max-height:88vh; overflow:auto; }
+  .modal .mh { padding:1rem 1.4rem; border-bottom:1px solid #e0e0e0; font-size:18px; }
+  .modal .mb { padding:1rem 1.4rem; }
+  .modal .mf { padding:0.75rem 1.4rem; border-top:1px solid #e0e0e0; display:flex; justify-content:flex-end; gap:0.5rem; }
+  .fld { margin-bottom:0.8rem; }
+  .fld label { display:block; font-size:11px; color:#525252; text-transform:uppercase; letter-spacing:0.4px; font-weight:600; margin-bottom:4px; }
+  .fld input, .fld select, .fld textarea { width:100%; box-sizing:border-box; padding:0.45rem 0.6rem; font-size:14px; border:0; border-bottom:1px solid #8d8d8d; background:#f4f4f4; font-family:inherit; }
+  .fld .fh { font-size:11px; color:#6f6f6f; margin-top:3px; }
+  details.ci > summary { cursor:pointer; list-style:none; font-size:14px; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; }
+  details.ci > summary::-webkit-details-marker { display:none; }
+  .inline-form { border:1px solid #b28600; border-left:4px solid #b28600; background:#fffdf4; margin-bottom:1rem; }
+  .inline-form .if-h { padding:0.6rem 1rem; font-size:15px; font-weight:600; border-bottom:1px solid #f0e6c8; }
+  .inline-form .if-h .if-sub { font-weight:400; color:#8d8d8d; font-size:12px; }
+  .inline-form .if-b { padding:0.8rem 1rem; }
+  .inline-form .if-f { padding:0.6rem 1rem; border-top:1px solid #f0e6c8; display:flex; gap:0.5rem; }
+  .scan-row { display:flex; gap:0.5rem; align-items:stretch; }
+  .scan-row input { flex:1; }
+  .btn-scan { white-space:nowrap; }
+</style>
+</head>
+<body>
+<div class="preview-banner">Microbiology Case Workbench · <strong>Interactive Prototype</strong> · click through the workflow — every action updates the stage, timeline, sidebar &amp; next-step guidance</div>
+<div class="demobar">
+  <b>DEMO</b> Walk the workflow by clicking the highlighted next action. The case always opens on the current step (not the timeline).
+  <div class="right">
+    <button class="btn b-ter b-sm" onclick="seedMidway()">Jump to mid-workflow</button>
+    <button class="btn b-ghost b-sm" style="color:#fff" onclick="resetCase()">Reset</button>
+  </div>
+</div>
+<div class="app-header"><span class="product">OpenELIS Global</span><span style="opacity:.6">|</span><span>Microbiology</span>
+  <div class="right"><span id="critBadge"></span><span id="nceBadge"></span><span>Olivia Mendez · Micro Tech</span></div>
+</div>
+<div class="breadcrumbs"><a href="#">Home</a> / <a href="#">Microbiology</a> / <a href="#">Pending Cultures</a> / Case MC-2024-001234</div>
+<div class="case-header">
+  <div class="title-row">
+    <h1>Case MC-2024-001234</h1>
+    <span class="stage-pill" id="stagePill">Received</span>
+    <div class="header-actions"><button class="btn b-ter b-sm" onclick="act('logCritical')">Log critical notification</button><button class="btn b-ter b-sm" onclick="act('reportNce')">Report NCE</button></div>
+  </div>
+  <div class="meta">
+    <span><b>Lab #:</b> BC24-0892</span><span><b>Patient:</b> MARTINEZ, Carlos</span>
+    <span><b>Specimen:</b> Blood (R. antecubital)</span><span><b>Protocol:</b> Blood Culture Standard</span>
+    <span><b>Priority:</b> URGENT</span>
+  </div>
+</div>
+<div class="layout">
+  <aside class="sidebar"><div class="sidebar-header">Case progress</div><div id="sidebar"></div>
+    <div style="font-size:10px;color:#8d8d8d;padding:0.75rem 1rem 0;border-top:1px solid #e0e0e0;margin-top:0.5rem;line-height:1.6;">
+      <span class="dot d-done" style="width:11px;height:11px">✓</span> done
+      <span class="dot d-part" style="width:11px;height:11px"></span> active
+      <span class="dot d-none" style="width:11px;height:11px"></span> to do<br>Blue ring = current step.</div>
+  </aside>
+  <main class="main"><div id="banner"></div><div id="inlineSlot"></div><div id="sections"></div></main>
+</div>
+<div id="modalRoot"></div>
+
+<script>
+"use strict";
+var T0 = new Date('2026-05-11T07:00:00'); var tick = 0;
+function now(){ tick += 1; var d = new Date(T0.getTime() + tick*37*60000); return d.toISOString().slice(0,16).replace('T',' '); }
+var ORGS = ['Escherichia coli (eco)','Klebsiella pneumoniae (kpn)','Staphylococcus aureus (sau)','Pseudomonas aeruginosa (pae)','Enterococcus faecalis (efa)'];
+var ABX = ['Ampicillin','Ceftriaxone','Meropenem','Gentamicin','Ciprofloxacin','TMP/SMX'];
+
+var S; // state
+function fresh(){ return {
+  stage:'RECEIVED', critical:null, nce:null, inoc:[], iso:[], tl:[], prelim:null, final:null, focus:'inoculation'
+};}
+function logTL(cls,label,notes,by,auto){ S.tl.unshift({when:now(),cls:cls||'',label:label,notes:notes||'',by:by||'Olivia Mendez',auto:!!auto}); }
+
+function resetCase(){ S=fresh(); logTL('','Case created','Created from order OE-2024-09214 on Sample save (program = Microbiology).','System',true); render(true); }
+
+function seedMidway(){
+  resetCase();
+  S.inoc.push({media:'FA — Aerobic Blood Bottle',src:'Primary',id:'FA24012',lot:'FA-26-04-117'});
+  S.inoc.push({media:'FN — Anaerobic Blood Bottle',src:'Primary',id:'FN24012',lot:'FN-26-04-118'});
+  logTL('','Inoculated','FA24012, FN24012 loaded on BacT/Alert.','Olivia Mendez',false);
+  S.stage='INCUBATING';
+  logTL('pos','Positive signal','FA24012 aerobic positive at 23h44m.','BacT/Alert auto',true);
+  S.inoc.push({media:'BAP',src:'subculture ← FA24012',id:'SC-0892A',lot:'BAP-26-04-211'});
+  logTL('sub','Subculture','BAP subcultured from FA24012.','Olivia Mendez',true);
+  S.iso.push({n:1,gram:'Gram negative rods, many',colony:'Lactose-fermenting on MAC',org:null,method:null,conf:null,sig:'Clinically significant',ast:null});
+  logTL('gram','Gram stain','Isolate 1: Gram negative rods, many.','Olivia Mendez',true);
+  S.stage='ORGANISM_ID'; S.focus='isolates';
+  render(true);
+}
+
+/* ---------- derived helpers ---------- */
+var STAGE_LABEL={RECEIVED:'Received',INCUBATING:'Incubating',POSITIVE_SIGNAL:'Positive signal',GROWTH_DETECTED:'Growth detected',ORGANISM_ID:'Organism ID',AST_IN_PROGRESS:'AST in progress',READY_REVIEW:'Ready for review',PRELIM_REPORTED:'Preliminary reported',FINAL_REPORTED:'Final reported',NO_GROWTH_FINAL:'No growth',LOST_SPECIMEN:'Specimen lost',REJECTED:'Rejected'};
+function hasGram(){ return S.iso.some(function(i){return i.gram;}); }
+function allIdentified(){ return S.iso.length>0 && S.iso.every(function(i){return i.org;}); }
+function astRuns(){ return S.iso.filter(function(i){return i.ast;}); }
+function astComplete(){ var r=astRuns(); return r.length>0 && r.every(function(i){return i.ast.status==='Complete';}); }
+function currentStep(){
+  if(S.final) return 'reports';
+  if(S.inoc.length===0) return 'inoculation';
+  if(S.stage==='INCUBATING') return 'inoculation';
+  if(S.iso.length===0) return 'isolates';
+  if(!allIdentified()) return 'isolates';
+  if(astRuns().length===0) return 'ast';
+  if(!astComplete()) return 'ast';
+  return 'reports';
+}
+function nextStepText(){
+  var cs=currentStep();
+  if(['NO_GROWTH_FINAL','LOST_SPECIMEN','REJECTED'].indexOf(S.stage)>-1) return {done:true,txt:STAGE_LABEL[S.stage]+' — case closed via a non-conforming event; the test was rejected. See the Timeline for the NCE.',act:null};
+  if(S.final) return {done:true,txt:'Final report released — case complete. Amendments are still possible.',act:null};
+  switch(cs){
+    case 'inoculation':
+      if(S.inoc.length===0) return {txt:'Case received. Record the initial inoculation to start incubation.',act:['Start inoculation','startInoculation']};
+      return {txt:'Incubating. Mark the case positive when the instrument signals growth (or mark no growth at end of incubation).',act:['Mark positive','markPositive']};
+    case 'isolates':
+      if(S.iso.length===0) return {txt:'Positive signal. Subculture the bottle and add an isolate with its Gram stain.',act:['Add isolate','addIsolate']};
+      return {txt:'Growth detected. Identify each isolate — manually or from the analyzer.',act:['Identify organism','identify:'+firstPending()]};
+    case 'ast':
+      if(astRuns().length===0) return {txt:'Isolate identified. Set up susceptibility testing (AST).',act:['Set up AST','setupAst:'+firstIdentifiedNoAst()]};
+      var ri=S.iso.find(function(x){return x.ast && x.ast.status==='Results in';});
+      if(ri) return {txt:'Analyzer results are in for Isolate '+ri.n+' (pre-populated) — review and accept them.',act:['Accept results','acceptAst:'+ri.n]};
+      return {txt:'AST set up. Receive the analyzer results, then review.',act:['Receive AST results','receiveAst:'+firstPendingAst()]};
+    case 'reports':
+      if(!S.prelim && hasGram()) return {txt:'You can release a preliminary report now (Gram stain is available) to guide empiric therapy.',act:['Release preliminary','releasePrelim']};
+      return {txt:'All AST complete. Review and release the final report.',act:['Release final','releaseFinal']};
+  }
+  return {txt:'',act:null};
+}
+function firstPending(){ var i=S.iso.find(function(x){return !x.org;}); return i?i.n:''; }
+function firstIdentifiedNoAst(){ var i=S.iso.find(function(x){return x.org && !x.ast;}); return i?i.n:''; }
+function firstPendingAst(){ var i=S.iso.find(function(x){return x.ast && x.ast.status!=='Complete';}); return i?i.n:''; }
+
+/* ---------- progress dots ---------- */
+function progress(){
+  var cs=currentStep();
+  function dot(state,cur){ var c=state==='done'?'d-done':state==='part'?'d-part':'d-none'; return '<span class="dot '+c+(cur?' d-current':'')+'">'+(state==='done'?'✓':'')+'</span>'; }
+  var rows=[
+    ['Case Info','done','info'],
+    ['Inoculation', S.inoc.length?'done':'none','inoculation', S.inoc.length?S.inoc.length+' media':''],
+    ['Timeline', S.tl.length?'part':'none','timeline', S.tl.length+' events'],
+    ['Isolates', S.iso.length===0?'none':(allIdentified()?'done':'part'),'isolates', S.iso.length?(S.iso.filter(function(i){return i.org;}).length+' of '+S.iso.length):''],
+    ['AST Results', astRuns().length===0?'none':(astComplete()?'done':'part'),'ast', astRuns().length?(astRuns().filter(function(i){return i.ast.status==='Complete';}).length+' / '+astRuns().length):''],
+    ['Expert Review','none','expert','N/A 1A'],
+    ['Reports', S.final?'done':(S.prelim?'part':'none'),'reports']
+  ];
+  return rows.map(function(r){
+    var cur = r[2]===cs;
+    return '<div class="sidebar-item'+(cur?' current':'')+'" onclick="focusSection(\''+r[2]+'\')">'+dot(r[1],cur)+r[0]+(r[3]?'<span class="sub">'+r[3]+'</span>':'')+'</div>';
+  }).join('');
+}
+
+/* ---------- section renderers ---------- */
+function secInfo(){
+  return '<details class="card ci" id="sec-info"><summary><b>Case Info</b><span style="color:#525252">Order OE-2024-09214 · Emergency · ER · Adult · 1 set · recent antibiotics: <b>Yes</b></span><span style="color:#0f62fe;margin-left:auto;font-size:12px">show details ▾</span></summary>'+
+  '<div style="margin-top:0.7rem"><div class="help"><span class="ico">ⓘ</span>Carried from order entry. Read-only here.</div>'+
+  '<div style="font-size:13px"><b>Clinical history:</b> Fever 39.2, hypotension, possible sepsis. Antibiotics within 2 weeks.</div></div></details>';
+}
+function secInoc(){
+  var rows = S.inoc.length? S.inoc.map(function(x){return '<tr><td>'+x.media+'</td><td>'+(x.src==='Primary'?'Primary':'<span class="from">'+x.src+'</span>')+'</td><td>'+x.id+'</td><td>'+x.lot+'</td></tr>';}).join('')
+    : '';
+  var primaryExists = S.inoc.some(function(x){return x.src==='Primary';});
+  return '<section class="card" id="sec-inoculation"><h2>Inoculation '+(S.inoc.length?'<span class="count">'+S.inoc.length+' media</span>':'')+'</h2>'+
+  '<div class="help"><span class="ico">ⓘ</span>Record media here — initial bottles/plates and subcultures. Each is logged to the Timeline automatically. (You do not add inoculations in the Timeline.)</div>'+
+  '<div class="toolbar"><button class="btn b-ter b-sm" onclick="act(\'startInoculation\')">+ Start inoculation</button>'+
+  '<button class="btn b-ter b-sm" '+(primaryExists?'':'disabled title="Add a primary inoculation first"')+' onclick="act(\'addSubculture\')">+ Add subculture</button></div>'+
+  (S.inoc.length? '<table class="t"><thead><tr><th>Media</th><th>Source</th><th>Bottle/Plate</th><th>Reagent lot</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    : '<div class="empty">No media recorded yet. <b>+ Start inoculation</b> to begin.</div>')+
+  (primaryExists && S.stage==='INCUBATING'? '<div class="acts"><button class="btn b-ghost b-sm" onclick="act(\'markPositive\')">Mark positive</button><button class="btn b-ghost b-sm" onclick="act(\'markNoGrowth\')">Mark no growth</button></div>':'')+
+  '</section>';
+}
+function secTimeline(){
+  var rows = S.tl.map(function(e){ return '<div class="tl"><div class="when">'+e.when+'</div><div><span class="ttag '+e.cls+'">'+e.label+'</span>'+(e.auto?'<span class="auto">AUTO</span>':'')+(e.notes?'<div style="color:#525252;margin-top:3px">'+e.notes+'</div>':'')+'</div><div class="by">'+e.by+'</div></div>'; }).join('');
+  return '<section class="card" id="sec-timeline"><h2>Timeline — activity log <span class="count">'+S.tl.length+' events</span></h2>'+
+  '<div class="help"><span class="ico">ⓘ</span>The system records every action automatically (<span class="auto">AUTO</span>). Use <b>+ Add note</b> only for free-text notes or events with no section of their own.</div>'+
+  '<div class="toolbar"><button class="btn b-ter b-sm" onclick="act(\'addNote\')">+ Add note</button></div>'+(rows||'<div class="empty">No activity yet.</div>')+'</section>';
+}
+function secIsolates(){
+  var tiles = S.iso.map(function(i){
+    var idd = !!i.org;
+    var head = '<h3>Isolate '+i.n+' — '+(idd?'<span class="org">'+i.org+'</span>':'<span class="org" style="color:#6f6f6f">organism not yet identified</span>')+
+      (idd?'<span class="idstat ok">✓ Identified</span>':'<span class="idstat pend">⚠ Identification pending</span>')+
+      (idd&&i.method?'<span class="hint">'+i.method+' · '+i.conf+'%</span>':'')+'</h3>';
+    var body = '<div class="fr"><span class="l">Gram stain:</span>'+(i.gram||'—')+'</div><div class="fr"><span class="l">Colony:</span>'+(i.colony||'—')+'</div>'+
+      (idd?'<div class="fr"><span class="l">Significance:</span>'+i.sig+'</div>':'');
+    var run = i.ast? '<div class="runbox"><b>AST Run #1</b> · GN-STD · VITEK 2 · '+i.ast.status+(i.ast.status==='Complete'?' · 2 overrides':'')+'</div>':'';
+    var acts;
+    if(!idd){ acts='<div class="acts"><button class="btn b-amber b-sm" onclick="act(\'identify\','+i.n+')">Identify organism →</button><button class="btn b-ghost b-sm" onclick="act(\'editIso\','+i.n+')">Edit prelim</button><span class="hint">AST set-up unlocks once identified</span></div>'; }
+    else if(!i.ast){ acts='<div class="acts"><button class="btn b-ter b-sm" onclick="act(\'setupAst\','+i.n+')">Set up AST</button><button class="btn b-ghost b-sm" onclick="act(\'editIso\','+i.n+')">Edit</button></div>'; }
+    else if(i.ast.status==='Awaiting results'){ acts='<div class="acts"><button class="btn b-amber b-sm" onclick="act(\'receiveAst\','+i.n+')">Receive analyzer results</button><span class="hint">simulates the analyzer push</span></div>'; }
+    else if(i.ast.status==='Results in'){ acts='<div class="acts"><button class="btn b-amber b-sm" onclick="act(\'acceptAst\','+i.n+')">Accept results</button><button class="btn b-ghost b-sm" onclick="act(\'repeatAst\','+i.n+')">Repeat AST run</button><span class="hint">results pre-populated — review &amp; accept</span></div>'; }
+    else { acts='<div class="acts"><button class="btn b-ghost b-sm" onclick="act(\'editIso\','+i.n+')">Edit</button><button class="btn b-ghost b-sm">View AST</button><button class="btn b-ghost b-sm" onclick="act(\'repeatAst\','+i.n+')">Repeat AST run</button></div>'; }
+    return '<div class="iso '+(idd?'idd':'pend')+'">'+head+body+run+acts+'</div>';
+  }).join('');
+  return '<section class="card" id="sec-isolates"><h2>Isolates '+(S.iso.length?'<span class="count">'+S.iso.filter(function(i){return i.org;}).length+' of '+S.iso.length+' identified</span>':'')+'</h2>'+
+  '<div class="help"><span class="ico">ⓘ</span>Add an isolate when growth appears (record the Gram stain first). Identify it later when the result is available — manually or from the analyzer.</div>'+
+  '<div class="toolbar"><button class="btn b-ter b-sm" '+(S.iso.length||S.stage==='POSITIVE_SIGNAL'||S.inoc.length?'':'')+' onclick="act(\'addIsolate\')">+ Add isolate</button></div>'+
+  (S.iso.length? tiles : '<div class="empty">No isolates yet. Add one when growth is detected.</div>')+'</section>';
+}
+function secAst(){
+  var runs = astRuns();
+  var body;
+  if(runs.length===0){ body='<div class="empty">No AST runs yet. Identify an isolate, then set up AST.</div>'; }
+  else { body = runs.map(function(i){
+    var rows;
+    if(i.ast.status==='Awaiting results'){ rows='<div class="empty">Run set up — awaiting analyzer results (arrive automatically). <button class="btn b-amber b-sm" onclick="act(\'receiveAst\','+i.n+')">Simulate results arriving</button></div>'; }
+    else { var rb=(i.ast.status==='Results in')?'<div style="border-left:3px solid #0f62fe;background:#edf5ff;padding:0.5rem 0.7rem;margin:0 0 0.5rem;font-size:13px">Analyzer results received (pre-populated) — review &amp; accept. <button class="btn b-pri b-sm" onclick="act(\'acceptAst\','+i.n+')">Accept results</button> <button class="btn b-ghost b-sm" onclick="act(\'repeatAst\','+i.n+')">Repeat AST run</button></div>':'';
+      rows=rb+'<table class="t"><thead><tr><th>Antibiotic</th><th>MIC (µg/mL)</th><th>Interp</th><th>Source</th></tr></thead><tbody>'+
+      i.ast.results.map(function(r){return '<tr><td>'+r.abx+'</td><td>'+r.mic+'</td><td><span class="interp '+r.interp+'">'+r.interp+'</span>'+(r.ovr?' <span style="color:#8a3ffc;font-size:11px">→ '+r.interp+' ('+r.ovr+')</span>':'')+'</td><td>'+(r.ovr?'OVERRIDE':'ANALYZER')+'</td></tr>';}).join('')+'</tbody></table>'; }
+    return '<div class="iso"><h3>Isolate '+i.n+' — <span class="org">'+i.org+'</span></h3>'+rows+'</div>';
+  }).join(''); }
+  var needSetup=S.iso.filter(function(x){return x.org && !x.ast;}).length;
+  var pendId=S.iso.filter(function(x){return !x.org;}).length;
+  var extra=[]; if(needSetup) extra.push(needSetup+' awaiting setup'); if(pendId) extra.push(pendId+' pending ID');
+  var astCount = runs.length? runs.filter(function(i){return i.ast.status==='Complete';}).length+' / '+runs.length+' runs complete' : (S.iso.length?'no runs yet':'');
+  if(extra.length) astCount += ' · '+extra.join(' · ');
+  return '<section class="card" id="sec-ast"><h2>AST Results '+(astCount?'<span class="count">'+astCount+'</span>':'')+'</h2>'+
+  '<div class="help"><span class="ico">ⓘ</span>S/I/R is computed from the breakpoint standard recorded when the run was set up. Overridden rows are shaded.</div>'+body+'</section>';
+}
+function secReports(){
+  var checks=[['All isolates have a final organism ID',allIdentified()],['AST complete for significant isolates',astComplete()],['Expert flags addressed (N/A 1A)',true],['No pending additional tests',true],['Clinical correlation reviewed',true]];
+  var blocking=checks.filter(function(c){return !c[1];}).length;
+  return '<section class="card" id="sec-reports"><h2>Reports</h2>'+
+  '<div class="help"><span class="ico">ⓘ</span>Release a preliminary report once a Gram stain exists. Final unlocks when all readiness items pass.</div>'+
+  (S.prelim?'<div class="report-row"><b>Preliminary</b> — released '+S.prelim+' by Olivia Mendez · Email, Print, FHIR</div>':'')+
+  (S.final?'<div class="report-row"><b>Final</b> — released '+S.final+' by Dr. Adeyemi</div>':'')+
+  '<div style="font-size:13px;font-weight:600;margin:0.6rem 0 0.25rem">Final release readiness</div><ul class="checklist">'+
+  checks.map(function(c){return '<li><span class="'+(c[1]?'ok2':'no2')+'">'+(c[1]?'✓':'✕')+'</span> '+c[0]+'</li>';}).join('')+'</ul>'+
+  '<div class="toolbar" style="margin-top:0.5rem">'+
+  '<button class="btn b-ter b-sm" '+(hasGram()&&!S.prelim?'':'disabled')+' onclick="act(\'releasePrelim\')">Release preliminary</button>'+
+  '<button class="btn b-pri b-sm" '+(blocking===0&&!S.final?'':'disabled')+' onclick="act(\'releaseFinal\')">Release final'+(blocking?' ('+blocking+' blocking)':'')+'</button></div></section>';
+}
+
+/* ---------- render ---------- */
+function render(refocus){
+  document.getElementById('stagePill').textContent = STAGE_LABEL[S.stage]||S.stage;
+  document.getElementById('critBadge').innerHTML = S.critical? '<span class="crit-badge">⚠ 1 critical '+(S.critical.ack?'ack':'open')+'</span>':'';
+  document.getElementById('nceBadge').innerHTML = S.nce? '<span class="crit-badge" style="background:#fff8e1;border-color:#b28600;color:#684e00">⚑ NCE: '+S.nce.sub+'</span>':'';
+  document.getElementById('sidebar').innerHTML = progress();
+  var ns = nextStepText();
+  document.getElementById('banner').innerHTML = '<div class="nextstep'+(ns.done?' done':'')+'"><span style="font-size:18px">'+(ns.done?'✅':'🧭')+'</span><div class="txt"><b>Next step:</b> '+ns.txt+'</div>'+(ns.act?'<button class="btn b-pri b-sm" onclick="act(\''+ns.act[1].split(':')[0]+'\''+(ns.act[1].indexOf(':')>-1?','+ns.act[1].split(':')[1]:'')+')">'+ns.act[0]+'</button>':'')+'</div>';
+  document.getElementById('sections').innerHTML = secInfo()+secInoc()+secTimeline()+secIsolates()+secAst()+secReports();
+  if(refocus!==false) focusSection(currentStep());
+}
+function focusSection(key){
+  var el=document.getElementById('sec-'+key); if(!el) return;
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+  el.classList.remove('focus-pulse'); void el.offsetWidth; el.classList.add('focus-pulse');
+}
+
+/* ---------- modal ---------- */
+// Inline action panel (not a pop-up modal) — renders in page flow per OpenELIS Principle 3.
+function openModal(title, fields, onSave, saveLabel){
+  var html='<div class="inline-form"><div class="if-h">'+title+' <span class="if-sub">— inline, no pop-up</span></div><div class="if-b">';
+  fields.forEach(function(f){
+    html+='<div class="fld"><label>'+f.label+'</label>';
+    if(f.type==='select'){ html+='<select id="f_'+f.key+'">'+f.options.map(function(o){return '<option>'+o+'</option>';}).join('')+'</select>'; }
+    else if(f.type==='textarea'){ html+='<textarea id="f_'+f.key+'" rows="2">'+(f.value||'')+'</textarea>'; }
+    else if(f.type==='scan'){ html+='<div class="scan-row"><input id="f_'+f.key+'" value="'+(f.value||'')+'" placeholder="'+(f.ph||'')+'"><button type="button" class="btn b-ter btn-scan" onclick="scanInto(\'f_'+f.key+'\',\''+(f.scanVal||'')+'\')">⊞ Scan</button></div>'; }
+    else { html+='<input id="f_'+f.key+'" value="'+(f.value||'')+'" placeholder="'+(f.ph||'')+'">'; }
+    if(f.fh) html+='<div class="fh">'+f.fh+'</div>';
+    html+='</div>';
+  });
+  html+='</div><div class="if-f"><button class="btn b-pri" id="modalSave">'+(saveLabel||'Save')+'</button><button class="btn b-ghost" onclick="closeModal()">Cancel</button></div></div>';
+  var root=document.getElementById('inlineSlot'); root.innerHTML=html; root.scrollIntoView({behavior:'smooth',block:'center'});
+  document.getElementById('modalSave').onclick=function(){
+    var vals={}; fields.forEach(function(f){ vals[f.key]=document.getElementById('f_'+f.key).value; });
+    closeModal(); onSave(vals);
+  };
+}
+function closeModal(){ var r=document.getElementById('inlineSlot'); if(r) r.innerHTML=''; }
+function scanInto(id,val){ var el=document.getElementById(id); if(el){ el.value = val || ('SCAN-'+Math.floor(Math.random()*9000+1000)); el.focus(); } }
+
+/* ---------- actions ---------- */
+function act(name, arg){
+  switch(name){
+    case 'startInoculation':
+      openModal('Start inoculation',[
+        {key:'media',label:'Media *',type:'select',options:['FA — Aerobic Blood Bottle','FN — Anaerobic Blood Bottle','BAP','MacConkey','Chocolate agar']},
+        {key:'id',label:'Bottle / plate ID',type:'scan',ph:'scan or type, e.g. FA24012',scanVal:'FA24012',fh:'Scan the bottle/plate barcode (or type it).'},
+        {key:'lot',label:'Reagent lot',type:'select',options:['BAP-26-04-088 · exp 2026-07-30 · QC pass  (oldest — use first)','FA-26-04-117 · exp 2026-08-15 · QC pass','FN-26-04-118 · exp 2026-08-15 · QC pass'],fh:'Sorted oldest-expiry first (FIFO) — same as results-entry reagent selection. QC status shown; expired/locked lots are blocked.'}
+      ],function(v){ S.inoc.push({media:v.media,src:'Primary',id:v.id||'—',lot:v.lot.split(' (')[0]}); logTL('','Inoculated',v.media+' inoculated.','Olivia Mendez',true); if(S.stage==='RECEIVED') S.stage='INCUBATING'; S.focus='inoculation'; render(); });
+      break;
+    case 'addSubculture':
+      openModal('Add subculture',[
+        {key:'media',label:'Media *',type:'select',options:['BAP','MacConkey','Chocolate agar','CLED']},
+        {key:'parent',label:'Subculture from *',type:'select',options:S.inoc.map(function(x){return x.id;})},
+        {key:'id',label:'Plate ID',type:'scan',ph:'scan or type, e.g. SC-0892A',scanVal:'SC-0892A',fh:'Scan the plate barcode (or type it).'}
+      ],function(v){ S.inoc.push({media:v.media,src:'subculture ← '+v.parent,id:v.id||'—',lot:'—'}); logTL('sub','Subculture',v.media+' subcultured from '+v.parent+'.','Olivia Mendez',true); render(); });
+      break;
+    case 'markPositive':
+      S.stage='POSITIVE_SIGNAL'; logTL('pos','Positive signal','Instrument flagged positive.','BacT/Alert auto',true); render(); break;
+    case 'markNoGrowth':
+      S.stage='NO_GROWTH_FINAL'; logTL('rep','No growth — final','Finalized as no growth after full incubation.','Olivia Mendez',false); render(); break;
+    case 'addIsolate':
+      openModal('Add isolate',[
+        {key:'gram',label:'Gram stain *',ph:'Gram negative rods, many'},
+        {key:'colony',label:'Colony morphology',ph:'Lactose-fermenting on MAC'}
+      ],function(v){ var n=S.iso.length+1; S.iso.push({n:n,gram:v.gram,colony:v.colony,org:null,method:null,conf:null,sig:'Clinically significant',ast:null}); logTL('gram','Gram stain','Isolate '+n+': '+v.gram,'Olivia Mendez',true); if(S.stage==='POSITIVE_SIGNAL'||S.stage==='INCUBATING') S.stage='ORGANISM_ID'; render(); });
+      break;
+    case 'identify': case 'editIso':
+      var iso=S.iso.find(function(x){return x.n==arg;}); if(!iso) break;
+      openModal((name==='identify'?'Identify organism — Isolate ':'Edit isolate ')+iso.n,[
+        {key:'gram',label:'Gram stain',value:iso.gram},
+        {key:'colony',label:'Colony morphology',value:iso.colony},
+        {key:'org',label:'Organism'+(name==='identify'?' *':''),type:'select',options:['(not yet)'].concat(ORGS)},
+        {key:'method',label:'ID method',type:'select',options:['VITEK 2','MALDI-TOF','Manual biochemistry','PCR']},
+        {key:'conf',label:'ID confidence %',value:iso.conf||'99.5'},
+        {key:'sig',label:'Significance',type:'select',options:['Clinically significant','Probable contaminant','Colonizer','Indeterminate']},
+        {key:'panel',label:'Default AST panel',type:'select',options:['GN-STD (16 antibiotics)','GP-STD','GN-UR'],fh:'Pre-selected from the organism default.'}
+      ],function(v){ iso.gram=v.gram; iso.colony=v.colony; iso.sig=v.sig; if(v.org!=='(not yet)'){ var wasNull=!iso.org; iso.org=v.org; iso.method=v.method; iso.conf=v.conf; if(wasNull) logTL('','Organism identified','Isolate '+iso.n+' identified as '+v.org+' ('+v.method+' '+v.conf+'%).','Olivia Mendez',true); } render(); });
+      break;
+    case 'setupAst':
+      var i2=S.iso.find(function(x){return x.n==arg;}); if(!i2||!i2.org) break;
+      openModal('Set up AST — Isolate '+i2.n,[
+        {key:'panel',label:'AST panel (ordered — from organism default via reflex)',type:'select',options:['GN-STD — Gram-negative standard (ordered)','GP-STD','GN-UR'],fh:'Pre-filled by the reflex from the organism’s default panel (M-01) — not a free choice. Adjusting it updates the ordered analysis, snapshots panel+version on the run, and is audited with a reason.'},
+        {key:'method',label:'Method *',type:'select',options:['VITEK 2','BD Phoenix','Disk diffusion']},
+        {key:'bp',label:'Breakpoint standard',type:'select',options:['EUCAST v14.0  (lab default — active)','CLSI M100 2024  (loaded)','CLSI M100 2025  (loaded)','EUCAST v13.0  (loaded)'],fh:'Defaults to the lab active standard, but choose any loaded standard/version per run (CLSI or EUCAST). Snapshotted on the run — switching the lab default later never changes this run. Loaded set managed in Breakpoint Catalog (M-02).'},
+        {key:'card',label:'Card / disc lot',type:'select',options:['AST-GN-26-04-117 · exp 2026-09-01 · QC pass  (oldest — use first)','AST-GN-26-05-140 · exp 2026-10-15 · QC pass'],fh:'Sorted oldest-expiry first (FIFO); QC status shown; expired/locked lots blocked. The analyzer card ID is captured from the instrument link or scanned.'}
+      ],function(v){ i2.ast={status:'Awaiting results',results:[]}; logTL('ast','AST setup',v.panel+' ('+v.method+') set up for Isolate '+i2.n+'.','Olivia Mendez',true); S.stage='AST_IN_PROGRESS'; S.focus='ast'; render(); });
+      break;
+    case 'receiveAst':
+      var i3=S.iso.find(function(x){return x.n==arg;}); if(!i3||!i3.ast) break;
+      var interps=['R','R','S','R','I','S'];
+      i3.ast.results=ABX.map(function(a,ix){ var ovr = (a==='Ceftriaxone')?'ESBL':null; return {abx:a,mic:['> 32','16','≤ 0.25','4','2','≤ 0.5'][ix],interp:interps[ix],ovr:ovr}; });
+      i3.ast.status='Results in';
+      logTL('ast','AST results received','VITEK 2 returned '+ABX.length+' antibiotics; auto-interpreted (EUCAST v14.0). Awaiting tech review.','BacT/Alert auto',true);
+      S.focus='ast'; render(); break;
+    case 'acceptAst':
+      var ia=S.iso.find(function(x){return x.n==arg;}); if(!ia||!ia.ast) break;
+      ia.ast.status='Complete'; logTL('ast','AST reviewed & accepted','Run reviewed and marked complete.','Olivia Mendez',false);
+      if(astComplete()) S.stage='READY_REVIEW'; S.focus='ast'; render(); break;
+    case 'repeatAst':
+      logTL('ast','Repeat AST run','New AST run created (retest) — original preserved.','Olivia Mendez',false); render(); break;
+    case 'logCritical':
+      openModal('Log critical notification',[
+        {key:'who',label:'Clinician notified *',ph:'Dr. R. Patel (ER)'},
+        {key:'method',label:'Method',type:'select',options:['Phone','In-person','Pager','Secure message']},
+        {key:'msg',label:'Substance of communication',type:'textarea',value:'Gram-negative rods in blood culture; possible sepsis. Recommend broad-spectrum coverage.'},
+        {key:'ack',label:'Acknowledged at time of call?',type:'select',options:['Yes — read-back','Yes — verbal','No']}
+      ],function(v){ S.critical={who:v.who,ack:v.ack.indexOf('Yes')===0}; logTL('crit','Critical called',v.who+' notified ('+v.method+'). '+(v.ack.indexOf('Yes')===0?'Acknowledged ('+v.ack+').':'Not yet acknowledged.'),'Olivia Mendez',false); render(false); });
+      break;
+    case 'reportNce':
+      openModal('Report non-conforming event (NCE)',[
+        {key:'cat',label:'Category',type:'select',options:['Pre-analytical','Analytical','Post-analytical']},
+        {key:'sub',label:'Subcategory *',type:'select',options:['Specimen lost','Specimen integrity / insufficient','Contamination','Mislabel / ID mismatch','Transport / temperature','Testing error','Other']},
+        {key:'sev',label:'Severity',type:'select',options:['Minor','Major','Critical']},
+        {key:'desc',label:'What happened',type:'textarea',value:''},
+        {key:'action',label:'Test disposition',type:'select',options:['Flag only — continue processing','Reject test — reason: specimen lost','Reject test — other reason'],fh:'Reuses OE sample rejection: rejecting sets the sample status to Rejected and cancels pending tests.'}
+      ],function(v){
+        S.nce={sub:v.sub};
+        logTL('note','NCE reported',v.cat+' / '+v.sub+' ('+v.sev+'). '+(v.desc||''),'Olivia Mendez',false);
+        if(v.action.indexOf('Reject')===0){
+          var lost = v.action.indexOf('specimen lost')>-1 || v.sub==='Specimen lost';
+          logTL('note','Test rejected',(lost?'Reason: specimen lost. ':'')+'Pending tests cancelled; NCE linked.','Olivia Mendez',true);
+          S.stage = lost ? 'LOST_SPECIMEN' : 'REJECTED';
+        }
+        render();
+      },'Save NCE');
+      break;
+    case 'addNote':
+      openModal('Add note',[{key:'type',label:'Type',type:'select',options:['General note','Plate reading','Specimen lost']},{key:'txt',label:'Note',type:'textarea'}],
+        function(v){ logTL('note',v.type,v.txt,'Olivia Mendez',false); render(false); });
+      break;
+    case 'releasePrelim':
+      S.prelim=now(); if(S.stage==='READY_REVIEW'||S.stage==='AST_IN_PROGRESS'||S.stage==='ORGANISM_ID') S.stage='PRELIM_REPORTED'; logTL('rep','Report released','Preliminary report released.','Olivia Mendez',true); render(); break;
+    case 'releaseFinal':
+      S.final=now(); S.stage='FINAL_REPORTED'; logTL('rep','Report released','Final report released and case locked.','Dr. Adeyemi',true); render(); break;
+  }
+}
+resetCase();
+</script>
+</body>
+</html>

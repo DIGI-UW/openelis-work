@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Westgard Phase 2 — Preview</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #f4f4f4; color: #161616; padding: 2rem; }
+    h1.page-title { font-size: 1.75rem; font-weight: 300; margin: 0 0 0.25rem 0; letter-spacing: -0.01em; }
+    p.page-sub { color: #525252; margin: 0 0 1.5rem 0; font-size: 0.9375rem; max-width: 800px; }
+    .preview-note { background: #fdf6dd; border-left: 3px solid #f1c21b; padding: 0.625rem 0.875rem; margin-bottom: 1.5rem; font-size: 0.8125rem; color: #684e00; max-width: 1200px; }
+
+    .canvas { background: #fff; border: 1px solid #e0e0e0; padding: 1.5rem; max-width: 1200px; margin-bottom: 2rem; }
+    .canvas-title { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1rem; }
+    .canvas-title h2 { font-size: 1rem; font-weight: 600; margin: 0; }
+    .canvas-title .badge { font-size: 0.625rem; padding: 0.125rem 0.5rem; border-radius: 8px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 500; }
+    .canvas-title .badge.new { background: #defbe6; color: #0e6027; }
+    .canvas-title .badge.changed { background: #d0e2ff; color: #002d9c; }
+    .canvas-sub { font-size: 0.8125rem; color: #525252; margin-bottom: 1rem; }
+
+    /* Section 1 — alert banner above summary tiles */
+    .alert-banner { background: #fff; border: 1px solid #e0e0e0; border-left: 3px solid #da1e28; margin-bottom: 1rem; }
+    .alert-banner-head { display: flex; align-items: center; gap: 0.75rem; padding: 0.625rem 1rem; cursor: pointer; }
+    .alert-banner-head .label { font-weight: 600; color: #161616; font-size: 0.875rem; }
+    .alert-banner-head .count { background: #da1e28; color: #fff; padding: 0.125rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600; }
+    .alert-banner-head .chev { margin-left: auto; color: #6f6f6f; font-size: 0.75rem; }
+    .alert-banner-body { border-top: 1px solid #f0f0f0; }
+    .alert-row { display: grid; grid-template-columns: 16px 100px 110px 80px 110px auto auto; gap: 0.75rem; padding: 0.5rem 1rem; align-items: center; font-size: 0.8125rem; border-top: 1px solid #f7f7f7; }
+    .alert-row:first-child { border-top: 0; }
+    .alert-row .sev-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .alert-row .sev-dot.red { background: #da1e28; }
+    .alert-row .sev-dot.amber { background: #f1c21b; }
+    .alert-row .timestamp { color: #6f6f6f; font-variant-numeric: tabular-nums; font-size: 0.75rem; }
+    .alert-row .rule { font-family: 'IBM Plex Mono', monospace; background: #f4f4f4; padding: 0.0625rem 0.375rem; font-size: 0.75rem; }
+    .alert-row .ack-btn { padding: 0.25rem 0.625rem; background: #fff; border: 1px solid #c6c6c6; font-size: 0.75rem; cursor: pointer; font-family: inherit; }
+    .alert-row .ack-btn:hover { background: #f4f4f4; }
+    .alert-row .arrow { color: #a8a8a8; font-size: 0.75rem; }
+
+    /* Summary tiles (kept from existing for context) */
+    .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+    .summary-tile { background: #fff; border: 1px solid #e0e0e0; padding: 1rem; text-align: center; }
+    .summary-tile .icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .summary-tile .icon.green { color: #198038; }
+    .summary-tile .icon.amber { color: #f1c21b; }
+    .summary-tile .icon.red { color: #da1e28; }
+    .summary-tile .icon.blue { color: #0f62fe; }
+    .summary-tile .label { font-size: 0.75rem; color: #525252; margin-bottom: 0.125rem; }
+    .summary-tile .count { font-size: 1.5rem; font-weight: 300; }
+    .summary-tile .pct { font-size: 0.75rem; color: #6f6f6f; }
+
+    /* Section 2 — violation detail with auto-NCE */
+    .violation-detail { background: #fff; border: 1px solid #e0e0e0; padding: 1.5rem; }
+    .violation-header { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .violation-header h3 { margin: 0; font-size: 1.125rem; font-weight: 500; }
+    .violation-header .sev-pill { font-size: 0.75rem; font-weight: 600; padding: 0.125rem 0.5rem; border-radius: 10px; background: #ffd7d9; color: #750e13; text-transform: uppercase; letter-spacing: 0.04em; }
+    .violation-header .timestamp { color: #6f6f6f; font-size: 0.8125rem; }
+    .violation-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
+    .violation-field { display: flex; flex-direction: column; gap: 0.125rem; }
+    .violation-field .label { font-size: 0.6875rem; color: #525252; text-transform: uppercase; letter-spacing: 0.04em; }
+    .violation-field .value { font-size: 0.875rem; font-weight: 500; }
+    .auto-nce-card { background: #d0e2ff; border-left: 3px solid #0f62fe; padding: 1rem; margin-bottom: 1.25rem; }
+    .auto-nce-card .head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .auto-nce-card .head .icon { font-size: 1rem; }
+    .auto-nce-card .head .title { font-weight: 600; color: #002d9c; font-size: 0.875rem; }
+    .auto-nce-card .head .pill-new { font-size: 0.625rem; background: #defbe6; color: #0e6027; padding: 0.0625rem 0.375rem; border-radius: 8px; letter-spacing: 0.04em; text-transform: uppercase; }
+    .auto-nce-card .nce-link { color: #0f62fe; cursor: pointer; font-weight: 500; font-size: 0.875rem; }
+    .auto-nce-card .nce-meta { font-size: 0.8125rem; color: #002d9c; opacity: 0.85; }
+    .actions-row { display: flex; gap: 0.5rem; }
+    .actions-row .btn { padding: 0.375rem 0.875rem; border: 1px solid #c6c6c6; background: #fff; cursor: pointer; font-family: inherit; font-size: 0.875rem; }
+    .actions-row .btn.primary { background: #0f62fe; color: #fff; border-color: #0f62fe; }
+    .actions-row .btn.primary:hover { background: #0353e9; }
+    .actions-row .btn:hover { background: #f4f4f4; }
+
+    /* Section 3 — QC reporting export menu */
+    .export-bar { display: flex; align-items: center; padding: 0.625rem 1rem; background: #fff; border: 1px solid #e0e0e0; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .export-bar .label { font-size: 0.8125rem; color: #525252; }
+    .export-menu { background: #fff; border: 1px solid #c6c6c6; box-shadow: 0 4px 12px rgba(0,0,0,0.08); width: 320px; max-width: 100%; }
+    .export-menu-title { padding: 0.625rem 1rem; border-bottom: 1px solid #e0e0e0; font-size: 0.6875rem; color: #525252; text-transform: uppercase; letter-spacing: 0.04em; }
+    .export-option { padding: 0.625rem 1rem; border-top: 1px solid #f7f7f7; cursor: pointer; }
+    .export-option:hover { background: #fafafa; }
+    .export-option .name { font-size: 0.875rem; font-weight: 500; margin-bottom: 0.125rem; }
+    .export-option .desc { font-size: 0.75rem; color: #6f6f6f; }
+
+    /* Section 4 — sigma metrics + statistical method */
+    .sigma-tile { background: #fff; border: 1px solid #e0e0e0; padding: 1.25rem; }
+    .sigma-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .sigma-cell { display: flex; flex-direction: column; gap: 0.25rem; }
+    .sigma-cell .label { font-size: 0.6875rem; color: #525252; text-transform: uppercase; letter-spacing: 0.04em; }
+    .sigma-cell .value { font-size: 1.5rem; font-weight: 300; }
+    .sigma-cell .sub { font-size: 0.75rem; color: #6f6f6f; }
+    .sigma-grade { display: inline-block; font-size: 0.6875rem; padding: 0.125rem 0.5rem; border-radius: 10px; font-weight: 500; }
+    .sigma-grade.world-class { background: #defbe6; color: #0e6027; }
+    .sigma-grade.acceptable  { background: #d0e2ff; color: #002d9c; }
+    .sigma-grade.marginal    { background: #fff1c2; color: #6f4700; }
+    .sigma-grade.poor        { background: #ffd7d9; color: #750e13; }
+
+    .stat-method-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem; background: #f4f4f4; font-size: 0.8125rem; }
+    .stat-method-row select { padding: 0.25rem 0.5rem; border: 1px solid #c6c6c6; background: #fff; font-family: inherit; font-size: 0.875rem; }
+
+    .legend { font-size: 0.75rem; color: #6f6f6f; margin-top: 0.5rem; }
+
+    .summary-card { background: #f4f4f4; padding: 1rem 1.25rem; margin: 2rem 0 0 0; max-width: 1200px; font-size: 0.8125rem; color: #393939; }
+    .summary-card h3 { margin: 0 0 0.5rem 0; font-size: 0.875rem; }
+    .summary-card .item { display: grid; grid-template-columns: auto 1fr auto auto; gap: 0.5rem 1rem; padding: 0.375rem 0; border-top: 1px solid #e0e0e0; align-items: baseline; }
+    .summary-card .item:first-of-type { border-top: 0; }
+    .summary-card .item-label { font-weight: 500; }
+    .summary-card .item-effort { color: #0f62fe; font-weight: 600; }
+    .summary-card .item-tag { font-size: 0.625rem; padding: 0.0625rem 0.375rem; border-radius: 8px; letter-spacing: 0.04em; text-transform: uppercase; }
+    .summary-card .item-tag.high { background: #defbe6; color: #0e6027; }
+    .summary-card .item-tag.medium { background: #d0e2ff; color: #002d9c; }
+    .summary-card .item-tag.nice { background: #fff1c2; color: #6f4700; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, Fragment } = React;
+
+    function App() {
+      const [bannerOpen, setBannerOpen] = useState(true);
+      const [exportMenuOpen, setExportMenuOpen] = useState(true); // shown by default for the mockup
+
+      return (
+        <Fragment>
+          <h1 className="page-title">Westgard Phase 2 — visualization</h1>
+          <p className="page-sub">
+            Four small functional + layout improvements identified by the 2026-05-04 code + UI audit.
+            Existing implementation is solid; these are bounded scope improvements (~25–35h core team total)
+            that can ship together as a Phase 2 PR or split across community contributors.
+            See <code>qa-menu-versioning-plan.md</code> for the full Phase 2 entry.
+          </p>
+
+          <div className="preview-note">
+            <strong>This is a visualization, not a clickable mockup.</strong> Each canvas below shows one Phase 2 improvement
+            in context. The existing QC Dashboard layout is preserved — these are additive changes.
+          </div>
+
+          {/* ---------- 4. ALERT BANNER (highest leverage, ~4h) ---------- */}
+          <div className="canvas">
+            <div className="canvas-title">
+              <h2>① Active-violations alert banner</h2>
+              <span className="badge new">NEW · ~4h · highest leverage</span>
+            </div>
+            <p className="canvas-sub">
+              Promote the top 3–5 unacknowledged violations to a collapsible banner above the summary tiles. Today the
+              QA Officer sees <em>counts</em> on the tiles but has to click into a tab to see <em>which analyzers</em>
+              are in violation — that's the most-asked daily question and the most expensive interaction to reach.
+            </p>
+
+            {/* The new alert banner */}
+            <div className="alert-banner">
+              <div className="alert-banner-head" onClick={() => setBannerOpen(!bannerOpen)}>
+                <span className="count">3</span>
+                <span className="label">Unacknowledged QC violations need action</span>
+                <span style={{ color: '#6f6f6f', fontSize: '0.8125rem', marginLeft: 'auto' }}>Last 24h</span>
+                <span className="chev">{bannerOpen ? '▾' : '▸'}</span>
+              </div>
+              {bannerOpen && (
+                <div className="alert-banner-body">
+                  {[
+                    { sev: 'red',   ts: '08:14 today', inst: 'Architect ci8200', test: 'Potassium', rule: '1-3s', age: '1h 33m ago' },
+                    { sev: 'amber', ts: '08:18 today', inst: 'Architect ci8200', test: 'Potassium', rule: '1-2s', age: '1h 29m ago' },
+                    { sev: 'amber', ts: 'Yest 23:02',  inst: 'Sysmex XN-1000',   test: 'Hgb',       rule: '1-2s', age: '10h 45m ago' },
+                  ].map((r, i) => (
+                    <div key={i} className="alert-row">
+                      <span className={`sev-dot ${r.sev}`}></span>
+                      <span className="timestamp">{r.ts}</span>
+                      <span style={{ fontWeight: 500 }}>{r.inst}</span>
+                      <span>{r.test}</span>
+                      <span className="rule">{r.rule}</span>
+                      <span style={{ color: '#6f6f6f', fontSize: '0.75rem' }}>{r.age}</span>
+                      <button className="ack-btn">Acknowledge</button>
+                      <span className="arrow">→</span>
+                    </div>
+                  ))}
+                  <div style={{ padding: '0.5rem 1rem', borderTop: '1px solid #f0f0f0', fontSize: '0.75rem', color: '#0f62fe' }}>
+                    View all 3 active violations in Alerts tab ↗
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* The existing summary tiles — preserved for visual context */}
+            <div className="summary-grid">
+              <div className="summary-tile"><div className="icon green">✓</div><div className="label">In Control</div><div className="count">44</div><div className="pct">94%</div></div>
+              <div className="summary-tile"><div className="icon amber">⚠</div><div className="label">Warning</div><div className="count">2</div><div className="pct">4%</div></div>
+              <div className="summary-tile"><div className="icon red">✗</div><div className="label">Out of Control</div><div className="count">1</div><div className="pct">2%</div></div>
+              <div className="summary-tile"><div className="icon blue">📊</div><div className="label">Pass Rate</div><div className="count">94%</div><div className="pct">last 30d</div></div>
+            </div>
+
+            <p className="legend">
+              The banner conditionally renders only when <code>unacknowledged_violations &gt; 0</code>. When all
+              violations are acknowledged, it disappears entirely — the dashboard returns to its quiet state.
+              Inline Acknowledge buttons close the loop without leaving the dashboard.
+            </p>
+          </div>
+
+          {/* ---------- 1. AUTO-CREATE NCE ON CRITICAL VIOLATION (~6-10h, HIGH VALUE) ---------- */}
+          <div className="canvas">
+            <div className="canvas-title">
+              <h2>② Auto-create NCE on critical violation</h2>
+              <span className="badge new">NEW · ~6–10h · high value</span>
+            </div>
+            <p className="canvas-sub">
+              Today: a 1-3s violation is recorded in <code>qc_rule_violation</code> but the QA Officer has to manually
+              file the NCE. NCE FRS v3.1 trigger #10 ("QC invalidation from Westgard") is specced for this — needs wiring.
+              Closes the QC ↔ QMS workflow loop with one service hook.
+            </p>
+
+            <div className="violation-detail">
+              <div className="violation-header">
+                <h3>Violation 14728 — Architect ci8200 / Potassium / Lot 22417C</h3>
+                <span className="sev-pill">Critical 1-3s</span>
+                <span className="timestamp">2026-04-30 08:14</span>
+              </div>
+
+              {/* The NEW auto-NCE link */}
+              <div className="auto-nce-card">
+                <div className="head">
+                  <span className="icon">🔗</span>
+                  <span className="title">Auto-created NCE</span>
+                  <span className="pill-new">NEW IN PHASE 2</span>
+                </div>
+                <div>
+                  <span className="nce-link">NCE-20260430-0014</span> · Critical · Pre-Analytical / QC Invalidation · J. Smith assigned
+                </div>
+                <div className="nce-meta">
+                  Trigger: NCE FRS v3.1 trigger #10. Created automatically when this 1-3s violation was logged.
+                  Sample LAB-26-04388 was held; recollection requested.
+                </div>
+              </div>
+
+              <div className="violation-grid">
+                <div className="violation-field"><span className="label">Rule fired</span><span className="value">1-3s (one control &gt; 3 SD)</span></div>
+                <div className="violation-field"><span className="label">Z-score</span><span className="value">+4.0 SD</span></div>
+                <div className="violation-field"><span className="label">Control value</span><span className="value">4.46 mmol/L</span></div>
+                <div className="violation-field"><span className="label">Expected (mean)</span><span className="value">4.30 mmol/L · SD 0.04</span></div>
+              </div>
+
+              <div className="actions-row">
+                <button className="btn primary">Acknowledge</button>
+                <button className="btn">Open NCE-20260430-0014 ↗</button>
+                <button className="btn">View Levey-Jennings ↗</button>
+                <button className="btn">Reject patient samples on this run</button>
+              </div>
+            </div>
+
+            <p className="legend">
+              Without this hookup, every critical Westgard violation requires the QA Officer to notice + manually
+              file the NCE. With it, the NCE is on the violation detail at the moment the analyst sees the alert.
+              No new schema; uses the existing <code>nce_event</code> + <code>nce_capa</code> tables and the
+              <code>qc_rule_violation</code> → <code>nce_event</code> link via <code>nce_westgard_link</code>.
+            </p>
+          </div>
+
+          {/* ---------- 2. QC REPORTING / TREND EXPORT (~10-15h, MEDIUM VALUE) ---------- */}
+          <div className="canvas">
+            <div className="canvas-title">
+              <h2>③ QC reporting / trend export</h2>
+              <span className="badge new">NEW · ~10–15h · community OK</span>
+            </div>
+            <p className="canvas-sub">
+              Today: charts render on screen but no CSV/PDF export, no monthly QC summary report. CAP / SANAS inspectors
+              regularly ask for monthly QC summaries and today the lab takes screenshots. Self-contained scope; good
+              candidate for community contribution.
+            </p>
+
+            <div className="export-bar">
+              <span className="label">Date range:</span>
+              <span className="rule" style={{ background: '#fff', border: '1px solid #c6c6c6', padding: '0.25rem 0.5rem', fontFamily: 'inherit' }}>2026-04-01 → 2026-04-30</span>
+              <span className="label">Instrument:</span>
+              <span className="rule" style={{ background: '#fff', border: '1px solid #c6c6c6', padding: '0.25rem 0.5rem', fontFamily: 'inherit' }}>All ▾</span>
+              <span style={{ flex: 1 }}></span>
+              <button className="ack-btn" style={{ background: '#0f62fe', color: '#fff', border: 0 }} onClick={() => setExportMenuOpen(!exportMenuOpen)}>
+                ⬇ Export ▾
+              </button>
+            </div>
+
+            {exportMenuOpen && (
+              <div className="export-menu" style={{ marginLeft: 'auto', marginRight: '1rem' }}>
+                <div className="export-menu-title">Export options</div>
+                <div className="export-option">
+                  <div className="name">Monthly QC Summary (PDF)</div>
+                  <div className="desc">CAP/SANAS-ready summary by instrument and test. Includes Levey-Jennings charts, sigma metrics, violation list.</div>
+                </div>
+                <div className="export-option">
+                  <div className="name">QC Run Detail (CSV)</div>
+                  <div className="desc">Every QC run in the date range. Columns: timestamp, instrument, test, lot, level, value, z-score, rules fired.</div>
+                </div>
+                <div className="export-option">
+                  <div className="name">Violations Log (CSV)</div>
+                  <div className="desc">All violations in the date range with rule, severity, ack status, ack user, ack timestamp, linked NCE.</div>
+                </div>
+                <div className="export-option">
+                  <div className="name">Trend Report (PDF)</div>
+                  <div className="desc">Cumulative bias, CV, and sigma trends per test over a configurable window (default 90d).</div>
+                </div>
+              </div>
+            )}
+
+            <p className="legend">
+              Reuses the existing JasperReports infrastructure for PDFs (matches the patient-report rendering pattern).
+              CSV export streams from a single read query — no new endpoint, just a new query parameter on the existing
+              dashboard data API. Trend report uses the same Levey-Jennings rendering already on screen.
+            </p>
+          </div>
+
+          {/* ---------- 3. SIGMA METRICS + STATISTICAL METHOD COMPLETION (~8-12h) ---------- */}
+          <div className="canvas">
+            <div className="canvas-title">
+              <h2>④ Sigma metrics + statistical method completion</h2>
+              <span className="badge new">CHANGED · ~8–12h · nice to have</span>
+            </div>
+            <p className="canvas-sub">
+              Today: ROLLING mean/SD recalc logic exists but isn't fully integrated into rule evaluation;
+              MANUFACTURER_FIXED hardcoded values lack a UI for manual entry; no sigma calculation surfaced. Phase 2
+              completes the integration and adds a sigma display per test.
+            </p>
+
+            <div className="sigma-tile">
+              <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1rem' }}>Potassium · Architect ci8200 · Lot 22417C</h3>
+
+              <div className="sigma-grid">
+                <div className="sigma-cell">
+                  <span className="label">Sigma performance</span>
+                  <span className="value">4.2 σ <span className="sigma-grade acceptable">Acceptable</span></span>
+                  <span className="sub">σ = (TEa − bias) / CV · TEa from manufacturer 5%</span>
+                </div>
+                <div className="sigma-cell">
+                  <span className="label">Bias</span>
+                  <span className="value">+0.7%</span>
+                  <span className="sub">vs. peer mean (last 90d)</span>
+                </div>
+                <div className="sigma-cell">
+                  <span className="label">Coefficient of variation</span>
+                  <span className="value">1.0%</span>
+                  <span className="sub">CV = SD / mean · last 60 runs</span>
+                </div>
+              </div>
+
+              <div className="stat-method-row">
+                <span style={{ fontWeight: 500 }}>Statistical calculation method:</span>
+                <select defaultValue="ROLLING">
+                  <option value="MANUFACTURER_FIXED">Manufacturer-fixed (entered values)</option>
+                  <option value="INITIAL_RUNS">Initial runs (first N runs after lot establishment)</option>
+                  <option value="ROLLING">Rolling (continuous recalc, last N runs)</option>
+                </select>
+                <span style={{ fontSize: '0.75rem', color: '#6f6f6f', marginLeft: 'auto' }}>Phase 2 wires this dropdown into the rule evaluator. Today the enum exists but doesn't drive evaluation.</span>
+              </div>
+
+              <p className="legend">
+                <strong>Sigma performance grades:</strong>
+                <span className="sigma-grade world-class" style={{ marginLeft: '0.5rem' }}>≥ 6 σ World-class</span>
+                <span className="sigma-grade acceptable" style={{ marginLeft: '0.25rem' }}>4–5.9 σ Acceptable</span>
+                <span className="sigma-grade marginal" style={{ marginLeft: '0.25rem' }}>3–3.9 σ Marginal</span>
+                <span className="sigma-grade poor" style={{ marginLeft: '0.25rem' }}>&lt; 3 σ Poor</span>
+              </p>
+            </div>
+          </div>
+
+          {/* ---------- Summary card ---------- */}
+          <div className="summary-card">
+            <h3>Phase 2 effort summary</h3>
+            <div className="item">
+              <span className="item-label">①</span>
+              <span>Active-violations alert banner above summary tiles</span>
+              <span className="item-effort">~4h</span>
+              <span className="item-tag high">HIGHEST LEVERAGE</span>
+            </div>
+            <div className="item">
+              <span className="item-label">②</span>
+              <span>Auto-create NCE on critical Westgard violation (NCE FRS trigger #10 wiring)</span>
+              <span className="item-effort">~6–10h</span>
+              <span className="item-tag high">HIGH VALUE</span>
+            </div>
+            <div className="item">
+              <span className="item-label">③</span>
+              <span>QC reporting / trend export (CSV + monthly PDF + trend report)</span>
+              <span className="item-effort">~10–15h</span>
+              <span className="item-tag medium">COMMUNITY OK</span>
+            </div>
+            <div className="item">
+              <span className="item-label">④</span>
+              <span>Sigma metrics display + statistical-method dropdown integration</span>
+              <span className="item-effort">~8–12h</span>
+              <span className="item-tag nice">NICE TO HAVE</span>
+            </div>
+            <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #c6c6c6', display: 'flex', justifyContent: 'space-between' }}>
+              <span><strong>Total core team:</strong> ~28–41h (with #2 collapsing into NCE v2 if scope confirms)</span>
+              <span><strong>Or split:</strong> #1 + #2 core (~10–14h) + #3 community + #4 community / nice-to-have</span>
+            </div>
+          </div>
+        </Fragment>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,2277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Catalog Management v2.3 — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; color: #161616; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 8px 16px; font-size: 12px; font-weight: 500; font-family: monospace; }
+    .preview-content { padding: 0; max-width: 1600px; margin: 0 auto; background: #fff; min-height: 100vh; }
+    .app-header { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .app-header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+    .app-header-actions { display: flex; gap: 12px; }
+    .test-list-container { display: flex; flex-direction: column; padding: 24px; }
+    .toolbar { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; }
+    .search-box { flex: 1; position: relative; }
+    .search-box input { width: 100%; padding: 8px 12px; border: 1px solid #d0d0d0; border-radius: 4px; font-size: 14px; }
+    .search-box input:focus { outline: none; border-color: #0f62fe; box-shadow: inset 0 0 0 2px rgba(15, 98, 254, 0.1); }
+    .btn { padding: 8px 16px; border: 1px solid #d0d0d0; background: #fff; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+    .btn:hover { background: #f4f4f4; }
+    .btn-primary { background: #0f62fe; color: #fff; border-color: #0f62fe; }
+    .btn-primary:hover { background: #0353e9; }
+    .btn-secondary { background: #fff; border-color: #d0d0d0; color: #161616; }
+    .btn-ghost { background: transparent; border: none; color: #0f62fe; padding: 6px 8px; }
+    .btn-ghost:hover { background: #e8e8e8; }
+    .btn-danger { background: #da1e28; color: #fff; border-color: #da1e28; }
+    .btn-danger:hover { background: #ba1b23; }
+    .btn-sm { padding: 6px 12px; font-size: 13px; }
+    .filters-toggle { background: #fff; border: 1px solid #d0d0d0; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+    .filters-panel { background: #f4f4f4; border: 1px solid #d0d0d0; border-radius: 4px; padding: 16px; margin-bottom: 16px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+    .filter-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #525252; }
+    .filter-group select { width: 100%; padding: 8px; border: 1px solid #d0d0d0; border-radius: 4px; font-size: 13px; background: #fff; }
+    .table-container { width: 100%; overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 4px; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .data-table thead { background: #f4f4f4; border-bottom: 2px solid #d0d0d0; }
+    .data-table th { padding: 12px; text-align: left; font-weight: 600; color: #161616; }
+    .data-table td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
+    .data-table tbody tr:hover { background: #f4f4f4; }
+    .data-table input[type="checkbox"] { cursor: pointer; width: 18px; height: 18px; }
+    .batch-actions { background: #0f62fe; color: #fff; padding: 12px 16px; border-radius: 4px; display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+    .batch-actions-count { flex: 1; }
+    .batch-actions button { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 13px; font-weight: 500; }
+    .batch-actions button:hover { background: rgba(255,255,255,0.3); }
+    .tag { display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; margin: 0 4px 0 0; white-space: nowrap; }
+    .tag-blue { background: #d0e2ff; color: #0043ce; }
+    .tag-green { background: #d1fce0; color: #0d6f1f; }
+    .tag-purple { background: #f3e8ff; color: #6e008d; }
+    .tag-red { background: #fee5e5; color: #ae1a1a; }
+    .tag-teal { background: #d1f3f6; color: #004f62; }
+    .tag-gray { background: #e8e8e8; color: #3f3f3f; }
+    .tag-warm-gray { background: #f2dcc3; color: #7d3e23; }
+    .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding: 12px; background: #f4f4f4; border-radius: 4px; font-size: 13px; }
+    .pagination-info { color: #525252; }
+    .pagination-controls { display: flex; gap: 6px; }
+    .pagination-controls button { padding: 4px 8px; border: 1px solid #d0d0d0; background: #fff; border-radius: 3px; cursor: pointer; }
+    .pagination-controls button:hover { background: #e8e8e8; }
+    .pagination-controls button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Two-column layout: SideNav + Content */
+    .editor-container { display: flex; min-height: calc(100vh - 80px); }
+    .editor-sidenav { width: 280px; background: #fff; border-right: 1px solid #e0e0e0; overflow-y: auto; }
+    .editor-content { flex: 1; padding: 24px; overflow-y: auto; }
+    .sidenav-header { padding: 16px; border-bottom: 1px solid #e0e0e0; font-size: 13px; font-weight: 600; color: #525252; }
+    .sidenav-item { padding: 12px 16px; cursor: pointer; font-size: 13px; border-left: 3px solid transparent; color: #525252; transition: all 0.2s; }
+    .sidenav-item:hover { background: #f4f4f4; }
+    .sidenav-item-active { background: #e3f2fd; border-left-color: #0f62fe; color: #0f62fe; font-weight: 600; }
+
+    .section-header { margin-bottom: 24px; }
+    .section-header h2 { margin: 0; font-size: 20px; font-weight: 600; color: #161616; }
+    .section-header p { margin: 4px 0 0 0; font-size: 13px; color: #525252; }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #161616; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #d0d0d0; border-radius: 4px; font-size: 13px; font-family: inherit; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #0f62fe; box-shadow: inset 0 0 0 2px rgba(15, 98, 254, 0.1); }
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    .required::after { content: ' *'; color: #da1e28; }
+
+    .checkbox-group { border: 1px solid #d0d0d0; border-radius: 4px; padding: 12px; max-height: 200px; overflow-y: auto; background: #fff; }
+    .checkbox-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+    .checkbox-item input { width: 16px; height: 16px; cursor: pointer; }
+    .checkbox-item label { cursor: pointer; font-size: 13px; }
+
+    .radio-group { display: flex; gap: 16px; }
+    .radio-item { display: flex; align-items: center; gap: 6px; }
+    .radio-item input { cursor: pointer; }
+    .radio-item label { cursor: pointer; font-size: 13px; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal { background: #fff; border-radius: 4px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+    .modal-header { padding: 16px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h2 { margin: 0; font-size: 16px; font-weight: 600; }
+    .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #525252; }
+    .modal-body { padding: 16px; }
+    .modal-footer { padding: 16px; border-top: 1px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 8px; background: #f4f4f4; }
+
+    .tile { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 16px; margin-bottom: 16px; }
+    .tile-header { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #161616; display: flex; justify-content: space-between; align-items: center; }
+    .tile-body { font-size: 13px; color: #525252; }
+
+    .accordion { border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+    .accordion-item { border-bottom: 1px solid #e0e0e0; }
+    .accordion-item:last-child { border-bottom: none; }
+    .accordion-header { padding: 12px; background: #f4f4f4; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 13px; user-select: none; }
+    .accordion-header:hover { background: #e8e8e8; }
+    .accordion-header-active { background: #e3f2fd; color: #0f62fe; }
+    .accordion-body { padding: 12px; background: #fff; display: none; }
+    .accordion-body-active { display: block; }
+
+    .info-banner { background: #d1f3f6; border-left: 4px solid #0090a3; padding: 12px; margin-bottom: 16px; border-radius: 2px; font-size: 13px; color: #004f62; }
+    .info-banner-icon { margin-right: 8px; }
+
+    .section-divider { border-bottom: 2px solid #e0e0e0; margin: 24px 0; }
+
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+    .domain-tag-clinical { background: #bce5fe; color: #003da5; }
+    .domain-tag-environmental { background: #a7f0ba; color: #0d6f1f; }
+    .domain-tag-vector { background: #f6d3fc; color: #6e008d; }
+
+    .amr-badge { background: #f3e8ff; color: #6e008d; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+
+    .list-item { padding: 12px; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .list-item-name { font-weight: 500; }
+    .list-item-actions { display: flex; gap: 6px; }
+
+    .mono { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+    .inline-form { background: #f9f9f9; border: 1px dashed #d0d0d0; padding: 12px; border-radius: 4px; margin-bottom: 12px; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">⚡ Visual Preview — Test Catalog Management v2.3 | OpenELIS Design Mockup | Not a live application</div>
+  <div class="preview-content" id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    // Mock Data
+    const mockTests = [
+      { id: 1, name: 'Glucose, Fasting', section: 'Chemistry', sampleType: 'Serum', resultType: 'Numeric', loinc: '2345-7', status: 'Active', domain: 'CLINICAL', amr: false },
+      { id: 2, name: 'HbA1c', section: 'Chemistry', sampleType: 'Whole Blood', resultType: 'Numeric', loinc: '4548-4', status: 'Active', domain: 'CLINICAL', amr: false },
+      { id: 3, name: 'HBsAg', section: 'Serology', sampleType: 'Serum', resultType: 'Select List', loinc: '16962-2', status: 'Active', domain: 'CLINICAL', amr: false },
+      { id: 4, name: 'HIV Viral Load', section: 'Molecular', sampleType: 'Plasma', resultType: 'Numeric', loinc: '10689-0', status: 'Active', domain: 'CLINICAL', amr: false },
+      { id: 5, name: 'CBC', section: 'Hematology', sampleType: 'Whole Blood', resultType: 'Numeric', loinc: '58410-2', status: 'Active', domain: 'CLINICAL', amr: false },
+      { id: 6, name: 'Bilirubin, Total', section: 'Chemistry', sampleType: 'Serum', resultType: 'Numeric', loinc: '1975-2', status: 'Inactive', domain: 'CLINICAL', amr: false },
+      { id: 7, name: 'Water Turbidity', section: 'Environmental', sampleType: 'Water', resultType: 'Numeric', loinc: null, status: 'Active', domain: 'ENVIRONMENTAL', amr: false },
+      { id: 8, name: 'Lead in Drinking Water', section: 'Environmental', sampleType: 'Water', resultType: 'Numeric', loinc: null, status: 'Active', domain: 'ENVIRONMENTAL', amr: false },
+      { id: 9, name: 'PM2.5', section: 'Environmental', sampleType: 'Air', resultType: 'Numeric', loinc: null, status: 'Active', domain: 'ENVIRONMENTAL', amr: false },
+      { id: 10, name: 'Fecal Coliform', section: 'Environmental', sampleType: 'Water', resultType: 'Select List', loinc: null, status: 'Active', domain: 'ENVIRONMENTAL', amr: false },
+      { id: 11, name: 'Aedes pool RT-PCR Dengue', section: 'Molecular', sampleType: 'Mosquito Pool', resultType: 'Select List', loinc: null, status: 'Active', domain: 'VECTOR', amr: false },
+      { id: 12, name: 'Anopheles speciation', section: 'Molecular', sampleType: 'Mosquito Pool', resultType: 'Select List', loinc: null, status: 'Active', domain: 'VECTOR', amr: false },
+      { id: 13, name: 'Ampicillin Susceptibility', section: 'Microbiology', sampleType: 'Culture', resultType: 'Select List', loinc: '18901-5', status: 'Active', domain: 'CLINICAL', amr: true },
+      { id: 14, name: 'Ciprofloxacin Susceptibility', section: 'Microbiology', sampleType: 'Culture', resultType: 'Select List', loinc: '18909-8', status: 'Active', domain: 'CLINICAL', amr: true },
+    ];
+
+    function DomainTag({ domain }) {
+      const tagClass = {
+        'CLINICAL': 'domain-tag-clinical tag-blue',
+        'ENVIRONMENTAL': 'domain-tag-environmental tag-green',
+        'VECTOR': 'domain-tag-vector tag-purple',
+      }[domain] || 'tag-gray';
+      const label = { 'CLINICAL': 'Clinical', 'ENVIRONMENTAL': 'Environmental', 'VECTOR': 'Vector' }[domain] || domain;
+      return <span className={`tag ${tagClass}`}>{label}</span>;
+    }
+
+    function TestListView({ onEdit, onAdd }) {
+      const [filters, setFilters] = useState({ section: '', sampleType: '', resultType: '', status: '', domain: 'All Domains', amr: 'All' });
+      const [showFilters, setShowFilters] = useState(false);
+      const [currentPage, setCurrentPage] = useState(1);
+      const pageSize = 10;
+
+      const filteredTests = useMemo(() => {
+        return mockTests.filter(test => {
+          if (filters.section && test.section !== filters.section) return false;
+          if (filters.sampleType && test.sampleType !== filters.sampleType) return false;
+          if (filters.resultType && test.resultType !== filters.resultType) return false;
+          if (filters.status && test.status !== filters.status) return false;
+          if (filters.domain !== 'All Domains' && test.domain !== filters.domain) return false;
+          if (filters.amr === 'AMR Only' && !test.amr) return false;
+          if (filters.amr === 'Non-AMR' && test.amr) return false;
+          return true;
+        });
+      }, [filters]);
+
+      const paginatedTests = useMemo(() => {
+        const start = (currentPage - 1) * pageSize;
+        return filteredTests.slice(start, start + pageSize);
+      }, [filteredTests, currentPage]);
+
+      const totalPages = Math.ceil(filteredTests.length / pageSize);
+
+      return (
+        <div className="test-list-container">
+          <div className="toolbar">
+            <div className="search-box">
+              <input type="text" placeholder="Search tests by name..." />
+            </div>
+            <button className="filters-toggle" onClick={() => setShowFilters(!showFilters)}>
+              🔽 Filters
+            </button>
+            <button className="btn btn-primary" onClick={onAdd}>+ Add Test</button>
+          </div>
+
+          {showFilters && (
+            <div className="filters-panel">
+              <div className="filter-group">
+                <label>Section</label>
+                <select value={filters.section} onChange={(e) => setFilters({...filters, section: e.target.value})}>
+                  <option value="">All Sections</option>
+                  <option value="Chemistry">Chemistry</option>
+                  <option value="Hematology">Hematology</option>
+                  <option value="Serology">Serology</option>
+                  <option value="Microbiology">Microbiology</option>
+                  <option value="Environmental">Environmental</option>
+                  <option value="Molecular">Molecular</option>
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>Sample Type</label>
+                <select value={filters.sampleType} onChange={(e) => setFilters({...filters, sampleType: e.target.value})}>
+                  <option value="">All Types</option>
+                  <option value="Serum">Serum</option>
+                  <option value="Plasma">Plasma</option>
+                  <option value="Whole Blood">Whole Blood</option>
+                  <option value="Water">Water</option>
+                  <option value="Mosquito Pool">Mosquito Pool</option>
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>Result Type</label>
+                <select value={filters.resultType} onChange={(e) => setFilters({...filters, resultType: e.target.value})}>
+                  <option value="">All Types</option>
+                  <option value="Numeric">Numeric</option>
+                  <option value="Select List">Select List</option>
+                  <option value="Free Text">Free Text</option>
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>Status</label>
+                <select value={filters.status} onChange={(e) => setFilters({...filters, status: e.target.value})}>
+                  <option value="">All Statuses</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>Domain</label>
+                <select value={filters.domain} onChange={(e) => setFilters({...filters, domain: e.target.value})}>
+                  <option value="All Domains">All Domains</option>
+                  <option value="CLINICAL">Clinical</option>
+                  <option value="ENVIRONMENTAL">Environmental</option>
+                  <option value="VECTOR">Vector</option>
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>AMR Status</label>
+                <select value={filters.amr} onChange={(e) => setFilters({...filters, amr: e.target.value})}>
+                  <option value="All">All</option>
+                  <option value="AMR Only">AMR Only</option>
+                  <option value="Non-AMR">Non-AMR</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Test Name</th>
+                  <th>Domain</th>
+                  <th>Section</th>
+                  <th>Sample Type</th>
+                  <th>Result Type</th>
+                  <th>LOINC</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedTests.map(test => (
+                  <tr key={test.id} onClick={() => onEdit(test)} style={{ cursor: 'pointer' }}>
+                    <td>
+                      <button onClick={(e) => { e.stopPropagation(); onEdit(test); }} style={{ background: 'none', border: 'none', padding: 0, color: '#0f62fe', fontWeight: 600, cursor: 'pointer', fontSize: 14, textAlign: 'left' }}>{test.name}</button>
+                      {test.amr && <span className="amr-badge" style={{ marginLeft: 8 }}>AMR</span>}
+                    </td>
+                    <td><DomainTag domain={test.domain} /></td>
+                    <td>{test.section}</td>
+                    <td>{test.sampleType}</td>
+                    <td>{test.resultType}</td>
+                    <td>{test.loinc ? <code className="mono">{test.loinc}</code> : '–'}</td>
+                    <td><span className={`tag ${test.status === 'Active' ? 'tag-green' : 'tag-gray'}`}>{test.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="pagination">
+            <div className="pagination-info">Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredTests.length)} of {filteredTests.length}</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <select onChange={(e) => { /* change pageSize */ }} style={{ padding: '6px' }}>
+                <option>10 / page</option>
+                <option>25 / page</option>
+                <option>50 / page</option>
+              </select>
+              <div className="pagination-controls">
+                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>← Prev</button>
+                {Array.from({length: Math.min(5, totalPages)}, (_, i) => (
+                  <button key={i + 1} onClick={() => setCurrentPage(i + 1)} style={{ background: currentPage === i + 1 ? '#0f62fe' : '#fff', color: currentPage === i + 1 ? '#fff' : '#161616' }}>{i + 1}</button>
+                ))}
+                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function BasicInfoTab({ test, setTest }) {
+      return (
+        <div>
+          <div className="section-header">
+            <h2>Basic Information</h2>
+            <p>Core test identity and classification</p>
+          </div>
+
+          <div className="form-group">
+            <label className="required">Test Name</label>
+            <input type="text" value={test.name} onChange={(e) => setTest({...test, name: e.target.value})} />
+          </div>
+
+          <div className="form-group">
+            <label>Reporting Name</label>
+            <input type="text" />
+          </div>
+
+          <div className="form-group">
+            <label>Test Code</label>
+            <input type="text" placeholder="e.g., GLU" />
+          </div>
+
+          <div className="form-group">
+            <label>Description</label>
+            <textarea placeholder="Enter test description..."></textarea>
+          </div>
+
+          <div className="form-group">
+            <label className="required">Test Section(s)</label>
+            <div className="checkbox-group">
+              {['Chemistry', 'Hematology', 'Serology', 'Immunology', 'Microbiology', 'Urinalysis', 'Parasitology', 'Molecular'].map(s => (
+                <div key={s} className="checkbox-item">
+                  <input type="checkbox" id={`sec-${s}`} />
+                  <label htmlFor={`sec-${s}`}>{s}</label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="required">Domain</label>
+            <div className="radio-group">
+              <div className="radio-item">
+                <input type="radio" name="domain" value="CLINICAL" id="domain-clinical" checked={test.domain === 'CLINICAL'} onChange={(e) => setTest({...test, domain: e.target.value})} />
+                <label htmlFor="domain-clinical">Clinical</label>
+              </div>
+              <div className="radio-item">
+                <input type="radio" name="domain" value="ENVIRONMENTAL" id="domain-env" checked={test.domain === 'ENVIRONMENTAL'} onChange={(e) => setTest({...test, domain: e.target.value})} />
+                <label htmlFor="domain-env">Environmental</label>
+              </div>
+              <div className="radio-item">
+                <input type="radio" name="domain" value="VECTOR" id="domain-vec" checked={test.domain === 'VECTOR'} onChange={(e) => setTest({...test, domain: e.target.value})} />
+                <label htmlFor="domain-vec">Vector</label>
+              </div>
+            </div>
+          </div>
+
+          <div className="section-divider"></div>
+          <div className="form-group" style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+            <div style={{ flex: 1 }}>
+              <label>
+                <input type="checkbox" /> <strong>Active Test</strong>
+              </label>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label>
+                <input type="checkbox" /> <strong>Orderable</strong>
+              </label>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label>
+                <input type="checkbox" /> <strong>Internal QA</strong> — No Results Release
+              </label>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label><input type="checkbox" /> <strong>AMR Test</strong></label>
+            {test.amr && (
+              <div className="tile" style={{ marginTop: 12 }}>
+                <div className="tile-header">WHONET Configuration</div>
+                <div className="form-group">
+                  <label>WHONET Antibiotic Code</label>
+                  <select>
+                    <option>AMP - Ampicillin</option>
+                    <option>AMC - Amoxicillin/Clavulanic acid</option>
+                    <option>CIP - Ciprofloxacin</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Antibiotic Class</label>
+                  <select>
+                    <option>Penicillins</option>
+                    <option>Cephalosporins</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Test Method</label>
+                  <select>
+                    <option>Disk Diffusion</option>
+                    <option>MIC</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Breakpoint Standard</label>
+                  <select>
+                    <option>CLSI 2024</option>
+                    <option>EUCAST 2024</option>
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function SampleResultsTab() {
+      // Master Units of Measure list (would come from an API call in production)
+      const [unitsOfMeasure, setUnitsOfMeasure] = useState([
+        // Clinical
+        { id: 1, code: 'mg/dL', display: 'mg/dL', ucum: 'mg/dL' },
+        { id: 2, code: 'mmol/L', display: 'mmol/L', ucum: 'mmol/L' },
+        { id: 3, code: 'g/dL', display: 'g/dL', ucum: 'g/dL' },
+        { id: 4, code: 'IU/L', display: 'IU/L', ucum: '[IU]/L' },
+        { id: 5, code: '%', display: 'percent', ucum: '%' },
+        { id: 6, code: 'mmHg', display: 'mmHg', ucum: 'mm[Hg]' },
+        { id: 7, code: 'µL', display: 'microliter', ucum: 'uL' },
+        { id: 8, code: 'K/µL', display: 'thousand per µL', ucum: '10*3/uL' },
+        // Environmental
+        { id: 20, code: 'NTU', display: 'Nephelometric Turbidity Units', ucum: '[NTU]' },
+        { id: 21, code: 'mg/L', display: 'mg/L', ucum: 'mg/L' },
+        { id: 22, code: 'µg/L', display: 'µg/L', ucum: 'ug/L' },
+        { id: 23, code: 'ppm', display: 'parts per million', ucum: '[ppm]' },
+        { id: 24, code: 'dB', display: 'decibels', ucum: 'B[SPL]' },
+        { id: 25, code: '°', display: 'degrees', ucum: 'deg' },
+        { id: 26, code: '°C', display: 'degrees Celsius', ucum: 'Cel' },
+        { id: 27, code: 'pH', display: 'pH', ucum: '[pH]' },
+        // Vector
+        { id: 40, code: 'count', display: 'count', ucum: '{count}' },
+        { id: 41, code: 'copies/µL', display: 'copies per µL', ucum: '{copies}/uL' },
+      ]);
+
+      const [components, setComponents] = useState([
+        { id: 1, code: 'PRIMARY', label: 'Result', resultType: 'Numeric', unitId: 1, significantDigits: 0, defaultResult: '', allowMultipleReadings: false, active: true },
+      ]);
+      const [selectOptions] = useState([
+        { id: 1, value: 'Positive', display: 'Positive', active: true },
+        { id: 2, value: 'Negative', display: 'Negative', active: true },
+        { id: 3, value: 'Indeterminate', display: 'Indeterminate', active: true },
+      ]);
+      const [showInterpModal, setShowInterpModal] = useState(false);
+
+      // Inline add-unit state
+      const [addUnitForComponent, setAddUnitForComponent] = useState(null); // component id triggering the add
+      const [newUnit, setNewUnit] = useState({ code: '', display: '', ucum: '', description: '' });
+
+      const isMulti = components.length > 1;
+
+      const onUnitChange = (componentId, value) => {
+        if (value === '__ADD_NEW__') {
+          setAddUnitForComponent(componentId);
+          setNewUnit({ code: '', display: '', ucum: '', description: '' });
+        } else {
+          updateComponent(componentId, 'unitId', parseInt(value));
+        }
+      };
+
+      const submitNewUnit = () => {
+        if (!newUnit.code.trim()) return;
+        const newId = Math.max(...unitsOfMeasure.map(u => u.id)) + 1;
+        const created = { id: newId, code: newUnit.code.trim(), display: newUnit.display.trim() || newUnit.code.trim(), ucum: newUnit.ucum.trim() };
+        setUnitsOfMeasure(prev => [...prev, created]);
+        if (addUnitForComponent !== null) {
+          updateComponent(addUnitForComponent, 'unitId', newId);
+        }
+        setAddUnitForComponent(null);
+        setNewUnit({ code: '', display: '', ucum: '', description: '' });
+      };
+
+      const cancelAddUnit = () => {
+        setAddUnitForComponent(null);
+        setNewUnit({ code: '', display: '', ucum: '', description: '' });
+      };
+
+      const updateComponent = (id, field, value) => {
+        setComponents(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c));
+      };
+
+      const addComponent = () => {
+        const newId = Math.max(...components.map(c => c.id)) + 1;
+        const presets = [
+          { code: 'HEADING', label: 'Heading', unit: '°' },
+          { code: 'TEMPERATURE', label: 'Temperature', unit: '°C' },
+          { code: 'COMPONENT_' + newId, label: 'Component ' + newId, unit: '' },
+        ];
+        const preset = presets[Math.min(newId - 2, presets.length - 1)];
+        setComponents(prev => [...prev, {
+          id: newId, code: preset.code, label: preset.label, resultType: 'Numeric',
+          unit: preset.unit, significantDigits: 0, defaultResult: '',
+          allowMultipleReadings: false, active: true,
+        }]);
+      };
+
+      const removeComponent = (id) => {
+        if (components.length <= 1) return;
+        setComponents(prev => prev.filter(c => c.id !== id));
+      };
+
+      return (
+        <div>
+          <div className="section-header">
+            <h2>Sample & Results Configuration</h2>
+            <p>Define sample types and the labeled result fields produced by this test</p>
+          </div>
+
+          <div className="form-group">
+            <label className="required">Sample Type(s)</label>
+            <div className="checkbox-group">
+              {['Serum', 'Plasma', 'Whole Blood', 'Urine', 'CSF', 'Water', 'Mosquito Pool'].map(s => (
+                <div key={s} className="checkbox-item">
+                  <input type="checkbox" id={`st-${s}`} />
+                  <label htmlFor={`st-${s}`}>{s}</label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Default Sample Type</label>
+            <select><option>Select...</option></select>
+          </div>
+
+          <div className="section-divider"></div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>Result Components</h3>
+              <p style={{ margin: '4px 0 0 0', fontSize: 12, color: '#525252' }}>
+                {isMulti
+                  ? `${components.length} components — this test produces multiple labeled values per order.`
+                  : 'Single-component test (default). Add components for tests that produce multiple labeled values like noise = level + heading or BP = systolic + diastolic.'}
+              </p>
+            </div>
+            <button className="btn btn-secondary btn-sm" onClick={addComponent}>+ Add Component</button>
+          </div>
+
+          <div className="table-container" style={{ marginBottom: 12 }}>
+            <table className="data-table" style={{ fontSize: '13px' }}>
+              <thead>
+                <tr>
+                  {isMulti && <th style={{ width: 32 }}>≡</th>}
+                  {isMulti && <th>Code</th>}
+                  <th>Label</th>
+                  <th>Result Type</th>
+                  <th>Unit</th>
+                  <th>Sig Digits</th>
+                  <th>Default</th>
+                  <th>Multi-reading</th>
+                  <th>Active</th>
+                  {isMulti && <th>Actions</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {components.map(c => (
+                  <tr key={c.id}>
+                    {isMulti && <td>≡</td>}
+                    {isMulti && (
+                      <td>
+                        <input type="text" value={c.code} onChange={e => updateComponent(c.id, 'code', e.target.value.toUpperCase())} className="mono" style={{ width: 120, padding: 4, border: '1px solid #d0d0d0', borderRadius: 3, textTransform: 'uppercase' }} />
+                      </td>
+                    )}
+                    <td>
+                      <input type="text" value={c.label} onChange={e => updateComponent(c.id, 'label', e.target.value)} style={{ width: '100%', padding: 4, border: '1px solid #d0d0d0', borderRadius: 3 }} />
+                    </td>
+                    <td>
+                      <select value={c.resultType} onChange={e => updateComponent(c.id, 'resultType', e.target.value)} style={{ padding: 4, border: '1px solid #d0d0d0', borderRadius: 3 }}>
+                        <option>Numeric</option>
+                        <option>Select List</option>
+                        <option>Multi-select</option>
+                        <option>Free Text</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select
+                        value={c.unitId ?? ''}
+                        onChange={e => onUnitChange(c.id, e.target.value)}
+                        disabled={c.resultType !== 'Numeric'}
+                        style={{ width: 130, padding: 4, border: '1px solid #d0d0d0', borderRadius: 3, opacity: c.resultType === 'Numeric' ? 1 : 0.5, fontSize: 12 }}
+                        title={c.resultType !== 'Numeric' ? 'Unit only applies to NUMERIC components' : 'Pick from Master Lists, or add a new unit inline'}
+                      >
+                        <option value="">— select —</option>
+                        {unitsOfMeasure.map(u => (
+                          <option key={u.id} value={u.id}>{u.code}</option>
+                        ))}
+                        <option disabled style={{ borderTop: '1px solid #d0d0d0' }}>──────────</option>
+                        <option value="__ADD_NEW__">+ Add new unit…</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input type="number" min="0" max="6" value={c.significantDigits} onChange={e => updateComponent(c.id, 'significantDigits', parseInt(e.target.value) || 0)} disabled={c.resultType !== 'Numeric'} style={{ width: 60, padding: 4, border: '1px solid #d0d0d0', borderRadius: 3, opacity: c.resultType === 'Numeric' ? 1 : 0.5 }} />
+                    </td>
+                    <td>
+                      <input type="text" value={c.defaultResult} onChange={e => updateComponent(c.id, 'defaultResult', e.target.value)} placeholder="—" style={{ width: 90, padding: 4, border: '1px solid #d0d0d0', borderRadius: 3 }} />
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <label style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }} title="Allow multiple timestamped readings per order under this component">
+                        <input type="checkbox" checked={c.allowMultipleReadings} onChange={e => updateComponent(c.id, 'allowMultipleReadings', e.target.checked)} style={{ cursor: 'pointer' }} />
+                      </label>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <input type="checkbox" checked={c.active} onChange={e => updateComponent(c.id, 'active', e.target.checked)} style={{ cursor: 'pointer' }} />
+                    </td>
+                    {isMulti && (
+                      <td>
+                        <button className="btn-ghost btn-sm" style={{ color: '#da1e28' }} onClick={() => removeComponent(c.id)} disabled={components.length <= 1}>×</button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {addUnitForComponent !== null && (
+            <div className="inline-form" style={{ background: '#e3f2fd', borderColor: '#0f62fe', borderStyle: 'solid', marginBottom: 12 }}>
+              <strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>Add New Unit of Measure</strong>
+              <p style={{ fontSize: 11, color: '#525252', margin: '0 0 10px 0' }}>
+                Adds a new unit to <strong>Master Lists → Units of Measure</strong> and selects it for the current component. Visible to all tests deployment-wide.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 2 }}>Code *</label>
+                  <input
+                    type="text"
+                    value={newUnit.code}
+                    onChange={e => setNewUnit({ ...newUnit, code: e.target.value })}
+                    placeholder="e.g., µg/m³"
+                    autoFocus
+                    style={{ width: '100%', padding: 6, border: '1px solid #d0d0d0', borderRadius: 3, fontFamily: 'monospace' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 2 }}>Display Name</label>
+                  <input
+                    type="text"
+                    value={newUnit.display}
+                    onChange={e => setNewUnit({ ...newUnit, display: e.target.value })}
+                    placeholder="defaults to Code"
+                    style={{ width: '100%', padding: 6, border: '1px solid #d0d0d0', borderRadius: 3 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 2 }}>UCUM Code</label>
+                  <input
+                    type="text"
+                    value={newUnit.ucum}
+                    onChange={e => setNewUnit({ ...newUnit, ucum: e.target.value })}
+                    placeholder="e.g., ug/m3"
+                    style={{ width: '100%', padding: 6, border: '1px solid #d0d0d0', borderRadius: 3, fontFamily: 'monospace' }}
+                  />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-primary btn-sm" onClick={submitNewUnit} disabled={!newUnit.code.trim()}>Add Unit</button>
+                <button className="btn btn-secondary btn-sm" onClick={cancelAddUnit}>Cancel</button>
+              </div>
+            </div>
+          )}
+
+          <div className="info-banner">
+            <span className="info-banner-icon">ℹ️</span>
+            Each component becomes its own FHIR Observation under one ServiceRequest. Components from one biological measurement share <code className="mono">effectiveDateTime</code>; co-collection can be expressed via <code className="mono">Observation.derivedFrom</code> or <code className="mono">hasMember</code>. Components are not the same as Panels — see the Panels section for ordering multiple separate tests together.
+          </div>
+
+          {components.some(c => c.resultType === 'Select List' || c.resultType === 'Multi-select') && (
+            <div className="tile">
+              <div className="tile-header">
+                Select List Options
+                {isMulti && <span style={{ fontSize: 11, fontWeight: 'normal', color: '#525252', marginLeft: 8 }}>(per component — showing first applicable)</span>}
+              </div>
+              <div className="table-container" style={{ marginBottom: 12 }}>
+                <table className="data-table" style={{ fontSize: '12px' }}>
+                  <thead>
+                    <tr>
+                      <th>≡</th>
+                      {isMulti && <th>Component</th>}
+                      <th>Value</th>
+                      <th>Display Order</th>
+                      <th>Active</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectOptions.map(opt => {
+                      const firstSelectComp = components.find(c => c.resultType === 'Select List' || c.resultType === 'Multi-select');
+                      return (
+                        <tr key={opt.id}>
+                          <td>≡</td>
+                          {isMulti && <td><code className="mono">{firstSelectComp?.code || '—'}</code></td>}
+                          <td><code className="mono">{opt.value}</code></td>
+                          <td>1</td>
+                          <td><input type="checkbox" defaultChecked={opt.active} /></td>
+                          <td><button className="btn-ghost btn-sm">Edit</button> <button className="btn-ghost btn-sm">Delete</button></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          <div className="section-divider"></div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>Result Interpretations</h3>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn btn-secondary btn-sm">📋 Copy from Test...</button>
+              <button className="btn btn-primary btn-sm" onClick={() => setShowInterpModal(true)}>+ Add Interpretation</button>
+            </div>
+          </div>
+
+          <div className="table-container">
+            <table className="data-table" style={{ fontSize: '12px' }}>
+              <thead>
+                <tr>
+                  <th>≡</th>
+                  {isMulti && <th>Component</th>}
+                  <th>Code</th>
+                  <th>Label</th>
+                  <th>Value/Range</th>
+                  <th>Text</th>
+                  <th>Active</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { code: 'GLU-CRIT-H', label: 'Critical High', color: 'red', value: '> 500', text: 'Critical hyperglycemia. Immediate action required...' },
+                  { code: 'GLU-HI', label: 'High', color: 'orange', value: '140-500', text: 'Elevated glucose levels...' },
+                  { code: 'GLU-NL', label: 'Normal', color: 'green', value: '70-100', text: 'Within normal range...' },
+                  { code: 'GLU-LO', label: 'Low', color: 'yellow', value: '50-70', text: 'Below normal range...' },
+                  { code: 'GLU-CRIT-L', label: 'Critical Low', color: 'red', value: '< 50', text: 'Severe hypoglycemia...' },
+                ].map((int, idx) => (
+                  <tr key={idx}>
+                    <td>≡</td>
+                    {isMulti && <td><code className="mono">{components[0].code}</code></td>}
+                    <td><code className="mono">{int.code}</code></td>
+                    <td><span className={`tag tag-${int.color === 'red' ? 'red' : int.color === 'orange' ? 'warm-gray' : int.color === 'yellow' ? 'gray' : int.color}`}>{int.label}</span></td>
+                    <td>{int.value}</td>
+                    <td style={{ fontSize: '11px', color: '#525252', maxWidth: 200 }}>{int.text.substring(0, 40)}...</td>
+                    <td><input type="checkbox" defaultChecked={true} /></td>
+                    <td><button className="btn-ghost btn-sm">Edit</button> <button className="btn-ghost btn-sm">Delete</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {showInterpModal && (
+            <div className="modal-overlay" onClick={() => setShowInterpModal(false)}>
+              <div className="modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2>Add Interpretation</h2>
+                  <button className="modal-close" onClick={() => setShowInterpModal(false)}>✕</button>
+                </div>
+                <div className="modal-body">
+                  <div className="form-group">
+                    <label className="required">Code</label>
+                    <input type="text" placeholder="e.g., GLU-HI" />
+                  </div>
+                  <div className="form-group">
+                    <label className="required">Label</label>
+                    <input type="text" placeholder="e.g., High" />
+                  </div>
+                  <div className="form-group">
+                    <label className="required">Value / Range</label>
+                    <input type="text" />
+                  </div>
+                  <div className="form-group">
+                    <label className="required">Interpretation Text</label>
+                    <textarea placeholder="Detailed interpretation..."></textarea>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-secondary" onClick={() => setShowInterpModal(false)}>Cancel</button>
+                  <button className="btn btn-primary">Save Interpretation</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function RangesTab() {
+      const [showCoveragePanel, setShowCoveragePanel] = useState(true);
+      const [viewMode, setViewMode] = useState('structured');
+      const [expandedTypes, setExpandedTypes] = useState({ normal: true, critical: true, valid: false, reporting: false });
+      const [showAddModal, setShowAddModal] = useState(null); // null or { rangeType, prefill? }
+      const [visualSex, setVisualSex] = useState('M');
+      const [visualAge, setVisualAge] = useState(3);
+      const [visualUnit, setVisualUnit] = useState('days');
+
+      const ranges = {
+        normal: {
+          M: [
+            { age: '0 – 24 hours', low: 1, high: 100 },
+            { age: '24 – 48 hours', low: 1, high: 120 },
+            { age: '48 – 72 hours', low: 1, high: 140 },
+            { age: '3 days – 5 days', low: 1, high: 155 },
+            { age: '14 days – 1 month', low: 1, high: 130 },
+            { age: '1 month – 1 year', low: 1, high: 115 },
+            { age: '1 year – ∞', low: 5, high: 40 },
+          ],
+          F: [
+            { age: '0 – 24 hours', low: 1, high: 105 },
+            { age: '24 – 48 hours', low: 1, high: 130 },
+            { age: '48 – 72 hours', low: 1, high: 155 },
+            { age: '3 days – 55 days', low: 1, high: 175 },
+            // intentional gap 55 days – 1 year
+            { age: '1 year – ∞', low: 5, high: 35 },
+          ],
+        },
+        critical: {
+          A: [
+            { age: '0 – 23 hours', low: null, high: 7.9 },
+            { age: '24 – 35 hours', low: null, high: 10.9 },
+            { age: '36 – 47 hours', low: null, high: 13.9 },
+            { age: '48 – 71 hours', low: null, high: 14.9 },
+            { age: '72 hours – 13 days', low: null, high: 17.9 },
+            { age: '14 days – ∞', low: null, high: 15.0 },
+          ],
+        },
+        valid: { A: [{ age: '0 hours – ∞', low: 0, high: 600 }] },
+        reporting: { A: [{ age: '0 hours – ∞', low: 0.1, high: 30 }] },
+      };
+
+      const rangeTypes = [
+        { id: 'normal', label: 'Normal Range', desc: 'Clinical reference values. Results outside flagged H/L on reports.', color: 'tag-green', barColor: '#a7f0ba' },
+        { id: 'valid', label: 'Valid Range', desc: 'Expected possible values. Entry outside prompts verification.', color: 'tag-blue', barColor: '#bce5fe' },
+        { id: 'critical', label: 'Critical Range', desc: 'Panic values requiring immediate clinical action.', color: 'tag-red', barColor: '#f8b8b8' },
+        { id: 'reporting', label: 'Reporting Range', desc: 'Instrument limits. Results outside may need dilution/rerun.', color: 'tag-purple', barColor: '#e0c3fc' },
+      ];
+
+      const sexLabel = { M: 'Male', F: 'Female', A: 'All' };
+      const sexTag = { M: 'tag-blue', F: 'tag-purple', A: 'tag-gray' };
+
+      // Visual view: get applicable range for selected demographic
+      const getApplicableForType = (typeId) => {
+        const sexRanges = ranges[typeId];
+        // Priority: matching sex, then 'All'
+        const candidates = [...(sexRanges[visualSex] || []), ...(sexRanges.A || [])];
+        return candidates[0] || null; // simplified — real version would match by age
+      };
+
+      // Flat list for table view
+      const allRangesFlat = [];
+      rangeTypes.forEach(type => {
+        const byType = ranges[type.id];
+        Object.keys(byType).forEach(sex => {
+          byType[sex].forEach(r => allRangesFlat.push({ ...r, type: type.id, typeLabel: type.label, typeColor: type.color, sex }));
+        });
+      });
+
+      return (
+        <div>
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h2>Reference Ranges</h2>
+              <p>Define age and sex-specific reference ranges for this test</p>
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button className={showCoveragePanel ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm'} onClick={() => setShowCoveragePanel(!showCoveragePanel)}>✓ Validate Coverage</button>
+              <select value={viewMode} onChange={e => setViewMode(e.target.value)} style={{ padding: '6px 12px', border: '1px solid #d0d0d0', borderRadius: 4, fontSize: 13 }}>
+                <option value="structured">Structured View</option>
+                <option value="table">Table View</option>
+                <option value="visual">Visual View</option>
+              </select>
+            </div>
+          </div>
+
+          {showCoveragePanel && (
+            <div className="tile" style={{ background: '#f4f4f4', marginBottom: 16 }}>
+              <div className="tile-header" style={{ fontSize: 13 }}>Age Coverage Validation</div>
+              <div className="grid-2col">
+                <div className="tile" style={{ background: '#fff', marginBottom: 0 }}>
+                  <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="tag tag-blue">Male</span>
+                    <span style={{ fontSize: 12, color: '#0d6f1f', fontWeight: 600 }}>✓ Complete Coverage</span>
+                  </div>
+                  <div style={{ padding: 8, background: '#d1fce0', borderRadius: 3, fontSize: 12, color: '#0d6f1f' }}>All age ranges from birth to maximum age are covered.</div>
+                </div>
+
+                <div className="tile" style={{ background: '#fff', marginBottom: 0 }}>
+                  <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="tag tag-purple">Female</span>
+                    <span style={{ fontSize: 12, color: '#ae1a1a', fontWeight: 600 }}>⚠ 1 Issue Found</span>
+                  </div>
+                  <div style={{ background: '#fee5e5', border: '1px solid #f8b8b8', padding: 8, borderRadius: 3 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#ae1a1a', marginBottom: 2 }}>GAP</div>
+                        <div style={{ fontSize: 13, color: '#ae1a1a' }}>Gap: 55 days to 1 year</div>
+                      </div>
+                      <button className="btn btn-sm" onClick={() => setShowAddModal({ rangeType: 'normal', prefill: { sex: 'F', ageFrom: 55, ageFromUnit: 'days', ageTo: 1, ageToUnit: 'years', low: 1, high: 130, source: '3 days – 55 days range' } })} style={{ background: '#d1f3f6', border: '1px solid #0090a3', color: '#004f62', fontSize: 11 }}>+ Fill Gap</button>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#525252', marginTop: 6 }}>Suggested values from adjacent range: Low=1, High=130</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {viewMode === 'structured' && (
+            <div className="accordion">
+              {rangeTypes.map(type => {
+                const isExpanded = expandedTypes[type.id];
+                const byType = ranges[type.id];
+                const totalCount = Object.values(byType).reduce((sum, arr) => sum + arr.length, 0);
+                return (
+                  <div key={type.id} className="accordion-item">
+                    <div className={`accordion-header ${isExpanded ? 'accordion-header-active' : ''}`} onClick={() => setExpandedTypes(prev => ({ ...prev, [type.id]: !prev[type.id] }))}>
+                      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                        <span>{isExpanded ? '▼' : '▶'}</span>
+                        <span className={`tag ${type.color}`}>{type.label}</span>
+                        <span style={{ fontSize: 12, fontWeight: 'normal', color: '#525252' }}>{type.desc}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <span style={{ fontSize: 12, color: '#525252' }}>{totalCount} range(s)</span>
+                        <button className="btn-ghost btn-sm" onClick={e => { e.stopPropagation(); setShowAddModal({ rangeType: type.id }); }}>+ Add</button>
+                      </div>
+                    </div>
+                    {isExpanded && (
+                      <div className="accordion-body accordion-body-active">
+                        {Object.keys(byType).map(sex => {
+                          const sexRanges = byType[sex];
+                          if (sexRanges.length === 0) return null;
+                          return (
+                            <div key={sex} style={{ marginBottom: 12 }}>
+                              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+                                <span className={`tag ${sexTag[sex]}`}>{sexLabel[sex]}</span>
+                                <span style={{ fontSize: 11, color: '#525252' }}>({sexRanges.length} ranges)</span>
+                                <div style={{ flex: 1, height: 1, background: '#e0e0e0' }} />
+                              </div>
+                              {sexRanges.map((r, idx) => {
+                                // mini visual bar (0-200 scale)
+                                const lowPct = r.low !== null ? Math.max(0, Math.min(100, (r.low / 200) * 100)) : 0;
+                                const highPct = r.high !== null ? Math.max(0, Math.min(100, (r.high / 200) * 100)) : 100;
+                                return (
+                                  <div key={idx} style={{ padding: 8, background: '#f9f9f9', border: '1px solid #e8e8e8', borderRadius: 3, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 16, fontSize: 12 }}>
+                                    <span style={{ width: 16, color: '#a8a8a8' }}>{idx + 1}.</span>
+                                    <div style={{ width: 160 }}>
+                                      <div style={{ fontSize: 10, color: '#525252' }}>Age Range</div>
+                                      <div style={{ fontWeight: 500 }}>{r.age}</div>
+                                    </div>
+                                    <div style={{ width: 60 }}>
+                                      <div style={{ fontSize: 10, color: '#525252' }}>Low</div>
+                                      <div style={{ fontWeight: 500 }}>{r.low !== null ? r.low : '—'}</div>
+                                    </div>
+                                    <div style={{ width: 60 }}>
+                                      <div style={{ fontSize: 10, color: '#525252' }}>High</div>
+                                      <div style={{ fontWeight: 500 }}>{r.high !== null ? r.high : '—'}</div>
+                                    </div>
+                                    <div style={{ flex: 1, height: 18, background: '#e8e8e8', borderRadius: 3, position: 'relative' }}>
+                                      {r.low !== null && r.high !== null && (
+                                        <div style={{ position: 'absolute', left: `${lowPct}%`, width: `${highPct - lowPct}%`, height: '100%', background: type.barColor, borderRadius: 3 }} />
+                                      )}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 2 }}>
+                                      <button className="btn-ghost btn-sm" title="Edit">✎</button>
+                                      <button className="btn-ghost btn-sm" title="Copy to other sex" onClick={() => setShowAddModal({ rangeType: type.id, prefill: { sex: sex === 'M' ? 'F' : 'M', ageFromText: r.age, low: r.low, high: r.high, source: `Copied from ${sexLabel[sex]}: ${r.age}` } })}>⇄</button>
+                                      <button className="btn-ghost btn-sm" title="Delete" style={{ color: '#da1e28' }}>✕</button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {viewMode === 'table' && (
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Sex</th>
+                    <th>Age Range</th>
+                    <th>Low</th>
+                    <th>High</th>
+                    <th style={{ width: 100 }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allRangesFlat.map((r, i) => (
+                    <tr key={i}>
+                      <td><span className={`tag ${r.typeColor}`}>{r.typeLabel}</span></td>
+                      <td><span className={`tag ${sexTag[r.sex]}`}>{sexLabel[r.sex]}</span></td>
+                      <td>{r.age}</td>
+                      <td>{r.low !== null ? r.low : '—'}</td>
+                      <td>{r.high !== null ? r.high : '—'}</td>
+                      <td>
+                        <button className="btn-ghost btn-sm">Edit</button>
+                        <button className="btn-ghost btn-sm" style={{ color: '#da1e28' }}>Del</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {viewMode === 'visual' && (
+            <div>
+              <div className="tile" style={{ background: '#f4f4f4' }}>
+                <label style={{ fontSize: 13, fontWeight: 600, marginRight: 12 }}>View ranges for:</label>
+                <select value={visualSex} onChange={e => setVisualSex(e.target.value)} style={{ padding: 6, border: '1px solid #d0d0d0', borderRadius: 4, fontSize: 13, marginRight: 12 }}>
+                  <option value="M">Male</option>
+                  <option value="F">Female</option>
+                </select>
+                <label style={{ fontSize: 13, marginRight: 6 }}>Age:</label>
+                <input type="number" value={visualAge} onChange={e => setVisualAge(parseInt(e.target.value) || 0)} style={{ width: 80, padding: 6, border: '1px solid #d0d0d0', borderRadius: 4, marginRight: 6 }} />
+                <select value={visualUnit} onChange={e => setVisualUnit(e.target.value)} style={{ padding: 6, border: '1px solid #d0d0d0', borderRadius: 4, fontSize: 13 }}>
+                  <option value="hours">hours</option>
+                  <option value="days">days</option>
+                  <option value="weeks">weeks</option>
+                  <option value="months">months</option>
+                  <option value="years">years</option>
+                </select>
+              </div>
+
+              <div className="tile" style={{ background: '#f9f9f9' }}>
+                <div style={{ fontSize: 13, marginBottom: 16 }}>Showing ranges applicable to: <strong>{sexLabel[visualSex]}, {visualAge} {visualUnit} old</strong></div>
+                {[
+                  { id: 'valid', label: 'Valid', barColor: '#bce5fe', textColor: '#003da5' },
+                  { id: 'normal', label: 'Normal', barColor: '#a7f0ba', textColor: '#0d6f1f' },
+                  { id: 'critical', label: 'Critical', barColor: '#f8b8b8', textColor: '#ae1a1a' },
+                  { id: 'reporting', label: 'Reporting', barColor: '#e0c3fc', textColor: '#6e008d' },
+                ].map(({ id, label, barColor, textColor }) => {
+                  const r = getApplicableForType(id);
+                  const lowPct = r && r.low !== null ? Math.max(0, Math.min(100, (r.low / 200) * 100)) : 0;
+                  const highPct = r && r.high !== null ? Math.max(0, Math.min(100, (r.high / 200) * 100)) : 100;
+                  return (
+                    <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                      <div style={{ width: 90, fontSize: 13, fontWeight: 500 }}>{label}</div>
+                      <div style={{ flex: 1, height: 32, background: '#e8e8e8', borderRadius: 3, position: 'relative' }}>
+                        {r ? (
+                          <>
+                            {r.low !== null && r.high !== null && (
+                              <div style={{ position: 'absolute', left: `${lowPct}%`, width: `${highPct - lowPct}%`, height: '100%', background: barColor, borderRadius: 3 }} />
+                            )}
+                            {r.low === null && r.high !== null && (
+                              <div style={{ position: 'absolute', left: 0, width: `${highPct}%`, height: '100%', background: barColor, borderTopLeftRadius: 3, borderBottomLeftRadius: 3 }} />
+                            )}
+                            <span style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 12, fontWeight: 500, color: textColor }}>
+                              {r.low ?? '—'} – {r.high ?? '—'}
+                            </span>
+                          </>
+                        ) : (
+                          <span style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 12, fontStyle: 'italic', color: '#a8a8a8' }}>Not defined for this demographic</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <div style={{ display: 'flex', gap: 16, paddingTop: 12, borderTop: '1px solid #e0e0e0', marginTop: 12 }}>
+                  {[{ c: '#bce5fe', l: 'Valid' }, { c: '#a7f0ba', l: 'Normal' }, { c: '#f8b8b8', l: 'Critical' }, { c: '#e0c3fc', l: 'Reporting' }].map(x => (
+                    <div key={x.l} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <div style={{ width: 14, height: 14, background: x.c, borderRadius: 2 }} />
+                      <span style={{ fontSize: 11, color: '#525252' }}>{x.l}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showAddModal && (
+            <div className="modal-overlay" onClick={() => setShowAddModal(null)}>
+              <div className="modal" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2>Add {rangeTypes.find(t => t.id === showAddModal.rangeType)?.label}</h2>
+                  <button className="modal-close" onClick={() => setShowAddModal(null)}>×</button>
+                </div>
+                {showAddModal.prefill?.source && (
+                  <div className="info-banner" style={{ margin: 16, marginBottom: 0 }}>
+                    ℹ️ Values from: {showAddModal.prefill.source}
+                  </div>
+                )}
+                <div className="modal-body">
+                  <div className="form-group">
+                    <label>Applies To</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {[{ v: 'A', l: 'All', tag: 'tag-gray' }, { v: 'M', l: 'Male Only', tag: 'tag-blue' }, { v: 'F', l: 'Female Only', tag: 'tag-purple' }].map(o => (
+                        <label key={o.v} style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 12, border: `2px solid ${(showAddModal.prefill?.sex || 'A') === o.v ? '#0f62fe' : '#d0d0d0'}`, background: (showAddModal.prefill?.sex || 'A') === o.v ? '#e3f2fd' : '#fff', borderRadius: 4, cursor: 'pointer' }}>
+                          <input type="radio" name="sex" defaultChecked={(showAddModal.prefill?.sex || 'A') === o.v} style={{ display: 'none' }} />
+                          <span className={`tag ${o.tag}`}>{o.l}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Age Range</label>
+                    <div className="grid-2col">
+                      <div>
+                        <small style={{ display: 'block', fontSize: 11, color: '#525252', marginBottom: 4 }}>From</small>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <input type="number" defaultValue={showAddModal.prefill?.ageFrom ?? 0} style={{ flex: 1, padding: 8, border: '1px solid #d0d0d0', borderRadius: 4 }} />
+                          <select defaultValue={showAddModal.prefill?.ageFromUnit || 'hours'} style={{ width: 100, padding: 8, border: '1px solid #d0d0d0', borderRadius: 4 }}>
+                            <option value="hours">hours</option><option value="days">days</option><option value="weeks">weeks</option><option value="months">months</option><option value="years">years</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <small style={{ display: 'block', fontSize: 11, color: '#525252', marginBottom: 4 }}>To</small>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <input type="number" defaultValue={showAddModal.prefill?.ageTo ?? 999} style={{ flex: 1, padding: 8, border: '1px solid #d0d0d0', borderRadius: 4 }} />
+                          <select defaultValue={showAddModal.prefill?.ageToUnit || 'years'} style={{ width: 100, padding: 8, border: '1px solid #d0d0d0', borderRadius: 4 }}>
+                            <option value="hours">hours</option><option value="days">days</option><option value="weeks">weeks</option><option value="months">months</option><option value="years">years</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <small style={{ display: 'block', fontSize: 11, color: '#525252', marginTop: 4 }}>Use 999 years for "no upper age limit" (infinity)</small>
+                  </div>
+                  <div className="form-group">
+                    <label>{showAddModal.rangeType === 'critical' ? 'Critical Thresholds' : 'Value Range'}</label>
+                    <div className="grid-2col">
+                      <div>
+                        <small style={{ display: 'block', fontSize: 11, color: '#525252', marginBottom: 4 }}>{showAddModal.rangeType === 'critical' ? 'Critical Low (values below this)' : 'Low'}</small>
+                        <input type="number" defaultValue={showAddModal.prefill?.low ?? ''} placeholder={showAddModal.rangeType === 'critical' ? 'Leave blank if N/A' : '0'} style={{ width: '100%', padding: 8, border: '1px solid #d0d0d0', borderRadius: 4 }} />
+                      </div>
+                      <div>
+                        <small style={{ display: 'block', fontSize: 11, color: '#525252', marginBottom: 4 }}>{showAddModal.rangeType === 'critical' ? 'Critical High (values above this)' : 'High'}</small>
+                        <input type="number" defaultValue={showAddModal.prefill?.high ?? ''} placeholder={showAddModal.rangeType === 'critical' ? 'Leave blank if N/A' : '100'} style={{ width: '100%', padding: 8, border: '1px solid #d0d0d0', borderRadius: 4 }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-secondary btn-sm" onClick={() => setShowAddModal(null)}>Cancel</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(null)}>Add Range</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function MethodsTab() {
+      const [showLinkPanel, setShowLinkPanel] = useState(false);
+      const [showCreateForm, setShowCreateForm] = useState(false);
+      const [showCopyModal, setShowCopyModal] = useState(false);
+      const [newCode, setNewCode] = useState('');
+      const [newName, setNewName] = useState('');
+
+      const linkedMethods = [
+        { code: 'HEX', name: 'Hexokinase', isDefault: true, date: '2024-01-01' },
+        { code: 'GOX', name: 'Glucose Oxidase', isDefault: false, date: '2020-01-01' },
+      ];
+      const availableMethods = [
+        { code: 'GOD-PAP', name: 'Enzymatic (GOD-PAP)' },
+        { code: 'CLR', name: 'Colorimetric' },
+        { code: 'ISE', name: 'Ion-Selective Electrode' },
+      ];
+
+      return (
+        <div>
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h2>Associated Methods</h2>
+              <p>Link analytical methods used to perform this test</p>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowCopyModal(true)}>📋 Copy from Test...</button>
+              <button className="btn btn-primary btn-sm" onClick={() => { setShowLinkPanel(true); setShowCreateForm(false); }}>+ Link Method</button>
+            </div>
+          </div>
+
+          {showLinkPanel && (
+            <div className="inline-form">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <strong style={{ fontSize: 13 }}>Select Method to Link</strong>
+                <button className="btn-ghost btn-sm" onClick={() => { setShowLinkPanel(false); setShowCreateForm(true); }}>+ Create New Method</button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                {availableMethods.map(m => (
+                  <button key={m.code} className="btn btn-secondary btn-sm" style={{ textAlign: 'left', display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <code className="mono" style={{ background: '#e8e8e8', padding: '2px 4px', borderRadius: 2 }}>{m.code}</code>
+                    <span>{m.name}</span>
+                  </button>
+                ))}
+              </div>
+              <button className="btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={() => setShowLinkPanel(false)}>Cancel</button>
+            </div>
+          )}
+
+          {showCreateForm && (
+            <div className="inline-form" style={{ background: '#e3f2fd', borderColor: '#0f62fe', borderStyle: 'solid' }}>
+              <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 8 }}>Create New Method</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input type="text" value={newCode} onChange={e => setNewCode(e.target.value.toUpperCase())} placeholder="Code (e.g., HEX)" className="mono" style={{ width: 120, padding: 6, border: '1px solid #d0d0d0', borderRadius: 4, textTransform: 'uppercase' }} />
+                <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Method name (e.g., Hexokinase Method)" style={{ flex: 1, padding: 6, border: '1px solid #d0d0d0', borderRadius: 4 }} autoFocus />
+                <button className="btn btn-primary btn-sm" onClick={() => { setShowCreateForm(false); setNewCode(''); setNewName(''); }}>Create &amp; Link</button>
+                <button className="btn btn-secondary btn-sm" onClick={() => { setShowCreateForm(false); setNewCode(''); setNewName(''); }}>Cancel</button>
+              </div>
+              <small style={{ display: 'block', fontSize: 11, color: '#525252', marginTop: 6 }}>Code is used for quick macro-style entry in result screens</small>
+            </div>
+          )}
+
+          {linkedMethods.map(m => (
+            <div key={m.code} className="tile" style={{ padding: 12, borderColor: m.isDefault ? '#0f62fe' : '#e0e0e0', background: m.isDefault ? '#e3f2fd' : '#fff' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 40, height: 40, background: m.isDefault ? '#bce5fe' : '#e8e8e8', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: m.isDefault ? '#0f62fe' : '#525252' }}>⚙</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <code className="mono" style={{ background: '#e8e8e8', padding: '2px 6px', borderRadius: 2, fontWeight: 500 }}>{m.code}</code>
+                    <strong style={{ fontSize: 14 }}>{m.name}</strong>
+                    {m.isDefault && <span className="tag tag-blue">Default</span>}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#525252', marginTop: 4 }}>Effective: {m.date}</div>
+                </div>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {!m.isDefault && <button className="btn-ghost btn-sm">Set Default</button>}
+                  <button className="btn-ghost btn-sm">Edit</button>
+                  <button className="btn-ghost btn-sm" style={{ color: '#da1e28' }}>✕</button>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {showCopyModal && (
+            <div className="modal-overlay" onClick={() => setShowCopyModal(false)}>
+              <div className="modal" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2>Copy Methods from Another Test</h2>
+                  <button className="modal-close" onClick={() => setShowCopyModal(false)}>×</button>
+                </div>
+                <div className="modal-body">
+                  <div className="form-group">
+                    <label>Search for test</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input type="text" placeholder="Enter test name..." style={{ flex: 1 }} />
+                      <button className="btn btn-secondary btn-sm">Search</button>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Select test:</label>
+                    <div style={{ border: '1px solid #d0d0d0', borderRadius: 4, padding: 6, maxHeight: 160, overflowY: 'auto' }}>
+                      {['Fasting Glucose', 'Random Glucose', '2-Hour Glucose', 'HbA1c'].map((t, i) => (
+                        <label key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: 8, cursor: 'pointer', borderRadius: 3 }}>
+                          <input type="radio" name="sourceTest" />
+                          <span style={{ fontSize: 13 }}>{t}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Methods to copy:</label>
+                    <div style={{ border: '1px solid #d0d0d0', borderRadius: 4, padding: 12, background: '#f9f9f9' }}>
+                      {[
+                        { c: 'HEX', n: 'Hexokinase Method', def: true },
+                        { c: 'GOX', n: 'Glucose Oxidase Method', def: false },
+                        { c: 'ELEC', n: 'Electrode Method', def: false },
+                      ].map((m, i) => (
+                        <label key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: 4, cursor: 'pointer' }}>
+                          <input type="checkbox" defaultChecked={i < 2} />
+                          <code className="mono" style={{ background: '#e8e8e8', padding: '2px 4px', borderRadius: 2 }}>{m.c}</code>
+                          <span style={{ fontSize: 13 }}>{m.n}</span>
+                          {m.def && <span className="tag tag-blue">Default</span>}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-secondary btn-sm" onClick={() => setShowCopyModal(false)}>Cancel</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => setShowCopyModal(false)}>Copy Selected</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function SampleStorageSection() {
+      const [overrideRestricted, setOverrideRestricted] = useState(false);
+      return (
+        <div>
+          <div className="section-header">
+            <h2>Sample Storage</h2>
+            <p>Define recommended storage conditions, duration, disposal, and special handling</p>
+          </div>
+
+          <div className="tile">
+            <div className="tile-header">🌡️ Storage Requirements</div>
+            <div className="grid-2col">
+              <div className="form-group">
+                <label className="required">Storage Conditions</label>
+                <select defaultValue="refrigerator">
+                  <option value="ultra-low">Ultra-low freezer (-80°C to -60°C)</option>
+                  <option value="freezer">Freezer (-30°C to -15°C)</option>
+                  <option value="refrigerator">Refrigerator (2°C to 8°C)</option>
+                  <option value="cold-room">Cold room (4°C to 8°C)</option>
+                  <option value="cool-room">Cool room (15°C to 18°C)</option>
+                  <option value="room-temp">Room temperature (18°C to 25°C)</option>
+                  <option value="controlled-room">Controlled room temp (20°C to 25°C)</option>
+                  <option value="warm-incubator">Warm incubator (35°C to 37°C)</option>
+                  <option value="ambient">Ambient (uncontrolled)</option>
+                  <option value="custom">Custom (specify below)</option>
+                </select>
+                <small style={{ color: '#525252', fontSize: 12 }}>Temperature range for sample preservation</small>
+              </div>
+              <div className="form-group">
+                <label>Custom Storage Conditions</label>
+                <input type="text" placeholder="e.g., 2-8°C, protected from light" />
+              </div>
+              <div className="form-group">
+                <label className="required">Maximum Storage Duration</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input type="number" defaultValue="72" style={{ flex: 1 }} />
+                  <select style={{ width: 120 }}>
+                    <option>Hours</option>
+                    <option>Days</option>
+                    <option>Weeks</option>
+                    <option>Months</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Stability Notes</label>
+                <input type="text" placeholder="e.g., Stable for 7 days refrigerated, 1 month frozen" />
+              </div>
+            </div>
+
+            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #e0e0e0' }}>
+              <label style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, display: 'block' }}>Special Handling Requirements</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                {['🔆 Protect from light', '❄️ Do not freeze', '🔥 Do not refrigerate', '⬆️ Keep upright', '🧪 Centrifuge before storage', '⚗️ Aliquot before storage'].map(item => (
+                  <label key={item} className="checkbox-item">
+                    <input type="checkbox" /> <span style={{ fontSize: 13 }}>{item}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="tile">
+            <div className="tile-header" style={{ color: '#da1e28' }}>🗑️ Disposal Requirements</div>
+            <div className="grid-2col">
+              <div className="form-group">
+                <label className="required">Disposal Method</label>
+                <select>
+                  <option>Biohazard/Infectious waste bin</option>
+                  <option>Sharps container</option>
+                  <option>Chemical deactivation</option>
+                  <option>Incineration</option>
+                  <option>Autoclave then general waste</option>
+                  <option>Pharmaceutical waste</option>
+                  <option>Radioactive waste</option>
+                  <option>General waste (non-hazardous only)</option>
+                  <option>Return to manufacturer</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Disposal Timeframe</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input type="number" placeholder="e.g., 7" style={{ flex: 1 }} />
+                  <select style={{ width: 120 }}>
+                    <option>Days</option>
+                    <option>Weeks</option>
+                    <option>Months</option>
+                  </select>
+                </div>
+                <small style={{ color: '#525252', fontSize: 12 }}>Maximum time after test completion before disposal</small>
+              </div>
+            </div>
+          </div>
+
+          <div className="tile">
+            <div className="tile-header" style={{ color: '#a18217' }}>⚠️ Special Instructions</div>
+            <textarea rows={4} placeholder="Enter any special instructions for sample handling, storage, or disposal that don't fit in the fields above..." style={{ width: '100%', padding: 8, border: '1px solid #d0d0d0', borderRadius: 4, fontFamily: 'inherit', fontSize: 13 }} />
+          </div>
+
+          <div className="tile" style={{ borderColor: overrideRestricted ? '#da1e28' : '#e0e0e0' }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <input type="checkbox" checked={overrideRestricted} onChange={e => setOverrideRestricted(e.target.checked)} style={{ marginTop: 4, width: 18, height: 18, cursor: 'pointer' }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+                  <strong style={{ fontSize: 14 }}>Override Restricted</strong>
+                  <span className="tag tag-red">Locked</span>
+                </div>
+                <p style={{ fontSize: 13, color: '#525252', margin: 0 }}>When enabled, order entry staff cannot modify storage or disposal requirements for this test. Use for critical tests where sample handling must be strictly controlled (e.g., HIV, controlled substances).</p>
+                {overrideRestricted && (
+                  <div style={{ marginTop: 12, padding: 8, background: '#fee5e5', border: '1px solid #f8b8b8', borderRadius: 3 }}>
+                    <div style={{ fontSize: 13, color: '#ae1a1a', fontWeight: 600 }}>⚠ Storage and disposal settings are locked</div>
+                    <div style={{ fontSize: 12, color: '#ae1a1a', marginTop: 4 }}>Only Lab Managers can modify these requirements. Order entry staff will see these as read-only.</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="tile" style={{ background: 'linear-gradient(to right, #e3f2fd, #d1f3f6)', borderColor: '#a8d8e8' }}>
+            <div className="tile-header">📋 Storage Condition Quick Reference</div>
+            <div className="grid-3col" style={{ fontSize: 13 }}>
+              <div><strong>Ultra-low Freezer</strong><div style={{ color: '#525252' }}>-80°C to -60°C</div></div>
+              <div><strong>Freezer</strong><div style={{ color: '#525252' }}>-30°C to -15°C</div></div>
+              <div><strong>Refrigerator</strong><div style={{ color: '#525252' }}>2°C to 8°C</div></div>
+              <div><strong>Cool Room</strong><div style={{ color: '#525252' }}>15°C to 18°C</div></div>
+              <div><strong>Room Temperature</strong><div style={{ color: '#525252' }}>18°C to 25°C</div></div>
+              <div><strong>Warm Incubator</strong><div style={{ color: '#525252' }}>35°C to 37°C</div></div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function DisplayOrderSection() {
+      const [tests, setTests] = useState([
+        { id: 1, name: 'Glucose, Fasting', order: 1 },
+        { id: 2, name: 'Hemoglobin A1c', order: 2 },
+        { id: 3, name: 'Creatinine', order: 3 },
+        { id: 4, name: 'BUN', order: 4 },
+        { id: 5, name: 'ALT (SGPT)', order: 5 },
+        { id: 6, name: 'AST (SGOT)', order: 6 },
+        { id: 7, name: 'Bilirubin, Total', order: 7 },
+        { id: 8, name: 'Albumin', order: 8 },
+      ]);
+      const move = (idx, delta) => {
+        if (idx + delta < 0 || idx + delta >= tests.length) return;
+        const next = [...tests];
+        [next[idx], next[idx + delta]] = [next[idx + delta], next[idx]];
+        next.forEach((t, i) => (t.order = i + 1));
+        setTests(next);
+      };
+      return (
+        <div>
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h2>Test Display Order</h2>
+              <p>Drag and drop to reorder tests for this sample type</p>
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <label style={{ fontSize: 13 }}>Sample Type:</label>
+              <select defaultValue="serum" style={{ padding: 6, border: '1px solid #d0d0d0', borderRadius: 4, fontSize: 13 }}>
+                <option value="serum">Serum</option>
+                <option value="plasma">Plasma</option>
+                <option value="whole_blood">Whole Blood</option>
+                <option value="urine">Urine</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            {tests.map((t, idx) => (
+              <div key={t.id} className="list-item" style={{ cursor: 'move' }}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', flex: 1 }}>
+                  <span style={{ color: '#a8a8a8', cursor: 'grab', fontSize: 16 }}>≡</span>
+                  <span style={{ width: 28, color: '#525252', fontSize: 13, fontWeight: 600 }}>{t.order}.</span>
+                  <span className="list-item-name">{t.name}</span>
+                </div>
+                <div className="list-item-actions">
+                  <button className="btn-ghost btn-sm" disabled={idx === 0} onClick={() => move(idx, -1)} style={{ opacity: idx === 0 ? 0.3 : 1 }}>↑</button>
+                  <button className="btn-ghost btn-sm" disabled={idx === tests.length - 1} onClick={() => move(idx, 1)} style={{ opacity: idx === tests.length - 1 ? 0.3 : 1 }}>↓</button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p style={{ fontSize: 12, color: '#525252', marginTop: 16 }}>This order determines how tests appear in order entry and result entry for the selected sample type.</p>
+        </div>
+      );
+    }
+
+    function PanelsSection() {
+      const [showCreate, setShowCreate] = useState(false);
+      const [newPanelName, setNewPanelName] = useState('');
+      const [selected, setSelected] = useState({ 1: 3, 3: 2 }); // panel id → position
+      const [expanded, setExpanded] = useState(null);
+
+      const panels = [
+        { id: 1, name: 'Basic Metabolic Panel', count: 8, tests: ['Glucose', 'BUN', 'Creatinine', 'Sodium', 'Potassium', 'Chloride', 'CO2', 'Calcium'] },
+        { id: 2, name: 'Comprehensive Metabolic Panel', count: 14, tests: ['Glucose', 'BUN', 'Creatinine', 'Sodium', 'Potassium', 'Chloride', 'CO2', 'Calcium', 'Total Protein', 'Albumin', 'Bilirubin', 'ALP', 'AST', 'ALT'] },
+        { id: 3, name: 'Lipid Panel', count: 4, tests: ['Total Cholesterol', 'HDL', 'LDL', 'Triglycerides'] },
+        { id: 4, name: 'Liver Function Panel', count: 7, tests: ['Total Protein', 'Albumin', 'Bilirubin Total', 'Bilirubin Direct', 'ALP', 'AST', 'ALT'] },
+        { id: 5, name: 'Renal Function Panel', count: 5, tests: ['BUN', 'Creatinine', 'eGFR', 'BUN/Creatinine Ratio', 'Uric Acid'] },
+        { id: 6, name: 'Thyroid Panel', count: 3, tests: ['TSH', 'Free T4', 'Free T3'] },
+      ];
+
+      const togglePanel = (id, count) => {
+        setSelected(prev => {
+          const next = { ...prev };
+          if (next[id] !== undefined) {
+            delete next[id];
+            setExpanded(null);
+          } else {
+            next[id] = count + 1;
+            setExpanded(id);
+          }
+          return next;
+        });
+      };
+
+      return (
+        <div>
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h2>Panel Membership</h2>
+              <p>Select which panels should include this test and set display order</p>
+            </div>
+            <button className="btn-ghost btn-sm" onClick={() => setShowCreate(!showCreate)}>+ Create New Panel</button>
+          </div>
+
+          {showCreate && (
+            <div className="inline-form" style={{ background: '#e3f2fd', borderColor: '#0f62fe', borderStyle: 'solid' }}>
+              <label style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, display: 'block' }}>New Panel Name</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input type="text" value={newPanelName} onChange={e => setNewPanelName(e.target.value)} placeholder="Enter panel name..." style={{ flex: 1, padding: 8, border: '1px solid #d0d0d0', borderRadius: 4 }} autoFocus />
+                <button className="btn btn-primary btn-sm" onClick={() => { setShowCreate(false); setNewPanelName(''); }}>Create</button>
+                <button className="btn btn-secondary btn-sm" onClick={() => { setShowCreate(false); setNewPanelName(''); }}>Cancel</button>
+              </div>
+            </div>
+          )}
+
+          <div>
+            {panels.map(p => {
+              const isSelected = selected[p.id] !== undefined;
+              const pos = selected[p.id] || (p.count + 1);
+              const isExpanded = expanded === p.id;
+              return (
+                <div key={p.id} className="tile" style={{ borderColor: isSelected ? '#0f62fe' : '#e0e0e0', background: isSelected ? '#e3f2fd' : '#fff', borderWidth: isSelected ? 2 : 1, padding: 0 }}>
+                  <div style={{ padding: 12, cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'center' }} onClick={() => togglePanel(p.id, p.count)}>
+                    <input type="checkbox" checked={isSelected} onChange={() => {}} style={{ width: 18, height: 18 }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 500, fontSize: 14 }}>{p.name}</div>
+                      <div style={{ fontSize: 12, color: '#525252' }}>{p.count} tests</div>
+                    </div>
+                    {isSelected && (
+                      <span className="tag tag-blue">Position: {pos}</span>
+                    )}
+                    {isSelected && (
+                      <button className="btn-ghost btn-sm" onClick={e => { e.stopPropagation(); setExpanded(isExpanded ? null : p.id); }}>{isExpanded ? '▼' : '▶'}</button>
+                    )}
+                  </div>
+                  {isSelected && isExpanded && (
+                    <div style={{ borderTop: '1px solid #c6daf8', padding: 12, background: '#fff' }}>
+                      <div style={{ display: 'flex', gap: 16 }}>
+                        <div style={{ width: 200 }}>
+                          <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Display Position in Panel</label>
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                            <input type="number" min="1" max={p.count + 1} value={pos} onChange={e => setSelected(prev => ({ ...prev, [p.id]: parseInt(e.target.value) || 1 }))} style={{ width: 60, padding: 6, border: '1px solid #d0d0d0', borderRadius: 4 }} />
+                            <span style={{ fontSize: 12, color: '#525252' }}>of {p.count + 1}</span>
+                          </div>
+                          <small style={{ fontSize: 11, color: '#a8a8a8', display: 'block', marginTop: 8 }}>Enter a number or drag the test in the preview list</small>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Panel Test Order Preview <span style={{ color: '#a8a8a8', fontWeight: 'normal' }}>— drag to reorder</span></label>
+                          <div style={{ background: '#fff', border: '1px solid #d0d0d0', borderRadius: 4, padding: 6, maxHeight: 160, overflowY: 'auto' }}>
+                            {(() => {
+                              const items = [];
+                              p.tests.forEach((test, idx) => {
+                                const position = idx + 1;
+                                if (position === pos) {
+                                  items.push(
+                                    <div key={`this-${idx}`} style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '6px 8px', background: '#bce5fe', border: '2px dashed #0f62fe', borderRadius: 3, marginBottom: 2, fontWeight: 600, color: '#003da5' }}>
+                                      <span style={{ color: '#0f62fe' }}>≡</span>
+                                      <span style={{ width: 20 }}>{pos}.</span>
+                                      <span style={{ flex: 1 }}>← THIS TEST</span>
+                                    </div>
+                                  );
+                                }
+                                items.push(
+                                  <div key={`row-${idx}`} style={{ display: 'flex', gap: 6, padding: '4px 8px', fontSize: 12 }}>
+                                    <span style={{ width: 20, color: '#a8a8a8', marginLeft: 16 }}>{position >= pos ? position + 1 : position}.</span>
+                                    <span>{test}</span>
+                                  </div>
+                                );
+                              });
+                              if (pos > p.count) {
+                                items.push(
+                                  <div key="this-end" style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '6px 8px', background: '#bce5fe', border: '2px dashed #0f62fe', borderRadius: 3, marginTop: 2, fontWeight: 600, color: '#003da5' }}>
+                                    <span style={{ color: '#0f62fe' }}>≡</span>
+                                    <span style={{ width: 20 }}>{pos}.</span>
+                                    <span style={{ flex: 1 }}>← THIS TEST</span>
+                                  </div>
+                                );
+                              }
+                              return items;
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <p style={{ fontSize: 12, color: '#525252', marginTop: 12 }}>Click a selected panel to expand and set the display order. Use the number input or drag the test in the preview list.</p>
+        </div>
+      );
+    }
+
+    function LabelsSection() {
+      const [allowOverride, setAllowOverride] = useState(true);
+      const [labels, setLabels] = useState([
+        { id: 1, preset: 'specimen', presetName: 'Specimen Label (50×25mm)', defaultQty: 1, maxQty: 5, allowOverride: true },
+        { id: 2, preset: 'block', presetName: 'Block Label (26×12mm)', defaultQty: 4, maxQty: 20, allowOverride: true },
+        { id: 3, preset: 'slide', presetName: 'Slide Label (76×26mm)', defaultQty: 12, maxQty: 50, allowOverride: true },
+        { id: 4, preset: 'freezer', presetName: 'Freezer Label (38×19mm)', defaultQty: 2, maxQty: 10, allowOverride: false },
+      ]);
+      return (
+        <div>
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h2>Default Labels for This Test</h2>
+              <p>When this test is ordered, automatically suggest these labels</p>
+            </div>
+            <button className="btn btn-primary btn-sm">+ Add Label Type</button>
+          </div>
+
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Label Preset</th>
+                  <th style={{ width: 110 }}>Default Qty</th>
+                  <th style={{ width: 90 }}>Max Qty</th>
+                  <th style={{ width: 130 }}>Allow Override</th>
+                  <th style={{ width: 70 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {labels.map(l => (
+                  <tr key={l.id}>
+                    <td>{l.presetName}</td>
+                    <td><input type="number" defaultValue={l.defaultQty} style={{ width: 70, padding: 4, border: '1px solid #d0d0d0', borderRadius: 3 }} /></td>
+                    <td><input type="number" defaultValue={l.maxQty} style={{ width: 70, padding: 4, border: '1px solid #d0d0d0', borderRadius: 3 }} /></td>
+                    <td><input type="checkbox" defaultChecked={l.allowOverride} style={{ width: 16, height: 16 }} /></td>
+                    <td><button className="btn-ghost btn-sm">Del</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="tile" style={{ marginTop: 16 }}>
+            <div className="tile-header">Label Generation Settings</div>
+            <label className="checkbox-item" style={{ marginBottom: 4 }}>
+              <input type="checkbox" checked={allowOverride} onChange={e => setAllowOverride(e.target.checked)} />
+              <span>Allow label count override at order entry</span>
+            </label>
+            <small style={{ display: 'block', fontSize: 12, color: '#525252', marginLeft: 24 }}>When enabled, users can modify label quantities during order entry. Individual label types can still be locked via the "Allow Override" column above.</small>
+          </div>
+
+          <div className="tile" style={{ background: '#e3f2fd', borderColor: '#a8d8e8' }}>
+            <div className="tile-header" style={{ color: '#003da5' }}>ℹ️ Order Entry Preview</div>
+            <p style={{ fontSize: 13, color: '#003da5', marginBottom: 12 }}>When this test is ordered, the Labels section will be pre-populated as follows:</p>
+            <div style={{ background: '#fff', borderRadius: 4, padding: 8 }}>
+              <table className="data-table" style={{ fontSize: 13 }}>
+                <thead>
+                  <tr><th>Label Type</th><th style={{ width: 80, textAlign: 'center' }}>Qty</th><th>Source</th></tr>
+                </thead>
+                <tbody>
+                  {labels.map(l => (
+                    <tr key={l.id}>
+                      <td>{l.presetName}</td>
+                      <td style={{ textAlign: 'center' }}>{l.allowOverride ? l.defaultQty : <span style={{ background: '#e8e8e8', padding: '2px 6px', borderRadius: 3, color: '#525252' }}>{l.defaultQty}</span>}</td>
+                      <td style={{ fontSize: 12, color: '#525252' }}>This test</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <small style={{ display: 'block', fontSize: 12, color: '#525252', marginTop: 8 }}>⚠ Gray quantities are locked and cannot be modified at order entry</small>
+          </div>
+        </div>
+      );
+    }
+
+    function TerminologySection() {
+      const [mappings] = useState([
+        { id: 1, source: 'LOINC', code: '1558-6', relationship: 'SAME_AS', displayName: 'Fasting glucose [Mass/volume] in Serum or Plasma' },
+        { id: 2, source: 'SNOMED', code: '271062006', relationship: 'SAME_AS', displayName: 'Fasting blood glucose measurement' },
+      ]);
+      const sourceTagClass = { LOINC: 'tag-blue', SNOMED: 'tag-teal', CIEL: 'tag-purple', OCL: 'tag-warm-gray' };
+      return (
+        <div>
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h2>Terminology Mappings</h2>
+              <p>Link this test to standard terminology codes for FHIR interoperability</p>
+            </div>
+            <button className="btn-ghost btn-sm">+ Add Mapping</button>
+          </div>
+
+          <div>
+            {mappings.map(m => (
+              <div key={m.id} className="tile" style={{ padding: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                  <div style={{ display: 'flex', gap: 12, flex: 1 }}>
+                    <span className={`tag ${sourceTagClass[m.source]}`}>{m.source}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+                        <span className="mono" style={{ fontWeight: 500 }}>{m.code}</span>
+                        <span className="tag tag-warm-gray">{m.relationship.replace('_', ' ')}</span>
+                      </div>
+                      <div style={{ fontSize: 13, color: '#525252' }}>{m.displayName}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <button className="btn-ghost btn-sm">Edit</button>
+                    <button className="btn-ghost btn-sm" style={{ color: '#da1e28' }}>Del</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="inline-form" style={{ marginTop: 16 }}>
+            <h3 style={{ fontSize: 13, margin: '0 0 12px 0' }}>Add New Mapping</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr 180px 80px', gap: 8, alignItems: 'end' }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Terminology Source</label>
+                <select style={{ width: '100%', padding: 6, border: '1px solid #d0d0d0', borderRadius: 4 }}>
+                  <option>Select...</option>
+                  <option>LOINC</option>
+                  <option>SNOMED CT</option>
+                  <option>CIEL</option>
+                  <option>OCL</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Code</label>
+                <input type="text" placeholder="Enter code" style={{ width: '100%', padding: 6, border: '1px solid #d0d0d0', borderRadius: 4 }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'block' }}>Relationship</label>
+                <select style={{ width: '100%', padding: 6, border: '1px solid #d0d0d0', borderRadius: 4 }}>
+                  <option>Same As</option>
+                  <option>Broader Than</option>
+                  <option>Narrower Than</option>
+                </select>
+              </div>
+              <button className="btn btn-primary btn-sm">Add</button>
+            </div>
+            <small style={{ display: 'block', fontSize: 11, color: '#a8a8a8', marginTop: 8 }}>Display name will be auto-populated from terminology lookup; editable if lookup fails.</small>
+          </div>
+        </div>
+      );
+    }
+
+    function ReagentsSection() {
+      const reagents = [
+        { id: 1, name: 'Glucose Reagent R1', manufacturer: 'Roche', usage: 'PRIMARY', qty: 100, unit: 'µL', stock: 2500 },
+        { id: 2, name: 'Glucose Reagent R2', manufacturer: 'Roche', usage: 'SECONDARY', qty: 50, unit: 'µL', stock: 1200 },
+      ];
+      return (
+        <div>
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h2>Associated Reagents</h2>
+              <p>Link reagents from inventory to track consumption</p>
+            </div>
+            <button className="btn btn-primary btn-sm">+ Link Reagent</button>
+          </div>
+
+          {reagents.map(r => (
+            <div key={r.id} className="tile" style={{ padding: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 40, height: 40, background: '#d1f3f6', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>⚗️</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+                    <strong style={{ fontSize: 14 }}>{r.name}</strong>
+                    <span className={r.usage === 'PRIMARY' ? 'tag tag-blue' : 'tag tag-green'}>{r.usage}</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: '#525252' }}>{r.manufacturer} • {r.qty} {r.unit} per test</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{r.stock.toLocaleString()} {r.unit}</div>
+                  <div style={{ fontSize: 11, color: '#525252' }}>Current Stock</div>
+                </div>
+                <button className="btn-ghost btn-sm" style={{ color: '#da1e28' }}>×</button>
+              </div>
+            </div>
+          ))}
+
+          <div className="info-banner">
+            ℹ️ Reagents are configured in <strong>Administration → Master Lists → Reagents</strong>. Linking a reagent here records consumption per test run for inventory tracking.
+          </div>
+        </div>
+      );
+    }
+
+    function AnalyzersSection() {
+      const [showLink, setShowLink] = useState(false);
+      const linked = [
+        { id: 1, name: 'Cobas c 501', manufacturer: 'Roche', sn: 'SN-2024-0142', location: 'Chemistry Lab A', status: 'Online' },
+        { id: 2, name: 'Cobas c 502', manufacturer: 'Roche', sn: 'SN-2024-0143', location: 'Chemistry Lab B', status: 'Online' },
+      ];
+      const available = [
+        { id: 3, name: 'AU680', manufacturer: 'Beckman Coulter', sn: 'SN-2023-0098', location: 'Chemistry Lab A', status: 'Online' },
+        { id: 4, name: 'Architect c8000', manufacturer: 'Abbott', sn: 'SN-2022-0456', location: 'Chemistry Lab C', status: 'Maintenance' },
+        { id: 5, name: 'Vitros 5600', manufacturer: 'Ortho Clinical', sn: 'SN-2024-0201', location: 'STAT Lab', status: 'Online' },
+      ];
+      const statusTag = { Online: 'tag-green', Maintenance: 'tag-warm-gray', Offline: 'tag-red' };
+      return (
+        <div>
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h2>Linked Analyzers</h2>
+              <p>Select which analyzers can perform this test</p>
+            </div>
+            <button className="btn btn-primary btn-sm" onClick={() => setShowLink(true)}>+ Link Analyzer</button>
+          </div>
+
+          {linked.map(a => (
+            <div key={a.id} className="tile" style={{ padding: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 40, height: 40, background: '#e8e8e8', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>💻</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+                    <strong style={{ fontSize: 14 }}>{a.name}</strong>
+                    <span className={`tag ${statusTag[a.status]}`}>{a.status}</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: '#525252' }}>{a.manufacturer} • {a.location}</div>
+                  <div style={{ fontSize: 11, color: '#a8a8a8', marginTop: 2 }}>S/N: {a.sn}</div>
+                </div>
+                <button className="btn-ghost btn-sm" style={{ color: '#da1e28' }}>× Unlink</button>
+              </div>
+            </div>
+          ))}
+
+          <div className="info-banner">
+            ℹ️ <strong>About Analyzer Linking:</strong> Analyzers are configured in <strong>Administration → Master Lists → Analyzers</strong>. Test code mapping is configured separately in the analyzer interface setup. Linking an analyzer indicates this test can be performed on that instrument.
+          </div>
+
+          {showLink && (
+            <div className="modal-overlay" onClick={() => setShowLink(false)}>
+              <div className="modal" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2>Link Analyzers</h2>
+                  <button className="modal-close" onClick={() => setShowLink(false)}>×</button>
+                </div>
+                <div className="modal-body">
+                  <label style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, display: 'block' }}>Select Analyzers</label>
+                  <div style={{ border: '1px solid #d0d0d0', borderRadius: 4, maxHeight: 280, overflowY: 'auto' }}>
+                    {available.map(a => (
+                      <label key={a.id} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: 12, borderBottom: '1px solid #f0f0f0', cursor: 'pointer' }}>
+                        <input type="checkbox" style={{ width: 18, height: 18 }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <strong style={{ fontSize: 14 }}>{a.name}</strong>
+                            <span className={`tag ${statusTag[a.status]}`}>{a.status}</span>
+                          </div>
+                          <div style={{ fontSize: 12, color: '#525252' }}>{a.manufacturer} • {a.location}</div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-secondary btn-sm" onClick={() => setShowLink(false)}>Cancel</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => setShowLink(false)}>Link Selected</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function AlertsSection() {
+      const [showAdd, setShowAdd] = useState(false);
+      const [rules, setRules] = useState([
+        { id: 1, name: 'Critical Value Alert', enabled: true, trigger: 'Critical Value', triggerColor: 'tag-red', channels: ['SMS', 'Email'], recipients: ['Ordering Physician'], smsTemplate: 'CRITICAL: {{test_name}} result {{result}} {{unit}} for {{patient_name}}. Please review immediately.' },
+        { id: 2, name: 'Abnormal Result Notification', enabled: true, trigger: 'Abnormal (High or Low)', triggerColor: 'tag-warm-gray', channels: ['Email'], recipients: ['Ordering Physician'], smsTemplate: '' },
+        { id: 3, name: 'Positive Result Alert', enabled: false, trigger: 'Equals "Positive"', triggerColor: 'tag-blue', channels: ['SMS'], recipients: ['Patient'], smsTemplate: 'Lab result ready for {{patient_name}}. Please contact your healthcare provider.' },
+      ]);
+      const channelTag = { SMS: 'tag-blue', Email: 'tag-purple' };
+      const toggle = id => setRules(prev => prev.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r));
+
+      return (
+        <div>
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h2>Alert Rules</h2>
+              <p>Configure automated notifications when specific result conditions are met</p>
+            </div>
+            <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Rule</button>
+          </div>
+
+          {rules.map(r => (
+            <div key={r.id} className="tile" style={{ padding: 0, opacity: r.enabled ? 1 : 0.7 }}>
+              <div style={{ padding: 12, background: '#f4f4f4', borderBottom: '1px solid #e0e0e0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: r.enabled ? '#24a148' : '#a8a8a8' }} />
+                  <strong style={{ fontSize: 14 }}>{r.name}</strong>
+                  <span className={r.enabled ? 'tag tag-green' : 'tag tag-gray'}>{r.enabled ? 'Enabled' : 'Disabled'}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  <button className="btn-ghost btn-sm" onClick={() => toggle(r.id)}>{r.enabled ? 'Disable' : 'Enable'}</button>
+                  <button className="btn-ghost btn-sm">Edit</button>
+                  <button className="btn-ghost btn-sm" style={{ color: '#da1e28' }}>Del</button>
+                </div>
+              </div>
+              <div style={{ padding: 12 }}>
+                <div style={{ display: 'flex', gap: 24, marginBottom: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: '#525252', textTransform: 'uppercase', marginBottom: 4 }}>When</div>
+                    <span className={`tag ${r.triggerColor}`}>{r.trigger}</span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: '#525252', textTransform: 'uppercase', marginBottom: 4 }}>Notify Via</div>
+                    <div>{r.channels.map(c => <span key={c} className={`tag ${channelTag[c]}`}>{c === 'SMS' ? '📱 ' : '📧 '}{c}</span>)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: '#525252', textTransform: 'uppercase', marginBottom: 4 }}>Recipients</div>
+                    <div>{r.recipients.map(rec => <span key={rec} className="tag tag-gray">{rec}</span>)}</div>
+                  </div>
+                </div>
+                {r.smsTemplate && (
+                  <div style={{ paddingTop: 12, borderTop: '1px solid #f0f0f0' }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: '#525252', textTransform: 'uppercase', marginBottom: 4 }}>SMS Template</div>
+                    <div className="mono" style={{ fontSize: 12, padding: 8, background: '#f4f4f4', borderRadius: 3 }}>{r.smsTemplate}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {showAdd && (
+            <div className="modal-overlay" onClick={() => setShowAdd(false)}>
+              <div className="modal" style={{ maxWidth: 720 }} onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2>Add Alert Rule</h2>
+                  <button className="modal-close" onClick={() => setShowAdd(false)}>×</button>
+                </div>
+                <div className="modal-body">
+                  <div className="form-group">
+                    <label>Rule Name</label>
+                    <input type="text" placeholder="e.g., Critical Value SMS Alert" />
+                  </div>
+                  <div className="form-group">
+                    <label>Alert when result is:</label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <label className="radio-item"><input type="radio" name="trigger" /> All Results</label>
+                      <label className="radio-item"><input type="radio" name="trigger" /> Abnormal (outside normal range)</label>
+                      <label className="radio-item"><input type="radio" name="trigger" defaultChecked /> Critical (panic value)</label>
+                      <label className="radio-item"><input type="radio" name="trigger" /> Specific Value: <input type="text" placeholder="e.g., Positive" style={{ width: 140, marginLeft: 8 }} /></label>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Send via:</label>
+                    <div style={{ display: 'flex', gap: 16 }}>
+                      <label className="checkbox-item"><input type="checkbox" /> 📱 SMS</label>
+                      <label className="checkbox-item"><input type="checkbox" /> 📧 Email</label>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Recipients:</label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <label className="checkbox-item"><input type="checkbox" /> Ordering Physician (from order)</label>
+                      <label className="checkbox-item"><input type="checkbox" /> Patient (from patient record)</label>
+                      <label className="checkbox-item"><input type="checkbox" /> Custom recipient:</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginLeft: 24 }}>
+                        <input type="text" placeholder="Phone: +1 555-123-4567" />
+                        <input type="email" placeholder="Email: user@example.com" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>SMS Template (160 char recommended)</label>
+                    <textarea rows={3} placeholder="CRITICAL: {{test_name}} {{result}} {{unit}} for {{patient_name}}. Review immediately." className="mono" />
+                    <small style={{ display: 'block', fontSize: 11, color: '#525252', marginTop: 4 }}>Variables: {'{{patient_name}}, {{patient_id}}, {{test_name}}, {{result}}, {{unit}}, {{reference_range}}'}</small>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-secondary btn-sm" onClick={() => setShowAdd(false)}>Cancel</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(false)}>Save Alert Rule</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function ReflexCalcSection() {
+      const reflexBy = [
+        { id: 1, condition: '> 200 mg/dL', target: 'Hemoglobin A1c', mode: 'Suggest', modeColor: 'tag-warm-gray' },
+        { id: 2, condition: '= "Abnormal"', target: 'Glucose Tolerance Test', mode: 'Auto-order', modeColor: 'tag-green' },
+      ];
+      const reflexInto = [
+        { id: 101, sourceTest: 'Glucose Tolerance Test', condition: '2-hour result > 140' },
+      ];
+      const calcs = [
+        { id: 201, name: 'LDL Cholesterol (Calculated)', formula: 'Total_Chol - HDL - (Triglycerides / 5)' },
+      ];
+      return (
+        <div>
+          <div className="tile">
+            <div className="tile-header">⚡ Reflex Tests</div>
+            <p style={{ fontSize: 13, color: '#525252', marginTop: -8, marginBottom: 12 }}>Automatic test ordering based on results</p>
+
+            <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Rules triggered BY this test:</h3>
+            {reflexBy.map(r => (
+              <div key={r.id} style={{ padding: 12, background: '#f4f4f4', border: '1px solid #e0e0e0', borderRadius: 4, marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', fontSize: 13 }}>
+                  <span style={{ color: '#525252' }}>IF result</span>
+                  <strong>{r.condition}</strong>
+                  <span style={{ color: '#525252' }}>→ ORDER</span>
+                  <strong style={{ color: '#0f62fe' }}>{r.target}</strong>
+                  <span className={`tag ${r.modeColor}`}>{r.mode}</span>
+                </div>
+                <a href="#" style={{ fontSize: 13, color: '#0f62fe', fontWeight: 500 }}>Edit in Master Lists →</a>
+              </div>
+            ))}
+
+            <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, marginTop: 16 }}>Rules that ORDER this test:</h3>
+            {reflexInto.map(r => (
+              <div key={r.id} style={{ padding: 12, background: '#e3f2fd', border: '1px solid #bce5fe', borderRadius: 4, marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: 13 }}>
+                  <span style={{ color: '#0f62fe' }}>↳ </span>
+                  <strong>{r.sourceTest}</strong>
+                  <span style={{ color: '#525252' }}> when {r.condition}</span>
+                </div>
+                <a href="#" style={{ fontSize: 13, color: '#0f62fe', fontWeight: 500 }}>Edit in Master Lists →</a>
+              </div>
+            ))}
+
+            <a href="#" style={{ display: 'inline-block', marginTop: 8, fontSize: 13, color: '#0f62fe', fontWeight: 500 }}>+ Add New Reflex Rule in Master Lists →</a>
+          </div>
+
+          <div className="tile">
+            <div className="tile-header">⚡ Calculated Results</div>
+            <p style={{ fontSize: 13, color: '#525252', marginTop: -8, marginBottom: 12 }}>Formulas that compute results from other test values</p>
+
+            <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Calculations that USE this test as input:</h3>
+            {calcs.map(c => (
+              <div key={c.id} style={{ padding: 12, background: '#f3e8ff', border: '1px solid #e0c3fc', borderRadius: 4, marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <div style={{ width: 32, height: 32, background: '#e0c3fc', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>⚡</div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 500 }}>{c.name}</div>
+                    <div className="mono" style={{ fontSize: 11, color: '#525252', marginTop: 2 }}>{c.formula}</div>
+                  </div>
+                </div>
+                <a href="#" style={{ fontSize: 13, color: '#0f62fe', fontWeight: 500 }}>Edit in Master Lists →</a>
+              </div>
+            ))}
+
+            <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, marginTop: 16 }}>This test IS a calculated result:</h3>
+            <div style={{ padding: 16, border: '2px dashed #d0d0d0', borderRadius: 4, textAlign: 'center' }}>
+              <div style={{ fontSize: 24, marginBottom: 8 }}>⚡</div>
+              <div style={{ fontSize: 13, color: '#525252', marginBottom: 8 }}>This test's result is not calculated from other values</div>
+              <a href="#" style={{ fontSize: 13, color: '#0f62fe', fontWeight: 500 }}>+ Configure in Master Lists →</a>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function ComplianceSection() {
+      const thresholds = [
+        { id: 1, std: 'PP No. 22/2021 — Baku Mutu Air', grp: 'Parameter Fisika', type: 'MAX', value: '≤ 25 NTU', date: '2021-02-02' },
+        { id: 2, std: 'WHO Drinking Water Guidelines', grp: 'Chemical Contaminants', type: 'MAX', value: '≤ 5 NTU', date: '2022-03-21' },
+        { id: 3, std: 'EPA Method 180.1', grp: 'Reporting Limits', type: 'RANGE', value: '0.1–4000 NTU', date: '2018-01-15' },
+      ];
+      const typeTag = { MAX: 'tag-red', MIN: 'tag-blue', RANGE: 'tag-teal', DESCRIPTIVE: 'tag-purple' };
+      return (
+        <div>
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h2>Compliance Thresholds</h2>
+              <p>Regulatory compliance thresholds for this test</p>
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <label style={{ fontSize: 13 }}>Group by:</label>
+              <select style={{ padding: 6, border: '1px solid #d0d0d0', borderRadius: 4, fontSize: 13 }}>
+                <option>Standard</option>
+                <option>Parameter Group</option>
+              </select>
+              <button className="btn btn-primary btn-sm">+ Add Threshold</button>
+            </div>
+          </div>
+
+          <p style={{ fontSize: 13, color: '#525252', marginBottom: 12 }}>Environmental tests use these instead of (or alongside) clinical reference ranges. Full compliance standards are managed at <strong>Admin → Test Management → Compliance Standards</strong>.</p>
+
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Standard</th>
+                  <th>Parameter Group</th>
+                  <th style={{ width: 100 }}>Type</th>
+                  <th>Value</th>
+                  <th style={{ width: 130 }}>Effective Date</th>
+                  <th style={{ width: 70 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {thresholds.map(t => (
+                  <tr key={t.id}>
+                    <td>{t.std}</td>
+                    <td>{t.grp}</td>
+                    <td><span className={`tag ${typeTag[t.type]}`}>{t.type}</span></td>
+                    <td style={{ fontWeight: 500 }}>{t.value}</td>
+                    <td style={{ color: '#525252', fontSize: 12 }}>{t.date}</td>
+                    <td><button className="btn-ghost btn-sm">Edit</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    function TestEditor({ test, setTest, onBack }) {
+      const [currentSection, setCurrentSection] = useState('basic');
+      const sections = [
+        { id: 'basic', label: 'Basic Info' },
+        { id: 'sample', label: 'Sample & Results' },
+        { id: 'methods', label: 'Methods' },
+        { id: 'ranges', label: 'Ranges' },
+        { id: 'storage', label: 'Sample Storage' },
+        { id: 'order', label: 'Display Order' },
+        { id: 'panels', label: 'Panels' },
+        { id: 'labels', label: 'Labels' },
+        { id: 'terminology', label: 'Terminology' },
+        { id: 'reagents', label: 'Reagents' },
+        { id: 'analyzers', label: 'Analyzers' },
+        { id: 'alerts', label: 'Alerts' },
+        { id: 'reflex', label: 'Reflex & Calc' },
+      ];
+
+      // Hide Compliance if Clinical domain
+      const visibleSections = test.domain === 'CLINICAL'
+        ? sections
+        : [...sections, { id: 'compliance', label: 'Compliance' }];
+
+      return (
+        <div>
+          <div className="app-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button className="btn-ghost" onClick={onBack}>← Test List</button>
+              <h1>{test.name}</h1>
+            </div>
+            <div className="app-header-actions">
+              <button className="btn btn-secondary">Cancel</button>
+              <button className="btn btn-primary">Save Test</button>
+            </div>
+          </div>
+
+          <div className="editor-container">
+            <div className="editor-sidenav">
+              <div className="sidenav-header">Test Catalog Management</div>
+              {visibleSections.map(sec => (
+                <div
+                  key={sec.id}
+                  className={`sidenav-item ${currentSection === sec.id ? 'sidenav-item-active' : ''}`}
+                  onClick={() => setCurrentSection(sec.id)}
+                >
+                  {sec.label}
+                </div>
+              ))}
+            </div>
+
+            <div className="editor-content">
+              {(test.domain === 'ENVIRONMENTAL' || test.domain === 'VECTOR') && currentSection === 'ranges' && (
+                <div className="info-banner">
+                  ℹ️ This is an {test.domain === 'ENVIRONMENTAL' ? 'Environmental' : 'Vector'} test. Compliance thresholds are typically the primary evaluation surface for this domain.
+                </div>
+              )}
+
+              {currentSection === 'basic' && <BasicInfoTab test={test} setTest={setTest} />}
+              {currentSection === 'sample' && <SampleResultsTab />}
+              {currentSection === 'methods' && <MethodsTab />}
+              {currentSection === 'ranges' && <RangesTab />}
+              {currentSection === 'storage' && <SampleStorageSection />}
+              {currentSection === 'order' && <DisplayOrderSection />}
+              {currentSection === 'panels' && <PanelsSection />}
+              {currentSection === 'labels' && <LabelsSection />}
+              {currentSection === 'terminology' && <TerminologySection />}
+              {currentSection === 'reagents' && <ReagentsSection />}
+              {currentSection === 'analyzers' && <AnalyzersSection />}
+              {currentSection === 'alerts' && <AlertsSection />}
+              {currentSection === 'reflex' && <ReflexCalcSection />}
+              {currentSection === 'compliance' && <ComplianceSection />}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [screen, setScreen] = useState('list');
+      const [selectedTest, setSelectedTest] = useState(null);
+      const [test, setTest] = useState(null);
+
+      const handleEdit = (t) => {
+        setSelectedTest(t);
+        setTest(t);
+        setScreen('editor');
+      };
+
+      const handleAdd = () => {
+        const blankTest = { id: null, name: 'New Test', section: '', sampleType: '', resultType: '', loinc: null, status: 'Active', domain: 'CLINICAL', amr: false };
+        setSelectedTest(blankTest);
+        setTest(blankTest);
+        setScreen('editor');
+      };
+
+      if (screen === 'editor' && selectedTest) {
+        return (
+          <TestEditor
+            test={test || selectedTest}
+            setTest={setTest}
+            onBack={() => { setScreen('list'); setSelectedTest(null); setTest(null); }}
+          />
+        );
+      }
+
+      return (
+        <div>
+          <div className="app-header">
+            <h1>Test Catalog Management</h1>
+          </div>
+          <TestListView onEdit={handleEdit} onAdd={handleAdd} />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Management — Preview</title>
+
+  <!-- Carbon Design System CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css" />
+
+  <!-- React + ReactDOM -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+
+  <!-- Babel standalone -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+  <style>
+    body { margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #f4f4f4; color: #161616; }
+    .page { max-width: 1440px; margin: 0 auto; padding: 1.5rem 2rem; }
+    h1 { font-size: 1.75rem; font-weight: 400; margin: 0; }
+    h3 { font-size: 1rem; font-weight: 600; margin: 0; }
+    .subtitle { color: #525252; margin: 0.25rem 0 1.25rem 0; }
+    .breadcrumb { font-size: 0.8125rem; margin-bottom: 0.5rem; color: #525252; }
+    .breadcrumb a { color: #0f62fe; text-decoration: none; margin-right: 0.35rem; }
+    .breadcrumb span { margin-right: 0.35rem; }
+    .breadcrumb .current { color: #161616; font-weight: 500; }
+
+    /* Toolbar */
+    .tb {
+      display: flex; align-items: center; gap: 0.75rem;
+      background: #fff; border: 1px solid #e0e0e0; border-bottom: none;
+      padding: 0.5rem 0.75rem;
+    }
+    .tb input[type=search] {
+      flex: 1; border: 0; padding: 0.5rem 0.75rem; border-bottom: 1px solid #8d8d8d;
+      background: transparent; outline: none; font-size: 0.875rem;
+    }
+    .tb .select-sm select {
+      padding: 0.375rem 0.5rem; font-size: 0.8125rem;
+    }
+    .tb label.cb { font-size: 0.8125rem; display: inline-flex; align-items: center; gap: 0.35rem; }
+
+    /* Table */
+    .cds--data-table-container { background: #fff; border: 1px solid #e0e0e0; }
+    table.cds--data-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    .cds--data-table thead th {
+      text-align: left; font-weight: 600; padding: 0.75rem; background: #f4f4f4;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .cds--data-table tbody td { padding: 0.625rem 0.75rem; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
+    .cds--data-table tbody tr.user-row { cursor: pointer; }
+    .cds--data-table tbody tr.user-row:hover { background: #e8e8e8; }
+    .cds--data-table tbody tr.inactive { opacity: 0.75; }
+
+    /* Chevron cell */
+    .chev-cell { width: 48px; text-align: center; }
+    .chev-btn { background: none; border: 0; cursor: pointer; padding: 0.25rem; color: #161616; }
+    .chev-btn:hover { background: #e0e0e0; border-radius: 2px; }
+
+    /* Expanded panel */
+    td.panel-cell { padding: 0 !important; background: #f4f4f4; }
+    .panel {
+      border-top: 2px solid #0f62fe;
+      background: #edf5ff;
+      padding: 1.5rem;
+    }
+    .panel .unsaved {
+      background: #fdf6dd; border-left: 3px solid #f1c21b;
+      padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.8125rem;
+    }
+    .summary-bar {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .summary-bar .label { color: #525252; font-size: 0.75rem; }
+    .summary-bar .value { font-size: 0.875rem; margin-top: 0.125rem; }
+    .summary-bar .action { text-align: right; align-self: center; }
+
+    .card {
+      background: #fff; border: 1px solid #e0e0e0; padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .card .row { display: flex; gap: 0.75rem; align-items: end; flex-wrap: wrap; }
+    .card label { font-size: 0.75rem; color: #525252; display: block; margin-bottom: 0.25rem; }
+
+    .section-head {
+      display: flex; align-items: center; margin-bottom: 0.75rem; margin-top: 0.5rem;
+    }
+    .section-head h3 { flex: 1; }
+
+    /* Legend */
+    .legend {
+      display: flex; gap: 1.25rem;
+      padding: 0.5rem 0.75rem; background: #fff; border: 1px solid #e0e0e0;
+      margin-bottom: 1rem; font-size: 0.8125rem;
+    }
+    .legend .swatch {
+      display: inline-block; width: 14px; height: 14px; border-radius: 2px; margin-right: 0.375rem;
+      vertical-align: middle;
+    }
+
+    /* Role assignment card */
+    .role-card {
+      background: #fff; border: 1px solid #e0e0e0;
+      padding: 0.875rem 1rem; display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .role-card.global     { border-left: 3px solid #8a3ffc; }
+    .role-card.department { border-left: 3px solid #007d79; }
+    .role-card.lab_unit   { border-left: 3px solid #0f62fe; }
+    .role-card .rname { font-weight: 600; font-size: 0.8125rem; }
+    .role-card .rscope { color: #525252; font-size: 0.8125rem; flex: 1; }
+
+    /* Form grid */
+    .fgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .fgrid.two { grid-template-columns: 1fr 1fr; }
+    .field input, .field select {
+      width: 100%; padding: 0.5rem 0.75rem; border: 0;
+      border-bottom: 1px solid #8d8d8d; background: #f4f4f4; font-size: 0.875rem;
+    }
+    .field.req label::after { content: ' *'; color: #da1e28; }
+    .helper { font-size: 0.75rem; color: #525252; margin-top: 0.25rem; }
+
+    /* Status dot */
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.375rem; vertical-align: middle; }
+    .dot.active { background: #24a148; }
+    .dot.inactive { background: #8d8d8d; }
+
+    /* Actions row */
+    .actions-row { display: flex; gap: 0.5rem; margin-top: 1.5rem; align-items: center; }
+    .actions-row .spacer { flex: 1; }
+
+    /* Buttons (Carbon-like) */
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.5rem 1rem; border: 0; font-size: 0.875rem;
+      cursor: pointer; font-family: inherit; transition: background 0.12s;
+    }
+    .btn.primary { background: #0f62fe; color: #fff; }
+    .btn.primary:hover { background: #0353e9; }
+    .btn.primary:disabled { background: #c6c6c6; cursor: not-allowed; }
+    .btn.secondary { background: #393939; color: #fff; }
+    .btn.ghost { background: transparent; color: #0f62fe; }
+    .btn.ghost:hover { background: #e0e0e0; }
+    .btn.danger { background: #da1e28; color: #fff; }
+    .btn.danger-ghost { background: transparent; color: #da1e28; }
+    .btn.danger-ghost:hover { background: #fff1f1; }
+    .btn.sm { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }
+
+    /* Tag */
+    .tag {
+      display: inline-block; padding: 0.125rem 0.5rem; font-size: 0.75rem;
+      border-radius: 12px; margin-right: 0.25rem;
+    }
+    .tag.blue      { background: #d0e2ff; color: #002d9c; }
+    .tag.purple    { background: #e8daff; color: #491d8b; }
+    .tag.teal      { background: #9ef0f0; color: #004144; }
+    .tag.green     { background: #a7f0ba; color: #044317; }
+    .tag.red       { background: #ffd7d9; color: #750e13; }
+    .tag.gray      { background: #e0e0e0; color: #393939; }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(22, 22, 22, 0.5);
+      display: flex; align-items: center; justify-content: center; z-index: 1000;
+    }
+    .modal {
+      background: #fff; max-width: 560px; width: 95%; padding: 1.5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .modal h2 { font-size: 1.25rem; margin: 0 0 1rem 0; font-weight: 400; }
+    .modal.danger h2 { color: #da1e28; }
+    .modal .body { margin-bottom: 1.5rem; font-size: 0.875rem; }
+    .modal .footer { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+    /* Inline notifications */
+    .notif { padding: 0.75rem 1rem; font-size: 0.875rem; margin-bottom: 1rem; border-left: 3px solid; }
+    .notif.success { background: #defbe6; border-color: #24a148; color: #0e6027; }
+    .notif.error { background: #fff1f1; border-color: #da1e28; color: #750e13; }
+    .notif.info { background: #edf5ff; border-color: #0f62fe; color: #0043ce; }
+    .notif.warning { background: #fdf6dd; border-color: #f1c21b; color: #684e00; }
+
+    /* Toggle */
+    .toggle {
+      position: relative; display: inline-block; width: 48px; height: 24px;
+      background: #8d8d8d; border-radius: 12px; cursor: pointer; transition: background 0.12s;
+    }
+    .toggle.on { background: #0f62fe; }
+    .toggle::after {
+      content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+      background: #fff; border-radius: 50%; transition: transform 0.12s;
+    }
+    .toggle.on::after { transform: translateX(24px); }
+    .toggle-row { display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; }
+
+    /* Pagination */
+    .pagination {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.5rem 0.75rem; font-size: 0.8125rem;
+      background: #fff; border: 1px solid #e0e0e0; border-top: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, useEffect, Fragment } = React;
+
+    // -------- i18n --------
+    const t = (k, f) => f || k;
+
+    // -------- fixtures --------
+    const SAMPLE_USERS = [
+      { id:'u-001', firstName:'Namanya', lastName:'Abert', loginName:'abertnamanya', email:'abertnamanya@lab.org', phone:'+256-700-000001', pwdExpires:'15/07/2035', pwdExpired:false, status:'active', timeoutMinutes:480,
+        assignments:[
+          { id:'a-1', roleId:'r-global-admin', roleName:'Global Administrator', roleType:'admin', scopeType:'global', scopeLabel:null },
+          { id:'a-2', roleId:'r-reception', roleName:'Reception', roleType:'standard', scopeType:'department', scopeLabel:'Hematology (all units)' }
+        ], provider:null },
+      { id:'u-002', firstName:'Viro', lastName:'Test', loginName:'virotest', email:'viro.test@lab.org', phone:'', pwdExpires:'02/03/2035', pwdExpired:false, status:'active', timeoutMinutes:240,
+        assignments:[
+          { id:'a-3', roleId:'r-results', roleName:'Results Entry', roleType:'standard', scopeType:'lab_unit', scopeLabel:'Virology' }
+        ], provider:null },
+      { id:'u-003', firstName:'Hema', lastName:'Tology', loginName:'hematology', email:'hema.tology@lab.org', phone:'', pwdExpires:'18/11/2024', pwdExpired:true, status:'active', timeoutMinutes:480,
+        assignments:[
+          { id:'a-4', roleId:'r-validation', roleName:'Validation', roleType:'standard', scopeType:'department', scopeLabel:'Hematology (all units)' }
+        ], provider:null },
+      { id:'u-004', firstName:'Sarah', lastName:'Kollie', loginName:'skollie', email:'sarah.kollie@clinic.org', phone:'+231-770-112233', pwdExpires:'01/05/2035', pwdExpired:false, status:'active', timeoutMinutes:240,
+        assignments:[
+          { id:'a-5', roleId:'r-requester', roleName:'Test Requester', roleType:'requester', scopeType:'lab_unit', scopeLabel:'Immunology' }
+        ], provider:{ facility:'St. Joseph Clinic', license:'LR-2024-8812', specialty:'internal-medicine', providerId:'NPI-1245789654', phone:'+231-770-112233', email:'sarah.kollie@clinic.org' } },
+      { id:'u-005', firstName:'Jean', lastName:'Mugisha', loginName:'jmugisha', email:'j.mugisha@lab.org', phone:'', pwdExpires:'22/09/2028', pwdExpired:false, status:'inactive', timeoutMinutes:480,
+        assignments:[
+          { id:'a-6', roleId:'r-reception', roleName:'Reception', roleType:'standard', scopeType:'lab_unit', scopeLabel:'Chemistry' }
+        ], provider:null }
+    ];
+
+    const AVAILABLE_ROLES = [
+      { id:'r-reception',      name:'Reception',                    type:'standard',  scopeConstraint:'any' },
+      { id:'r-results',        name:'Results Entry',                type:'standard',  scopeConstraint:'any' },
+      { id:'r-validation',     name:'Validation',                   type:'standard',  scopeConstraint:'any' },
+      { id:'r-reports',        name:'Reports',                      type:'standard',  scopeConstraint:'any' },
+      { id:'r-global-admin',   name:'Global Administrator',         type:'admin',     scopeConstraint:'global-only' },
+      { id:'r-user-admin',     name:'User Account Administrator',   type:'admin',     scopeConstraint:'global-only' },
+      { id:'r-audit',          name:'Audit Trail',                  type:'admin',     scopeConstraint:'global-only' },
+      { id:'r-analyser-import',name:'Analyser Import',              type:'admin',     scopeConstraint:'global-only' },
+      { id:'r-pathologist',    name:'Pathologist',                  type:'specialty', scopeConstraint:'any' },
+      { id:'r-cytopathologist',name:'Cytopathologist',              type:'specialty', scopeConstraint:'any' },
+      { id:'r-requester',      name:'Test Requester',               type:'requester', scopeConstraint:'any' }
+    ];
+
+    const DEPARTMENTS = [
+      { id:'d-hem',    name:'Hematology' },
+      { id:'d-chem',   name:'Chemistry' },
+      { id:'d-viro',   name:'Virology' },
+      { id:'d-immuno', name:'Immunology' },
+      { id:'d-micro',  name:'Microbiology' }
+    ];
+    const LAB_UNITS = [
+      { id:'lu-hem-1',    name:'Hematology — Bench 1' },
+      { id:'lu-chem-1',   name:'Chemistry' },
+      { id:'lu-viro-1',   name:'Virology' },
+      { id:'lu-immuno-1', name:'Immunology' }
+    ];
+    const SPECIALTIES = [
+      { id:'general-practice',  name:'General Practice' },
+      { id:'internal-medicine', name:'Internal Medicine' },
+      { id:'pediatrics',        name:'Pediatrics' },
+      { id:'surgery',           name:'Surgery' },
+      { id:'obgyn',             name:'Obstetrics & Gynecology' }
+    ];
+
+    const ROLE_TYPE = {
+      standard:  { kind:'blue',   label:t('admin.common.roleType.standard',  'Standard')  },
+      admin:     { kind:'purple', label:t('admin.common.roleType.admin',     'Admin')     },
+      specialty: { kind:'teal',   label:t('admin.common.roleType.specialty', 'Specialty') },
+      requester: { kind:'green',  label:t('admin.common.roleType.requester', 'Requester') }
+    };
+
+    const scopeLabelFor = (a) => {
+      const prefix = t('admin.users.roles.scope.prefix', 'Scope:');
+      if (a.scopeType === 'global') return `${prefix} ${t('admin.users.roles.scopeLegend.global','Global')}`;
+      if (a.scopeType === 'department') return `${prefix} ${t('admin.users.roles.scopeLegend.department','Department')} — ${a.scopeLabel}`;
+      return `${prefix} ${t('admin.users.roles.scopeLegend.labUnit','Lab Unit')} — ${a.scopeLabel}`;
+    };
+
+    const validatePassword = (pwd) => {
+      const errs = [];
+      if (!pwd || pwd.length < 8) errs.push(t('admin.users.password.rule.min','Must be at least 8 characters'));
+      if (pwd && pwd.length > 64) errs.push(t('admin.users.password.rule.max','Must be 64 characters or fewer'));
+      return errs;
+    };
+
+    // -------- helpers --------
+    function Tag({ kind, children }) { return <span className={`tag ${kind}`}>{children}</span>; }
+    function Status({ status }) {
+      const active = status === 'active';
+      return (
+        <span>
+          <span className={`dot ${active?'active':'inactive'}`} aria-hidden="true"></span>
+          {active ? t('admin.users.status.active','Active') : t('admin.users.status.inactive','Inactive')}
+        </span>
+      );
+    }
+    function RolesCell({ assignments }) {
+      const visible = assignments.slice(0,3);
+      const extra = assignments.length - visible.length;
+      return (
+        <span>
+          {visible.map(a => {
+            const meta = ROLE_TYPE[a.roleType] || ROLE_TYPE.standard;
+            return <Tag key={a.id} kind={meta.kind}>{a.roleName}</Tag>;
+          })}
+          {extra > 0 && <Tag kind="gray">{`+${extra} more`}</Tag>}
+        </span>
+      );
+    }
+
+    // -------- Add Role Assignment modal --------
+    function AddRoleAssignmentModal({ onClose, onAdd }) {
+      const [roleId, setRoleId] = useState('');
+      const [scopeType, setScopeType] = useState('');
+      const [scopeId, setScopeId] = useState('');
+      const role = AVAILABLE_ROLES.find(r => r.id === roleId);
+      const globalOnly = role?.scopeConstraint === 'global-only';
+      useEffect(() => { if (globalOnly) { setScopeType('global'); setScopeId(''); } }, [globalOnly]);
+
+      const legal = !!roleId && !!scopeType && (scopeType === 'global' || !!scopeId);
+      const targets = scopeType === 'department' ? DEPARTMENTS : scopeType === 'lab_unit' ? LAB_UNITS : [];
+
+      const submit = () => {
+        if (!role) return;
+        const scopeLabel = scopeType === 'global'
+          ? null
+          : (targets.find(o => o.id === scopeId)||{}).name || '';
+        onAdd({ id:`a-${Date.now()}`, roleId:role.id, roleName:role.name, roleType:role.type, scopeType, scopeLabel });
+      };
+
+      return (
+        <div className="modal-backdrop" onClick={onClose}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <h2>{t('admin.users.modal.addAssignment.title','Add Role Assignment')}</h2>
+            <div className="body">
+              <p className="helper" style={{marginBottom:'1rem'}}>
+                {t('admin.users.modal.addAssignment.info','Scope levels: Global = everywhere. Department = all lab units in that department. Lab Unit = single unit only.')}
+              </p>
+              <div className="field" style={{marginBottom:'1rem'}}>
+                <label>{t('admin.users.modal.addAssignment.role','Role')}</label>
+                <select value={roleId} onChange={e=>setRoleId(e.target.value)}>
+                  <option value="">—</option>
+                  {['standard','admin','specialty','requester'].map(k =>
+                    <optgroup key={k} label={ROLE_TYPE[k].label}>
+                      {AVAILABLE_ROLES.filter(r=>r.type===k).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                    </optgroup>
+                  )}
+                </select>
+              </div>
+              <div className="field" style={{marginBottom:'1rem'}}>
+                <label>{t('admin.users.modal.addAssignment.scope','Scope')}</label>
+                <select value={scopeType} disabled={globalOnly} onChange={e=>{setScopeType(e.target.value);setScopeId('');}}>
+                  <option value="">—</option>
+                  <option value="global">{t('admin.users.roles.scopeLegend.global','Global')}</option>
+                  <option value="department">{t('admin.users.roles.scopeLegend.department','Department')}</option>
+                  <option value="lab_unit">{t('admin.users.roles.scopeLegend.labUnit','Lab Unit')}</option>
+                </select>
+              </div>
+              {globalOnly && (
+                <div className="notif info">{t('admin.users.modal.addAssignment.globalOnlyHint','This role is always Global.')}</div>
+              )}
+              <div className="field">
+                <label>{t('admin.users.modal.addAssignment.target','Target (if scoped)')}</label>
+                <select value={scopeId} disabled={scopeType==='global' || !scopeType} onChange={e=>setScopeId(e.target.value)}>
+                  <option value="">—</option>
+                  {targets.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="footer">
+              <button className="btn ghost" onClick={onClose}>{t('admin.users.cancel','Cancel')}</button>
+              <button className="btn primary" disabled={!legal} onClick={submit}>
+                {t('admin.users.roles.addAssignment','Add Role Assignment')}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // -------- Reset Password modal --------
+    function ResetPasswordModal({ onClose, onReset }) {
+      const [pwd, setPwd] = useState('');
+      const [force, setForce] = useState(true);
+      const [submitted, setSubmitted] = useState(false);
+      const errs = validatePassword(pwd);
+      const submit = () => { setSubmitted(true); if (errs.length === 0) onReset(); };
+      return (
+        <div className="modal-backdrop" onClick={onClose}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <h2>{t('admin.users.modal.resetPassword.title','Reset Password')}</h2>
+            <div className="body">
+              <p className="helper" style={{marginBottom:'1rem'}}>
+                {t('admin.users.modal.resetPassword.info','The user will be required to choose a new password the next time they log in.')}
+              </p>
+              <div className="field" style={{marginBottom:'1rem'}}>
+                <label>{t('admin.users.modal.resetPassword.temp','Temporary Password')}</label>
+                <input type="password" value={pwd} onChange={e=>setPwd(e.target.value)} />
+                {submitted && errs.length>0 && (
+                  <div className="helper" style={{color:'#da1e28', marginTop:'0.25rem'}}>
+                    {errs.join(' · ')}
+                  </div>
+                )}
+              </div>
+              <div className="toggle-row">
+                <div className={`toggle ${force?'on':''}`} role="switch" aria-checked={force} onClick={()=>setForce(!force)}></div>
+                <span>{t('admin.users.password.forceReset','Force password reset at next login')}</span>
+              </div>
+            </div>
+            <div className="footer">
+              <button className="btn ghost" onClick={onClose}>{t('admin.users.cancel','Cancel')}</button>
+              <button className="btn primary" onClick={submit}>
+                {t('admin.users.modal.resetPassword.submit','Reset Password')}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // -------- generic danger confirm modal --------
+    function ConfirmModal({ title, body, primary, onSubmit, onClose, danger=true }) {
+      return (
+        <div className="modal-backdrop" onClick={onClose}>
+          <div className={`modal ${danger?'danger':''}`} onClick={e=>e.stopPropagation()}>
+            <h2>{title}</h2>
+            <div className="body">{body}</div>
+            <div className="footer">
+              <button className="btn ghost" onClick={onClose}>{t('admin.users.cancel','Cancel')}</button>
+              <button className={`btn ${danger?'danger':'primary'}`} onClick={onSubmit}>{primary}</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // -------- Detail panel --------
+    function DetailPanel({ mode, draft, isDirty, onUpdate, onAddAssignment, onRemoveAssignment, onResetPassword, onCancel, onSave, onDeactivate }) {
+      if (!draft) return null;
+      const hasRequester = draft.assignments.some(a => {
+        const r = AVAILABLE_ROLES.find(x => x.id === a.roleId);
+        return r?.type === 'requester';
+      });
+
+      return (
+        <div className="panel">
+          {isDirty && (
+            <div className="unsaved">
+              {t('admin.users.unsaved.message','Unsaved changes — click Save to apply or Close to discard.')}
+            </div>
+          )}
+
+          {mode === 'edit' ? (
+            <div className="summary-bar">
+              <div><div className="label">{t('admin.users.summary.login','Login')}</div><div className="value"><code>{draft.loginName}</code></div></div>
+              <div><div className="label">{t('admin.users.summary.name','Name')}</div><div className="value">{draft.firstName} {draft.lastName}</div></div>
+              <div><div className="label">{t('admin.users.summary.pwdExpires','Pwd Expires')}</div><div className="value">{draft.pwdExpires}</div></div>
+              <div><div className="label">{t('admin.users.summary.status','Status')}</div><div className="value"><Status status={draft.status} /></div></div>
+              <div className="action"><button className="btn ghost sm">✎ {t('admin.users.action.editAccount','Edit Account Info')}</button></div>
+            </div>
+          ) : (
+            <div className="card">
+              <div className="fgrid">
+                <div className="field req"><label>{t('admin.users.column.firstName','First Name')}</label>
+                  <input value={draft.firstName} onChange={e=>onUpdate({firstName:e.target.value})} /></div>
+                <div className="field req"><label>{t('admin.users.column.lastName','Last Name')}</label>
+                  <input value={draft.lastName} onChange={e=>onUpdate({lastName:e.target.value})} /></div>
+                <div className="field req"><label>{t('admin.users.column.loginName','Login Name')}</label>
+                  <input value={draft.loginName} onChange={e=>onUpdate({loginName:e.target.value})} /></div>
+                <div className="field req" style={{gridColumn:'span 2'}}><label>Email</label>
+                  <input type="email" value={draft.email} onChange={e=>onUpdate({email:e.target.value})} /></div>
+                <div className="field"><label>Phone</label>
+                  <input value={draft.phone||''} onChange={e=>onUpdate({phone:e.target.value})} /></div>
+              </div>
+            </div>
+          )}
+
+          {/* Copy permissions */}
+          <div className="card">
+            <div className="row">
+              <div style={{paddingBottom:'0.5rem', fontWeight:600}}>
+                {t('admin.users.copy.label','Copy Permissions From User:')}
+              </div>
+              <div className="field" style={{flex:'1 1 240px', maxWidth:320}}>
+                <label>&nbsp;</label>
+                <input placeholder={t('admin.users.copy.placeholder','Enter username…')} />
+              </div>
+              <button className="btn secondary sm">{t('admin.users.copy.apply','Apply')}</button>
+            </div>
+          </div>
+
+          {/* Role assignments */}
+          <div className="section-head">
+            <h3>{t('admin.users.roles.sectionTitle','Role Assignments')}</h3>
+            <button className="btn primary sm" onClick={onAddAssignment}>+ {t('admin.users.roles.addAssignment','Add Role Assignment')}</button>
+          </div>
+          <div className="legend">
+            <span><span className="swatch" style={{background:'#8a3ffc'}}></span>{t('admin.users.roles.scopeLegend.global','Global')}</span>
+            <span><span className="swatch" style={{background:'#007d79'}}></span>{t('admin.users.roles.scopeLegend.department','Department')}</span>
+            <span><span className="swatch" style={{background:'#0f62fe'}}></span>{t('admin.users.roles.scopeLegend.labUnit','Lab Unit')}</span>
+          </div>
+
+          <div style={{marginBottom:'1.5rem'}}>
+            {draft.assignments.length === 0 && (
+              <p style={{color:'#525252', fontStyle:'italic'}}>{t('admin.users.roles.none','No role assignments yet.')}</p>
+            )}
+            {draft.assignments.map(a => {
+              const meta = ROLE_TYPE[a.roleType] || ROLE_TYPE.standard;
+              return (
+                <div key={a.id} className={`role-card ${a.scopeType}`}>
+                  <Tag kind={meta.kind}>{meta.label}</Tag>
+                  <span className="rname">{a.roleName}</span>
+                  <span className="rscope">{scopeLabelFor(a)}</span>
+                  <button className="btn danger-ghost sm" onClick={()=>onRemoveAssignment(a)}>
+                    🗑 {t('admin.users.roles.remove','Remove')}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Provider metadata */}
+          {hasRequester && (
+            <div className="card">
+              <div className="section-head"><h3>{t('admin.users.provider.title','Provider Metadata')}</h3></div>
+              <p className="helper" style={{marginBottom:'1rem'}}>
+                {t('admin.users.provider.visibilityNote','Shown when a Test Requester role is assigned.')}
+              </p>
+              <div className="fgrid">
+                <div className="field req" style={{gridColumn:'span 2'}}><label>{t('admin.users.provider.facility','Facility / Organization')}</label>
+                  <input value={draft.provider?.facility||''} onChange={e=>onUpdate({provider:{...draft.provider,facility:e.target.value}})} /></div>
+                <div className="field req"><label>{t('admin.users.provider.license','License Number')}</label>
+                  <input value={draft.provider?.license||''} onChange={e=>onUpdate({provider:{...draft.provider,license:e.target.value}})} /></div>
+                <div className="field"><label>{t('admin.users.provider.specialty','Specialty')}</label>
+                  <select value={draft.provider?.specialty||''} onChange={e=>onUpdate({provider:{...draft.provider,specialty:e.target.value}})}>
+                    <option value="">—</option>
+                    {SPECIALTIES.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select></div>
+                <div className="field"><label>{t('admin.users.provider.providerId','Provider ID')}</label>
+                  <input value={draft.provider?.providerId||''} onChange={e=>onUpdate({provider:{...draft.provider,providerId:e.target.value}})} />
+                  <div className="helper">NPI or local equivalent</div></div>
+                <div className="field"><label>{t('admin.users.provider.phone','Phone')}</label>
+                  <input value={draft.provider?.phone||''} onChange={e=>onUpdate({provider:{...draft.provider,phone:e.target.value}})} /></div>
+                <div className="field"><label>{t('admin.users.provider.email','Email')}</label>
+                  <input type="email" value={draft.provider?.email||''} onChange={e=>onUpdate({provider:{...draft.provider,email:e.target.value}})} /></div>
+              </div>
+            </div>
+          )}
+
+          {/* Password & Session */}
+          <div className="card">
+            <div className="section-head"><h3>{t('admin.users.password.section','Password & Session')}</h3></div>
+            <div className="fgrid">
+              <div>
+                <button className="btn ghost" onClick={onResetPassword}>🔑 {t('admin.users.password.resetPassword','Reset Password')}</button>
+              </div>
+              <div className="toggle-row">
+                <div className={`toggle ${draft.forcePasswordReset?'on':''}`} role="switch" aria-checked={!!draft.forcePasswordReset}
+                     onClick={()=>onUpdate({forcePasswordReset: !draft.forcePasswordReset})}></div>
+                <span>{t('admin.users.password.forceReset','Force password reset at next login')}</span>
+              </div>
+              <div className="field"><label>{t('admin.users.password.expiration','Password Expiration Date')}</label>
+                <input type="text" value={draft.pwdExpires||''} onChange={e=>onUpdate({pwdExpires:e.target.value})} placeholder="dd/mm/yyyy" /></div>
+              <div className="field"><label>{t('admin.users.session.timeout','Session Timeout (minutes)')}</label>
+                <input type="number" min="5" max="1440" step="5" value={draft.timeoutMinutes}
+                       onChange={e=>onUpdate({timeoutMinutes: Number(e.target.value)})} /></div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="actions-row">
+            <button className="btn primary" onClick={onSave}>
+              {mode==='create' ? t('admin.users.createUser','Create User') : t('admin.users.save','Save')}
+            </button>
+            <button className="btn ghost" onClick={onCancel}>{t('admin.users.cancel','Cancel')}</button>
+            <span className="spacer"></span>
+            {mode==='edit' && (
+              <button className="btn danger-ghost" onClick={onDeactivate}>
+                🗑 {draft.status==='inactive'
+                  ? t('admin.users.reactivate.button','Reactivate')
+                  : t('admin.users.deactivate.button','Deactivate')}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // -------- Main --------
+    function UserManagement() {
+      const [searchText, setSearchText] = useState('');
+      const [roleFilter, setRoleFilter] = useState('');
+      const [onlyActive, setOnlyActive] = useState(true);
+      const [expanded, setExpanded] = useState(null);
+      const [draft, setDraft] = useState(null);
+      const [isDirty, setDirty] = useState(false);
+      const [addOpen, setAddOpen] = useState(false);
+      const [toast, setToast] = useState(null);
+      const [assignModalOpen, setAssignModalOpen] = useState(false);
+      const [removeTarget, setRemoveTarget] = useState(null);
+      const [resetOpen, setResetOpen] = useState(false);
+      const [deactConfirm, setDeactConfirm] = useState(false);
+      const [discard, setDiscard] = useState(null);
+
+      const users = SAMPLE_USERS;
+
+      const filtered = useMemo(() => {
+        const q = searchText.trim().toLowerCase();
+        return users.filter(u => {
+          if (onlyActive && u.status!=='active') return false;
+          if (roleFilter && !u.assignments.some(a=>a.roleId===roleFilter)) return false;
+          if (!q) return true;
+          return u.firstName.toLowerCase().includes(q) || u.lastName.toLowerCase().includes(q)
+              || u.loginName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+        });
+      }, [users, searchText, roleFilter, onlyActive]);
+
+      const toggleRow = (id) => {
+        const go = () => {
+          if (expanded === id) { setExpanded(null); setDraft(null); setDirty(false); return; }
+          const u = users.find(x=>x.id===id);
+          setExpanded(id);
+          setDraft(JSON.parse(JSON.stringify(u)));
+          setDirty(false);
+          setAddOpen(false);
+        };
+        if (isDirty) setDiscard({ go }); else go();
+      };
+
+      const openAdd = () => {
+        const go = () => {
+          setExpanded(null);
+          setAddOpen(true);
+          setDraft({ id:'new', firstName:'', lastName:'', loginName:'', email:'', phone:'', timeoutMinutes:480,
+                     pwdExpires:'', pwdExpired:false, status:'active', assignments:[], provider:null,
+                     tempPassword:'', forcePasswordReset:true });
+          setDirty(false);
+        };
+        if (isDirty) setDiscard({ go }); else go();
+      };
+
+      const update = (patch) => { setDraft(d=>({ ...d, ...patch })); setDirty(true); };
+
+      return (
+        <div className="page">
+          <div className="breadcrumb">
+            <a href="#">{t('admin.users.breadcrumb.adminMgmt','Admin Management')}</a>
+            <span>/</span>
+            <span className="current">{t('admin.users.breadcrumb.users','Users')}</span>
+          </div>
+          <h1>{t('admin.users.page.title','User Management')}</h1>
+          <p className="subtitle">{t('admin.users.page.subtitle','Click a user row to expand and edit their role assignments.')}</p>
+
+          {toast && (
+            <div className={`notif ${toast.kind}`}>
+              <strong>{toast.title}</strong>{toast.body && <> — {toast.body}</>}
+              <button className="btn ghost sm" style={{float:'right'}} onClick={()=>setToast(null)}>×</button>
+            </div>
+          )}
+
+          {addOpen && (
+            <DetailPanel
+              mode="create"
+              draft={draft}
+              isDirty={isDirty}
+              onUpdate={update}
+              onAddAssignment={()=>setAssignModalOpen(true)}
+              onRemoveAssignment={a=>setRemoveTarget(a)}
+              onResetPassword={()=>setResetOpen(true)}
+              onCancel={()=>{
+                const close = () => { setAddOpen(false); setDraft(null); setDirty(false); };
+                if (isDirty) setDiscard({ go: close }); else close();
+              }}
+              onSave={()=>{ setAddOpen(false); setDraft(null); setDirty(false);
+                            setToast({kind:'success', title:t('admin.users.toast.saved','Changes saved'), body:''}); }}
+              onDeactivate={()=>setDeactConfirm(true)}
+            />
+          )}
+
+          {/* Toolbar */}
+          <div className="tb">
+            <input type="search" placeholder={t('admin.users.search.placeholder','Search by name, login, or email…')}
+                   value={searchText} onChange={e=>setSearchText(e.target.value)} />
+            <div className="select-sm">
+              <select value={roleFilter} onChange={e=>setRoleFilter(e.target.value)}>
+                <option value="">{t('admin.users.filter.role.placeholder','Filter by role')}</option>
+                {AVAILABLE_ROLES.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+              </select>
+            </div>
+            <label className="cb">
+              <input type="checkbox" checked={onlyActive} onChange={e=>setOnlyActive(e.target.checked)} />
+              {t('admin.users.filter.onlyActive','Only Active')}
+            </label>
+            <button className="btn primary" onClick={openAdd}>
+              ➕ {t('admin.users.action.addUser','Add User')}
+            </button>
+          </div>
+
+          {/* Table */}
+          <div className="cds--data-table-container">
+            {filtered.length === 0 ? (
+              <div style={{textAlign:'center', padding:'3rem 1rem'}}>
+                <h3>{t('admin.users.empty.title','No users match your filters')}</h3>
+                <button className="btn ghost" style={{marginTop:'1rem'}}
+                        onClick={()=>{ setSearchText(''); setRoleFilter(''); setOnlyActive(false); }}>
+                  {t('admin.users.empty.clear','Clear filters')}
+                </button>
+              </div>
+            ) : (
+              <table className="cds--data-table">
+                <thead>
+                  <tr>
+                    <th className="chev-cell" aria-label={t('admin.users.aria.expandRow','Expand user row')}></th>
+                    <th>{t('admin.users.column.firstName','First Name')}</th>
+                    <th>{t('admin.users.column.lastName','Last Name')}</th>
+                    <th>{t('admin.users.column.loginName','Login Name')}</th>
+                    <th>{t('admin.users.column.roles','Roles')}</th>
+                    <th>{t('admin.users.column.pwdExpires','Pwd Expires')}</th>
+                    <th>{t('admin.users.column.status','Status')}</th>
+                    <th>{t('admin.users.column.timeout','Timeout')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(u => (
+                    <Fragment key={u.id}>
+                      <tr className={`user-row ${u.status==='inactive'?'inactive':''}`} onClick={()=>toggleRow(u.id)}>
+                        <td className="chev-cell">
+                          <button className="chev-btn" aria-label={t('admin.users.aria.expandRow','Expand user row')}
+                                  onClick={e=>{e.stopPropagation(); toggleRow(u.id);}}>
+                            {expanded === u.id ? '▲' : '▼'}
+                          </button>
+                        </td>
+                        <td>{u.firstName}</td>
+                        <td>{u.lastName}</td>
+                        <td><code style={{fontSize:'0.8125rem'}}>{u.loginName}</code></td>
+                        <td><RolesCell assignments={u.assignments} /></td>
+                        <td>
+                          {u.pwdExpires}
+                          {u.pwdExpired && <Tag kind="red">{t('admin.users.pwdExpired','Expired')}</Tag>}
+                        </td>
+                        <td><Status status={u.status} /></td>
+                        <td>{u.timeoutMinutes} min</td>
+                      </tr>
+                      {expanded === u.id && (
+                        <tr>
+                          <td colSpan={8} className="panel-cell">
+                            <DetailPanel
+                              mode="edit"
+                              draft={draft}
+                              isDirty={isDirty}
+                              onUpdate={update}
+                              onAddAssignment={()=>setAssignModalOpen(true)}
+                              onRemoveAssignment={a=>setRemoveTarget(a)}
+                              onResetPassword={()=>setResetOpen(true)}
+                              onCancel={()=>{
+                                const close = () => { setExpanded(null); setDraft(null); setDirty(false); };
+                                if (isDirty) setDiscard({ go: close }); else close();
+                              }}
+                              onSave={()=>{ setExpanded(null); setDraft(null); setDirty(false);
+                                            setToast({kind:'success', title:t('admin.users.toast.saved','Changes saved'), body:''}); }}
+                              onDeactivate={()=>setDeactConfirm(true)}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {filtered.length > 0 && (
+            <div className="pagination">
+              <span>{t('admin.common.pagination.itemsPerPage','Items per page:')} 25</span>
+              <span>1–{filtered.length} of {filtered.length}</span>
+            </div>
+          )}
+
+          {/* Modals */}
+          {assignModalOpen && (
+            <AddRoleAssignmentModal
+              onClose={()=>setAssignModalOpen(false)}
+              onAdd={(a)=>{
+                setDraft(d=>({...d, assignments:[...(d?.assignments||[]), a]}));
+                setDirty(true);
+                setAssignModalOpen(false);
+              }}
+            />
+          )}
+
+          {removeTarget && (
+            <ConfirmModal
+              title={t('admin.users.roles.remove.confirm.title','Remove role assignment')}
+              primary={t('admin.users.roles.remove','Remove')}
+              body={<>
+                <p><strong>{removeTarget.roleName}</strong></p>
+                <p style={{marginTop:'0.5rem'}}>{t('admin.users.roles.remove.confirm.body','The user will lose the permissions granted by this assignment on their next login or session refresh.')}</p>
+              </>}
+              onClose={()=>setRemoveTarget(null)}
+              onSubmit={()=>{
+                setDraft(d=>({...d, assignments: d.assignments.filter(a=>a.id!==removeTarget.id)}));
+                setDirty(true);
+                setRemoveTarget(null);
+              }}
+            />
+          )}
+
+          {resetOpen && (
+            <ResetPasswordModal
+              onClose={()=>setResetOpen(false)}
+              onReset={()=>{
+                setResetOpen(false);
+                setToast({kind:'success',
+                  title:t('admin.users.toast.passwordReset','Password reset. The user will be prompted to change it on their next login.'),
+                  body:''});
+              }}
+            />
+          )}
+
+          {deactConfirm && (
+            <ConfirmModal
+              title={t('admin.users.deactivate.confirm.title','Deactivate user')}
+              primary={t('admin.users.deactivate.button','Deactivate')}
+              body={<>
+                <p>{t('admin.users.deactivate.confirm.sessionCount','Active sessions that will be terminated: {count}').replace('{count}','1')}</p>
+                <p style={{marginTop:'0.5rem'}}>
+                  {t('admin.users.deactivate.confirm.assignmentsRetained','Role assignments preserved (inert until reactivated): {n}').replace('{n}', String(draft?.assignments?.length||0))}
+                </p>
+              </>}
+              onClose={()=>setDeactConfirm(false)}
+              onSubmit={()=>setDeactConfirm(false)}
+            />
+          )}
+
+          {discard && (
+            <ConfirmModal
+              title={t('admin.users.discard.confirm.title','Discard unsaved changes?')}
+              primary={t('admin.users.discard.confirm.discard','Discard')}
+              body={null}
+              onClose={()=>setDiscard(null)}
+              onSubmit={()=>{ const g = discard.go; setDiscard(null); g&&g(); }}
+            />
+          )}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<UserManagement />);
+  </script>
+</body>
+</html>

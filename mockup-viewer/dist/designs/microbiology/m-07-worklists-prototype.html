@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microbiology Worklist + Dashboard — Interactive Prototype</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+  .preview-banner strong { background:#fff; color:#0f62fe; padding:1px 6px; border-radius:2px; margin:0 4px; }
+  .app-header { background:#161616; color:#f4f4f4; padding:0 1rem; height:48px; display:flex; align-items:center; gap:1rem; font-size:14px; }
+  .app-header .product { font-weight:600; }
+  .app-header .right { margin-left:auto; display:flex; gap:1rem; align-items:center; font-size:13px; }
+  .crit-badge { display:inline-flex; gap:4px; padding:2px 8px; background:#fff1f1; border:1px solid #fa4d56; color:#750e13; border-radius:4px; font-size:11px; font-weight:600; }
+  .breadcrumbs { padding:0.6rem 2rem; background:#fff; border-bottom:1px solid #e0e0e0; font-size:13px; color:#525252; }
+  .breadcrumbs a { color:#0f62fe; text-decoration:none; }
+  .layout { display:grid; grid-template-columns:220px 1fr; }
+  .sidebar { background:#fff; border-right:1px solid #e0e0e0; min-height:calc(100vh - 90px); padding:1rem 0; }
+  .sidebar-header { padding:0.5rem 1rem 0.5rem; font-size:11px; color:#525252; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; }
+  .nav-item { padding:0.6rem 1rem; cursor:pointer; font-size:14px; display:flex; align-items:center; gap:0.5rem; border-left:3px solid transparent; }
+  .nav-item:hover { background:#e5e5e5; }
+  .nav-item.active { background:#e0e0e0; border-left-color:#0f62fe; font-weight:600; }
+  .nav-item .badge { margin-left:auto; font-size:11px; background:#0f62fe; color:#fff; border-radius:10px; padding:0 7px; }
+  .nav-item .badge.red { background:#da1e28; }
+  .main { padding:1.25rem 2rem 4rem; max-width:1180px; }
+  .page-title { display:flex; align-items:baseline; gap:1rem; margin-bottom:0.25rem; }
+  .page-title h1 { font-size:24px; font-weight:300; margin:0; }
+  .refresh-chip { font-size:11px; color:#6f6f6f; display:inline-flex; gap:6px; align-items:center; }
+  .refresh-chip .dot { width:7px; height:7px; border-radius:50%; background:#24a148; display:inline-block; }
+  .seg { display:inline-flex; border:1px solid #0f62fe; border-radius:4px; overflow:hidden; margin-bottom:0.9rem; }
+  .seg button { background:#fff; color:#0f62fe; border:0; padding:0.4rem 1rem; font-size:13px; font-family:inherit; cursor:pointer; }
+  .seg button.on { background:#0f62fe; color:#fff; }
+  .cards { display:grid; grid-template-columns:repeat(5,1fr); gap:0.75rem; margin-bottom:1rem; }
+  .card { background:#fff; border:1px solid #e0e0e0; border-top:3px solid #c6c6c6; padding:0.75rem 0.9rem; cursor:pointer; }
+  .card:hover { background:#fafafa; }
+  .card.active { outline:2px solid #0f62fe; outline-offset:-2px; }
+  .card.red { border-top-color:#da1e28; } .card.teal { border-top-color:#007d79; } .card.green { border-top-color:#24a148; } .card.blue { border-top-color:#0f62fe; } .card.purple { border-top-color:#8a3ffc; } .card.disabled { opacity:0.5; cursor:not-allowed; }
+  .card .n { font-size:28px; font-weight:300; }
+  .card .l { font-size:12px; color:#525252; }
+  .filterbar { display:flex; gap:0.75rem; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; }
+  .filterbar input[type=text] { padding:0.45rem 0.6rem; font-size:13px; border:0; border-bottom:1px solid #8d8d8d; background:#fff; font-family:inherit; width:240px; }
+  table.t { width:100%; border-collapse:collapse; font-size:13px; background:#fff; }
+  table.t th { text-align:left; padding:0.5rem 0.7rem; background:#f4f4f4; font-weight:600; border-bottom:1px solid #e0e0e0; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; color:#525252; }
+  table.t td { padding:0.5rem 0.7rem; border-bottom:1px solid #eee; vertical-align:middle; }
+  table.t tr.row { cursor:pointer; }
+  table.t tr.row:hover { background:#edf5ff; }
+  table.t tr.positive td { background:#fff1f1; }
+  table.t tr.positive:hover td { background:#ffe0e2; }
+  table.t tr.stat td:first-child { border-left:3px solid #da1e28; }
+  table.t tr.flash td { animation:flash 1.6s ease-out 1; }
+  @keyframes flash { 0%{background:#fff8c4;} 100%{background:transparent;} }
+  .tag { display:inline-block; padding:1px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+  .s-incub { background:#d0e2ff; color:#0043ce; } .s-pos { background:#ffd7d9; color:#750e13; } .s-growth { background:#9ef0f0; color:#003a6d; } .s-id { background:#e8daff; color:#491d8b; } .s-ast { background:#e8daff; color:#491d8b; } .s-ready { background:#a7f0ba; color:#044317; } .s-pend { background:#f1f1f1; color:#525252; border:1px solid #c6c6c6; }
+  .pri-stat { color:#da1e28; font-weight:700; font-size:11px; } .pri-urg { color:#b28600; font-weight:700; font-size:11px; } .pri-rt { color:#6f6f6f; font-size:11px; }
+  .due { color:#393939; } .due .d2 { font-size:11px; color:#8d8d8d; }
+  .overflow { position:relative; }
+  .overflow .dots { cursor:pointer; padding:2px 8px; border-radius:4px; color:#525252; font-weight:700; }
+  .overflow .dots:hover { background:#e0e0e0; }
+  .menu { position:absolute; right:0; top:24px; background:#fff; border:1px solid #c6c6c6; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:10; min-width:170px; }
+  .menu div { padding:0.5rem 0.8rem; font-size:13px; cursor:pointer; } .menu div:hover { background:#edf5ff; }
+  .empty { background:#fff; border:1px solid #e0e0e0; padding:2rem; text-align:center; color:#6f6f6f; font-size:14px; }
+  .help { font-size:12px; color:#6f6f6f; margin:0 0 0.75rem; } .help .ico{ color:#0f62fe; font-weight:700; margin-right:4px; }
+  .btn { display:inline-flex; align-items:center; gap:0.35rem; padding:0.4rem 0.8rem; font-size:13px; font-family:inherit; border:1px solid transparent; cursor:pointer; }
+  .btn:disabled { opacity:0.45; cursor:not-allowed; }
+  .b-ghost { background:transparent; color:#0f62fe; } .b-ghost:hover{ background:#e5e5e5; }
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#161616; color:#fff; padding:0.7rem 1rem; font-size:13px; border-radius:4px; z-index:50; display:flex; gap:1rem; align-items:center; box-shadow:0 6px 20px rgba(0,0,0,0.3); }
+  .toast a { color:#78a9ff; }
+  .activity-row { display:grid; grid-template-columns:120px 1fr; gap:0.8rem; font-size:13px; padding:0.45rem 0; border-bottom:1px solid #eee; }
+  .activity-row .when { color:#6f6f6f; }
+  .hits { display:grid; grid-template-columns:repeat(5,1fr); gap:0.6rem; }
+  .hit { background:#fff; border:1px solid #e0e0e0; padding:0.6rem; text-align:center; } .hit .n{ font-size:22px; font-weight:300; } .hit .l{ font-size:11px; color:#525252; }
+  .secbox { background:#fff; border:1px solid #e0e0e0; padding:1rem 1.2rem; margin-bottom:1rem; } .secbox h2{ font-size:16px; font-weight:400; margin:0 0 0.5rem; }
+</style>
+</head>
+<body>
+<div class="preview-banner">Microbiology · <strong>Worklist</strong> — one shared page: state-filtered queue (culture / AST grain), resistance strip + recent activity folded in. Rows open the case.</div>
+<div class="app-header"><span class="product">OpenELIS Global</span><span style="opacity:.6">|</span><span>Microbiology</span>
+  <div class="right"><span class="crit-badge">⚠ 2 critical open</span><span>Olivia Mendez · Micro Tech</span></div>
+</div>
+<div class="breadcrumbs"><a href="#">Home</a> / <a href="#">Microbiology</a> / <span id="crumb">Worklist</span></div>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">Microbiology</div>
+    <div class="nav-item active" data-view="worklist" onclick="go('worklist')">Worklist <span class="badge" id="nav-wl"></span></div>
+    <div class="nav-item" data-view="search" onclick="go('search')">Case Search</div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+<div id="toastRoot"></div>
+
+<script>
+"use strict";
+var openMenu = null;
+document.addEventListener('click', function(){ if(openMenu){ openMenu.remove(); openMenu=null; } });
+
+var STAGE = {
+  INCUBATING:{label:'Incubating',cls:'s-incub',group:'incubating',due:'Incubating',due2:function(c){return 'Day '+c.day+' of '+c.maxDay;}},
+  POSITIVE:{label:'Positive signal',cls:'s-pos',group:'positive',due:'Subculture & Gram stain',due2:function(){return 'flagged positive';}},
+  GROWTH:{label:'Growth detected',cls:'s-growth',group:'growth',due:'Add / identify isolate',due2:function(){return 'colonies visible';}},
+  ORGANISM_ID:{label:'Organism ID',cls:'s-id',group:'growth',due:'ID in progress — set up AST',due2:function(){return 'identifying';}},
+  AST:{label:'AST in progress',cls:'s-ast',group:'ast',due:'Review AST results',due2:function(){return 'card loaded';}},
+  READY:{label:'Ready to finalize',cls:'s-ready',group:'ready',due:'Review & release final',due2:function(){return 'all AST complete';}}
+};
+var cases = [
+  {lab:'BC24-0892', mc:'MC-2024-001234', pt:'MARTINEZ, Carlos', spec:'Blood', stage:'AST', day:2, maxDay:5, pri:'STAT', tech:'Olivia Mendez'},
+  {lab:'UR24-1190', mc:'MC-2024-001240', pt:'OKAFOR, Grace', spec:'Urine', stage:'POSITIVE', day:1, maxDay:2, pri:'URGENT', tech:'Olivia Mendez'},
+  {lab:'BC24-0894', mc:'MC-2024-001236', pt:'NGUYEN, Tran', spec:'Blood', stage:'POSITIVE', day:1, maxDay:5, pri:'STAT', tech:'Daniel Roy'},
+  {lab:'CSF24-031', mc:'MC-2024-001241', pt:'ALI, Mariam', spec:'CSF', stage:'GROWTH', day:1, maxDay:3, pri:'STAT', tech:'Olivia Mendez'},
+  {lab:'WND24-552', mc:'MC-2024-001238', pt:'SILVA, João', spec:'Wound', stage:'ORGANISM_ID', day:2, maxDay:3, pri:'Routine', tech:'Daniel Roy'},
+  {lab:'UR24-1185', mc:'MC-2024-001233', pt:'PATEL, Anika', spec:'Urine', stage:'READY', day:2, maxDay:2, pri:'Routine', tech:'Olivia Mendez'},
+  {lab:'SPU24-077', mc:'MC-2024-001229', pt:'KIM, Soo', spec:'Sputum', stage:'INCUBATING', day:1, maxDay:3, pri:'Routine', tech:'Daniel Roy'},
+  {lab:'BC24-0890', mc:'MC-2024-001228', pt:'GARCIA, Luis', spec:'Blood', stage:'INCUBATING', day:3, maxDay:5, pri:'Routine', tech:'Olivia Mendez'},
+  {lab:'STL24-204', mc:'MC-2024-001226', pt:'ABEBE, Sara', spec:'Stool', stage:'INCUBATING', day:1, maxDay:2, pri:'Routine', tech:'Daniel Roy'}
+];
+var astRows = [
+  {lab:'BC24-0892', iso:'Isolate 1', pt:'MARTINEZ, Carlos', org:'E. coli', panel:'GN-STD', status:'In progress', started:'05-12 07:54', pri:'STAT', tech:'Olivia Mendez'},
+  {lab:'UR24-1185', iso:'Isolate 1', pt:'PATEL, Anika', org:'K. pneumoniae', panel:'GN-UR', status:'Ready for review', started:'05-11 14:20', pri:'Routine', tech:'Olivia Mendez'},
+  {lab:'WND24-552', iso:'Isolate 1', pt:'SILVA, João', org:'S. aureus', panel:'GP-STD', status:'Pending setup', started:'—', pri:'Routine', tech:'Daniel Roy'},
+  {lab:'WND24-552', iso:'Isolate 2', pt:'SILVA, João', org:'(pending ID)', panel:'—', status:'Pending setup', started:'—', pri:'Routine', tech:'Daniel Roy'},
+  {lab:'BC24-0894', iso:'Isolate 1', pt:'NGUYEN, Tran', org:'(pending ID)', panel:'—', status:'Pending setup', started:'—', pri:'STAT', tech:'Daniel Roy'}
+];
+var activity = [
+  {when:'07:54', txt:'AST-GN card loaded for E. coli (BC24-0892)'},
+  {when:'07:42', txt:'Preliminary report released (BC24-0892)'},
+  {when:'07:38', txt:'Critical called: GNR in blood culture → ER (BC24-0892)'},
+  {when:'07:32', txt:'BAP + MAC subcultured (BC24-0892)'},
+  {when:'06:55', txt:'Positive signal — BC24-0894 aerobic bottle (auto, from analyzer)'},
+  {when:'06:40', txt:'K. pneumoniae AST results received (UR24-1185, auto from analyzer)'},
+  {when:'06:20', txt:'Growth detected — CSF24-031'},
+  {when:'05:58', txt:'Urine culture finalized (UR24-1180)'}
+];
+
+var state = { view:'worklist', grain:'cultures', stageFilter:'all', astFilter:'all', q:'', lastRefresh:Date.now() };
+
+function pri(p){ if(p==='STAT') return '<span class="pri-stat">STAT</span>'; if(p==='URGENT') return '<span class="pri-urg">URGENT</span>'; return '<span class="pri-rt">Routine</span>'; }
+function priRank(p){ return p==='STAT'?3:(p==='URGENT'?2:1); }
+function stageUrg(s){ return {POSITIVE:5,READY:4,GROWTH:3,ORGANISM_ID:3,AST:2,INCUBATING:1}[s]||0; }
+function matchQ(s){ return !state.q || s.toLowerCase().indexOf(state.q.toLowerCase())!==-1; }
+function countGroup(g){ return cases.filter(function(c){ return g==='all'?true:STAGE[c.stage].group===g; }).length; }
+function filteredCases(){
+  var out = cases.filter(function(c){
+    if(state.stageFilter!=='all' && STAGE[c.stage].group!==state.stageFilter) return false;
+    return matchQ(c.lab+' '+c.pt+' '+c.spec);
+  });
+  out.sort(function(a,b){ return (priRank(b.pri)-priRank(a.pri)) || (stageUrg(b.stage)-stageUrg(a.stage)) || (b.day-a.day); });
+  return out;
+}
+function filteredAst(){
+  return astRows.filter(function(r){
+    if(state.astFilter!=='all' && r.status!==state.astFilter) return false;
+    return matchQ(r.lab+' '+r.pt+' '+r.org+' '+r.panel);
+  }).sort(function(a,b){ return priRank(b.pri)-priRank(a.pri); });
+}
+
+function go(v){ state.view=v; state.stageFilter='all'; state.astFilter='all'; render(); }
+function setGrain(g){ state.grain=g; state.q=''; render(); }
+function render(){
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.toggle('active', n.dataset.view===state.view); });
+  var positives=countGroup('positive'); var nb=document.getElementById('nav-wl'); nb.className='badge'+(positives?' red':''); nb.textContent=cases.length;
+  document.getElementById('crumb').textContent = {worklist:'Worklist',search:'Case Search'}[state.view];
+  var m=document.getElementById('main');
+  if(state.view==='worklist') m.innerHTML=viewWorklist();
+  else m.innerHTML=viewSearch();
+}
+
+function grainToggle(){
+  return '<div class="seg"><button class="'+(state.grain==='cultures'?'on':'')+'" onclick="setGrain(\'cultures\')">Cultures</button>'+
+    '<button class="'+(state.grain==='ast'?'on':'')+'" onclick="setGrain(\'ast\')">AST runs</button></div>';
+}
+
+function viewWorklist(){
+  var secs=Math.round((Date.now()-state.lastRefresh)/1000);
+  var head = '<div class="page-title"><h1>Worklist</h1><span class="refresh-chip"><span class="dot"></span>updated '+secs+'s ago · auto-refresh 30s</span></div>'+
+    '<p class="help"><span class="ico">ⓘ</span>One shared board for the whole bench — no case is "owned". Whoever’s on shift works the top of the queue. Switch the grain to track cultures (per specimen) or AST runs (per isolate). Click a row to open the case.</p>'+
+    grainToggle();
+  return head + (state.grain==='cultures' ? wlCultures(secs) : wlAst()) + wlPanels();
+}
+function wlPanels(){
+  var hitDefs=[['ESBL',2],['MRSA',1],['CRE',0],['VRE',0],['MDR',1]];
+  var hits=hitDefs.map(function(h){ return '<div class="hit"><div class="n">'+h[1]+'</div><div class="l">'+h[0]+'</div></div>'; }).join('');
+  var act=activity.map(function(a){ return '<div class="activity-row"><div class="when">2026-05-12 '+a.when+'</div><div>'+a.txt+'</div></div>'; }).join('');
+  return '<div class="secbox" style="margin-top:1.5rem"><h2 style="font-size:14px">Today’s resistance hits <span style="font-weight:400;color:#8d8d8d;font-size:11px">· Phase 1B — manual overrides in 1A</span></h2><div class="hits">'+hits+'</div></div>'+
+    '<details class="secbox"><summary style="cursor:pointer;font-size:14px;font-weight:600;list-style:none">Recent activity (last '+activity.length+') ▾</summary><div style="margin-top:0.5rem">'+act+'</div></details>';
+}
+
+function wlCultures(){
+  var cardDefs=[['all','Total pending','blue'],['incubating','Incubating','blue'],['positive','Positive','red'],['growth','Growth detected','teal'],['ready','Ready to finalize','green']];
+  var cards=cardDefs.map(function(d){ return '<div class="card '+d[2]+(state.stageFilter===d[0]?' active':'')+'" onclick="setStage(\''+d[0]+'\')"><div class="n">'+countGroup(d[0])+'</div><div class="l">'+d[1]+'</div></div>'; }).join('');
+  var rows = filteredCases().map(function(c){
+    var st=STAGE[c.stage]; var cls='row'+(st.group==='positive'?' positive':'')+(c.pri==='STAT'?' stat':'');
+    return '<tr class="'+cls+'" onclick="openCase(\''+c.mc+'\',\''+c.lab+'\')">'+
+      '<td><strong>'+c.lab+'</strong></td><td>'+c.pt+'</td><td>'+c.spec+'</td>'+
+      '<td><span class="tag '+st.cls+'">'+st.label+'</span>'+(c.stage==='AST'?' <span style="font-size:10px;font-weight:700;color:#0f62fe;white-space:nowrap">● results in</span>':'')+'</td>'+
+      '<td class="due">'+st.due+'<div class="d2">'+st.due2(c)+'</div></td>'+
+      '<td>'+pri(c.pri)+'</td><td>'+c.tech+'</td>'+
+      '<td class="overflow" onclick="event.stopPropagation();rowMenu(event,\''+c.lab+'\')"><span class="dots">⋯</span></td></tr>';
+  }).join('');
+  var table = filteredCases().length ?
+    '<table class="t"><thead><tr><th>Lab #</th><th>Patient</th><th>Specimen</th><th>Stage</th><th>Due action</th><th>Priority</th><th>Last activity by</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>'
+    : '<div class="empty">No cultures match. Clear the search or pick a different card.</div>';
+  return '<div class="cards">'+cards+'</div>'+
+    '<div class="filterbar"><input type="text" placeholder="Search lab #, patient, specimen" value="'+state.q+'" oninput="setQ(this.value)">'+
+    '<span style="font-size:12px;color:#6f6f6f">Sorted by urgency — STAT first, then what’s waiting longest</span>'+
+    '<button class="btn b-ghost" style="margin-left:auto" onclick="refresh()">↻ Refresh now</button></div>'+table;
+}
+
+function wlAst(){
+  var defs=[['all','In queue','blue'],['Pending setup','Pending setup','purple'],['In progress','In progress','blue'],['Ready for review','Results in — review','green']];
+  var cards=defs.map(function(d){ var n=astRows.filter(function(r){return d[0]==='all'?true:r.status===d[0];}).length; return '<div class="card '+d[2]+(state.astFilter===d[0]?' active':'')+'" onclick="setAst(\''+d[0]+'\')"><div class="n">'+n+'</div><div class="l">'+d[1]+'</div></div>'; }).join('');
+  cards += '<div class="card disabled" title="Phase 1B — Expert Rules"><div class="n">—</div><div class="l">Expert flags (1B)</div></div>';
+  var rows=filteredAst().map(function(r){
+    var sc = r.status==='Ready for review'?'s-ready':(r.status==='In progress'?'s-ast':'s-pend');
+    return '<tr class="row'+(r.pri==='STAT'?' stat':'')+'" onclick="openCase(\'\',\''+r.lab+'\')">'+
+      '<td><strong>'+r.lab+'</strong></td><td>'+r.iso+'</td><td>'+r.pt+'</td><td><em>'+r.org+'</em></td><td>'+r.panel+'</td>'+
+      '<td><span class="tag '+sc+'">'+r.status+'</span></td><td style="color:#bbb">— <span style="font-size:10px">(1B)</span></td><td>'+r.started+'</td><td>'+pri(r.pri)+'</td>'+
+      '<td class="overflow" onclick="event.stopPropagation();astMenu(event,\''+r.lab+'\')"><span class="dots">⋯</span></td></tr>';
+  }).join('');
+  var table = filteredAst().length ?
+    '<table class="t"><thead><tr><th>Lab #</th><th>Isolate</th><th>Patient</th><th>Organism</th><th>Panel</th><th>Status</th><th>Flags</th><th>Started</th><th>Priority</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>'
+    : '<div class="empty">No AST runs match.</div>';
+  return '<div class="cards">'+cards+'</div>'+
+    '<p class="help" style="margin-bottom:0.5rem"><span class="ico">ⓘ</span>Analyzer results arrive automatically (the instrument pushes them; they appear on the case &amp; in results) — there is no manual import. Failed/unmatched pushes go to Admin → Stuck analyzer events.</p>'+
+    '<div class="filterbar"><input type="text" placeholder="Search lab #, patient, organism, panel" value="'+state.q+'" oninput="setQ(this.value)">'+
+    '<button class="btn b-ghost" onclick="toast(\'Generates a printable worklist PDF.\')">Print list</button>'+
+    '<button class="btn b-ghost" disabled title="Phase 1B">Export to WHONET (1B)</button>'+
+    '<button class="btn b-ghost" onclick="toast(\'Opens existing QC monitoring.\')">QC dashboard</button></div>'+table;
+}
+
+function viewSearch(){ return '<div class="page-title"><h1>Case Search</h1></div><div class="empty">Search across all cases by lab number, patient, organism, or date range. (Out of scope for this prototype — see m-04 §1.2.)</div>'; }
+
+function setStage(s){ state.stageFilter = state.stageFilter===s?'all':s; render(); }
+function setAst(s){ state.astFilter = state.astFilter===s?'all':s; render(); }
+function setQ(v){ state.q=v; render(); var inp=document.querySelector('.filterbar input[type=text]'); if(inp){ inp.focus(); inp.setSelectionRange(v.length,v.length);} }
+function refresh(){
+  if(!cases.find(function(c){return c.lab==='BC24-0896';})){
+    cases.unshift({lab:'BC24-0896', mc:'MC-2024-001243', pt:'TORRES, Eva', spec:'Blood', stage:'POSITIVE', day:1, maxDay:5, pri:'STAT', tech:'Olivia Mendez'});
+  }
+  state.lastRefresh=Date.now(); render();
+  var r=document.querySelector('table.t tbody tr'); if(r){ r.classList.add('flash'); }
+  toast('New positive signal arrived — BC24-0896 (TORRES, Eva).');
+}
+function openCase(mc,lab){ toast('Opening case '+(mc||lab)+' in the Case Workbench…', 'm-04-case-workbench-prototype.html'); }
+function rowMenu(e,lab){ showMenu(e, ['Open case','Mark positive','Mark no growth','Mark lost'], lab); }
+function astMenu(e,lab){ showMenu(e, ['Open case','Edit AST','View audit','Set up new AST run'], lab); }
+function showMenu(e, items, lab){
+  if(openMenu){ openMenu.remove(); openMenu=null; }
+  var td=e.currentTarget; var menu=document.createElement('div'); menu.className='menu';
+  menu.innerHTML=items.map(function(i){ return '<div onclick="event.stopPropagation();menuPick(\''+i+'\',\''+lab+'\')">'+i+'</div>'; }).join('');
+  td.appendChild(menu); openMenu=menu;
+}
+function menuPick(item,lab){ if(openMenu){openMenu.remove();openMenu=null;} if(item==='Open case'){ openCase('',lab); } else if(item==='Edit AST'){ toast(lab+': opens the AST entry modal (M-05).'); } else { toast(lab+': '+item+' →'); } }
+function toast(msg, href){
+  var root=document.getElementById('toastRoot');
+  root.innerHTML='<div class="toast">'+msg+(href?' <a href="'+href+'">Open →</a>':'')+'</div>';
+  clearTimeout(window._tt); window._tt=setTimeout(function(){ root.innerHTML=''; }, 4200);
+}
+render();
+</script>
+</body>
+</html>

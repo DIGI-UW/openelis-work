@@ -3681,3 +3681,52 @@
     jira: ["OGC-1054"]
     gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-profile-mapping-gap-analysis
   added: "2026-06-18"
+
+# ─── Order Entry v2 (three-workflow realignment, epic OGC-1066) ───
+- id: clinical-order-entry-v2
+  type: mockup
+  path: designs/sample-collection/clinical-order-entry-v2.html
+  spec: designs/sample-collection/order-entry-frs-v3-three-workflows.md
+  category: vector-surveillance
+  description: v2 clinical order-entry wizard realigned to the three-workflow spec — "Assign to" sample/test menu at Collect, Ward/Unit/Department facility sub-unit, requester with phone/fax/email + admin-gated add-new + edit-lock, test search by name or code, blank quantity, de-gated print/storage, Sample Acceptance Checklist (S-09/OGC-580) on QA Review
+  links:
+    jira: [OGC-1066, OGC-1067, OGC-1069]
+    gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v2
+  added: "2026-06-25"
+- id: environmental-order-entry-v2
+  type: mockup
+  path: designs/sample-collection/environmental-order-entry-v2.html
+  spec: designs/sample-collection/order-entry-frs-v3-three-workflows.md
+  category: vector-surveillance
+  description: v2 environmental order-entry — requester = Requesting Organization + Requestor contact, searched/stored like the clinical provider, full phone/fax/email, admin-gated add-new, edit-lock; collection method optional; CSV bulk intake (Env/Vector only)
+  links:
+    jira: [OGC-1066, OGC-1068]
+    gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-order-entry-v2
+  added: "2026-06-25"
+- id: vector-collection-workflow-v2
+  type: mockup
+  path: designs/vector-surveillance/vector-collection-workflow-v2.html
+  spec: designs/sample-collection/order-entry-frs-v3-three-workflows.md
+  category: vector-surveillance
+  description: v2 vector collection workflow — requester relabeled to the shared Requesting Organization + Requestor element (identical to Environmental), full phone/fax/email, admin-gated add-new, edit-lock
+  links:
+    jira: [OGC-1066, OGC-1068]
+    gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-collection-workflow-v2
+  added: "2026-06-25"
+- id: order-entry-developer-reference
+  type: spec
+  path: designs/sample-collection/order-entry-developer-reference.md
+  category: vector-surveillance
+  description: Single source of truth for the order-entry realignment (epic OGC-1066) — north-star model, per-stage behavior, current-to-required defect table with live evidence, anti-drift guardrails, story map (OGC-1067-1073)
+  links:
+    jira: [OGC-1066]
+    gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/order-entry-developer-reference
+  added: "2026-06-25"
+- id: order-entry-frs-v3-three-workflows
+  type: spec
+  path: designs/sample-collection/order-entry-frs-v3-three-workflows.md
+  category: vector-surveillance
+  description: Order Entry FRS v3 — three domain-scoped workflows (Clinical/Environmental/Vector) on a shared wizard; navigation/visibility, Option-C linkage, field behavior, required-field matrix
+  links:
+    jira: [OGC-1066]
+  added: "2026-06-25"

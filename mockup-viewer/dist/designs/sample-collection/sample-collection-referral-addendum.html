@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>OpenELIS — Label &amp; Store + Refer Out (Sample-level) Preview</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    /* --------------------------------------------------------------------
+       Minimal Carbon-flavored preview styles — mirrors @carbon/react looks
+       enough to read the mockup without pulling the full CSS bundle.
+    -------------------------------------------------------------------- */
+    :root {
+      --bg:       #ffffff;
+      --bg-alt:  #f4f4f4;
+      --bg-ui:   #e0e0e0;
+      --ink:     #161616;
+      --ink-muted: #525252;
+      --blue-60:  #0f62fe;
+      --purple-60:#8a3ffc;
+      --cyan-70:  #00539a;
+      --red-60:   #da1e28;
+      --teal-60:  #009d9a;
+      --gray-60:  #525252;
+      --gray-20:  #e0e0e0;
+      --success-bg: #defbe6;
+      --info-bg: #edf5ff;
+      --warn-bg: #fff8e1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg-alt);
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .page { max-width: 1400px; margin: 0 auto; padding: 2rem; background: var(--bg); }
+    h1, h2, h3, h4, h5 { font-weight: 400; margin-top: 0; }
+    h2 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+    h3 { font-size: 1.25rem; margin-bottom: 0.75rem; }
+    h5 { font-size: 1rem; margin-bottom: 0.5rem; }
+    .muted { color: var(--ink-muted); font-size: 0.875rem; }
+
+    .tile { background: var(--bg); border: 1px solid var(--gray-20); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+
+    .ctx-card { display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center; }
+    .ctx-card > div { min-width: 90px; }
+    .ctx-card strong { font-size: 0.75rem; color: var(--ink-muted); display: block; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.02em; }
+
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.6rem;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      margin-right: 0.3rem;
+      margin-bottom: 0.25rem;
+      white-space: nowrap;
+    }
+    .tag.gray   { background: var(--gray-20); color: var(--ink); }
+    .tag.purple { background: #e8daff; color: #491d8b; }
+    .tag.blue   { background: #d0e2ff; color: #002d9c; }
+    .tag.cyan   { background: #bae6ff; color: #003a6d; }
+    .tag.teal   { background: #9ef0f0; color: #003a3a; }
+    .tag.red    { background: #ffd7d9; color: #750e13; }
+
+    .btn {
+      background: var(--blue-60);
+      color: white;
+      border: 1px solid var(--blue-60);
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.875rem;
+    }
+    .btn.secondary { background: white; color: var(--blue-60); }
+    .btn.tertiary  { background: white; color: var(--ink); border-color: var(--ink); }
+    .btn.ghost     { background: transparent; color: var(--blue-60); border: none; padding: 0.25rem 0.5rem; }
+    .btn.disabled, .btn:disabled { background: var(--gray-20); color: var(--ink-muted); border-color: var(--gray-20); cursor: not-allowed; }
+
+    table { width: 100%; border-collapse: collapse; background: var(--bg); }
+    th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--gray-20); font-size: 0.875rem; vertical-align: top; }
+    th { background: var(--bg-alt); font-weight: 600; }
+
+    .notif {
+      border-left: 3px solid var(--blue-60);
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      background: var(--info-bg);
+    }
+    .notif.success { border-color: #24a148; background: var(--success-bg); }
+    .notif.warn    { border-color: #f1c21b; background: var(--warn-bg); }
+    .notif.info    { border-color: var(--blue-60); background: var(--info-bg); }
+    .notif strong  { display: block; margin-bottom: 0.25rem; }
+    .notif span    { font-size: 0.8125rem; color: var(--ink-muted); }
+
+    .expand {
+      background: var(--bg-alt);
+      border-left: 4px solid var(--purple-60);
+      padding: 1rem 1.5rem;
+    }
+
+    .labels-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .labels-grid label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+      margin-bottom: 0.25rem;
+    }
+    .num-input {
+      display: flex;
+      border: 1px solid var(--gray-20);
+      width: 120px;
+    }
+    .num-input button { border: none; background: var(--bg-alt); padding: 0 0.5rem; cursor: pointer; }
+    .num-input input  { border: none; padding: 0.5rem; width: 60px; text-align: center; font-family: inherit; }
+
+    .toolbar-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .accordion-header {
+      background: var(--bg-alt);
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--gray-20);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+    .accordion-body { padding: 1rem; border: 1px solid var(--gray-20); border-top: none; }
+
+    .footer-nav { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--gray-20); }
+
+    select, input[type="text"], textarea {
+      width: 100%;
+      padding: 0.5rem;
+      font-family: inherit;
+      font-size: 0.875rem;
+      border: 1px solid var(--gray-20);
+      background: var(--bg);
+      margin-bottom: 0.5rem;
+    }
+    label.field-label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+      margin-bottom: 0.25rem;
+    }
+    .section-title { margin: 2rem 0 0.75rem; padding-top: 1rem; border-top: 1px solid var(--gray-20); }
+    .section-title small { font-weight: 400; color: var(--ink-muted); }
+    .chip-cell .tag { margin-bottom: 0.25rem; }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <h2>Step 3 — Label &amp; Store</h2>
+  <p class="muted">
+    Print labels, assign storage, and refer samples to external labs.
+    Referrals are assigned per physical sample — every test on a referred sample travels with the specimen.
+  </p>
+
+  <!-- ======================================================================
+       Order context card — with Referred chip (REF-8)
+  ======================================================================= -->
+  <div class="tile ctx-card">
+    <div><strong>Lab #</strong>2026-00412</div>
+    <div><strong>Patient</strong>Siti Rahayu</div>
+    <div><strong>Patient ID</strong>P-88103</div>
+    <div><strong>Facility</strong>Puskesmas Kebayoran</div>
+    <div><strong>Priority</strong><span class="tag teal">Routine</span></div>
+    <div><strong>Samples</strong>2</div>
+    <div><strong>Referred</strong><span class="tag purple">Referred (1 of 2 samples)</span></div>
+  </div>
+
+  <!-- ======================================================================
+       Print Labels section (LBL-2) — collapsed accordion style
+  ======================================================================= -->
+  <div class="accordion-header">
+    Print Labels (LBL-2) — travels with every sample, including referred ones
+    <span>▼</span>
+  </div>
+  <div class="accordion-body">
+    <p class="muted" style="margin-top:0;margin-bottom:1rem;">
+      Labels travel with specimens — including referred ones. Keep label quantity ≥ 1 for any sample being shipped externally.
+    </p>
+    <div class="labels-grid">
+      <div>
+        <label>Order Label</label>
+        <div class="num-input"><button>−</button><input type="text" value="1" /><button>+</button></div>
+      </div>
+      <div>
+        <label>Sample Label</label>
+        <div class="num-input"><button>−</button><input type="text" value="2" /><button>+</button></div>
+      </div>
+      <div>
+        <label>Slide Label</label>
+        <div class="num-input"><button>−</button><input type="text" value="0" /><button>+</button></div>
+      </div>
+      <div>
+        <label>Block Label</label>
+        <div class="num-input"><button>−</button><input type="text" value="0" /><button>+</button></div>
+      </div>
+      <div>
+        <label>Freezer Label</label>
+        <div class="num-input"><button>−</button><input type="text" value="1" /><button>+</button></div>
+      </div>
+    </div>
+    <button class="btn secondary">🖨 Print All Labels</button>
+  </div>
+
+  <!-- ======================================================================
+       Toolbar — bulk refer out + counts
+  ======================================================================= -->
+  <div class="toolbar-row" style="margin-top:1.5rem;">
+    <div class="muted">1 in-house sample • 1 referred</div>
+    <button class="btn tertiary">Bulk Refer Out ↗</button>
+  </div>
+
+  <!-- ======================================================================
+       Samples table — sample-centric rows (LBL-5)
+  ======================================================================= -->
+  <table>
+    <thead>
+      <tr>
+        <th style="width:2rem;"></th>
+        <th>Sample ID</th>
+        <th>Type / Qty</th>
+        <th>Tests on this sample</th>
+        <th>Storage Location</th>
+        <th>Labels</th>
+        <th>Refer Out</th>
+        <th style="width:3rem;"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Row 1: In-house sample with inline refer-out form expanded -->
+      <tr>
+        <td><button class="btn ghost">▲</button></td>
+        <td><strong>S.2026-00412.1</strong><br /><span class="muted">Collected 2026-04-22 09:14</span></td>
+        <td>Whole Blood (EDTA)<br /><span class="muted">4 mL</span></td>
+        <td class="chip-cell">
+          <span class="tag cyan">HIV Viral Load</span>
+          <span class="tag cyan">CD4 Count</span>
+        </td>
+        <td><button class="btn ghost">F-02 / S-3 / B-14 / A4</button></td>
+        <td><button class="btn ghost">🖨 Print (2)</button></td>
+        <td><span class="tag gray">In-house</span></td>
+        <td><button class="btn ghost">⋯</button></td>
+      </tr>
+
+      <!-- Inline expansion row (LBL-6) -->
+      <tr>
+        <td colspan="8" style="padding:0;">
+          <div class="expand">
+            <h5>Refer Sample to External Lab</h5>
+            <div class="notif info" style="margin-bottom:1rem;">
+              <strong>Sample-level referral</strong>
+              <span>This will refer Whole Blood (EDTA) (S.2026-00412.1) and all 2 tests on it: HIV Viral Load, CD4 Count.</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+              <div>
+                <label class="field-label">Referring Lab (required)</label>
+                <select>
+                  <option>Select a referring lab…</option>
+                  <option selected>BBTKL Jakarta (FHIR) • TAT 5 days</option>
+                  <option>Eijkman Institute (FHIR) • TAT 3 days</option>
+                  <option>Prodia Reference Lab • TAT 7 days</option>
+                  <option>SILNAS Bandung (FHIR) • TAT 4 days</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Expected Return Date (optional)</label>
+                <input type="text" placeholder="yyyy-mm-dd" value="2026-04-28" />
+              </div>
+            </div>
+            <label class="field-label" style="margin-top:0.5rem;">Reason (optional)</label>
+            <textarea rows="2" placeholder="e.g., Local VL platform offline until Monday.">Local VL platform offline; sending full panel upstream.</textarea>
+            <label><input type="checkbox" checked /> Notify customer of referral (X-01 REFERRAL_OUT event)</label>
+            <div style="margin-top:1rem;">
+              <button class="btn">Save Referral ↗</button>
+              <button class="btn ghost">Cancel</button>
+            </div>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Row 2: Referred sample -->
+      <tr>
+        <td><button class="btn ghost">▼</button></td>
+        <td><strong>S.2026-00412.2</strong><br /><span class="muted">Collected 2026-04-22 09:18</span></td>
+        <td>Plasma<br /><span class="muted">2 mL</span></td>
+        <td class="chip-cell">
+          <span class="tag purple">Hepatitis B DNA PCR</span>
+          <span class="tag purple">HCV Antibody</span>
+        </td>
+        <td><button class="btn ghost">F-04 / S-1 / B-07 / C2</button></td>
+        <td><button class="btn ghost">🖨 Print (1)</button></td>
+        <td><span class="tag purple">Referred — Eijkman Institute</span></td>
+        <td><button class="btn ghost">⋯</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Info banner for mixed partial-referral state -->
+  <div class="notif info" style="margin-top:1rem;">
+    <strong>Partial referral in progress.</strong>
+    <span>This order has 1 in-house sample (HIV Viral Load, CD4 Count) and 1 referred sample. Order will continue through QA Review for the in-house sample. (REF-5, BR-REF-3)</span>
+  </div>
+
+  <div class="footer-nav">
+    <button class="btn secondary">← Back to Step 2 (Collect Sample)</button>
+    <button class="btn">Save &amp; Next → Step 4 (QA Review)</button>
+  </div>
+
+  <!-- ======================================================================
+       Fully-referred example (all samples)
+  ======================================================================= -->
+  <h3 class="section-title">Fully-referred example <small>(same screen, different order state)</small></h3>
+  <div class="notif info">
+    <strong>All samples referred — QA will be skipped (REF-2, REF-3).</strong>
+    <span>Order auto-transitions to REFERRED_OUT on save. The QA Review queue will not show this order. When external results return, the order auto-approves (REF-4).</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Sample ID</th>
+        <th>Type</th>
+        <th>Tests</th>
+        <th>Storage</th>
+        <th>Refer Out</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>S.2026-00415.1</strong></td>
+        <td>Plasma — 3 mL</td>
+        <td class="chip-cell">
+          <span class="tag purple">HIV Viral Load</span>
+          <span class="tag purple">CD4 Count</span>
+          <span class="tag purple">Hepatitis B DNA PCR</span>
+        </td>
+        <td>F-02 / S-1 / B-03 / B7</td>
+        <td><span class="tag blue">Sent to External — BBTKL Jakarta</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="footer-nav">
+    <button class="btn secondary">← Back to Step 2</button>
+    <button class="btn">Close Order (Referred Out) ✓</button>
+  </div>
+
+  <!-- ======================================================================
+       Dashboard filter preview (DSH-10, DSH-11)
+  ======================================================================= -->
+  <h3 class="section-title">Order Dashboard — Referred Out filter <small>(DSH-10, DSH-11)</small></h3>
+  <div style="display:flex;gap:1rem;align-items:end;margin-bottom:1rem;">
+    <div style="max-width:260px;flex:1;">
+      <label class="field-label">Referred Out</label>
+      <select>
+        <option>Any</option>
+        <option>Has Referred Samples</option>
+        <option>Fully Referred Out</option>
+      </select>
+    </div>
+    <div class="muted">Combines with existing filters via AND.</div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Lab #</th>
+        <th>Patient / Subject</th>
+        <th>Facility</th>
+        <th>Status</th>
+        <th>Referred Samples</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>2026-00412</td>
+        <td>Siti Rahayu</td>
+        <td>Puskesmas Kebayoran</td>
+        <td><span class="tag blue">Labeling</span><span class="tag purple">Referred (1 of 2 samples)</span></td>
+        <td>1 of 2</td>
+      </tr>
+      <tr>
+        <td>2026-00413</td>
+        <td>Budi Santoso</td>
+        <td>RS Cipto</td>
+        <td><span class="tag purple">Referred Out</span><span class="tag purple">Referred (all samples)</span></td>
+        <td>2 of 2</td>
+      </tr>
+      <tr>
+        <td>2026-00414</td>
+        <td>ENV-KBY-0412-01</td>
+        <td>Kebayoran River</td>
+        <td><span class="tag blue">QA Review</span></td>
+        <td>0 of 3</td>
+      </tr>
+      <tr>
+        <td>2026-00415</td>
+        <td>Ayu Lestari</td>
+        <td>Klinik Harapan</td>
+        <td><span class="tag purple">Referred Out</span><span class="tag purple">Referred (all samples)</span></td>
+        <td>1 of 1</td>
+      </tr>
+      <tr>
+        <td>2026-00416</td>
+        <td>Dewi Sartika</td>
+        <td>Puskesmas Setiabudi</td>
+        <td><span class="tag blue">Labeling</span><span class="tag purple">Referred (1 of 3 samples)</span></td>
+        <td>1 of 3</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="muted" style="margin-top:2rem;font-size:0.75rem;">
+    OpenELIS Sample Collection Redesign — Referral Out addendum preview v2.1 (2026-04-23).
+    FRS: sample-collection-referral-addendum-frs-v2.1.md.
+    Mockup source: sample-collection-referral-addendum-mockup.jsx (Carbon React).
+  </p>
+
+</div>
+
+</body>
+</html>

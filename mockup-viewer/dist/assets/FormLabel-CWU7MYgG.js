@@ -1,0 +1,1 @@
+import{d as l,e as t,P as s}from"./index-CePbjz-o.js";import{T as i}from"./Text-BhmunZEW.js";import{j as n}from"./index-BDuk_reU.js";function p({className:e,children:r,id:o,...m}){const a=l();return n.jsx(i,{as:"label",htmlFor:o,className:t(`${a}--label`,`${a}--label--no-margin`,e),...m,children:r})}p.propTypes={children:s.node,className:s.string,id:s.string};export{p as F};

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>M-04 Case Workbench Detail — Preview v1</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; color: #161616; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .preview-banner strong { background: #fff; color: #0f62fe; padding: 1px 6px; border-radius: 2px; margin: 0 4px; }
+    .app-header { background: #161616; color: #f4f4f4; padding: 0 1rem; height: 48px; display: flex; align-items: center; gap: 1rem; font-size: 14px; }
+    .app-header .product { font-weight: 600; }
+    .app-header .right { margin-left: auto; display: flex; gap: 1rem; align-items: center; font-size: 13px; }
+    .breadcrumbs { padding: 0.75rem 2rem; background: #fff; border-bottom: 1px solid #e0e0e0; font-size: 13px; color: #525252; }
+    .breadcrumbs a { color: #0f62fe; text-decoration: none; }
+    .breadcrumbs a:hover { text-decoration: underline; }
+    .case-header { background: #fff; padding: 1rem 2rem; border-bottom: 1px solid #e0e0e0; }
+    .case-header .title-row { display: flex; align-items: baseline; gap: 1rem; }
+    .case-header h1 { font-size: 28px; font-weight: 300; margin: 0; }
+    .stage-pill-lg { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 16px; font-size: 13px; font-weight: 600; background: #d0e2ff; color: #0043ce; }
+    .stage-pill-lg.ast { background: #9ef0f0; color: #003a6d; }
+    .case-header .meta { margin-top: 0.5rem; font-size: 13px; color: #525252; }
+    .case-header .meta span { margin-right: 1rem; }
+
+    .layout { display: grid; grid-template-columns: 260px 1fr; }
+    .sidebar { background: #fff; border-right: 1px solid #e0e0e0; min-height: calc(100vh - 200px); padding: 1rem 0; }
+    .sidebar-header { padding: 0.5rem 1rem 0.75rem; font-size: 11px; color: #525252; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+    .sidebar-item { padding: 0.625rem 1rem; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 0.5rem; border-left: 3px solid transparent; }
+    .sidebar-item:hover { background: #e5e5e5; }
+    .sidebar-item.active { background: #e0e0e0; border-left-color: #0f62fe; font-weight: 600; }
+    .sidebar-item .progress-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+    .progress-complete { background: #24a148; color: #fff; }
+    .progress-partial { background: #f1c21b; color: #161616; }
+    .progress-none { background: #e0e0e0; color: #8d8d8d; }
+    .sidebar-item .sub { font-size: 11px; color: #6f6f6f; margin-left: auto; }
+
+    .main { padding: 1.5rem 2rem 6rem; max-width: 1080px; }
+    .section-card { background: #fff; padding: 1.25rem 1.5rem; margin-bottom: 1rem; border: 1px solid #e0e0e0; }
+    .section-card h2 { font-size: 18px; font-weight: 400; margin: 0 0 0.75rem 0; display: flex; align-items: center; gap: 0.5rem; }
+    .section-card h2 .count { font-size: 12px; background: #e0e0e0; color: #525252; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+    .section-card .toolbar { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; }
+
+    /* Info grid */
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .info-field { font-size: 14px; }
+    .info-field .label { font-size: 11px; color: #525252; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .info-field .value { color: #161616; }
+
+    /* Inoculation table */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .data-table th { text-align: left; padding: 0.5rem 0.75rem; background: #f4f4f4; font-weight: 600; color: #161616; border-bottom: 1px solid #e0e0e0; font-size: 12px; }
+    .data-table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
+
+    /* Timeline */
+    .timeline-entry { padding: 0.75rem 0; border-bottom: 1px solid #e0e0e0; display: grid; grid-template-columns: 130px 1fr 100px; gap: 1rem; align-items: start; font-size: 13px; }
+    .timeline-entry:last-child { border-bottom: none; }
+    .timeline-when { color: #525252; }
+    .timeline-event .tag { display: inline-block; padding: 1px 6px; font-size: 10px; border-radius: 4px; background: #d0e2ff; color: #0043ce; margin-right: 6px; font-weight: 600; }
+    .timeline-event .tag.subculture { background: #9ef0f0; color: #003a6d; }
+    .timeline-event .tag.positive { background: #ffd7d9; color: #750e13; }
+    .timeline-event .tag.gram { background: #c7e7e1; color: #054f31; }
+    .timeline-event .tag.report { background: #a7f0ba; color: #044317; }
+    .timeline-event .tag.ast { background: #e8daff; color: #491d8b; }
+    .timeline-event .notes { color: #525252; margin-top: 3px; }
+    .timeline-by { color: #525252; text-align: right; font-style: italic; }
+    .show-more-row { text-align: center; padding: 0.5rem; color: #0f62fe; font-size: 13px; cursor: pointer; }
+
+    /* Isolate tile */
+    .isolate-tile { border: 1px solid #e0e0e0; padding: 1rem; margin-bottom: 0.75rem; background: #fff; }
+    .isolate-tile.versioned { border-left: 3px solid #8a3ffc; }
+    .isolate-tile h3 { font-size: 16px; font-weight: 400; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.5rem; }
+    .isolate-tile h3 .org-name { font-style: italic; }
+    .isolate-tile h3 .version-badge { font-size: 11px; background: #e8daff; color: #491d8b; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+    .isolate-tile .field-row { font-size: 13px; margin: 4px 0; }
+    .isolate-tile .field-row .label { color: #525252; font-weight: 500; margin-right: 6px; }
+    .isolate-tile .ast-run-summary { background: #f4f4f4; padding: 0.5rem 0.75rem; margin-top: 0.5rem; font-size: 13px; border-left: 3px solid #0f62fe; }
+    .isolate-actions { margin-top: 0.75rem; display: flex; gap: 0.5rem; }
+
+    /* AST results table */
+    .ast-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 0.5rem; }
+    .ast-table th { padding: 0.4rem 0.75rem; background: #f4f4f4; border-bottom: 1px solid #e0e0e0; text-align: left; font-size: 11px; font-weight: 600; color: #525252; text-transform: uppercase; letter-spacing: 0.5px; }
+    .ast-table td { padding: 0.4rem 0.75rem; border-bottom: 1px solid #f4f4f4; }
+    .ast-table tr.has-override { background: #fff8e1; }
+    .interp { display: inline-block; padding: 1px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; min-width: 16px; text-align: center; }
+    .interp.S { background: #a7f0ba; color: #044317; }
+    .interp.I { background: #fdd13a; color: #161616; }
+    .interp.R { background: #ffd7d9; color: #750e13; }
+    .override-mark { font-size: 11px; color: #8a3ffc; font-weight: 600; }
+
+    /* Reports section */
+    .report-row { display: flex; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #f4f4f4; font-size: 13px; gap: 1rem; }
+    .report-row:last-child { border-bottom: none; }
+    .report-row.superseded { color: #6f6f6f; }
+    .report-row .label { font-weight: 600; min-width: 110px; }
+    .report-row .timestamp { color: #525252; flex: 1; }
+    .report-actions { margin-left: auto; display: flex; gap: 0.5rem; }
+
+    /* Notification banner */
+    .info-banner { padding: 0.75rem 1rem; margin-bottom: 1rem; border-left: 3px solid #0f62fe; background: #edf5ff; font-size: 13px; display: flex; align-items: start; gap: 0.5rem; }
+    .info-banner.success { border-left-color: #24a148; background: #defbe6; }
+    .info-banner.warning { border-left-color: #f1c21b; background: #fef0c7; }
+    .info-banner.error { border-left-color: #da1e28; background: #fff1f1; }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; font-size: 14px; font-family: inherit; border: 1px solid transparent; cursor: pointer; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-primary:hover { background: #0353e9; }
+    .btn-secondary { background: #393939; color: #fff; }
+    .btn-tertiary { background: transparent; color: #0f62fe; border-color: #0f62fe; }
+    .btn-ghost { background: transparent; color: #0f62fe; }
+    .btn-ghost:hover { background: #e5e5e5; }
+    .btn-danger { background: transparent; color: #da1e28; border-color: #da1e28; }
+    .btn-sm { padding: 0.25rem 0.75rem; font-size: 12px; }
+
+    /* Footer action bar */
+    .footer-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e0e0e0; padding: 0.75rem 2rem; display: flex; align-items: center; gap: 1rem; z-index: 5; }
+    .footer-bar .unsaved { color: #f1c21b; font-size: 13px; display: flex; align-items: center; gap: 0.5rem; }
+    .footer-bar .spacer { flex: 1; }
+
+    /* Critical notification badge */
+    .crit-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: #fff1f1; border: 1px solid #fa4d56; color: #750e13; border-radius: 4px; font-size: 11px; font-weight: 600; }
+
+    .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; background: #e0e0e0; color: #525252; }
+    .tag.teal { background: #9ef0f0; color: #003a6d; }
+    .tag.blue { background: #d0e2ff; color: #0043ce; }
+    .tag.green { background: #a7f0ba; color: #044317; }
+    .tag.red { background: #ffd7d9; color: #750e13; }
+    .tag.yellow { background: #fdd13a; color: #161616; }
+    .tag.purple { background: #e8daff; color: #491d8b; }
+  </style>
+</head>
+<body>
+  <div class="preview-banner">
+    M-04 Case Workbench Detail Preview · <strong>v1.0</strong> · Microbiology Module Phase 1A · See <strong>m-04-case-workbench-core-frs-v1.md</strong>
+  </div>
+
+  <!-- App header (existing OE) -->
+  <div class="app-header">
+    <span class="product">OpenELIS Global</span>
+    <span style="opacity: 0.7;">|</span>
+    <span>Microbiology</span>
+    <div class="right">
+      <span class="crit-badge">⚠ 1 critical open</span>
+      <span>Olivia Mendez · Microbiology Tech</span>
+    </div>
+  </div>
+
+  <!-- Breadcrumbs -->
+  <div class="breadcrumbs">
+    <a href="#">Home</a> / <a href="#">Microbiology</a> / Case MC-2024-001234
+  </div>
+
+  <!-- Case header -->
+  <div class="case-header">
+    <div class="title-row">
+      <h1>Microbiology Case MC-2024-001234</h1>
+      <span class="stage-pill-lg ast">AST in progress</span>
+    </div>
+    <div class="meta">
+      <span><strong>Lab #:</strong> BC24-0892</span>
+      <span><strong>Patient:</strong> MARTINEZ, Carlos</span>
+      <span><strong>DOB:</strong> 1968-04-22 (M, 57y)</span>
+      <span><strong>Specimen:</strong> Blood (R. antecubital)</span>
+      <span><strong>Protocol:</strong> Blood Culture Standard</span>
+      <span><strong>Priority:</strong> <span class="tag red">URGENT</span></span>
+      <span><strong>Tech:</strong> Olivia Mendez</span>
+    </div>
+  </div>
+
+  <!-- Layout -->
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">Case progress</div>
+      <div class="sidebar-item active"><span class="progress-dot progress-complete">✓</span>Case Info</div>
+      <div class="sidebar-item"><span class="progress-dot progress-complete">✓</span>Inoculation</div>
+      <div class="sidebar-item"><span class="progress-dot progress-complete">✓</span>Timeline<span class="sub">8 events</span></div>
+      <div class="sidebar-item"><span class="progress-dot progress-partial">◐</span>Isolates<span class="sub">1 of 1</span></div>
+      <div class="sidebar-item"><span class="progress-dot progress-partial">◐</span>AST Results<span class="sub">1 / 1</span></div>
+      <div class="sidebar-item"><span class="progress-dot progress-none">○</span>Expert Review<span class="sub">N/A 1A</span></div>
+      <div class="sidebar-item"><span class="progress-dot progress-none">○</span>Final Review</div>
+      <div class="sidebar-item"><span class="progress-dot progress-none">○</span>Reports</div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+      <!-- Critical banner -->
+      <div class="info-banner warning">
+        <strong>⚠ Critical notification logged 2026-05-12 07:38</strong>
+        — Olivia Mendez called ER (Dr. Patel) re: Gram-negative rods in blood culture. Acknowledged at 07:55 via verbal.
+      </div>
+
+      <!-- Case info section -->
+      <section class="section-card">
+        <h2>Case Info</h2>
+        <div class="info-grid">
+          <div class="info-field"><div class="label">Sample lab number</div><div class="value">BC24-0892</div></div>
+          <div class="info-field"><div class="label">Order</div><div class="value">OE-2024-09214</div></div>
+          <div class="info-field"><div class="label">Patient origin</div><div class="value">Emergency (EME)</div></div>
+          <div class="info-field"><div class="label">Department</div><div class="value">ER · Adult</div></div>
+          <div class="info-field"><div class="label">Number of sets</div><div class="value">1</div></div>
+          <div class="info-field"><div class="label">Screening culture?</div><div class="value">No</div></div>
+          <div class="info-field"><div class="label">Clinical history</div><div class="value">Fever 39.2, hypotension, possible sepsis. Patient received antibiotics within the past 2 weeks.</div></div>
+          <div class="info-field"><div class="label">Ordering provider</div><div class="value">Dr. R. Patel (ER attending)</div></div>
+          <div class="info-field"><div class="label">Critical-value notify enabled</div><div class="value">Yes</div></div>
+          <div class="info-field"><div class="label">Sample collected</div><div class="value">2026-05-11 07:00</div></div>
+        </div>
+      </section>
+
+      <!-- Inoculation section -->
+      <section class="section-card">
+        <h2>Inoculation</h2>
+        <div class="info-banner success">Two bottles inoculated 2026-05-11 07:18; lots verified; loaded on BacT/Alert.</div>
+        <table class="data-table">
+          <thead><tr><th>Media</th><th>Bottle/Plate ID</th><th>Reagent Lot</th><th>Inoculated</th><th>By</th></tr></thead>
+          <tbody>
+            <tr><td>FA — Aerobic Blood Bottle</td><td>FA24012</td><td>FA-26-04-117 (exp 2026-08-15)</td><td>2026-05-11 07:18</td><td>Olivia Mendez</td></tr>
+            <tr><td>FN — Anaerobic Blood Bottle</td><td>FN24012</td><td>FN-26-04-118 (exp 2026-08-15)</td><td>2026-05-11 07:18</td><td>Olivia Mendez</td></tr>
+            <tr><td>BAP (subculture from FA)</td><td>SC24-0892A</td><td>BAP-26-04-211 (exp 2026-07-30)</td><td>2026-05-12 07:32</td><td>Olivia Mendez</td></tr>
+            <tr><td>MAC (subculture from FA)</td><td>SC24-0892B</td><td>MAC-26-04-088 (exp 2026-09-02)</td><td>2026-05-12 07:32</td><td>Olivia Mendez</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Timeline section -->
+      <section class="section-card">
+        <h2>Timeline <span class="count">8 events</span></h2>
+        <div class="toolbar">
+          <button class="btn btn-tertiary btn-sm">+ Add Event</button>
+        </div>
+        <div class="timeline-entry">
+          <div class="timeline-when">2026-05-12 11:45</div>
+          <div class="timeline-event">
+            <span class="tag ast">AST result received</span>
+            <strong>VITEK 2 results returned</strong>
+            <div class="notes">16 antibiotics received from analyzer; auto-interpreted against EUCAST v14.0.</div>
+          </div>
+          <div class="timeline-by">BacT/Alert auto</div>
+        </div>
+        <div class="timeline-entry">
+          <div class="timeline-when">2026-05-12 07:54</div>
+          <div class="timeline-event">
+            <span class="tag ast">AST setup</span>
+            <strong>VITEK 2 AST-GN card loaded</strong>
+            <div class="notes">Card V2-CRD-2026-05-12-001 loaded for Isolate 1 (E. coli). Lot AST-GN-26-04-117.</div>
+          </div>
+          <div class="timeline-by">Olivia Mendez</div>
+        </div>
+        <div class="timeline-entry">
+          <div class="timeline-when">2026-05-12 07:38</div>
+          <div class="timeline-event">
+            <span class="tag gram">Gram stain</span>
+            <strong>Isolate 1</strong>
+            <div class="notes">Gram negative rods, many.</div>
+          </div>
+          <div class="timeline-by">Olivia Mendez</div>
+        </div>
+        <div class="timeline-entry">
+          <div class="timeline-when">2026-05-12 07:32</div>
+          <div class="timeline-event">
+            <span class="tag subculture">Subculture</span>
+            <strong>BAP and MAC subcultured from FA bottle</strong>
+            <div class="notes">Subcultured to BAP and MAC at 24 hours.</div>
+          </div>
+          <div class="timeline-by">Olivia Mendez</div>
+        </div>
+        <div class="timeline-entry">
+          <div class="timeline-when">2026-05-12 06:55</div>
+          <div class="timeline-event">
+            <span class="tag positive">Positive signal</span>
+            <strong>FA24012 aerobic positive</strong>
+            <div class="notes">BacT/Alert flagged positive at 23h44m incubation time.</div>
+          </div>
+          <div class="timeline-by">BacT/Alert auto</div>
+        </div>
+        <div class="timeline-entry">
+          <div class="timeline-when">2026-05-11 07:18</div>
+          <div class="timeline-event">
+            <span class="tag">Inoculation</span>
+            <strong>FA24012, FN24012 inoculated</strong>
+            <div class="notes">BacT/Alert load time 07:18.</div>
+          </div>
+          <div class="timeline-by">Olivia Mendez</div>
+        </div>
+        <div class="show-more-row">Show all 8 events ▼</div>
+      </section>
+
+      <!-- Isolates section -->
+      <section class="section-card">
+        <h2>Isolates <span class="count">1 found</span></h2>
+        <div class="toolbar">
+          <button class="btn btn-tertiary btn-sm">+ Add Isolate</button>
+        </div>
+        <div class="isolate-tile">
+          <h3>
+            Isolate 1 — <span class="org-name">Escherichia coli</span> (eco)
+            <span class="tag teal">VITEK 2 · 99.5%</span>
+            <span class="tag green">Clinically Significant</span>
+          </h3>
+          <div class="field-row"><span class="label">Gram stain:</span>Gram negative rods, many</div>
+          <div class="field-row"><span class="label">Colony morphology:</span>Lactose-fermenting on MacConkey agar, many</div>
+          <div class="field-row"><span class="label">Preliminary notes:</span>Probable Enterobacterales. Subcultured to BAP and MAC.</div>
+          <div class="field-row"><span class="label">Default AST panel:</span>GN-STD (Gram-negative standard, 16 antibiotics)</div>
+          <div class="ast-run-summary">
+            <strong>AST Run #1</strong> · Panel: GN-STD · Method: VITEK 2 · CLSI/EUCAST: EUCAST v14.0 · Status: <span class="tag green">Complete</span> · 2 overrides
+          </div>
+          <div class="isolate-actions">
+            <button class="btn btn-tertiary btn-sm">Edit Isolate</button>
+            <button class="btn btn-tertiary btn-sm">View AST</button>
+            <button class="btn btn-ghost btn-sm">Reidentify</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- AST results section -->
+      <section class="section-card">
+        <h2>AST Results <span class="count">1 / 1 complete</span></h2>
+        <div class="isolate-tile">
+          <h3>Isolate 1 — <span class="org-name">E. coli</span> (eco)</h3>
+          <div style="font-size: 13px; color: #525252; margin-bottom: 0.5rem;">
+            <strong>Run #1</strong> · Panel: GN-STD · Method: VITEK 2 AST-GN · Card: V2-CRD-2026-05-12-001 · EUCAST v14.0 · Started 2026-05-12 07:54 by Olivia · Completed 2026-05-12 11:45 (auto)
+          </div>
+          <table class="ast-table">
+            <thead>
+              <tr><th>Antibiotic</th><th>MIC (µg/mL)</th><th>Zone (mm)</th><th>Interp</th><th>Override?</th><th>Source</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Ampicillin</td><td>&gt; 32</td><td>—</td><td><span class="interp R">R</span></td><td></td><td>ANALYZER</td></tr>
+              <tr><td>Amoxicillin/Clavulanate</td><td>16</td><td>—</td><td><span class="interp R">R</span></td><td></td><td>ANALYZER</td></tr>
+              <tr><td>TMP/SMX</td><td>≤ 0.5</td><td>—</td><td><span class="interp S">S</span></td><td></td><td>ANALYZER</td></tr>
+              <tr><td>Cefazolin</td><td>8</td><td>—</td><td><span class="interp R">R</span></td><td></td><td>ANALYZER</td></tr>
+              <tr class="has-override"><td>Ceftriaxone</td><td>16</td><td>—</td><td><span class="interp R">R</span></td><td><span class="override-mark">→ R (ESBL)</span></td><td>OVERRIDE</td></tr>
+              <tr><td>Cefepime</td><td>2</td><td>—</td><td><span class="interp I">I</span></td><td></td><td>ANALYZER</td></tr>
+              <tr><td>Meropenem</td><td>≤ 0.25</td><td>—</td><td><span class="interp S">S</span></td><td></td><td>ANALYZER</td></tr>
+              <tr><td>Ertapenem</td><td>≤ 0.25</td><td>—</td><td><span class="interp S">S</span></td><td></td><td>ANALYZER</td></tr>
+              <tr><td>Ciprofloxacin</td><td>2</td><td>—</td><td><span class="interp I">I</span></td><td></td><td>ANALYZER</td></tr>
+              <tr><td>Levofloxacin</td><td>1</td><td>—</td><td><span class="interp S">S</span></td><td></td><td>ANALYZER</td></tr>
+              <tr class="has-override"><td>Gentamicin</td><td>4</td><td>—</td><td><span class="interp R">R</span></td><td><span class="override-mark">→ R (cascade)</span></td><td>OVERRIDE</td></tr>
+              <tr><td>Amikacin</td><td>4</td><td>—</td><td><span class="interp S">S</span></td><td></td><td>ANALYZER</td></tr>
+              <tr><td>Tobramycin</td><td>≤ 1</td><td>—</td><td><span class="interp S">S</span></td><td></td><td>ANALYZER</td></tr>
+              <tr><td>Fosfomycin</td><td>≤ 32</td><td>—</td><td><span class="interp S">S</span></td><td></td><td>ANALYZER</td></tr>
+              <tr><td>Nitrofurantoin</td><td>≤ 16</td><td>—</td><td><span class="interp S">S</span></td><td></td><td>ANALYZER</td></tr>
+              <tr><td>Aztreonam</td><td>8</td><td>—</td><td><span class="interp R">R</span></td><td></td><td>ANALYZER</td></tr>
+            </tbody>
+          </table>
+          <div class="isolate-actions">
+            <button class="btn btn-tertiary btn-sm">Edit AST</button>
+            <button class="btn btn-tertiary btn-sm">View Audit</button>
+            <button class="btn btn-ghost btn-sm">+ New AST Run</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Reports section -->
+      <section class="section-card">
+        <h2>Reports</h2>
+        <div class="report-row">
+          <div class="label">Preliminary</div>
+          <div class="timestamp">Released 2026-05-12 07:42 by Olivia Mendez · Distribution: Email, Print, FHIR</div>
+          <div class="report-actions"><button class="btn btn-tertiary btn-sm">View PDF</button></div>
+        </div>
+        <div class="info-banner">
+          <div>
+            <strong>Final report not yet released.</strong> Awaiting supervisor review. Required for Final release:
+            all Isolates have final ID ✓ · AST complete for clinically significant Isolates ✓ ·
+            Expert flags addressed (N/A in Phase 1A) ✓ · No pending additional tests
+            <span class="tag yellow">Pending ESBL confirmation card</span> · Clinical correlation reviewed (pending)
+          </div>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-primary btn-sm">Release Final</button>
+          <button class="btn btn-ghost btn-sm">Re-release Preliminary</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Footer action bar -->
+  <div class="footer-bar">
+    <span class="unsaved">⚠ Unsaved changes (AST comment)</span>
+    <div class="spacer"></div>
+    <button class="btn btn-ghost btn-sm">Discard</button>
+    <button class="btn btn-tertiary btn-sm">Save Progress</button>
+    <button class="btn btn-secondary btn-sm">Release Preliminary (released)</button>
+    <button class="btn btn-primary">Release Final</button>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 600" font-family="IBM Plex Sans, Arial, sans-serif">
+  <style>
+    .mvp { fill:#edf5ff; stroke:#0f62fe; stroke-width:1.5; }
+    .plus { fill:#d9fbfb; stroke:#007d79; stroke-width:1.5; }
+    .b1 { fill:#f6f2ff; stroke:#8a3ffc; stroke-width:1.5; }
+    .hub { fill:#fff8e1; stroke:#b28600; stroke-width:2.5; }
+    .key { font-size:12px; font-weight:700; fill:#161616; }
+    .name { font-size:11px; fill:#393939; }
+    .pts { font-size:10px; fill:#6f6f6f; }
+    .edge { stroke:#a8a8a8; stroke-width:1.3; fill:none; marker-end:url(#arrow); }
+    .kdep { stroke:#0f62fe; stroke-width:1.8; fill:none; marker-end:url(#arrowb); }
+    .tier { font-size:11px; fill:#8d8d8d; font-weight:600; letter-spacing:0.5px; }
+    .title { font-size:20px; font-weight:600; fill:#161616; }
+    .sub { font-size:12px; fill:#6f6f6f; }
+    .legend { font-size:11px; fill:#393939; }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a8a8a8"/></marker>
+    <marker id="arrowb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f62fe"/></marker>
+  </defs>
+
+  <text x="24" y="32" class="title">Microbiology / AMR — Epic Dependency Graph</text>
+  <text x="24" y="52" class="sub">Arrows = "blocks" (build order, left to right). 14 epics · 75 child stories · all relate to the M-00 spine. Blue = key dependency.</text>
+
+  <text x="95" y="86" class="tier" text-anchor="middle">FOUNDATIONS</text>
+  <text x="315" y="86" class="tier" text-anchor="middle">CATALOG</text>
+  <text x="520" y="86" class="tier" text-anchor="middle">CASE HUB</text>
+  <text x="735" y="86" class="tier" text-anchor="middle">OPERATIONAL</text>
+  <text x="935" y="86" class="tier" text-anchor="middle">REVIEW / WORKLIST</text>
+  <text x="1135" y="86" class="tier" text-anchor="middle">SURVEILLANCE</text>
+
+  <!-- EDGES -->
+  <path class="kdep" d="M170,134 L240,204"/>
+  <path class="kdep" d="M170,134 L440,275"/>
+  <path class="kdep" d="M170,134 L660,274"/>
+  <path class="edge" d="M170,134 L660,174"/>
+  <path class="edge" d="M170,134 L1060,200"/>
+  <path class="kdep" d="M170,204 L440,279"/>
+  <path class="edge" d="M170,204 L660,278"/>
+  <path class="edge" d="M170,274 L440,288"/>
+  <path class="edge" d="M170,274 L660,286"/>
+  <path class="kdep" d="M390,204 L440,275"/>
+  <path class="kdep" d="M390,204 L660,270"/>
+  <path class="kdep" d="M600,279 L660,274"/>
+  <path class="edge" d="M520,250 L660,178"/>
+  <path class="edge" d="M600,283 L860,352"/>
+  <path class="edge" d="M600,292 L660,470"/>
+  <path class="edge" d="M600,279 L1060,202"/>
+  <path class="edge" d="M810,274 L860,350"/>
+  <path class="edge" d="M810,278 L860,452"/>
+  <path class="edge" d="M810,274 L1060,206"/>
+  <path class="edge" d="M1010,452 L1060,214"/>
+  <path class="edge" d="M1135,252 L1135,300"/>
+
+  <!-- NODES -->
+  <g><rect class="mvp" x="20" y="110" width="150" height="48" rx="6"/><text x="30" y="131" class="key">OGC-786 · M-01</text><text x="30" y="148" class="name">Reference data</text></g>
+  <g><rect class="mvp" x="20" y="180" width="150" height="48" rx="6"/><text x="30" y="201" class="key">OGC-784 · M-12</text><text x="30" y="218" class="name">Reagent linkage</text></g>
+  <g><rect class="mvp" x="20" y="250" width="150" height="48" rx="6"/><text x="30" y="271" class="key">OGC-788 · M-08</text><text x="30" y="288" class="name">Macro library</text></g>
+  <g><rect class="mvp" x="20" y="320" width="150" height="48" rx="6"/><text x="30" y="341" class="key">OGC-782 · M-00</text><text x="30" y="358" class="name">Parent / spec</text></g>
+  <g><rect class="mvp" x="20" y="390" width="150" height="48" rx="6"/><text x="30" y="411" class="key">OGC-783 · M-NFR</text><text x="30" y="428" class="name">Non-functional</text></g>
+
+  <g><rect class="mvp" x="240" y="180" width="150" height="48" rx="6"/><text x="250" y="201" class="key">OGC-787 · M-02</text><text x="250" y="218" class="name">Breakpoints</text></g>
+
+  <g><rect class="hub" x="440" y="250" width="160" height="58" rx="6"/><text x="452" y="272" class="key">OGC-790 · M-04</text><text x="452" y="288" class="name">Case Workbench (hub)</text><text x="452" y="302" class="pts">21 stories · 95 pts</text></g>
+
+  <g><rect class="mvp" x="660" y="150" width="150" height="48" rx="6"/><text x="670" y="171" class="key">OGC-789 · M-03</text><text x="670" y="188" class="name">Order-entry hook</text></g>
+  <g><rect class="plus" x="660" y="250" width="150" height="48" rx="6"/><text x="670" y="271" class="key">OGC-791 · M-05</text><text x="670" y="288" class="name">AST entry</text></g>
+  <g><rect class="mvp" x="660" y="450" width="150" height="48" rx="6"/><text x="670" y="471" class="key">OGC-785 · M-11</text><text x="670" y="488" class="name">Critical notify</text></g>
+
+  <g><rect class="plus" x="860" y="330" width="150" height="48" rx="6"/><text x="870" y="351" class="key">OGC-792 · M-07</text><text x="870" y="368" class="name">Worklists</text></g>
+  <g><rect class="b1" x="860" y="430" width="150" height="48" rx="6"/><text x="870" y="451" class="key">OGC-793 · M-06</text><text x="870" y="468" class="name">Expert rules</text></g>
+
+  <g><rect class="plus" x="1060" y="180" width="150" height="48" rx="6"/><text x="1070" y="201" class="key">OGC-794 · M-09</text><text x="1070" y="218" class="name">WHONET export</text></g>
+  <g><rect class="b1" x="1060" y="300" width="150" height="48" rx="6"/><text x="1070" y="321" class="key">OGC-795 · M-10</text><text x="1070" y="338" class="name">Hub subscription</text></g>
+
+  <!-- legend -->
+  <g transform="translate(24,560)">
+    <rect x="0" y="0" width="14" height="12" rx="2" fill="#edf5ff" stroke="#0f62fe"/><text x="20" y="10" class="legend">MVP-1A</text>
+    <rect x="95" y="0" width="14" height="12" rx="2" fill="#d9fbfb" stroke="#007d79"/><text x="115" y="10" class="legend">Phase 1A+</text>
+    <rect x="205" y="0" width="14" height="12" rx="2" fill="#f6f2ff" stroke="#8a3ffc"/><text x="225" y="10" class="legend">Phase 1B</text>
+    <rect x="300" y="0" width="14" height="12" rx="2" fill="#fff8e1" stroke="#b28600" stroke-width="2"/><text x="320" y="10" class="legend">Case hub</text>
+    <line x1="405" y1="6" x2="445" y2="6" class="kdep"/><text x="452" y="10" class="legend">key dependency</text>
+    <text x="600" y="10" class="legend" fill="#8d8d8d">(M-01, M-02, M-09 also feed M-10)</text>
+  </g>
+</svg>

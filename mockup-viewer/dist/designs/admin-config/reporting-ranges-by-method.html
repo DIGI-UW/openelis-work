@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Reporting Ranges by Method — OpenELIS preview (v2)</title>
+  <link rel="stylesheet" href="https://1.www.s81c.com/common/carbon/plex/sans.css" />
+  <style>
+    :root {
+      --bg-0: #ffffff;
+      --bg-1: #f4f4f4;
+      --bg-2: #e0e0e0;
+      --text: #161616;
+      --text-muted: #525252;
+      --text-placeholder: #a8a8a8;
+      --border: #e0e0e0;
+      --border-subtle: #c6c6c6;
+      --blue: #0f62fe;
+      --green: #198038;
+      --warn-bg: #fdd13a33;
+      --warn-border: #f1c21b;
+      --danger: #da1e28;
+      --cyan: #00539a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-1);
+      color: var(--text);
+    }
+    code, .mono { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; }
+
+    .hdr { position: fixed; top: 0; left: 0; right: 0; height: 48px; background: #161616; color: #fff;
+           display: flex; align-items: center; padding: 0 1rem; z-index: 10; }
+    .hdr-brand { font-weight: 600; letter-spacing: 0.02em; }
+    .hdr-prefix { opacity: 0.7; margin-right: 0.5rem; }
+    .hdr-right { margin-left: auto; display: flex; gap: 0.75rem; align-items: center; }
+    .hdr-toggle { font-size: 0.75rem; color: #c6c6c6; background: transparent; border: 1px solid #525252; padding: 0.25rem 0.5rem; cursor: pointer; border-radius: 2px; }
+    .hdr-toggle:hover { background: #393939; }
+
+    .side { position: fixed; top: 48px; bottom: 0; left: 0; width: 256px;
+            background: #fff; border-right: 1px solid var(--border); overflow-y: auto; }
+    .side-sec-title { font-size: 0.875rem; font-weight: 600; color: var(--text);
+                      padding: 0.75rem 1rem; cursor: pointer;
+                      display: flex; align-items: center; justify-content: space-between; }
+    .side-sec-title:hover { background: #e8e8e8; }
+    .side-sec-title .chev { font-size: 0.75rem; opacity: 0.6; }
+    .side-sec-items { display: block; padding-bottom: 0.5rem; }
+    .side-sec.collapsed .side-sec-items { display: none; }
+    .side-item { display: block; padding: 0.5rem 1rem 0.5rem 2rem;
+                 font-size: 0.875rem; color: var(--text-muted);
+                 text-decoration: none; cursor: pointer; border-left: 3px solid transparent; }
+    .side-item:hover { background: #e8e8e8; color: var(--text); }
+    .side-item.active { background: #e0e0e0; color: var(--text); font-weight: 600; border-left-color: var(--blue); }
+
+    main { margin-left: 256px; margin-top: 48px; padding: 2rem; }
+    h2 { font-size: 1.75rem; font-weight: 400; margin: 0.5rem 0 0.25rem; }
+    h4 { margin: 0 0 0.25rem; font-weight: 600; font-size: 1rem; }
+    .breadcrumb { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+    .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+    .breadcrumb .sep { margin: 0 0.4rem; opacity: 0.5; }
+    .breadcrumb .current { color: var(--text); }
+    .sub { color: var(--text-muted); margin: 0 0 1.5rem; font-size: 0.875rem; max-width: 900px; }
+
+    .toolbar { display: flex; gap: 1rem; align-items: flex-end; padding: 0.75rem; background: #fff; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .toolbar .right { margin-left: auto; }
+    .filter-col { display: flex; flex-direction: column; gap: 0.25rem; }
+    .filter-col label { font-size: 0.6875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .filter-col select, .filter-col input { padding: 0.35rem 0.5rem; border: 1px solid var(--border-subtle); background: #fff; font-size: 0.8125rem; min-width: 10rem; }
+
+    .table-wrap { background: #fff; }
+    table.t { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    table.t th { text-align: left; font-weight: 600; padding: 0.75rem; background: #fff;
+                 border-bottom: 1px solid var(--border); color: var(--text); }
+    table.t td { padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    table.t tr.expanded { background: var(--bg-1); }
+    .expand-btn { background: transparent; border: 0; padding: 0.25rem; cursor: pointer; color: var(--text); }
+    .expand-btn:hover { background: #e8e8e8; }
+
+    .tag { display: inline-flex; align-items: center; padding: 0 0.5rem; height: 1.5rem;
+           border-radius: 1.5rem; font-size: 0.75rem; font-weight: 400; }
+    .tag-cyan { background: #bae6ff; color: #003a6d; }
+    .tag-gray { background: #e0e0e0; color: #393939; }
+    .tag-warm { background: #d4cdcb; color: #3c3838; }
+    .tag-green { background: #a7f0ba; color: #044317; }
+
+    .expand-panel { padding: 1.25rem 1.25rem 1.25rem 3rem; background: var(--bg-1); }
+    .expand-panel h5 { margin: 0 0 0.25rem; font-size: 0.875rem; font-weight: 600; }
+    .expand-panel .hint { color: var(--text-muted); font-size: 0.8125rem; margin: 0 0 0.75rem; max-width: 900px; }
+
+    table.sub-t { width: 100%; border-collapse: collapse; font-size: 0.8125rem; background: #fff;
+                  border: 1px solid var(--border); }
+    table.sub-t th, table.sub-t td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); text-align: left; }
+    table.sub-t input { width: 7rem; padding: 0.25rem 0.5rem; font-size: 0.875rem;
+                         border: 1px solid var(--border-subtle); background: #fff; }
+    table.sub-t input.wide { width: 8rem; }
+    .inline-invalid { border-color: var(--danger) !important; }
+    .section-header { display: flex; justify-content: space-between; align-items: flex-start; margin: 0 0 0.75rem; }
+    .section-header .section-meta { max-width: 900px; }
+    .section-header p { margin: 0; font-size: 0.8125rem; color: var(--text-muted); }
+
+    .note { display: flex; padding: 0.75rem 1rem; font-size: 0.8125rem; border-left: 3px solid; margin: 0.75rem 0; max-width: 900px; }
+    .note.info    { background: #edf5ff; border-color: var(--blue); }
+    .note.warning { background: var(--warn-bg); border-color: var(--warn-border); }
+    .note.success { background: #defbe6; border-color: var(--green); }
+    .note strong { font-weight: 600; }
+
+    button.btn { font-family: inherit; font-size: 0.875rem; padding: 0.5rem 1rem; border: 0; cursor: pointer; }
+    button.btn.sm { font-size: 0.8125rem; padding: 0.35rem 0.75rem; }
+    button.btn.primary { background: var(--blue); color: #fff; }
+    button.btn.primary:hover { background: #0353e9; }
+    button.btn.primary:disabled { background: #8d8d8d; cursor: not-allowed; }
+    button.btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--border-subtle); }
+    button.btn.ghost:hover { background: #e8e8e8; }
+    button.btn.ghost:disabled { color: #a8a8a8; cursor: not-allowed; background: transparent; }
+    button.btn.danger { background: transparent; color: var(--danger); }
+    button.btn.danger:hover { background: #fff1f1; }
+    button.btn.danger:disabled { color: #a8a8a8; cursor: not-allowed; }
+
+    .modal-bg { position: fixed; inset: 0; background: rgba(22,22,22,0.6); display: none; align-items: center; justify-content: center; z-index: 20; }
+    .modal-bg.open { display: flex; }
+    .modal { background: #fff; width: 520px; max-width: 90vw; }
+    .modal-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); font-weight: 600; }
+    .modal-body { padding: 1rem 1.25rem; }
+    .modal-footer { padding: 0 1.25rem 1.25rem; display: flex; justify-content: flex-end; gap: 0.5rem; }
+    .modal .form-row { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 1rem; }
+    .modal .form-row label { font-size: 0.75rem; color: var(--text-muted); }
+    .modal .form-row input, .modal .form-row select { padding: 0.5rem 0.75rem; font-size: 0.875rem; border: 1px solid var(--border-subtle); }
+    .modal .form-row .field-error { color: var(--danger); font-size: 0.75rem; margin-top: 0.2rem; }
+    .modal .radio-stack { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .tile { background: #fff; padding: 1.25rem; border: 1px solid var(--border); max-width: 760px; margin-bottom: 1rem; }
+    .tile .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    .tile label { font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem; }
+    .tile input, .tile select { width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; border: 1px solid var(--border-subtle); }
+    .resolved-box { background: var(--bg-1); padding: 0.75rem; font-size: 0.8125rem; margin-top: 1rem; }
+    .scene-label { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+
+    .empty { background: #fff; border: 1px dashed var(--border-subtle); padding: 3rem; text-align: center; }
+    .empty h4 { font-size: 1rem; }
+    .empty p { color: var(--text-muted); font-size: 0.875rem; margin: 0.5rem 0 1rem; }
+
+    .row-actions { display: flex; gap: 0.5rem; align-items: center; }
+
+    .pm-helper { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+  </style>
+</head>
+<body>
+  <header class="hdr">
+    <span class="hdr-prefix">OpenELIS</span><span class="hdr-brand">Global</span>
+    <span class="hdr-right">
+      <span class="scene-label" id="perm-label">TEST_CATALOG_MANAGE: on</span>
+      <button class="hdr-toggle" onclick="togglePermission()">Toggle permission</button>
+    </span>
+  </header>
+
+  <nav class="side">
+    <div class="side-sec" id="sec-test-catalog">
+      <div class="side-sec-title" onclick="toggleSec('sec-test-catalog')">
+        <span>Test Catalog</span><span class="chev">▾</span>
+      </div>
+      <div class="side-sec-items">
+        <a class="side-item" data-scene="tests" onclick="setScene('tests')">Test Management</a>
+        <a class="side-item" data-scene="methods" onclick="setScene('methods')">Methods</a>
+      </div>
+    </div>
+    <div class="side-sec" id="sec-patient-tests">
+      <div class="side-sec-title" onclick="toggleSec('sec-patient-tests')">
+        <span>Patient Tests</span><span class="chev">▾</span>
+      </div>
+      <div class="side-sec-items">
+        <a class="side-item" data-scene="result-entry" onclick="setScene('result-entry')">Result entry (preview)</a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main"></main>
+
+  <div class="modal-bg" id="modal-bg">
+    <div class="modal" id="modal"></div>
+  </div>
+
+<script>
+// ---------- Mock data ----------
+//
+// `code` is persisted in the data model but NEVER displayed in the admin UI.
+// USER methods get a server-assigned 'METH-NNN' code (zero-padded, monotonic).
+// PLUGIN methods carry the plugin-supplied code as part of the integration contract.
+// MANUAL is the literal 'MANUAL'. The code is used only for stable identifiers in
+// CSV import/export, audit trails, and plugin namespacing.
+const METHODS = [
+  { id: 'm1', code: 'MANUAL',       name: 'Manual / microscopy', description: 'System default — always available on every test.',                          source: 'MANUAL', analyzerId: null, analyzerName: null, active: true },
+  { id: 'm2', code: 'HUMASTAR-300', name: 'HumaStar 300SR',      description: 'Random-access clinical chemistry analyzer.',                                source: 'PLUGIN', analyzerId: 'a-humastar', analyzerName: 'HumaStar 300SR', active: true },
+  { id: 'm3', code: 'SYSMEX-XN350', name: 'Sysmex XN-350',       description: 'Compact 5-part diff hematology analyzer.',                                  source: 'PLUGIN', analyzerId: 'a-sysmex',   analyzerName: 'Sysmex XN-350', active: true },
+  { id: 'm4', code: 'GXPT-MTB',     name: 'GeneXpert MTB/RIF',   description: 'Cartridge-based NAAT for TB and rifampicin resistance.',                    source: 'PLUGIN', analyzerId: 'a-genexpert',analyzerName: 'GeneXpert', active: true },
+  { id: 'm5', code: 'METH-001',     name: 'HPLC',                description: 'High-performance liquid chromatography. Used for HbA1c when the Sysmex is offline.', source: 'USER', analyzerId: null, analyzerName: null, active: true },
+];
+
+// Server-assigned next code for new USER methods. In production this comes from
+// the API response — the UI never previews or reserves a value.
+function nextUserMethodCode() {
+  const used = METHODS
+    .map(m => /^METH-(\d+)$/.exec(m.code))
+    .filter(Boolean)
+    .map(match => parseInt(match[1], 10));
+  const next = (used.length === 0 ? 0 : Math.max(...used)) + 1;
+  return `METH-${String(next).padStart(3, '0')}`;
+}
+
+const TESTS = [
+  {
+    id: 't1', code: 'HGB', name: 'Hemoglobin', section: 'Hematology', units: 'g/dL',
+    testLevelLow: 5.0, testLevelHigh: 22.0,
+    testMethods: [
+      { id: 'tm1', methodId: 'm1', source: 'MANUAL_DEFAULT', addedOn: '2025-01-14' },
+      { id: 'tm2', methodId: 'm3', source: 'ANALYZER_AUTO',  addedOn: '2025-03-02' },
+    ],
+    methodRanges: [
+      { methodId: 'm1', low: 6.0, high: 18.0, units: 'g/dL' },
+      { methodId: 'm3', low: 4.5, high: 22.0, units: 'g/dL' },
+    ],
+  },
+  {
+    id: 't2', code: 'GLUC', name: 'Glucose, serum', section: 'Chemistry', units: 'mg/dL',
+    testLevelLow: 20, testLevelHigh: 600,
+    testMethods: [
+      { id: 'tm3', methodId: 'm1', source: 'MANUAL_DEFAULT', addedOn: '2025-01-14' },
+      { id: 'tm4', methodId: 'm2', source: 'ANALYZER_AUTO',  addedOn: '2025-02-11' },
+      { id: 'tm5', methodId: 'm5', source: 'USER_ADDED',     addedOn: '2025-04-03' },
+    ],
+    methodRanges: [
+      { methodId: 'm2', low: 30, high: 500, units: 'mg/dL' },
+    ],
+  },
+  {
+    id: 't3', code: 'TB-NAAT', name: 'TB NAAT (Xpert)', section: 'Molecular', units: 'result',
+    testLevelLow: null, testLevelHigh: null,
+    testMethods: [
+      { id: 'tm6', methodId: 'm1', source: 'MANUAL_DEFAULT', addedOn: '2025-01-14' },
+      { id: 'tm7', methodId: 'm4', source: 'ANALYZER_AUTO',  addedOn: '2025-03-20' },
+    ],
+    methodRanges: [],
+  },
+];
+
+// ---------- State ----------
+let scene = 'tests';
+let canManage = true;
+let expandedTestId = 't1';
+let expandedMethodId = null;
+let methodsFilter = { source: 'all', analyzer: 'all', search: '' };
+
+// ---------- Helpers ----------
+function m(id) { return METHODS.find(x => x.id === id); }
+function t(id) { return TESTS.find(x => x.id === id); }
+function sourceTagHtml(method) {
+  if (method.source === 'MANUAL') return '<span class="tag tag-gray">Manual</span>';
+  if (method.source === 'USER')   return '<span class="tag tag-cyan">User</span>';
+  return `<span class="tag tag-warm">Plugin: ${method.analyzerName}</span>`;
+}
+function testMethodSourceTag(tm) {
+  if (tm.source === 'MANUAL_DEFAULT') return '<span class="tag tag-gray">Manual</span>';
+  if (tm.source === 'ANALYZER_AUTO') {
+    const method = m(tm.methodId);
+    return `<span class="tag tag-warm">Analyzer: ${method.analyzerName}</span>`;
+  }
+  return '<span class="tag tag-cyan">User</span>';
+}
+function usedByCounts() {
+  const counts = {};
+  TESTS.forEach(test => test.testMethods.forEach(tm => {
+    counts[tm.methodId] = (counts[tm.methodId] || 0) + 1;
+  }));
+  return counts;
+}
+
+// ---------- Render: Methods admin page ----------
+function renderMethods() {
+  const counts = usedByCounts();
+  const filtered = METHODS.filter(method => {
+    if (methodsFilter.source === 'manual' && method.source !== 'MANUAL') return false;
+    if (methodsFilter.source === 'user'   && method.source !== 'USER') return false;
+    if (methodsFilter.source === 'plugin' && method.source !== 'PLUGIN') return false;
+    if (methodsFilter.source === 'plugin' && methodsFilter.analyzer !== 'all' && method.analyzerId !== methodsFilter.analyzer) return false;
+    if (methodsFilter.search) {
+      const q = methodsFilter.search.toLowerCase();
+      // Search by Name only — `code` is internal and not displayed to admins.
+      if (!method.name.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  const analyzerOptions = [...new Map(METHODS.filter(x => x.source === 'PLUGIN').map(x => [x.analyzerId, x.analyzerName])).entries()]
+    .map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
+
+  return `
+    <div class="breadcrumb"><a>Admin</a><span class="sep">›</span><a>Test Catalog</a><span class="sep">›</span><span class="current">Methods</span></div>
+    <h2>Methods</h2>
+    <p class="sub">Master catalog of methods used by this lab. Plugin-registered methods are read-only; create and manage your own methods here.</p>
+
+    <div class="table-wrap">
+      <div class="toolbar">
+        <div class="filter-col"><label>Source</label>
+          <select onchange="setMethodsFilter('source', this.value)">
+            <option value="all" ${methodsFilter.source==='all'?'selected':''}>All</option>
+            <option value="manual" ${methodsFilter.source==='manual'?'selected':''}>Manual</option>
+            <option value="user" ${methodsFilter.source==='user'?'selected':''}>User</option>
+            <option value="plugin" ${methodsFilter.source==='plugin'?'selected':''}>Plugin</option>
+          </select>
+        </div>
+        ${methodsFilter.source === 'plugin' ? `
+          <div class="filter-col"><label>Analyzer</label>
+            <select onchange="setMethodsFilter('analyzer', this.value)">
+              <option value="all">All analyzers</option>${analyzerOptions}
+            </select>
+          </div>` : ''}
+        <div class="filter-col"><label>Search</label>
+          <input type="text" placeholder="Name" value="${methodsFilter.search}" oninput="setMethodsFilter('search', this.value)" />
+        </div>
+        <div class="right">
+          ${canManage ? `<button class="btn primary" onclick="openAddMethodModal()">+ Add method</button>` : ''}
+        </div>
+      </div>
+
+      ${filtered.length === 0 ? `
+        <div class="empty">
+          <h4>No methods match your filters</h4>
+          <p>Manual is always available. Add your own or configure an analyzer to register more.</p>
+        </div>` : `
+      <table class="t">
+        <thead><tr>
+          <th style="width:3rem"></th>
+          <th>Name</th><th>Source</th><th>Used by</th><th>Status</th>
+        </tr></thead>
+        <tbody>
+          ${filtered.map(method => {
+            const expanded = expandedMethodId === method.id;
+            const used = counts[method.id] || 0;
+            return `
+              <tr class="${expanded ? 'expanded' : ''}">
+                <td><button class="expand-btn" onclick="toggleMethod('${method.id}')">${expanded ? '▴' : '▾'}</button></td>
+                <td><strong>${method.name}</strong></td>
+                <td>${sourceTagHtml(method)}</td>
+                <td>${used}</td>
+                <td><span class="tag tag-green">${method.active ? 'Active' : 'Inactive'}</span></td>
+              </tr>
+              ${expanded ? `<tr><td colspan="5"><div class="expand-panel">${renderMethodExpand(method, used)}</div></td></tr>` : ''}
+            `;
+          }).join('')}
+        </tbody>
+      </table>`}
+    </div>
+  `;
+}
+
+function renderMethodExpand(method, used) {
+  const descBlock = method.description
+    ? `<div style="margin-top:0.5rem;">
+         <strong style="font-size:0.8125rem;">Description</strong>
+         <p style="margin:0.25rem 0 0; white-space:pre-wrap; font-size:0.8125rem;">${method.description}</p>
+       </div>`
+    : '';
+
+  if (method.source === 'MANUAL') {
+    return `<p class="hint"><em>System-provided default — always available on every test.</em></p>${descBlock}`;
+  }
+  if (method.source === 'PLUGIN') {
+    const usingTests = TESTS.filter(tt => tt.testMethods.some(tm => tm.methodId === method.id));
+    return `
+      <p class="hint"><em>Registered by the ${method.analyzerName} analyzer plugin.</em></p>
+      ${descBlock}
+      ${usingTests.length > 0 ? `
+        <h5 style="margin-top:0.75rem;">Tests currently using this method</h5>
+        <ul style="margin:0.25rem 0 0 1rem; font-size:0.8125rem;">
+          ${usingTests.slice(0, 10).map(tt => `<li><strong>${tt.code}</strong> — ${tt.name}</li>`).join('')}
+        </ul>` : ''}
+    `;
+  }
+  const blockDelete = used > 0;
+  return `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; max-width:720px;">
+      <div>
+        <label style="font-size:0.75rem;color:var(--text-muted)">Name</label>
+        <input id="name-${method.id}" type="text" value="${method.name}" ${canManage ? '' : 'disabled'}
+               style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-subtle);" />
+      </div>
+      <div>
+        <label style="font-size:0.75rem;color:var(--text-muted)">Active</label>
+        <div style="margin-top:0.4rem;">
+          <input type="checkbox" ${method.active ? 'checked' : ''} ${canManage ? '' : 'disabled'}
+                 onchange="toggleMethodActive('${method.id}', this.checked)" /> ${method.active ? 'Active' : 'Inactive'}
+        </div>
+      </div>
+      <div style="grid-column: 1 / -1;">
+        <label style="font-size:0.75rem;color:var(--text-muted)">Description <span style="color:var(--text-muted); font-weight:400;">(optional, max 500 chars)</span></label>
+        <textarea id="description-${method.id}" rows="3" ${canManage ? '' : 'disabled'} maxlength="500"
+                  style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-subtle); font-family:inherit; font-size:0.875rem;">${method.description || ''}</textarea>
+        <div class="pm-helper">What this method does, when to use it. Shown when picking a method on a test.</div>
+      </div>
+    </div>
+    ${canManage ? `
+      <div style="margin-top:1rem; display:flex; gap:0.5rem; justify-content:flex-end; align-items:center;">
+        <button class="btn danger" ${blockDelete ? 'disabled' : ''} onclick="confirmDeleteMethod('${method.id}')">Delete</button>
+        ${blockDelete ? `<span class="pm-helper">Used by ${used} tests — remove from each test first.</span>` : ''}
+        <button class="btn primary sm" onclick="saveMethodEdits('${method.id}')">Save</button>
+      </div>` : ''}
+  `;
+}
+
+// ---------- Render: Test Management row-expand ----------
+function renderTests() {
+  return `
+    <div class="breadcrumb"><a>Admin</a><span class="sep">›</span><a>Test Catalog</a><span class="sep">›</span><span class="current">Test Management</span></div>
+    <h2>Test Management</h2>
+    <p class="sub">Expand a test to configure its allowed methods and per-method reporting ranges.</p>
+
+    <div class="table-wrap">
+      <table class="t">
+        <thead><tr>
+          <th style="width:3rem"></th>
+          <th>Code</th><th>Name</th><th>Section</th><th>Units</th>
+          <th>Test-level range</th><th>Methods on test</th>
+        </tr></thead>
+        <tbody>
+          ${TESTS.map(test => {
+            const expanded = expandedTestId === test.id;
+            const rangeText = (test.testLevelLow == null && test.testLevelHigh == null)
+              ? '—'
+              : `${test.testLevelLow ?? '—'} – ${test.testLevelHigh ?? '—'} ${test.units}`;
+            return `
+              <tr class="${expanded ? 'expanded' : ''}">
+                <td><button class="expand-btn" onclick="toggleTest('${test.id}')">${expanded ? '▴' : '▾'}</button></td>
+                <td><strong>${test.code}</strong></td>
+                <td>${test.name}</td>
+                <td>${test.section}</td>
+                <td>${test.units}</td>
+                <td>${rangeText}</td>
+                <td>${test.testMethods.length}</td>
+              </tr>
+              ${expanded ? `<tr><td colspan="7"><div class="expand-panel">${renderTestExpand(test)}</div></td></tr>` : ''}
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderTestExpand(test) {
+  const methodSection = `
+    <section style="margin-bottom:1.5rem;">
+      <div class="section-header">
+        <div class="section-meta">
+          <h5>Methods</h5>
+          <p>Methods allowed on this test. Manual is always available; analyzer methods appear automatically when the analyzer is mapped.</p>
+        </div>
+        ${canManage ? `<button class="btn primary sm" onclick="openAddMethodToTestModal('${test.id}')">+ Add method</button>` : ''}
+      </div>
+      <table class="sub-t">
+        <thead><tr><th>Method</th><th>Source</th><th>Added on</th><th style="width:6rem">Actions</th></tr></thead>
+        <tbody>
+          ${test.testMethods.map(tm => {
+            const method = m(tm.methodId);
+            const canDel = tm.source === 'USER_ADDED' && canManage;
+            const desc = method.description
+              ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.125rem;">${method.description.length > 120 ? method.description.slice(0, 120) + '…' : method.description}</div>`
+              : '';
+            return `
+              <tr>
+                <td><strong>${method.name}</strong>${desc}</td>
+                <td>${testMethodSourceTag(tm)}</td>
+                <td>${tm.addedOn}</td>
+                <td>
+                  ${canManage ? `<button class="btn ghost sm" ${canDel ? '' : 'disabled'} onclick="attemptRemoveTestMethod('${test.id}','${tm.id}')">Remove</button>` : ''}
+                </td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </section>
+  `;
+
+  const rangesSection = `
+    <section>
+      <div class="section-header">
+        <div class="section-meta">
+          <h5>Reporting ranges by method</h5>
+          <p>Set a reporting range per method. If a method has no range configured, this test's existing reporting range applies.</p>
+          <p style="margin-top:0.25rem;">Test-level range (fallback): ${(test.testLevelLow == null && test.testLevelHigh == null) ? 'none' : `${test.testLevelLow ?? '—'} – ${test.testLevelHigh ?? '—'} ${test.units}`}</p>
+        </div>
+      </div>
+      <table class="sub-t">
+        <thead><tr><th>Method</th><th>Low</th><th>High</th><th>Units</th><th style="width:14rem">Actions</th></tr></thead>
+        <tbody>
+          ${test.testMethods.map(tm => {
+            const method = m(tm.methodId);
+            const row = test.methodRanges.find(r => r.methodId === tm.methodId) || { low: null, high: null, units: test.units };
+            const lowFilled = row.low !== null && row.low !== undefined && row.low !== '';
+            const highFilled = row.high !== null && row.high !== undefined && row.high !== '';
+            const mixed = lowFilled !== highFilled;
+            const invalidOrder = lowFilled && highFilled && Number(row.low) > Number(row.high);
+            const invalid = mixed || invalidOrder;
+            const applyDisabled = !lowFilled || !highFilled || invalid;
+            return `
+              <tr>
+                <td><strong>${method.name}</strong></td>
+                <td><input type="number" class="${invalid ? 'inline-invalid' : ''}" value="${row.low ?? ''}" ${canManage ? '' : 'disabled'}
+                           onchange="updateRangeValue('${test.id}','${tm.methodId}','low',this.value)" /></td>
+                <td><input type="number" class="${invalid ? 'inline-invalid' : ''}" value="${row.high ?? ''}" ${canManage ? '' : 'disabled'}
+                           onchange="updateRangeValue('${test.id}','${tm.methodId}','high',this.value)" /></td>
+                <td><input type="text" class="wide" value="${row.units ?? test.units}" ${canManage ? '' : 'disabled'}
+                           onchange="updateRangeValue('${test.id}','${tm.methodId}','units',this.value)" /></td>
+                <td>
+                  ${canManage ? `<button class="btn ghost sm" ${applyDisabled ? 'disabled' : ''} onclick="requestApplyAll('${test.id}','${tm.methodId}')">Apply this range to all methods</button>` : ''}
+                  ${invalid ? `<div class="pm-helper" style="color:var(--danger)">${mixed ? 'Both Low and High must be filled, or both left empty.' : 'Low must be ≤ High.'}</div>` : ''}
+                </td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </section>
+  `;
+  return methodSection + rangesSection;
+}
+
+// ---------- Render: Result entry preview ----------
+let reState = { testId: 't1', methodId: 'm1', value: 17 };
+function renderResultEntry() {
+  const test = t(reState.testId);
+  const allowed = test.testMethods.map(tm => m(tm.methodId));
+  const method = allowed.find(x => x.id === reState.methodId) || allowed[0];
+  reState.methodId = method.id;
+
+  const methodRange = test.methodRanges.find(r => r.methodId === method.id);
+  const hasMethodRange = methodRange && (methodRange.low != null || methodRange.high != null);
+  const resolved = hasMethodRange
+    ? { low: methodRange.low, high: methodRange.high, units: methodRange.units, label: `Method range (${method.name})` }
+    : { low: test.testLevelLow, high: test.testLevelHigh, units: test.units, label: 'Test-level range' };
+
+  const n = Number(reState.value);
+  const out = (resolved.low != null && n < Number(resolved.low)) || (resolved.high != null && n > Number(resolved.high));
+
+  const testOptions = TESTS.map(tt => `<option value="${tt.id}" ${reState.testId===tt.id?'selected':''}>${tt.code} — ${tt.name}</option>`).join('');
+  const methodOptions = allowed.map(x => `<option value="${x.id}" ${reState.methodId===x.id?'selected':''}>${x.name}</option>`).join('');
+
+  const resolvedCopy = (resolved.low == null && resolved.high == null)
+    ? `${resolved.label}: not configured — no warning can fire.`
+    : `${resolved.label}: ${resolved.low ?? '—'} – ${resolved.high ?? '—'} ${resolved.units}`;
+
+  return `
+    <div class="breadcrumb"><a>Patient tests</a><span class="sep">›</span><span class="current">Result entry preview</span></div>
+    <h2>Result entry — method-aware range lookup</h2>
+    <p class="sub">The out-of-range warning uses the method the tech selected. If the method has no range configured, the test's existing test-level range applies — same behavior as today.</p>
+
+    <div class="tile">
+      <div class="form-grid">
+        <div>
+          <label>Test</label>
+          <select onchange="reState.testId=this.value; reState.methodId=''; render()">${testOptions}</select>
+        </div>
+        <div>
+          <label>Method</label>
+          <select onchange="reState.methodId=this.value; render()">${methodOptions}</select>
+        </div>
+        <div>
+          <label>Value (${test.units})</label>
+          <input type="number" value="${reState.value}" oninput="reState.value=this.value; render()" />
+        </div>
+      </div>
+      <div class="resolved-box"><strong>Resolved range:</strong> ${resolvedCopy}</div>
+      ${out ? `
+        <div class="note warning">
+          <div>
+            <strong>Result is outside of reporting range.</strong>
+            Please verify — evaluated against ${resolved.label}.
+          </div>
+        </div>` : ''}
+    </div>
+
+    <div class="tile">
+      <h4 style="margin-bottom:0.5rem;">Try these scenarios</h4>
+      <ul style="font-size:0.8125rem;color:var(--text-muted);margin:0 0 0 1rem;padding:0;">
+        <li><strong>HGB + Manual</strong> value <strong>17</strong> → inside method range 6–18, no warning.</li>
+        <li><strong>HGB + Manual</strong> value <strong>19</strong> → outside method range 6–18, warning fires.</li>
+        <li><strong>GLUC + Manual</strong> value <strong>10</strong> → no method range configured, falls through to test-level 20–600; 10 is below 20, warning fires.</li>
+        <li><strong>GLUC + HumaStar</strong> value <strong>10</strong> → method range 30–500; 10 is below 30, warning fires.</li>
+        <li><strong>TB-NAAT + GeneXpert</strong> → no method range and no test-level range, no warning can fire.</li>
+      </ul>
+    </div>
+  `;
+}
+
+// ---------- Event handlers ----------
+function render() {
+  document.getElementById('main').innerHTML =
+    scene === 'tests'        ? renderTests()
+  : scene === 'methods'      ? renderMethods()
+  : scene === 'result-entry' ? renderResultEntry()
+  : '';
+  document.querySelectorAll('.side-item').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('data-scene') === scene);
+  });
+  document.getElementById('perm-label').textContent = `TEST_CATALOG_MANAGE: ${canManage ? 'on' : 'off'}`;
+}
+function setScene(name) { scene = name; render(); }
+function toggleSec(id) { document.getElementById(id).classList.toggle('collapsed'); }
+function togglePermission() { canManage = !canManage; render(); }
+
+function toggleTest(id) { expandedTestId = expandedTestId === id ? null : id; render(); }
+function toggleMethod(id) { expandedMethodId = expandedMethodId === id ? null : id; render(); }
+function setMethodsFilter(key, value) {
+  methodsFilter[key] = value;
+  if (key === 'source' && value !== 'plugin') methodsFilter.analyzer = 'all';
+  render();
+}
+
+function updateRangeValue(testId, methodId, key, value) {
+  const test = t(testId);
+  let row = test.methodRanges.find(r => r.methodId === methodId);
+  if (!row) {
+    row = { methodId, low: null, high: null, units: test.units };
+    test.methodRanges.push(row);
+  }
+  row[key] = (value === '' || value == null) ? null : (key === 'units' ? value : Number(value));
+  render();
+}
+
+function requestApplyAll(testId, sourceMethodId) {
+  const test = t(testId);
+  const src = test.methodRanges.find(r => r.methodId === sourceMethodId);
+  if (!src || src.low == null || src.high == null) return;
+  const overwriteCount = test.testMethods.filter(tm => {
+    if (tm.methodId === sourceMethodId) return false;
+    const existing = test.methodRanges.find(r => r.methodId === tm.methodId);
+    return existing && (existing.low != null || existing.high != null);
+  }).length;
+  if (overwriteCount === 0) { doApplyAll(testId, sourceMethodId); return; }
+  openModal(`
+    <div class="modal-header">Apply range to all methods?</div>
+    <div class="modal-body">
+      <p>Overwrite ${overwriteCount} existing range(s) with ${src.low}–${src.high} ${src.units}?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" style="background:var(--danger);" onclick="doApplyAll('${testId}','${sourceMethodId}'); closeModal();">Overwrite</button>
+    </div>
+  `);
+}
+
+function doApplyAll(testId, sourceMethodId) {
+  const test = t(testId);
+  const src = test.methodRanges.find(r => r.methodId === sourceMethodId);
+  if (!src) return;
+  test.testMethods.forEach(tm => {
+    if (tm.methodId === sourceMethodId) return;
+    let row = test.methodRanges.find(r => r.methodId === tm.methodId);
+    if (!row) {
+      row = { methodId: tm.methodId };
+      test.methodRanges.push(row);
+    }
+    row.low = src.low; row.high = src.high; row.units = src.units;
+  });
+  render();
+}
+
+function attemptRemoveTestMethod(testId, tmId) {
+  const test = t(testId);
+  const tm = test.testMethods.find(x => x.id === tmId);
+  if (!tm) return;
+  if (tm.source === 'MANUAL_DEFAULT') {
+    openModal(`
+      <div class="modal-header">Cannot remove Manual</div>
+      <div class="modal-body"><p>Manual is always available and cannot be removed.</p></div>
+      <div class="modal-footer"><button class="btn ghost" onclick="closeModal()">OK</button></div>
+    `);
+    return;
+  }
+  if (tm.source === 'ANALYZER_AUTO') {
+    const method = m(tm.methodId);
+    openModal(`
+      <div class="modal-header">Cannot remove analyzer method</div>
+      <div class="modal-body"><p>This method is provided by the ${method.analyzerName} mapping. To remove it, un-map the analyzer from this test.</p></div>
+      <div class="modal-footer"><button class="btn ghost" onclick="closeModal()">OK</button></div>
+    `);
+    return;
+  }
+  openModal(`
+    <div class="modal-header">Remove method?</div>
+    <div class="modal-body"><p>Remove this method from this test? Any reporting range you set for this method will also be removed.</p></div>
+    <div class="modal-footer">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" style="background:var(--danger);" onclick="confirmRemoveTestMethod('${testId}','${tmId}'); closeModal();">Remove</button>
+    </div>
+  `);
+}
+
+function confirmRemoveTestMethod(testId, tmId) {
+  const test = t(testId);
+  const tm = test.testMethods.find(x => x.id === tmId);
+  if (!tm) return;
+  test.testMethods = test.testMethods.filter(x => x.id !== tmId);
+  test.methodRanges = test.methodRanges.filter(r => r.methodId !== tm.methodId);
+  render();
+}
+
+// ---------- Modals ----------
+function openModal(html) {
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('open');
+}
+
+let addMethodDraft = { name: '', description: '', active: true };
+function openAddMethodModal() {
+  addMethodDraft = { name: '', description: '', active: true };
+  renderAddMethodModal();
+}
+function renderAddMethodModal() {
+  const nameErr = !addMethodDraft.name ? 'Name is required.'
+                : METHODS.some(x => x.source === 'USER' && x.name.trim().toLowerCase() === addMethodDraft.name.trim().toLowerCase())
+                  ? 'A method with this name already exists.'
+                  : null;
+  const descErr = (addMethodDraft.description || '').length > 500 ? 'Description must be 500 characters or fewer.' : null;
+  const canSave = !nameErr && !descErr && addMethodDraft.name;
+  openModal(`
+    <div class="modal-header">Add method</div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>Name</label>
+        <input type="text" value="${addMethodDraft.name}" placeholder="e.g. HPLC"
+               oninput="addMethodDraft.name=this.value; renderAddMethodModal();" />
+        ${(addMethodDraft.name && nameErr) ? `<div class="field-error">${nameErr}</div>` : ''}
+      </div>
+      <div class="form-row">
+        <label>Description <span style="color:var(--text-muted); font-weight:400;">(optional, max 500 chars)</span></label>
+        <textarea rows="3" maxlength="500"
+                  style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-subtle); font-family:inherit; font-size:0.875rem;"
+                  oninput="addMethodDraft.description=this.value; renderAddMethodModal();">${addMethodDraft.description}</textarea>
+        <div class="pm-helper">What this method does, when to use it. Shown when picking a method on a test.</div>
+        ${descErr ? `<div class="field-error">${descErr}</div>` : ''}
+      </div>
+      <div class="form-row">
+        <label>Active</label>
+        <div><input type="checkbox" ${addMethodDraft.active?'checked':''}
+               onchange="addMethodDraft.active=this.checked; renderAddMethodModal();" /> ${addMethodDraft.active?'Active':'Inactive'}</div>
+      </div>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin:0;">A code is assigned automatically when you save. Methods are identified by Name everywhere in the admin.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" ${canSave?'':'disabled'} onclick="saveNewMethod(); closeModal();">Add</button>
+    </div>
+  `);
+}
+function saveNewMethod() {
+  // Server assigns the code; UI never previews it. Mimicking server behavior here.
+  const assignedCode = nextUserMethodCode();
+  const newMethod = {
+    id: `m${METHODS.length + 1}`,
+    code: assignedCode,
+    name: addMethodDraft.name,
+    description: addMethodDraft.description || null,
+    source: 'USER', analyzerId: null, analyzerName: null, active: addMethodDraft.active,
+  };
+  METHODS.push(newMethod);
+  render();
+}
+
+function confirmDeleteMethod(id) {
+  const method = m(id);
+  openModal(`
+    <div class="modal-header">Delete method "${method.name}"?</div>
+    <div class="modal-body"><p>This action cannot be undone.</p></div>
+    <div class="modal-footer">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" style="background:var(--danger);" onclick="deleteMethod('${id}'); closeModal();">Delete</button>
+    </div>
+  `);
+}
+function deleteMethod(id) {
+  const idx = METHODS.findIndex(x => x.id === id);
+  if (idx >= 0) METHODS.splice(idx, 1);
+  render();
+}
+function saveMethodEdits(id) {
+  const method = m(id);
+  if (!method) return;
+  const nameEl = document.getElementById(`name-${id}`);
+  const descEl = document.getElementById(`description-${id}`);
+  if (nameEl) method.name = nameEl.value;
+  if (descEl) method.description = descEl.value || null;
+  render();
+}
+function toggleMethodActive(id, checked) {
+  const method = m(id);
+  method.active = checked;
+  render();
+}
+
+let addToTestDraft = { testId: null, mode: 'pick', pickedId: '', newName: '', newDescription: '' };
+function openAddMethodToTestModal(testId) {
+  addToTestDraft = { testId, mode: 'pick', pickedId: '', newName: '', newDescription: '' };
+  renderAddMethodToTestModal();
+}
+function renderAddMethodToTestModal() {
+  const test = t(addToTestDraft.testId);
+  const existing = new Set(test.testMethods.map(tm => tm.methodId));
+  const mappedAnalyzerIds = new Set(
+    test.testMethods.filter(tm => tm.source === 'ANALYZER_AUTO')
+                    .map(tm => m(tm.methodId).analyzerId)
+  );
+  const pickable = METHODS.filter(x => {
+    if (existing.has(x.id)) return false;
+    if (x.source === 'MANUAL') return false;
+    if (x.source === 'PLUGIN') return mappedAnalyzerIds.has(x.analyzerId);
+    return true;
+  });
+  const newNameErr = addToTestDraft.newName &&
+    METHODS.some(x => x.source === 'USER' && x.name.trim().toLowerCase() === addToTestDraft.newName.trim().toLowerCase())
+      ? 'A method with this name already exists.' : null;
+  const newDescErr = (addToTestDraft.newDescription || '').length > 500 ? 'Description must be 500 characters or fewer.' : null;
+  const canSave = addToTestDraft.mode === 'pick'
+    ? !!addToTestDraft.pickedId
+    : (!newNameErr && !newDescErr && addToTestDraft.newName);
+
+  openModal(`
+    <div class="modal-header">Add method to ${test.code}</div>
+    <div class="modal-body">
+      <div class="radio-stack" style="margin-bottom:1rem;">
+        <label><input type="radio" name="add-mode" ${addToTestDraft.mode==='pick'?'checked':''} onchange="addToTestDraft.mode='pick'; renderAddMethodToTestModal();" /> Pick existing method</label>
+        <label><input type="radio" name="add-mode" ${addToTestDraft.mode==='create'?'checked':''} onchange="addToTestDraft.mode='create'; renderAddMethodToTestModal();" /> Create new method</label>
+      </div>
+      ${addToTestDraft.mode === 'pick' ? `
+        <div class="form-row">
+          <label>Pick a method</label>
+          <select onchange="addToTestDraft.pickedId=this.value; renderAddMethodToTestModal();">
+            <option value="">— choose —</option>
+            ${pickable.map(x => {
+              const suffix = x.source === 'PLUGIN' ? ` — ${x.analyzerName}` : x.source === 'USER' ? ' — user' : '';
+              const descSnippet = x.description
+                ? ` · ${x.description.length > 80 ? x.description.slice(0, 80) + '…' : x.description}`
+                : '';
+              return `<option value="${x.id}" ${addToTestDraft.pickedId===x.id?'selected':''}>${x.name}${suffix}${descSnippet}</option>`;
+            }).join('')}
+          </select>
+          ${pickable.length === 0 ? '<div class="pm-helper">No methods are available to add here. Map an analyzer to this test, or create a new method.</div>' : ''}
+        </div>` : `
+        <div class="form-row">
+          <label>Name</label>
+          <input type="text" value="${addToTestDraft.newName}" oninput="addToTestDraft.newName=this.value; renderAddMethodToTestModal();" />
+          ${newNameErr ? `<div class="field-error">${newNameErr}</div>` : ''}
+        </div>
+        <div class="form-row">
+          <label>Description <span style="color:var(--text-muted); font-weight:400;">(optional, max 500 chars)</span></label>
+          <textarea rows="3" maxlength="500"
+                    style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-subtle); font-family:inherit; font-size:0.875rem;"
+                    oninput="addToTestDraft.newDescription=this.value; renderAddMethodToTestModal();">${addToTestDraft.newDescription}</textarea>
+          ${newDescErr ? `<div class="field-error">${newDescErr}</div>` : ''}
+        </div>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin:0;">The new method is created in the master catalog and added to this test in one step. A code is assigned automatically.</p>
+      `}
+    </div>
+    <div class="modal-footer">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" ${canSave?'':'disabled'} onclick="saveAddMethodToTest(); closeModal();">
+        ${addToTestDraft.mode === 'pick' ? 'Add to test' : 'Create & add'}
+      </button>
+    </div>
+  `);
+}
+function saveAddMethodToTest() {
+  const test = t(addToTestDraft.testId);
+  if (addToTestDraft.mode === 'pick') {
+    const mId = addToTestDraft.pickedId;
+    test.testMethods.push({ id: `tm-${test.id}-${mId}-${Date.now()}`, methodId: mId, source: 'USER_ADDED', addedOn: new Date().toISOString().slice(0,10) });
+  } else {
+    const newM = {
+      id: `m${METHODS.length + 1}`,
+      code: nextUserMethodCode(),
+      name: addToTestDraft.newName,
+      description: addToTestDraft.newDescription || null,
+      source: 'USER', analyzerId: null, analyzerName: null, active: true,
+    };
+    METHODS.push(newM);
+    test.testMethods.push({ id: `tm-${test.id}-${newM.id}`, methodId: newM.id, source: 'USER_ADDED', addedOn: new Date().toISOString().slice(0,10) });
+  }
+  render();
+}
+
+// Boot
+render();
+</script>
+</body>
+</html>
