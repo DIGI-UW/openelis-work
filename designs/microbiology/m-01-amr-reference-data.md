@@ -126,7 +126,7 @@ The list surfaces the **Default panel** column so a manager can see, without ope
 | `default_ast_panel_id` | FK | No | FK to `ast_panel` | **Pre-selected at AST set-up** in M-04 when this organism is the isolate's organism |
 | `intrinsic_resistances` | M:N to antibiotic_master | No | — | Junction table; antibiotics this organism is always resistant to. **Auto-set R in AST regardless of MIC/zone** (review edit H1) |
 | `active` | bool | Yes | Default true | Soft delete |
-| `seeded` | bool | Yes | Default false | True if seeded from WHONET / Hub (M-10) |
+| `seeded` | bool | Yes | Default false | True if seeded from WHONET / Catalog Subscription |
 | `notes` | text | No | ≤ 1000 chars | Clinical or procedural notes |
 | `created_at`, `created_by`, `last_updated_at`, `last_updated_by` | audit | — | — | Standard audit columns |
 
@@ -188,11 +188,11 @@ A small fixed-set vocabulary that drives Expert Rule application. Stored in `org
 - **Deactivate** is the default. Removes the organism from selection dropdowns in workflow surfaces but preserves all historical Isolate references. Deactivated records visible in admin list with `Status: Inactive` filter. The deactivate confirmation states the **downstream impact** plainly: *"This organism will no longer appear in Isolate-ID pickers or as an AST default. Historical cases keep it. Reactivate any time."*
 - **Delete** is only allowed if no Isolate, Breakpoint, or AST Panel references the record. Confirmation dialog warns the user. Deletion is hard; no undo.
 
-### 3.7 Import from Hub
+### 3.7 Import reference-data updates (via Catalog Subscription)
 
-When M-10 Hub Subscription ships (Phase 1B), a "Import from Hub" action appears in the toolbar. It pulls the latest organism master list from the configured central repository and merges. Local additions are preserved; remote updates apply to records where `seeded = true` only.
+Reference-data updates arrive through the existing **Catalog Subscription & Metadata Sync** feature (M-10's bespoke hub is retired — see m-10 v3.0). When a subscribed catalog has organism/antibiotic updates, the admin reviews a field-level diff and applies it: local additions are preserved; remote updates apply to records where `seeded = true` only. *(Open: organism/antibiotic master may need a dedicated catalog resource type — flagged for the Catalog Subscription owner in m-10 §2.)*
 
-In Phase 1A, the toolbar has a placeholder "Import from Hub" button that is disabled with tooltip "Available in Phase 1B." The Phase-1A standard list is **seeded from WHONET** at deployment (`seeded = true`).
+In Phase 1A the list is **seeded from WHONET** at deployment (`seeded = true`); reference-data updates later flow through the existing Catalog Subscription feature (no separate Hub button — M-10 retired).
 
 ### 3.8 Acceptance criteria
 
@@ -528,7 +528,7 @@ Most OE deployments already have a department vocabulary (referenced from Order)
 |--------|---------------------|
 | View any master list | `micro.ref.view` |
 | Add / edit / delete records | `micro.ref.manage` |
-| Import from Hub (Phase 1B) | `micro.hub.manage` (per M-10) |
+| Import / review catalog updates | `catalog.update.review` (Catalog Subscription) |
 
 Per `feedback_openelis_admin_permissions`, the admin menu in OE is binary; access to `Admin → Microbiology Reference Data` is governed by the same top-level admin permission. The codes above gate specific actions within those pages.
 
@@ -595,7 +595,7 @@ All AC-M01-* items above, totaling roughly 30 criteria across the four masters p
 - M-07 Worklist (incubating-stage day count from `max_incubation_days`)
 - M-08 Macro Library (provides `organisms` category macros that reference Organism Master)
 - M-09 WHONET Export (reads WHONET codes from Organism Master + Antibiotic Master)
-- M-10 Hub Subscription (Phase 1B; provides Import from Hub action)
+- Catalog Subscription & Metadata Sync (provides reference-data update import; M-10 retired)
 - Test Catalog v2.5 (`test-catalog-requirements-v2.5.md`)
 - Sample Type Management FRS (`Sample-Type-Management-FRS.md`)
 - WHONET design review (`whonet-export-design-review-v1.md`)

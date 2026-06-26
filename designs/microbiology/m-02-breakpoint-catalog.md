@@ -54,7 +54,7 @@ Hold the lab's set of breakpoint reference standards. Multiple versions of each 
 - **M-05 AST Entry & Interpretation** — calls `BreakpointLookupService(organism_id, antibiotic_id, method, breakpoint_standard_id)`. Returns S, I, R thresholds. **M-05 surfaces which precedence level matched** (organism-specific / group / none) so the tech can trust the interpretation — see §6.2.
 - **M-04 Case Workbench** — AST Run header records `breakpoint_standard_id` + `breakpoint_version` at setup time. Snapshots survive subsequent catalog changes.
 - **M-09 WHONET Export** — writes `breakpoint_standard` value (e.g., `CLSI_M100_2024`) into each exported AST result column.
-- **M-10 Hub Subscription** (Phase 1B) — provides automated import of new standard versions from a central repository.
+- **Catalog Subscription & Metadata Sync** (existing) — automated import of new breakpoint-standard versions (FHIR PlanDefinition) from a central catalog; lands them `Loaded`, activated here. *(M-10's bespoke hub retired.)*
 
 ---
 
@@ -367,11 +367,11 @@ The R/S call is binary: the measured/tested concentration **≥ critical concent
 
 ## 8. Import paths
 
-### 8.1 Hub import (Phase 1B via M-10)
+### 8.1 Automated import (via the existing Catalog Subscription feature)
 
-The dominant case. M-10 Hub Subscription pulls structured breakpoint tables from the central repository. New `breakpoint_standard` rows are added; new `breakpoint` rows populate; existing standards' `seeded = true` rows refresh from the source.
+For connected sites, the existing **Catalog Subscription & Metadata Sync** feature pulls breakpoint sets (as FHIR `PlanDefinition`) from a EUCAST/WHO/national-ref-lab catalog or the OpenELIS Community Hub. New `breakpoint_standard` rows are added; new `breakpoint` rows populate; existing standards' `seeded = true` rows refresh from the source. **New standards land `status = Loaded`, never auto-active** — a lab manager activates them here in §8 (the "Activate in Breakpoint Catalog" hand-off). *(M-10's bespoke hub is retired — see m-10 v3.0; this path is Catalog Subscription + the offline §8.2 CSV import.)*
 
-In Phase 1A, breakpoint catalogs are seeded by the **initial deployment process** (data migration), not by an in-app Hub call. The Hub UI is built in Phase 1B per M-10.
+In Phase 1A — and at any offline site — breakpoint catalogs are seeded by the **initial deployment process** (data migration) and updated via the §8.2 file import, not an in-app pull.
 
 ### 8.2 Manual CSV import (Phase 1A)
 
@@ -552,7 +552,7 @@ admin.micro.breakpoint.matchedBy.none          "No standard breakpoint — inter
 - M-01 AMR Reference Data (for organism / antibiotic FK targets)
 - M-05 AST Entry & Interpretation (primary consumer; displays `matched_by` precedence and the per-run standard picker)
 - M-04 Case Workbench Core (records breakpoint_standard_id + version on AST Run)
-- M-10 Hub Subscription (Phase 1B; provides automated import)
+- Catalog Subscription & Metadata Sync (automated breakpoint import; M-10 retired)
 - `amr-crosswalk-working.md` Q4 (versioning rules)
 - `amr-pre-frs-planning-v1.md` §4 (versioning + time edge cases)
 - CLSI M100 reference standard (current version)

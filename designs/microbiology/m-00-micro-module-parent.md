@@ -30,7 +30,7 @@ Bacterial micro workflow end-to-end: order entry hook, culture setup, incubation
 
 **In scope for Phase 1B (3-4 months after 1A):**
 
-Expert Rules Engine with built-in rules (MRSA inference, D-test required, ESBL screen and confirm, cascade reporting, intrinsic resistance verification); WHONET Export Generator with code mapping admin (now **including TB**, M-09 §4.5); Hub Subscription for breakpoint and reference-data updates; additional analyzer profiles (BD Phoenix, Sensititre, BACTEC, MALDI-TOF); FHIR push for micro reports; AST Run QC integration.
+Expert Rules Engine with built-in rules (MRSA inference, D-test required, ESBL screen and confirm, cascade reporting, intrinsic resistance verification); WHONET Export Generator with code mapping admin (now **including TB**, M-09 §4.5); reference-data + breakpoint updates via the existing Catalog Subscription feature (M-10 hub retired); additional analyzer profiles (BD Phoenix, Sensititre, BACTEC, MALDI-TOF); FHIR push for micro reports; AST Run QC integration.
 
 **Planned scope (post-1B; now in scope as planned modules):**
 
@@ -80,7 +80,7 @@ Admin
 │   └── Culture Protocols (as Methods — A-REUSE-1)
 ├── Breakpoint Catalog            (M-02)
 ├── Macro Library                 (M-08)
-├── Hub Subscription              (M-10, Phase 1B)
+├── Hub Subscription              (M-10 — RETIRED; folded into Catalog Subscription)
 ├── WHONET Mapping                (M-09, Phase 1B)
 └── Test → Reagent Linkage        (M-12; cross-cutting, lives in Test Catalog admin actually — see M-12 spec)
 ```
@@ -433,7 +433,7 @@ Per `feedback_openelis_admin_permissions`: admin menu is binary in OE today (all
 | `micro.breakpoint.manage` | Manage Breakpoint Catalog (versions, imports, active selection) |
 | `micro.macro.view` | View Macro Library |
 | `micro.macro.manage` | Manage Macro Library |
-| `micro.hub.manage` | Manage Hub Subscription (Phase 1B) |
+| `catalog.subscription.manage` | Manage catalog subscriptions (existing Catalog Subscription feature; M-10 retired) |
 | `micro.surveillance.export` | Generate WHONET exports (Phase 1B) |
 | `micro.surveillance.mapping` | Manage WHONET code mappings (Phase 1B) |
 | `critical.notify.create` | Log a critical-result notification (used by Micro; also by other modules) |
@@ -545,7 +545,7 @@ Eleven modules ship as a coordinated release. Pre-track: M-12 Test→Reagent Lin
 |--------|-------|
 | M-06 Expert Rules Engine | Built-in rules: MRSA inference, D-test, ESBL screen/confirm, cascade, intrinsic resistance. Emits orders through the existing reflex/test-rules action API (§8.2). |
 | M-09 WHONET Export | Per `whonet-export-design-review-v1.md` |
-| M-10 Hub Subscription | Unified admin: breakpoints + WHONET codes + organism/antibiotic updates |
+| ~~M-10 Hub Subscription~~ | **RETIRED** — duplicated the existing Catalog Subscription & Metadata Sync feature; AMR reference-data updates fold into it (+ M-02 CSV import offline). See m-10 v3.0. |
 | Additional analyzer profiles | BD Phoenix, Sensititre, BACTEC, MALDI-TOF |
 | FHIR push for micro reports | Reuse `FRS_FHIR_Outbound_Push` infrastructure |
 | AST Run QC integration | Run-QC organism results gating release |
@@ -592,7 +592,7 @@ The module deliberately does NOT include:
 - **Real-time outbreak detection** — pattern-based alerts across recent isolates. Phase 4+.
 - **Image attachments** — plate photos, Gram stain photos. UI surface design deferred. Phase 3+.
 - **Mobile bottle barcode scanning** — requires mobile companion app. Phase 3+.
-- **Multi-site config sharing** — Hub Subscription is read-only updates from a central repository, not multi-write.
+- **Multi-site config sharing** — Catalog Subscription is read-only updates from a central catalog, not multi-write.
 - **AI-assisted organism ID** — suggest organism from colony morphology. Phase 4+.
 - **AI-assisted rule creation** — suggest expert rules from data. Phase 4+.
 - **User-specific personal macros** — sites use site-wide macros in Phase 1; per-user is an amplifier.

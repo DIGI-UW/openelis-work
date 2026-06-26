@@ -30,7 +30,7 @@ Mapping vocabularies by hand is the single biggest pain and the usual reason exp
 - **Ship WHONET organism/specimen/origin codes in the M-01 seed data** from a bundled **WHONET dictionary** reference pack, so the common catalog is already mapped on install — the operator never maps *Escherichia coli*.
 - **Suggestions are a deterministic lookup, not a matcher we build (keep the lift small).** For the residue that isn't pre-seeded, a suggestion is produced by, in order: **(a)** exact match on **normalized name** (lowercase, trim, strip punctuation/qualifiers) between the OE entity and the bundled WHONET dictionary; **(b)** a **join on a shared terminology code** the entity already carries — SNOMED/LOINC via the existing **OCL/CIEL** link, since the WHONET dictionary crosswalks to those. Both are plain dictionary lookups against the bundled pack — **no fuzzy/ML matching in MVP**. Anything that matches neither has **no suggestion** and falls to manual mapping. Because a human **confirms every suggestion before it is applied**, a wrong-but-exact name collision is caught at confirm time — there's no correctness risk and nothing to "train."
 - Surfaced as **bulk "confirm suggested mappings"** (accept-all / per-row) rather than per-row data entry.
-- **The real lift is the bundled WHONET dictionary pack + keeping it current** (the **M-10 Hub** refreshes it and fills new entries) — not matching logic. *Optional later:* fuzzy/token-similarity suggestions for near-miss names, explicitly out of MVP scope.
+- **The real lift is the bundled WHONET dictionary pack + keeping it current** (the existing **Catalog Subscription** feature refreshes it and fills new entries; M-10 retired) — not matching logic. *Optional later:* fuzzy/token-similarity suggestions for near-miss names, explicitly out of MVP scope.
 - Net effect: the operator confirms a short list and manually maps only genuinely local/custom items in a few non-catalog vocabularies — a handful, not hundreds.
 
 > **Open reconciliation (flag, do not silently restructure).** In OpenELIS an antibiotic susceptibility *is a Test*, so its WHONET code naturally lives on `test_amr_config` (Test Catalog), which **overlaps with M-01's proposed `antibiotic_master.whonet_code`**. Source of truth should be **one** of them — recommend the Test Catalog AMR config (where the lab already configures the test), with M-01/M-09 reading it. Resolve before build; M-01's antibiotic-master mapping may collapse into a read-through. (Organisms still need the M-01 `organism_master` code, since an organism is not a Test.)
@@ -82,7 +82,7 @@ Generate WHONET-format CSV/TXT files from finalized Cases for submission to the 
 - **M-02 Breakpoint Catalog** — breakpoint standard codes for the export column.
 - **M-06 Expert Rules Engine** — phenotype flags populate phenotype columns.
 - **M-07 Worklists** — the AST Worklist "Export to WHONET" quick action invokes M-09 with filters pre-populated (Phase 1B; disabled in 1A). The route + param contract is defined in §1.5.
-- **M-10 Hub Subscription** — provides code updates.
+- **Catalog Subscription & Metadata Sync** — provides WHONET code-list updates (M-10 retired).
 - **M-14 Mycobacteriology / TB** — source of TB species ID, phenotypic DST (R/S by WHO critical concentration), and molecular resistance flags (Xpert MTB/RIF, LPA) for the WHONET TB export (§4.5).
 
 ### 1.5 AST-Worklist quick-action contract
@@ -188,9 +188,9 @@ When the export preview (§3.2) warns about an unmapped item, clicking **"Map no
 | **Breakpoint Standards** | **Test Catalog AMR config / `breakpoint_standard` (M-02)** | `whonet_label` | **Read-through** from the catalog/M-02; e.g., `CLSI24`, `EUCAST14`, `WHO_TB_2023` |
 | Phenotypes | (new) `phenotype_flag_definition` (small fixed set) | `whonet_column` field | M-09-owned. Maps OE phenotype names to WHONET column names: ESBL_SCREEN, MRSA, VRE, CRE, CARBAPENEMASE, MDR, XDR, PDR |
 
-### 2.6 Import from Hub
+### 2.6 Code-list updates (via Catalog Subscription)
 
-When M-10 Hub Subscription ships, the "Import Hub" button pulls the latest official code lists and merges with the local mapping. Local edits are preserved; new entries from Hub are added.
+WHONET code-list updates arrive through the existing **Catalog Subscription & Metadata Sync** feature (M-10's bespoke hub is retired). Applying an update merges the latest official code lists with the local mapping — local edits preserved, new entries added. *(Open: WHONET codes aren't `ActivityDefinition`/`PlanDefinition` — they may need a dedicated catalog resource type; flagged for the Catalog Subscription owner in m-10 §2.)*
 
 ---
 
@@ -582,7 +582,7 @@ Carried from design review:
 - M-05 AST Entry & Interpretation (AST results in `result` table)
 - M-06 Expert Rules Engine (phenotype flag values)
 - M-07 Worklists (AST-Worklist "Export to WHONET" quick action; Phase-1B disabled in 1A)
-- M-10 Hub Subscription (provides code updates)
+- Catalog Subscription & Metadata Sync (provides WHONET code-list updates; M-10 retired)
 - M-14 Mycobacteriology / TB (source of TB species ID, phenotypic DST, and Xpert/LPA molecular flags for the WHONET TB export, §4.5)
 - **`whonet-export-design-review-v1.md`** — comprehensive design review; this FRS formalizes it
 - `amr-pre-frs-planning-v1.md` §7 (GLASS direction; M-13 removed; M-09 stays)
