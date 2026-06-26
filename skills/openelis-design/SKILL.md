@@ -3,7 +3,7 @@ name: openelis-design
 description: "Expert assistant for designing features in OpenELIS Global, an open-source laboratory information management system (LIMS). Use this skill whenever the user asks to design, specify, mockup, or document any feature for OpenELIS Global — including new modules, admin configuration pages, workflow improvements, analyzer integrations, or clinical data views. Also triggers for Jira story creation, FRS documents, React/Carbon mockups, or any request involving lab informatics design for OpenELIS. If the user mentions lab workflows, LIMS features, clinical lab software, or says anything about \"OpenELIS\", use this skill immediately. Also use for design critique, crosswalk analysis, harmonization reviews, or when the user asks to review, improve, or validate an existing mockup or spec."
 ---
 
-# OpenELIS Global Design Skill v3.2
+# OpenELIS Global Design Skill v3.3
 
 OpenELIS Global is an open-source LIMS used in clinical laboratories worldwide.
 
@@ -102,7 +102,7 @@ classes of mistake surface early instead of at PR time:
 
 **Run it early.** The whole value is catching divergence *before* the FRS is written, so
 trigger `/crosscheck` at brief time (right after `/clarify`). It also runs automatically as a
-pass inside `/analyze` (see Pass O) for the final gate.
+pass inside `/analyze` (see Pass M) for the final gate.
 
 **Inputs it reads:**
 - `references/decision-log.md` — the prior-decisions ledger (match by ID).
@@ -232,11 +232,7 @@ Constitution Principle 7 mandates this. Commit in writing to:
   1. **SideNav placement** — the full menu path: top-level group → parent → sibling order (e.g. `Admin → Configuration → Application Properties`, listed after `Print Layout`)
   2. **Breadcrumb trail** — the exact crumb chain rendered at the top of the page, including the active leaf (e.g. `Home / Admin / Configuration / Application Properties`)
   3. **URL route** — the stable, well-formed URL the dev should wire up. Must match an existing pattern (see conventions). Call out the route in `code formatting`, e.g. `/MasterListsPage/commonproperties`. If extending an existing page, reuse its URL; if new, pick the pattern that fits the closest neighbor.
-- **Permissions & Audit:** *(see `references/permissions-and-audit.md`)* declare four things together:
-  1. **Role attachment** — which existing role bundle(s) grant access to this feature. Default to attaching to an existing role (Reception / Analyst / Validator / Provider / Admin / Test Catalog Manager / EQA Provider). **Do not invent granular permission keys** — OpenELIS uses binary admin + per-module role bundles, not per-action keys.
-  2. **Roles Builder additions** — if the feature introduces a new module-level grant that admins toggle per role, declare: grant label (with i18n key), default role assignments on upgrade, and where it appears on the Roles Builder page. If no new grant is needed, state that explicitly: "None — accessible via existing `[Role]` bundle."
-  3. **Audit events** — for each user action that changes state, declare the `audit_trail` entry: action verb (e.g. `LABEL_PRESET_UPDATED`), target entity type/id, short payload summary, actor (auto-captured from Spring Security). Don't audit reads; do audit configuration changes, validations, state transitions, exports, and security-relevant events.
-  4. **Envers coverage** — for each new entity introduced, declare whether it gets `@Audited` (Hibernate Envers row-level history). Default yes for configuration/clinical/patient data; default no for transient or high-churn entities.
+- **Access:** *(see `references/permissions-and-audit.md`)* describe who can use the feature in terms of existing user roles — which role(s) can see it, and for each action which role can perform it (view vs. change). Default to existing roles (Reception / Analyst / Validator / Provider / Admin / Test Catalog Manager / EQA Provider). Describe access as user capability ("a Validator can release results; an Analyst cannot"), not as an enforcement mechanism, and say what a user without access sees (item hidden, action disabled). If the feature lives entirely inside one role's existing workflow, state that: "Accessible via the existing `[Role]` role."
 
 Share the brief. Adjust on feedback. Then produce the deliverables.
 
@@ -347,7 +343,7 @@ All Jira creation (Epic + child Stories with version labels) happens in `/breakd
 
 **D. Constitution Alignment** (upstream Principles I–X + design-addendum MUSTs)
 - Any requirement or design element conflicting with a MUST?
-- Write operations attached to an existing role bundle, with no invented per-action permission keys (Principle VIII)?
+- Write actions described in terms of which existing role can perform them, not new permission mechanisms (Principle VIII)?
 - Design brief produced before code (Principle IX / Stage 2)?
 - **Design-addendum MUSTs** (see `memory/design-addendum.md`): hard "Delete" on a domain record → CRITICAL; domain-record list with no show/hide-deactivated affordance → MEDIUM (No-Hard-Delete). Static dropdown over a large/growing set → MEDIUM; inline "create heavy entity" flow → MEDIUM (Design-for-Large-Catalogs).
 
@@ -364,9 +360,9 @@ All Jira creation (Epic + child Stories with version labels) happens in `/breakd
 - Data entities referenced in mockup present in FRS Data Model?
 
 **G. Invented Data** (design-addendum MUST A)
-- Every form field, table column, and badge in the mockup traces to a real OpenELIS entity?
-- Any "plausible-looking but not in schema" fields (e.g. invented enums, made-up attributes)?
-- Where new data is needed, is it declared in the FRS Dependencies section as a named entity/attribute?
+- Every form field, table column, and badge in the mockup traces to data OpenELIS actually holds today?
+- Any "plausible-looking but not real" fields (e.g. invented categories, made-up attributes the lab doesn't capture)?
+- Where new data is needed, is it declared in the FRS Dependencies section as a named data element?
 - Auto-CRITICAL: any unflagged invented field.
 
 **H. Multitenancy Smell** (design-addendum MUST B)
@@ -381,34 +377,23 @@ All Jira creation (Epic + child Stories with version labels) happens in `/breakd
 - If a section is genuinely out of scope, is it declared out of scope in the FRS *and* removed from the preview (not left as a stub)?
 - Auto-CRITICAL: any stubbed section in the preview that isn't declared out of scope.
 
-**J. Permissions / Role Attachment** (see `references/permissions-and-audit.md`)
-- Does the FRS declare which existing role bundle(s) grant access?
-- Are any invented per-action permission keys present (e.g. `results.validate`, `test.create` as enforced strings)? OpenELIS uses binary admin + module-bundle roles, not granular keys — flag any invented key as CRITICAL.
-- If a new Roles Builder grant is proposed, are the grant label (with i18n key), default role assignments on upgrade, and Roles Builder UI placement all declared?
-- Is there a role matrix proposed for a feature that lives wholly inside one role's workflow? (Unnecessary — the role's bundle already covers it.)
-- Auto-CRITICAL: write actions with no declared role attachment, OR any invented per-action permission key.
+**J. Access / Roles** (see `references/permissions-and-audit.md`)
+- Does the FRS say who can use the feature, in terms of existing user roles?
+- For each action, is it clear which role can perform it (view vs. change) and what a user without access sees?
+- Is access described as user capability rather than an enforcement mechanism?
+- Is access over-specified — e.g. a per-role matrix for a feature that lives wholly inside one role's existing workflow? (Unnecessary.)
+- Auto-CRITICAL: a write action with no stated role that can perform it.
 
-**K. Audit Trail Coverage** (see `references/permissions-and-audit.md`)
-- For every user action that changes state (writes, validations, status transitions, exports, configuration changes, security events), is an `audit_trail` entry declared?
-- Does each declared entry have: action verb, target entity type/id, payload summary, and actor source?
-- Are any reads/getters being audited unnecessarily? (Audit only state changes and security-relevant events.)
-- Does any audit payload include PII beyond what's needed to identify the target? (Entity id + type is enough.)
-- Auto-HIGH: state-changing actions with no audit_trail declaration. Auto-CRITICAL: audit payloads with unnecessary PII, or any proposal for a parallel audit table.
-
-**L. Envers Coverage** (see `references/permissions-and-audit.md`)
-- For every new entity introduced by the spec, is `@Audited` coverage declared (yes/no with rationale)?
-- Default expectation: yes for configuration / clinical / patient entities; no for transient or high-churn entities.
-- Auto-MEDIUM: new entities with no Envers declaration. Auto-HIGH: clinical/patient entities explicitly opted out of Envers without strong justification.
-
-**M. Breakdown Plan Coverage** (only if a `[feature-name]-breakdown.md` exists)
+**K. Breakdown Plan Coverage** (only if a `[feature-name]-breakdown.md` exists)
 - Does every FR in the FRS appear in at least one version of the breakdown plan?
 - Does every UI element in the mockup get built by at least one story in the breakdown plan?
-- Are all cross-cutting concerns (i18n keys, permissions, audit_trail entries, Envers config) assigned to specific stories?
+- Are cross-cutting concerns (localization, access/roles) folded into the user-facing story that introduces them, not split into separate stories?
 - Does any version exceed 20 story points without a declared `over-capacity: justified` reason?
-- Is v1 a thin shippable slice (not "backend only" or "frontend only")?
-- Auto-HIGH: FRs or UI elements not assigned to any story. Auto-MEDIUM: over-capacity versions without justification.
+- Is v1 a thin shippable slice that delivers a complete user-facing capability (not split by technical layer)?
+- Is every story titled and scoped around user value rather than a technical layer or component?
+- Auto-HIGH: FRs or UI elements not assigned to any story, or any story scoped/titled by technical layer. Auto-MEDIUM: over-capacity versions without justification.
 
-**N. Lab Context Coverage** (FRS opening section)
+**L. Lab Context Coverage** (FRS opening section)
 - Does the FRS open with a `## Lab Context` section *before* the Overview?
 - Does it have all three subsections in order: Current State, Pain, What Changes?
 - Is the writing plain English? Flag any unexpanded acronym on first use (AST, EQA, AMR, QC, LOINC, FHIR, etc. should all have a one-time inline expansion when introduced).
@@ -418,7 +403,7 @@ All Jira creation (Epic + child Stories with version labels) happens in `/breakd
 - Auto-HIGH: missing Lab Context section, or any of its three subsections absent.
 - Auto-MEDIUM: present but written in jargon, full of vague adjectives, or relying on cross-references to other FRS sections.
 
-**O. Cross-Feature Overlap & Contradiction** (runs the `/crosscheck` procedure against the finished FRS/mockup)
+**M. Cross-Feature Overlap & Contradiction** (runs the `/crosscheck` procedure against the finished FRS/mockup)
 - Does the design contradict any `active` decision in `references/decision-log.md`? (cite the ID)
 - Does it overlap an entity, route/page, or shared concept already in `references/spec-registry.md` without coordination noted?
 - Does it depend on an unbuilt upstream (`references/current-state-gotchas.md`) with no FRS Dependency declaration? Does it change something downstream specs rely on?
@@ -502,10 +487,10 @@ and implementation begins. This is NOT a QA/testing checklist.
 - [ ] Are error messages, button labels, placeholders, and headings all covered?
 - [ ] Are all i18n keys named consistently ([category].[feature].[identifier])?
 
-### Permissions & Security
-- [ ] Is a permission key defined for every write action?
-- [ ] Is UI-layer enforcement (hide/disable) specified for each permission?
-- [ ] Is API-layer enforcement (HTTP 403) specified for each permission?
+### Access & Roles
+- [ ] Is it clear which existing role can perform each action (view vs. change)?
+- [ ] Is it specified what a user without access sees (item hidden, action disabled)?
+- [ ] Is access described as user capability, not an enforcement mechanism?
 
 ### Carbon Design System
 - [ ] Are all status indicators mapped to Carbon Tag kinds?
@@ -537,18 +522,19 @@ findings).
 1. **One mockup → one Epic.** Every mockup that ships gets its own Epic. The Epic is the
    feature; child Stories are the work that builds it. Even a tiny feature still gets an
    Epic with v1 only — the invariant holds.
-2. **A version is a functional slice.** v1 must be a thin end-to-end slice that's
-   shippable and usable on its own (e.g. read-only list). v2 builds on v1 (e.g. inline
-   edit). v3 builds on v2 (e.g. bulk actions). Never "v1 = backend, v2 = frontend" —
-   that produces unshippable intermediate states.
+2. **Slice by user value, never by technical layer.** A version is a thin end-to-end
+   slice a user can actually use on its own (e.g. read-only list). v2 builds on v1 (e.g.
+   inline edit). v3 builds on v2 (e.g. bulk actions). Never split a version *or a story*
+   by technical layer ("v1 = backend, v2 = frontend", or separate "API" and "UI"
+   stories) — that produces unshippable intermediate states. Every story is something a
+   user can do, and its title says so in plain language (not a layer or component name).
 3. **Each version fits in one ~2-week sprint with a target of 20 story points,** sized
    using the Fibonacci scale (1, 2, 3, 5, 8, 13). A small feature has only v1; a large
    feature may have v1 → v2 → v3 (or more). Each version's points sum to ≤20 unless
    explicitly justified.
-4. **Cross-cutting work rolls into the functional story that touches it.** i18n keys,
-   permission wiring, `audit_trail` entries, and Envers config are *not* separate
-   stories — they live in the acceptance criteria of whichever functional story
-   introduces them.
+4. **Cross-cutting work rolls into the user-facing story that touches it.** Localization
+   and access rules are *not* separate stories — they live in the acceptance criteria of
+   whichever user-facing story introduces them.
 5. **FRS stays version-agnostic.** Functional requirements describe the full feature.
    Version boundaries are decided here in the breakdown plan, not in the FRS. This lets
    you re-slice (combine v2+v3, split v1 into v1a/v1b) without rewriting the FRS.
@@ -579,7 +565,7 @@ v2. Continue until every FR from the FRS is covered.
 - **Core before edge cases.** v1 = happy path + the two most common error states.
   v2 = remaining edge cases, retries, recovery flows.
 - **Configuration before operation.** Admin-config pages frequently land as v1 of a
-  feature so the schema/lookup data is in place before the operational workflow ships
+  feature so the reference/lookup data is in place before the operational workflow ships
   in v2.
 
 **Anti-patterns to reject:**
@@ -590,28 +576,31 @@ v2. Continue until every FR from the FRS is covered.
   cut, not a maturity level.
 - **Forward dependencies.** A version may depend on past versions, never on future ones.
   If v1 needs something from v2 to be usable, the slice boundary is wrong.
+- **Stories split by technical layer.** No separate "backend"/"API"/"data" and
+  "frontend"/"UI" stories for the same capability — that's one user-facing story.
+- **Technical-layer titles.** A title naming a layer or component ("Results DAO",
+  "validation endpoint") instead of what the user can do — retitle around the user.
 
 ### Stage 2: Estimate each story in story points
 
 For each version, decompose the work into 3–6 child Stories. Estimate each in Fibonacci
 points using this rubric:
 
-| Points | Size | Typical scope |
+| Points | Size | Typical scope (described as what a user can do) |
 |---|---|---|
-| 1 | Trivial | Add a column to an existing table; rename an i18n key |
-| 2 | Small | New form field with validation; one new API DTO field |
-| 3 | Standard | New admin row editor for an existing entity; one new GET endpoint with paging |
-| 5 | Medium | New page with table + filter + inline edit; new POST + audit_trail wiring |
-| 8 | Large | New entity (schema + Envers + DAO + service + REST + React page) |
-| 13 | XL — should usually be split | Cross-module workflow spanning 3+ entities, or a wizard with persistence between steps |
+| 1 | Trivial | Add one column to an existing list; adjust a label |
+| 2 | Small | Add one field to a form a user fills in |
+| 3 | Standard | Let a user edit one kind of record from a list |
+| 5 | Medium | A new page where a user can find, filter, and update records |
+| 8 | Large | A new end-to-end capability: a kind of record a user creates, views, and manages |
+| 13 | XL — should usually be split | A workflow spanning several record types, or a multi-step wizard the user completes in sequence |
 
 A story estimated at 13 should almost always be split into two ≤8s. Anything above 13 is
 too big — break it up before continuing.
 
-**Cross-cutting work is already inside each estimate.** A "new admin row editor" at 5
-points already includes its i18n keys, permission check (existing role bundle), and
-`audit_trail` entry. Do not add separate stories for these. The acceptance criteria of
-the functional story spell them out.
+**Cross-cutting work is already inside each estimate.** A "let a user edit a record" story
+at 5 points already includes its localization and access rules. Do not add separate stories
+for these. The acceptance criteria of the user-facing story spell them out.
 
 ### Stage 3: Check capacity, propose splits if needed
 
@@ -652,8 +641,8 @@ Produce a markdown file named `[feature-name]-breakdown.md` with this structure:
 
 | Story | Points | FRs covered | Cross-cutting included |
 |---|---|---|---|
-| Render lab section table with paging | 5 | FR-1, FR-2 | i18n keys `label.foo.*`, view permission via Analyst bundle |
-| Filter by status + section dropdown | 3 | FR-3 | i18n keys `filter.foo.*` |
+| Lab tech sees results grouped by section | 5 | FR-1, FR-2 | localization `label.foo.*`; visible to Analyst |
+| Lab tech filters results by status and section | 3 | FR-3 | localization `filter.foo.*` |
 | ... | ... | ... | ... |
 
 ## v2 — [slice name, e.g. "Inline edit + audit"]
@@ -662,11 +651,10 @@ Produce a markdown file named `[feature-name]-breakdown.md` with this structure:
 ## Coverage check
 - Every FR from the FRS appears in at least one version: ✅ / ❌ (list gaps)
 - Every UI element in the mockup is built by at least one story: ✅ / ❌
-- All cross-cutting concerns assigned:
-  - i18n keys: ✅ (per-story)
-  - Role attachment: ✅ (`[role bundle name]` on all write stories)
-  - `audit_trail` entries: ✅ (per state-changing story)
-  - Envers coverage: ✅ ([entity list with @Audited status])
+- Every story is titled and scoped around user value, not a technical layer: ✅ / ❌
+- Cross-cutting concerns folded into their user-facing story:
+  - Localization: ✅ (per-story)
+  - Access / roles: ✅ (which role can act, on each story that changes data)
 ````
 
 Save the plan to the workspace folder and share a `computer://` link in your reply.
@@ -703,9 +691,9 @@ Then create the tickets in this order:
    - Optional "is part of" link to the program epic from question 1.
 
 2. **For each version, create the child Stories** under the Epic. For each Story:
-   - **Title format:** `[feature]: [story summary] (v1)` — the `(v1)` / `(v2)` / `(v3)` suffix is mandatory and matches the version label.
+   - **Title format:** `[feature]: [story summary] (v1)` — the `(v1)` / `(v2)` / `(v3)` suffix is mandatory and matches the version label. The story summary names what a user can do, in plain language — never a technical layer or component.
    - **Labels:** the Epic's labels **plus** a version label (`v1`, `v2`, `v3`, etc.). The version label is what enables sprint filtering in Jira.
-   - **Description:** Use `references/jira-template.md`. Acceptance criteria must trace to the FRs listed for that story in the breakdown plan. Include the route, SideNav path, and the cross-cutting concerns (i18n key list, role attachment, audit_trail entries, Envers flag) so the implementing dev has it at hand.
+   - **Description:** Use `references/jira-template.md`. Acceptance criteria must trace to the FRs listed for that story in the breakdown plan. Include the route, SideNav path, and the cross-cutting concerns (localization key list, which role can act) so the implementing dev has it at hand.
    - **Epic Link:** Set to the newly-created mockup-Epic.
    - **Story Points:** Set to the Fibonacci estimate from the breakdown plan.
 
@@ -938,7 +926,7 @@ preview. Don't drift from the brief.
 | `memory/constitution.md` | **Always first** — pointer to the upstream engineering constitution (synced version + design-relevant summary + raw URL + re-sync trigger) |
 | `memory/design-addendum.md` | **Always first** — skill-specific design MUSTs (data reuse, no multitenancy, shipped-app style source, no-hard-delete, large-catalogs) + standing UI/IA conventions |
 | `references/current-state-gotchas.md` | During `/specify` Stage 1 and `/analyze` cross-module pass — what's built vs not built; required Dependency/Feature-Flag declarations |
-| `references/permissions-and-audit.md` | During `/specify` Stage 2 (Permissions & Audit brief item) and `/analyze` Passes J/K/L — current permission scheme, Roles Builder, audit_trail + Envers infrastructure |
+| `references/permissions-and-audit.md` | During `/specify` Stage 2 (Access brief item) and `/analyze` Pass J — describing who can use a feature in terms of existing roles |
 | `references/frs-template.md` | When writing any FRS document |
 | `references/jira-template.md` | When `/breakdown` creates the Epic and child Stories |
 | `references/carbon-anti-patterns.md` | During `/analyze` Carbon fidelity pass, or self-critique before delivery |
@@ -947,5 +935,5 @@ preview. Don't drift from the brief.
 | `references/admin-ia-inventory.md` | During `/specify` Stage 2 (IA Placement) and `/analyze` IA checks — verified admin routes + SideNav structure (self-contained; route pattern is `/MasterListsPage/<editorKey>`) |
 | `references/jira-conventions.md` | During `/breakdown` and any reporting — clickable links, Done≠shipped, PR-sized slicing, labels, no-emoji, reorg proposal |
 | `references/ogc-workflow.md` | The LIVE OGC Lean workflow — statuses, Acceptance gate, Reject Count, Contract field, per-Epic docs. Read when creating epics/stories or reporting. |
-| `references/decision-log.md` | During `/crosscheck` and `/analyze` Pass O — the prior-decisions ledger to check new designs against (cite by ID) |
-| `references/spec-registry.md` | During `/crosscheck` and `/analyze` Pass O — per-feature overlap/dependency index; append a row at the end of `/specify` and `/breakdown` |
+| `references/decision-log.md` | During `/crosscheck` and `/analyze` Pass M — the prior-decisions ledger to check new designs against (cite by ID) |
+| `references/spec-registry.md` | During `/crosscheck` and `/analyze` Pass M — per-feature overlap/dependency index; append a row at the end of `/specify` and `/breakdown` |

@@ -33,7 +33,7 @@ What the lab's day looks like once this ships — the workflow shift, not "imple
 ### Navigation & URL
 - **SideNav placement:** `Admin → <Group> → <Page>` (sibling order noted)
 - **Breadcrumb:** `Home / Admin / <Group> / <Page>`
-- **URL route:** `` `/MasterListsPage?type=<editorKey>` `` (must match an existing pattern; verify against the live app)
+- **URL route:** `` `/MasterListsPage/<editorKey>` `` (must match an existing pattern; verify against the live app)
 
 ---
 
@@ -54,20 +54,22 @@ Include happy path + error/empty/loading states.
 
 ---
 
-## Data Model
+## Information & Data
 
-Entities, attributes, lifecycle/state transitions, uniqueness rules. **Every field here
-must trace to a real OpenELIS entity** (design-addendum MUST A). New data goes in
-Dependencies, not invented here.
+What information the feature works with, in plain domain terms — the records involved, their
+meaningful attributes, lifecycle/state transitions, and uniqueness rules. **Every item here
+must trace to data OpenELIS actually holds today** (design-addendum MUST A). Describe the
+information, not how it is stored. Data the lab doesn't capture yet goes in Dependencies, not
+invented here.
 
 ---
 
-## Permissions & Audit
+## Access
 
-- **Role attachment:** which existing role bundle(s) grant access (no invented per-action keys)
-- **Roles Builder additions:** new module-level grant (label + i18n key + default assignments + placement) or "None — via existing `[Role]` bundle"
-- **Audit events:** per state-changing action — verb, target entity type/id, payload summary, actor
-- **Envers coverage:** per new entity — `@Audited` yes/no + rationale
+- **Who can use it:** which existing role(s) can see the feature
+- **Who can do what:** for each action, which role can perform it (view vs. change), and what a user without access sees (item hidden, action disabled)
+
+Describe access as user capability, not an enforcement mechanism. If the feature lives inside one role's existing workflow: "Accessible via the existing `[Role]` role."
 
 See `references/permissions-and-audit.md`.
 
@@ -85,9 +87,9 @@ Every visible string with an i18n key, named `[category].[feature].[identifier]`
 
 ## Dependencies
 
-New entities/attributes/services this feature needs that don't exist yet. Name each one
-explicitly. Also note required feature flags and any not-yet-built upstream pieces (cross-
-check `references/current-state-gotchas.md`).
+New data the lab doesn't capture yet, or upstream capabilities this feature relies on that
+don't exist yet. Name each one explicitly. Also note required feature flags and any
+not-yet-built upstream pieces (cross-check `references/current-state-gotchas.md`).
 
 ---
 

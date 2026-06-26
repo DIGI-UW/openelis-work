@@ -1,5 +1,27 @@
 # openelis-design — Changelog
 
+## 2026-06-26 (v3.3) — Specs stay implementation-free; tickets scoped to user value
+
+- Removed all implementation direction from the spec path. `/analyze` Passes K (Audit Trail)
+  and L (Envers) deleted; remaining passes relabeled so A–M stay contiguous (Breakdown→K,
+  Lab Context→L, Cross-Feature→M; "Pass O" references updated).
+- `/specify` Stage 2 "Permissions & Audit" brief item is now "Access" — who can use the
+  feature and do what, in terms of existing roles; no audit_trail/Envers/permission-key/
+  Spring Security/Roles Builder mechanics.
+- `/breakdown` now slices and titles strictly by user value: principle 2 forbids splitting a
+  version *or a story* by technical layer; new anti-patterns for layer-split stories and
+  technical-layer titles; story-point rubric, examples, and coverage check reworded to
+  user-facing capabilities; cross-cutting = localization + access only.
+- references/permissions-and-audit.md rewritten as "Access & Roles" (no audit/Envers).
+- references/frs-template.md: "Data Model" → "Information & Data" (domain terms, traces to
+  real data); "Permissions & Audit" → "Access"; URL pattern corrected to /MasterListsPage/
+  <editorKey>; Dependencies reworded off "services/entities".
+- references/jira-template.md: title-format and rules require user-scoped stories (no
+  backend/API vs frontend/UI split); cross-cutting lines drop audit_trail/Envers; route fixed.
+- Repackaged the root bundle from the current tree (now includes ogc-workflow.md, previously
+  missing).
+
+
 - 2026-06-23 — Added references/ogc-workflow.md and updated jira-conventions.md for the now-LIVE OGC Lean workflow (Acceptance gate, Reject Count, Contract field, per-Epic Feature Doc).
 
 ## 2026-06-18 (round 4) — First /crosscheck run folded back in
