@@ -88,6 +88,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 |---------|--------|------|
 | AMR Module | [amr-module.jsx](designs/microbiology/amr-module.jsx) | [amr-module.md](designs/microbiology/amr-module.md) |
 | Case Workbench | — | [case-workbench.md](designs/microbiology/case-workbench.md) |
+| Guided Workflow Walkthrough | [amr-micro-workflow-flow.html](designs/microbiology/amr-micro-workflow-flow.html) | [amr-micro-narrative.md](designs/microbiology/amr-micro-narrative.md) |
 
 ## Non-Conforming Events (NCE)
 

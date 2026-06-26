@@ -1030,6 +1030,19 @@
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-14-tb-case-interactive-prototype
   added: "2026-06-08"
 
+- id: microbiology-guided-workflow-walkthrough
+  type: mockup
+  path: designs/microbiology/amr-micro-workflow-flow.html
+  category: microbiology
+  description: >
+    Microbiology — Guided Workflow Walkthrough. Sequences the split micro prototypes into one
+    step-through flow: per step a description + embedded mockup + Prev/Next, with a Bacterial/TB
+    branch toggle. Covers admin/config setup, order & routing, bacterial or TB work-up, and reporting.
+  links:
+    jira: ["OGC-782"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-guided-workflow-walkthrough
+  added: "2026-06-25"
+
 - id: m-15-glass-fhir-surveillance
   type: spec
   path: designs/microbiology/m-15-glass-fhir-surveillance.md

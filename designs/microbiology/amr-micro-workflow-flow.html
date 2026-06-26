@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microbiology — Guided Workflow Walkthrough</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<style>
+  :root { --rail: 320px; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #161616; }
+  body { display: flex; flex-direction: column; height: 100vh; background: #f4f4f4; }
+
+  .topbar { background: #0f62fe; color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .topbar h1 { font-size: 15px; font-weight: 600; margin: 0; }
+  .topbar .sub { font-size: 12px; opacity: .85; }
+  .branchbox { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .branchbox span { opacity: .85; }
+  .seg { display: inline-flex; border: 1px solid rgba(255,255,255,.6); border-radius: 4px; overflow: hidden; }
+  .seg button { background: transparent; color: #fff; border: 0; padding: 5px 12px; font-size: 12px; cursor: pointer; }
+  .seg button.active { background: #fff; color: #0f62fe; font-weight: 600; }
+
+  .body { flex: 1; display: flex; min-height: 0; }
+
+  .rail { width: var(--rail); background: #fff; border-right: 1px solid #e0e0e0; overflow-y: auto; flex-shrink: 0; }
+  .phase { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: #6f6f6f; padding: 14px 16px 4px; font-weight: 600; }
+  .step { display: flex; gap: 10px; padding: 9px 16px; cursor: pointer; border-left: 3px solid transparent; align-items: baseline; }
+  .step:hover { background: #f4f4f4; }
+  .step.active { background: #edf5ff; border-left-color: #0f62fe; }
+  .step .n { font-size: 12px; color: #fff; background: #8d8d8d; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 600; }
+  .step.active .n { background: #0f62fe; }
+  .step .t { font-size: 13px; line-height: 1.3; }
+  .step .m { font-size: 11px; color: #6f6f6f; }
+  .branchnote { margin: 6px 16px; padding: 8px 10px; background: #fcf4d6; border: 1px solid #f1c21b; border-radius: 4px; font-size: 11.5px; color: #4c4400; }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .stephead { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 14px 20px; }
+  .stephead .crumbs { font-size: 11px; color: #6f6f6f; margin-bottom: 4px; }
+  .stephead h2 { font-size: 18px; margin: 0 0 6px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .chip { font-size: 11px; padding: 2px 8px; border-radius: 12px; background: #e8daff; color: #491d8b; font-weight: 600; }
+  .chip.jira { background: #d0e2ff; color: #0043ce; }
+  .stephead p { font-size: 13.5px; line-height: 1.5; margin: 0; max-width: 80ch; color: #393939; }
+  .openlink { font-size: 12px; margin-top: 8px; display: inline-block; color: #0f62fe; text-decoration: none; }
+  .openlink:hover { text-decoration: underline; }
+
+  .frameWrap { flex: 1; position: relative; background: #f4f4f4; min-height: 0; }
+  iframe { width: 100%; height: 100%; border: 0; background: #fff; display: block; }
+  .noframe { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #6f6f6f; font-size: 13px; text-align: center; padding: 24px; }
+
+  .footer { background: #fff; border-top: 1px solid #e0e0e0; padding: 10px 20px; display: flex; align-items: center; gap: 16px; }
+  .footer .count { font-size: 12.5px; color: #6f6f6f; }
+  .nav { margin-left: auto; display: flex; gap: 8px; }
+  .nav button { font-size: 13px; padding: 7px 16px; border-radius: 4px; border: 1px solid #0f62fe; background: #0f62fe; color: #fff; cursor: pointer; }
+  .nav button.sec { background: #fff; color: #0f62fe; }
+  .nav button:disabled { opacity: .4; cursor: not-allowed; }
+  .banner { background: #161616; color: #fff; font-size: 11px; font-family: monospace; padding: 4px 16px; }
+</style>
+</head>
+<body>
+  <div class="banner">⚡ Guided Walkthrough — Microbiology / AMR module &nbsp;|&nbsp; sequences the individual prototypes &nbsp;|&nbsp; not a live application</div>
+  <div class="topbar">
+    <div>
+      <h1>Microbiology — Guided Workflow Walkthrough</h1>
+      <div class="sub">Describe the step → see the mockup → Next. Switch the branch to follow bacterial vs. TB.</div>
+    </div>
+    <div class="branchbox">
+      <span>Branch:</span>
+      <div class="seg" id="seg">
+        <button data-branch="bacterial" class="active">Bacterial culture</button>
+        <button data-branch="tb">Mycobacteriology — TB</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="body">
+    <nav class="rail" id="rail"></nav>
+    <div class="main">
+      <div class="stephead">
+        <div class="crumbs" id="crumbs"></div>
+        <h2 id="title"></h2>
+        <div class="chips" id="chips"></div>
+        <p id="desc"></p>
+        <a class="openlink" id="openlink" target="_blank" rel="noopener">Open this mockup in a new tab ↗</a>
+      </div>
+      <div class="frameWrap">
+        <iframe id="frame" title="mockup"></iframe>
+      </div>
+      <div class="footer">
+        <div class="count" id="count"></div>
+        <div class="nav">
+          <button class="sec" id="prev">◀ Prev</button>
+          <button id="next">Next ▶</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// Each step references an existing prototype that sits alongside this file in
+// designs/microbiology/ (or ../admin-config/ for the Test Catalog attribute).
+// branch: 'common-setup' | 'common-order' | 'bacterial' | 'tb' | 'common-reporting'
+const STEPS = [
+  // ── Phase 0 — one-time admin / configuration ─────────────────────────────
+  { branch:'common-setup', phase:'Setup (one-time admin/config)', title:'Organism & Antibiotic masters', module:'M-01', jira:'OGC-786',
+    desc:'A lab admin seeds the organisms and antibiotics the lab reports (with WHONET codes, intrinsic resistances, default AST panels). This reference data underpins every later step.',
+    src:'m-01-organism-master.html' },
+  { branch:'common-setup', phase:'Setup (one-time admin/config)', title:'Breakpoint catalog', module:'M-02', jira:'OGC-787',
+    desc:'Load and activate the CLSI / EUCAST (and WHO-TB) breakpoint version. Breakpoints are the cutoffs that turn a raw MIC (µg/mL) or zone (mm) into Susceptible / Intermediate / Resistant. New versions land "Loaded" and a manager activates them; each AST run snapshots the version it used.',
+    src:'m-02-breakpoint-catalog.html' },
+  { branch:'common-setup', phase:'Setup (one-time admin/config)', title:'Result macros library', module:'M-08', jira:'OGC-788',
+    desc:'Reusable text macros (.codes) that techs expand during result entry and reporting — standardised comments, clinical-history snippets, reporting phrases.',
+    src:'m-08-macro-library.html' },
+  { branch:'common-setup', phase:'Setup (one-time admin/config)', title:'Test ↔ reagent linkage', module:'M-12', jira:'OGC-784',
+    desc:'Declare which reagent lots a test consumes (media, AST cards/discs) so result entry can capture lot traceability via the shared ReagentLotPicker (FIFO, QC-blocked).',
+    src:'m-12-test-reagent-linkage-prototype.html' },
+  { branch:'common-setup', phase:'Setup (one-time admin/config)', title:'Test Catalog: Microbiology workflow attribute', module:'Test Catalog v2.5', jira:'OGC-925',
+    desc:'The pivot of the whole module: a culture test carries a workflow_type (Bacteriology / Mycobacteriology–TB). That attribute — set here, once — is what routes the case to the right profile at order time, with no clerk guessing.',
+    src:'../admin-config/test-catalog-microbiology-workflow-attribute.html' },
+
+  // ── Phase 1 — order & routing (common) ───────────────────────────────────
+  { branch:'common-order', phase:'Order & routing', title:'Order entry — microbiology hook', module:'M-03', jira:'OGC-789',
+    desc:'A clerk orders a culture. The test’s workflow_type decides which Case profile, breakpoint family, Method, and WHONET flavor get instantiated. If a test is untyped, the case is created UNASSIGNED rather than guessing TB.',
+    src:'m-03-order-entry-step1.html' },
+  { branch:'common-order', phase:'Order & routing', title:'One specimen → linked cases', module:'M-04', jira:'OGC-790',
+    desc:'A single specimen ordered for both bacterial culture and TB becomes two linked Cases that share one SampleItem — no double accessioning. A sibling chip cross-links them. This is the branch point: from here, follow the bacterial or the TB path (toggle, top right).',
+    src:'m-04-linked-cases-shared-specimen-prototype.html' },
+  { branch:'common-order', phase:'Order & routing', title:'Pending Cultures worklist', module:'M-07', jira:'OGC-792',
+    desc:'The bench’s shared worklist of in-progress cultures, with due-action prompts and sibling cases grouped together.',
+    src:'m-07-pending-cultures.html' },
+
+  // ── Phase 2a — bacterial work-up ─────────────────────────────────────────
+  { branch:'bacterial', phase:'Bacterial work-up', title:'Case workbench', module:'M-04', jira:'OGC-790',
+    desc:'The case opens focused on its current step: incubate, read plates, record growth. Completed sections collapse to summaries; the next action is always surfaced.',
+    src:'m-04-case-workbench-prototype.html' },
+  { branch:'bacterial', phase:'Bacterial work-up', title:'Isolate work-up & ID', module:'M-04', jira:'OGC-790',
+    desc:'Capture each isolate — Gram stain and colony first, then organism identification (manual or analyzer). AST setup unlocks once the isolate is identified.',
+    src:'m-04-isolate-modal.html' },
+  { branch:'bacterial', phase:'Bacterial work-up', title:'AST entry & interpretation', module:'M-05', jira:'OGC-791',
+    desc:'Enter MIC or zone per drug; the breakpoint lookup auto-interprets S/I/R against the active standard (method-aware — µg/mL vs mm). Overrides are inline and audited.',
+    src:'m-05-ast-entry-prototype.html' },
+  { branch:'bacterial', phase:'Bacterial work-up', title:'Expert review', module:'M-06', jira:'OGC-793',
+    desc:'Expert rules flag phenotypes (MRSA, ESBL, carbapenemase, intrinsic resistance) on AST completion. The reviewer accepts or overrides inline; confirmation tests are ordered through the existing reflex engine.',
+    src:'m-06-expert-review-prototype.html' },
+  { branch:'bacterial', phase:'Bacterial work-up', title:'Critical notification', module:'M-11', jira:'OGC-785',
+    desc:'Log a critical-result call with read-back. Reuses the existing notifications/alerts dashboard — M-11 adds the call-back/acknowledge loop and a polymorphic Case/Isolate/Sample target.',
+    src:'m-11-critical-notification-prototype.html' },
+  { branch:'bacterial', phase:'Bacterial work-up', title:'Reclassify (mis-routed escape hatch)', module:'M-04', jira:'OGC-926',
+    desc:'If a culture test was untyped or mis-typed, a tech can change the case’s workflow (e.g., UNASSIGNED → TB) — re-instantiating profile, breakpoint family, vocab, and WHONET flavor, fully audited.',
+    src:'m-04-change-workflow-prototype.html' },
+
+  // ── Phase 2b — TB work-up (branch) ───────────────────────────────────────
+  { branch:'tb', phase:'Mycobacteriology — TB work-up', title:'TB case (Mycobacteriology)', module:'M-14', jira:'OGC-901',
+    desc:'The TB profile of the case workbench: AFB smear, MGIT/LJ culture tracked day-by-day over weeks, species ID (MTB-complex vs NTM), critical-concentration DST against WHO-TB breakpoints, molecular results (GeneXpert/LPA), MDR/pre-XDR/XDR derivation, and staged interim reports. TB specimen processing reuses the sample-management aliquoting workflow.',
+    src:'m-14-tb-case-prototype.html' },
+
+  // ── Phase 3 — reporting & surveillance (common) ──────────────────────────
+  { branch:'common-reporting', phase:'Reporting & surveillance', title:'Cumulative antibiogram', module:'M-13', jira:'OGC-900',
+    desc:'A cumulative %S report (CLSI M39) computed on demand from finalized results — first-isolate dedup, under-threshold suppression, color bands, PDF/CSV export. Not "updated" — it recomputes against whatever breakpoint version was active.',
+    src:'m-13-antibiogram-prototype.html' },
+  { branch:'common-reporting', phase:'Reporting & surveillance', title:'WHONET export', module:'M-09', jira:'OGC-794',
+    desc:'Painless WHONET export of finalized AMR data for national / GLASS surveillance — pre-loaded codes, readiness indicator, 3-click export. Extends the WHONET export OpenELIS already ships.',
+    src:'m-09-whonet-painless-prototype.html' },
+];
+
+const ORDER = ['common-setup','common-order','BRANCH','common-reporting'];
+let branch = 'bacterial';
+let idx = 0;
+
+function sequence() {
+  const seq = [];
+  for (const seg of ORDER) {
+    if (seg === 'BRANCH') seq.push(...STEPS.filter(s => s.branch === branch));
+    else seq.push(...STEPS.filter(s => s.branch === seg));
+  }
+  return seq;
+}
+
+function render() {
+  const seq = sequence();
+  if (idx >= seq.length) idx = seq.length - 1;
+  if (idx < 0) idx = 0;
+  const step = seq[idx];
+
+  // rail
+  const rail = document.getElementById('rail');
+  rail.innerHTML = '';
+  let lastPhase = null;
+  seq.forEach((s, i) => {
+    if (s.phase !== lastPhase) {
+      const p = document.createElement('div'); p.className = 'phase'; p.textContent = s.phase; rail.appendChild(p);
+      lastPhase = s.phase;
+      if (s.branch === 'bacterial' || s.branch === 'tb') {
+        const bn = document.createElement('div'); bn.className = 'branchnote';
+        bn.textContent = (branch === 'tb' ? 'TB branch — toggle to "Bacterial culture" for the bacterial work-up.' : 'Bacterial branch — toggle to "Mycobacteriology — TB" for the TB work-up.');
+        rail.appendChild(bn);
+      }
+    }
+    const el = document.createElement('div');
+    el.className = 'step' + (i === idx ? ' active' : '');
+    el.innerHTML = '<span class="n">' + (i+1) + '</span><span><span class="t">' + s.title + '</span><br><span class="m">' + s.module + (s.jira ? ' · ' + s.jira : '') + '</span></span>';
+    el.onclick = () => { idx = i; render(); };
+    rail.appendChild(el);
+  });
+
+  // head
+  document.getElementById('crumbs').textContent = step.phase;
+  document.getElementById('title').textContent = (idx+1) + '. ' + step.title;
+  const chips = document.getElementById('chips'); chips.innerHTML = '';
+  const mc = document.createElement('span'); mc.className = 'chip'; mc.textContent = step.module; chips.appendChild(mc);
+  if (step.jira) { const jc = document.createElement('span'); jc.className = 'chip jira'; jc.textContent = step.jira; chips.appendChild(jc); }
+  document.getElementById('desc').textContent = step.desc;
+  document.getElementById('openlink').href = step.src;
+
+  // frame
+  document.getElementById('frame').src = step.src;
+
+  // footer
+  document.getElementById('count').textContent = 'Step ' + (idx+1) + ' of ' + seq.length + '  ·  ' + (branch === 'tb' ? 'TB branch' : 'Bacterial branch');
+  document.getElementById('prev').disabled = idx === 0;
+  document.getElementById('next').disabled = idx === seq.length - 1;
+}
+
+document.getElementById('prev').onclick = () => { idx--; render(); };
+document.getElementById('next').onclick = () => { idx++; render(); };
+document.querySelectorAll('#seg button').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('#seg button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    const newBranch = b.dataset.branch;
+    // keep the user near where they were: if currently in a branch step, jump to the new branch's first step
+    const seq = sequence(); const cur = seq[idx];
+    branch = newBranch;
+    if (cur && (cur.branch === 'bacterial' || cur.branch === 'tb')) {
+      const ns = sequence(); idx = ns.findIndex(s => s.branch === newBranch);
+    }
+    render();
+  };
+});
+
+render();
+</script>
+</body>
+</html>
