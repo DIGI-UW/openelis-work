@@ -59,6 +59,7 @@
 
 ## 5. Anti-drift guardrails (do / don't)
 - **DO** read required/visible fields from the Order Entry config + the legacy API. **DON'T** hardcode required fields or gates in the new UI.
+- **DO copy the legacy form's auto-fill implementation.** Several auto-fills are legitimate **Order Entry Configuration** options (Admin → General Configuration) and the **old form already implements them correctly** (e.g., default site, auto-filled received date, etc.) — copy that behavior rather than reinventing it. **NOTE:** the quantity-default-of-`1` is NOT one of these config auto-fills — it's a bug (null is correct). Keep config-driven auto-fills; drop the hardcoded quantity default.
 - **DON'T** add any gate that isn't in the FRS (no forced print, no forced storage, no hard QA, no mandatory sample/tests at step 1). The spec is looser than the build — match the spec.
 - **DON'T** prefill data the user didn't enter (no quantity `1`, no defaulted dates that aren't the field value).
 - **DON'T** swallow server errors — show the real fieldError.
