@@ -1,11 +1,16 @@
-# M-12 Test → Reagent Linkage — Functional Requirements Specification
+# M-12 Reagent Lot at Result Entry (micro) — Functional Requirements Specification
 
-**Version:** 2.0 (consolidated — folds review edits inline; no separate addendum)
-**Date:** 2026-06-07
-**Module:** Cross-cutting OpenELIS foundation (Test Catalog admin + Reagent inventory)
-**Phase:** Pre-1A — starts before Micro Phase 1A and runs as a parallel track
-**Owner:** Test Catalog admin team (Micro is a primary consumer; chemistry, hematology, etc., also benefit)
+**Version:** 3.0 (rescoped — picker + wiring only) · **Date:** 2026-06-12
+**Module:** Microbiology result entry (consumes Test Catalog v2.5 + Inventory)
+**Phase:** with M-04 / M-05
+**Owner:** Microbiology Module (M-00 parent)
 **Status:** Draft
+
+> **⚠ SCOPE NARROWED (2026-06-12, Casey).** M-12 was over-scoped — it overlapped Test Catalog v2.5 (which owns the test↔reagent definition), the Inventory module (which owns lots + consumption), and the existing **Reagent Usage on Result Entry** design (`designs/results-validation/results-page-reagent-usage-v1.md` / `…-v2.1`) on `main`, which already establishes the lot-picker-at-result-entry pattern. **M-12 is now just two things:**
+> 1. the **shared `ReagentLotPicker`** component (FIFO, QC status, expired/locked blocked, specific errors) — reused from / consistent with the existing Reagent-Usage design, extended for micro's media / AST-card / disc lots; and
+> 2. **wiring it into M-04 Inoculation and M-05 AST Setup**, consuming `test_reagent_link` (defined by **Test Catalog v2.5, OGC-759**) and writing an **`InventoryUsage`** (Inventory module) on selection.
+>
+> **M-12 does NOT own:** the `test_reagent_link` schema or the Test Catalog **Reagents tab** (→ Test Catalog v2.5 / OGC-759); reagent **lots / consumption / traceability** (→ Inventory module — `InventoryItem`/`InventoryLot`/`InventoryUsage`, already keyed to `analysis_id`/`test_result_id`); the **reverse Reagent→Tests view** and **seed data** (→ Test Catalog / Inventory admin). Sections §3.1, §4, §6, §7 below are retained as **context for those owners**, not as M-12 build scope.
 
 > This FRS is self-contained. The AMR design-review edits — REQUIRED/OPTIONAL/SUBSTITUTE and consumption-unit helper text, specific lot-validation errors, the FIFO tooltip, the reverse Reagent→Tests view, empty states, and the Phase-1A seed tests — are written **inline** in the relevant sections below; there is no separate edits doc or addendum.
 
@@ -73,10 +78,12 @@ Define the relationship between Tests and Reagents so that:
 
 ## 3. Data model
 
-### 3.1 New tables
+### 3.1 Tables (owned by Test Catalog v2.5 / Inventory — context, NOT M-12 build scope)
+
+> `test_reagent_link` is **created and owned by Test Catalog v2.5 (OGC-759)**; M-12 only *consumes* it. The shape below is reproduced for reference so the picker contract (§5) is clear — M-12 does not run this migration.
 
 ```
-test_reagent_link
+test_reagent_link   (← built by Test Catalog v2.5 / OGC-759; M-12 consumes)
 ├── link_id (UUID PK)
 ├── test_id (FK to test catalog — existing OE table)
 ├── inventory_item_id (FK to InventoryItem — existing Inventory module; the reagent/cartridge/kit)
@@ -221,8 +228,8 @@ ReagentLotPicker(
 
 The component:
 
-1. Looks up `test_reagent_link` rows for the test_id (and optionally filtered by method).
-2. For each linkage, queries available `qc_lot` rows: status = UNLOCKED, not expired, sorted by FIFO (**oldest expiry first**).
+1. Looks up `test_reagent_link` rows for the test_id (and optionally filtered by method) — the definition owned by Test Catalog v2.5 (OGC-759).
+2. For each linkage, queries available **`InventoryLot`** rows (Inventory module): `LotStatus` ACTIVE/IN_USE (excludes EXPIRED / QUARANTINED / CONSUMED), `QCStatus` not FAILED, sorted FIFO (**oldest expiry first**). *(Reuses the Inventory module — supersedes the old `qc_lot`.)*
 3. Renders one `ComboBox` per REQUIRED linkage, plus one per OPTIONAL the user enables, and a single ComboBox per SUBSTITUTE group from which one lot is chosen.
 4. Validates selection on form submit.
 
@@ -332,7 +339,9 @@ No existing data writes are blocked by this spec — at result entry, if a test 
 
 ## 9. Acceptance criteria
 
-- **AC-M12-01**: `test_reagent_link` table created with the schema in §3.1.
+> **Scope note (v3.0):** M-12's own acceptance is **AC-M12-06, -07, -08, -11** (the `ReagentLotPicker` component + its behavior in M-04/M-05). The rest below — AC-M12-01 (table), -02 (Reagents tab), -03/-04/-05 (linkage editor), -09 (reverse view), -10/-12 (inventory/seed) — are **owned by Test Catalog v2.5 (OGC-759) / Inventory** and listed here only as the contract M-12 depends on.
+
+- **AC-M12-01** *(Test Catalog v2.5 / OGC-759)*: `test_reagent_link` table created with the schema in §3.1.
 - **AC-M12-02**: Test Catalog editor's Reagents tab shows linkages for the selected test, with an empty state for tests with no linkages (review edit R-07).
 - **AC-M12-03**: Link New modal validates all required fields; the Linkage-type radio group and Consumption-unit dropdown show downstream helper text per selection (review edit H5).
 - **AC-M12-04**: Linkage types: REQUIRED blocks save without lot, OPTIONAL doesn't, SUBSTITUTE accepts one of N.
@@ -394,9 +403,9 @@ admin.reagentInventory.currentLots.column.quantity "Quantity"
 
 ## 11. Open verification items
 
-- Confirm existing `reagent` and `qc_lot` table schemas.
-- Confirm Test Catalog v2.5's Reagents tab placeholder is empty (vs. partially filled — if partially, M-12 builds on top).
-- Confirm existing reagent inventory admin routes.
+- Confirm the existing **Inventory module** schema (`InventoryItem` / `InventoryLot` / `InventoryUsage`) — the picker reads `InventoryLot` and writes `InventoryUsage`. (Supersedes the old `reagent`/`qc_lot` check.)
+- Confirm the existing **Reagent Usage on Result Entry** component (v1 / v2.1 on `main`) so the micro `ReagentLotPicker` reuses/extends it rather than diverging.
+- Confirm Test Catalog v2.5 (OGC-759) timeline for `test_reagent_link` + the Reagents tab — M-12's picker depends on that definition existing.
 
 ---
 
