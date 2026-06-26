@@ -2371,6 +2371,34 @@ export const categoryLabels = {
   'other': 'Other',
 };
 
+/** Emoji + one-line plain-language blurb per area — used by the Explore landing page
+ *  so non-developers can orient by what the area does, not by its folder name. */
+export const categoryIcons = {
+  'admin-config': '⚙️', 'analyzer-integration': '🔬', 'blood-bank': '🩸',
+  'inventory': '📦', 'microbiology': '🦠', 'nce': '⚠️', 'notifications': '🔔',
+  'pathology': '🔬', 'quality': '✅', 'results-validation': '📋', 'reports': '📄',
+  'patient': '🧑', 'sample-collection': '🧪', 'vector-surveillance': '🦟',
+  'system': '🛠️', 'other': '📁',
+};
+export const categoryBlurbs = {
+  'admin-config': 'Set up the lab — test catalog, users, reference data, labels.',
+  'analyzer-integration': 'Connect instruments and map their results into OpenELIS.',
+  'blood-bank': 'Blood donation and transfusion workflows.',
+  'inventory': 'Track reagents, supplies and stock levels.',
+  'microbiology': 'Cultures, susceptibility testing (AST) and AMR surveillance.',
+  'nce': 'Non-conformance events and corrective actions.',
+  'notifications': 'Alerts and critical-result notifications.',
+  'pathology': 'Histology and cytology case review.',
+  'quality': 'Quality control, EQA and proficiency testing.',
+  'results-validation': 'Enter, review and validate patient results.',
+  'reports': 'Printable results, certificates and summaries.',
+  'patient': 'Patient registration and records.',
+  'sample-collection': 'Order entry and specimen collection.',
+  'vector-surveillance': 'Vector specimen testing and surveillance.',
+  'system': 'Cross-cutting platform features — audit, help, assistant.',
+  'other': 'Designs not yet sorted into a module.',
+};
+
 /** Determine entry type for visual distinction */
 export function getEntryType(mockup) {
   if (mockup.htmlUrl) return 'html';
@@ -2937,6 +2965,88 @@ export const themes = {
   },
 };
 
+/**
+ * Explore landing page — the default (home) view for non-developer browsers.
+ * Orients by area with plain-language blurbs + counts, surfaces guided journeys,
+ * and shows the newest designs. Any search / filter / category switches back to
+ * the flat grid.
+ */
+function LandingView({ t, darkMode, onPickCategory, onOpen, statusOf }) {
+  const counts = {};
+  MOCKUP_REGISTRY.forEach((m) => { counts[m.category] = (counts[m.category] || 0) + 1; });
+  const cats = categories.filter((c) => c !== 'all' && counts[c]);
+  const journeys = MOCKUP_REGISTRY.filter((m) => m.tags && m.tags.includes('walkthrough'));
+  const recent = [...MOCKUP_REGISTRY]
+    .sort((a, b) => (b.added || DEFAULT_ADDED).localeCompare(a.added || DEFAULT_ADDED))
+    .slice(0, 6);
+
+  const sectionTitle = { fontSize: 18, fontWeight: 600, margin: '30px 0 12px', color: t.text };
+  const tile = {
+    textAlign: 'left', cursor: 'pointer', border: `1px solid ${t.border}`, borderRadius: 10,
+    padding: 16, background: t.cardBg, boxShadow: t.cardShadow,
+    transition: 'box-shadow .2s, transform .1s', font: 'inherit', color: 'inherit',
+  };
+  const hoverIn = (e) => { e.currentTarget.style.boxShadow = t.cardShadowHover; e.currentTarget.style.transform = 'translateY(-1px)'; };
+  const hoverOut = (e) => { e.currentTarget.style.boxShadow = t.cardShadow; e.currentTarget.style.transform = 'none'; };
+
+  return (
+    <div>
+      <p style={{ fontSize: 15, lineHeight: 1.6, color: t.textSecondary, margin: '4px 0 0', maxWidth: 760 }}>
+        Welcome to the OpenELIS design gallery. Browse by area below, follow a guided journey through a
+        full workflow, or jump to the newest designs. You can search and filter from the bar above any time.
+      </p>
+
+      {journeys.length > 0 && (
+        <>
+          <div style={sectionTitle}>🧭 Guided journeys</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 14 }}>
+            {journeys.map((m, i) => (
+              <button key={i} onClick={() => onOpen(m)} onMouseEnter={hoverIn} onMouseLeave={hoverOut}
+                style={{ ...tile, borderLeft: `4px solid ${t.accent}` }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: t.text, marginBottom: 4 }}>{m.name}</div>
+                <div style={{ fontSize: 13, color: t.textSecondary, lineHeight: 1.45 }}>{m.description}</div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      <div style={sectionTitle}>Browse by area</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+        {cats.map((c) => (
+          <button key={c} onClick={() => onPickCategory(c)} onMouseEnter={hoverIn} onMouseLeave={hoverOut} style={tile}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ fontSize: 22 }}>{categoryIcons[c] || '📁'}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: t.textSecondary, background: t.badgeBg, borderRadius: 12, padding: '2px 9px' }}>{counts[c]}</span>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: t.text }}>{categoryLabels[c] || c}</div>
+            <div style={{ fontSize: 12.5, color: t.textSecondary, lineHeight: 1.45, marginTop: 3 }}>{categoryBlurbs[c] || ''}</div>
+          </button>
+        ))}
+      </div>
+
+      <div style={sectionTitle}>🆕 Recently added</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+        {recent.map((m, i) => {
+          const st = statusConfig[statusOf(m)];
+          const desc = m.description || '';
+          return (
+            <button key={i} onClick={() => onOpen(m)} onMouseEnter={hoverIn} onMouseLeave={hoverOut} style={tile}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: t.textMuted }}>{categoryLabels[m.category]}</span>
+                <span style={{ fontSize: 11, color: t.textFaint }}>{formatDate(m.added || DEFAULT_ADDED)}</span>
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: t.text, marginBottom: 3 }}>{m.name}</div>
+              <div style={{ fontSize: 12.5, color: t.textSecondary, lineHeight: 1.4 }}>{desc.slice(0, 110)}{desc.length > 110 ? '…' : ''}</div>
+              {st && <span style={{ display: 'inline-block', marginTop: 8, fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 10, background: darkMode ? st.darkBg : st.bg, color: st.color, border: `1px solid ${st.color}44` }}>{st.icon} {st.label}</span>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function App() {
   // ─── Standalone route detection ───
   const [routeMode, setRouteMode] = useState(() => parseRoute(window.location.hash).mode);
@@ -2988,12 +3098,16 @@ function GalleryApp() {
 
   const t = darkMode ? themes.dark : themes.light;
 
+  // Home (Explore landing) vs browse grid. Starts on home unless deep-linked to a mockup.
+  const [home, setHome] = useState(() => !findMockupByHash(window.location.hash));
+
   // On mount, check if the URL hash points to a mockup
   useEffect(() => {
     const mockup = findMockupByHash(window.location.hash);
     if (mockup) {
       setSelectedMockup(mockup);
       setActiveCategory(mockup.category);
+      setHome(false);
     }
   }, []);
 
@@ -3002,7 +3116,7 @@ function GalleryApp() {
     function onHashChange() {
       const mockup = findMockupByHash(window.location.hash);
       setSelectedMockup(mockup);
-      if (mockup) setActiveCategory(mockup.category);
+      if (mockup) { setActiveCategory(mockup.category); setHome(false); }
     }
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
@@ -3013,6 +3127,7 @@ function GalleryApp() {
     setSelectedMockup(mockup);
     setDetailTab('preview'); // Reset tab when switching entries
     if (mockup) {
+      setHome(false);
       window.location.hash = toHash(mockup);
     } else {
       // Clear hash when going back to gallery
@@ -3057,6 +3172,18 @@ function GalleryApp() {
     countByCategory[m.category] = (countByCategory[m.category] || 0) + 1;
   });
 
+  // Default "home" view shows the Explore landing page (decoupled from the "All" tab,
+  // so the All tab still shows the full flat grid).
+  const isHome = home;
+  function goHome() {
+    setActiveCategory('all');
+    setSearchQuery('');
+    setActiveTag(null);
+    setStatusFilter('all');
+    selectMockup(null);
+    setHome(true);
+  }
+
   // Also update body background when theme changes
   useEffect(() => {
     document.body.style.background = t.bg;
@@ -3069,7 +3196,11 @@ function GalleryApp() {
       <header style={{ ...styles.header, borderBottomColor: t.headerBorder }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 style={{ ...styles.title, color: t.text }}>OpenELIS Global — Design Gallery</h1>
+            <h1
+              style={{ ...styles.title, color: t.text, cursor: 'pointer' }}
+              onClick={goHome}
+              title="Back to the Explore home"
+            >OpenELIS Global — Design Gallery</h1>
             <p style={{ ...styles.subtitle, color: t.textMuted }}>
               {MOCKUP_REGISTRY.length} mockups across {Object.keys(countByCategory).length} categories
             </p>
@@ -3105,7 +3236,7 @@ function GalleryApp() {
             type="text"
             placeholder="Search by name, tag, Jira key…"
             value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setActiveTag(null); }}
+            onChange={(e) => { setSearchQuery(e.target.value); setActiveTag(null); setHome(false); }}
             style={{ ...styles.search, flex: 1, minWidth: 0 }}
           />
           {activeTag && (
@@ -3119,7 +3250,7 @@ function GalleryApp() {
         </div>
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => { setStatusFilter(e.target.value); setHome(false); }}
           style={{ ...styles.statusSelect, background: t.searchBg, borderColor: t.borderInput, color: t.text }}
           aria-label="Filter by status"
         >
@@ -3132,7 +3263,7 @@ function GalleryApp() {
           {categories.map((cat) => (
             <button
               key={cat}
-              onClick={() => { setActiveCategory(cat); selectMockup(null); }}
+              onClick={() => { setActiveCategory(cat); selectMockup(null); setHome(false); }}
               style={{
                 ...styles.tab,
                 background: t.tabBg,
@@ -3314,6 +3445,14 @@ function GalleryApp() {
             );
           })()}
         </div>
+      ) : isHome ? (
+        <LandingView
+          t={t}
+          darkMode={darkMode}
+          onPickCategory={(c) => { setActiveCategory(c); selectMockup(null); setHome(false); }}
+          onOpen={(m) => selectMockup(m)}
+          statusOf={getEffectiveStatus}
+        />
       ) : (
         <div style={styles.grid}>
           {filtered.length === 0 ? (
@@ -3363,7 +3502,7 @@ function GalleryApp() {
                     {mockup.tags.map((tag) => (
                       <button
                         key={tag}
-                        onClick={(e) => { e.stopPropagation(); setActiveTag(activeTag === tag ? null : tag); setSearchQuery(''); }}
+                        onClick={(e) => { e.stopPropagation(); setActiveTag(activeTag === tag ? null : tag); setSearchQuery(''); setHome(false); }}
                         title={`Filter by #${tag}`}
                         style={{
                           padding: '1px 8px', borderRadius: 10, fontSize: 11, fontWeight: 500, cursor: 'pointer',
@@ -3453,7 +3592,10 @@ const styles = {
   detailTabs: { display: 'flex', gap: 0, marginBottom: 0, borderBottom: '2px solid #e0e0e0' },
   detailTab: { padding: '10px 20px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#6f6f6f', borderBottom: '2px solid transparent', marginBottom: -2, transition: 'color 0.15s, border-color 0.15s' },
   detailTabActive: { color: '#0f62fe', borderBottomColor: '#0f62fe' },
-  specContent: { padding: '8px 0', fontSize: 14, lineHeight: 1.7, color: '#161616', maxWidth: 800 },
+  // No hardcoded color: the .spec-content CSS (incl. [data-theme="dark"] overrides) and
+  // inherited theme color handle text. Setting color here would override the dark-mode CSS
+  // and make body text/tables render near-black on the dark background.
+  specContent: { padding: '8px 0', fontSize: 14, lineHeight: 1.7, maxWidth: 800 },
   specError: { padding: 24, textAlign: 'center', color: '#6f6f6f' },
   statusBadge: { display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600, border: '1px solid' },
   statusSelect: { padding: '8px 12px', border: '1px solid #c6c6c6', borderRadius: 4, fontSize: 14, cursor: 'pointer' },
