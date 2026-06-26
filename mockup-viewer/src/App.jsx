@@ -2429,11 +2429,26 @@ export function formatDate(isoDate) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+/**
+ * Permalink aliases — keep published permalinks resolving after a design is
+ * archived/superseded (old links may be cited in Jira/Confluence). Maps an old
+ * category/slug path to the current replacement card's category/slug path.
+ * Added 2026-06-26 when the old single-screen micro mocks were folded into the
+ * consolidated interactive prototypes.
+ */
+const PERMALINK_ALIASES = {
+  'microbiology/m-04-case-workbench-core-case-detail': 'microbiology/m-04-case-workbench-interactive-prototype',
+  'microbiology/m-05-ast-entry-interpretation': 'microbiology/m-05-ast-entry-interactive-prototype',
+  'microbiology/m-07-ast-worklist': 'microbiology/m-07-worklist-interactive-prototype',
+  'microbiology/m-11-critical-result-acknowledgment': 'microbiology/m-11-critical-notification-inline',
+};
+
 /** Find a mockup by its hash path (e.g. "pathology/cytology-case-view") */
 export function findMockupByHash(hash) {
   // strip leading #/ or #
-  const path = hash.replace(/^#\/?/, '');
+  let path = hash.replace(/^#\/?/, '');
   if (!path) return null;
+  if (PERMALINK_ALIASES[path]) path = PERMALINK_ALIASES[path];
   const [cat, ...slugParts] = path.split('/');
   const slug = slugParts.join('/');
   return MOCKUP_REGISTRY.find(
