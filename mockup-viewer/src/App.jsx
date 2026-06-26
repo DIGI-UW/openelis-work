@@ -2457,14 +2457,14 @@ export const JOURNEYS = [
     title: 'Environmental & Standards',
     blurb: 'From defining a regulatory standard through an environmental sample to a compliance report.',
     steps: [
-      { name: 'Compliance Standards Administration', blurb: 'Define the regulatory standards and limits the lab tests against.' },
-      { name: 'Sampling Site Registry', blurb: 'Register the non-patient sampling sites (rivers, wells, facilities) that samples come from.' },
-      { name: 'Environmental Order Entry (v2)', blurb: 'Log an environmental sample and order tests against a site and standard.' },
-      { name: 'Results Entry — Expanded Uncertainty (U) Capture', blurb: 'Enter results, capturing measurement uncertainty per ISO 17025.' },
-      { name: 'Environmental QC Rules', blurb: 'Evaluate QC for the run and flag any rule violations.' },
-      { name: 'Compliance Evaluation Engine', blurb: 'Compare results to the standard’s limits to determine pass / fail.' },
-      { name: 'Environmental Dashboard & Trend Analysis', blurb: 'Monitor results and trends across sites over time.' },
-      { name: 'Laporan Hasil — Compliance Report', blurb: 'Issue the formal compliance report (Sertifikat Hasil Uji).' },
+      { name: 'Compliance Standards Administration', blurb: 'Where the lab defines the regulatory standards it tests against — each with its analytes, units, and the limit a result must fall within. Everything downstream (order routing, pass/fail evaluation, the certificate) keys off what is configured here, so this is the natural starting point.' },
+      { name: 'Sampling Site Registry', blurb: 'Environmental samples come from places, not patients. This registers the non-patient sampling sites — rivers, wells, treatment plants, facility rooms — so each sample can be tied to a known location and its history instead of a person.' },
+      { name: 'Environmental Order Entry (v2)', blurb: 'The intake screen for a non-patient sample: choose the site, the applicable standard, and the tests to run. It is the environmental analogue of patient order entry, adapted for site-based, regulation-scoped sampling.' },
+      { name: 'Results Entry — Expanded Uncertainty (U) Capture', blurb: 'Techs enter the measured values and, for accredited tests, the expanded measurement uncertainty (U) required by ISO/IEC 17025 §7.8. Capturing U here lets it flow straight onto the final certificate.' },
+      { name: 'Environmental QC Rules', blurb: 'Before results are trusted, QC is evaluated against the configured rules. Violations are flagged so the run can be reviewed or repeated rather than reported blindly.' },
+      { name: 'Compliance Evaluation Engine', blurb: 'The engine compares each result to its standard’s limit and assigns a compliant / non-compliant verdict. This determination is what the report ultimately certifies.' },
+      { name: 'Environmental Dashboard & Trend Analysis', blurb: 'A monitoring surface across sites and over time — positivity, exceedances, and trends — so a program can spot problems that a single sample would never reveal.' },
+      { name: 'Laporan Hasil — Compliance Report', blurb: 'The formal output: the Sertifikat Hasil Uji (certificate of analysis) reporting each result against its limit, with uncertainty and the compliance verdict, ready to issue.' },
     ],
   },
   {
@@ -2473,11 +2473,11 @@ export const JOURNEYS = [
     title: 'Vector Surveillance',
     blurb: 'Mosquito / vector specimens from field collection through identification to surveillance reporting.',
     steps: [
-      { name: 'Vector Specimen Types & Taxonomy', blurb: 'Reference data: the vector species and specimen taxonomy.' },
-      { name: 'Vector Collection Workflow (v2)', blurb: 'Record a field collection event and its specimens.' },
-      { name: 'Vector Testing & Identification', blurb: 'Identify species and run vector tests in the ID workbench.' },
-      { name: 'Vector Surveillance Reporting', blurb: 'Aggregate results into surveillance indicators.' },
-      { name: 'Vector LHU', blurb: 'Produce the vector results report.' },
+      { name: 'Vector Specimen Types & Taxonomy', blurb: 'The reference data the whole module rests on: the vector species and the specimen taxonomy (genus/species, life stage). Identification and reporting later draw from this controlled vocabulary, so it is configured first.' },
+      { name: 'Vector Collection Workflow (v2)', blurb: 'Records a field collection event — trap, location, date, conditions — and the specimens it yielded. This is where a batch of field-caught vectors enters the system as trackable items rather than loose field notes.' },
+      { name: 'Vector Testing & Identification', blurb: 'The workbench where collected specimens are identified to species and run through vector tests (e.g. pathogen detection). Results attach back to the collection event so they stay tied to where and when they were caught.' },
+      { name: 'Vector Surveillance Reporting', blurb: 'Aggregates identifications and test results into surveillance indicators — abundance, infection rates, distribution — the numbers a vector-control program actually acts on.' },
+      { name: 'Vector LHU', blurb: 'The vector results report (Laporan Hasil Uji) that packages the findings for the requesting program or public-health authority.' },
     ],
   },
   {
@@ -2486,12 +2486,12 @@ export const JOURNEYS = [
     title: 'Test Catalog Setup',
     blurb: 'Admin journey: build a test end-to-end — definition, ranges, workflow type, and reagents.',
     steps: [
-      { name: 'Test Catalog', blurb: 'Browse the test catalog and pick a test to configure.' },
-      { name: 'Test Catalog v2.5 — v1 Preview', blurb: 'Use the unified editor to define the test, sample types and results.' },
-      { name: 'Reporting Ranges by Method', blurb: 'Set reference / reporting ranges per method.' },
-      { name: 'Test Catalog — Microbiology Workflow Attribute', blurb: 'Tag a test with its workflow type (e.g. bacterial culture vs TB).' },
-      { name: 'M-12 Test to Reagent Linkage', blurb: 'Declare which reagent lots a test requires (ISO 15189).' },
-      { name: 'Reagent Usage on Result Entry v2.1', blurb: 'See how those reagent lots surface during result entry.' },
+      { name: 'Test Catalog', blurb: 'The home of every test the lab offers. Start here to browse the catalog and pick (or create) the test you want to configure end-to-end.' },
+      { name: 'Test Catalog v2.5 — v1 Preview', blurb: 'The unified editor where a test is actually defined — its name, sample types, result type, and behavior. This single consolidated screen replaces the old scattered admin pages.' },
+      { name: 'Reporting Ranges by Method', blurb: 'Reference and reporting ranges depend on the method used to run a test. Here you set those ranges per method so a result is interpreted (normal / abnormal / critical) correctly.' },
+      { name: 'Test Catalog — Microbiology Workflow Attribute', blurb: 'A test can carry a workflow type that routes it down a specialized path — for example bacterial culture vs TB in the AMR module. This is where that attribute is set on the test.' },
+      { name: 'M-12 Test to Reagent Linkage', blurb: 'Declares which reagent lots a test requires — the ISO 15189 §7.3 traceability link between a result and the materials that produced it. Microbiology forces the issue, but it is a general OpenELIS foundation.' },
+      { name: 'Reagent Usage on Result Entry v2.1', blurb: 'Closes the loop: shows how the reagent lots declared above surface to the tech during result entry, so actual usage is captured against each result.' },
     ],
   },
 ];
@@ -2514,6 +2514,17 @@ export function getEntryType(mockup) {
   if (mockup.component) return 'jsx';
   if (mockup.figmaUrl) return 'figma';
   return 'spec';
+}
+
+/**
+ * Path to a card thumbnail (captured by scripts/capture-thumbnails.mjs) for HTML
+ * prototypes. Returns null for entries without an HTML mockup; the <img> hides
+ * itself on error, so a missing file just falls back to the text card.
+ */
+export function thumbUrl(mockup) {
+  if (!mockup || !mockup.htmlUrl) return null;
+  const base = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.BASE_URL) || '/';
+  return base + 'thumbnails/' + mockup.category + '__' + toSlug(mockup.name) + '.jpg';
 }
 
 const entryTypeConfig = {
@@ -3742,6 +3753,17 @@ function GalleryApp() {
                 onMouseEnter={(e) => (e.currentTarget.style.boxShadow = t.cardShadowHover)}
                 onMouseLeave={(e) => (e.currentTarget.style.boxShadow = t.cardShadow)}
               >
+                {thumbUrl(mockup) && (
+                  <div style={{ margin: '-16px -16px 12px', overflow: 'hidden', borderTopLeftRadius: 8, borderTopRightRadius: 8, borderBottom: `1px solid ${t.border}`, background: t.previewBg, aspectRatio: '1000 / 480' }}>
+                    <img
+                      src={thumbUrl(mockup)}
+                      alt=""
+                      loading="lazy"
+                      onError={(e) => { const p = e.currentTarget.parentElement; if (p) p.style.display = 'none'; }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }}
+                    />
+                  </div>
+                )}
                 <div style={styles.cardHeader}>
                   <span style={{ ...styles.badge, background: t.badgeBg, color: t.textSecondary }}>{categoryLabels[mockup.category]}</span>
                   <div style={{ display: 'flex', gap: 4 }}>
