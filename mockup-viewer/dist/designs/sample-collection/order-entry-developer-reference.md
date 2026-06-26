@@ -31,7 +31,7 @@
 
 **Collect** (clinical)
 - The collector confirms/enters samples. **Quantity is blank by default** (never pre-fill `1`); UOM derives from the catalog and a blank UOM must not block save.
-- **Sample↔test mapping (Option C, v2):** each ordered test (and each panel) has **one self-describing "Assign to" menu** — options are each **existing sample of a compatible type** ("Sample 1 — Plasma (with HIV VL)") to share a tube, plus **"New … sample (separate draw)"** to make a new tube. **No silent auto-assign** — the menu wording shows the outcome. Tests that can share a type are **grouped into one sample by default**; a **panel header "Assign all panel tests to" menu** lands a 15-test panel (CBC) on one tube in one action, rows can override. Rare same-test-on-two-draws via **"+ also collect on another sample."** Unassigned flagged by a banner; **Save & Next gated only on every test having a sample**. (v1 used ambiguous +Type buttons + a popover + a hardcoded multi-sample example — replaced by the menu in the v2 mockup. See FRS §4.1.1 for the full walkthrough.)
+- **Sample & test selection at Collect (no step-1↔step-2 matching — decision 26 Jun):** there is **no "Assign to" mapping**. The collector uses the **standard OpenELIS Add-Sample UI**: per sample a Sample Type picker + optional Filter by Lab Unit + Order Panels search/checklist + Order Tests search/checklist (search by name or code); **Add Sample** for a separate draw. **Step 1 test entry is optional pre-population, unlinked** — it pre-fills/pre-checks this UI as a convenience; the collector confirms/edits/adds and is the authority on what was drawn. Matches the current shipped OE interaction. (Both the v1 popover and the interim "Assign to" menu are dropped. See FRS §4.1.1.)
 - Collection/Received dates must serialize in the **configured Date locale** and reflect the field value (see §4).
 
 **Label & Store**
@@ -48,7 +48,7 @@
 - **Visibility & scoping:** a user sees order-entry actions for their lab unit's domain(s), and scoping is **finer than domain — it follows the assigned lab unit(s)**. A Hematology-only user sees only Hematology orders (lists, dashboards, worklists), not all Clinical orders. **Dashboards are separate per domain**, each list filtered to the user's unit(s). Admins see all units/domains.
 - **No in-form domain split:** order entry is three **separate** workflows (Add Clinical / Environmental / Vector Order) with separate routes and dashboards. There is **no three-way "Sample Category" toggle** inside a single form — that legacy split is removed.
 - **Env collection method is optional** (no required `*`); like the rest of the env defaults, it's a convenience, not a gate.
-- **CSV bulk intake is Env + Vector only.** Template download + upload with a validating preview, for batch intake of pre-collected samples. **Removed from Clinical** — it doesn't fit the patient-by-patient clinical workflow. Don't add CSV import to the clinical wizard.
+- **CSV bulk intake is Env + Vector only** — and **deferred to V2 / candidate community contribution (OGC-1075), not V1.** Template download + upload with a validating preview, for batch intake of pre-collected samples. **Removed from Clinical** — it doesn't fit the patient-by-patient clinical workflow. Don't add CSV import to the clinical wizard.
 - **Pages load at the top** (not scrolled to the bottom).
 
 ## 4. Known defects — current → required (with evidence)

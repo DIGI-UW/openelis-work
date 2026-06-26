@@ -1896,102 +1896,75 @@
       <div><button class="btn btn-ghost" style="font-size:11px; padding:2px 8px;" onclick="toggleStdThresholds()">View Thresholds</button></div>
     </div>
 
-    <!-- ===== REQUESTED TESTS — Quick Add Samples (with panels) ===== -->
+    <!-- ===== SAMPLE & TEST SELECTION (Collect) — matches current OE Add-Sample UI ===== -->
     <div class="form-section">
-      <div class="form-section-header"><h3>Requested Tests</h3></div>
+      <div class="form-section-header"><h3>Sample &amp; Test Selection</h3></div>
       <div class="form-section-body">
-        <!-- Plain-language goal statement: what this step is for and what the default does. -->
-        <div style="font-size:13px; color:var(--cds-gray-80); margin-bottom:12px; padding:12px 14px; background:var(--cds-blue-10); border-left:3px solid var(--cds-blue-60); border-radius:4px;">
-          <strong>Group the ordered tests into the samples you'll collect.</strong> A <b>sample</b> is one tube or container. Tests that can use the same sample type are <b>grouped into one sample automatically</b>, so you draw as few tubes as possible. Use a test's <b>Assign to</b> menu only when it needs its own tube (a <em>separate draw</em>) or a different sample type. The <b>Samples</b> section below always mirrors these choices.
+        <p style="font-size:12px; color:var(--cds-gray-70); margin-bottom:16px; background:#edf5ff; padding:8px 12px; border-left:3px solid var(--cds-blue-60);">Select the <b>sample type</b> and the <b>panels/tests</b> for each sample you collect. Anything entered at Enter Order is pre-filled here (optional) &mdash; confirm, edit, or add. Use <b>Add Sample</b> to record a separate draw.</p>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+          <h4 style="font-size:16px; font-weight:500;">Sample 1</h4>
+          <a href="#" style="color:var(--cds-red-60); font-size:13px; text-decoration:none;">Remove Sample</a>
         </div>
 
-        <!-- Unassigned warning — clear, single banner; advances only when every test has a sample. -->
-        <div style="font-size:12px; color:#8a3c00; margin-bottom:12px; padding:10px 14px; background:#fff8e1; border:1px solid #f1c21b; border-radius:4px; display:flex; align-items:center; gap:8px;">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="#b28600" style="flex-shrink:0;"><path d="M8 1L1 14h14L8 1zm0 3l4.5 8.5h-9L8 4zm-.75 3v3h1.5V7h-1.5zm0 4v1.5h1.5V11h-1.5z"/></svg>
-          <span><strong>1 test isn't in a sample yet.</strong> Set its <b>Assign to</b> below — tests without a sample can't be collected.</span>
+        <div class="form-row" style="margin-bottom:16px;">
+          <div class="form-group">
+            <label class="form-label">Sample Type</label>
+            <select class="form-select"><option>Select...</option><option selected>Plasma</option><option>Serum</option><option>Whole Blood</option><option>Urine</option><option>DBS</option></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Filter by Lab Unit</label>
+            <select class="form-select"><option>All Lab Units</option><option>Hematology</option><option>Microbiology</option><option>Chemistry</option><option>Virology</option></select>
+          </div>
         </div>
 
-        <table style="width:100%; font-size:13px; border-collapse:collapse;">
-          <thead><tr style="background:var(--cds-gray-10); text-align:left;">
-            <th style="padding:8px 12px; font-weight:600; border-bottom:2px solid var(--cds-gray-20);">Test / Panel</th>
-            <th style="padding:8px 12px; font-weight:600; border-bottom:2px solid var(--cds-gray-20);">Can use sample type</th>
-            <th style="padding:8px 12px; font-weight:600; border-bottom:2px solid var(--cds-gray-20); width:300px;">Assign to</th>
-          </tr></thead>
-          <tbody>
-            <!-- Panel header row — one menu assigns every test in the panel at once -->
-            <tr style="border-top:2px solid var(--cds-gray-30); background:#f0faf0;">
-              <td style="padding:10px 12px;">
-                <span style="padding:3px 10px; background:#defbe6; border:1px solid var(--cds-green-40); border-radius:4px; font-size:12px; color:var(--cds-green-60); font-weight:600;"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:middle;margin-right:2px;"><path d="M14 1H2a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V2a1 1 0 00-1-1zM5 13H3v-2h2zm0-4H3V7h2zm0-4H3V3h2zm8 8H7v-2h6zm0-4H7V7h6zm0-4H7V3h6z"/></svg> Panel: Serologie VIH</span>
-                <span style="font-size:11px; color:var(--cds-gray-60); margin-left:8px;">(2 tests)</span>
-              </td>
-              <td style="padding:10px 12px; color:var(--cds-gray-70);">Plasma, DBS</td>
-              <td style="padding:10px 12px;">
-                <label style="font-size:11px; color:var(--cds-gray-60); display:block; margin-bottom:2px;">Assign all panel tests to</label>
-                <select class="form-select" style="font-size:12px; min-height:32px;">
-                  <option selected>Sample 1 — Plasma</option>
-                  <option>New Plasma sample (separate draw)</option>
-                  <option>New DBS sample</option>
-                  <option>Assign each test individually…</option>
-                </select>
-              </td>
-            </tr>
-            <!-- Individual tests within panel — checkbox to drop from order; single Assign to menu -->
-            <tr style="border-top:1px solid var(--cds-gray-20);">
-              <td style="padding:8px 12px; padding-left:32px;">
-                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;" title="Uncheck to drop this test from the order">
-                  <input type="checkbox" checked>
-                  <span style="padding:3px 10px; background:#f6f2ff; border:1px solid #d4bbff; border-radius:4px; font-size:12px; color:var(--cds-purple-60);">HIV VIRAL LOAD</span>
-                </label>
-              </td>
-              <td style="padding:8px 12px; color:var(--cds-gray-70);">Plasma, DBS</td>
-              <td style="padding:8px 12px;">
-                <select class="form-select" style="font-size:12px; min-height:32px;">
-                  <option selected>✓ Sample 1 — Plasma (with Western blot HIV)</option>
-                  <option>New Plasma sample (separate draw)</option>
-                  <option>New DBS sample</option>
-                </select>
-                <a href="#" style="font-size:11px; color:var(--cds-blue-60); text-decoration:none; display:inline-block; margin-top:4px;" onclick="return false;" title="Run the same test on a second, separately collected sample (rare)">+ also collect on another sample</a>
-              </td>
-            </tr>
-            <tr style="border-top:1px solid var(--cds-gray-20);">
-              <td style="padding:8px 12px; padding-left:32px;">
-                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;" title="Uncheck to drop this test from the order">
-                  <input type="checkbox" checked>
-                  <span style="padding:3px 10px; background:#f6f2ff; border:1px solid #d4bbff; border-radius:4px; font-size:12px; color:var(--cds-purple-60);">Western blot HIV</span>
-                </label>
-              </td>
-              <td style="padding:8px 12px; color:var(--cds-gray-70);">Serum, Plasma</td>
-              <td style="padding:8px 12px;">
-                <select class="form-select" style="font-size:12px; min-height:32px;">
-                  <option selected>✓ Sample 1 — Plasma (with HIV VIRAL LOAD)</option>
-                  <option>New Serum sample</option>
-                  <option>New Plasma sample (separate draw)</option>
-                </select>
-              </td>
-            </tr>
-            <!-- Standalone test (no panel) — currently UNASSIGNED: amber prompt in the menu -->
-            <tr style="border-top:2px solid var(--cds-gray-30); background:#fffdf5;">
-              <td style="padding:8px 12px;">
-                <span style="padding:3px 10px; background:#f6f2ff; border:1px solid #d4bbff; border-radius:4px; font-size:12px; color:var(--cds-purple-60);">COVID-19 ANTIBODY IgG</span>
-                <span style="font-size:11px; color:var(--cds-gray-60); margin-left:4px;">(standalone)</span>
-              </td>
-              <td style="padding:8px 12px; color:var(--cds-gray-70);">Serum, Plasma</td>
-              <td style="padding:8px 12px;">
-                <select class="form-select" style="font-size:12px; min-height:32px; border:2px solid #f1c21b;">
-                  <option selected>— Choose a sample —</option>
-                  <option>New Serum sample</option>
-                  <option>Sample 1 — Plasma (with HIV VIRAL LOAD, Western blot HIV)</option>
-                  <option>New Plasma sample (separate draw)</option>
-                </select>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- One concise helper that defines the two menu choices and the rare multi-sample case. -->
-        <div style="font-size:11px; color:var(--cds-gray-70); margin-top:10px; padding:8px 12px; background:var(--cds-gray-10); border-left:3px solid var(--cds-blue-60);">
-          <strong>How "Assign to" works.</strong> Pick an <b>existing sample</b> to run the test off the same tube (no extra draw). Pick <b>"New … sample (separate draw)"</b> when the test needs its own tube — for example a second EDTA draw, or a different sample type. Need the same test on two separate draws? Assign it, then use <b>"+ also collect on another sample"</b> on that row. Unchecking a test removes it from this order.
+        <!-- Order Panels -->
+        <div style="margin-bottom:20px;">
+          <h4 style="font-size:15px; font-weight:500; margin-bottom:8px;">Order Panels</h4>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+            <span style="padding:4px 12px; background:#defbe6; border:1px solid var(--cds-green-40); border-radius:4px; font-size:12px; display:flex; align-items:center; gap:6px; color:var(--cds-green-60);">Serologie VIH <span style="cursor:pointer; font-weight:bold; color:var(--cds-green-60);">&times;</span></span>
+          </div>
+          <div style="position:relative; margin-bottom:6px;">
+            <span style="position:absolute; left:12px; top:9px; color:var(--cds-gray-60);">&#128269;</span>
+            <input class="form-input" placeholder="Search panels by name or code\u2026" style="width:100%; padding-left:36px;">
+          </div>
+          <div style="border:1px solid var(--cds-gray-20); max-height:120px; overflow-y:auto;">
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> Bilan Biochimique</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox" checked> Serologie VIH</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> Complete Blood Count</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px;"><input type="checkbox"> Basic Metabolic Panel</label>
+          </div>
         </div>
+
+        <!-- Order Tests -->
+        <div style="margin-bottom:20px;">
+          <h4 style="font-size:15px; font-weight:500; margin-bottom:8px;">Order Tests</h4>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+            <span style="padding:4px 12px; background:#fff1f1; border:1px solid #ffb3b8; border-radius:4px; font-size:12px; display:flex; align-items:center; gap:6px; color:var(--cds-red-60);">COVID-19 ANTIBODY IgG <span style="cursor:pointer; font-weight:bold;">&times;</span></span>
+            <span style="padding:4px 12px; background:#fff1f1; border:1px solid #ffb3b8; border-radius:4px; font-size:12px; display:flex; align-items:center; gap:6px; color:var(--cds-red-60);">Western blot HIV <span style="cursor:pointer; font-weight:bold;">&times;</span></span>
+          </div>
+          <div style="position:relative; margin-bottom:6px;">
+            <span style="position:absolute; left:12px; top:9px; color:var(--cds-gray-60);">&#128269;</span>
+            <input class="form-input" placeholder="Search tests by name or code\u2026" style="width:100%; padding-left:36px;">
+          </div>
+          <p style="font-size:11px; color:var(--cds-gray-60); margin:0 0 6px;">Search by the test's <b>name or code</b>. Tests pre-filled from Enter Order are already checked &mdash; uncheck to drop, or check more to add to this sample.</p>
+          <div style="border:1px solid var(--cds-gray-20); max-height:200px; overflow-y:auto;">
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox" checked> COVID-19 ANTIBODY IgG</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> COVID-19 ANTIBODY IgM</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> DENGUE PCR</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> HEPATITIS B VIRAL LOAD</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox"> HIV VIRAL LOAD</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--cds-gray-20);"><input type="checkbox" checked> Western blot HIV</label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; font-size:13px;"><input type="checkbox"> Glucose</label>
+          </div>
+        </div>
+
+        <!-- Refer to reference lab -->
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:var(--cds-red-60); margin-bottom:16px;">
+          <input type="checkbox"> Refer test to a reference lab
+        </label>
+
+        <!-- Add Sample button -->
+        <button class="btn btn-primary" style="display:flex; align-items:center; gap:8px;">Add Sample <span style="font-size:18px;">+</span></button>
       </div>
     </div>
 

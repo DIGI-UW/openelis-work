@@ -47,23 +47,18 @@ This update reflects decisions taken after FRS v2 and the live behaviour audit (
 - **Ward / Unit / Department (clinical only):** a **sub-unit of the selected ordering facility** identifying where the patient is (e.g., ICU, Maternity Ward, Emergency Dept.). It is **disabled until a facility/site is selected**; once a facility with subunits is chosen, the dropdown enables and populates from that facility's subunits (maps to legacy `requesterDepartmentId`). It is optional. Environmental and Vector do not have this field (no patient).
 - **Collect:** the collector **confirms** the pre-populated sample(s)/tests (or enters them if not pre-populated), sets Unit if a quantity is recorded, and captures collection details.
 
-#### 4.1.1 Sample↔Test linkage (v2 — the Option-C interaction)
-The ordered tests from Enter Order appear in a **Requested Tests** table at Collect with three columns: Test/Panel · **Can use sample type** (from the test catalog) · **Assign to**. The collector groups tests into the samples (tubes/containers) they will collect:
-- **One self-describing "Assign to" menu per test** (replacing the v1 chip/popover). For each compatible sample type the menu offers: each **existing sample of that type** — e.g., *"Sample 1 — Plasma (with HIV VIRAL LOAD)"* — so the test runs off the **same tube**; and **"New … sample (separate draw)"** to create a new tube of that type. The menu's wording makes the outcome explicit, so there is **no silent auto-assign** — the user always sees and confirms where each test goes.
-- **Default grouping:** tests that can share a sample type are grouped into **one sample by default**, minimizing draws. A **panel header** has an **"Assign all panel tests to"** menu so a 15-test panel (e.g., a CBC) lands on one tube in a single action; individual rows can still override.
-- **Separate draw / different type:** choosing "New … sample (separate draw)" creates a new sample (Sample 2, 3, …); the Samples section below mirrors it immediately.
-- **Same test on multiple draws (rare):** assign it once, then use **"+ also collect on another sample"** on that row to add a second assignment.
-- **Unassigned tests are flagged** by a single banner and an amber-outlined menu; **Save & Next is gated only on every test having a sample** — nothing else.
-- Uncheck a panel test to drop it from the order.
+#### 4.1.1 Sample & Test selection at Collect (no step-1↔step-2 matching)
+**Decision (26 Jun): the step-1→step-2 test-matching is pulled out.** There is **no "Assign to" mapping** that links Enter-Order tests to samples at Collect. Instead, at **Collect** the collector uses the **standard OpenELIS Add-Sample UI** to select samples and their tests directly:
+- For each sample: a **Sample Type** picker, optional **Filter by Lab Unit**, an **Order Panels** search+checklist, and an **Order Tests** search+checklist (search by **name or code**). **Add Sample** records a separate draw; each sample carries its own selected panels/tests.
+- **Step 1 stays optional pre-population, unlinked.** Anything entered at Enter Order (sample type, panels, tests) is **pre-filled/pre-checked** in this UI as a convenience — the collector confirms, edits, or adds. It is not a binding mapping; the collector is the authority on what was actually drawn.
+- This matches the current shipped OE Add-Order/Collect interaction (Sample Type → Order Panels → Order Tests), so it's familiar and low-risk to build.
 
-**Real-life walkthrough.** A requisition orders a **CBC panel (15 tests)**, **Glucose**, and an **HIV Viral Load**. Reception adds them at Enter Order by name or code (no sample type yet) and saves. At Collect, the CBC panel header defaults to **"Assign all panel tests to → Sample 1 (EDTA Whole Blood)"** — all 15 tests on one tube; Glucose and HIV VL default to **Sample 2 (Plasma)**. The collector accepts: **2 draws cover 17 tests**. If a coagulation test needs its own citrate tube, its "Assign to" menu → **"New Citrate sample (separate draw)"** creates Sample 3. Anything left on **"— Choose a sample —"** keeps the banner up and blocks Save & Next.
-
-- **v1→v2 status:** the v1 popover/multi-sample model is replaced by the "Assign to" menu (the v1 build drifted to forcing tests at step 1 and could auto-assign). Built in the v2 clinical mockup. This is Reagan's Story 3.
+- **v1→v2 status:** the v1 popover/multi-sample mapping **and** the interim "Assign to" menu are both dropped in favor of direct OE-style selection at Collect, with Step 1 as optional pre-pop. Built in the v2 clinical mockup. This is Reagan's Story 3 (OGC-1069).
 
 ### 4.2 Environmental
 - **Stages:** Enter Order → Label & Store → QA Review (no Collect stage).
 - **Enter Order:** Sampling Site (registry search, **required**), applicable Compliance Standards (**required**), default collection conditions (collection method — **optional**, water/ambient temp, weather, preservation), GPS/geolocation, per-sample manifest (container), "lab performed sampling", SOP max holding time. Requester = Requesting Organization + Requestor contact (see §5). Required: see §7.
-- **CSV bulk intake (Env + Vector only):** for batch intake of many pre-collected samples (e.g., a 10×10 storage box or 96-well plate), Environmental and Vector offer a **CSV template download + upload with a validating preview** (per-row valid/invalid, fixable before import). **Clinical does not have CSV bulk import** — it doesn't fit the patient-by-patient clinical workflow.
+- **CSV bulk intake (Env + Vector only — deferred to V2 / community, OGC-1075):** for batch intake of many pre-collected samples (e.g., a 10×10 storage box or 96-well plate), Environmental and Vector offer a **CSV template download + upload with a validating preview** (per-row valid/invalid, fixable before import). **Not in V1** (de-prioritized 26 Jun; kept as a candidate community contribution). **Clinical does not have CSV bulk import** — it doesn't fit the patient-by-patient clinical workflow.
 
 ### 4.3 Vector
 - **Stages:** organism-based order entry → (downstream) species identification & pool deconvolution at Results › Vector Identification.
