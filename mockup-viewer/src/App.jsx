@@ -2445,6 +2445,69 @@ export function explainCode(name) {
   return codePrefixes[m[1]] || null;
 }
 
+/**
+ * Guided journeys — curated, narrated step-throughs that sequence existing mockups
+ * into a full workflow. Steps reference mockups by their exact registry `name`.
+ * (Microbiology has its own richer HTML walkthrough, surfaced separately.)
+ */
+export const JOURNEYS = [
+  {
+    id: 'environmental-standards',
+    icon: '🌱',
+    title: 'Environmental & Standards',
+    blurb: 'From defining a regulatory standard through an environmental sample to a compliance report.',
+    steps: [
+      { name: 'Compliance Standards Administration', blurb: 'Define the regulatory standards and limits the lab tests against.' },
+      { name: 'Sampling Site Registry', blurb: 'Register the non-patient sampling sites (rivers, wells, facilities) that samples come from.' },
+      { name: 'Environmental Order Entry (v2)', blurb: 'Log an environmental sample and order tests against a site and standard.' },
+      { name: 'Results Entry — Expanded Uncertainty (U) Capture', blurb: 'Enter results, capturing measurement uncertainty per ISO 17025.' },
+      { name: 'Environmental QC Rules', blurb: 'Evaluate QC for the run and flag any rule violations.' },
+      { name: 'Compliance Evaluation Engine', blurb: 'Compare results to the standard’s limits to determine pass / fail.' },
+      { name: 'Environmental Dashboard & Trend Analysis', blurb: 'Monitor results and trends across sites over time.' },
+      { name: 'Laporan Hasil — Compliance Report', blurb: 'Issue the formal compliance report (Sertifikat Hasil Uji).' },
+    ],
+  },
+  {
+    id: 'vector-surveillance',
+    icon: '🦟',
+    title: 'Vector Surveillance',
+    blurb: 'Mosquito / vector specimens from field collection through identification to surveillance reporting.',
+    steps: [
+      { name: 'Vector Specimen Types & Taxonomy', blurb: 'Reference data: the vector species and specimen taxonomy.' },
+      { name: 'Vector Collection Workflow (v2)', blurb: 'Record a field collection event and its specimens.' },
+      { name: 'Vector Testing & Identification', blurb: 'Identify species and run vector tests in the ID workbench.' },
+      { name: 'Vector Surveillance Reporting', blurb: 'Aggregate results into surveillance indicators.' },
+      { name: 'Vector LHU', blurb: 'Produce the vector results report.' },
+    ],
+  },
+  {
+    id: 'test-catalog-setup',
+    icon: '⚙️',
+    title: 'Test Catalog Setup',
+    blurb: 'Admin journey: build a test end-to-end — definition, ranges, workflow type, and reagents.',
+    steps: [
+      { name: 'Test Catalog', blurb: 'Browse the test catalog and pick a test to configure.' },
+      { name: 'Test Catalog v2.5 — v1 Preview', blurb: 'Use the unified editor to define the test, sample types and results.' },
+      { name: 'Reporting Ranges by Method', blurb: 'Set reference / reporting ranges per method.' },
+      { name: 'Test Catalog — Microbiology Workflow Attribute', blurb: 'Tag a test with its workflow type (e.g. bacterial culture vs TB).' },
+      { name: 'M-12 Test to Reagent Linkage', blurb: 'Declare which reagent lots a test requires (ISO 15189).' },
+      { name: 'Reagent Usage on Result Entry v2.1', blurb: 'See how those reagent lots surface during result entry.' },
+    ],
+  },
+];
+
+/** Find a registry entry by its exact name (used by guided journeys). */
+export function findMockupByName(name) {
+  return MOCKUP_REGISTRY.find((m) => m.name === name) || null;
+}
+
+/** Resolve a "#/journey/<id>" hash to a journey, or null. */
+export function journeyFromHash(hash) {
+  const m = /^#\/?journey\/([\w-]+)/.exec(hash || '');
+  if (!m) return null;
+  return JOURNEYS.find((j) => j.id === m[1]) || null;
+}
+
 /** Determine entry type for visual distinction */
 export function getEntryType(mockup) {
   if (mockup.htmlUrl) return 'html';
@@ -3017,11 +3080,11 @@ export const themes = {
  * and shows the newest designs. Any search / filter / category switches back to
  * the flat grid.
  */
-function LandingView({ t, darkMode, onPickCategory, onOpen, statusOf }) {
+function LandingView({ t, darkMode, onPickCategory, onOpen, statusOf, journeys = [], onOpenJourney }) {
   const counts = {};
   MOCKUP_REGISTRY.forEach((m) => { counts[m.category] = (counts[m.category] || 0) + 1; });
   const cats = categories.filter((c) => c !== 'all' && counts[c]);
-  const journeys = MOCKUP_REGISTRY.filter((m) => m.tags && m.tags.includes('walkthrough'));
+  const walkthroughs = MOCKUP_REGISTRY.filter((m) => m.tags && m.tags.includes('walkthrough'));
   const recent = [...MOCKUP_REGISTRY]
     .sort((a, b) => (b.added || DEFAULT_ADDED).localeCompare(a.added || DEFAULT_ADDED))
     .slice(0, 6);
@@ -3042,12 +3105,22 @@ function LandingView({ t, darkMode, onPickCategory, onOpen, statusOf }) {
         full workflow, or jump to the newest designs. You can search and filter from the bar above any time.
       </p>
 
-      {journeys.length > 0 && (
+      {(journeys.length > 0 || walkthroughs.length > 0) && (
         <>
           <div style={sectionTitle}>🧭 Guided journeys</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 14 }}>
-            {journeys.map((m, i) => (
-              <button key={i} onClick={() => onOpen(m)} onMouseEnter={hoverIn} onMouseLeave={hoverOut}
+            {journeys.map((j) => (
+              <button key={j.id} onClick={() => onOpenJourney && onOpenJourney(j)} onMouseEnter={hoverIn} onMouseLeave={hoverOut}
+                style={{ ...tile, borderLeft: `4px solid ${t.accent}` }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: t.text, marginBottom: 4 }}>
+                  <span style={{ marginRight: 6 }}>{j.icon}</span>{j.title}
+                  <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 600, color: t.textMuted, background: t.badgeBg, borderRadius: 10, padding: '1px 8px' }}>{j.steps.length} steps</span>
+                </div>
+                <div style={{ fontSize: 13, color: t.textSecondary, lineHeight: 1.45 }}>{j.blurb}</div>
+              </button>
+            ))}
+            {walkthroughs.map((m, i) => (
+              <button key={'w' + i} onClick={() => onOpen(m)} onMouseEnter={hoverIn} onMouseLeave={hoverOut}
                 style={{ ...tile, borderLeft: `4px solid ${t.accent}` }}>
                 <div style={{ fontSize: 15, fontWeight: 600, color: t.text, marginBottom: 4 }}>{m.name}</div>
                 <div style={{ fontSize: 13, color: t.textSecondary, lineHeight: 1.45 }}>{m.description}</div>
@@ -3088,6 +3161,85 @@ function LandingView({ t, darkMode, onPickCategory, onOpen, statusOf }) {
             </button>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Guided journey stepper — narrates a workflow one step at a time, embedding the
+ * referenced mockup with Prev/Next and a clickable step list.
+ */
+function JourneyView({ journey, t, darkMode, onExit, onOpenMockup }) {
+  const [idx, setIdx] = React.useState(0);
+  const step = journey.steps[idx];
+  const mockup = findMockupByName(step.name);
+  const total = journey.steps.length;
+  const code = mockup && explainCode(mockup.name);
+
+  return (
+    <div>
+      <button onClick={onExit} style={{ ...styles.backButton, color: t.accent }}>← Back to Gallery</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+        <span style={{ fontSize: 24 }}>{journey.icon}</span>
+        <h2 style={{ margin: 0, color: t.text }}>{journey.title}</h2>
+        <span style={{ ...styles.badge, background: t.badgeBg, color: t.textSecondary }}>Journey</span>
+      </div>
+      <p style={{ color: t.textSecondary, margin: '0 0 14px', fontSize: 14 }}>{journey.blurb}</p>
+
+      {/* progress dots / step list */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+        {journey.steps.map((s, i) => (
+          <button key={i} onClick={() => setIdx(i)} title={s.name}
+            style={{
+              fontSize: 12, padding: '4px 10px', borderRadius: 14, cursor: 'pointer', whiteSpace: 'nowrap',
+              border: '1px solid ' + (i === idx ? t.accent : t.border),
+              background: i === idx ? t.accent : (i < idx ? (darkMode ? '#1a3320' : '#defbe6') : t.cardBg),
+              color: i === idx ? '#fff' : t.textSecondary, fontWeight: i === idx ? 600 : 500,
+            }}>
+            {i + 1}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ border: `1px solid ${t.border}`, borderRadius: 10, background: t.cardBg, padding: 16, marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: t.textMuted, marginBottom: 4 }}>STEP {idx + 1} OF {total}</div>
+        <div style={{ fontSize: 17, fontWeight: 600, color: t.text, marginBottom: 4 }}>{step.name}</div>
+        <p style={{ margin: 0, fontSize: 14, color: t.textSecondary, lineHeight: 1.5 }}>{step.blurb}</p>
+        {code && <p style={{ margin: '6px 0 0', fontSize: 12, color: t.textMuted }}>{mockup.name.match(/^[A-Z]{1,3}-[A-Z0-9]+[a-z]?/)?.[0]} — {code}</p>}
+        {mockup && (
+          <button onClick={() => onOpenMockup(mockup)} style={{ marginTop: 8, background: 'none', border: 'none', padding: 0, color: t.accent, cursor: 'pointer', fontSize: 13, textDecoration: 'underline' }}>
+            Open this mockup on its own →
+          </button>
+        )}
+      </div>
+
+      {/* embedded mockup */}
+      <div style={{ ...styles.preview, background: t.previewBg, borderColor: t.border, padding: 0 }}>
+        {mockup && mockup.htmlUrl ? (
+          <iframe
+            src={import.meta.env.BASE_URL + mockup.htmlUrl}
+            style={{ ...styles.figmaIframe, height: 720, borderColor: t.border }}
+            allowFullScreen
+            title={step.name}
+          />
+        ) : (
+          <div style={{ ...styles.loading, color: t.textMuted }}>
+            {mockup ? 'This step is a spec — open it to read the document.' : `Mockup not found: ${step.name}`}
+          </div>
+        )}
+      </div>
+
+      {/* prev / next */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 14 }}>
+        <button onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0}
+          style={{ ...styles.permalinkButton, background: t.permalinkBg, color: t.permalinkColor, opacity: idx === 0 ? 0.5 : 1, cursor: idx === 0 ? 'default' : 'pointer', padding: '8px 16px' }}>
+          ← Previous
+        </button>
+        <button onClick={() => setIdx((i) => Math.min(total - 1, i + 1))} disabled={idx === total - 1}
+          style={{ background: idx === total - 1 ? t.badgeBg : t.accent, color: idx === total - 1 ? t.textMuted : '#fff', border: 'none', borderRadius: 6, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: idx === total - 1 ? 'default' : 'pointer' }}>
+          Next →
+        </button>
       </div>
     </div>
   );
@@ -3146,14 +3298,17 @@ function GalleryApp() {
   const t = darkMode ? themes.dark : themes.light;
 
   // Home (Explore landing) vs browse grid. Starts on home unless deep-linked to a mockup.
-  const [home, setHome] = useState(() => !findMockupByHash(window.location.hash));
+  const [home, setHome] = useState(() => !findMockupByHash(window.location.hash) && !journeyFromHash(window.location.hash));
+  const [activeJourney, setActiveJourney] = useState(() => journeyFromHash(window.location.hash));
 
-  // On mount, check if the URL hash points to a mockup
+  // On mount, check if the URL hash points to a mockup or a journey
   useEffect(() => {
     const mockup = findMockupByHash(window.location.hash);
     if (mockup) {
       setSelectedMockup(mockup);
       setActiveCategory(mockup.category);
+      setHome(false);
+    } else if (journeyFromHash(window.location.hash)) {
       setHome(false);
     }
   }, []);
@@ -3162,8 +3317,11 @@ function GalleryApp() {
   useEffect(() => {
     function onHashChange() {
       const mockup = findMockupByHash(window.location.hash);
+      const journey = journeyFromHash(window.location.hash);
       setSelectedMockup(mockup);
+      setActiveJourney(journey);
       if (mockup) { setActiveCategory(mockup.category); setHome(false); }
+      else if (journey) { setHome(false); }
     }
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
@@ -3174,12 +3332,20 @@ function GalleryApp() {
     setSelectedMockup(mockup);
     setDetailTab('preview'); // Reset tab when switching entries
     if (mockup) {
+      setActiveJourney(null);
       setHome(false);
       window.location.hash = toHash(mockup);
     } else {
       // Clear hash when going back to gallery
       history.pushState(null, '', window.location.pathname + window.location.search);
     }
+  }
+
+  function selectJourney(journey) {
+    setSelectedMockup(null);
+    setActiveJourney(journey);
+    setHome(false);
+    window.location.hash = journey ? `#/journey/${journey.id}` : '';
   }
 
   /** Resolve effective status: local override > static (from registry) > default */
@@ -3541,10 +3707,20 @@ function GalleryApp() {
             );
           })()}
         </div>
+      ) : activeJourney ? (
+        <JourneyView
+          journey={activeJourney}
+          t={t}
+          darkMode={darkMode}
+          onExit={() => { setActiveJourney(null); goHome(); }}
+          onOpenMockup={(m) => selectMockup(m)}
+        />
       ) : isHome ? (
         <LandingView
           t={t}
           darkMode={darkMode}
+          journeys={JOURNEYS}
+          onOpenJourney={selectJourney}
           onPickCategory={(c) => { setActiveCategory(c); selectMockup(null); setHome(false); }}
           onOpen={(m) => selectMockup(m)}
           statusOf={getEffectiveStatus}
