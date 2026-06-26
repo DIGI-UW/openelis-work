@@ -21,6 +21,8 @@ import App, {
   statusConfig,
   statusKeys,
   STATUS_DEFAULT,
+  explainCode,
+  glossary,
   sanitizeComment,
   buildStatusChangeUrl,
   parseStatusFromComment,
@@ -976,5 +978,42 @@ describe('Mockup render smoke tests', () => {
         expect(container.innerHTML).not.toContain('Loading...');
       }, { timeout: 10000 });
     });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Glossary — code-prefix decoder + acronym reference
+// ═══════════════════════════════════════════════════════════════
+
+describe('explainCode', () => {
+  it('decodes known design-code prefixes', () => {
+    expect(explainCode('M-04 Case Workbench Core')).toMatch(/Microbiology/);
+    expect(explainCode('S-03c Subcontract Management')).toMatch(/Standards/);
+    expect(explainCode('V-01 Vector Specimen Types')).toMatch(/Vector/);
+  });
+  it('returns null for names without a code prefix', () => {
+    expect(explainCode('Data Dictionary')).toBeNull();
+    expect(explainCode('Patient ID Card Scanning')).toBeNull();
+  });
+  it('glossary has non-empty groups and terms', () => {
+    expect(glossary.length).toBeGreaterThan(0);
+    glossary.forEach((g) => {
+      expect(g.group).toBeTruthy();
+      expect(g.terms.length).toBeGreaterThan(0);
+      g.terms.forEach((tm) => { expect(tm.term).toBeTruthy(); expect(tm.def).toBeTruthy(); });
+    });
+  });
+});
+
+describe('glossary modal', () => {
+  beforeEach(() => { window.location.hash = ''; });
+  it('opens when the Glossary button is clicked and closes on ×', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: /open glossary/i }));
+    expect(screen.getByRole('heading', { name: 'Glossary' })).toBeInTheDocument();
+    expect(screen.getByText(/Minimum Inhibitory Concentration/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /close glossary/i }));
+    expect(screen.queryByRole('heading', { name: 'Glossary' })).toBeNull();
   });
 });
