@@ -13,12 +13,21 @@
       "routeErrors": [],
       "checkedAt": "2026-06-24T19:25:18.703Z",
       "codeChanged": {
-        "count": 0,
+        "count": 1,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/patient"
         ],
-        "latest": null
+        "branches": {
+          "develop": 1,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "f098f59",
+          "date": "2026-06-29",
+          "msg": "feat(OGC-767): reuse existing localization system; add validation View Patient link (#3797)",
+          "branch": "develop"
+        }
       }
     },
     {
@@ -38,6 +47,10 @@
           "frontend/src/components/analyzers",
           "frontend/src/components/genericSample"
         ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
         "latest": null
       }
     },
@@ -57,6 +70,10 @@
         "paths": [
           "frontend/src/components/analyzers"
         ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
         "latest": null
       }
     },
@@ -77,6 +94,10 @@
           "frontend/src/components/printBarcode",
           "frontend/src/components/barcodeWorkflow"
         ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
         "latest": null
       }
     },
@@ -96,6 +117,10 @@
         "paths": [
           "frontend/src/components/notebook"
         ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
         "latest": null
       }
     },
@@ -110,13 +135,22 @@
       "routeErrors": [],
       "checkedAt": "2026-06-24T19:25:34.552Z",
       "codeChanged": {
-        "count": 0,
+        "count": 2,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/esignature",
           "frontend/src/components/validation"
         ],
-        "latest": null
+        "branches": {
+          "develop": 2,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "d93c388",
+          "date": "2026-06-30",
+          "msg": "fix(validation): label submit button \"Validate\" instead of \"Save\" (#3799)",
+          "branch": "develop"
+        }
       }
     },
     {
@@ -131,13 +165,22 @@
       "routeErrors": [],
       "checkedAt": "2026-06-24T19:26:51.014Z",
       "codeChanged": {
-        "count": 0,
+        "count": 3,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/order",
           "frontend/src/components/addOrder"
         ],
-        "latest": null
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 3
+        },
+        "latest": {
+          "sha": "fce11a6",
+          "date": "2026-06-29",
+          "msg": "feat(order-entry): field-level helper text + compliance i18n (OGC-1071, OGC-1072) (#3777)",
+          "branch": "demo-silnas"
+        }
       }
     },
     {
@@ -156,6 +199,10 @@
         "paths": [
           "frontend/src/components/eqa"
         ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
         "latest": null
       }
     },
@@ -170,12 +217,21 @@
       "routeErrors": [],
       "checkedAt": "2026-06-24T19:25:50.388Z",
       "codeChanged": {
-        "count": 0,
+        "count": 1,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/nonconform"
         ],
-        "latest": null
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 1
+        },
+        "latest": {
+          "sha": "873f93c",
+          "date": "2026-06-26",
+          "msg": "feat(sample-acceptance): add Sample Acceptance Checklist with resample workflow (OGC-580) (#3778)",
+          "branch": "demo-silnas"
+        }
       }
     },
     {
@@ -190,12 +246,16 @@
       "checkedAt": "2026-06-24T19:25:59.354Z",
       "codeChanged": {
         "count": 0,
-        "since": "2026-06-24",
+        "since": "2026-06-30",
         "paths": [
           "frontend/src/components/order",
           "frontend/src/components/addOrder",
           "frontend/src/components/sample"
         ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
         "latest": null
       }
     },
@@ -210,15 +270,20 @@
       "routeErrors": [],
       "checkedAt": "2026-06-24T19:26:01.983Z",
       "codeChanged": {
-        "count": 1,
+        "count": 6,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/admin"
         ],
+        "branches": {
+          "develop": 5,
+          "demo-silnas": 1
+        },
         "latest": {
-          "date": "2026-06-24T12:26:33Z",
-          "msg": "fixes for Test Catalogue v1 (#3764)",
-          "sha": "0720567"
+          "sha": "0189f10",
+          "date": "2026-06-30",
+          "msg": "feat(OGC-949): async alert dispatch, multi-terminology FHIR codings, test-catalog name/filter polish (#3804)",
+          "branch": "develop"
         }
       }
     },
@@ -233,12 +298,21 @@
       "routeErrors": [],
       "checkedAt": "2026-06-24T19:26:07.244Z",
       "codeChanged": {
-        "count": 0,
+        "count": 1,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/patient"
         ],
-        "latest": null
+        "branches": {
+          "develop": 1,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "f098f59",
+          "date": "2026-06-29",
+          "msg": "feat(OGC-767): reuse existing localization system; add validation View Patient link (#3797)",
+          "branch": "develop"
+        }
       }
     },
     {
@@ -252,12 +326,21 @@
       "routeErrors": [],
       "checkedAt": "2026-06-24T19:26:15.130Z",
       "codeChanged": {
-        "count": 0,
+        "count": 2,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/validation"
         ],
-        "latest": null
+        "branches": {
+          "develop": 2,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "d93c388",
+          "date": "2026-06-30",
+          "msg": "fix(validation): label submit button \"Validate\" instead of \"Save\" (#3799)",
+          "branch": "develop"
+        }
       }
     },
     {
@@ -271,12 +354,21 @@
       "routeErrors": [],
       "checkedAt": "2026-06-24T19:26:23.077Z",
       "codeChanged": {
-        "count": 0,
+        "count": 1,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/resultPage"
         ],
-        "latest": null
+        "branches": {
+          "develop": 1,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "927c017",
+          "date": "2026-06-29",
+          "msg": "fix(result-page): align upload-file button with referral row and refine result-entry spacing (#3795)",
+          "branch": "develop"
+        }
       }
     },
     {
@@ -295,6 +387,10 @@
         "paths": [
           "frontend/src/components/shipment"
         ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
         "latest": null
       }
     },
@@ -309,14 +405,27 @@
       "routeErrors": [],
       "checkedAt": "2026-06-24T19:26:36.307Z",
       "codeChanged": {
-        "count": 0,
+        "count": 1,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/storage",
           "frontend/src/components/coldStorage"
         ],
-        "latest": null
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 1
+        },
+        "latest": {
+          "sha": "78c2a85",
+          "date": "2026-06-25",
+          "msg": "fix(storage): show skipped status in order 'label and store' step, guard hierarchy form submissions (#3771)",
+          "branch": "demo-silnas"
+        }
       }
     }
+  ],
+  "codeSignalBranches": [
+    "develop",
+    "demo-silnas"
   ]
 }

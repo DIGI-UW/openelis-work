@@ -1,419 +1,575 @@
 {
-  "_comment": "Provenance + UI-drift contracts for OpenELIS user-manual sections. Each section maps to the manual doc it backs, the live instance + routes it documents, and the on-load UI anchors (headings / labels / buttons) the manual relies on. The drift check (tests/docs/drift.check.spec.ts) visits each route and asserts the anchors still exist; missing anchors => the manual section may be stale. 'capturedVersion' is the OpenELIS version the screenshots were taken against.",
-  "sections": [
+ "_comment": "Provenance + UI-drift contracts for OpenELIS user-manual sections. Each section maps to the manual doc it backs, the live instance + routes it documents, and the on-load UI anchors (headings / labels / buttons) the manual relies on. The drift check (tests/docs/drift.check.spec.ts) visits each route and asserts the anchors still exist; missing anchors => the manual section may be stale. 'capturedVersion' is the OpenELIS version the screenshots were taken against.",
+ "sections": [
+  {
+   "id": "add-patient",
+   "title": "Adding a Patient",
+   "manualDoc": "OpenELIS Feature Design/Add-a-Patient-User-Manual.docx",
+   "captureSpec": "tests/docs/add-patient.docs.spec.ts",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
     {
-      "id": "add-patient",
-      "title": "Adding a Patient",
-      "manualDoc": "OpenELIS Feature Design/Add-a-Patient-User-Manual.docx",
-      "captureSpec": "tests/docs/add-patient.docs.spec.ts",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/PatientManagement",
-          "anchors": [
-            "Add Or Modify Patient",
-            "Search for Patient",
-            "New Patient",
-            "Patient Id",
-            "Last Name",
-            "First Name"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/patient"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "analyzer-file-import",
-      "title": "Analyzer file import",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/GenericSample/Import",
-          "anchors": [
-            "Import"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/analyzers",
-        "frontend/src/components/genericSample"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "analyzer-framework",
-      "title": "Analyzer integration framework",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/analyzers/types",
-          "anchors": [
-            "Analyzer Types"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/analyzers"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "barcode-labels",
-      "title": "Barcode label management",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/PrintBarcode",
-          "anchors": [
-            "Print Bar Code Labels"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/printBarcode",
-        "frontend/src/components/barcodeWorkflow"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "electronic-lab-notebook",
-      "title": "Electronic lab notebook",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/NotebookDashboard",
-          "anchors": [
-            "Notebook"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/notebook"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "electronic-signatures",
-      "title": "Electronic signatures",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/ResultValidation?type=&test=",
-          "anchors": [
-            "Validation"
-          ]
-        },
-        {
-          "path": "/AccessionValidation",
-          "anchors": [
-            "Validation"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/esignature",
-        "frontend/src/components/validation"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "environmental-order-results",
-      "title": "Environmental Order Entry & Results",
-      "manualDoc": "OpenELIS Feature Design/Environmental-Order-Entry-and-Results-User-Manual.docx",
-      "captureSpec": "tests/docs/environmental-order-results.docs.spec.ts",
-      "base": "https://indonesiademo.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/order/environmental/enter",
-          "anchors": [
-            "Enter Order",
-            "Lab Number",
-            "Sampling Site",
-            "Default Collection Conditions",
-            "Applicable Compliance Standards",
-            "Per-Sample Manifest",
-            "Save & Next"
-          ]
-        },
-        {
-          "path": "/EnvironmentalDashboard",
-          "anchors": [
-            "Environmental Compliance Dashboard",
-            "Exceedance Summary"
-          ]
-        },
-        {
-          "path": "/GenericSample/Results",
-          "anchors": [
-            "Result Entry",
-            "Search"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/order",
-        "frontend/src/components/addOrder"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "eqa",
-      "title": "EQA / proficiency testing",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/EQAManagement",
-          "anchors": [
-            "Program Administration"
-          ]
-        },
-        {
-          "path": "/EQAParticipants",
-          "anchors": [
-            "Participants"
-          ]
-        },
-        {
-          "path": "/EQAResults",
-          "anchors": [
-            "EQA Results & Analysis"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/eqa"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "nce-capa",
-      "title": "Non-conforming events (NCE) & CAPA",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/NceDashboard",
-          "anchors": [
-            "All NCEs"
-          ]
-        },
-        {
-          "path": "/ReportNonConformingEvent",
-          "anchors": [
-            "Report Non-Conformity Event"
-          ]
-        },
-        {
-          "path": "/NCECorrectiveAction",
-          "anchors": [
-            "Nonconforming Events Corrective Action"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/nonconform"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "order-entry",
-      "title": "Order & sample entry",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/SamplePatientEntry",
-          "anchors": [
-            "Test Request"
-          ]
-        },
-        {
-          "path": "/order",
-          "anchors": [
-            "Collect"
-          ]
-        },
-        {
-          "path": "/order/enter",
-          "anchors": [
-            "Enter Order"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/order",
-        "frontend/src/components/addOrder",
-        "frontend/src/components/sample"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "organizations-management",
-      "title": "Organizations management",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/MasterListsPage",
-          "anchors": [
-            "Admin dashboard"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/admin"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "patient-order-enhancements",
-      "title": "Patient & order enhancements",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/PatientManagement",
-          "anchors": [
-            "Add Or Modify Patient"
-          ]
-        },
-        {
-          "path": "/PatientHistory",
-          "anchors": [
-            "Patient History"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/patient"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "result-validation",
-      "title": "Result validation",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/ResultValidation?type=&test=",
-          "anchors": [
-            "Validation"
-          ]
-        },
-        {
-          "path": "/AccessionValidation",
-          "anchors": [
-            "Validation"
-          ]
-        },
-        {
-          "path": "/ResultValidationByTestDate",
-          "anchors": [
-            "Validation"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/validation"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "results-entry",
-      "title": "Results entry",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/GenericSample/Results",
-          "anchors": [
-            "Result Entry"
-          ]
-        },
-        {
-          "path": "/PatientResults",
-          "anchors": [
-            "Results"
-          ]
-        },
-        {
-          "path": "/AccessionResults",
-          "anchors": [
-            "Results"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/resultPage"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "sample-shipment-referral",
-      "title": "Sample shipment & referral",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/SampleShipment",
-          "anchors": [
-            "Shipment Dashboard"
-          ]
-        },
-        {
-          "path": "/ReferredOutTests",
-          "anchors": [
-            "Referrals"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/shipment"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
-      "id": "sample-storage-management",
-      "title": "Sample storage management",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/Storage/sample-items",
-          "anchors": [
-            "Sample Items"
-          ]
-        },
-        {
-          "path": "/Storage/rooms",
-          "anchors": [
-            "Rooms"
-          ]
-        },
-        {
-          "path": "/FreezerMonitoring?tab=0",
-          "anchors": [
-            "Cold Storage Dashboard"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/storage",
-        "frontend/src/components/coldStorage"
-      ],
-      "capturedDate": "2026-06-24"
+     "path": "/PatientManagement",
+     "anchors": [
+      "Add Or Modify Patient",
+      "Search for Patient",
+      "New Patient",
+      "Patient Id",
+      "Last Name",
+      "First Name"
+     ]
     }
-  ]
+   ],
+   "uiPaths": [
+    "frontend/src/components/patient"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "analyzer-file-import",
+   "title": "Analyzer file import",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/GenericSample/Import",
+     "anchors": [
+      "Import"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/analyzers",
+    "frontend/src/components/genericSample"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "analyzer-framework",
+   "title": "Analyzer integration framework",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/analyzers/types",
+     "anchors": [
+      "Analyzer Types"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/analyzers"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "barcode-labels",
+   "title": "Barcode label management",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/PrintBarcode",
+     "anchors": [
+      "Print Bar Code Labels"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/printBarcode",
+    "frontend/src/components/barcodeWorkflow"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "electronic-lab-notebook",
+   "title": "Electronic lab notebook",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/NotebookDashboard",
+     "anchors": [
+      "Notebook"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/notebook"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "electronic-signatures",
+   "title": "Electronic signatures",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/ResultValidation?type=&test=",
+     "anchors": [
+      "Validation"
+     ]
+    },
+    {
+     "path": "/AccessionValidation",
+     "anchors": [
+      "Validation"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/esignature",
+    "frontend/src/components/validation"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "environmental-order-results",
+   "title": "Environmental Order Entry & Results",
+   "manualDoc": "OpenELIS Feature Design/Environmental-Order-Entry-and-Results-User-Manual.docx",
+   "captureSpec": "tests/docs/environmental-order-results.docs.spec.ts",
+   "base": "https://indonesiademo.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/order/environmental/enter",
+     "anchors": [
+      "Enter Order",
+      "Lab Number",
+      "Sampling Site",
+      "Default Collection Conditions",
+      "Applicable Compliance Standards",
+      "Per-Sample Manifest",
+      "Save & Next"
+     ]
+    },
+    {
+     "path": "/EnvironmentalDashboard",
+     "anchors": [
+      "Environmental Compliance Dashboard",
+      "Exceedance Summary"
+     ]
+    },
+    {
+     "path": "/GenericSample/Results",
+     "anchors": [
+      "Result Entry",
+      "Search"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/order",
+    "frontend/src/components/addOrder"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "eqa",
+   "title": "EQA / proficiency testing",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/EQAManagement",
+     "anchors": [
+      "Program Administration"
+     ]
+    },
+    {
+     "path": "/EQAParticipants",
+     "anchors": [
+      "Participants"
+     ]
+    },
+    {
+     "path": "/EQAResults",
+     "anchors": [
+      "EQA Results & Analysis"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/eqa"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "nce-capa",
+   "title": "Non-conforming events (NCE) & CAPA",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/NceDashboard",
+     "anchors": [
+      "All NCEs"
+     ]
+    },
+    {
+     "path": "/ReportNonConformingEvent",
+     "anchors": [
+      "Report Non-Conformity Event"
+     ]
+    },
+    {
+     "path": "/NCECorrectiveAction",
+     "anchors": [
+      "Nonconforming Events Corrective Action"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/nonconform"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "order-entry",
+   "title": "Enter a Clinical Order",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/SamplePatientEntry",
+     "anchors": [
+      "Test Request",
+      "Patient Info",
+      "Program Selection",
+      "Add Sample",
+      "Add Order",
+      "New Patient"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/order",
+    "frontend/src/components/addOrder",
+    "frontend/src/components/sample"
+   ],
+   "capturedDate": "2026-06-30",
+   "manualDoc": "OpenELIS Feature Design/clinical-order-entry-manual-draft.md",
+   "captureSpec": "tests/docs/clinical-order-entry.docs.spec.ts",
+   "note": "Reworked 4-step wizard (Patient Info -> Program Selection -> Add Sample -> Add Order). Replaces the old Enter Order -> Collect -> Label & Store -> QA Review flow."
+  },
+  {
+   "id": "organizations-management",
+   "title": "Organizations management",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/MasterListsPage",
+     "anchors": [
+      "Admin dashboard"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/admin"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "patient-order-enhancements",
+   "title": "Patient & order enhancements",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/PatientManagement",
+     "anchors": [
+      "Add Or Modify Patient"
+     ]
+    },
+    {
+     "path": "/PatientHistory",
+     "anchors": [
+      "Patient History"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/patient"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "result-validation",
+   "title": "Result validation",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/ResultValidation?type=&test=",
+     "anchors": [
+      "Validation"
+     ]
+    },
+    {
+     "path": "/AccessionValidation",
+     "anchors": [
+      "Validation"
+     ]
+    },
+    {
+     "path": "/ResultValidationByTestDate",
+     "anchors": [
+      "Validation"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/validation"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "results-entry",
+   "title": "Results entry",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/GenericSample/Results",
+     "anchors": [
+      "Result Entry"
+     ]
+    },
+    {
+     "path": "/PatientResults",
+     "anchors": [
+      "Results"
+     ]
+    },
+    {
+     "path": "/AccessionResults",
+     "anchors": [
+      "Results"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/resultPage"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "sample-shipment-referral",
+   "title": "Sample shipment & referral",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/SampleShipment",
+     "anchors": [
+      "Shipment Dashboard"
+     ]
+    },
+    {
+     "path": "/ReferredOutTests",
+     "anchors": [
+      "Referrals"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/shipment"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "sample-storage-management",
+   "title": "Sample storage management",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/Storage/sample-items",
+     "anchors": [
+      "Sample Items"
+     ]
+    },
+    {
+     "path": "/Storage/rooms",
+     "anchors": [
+      "Rooms"
+     ]
+    },
+    {
+     "path": "/FreezerMonitoring?tab=0",
+     "anchors": [
+      "Cold Storage Dashboard"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/storage",
+    "frontend/src/components/coldStorage"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "vector-surveillance",
+   "title": "Vector Surveillance",
+   "confluencePageId": "1420230657",
+   "base": "https://indonesiademo.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/order/vector/enter",
+     "anchors": [
+      "Animal / Organism 1",
+      "Quantity in Pool",
+      "Trap Type",
+      "Tests & Panels"
+     ]
+    },
+    {
+     "path": "/vector/identification",
+     "anchors": [
+      "Vector Identification Worklist",
+      "Lot ID",
+      "Species Distribution",
+      "Identify",
+      "Split"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/vector",
+    "frontend/src/components/order"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "environmental-surveillance",
+   "title": "Environmental Surveillance",
+   "confluencePageId": "1420099592",
+   "base": "https://indonesiademo.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/order/environmental/enter",
+     "anchors": [
+      "Sampling Site",
+      "Applicable Compliance Standards",
+      "Per-Sample Manifest",
+      "Tests & Panels"
+     ]
+    },
+    {
+     "path": "/LogbookResults?type=",
+     "anchors": [
+      "Results"
+     ]
+    },
+    {
+     "path": "/ResultValidation?type=&test=",
+     "anchors": [
+      "Validation"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/order",
+    "frontend/src/components/resultPage",
+    "frontend/src/components/validation"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "admin-vector-reference-data",
+   "title": "Admin \u2014 Vector Surveillance Reference Data",
+   "confluencePageId": "1420460034",
+   "base": "https://indonesiademo.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/MasterListsPage/vectorSurveillanceSetup/species",
+     "anchors": [
+      "Genus",
+      "Species",
+      "Sample type",
+      "Add species"
+     ]
+    },
+    {
+     "path": "/MasterListsPage/vectorSurveillanceSetup/trap-types",
+     "anchors": [
+      "Add trap type"
+     ]
+    },
+    {
+     "path": "/MasterListsPage/vectorSurveillanceSetup/sampling-sites",
+     "anchors": [
+      "Sampling Sites"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/admin/vectorSurveillance",
+    "frontend/src/components/admin/sampleType"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "admin-compliance-standards",
+   "title": "Admin \u2014 Compliance Standards & Holding-Time",
+   "confluencePageId": "1421148161",
+   "base": "https://indonesiademo.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/MasterListsPage/ComplianceStandardsAdmin",
+     "anchors": [
+      "Compliance Standards Administration",
+      "Add Standard",
+      "Applicable Sample Types"
+     ]
+    },
+    {
+     "path": "/MasterListsPage/testManagementConfigMenu",
+     "anchors": [
+      "Test Management"
+     ]
+    },
+    {
+     "path": "/MasterListsPage/TestModifyEntry",
+     "anchors": [
+      "QC Acceptance Thresholds",
+      "SOP Max Holding Time"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/admin/testManagement",
+    "frontend/src/components/admin/compliance"
+   ],
+   "capturedDate": "2026-06-24"
+  },
+  {
+   "id": "admin-sample-type-management",
+   "title": "Admin \u2014 Sample Type Management",
+   "confluencePageId": "1420853278",
+   "base": "https://indonesiademo.openelis-global.org",
+   "capturedVersion": "3.2.1.10",
+   "routes": [
+    {
+     "path": "/MasterListsPage/SampleTypeManagement",
+     "anchors": [
+      "Create New Sample Type",
+      "Set Sample Type Order",
+      "Test Assignment"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/admin/sampleType"
+   ],
+   "capturedDate": "2026-06-24"
+  }
+ ]
 }
