@@ -30,7 +30,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/admin-config/test-catalog-editor-completion.html',
     added: '2026-07-01',
     status: 'draft',
-    jira: ['OGC-748', 'OGC-749', 'OGC-751', 'OGC-753', 'OGC-754', 'OGC-767', 'OGC-928'],
+    jira: ['OGC-1112'],
     tags: ['test-catalog', 'loinc', 'ranges', 'result-types', 'i18n', 'admin', 'configuration'],
   },
   {
