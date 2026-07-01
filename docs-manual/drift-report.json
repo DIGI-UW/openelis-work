@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-01T16:37:45.296Z",
+  "generatedAt": "2026-07-01T19:29:35.353Z",
   "sections": [
     {
       "id": "add-patient",
@@ -11,23 +11,11 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:34:27.734Z",
-      "codeChanged": {
-        "count": 1,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/patient"
-        ],
-        "latest": {
-          "date": "2026-06-29T19:02:07Z",
-          "msg": "feat(OGC-767): reuse existing localization system; add validation View Patient link (#3797)",
-          "sha": "f098f59"
-        }
-      }
+      "checkedAt": "2026-07-01T19:23:51.269Z"
     },
     {
       "id": "admin-compliance-standards",
-      "title": "Admin \u2014 Compliance Standards & Holding-Time",
+      "title": "Admin — Compliance Standards & Holding-Time",
       "base": "https://indonesiademo.openelis-global.org",
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
@@ -37,55 +25,29 @@
         "/MasterListsPage/TestModifyEntry :: SOP Max Holding Time"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:37:21.438Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/admin/testManagement",
-          "frontend/src/components/admin/compliance"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:26:47.326Z"
     },
     {
       "id": "admin-sample-type-management",
-      "title": "Admin \u2014 Sample Type Management",
+      "title": "Admin — Sample Type Management",
       "base": "https://indonesiademo.openelis-global.org",
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:37:24.075Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/admin/sampleType"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:26:49.985Z"
     },
     {
       "id": "admin-vector-reference-data",
-      "title": "Admin \u2014 Vector Surveillance Reference Data",
+      "title": "Admin — Vector Surveillance Reference Data",
       "base": "https://indonesiademo.openelis-global.org",
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:37:00.589Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/admin/vectorSurveillance",
-          "frontend/src/components/admin/sampleType"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:26:27.043Z"
     },
     {
       "id": "aliquot",
@@ -97,7 +59,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:37:42.635Z"
+      "checkedAt": "2026-07-01T19:27:11.349Z"
     },
     {
       "id": "analyzer-file-import",
@@ -108,16 +70,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:34:30.380Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/analyzers",
-          "frontend/src/components/genericSample"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:23:53.909Z"
     },
     {
       "id": "analyzer-framework",
@@ -128,15 +81,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:34:33.021Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/analyzers"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:23:56.560Z"
     },
     {
       "id": "application-properties",
@@ -148,7 +93,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:35:47.050Z"
+      "checkedAt": "2026-07-01T19:25:10.881Z"
     },
     {
       "id": "barcode-labels",
@@ -159,16 +104,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:34:35.668Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/printBarcode",
-          "frontend/src/components/barcodeWorkflow"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:23:59.215Z"
     },
     {
       "id": "calculated-value-tests",
@@ -176,13 +112,10 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1438842886 (draft)",
-      "status": "error",
+      "status": "ok",
       "missingAnchors": [],
-      "routeErrors": [
-        "/MasterListsPage/calculatedValue"
-      ],
-      "checkedAt": "2026-07-01T16:36:22.822Z"
+      "routeErrors": [],
+      "checkedAt": "2026-07-01T19:28:33.038Z"
     },
     {
       "id": "calendar-management",
@@ -190,13 +123,10 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439334404 (draft)",
-      "status": "error",
+      "status": "ok",
       "missingAnchors": [],
-      "routeErrors": [
-        "/MasterListsPage/calendarManagement"
-      ],
-      "checkedAt": "2026-07-01T16:36:22.824Z"
+      "routeErrors": [],
+      "checkedAt": "2026-07-01T19:28:20.338Z"
     },
     {
       "id": "dictionary-menu",
@@ -204,13 +134,10 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1438973976 (draft)",
-      "status": "error",
+      "status": "ok",
       "missingAnchors": [],
-      "routeErrors": [
-        "/MasterListsPage/DictionaryMenu"
-      ],
-      "checkedAt": "2026-07-01T16:36:22.820Z"
+      "routeErrors": [],
+      "checkedAt": "2026-07-01T19:28:27.967Z"
     },
     {
       "id": "electronic-lab-notebook",
@@ -221,15 +148,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:34:38.312Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/notebook"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:24:01.866Z"
     },
     {
       "id": "electronic-signatures",
@@ -240,20 +159,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:34:43.585Z",
-      "codeChanged": {
-        "count": 2,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/esignature",
-          "frontend/src/components/validation"
-        ],
-        "latest": {
-          "date": "2026-06-30T07:26:54Z",
-          "msg": "fix(validation): label submit button \"Validate\" instead of \"Save\" (#3799)",
-          "sha": "d93c388"
-        }
-      }
+      "checkedAt": "2026-07-01T19:24:07.162Z"
     },
     {
       "id": "environmental-order-results",
@@ -265,16 +171,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:36:37.995Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/order",
-          "frontend/src/components/addOrder"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:26:04.376Z"
     },
     {
       "id": "environmental-surveillance",
@@ -285,21 +182,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:36:52.607Z",
-      "codeChanged": {
-        "count": 3,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/order",
-          "frontend/src/components/resultPage",
-          "frontend/src/components/validation"
-        ],
-        "latest": {
-          "date": "2026-06-30T07:26:54Z",
-          "msg": "fix(validation): label submit button \"Validate\" instead of \"Save\" (#3799)",
-          "sha": "d93c388"
-        }
-      }
+      "checkedAt": "2026-07-01T19:26:18.974Z"
     },
     {
       "id": "eqa",
@@ -310,15 +193,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:34:51.478Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/eqa"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:24:15.085Z"
     },
     {
       "id": "lab-number-management",
@@ -330,7 +205,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:35:41.782Z"
+      "checkedAt": "2026-07-01T19:25:05.573Z"
     },
     {
       "id": "logging-configuration",
@@ -338,13 +213,10 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1438908431 (draft)",
-      "status": "error",
+      "status": "ok",
       "missingAnchors": [],
-      "routeErrors": [
-        "/MasterListsPage/loggingManagement"
-      ],
-      "checkedAt": "2026-07-01T16:36:22.819Z"
+      "routeErrors": [],
+      "checkedAt": "2026-07-01T19:29:35.345Z"
     },
     {
       "id": "menu-configuration",
@@ -352,13 +224,10 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439694850 (draft)",
-      "status": "error",
+      "status": "ok",
       "missingAnchors": [],
-      "routeErrors": [
-        "/MasterListsPage/globalMenuManagement"
-      ],
-      "checkedAt": "2026-07-01T16:36:22.824Z"
+      "routeErrors": [],
+      "checkedAt": "2026-07-01T19:28:17.789Z"
     },
     {
       "id": "nce-capa",
@@ -369,15 +238,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:34:59.415Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/nonconform"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:24:23.138Z"
     },
     {
       "id": "order-entry",
@@ -389,17 +250,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:35:02.096Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-30",
-        "paths": [
-          "frontend/src/components/order",
-          "frontend/src/components/addOrder",
-          "frontend/src/components/sample"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:24:25.857Z"
     },
     {
       "id": "order-search",
@@ -411,7 +262,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:37:37.315Z"
+      "checkedAt": "2026-07-01T19:27:06.043Z"
     },
     {
       "id": "organization-management",
@@ -423,15 +274,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:35:36.517Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-30",
-        "paths": [
-          "frontend/src/components/admin/organizationManagement"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:25:00.229Z"
     },
     {
       "id": "organizations-management",
@@ -442,19 +285,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:35:04.734Z",
-      "codeChanged": {
-        "count": 5,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/admin"
-        ],
-        "latest": {
-          "date": "2026-06-30T13:25:03Z",
-          "msg": "feat(OGC-949): async alert dispatch, multi-terminology FHIR codings, test-catalog name/filter polish (#3804)",
-          "sha": "0189f10"
-        }
-      }
+      "checkedAt": "2026-07-01T19:24:28.513Z"
     },
     {
       "id": "patient-management",
@@ -466,7 +297,19 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:37:45.290Z"
+      "checkedAt": "2026-07-01T19:27:03.387Z"
+    },
+    {
+      "id": "patient-merge",
+      "title": "Merge Patient Records",
+      "base": "https://indonesiademo.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1440907275 (draft)",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-07-01T19:27:13.995Z"
     },
     {
       "id": "patient-order-enhancements",
@@ -477,19 +320,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:35:10.009Z",
-      "codeChanged": {
-        "count": 1,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/patient"
-        ],
-        "latest": {
-          "date": "2026-06-29T19:02:07Z",
-          "msg": "feat(OGC-767): reuse existing localization system; add validation View Patient link (#3797)",
-          "sha": "f098f59"
-        }
-      }
+      "checkedAt": "2026-07-01T19:24:33.815Z"
     },
     {
       "id": "program-entry",
@@ -501,7 +332,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:35:44.414Z"
+      "checkedAt": "2026-07-01T19:25:08.241Z"
     },
     {
       "id": "provider-management",
@@ -510,20 +341,10 @@
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1439203334 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/providerMenu :: Search Provider Name"
-      ],
+      "status": "ok",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:35:39.156Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-30",
-        "paths": [
-          "frontend/src/components/admin/providerManagement"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:25:02.895Z"
     },
     {
       "id": "reflex-testing",
@@ -531,13 +352,22 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439137808 (draft)",
-      "status": "error",
+      "status": "ok",
       "missingAnchors": [],
-      "routeErrors": [
-        "/MasterListsPage/reflex"
-      ],
-      "checkedAt": "2026-07-01T16:36:22.821Z"
+      "routeErrors": [],
+      "checkedAt": "2026-07-01T19:28:30.503Z"
+    },
+    {
+      "id": "register-new-patient",
+      "title": "Register a New Patient",
+      "base": "https://indonesiademo.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1440841760 (draft)",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-07-01T19:27:16.642Z"
     },
     {
       "id": "result-reporting-configuration",
@@ -545,13 +375,10 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439596548 (draft)",
-      "status": "error",
+      "status": "ok",
       "missingAnchors": [],
-      "routeErrors": [
-        "/MasterListsPage/resultReportingConfiguration"
-      ],
-      "checkedAt": "2026-07-01T16:36:22.824Z"
+      "routeErrors": [],
+      "checkedAt": "2026-07-01T19:28:22.874Z"
     },
     {
       "id": "result-validation",
@@ -562,19 +389,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:35:17.885Z",
-      "codeChanged": {
-        "count": 2,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/validation"
-        ],
-        "latest": {
-          "date": "2026-06-30T07:26:54Z",
-          "msg": "fix(validation): label submit button \"Validate\" instead of \"Save\" (#3799)",
-          "sha": "d93c388"
-        }
-      }
+      "checkedAt": "2026-07-01T19:24:41.687Z"
     },
     {
       "id": "results-entry",
@@ -583,13 +398,10 @@
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1439072277 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/LogbookResults?type= :: Normal Range",
-        "/LogbookResults?type= :: Accept"
-      ],
+      "status": "ok",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:37:29.350Z"
+      "checkedAt": "2026-07-01T19:26:55.340Z"
     },
     {
       "id": "running-reports",
@@ -601,7 +413,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:37:34.653Z"
+      "checkedAt": "2026-07-01T19:27:00.709Z"
     },
     {
       "id": "sample-acceptance-checklist",
@@ -613,15 +425,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:37:26.709Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-30",
-        "paths": [
-          "frontend/src/components/admin/sampleAcceptance"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:26:52.633Z"
     },
     {
       "id": "sample-shipment-referral",
@@ -632,15 +436,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:35:23.203Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/shipment"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:24:46.996Z"
     },
     {
       "id": "sample-storage",
@@ -652,7 +448,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:37:39.998Z"
+      "checkedAt": "2026-07-01T19:27:08.704Z"
     },
     {
       "id": "sample-storage-management",
@@ -663,16 +459,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:35:31.242Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/storage",
-          "frontend/src/components/coldStorage"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:24:54.946Z"
     },
     {
       "id": "search-index-management",
@@ -684,7 +471,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:35:52.343Z"
+      "checkedAt": "2026-07-01T19:25:16.168Z"
     },
     {
       "id": "site-information",
@@ -692,13 +479,10 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439432709 (draft)",
-      "status": "error",
+      "status": "ok",
       "missingAnchors": [],
-      "routeErrors": [
-        "/MasterListsPage/SiteInformationMenu"
-      ],
-      "checkedAt": "2026-07-01T16:36:22.822Z"
+      "routeErrors": [],
+      "checkedAt": "2026-07-01T19:28:15.228Z"
     },
     {
       "id": "test-notification-configuration",
@@ -710,7 +494,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:35:49.714Z"
+      "checkedAt": "2026-07-01T19:25:13.538Z"
     },
     {
       "id": "user-management",
@@ -718,13 +502,10 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439367205 (draft)",
-      "status": "error",
+      "status": "ok",
       "missingAnchors": [],
-      "routeErrors": [
-        "/MasterListsPage/userManagement"
-      ],
-      "checkedAt": "2026-07-01T16:36:22.820Z"
+      "routeErrors": [],
+      "checkedAt": "2026-07-01T19:28:25.416Z"
     },
     {
       "id": "validation",
@@ -733,13 +514,10 @@
       "instanceVersion": "3.2.1.10",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1441202177 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/ResultValidation?type=&test= :: Save All Normal",
-        "/ResultValidation?type=&test= :: Retest"
-      ],
+      "status": "ok",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:37:31.999Z"
+      "checkedAt": "2026-07-01T19:26:58.013Z"
     },
     {
       "id": "vector-surveillance",
@@ -756,16 +534,7 @@
         "/vector/identification :: Split"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-07-01T16:36:43.895Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/vector",
-          "frontend/src/components/order"
-        ],
-        "latest": null
-      }
+      "checkedAt": "2026-07-01T19:26:10.310Z"
     }
   ]
 }

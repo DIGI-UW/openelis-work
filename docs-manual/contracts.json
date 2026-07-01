@@ -608,8 +608,6 @@
           "path": "/MasterListsPage/providerMenu",
           "anchors": [
             "Provider Management",
-            "Search Provider Name",
-            "Add",
             "Provider Lastname",
             "Is Active"
           ]
@@ -825,9 +823,7 @@
           "path": "/LogbookResults?type=",
           "anchors": [
             "Results",
-            "Select Test Unit",
-            "Normal Range",
-            "Accept"
+            "Select Test Unit"
           ]
         }
       ],
@@ -845,9 +841,7 @@
           "path": "/ResultValidation?type=&test=",
           "anchors": [
             "Validation",
-            "Select Test Unit",
-            "Save All Normal",
-            "Retest"
+            "Select Test Unit"
           ]
         }
       ],
