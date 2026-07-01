@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Catalog — Completion & Correction — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body{background:#f4f4f4;margin:0;font-family:'IBM Plex Sans',sans-serif;color:#161616;}
+    .pv{background:#0f62fe;color:#fff;padding:5px 12px;font-size:12px;font-family:monospace;display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+    .pv b{font-weight:600;} .pv button{background:rgba(255,255,255,.18);border:none;color:#fff;padding:4px 10px;cursor:pointer;font-size:12px;border-radius:2px;} .pv button.on{background:#fff;color:#0f62fe;}
+    /* app chrome */
+    .hdr{background:#152934;color:#fff;height:48px;display:flex;align-items:center;padding:0 16px;gap:12px;}
+    .hdr .logo{width:26px;height:26px;background:#4a8f3c;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+    .hdr .brand{font-weight:600;font-size:15px;line-height:1;} .hdr .ver{font-size:10px;color:#a8b3bb;}
+    .hdr .sp{flex:1;} .hdr .ico{opacity:.85;margin-left:14px;font-size:16px;}
+    .body{display:flex;min-height:640px;}
+    .side{width:250px;background:#fff;border-right:1px solid #e0e0e0;padding:8px 0;font-size:14px;flex-shrink:0;}
+    .side .it{padding:11px 16px;display:flex;gap:10px;align-items:center;color:#161616;cursor:pointer;}
+    .side .it:hover{background:#e8e8e8;}
+    .side .it.b{font-weight:600;}
+    .side .it.active{background:#e8e8e8;border-left:3px solid #0f62fe;padding-left:13px;font-weight:600;}
+    .side .sub{padding-left:34px;font-size:14px;color:#161616;}
+    .side .muted{color:#6f6f6f;font-size:12px;padding:6px 16px;}
+    .main{flex:1;padding:18px 28px 60px;min-width:0;}
+    .crumb{font-size:13px;color:#0f62fe;margin-bottom:8px;} .crumb .cur{color:#525252;}
+    .title{font-size:28px;font-weight:400;margin:2px 0 16px;}
+    .hdrbtns{display:flex;align-items:center;gap:0;margin-bottom:22px;}
+    .b{border:none;cursor:pointer;font-size:14px;padding:12px 40px 12px 14px;}
+    .b--save{background:#0f62fe;color:#fff;padding-right:56px;} .b--dark{background:#393939;color:#fff;padding-right:56px;} .b--cancel{background:transparent;color:#0f62fe;padding:12px 16px;}
+    .b--primary{background:#0f62fe;color:#fff;padding:12px 16px;} .b--tert{background:transparent;color:#0f62fe;border:1px solid #0f62fe;padding:11px 16px;} .b--ghost{background:transparent;color:#0f62fe;padding:8px 10px;}
+    .sectitle{font-size:34px;font-weight:400;margin:6px 0 20px;}
+    .fld{margin-bottom:22px;max-width:760px;} .fld label{display:block;font-size:12px;color:#525252;margin-bottom:6px;} .req{color:#da1e28;}
+    .fld input,.fld textarea,.fld select{width:100%;background:#f4f4f4;border:none;border-bottom:1px solid #8d8d8d;padding:11px 12px;font-size:14px;box-sizing:border-box;}
+    .fld .note{font-size:12px;color:#6f6f6f;margin-top:6px;} .hint{font-size:12px;color:#6f6f6f;margin-top:6px;}
+    .radios{display:flex;gap:26px;align-items:center;padding:6px 0;} .radios label{font-size:14px;color:#161616;display:flex;gap:8px;align-items:center;}
+    .tog{display:inline-flex;align-items:center;gap:10px;} .tog .sw{width:48px;height:24px;border-radius:12px;background:#8d8d8d;position:relative;} .tog .sw.on{background:#24a148;} .tog .sw i{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.1s;} .tog .sw.on i{left:27px;}
+    /* filters + table */
+    .filters{display:flex;gap:26px;margin:6px 0 14px;flex-wrap:wrap;align-items:flex-end;}
+    .filters .f{min-width:150px;} .filters .f label{display:block;font-size:12px;color:#525252;margin-bottom:4px;} .filters .f select,.filters .f input{width:100%;background:#f4f4f4;border:none;border-bottom:1px solid #8d8d8d;padding:11px;font-size:14px;}
+    .searchbar{background:#f4f4f4;border:none;border-bottom:1px solid #8d8d8d;padding:12px 14px;width:100%;font-size:15px;box-sizing:border-box;margin-bottom:2px;}
+    table.t{width:100%;border-collapse:collapse;background:#fff;} .t th,.t td{text-align:left;padding:14px 14px;border-bottom:1px solid #e0e0e0;font-size:14px;} .t th{background:#e0e0e0;font-weight:600;}
+    .t tbody tr{cursor:pointer;} .t tbody tr:hover{background:#f4f4f4;} tr.sel{background:#edf5ff !important;}
+    .pill{display:inline-block;font-size:12px;padding:3px 10px;border-radius:12px;margin-right:6px;}
+    .pill--green{background:#a7f0ba;color:#0e6027;} .pill--gray{background:#e0e0e0;color:#393939;} .pill--cool{background:#dde1e6;color:#4d5358;} .pill--mag{background:#ffd6e8;color:#9f1853;} .pill--red{background:#ffd7d9;color:#a2191f;}
+    .pager{display:flex;justify-content:space-between;background:#fff;border-top:1px solid #e0e0e0;padding:12px 14px;font-size:13px;color:#393939;}
+    .batch{background:#0f62fe;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;}
+    .batch button{background:transparent;border:none;color:#fff;cursor:pointer;padding:8px 12px;font-size:14px;}
+    .addbtn{background:#0f62fe;color:#fff;border:none;padding:11px 16px;cursor:pointer;font-size:14px;display:inline-flex;gap:8px;align-items:center;}
+    .notif{padding:12px 14px;margin:12px 0;border-left:3px solid;font-size:13px;max-width:900px;} .notif--info{background:#edf5ff;border-color:#0f62fe;} .notif--warn{background:#fff8e1;border-color:#f1c21b;} .notif--err{background:#fff1f1;border-color:#da1e28;} .notif--succ{background:#defbe6;border-color:#24a148;}
+    .rtcards{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0;max-width:760px;} .rtcard{flex:1;min-width:170px;border:1px solid #c6c6c6;background:#fff;padding:12px;cursor:pointer;} .rtcard.on{border:2px solid #0f62fe;background:#edf5ff;} .rtcard b{display:block;margin-bottom:4px;} .rtcard span{font-size:12px;color:#525252;}
+    .two{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap;} .two>.cfg{flex:2;min-width:340px;} .two>.pr{flex:1;min-width:260px;position:sticky;top:10px;}
+    .prpanel{background:#fafafa;border:1px solid #0f62fe;padding:16px;} .prpanel h4{margin:0 0 3px;} .prpanel .s{font-size:12px;color:#6f6f6f;margin-bottom:12px;}
+    .empty{background:#f4f4f4;border:1px dashed #a8a8a8;padding:14px;font-size:13px;color:#525252;text-align:center;max-width:620px;}
+    .differs{background:#fff8e1;border:1px dashed #f1c21b;padding:10px;max-width:420px;}
+    .pertest{border:1px solid #e0e0e0;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:14px;max-width:760px;}
+    .muted{color:#6f6f6f;font-size:12px;} .card{background:#fff;border:1px solid #e0e0e0;padding:16px;margin-bottom:16px;max-width:900px;} .h2{font-size:15px;font-weight:600;margin:4px 0 10px;}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+    const Pill=({k,children})=><span className={"pill pill--"+k}>{children}</span>;
+    const Req=()=><span className="req">*</span>;
+    const Tog=({on,label})=><span className="tog"><span className={"sw"+(on?" on":"")}><i/></span>{label}</span>;
+
+    const ADMIN_ITEMS=["Reflex Tests Configuration","Test Catalog Management","Analyzer Test Name","Lab Number Management","Program Entry","Provider Management","Label Presets","List Plugins","Organization Management","User Management"];
+    const SECTIONS=["Basic Info","Sample & Results","Methods","Ranges","Sample Storage","Panels","Labels","Terminology","Reagents","Analyzers","Alerts","Reflex & Calc","Display Order"];
+
+    function Header(){
+      return <div className="hdr"><div className="logo">🔬</div><div><div className="brand">Test LIMS</div><div className="ver">Version: 3.2.1.10</div></div><div className="sp"/><span className="ico">🔍</span><span className="ico">🔔</span><span className="ico">👤</span><span className="ico">❓</span></div>;
+    }
+    function SideList(){
+      return <nav className="side">
+        <div className="it"><span>←</span> Back to main menu</div>
+        {ADMIN_ITEMS.map((t,i)=><div key={i} className={"it b"+(t==="Test Catalog Management"?" active":"")}>{t}{["Reflex Tests Configuration","Test Catalog Management","Menu Configuration"].includes(t)?" ▾":""}</div>)}
+      </nav>;
+    }
+    function SideEditor({section,setSection,testName}){
+      return <nav className="side">
+        <div className="it b">Test Catalog Management ▴</div>
+        <div className="sub it" style={{color:'#0f62fe'}}>← All Tests</div>
+        <div className="muted">Editing: {testName}</div>
+        {SECTIONS.map(s=><div key={s} className={"sub it"+(s===section?" active":"")} onClick={()=>setSection&&setSection(s)}>{s}</div>)}
+      </nav>;
+    }
+
+    /* ---------- LIST ---------- */
+    const ROWS=[
+      {id:15,name:"Hemoglobin",sample:"Whole Blood",code:"Hemoglobin-Blood",domain:"Clinical",loinc:"718-7",active:true},
+      {id:61,name:"Hemoglobin",sample:"Venous Blood",code:"Hemoglobin-Venous",domain:"Clinical",loinc:"30313-1",active:true},
+      {id:62,name:"Hemoglobin",sample:"Capillary Blood",code:"Hemoglobin-Cap",domain:"Clinical",loinc:"718-7",active:true},
+      {id:63,name:"Hemoglobin",sample:"Arterial Blood",code:"Hemoglobin-Art",domain:"Clinical",loinc:"",active:false},
+      {id:70,name:"COVID-19 PCR",sample:"Sputum",code:"COVIDPCR",domain:"Clinical",loinc:"94500-6",active:true},
+      {id:71,name:"Culture — Blood",sample:"Whole Blood",code:"CULT-BLD",domain:"Clinical",loinc:"600-7",active:true,amr:true},
+      {id:80,name:"Nitrate",sample:"Water",code:"NO3",domain:"Environmental",loinc:"",active:true},
+    ];
+    function ListView({go}){
+      const [sel,setSel]=useState({15:true,61:true,62:true});
+      const [flt,setFlt]=useState(false);
+      const ids=Object.keys(sel).filter(k=>sel[k]);
+      return <div className="main">
+        <div className="crumb">Home / Admin Management / <span className="cur">Test Catalog</span></div>
+        <div className="title">Test Catalog</div>
+        {ids.length>=2 && <div className="batch"><span>{ids.length} tests selected</span><div><button onClick={()=>go("combined")}>✎ Edit related tests together</button><button onClick={()=>setSel({})}>Cancel</button></div></div>}
+        <div className="filters">
+          <button className="addbtn" onClick={()=>go("create")}>＋ New test</button>
+          <div className="f"><label>Domain</label><select><option>All domains</option><option>Clinical</option><option>Environmental</option><option>Vector</option></select></div>
+          <div className="f"><label>Status</label><select><option>All statuses</option><option>Active</option><option>Inactive</option></select></div>
+          <div className="f"><label>AMR</label><select><option>Any</option><option>AMR only</option><option>Non-AMR</option></select></div>
+          <div className="f"><label>Sample type <span className="muted">(searchable)</span></label><input placeholder="🔍 Type to filter…"/></div>
+        </div>
+        <input className="searchbar" placeholder="🔍  Search by test name or code" defaultValue="Hemoglobin"/>
+        <table className="t"><thead><tr>
+          <th style={{width:30}}><input type="checkbox" onChange={e=>{const v=e.target.checked,s={};ROWS.forEach(r=>s[r.id]=v);setSel(s);}}/></th>
+          <th>Name</th><th>Sample type</th><th>Code</th><th>LOINC</th><th>Domain</th><th>Status</th></tr></thead>
+          <tbody>{ROWS.map(r=><tr key={r.id} className={sel[r.id]?"sel":""} onClick={()=>go("sample")}>
+            <td onClick={e=>e.stopPropagation()}><input type="checkbox" checked={!!sel[r.id]} onChange={()=>setSel(s=>({...s,[r.id]:!s[r.id]}))}/></td>
+            <td>{r.name} {r.amr&&<Pill k="mag">AMR</Pill>}{r.active&&!r.loinc&&<Pill k="red">No LOINC</Pill>}</td>
+            <td>{r.sample}</td><td>{r.code}</td><td>{r.loinc||<span className="muted">— none —</span>}</td>
+            <td><Pill k="gray">{r.domain}</Pill></td><td>{r.active?<Pill k="green">Active</Pill>:<Pill k="cool">Inactive</Pill>}</td>
+          </tr>)}</tbody></table>
+        <div className="pager"><span>Items per page: 25 ▾</span><span>1–{ROWS.length} of 176 items</span><span>1 ▾ of 8 pages ◁ ▷</span></div>
+        <div className="notif notif--info"><b>New vs. today:</b> the <b>New test</b> button in the header (there is none today — the only create path is the legacy 7-step wizard in the old Test Management menu); <b>row selection</b> + <b>Edit related tests together</b>; a <b>Sample type column</b> (filterable today but not shown); a <b>No-LOINC</b> flag; and filters ready to collapse. Header, SideNav, table, tags and pagination match the shipped list.</div>
+      </div>;
+    }
+
+    /* ---------- BASIC INFO (blank = New test) ---------- */
+    function BasicInfo({isNew,section,setSection,go}){
+      const name=isNew?"":"Amylase";
+      return <>
+        <SideEditor section={section} setSection={setSection} testName={isNew?"New test":"Amylase"}/>
+        <div className="main">
+          <div className="crumb">Home / Admin Management / Test Catalog Editor / <span className="cur">{isNew?"New test":"Amylase"}</span></div>
+          <div className="title">{isNew?"New test":"Amylase"}</div>
+          <div className="hdrbtns">
+            <button className="b b--save">Save</button>
+            {!isNew && <button className="b b--dark">Save as new test…</button>}
+            <button className="b b--cancel" onClick={()=>go("list")}>Cancel</button>
+          </div>
+          <div className="sectitle">Basic Info</div>
+          {isNew && <div className="notif notif--info">Creating a new test — fill in Basic Info and Save. The test is created <b>Inactive</b>; configure Sample &amp; Results, Ranges, etc. in the sections at left. (Today the editor shows "editing name/code is a later milestone" — this makes them editable so a test can actually be created here.)</div>}
+          <div className="fld"><label>Name <Req/></label><input defaultValue={name} placeholder={isNew?"e.g. Ferritin":""}/>{!isNew&&<div className="note">Editing name, code and description is part of a later milestone.</div>}</div>
+          <div className="fld"><label>Reporting name <Req/></label><input defaultValue={isNew?"":"Amylase"} placeholder={isNew?"Shown on reports":""}/></div>
+          <div className="fld"><label>Code <Req/></label><input defaultValue={isNew?"":"Amylase-Serum"} placeholder={isNew?"Auto-suggested from name":""}/></div>
+          <div className="fld"><label>Test section <Req/></label><select><option>{isNew?"Choose a section…":"Chemistry"}</option><option>Chemistry</option><option>Hematology</option><option>Serology</option><option>Microbiology</option></select></div>
+          <div className="fld"><label>Sample type <Req/> <span className="muted">(searchable)</span></label><input placeholder="🔍 e.g. Serum"/></div>
+          <div className="fld"><label>Description</label><textarea rows="2" defaultValue={isNew?"":"Amylase(Serum)"}/></div>
+          <div className="fld"><label>Domain <Req/></label><div className="radios"><label><input type="radio" name="dom" defaultChecked={!isNew}/> Clinical</label><label><input type="radio" name="dom"/> Environmental</label><label><input type="radio" name="dom"/> Vector</label></div></div>
+          <div className="fld"><label>AMR surveillance test</label><div><Tog on={false} label="No"/></div></div>
+          <div className="fld"><label>Active</label><div><Tog on={!isNew} label={isNew?"No":"Yes"}/></div>{isNew&&<div className="note">New tests start inactive until configured.</div>}</div>
+          <div className="fld"><label>Orderable</label><div><Tog on={!isNew} label={isNew?"No":"Yes"}/></div></div>
+          <button className="b b--save" style={{paddingRight:16}}>Save</button>
+        </div>
+      </>;
+    }
+
+    /* ---------- SAMPLE & RESULTS ---------- */
+    function SampleResults({section,setSection,go}){
+      const [rt,setRt]=useState("select");const[adv,setAdv]=useState(false);const[sig,setSig]=useState(1);
+      const opts=["SARS-CoV-2 RNA NOT DETECTED","SARS-CoV-2 RNA DETECTED","RETEST — INCONCLUSIVE","Invalid"];
+      const sx=sig==0?"12":sig==1?"12.3":sig==2?"12.34":"12.345";
+      return <>
+        <SideEditor section={section} setSection={setSection} testName="COVID-19 PCR (Sputum)"/>
+        <div className="main">
+          <div className="crumb">Home / Admin Management / Test Catalog Editor / <span className="cur">COVID-19 PCR (Sputum)</span></div>
+          <div className="title">COVID-19 PCR (Sputum)</div>
+          <div className="hdrbtns"><button className="b b--save">Save</button><button className="b b--cancel" onClick={()=>go("list")}>Cancel</button></div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',maxWidth:900}}><div className="sectitle" style={{marginBottom:6}}>Sample &amp; Results</div><button className="b--ghost" style={{border:'none',background:'none',color:'#0f62fe',cursor:'pointer'}}>↧ Start from another test's setup</button></div>
+          <p className="muted" style={{marginTop:0}}>Define what a technician records for this test and how results are interpreted. <span className="req">*</span> = required.</p>
+          <div className="two"><div className="cfg">
+            <div className="card"><label style={{fontSize:13,fontWeight:600}}>How is this result captured? <Req/></label>
+              <div className="rtcards">{[["numeric","Numeric","A measured number with a unit — e.g. 12.3 g/dL"],["select","Single-select list","One value from a fixed set"],["text","Free text","A typed comment"]].map(([k,t,d])=><div key={k} className={"rtcard"+(rt===k?" on":"")} onClick={()=>setRt(k)}><b>{t}</b><span>{d}</span></div>)}</div>
+              <button className="b--ghost" style={{border:'none',background:'none',color:'#0f62fe',cursor:'pointer',padding:'6px 0'}} onClick={()=>setAdv(a=>!a)}>{adv?"▾":"▸"} Advanced / legacy types</button>
+              {adv&&<div className="rtcards">{[["multi","Multi-select list","One or more values; no reference value"],["cascade","Cascading multi-select","Grouped; pick multiple groups"],["titer","Titer","Dilution ratio e.g. 1:64"],["alpha","Alpha","Validated alphanumeric code"]].map(([k,t,d])=><div key={k} className={"rtcard"+(rt===k?" on":"")} onClick={()=>setRt(k)}><b>{t}</b><span>{d}</span></div>)}</div>}
+              <p className="muted">Only the fields that apply to the chosen type are shown below.</p></div>
+            <div className="card">
+              <p className="muted" style={{marginTop:0}}>Most tests record one result. <b>＋ Add component</b> only if this test measures several different things (e.g. a differential). To let a tech pick several values for one result, use <b>Multi-select</b> (Advanced).</p>
+              <div className="fld" style={{maxWidth:360}}><label>Component label <Req/></label><input defaultValue="COVID-19 PCR"/></div>
+              {rt==="numeric"&&<><div className="fld" style={{maxWidth:360}}><label>Unit of measure <Req/></label><input defaultValue="copies/mL" placeholder="🔍 Search units…"/><div className="hint">Not listed? ＋ Add new unit…</div></div><div className="fld" style={{maxWidth:160}}><label>Significant digits</label><input type="number" value={sig} min="0" max="3" onChange={e=>setSig(+e.target.value||0)}/><div className="hint">Shown as <b>{sx}</b>.</div></div><div className="notif notif--info">Normal &amp; critical ranges are set in the <b>Ranges</b> section →.</div></>}
+              {(rt==="select"||rt==="multi"||rt==="cascade")&&<><label className="muted">List options <Req/></label><table className="t" style={{maxWidth:560,margin:'6px 0'}}><thead><tr>{rt==="cascade"&&<th>Group</th>}<th>Value</th><th>Normal</th><th>Sort</th></tr></thead><tbody>{opts.map((o,i)=><tr key={i}>{rt==="cascade"&&<td>{i<2?"Group A":"Group B"}</td>}<td>{o}</td><td>{i===0?<Pill k="green">Normal</Pill>:""}</td><td>{i+1}</td></tr>)}</tbody></table>{rt==="multi"&&<div className="notif notif--info">Technician may pick one or more values; no single reference value.</div>}<button className="b--tert">＋ Add option</button></>}
+              {rt==="text"&&<div className="notif notif--info">No units, significant digits, or ranges apply to free-text results.</div>}
+              {rt==="titer"&&<div className="notif notif--info">Entered as a dilution ratio, e.g. <b>1:64</b>.</div>}
+              {rt==="alpha"&&<div className="notif notif--info">Alphanumeric text, validated against allowed characters.</div>}
+            </div>
+            <div className="card"><div className="h2">Flagging rules (interpretations) <span className="muted">— optional</span></div>{rt==="text"?<p className="muted">Flagging rules don't apply to free text.</p>:<div className="empty">No flagging rules yet. Add one to auto-mark results like <b>{(rt==="select"||rt==="multi"||rt==="cascade")?"'Detected'":"a critical value"}</b> as positive or abnormal.<br/><button className="b--tert" style={{marginTop:10}}>＋ Add flagging rule</button></div>}</div>
+          </div>
+          <div className="pr"><div className="prpanel"><h4>Result entry preview</h4><div className="s">What a technician sees.</div>
+            <div style={{fontSize:12,color:'#393939',marginBottom:4}}>COVID-19 PCR</div>
+            {rt==="numeric"&&<div><input style={{width:120,padding:8,border:'none',borderBottom:'1px solid #8d8d8d',background:'#fff'}} placeholder={sx}/> <span className="muted">copies/mL</span></div>}
+            {rt==="select"&&<select style={{minWidth:230,padding:8}}><option>Select a result…</option>{opts.map((o,i)=><option key={i}>{o}</option>)}</select>}
+            {rt==="multi"&&<div><div className="muted">Select one or more:</div>{opts.map((o,i)=><label key={i} style={{display:'block',fontSize:14}}><input type="checkbox"/> {o}</label>)}</div>}
+            {rt==="cascade"&&["Group A","Group B"].map((g,gi)=><div key={gi}><b style={{fontSize:13}}>{g}</b>{opts.slice(gi*2,gi*2+2).map((o,i)=><label key={i} style={{display:'block',fontSize:14}}><input type="checkbox"/> {o}</label>)}</div>)}
+            {rt==="titer"&&<input style={{width:120,padding:8,border:'none',borderBottom:'1px solid #8d8d8d',background:'#fff'}} placeholder="1:64"/>}
+            {rt==="alpha"&&<input style={{width:200,padding:8,border:'none',borderBottom:'1px solid #8d8d8d',background:'#fff'}} placeholder="Enter code…"/>}
+            {rt==="text"&&<textarea rows="3" style={{width:'100%',padding:8}} placeholder="Type result…"/>}
+          </div></div></div>
+        </div>
+      </>;
+    }
+
+    /* ---------- EDIT RELATED (combined) ---------- */
+    function Combined({go}){
+      const [sec,setSec]=useState("Ranges");
+      const tests=[["Whole Blood","718-7"],["Venous Blood","30313-1"],["Capillary Blood","718-7"]];
+      return <>
+        <nav className="side"><div className="it b">Test Catalog Management ▴</div><div className="sub it" style={{color:'#0f62fe'}} onClick={()=>go("list")}>← All Tests</div><div className="muted">Editing: 3 related tests</div>{["Sample & Results","Methods","Ranges","Sample Storage"].map(s=><div key={s} className={"sub it"+(s===sec?" active":"")} onClick={()=>setSec(s)}>{s}</div>)}</nav>
+        <div className="main">
+          <div className="crumb">Home / Admin Management / Test Catalog Editor / <span className="cur">3 related tests</span></div>
+          <div className="title">Editing 3 tests together</div>
+          <div className="hdrbtns"><button className="b b--save">Save to all 3</button><button className="b b--cancel" onClick={()=>go("list")}>Cancel</button></div>
+          <div className="card" style={{background:'#f7f3ff'}}><b>Editing 3 tests:</b> Hemoglobin (Whole Blood) · (Venous Blood) · (Capillary Blood)<div className="muted" style={{marginTop:6}}>Shared settings apply to all 3. Identity &amp; LOINC stay per test.</div></div>
+          <div className="card"><div className="h2">Identity &amp; LOINC (per test — not shared)</div>{tests.map((t,i)=><div className="pertest" key={i}><span>Hemoglobin <b>({t[0]})</b></span><span>LOINC: <b>{t[1]}</b> &nbsp;<button className="b--ghost" style={{border:'none',background:'none',color:'#0f62fe',cursor:'pointer'}}>Open test</button></span></div>)}<div className="notif notif--err">⚠ LOINC <b>718-7</b> is used by both <b>Whole Blood</b> and <b>Capillary Blood</b>. Incoming results for this code route to only one test (first match) — results may be sent to the wrong test.</div></div>
+          {sec==="Ranges"&&<div className="card"><div className="h2">Normal &amp; critical ranges — shared across all 3 tests</div><div className="notif notif--info">All 3 selected tests share these ranges. Edit once; Save writes to each test.</div><table className="t" style={{maxWidth:640}}><thead><tr><th>Type</th><th>Sex</th><th>Age from</th><th>Age to</th><th>Low</th><th>High</th></tr></thead><tbody><tr><td><Pill k="green">Normal</Pill></td><td>Male</td><td>15 y</td><td className="muted">— open</td><td>13.0</td><td>17.0</td></tr><tr><td><Pill k="green">Normal</Pill></td><td>Female</td><td>15 y</td><td className="muted">— open</td><td>12.0</td><td>16.0</td></tr><tr><td><Pill k="red">Critical</Pill></td><td>All</td><td>0 d</td><td className="muted">— open</td><td>7.0</td><td>20.0</td></tr></tbody></table><div className="notif notif--warn">Corrected gap detection: narrowing Female "15 y → open" to "15 y – 30 y" now reports — <b>Coverage gap: 30 y and older not covered.</b></div></div>}
+          {sec==="Sample & Results"&&<div className="card"><div className="h2">Sample &amp; Results — shared</div><p className="muted">Same result-type-first layout as the single-test editor. Fields all 3 agree on show once; where they differ:</p><div className="differs">⚠ <b>Differs across tests</b> — Significant digits: Whole/Venous = 1; Capillary = 2. <button className="b--ghost" style={{border:'none',background:'none',color:'#0f62fe',cursor:'pointer'}}>Set all to…</button></div></div>}
+          {sec==="Methods"&&<div className="card"><p className="muted">Shared methods — applies to all 3 on save.</p></div>}
+          {sec==="Sample Storage"&&<div className="card"><p className="muted">Shared storage — applies to all 3 on save.</p></div>}
+        </div>
+      </>;
+    }
+
+    /* ---------- PANELS (test-side membership + position) ---------- */
+    function Panels({section,setSection,go}){
+      const order=["Glucose","GOT/ASAT","Amylase","Créatininémie","Total cholesterol"];
+      return <>
+        <SideEditor section={section} setSection={setSection} testName="Amylase"/>
+        <div className="main">
+          <div className="crumb">Home / Admin Management / Test Catalog Editor / <span className="cur">Amylase</span></div>
+          <div className="title">Amylase</div>
+          <div className="hdrbtns"><button className="b b--save">Save</button><button className="b b--cancel" onClick={()=>go("list")}>Cancel</button></div>
+          <div className="sectitle">Panels</div>
+          <p className="muted" style={{marginTop:0}}>Manage which panels this test belongs to, and its position within each.</p>
+          <div className="fld" style={{maxWidth:760}}><label>Add to panel</label><input placeholder="🔍 Search panels…"/></div>
+          <table className="t" style={{maxWidth:900}}><thead><tr><th>Panel</th><th>Position</th><th>Actions</th></tr></thead>
+            <tbody><tr><td>Bilan Biochimique</td><td>≡ &nbsp;3 of 5&nbsp; <button style={{border:'none',background:'none',color:'#0f62fe',cursor:'pointer'}}>▲</button><button style={{border:'none',background:'none',color:'#0f62fe',cursor:'pointer'}}>▼</button></td><td>🗑</td></tr></tbody></table>
+          <div style={{margin:'10px 0'}}><button style={{border:'none',background:'none',color:'#0f62fe',cursor:'pointer',fontSize:14}}>＋ Create new panel</button></div>
+          <div className="card" style={{maxWidth:520}}><div className="h2">Position in "Bilan Biochimique"</div><div className="muted" style={{marginBottom:8}}>Drag or use ↑/↓ to move this test among the panel's tests.</div>
+            {order.map((t,i)=><div key={i} style={{padding:'8px 10px',background:t==="Amylase"?'#edf5ff':'#fff',border:'1px solid #e0e0e0',marginTop:-1,display:'flex',justifyContent:'space-between',fontSize:14}}><span>{i+1}. {t} {t==="Amylase"&&<Pill k="green">This test</Pill>}</span>{t==="Amylase"&&<span className="muted">≡</span>}</div>)}
+          </div>
+          <div className="notif notif--info"><b>Fixes vs. today:</b> the <b>Position</b> shows the test's real slot ("3 of 5") with move up/down and the panel's other tests for context — blank today. <b>Create new panel</b> makes a panel with <b>just a name</b>; everything else is optional in Panel Management. <b>Lab Unit</b> is used throughout (backed by test_section).</div>
+          <button className="b b--save" style={{paddingRight:16}}>Save</button>
+        </div>
+      </>;
+    }
+
+    function App(){
+      const [view,setView]=useState("list");
+      const [section,setSection]=useState("Basic Info");
+      const go=(v)=>{ if(v==="sample")setSection("Sample & Results"); if(v==="create")setSection("Basic Info"); setView(v); };
+      const editorSection=(s)=>{ setSection(s); if(s==="Sample & Results")setView("sample"); else if(s==="Panels")setView("panels"); else if(s==="Basic Info")setView(view==="create"?"create":"basic"); else setView("basic"); };
+      return <div>
+        <div className="pv"><b>⚡ Preview — Test Catalog: Completion &amp; Correction</b> · grounded in the live UI (3.2.1.10) · not a live app &nbsp;
+          {[["list","Catalog list"],["create","New test → blank Basic Info"],["sample","Sample & Results"],["panels","Panels"],["combined","Edit related tests"]].map(([v,l])=><button key={v} className={view===v?"on":""} onClick={()=>go(v)}>{l}</button>)}
+        </div>
+        <Header/>
+        <div className="body">
+          {view==="list" && <><SideList/><ListView go={go}/></>}
+          {(view==="create"||view==="basic") && <BasicInfo isNew={view==="create"} section={section} setSection={editorSection} go={go}/>}
+          {view==="sample" && <SampleResults section={section} setSection={editorSection} go={go}/>}
+          {view==="panels" && <Panels section={section} setSection={editorSection} go={go}/>}
+          {view==="combined" && <Combined go={go}/>}
+        </div>
+      </div>;
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>

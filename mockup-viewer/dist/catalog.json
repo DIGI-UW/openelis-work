@@ -1,7 +1,7 @@
 {
-  "generated": "2026-06-26T04:59:03.613Z",
+  "generated": "2026-07-01T23:42:11.356Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 212,
+  "totalDesigns": 196,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -21,6 +21,73 @@
     "vector-surveillance"
   ],
   "designs": [
+    {
+      "name": "Test Catalog Editor — Completion & Correction",
+      "slug": "test-catalog-editor-completion-correction",
+      "category": "admin-config",
+      "description": "Completes the unified Test Catalog editor: create a test in place, edit shared settings across same-analyte/different-specimen tests together, result-type-first Sample & Results with live preview, LOINC integrity warnings (missing + duplicate-active), Ranges bug fixes, and language fallback for names/labels.",
+      "type": "jsx",
+      "added": "2026-07-01",
+      "status": "draft",
+      "tags": [
+        "test-catalog",
+        "loinc",
+        "ranges",
+        "result-types",
+        "i18n",
+        "admin",
+        "configuration"
+      ],
+      "jira": [
+        "OGC-748",
+        "OGC-749",
+        "OGC-751",
+        "OGC-753",
+        "OGC-754",
+        "OGC-767",
+        "OGC-928"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/admin-config/test-catalog-editor-completion.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-editor-completion-correction",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-editor-completion-correction",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-editor-completion-correction",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-editor-completion.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-editor-completion.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-editor-completion.html"
+      }
+    },
+    {
+      "name": "Report Management",
+      "slug": "report-management",
+      "category": "admin-config",
+      "description": "Admin registry to choose, version, and override the report templates OpenELIS uses to render reports — see the active template per report, whether it is the shipped default or a custom override, pick a bundled variant, upload a custom template, preview, and revert to the shipped default (OGC-1111, Epic).",
+      "type": "jsx",
+      "added": "2026-07-01",
+      "status": "draft",
+      "tags": [
+        "reports",
+        "templates",
+        "jasper",
+        "jrxml",
+        "admin",
+        "configuration"
+      ],
+      "jira": [
+        "OGC-1111"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/admin-config/report-management.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/report-management",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/report-management",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/report-management",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/report-management.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/report-management.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/report-management.html"
+      }
+    },
     {
       "name": "Data Dictionary",
       "slug": "data-dictionary",
@@ -1266,7 +1333,7 @@
       "name": "Programs Management",
       "slug": "programs-management",
       "category": "admin-config",
-      "description": "Programs admin rework — adds Domain (Clinical/Environmental/Vector) field matching the Test Catalog and Lab Units pattern; moves the page back under Admin → Test Management; replaces the Edit JSON toggle with a Carbon ContentSwitcher (Visual Builder ↔ JSON); auto-saving question cards with OverflowMenu actions; inline answer-options editor for Choice/Checkbox; live \"Example\" preview pane rendering the questionnaire as it appears at order entry. Pattern source: OGC-748.",
+      "description": "Programs admin rework (v2, consolidated) — Domain (Clinical/Environmental/Vector) field matching Test Catalog & Lab Units; moves under Admin → Test Management; inline Edit/Add (no separate page); Deactivate/Reactivate lifecycle (no hard delete) with a Show-deactivated toggle; Carbon ContentSwitcher (Visual Builder ↔ JSON) with a live \"Example\" preview; multi Lab-unit select; heavy on-screen guidance; API & i18n reuse guardrails. Epic: OGC-781.",
       "type": "jsx",
       "added": "2026-05-27",
       "status": "draft",
@@ -1282,7 +1349,9 @@
         "order-entry",
         "global"
       ],
-      "jira": [],
+      "jira": [
+        "OGC-781"
+      ],
       "githubIssue": null,
       "specPath": "designs/admin-config/programs-management.md",
       "urls": {
@@ -2079,34 +2148,6 @@
       }
     },
     {
-      "name": "M-04 Case Workbench Core (Case Detail)",
-      "slug": "m-04-case-workbench-core-case-detail",
-      "category": "microbiology",
-      "description": "The heart of the module — Case + Isolate + Timeline + Reports + state machine + amendment workflow. Mockup shows the populated Case Detail page.",
-      "type": "html",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "case-workbench",
-        "xl",
-        "mvp-1a",
-        "phase-1a-plus"
-      ],
-      "jira": [
-        "OGC-790"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-04-case-workbench-core.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-04-case-workbench-core-case-detail",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-04-case-workbench-core-case-detail",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-04-case-workbench-core-case-detail",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-core.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-detail.html"
-      }
-    },
-    {
       "name": "M-04 Isolate Modal",
       "slug": "m-04-isolate-modal",
       "category": "microbiology",
@@ -2132,33 +2173,6 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-04-isolate-modal",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-core.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-isolate-modal.html"
-      }
-    },
-    {
-      "name": "M-05 AST Entry & Interpretation",
-      "slug": "m-05-ast-entry-interpretation",
-      "category": "microbiology",
-      "description": "AST Setup + AST Edit modals — 16-antibiotic table with manual entry, BreakpointLookupService interpretation, inline override mechanism (preserves original).",
-      "type": "html",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "ast",
-        "mvp-1a",
-        "phase-1a-plus"
-      ],
-      "jira": [
-        "OGC-791"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-05-ast-entry-and-interpretation.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-05-ast-entry-interpretation",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-05-ast-entry-interpretation",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-05-ast-entry-interpretation",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-05-ast-entry-and-interpretation.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-05-ast-edit-modal.html"
       }
     },
     {
@@ -2210,33 +2224,6 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-07-pending-cultures-worklist",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-worklists.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-pending-cultures.html"
-      }
-    },
-    {
-      "name": "M-07 AST Worklist",
-      "slug": "m-07-ast-worklist",
-      "category": "microbiology",
-      "description": "Focused AST queue with status breakdown, flag chips, QC-failed and flagged rows highlighted, quick actions. Phase 1A+.",
-      "type": "html",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "worklist",
-        "ast",
-        "phase-1a-plus"
-      ],
-      "jira": [
-        "OGC-792"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-07-worklists.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-07-ast-worklist",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-07-ast-worklist",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-07-ast-worklist",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-worklists.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-ast-worklist.html"
       }
     },
     {
@@ -2433,35 +2420,6 @@
       }
     },
     {
-      "name": "M-11 Critical-Result Acknowledgment",
-      "slug": "m-11-critical-result-acknowledgment",
-      "category": "microbiology",
-      "description": "Polymorphic critical-notification rework (target_type: RESULT / CASE / ISOLATE / SAMPLE) — Micro is the forcing function for this long-deferred OE foundation. Co-ships with Phase 1A+.",
-      "type": "html",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "critical-ack",
-        "alerts-dashboard",
-        "cross-cutting",
-        "co-ship",
-        "phase-1a-plus"
-      ],
-      "jira": [
-        "OGC-785"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-11-critical-result-acknowledgment.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-11-critical-result-acknowledgment",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-11-critical-result-acknowledgment",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-11-critical-result-acknowledgment",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-11-critical-result-acknowledgment.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-11-critical-notifications.html"
-      }
-    },
-    {
       "name": "M-12 Test to Reagent Linkage",
       "slug": "m-12-test-to-reagent-linkage",
       "category": "microbiology",
@@ -2490,393 +2448,6 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-12-test-to-reagent-linkage",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-12-test-reagent-linkage.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-12-test-reagent-linkage-prototype.html"
-      }
-    },
-    {
-      "name": "M-00 Microbiology Module Parent — FRS v1.0",
-      "slug": "m-00-microbiology-module-parent-frs-v1-0",
-      "category": "microbiology",
-      "description": "Formal FRS v1.0 (2026-05-15) — spine spec for the M-* bundle: glossary, RBAC matrix, data model overview, phase plan, out-of-scope. Initial structured baseline before design-review edits.",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "parent-spec",
-        "frs",
-        "v1",
-        "mvp-1a"
-      ],
-      "jira": [
-        "OGC-782"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-00-micro-module-parent-frs-v1.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-00-microbiology-module-parent-frs-v1-0",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-00-microbiology-module-parent-frs-v1-0",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-00-microbiology-module-parent-frs-v1-0",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-00-micro-module-parent-frs-v1.md"
-      }
-    },
-    {
-      "name": "M-01 AMR Reference Data — FRS v1.0",
-      "slug": "m-01-amr-reference-data-frs-v1-0",
-      "category": "microbiology",
-      "description": "Formal FRS v1.0 (2026-05-15) — Organism / Antibiotic / AST Panel / Culture Protocol masters with WHONET codes and groupings. Initial structured baseline.",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "reference-data",
-        "WHONET",
-        "admin",
-        "frs",
-        "v1",
-        "mvp-1a"
-      ],
-      "jira": [
-        "OGC-786"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-01-amr-reference-data-frs-v1.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-01-amr-reference-data-frs-v1-0",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-01-amr-reference-data-frs-v1-0",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-01-amr-reference-data-frs-v1-0",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-01-amr-reference-data-frs-v1.md"
-      }
-    },
-    {
-      "name": "M-02 Breakpoint Catalog — FRS v1.0",
-      "slug": "m-02-breakpoint-catalog-frs-v1-0",
-      "category": "microbiology",
-      "description": "Formal FRS v1.0 (2026-05-15) — Versioned CLSI + EUCAST breakpoint tables; AST Runs snapshot the breakpoint version at result time. Initial structured baseline.",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "breakpoint",
-        "CLSI",
-        "EUCAST",
-        "frs",
-        "v1",
-        "mvp-1a"
-      ],
-      "jira": [
-        "OGC-787"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-02-breakpoint-catalog-frs-v1.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-02-breakpoint-catalog-frs-v1-0",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-02-breakpoint-catalog-frs-v1-0",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-02-breakpoint-catalog-frs-v1-0",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-02-breakpoint-catalog-frs-v1.md"
-      }
-    },
-    {
-      "name": "M-03 Order Entry Micro Hook — FRS v1.0",
-      "slug": "m-03-order-entry-micro-hook-frs-v1-0",
-      "category": "microbiology",
-      "description": "Formal FRS v1.0 (2026-05-15) — Order Entry Step 1 amendment adding micro-specific fields (Culture Protocol, Patient Origin, Sets, Clinical History, Antibiotic Exposure, Critical Notify). Initial structured baseline.",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "order-entry",
-        "frs",
-        "v1",
-        "mvp-1a"
-      ],
-      "jira": [
-        "OGC-789"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-03-order-entry-micro-hook-frs-v1.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-03-order-entry-micro-hook-frs-v1-0",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-03-order-entry-micro-hook-frs-v1-0",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-03-order-entry-micro-hook-frs-v1-0",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-03-order-entry-micro-hook-frs-v1.md"
-      }
-    },
-    {
-      "name": "M-04 Case Workbench Core — FRS v1.0",
-      "slug": "m-04-case-workbench-core-frs-v1-0",
-      "category": "microbiology",
-      "description": "Formal FRS v1.0 (2026-05-15) — Case entity, state machine, Case Detail page, Timeline, Isolate management, report release, amendment workflow, analyzer event channel. Detailed structured baseline before design-review consolidation.",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "case-workbench",
-        "frs",
-        "v1",
-        "xl",
-        "mvp-1a"
-      ],
-      "jira": [
-        "OGC-790"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-04-case-workbench-core-frs-v1.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-04-case-workbench-core-frs-v1-0",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-04-case-workbench-core-frs-v1-0",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-04-case-workbench-core-frs-v1-0",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-core-frs-v1.md"
-      }
-    },
-    {
-      "name": "M-05 AST Entry & Interpretation — FRS v1.0",
-      "slug": "m-05-ast-entry-interpretation-frs-v1-0",
-      "category": "microbiology",
-      "description": "Formal FRS v1.0 (2026-05-15) — AST setup and result-entry panels, BreakpointLookupService (MIC/zone → S/I/R), manual override with audit, analyzer-ingested results. Initial structured baseline.",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "ast",
-        "frs",
-        "v1",
-        "mvp-1a"
-      ],
-      "jira": [
-        "OGC-791"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-05-ast-entry-and-interpretation-frs-v1.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-05-ast-entry-interpretation-frs-v1-0",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-05-ast-entry-interpretation-frs-v1-0",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-05-ast-entry-interpretation-frs-v1-0",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-05-ast-entry-and-interpretation-frs-v1.md"
-      }
-    },
-    {
-      "name": "M-06 Expert Rules Engine — FRS v1.0",
-      "slug": "m-06-expert-rules-engine-frs-v1-0",
-      "category": "microbiology",
-      "description": "Formal FRS v1.0 (2026-05-15) — Configurable rules engine: MRSA inference, D-test, ESBL screen/confirm, cascade reporting, intrinsic resistance. Phase 1B. Initial structured baseline.",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "expert-rules",
-        "frs",
-        "v1",
-        "phase-1b"
-      ],
-      "jira": [
-        "OGC-793"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-06-expert-rules-engine-frs-v1.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-06-expert-rules-engine-frs-v1-0",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-06-expert-rules-engine-frs-v1-0",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-06-expert-rules-engine-frs-v1-0",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-06-expert-rules-engine-frs-v1.md"
-      }
-    },
-    {
-      "name": "M-07 Worklists — FRS v1.0",
-      "slug": "m-07-worklists-frs-v1-0",
-      "category": "microbiology",
-      "description": "Formal FRS v1.0 (2026-05-15) — Pending Cultures Worklist, AST Worklist, and Microbiology Dashboard. Read-mostly views over Case/Isolate/AST Run state. Initial structured baseline.",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "worklist",
-        "frs",
-        "v1",
-        "mvp-1a"
-      ],
-      "jira": [
-        "OGC-792"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-07-worklists-frs-v1.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-07-worklists-frs-v1-0",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-07-worklists-frs-v1-0",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-07-worklists-frs-v1-0",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-worklists-frs-v1.md"
-      }
-    },
-    {
-      "name": "M-08 Macro Library — FRS v1.0",
-      "slug": "m-08-macro-library-frs-v1-0",
-      "category": "microbiology",
-      "description": "Formal FRS v1.0 (2026-05-15) — Cross-cutting typing shortcuts: 85 default macros across 8 categories for free-text micro fields. Initial structured baseline.",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "macros",
-        "frs",
-        "v1",
-        "phase-1a-plus"
-      ],
-      "jira": [
-        "OGC-788"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-08-macro-library-frs-v1.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-08-macro-library-frs-v1-0",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-08-macro-library-frs-v1-0",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-08-macro-library-frs-v1-0",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-08-macro-library-frs-v1.md"
-      }
-    },
-    {
-      "name": "M-09 WHONET Export — FRS v1.0",
-      "slug": "m-09-whonet-export-frs-v1-0",
-      "category": "microbiology",
-      "description": "Formal FRS v1.0 (2026-05-15) — Surveillance export with dedup parameters, validation pass, phenotype flag columns, lab profile bootstrap. Phase 1B. Initial structured baseline.",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "WHONET",
-        "surveillance",
-        "frs",
-        "v1",
-        "phase-1b"
-      ],
-      "jira": [
-        "OGC-794"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-09-whonet-export-frs-v1.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-09-whonet-export-frs-v1-0",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-09-whonet-export-frs-v1-0",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-09-whonet-export-frs-v1-0",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-09-whonet-export-frs-v1.md"
-      }
-    },
-    {
-      "name": "M-11 Critical-Result Acknowledgment — FRS v1.0",
-      "slug": "m-11-critical-result-acknowledgment-frs-v1-0",
-      "category": "microbiology",
-      "description": "Formal FRS v1.0 (2026-05-15) — Polymorphic critical-notification rework (target_type: RESULT / CASE / ISOLATE / SAMPLE). Co-ships with Phase 1A+. Initial structured baseline.",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "critical-ack",
-        "frs",
-        "v1",
-        "phase-1a-plus"
-      ],
-      "jira": [
-        "OGC-785"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-11-critical-result-acknowledgment-frs-v1.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-11-critical-result-acknowledgment-frs-v1-0",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-11-critical-result-acknowledgment-frs-v1-0",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-11-critical-result-acknowledgment-frs-v1-0",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-11-critical-result-acknowledgment-frs-v1.md"
-      }
-    },
-    {
-      "name": "M-12 Test to Reagent Linkage — FRS v1.0",
-      "slug": "m-12-test-to-reagent-linkage-frs-v1-0",
-      "category": "microbiology",
-      "description": "Formal FRS v1.0 (2026-05-15) — General OE foundation: declare required reagent lots per test (ISO 15189 §7.3). Micro is the forcing function. Parallel pre-track to MVP-1A. Initial structured baseline.",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "reagent-linkage",
-        "iso-15189",
-        "frs",
-        "v1",
-        "mvp-1a"
-      ],
-      "jira": [
-        "OGC-784"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-12-test-reagent-linkage-frs-v1.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-12-test-to-reagent-linkage-frs-v1-0",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-12-test-to-reagent-linkage-frs-v1-0",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-12-test-to-reagent-linkage-frs-v1-0",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-12-test-reagent-linkage-frs-v1.md"
-      }
-    },
-    {
-      "name": "M-10 Hub Subscription — FRS v1.0",
-      "slug": "m-10-hub-subscription-frs-v1-0",
-      "category": "microbiology",
-      "description": "Formal FRS v1.0 (2026-05-15) — Unified admin for breakpoint + WHONET code + organism/antibiotic master updates from a central repository. OE pulls; never pushes. Phase 1B. Initial structured baseline.",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "hub-subscription",
-        "reference-data",
-        "frs",
-        "v1",
-        "phase-1b"
-      ],
-      "jira": [
-        "OGC-795"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-10-hub-subscription-frs-v1.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-10-hub-subscription-frs-v1-0",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-10-hub-subscription-frs-v1-0",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-10-hub-subscription-frs-v1-0",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-10-hub-subscription-frs-v1.md"
-      }
-    },
-    {
-      "name": "M-NFR Non-Functional Requirements — FRS v1.0",
-      "slug": "m-nfr-non-functional-requirements-frs-v1-0",
-      "category": "microbiology",
-      "description": "Formal FRS v1.0 (2026-05-15) — Cross-cutting non-functional requirements for the microbiology module: performance, scalability, reliability, observability, security, accessibility. Initial structured baseline.",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "non-functional",
-        "cross-cutting",
-        "frs",
-        "v1",
-        "mvp-1a"
-      ],
-      "jira": [
-        "OGC-782"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-nfr-non-functional-requirements-frs-v1.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-nfr-non-functional-requirements-frs-v1-0",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-nfr-non-functional-requirements-frs-v1-0",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-nfr-non-functional-requirements-frs-v1-0",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-nfr-non-functional-requirements-frs-v1.md"
       }
     },
     {
