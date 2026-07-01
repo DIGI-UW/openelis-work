@@ -449,9 +449,9 @@ translation cycle.
 This feature ships as **one reference set** — a single implementer works all of it from these three
 files together (the implementer is Claude Code, so a consolidated set beats scattered docs):
 
-1. **Spec:** `programs-management-frs-consolidated.md` (this file)
-2. **Mockup:** `programs-management-v2-mockup.jsx` (Carbon; all four pillars incl. the new lifecycle)
-3. **Preview:** `programs-management-v2-preview.html` (interactive; list + editor views)
+1. **Spec:** `programs-management.md` (this file)
+2. **Mockup:** `programs-management.jsx` (Carbon; all four pillars incl. the new lifecycle)
+3. **Preview:** `programs-management.html` (interactive; list + editor views)
 
 These supersede the base `programs-management-frs.md`, the `programs-management-deactivate-addendum.md`,
 and the older `programs-management-mockup.jsx`/`-preview.html` — do not hand those off separately.
@@ -460,8 +460,8 @@ and the older `programs-management-mockup.jsx`/`-preview.html` — do not hand t
 
 | Asset | Type | Path | Shows |
 |---|---|---|---|
-| `programs-management-v2-preview.html` | interactive preview | workspace | target UI — list (Domain col, status, Show-deactivated toggle, Deactivate/Reactivate, confirm modal) + editor (Domain radio, lifecycle control, ContentSwitcher, live Example preview) |
-| `programs-management-v2-mockup.jsx` | Carbon mockup | workspace | implementation reference for the above |
+| `programs-management.html` | interactive preview | workspace | target UI — list (Domain col, status, Show-deactivated toggle, Deactivate/Reactivate, confirm modal) + editor (Domain radio, lifecycle control, ContentSwitcher, live Example preview) |
+| `programs-management.jsx` | Carbon mockup | workspace | implementation reference for the above |
 | `handoff-programs-before/01-programs-list-current.png` | live "before" screenshot | `OpenELIS QA/docs-media/handoff-programs-before/` | current Program editor — captures the pain the FRS fixes: the raw `program.name.program` i18n leak used as a label (FR-17), the legacy "Edit Json" toggle (FR-11 replaces with ContentSwitcher), the "Example" preview label (FR-13.5), **no Domain field** (FR-2), and the misplaced "Program Entry" main-menu location + "Admin Management" breadcrumb (the IA move) |
 | `handoff-programs-before/walkthrough.webm` | clip | same folder | navigation through the current editor |
 

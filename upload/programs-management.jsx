@@ -1,10 +1,10 @@
 // Route: /MasterListsPage/program   (edit + add happen INLINE on this list — no separate editor page)
 // SideNav: Admin → Test Management → Programs
-// FRS: programs-management-frs-consolidated.md  (this is the v2 consolidated ref set)
+// FRS: programs-management.md  (this is the v2 consolidated ref set)
 // Reference set (one coherent handoff for Claude Code):
-//   - programs-management-frs-consolidated.md   (spec)
-//   - programs-management-v2-mockup.jsx          (this file)
-//   - programs-management-v2-preview.html        (interactive preview)
+//   - programs-management.md   (spec)
+//   - programs-management.jsx          (this file)
+//   - programs-management.html        (interactive preview)
 //
 // Version-agnostic (dev slices from the Epic, D-028). Four pillars:
 //   Domain classification · Test Management IA · inline editor (ContentSwitcher + live preview) ·
