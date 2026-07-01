@@ -212,6 +212,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Test Catalog — Microbiology Workflow Attribute',
+    project: ['png'],
     category: 'admin-config',
     component: null,
     description: 'Test Catalog Basic Info: a nullable culture_workflow_type enum (None / Bacteriology / Mycobacteriology\u2013TB; Mycology reserved), orthogonal to Domain and the AMR flag; drives micro case routing (M-03/M-04). Foldable into Test Catalog v2.5 \u00a72.1 Basic Info.',
@@ -522,6 +523,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Result & Validation Configuration v4',
+    project: ['png'],
     category: 'admin-config',
     component: null,
     description: 'Consolidated admin page (v4) that retires the flat Result Entry Configuration table and the binary validate-all-results toggle. Replaces them with a plain-language grouped toggles panel (13 legacy settings re-labelled across 4 groups: Result Entry, Modification/Rejection/Retest, Release & Display, Access & PII), a multi-level validation policy panel (lab-wide default + per-lab-unit overrides with 0–5 levels, trigger modes, role selects), an effective-config preview, and a plain-terms policy sentence. Route: /admin/results-validation-configuration. Drives Results Entry v4 and Validation Page v4.',
@@ -572,6 +574,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Bruker MALDI Biotyper Integration Spec',
+    project: ['png'],
     category: 'analyzer-integration',
     component: null,
     description: 'Bruker MALDI Biotyper (MBT Compass IVD) microbial identification — ASTM LIS2-A2 socket or CSV flat file (PNG / CPHL Port Moresby).',
@@ -583,6 +586,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Bruker MALDI Biotyper Companion Guide',
+    project: ['png'],
     category: 'analyzer-integration',
     component: null,
     description: 'Bruker MALDI Biotyper (MBT Compass IVD) analyzer setup guide — instrument-side + OpenELIS configuration for organism-ID results.',
@@ -594,6 +598,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'MinION TB-Profiler Field Mapping Spec',
+    project: ['png'],
     category: 'analyzer-integration',
     component: null,
     description: 'MinION (Oxford Nanopore) + TB-Profiler WGS-based TB drug-susceptibility — field mapping & integration spec v2.2. Rides the existing flat-file analyzer plugin into the M-14 TB Case Workbench import channel (general JSON reader + sequencing-QC block + additive M-14 molecular-result fields); not a new pipeline module. Supersedes v1.0. PNG / CPHL.',
@@ -607,6 +612,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'MinION TB-Profiler Setup Guide',
+    project: ['png'],
     category: 'analyzer-integration',
     component: null,
     description: 'MinION + TB-Profiler analyzer setup guide — instrument/pipeline-side + OpenELIS flat-file-plugin configuration for importing TB WGS DST results into the M-14 case workbench.',
@@ -620,6 +626,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'BD EpiCenter Integration Spec',
+    project: ['png'],
     category: 'analyzer-integration',
     component: null,
     description: 'BD EpiCenter microbiology / AMR data manager — ASTM LIS2-A2 (E1394-97) aggregating Phoenix/MGIT susceptibility for OpenELIS (PNG / CPHL Port Moresby).',
@@ -1440,6 +1447,7 @@ export const MOCKUP_REGISTRY = [
   // ─── Results & Validation — v4 redesign ───
   {
     name: 'Results Entry v4',
+    project: ['png'],
     category: 'results-validation',
     component: null,
     description: 'Results Entry consolidated redesign (v4) — per-row edit-state lock, Method + Analyzer split columns, inline NCE (real InlineNceForm field set), inline remaining-volume / disposal trigger, dual-axis notes, contrast-ratio critical flags, bulk-release action, cross-domain (Clinical/Environmental/Vector via Lab Unit). Supersedes v3 Results Page. Companion: Validation Page v4 and Result & Validation Configuration v4 (admin).',
@@ -1452,6 +1460,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Validation Page v4',
+    project: ['png'],
     category: 'results-validation',
     component: null,
     description: 'Validation Page consolidated redesign (v4) — NCE / QC-fail / modification / critical-ack triage chips in the list view, smart bulk-release (excludes unreviewed criticals), Method + Analyzer split columns, inline rejection with NCE record, per-row review state, e-signature on release. Cross-domain (Clinical/Environmental/Vector). Companion: Results Entry v4 and Result & Validation Configuration v4.',
@@ -1730,6 +1739,7 @@ export const MOCKUP_REGISTRY = [
   },
   {
     name: 'Report Print Queue',
+    project: ['png'],
     category: 'reports',
     component: React.lazy(() => import('@designs/reports/report-print-queue.jsx')),
     description: 'Report-type-agnostic print queue: auto-surfaces validated-but-unprinted reports; completeness indicators, patient/lab-number search, print recording via existing report tracking.',
@@ -2371,6 +2381,30 @@ export const categoryLabels = {
   'other': 'Other',
 };
 
+// ─── Customer / deployment projects ───────────────────────────────
+// A mockup belongs to a project when its `project` array includes the key.
+// Kept separate from freeform `tags` so customer scope is unambiguous
+// (e.g. a 'PNG' tag meaning the .png image format never leaks in here).
+export const projects = ['png'];
+
+export const projectConfig = {
+  png: {
+    label: 'Papua New Guinea',
+    short: 'PNG',
+    org: 'CPHL — Central Public Health Laboratory, Port Moresby',
+    blurb: 'OpenELIS Global designs in progress for the PNG / CPHL deployment. Browse the mockups and specifications below at your own pace.',
+  },
+};
+
+export const projectLabels = Object.fromEntries(
+  Object.entries(projectConfig).map(([k, v]) => [k, v.label])
+);
+
+/** True when a mockup is tagged for the given project. */
+export function inProject(mockup, projectKey) {
+  return Array.isArray(mockup.project) && mockup.project.includes(projectKey);
+}
+
 /** Emoji + one-line plain-language blurb per area — used by the Explore landing page
  *  so non-developers can orient by what the area does, not by its folder name. */
 export const categoryIcons = {
@@ -2626,6 +2660,16 @@ export function parseRoute(hash) {
     const slug = parts.slice(2).join('/');
     const mockup = MOCKUP_REGISTRY.find(m => m.category === cat && toSlug(m.name) === slug) || null;
     return { mode: 'spec', mockup };
+  }
+  if (parts[0] === 'project' && parts[1]) {
+    const projectKey = parts[1];
+    let mockup = null;
+    if (parts.length >= 4) {
+      const cat = parts[2];
+      const slug = parts.slice(3).join('/');
+      mockup = MOCKUP_REGISTRY.find(m => m.category === cat && toSlug(m.name) === slug) || null;
+    }
+    return { mode: 'project', project: projectKey, mockup };
   }
   const mockup = findMockupByHash(hash);
   return { mode: 'gallery', mockup };
@@ -3260,16 +3304,23 @@ function App() {
   // ─── Standalone route detection ───
   const [routeMode, setRouteMode] = useState(() => parseRoute(window.location.hash).mode);
   const [routeMockup, setRouteMockup] = useState(() => parseRoute(window.location.hash).mockup);
+  const [routeProject, setRouteProject] = useState(() => parseRoute(window.location.hash).project || null);
 
   useEffect(() => {
     function onHashChange() {
       const route = parseRoute(window.location.hash);
       setRouteMode(route.mode);
       setRouteMockup(route.mockup);
+      setRouteProject(route.project || null);
     }
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
+
+  // Customer-facing project showcase (clean, no internal chrome)
+  if (routeMode === 'project' && routeProject) {
+    return <ProjectShowcase projectKey={routeProject} initialMockup={routeMockup} />;
+  }
 
   // Render standalone modes immediately, bypassing the full gallery UI
   if (routeMode === 'preview' && routeMockup) {
@@ -3290,6 +3341,8 @@ function GalleryApp() {
   const [activeTag, setActiveTag] = useState(null);
   const [detailTab, setDetailTab] = useState('preview'); // 'preview' or 'spec'
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'draft', 'review', 'approved'
+  const [activeProject, setActiveProject] = useState('all'); // 'all' or a project key
+  const [showArchived, setShowArchived] = useState(false);
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [localStatuses, setLocalStatuses] = useState(() => {
     // Load persisted status overrides from localStorage
@@ -3377,6 +3430,8 @@ function GalleryApp() {
   }
 
   const filtered = MOCKUP_REGISTRY.filter((m) => {
+    const matchesArchived = showArchived ? true : !m.archived;
+    const matchesProject = activeProject === 'all' || inProject(m, activeProject);
     const matchesCategory = activeCategory === 'all' || m.category === activeCategory;
     const matchesStatus = statusFilter === 'all' || getEffectiveStatus(m) === statusFilter;
     const matchesTag = !activeTag || (m.tags && m.tags.includes(activeTag));
@@ -3388,11 +3443,14 @@ function GalleryApp() {
       m.category.toLowerCase().includes(q) ||
       (m.jira && m.jira.some((key) => key.toLowerCase().includes(q))) ||
       (m.tags && m.tags.some((tag) => tag.toLowerCase().includes(q)));
-    return matchesCategory && matchesStatus && matchesTag && matchesSearch;
+    return matchesArchived && matchesProject && matchesCategory && matchesStatus && matchesTag && matchesSearch;
   });
 
+  const archivedCount = MOCKUP_REGISTRY.filter((m) => m.archived).length;
+  const activeCount = MOCKUP_REGISTRY.length - archivedCount;
+  const visibleForCounts = MOCKUP_REGISTRY.filter((m) => (showArchived ? true : !m.archived));
   const countByCategory = {};
-  MOCKUP_REGISTRY.forEach((m) => {
+  visibleForCounts.forEach((m) => {
     countByCategory[m.category] = (countByCategory[m.category] || 0) + 1;
   });
 
@@ -3459,7 +3517,7 @@ function GalleryApp() {
               title="Back to the Explore home"
             >OpenELIS Global — Design Gallery</h1>
             <p style={{ ...styles.subtitle, color: t.textMuted }}>
-              {MOCKUP_REGISTRY.length} mockups across {Object.keys(countByCategory).length} categories
+              {activeCount} mockups across {Object.keys(countByCategory).length} categories{archivedCount ? ` · ${archivedCount} archived` : ''}
             </p>
           </div>
           <button
@@ -3505,6 +3563,37 @@ function GalleryApp() {
             </span>
           )}
         </div>
+        {projects.length > 0 && (
+          <select
+            value={activeProject}
+            onChange={(e) => { setActiveProject(e.target.value); selectMockup(null); setHome(false); }}
+            style={{ ...styles.statusSelect, background: t.searchBg, borderColor: t.borderInput, color: t.text }}
+            aria-label="Filter by project"
+          >
+            <option value="all">All projects</option>
+            {projects.map((p) => (
+              <option key={p} value={p}>{projectConfig[p].short} — {projectLabels[p]}</option>
+            ))}
+          </select>
+        )}
+        {activeProject !== 'all' && (
+          <a
+            href={`#/project/${activeProject}`}
+            style={{ ...styles.statusSelect, display: 'inline-flex', alignItems: 'center', textDecoration: 'none', background: t.accent, color: '#fff', borderColor: t.accent, fontWeight: 600, whiteSpace: 'nowrap' }}
+            title="Open the clean, shareable customer view for this project"
+          >
+            Open customer view →
+          </a>
+        )}
+        <button
+          onClick={() => { setShowArchived((v) => !v); setHome(false); }}
+          style={{ ...styles.statusSelect, cursor: 'pointer', background: showArchived ? t.accent : t.searchBg, color: showArchived ? '#fff' : t.text, borderColor: showArchived ? t.accent : t.borderInput, whiteSpace: 'nowrap' }}
+          title="Show or hide archived (completed/retired) mockups"
+          aria-label="Toggle archived mockups"
+          aria-pressed={showArchived}
+        >
+          {showArchived ? '✓ ' : ''}Archived{archivedCount ? ` (${archivedCount})` : ''}
+        </button>
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setHome(false); }}
@@ -3539,7 +3628,7 @@ function GalleryApp() {
             >
               {categoryLabels[cat]}
               {cat !== 'all' && countByCategory[cat] ? ` (${countByCategory[cat]})` : ''}
-              {cat === 'all' ? ` (${MOCKUP_REGISTRY.length})` : ''}
+              {cat === 'all' ? ` (${visibleForCounts.length})` : ''}
             </button>
           ))}
         </div>
@@ -3894,5 +3983,185 @@ const styles = {
   statusBadge: { display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600, border: '1px solid' },
   statusSelect: { padding: '8px 12px', border: '1px solid #c6c6c6', borderRadius: 4, fontSize: 14, cursor: 'pointer' },
 };
+
+// ─── Customer-facing Project Showcase ────────────────────────────
+// Clean, shareable view scoped to one project. Deliberately hides all
+// internal chrome: Jira keys, draft/review status, GitHub discussion.
+function ProjectShowcase({ projectKey, initialMockup }) {
+  const cfg = projectConfig[projectKey];
+  const [darkMode, setDarkMode] = useState(false);
+  const [selected, setSelected] = useState(initialMockup || null);
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [detailTab, setDetailTab] = useState('preview');
+  const t = darkMode ? themes.dark : themes.light;
+
+  const items = MOCKUP_REGISTRY.filter((m) => inProject(m, projectKey) && !m.archived);
+
+  useEffect(() => {
+    function onHashChange() {
+      const route = parseRoute(window.location.hash);
+      setSelected(route.mode === 'project' ? route.mockup : null);
+    }
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.background = t.bg;
+    document.body.style.color = t.text;
+  }, [darkMode, t.bg, t.text]);
+
+  function select(m) {
+    setSelected(m);
+    setDetailTab('preview');
+    if (m) {
+      window.location.hash = `#/project/${projectKey}/${m.category}/${toSlug(m.name)}`;
+    } else {
+      window.location.hash = `#/project/${projectKey}`;
+    }
+  }
+
+  const presentCats = Array.from(new Set(items.map((m) => m.category)));
+  const filtered = items.filter((m) => {
+    const matchesCat = activeCategory === 'all' || m.category === activeCategory;
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !searchQuery ||
+      m.name.toLowerCase().includes(q) ||
+      m.description.toLowerCase().includes(q) ||
+      categoryLabels[m.category].toLowerCase().includes(q);
+    return matchesCat && matchesSearch;
+  });
+
+  if (!cfg) {
+    return (
+      <div style={{ ...styles.container, background: t.bg, color: t.text }} data-theme={darkMode ? 'dark' : 'light'}>
+        <p style={{ padding: 40 }}>Unknown project &ldquo;{projectKey}&rdquo;.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ ...styles.container, background: t.bg, color: t.text }} data-theme={darkMode ? 'dark' : 'light'}>
+      <header style={{ ...styles.header, borderBottomColor: t.headerBorder }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+          <div>
+            <h1 style={{ ...styles.title, color: t.text }}>OpenELIS Global — {cfg.label} Designs</h1>
+            <p style={{ ...styles.subtitle, color: t.textMuted, marginBottom: 4 }}>{cfg.org}</p>
+            <p style={{ ...styles.subtitle, color: t.textMuted, maxWidth: 720 }}>{cfg.blurb}</p>
+          </div>
+          <button
+            onClick={() => setDarkMode((p) => !p)}
+            style={{ background: t.badgeBg, border: `1px solid ${t.border}`, borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: t.text, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            <span style={{ fontSize: 16 }}>{darkMode ? '☀️' : '🌙'}</span>
+            {darkMode ? 'Light' : 'Dark'}
+          </button>
+        </div>
+      </header>
+
+      {selected ? (
+        <div>
+          <button onClick={() => select(null)} style={{ ...styles.backButton, color: t.accent }}>
+            ← Back to {cfg.short} designs
+          </button>
+          <div style={styles.mockupHeader}>
+            <h2 style={{ margin: 0, color: t.text }}>{selected.name}</h2>
+            <span style={{ ...styles.badge, background: t.badgeBg, color: t.textSecondary }}>{categoryLabels[selected.category]}</span>
+          </div>
+          <p style={{ color: t.textMuted, margin: '8px 0 16px', maxWidth: 760 }}>{selected.description}</p>
+
+          {(() => {
+            const hasPreview = selected.component || selected.htmlUrl || selected.figmaUrl;
+            const hasSpec = !!selected.specPath;
+            return (
+              <>
+                {hasPreview && hasSpec && (
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                    <button onClick={() => setDetailTab('preview')} style={{ ...styles.tab, background: detailTab === 'preview' ? t.accent : t.tabBg, color: detailTab === 'preview' ? '#fff' : t.text, borderColor: detailTab === 'preview' ? t.accent : t.borderInput }}>Mockup Preview</button>
+                    <button onClick={() => setDetailTab('spec')} style={{ ...styles.tab, background: detailTab === 'spec' ? t.accent : t.tabBg, color: detailTab === 'spec' ? '#fff' : t.text, borderColor: detailTab === 'spec' ? t.accent : t.borderInput }}>Spec Document</button>
+                  </div>
+                )}
+                {hasPreview && (hasSpec ? detailTab === 'preview' : true) && (
+                  <div style={{ border: `1px solid ${t.border}`, borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+                    {selected.component ? (
+                      <Suspense fallback={<div style={styles.loading}>Loading preview…</div>}>
+                        <selected.component />
+                      </Suspense>
+                    ) : selected.htmlUrl ? (
+                      <iframe title={selected.name} src={import.meta.env.BASE_URL + selected.htmlUrl} style={{ width: '100%', height: '80vh', border: 'none' }} />
+                    ) : selected.figmaUrl ? (
+                      <iframe title={selected.name} src={selected.figmaUrl.replace('/make/', '/embed/').replace('/file/', '/embed/').replace('/design/', '/embed/')} style={{ width: '100%', height: '80vh', border: 'none' }} allowFullScreen />
+                    ) : null}
+                  </div>
+                )}
+                {hasSpec && (!hasPreview || detailTab === 'spec') && (
+                  <SpecViewer specPath={selected.specPath} />
+                )}
+                {!hasPreview && !hasSpec && (
+                  <p style={{ color: t.textMuted }}>No preview available for this entry yet.</p>
+                )}
+              </>
+            );
+          })()}
+        </div>
+      ) : (
+        <>
+          <div style={styles.toolbar}>
+            <input
+              type="text"
+              placeholder="Search these designs…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ ...styles.search, flex: '1 1 220px', minWidth: 0 }}
+            />
+            <div style={styles.tabs}>
+              {['all', ...presentCats].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  style={{ ...styles.tab, background: activeCategory === cat ? t.accent : t.tabBg, color: activeCategory === cat ? '#fff' : t.text, borderColor: activeCategory === cat ? t.accent : t.borderInput }}
+                >
+                  {cat === 'all' ? `All (${items.length})` : `${categoryLabels[cat]} (${items.filter((m) => m.category === cat).length})`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filtered.length === 0 ? (
+            <div style={{ ...styles.empty, color: t.textMuted }}>
+              {items.length === 0 ? 'No designs have been published for this project yet.' : 'No designs match your search.'}
+            </div>
+          ) : (
+            <div style={styles.grid}>
+              {filtered.map((m, i) => {
+                const type = entryTypeConfig[getEntryType(m)];
+                return (
+                  <div
+                    key={i}
+                    onClick={() => select(m)}
+                    style={{ ...styles.card, background: t.cardBg, borderColor: t.border, boxShadow: t.cardShadow, cursor: 'pointer' }}
+                  >
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+                      <span style={{ ...styles.badge, background: t.badgeBg, color: t.textSecondary }}>{categoryLabels[m.category]}</span>
+                      <span style={{ ...styles.badge, background: darkMode ? type.color + '22' : type.bg, color: type.color }}>{type.label}</span>
+                    </div>
+                    <h3 style={{ margin: '0 0 6px', color: t.text, fontSize: 16 }}>{m.name}</h3>
+                    <p style={{ margin: 0, color: t.textMuted, fontSize: 13, lineHeight: 1.5 }}>{m.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <footer style={{ marginTop: 40, paddingTop: 16, borderTop: `1px solid ${t.border}`, color: t.textMuted, fontSize: 12 }}>
+            {items.length} design{items.length === 1 ? '' : 's'} · OpenELIS Global · University of Washington DIGI
+          </footer>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default App;
