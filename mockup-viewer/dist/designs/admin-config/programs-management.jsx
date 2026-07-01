@@ -1,566 +1,163 @@
-// Route (list):   /MasterListsPage/program           (preserves the existing live URL — singular "program")
-// Route (editor): /MasterListsPage/program/<uuid>    (use /new for create)
-// SideNav:    Admin → Test Management → Programs    (moved from main admin menu — IA fix)
-// Breadcrumb (list):   Home / Admin Management / Test Management / Programs
-// Breadcrumb (editor): Home / Admin Management / Test Management / Programs / Add/Edit Program
-// Note: breadcrumb says "Admin Management" while SideNav says "Admin" — live-app label
-// drift; preserved here per reference_admin_breadcrumb_label_quirk memory.
-// Pattern source: OGC-748 (Test Catalog Basic Info — Domain radio group)
-// Spec: programs-management-frs.md
+// Route: /MasterListsPage/program   (edit + add happen INLINE on this list — no separate editor page)
+// SideNav: Admin → Test Management → Programs
+// FRS: programs-management.md  (this is the v2 consolidated ref set)
+// Reference set (one coherent handoff for Claude Code):
+//   - programs-management.md   (spec)
+//   - programs-management.jsx          (this file)
+//   - programs-management.html        (interactive preview)
 //
-// Two top-level components:
-//   <ProgramsListPage />    — list view with Domain column + filter + post-upgrade banner
-//   <ProgramEditorPage />   — Add/Edit Program editor (preserves existing dual-path Questionnaire)
+// Version-agnostic (dev slices from the Epic, D-028). Four pillars:
+//   Domain classification · Test Management IA · inline editor (ContentSwitcher + live preview) ·
+//   Deactivate/Reactivate lifecycle (no hard delete, D-002).
+// UI decisions folded in from review (2026-07-01):
+//   - Edit + Add are INLINE (row expansion / top panel), not a separate page/tab (D-005).
+//   - Code and UUID are system-managed and NOT surfaced in the UI.
+//   - "Lab unit(s)" is a multi-select with Select-all (a program can serve several units).
+//   - Heavy on-screen guidance for an IT admin (intro, per-field helpers, domain explainer).
+//   - Quantity: unit comes from a FHIR unit/unitOption extension (JSON-only, not the Visual Builder).
 
 import React, { useState, useMemo } from 'react';
 import {
   Grid, Column, Stack,
-  Breadcrumb, BreadcrumbItem,
-  DataTable, TableContainer, Table, TableHead, TableRow, TableHeader,
-  TableBody, TableCell, TableToolbar, TableToolbarContent,
-  TextInput, TextArea, Select, SelectItem, RadioButtonGroup, RadioButton,
-  Checkbox, NumberInput, DatePicker, DatePickerInput,
-  MultiSelect, Toggle, Tile,
-  ContentSwitcher, Switch,
-  OverflowMenu, OverflowMenuItem,
-  Button, IconButton,
-  InlineNotification, Tag, Modal,
+  DataTable, TableContainer, Table, TableHead, TableRow, TableHeader, TableBody, TableCell,
+  TableExpandHeader, TableExpandRow, TableExpandedRow,
+  TableToolbar, TableToolbarContent, TableToolbarSearch,
+  RadioButtonGroup, RadioButton, Select, SelectItem, TextInput, TextArea, MultiSelect,
+  FilterableMultiSelect, Toggle, ContentSwitcher, Switch, Button, IconButton, Tag, Modal,
+  InlineNotification, Tile, Breadcrumb, BreadcrumbItem, OverflowMenu, OverflowMenuItem,
 } from '@carbon/react';
-import { Add, Save, TrashCan, Renew, ChevronRight } from '@carbon/icons-react';
+import { Add, TrashCan } from '@carbon/icons-react';
 
 const t = (key, fallback) => fallback || key;
+const DOMAIN_TAG = { CLINICAL: 'blue', ENVIRONMENTAL: 'green', VECTOR: 'purple' };
+const domainLabel = (d) => ({ CLINICAL: 'Clinical', ENVIRONMENTAL: 'Environmental', VECTOR: 'Vector' }[d]);
+const LAB_UNITS = ['Serology', 'Microbiology', 'Hematology', 'Chemistry', 'Entomology', 'Environmental Lab'];
+const QUESTION_TYPES = ['boolean','choice','checkbox','integer','decimal','date','time','string','text','quantity'];
+const TYPE_EXAMPLE = {
+  boolean: 'Yes/no answer. Example: "First antenatal visit?"',
+  choice: 'One option from a fixed list. Example: "Specimen condition".',
+  checkbox: 'Multiple options can be selected. Example: "Symptoms present".',
+  integer: 'Whole numbers only. Example: "Gestational age (weeks)".',
+  decimal: 'Numbers with decimals. Example: "Maternal weight (kg)".',
+  date: 'Calendar date. Example: "Date of last menstrual period".',
+  time: 'Time of day. Example: "Time of sample collection".',
+  string: 'Short free-text. Example: "Provider name".',
+  text: 'Long free-text. Example: "Clinical notes".',
+  // Quantity's unit is defined by a FHIR unit/unitOption extension, editable only in JSON mode:
+  quantity: 'A number plus a unit (e.g. "Volume collected — 5 mL"). The allowed unit(s) come from a FHIR extension set in JSON mode; a GUI-only Quantity accepts any unit.',
+};
 
-// ============================================================================
-// Domain reference data — matches OGC-748 (Tests) and revised OGC-361 (Lab Units)
-// ============================================================================
-const DOMAINS = [
-  { value: 'CLINICAL',      label: 'Clinical',      tagKind: 'blue'   },
-  { value: 'ENVIRONMENTAL', label: 'Environmental', tagKind: 'green'  },
-  { value: 'VECTOR',        label: 'Vector',        tagKind: 'purple' },
+const SEED = [
+  { id: 1, name: 'HIV Treatment Cohort', code: 'HIV-TX-01', domain: 'CLINICAL', units: ['Serology'], active: true, orders: 1247 },
+  { id: 2, name: 'TB DOTS Surveillance', code: 'TB-DOTS-02', domain: 'CLINICAL', units: ['Microbiology'], active: true, orders: 842 },
+  { id: 3, name: 'Water Quality — Lake Toba', code: 'ENV-WQ-11', domain: 'ENVIRONMENTAL', units: ['Environmental Lab'], active: true, orders: 311 },
+  { id: 4, name: 'Dengue Sentinel — Jakarta', code: 'VEC-DEN-04', domain: 'VECTOR', units: ['Entomology'], active: true, orders: 196 },
+  { id: 5, name: 'HBV Antenatal Screening', code: 'HBV-ANC-01', domain: 'CLINICAL', units: ['Serology', 'Chemistry'], active: true, orders: 520 },
+  { id: 6, name: 'Malaria Pilot (2024) — closed', code: 'VEC-MAL-99', domain: 'VECTOR', units: ['Entomology'], active: false, orders: 74 },
 ];
 
-// FHIR Questionnaire item.type — matches existing live page; preserve order
-const QUESTION_TYPES = [
-  'Boolean', 'Choice', 'Checkbox', 'Integer', 'Decimal',
-  'Date', 'Time', 'String', 'Text', 'Quantity',
-];
+export default function ProgramsManagement() {
+  const [rows, setRows] = useState(SEED);
+  const [query, setQuery] = useState('');
+  const [domains, setDomains] = useState([]);
+  const [showDeactivated, setShowDeactivated] = useState(false);   // FR-19: hide deactivated by default
+  const [expandedId, setExpandedId] = useState(null);
+  const [adding, setAdding] = useState(false);
+  const [confirm, setConfirm] = useState(null);
+  const [notice, setNotice] = useState(null);
 
-// Per-type example sentences shown live in each Question card (FR-16.5)
-const TYPE_EXAMPLE_KEYS = {
-  Boolean:  'admin.programs.guidance.type.example.boolean',
-  Choice:   'admin.programs.guidance.type.example.choice',
-  Checkbox: 'admin.programs.guidance.type.example.checkbox',
-  Integer:  'admin.programs.guidance.type.example.integer',
-  Decimal:  'admin.programs.guidance.type.example.decimal',
-  Date:     'admin.programs.guidance.type.example.date',
-  Time:     'admin.programs.guidance.type.example.time',
-  String:   'admin.programs.guidance.type.example.string',
-  Text:     'admin.programs.guidance.type.example.text',
-  Quantity: 'admin.programs.guidance.type.example.quantity',
-};
-const TYPE_EXAMPLE_FALLBACKS = {
-  Boolean:  'Use when the question has a yes/no answer. Example: "First antenatal visit?"',
-  Choice:   'One option picked from a fixed list. Example: "Specimen condition" — Acceptable / Compromised / Rejected.',
-  Checkbox: 'Multiple options can be selected. Example: "Symptoms present" — Fever, Cough, Headache, Fatigue.',
-  Integer:  'Whole numbers only. Example: "Gestational age (weeks)" — 24.',
-  Decimal:  'Numbers with decimal places. Example: "Maternal weight (kg)" — 62.4.',
-  Date:     'Calendar date picker. Example: "Date of last menstrual period".',
-  Time:     'Time-of-day picker. Example: "Time of sample collection".',
-  String:   'Short free-text, single line. Example: "Provider name".',
-  Text:     'Long-form free-text, multi-line. Example: "Clinical notes".',
-  Quantity: 'Numeric value with a unit. Example: "Volume collected — 5 mL".',
-};
+  const visible = useMemo(() => rows.filter((r) =>
+    (showDeactivated || r.active) &&
+    (domains.length === 0 || domains.includes(r.domain)) &&
+    r.name.toLowerCase().includes(query.toLowerCase())
+  ), [rows, showDeactivated, domains, query]);
 
-const domainTag = (value) => {
-  const d = DOMAINS.find(x => x.value === value);
-  if (!d) return null;
-  return <Tag kind={d.tagKind}>{t(`admin.programs.basicInfo.domain.option.${d.value.toLowerCase()}`, d.label)}</Tag>;
-};
-
-// ============================================================================
-// Guidance components (FR-16)
-// ============================================================================
-
-// FR-16.1 — disclosable explainer below the Domain radio
-function DomainExplainer() {
-  const rows = [
-    { label: 'Clinical',      key: 'admin.programs.guidance.domain.clinical',      fb: 'Patient-centered orders. Forms capture patient identifiers, provider, prior history. Shows in Clinical reception flows.' },
-    { label: 'Environmental', key: 'admin.programs.guidance.domain.environmental', fb: 'Compliance & surveillance sampling (water, food, air). Forms capture sampling site, compliance standard, hold-time. No patient fields.' },
-    { label: 'Vector',        key: 'admin.programs.guidance.domain.vector',        fb: 'Vector / specimen surveillance (mosquito, tick). Forms capture collection lot, species/taxonomy, pool manifest.' },
-  ];
-  return (
-    <Tile style={{ marginTop: '0.5rem', padding: '0.75rem 1rem' }}>
-      {rows.map(r => (
-        <div key={r.label} style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.4rem', alignItems: 'baseline' }}>
-          <strong style={{ minWidth: '110px' }}>{r.label}</strong>
-          <span style={{ fontSize: '0.8125rem', color: 'var(--cds-text-secondary)' }}>{t(r.key, r.fb)}</span>
-        </div>
-      ))}
-    </Tile>
-  );
-}
-
-// FR-16.2 — dismissible info banner at top of Questionnaire section
-function QuestionnaireGuidanceBanner({ onDismiss }) {
-  return (
-    <InlineNotification
-      kind="info"
-      lowContrast
-      title={t('admin.programs.guidance.questionnaire.banner.title',
-        "How to add questions to this Program's order form")}
-      subtitle={
-        <span>
-          <div style={{ marginTop: '0.25rem' }}>
-            <strong>GUI builder</strong> (Edit JSON off) — {t('admin.programs.guidance.questionnaire.banner.body.gui.short', 'add questions one at a time. Best when starting from scratch or making small edits.')}
-          </div>
-          <div style={{ marginTop: '0.25rem' }}>
-            <strong>JSON paste</strong> (Edit JSON on) — {t('admin.programs.guidance.questionnaire.banner.body.json.short', 'paste a complete FHIR Questionnaire from a partner deployment. Best when reusing an existing form.')}
-          </div>
-          <div style={{ marginTop: '0.4rem', fontSize: '0.8125rem', color: 'var(--cds-text-secondary)' }}>
-            {t('admin.programs.guidance.questionnaire.banner.body.roundTrip', 'Switch between modes at any time — your work round-trips through the same JSON.')}
-          </div>
-        </span>
-      }
-      onCloseButtonClick={onDismiss}
-      style={{ marginBottom: '1rem' }}
-    />
-  );
-}
-
-// FR-16.3 — minimal reference card shown in JSON mode (LLM-friendly)
-function JsonReferenceCard() {
-  const types = ['boolean', 'choice', 'checkbox', 'integer', 'decimal', 'date', 'time', 'string', 'text', 'quantity'];
-  return (
-    <Tile style={{ marginTop: '0.75rem', padding: '0.75rem 1rem', background: 'var(--cds-layer-02)' }}>
-      <div style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-        <strong>{t('admin.programs.guidance.json.referenceCard.format', 'Format: FHIR R4 Questionnaire')}</strong>
-      </div>
-      <div style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)', marginBottom: '0.35rem' }}>
-        {t('admin.programs.guidance.json.referenceCard.allowedTypes', 'Allowed item.type values:')}
-      </div>
-      <div style={{ marginBottom: '0.5rem' }}>
-        {types.map(v => <Tag key={v} kind="cool-gray" size="sm">{v}</Tag>)}
-      </div>
-      <div style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>
-        {t('admin.programs.guidance.json.referenceCard.tip',
-          'Paste a partner export, hand-write it, or ask an LLM to produce a FHIR R4 Questionnaire JSON using only the item.type values above.')}
-      </div>
-    </Tile>
-  );
-}
-
-// FR-13.5 — live "Example" preview pane (right column of the Questionnaire section)
-// Renders the Questionnaire as it will appear at order entry, in real time.
-// In GUI mode: updates immediately on every change (text edits debounced upstream).
-// In JSON mode: updates only after a successful Validate; shows "last validated" caption when JSON is dirty.
-function QuestionnairePreviewPane({ questions, editJson, jsonDirty, title }) {
-  const isStale = editJson && jsonDirty;
-  return (
-    <Tile style={{
-      padding: '1rem',
-      background: 'var(--cds-layer-02)',
-      maxHeight: '600px',
-      overflowY: 'auto',
-      position: 'sticky',
-      top: '1rem',
-    }}>
-      <h5 style={{ margin: '0 0 0.25rem 0', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--cds-text-secondary)' }}>
-        {t('admin.programs.questionnaire.preview.label', 'Example')}
-      </h5>
-      <div style={{ fontSize: '0.875rem', color: 'var(--cds-text-primary)', marginBottom: '0.75rem' }}>
-        {title}
-      </div>
-      {isStale && (
-        <InlineNotification kind="warning" lowContrast hideCloseButton
-                            title={t('admin.programs.questionnaire.preview.stale.title', 'Stale preview')}
-                            subtitle={t('admin.programs.questionnaire.preview.stale',
-                              'Preview reflects last validated JSON. Validate to refresh.')}
-                            style={{ marginBottom: '0.75rem' }} />
-      )}
-      {questions.length === 0 ? (
-        <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--cds-text-secondary)', fontSize: '0.8125rem' }}>
-          {t('admin.programs.questionnaire.preview.empty',
-            'No questions yet — start adding questions to see the preview.')}
-        </div>
-      ) : (
-        <Stack gap={4}>
-          {questions.map(q => (
-            <PreviewQuestion key={q.uiId} q={q} />
-          ))}
-        </Stack>
-      )}
-    </Tile>
-  );
-}
-
-// Renders a single question in the preview, using the correct Carbon control per Type — read-only.
-function PreviewQuestion({ q }) {
-  const label = q.text || '(untitled question)';
-  const options = (q.answerOption || []).map(o => ({
-    label: o.valueString || (o.valueCoding && (o.valueCoding.display || o.valueCoding.code)) || '',
-    isCoded: !!o.valueCoding,
-  })).filter(o => o.label);
-
-  switch (q.type) {
-    case 'Boolean':
-      return (
-        <RadioButtonGroup name={`preview-${q.uiId}`} legendText={label} disabled>
-          <RadioButton id={`preview-${q.uiId}-y`} labelText="Yes" value="y" />
-          <RadioButton id={`preview-${q.uiId}-n`} labelText="No" value="n" />
-        </RadioButtonGroup>
-      );
-    case 'Choice':
-      return (
-        <Select id={`preview-${q.uiId}`} labelText={label} disabled defaultValue="">
-          <SelectItem value="" text={options.length === 0 ? '(no options configured)' : 'Select an option'} />
-          {options.map((o, i) => <SelectItem key={i} value={`opt-${i}`} text={o.label} />)}
-        </Select>
-      );
-    case 'Checkbox':
-      return (
-        <fieldset className="cds--fieldset" disabled>
-          <legend className="cds--label">{label}</legend>
-          {options.length === 0 && (
-            <p style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>(no options configured)</p>
-          )}
-          {options.map((o, i) => (
-            <Checkbox key={i} id={`preview-${q.uiId}-${i}`} labelText={o.label} disabled />
-          ))}
-        </fieldset>
-      );
-    case 'Integer':
-      return <NumberInput id={`preview-${q.uiId}`} label={label} value={0} disabled allowEmpty />;
-    case 'Decimal':
-      return <NumberInput id={`preview-${q.uiId}`} label={label} step={0.1} value={0} disabled allowEmpty />;
-    case 'Date':
-      return (
-        <DatePicker datePickerType="single" disabled>
-          <DatePickerInput id={`preview-${q.uiId}`} labelText={label} placeholder="mm/dd/yyyy" disabled />
-        </DatePicker>
-      );
-    case 'Time':
-      return <TextInput id={`preview-${q.uiId}`} labelText={label} placeholder="hh:mm" disabled />;
-    case 'String':
-      return <TextInput id={`preview-${q.uiId}`} labelText={label} disabled />;
-    case 'Text':
-      return <TextArea id={`preview-${q.uiId}`} labelText={label} rows={3} disabled />;
-    case 'Quantity':
-      return (
-        <Stack orientation="horizontal" gap={2}>
-          <TextInput id={`preview-${q.uiId}-v`} labelText={label} placeholder="value" disabled />
-          <TextInput id={`preview-${q.uiId}-u`} labelText="Unit" placeholder="unit" disabled />
-        </Stack>
-      );
-    default:
-      return <TextInput id={`preview-${q.uiId}`} labelText={label} disabled />;
-  }
-}
-
-// FR-16.4 — empty state shown in GUI mode when no questions
-function EmptyQuestionsState({ onAdd }) {
-  return (
-    <Tile style={{ padding: '1.5rem', textAlign: 'center', marginBottom: '0.75rem', border: '1px dashed var(--cds-border-subtle)' }}>
-      <h5 style={{ margin: '0 0 0.5rem 0' }}>
-        {t('admin.programs.guidance.gui.emptyState.title', 'No questions yet')}
-      </h5>
-      <p style={{ margin: '0 0 1rem 0', color: 'var(--cds-text-secondary)' }}>
-        {t('admin.programs.guidance.gui.emptyState.body',
-          'Add questions one at a time below, or flip Edit JSON on to paste a complete Questionnaire from another deployment.')}
-      </p>
-      <Button kind="primary" size="sm" renderIcon={Add} onClick={onAdd}>
-        {t('admin.programs.guidance.gui.emptyState.action', '+ Add First Question')}
-      </Button>
-    </Tile>
-  );
-}
-
-// ============================================================================
-// ProgramsListPage
-// ============================================================================
-export function ProgramsListPage({ programs, onOpenEditor, onNew }) {
-  const [search, setSearch]               = useState('');
-  const [domainFilter, setDomainFilter]   = useState([]);
-  const [activeOnly, setActiveOnly]       = useState(true);
-  const [showUpgradeBanner, setShowBanner] = useState(true);
-
-  const filtered = useMemo(() => programs.filter(p => {
-    if (activeOnly && !p.active) return false;
-    if (domainFilter.length > 0 && !domainFilter.includes(p.domain)) return false;
-    if (search) {
-      const s = search.toLowerCase();
-      if (!p.name.toLowerCase().includes(s) && !p.code.toLowerCase().includes(s)) return false;
-    }
-    return true;
-  }), [programs, search, domainFilter, activeOnly]);
+  const deactivate = () => { setRows((rs) => rs.map((r) => (r.id === confirm.id ? { ...r, active: false } : r))); setNotice(`"${confirm.name}" deactivated — historical orders preserved`); setConfirm(null); setExpandedId(null); };
+  const reactivate = (r) => { setRows((rs) => rs.map((x) => (x.id === r.id ? { ...x, active: true } : x))); setNotice(`${r.name} reactivated`); };
 
   return (
     <Grid fullWidth>
       <Column lg={16}>
-        <Breadcrumb noTrailingSlash style={{ marginBottom: '0.5rem' }}>
-          <BreadcrumbItem href="#home">{t('breadcrumb.home', 'Home')}</BreadcrumbItem>
-          <BreadcrumbItem href="#admin">{t('breadcrumb.adminManagement', 'Admin Management')}</BreadcrumbItem>
-          <BreadcrumbItem href="#test-mgmt">{t('breadcrumb.testManagement', 'Test Management')}</BreadcrumbItem>
+        <Breadcrumb noTrailingSlash style={{ marginBottom: '1rem' }}>
+          <BreadcrumbItem href="#">{t('breadcrumb.home', 'Home')}</BreadcrumbItem>
+          <BreadcrumbItem href="#">{t('breadcrumb.adminManagement', 'Admin Management')}</BreadcrumbItem>
+          <BreadcrumbItem href="#">{t('breadcrumb.testManagement', 'Test Management')}</BreadcrumbItem>
           <BreadcrumbItem isCurrentPage>{t('breadcrumb.admin.programs', 'Programs')}</BreadcrumbItem>
         </Breadcrumb>
+        <h3>{t('admin.programs.title', 'Programs')}</h3>
+        <p style={{ color: 'var(--cds-text-secondary)' }}>The initiatives that orders are filed under — each with a domain, one or more lab units, and an optional order-entry questionnaire.</p>
 
-        <h2 style={{ marginBottom: '0.25rem' }}>{t('admin.programs.title', 'Programs')}</h2>
-        <p style={{ marginBottom: '1rem', color: 'var(--cds-text-secondary)' }}>
-          {t('admin.programs.subtitle', 'Manage clinical, environmental, and vector programs used at order entry, reporting, and indicator aggregation.')}
-        </p>
+        {/* At-a-glance guidance for the admin (FR-16) */}
+        <InlineNotification kind="info" lowContrast hideCloseButton title={t('admin.programs.guidance.page.title', 'How this page works')}
+          subtitle="Each row is a Program. Click Edit to configure it inline (no separate page). The ⋮ menu deactivates a program (stops it appearing for new orders but keeps its history) or reactivates it. Deactivated programs are hidden by default — flip Show deactivated to see them. Add Program opens an inline editor at the top." />
 
-        {showUpgradeBanner && (
-          <InlineNotification
-            kind="info"
-            title={t('admin.programs.upgrade.banner.title', 'Programs upgraded')}
-            subtitle={t('admin.programs.upgrade.banner.subtitle', 'All existing Programs defaulted to Clinical Domain. Review the list and re-classify Environmental or Vector programs as needed.')}
-            onCloseButtonClick={() => setShowBanner(false)}
-            style={{ marginBottom: '1rem' }}
-          />
-        )}
+        {notice && <InlineNotification kind="success" lowContrast title={notice} onCloseButtonClick={() => setNotice(null)} />}
 
-        <Tile style={{ padding: '1rem', marginBottom: '1rem' }}>
-          <Grid>
-            <Column lg={6} md={4} sm={2}>
-              <TextInput
-                id="programs-search"
-                labelText={t('admin.programs.list.search.label', 'Search Programs')}
-                placeholder={t('admin.programs.list.search.placeholder', 'Search by name or code')}
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-            </Column>
-            <Column lg={6} md={4} sm={2}>
-              <MultiSelect
-                id="programs-domain-filter"
-                titleText={t('admin.programs.list.filter.domain.label', 'Domain')}
-                label={t('admin.programs.list.filter.domain.placeholder', 'Filter by Domain')}
-                items={DOMAINS}
-                itemToString={d => d ? d.label : ''}
-                onChange={({ selectedItems }) => setDomainFilter(selectedItems.map(i => i.value))}
-              />
-            </Column>
-            <Column lg={4} md={4} sm={2}>
-              <Toggle
-                id="programs-active-toggle"
-                labelText={t('admin.programs.list.filter.active.label', 'Status')}
-                labelA={t('admin.programs.list.filter.active.showAll', 'Show all')}
-                labelB={t('admin.programs.list.filter.active.activeOnly', 'Active only')}
-                toggled={activeOnly}
-                onToggle={setActiveOnly}
-              />
-            </Column>
-          </Grid>
-        </Tile>
-
-        <TableContainer title={t('admin.programs.list.title', 'Programs')}
-          description={`${filtered.length} ${filtered.length === 1 ? 'program' : 'programs'} ${(domainFilter.length || search || !activeOnly) ? '(filtered)' : ''}`}
-        >
+        <TableContainer title="" description="">
           <TableToolbar>
             <TableToolbarContent>
-              <Button renderIcon={Add} kind="primary" onClick={onNew}>
-                {t('admin.programs.list.action.new', 'New Program')}
-              </Button>
+              <TableToolbarSearch persistent placeholder={t('admin.programs.search', 'Search by name')} onChange={(e) => setQuery(e.target.value)} />
+              <div style={{ minWidth: 220 }}>
+                <MultiSelect id="domain-filter" label={t('admin.programs.list.filter.domain.label', 'Domain')} size="lg"
+                  items={['CLINICAL', 'ENVIRONMENTAL', 'VECTOR']} itemToString={domainLabel}
+                  onChange={({ selectedItems }) => setDomains(selectedItems)} />
+              </div>
+              <Toggle id="show-deactivated" size="sm" labelText="" labelA={t('admin.programs.list.toggle.showDeactivated', 'Show deactivated')}
+                labelB={t('admin.programs.list.toggle.showDeactivated', 'Show deactivated')} toggled={showDeactivated} onToggle={setShowDeactivated} />
+              <Button renderIcon={Add} onClick={() => { setAdding((a) => !a); setExpandedId(null); }}>{adding ? t('button.close', 'Close') : t('admin.programs.add', 'Add Program')}</Button>
             </TableToolbarContent>
           </TableToolbar>
+
+          {/* Inline "Add new" editor at the top */}
+          {adding && (
+            <Tile style={{ borderLeft: '3px solid var(--cds-interactive)', margin: '0 0 4px' }}>
+              <h4>{t('admin.programs.selector.new', 'New Program')}</h4>
+              <ProgramEditor isNew onClose={() => setAdding(false)} />
+            </Tile>
+          )}
+
           <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>{t('admin.programs.list.column.code', 'Code')}</TableHeader>
-                <TableHeader>{t('admin.programs.list.column.name', 'Name')}</TableHeader>
-                <TableHeader>{t('admin.programs.list.column.domain', 'Domain')}</TableHeader>
-                <TableHeader>{t('admin.programs.list.column.testSection', 'Test Section')}</TableHeader>
-                <TableHeader>{t('admin.programs.list.column.status', 'Status')}</TableHeader>
-                <TableHeader>{t('admin.programs.list.column.actions', '')}</TableHeader>
-              </TableRow>
-            </TableHead>
+            <TableHead><TableRow>
+              <TableExpandHeader />
+              <TableHeader>{t('admin.programs.list.column.name', 'Name')}</TableHeader>
+              <TableHeader>{t('admin.programs.list.column.domain', 'Domain')}</TableHeader>
+              <TableHeader>{t('admin.programs.list.column.active', 'Status')}</TableHeader>
+              <TableHeader>{t('admin.programs.list.column.units', 'Lab unit(s)')}</TableHeader>
+              <TableHeader />
+            </TableRow></TableHead>
             <TableBody>
-              {filtered.map(p => (
-                <TableRow key={p.id}>
-                  <TableCell><code>{p.code}</code></TableCell>
-                  <TableCell>{p.name}</TableCell>
-                  <TableCell>{domainTag(p.domain)}</TableCell>
-                  <TableCell>{p.labUnit}</TableCell>
-                  <TableCell>
-                    {p.active
-                      ? <Tag kind="teal">{t('admin.programs.list.status.active', 'Active')}</Tag>
-                      : <Tag kind="gray">{t('admin.programs.list.status.inactive', 'Inactive')}</Tag>}
-                  </TableCell>
-                  <TableCell>
-                    <Button kind="ghost" size="sm" renderIcon={ChevronRight}
-                            onClick={() => onOpenEditor(p.id)}>
-                      {t('button.edit', 'Edit')}
-                    </Button>
-                  </TableCell>
-                </TableRow>
+              {visible.map((r) => (
+                <React.Fragment key={r.id}>
+                  <TableExpandRow isExpanded={expandedId === r.id} onExpand={() => setExpandedId(expandedId === r.id ? null : r.id)}
+                    ariaLabel="Edit program" style={r.active ? undefined : { color: 'var(--cds-text-disabled)' }}>
+                    <TableCell>{r.name}</TableCell>
+                    <TableCell><Tag type={DOMAIN_TAG[r.domain]}>{domainLabel(r.domain)}</Tag></TableCell>
+                    <TableCell>{r.active ? <Tag type="green">{t('admin.programs.list.status.active', 'Active')}</Tag> : <Tag type="gray">{t('admin.programs.list.status.inactive', 'Inactive')}</Tag>}</TableCell>
+                    <TableCell>{r.units.join(', ')}</TableCell>
+                    <TableCell>
+                      <OverflowMenu aria-label="Program actions" flipped>
+                        {r.active
+                          ? <OverflowMenuItem isDelete itemText={t('admin.programs.action.deactivate', 'Deactivate')} onClick={() => setConfirm(r)} />
+                          : <OverflowMenuItem itemText={t('admin.programs.action.reactivate', 'Reactivate')} onClick={() => reactivate(r)} />}
+                      </OverflowMenu>
+                    </TableCell>
+                  </TableExpandRow>
+                  {expandedId === r.id && (
+                    <TableExpandedRow colSpan={6}>
+                      <ProgramEditor row={r} onClose={() => setExpandedId(null)} onDeactivate={() => setConfirm(r)} onReactivate={() => reactivate(r)} />
+                    </TableExpandedRow>
+                  )}
+                </React.Fragment>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
-      </Column>
-    </Grid>
-  );
-}
 
-// ============================================================================
-// ProgramEditorPage — Add/Edit Program (matches live page layout)
-// ============================================================================
-export function ProgramEditorPage({ program, allPrograms, allLabUnits, onSubmit, onCancel }) {
-  const [form, setForm] = useState({
-    name:        program?.name        || '',
-    code:        program?.code        || '',
-    uuid:        program?.id          || '',
-    labUnit:     program?.labUnit     || '',
-    domain:      program?.domain      || '',
-    active:      program?.active ?? true,
-  });
-  const [pendingDomainChange, setPendingDomainChange]   = useState(null);
-  const [domainExplainerOpen, setDomainExplainerOpen]   = useState(false);
-
-  const update = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
-
-  const requestDomainChange = (newDomain) => {
-    if (!program || program.domain === newDomain) {
-      update('domain', newDomain);
-      return;
-    }
-    setPendingDomainChange({ from: program.domain, to: newDomain });
-  };
-
-  const confirmDomainChange = () => {
-    update('domain', pendingDomainChange.to);
-    setPendingDomainChange(null);
-  };
-
-  const canSubmit = form.name && form.code && form.domain && form.labUnit;
-
-  return (
-    <Grid fullWidth>
-      <Column lg={16}>
-        <Breadcrumb noTrailingSlash style={{ marginBottom: '0.5rem' }}>
-          <BreadcrumbItem href="#home">{t('breadcrumb.home', 'Home')}</BreadcrumbItem>
-          <BreadcrumbItem href="#admin">{t('breadcrumb.adminManagement', 'Admin Management')}</BreadcrumbItem>
-          <BreadcrumbItem href="#test-mgmt">{t('breadcrumb.testManagement', 'Test Management')}</BreadcrumbItem>
-          <BreadcrumbItem href="#programs">{t('breadcrumb.admin.programs', 'Programs')}</BreadcrumbItem>
-          <BreadcrumbItem isCurrentPage>{t('breadcrumb.admin.programs.editor', 'Add/Edit Program')}</BreadcrumbItem>
-        </Breadcrumb>
-
-        <h2 style={{ marginBottom: '1rem' }}>{t('admin.programs.editor.title', 'Add / Edit Program')}</h2>
-
-        {/* Program selector — matches live page */}
-        <Grid style={{ marginBottom: '1.5rem' }}>
-          <Column lg={5} md={4} sm={2}>
-            <Select id="program-picker"
-                    labelText={t('admin.programs.editor.programPicker.label', 'Program')}
-                    defaultValue={program?.id || 'new'}>
-              <SelectItem value="new" text={t('admin.programs.editor.programPicker.new', 'New Program')} />
-              {allPrograms.map(p => <SelectItem key={p.id} value={p.id} text={p.name} />)}
-            </Select>
-          </Column>
-        </Grid>
-
-        {/* Basic Info */}
-        <h5 style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem', color: 'var(--cds-text-secondary)', marginBottom: '0.75rem' }}>
-          {t('admin.programs.editor.basicInfo.title', 'Basic Info')}
-        </h5>
-
-        <Grid>
-          <Column lg={8} md={4} sm={4}>
-            <TextInput id="prog-name"
-                       labelText={t('admin.programs.basicInfo.programName.label', 'Program Name')}
-                       value={form.name} onChange={e => update('name', e.target.value)} />
-          </Column>
-          <Column lg={8} md={4} sm={4}>
-            <TextInput id="prog-uuid"
-                       labelText={t('admin.programs.basicInfo.uuid.label', 'UUID')}
-                       value={form.uuid} readOnly />
-          </Column>
-          <Column lg={8} md={4} sm={4}>
-            <TextInput id="prog-code"
-                       labelText={t('admin.programs.basicInfo.code.label', 'Code')}
-                       value={form.code} onChange={e => update('code', e.target.value)} />
-          </Column>
-          <Column lg={8} md={4} sm={4}>
-            <Select id="prog-lab-unit"
-                    labelText={t('admin.programs.basicInfo.testSection.label', 'Test Section (Lab Unit)')}
-                    value={form.labUnit}
-                    onChange={e => update('labUnit', e.target.value)}>
-              <SelectItem value="" text={t('admin.programs.basicInfo.testSection.placeholder', 'Select a Lab Unit')} />
-              {allLabUnits.map(lu => <SelectItem key={lu} value={lu} text={lu} />)}
-            </Select>
-          </Column>
-        </Grid>
-
-        {/* Domain (new) */}
-        <div style={{ marginTop: '1.5rem' }}>
-          <RadioButtonGroup
-            name="program-domain"
-            legendText={
-              <span>
-                {t('admin.programs.basicInfo.domain.label', 'Domain')}
-                <span style={{ color: 'var(--cds-support-error)', marginLeft: '0.25rem' }}>*</span>
-              </span>
-            }
-            valueSelected={form.domain}
-            onChange={requestDomainChange}
-            orientation="horizontal"
-          >
-            {DOMAINS.map(d => (
-              <RadioButton key={d.value} id={`domain-${d.value}`} value={d.value}
-                           labelText={t(`admin.programs.basicInfo.domain.option.${d.value.toLowerCase()}`, d.label)} />
-            ))}
-          </RadioButtonGroup>
-          <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>
-            {t('admin.programs.basicInfo.domain.helper',
-              'Sets which orders this Program appears in at Reception. Catalog entries pick exactly one Domain.')}
-            {' '}
-            <Button kind="ghost" size="sm" onClick={() => setDomainExplainerOpen(v => !v)}
-                    style={{ minHeight: 'auto', padding: '0 0.25rem' }}>
-              {domainExplainerOpen
-                ? t('admin.programs.guidance.domain.toggle.hide', 'Hide what each Domain means')
-                : t('admin.programs.guidance.domain.toggle.show', 'What does each Domain mean?')}
-            </Button>
-          </p>
-          {domainExplainerOpen && <DomainExplainer />}
-        </div>
-
-        {/* Status */}
-        <div style={{ marginTop: '1.5rem' }}>
-          <Toggle id="prog-active"
-                  labelText={t('admin.programs.basicInfo.active.label', 'Status')}
-                  labelA={t('admin.programs.basicInfo.active.inactive', 'Inactive')}
-                  labelB={t('admin.programs.basicInfo.active.active', 'Active')}
-                  toggled={form.active} onToggle={(v) => update('active', v)} />
-        </div>
-
-        {/* Questionnaire section — preserves existing dual-path */}
-        <QuestionnaireSection programCode={form.code} />
-
-        {/* Action bar */}
-        <Stack orientation="horizontal" gap={3} style={{ marginTop: '2rem' }}>
-          <Button kind="primary" renderIcon={Save} disabled={!canSubmit}
-                  onClick={() => onSubmit(form)}>
-            {t('button.submit', 'Submit')}
-          </Button>
-          <Button kind="ghost" onClick={onCancel}>
-            {t('button.cancel', 'Cancel')}
-          </Button>
-        </Stack>
-
-        {pendingDomainChange && (
-          <Modal open
-                 modalHeading={t('admin.programs.basicInfo.domain.change.modal.title', 'Change Program Domain?')}
-                 primaryButtonText={t('admin.programs.basicInfo.domain.change.modal.confirm', 'Confirm change')}
-                 secondaryButtonText={t('admin.programs.basicInfo.domain.change.modal.cancel', 'Cancel')}
-                 onRequestSubmit={confirmDomainChange}
-                 onRequestClose={() => setPendingDomainChange(null)}>
-            <p>{t('admin.programs.basicInfo.domain.change.modal.body',
-              "Historical orders associated with this Program were evaluated against the prior domain's rules. New orders will use the new domain's rules. This change is forward-looking and does not re-code past orders.")}</p>
-            <p style={{ marginTop: '1rem' }}>
-              <strong>{t('admin.programs.basicInfo.domain.change.modal.from', 'From:')}</strong>{' '}
-              {domainTag(pendingDomainChange.from)}
-              <strong style={{ marginLeft: '1rem' }}>{t('admin.programs.basicInfo.domain.change.modal.to', 'To:')}</strong>{' '}
-              {domainTag(pendingDomainChange.to)}
-            </p>
+        {confirm && (
+          <Modal open danger modalHeading={t('admin.programs.deactivate.modal.title', 'Deactivate this Program?')}
+            primaryButtonText={t('admin.programs.deactivate.modal.confirm', 'Deactivate')} secondaryButtonText={t('admin.programs.deactivate.modal.cancel', 'Cancel')}
+            onRequestClose={() => setConfirm(null)} onRequestSubmit={deactivate}>
+            <p>"{confirm.name}" will stop appearing in the order-entry Program picker for new orders. Its {confirm.orders.toLocaleString()} historical order(s) keep their program coding and all indicator counts are preserved. You can reactivate it at any time from the Programs list.</p>
           </Modal>
         )}
       </Column>
@@ -568,385 +165,144 @@ export function ProgramEditorPage({ program, allPrograms, allLabUnits, onSubmit,
   );
 }
 
-// ============================================================================
-// QuestionnaireSection — Edit JSON toggle ↔ Question card builder
-// ============================================================================
-function QuestionnaireSection({ programCode, guidanceDismissed = false }) {
-  const [editJson, setEditJson] = useState(false);
-  const [showGuidance, setShowGuidance] = useState(!guidanceDismissed);
-  const [questionnaireId, setQuestionnaireId] = useState(programCode ? `${programCode}-questionnaire` : '');
-  const [questions, setQuestions] = useState([
-    { uiId: 'q-1', linkId: 'q1', text: 'New Field', type: 'String' },
+// Inline editor — identical whether adding or editing. Code/UUID are system-managed (not shown).
+function ProgramEditor({ row, isNew, onClose, onDeactivate, onReactivate }) {
+  const [domain, setDomain] = useState(row ? row.domain : '');
+  const [units, setUnits] = useState(row ? row.units : []);
+  const [showDomainHelp, setShowDomainHelp] = useState(false);
+  const [mode, setMode] = useState(0); // 0 Visual, 1 JSON
+  const [questions, setQuestions] = useState(isNew ? [] : [
+    { id: 1, text: 'First antenatal visit?', type: 'boolean', options: [] },
+    { id: 2, text: 'Specimen condition', type: 'choice', options: ['Acceptable', 'Compromised', 'Rejected'] },
   ]);
-  const [jsonText, setJsonText] = useState('{"resourceType":"Questionnaire"}');
-  const [jsonDirty, setJsonDirty] = useState(false);     // F-11: tracks unvalidated JSON edits
-  const [lastValidJson, setLastValidJson] = useState('{"resourceType":"Questionnaire"}'); // F-11: revert target
-  const [validation, setValidation] = useState(null);
-  const [pendingModeSwitch, setPendingModeSwitch] = useState(null);
-  const [pendingDelete, setPendingDelete] = useState(null);
-
-  const dismissGuidance = () => {
-    setShowGuidance(false);
-    // Persist to user_preference table; key `admin.programs.questionnaire.guidance.dismissed`
-    // (implementation: POST /api/me/preferences in real wiring)
-  };
-
-  const hasDraftQuestions = questions.some(q => q.draft);
-
-  const requestToggle = () => {
-    // Visual Builder no longer has a draft state (FR-14 auto-save).
-    // Only JSON → Visual Builder needs the unsaved-JSON prompt (FR-12.1).
-    if (editJson && jsonDirty) {
-      setPendingModeSwitch('toGui-discardJson');
-      return;
-    }
-    setEditJson(!editJson);
-  };
-
-  // ContentSwitcher gives us index 0 (Visual Builder) or 1 (JSON); translate to boolean.
-  const requestToggleByIndex = (index) => {
-    const wantJson = index === 1;
-    if (wantJson === editJson) return; // no-op
-    requestToggle();
-  };
-
-  const validateJson = () => {
-    try {
-      const parsed = JSON.parse(jsonText);
-      if (parsed.resourceType !== 'Questionnaire') {
-        setValidation({ ok: false, msg: t('admin.programs.questionnaire.json.invalid.resourceType',
-          'resourceType must be "Questionnaire"') });
-        return;
-      }
-      const n = (parsed.item || []).length;
-      setValidation({ ok: true,
-        msg: t('admin.programs.questionnaire.json.validated.count',
-          `Validated — ${n} question${n === 1 ? '' : 's'} detected.`) });
-      // F-11: validated successfully → snapshot for revert + clear dirty flag
-      setLastValidJson(jsonText);
-      setJsonDirty(false);
-      // FR-12.1: hydrate GUI cards from parsed Questionnaire so ON→OFF round-trips.
-      // STUB — real implementation maps parsed.item[] → questions[] preserving advanced
-      // features (enableWhen, repeats, nested item[]) by attaching them to a card's
-      // hidden `__fhir_passthrough__` slot that GUI mode renders as read-only "advanced".
-    } catch (err) {
-      setValidation({ ok: false, msg: `${t('admin.programs.questionnaire.json.invalid', 'Invalid JSON')}: ${err.message}` });
-    }
-  };
-
-  // FR-14: cards auto-commit to in-memory state on every change. No draft flag.
-  const updateQuestion = (i, next) =>
-    setQuestions(prev => prev.map((q, idx) => idx === i ? next : q));
-  const requestDeleteQuestion = (i) => setPendingDelete(i);
-  const confirmDelete = () => {
-    setQuestions(prev => prev.filter((_, idx) => idx !== pendingDelete));
-    setPendingDelete(null);
-  };
-  // FR-14: use timestamp-based linkId so delete + add never produces duplicates (fixes F-19 from critique).
-  const addQuestion = () => setQuestions(prev => [
-    ...prev,
-    { uiId: `q-${Date.now()}`, linkId: `q-${Date.now()}`, text: 'New Field', type: 'String' },
-  ]);
+  const setQ = (id, patch) => setQuestions((qs) => qs.map((q) => (q.id === id ? { ...q, ...patch } : q)));
+  const active = row ? row.active : true;
 
   return (
-    <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--cds-border-subtle)' }}>
-      <Stack orientation="horizontal" gap={5} style={{ alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <h4 style={{ margin: 0 }}>{t('admin.programs.questionnaire.section.title', 'Questionnaire')}</h4>
-        <ContentSwitcher
-          aria-label={t('admin.programs.questionnaire.mode.switcher.aria', 'Questionnaire authoring mode')}
-          selectedIndex={editJson ? 1 : 0}
-          onChange={({ index }) => requestToggleByIndex(index)}
-          size="md"
-        >
-          <Switch name="visual" text={t('admin.programs.questionnaire.mode.visualBuilder', 'Visual Builder')} />
-          <Switch name="json"   text={t('admin.programs.questionnaire.mode.json', 'JSON')} />
-        </ContentSwitcher>
-      </Stack>
+    <Stack gap={5} style={{ padding: '0.5rem 0' }}>
+      <InlineNotification kind="info" lowContrast hideCloseButton title={t('admin.programs.guidance.editor.title', "What you're setting up")}
+        subtitle="A Program is an initiative orders are filed under. 1) name it, 2) pick its Domain (controls where reception sees it), 3) assign the Lab unit(s) that run its work, 4) optionally build the order-entry questionnaire reception fills in for this program." />
 
-      {showGuidance && <QuestionnaireGuidanceBanner onDismiss={dismissGuidance} />}
+      {/* Basic Info — no Code/UUID */}
+      <Tile>
+        <Grid>
+          <Column lg={8}>
+            <TextInput id={`pname-${row ? row.id : 'new'}`} labelText={t('admin.programs.basicInfo.programName.label', 'Program Name')}
+              defaultValue={row ? row.name : ''} placeholder={isNew ? 'e.g. HBV Antenatal Screening' : undefined}
+              helperText={t('admin.programs.basicInfo.programName.helper', 'The name reception staff see when picking a program at order entry.')} />
+          </Column>
+          <Column lg={8}>
+            {/* Lab unit(s): multi-select with Select-all (FR: a program may serve several units) */}
+            <FilterableMultiSelect id={`units-${row ? row.id : 'new'}`} titleText={t('admin.programs.basicInfo.labUnits.label', 'Lab unit(s)')}
+              helperText={t('admin.programs.basicInfo.labUnits.helper', 'One or more lab sections that run this program — pick all that apply, or Select all.')}
+              items={LAB_UNITS} initialSelectedItems={units} selectionFeedback="top-after-reopen"
+              onChange={({ selectedItems }) => setUnits(selectedItems)} />
+            {/* Select-all affordance provided by the "Select all" item convention in the app build. */}
+          </Column>
+        </Grid>
+
+        <div style={{ marginTop: '1rem' }}>
+          <RadioButtonGroup legendText={t('admin.programs.basicInfo.domain.label', 'Domain')} name={`domain-${row ? row.id : 'new'}`} valueSelected={domain} onChange={setDomain} orientation="vertical">
+            <RadioButton labelText="Clinical" value="CLINICAL" id={`dc-${row ? row.id : 'new'}`} />
+            <RadioButton labelText="Environmental" value="ENVIRONMENTAL" id={`de-${row ? row.id : 'new'}`} />
+            <RadioButton labelText="Vector" value="VECTOR" id={`dv-${row ? row.id : 'new'}`} />
+          </RadioButtonGroup>
+          <p style={{ fontSize: 12, color: 'var(--cds-text-secondary)' }}>Controls where this program appears — reception only sees programs matching the order's domain.</p>
+          {!domain && <p style={{ color: 'var(--cds-text-error)', fontSize: 12 }}>{t('admin.programs.basicInfo.domain.required', 'Domain is required')}</p>}
+          <Button kind="ghost" size="sm" onClick={() => setShowDomainHelp((v) => !v)}>{showDomainHelp ? t('admin.programs.guidance.domain.toggle.hide', 'Hide') : t('admin.programs.guidance.domain.toggle.show', 'What does each Domain mean?')}</Button>
+          {showDomainHelp && (
+            <Tile style={{ background: 'var(--cds-layer-02)', marginTop: 6 }}>
+              <p><Tag type="blue">Clinical</Tag> Patient testing — form captures patient identifiers, provider, prior history.</p>
+              <p><Tag type="green">Environmental</Tag> Compliance/surveillance sampling (water, food, air) — sampling site, standard, hold-time. No patient fields.</p>
+              <p><Tag type="purple">Vector</Tag> Specimen surveillance (mosquito, tick) — collection lot, species/taxonomy, pool manifest.</p>
+            </Tile>
+          )}
+        </div>
+
+        {!isNew && (
+          <Stack orientation="horizontal" gap={4} style={{ marginTop: '1rem', alignItems: 'center' }}>
+            <span>Status: {active ? <Tag type="green">Active</Tag> : <Tag type="gray">Inactive</Tag>}</span>
+            {active
+              ? <Button kind="danger--tertiary" size="sm" onClick={onDeactivate}>{t('admin.programs.action.deactivate', 'Deactivate')}</Button>
+              : <Button kind="ghost" size="sm" onClick={onReactivate}>{t('admin.programs.action.reactivate', 'Reactivate')}</Button>}
+            <span style={{ fontSize: 12, color: 'var(--cds-text-secondary)' }}>No hard delete — deactivate preserves history (D-002).</span>
+          </Stack>
+        )}
+      </Tile>
+
+      {/* Questionnaire */}
+      <InlineNotification kind="info" lowContrast hideCloseButton title={t('admin.programs.guidance.questionnaire.banner.title', "How to add questions to this Program's order form")}
+        subtitle="Visual Builder — add questions one at a time. JSON — paste a complete FHIR Questionnaire. Your work round-trips through the same JSON." />
+      <ContentSwitcher selectedIndex={mode} onChange={({ index }) => setMode(index)}>
+        <Switch name="visual" text={t('admin.programs.questionnaire.mode.visualBuilder', 'Visual Builder')} />
+        <Switch name="json" text={t('admin.programs.questionnaire.mode.json', 'JSON')} />
+      </ContentSwitcher>
 
       <Grid>
-        {/* Left column — editor (JSON or GUI) */}
-        <Column lg={10} md={4} sm={4}>
-          {editJson ? (
-            <Stack gap={4}>
-              <TextArea id="json-text"
-                        labelText={t('admin.programs.questionnaire.json.label', 'FHIR Questionnaire JSON')}
-                        placeholder={t('admin.programs.questionnaire.json.placeholder', 'Paste FHIR Questionnaire JSON here')}
-                        value={jsonText}
-                        onChange={e => { setJsonText(e.target.value); setValidation(null); setJsonDirty(true); }}
-                        rows={12}
-                        style={{ fontFamily: 'monospace' }} />
-              <Stack orientation="horizontal" gap={3} style={{ alignItems: 'center' }}>
-                <Button kind="tertiary" size="sm" renderIcon={Renew} onClick={validateJson}>
-                  {t('admin.programs.questionnaire.json.validate', 'Validate JSON')}
-                </Button>
-                {validation && (
-                  <InlineNotification
-                    kind={validation.ok ? 'success' : 'error'}
-                    title={validation.ok
-                      ? t('admin.programs.questionnaire.json.validated', 'Valid')
-                      : t('admin.programs.questionnaire.json.invalid', 'Invalid')}
-                    subtitle={validation.msg}
-                    hideCloseButton
-                    lowContrast
-                  />
-                )}
-              </Stack>
-              <JsonReferenceCard />
+        <Column lg={9}>
+          {mode === 0 ? (
+            <Stack gap={3}>
+              {questions.map((q) => (
+                <Tile key={q.id}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <TextInput id={`qt-${q.id}`} labelText={t('admin.programs.questionnaire.question.text.label', 'Question Text')} value={q.text} onChange={(e) => setQ(q.id, { text: e.target.value })} />
+                    <OverflowMenu aria-label="Question actions"><OverflowMenuItem isDelete itemText={t('admin.programs.questionnaire.question.actions.delete', 'Delete question')} onClick={() => setQuestions((qs) => qs.filter((x) => x.id !== q.id))} /></OverflowMenu>
+                  </div>
+                  <Select id={`qty-${q.id}`} labelText={t('admin.programs.questionnaire.question.type.label', 'Question Type')} value={q.type} onChange={(e) => setQ(q.id, { type: e.target.value })}>
+                    {QUESTION_TYPES.map((ty) => <SelectItem key={ty} value={ty} text={ty[0].toUpperCase() + ty.slice(1)} />)}
+                  </Select>
+                  <p style={{ fontSize: 12, color: 'var(--cds-text-secondary)', marginTop: 4 }}>{TYPE_EXAMPLE[q.type]}</p>
+                  {(q.type === 'choice' || q.type === 'checkbox') && (
+                    <Stack gap={2} style={{ marginTop: 8 }}>
+                      <span style={{ fontSize: 12, textTransform: 'uppercase' }}>{t('admin.programs.questionnaire.answerOptions.section.title', 'Answer options')}</span>
+                      {q.options.map((o, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 8 }}>
+                          <TextInput id={`opt-${q.id}-${i}`} size="sm" labelText="" value={o} onChange={(e) => { const n = [...q.options]; n[i] = e.target.value; setQ(q.id, { options: n }); }} />
+                          <IconButton kind="ghost" size="sm" label="Delete option" onClick={() => setQ(q.id, { options: q.options.filter((_, j) => j !== i) })}><TrashCan /></IconButton>
+                        </div>
+                      ))}
+                      {q.options.length === 0 && <p style={{ fontSize: 12, color: 'var(--cds-text-secondary)' }}>{t('admin.programs.questionnaire.answerOptions.empty', 'No options yet — add at least one so reception can pick a value.')}</p>}
+                      <Button kind="ghost" size="sm" renderIcon={Add} onClick={() => setQ(q.id, { options: [...q.options, 'New option'] })}>{t('admin.programs.questionnaire.answerOptions.addOption', '+ Add option')}</Button>
+                    </Stack>
+                  )}
+                </Tile>
+              ))}
+              {questions.length === 0 && <p style={{ fontSize: 12, color: 'var(--cds-text-secondary)' }}>{t('admin.programs.guidance.gui.emptyState.body', 'No questions yet — add questions one at a time, or paste a Questionnaire in JSON mode.')}</p>}
+              <Button kind="ghost" renderIcon={Add} onClick={() => setQuestions((qs) => [...qs, { id: Date.now(), text: 'New Field', type: 'string', options: [] }])}>{questions.length === 0 ? t('admin.programs.guidance.gui.emptyState.action', '+ Add First Question') : t('admin.programs.questionnaire.question.addNew', 'Add New Question')}</Button>
             </Stack>
           ) : (
-            <Stack gap={5}>
-              <TextInput id="questionnaire-id"
-                         labelText={t('admin.programs.questionnaire.id.label', 'Questionnaire id')}
-                         helperText={t('admin.programs.questionnaire.id.helper', 'Identifier referenced by FHIR exports and downstream order resources.')}
-                         value={questionnaireId}
-                         onChange={e => setQuestionnaireId(e.target.value)} />
-
-              <div>
-                <h5 style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem', color: 'var(--cds-text-secondary)', marginBottom: '0.5rem' }}>
-                  {t('admin.programs.questionnaire.questions.section.title', 'Questions')} ({questions.length})
-                </h5>
-
-                {questions.length === 0 ? (
-                  <EmptyQuestionsState onAdd={addQuestion} />
-                ) : (
-                  <>
-                    {questions.map((q, i) => (
-                      <QuestionCard key={q.uiId} q={q}
-                                    onChange={(next) => updateQuestion(i, next)}
-                                    onDelete={() => requestDeleteQuestion(i)} />
-                    ))}
-
-                    <Button kind="primary" size="sm" renderIcon={Add} onClick={addQuestion}>
-                      {t('admin.programs.questionnaire.question.addNew', 'Add New Question')}
-                    </Button>
-                  </>
-                )}
-              </div>
+            <Stack gap={3}>
+              <TextArea id={`json-${row ? row.id : 'new'}`} labelText={t('admin.programs.questionnaire.mode.json', 'JSON')} rows={8} defaultValue={'{ "resourceType": "Questionnaire", "item": [] }'} />
+              <Button kind="tertiary" size="sm">{t('admin.programs.questionnaire.json.validate', 'Validate JSON')}</Button>
+              <Tile><p style={{ fontSize: 12 }}>{t('admin.programs.guidance.json.referenceCard.format', 'Format: FHIR R4 Questionnaire')} — allowed item.type: {QUESTION_TYPES.join(', ')}. Advanced features (enableWhen, Quantity units via unit/unitOption, nested items) are edited here in JSON.</p></Tile>
             </Stack>
           )}
         </Column>
 
-        {/* Right column — live "Example" preview pane (FR-13.5) */}
-        <Column lg={6} md={4} sm={4}>
-          <QuestionnairePreviewPane
-            questions={questions}
-            editJson={editJson}
-            jsonDirty={jsonDirty}
-            title={questionnaireId || t('admin.programs.questionnaire.preview.untitledQuestionnaire', 'Untitled Questionnaire')}
-          />
-        </Column>
-      </Grid>
-
-      {/* F-11: JSON → Visual Builder unsaved-JSON prompt.
-          (The reverse direction no longer needs a prompt — Visual Builder auto-saves on blur, FR-14.) */}
-      {pendingModeSwitch === 'toGui-discardJson' && (
-        <Modal open
-               modalHeading={t('admin.programs.questionnaire.modeSwitch.unsavedJson.title', 'Unvalidated JSON changes')}
-               primaryButtonText={t('admin.programs.questionnaire.modeSwitch.discard', 'Discard and switch')}
-               secondaryButtonText={t('button.cancel', 'Cancel')}
-               danger
-               onRequestSubmit={() => {
-                 setJsonText(lastValidJson);
-                 setJsonDirty(false);
-                 setValidation(null);
-                 setEditJson(false);
-                 setPendingModeSwitch(null);
-               }}
-               onRequestClose={() => setPendingModeSwitch(null)}>
-          <p>{t('admin.programs.questionnaire.modeSwitch.unsavedJson.body',
-            'The JSON has been edited since the last successful validation. Validate first (and the GUI will hydrate from the validated state), or discard your edits and switch back to the previously-saved Questionnaire.')}</p>
-        </Modal>
-      )}
-
-      {pendingDelete !== null && (
-        <Modal open
-               modalHeading={t('admin.programs.questionnaire.question.delete.title', 'Delete this question?')}
-               primaryButtonText={t('admin.programs.questionnaire.question.delete.confirm', 'Delete')}
-               secondaryButtonText={t('button.cancel', 'Cancel')}
-               danger
-               onRequestSubmit={confirmDelete}
-               onRequestClose={() => setPendingDelete(null)}>
-          <p>{t('admin.programs.questionnaire.question.delete.body',
-            `Remove "${questions[pendingDelete].text}" from the Questionnaire?`)}</p>
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-// ============================================================================
-// QuestionCard — single repeating question element
-// No per-card Save (auto-commits to in-memory state on blur per FR-14).
-// Destructive actions live in the OverflowMenu (⋮) top-right.
-// Choice/Checkbox types reveal an Answer options sub-section (FR-14.1).
-// ============================================================================
-const HAS_OPTIONS = (type) => type === 'Choice' || type === 'Checkbox';
-
-function QuestionCard({ q, onChange, onDelete }) {
-  const updateOption = (idx, value) => {
-    const next = [...(q.answerOption || [])];
-    next[idx] = { ...next[idx], valueString: value };
-    onChange({ ...q, answerOption: next });
-  };
-  const addOption = () => {
-    const next = [...(q.answerOption || []), { valueString: '' }];
-    onChange({ ...q, answerOption: next });
-  };
-  const removeOption = (idx) => {
-    const next = (q.answerOption || []).filter((_, i) => i !== idx);
-    onChange({ ...q, answerOption: next });
-  };
-
-  return (
-    <Tile style={{
-      borderLeft: '4px solid var(--cds-link-primary)',
-      background: 'var(--cds-layer)',
-      padding: '1rem',
-      marginBottom: '0.75rem',
-      position: 'relative',
-    }}>
-      {/* Overflow menu in top-right corner */}
-      <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
-        <OverflowMenu aria-label={t('admin.programs.questionnaire.question.actions.menu.aria', 'Question actions')}
-                      size="sm" flipped>
-          <OverflowMenuItem
-            isDelete
-            itemText={t('admin.programs.questionnaire.question.actions.delete', 'Delete question')}
-            onClick={onDelete}
-          />
-        </OverflowMenu>
-      </div>
-
-      <Grid>
-        <Column lg={10} md={4} sm={4}>
-          <TextInput id={`q-text-${q.uiId}`}
-                     labelText={t('admin.programs.questionnaire.question.text.label', 'Question Text')}
-                     value={q.text}
-                     onChange={e => onChange({ ...q, text: e.target.value })} />
-        </Column>
-        <Column lg={5} md={4} sm={4}>
-          <Select id={`q-type-${q.uiId}`}
-                  labelText={t('admin.programs.questionnaire.question.type.label', 'Question Type')}
-                  value={q.type}
-                  onChange={e => onChange({ ...q, type: e.target.value })}>
-            {QUESTION_TYPES.map(qt => (
-              <SelectItem key={qt} value={qt}
-                          text={t(`admin.programs.questionnaire.question.type.${qt.toLowerCase()}`, qt)} />
+        {/* Live "Example" preview (FR-13.5) */}
+        <Column lg={7}>
+          <p style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--cds-text-secondary)' }}>{t('admin.programs.questionnaire.preview.label', 'Example')}</p>
+          <Tile>
+            {questions.length === 0 && <p style={{ color: 'var(--cds-text-secondary)' }}>{t('admin.programs.questionnaire.preview.empty', 'No questions yet — start adding questions to see the preview.')}</p>}
+            {questions.map((q) => (
+              <div key={q.id} style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>{q.text || '(untitled)'}</label>
+                {q.type === 'choice' && <Select id={`pv-${q.id}`} labelText="" disabled><SelectItem text={q.options[0] || '—'} /></Select>}
+                {q.type === 'boolean' && <span style={{ fontSize: 13 }}>◯ Yes ◯ No</span>}
+                {q.type === 'text' && <TextArea id={`pv-${q.id}`} labelText="" disabled rows={2} />}
+                {['integer','decimal','string','date','time'].includes(q.type) && <TextInput id={`pv-${q.id}`} labelText="" disabled placeholder={q.type} />}
+                {q.type === 'quantity' && <div style={{ display: 'flex', gap: 6 }}><TextInput id={`pv-${q.id}`} labelText="" disabled placeholder="number" /><Select id={`pvu-${q.id}`} labelText="" disabled><SelectItem text="unit" /></Select></div>}
+                {q.type === 'checkbox' && q.options.map((o, i) => <div key={i} style={{ fontSize: 13 }}>☐ {o}</div>)}
+              </div>
             ))}
-          </Select>
+          </Tile>
         </Column>
       </Grid>
 
-      {/* FR-16.5 — live per-type example sentence (per-question hint while editing).
-          Whole-form rendered preview is shown to the right via QuestionnairePreviewPane (FR-13.5). */}
-      <div style={{
-        marginTop: '0.5rem',
-        padding: '0.4rem 0.65rem',
-        borderLeft: '3px solid var(--cds-link-primary)',
-        background: 'var(--cds-layer-02)',
-        fontSize: '0.8125rem',
-      }}>
-        <strong style={{ marginRight: '0.5rem' }}>{q.type}:</strong>
-        <span>{t(TYPE_EXAMPLE_KEYS[q.type], TYPE_EXAMPLE_FALLBACKS[q.type])}</span>
-      </div>
-
-      {/* FR-14.1 — Answer options sub-section for Choice / Checkbox */}
-      {HAS_OPTIONS(q.type) && (
-        <AnswerOptionsEditor
-          options={q.answerOption || []}
-          onUpdate={updateOption}
-          onAdd={addOption}
-          onRemove={removeOption}
-        />
-      )}
-    </Tile>
-  );
-}
-
-// FR-14.1 — Answer options editor for Choice / Checkbox types
-function AnswerOptionsEditor({ options, onUpdate, onAdd, onRemove }) {
-  return (
-    <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px dashed var(--cds-border-subtle)' }}>
-      <h6 style={{
-        margin: '0 0 0.5rem 0',
-        fontSize: '0.75rem',
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-        color: 'var(--cds-text-secondary)',
-      }}>
-        {t('admin.programs.questionnaire.answerOptions.section.title', 'Answer options')}
-      </h6>
-
-      {options.length === 0 && (
-        <p style={{ fontSize: '0.8125rem', color: 'var(--cds-text-secondary)', margin: '0 0 0.5rem 0' }}>
-          {t('admin.programs.questionnaire.answerOptions.empty',
-            'No options yet — add at least one so reception can pick a value.')}
-        </p>
-      )}
-
-      {options.map((opt, idx) => {
-        const isCoded = !!opt.valueCoding;
-        return (
-          <Stack key={idx} orientation="horizontal" gap={2} style={{ alignItems: 'center', marginBottom: '0.4rem' }}>
-            {isCoded ? (
-              <>
-                <span style={{ flex: 1, fontSize: '0.875rem', padding: '0.4rem 0.75rem', background: 'var(--cds-layer-02)', borderBottom: '1px solid var(--cds-border-subtle)' }}>
-                  {opt.valueCoding.display || opt.valueCoding.code}
-                </span>
-                <Tag kind="cool-gray" size="sm">{t('admin.programs.questionnaire.answerOptions.codedBadge', '(coded)')}</Tag>
-              </>
-            ) : (
-              <TextInput id={`opt-${idx}`}
-                         labelText=""
-                         hideLabel
-                         size="sm"
-                         value={opt.valueString || ''}
-                         placeholder={t('admin.programs.questionnaire.answerOptions.option.label', 'Option')}
-                         onChange={(e) => onUpdate(idx, e.target.value)}
-                         style={{ flex: 1 }} />
-            )}
-            <IconButton kind="ghost" size="sm"
-                        label={t('admin.programs.questionnaire.answerOptions.option.delete.aria', 'Delete this option')}
-                        onClick={() => onRemove(idx)}>
-              <TrashCan />
-            </IconButton>
-          </Stack>
-        );
-      })}
-
-      <Button kind="ghost" size="sm" renderIcon={Add} onClick={onAdd}>
-        {t('admin.programs.questionnaire.answerOptions.addOption', '+ Add option')}
-      </Button>
-    </div>
-  );
-}
-
-// ============================================================================
-// Default export — page router (simplified)
-// ============================================================================
-export default function ProgramsManagement({ initialView = 'list', initialProgramId = null, programs = [], labUnits = [] }) {
-  const [view, setView]             = useState(initialView);
-  const [editingId, setEditingId]   = useState(initialProgramId);
-  const editingProgram              = programs.find(p => p.id === editingId);
-
-  if (view === 'editor') {
-    return (
-      <ProgramEditorPage
-        program={editingProgram}
-        allPrograms={programs}
-        allLabUnits={labUnits}
-        onSubmit={(form) => { /* persist via REST */ setView('list'); }}
-        onCancel={() => setView('list')}
-      />
-    );
-  }
-  return (
-    <ProgramsListPage
-      programs={programs}
-      onOpenEditor={(id) => { setEditingId(id); setView('editor'); }}
-      onNew={() => { setEditingId(null); setView('editor'); }}
-    />
+      <Stack orientation="horizontal" gap={3}>
+        <Button kind="primary" disabled={!domain}>{t('button.save', 'Save')}</Button>
+        <Button kind="secondary" onClick={onClose}>{t('button.cancel', 'Cancel')}</Button>
+      </Stack>
+    </Stack>
   );
 }

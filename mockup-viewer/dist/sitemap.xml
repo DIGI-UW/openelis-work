@@ -4,6 +4,12 @@
   <url><loc>https://digi-uw.github.io/openelis-work/catalog.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/catalog.json</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/llms.txt</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-editor-completion.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-editor-completion.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-editor-completion.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/report-management.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/report-management.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/report-management.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/data-dictionary.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/data-dictionary.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/lab-units.md</loc></url>
@@ -133,16 +139,10 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-03-order-entry-micro-hook.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-03-order-entry-step1.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-core.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-detail.html</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-core.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-isolate-modal.html</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-05-ast-entry-and-interpretation.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-05-ast-edit-modal.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-06-expert-rules-engine.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-worklists.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-pending-cultures.html</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-worklists.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-ast-worklist.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-core.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-prototype.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-worklists.md</loc></url>
@@ -156,24 +156,8 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-09-whonet-export.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-10-hub-subscription.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-10-hub-subscription-prototype.html</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-11-critical-result-acknowledgment.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-11-critical-notifications.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-12-test-reagent-linkage.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-12-test-reagent-linkage-prototype.html</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-00-micro-module-parent-frs-v1.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-01-amr-reference-data-frs-v1.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-02-breakpoint-catalog-frs-v1.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-03-order-entry-micro-hook-frs-v1.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-core-frs-v1.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-05-ast-entry-and-interpretation-frs-v1.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-06-expert-rules-engine-frs-v1.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-worklists-frs-v1.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-08-macro-library-frs-v1.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-09-whonet-export-frs-v1.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-11-critical-result-acknowledgment-frs-v1.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-12-test-reagent-linkage-frs-v1.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-10-hub-subscription-frs-v1.md</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-nfr-non-functional-requirements-frs-v1.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-narrative.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-workflow-flow.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-14-mycobacteriology-tb.md</loc></url>

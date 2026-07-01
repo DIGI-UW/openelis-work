@@ -17,6 +17,8 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Panel | [panel.jsx](designs/admin-config/panel.jsx) | [panel.md](designs/admin-config/panel.md) |
 | Range Editor | [range-editor.jsx](designs/admin-config/range-editor.jsx) | [range-editor.md](designs/admin-config/range-editor.md) |
 | Result Options | [result-options.jsx](designs/admin-config/result-options.jsx) | [result-options.md](designs/admin-config/result-options.md) |
+| Report Management | [report-management.jsx](designs/admin-config/report-management.jsx) · [preview](designs/admin-config/report-management.html) | [report-management.md](designs/admin-config/report-management.md) |
+| Test Catalog Editor — Completion & Correction | [test-catalog-editor-completion.jsx](designs/admin-config/test-catalog-editor-completion.jsx) · [preview](designs/admin-config/test-catalog-editor-completion.html) | [test-catalog-editor-completion.md](designs/admin-config/test-catalog-editor-completion.md) |
 | Test Catalog | [test-catalog.jsx](designs/admin-config/test-catalog.jsx) · [preview](designs/admin-config/test-catalog.html) | [test-catalog.md](designs/admin-config/test-catalog.md) |
 | Test Catalog — Microbiology Workflow Attribute | [preview](designs/admin-config/test-catalog-microbiology-workflow-attribute.html) | [test-catalog-microbiology-workflow-attribute.md](designs/admin-config/test-catalog-microbiology-workflow-attribute.md) |
 | RBAC Management | [rbac-ui-mockup.html](designs/rbac/rbac-ui-mockup.html) | [rbac-revamp-prd.md](designs/rbac/rbac-revamp-prd.md) |

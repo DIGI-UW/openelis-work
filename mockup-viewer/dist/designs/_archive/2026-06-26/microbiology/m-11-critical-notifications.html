@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>M-11 Critical Notifications — Preview v1</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; color: #161616; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .preview-banner strong { background: #fff; color: #0f62fe; padding: 1px 6px; border-radius: 2px; margin: 0 4px; }
+    .app-header { background: #161616; color: #f4f4f4; padding: 0 1rem; height: 48px; display: flex; align-items: center; gap: 1rem; font-size: 14px; }
+    .breadcrumbs { padding: 0.75rem 2rem; background: #fff; border-bottom: 1px solid #e0e0e0; font-size: 13px; color: #525252; }
+    .breadcrumbs a { color: #0f62fe; text-decoration: none; }
+    .layout { display: grid; grid-template-columns: 220px 1fr; }
+    .sidenav { background: #fff; border-right: 1px solid #e0e0e0; min-height: calc(100vh - 100px); padding: 1rem 0; }
+    .sidenav-section { padding: 0.5rem 1rem; font-size: 11px; color: #525252; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 0.5rem; }
+    .sidenav-item { padding: 0.5rem 1rem 0.5rem 1.5rem; font-size: 14px; cursor: pointer; }
+    .sidenav-item.active { background: #e0e0e0; border-left: 3px solid #0f62fe; padding-left: calc(1.5rem - 3px); font-weight: 600; }
+    .main { padding: 1.5rem 2rem 3rem; }
+    h1 { font-size: 28px; font-weight: 300; margin: 0 0 1rem 0; }
+
+    .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; max-width: 720px; }
+    .summary-card { background: #fff; padding: 1rem; border: 1px solid #e0e0e0; border-left-width: 4px; cursor: pointer; }
+    .summary-card .label { font-size: 12px; color: #525252; margin-bottom: 0.5rem; }
+    .summary-card .value { font-size: 32px; font-weight: 300; }
+    .summary-card.open { border-left-color: #da1e28; }
+    .summary-card.ack { border-left-color: #f1c21b; }
+    .summary-card.closed { border-left-color: #24a148; }
+
+    .filter-bar { background: #fff; padding: 0.75rem 1rem; border: 1px solid #e0e0e0; display: flex; gap: 0.75rem; align-items: center; font-size: 13px; flex-wrap: wrap; }
+    .filter-bar input, .filter-bar select { padding: 0.4rem 0.6rem; font-size: 14px; border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; }
+    .filter-bar input { min-width: 280px; }
+    .filter-bar .spacer { flex: 1; }
+
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; border: 1px solid #e0e0e0; border-top: none; }
+    .data-table th { text-align: left; padding: 0.5rem 0.75rem; background: #f4f4f4; font-weight: 600; color: #161616; border-bottom: 1px solid #e0e0e0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .data-table td { padding: 0.625rem 0.75rem; border-bottom: 1px solid #f4f4f4; vertical-align: top; }
+    .data-table tr.row-open { background: #fff1f1; }
+    .data-table tr.row-open:hover { background: #ffd7d9; }
+    .data-table tr.row-acked { background: #fef0c7; }
+    .data-table tr.row-closed { color: #6f6f6f; }
+    .data-table tr:hover { background: #f4f4f4; cursor: pointer; }
+
+    .target-cell .target-type { font-size: 10px; font-weight: 700; color: #525252; text-transform: uppercase; letter-spacing: 0.5px; }
+    .target-cell .target-id { color: #0f62fe; font-weight: 600; margin-right: 6px; }
+    .target-cell .target-detail { color: #525252; font-size: 12px; margin-top: 2px; }
+
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .status-badge.open { background: #ffd7d9; color: #750e13; }
+    .status-badge.acked { background: #fef0c7; color: #6a3500; }
+    .status-badge.closed { background: #defbe6; color: #044317; }
+
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; font-size: 14px; font-family: inherit; border: 1px solid transparent; cursor: pointer; }
+    .btn-primary { background: #0f62fe; color: #fff; }
+    .btn-tertiary { background: transparent; color: #0f62fe; border-color: #0f62fe; }
+    .btn-ghost { background: transparent; color: #0f62fe; }
+    .btn-sm { padding: 0.25rem 0.75rem; font-size: 12px; }
+
+    /* Log modal section */
+    .modal-section { background: #fff; max-width: 720px; margin: 2.5rem 0 1rem; border: 1px solid #161616; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .modal-header { padding: 1rem 1.5rem; border-bottom: 1px solid #e0e0e0; }
+    .modal-header h3 { font-size: 18px; font-weight: 400; margin: 0; }
+    .modal-body { padding: 1rem 1.5rem; }
+    .modal-footer { padding: 0.75rem 1.5rem; border-top: 1px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 0.5rem; }
+    .modal-target { padding: 0.5rem 0.75rem; background: #edf5ff; border-left: 3px solid #0f62fe; font-size: 13px; margin-bottom: 1rem; }
+
+    .form-row { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 0.75rem; }
+    .form-field label { font-size: 11px; color: #525252; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 4px; display: block; }
+    .form-field input, .form-field select, .form-field textarea { width: 100%; box-sizing: border-box; padding: 0.5rem 0.75rem; font-size: 14px; border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; font-family: inherit; }
+    .form-field textarea { min-height: 60px; resize: vertical; }
+    .form-field .helper { font-size: 11px; color: #6f6f6f; margin-top: 4px; }
+    .radio-row { display: flex; gap: 1.5rem; padding: 0.5rem 0; font-size: 14px; }
+    .radio-row label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+    .checkbox-row { font-size: 14px; padding: 0.5rem 0; }
+    .nested-block { margin-left: 1.25rem; padding: 0.5rem 0.75rem; background: #f4f4f4; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="preview-banner">
+    M-11 Critical Notifications Preview · <strong>v1.0</strong> · Cross-cutting OE foundation co-shipping with Micro Phase 1A · See <strong>m-11-critical-result-acknowledgment-frs-v1.md</strong>
+  </div>
+
+  <div class="app-header">
+    <span style="font-weight: 600;">OpenELIS Global</span><span style="opacity: 0.7;">|</span>
+    <span>Alerts</span>
+    <div style="margin-left: auto; font-size: 13px;">Olivia Mendez · Microbiology Tech</div>
+  </div>
+
+  <div class="breadcrumbs"><a href="#">Home</a> / <a href="#">Alerts</a> / Critical Notifications</div>
+
+  <div class="layout">
+    <aside class="sidenav">
+      <div class="sidenav-section">Alerts</div>
+      <div class="sidenav-item active">Critical Notifications</div>
+      <div class="sidenav-item">QC Violations</div>
+      <div class="sidenav-item">Analyzer Events</div>
+      <div class="sidenav-item">NCEs</div>
+    </aside>
+
+    <main class="main">
+      <h1>Critical Notifications</h1>
+
+      <div class="summary-cards">
+        <div class="summary-card open"><div class="label">Open (Today)</div><div class="value">3</div></div>
+        <div class="summary-card ack"><div class="label">Acknowledged (Today)</div><div class="value">8</div></div>
+        <div class="summary-card closed"><div class="label">Closed (Today)</div><div class="value">6</div></div>
+      </div>
+
+      <div class="filter-bar">
+        <input type="text" placeholder="Search by patient or clinician..." />
+        <select><option>Status: Open</option><option>Acknowledged</option><option>Closed</option><option>All</option></select>
+        <select><option>Domain: All</option><option>Microbiology</option><option>Chemistry</option><option>Hematology</option></select>
+        <select><option>Period: Today</option><option>This Week</option><option>This Month</option><option>Custom</option></select>
+        <select><option>Target type: All</option><option>Case</option><option>Result</option><option>Isolate</option><option>Sample</option></select>
+        <div class="spacer"></div>
+        <span style="color: #6f6f6f; font-size: 12px;">Last refresh: 14:24:08</span>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Time</th><th>Target</th><th>Patient</th><th>Notified to</th><th>Method</th><th>Status</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          <tr class="row-open">
+            <td>07:38</td>
+            <td class="target-cell">
+              <div><span class="target-type">CASE</span> <span class="target-id">MC-2024-001234</span></div>
+              <div class="target-detail">Blood culture · GNR Gram stain</div>
+            </td>
+            <td>MARTINEZ, Carlos</td>
+            <td>Dr. R. Patel (ER attending)</td>
+            <td>Phone</td>
+            <td><span class="status-badge open">⚠ Open</span></td>
+            <td><button class="btn btn-primary btn-sm">Ack</button></td>
+          </tr>
+          <tr class="row-open">
+            <td>09:15</td>
+            <td class="target-cell">
+              <div><span class="target-type">CASE</span> <span class="target-id">MC-2024-001235</span></div>
+              <div class="target-detail">CSF culture · GPCC Gram stain</div>
+            </td>
+            <td>JOHNSON, Mary</td>
+            <td>Dr. P. Wilson (Hospitalist)</td>
+            <td>Phone</td>
+            <td><span class="status-badge open">⚠ Open</span></td>
+            <td><button class="btn btn-primary btn-sm">Ack</button></td>
+          </tr>
+          <tr class="row-open">
+            <td>10:42</td>
+            <td class="target-cell">
+              <div><span class="target-type">RESULT</span> <span class="target-id">R-21456</span></div>
+              <div class="target-detail">Chemistry · K+ 7.2 mmol/L (panic high)</div>
+            </td>
+            <td>CHEN, Wei</td>
+            <td>Dr. M. Lee (ICU)</td>
+            <td>Phone</td>
+            <td><span class="status-badge open">⚠ Open</span></td>
+            <td><button class="btn btn-primary btn-sm">Ack</button></td>
+          </tr>
+          <tr class="row-acked">
+            <td>11:30</td>
+            <td class="target-cell">
+              <div><span class="target-type">CASE</span> <span class="target-id">MC-2024-001230</span></div>
+              <div class="target-detail">Urine culture · &gt; 10⁵ CFU/mL</div>
+            </td>
+            <td>SMITH, Jane</td>
+            <td>Dr. R. Patel (Outpatient)</td>
+            <td>Phone</td>
+            <td><span class="status-badge acked">✓ Acked 11:50</span></td>
+            <td><button class="btn btn-ghost btn-sm">View</button></td>
+          </tr>
+          <tr class="row-acked">
+            <td>12:14</td>
+            <td class="target-cell">
+              <div><span class="target-type">ISOLATE</span> <span class="target-id">MC-2024-001229 / 2</span></div>
+              <div class="target-detail">Wound · P. aeruginosa, MDR phenotype</div>
+            </td>
+            <td>CHEN, Wei</td>
+            <td>Dr. K. Patel (Infectious Disease)</td>
+            <td>Phone</td>
+            <td><span class="status-badge acked">✓ Acked 12:22</span></td>
+            <td><button class="btn btn-ghost btn-sm">View</button></td>
+          </tr>
+          <tr class="row-closed">
+            <td>13:50</td>
+            <td class="target-cell">
+              <div><span class="target-type">SAMPLE</span> <span class="target-id">UC24-0451</span></div>
+              <div class="target-detail">Urine · re-collection requested (leak)</div>
+            </td>
+            <td>JACKSON, Doris</td>
+            <td>Reception</td>
+            <td>In-person</td>
+            <td><span class="status-badge closed">Closed</span></td>
+            <td><button class="btn btn-ghost btn-sm">View</button></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="padding: 0.75rem 1rem; background: #fff; border: 1px solid #e0e0e0; border-top: none; font-size: 13px; color: #525252;">
+        Showing 1-6 of 17 (today)
+      </div>
+
+      <!-- Log Critical Notification modal -->
+      <div class="modal-section">
+        <div class="modal-header"><h3>Log Critical Notification</h3></div>
+        <div class="modal-body">
+          <div class="modal-target">
+            <strong>Target:</strong> Case MC-2024-001234 — MARTINEZ, Carlos · Blood culture<br/>
+            <strong>Reason:</strong> Critical finding requires immediate provider notification
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label>Clinician notified *</label>
+              <input type="text" value="Dr. R. Patel" />
+              <div class="helper">Search providers or enter name manually</div>
+            </div>
+            <div class="form-field">
+              <label>Role</label>
+              <input type="text" value="ER attending" />
+            </div>
+          </div>
+
+          <div class="form-field" style="margin-bottom: 0.75rem;">
+            <label>Method *</label>
+            <div class="radio-row">
+              <label><input type="radio" name="method" checked /> Phone</label>
+              <label><input type="radio" name="method" /> Email</label>
+              <label><input type="radio" name="method" /> In-person</label>
+              <label><input type="radio" name="method" /> Pager</label>
+              <label><input type="radio" name="method" /> Fax</label>
+              <label><input type="radio" name="method" /> Other</label>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label>Time of notification *</label>
+              <input type="text" value="2026-05-12 07:38" />
+            </div>
+            <div class="form-field">
+              <label>Notified by</label>
+              <input type="text" value="Olivia Mendez" disabled />
+            </div>
+          </div>
+
+          <div class="form-field" style="margin-bottom: 0.75rem;">
+            <label>Message / substance of communication *</label>
+            <textarea>.gnr from blood culture set drawn at 7:00 AM. Final ID and AST in progress. Patient should be on broad-spectrum coverage pending final results.</textarea>
+            <div class="helper">Macros: <code>reporting</code> (type . for shortcuts)</div>
+          </div>
+
+          <div class="checkbox-row">
+            <label><input type="checkbox" checked /> <strong>Recipient acknowledged at time of call (with readback)</strong></label>
+            <div class="nested-block">
+              Acknowledged via:
+              <label style="margin-left: 0.5rem;"><input type="radio" name="ack" checked /> Readback</label>
+              <label style="margin-left: 1rem;"><input type="radio" name="ack" /> Verbal</label>
+              <label style="margin-left: 1rem;"><input type="radio" name="ack" /> Other</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

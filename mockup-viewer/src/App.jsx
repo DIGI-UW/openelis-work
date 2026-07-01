@@ -22,6 +22,30 @@ export function toSlug(name) {
 export const MOCKUP_REGISTRY = [
   // ─── Admin & Configuration ───
   {
+    name: 'Test Catalog Editor — Completion & Correction',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/test-catalog-editor-completion.jsx')),
+    description: 'Completes the unified Test Catalog editor: create a test in place, edit shared settings across same-analyte/different-specimen tests together, result-type-first Sample & Results with live preview, LOINC integrity warnings (missing + duplicate-active), Ranges bug fixes, and language fallback for names/labels.',
+    specPath: 'designs/admin-config/test-catalog-editor-completion.md',
+    htmlUrl: 'designs/admin-config/test-catalog-editor-completion.html',
+    added: '2026-07-01',
+    status: 'draft',
+    jira: ['OGC-748', 'OGC-749', 'OGC-751', 'OGC-753', 'OGC-754', 'OGC-767', 'OGC-928'],
+    tags: ['test-catalog', 'loinc', 'ranges', 'result-types', 'i18n', 'admin', 'configuration'],
+  },
+  {
+    name: 'Report Management',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/report-management.jsx')),
+    description: 'Admin registry to choose, version, and override the report templates OpenELIS uses to render reports — see the active template per report, whether it is the shipped default or a custom override, pick a bundled variant, upload a custom template, preview, and revert to the shipped default (OGC-1111, Epic).',
+    specPath: 'designs/admin-config/report-management.md',
+    htmlUrl: 'designs/admin-config/report-management.html',
+    added: '2026-07-01',
+    status: 'draft',
+    jira: ['OGC-1111'],
+    tags: ['reports', 'templates', 'jasper', 'jrxml', 'admin', 'configuration'],
+  },
+  {
     name: 'Data Dictionary',
     category: 'admin-config',
     component: React.lazy(() => import('@designs/admin-config/data-dictionary.jsx')),
