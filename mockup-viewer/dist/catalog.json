@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-01T23:42:11.356Z",
+  "generated": "2026-07-01T23:48:30.707Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
   "totalDesigns": 196,
   "categories": [
@@ -39,13 +39,7 @@
         "configuration"
       ],
       "jira": [
-        "OGC-748",
-        "OGC-749",
-        "OGC-751",
-        "OGC-753",
-        "OGC-754",
-        "OGC-767",
-        "OGC-928"
+        "OGC-1112"
       ],
       "githubIssue": null,
       "specPath": "designs/admin-config/test-catalog-editor-completion.md",

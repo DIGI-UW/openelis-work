@@ -1,13 +1,13 @@
 # OpenELIS Design Gallery — Full Spec Content
 
-Generated: 2026-07-01T23:42:11.357Z
+Generated: 2026-07-01T23:48:30.709Z
 Total designs: 196
 
 ---
 
 # Test Catalog Editor — Completion & Correction (admin-config)
 Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-editor-completion-correction
-Jira: OGC-748, OGC-749, OGC-751, OGC-753, OGC-754, OGC-767, OGC-928
+Jira: OGC-1112
 
 # Test Catalog Editor — Completion & Correction FRS
 
