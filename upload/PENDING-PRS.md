@@ -26,6 +26,39 @@ drain source files to `processed/`; flag anything OPEN > 7 days.
 | chore/ledger-reconcile-2026-06-22 | https://github.com/DIGI-UW/openelis-work/compare/main...chore/ledger-reconcile-2026-06-22?expand=1 | 2026-06-22 | **MERGED** (PR #181, auto-merged on green — test+build checks SUCCESS; opened on push by the auto-opener, not the connector) | Doc-only: syncs the stale origin ledger (was frozen at 06-15) up to current reality + adds the 2026-06-22 reconciliation entry. Auto-merge + required `test` check will land it on green. **Verified MERGED on main 2026-06-23** (06-22 reconciliation entry present on origin's ledger; remote branch deleted). Doc-only → nothing to drain. |
 | design/minion-tbprofiler | https://github.com/DIGI-UW/openelis-work/pull/183 | 2026-06-22 | **MERGED** (PR #183, verified on main 2026-06-23 — remote branch deleted/squash-merged; both spec files present on `origin/main`, App.jsx registry lines ~596–619, MANIFEST ~431–458, and INDEX rows all carry the entries) | MinION + TB-Profiler field-mapping spec v2.2 (re-anchored on flat-file plugin + M-14 import channel) + companion setup guide registered as two spec-only analyzer-integration entries. Source had been mis-staged in the retired `OpenELIS Feature Design/upload/` folder; relocated + registered last session, already drained to `upload/processed/noncanon-retired-2026-06-22/`. GitHub discussion #182; linked OGC-318 (supersedes v1.0). designs/analyzer-integration/minion-tbprofiler-{field-mapping-v2.2,setup-guide-v1.0}.md + App.jsx registry + MANIFEST + INDEX. Tests 230/230. Slug unchanged → no new Jira permalink. |
 
+## Reconciliation — 2026-07-01 (scheduled + interactive run)
+- **Two genuinely-new admin-config entries registered this run** (branch
+  `design/report-mgmt-and-catalog-editor-20260701`, tests 250/250, build green):
+  1. **report-management** — admin registry to choose/version/override report templates
+     (shipped-default vs custom-override + revert). Epic **OGC-1111**. Staged by Casey in
+     canonical `upload/` on main (commit e8689a2). jsx + preview html + FRS.
+     Slug `#/admin-config/report-management`.
+  2. **test-catalog-editor-completion** — completes the unified Test Catalog editor
+     (create-in-place, edit-shared-settings-together, result-type-first Sample & Results,
+     LOINC integrity, Ranges fixes, i18n fallback). **OGC-748/749/751/753/754/767/928**.
+     Was staged only on the mount's `design/narrative-figures` branch `upload/` (NOT on
+     origin `upload/`), so the scheduled scan missed it — Casey flagged it interactively.
+     jsx + preview html + FRS. Slug `#/admin-config/test-catalog-editor-completion`.
+     The `-breakdown.md` (non-binding dev slicing guide) was left in `upload/`, not registered.
+- **PR:** connector `create_pull_request` again returned 403 ("Resource not accessible by
+  integration" — GitHub App still lacks `pull_requests:write`). Branch pushed successfully with
+  the refreshed PAT. The CI auto-opener is not opening PRs (0 open PRs in the repo), so → **Casey:
+  open the PR with one click:** https://github.com/DIGI-UW/openelis-work/compare/main...design/report-mgmt-and-catalog-editor-20260701?expand=1 . Auto-merge + required `test` check land it on green.
+  This branch also carries this ledger update, so merging the one PR syncs the ledger too.
+- **PAT refreshed & verified working for push** (the prior token had gone read-only/expired;
+  06-30 run could not push). Write-probe (temp branch create+delete) succeeded this run.
+- **Catch-up resolved:** origin/main's ledger (was frozen at 06-23 on 06-30) is now current through
+  **06-26** — the big re-stage commit e8689a2 re-committed `upload/PENDING-PRS.md`. The three
+  stranded doc-only branches `chore/ledger-reconcile-2026-06-24/25/26` are now **moot** (their
+  content is on main); → Casey may delete them.
+- **Jira (Step 11) — DEFERRED:** gallery permalinks for OGC-1111 and the seven test-catalog stories
+  are **not posted yet** because the gallery pages aren't live until this PR merges + Pages deploys.
+  Post permalinks next run once merged (avoids dead links).
+- **upload/ reconcile (md5 vs full designs/+public tree):** aside from the two new ref sets above,
+  everything else in `upload/` is already-classified non-design working files (V04-*, order-entry-*,
+  drafts, inventory-techdebt stories, GxAlert docx) — nothing else new to register.
+
+
 ## Reconciliation — 2026-06-26 (scheduled run)
 - **No OPEN or stranded PRs.** Every row in the ledger above is MERGED. Nothing was pending coming
   into this run; no new PR opened (nothing genuinely new to register — see reconcile below).
