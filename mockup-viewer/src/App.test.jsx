@@ -30,6 +30,10 @@ import App, {
   sanitizeComment,
   buildStatusChangeUrl,
   parseStatusFromComment,
+  inProject,
+  projects,
+  projectConfig,
+  projectLabels,
 } from './App';
 
 // ═══════════════════════════════════════════════════════════════
@@ -365,7 +369,8 @@ describe('App component', () => {
   it('renders the correct total mockup count', () => {
     render(<App />);
     const subtitle = screen.getByText(/mockups across/);
-    expect(subtitle.textContent).toContain(`${MOCKUP_REGISTRY.length} mockups`);
+    const activeCount = MOCKUP_REGISTRY.filter((m) => !m.archived).length;
+    expect(subtitle.textContent).toContain(`${activeCount} mockups`);
   });
 
   it('renders category filter buttons', () => {
@@ -383,7 +388,7 @@ describe('App component', () => {
     enterGrid();
     // Each card has a title h3 — count them
     const titles = screen.getAllByRole('heading', { level: 3 });
-    expect(titles.length).toBe(MOCKUP_REGISTRY.length);
+    expect(titles.length).toBe(MOCKUP_REGISTRY.filter((m) => !m.archived).length);
   });
 
   it('filters cards when a category is selected', async () => {
@@ -391,7 +396,7 @@ describe('App component', () => {
     render(<App />);
 
     // Count expected pathology entries
-    const pathologyCount = MOCKUP_REGISTRY.filter(m => m.category === 'pathology').length;
+    const pathologyCount = MOCKUP_REGISTRY.filter(m => m.category === 'pathology' && !m.archived).length;
 
     // Click Pathology tab button (not the badge spans)
     const buttons = screen.getAllByRole('button');
@@ -474,7 +479,7 @@ describe('App component', () => {
     // Should be back in gallery grid (cards visible, not detail view)
     // Note: category filter stays on the entry's category after back navigation
     const titles = screen.getAllByRole('heading', { level: 3 });
-    const expectedCount = MOCKUP_REGISTRY.filter(m => m.category === firstEntry.category).length;
+    const expectedCount = MOCKUP_REGISTRY.filter(m => m.category === firstEntry.category && !m.archived).length;
     expect(titles.length).toBe(expectedCount);
   });
 
@@ -961,6 +966,65 @@ describe('Catalog field requirements', () => {
       expect(route.mode).toBe('spec');
       expect(route.mockup, `Spec route broken for ${entry.name}`).not.toBeNull();
     }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Project / customer-view support
+// ═══════════════════════════════════════════════════════════════
+
+describe('project support', () => {
+  it('parseRoute returns project mode for #/project/{key}', () => {
+    const r = parseRoute('#/project/png');
+    expect(r.mode).toBe('project');
+    expect(r.project).toBe('png');
+    expect(r.mockup).toBeNull();
+  });
+
+  it('parseRoute deep-links a mockup inside a project', () => {
+    const r = parseRoute('#/project/png/admin-config/data-dictionary');
+    expect(r.mode).toBe('project');
+    expect(r.project).toBe('png');
+    expect(r.mockup).not.toBeNull();
+    expect(r.mockup.name).toBe('Data Dictionary');
+  });
+
+  it('inProject matches only when the project array includes the key', () => {
+    expect(inProject({ project: ['png'] }, 'png')).toBe(true);
+    expect(inProject({ project: ['other'] }, 'png')).toBe(false);
+    expect(inProject({}, 'png')).toBe(false);
+    expect(inProject({ project: null }, 'png')).toBe(false);
+  });
+
+  it('every project has a label and a config entry', () => {
+    projects.forEach((p) => {
+      expect(projectLabels[p], `project "${p}" missing label`).toBeTruthy();
+      expect(projectConfig[p], `project "${p}" missing config`).toBeTruthy();
+      expect(projectConfig[p].short).toBeTruthy();
+    });
+  });
+
+  it('project field on entries is an array of valid project keys', () => {
+    const valid = new Set(projects);
+    MOCKUP_REGISTRY.forEach((m) => {
+      if (m.project) {
+        expect(Array.isArray(m.project), `"${m.name}" project not an array`).toBe(true);
+        m.project.forEach((p) => {
+          expect(valid.has(p), `"${m.name}" has unknown project "${p}"`).toBe(true);
+        });
+      }
+    });
+  });
+
+  it('at least one mockup is tagged for PNG', () => {
+    expect(MOCKUP_REGISTRY.filter((m) => inProject(m, 'png')).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('renders the customer showcase header from the hash', () => {
+    window.location.hash = '#/project/png';
+    render(<App />);
+    expect(screen.getByText(/Papua New Guinea Designs/)).toBeInTheDocument();
+    window.location.hash = '';
   });
 });
 
