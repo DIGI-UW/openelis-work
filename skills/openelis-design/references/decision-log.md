@@ -54,3 +54,9 @@
 `/specify` and `/breakdown` append any new precedent they set as a closing step. The monthly
 consolidation task promotes stable decisions out of memory into this log. Re-confirm
 `provisional` rows (e.g. D-017) each planning cycle.
+
+**2026-07-01 (monthly consolidation):** re-confirmed provisional **D-017** (EQA-touching
+specs defer/gray-state until the EQA V2 controller is built) — still provisional; no EQA V2
+controller in code this cycle (see `current-state-gotchas.md`). No decisions superseded; no
+new global decisions promoted from memory (domain-scoping delta recorded as a current-state
+gotcha, not a new decision — D-004 already governs the Domain enum).

@@ -26,6 +26,11 @@
 - **Catalyst (LLM form builder)** — OGC-70 / OGC-113 are *future* LLM assistive layers, NOT
   near-term. Don't deprecate existing admin paths in favor of "Catalyst will do it."
 - **Vector host index** — pending; needs a Jira story under OGC-527 (SILNAS Indonesia).
+- **Home-dashboard domain filtering** — order entry is already domain-scoped (three
+  domain-specific entry routes), and lab units pick up Domain via incoming test-catalog work,
+  but **home-page/dashboard filtering by Domain (CLINICAL/ENVIRONMENTAL/VECTOR) is not built**.
+  Treat any home/dashboard domain filter as a named dependency, not an existing capability.
+  (Route triplet not re-verified against the live app this cycle — confirm before asserting.)
 
 ## Known broken / quirky in the live app (from QA, v3.2.1.x)
 
@@ -45,7 +50,9 @@
 - **No multitenancy** — single tenant per deployment. No site/lab/tenant selectors.
 - **No hard delete** — Master List pages, Analyzer Types, External Connections use Active +
   Deactivate, not Delete. Reflex/Calc rules use Toggle + Active + Deactivate (no delete).
-- **Domain enum** — strictly CLINICAL / ENVIRONMENTAL / VECTOR; no BOTH.
+- **Domain enum** — strictly CLINICAL / ENVIRONMENTAL / VECTOR; no BOTH. Order entry is
+  already domain-scoped (separate entry routes per domain); catalog/lab-unit Domain arrives via
+  test-catalog work. See the home-dashboard domain-filtering gap above.
 - **Analyzers module** — nested SideNav (Analyzers List, Analyzer Types, QC submenu, Add
   Analyzer form), not tabs; includes a Generic ASTM type. Routes `/analyzers`,
   `/analyzers/types`, `/analyzers/errors`.
@@ -66,3 +73,8 @@ Alerts (authoring+delivery split).
 ## Maintenance
 Re-confirm each "not built" line against current `develop` before each planning cycle, and
 add a confirmation date. Promote new verified facts here as they surface in QA or design.
+
+- **2026-07-01 (monthly consolidation):** re-confirmed the not-built list against `develop`
+  intent; no items graduated to built this cycle. Promoted the home-dashboard domain-filtering
+  gap from auto-memory. Live-app route re-verification deferred (unattended run; instance gated
+  at login) — routes carry their last-confirmed v3.2.1.x status.
