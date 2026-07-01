@@ -17,7 +17,7 @@
 
 ## Child Story
 
-- **Title format:** `[feature]: [story summary] (v1)` — the `(v1)`/`(v2)`/`(v3)` suffix is mandatory
+- **Title format:** `[feature]: [story summary] (v1)` — the `(v1)`/`(v2)`/`(v3)` suffix is mandatory. The summary names what a user can do, in plain language — never a technical layer or component (not "Results API", not "validation DAO")
 - **Issue type:** `Story`
 - **Epic Link:** the newly created mockup-Epic
 - **Story Points:** Fibonacci estimate from the breakdown plan
@@ -30,7 +30,7 @@ h3. Context
 [1–2 sentences: what this story builds and where it sits in the feature]
 
 h3. Navigation & URL
-* Route: /MasterListsPage?type=<editorKey>
+* Route: /MasterListsPage/<editorKey>
 * SideNav: Admin → <Group> → <Page>
 
 h3. Acceptance Criteria
@@ -38,18 +38,18 @@ h3. Acceptance Criteria
 # [...]
 
 h3. Cross-cutting (included in this story, not separate stories)
-* i18n keys: label.<feature>.* (list them)
-* Role attachment: <existing role bundle>
-* audit_trail entries: <VERB> on <entity> (per state-changing action)
-* Envers: @Audited on <entity> (yes/no + rationale)
+* Localization keys: label.<feature>.* (list them)
+* Access: which role can perform each action in this story
 
 h3. Out of scope
 * [what this story deliberately excludes]
 ```
 
 ### Rules
+- Each story is a user-facing capability, never a technical layer. No separate
+  "backend"/"API" or "frontend"/"UI" stories for the same capability.
 - Every acceptance criterion traces to an FR listed for this story in the breakdown plan.
-- Cross-cutting work (i18n, permissions, audit, Envers) lives **inside** the functional
-  story's acceptance criteria — never as separate stories.
+- Cross-cutting work (localization, access) lives **inside** the user-facing story's
+  acceptance criteria — never as separate stories.
 - Use clickable markdown links for any FRS/mockup/Confluence references (contentFormat
   markdown renders clickable in the Atlassian MCP).

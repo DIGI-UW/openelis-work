@@ -849,18 +849,6 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'order-entry', 'mvp-1a'],
   },
   {
-    name: 'M-04 Case Workbench Core (Case Detail)',
-    category: 'microbiology',
-    component: null,
-    description: 'The heart of the module — Case + Isolate + Timeline + Reports + state machine + amendment workflow. Mockup shows the populated Case Detail page.',
-    specPath: 'designs/microbiology/m-04-case-workbench-core.md',
-    htmlUrl: 'designs/microbiology/m-04-case-detail.html',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-790'],
-    tags: ['microbiology', 'case-workbench', 'xl', 'mvp-1a', 'phase-1a-plus'],
-  },
-  {
     name: 'M-04 Isolate Modal',
     category: 'microbiology',
     component: null,
@@ -871,18 +859,6 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     jira: ['OGC-790'],
     tags: ['microbiology', 'case-workbench', 'modal', 'mvp-1a', 'phase-1a-plus'],
-  },
-  {
-    name: 'M-05 AST Entry & Interpretation',
-    category: 'microbiology',
-    component: null,
-    description: 'AST Setup + AST Edit modals — 16-antibiotic table with manual entry, BreakpointLookupService interpretation, inline override mechanism (preserves original).',
-    specPath: 'designs/microbiology/m-05-ast-entry-and-interpretation.md',
-    htmlUrl: 'designs/microbiology/m-05-ast-edit-modal.html',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-791'],
-    tags: ['microbiology', 'ast', 'mvp-1a', 'phase-1a-plus'],
   },
   {
     name: 'M-06 Expert Rules Engine',
@@ -906,18 +882,6 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     jira: ['OGC-792'],
     tags: ['microbiology', 'worklist', 'mvp-1a'],
-  },
-  {
-    name: 'M-07 AST Worklist',
-    category: 'microbiology',
-    component: null,
-    description: 'Focused AST queue with status breakdown, flag chips, QC-failed and flagged rows highlighted, quick actions. Phase 1A+.',
-    specPath: 'designs/microbiology/m-07-worklists.md',
-    htmlUrl: 'designs/microbiology/m-07-ast-worklist.html',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-792'],
-    tags: ['microbiology', 'worklist', 'ast', 'phase-1a-plus'],
   },
   {
     name: 'M-04 Case Workbench \u2014 Interactive Prototype',
@@ -1004,18 +968,6 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'hub-subscription', 'reference-data', 'phase-1b', 'interactive', 'prototype'],
   },
   {
-    name: 'M-11 Critical-Result Acknowledgment',
-    category: 'microbiology',
-    component: null,
-    description: 'Polymorphic critical-notification rework (target_type: RESULT / CASE / ISOLATE / SAMPLE) — Micro is the forcing function for this long-deferred OE foundation. Co-ships with Phase 1A+.',
-    specPath: 'designs/microbiology/m-11-critical-result-acknowledgment.md',
-    htmlUrl: 'designs/microbiology/m-11-critical-notifications.html',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-785'],
-    tags: ['microbiology', 'critical-ack', 'alerts-dashboard', 'cross-cutting', 'co-ship', 'phase-1a-plus'],
-  },
-  {
     name: 'M-12 Test to Reagent Linkage',
     category: 'microbiology',
     component: null,
@@ -1027,162 +979,6 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     jira: ['OGC-784'],
     tags: ['microbiology', 'reagent-linkage', 'iso-15189', 'cross-cutting', 'co-ship', 'mvp-1a', 'interactive', 'prototype'],
-  },
-
-  // ─── Microbiology — FRS v1.0 formal docs ────────────────────────────────
-  {
-    name: 'M-00 Microbiology Module Parent — FRS v1.0',
-    category: 'microbiology',
-    component: null,
-    description: 'Formal FRS v1.0 (2026-05-15) — spine spec for the M-* bundle: glossary, RBAC matrix, data model overview, phase plan, out-of-scope. Initial structured baseline before design-review edits.',
-    specPath: 'designs/microbiology/m-00-micro-module-parent-frs-v1.md',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-782'],
-    tags: ['microbiology', 'parent-spec', 'frs', 'v1', 'mvp-1a'],
-  },
-  {
-    name: 'M-01 AMR Reference Data — FRS v1.0',
-    category: 'microbiology',
-    component: null,
-    description: 'Formal FRS v1.0 (2026-05-15) — Organism / Antibiotic / AST Panel / Culture Protocol masters with WHONET codes and groupings. Initial structured baseline.',
-    specPath: 'designs/microbiology/m-01-amr-reference-data-frs-v1.md',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-786'],
-    tags: ['microbiology', 'reference-data', 'WHONET', 'admin', 'frs', 'v1', 'mvp-1a'],
-  },
-  {
-    name: 'M-02 Breakpoint Catalog — FRS v1.0',
-    category: 'microbiology',
-    component: null,
-    description: 'Formal FRS v1.0 (2026-05-15) — Versioned CLSI + EUCAST breakpoint tables; AST Runs snapshot the breakpoint version at result time. Initial structured baseline.',
-    specPath: 'designs/microbiology/m-02-breakpoint-catalog-frs-v1.md',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-787'],
-    tags: ['microbiology', 'breakpoint', 'CLSI', 'EUCAST', 'frs', 'v1', 'mvp-1a'],
-  },
-  {
-    name: 'M-03 Order Entry Micro Hook — FRS v1.0',
-    category: 'microbiology',
-    component: null,
-    description: 'Formal FRS v1.0 (2026-05-15) — Order Entry Step 1 amendment adding micro-specific fields (Culture Protocol, Patient Origin, Sets, Clinical History, Antibiotic Exposure, Critical Notify). Initial structured baseline.',
-    specPath: 'designs/microbiology/m-03-order-entry-micro-hook-frs-v1.md',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-789'],
-    tags: ['microbiology', 'order-entry', 'frs', 'v1', 'mvp-1a'],
-  },
-  {
-    name: 'M-04 Case Workbench Core — FRS v1.0',
-    category: 'microbiology',
-    component: null,
-    description: 'Formal FRS v1.0 (2026-05-15) — Case entity, state machine, Case Detail page, Timeline, Isolate management, report release, amendment workflow, analyzer event channel. Detailed structured baseline before design-review consolidation.',
-    specPath: 'designs/microbiology/m-04-case-workbench-core-frs-v1.md',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-790'],
-    tags: ['microbiology', 'case-workbench', 'frs', 'v1', 'xl', 'mvp-1a'],
-  },
-  {
-    name: 'M-05 AST Entry & Interpretation — FRS v1.0',
-    category: 'microbiology',
-    component: null,
-    description: 'Formal FRS v1.0 (2026-05-15) — AST setup and result-entry panels, BreakpointLookupService (MIC/zone → S/I/R), manual override with audit, analyzer-ingested results. Initial structured baseline.',
-    specPath: 'designs/microbiology/m-05-ast-entry-and-interpretation-frs-v1.md',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-791'],
-    tags: ['microbiology', 'ast', 'frs', 'v1', 'mvp-1a'],
-  },
-  {
-    name: 'M-06 Expert Rules Engine — FRS v1.0',
-    category: 'microbiology',
-    component: null,
-    description: 'Formal FRS v1.0 (2026-05-15) — Configurable rules engine: MRSA inference, D-test, ESBL screen/confirm, cascade reporting, intrinsic resistance. Phase 1B. Initial structured baseline.',
-    specPath: 'designs/microbiology/m-06-expert-rules-engine-frs-v1.md',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-793'],
-    tags: ['microbiology', 'expert-rules', 'frs', 'v1', 'phase-1b'],
-  },
-  {
-    name: 'M-07 Worklists — FRS v1.0',
-    category: 'microbiology',
-    component: null,
-    description: 'Formal FRS v1.0 (2026-05-15) — Pending Cultures Worklist, AST Worklist, and Microbiology Dashboard. Read-mostly views over Case/Isolate/AST Run state. Initial structured baseline.',
-    specPath: 'designs/microbiology/m-07-worklists-frs-v1.md',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-792'],
-    tags: ['microbiology', 'worklist', 'frs', 'v1', 'mvp-1a'],
-  },
-  {
-    name: 'M-08 Macro Library — FRS v1.0',
-    category: 'microbiology',
-    component: null,
-    description: 'Formal FRS v1.0 (2026-05-15) — Cross-cutting typing shortcuts: 85 default macros across 8 categories for free-text micro fields. Initial structured baseline.',
-    specPath: 'designs/microbiology/m-08-macro-library-frs-v1.md',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-788'],
-    tags: ['microbiology', 'macros', 'frs', 'v1', 'phase-1a-plus'],
-  },
-  {
-    name: 'M-09 WHONET Export — FRS v1.0',
-    category: 'microbiology',
-    component: null,
-    description: 'Formal FRS v1.0 (2026-05-15) — Surveillance export with dedup parameters, validation pass, phenotype flag columns, lab profile bootstrap. Phase 1B. Initial structured baseline.',
-    specPath: 'designs/microbiology/m-09-whonet-export-frs-v1.md',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-794'],
-    tags: ['microbiology', 'WHONET', 'surveillance', 'frs', 'v1', 'phase-1b'],
-  },
-  {
-    name: 'M-11 Critical-Result Acknowledgment — FRS v1.0',
-    category: 'microbiology',
-    component: null,
-    description: 'Formal FRS v1.0 (2026-05-15) — Polymorphic critical-notification rework (target_type: RESULT / CASE / ISOLATE / SAMPLE). Co-ships with Phase 1A+. Initial structured baseline.',
-    specPath: 'designs/microbiology/m-11-critical-result-acknowledgment-frs-v1.md',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-785'],
-    tags: ['microbiology', 'critical-ack', 'frs', 'v1', 'phase-1a-plus'],
-  },
-  {
-    name: 'M-12 Test to Reagent Linkage — FRS v1.0',
-    category: 'microbiology',
-    component: null,
-    description: 'Formal FRS v1.0 (2026-05-15) — General OE foundation: declare required reagent lots per test (ISO 15189 §7.3). Micro is the forcing function. Parallel pre-track to MVP-1A. Initial structured baseline.',
-    specPath: 'designs/microbiology/m-12-test-reagent-linkage-frs-v1.md',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-784'],
-    tags: ['microbiology', 'reagent-linkage', 'iso-15189', 'frs', 'v1', 'mvp-1a'],
-  },
-  {
-    name: 'M-10 Hub Subscription — FRS v1.0',
-    category: 'microbiology',
-    component: null,
-    description: 'Formal FRS v1.0 (2026-05-15) — Unified admin for breakpoint + WHONET code + organism/antibiotic master updates from a central repository. OE pulls; never pushes. Phase 1B. Initial structured baseline.',
-    specPath: 'designs/microbiology/m-10-hub-subscription-frs-v1.md',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-795'],
-    tags: ['microbiology', 'hub-subscription', 'reference-data', 'frs', 'v1', 'phase-1b'],
-  },
-  {
-    name: 'M-NFR Non-Functional Requirements — FRS v1.0',
-    category: 'microbiology',
-    component: null,
-    description: 'Formal FRS v1.0 (2026-05-15) — Cross-cutting non-functional requirements for the microbiology module: performance, scalability, reliability, observability, security, accessibility. Initial structured baseline.',
-    specPath: 'designs/microbiology/m-nfr-non-functional-requirements-frs-v1.md',
-    added: '2026-05-15',
-    status: 'draft',
-    jira: ['OGC-782'],
-    tags: ['microbiology', 'non-functional', 'cross-cutting', 'frs', 'v1', 'mvp-1a'],
   },
 
   // ─── Microbiology — Guided Workflow Walkthrough (sequences the split prototypes) ─
@@ -2575,12 +2371,160 @@ export const categoryLabels = {
   'other': 'Other',
 };
 
+/** Emoji + one-line plain-language blurb per area — used by the Explore landing page
+ *  so non-developers can orient by what the area does, not by its folder name. */
+export const categoryIcons = {
+  'admin-config': '⚙️', 'analyzer-integration': '🔬', 'blood-bank': '🩸',
+  'inventory': '📦', 'microbiology': '🦠', 'nce': '⚠️', 'notifications': '🔔',
+  'pathology': '🔬', 'quality': '✅', 'results-validation': '📋', 'reports': '📄',
+  'patient': '🧑', 'sample-collection': '🧪', 'vector-surveillance': '🦟',
+  'system': '🛠️', 'other': '📁',
+};
+export const categoryBlurbs = {
+  'admin-config': 'Set up the lab — test catalog, users, reference data, labels.',
+  'analyzer-integration': 'Connect instruments and map their results into OpenELIS.',
+  'blood-bank': 'Blood donation and transfusion workflows.',
+  'inventory': 'Track reagents, supplies and stock levels.',
+  'microbiology': 'Cultures, susceptibility testing (AST) and AMR surveillance.',
+  'nce': 'Non-conformance events and corrective actions.',
+  'notifications': 'Alerts and critical-result notifications.',
+  'pathology': 'Histology and cytology case review.',
+  'quality': 'Quality control, EQA and proficiency testing.',
+  'results-validation': 'Enter, review and validate patient results.',
+  'reports': 'Printable results, certificates and summaries.',
+  'patient': 'Patient registration and records.',
+  'sample-collection': 'Order entry and specimen collection.',
+  'vector-surveillance': 'Vector specimen testing and surveillance.',
+  'system': 'Cross-cutting platform features — audit, help, assistant.',
+  'other': 'Designs not yet sorted into a module.',
+};
+
+/** Design-code prefixes used in mockup names (e.g. "M-04", "S-03c", "V-01"). */
+export const codePrefixes = {
+  'M': 'Microbiology / AMR module spec',
+  'S': 'Standards & Environmental module spec',
+  'V': 'Vector Surveillance module spec',
+  'F': 'Foundational / cross-cutting spec',
+  'OGC': 'OpenELIS Global Jira ticket',
+};
+
+/** Plain-language glossary for non-developer browsers. Grouped for the modal. */
+export const glossary = [
+  { group: 'Design codes', terms: [
+    { term: 'M-##', def: 'Microbiology / AMR module spec (e.g. M-04 Case Workbench).' },
+    { term: 'S-##', def: 'Standards & Environmental module spec.' },
+    { term: 'V-##', def: 'Vector Surveillance module spec.' },
+    { term: 'OGC-####', def: 'A Jira ticket in the OpenELIS Global project.' },
+    { term: 'FRS', def: 'Functional Requirements Specification — the formal write-up of a feature.' },
+  ]},
+  { group: 'Antimicrobial resistance (AMR)', terms: [
+    { term: 'AMR', def: 'Antimicrobial Resistance — when microbes stop responding to drugs.' },
+    { term: 'AST', def: 'Antimicrobial Susceptibility Testing — testing which drugs still work on an isolate.' },
+    { term: 'MIC', def: 'Minimum Inhibitory Concentration — lowest drug concentration that stops growth (µg/mL).' },
+    { term: 'S / I / R', def: 'Susceptible / Intermediate / Resistant — the interpreted AST result.' },
+    { term: 'Breakpoint', def: 'The MIC/zone cutoff that turns a measurement into S, I, or R.' },
+    { term: 'Antibiogram', def: 'A cumulative report of % susceptibility for each bug–drug pair.' },
+    { term: 'Isolate', def: 'A single organism grown (isolated) from a patient specimen.' },
+    { term: 'CLSI / EUCAST', def: 'The two standards bodies that publish breakpoint tables.' },
+    { term: 'WHONET / GLASS', def: 'WHO tools/system for AMR surveillance data and global reporting.' },
+  ]},
+  { group: 'Lab & quality', terms: [
+    { term: 'LIMS', def: 'Laboratory Information Management System — what OpenELIS is.' },
+    { term: 'QC', def: 'Quality Control — running known samples to verify the test is working.' },
+    { term: 'EQA', def: 'External Quality Assessment — proficiency testing against other labs.' },
+    { term: 'TAT', def: 'Turn-Around Time — how long a test takes from order to result.' },
+    { term: 'NCE', def: 'Non-Conformance Event — a logged deviation from procedure.' },
+    { term: 'FHIR / HL7 / LOINC', def: 'Health-data interoperability standards for exchanging results and codes.' },
+  ]},
+];
+
+/** Map a mockup name to a short code-prefix explanation, or null if it has no code. */
+export function explainCode(name) {
+  const m = /^([A-Z]{1,3})-[A-Z0-9]+[a-z]?\b/.exec(name || '');
+  if (!m) return null;
+  return codePrefixes[m[1]] || null;
+}
+
+/**
+ * Guided journeys — curated, narrated step-throughs that sequence existing mockups
+ * into a full workflow. Steps reference mockups by their exact registry `name`.
+ * (Microbiology has its own richer HTML walkthrough, surfaced separately.)
+ */
+export const JOURNEYS = [
+  {
+    id: 'environmental-standards',
+    icon: '🌱',
+    title: 'Environmental & Standards',
+    blurb: 'From defining a regulatory standard through an environmental sample to a compliance report.',
+    steps: [
+      { name: 'Compliance Standards Administration', blurb: 'Where the lab defines the regulatory standards it tests against — each with its analytes, units, and the limit a result must fall within. Everything downstream (order routing, pass/fail evaluation, the certificate) keys off what is configured here, so this is the natural starting point.' },
+      { name: 'Sampling Site Registry', blurb: 'Environmental samples come from places, not patients. This registers the non-patient sampling sites — rivers, wells, treatment plants, facility rooms — so each sample can be tied to a known location and its history instead of a person.' },
+      { name: 'Environmental Order Entry (v2)', blurb: 'The intake screen for a non-patient sample: choose the site, the applicable standard, and the tests to run. It is the environmental analogue of patient order entry, adapted for site-based, regulation-scoped sampling.' },
+      { name: 'Results Entry — Expanded Uncertainty (U) Capture', blurb: 'Techs enter the measured values and, for accredited tests, the expanded measurement uncertainty (U) required by ISO/IEC 17025 §7.8. Capturing U here lets it flow straight onto the final certificate.' },
+      { name: 'Environmental QC Rules', blurb: 'Before results are trusted, QC is evaluated against the configured rules. Violations are flagged so the run can be reviewed or repeated rather than reported blindly.' },
+      { name: 'Compliance Evaluation Engine', blurb: 'The engine compares each result to its standard’s limit and assigns a compliant / non-compliant verdict. This determination is what the report ultimately certifies.' },
+      { name: 'Environmental Dashboard & Trend Analysis', blurb: 'A monitoring surface across sites and over time — positivity, exceedances, and trends — so a program can spot problems that a single sample would never reveal.' },
+      { name: 'Laporan Hasil — Compliance Report', blurb: 'The formal output: the Sertifikat Hasil Uji (certificate of analysis) reporting each result against its limit, with uncertainty and the compliance verdict, ready to issue.' },
+    ],
+  },
+  {
+    id: 'vector-surveillance',
+    icon: '🦟',
+    title: 'Vector Surveillance',
+    blurb: 'Mosquito / vector specimens from field collection through identification to surveillance reporting.',
+    steps: [
+      { name: 'Vector Specimen Types & Taxonomy', blurb: 'The reference data the whole module rests on: the vector species and the specimen taxonomy (genus/species, life stage). Identification and reporting later draw from this controlled vocabulary, so it is configured first.' },
+      { name: 'Vector Collection Workflow (v2)', blurb: 'Records a field collection event — trap, location, date, conditions — and the specimens it yielded. This is where a batch of field-caught vectors enters the system as trackable items rather than loose field notes.' },
+      { name: 'Vector Testing & Identification', blurb: 'The workbench where collected specimens are identified to species and run through vector tests (e.g. pathogen detection). Results attach back to the collection event so they stay tied to where and when they were caught.' },
+      { name: 'Vector Surveillance Reporting', blurb: 'Aggregates identifications and test results into surveillance indicators — abundance, infection rates, distribution — the numbers a vector-control program actually acts on.' },
+      { name: 'Vector LHU', blurb: 'The vector results report (Laporan Hasil Uji) that packages the findings for the requesting program or public-health authority.' },
+    ],
+  },
+  {
+    id: 'test-catalog-setup',
+    icon: '⚙️',
+    title: 'Test Catalog Setup',
+    blurb: 'Admin journey: build a test end-to-end — definition, ranges, workflow type, and reagents.',
+    steps: [
+      { name: 'Test Catalog', blurb: 'The home of every test the lab offers. Start here to browse the catalog and pick (or create) the test you want to configure end-to-end.' },
+      { name: 'Test Catalog v2.5 — v1 Preview', blurb: 'The unified editor where a test is actually defined — its name, sample types, result type, and behavior. This single consolidated screen replaces the old scattered admin pages.' },
+      { name: 'Reporting Ranges by Method', blurb: 'Reference and reporting ranges depend on the method used to run a test. Here you set those ranges per method so a result is interpreted (normal / abnormal / critical) correctly.' },
+      { name: 'Test Catalog — Microbiology Workflow Attribute', blurb: 'A test can carry a workflow type that routes it down a specialized path — for example bacterial culture vs TB in the AMR module. This is where that attribute is set on the test.' },
+      { name: 'M-12 Test to Reagent Linkage', blurb: 'Declares which reagent lots a test requires — the ISO 15189 §7.3 traceability link between a result and the materials that produced it. Microbiology forces the issue, but it is a general OpenELIS foundation.' },
+      { name: 'Reagent Usage on Result Entry v2.1', blurb: 'Closes the loop: shows how the reagent lots declared above surface to the tech during result entry, so actual usage is captured against each result.' },
+    ],
+  },
+];
+
+/** Find a registry entry by its exact name (used by guided journeys). */
+export function findMockupByName(name) {
+  return MOCKUP_REGISTRY.find((m) => m.name === name) || null;
+}
+
+/** Resolve a "#/journey/<id>" hash to a journey, or null. */
+export function journeyFromHash(hash) {
+  const m = /^#\/?journey\/([\w-]+)/.exec(hash || '');
+  if (!m) return null;
+  return JOURNEYS.find((j) => j.id === m[1]) || null;
+}
+
 /** Determine entry type for visual distinction */
 export function getEntryType(mockup) {
   if (mockup.htmlUrl) return 'html';
   if (mockup.component) return 'jsx';
   if (mockup.figmaUrl) return 'figma';
   return 'spec';
+}
+
+/**
+ * Path to a card thumbnail (captured by scripts/capture-thumbnails.mjs) for HTML
+ * prototypes. Returns null for entries without an HTML mockup; the <img> hides
+ * itself on error, so a missing file just falls back to the text card.
+ */
+export function thumbUrl(mockup) {
+  if (!mockup || !mockup.htmlUrl) return null;
+  const base = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.BASE_URL) || '/';
+  return base + 'thumbnails/' + mockup.category + '__' + toSlug(mockup.name) + '.jpg';
 }
 
 const entryTypeConfig = {
@@ -2633,11 +2577,26 @@ export function formatDate(isoDate) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+/**
+ * Permalink aliases — keep published permalinks resolving after a design is
+ * archived/superseded (old links may be cited in Jira/Confluence). Maps an old
+ * category/slug path to the current replacement card's category/slug path.
+ * Added 2026-06-26 when the old single-screen micro mocks were folded into the
+ * consolidated interactive prototypes.
+ */
+const PERMALINK_ALIASES = {
+  'microbiology/m-04-case-workbench-core-case-detail': 'microbiology/m-04-case-workbench-interactive-prototype',
+  'microbiology/m-05-ast-entry-interpretation': 'microbiology/m-05-ast-entry-interactive-prototype',
+  'microbiology/m-07-ast-worklist': 'microbiology/m-07-worklist-interactive-prototype',
+  'microbiology/m-11-critical-result-acknowledgment': 'microbiology/m-11-critical-notification-inline',
+};
+
 /** Find a mockup by its hash path (e.g. "pathology/cytology-case-view") */
 export function findMockupByHash(hash) {
   // strip leading #/ or #
-  const path = hash.replace(/^#\/?/, '');
+  let path = hash.replace(/^#\/?/, '');
   if (!path) return null;
+  if (PERMALINK_ALIASES[path]) path = PERMALINK_ALIASES[path];
   const [cat, ...slugParts] = path.split('/');
   const slug = slugParts.join('/');
   return MOCKUP_REGISTRY.find(
@@ -3126,6 +3085,177 @@ export const themes = {
   },
 };
 
+/**
+ * Explore landing page — the default (home) view for non-developer browsers.
+ * Orients by area with plain-language blurbs + counts, surfaces guided journeys,
+ * and shows the newest designs. Any search / filter / category switches back to
+ * the flat grid.
+ */
+function LandingView({ t, darkMode, onPickCategory, onOpen, statusOf, journeys = [], onOpenJourney }) {
+  const counts = {};
+  MOCKUP_REGISTRY.forEach((m) => { counts[m.category] = (counts[m.category] || 0) + 1; });
+  const cats = categories.filter((c) => c !== 'all' && counts[c]);
+  const walkthroughs = MOCKUP_REGISTRY.filter((m) => m.tags && m.tags.includes('walkthrough'));
+  const recent = [...MOCKUP_REGISTRY]
+    .sort((a, b) => (b.added || DEFAULT_ADDED).localeCompare(a.added || DEFAULT_ADDED))
+    .slice(0, 6);
+
+  const sectionTitle = { fontSize: 18, fontWeight: 600, margin: '30px 0 12px', color: t.text };
+  const tile = {
+    textAlign: 'left', cursor: 'pointer', border: `1px solid ${t.border}`, borderRadius: 10,
+    padding: 16, background: t.cardBg, boxShadow: t.cardShadow,
+    transition: 'box-shadow .2s, transform .1s', font: 'inherit', color: 'inherit',
+  };
+  const hoverIn = (e) => { e.currentTarget.style.boxShadow = t.cardShadowHover; e.currentTarget.style.transform = 'translateY(-1px)'; };
+  const hoverOut = (e) => { e.currentTarget.style.boxShadow = t.cardShadow; e.currentTarget.style.transform = 'none'; };
+
+  return (
+    <div>
+      <p style={{ fontSize: 15, lineHeight: 1.6, color: t.textSecondary, margin: '4px 0 0', maxWidth: 760 }}>
+        Welcome to the OpenELIS design gallery. Browse by area below, follow a guided journey through a
+        full workflow, or jump to the newest designs. You can search and filter from the bar above any time.
+      </p>
+
+      {(journeys.length > 0 || walkthroughs.length > 0) && (
+        <>
+          <div style={sectionTitle}>🧭 Guided journeys</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 14 }}>
+            {journeys.map((j) => (
+              <button key={j.id} onClick={() => onOpenJourney && onOpenJourney(j)} onMouseEnter={hoverIn} onMouseLeave={hoverOut}
+                style={{ ...tile, borderLeft: `4px solid ${t.accent}` }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: t.text, marginBottom: 4 }}>
+                  <span style={{ marginRight: 6 }}>{j.icon}</span>{j.title}
+                  <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 600, color: t.textMuted, background: t.badgeBg, borderRadius: 10, padding: '1px 8px' }}>{j.steps.length} steps</span>
+                </div>
+                <div style={{ fontSize: 13, color: t.textSecondary, lineHeight: 1.45 }}>{j.blurb}</div>
+              </button>
+            ))}
+            {walkthroughs.map((m, i) => (
+              <button key={'w' + i} onClick={() => onOpen(m)} onMouseEnter={hoverIn} onMouseLeave={hoverOut}
+                style={{ ...tile, borderLeft: `4px solid ${t.accent}` }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: t.text, marginBottom: 4 }}>{m.name}</div>
+                <div style={{ fontSize: 13, color: t.textSecondary, lineHeight: 1.45 }}>{m.description}</div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      <div style={sectionTitle}>Browse by area</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+        {cats.map((c) => (
+          <button key={c} onClick={() => onPickCategory(c)} onMouseEnter={hoverIn} onMouseLeave={hoverOut} style={tile}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ fontSize: 22 }}>{categoryIcons[c] || '📁'}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: t.textSecondary, background: t.badgeBg, borderRadius: 12, padding: '2px 9px' }}>{counts[c]}</span>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: t.text }}>{categoryLabels[c] || c}</div>
+            <div style={{ fontSize: 12.5, color: t.textSecondary, lineHeight: 1.45, marginTop: 3 }}>{categoryBlurbs[c] || ''}</div>
+          </button>
+        ))}
+      </div>
+
+      <div style={sectionTitle}>🆕 Recently added</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+        {recent.map((m, i) => {
+          const st = statusConfig[statusOf(m)];
+          const desc = m.description || '';
+          return (
+            <button key={i} onClick={() => onOpen(m)} onMouseEnter={hoverIn} onMouseLeave={hoverOut} style={tile}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: t.textMuted }}>{categoryLabels[m.category]}</span>
+                <span style={{ fontSize: 11, color: t.textFaint }}>{formatDate(m.added || DEFAULT_ADDED)}</span>
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: t.text, marginBottom: 3 }}>{m.name}</div>
+              <div style={{ fontSize: 12.5, color: t.textSecondary, lineHeight: 1.4 }}>{desc.slice(0, 110)}{desc.length > 110 ? '…' : ''}</div>
+              {st && <span style={{ display: 'inline-block', marginTop: 8, fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 10, background: darkMode ? st.darkBg : st.bg, color: st.color, border: `1px solid ${st.color}44` }}>{st.icon} {st.label}</span>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Guided journey stepper — narrates a workflow one step at a time, embedding the
+ * referenced mockup with Prev/Next and a clickable step list.
+ */
+function JourneyView({ journey, t, darkMode, onExit, onOpenMockup }) {
+  const [idx, setIdx] = React.useState(0);
+  const step = journey.steps[idx];
+  const mockup = findMockupByName(step.name);
+  const total = journey.steps.length;
+  const code = mockup && explainCode(mockup.name);
+
+  return (
+    <div>
+      <button onClick={onExit} style={{ ...styles.backButton, color: t.accent }}>← Back to Gallery</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+        <span style={{ fontSize: 24 }}>{journey.icon}</span>
+        <h2 style={{ margin: 0, color: t.text }}>{journey.title}</h2>
+        <span style={{ ...styles.badge, background: t.badgeBg, color: t.textSecondary }}>Journey</span>
+      </div>
+      <p style={{ color: t.textSecondary, margin: '0 0 14px', fontSize: 14 }}>{journey.blurb}</p>
+
+      {/* progress dots / step list */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+        {journey.steps.map((s, i) => (
+          <button key={i} onClick={() => setIdx(i)} title={s.name}
+            style={{
+              fontSize: 12, padding: '4px 10px', borderRadius: 14, cursor: 'pointer', whiteSpace: 'nowrap',
+              border: '1px solid ' + (i === idx ? t.accent : t.border),
+              background: i === idx ? t.accent : (i < idx ? (darkMode ? '#1a3320' : '#defbe6') : t.cardBg),
+              color: i === idx ? '#fff' : t.textSecondary, fontWeight: i === idx ? 600 : 500,
+            }}>
+            {i + 1}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ border: `1px solid ${t.border}`, borderRadius: 10, background: t.cardBg, padding: 16, marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: t.textMuted, marginBottom: 4 }}>STEP {idx + 1} OF {total}</div>
+        <div style={{ fontSize: 17, fontWeight: 600, color: t.text, marginBottom: 4 }}>{step.name}</div>
+        <p style={{ margin: 0, fontSize: 14, color: t.textSecondary, lineHeight: 1.5 }}>{step.blurb}</p>
+        {code && <p style={{ margin: '6px 0 0', fontSize: 12, color: t.textMuted }}>{mockup.name.match(/^[A-Z]{1,3}-[A-Z0-9]+[a-z]?/)?.[0]} — {code}</p>}
+        {mockup && (
+          <button onClick={() => onOpenMockup(mockup)} style={{ marginTop: 8, background: 'none', border: 'none', padding: 0, color: t.accent, cursor: 'pointer', fontSize: 13, textDecoration: 'underline' }}>
+            Open this mockup on its own →
+          </button>
+        )}
+      </div>
+
+      {/* embedded mockup */}
+      <div style={{ ...styles.preview, background: t.previewBg, borderColor: t.border, padding: 0 }}>
+        {mockup && mockup.htmlUrl ? (
+          <iframe
+            src={import.meta.env.BASE_URL + mockup.htmlUrl}
+            style={{ ...styles.figmaIframe, height: 720, borderColor: t.border }}
+            allowFullScreen
+            title={step.name}
+          />
+        ) : (
+          <div style={{ ...styles.loading, color: t.textMuted }}>
+            {mockup ? 'This step is a spec — open it to read the document.' : `Mockup not found: ${step.name}`}
+          </div>
+        )}
+      </div>
+
+      {/* prev / next */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 14 }}>
+        <button onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0}
+          style={{ ...styles.permalinkButton, background: t.permalinkBg, color: t.permalinkColor, opacity: idx === 0 ? 0.5 : 1, cursor: idx === 0 ? 'default' : 'pointer', padding: '8px 16px' }}>
+          ← Previous
+        </button>
+        <button onClick={() => setIdx((i) => Math.min(total - 1, i + 1))} disabled={idx === total - 1}
+          style={{ background: idx === total - 1 ? t.badgeBg : t.accent, color: idx === total - 1 ? t.textMuted : '#fff', border: 'none', borderRadius: 6, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: idx === total - 1 ? 'default' : 'pointer' }}>
+          Next →
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   // ─── Standalone route detection ───
   const [routeMode, setRouteMode] = useState(() => parseRoute(window.location.hash).mode);
@@ -3160,6 +3290,7 @@ function GalleryApp() {
   const [activeTag, setActiveTag] = useState(null);
   const [detailTab, setDetailTab] = useState('preview'); // 'preview' or 'spec'
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'draft', 'review', 'approved'
+  const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [localStatuses, setLocalStatuses] = useState(() => {
     // Load persisted status overrides from localStorage
     try {
@@ -3177,12 +3308,19 @@ function GalleryApp() {
 
   const t = darkMode ? themes.dark : themes.light;
 
-  // On mount, check if the URL hash points to a mockup
+  // Home (Explore landing) vs browse grid. Starts on home unless deep-linked to a mockup.
+  const [home, setHome] = useState(() => !findMockupByHash(window.location.hash) && !journeyFromHash(window.location.hash));
+  const [activeJourney, setActiveJourney] = useState(() => journeyFromHash(window.location.hash));
+
+  // On mount, check if the URL hash points to a mockup or a journey
   useEffect(() => {
     const mockup = findMockupByHash(window.location.hash);
     if (mockup) {
       setSelectedMockup(mockup);
       setActiveCategory(mockup.category);
+      setHome(false);
+    } else if (journeyFromHash(window.location.hash)) {
+      setHome(false);
     }
   }, []);
 
@@ -3190,8 +3328,11 @@ function GalleryApp() {
   useEffect(() => {
     function onHashChange() {
       const mockup = findMockupByHash(window.location.hash);
+      const journey = journeyFromHash(window.location.hash);
       setSelectedMockup(mockup);
-      if (mockup) setActiveCategory(mockup.category);
+      setActiveJourney(journey);
+      if (mockup) { setActiveCategory(mockup.category); setHome(false); }
+      else if (journey) { setHome(false); }
     }
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
@@ -3202,11 +3343,20 @@ function GalleryApp() {
     setSelectedMockup(mockup);
     setDetailTab('preview'); // Reset tab when switching entries
     if (mockup) {
+      setActiveJourney(null);
+      setHome(false);
       window.location.hash = toHash(mockup);
     } else {
       // Clear hash when going back to gallery
       history.pushState(null, '', window.location.pathname + window.location.search);
     }
+  }
+
+  function selectJourney(journey) {
+    setSelectedMockup(null);
+    setActiveJourney(journey);
+    setHome(false);
+    window.location.hash = journey ? `#/journey/${journey.id}` : '';
   }
 
   /** Resolve effective status: local override > static (from registry) > default */
@@ -3246,6 +3396,18 @@ function GalleryApp() {
     countByCategory[m.category] = (countByCategory[m.category] || 0) + 1;
   });
 
+  // Default "home" view shows the Explore landing page (decoupled from the "All" tab,
+  // so the All tab still shows the full flat grid).
+  const isHome = home;
+  function goHome() {
+    setActiveCategory('all');
+    setSearchQuery('');
+    setActiveTag(null);
+    setStatusFilter('all');
+    selectMockup(null);
+    setHome(true);
+  }
+
   // Also update body background when theme changes
   useEffect(() => {
     document.body.style.background = t.bg;
@@ -3255,10 +3417,47 @@ function GalleryApp() {
 
   return (
     <div style={{ ...styles.container, background: t.bg, color: t.text }} data-theme={darkMode ? 'dark' : 'light'}>
+      {glossaryOpen && (
+        <div
+          onClick={() => setGlossaryOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '6vh 16px', overflowY: 'auto' }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: t.cardBg, color: t.text, border: `1px solid ${t.border}`, borderRadius: 12, maxWidth: 640, width: '100%', padding: 24, boxShadow: '0 12px 40px rgba(0,0,0,0.35)' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <h2 style={{ margin: 0, fontSize: 20, color: t.text }}>Glossary</h2>
+              <button onClick={() => setGlossaryOpen(false)} aria-label="Close glossary"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, lineHeight: 1, color: t.textMuted }}>×</button>
+            </div>
+            <p style={{ margin: '0 0 8px', fontSize: 13, color: t.textSecondary }}>
+              Quick decoder for the design codes and lab acronyms used across the gallery.
+            </p>
+            {glossary.map((g) => (
+              <div key={g.group} style={{ marginTop: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4, color: t.accent, marginBottom: 6 }}>{g.group}</div>
+                <dl style={{ margin: 0 }}>
+                  {g.terms.map((tm) => (
+                    <div key={tm.term} style={{ display: 'flex', gap: 12, padding: '5px 0', borderTop: `1px solid ${t.border}` }}>
+                      <dt style={{ flex: '0 0 120px', fontWeight: 600, fontSize: 13, color: t.text }}>{tm.term}</dt>
+                      <dd style={{ margin: 0, fontSize: 13, color: t.textSecondary, lineHeight: 1.45 }}>{tm.def}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <header style={{ ...styles.header, borderBottomColor: t.headerBorder }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 style={{ ...styles.title, color: t.text }}>OpenELIS Global — Design Gallery</h1>
+            <h1
+              style={{ ...styles.title, color: t.text, cursor: 'pointer' }}
+              onClick={goHome}
+              title="Back to the Explore home"
+            >OpenELIS Global — Design Gallery</h1>
             <p style={{ ...styles.subtitle, color: t.textMuted }}>
               {MOCKUP_REGISTRY.length} mockups across {Object.keys(countByCategory).length} categories
             </p>
@@ -3294,7 +3493,7 @@ function GalleryApp() {
             type="text"
             placeholder="Search by name, tag, Jira key…"
             value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setActiveTag(null); }}
+            onChange={(e) => { setSearchQuery(e.target.value); setActiveTag(null); setHome(false); }}
             style={{ ...styles.search, flex: 1, minWidth: 0 }}
           />
           {activeTag && (
@@ -3308,7 +3507,7 @@ function GalleryApp() {
         </div>
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => { setStatusFilter(e.target.value); setHome(false); }}
           style={{ ...styles.statusSelect, background: t.searchBg, borderColor: t.borderInput, color: t.text }}
           aria-label="Filter by status"
         >
@@ -3317,11 +3516,19 @@ function GalleryApp() {
             <option key={key} value={key}>{statusConfig[key].icon} {statusConfig[key].label}</option>
           ))}
         </select>
+        <button
+          onClick={() => setGlossaryOpen(true)}
+          style={{ ...styles.statusSelect, background: t.searchBg, borderColor: t.borderInput, color: t.text, cursor: 'pointer', whiteSpace: 'nowrap' }}
+          title="Decode the M-/S-/V- codes and lab acronyms"
+          aria-label="Open glossary"
+        >
+          ❔ Glossary
+        </button>
         <div style={styles.tabs}>
           {categories.map((cat) => (
             <button
               key={cat}
-              onClick={() => { setActiveCategory(cat); selectMockup(null); }}
+              onClick={() => { setActiveCategory(cat); selectMockup(null); setHome(false); }}
               style={{
                 ...styles.tab,
                 background: t.tabBg,
@@ -3388,6 +3595,14 @@ function GalleryApp() {
             {selectedMockup.description}
             <span style={{ ...styles.dateTag, color: t.textFaint }}>Added {formatDate(selectedMockup.added || DEFAULT_ADDED)}</span>
           </p>
+          {explainCode(selectedMockup.name) && (
+            <p style={{ margin: '-8px 0 16px', fontSize: 13, color: t.textMuted }}>
+              <button onClick={() => setGlossaryOpen(true)} style={{ background: 'none', border: 'none', padding: 0, color: t.accent, cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}>
+                {selectedMockup.name.match(/^[A-Z]{1,3}-[A-Z0-9]+[a-z]?/)[0]}
+              </button>
+              {' — '}{explainCode(selectedMockup.name)}.
+            </p>
+          )}
           {selectedMockup.relatedTo && selectedMockup.relatedTo.length > 0 && (
             <div style={styles.relatedRow}>
               <span style={{ color: t.textMuted, fontSize: 13 }}>See also:</span>
@@ -3503,6 +3718,24 @@ function GalleryApp() {
             );
           })()}
         </div>
+      ) : activeJourney ? (
+        <JourneyView
+          journey={activeJourney}
+          t={t}
+          darkMode={darkMode}
+          onExit={() => { setActiveJourney(null); goHome(); }}
+          onOpenMockup={(m) => selectMockup(m)}
+        />
+      ) : isHome ? (
+        <LandingView
+          t={t}
+          darkMode={darkMode}
+          journeys={JOURNEYS}
+          onOpenJourney={selectJourney}
+          onPickCategory={(c) => { setActiveCategory(c); selectMockup(null); setHome(false); }}
+          onOpen={(m) => selectMockup(m)}
+          statusOf={getEffectiveStatus}
+        />
       ) : (
         <div style={styles.grid}>
           {filtered.length === 0 ? (
@@ -3520,6 +3753,17 @@ function GalleryApp() {
                 onMouseEnter={(e) => (e.currentTarget.style.boxShadow = t.cardShadowHover)}
                 onMouseLeave={(e) => (e.currentTarget.style.boxShadow = t.cardShadow)}
               >
+                {thumbUrl(mockup) && (
+                  <div style={{ margin: '-16px -16px 12px', overflow: 'hidden', borderTopLeftRadius: 8, borderTopRightRadius: 8, borderBottom: `1px solid ${t.border}`, background: t.previewBg, aspectRatio: '1000 / 480' }}>
+                    <img
+                      src={thumbUrl(mockup)}
+                      alt=""
+                      loading="lazy"
+                      onError={(e) => { const p = e.currentTarget.parentElement; if (p) p.style.display = 'none'; }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }}
+                    />
+                  </div>
+                )}
                 <div style={styles.cardHeader}>
                   <span style={{ ...styles.badge, background: t.badgeBg, color: t.textSecondary }}>{categoryLabels[mockup.category]}</span>
                   <div style={{ display: 'flex', gap: 4 }}>
@@ -3552,7 +3796,7 @@ function GalleryApp() {
                     {mockup.tags.map((tag) => (
                       <button
                         key={tag}
-                        onClick={(e) => { e.stopPropagation(); setActiveTag(activeTag === tag ? null : tag); setSearchQuery(''); }}
+                        onClick={(e) => { e.stopPropagation(); setActiveTag(activeTag === tag ? null : tag); setSearchQuery(''); setHome(false); }}
                         title={`Filter by #${tag}`}
                         style={{
                           padding: '1px 8px', borderRadius: 10, fontSize: 11, fontWeight: 500, cursor: 'pointer',
@@ -3642,7 +3886,10 @@ const styles = {
   detailTabs: { display: 'flex', gap: 0, marginBottom: 0, borderBottom: '2px solid #e0e0e0' },
   detailTab: { padding: '10px 20px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#6f6f6f', borderBottom: '2px solid transparent', marginBottom: -2, transition: 'color 0.15s, border-color 0.15s' },
   detailTabActive: { color: '#0f62fe', borderBottomColor: '#0f62fe' },
-  specContent: { padding: '8px 0', fontSize: 14, lineHeight: 1.7, color: '#161616', maxWidth: 800 },
+  // No hardcoded color: the .spec-content CSS (incl. [data-theme="dark"] overrides) and
+  // inherited theme color handle text. Setting color here would override the dark-mode CSS
+  // and make body text/tables render near-black on the dark background.
+  specContent: { padding: '8px 0', fontSize: 14, lineHeight: 1.7, maxWidth: 800 },
   specError: { padding: 24, textAlign: 'center', color: '#6f6f6f' },
   statusBadge: { display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600, border: '1px solid' },
   statusSelect: { padding: '8px 12px', border: '1px solid #c6c6c6', borderRadius: 4, fontSize: 14, cursor: 'pointer' },

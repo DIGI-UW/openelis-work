@@ -149,7 +149,33 @@ this skill ships a page, it also makes that page self-monitoring: if the screen 
 tracker flags the exact section and missing control. Re-run the capture and rebuild the doc, then
 bump `capturedVersion`.
 
+## Review gate (run before publish — fresh eyes, not the author)
+
+Run this on every page before publishing. Do it as **re-derive, then diff** — ideally with a review
+subagent or a second person, not the author (the author anchors on what they built). First re-derive
+the ideal page from scratch: state the goal, the minimal real workflow to achieve it, and the steps
+and screenshots that workflow actually needs. Then diff the draft against that and apply these gates:
+
+1. **One-sentence workflow test.** Write the workflow as a single sentence; every step must serve it.
+   Cut anything that is setup belonging to another page, or unrelated configuration. (A page titled for
+   feature X should not be two-thirds prerequisite admin config.)
+2. **First real step.** Mark where the task actually begins and delete everything before it — menu
+   navigation, and prerequisite configuration that is documented elsewhere. The first real step is the
+   first action unique to this workflow.
+3. **Step ↔ screenshot fidelity.** Each step has exactly one screenshot that shows that step's action
+   or state. No generic landing pages, no empty / "no records" screens, no mismatched selection. If a
+   screenshot does not show what its step describes, it is wrong even if it is a real screenshot.
+4. **Verified at the workflow level.** Every step was driven live end-to-end. A step you could not
+   reach (a gated dialog, a feature toggle that is off) is a **blocker to resolve before publishing**,
+   never prose carried over from an older draft or the spec.
+5. **Process gates.** Authored through this skill's Outline (At-a-glance first); published as a **draft
+   under the review parent (1189609473) first**, never written straight over a live page; drift contract
+   registered in contracts.json.
+
+The highest-leverage habit is gates 1-2: **treat the existing page as a suspect to prune, starting from
+the goal — not as a baseline to fix in place.**
+
 ## Definition of done
 Overview gives real context; every step is verified against the live build (no spec-only claims);
 images are cropped and legible with captions; PII masked; a walkthrough video accompanies it; the
-doc validates; and it's delivered for review before any publish.
+doc validates; and it's delivered for review before any publish. The Review gate above has passed (re-derive-then-diff, step/screenshot fidelity, workflow-level verification, draft-first).

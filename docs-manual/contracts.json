@@ -228,26 +228,19 @@
     },
     {
       "id": "order-entry",
-      "title": "Order & sample entry",
+      "title": "Enter a Clinical Order",
       "base": "https://testing.openelis-global.org",
       "capturedVersion": "3.2.1.10",
       "routes": [
         {
           "path": "/SamplePatientEntry",
           "anchors": [
-            "Test Request"
-          ]
-        },
-        {
-          "path": "/order",
-          "anchors": [
-            "Collect"
-          ]
-        },
-        {
-          "path": "/order/enter",
-          "anchors": [
-            "Enter Order"
+            "Test Request",
+            "Patient Info",
+            "Program Selection",
+            "Add Sample",
+            "Add Order",
+            "New Patient"
           ]
         }
       ],
@@ -256,7 +249,10 @@
         "frontend/src/components/addOrder",
         "frontend/src/components/sample"
       ],
-      "capturedDate": "2026-06-24"
+      "capturedDate": "2026-06-30",
+      "manualDoc": "OpenELIS Feature Design/clinical-order-entry-manual-draft.md",
+      "captureSpec": "tests/docs/clinical-order-entry.docs.spec.ts",
+      "note": "Reworked 4-step wizard (Patient Info -> Program Selection -> Add Sample -> Add Order). Replaces the old Enter Order -> Collect -> Label & Store -> QA Review flow."
     },
     {
       "id": "organizations-management",
@@ -331,36 +327,6 @@
       "capturedDate": "2026-06-24"
     },
     {
-      "id": "results-entry",
-      "title": "Results entry",
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "routes": [
-        {
-          "path": "/GenericSample/Results",
-          "anchors": [
-            "Result Entry"
-          ]
-        },
-        {
-          "path": "/PatientResults",
-          "anchors": [
-            "Results"
-          ]
-        },
-        {
-          "path": "/AccessionResults",
-          "anchors": [
-            "Results"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/resultPage"
-      ],
-      "capturedDate": "2026-06-24"
-    },
-    {
       "id": "sample-shipment-referral",
       "title": "Sample shipment & referral",
       "base": "https://testing.openelis-global.org",
@@ -414,6 +380,695 @@
         "frontend/src/components/coldStorage"
       ],
       "capturedDate": "2026-06-24"
+    },
+    {
+      "id": "vector-surveillance",
+      "title": "Vector Surveillance",
+      "confluencePageId": "1420230657",
+      "base": "https://indonesiademo.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/order/vector/enter",
+          "anchors": [
+            "Animal / Organism 1",
+            "Quantity in Pool",
+            "Trap Type",
+            "Tests & Panels"
+          ]
+        },
+        {
+          "path": "/vector/identification",
+          "anchors": [
+            "Vector Identification Worklist",
+            "Lot ID",
+            "Species Distribution",
+            "Identify",
+            "Split"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/vector",
+        "frontend/src/components/order"
+      ],
+      "capturedDate": "2026-06-24"
+    },
+    {
+      "id": "environmental-surveillance",
+      "title": "Environmental Surveillance",
+      "confluencePageId": "1420099592",
+      "base": "https://indonesiademo.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/order/environmental/enter",
+          "anchors": [
+            "Sampling Site",
+            "Applicable Compliance Standards",
+            "Per-Sample Manifest",
+            "Tests & Panels"
+          ]
+        },
+        {
+          "path": "/LogbookResults?type=",
+          "anchors": [
+            "Results"
+          ]
+        },
+        {
+          "path": "/ResultValidation?type=&test=",
+          "anchors": [
+            "Validation"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/order",
+        "frontend/src/components/resultPage",
+        "frontend/src/components/validation"
+      ],
+      "capturedDate": "2026-06-24"
+    },
+    {
+      "id": "admin-vector-reference-data",
+      "title": "Admin — Vector Surveillance Reference Data",
+      "confluencePageId": "1420460034",
+      "base": "https://indonesiademo.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/MasterListsPage/vectorSurveillanceSetup/species",
+          "anchors": [
+            "Genus",
+            "Species",
+            "Sample type",
+            "Add species"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/vectorSurveillanceSetup/trap-types",
+          "anchors": [
+            "Add trap type"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/vectorSurveillanceSetup/sampling-sites",
+          "anchors": [
+            "Sampling Sites"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/vectorSurveillance",
+        "frontend/src/components/admin/sampleType"
+      ],
+      "capturedDate": "2026-06-24"
+    },
+    {
+      "id": "admin-compliance-standards",
+      "title": "Admin — Compliance Standards & Holding-Time",
+      "confluencePageId": "1421148161",
+      "base": "https://indonesiademo.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/MasterListsPage/ComplianceStandardsAdmin",
+          "anchors": [
+            "Compliance Standards Administration",
+            "Add Standard",
+            "Applicable Sample Types"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/testManagementConfigMenu",
+          "anchors": [
+            "Test Management"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/TestModifyEntry",
+          "anchors": [
+            "QC Acceptance Thresholds",
+            "SOP Max Holding Time"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/testManagement",
+        "frontend/src/components/admin/compliance"
+      ],
+      "capturedDate": "2026-06-24"
+    },
+    {
+      "id": "admin-sample-type-management",
+      "title": "Admin — Sample Type Management",
+      "confluencePageId": "1420853278",
+      "base": "https://indonesiademo.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/MasterListsPage/SampleTypeManagement",
+          "anchors": [
+            "Create New Sample Type",
+            "Set Sample Type Order",
+            "Test Assignment"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/sampleType"
+      ],
+      "capturedDate": "2026-06-24"
+    },
+    {
+      "id": "sample-acceptance-checklist",
+      "title": "Sample Acceptance Checklist",
+      "base": "https://indonesiademo.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/MasterListsPage/SampleAcceptanceChecklist",
+          "anchors": [
+            "Sample Acceptance Checklist",
+            "Add item",
+            "Lab-wide items"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/sampleAcceptance"
+      ],
+      "capturedDate": "2026-06-30",
+      "manualDoc": "OpenELIS Feature Design/sample-acceptance-checklist-manual-draft.md",
+      "note": "OGC-580 #3778; configured items render on the QA Review step (Intake Acceptance, Pass/Fail/N/A) of the domain order flow; per-domain enforcement Mandatory (gate: must answer to Accept) / Optional / Off; lab-wide + per-domain items."
+    },
+    {
+      "id": "organization-management",
+      "title": "Organization Management",
+      "manualDoc": "Confluence 1437892659 (draft)",
+      "captureSpec": "tests/docs/org-capture.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/MasterListsPage/organizationManagement",
+          "anchors": [
+            "Organization Management",
+            "Search By Org Name",
+            "Add",
+            "Org Name",
+            "CLIA Number"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/organizationEdit?ID=0",
+          "anchors": [
+            "Add Organization",
+            "Org Name",
+            "Type of Activity",
+            "Save"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/organizationManagement"
+      ],
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "provider-management",
+      "title": "Provider Management",
+      "manualDoc": "Confluence 1439203334 (draft)",
+      "captureSpec": "tests/docs/provider-capture.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/MasterListsPage/providerMenu",
+          "anchors": [
+            "Provider Management",
+            "Search Provider Name",
+            "Add",
+            "Provider Lastname",
+            "Is Active"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/providerManagement"
+      ],
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "lab-number-management",
+      "title": "Lab Number Management",
+      "manualDoc": "Confluence 1439170565 (draft)",
+      "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/labNumber",
+          "anchors": [
+            "Lab Number Management",
+            "Lab Number Type",
+            "Submit"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "program-entry",
+      "title": "Program Entry",
+      "manualDoc": "Confluence 1439006727 (draft)",
+      "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/program",
+          "anchors": [
+            "Add/Edit Program",
+            "Program Name",
+            "Program Code",
+            "Test Section"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "application-properties",
+      "title": "Application Properties",
+      "manualDoc": "Confluence 1439367188 (draft)",
+      "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/commonproperties",
+          "anchors": [
+            "Common Properties",
+            "configuration.dir",
+            "Update"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "test-notification-configuration",
+      "title": "Test Notification Configuration",
+      "manualDoc": "Confluence 1439072261 (draft)",
+      "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/testNotificationConfigMenu",
+          "anchors": [
+            "Test Notification Configuration",
+            "Test names",
+            "Patient Email",
+            "Provider SMS"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "search-index-management",
+      "title": "Search Index Management",
+      "manualDoc": "Confluence 1438973960 (draft)",
+      "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/SearchIndexManagement",
+          "anchors": [
+            "Search Index Management",
+            "Start Reindexing"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "logging-configuration",
+      "title": "Logging Configuration",
+      "manualDoc": "Confluence 1438908431 (draft)",
+      "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/loggingManagement",
+          "anchors": [
+            "Logging Configuration",
+            "Log Level",
+            "Logger Name",
+            "Apply Log Level"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "user-management",
+      "title": "User Management",
+      "manualDoc": "Confluence 1439367205 (draft)",
+      "captureSpec": "tests/docs/user-dict-capture.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/userManagement",
+          "anchors": [
+            "User Management",
+            "System User Login Name",
+            "Add",
+            "Is Active"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "dictionary-menu",
+      "title": "Dictionary Menu",
+      "manualDoc": "Confluence 1438973976 (draft)",
+      "captureSpec": "tests/docs/user-dict-capture.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/DictionaryMenu",
+          "anchors": [
+            "Dictionary Menu",
+            "Category",
+            "Dictionary Entry",
+            "LOINC Code"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "reflex-testing",
+      "title": "Reflex Testing",
+      "manualDoc": "Confluence 1439137808 (draft)",
+      "captureSpec": "tests/docs/reflex-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/reflex",
+          "anchors": [
+            "Reflex Tests Management",
+            "Rule Name",
+            "Add Rule"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "calculated-value-tests",
+      "title": "Calculated Value Tests",
+      "manualDoc": "Confluence 1438842886 (draft)",
+      "captureSpec": "tests/docs/reflex-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/calculatedValue",
+          "anchors": [
+            "Calculated Value Tests Management",
+            "Calculation Name",
+            "Add Rule"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "results-entry",
+      "title": "Results Entry",
+      "manualDoc": "Confluence 1439072277 (draft)",
+      "captureSpec": "tests/docs/results-entry-cap.docs.spec.ts",
+      "base": "https://indonesiademo.openelis-global.org",
+      "routes": [
+        {
+          "path": "/LogbookResults?type=",
+          "anchors": [
+            "Results",
+            "Select Test Unit",
+            "Normal Range",
+            "Accept"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "validation",
+      "title": "Validation",
+      "manualDoc": "Confluence 1441202177 (draft)",
+      "captureSpec": "tests/docs/validation-probe.docs.spec.ts",
+      "base": "https://indonesiademo.openelis-global.org",
+      "routes": [
+        {
+          "path": "/ResultValidation?type=&test=",
+          "anchors": [
+            "Validation",
+            "Select Test Unit",
+            "Save All Normal",
+            "Retest"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "running-reports",
+      "title": "Running Reports",
+      "manualDoc": "Confluence 1440841744 (draft)",
+      "captureSpec": "tests/docs/discover4.docs.spec.ts",
+      "base": "https://indonesiademo.openelis-global.org",
+      "routes": [
+        {
+          "path": "/Report?type=patient&report=patientCILNSP_vreduit",
+          "anchors": [
+            "Patient Status Report",
+            "Generate Printable Version"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "patient-management",
+      "title": "Patient Management",
+      "manualDoc": "Confluence 1441136648 (draft)",
+      "captureSpec": "tests/docs/patient-mgmt-cap.docs.spec.ts",
+      "base": "https://indonesiademo.openelis-global.org",
+      "routes": [
+        {
+          "path": "/PatientManagement",
+          "anchors": [
+            "Add Or Modify Patient",
+            "Search for Patient",
+            "New Patient",
+            "Patient Results"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "site-information",
+      "title": "Site Information",
+      "manualDoc": "Confluence 1439432709 (draft)",
+      "captureSpec": "tests/docs/admin-discover2.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/SiteInformationMenu",
+          "anchors": [
+            "Site Information",
+            "Name",
+            "Description",
+            "Value",
+            "Modify"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "menu-configuration",
+      "title": "Menu Configuration",
+      "manualDoc": "Confluence 1439694850 (draft)",
+      "captureSpec": "tests/docs/admin-discover2.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/globalMenuManagement",
+          "anchors": [
+            "Global Menu Management",
+            "Side Nav Active",
+            "Show Child Elements",
+            "Submit"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "calendar-management",
+      "title": "Calendar Management",
+      "manualDoc": "Confluence 1439334404 (draft)",
+      "captureSpec": "tests/docs/admin-discover2.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/calendarManagement",
+          "anchors": [
+            "Calendar Management",
+            "Weekend Days",
+            "Add Holiday",
+            "Holiday Name"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "result-reporting-configuration",
+      "title": "Result Reporting Configuration",
+      "manualDoc": "Confluence 1439596548 (draft)",
+      "captureSpec": "tests/docs/admin-discover2.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/resultReportingConfiguration",
+          "anchors": [
+            "Result Reporting Configuration",
+            "Result Reporting",
+            "Queue Size"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "order-search",
+      "title": "Order Search & Lookup",
+      "manualDoc": "Confluence 1440350210 (draft)",
+      "captureSpec": "tests/docs/discover4.docs.spec.ts",
+      "base": "https://indonesiademo.openelis-global.org",
+      "routes": [
+        {
+          "path": "/SampleEdit?type=readwrite",
+          "anchors": [
+            "Modify Order",
+            "Search By Accession Number",
+            "Search By Patient"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "sample-storage",
+      "title": "Sample Storage",
+      "manualDoc": "Confluence 1440677908 (draft)",
+      "captureSpec": "tests/docs/discover4.docs.spec.ts",
+      "base": "https://indonesiademo.openelis-global.org",
+      "routes": [
+        {
+          "path": "/Storage/sample-items",
+          "anchors": [
+            "Sample Items",
+            "SampleItem ID",
+            "Sample Accession",
+            "Storage location"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "aliquot",
+      "title": "Aliquot Management",
+      "manualDoc": "Confluence 1440940035 (draft)",
+      "captureSpec": "tests/docs/discover4.docs.spec.ts",
+      "base": "https://indonesiademo.openelis-global.org",
+      "routes": [
+        {
+          "path": "/Aliquot",
+          "anchors": [
+            "Aliquot",
+            "Search Sample",
+            "Enter Accession Number"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "patient-merge",
+      "title": "Merge Patient Records",
+      "manualDoc": "Confluence 1440907275 (draft)",
+      "captureSpec": "tests/docs/patient-extras.docs.spec.ts",
+      "base": "https://indonesiademo.openelis-global.org",
+      "routes": [
+        {
+          "path": "/PatientMerge",
+          "anchors": [
+            "Merge Patient Records",
+            "Select Patients",
+            "Select Primary",
+            "Confirm Merge"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "register-new-patient",
+      "title": "Register a New Patient",
+      "manualDoc": "Confluence 1440841760 (draft)",
+      "captureSpec": "tests/docs/patient-extras.docs.spec.ts",
+      "base": "https://indonesiademo.openelis-global.org",
+      "routes": [
+        {
+          "path": "/PatientManagement",
+          "anchors": [
+            "Add Or Modify Patient",
+            "New Patient",
+            "National ID",
+            "Gender"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
     }
   ]
 }
