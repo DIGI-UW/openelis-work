@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Programs Management v2 — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body{background:#f4f4f4;margin:0;font-family:'IBM Plex Sans',sans-serif;color:#161616;}
+    .banner{background:#0f62fe;color:#fff;padding:6px 1rem;font-size:12px;font-family:monospace;}
+    .wrap{max-width:1180px;margin:0 auto;padding:1rem 1.5rem 3rem;}
+    .crumbs{font-size:12px;color:#6f6f6f;margin:14px 0;} .crumbs a{color:#0f62fe;text-decoration:none;}
+    h2{margin:0 0 2px;} .sub{color:#6f6f6f;font-size:14px;margin:0 0 16px;}
+    .tag{display:inline-block;padding:1px 10px;border-radius:12px;font-size:12px;line-height:20px;white-space:nowrap;}
+    .tag-blue{background:#d0e2ff;color:#0043ce;}.tag-green{background:#a7f0ba;color:#0e6027;}.tag-purple{background:#e8daff;color:#6929c4;}
+    .tag-gray{background:#e0e0e0;color:#525252;}
+    table{width:100%;border-collapse:collapse;background:#fff;}
+    th,td{text-align:left;padding:11px 14px;border-bottom:1px solid #e0e0e0;font-size:14px;vertical-align:middle;}
+    th{background:#f4f4f4;font-weight:600;}
+    tr.deactivated td:not(.editcell){color:#8d8d8d;}
+    .toolbar{display:flex;align-items:center;gap:16px;background:#fff;padding:10px 14px;border-bottom:1px solid #e0e0e0;flex-wrap:wrap;}
+    input[type=text],select,textarea{font-size:14px;padding:8px;border:none;border-bottom:1px solid #8d8d8d;background:#f4f4f4;box-sizing:border-box;font-family:inherit;}
+    .search{flex:1;min-width:200px;background:#fff;border-bottom:1px solid #8d8d8d;}
+    .toggle{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;user-select:none;}
+    .sw{width:36px;height:18px;border-radius:9px;background:#8d8d8d;position:relative;transition:.15s;}
+    .sw.on{background:#0f62fe;} .sw::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.15s;}
+    .sw.on::after{left:20px;}
+    .chip{font-size:12px;border:1px solid #8d8d8d;border-radius:12px;padding:2px 10px;cursor:pointer;background:#fff;}
+    .chip.on{background:#161616;color:#fff;border-color:#161616;}
+    .kebab{background:none;border:none;cursor:pointer;font-size:18px;color:#161616;padding:2px 8px;}
+    .linkbtn{background:none;border:none;color:#0f62fe;cursor:pointer;font-size:14px;padding:0;}
+    .menu{position:absolute;right:14px;background:#fff;border:1px solid #e0e0e0;box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:5;min-width:150px;}
+    .menu button{display:block;width:100%;text-align:left;padding:10px 14px;border:none;background:none;font-size:13px;cursor:pointer;}
+    .menu button:hover{background:#f4f4f4;} .menu button.danger{color:#da1e28;}
+    .btn{border:none;cursor:pointer;font-size:14px;padding:8px 15px;border-radius:0;}
+    .btn-primary{background:#0f62fe;color:#fff;}.btn-sec{background:#393939;color:#fff;}.btn-ghost{background:none;color:#0f62fe;}
+    .btn-danger{background:#da1e28;color:#fff;}.btn-dtert{background:#fff;color:#da1e28;border:1px solid #da1e28;}
+    .btn:disabled{background:#c6c6c6;color:#8d8d8d;cursor:not-allowed;}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:20;}
+    .modal{background:#fff;max-width:520px;width:92%;} .modal h3{margin:0;padding:20px 20px 6px;font-size:20px;} .modal p{padding:0 20px 22px;font-size:14px;line-height:1.4;}
+    .modal-actions{display:flex;} .modal-actions .btn{flex:1;padding:15px;}
+    .inline-editor{background:#f4f4f4;border-left:3px solid #0f62fe;padding:18px 20px;}
+    .panel{background:#fff;border:1px solid #e0e0e0;padding:16px;margin-bottom:14px;}
+    .grid2{display:flex;gap:24px;flex-wrap:wrap;} .col{flex:1;min-width:260px;}
+    .lbl{font-size:12px;color:#525252;margin:0 0 4px;display:block;}
+    .uplbl{font-size:12px;text-transform:uppercase;letter-spacing:.02em;color:#6f6f6f;margin:18px 0 8px;font-weight:600;}
+    .radio{display:block;margin:6px 0;font-size:14px;cursor:pointer;}
+    .switcher{display:flex;border:1px solid #8d8d8d;width:fit-content;margin-bottom:12px;}
+    .switcher button{padding:8px 20px;border:none;background:#fff;cursor:pointer;font-size:14px;}
+    .switcher button.on{background:#161616;color:#fff;}
+    .notif{padding:12px 14px;margin:0 0 14px;border-left:3px solid;font-size:13px;line-height:1.4;}
+    .notif-info{background:#edf5ff;border-color:#0043ce;}.notif-warn{background:#fff8e1;border-color:#f1c21b;}.notif-success{background:#defbe6;border-color:#24a148;}
+    .qcard{border:1px solid #e0e0e0;padding:14px;margin-bottom:10px;background:#fafafa;position:relative;}
+    .opt-row{display:flex;gap:8px;align-items:center;margin:6px 0;}
+    .preview-pane{background:#fff;border:1px solid #e0e0e0;padding:16px;min-height:180px;}
+    .mono{font-family:'IBM Plex Mono',monospace;font-size:13px;}
+    .chipset span{display:inline-block;background:#e0e0e0;border-radius:4px;padding:1px 7px;margin:2px;font-size:11px;font-family:monospace;}
+    .example{font-size:12px;color:#6f6f6f;background:#f4f4f4;padding:6px 8px;margin-top:6px;}
+    .req{color:#da1e28;}
+  </style>
+</head>
+<body class="cds--white">
+  <div class="banner">⚡ Visual Preview — Programs Management v2 (consolidated) &nbsp;|&nbsp; Route: /MasterListsPage/program &nbsp;|&nbsp; SideNav: Admin → Test Management → Programs &nbsp;|&nbsp; Not a live app</div>
+  <div class="wrap" id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+    const Tag = ({k,children}) => <span className={'tag tag-'+k}>{children}</span>;
+    const domainTag = d => ({CLINICAL:'blue',ENVIRONMENTAL:'green',VECTOR:'purple'}[d]);
+    const domainLabel = d => ({CLINICAL:'Clinical',ENVIRONMENTAL:'Environmental',VECTOR:'Vector'}[d]);
+    const TYPES = ['boolean','choice','checkbox','integer','decimal','date','time','string','text','quantity'];
+    const EX = {boolean:'Yes/no answer. Example: "First antenatal visit?"',choice:'One option from a list. Example: "Specimen condition".',checkbox:'Multiple options. Example: "Symptoms present".',integer:'Whole numbers. Example: "Gestational age (weeks)".',decimal:'Decimals. Example: "Maternal weight (kg)".',date:'Calendar date. Example: "Date of last menstrual period".',time:'Time of day. Example: "Time of sample collection".',string:'Short text. Example: "Provider name".',text:'Long text. Example: "Clinical notes".',quantity:'A number plus a unit (e.g. "Volume collected — 5 mL"). The allowed unit(s) are set via a FHIR extension in JSON mode — the Visual Builder can\'t define units, so a GUI-only Quantity accepts any unit.'};
+
+    const SEED = [
+      { id:1, name:'HIV Treatment Cohort', code:'HIV-TX-01', domain:'CLINICAL', unit:'Serology', active:true, orders:1247 },
+      { id:2, name:'TB DOTS Surveillance', code:'TB-DOTS-02', domain:'CLINICAL', unit:'Microbiology', active:true, orders:842 },
+      { id:3, name:'Water Quality — Lake Toba', code:'ENV-WQ-11', domain:'ENVIRONMENTAL', unit:'Environmental Lab', active:true, orders:311 },
+      { id:4, name:'Dengue Sentinel — Jakarta', code:'VEC-DEN-04', domain:'VECTOR', unit:'Entomology', active:true, orders:196 },
+      { id:5, name:'HBV Antenatal Screening', code:'HBV-ANC-01', domain:'CLINICAL', unit:'Serology', active:true, orders:520 },
+      { id:6, name:'Malaria Pilot (2024) — closed', code:'VEC-MAL-99', domain:'VECTOR', unit:'Entomology', active:false, orders:74 },
+    ];
+
+    function App(){
+      const [rows,setRows] = useState(SEED);
+      const [q,setQ] = useState('');
+      const [domains,setDomains] = useState([]);
+      const [showDeact,setShowDeact] = useState(false);
+      const [menu,setMenu] = useState(null);
+      const [expandedId,setExpandedId] = useState(null);   // row being edited inline
+      const [adding,setAdding] = useState(false);           // inline "add new" editor at top
+      const [confirm,setConfirm] = useState(null);
+      const [toast,setToast] = useState(null);
+
+      const toggleDomain = d => setDomains(s => s.includes(d)? s.filter(x=>x!==d): [...s,d]);
+      const visible = rows.filter(r =>
+        (showDeact || r.active) &&
+        (domains.length===0 || domains.includes(r.domain)) &&
+        (r.name+r.code).toLowerCase().includes(q.toLowerCase()));
+
+      const doDeactivate = () => { setRows(rs=>rs.map(r=>r.id===confirm.id?{...r,active:false}:r)); setToast(`"${confirm.name}" deactivated — historical orders preserved`); setConfirm(null); };
+      const reactivate = r => { setRows(rs=>rs.map(x=>x.id===r.id?{...x,active:true}:x)); setToast(`${r.name} reactivated`); setMenu(null); };
+      const edit = r => { setAdding(false); setExpandedId(expandedId===r.id?null:r.id); setMenu(null); };
+      const addNew = () => { setExpandedId(null); setAdding(a=>!a); };
+
+      return (
+        <div>
+          <div className="crumbs"><a href="#">Home</a> / <a href="#">Admin Management</a> / <a href="#">Test Management</a> / Programs</div>
+          <h2>Programs</h2>
+          <p className="sub">The initiatives that orders are filed under — each with a domain, a lab unit, and an optional order-entry questionnaire.</p>
+
+          <div className="notif notif-info">
+            <strong>How this page works.</strong> Each row is a Program. Click <b>Edit</b> to expand and configure it right here (no separate page).
+            Use the <b>⋮</b> menu to <b>Deactivate</b> a program — it stops appearing for new orders but keeps all its history — or <b>Reactivate</b> one.
+            Deactivated programs are hidden by default; flip <b>Show deactivated</b> to see them. Narrow the list with <b>Search</b> or the <b>Domain</b> filter.
+            Click <b>Add Program</b> to create one inline at the top.
+          </div>
+
+          {toast && <div className="notif notif-success">{toast} <a href="#" style={{float:'right'}} onClick={e=>{e.preventDefault();setToast(null);}}>✕</a></div>}
+
+          <div className="toolbar">
+            <input className="search" type="text" placeholder="Search by name or code" value={q} onChange={e=>setQ(e.target.value)}/>
+            <div style={{display:'flex',gap:6,alignItems:'center'}}>
+              <span style={{fontSize:12,color:'#525252'}}>Domain:</span>
+              {['CLINICAL','ENVIRONMENTAL','VECTOR'].map(d=>
+                <button key={d} className={'chip'+(domains.includes(d)?' on':'')} onClick={()=>toggleDomain(d)}>{domainLabel(d)}</button>)}
+            </div>
+            <div className="toggle" onClick={()=>setShowDeact(v=>!v)}>
+              <span className={'sw'+(showDeact?' on':'')}></span> Show deactivated
+            </div>
+            <button className="btn btn-primary" style={{marginLeft:'auto'}} onClick={addNew}>{adding?'Close new program':'Add Program'}</button>
+          </div>
+
+          {/* Inline "Add new" editor opens at the top of the list (no page change) */}
+          {adding && (
+            <div className="inline-editor">
+              <h3 style={{marginTop:0}}>New Program</h3>
+              <EditorPanel isNew onClose={()=>setAdding(false)}/>
+            </div>
+          )}
+
+          <table>
+            <thead><tr><th>Name</th><th>Domain</th><th>Status</th><th>Lab Unit</th><th style={{width:120}}></th></tr></thead>
+            <tbody>
+              {visible.map(r=>(
+                <React.Fragment key={r.id}>
+                  <tr className={r.active?'':'deactivated'}>
+                    <td>{r.name}</td>
+                    <td><Tag k={domainTag(r.domain)}>{domainLabel(r.domain)}</Tag></td>
+                    <td>{r.active? <Tag k="green">Active</Tag> : <Tag k="gray">Inactive</Tag>}</td>
+                    <td>{r.unit}</td>
+                    <td className="editcell" style={{position:'relative',textAlign:'right'}}>
+                      <button className="linkbtn" onClick={()=>edit(r)}>{expandedId===r.id?'Close':'Edit'}</button>
+                      <button className="kebab" onClick={()=>setMenu(menu===r.id?null:r.id)}>⋮</button>
+                      {menu===r.id && (
+                        <div className="menu">
+                          <button onClick={()=>edit(r)}>Edit</button>
+                          {r.active
+                            ? <button className="danger" onClick={()=>{setConfirm(r);setMenu(null);}}>Deactivate</button>
+                            : <button onClick={()=>reactivate(r)}>Reactivate</button>}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                  {expandedId===r.id && (
+                    <tr><td colSpan="5" style={{padding:0}}>
+                      <div className="inline-editor">
+                        <EditorPanel row={r} onClose={()=>setExpandedId(null)} onDeactivate={()=>{setConfirm(r);setExpandedId(null);}} onReactivate={()=>reactivate(r)}/>
+                      </div>
+                    </td></tr>
+                  )}
+                </React.Fragment>
+              ))}
+              {visible.length===0 && <tr><td colSpan="5" style={{color:'#6f6f6f'}}>No programs match your filters.</td></tr>}
+            </tbody>
+          </table>
+          <p className="sub" style={{marginTop:10}}>{visible.length} shown · deactivated hidden by default · inline edit (D-005) · no hard delete (D-002)</p>
+
+          {confirm && (
+            <div className="overlay" onClick={()=>setConfirm(null)}>
+              <div className="modal" onClick={e=>e.stopPropagation()}>
+                <h3>Deactivate this Program?</h3>
+                <p>"<strong>{confirm.name}</strong>" will stop appearing in the order-entry Program picker for new orders. Its <strong>{confirm.orders.toLocaleString()}</strong> historical order(s) keep their program coding and all indicator counts are preserved. You can reactivate it at any time from the Programs list.</p>
+                <div className="modal-actions">
+                  <button className="btn btn-sec" onClick={()=>setConfirm(null)}>Cancel</button>
+                  <button className="btn btn-danger" onClick={doDeactivate}>Deactivate</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // The inline editor — same content whether adding or editing an existing row.
+    function EditorPanel({row, isNew, onClose, onDeactivate, onReactivate}){
+      const [domain,setDomain] = useState(row?row.domain:'');
+      const active = row? row.active : true;
+      const [mode,setMode] = useState('visual');
+      const [showGuide,setShowGuide] = useState(true);
+      const [showDomainHelp,setShowDomainHelp] = useState(false);
+      const ALL_UNITS = ['Serology','Microbiology','Hematology','Chemistry','Entomology','Environmental Lab'];
+      const [units,setUnits] = useState(row&&row.unit?[row.unit]:[]);
+      const toggleUnit = u => setUnits(s=> s.includes(u)? s.filter(x=>x!==u): [...s,u]);
+      const allSelected = units.length===ALL_UNITS.length;
+      const toggleAll = () => setUnits(allSelected? [] : [...ALL_UNITS]);
+      const [questions,setQuestions] = useState(isNew?[]:[
+        { id:1, text:'First antenatal visit?', type:'boolean', options:[] },
+        { id:2, text:'Specimen condition', type:'choice', options:['Acceptable','Compromised','Rejected'] },
+      ]);
+      const setQ = (id,patch)=>setQuestions(qs=>qs.map(q=>q.id===id?{...q,...patch}:q));
+
+      return (
+        <div>
+          <div className="notif notif-info" style={{marginBottom:14}}>
+            <strong>What you're setting up.</strong> A <b>Program</b> is an initiative that orders are filed under
+            (e.g. "HIV Treatment Cohort", "Water Quality — Lake Toba"). To set one up: <b>1.</b> name it,
+            <b> 2.</b> pick its <b>Domain</b> (this controls where the program shows up for reception),
+            <b> 3.</b> assign the <b>Lab unit</b> that runs its work, and <b>4.</b> optionally build the
+            <b> order-entry questionnaire</b> — extra questions reception answers when they file an order under this program.
+          </div>
+
+          <div className="panel">
+            <div className="grid2">
+              <div className="col">
+                <label className="lbl">Program Name</label>
+                <input type="text" defaultValue={row?row.name:''} placeholder={isNew?'e.g. HBV Antenatal Screening':''} style={{width:'100%'}}/>
+                <div className="example">The name reception staff see when picking a program at order entry.</div>
+              </div>
+              <div className="col">
+                <label className="lbl">Lab unit(s)</label>
+                <div style={{border:'1px solid #8d8d8d',background:'#fff',padding:'8px 10px',maxHeight:150,overflowY:'auto'}}>
+                  <label className="radio" style={{fontWeight:600,borderBottom:'1px solid #e0e0e0',paddingBottom:6,marginBottom:4}}>
+                    <input type="checkbox" checked={allSelected} ref={el=>{if(el)el.indeterminate=units.length>0&&!allSelected;}} onChange={toggleAll}/> Select all lab units
+                  </label>
+                  {ALL_UNITS.map(u=>(
+                    <label key={u} className="radio"><input type="checkbox" checked={units.includes(u)} onChange={()=>toggleUnit(u)}/> {u}</label>
+                  ))}
+                </div>
+                <div className="example">One or more sections of the lab that run this program's testing — pick all that apply, or Select all.</div>
+              </div>
+            </div>
+
+            <div className="uplbl">Domain <span className="req">*</span></div>
+            <div style={{fontSize:13,color:'#525252',marginBottom:6}}>Controls where this program appears — reception only sees programs matching the order's domain.</div>
+            {['CLINICAL','ENVIRONMENTAL','VECTOR'].map(d=>
+              <label key={d} className="radio"><input type="radio" name={'dom'+(row?row.id:'new')} checked={domain===d} onChange={()=>setDomain(d)}/> {domainLabel(d)}</label>)}
+            {!domain && <div style={{fontSize:12,color:'#da1e28',marginTop:4}}>Domain is required</div>}
+            <button className="btn btn-ghost" style={{padding:'4px 0',marginTop:4,fontSize:13}} onClick={()=>setShowDomainHelp(v=>!v)}>{showDomainHelp?'Hide':'What does each Domain mean?'}</button>
+            {showDomainHelp && (
+              <div className="panel" style={{background:'#fafafa',marginTop:6}}>
+                <div style={{fontSize:13,marginBottom:6}}><Tag k="blue">Clinical</Tag> Patient testing — the form captures patient identifiers, provider, prior history.</div>
+                <div style={{fontSize:13,marginBottom:6}}><Tag k="green">Environmental</Tag> Compliance/surveillance sampling (water, food, air) — captures sampling site, standard, hold-time. No patient fields.</div>
+                <div style={{fontSize:13}}><Tag k="purple">Vector</Tag> Specimen surveillance (mosquito, tick) — captures collection lot, species/taxonomy, pool manifest.</div>
+              </div>
+            )}
+
+            {!isNew && (
+              <>
+                <div className="uplbl">Lifecycle</div>
+                <div style={{display:'flex',alignItems:'center',gap:14}}>
+                  Status: {active? <Tag k="green">Active</Tag> : <Tag k="gray">Inactive</Tag>}
+                  {active
+                    ? <button className="btn btn-dtert" onClick={onDeactivate}>Deactivate</button>
+                    : <button className="btn btn-ghost" onClick={onReactivate}>Reactivate</button>}
+                  <span style={{fontSize:12,color:'#6f6f6f'}}>No hard delete — deactivate preserves history (D-002)</span>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="uplbl">Questionnaire (order-entry form)</div>
+          {showGuide && (
+            <div className="notif notif-info">
+              <strong>How to add questions:</strong> use the <b>Visual Builder</b> to add questions one at a time, or switch to <b>JSON</b> to paste a complete FHIR Questionnaire. Your work round-trips through the same JSON.
+              <a href="#" style={{float:'right'}} onClick={e=>{e.preventDefault();setShowGuide(false);}}>✕</a>
+            </div>
+          )}
+          <div className="switcher">
+            <button className={mode==='visual'?'on':''} onClick={()=>setMode('visual')}>Visual Builder</button>
+            <button className={mode==='json'?'on':''} onClick={()=>setMode('json')}>JSON</button>
+          </div>
+
+          <div className="grid2">
+            <div className="col" style={{flex:1.3}}>
+              {mode==='visual' ? (
+                <div>
+                  {questions.map(qq=>(
+                    <div className="qcard" key={qq.id}>
+                      <button className="kebab" style={{position:'absolute',top:8,right:8}} onClick={()=>setQuestions(qs=>qs.filter(q=>q.id!==qq.id))} title="Delete question">⋮</button>
+                      <label className="lbl">Question Text</label>
+                      <input type="text" value={qq.text} onChange={e=>setQ(qq.id,{text:e.target.value})} style={{width:'90%'}}/>
+                      <label className="lbl" style={{marginTop:10}}>Question Type</label>
+                      <select value={qq.type} onChange={e=>setQ(qq.id,{type:e.target.value})}>
+                        {TYPES.map(t=><option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
+                      </select>
+                      <div className="example">{EX[qq.type]}</div>
+                      {(qq.type==='choice'||qq.type==='checkbox') && (
+                        <div style={{marginTop:10}}>
+                          <label className="lbl">Answer options</label>
+                          {qq.options.map((o,i)=>(
+                            <div className="opt-row" key={i}>
+                              <input type="text" value={o} onChange={e=>{const n=[...qq.options];n[i]=e.target.value;setQ(qq.id,{options:n});}} style={{flex:1}}/>
+                              <button className="kebab" onClick={()=>setQ(qq.id,{options:qq.options.filter((_,j)=>j!==i)})} title="Delete option">🗑</button>
+                            </div>
+                          ))}
+                          {qq.options.length===0 && <div className="example">No options yet — add at least one so reception can pick a value.</div>}
+                          <button className="btn btn-ghost" style={{padding:'4px 0',fontSize:13}} onClick={()=>setQ(qq.id,{options:[...qq.options,'New option']})}>+ Add option</button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {questions.length===0 && <div className="example" style={{marginBottom:8}}>No questions yet — add questions one at a time, or paste a Questionnaire in JSON mode.</div>}
+                  <button className="btn btn-ghost" style={{padding:'6px 0'}} onClick={()=>setQuestions(qs=>[...qs,{id:Date.now(),text:'New Field',type:'string',options:[]}])}>+ Add {questions.length===0?'First ':'New '}Question</button>
+                </div>
+              ) : (
+                <div>
+                  <textarea defaultValue={'{\n  "resourceType": "Questionnaire",\n  "item": []\n}'} style={{width:'100%',height:150,background:'#fff'}}/>
+                  <button className="btn btn-dtert" style={{marginTop:8}}>Validate JSON</button>
+                  <div className="panel" style={{marginTop:10,background:'#fafafa'}}>
+                    <div style={{fontSize:12,color:'#525252'}}>Format: FHIR R4 Questionnaire · allowed item.type:</div>
+                    <div className="chipset">{TYPES.map(t=><span key={t}>{t}</span>)}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="col">
+              <label className="lbl">Example (live preview — what reception sees)</label>
+              <div className="preview-pane">
+                {questions.length===0 && <div style={{color:'#6f6f6f'}}>No questions yet — start adding questions to see the preview.</div>}
+                {questions.map(qq=>(
+                  <div key={qq.id} style={{marginBottom:14}}>
+                    <label className="lbl" style={{color:'#161616'}}>{qq.text||'(untitled)'}</label>
+                    {qq.type==='boolean' && <div><label className="radio" style={{display:'inline',marginRight:12}}><input type="radio" disabled/> Yes</label><label className="radio" style={{display:'inline'}}><input type="radio" disabled/> No</label></div>}
+                    {qq.type==='choice' && <select disabled style={{width:'100%'}}><option>{qq.options[0]||'—'}</option></select>}
+                    {qq.type==='checkbox' && qq.options.map((o,i)=><label key={i} className="radio"><input type="checkbox" disabled/> {o}</label>)}
+                    {(qq.type==='integer'||qq.type==='decimal'||qq.type==='string') && <input type="text" disabled style={{width:'100%'}} placeholder={qq.type}/>}
+                    {qq.type==='quantity' && <div style={{display:'flex',gap:6}}><input type="text" disabled style={{flex:1}} placeholder="number"/><select disabled style={{width:90}}><option>unit</option></select></div>}
+                    {qq.type==='text' && <textarea disabled style={{width:'100%',height:50}}/>}
+                    {qq.type==='date' && <input type="text" disabled style={{width:'100%'}} placeholder="mm/dd/yyyy"/>}
+                    {qq.type==='time' && <input type="text" disabled style={{width:'100%'}} placeholder="hh:mm"/>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div style={{marginTop:16,display:'flex',gap:10}}>
+            <button className="btn btn-primary" disabled={!domain} title={!domain?'Select a Domain first':''}>Save</button>
+            <button className="btn btn-sec" onClick={onClose}>Cancel</button>
+            {!domain && <span style={{fontSize:12,color:'#6f6f6f',alignSelf:'center'}}>Save is disabled until a Domain is selected.</span>}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>
