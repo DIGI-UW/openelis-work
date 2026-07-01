@@ -26,6 +26,44 @@ drain source files to `processed/`; flag anything OPEN > 7 days.
 | chore/ledger-reconcile-2026-06-22 | https://github.com/DIGI-UW/openelis-work/compare/main...chore/ledger-reconcile-2026-06-22?expand=1 | 2026-06-22 | **MERGED** (PR #181, auto-merged on green — test+build checks SUCCESS; opened on push by the auto-opener, not the connector) | Doc-only: syncs the stale origin ledger (was frozen at 06-15) up to current reality + adds the 2026-06-22 reconciliation entry. Auto-merge + required `test` check will land it on green. **Verified MERGED on main 2026-06-23** (06-22 reconciliation entry present on origin's ledger; remote branch deleted). Doc-only → nothing to drain. |
 | design/minion-tbprofiler | https://github.com/DIGI-UW/openelis-work/pull/183 | 2026-06-22 | **MERGED** (PR #183, verified on main 2026-06-23 — remote branch deleted/squash-merged; both spec files present on `origin/main`, App.jsx registry lines ~596–619, MANIFEST ~431–458, and INDEX rows all carry the entries) | MinION + TB-Profiler field-mapping spec v2.2 (re-anchored on flat-file plugin + M-14 import channel) + companion setup guide registered as two spec-only analyzer-integration entries. Source had been mis-staged in the retired `OpenELIS Feature Design/upload/` folder; relocated + registered last session, already drained to `upload/processed/noncanon-retired-2026-06-22/`. GitHub discussion #182; linked OGC-318 (supersedes v1.0). designs/analyzer-integration/minion-tbprofiler-{field-mapping-v2.2,setup-guide-v1.0}.md + App.jsx registry + MANIFEST + INDEX. Tests 230/230. Slug unchanged → no new Jira permalink. |
 
+## Reconciliation — 2026-06-26 (scheduled run)
+- **No OPEN or stranded PRs.** Every row in the ledger above is MERGED. Nothing was pending coming
+  into this run; no new PR opened (nothing genuinely new to register — see reconcile below).
+- **ANOMALY — unpushed local commit on the workspace mount.** The mount's git HEAD is `5f97a34`
+  ("chore(gallery): archive superseded micro FRS-v1 docs + old single-screen mocks"), **1 commit
+  ahead of `origin/main` (`c4e94d3`) and not pushed.** It archives ~20 superseded microbiology
+  `*-frs-v1.md` + old single-screen mock files into `designs/_archive/2026-06-26/` and trims
+  MANIFEST.yaml (−191) + App.jsx (−204). Looks like legitimate cleanup from an interactive session
+  earlier today, left uncommitted-to-origin. **Not pushed by this run** (provenance is an interactive
+  session, not this upload run; archive intent not independently verified). → Casey: push it from the
+  Mac if intended (`git push origin main` from the mount, or open it as a PR).
+- **Canonical `upload/` reconcile (content md5 vs full `designs/` + `public/` tree, 546 files):**
+  | Upload file | Class | Action |
+  |---|---|---|
+  | V04-fhir-considerations-for-review.md | IDENTICAL → designs/vector-surveillance/vector-surveillance-reporting-fhir-considerations.md | drained to processed/ |
+  | amr-micro-workflow-flow.html | IDENTICAL → designs/microbiology/amr-micro-workflow-flow.html | drained |
+  | m-00/m-01/m-02/m-09/m-10/m-12 (6 micro FRS) | IDENTICAL → designs/microbiology/ | drained |
+  | preview-fhir-publication-settings.jsx | IDENTICAL → designs/system/fhir-outbound-push.jsx | drained |
+  | inventory-techdebt/inventory-item-type-management-mockup.jsx | IDENTICAL → designs/inventory/inventory-item-type-management.jsx (renamed slug) | drained |
+  | inventory-techdebt/inventory-item-type-management-preview.html | IDENTICAL → designs/inventory/inventory-item-type-management.html (+public mirror) | drained |
+  | order-entry-FRS-v3-three-workflows.md | gallery-NEWER (gallery 134 ln > upload 123; registered on main as order-entry-frs-v3-three-workflows.md) | drained (stale; do-not-push) |
+  | order-entry-developer-reference.md | gallery-NEWER (gallery 89 ln > upload 79; registered on main) | drained (stale) |
+  | V04-vector-surveillance-reporting-preview.html | gallery-NEWER (gallery vector-surveillance-reporting.html 1603 ln > upload 707) | drained (stale) |
+  | Aspect_GxAlert_to_OpenELIS_Gap_Analysis.docx | DUPLICATE of upload/processed/ copy (byte-identical) | could not remove ("operation not permitted") — left in place, harmless |
+- **Genuinely new design artifacts: NONE.** Everything design-like in `upload/` is already on `main`
+  (IDENTICAL) or superseded by a newer gallery version (stale). **→ no design push, no PR, no build.**
+- **Supporting / non-design files LEFT in `upload/` for Casey** (no gallery counterpart; not FRS/mockups):
+  OGC-1066 order-entry analysis docs (`clinical-order-entry-GATES.md`,
+  `order-entry-three-domain-crosswalk.md`, `order-entry-mockup-vs-delivered-UX-drift.md`) — these are
+  research/companion artifacts to the already-registered order-entry FRS v3 + dev-reference, not
+  standalone gallery entries (same precedent as analyze.md/breakdown.md in prior runs); the two
+  `inventory-techdebt/*-jira-story.md` Jira stories; `gallery-registration.md` (registration
+  instructions for the micro walkthrough — already executed; the HTML is landed);
+  `openelis-design-SKILL-updated.md` (a skill-file update, not a gallery design); and the three
+  carried-over non-design drafts (`s06-lhu-domain-variants-jira-comment-draft.md`,
+  `v04-v1.5-ida-brief.md`, `v04-v1.5-jira-comment-draft.md`) left for Casey to post manually.
+- **Jira (Step 11):** nothing changed — no new or changed slugs → no gallery permalinks to post.
+
 ## Reconciliation — 2026-06-23 (scheduled run)
 - **Both previously-open ledger items are now MERGED. No OPEN or stranded PRs remain.**
   - `design/minion-tbprofiler` (PR #183, was OPEN, pushed 2026-06-22 → 1 day old, not stranded) →
