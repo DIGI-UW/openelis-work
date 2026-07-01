@@ -1,5 +1,20 @@
 # openelis-design — Changelog
 
+## 2026-07-01 — Monthly consolidation pass
+
+- constitution.md pointer: added a **2026-07-01 verification note**. Upstream governance footer
+  currently reads Version 1.9.1 (Last Amended 2026-04-05) with Principle X present; that label is
+  lower than the recorded 1.10.0, so the re-sync trigger did not fire. Flagged the version-label
+  mismatch to reconcile with repo owners; principles I–X unchanged.
+- current-state-gotchas.md: promoted the **home-dashboard domain-filtering gap** from auto-memory
+  (order entry is domain-scoped today; dashboard Domain filtering is not built). Noted order-entry
+  domain scoping on the Domain-enum line. Added a dated re-confirmation footer; live-app route
+  re-verification deferred (unattended run, instance gated at login).
+- decision-log.md: re-confirmed provisional **D-017** (EQA V2 still not built); no decisions
+  superseded, none newly promoted (domain delta is a current-state fact, not a new decision).
+- spec-registry.md: reviewed; no new FRS this cycle, `?` cells left as-is (no confirmed values).
+- Repackaged the root openelis-design.skill bundle from the current tree.
+
 ## 2026-06-26 (v3.3) — Specs stay implementation-free; tickets scoped to user value
 
 - Removed all implementation direction from the spec path. `/analyze` Passes K (Audit Trail)

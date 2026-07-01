@@ -14,6 +14,13 @@
 
 **Synced version:** `1.10.0` (Principle X: Legacy Code Removal, dated 2026-04-06)
 **Last synced into this skill:** 2026-06-18
+**Last verified against upstream:** 2026-07-01 — the upstream governance footer currently
+reads `**Version**: 1.9.1` (Ratified 2025-10-30, Last Amended 2026-04-05), and Principle X
+(Legacy Code Removal) is present upstream. The footer's version *label* (1.9.1) is **lower**
+than the `1.10.0` recorded above, so the re-sync trigger did not fire this cycle and the
+design-relevant summary below still holds. ⚠ The label mismatch is a known discrepancy to
+reconcile with the repo owners at the next amendment — do **not** silently bump this pointer
+to match, and do not lower it either; the summarized principles (I–X) are unchanged.
 
 > ⚠️ **Re-sync trigger:** Before relying on this summary in `/analyze` or `/specify`, check
 > the raw URL's version header. If upstream is newer than the "Synced version" above,
