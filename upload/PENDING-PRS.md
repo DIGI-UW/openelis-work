@@ -25,6 +25,7 @@ drain source files to `processed/`; flag anything OPEN > 7 days.
 | design/s09-eligibility-gate-v3 | https://github.com/DIGI-UW/openelis-work/compare/main...design/s09-eligibility-gate-v3?expand=1 | 2026-06-16 | **MERGED** (content byte-identical on main, verified 2026-06-17; remote branch deleted — squash-merge so tip is not an ancestor. All 5 files md5-match: FRS/jsx/html + analysis + breakdown docs; App.jsx registry shows v3.0. Source files drained to processed/.) | S-09 Pre-Analytical Eligibility Gate **v2.0 → v3.0** simplification rewrite (OGC-580; epic OGC-527). Update-in-place: overwrote canonical `designs/sample-collection/pre-analytical-eligibility-gate.{md,jsx,html}` (slug/route unchanged → `#/sample-collection/pre-analytical-eligibility-gate`) + public/ mirror; added supporting docs `S09-eligibility-gate-{analysis,breakdown}-v3.md`. v3 drops the auto-evaluating per-SampleType criteria engine for a generic manual acceptance checklist at Step 3 + Resample-spawns-draft-order; config is a lightweight master list decoupled from the Test Catalog editor (OGC-746 removed the SampleType tab v2.0 relied on). No new status enum / permission keys. App.jsx + MANIFEST descriptions bumped + `updated: 2026-06-16`. Commit 5b83a7d. Local vitest could not complete (sandbox worker-pool hang, S-09-unrelated); new jsx + App.jsx Babel-parse clean and mockup is self-contained — required `test` CI check gates the auto-merge. **PLAN-ONLY breakdown: no Jira epic/story restructuring performed.** Gallery permalink comment posted to OGC-580 this run. |
 | chore/ledger-reconcile-2026-06-22 | https://github.com/DIGI-UW/openelis-work/compare/main...chore/ledger-reconcile-2026-06-22?expand=1 | 2026-06-22 | **MERGED** (PR #181, auto-merged on green — test+build checks SUCCESS; opened on push by the auto-opener, not the connector) | Doc-only: syncs the stale origin ledger (was frozen at 06-15) up to current reality + adds the 2026-06-22 reconciliation entry. Auto-merge + required `test` check will land it on green. **Verified MERGED on main 2026-06-23** (06-22 reconciliation entry present on origin's ledger; remote branch deleted). Doc-only → nothing to drain. |
 | design/minion-tbprofiler | https://github.com/DIGI-UW/openelis-work/pull/183 | 2026-06-22 | **MERGED** (PR #183, verified on main 2026-06-23 — remote branch deleted/squash-merged; both spec files present on `origin/main`, App.jsx registry lines ~596–619, MANIFEST ~431–458, and INDEX rows all carry the entries) | MinION + TB-Profiler field-mapping spec v2.2 (re-anchored on flat-file plugin + M-14 import channel) + companion setup guide registered as two spec-only analyzer-integration entries. Source had been mis-staged in the retired `OpenELIS Feature Design/upload/` folder; relocated + registered last session, already drained to `upload/processed/noncanon-retired-2026-06-22/`. GitHub discussion #182; linked OGC-318 (supersedes v1.0). designs/analyzer-integration/minion-tbprofiler-{field-mapping-v2.2,setup-guide-v1.0}.md + App.jsx registry + MANIFEST + INDEX. Tests 230/230. Slug unchanged → no new Jira permalink. |
+| design/narrative-figures (interactive) | https://github.com/DIGI-UW/openelis-work/compare/main...design/narrative-figures?expand=1 | 2026-07-01 | **MERGED** (content byte-identical on `origin/main`, verified 2026-07-02) | Test Catalog Editor — Completion & Correction (OGC-1112, Epic; umbrella OGC-949). Landed via an interactive session, not this scheduled run. 3 gallery files md5-match origin/main: `designs/admin-config/test-catalog-editor-completion.{md,jsx,html}`; App.jsx MOCKUP_REGISTRY entry present (added 2026-07-01, status draft, jira OGC-1112). The `-breakdown.md` slicing guide is a planning doc, not part of the gallery changeset (precedent: analyze/breakdown docs). All 4 source files drained from canonical `upload/` → `upload/processed/` this run. Gallery permalink comment already posted to OGC-1112 by Casey 2026-07-01 16:49 (all 4 links) → slug unchanged, no new Jira comment. NOTE: remote branch `design/narrative-figures` still open/undeleted (interactive work) — Casey to delete/close if fully landed. |
 
 ## Reconciliation — 2026-07-01 (scheduled + interactive run)
 - **Two genuinely-new admin-config entries registered this run** (branch
@@ -57,6 +58,45 @@ drain source files to `processed/`; flag anything OPEN > 7 days.
 - **upload/ reconcile (md5 vs full designs/+public tree):** aside from the two new ref sets above,
   everything else in `upload/` is already-classified non-design working files (V04-*, order-entry-*,
   drafts, inventory-techdebt stories, GxAlert docx) — nothing else new to register.
+
+
+## Reconciliation — 2026-07-02 (scheduled run)
+- **No tracked PR is OPEN or stranded.** Every row in the ledger table is MERGED. The prior run's
+  own doc-only ledger PR (`chore/ledger-reconcile-2026-06-26`) is confirmed **MERGED** — its
+  reconciliation entry is present on `origin/main`'s ledger.
+- **One genuinely-new design set landed since last run — already on main (NOT pushed by this run).**
+  `test-catalog-editor-completion` (OGC-1112 Epic) appeared in canonical `upload/` (4 files, dated
+  2026-07-01) but all 3 gallery files are **byte-identical (md5)** to their `origin/main`
+  counterparts — `designs/admin-config/test-catalog-editor-completion.{md,jsx,html}` — and the
+  App.jsx registry + MANIFEST already carry the entry (added 2026-07-01, status draft, jira
+  OGC-1112). It was processed & pushed by an interactive session (branch `design/narrative-figures`).
+  This run only **drained the 4 source files** (3 IDENTICAL gallery files + the `-breakdown.md`
+  planning/slicing doc, which is not part of the gallery changeset) from `upload/` → `upload/processed/`.
+  **No design push, no PR, no build** — nothing new to register.
+- **Jira (Step 11):** skipped. OGC-1112 already carries the full gallery-permalink comment (posted
+  by Casey 2026-07-01 16:49 — interactive mockup, HTML preview, FRS, slicing guide). Slug unchanged
+  → no new/duplicate comment.
+- **Canonical `upload/` reconcile (md5 vs full designs/ + public tree, 561 files):** after the drain,
+  the only files left in `upload/` are non-design working docs / assets left for Casey — the two UW/DIGI
+  logo images, `PENDING-PRS.md`, `README.md`, the OGC-1066 order-entry research docs
+  (`clinical-order-entry-GATES.md`, `order-entry-three-domain-crosswalk.md`,
+  `order-entry-mockup-vs-delivered-UX-drift.md`), `gallery-registration.md`,
+  `openelis-design-SKILL-updated.md` (skill-file update, not a gallery design),
+  `Aspect_GxAlert_to_OpenELIS_Gap_Analysis.docx`, and the three carried-over non-design drafts
+  (`s06-lhu-domain-variants-jira-comment-draft.md`, `v04-v1.5-ida-brief.md`,
+  `v04-v1.5-jira-comment-draft.md`). Nothing upload-newer, nothing genuinely new → nothing to push.
+- **ANOMALY — stranded doc-only ledger branches.** Two prior scheduled-run ledger-sync branches never
+  merged and are **> 7 days old**: `chore/ledger-reconcile-2026-06-24` and
+  `chore/ledger-reconcile-2026-06-25` (tips NOT ancestors of main; their 06-24/06-25 reconciliation
+  entries are absent from main's ledger). They are **doc-only and superseded** — the 06-26 entry (with
+  everything they would have recorded) is on main — so no content is lost. → Casey: safe to delete both
+  stale remote branches (and close their PRs if opened).
+- **Other stale un-deleted remote branches** (content already on main via squash-merge, safe to prune):
+  `design/analyzer-bruker-bd-epicenter` (#164), `design/refresh-qa-versioning-styleguide`,
+  `design/micro-sync6`, `design/validation-page-v3`, `design/v2-mockups-uncertainty-and-trap-details`.
+  Plus `design/narrative-figures` (this run's landed set — still open/undeleted).
+- **This run pushes a doc-only ledger sync** (`chore/ledger-reconcile-2026-07-02`) recording the
+  test-catalog-editor-completion MERGED row + this entry; auto-opener + required `test` check land it.
 
 
 ## Reconciliation — 2026-06-26 (scheduled run)
