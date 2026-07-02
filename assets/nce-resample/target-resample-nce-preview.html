@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resample → prefilled Report Non-Conformity Event (target) — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body{background:#f4f4f4;margin:0;font-family:'IBM Plex Sans',sans-serif;color:#161616;}
+    .banner{background:#0f62fe;color:#fff;padding:6px 1rem;font-size:12px;font-family:monospace;}
+    .wrap{max-width:1000px;margin:0 auto;padding:1rem 1.5rem 3rem;}
+    .crumbs{font-size:12px;color:#6f6f6f;margin:12px 0;} .crumbs a{color:#0f62fe;text-decoration:none;}
+    h2{margin:0 0 2px;} .sub{color:#6f6f6f;font-size:14px;margin:0 0 14px;}
+    .note{background:#edf5ff;border-left:3px solid #0043ce;padding:11px 14px;font-size:13px;margin:0 0 18px;line-height:1.45;}
+    .section{background:#f4f4f4;border:1px solid #e0e0e0;padding:16px 18px;margin-bottom:14px;}
+    .snum{display:inline-flex;width:22px;height:22px;border-radius:50%;background:#0f62fe;color:#fff;font-size:12px;align-items:center;justify-content:center;margin-right:8px;}
+    .stitle{font-weight:600;font-size:15px;margin-bottom:12px;display:flex;align-items:center;}
+    .row{display:flex;gap:20px;flex-wrap:wrap;} .col{flex:1;min-width:200px;}
+    .lbl{font-size:12px;color:#525252;margin:0 0 4px;display:block;}
+    input[type=text],select,textarea{font-size:14px;padding:8px;border:none;border-bottom:1px solid #8d8d8d;background:#fff;box-sizing:border-box;width:100%;font-family:inherit;}
+    .ro{background:#e8e8e8;color:#525252;}
+    .prefill{background:#defbe6;border:1px solid #a7f0ba;border-radius:3px;font-size:11px;color:#0e6027;padding:1px 6px;margin-left:6px;vertical-align:middle;}
+    .sev{display:flex;gap:12px;margin-top:4px;} .sevcard{flex:1;border:1px solid #e0e0e0;background:#fff;padding:12px;text-align:center;font-size:13px;border-radius:3px;cursor:pointer;}
+    .sevcard.on{border:2px solid #0f62fe;} .dot{width:16px;height:16px;border-radius:50%;margin:0 auto 6px;}
+    .linkbox{background:#fff;border:1px solid #e0e0e0;padding:10px 12px;font-size:14px;display:flex;justify-content:space-between;align-items:center;}
+    .chip-sample{background:#d0e2ff;color:#0043ce;border-radius:12px;padding:2px 10px;font-size:12px;}
+    .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px;}
+    .btn{border:none;cursor:pointer;font-size:14px;padding:11px 18px;} .btn-primary{background:#0f62fe;color:#fff;} .btn-sec{background:#393939;color:#fff;}
+    .btn:disabled{background:#c6c6c6;cursor:not-allowed;}
+    .notif-success{background:#defbe6;border-left:3px solid #24a148;padding:12px 14px;font-size:13px;margin-top:14px;}
+    .annot{font-size:12px;color:#6f6f6f;font-style:italic;margin-top:6px;}
+    .resamplebar{background:#e8daff;border-left:3px solid #6929c4;padding:10px 14px;font-size:13px;margin-bottom:14px;}
+  </style>
+</head>
+<body class="cds--white">
+  <div class="banner">⚡ Preview — Resample opens the REAL Report Non-Conformity Event form, PREFILLED (target) &nbsp;|&nbsp; form: /ReportNonConformingEvent · OGC-580 sample_action + OGC-312 &nbsp;|&nbsp; values verified live v3.2.1.10 &nbsp;|&nbsp; not a live app</div>
+  <div class="wrap" id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+    const SUBCATS = ["Barcode Issue","Broken Tube/Container","Coagulated Sample","Contamination - client","Contamination - internal","Hemolytic sample","Improper Specimen Collection","Inadequate Sampling","Insufficient Amount","Leakage","Lost Specimen - Irreplaceable","Lost Specimen - Redraw","Mislabeled/unlabeled specimen","Missing Sample","Specimen Receipt Delay","Spill","Wrong specimen","Wrong temperature"];
+    const UNITS = ["Biochemistry","Hematology","Serology-Immunology","Immunology","Molecular Biology","Cytology","Serology","Virology","Pathology","Immunohistochemistry"];
+
+    function App(){
+      const [subcat,setSubcat] = useState('');
+      const [sev,setSev] = useState('MAJOR');
+      const [desc,setDesc] = useState('Failed intake check on QA Review: “Specimen container intact and properly labeled”.');
+      const [done,setDone] = useState(false);
+
+      return (
+        <div>
+          <div className="crumbs"><a href="#">Home</a> / <a href="#">QA Review</a> / Report Non-Conformity Event</div>
+          <h2>Report Non-Conformity Event</h2>
+          <p className="sub">Document a quality event and link to affected samples and results</p>
+
+          <div className="resamplebar">
+            ↻ <strong>Opened from “Resample” on QA Review (sample DEV0126000000000074).</strong> The event is prefilled and the sample is already linked — pick the reason + severity and submit once. On submit this also flags the sample for recollection (the OGC-580 <code>Resample</code> sample_action).
+          </div>
+          <div className="note">
+            <strong>What changes vs today:</strong> today Resample records no reason and Report NCE is a separate, blank form. Here Resample lands on this <em>real</em> NCE form <strong>prefilled</strong>: Category = Sample, the sample auto-linked (no manual search), and the failed criterion seeded into Description. One reason, one severity, one Submit.
+          </div>
+
+          <div className="section">
+            <div className="stitle"><span className="snum">1</span> Reporter &amp; Event Context</div>
+            <div className="row">
+              <div className="col"><span className="lbl">NCE Number</span><input className="ro" readOnly value="NCE-2026-00001" /></div>
+              <div className="col"><span className="lbl">Reporter Name</span><input className="ro" readOnly value="QA-Review clerk" /></div>
+              <div className="col"><span className="lbl">Date of Event *</span><input className="ro" readOnly value="07/01/2026" /></div>
+              <div className="col"><span className="lbl">Reporting Unit * <span className="prefill">from sample's lab unit</span></span>
+                <select defaultValue="Serology">{UNITS.map(u=><option key={u}>{u}</option>)}</select></div>
+            </div>
+          </div>
+
+          <div className="section">
+            <div className="stitle"><span className="snum">2</span> Classification</div>
+            <div className="row">
+              <div className="col"><span className="lbl">Category * <span className="prefill">preset = Sample (the reject path)</span></span>
+                <select className="ro" disabled value="Sample"><option>Sample</option></select></div>
+              <div className="col"><span className="lbl">Subcategory (rejection reason) *</span>
+                <select value={subcat} onChange={e=>setSubcat(e.target.value)}>
+                  <option value="">Select subcategory…</option>
+                  {SUBCATS.map(s=><option key={s}>{s}</option>)}
+                </select>
+                {!subcat && <div className="annot" style={{color:'#da1e28'}}>Required — real values from the live form.</div>}
+              </div>
+            </div>
+            <div style={{marginTop:12}}>
+              <span className="lbl">Severity *</span>
+              <div className="sev">
+                {[['CRITICAL','#da1e28','Critical','Patient safety risk'],['MAJOR','#f1893b','Major','Significant quality impact'],['MINOR','#24a148','Minor','Limited, easily corrected']].map(([v,c,t,d])=>(
+                  <div key={v} className={'sevcard'+(sev===v?' on':'')} onClick={()=>setSev(v)}>
+                    <div className="dot" style={{background:c}}></div><strong>{t}</strong><div style={{color:'#6f6f6f'}}>{d}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="section">
+            <div className="stitle"><span className="snum">3</span> Details</div>
+            <span className="lbl">Description * <span className="prefill">seeded from the failed criterion</span></span>
+            <textarea rows="3" value={desc} onChange={e=>setDesc(e.target.value)}></textarea>
+            <div className="annot">Immediate Action / Suspected Causes / Proposed Action remain available (optional), unchanged from the real form.</div>
+          </div>
+
+          <div className="section">
+            <div className="stitle"><span className="snum">5</span> Link to Samples / Results <span className="prefill" style={{marginLeft:8}}>auto-linked — no manual search</span></div>
+            <div className="linkbox"><span><span className="chip-sample">Serum</span> &nbsp; DEV0126000000000074 · COVID-19 ANTIBODY IgG</span><span style={{color:'#6f6f6f',fontSize:12}}>linked by Resample</span></div>
+            <div className="annot">Today the clerk would search &amp; link the sample by hand (§5). Resample pre-links it — the biggest one-touchpoint win.</div>
+          </div>
+
+          <div className="actions">
+            <button className="btn btn-sec">Cancel</button>
+            <button className="btn btn-primary" disabled={!subcat} onClick={()=>setDone(true)}>Submit NCE + flag Resample</button>
+          </div>
+          {!subcat && <div className="annot" style={{textAlign:'right'}}>Submit enabled once a subcategory is chosen.</div>}
+          {done && <div className="notif-success">✓ Non-conformance recorded (Category: Sample · {subcat} · {sev[0]+sev.slice(1).toLowerCase()}) — sample flagged for resample; a linked draft recollection order is created.</div>}
+        </div>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>
