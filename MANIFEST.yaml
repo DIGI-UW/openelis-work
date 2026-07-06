@@ -1289,10 +1289,12 @@
   html: designs/reports/report-print-queue.html
   category: reports
   description: >
-    Report-type-agnostic print queue (v1.2): auto-surfaces validated-but-unprinted reports;
-    completeness indicators, patient/lab-number search, print recording via existing report
-    tracking. reportType discriminator maps to ReportTrackingService.ReportType enum.
-    Generation lifecycle: QUEUED → GENERATING → READY → PRINTED / FAILED.
+    Report-type-agnostic print queue (v1.3): auto-surfaces validated-but-unprinted reports;
+    completeness indicators, print recording via existing report tracking. reportType
+    discriminator maps to ReportTrackingService.ReportType enum. Generation lifecycle:
+    QUEUED → GENERATING → READY → PRINTED / FAILED. r3 filter bar redesign — Facility / Ward /
+    Requestor multi-select typeahead (server-side), Lab No first-class toolbar lookup, inline
+    Search by Patient, and exclusive targeted search (suspends browse filters, FR-2-005).
     Supersedes patient-report-print-queue. OGC-1031 / OGC-431 / OGC-899.
   links:
     jira: ["OGC-1031"]

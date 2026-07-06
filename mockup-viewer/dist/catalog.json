@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-01T23:48:30.707Z",
+  "generated": "2026-07-06T23:23:04.191Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
   "totalDesigns": 196,
   "categories": [
@@ -4254,7 +4254,7 @@
       "name": "Report Print Queue",
       "slug": "report-print-queue",
       "category": "reports",
-      "description": "Report-type-agnostic print queue: auto-surfaces validated-but-unprinted reports; completeness indicators, patient/lab-number search, print recording via existing report tracking.",
+      "description": "Report-type-agnostic print queue (v1.3): auto-surfaces validated-but-unprinted reports; completeness indicators, print recording via existing report tracking. r3 filter bar redesign — Facility / Ward / Requestor are FilterableMultiSelect with server-side typeahead, Lab No is a first-class toolbar lookup, Search by Patient opens inline, and targeted searches are exclusive (suspend browse filters).",
       "type": "jsx",
       "added": "2026-06-10",
       "status": "draft",

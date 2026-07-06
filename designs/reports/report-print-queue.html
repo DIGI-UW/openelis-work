@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Report Print Queue — OpenELIS Preview</title>
+  <title>Report Print Queue (r3) — OpenELIS Preview</title>
   <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
@@ -11,426 +11,404 @@
   <style>
     body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans', sans-serif; }
     .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
-    .preview-content { padding:1rem 2rem 4rem; max-width:1500px; margin:0 auto; }
-    .pq-filterbar { background:#fff; border:1px solid #e0e0e0; padding:1rem; display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end; }
-    .pq-field { display:flex; flex-direction:column; gap:4px; }
-    .pq-field label { font-size:12px; color:#525252; }
-    .pq-field select { padding:7px 10px; border:none; border-bottom:1px solid #8d8d8d; background:#f4f4f4; font-size:14px; min-width:150px; }
-    .pq-field select:disabled { color:#c6c6c6; }
-    table.cds--data-table td { vertical-align:middle; }
-    .pq-acc { font-family:'IBM Plex Mono', monospace; font-size:12px; }
-    .pq-tags { display:flex; gap:4px; flex-wrap:wrap; align-items:center; }
-    .pq-toolbar { display:flex; align-items:center; justify-content:space-between; padding:0 1rem; min-height:48px; border:1px solid #e0e0e0; border-bottom:none; }
-    .pq-toolbar.batch { background:#0f62fe; } .pq-toolbar.batch * { color:#fff; }
-    .pq-pag { display:flex; align-items:center; justify-content:space-between; padding:10px 1rem; border:1px solid #e0e0e0; border-top:none; font-size:13px; background:#fff; }
-    .spin { display:inline-block; width:12px; height:12px; border:2px solid #0f62fe; border-top-color:transparent; border-radius:50%; animation:sp 0.8s linear infinite; }
-    @keyframes sp { to { transform:rotate(360deg); } }
+    .preview-content { padding:1rem 2rem 3rem; max-width:1500px; margin:0 auto; }
+    .pq-filterbar { background:#fff; border:1px solid #e0e0e0; padding:1rem; display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end; position:relative; }
+    .pq-filter { display:flex; flex-direction:column; gap:4px; min-width:170px; }
+    .pq-filter label { font-size:12px; color:#525252; }
+    .pq-filter select, .pq-filter input { height:32px; border:none; border-bottom:1px solid #8d8d8d; background:#f4f4f4; padding:0 8px; font-size:13px; font-family:inherit; }
+    .pq-filter.pq-disabled { opacity:.4; pointer-events:none; }
+    .hint { font-size:11px; color:#6f6f6f; margin-top:2px; }
+    .pq-guidance { background:#edf5ff; border-left:3px solid #0f62fe; padding:.75rem 1rem; font-size:13px; margin:0 0 1rem; }
+    .mts { position:relative; }
+    .mts-field { display:flex; align-items:center; gap:6px; background:#f4f4f4; border-bottom:1px solid #8d8d8d; height:32px; padding:0 8px; }
+    .mts-field input { flex:1; border:none; background:transparent; height:30px; padding:0; font-size:13px; font-family:inherit; outline-offset:-2px; }
+    .mts-count { display:inline-flex; align-items:center; gap:4px; background:#393939; color:#fff; border-radius:12px; font-size:12px; padding:1px 4px 1px 8px; white-space:nowrap; }
+    .mts-count button { background:transparent; border:none; color:#fff; cursor:pointer; font-size:12px; line-height:1; padding:2px 4px; border-radius:8px; }
+    .mts-count button:hover { background:#525252; }
+    .mts-drop { position:absolute; z-index:30; top:100%; left:0; right:0; min-width:260px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.3); max-height:280px; overflow:auto; }
+    .mts-opt { display:flex; align-items:center; gap:8px; padding:8px 10px; font-size:13px; cursor:pointer; }
+    .mts-opt:hover { background:#e8e8e8; }
+    .mts-hint { padding:8px 10px; font-size:12px; color:#525252; font-style:italic; }
+    .mts-foot { padding:6px 10px; font-size:11px; color:#525252; background:#f4f4f4; border-top:1px solid #e0e0e0; position:sticky; bottom:0; }
+    .pq-searchstrip { background:#edf5ff; border:1px solid #d0e2ff; border-top:none; padding:.65rem 1rem; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .pq-panel { background:#fff; border:1px solid #e0e0e0; border-top:2px solid #0f62fe; padding:1rem; }
+    .pq-panel h4 { margin:0 0 .75rem; font-size:14px; }
+    .pq-panel .fields { display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end; }
+    table.cds--data-table td, table.cds--data-table th { vertical-align:middle; }
+    .click-catch { position:fixed; inset:0; z-index:20; }
+    .rowbtn { white-space:nowrap; }
   </style>
 </head>
 <body class="cds--white">
   <div class="preview-banner">
-    ⚡ Visual Preview — Report Print Queue (r2, generalized) &nbsp;|&nbsp; Route: /ReportPrintQueue &nbsp;|&nbsp; SideNav: Reports → Report Print Queue &nbsp;|&nbsp; Not a live application
+    ⚡ Visual Preview — Report Print Queue (r3: filter bar redesign) &nbsp;|&nbsp; Route: /ReportPrintQueue &nbsp;|&nbsp; SideNav: Reports → Report Print Queue &nbsp;|&nbsp; Not a live application
   </div>
   <div class="preview-content" id="root"></div>
-
   <script type="text/babel">
     const { useState, useMemo } = React;
-    const BATCH_LIMIT = 50;
 
-    const REPORT_TYPES = [
-      { id:'PATIENT', label:'Patient Report' },
-      { id:'RESULT_EXPORT', label:'Result Export' },
-      { id:'MALARIA_CASE', label:'Malaria Case Report' },
-      { id:'NON_CONFORMITY_NOTIFICATION', label:'Non-Conformity Notification' },
+    /* ---------- Mock reference data (deployment-scale sets are server-side; these are the “first matches”) ---------- */
+    const FACILITY_TOTAL = 2340, REQUESTOR_TOTAL = 1812, WARD_TOTAL = 5160;
+    const FACILITIES = [
+      'Hôpital Central Antananarivo','Hôpital Universitaire Andohatapenaka','Hôpital de District Antsirabe',
+      'Clinique Urbaine Nord','Clinique Urbaine Sud','Centre de Santé de Base Ambohipo',
+      'Centre de Santé de Base Ankadifotsy','Centre Hospitalier de Toamasina','Centre Hospitalier de Mahajanga',
+      'Hôpital de District Fianarantsoa','Hôpital de District Toliara','Centre de Santé Itaosy',
+      'Clinique des Soeurs Franciscaines','Hôpital Militaire Soavinandriana','Centre de Santé de Base Isotry',
+      'Polyclinique d’Ilafy','Centre Hospitalier Antsohihy','Hôpital de District Moramanga',
+      'Centre de Santé Ambatolampy','Hôpital Luthérien Ambohibao'
     ];
-    const typeLabel = id => (REPORT_TYPES.find(r=>r.id===id)||{}).label || id;
-
-    const FACILITIES = ['Hôpital Central Antananarivo','Clinique Urbaine Nord','Centre de Santé de Base Analamanga'];
     const WARDS = {
-      'Hôpital Central Antananarivo':['Médecine Interne','Pédiatrie','Maternité','Réanimation'],
-      'Clinique Urbaine Nord':['Urgences','Chirurgie','Consultation'],
-      'Centre de Santé de Base Analamanga':['Consultation Générale','Maternité'],
+      'Hôpital Central Antananarivo': ['Médecine Interne','Pédiatrie','Réanimation','Chirurgie','Maternité'],
+      'Clinique Urbaine Nord': ['Urgences','Consultations Externes'],
+      'Hôpital Universitaire Andohatapenaka': ['Néphrologie','Oncologie','Pédiatrie'],
+      'Centre Hospitalier de Toamasina': ['Médecine Interne','Urgences'],
+      'Hôpital de District Antsirabe': ['Maternité','Pédiatrie'],
     };
-    const REQUESTORS = ['Dr. Rabe','Dr. Rasoa','Dr. Randria','Dr. Rakoto'];
-
-    const GEN = {
-      QUEUED:{ cls:'gray', label:'Queued' },
-      GENERATING:{ cls:'blue', label:'Generating' },
-      READY:{ cls:'teal', label:'Ready' },
-      FAILED:{ cls:'red', label:'Failed' },
-    };
-
-    const INITIAL = [
-      { id:'1', type:'PATIENT', acc:'LAB-2026-00891', patient:'Rakoto, Jean', subject:'LAB-2026-00891 — Rakoto, Jean', facility:'Hôpital Central Antananarivo', ward:'Médecine Interne', requestor:'Dr. Rabe', at:'2026-03-18 08:42', gen:'READY', print:'UNPRINTED', amended:false, critical:true, rep:6, total:7, autoQueued:true },
-      { id:'2', type:'PATIENT', acc:'LAB-2026-00874', patient:'Andriantsoa, Marie', subject:'LAB-2026-00874 — Andriantsoa, Marie', facility:'Hôpital Central Antananarivo', ward:'Pédiatrie', requestor:'Dr. Rasoa', at:'2026-03-18 07:15', gen:'READY', print:'UNPRINTED', amended:true, critical:false, rep:1, total:1, autoQueued:true },
-      { id:'3', type:'PATIENT', acc:'LAB-2026-00865', patient:'Razafy, Pierre', subject:'LAB-2026-00865 — Razafy, Pierre', facility:'Clinique Urbaine Nord', ward:'Urgences', requestor:'Dr. Randria', at:'2026-03-17 14:30', gen:'READY', print:'PRINTED', amended:false, critical:false, rep:5, total:5, autoQueued:true },
-      { id:'4', type:'MALARIA_CASE', acc:'', patient:'', subject:'Weekly Malaria Case Report — Wk 11', facility:'Clinique Urbaine Nord', ward:'', requestor:'', at:'2026-03-18 09:30', gen:'READY', print:'UNPRINTED', amended:false, critical:false, rep:null, total:null, autoQueued:true },
-      { id:'5', type:'RESULT_EXPORT', acc:'', patient:'', subject:'Result Export — Chemistry, 01–17 Mar', facility:'', ward:'', requestor:'', at:'2026-03-18 10:02', gen:'GENERATING', print:'UNPRINTED', amended:false, critical:false, rep:null, total:null, autoQueued:true },
-      { id:'6', type:'RESULT_EXPORT', acc:'', patient:'', subject:'Result Export — Microbiology, Feb', facility:'', ward:'', requestor:'', at:'2026-03-18 09:58', gen:'FAILED', print:'UNPRINTED', amended:false, critical:false, rep:null, total:null, autoQueued:true },
-      { id:'7', type:'PATIENT', acc:'LAB-2026-00902', patient:'Ratsima, Hery', subject:'LAB-2026-00902 — Ratsima, Hery', facility:'Hôpital Central Antananarivo', ward:'Réanimation', requestor:'Dr. Rabe', at:'2026-03-18 11:10', gen:'READY', print:'UNPRINTED', amended:false, critical:false, rep:0, total:9, autoQueued:false },
+    const ALL_WARDS = [...new Set(Object.values(WARDS).flat())];
+    const REQUESTORS = [
+      'Dr. Rabe, Haja','Dr. Rasoa, Voahangy','Dr. Randria, Mamy','Dr. Rakoto, Solofo','Dr. Andrianina, Fara',
+      'Dr. Razafindrakoto, Tiana','Dr. Rajaonarison, Lova','Dr. Ranaivoson, Hery','Dr. Ravelojaona, Niry',
+      'Dr. Andriamasy, Koto','Dr. Rasolofo, Mialy','Dr. Ratsimba, Naina','Dr. Raharison, Zo',
+      'Dr. Rakotondrabe, Vero','Dr. Ramanantsoa, Feno'
     ];
 
-    function Tag({ cls, children }) {
-      return <span className={"cds--tag cds--tag--sm cds--tag--"+cls}><span className="cds--tag__label">{children}</span></span>;
-    }
+    /* ---------- Mock queue (autoQueued:false = reachable only via targeted search, FR-2-005f) ---------- */
+    const QUEUE = [
+      { id:'1', type:'PATIENT', acc:'LAB-2026-00891', patient:'Rakoto, Jean', subject:'LAB-2026-00891 — Rakoto, Jean', facility:'Hôpital Central Antananarivo', ward:'Médecine Interne', requestor:'Dr. Rabe, Haja', at:'2026-07-06 08:42', gen:'READY', print:'UNPRINTED', amended:false, critical:true, rep:6, total:7, autoQueued:true },
+      { id:'2', type:'PATIENT', acc:'LAB-2026-00874', patient:'Andriantsoa, Marie', subject:'LAB-2026-00874 — Andriantsoa, Marie', facility:'Hôpital Central Antananarivo', ward:'Pédiatrie', requestor:'Dr. Rasoa, Voahangy', at:'2026-07-06 07:15', gen:'READY', print:'UNPRINTED', amended:true, critical:false, rep:1, total:1, autoQueued:true },
+      { id:'3', type:'PATIENT', acc:'LAB-2026-00865', patient:'Razafy, Pierre', subject:'LAB-2026-00865 — Razafy, Pierre', facility:'Clinique Urbaine Nord', ward:'Urgences', requestor:'Dr. Randria, Mamy', at:'2026-07-05 14:30', gen:'READY', print:'PRINTED', amended:false, critical:false, rep:5, total:5, autoQueued:true },
+      { id:'4', type:'PATIENT', acc:'LAB-2026-00893', patient:'Rasoanaivo, Lala', subject:'LAB-2026-00893 — Rasoanaivo, Lala', facility:'Hôpital Universitaire Andohatapenaka', ward:'Néphrologie', requestor:'Dr. Rajaonarison, Lova', at:'2026-07-06 09:05', gen:'READY', print:'UNPRINTED', amended:false, critical:false, rep:3, total:3, autoQueued:true },
+      { id:'5', type:'PATIENT', acc:'LAB-2026-00888', patient:'Rakotomalala, Naina', subject:'LAB-2026-00888 — Rakotomalala, Naina', facility:'Centre Hospitalier de Toamasina', ward:'Médecine Interne', requestor:'Dr. Ranaivoson, Hery', at:'2026-07-06 06:50', gen:'READY', print:'UNPRINTED', amended:false, critical:false, rep:2, total:4, autoQueued:true },
+      { id:'6', type:'MALARIA_CASE', acc:'', patient:'', subject:'Weekly Malaria Case Report — Wk 27', facility:'Clinique Urbaine Nord', ward:'', requestor:'', at:'2026-07-06 09:30', gen:'READY', print:'UNPRINTED', amended:false, critical:false, rep:null, total:null, autoQueued:true },
+      { id:'7', type:'RESULT_EXPORT', acc:'', patient:'', subject:'Result Export — Chemistry, 22 Jun–05 Jul', facility:'', ward:'', requestor:'', at:'2026-07-06 10:02', gen:'GENERATING', print:'UNPRINTED', amended:false, critical:false, rep:null, total:null, autoQueued:true },
+      { id:'8', type:'RESULT_EXPORT', acc:'', patient:'', subject:'Result Export — Microbiology, June', facility:'', ward:'', requestor:'', at:'2026-07-06 09:58', gen:'FAILED', print:'UNPRINTED', amended:false, critical:false, rep:null, total:null, autoQueued:true },
+      { id:'9', type:'PATIENT', acc:'LAB-2026-00902', patient:'Ratsima, Hery', subject:'LAB-2026-00902 — Ratsima, Hery', facility:'Hôpital Central Antananarivo', ward:'Réanimation', requestor:'Dr. Rabe, Haja', at:'2026-07-06 11:10', gen:'READY', print:'UNPRINTED', amended:false, critical:false, rep:0, total:9, autoQueued:false },
+      { id:'10', type:'PATIENT', acc:'LAB-2026-00610', patient:'Rakoto, Jean', subject:'LAB-2026-00610 — Rakoto, Jean', facility:'Hôpital Central Antananarivo', ward:'Médecine Interne', requestor:'Dr. Rabe, Haja', at:'2026-05-02 10:12', gen:'READY', print:'PRINTED', amended:false, critical:false, rep:4, total:4, autoQueued:false },
+    ];
+    const PATIENTS = [
+      { id:'p1', name:'Rakoto, Jean', pid:'STN-104-221', dob:'1968-03-14', gender:'M' },
+      { id:'p2', name:'Andriantsoa, Marie', pid:'STN-101-870', dob:'2019-11-02', gender:'F' },
+      { id:'p3', name:'Razafy, Pierre', pid:'STN-099-455', dob:'1990-07-21', gender:'M' },
+      { id:'p4', name:'Ratsima, Hery', pid:'STN-105-012', dob:'1975-01-30', gender:'M' },
+      { id:'p5', name:'Rasoanaivo, Lala', pid:'STN-103-644', dob:'1982-09-05', gender:'F' },
+    ];
 
-    function StatusCell({ row }) {
-      const testBased = row.total != null && row.total > 0;
-      const ready = row.gen === 'READY';
-      return (
-        <div className="pq-tags">
-          {row.gen === 'GENERATING'
-            ? <span style={{display:'inline-flex',alignItems:'center',gap:6,fontSize:12,color:'#0f62fe'}}><span className="spin"></span>Generating</span>
-            : !(testBased && ready) ? <Tag cls={GEN[row.gen].cls}>{GEN[row.gen].label}</Tag> : null}
-          {ready && <Tag cls={row.print==='UNPRINTED'?'purple':'green'}>{row.print==='UNPRINTED'?'Unprinted':'Printed'}</Tag>}
-          {row.amended && <Tag cls="blue">Amended</Tag>}
-          {row.critical && <Tag cls="red">Critical Value</Tag>}
-        </div>
-      );
-    }
+    const genTag = { READY:['cds--tag--teal','Ready'], GENERATING:['cds--tag--blue','Generating'], QUEUED:['cds--tag--gray','Queued'], FAILED:['cds--tag--red','Failed'] };
 
-    function CompletenessCell({ row }) {
-      if (!(row.total != null && row.total > 0)) return <span style={{color:'#8d8d8d'}}>—</span>;
-      const final = row.rep >= row.total;
-      const pct = Math.round((row.rep / row.total) * 100);
+    /* ---------- FilterableMultiSelect stand-in: server-side typeahead + count tag ---------- */
+    function MultiTypeahead({ label, placeholder, options, total, selected, setSelected, disabled, hint }) {
+      const [q, setQ] = useState('');
+      const [open, setOpen] = useState(false);
+      const CAP = 8;
+      const smallSet = total <= 25;  /* cascaded ward unions: list without typing */
+      const matches = q.trim().length >= 2 ? options.filter(o => o.toLowerCase().includes(q.trim().toLowerCase()))
+        : (smallSet ? options.filter(o => !q.trim() || o.toLowerCase().includes(q.trim().toLowerCase())) : []);
+      const shown = matches.slice(0, CAP);
+      const toggle = (o) => setSelected(selected.includes(o) ? selected.filter(s => s !== o) : [...selected, o]);
       return (
-        <div className="pq-tags" style={{alignItems:'center'}}>
-          <Tag cls={final ? 'teal' : 'warm-gray'}>{final ? 'Final' : 'Partial'}</Tag>
-          <span title={`${row.rep} of ${row.total} tests reported`} style={{fontSize:12,whiteSpace:'nowrap'}}>{row.rep}/{row.total}</span>
-          <span style={{width:36,height:4,background:'#e0e0e0',borderRadius:2,overflow:'hidden',display:'inline-block'}}>
-            <span style={{display:'block',width:pct+'%',height:'100%',background: final ? '#24a148' : '#f1c21b'}}></span>
-          </span>
+        <div className="pq-filter mts">
+          <label style={disabled ? {opacity:.4} : null}>{label}</label>
+          <div className="mts-field" style={disabled ? {opacity:.4, pointerEvents:'none'} : null} onClick={() => setOpen(true)}>
+            {selected.length > 0 && (
+              <span className="mts-count">{selected.length}
+                <button title="Clear selection" onClick={(e) => { e.stopPropagation(); setSelected([]); }}>✕</button>
+              </span>
+            )}
+            <input value={q} placeholder={selected.length ? '' : placeholder}
+              onChange={e => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} />
+            <span style={{color:'#525252',fontSize:11}}>▾</span>
+          </div>
+          {hint && <div className="hint">{hint}</div>}
+          {open && !disabled && (
+            <React.Fragment>
+              <div className="click-catch" onClick={() => { setOpen(false); setQ(''); }}></div>
+              <div className="mts-drop">
+                {selected.length > 0 && selected.map(o => (
+                  <div key={'sel-'+o} className="mts-opt" onClick={() => toggle(o)}>
+                    <input type="checkbox" readOnly checked={true} /> <span>{o}</span>
+                  </div>
+                ))}
+                {q.trim().length < 2 && !smallSet
+                  ? <div className="mts-hint">Type 2+ characters to search {total.toLocaleString()} entries…</div>
+                  : shown.filter(o => !selected.includes(o)).map(o => (
+                      <div key={o} className="mts-opt" onClick={() => toggle(o)}>
+                        <input type="checkbox" readOnly checked={false} /> <span>{o}</span>
+                      </div>
+                    ))}
+                {q.trim().length >= 2 && shown.length === 0 && <div className="mts-hint">No matches for “{q}”.</div>}
+                {matches.length > CAP && <div className="mts-foot">Showing first {CAP} of {Math.max(matches.length, 40).toLocaleString()} matches — keep typing to narrow</div>}
+              </div>
+            </React.Fragment>
+          )}
         </div>
       );
     }
 
     function App() {
+      /* browse filters */
       const [type, setType] = useState('ALL');
-      const [facility, setFacility] = useState('');
-      const [ward, setWard] = useState('');
-      const [requestor, setRequestor] = useState('');
+      const [facilities, setFacilities] = useState([]);
+      const [wards, setWards] = useState([]);
+      const [requestors, setRequestors] = useState([]);
       const [status, setStatus] = useState('ALL');
-      const [tw, setTw] = useState('7');
-      const [selected, setSelected] = useState(new Set());
-      const [queue, setQueue] = useState(INITIAL);
-      const [notif, setNotif] = useState(null);
-      const [searchOpen, setSearchOpen] = useState(false);
-      const [searchMode, setSearchMode] = useState('patient');
-      const [labFrom, setLabFrom] = useState('');
+      const [timeWin, setTimeWin] = useState('7d');
+      /* lab no toolbar lookup */
+      const [labNo, setLabNo] = useState('');
+      const [rangeOpen, setRangeOpen] = useState(false);
       const [labTo, setLabTo] = useState('');
-      // searchFilter: null | {kind:'patient', name} | {kind:'labno', from, to}
-      const [searchFilter, setSearchFilter] = useState(null);
-      const searchActive = !!searchFilter;
+      /* targeted search: null | {kind:'patient',name} | {kind:'labno',from,to} */
+      const [targeted, setTargeted] = useState(null);
+      const locked = !!targeted;
+      /* patient panel */
+      const [panelOpen, setPanelOpen] = useState(false);
+      const [pLast, setPLast] = useState('');
+      const [pResults, setPResults] = useState(null);
+      /* selection + notifications */
+      const [queue, setQueue] = useState(QUEUE);
+      const [selected, setSelected] = useState([]);
+      const [notice, setNotice] = useState(null);
 
-      const wards = facility ? (WARDS[facility]||[]) : [];
+      /* ward = subunit of facility: enabled only when ≥1 facility selected (FR-2-002) */
+      const wardOptions = [...new Set(facilities.flatMap(f => WARDS[f] || []))];
+      const wardTotal = Math.max(wardOptions.length, 1);
+      const setFacilitiesCascade = (next) => {
+        setFacilities(next);
+        if (!next.length) { setWards([]); return; }
+        const union = new Set(next.flatMap(f => WARDS[f] || [])); setWards(w => w.filter(x => union.has(x)));
+      };
+
+      const clearBrowse = () => { setType('ALL'); setFacilities([]); setWards([]); setRequestors([]); setStatus('ALL'); };
+      const applyTargeted = (t) => { clearBrowse(); setTargeted(t); setSelected([]); setPanelOpen(false); };
+      const clearTargeted = () => { setTargeted(null); setLabNo(''); setLabTo(''); setRangeOpen(false); setSelected([]); };
+      const clearFilters = () => { clearBrowse(); clearTargeted(); };
+
+      const applyLabNo = () => {
+        if (!labNo.trim()) return;
+        if (rangeOpen && labTo.trim() && labNo.trim() > labTo.trim()) { setNotice({kind:'error', text:'"From" lab number must not be greater than "To".'}); return; }
+        applyTargeted({ kind:'labno', from: labNo.trim(), to: rangeOpen && labTo.trim() ? labTo.trim() : null });
+      };
 
       const filtered = useMemo(() => queue.filter(r => {
-        if (!searchFilter && r.autoQueued === false) return false; // default = auto-queued only
-        if (type !== 'ALL' && r.type !== type) return false;
-        if (facility && r.facility !== facility) return false;
-        if (ward && r.ward !== ward) return false;
-        if (requestor && r.requestor !== requestor) return false;
-        if (searchFilter?.kind === 'patient' && r.patient !== searchFilter.name) return false;
-        if (searchFilter?.kind === 'labno') {
-          if (!r.acc) return false;
-          if (searchFilter.to) { if (r.acc < searchFilter.from || r.acc > searchFilter.to) return false; }
-          else if (r.acc !== searchFilter.from) return false;
+        if (targeted) {
+          if (targeted.kind === 'patient') return r.patient === targeted.name;               /* all time, in-progress incl. */
+          if (targeted.to) return r.acc && r.acc >= targeted.from && r.acc <= targeted.to;
+          return r.acc === targeted.from;
         }
-        if (status === 'UNPRINTED' && r.print !== 'UNPRINTED') return false;
-        if (status === 'PRINTED' && r.print !== 'PRINTED') return false;
+        if (r.autoQueued === false) return false;                                            /* default = auto-queued only */
+        if (type !== 'ALL' && r.type !== type) return false;
+        if (facilities.length && !facilities.includes(r.facility)) return false;
+        if (wards.length && !wards.includes(r.ward)) return false;
+        if (requestors.length && !requestors.includes(r.requestor)) return false;
+        if (status !== 'ALL' && r.print !== status) return false;
         return true;
-      }), [queue, type, facility, ward, requestor, searchFilter, status]);
+      }), [queue, targeted, type, facilities, wards, requestors, status]);
 
-      const chipLabel = !searchFilter ? '' :
-        searchFilter.kind === 'patient' ? `Patient: ${searchFilter.name}` :
-        searchFilter.to ? `Lab No: ${searchFilter.from}–${searchFilter.to}` : `Lab No: ${searchFilter.from}`;
+      const chip = !targeted ? '' : targeted.kind === 'patient' ? `Patient: ${targeted.name}`
+        : targeted.to ? `Lab No: ${targeted.from}–${targeted.to}` : `Lab No: ${targeted.from}`;
 
-      const readyIds = filtered.filter(r=>r.gen==='READY').map(r=>r.id);
-      const allChecked = readyIds.length>0 && readyIds.every(id=>selected.has(id));
-      const overLimit = selected.size > BATCH_LIMIT;
-      const batch = selected.size > 0;
-
-      const toggleAll = () => {
-        const next = new Set(selected);
-        if (allChecked) readyIds.forEach(id=>next.delete(id));
-        else readyIds.forEach(id=>next.add(id));
-        setSelected(next);
+      const readyIds = filtered.filter(r => r.gen === 'READY').map(r => r.id);
+      const doPrint = (ids) => {
+        /* no confirmation — printing just opens the PDF; the Completeness tag is the signal (FR-4-007) */
+        setQueue(q => q.map(r => ids.includes(r.id) ? { ...r, print:'PRINTED', amended:false } : r));
+        setSelected([]);
+        setNotice({kind:'success', text:`${ids.length} report(s) generated and marked as printed.`});
       };
-      const toggleOne = (id) => { const n=new Set(selected); n.has(id)?n.delete(id):n.add(id); setSelected(n); };
-      const clearFilters = () => { setType('ALL'); setFacility(''); setWard(''); setRequestor(''); setStatus('ALL'); setSearchFilter(null); };
-      const doLabSearch = () => { if (!labFrom || (labTo && labFrom > labTo)) return; setSearchFilter({kind:'labno', from:labFrom, to:labTo||null}); setSearchOpen(false); };
-
-      const print = (ids) => {
-        setQueue(prev => prev.map(r => ids.includes(r.id) ? {...r, print:'PRINTED', amended:false} : r));
-        setSelected(new Set());
-        setNotif(`${ids.length} report(s) generated and marked as printed.` + (ids.length>1?' (combined into a single PDF)':''));
-        setTimeout(()=>setNotif(null), 5000);
-      };
-      const retry = (id) => setQueue(prev => prev.map(r => r.id===id ? {...r, gen:'QUEUED'} : r));
-
-      // Preliminary-print confirmation (FR-4-007)
-      const [confirmPrint, setConfirmPrint] = useState(null);
-      const isPartial = (r) => r.type==='PATIENT' && r.total>0 && r.rep<r.total;
-      const reqPrint = (ids) => {
-        const rows = queue.filter(r => ids.includes(r.id));
-        const partials = rows.filter(isPartial);
-        if (partials.length) setConfirmPrint({ids, rep:partials[0].rep, total:partials[0].total, multi:partials.length>1});
-        else print(ids);
-      };
+      const searchPatients = () => setPResults(PATIENTS.filter(p => !pLast.trim() || p.name.toLowerCase().includes(pLast.trim().toLowerCase())));
 
       return (
         <div>
-          <div className="cds--breadcrumb" style={{marginBottom:'0.5rem',fontSize:12}}>
-            <span style={{color:'#0f62fe'}}>Reports</span>
-            <span style={{margin:'0 8px',color:'#525252'}}>/</span>
-            <span style={{color:'#525252'}}>Report Print Queue</span>
+          <nav aria-label="breadcrumb" style={{fontSize:13, margin:'0 0 .5rem'}}>
+            <span style={{color:'#0f62fe'}}>Home</span> / <span style={{color:'#0f62fe'}}>Reports</span> / <span>Report Print Queue</span>
+          </nav>
+          <h3 style={{margin:'0 0 .25rem'}}>Report Print Queue</h3>
+          <p style={{color:'#525252', fontSize:13, margin:'0 0 .75rem'}}>Reports ready to print, plus reports still being generated.</p>
+          <div className="pq-guidance">
+            <strong>Validated reports land here automatically.</strong>
+            <span style={{display:'inline-flex', flexWrap:'wrap', gap:'4px 14px', alignItems:'center', marginLeft:8}}>
+              <span><span className="cds--tag cds--tag--sm cds--tag--purple">Unprinted</span> validated, not yet printed</span>
+              <span><span className="cds--tag cds--tag--sm cds--tag--green">Printed</span> PDF generated and the release recorded</span>
+              <span><span className="cds--tag cds--tag--sm cds--tag--blue">Amended</span> new results after printing — reprint needed</span>
+              <span><span className="cds--tag cds--tag--sm cds--tag--blue">Generating</span>/<span className="cds--tag cds--tag--sm cds--tag--red">Failed</span> requested report still building, or needs Retry</span>
+            </span>
           </div>
-          <h3 style={{fontWeight:400, margin:'0 0 1rem'}}>Report Print Queue</h3>
 
-          {notif && (
-            <div className="cds--inline-notification cds--inline-notification--success cds--inline-notification--low-contrast" style={{maxWidth:'100%',marginBottom:'1rem'}}>
-              <div className="cds--inline-notification__details"><p className="cds--inline-notification__title" style={{margin:0}}>{notif}</p></div>
-            </div>
-          )}
-
+          {/* ---------------- Filter bar ---------------- */}
           <div className="pq-filterbar">
-            <div className="pq-field">
+            <div className={'pq-filter' + (locked ? ' pq-disabled' : '')}>
               <label>Report Type</label>
-              <select value={type} onChange={e=>setType(e.target.value)}>
+              <select value={type} onChange={e => setType(e.target.value)}>
                 <option value="ALL">All Report Types</option>
-                {REPORT_TYPES.map(rt => <option key={rt.id} value={rt.id}>{rt.label}</option>)}
+                <option value="PATIENT">Patient Report</option>
+                <option value="RESULT_EXPORT">Result Export</option>
+                <option value="MALARIA_CASE">Malaria Case Report</option>
               </select>
             </div>
-            <div className="pq-field">
-              <label>Facility</label>
-              <select value={facility} onChange={e=>{setFacility(e.target.value); setWard('');}}>
-                <option value="">All Facilities</option>
-                {FACILITIES.map(f=><option key={f}>{f}</option>)}
-              </select>
+            <MultiTypeahead label="Facility" placeholder="Search facilities…" options={FACILITIES} total={FACILITY_TOTAL}
+              selected={facilities} setSelected={setFacilitiesCascade} disabled={locked} />
+            <MultiTypeahead label="Ward / Dept / Unit" placeholder="Search wards…" options={wardOptions} total={wardTotal}
+              selected={wards} setSelected={setWards} disabled={locked || facilities.length === 0}
+              hint={!locked && facilities.length === 0 ? 'Select a facility first' : null} />
+            <MultiTypeahead label="Requestor" placeholder="Search requestors…" options={REQUESTORS} total={REQUESTOR_TOTAL}
+              selected={requestors} setSelected={setRequestors} disabled={locked} />
+            <div className="pq-filter" style={{minWidth:200}}>
+              <label>Lab No</label>
+              <div style={{display:'flex', gap:6, alignItems:'center'}}>
+                <input value={labNo} placeholder="Scan or type lab number" style={{flex:1}}
+                  onChange={e => setLabNo(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') applyLabNo(); }} />
+                <button className="cds--btn cds--btn--ghost cds--btn--sm" title="Range lookup" onClick={() => setRangeOpen(o => !o)}>Range</button>
+              </div>
+              <div className="hint">Scanning a barcode applies the filter instantly</div>
             </div>
-            <div className="pq-field">
-              <label style={{color: facility?'#525252':'#c6c6c6'}}>Ward / Dept / Unit</label>
-              <select value={ward} onChange={e=>setWard(e.target.value)} disabled={!facility}>
-                <option value="">All Wards</option>
-                {wards.map(w=><option key={w}>{w}</option>)}
-              </select>
-            </div>
-            <div className="pq-field">
-              <label>Requestor</label>
-              <select value={requestor} onChange={e=>setRequestor(e.target.value)}>
-                <option value="">All Requestors</option>
-                {REQUESTORS.map(r=><option key={r}>{r}</option>)}
-              </select>
-            </div>
-            <div className="pq-field">
+            {rangeOpen && (
+              <div className="pq-filter" style={{minWidth:180}}>
+                <label>To Lab Number (optional)</label>
+                <input value={labTo} placeholder="e.g. LAB-2026-00895" onChange={e => setLabTo(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') applyLabNo(); }} />
+              </div>
+            )}
+            <div className={'pq-filter' + (locked ? ' pq-disabled' : '')}>
               <label>Print Status</label>
-              <select value={status} onChange={e=>setStatus(e.target.value)}>
-                <option value="ALL">All</option><option value="UNPRINTED">Unprinted</option><option value="PRINTED">Printed</option>
+              <select value={status} onChange={e => setStatus(e.target.value)}>
+                <option value="ALL">All</option>
+                <option value="UNPRINTED">Unprinted</option>
+                <option value="PRINTED">Printed</option>
               </select>
             </div>
-            <div className="pq-field">
-              <label style={{color: searchActive?'#c6c6c6':'#525252'}}>Time Window {searchActive && '(ignored while searching)'}</label>
-              <select value={tw} onChange={e=>setTw(e.target.value)} disabled={searchActive} style={searchActive?{opacity:0.5}:{}}>
-                <option value="1">Last 24 Hours</option><option value="7">Last 7 Days</option><option value="30">Last 30 Days</option><option value="-1">All Time</option>
+            <div className={'pq-filter' + (locked ? ' pq-disabled' : '')} title={locked ? 'Ignored while searching' : ''}>
+              <label>Time Window</label>
+              <select value={timeWin} onChange={e => setTimeWin(e.target.value)}>
+                <option value="24h">Last 24 Hours</option>
+                <option value="7d">Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
+                <option value="all">All Time</option>
               </select>
             </div>
             <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={clearFilters}>Clear Filters</button>
-            {searchFilter && (
-              <span className="cds--tag cds--tag--sm cds--tag--outline cds--tag--filter" style={{display:'inline-flex',alignItems:'center',gap:4}}>
-                <span className="cds--tag__label">{chipLabel}</span>
-                <button onClick={()=>setSearchFilter(null)} title="Remove search filter"
-                  style={{border:'none',background:'transparent',cursor:'pointer',fontSize:14,lineHeight:1}}>×</button>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" aria-expanded={panelOpen}
+              onClick={() => setPanelOpen(o => !o)}>Search by Patient {panelOpen ? '▴' : '▾'}</button>
+          </div>
+
+          {/* ---------------- Active targeted-search strip (FR-2-005) ---------------- */}
+          {targeted && (
+            <div className="pq-searchstrip">
+              <span className="cds--tag cds--tag--blue cds--tag--filter" style={{display:'inline-flex', alignItems:'center', gap:4}}>
+                {chip}
+                <button onClick={clearTargeted} title="Remove search filter"
+                  style={{background:'transparent', border:'none', cursor:'pointer', fontSize:13, lineHeight:1}}>✕</button>
               </span>
-            )}
-          </div>
+              <span style={{fontSize:12, color:'#525252'}}>Filters are disabled while a targeted search is active — searching all time.</span>
+              <button className="cds--btn cds--btn--tertiary cds--btn--sm" onClick={clearTargeted}>Clear search</button>
+            </div>
+          )}
 
-          <div className={"pq-toolbar"+(batch?" batch":"")}>
-            {batch ? (
-              <React.Fragment>
-                <div style={{display:'flex',alignItems:'center',gap:16}}>
-                  <span style={{fontSize:14}}>{selected.size} item{selected.size>1?'s':''} selected</span>
-                  <button className="cds--btn cds--btn--sm" disabled={overLimit}
-                    title={overLimit?'Batch print is limited to 50 reports. Please reduce your selection.':''}
-                    style={{background:'#fff',color:'#0f62fe',opacity:overLimit?0.5:1,border:'none',padding:'6px 14px',cursor:overLimit?'not-allowed':'pointer'}}
-                    onClick={()=>!overLimit && reqPrint([...selected])}>
-                    Print Selected ({selected.size}) → combined PDF
-                  </button>
+          {/* ---------------- Inline patient search panel (FR-2-004, no modal) ---------------- */}
+          {panelOpen && (
+            <div className="pq-panel">
+              <h4>Search by Patient <span style={{fontWeight:400, color:'#525252', fontSize:12}}>(reuses the existing patient search — local records only)</span></h4>
+              <div className="fields">
+                <div className="pq-filter"><label>Patient Id</label><input placeholder="STNumber / Subject / National ID" /></div>
+                <div className="pq-filter"><label>Previous Lab Number</label><input /></div>
+                <div className="pq-filter"><label>Last Name</label><input value={pLast} onChange={e => setPLast(e.target.value)} onKeyDown={e => { if (e.key==='Enter') searchPatients(); }} /></div>
+                <div className="pq-filter"><label>First Name</label><input /></div>
+                <div className="pq-filter"><label>Date of Birth</label><input placeholder="DD/MM/YYYY" style={{width:120}} /></div>
+                <div className="pq-filter" style={{minWidth:100}}><label>Gender</label><select><option></option><option>M</option><option>F</option></select></div>
+                <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={searchPatients}>Search</button>
+                <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => { setPanelOpen(false); setPResults(null); }}>Close</button>
+              </div>
+              {pResults && (
+                <div style={{marginTop:'1rem'}}>
+                  {pResults.length === 0 ? <em style={{fontSize:13, color:'#525252'}}>No patients found.</em> : (
+                    <table className="cds--data-table" style={{width:'100%'}}>
+                      <thead><tr><th>Name</th><th>Patient Id</th><th>Date of Birth</th><th>Gender</th><th></th></tr></thead>
+                      <tbody>
+                        {pResults.map(p => (
+                          <tr key={p.id} style={{cursor:'pointer'}} onClick={() => { applyTargeted({kind:'patient', name:p.name}); setPResults(null); }}>
+                            <td>{p.name}</td><td>{p.pid}</td><td>{p.dob}</td><td>{p.gender}</td>
+                            <td><button className="cds--btn cds--btn--tertiary cds--btn--sm">Select</button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
-                <button onClick={()=>setSelected(new Set())} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:13}}>Cancel</button>
-              </React.Fragment>
-            ) : (
-              <React.Fragment>
-                <div style={{display:'flex',alignItems:'baseline',gap:8}}>
-                  <strong style={{fontSize:14}}>Report Print Queue</strong>
-                  <span style={{color:'#525252',fontSize:12}}>({filtered.length} {filtered.length===1?'result':'results'})</span>
-                </div>
-                <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setSearchOpen(true)}>Search Patient / Accession</button>
-              </React.Fragment>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
-          <div className="cds--data-table-container" style={{paddingTop:0}}>
-            <table className="cds--data-table cds--data-table--lg">
+          {/* ---------------- Notifications ---------------- */}
+          {notice && (
+            <div className={'cds--inline-notification cds--inline-notification--' + notice.kind} style={{margin:'1rem 0', maxWidth:'none'}}>
+              <div className="cds--inline-notification__details" style={{padding:'0 1rem'}}>
+                <div className="cds--inline-notification__text-wrapper"><span className="cds--inline-notification__title">{notice.text}</span></div>
+              </div>
+              <button className="cds--inline-notification__close-button" onClick={() => setNotice(null)}>✕</button>
+            </div>
+          )}
+
+          {/* ---------------- Queue table ---------------- */}
+          <div className="cds--data-table-container" style={{marginTop: notice ? 0 : '1rem'}}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'.5rem 1rem', background:'#fff', borderBottom:'1px solid #e0e0e0'}}>
+              <strong style={{fontSize:14}}>Report Print Queue <span style={{color:'#525252', fontSize:12, fontWeight:400}}>({filtered.length} {filtered.length === 1 ? 'result' : 'results'})</span></strong>
+              <button className="cds--btn cds--btn--primary cds--btn--sm" disabled={!selected.length} onClick={() => doPrint(selected)}>
+                Print Selected ({selected.length})
+              </button>
+            </div>
+            <table className="cds--data-table" style={{width:'100%'}}>
               <thead>
                 <tr>
-                  <th style={{width:40}}><input type="checkbox" checked={allChecked} onChange={toggleAll} /></th>
-                  <th>Report Type</th>
-                  <th>Subject</th>
-                  <th>Facility</th>
-                  <th>Ward / Dept / Unit</th>
-                  <th>Requestor</th>
-                  <th>Validated / Queued At</th>
-                  <th>Completeness</th>
-                  <th>Status</th>
-                  <th style={{width:120}}></th>
+                  <th style={{width:36}}><input type="checkbox" checked={selected.length > 0 && selected.length === readyIds.length} onChange={e => setSelected(e.target.checked ? readyIds : [])} /></th>
+                  <th>Report Type</th><th>Subject</th><th>Facility</th><th>Ward / Dept / Unit</th><th>Requestor</th>
+                  <th>Validated / Queued At</th><th>Completeness</th><th>Status</th><th></th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.length===0 && (
-                  <tr><td colSpan={10} style={{textAlign:'center',padding:'3rem 1rem',color:'#525252'}}>
-                    <div style={{fontWeight:600,marginBottom:4}}>No reports in queue</div>
-                    <div style={{fontSize:12}}>All reports have been printed, or no results have been validated in the selected time window.</div>
+                {filtered.length === 0 && (
+                  <tr><td colSpan={10} style={{textAlign:'center', padding:'2rem', color:'#525252'}}>
+                    No reports in queue<br/><span style={{fontSize:12}}>All reports have been printed, or no results have been validated in the selected time window.</span>
                   </td></tr>
                 )}
                 {filtered.map(row => {
-                  const ready = row.gen==='READY';
+                  const [gk, gl] = genTag[row.gen];
                   return (
-                    <tr key={row.id} style={{background: selected.has(row.id) ? '#edf5ff' : undefined}}>
-                      <td><input type="checkbox" disabled={!ready} checked={selected.has(row.id)} onChange={()=>toggleOne(row.id)} /></td>
-                      <td style={{fontSize:13}}>{typeLabel(row.type)}</td>
-                      <td><span className={row.type==='PATIENT'?'pq-acc':''} style={{color: row.type==='PATIENT'?'#0f62fe':undefined}}>{row.subject}</span></td>
-                      <td style={{color:'#525252',fontSize:13}}>{row.facility || '—'}</td>
-                      <td style={{fontSize:13}}>{row.ward || '—'}</td>
+                    <tr key={row.id}>
+                      <td><input type="checkbox" disabled={row.gen !== 'READY'} checked={selected.includes(row.id)}
+                        onChange={e => setSelected(s => e.target.checked ? [...s, row.id] : s.filter(x => x !== row.id))} /></td>
+                      <td style={{fontSize:13}}>{row.type === 'PATIENT' ? 'Patient Report' : row.type === 'MALARIA_CASE' ? 'Malaria Case Report' : 'Result Export'}</td>
+                      <td style={{fontSize:13, fontWeight:500}}>{row.subject}</td>
+                      <td style={{color:'#525252', fontSize:13}}>{row.facility || '—'}</td>
+                      <td style={{color:'#525252', fontSize:13}}>{row.ward || '—'}</td>
                       <td style={{fontSize:13}}>{row.requestor || '—'}</td>
-                      <td style={{fontSize:13,whiteSpace:'nowrap'}}>{row.at}</td>
-                      <td><CompletenessCell row={row} /></td>
-                      <td><StatusCell row={row} /></td>
+                      <td style={{fontSize:13}}>{row.at}</td>
                       <td>
-                        {row.gen==='FAILED'
-                          ? <button className="cds--btn cds--btn--tertiary cds--btn--sm" onClick={()=>retry(row.id)}>Retry</button>
-                          : <button className="cds--btn cds--btn--primary cds--btn--sm" disabled={!ready} onClick={()=>reqPrint([row.id])}>Print</button>}
+                        {row.rep === null ? <span style={{color:'#525252'}}>—</span> : (
+                          <span>
+                            <span className={'cds--tag cds--tag--sm ' + (row.rep === row.total ? 'cds--tag--teal' : 'cds--tag--warm-gray')}>{row.rep === row.total ? 'Final' : 'Partial'}</span>
+                            <span style={{fontSize:12, color:'#525252', marginLeft:4}}>{row.rep}/{row.total}</span>
+                          </span>
+                        )}
+                      </td>
+                      <td style={{whiteSpace:'nowrap'}}>
+                        {row.gen !== 'READY' && <span className={'cds--tag cds--tag--sm ' + gk}>{gl}</span>}
+                        {row.gen === 'READY' && <span className={'cds--tag cds--tag--sm ' + (row.print === 'PRINTED' ? 'cds--tag--green' : 'cds--tag--purple')}>{row.print === 'PRINTED' ? 'Printed' : 'Unprinted'}</span>}
+                        {row.amended && <span className="cds--tag cds--tag--sm cds--tag--blue">Amended</span>}
+                        {row.critical && <span className="cds--tag cds--tag--sm cds--tag--red">Critical Value</span>}
+                      </td>
+                      <td className="rowbtn">
+                        {row.gen === 'READY' && <button className="cds--btn cds--btn--tertiary cds--btn--sm" onClick={() => doPrint([row.id])}>Print</button>}
+                        {row.gen === 'FAILED' && <button className="cds--btn cds--btn--ghost cds--btn--sm">Retry</button>}
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+            <div style={{display:'flex', justifyContent:'space-between', padding:'.5rem 1rem', background:'#fff', borderTop:'1px solid #e0e0e0', fontSize:12, color:'#525252'}}>
+              <span>Items per page: 20</span><span>1–{filtered.length} of {filtered.length}</span>
+            </div>
           </div>
 
-          <div className="pq-pag">
-            <div style={{display:'flex',alignItems:'center',gap:8,color:'#525252'}}>
-              <span>Items per page:</span>
-              <select defaultValue="20" style={{border:'none',borderBottom:'1px solid #8d8d8d',background:'#f4f4f4',padding:'4px 8px'}}>
-                <option>10</option><option>20</option><option>50</option><option>100</option>
-              </select>
-            </div>
-            <span style={{color:'#525252'}}>1–{filtered.length} of {filtered.length}</span>
-          </div>
-
-          {/* Search Patient / Accession modal — approximates the reused SearchPatientForm.
-              Selecting a patient applies a patientId filter and closes the modal (FR-2-003). */}
-          {searchOpen && (
-            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:50}}
-                 onClick={()=>setSearchOpen(false)}>
-              <div style={{background:'#fff',width:680,maxWidth:'92vw',maxHeight:'86vh',overflow:'auto'}} onClick={e=>e.stopPropagation()}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'1rem',borderBottom:'1px solid #e0e0e0'}}>
-                  <strong style={{fontSize:16}}>Search Patient / Accession</strong>
-                  <button onClick={()=>setSearchOpen(false)} style={{border:'none',background:'transparent',fontSize:20,cursor:'pointer',lineHeight:1}}>×</button>
-                </div>
-                <div style={{padding:'1rem'}}>
-                  {/* Mode toggle */}
-                  <div style={{display:'flex',gap:20,marginBottom:16}}>
-                    <label style={{display:'flex',alignItems:'center',gap:6,fontSize:14,cursor:'pointer'}}>
-                      <input type="radio" name="searchmode" checked={searchMode==='patient'} onChange={()=>setSearchMode('patient')} /> By Patient
-                    </label>
-                    <label style={{display:'flex',alignItems:'center',gap:6,fontSize:14,cursor:'pointer'}}>
-                      <input type="radio" name="searchmode" checked={searchMode==='labno'} onChange={()=>setSearchMode('labno')} /> By Lab Number
-                    </label>
-                  </div>
-
-                  {searchMode === 'patient' ? (
-                    <React.Fragment>
-                      <div style={{fontSize:11,color:'#525252',marginBottom:12,fontStyle:'italic'}}>
-                        Embeds the existing <code>SearchPatientForm</code> (local search only — External Search &amp; Client Registry suppressed). Returns a patient → all their orders.
-                      </div>
-                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:12}}>
-                        {['Patient Id','Previous Lab Number','Last Name','First Name','Date of Birth','Gender'].map(f=>(
-                          <div key={f} className="pq-field" style={{minWidth:0}}>
-                            <label>{f}</label>
-                            {f==='Gender'
-                              ? <select style={{padding:'7px 10px',border:'none',borderBottom:'1px solid #8d8d8d',background:'#f4f4f4'}}><option></option><option>Male</option><option>Female</option></select>
-                              : <input style={{padding:'7px 10px',border:'none',borderBottom:'1px solid #8d8d8d',background:'#f4f4f4',fontSize:13}} placeholder={f} />}
-                          </div>
-                        ))}
-                      </div>
-                      <button className="cds--btn cds--btn--tertiary cds--btn--sm" style={{marginBottom:16}}>Search</button>
-                      <div className="cds--data-table-container" style={{paddingTop:0}}>
-                        <table className="cds--data-table cds--data-table--sm">
-                          <thead><tr><th></th><th>Patient Name</th><th>Patient Id</th><th>DOB</th><th>Source</th></tr></thead>
-                          <tbody>
-                            {[
-                              {name:'Rakoto, Jean', id:'P-10045', dob:'1981-04-12'},
-                              {name:'Andriantsoa, Marie', id:'P-10032', dob:'2019-09-30'},
-                              {name:'Razafy, Pierre', id:'P-10021', dob:'1965-01-08'},
-                            ].map(p=>(
-                              <tr key={p.id} style={{cursor:'pointer'}} onClick={()=>{setSearchFilter({kind:'patient', name:p.name}); setSearchOpen(false);}}>
-                                <td><input type="radio" name="patientpick" readOnly /></td>
-                                <td>{p.name}</td>
-                                <td className="pq-acc">{p.id}</td>
-                                <td style={{fontSize:13}}>{p.dob}</td>
-                                <td><span className="cds--tag cds--tag--sm cds--tag--red"><span className="cds--tag__label">OpenElis</span></span></td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </React.Fragment>
-                  ) : (
-                    <React.Fragment>
-                      <div style={{fontSize:11,color:'#525252',marginBottom:12,fontStyle:'italic'}}>
-                        Single lab number, or an inclusive From–To range (entered via <code>CustomLabNumberInput</code>) → just those order(s). Try 00865 to 00891.
-                      </div>
-                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:12}}>
-                        <div className="pq-field" style={{minWidth:0}}>
-                          <label>From Lab Number</label>
-                          <input value={labFrom} onChange={e=>setLabFrom(e.target.value)} placeholder="LAB-2026-00865"
-                            style={{padding:'7px 10px',border:'none',borderBottom:'1px solid #8d8d8d',background:'#f4f4f4',fontSize:13}} />
-                        </div>
-                        <div className="pq-field" style={{minWidth:0}}>
-                          <label>To Lab Number (optional)</label>
-                          <input value={labTo} onChange={e=>setLabTo(e.target.value)} placeholder="LAB-2026-00891"
-                            style={{padding:'7px 10px',border:'none',borderBottom:'1px solid #8d8d8d',background:'#f4f4f4',fontSize:13}} />
-                        </div>
-                      </div>
-                      {labFrom && labTo && labFrom > labTo && (
-                        <div style={{color:'#da1e28',fontSize:12,marginBottom:8}}>"From" lab number must not be greater than "To".</div>
-                      )}
-                      <button className="cds--btn cds--btn--tertiary cds--btn--sm"
-                        disabled={!labFrom || (labTo && labFrom > labTo)} onClick={doLabSearch}>Search</button>
-                    </React.Fragment>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Preliminary-print confirmation (FR-4-007) */}
-          {confirmPrint && (
-            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:60}}
-                 onClick={()=>setConfirmPrint(null)}>
-              <div style={{background:'#fff',width:420,maxWidth:'92vw'}} onClick={e=>e.stopPropagation()}>
-                <div style={{padding:'1rem',borderBottom:'1px solid #e0e0e0',fontWeight:600,fontSize:16}}>Preliminary report</div>
-                <div style={{padding:'1rem',fontSize:14}}>
-                  Preliminary report — {confirmPrint.rep} of {confirmPrint.total} tests reported.
-                  {confirmPrint.multi ? ' One or more selected reports are preliminary.' : ''} Print anyway?
-                </div>
-                <div style={{display:'flex',justifyContent:'flex-end',gap:8,padding:'0.75rem 1rem',borderTop:'1px solid #e0e0e0'}}>
-                  <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setConfirmPrint(null)}>Cancel</button>
-                  <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>{const ids=confirmPrint.ids; setConfirmPrint(null); print(ids);}}>Print anyway</button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       );
     }
