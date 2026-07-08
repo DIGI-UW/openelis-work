@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Component Result Entry — V1 (based on current page)</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+    .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+    .preview-content { padding:1rem 1.25rem; max-width:1300px; margin:0 auto; }
+    .tabbar { display:flex; border-bottom:1px solid #c6c6c6; margin:.75rem 0 1rem; }
+    .tabbtn { background:none;border:none;padding:12px 18px;font-size:14px;cursor:pointer;border-bottom:2px solid transparent;color:#525252; }
+    .tabbtn.active { border-bottom:2px solid #0f62fe;color:#161616;font-weight:600; }
+    .sub { color:#6f6f6f; font-size:12px; }
+    .safe { background:#defbe6;border-left:3px solid #24a148;padding:9px 13px;font-size:12.5px;margin-bottom:.8rem; }
+    .note { background:#edf5ff;border-left:3px solid #0f62fe;padding:9px 13px;font-size:12.5px;margin-bottom:.8rem; }
+    .rdt { background:#fff;border:1px solid #e0e0e0; }
+    .rdt table { width:100%; border-collapse:collapse; }
+    .rdt th { text-align:left; font-size:12px; font-weight:600; color:#525252; padding:10px 10px; border-bottom:1px solid #c6c6c6; white-space:nowrap; }
+    .rdt td { padding:7px 10px; font-size:12.5px; border-bottom:1px solid #f0f0f0; vertical-align:middle; }
+    .primary td { border-bottom:1px solid #f6f6f6; }
+    .comp td { background:#fafafa; border-bottom:1px solid #f0f0f0; }
+    .comp .cname { padding-left:22px; color:#393939; }
+    .arrow { color:#a8a8a8; margin-right:6px; }
+    .lab { font-weight:600; }
+    .copy { color:#8d8d8d; margin-right:6px; }
+    .badge { display:inline-block;font-size:10px;background:#8a3ffc;color:#fff;border-radius:8px;padding:0 6px;margin-left:4px; }
+    .din { width:92px;padding:5px 6px;border:1px solid #8d8d8d;background:#f4f4f4;border-bottom:1px solid #161616;font-size:12px; }
+    .tin { width:48px;padding:5px 6px;border:1px solid #8d8d8d;background:#f4f4f4;border-bottom:1px solid #161616;font-size:12px;margin-left:4px; }
+    .sel { width:170px;padding:5px 6px;border:1px solid #8d8d8d;background:#f4f4f4;border-bottom:1px solid #161616;font-size:12.5px; }
+    .num { width:96px;padding:5px 6px;border:1px solid #8d8d8d;background:#f4f4f4;border-bottom:1px solid #161616;font-size:12.5px; }
+    .nta { width:150px;padding:5px 6px;border:1px solid #8d8d8d;background:#f4f4f4;border-bottom:1px solid #161616;font-size:12px; }
+    .unit { color:#6f6f6f; font-size:11px; margin-left:6px; }
+    .muted { color:#a8a8a8; }
+    .btn { font-size:12px;border:1px solid #0f62fe;background:#0f62fe;color:#fff;padding:7px 12px;cursor:pointer; }
+    .acc { color:#24a148;font-weight:600; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    ⚡ Preview — Multi-Component Result Entry, V1 &nbsp;|&nbsp; on the CURRENT results page (react-data-table-component, real columns) — additive · target gene + Ct is the first use case
+  </div>
+  <div class="preview-content" id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    // A test's result components. resultType drives the SAME widget the primary result cell uses:
+    //   D = single-select (dictionary), N = numeric TextInput, R/A = free text.
+    // The first component is the primary result (rendered exactly as today); the rest mirror it.
+    // "Ct" is simply the unit on numeric components — nothing here is hard-coded to Ct.
+    const analyses = [
+      {
+        id:"a1", labno:"TB-2026-004182-1", patient:"Achieng, Mary · F · 34y", multi:true,
+        analyzer:"GeneXpert", test:"Xpert MTB/RIF", sampleType:"(Sputum)",
+        components:[
+          { code:"MTB", label:"MTB detection", type:"D", options:["","MTB DETECTED","MTB NOT DETECTED"], value:"MTB DETECTED", range:"—", unit:"" },
+          { code:"RIF", label:"RIF resistance", type:"D", options:["","DETECTED","NOT DETECTED"], value:"NOT DETECTED", range:"—", unit:"" },
+          { code:"rpoB_A", label:"rpoB Probe A", type:"N", value:"24.6", range:"< 39.0", unit:"Ct" },
+          { code:"rpoB_B", label:"rpoB Probe B", type:"N", value:"25.1", range:"< 39.0", unit:"Ct" },
+          { code:"rpoB_C", label:"rpoB Probe C", type:"N", value:"24.9", range:"< 39.0", unit:"Ct" },
+          { code:"rpoB_D", label:"rpoB Probe D", type:"N", value:"25.4", range:"< 36.0", unit:"Ct" },
+          { code:"rpoB_E", label:"rpoB Probe E", type:"N", value:"25.0", range:"< 36.0", unit:"Ct" },
+        ],
+      },
+      {
+        id:"a2", labno:"RESP-2026-009913-1", patient:"Odhiambo, John · M · 41y", multi:true,
+        analyzer:"GeneXpert", test:"Xpert Xpress SARS-CoV-2", sampleType:"(NP swab)",
+        components:[
+          { code:"SARS", label:"SARS-CoV-2", type:"D", options:["","DETECTED","NOT DETECTED"], value:"DETECTED", range:"—", unit:"" },
+          { code:"N2", label:"N2 gene", type:"N", value:"22.8", range:"—", unit:"Ct" },
+          { code:"E", label:"E gene", type:"N", value:"23.5", range:"—", unit:"Ct" },
+        ],
+      },
+      {
+        id:"a3", labno:"CHEM-2026-118840-1", patient:"Wanjiru, Grace · F · 52y", multi:false,
+        analyzer:"Cobas c311", test:"Glucose, fasting", sampleType:"(Serum)",
+        components:[ { code:"GLU", label:"Glucose, fasting", type:"N", value:"96", range:"70–99 mg/dL", unit:"mg/dL" } ],
+      },
+    ];
+
+    function ResultWidget({ c, readOnly }) {
+      if (readOnly) return <b>{c.value}{c.unit && <span className="unit">{c.unit}</span>}</b>;
+      if (c.type === "N") return <span><input className="num" type="number" defaultValue={c.value}/>{c.unit && <span className="unit">{c.unit}</span>}</span>;
+      if (c.type === "D") return <select className="sel" defaultValue={c.value}>{c.options.map((o,i)=><option key={i}>{o}</option>)}</select>;
+      return <textarea className="nta" rows={1} defaultValue={c.value}/>;
+    }
+
+    function Table({ readOnly }) {
+      return (
+        <div className="rdt">
+          <table>
+            <thead><tr>
+              <th>Sample Info</th><th>Test Date</th><th>Analyzer Result</th><th>Test Name</th>
+              <th>Normal Range</th><th>Accept</th><th>Result</th><th>Current Result</th><th>Notes</th>
+            </tr></thead>
+            <tbody>
+              {analyses.map(a => a.components.map((c, idx) => {
+                const first = idx === 0;
+                return (
+                  <tr key={a.id+"."+c.code} className={first ? "primary" : "comp"}>
+                    {/* Sample / date / analyzer / accept only on the primary line; blank on component lines */}
+                    <td>{first ? (<span><span className="copy">⧉</span><span className="lab">{a.labno}</span>{a.multi && <span className="badge">multi</span>}<div className="sub">{a.patient}</div></span>) : ""}</td>
+                    <td>{first ? (<span><input className="din" defaultValue="2026-07-08"/><input className="tin" defaultValue="09:14"/></span>) : ""}</td>
+                    <td className="muted">{first ? a.analyzer : ""}</td>
+                    <td className={first ? "" : "cname"}>{first ? (<span>{a.test} <span className="muted">{a.sampleType}</span></span>) : (<span><span className="arrow">↳</span>{c.label}</span>)}</td>
+                    <td className="muted">{c.range}</td>
+                    <td>{first ? (readOnly ? <span className="acc">✓</span> : <input type="checkbox" defaultChecked/>) : ""}</td>
+                    <td><ResultWidget c={c} readOnly={readOnly}/></td>
+                    <td className="muted">—</td>
+                    <td>{readOnly ? <span className="muted">—</span> : <textarea className="nta" rows={1}></textarea>}</td>
+                  </tr>
+                );
+              }))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    function App() {
+      const [tab,setTab]=useState("entry");
+      return (
+        <div>
+          <h2 style={{fontWeight:400,margin:'0 0 2px'}}>Multi-Component Result Entry · V1</h2>
+          <div className="sub">Additive on the current Results / Validation grid · a result-entry field per result component, mirroring the primary · result-component model (OGC-949)</div>
+          <div className="tabbar">
+            <button className={"tabbtn"+(tab==="entry"?" active":"")} onClick={()=>setTab("entry")}>Results entry</button>
+            <button className={"tabbtn"+(tab==="valid"?" active":"")} onClick={()=>setTab("valid")}>Validation (read-only)</button>
+          </div>
+          <div className="safe">
+            <b>Minimum multi-component support:</b> for a test with several result components, each component
+            gets its own result-entry field <b>rendered by the same widget as the primary</b> (select / numeric /
+            text, per the component's result type) with its own unit and normal range. A single-component test
+            (Glucose, bottom) is <b>one row, exactly as today</b>. Nothing is hard-coded to “Ct” — that's just the
+            unit on the molecular numeric components.
+          </div>
+          {tab==="entry" && (<>
+            <div className="note">Each component is a result line mirroring the first: MTB/RIF's detection + RIF calls (select) and five rpoB probes (numeric, unit Ct); SARS-CoV-2's call + N2/E. Same <b>Result</b> column, same widgets.</div>
+            <Table readOnly={false}/>
+            <div style={{marginTop:14}}><button className="btn">Save (e-signature)</button></div>
+          </>)}
+          {tab==="valid" && (<>
+            <div className="note">Validation shows every component read-only, same layout, beside the primary call.</div>
+            <Table readOnly={true}/>
+            <div style={{marginTop:14}}><button className="btn">Validate &amp; release</button></div>
+          </>)}
+        </div>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>

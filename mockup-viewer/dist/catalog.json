@@ -1,7 +1,7 @@
 {
-  "generated": "2026-07-06T23:23:04.191Z",
+  "generated": "2026-07-08T22:38:20.602Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 196,
+  "totalDesigns": 197,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -3886,6 +3886,38 @@
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/hil-specimen-quality.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/hil-specimen-quality.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/hil-specimen-quality-preview.html"
+      }
+    },
+    {
+      "name": "Multi-Component Result Entry v1",
+      "slug": "multi-component-result-entry-v1",
+      "category": "results-validation",
+      "description": "V1 additive multi-value capture on the existing Results Entry & Validation page (SearchResultForm.jsx). A test that defines more than one result_component renders one result-entry field PER component, each produced by the same result-cell renderer the primary result uses today (chosen by the component result_type). Single-component tests are unchanged. First use case: molecular target gene + Ct (Xpert MTB/RIF, SARS-CoV-2). Consumes the OGC-949 M1 test_result_component model; replaces the PR #3831 scalar-column approach (no new analysis/test columns, no data migration). Self-contained module intended for a future fold-in to the OGC-811/817 inline results redesign.",
+      "type": "jsx",
+      "added": "2026-07-08",
+      "status": "draft",
+      "tags": [
+        "results-entry",
+        "results",
+        "validation",
+        "multi-component",
+        "result-component",
+        "molecular",
+        "ct",
+        "pcr"
+      ],
+      "jira": [
+        "OGC-949"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/results-validation/results-entry-multicomponent-v1.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/multi-component-result-entry-v1",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/multi-component-result-entry-v1",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/multi-component-result-entry-v1",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1-preview.html"
       }
     },
     {
