@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenELIS Design Gallery — Catalog</title>
-  <meta name="description" content="Searchable catalog of 196 design mockups and specifications for OpenELIS Global">
+  <meta name="description" content="Searchable catalog of 197 design mockups and specifications for OpenELIS Global">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 960px; margin: 0 auto; padding: 2rem 1rem; color: #161616; line-height: 1.5; }
     h1 { border-bottom: 2px solid #0f62fe; padding-bottom: 0.5rem; }
@@ -22,13 +22,13 @@
 </head>
 <body>
   <h1>OpenELIS Design Gallery — Catalog</h1>
-  <p>196 designs across 16 categories.
+  <p>197 designs across 16 categories.
     <a href="./">Interactive Gallery</a> |
     <a href="catalog.json">JSON Catalog</a> |
     <a href="llms.txt">LLM Index</a> |
     <a href="sitemap.xml">Sitemap</a>
   </p>
-  <nav><a href="#cat-admin-config">Admin & Config (45)</a> <a href="#cat-analyzer-integration">Analyzer Integration (23)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (3)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (15)</a> <a href="#cat-sample-collection">Sample Collection (7)</a> <a href="#cat-system">System (9)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
+  <nav><a href="#cat-admin-config">Admin & Config (45)</a> <a href="#cat-analyzer-integration">Analyzer Integration (23)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (3)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (16)</a> <a href="#cat-sample-collection">Sample Collection (7)</a> <a href="#cat-system">System (9)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
 
   <h2 id="cat-admin-config">Admin & Config (45)</h2>
   <div class="design">
@@ -1802,7 +1802,7 @@
     <div class="tags"><span class="tag">TAT</span> <span class="tag">turnaround-time</span> <span class="tag">report</span> <span class="tag">analytics</span> <span class="tag">performance</span></div>
   </div>
 
-  <h2 id="cat-results-validation">Results & Validation (15)</h2>
+  <h2 id="cat-results-validation">Results & Validation (16)</h2>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4">Results Entry v4</a></h3>
     <p>Results Entry consolidated redesign (v4) — per-row edit-state lock, Method + Analyzer split columns, inline NCE (real InlineNceForm field set), inline remaining-volume / disposal trigger, dual-axis notes, contrast-ratio critical flags, bulk-release action, cross-domain (Clinical/Environmental/Vector via Lab Unit). Supersedes v3 Results Page. Companion: Validation Page v4 and Result & Validation Configuration v4 (admin).</p>
@@ -1956,6 +1956,19 @@
       <a href="https://digi-uw.github.io/openelis-work/designs/results-validation/hil-specimen-quality-preview.html">HTML Mockup</a>
     </div>
     <div class="tags"><span class="tag">HIL</span> <span class="tag">hemolysis</span> <span class="tag">icterus</span> <span class="tag">lipemia</span> <span class="tag">specimen-quality</span> <span class="tag">results</span> <span class="tag">validation</span> <span class="tag">analyzer</span> <span class="tag">ASTM</span></div>
+  </div>
+  <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/results-validation/multi-component-result-entry-v1">Multi-Component Result Entry v1</a></h3>
+    <p>V1 additive multi-value capture on the existing Results Entry & Validation page (SearchResultForm.jsx). A test that defines more than one result_component renders one result-entry field PER component, each produced by the same result-cell renderer the primary result uses today (chosen by the component result_type). Single-component tests are unchanged. First use case: molecular target gene + Ct (Xpert MTB/RIF, SARS-CoV-2). Consumes the OGC-949 M1 test_result_component model; replaces the PR #3831 scalar-column approach (no new analysis/test columns, no data migration). Self-contained module intended for a future fold-in to the OGC-811/817 inline results redesign.</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/results-validation/multi-component-result-entry-v1">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/results-validation/multi-component-result-entry-v1">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1.jsx">Source (JSX)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1-preview.html">HTML Mockup</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-949">OGC-949</a>
+    </div>
+    <div class="tags"><span class="tag">results-entry</span> <span class="tag">results</span> <span class="tag">validation</span> <span class="tag">multi-component</span> <span class="tag">result-component</span> <span class="tag">molecular</span> <span class="tag">ct</span> <span class="tag">pcr</span></div>
   </div>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/results-validation/reagent-usage-on-result-entry-v1">Reagent Usage on Result Entry v1</a></h3>

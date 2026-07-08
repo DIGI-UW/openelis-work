@@ -2882,6 +2882,20 @@
   added: "2026-04-27"
   status: draft
 
+- id: results-entry-multicomponent-v1
+  type: jsx
+  path: designs/results-validation/results-entry-multicomponent-v1.jsx
+  spec: designs/results-validation/results-entry-multicomponent-v1.md
+  category: results-validation
+  description: "Multi-Component Result Entry V1 — additive multi-value capture on the existing Results Entry & Validation page. One result-entry field per result_component, reusing today's result-cell renderer; single-component tests unchanged. First use case molecular target gene + Ct. Consumes the OGC-949 M1 test_result_component model; replaces the PR #3831 scalar-column approach."
+  paired_with: designs/results-validation/results-entry-multicomponent-v1-preview.html
+  links:
+    github: null
+    jira: "https://uwdigi.atlassian.net/browse/OGC-949"
+    gallery: "https://digi-uw.github.io/openelis-work/#/results-validation/multi-component-result-entry-v1"
+  added: "2026-07-08"
+  status: draft
+
 - id: results-page-reagent-usage-v1
   type: html
   path: designs/results-validation/results-page-reagent-usage-v1-preview.html
