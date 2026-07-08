@@ -1,10 +1,10 @@
 # Report Print Queue
-## Functional Requirements Specification — v1.2
+## Functional Requirements Specification — v1.3
 
-**Version:** 1.2 (generalized from "Patient Report Print Queue")
-**Date:** 2026-06-09
+**Version:** 1.3 (filter bar redesign)
+**Date:** 2026-07-06
 **Status:** Draft for Review
-**Jira:** [To be assigned]
+**Jira:** Epic OGC-1031
 **Technology:** Java Spring Framework, Carbon React
 **Related Modules:** Patient Status Report, Results Validation, Report Tracking (DocumentTrack), Audit Trail (History), Background Jobs
 
@@ -20,6 +20,18 @@
 >
 > **Naming:** renamed from "Patient Report Print Queue" to "Report Print Queue" since the surface is
 > now generic. If the project prefers to keep it patient-only, revert the name and drop §5.7.
+>
+> **Revision note (v1.3):** Filter bar redesigned for scale and speed. (1) Facility, Ward / Dept /
+> Unit, and Requestor are now **multi-select typeahead** filters (`FilterableMultiSelect` with
+> server-side option search) — the deployed reference-data sets run to **thousands** of facilities
+> and providers, so options are fetched as the user types rather than preloaded. (2) **Lab No is a
+> first-class toolbar filter** — a scan-friendly input on the main page (barcode scan or type +
+> Enter), with an optional expandable To field for range lookups. The search modal is removed.
+> (3) **Search by Patient opens inline** — a collapsible panel directly under the filter bar (no
+> modal), still embedding the existing `SearchPatientForm`. (4) **Targeted searches are exclusive:**
+> applying a patient or lab-no search clears and disables the other filters; a prominent Clear
+> affordance restores normal filtering. This supersedes v1.2's "search ANDs with other filters"
+> rule (old FR-2-003i).
 
 ---
 
@@ -197,26 +209,85 @@ generated before every test is finalized (unfinished tests print as "pending"):
   column shows "—" (not applicable); those rows use the generation-status indicator instead
   (FR-7-003).
 
+**FR-1-008 — Inline guidance:** The page MUST carry the standard inline-guidance treatment used
+across recent OpenELIS pages, so a first-time clerk understands the queue without training:
+
+- **(a) Page-level info strip.** A Carbon `InlineNotification` (kind `info`, non-dismissible)
+  directly under the page title, with a bold lead ("Validated reports land here automatically.")
+  followed by a short **status legend** explaining the tags the clerk will see, each rendered as
+  the actual Tag beside its one-line meaning: **Unprinted** — validated, not yet printed;
+  **Printed** — PDF generated and the release recorded in the report history; **Amended** — new
+  results validated after printing, reprint needed; **Generating / Failed** — a requested report
+  still being built, or one that needs a Retry.
+- **(b) Contextual field helpers.** Short helper text under controls whose behavior is not
+  self-evident: Lab No ("Scanning a barcode applies the filter instantly"), Ward when disabled
+  ("Select a facility first"), the typeahead dropdowns ("Type 2+ characters to search", "keep
+  typing to narrow"), and the Time Window while a targeted search is active ("Ignored while
+  searching").
+- **(c) State explanations.** The targeted-search strip explains *why* the other filters are
+  disabled (FR-2-005c); the empty state explains the two reasons a queue can be empty (all
+  printed, or nothing validated in the window).
+
+All guidance strings are localized (§9) — no hardcoded English.
+
 ### 5.2 Filtering & Search
 
-**FR-2-001:** The toolbar MUST provide: Report Type (Select; defaults to All — in v1 only Patient
-Report is selectable), Facility (ComboBox with search), Ward / Dept / Unit (ComboBox with search,
-cascaded from facility), Requestor (ComboBox with search), Print Status (Select: All, Unprinted,
+**FR-2-001:** The toolbar MUST provide, in order: Report Type (Select; defaults to All — in v1
+only Patient Report is selectable), Facility (multi-select typeahead, FR-2-001a), Ward / Dept /
+Unit (multi-select typeahead, cascaded — FR-2-002), Requestor (multi-select typeahead, FR-2-001a),
+**Lab No** (scan-friendly targeted lookup — FR-2-003), Print Status (Select: All, Unprinted,
 Printed), and Time Window (Select, persisted to user preference).
 
-**FR-2-002:** The Ward / Dept / Unit filter MUST be cascaded from the Facility filter: selecting a
-facility restricts the ward list to wards belonging to that facility (ward is a child Organization
-of the facility). When no facility is selected, all wards are shown.
+**FR-2-001a — Multi-select typeahead pattern (Facility, Ward, Requestor):** Deployments carry
+**thousands** of facilities (Organizations) and requestors (Providers), so these filters MUST NOT
+preload their full option list into a static dropdown. Each MUST be a Carbon
+`FilterableMultiSelect` whose options are fetched **server-side as the user types**:
 
-**FR-2-003 — Search Patient / Accession:** The toolbar MUST include a "Search Patient /
-Accession" ghost button that opens a Carbon `Modal` offering **two mutually exclusive search
-modes**, selected by a `RadioButtonGroup` (or Tabs) at the top of the modal: **By Patient** and
-**By Lab Number**. Applying either mode produces a single targeted filter on the queue; applying
-one clears the other (only one search filter is active at a time).
+- **(a) Typeahead fetch.** Options are queried once the user has typed ≥ 2 characters, debounced
+  (~300 ms). The dropdown shows at most 25 matches plus a "keep typing to narrow" affordance when
+  more exist. No full-list fetch on page load.
+- **(b) Endpoint reuse.** Option lookup reuses the **existing** autosuggest/search endpoints that
+  Add Order already uses for its Referring Site and Provider (requester) fields — no new
+  reference-data search endpoint is introduced.
+- **(c) Multi selection.** The user may select any number of options. Selected values render per
+  Carbon convention: a count tag inside the field (e.g. `3` with an ×) plus checkmarks in the
+  dropdown; clearing the count tag clears that filter. Selected options remain visible/checked in
+  the dropdown even when they no longer match the typed text.
+- **(d) Semantics.** Multiple selections within one filter are OR'd (Facility ∈ {A, B}); the
+  filters are ANDed with each other, as before.
 
-*Mode A — By Patient* (default): embeds the **existing** `SearchPatientForm` component
-(`frontend/src/components/patient/SearchPatientForm.jsx`); the component is reused, not
-reimplemented.
+**FR-2-002:** Ward / Dept / Unit is a subunit of Facility, so the ward filter MUST be **disabled
+until at least one facility is selected**, with inline helper text explaining why ("Select a
+facility first"). Once enabled, its typeahead searches only wards belonging to the **union of the
+selected facilities** (ward is a child Organization of the facility). When that union is small
+(≤25 wards), the dropdown SHOULD list all of them on open without requiring typed characters — the
+typeahead threshold exists for large sets, not small cascaded ones. When the facility selection
+changes, any selected ward that is not a child of a still-selected facility MUST be removed from
+the selection automatically; clearing the last facility clears and re-disables the ward filter.
+
+**FR-2-003 — Lab No (first-class toolbar lookup):** The Lab No filter lives directly on the
+toolbar — it is the highest-frequency lookup (and the barcode-scan path), so it MUST NOT be hidden
+behind a button or modal.
+
+- **(a) Field.** A single input using the existing `CustomLabNumberInput` component (same
+  lab-number formatting/validation used elsewhere), placeholder "Scan or type lab number". The
+  filter applies on **Enter** — which is also what a barcode scanner's terminator sends, so
+  scanning a specimen label applies the filter with no further interaction.
+- **(b) Optional range.** A small "Range" ghost toggle beside the field reveals an optional **To
+  Lab Number** input. With both filled, applying filters to the inclusive `[From, To]` range —
+  typically a sequential print run. Leaving To blank looks up the single lab number. Range bounds
+  use the existing accession-number ordering/validation; an invalid lab number surfaces
+  `CustomLabNumberInput`'s existing validation, and From > To shows
+  `error.printQueue.invalidLabRange`.
+- **(c) Result.** The queue is filtered to the matching order(s) — typically one or a handful of
+  rows. Applying the lab-no lookup is a **targeted search** and triggers the exclusivity behavior
+  of FR-2-005.
+
+**FR-2-004 — Search by Patient (inline panel, no modal):** The toolbar MUST include a "Search by
+Patient" ghost button that expands a **collapsible inline panel directly beneath the filter bar**
+— the queue table moves down to make room; no `Modal` is used. The panel embeds the **existing**
+`SearchPatientForm` component (`frontend/src/components/patient/SearchPatientForm.jsx`); the
+component is reused, not reimplemented.
 
 - **(a) Criteria.** The component's existing fields: Patient Id (matched by the backend against
   STNumber, subjectNumber, and nationalID), Previous Lab Number, Last Name, First Name, Date of
@@ -229,52 +300,46 @@ reimplemented.
   existing parameters; results and server-side paging (`res.paging`) render unchanged. No new
   search endpoint.
 - **(d) Selection.** The component returns a **patient** via its `getSelectedPatient(patient)`
-  callback. On selection the modal closes and the queue applies a **patient filter** (`patientId`)
-  — narrowing to all of that patient's queue entries (all of their orders). The queue MUST NOT
-  import the patient or navigate away.
+  callback. On selection the panel collapses and the queue applies a **patient filter**
+  (`patientId`) — narrowing to all of that patient's queue entries (all of their orders). The
+  queue MUST NOT import the patient or navigate away. Applying the patient filter is a **targeted
+  search** and triggers the exclusivity behavior of FR-2-005.
+- **(e) Dismissal.** Collapsing the panel without selecting a patient (the button toggles, or an
+  in-panel close) leaves the queue and filters untouched.
 
-*Mode B — By Lab Number / Range:* a targeted accession lookup.
+**FR-2-005 — Targeted-search exclusivity:** A patient or lab-no lookup identifies specific
+orders, so combining it with the browse filters is meaningless. While a targeted search (FR-2-003
+or FR-2-004d) is active:
 
-- **(e) Fields.** A required **From Lab Number** and an optional **To Lab Number**, each entered
-  via the existing `CustomLabNumberInput` component (same lab-number formatting/validation used
-  elsewhere). Leaving "To" blank looks up a single lab number; supplying both looks up the
-  inclusive range. A Search button submits.
-- **(f) Result.** The queue is filtered to the order(s) whose accession (lab) number equals the
-  single value, or falls within the inclusive `[From, To]` range — typically one or a handful of
-  rows. Range bounds are resolved using the existing accession-number ordering/validation; an
-  invalid lab number surfaces `CustomLabNumberInput`'s existing validation, and From > To shows
-  `error.printQueue.invalidLabRange`.
+- **(a) Other filters cleared + disabled.** Applying a targeted search MUST clear Report Type,
+  Facility, Ward, Requestor, and Print Status to their defaults and render them (and the Time
+  Window control) **disabled** until the search is cleared.
+- **(b) All-time scope.** The queue MUST search **all time** for the matched subset, ignoring the
+  Time Window selection, so a clerk can pull an older order. The saved Time Window preference is
+  untouched.
+- **(c) Clear affordance.** An active-search strip MUST display a dismissible Carbon `Tag` —
+  "Patient: {name}", "Lab No: {labNo}", or "Lab No: {from}–{to}" — plus an explicit **Clear
+  search** button. Either one removes the targeted filter, re-enables the browse filters (at their
+  defaults), and restores the window-scoped view.
+- **(d) Mutual exclusivity.** Only one targeted search is active at a time: applying a patient
+  search replaces an active lab-no lookup and vice versa.
+- **(e) No match.** If nothing matches, the queue shows the standard empty state (FR-1-001), not
+  an error.
+- **(f) Search reaches in-progress orders.** Unlike the auto-populated default view (which lists
+  only accessions with ≥1 newly-validated, unprinted result), a targeted search MUST also surface
+  matching orders that have tests entered but **no** finalized results yet (a fully preliminary
+  `0/n` report) and orders previously printed and outside the time window. Such rows render with
+  their Completeness indicator (e.g. Partial `0/9`) and remain printable as a preliminary report
+  (FR-4-007). The server resolves matches against Samples/Analyses, not only against persisted
+  queue entries; a print on a not-yet-queued match creates the tracking record as usual.
 
-*Shared behavior (both modes):*
+**FR-2-006:** A "Clear Filters" button MUST reset Report Type, Facility, Ward, Requestor, Print
+Status, and any active targeted search (FR-2-005) to default. The Time Window preference MUST NOT
+be reset by Clear Filters.
 
-- **(g) Targeted lookup overrides the Time Window.** When a patient or lab-number search filter is
-  active, the queue MUST search **all time** for the matched subset and ignore the Time Window
-  selection, so a clerk can pull an older order by patient or lab number. The Time Window control
-  is visually disabled while a search filter is active. Clearing the search restores the
-  window-scoped view (the saved Time Window preference is untouched).
-- **(h) Active-filter affordance.** While a search filter is active, the toolbar MUST display a
-  dismissible Carbon `Tag`: "Patient: {name}", "Lab No: {labNo}", or "Lab No: {from}–{to}".
-  Dismissing it removes the filter and restores the window-scoped view. Selecting a new search (of
-  either mode) replaces the existing one.
-- **(i) Interaction with other filters.** The search filter is ANDed with Report Type, Facility,
-  Ward, Requestor, and Print Status (but not Time Window — see (g)). If nothing matches, the queue
-  shows the standard empty state (FR-1-001), not an error.
-- **(j) Search reaches in-progress orders.** Unlike the auto-populated default view (which lists
-  only accessions with ≥1 newly-validated, unprinted result), a patient or lab-number search MUST
-  also surface matching orders that have tests entered but **no** finalized results yet (a fully
-  preliminary `0/n` report) and orders previously printed and outside the time window. Such rows
-  render with their Completeness indicator (e.g. Partial `0/9`) and remain printable as a
-  preliminary report (FR-4-007). The server resolves matches against Samples/Analyses, not only
-  against persisted queue entries; a print on a not-yet-queued match creates the tracking record
-  as usual.
+**FR-2-007:** Filter state (excluding Time Window) MUST persist within the session.
 
-**FR-2-004:** A "Clear Filters" button MUST reset Report Type, Facility, Ward, Requestor, Print
-Status, and the active search filter (patient or lab-number, FR-2-003) to default. The Time Window
-preference MUST NOT be reset by Clear Filters.
-
-**FR-2-005:** Filter state (excluding Time Window) MUST persist within the session.
-
-**FR-2-006:** The Time Window filter MUST offer: Last 24 Hours, Last 7 Days (default), Last 30
+**FR-2-008:** The Time Window filter MUST offer: Last 24 Hours, Last 7 Days (default), Last 30
 Days, All Time.
 
 ### 5.3 Print Status Management
@@ -322,10 +387,10 @@ existing sample/accession (or report) record view.
 
 **FR-4-007 — Printing a partial (preliminary) report:** The user MUST be able to print a report
 whose Completeness is Partial; the generated PDF shows finalized results and "pending" for
-not-yet-finalized tests (the existing patient report behavior). Before generating a Partial
-report, the system SHOULD show a brief confirmation noting it is preliminary and how many tests
-are reported (e.g. "Preliminary report — 6 of 7 tests reported. Print anyway?"). Printing a Final
-report needs no such confirmation. On print, the system MUST record `printedTestsReported` (the
+not-yet-finalized tests (the existing patient report behavior). Printing a Partial report MUST NOT
+require a confirmation step — the row's Completeness Tag and `reported/total` count are the
+signal, and the action is low-risk (it opens a PDF; the accession re-queues as Amended when the
+remaining tests finalize, BR-002). On print, the system MUST record `printedTestsReported` (the
 reported count at print time) in addition to the standard print-event recording (FR-4-002).
 
 ### 5.5 User Preferences
@@ -466,12 +531,12 @@ generation statuses within the time window.
 |---|---|---|
 | reportType | String | Filter by report type; omit for all (v1: PATIENT) |
 | generationStatus | String | QUEUED, GENERATING, READY, FAILED; omit for all |
-| facilityId | Long | Filter by originating/referring site (Organization) |
-| wardId | Long | Filter by ward (must be a child of facilityId if both provided) |
-| requestorId | Long | Filter by requestor |
-| patientId | Long | Filter to a single patient — all their orders (Search modal, Mode A). Overrides timeWindowDays |
-| accessionFrom | String | Lower bound lab number (Search modal, Mode B). Single lookup when accessionTo omitted. Overrides timeWindowDays |
-| accessionTo | String | Upper bound lab number for an inclusive range (Search modal, Mode B); optional |
+| facilityIds | Long[] (CSV) | Filter by originating/referring site(s) (Organization); OR'd within the list |
+| wardIds | Long[] (CSV) | Filter by ward(s); honored only when facilityIds is present, and each must be a child of a facility in facilityIds; OR'd within the list |
+| requestorIds | Long[] (CSV) | Filter by requestor(s); OR'd within the list |
+| patientId | Long | Targeted search — all of one patient's orders (FR-2-004). Exclusive: no browse-filter params may accompany it (BR-013) |
+| accessionFrom | String | Targeted search — lower bound lab number (FR-2-003). Single lookup when accessionTo omitted. Exclusive per BR-013 |
+| accessionTo | String | Upper bound lab number for an inclusive range (FR-2-003b); optional |
 | printStatus | String | UNPRINTED, PRINTED; omit for all |
 | timeWindowDays | Integer | 1, 7, 30, or -1 (all time); defaults to user preference |
 | page | Integer | 0-indexed page number |
@@ -480,6 +545,12 @@ generation statuses within the time window.
 
 **POST `/rest/reports/print-queue/generate` — Request Body:** `{ "entryIds": [1, 2, 3] }` →
 per-entry success/failure status for partial-batch handling. Server rejects non-READY entries.
+
+**Filter option lookup (API & Data Reuse):** the Facility, Ward, and Requestor typeahead filters
+(FR-2-001a) reuse the **existing** autosuggest/search endpoints that Add Order uses for its
+Referring Site and Provider (requester) fields. No new reference-data search endpoint is
+introduced; if the existing endpoints cannot restrict wards to a set of parent facilities
+(FR-2-002), extending them with a parent-organization parameter is the declared exception.
 
 ---
 
@@ -508,8 +579,11 @@ the window are excluded unless "All Time" is selected.
 **BR-006:** The "Amended" Tag is cleared (isAmended=false) only on successful PDF generation after
 the amendment. Viewing/previewing does not clear it.
 
-**BR-007:** Ward options are restricted to wards (child Organizations) belonging to the selected
-facility. If no facility is selected, all wards are shown.
+**BR-007:** The ward filter is actionable only while at least one facility is selected (it is a
+subunit of facility); with no facility selected it is disabled and empty. Ward options are
+restricted to wards (child Organizations) belonging to the **union of the selected facilities**. A
+selected ward whose parent facility is deselected is removed from the selection automatically;
+clearing the last facility clears and re-disables the ward filter (FR-2-002).
 
 **BR-008:** The recorded print event type is FIRST_PRINT if `lastPrintedAt` was null at generation
 time; REPRINT if it was already set. (Recorded as the report-tracking type / History event, not a
@@ -527,20 +601,21 @@ entry. On READY, the requesting user is notified (FR-7-004). FAILED entries are 
 **BR-011:** Print status is only actionable when generationStatus = READY. The Print action MUST be
 disabled for QUEUED/GENERATING/FAILED entries.
 
-**BR-012:** The Search Patient / Accession modal (FR-2-003) offers two mutually exclusive modes.
-**Mode A (By Patient)** reuses `SearchPatientForm` in local-only mode (`suppressExternalSearch=true`,
-no Client Registry); it returns a patient and applies a `patientId` filter (all of that patient's
-orders). **Mode B (By Lab Number)** takes a single lab number or an inclusive From–To range
-(entered via `CustomLabNumberInput`) and applies an `accessionFrom`/`accessionTo` filter. Only one
-search filter is active at a time; applying one clears the other. The modal does not import patients
-or create queue entries. The `patient.*` and `pagination.*` i18n keys the embedded form uses
-already exist and are NOT redefined here.
+**BR-012:** The two targeted searches are mutually exclusive. **Search by Patient** (inline panel,
+FR-2-004) reuses `SearchPatientForm` in local-only mode (`suppressExternalSearch=true`, no Client
+Registry); it returns a patient and applies a `patientId` filter (all of that patient's orders).
+**Lab No** (toolbar, FR-2-003) takes a single lab number or an inclusive From–To range (entered
+via `CustomLabNumberInput`) and applies an `accessionFrom`/`accessionTo` filter. Applying one
+clears the other. Neither imports patients nor creates queue entries. The `patient.*` and
+`pagination.*` i18n keys the embedded form uses already exist and are NOT redefined here.
 
-**BR-013:** An active search filter (patient or lab-number) is a **targeted lookup that overrides
-the Time Window**: the server searches all time for the matched subset and ignores
-`timeWindowDays` while `patientId` or `accessionFrom` is supplied. The Time Window control is
-disabled in the UI while a search filter is active. Clearing the search restores the
-window-scoped view; the saved Time Window preference is never modified.
+**BR-013:** An active targeted search (patient or lab-no) **suspends browse filtering entirely**
+(FR-2-005): the server ignores `timeWindowDays` (searches all time) and the client clears and
+disables Report Type / Facility / Ward / Requestor / Print Status / Time Window while `patientId`
+or `accessionFrom` is supplied — the server MUST NOT receive browse-filter params alongside a
+targeted-search param. Clearing the search (dismissible tag or Clear search button) re-enables the
+browse filters at defaults and restores the window-scoped view; the saved Time Window preference
+is never modified.
 
 **BR-014 — Completeness derivation:** For a patient-report entry, `testsReported` = count of the
 accession's analyses in `Finalized` status. `testsTotal` = count of **reportable** analyses,
@@ -591,9 +666,6 @@ no persisted queue entry creates the entry and tracking record at print time.
 | `label.printQueue.testsReported` | {reported}/{total} |
 | `label.printQueue.testsReportedFull` | {reported} of {total} tests reported |
 | `label.printQueue.notApplicable` | — |
-| `heading.printQueue.preliminaryConfirm` | Preliminary report |
-| `message.printQueue.preliminaryConfirm` | Preliminary report — {reported} of {total} tests reported. Print anyway? |
-| `button.printQueue.printAnyway` | Print anyway |
 | `helper.printQueue.timeWindowOverridden` | Ignored while searching |
 | `label.printQueue.genQueued` | Queued |
 | `label.printQueue.genGenerating` | Generating |
@@ -613,12 +685,25 @@ no persisted queue entry creates the entry and tracking record at print time.
 | `button.printQueue.printSelected` | Print Selected ({count}) |
 | `button.printQueue.printSingle` | Print |
 | `button.printQueue.retry` | Retry |
-| `button.printQueue.search` | Search Patient / Accession |
-| `heading.printQueue.searchModal` | Search Patient / Accession |
-| `label.printQueue.searchModePatient` | By Patient |
-| `label.printQueue.searchModeLabNo` | By Lab Number |
+| `button.printQueue.searchByPatient` | Search by Patient |
+| `heading.printQueue.patientSearchPanel` | Search by Patient |
+| `label.printQueue.labNo` | Lab No |
+| `placeholder.printQueue.scanLabNo` | Scan or type lab number |
+| `button.printQueue.labNoRange` | Range |
 | `label.printQueue.labNoFrom` | From Lab Number |
 | `label.printQueue.labNoTo` | To Lab Number (optional) |
+| `button.printQueue.clearSearch` | Clear search |
+| `helper.printQueue.filtersDisabled` | Filters are disabled while a targeted search is active |
+| `helper.printQueue.keepTyping` | Showing first {shown} of {total} matches — keep typing to narrow |
+| `helper.printQueue.typeToSearch` | Type 2+ characters to search |
+| `helper.printQueue.selectFacilityFirst` | Select a facility first |
+| `helper.printQueue.scanHint` | Scanning a barcode applies the filter instantly |
+| `message.printQueue.pageGuidanceTitle` | Validated reports land here automatically. |
+| `message.printQueue.guideUnprinted` | validated, not yet printed |
+| `message.printQueue.guidePrinted` | PDF generated and the release recorded |
+| `message.printQueue.guideAmended` | new results validated after printing — reprint needed |
+| `message.printQueue.guideGenerating` | requested report still being built |
+| `message.printQueue.guideFailed` | generation failed — use Retry |
 | `label.printQueue.patientFilter` | Patient: {name} |
 | `label.printQueue.labNoFilter` | Lab No: {labNo} |
 | `label.printQueue.labNoRangeFilter` | Lab No: {from}–{to} |
@@ -728,17 +813,18 @@ already audited on.
 - [ ] **[FR-1-004]** Columns: Report Type, Subject (Accession + Patient Name), Facility, Ward / Dept / Unit, Requestor, Validated / Queued At, Status, Print action
 - [ ] **[FR-1-006]** A patient row whose result abnormal flag is at/above the critical threshold shows a red "Critical Value" Tag, rendered identically to the critical-result-ack treatment
 - [ ] **[FR-1-007, BR-014]** Each patient row shows a Completeness indicator: a Final (teal) / Partial (warm-gray) Tag plus a `reported/total` count derived from Finalized vs reportable analyses; async report types show "—"
-- [ ] **[FR-4-007]** A Partial report is printable; the user sees a preliminary confirmation ("{reported} of {total} tests reported") before generation; printing records `printedTestsReported`
+- [ ] **[FR-4-007]** A Partial report is printable with no confirmation step — the Completeness Tag and `reported/total` count are the signal; printing records `printedTestsReported`
 - [ ] **[BR-002]** After a print, finalizing further tests re-queues the entry as UNPRINTED + Amended (covers a previously-Final report corrected, and a previously-printed Partial gaining tests)
-- [ ] **[FR-2-003j, BR-015]** A patient or lab-number search surfaces in-progress orders not in the auto-queue (e.g. `0/9` preliminary) and they remain printable
+- [ ] **[FR-2-005f, BR-015]** A patient or lab-no search surfaces in-progress orders not in the auto-queue (e.g. `0/9` preliminary) and they remain printable
 - [ ] **[FR-3-001]** Unprinted = purple Tag; Printed = green Tag
 - [ ] **[FR-3-002, FR-3-003]** Amended accessions show a blue "Amended" Tag alongside status; it clears after the next successful generation
-- [ ] **[FR-2-001, FR-2-002]** Filter by Report Type, Facility, Ward, Requestor, Print Status, Time Window; selecting a facility restricts the ward list to that facility's child wards
-- [ ] **[FR-2-003a–d]** Search modal Mode A (By Patient) embeds the existing `SearchPatientForm` (Patient Id, Previous Lab Number, Last/First Name, DOB, Gender), local-only (External Search and Client Registry suppressed), backed by `GET /rest/patient-search-results`; selecting a patient applies a patientId filter showing all that patient's orders
-- [ ] **[FR-2-003e–f]** Search modal Mode B (By Lab Number) takes a required From and optional To lab number via `CustomLabNumberInput`; a single value filters to one order, From+To filters to the inclusive range; From > To shows `error.printQueue.invalidLabRange`
-- [ ] **[FR-2-003g, BR-013]** An active patient or lab-number search overrides the Time Window (searches all time) and disables the Time Window control; clearing the search restores the window-scoped view without changing the saved preference
-- [ ] **[FR-2-003h–i, BR-012]** The active search shows a dismissible Tag ("Patient: {name}", "Lab No: {labNo}", or "Lab No: {from}–{to}"); modes are mutually exclusive (applying one clears the other); the filter ANDs with the other filters; no match shows the empty state
-- [ ] **[FR-2-004]** "Clear Filters" resets Report Type/Facility/Ward/Requestor/Status and the active search filter but NOT Time Window
+- [ ] **[FR-2-001, FR-2-001a]** Facility, Ward, and Requestor are FilterableMultiSelects with server-side typeahead (≥2 chars, debounced, ≤25 results + "keep typing" affordance, no full-list preload); multiple selections OR within a filter and AND across filters
+- [ ] **[FR-2-002, BR-007]** Ward filter is disabled (with "Select a facility first" helper) until ≥1 facility is selected; its typeahead searches only the union of the selected facilities' child wards; deselecting a facility auto-removes its wards; clearing the last facility clears and re-disables the ward filter
+- [ ] **[FR-1-008]** Page shows the standard inline guidance: info strip under the title, field helpers (Lab No scan hint, ward "select a facility first", typeahead hints), and state explanations (targeted-search strip, empty state) — all via i18n keys
+- [ ] **[FR-2-003]** Lab No is a toolbar field: scanning a barcode (or typing + Enter) applies the filter immediately; the "Range" toggle reveals an optional To field for an inclusive From–To lookup; From > To shows `error.printQueue.invalidLabRange`
+- [ ] **[FR-2-004]** "Search by Patient" expands an inline panel under the filter bar (no modal) embedding the existing `SearchPatientForm` (Patient Id, Previous Lab Number, Last/First Name, DOB, Gender), local-only (External Search and Client Registry suppressed), backed by `GET /rest/patient-search-results`; selecting a patient collapses the panel and applies a patientId filter showing all that patient's orders; collapsing without selecting changes nothing
+- [ ] **[FR-2-005, BR-013]** Applying a patient or lab-no search clears + disables the other filters (incl. Time Window), searches all time, and shows a dismissible Tag ("Patient: {name}", "Lab No: {labNo}", or "Lab No: {from}–{to}") plus a Clear search button; clearing re-enables the filters at defaults and restores the window-scoped view without changing the saved preference; the two search types are mutually exclusive; no match shows the empty state
+- [ ] **[FR-2-006]** "Clear Filters" resets Report Type/Facility/Ward/Requestor/Status and any active targeted search but NOT Time Window
 - [ ] **[FR-4-001, BR-009, BR-011]** Selecting up to 50 READY rows + "Print Selected" produces a single combined PDF in one tab; >50 disables the action with a tooltip; non-READY rows are not printable
 - [ ] **[FR-4-001]** Single-row "Print" opens that report's PDF in a new tab
 - [ ] **[FR-4-002, §12]** Successful generation atomically flips to Printed, clears isAmended, sets lastPrintedAt/By, and records a report-tracking + History event with correct type (FIRST_PRINT/REPRINT) — verified via the existing record history view, with no new audit table
@@ -765,6 +851,6 @@ already audited on.
 ### Integration
 
 - [ ] **[BR-001]** Patient-report entries are created automatically by the validation workflow on results sign-off — no manual queue management
-- [ ] **[FR-2-003]** The existing patient/accession search modal is reused unmodified
+- [ ] **[FR-2-004]** The existing `SearchPatientForm` component is reused unmodified (inline, local-only); the Facility/Ward/Requestor typeaheads reuse the Add Order autosuggest endpoints
 - [ ] **[FR-4-001, §12]** PDF generation delegates to the existing patient report generation service; print events are recorded through `IReportTrackingService` + `History`
 - [ ] **[FR-7-002]** Long-running report generation uses the background job runner (named dependency); `reportType` maps to `ReportTrackingService.ReportType`
