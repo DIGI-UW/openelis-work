@@ -1,7 +1,7 @@
 # OpenELIS Design Gallery — Full Spec Content
 
-Generated: 2026-07-08T22:38:20.604Z
-Total designs: 197
+Generated: 2026-07-09T15:15:43.886Z
+Total designs: 199
 
 ---
 
@@ -65911,7 +65911,6 @@ The following FRs from v1.4 §6.6 "Export Adapters — eWARS + SILANTOR CSV" are
 
 # Results Entry v4 (results-validation)
 Gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4
-Jira: OGC-811
 
 # Results Entry — Functional Requirements Specification (consolidated)
 
@@ -66120,7 +66119,6 @@ All UI elements trace to existing OpenELIS entities; new data is declared as a n
 
 # Validation Page v4 (results-validation)
 Gallery: https://digi-uw.github.io/openelis-work/#/results-validation/validation-page-v4
-Jira: OGC-817
 
 # Validation Page — Functional Requirements Specification (consolidated)
 
@@ -66239,6 +66237,338 @@ Multi-level pipeline internals (preserved/configured via OGC-343), Referrals/Sam
 ## Open questions
 - Confirm `/Validation` route + SideNav slot against the live app.
 - Manual/RDT control-result persistence (shared dependency with Results Entry) drives the QC-fail signal on non-analyzer tests.
+
+
+---
+
+# Results Entry — Multi-Component (integrated) (results-validation)
+Gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-multi-component-integrated
+Jira: OGC-811, OGC-1130, OGC-1131
+
+# Results Entry — Functional Requirements Specification (multi-component integrated)
+
+**Status:** Draft for review
+**Technology:** Java / Spring backend, React + Carbon (`@carbon/react`) frontend
+**Route:** `/Results` · **SideNav:** Workplan → Results · **Breadcrumb:** Home / Workplan / Results
+**Related surfaces:** Validation Page (inherits the Method/Analyzer split **and** the multi-component rendering), Admin Validation Configuration (cross-domain config). Referrals / Sample Shipment, NCE module, Reagent Inventory, Reagent Forecasting, Storage are integration points, not redesigned here.
+**Companion artifacts:** `results-entry-v4-preview.html` (mockup), `results-entry-v4-decisions.md` (design decisions D1–D19), plus the multi-component V1 artifacts (`results-entry-multicomponent-v1.*`).
+**Supersedes:** the Results Entry **v4** FRS (`results-entry-v4.md`). This is a **new full FRS** (per the "not-started ⇒ new FRS, not addendum" rule) that carries forward all v4 scope and natively integrates **multi-component result entry**. Version-agnostic — version boundaries are decided in the breakdown, not here.
+**Related Jira:** OGC-811 (this Results Entry redesign), OGC-1124 (multi-component V1 on the current page), OGC-1126 (report), OGC-1127 (show-on-report), OGC-1128 (component identity + component-aware terminology), OGC-1129 (analyzer ingestion), OGC-1130 (this v4 fold-in). Program: OGC-949.
+
+---
+
+## Lab Context
+
+### Current State
+The Results Entry page is where a bench technician records the value of a test for a sample that's waiting on a result. A tech sits at the bench with a worklist of pending tests — some read off an instrument (an "analyzer"), some run by hand (a rapid test strip, a manual microscopy slide). For each one they open the row, type or pick the value, note which method and instrument produced it, sometimes record which reagent lot they used and a quality-control (QC) check, and save. The same page is used by labs that don't test patients at all: environmental labs testing drinking water against regulatory limits, and vector-surveillance labs testing pools of mosquitoes for disease. Which kind of lab you are is set by the **Lab Unit** you select at the top of the page.
+
+Most tests produce **one** value. But some produce **several at once**. A molecular PCR (Polymerase Chain Reaction) assay on a GeneXpert instrument is the driving example: one cartridge reports an overall call (e.g. "MTB DETECTED") plus a value for each **target gene / probe** it amplified — for Xpert MTB/RIF, five *rpoB* probe **Ct** values (cycle threshold — the PCR cycle at which the signal is detected). Today the page can record only the single overall call; the other values have nowhere to go and live on the instrument printout.
+
+### Pain
+The current design buries the one thing the tech is there to do. When a row is expanded, the result value sits at the *bottom* of a stack of fourteen blocks, so the tech scrolls past everything to reach the field they came for. A single "Analyzer Result" column conflates two different facts — the *method* (e.g. "Cobas TaqMan") and the *specific instrument* (one of four machines the lab nicknamed Leonardo, Donatello, Michelangelo, Raphael). A saved, validated value can be overwritten just by clicking into it. Reagent use, QC controls, dilutions, and "this sample is used up" have nowhere to be recorded at the bench, so they live on paper. Critical and abnormal flags are pale color tints that are hard to see. The "History" tab shows patient trends and statistical (Westgard) rules that don't belong on this screen. **And a multi-value test can only capture one value** — a "MTB DETECTED, very low" result isn't reproducible or auditable because the five probe Cts behind it never enter the system.
+
+### What Changes
+The expanded row leads with what the tech touches: the value, the method, the specific instrument, and notes — with an explicit Edit→Save control so a saved value can't be changed by accident. Method and instrument become two separate fields, prefilled from the analyzer. Everything the tech only *reads* collapses into summarized, remember-my-choice sections below. The tech can record reagent lots and quantity used, a QC control, a dilution factor, partial or full use of the sample, and can create aliquots — all without leaving the page. Flags become high-contrast icon-and-tag badges. "History" now shows *this test's* own history. Selecting a different Lab Unit reshapes the page for water-quality or mosquito-pool work. **And a test that defines more than one result component now shows a result field for each — using the very same result widgets — so the tech captures every value the test produces (all five probe Cts, or an N2/E pair), while single-result tests look exactly as they do today.**
+
+---
+
+## Overview
+
+Results Entry consolidates the legacy result-entry routes into one `/Results` workbench: a filterable table of pending analyses with an inline-expanding panel per row. The panel is reorganized into a **work zone** (always-open, high-touch fields) and a **reference zone** (collapsed, summarized, sticky-per-user sections). The page is cross-domain: a `currentDomain` of `CLINICAL` / `ENVIRONMENTAL` / `VECTOR` is derived from the selected Lab Unit and reshapes columns, banners, and labels. No new domain enum value is introduced (never `BOTH`).
+
+**Multi-component results.** A test may define one or more **result components** (OGC-949 M1 `test_result_component`); every legacy test has exactly one (`PRIMARY`), so today's single-value behavior is just "one component." This FRS renders **one result field per component**, each produced by the **same polymorphic result widget** used today (chosen by that component's result type), with the component's own label, unit, significant digits, and reference range. The first/primary component is the result as today; additional components mirror it. This is the durable home of the capability piloted on the current page in OGC-1124.
+
+**Navigation & URL.** Canonical route `/Results`; SideNav path Workplan → Results; breadcrumb Home / Workplan / Results. The selected Lab Unit and status filter are the page's primary state; the route stays stable across rows.
+
+---
+
+## User Stories
+
+- **As a bench technician,** I want the result value(s), method, and instrument at the top of the expanded row with one Edit→Save control, so I can enter or correct a result quickly without scrolling and without overwriting a validated value by accident.
+- **As a bench technician entering a multi-component test,** I want a result field for **each** component (e.g. the MTB call plus each rpoB probe Ct) using the same fields I already use, so I capture every value the assay produced.
+- **As a bench technician,** I want to record which reagent lot and how much I used, a QC control result, and a dilution factor at the moment I enter the result, so consumption and quality data stop living on paper.
+- **As a bench technician,** I want to mark a sample partly or fully used and create aliquots from this screen, so sample handling is captured where the work happens.
+- **As a bench technician,** I want to file a non-conformity or refer a test out from the row, so quality and referral workflows start in context.
+- **As an environmental / vector technician,** I want the page to drop patient fields and show site or trap context with regulatory limits or pool composition, so the screen matches non-clinical work.
+- **As a supervisor,** I want this analysis's own history (prior values, retests, status changes) visible inline, so I can see what happened to this result without leaving the page.
+
+---
+
+## Functional Requirements
+
+### A. Result entry & edit-state machine
+- **FR-A1.** Each result field is **polymorphic**: numeric (`NumberInput`), dictionary/qualitative (`Select`), or multi-select (checkbox set), driven by the **component's** result type.
+- **FR-A2.** A **saved** result renders **read-only**. An **Edit** control on the row unlocks all editable fields in the expanded panel (every component value, method, analyzer, reagent, controls, notes) and swaps to **Save**. (Per-row scope — decision D1.) Edit unlocks the whole analysis, including all its components together.
+- **FR-A3.** An **un-resulted** row is editable on open; a **Save** control appears once any value is entered. States: `EMPTY → DIRTY → SAVED(read-only) → (Edit) → EDITING → SAVED`.
+- **FR-A4.** **Save** records the user's e-signature. Save is **never blocked** on critical-value acknowledgment; acknowledgment is a follow-up on the Alerts dashboard.
+- **FR-A5.** Editing a previously-saved value sets the note context to **Modification** (see FR-J) and is captured in this-analysis history (see FR-H).
+
+### A′. Multi-component results *(new — integrates OGC-1124 into this redesign)*
+- **FR-A′1.** For an analysis whose test defines **N result components**, the work zone renders **N result fields**, one per component, in the component `display_order`. A test with a single (`PRIMARY`) component renders exactly one field — **identical to today**.
+- **FR-A′2.** Each component's field is produced by the **existing polymorphic result renderer** (FR-A1) chosen by that component's `result_type`; **no bespoke widget** is introduced. Additional components render as result lines that **mirror the primary**, each showing the component label and applying its unit, significant digits, and reference range.
+- **FR-A′3.** Each component value is **saved and read back keyed to its `component_id`**; saving one component does not alter another, and the primary component keeps today's read/write path.
+- **FR-A′4.** An empty component value renders blank everywhere (entry, validation, report) — never a fabricated 0.
+- **FR-A′5.** Which components appear is **data-driven** (the test's components); there is no feature flag and no molecular-specific branch. "Ct" is a unit on numeric components, not a special case.
+- **FR-A′6.** The edit-state machine (FR-A2/A3), e-signature on Save (FR-A4), flags/contrast (FR-L), and history (FR-H) all apply per analysis across its components.
+
+### B. Method + Analyzer split
+- **FR-B1.** Method and Analyzer are **two distinct fields/columns**: **Method** is the analyzer *type* / method (`Analysis.method` → `Method`); **Analyzer** is the specific instrument instance (`Analysis.analyzerId`).
+- **FR-B2.** On analyzer import, **Method prefills** from the analyzer type and **Analyzer prefills** with the instrument instance; both editable when the row is in Edit. A provenance indicator marks analyzer-imported rows. Per-component values imported from the analyzer prefill their respective component fields (see FR-N / OGC-1129).
+- **FR-B3.** The Validation Page inherits this split.
+
+### C. Panel hierarchy & progressive disclosure
+- **FR-C1.** The expanded panel is split into a **work zone** (always open: result value(s) + method + analyzer + notes + row actions) and a **reference zone** (collapsible sections below). For a multi-component test, the component result fields all live in the work zone.
+- **FR-C2.** Patient/site/trap context renders as one **compact strip**, not a stack of banners, with **no decorative leading icon** (D19). A full-width banner is reserved for the critical-value acknowledgment only.
+- **FR-C3.** Reference-zone sections are **collapsed-but-summarized** — the collapsed header shows a one-line gist.
+- **FR-C4.** Section open/closed state is **remembered per user** across rows and sessions (browser-local; "Reset layout" restores defaults). Precedence: remembered > per-result auto-open > collapsed. A section **auto-opens** when this result has notable content. (D9.)
+- **FR-C5.** Sections render **conditionally** — a section with no content for this result is not rendered.
+
+### D. Combined Reagents, QC & Controls
+- **FR-D1.** Reagent capture **adopts the reagent-usage model**: where the Test Catalog → Method → Reagent linkage exists, the per-test reagent list (capture mode HIDDEN/OPTIONAL/REQUIRED, FIFO lot cards, Quantity Used + Unit, low-stock warning, override-reason); until that linkage ships, the free-form name/lot ComboBox picker. Both write a `ReagentConsumptionEvent` (`sourceType = RESULT_ENTRY`) and auto-credit on void/downward edit. (D11.)
+- **FR-D2.** Analyzer-imported results show the reagent lot **read-only** ("analyzer-reported", capture mode HIDDEN).
+- **FR-D3.** **Control result** capture adapts to test type (D12): for a rapid diagnostic test (RDT), the **control-line outcome** (Valid / Invalid; Invalid blocks reporting and prompts a repeat) with control lot; for a manual quantitative test, **measured value + expected value + uncertainty (±) + Pass/Fail** with control level and lot.
+- **FR-D4.** **Expected value and uncertainty are entered by the tech** (or prefilled only if a target range is configured for the QC lot). (D12a.)
+- **FR-D5.** **Dilution factor** (quantitative only): reported result = entered value × dilution factor. Applies per numeric component. (D14.)
+- **FR-D6.** **Replicate / repeat values** behind a collapsed toggle (Rep 1–n + mean). (D14.)
+- **FR-D7.** **Instrument flags** from the analyzer payload shown read-only. (D14.)
+- **FR-D8.** Method and Analyzer are surfaced in the work zone (FR-C1) and are **not duplicated** in this section.
+
+### E. Non-Conformity (NCE)
+- **FR-E1.** "Report Non-Conformity" opens the **real inline NCE form** (the shipped `InlineNceForm`, embedded — not a modal), auto-linking the sample and result. (D2.)
+- **FR-E2.** NCE fields (authoritative): NCE Number (auto, read-only), Reporter (session), Date of Event\*, Reporting Unit\*, Category\*, Subcategory, Severity\* (Critical/Major/Minor), Title, Description\*, Immediate Action, Suspected Causes, Proposed Action, Attachments. (\* required.)
+- **FR-E3.** NCE **Result Disposition** = Cancel / Reject + reason / Retest. **Refer-out is not a disposition** (see FR-F).
+
+### F. Referral (refer-out)
+- **FR-F1.** "Refer this test" is a **distinct row action** that opens an inline referral form (not an NCE disposition). (D3, D16.)
+- **FR-F2.** Referral fields: **Reference laboratory\***, **Reason\***, **Referral date/time** (defaults to now, editable). No "test to perform" field.
+- **FR-F3.** Saving sets `Analysis.referredOut` and hands off to the Referrals / Sample Shipment subsystem (`soSend*` lifecycle). This work does not modify those pages.
+
+### G. Interpretation
+- **FR-G1.** Interpretation is an **editor**, not a read-only suggestion, with three entry paths (D15): (a) **rule** — categorical buckets configured on the test, auto-matched to the entered value; (b) **macro** — a **type-to-search** field that inserts a canned phrase (D17); (c) **free text**. Rule text is a non-binding suggestion until applied/edited. For multi-component tests, interpretation remains at the analysis level (the derived call), not per probe, unless a component defines its own interpretation rows.
+
+### H. History (this analysis)
+- **FR-H1.** History shows **this analysis's own history only** (D7): prior saved values (`Analysis.revision`), status transitions, retests/reflexes, corrections, bound notes, and `audit_trail` changes. Per-component value changes are included.
+- **FR-H2.** History is an **inline, default-collapsed section** (not a tab) and is **paginated** (25/50/100). Patient-longitudinal trends and Westgard rules are out of scope.
+
+### I. Aliquoting
+- **FR-I1.** The panel includes an **Aliquots** section that reuses the existing aliquot function (D18): list existing aliquots and **create aliquot(s)** (count, type/species, volume/count, storage destination).
+- **FR-I2.** Child sample items use numbering `LABNO.X` (`LABNO.X-Y` for vector sub-pools / deconvolution) and inherit storage + chain-of-custody.
+
+### J. Notes (dual-axis)
+- **FR-J1.** Notes use the **dual-axis model** (D10): each note carries a **context** (Entry / Modification / Validation — auto-set) and a **visibility** (Internal / Send with result = external).
+- **FR-J2.** External visibility flows to the patient/clinician report; selecting it shows a confirmation.
+
+### K. Sample status & disposal
+- **FR-K1.** A **Sample status** control tracks the `SampleItem`'s remaining volume (D13): record an amount used this test (partial) or mark it used up (exhausted).
+- **FR-K2.** Full exhaustion queues the item into the disposal workflow (records who/when/method).
+
+### L. Color, contrast & accessibility
+- **FR-L1.** Critical/abnormal/normal/invalid flags use **leading icon + Carbon `Tag` + bold text** at WCAG 2.2 AA — not background tint alone (D8). Applies per component value where a component carries its own range.
+- **FR-L2.** All interactive controls are keyboard-reachable; status is never conveyed by color alone.
+
+### M. Cross-domain (Lab Unit drives the page)
+- **FR-M1.** `currentDomain` derives from the selected Lab Unit (`CLINICAL` / `ENVIRONMENTAL` / `VECTOR`).
+- **FR-M2. Water Quality (ENVIRONMENTAL):** no patient column; **Site** context replaces patient; **regulatory limit** replaces the clinical reference range; a regulatory-exceedance banner replaces the critical-value banner.
+- **FR-M3. Vector Surveillance (VECTOR):** **Trap** context; pool composition surfaced in Aliquots, **tech-entered** (D18); abnormal-only review.
+- **FR-M4.** i18n keys follow `label.foo` / `label.foo.env` / `label.foo.vector` with clinical fallback.
+
+### N. Analyzer-fed component values *(functional objective; mechanism = OGC-1129)*
+- **FR-N1.** Where results arrive from a configured analyzer, each target/component value prefills the correct component field of the correct test (matching on the component `code`, or its optional terminology code — never a display string). A target with no matching component surfaces as a visible unmapped-result exception, not silently dropped. Existing test-level (primary-result) analyzer flows are unchanged for single-component tests. *(Full spec: OGC-1129; stated here so the entry surface accounts for prefilled multi-component rows.)*
+
+---
+
+## Data Model (reuse-first)
+
+All UI elements trace to existing OpenELIS entities; new data is declared as a named dependency.
+
+| Concept | Entity / field (existing) | Notes |
+|---|---|---|
+| Analysis lifecycle | `Analysis` (`status/statusId`, `revision`, dates, `correctedSincePatientReport`, `children`, `triggeredReflex`, `referredOut`, `soSend*`) | Drives edit-state, status, history, referral |
+| Result value | `Result` | Polymorphic by result type |
+| **Result component** | `test_result_component` (`code` unique per test, `label`, `result_type`, `uom_id`, `significant_digits`, `display_order`, `is_active`) | Defines how many result fields render; PRIMARY per test today |
+| **Per-component result value** | `Result` + **new nullable component linkage** | First multi-component consumer (see dependencies) |
+| Method | `Analysis.method` → `Method` | Method/type column |
+| Analyzer instance | `Analysis.analyzerId` | Specific instrument |
+| Reagent consumption | `ReagentConsumptionEvent`, `Reagent`, `ReagentLot` | `sourceType=RESULT_ENTRY` |
+| NCE | `nonconform` module | Real inline form |
+| Notes | `Note` (BoundTo.ANALYSIS), dual-axis | |
+| Sample | `SampleItem` (status; storage) | Partial-use + disposal |
+| Component terminology | `test_terminology_mapping` + **nullable `component_id`** (OGC-1128, Option A) | Optional LOINC per component; test-level today |
+| Show-on-report | `test_result_component.show_on_report` (OGC-1127) | Per-component report visibility |
+
+### Declared dependencies (flag, don't invent)
+1. **Runtime per-component result value linkage** — storing >1 value per analysis is new; this is the first consumer. Additive & nullable, defaults to PRIMARY (= today). **Critical path.**
+2. Test Catalog → Method → Reagent linkage (reagent list; interim = free-form picker).
+3. Manual / RDT control-result persistence.
+4. `SampleItem` remaining-volume field.
+5. Sample disposal hand-off in the storage module.
+6. Per-test interpretation rule config (categorical buckets).
+7. Component-aware terminology (`component_id` on `test_terminology_mapping`) and per-component `show_on_report` — owned by OGC-1128 / OGC-1127.
+
+---
+
+## Permissions & Audit
+- **Role attachment.** Accessible via the existing **Analyst (results) role bundle**. No new granular per-action permission keys. Reagent/referral/NCE use existing module access.
+- **Roles Builder additions.** None.
+- **Audit events (`audit_trail`).** `RESULT_SAVED` / `RESULT_MODIFIED` (analysis id, **component id**, value, revision, actor); `REAGENT_CONSUMPTION_RECORDED`; `CONTROL_RESULT_RECORDED`; `SAMPLE_USE_RECORDED` / `SAMPLE_MARKED_EXHAUSTED`; `ALIQUOT_CREATED`; `TEST_REFERRED`; `NCE_REPORTED` (NCE module). Reads not audited.
+- **Envers.** Existing audited entities retain `@Audited`; new per-component result persistence defaults to `@Audited` as clinical data.
+
+---
+
+## Localization (representative keys)
+
+Carries the v4 key set (`label.results.edit/save/method/analyzer/reagentsQcControls/…`, env/vector `.env`/`.vector` suffix with clinical fallback). Multi-component adds no per-target keys — **component labels come from the component's own label** via the existing localization mechanism (e.g. "N2 gene", "rpoB Probe A"), and "Ct" is a unit-of-measure value, not a key.
+
+---
+
+## Out of scope
+- The multi-level validation pipeline (preserved).
+- Redesign of the Validation page beyond inheriting the Method/Analyzer split **and** multi-component read-only display (its own FRS).
+- Redesign of Referrals / Sample Shipment / reference-lab-results.
+- New admin permissions; multi-tenancy / per-site filtering (single-tenant per deployment).
+- Reagent open-vial/first-use date.
+- Patient-longitudinal trends and Westgard rules.
+- Pre-seeding molecular components (OGC-1125), patient-report rendering (OGC-1126), and the component/terminology admin UI (OGC-1127/1128) — separate stories; this FRS consumes their outputs.
+
+## Open questions (flagged for ratification)
+- NCE disposition placement (as v4).
+- Each declared dependency needs engineering confirmation before its slice is sized — especially the **runtime per-component result linkage** (dependency 1), which gates multi-component entirely.
+- Per-component **notes** — one note per analysis, or per component? (Default: per analysis, as today.)
+- Whether **show_on_report** also affects entry/validation display or the report only (default: report only — OGC-1127).
+
+
+---
+
+# Validation Page — Multi-Component (integrated) (results-validation)
+Gallery: https://digi-uw.github.io/openelis-work/#/results-validation/validation-page-multi-component-integrated
+Jira: OGC-817, OGC-1130, OGC-1131
+
+# Validation Page — Functional Requirements Specification (multi-component integrated)
+
+**Status:** Draft for review
+**Technology:** Java / Spring backend, React + Carbon (`@carbon/react`) frontend
+**Route:** `/Validation` · **SideNav:** Validation · **Breadcrumb:** Home / Validation *(verify route against the live app before build)*
+**Companion artifacts:** `validation-page-v4-preview.html` (mockup), `results-entry-v4-decisions.md` (shared design decisions D1–D22), the Results Entry multi-component FRS (sibling), `results-validation-config-v4.md` (the admin page that drives this one).
+**Supersedes:** the Validation Page **v4** FRS (`validation-page-v4.md`). This is a **new full FRS** (per the "not-started ⇒ new FRS, not addendum" rule) that carries forward all v4 scope and adds **read-only multi-component display**.
+**Related Jira:** OGC-817 (this page), depends on OGC-343 (Validation Configuration). Multi-component: OGC-1124 (entry+validation V1), OGC-1128 (component identity), OGC-1130 (v4 fold-in). Program: OGC-949 / epic OGC-1131.
+
+---
+
+## Lab Context
+
+### Current State
+After a bench technician enters a result, it moves into a **validation** queue. A validator — a Supervisor, Senior Tech, or Lab Manager — opens the Validation page, looks at each pending result, and decides whether to **release** it (it becomes part of the patient's chart / the regulatory submission / the surveillance feed), **send it back for retest**, or **reject** it. In labs that do two-level review, a first reviewer checks technical correctness and a second checks clinical interpretation before release. The same page serves clinical, environmental (water-quality), and vector (mosquito-pool) labs; which one it is comes from the selected Lab Unit.
+
+Some tests produce **more than one value** — a molecular PCR test reports an overall call plus a value for each target gene / probe (e.g. Xpert MTB/RIF's five rpoB probe Ct values). The validator needs to see all of them to sign with full context.
+
+### Pain
+Today the validator sees the value and a normal range but little of what they need to actually judge it. They can't tell at a glance which results carry a **non-conformity**, a **QC failure**, were **modified after first save**, or still need a critical-value **acknowledgment** — so they either open every row or release on faith. The bulk controls make this worse: a "Save All Results" action selects every non-nonconforming row, **including abnormal and critical values**, so one click and one signature can release an unreviewed panic value. Rejection is a bare reason dropdown with no quality record. Method and the specific instrument are conflated in one column. And a multi-value test shows only its overall call — the validator can't see the per-target values behind it.
+
+### What Changes
+The queue becomes a triage surface. A **"Check before release"** column shows a chip only when a row carries risk, and **filters** let the validator narrow to just those. Bulk release is replaced by a **guarded "Release all clear"** that only ever touches the safe lane; the whole bulk capability is an admin switch. **Rejection files a non-conformity**; **retest carries a note**. Method and the specific analyzer are split. The expanded panel leads with a read-only review summary, History becomes *this analysis's* own history inline, and releasing commits an e-signature. **For a multi-component test the review panel shows every component read-only — value, label, unit, range, flag — in order, so the validator reviews the whole result before releasing.**
+
+---
+
+## Overview
+
+The Validation page is the supervisory review-and-release surface paired with Results Entry. It presents a filterable queue of analyses awaiting validation, with an inline-expanding **review panel** per row, driven by the **Validation Configuration** admin page and cross-domain via the selected Lab Unit (`CLINICAL` / `ENVIRONMENTAL` / `VECTOR`). The multi-level validation pipeline (0–5 levels, per-lab-unit) is preserved as configured.
+
+**Multi-component (read-only).** A test may define one or more **result components** (OGC-949 M1 `test_result_component`); every legacy test has one (`PRIMARY`). This page displays **every component read-only** in the review panel; the validator never edits values here (edits happen on Results Entry — reject/retest to change). The queue row shows the primary/derived result with an indicator when a test has additional components. Validation is release-of-the-whole-analysis: releasing commits all its components together.
+
+**Navigation & URL.** Route `/Validation`; SideNav "Validation"; breadcrumb Home / Validation. Selected Lab Unit, status, and the active "Check before release" filter are the page's primary state.
+
+---
+
+## User Stories
+
+- **As a validator,** I want the queue to show me at a glance which results need a closer look (NCE, QC fail, modified, ack pending, nonconforming), so I can triage instead of opening every row.
+- **As a validator,** I want to filter the queue to a single signal, so I can work the risky results first.
+- **As a validator,** I want to release the obviously-clear results in one guarded action while being forced to open and review anything flagged, so throughput stays high without releasing an unreviewed critical value.
+- **As a validator reviewing a multi-component test,** I want to see every component's value read-only (all probe Cts, the N2/E pair), so I can confirm the derived call before I release.
+- **As a validator,** I want rejection to file a non-conformity and retest to carry a note, so quality events are recorded properly.
+- **As a validator,** I want this result's own history and the method + specific instrument visible when I open it, so I can sign with full context.
+- **As a Lab Manager,** I want to turn bulk release off and make the retest note required (configured on the Validation Configuration page).
+
+## Functional Requirements
+
+### A. Queue & triage
+- **FR-A1.** The queue lists analyses awaiting validation for the selected Lab Unit, with columns: subject (lab # + patient/site/trap), test, result (flag-styled), reference range / regulatory limit, flag, **Check before release**, status, and the per-row action. Method, Analyzer, Sex/Age, and prior-value columns live in the expanded panel (D21). For a multi-component test the result cell shows the **primary/derived** result plus a small **"N components"** indicator; the individual component values appear in the panel (FR-C4), not as extra columns.
+- **FR-A2. "Check before release" column** renders a chip only when a row carries risk: **NCE open**, **QC fail**, **Modified**, **Ack pending**, **Nonconforming**. A clean row shows nothing. **QC-fail provenance caveat** (as v4): analyzer-derived today; manual/RDT depends on bench-entered control persistence — absence of a chip must never be read as "QC confirmed" for a test type whose QC isn't captured yet. **Multi-component:** a signal on **any** component (e.g. one probe abnormal/critical, or a component's QC fail) flags the whole row. **Patient delta-check excluded** (patient-longitudinal).
+- **FR-A3. Filters.** A filter chip row narrows by signal/flag (All · Needs review · NCE · QC fail · Modified · Ack pending · Critical · Abnormal) with live counts computed from the whole queue.
+- **FR-A4. Auto-validated rows** are hidden by default behind an "Include auto-validated" toggle and never show release actions.
+
+### B. Lanes & guarded bulk release (D20)
+- **FR-B1.** The queue is partitioned into a **Clear lane** — in-range AND QC-pass AND no NCE AND not modified-after-save AND not critical AND confidently range-matched AND not nonconforming — and a **Needs-review lane** (everything else). Lanes are computed. **Fail-safe (MUST):** any missing/indeterminate clearance input excludes the row from Clear. **Multi-component:** a test is Clear only if **every** component is clear; any component abnormal/critical/QC-uncaptured pushes the whole analysis to Needs-review.
+- **FR-B2. "Release all clear (N)"** is the only bulk release; operates only on the Clear lane, shows lane counts, and opens a scannable confirm list the e-signature attests to. It can never release a critical/abnormal/flagged result (including one hidden inside a multi-component test).
+- **FR-B3.** Needs-review rows present **"Review →"**; per-row release happens inside the panel after review. Criticals require acknowledgment first.
+- **FR-B4.** The entire bulk-release capability is gated by the **"Allow bulk release of clear results"** flag on the Validation Configuration page.
+
+### C. Review panel (per row)
+- **FR-C1.** Expanding a row opens a review panel led by a **read-only review summary**: the result value (flag-styled), **Method** and **Analyzer instance** split, reference range / limit, who entered it and when, and a QC chip. A compact context strip (patient/site/trap) carries **no decorative leading icon** (D19).
+- **FR-C2.** When a row carries signals, the panel opens with a **"Before releasing, check:"** line echoing the chips.
+- **FR-C3.** Reference-zone sections below (Reagents/QC/Controls — read-only review; Notes; Order info; History; Attachments) are collapsible with one-line summaries.
+- **FR-C4. Multi-component review (new).** For a test with N components, the review summary lists **all N components read-only**, in `display_order`, each showing its label, value, unit, reference range, and flag styling — the primary/derived result first, additional components mirroring it. Empty component values render blank (never 0). The validator does not edit here; to change a value they reject/retest back to the bench. Component `show_on_report = false` does **not** hide the component from validation review (the validator always sees the full result; the flag governs the report only — OGC-1127).
+
+### D. Validation actions
+- **FR-D1. Validate & release** commits the validator's **e-signature** and releases the whole analysis (all its components). At an intermediate level it **advances** (not e-sig gated). Batch "Release all clear" commits one signature for the listed set.
+- **FR-D2. Reject files a Non-Conformity Event** — the same real inline NCE form as Results Entry — not a bare reason dropdown. Gated by **`allowResultRejection`**.
+- **FR-D3. Send for retest** opens a note field whose required-ness is the **retest-note-required** flag; creates a retest order and restarts the pipeline at level 1.
+- **FR-D4. Modify result** requires a reason (per **`modify results note required`**) and, when **`modify results role`** is on, the designated role; the result returns to Awaiting validation. (Editing of component values happens on Results Entry.)
+- **FR-D5. Refer this test** hands off to the Referral subsystem (not modified here).
+- **FR-D6. Critical-value acknowledgment** can be done from the row; never blocks release.
+
+### E. History (this analysis) — same model as Results Entry
+- **FR-E1.** History shows this analysis's own history only (revisions incl. per-component value changes, status transitions, retests/reflexes, corrections, bound notes, audit), inline and paginated. Patient-longitudinal trends and Westgard rules are out of scope (D7).
+
+### F. Notes (dual-axis) — D10
+- **FR-F1.** Notes carry **context** (auto-set to **Validation**) × **visibility** (Internal / Send with result). External visibility flows to the report with the "appears on the report" confirmation.
+
+### G. Method + Analyzer split — inherited
+- **FR-G1.** The review summary shows **Method** (`Analysis.method`) and **Analyzer instance** (`Analysis.analyzerId`) as two fields.
+
+### H. Color, contrast & accessibility
+- **FR-H1.** Flags and signal chips use **icon + Carbon `Tag` + bold text at WCAG 2.2 AA** (not tint alone), applied per component value where a component carries its own range. Status never conveyed by color alone; all controls keyboard-reachable.
+
+### I. Cross-domain (Lab Unit drives the page)
+- **FR-I1.** ENVIRONMENTAL: no patient column; Site context; regulatory limit replaces reference range; regulatory-exceedance banner replaces the critical banner. VECTOR: Trap context; abnormal-only review per config. i18n keys use `.env` / `.vector` suffix with clinical fallback.
+
+### J. Concurrency
+- **FR-J1.** A stale-page conflict guard detects when another validator has acted on a row since load and surfaces a toast + reload (audit `STALE_PAGE_CONFLICT_VALIDATION`).
+
+---
+
+## Data Model (reuse-first)
+
+| Concept | Entity / field (existing) | Notes |
+|---|---|---|
+| Analysis lifecycle / status | `Analysis` (`status/statusId`, `revision`, status dates, `correctedSincePatientReport`, `children`, `referredOut`) | Drives lanes, status, history |
+| Method / Analyzer | `Analysis.method` → `Method`; `Analysis.analyzerId` | Split fields |
+| **Result component** | `test_result_component` (`code`, `label`, `result_type`, `uom_id`, `display_order`) | Drives per-component read-only display |
+| **Per-component result value** | `Result` + nullable component linkage (OGC-1124) | Read-only here |
+| NCE (reject) | `nonconform` module (`InlineNceForm`) | Reject = file NCE |
+| Notes | `Note` (BoundTo.ANALYSIS), visibility × context | Validation context |
+| QC / control | analyzer QC; manual control result (dependency) | "QC fail" signal, per component |
+| NCE present (signal) | `non_conformity_event` / `SampleQaEvent` | "NCE open" chip |
+| Critical-ack (signal) | alerts `criticalAckStatus` | "Ack pending" chip |
+| Validation policy | `validation_config` / `validation_level_config` | Triggers, levels, roles |
+
+**Declared dependencies (flag, don't invent):** the runtime per-component result value linkage (shared with OGC-1124); manual/RDT control-result persistence (QC-fail signal on manual tests); confirm `validateTechnicalRejection`; verify `/Validation` route against the live app.
+
+## Permissions & Audit
+- **Role attachment:** existing **Validator (result.validate) role bundle**; level-N gating uses roles holding `result.validate` (configured on the admin page). No new per-action keys. `modify results role` gates Modify.
+- **Audit:** `VALIDATE` (level, validator, role, e-signature), `AUTO_VALIDATE`, `RETEST` (reason), `REJECT`/`NCE_REPORTED`, `RESULT_MODIFIED_RELEASED`, `CRITICAL_ACK`, `STALE_PAGE_CONFLICT_VALIDATION`. Release audit covers all components of the analysis. Reads not audited.
+- **Envers:** no new entities introduced here; `Analysis`/`Result`/`Note` remain `@Audited`.
+
+## Localization (representative)
+Carries the v4 keys (`label.validation.checkBeforeRelease`, `releaseAllClear`, `needsReview`, `signal.nce|qcfail|modified|ack|nonconforming`, `button.validation.validateRelease|reject|retest|modify`, `filter.*`, `.env`/`.vector` variants). Multi-component adds no per-target keys — component labels come from the component's own label; a `label.validation.components` indicator string ("N components") is the only addition.
+
+## Out of scope
+Multi-level pipeline internals (preserved/configured via OGC-343), Referrals/Sample Shipment, Results Entry behavior (sibling FRS), patient-longitudinal trends / Westgard, patient delta-check as a default signal, editing component values here (done on Results Entry), pre-seed / report / catalog stories (OGC-1125/1126/1127/1128).
+
+## Open questions
+- Confirm `/Validation` route + SideNav slot against the live app.
+- Manual/RDT control-result persistence (shared dependency) drives the QC-fail signal on non-analyzer tests, per component.
+- Confirm the runtime per-component result linkage (dependency shared with OGC-1124) before sizing.
 
 
 ---
@@ -77415,6 +77745,7 @@ These sections remain in the spec for reference but are not blocking the first m
 | PR-10 | Sign-off (person-group footer) has a 90pt-tall two-cell block: left cell = lab information, right cell = verified-by + signature image + date. | Existing, visual refresh |
 | PR-11 | Typography uses IBM Plex Sans if the font-extension is installed; falls back to Helvetica otherwise. No external font download required. | Style Guide v1 §4 |
 | PR-12 | Report prints on US Letter (612 × 792 pts) with 30pt L/R margins, 20pt T/B margins — unchanged from current JRXML. | Existing |
+| PR-13 | A test with more than one **result component** prints one result row per component, reusing the PR-06 panel parent/child indent (primary/derived result first; additional components indented beneath), in `display_order`. A component with `show_on_report == false` is omitted (OGC-1127). Single-component tests are unchanged. **The data-contract change to expose components on `PatientReportBean` is out of this visual refresh's scope — it is owned by OGC-1126; this row only requires the layout to accommodate the extra rows using existing detail-band styling.** | New (coordinated, multi-component / OGC-1131) |
 
 ## 6. Visual tokens (the `<style>` block)
 
@@ -77625,6 +77956,8 @@ Remove the outer `<frame>` with 0.5pt pen on all sides — it's visually heavy a
 | Bottom divider | line `3 29 549 1` | — | #e0e0e0 |
 
 Panel parent row uses the ResultRow conditional style's `parentMarker` branch (bg #f4f4f4, bold). Panel child rows (where `parentMarker == false`) indent the test name by 14pt. The method sub-line also prints inside panel-child rows but suppresses (via printWhen) on panel-parent rows, where it's semantically redundant (the parent aggregates multiple child methods).
+
+**Multi-component result rows (coordinated — multi-component initiative OGC-1131, PR-13).** A test that defines more than one **result component** (OGC-949 `test_result_component`; e.g. a molecular PCR test's overall call plus each target-gene / probe Ct) prints **one detail row per component**, in `display_order`, **reusing this same panel parent/child indent pattern**: the primary/derived result is the parent-style row and the additional components render as indented child rows (label · value · unit), styled with the existing detail-band rules (abnormal tint/left-edge per component where a component carries its own range). A component with `show_on_report == false` (OGC-1127) is omitted; empty component values print blank (never 0); single-component tests are unchanged. This is purely a layout concern here — the data source must expose the components (a `PatientReportBean` change owned by **OGC-1126**, outside this visual-only refresh). No new i18n keys: component labels come from the component's own label, and "Ct" is a unit-of-measure value.
 
 **Critical-row semantics.** The critical branch is triggered exclusively by the `alerts` field value being `"HH"` (critically high) or `"LL"` (critically low). The bean populator computes this from the existing `ResultLimit.criticalLow` / `ResultLimit.criticalHigh` thresholds at report-generation time and writes `HH` / `LL` into the `alerts` string — no new bean field is introduced. See §14 "Related backend work" for the populator change.
 

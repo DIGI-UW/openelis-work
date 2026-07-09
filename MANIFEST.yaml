@@ -2882,6 +2882,56 @@
   added: "2026-04-27"
   status: draft
 
+- id: results-entry-multicomponent
+  type: spec
+  path: designs/results-validation/results-entry-multicomponent.md
+  category: results-validation
+  description: >
+    New full Results Entry FRS (supersedes v4) that carries forward all v4 scope and
+    natively integrates multi-component result entry — one result field per
+    result_component, reusing today's result-cell renderer; single-component tests
+    unchanged. First use case molecular target gene + Ct. Companion: Validation Page
+    Multi-Component (integrated).
+  links:
+    jira: ["OGC-811", "OGC-1130", "OGC-1131"]
+    gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-multi-component-integrated
+  tags:
+    - results
+    - data-entry
+    - multi-component
+    - result-component
+    - molecular
+    - ct
+    - pcr
+    - method-analyzer
+    - cross-domain
+  added: "2026-07-09"
+  status: draft
+
+- id: validation-multicomponent
+  type: spec
+  path: designs/results-validation/validation-multicomponent.md
+  category: results-validation
+  description: >
+    New full Validation Page FRS (supersedes v4) that carries forward all v4 scope and
+    adds read-only multi-component display — the review panel shows every result_component
+    (value, label, unit, range, flag) in order before release. Companion: Results Entry
+    Multi-Component (integrated).
+  links:
+    jira: ["OGC-817", "OGC-1130", "OGC-1131"]
+    gallery: https://digi-uw.github.io/openelis-work/#/results-validation/validation-page-multi-component-integrated
+  tags:
+    - validation
+    - results
+    - review
+    - multi-component
+    - result-component
+    - read-only
+    - method-analyzer
+    - cross-domain
+  added: "2026-07-09"
+  status: draft
+
 - id: results-entry-multicomponent-v1
   type: jsx
   path: designs/results-validation/results-entry-multicomponent-v1.jsx
@@ -3085,13 +3135,13 @@
   spec: designs/results-validation/results-entry-v4.md
   category: results-validation
   description: >
-    Results Entry consolidated redesign (v4) — per-row edit-state lock, Method +
+    SUPERSEDED by the Multi-Component (integrated) FRS. Results Entry consolidated redesign (v4) — per-row edit-state lock, Method +
     Analyzer split columns, inline NCE (real InlineNceForm field set), inline
     remaining-volume / disposal trigger, dual-axis notes, contrast-ratio critical
     flags, bulk-release action, cross-domain (Clinical/Environmental/Vector).
     Supersedes v3 Results Page. Indonesia / SILNAS PNG deliverable.
   links:
-    jira: ["OGC-811"]
+    jira: []
     gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4
     preview: https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-v4.html
   tags:
@@ -3114,13 +3164,13 @@
   spec: designs/results-validation/validation-page-v4.md
   category: results-validation
   description: >
-    Validation Page consolidated redesign (v4) — NCE / QC-fail / modification /
+    SUPERSEDED by the Multi-Component (integrated) FRS. Validation Page consolidated redesign (v4) — NCE / QC-fail / modification /
     critical-ack triage chips in the list view, smart bulk-release (excludes
     unreviewed criticals), Method + Analyzer split columns, inline rejection
     with NCE record, per-row review state, e-signature on release. Cross-domain.
     Indonesia / SILNAS PNG deliverable.
   links:
-    jira: ["OGC-817"]
+    jira: []
     gallery: https://digi-uw.github.io/openelis-work/#/results-validation/validation-page-v4
     preview: https://digi-uw.github.io/openelis-work/designs/results-validation/validation-page-v4.html
   tags:
