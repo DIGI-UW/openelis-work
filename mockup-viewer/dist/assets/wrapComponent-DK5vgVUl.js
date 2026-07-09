@@ -1,1 +1,0 @@
-import{P as c,u as m,c as i}from"./index-CXH7kEH1.js";import{R as f}from"./index-DuBzD755.js";const y=({name:a,className:s,type:n})=>{function o({className:r,...t}){const p=m(),e=i(typeof s=="function"?s(p):s,r);return f.createElement(n,{...t,className:e||void 0})}return o.displayName=a,o.propTypes={className:c.string},o};export{y as w};

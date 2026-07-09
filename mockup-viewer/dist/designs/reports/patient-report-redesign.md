@@ -91,6 +91,7 @@ These sections remain in the spec for reference but are not blocking the first m
 | PR-10 | Sign-off (person-group footer) has a 90pt-tall two-cell block: left cell = lab information, right cell = verified-by + signature image + date. | Existing, visual refresh |
 | PR-11 | Typography uses IBM Plex Sans if the font-extension is installed; falls back to Helvetica otherwise. No external font download required. | Style Guide v1 §4 |
 | PR-12 | Report prints on US Letter (612 × 792 pts) with 30pt L/R margins, 20pt T/B margins — unchanged from current JRXML. | Existing |
+| PR-13 | A test with more than one **result component** prints one result row per component, reusing the PR-06 panel parent/child indent (primary/derived result first; additional components indented beneath), in `display_order`. A component with `show_on_report == false` is omitted (OGC-1127). Single-component tests are unchanged. **The data-contract change to expose components on `PatientReportBean` is out of this visual refresh's scope — it is owned by OGC-1126; this row only requires the layout to accommodate the extra rows using existing detail-band styling.** | New (coordinated, multi-component / OGC-1131) |
 
 ## 6. Visual tokens (the `<style>` block)
 
@@ -301,6 +302,8 @@ Remove the outer `<frame>` with 0.5pt pen on all sides — it's visually heavy a
 | Bottom divider | line `3 29 549 1` | — | #e0e0e0 |
 
 Panel parent row uses the ResultRow conditional style's `parentMarker` branch (bg #f4f4f4, bold). Panel child rows (where `parentMarker == false`) indent the test name by 14pt. The method sub-line also prints inside panel-child rows but suppresses (via printWhen) on panel-parent rows, where it's semantically redundant (the parent aggregates multiple child methods).
+
+**Multi-component result rows (coordinated — multi-component initiative OGC-1131, PR-13).** A test that defines more than one **result component** (OGC-949 `test_result_component`; e.g. a molecular PCR test's overall call plus each target-gene / probe Ct) prints **one detail row per component**, in `display_order`, **reusing this same panel parent/child indent pattern**: the primary/derived result is the parent-style row and the additional components render as indented child rows (label · value · unit), styled with the existing detail-band rules (abnormal tint/left-edge per component where a component carries its own range). A component with `show_on_report == false` (OGC-1127) is omitted; empty component values print blank (never 0); single-component tests are unchanged. This is purely a layout concern here — the data source must expose the components (a `PatientReportBean` change owned by **OGC-1126**, outside this visual-only refresh). No new i18n keys: component labels come from the component's own label, and "Ct" is a unit-of-measure value.
 
 **Critical-row semantics.** The critical branch is triggered exclusively by the `alerts` field value being `"HH"` (critically high) or `"LL"` (critically low). The bean populator computes this from the existing `ResultLimit.criticalLow` / `ResultLimit.criticalHigh` thresholds at report-generation time and writes `HH` / `LL` into the `alerts` string — no new bean field is introduced. See §14 "Related backend work" for the populator change.
 
