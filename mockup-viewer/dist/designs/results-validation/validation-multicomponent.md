@@ -107,7 +107,7 @@ The Validation page is the supervisory review-and-release surface paired with Re
 | Critical-ack (signal) | alerts `criticalAckStatus` | "Ack pending" chip |
 | Validation policy | `validation_config` / `validation_level_config` | Triggers, levels, roles |
 
-**Declared dependencies (flag, don't invent):** the runtime per-component result value linkage (shared with OGC-1124); manual/RDT control-result persistence (QC-fail signal on manual tests); confirm `validateTechnicalRejection`; verify `/Validation` route against the live app.
+**Declared dependencies (flag, don't invent):** the runtime per-component result value linkage (shared with OGC-1124 — a nullable `RESULT.component_id` FK; the `RESULT` table is already one-to-many off `Analysis`, so this is additive, not greenfield); manual/RDT control-result persistence (QC-fail signal on manual tests); confirm `validateTechnicalRejection`; verify `/Validation` route against the live app.
 
 ## Permissions & Audit
 - **Role attachment:** existing **Validator (result.validate) role bundle**; level-N gating uses roles holding `result.validate` (configured on the admin page). No new per-action keys. `modify results role` gates Modify.

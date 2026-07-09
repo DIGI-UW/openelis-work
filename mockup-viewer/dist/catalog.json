@@ -1,7 +1,7 @@
 {
-  "generated": "2026-07-09T15:15:43.884Z",
+  "generated": "2026-07-09T22:45:22.106Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 199,
+  "totalDesigns": 200,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -3666,6 +3666,41 @@
         "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/validation-page-multi-component-integrated",
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/validation-page-multi-component-integrated",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-multicomponent.md"
+      }
+    },
+    {
+      "name": "Analyzer Ingestion — Multi-Component Results",
+      "slug": "analyzer-ingestion-multi-component-results",
+      "category": "results-validation",
+      "description": "FRS for analyzer ingestion of multi-component results — extends the analyzer import + mapping so a reported target/channel resolves to a (test, component) pair, not only a test. A multiplex molecular run (GeneXpert per-probe values, BioRad CFX Opus per-fluor Cq rows) populates a multi-component test\\",
+      "type": "spec-only",
+      "added": "2026-07-09",
+      "status": "draft",
+      "tags": [
+        "analyzer",
+        "analyzer-integration",
+        "import",
+        "multi-component",
+        "result-component",
+        "molecular",
+        "ct",
+        "cq",
+        "pcr",
+        "multiplex",
+        "genexpert",
+        "biorad-cfx"
+      ],
+      "jira": [
+        "OGC-1129",
+        "OGC-1131"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/results-validation/analyzer-multicomponent-ingestion.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/analyzer-ingestion-multi-component-results",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/analyzer-ingestion-multi-component-results",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/analyzer-ingestion-multi-component-results",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/analyzer-multicomponent-ingestion.md"
       }
     },
     {
