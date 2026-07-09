@@ -1,6 +1,6 @@
-name: Auto-open PR for design branches
+name: Auto-open PR for working branches
 
-# When a design/** branch is pushed, open a PR to main automatically (if one
+# When a working branch (design/chore/skill/feat) is pushed, open a PR to main automatically (if one
 # doesn't already exist). Runs on GitHub's side, so it sidesteps both the Claude
 # connector's permissions and the Cowork sandbox network block.
 
@@ -8,6 +8,9 @@ on:
   push:
     branches:
       - 'design/**'
+      - 'chore/**'
+      - 'skill/**'
+      - 'feat/**'
 
 permissions:
   contents: read
