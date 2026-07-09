@@ -2932,6 +2932,35 @@
   added: "2026-07-09"
   status: draft
 
+- id: analyzer-multicomponent-ingestion
+  type: spec
+  path: designs/results-validation/analyzer-multicomponent-ingestion.md
+  category: results-validation
+  description: >
+    FRS for analyzer ingestion of multi-component results — extends the analyzer
+    import + mapping so a reported target/channel resolves to a (test, component) pair,
+    not only a test. A multiplex molecular run (GeneXpert per-probe values, BioRad CFX
+    per-fluor Cq rows) populates a multi-component test's components automatically,
+    matched on a stable component code; unmapped targets surface as exceptions;
+    separate-test deployments keep working. Reuses OGC-1124 RESULT.component_id and the
+    existing multi-result import path.
+  links:
+    jira: ["OGC-1129", "OGC-1131"]
+    gallery: https://digi-uw.github.io/openelis-work/#/results-validation/analyzer-ingestion-multi-component-results
+  tags:
+    - analyzer
+    - analyzer-integration
+    - import
+    - multi-component
+    - result-component
+    - molecular
+    - ct
+    - cq
+    - pcr
+    - multiplex
+  added: "2026-07-09"
+  status: draft
+
 - id: results-entry-multicomponent-v1
   type: jsx
   path: designs/results-validation/results-entry-multicomponent-v1.jsx
