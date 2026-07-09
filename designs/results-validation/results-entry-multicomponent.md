@@ -150,7 +150,7 @@ All UI elements trace to existing OpenELIS entities; new data is declared as a n
 | Show-on-report | `test_result_component.show_on_report` (OGC-1127) | Per-component report visibility |
 
 ### Declared dependencies (flag, don't invent)
-1. **Runtime per-component result value linkage** — storing >1 value per analysis is new; this is the first consumer. Additive & nullable, defaults to PRIMARY (= today). **Critical path.**
+1. **Runtime per-component result value linkage** — implemented as a **nullable `RESULT.component_id` FK → `test_result_component`** (null = PRIMARY = today). The `RESULT` table is **already one-to-many off `Analysis`** (multi-select and conjugate results already store several rows per analysis), so this **extends an existing pattern** rather than being greenfield; mirrors M1's nullable `component_id` on `TEST_RESULT` / `RESULT_LIMITS`. (See the runtime-storage spike.)
 2. Test Catalog → Method → Reagent linkage (reagent list; interim = free-form picker).
 3. Manual / RDT control-result persistence.
 4. `SampleItem` remaining-volume field.
@@ -186,5 +186,5 @@ Carries the v4 key set (`label.results.edit/save/method/analyzer/reagentsQcContr
 ## Open questions (flagged for ratification)
 - NCE disposition placement (as v4).
 - Each declared dependency needs engineering confirmation before its slice is sized — especially the **runtime per-component result linkage** (dependency 1), which gates multi-component entirely.
-- Per-component **notes** — one note per analysis, or per component? (Default: per analysis, as today.)
+- **Notes: decided — per analysis** (today's model), not per component (per OGC-1124). Per-component notes are out of scope; revisit only if a real need appears.
 - Whether **show_on_report** also affects entry/validation display or the report only (default: report only — OGC-1127).
