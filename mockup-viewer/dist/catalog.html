@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenELIS Design Gallery — Catalog</title>
-  <meta name="description" content="Searchable catalog of 197 design mockups and specifications for OpenELIS Global">
+  <meta name="description" content="Searchable catalog of 199 design mockups and specifications for OpenELIS Global">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 960px; margin: 0 auto; padding: 2rem 1rem; color: #161616; line-height: 1.5; }
     h1 { border-bottom: 2px solid #0f62fe; padding-bottom: 0.5rem; }
@@ -22,13 +22,13 @@
 </head>
 <body>
   <h1>OpenELIS Design Gallery — Catalog</h1>
-  <p>197 designs across 16 categories.
+  <p>199 designs across 16 categories.
     <a href="./">Interactive Gallery</a> |
     <a href="catalog.json">JSON Catalog</a> |
     <a href="llms.txt">LLM Index</a> |
     <a href="sitemap.xml">Sitemap</a>
   </p>
-  <nav><a href="#cat-admin-config">Admin & Config (45)</a> <a href="#cat-analyzer-integration">Analyzer Integration (23)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (3)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (16)</a> <a href="#cat-sample-collection">Sample Collection (7)</a> <a href="#cat-system">System (9)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
+  <nav><a href="#cat-admin-config">Admin & Config (45)</a> <a href="#cat-analyzer-integration">Analyzer Integration (23)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (3)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (18)</a> <a href="#cat-sample-collection">Sample Collection (7)</a> <a href="#cat-system">System (9)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
 
   <h2 id="cat-admin-config">Admin & Config (45)</h2>
   <div class="design">
@@ -1802,30 +1802,54 @@
     <div class="tags"><span class="tag">TAT</span> <span class="tag">turnaround-time</span> <span class="tag">report</span> <span class="tag">analytics</span> <span class="tag">performance</span></div>
   </div>
 
-  <h2 id="cat-results-validation">Results & Validation (16)</h2>
+  <h2 id="cat-results-validation">Results & Validation (18)</h2>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4">Results Entry v4</a></h3>
-    <p>Results Entry consolidated redesign (v4) — per-row edit-state lock, Method + Analyzer split columns, inline NCE (real InlineNceForm field set), inline remaining-volume / disposal trigger, dual-axis notes, contrast-ratio critical flags, bulk-release action, cross-domain (Clinical/Environmental/Vector via Lab Unit). Supersedes v3 Results Page. Companion: Validation Page v4 and Result & Validation Configuration v4 (admin).</p>
+    <p>⚠️ SUPERSEDED by the Multi-Component (integrated) FRS (results-entry-multicomponent.md). Results Entry consolidated redesign (v4) — per-row edit-state lock, Method + Analyzer split columns, inline NCE (real InlineNceForm field set), inline remaining-volume / disposal trigger, dual-axis notes, contrast-ratio critical flags, bulk-release action, cross-domain (Clinical/Environmental/Vector via Lab Unit). Supersedes v3 Results Page. Companion: Validation Page v4 and Result & Validation Configuration v4 (admin).</p>
     <div class="links">
       <a href="https://digi-uw.github.io/openelis-work/#/preview/results-validation/results-entry-v4">Preview</a>
       <a href="https://digi-uw.github.io/openelis-work/#/spec/results-validation/results-entry-v4">Spec</a>
       <a href="https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-v4.md">Raw Spec (MD)</a>
       <a href="https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-v4.html">HTML Mockup</a>
-      <a href="https://uwdigi.atlassian.net/browse/OGC-811">OGC-811</a>
     </div>
     <div class="tags"><span class="tag">results</span> <span class="tag">data-entry</span> <span class="tag">workflow</span> <span class="tag">v4</span> <span class="tag">method-analyzer</span> <span class="tag">nce</span> <span class="tag">edit-state</span> <span class="tag">cross-domain</span> <span class="tag">Indonesia</span> <span class="tag">SILNAS</span> <span class="tag">png-deliverable</span></div>
   </div>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/results-validation/validation-page-v4">Validation Page v4</a></h3>
-    <p>Validation Page consolidated redesign (v4) — NCE / QC-fail / modification / critical-ack triage chips in the list view, smart bulk-release (excludes unreviewed criticals), Method + Analyzer split columns, inline rejection with NCE record, per-row review state, e-signature on release. Cross-domain (Clinical/Environmental/Vector). Companion: Results Entry v4 and Result & Validation Configuration v4.</p>
+    <p>⚠️ SUPERSEDED by the Multi-Component (integrated) FRS (validation-multicomponent.md). Validation Page consolidated redesign (v4) — NCE / QC-fail / modification / critical-ack triage chips in the list view, smart bulk-release (excludes unreviewed criticals), Method + Analyzer split columns, inline rejection with NCE record, per-row review state, e-signature on release. Cross-domain (Clinical/Environmental/Vector). Companion: Results Entry v4 and Result & Validation Configuration v4.</p>
     <div class="links">
       <a href="https://digi-uw.github.io/openelis-work/#/preview/results-validation/validation-page-v4">Preview</a>
       <a href="https://digi-uw.github.io/openelis-work/#/spec/results-validation/validation-page-v4">Spec</a>
       <a href="https://digi-uw.github.io/openelis-work/designs/results-validation/validation-page-v4.md">Raw Spec (MD)</a>
       <a href="https://digi-uw.github.io/openelis-work/designs/results-validation/validation-page-v4.html">HTML Mockup</a>
-      <a href="https://uwdigi.atlassian.net/browse/OGC-817">OGC-817</a>
     </div>
     <div class="tags"><span class="tag">validation</span> <span class="tag">results</span> <span class="tag">review</span> <span class="tag">v4</span> <span class="tag">bulk-release</span> <span class="tag">nce</span> <span class="tag">cross-domain</span> <span class="tag">Indonesia</span> <span class="tag">SILNAS</span> <span class="tag">png-deliverable</span></div>
+  </div>
+  <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-multi-component-integrated">Results Entry — Multi-Component (integrated)</a></h3>
+    <p>New full Results Entry FRS that carries forward all v4 scope and natively integrates multi-component result entry — a test defining more than one result_component shows one result field per component, reusing the existing result-cell renderer; single-component tests are unchanged. First use case: molecular target gene + Ct (Xpert MTB/RIF, SARS-CoV-2). Supersedes the Results Entry v4 FRS. Companion: Validation Page — Multi-Component (integrated) and the v1 additive module.</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/results-validation/results-entry-multi-component-integrated">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/results-validation/results-entry-multi-component-integrated">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent.md">Raw Spec (MD)</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-811">OGC-811</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1130">OGC-1130</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1131">OGC-1131</a>
+    </div>
+    <div class="tags"><span class="tag">results</span> <span class="tag">data-entry</span> <span class="tag">workflow</span> <span class="tag">multi-component</span> <span class="tag">result-component</span> <span class="tag">molecular</span> <span class="tag">ct</span> <span class="tag">pcr</span> <span class="tag">method-analyzer</span> <span class="tag">cross-domain</span></div>
+  </div>
+  <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/results-validation/validation-page-multi-component-integrated">Validation Page — Multi-Component (integrated)</a></h3>
+    <p>New full Validation Page FRS that carries forward all v4 scope and adds read-only multi-component display — for a test with more than one result_component the review panel shows every component (value, label, unit, range, flag) in order so the validator reviews the whole result before releasing. Supersedes the Validation Page v4 FRS. Companion: Results Entry — Multi-Component (integrated).</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/results-validation/validation-page-multi-component-integrated">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/results-validation/validation-page-multi-component-integrated">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/results-validation/validation-multicomponent.md">Raw Spec (MD)</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-817">OGC-817</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1130">OGC-1130</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1131">OGC-1131</a>
+    </div>
+    <div class="tags"><span class="tag">validation</span> <span class="tag">results</span> <span class="tag">review</span> <span class="tag">multi-component</span> <span class="tag">result-component</span> <span class="tag">read-only</span> <span class="tag">method-analyzer</span> <span class="tag">cross-domain</span></div>
   </div>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/results-validation/result-validation-v4-dependency-map">Result & Validation v4 — Dependency Map</a></h3>

@@ -1,7 +1,7 @@
 {
-  "generated": "2026-07-08T22:38:20.602Z",
+  "generated": "2026-07-09T15:15:43.884Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 197,
+  "totalDesigns": 199,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -3543,7 +3543,7 @@
       "name": "Results Entry v4",
       "slug": "results-entry-v4",
       "category": "results-validation",
-      "description": "Results Entry consolidated redesign (v4) — per-row edit-state lock, Method + Analyzer split columns, inline NCE (real InlineNceForm field set), inline remaining-volume / disposal trigger, dual-axis notes, contrast-ratio critical flags, bulk-release action, cross-domain (Clinical/Environmental/Vector via Lab Unit). Supersedes v3 Results Page. Companion: Validation Page v4 and Result & Validation Configuration v4 (admin).",
+      "description": "⚠️ SUPERSEDED by the Multi-Component (integrated) FRS (results-entry-multicomponent.md). Results Entry consolidated redesign (v4) — per-row edit-state lock, Method + Analyzer split columns, inline NCE (real InlineNceForm field set), inline remaining-volume / disposal trigger, dual-axis notes, contrast-ratio critical flags, bulk-release action, cross-domain (Clinical/Environmental/Vector via Lab Unit). Supersedes v3 Results Page. Companion: Validation Page v4 and Result & Validation Configuration v4 (admin).",
       "type": "html",
       "added": "2026-06-10",
       "status": "draft",
@@ -3560,9 +3560,7 @@
         "SILNAS",
         "png-deliverable"
       ],
-      "jira": [
-        "OGC-811"
-      ],
+      "jira": [],
       "githubIssue": null,
       "specPath": "designs/results-validation/results-entry-v4.md",
       "urls": {
@@ -3577,7 +3575,7 @@
       "name": "Validation Page v4",
       "slug": "validation-page-v4",
       "category": "results-validation",
-      "description": "Validation Page consolidated redesign (v4) — NCE / QC-fail / modification / critical-ack triage chips in the list view, smart bulk-release (excludes unreviewed criticals), Method + Analyzer split columns, inline rejection with NCE record, per-row review state, e-signature on release. Cross-domain (Clinical/Environmental/Vector). Companion: Results Entry v4 and Result & Validation Configuration v4.",
+      "description": "⚠️ SUPERSEDED by the Multi-Component (integrated) FRS (validation-multicomponent.md). Validation Page consolidated redesign (v4) — NCE / QC-fail / modification / critical-ack triage chips in the list view, smart bulk-release (excludes unreviewed criticals), Method + Analyzer split columns, inline rejection with NCE record, per-row review state, e-signature on release. Cross-domain (Clinical/Environmental/Vector). Companion: Results Entry v4 and Result & Validation Configuration v4.",
       "type": "html",
       "added": "2026-06-10",
       "status": "draft",
@@ -3593,9 +3591,7 @@
         "SILNAS",
         "png-deliverable"
       ],
-      "jira": [
-        "OGC-817"
-      ],
+      "jira": [],
       "githubIssue": null,
       "specPath": "designs/results-validation/validation-page-v4.md",
       "urls": {
@@ -3604,6 +3600,72 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/validation-page-v4",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-page-v4.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-page-v4.html"
+      }
+    },
+    {
+      "name": "Results Entry — Multi-Component (integrated)",
+      "slug": "results-entry-multi-component-integrated",
+      "category": "results-validation",
+      "description": "New full Results Entry FRS that carries forward all v4 scope and natively integrates multi-component result entry — a test defining more than one result_component shows one result field per component, reusing the existing result-cell renderer; single-component tests are unchanged. First use case: molecular target gene + Ct (Xpert MTB/RIF, SARS-CoV-2). Supersedes the Results Entry v4 FRS. Companion: Validation Page — Multi-Component (integrated) and the v1 additive module.",
+      "type": "spec-only",
+      "added": "2026-07-09",
+      "status": "draft",
+      "tags": [
+        "results",
+        "data-entry",
+        "workflow",
+        "multi-component",
+        "result-component",
+        "molecular",
+        "ct",
+        "pcr",
+        "method-analyzer",
+        "cross-domain"
+      ],
+      "jira": [
+        "OGC-811",
+        "OGC-1130",
+        "OGC-1131"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/results-validation/results-entry-multicomponent.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-multi-component-integrated",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/results-entry-multi-component-integrated",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/results-entry-multi-component-integrated",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent.md"
+      }
+    },
+    {
+      "name": "Validation Page — Multi-Component (integrated)",
+      "slug": "validation-page-multi-component-integrated",
+      "category": "results-validation",
+      "description": "New full Validation Page FRS that carries forward all v4 scope and adds read-only multi-component display — for a test with more than one result_component the review panel shows every component (value, label, unit, range, flag) in order so the validator reviews the whole result before releasing. Supersedes the Validation Page v4 FRS. Companion: Results Entry — Multi-Component (integrated).",
+      "type": "spec-only",
+      "added": "2026-07-09",
+      "status": "draft",
+      "tags": [
+        "validation",
+        "results",
+        "review",
+        "multi-component",
+        "result-component",
+        "read-only",
+        "method-analyzer",
+        "cross-domain"
+      ],
+      "jira": [
+        "OGC-817",
+        "OGC-1130",
+        "OGC-1131"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/results-validation/validation-multicomponent.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/validation-page-multi-component-integrated",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/validation-page-multi-component-integrated",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/validation-page-multi-component-integrated",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-multicomponent.md"
       }
     },
     {
