@@ -30,7 +30,38 @@ drain source files to `processed/`; flag anything OPEN > 7 days.
 | design/results-entry-multicomponent-v1 | https://github.com/DIGI-UW/openelis-work/compare/main...design/results-entry-multicomponent-v1?expand=1 | 2026-07-08 | **MERGED** (PR #204, verified 2026-07-09 — merge commit `62d6ab8` is origin/main HEAD; all 3 files present on main, md5-identical to the upload trio → drained to `processed/`) | Multi-Component Result Entry **v1** — genuinely-new `results-validation` entry. Epic OGC-949 (Test Catalog Mgmt v2.5), consumes the M1 `test_result_component` model; replaces PR #3831 scalar-column approach. jsx mockup + preview html + FRS at `designs/results-validation/results-entry-multicomponent-v1.{jsx,md}` + `-preview.html` (+public mirror); App.jsx MOCKUP_REGISTRY + MANIFEST + INDEX updated. New slug `#/results-validation/multi-component-result-entry-v1`. Tests 251/251, build clean. This branch also carries this ledger sync. Verify MERGED next run. |
 | design/results-validation-multicomponent | https://github.com/DIGI-UW/openelis-work/pull/205 | 2026-07-09 | **MERGED** (PR #205, verified 2026-07-09 — both integrated FRSs present on origin/main; App.jsx v4 entries marked SUPERSEDED + OGC-811/OGC-817 repointed onto the new files; MANIFEST+INDEX carry the entries) | Multi-component **integrated** FRSs (epic OGC-1131, program OGC-949): two new full FRSs superseding the v4 specs — `results-entry-multicomponent.md` (supersedes results-entry-v4; OGC-811, OGC-1130, OGC-1131) + `validation-multicomponent.md` (supersedes validation-page-v4; OGC-817, OGC-1130, OGC-1131). v4 gallery entries marked SUPERSEDED (kept for history); OGC-811/OGC-817 repointed to the new files in App.jsx + MANIFEST. Also commits the in-place `designs/reports/patient-report-redesign.md` edit (PR-13 one-row-per-component + §7.5; data-contract stays OGC-1126). No JSX/HTML change (v4 previews stand). App.jsx + MANIFEST + INDEX + dist. Tests 251/251, build clean. New slugs `#/results-validation/results-entry-multi-component-integrated` + `#/results-validation/validation-page-multi-component-integrated`. Verify MERGED next run. |
 
-| design/multicomponent-corrections-analyzer-ingestion | https://github.com/DIGI-UW/openelis-work/compare/main...design/multicomponent-corrections-analyzer-ingestion?expand=1 | 2026-07-09 | **OPEN** (connector `create_pull_request` 403 — app lacks `pull_requests:write`; open via compare URL / CI auto-opener; auto-merge + required `test` check land it on green) | Multi-component round 2 + round 3 (epic OGC-1131 / program OGC-949). Round 2 update-in-place (slugs unchanged): overwrote the two PR-#205 integrated FRSs `designs/results-validation/{results-entry-multicomponent,validation-multicomponent}.md` with corrected copies — per-component-notes open question resolved (per-analysis, OGC-1124) + runtime dep now names nullable `RESULT.component_id` FK. Round 3 genuinely-new spec-only entry: `designs/results-validation/analyzer-multicomponent-ingestion.md` (Analyzer Ingestion of Multi-Component Results; jira OGC-1129 +OGC-1131; new slug `#/results-validation/analyzer-ingestion-multi-component-results`) — App.jsx MOCKUP_REGISTRY + MANIFEST + INDEX + dist. Tests 251/251, build clean. Corrected copies + analyzer FRS + STAGING note left in `upload/` pending merge; stale ROUND1 `*-frs.md` copies (md5-match main) drained to processed/. Verify MERGED next run. |
+| design/multicomponent-corrections-analyzer-ingestion | https://github.com/DIGI-UW/openelis-work/compare/main...design/multicomponent-corrections-analyzer-ingestion?expand=1 | 2026-07-09 | **MERGED** (verified on origin/main 2026-07-10 — all 3 files byte-identical (md5) on main: `results-entry-multicomponent.md`, `validation-multicomponent.md`, `analyzer-multicomponent-ingestion.md`; App.jsx MOCKUP_REGISTRY + MANIFEST + INDEX carry the analyzer-ingestion entry; remote branch squash-merged. Was 1 day old → not stranded. Sources + STAGING note drained to `upload/processed/` 2026-07-10) | Multi-component round 2 + round 3 (epic OGC-1131 / program OGC-949). Round 2 update-in-place (slugs unchanged): overwrote the two PR-#205 integrated FRSs `designs/results-validation/{results-entry-multicomponent,validation-multicomponent}.md` with corrected copies — per-component-notes open question resolved (per-analysis, OGC-1124) + runtime dep now names nullable `RESULT.component_id` FK. Round 3 genuinely-new spec-only entry: `designs/results-validation/analyzer-multicomponent-ingestion.md` (Analyzer Ingestion of Multi-Component Results; jira OGC-1129 +OGC-1131; new slug `#/results-validation/analyzer-ingestion-multi-component-results`) — App.jsx MOCKUP_REGISTRY + MANIFEST + INDEX + dist. Tests 251/251, build clean. Corrected copies + analyzer FRS + STAGING note left in `upload/` pending merge; stale ROUND1 `*-frs.md` copies (md5-match main) drained to processed/. Verify MERGED next run. |
+
+## Reconciliation — 2026-07-10 (scheduled run)
+- **The one previously-OPEN PR is now MERGED. No OPEN or stranded PRs remain.**
+  - `design/multicomponent-corrections-analyzer-ingestion` (was OPEN, pushed 2026-07-09 → 1 day old,
+    not stranded) → **MERGED**. Verified against `origin/main` (HEAD `6f57122`, PR #210): all three
+    changeset files are byte-identical (md5) to their on-main counterparts —
+    `designs/results-validation/{results-entry-multicomponent,validation-multicomponent,analyzer-multicomponent-ingestion}.md`
+    (the ROUND-2 corrected copies + the ROUND-3 new analyzer FRS). App.jsx MOCKUP_REGISTRY +
+    MANIFEST.yaml + INDEX.md all carry the `analyzer-multicomponent-ingestion` entry; remote branch
+    squash-merged. Ledger row flipped MERGED.
+- **Source drain:** the three now-merged staged files —
+  `analyzer-multicomponent-ingestion-frs.md`, `results-entry-multicomponent.md`,
+  `validation-multicomponent.md` — plus the executed `multicomponent-coordination-STAGING.md` note
+  were drained from canonical `upload/` → `upload/processed/` (all md5-identical to origin/main).
+- **Canonical `upload/` reconcile (md5 vs full `designs/` tree):** after the drain, no design
+  artifacts remain staged. The only file left in `upload/` is
+  `Aspect_GxAlert_to_OpenELIS_Gap_Analysis.docx` (a byte-identical duplicate of the copy already in
+  `upload/processed/`; the sandbox couldn't remove it in prior runs — harmless, left in place).
+  **Nothing upload-newer, nothing genuinely new → no design push, no PR, no build.**
+- **Jira (Step 11):** posted the **gallery permalink** for the new analyzer-ingestion slug to
+  **OGC-1129** — `#/results-validation/analyzer-ingestion-multi-component-results` (deferred last run
+  as a dead-link risk pre-merge; now live). The ticket already carried the raw FRS blob link from
+  07-09; this adds the clickable interactive gallery card. The two ROUND-2 corrected FRSs are
+  update-in-place with unchanged slugs (OGC-811/OGC-817 already carry those permalinks from PR #205)
+  → no new permalink.
+- **Anomaly:** the workspace **mount** git remains stale/dirty (HEAD `7816ef6`, well behind origin) —
+  `origin/main` was used as source of truth via a fresh clone; the mount git was not touched. The
+  drain was a filesystem move on the mount's `upload/` folder only.
+- **This run pushes a doc-only ledger sync** (`chore/ledger-reconcile-2026-07-10`) so origin's ledger
+  reflects the MERGED status + this entry; CI auto-opener + required `test` check land it on green.
+
 
 ## Reconciliation — 2026-07-09 (scheduled run, r2)
 - **Second scheduled run of the day.** Coming in, origin/main HEAD was `965a82f` (PR #206 ledger sync
