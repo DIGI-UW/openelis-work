@@ -66,6 +66,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Tecan Infinite F50 Companion Guide | — | [tecan-infinite-f50-companion-guide.md](designs/analyzer-integration/tecan-infinite-f50-companion-guide.md) |
 | Thermo Multiskan FC Companion Guide | — | [thermo-multiskan-fc-companion-guide.md](designs/analyzer-integration/thermo-multiskan-fc-companion-guide.md) |
 | Analyzer File Upload | [analyzer-file-upload.jsx](designs/analyzer-integration/analyzer-file-upload.jsx) | [analyzer-file-upload.md](designs/analyzer-integration/analyzer-file-upload.md) |
+| Analyzer Mapping — Multi-Component Column | [preview](designs/analyzer-integration/analyzer-multicomponent-mapping-preview.html) | [analyzer-profile-mapping.md](designs/analyzer-integration/analyzer-profile-mapping.md) |
 | Analyzer Mapping Templates | [analyzer-mapping-templates.jsx](designs/analyzer-integration/analyzer-mapping-templates.jsx) | [astm-addendum](designs/analyzer-integration/astm-analyzer-mapping-addendum.md), [hl7-addendum](designs/analyzer-integration/hl7-analyzer-mapping-addendum.md) |
 | Flat File Analyzer Config | [flat-file-analyzer-config.jsx](designs/analyzer-integration/flat-file-analyzer-config.jsx) | [flat-file-analyzer-config.md](designs/analyzer-integration/flat-file-analyzer-config.md) |
 | HL7 Analyzer Mapping | [hl7-analyzer-mapping.jsx](designs/analyzer-integration/hl7-analyzer-mapping.jsx) | [hl7-addendum](designs/analyzer-integration/hl7-analyzer-mapping-addendum.md) |
@@ -183,6 +184,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Audit Trail | [audit-trail.jsx](designs/system/audit-trail.jsx) | [audit-trail.md](designs/system/audit-trail.md) |
 | In-App Help System | [help-menu.jsx](designs/system/help-menu.jsx) · [preview](designs/system/in-app-help-preview.html) | [help-menu.md](designs/system/help-menu.md) · [checklist](designs/system/in-app-help-checklist.md) · [dev bundle.zip](designs/system/in-app-help-dev-bundle.zip) |
 | Analyzer Import | [analyzer-import.jsx](designs/system/analyzer-import.jsx) | [analyzer-import.md](designs/system/analyzer-import.md) |
+| Analyzer Results Import (v2 redesign) | [analyzer-import-redesign-v2.jsx](designs/system/analyzer-import-redesign-v2.jsx) · [preview](designs/system/analyzer-import-redesign-v2-preview.html) | [analyzer-import-redesign-v2.md](designs/system/analyzer-import-redesign-v2.md) |
 | FHIR Outbound Push | [fhir-outbound-push.jsx](designs/system/fhir-outbound-push.jsx) | [fhir-outbound-push.md](designs/system/fhir-outbound-push.md) |
 | FHIR Publication Settings | [fhir-publication-settings.jsx](designs/system/fhir-publication-settings.jsx) | — |
 | Lab Management Dashboard | [lab-management-dashboard.html](designs/system/lab-management-dashboard.html) | [lab-management-dashboard.md](designs/system/lab-management-dashboard.md) |

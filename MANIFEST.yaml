@@ -3676,3 +3676,29 @@
   links:
     jira: [OGC-1066]
   added: "2026-06-25"
+
+- id: analyzer-import-redesign-v2
+  type: jsx
+  path: designs/system/analyzer-import-redesign-v2.jsx
+  spec: designs/system/analyzer-import-redesign-v2.md
+  category: system
+  description: "Analyzer Results Import (v2 redesign), OGC-288 - QC-first review page: per-analysis accept/reject with the QC-fail action set (Retest / Report NCE / Reject / Accept despite QC failure), run-settings sidebar, G1-G13 bench-experience refinements, multi-component-aware (per-target Ct/Cq grouped by analysis; unmapped targets as visible exceptions). Access moved to the results permission. Supersedes the wireframe-era analyzer-import.md."
+  paired_with: designs/system/analyzer-import-redesign-v2-preview.html
+  links:
+    github: null
+    jira: "https://uwdigi.atlassian.net/browse/OGC-288"
+    gallery: "https://digi-uw.github.io/openelis-work/#/system/analyzer-results-import-v2-redesign"
+  added: "2026-07-14"
+
+- id: analyzer-multicomponent-mapping-column
+  type: html
+  path: designs/analyzer-integration/analyzer-multicomponent-mapping-preview.html
+  spec: designs/analyzer-integration/analyzer-profile-mapping.md
+  category: analyzer-integration
+  description: "Analyzer Types & Mapping - Multi-Component Column delta (OGC-1136 / OGC-1131). Adds a Component selector to the mapping table so an instrument target/channel maps to a specific result_component of a test, resolved test-then-component by a stable code. Extends analyzer-mapping-templates.jsx; not a new screen."
+  paired_with: designs/analyzer-integration/analyzer-profile-mapping.md
+  links:
+    github: null
+    jira: "https://uwdigi.atlassian.net/browse/OGC-1136"
+    gallery: "https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-mapping-multi-component-column"
+  added: "2026-07-14"

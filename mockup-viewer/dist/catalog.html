@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenELIS Design Gallery — Catalog</title>
-  <meta name="description" content="Searchable catalog of 200 design mockups and specifications for OpenELIS Global">
+  <meta name="description" content="Searchable catalog of 202 design mockups and specifications for OpenELIS Global">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 960px; margin: 0 auto; padding: 2rem 1rem; color: #161616; line-height: 1.5; }
     h1 { border-bottom: 2px solid #0f62fe; padding-bottom: 0.5rem; }
@@ -22,13 +22,13 @@
 </head>
 <body>
   <h1>OpenELIS Design Gallery — Catalog</h1>
-  <p>200 designs across 16 categories.
+  <p>202 designs across 16 categories.
     <a href="./">Interactive Gallery</a> |
     <a href="catalog.json">JSON Catalog</a> |
     <a href="llms.txt">LLM Index</a> |
     <a href="sitemap.xml">Sitemap</a>
   </p>
-  <nav><a href="#cat-admin-config">Admin & Config (45)</a> <a href="#cat-analyzer-integration">Analyzer Integration (23)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (3)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (7)</a> <a href="#cat-system">System (9)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
+  <nav><a href="#cat-admin-config">Admin & Config (45)</a> <a href="#cat-analyzer-integration">Analyzer Integration (24)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (3)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (7)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
 
   <h2 id="cat-admin-config">Admin & Config (45)</h2>
   <div class="design">
@@ -656,7 +656,20 @@
     <div class="tags"><span class="tag">admin</span> <span class="tag">results</span> <span class="tag">validation</span> <span class="tag">configuration</span> <span class="tag">v4</span> <span class="tag">multi-level</span> <span class="tag">feature-flag</span> <span class="tag">Indonesia</span> <span class="tag">SILNAS</span> <span class="tag">png-deliverable</span></div>
   </div>
 
-  <h2 id="cat-analyzer-integration">Analyzer Integration (23)</h2>
+  <h2 id="cat-analyzer-integration">Analyzer Integration (24)</h2>
+  <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-mapping-multi-component-column">Analyzer Mapping - Multi-Component Column</a></h3>
+    <p>Delta to the Analyzer Types & Mapping table: adds a Component selector so an instrument target/channel maps to a specific result_component of a test (not only a test), resolving test-then-component by a stable code. Extends the existing analyzer-mapping-templates.jsx rather than adding a new screen. See the Multi-component mapping section of the Analyzer Types & Mapping FRS. Epic OGC-1131 / story OGC-1136.</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/analyzer-integration/analyzer-mapping-multi-component-column">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/analyzer-integration/analyzer-mapping-multi-component-column">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-profile-mapping.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-multicomponent-mapping-preview.html">HTML Mockup</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1136">OGC-1136</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1131">OGC-1131</a>
+    </div>
+    <div class="tags"><span class="tag">analyzer</span> <span class="tag">analyzer-integration</span> <span class="tag">mapping</span> <span class="tag">multi-component</span> <span class="tag">result-component</span> <span class="tag">molecular</span> <span class="tag">ct</span> <span class="tag">cq</span> <span class="tag">pcr</span> <span class="tag">multiplex</span> <span class="tag">component-column</span></div>
+  </div>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-types-mapping">Analyzer Types & Mapping</a></h3>
     <p>Completes the Generic ASTM/HL7/Flat-file module with reusable, forkable Analyzer Types and a lab-facing GUI to map an instrument\</p>
@@ -2140,7 +2153,7 @@
     <div class="tags"><span class="tag">sample-collection</span> <span class="tag">referral</span> <span class="tag">refer-out</span> <span class="tag">order-status</span> <span class="tag">clinical</span> <span class="tag">environmental</span> <span class="tag">vector</span></div>
   </div>
 
-  <h2 id="cat-system">System (9)</h2>
+  <h2 id="cat-system">System (10)</h2>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/system/audit-trail">Audit Trail</a></h3>
     <p>System audit trail viewer</p>
@@ -2167,8 +2180,23 @@
     <div class="tags"><span class="tag">help</span> <span class="tag">documentation</span> <span class="tag">UI</span> <span class="tag">navigation</span> <span class="tag">contextual-help</span> <span class="tag">search</span> <span class="tag">slide-over</span> <span class="tag">global</span></div>
   </div>
   <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/system/analyzer-results-import-v2-redesign">Analyzer Results Import (v2 redesign)</a></h3>
+    <p>OGC-288 redesign of the Analyzer Results Import review page. QC-first review with per-analysis accept/reject and the QC-fail action set (Retest / Report NCE / Reject / Accept despite QC failure), select-all + normal selection, a run-settings sidebar, and the G1-G13 bench-experience refinements. Multi-component-aware: per-target Ct/Cq values grouped by analysis, with unmapped targets surfaced as visible exceptions. Access moved to the results permission. Supersedes the wireframe-era Analyzer Import entry, carrying its QC-first / run-settings / sidebar mechanics forward in FRS form.</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/system/analyzer-results-import-v2-redesign">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/system/analyzer-results-import-v2-redesign">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/system/analyzer-import-redesign-v2.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/system/analyzer-import-redesign-v2.jsx">Source (JSX)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/system/analyzer-import-redesign-v2-preview.html">HTML Mockup</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-288">OGC-288</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1131">OGC-1131</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1129">OGC-1129</a>
+    </div>
+    <div class="tags"><span class="tag">analyzer</span> <span class="tag">analyzer-integration</span> <span class="tag">import</span> <span class="tag">results</span> <span class="tag">qc</span> <span class="tag">nce</span> <span class="tag">non-conformity</span> <span class="tag">multi-component</span> <span class="tag">result-component</span> <span class="tag">molecular</span> <span class="tag">ct</span> <span class="tag">review</span> <span class="tag">system</span></div>
+  </div>
+  <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/system/analyzer-import">Analyzer Import</a></h3>
-    <p>Bulk analyzer configuration import</p>
+    <p>[Superseded by Analyzer Results Import (v2 redesign), OGC-288] Bulk analyzer configuration import (wireframe-era analyzer results import redesign).</p>
     <div class="links">
       <a href="https://digi-uw.github.io/openelis-work/#/preview/system/analyzer-import">Preview</a>
       <a href="https://digi-uw.github.io/openelis-work/#/spec/system/analyzer-import">Spec</a>

@@ -103,6 +103,8 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/results-validation-config-v4.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/results-validation-config-v4.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-profile-mapping.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-multicomponent-mapping-preview.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-profile-mapping.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-profile-mapping.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-profile-mapping-gap-analysis.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/analyzer-integration/sysmex-xp-field-mapping-v0.1.md</loc></url>
@@ -326,6 +328,9 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/help-menu.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/help-menu.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/in-app-help-preview.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/system/analyzer-import-redesign-v2.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/system/analyzer-import-redesign-v2.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/system/analyzer-import-redesign-v2-preview.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/analyzer-import.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/analyzer-import.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/fhir-outbound-push.md</loc></url>

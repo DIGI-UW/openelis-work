@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyzer Types & Mapping — target→component (delta)</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body{background:#f4f4f4;margin:0;font-family:'IBM Plex Sans',sans-serif;color:#161616;}
+  .banner{background:#0f62fe;color:#fff;padding:6px 1rem;font-size:12px;font-family:monospace;}
+  .wrap{padding:1rem 1.5rem;max-width:1080px;margin:0 auto;}
+  .sub{color:#6f6f6f;font-size:12px;}
+  .safe{background:#defbe6;border-left:3px solid #24a148;padding:9px 13px;font-size:12.5px;margin:.6rem 0 1rem;}
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e0e0e0;}
+  th{font-size:12px;font-weight:600;color:#525252;text-align:left;padding:10px;border-bottom:1px solid #c6c6c6;white-space:nowrap;}
+  td{font-size:12.5px;padding:8px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .sel{padding:5px 8px;border:1px solid #8d8d8d;background:#f4f4f4;border-bottom:1px solid #161616;font-size:12.5px;min-width:150px;}
+  .newcol{background:#eef4ff;}
+  .newtag{font-size:10px;background:#0f62fe;color:#fff;border-radius:8px;padding:0 6px;margin-left:6px;}
+  .muted{color:#a8a8a8;}
+  .primary{color:#6f6f6f;font-style:italic;}
+</style>
+</head>
+<body class="cds--white">
+<div class="banner">⚡ Delta — Analyzer Types &amp; Mapping · add a <b>Component</b> column (target→component) · extends the existing mapping mockup, not a new screen</div>
+<div class="wrap" id="root"></div>
+<script type="text/babel">
+const {useState}=React;
+// Analyzer: Cepheid GeneXpert (ASTM). Result-value mappings: each instrument code → an OpenELIS test,
+// and NOW optionally a result component of that test. Blank component = PRIMARY (today's behavior).
+const rows=[
+ {code:"MTB", test:"Xpert MTB/RIF", comp:"MTB detection (PRIMARY)", opts:["MTB detection (PRIMARY)","RIF resistance","rpoB Probe A","rpoB Probe B","rpoB Probe C","rpoB Probe D","rpoB Probe E"]},
+ {code:"RIF", test:"Xpert MTB/RIF", comp:"RIF resistance", opts:["MTB detection (PRIMARY)","RIF resistance","rpoB Probe A"]},
+ {code:"PROBE_A", test:"Xpert MTB/RIF", comp:"rpoB Probe A", opts:["MTB detection (PRIMARY)","RIF resistance","rpoB Probe A","rpoB Probe B"]},
+ {code:"PROBE_B", test:"Xpert MTB/RIF", comp:"rpoB Probe B", opts:["rpoB Probe A","rpoB Probe B","rpoB Probe C"]},
+ {code:"SPC", test:"Xpert MTB/RIF", comp:"Sample Processing Control", opts:["Sample Processing Control","MTB detection (PRIMARY)"]},
+ {code:"GLU", test:"Glucose, fasting", comp:"(PRIMARY — single result)", opts:["(PRIMARY — single result)"]},
+];
+function App(){
+ return (<div>
+  <h2 style={{fontWeight:400,margin:'0 0 2px'}}>Analyzer Types &amp; Mapping — Result value mappings</h2>
+  <div className="sub">Analyzer: Cepheid GeneXpert (ASTM) · Admin → Analyzers</div>
+  <div className="safe"><b>Only the Component column is new.</b> Each instrument code still maps to an OpenELIS test; now it can also map to a <b>result component</b> of that test (blank = PRIMARY = today). Single-result tests (Glucose) are unaffected. Match is on the component code, never a label.</div>
+  <table>
+   <thead><tr>
+     <th>Analyzer code</th><th>OpenELIS Test</th>
+     <th className="newcol">Component <span className="newtag">new · OGC-1131</span></th>
+     <th>Result-value mapping</th>
+   </tr></thead>
+   <tbody>
+    {rows.map((r,i)=>(
+     <tr key={i}>
+       <td className="mono">{r.code}</td>
+       <td>{r.test}</td>
+       <td className="newcol">
+         {r.opts.length>1
+           ? <select className="sel" defaultValue={r.comp}>{r.opts.map((o,j)=><option key={j}>{o}</option>)}</select>
+           : <span className="primary">{r.comp}</span>}
+       </td>
+       <td className="muted">DETECTED / NOT DETECTED · Ct (numeric) …</td>
+     </tr>
+    ))}
+   </tbody>
+  </table>
+  <p className="sub" style={{marginTop:10}}>Xpert MTB/RIF modeled as one multi-component test: the MTB &amp; RIF calls + five rpoB probe Cts + the SPC internal control. A deployment may instead keep MTB and RIF as separate tests — the mapping supports both; it never merges existing separate tests automatically.</p>
+ </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

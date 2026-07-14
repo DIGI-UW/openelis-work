@@ -261,3 +261,41 @@ All UI strings use localization keys (`label.analyzer.profile.*`, `label.analyze
 | Test Catalog FRS | Defines the tests, result types, and result options that mappings target |
 | Alerts | Receives unmapped-code/result events for active analyzers |
 | Ideas backlog — Catalyst-assisted analyzer mapping | The LLM-assisted future direction (flat-file inference), out of scope here |
+
+---
+
+## Multi-component mapping (target → result component) — added, OGC-1131
+
+Some assays report **several values at once** — a multiplex molecular panel sends an overall call plus a
+per-target value (Ct/Cq per gene / probe / fluorophore channel; e.g. GeneXpert probes, a BioRad CFX qPCR
+run). OpenELIS models those as **result components** of a test (`test_result_component`, OGC-949 M1). The
+mapping UI must let an admin map an instrument's result code/target to a **specific result component** of a
+test — not only to a test.
+
+**Requirements**
+
+- **MC-1.** A mapping row can target a **result component** of a test in addition to today's target→test
+  mapping. The mapping table gains an optional **Component** selector (the test's components, by label);
+  leaving it blank maps to the test's **PRIMARY** component — exactly today's behavior.
+- **MC-2.** Resolution is two-step: resolve the **test** first (LOINC / analyzer code), then the
+  **component** by a **stable code** — the component `code` (or its optional LOINC where set). **Never**
+  match on a translated / display string.
+- **MC-3.** Per assay, the admin decides **separate tests** (today) or **one multi-component test**; the
+  mapping supports both. Enabling component mapping must **not** silently merge assays currently modeled as
+  separate tests (MTB, RIF, CT, NG).
+- **MC-4.** An assay's **instrument-reported internal control** (GeneXpert SPC/PCC, a qPCR IPC channel) may
+  be mapped to a component (typically not shown on the report). The **QC program** (control materials,
+  Westgard, LJ) is out of scope here — it stays in the QC domain.
+- **MC-5.** A reported target with **no matching component** raises the existing unmapped-code Alert/event
+  (never silently dropped).
+- **MC-6. Access (2026-07-10 decision).** The code→test/component **mapping** (and the exception "map now"
+  from the import review) is available to the **`results` permission** — **not** admin-gated — because it
+  is clinical-catalog knowledge the bench owns. The *technical* analyzer config (connection, plugin,
+  profile plumbing) stays admin. The new RBAC will make this more granular later.
+
+**Mockup delta:** extend the existing mapping mockup (`analyzer-mapping-templates.jsx` /
+`analyzer-profile-mapping-prototype.html`) — add the **Component** column/selector to the result-mapping
+table; no new screen. See `analyzer-multicomponent-mapping-preview.html` for the delta.
+
+_Companion: the analyzer ingestion FRS (`analyzer-multicomponent-ingestion.md`, OGC-1129), the connection-spec
+edits (OGC-1133), and the multi-component `analyzer-mapping-spec` skill guidance._

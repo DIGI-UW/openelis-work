@@ -1,7 +1,7 @@
 {
-  "generated": "2026-07-09T22:45:22.106Z",
+  "generated": "2026-07-14T15:18:41.215Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 200,
+  "totalDesigns": 202,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -1389,6 +1389,41 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/result-validation-configuration-v4",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/results-validation-config-v4.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/results-validation-config-v4.html"
+      }
+    },
+    {
+      "name": "Analyzer Mapping - Multi-Component Column",
+      "slug": "analyzer-mapping-multi-component-column",
+      "category": "analyzer-integration",
+      "description": "Delta to the Analyzer Types & Mapping table: adds a Component selector so an instrument target/channel maps to a specific result_component of a test (not only a test), resolving test-then-component by a stable code. Extends the existing analyzer-mapping-templates.jsx rather than adding a new screen. See the Multi-component mapping section of the Analyzer Types & Mapping FRS. Epic OGC-1131 / story OGC-1136.",
+      "type": "html",
+      "added": "2026-07-14",
+      "status": "draft",
+      "tags": [
+        "analyzer",
+        "analyzer-integration",
+        "mapping",
+        "multi-component",
+        "result-component",
+        "molecular",
+        "ct",
+        "cq",
+        "pcr",
+        "multiplex",
+        "component-column"
+      ],
+      "jira": [
+        "OGC-1136",
+        "OGC-1131"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/analyzer-integration/analyzer-profile-mapping.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-mapping-multi-component-column",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/analyzer-integration/analyzer-mapping-multi-component-column",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/analyzer-integration/analyzer-mapping-multi-component-column",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-profile-mapping.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-multicomponent-mapping-preview.html"
       }
     },
     {
@@ -4796,10 +4831,49 @@
       }
     },
     {
+      "name": "Analyzer Results Import (v2 redesign)",
+      "slug": "analyzer-results-import-v2-redesign",
+      "category": "system",
+      "description": "OGC-288 redesign of the Analyzer Results Import review page. QC-first review with per-analysis accept/reject and the QC-fail action set (Retest / Report NCE / Reject / Accept despite QC failure), select-all + normal selection, a run-settings sidebar, and the G1-G13 bench-experience refinements. Multi-component-aware: per-target Ct/Cq values grouped by analysis, with unmapped targets surfaced as visible exceptions. Access moved to the results permission. Supersedes the wireframe-era Analyzer Import entry, carrying its QC-first / run-settings / sidebar mechanics forward in FRS form.",
+      "type": "jsx",
+      "added": "2026-07-14",
+      "status": "draft",
+      "tags": [
+        "analyzer",
+        "analyzer-integration",
+        "import",
+        "results",
+        "qc",
+        "nce",
+        "non-conformity",
+        "multi-component",
+        "result-component",
+        "molecular",
+        "ct",
+        "review",
+        "system"
+      ],
+      "jira": [
+        "OGC-288",
+        "OGC-1131",
+        "OGC-1129"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/system/analyzer-import-redesign-v2.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/system/analyzer-results-import-v2-redesign",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/system/analyzer-results-import-v2-redesign",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/system/analyzer-results-import-v2-redesign",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/system/analyzer-import-redesign-v2.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/system/analyzer-import-redesign-v2.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/system/analyzer-import-redesign-v2-preview.html"
+      }
+    },
+    {
       "name": "Analyzer Import",
       "slug": "analyzer-import",
       "category": "system",
-      "description": "Bulk analyzer configuration import",
+      "description": "[Superseded by Analyzer Results Import (v2 redesign), OGC-288] Bulk analyzer configuration import (wireframe-era analyzer results import redesign).",
       "type": "jsx",
       "added": "2026-03-03",
       "status": "draft",

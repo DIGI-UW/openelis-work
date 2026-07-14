@@ -1,7 +1,7 @@
 # OpenELIS Design Gallery — Full Spec Content
 
-Generated: 2026-07-09T22:45:22.111Z
-Total designs: 200
+Generated: 2026-07-14T15:18:41.223Z
+Total designs: 202
 
 ---
 
@@ -26488,6 +26488,315 @@ The Validation page UI (OGC-817 / `validation-page-v4-frs.md`); the Results Entr
 
 ---
 
+# Analyzer Mapping - Multi-Component Column (analyzer-integration)
+Gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-mapping-multi-component-column
+Jira: OGC-1136, OGC-1131
+
+# Analyzer Types & Mapping — Functional Requirements Specification
+
+| Field | Value |
+|-------|-------|
+| **Status** | Draft for review |
+| **Module** | Admin → Analyzers (Analyzer Profiles, Analyzer setup, Field Mappings) |
+| **Author** | Casey Iiams-Hauser |
+| **Date** | 2026-06-17 |
+| **Supersedes** | The deployed "Analyzer Types" page (the first cut of this work) and the unbuilt portions of the Generic ASTM/HL7/Flat-file module: profile management and GUI mapping of tests and results |
+| **Front end** | Carbon React |
+| **Companion artifacts** | `analyzer-profile-mapping-prototype.html` (functional prototype), `analyzer-profile-mapping-gap-analysis.md` |
+
+> This FRS is version-agnostic — it describes the whole feature. Version/sprint boundaries are decided later in `/breakdown`.
+>
+> **Terminology:** the user-facing name is **Analyzer Type** — the reusable, forkable configuration for a kind of analyzer (test codes, result mappings, QC codes, formatting). This document uses **"profile"** as a synonym for that same object/entity; all UI labels read "Analyzer Type." (It is distinct from the dev-only **Plugin Type**, which stays in the Advanced/implementer area.)
+
+---
+
+## Lab Context
+
+### Current State
+
+A clinical lab runs benchtop and molecular instruments — a Cepheid GeneXpert for TB and viral load, a Mindray or Sysmex hematology analyzer, a Tecan ELISA reader. Each instrument can send its results to OpenELIS electronically instead of a tech reading a printout and typing numbers into the computer by hand. For that to work, OpenELIS has to know two things about each instrument: how it talks (the network connection and message format) and what its codes mean — when the GeneXpert sends a result labeled `RIF` with the value `DETECTED`, OpenELIS has to know that means the "Rifampin Resistance" test and the result "Resistant" in the lab's own catalog.
+
+Today OpenELIS ships a generic plugin that can talk to ASTM and HL7 (the two common standards instruments use to transmit results) and flat-file instruments, and an admin can add an analyzer and connect it. But the part that translates the instrument's codes into the lab's tests and results was never finished in the interface. The current "Analyzer Types" admin page exposes developer-level fields — a Java plugin class name, a regular expression — that no lab person can fill in, and the mapping of an instrument's result values to the lab's result options can't be done through the screen at all. Labs that need it today rely on a developer to hand-edit configuration.
+
+### Pain
+
+Because the mapping interface is unfinished, connecting an analyzer is a developer task, not a lab task. A lab that gets a new GeneXpert cartridge — which makes the instrument start reporting a new test code — has no way to map that new code themselves; the result arrives and there's nowhere for it to go. Qualitative instruments are the worst case: a GeneXpert reports `DETECTED` / `NOT DETECTED` / `INDETERMINATE`, and without a way to say which of the lab's result options each of those means, the results can't be recorded correctly. When a shipped configuration doesn't quite match a particular lab's catalog, the lab has no safe way to fix it — and the screen that should help is full of fields meant for programmers. The net effect is that automated result import, the whole point of connecting an instrument, stalls on configuration that the lab can't do for itself.
+
+### What Changes
+
+A lab administrator sets up an analyzer by answering one question — *which instrument is this?* — and picking it from a searchable list. OpenELIS loads a ready-made **profile** for that instrument (its test codes, the results it reports, its quality-control codes, how it formats values) and shows the administrator a short list to **verify**: "this analyzer sends MTB-RIF, which matches your MTB Detection test by its LOINC code (the international standard code that identifies a lab test) — confirm." The administrator confirms the matches, enters the network address, tests the connection, and the analyzer is live. They never see a Java class or a regular expression. When something doesn't line up — a test the instrument reports isn't in the lab's catalog, or a result value isn't recognized — only that one item opens an editor to fix, and the administrator either points it at an existing catalog test (searchable, because catalogs run to hundreds of tests) or is sent to add the test in the Test Catalog first. If the instrument later sends something new, like a new cartridge's test, OpenELIS doesn't lose the result — it parks it and raises an alert so a person maps it. The same screens work whether the instrument speaks ASTM, HL7, or sends a file.
+
+---
+
+## Overview
+
+This feature completes the Generic Analyzer module by adding (1) **analyzer profiles** — reusable, shareable configurations for a kind of instrument — and (2) a **GUI for mapping** an instrument's tests, result values, and QC codes to the lab's catalog. It reframes the deployed, developer-facing "Analyzer Types" page into a lab-facing **Analyzer Profiles** page, and replaces the bare "Add Analyzer" form with a **guided, instrument-first setup** whose normal path is *verify*, not hand-editing.
+
+The governing principle: **verifying is the norm, editing is the exception.** A clean, profile-matched analyzer is set up by confirming a short list and entering a network address; the full mapping editor only appears for items that don't line up or when an administrator deliberately changes a profile.
+
+### Navigation & URL
+
+- **SideNav:** `Analyzers → Analyzer Types` (a sibling of Analyzers List, Error Dashboard, Quality Control). This is the **next version of the existing `Analyzers → Analyzer Types` page**, which it replaces (today that page is a developer-facing plugin registry; it becomes the lab-facing analyzer-type/profile manager).
+- **Breadcrumb:** `Home / Analyzers / Analyzer Types`; the mapping editor is `Home / Analyzers / Field Mappings / [Analyzer or Type name]`.
+- **Routes:** analyzer-types list `/analyzers/types` (existing route, repurposed); mapping editor `/analyzers/{id}/mappings` (existing) and `/analyzers/types/{typeId}` for type-context editing. Add-analyzer setup is **inline within `/analyzers`** (expands in the list; not a modal, not a separate page).
+
+### Permissions & Audit
+
+- **Role attachment:** accessible via the existing **Admin** role bundle (the same that governs Analyzers List / Analyzer Types today). No new per-action permission keys. Verification/confirmation, profile edits, deactivation, and connection changes are admin actions; do not invent a granular matrix.
+- **Audit events** (`audit_trail`): `ANALYZER_PROFILE_CREATED`, `ANALYZER_PROFILE_UPDATED`, `ANALYZER_PROFILE_DEACTIVATED`/`_REACTIVATED`, `ANALYZER_MAPPING_VERIFIED` (records the human sign-off on setup, with analyzer + profile id), `ANALYZER_TESTMAP_CHANGED`, `ANALYZER_RESULTMAP_CHANGED`, `ANALYZER_CONNECTION_CHANGED`. Do not audit reads.
+- **Envers:** the analyzer profile entity and analyzer↔profile association are configuration data → `@Audited`.
+
+### Scope boundaries (out of scope)
+
+- **Instrument auto-recognition** from an incoming message (cut — unreliable signal; an admin who can't identify their instrument shouldn't be setting it up).
+- **Creating a new test inline** during mapping (multi-step; done in Test Catalog, then mapped).
+- **Importing profiles from a file** and any **community profile sharing/marketplace** (future). Profile **Export** is download-only (for backup or sending to support); **re-importing** an exported profile is part of the deferred sharing work.
+- **LLM-assisted authoring** (esp. flat-file CSV/XML parsing and value inference) — parked as a Catalyst candidate.
+- Deep flat-file column/layout configuration beyond what a profile already carries (candidate for the Catalyst path).
+
+---
+
+## User Stories
+
+1. *As a lab administrator,* I want to set up an analyzer by choosing my instrument and confirming a short list, so that I can connect it without developer help or technical jargon.
+2. *As a lab administrator,* I want OpenELIS to tell me which of the instrument's tests already exist and are active in my catalog (matched by LOINC), so that I can trust what will receive results and fix what won't.
+3. *As a lab administrator,* I want to confirm — not hand-build — how the instrument's result values map to my result options, so that qualitative results record correctly with a human sign-off.
+4. *As a lab administrator,* when an instrument's test or value isn't recognized, I want to map it to an existing catalog test by searching, or be told to add it in Test Catalog first, so that I'm never stuck and never silently dropping results.
+5. *As a lab administrator,* I want a change I make for one analyzer to default to a new profile (not silently alter every other analyzer), so that I can't break the others by accident.
+6. *As a lab administrator,* I want unmapped codes or results from a live analyzer to raise an alert and flag the analyzer, so that nothing piles up unnoticed.
+7. *As a lab administrator,* I want one place that lists the reusable profiles with how complete their mappings are, so that I can see and manage what's configured.
+
+---
+
+## Functional Requirements
+
+### A. Profiles
+
+**FR-A1 — Profile as the unit of configuration.** A *profile* is a reusable configuration for a kind of analyzer. It carries: test-code mappings (analyzer code → catalog test, with the test's LOINC), result mappings (analyzer value → the test's result option), QC codes (control identifiers and how they're recognized), result formatting (date format, decimal separator, units), and the instrument's protocol/connection capability (including whether it supports two-way). It does **not** carry analyzer-specific facts: name, lab unit assignment, network address, or connection direction in use.
+
+**FR-A2 — Shared, with fork.** An analyzer references exactly one profile. Multiple analyzers may share a profile. There is no per-analyzer override layer and no "clone": when an analyzer must differ, the change is saved as a **new profile** (a fork).
+
+**FR-A3 — Deactivate, never delete.** Profiles (and analyzers) are deactivated/reactivated, never hard-deleted. Lists hide deactivated profiles by default with a "Show deactivated" toggle. (See constitution: no hard delete in a LIMS.)
+
+**FR-A4 — Shipped profiles.** OpenELIS ships a base catalog of profiles for common instruments, with their tests pre-mapped by LOINC. Deployments/distros may ship additional profiles bound to their own catalogs. Profiles created by a site are also stored. The Analyzer Profiles list can filter by **Created** (site-created vs. shipped) but does not otherwise organize by source.
+
+**FR-A5 — Trust metadata is internal.** Authoring/validation metadata (confidence, verification-required, validation status) is internal team tracking and is **not** surfaced in the admin UI nor used to gate setup.
+
+### B. Guided analyzer setup (inline)
+
+**FR-B1 — Inline, in the list.** "Add Analyzer" expands a guided setup **inline within the Analyzers List** (the list stays visible for context); it is not a modal. Setup is presented as stacked sections that reveal in order: **Instrument → Verify → Connect**. Completed sections collapse to a one-line summary with Edit.
+
+**FR-B2 — Instrument-first.** Section 1 asks the administrator to pick the instrument from a **searchable** list (manufacturer/model). Selecting it loads that instrument's profile. The administrator names the analyzer and assigns one or more **lab units**. No protocol, plugin, or pattern fields appear here.
+
+**FR-B3 — "Not listed" path.** If the instrument isn't listed, the administrator defines a **new profile**: profile name, protocol (ASTM / HL7 / flat file), and connection type. (This is the only place these fields appear in the lab flow; they otherwise live with the profile.)
+
+**FR-B4 — Verify, don't build (the sign-off).** Section 2 shows the profile's tests as a list to **verify**: each row shows the analyzer code, the matched catalog test, the matching LOINC, and a status. Verification is a **mandatory human confirmation** (per-row, or confirm-all) and is recorded in the audit trail. Nothing maps itself silently. This is by design a patient-safety gate; the fragility is intentional.
+
+**FR-B5 — QC codes are verified too.** Section 2 also lists the instrument's **QC codes** (control identifiers, e.g., specimen-ID prefixes or a control flag field) for confirmation, so control runs are recognized and don't post as patient results.
+
+**FR-B6 — Connect.** Section 3 collects the network address and the **data flow** (see FR-F). A connection test reports the result in plain language.
+
+**FR-B7 — Push-a-result option.** The verify step offers "send a result from the analyzer now" — capturing a real message so the administrator can verify against the codes/values the instrument *actually* sends (proactive learn-from-traffic; reflects that, e.g., GeneXpert sites enable/disable assays so the live code set may differ from the profile).
+
+**FR-B8 — Reconcile the transmission against the mappings.** When a result is received during setup, the screen reconciles each transmitted item against the current mappings and updates live:
+
+- **Verified:** a transmitted test code / result value that matches an existing mapping is marked **verified against the live message** (a per-test "checked vs live" indicator flips from "not seen yet" to "verified"). This is stronger than a profile match — it confirms the instrument really sends what the profile assumed.
+- **New result value:** a value arriving for a mapped test that the result-map doesn't cover surfaces inline, pre-populated with the transmitted value, with the test's result options offered so the administrator maps it on the spot.
+- **New test code:** a code arriving with no test mapping surfaces inline with a catalog **search** to map it (or send to Test Catalog per FR-C2).
+- **Not transmitted:** a mapped test that did *not* appear in this message stays "not seen yet" (not an error — the assay may simply not have run).
+- **Nothing matches / blank profile:** when the profile has no mappings yet (the "not listed → new profile" path), the transmission **populates** the rows from what was received and the administrator maps each — i.e., a new profile is built directly from a real message rather than from a blank form.
+
+Mappings resolved this way update the profile immediately (subject to the save-scope rule, FR-H). Reconciliation never discards a transmitted item.
+
+### C. Catalog readiness check (LOINC matching)
+
+**FR-C1 — Deterministic 1:1 LOINC match.** A profile test is matched to a catalog test when the profile's LOINC **equals** a LOINC on an **active** catalog test — a deterministic 1:1 key, not fuzzy auto-matching. The verify step shows, per test: matched · active / not matched.
+
+**FR-C2 — Resolve a non-match (inline, for the exception only).** When a profile test has no LOINC match, the row offers a **Resolve** action with, in priority order: (a) **Map to an existing test** via a **search** of the catalog (by name, code, or LOINC) — the primary path; (b) **Add it in Test Catalog first**, then return and map (a link out; inline test creation is out of scope because adding a test is multi-step); (c) **Don't receive this test** from this analyzer. Resolving updates the readiness state.
+
+**FR-C3 — Missing tests don't block the rest.** A test absent from the catalog is flagged and does not block verifying/activating the others. Results for an unmapped test follow FR-G (never dropped).
+
+### D. Test mapping (editor)
+
+**FR-D1 — Editable rows.** In the mapping editor, every test-code row is editable — the administrator can change the analyzer code or **re-point the linked test**, even on rows already matched, and can remove a row or add one.
+
+**FR-D2 — Search-based test picker.** Linked-test selection is a **search** over the catalog (assume ~500 tests), implemented as a Carbon `ComboBox`/typeahead (match on name, code, or LOINC). It is never a long static dropdown.
+
+**FR-D3 — Protocol-agnostic surface.** The editor is identical for ASTM, HL7, and flat-file analyzers; only the field-reference label differs (e.g., `R.3` for ASTM, `OBX-3` for HL7). 
+
+### E. Result mapping (editor)
+
+**FR-E1 — Bound to the test's own results.** For a qualitative test, the result-mapping targets are exactly the **result options defined on the matched catalog test** (its dictionary/select-list results). The administrator can only map to results that test can store.
+
+**FR-E2 — Guided empty state.** If the matched test has no result options defined, the editor explains this and links to Test Catalog to define them first, rather than allowing a map against nothing.
+
+**FR-E3 — Unmatched-value behavior.** Each qualitative mapping defines what happens to a value with no mapping: flag for review (default — never dropped), pass through raw, or use a default. (See FR-G for the active-analyzer alerting.)
+
+**FR-E4 — Completeness.** Mapping completeness is shown as **X / Y · %** for both tests mapped and results mapped, on the profile and in the editor.
+
+### F. Connection & data flow
+
+**FR-F1 — Per-analyzer connection.** Network address (IP/port or watched folder) and **data flow** are analyzer-level, not part of the shared profile.
+
+**FR-F2 — Direction is intent + probe, not a guarantee.** Default is **Results only (one-way)**. **Two-way** (OpenELIS sends orders/queries back) is offered only when the profile declares the instrument supports it. The connection test attempts the round trip; on timeout it reports that two-way isn't reachable (e.g., analyzer on a private network) and the analyzer runs one-way. Setup is never blocked by a failed two-way probe. The verified direction is shown on the analyzer.
+
+### G. Learn-from-traffic (never drop, make it loud)
+
+**FR-G1 — Accept and flag, don't block.** OpenELIS cannot control what an instrument sends, so inbound results are **never blocked**. An unmapped test code or unmapped result value is accepted and held, not dropped.
+
+**FR-G2 — Active analyzers raise alerts.** For an **active** analyzer, an unmapped code/result posts to the **Alerts** page for acknowledgment and handling (acknowledged by Admin; Lab Manager optional), and raises a visible flag on the **Analyzers List** row and on the **profile**. (Aligns with the global critical-acknowledgment direction.)
+
+**FR-G3 — Resolve updates the profile.** Resolving a pending item from the alert/queue maps it; the resolution updates the analyzer's profile so the same code/value maps automatically next time. This is the same mechanism that handles a new cartridge's new test code or a newly-seen result value. HL7 pending items show the display name (OBX-3.2) and value type (OBX-2); ASTM shows the bare code.
+
+### H. Edit scope (shared-with-fork)
+
+**FR-H1 — Save choices.** Saving changes made from an analyzer's mapping editor presents two choices: **Save as a new profile** (default) or **Update this profile (affects N analyzers)**.
+
+**FR-H2 — Safe default.** When the profile is used by more than one analyzer, **Save as a new profile** is the default and "Update this profile" carries an explicit warning naming the affected analyzers. When the profile is used by only the current analyzer, "Update this profile" is harmless and may be the default.
+
+**FR-H3 — Unique names by default.** A new (forked) profile's suggested name is the source profile's name with an **auto-incremented suffix** (`-1`, `-2`, …) chosen as the next value that is not already in use, guaranteeing uniqueness; the administrator may rename. The fork records its **lineage** ("derived from …").
+
+### I. Analyzer Types page
+
+**FR-I1 — List.** Columns: Profile (name + manufacturer/model/version), Protocol, **Tests mapped (X/Y · %)**, **Results mapped (X/Y · %)**, Used by (count), Status. Row actions: Edit mappings, Export (download a copy for backup/support — re-import is future), Deactivate/Reactivate. (No Clone, no Delete.)
+
+**FR-I2 — Search & filters.** A search over name/manufacturer/model (built for large libraries). Filters: **Created** (site-created / shipped), **Protocol**, **Mapping status** (has unmapped results / fully mapped), and **Show deactivated** (off by default).
+
+**FR-I3 — Intro/explainer.** The page opens with a short plain-language explanation of what a profile is and how to use it (share across identical analyzers; fork when one differs; deactivate not delete).
+
+**FR-I4 — Editing a profile == the mapping editor.** Editing a profile opens the same editor reached from an analyzer's Field Mappings — a profile *is* its mappings, not just a list row.
+
+---
+
+## Data Model & Dependencies
+
+Grounded in existing OpenELIS entities; new data is flagged as a named dependency, not invented domain concepts.
+
+| Concept | Source / status |
+|---------|-----------------|
+| Catalog test, result type, result options | **Existing** — Test Catalog; qualitative results are dictionary-backed result options. Result mapping targets these. |
+| LOINC on a test | **Existing** field; the deterministic match key. OpenELIS ships default tests pre-mapped with LOINC as part of this work. |
+| Lab unit (test unit) | **Existing** — used for analyzer assignment and RBAC context. |
+| Analyzer (instance) | **Existing** — gains a profile reference, lab-unit association, and verified data-flow direction. |
+| Analyzer plugin / type | **Existing** ("Analyzer Types" registry) — the generic plugin per protocol; profiles ride on the generic plugin. Lab-facing surface replaced by Analyzer Profiles. |
+| **Analyzer profile** | **NEW** — reusable config entity (FR-A1) with lineage to a parent profile for forks; `@Audited`. |
+| Pending/unmapped code & result queue | **Dependency** — learn-from-traffic store; surfaces to Alerts. Partly exists as "pending codes" on the deployed Field Mappings page; extend to cover unmapped result values. |
+| Alerts | **Existing** Alerts page — receives unmapped-code/result events for active analyzers (FR-G2). |
+| QC identification rules / control codes | **Existing** in profiles/QC config — surfaced for verification (FR-B5); detailed QC limits live in Quality Control. |
+
+---
+
+## Localization
+
+All UI strings use localization keys (`label.analyzer.profile.*`, `label.analyzer.setup.*`, `label.analyzer.mapping.*`, `label.analyzer.verify.*`). Representative keys:
+
+| Key | English |
+|-----|---------|
+| `label.analyzer.profiles.title` | Analyzer Profiles |
+| `label.analyzer.profiles.intro` | A profile is the reusable setup for a kind of analyzer… |
+| `label.analyzer.setup.identify` | Instrument |
+| `label.analyzer.setup.verify` | Verify the mappings |
+| `label.analyzer.setup.connect` | Connect it |
+| `label.analyzer.verify.matchedActive` | matched · active |
+| `label.analyzer.verify.needsAttention` | needs attention |
+| `label.analyzer.verify.confirm` | Confirm & continue |
+| `label.analyzer.catalog.notInCatalog` | Not in your catalog |
+| `label.analyzer.catalog.mapExisting` | Map to an existing test in your catalog |
+| `label.analyzer.catalog.addInCatalog` | Add it in Test Catalog first, then return and map |
+| `label.analyzer.qc.recognized` | recognized |
+| `label.analyzer.connect.dataflow` | Data flow |
+| `label.analyzer.connect.oneway` | Results only (one-way) |
+| `label.analyzer.connect.twoway` | Two-way (send orders/queries) |
+| `label.analyzer.connect.twowayUnreachable` | Two-way not reachable on this network; running results-only |
+| `label.analyzer.scope.newProfile` | Save as a new profile |
+| `label.analyzer.scope.updateProfile` | Update this profile (affects {count} analyzers) |
+| `label.analyzer.mapping.testsMapped` | Tests mapped |
+| `label.analyzer.mapping.resultsMapped` | Results mapped |
+| `label.analyzer.unmapped.alert` | Analyzer is sending a result that isn't mapped |
+
+---
+
+## Acceptance Criteria
+
+- [ ] **AC-1** Add Analyzer expands inline in the Analyzers List (not a modal); the list remains visible.
+- [ ] **AC-2** Setup proceeds Instrument → Verify → Connect as stacked, progressively revealed sections; completed sections collapse to a summary with Edit.
+- [ ] **AC-3** The instrument picker is search-based; selecting an instrument loads its profile.
+- [ ] **AC-4** "My instrument isn't listed" collects profile name, protocol, and connection type to define a new profile.
+- [ ] **AC-5** The verify step shows each profile test with analyzer code, matched catalog test, LOINC, and status; matching is deterministic LOINC==LOINC against active tests.
+- [ ] **AC-6** Verification requires explicit human confirmation and writes `ANALYZER_MAPPING_VERIFIED` to the audit trail.
+- [ ] **AC-7** QC codes appear in the verify step and require confirmation.
+- [ ] **AC-8** A non-matching test offers Resolve → map-to-existing (search), add-in-Test-Catalog (link out), or don't-receive; inline test creation is not offered.
+- [ ] **AC-9** A missing test does not block verifying/activating the others.
+- [ ] **AC-10** Connect defaults to one-way; two-way is offered only when the profile supports it, is verified by a probe, and degrades to one-way on timeout without blocking setup.
+- [ ] **AC-11** In the editor, every test-code row is editable (re-point linked test via search, edit code, remove, add).
+- [ ] **AC-12** Result mapping targets are exactly the matched test's result options; an empty option set shows the Test-Catalog guidance.
+- [ ] **AC-13** Saving from an analyzer defaults to Save-as-new-profile when used-by > 1; Update-this-profile warns and names affected analyzers.
+- [ ] **AC-14** A forked profile's suggested name uses the next free `-N` suffix and is guaranteed unique; lineage is recorded.
+- [ ] **AC-15** Unmapped codes/results from an active analyzer post to Alerts and flag the row and the profile; results are never dropped or blocked.
+- [ ] **AC-16** The Analyzer Profiles list shows Tests mapped and Results mapped as X/Y · %, supports search and the four filters, and hides deactivated by default.
+- [ ] **AC-17** Profiles are deactivated/reactivated; no delete action exists.
+- [ ] **AC-18** The mapping editor is identical across ASTM/HL7/flat file except the field-reference label.
+- [ ] **AC-19** No developer-only fields (plugin class, identifier-pattern regex, raw config JSON) appear in the lab-facing flow; any such reference is in a clearly secondary "Advanced — for IT/implementers" area.
+- [ ] **AC-20** All UI strings use localization keys.
+- [ ] **AC-21** "Send a result from the analyzer" reconciles the transmission live: matched items are marked verified-against-live; a new result value surfaces pre-populated with the test's options to map; a new test code surfaces with a catalog search; a mapped test not in the message stays "not seen yet."
+- [ ] **AC-22** Reconciliation never discards a transmitted item; resolving one updates the profile (per FR-H scope).
+- [ ] **AC-23** On the "not listed → new profile" path, a received message populates the (empty) mapping rows so a new profile can be built from real data; the "My instrument isn't listed" control reveals the new-profile fields (name, protocol, connection type).
+
+---
+
+## Related Documents
+
+| Document | Relationship |
+|----------|-------------|
+| `analyzer-profile-mapping-gap-analysis.md` | Why this work exists; the gap between shipped profiles and the needed GUI |
+| `analyzer-profile-mapping-prototype.html` | Functional prototype embodying this FRS |
+| ASTM / HL7 / Flat-file mapping addenda | Prior protocol-level mapping specs this consolidates and supersedes for the GUI surface |
+| Deployed "Analyzer Types" page | The first cut of this work; superseded by Analyzer Profiles |
+| Test Catalog FRS | Defines the tests, result types, and result options that mappings target |
+| Alerts | Receives unmapped-code/result events for active analyzers |
+| Ideas backlog — Catalyst-assisted analyzer mapping | The LLM-assisted future direction (flat-file inference), out of scope here |
+
+---
+
+## Multi-component mapping (target → result component) — added, OGC-1131
+
+Some assays report **several values at once** — a multiplex molecular panel sends an overall call plus a
+per-target value (Ct/Cq per gene / probe / fluorophore channel; e.g. GeneXpert probes, a BioRad CFX qPCR
+run). OpenELIS models those as **result components** of a test (`test_result_component`, OGC-949 M1). The
+mapping UI must let an admin map an instrument's result code/target to a **specific result component** of a
+test — not only to a test.
+
+**Requirements**
+
+- **MC-1.** A mapping row can target a **result component** of a test in addition to today's target→test
+  mapping. The mapping table gains an optional **Component** selector (the test's components, by label);
+  leaving it blank maps to the test's **PRIMARY** component — exactly today's behavior.
+- **MC-2.** Resolution is two-step: resolve the **test** first (LOINC / analyzer code), then the
+  **component** by a **stable code** — the component `code` (or its optional LOINC where set). **Never**
+  match on a translated / display string.
+- **MC-3.** Per assay, the admin decides **separate tests** (today) or **one multi-component test**; the
+  mapping supports both. Enabling component mapping must **not** silently merge assays currently modeled as
+  separate tests (MTB, RIF, CT, NG).
+- **MC-4.** An assay's **instrument-reported internal control** (GeneXpert SPC/PCC, a qPCR IPC channel) may
+  be mapped to a component (typically not shown on the report). The **QC program** (control materials,
+  Westgard, LJ) is out of scope here — it stays in the QC domain.
+- **MC-5.** A reported target with **no matching component** raises the existing unmapped-code Alert/event
+  (never silently dropped).
+- **MC-6. Access (2026-07-10 decision).** The code→test/component **mapping** (and the exception "map now"
+  from the import review) is available to the **`results` permission** — **not** admin-gated — because it
+  is clinical-catalog knowledge the bench owns. The *technical* analyzer config (connection, plugin,
+  profile plumbing) stays admin. The new RBAC will make this more granular later.
+
+**Mockup delta:** extend the existing mapping mockup (`analyzer-mapping-templates.jsx` /
+`analyzer-profile-mapping-prototype.html`) — add the **Component** column/selector to the result-mapping
+table; no new screen. See `analyzer-multicomponent-mapping-preview.html` for the delta.
+
+_Companion: the analyzer ingestion FRS (`analyzer-multicomponent-ingestion.md`, OGC-1129), the connection-spec
+edits (OGC-1133), and the multi-component `analyzer-mapping-spec` skill guidance._
+
+
+---
+
 # Analyzer Types & Mapping (analyzer-integration)
 Gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-types-mapping
 Jira: OGC-1054
@@ -26755,6 +27064,44 @@ All UI strings use localization keys (`label.analyzer.profile.*`, `label.analyze
 | Test Catalog FRS | Defines the tests, result types, and result options that mappings target |
 | Alerts | Receives unmapped-code/result events for active analyzers |
 | Ideas backlog — Catalyst-assisted analyzer mapping | The LLM-assisted future direction (flat-file inference), out of scope here |
+
+---
+
+## Multi-component mapping (target → result component) — added, OGC-1131
+
+Some assays report **several values at once** — a multiplex molecular panel sends an overall call plus a
+per-target value (Ct/Cq per gene / probe / fluorophore channel; e.g. GeneXpert probes, a BioRad CFX qPCR
+run). OpenELIS models those as **result components** of a test (`test_result_component`, OGC-949 M1). The
+mapping UI must let an admin map an instrument's result code/target to a **specific result component** of a
+test — not only to a test.
+
+**Requirements**
+
+- **MC-1.** A mapping row can target a **result component** of a test in addition to today's target→test
+  mapping. The mapping table gains an optional **Component** selector (the test's components, by label);
+  leaving it blank maps to the test's **PRIMARY** component — exactly today's behavior.
+- **MC-2.** Resolution is two-step: resolve the **test** first (LOINC / analyzer code), then the
+  **component** by a **stable code** — the component `code` (or its optional LOINC where set). **Never**
+  match on a translated / display string.
+- **MC-3.** Per assay, the admin decides **separate tests** (today) or **one multi-component test**; the
+  mapping supports both. Enabling component mapping must **not** silently merge assays currently modeled as
+  separate tests (MTB, RIF, CT, NG).
+- **MC-4.** An assay's **instrument-reported internal control** (GeneXpert SPC/PCC, a qPCR IPC channel) may
+  be mapped to a component (typically not shown on the report). The **QC program** (control materials,
+  Westgard, LJ) is out of scope here — it stays in the QC domain.
+- **MC-5.** A reported target with **no matching component** raises the existing unmapped-code Alert/event
+  (never silently dropped).
+- **MC-6. Access (2026-07-10 decision).** The code→test/component **mapping** (and the exception "map now"
+  from the import review) is available to the **`results` permission** — **not** admin-gated — because it
+  is clinical-catalog knowledge the bench owns. The *technical* analyzer config (connection, plugin,
+  profile plumbing) stays admin. The new RBAC will make this more granular later.
+
+**Mockup delta:** extend the existing mapping mockup (`analyzer-mapping-templates.jsx` /
+`analyzer-profile-mapping-prototype.html`) — add the **Component** column/selector to the result-mapping
+table; no new screen. See `analyzer-multicomponent-mapping-preview.html` for the delta.
+
+_Companion: the analyzer ingestion FRS (`analyzer-multicomponent-ingestion.md`, OGC-1129), the connection-spec
+edits (OGC-1133), and the multi-component `analyzer-mapping-spec` skill guidance._
 
 
 ---
@@ -83688,6 +84035,183 @@ No existing OpenELIS "Help Menu" epic exists. When ready to implement, a new sto
 | **Slug** | A URL-safe identifier derived from a page title. Used as the routing parameter and the HTML filename. |
 | **HelpKey** | A stable identifier (e.g. `orders.add-order`) applied as a Confluence label, used to match the same page across translated spaces. (Future, not in v1.) |
 | **Locale fallback** | Behavior where if the active OpenELIS locale has no manifest, the viewer renders English content with a "Available in English only" badge. |
+
+
+---
+
+# Analyzer Results Import (v2 redesign) (system)
+Gallery: https://digi-uw.github.io/openelis-work/#/system/analyzer-results-import-v2-redesign
+Jira: OGC-288, OGC-1131, OGC-1129
+
+# FRS — Analyzer Results Import (redesign, revisited)
+
+**Status:** Draft for review · **Supersedes:** `analyzer-import.md` (the wireframe-era redesign; all its
+QC-first / run-settings / sidebar mechanics are carried forward, restructured to FRS form and made
+multi-component-aware).
+**Technology:** Java / Spring backend, React + Carbon (`@carbon/react`).
+**Jira:** **OGC-288** (Analyzer Results Import Page Redesign — the owning story; this is its revisited
+design). Related: epic **OGC-1131** (Multi-Component Results), OGC-1129 (analyzer ingestion), OGC-949 M1
+(`test_result_component`), Results Entry v4 (OGC-811), OGC-1136 (analyzer Types & Mapping component column).
+
+---
+
+## Lab Context
+
+### Current State
+When an instrument sends a run to OpenELIS, a tech opens the **Analyzer Results Import** page to review the
+incoming results and accept them into the system. A run mixes **control samples** (QC) with **patient
+samples**; the tech should confirm QC passed before releasing any patient result, record which reagent
+lots/cartridges the run used, and watch for abnormal or critical values. Increasingly the runs are
+**multiplex molecular** — one patient sample yields several values at once (an overall call plus a Ct/Cq
+per target gene / probe / fluorophore channel).
+
+### Pain
+Today QC and patient results are intermingled with no gating, reagent capture lives on paper, and there's
+no delta-check or interpretation help. And a multiplex run has nowhere to put its per-target values — the
+page assumes one value per test, so probe Cts are dropped or forced into separate tests. A tech reviewing
+an Xpert MTB/RIF run can accept "MTB DETECTED" but not the five rpoB probe Cts behind it.
+
+### What Changes
+The page leads with **QC**: control samples are extracted and evaluated first, and patient acceptance is
+blocked when QC fails. Reagent lots are captured once per run (FIFO-preselected). Each patient analysis
+shows its result(s); for a **multi-component** test the review shows every component (the call plus each
+target's Ct), grouped under the analysis, reusing the same result rendering as Results Entry. Unmapped
+targets surface as visible exceptions rather than vanishing. QC still gates the whole run; accept/reject is
+per analysis.
+
+---
+
+## Overview & IA
+The Analyzer Results Import page is the review-and-accept surface for a single analyzer run: a **QC-first**
+panel at top, a **Run Settings** strip (analyzer + reagent lots), the **patient results** review table, and
+a **QA/QC sidebar**. It is driven by the analyzer mapping (Analyzer Types & Mapping) and, for multiplex
+tests, by the target→component mapping (OGC-1136/1129).
+
+**Navigation & URL:** under **Analyzers** (e.g. `Analyzers → [analyzer] → Import` / results review). Verify
+the exact route + SideNav slot against the live app before build.
+
+---
+
+## User Stories
+- **As a tech,** I want QC evaluated before I can accept patient results, so a failed run can't release bad values.
+- **As a tech,** I want each patient analysis's full result — including every target/component of a multiplex test — visible on the review, so I accept the complete result, not just the call.
+- **As a tech,** I want a reported target that isn't mapped to show as a clear exception I can act on, so nothing is silently lost.
+- **As a tech,** I want the run's reagent lots captured once and applied to all accepted results, so consumption isn't hand-recorded.
+- **As a supervisor,** I want the import review to look and behave like Results Entry (same result widgets, flags, Method/Analyzer split), so the two feel like one product.
+
+---
+
+## Functional Requirements
+
+### A. QC-first workflow (carried forward)
+- **FR-A1.** Control samples are **extracted** from the run (by sample-ID pattern, reserved patient ID, control sample-type, or known control lot) and shown in a dedicated **QC panel at the top**, with per-control card: type/level, result, expected range, pass/fail, run time, failure reason.
+- **FR-A2.** Overall QC status gates the run: **All pass** → patient results acceptable; **any fail** → patient results marked non-conforming and **accept disabled** (retest/ignore still available; NC banner + link); **no QC** → warning, fall back to last-known QC or require manual verification.
+- **FR-A3.** QC failure creates/links a **Non-Conformity** record; a Levey-Jennings link is available. (QC-program evaluation — Westgard/LJ — lives in the QC domain, not here.)
+- **FR-A4. QC verdict source.** Pass/fail is taken from the **analyzer's own QC flag when the message provides one** (e.g. GeneXpert SPC/PCC valid/invalid; onboard QC pass/fail). That flag is authoritative for the import gate.
+- **FR-A5. Expected-vs-observed (fallback + display).** Each control card shows the control's **observed** result beside its **expected** result. Where the analyzer sends a control value but **no verdict**, pass is derived as **observed == expected for qualitative controls** (Positive → expected DETECTED, Negative → NOT DETECTED, internal control → valid). For a **quantitative** control with no configured target range, show the value (and any analyzer flag) for **tech judgment** — never fabricate a verdict. No Westgard/SD math on this page.
+
+### B. Run Settings (carried forward)
+- **FR-B1.** Analyzer is auto-assigned from the import source (read-only: name, online/offline, QC status). Method/Analyzer follow the Results Entry v4 split.
+- **FR-B2. Reagent/cartridge lot provenance.** The run's reagent/cartridge lots come from **either the analyzer message** (when it carries the lot — e.g. a GeneXpert cartridge lot — shown read-only, tagged "analyzer-reported") **or a manual selection** by the tech from inventory. **No FIFO auto-selection is assumed** — nothing is pre-picked; the tech chooses when the analyzer doesn't report it. Expiring-soon/expired lots are flagged in the manual picker. The reported/selected lots + the analyzer attach to every accepted result (`ReagentConsumptionEvent`).
+
+### C. Patient results review (multi-component-aware)
+- **FR-C1.** The review lists patient **analyses** with columns: **Sample Info (lab number = primary key; a light patient-name confirmation; NC icon)**, Test, Result, Range, QC, Flags. **Full demographics are not shown** — import is accession-keyed and the task is match → QC → accept; demographic/clinical interpretation (age/sex-aware ranges, etc.) belongs to Results Entry / Validation, not here. Result cells reuse the **Results Entry v4 result renderer** (polymorphic by `result_type`) and its **contrast Tags** (icon + Carbon `Tag` + bold, WCAG 2.2 AA), not tint alone.
+- **FR-C2. Multi-component (new).** An analysis whose test has **multiple result components** renders each component value **grouped under the analysis**, in `display_order` — the primary/derived result first, the per-target values (e.g. rpoB probe Cts) beneath (reuse the panel parent/child indent). Numeric Ct/Cq is a value; **blank/absent = no amplification / negative**; empty renders blank (never a fabricated 0). A single-component test renders exactly one row, unchanged.
+- **FR-C3.** Interpretation suggestions and **delta checks** are shown per **component** where the component carries ranges/history (the derived call keeps its own); delta highlights significant change vs the component's previous value.
+- **FR-C4.** Accept / Retest / Ignore operate on the **analysis** (all its components together), consistent with today. Bulk "Accept selected" / "Select normal only" apply per analysis; accept is disabled while the run's QC has failed.
+
+### D. Unmapped targets (new, actionable)
+- **FR-D1.** A target the analyzer reports that has **no matching component** (on a test configured for component mapping) appears as a **visible unmapped-result exception** on the review — grouped with its analysis, flagged — and raises the existing unmapped-code Alert. It is **never silently dropped**.
+- **FR-D2.** The exception is **actionable**: a "map now" affordance deep-links to the Analyzer Types & Mapping page (OGC-1136) to add the target→component mapping, or the tech can hold/ignore the target. Accepting the analysis does not silently discard unmapped targets.
+
+### E. QA/QC sidebar (carried forward)
+- **FR-E1.** Current-run QC status (mini control-value viz), recent QC history (last 5 + link), analyzer info, and reagent status with expiry warnings.
+
+### F. Internal controls vs QC program (boundary)
+- **FR-F1.** An assay's **instrument-reported internal control** (GeneXpert SPC/PCC, a qPCR IPC channel) may be modeled as a **result component** and shown per analysis (typically not on the patient report). This is distinct from the **QC-first control-sample extraction** (A1) which handles run-level QC materials. Do not double-count: an internal-control *component* travels with the patient analysis; a *control sample* is a separate QC row. The **QC program** (control materials, Westgard, LJ) is not modeled as components.
+
+### G. Consistency with Results Entry v4
+- **FR-G1.** The review reuses Results Entry v4 building blocks: the polymorphic result renderer per component, contrast Tags, Method/Analyzer split, and provenance/prefill indicators — so a value imported here and one entered on Results Entry render identically.
+
+### H. Cross-domain
+- **FR-H1.** Where the analyzer's Lab Unit implies ENVIRONMENTAL/VECTOR, the review follows the Results Entry cross-domain treatment (site/trap context instead of patient; regulatory limit instead of reference range). Molecular multiplex is the primary CLINICAL case.
+
+### J. Sample matching (accession-keyed) & exceptions
+- **FR-J1.** Import resolves each incoming record to an **accession / lab number** (the analyzer's `Sample` field) → its ordered analysis. **Patient identity is derived from the accession — the analyzer does not send it.**
+- **FR-J2.** Records that don't resolve land in a **visible exception queue** — never silently dropped, never auto-created, never auto-released — in three kinds:
+  - **Unmatched sample** — lab number unknown / blank / typo. Tech manually maps the record to the correct accession, or holds/rejects. (Well position alone is not a reliable accession.)
+  - **Unordered test** — the accession resolves but that test wasn't ordered on it. Hold, or allow add-on per lab policy.
+  - **Unmapped code/target** — the analyzer code/target has no mapping to a test/component (FR-D). "Map now" → Analyzer Types & Mapping.
+- **FR-J3.** Each exception is actionable inline and blocks only its own record; the rest of the run proceeds. Accepting an analysis never discards its unresolved exceptions.
+
+---
+
+## Bench-experience requirements (G1–G13, from the 2026-07-10 review)
+
+- **G1 — Entry point.** A lab-unit-scoped **Pending Imports inbox** is the entry to this page — its own story, **OGC-1137** (shows only runs from analyzers assigned to the tech's lab unit(s)).
+- **G2 — Volume triage.** Default sort **exceptions/QC-issues → critical → abnormal → normal**; filter chips (All · Needs review · Critical · Abnormal · Exceptions · Normal) with live counts; **progress** ("X of N reviewed"); **partial-accept + resume** (the run stays in the inbox with a remaining count until fully dispositioned); **keyboard-first** review (v1).
+- **G3 — Duplicate / already-resulted.** On load detect (a) the analysis is already resulted, (b) the run/message was already imported. **Never silently overwrite** — per-row **Keep / Replace / Ignore**. Replace while pending = in place (audit); replace after validated/released = the **correction workflow**. Duplicate run/message = **skip with warning**.
+- **G4 — Rerun linkage.** QC-failed results are **retained, never released**, and **superseded** when an accepted retest replaces them. A later run covering the same samples surfaces a **suggested, tech-confirmed** "retest of RUN-x" link; ties to the QC-fail NCE.
+- **G5 — Unit mismatch.** Compare incoming unit to the component's configured unit; mismatch → **exception** (no silent accept); **no auto-conversion in v1** (only where a factor is explicitly configured, later).
+- **G6 — Criticals.** Reuse the Results Entry critical-ack model: surface incoming criticals; on accept, create the pending-ack **Alerts** task + `CRITICAL_DETECTED` audit; **accept is not blocked**; the row shows "critical — notification pending."
+- **G7 — Reagent lots.** Analyzer-reported lot **wins** (read-only). Otherwise **no prefill** — a one-click **"Use last-used lot"** applies the tech's previous selection; else manual. (No FIFO.) Capture is required only when the deployment's reagent-lot gate is on.
+- **G8 — Exception resolution.** Unmatched sample → inline **type-ahead accession search**. Unmapped code/target → **"Map now"** to the (persisted) Analyzer Types & Mapping surface, so future runs auto-resolve. **Hold / Ignore-with-reason** always available.
+- **G9 — Post-accept.** Confirmation **toast + Undo**; **recall** allowed while pending validation; after validation/release → the **correction workflow**.
+- **G10 — View raw.** Read-only **per-result** (record/segment) and **per-run** (message/file) raw view.
+- **G11 — Editing.** **Accept-as-is on import** (analyzer fidelity preserved; "analyzer-reported" provenance). Value corrections happen in **Results Entry** (its edit-state machine + audit) — no free editing on the import page in v1.
+- **G12 — Concurrency.** Optimistic concurrency + stale-page guard (`STALE_PAGE_CONFLICT_IMPORT`) + a soft **"in review by X"** indicator (from the Pending Imports inbox); **no hard locking**. *The same "in review by X" indicator is also added to Results Entry (OGC-811) and Validation (OGC-817) for consistency.*
+- **G13 — QC-fail workflow.** Primary action is **Retest** (run it again until QC passes; links to the failed run per G4). **Reject** marks the results not-released — **NCE is optional** (don't add friction). **Accept despite QC failure** is the documented exception: **results-gated**, and it **requires an NCE**, auto-opened and **pre-populated** with run / analyzer / QC-failure (which control, observed vs expected) / affected samples. No separate supervisor escalation today (the `results` user overrides; it's logged) — the new RBAC will add granularity. Actions: **Retest** · **Reject** (NCE optional) · **Accept despite QC failure (files NCE)**. QC-failed result state = **Rejected — QC** (non-conforming), superseded if a retest is accepted.
+
+## Access (updated per the 2026-07-10 review)
+
+The import review **and** the mapping / exception resolution ("map now") use the existing **`results` permission** — **not** admin, **not** Test Catalog Manager — because mapping an instrument code to a test/component is clinical-catalog knowledge the bench owns, and there's no separate escalation path yet. Sample-matching (binding a record to an accession) is likewise a `results` action. The **new RBAC** will make all of this more granular later.
+
+---
+
+## Data Model (reuse-first)
+
+Carries the existing import models (`QCSample`, `RunQCStatus`, `ImportedResult`, `RunSettings`,
+`ReagentLot`) with these multi-component additions:
+
+| Concept | Entity / field | Notes |
+|---|---|---|
+| Imported analysis | `Analysis` + its `Result` rows | `RESULT` is already one-to-many off `Analysis` |
+| **Per-component value** | `RESULT.component_id` → `test_result_component` (OGC-1124) | Where each imported target value lands (nullable = PRIMARY) |
+| Component identity / match | `test_result_component.code` (+ optional LOINC, OGC-1128) | The stable match key from the analyzer mapping |
+| Analyzer→component mapping | `analyzer_test_map` + component ref (OGC-1129) | Resolves target → (test, component) |
+| QC control sample | `QCSample` / control analyses | Run-level QC (distinct from internal-control components) |
+| Reagent | `ReagentConsumptionEvent`, `ReagentLot` | Attached on accept; lot source = **analyzer-reported or manual** (no FIFO auto-select) |
+| Sample matching | accession lookup (analyzer `Sample` → order/analysis); patient derived from accession | Unresolved → exception queue (unmatched / unordered / unmapped) |
+
+`ImportedResult` gains a `components: [{ componentId, code, label, value, unit, flags, delta, unmapped }]`
+array (empty/one for single-component tests). No new patient-result columns on `analysis`/`test`.
+
+---
+
+## Access & Audit
+- Runs under the existing analyzer-import identity / results-modify bundle; no new roles.
+- Audit: accept → `RESULT_SAVED` per component (keyed to `component_id`); reagent consumption; QC-fail →
+  NC event; unmapped-target → the existing unmapped-code Alert/event.
+
+## Localization
+Reuse existing import + Results Entry keys; component labels come from the component's own label; "Ct" is a
+unit. Add an `label.import.unmappedTarget` string for the exception if not present.
+
+## Dependencies
+- OGC-1124 runtime `RESULT.component_id`; OGC-1129 target→component ingestion; OGC-1136 mapping UI + this
+  review; OGC-1128 component codes. Manual/RDT control-result persistence (shared with Results Entry) for QC
+  on non-analyzer tests.
+
+## Out of Scope
+- The QC program / Westgard / Levey-Jennings engine (QC dashboard domain).
+- The analyzer connection/transport and parsing (unchanged; connection specs = OGC-1133).
+- Merging assays currently modeled as separate tests (deployment decision).
+
+## Open Questions (for this revisit)
+1. **Internal-control component vs QC-first control extraction** — confirm the display rule so an IPC/SPC that is *both* an internal-control component and part of QC doesn't appear twice (recommend: QC panel owns run-level control *samples*; per-analysis internal-control *components* show inline, muted).
+2. **Delta checks per component** — do we have per-component historical values to delta against at import time, or only per test? (May limit FR-C3 initially.)
+3. **Unmapped "map now" flow** — inline mapping vs deep-link to Analyzer Types & Mapping (FR-D2). Deep-link is simpler for v1.
+4. Confirm the route + SideNav slot against the live app.
 
 
 ---
