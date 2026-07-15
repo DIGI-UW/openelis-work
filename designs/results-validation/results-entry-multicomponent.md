@@ -1,12 +1,13 @@
 # Results Entry — Functional Requirements Specification (multi-component integrated)
 
 **Status:** Draft for review
+**Revision:** 2026-07-15 — added §O Concurrency & multi-user behavior (per-result save scoping, optimistic version check, session-bound "in review by X" presence); Lab Context updated with the motivating incident.
 **Technology:** Java / Spring backend, React + Carbon (`@carbon/react`) frontend
 **Route:** `/Results` · **SideNav:** Workplan → Results · **Breadcrumb:** Home / Workplan / Results
 **Related surfaces:** Validation Page (inherits the Method/Analyzer split **and** the multi-component rendering), Admin Validation Configuration (cross-domain config). Referrals / Sample Shipment, NCE module, Reagent Inventory, Reagent Forecasting, Storage are integration points, not redesigned here.
-**Companion artifacts:** `results-entry-v4-preview.html` (mockup), `results-entry-v4-decisions.md` (design decisions D1–D19), plus the multi-component V1 artifacts (`results-entry-multicomponent-v1.*`).
+**Companion artifacts:** `results-entry-v4-preview.html` (mockup), `results-entry-v4-decisions.md` (design decisions D1–D22), plus the multi-component V1 artifacts (`results-entry-multicomponent-v1.*`).
 **Supersedes:** the Results Entry **v4** FRS (`results-entry-v4.md`). This is a **new full FRS** (per the "not-started ⇒ new FRS, not addendum" rule) that carries forward all v4 scope and natively integrates **multi-component result entry**. Version-agnostic — version boundaries are decided in the breakdown, not here.
-**Related Jira:** OGC-811 (this Results Entry redesign), OGC-1124 (multi-component V1 on the current page), OGC-1126 (report), OGC-1127 (show-on-report), OGC-1128 (component identity + component-aware terminology), OGC-1129 (analyzer ingestion), OGC-1130 (this v4 fold-in). Program: OGC-949.
+**Related Jira:** OGC-811 (this Results Entry redesign; R-slice stories OGC-1020–1026 — OGC-1020/R1 carries the concurrency acceptance criteria), OGC-1124 (multi-component V1 on the current page), OGC-1126 (report), OGC-1127 (show-on-report), OGC-1128 (component identity + component-aware terminology), OGC-1129 (analyzer ingestion), OGC-1130 (this v4 fold-in). Program: OGC-949.
 
 ---
 
@@ -18,10 +19,10 @@ The Results Entry page is where a bench technician records the value of a test f
 Most tests produce **one** value. But some produce **several at once**. A molecular PCR (Polymerase Chain Reaction) assay on a GeneXpert instrument is the driving example: one cartridge reports an overall call (e.g. "MTB DETECTED") plus a value for each **target gene / probe** it amplified — for Xpert MTB/RIF, five *rpoB* probe **Ct** values (cycle threshold — the PCR cycle at which the signal is detected). Today the page can record only the single overall call; the other values have nowhere to go and live on the instrument printout.
 
 ### Pain
-The current design buries the one thing the tech is there to do. When a row is expanded, the result value sits at the *bottom* of a stack of fourteen blocks, so the tech scrolls past everything to reach the field they came for. A single "Analyzer Result" column conflates two different facts — the *method* (e.g. "Cobas TaqMan") and the *specific instrument* (one of four machines the lab nicknamed Leonardo, Donatello, Michelangelo, Raphael). A saved, validated value can be overwritten just by clicking into it. Reagent use, QC controls, dilutions, and "this sample is used up" have nowhere to be recorded at the bench, so they live on paper. Critical and abnormal flags are pale color tints that are hard to see. The "History" tab shows patient trends and statistical (Westgard) rules that don't belong on this screen. **And a multi-value test can only capture one value** — a "MTB DETECTED, very low" result isn't reproducible or auditable because the five probe Cts behind it never enter the system.
+The current design buries the one thing the tech is there to do. When a row is expanded, the result value sits at the *bottom* of a stack of fourteen blocks, so the tech scrolls past everything to reach the field they came for. A single "Analyzer Result" column conflates two different facts — the *method* (e.g. "Cobas TaqMan") and the *specific instrument* (one of four machines the lab nicknamed Leonardo, Donatello, Michelangelo, Raphael). A saved, validated value can be overwritten just by clicking into it. Worse, the legacy pages save the **whole page** at once: in one production incident, two techs opened the same Lab Unit worklist (the by-unit filter), each filled in a different result, and the second save silently overwrote the first tech's value with the stale blank its page had loaded. Reagent use, QC controls, dilutions, and "this sample is used up" have nowhere to be recorded at the bench, so they live on paper. Critical and abnormal flags are pale color tints that are hard to see. The "History" tab shows patient trends and statistical (Westgard) rules that don't belong on this screen. **And a multi-value test can only capture one value** — a "MTB DETECTED, very low" result isn't reproducible or auditable because the five probe Cts behind it never enter the system.
 
 ### What Changes
-The expanded row leads with what the tech touches: the value, the method, the specific instrument, and notes — with an explicit Edit→Save control so a saved value can't be changed by accident. Method and instrument become two separate fields, prefilled from the analyzer. Everything the tech only *reads* collapses into summarized, remember-my-choice sections below. The tech can record reagent lots and quantity used, a QC control, a dilution factor, partial or full use of the sample, and can create aliquots — all without leaving the page. Flags become high-contrast icon-and-tag badges. "History" now shows *this test's* own history. Selecting a different Lab Unit reshapes the page for water-quality or mosquito-pool work. **And a test that defines more than one result component now shows a result field for each — using the very same result widgets — so the tech captures every value the test produces (all five probe Cts, or an N2/E pair), while single-result tests look exactly as they do today.**
+The expanded row leads with what the tech touches: the value, the method, the specific instrument, and notes — with an explicit Edit→Save control so a saved value can't be changed by accident. Saves are scoped to the single result being edited — never the whole page — so two techs working the same Lab Unit worklist can each save their own results without touching the other's, and a row a colleague currently has open shows a passive "in review" hint. Method and instrument become two separate fields, prefilled from the analyzer. Everything the tech only *reads* collapses into summarized, remember-my-choice sections below. The tech can record reagent lots and quantity used, a QC control, a dilution factor, partial or full use of the sample, and can create aliquots — all without leaving the page. Flags become high-contrast icon-and-tag badges. "History" now shows *this test's* own history. Selecting a different Lab Unit reshapes the page for water-quality or mosquito-pool work. **And a test that defines more than one result component now shows a result field for each — using the very same result widgets — so the tech captures every value the test produces (all five probe Cts, or an N2/E pair), while single-result tests look exactly as they do today.**
 
 ---
 
@@ -39,6 +40,7 @@ Results Entry consolidates the legacy result-entry routes into one `/Results` wo
 
 - **As a bench technician,** I want the result value(s), method, and instrument at the top of the expanded row with one Edit→Save control, so I can enter or correct a result quickly without scrolling and without overwriting a validated value by accident.
 - **As a bench technician entering a multi-component test,** I want a result field for **each** component (e.g. the MTB call plus each rpoB probe Ct) using the same fields I already use, so I capture every value the assay produced.
+- **As a bench technician,** I want my save to write only the result I edited and to be warned if a colleague is already working on the same one, so two of us on the same Lab Unit worklist can't overwrite each other's results.
 - **As a bench technician,** I want to record which reagent lot and how much I used, a QC control result, and a dilution factor at the moment I enter the result, so consumption and quality data stop living on paper.
 - **As a bench technician,** I want to mark a sample partly or fully used and create aliquots from this screen, so sample handling is captured where the work happens.
 - **As a bench technician,** I want to file a non-conformity or refer a test out from the row, so quality and referral workflows start in context.
@@ -128,6 +130,16 @@ Results Entry consolidates the legacy result-entry routes into one `/Results` wo
 ### N. Analyzer-fed component values *(functional objective; mechanism = OGC-1129)*
 - **FR-N1.** Where results arrive from a configured analyzer, each target/component value prefills the correct component field of the correct test (matching on the component `code`, or its optional terminology code — never a display string). A target with no matching component surfaces as a visible unmapped-result exception, not silently dropped. Existing test-level (primary-result) analyzer flows are unchanged for single-component tests. *(Full spec: OGC-1129; stated here so the entry surface accounts for prefilled multi-component rows.)*
 
+### O. Concurrency & multi-user behavior *(added 2026-07-15 — analyzer-import review G12 + Lab Unit overwrite incident)*
+Two technicians routinely work the same Lab Unit worklist at once. The model is **optimistic, never locking**: nothing a user leaves open on their screen can ever block a colleague.
+
+- **FR-O1. Per-analysis save scoping.** The save payload contains **only the edited analysis** (all of its component values and panel fields) — never other rows on the page. Saving one row MUST NOT write, re-submit, or default any value of an analysis the user did not edit. *(Root-cause fix for the legacy incident in Lab Context → Pain: whole-page save re-posted stale values for untouched rows and silently overwrote a colleague's freshly saved result.)*
+- **FR-O2. Optimistic version check.** Save carries the version the row was loaded with (existing `Analysis.lastupdated` / `revision`). If the analysis changed since load, the save is **rejected** with an inline message naming who saved and when, and a refresh action. The **stale editor is always the one rejected**; an active user's saved work is never overwritten. There are no hard locks anywhere on this page.
+- **FR-O3. Soft presence indicator.** When another user currently has the same analysis open in Edit, the row shows an advisory **"In review by {name}"** tag. It never blocks Edit or Save. Presence is **session-bound and ephemeral**: maintained by a heartbeat while the panel is open in an active session, held in memory only — **never persisted** — and it disappears when the panel closes, the session ends, or auto-logout fires. A tech who walks away (or leaves for two weeks) cannot leave a ghost indicator or block anyone.
+- **FR-O4. Cross-surface parity.** Analyzer Import (OGC-288) and the Validation page (OGC-817) implement FR-O1–O3 identically, so concurrent review behaves the same on all three surfaces.
+
+**Acceptance scenario (regression for the production incident):** two users open the same Lab Unit worklist; each edits and saves a *different* result; both values persist, and neither save writes any analysis its user didn't edit. A third user who saves over a result modified since their page load is rejected with the refresh prompt, not silently merged.
+
 ---
 
 ## Data Model (reuse-first)
@@ -142,6 +154,8 @@ All UI elements trace to existing OpenELIS entities; new data is declared as a n
 | **Per-component result value** | `Result` + **new nullable component linkage** | First multi-component consumer (see dependencies) |
 | Method | `Analysis.method` → `Method` | Method/type column |
 | Analyzer instance | `Analysis.analyzerId` | Specific instrument |
+| Concurrency token | `Analysis.lastupdated` / `revision` (existing) | Stale-save rejection (FR-O2); no new column |
+| Presence ("in review by") | **none — ephemeral, in-memory only** | Session-bound heartbeat registry; never persisted (FR-O3) |
 | Reagent consumption | `ReagentConsumptionEvent`, `Reagent`, `ReagentLot` | `sourceType=RESULT_ENTRY` |
 | NCE | `nonconform` module | Real inline form |
 | Notes | `Note` (BoundTo.ANALYSIS), dual-axis | |
@@ -157,20 +171,21 @@ All UI elements trace to existing OpenELIS entities; new data is declared as a n
 5. Sample disposal hand-off in the storage module.
 6. Per-test interpretation rule config (categorical buckets).
 7. Component-aware terminology (`component_id` on `test_terminology_mapping`) and per-component `show_on_report` — owned by OGC-1128 / OGC-1127.
+8. **Presence channel** — a lightweight session-bound presence service for FR-O3 (heartbeat + in-memory registry; short-poll or WebSocket is engineering's choice). No persistence, no schema.
 
 ---
 
 ## Permissions & Audit
 - **Role attachment.** Accessible via the existing **Analyst (results) role bundle**. No new granular per-action permission keys. Reagent/referral/NCE use existing module access.
 - **Roles Builder additions.** None.
-- **Audit events (`audit_trail`).** `RESULT_SAVED` / `RESULT_MODIFIED` (analysis id, **component id**, value, revision, actor); `REAGENT_CONSUMPTION_RECORDED`; `CONTROL_RESULT_RECORDED`; `SAMPLE_USE_RECORDED` / `SAMPLE_MARKED_EXHAUSTED`; `ALIQUOT_CREATED`; `TEST_REFERRED`; `NCE_REPORTED` (NCE module). Reads not audited.
+- **Audit events (`audit_trail`).** `RESULT_SAVED` / `RESULT_MODIFIED` (analysis id, **component id**, value, revision, actor); `REAGENT_CONSUMPTION_RECORDED`; `CONTROL_RESULT_RECORDED`; `SAMPLE_USE_RECORDED` / `SAMPLE_MARKED_EXHAUSTED`; `ALIQUOT_CREATED`; `TEST_REFERRED`; `NCE_REPORTED` (NCE module). Reads not audited. Presence (FR-O3) and stale-save rejections (FR-O2) are not audited — no data write occurs.
 - **Envers.** Existing audited entities retain `@Audited`; new per-component result persistence defaults to `@Audited` as clinical data.
 
 ---
 
 ## Localization (representative keys)
 
-Carries the v4 key set (`label.results.edit/save/method/analyzer/reagentsQcControls/…`, env/vector `.env`/`.vector` suffix with clinical fallback). Multi-component adds no per-target keys — **component labels come from the component's own label** via the existing localization mechanism (e.g. "N2 gene", "rpoB Probe A"), and "Ct" is a unit-of-measure value, not a key.
+Carries the v4 key set (`label.results.edit/save/method/analyzer/reagentsQcControls/…`, env/vector `.env`/`.vector` suffix with clinical fallback). Multi-component adds no per-target keys — **component labels come from the component's own label** via the existing localization mechanism (e.g. "N2 gene", "rpoB Probe A"), and "Ct" is a unit-of-measure value, not a key. Concurrency adds `label.results.inReviewBy` ("In review by {0}") and `error.results.staleSave` ("This result was updated by {0} at {1} — refresh to see the latest value").
 
 ---
 
@@ -182,9 +197,11 @@ Carries the v4 key set (`label.results.edit/save/method/analyzer/reagentsQcContr
 - Reagent open-vial/first-use date.
 - Patient-longitudinal trends and Westgard rules.
 - Pre-seeding molecular components (OGC-1125), patient-report rendering (OGC-1126), and the component/terminology admin UI (OGC-1127/1128) — separate stories; this FRS consumes their outputs.
+- Hard locking / pessimistic record checkout of any kind (explicitly rejected — see FR-O; abandoned sessions must never block work).
 
 ## Open questions (flagged for ratification)
 - NCE disposition placement (as v4).
 - Each declared dependency needs engineering confirmation before its slice is sized — especially the **runtime per-component result linkage** (dependency 1), which gates multi-component entirely.
 - **Notes: decided — per analysis** (today's model), not per component (per OGC-1124). Per-component notes are out of scope; revisit only if a real need appears.
 - Whether **show_on_report** also affects entry/validation display or the report only (default: report only — OGC-1127).
+- Presence transport for FR-O3 (short-poll vs WebSocket) — engineering's choice; the requirement is only that presence is session-bound and ephemeral, never persisted.

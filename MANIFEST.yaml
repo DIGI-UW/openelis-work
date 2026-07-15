@@ -2921,8 +2921,10 @@
     New full Results Entry FRS (supersedes v4) that carries forward all v4 scope and
     natively integrates multi-component result entry — one result field per
     result_component, reusing today's result-cell renderer; single-component tests
-    unchanged. First use case molecular target gene + Ct. Companion: Validation Page
-    Multi-Component (integrated).
+    unchanged. First use case molecular target gene + Ct. Rev 2026-07-15 adds §O
+    Concurrency & multi-user behavior (per-result save scoping, optimistic stale-save
+    rejection, ephemeral session-bound "in review by" presence — no locking). Companion:
+    Validation Page Multi-Component (integrated).
   links:
     jira: ["OGC-811", "OGC-1130", "OGC-1131"]
     gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-multi-component-integrated
@@ -2936,7 +2938,10 @@
     - pcr
     - method-analyzer
     - cross-domain
+    - concurrency
+    - multi-user
   added: "2026-07-09"
+  updated: "2026-07-15"
   status: draft
 
 - id: validation-multicomponent
