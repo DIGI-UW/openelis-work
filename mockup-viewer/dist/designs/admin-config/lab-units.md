@@ -1,678 +1,134 @@
-# Lab Units Management Redesign
+# Lab Units Management — Approach Update
 
-## Overview
+**Feature slug:** `lab-units-management`
+**Target Release:** OpenELIS Global v3.2
+**Version:** 2.0 (2026-07-15) — rebased on the real data model (`TEST_SECTION`); aligned to the Test Catalog Management shell
+**Jira:** OGC-189 (this story) · OGC-290 · OGC-361 (domain — see Build Reality) · OGC-949 (umbrella) · siblings: OGC-224 (Panels), OGC-296 (Sample Types)
 
-Comprehensive redesign of the Lab Units (Laboratory Sections/Departments) management interface in OpenELIS Global. Consolidates all lab unit configuration into a unified editor with vertical tab navigation.
-
-**Target Release:** OpenELIS Global v3.2 (Q1 2026)
-
----
-
-## Problem Statement
-
-Current lab units management is fragmented:
-- Features separated across multiple screens
-- No unified view of all items assigned to a lab unit
-- Difficult to bulk reassign tests when reorganizing
-- No clear relationship between lab units and programs/projects/workflows
-- Missing import/export for configuration sharing
+> **Why v2.0:** the previous `lab-units.md` was written without inspecting the schema. It
+> targets a nonexistent `lab_unit` table (the real entity is **`TEST_SECTION`**), requires a
+> "Code/Abbreviation" column that doesn't exist, marks Description optional (it's NOT NULL),
+> proposes adding `display_order`/`description_key` columns that duplicate existing
+> `sort_order`/localization, and invents Programs/Projects/Workflows junctions against
+> speculative tables. It also specified bulk assign, import/export, and a 3-option
+> deactivation cascade — all out of scope here. This version specifies only what the real
+> model supports, in the same shell pattern as Panels and Sample Types.
 
 ---
 
-## Solution
+## Lab Context
 
-A unified Lab Units management interface with:
-- List view with drag-and-drop ordering
-- Detail editor with vertical tabs
-- Bulk assignment and reassignment tools
-- Activation/deactivation with cascade prompts
-- File-based import/export
+### Current State
+A **lab unit** (historically "test section") is the bench or department that performs a
+test — Chemistry, Hematology, Microbiology, Serology. Every test belongs to exactly one lab
+unit, which drives workplans, result-entry grouping, and reporting rollups. Lab units are
+configured today on a legacy Master Lists page, disconnected from the tests they organize.
 
----
+### Pain
+The list is flat and unmanaged: no view of which tests a unit carries, renames risk breaking
+what technologists see mid-shift, and there's no home for lab units beside the tests,
+panels, and sample types they relate to. The word "test section" survives in the UI even
+though everyone says "lab unit".
 
-## Lab Unit Editor Tabs
-
-| Section | Tab | Description |
-|---------|-----|-------------|
-| **Configuration** | Basic Info | Name, code, description, display order, status |
-| **Configuration** | Workflows | Custom workflows assigned to this lab unit |
-| **Assignments** | Tests | Tests assigned to this lab unit |
-| **Assignments** | Panels | Panels assigned to this lab unit |
-| **Assignments** | Programs | Clinical programs with order entry forms |
-| **Assignments** | Projects | Lab notebook projects |
-| **Data** | Import/Export | File-based configuration transfer |
+### What Changes
+Lab units join the **Test Catalog Management** shell as a fourth context beside Tests,
+Panels, and Sample Types — same list pattern, same editor shell, same deactivate-only
+lifecycle. Each unit shows its basics and, read-only, the tests assigned to it (assignment
+itself stays on the test, where it already lives).
 
 ---
 
-## List View
-
-### Layout
-- Full-width table with sortable columns
-- Toolbar with filters and actions
-- Pagination footer
-
-### Toolbar
-- "Add Lab Unit" button (primary)
-- "Import" button (secondary)
-- "Export" button (secondary)
-- Search input (name/code)
-- Status filter (All, Active, Inactive)
-- Lab units count display
-
-### Table Columns
-
-| Column | Width | Sortable | Description |
-|--------|-------|----------|-------------|
-| Order | 80px | Yes | Display order number |
-| Lab Unit Name | flex | Yes | Full name, clickable row to open editor |
-| Code | 100px | Yes | Abbreviation (monospace) |
-| Tests | 80px | Yes | Number of assigned tests |
-| Panels | 80px | Yes | Number of assigned panels |
-| Programs | 100px | Yes | Number of assigned programs |
-| Workflows | 100px | Yes | Number of assigned workflows |
-| Status | 100px | No | Active/Inactive badge |
-| Actions | 80px | No | Edit button, More menu |
-
-### Sorting Behavior
-- Click column header to sort ascending
-- Click again to toggle to descending
-- Sort icon indicates current sort direction
-- Default sort: Display Order ascending
-
-### Row Behavior
-- Entire row clickable to open editor
-- Hover highlight on row
-- Action buttons use stopPropagation to prevent row click
-
-### Pagination
-- Page size options: 25, 50, 100 (default 25)
-- Navigation: First, Previous, numbered pages, Next, Last
-- Status text: "Showing X to Y of Z lab units"
-- Filters reset to page 1 when changed
-
----
-
-## Basic Info Tab
-
-### Fields
-
-| Field | Description | Required |
-|-------|-------------|----------|
-| **Lab Unit Name** | Full name (e.g., "Clinical Chemistry") | Yes |
-| **Code/Abbreviation** | Short code (e.g., "CHEM") | Yes |
-| **Description** | Detailed description | No |
-| **Display Order** | Numeric sequence for display | Yes (auto) |
-| **Active** | Whether unit is active | Yes |
-| **External ID** | For integration mapping | No |
-
-### Localization
-- Name and description support multiple languages
-- Uses same fallback chain as test catalog
-
-### Status Toggle
-When toggling Active status:
-- Show confirmation dialog with impact summary
-- Count of affected tests, panels, programs, projects
-- Option to cascade (deactivate all assigned items)
-- Option to reassign items to another lab unit first
-
----
-
-## Workflows Tab
-
-### Purpose
-Assign custom workflows that apply to this lab unit. Workflows control:
-- Result entry process (single entry, dual entry, supervisor review)
-- Validation requirements
-- Auto-verification rules
-- Turnaround time tracking
-
-### Workflow Assignment
-- List of available workflows
-- Multi-select to assign
-- One workflow can be marked as default
-- Workflows can be shared across lab units or exclusive
-
-### Display
-Table showing assigned workflows:
-- Workflow name
-- Type (Result Entry, Validation, etc.)
-- Default indicator
-- Remove action
-
-### Inline Workflow Reference
-Link to Workflow management for creating/editing workflows (not inline creation - workflows are complex)
-
----
-
-## Tests Tab
-
-### Current Assignments
-Table showing tests assigned to this lab unit:
-- Test name
-- Test code
-- LOINC code
-- Status (Active/Inactive)
-- Primary indicator (if test belongs to multiple units)
-- Actions: Remove, Set as Primary
-
-### Bulk Actions Toolbar
-- **Assign Tests**: Open test selector to add tests
-- **Reassign Selected**: Move selected tests to another lab unit
-- **Remove Selected**: Unassign selected tests (with confirmation)
-- **Activate/Deactivate Selected**: Bulk status change
-
-### Assign Tests Modal
-- Search/filter available tests
-- Multi-select with checkboxes
-- Filter by: Currently unassigned, All tests, From specific unit
-- Shows current assignment if test is already assigned elsewhere
-- Confirmation prompt before assignment
-
-### Reassign Tests Flow
-
-1. Select tests to reassign (checkboxes)
-2. Click "Reassign Selected"
-3. **Reassignment Dialog:**
-   ```
-   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-   â”‚ Reassign 12 Tests                                       â”‚
-   â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-   â”‚ You are about to reassign 12 tests from:                â”‚
-   â”‚   Clinical Chemistry                                    â”‚
-   â”‚                                                         â”‚
-   â”‚ Select destination lab unit:                            â”‚
-   â”‚ [Dropdown: Select lab unit...           â–¼]              â”‚
-   â”‚                                                         â”‚
-   â”‚ â˜‘ Keep reference to original unit (secondary)           â”‚
-   â”‚                                                         â”‚
-   â”‚ Tests to reassign:                                      â”‚
-   â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
-   â”‚ â”‚ â€¢ Glucose, Fasting (GLU)                            â”‚ â”‚
-   â”‚ â”‚ â€¢ HbA1c (HBA1C)                                     â”‚ â”‚
-   â”‚ â”‚ â€¢ Cholesterol, Total (CHOL)                         â”‚ â”‚
-   â”‚ â”‚ â€¢ ... and 9 more                                    â”‚ â”‚
-   â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
-   â”‚                                                         â”‚
-   â”‚ [Cancel]                      [Reassign Tests]          â”‚
-   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-   ```
-4. Confirm destination and options
-5. Execute reassignment with success message
-
-### Test Count Summary
-Header shows: "47 tests assigned (42 active, 5 inactive)"
-
----
-
-## Panels Tab
-
-### Current Assignments
-Table showing panels assigned to this lab unit:
-- Panel name
-- Panel code
-- Test count (e.g., "8 tests")
-- Status (Active/Inactive)
-- Actions: View Tests, Remove
-
-### Bulk Actions
-- **Assign Panels**: Open panel selector
-- **Reassign Selected**: Move to another lab unit
-- **Remove Selected**: Unassign (with confirmation)
-
-### Panel Assignment
-Similar flow to tests:
-- Search/filter panels
-- Multi-select
-- Shows which lab unit panel is currently assigned to
-- Confirmation before assignment
-
-### View Tests Expansion
-Expandable row showing all tests in the panel with their status.
-
----
-
-## Programs Tab
-
-### Purpose
-Clinical programs (HIV, TB, Malaria, etc.) that:
-- Have custom order entry forms
-- May have specific reporting requirements
-- Are tracked for program-level analytics
-
-### Current Assignments
-Table showing programs assigned to this lab unit:
-- Program name
-- Program code
-- Order entry form (linked)
-- Patient count (active patients in program)
-- Status
-- Actions: Configure, Remove
-
-### Assign Programs Modal
-- List available programs
-- Shows current lab unit assignment
-- Multi-select
-- Confirmation prompt
-
-### Program Configuration
-For each assigned program, configure:
-- Default order entry form
-- Required fields for this lab unit
-- Auto-add tests (tests automatically added for program patients)
-
----
-
-## Projects Tab
-
-### Purpose
-Lab notebook projects (research studies, QA projects) that:
-- Have custom order entry screens
-- Are tracked separately from clinical programs
-- Have defined start/end dates
-- May have specific consent requirements
-
-### Current Assignments
-Table showing projects assigned to this lab unit:
-- Project name
-- Project code
-- Principal Investigator
-- Status (Active/Completed/On Hold)
-- Sample count
-- Date range
-- Actions: View Details, Remove
-
-### Assign Projects Modal
-- List available projects
-- Filter by status
-- Shows current assignment
-- Multi-select with confirmation
-
-### Project Details
-Expandable section showing:
-- Full project description
-- Order entry form assigned
-- Enrolled patients/samples
-- Date range
-
----
-
-## Import/Export Tab
-
-### Export
-
-**Export Options:**
-- Lab unit configuration only
-- Lab unit + test assignments
-- Lab unit + all assignments (tests, panels, programs, projects, workflows)
-- Multiple lab units (select which to export)
-
-**Export Format:**
-- JSON (machine-readable, for import)
-- CSV (for review/documentation)
-
-**Export Content:**
-```json
-{
-  "exportVersion": "1.0",
-  "exportDate": "2025-12-12T14:30:00Z",
-  "labUnits": [
-    {
-      "code": "CHEM",
-      "name": "Clinical Chemistry",
-      "description": "...",
-      "displayOrder": 1,
-      "isActive": true,
-      "tests": [
-        { "code": "GLU", "loincCode": "1558-6", "isPrimary": true },
-        { "code": "HBA1C", "loincCode": "4548-4", "isPrimary": true }
-      ],
-      "panels": [
-        { "code": "BMP", "name": "Basic Metabolic Panel" }
-      ],
-      "programs": [
-        { "code": "DM", "name": "Diabetes Management" }
-      ],
-      "workflows": [
-        { "code": "DUAL_ENTRY", "isDefault": true }
-      ]
-    }
-  ]
-}
-```
-
-### Import
-
-**Import Options:**
-- Create new lab units only
-- Update existing (match by code)
-- Create new + update existing
-
-**Import Validation:**
-- Validate JSON structure
-- Check for duplicate codes
-- Verify referenced items exist (tests, panels, etc.)
-- Preview changes before applying
-
-**Import Preview:**
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Import Preview                                          â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ File: lab-units-export-2025-12-12.json                  â”‚
-â”‚                                                         â”‚
-â”‚ Changes to be applied:                                  â”‚
-â”‚                                                         â”‚
-â”‚ âœ“ CREATE: Molecular Biology (MOL)                       â”‚
-â”‚   - 15 tests to assign                                  â”‚
-â”‚   - 2 panels to assign                                  â”‚
-â”‚                                                         â”‚
-â”‚ âœ“ UPDATE: Clinical Chemistry (CHEM)                     â”‚
-â”‚   - Add 3 tests                                         â”‚
-â”‚   - Remove 1 panel                                      â”‚
-â”‚                                                         â”‚
-â”‚ âš  WARNING: 2 tests not found in system                  â”‚
-â”‚   - PCR-COVID19                                         â”‚
-â”‚   - PCR-FLU                                             â”‚
-â”‚                                                         â”‚
-â”‚ [Cancel]              [Import with Warnings]  [Import]  â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
----
-
-## Activation/Deactivation Flow
-
-### Deactivate Lab Unit
-
-When user clicks "Deactivate" or toggles status to inactive:
-
-**Step 1: Impact Summary**
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Deactivate Lab Unit                                     â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ You are about to deactivate:                            â”‚
-â”‚   Clinical Chemistry (CHEM)                             â”‚
-â”‚                                                         â”‚
-â”‚ This will affect:                                       â”‚
-â”‚   â€¢ 47 tests                                            â”‚
-â”‚   â€¢ 8 panels                                            â”‚
-â”‚   â€¢ 3 programs                                          â”‚
-â”‚   â€¢ 2 projects                                          â”‚
-â”‚                                                         â”‚
-â”‚ Deactivated lab units are hidden from order entry       â”‚
-â”‚ but historical data is preserved.                       â”‚
-â”‚                                                         â”‚
-â”‚ What would you like to do with assigned items?          â”‚
-â”‚                                                         â”‚
-â”‚ â—‹ Keep assignments (items remain but unit is hidden)    â”‚
-â”‚ â—‹ Deactivate all assigned items                         â”‚
-â”‚ â—‹ Reassign items to another lab unit first              â”‚
-â”‚                                                         â”‚
-â”‚ [Cancel]                              [Continue]        â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-**Step 2a: If "Reassign items first"**
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Reassign Items Before Deactivation                      â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ Select destination for each item type:                  â”‚
-â”‚                                                         â”‚
-â”‚ Tests (47):                                             â”‚
-â”‚ [Dropdown: Select lab unit...           â–¼]              â”‚
-â”‚                                                         â”‚
-â”‚ Panels (8):                                             â”‚
-â”‚ [Dropdown: Select lab unit...           â–¼]              â”‚
-â”‚                                                         â”‚
-â”‚ Programs (3):                                           â”‚
-â”‚ [Dropdown: Select lab unit...           â–¼]              â”‚
-â”‚                                                         â”‚
-â”‚ Projects (2):                                           â”‚
-â”‚ [Dropdown: Select lab unit...           â–¼]              â”‚
-â”‚                                                         â”‚
-â”‚ [Back]              [Reassign and Deactivate]           â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-**Step 2b: If "Deactivate all assigned items"**
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ âš  Confirm Bulk Deactivation                             â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ This will deactivate:                                   â”‚
-â”‚                                                         â”‚
-â”‚   â€¢ Clinical Chemistry lab unit                         â”‚
-â”‚   â€¢ 47 tests (will not appear in order entry)           â”‚
-â”‚   â€¢ 8 panels (will not appear in order entry)           â”‚
-â”‚   â€¢ 3 programs (patients can still be enrolled)         â”‚
-â”‚   â€¢ 2 projects (existing samples preserved)             â”‚
-â”‚                                                         â”‚
-â”‚ This action can be reversed by reactivating the         â”‚
-â”‚ lab unit and its items individually.                    â”‚
-â”‚                                                         â”‚
-â”‚ Type "DEACTIVATE" to confirm:                           â”‚
-â”‚ [                                              ]        â”‚
-â”‚                                                         â”‚
-â”‚ [Cancel]                              [Deactivate All]  â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-### Activate Lab Unit
-
-When activating a previously deactivated lab unit:
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Activate Lab Unit                                       â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ You are about to activate:                              â”‚
-â”‚   Clinical Chemistry (CHEM)                             â”‚
-â”‚                                                         â”‚
-â”‚ Currently assigned items:                               â”‚
-â”‚   â€¢ 47 tests (12 active, 35 inactive)                   â”‚
-â”‚   â€¢ 8 panels (3 active, 5 inactive)                     â”‚
-â”‚   â€¢ 3 programs (all active)                             â”‚
-â”‚   â€¢ 2 projects (1 active, 1 completed)                  â”‚
-â”‚                                                         â”‚
-â”‚ Would you like to activate all inactive items?          â”‚
-â”‚                                                         â”‚
-â”‚ â—‹ Activate lab unit only                                â”‚
-â”‚ â—‹ Activate lab unit and all inactive tests/panels       â”‚
-â”‚                                                         â”‚
-â”‚ [Cancel]                              [Activate]        â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
----
-
-## Data Model
-
-### Core Tables
-
-```sql
--- Lab Unit (may already exist, showing additions)
-ALTER TABLE lab_unit ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0;
-ALTER TABLE lab_unit ADD COLUMN IF NOT EXISTS external_id VARCHAR(50);
-ALTER TABLE lab_unit ADD COLUMN IF NOT EXISTS description_key INTEGER REFERENCES localization(id);
-
--- Lab Unit Workflow Assignment
-CREATE TABLE lab_unit_workflow (
-    id SERIAL PRIMARY KEY,
-    lab_unit_id INTEGER NOT NULL REFERENCES lab_unit(id),
-    workflow_id INTEGER NOT NULL REFERENCES workflow(id),
-    is_default BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (lab_unit_id, workflow_id)
-);
-
--- Lab Unit Program Assignment
-CREATE TABLE lab_unit_program (
-    id SERIAL PRIMARY KEY,
-    lab_unit_id INTEGER NOT NULL REFERENCES lab_unit(id),
-    program_id INTEGER NOT NULL REFERENCES program(id),
-    default_order_form_id INTEGER REFERENCES questionnaire(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (lab_unit_id, program_id)
-);
-
--- Lab Unit Project Assignment
-CREATE TABLE lab_unit_project (
-    id SERIAL PRIMARY KEY,
-    lab_unit_id INTEGER NOT NULL REFERENCES lab_unit(id),
-    project_id INTEGER NOT NULL REFERENCES project(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (lab_unit_id, project_id)
-);
-
--- Existing table for test assignment (likely exists)
--- test.lab_unit_id or test_lab_unit junction table
-
--- Existing table for panel assignment
--- panel.lab_unit_id or panel_lab_unit junction table
-```
-
-### Import/Export Audit
-
-```sql
-CREATE TABLE lab_unit_import_log (
-    id SERIAL PRIMARY KEY,
-    import_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    imported_by INTEGER REFERENCES system_user(id),
-    file_name VARCHAR(255),
-    lab_units_created INTEGER DEFAULT 0,
-    lab_units_updated INTEGER DEFAULT 0,
-    tests_assigned INTEGER DEFAULT 0,
-    panels_assigned INTEGER DEFAULT 0,
-    warnings TEXT,
-    import_data JSONB
-);
-```
-
----
-
-## API Endpoints
-
-### Lab Unit CRUD
-- `GET /api/lab-units` - List with counts
-- `GET /api/lab-units/{id}` - Get with all assignments
-- `POST /api/lab-units` - Create
-- `PUT /api/lab-units/{id}` - Update
-- `DELETE /api/lab-units/{id}` - Soft delete
-
-### Ordering
-- `PUT /api/lab-units/reorder` - Update display order for multiple units
-
-### Assignments
-- `GET /api/lab-units/{id}/tests` - List assigned tests
-- `POST /api/lab-units/{id}/tests` - Assign tests
-- `DELETE /api/lab-units/{id}/tests` - Remove test assignments
-- `POST /api/lab-units/{id}/tests/reassign` - Bulk reassign tests
-
-- `GET /api/lab-units/{id}/panels` - List assigned panels
-- `POST /api/lab-units/{id}/panels` - Assign panels
-- `DELETE /api/lab-units/{id}/panels` - Remove panel assignments
-
-- `GET /api/lab-units/{id}/programs` - List assigned programs
-- `POST /api/lab-units/{id}/programs` - Assign programs
-- `DELETE /api/lab-units/{id}/programs` - Remove program assignments
-
-- `GET /api/lab-units/{id}/projects` - List assigned projects
-- `POST /api/lab-units/{id}/projects` - Assign projects
-- `DELETE /api/lab-units/{id}/projects` - Remove project assignments
-
-- `GET /api/lab-units/{id}/workflows` - List assigned workflows
-- `POST /api/lab-units/{id}/workflows` - Assign workflows
-- `DELETE /api/lab-units/{id}/workflows` - Remove workflow assignments
-
-### Status
-- `POST /api/lab-units/{id}/activate` - Activate with options
-- `POST /api/lab-units/{id}/deactivate` - Deactivate with options
-
-### Import/Export
-- `GET /api/lab-units/export` - Export selected units
-- `POST /api/lab-units/import/validate` - Validate import file
-- `POST /api/lab-units/import` - Execute import
-
----
-
-## Acceptance Criteria
-
-### List View
-- [ ] Lab units displayed in sortable list
-- [ ] Drag-and-drop reordering functional
-- [ ] Display order persists and affects system-wide display
-- [ ] Status filter (All/Active/Inactive) works
-- [ ] Search by name or code works
-- [ ] Quick summary panel shows counts and status
-
-### Basic Info Tab
-- [ ] All fields editable with validation
-- [ ] Localized name/description supported
-- [ ] Display order editable
-- [ ] Status toggle shows confirmation dialog
-
-### Tests Tab
-- [ ] Assigned tests displayed in table
-- [ ] Bulk assign tests functional
-- [ ] Bulk reassign with confirmation prompt
-- [ ] Reassignment shows destination selector
-- [ ] Reassignment shows list of affected tests
-- [ ] Remove tests with confirmation
-- [ ] Test counts accurate in header
-
-### Panels Tab
-- [ ] Assigned panels displayed
-- [ ] Bulk assign/reassign/remove functional
-- [ ] View tests expansion works
-
-### Programs Tab
-- [ ] Assigned programs displayed
-- [ ] Assign/remove programs functional
-- [ ] Order entry form linkage visible
-
-### Projects Tab
-- [ ] Assigned projects displayed
-- [ ] Assign/remove projects functional
-- [ ] Project status and date range visible
-
-### Workflows Tab
-- [ ] Assigned workflows displayed
-- [ ] Default workflow selectable
-- [ ] Assign/remove workflows functional
-
-### Activation/Deactivation
-- [ ] Deactivate shows impact summary
-- [ ] Option to keep assignments
-- [ ] Option to deactivate all items
-- [ ] Option to reassign before deactivating
-- [ ] Reassignment allows per-type destination
-- [ ] Confirmation required for bulk deactivation
-- [ ] Activate shows option to activate inactive items
-
-### Import/Export
-- [ ] Export lab unit configuration to JSON
-- [ ] Export includes test/panel/program assignments
-- [ ] Export multiple units at once
-- [ ] Import validates file before applying
-- [ ] Import preview shows changes
-- [ ] Import handles missing references with warnings
-- [ ] Import log created for audit
-
----
-
-## UI Navigation
-
-**Menu Location:** Admin > Lab Unit Setup
-
-**Breadcrumb:** Admin > Lab Unit Setup > [Lab Unit Name]
-
----
-
-## Related Features
-
-- **Test Catalog (OGC-173)**: Tests reference lab units; changes here affect test assignments
-- **Order Entry Forms (OGC-113)**: Programs and projects have custom order entry screens
-- **Workflows**: Custom workflows per lab unit for result entry/validation
+## The real data model (verified in source — full reference: `test-catalog-data-model.md`)
+
+**Entity:** `test.valueholder.TestSection` (lives in the `test` package), table
+**`TEST_SECTION`**: `NAME` varchar(20) · `DESCRIPTION` varchar(60) **NOT NULL** ·
+`display_key` varchar(60) · `IS_EXTERNAL` char(1) · `is_active` · `ORG_ID` FK →
+Organization · `name_localization_id` FK · **`PARENT_TEST_SECTION` self-FK (hierarchy)** ·
+`sort_order` integer. Tests link via `test.test_section_id`.
+
+- **No code column exists** — the v1 spec's required "Code/Abbreviation" is dropped.
+- **No domain column on develop** — despite OGC-361's ticket status, a repo-wide search
+  finds no trace (D-025: Done ≠ shipped). See Build Reality below.
+- **Hierarchy exists in the schema, not in this UI (decision):** `PARENT_TEST_SECTION` is
+  real but no shipped surface consumes it visibly. v1 renders lab units as a **flat list**,
+  documents the column, and neither edits nor invents hierarchy. If a real nesting need
+  emerges, it's its own design pass.
+- `ORG_ID` and `IS_EXTERNAL` are shown read-only where set (integration/reference facts,
+  not routine admin edits).
+
+## Surface & IA
+
+**Lab Units** is a peer context under `Test Catalog Management` (Tests / Panels / Sample
+Types / **Lab Units**). List route `/admin/TestCatalogList?entity=labunits`; editor
+`/MasterListsPage/TestCatalogEditor/labUnit/<id>/<section>`; breadcrumb
+`Home / Admin Management / Test Catalog Management / Lab Units / <name>`. Replaces the
+legacy Test Section Master Lists page. Terminology is **"Lab Unit"** everywhere; "test
+section" never appears in UI copy.
+
+## Lab Units list
+
+Columns: **Name** · **Description** · **Domain** (tag — once built, see Build Reality) ·
+**Tests** (count) · **Status** · **Actions**. Filters: search, Domain, Status.
+"**Add Lab Unit**" opens a blank record in the editor shell (inline, not a modal).
+
+## Editor sections (SideNav submenus — same shell, no tabs)
+
+### Basic Info
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| **Name** | Text | Yes | varchar(20) — enforce length in UI; localized display via existing localization FK |
+| **Description** | Text | **Yes** | varchar(60) NOT NULL (v1 spec wrongly said optional) |
+| **Domain** | Radio | Yes (once built) | Exactly one of Clinical / Environmental / Vector — Dependency 2; Clinical primary at launch |
+| **External** | Read-only tag | — | Shows `IS_EXTERNAL` when set; not editable here |
+| **Organization** | Read-only | — | Shows linked org when set |
+| **Active** | Toggle | Yes | **On deactivate with N active tests assigned:** warn — "{n} active tests are assigned to this lab unit; they keep working but won't appear under it in workplans until it's reactivated or they're reassigned." No cascade, reversible. Reassignment happens per test (Basic Info → Lab Unit), not in bulk here |
+
+### Associated Tests — read-only
+Lists the tests whose `test_section_id` points here (name, code, sample type, status), each
+linking to **Open in Test Catalog**. Assignment is a *test* attribute edited in the test's
+Basic Info — not duplicated here (the same view-don't-write pattern as Sample Types'
+Associated Tests).
+
+### Display Order
+Position in lab-unit ordering (`sort_order`) — same all-rows-with-this-one-highlighted
+pattern as Sample Types.
+
+*(No Terminology section — lab units have no coded-terminology need today. No
+Programs/Projects/Workflows tabs — those junctions don't exist; out of scope.)*
+
+## Build Reality — Domain (OGC-361)
+
+The handoff record says lab-unit domain is "Done (OGC-361)". **Source contradicts this:**
+no `test_section` migration exists on develop and OGC-361 appears nowhere in the repo.
+Until reconciled, this FRS treats domain as **Dependency 2 (unbuilt)** — same declared-
+migration pattern as Panels (column + backfill to CLINICAL, mechanism dev's call). The
+Domain field ships with the dependency, not before. **Action for Casey:** reconcile the
+Jira status vs the branch before dev picks this up.
+
+## Access
+Existing **Test Catalog Manager / Admin** capability, same as the rest of the shell.
+
+## Dependencies (net-new)
+1. **Lab Units context + editor** in the shell (list + `/rest/test-catalog/lab-units`).
+   *Backend + frontend.*
+2. **Domain on TEST_SECTION** — single required Clinical/Environmental/Vector, backfill
+   CLINICAL (OGC-936 pattern). Mechanism dev's call; reconcile OGC-361 first. *Backend.*
+
+## Out of scope
+- Hierarchy editing (`PARENT_TEST_SECTION` documented, untouched).
+- Bulk test reassignment, import/export, deactivation cascade (v1 spec's versions rejected).
+- Programs / Projects / Workflows assignment tabs (junctions don't exist).
+- A code/abbreviation field (no column; not invented).
+
+## Localization (new keys)
+| Key | English |
+|---|---|
+| `label.testCatalog.entity.labUnits` | Lab Units |
+| `label.labUnit.name` | Name |
+| `label.labUnit.description` | Description |
+| `tag.labUnit.external` | External |
+| `warning.labUnit.deactivateInUse` | {n} active tests are assigned to this lab unit; they keep working but won't appear under it in workplans until it's reactivated or they're reassigned. |
+| `note.labUnit.associatedTests.viewOnly` | View only — a test's lab unit is set on the test (Basic Info → Lab Unit). |
+| `link.labUnit.associatedTests.openTest` | Open in Test Catalog |
+
+Missing keys fall back to English.

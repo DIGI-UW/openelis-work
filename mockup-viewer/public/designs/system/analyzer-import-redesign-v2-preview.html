@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyzer Results Import (revisited) — functional</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+ body{background:#f4f4f4;margin:0;font-family:'IBM Plex Sans',sans-serif;color:#161616;}
+ .banner{background:#0f62fe;color:#fff;padding:6px 1rem;font-size:12px;font-family:monospace;}
+ .wrap{padding:1rem 1.25rem;max-width:1240px;margin:0 auto;}
+ .layout{display:flex;gap:16px;}
+ .main{flex:1;min-width:0;} .side{width:250px;flex:none;}
+ .card{background:#fff;border:1px solid #e0e0e0;margin-bottom:14px;}
+ .card h3{margin:0;padding:10px 14px;font-size:14px;border-bottom:1px solid #e0e0e0;}
+ .pad{padding:12px 14px;}
+ .sub{color:#6f6f6f;font-size:12px;}
+ .qcpass{border:1px solid #24a148;background:#defbe6;padding:10px 14px;font-size:13px;font-weight:600;color:#0e6027;margin-bottom:14px;}
+ .qcfail{border:1px solid #da1e28;background:#fff1f1;padding:10px 14px;font-size:13px;font-weight:600;color:#a2191f;margin-bottom:14px;}
+ .lvls{display:flex;gap:8px;margin-top:8px;}
+ .lvl{border:1px solid #c6c6c6;background:#fff;border-radius:4px;padding:6px 12px;font-size:12px;text-align:center;}
+ .ok{color:#24a148;font-weight:700;} .bad{color:#da1e28;font-weight:700;}
+ .runset{display:flex;gap:20px;flex-wrap:wrap;font-size:12.5px;}
+ .chip{display:inline-block;border:1px solid #c6c6c6;border-radius:14px;padding:2px 10px;margin:2px;font-size:11.5px;background:#f4f4f4;}
+ table{width:100%;border-collapse:collapse;}
+ th{font-size:11.5px;font-weight:600;color:#525252;text-align:left;padding:8px 10px;border-bottom:1px solid #c6c6c6;white-space:nowrap;}
+ td{font-size:12.5px;padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+ .comp td{background:#fafafa;} .comp .cname{padding-left:24px;color:#393939;}
+ .arrow{color:#a8a8a8;margin-right:6px;}
+ .tag{display:inline-block;border-radius:4px;padding:0 7px;font-size:11px;font-weight:600;}
+ .green{background:#defbe6;color:#0e6027;} .red{background:#fff1f1;color:#a2191f;} .gray{background:#f2f4f8;color:#525252;} .purple{background:#f6f2ff;color:#6929c4;} .amber{background:#fcf4d6;color:#8e6a00;}
+ .exc{background:#fff8e1;} .ncrow td{background:#fff4f4 !important;}
+ .num{color:#161616;} .muted{color:#a8a8a8;}
+ .btn{font-size:12px;border:1px solid #0f62fe;background:#0f62fe;color:#fff;padding:7px 12px;cursor:pointer;border-radius:2px;}
+ .btn:disabled{background:#c1c7cd;border-color:#c1c7cd;cursor:not-allowed;}
+ .btn.ghost{background:none;color:#0f62fe;} .btn.amber{border-color:#8e6a00;color:#8e6a00;background:none;}
+ .expbtn{background:none;border:none;color:#0f62fe;cursor:pointer;font-size:12px;padding:2px 6px;}
+ .toolbar{display:flex;align-items:center;gap:14px;padding:10px 12px;border-bottom:1px solid #e0e0e0;font-size:12.5px;background:#f9f9f9;}
+ .link{color:#0f62fe;background:none;border:none;cursor:pointer;font-size:12.5px;padding:0;}
+ .warn{display:inline-flex;align-items:center;gap:6px;color:#8e6a00;font-weight:600;font-size:12.5px;}
+ .tri{display:inline-block;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:12px solid #f1c21b;position:relative;}
+ .tri::after{content:"!";position:absolute;left:-2.5px;top:2px;font-size:8px;font-weight:700;color:#161616;}
+ .sideitem{font-size:12px;padding:8px 12px;border-bottom:1px solid #f0f0f0;}
+ .note{background:#edf5ff;border-left:3px solid #0f62fe;padding:9px 13px;font-size:12.5px;margin:8px 10px;}
+ .toggle{font-size:11.5px;border:1px solid #8d8d8d;background:#fff;border-radius:2px;padding:3px 8px;cursor:pointer;}
+</style>
+</head>
+<body class="cds--white">
+<div class="banner">⚡ Preview — Analyzer Results Import (revisited) &nbsp;|&nbsp; functional: selection · select-all/normal · QC-fail accept warning</div>
+<div class="wrap" id="root"></div>
+<script type="text/babel">
+const {useState}=React;
+
+const ANALYSES=[
+ {id:"a1",labno:"TB-2026-004182-1",patient:"Achieng, Mary",test:"Xpert MTB/RIF",normal:false,
+  comps:[
+   {code:"MTB",label:"MTB detection",val:"MTB DETECTED",kind:"red"},{code:"RIF",label:"RIF resistance",val:"NOT DETECTED",kind:"green"},
+   {code:"rpoB_A",label:"rpoB Probe A",val:"24.6",unit:"Ct"},{code:"rpoB_B",label:"rpoB Probe B",val:"25.1",unit:"Ct"},
+   {code:"rpoB_C",label:"rpoB Probe C",val:"24.9",unit:"Ct"},{code:"rpoB_D",label:"rpoB Probe D",val:"25.4",unit:"Ct"},
+   {code:"rpoB_E",label:"rpoB Probe E",val:"25.0",unit:"Ct"},{code:"SPC",label:"Sample Processing Control",val:"valid",kind:"gray",internal:true}]},
+ {id:"a2",labno:"RESP-2026-009913-1",patient:"Odhiambo, John",test:"Xpert Xpress SARS-CoV-2",normal:false,
+  comps:[{code:"SARS",label:"SARS-CoV-2",val:"DETECTED",kind:"red"},{code:"N2",label:"N2 gene",val:"22.8",unit:"Ct"},
+   {code:"E",label:"E gene",val:"23.5",unit:"Ct"},{code:"ORF1ab",label:"ORF1ab",val:"21.9",unit:"Ct",unmapped:true}]},
+ {id:"a3",labno:"CHEM-2026-118840-1",patient:"Wanjiru, Grace",test:"Glucose, fasting",normal:true,
+  comps:[{code:"GLU",label:"Glucose, fasting",val:"96",unit:"mg/dL",range:"70–99"}]},
+ {id:"a4",labno:"CHEM-2026-118842-1",patient:"Okoth, Peter",test:"Glucose, fasting",normal:true,
+  comps:[{code:"GLU",label:"Glucose, fasting",val:"88",unit:"mg/dL",range:"70–99"}]},
+];
+
+function Val({c}){ if(c.kind) return <span className={"tag "+c.kind}>{c.val}</span>; return <span className="num">{c.val}{c.unit&&<span className="sub"> {c.unit}</span>}</span>; }
+
+function App(){
+ const [qcFail,setQcFail]=useState(false);
+ const [open,setOpen]=useState({a1:true});
+ const [sel,setSel]=useState({});
+ const ids=ANALYSES.map(a=>a.id);
+ const selCount=ids.filter(i=>sel[i]).length;
+ const allOn=selCount===ids.length && selCount>0;
+ const toggleRow=id=>setOpen(o=>({...o,[id]:!o[id]}));
+ const toggleSel=id=>setSel(s=>({...s,[id]:!s[id]}));
+ const selectAll=()=>{const v={};ids.forEach(i=>v[i]=!allOn);setSel(v);};
+ const selectNormal=()=>{const v={};ANALYSES.forEach(a=>v[a.id]=a.normal);setSel(v);};
+ return (<div>
+  <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline'}}>
+    <div><h2 style={{fontWeight:400,margin:'0 0 2px'}}>Analyzer Results Import — GeneXpert (Run RUN-2026-0710-004)</h2>
+      <div className="sub">QC-first review · multi-component runs group per-target values under the analysis</div></div>
+    <button className="toggle" onClick={()=>setQcFail(f=>!f)}>Demo: QC {qcFail?"FAILED":"passed"} — flip</button>
+  </div>
+  <div style={{height:10}}></div>
+
+  {qcFail
+   ? <div className="qcfail">⛔ QC FAILURE — Level 2 control out of range. Patient results are <u>non-conforming</u> and cannot be accepted until resolved.
+       <div className="lvls"><div className="lvl">Pos control<br/>DETECTED <span className="ok">✓</span></div><div className="lvl" style={{borderColor:'#da1e28'}}>Neg control<br/>DETECTED <span className="bad">✗</span></div><div className="lvl">SPC (IC)<br/>valid <span className="ok">✓</span></div></div>
+       <div className="sub" style={{marginTop:6,fontWeight:400}}>Neg control read DETECTED (expected NOT DETECTED) → fail. <button className="link">View Levey-Jennings</button> · <button className="link">Create non-conformity</button></div>
+     </div>
+   : <div className="qcpass">✓ All controls passed — patient results can be accepted
+       <div className="lvls"><div className="lvl">Pos control<br/>DETECTED <span className="ok">✓</span></div><div className="lvl">Neg control<br/>NOT DETECTED <span className="ok">✓</span></div><div className="lvl">SPC (IC)<br/>valid <span className="ok">✓</span></div></div>
+       <div className="sub" style={{marginTop:6,fontWeight:400}}>Verdict = analyzer QC flag when sent; else observed-vs-expected (Pos→DETECTED, Neg→NOT DETECTED, IC→valid).</div>
+     </div>}
+
+  <div className="layout">
+   <div className="main">
+     <div className="card"><h3>⚙ Run Settings <span className="sub" style={{fontWeight:400}}>· applied to all accepted results</span></h3>
+       <div className="pad runset">
+         <div><div className="sub">Analyzer</div><b>Cepheid GeneXpert</b> <span className={"tag "+(qcFail?"red":"green")}>{qcFail?"QC ✗":"Online · QC ✓"}</span></div>
+         <div><div className="sub">Cartridge / reagent lots (analyzer-reported or manual — no FIFO)</div><span className="chip">Xpert MTB/RIF · LOT-2026-0421 <span className="tag gray">analyzer-reported</span></span><span className="chip">SARS cartridge · <button className="link">Select lot…</button></span></div>
+       </div>
+     </div>
+
+     <div className="card">
+       <h3>Patient results</h3>
+       <div className="note">Keyed on the <b>lab number</b> (accession); patient name = confirmation only, no full demographics. Multi-component tests expand to per-target values; unmapped target (ORF1ab) surfaced with “Map now”; internal controls (SPC) muted.</div>
+       <div className="toolbar">
+         <label><input type="checkbox" checked={allOn} onChange={selectAll}/> Select all</label>
+         <button className="link" onClick={selectNormal}>Select normal only</button>
+         <span className="sub">{selCount} selected</span>
+       </div>
+       <table>
+         <thead><tr><th style={{width:28}}></th><th style={{width:28}}></th><th>Sample Info</th><th>Test</th><th>Result</th><th>Range</th><th>QC</th></tr></thead>
+         <tbody>
+          {ANALYSES.map(a=>{const first=a.comps[0];const has=a.comps.length>1;return(
+           <React.Fragment key={a.id}>
+            <tr className={qcFail?"ncrow":""}>
+              <td><input type="checkbox" checked={!!sel[a.id]} onChange={()=>toggleSel(a.id)}/></td>
+              <td>{has?<button className="expbtn" onClick={()=>toggleRow(a.id)}>{open[a.id]?"▾":"▸"}</button>:""}</td>
+              <td>{qcFail&&<span className="tag red" style={{marginRight:6}}>NC</span>}<b>{a.labno}</b>{has&&<span className="tag purple" style={{marginLeft:6}}>{a.comps.filter(c=>!c.internal).length} comp</span>}<div className="sub">{a.patient}</div></td>
+              <td>{a.test}</td><td><Val c={first}/></td><td className="sub">{first.range||"—"}</td>
+              <td>{qcFail?<span className="tag red">QC ✗</span>:<span className="tag green">QC ✓</span>}</td>
+            </tr>
+            {has&&open[a.id]&&a.comps.slice(1).map(c=>(
+              <tr key={c.code} className={"comp"+(c.unmapped?" exc":"")}>
+                <td></td><td></td>
+                <td className="cname"><span className="arrow">↳</span>{c.label}{c.internal&&<span className="tag gray" style={{marginLeft:6}}>internal control</span>}{c.unmapped&&<span className="tag amber" style={{marginLeft:6}}>unmapped</span>}</td>
+                <td className="sub">{c.code}</td>
+                <td>{c.unmapped?<span className="num">{c.val} {c.unit} <button className="link">Map now →</button></span>:<Val c={c}/>}</td>
+                <td className="sub">—</td><td className="muted">—</td>
+              </tr>
+            ))}
+           </React.Fragment>);})}
+         </tbody>
+       </table>
+       <div className="pad" style={{borderTop:'1px solid #e0e0e0'}}>
+         {!qcFail ? (
+           <div style={{display:'flex',gap:10,alignItems:'center'}}>
+             <button className="btn" disabled={selCount===0}>Accept selected ({selCount})</button>
+             <button className="btn amber">Retest</button>
+             <button className="btn ghost">Ignore</button>
+             {selCount===0 && <span className="sub" style={{marginLeft:6}}>Select results to accept.</span>}
+           </div>
+         ) : (
+           <div>
+             <div className="warn" style={{marginBottom:8}}><span className="tri"></span> QC failed — the usual path is <b>Retest</b> (run it again until QC passes). Releasing these requires filing an NCE.</div>
+             <div style={{display:'flex',gap:10,alignItems:'center'}}>
+               <button className="btn">Retest</button>
+               <button className="btn ghost">Report NCE</button>
+               <button className="btn ghost">Reject <span className="sub">(NCE optional)</span></button>
+               <button className="btn amber">Accept despite QC failure (files NCE)</button>
+               <span className="sub" style={{marginLeft:6}}>results permission · logged</span>
+             </div>
+           </div>
+         )}
+       </div>
+     </div>
+   </div>
+
+   <div className="side">
+     <div className="card"><h3>QA / QC</h3>
+       <div className="sideitem"><b>Current run: {qcFail?"QC FAILED":"QC Passed"}</b><div className="sub">RUN-2026-0710-004</div></div>
+       <div className="sideitem">Recent QC<br/><span className="sub">07/10 {qcFail?"✗":"✓"} · 07/09 ✓ · 07/09 ✓ · 07/08 ✓</span></div>
+       <div className="sideitem">Analyzer<br/><span className="sub">Cepheid GeneXpert · Online</span></div>
+       <div className="sideitem">Reagents<br/><span className="sub">MTB/RIF LOT-0421 · OK<br/>SARS LOT-0388 · OK</span></div>
+     </div>
+   </div>
+  </div>
+ </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 # OpenELIS Design Gallery — Full Spec Content
 
-Generated: 2026-07-15T04:05:54.329Z
-Total designs: 200
+Generated: 2026-07-15T18:50:31.486Z
+Total designs: 203
 
 ---
 
@@ -289,6 +289,586 @@ No dependency on unbuilt upstreams outside this feature (Reagents linkage, EQA V
 - **Bulk terminology import / cross-test code conflict *resolution* beyond the duplicate-LOINC warning** — detection is in scope (FR-16); automatic resolution is not.
 - **Changing accession-scoped import matching** — this FRS surfaces the first-match global behavior via warnings; it does not change the resolver.
 - **Hard deletion of any test or configuration** — deactivate/reactivate only.
+
+
+---
+
+# Test Catalog Completion v2 (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-completion-v2
+Jira: OGC-1112
+
+# Test Catalog Completion v2 — Consolidated FRS
+
+**Feature slug:** `test-catalog-completion-v2`
+**Status:** Draft for review · **Author:** Casey Iiams-Hauser (with design assistant) · **Date:** 2026-07-14
+**Audience:** single handoff document for the implementing agent (Claude Code / Mozzy). Load THIS file only.
+
+**Supersedes as the active work list:**
+- `test-catalog-editor-completion.md` (FR-1–FR-45) — most of it is now DELIVERED (see Baseline);
+  its undelivered remainder is re-stated here as corrections (FR-66+), so the old doc is
+  reference/history, not a work source.
+- `test-catalog-manageability-frs.md` (FR-46–FR-65) — incorporated verbatim-in-substance as
+  Part B, so it does not need to be loaded separately.
+
+**Inputs:** delivered-code audit of `frontend/src/components/admin/testCatalog/` @ `develop`
+(commit `c81d708`), 2026-07-14 (`test-catalog-delivered-vs-spec-audit.md`); data-model
+authority `openelis-design/references/test-catalog-data-model.md` (source-verified 2026-07-14).
+
+**FR numbering:** FR-1–45 = original completion spec (mostly delivered; not re-listed).
+FR-46–65 = Manageability (Part B). FR-66+ = delivered-feature corrections (Part A).
+
+---
+
+## Lab Context
+
+### Current State
+The unified Test Catalog editor shipped: catalog managers configure tests in one place —
+list with filters, inline create, result components, ranges with coverage checking, storage,
+panels, labels, terminology, alerts, reagents, localization, display order. The build is
+faithful to the specs in the large, but a band of small elements was dropped in delivery
+(the labels preset picker filters out custom presets; terminology mappings have no display
+name; LOINC warnings — LOINC being the universal code that identifies a lab observation,
+and the key analyzers and electronic orders route by — exist only inside one section; the
+combined editor shipped half its shared sections), and the catalog still treats each
+specimen variant of an assay as a stranger row.
+
+### Pain
+Concretely: an admin who built a custom label preset cannot attach it to any test — the
+picker silently offers only the 5 system presets. A manager can activate a test that cannot
+capture a result (no components), and the first symptom is a technologist at an empty result
+screen mid-shift. Two active tests sharing a LOINC route analyzer results to whichever
+matches first, and nothing outside the Terminology section says so. A 100+ row catalog shows
+"Glucose (Serum)" and "Glucose (CSF)" 60 rows apart, and configuring the third glucose
+variant means re-typing everything. When ranges are incomplete, Save silently refuses with
+no indication of what's wrong.
+
+### What Changes
+The delivered editor gets its dropped elements back: custom presets attach, an
+order-entry preview shows what labels will do, terminology carries display names, LOINC
+hazards surface in the list / combined editor / activation, the combined editor covers all
+four shared sections and shows per-test values before overwriting. On top of that,
+the list groups specimen variants under assay rows via an explicit admin-controlled link,
+"Add specimen variant" clones a test onto a new specimen in minutes, a new test always has
+its primary component and cannot be activated incomplete — with a visible checklist instead
+of silent failure — and configuration problems are tagged right in the list behind a single
+"! Only tests with issues" filter.
+
+## User Stories
+
+1. As a **catalog manager**, I want the custom label presets I built to be attachable to
+   tests, and to see what order entry will print, so label configuration is real, not
+   decorative.
+2. As a **catalog manager**, I want LOINC problems visible where I work (list, combined
+   editor, activation), so routing hazards are caught before results misroute.
+3. As a **catalog manager**, I want the test list grouped by assay with specimen variants
+   together, and a copy-based way to add a variant, so a 400-test catalog stays navigable
+   and variants don't drift.
+4. As a **catalog manager**, I want a new test to start with its primary component and a
+   completeness checklist that blocks activation until the test can capture a result, so
+   technologists never meet an empty result screen.
+5. As a **catalog manager**, when the editor refuses to save I want it to name the blocking
+   section and field and link me there.
+
+---
+
+## Baseline — DELIVERED, verified in code. Do NOT rebuild. (audit 2026-07-14)
+
+| Area | Delivered (evidence) |
+|---|---|
+| List (FR-39/40) | Columns Name/Sample type/Code/Domain/Status; AMR + Coverage-incomplete tags; collapsible Filters panel w/ active count; sample-type typeahead filter; debounced search; URL-mirrored pagination; row selection + "Edit related tests together"; New test button (`TestCatalogList.jsx`) |
+| Create in place (FR-1–5) | `/TestCatalogEditor/new/basic-info`, code auto-suggest until edited, 409 uniqueness error, created Inactive w/ exact FR-3 text, "Lab Unit" terminology (`BasicInfoSection.jsx`) |
+| Result components (FR-27–37 core, OGC-1127) | CRUD, reorder, 7 result types (advanced behind disclosure), unit typeahead + inline add, sig digits, single-primary `isPrimary`, `showOnReport` (primary forced true), live preview, copy-from-test (`SampleResultsSection.jsx`) |
+| Storage | All TestSampleHandling fields, group mode, version-history modal (`StorageSection.jsx`) |
+| Panels (FR-41–45 core) | Membership table w/ populated Position, add-to-panel ComboBox, inline name-only create, remove=membership-only (`PanelsSection.jsx`) |
+| Terminology core (FR-15/16) | 4-source mapper w/ relationships, inline add, no-LOINC + duplicate-LOINC warnings verbatim from `/loinc-integrity`; bonus per-component "Applies to" scoping (`TerminologySection.jsx`) |
+| Labels core | Preset table: add, Default/Max qty + validation, Allow Override, global order-entry override toggle, empty state, remove confirm (`LabelsSection.jsx`) |
+| Alerts / Reagents / ReflexCalc / Localization / Display Order | All functional, none stubs; ReflexCalc read-only by design; Analyzers read-only by deliberate re-scope |
+| Combined editor core (FR-12–14) | Ranges + Storage shared; identity read-only; deselect; Display Order excluded (`CombinedTestEditor.jsx`) |
+
+---
+
+## Part A — Delivered-feature corrections (FR-66+)
+
+### Labels
+
+- **FR-66 (Custom presets attachable).** Remove the `isSystem` filter in `LabelsSection.jsx`'s
+  preset picker: the "Add Label Type" dropdown offers **every active per-sample preset**
+  (`prints_per_sample = true`) — system and custom, from Label Preset Management.
+  Order-only presets stay excluded (nothing to override per sample). **Owning spec:**
+  `barcode-labels.md` v2.5 (OGC-285) §3 — it supersedes the 4-fixed-preset era and already
+  specifies this picker, the per-link `allow_override`, and the master toggle; FR-66/67
+  here restate its Test Catalog surface so this document stands alone. Coordinate the P1
+  slice with OGC-285 rather than duplicating it. **Dependency reality check:** Label Preset Management is
+  now DELIVERED on develop (`frontend/src/components/admin/labelPresets/`, route
+  `/labelPresets`) — the older "configurable presets don't exist" constraint (D-019 /
+  current-state-gotchas) is stale and superseded by this observation.
+  (Coordination check 2026-07-14: no conflict with OGC-285; FR-67's preview matches its
+  §3.4 verbatim in intent.)
+- **FR-67 (Order Entry Preview + section copy).** Below the config table, an **"Order Entry
+  Preview"** subsection: "When this test is ordered, the Labels section will be pre-populated
+  as follows" — table of Label type / Qty / Source (per-test config vs preset default), with
+  the locked-quantity note when override is off. Add the two spec'd section headings and
+  helper copy ("Default Labels for This Test", "Label Generation Settings"). This is the
+  admin's only feedback on what order entry will actually do.
+- **FR-68 (Retire the legacy Labels tab).** `testManagement/labelsTab/LabelsTab.jsx` hits the
+  same endpoints as the new section — same two-worlds problem FR-38 killed for create.
+  Retire/redirect it so there is one Labels surface.
+
+### Terminology
+
+- **FR-69 (Display Name, auto-fetched).** Each mapping gains a **Display Name**: auto-fetched
+  from the terminology service on code entry (InlineLoading while fetching, editable after,
+  required before save). Backfill: existing mappings get display names lazily on next edit;
+  a health finding (FR-62.i) counts mappings with empty display names. Without this, FHIR
+  codings ship with no `display`.
+- **FR-70 (Relationship required).** The relationship dropdown loses its "none" option;
+  existing null relationships read as SAME_AS until edited.
+
+### LOINC surfacing (the FR-15–18 intent, finished)
+
+- **FR-71 (No-LOINC list tag).** The list row DTO carries `hasLoinc`; active tests without a
+  LOINC show the "No LOINC" tag in the Name column (the FR-39 element that was dropped).
+- **FR-72 (Combined-editor + activation LOINC checks).** The combined editor's per-test
+  identity list re-surfaces the FR-16 duplicate warning per test (FR-17 as spec'd); the
+  activation flow re-runs `/loinc-integrity` and includes duplicate/no-LOINC findings in the
+  `ActivationAckModal` alongside coverage gaps (FR-18 as spec'd — warning, never a block).
+
+### Combined editor depth
+
+- **FR-73 (All four shared sections).** Add **Sample & Results** and **Methods** to the
+  combined editor's shared sections (FR-8 as spec'd), joining Ranges and Storage.
+- **FR-74 (See before you overwrite).** Replace the single section-level banner with the
+  FR-10 contract: per-field "Differs across tests" state with an expandable view of **each
+  test's current value**, and "Set all to…" only after the values are visible. When the
+  selection spans specimen types, the Ranges section shows the persistent
+  specimen-dependent warning (Part B, FR-51).
+
+### Result-type correctness
+
+- **FR-75 (Retire the Cascading result type).** Result type **C (Cascading)** is removed
+  from the chooser entirely (create and edit) — decided 2026-07-14: no longer needed, and
+  it was never configurable (no grouping UI ever shipped). Any *existing* test with
+  `result_type = 'C'` keeps working exactly as today (it already behaves as Multi-select),
+  renders its type as read-only "Cascading (legacy)" with helper text suggesting conversion
+  to Multi-select, and surfaces as an Info-level health finding (FR-62.j). No data
+  migration; no hard removal of existing records.
+- **FR-76 (Default result honors type).** Default result for D = select from the option
+  list; for M = multi-select from options; free-text input only for N/A (FR-31 as spec'd).
+- **FR-77 (Preview fidelity).** The live result-entry preview reuses the actual Results
+  Entry input components (FR-35), replacing the disabled-lookalike reimplementation.
+  Lower priority; schedule with FR-73's Sample & Results work.
+
+### Dead controls & polish
+
+- **FR-78 (No dead buttons).** The editor-header **Save** placeholder (info toast) is
+  removed — saves are per-section and the header must not pretend otherwise. The
+  **"Save as new test…"** placeholder either wires to **Add specimen variant** (FR-52) when
+  Part B lands, or is removed until then. A shipped no-op button is a silent failure.
+- **FR-79 (Panels polish batch).** Reposition performs live renumbering against the panel's
+  other tests (not a local ±1); the "View order" context refreshes as position changes;
+  remove-membership gets its spec'd confirmation.
+- **FR-80 (AMR tag placement).** AMR renders beside the test name (FR-39), not in the
+  Domain cell; tag color per the status-tag mapping.
+
+### Storage
+
+- **FR-86 (Restore spec'd value lists).** The delivered Storage section narrowed the value
+  lists; restore the spec'd sets — 9 storage conditions (adding ultra-low freezer, cold
+  room, cool room, controlled room temperature, warm incubator), 6 handling flags (adding
+  Keep upright, Centrifuge promptly, Aliquot on receipt), 9 disposal methods. Values are
+  strings in `test_sample_handling` (varchar columns) — frontend option lists + constants,
+  no schema change. The spec'd temperature quick-reference card is optional polish within
+  this FR.
+
+### Sample & Results — targeted fidelity fixes (audit + mockup diff, Casey-reviewed)
+
+**Stance:** the delivered section is *mostly right*. The mockup-vs-delivered diff found 20
+divergences; most are **accepted as delivered** (recorded below so the old mockup stops
+being the contract). What follows are the fixes worth making.
+
+- **FR-81 (Guidance restored).** Reinstate the in-context teaching the mockup had:
+  (a) Significant digits becomes a `NumberInput` (min 0, max 3) with the dynamic helper
+  "Shown to the technician as 12.3"; (b) the Numeric info cross-link "Normal & critical
+  ranges are set in the Ranges section →"; (c) the type-specific explainer notes
+  (Multi-select, Free-text "no units/ranges apply", Titer, Alpha); (d) the
+  component-vs-multi-select guidance paragraph; (e) the type-chooser prompt reads
+  **"How is this result captured?"** (question form, per mockup).
+- **FR-82 (Interpretations coaching).** Empty interpretations render the mockup's
+  dashed-border empty state — "No flagging rules yet. Add one to auto-mark results like
+  'Detected' as positive." — with the "(optional)" framing in the heading, not an empty
+  table with headers.
+- **FR-83 (Create a new select-list option inline).** The options editor's dictionary
+  typeahead currently only *finds existing* dictionary entries. Add an inline
+  **"Add new option"** path (mirroring the delivered add-new-unit inline form): when the
+  typed value has no dictionary match, offer "Create '{value}' as a new option" — creates
+  the dictionary entry and adds it to the list in one gesture. Same role as the rest of the
+  editor; dictionary entry is created active.
+- **FR-84 (Sort order explained + sensible defaults).** The options table's "Sort order"
+  column and the per-component "Display order" field get helper text stating what they
+  order and where it shows ("the order options appear in the technician's result list" /
+  "the order components appear in result entry and on reports"). New options/components
+  default to append (max+1) so the numbers never demand attention unless reordering.
+- **FR-85 (Preview, live where it stands).** Keep the preview's delivered position
+  (inline, single column — accepted), but restore its designed behavior: **enabled**
+  interactive controls (real Dropdown / checkboxes / 3-row TextArea for free text), blue
+  accent framing, "This is what a technician will see" helper. FR-77 (reusing the actual
+  Results Entry components) is the implementation vehicle — treat FR-77/85 as one story.
+
+**Accepted deviations (deliberate; do not "fix"):** single-column layout instead of the
+two-column Grid; multi-component Accordion (post-mockup feature, needed); the per-component
+plumbing fields (Code / Primary / Show-on-report / Display order / reorder arrows — from
+OGC-1127/985, post-date the mockup); inline-editable options table (more capable than the
+mockup's read-only table); inline whole-config copy-from-test (supersedes Mockup B's
+interpretations-only modal); interpretation **Severity** select (delivered extra — keep,
+back-filled into this spec as the interpretation model); relocation of sample type to Basic
+Info (matches Mockup A / FR-2).
+
+**Verification pointer:** live instance routes for eyeballing —
+`/MasterListsPage/TestCatalogEditor/306/labels` (Labels, FR-66/67) and the same editor's
+`/sample-results` section (FR-81–85).
+
+---
+
+## Part B — Manageability (FR-46–FR-65, incorporated from the Manageability FRS)
+
+> Full normative content; the standalone `test-catalog-manageability-frs.md` matches this
+> section and needn't be loaded separately.
+
+### Group H — Assay-grouped list view (default)
+
+- **FR-46 (Grouping key — an explicit variant link, nothing automatic).** The list groups
+  tests into *assay groups*. Two tests belong to the same group **when and only when** a
+  persisted **variant link** records them as members of the same group. Groups form in
+  exactly two ways: creating a specimen variant (FR-52) writes the link automatically; an
+  admin explicitly linking existing tests (FR-51) writes it deliberately. **No name matching
+  of any kind** — no suggestions, no heuristics. How the link is stored is the dev's call
+  (declared data addition in Dependencies): behavior only — durable, auditable, at most one
+  group per test, removable (Unlink). Group display label derives at render time (variants'
+  common name stem); not new stored data.
+  **Day one: silence** — nothing auto-links; legacy catalogs open ungrouped with no
+  grouping findings. Rejected alternatives (recorded): liquibase 1:1 name auto-link (data
+  mutation in a migration); shared `name_localization_id` as the key (localization semantics
+  undefended; re-pointing renames tests system-wide).
+- **FR-47 (Group row).** Collapsible header: assay label, variant count ("3 specimen
+  variants"), status union ("2 Active · 1 Inactive"), domain tag (groups expected
+  single-domain; mixed = FR-62.g), group-level issue roll-up. Expanding shows variant rows
+  with the existing FR-39/40 columns.
+- **FR-48 (Single-variant assays)** render as plain flat rows — no group chrome.
+- **FR-49 (Search/filters)** match variants; a group renders when ≥1 variant matches,
+  auto-expanded to matches with "show N more variants" for hidden siblings; groups with no
+  match are hidden.
+- **FR-50 (View toggle).** Grouped ⇄ Flat in the toolbar; flat = the delivered FR-39/40
+  list exactly; encoded as `?view=flat`, remembered per user. Pagination counts groups in
+  grouped view, rows in flat.
+- **FR-51 (Group actions & linking).** Group header: **Edit variants together** (opens the
+  combined editor with the group's active variants pre-selected) and **Add specimen
+  variant** (FR-52). Group-editor contract (restated from FR-8–14 + FR-73/74): shared =
+  Sample & Results, Methods, Ranges, Storage; per-test read-only = Name, Code, Specimen,
+  Terminology/LOINC; excluded = Display Order, Panels, Analyzers, Reflex/Calc, Alerts,
+  Labels. When a selection spans specimen types the Ranges section shows a persistent
+  warning (ranges are specimen-dependent; "Set all to…" across specimens is usually wrong).
+  **Link variants** = toolbar action on ≥2 selected ungrouped rows; writes the variant-link
+  record after a confirmation listing the tests (deselectable). **No side effects on names,
+  codes, or any field — membership only.** **Unlink** (group header, confirmed) reverses it.
+
+### Group I — Add specimen variant
+
+- **FR-52 (One flow, three entry points, visible copy source).** Row action preselects that
+  variant as copy source; the open test's editor action preselects the open test; the group
+  header preselects the most recently updated active variant. The form always shows a
+  **"Copy from" ComboBox** of the group's variants — presets over one control, not
+  redundant buttons. Changing source re-derives copied config + code suggestion unless
+  edited. (Supersedes the old completion spec's out-of-scope exclusion of duplicate/save-as-new —
+  deliberate reversal; FR-38 retired the wizard, leaving repeated full creates as the only
+  variant path. Wire or remove the delivered "Save as new test…" stub accordingly, FR-78.)
+- **FR-53 (What copies).** All result components (incl. primary flags, labels, types, units,
+  sig digits, defaults, **and Dictionary components' result-option lists — the
+  `test_result.component_id` rows — whole**), Sample & Results guidance, Methods,
+  Storage/handling, and Basic Info settings other than identity (domain, Lab Unit,
+  orderable/notify/reportable flags; Lab Unit + flags editable, domain per FR-54a).
+  **Ranges copy as drafts** — see review mechanism below. **Not copied:** panel memberships,
+  analyzer mappings, reflex rules, calc rules, alerts, and **terminology incl. LOINC**
+  (specimen-specific; carryover manufactures the FR-62.a hazard).
+  **Copied-ranges review (section-level, one gesture):** while drafts are unconfirmed the
+  Ranges section shows one banner — "Ranges copied from {source} — review for {specimen},
+  then save or mark reviewed" — with a **Mark ranges reviewed** button; saving the section
+  (edited or not) clears the state; the button just performs that save. **No new datum**:
+  reviewed = "Ranges saved since creation", derivable from existing audit columns; existing
+  data and from-scratch tests default to reviewed — day one raises nothing.
+- **FR-54 (Fresh identity).** The variant is recorded as a member of the source's group
+  (FR-46 link, automatic); name seeded from assay name + specimen per the shipped display
+  convention; **Code** reuses the delivered derive-from-name auto-suggest, seeded with
+  assay name + chosen specimen, re-deriving until user-edited, uniqueness per FR-4;
+  **Sample type** is a required typeahead ComboBox excluding specimens already used by the
+  group's active variants. **LOINC does not appear on this form** — terminology lives in
+  the Terminology section, starts empty, with helper "LOINC codes are specimen-specific —
+  the source test's code applies to {source specimen} only"; the FR-16 duplicate warning
+  fires there unchanged.
+- **FR-54a (No fake-editable fields).** Not-writable-here renders as **static text, never
+  disabled inputs**: the assay name (renamed only via Edit variants together) and the
+  domain ("Inherited from {assay} — all variants share a domain"). Lab Unit and flags stay
+  real controls.
+- **FR-55 (Lifecycle).** Created **Inactive** (FR-3), lands at `basic-info`
+  (`/MasterListsPage/TestCatalogEditor/new/basic-info?copyFrom=<testId>`), subject to the
+  FR-57 gate; writes exactly one `SAMPLETYPE_TEST` row (specimen-is-identity, D-028).
+
+### Group J — Minimum-viable create & activation integrity
+
+- **FR-56 (Primary component always present).** From-scratch create: one component row
+  pre-created and marked Primary, visible with no ＋ click; label defaults to the test name;
+  result type required on that row. Variant create: components arrive **copied whole**
+  (FR-53) with a "Copied" indicator — the gate is already satisfied on open. ＋ adds
+  *additional* components only. Backend invariant: every test has a PRIMARY component
+  (`TestResultComponent`, OGC-937 M1 backfill) — the UI must not construct violations.
+- **FR-57 (Structural activation gate — API-enforced).** A test cannot be set Active
+  without (a) a name, (b) ≥1 active Primary component with a result type, (c) non-empty
+  result options on any active Dictionary component. Refused activation opens a
+  **completeness panel** linking each unmet item to its section/field — never a silent
+  no-op. Saving as Inactive is always allowed. **The gate is a validation rule of the
+  `/rest/test-catalog` contract** — analyzer auto-create, e-order intake, imports, and
+  scripted clients meet the same rule. A UI-only gate is decoration.
+- **FR-58 (Completeness checklist).** Persistent editor-header indicator, two tiers:
+  **Required to activate** (FR-57 items) and **Advisory** (warn, never block — FR-18
+  precedent): LOINC assigned (links to Terminology), range coverage complete, copied ranges
+  reviewed, localization present. Each item links to its section.
+- **FR-59 (No silent save failures).** Any refused save/activation (a) shows an inline
+  error naming the blocking section(s)/field(s), (b) badges the section in the section nav,
+  (c) marks failing fields with Carbon validation states. A dead Save with no stated reason
+  is a defect — including the known case: incomplete ranges blocking save with nothing
+  marked.
+- **FR-60 (Existing bad records).** Already-Active tests with zero (active) components are
+  **not auto-deactivated**; they surface as FR-62.b and meet FR-57 on next re-activation.
+
+### Group K — Catalog health, integrated in the list
+
+- **FR-61 (Surfacing).** (a) One Filters-panel toggle: **"! Only tests with issues"**
+  (warning icon; no severity dropdown — severity reads off the tags); (b) per-row issue
+  tags by the Name column; (c) group-row roll-ups; (d) dismissible banner "{n} tests have
+  configuration issues · Show" that switches the toggle on. No new page or SideNav slot.
+  Counts split by severity ("3 errors · 9 warnings"), errors first; no per-finding
+  acknowledge in v1 (named follow-up if pilots open with unfixable counts).
+- **FR-62 (Finding types).**
+  | ID | Finding | Severity |
+  |---|---|---|
+  | a | Same LOINC active on ≥2 tests, same specimen — routing genuinely nondeterministic (`getActiveTestsByLoinc().get(0)`) | Error |
+  | b | Active test with zero (active) result components | Error |
+  | b2 | Active Dictionary-type component with an empty result-option list | Error |
+  | c | Test with zero or multiple sample-type links (violates D-028 one-link convention; both exist in real data) | Error |
+  | d | Same LOINC on ≥2 tests, different specimens — **not necessarily miscoding** (combined-specimen LOINCs like 2345-7 Ser/Plas are legitimate); reads "routing cannot tell these apart — ensure incoming orders carry a specimen" | Warning (Info within a linked group) |
+  | e | Range coverage incomplete, or copied ranges unreviewed — **variant-copy flow only; nothing predating this feature is flagged** | Warning |
+  | g | Assay group spanning multiple domains (possible only via post-link edits) | Info |
+  | i | Terminology mapping with empty Display Name (FR-69 backfill) | Info |
+  | j | Test using the retired Cascading result type — works as Multi-select; suggest converting (FR-75) | Info |
+  | — | Active test with no LOINC — absorbed as the FR-71 list tag | Warning |
+- **FR-63 (Severity rendering).** Error red / Warning warm-gray / Info gray; tag text =
+  finding name; tooltip = one-line explanation.
+- **FR-64 (Actionability).** Every finding links to the section that fixes it.
+- **FR-65 (Computation).** Server-side over existing tables, cached, invalidated on catalog
+  writes; list returns per-row summaries; no perceptible latency at 1,000 tests (NFR-1).
+
+---
+
+## Silent-Failure Inventory (regression checklist)
+
+| # | Silent failure | Fixed by |
+|---|---|---|
+| 1 | Incomplete ranges block saving with nothing marked | FR-59, FR-58 |
+| 2 | Active test with no components → technologist hits empty result screen | FR-56/57/60, FR-62.b |
+| 2b | Active Dictionary component with empty select list → empty dropdown | FR-57.c, FR-62.b2, FR-83 |
+| 3 | Duplicate active LOINC routes results first-match, invisibly | FR-15–18 delivered + FR-71/72 + FR-62.a/d |
+| 4 | 0-or-multi sample-type-link tests behave unpredictably; nothing reports them | FR-62.c |
+| 5 | Variant drift: a corrected range/method on one variant never reaches siblings | FR-46/47 grouping, FR-51 group edit, FR-53 draft review |
+| 6 | Custom label presets silently unattachable; admins get no order-entry feedback | FR-66/67 |
+| 7 | Dead header buttons (Save toast, "Save as new test…" no-op) | FR-78 |
+| 8 | Cascading type selectable but unconfigurable | FR-75 (type retired) |
+
+---
+
+## Navigation & URL
+
+List `/admin/TestCatalogList` (grouped default; `?view=flat`); editor
+`/MasterListsPage/TestCatalogEditor/<testId>/<section>`; create
+`.../TestCatalogEditor/new/basic-info` (+ `?copyFrom=<testId>` for variants); combined
+editor `.../TestCatalogEditor/group/<ids>/<section>`. SideNav: no new slots. Breadcrumb
+preserves the "Admin" → "Admin Management" drift (D-013).
+
+## Access
+
+Entirely within the existing **Test Catalog Manager / Admin** capability. Viewers of the
+list see groups, tags, and the issues toggle; users who can edit tests can link/unlink,
+add variants, and are subject to the activation gate. No new roles.
+
+## Data Model
+
+**One declared data addition; no schema designed here.** Authority:
+`openelis-design/references/test-catalog-data-model.md` (source-verified 2026-07-14).
+
+- **Named new data element — variant-link record (FR-46):** persisted, auditable membership
+  of tests in one assay group (≤1 group per test; removable). Storage mechanism (group-id
+  column, junction table, or equivalent) is the dev's decision.
+- Variant creation writes what the existing create path writes — one `TEST` row, one
+  `SAMPLETYPE_TEST` row (D-028), copied child rows (`test_result_component`, `test_result`
+  incl. Dictionary options, `result_limits` as drafts, `test_sample_handling`) — plus the
+  variant link.
+- Health findings compute from existing tables (`test`, `test_result_component`,
+  `test_result`, `SAMPLETYPE_TEST`, `result_limits`).
+- Range-review state: no new datum (derivable from audit columns; explicit flag is a
+  permitted dev optimization). Terminology Display Name (FR-69) extends the existing
+  mapping store — shape is dev's call.
+- **Dev note (not a requirement):** DB unique constraints on `sampletype_test(test_id)` and
+  `panel_item(panel_id, test_id)` would make FR-62.c unrecreatable; product deliberately
+  does not specify — dev's call.
+
+## Intake Implications (informative — e-order/accessioning thread owns the design)
+
+The variant link is the data prerequisite for: (1) vague-LOINC resolution — combined-specimen
+codes (2345-7 Ser/Plas) or XXX-system codes map BROADER_THAN onto several variants of one
+group; intake resolves within the group by FHIR Specimen coding, replacing catalog-wide
+first-match; (2) received-specimen ≠ ordered-specimen → "switch to the {specimen} variant"
+(same assay, id swap in group, intent + audit preserved; no variant = meaningful rejection);
+(3) order-before-collection — a vague-coded e-order holds at assay level until the draw
+fixes the variant. None specified here.
+
+## Out of Scope
+
+- Bulk operations (activate/deactivate, reassign lab unit, set domain by selection) — next
+  slice after this ships; row selection is designed not to preclude it.
+- Auto-deactivation/auto-repair of existing bad records (FR-60 surfaces, never mutates).
+- A stored assay entity beyond the variant link; per-specimen LOINC on one test;
+  multi-sample-type test records (rejected; D-028).
+- Sample-type-side test management (read-only there; variants are created in the Test
+  Catalog — see sample-type-management v2.1).
+- Cascading-type authoring (the type itself is retired, FR-75; no grouping UI will be
+  built).
+- Panel-side management, terminology-store architecture (per-entity vs polymorphic —
+  recommendation pending), export/import of health findings.
+
+## Non-Functional Requirements
+
+- **NFR-1:** grouped render + findings add no perceptible list latency at 1,000 tests /
+  400 groups (server-side cache, FR-65).
+- **NFR-2:** groups, tags, banner, checklist, completeness panel fully keyboard-navigable
+  and screen-reader labelled (group rows announce expanded/collapsed + variant count).
+- **NFR-3:** all new strings localized, `[category].testCatalog.[identifier]`, universal
+  English fallback (FR-22–26 delivered behavior).
+
+## Localization (new keys — Part A + Part B; existing delivered keys unchanged)
+
+| Key | English |
+|---|---|
+| `heading.testCatalog.labels.defaultLabels` | Default Labels for This Test |
+| `heading.testCatalog.labels.generationSettings` | Label Generation Settings |
+| `heading.testCatalog.labels.orderEntryPreview` | Order Entry Preview |
+| `helper.testCatalog.labels.orderEntryPreview` | When this test is ordered, the Labels section will be pre-populated as follows |
+| `label.testCatalog.labels.col.source` | Source |
+| `helper.testCatalog.labels.lockedQty` | Quantities are locked at order entry while override is off |
+| `label.testCatalog.terminology.displayName` | Display name |
+| `helper.testCatalog.terminology.displayNameAuto` | Fetched from the terminology service — edit if needed |
+| `label.testCatalog.list.noLoinc` | No LOINC |
+| `helper.testCatalog.sampleResults.sigDigitsExample` | Shown to the technician as 12.3 |
+| `note.testCatalog.sampleResults.rangesCrossLink` | Normal & critical ranges are set in the Ranges section |
+| `label.testCatalog.sampleResults.howCaptured` | How is this result captured? |
+| `empty.testCatalog.interpretations` | No flagging rules yet. Add one to auto-mark results like "Detected" as positive. |
+| `button.testCatalog.options.createNew` | Create "{value}" as a new option |
+| `helper.testCatalog.options.sortOrder` | The order options appear in the technician's result list |
+| `helper.testCatalog.components.displayOrder` | The order components appear in result entry and on reports |
+| `label.testCatalog.group.variantCount` | {n} specimen variants |
+| `label.testCatalog.group.statusSummary` | {a} Active · {i} Inactive |
+| `button.testCatalog.group.editTogether` | Edit variants together |
+| `button.testCatalog.group.addVariant` | Add specimen variant |
+| `button.testCatalog.list.viewGrouped` | Grouped |
+| `button.testCatalog.list.viewFlat` | Flat |
+| `label.testCatalog.list.showMoreVariants` | Show {n} more variants |
+| `filter.testCatalog.list.issuesOnly` | Only tests with issues |
+| `banner.testCatalog.list.issuesSummary` | {n} tests have configuration issues |
+| `button.testCatalog.list.showIssues` | Show |
+| `button.testCatalog.list.linkVariants` | Link as variants |
+| `button.testCatalog.group.unlink` | Unlink group |
+| `confirm.testCatalog.unlinkVariants` | Unlink this group? The {n} tests remain unchanged; they just stop grouping together. |
+| `warning.testCatalog.activate.loinc` | LOINC check: {detail}. You can activate anyway — this is a warning, not a block. |
+| `confirm.testCatalog.linkVariants` | Link these {n} tests as specimen variants of one assay? They will group together in the list. Names and codes are not changed. |
+| `label.testCatalog.variant.copyFrom` | Copy from |
+| `helper.testCatalog.variant.codeSuggested` | Suggested from the test name and specimen — edit to override |
+| `helper.testCatalog.variant.loincBlank` | LOINC codes are specimen-specific — the source test's code applies to {specimen} only |
+| `label.testCatalog.variant.domainInherited` | Inherited from {assay} — all variants share a domain |
+| `tag.testCatalog.component.copied` | Copied |
+| `banner.testCatalog.ranges.copiedReview` | Ranges copied from {test} — review for {specimen}, then save or mark reviewed |
+| `button.testCatalog.ranges.markReviewed` | Mark ranges reviewed |
+| `label.testCatalog.component.primary` | Primary component |
+| `heading.testCatalog.editor.completeness` | Completeness |
+| `heading.testCatalog.editor.requiredToActivate` | Required to activate |
+| `heading.testCatalog.editor.advisory` | Advisory |
+| `error.testCatalog.activate.blocked` | This test can't be activated yet |
+| `error.testCatalog.save.blockedBy` | Saving is blocked by {section}: {detail} |
+| `tag.testCatalog.finding.duplicateLoincSameSpecimen` | Duplicate LOINC (same specimen) |
+| `tag.testCatalog.finding.duplicateLoincCrossSpecimen` | Duplicate LOINC (cross-specimen) |
+| `tag.testCatalog.finding.noComponents` | No result components |
+| `tag.testCatalog.finding.emptyOptions` | Empty select list |
+| `tag.testCatalog.finding.legacyCascading` | Cascading (legacy) — convert to Multi-select |
+| `tag.testCatalog.finding.sampleTypeLinks` | Sample-type link problem |
+| `tag.testCatalog.finding.rangesIncomplete` | Ranges incomplete |
+| `tag.testCatalog.finding.rangesUnreviewed` | Copied ranges unreviewed |
+| `tag.testCatalog.finding.mixedDomains` | Mixed domains in group |
+| `tag.testCatalog.finding.missingDisplayName` | Mapping missing display name |
+
+## Acceptance spot checks
+
+1. A custom label preset created in Label Preset Management appears in the test editor's
+   Add Label Type picker; the Order Entry Preview shows type/qty/source and the locked-qty
+   note when override is off. (Verify at `/MasterListsPage/TestCatalogEditor/306/labels`.)
+2. Typing a nonexistent value in a Dictionary component's option search offers
+   "Create '{value}' as a new option"; accepting creates the dictionary entry and appends
+   it (sort order = max+1, no manual numbering needed).
+3. Glucose on Serum/Plasma/CSF: linked via selection → one group row, "3 specimen
+   variants"; `?view=flat` = delivered list unchanged; Unlink reverses with no field
+   changes.
+4. Add specimen variant from Glucose(Serum): typeahead excludes used specimens; assay name
+   + domain render as static text; code pre-derives (Glucose + CSF → suggested, stops on
+   edit); components arrive complete incl. the Dictionary option list; Terminology is empty
+   with the specimen-specific helper; Ranges shows the copied-drafts banner until saved or
+   Mark-ranges-reviewed; created Inactive.
+5. New from-scratch test: primary component pre-seeded; Save & Activate with empty result
+   type opens the completeness panel linking to the field; POSTing an activation for a
+   zero-component test via the REST API is refused with the same rule (FR-57 API-enforced).
+6. Two active tests, same LOINC + same specimen: both carry the error tag; the "! Only
+   tests with issues" toggle shows them; the combined editor and activation surfaces repeat
+   the warning (FR-72). The same LOINC across two *linked* variants shows Info, not
+   Warning.
+7. With ranges incomplete, Save names the Ranges section inline, badges it in the nav, and
+   marks the rows — at no point silently inert.
+
+## Suggested slicing (PR-sized, D-026 — the implementing dev owns the final breakdown)
+
+| Slice | Content | Size |
+|---|---|---|
+| P1 | Quick corrections: FR-66/67 Labels (+ live-route verify), FR-68 legacy tab retirement, FR-78 dead buttons, FR-79 panels polish, FR-80 AMR tag, FR-86 storage value lists | S |
+| P2 | LOINC surfacing: FR-71 list tag (row DTO), FR-72 combined-editor + activation checks | S–M |
+| P3 | Terminology: FR-69 display name + lookup + FR-62.i backfill finding, FR-70 relationship required | M |
+| P4 | Sample & Results touch-ups: FR-81/82 guidance + coaching, FR-83 inline new option, FR-84 sort-order helpers, FR-85/77 live preview, FR-76 type-aware defaults, FR-75 cascading retirement | M |
+| P5 | Create integrity: FR-56–60 (pre-seeded primary, API-enforced gate, checklist, no-silent-save) | M |
+| P6 | Grouped list: FR-46–50 + variant-link datum (read paths + link/unlink UI FR-51) | M–L |
+| P7 | Add specimen variant: FR-52–55 (+ wire "Save as new test…" per FR-78) | M–L |
+| P8 | Catalog health: FR-61–65 (server findings, tags, banner, toggle) | M |
+| P9 | Combined-editor depth: FR-73/74 (schedule with P6 — same surface) | L |
+
+Order: P1–P4 are independent of P5–P9 and can ship immediately. P6 precedes P7 (entry
+points) and P9 (surface). Every slice independently shippable; acceptance criteria above
+are machine-checkable per slice.
+
+## Decisions (resolved 2026-07-14, Casey)
+
+1. **Storage value lists — restore (FR-86).** The spec'd values are standard lab practice;
+   see FR-86 in Part A.
+2. **Cascading — retired (FR-75).** Removed from the chooser; existing `result_type='C'`
+   tests keep working, marked legacy with a convert-to-Multi-select suggestion. The FR-30
+   grouping UI is not built; the earlier gate/flag plan is superseded.
+3. **Terminology store — one polymorphic store (recommendation, mechanism still dev's
+   call).** One mapping shape (entity type + entity id + source + code + display name +
+   relationship) serves tests, panels, and sample types: one mapper UI, one validation
+   path, WHONET and Display Name added once instead of three times, and future entities
+   join free. The cost is app-level (not FK-level) referential integrity on the entity id —
+   acceptable in this codebase. Three parallel per-entity tables triplicate every future
+   change and will drift.
 
 
 ---
@@ -1293,687 +1873,144 @@ Administration â†’ General Configurations â†’ Dictionary Menu
 
 ---
 
-# Lab Units (admin-config)
-Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/lab-units
+# Lab Units Management (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/lab-units-management
+Jira: OGC-189
 
-# Lab Units Management Redesign
+# Lab Units Management — Approach Update
 
-## Overview
+**Feature slug:** `lab-units-management`
+**Target Release:** OpenELIS Global v3.2
+**Version:** 2.0 (2026-07-15) — rebased on the real data model (`TEST_SECTION`); aligned to the Test Catalog Management shell
+**Jira:** OGC-189 (this story) · OGC-290 · OGC-361 (domain — see Build Reality) · OGC-949 (umbrella) · siblings: OGC-224 (Panels), OGC-296 (Sample Types)
 
-Comprehensive redesign of the Lab Units (Laboratory Sections/Departments) management interface in OpenELIS Global. Consolidates all lab unit configuration into a unified editor with vertical tab navigation.
-
-**Target Release:** OpenELIS Global v3.2 (Q1 2026)
-
----
-
-## Problem Statement
-
-Current lab units management is fragmented:
-- Features separated across multiple screens
-- No unified view of all items assigned to a lab unit
-- Difficult to bulk reassign tests when reorganizing
-- No clear relationship between lab units and programs/projects/workflows
-- Missing import/export for configuration sharing
+> **Why v2.0:** the previous `lab-units.md` was written without inspecting the schema. It
+> targets a nonexistent `lab_unit` table (the real entity is **`TEST_SECTION`**), requires a
+> "Code/Abbreviation" column that doesn't exist, marks Description optional (it's NOT NULL),
+> proposes adding `display_order`/`description_key` columns that duplicate existing
+> `sort_order`/localization, and invents Programs/Projects/Workflows junctions against
+> speculative tables. It also specified bulk assign, import/export, and a 3-option
+> deactivation cascade — all out of scope here. This version specifies only what the real
+> model supports, in the same shell pattern as Panels and Sample Types.
 
 ---
 
-## Solution
+## Lab Context
 
-A unified Lab Units management interface with:
-- List view with drag-and-drop ordering
-- Detail editor with vertical tabs
-- Bulk assignment and reassignment tools
-- Activation/deactivation with cascade prompts
-- File-based import/export
+### Current State
+A **lab unit** (historically "test section") is the bench or department that performs a
+test — Chemistry, Hematology, Microbiology, Serology. Every test belongs to exactly one lab
+unit, which drives workplans, result-entry grouping, and reporting rollups. Lab units are
+configured today on a legacy Master Lists page, disconnected from the tests they organize.
 
----
+### Pain
+The list is flat and unmanaged: no view of which tests a unit carries, renames risk breaking
+what technologists see mid-shift, and there's no home for lab units beside the tests,
+panels, and sample types they relate to. The word "test section" survives in the UI even
+though everyone says "lab unit".
 
-## Lab Unit Editor Tabs
-
-| Section | Tab | Description |
-|---------|-----|-------------|
-| **Configuration** | Basic Info | Name, code, description, display order, status |
-| **Configuration** | Workflows | Custom workflows assigned to this lab unit |
-| **Assignments** | Tests | Tests assigned to this lab unit |
-| **Assignments** | Panels | Panels assigned to this lab unit |
-| **Assignments** | Programs | Clinical programs with order entry forms |
-| **Assignments** | Projects | Lab notebook projects |
-| **Data** | Import/Export | File-based configuration transfer |
+### What Changes
+Lab units join the **Test Catalog Management** shell as a fourth context beside Tests,
+Panels, and Sample Types — same list pattern, same editor shell, same deactivate-only
+lifecycle. Each unit shows its basics and, read-only, the tests assigned to it (assignment
+itself stays on the test, where it already lives).
 
 ---
 
-## List View
-
-### Layout
-- Full-width table with sortable columns
-- Toolbar with filters and actions
-- Pagination footer
-
-### Toolbar
-- "Add Lab Unit" button (primary)
-- "Import" button (secondary)
-- "Export" button (secondary)
-- Search input (name/code)
-- Status filter (All, Active, Inactive)
-- Lab units count display
-
-### Table Columns
-
-| Column | Width | Sortable | Description |
-|--------|-------|----------|-------------|
-| Order | 80px | Yes | Display order number |
-| Lab Unit Name | flex | Yes | Full name, clickable row to open editor |
-| Code | 100px | Yes | Abbreviation (monospace) |
-| Tests | 80px | Yes | Number of assigned tests |
-| Panels | 80px | Yes | Number of assigned panels |
-| Programs | 100px | Yes | Number of assigned programs |
-| Workflows | 100px | Yes | Number of assigned workflows |
-| Status | 100px | No | Active/Inactive badge |
-| Actions | 80px | No | Edit button, More menu |
-
-### Sorting Behavior
-- Click column header to sort ascending
-- Click again to toggle to descending
-- Sort icon indicates current sort direction
-- Default sort: Display Order ascending
-
-### Row Behavior
-- Entire row clickable to open editor
-- Hover highlight on row
-- Action buttons use stopPropagation to prevent row click
-
-### Pagination
-- Page size options: 25, 50, 100 (default 25)
-- Navigation: First, Previous, numbered pages, Next, Last
-- Status text: "Showing X to Y of Z lab units"
-- Filters reset to page 1 when changed
-
----
-
-## Basic Info Tab
-
-### Fields
-
-| Field | Description | Required |
-|-------|-------------|----------|
-| **Lab Unit Name** | Full name (e.g., "Clinical Chemistry") | Yes |
-| **Code/Abbreviation** | Short code (e.g., "CHEM") | Yes |
-| **Description** | Detailed description | No |
-| **Display Order** | Numeric sequence for display | Yes (auto) |
-| **Active** | Whether unit is active | Yes |
-| **External ID** | For integration mapping | No |
-
-### Localization
-- Name and description support multiple languages
-- Uses same fallback chain as test catalog
-
-### Status Toggle
-When toggling Active status:
-- Show confirmation dialog with impact summary
-- Count of affected tests, panels, programs, projects
-- Option to cascade (deactivate all assigned items)
-- Option to reassign items to another lab unit first
-
----
-
-## Workflows Tab
-
-### Purpose
-Assign custom workflows that apply to this lab unit. Workflows control:
-- Result entry process (single entry, dual entry, supervisor review)
-- Validation requirements
-- Auto-verification rules
-- Turnaround time tracking
-
-### Workflow Assignment
-- List of available workflows
-- Multi-select to assign
-- One workflow can be marked as default
-- Workflows can be shared across lab units or exclusive
-
-### Display
-Table showing assigned workflows:
-- Workflow name
-- Type (Result Entry, Validation, etc.)
-- Default indicator
-- Remove action
-
-### Inline Workflow Reference
-Link to Workflow management for creating/editing workflows (not inline creation - workflows are complex)
-
----
-
-## Tests Tab
-
-### Current Assignments
-Table showing tests assigned to this lab unit:
-- Test name
-- Test code
-- LOINC code
-- Status (Active/Inactive)
-- Primary indicator (if test belongs to multiple units)
-- Actions: Remove, Set as Primary
-
-### Bulk Actions Toolbar
-- **Assign Tests**: Open test selector to add tests
-- **Reassign Selected**: Move selected tests to another lab unit
-- **Remove Selected**: Unassign selected tests (with confirmation)
-- **Activate/Deactivate Selected**: Bulk status change
-
-### Assign Tests Modal
-- Search/filter available tests
-- Multi-select with checkboxes
-- Filter by: Currently unassigned, All tests, From specific unit
-- Shows current assignment if test is already assigned elsewhere
-- Confirmation prompt before assignment
-
-### Reassign Tests Flow
-
-1. Select tests to reassign (checkboxes)
-2. Click "Reassign Selected"
-3. **Reassignment Dialog:**
-   ```
-   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-   â”‚ Reassign 12 Tests                                       â”‚
-   â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-   â”‚ You are about to reassign 12 tests from:                â”‚
-   â”‚   Clinical Chemistry                                    â”‚
-   â”‚                                                         â”‚
-   â”‚ Select destination lab unit:                            â”‚
-   â”‚ [Dropdown: Select lab unit...           â–¼]              â”‚
-   â”‚                                                         â”‚
-   â”‚ â˜‘ Keep reference to original unit (secondary)           â”‚
-   â”‚                                                         â”‚
-   â”‚ Tests to reassign:                                      â”‚
-   â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
-   â”‚ â”‚ â€¢ Glucose, Fasting (GLU)                            â”‚ â”‚
-   â”‚ â”‚ â€¢ HbA1c (HBA1C)                                     â”‚ â”‚
-   â”‚ â”‚ â€¢ Cholesterol, Total (CHOL)                         â”‚ â”‚
-   â”‚ â”‚ â€¢ ... and 9 more                                    â”‚ â”‚
-   â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
-   â”‚                                                         â”‚
-   â”‚ [Cancel]                      [Reassign Tests]          â”‚
-   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-   ```
-4. Confirm destination and options
-5. Execute reassignment with success message
-
-### Test Count Summary
-Header shows: "47 tests assigned (42 active, 5 inactive)"
-
----
-
-## Panels Tab
-
-### Current Assignments
-Table showing panels assigned to this lab unit:
-- Panel name
-- Panel code
-- Test count (e.g., "8 tests")
-- Status (Active/Inactive)
-- Actions: View Tests, Remove
-
-### Bulk Actions
-- **Assign Panels**: Open panel selector
-- **Reassign Selected**: Move to another lab unit
-- **Remove Selected**: Unassign (with confirmation)
-
-### Panel Assignment
-Similar flow to tests:
-- Search/filter panels
-- Multi-select
-- Shows which lab unit panel is currently assigned to
-- Confirmation before assignment
-
-### View Tests Expansion
-Expandable row showing all tests in the panel with their status.
-
----
-
-## Programs Tab
-
-### Purpose
-Clinical programs (HIV, TB, Malaria, etc.) that:
-- Have custom order entry forms
-- May have specific reporting requirements
-- Are tracked for program-level analytics
-
-### Current Assignments
-Table showing programs assigned to this lab unit:
-- Program name
-- Program code
-- Order entry form (linked)
-- Patient count (active patients in program)
-- Status
-- Actions: Configure, Remove
-
-### Assign Programs Modal
-- List available programs
-- Shows current lab unit assignment
-- Multi-select
-- Confirmation prompt
-
-### Program Configuration
-For each assigned program, configure:
-- Default order entry form
-- Required fields for this lab unit
-- Auto-add tests (tests automatically added for program patients)
-
----
-
-## Projects Tab
-
-### Purpose
-Lab notebook projects (research studies, QA projects) that:
-- Have custom order entry screens
-- Are tracked separately from clinical programs
-- Have defined start/end dates
-- May have specific consent requirements
-
-### Current Assignments
-Table showing projects assigned to this lab unit:
-- Project name
-- Project code
-- Principal Investigator
-- Status (Active/Completed/On Hold)
-- Sample count
-- Date range
-- Actions: View Details, Remove
-
-### Assign Projects Modal
-- List available projects
-- Filter by status
-- Shows current assignment
-- Multi-select with confirmation
-
-### Project Details
-Expandable section showing:
-- Full project description
-- Order entry form assigned
-- Enrolled patients/samples
-- Date range
-
----
-
-## Import/Export Tab
-
-### Export
-
-**Export Options:**
-- Lab unit configuration only
-- Lab unit + test assignments
-- Lab unit + all assignments (tests, panels, programs, projects, workflows)
-- Multiple lab units (select which to export)
-
-**Export Format:**
-- JSON (machine-readable, for import)
-- CSV (for review/documentation)
-
-**Export Content:**
-```json
-{
-  "exportVersion": "1.0",
-  "exportDate": "2025-12-12T14:30:00Z",
-  "labUnits": [
-    {
-      "code": "CHEM",
-      "name": "Clinical Chemistry",
-      "description": "...",
-      "displayOrder": 1,
-      "isActive": true,
-      "tests": [
-        { "code": "GLU", "loincCode": "1558-6", "isPrimary": true },
-        { "code": "HBA1C", "loincCode": "4548-4", "isPrimary": true }
-      ],
-      "panels": [
-        { "code": "BMP", "name": "Basic Metabolic Panel" }
-      ],
-      "programs": [
-        { "code": "DM", "name": "Diabetes Management" }
-      ],
-      "workflows": [
-        { "code": "DUAL_ENTRY", "isDefault": true }
-      ]
-    }
-  ]
-}
-```
-
-### Import
-
-**Import Options:**
-- Create new lab units only
-- Update existing (match by code)
-- Create new + update existing
-
-**Import Validation:**
-- Validate JSON structure
-- Check for duplicate codes
-- Verify referenced items exist (tests, panels, etc.)
-- Preview changes before applying
-
-**Import Preview:**
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Import Preview                                          â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ File: lab-units-export-2025-12-12.json                  â”‚
-â”‚                                                         â”‚
-â”‚ Changes to be applied:                                  â”‚
-â”‚                                                         â”‚
-â”‚ âœ“ CREATE: Molecular Biology (MOL)                       â”‚
-â”‚   - 15 tests to assign                                  â”‚
-â”‚   - 2 panels to assign                                  â”‚
-â”‚                                                         â”‚
-â”‚ âœ“ UPDATE: Clinical Chemistry (CHEM)                     â”‚
-â”‚   - Add 3 tests                                         â”‚
-â”‚   - Remove 1 panel                                      â”‚
-â”‚                                                         â”‚
-â”‚ âš  WARNING: 2 tests not found in system                  â”‚
-â”‚   - PCR-COVID19                                         â”‚
-â”‚   - PCR-FLU                                             â”‚
-â”‚                                                         â”‚
-â”‚ [Cancel]              [Import with Warnings]  [Import]  â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
----
-
-## Activation/Deactivation Flow
-
-### Deactivate Lab Unit
-
-When user clicks "Deactivate" or toggles status to inactive:
-
-**Step 1: Impact Summary**
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Deactivate Lab Unit                                     â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ You are about to deactivate:                            â”‚
-â”‚   Clinical Chemistry (CHEM)                             â”‚
-â”‚                                                         â”‚
-â”‚ This will affect:                                       â”‚
-â”‚   â€¢ 47 tests                                            â”‚
-â”‚   â€¢ 8 panels                                            â”‚
-â”‚   â€¢ 3 programs                                          â”‚
-â”‚   â€¢ 2 projects                                          â”‚
-â”‚                                                         â”‚
-â”‚ Deactivated lab units are hidden from order entry       â”‚
-â”‚ but historical data is preserved.                       â”‚
-â”‚                                                         â”‚
-â”‚ What would you like to do with assigned items?          â”‚
-â”‚                                                         â”‚
-â”‚ â—‹ Keep assignments (items remain but unit is hidden)    â”‚
-â”‚ â—‹ Deactivate all assigned items                         â”‚
-â”‚ â—‹ Reassign items to another lab unit first              â”‚
-â”‚                                                         â”‚
-â”‚ [Cancel]                              [Continue]        â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-**Step 2a: If "Reassign items first"**
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Reassign Items Before Deactivation                      â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ Select destination for each item type:                  â”‚
-â”‚                                                         â”‚
-â”‚ Tests (47):                                             â”‚
-â”‚ [Dropdown: Select lab unit...           â–¼]              â”‚
-â”‚                                                         â”‚
-â”‚ Panels (8):                                             â”‚
-â”‚ [Dropdown: Select lab unit...           â–¼]              â”‚
-â”‚                                                         â”‚
-â”‚ Programs (3):                                           â”‚
-â”‚ [Dropdown: Select lab unit...           â–¼]              â”‚
-â”‚                                                         â”‚
-â”‚ Projects (2):                                           â”‚
-â”‚ [Dropdown: Select lab unit...           â–¼]              â”‚
-â”‚                                                         â”‚
-â”‚ [Back]              [Reassign and Deactivate]           â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-**Step 2b: If "Deactivate all assigned items"**
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ âš  Confirm Bulk Deactivation                             â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ This will deactivate:                                   â”‚
-â”‚                                                         â”‚
-â”‚   â€¢ Clinical Chemistry lab unit                         â”‚
-â”‚   â€¢ 47 tests (will not appear in order entry)           â”‚
-â”‚   â€¢ 8 panels (will not appear in order entry)           â”‚
-â”‚   â€¢ 3 programs (patients can still be enrolled)         â”‚
-â”‚   â€¢ 2 projects (existing samples preserved)             â”‚
-â”‚                                                         â”‚
-â”‚ This action can be reversed by reactivating the         â”‚
-â”‚ lab unit and its items individually.                    â”‚
-â”‚                                                         â”‚
-â”‚ Type "DEACTIVATE" to confirm:                           â”‚
-â”‚ [                                              ]        â”‚
-â”‚                                                         â”‚
-â”‚ [Cancel]                              [Deactivate All]  â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
-### Activate Lab Unit
-
-When activating a previously deactivated lab unit:
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Activate Lab Unit                                       â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ You are about to activate:                              â”‚
-â”‚   Clinical Chemistry (CHEM)                             â”‚
-â”‚                                                         â”‚
-â”‚ Currently assigned items:                               â”‚
-â”‚   â€¢ 47 tests (12 active, 35 inactive)                   â”‚
-â”‚   â€¢ 8 panels (3 active, 5 inactive)                     â”‚
-â”‚   â€¢ 3 programs (all active)                             â”‚
-â”‚   â€¢ 2 projects (1 active, 1 completed)                  â”‚
-â”‚                                                         â”‚
-â”‚ Would you like to activate all inactive items?          â”‚
-â”‚                                                         â”‚
-â”‚ â—‹ Activate lab unit only                                â”‚
-â”‚ â—‹ Activate lab unit and all inactive tests/panels       â”‚
-â”‚                                                         â”‚
-â”‚ [Cancel]                              [Activate]        â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
-
----
-
-## Data Model
-
-### Core Tables
-
-```sql
--- Lab Unit (may already exist, showing additions)
-ALTER TABLE lab_unit ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0;
-ALTER TABLE lab_unit ADD COLUMN IF NOT EXISTS external_id VARCHAR(50);
-ALTER TABLE lab_unit ADD COLUMN IF NOT EXISTS description_key INTEGER REFERENCES localization(id);
-
--- Lab Unit Workflow Assignment
-CREATE TABLE lab_unit_workflow (
-    id SERIAL PRIMARY KEY,
-    lab_unit_id INTEGER NOT NULL REFERENCES lab_unit(id),
-    workflow_id INTEGER NOT NULL REFERENCES workflow(id),
-    is_default BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (lab_unit_id, workflow_id)
-);
-
--- Lab Unit Program Assignment
-CREATE TABLE lab_unit_program (
-    id SERIAL PRIMARY KEY,
-    lab_unit_id INTEGER NOT NULL REFERENCES lab_unit(id),
-    program_id INTEGER NOT NULL REFERENCES program(id),
-    default_order_form_id INTEGER REFERENCES questionnaire(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (lab_unit_id, program_id)
-);
-
--- Lab Unit Project Assignment
-CREATE TABLE lab_unit_project (
-    id SERIAL PRIMARY KEY,
-    lab_unit_id INTEGER NOT NULL REFERENCES lab_unit(id),
-    project_id INTEGER NOT NULL REFERENCES project(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (lab_unit_id, project_id)
-);
-
--- Existing table for test assignment (likely exists)
--- test.lab_unit_id or test_lab_unit junction table
-
--- Existing table for panel assignment
--- panel.lab_unit_id or panel_lab_unit junction table
-```
-
-### Import/Export Audit
-
-```sql
-CREATE TABLE lab_unit_import_log (
-    id SERIAL PRIMARY KEY,
-    import_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    imported_by INTEGER REFERENCES system_user(id),
-    file_name VARCHAR(255),
-    lab_units_created INTEGER DEFAULT 0,
-    lab_units_updated INTEGER DEFAULT 0,
-    tests_assigned INTEGER DEFAULT 0,
-    panels_assigned INTEGER DEFAULT 0,
-    warnings TEXT,
-    import_data JSONB
-);
-```
-
----
-
-## API Endpoints
-
-### Lab Unit CRUD
-- `GET /api/lab-units` - List with counts
-- `GET /api/lab-units/{id}` - Get with all assignments
-- `POST /api/lab-units` - Create
-- `PUT /api/lab-units/{id}` - Update
-- `DELETE /api/lab-units/{id}` - Soft delete
-
-### Ordering
-- `PUT /api/lab-units/reorder` - Update display order for multiple units
-
-### Assignments
-- `GET /api/lab-units/{id}/tests` - List assigned tests
-- `POST /api/lab-units/{id}/tests` - Assign tests
-- `DELETE /api/lab-units/{id}/tests` - Remove test assignments
-- `POST /api/lab-units/{id}/tests/reassign` - Bulk reassign tests
-
-- `GET /api/lab-units/{id}/panels` - List assigned panels
-- `POST /api/lab-units/{id}/panels` - Assign panels
-- `DELETE /api/lab-units/{id}/panels` - Remove panel assignments
-
-- `GET /api/lab-units/{id}/programs` - List assigned programs
-- `POST /api/lab-units/{id}/programs` - Assign programs
-- `DELETE /api/lab-units/{id}/programs` - Remove program assignments
-
-- `GET /api/lab-units/{id}/projects` - List assigned projects
-- `POST /api/lab-units/{id}/projects` - Assign projects
-- `DELETE /api/lab-units/{id}/projects` - Remove project assignments
-
-- `GET /api/lab-units/{id}/workflows` - List assigned workflows
-- `POST /api/lab-units/{id}/workflows` - Assign workflows
-- `DELETE /api/lab-units/{id}/workflows` - Remove workflow assignments
-
-### Status
-- `POST /api/lab-units/{id}/activate` - Activate with options
-- `POST /api/lab-units/{id}/deactivate` - Deactivate with options
-
-### Import/Export
-- `GET /api/lab-units/export` - Export selected units
-- `POST /api/lab-units/import/validate` - Validate import file
-- `POST /api/lab-units/import` - Execute import
-
----
-
-## Acceptance Criteria
-
-### List View
-- [ ] Lab units displayed in sortable list
-- [ ] Drag-and-drop reordering functional
-- [ ] Display order persists and affects system-wide display
-- [ ] Status filter (All/Active/Inactive) works
-- [ ] Search by name or code works
-- [ ] Quick summary panel shows counts and status
-
-### Basic Info Tab
-- [ ] All fields editable with validation
-- [ ] Localized name/description supported
-- [ ] Display order editable
-- [ ] Status toggle shows confirmation dialog
-
-### Tests Tab
-- [ ] Assigned tests displayed in table
-- [ ] Bulk assign tests functional
-- [ ] Bulk reassign with confirmation prompt
-- [ ] Reassignment shows destination selector
-- [ ] Reassignment shows list of affected tests
-- [ ] Remove tests with confirmation
-- [ ] Test counts accurate in header
-
-### Panels Tab
-- [ ] Assigned panels displayed
-- [ ] Bulk assign/reassign/remove functional
-- [ ] View tests expansion works
-
-### Programs Tab
-- [ ] Assigned programs displayed
-- [ ] Assign/remove programs functional
-- [ ] Order entry form linkage visible
-
-### Projects Tab
-- [ ] Assigned projects displayed
-- [ ] Assign/remove projects functional
-- [ ] Project status and date range visible
-
-### Workflows Tab
-- [ ] Assigned workflows displayed
-- [ ] Default workflow selectable
-- [ ] Assign/remove workflows functional
-
-### Activation/Deactivation
-- [ ] Deactivate shows impact summary
-- [ ] Option to keep assignments
-- [ ] Option to deactivate all items
-- [ ] Option to reassign before deactivating
-- [ ] Reassignment allows per-type destination
-- [ ] Confirmation required for bulk deactivation
-- [ ] Activate shows option to activate inactive items
-
-### Import/Export
-- [ ] Export lab unit configuration to JSON
-- [ ] Export includes test/panel/program assignments
-- [ ] Export multiple units at once
-- [ ] Import validates file before applying
-- [ ] Import preview shows changes
-- [ ] Import handles missing references with warnings
-- [ ] Import log created for audit
-
----
-
-## UI Navigation
-
-**Menu Location:** Admin > Lab Unit Setup
-
-**Breadcrumb:** Admin > Lab Unit Setup > [Lab Unit Name]
-
----
-
-## Related Features
-
-- **Test Catalog (OGC-173)**: Tests reference lab units; changes here affect test assignments
-- **Order Entry Forms (OGC-113)**: Programs and projects have custom order entry screens
-- **Workflows**: Custom workflows per lab unit for result entry/validation
+## The real data model (verified in source — full reference: `test-catalog-data-model.md`)
+
+**Entity:** `test.valueholder.TestSection` (lives in the `test` package), table
+**`TEST_SECTION`**: `NAME` varchar(20) · `DESCRIPTION` varchar(60) **NOT NULL** ·
+`display_key` varchar(60) · `IS_EXTERNAL` char(1) · `is_active` · `ORG_ID` FK →
+Organization · `name_localization_id` FK · **`PARENT_TEST_SECTION` self-FK (hierarchy)** ·
+`sort_order` integer. Tests link via `test.test_section_id`.
+
+- **No code column exists** — the v1 spec's required "Code/Abbreviation" is dropped.
+- **No domain column on develop** — despite OGC-361's ticket status, a repo-wide search
+  finds no trace (D-025: Done ≠ shipped). See Build Reality below.
+- **Hierarchy exists in the schema, not in this UI (decision):** `PARENT_TEST_SECTION` is
+  real but no shipped surface consumes it visibly. v1 renders lab units as a **flat list**,
+  documents the column, and neither edits nor invents hierarchy. If a real nesting need
+  emerges, it's its own design pass.
+- `ORG_ID` and `IS_EXTERNAL` are shown read-only where set (integration/reference facts,
+  not routine admin edits).
+
+## Surface & IA
+
+**Lab Units** is a peer context under `Test Catalog Management` (Tests / Panels / Sample
+Types / **Lab Units**). List route `/admin/TestCatalogList?entity=labunits`; editor
+`/MasterListsPage/TestCatalogEditor/labUnit/<id>/<section>`; breadcrumb
+`Home / Admin Management / Test Catalog Management / Lab Units / <name>`. Replaces the
+legacy Test Section Master Lists page. Terminology is **"Lab Unit"** everywhere; "test
+section" never appears in UI copy.
+
+## Lab Units list
+
+Columns: **Name** · **Description** · **Domain** (tag — once built, see Build Reality) ·
+**Tests** (count) · **Status** · **Actions**. Filters: search, Domain, Status.
+"**Add Lab Unit**" opens a blank record in the editor shell (inline, not a modal).
+
+## Editor sections (SideNav submenus — same shell, no tabs)
+
+### Basic Info
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| **Name** | Text | Yes | varchar(20) — enforce length in UI; localized display via existing localization FK |
+| **Description** | Text | **Yes** | varchar(60) NOT NULL (v1 spec wrongly said optional) |
+| **Domain** | Radio | Yes (once built) | Exactly one of Clinical / Environmental / Vector — Dependency 2; Clinical primary at launch |
+| **External** | Read-only tag | — | Shows `IS_EXTERNAL` when set; not editable here |
+| **Organization** | Read-only | — | Shows linked org when set |
+| **Active** | Toggle | Yes | **On deactivate with N active tests assigned:** warn — "{n} active tests are assigned to this lab unit; they keep working but won't appear under it in workplans until it's reactivated or they're reassigned." No cascade, reversible. Reassignment happens per test (Basic Info → Lab Unit), not in bulk here |
+
+### Associated Tests — read-only
+Lists the tests whose `test_section_id` points here (name, code, sample type, status), each
+linking to **Open in Test Catalog**. Assignment is a *test* attribute edited in the test's
+Basic Info — not duplicated here (the same view-don't-write pattern as Sample Types'
+Associated Tests).
+
+### Display Order
+Position in lab-unit ordering (`sort_order`) — same all-rows-with-this-one-highlighted
+pattern as Sample Types.
+
+*(No Terminology section — lab units have no coded-terminology need today. No
+Programs/Projects/Workflows tabs — those junctions don't exist; out of scope.)*
+
+## Build Reality — Domain (OGC-361)
+
+The handoff record says lab-unit domain is "Done (OGC-361)". **Source contradicts this:**
+no `test_section` migration exists on develop and OGC-361 appears nowhere in the repo.
+Until reconciled, this FRS treats domain as **Dependency 2 (unbuilt)** — same declared-
+migration pattern as Panels (column + backfill to CLINICAL, mechanism dev's call). The
+Domain field ships with the dependency, not before. **Action for Casey:** reconcile the
+Jira status vs the branch before dev picks this up.
+
+## Access
+Existing **Test Catalog Manager / Admin** capability, same as the rest of the shell.
+
+## Dependencies (net-new)
+1. **Lab Units context + editor** in the shell (list + `/rest/test-catalog/lab-units`).
+   *Backend + frontend.*
+2. **Domain on TEST_SECTION** — single required Clinical/Environmental/Vector, backfill
+   CLINICAL (OGC-936 pattern). Mechanism dev's call; reconcile OGC-361 first. *Backend.*
+
+## Out of scope
+- Hierarchy editing (`PARENT_TEST_SECTION` documented, untouched).
+- Bulk test reassignment, import/export, deactivation cascade (v1 spec's versions rejected).
+- Programs / Projects / Workflows assignment tabs (junctions don't exist).
+- A code/abbreviation field (no column; not invented).
+
+## Localization (new keys)
+| Key | English |
+|---|---|
+| `label.testCatalog.entity.labUnits` | Lab Units |
+| `label.labUnit.name` | Name |
+| `label.labUnit.description` | Description |
+| `tag.labUnit.external` | External |
+| `warning.labUnit.deactivateInUse` | {n} active tests are assigned to this lab unit; they keep working but won't appear under it in workplans until it's reactivated or they're reassigned. |
+| `note.labUnit.associatedTests.viewOnly` | View only — a test's lab unit is set on the test (Basic Info → Lab Unit). |
+| `link.labUnit.associatedTests.openTest` | Open in Test Catalog |
+
+Missing keys fall back to English.
 
 
 ---
@@ -4137,472 +4174,167 @@ OpenELIS Global localizes via Spring `MessageSource` keys. This FRS specifies th
 
 ---
 
-# Panel (admin-config)
-Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/panel
+# Panel Management (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/panel-management
+Jira: OGC-224
 
-# Panel Management Redesign
+# Panel Management — Domain Upgrade
 
-## Overview
+**Feature slug:** `panel-management-domain`
+**Target Release:** OpenELIS Global v3.2
+**Version:** 2.2 (2026-07-14) — aligned to the verified Test Catalog data model reference (`test-catalog-data-model.md`) and the Test Catalog Manageability decisions
+**Jira:** OGC-224 (this epic) · OGC-753 + OGC-980/981/982 (test-side Panels section, built) · OGC-1140 (inline create inherits domain) · OGC-949 (Test Catalog Management umbrella)
+**Related surfaces (planned, separate):** OGC-296 (Sample Type management) · OGC-189 (Lab Units management)
 
-Comprehensive redesign of the Panel management interface in OpenELIS Global. Panels are predefined groups of tests that are ordered together, with configurable display order and panel-specific LOINC codes for each test.
-
-**Target Release:** OpenELIS Global v3.2 (Q1 2026)
-**Version:** 1.2 (2026-04-23)
-**Related Modules:** Test Catalog, Results Entry, Vector Testing & Identification (V-03, OGC-583)
-
-### Change Log
-- **v1.2 (2026-04-23):** Removed `ALL` from `panelDomain` enum. Every panel must be explicitly assigned to exactly one domain (CLINICAL, ENVIRONMENTAL, or VECTOR). Default changed from ALL to CLINICAL. Domain routing is determined by the assigned lab unit's domain — the order entry UI never needs a panel from a different domain. Vector Config tab is now shown only when domain = VECTOR (not "VECTOR or ALL").
-- **v1.1 (2026-04-17):** Added `panelDomain` field and conditional Vector Configuration section to Basic Info tab. Vector panels are now a configuration step within the unified Panel editor — no separate VectorTestPanel entity. Adds Domain column and Domain filter to list view.
-
----
-
-## Problem Statement
-
-Current panel management lacks:
-- Easy configuration of test order within panels
-- Panel-specific LOINC codes for tests
-- Drag-and-drop reordering
-- Bulk import/export capabilities
-- Clear association with lab units and sample types
+> **Why v2.0:** the previous draft (v1.x) described an aspirational model — a per-test "panel LOINC," a panel `code`, panel-level lab units, stored panel sample types, and bulk import/export. Verified against source (`panel.Panel`, `panelitem.PanelItem`, and the OGC-949 API contract), **none of those exist**. This version is rebased on what a Panel really is and adds the one thing this effort is actually about: a **Domain** on the panel.
+>
+> **v2.1 (2026-07-14):** (1) Panels adopt the **full terminology mapper** the test editor uses (LOINC / SNOMED / CIEL / OCL, + proposed **WHONET**) instead of a lone LOINC string — the LOINC becomes the primary mapping in a new **Terminology** section. (2) IA correction: the editor's sections are **main-menu SideNav submenus** one level below the entity (Admin › Test Catalog Management › Panels › Basic Info / Tests / Terminology), **not** an editor-local rail and not in-page tabs. (3) Sample Type management will need the parallel updates (domain-aware + terminology mapper) — flagged on OGC-296.
+>
+> **v2.2 (2026-07-14):** aligned to the source-verified data model reference: (1) **`SAMPLETYPE_PANEL` is live in order entry and e-order intake** — panel sample types stay UI-derived, but membership writes must keep the junction in sync; (2) **panel LOINC is a live routing key at FHIR intake** (`getPanelByLoincCode`), not just metadata; (3) PanelItem's legacy columns and missing pair-uniqueness recorded; (4) the migration SQL sketch replaced by a behavioral dependency (schema mechanics are dev's call); (5) touchpoints with the Test Catalog Manageability variant model noted.
 
 ---
 
-## Solution
+## Lab Context
 
-A unified Panel management interface with:
-- List view with filtering by lab unit and status
-- Detail editor with test assignment and ordering
-- Panel-specific LOINC codes per test
-- Drag-and-drop and numeric ordering
-- Bulk import/export with panel selection
+### Current State
+A **panel** is a named bundle of tests a lab orders together — "Complete Blood Count" pulls white cells, red cells, hemoglobin, and so on. In OpenELIS a panel is a small record: a **name**, an optional **description**, a single **LOINC** code (the standardized identifier for the whole panel), a **sort order**, and an ordered list of its member tests. Panels are managed today on a set of separate legacy "Master Lists" pages (create a panel, order its tests, assign tests to it).
 
----
+### Pain
+Panels have **no notion of what kind of testing they belong to**. OpenELIS now runs three kinds of work — routine **clinical** testing, **environmental** testing (e.g. water quality), and **vector** surveillance (e.g. mosquito-borne disease). Nothing stops an admin from putting an environmental test and a clinical test in the same panel, which produces a nonsensical order and muddies where the panel shows up. There's also no single place to manage panels alongside the rest of the catalog — they live on their own legacy pages, disconnected from the test editor.
 
-## Data Model
-
-```sql
--- Panel (may already exist, showing full structure)
-CREATE TABLE panel (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(200) NOT NULL,
-    code VARCHAR(50) NOT NULL UNIQUE,
-    description TEXT,
-    loinc_code VARCHAR(20),
-    is_active BOOLEAN DEFAULT TRUE,
-    display_order INTEGER DEFAULT 0,
-    -- v1.1: domain classification
-    panel_domain VARCHAR(20) NOT NULL DEFAULT 'CLINICAL',  -- CLINICAL | ENVIRONMENTAL | VECTOR
-    vector_organism_group_id INTEGER REFERENCES vector_group(id),  -- nullable; filter hint for VECTOR panels
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    modified_at TIMESTAMP,
-    created_by INTEGER REFERENCES system_user(id)
-);
-
--- Panel Lab Unit Assignment
-CREATE TABLE panel_lab_unit (
-    id SERIAL PRIMARY KEY,
-    panel_id INTEGER NOT NULL REFERENCES panel(id),
-    lab_unit_id INTEGER NOT NULL REFERENCES lab_unit(id),
-    UNIQUE (panel_id, lab_unit_id)
-);
-
--- Panel Sample Type Assignment
-CREATE TABLE panel_sample_type (
-    id SERIAL PRIMARY KEY,
-    panel_id INTEGER NOT NULL REFERENCES panel(id),
-    sample_type_id INTEGER NOT NULL REFERENCES sample_type(id),
-    UNIQUE (panel_id, sample_type_id)
-);
-
--- Panel Test Assignment
-CREATE TABLE panel_test (
-    id SERIAL PRIMARY KEY,
-    panel_id INTEGER NOT NULL REFERENCES panel(id),
-    test_id INTEGER NOT NULL REFERENCES test(id),
-    panel_loinc_code VARCHAR(20),  -- Panel-specific LOINC for this test
-    display_order INTEGER NOT NULL DEFAULT 0,
-    UNIQUE (panel_id, test_id)
-);
-
--- Panel Import Log
-CREATE TABLE panel_import_log (
-    id SERIAL PRIMARY KEY,
-    import_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    imported_by INTEGER REFERENCES system_user(id),
-    file_name VARCHAR(255),
-    panels_created INTEGER DEFAULT 0,
-    panels_updated INTEGER DEFAULT 0,
-    panels_skipped INTEGER DEFAULT 0,
-    warnings TEXT,
-    import_data JSONB
-);
-```
+### What Changes
+Every panel gets an explicit **Domain** (Clinical / Environmental / Vector). Adding tests to a panel is **guarded** to that domain, so a panel can never mix a clinical test with an environmental one. Panel management moves into the unified **Test Catalog Management** surface (reached by switching that surface from **Tests** to **Panels**), so panels are curated next to tests instead of on separate legacy pages. At launch only **Clinical** is enabled and every existing panel is set to Clinical; Environmental and Vector turn on in a later phase.
 
 ---
 
-## Panel Editor Tabs
+## The real data model (verified in source — full reference: `test-catalog-data-model.md`)
 
-| Section | Tab | Description |
-|---------|-----|-------------|
-| **Configuration** | Basic Info | Name, code, description, LOINC, domain, lab units, sample types, status |
-| **Configuration** | Tests | Test assignment with ordering and panel-specific LOINC codes |
-| **Configuration** | Vector Config | Organism group filter — **conditional: only shown when Panel Domain = VECTOR** |
+- **`Panel`** (`org.openelisglobal.panel.valueholder.Panel`, table `PANEL`): `panelName` varchar(20), `description` varchar(60) NOT NULL, `loinc` varchar(10) (single), `sortOrderInt`, `localization` FK, active flag. **Confirmed absent on develop:** code, lab unit, sample-type column, **and domain** — no `3.5.x.x` changeset touches `panel`, so the domain is entirely this effort's addition (Dependency 1). Only `test.domain` exists in enum form today (OGC-936).
+- **`PanelItem`** (`org.openelisglobal.panelitem.valueholder.PanelItem`, table `PANEL_ITEM`): links `panel` ↔ `test` with a `sortOrder`. **No per-test LOINC.** Two legacy columns devs will meet but this UI never surfaces: `TEST_LOCAL_ABBREV` (hbm-unique, a bugzilla-2559 relic) and `METHOD_NAME`. **No unique constraint on (panel_id, test_id)** — duplicate membership is only app-prevented.
+- **`TypeOfSamplePanel`** (table `SAMPLETYPE_PANEL`): panel ↔ sample type. **Not surfaced in this UI** (sample types are derived from member tests), but **live on the hot path**: the order-entry panel list (`getTypeOfSamplePanelsForSampleType`) and e-order panel→sample-type resolution (`getTypeOfSampleForPanelId(..).get(0)`) consume it. **Membership writes must keep it in sync** (as `TestModifyServiceImpl` already does) or order entry shows stale panel lists; retirement is a separate backend story (derive from PanelItem × SAMPLETYPE_TEST).
+- **Panel LOINC is a live routing key**, not just metadata: FHIR intake matches panels by it (`PanelDAOImpl.getPanelByLoincCode` ← `TaskInterpreterImpl.createPanelFromFHIR`, `LabOrderSearchProvider`). Keep `panel.loinc` as the denormalized primary code in front of the terminology store.
+- **Not on a panel** (and not added here): a `code` (the **LOINC is the panel's identifier**); a **lab unit / test section** (a panel legitimately spans sections — scope by domain instead); a stored **sample-type** set (derived from member tests).
 
----
-
-## List View
-
-### Layout
-- Full-width table with sortable columns
-- Toolbar with filters and actions
-- Pagination footer
-
-### Toolbar
-- "Add Panel" button (primary)
-- "Import/Export" button (secondary)
-- Search input (name/code/LOINC)
-- Lab Unit filter dropdown
-- **Domain filter dropdown** (All Domains, Clinical, Environmental, Vector)
-- Status filter (All, Active, Inactive)
-- Panels count display
-
-### Table Columns
-
-| Column | Width | Sortable | Description |
-|--------|-------|----------|-------------|
-| Panel Name | flex | Yes | Full name, clickable row to open editor |
-| Code | 100px | Yes | Panel code (monospace) |
-| LOINC | 100px | Yes | Panel LOINC code |
-| Tests | 80px | Yes | Number of tests in panel |
-| Domain | 120px | Yes | Tag: CLINICAL (blue) / ENVIRONMENTAL (teal) / VECTOR (purple) |
-| Lab Units | 200px | No | Badges (max 2 visible, then "+X more") |
-| Sample Types | 200px | No | Badges (max 2 visible, then "+X more") |
-| Status | 100px | No | Active/Inactive badge |
-| Actions | 80px | No | Edit button, More menu |
-
-### Sorting Behavior
-- Click column header to sort ascending
-- Click again to toggle to descending
-- Sort icon indicates current sort direction
-- Default sort: Panel Name ascending
-
-### Row Behavior
-- Entire row clickable to open editor
-- Hover highlight on row
-- Action buttons use stopPropagation to prevent row click
-
-### Pagination
-- Page size options: 25, 50, 100 (default 25)
-- Navigation: First, Previous, numbered pages, Next, Last
-- Status text: "Showing X to Y of Z panels"
-- Filters reset to page 1 when changed
+**Domain addition (Dependency 1):** a single required domain on `panel`, existing rows
+backfilled to CLINICAL — matching the OGC-936 `test.domain` pattern. Mechanism is the dev's
+call; this FRS specifies the behavior, not the migration.
 
 ---
 
-## Basic Info Tab
+## Surface & IA
 
-### Fields
+Panel management lives **inside Test Catalog Management** (no standalone page). Entity switching is done through the **main SideNav**, not a top-of-list toggle: **Tests / Panels / Sample Types** are peer entries under `Test Catalog Management` in the Admin menu — a mutually-exclusive entity choice, **not** a filter. Selecting **Panels** lists panels; opening one loads the **same editor shell** as a test, with a **PANEL** entity badge (vs **TEST**). The panel's sections render as **SideNav submenus one level below the entity** (Admin › Test Catalog Management › Panels › Basic Info / Tests / Terminology) — the OpenELIS SideNav-submenu pattern, **not** in-page tabs, **not** an editor-local rail, and **not** a segmented control at the top of the list.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| **Panel Name** | Text | Yes | Full name (e.g., "Complete Blood Count") |
-| **Code** | Text | Yes | Short code (e.g., "CBC"), unique |
-| **LOINC Code** | Text | No | Panel LOINC (e.g., "58410-2") |
-| **Description** | Textarea | No | Detailed description |
-| **Panel Domain** | Select | Yes | CLINICAL / ENVIRONMENTAL / VECTOR. Default: CLINICAL. Controls where this panel appears at order entry. Selecting VECTOR reveals the Vector Config tab. |
-| **Lab Units** | Multi-select | Yes | At least one required |
-| **Sample Types** | Multi-select | No | Valid sample types for this panel |
-| **Active** | Toggle | Yes | Status |
+The SideNav is built to extend: **Sample Types** and **Lab Units** master-list management are follow-on contexts as peer entries in the same menu (separate stories — OGC-296, OGC-189).
 
-### Panel Domain Behavior
+- **List route:** `/admin/TestCatalogList?entity=panels` (deep-linkable / bookmarkable).
+- **Editor route:** `/MasterListsPage/TestCatalogEditor/panel/<id>/<section>` (mirrors the test route with a `panel` entity segment).
+- **Breadcrumb:** Home > Admin > Test Catalog > Panels > [Panel Name].
+- Replaces the legacy `PanelManagement` / `PanelCreate` / `PanelOrder` / `PanelTestAssign` pages (removed per OGC-949).
+- ⚠ Verify the exact switch/URL treatment against the live app before dev handoff.
 
-| Domain value | Appears at order entry for |
+---
+
+## Panels list
+
+Columns: **Panel Name** · **LOINC** · **Tests** (count) · **Domain** (tag) · **Sample Types** (derived from member tests, read-only) · **Status** (Active/Inactive) · **Actions**. Filters: search (name / LOINC), **Domain**, Status. Row opens the panel editor. "**Add Panel**" opens a blank panel in the editor shell.
+
+An info banner notes the upgrade: *"Panels now carry a Domain. The upgrade set every existing panel to Clinical; Environmental / Vector are editable in a later phase."*
+
+---
+
+## Panel editor sections (SideNav submenus — same shell, no tabs)
+
+### Basic Info
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| **Panel Name** | Text | Yes | The panel's name. |
+| **Terminology** | (own section) | — | Coded-system mappings are managed in the **Terminology** section (below). The **LOINC** mapping is the panel's primary identifier. **There is no separate panel code.** |
+| **Domain** | Radio | Yes | CLINICAL / ENVIRONMENTAL / VECTOR. **Only Clinical is enabled at launch**; the others are disabled with a "later phase" note. Set from the originating test on inline create. |
+| **Sample Types** | Read-only | — | **Derived** from the member tests; shown for reference. Editing sample types directly is the planned Sample Types work (OGC-296). |
+| **Description** | Textarea | No | |
+| **Active** | Toggle | Yes | Orderable when active. **Cannot be activated with zero tests** — see Activation rules. |
+
+### Activation rules
+- A panel **cannot be activated until it has at least one test.** With zero tests the Active toggle is **disabled (not clickable)** and shows helper text: *"Add at least one test before this panel can be activated."*
+- A **newly created** panel **defaults to Active when its first test is added** (create → add first test → active).
+- When **editing an existing** panel, its Active state is **preserved as-is** — adding/removing tests never auto-flips it (the auto-activate applies only to a panel's first-ever test at creation). Removing the last test from an active panel surfaces the same "needs ≥1 test" guard before it can be re-saved active.
+
+### Tests (the centerpiece)
+The ordered list of member tests — columns: **order** (drag-handle + numeric, writes `panel_item.sort_order`), **test name**, **test code**, remove. **LOINC is not shown here** — whoever manages membership doesn't need it. **Add a test** is a **typeahead searchable by name or test code**; picking a result **appends it to the end** of the list (positions renumber from there). The picker is **domain-guarded** — only tests in the panel's domain are offered, so a panel never mixes domains. **No per-test panel LOINC** — a test's LOINC lives on the Test and is unchanging.
+
+### Terminology
+Panels adopt the **same terminology mapper as tests** (parity with OGC-754). A table of coded-system mappings — **Source** (LOINC / SNOMED / CIEL / OCL; **WHONET** proposed for AMR alignment — not in the current source enum yet), **Code**, **Relationship** (SAME_AS / BROADER_THAN / NARROWER_THAN) — with add/remove. The **LOINC** mapping is the panel's primary identifier (replaces the lone `panel.loinc` string as the surfaced concept, though the primary LOINC can still be denormalized onto `panel.loinc` for list display and order-entry). Reconciles to the desired set on save, keyed on (source, code), exactly like the test terminology section.
+
+### Vector Config
+Deferred to the Environmental/Vector phase (organism-group metadata). Not shown while only Clinical is enabled.
+
+---
+
+## Domain — the core of this effort
+
+- Every panel has exactly one **Domain**. Default CLINICAL.
+- **Membership guard:** the Add-tests picker only offers tests in the panel's domain; a panel cannot contain tests from more than one domain.
+- **Order-entry filtering** follows domain (a panel appears only for orders of its domain). Which sample types a panel is relevant to continues to derive from its member tests.
+- **Inline create (OGC-1140):** a panel created inline from a test **inherits that test's domain** and is **Active on creation**; the test becomes the panel's first member. (No lab unit, no code — those don't exist on a panel.)
+- **Launch scope:** only **Clinical** is selectable; the upgrade backfills every existing panel to Clinical. Environmental and Vector (and Vector Config) arrive in a later phase.
+
+---
+
+## Relationship to the test-side Panels section (OGC-753, built)
+
+The Test Catalog editor's **test-side** Panels section ("which panels is *this test* in", add-to-panel, reposition this test) is already built (OGC-980/981/982) and writes the same `panel_item.sort_order`. This FRS is the **panel-side** (the panel list + panel editor). Both are two views of one model. The test-side inline "Create new panel" is where OGC-1140's inherit-domain behavior applies.
+
+**Variant-model touchpoint (Test Catalog Manageability FRS):** panel membership is
+**per test record** — i.e., per specimen variant. A panel contains "Glucose (Serum)", not
+"Glucose"; the Add-tests picker shows the specimen-specific records, and the panel's derived
+sample types follow from exactly which variants are members. Creating a specimen variant
+does **not** copy the source test's panel memberships (deliberate — the source already
+occupies those slots).
+
+---
+
+## Access
+
+Via the existing **Test Catalog Manager / Admin** capability that already governs the Test Catalog editor and list. A user without it doesn't see the Panels context or the editor.
+
+---
+
+## Dependencies (net-new — not present today)
+
+1. **`panel.domain` column** + the upgrade backfill to CLINICAL. *Backend / migration.*
+2. **Domain-guarded test membership** — the Add-tests picker and the membership write reject cross-domain tests. **The membership write also keeps `SAMPLETYPE_PANEL` synchronized** whenever it changes the panel's derived sample-type set (order entry and e-order intake read that junction today). *Backend + frontend.*
+3. **Inline-create inherits domain + Active-on-create** (OGC-1140) — extend the built `POST /rest/test-catalog/panels` (which currently takes name-only) to accept/inherit domain. *Backend + frontend.*
+4. **Panel list + panel editor** on the `/rest/test-catalog/panels` API (the list API currently returns only `{id, name}` — it needs domain, LOINC, test count, derived sample types, status). *Backend + frontend.*
+5. **Panel terminology mappings** — the full multi-source mapper (parity with the test Terminology section, OGC-754). Panels have only a single `loinc` string today, so this needs a panel↔terminology-mapping store (reuse the test terminology mechanism) + a `/rest/test-catalog/panels/{id}/terminology` endpoint. Optionally add **WHONET** to the source enum (currently LOINC/SNOMED/CIEL/OCL). *Backend + frontend.*
+
+---
+
+## Out of scope
+
+- **Panel code** — panels are identified by name + LOINC; no code field.
+- **Lab unit on a panel** — panels span sections; scoped by domain instead.
+- **Stored panel sample types** — derived from member tests (direct management is OGC-296).
+- **Per-test "panel LOINC"** — a test's LOINC is on the Test, unchanging.
+- **Bulk import/export** — not in current scope.
+- **Environmental / Vector domains and Vector Config** — later phase; Clinical only at launch.
+- **Sample Type / Lab Unit master-list management** — planned follow-on contexts in this shell (OGC-296, OGC-189).
+
+---
+
+## Localization (new/changed keys)
+
+| Key | English |
 |---|---|
-| CLINICAL | Clinical-domain orders only |
-| ENVIRONMENTAL | Environmental-domain orders only |
-| VECTOR | Vector-domain orders only |
-
-Domain is resolved automatically from the lab unit assigned to the order — no domain picker is shown to the user. The panel ComboBox is pre-filtered to only show panels matching the resolved domain. Changing a panel's domain does **not** affect existing orders that already used it; the filter applies only at time of new order entry panel selection.
-
-### Lab Units Section
-- Checkbox grid of available lab units
-- At least one required
-- Determines where panel appears in order entry
-
-### Sample Types Section
-- Multi-select dropdown or checkbox list
-- Optional but recommended
-- Used for validation during order entry
-
----
-
-## Tests Tab
-
-### Layout
-- Header with test count and action buttons
-- Sortable test list with drag-and-drop
-- Each test row shows order, name, code, panel LOINC, actions
-
-### Test List Table
-
-| Column | Width | Description |
-|--------|-------|-------------|
-| Drag Handle | 40px | Grip icon for drag-and-drop |
-| Order | 60px | Editable number input |
-| Test Name | flex | Test name (link to test) |
-| Test Code | 100px | Monospace |
-| Test LOINC | 100px | From test definition (read-only, gray) |
-| Panel LOINC | 120px | Editable - panel-specific LOINC |
-| Actions | 80px | Remove button |
-
-### Ordering Behavior
-
-**Drag-and-Drop:**
-- Grab handle on left of each row
-- Visual indicator during drag
-- Auto-renumbers on drop
-
-**Numeric Entry:**
-- Direct edit of order number
-- Tab to move between fields
-- Auto-reorders list when focus leaves field
-- Handles duplicates by shifting others
-
-### Add Tests Modal
-
-**Search/Filter:**
-- Search input for test name/code
-- Lab unit filter dropdown
-- Sample type filter dropdown
-
-**Test List:**
-- Checkbox multi-select
-- Shows tests not already in panel
-- Each row: checkbox, name, code, LOINC, sample type
-
-**On Add:**
-- New tests added to end of list
-- Order numbers assigned sequentially
-- Panel LOINC defaults to empty (user must enter)
-
-### Panel LOINC Entry
-- Inline editable field
-- Shows placeholder if empty: "Enter LOINC"
-- Can differ from test's own LOINC code
-- Used for panel-specific reporting
-
-### Remove Test
-- Click X button on row
-- No confirmation needed (can re-add)
-- List renumbers automatically
-
----
-
-## Vector Config Tab
-
-> **Conditional visibility:** This tab is only shown when Panel Domain = VECTOR. It is hidden for CLINICAL and ENVIRONMENTAL panels.
-
-This tab lets coordinators attach vector-specific metadata to a panel, enabling smarter filtering and auto-suggestion at order entry for VECTOR-domain orders.
-
-### Fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| **Organism Group** | ComboBox | No | Optional filter hint — e.g., MOSQUITO, TICK, RODENT. When set, this panel is suggested first at order entry when the CollectionLot's organism group matches. No hard constraint; any active VECTOR panel remains selectable. |
-
-### Organism Group Behavior at Order Entry
-
-When a VECTOR-domain order is being created and a CollectionLot is linked:
-1. The panel ComboBox shows all active panels with domain = VECTOR
-2. Panels whose `vectorOrganismGroup` matches the lot's organism group are sorted to the top and shown with a "Suggested for [group]" label
-3. All other VECTOR panels remain selectable
-
-This is a suggestion only — it does not hide or block selection of non-matching panels.
-
-### Empty State
-
-When Panel Domain is CLINICAL or ENVIRONMENTAL, this tab is hidden. If domain is later changed to VECTOR, any previously saved organism group value is restored.
-
----
-
-## Import/Export
-
-### Trigger
-"Import/Export" button in list view toolbar opens modal.
-
-### Export Tab
-
-**Panel Selection:**
-- Checkbox list of all panels
-- "Select All" / "Deselect All" buttons
-- Search/filter panels
-- Shows panel name, code, test count
-
-**Export Options:**
-- Format: JSON (for import) or CSV (for review)
-- Include: Panel config only, or Panel + test assignments
-
-**Export Button:**
-- Disabled if no panels selected
-- Downloads file immediately
-
-### Import Tab
-
-**File Upload:**
-- Drag-and-drop zone
-- Accepts JSON files only
-- Shows file name after selection
-
-**Import Mode:**
-- Create new panels only
-- Update existing panels only
-- Both (create and update)
-
-**Validation Preview:**
-After file selected, show:
-- Panels to CREATE (new codes)
-- Panels to UPDATE (existing codes)
-- Panels to SKIP (errors)
-- Warnings (e.g., unknown test codes)
-
-**Import Button:**
-- Disabled if file invalid
-- Shows summary after import
-
-### JSON Export Format
-
-```json
-{
-  "exportDate": "2025-01-15T10:30:00Z",
-  "exportedBy": "admin",
-  "panels": [
-    {
-      "code": "CBC",
-      "name": "Complete Blood Count",
-      "loincCode": "58410-2",
-      "description": "Standard complete blood count panel",
-      "labUnits": ["Hematology"],
-      "sampleTypes": ["Whole Blood EDTA"],
-      "isActive": true,
-      "tests": [
-        {
-          "testCode": "WBC",
-          "displayOrder": 1,
-          "panelLoincCode": "6690-2"
-        },
-        {
-          "testCode": "RBC",
-          "displayOrder": 2,
-          "panelLoincCode": "789-8"
-        },
-        {
-          "testCode": "HGB",
-          "displayOrder": 3,
-          "panelLoincCode": "718-7"
-        }
-      ]
-    }
-  ]
-}
-```
-
-### CSV Export Format
-
-For review purposes, flattened format:
-
-| Panel Code | Panel Name | Panel LOINC | Test Order | Test Code | Test Name | Panel Test LOINC |
-|------------|------------|-------------|------------|-----------|-----------|------------------|
-| CBC | Complete Blood Count | 58410-2 | 1 | WBC | White Blood Cell Count | 6690-2 |
-| CBC | Complete Blood Count | 58410-2 | 2 | RBC | Red Blood Cell Count | 789-8 |
-| CBC | Complete Blood Count | 58410-2 | 3 | HGB | Hemoglobin | 718-7 |
-
----
-
-## API Endpoints
-
-### Panel CRUD
-- `GET /api/panels` - List with filtering
-- `GET /api/panels/{id}` - Get with tests
-- `POST /api/panels` - Create
-- `PUT /api/panels/{id}` - Update
-- `DELETE /api/panels/{id}` - Soft delete (deactivate)
-
-### Lab Units & Sample Types
-- `GET /api/panels/{id}/lab-units`
-- `PUT /api/panels/{id}/lab-units`
-- `GET /api/panels/{id}/sample-types`
-- `PUT /api/panels/{id}/sample-types`
-
-### Tests
-- `GET /api/panels/{id}/tests` - List tests with order and panel LOINC
-- `POST /api/panels/{id}/tests` - Add tests
-- `PUT /api/panels/{id}/tests` - Update all (order, panel LOINC)
-- `PUT /api/panels/{id}/tests/{testId}` - Update single test
-- `DELETE /api/panels/{id}/tests/{testId}` - Remove test
-- `PUT /api/panels/{id}/tests/reorder` - Reorder tests
-
-### Import/Export
-- `POST /api/panels/export` - Export selected panels
-  - Request: `{ panelIds: [1,2,3], format: "json"|"csv", includeTests: true }`
-- `POST /api/panels/import/validate` - Validate import file
-- `POST /api/panels/import` - Execute import
-  - Request: `{ mode: "create"|"update"|"both", data: {...} }`
-
----
-
-## Acceptance Criteria
-
-### List View
-- [ ] Panels displayed with test counts
-- [ ] Lab unit filter works
-- [ ] Status filter works
-- [ ] Search by name/code works
-- [ ] Quick summary shows panel details
-- [ ] Duplicate action creates copy
-
-### Basic Info Tab
-- [ ] All fields editable
-- [ ] LOINC code field available
-- [ ] Lab unit multi-select (at least one required)
-- [ ] Sample type multi-select works
-- [ ] Status toggle works
-
-### Tests Tab
-- [ ] Tests displayed in order
-- [ ] Drag-and-drop reordering works
-- [ ] Order number editing works
-- [ ] Auto-renumbering on reorder
-- [ ] Panel LOINC editable per test
-- [ ] Test LOINC shown (read-only)
-- [ ] Add Tests modal filters correctly
-- [ ] Remove test works
-
-### Import/Export
-- [ ] Export modal shows panel selection
-- [ ] Select All / Deselect All work
-- [ ] JSON export includes all data
-- [ ] CSV export is flat format
-- [ ] Import validates file
-- [ ] Preview shows create/update/skip
-- [ ] Import modes work correctly
-- [ ] Import log created
-
----
-
-## Navigation
-
-**Menu Location:** Admin > Panel Setup
-
-**Breadcrumb:** Admin > Panel Setup > [Panel Name]
-
----
-
-## Related Features
-
-- **Test Catalog (OGC-173)**: Tests can be part of multiple panels
-- **Lab Units (OGC-189)**: Panels filtered by lab unit
-- **Order Entry**: Panels appear based on lab unit and sample type
-- **Methods (OGC-214)**: Methods can be assigned to panel tests
+| `label.testCatalog.entity.panels` | Panels |
+| `label.panel.domain` | Domain |
+| `helper.panel.domainGuard` | Only {domain}-domain tests can be added to this panel. |
+| `helper.panel.loincIsIdentifier` | The panel's LOINC serves as its identifier. |
+| `note.panel.sampleTypesDerived` | Sample types are derived from the tests in this panel. |
+| `note.panel.domainUpgrade` | Panels now have a Domain; existing panels were set to Clinical. |
+| `note.panel.domainLaterPhase` | Environmental and Vector domains are enabled in a later phase. |
+
+Missing keys fall back to English.
 
 
 ---
@@ -25984,6 +25716,315 @@ The Validation page UI (OGC-817 / `validation-page-v4-frs.md`); the Results Entr
 
 ---
 
+# Analyzer Mapping - Multi-Component Column (analyzer-integration)
+Gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-mapping-multi-component-column
+Jira: OGC-1136, OGC-1131
+
+# Analyzer Types & Mapping — Functional Requirements Specification
+
+| Field | Value |
+|-------|-------|
+| **Status** | Draft for review |
+| **Module** | Admin → Analyzers (Analyzer Profiles, Analyzer setup, Field Mappings) |
+| **Author** | Casey Iiams-Hauser |
+| **Date** | 2026-06-17 |
+| **Supersedes** | The deployed "Analyzer Types" page (the first cut of this work) and the unbuilt portions of the Generic ASTM/HL7/Flat-file module: profile management and GUI mapping of tests and results |
+| **Front end** | Carbon React |
+| **Companion artifacts** | `analyzer-profile-mapping-prototype.html` (functional prototype), `analyzer-profile-mapping-gap-analysis.md` |
+
+> This FRS is version-agnostic — it describes the whole feature. Version/sprint boundaries are decided later in `/breakdown`.
+>
+> **Terminology:** the user-facing name is **Analyzer Type** — the reusable, forkable configuration for a kind of analyzer (test codes, result mappings, QC codes, formatting). This document uses **"profile"** as a synonym for that same object/entity; all UI labels read "Analyzer Type." (It is distinct from the dev-only **Plugin Type**, which stays in the Advanced/implementer area.)
+
+---
+
+## Lab Context
+
+### Current State
+
+A clinical lab runs benchtop and molecular instruments — a Cepheid GeneXpert for TB and viral load, a Mindray or Sysmex hematology analyzer, a Tecan ELISA reader. Each instrument can send its results to OpenELIS electronically instead of a tech reading a printout and typing numbers into the computer by hand. For that to work, OpenELIS has to know two things about each instrument: how it talks (the network connection and message format) and what its codes mean — when the GeneXpert sends a result labeled `RIF` with the value `DETECTED`, OpenELIS has to know that means the "Rifampin Resistance" test and the result "Resistant" in the lab's own catalog.
+
+Today OpenELIS ships a generic plugin that can talk to ASTM and HL7 (the two common standards instruments use to transmit results) and flat-file instruments, and an admin can add an analyzer and connect it. But the part that translates the instrument's codes into the lab's tests and results was never finished in the interface. The current "Analyzer Types" admin page exposes developer-level fields — a Java plugin class name, a regular expression — that no lab person can fill in, and the mapping of an instrument's result values to the lab's result options can't be done through the screen at all. Labs that need it today rely on a developer to hand-edit configuration.
+
+### Pain
+
+Because the mapping interface is unfinished, connecting an analyzer is a developer task, not a lab task. A lab that gets a new GeneXpert cartridge — which makes the instrument start reporting a new test code — has no way to map that new code themselves; the result arrives and there's nowhere for it to go. Qualitative instruments are the worst case: a GeneXpert reports `DETECTED` / `NOT DETECTED` / `INDETERMINATE`, and without a way to say which of the lab's result options each of those means, the results can't be recorded correctly. When a shipped configuration doesn't quite match a particular lab's catalog, the lab has no safe way to fix it — and the screen that should help is full of fields meant for programmers. The net effect is that automated result import, the whole point of connecting an instrument, stalls on configuration that the lab can't do for itself.
+
+### What Changes
+
+A lab administrator sets up an analyzer by answering one question — *which instrument is this?* — and picking it from a searchable list. OpenELIS loads a ready-made **profile** for that instrument (its test codes, the results it reports, its quality-control codes, how it formats values) and shows the administrator a short list to **verify**: "this analyzer sends MTB-RIF, which matches your MTB Detection test by its LOINC code (the international standard code that identifies a lab test) — confirm." The administrator confirms the matches, enters the network address, tests the connection, and the analyzer is live. They never see a Java class or a regular expression. When something doesn't line up — a test the instrument reports isn't in the lab's catalog, or a result value isn't recognized — only that one item opens an editor to fix, and the administrator either points it at an existing catalog test (searchable, because catalogs run to hundreds of tests) or is sent to add the test in the Test Catalog first. If the instrument later sends something new, like a new cartridge's test, OpenELIS doesn't lose the result — it parks it and raises an alert so a person maps it. The same screens work whether the instrument speaks ASTM, HL7, or sends a file.
+
+---
+
+## Overview
+
+This feature completes the Generic Analyzer module by adding (1) **analyzer profiles** — reusable, shareable configurations for a kind of instrument — and (2) a **GUI for mapping** an instrument's tests, result values, and QC codes to the lab's catalog. It reframes the deployed, developer-facing "Analyzer Types" page into a lab-facing **Analyzer Profiles** page, and replaces the bare "Add Analyzer" form with a **guided, instrument-first setup** whose normal path is *verify*, not hand-editing.
+
+The governing principle: **verifying is the norm, editing is the exception.** A clean, profile-matched analyzer is set up by confirming a short list and entering a network address; the full mapping editor only appears for items that don't line up or when an administrator deliberately changes a profile.
+
+### Navigation & URL
+
+- **SideNav:** `Analyzers → Analyzer Types` (a sibling of Analyzers List, Error Dashboard, Quality Control). This is the **next version of the existing `Analyzers → Analyzer Types` page**, which it replaces (today that page is a developer-facing plugin registry; it becomes the lab-facing analyzer-type/profile manager).
+- **Breadcrumb:** `Home / Analyzers / Analyzer Types`; the mapping editor is `Home / Analyzers / Field Mappings / [Analyzer or Type name]`.
+- **Routes:** analyzer-types list `/analyzers/types` (existing route, repurposed); mapping editor `/analyzers/{id}/mappings` (existing) and `/analyzers/types/{typeId}` for type-context editing. Add-analyzer setup is **inline within `/analyzers`** (expands in the list; not a modal, not a separate page).
+
+### Permissions & Audit
+
+- **Role attachment:** accessible via the existing **Admin** role bundle (the same that governs Analyzers List / Analyzer Types today). No new per-action permission keys. Verification/confirmation, profile edits, deactivation, and connection changes are admin actions; do not invent a granular matrix.
+- **Audit events** (`audit_trail`): `ANALYZER_PROFILE_CREATED`, `ANALYZER_PROFILE_UPDATED`, `ANALYZER_PROFILE_DEACTIVATED`/`_REACTIVATED`, `ANALYZER_MAPPING_VERIFIED` (records the human sign-off on setup, with analyzer + profile id), `ANALYZER_TESTMAP_CHANGED`, `ANALYZER_RESULTMAP_CHANGED`, `ANALYZER_CONNECTION_CHANGED`. Do not audit reads.
+- **Envers:** the analyzer profile entity and analyzer↔profile association are configuration data → `@Audited`.
+
+### Scope boundaries (out of scope)
+
+- **Instrument auto-recognition** from an incoming message (cut — unreliable signal; an admin who can't identify their instrument shouldn't be setting it up).
+- **Creating a new test inline** during mapping (multi-step; done in Test Catalog, then mapped).
+- **Importing profiles from a file** and any **community profile sharing/marketplace** (future). Profile **Export** is download-only (for backup or sending to support); **re-importing** an exported profile is part of the deferred sharing work.
+- **LLM-assisted authoring** (esp. flat-file CSV/XML parsing and value inference) — parked as a Catalyst candidate.
+- Deep flat-file column/layout configuration beyond what a profile already carries (candidate for the Catalyst path).
+
+---
+
+## User Stories
+
+1. *As a lab administrator,* I want to set up an analyzer by choosing my instrument and confirming a short list, so that I can connect it without developer help or technical jargon.
+2. *As a lab administrator,* I want OpenELIS to tell me which of the instrument's tests already exist and are active in my catalog (matched by LOINC), so that I can trust what will receive results and fix what won't.
+3. *As a lab administrator,* I want to confirm — not hand-build — how the instrument's result values map to my result options, so that qualitative results record correctly with a human sign-off.
+4. *As a lab administrator,* when an instrument's test or value isn't recognized, I want to map it to an existing catalog test by searching, or be told to add it in Test Catalog first, so that I'm never stuck and never silently dropping results.
+5. *As a lab administrator,* I want a change I make for one analyzer to default to a new profile (not silently alter every other analyzer), so that I can't break the others by accident.
+6. *As a lab administrator,* I want unmapped codes or results from a live analyzer to raise an alert and flag the analyzer, so that nothing piles up unnoticed.
+7. *As a lab administrator,* I want one place that lists the reusable profiles with how complete their mappings are, so that I can see and manage what's configured.
+
+---
+
+## Functional Requirements
+
+### A. Profiles
+
+**FR-A1 — Profile as the unit of configuration.** A *profile* is a reusable configuration for a kind of analyzer. It carries: test-code mappings (analyzer code → catalog test, with the test's LOINC), result mappings (analyzer value → the test's result option), QC codes (control identifiers and how they're recognized), result formatting (date format, decimal separator, units), and the instrument's protocol/connection capability (including whether it supports two-way). It does **not** carry analyzer-specific facts: name, lab unit assignment, network address, or connection direction in use.
+
+**FR-A2 — Shared, with fork.** An analyzer references exactly one profile. Multiple analyzers may share a profile. There is no per-analyzer override layer and no "clone": when an analyzer must differ, the change is saved as a **new profile** (a fork).
+
+**FR-A3 — Deactivate, never delete.** Profiles (and analyzers) are deactivated/reactivated, never hard-deleted. Lists hide deactivated profiles by default with a "Show deactivated" toggle. (See constitution: no hard delete in a LIMS.)
+
+**FR-A4 — Shipped profiles.** OpenELIS ships a base catalog of profiles for common instruments, with their tests pre-mapped by LOINC. Deployments/distros may ship additional profiles bound to their own catalogs. Profiles created by a site are also stored. The Analyzer Profiles list can filter by **Created** (site-created vs. shipped) but does not otherwise organize by source.
+
+**FR-A5 — Trust metadata is internal.** Authoring/validation metadata (confidence, verification-required, validation status) is internal team tracking and is **not** surfaced in the admin UI nor used to gate setup.
+
+### B. Guided analyzer setup (inline)
+
+**FR-B1 — Inline, in the list.** "Add Analyzer" expands a guided setup **inline within the Analyzers List** (the list stays visible for context); it is not a modal. Setup is presented as stacked sections that reveal in order: **Instrument → Verify → Connect**. Completed sections collapse to a one-line summary with Edit.
+
+**FR-B2 — Instrument-first.** Section 1 asks the administrator to pick the instrument from a **searchable** list (manufacturer/model). Selecting it loads that instrument's profile. The administrator names the analyzer and assigns one or more **lab units**. No protocol, plugin, or pattern fields appear here.
+
+**FR-B3 — "Not listed" path.** If the instrument isn't listed, the administrator defines a **new profile**: profile name, protocol (ASTM / HL7 / flat file), and connection type. (This is the only place these fields appear in the lab flow; they otherwise live with the profile.)
+
+**FR-B4 — Verify, don't build (the sign-off).** Section 2 shows the profile's tests as a list to **verify**: each row shows the analyzer code, the matched catalog test, the matching LOINC, and a status. Verification is a **mandatory human confirmation** (per-row, or confirm-all) and is recorded in the audit trail. Nothing maps itself silently. This is by design a patient-safety gate; the fragility is intentional.
+
+**FR-B5 — QC codes are verified too.** Section 2 also lists the instrument's **QC codes** (control identifiers, e.g., specimen-ID prefixes or a control flag field) for confirmation, so control runs are recognized and don't post as patient results.
+
+**FR-B6 — Connect.** Section 3 collects the network address and the **data flow** (see FR-F). A connection test reports the result in plain language.
+
+**FR-B7 — Push-a-result option.** The verify step offers "send a result from the analyzer now" — capturing a real message so the administrator can verify against the codes/values the instrument *actually* sends (proactive learn-from-traffic; reflects that, e.g., GeneXpert sites enable/disable assays so the live code set may differ from the profile).
+
+**FR-B8 — Reconcile the transmission against the mappings.** When a result is received during setup, the screen reconciles each transmitted item against the current mappings and updates live:
+
+- **Verified:** a transmitted test code / result value that matches an existing mapping is marked **verified against the live message** (a per-test "checked vs live" indicator flips from "not seen yet" to "verified"). This is stronger than a profile match — it confirms the instrument really sends what the profile assumed.
+- **New result value:** a value arriving for a mapped test that the result-map doesn't cover surfaces inline, pre-populated with the transmitted value, with the test's result options offered so the administrator maps it on the spot.
+- **New test code:** a code arriving with no test mapping surfaces inline with a catalog **search** to map it (or send to Test Catalog per FR-C2).
+- **Not transmitted:** a mapped test that did *not* appear in this message stays "not seen yet" (not an error — the assay may simply not have run).
+- **Nothing matches / blank profile:** when the profile has no mappings yet (the "not listed → new profile" path), the transmission **populates** the rows from what was received and the administrator maps each — i.e., a new profile is built directly from a real message rather than from a blank form.
+
+Mappings resolved this way update the profile immediately (subject to the save-scope rule, FR-H). Reconciliation never discards a transmitted item.
+
+### C. Catalog readiness check (LOINC matching)
+
+**FR-C1 — Deterministic 1:1 LOINC match.** A profile test is matched to a catalog test when the profile's LOINC **equals** a LOINC on an **active** catalog test — a deterministic 1:1 key, not fuzzy auto-matching. The verify step shows, per test: matched · active / not matched.
+
+**FR-C2 — Resolve a non-match (inline, for the exception only).** When a profile test has no LOINC match, the row offers a **Resolve** action with, in priority order: (a) **Map to an existing test** via a **search** of the catalog (by name, code, or LOINC) — the primary path; (b) **Add it in Test Catalog first**, then return and map (a link out; inline test creation is out of scope because adding a test is multi-step); (c) **Don't receive this test** from this analyzer. Resolving updates the readiness state.
+
+**FR-C3 — Missing tests don't block the rest.** A test absent from the catalog is flagged and does not block verifying/activating the others. Results for an unmapped test follow FR-G (never dropped).
+
+### D. Test mapping (editor)
+
+**FR-D1 — Editable rows.** In the mapping editor, every test-code row is editable — the administrator can change the analyzer code or **re-point the linked test**, even on rows already matched, and can remove a row or add one.
+
+**FR-D2 — Search-based test picker.** Linked-test selection is a **search** over the catalog (assume ~500 tests), implemented as a Carbon `ComboBox`/typeahead (match on name, code, or LOINC). It is never a long static dropdown.
+
+**FR-D3 — Protocol-agnostic surface.** The editor is identical for ASTM, HL7, and flat-file analyzers; only the field-reference label differs (e.g., `R.3` for ASTM, `OBX-3` for HL7). 
+
+### E. Result mapping (editor)
+
+**FR-E1 — Bound to the test's own results.** For a qualitative test, the result-mapping targets are exactly the **result options defined on the matched catalog test** (its dictionary/select-list results). The administrator can only map to results that test can store.
+
+**FR-E2 — Guided empty state.** If the matched test has no result options defined, the editor explains this and links to Test Catalog to define them first, rather than allowing a map against nothing.
+
+**FR-E3 — Unmatched-value behavior.** Each qualitative mapping defines what happens to a value with no mapping: flag for review (default — never dropped), pass through raw, or use a default. (See FR-G for the active-analyzer alerting.)
+
+**FR-E4 — Completeness.** Mapping completeness is shown as **X / Y · %** for both tests mapped and results mapped, on the profile and in the editor.
+
+### F. Connection & data flow
+
+**FR-F1 — Per-analyzer connection.** Network address (IP/port or watched folder) and **data flow** are analyzer-level, not part of the shared profile.
+
+**FR-F2 — Direction is intent + probe, not a guarantee.** Default is **Results only (one-way)**. **Two-way** (OpenELIS sends orders/queries back) is offered only when the profile declares the instrument supports it. The connection test attempts the round trip; on timeout it reports that two-way isn't reachable (e.g., analyzer on a private network) and the analyzer runs one-way. Setup is never blocked by a failed two-way probe. The verified direction is shown on the analyzer.
+
+### G. Learn-from-traffic (never drop, make it loud)
+
+**FR-G1 — Accept and flag, don't block.** OpenELIS cannot control what an instrument sends, so inbound results are **never blocked**. An unmapped test code or unmapped result value is accepted and held, not dropped.
+
+**FR-G2 — Active analyzers raise alerts.** For an **active** analyzer, an unmapped code/result posts to the **Alerts** page for acknowledgment and handling (acknowledged by Admin; Lab Manager optional), and raises a visible flag on the **Analyzers List** row and on the **profile**. (Aligns with the global critical-acknowledgment direction.)
+
+**FR-G3 — Resolve updates the profile.** Resolving a pending item from the alert/queue maps it; the resolution updates the analyzer's profile so the same code/value maps automatically next time. This is the same mechanism that handles a new cartridge's new test code or a newly-seen result value. HL7 pending items show the display name (OBX-3.2) and value type (OBX-2); ASTM shows the bare code.
+
+### H. Edit scope (shared-with-fork)
+
+**FR-H1 — Save choices.** Saving changes made from an analyzer's mapping editor presents two choices: **Save as a new profile** (default) or **Update this profile (affects N analyzers)**.
+
+**FR-H2 — Safe default.** When the profile is used by more than one analyzer, **Save as a new profile** is the default and "Update this profile" carries an explicit warning naming the affected analyzers. When the profile is used by only the current analyzer, "Update this profile" is harmless and may be the default.
+
+**FR-H3 — Unique names by default.** A new (forked) profile's suggested name is the source profile's name with an **auto-incremented suffix** (`-1`, `-2`, …) chosen as the next value that is not already in use, guaranteeing uniqueness; the administrator may rename. The fork records its **lineage** ("derived from …").
+
+### I. Analyzer Types page
+
+**FR-I1 — List.** Columns: Profile (name + manufacturer/model/version), Protocol, **Tests mapped (X/Y · %)**, **Results mapped (X/Y · %)**, Used by (count), Status. Row actions: Edit mappings, Export (download a copy for backup/support — re-import is future), Deactivate/Reactivate. (No Clone, no Delete.)
+
+**FR-I2 — Search & filters.** A search over name/manufacturer/model (built for large libraries). Filters: **Created** (site-created / shipped), **Protocol**, **Mapping status** (has unmapped results / fully mapped), and **Show deactivated** (off by default).
+
+**FR-I3 — Intro/explainer.** The page opens with a short plain-language explanation of what a profile is and how to use it (share across identical analyzers; fork when one differs; deactivate not delete).
+
+**FR-I4 — Editing a profile == the mapping editor.** Editing a profile opens the same editor reached from an analyzer's Field Mappings — a profile *is* its mappings, not just a list row.
+
+---
+
+## Data Model & Dependencies
+
+Grounded in existing OpenELIS entities; new data is flagged as a named dependency, not invented domain concepts.
+
+| Concept | Source / status |
+|---------|-----------------|
+| Catalog test, result type, result options | **Existing** — Test Catalog; qualitative results are dictionary-backed result options. Result mapping targets these. |
+| LOINC on a test | **Existing** field; the deterministic match key. OpenELIS ships default tests pre-mapped with LOINC as part of this work. |
+| Lab unit (test unit) | **Existing** — used for analyzer assignment and RBAC context. |
+| Analyzer (instance) | **Existing** — gains a profile reference, lab-unit association, and verified data-flow direction. |
+| Analyzer plugin / type | **Existing** ("Analyzer Types" registry) — the generic plugin per protocol; profiles ride on the generic plugin. Lab-facing surface replaced by Analyzer Profiles. |
+| **Analyzer profile** | **NEW** — reusable config entity (FR-A1) with lineage to a parent profile for forks; `@Audited`. |
+| Pending/unmapped code & result queue | **Dependency** — learn-from-traffic store; surfaces to Alerts. Partly exists as "pending codes" on the deployed Field Mappings page; extend to cover unmapped result values. |
+| Alerts | **Existing** Alerts page — receives unmapped-code/result events for active analyzers (FR-G2). |
+| QC identification rules / control codes | **Existing** in profiles/QC config — surfaced for verification (FR-B5); detailed QC limits live in Quality Control. |
+
+---
+
+## Localization
+
+All UI strings use localization keys (`label.analyzer.profile.*`, `label.analyzer.setup.*`, `label.analyzer.mapping.*`, `label.analyzer.verify.*`). Representative keys:
+
+| Key | English |
+|-----|---------|
+| `label.analyzer.profiles.title` | Analyzer Profiles |
+| `label.analyzer.profiles.intro` | A profile is the reusable setup for a kind of analyzer… |
+| `label.analyzer.setup.identify` | Instrument |
+| `label.analyzer.setup.verify` | Verify the mappings |
+| `label.analyzer.setup.connect` | Connect it |
+| `label.analyzer.verify.matchedActive` | matched · active |
+| `label.analyzer.verify.needsAttention` | needs attention |
+| `label.analyzer.verify.confirm` | Confirm & continue |
+| `label.analyzer.catalog.notInCatalog` | Not in your catalog |
+| `label.analyzer.catalog.mapExisting` | Map to an existing test in your catalog |
+| `label.analyzer.catalog.addInCatalog` | Add it in Test Catalog first, then return and map |
+| `label.analyzer.qc.recognized` | recognized |
+| `label.analyzer.connect.dataflow` | Data flow |
+| `label.analyzer.connect.oneway` | Results only (one-way) |
+| `label.analyzer.connect.twoway` | Two-way (send orders/queries) |
+| `label.analyzer.connect.twowayUnreachable` | Two-way not reachable on this network; running results-only |
+| `label.analyzer.scope.newProfile` | Save as a new profile |
+| `label.analyzer.scope.updateProfile` | Update this profile (affects {count} analyzers) |
+| `label.analyzer.mapping.testsMapped` | Tests mapped |
+| `label.analyzer.mapping.resultsMapped` | Results mapped |
+| `label.analyzer.unmapped.alert` | Analyzer is sending a result that isn't mapped |
+
+---
+
+## Acceptance Criteria
+
+- [ ] **AC-1** Add Analyzer expands inline in the Analyzers List (not a modal); the list remains visible.
+- [ ] **AC-2** Setup proceeds Instrument → Verify → Connect as stacked, progressively revealed sections; completed sections collapse to a summary with Edit.
+- [ ] **AC-3** The instrument picker is search-based; selecting an instrument loads its profile.
+- [ ] **AC-4** "My instrument isn't listed" collects profile name, protocol, and connection type to define a new profile.
+- [ ] **AC-5** The verify step shows each profile test with analyzer code, matched catalog test, LOINC, and status; matching is deterministic LOINC==LOINC against active tests.
+- [ ] **AC-6** Verification requires explicit human confirmation and writes `ANALYZER_MAPPING_VERIFIED` to the audit trail.
+- [ ] **AC-7** QC codes appear in the verify step and require confirmation.
+- [ ] **AC-8** A non-matching test offers Resolve → map-to-existing (search), add-in-Test-Catalog (link out), or don't-receive; inline test creation is not offered.
+- [ ] **AC-9** A missing test does not block verifying/activating the others.
+- [ ] **AC-10** Connect defaults to one-way; two-way is offered only when the profile supports it, is verified by a probe, and degrades to one-way on timeout without blocking setup.
+- [ ] **AC-11** In the editor, every test-code row is editable (re-point linked test via search, edit code, remove, add).
+- [ ] **AC-12** Result mapping targets are exactly the matched test's result options; an empty option set shows the Test-Catalog guidance.
+- [ ] **AC-13** Saving from an analyzer defaults to Save-as-new-profile when used-by > 1; Update-this-profile warns and names affected analyzers.
+- [ ] **AC-14** A forked profile's suggested name uses the next free `-N` suffix and is guaranteed unique; lineage is recorded.
+- [ ] **AC-15** Unmapped codes/results from an active analyzer post to Alerts and flag the row and the profile; results are never dropped or blocked.
+- [ ] **AC-16** The Analyzer Profiles list shows Tests mapped and Results mapped as X/Y · %, supports search and the four filters, and hides deactivated by default.
+- [ ] **AC-17** Profiles are deactivated/reactivated; no delete action exists.
+- [ ] **AC-18** The mapping editor is identical across ASTM/HL7/flat file except the field-reference label.
+- [ ] **AC-19** No developer-only fields (plugin class, identifier-pattern regex, raw config JSON) appear in the lab-facing flow; any such reference is in a clearly secondary "Advanced — for IT/implementers" area.
+- [ ] **AC-20** All UI strings use localization keys.
+- [ ] **AC-21** "Send a result from the analyzer" reconciles the transmission live: matched items are marked verified-against-live; a new result value surfaces pre-populated with the test's options to map; a new test code surfaces with a catalog search; a mapped test not in the message stays "not seen yet."
+- [ ] **AC-22** Reconciliation never discards a transmitted item; resolving one updates the profile (per FR-H scope).
+- [ ] **AC-23** On the "not listed → new profile" path, a received message populates the (empty) mapping rows so a new profile can be built from real data; the "My instrument isn't listed" control reveals the new-profile fields (name, protocol, connection type).
+
+---
+
+## Related Documents
+
+| Document | Relationship |
+|----------|-------------|
+| `analyzer-profile-mapping-gap-analysis.md` | Why this work exists; the gap between shipped profiles and the needed GUI |
+| `analyzer-profile-mapping-prototype.html` | Functional prototype embodying this FRS |
+| ASTM / HL7 / Flat-file mapping addenda | Prior protocol-level mapping specs this consolidates and supersedes for the GUI surface |
+| Deployed "Analyzer Types" page | The first cut of this work; superseded by Analyzer Profiles |
+| Test Catalog FRS | Defines the tests, result types, and result options that mappings target |
+| Alerts | Receives unmapped-code/result events for active analyzers |
+| Ideas backlog — Catalyst-assisted analyzer mapping | The LLM-assisted future direction (flat-file inference), out of scope here |
+
+---
+
+## Multi-component mapping (target → result component) — added, OGC-1131
+
+Some assays report **several values at once** — a multiplex molecular panel sends an overall call plus a
+per-target value (Ct/Cq per gene / probe / fluorophore channel; e.g. GeneXpert probes, a BioRad CFX qPCR
+run). OpenELIS models those as **result components** of a test (`test_result_component`, OGC-949 M1). The
+mapping UI must let an admin map an instrument's result code/target to a **specific result component** of a
+test — not only to a test.
+
+**Requirements**
+
+- **MC-1.** A mapping row can target a **result component** of a test in addition to today's target→test
+  mapping. The mapping table gains an optional **Component** selector (the test's components, by label);
+  leaving it blank maps to the test's **PRIMARY** component — exactly today's behavior.
+- **MC-2.** Resolution is two-step: resolve the **test** first (LOINC / analyzer code), then the
+  **component** by a **stable code** — the component `code` (or its optional LOINC where set). **Never**
+  match on a translated / display string.
+- **MC-3.** Per assay, the admin decides **separate tests** (today) or **one multi-component test**; the
+  mapping supports both. Enabling component mapping must **not** silently merge assays currently modeled as
+  separate tests (MTB, RIF, CT, NG).
+- **MC-4.** An assay's **instrument-reported internal control** (GeneXpert SPC/PCC, a qPCR IPC channel) may
+  be mapped to a component (typically not shown on the report). The **QC program** (control materials,
+  Westgard, LJ) is out of scope here — it stays in the QC domain.
+- **MC-5.** A reported target with **no matching component** raises the existing unmapped-code Alert/event
+  (never silently dropped).
+- **MC-6. Access (2026-07-10 decision).** The code→test/component **mapping** (and the exception "map now"
+  from the import review) is available to the **`results` permission** — **not** admin-gated — because it
+  is clinical-catalog knowledge the bench owns. The *technical* analyzer config (connection, plugin,
+  profile plumbing) stays admin. The new RBAC will make this more granular later.
+
+**Mockup delta:** extend the existing mapping mockup (`analyzer-mapping-templates.jsx` /
+`analyzer-profile-mapping-prototype.html`) — add the **Component** column/selector to the result-mapping
+table; no new screen. See `analyzer-multicomponent-mapping-preview.html` for the delta.
+
+_Companion: the analyzer ingestion FRS (`analyzer-multicomponent-ingestion.md`, OGC-1129), the connection-spec
+edits (OGC-1133), and the multi-component `analyzer-mapping-spec` skill guidance._
+
+
+---
+
 # Analyzer Types & Mapping (analyzer-integration)
 Gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-types-mapping
 Jira: OGC-1054
@@ -26251,6 +26292,44 @@ All UI strings use localization keys (`label.analyzer.profile.*`, `label.analyze
 | Test Catalog FRS | Defines the tests, result types, and result options that mappings target |
 | Alerts | Receives unmapped-code/result events for active analyzers |
 | Ideas backlog — Catalyst-assisted analyzer mapping | The LLM-assisted future direction (flat-file inference), out of scope here |
+
+---
+
+## Multi-component mapping (target → result component) — added, OGC-1131
+
+Some assays report **several values at once** — a multiplex molecular panel sends an overall call plus a
+per-target value (Ct/Cq per gene / probe / fluorophore channel; e.g. GeneXpert probes, a BioRad CFX qPCR
+run). OpenELIS models those as **result components** of a test (`test_result_component`, OGC-949 M1). The
+mapping UI must let an admin map an instrument's result code/target to a **specific result component** of a
+test — not only to a test.
+
+**Requirements**
+
+- **MC-1.** A mapping row can target a **result component** of a test in addition to today's target→test
+  mapping. The mapping table gains an optional **Component** selector (the test's components, by label);
+  leaving it blank maps to the test's **PRIMARY** component — exactly today's behavior.
+- **MC-2.** Resolution is two-step: resolve the **test** first (LOINC / analyzer code), then the
+  **component** by a **stable code** — the component `code` (or its optional LOINC where set). **Never**
+  match on a translated / display string.
+- **MC-3.** Per assay, the admin decides **separate tests** (today) or **one multi-component test**; the
+  mapping supports both. Enabling component mapping must **not** silently merge assays currently modeled as
+  separate tests (MTB, RIF, CT, NG).
+- **MC-4.** An assay's **instrument-reported internal control** (GeneXpert SPC/PCC, a qPCR IPC channel) may
+  be mapped to a component (typically not shown on the report). The **QC program** (control materials,
+  Westgard, LJ) is out of scope here — it stays in the QC domain.
+- **MC-5.** A reported target with **no matching component** raises the existing unmapped-code Alert/event
+  (never silently dropped).
+- **MC-6. Access (2026-07-10 decision).** The code→test/component **mapping** (and the exception "map now"
+  from the import review) is available to the **`results` permission** — **not** admin-gated — because it
+  is clinical-catalog knowledge the bench owns. The *technical* analyzer config (connection, plugin,
+  profile plumbing) stays admin. The new RBAC will make this more granular later.
+
+**Mockup delta:** extend the existing mapping mockup (`analyzer-mapping-templates.jsx` /
+`analyzer-profile-mapping-prototype.html`) — add the **Component** column/selector to the result-mapping
+table; no new screen. See `analyzer-multicomponent-mapping-preview.html` for the delta.
+
+_Companion: the analyzer ingestion FRS (`analyzer-multicomponent-ingestion.md`, OGC-1129), the connection-spec
+edits (OGC-1133), and the multi-component `analyzer-mapping-spec` skill guidance._
 
 
 ---
@@ -83184,6 +83263,183 @@ No existing OpenELIS "Help Menu" epic exists. When ready to implement, a new sto
 | **Slug** | A URL-safe identifier derived from a page title. Used as the routing parameter and the HTML filename. |
 | **HelpKey** | A stable identifier (e.g. `orders.add-order`) applied as a Confluence label, used to match the same page across translated spaces. (Future, not in v1.) |
 | **Locale fallback** | Behavior where if the active OpenELIS locale has no manifest, the viewer renders English content with a "Available in English only" badge. |
+
+
+---
+
+# Analyzer Results Import (v2 redesign) (system)
+Gallery: https://digi-uw.github.io/openelis-work/#/system/analyzer-results-import-v2-redesign
+Jira: OGC-288, OGC-1131, OGC-1129
+
+# FRS — Analyzer Results Import (redesign, revisited)
+
+**Status:** Draft for review · **Supersedes:** `analyzer-import.md` (the wireframe-era redesign; all its
+QC-first / run-settings / sidebar mechanics are carried forward, restructured to FRS form and made
+multi-component-aware).
+**Technology:** Java / Spring backend, React + Carbon (`@carbon/react`).
+**Jira:** **OGC-288** (Analyzer Results Import Page Redesign — the owning story; this is its revisited
+design). Related: epic **OGC-1131** (Multi-Component Results), OGC-1129 (analyzer ingestion), OGC-949 M1
+(`test_result_component`), Results Entry v4 (OGC-811), OGC-1136 (analyzer Types & Mapping component column).
+
+---
+
+## Lab Context
+
+### Current State
+When an instrument sends a run to OpenELIS, a tech opens the **Analyzer Results Import** page to review the
+incoming results and accept them into the system. A run mixes **control samples** (QC) with **patient
+samples**; the tech should confirm QC passed before releasing any patient result, record which reagent
+lots/cartridges the run used, and watch for abnormal or critical values. Increasingly the runs are
+**multiplex molecular** — one patient sample yields several values at once (an overall call plus a Ct/Cq
+per target gene / probe / fluorophore channel).
+
+### Pain
+Today QC and patient results are intermingled with no gating, reagent capture lives on paper, and there's
+no delta-check or interpretation help. And a multiplex run has nowhere to put its per-target values — the
+page assumes one value per test, so probe Cts are dropped or forced into separate tests. A tech reviewing
+an Xpert MTB/RIF run can accept "MTB DETECTED" but not the five rpoB probe Cts behind it.
+
+### What Changes
+The page leads with **QC**: control samples are extracted and evaluated first, and patient acceptance is
+blocked when QC fails. Reagent lots are captured once per run (FIFO-preselected). Each patient analysis
+shows its result(s); for a **multi-component** test the review shows every component (the call plus each
+target's Ct), grouped under the analysis, reusing the same result rendering as Results Entry. Unmapped
+targets surface as visible exceptions rather than vanishing. QC still gates the whole run; accept/reject is
+per analysis.
+
+---
+
+## Overview & IA
+The Analyzer Results Import page is the review-and-accept surface for a single analyzer run: a **QC-first**
+panel at top, a **Run Settings** strip (analyzer + reagent lots), the **patient results** review table, and
+a **QA/QC sidebar**. It is driven by the analyzer mapping (Analyzer Types & Mapping) and, for multiplex
+tests, by the target→component mapping (OGC-1136/1129).
+
+**Navigation & URL:** under **Analyzers** (e.g. `Analyzers → [analyzer] → Import` / results review). Verify
+the exact route + SideNav slot against the live app before build.
+
+---
+
+## User Stories
+- **As a tech,** I want QC evaluated before I can accept patient results, so a failed run can't release bad values.
+- **As a tech,** I want each patient analysis's full result — including every target/component of a multiplex test — visible on the review, so I accept the complete result, not just the call.
+- **As a tech,** I want a reported target that isn't mapped to show as a clear exception I can act on, so nothing is silently lost.
+- **As a tech,** I want the run's reagent lots captured once and applied to all accepted results, so consumption isn't hand-recorded.
+- **As a supervisor,** I want the import review to look and behave like Results Entry (same result widgets, flags, Method/Analyzer split), so the two feel like one product.
+
+---
+
+## Functional Requirements
+
+### A. QC-first workflow (carried forward)
+- **FR-A1.** Control samples are **extracted** from the run (by sample-ID pattern, reserved patient ID, control sample-type, or known control lot) and shown in a dedicated **QC panel at the top**, with per-control card: type/level, result, expected range, pass/fail, run time, failure reason.
+- **FR-A2.** Overall QC status gates the run: **All pass** → patient results acceptable; **any fail** → patient results marked non-conforming and **accept disabled** (retest/ignore still available; NC banner + link); **no QC** → warning, fall back to last-known QC or require manual verification.
+- **FR-A3.** QC failure creates/links a **Non-Conformity** record; a Levey-Jennings link is available. (QC-program evaluation — Westgard/LJ — lives in the QC domain, not here.)
+- **FR-A4. QC verdict source.** Pass/fail is taken from the **analyzer's own QC flag when the message provides one** (e.g. GeneXpert SPC/PCC valid/invalid; onboard QC pass/fail). That flag is authoritative for the import gate.
+- **FR-A5. Expected-vs-observed (fallback + display).** Each control card shows the control's **observed** result beside its **expected** result. Where the analyzer sends a control value but **no verdict**, pass is derived as **observed == expected for qualitative controls** (Positive → expected DETECTED, Negative → NOT DETECTED, internal control → valid). For a **quantitative** control with no configured target range, show the value (and any analyzer flag) for **tech judgment** — never fabricate a verdict. No Westgard/SD math on this page.
+
+### B. Run Settings (carried forward)
+- **FR-B1.** Analyzer is auto-assigned from the import source (read-only: name, online/offline, QC status). Method/Analyzer follow the Results Entry v4 split.
+- **FR-B2. Reagent/cartridge lot provenance.** The run's reagent/cartridge lots come from **either the analyzer message** (when it carries the lot — e.g. a GeneXpert cartridge lot — shown read-only, tagged "analyzer-reported") **or a manual selection** by the tech from inventory. **No FIFO auto-selection is assumed** — nothing is pre-picked; the tech chooses when the analyzer doesn't report it. Expiring-soon/expired lots are flagged in the manual picker. The reported/selected lots + the analyzer attach to every accepted result (`ReagentConsumptionEvent`).
+
+### C. Patient results review (multi-component-aware)
+- **FR-C1.** The review lists patient **analyses** with columns: **Sample Info (lab number = primary key; a light patient-name confirmation; NC icon)**, Test, Result, Range, QC, Flags. **Full demographics are not shown** — import is accession-keyed and the task is match → QC → accept; demographic/clinical interpretation (age/sex-aware ranges, etc.) belongs to Results Entry / Validation, not here. Result cells reuse the **Results Entry v4 result renderer** (polymorphic by `result_type`) and its **contrast Tags** (icon + Carbon `Tag` + bold, WCAG 2.2 AA), not tint alone.
+- **FR-C2. Multi-component (new).** An analysis whose test has **multiple result components** renders each component value **grouped under the analysis**, in `display_order` — the primary/derived result first, the per-target values (e.g. rpoB probe Cts) beneath (reuse the panel parent/child indent). Numeric Ct/Cq is a value; **blank/absent = no amplification / negative**; empty renders blank (never a fabricated 0). A single-component test renders exactly one row, unchanged.
+- **FR-C3.** Interpretation suggestions and **delta checks** are shown per **component** where the component carries ranges/history (the derived call keeps its own); delta highlights significant change vs the component's previous value.
+- **FR-C4.** Accept / Retest / Ignore operate on the **analysis** (all its components together), consistent with today. Bulk "Accept selected" / "Select normal only" apply per analysis; accept is disabled while the run's QC has failed.
+
+### D. Unmapped targets (new, actionable)
+- **FR-D1.** A target the analyzer reports that has **no matching component** (on a test configured for component mapping) appears as a **visible unmapped-result exception** on the review — grouped with its analysis, flagged — and raises the existing unmapped-code Alert. It is **never silently dropped**.
+- **FR-D2.** The exception is **actionable**: a "map now" affordance deep-links to the Analyzer Types & Mapping page (OGC-1136) to add the target→component mapping, or the tech can hold/ignore the target. Accepting the analysis does not silently discard unmapped targets.
+
+### E. QA/QC sidebar (carried forward)
+- **FR-E1.** Current-run QC status (mini control-value viz), recent QC history (last 5 + link), analyzer info, and reagent status with expiry warnings.
+
+### F. Internal controls vs QC program (boundary)
+- **FR-F1.** An assay's **instrument-reported internal control** (GeneXpert SPC/PCC, a qPCR IPC channel) may be modeled as a **result component** and shown per analysis (typically not on the patient report). This is distinct from the **QC-first control-sample extraction** (A1) which handles run-level QC materials. Do not double-count: an internal-control *component* travels with the patient analysis; a *control sample* is a separate QC row. The **QC program** (control materials, Westgard, LJ) is not modeled as components.
+
+### G. Consistency with Results Entry v4
+- **FR-G1.** The review reuses Results Entry v4 building blocks: the polymorphic result renderer per component, contrast Tags, Method/Analyzer split, and provenance/prefill indicators — so a value imported here and one entered on Results Entry render identically.
+
+### H. Cross-domain
+- **FR-H1.** Where the analyzer's Lab Unit implies ENVIRONMENTAL/VECTOR, the review follows the Results Entry cross-domain treatment (site/trap context instead of patient; regulatory limit instead of reference range). Molecular multiplex is the primary CLINICAL case.
+
+### J. Sample matching (accession-keyed) & exceptions
+- **FR-J1.** Import resolves each incoming record to an **accession / lab number** (the analyzer's `Sample` field) → its ordered analysis. **Patient identity is derived from the accession — the analyzer does not send it.**
+- **FR-J2.** Records that don't resolve land in a **visible exception queue** — never silently dropped, never auto-created, never auto-released — in three kinds:
+  - **Unmatched sample** — lab number unknown / blank / typo. Tech manually maps the record to the correct accession, or holds/rejects. (Well position alone is not a reliable accession.)
+  - **Unordered test** — the accession resolves but that test wasn't ordered on it. Hold, or allow add-on per lab policy.
+  - **Unmapped code/target** — the analyzer code/target has no mapping to a test/component (FR-D). "Map now" → Analyzer Types & Mapping.
+- **FR-J3.** Each exception is actionable inline and blocks only its own record; the rest of the run proceeds. Accepting an analysis never discards its unresolved exceptions.
+
+---
+
+## Bench-experience requirements (G1–G13, from the 2026-07-10 review)
+
+- **G1 — Entry point.** A lab-unit-scoped **Pending Imports inbox** is the entry to this page — its own story, **OGC-1137** (shows only runs from analyzers assigned to the tech's lab unit(s)).
+- **G2 — Volume triage.** Default sort **exceptions/QC-issues → critical → abnormal → normal**; filter chips (All · Needs review · Critical · Abnormal · Exceptions · Normal) with live counts; **progress** ("X of N reviewed"); **partial-accept + resume** (the run stays in the inbox with a remaining count until fully dispositioned); **keyboard-first** review (v1).
+- **G3 — Duplicate / already-resulted.** On load detect (a) the analysis is already resulted, (b) the run/message was already imported. **Never silently overwrite** — per-row **Keep / Replace / Ignore**. Replace while pending = in place (audit); replace after validated/released = the **correction workflow**. Duplicate run/message = **skip with warning**.
+- **G4 — Rerun linkage.** QC-failed results are **retained, never released**, and **superseded** when an accepted retest replaces them. A later run covering the same samples surfaces a **suggested, tech-confirmed** "retest of RUN-x" link; ties to the QC-fail NCE.
+- **G5 — Unit mismatch.** Compare incoming unit to the component's configured unit; mismatch → **exception** (no silent accept); **no auto-conversion in v1** (only where a factor is explicitly configured, later).
+- **G6 — Criticals.** Reuse the Results Entry critical-ack model: surface incoming criticals; on accept, create the pending-ack **Alerts** task + `CRITICAL_DETECTED` audit; **accept is not blocked**; the row shows "critical — notification pending."
+- **G7 — Reagent lots.** Analyzer-reported lot **wins** (read-only). Otherwise **no prefill** — a one-click **"Use last-used lot"** applies the tech's previous selection; else manual. (No FIFO.) Capture is required only when the deployment's reagent-lot gate is on.
+- **G8 — Exception resolution.** Unmatched sample → inline **type-ahead accession search**. Unmapped code/target → **"Map now"** to the (persisted) Analyzer Types & Mapping surface, so future runs auto-resolve. **Hold / Ignore-with-reason** always available.
+- **G9 — Post-accept.** Confirmation **toast + Undo**; **recall** allowed while pending validation; after validation/release → the **correction workflow**.
+- **G10 — View raw.** Read-only **per-result** (record/segment) and **per-run** (message/file) raw view.
+- **G11 — Editing.** **Accept-as-is on import** (analyzer fidelity preserved; "analyzer-reported" provenance). Value corrections happen in **Results Entry** (its edit-state machine + audit) — no free editing on the import page in v1.
+- **G12 — Concurrency.** Optimistic concurrency + stale-page guard (`STALE_PAGE_CONFLICT_IMPORT`) + a soft **"in review by X"** indicator (from the Pending Imports inbox); **no hard locking**. *The same "in review by X" indicator is also added to Results Entry (OGC-811) and Validation (OGC-817) for consistency.*
+- **G13 — QC-fail workflow.** Primary action is **Retest** (run it again until QC passes; links to the failed run per G4). **Reject** marks the results not-released — **NCE is optional** (don't add friction). **Accept despite QC failure** is the documented exception: **results-gated**, and it **requires an NCE**, auto-opened and **pre-populated** with run / analyzer / QC-failure (which control, observed vs expected) / affected samples. No separate supervisor escalation today (the `results` user overrides; it's logged) — the new RBAC will add granularity. Actions: **Retest** · **Reject** (NCE optional) · **Accept despite QC failure (files NCE)**. QC-failed result state = **Rejected — QC** (non-conforming), superseded if a retest is accepted.
+
+## Access (updated per the 2026-07-10 review)
+
+The import review **and** the mapping / exception resolution ("map now") use the existing **`results` permission** — **not** admin, **not** Test Catalog Manager — because mapping an instrument code to a test/component is clinical-catalog knowledge the bench owns, and there's no separate escalation path yet. Sample-matching (binding a record to an accession) is likewise a `results` action. The **new RBAC** will make all of this more granular later.
+
+---
+
+## Data Model (reuse-first)
+
+Carries the existing import models (`QCSample`, `RunQCStatus`, `ImportedResult`, `RunSettings`,
+`ReagentLot`) with these multi-component additions:
+
+| Concept | Entity / field | Notes |
+|---|---|---|
+| Imported analysis | `Analysis` + its `Result` rows | `RESULT` is already one-to-many off `Analysis` |
+| **Per-component value** | `RESULT.component_id` → `test_result_component` (OGC-1124) | Where each imported target value lands (nullable = PRIMARY) |
+| Component identity / match | `test_result_component.code` (+ optional LOINC, OGC-1128) | The stable match key from the analyzer mapping |
+| Analyzer→component mapping | `analyzer_test_map` + component ref (OGC-1129) | Resolves target → (test, component) |
+| QC control sample | `QCSample` / control analyses | Run-level QC (distinct from internal-control components) |
+| Reagent | `ReagentConsumptionEvent`, `ReagentLot` | Attached on accept; lot source = **analyzer-reported or manual** (no FIFO auto-select) |
+| Sample matching | accession lookup (analyzer `Sample` → order/analysis); patient derived from accession | Unresolved → exception queue (unmatched / unordered / unmapped) |
+
+`ImportedResult` gains a `components: [{ componentId, code, label, value, unit, flags, delta, unmapped }]`
+array (empty/one for single-component tests). No new patient-result columns on `analysis`/`test`.
+
+---
+
+## Access & Audit
+- Runs under the existing analyzer-import identity / results-modify bundle; no new roles.
+- Audit: accept → `RESULT_SAVED` per component (keyed to `component_id`); reagent consumption; QC-fail →
+  NC event; unmapped-target → the existing unmapped-code Alert/event.
+
+## Localization
+Reuse existing import + Results Entry keys; component labels come from the component's own label; "Ct" is a
+unit. Add an `label.import.unmappedTarget` string for the exception if not present.
+
+## Dependencies
+- OGC-1124 runtime `RESULT.component_id`; OGC-1129 target→component ingestion; OGC-1136 mapping UI + this
+  review; OGC-1128 component codes. Manual/RDT control-result persistence (shared with Results Entry) for QC
+  on non-analyzer tests.
+
+## Out of Scope
+- The QC program / Westgard / Levey-Jennings engine (QC dashboard domain).
+- The analyzer connection/transport and parsing (unchanged; connection specs = OGC-1133).
+- Merging assays currently modeled as separate tests (deployment decision).
+
+## Open Questions (for this revisit)
+1. **Internal-control component vs QC-first control extraction** — confirm the display rule so an IPC/SPC that is *both* an internal-control component and part of QC doesn't appear twice (recommend: QC panel owns run-level control *samples*; per-analysis internal-control *components* show inline, muted).
+2. **Delta checks per component** — do we have per-component historical values to delta against at import time, or only per test? (May limit FR-C3 initially.)
+3. **Unmapped "map now" flow** — inline mapping vs deep-link to Analyzer Types & Mapping (FR-D2). Deep-link is simpler for v1.
+4. Confirm the route + SideNav slot against the live app.
 
 
 ---
