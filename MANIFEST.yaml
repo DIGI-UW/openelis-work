@@ -1984,7 +1984,7 @@
   path: designs/reports/custom-data-export.jsx
   spec: designs/reports/custom-data-export.md
   category: reports
-  description: 3-step report builder wizard with field selection, filter configuration, and scheduling — plus async My Report Queue and Saved Export Configurations panel
+  description: 3-step CSV report builder wizard with grain-family variable selection, filters, and sync/async routing — plus async My Report Queue and Saved Export Configurations. v1.1 (2026-07-15) — grain families with color coding, QC domain removed, overwrite-confirm for saved configs
   links:
     github: https://github.com/DIGI-UW/openelis-work/issues/70
     jira: https://uwdigi.atlassian.net/browse/OGC-479

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-15T21:54:01.210Z",
+  "generated": "2026-07-15T22:47:37.586Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
   "totalDesigns": 204,
   "categories": [
@@ -4635,7 +4635,7 @@
       "name": "Custom Data Export",
       "slug": "custom-data-export",
       "category": "reports",
-      "description": "3-step report builder wizard with field selection, filter configuration, and scheduling — plus async My Report Queue and Saved Export Configurations panel",
+      "description": "3-step CSV report builder wizard with grain-family variable selection, filters, and sync/async routing — plus async My Report Queue and Saved Export Configurations. v1.1 (2026-07-15): grain families with color coding, QC domain removed. Note: JSX mockup pending v1.1 refresh — HTML preview is current.",
       "type": "jsx",
       "added": "2026-03-25",
       "status": "draft",

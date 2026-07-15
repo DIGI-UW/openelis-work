@@ -1929,7 +1929,7 @@ export const MOCKUP_REGISTRY = [
     name: 'Custom Data Export',
     category: 'reports',
     component: React.lazy(() => import('@designs/reports/custom-data-export.jsx')),
-    description: '3-step report builder wizard with field selection, filter configuration, and scheduling — plus async My Report Queue and Saved Export Configurations panel',
+    description: '3-step CSV report builder wizard with grain-family variable selection, filters, and sync/async routing — plus async My Report Queue and Saved Export Configurations. v1.1 (2026-07-15): grain families with color coding, QC domain removed. Note: JSX mockup pending v1.1 refresh — HTML preview is current.',
     specPath: 'designs/reports/custom-data-export.md',
     htmlUrl: 'designs/reports/custom-data-export.html',
     added: '2026-03-25',
