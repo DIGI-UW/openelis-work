@@ -210,6 +210,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Order Entry — Developer Reference | [order-entry-developer-reference.md](designs/sample-collection/order-entry-developer-reference.md) | [order-entry-developer-reference.md](designs/sample-collection/order-entry-developer-reference.md) |
 | Informed Consent Capture (OGC-557) | [informed-consent.jsx](designs/sample-collection/informed-consent.jsx) | [informed-consent.md](designs/sample-collection/informed-consent.md) |
 | Pre-Analytical Eligibility Gate (S-09) | [pre-analytical-eligibility-gate.jsx](designs/sample-collection/pre-analytical-eligibility-gate.jsx) · [preview](designs/sample-collection/pre-analytical-eligibility-gate.html) | [pre-analytical-eligibility-gate.md](designs/sample-collection/pre-analytical-eligibility-gate.md) |
+| CSV Bulk Sample Intake (OGC-1138) | [csv-bulk-sample-intake.jsx](designs/sample-collection/csv-bulk-sample-intake.jsx) · [preview](designs/sample-collection/csv-bulk-sample-intake.html) | [csv-bulk-sample-intake.md](designs/sample-collection/csv-bulk-sample-intake.md) |
 | Sample Collection Redesign v2.1 — Referral Addendum | [sample-collection-referral-addendum.jsx](designs/sample-collection/sample-collection-referral-addendum.jsx) · [preview](designs/sample-collection/sample-collection-referral-addendum.html) | [sample-collection-referral-addendum.md](designs/sample-collection/sample-collection-referral-addendum.md) |
 
 ## Other

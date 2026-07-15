@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSV Bulk Sample Intake — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans', sans-serif; color:#161616; }
+    .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+    .preview-content { padding:1rem 2rem 4rem; max-width:1440px; margin:0 auto; }
+    .crumb { font-size:12px; color:#525252; margin:.5rem 0 0; }
+    h1 { font-size:24px; font-weight:400; margin:.5rem 0 .25rem; }
+    .sub { color:#525252; margin:0 0 1.25rem; }
+    .phase-tabs { display:flex; gap:0; margin:1rem 0 1.5rem; border-bottom:1px solid #c6c6c6; }
+    .phase-tab { padding:.6rem 1rem; cursor:pointer; border:none; background:none; font-size:14px; color:#525252; border-bottom:2px solid transparent; }
+    .phase-tab.active { color:#161616; border-bottom:2px solid #0f62fe; font-weight:600; }
+    .card { background:#fff; border:1px solid #e0e0e0; padding:1rem 1.25rem; margin-bottom:1rem; }
+    .card h3 { font-size:16px; font-weight:600; margin:0 0 .25rem; }
+    .card p.hint { color:#6f6f6f; font-size:13px; margin:.15rem 0 1rem; }
+    table.cds--data-table { width:100%; }
+    .cds--data-table td, .cds--data-table th { font-size:13px; padding:.4rem .6rem; vertical-align:middle; }
+    .rowstat { font-size:11px; font-weight:600; padding:2px 8px; border-radius:12px; display:inline-block; }
+    .rowstat.valid { background:#defbe6; color:#0e6027; }
+    .rowstat.review { background:#fcf4d6; color:#8e6a00; }
+    .rowstat.invalid { background:#fff1f1; color:#a2191f; }
+    .cell { padding:2px 4px; border-radius:3px; }
+    .cell.ok { }
+    .cell.review { background:#fcf4d6; outline:1px solid #f1c21b; cursor:pointer; }
+    .cell.bad { background:#fff1f1; outline:1px solid #da1e28; cursor:pointer; }
+    .summary { display:flex; gap:1.5rem; align-items:center; margin:.5rem 0 1rem; flex-wrap:wrap; }
+    .summary .n { font-size:22px; font-weight:600; }
+    .summary .lbl { font-size:12px; color:#6f6f6f; }
+    .dropzone { border:2px dashed #8d8d8d; background:#fafafa; padding:2.5rem; text-align:center; color:#525252; border-radius:2px; }
+    .fix-panel { background:#f4f4f4; border:1px solid #c6c6c6; padding:1rem; margin:.5rem 0; }
+    .fix-panel .propose { background:#edf5ff; border:1px solid #a6c8ff; padding:.6rem .8rem; margin:.5rem 0; font-size:13px; }
+    .applies { font-size:12px; color:#0f62fe; font-weight:600; margin-left:.5rem; }
+    .btn { border:none; cursor:pointer; font-size:13px; padding:.45rem .9rem; border-radius:2px; }
+    .btn.primary { background:#0f62fe; color:#fff; }
+    .btn.primary:disabled { background:#c6c6c6; cursor:not-allowed; }
+    .btn.ghost { background:transparent; color:#0f62fe; }
+    .btn.sec { background:#393939; color:#fff; }
+    .filterbar { display:flex; gap:.5rem; margin:.5rem 0; flex-wrap:wrap; }
+    .chip { font-size:12px; padding:4px 10px; border:1px solid #c6c6c6; background:#fff; border-radius:14px; cursor:pointer; }
+    .chip.on { background:#161616; color:#fff; border-color:#161616; }
+    select.mini { font-size:13px; padding:3px 6px; border:1px solid #8d8d8d; background:#fff; max-width:200px; }
+    .v2col { display:flex; gap:1.5rem; align-items:flex-start; flex-wrap:wrap; }
+    .maprow { display:grid; grid-template-columns:200px 30px 220px; align-items:center; gap:.5rem; padding:.35rem 0; border-bottom:1px solid #f0f0f0; font-size:13px; }
+    .badge-new { font-size:11px; background:#e8daff; color:#6929c4; padding:2px 8px; border-radius:12px; }
+    .badge-existing { font-size:11px; background:#d0e2ff; color:#0043ce; padding:2px 8px; border-radius:12px; font-weight:600; }
+    .existing-page { border:1px solid #0043ce; border-left:4px solid #0043ce; background:#f7fbff; }
+    .samples-slot { margin-top:1rem; padding:.85rem 1rem; background:#fff; border:1px dashed #0043ce; }
+    .importer-divider { margin:1.25rem 0 .25rem; font-size:12px; letter-spacing:.04em; text-transform:uppercase; color:#8a3ffc; font-weight:600; }
+    .mock-label { font-size:12px; color:#525252; margin-bottom:2px; }
+    .mock-inp { border:none; border-bottom:1px solid #8d8d8d; background:#f4f4f4; padding:6px 8px; font-size:13px; width:100%; box-sizing:border-box; }
+    .mock-sel { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #8d8d8d; background:#f4f4f4; padding:6px 8px; font-size:13px; color:#a8a8a8; min-width:120px; }
+    .blur-wrap { position:relative; margin-bottom:1.25rem; }
+    .blurred { filter:blur(3.5px); opacity:.5; pointer-events:none; user-select:none; }
+    .blur-tag { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; border:1px dashed #8d8d8d; padding:.5rem .8rem; font-size:12px; color:#393939; max-width:82%; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,.1); }
+    .manifest-tbl { width:100%; border-collapse:collapse; font-size:12px; background:#fff; }
+    .manifest-tbl th { text-align:left; font-size:10px; color:#525252; padding:8px; border-bottom:1px solid #e0e0e0; background:#f4f4f4; text-transform:uppercase; letter-spacing:.02em; font-weight:600; white-space:nowrap; }
+    .manifest-tbl td { padding:8px; border-bottom:1px solid #f0f0f0; vertical-align:top; }
+    .pagefoot { display:flex; justify-content:space-between; align-items:center; border-top:1px solid #c6c6c6; margin-top:1.25rem; padding-top:1rem; }
+    .new-flag { font-size:11px; background:#defbe6; color:#0e6027; padding:2px 8px; border-radius:12px; font-weight:600; }
+    .chip-sm { display:inline-block; font-size:11px; background:#e0e0e0; color:#161616; padding:2px 8px; border-radius:12px; margin:2px 3px 2px 0; white-space:nowrap; }
+    .chip-x { cursor:pointer; font-weight:700; margin-left:3px; color:#525252; }
+    .chip-x:hover { color:#da1e28; }
+    .note { font-size:12px; color:#6f6f6f; margin-top:.25rem; }
+    code { background:#eee; padding:1px 4px; font-size:12px; }
+    .ta-input { font-size:13px; padding:5px 8px; border:1px solid #8d8d8d; background:#fff; width:220px; }
+    .ta-list { list-style:none; margin:0; padding:0; position:absolute; z-index:5; background:#fff; border:1px solid #8d8d8d; width:238px; max-height:180px; overflow:auto; box-shadow:0 2px 6px rgba(0,0,0,.15); }
+    .ta-list li { padding:6px 8px; font-size:13px; cursor:pointer; }
+    .ta-list li:hover { background:#edf5ff; }
+    .ta-list li.ta-empty { color:#a2191f; cursor:default; }
+    .ta-list li.ta-add { color:#6929c4; border-top:1px solid #eee; }
+    table.plate { border-collapse:separate; border-spacing:3px; }
+    table.plate td.pcorner { font-size:11px; color:#6f6f6f; text-align:center; width:18px; }
+    table.plate td.well { width:26px; height:26px; text-align:center; font-size:9px; color:#525252; border-radius:3px; border:1px solid #c6c6c6; }
+    td.well.valid { background:#a7f0ba; border-color:#42be65; }
+    td.well.review { background:#fddc69; border-color:#f1c21b; }
+    td.well.invalid { background:#ffb3b8; border-color:#da1e28; }
+    td.well.empty { background:#fff; }
+    .legend { display:inline-block; width:11px; height:11px; border-radius:2px; vertical-align:middle; margin-right:2px; border:1px solid #c6c6c6; }
+    .legend.valid { background:#a7f0ba; } .legend.review { background:#fddc69; } .legend.invalid { background:#ffb3b8; } .legend.empty { background:#fff; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">⚡ Visual Preview — CSV Bulk Sample Intake (Environmental & Vector) &nbsp;|&nbsp; Route: /AddEnvironmentalOrder/bulk-import (confirm vs live) &nbsp;|&nbsp; Not a live application</div>
+  <div class="preview-content" id="root"></div>
+  <script type="text/babel">
+const { useState, useMemo } = React;
+
+// ---- Realistic demo batch (Environmental water samples from a field run) ----
+// Manifest left blank by the field team to exercise set-in-bulk; one bad date for inline fix.
+const CANON = {
+  sampleType: ["Surface Water","Drinking Water","Groundwater","Wastewater"],
+  test: ["Total Coliforms (TC)","E. coli (ECOLI)","Turbidity (TURB)","pH (PH)","Nitrate (NO3)"],
+  site: ["Riverside Monitoring Station","Eastgate Reservoir Intake","North Canal Outfall","Hilltop Well 3"],
+  standard: ["WHO Drinking Water 2022","National Surface Water Std","EPA Primary"],
+  container: ["500 mL Nalgene","1 L HDPE bottle","Sterile Whirl-Pak","250 mL amber glass"],
+};
+// Order-level fields — set ONCE in the order form, applied to every sample. NOT in the CSV.
+const ORDER = { org:"City Water Authority", requestor:"A. Mbeki (env)", site:"Riverside Monitoring Station", standard:"WHO Drinking Water 2022" };
+
+// The CSV = per-sample manifest only. Each cell: [rawValue, isOK].
+// Demo: sample type + tests left blank by the field team (set-for-all fixes them);
+// one collection date is malformed. Client Sample IDs carry the field team's own refs.
+// Full manifest so we can see how ~10 columns behave. container/location uniform; GPS genuinely per-sample.
+const RAW = [
+  { id:1, clientId:"RS-001", type:["",false], container:["500 mL Nalgene",true], gpsLat:["-6.208",true], gpsLng:["106.845",true], location:["",false], date:["04/03/2026",true], time:["",false], tests:["",false], position:["",false] },
+  { id:2, clientId:"RS-002", type:["",false], container:["500 mL Nalgene",true], gpsLat:["-6.209",true], gpsLng:["106.846",true], location:["",false], date:["04/03/2026",true], time:["",false], tests:["",false], position:["",false] },
+  { id:3, clientId:"RS-003", type:["",false], container:["500 mL Nalgene",true], gpsLat:["-6.215",true], gpsLng:["106.850",true], location:["",false], date:["05/03/2026",true], time:["",false], tests:["",false], position:["",false] },
+  { id:4, clientId:"RS-004", type:["",false], container:["500 mL Nalgene",true], gpsLat:["-6.216",true], gpsLng:["106.851",true], location:["",false], date:["05/03/2026",true], time:["",false], tests:["",false], position:["",false] },
+  { id:5, clientId:"RS-005", type:["",false], container:["500 mL Nalgene",true], gpsLat:["-6.221",true], gpsLng:["106.860",true], location:["",false], date:["05/03/2026",true], time:["",false], tests:["",false], position:["",false] },
+  { id:6, clientId:"RS-006", type:["",false], container:["500 mL Nalgene",true], gpsLat:["-6.230",true], gpsLng:["106.870",true], location:["",false], date:["06/03/2026",true], time:["",false], tests:["",false], position:["",false] },
+  { id:7, clientId:"RS-007", type:["",false], container:["500 mL Nalgene",true], gpsLat:["-6.231",true], gpsLng:["106.871",true], location:["",false], date:["06/13/2026",false], time:["",false], tests:["",false], position:["",false] },
+  { id:8, clientId:"RS-008", type:["",false], container:["500 mL Nalgene",true], gpsLat:["-6.208",true], gpsLng:["106.845",true], location:["",false], date:["07/03/2026",true], time:["",false], tests:["",false], position:["",false] },
+];
+
+const COLS = [
+  {k:"clientId", label:"Client Sample ID", fixable:false},
+  {k:"type",     label:"Sample Type",      fixable:true, bulk:true, opts:"sampleType", req:true},
+  {k:"container",label:"Container",        fixable:true, bulk:true, opts:"container"},
+  {k:"gpsLat",   label:"GPS Lat",          fixable:true, bulk:true},
+  {k:"gpsLng",   label:"GPS Lng",          fixable:true, bulk:true},
+  {k:"location", label:"Location Details", fixable:true},
+  {k:"date",     label:"Collection Date",  fixable:true, bulk:true},
+  {k:"time",     label:"Collection Time",  fixable:true, bulk:true, flagBlank:true},
+  {k:"tests",    label:"Tests / Panels",   fixable:true, bulk:true, opts:"test", req:true},
+  // Position is NOT a v1 manifest column — it's a v3 in-box coordinate, unique per sample (see Storage tab).
+];
+
+function App(){
+  const [phase,setPhase] = useState("v1");
+  return (
+    <div>
+      <p className="crumb">Home / Orders / Add Environmental Order / Bulk Import</p>
+      <h1>Bulk Import Samples — Environmental</h1>
+      <p className="sub">Set the shared order details once, then upload a field spreadsheet of the individual samples. OpenELIS flags anything that won't import; you set the right values fast — one cell, or a whole column at once. It does not guess: you know the samples.</p>
+
+      <div className="phase-tabs">
+        <button className={"phase-tab"+(phase==="v1"?" active":"")} onClick={()=>setPhase("v1")}>v1 — MVP: Template + validate + set-in-bulk</button>
+        <button className={"phase-tab"+(phase==="v2"?" active":"")} onClick={()=>setPhase("v2")}>v2 — Saved profiles (reuse a mapping)</button>
+        <button className={"phase-tab"+(phase==="storage"?" active":"")} onClick={()=>setPhase("storage")}>v3 — Storage: save batch as a box/plate</button>
+      </div>
+
+      {phase==="v1" ? <V1/> : phase==="storage" ? <Storage/> : <V2/>}
+    </div>
+  );
+}
+
+// ================= v1 =================
+function V1(){
+  const [colVal,setColVal] = useState({});   // col -> value applied to whole column
+  const [cellVal,setCellVal] = useState({}); // rowId:col -> value (single-row override)
+  const [openCell,setOpenCell] = useState(null);
+  const [openBulk,setOpenBulk] = useState(null); // which column's "set for all" is open
+  const [onlyAttn,setOnlyAttn] = useState(false);
+  const [importerOpen,setImporterOpen] = useState(true); // inline expansion toggle (D-005)
+  const [hideUniform,setHideUniform] = useState(false); // compact: fold columns identical across all rows
+
+  const isBlank = v => v===undefined || v===null || (Array.isArray(v) ? v.length===0 : String(v).trim()==="");
+  // three states: ok | amber (advisory, non-blocking) | red (required: Sample Type + >=1 Test)
+  const cellInfo = (row,col) => {
+    const c = COLS.find(x=>x.k===col);
+    const key=row.id+":"+col;
+    const hasOv = cellVal[key]!==undefined || colVal[col]!==undefined;   // an override may be a real value OR a cleared ""
+    const ov = cellVal[key]!==undefined ? cellVal[key] : colVal[col];
+    const v = hasOv ? ov : row[col][0];
+    const valid = hasOv ? !isBlank(ov) : row[col][1];
+    if(c.req) return (!isBlank(v) && valid) ? {v,state:"ok"} : {v,state:"red"};      // required → red until set
+    if(isBlank(v)) return {v,state: c.flagBlank ? "amber" : "ok"};                    // Collection Time blank → amber
+    return {v,state: valid ? "ok" : "amber"};                                         // optional present-but-unmatched → amber
+  };
+  const rowState = (row)=>{
+    let s="ready";
+    COLS.forEach(c=>{ const st=cellInfo(row,c.k).state;
+      if(st==="red") s="red";
+      else if(st==="amber" && s!=="red") s="amber"; });
+    return s;
+  };
+  const counts = useMemo(()=>{ let ready=0,amber=0,red=0;
+    RAW.forEach(row=>{ const s=rowState(row); if(s==="ready")ready++; else if(s==="amber")amber++; else red++; });
+    return {ready,amber,red,t:RAW.length}; },[colVal,cellVal]);
+
+  const setForAll  = (col,val)=> setColVal(p=>({...p,[col]:val}));
+  const setCell    = (row,col,val)=> setCellVal(p=>({...p,[row.id+":"+col]:val}));
+  const rowEdited  = (row)=> COLS.some(c=> cellVal[row.id+":"+c.k]!==undefined && colVal[c.k]!==undefined);
+  const resetRow   = (row)=> setCellVal(p=>{ const n={...p}; COLS.forEach(c=>delete n[row.id+":"+c.k]); return n; });
+  const optsFor    = (c)=> c.opts ? CANON[c.opts] : null;
+  const visible    = RAW.filter(row=> !onlyAttn || rowState(row)!=="ready");
+  const canCommit  = counts.red===0;   // only the required fields (red) gate commit; amber does not
+
+  // compaction: a column is "uniform" if every row is OK and shares one value (or all blank)
+  const uniformCols = COLS.filter(c=>{
+    const infos=RAW.map(r=>cellInfo(r,c.k));
+    if(infos.some(i=>i.state!=="ok")) return false;
+    if(infos.every(i=>isBlank(i.v))) return true;
+    return new Set(infos.map(i=>JSON.stringify(i.v))).size===1;
+  });
+  const shown = hideUniform ? COLS.filter(c=> c.k==="clientId" || !uniformCols.includes(c)) : COLS;
+  const sharedChips = uniformCols.filter(c=> c.k!=="clientId" && !RAW.every(r=>isBlank(cellInfo(r,c.k).v)));
+
+  // what value (if any) a bulk column currently holds across all rows
+  const bulkValue = (c) => {
+    if(colVal[c.k]!==undefined) return {v:colVal[c.k], source:"set"};        // applied via Set-for-all
+    const infos = RAW.map(r=>cellInfo(r,c.k));
+    const nonblank = infos.filter(i=>!isBlank(i.v));
+    if(nonblank.length===0) return {v:null, source:"none"};                  // all blank
+    if(new Set(infos.map(i=>JSON.stringify(i.v))).size===1) return {v:infos[0].v, source:"file"}; // all identical
+    return {v:null, source:"mixed"};                                         // differ by row
+  };
+
+  return (
+    <div>
+      <div className="card existing-page">
+        <h3>Add Environmental Order → Enter Order <span className="badge-existing">existing order entry page</span></h3>
+        <p className="hint">Modeled from the live page (bottom shown below). Everything here already exists; the only <span className="new-flag">NEW</span> element is the <b>Bulk import samples</b> action at the very bottom, below the Per-Sample Manifest.</p>
+
+        <div className="blur-wrap">
+          <div className="blurred">
+            <div style={{height:96,background:"repeating-linear-gradient(0deg,#eee,#eee 22px,#f7f7f7 22px,#f7f7f7 44px)",border:"1px solid #e0e0e0"}}></div>
+          </div>
+          <div className="blur-tag"><b>Existing order-header fields above</b> — Requester (Requesting Organization + Requestor), Sampling Site, Program, collection defaults, etc. Rendered on the live page; not modeled here. Dev: see the live Enter Order page for this region.</div>
+        </div>
+
+        <div style={{marginBottom:"1.5rem"}}>
+          <div style={{fontWeight:600,fontSize:15}}>Applicable Compliance Standards</div>
+          <div className="note">Select the regulatory standards that apply to this order.</div>
+          <div style={{maxWidth:640,marginTop:".5rem"}}>
+            <div className="mock-label">Compliance Standards</div>
+            <div className="mock-sel"><span>Select standards…</span><span>⌄</span></div>
+          </div>
+        </div>
+
+        <div>
+          <div style={{fontWeight:600,fontSize:15}}>Per-Sample Manifest <span className="note" style={{fontWeight:400}}>one row = one physical sample</span></div>
+          <div style={{overflowX:"auto",marginTop:".5rem"}}>
+            <table className="manifest-tbl">
+              <thead><tr>
+                <th>#</th><th>Sample Type</th><th>Container</th><th>GPS Lat</th><th>GPS Lng</th><th>Location Details</th><th>Collected</th><th>Tests &amp; Panels</th><th></th>
+              </tr></thead>
+              <tbody>
+                <tr>
+                  <td style={{paddingTop:14}}>1</td>
+                  <td><div className="mock-sel"><span>&nbsp;</span><span>⌄</span></div></td>
+                  <td><div className="mock-sel"><span>&nbsp;</span><span>⌄</span></div></td>
+                  <td><input className="mock-inp" placeholder="e.g. -6.2088" readOnly/></td>
+                  <td><input className="mock-inp" placeholder="e.g. 106.8456" readOnly/></td>
+                  <td><input className="mock-inp" placeholder="e.g., Inlet, Bank…" readOnly/></td>
+                  <td>
+                    <input className="mock-inp" placeholder="mm/dd/yyyy, --:-- --" readOnly/>
+                    <label className="note" style={{display:"block",marginTop:6}}><input type="checkbox" readOnly/> Lab performed sampling</label>
+                  </td>
+                  <td style={{paddingTop:14}}><span style={{color:"#0f62fe"}}>Tests &amp; Panels ⌄</span></td>
+                  <td style={{paddingTop:14}}>⧉</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",marginTop:".5rem"}}>
+            <span style={{color:"#0f62fe",fontSize:13}}>+ Add sample row</span>
+            <span className="note">Total: 1 sample in this batch</span>
+          </div>
+        </div>
+
+        <div className="samples-slot" style={{marginTop:"1.25rem"}}>
+          <button className="btn primary" onClick={()=>setImporterOpen(o=>!o)}>⬆ Bulk import samples (CSV / Excel) {importerOpen?"▾":"▸"}</button>
+          <span className="new-flag" style={{marginLeft:".6rem"}}>NEW</span>
+          <p className="note" style={{marginBottom:0}}>↑ The <b>only new element</b> on this page — at the very bottom, below the Per-Sample Manifest. Clicking it <b>expands the importer inline right here</b> (Carbon inline-expansion pattern, D-005) — not a modal, not a separate page.{!importerOpen && <i> (collapsed — click to expand)</i>}</p>
+        </div>
+
+        {importerOpen && <div className="importer-inline" style={{borderTop:"2px solid #8a3ffc",marginTop:"1rem",paddingTop:".25rem"}}>
+        <div className="importer-divider">▼ Bulk importer — expanded inline (click the button again to collapse)</div>
+
+      <div className="card">
+        <h3>1. Download the manifest template, upload &amp; map columns</h3>
+        <p className="hint">The template has one column per per-sample field we keep (client ID, sample type, tests, collected date &amp; time, container, GPS, location, position). Excel adds dropdowns for the short lists. Plain CSV is fine — any column layout works, you just map it.</p>
+        <button className="btn ghost">⬇ CSV template</button>
+        <button className="btn ghost">⬇ Excel template</button>
+        <div className="dropzone" style={{marginTop:".75rem"}}>Drag a file here or browse (.csv, .xlsx)<br/><span style={{fontSize:12}}>Loaded: <b>riverside-run-2026-03.csv</b> — 8 samples</span></div>
+
+        <div style={{marginTop:"1rem",padding:".85rem 1rem",background:"#f4f4f4",border:"1px solid #e0e0e0"}}>
+          <div style={{fontWeight:600,fontSize:13}}>Map columns <span className="note" style={{fontWeight:400}}>— your file's headers → manifest fields. Exact matches auto-fill; you set the rest. The system doesn't guess.</span></div>
+          <div style={{marginTop:".5rem",fontSize:12,color:"#6f6f6f",display:"grid",gridTemplateColumns:"180px 24px 220px 90px",gap:".4rem"}}>
+            <span><b>Your column</b></span><span></span><span><b>Manifest field</b></span><span></span>
+          </div>
+          {[["client_ref","Client Sample ID","auto"],["water_type","Sample Type","auto"],["analyses","Tests & Panels","auto"],["collected_on","Collected (date + time)","auto"],["gps_lat","GPS Lat","auto"],["notes","— you set this —","set"]].map(([h,f,mode])=>(
+            <div key={h} style={{display:"grid",gridTemplateColumns:"180px 24px 220px 90px",gap:".4rem",alignItems:"center",padding:"3px 0",borderBottom:"1px solid #ececec",fontSize:13}}>
+              <code>{h}</code><span>→</span>
+              <select className="mini" defaultValue={f}>
+                <option>— ignore —</option>
+                <option>Client Sample ID</option><option>Sample Type</option><option>Container</option>
+                <option>Tests & Panels</option><option>Collected (date + time)</option><option>GPS Lat</option>
+                <option>GPS Lng</option><option>Location Details</option><option>Position</option>
+              </select>
+              {mode==="auto"
+                ? <span className="rowstat valid" style={{fontSize:10}}>header matched</span>
+                : <span className="rowstat review" style={{fontSize:10}}>you set it</span>}
+            </div>
+          ))}
+          <p className="note" style={{marginBottom:0}}>Per-upload in v1. Saving this mapping to reuse next time is v2 (saved profiles).</p>
+        </div>
+      </div>
+
+      <div className="card">
+        <h3>2. Set values &amp; fix</h3>
+        <div className="summary">
+          <div><div className="n" style={{color:"#0e6027"}}>{counts.ready}</div><div className="lbl">ready</div></div>
+          <div><div className="n" style={{color:"#a2191f"}}>{counts.red}</div><div className="lbl">required missing</div></div>
+          <div><div className="n" style={{color:"#8e6a00"}}>{counts.amber}</div><div className="lbl">advisory (won't block)</div></div>
+          <div style={{marginLeft:"auto"}}>
+            <span className={"chip"+(onlyAttn?" on":"")} onClick={()=>setOnlyAttn(!onlyAttn)}>Show only rows needing attention</span>
+          </div>
+        </div>
+        <p className="note" style={{marginTop:0}}>Only <b style={{color:"#a2191f"}}>Sample Type</b> and <b style={{color:"#a2191f"}}>at least one Test/Panel</b> are required (red) — they gate Create. Everything else that's unmatched shows <b style={{color:"#8e6a00"}}>amber</b> as advisory and never blocks. <b style={{color:"#8e6a00"}}>Collection Time</b> is flagged amber when blank because it matters for hold-time (SOP) calculations — but it never blocks; if left empty, <b>12:00&nbsp;AM (00:00)</b> is used as a placeholder for the SOP math.</p>
+
+        <p className="note" style={{marginTop:0,marginBottom:".35rem"}}>Set a whole column for every sample from its header (<b>Set all ▾</b>), or click any one cell to fix just that row.</p>
+
+        <div style={{margin:".25rem 0 .5rem",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:".5rem"}}>
+          <div style={{fontSize:12}}>
+            {sharedChips.length>0 && <span className="note">Same for all {RAW.length} samples: </span>}
+            {sharedChips.map(c=>{
+              const v=cellInfo(RAW[0],c.k).v;
+              return <span key={c.k} className="chip-sm">{c.label}: {Array.isArray(v)?v.join(", "):v}</span>;
+            })}
+          </div>
+          <span className={"chip"+(hideUniform?" on":"")} onClick={()=>setHideUniform(h=>!h)}>
+            {hideUniform?"✓ ":""}Compact — hide columns identical for every row ({uniformCols.filter(c=>c.k!=="clientId").length})
+          </span>
+        </div>
+
+        <div className="cds--data-table-container" style={{overflowX:"auto"}}>
+          <table className="cds--data-table" style={{minWidth:shown.length>6?900:undefined}}>
+            <thead>
+              <tr><th>Status</th>{shown.map(c=><th key={c.k}>{c.label}{c.req?" *":""}</th>)}</tr>
+              <tr className="bulkrow">
+                <th style={{fontWeight:400,fontSize:10,color:"#8a3ffc"}}>set all ↓</th>
+                {shown.map(c=>{
+                  if(!c.bulk) return <th key={c.k}></th>;
+                  const bv=bulkValue(c); const has=bv.v!=null;
+                  return (
+                    <th key={c.k} style={{fontWeight:400}}>
+                      <button className="btn" style={{padding:"5px 12px",fontSize:13,fontWeight:600,border:"1px solid #0f62fe",color:has?"#0f62fe":"#fff",background:has?"#fff":"#0f62fe",borderRadius:2,cursor:"pointer"}} onClick={()=>setOpenBulk(openBulk===c.k?null:c.k)}>{has?"Change ▾":"Set all ▾"}</button>
+                      <div style={{marginTop:2}}>
+                        {has
+                          ? (Array.isArray(bv.v)
+                              ? bv.v.map(t=><span key={t} className="chip-sm">{t}<span className="chip-x" onClick={()=>setForAll(c.k,bv.v.filter(x=>x!==t))}>×</span></span>)
+                              : <span className="chip-sm">{bv.v}<span className="chip-x" onClick={()=>setForAll(c.k,"")}>×</span></span>)
+                          : bv.source==="mixed" ? <span className="note" style={{fontSize:10}}>varies</span> : null}
+                      </div>
+                    </th>
+                  );
+                })}
+              </tr>
+              {openBulk && (()=>{ const bc=COLS.find(c=>c.k===openBulk); return (
+                <tr><th colSpan={shown.length+1} style={{fontWeight:400,background:"#edf5ff"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:".5rem",flexWrap:"wrap"}}>
+                    <span>Set <b>{bc.label}</b> for all {RAW.length} samples:</span>
+                    {openBulk==="tests"
+                      ? <MultiTypeahead options={CANON.test} onApply={arr=>{setForAll("tests",arr);setOpenBulk(null);}}/>
+                      : optsFor(bc)
+                        ? <Typeahead options={optsFor(bc)} onPick={v=>{setForAll(openBulk,v);setOpenBulk(null);}}/>
+                        : <TextFix placeholder={openBulk==="date"?"DD/MM/YYYY":openBulk==="time"?"HH:MM":(openBulk==="gpsLat"||openBulk==="gpsLng")?"e.g. -6.2088":"value"} onApply={v=>{setForAll(openBulk,v);setOpenBulk(null);}}/>}
+                    <button className="btn ghost" onClick={()=>setOpenBulk(null)}>Cancel</button>
+                  </div>
+                </th></tr>
+              ); })()}
+            </thead>
+            <tbody>
+              {visible.map(row=>(
+                <React.Fragment key={row.id}>
+                  <tr>
+                    <td>{(()=>{ const rs=rowState(row);
+                      const map={ready:["valid","ready"],amber:["review","advisory"],red:["invalid","required"]};
+                      return <><span className={"rowstat "+map[rs][0]}>{map[rs][1]}</span>
+                        {rowEdited(row) && <div style={{marginTop:3}}><span className="chip-sm" title="Edited individually — won't follow a later Set-for-all">edited<span className="chip-x" title="Reset this row to the batch value" onClick={e=>{e.stopPropagation();resetRow(row);}}>↺</span></span></div>}
+                      </>; })()}</td>
+                    {shown.map(c=>{
+                      const s=cellInfo(row,c.k); const cellKey=row.id+":"+c.k;
+                      const cls = s.state==="ok"?"ok":s.state==="amber"?"review":"bad";
+                      return (
+                        <td key={c.k}>
+                          <span className={"cell "+cls}
+                            onClick={()=> c.fixable && setOpenCell(openCell===cellKey?null:cellKey)}>
+                            {isBlank(s.v)
+                              ? <em style={{color:s.state==="red"?"#a2191f":"#8e6a00"}}>{s.state==="red"?"required":"—"}</em>
+                              : Array.isArray(s.v)
+                                ? s.v.map(t=><span key={t} className="chip-sm">{t}<span className="chip-x" onClick={e=>{e.stopPropagation(); setCell(row,c.k, s.v.filter(x=>x!==t));}}>×</span></span>)
+                                : c.opts
+                                  ? <span className="chip-sm">{s.v}<span className="chip-x" onClick={e=>{e.stopPropagation(); setCell(row,c.k,"");}}>×</span></span>
+                                  : s.v}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                  {shown.map(c=>{
+                    const cellKey=row.id+":"+c.k;
+                    if(openCell!==cellKey) return null;
+                    return (
+                      <tr key={cellKey+"-fix"}><td colSpan={shown.length+1}>
+                        <div className="fix-panel">
+                          <b>Set {c.label} for {row.clientId}</b>
+                          <span className="note" style={{marginLeft:".5rem"}}>(this one row — use "Set for all" above to do the whole batch)</span>
+                          <div style={{marginTop:".5rem"}}>
+                            {c.k==="tests"
+                              ? <MultiTypeahead options={CANON.test} onApply={arr=>{setCell(row,"tests",arr);setOpenCell(null);}}/>
+                              : optsFor(c)
+                                ? <Typeahead options={optsFor(c)} onPick={v=>{setCell(row,c.k,v);setOpenCell(null);}}/>
+                                : <TextFix placeholder={c.k==="date"?"DD/MM/YYYY":c.k==="time"?"HH:MM":(c.k==="gpsLat"||c.k==="gpsLng")?"e.g. -6.2088":c.k==="location"?"e.g. Inlet, bank":"value"} onApply={v=>{setCell(row,c.k,v);setOpenCell(null);}}/>}
+                            <button className="btn ghost" onClick={()=>setOpenCell(null)}>Cancel</button>
+                          </div>
+                        </div>
+                      </td></tr>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="note"><span style={{color:"#a2191f",fontWeight:600}}>Red = required</span> (Sample Type / at least one Test) — must be set to create. <span style={{color:"#8e6a00",fontWeight:600}}>Amber = advisory</span> — an unmatched optional value; you can set it or commit as-is. Set one cell, or a whole column at once above. OpenELIS never guesses — you set it, because you know the samples.</p>
+      </div>
+
+      <div className="card">
+        <h3>3. Review &amp; create orders</h3>
+        <div style={{background:"#f4f4f4",border:"1px solid #e0e0e0",padding:".85rem 1rem",marginBottom:".75rem"}}>
+          <div style={{fontWeight:600,fontSize:14,marginBottom:".35rem"}}>You're about to create {counts.t} samples on this order</div>
+          <div style={{fontSize:13,lineHeight:1.7}}>
+            <div><b>Order (applies to all):</b> {ORDER.org} · {ORDER.site} · {ORDER.standard}</div>
+            <div><b>Shared across all {counts.t}:</b>{" "}
+              {sharedChips.length>0
+                ? sharedChips.map(c=>{ const v=cellInfo(RAW[0],c.k).v; return <span key={c.k} className="chip-sm">{c.label}: {Array.isArray(v)?v.join(", "):v}</span>; })
+                : <span className="note">nothing set for all yet</span>}
+            </div>
+            <div><b>Varies by sample:</b> {shown.filter(c=>!uniformCols.includes(c)&&c.k!=="clientId").map(c=>c.label).join(", ")||"—"} · <b>Client IDs:</b> RS-001…RS-00{counts.t}</div>
+            <div><b>Storage:</b> loose (no container in v1) · <b>Collection time:</b> {counts.amber>0?"some blank → 12:00 AM placeholder for SOP":"set"}</div>
+          </div>
+        </div>
+        <button className="btn primary" disabled={!canCommit}>Create {counts.t} orders</button>
+        {!canCommit
+          ? <span className="note" style={{marginLeft:".75rem"}}>{counts.red} row(s) still missing a required field (Sample Type / a Test). Try "Set all" on Sample Type and Tests / Panels. Amber rows don't block.</span>
+          : <span className="note" style={{marginLeft:".75rem"}}>{counts.amber>0?`${counts.amber} advisory row(s) will import as-is. `:""}All-or-nothing: if any row is rejected the whole batch rolls back — nothing half-created. Samples land exactly like hand-entered orders.</span>}
+      </div>
+        </div>}
+
+        <div className="pagefoot">
+          <button className="btn ghost" style={{border:"1px solid #c6c6c6"}}>Save Draft</button>
+          <span>
+            <button className="btn sec">Save</button>
+            <button className="btn" style={{background:"#c6c6c6",color:"#fff",marginLeft:".5rem"}}>Save &amp; Next</button>
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ================= v2 =================
+function V2(){
+  const fields=["Sampling Site","Sample Type","Compliance Standard","Tests / Panels","Collection Date","Requesting Organization","Requestor"];
+  const headers=["site_name","water_type","standard","analyses","collected_on","client","contact_person"];
+  return (
+    <div>
+      <div className="card">
+        <h3>What v2 adds: save the mapping you already do in v1</h3>
+        <p className="hint">Mapping columns is a <b>v1</b> capability (you map any file, per upload). v2 removes the <i>repetition</i>: save that mapping as a named profile so a team exporting the same layout maps once and never again. No new mapping engine, no guessing — just persistence of the v1 mapping.</p>
+      </div>
+
+      <div className="v2col">
+        <div className="card" style={{flex:"1 1 360px"}}>
+          <h3>Pick a saved profile <span className="badge-new">v2</span></h3>
+          <p className="hint">On the import screen (v1 mapping step), a <b>"Use a saved profile"</b> control applies a stored mapping in one click. When a file's headers match a profile, it's auto-suggested — always shown and overridable before you continue, so a wrong profile can't silently commit.</p>
+          <div style={{marginTop:".5rem"}}>
+            <div className="mock-label">Use a saved profile</div>
+            <Typeahead options={["Riverside field-kit export","Provincial mosquito survey","OpenELIS Environmental template","OpenELIS Vector template"]} onPick={()=>{}}/>
+          </div>
+          <div style={{marginTop:".75rem",background:"#edf5ff",border:"1px solid #a6c8ff",padding:".6rem .8rem",fontSize:13}}>
+            <b>Auto-suggested:</b> this file's headers match <b>Riverside field-kit export</b> — use it? <span className="note">(you can still change any column)</span>
+          </div>
+        </div>
+
+        <div className="card" style={{flex:"1 1 360px"}}>
+          <h3>Manage saved mappings <span className="badge-new">v2</span></h3>
+          <p className="hint">A profile is a saved column-mapping, picked from the <b>"Use a saved profile"</b> control on the import screen (or auto-suggested when a file's headers match). Deterministic memory of a layout — not value guessing. Auto-suggestions are always shown and overridable before continuing, so a wrong profile can't silently commit.</p>
+          <table className="cds--data-table" style={{marginTop:".5rem"}}>
+            <thead><tr><th>Profile</th><th>Source</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>OpenELIS Environmental template</td><td className="note">seeded default</td><td><button className="btn ghost">Edit</button></td></tr>
+              <tr><td>OpenELIS Vector template</td><td className="note">seeded default</td><td><button className="btn ghost">Edit</button></td></tr>
+              <tr><td>Riverside field-kit export</td><td className="note">A. Mbeki</td><td><button className="btn ghost">Edit</button><button className="btn ghost">Deactivate</button></td></tr>
+              <tr><td>Provincial mosquito survey</td><td className="note">Vector team</td><td><button className="btn ghost">Edit</button><button className="btn ghost">Deactivate</button></td></tr>
+            </tbody>
+          </table>
+          <p className="note">Fix a wrong mapping by editing the profile, or <b>deactivate</b> it (never hard-deleted — D-002); a deactivated profile stops being suggested. Managed inline here for the first cut; a dedicated admin page is a later option.</p>
+        </div>
+      </div>
+
+      <div className="card">
+        <p className="note" style={{margin:0}}>Why the v1→v2 delta is small: the mapping step, validation, set-in-bulk correction, preview grid, commit path and error report are all built in v1 and reused unchanged. v2 adds only <b>profile persistence + management</b> (save, auto-suggest, edit, deactivate) on top — an additive layer, not a re-architecture. No value-guessing engine anywhere.</p>
+      </div>
+    </div>
+  );
+}
+
+// ---- Free-text / date fix input ----
+function TextFix({onApply, placeholder}){
+  const [v,setV]=useState("");
+  return (
+    <span>
+      <input className="ta-input" style={{width:160}} placeholder={placeholder} value={v}
+        onChange={e=>setV(e.target.value)}
+        onKeyDown={e=>{ if(e.key==="Enter" && v.trim()) onApply(v.trim()); }}/>
+      <button className="btn primary" style={{marginLeft:".5rem"}} disabled={!v.trim()}
+        onClick={()=>onApply(v.trim())}>Apply</button>
+    </span>
+  );
+}
+
+// ---- Multi-select typeahead → returns an array of full names, shown as chips ----
+function MultiTypeahead({options, onApply, initial}){
+  const [sel,setSel]=useState(initial||[]);
+  const [q,setQ]=useState("");
+  const [open,setOpen]=useState(false);
+  const avail=options.filter(o=>!sel.includes(o) && o.toLowerCase().includes(q.toLowerCase()));
+  return (
+    <div>
+      {sel.length>0 && <div style={{marginBottom:4}}>
+        {sel.map(s=><span key={s} className="chip-sm">{s} <span style={{cursor:"pointer",fontWeight:600}} onClick={()=>setSel(sel.filter(x=>x!==s))}>×</span></span>)}
+      </div>}
+      <div style={{position:"relative",display:"inline-block"}}>
+        <input className="ta-input" placeholder="Add a test / panel…" value={q}
+          onChange={e=>{setQ(e.target.value);setOpen(true);}} onFocus={()=>setOpen(true)}/>
+        {open && <ul className="ta-list">
+          {avail.map(o=><li key={o} onClick={()=>{setSel([...sel,o]);setQ("");}}>{o}</li>)}
+          {avail.length===0 && <li className="ta-empty">no more matches</li>}
+        </ul>}
+      </div>
+      <button className="btn primary" style={{marginLeft:6}} disabled={sel.length===0} onClick={()=>onApply(sel)}>Apply{sel.length?` (${sel.length})`:""}</button>
+    </div>
+  );
+}
+
+// ---- Typeahead combobox (never a static select) ----
+function Typeahead({options, onPick, allowAddNew}){
+  const [q,setQ]=useState("");
+  const [open,setOpen]=useState(false);
+  const filtered=options.filter(o=>o.toLowerCase().includes(q.toLowerCase()));
+  return (
+    <div style={{position:"relative",display:"inline-block"}}>
+      <input className="ta-input" placeholder="Type to search…" value={q}
+        onChange={e=>{setQ(e.target.value);setOpen(true);}} onFocus={()=>setOpen(true)}/>
+      {open &&
+        <ul className="ta-list">
+          {filtered.map(o=><li key={o} onClick={()=>{onPick(o);setOpen(false);}}>{o}</li>)}
+          {filtered.length===0 && <li className="ta-empty">No match for "{q}"</li>}
+          {allowAddNew && q && <li className="ta-add" onClick={()=>{onPick(q);setOpen(false);}}>+ Add new "{q}"</li>}
+        </ul>}
+    </div>
+  );
+}
+
+// ================= Storage layout slice =================
+function Storage(){
+  const [layout,setLayout]=useState("plate96");
+  const [place,setPlace]=useState(false);
+  const geom={plate96:{r:8,c:12,label:"96-well plate (8×12)"},box100:{r:10,c:10,label:"10×10 box (100)"},box128:{r:8,c:16,label:"128-position box (8×16)"},loose:null}[layout];
+  // demo fill: first 8 rows of the v1 batch, remaining wells empty
+  const filled=8; const wellStatus=(i)=> i>=filled?"empty": (i===6?"review": i===5?"invalid":"valid");
+  const rowsLetters="ABCDEFGHIJKLMNOP".split("");
+  return (
+    <div>
+      <div className="card">
+        <h3>Save this batch as a container</h3>
+        <p className="hint">A batch usually arrives as a physical plate or box. OpenELIS already models boxes as a storage-unit type with addressable positions — so create the container once and drop every sample into its well, instead of assigning 100 samples one at a time. Reuses the existing storage hierarchy and the shared location picker; no new storage entity, no <code>Sample.location</code>.</p>
+        <div style={{display:"flex",gap:"1.5rem",flexWrap:"wrap",alignItems:"flex-end"}}>
+          <label>Storage layout<br/>
+            <select className="mini" value={layout} onChange={e=>setLayout(e.target.value)} style={{marginTop:4}}>
+              <option value="plate96">96-well plate</option>
+              <option value="box100">10×10 box</option>
+              <option value="box128">128-position box</option>
+              <option value="loose">Loose samples (no container)</option>
+            </select>
+          </label>
+          {layout!=="loose" && <label>How were the samples loaded?<br/>
+            <select className="mini" style={{marginTop:4,width:280}}>
+              <option>Left to right, row by row  (A1, A2, A3 …)</option>
+              <option>Top to bottom, column by column  (A1, B1, C1 …)</option>
+            </select>
+          </label>}
+          {layout!=="loose" && <label>Container name<br/>
+            <input className="ta-input" defaultValue="Riverside 2026-03-06" style={{marginTop:4}}/>
+          </label>}
+        </div>
+        <p className="note">"How were the samples loaded?" tells OpenELIS which order the file's rows fill the wells — matching how the tech physically loaded the plate — so position 1 in the file lands in the right well. The layout is a single choice; the geometry (A1–H12 etc.) is fixed and known, so it adds <b>no columns to map</b>. An optional Position column in the file overrides the auto-fill.</p>
+      </div>
+
+      {layout!=="loose" &&
+      <div className="card">
+        <h3>Plate map <span className="note">— {geom.label}; each well colored by row status</span></h3>
+        <div style={{overflowX:"auto"}}>
+          <table className="plate">
+            <tbody>
+              {Array.from({length:geom.r}).map((_,ri)=>(
+                <tr key={ri}>
+                  <td className="pcorner">{rowsLetters[ri]}</td>
+                  {Array.from({length:geom.c}).map((_,ci)=>{
+                    const idx=ri*geom.c+ci; const s=wellStatus(idx);
+                    return <td key={ci} className={"well "+s} title={rowsLetters[ri]+(ci+1)}>{s!=="empty"?(idx+1):""}</td>;
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="note" style={{marginTop:".5rem"}}>
+          <span className="legend valid"></span> valid &nbsp;
+          <span className="legend review"></span> needs review &nbsp;
+          <span className="legend invalid"></span> invalid &nbsp;
+          <span className="legend empty"></span> empty well
+        </div>
+      </div>}
+
+      <div className="card">
+        <h3>Place the container — or not</h3>
+        <label style={{display:"block",marginBottom:".4rem"}}>
+          <input type="radio" name="place" checked={!place} onChange={()=>setPlace(false)}/> Create the container without placing it <span className="note">(valid end state — locate it later from Storage)</span>
+        </label>
+        <label style={{display:"block"}}>
+          <input type="radio" name="place" checked={place} onChange={()=>setPlace(true)}/> Place this container in a storage location now
+        </label>
+        {place &&
+          <div style={{marginTop:".5rem",maxWidth:360}}>
+            <div className="note" style={{marginBottom:2}}>Search a storage location (shared LocationPicker — typeahead over the hierarchy):</div>
+            <Typeahead options={["Freezer B / Shelf 2","Freezer B / Shelf 3","Fridge 1 / Rack A","Cold Room / Bay 4"]} onPick={()=>{}}/>
+          </div>}
+        <div style={{marginTop:"1rem"}}>
+          <button className="btn primary">Create orders + container</button>
+          <span className="note" style={{marginLeft:".6rem"}}>Depends only on the v1 validate + commit path — independent of the v2 mapping work.</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenELIS Design Gallery — Catalog</title>
-  <meta name="description" content="Searchable catalog of 203 design mockups and specifications for OpenELIS Global">
+  <meta name="description" content="Searchable catalog of 204 design mockups and specifications for OpenELIS Global">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 960px; margin: 0 auto; padding: 2rem 1rem; color: #161616; line-height: 1.5; }
     h1 { border-bottom: 2px solid #0f62fe; padding-bottom: 0.5rem; }
@@ -22,13 +22,13 @@
 </head>
 <body>
   <h1>OpenELIS Design Gallery — Catalog</h1>
-  <p>203 designs across 16 categories.
+  <p>204 designs across 16 categories.
     <a href="./">Interactive Gallery</a> |
     <a href="catalog.json">JSON Catalog</a> |
     <a href="llms.txt">LLM Index</a> |
     <a href="sitemap.xml">Sitemap</a>
   </p>
-  <nav><a href="#cat-admin-config">Admin & Config (46)</a> <a href="#cat-analyzer-integration">Analyzer Integration (24)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (3)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (7)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
+  <nav><a href="#cat-admin-config">Admin & Config (46)</a> <a href="#cat-analyzer-integration">Analyzer Integration (24)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (3)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (8)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
 
   <h2 id="cat-admin-config">Admin & Config (46)</h2>
   <div class="design">
@@ -2069,7 +2069,7 @@
     </div>
   </div>
 
-  <h2 id="cat-sample-collection">Sample Collection (7)</h2>
+  <h2 id="cat-sample-collection">Sample Collection (8)</h2>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/sample-collection/sop-deadline-calculation">SOP Deadline Calculation</a></h3>
     <p>S-03d v2.0 Addendum to S-03 (ENV/Vector only) — SOP holding-time auto-calculation and worklist deadline flagging. v2.0 splits the generic Required-By field to the GENERIC-OE spec; this spec covers only ENV/Vector holding-time: minimum sop_max_holding_hours across tests, live suggestion with most-restrictive-test annotation, manual override. Worklist Deadline column: green/amber/red tags, Approaching/Overdue filter chips.</p>
@@ -2165,6 +2165,19 @@
       <a href="https://github.com/DIGI-UW/openelis-work/issues/92">#92</a>
     </div>
     <div class="tags"><span class="tag">sample-collection</span> <span class="tag">referral</span> <span class="tag">refer-out</span> <span class="tag">order-status</span> <span class="tag">clinical</span> <span class="tag">environmental</span> <span class="tag">vector</span></div>
+  </div>
+  <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/sample-collection/csv-bulk-sample-intake">CSV Bulk Sample Intake</a></h3>
+    <p>Bulk-load pre-collected Environmental/Vector samples into an order from a spreadsheet instead of keying them one at a time. A Bulk import samples action expands inline at the bottom of the Enter Order page: upload a CSV or XLSX manifest, map columns, validate each row three-state (Ready / advisory / required) against on-file sample types, tests and panels, set missing values in bulk or inline, normalize dates, then commit all-or-nothing through the existing order write path. v1 MVP; v2 saved import profiles; v3 container storage. Clinical out of scope.</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/sample-collection/csv-bulk-sample-intake">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/sample-collection/csv-bulk-sample-intake">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/sample-collection/csv-bulk-sample-intake.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/sample-collection/csv-bulk-sample-intake.jsx">Source (JSX)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/sample-collection/csv-bulk-sample-intake.html">HTML Mockup</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1138">OGC-1138</a>
+    </div>
+    <div class="tags"><span class="tag">sample-collection</span> <span class="tag">environmental</span> <span class="tag">vector</span> <span class="tag">csv</span> <span class="tag">bulk-import</span> <span class="tag">order-entry</span></div>
   </div>
 
   <h2 id="cat-system">System (10)</h2>
