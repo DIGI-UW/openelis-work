@@ -46,6 +46,34 @@ drain source files to `processed/`; flag anything OPEN > 7 days.
 - **Jira (Step 11):** gallery permalinks posted to OGC-189, OGC-224, OGC-1112 this run.
 - **Source files** left in `upload/` (drain-on-merge): lab-units-management-{v2.0.md,mockup.jsx}, panel-management-{v2.1.md,mockup.jsx}, test-catalog-completion-v2-{frs.md,mockup.jsx}.
 
+## Reconciliation — 2026-07-14 (scheduled run, scoped: Sample Types only)
+- **Step 0:** No OPEN or stranded PRs coming in — every prior ledger row verified MERGED on origin/main
+  (HEAD `0ec76b4`, PR #213). The two most-recently-OPEN rows both landed: `design/report-mgmt-and-catalog-editor-20260701`
+  (report-management + test-catalog-editor-completion present on main) and `design/report-print-queue-r3`
+  (report-print-queue v1.3 on main).
+- **One genuinely-new change registered this run: Sample Type Management v2.1 (OGC-296).** Scoped per Casey's
+  2026-07-14 handoff — only the two Sample Type files were processed; everything else in `upload/` is mid-iteration
+  and was left untouched. Update-in-place / supersede at the unchanged slug `#/admin-config/sample-type-management`:
+  overwrote `designs/admin-config/sample-type-management.{md,jsx}` with the v2.1 spec (was v1.0, 634→130 ln) and the
+  OGC-296 developer-handoff Carbon mockup (was 711→346 ln, self-contained). Both were genuinely new content
+  (md5 no-match anywhere in `designs/`). MANIFEST + App.jsx bumped (`updated: 2026-07-14`, v2.1 description, tags).
+  INDEX row unchanged (same filenames). Superseded v1.0 archived to `designs/_archive/2026-07-14/` (+ local
+  `OpenELIS Feature Design/_archive/2026-07-14/`). Tests 251/251, `npm run build` clean.
+- **PR:** connector `create_pull_request` returned 403 ("Resource not accessible by integration" — GitHub App still
+  lacks `pull_requests:write`). Branch `design/sample-type-management` pushed with the PAT. CI auto-opener should open
+  it on push; one-click fallback compare URL:
+  https://github.com/DIGI-UW/openelis-work/compare/main...design/sample-type-management?expand=1
+  Auto-merge + required `test` check land it on green. This branch also carries this ledger row, so merging the one PR
+  syncs the ledger. **Status: OPEN** — verify MERGED next run.
+- **Jira (Step 11):** gallery permalinks (spec + mockup) to be posted on OGC-296. Slug is unchanged from v1.0 but the
+  content is a material v1.0→v2.1 supersede, so a refreshed comment is warranted. Related context tickets OGC-538 /
+  OGC-949 / OGC-985 intentionally NOT attached (per handoff). NOTE: OGC-538 domain enum is NOT built despite its Done
+  status — the spec's caveat.
+- **Explicitly left in `upload/` (not this run, per handoff):** panel-management-v2.1.md (content v2.2, not green-lit),
+  test-catalog-panels-sampletypes-preview.html (would leak un-analyzed Test Catalog Manageability changeset),
+  test-catalog-data-model-handoff.md (thread-internal, superseded), and the analyzer-import / multicomponent files
+  (different effort). sample-type-domain-classification.md + sample-type-multi-domain-addendum.md kept as-is (historical).
+
 ## Reconciliation — 2026-07-09 (scheduled run, r2)
 - **Second scheduled run of the day.** Coming in, origin/main HEAD was `965a82f` (PR #206 ledger sync
   from the earlier 07-09 run). The earlier run left `design/results-validation-multicomponent` recorded
