@@ -184,7 +184,6 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 |---------|--------|------|
 | Audit Trail | [audit-trail.jsx](designs/system/audit-trail.jsx) | [audit-trail.md](designs/system/audit-trail.md) |
 | In-App Help System | [help-menu.jsx](designs/system/help-menu.jsx) · [preview](designs/system/in-app-help-preview.html) | [help-menu.md](designs/system/help-menu.md) · [checklist](designs/system/in-app-help-checklist.md) · [dev bundle.zip](designs/system/in-app-help-dev-bundle.zip) |
-| Analyzer Import | [analyzer-import.jsx](designs/system/analyzer-import.jsx) | [analyzer-import.md](designs/system/analyzer-import.md) |
 | Analyzer Results Import (v2 redesign) | [analyzer-import-redesign-v2.jsx](designs/system/analyzer-import-redesign-v2.jsx) · [preview](designs/system/analyzer-import-redesign-v2-preview.html) | [analyzer-import-redesign-v2.md](designs/system/analyzer-import-redesign-v2.md) |
 | FHIR Outbound Push | [fhir-outbound-push.jsx](designs/system/fhir-outbound-push.jsx) | [fhir-outbound-push.md](designs/system/fhir-outbound-push.md) |
 | FHIR Publication Settings | [fhir-publication-settings.jsx](designs/system/fhir-publication-settings.jsx) | — |
