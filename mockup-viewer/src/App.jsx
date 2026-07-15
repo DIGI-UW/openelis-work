@@ -3817,6 +3817,9 @@ function GalleryApp() {
             const hasPreview = !!(selectedMockup.component || selectedMockup.figmaUrl || selectedMockup.htmlUrl);
             const hasSpec = !!selectedMockup.specPath;
             const hasDiscussion = !!selectedMockup.githubIssue;
+            // Walkthroughs are full-page HTML flows with their own left rail; give them
+            // near-full-viewport width + height so the rail and embedded mockup both fit.
+            const isWalkthrough = !!(selectedMockup.htmlUrl && selectedMockup.tags && selectedMockup.tags.includes('walkthrough'));
             const tabList = [];
             if (hasPreview) tabList.push('preview');
             if (hasSpec) tabList.push('spec');
@@ -3844,16 +3847,16 @@ function GalleryApp() {
                     <button style={{ ...styles.detailTab, ...styles.detailTabActive, color: t.accent, borderBottomColor: t.accent }}>{tabLabel[tabList[0]]}</button>
                   </div>
                 )}
-                <div style={{ ...styles.preview, background: t.previewBg, borderColor: t.border }}>
+                <div style={{ ...styles.preview, background: t.previewBg, borderColor: t.border, ...(isWalkthrough && activeTab === 'preview' ? styles.previewWide : {}) }}>
                   {activeTab === 'discussion' && hasDiscussion ? (
                     <CommentViewer issueNumber={selectedMockup.githubIssue} darkMode={darkMode} theme={t} designName={selectedMockup.name} />
                   ) : activeTab === 'spec' && hasSpec ? (
                     <SpecViewer specPath={selectedMockup.specPath} />
                   ) : selectedMockup.htmlUrl ? (
-                    <div style={styles.figmaEmbed}>
+                    <div style={{ ...styles.figmaEmbed, ...(isWalkthrough ? { width: '100%' } : {}) }}>
                       <iframe
                         src={import.meta.env.BASE_URL + selectedMockup.htmlUrl}
-                        style={{ ...styles.figmaIframe, height: 800, borderColor: t.border }}
+                        style={{ ...styles.figmaIframe, height: isWalkthrough ? '86vh' : 800, minHeight: isWalkthrough ? 820 : undefined, borderColor: t.border, borderRadius: isWalkthrough ? 0 : 8 }}
                         allowFullScreen
                         title={selectedMockup.name}
                       />
@@ -4036,6 +4039,8 @@ const styles = {
   link: { color: '#0f62fe', fontSize: 14, textDecoration: 'none' },
   permalinkButton: { background: '#e0e0e0', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: 12, cursor: 'pointer', color: '#393939', fontWeight: 500 },
   preview: { border: '1px solid #e0e0e0', borderRadius: 8, padding: 24, background: '#f4f4f4', minHeight: 400, overflow: 'auto' },
+  // Full-bleed wrapper for walkthrough previews: breaks out of the 1200px container to ~96vw.
+  previewWide: { padding: 0, minHeight: 820, overflow: 'hidden', borderRadius: 8, position: 'relative', left: '50%', width: '96vw', marginLeft: '-48vw' },
   loading: { textAlign: 'center', padding: 40, color: '#6f6f6f' },
   empty: { gridColumn: '1 / -1', textAlign: 'center', padding: 60, color: '#6f6f6f', fontSize: 15 },
   figmaLink: { display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1e1e1e', color: '#fff', padding: '6px 14px', borderRadius: 6, fontSize: 14, textDecoration: 'none', fontWeight: 500 },
