@@ -37,21 +37,17 @@ import {
   Modal,
   Tile,
   SkeletonText,
-  Tooltip,
+  DefinitionTooltip,
 } from '@carbon/react';
 import {
   Download,
   Renew,
-  TrashCan,
   Close,
   Locked,
   Add,
   ChevronRight,
   ChevronLeft,
   DocumentExport,
-  Time,
-  Warning,
-  Checkmark,
 } from '@carbon/icons-react';
 
 // ---------------------------------------------------------------------------
@@ -60,11 +56,45 @@ import {
 const t = (key, fallback) => fallback || key;
 
 // ---------------------------------------------------------------------------
-// Variable catalog — eight domains
+// Grain families (FRS v1.1 §4.1) — an export draws from exactly one family.
+// Color coding uses Carbon Tag kinds, applied consistently across the legend,
+// group-header chips, selection summary, and review step.
+// ---------------------------------------------------------------------------
+const FAMILIES = {
+  SAMPLE_TESTING: {
+    label: t('label.dataExport.family.sampleTesting', 'Sample & Testing'),
+    tagKind: 'blue',
+    desc: t('label.dataExport.family.desc.sampleTesting', 'Orders, results, patients & turnaround times · one row per test result'),
+    dateAnchor: 'sample collection date',
+  },
+  REFERRAL: {
+    label: t('label.dataExport.family.referral', 'Referrals'),
+    tagKind: 'teal',
+    desc: t('label.dataExport.family.desc.referral', 'Tests referred to other labs · one row per referred analysis'),
+    dateAnchor: 'referral sent date',
+  },
+  NON_CONFORMANCE: {
+    label: t('label.dataExport.family.nonConformance', 'Non-Conformance'),
+    tagKind: 'magenta',
+    desc: t('label.dataExport.family.desc.nonConformance', 'Rejected samples & non-conforming events · one row per event'),
+    dateAnchor: 'rejection / NCE date',
+  },
+};
+
+const PII_TOOLTIP = t(
+  'tooltip.dataExport.piiTag',
+  'Contains patient-identifying data — requires additional permission; exports including these fields are audited',
+);
+
+// ---------------------------------------------------------------------------
+// Variable catalog — seven domains across three grain families.
+// (Quality Control domain removed in v1.1 — no structured QC data model.)
+// UI shows display names only; derivation/sourcing notes live in the FRS.
 // ---------------------------------------------------------------------------
 const VARIABLE_DOMAINS = [
   {
     id: 'SAMPLE_ORDER',
+    family: 'SAMPLE_TESTING',
     label: t('label.dataExport.domain.sampleOrder', 'Sample / Order'),
     piiTier: null,
     variables: [
@@ -85,6 +115,7 @@ const VARIABLE_DOMAINS = [
   },
   {
     id: 'TEST_RESULTS',
+    family: 'SAMPLE_TESTING',
     label: t('label.dataExport.domain.testResults', 'Test Results'),
     piiTier: null,
     variables: [
@@ -104,6 +135,7 @@ const VARIABLE_DOMAINS = [
   },
   {
     id: 'PATIENT_DEMOGRAPHICS',
+    family: 'SAMPLE_TESTING',
     label: t('label.dataExport.domain.patientDemographics', 'Patient Demographics'),
     piiTier: 'DEMOGRAPHICS',
     permissionKey: 'DATA_EXPORT_PII_DEMOGRAPHICS',
@@ -115,6 +147,7 @@ const VARIABLE_DOMAINS = [
   },
   {
     id: 'PATIENT_IDENTIFIERS',
+    family: 'SAMPLE_TESTING',
     label: t('label.dataExport.domain.patientIdentifiers', 'Patient Identifiers'),
     piiTier: 'IDENTIFIERS',
     permissionKey: 'DATA_EXPORT_PII_IDENTIFIERS',
@@ -128,6 +161,7 @@ const VARIABLE_DOMAINS = [
   },
   {
     id: 'TURNAROUND_TIME',
+    family: 'SAMPLE_TESTING',
     label: t('label.dataExport.domain.turnaroundTime', 'Turnaround Time'),
     piiTier: null,
     variables: [
@@ -139,24 +173,12 @@ const VARIABLE_DOMAINS = [
     ],
   },
   {
-    id: 'QUALITY_CONTROL',
-    label: t('label.dataExport.domain.qualityControl', 'Quality Control'),
-    piiTier: null,
-    variables: [
-      { key: 'qcLotNumber', label: 'QC Lot Number' },
-      { key: 'qcTestName', label: 'QC Test Name' },
-      { key: 'qcResultValue', label: 'QC Result Value' },
-      { key: 'qcPassFail', label: 'QC Pass / Fail' },
-      { key: 'qcDate', label: 'QC Date' },
-      { key: 'analyzerInstrument', label: 'Analyzer / Instrument' },
-      { key: 'qcTechnician', label: 'QC Technician' },
-    ],
-  },
-  {
     id: 'REFERRALS',
+    family: 'REFERRAL',
     label: t('label.dataExport.domain.referrals', 'Referrals'),
     piiTier: null,
     variables: [
+      { key: 'referralAccessionNumber', label: 'Accession Number' },
       { key: 'referringLab', label: 'Referring Lab' },
       { key: 'referredTestName', label: 'Referred Test Name' },
       { key: 'referralDate', label: 'Referral Date' },
@@ -167,6 +189,7 @@ const VARIABLE_DOMAINS = [
   },
   {
     id: 'NON_CONFORMANCE',
+    family: 'NON_CONFORMANCE',
     label: t('label.dataExport.domain.nonConformance', 'Non-Conformance / Rejections'),
     piiTier: null,
     variables: [
@@ -179,8 +202,19 @@ const VARIABLE_DOMAINS = [
   },
 ];
 
+// key -> { family, label } lookup for fast family resolution
+const VAR_INDEX = {};
+VARIABLE_DOMAINS.forEach((d) =>
+  d.variables.forEach((v) => { VAR_INDEX[v.key] = { family: d.family, label: v.label, domain: d.label }; }),
+);
+
+const familyOfSelection = (selectedVars) => {
+  const first = selectedVars.values().next().value;
+  return first ? VAR_INDEX[first].family : null;
+};
+
 // ---------------------------------------------------------------------------
-// Mock saved configurations
+// Mock saved configurations (each belongs to a single grain family)
 // ---------------------------------------------------------------------------
 const MOCK_SAVED_CONFIGS = [
   {
@@ -195,8 +229,8 @@ const MOCK_SAVED_CONFIGS = [
   },
   {
     id: '3',
-    name: 'Microbiology QC Review',
-    selectedVars: new Set(['qcLotNumber', 'qcTestName', 'qcResultValue', 'qcPassFail', 'qcDate', 'analyzerInstrument', 'qcTechnician']),
+    name: 'Rejections Monthly Review',
+    selectedVars: new Set(['ncAccessionNumber', 'rejectionReason', 'rejectionDate', 'rejectionStage', 'rejectedBy']),
   },
 ];
 
@@ -217,17 +251,17 @@ const USER_LAB_SECTIONS = [
   { id: '5', label: 'Serology' },
 ];
 
+// Status filter values mapped to OpenELIS StatusService (FRS v1.1 §4.2)
 const SAMPLE_STATUSES = [
-  { id: 'RECEIVED', label: 'Received' },
-  { id: 'IN_PROGRESS', label: 'In Progress' },
-  { id: 'RESULTED', label: 'Resulted' },
-  { id: 'VALIDATED', label: 'Validated' },
-  { id: 'CANCELLED', label: 'Cancelled' },
+  { id: 'ENTERED', label: 'Received' },
+  { id: 'STARTED', label: 'In Progress' },
+  { id: 'FINISHED', label: 'Completed' },
+  { id: 'CANCELED', label: 'Cancelled' },
 ];
 
 const RESULT_STATUSES = [
-  { id: 'PRELIMINARY', label: 'Preliminary' },
-  { id: 'FINAL', label: 'Final' },
+  { id: 'TECHNICAL_ACCEPTANCE', label: 'Preliminary (technically accepted)' },
+  { id: 'FINALIZED', label: 'Validated (finalized)' },
   { id: 'CORRECTED', label: 'Corrected' },
 ];
 
@@ -251,34 +285,34 @@ const MOCK_QUEUE = [
     jobName: 'Hematology TAT Q1 2026',
     domains: 'Sample/Order, Test Results, Turnaround Time',
     dateRange: '2026-01-01 – 2026-03-31',
-    submittedAt: '2026-03-25 09:14',
+    submittedAt: '2026-07-14 09:14',
     jobStatus: 'READY',
     rowsFileSummary: '4,312 rows · 847 KB',
   },
   {
     id: '2',
-    jobName: 'QC Review March 2026',
-    domains: 'Quality Control',
-    dateRange: '2026-03-01 – 2026-03-25',
-    submittedAt: '2026-03-25 08:52',
+    jobName: 'HIV Program Data Extract',
+    domains: 'Test Results, Patient Demographics',
+    dateRange: '2026-06-01 – 2026-06-30',
+    submittedAt: '2026-07-14 08:52',
     jobStatus: 'GENERATING',
     rowsFileSummary: '~2 min wait',
   },
   {
     id: '3',
     jobName: 'Microbiology Rejections Feb',
-    domains: 'Sample/Order, Non-Conformance',
+    domains: 'Non-Conformance',
     dateRange: '2026-02-01 – 2026-02-28',
-    submittedAt: '2026-03-24 16:30',
+    submittedAt: '2026-07-14 16:30',
     jobStatus: 'QUEUED',
     rowsFileSummary: '~5 min wait',
   },
   {
     id: '4',
-    jobName: 'HIV Program Data Extract',
-    domains: 'Test Results, Patient Demographics',
-    dateRange: '2026-01-01 – 2026-01-31',
-    submittedAt: '2026-03-24 14:05',
+    jobName: 'Referrals Extract — May 2026',
+    domains: 'Referrals',
+    dateRange: '2026-05-01 – 2026-05-31',
+    submittedAt: '2026-07-13 14:05',
     jobStatus: 'FAILED',
     rowsFileSummary: '—',
   },
@@ -287,7 +321,7 @@ const MOCK_QUEUE = [
     jobName: 'Serology Workload Dec 2025',
     domains: 'Sample/Order, Turnaround Time',
     dateRange: '2025-12-01 – 2025-12-31',
-    submittedAt: '2026-03-18 11:22',
+    submittedAt: '2026-06-30 11:22',
     jobStatus: 'EXPIRED',
     rowsFileSummary: '11,204 rows · 2.1 MB',
   },
@@ -320,10 +354,41 @@ function StatusTag({ status }) {
 }
 
 // ---------------------------------------------------------------------------
+// Family legend (FRS v1.1 FR-1-009) — teaches the one-family rule up front
+// ---------------------------------------------------------------------------
+function FamilyLegend({ activeFamily }) {
+  return (
+    <Tile style={{ marginBottom: 'var(--cds-spacing-05)' }}>
+      <p style={{ fontSize: '0.75rem', fontWeight: 600, marginBottom: 'var(--cds-spacing-03)', color: '#161616' }}>
+        {t('heading.dataExport.familyLegend', 'Export families')}{' '}
+        <span style={{ fontWeight: 400, color: '#525252' }}>
+          — {t('label.dataExport.familyLegend.subtitle', 'an export draws from one family; picking a variable locks the others')}
+        </span>
+      </p>
+      <Stack gap={2}>
+        {Object.entries(FAMILIES).map(([fid, fam]) => {
+          const dimmed = activeFamily && activeFamily !== fid;
+          const active = activeFamily === fid;
+          return (
+            <Stack key={fid} orientation="horizontal" gap={3} style={{ alignItems: 'center', opacity: dimmed ? 0.35 : 1 }}>
+              <Tag kind={fam.tagKind} size="sm">{fam.label}</Tag>
+              <span style={{ fontSize: '0.75rem', color: active ? '#161616' : '#525252', fontWeight: active ? 600 : 400 }}>
+                {fam.desc}
+              </span>
+            </Stack>
+          );
+        })}
+      </Stack>
+    </Tile>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Step 1: Variable Selection
 // ---------------------------------------------------------------------------
 function VariableSelector({ selectedVars, onChange }) {
   const totalSelected = selectedVars.size;
+  const activeFamily = familyOfSelection(selectedVars);
 
   const toggleVar = useCallback((key) => {
     const next = new Set(selectedVars);
@@ -344,15 +409,63 @@ function VariableSelector({ selectedVars, onChange }) {
   const domainSelectedCount = (domain) =>
     domain.variables.filter(v => selectedVars.has(v.key)).length;
 
+  const selectedList = useMemo(
+    () => [...selectedVars].map(k => ({ key: k, ...VAR_INDEX[k] })),
+    [selectedVars],
+  );
+
   return (
     <div>
-      <p style={{ color: '#525252', marginBottom: 'var(--cds-spacing-05)', fontSize: '0.875rem' }}>
-        {t('label.dataExport.variablesSelected', `${totalSelected} variables selected`).replace('{count}', totalSelected)}
-      </p>
+      {/* Family legend */}
+      <FamilyLegend activeFamily={activeFamily} />
+
+      {/* Helper banner: intro before lock, escape hatch after (FR-1-008) */}
+      {activeFamily ? (
+        <InlineNotification
+          kind="info"
+          lowContrast
+          hideCloseButton
+          title={t('label.dataExport.family.activeExport', `${FAMILIES[activeFamily].label} export`)}
+          subtitle={t(
+            'message.dataExport.familyLockedBanner',
+            `You're building a ${FAMILIES[activeFamily].label} export. The other families are locked — clear your selections to switch.`,
+          )}
+          actions={
+            <Button kind="ghost" size="sm" onClick={() => onChange(new Set())}>
+              {t('button.dataExport.clearSelections', 'Clear all selections')}
+            </Button>
+          }
+          style={{ marginBottom: 'var(--cds-spacing-05)', maxWidth: '100%' }}
+        />
+      ) : (
+        <p style={{ color: '#525252', marginBottom: 'var(--cds-spacing-05)', fontSize: '0.875rem' }}>
+          Select the variables you want in your export. PII fields require additional permissions.
+        </p>
+      )}
+
+      {/* Selection summary — labels as dismissible tags + count (Constitution II) */}
+      {totalSelected > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', alignItems: 'center', marginBottom: 'var(--cds-spacing-05)' }}>
+          <Tag kind={FAMILIES[activeFamily].tagKind} size="sm" type="high-contrast">
+            {FAMILIES[activeFamily].label} export
+          </Tag>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#525252' }}>
+            {t('label.dataExport.variablesSelected', `${totalSelected} variables selected`).replace('{count}', totalSelected)}:
+          </span>
+          {selectedList.map(v => (
+            <Tag key={v.key} filter size="sm" onClose={() => toggleVar(v.key)} title={`Remove ${v.label}`}>
+              {v.label}
+            </Tag>
+          ))}
+        </div>
+      )}
+
       <Accordion>
         {VARIABLE_DOMAINS.map((domain) => {
-          const isLocked = domain.piiTier !== null &&
-            !USER_PERMISSIONS[domain.permissionKey];
+          const piiLocked = domain.piiTier !== null && !USER_PERMISSIONS[domain.permissionKey];
+          const familyLocked = activeFamily !== null && domain.family !== activeFamily;
+          const isLocked = piiLocked || familyLocked;
+          const fam = FAMILIES[domain.family];
           const selectedCount = domainSelectedCount(domain);
           const allSelected = selectedCount === domain.variables.length;
           const someSelected = selectedCount > 0 && !allSelected;
@@ -360,17 +473,28 @@ function VariableSelector({ selectedVars, onChange }) {
           return (
             <AccordionItem
               key={domain.id}
+              open={!isLocked}
+              disabled={isLocked}
               title={
                 <Stack orientation="horizontal" gap={3} style={{ alignItems: 'center' }}>
                   {isLocked && <Locked size={16} style={{ color: '#8d8d8d', flexShrink: 0 }} />}
                   <span style={{ fontWeight: 600 }}>{domain.label}</span>
-                  {selectedCount > 0 && (
-                    <Tag kind="blue" size="sm">{selectedCount}</Tag>
+                  <Tag kind={fam.tagKind} size="sm">{fam.label}</Tag>
+                  {domain.piiTier && (
+                    <DefinitionTooltip definition={PII_TOOLTIP} openOnHover>
+                      <Tag kind="red" size="sm">{t('label.dataExport.piiTag', 'PII')}</Tag>
+                    </DefinitionTooltip>
                   )}
-                  {isLocked && (
-                    <Tag kind="warm-gray" size="sm">
-                      {t('label.dataExport.piiLocked', `Requires ${domain.permissionKey}`).replace('{permission}', domain.permissionKey)}
-                    </Tag>
+                  {selectedCount > 0 && <Tag kind="gray" size="sm">{selectedCount}/{domain.variables.length}</Tag>}
+                  {familyLocked && (
+                    <span style={{ fontSize: '0.75rem', color: '#8d8d8d', fontStyle: 'italic' }}>
+                      Not available with {FAMILIES[activeFamily].label} variables
+                    </span>
+                  )}
+                  {piiLocked && !familyLocked && (
+                    <span style={{ fontSize: '0.75rem', color: '#8d8d8d', fontStyle: 'italic' }}>
+                      Requires {domain.permissionKey} — visible but locked
+                    </span>
                   )}
                 </Stack>
               }
@@ -412,10 +536,9 @@ function VariableSelector({ selectedVars, onChange }) {
 // Step 2: Filters
 // ---------------------------------------------------------------------------
 function FilterStep({ filters, onChange }) {
+  const activeFamily = familyOfSelection(filters.selectedVars || new Set());
   const hasTestResults = filters.selectedVars &&
-    [...filters.selectedVars].some(k =>
-      VARIABLE_DOMAINS.find(d => d.id === 'TEST_RESULTS')?.variables.some(v => v.key === k)
-    );
+    [...filters.selectedVars].some(k => VAR_INDEX[k]?.domain === 'Test Results');
 
   const update = (field, value) => onChange({ ...filters, [field]: value });
 
@@ -424,8 +547,12 @@ function FilterStep({ filters, onChange }) {
       {/* Date Range */}
       <div>
         <h4 style={{ fontWeight: 600, marginBottom: 'var(--cds-spacing-04)', fontSize: '0.875rem', color: '#161616' }}>
-          {t('label.dataExport.dateFrom', 'Date Range')} *
+          Date Range *
         </h4>
+        <p style={{ fontSize: '0.75rem', color: '#525252', marginBottom: 'var(--cds-spacing-04)' }}>
+          Filters on the <strong>{activeFamily ? FAMILIES[activeFamily].dateAnchor : 'sample collection date'}</strong> for this export.
+          Maximum range 90 days.
+        </p>
         <Grid condensed>
           <Column lg={6} md={4} sm={4}>
             <DatePicker datePickerType="single" onChange={([date]) => update('dateFrom', date)}>
@@ -471,16 +598,18 @@ function FilterStep({ filters, onChange }) {
           Optional Filters
         </h4>
         <Grid condensed>
-          <Column lg={8} md={4} sm={4}>
-            <MultiSelect
-              id="sample-status"
-              titleText={t('label.dataExport.sampleStatus', 'Sample Status')}
-              label="All statuses"
-              items={SAMPLE_STATUSES}
-              itemToString={(item) => item?.label || ''}
-              onChange={({ selectedItems }) => update('sampleStatuses', selectedItems)}
-            />
-          </Column>
+          {activeFamily === 'SAMPLE_TESTING' && (
+            <Column lg={8} md={4} sm={4}>
+              <MultiSelect
+                id="sample-status"
+                titleText={t('label.dataExport.sampleStatus', 'Sample Status')}
+                label="All statuses"
+                items={SAMPLE_STATUSES}
+                itemToString={(item) => item?.label || ''}
+                onChange={({ selectedItems }) => update('sampleStatuses', selectedItems)}
+              />
+            </Column>
+          )}
           <Column lg={8} md={4} sm={4}>
             <MultiSelect
               id="result-status"
@@ -522,6 +651,7 @@ function FilterStep({ filters, onChange }) {
 // Step 3: Review & Submit
 // ---------------------------------------------------------------------------
 function ReviewStep({ selectedVars, filters, estimating, estimate, onExportNameChange, exportName }) {
+  const activeFamily = familyOfSelection(selectedVars);
   const selectedByDomain = VARIABLE_DOMAINS
     .map(d => ({
       ...d,
@@ -531,6 +661,15 @@ function ReviewStep({ selectedVars, filters, estimating, estimate, onExportNameC
 
   return (
     <Stack gap={6}>
+      {/* Export family */}
+      {activeFamily && (
+        <div>
+          <Tag kind={FAMILIES[activeFamily].tagKind} type="high-contrast">
+            {FAMILIES[activeFamily].label} export
+          </Tag>
+        </div>
+      )}
+
       {/* Row estimate notification */}
       {estimating ? (
         <Tile>
@@ -541,7 +680,7 @@ function ReviewStep({ selectedVars, filters, estimating, estimate, onExportNameC
         </Tile>
       ) : estimate ? (
         <InlineNotification
-          kind={estimate.routedAsync ? 'info' : 'info'}
+          kind="info"
           title={estimate.routedAsync
             ? t('message.dataExport.routeAsync', `This report will be queued — ~${estimate.estimatedRows?.toLocaleString()} rows, ~${Math.ceil(estimate.estimatedWaitSeconds / 60)} min wait.`)
             : t('message.dataExport.routeSync', `This report will download immediately (~${estimate.estimatedRows?.toLocaleString()} rows).`)
@@ -844,7 +983,7 @@ function ReportQueue() {
       )}
 
       <DataTable rows={paginatedRows} headers={QUEUE_HEADERS} isSortable>
-        {({ rows, headers, getHeaderProps, getRowProps, getTableProps, getToolbarProps }) => (
+        {({ rows, headers, getHeaderProps, getRowProps, getTableProps }) => (
           <TableContainer
             title={t('heading.dataExport.queueTable', 'Export Jobs')}
             description="Your personal export history. Ready exports expire 7 days after completion."
@@ -917,7 +1056,7 @@ function ReportQueue() {
                                     {t('button.dataExport.rerun', 'Re-run')}
                                   </Button>
                                 )}
-                                <OverflowMenu size="sm" flipped>
+                                <OverflowMenu size="sm" flipped aria-label="More actions">
                                   <OverflowMenuItem
                                     itemText={t('button.dataExport.delete', 'Delete')}
                                     isDelete

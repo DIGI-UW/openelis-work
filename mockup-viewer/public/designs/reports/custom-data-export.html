@@ -131,11 +131,11 @@
 
     /* ── PII badge ── */
     .pii-badge {
-      font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 8px;
+      font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 8px;
       letter-spacing: 0.05em; text-transform: uppercase;
+      background: #fff0f0; color: #da1e28; border: 1px solid #ffb3b8;
+      cursor: help;
     }
-    .pii-badge.demographics { background: #fff0f0; color: #da1e28; border: 1px solid #ffb3b8; }
-    .pii-badge.identifiers { background: #fff6e0; color: #be6a00; border: 1px solid #ffd791; }
     .var-count-badge { font-size: 10px; background: #dde1e7; color: #697077; padding: 2px 7px; border-radius: 8px; font-weight: 600; }
     .var-count-badge.has-sel { background: #0f62fe; color: #fff; }
 
@@ -226,82 +226,140 @@
     .empty-state { text-align: center; padding: 3rem 2rem; color: #8d8d8d; }
     .empty-state-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
     .empty-state p { font-size: 0.875rem; margin: 0; }
+
+    /* ── v1.1: selection summary tags ── */
+    .sel-summary { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: #fff; border: 1px solid #e0e0e0; padding: 0.625rem 1rem; margin-bottom: 1rem; }
+    .sel-summary .sel-count { font-size: 0.75rem; font-weight: 600; color: #525252; margin-right: 4px; }
+    .sel-tag { display: inline-flex; align-items: center; gap: 4px; background: #e0e0e0; border-radius: 12px; font-size: 11px; padding: 2px 4px 2px 10px; color: #161616; }
+    .sel-tag button { background: none; border: none; cursor: pointer; font-size: 11px; color: #525252; padding: 0 5px; border-radius: 50%; line-height: 1.4; }
+    .sel-tag button:hover { background: #c6c6c6; color: #161616; }
+    .family-tag { background: #d0e2ff; color: #0043ce; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+
+    /* ── v1.1: grain-family / PII locking ── */
+    .card.locked { opacity: 0.55; background: #fafafa; }
+    .card.locked .card-header { cursor: not-allowed; }
+    .lock-note { font-size: 11px; color: #8d8d8d; font-style: italic; font-weight: 400; }
+    .invalid-note { color: #da1e28; font-size: 0.75rem; margin-top: 0.25rem; font-weight: 600; }
+
+    /* ── v1.1: overwrite confirmation modal ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(22,22,22,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-box { background: #fff; max-width: 440px; width: 90%; padding: 1.25rem; box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+    .modal-box h4 { margin: 0 0 0.5rem; font-size: 0.95rem; color: #161616; }
+    .modal-box p { margin: 0 0 1rem; font-size: 0.8125rem; color: #525252; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+    .pii-sim-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #525252; white-space: nowrap; cursor: pointer; user-select: none; }
+
+    /* ── v1.1: family color coding (Carbon tag palette) ── */
+    .family-chip { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 12px; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; }
+    .family-chip.fam-blue    { background: #d0e2ff; color: #0043ce; }
+    .family-chip.fam-teal    { background: #9ef0f0; color: #004144; }
+    .family-chip.fam-magenta { background: #ffd6e8; color: #9f1853; }
+    .card.family-SAMPLE_TESTING  { border-left: 4px solid #4589ff; }
+    .card.family-REFERRAL        { border-left: 4px solid #08bdba; }
+    .card.family-NON_CONFORMANCE { border-left: 4px solid #ee5396; }
+
+    /* ── v1.1: family legend ── */
+    .family-legend { background: #fff; border: 1px solid #e0e0e0; padding: 0.75rem 1rem; margin-bottom: 1rem; }
+    .family-legend-title { font-size: 0.75rem; font-weight: 600; color: #161616; margin-bottom: 0.625rem; }
+    .family-legend-title span { font-weight: 400; color: #525252; }
+    .family-legend-chips { display: flex; flex-direction: column; gap: 7px; }
+    .family-legend-item { display: flex; align-items: center; gap: 10px; transition: opacity 0.15s; }
+    .family-legend-item.dimmed { opacity: 0.35; }
+    .family-legend-item.active .family-desc { font-weight: 600; color: #161616; }
+    .family-legend-item .family-desc { font-size: 11px; color: #525252; }
+    .locked-banner { display: flex; align-items: center; gap: 0.75rem; }
+    .locked-banner .btn-ghost-sm { flex-shrink: 0; }
   </style>
 </head>
 <body>
 <div class="preview-banner">
-  🔬 OpenELIS Design Preview — Custom Data Export &amp; My Report Queue &nbsp;|&nbsp; Navigation via sidebar (not tabs) &nbsp;|&nbsp; Saved configurations feature shown
+  🔬 OpenELIS Design Preview v1.1 — Custom Data Export &amp; My Report Queue &nbsp;|&nbsp; Grain families enforced · QC domain removed · Tag-based selection (labels, not counts) &nbsp;|&nbsp; FRS: custom-data-export-frs-v1.1.md
 </div>
 
 <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useCallback } = React;
+const { useState } = React;
 
-// ─── Data catalog ───────────────────────────────────────────────────────────
+// ─── Data catalog (FRS v1.1 — Section 5) ────────────────────────────────────
+const FAMILY_LABELS = {
+  SAMPLE_TESTING: 'Sample & Testing',
+  REFERRAL: 'Referrals',
+  NON_CONFORMANCE: 'Non-Conformance',
+};
+const FAMILY_DATE_ANCHOR = {
+  SAMPLE_TESTING: 'sample collection date',
+  REFERRAL: 'referral sent date',
+  NON_CONFORMANCE: 'rejection / NCE date',
+};
+const MAX_RANGE_DAYS = 90; // dataExport.maxDateRangeDays
+
+// Family color coding — Carbon tag palette (FR-1-002/FR-1-009)
+const FAMILY_META = {
+  SAMPLE_TESTING:  { chipClass:'fam-blue',    desc:'Orders, results, patients & turnaround times · one row per test result' },
+  REFERRAL:        { chipClass:'fam-teal',    desc:'Tests referred to other labs · one row per referred analysis' },
+  NON_CONFORMANCE: { chipClass:'fam-magenta', desc:'Rejected samples & non-conforming events · one row per event' },
+};
+
 const DOMAINS = [
-  { id:'ORDER', label:'Order / Accession', pii: null, vars:[
+  { id:'SAMPLE_ORDER', family:'SAMPLE_TESTING', label:'Sample / Order', pii: null, vars:[
     { key:'accessionNumber', label:'Accession Number' },
-    { key:'orderDate', label:'Order Date' },
-    { key:'orderTime', label:'Order Time' },
-    { key:'priority', label:'Priority (Routine/STAT)' },
-    { key:'receivedDate', label:'Specimen Received Date' },
-    { key:'collectionDate', label:'Specimen Collection Date' },
+    { key:'collectionDate', label:'Collection Date' },
     { key:'collectionTime', label:'Collection Time' },
-    { key:'specimenType', label:'Specimen Type' },
-    { key:'sampleCondition', label:'Sample Condition' },
-    { key:'referringFacility', label:'Referring Facility' },
-    { key:'referringProvider', label:'Referring Provider' },
-    { key:'labSection', label:'Lab Section / Unit' },
-    { key:'orderingPhysician', label:'Ordering Physician' },
-    { key:'programCode', label:'Program Code' },
+    { key:'receivedDate', label:'Received Date' },
+    { key:'receivedTime', label:'Received Time' },
+    { key:'orderDate', label:'Order Date' },
+    { key:'sampleType', label:'Sample Type' },
+    { key:'sampleStatus', label:'Sample Status' },
+    { key:'priority', label:'Priority (Routine/Urgent/STAT)' },
+    { key:'referringSite', label:'Referring Site / Facility' },
+    { key:'requestingProvider', label:'Requesting Provider' },
+    { key:'labSection', label:'Lab Section' },
+    { key:'numberOfTests', label:'Number of Tests Ordered' },
   ]},
-  { id:'PATIENT', label:'Patient Demographics', pii:'DEMOGRAPHICS', vars:[
-    { key:'patientId', label:'Patient ID (internal)' },
-    { key:'dateOfBirth', label:'Date of Birth' },
-    { key:'age', label:'Age (at order)' },
-    { key:'sex', label:'Sex' },
-    { key:'patientDistrict', label:'District / Region' },
-  ]},
-  { id:'PATIENT_IDS', label:'Patient Identifiers', pii:'IDENTIFIERS', vars:[
-    { key:'nationalId', label:'National ID' },
-    { key:'patientName', label:'Patient Name (First + Last)' },
-    { key:'healthCenterId', label:'Health Centre ID' },
-    { key:'phoneNumber', label:'Phone Number' },
-  ]},
-  { id:'TEST', label:'Test & Panel', pii: null, vars:[
+  { id:'TEST_RESULTS', family:'SAMPLE_TESTING', label:'Test Results', pii: null, vars:[
     { key:'testName', label:'Test Name' },
-    { key:'panelName', label:'Panel Name' },
     { key:'loincCode', label:'LOINC Code' },
-    { key:'testMethod', label:'Test Method' },
-    { key:'analyzerName', label:'Analyzer Name', note:'Blank if no analyzer integration' },
-  ]},
-  { id:'RESULT', label:'Results', pii: null, vars:[
     { key:'resultValue', label:'Result Value' },
-    { key:'resultUnit', label:'Unit of Measure' },
+    { key:'resultUnit', label:'Result Unit' },
     { key:'referenceRange', label:'Reference Range' },
-    { key:'interpretation', label:'Interpretation (H/N/L/Crit)' },
     { key:'resultStatus', label:'Result Status' },
-    { key:'resultDate', label:'Result Date' },
-    { key:'resultTime', label:'Result Time' },
+    { key:'abnormalFlag', label:'Abnormal Flag (H/L/Critical)' },
+    { key:'dateResulted', label:'Date Resulted' },
+    { key:'enteredBy', label:'Entered By (Technician)' },
     { key:'validatedBy', label:'Validated By' },
-    { key:'validatedDate', label:'Validation Date' },
-    { key:'validationLevel', label:'Validation Level' },
-    { key:'reportedDate', label:'Reported Date' },
+    { key:'validationDate', label:'Validation Date' },
+    { key:'resultNotes', label:'Result Notes / Comments' },
   ]},
-  { id:'TAT', label:'Turnaround Time', pii: null, vars:[
-    { key:'tatReceiptToResult', label:'Receipt → Result (hours)', note:'Computed' },
-    { key:'tatCollectionToResult', label:'Collection → Result (hours)', note:'Computed' },
-    { key:'tatReceiptToValidation', label:'Receipt → Validation (hours)', note:'Computed' },
+  { id:'PATIENT_DEMOGRAPHICS', family:'SAMPLE_TESTING', label:'Patient Demographics', pii:'DEMOGRAPHICS', vars:[
+    { key:'patientName', label:'Patient Name' },
+    { key:'dateOfBirth', label:'Date of Birth' },
+    { key:'sex', label:'Sex / Gender' },
   ]},
-  { id:'QC', label:'Quality Control', pii: null, vars:[
-    { key:'qcLevel', label:'QC Level' },
-    { key:'qcResult', label:'QC Result Value' },
-    { key:'qcStatus', label:'QC Status (Pass/Fail/Warning)' },
-    { key:'qcLot', label:'QC Lot Number' },
-    { key:'qcAnalyzer', label:'Analyzer', note:'Blank without analyzer integration' },
+  { id:'PATIENT_IDENTIFIERS', family:'SAMPLE_TESTING', label:'Patient Identifiers', pii:'IDENTIFIERS', vars:[
+    { key:'nationalId', label:'National / External ID' },
+    { key:'programPatientCode', label:'Program Patient Code' },
+    { key:'programEnrollment', label:'Program Enrollment' },
+    { key:'phoneNumber', label:'Phone Number' },
+    { key:'address', label:'Address' },
   ]},
-  { id:'NON_CONFORMANCE', label:'Non-Conformance / Rejections', pii: null, vars:[
+  { id:'TAT', family:'SAMPLE_TESTING', label:'Turnaround Time', pii: null, vars:[
+    { key:'orderToResultMinutes', label:'Order → Result (min)' },
+    { key:'receivedToValidatedMinutes', label:'Received → Validated (min)' },
+    { key:'orderToCollectionMinutes', label:'Order → Collection (min)' },
+    { key:'collectionToReceivedMinutes', label:'Collection → Received (min)' },
+    { key:'resultedToValidatedMinutes', label:'Resulted → Validated (min)' },
+  ]},
+  { id:'REFERRALS', family:'REFERRAL', label:'Referrals', pii: null, vars:[
+    { key:'referralAccessionNumber', label:'Accession Number' },
+    { key:'referringLab', label:'Referring Lab' },
+    { key:'referredTestName', label:'Referred Test Name' },
+    { key:'referralDate', label:'Referral Date' },
+    { key:'referralResultValue', label:'Referral Result Value' },
+    { key:'referralResultDate', label:'Referral Result Date' },
+    { key:'referralStatus', label:'Referral Status' },
+  ]},
+  { id:'NON_CONFORMANCE', family:'NON_CONFORMANCE', label:'Non-Conformance / Rejections', pii: null, vars:[
     { key:'ncAccessionNumber', label:'Accession Number' },
     { key:'rejectionReason', label:'Rejection Reason' },
     { key:'rejectionDate', label:'Rejection Date' },
@@ -309,19 +367,24 @@ const DOMAINS = [
     { key:'rejectedBy', label:'Rejected By' },
   ]},
 ];
+// NOTE (v1.1): Quality Control domain removed — no structured QC data model in
+// OpenELIS Global. Reintroduced via follow-up story when a QC model exists.
+
+const VAR_LOOKUP = {};
+DOMAINS.forEach(d => d.vars.forEach(v => { VAR_LOOKUP[v.key] = { ...v, domain: d.label, family: d.family }; }));
 
 const SAVED_CONFIGS = [
-  { id:'1', name:'Hematology Monthly TAT', vars: new Set(['accessionNumber','orderDate','labSection','testName','tatReceiptToResult','tatCollectionToResult','tatReceiptToValidation']) },
-  { id:'2', name:'HIV Program Monthly Extract', vars: new Set(['accessionNumber','orderDate','labSection','programCode','testName','resultValue','referenceRange','interpretation','resultStatus','validatedDate']) },
-  { id:'3', name:'Microbiology QC Review', vars: new Set(['qcLevel','qcResult','qcStatus','qcLot','qcAnalyzer','labSection','orderDate']) },
+  { id:'1', name:'Hematology Monthly TAT', vars:['accessionNumber','orderDate','labSection','testName','orderToResultMinutes','receivedToValidatedMinutes'] },
+  { id:'2', name:'HIV Program Monthly Extract', vars:['accessionNumber','orderDate','labSection','testName','resultValue','referenceRange','abnormalFlag','resultStatus','validationDate'] },
+  { id:'3', name:'Rejections Monthly Review', vars:['ncAccessionNumber','rejectionReason','rejectionDate','rejectionStage','rejectedBy'] },
 ];
 
 const QUEUE_ROWS = [
-  { id:'JOB-1018', name:'HIV Program Monthly — Feb 2026',     status:'ready',      rows:12847, created:'Mar 24, 2026 09:12', size:'2.1 MB', expires:'Mar 31, 2026' },
-  { id:'JOB-1017', name:'Hematology TAT — Q1 2026',           status:'generating', rows:null,  created:'Mar 24, 2026 11:45', size:'—',      expires:'—' },
-  { id:'JOB-1016', name:'All Results Export — Jan 2026',      status:'queued',     rows:null,  created:'Mar 24, 2026 11:50', size:'—',      expires:'—' },
-  { id:'JOB-1015', name:'QC Review — Feb 2026',               status:'expired',    rows:4201,  created:'Mar 10, 2026 14:30', size:'0.8 MB', expires:'Mar 17, 2026' },
-  { id:'JOB-1014', name:'Non-Conformance Extract — Feb 2026', status:'failed',     rows:null,  created:'Mar 9, 2026 08:05',  size:'—',      expires:'—' },
+  { id:'JOB-1018', name:'HIV Program Monthly — Feb 2026',     status:'ready',      rows:12847, created:'Jul 14, 2026 09:12', size:'2.1 MB', expires:'Jul 21, 2026' },
+  { id:'JOB-1017', name:'Hematology TAT — Q2 2026',           status:'generating', rows:null,  created:'Jul 14, 2026 11:45', size:'—',      expires:'—' },
+  { id:'JOB-1016', name:'All Results Export — Jun 2026',      status:'queued',     rows:null,  created:'Jul 14, 2026 11:50', size:'~2 min wait', expires:'—' },
+  { id:'JOB-1015', name:'Rejections Extract — May 2026',      status:'expired',    rows:4201,  created:'Jun 30, 2026 14:30', size:'0.8 MB', expires:'Jul 7, 2026' },
+  { id:'JOB-1014', name:'Referrals Extract — May 2026',       status:'failed',     rows:null,  created:'Jun 29, 2026 08:05', size:'—',      expires:'—' },
 ];
 
 // ─── Components ──────────────────────────────────────────────────────────────
@@ -341,7 +404,7 @@ function TopHeader() {
       <div className="top-header-right">
         <button className="header-icon-btn" title="Help">?</button>
         <select className="lang-selector">
-          <option>EN</option><option>FR</option><option>MG</option>
+          <option>EN</option><option>FR</option>
         </select>
         <button className="header-icon-btn" title="Notifications">🔔</button>
         <div className="user-avatar" title="Lab Manager">LM</div>
@@ -420,17 +483,21 @@ function StatusTag({ status }) {
 }
 
 // ─── Report Builder ───────────────────────────────────────────────────────────
-function ReportBuilder({ onGoToQueue }) {
+function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
   const [step, setStep] = useState(1);
-  const [openDomains, setOpenDomains] = useState(new Set(['ORDER','RESULT']));
+  const [openDomains, setOpenDomains] = useState(new Set(DOMAINS.map(d => d.id))); // all expanded by default (FR-1-002)
   const [selected, setSelected] = useState(new Set());
-  const [startDate, setStartDate] = useState('2026-01-01');
-  const [endDate, setEndDate] = useState('2026-01-31');
+  const [startDate, setStartDate] = useState('2026-06-01');
+  const [endDate, setEndDate] = useState('2026-06-30');
   const [labSection, setLabSection] = useState('all');
   const [savedConfigId, setSavedConfigId] = useState('');
   const [configName, setConfigName] = useState('');
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [showOverwriteModal, setShowOverwriteModal] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  // ── Grain family lock (FR-1-008): first selection locks the family ──
+  const activeFamily = selected.size > 0 ? VAR_LOOKUP[selected.values().next().value].family : null;
 
   const toggleDomain = (id) => {
     const next = new Set(openDomains);
@@ -438,14 +505,22 @@ function ReportBuilder({ onGoToQueue }) {
     setOpenDomains(next);
   };
 
+  const isDomainFamilyLocked = (d) => activeFamily !== null && d.family !== activeFamily;
+  const isDomainPiiLocked = (d) => d.pii && !piiAccess;
+  const isDomainLocked = (d) => isDomainFamilyLocked(d) || isDomainPiiLocked(d);
+
   const toggleVar = (key) => {
+    const meta = VAR_LOOKUP[key];
+    const domain = DOMAINS.find(d => d.id && d.vars.some(v => v.key === key));
+    if (!selected.has(key) && isDomainLocked(domain)) return; // guarded (checkbox also disabled)
     const next = new Set(selected);
     next.has(key) ? next.delete(key) : next.add(key);
     setSelected(next);
   };
 
-  const toggleAllDomain = (vars) => {
-    const keys = vars.map(v => v.key);
+  const toggleAllDomain = (domain) => {
+    if (isDomainLocked(domain)) return;
+    const keys = domain.vars.map(v => v.key);
     const allSel = keys.every(k => selected.has(k));
     const next = new Set(selected);
     if (allSel) keys.forEach(k => next.delete(k));
@@ -455,23 +530,35 @@ function ReportBuilder({ onGoToQueue }) {
 
   const loadConfig = () => {
     const cfg = SAVED_CONFIGS.find(c => c.id === savedConfigId);
-    if (cfg) setSelected(new Set(cfg.vars));
+    if (cfg) setSelected(new Set(cfg.vars)); // locks family implicitly (FR-7-001)
   };
+
+  const configNameExists = SAVED_CONFIGS.some(c => c.name.trim().toLowerCase() === configName.trim().toLowerCase());
 
   const handleSaveConfig = () => {
+    if (!configName.trim()) return;
+    if (configNameExists) { setShowOverwriteModal(true); return; } // FR-7-002: confirm & overwrite
+    doSave();
+  };
+  const doSave = () => {
+    setShowOverwriteModal(false);
     setShowSaveSuccess(true);
     setTimeout(() => setShowSaveSuccess(false), 3000);
-    setConfigName('');
   };
 
-  const handleSubmit = () => {
-    setSubmitted(true);
-  };
+  const handleSubmit = () => setSubmitted(true);
 
-  // Estimate: 9 days → async
-  const dayDiff = 30;
+  // ── Date range calc (FR-2-007 / FR-2-010) ──
+  const msPerDay = 86400000;
+  const dayDiff = startDate && endDate ? Math.round((new Date(endDate) - new Date(startDate)) / msPerDay) + 1 : 0;
+  const rangeInvalid = dayDiff <= 0;
+  const rangeTooLarge = dayDiff > MAX_RANGE_DAYS;
+
+  // Simulated estimate
   const rowEst = 12847;
   const isAsync = dayDiff > 7 || rowEst > 5000;
+
+  const hasTestResultVars = [...selected].some(k => VAR_LOOKUP[k].domain === 'Test Results');
 
   const steps = ['Select Variables', 'Set Filters', 'Review & Submit'];
   const selectedVarList = DOMAINS.flatMap(d => d.vars.filter(v => selected.has(v.key)).map(v => ({ ...v, domain: d.label })));
@@ -489,12 +576,12 @@ function ReportBuilder({ onGoToQueue }) {
           <div className="inline-notification success">
             <span>✅</span>
             <div>
-              <strong>Your report has been queued.</strong> It will appear in <strong>My Report Queue</strong> when ready. Large reports may take a few minutes.
+              <strong>Your export has been queued.</strong> It will appear in <strong>My Report Queue</strong> when ready. Large reports may take a few minutes.
             </div>
           </div>
           <div style={{display:'flex',gap:'0.75rem',marginTop:'1rem'}}>
             <button className="btn-primary" onClick={onGoToQueue}>Go to My Report Queue</button>
-            <button className="btn-secondary" onClick={() => { setSubmitted(false); setStep(1); setSelected(new Set()); }}>Start New Report</button>
+            <button className="btn-secondary" onClick={() => { setSubmitted(false); setStep(1); setSelected(new Set()); }}>Start New Export</button>
           </div>
         </div>
       </div>
@@ -507,9 +594,15 @@ function ReportBuilder({ onGoToQueue }) {
         <div>
           <div className="breadcrumb">Reports <span>/ Custom Data Export</span></div>
           <h1 className="page-title">Custom Data Export</h1>
-          <p className="page-subtitle">Select variables, set date filters, and download or queue your export.</p>
+          <p className="page-subtitle">Select variables from one data family, set date filters, and download or queue your export.</p>
         </div>
-        <button className="btn-secondary" onClick={onGoToQueue}>My Report Queue →</button>
+        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'0.5rem'}}>
+          <button className="btn-secondary" onClick={onGoToQueue}>My Report Queue →</button>
+          <label className="pii-sim-toggle" title="Preview only: simulate DATA_EXPORT_PII_* permissions">
+            <input type="checkbox" checked={piiAccess} onChange={e => setPiiAccess(e.target.checked)}/>
+            Simulate PII permissions
+          </label>
+        </div>
       </div>
 
       <div className="page-body">
@@ -543,26 +636,71 @@ function ReportBuilder({ onGoToQueue }) {
               <button className="btn-ghost-sm" disabled={!savedConfigId} onClick={loadConfig}>Load</button>
             </div>
 
-            <div className="inline-notification info">
-              <span>ℹ️</span>
-              <div>Select the variables you want in your export. <strong>PII fields</strong> require additional permissions. {selected.size > 0 && <strong>{selected.size} variable{selected.size !== 1 ? 's' : ''} selected.</strong>}</div>
+            {/* Family legend (FR-1-009) — teaches the one-family rule before the lock */}
+            <div className="family-legend">
+              <div className="family-legend-title">Export families <span>— an export draws from one family; picking a variable locks the others</span></div>
+              <div className="family-legend-chips">
+                {Object.keys(FAMILY_META).map(fid => (
+                  <div key={fid} className={`family-legend-item ${activeFamily === fid ? 'active' : ''} ${activeFamily && activeFamily !== fid ? 'dimmed' : ''}`}>
+                    <span className={`family-chip ${FAMILY_META[fid].chipClass}`}>{FAMILY_LABELS[fid]}</span>
+                    <span className="family-desc">{FAMILY_META[fid].desc}</span>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            {/* Helper banner (FR-1-008): intro before lock, escape hatch after */}
+            {!activeFamily ? (
+              <div className="inline-notification info">
+                <span>ℹ️</span>
+                <div>Select the variables you want in your export. <strong>PII fields</strong> require additional permissions.</div>
+              </div>
+            ) : (
+              <div className="inline-notification info locked-banner">
+                <span>🔒</span>
+                <div style={{flex:1}}>You're building a <strong>{FAMILY_LABELS[activeFamily]}</strong> export. The other families are locked — clear your selections to switch.</div>
+                <button className="btn-ghost-sm" onClick={() => setSelected(new Set())}>Clear all selections</button>
+              </div>
+            )}
+
+            {/* Selection summary — labels + count (Constitution II) */}
+            {selected.size > 0 && (
+              <div className="sel-summary">
+                <span className={`family-chip ${FAMILY_META[activeFamily].chipClass}`}>{FAMILY_LABELS[activeFamily]} export</span>
+                <span className="sel-count">{selected.size} variable{selected.size !== 1 ? 's' : ''} selected:</span>
+                {selectedVarList.map(v => (
+                  <span className="sel-tag" key={v.key}>
+                    {v.label}
+                    <button title={`Remove ${v.label}`} onClick={() => toggleVar(v.key)}>✕</button>
+                  </span>
+                ))}
+              </div>
+            )}
 
             {DOMAINS.map(domain => {
               const domainSelCount = domain.vars.filter(v => selected.has(v.key)).length;
-              const isOpen = openDomains.has(domain.id);
+              const familyLocked = isDomainFamilyLocked(domain);
+              const piiLocked = isDomainPiiLocked(domain);
+              const locked = familyLocked || piiLocked;
+              const isOpen = openDomains.has(domain.id) && !locked;
               return (
-                <div className="card" key={domain.id}>
-                  <div className="card-header" onClick={() => toggleDomain(domain.id)}>
+                <div className={`card family-${domain.family} ${locked ? 'locked' : ''}`} key={domain.id}>
+                  <div className="card-header" onClick={() => !locked && toggleDomain(domain.id)}>
                     <div className="card-title">
+                      {locked && <span title={familyLocked
+                        ? `Not available with ${FAMILY_LABELS[activeFamily]} variables — an export draws from one data family at a time`
+                        : `Requires Data Export PII ${domain.pii === 'DEMOGRAPHICS' ? 'Demographics' : 'Identifiers'} permission`}>🔒</span>}
                       {domain.label}
-                      {domain.pii && <span className={`pii-badge ${domain.pii === 'DEMOGRAPHICS' ? 'demographics' : 'identifiers'}`}>{domain.pii}</span>}
+                      <span className={`family-chip ${FAMILY_META[domain.family].chipClass}`}>{FAMILY_LABELS[domain.family]}</span>
+                      {domain.pii && <span className="pii-badge" title="Contains patient-identifying data — requires additional permission; exports including these fields are audited">PII</span>}
                       <span className={`var-count-badge ${domainSelCount > 0 ? 'has-sel' : ''}`}>{domainSelCount}/{domain.vars.length}</span>
+                      {familyLocked && <span className="lock-note">Not available with {FAMILY_LABELS[activeFamily]} variables</span>}
+                      {!familyLocked && piiLocked && <span className="lock-note">Requires PII permission — visible but locked</span>}
                     </div>
                     <div style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
                       {isOpen && (
                         <button className="btn-ghost-sm" style={{fontSize:'11px',padding:'2px 8px'}}
-                          onClick={e => { e.stopPropagation(); toggleAllDomain(domain.vars); }}>
+                          onClick={e => { e.stopPropagation(); toggleAllDomain(domain); }}>
                           {domain.vars.every(v => selected.has(v.key)) ? 'Deselect all' : 'Select all'}
                         </button>
                       )}
@@ -573,12 +711,9 @@ function ReportBuilder({ onGoToQueue }) {
                     <div className="card-body">
                       <div className="var-grid">
                         {domain.vars.map(v => (
-                          <div key={v.key}>
-                            <div className="var-check">
-                              <input type="checkbox" id={v.key} checked={selected.has(v.key)} onChange={() => toggleVar(v.key)}/>
-                              <label htmlFor={v.key}>{v.label}</label>
-                            </div>
-                            {v.note && <div className="var-note">⚠ {v.note}</div>}
+                          <div key={v.key} className="var-check">
+                            <input type="checkbox" id={v.key} checked={selected.has(v.key)} disabled={locked} onChange={() => toggleVar(v.key)}/>
+                            <label htmlFor={v.key}>{v.label}</label>
                           </div>
                         ))}
                       </div>
@@ -589,8 +724,10 @@ function ReportBuilder({ onGoToQueue }) {
             })}
 
             <div className="action-bar">
-              <button className="btn-primary" disabled={selected.size === 0} onClick={() => setStep(2)}>
-                Next: Set Filters ({selected.size} variable{selected.size !== 1 ? 's' : ''} selected) →
+              <button className="btn-primary" disabled={selected.size === 0}
+                title={selected.size === 0 ? 'Select at least one variable to continue' : undefined}
+                onClick={() => setStep(2)}>
+                Next: Set Filters →
               </button>
             </div>
           </>
@@ -604,18 +741,23 @@ function ReportBuilder({ onGoToQueue }) {
                 <div className="card-title">Date Range <span style={{color:'#da1e28',fontSize:'0.75rem',fontWeight:'400'}}>* Required</span></div>
               </div>
               <div className="card-body">
+                <div style={{fontSize:'0.75rem',color:'#525252',marginBottom:'0.75rem'}}>
+                  Filters on the <strong>{FAMILY_DATE_ANCHOR[activeFamily] || 'sample collection date'}</strong> for this export family.
+                </div>
                 <div className="filter-grid">
                   <div className="form-group">
-                    <label>Start Date *</label>
+                    <label>Date From *</label>
                     <input className="form-input" type="date" value={startDate} onChange={e => setStartDate(e.target.value)}/>
                   </div>
                   <div className="form-group">
-                    <label>End Date *</label>
+                    <label>Date To *</label>
                     <input className="form-input" type="date" value={endDate} onChange={e => setEndDate(e.target.value)}/>
+                    {rangeInvalid && <div className="invalid-note">Date To must be on or after Date From.</div>}
+                    {!rangeInvalid && rangeTooLarge && <div className="invalid-note">Date range cannot exceed {MAX_RANGE_DAYS} days.</div>}
                   </div>
                 </div>
                 <div style={{fontSize:'0.8125rem',color:'#6f6f6f'}}>
-                  📅 Range: <strong>31 days</strong> &nbsp;·&nbsp; Reports &gt;7 days or &gt;5,000 estimated rows are queued for async generation.
+                  📅 Range: <strong>{rangeInvalid ? '—' : `${dayDiff} days`}</strong> &nbsp;·&nbsp; Max {MAX_RANGE_DAYS} days. Exports &gt;7 days or &gt;5,000 estimated rows are queued for async generation.
                 </div>
               </div>
             </div>
@@ -627,30 +769,49 @@ function ReportBuilder({ onGoToQueue }) {
               <div className="card-body">
                 <div className="filter-grid">
                   <div className="form-group">
-                    <label>Lab Section</label>
+                    <label>Lab Sections</label>
                     <select className="form-input form-select" value={labSection} onChange={e => setLabSection(e.target.value)}>
-                      <option value="all">All sections (my access)</option>
-                      <option value="hematology">Hematology</option>
-                      <option value="microbiology">Microbiology</option>
-                      <option value="chemistry">Chemistry</option>
-                      <option value="serology">Serology / Immunology</option>
+                      <option value="all">All accessible sections</option>
+                      <option value="Hematology">Hematology</option>
+                      <option value="Microbiology">Microbiology</option>
+                      <option value="Chemistry">Chemistry</option>
+                      <option value="Serology / Immunology">Serology / Immunology</option>
                     </select>
                   </div>
-                  <div className="form-group">
-                    <label>Result Status</label>
-                    <select className="form-input form-select">
+                  {activeFamily === 'SAMPLE_TESTING' && (
+                    <div className="form-group">
+                      <label>Sample Status</label>
+                      <select className="form-input form-select">
+                        <option>All statuses</option>
+                        <option>Received</option>
+                        <option>In Progress</option>
+                        <option>Completed</option>
+                        <option>Cancelled</option>
+                      </select>
+                    </div>
+                  )}
+                  <div className="form-group" title={!hasTestResultVars ? 'Available when Test Results variables are selected' : undefined}>
+                    <label style={{color: hasTestResultVars ? undefined : '#c6c6c6'}}>Result Status</label>
+                    <select className="form-input form-select" disabled={!hasTestResultVars}>
                       <option>All statuses</option>
-                      <option>Validated only</option>
-                      <option>Preliminary</option>
+                      <option>Preliminary (technically accepted)</option>
+                      <option>Validated (finalized)</option>
+                      <option>Corrected</option>
+                    </select>
+                    {!hasTestResultVars && <div style={{fontSize:'10px',color:'#8d8d8d',marginTop:'2px'}}>Available when Test Results variables are selected</div>}
+                  </div>
+                  <div className="form-group">
+                    <label>Priority</label>
+                    <select className="form-input form-select">
+                      <option>All priorities</option>
+                      <option>Routine</option>
+                      <option>Urgent</option>
+                      <option>STAT</option>
                     </select>
                   </div>
                   <div className="form-group">
-                    <label>Test / Panel</label>
-                    <input className="form-input" type="text" placeholder="Filter by test name…"/>
-                  </div>
-                  <div className="form-group">
-                    <label>Program Code</label>
-                    <input className="form-input" type="text" placeholder="e.g. HIV, TB, MCH"/>
+                    <label>Referring Site</label>
+                    <input className="form-input" type="text" placeholder="Search referring sites…"/>
                   </div>
                 </div>
               </div>
@@ -658,7 +819,7 @@ function ReportBuilder({ onGoToQueue }) {
 
             <div className="action-bar">
               <button className="btn-secondary" onClick={() => setStep(1)}>← Back</button>
-              <button className="btn-primary" onClick={() => setStep(3)}>Next: Review & Submit →</button>
+              <button className="btn-primary" disabled={rangeInvalid || rangeTooLarge} onClick={() => setStep(3)}>Next: Review &amp; Submit →</button>
             </div>
           </>
         )}
@@ -671,8 +832,8 @@ function ReportBuilder({ onGoToQueue }) {
               <span>{isAsync ? '⏳' : '⚡'}</span>
               <div>
                 {isAsync
-                  ? <><strong>Estimated ~{rowEst.toLocaleString()} rows · 31 days</strong> — This report will be queued. You'll find it in <strong>My Report Queue</strong> when ready (est. ~2 min).</>
-                  : <><strong>Small report — instant download.</strong> Estimated {rowEst.toLocaleString()} rows. Your CSV will download immediately.</>
+                  ? <><strong>~{rowEst.toLocaleString()} rows estimated · {dayDiff} days</strong> — This report will be queued. You'll find it in <strong>My Report Queue</strong> when ready (est. ~2 min).</>
+                  : <><strong>Small report — instant download.</strong> ~{rowEst.toLocaleString()} rows estimated. Your CSV will download immediately.</>
                 }
               </div>
             </div>
@@ -683,12 +844,16 @@ function ReportBuilder({ onGoToQueue }) {
               </div>
               <div className="card-body">
                 <div className="review-section">
+                  <h4>Export Family</h4>
+                  <span className={`family-chip ${FAMILY_META[activeFamily].chipClass}`}>{FAMILY_LABELS[activeFamily]} export</span>
+                </div>
+                <div className="review-section">
                   <h4>Date Range</h4>
-                  <span className="var-pill">📅 {startDate} → {endDate} (31 days)</span>
+                  <span className="var-pill">📅 {startDate} → {endDate} ({dayDiff} days, {FAMILY_DATE_ANCHOR[activeFamily]})</span>
                 </div>
                 <div className="review-section">
                   <h4>Lab Scope</h4>
-                  <span className="var-pill">🔬 {labSection === 'all' ? 'All sections (my access)' : labSection}</span>
+                  <span className="var-pill">🔬 {labSection === 'all' ? 'All accessible sections' : labSection}</span>
                 </div>
                 <div className="review-section">
                   <h4>Selected Variables ({selectedVarList.length})</h4>
@@ -706,13 +871,23 @@ function ReportBuilder({ onGoToQueue }) {
               </div>
             </div>
 
+            {/* Export name */}
+            <div className="card">
+              <div className="card-header" style={{cursor:'default'}}>
+                <div className="card-title">Export Name <span style={{color:'#8d8d8d',fontSize:'0.75rem',fontWeight:'400'}}>(Optional — auto-generated if blank)</span></div>
+              </div>
+              <div className="card-body">
+                <input className="form-input" type="text" placeholder="e.g. Hematology TAT Q2 2026" style={{maxWidth:'420px'}}/>
+              </div>
+            </div>
+
             {/* Save configuration panel */}
             <div className="save-config-panel">
               <h4>💾 Save this configuration for later</h4>
               <p>Save your variable selection to quickly reload it next time. Date range is not saved.</p>
               {showSaveSuccess && (
                 <div className="inline-notification success" style={{marginBottom:'0.75rem'}}>
-                  ✅ Configuration saved as "<strong>{configName || 'My Config'}</strong>".
+                  ✅ Configuration "<strong>{configName || 'My Config'}</strong>" saved.
                 </div>
               )}
               <div className="save-config-row">
@@ -721,16 +896,33 @@ function ReportBuilder({ onGoToQueue }) {
                   <input className="form-input" type="text" placeholder="e.g. Hematology Monthly TAT"
                     value={configName} onChange={e => setConfigName(e.target.value)}/>
                 </div>
-                <button className="btn-ghost-sm" onClick={handleSaveConfig} style={{marginBottom:'1px'}}>Save Configuration</button>
+                <button className="btn-ghost-sm" disabled={!configName.trim()} onClick={handleSaveConfig} style={{marginBottom:'1px'}}>Save Configuration</button>
+              </div>
+              <div style={{fontSize:'11px',color:'#8d8d8d',marginTop:'0.5rem'}}>
+                Tip: try saving as "Hematology Monthly TAT" to preview the overwrite confirmation.
               </div>
             </div>
 
             <div className="action-bar">
               <button className="btn-secondary" onClick={() => setStep(2)}>← Back</button>
               <button className="btn-primary" onClick={handleSubmit}>
-                {isAsync ? '⏳ Queue Report' : '⬇ Download CSV'}
+                {isAsync ? '⏳ Generate Export (queued)' : '⬇ Generate Export (downloads now)'}
               </button>
             </div>
+
+            {/* Overwrite confirmation modal (FR-7-002) */}
+            {showOverwriteModal && (
+              <div className="modal-overlay" onClick={() => setShowOverwriteModal(false)}>
+                <div className="modal-box" onClick={e => e.stopPropagation()}>
+                  <h4>Overwrite saved configuration?</h4>
+                  <p>A configuration named "<strong>{configName}</strong>" already exists. Overwrite it?</p>
+                  <div className="modal-actions">
+                    <button className="btn-secondary" onClick={() => setShowOverwriteModal(false)}>Cancel</button>
+                    <button className="btn-danger" onClick={doSave}>Overwrite</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -751,7 +943,7 @@ function ReportQueue({ onGoToBuilder }) {
         <div>
           <div className="breadcrumb">Reports <span>/ My Report Queue</span></div>
           <h1 className="page-title">My Report Queue</h1>
-          <p className="page-subtitle">View and download your queued CSV exports. Ready files are kept for 7 days.</p>
+          <p className="page-subtitle">View and download your queued CSV exports. Ready files are kept for 7 days (configurable).</p>
         </div>
         <button className="btn-primary" onClick={onGoToBuilder}>+ New Export</button>
       </div>
@@ -760,17 +952,17 @@ function ReportQueue({ onGoToBuilder }) {
         {rows.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">📭</div>
-            <p>No reports yet. <button className="btn-link" onClick={onGoToBuilder}>Create your first export.</button></p>
+            <p>No export jobs found. <button className="btn-link" onClick={onGoToBuilder}>Create your first export.</button></p>
           </div>
         ) : (
           <div className="card" style={{padding:0,overflow:'hidden'}}>
             <table className="queue-table">
               <thead>
                 <tr>
-                  <th>Report Name</th>
+                  <th>Job Name</th>
                   <th>Status</th>
-                  <th>Rows / Size</th>
-                  <th>Created</th>
+                  <th>Rows / File Size</th>
+                  <th>Submitted At</th>
                   <th>Expires</th>
                   <th>Actions</th>
                 </tr>
@@ -783,7 +975,7 @@ function ReportQueue({ onGoToBuilder }) {
                       <div style={{fontSize:'11px',color:'#8d8d8d'}}>{row.id}</div>
                     </td>
                     <td><StatusTag status={row.status}/></td>
-                    <td>{row.rows ? `${row.rows.toLocaleString()} · ${row.size}` : '—'}</td>
+                    <td>{row.rows ? `${row.rows.toLocaleString()} · ${row.size}` : row.size}</td>
                     <td>{row.created}</td>
                     <td style={{color: row.status==='expired' ? '#da1e28' : '#161616'}}>{row.expires}</td>
                     <td>
@@ -792,15 +984,15 @@ function ReportQueue({ onGoToBuilder }) {
                           <button className="btn-icon" title="Download CSV">⬇</button>
                         )}
                         {row.status === 'queued' && (
-                          <button className="btn-icon" title="Cancel" onClick={() => cancel(row.id)}>✕</button>
+                          <button className="btn-icon" title="Cancel Job" onClick={() => cancel(row.id)}>✕</button>
                         )}
                         {row.status === 'failed' && (
                           <button className="btn-icon" title="Retry">↺</button>
                         )}
                         {row.status === 'expired' && (
-                          <button className="btn-icon" title="Re-run">▷</button>
+                          <button className="btn-icon" title="Re-run (date range not pre-filled)">▷</button>
                         )}
-                        {(row.status === 'failed' || row.status === 'expired' || row.status === 'cancelled') && (
+                        {row.status !== 'generating' && (
                           <button className="btn-icon" title="Delete" onClick={() => deleteRow(row.id)}>🗑</button>
                         )}
                         <button className="btn-icon" title="View details">👁</button>
@@ -811,7 +1003,7 @@ function ReportQueue({ onGoToBuilder }) {
               </tbody>
             </table>
             <div style={{padding:'0.75rem 1rem',borderTop:'1px solid #e0e0e0',display:'flex',justifyContent:'space-between',alignItems:'center',background:'#fff',fontSize:'0.8125rem',color:'#525252'}}>
-              <span>Showing {rows.length} of {rows.length} reports</span>
+              <span>Showing {rows.length} of {rows.length} jobs · 20 per page (saved to profile)</span>
               <div style={{display:'flex',gap:'0.5rem'}}>
                 <button className="btn-secondary" style={{padding:'4px 12px',fontSize:'12px'}} disabled>← Prev</button>
                 <button className="btn-secondary" style={{padding:'4px 12px',fontSize:'12px'}} disabled>Next →</button>
@@ -821,8 +1013,8 @@ function ReportQueue({ onGoToBuilder }) {
         )}
 
         <div style={{marginTop:'1rem',fontSize:'0.8125rem',color:'#8d8d8d'}}>
-          ℹ Ready files are available for download for <strong>7 days</strong> after generation.
-          Active jobs refresh automatically every 15 seconds.
+          ℹ Ready files are downloadable for <strong>7 days</strong> after generation (configurable in Printed Reports Configuration).
+          Active jobs refresh automatically every 15 seconds. Deleting is unavailable while a job is generating.
         </div>
       </div>
     </div>
@@ -832,6 +1024,7 @@ function ReportQueue({ onGoToBuilder }) {
 // ─── Root App ─────────────────────────────────────────────────────────────────
 function App() {
   const [page, setPage] = useState('builder');
+  const [piiAccess, setPiiAccess] = useState(true);
 
   const handleNav = (dest) => {
     if (dest === 'builder' || dest === 'queue') setPage(dest);
@@ -844,7 +1037,7 @@ function App() {
       <div className="app-body">
         <Sidebar activePage={page} onNav={handleNav}/>
         {page === 'builder'
-          ? <ReportBuilder onGoToQueue={() => setPage('queue')}/>
+          ? <ReportBuilder onGoToQueue={() => setPage('queue')} piiAccess={piiAccess} setPiiAccess={setPiiAccess}/>
           : <ReportQueue onGoToBuilder={() => setPage('builder')}/>
         }
       </div>

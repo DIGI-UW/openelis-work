@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-15T21:54:01.210Z",
+  "generated": "2026-07-15T23:07:48.859Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
   "totalDesigns": 204,
   "categories": [
@@ -70,7 +70,7 @@
         "configuration"
       ],
       "jira": [
-        "OGC-1112"
+        "OGC-1142"
       ],
       "githubIssue": null,
       "specPath": "designs/admin-config/test-catalog-completion-v2.md",
@@ -304,7 +304,8 @@
         "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/panel-management",
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/panel-management",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/panel.md",
-        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/panel.jsx"
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/panel.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-panels-sampletypes.html"
       }
     },
     {
@@ -1072,7 +1073,8 @@
         "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/sample-type-management",
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/sample-type-management",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/sample-type-management.md",
-        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/sample-type-management.jsx"
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/sample-type-management.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-panels-sampletypes.html"
       }
     },
     {
@@ -4635,7 +4637,7 @@
       "name": "Custom Data Export",
       "slug": "custom-data-export",
       "category": "reports",
-      "description": "3-step report builder wizard with field selection, filter configuration, and scheduling — plus async My Report Queue and Saved Export Configurations panel",
+      "description": "3-step CSV report builder wizard with grain-family variable selection, filters, and sync/async routing — plus async My Report Queue and Saved Export Configurations. v1.1 (2026-07-15): grain families with color coding + legend, QC domain removed, single PII tag, overwrite-confirm for saved configs.",
       "type": "jsx",
       "added": "2026-03-25",
       "status": "draft",
