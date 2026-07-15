@@ -1164,6 +1164,7 @@
   path: designs/system/analyzer-import.jsx
   category: system
   description: Bulk analyzer configuration import
+  superseded_by: analyzer-import-redesign-v2
   paired_with: analyzer-import-spec
   links: {}
   added: "2026-03-03"
@@ -1173,6 +1174,7 @@
   path: designs/system/analyzer-import.md
   category: system
   description: Analyzer import FRS
+  superseded_by: analyzer-import-redesign-v2
   paired_with: analyzer-import
   links: {}
   added: "2026-03-03"

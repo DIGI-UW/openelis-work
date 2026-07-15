@@ -2055,6 +2055,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/system/analyzer-import.jsx')),
     description: '[Superseded by Analyzer Results Import (v2 redesign), OGC-288] Bulk analyzer configuration import (wireframe-era analyzer results import redesign).',
     specPath: 'designs/system/analyzer-import.md',
+    archived: true,
     githubIssue: 45,
     tags: ['analyzer', 'import', 'data-migration', 'system'],
   },

@@ -530,7 +530,7 @@ describe('App component', () => {
     const specBadges = screen.getAllByText('has spec');
     // "has spec" only shown for entries that have a specPath AND are not spec-only type
     const entriesWithSpecAndMockup = MOCKUP_REGISTRY.filter(m =>
-      m.specPath && (m.component || m.htmlUrl || m.figmaUrl)
+      m.specPath && (m.component || m.htmlUrl || m.figmaUrl) && !m.archived
     );
     expect(specBadges.length).toBe(entriesWithSpecAndMockup.length);
   });

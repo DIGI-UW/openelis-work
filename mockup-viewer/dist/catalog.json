@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-15T18:50:31.484Z",
+  "generated": "2026-07-15T19:41:55.795Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
   "totalDesigns": 203,
   "categories": [
@@ -3683,7 +3683,7 @@
       "name": "Results Entry — Multi-Component (integrated)",
       "slug": "results-entry-multi-component-integrated",
       "category": "results-validation",
-      "description": "New full Results Entry FRS that carries forward all v4 scope and natively integrates multi-component result entry — a test defining more than one result_component shows one result field per component, reusing the existing result-cell renderer; single-component tests are unchanged. First use case: molecular target gene + Ct (Xpert MTB/RIF, SARS-CoV-2). Supersedes the Results Entry v4 FRS. Companion: Validation Page — Multi-Component (integrated) and the v1 additive module.",
+      "description": "New full Results Entry FRS that carries forward all v4 scope and natively integrates multi-component result entry — a test defining more than one result_component shows one result field per component, reusing the existing result-cell renderer; single-component tests are unchanged. First use case: molecular target gene + Ct (Xpert MTB/RIF, SARS-CoV-2). Rev 2026-07-15 adds §O Concurrency & multi-user behavior — per-result save scoping, optimistic stale-save rejection, and ephemeral session-bound \"in review by\" presence (no locking) — prompted by a Lab Unit whole-page-save overwrite incident. Supersedes the Results Entry v4 FRS. Companion: Validation Page — Multi-Component (integrated) and the v1 additive module.",
       "type": "spec-only",
       "added": "2026-07-09",
       "status": "draft",
@@ -3697,7 +3697,9 @@
         "ct",
         "pcr",
         "method-analyzer",
-        "cross-domain"
+        "cross-domain",
+        "concurrency",
+        "multi-user"
       ],
       "jira": [
         "OGC-811",
