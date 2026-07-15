@@ -1,6 +1,6 @@
 # OpenELIS Design Gallery — Full Spec Content
 
-Generated: 2026-07-09T22:45:22.111Z
+Generated: 2026-07-15T04:05:54.329Z
 Total designs: 200
 
 ---
@@ -21060,640 +21060,136 @@ No existing v1.0 endpoints change their request schema — only response schemas
 Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-management
 Jira: OGC-296
 
-# OpenELIS Global - Sample Type Management
-## Functional Requirements Specification
+# Sample Type Management — Approach Update
 
-**Version:** 1.0  
-**Date:** January 2026  
-**Module:** Administration → Sample Type Management  
-**Route:** `/admin/sample-type-management`
+**Feature slug:** `sample-type-management`
+**Target Release:** OpenELIS Global v3.2
+**Version:** 2.1 (2026-07-14) — aligned to the verified Test Catalog data model reference and the Test Catalog Manageability decisions (variant model)
+**Jira:** OGC-296 (this story) · OGC-538 Domain Classification (Done) · OGC-949 (Test Catalog Management umbrella) · sibling: Panel Management domain upgrade (OGC-224), Lab Units (OGC-189)
 
----
-
-## 1. Overview
-
-### 1.1 Purpose
-
-The Sample Type Management module provides a centralized interface for laboratory administrators to configure and maintain sample types (specimen types) used throughout OpenELIS Global. This module consolidates sample type configuration, storage/disposal defaults, test associations, and WHONET code mapping into a unified management experience.
-
-### 1.2 Scope
-
-This specification covers:
-
-- Sample type creation, editing, and deactivation
-- Display order management for dropdowns and lists
-- Bidirectional test association management
-- Storage and disposal default configuration
-- WHONET specimen code mapping for AMR surveillance exports
-
-### 1.3 Key Users
-
-| Role | Primary Activities |
-|------|-------------------|
-| Lab Administrator | Full CRUD operations, configuration management |
-| Lab Manager | View and edit sample types, manage test associations |
-| Quality Manager | Review storage/disposal requirements |
-| Surveillance Officer | Configure WHONET mappings for exports |
+> **Why v2.0:** the v1.0 FRS proposed a standalone `/admin/sample-type-management` page with a **5-tab interface** and a **WHONET-only** mapping tab. Verified against source (`typeofsample.TypeOfSample` + the `SAMPLETYPE_TEST` / `SAMPLETYPE_PANEL` junctions), and aligned to the decisions from the Panel Management domain upgrade, this version: (1) moves Sample Types into the **Test Catalog Management shell** as a context, (2) uses **SideNav submenu sections, not tabs**, (3) replaces the WHONET-only mapping with the **full terminology mapper** (parity with tests/panels), and (4) grounds every field in the real model, flagging net-new ones as dependencies.
+>
+> **Why v2.1:** aligned to the source-verified data model reference (`test-catalog-data-model.md`) and the Test Catalog Manageability FRS decisions: (1) **Associated Tests becomes read-only** — a test's specimen is identity, so "adding a test to a sample type" is *creating a specimen variant*, which lives in the Test Catalog, not here; (2) the **domain column reality is corrected** — `TYPE_OF_SAMPLE.DOMAIN` is a legacy one-character column, not the Clinical/Environmental/Vector enum, so the single-domain model requires a declared migration; (3) `SAMPLETYPE_PANEL` is noted as live in order entry (backend keeps it in sync; not surfaced here).
 
 ---
 
-## 2. Sample Type List View (Dashboard)
+## Lab Context
 
-### 2.1 Route
-`/admin/sample-type-management`
+### Current State
+A **sample type** (specimen type) is the kind of material a test runs on — serum, plasma, whole blood, urine, CSF, stool. Each is a small master-list record: a name, a short local abbreviation, an active flag, and — already in the data — a **domain** (Clinical / Environmental / Vector). Sample types are linked to the tests and panels that can run on them. Today they're configured on legacy Master Lists pages, separate from the rest of the catalog.
 
-### 2.2 Layout
+### Pain
+Sample-type configuration is fragmented and disconnected from the tests and panels it relates to, and there's no consistent home for it alongside the other catalog reference data. Labs also can't record, in one place, how a given specimen type should be **handled by default** — the storage condition (e.g. refrigerated 2–8°C), how long it can be kept, and how it's disposed of — so that guidance lives in people's heads or on paper.
 
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ Sample Type Management                                    [+ Add Sample Type]│
-│ Configure sample types, storage defaults, and test associations              │
-├──────────────────────────────────────────────────────────────────────────────┤
-│ [🔍 Search sample types...        ] [Status: All ▼] [Export] [Import]        │
-├──────────────────────────────────────────────────────────────────────────────┤
-│ □ │ Sample Type Name    │ Order │ WHONET │ Tests  │ Storage Default  │Status │
-│───┼─────────────────────┼───────┼────────┼────────┼──────────────────┼───────│
-│ □ │ Serum               │  (1)  │  bl    │ 87     │ 2-8°C • 72h      │Active │
-│ □ │ Plasma (EDTA)       │  (2)  │  bl    │ 45     │ 2-8°C • 48h      │Active │
-│ □ │ Plasma (Heparin)    │  (3)  │  bl    │ 23     │ 2-8°C • 48h      │Active │
-│ □ │ Whole Blood         │  (4)  │  bl    │ 34     │ Room Temp • 24h  │Active │
-│ □ │ Urine - Random      │  (5)  │  ur    │ 28     │ 2-8°C • 24h      │Active │
-│ □ │ CSF                 │  (7)  │  cs    │ 12     │ Room Temp • 1h   │Active │
-│ □ │ Synovial Fluid      │ (12)  │  sf    │  3     │ Room Temp • 1h   │Inact. │
-└──────────────────────────────────────────────────────────────────────────────┘
-│ Showing 12 of 12 sample types                           [< 1 2 3 ... >]      │
-└──────────────────────────────────────────────────────────────────────────────┘
-```
-
-### 2.3 Dashboard Columns
-
-| Column | Description | Display |
-|--------|-------------|---------|
-| Checkbox | Row selection for bulk actions | Checkbox |
-| Sample Type Name | Name as clickable link to editor | Link text |
-| Display Order | Numeric order in circular badge | Badge (1), (2), etc. |
-| WHONET Code | Mapped WHONET specimen code | Purple tag or "—" |
-| Tests Assigned | Count of tests using this sample type | Blue badge "N tests" |
-| Storage Default | Temperature and duration | "2-8°C • 72h" format |
-| Status | Active/Inactive state | Green/Gray tag |
-| Actions | Edit button, overflow menu | Icon buttons |
-
-### 2.4 Toolbar Features
-
-| Feature | Description |
-|---------|-------------|
-| Search | Filter by sample type name (case-insensitive) |
-| Status Filter | All / Active / Inactive dropdown |
-| Export | Export sample type configuration |
-| Import | Import sample type configuration |
-| Add Sample Type | Primary action button |
-
-### 2.5 Bulk Actions
-
-When one or more rows are selected:
-
-| Action | Description |
-|--------|-------------|
-| Activate | Set selected sample types to active |
-| Deactivate | Set selected sample types to inactive |
-| Export Selected | Export only selected sample types |
-
-### 2.6 Row Actions (Overflow Menu)
-
-| Action | Description |
-|--------|-------------|
-| Edit | Open sample type editor |
-| Duplicate | Create copy with "(Copy)" suffix |
-| Activate/Deactivate | Toggle active status |
-| Delete | Remove sample type (with confirmation) |
+### What Changes
+Sample types are managed in the same **Test Catalog Management** surface as tests and panels — switch the surface to **Sample Types**. Each sample type opens in the same editor shell with its own menu sections: its basics (incl. domain), the tests associated with it, its default storage & disposal requirements, and its coded-terminology mappings. One consistent place, consistent with how tests and panels now work.
 
 ---
 
-## 3. Sample Type Editor
+## The real data model (verified in source — full reference: `test-catalog-data-model.md`)
 
-### 3.1 Route
-`/admin/sample-type-management/{id}/edit` or `/admin/sample-type-management/new`
-
-### 3.2 Layout Structure
-
-The editor uses a vertical tab navigation pattern with 5 tabs:
-
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ [← Back]  Edit: Serum                                    [Cancel] [Save]     │
-│           Configure sample type properties                                    │
-├────────────────┬─────────────────────────────────────────────────────────────┤
-│                │                                                             │
-│ 📄 Basic Info  │  [Tab Content Area]                                        │
-│                │                                                             │
-│ ↕️ Display     │                                                             │
-│    Order       │                                                             │
-│                │                                                             │
-│ 🔬 Associated  │                                                             │
-│    Tests       │                                                             │
-│                │                                                             │
-│ 🌡️ Storage &   │                                                             │
-│    Disposal    │                                                             │
-│                │                                                             │
-│ 🔗 WHONET      │                                                             │
-│    Mapping     │                                                             │
-│                │                                                             │
-└────────────────┴─────────────────────────────────────────────────────────────┘
-```
+- **`TypeOfSample`** (`org.openelisglobal.typeofsample.valueholder.TypeOfSample`, table `TYPE_OF_SAMPLE`): `description` varchar(20) NOT NULL, **`DOMAIN` varchar(1)** — a **legacy one-character column** (convention `'H'` = human), **not** the Clinical/Environmental/Vector enum; `localAbbreviation` varchar(10) unique, `isActive` boolean, `sortOrder` integer, `name_localization_id` FK, `display_key`.
+- **`TypeOfSampleTest`** (table `SAMPLETYPE_TEST`): sample type ↔ test. Structurally m:n with **no unique pair constraint**, but every write path maintains **exactly one row per test** (specimen-is-identity, D-028). Also carries `display_order` (per-sample-type test ordering, OGC-938/985 — real and built) and an unmapped legacy `is_panel` column visible in DB dumps.
+- **`TypeOfSamplePanel`** (table `SAMPLETYPE_PANEL`): sample type ↔ panel. **Still live on the hot path** — the order-entry panel list and e-order panel→sample-type resolution consume it. Not surfaced in this editor (panels derive their sample types from member tests), but the backend must keep it in sync; retirement is a separate backend story.
+- **Not on the record today** (net-new — see Dependencies): the **Clinical/Environmental/Vector domain** (migration from the legacy 1-char column), a **WHONET/terminology mapping**, and **default storage & disposal requirements**.
 
 ---
 
-## 4. Tab 1: Basic Info
+## Surface & IA
 
-### 4.1 Purpose
-Define the sample type name, description, and active status.
-
-### 4.2 Fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| Sample Type Name | Text input | Yes | Display name (appears in order entry, results, reports) |
-| Description | Text area | No | Optional notes or collection instructions |
-| Active Status | Toggle | Yes | Controls visibility in order entry dropdowns |
-
-### 4.3 Validation Rules
-
-| Rule | Message |
-|------|---------|
-| Name is required | "Sample type name is required" |
-| Name must be unique | "A sample type with this name already exists" |
-| Name max length 100 chars | "Name cannot exceed 100 characters" |
-
-### 4.4 Layout
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Basic Information                                           │
-│ Define the sample type name and basic properties            │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│ Sample Type Name *                                          │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ Serum                                                   │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│ This name will appear in order entry, result entry, reports │
-│                                                             │
-│ Description                                                 │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ Separated from clotted whole blood. Allow to clot for   │ │
-│ │ 30 minutes before centrifugation.                       │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ Active Status                                    [====] │ │
-│ │ Inactive sample types won't appear in order entry       │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+Sample Types is a **context in the Test Catalog Management shell**, reached by selecting **Sample Types** in the **main SideNav** (Tests / Panels / Sample Types are peer entries under `Test Catalog Management` — a mutually-exclusive entity choice, not a top toggle or filter). Selecting it lists sample types; opening one uses the **same editor shell** as tests and panels, with a **SAMPLE TYPE** entity badge and its sections rendered as **SideNav submenus one level below the entity** (Admin › Test Catalog Management › Sample Types › Basic Info / Associated Tests / Display Order / Disposal / Terminology). **No tabs, no editor-local rail, no top segmented control.** Replaces the standalone `/admin/sample-type-management` page and the legacy Master Lists pages.
 
 ---
 
-## 5. Tab 2: Display Order
+## Sample Types list
 
-### 5.1 Purpose
-Control the order in which sample types appear in dropdown menus and selection lists throughout the application.
-
-### 5.2 Functionality
-
-| Feature | Description |
-|---------|-------------|
-| Drag and Drop | Reorder items by dragging |
-| Arrow Buttons | Move item up/down one position |
-| Current Highlight | Currently edited sample type is highlighted |
-| Active Only | Only active sample types shown in ordering list |
-
-### 5.3 Layout
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Sample Type Display Order                                   │
-│ Drag and drop to reorder how sample types appear            │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ ⋮⋮  (1)  Serum                             [Current] ↑↓│ │
-│ ├─────────────────────────────────────────────────────────┤ │
-│ │ ⋮⋮  (2)  Plasma (EDTA)                               ↑↓│ │
-│ ├─────────────────────────────────────────────────────────┤ │
-│ │ ⋮⋮  (3)  Plasma (Heparin)                            ↑↓│ │
-│ ├─────────────────────────────────────────────────────────┤ │
-│ │ ⋮⋮  (4)  Whole Blood (EDTA)                          ↑↓│ │
-│ ├─────────────────────────────────────────────────────────┤ │
-│ │ ⋮⋮  (5)  Urine - Random                              ↑↓│ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-│ This order determines appearance in order entry dropdowns.  │
-│ Only active sample types are shown here.                    │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+Columns: **Name** · **Abbreviation** · **Domain** (tag) · **Tests** (count) · **Status** · **Actions**. (v2.1: dropped the "Storage default" column — no per-type storage field exists or is added; the only per-type lifecycle field is the Disposal free-text, which doesn't belong in a list column.) Filters: search (name), **Domain**, Status. "**Add Sample Type**" opens a blank record in the editor.
 
 ---
 
-## 6. Tab 3: Associated Tests
+## Editor sections (SideNav submenus — same shell, no tabs)
 
-### 6.1 Purpose
-Manage the bidirectional relationship between sample types and tests. Tests can be added to or removed from a sample type directly from this interface.
+### Basic Info
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| **Name** | Text | Yes | Localized display name. Must be unique. |
+| **Local abbreviation** | Text | No | Short code shown in compact UIs (`localAbbreviation`). |
+| **Domain** | Radio | Yes | **Required — choose exactly one** of CLINICAL / ENVIRONMENTAL / VECTOR (real single `domain`). **Clinical primary at launch**, matching panels. |
+| **Active** | Toggle | Yes | Inactive sample types don't appear in order-entry dropdowns. **On deactivate,** if active tests use this type, **warn** ("N active tests use this type; they won't be orderable while it's inactive") and proceed — no cascade; deactivation is reversible and order entry simply stops offering it. |
 
-### 6.2 Functionality
+### Associated Tests — **read-only** (supersedes v2.0's additive model)
+Lists the **test records that carry this sample type** (`SAMPLETYPE_TEST`), each row linking to
+**Open in Test Catalog**. **No add, no remove, no typeahead.**
 
-| Feature | Description |
-|---------|-------------|
-| View Associated Tests | List all tests currently using this sample type |
-| Add Tests | Open modal to select and add tests |
-| Remove Tests | Remove test association with confirmation |
-| Search | Filter displayed tests by name, section, or LOINC |
+**Data-model reality (important):** a test run on several specimen types is stored as
+**separate test records — one per sample type — each with its own LOINC** ("Hemoglobin (Whole
+Blood)" and "Hemoglobin (Serum)" are two records), and every write path keeps exactly one
+sample-type link per test (D-028). So "adding a test to this sample type" is really
+**creating a specimen variant of an existing test** — a Test Catalog operation (the
+"＋ Variant" flow in the Test Catalog Manageability FRS, which copies the source test's
+configuration and links it into the assay group). Doing it from the sample-type side would
+duplicate that flow with less context, so this section is deliberately a view: it answers
+"what runs on this specimen?" and hands off to the test editor for changes. An inline note
+states this and names the ＋ Variant path.
 
-### 6.3 Layout
+### Display Order
+Positions this sample type in the **order-entry Sample Type menu** (the real `sortOrder`). Shows **all** sample types in their current order with **this one highlighted and draggable**, plus a numeric position — drag or type to place it. (This is menu ordering only; it is not shown as a Basic Info field.)
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Associated Tests                              [+ Add Tests] │
-│ Tests that use this sample type for ordering                │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ Note: Adding or removing tests here will update the     │ │
-│ │ test's sample type assignment. Changes applied on save. │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-│ [🔍 Search tests...                                       ] │
-│                                                             │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ Glucose, Fasting                                        │ │
-│ │ Chemistry • LOINC: 1558-6                 [Active]  🗑️  │ │
-│ ├─────────────────────────────────────────────────────────┤ │
-│ │ Creatinine                                              │ │
-│ │ Chemistry • LOINC: 2160-0                 [Active]  🗑️  │ │
-│ ├─────────────────────────────────────────────────────────┤ │
-│ │ BUN                                                     │ │
-│ │ Chemistry • LOINC: 3094-0                 [Active]  🗑️  │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-│ 8 test(s) associated with this sample type                  │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+### Disposal
+A single **free-text** field, **Disposal instructions** (e.g. "Autoclave before disposal via biohazard waste") — the primary lifecycle action for a specimen is disposal. Displayed **read-only elsewhere** as reference guidance. Deliberately free text, not structured: the **authoritative, structured** handling/disposal config is **per-test** (`TestSampleHandling` — `disposalMethod`, `disposalTimeframe`, `protectFromLight`, `specialInstructions` — test editor Storage section, OGC-752) and the **per-specimen** disposal workflow (Sample Storage, `disposeSampleItem`). This per-type text is a lightweight reference, not a second source of truth.
 
-### 6.4 Add Tests Modal
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Add Tests to Sample Type                               [✕]  │
-│ Select tests to associate with this sample type             │
-├─────────────────────────────────────────────────────────────┤
-│ [🔍 Search by test name, section, or LOINC...             ] │
-├─────────────────────────────────────────────────────────────┤
-│ 3 test(s) selected                        [Clear selection] │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│ ☑ Hemoglobin A1c                                           │
-│   Chemistry • LOINC: 4548-4                        [Active] │
-│                                                             │
-│ ☑ Lipid Panel                                              │
-│   Chemistry • LOINC: 24331-1                       [Active] │
-│                                                             │
-│ ☐ Thyroid Panel                                            │
-│   Chemistry • LOINC: 34530-6                       [Active] │
-│                                                             │
-│ ☑ Electrolytes                                             │
-│   Chemistry • LOINC: 24326-1                       [Active] │
-│                                                             │
-├─────────────────────────────────────────────────────────────┤
-│                                    [Cancel] [Add 3 Test(s)] │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 6.5 Remove Test Confirmation Modal
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ ⚠️  Remove Test from Sample Type?                           │
-│                                                             │
-│ Are you sure you want to remove "Glucose, Fasting" from     │
-│ this sample type? The test will no longer be associated     │
-│ with this sample type for ordering.                         │
-│                                                             │
-│                              [Cancel] [Remove Test]         │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 6.6 Business Rules
-
-| Rule | Description |
-|------|-------------|
-| Bidirectional Update | Adding/removing a test updates the test's sample type field |
-| No Orphan Tests | Tests must have at least one sample type (warning if removing last) |
-| Batch Selection | Multiple tests can be added at once |
-| Already Assigned | Tests already assigned to this sample type are excluded from add modal |
+### Terminology
+The **full terminology mapper** (parity with tests/panels): **Coding system** (LOINC / SNOMED / CIEL / OCL / **WHONET**), **Code**, **How it relates** (Same as / Broader than / Narrower than), add/remove. Replaces the v1.0 WHONET-only tab; WHONET remains a first-class coding system here for AMR surveillance exports. **Net-new for sample types (Dependency)** — reuse the test terminology mechanism.
 
 ---
 
-## 7. Tab 4: Storage & Disposal
+## Domain
 
-### 7.1 Purpose
-Configure default storage conditions and disposal requirements for samples of this type. These defaults apply to all tests using this sample type unless overridden at the test level.
+Sample types carry a **single, required domain** — the admin chooses **exactly one of Clinical / Environmental / Vector** (single-domain is final; OGC-538's "Both" wording is superseded). The editor surfaces it (Clinical primary at launch; Environmental/Vector later, consistent with the panel rollout). Domain scopes where the sample type is offered and keeps env/vector specimen types out of clinical order entry.
 
-### 7.2 Storage Fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| Storage Conditions | Dropdown with suggestions | No | Temperature requirements |
-| Storage Duration | Number | No | Maximum time before testing |
-| Storage Duration Unit | Select (Hours/Days/Weeks) | Conditional | Required if duration specified |
-
-### 7.3 Storage Condition Suggestions
-
-- 2–8°C (Refrigerated)
-- -20°C (Frozen)
-- -70°C (Ultra-frozen)
-- Room Temperature (15–25°C)
-- Protected from Light
-
-### 7.4 Disposal Fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| Disposal Method | Select | No | How samples should be disposed |
-| Disposal Timeframe | Number | No | Time after completion before disposal |
-| Disposal Timeframe Unit | Select (Hours/Days/Weeks) | Conditional | Required if timeframe specified |
-| Special Instructions | Text area | No | Additional handling notes (max 1000 chars) |
-
-### 7.5 Disposal Methods
-
-| Method | Description |
-|--------|-------------|
-| Biohazard Bin | Standard biohazard waste container |
-| Incineration | High-temperature destruction |
-| Chemical Deactivation | Chemical neutralization before disposal |
-| Autoclave Sterilization | Steam sterilization before disposal |
-| Standard Medical Waste | Non-hazardous medical waste |
-| Sharps Container | For needles and sharp objects |
-
-### 7.6 Layout
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Storage Conditions                                          │
-│ Default storage requirements (can be overridden at test)    │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│ Storage Conditions                                          │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ 2–8°C (Refrigerated)                                  ▼ │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-│ Storage Duration              Unit                          │
-│ ┌───────────────────────┐     ┌───────────────────────────┐ │
-│ │ 72                    │     │ Hours                   ▼ │ │
-│ └───────────────────────┘     └───────────────────────────┘ │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│ Disposal Requirements                                       │
-│ Default disposal method and timeframe                       │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│ Disposal Method                                             │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ Biohazard Bin                                         ▼ │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-│ Special Instructions                                        │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ Protect from light. Do not freeze.                      │ │
-│ │                                                         │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+**Build reality (verified on develop):** the existing `TYPE_OF_SAMPLE.DOMAIN` column is a
+**legacy varchar(1)** (`'H'`-style codes), incompatible with the enum. The single-domain model
+therefore requires a **declared migration** (Dependency 4): introduce the enum-valued domain
+and map/backfill the legacy codes (existing rows default to CLINICAL, consistent with the
+`test.domain` backfill in OGC-936). Only `test.domain` exists in enum form today — Panel and
+TestSection have no domain column at all, so each sibling FRS owns its own migration.
 
 ---
 
-## 8. Tab 5: WHONET Mapping
-
-### 8.1 Purpose
-Map the sample type to a WHONET specimen code for antimicrobial resistance (AMR) surveillance exports. Supports both standard WHONET codes and custom codes.
-
-### 8.2 Functionality
-
-| Feature | Description |
-|---------|-------------|
-| Select WHONET Code | Choose from list of standard codes |
-| Add Custom Code | Create a new custom WHONET code |
-| Search Codes | Filter code list by code or name |
-| No Mapping Option | Explicitly exclude from WHONET exports |
-
-### 8.3 Standard WHONET Specimen Codes
-
-| Code | Name |
-|------|------|
-| bl | Blood |
-| ur | Urine |
-| sp | Sputum |
-| cs | Cerebrospinal fluid |
-| st | Stool/feces |
-| wo | Wound |
-| sf | Synovial fluid |
-| ba | Bronchoalveolar lavage |
-| pl | Pleural fluid |
-| pf | Peritoneal fluid |
-| ge | Genital |
-| ti | Tissue |
-| ey | Eye |
-| ea | Ear |
-| th | Throat |
-| np | Nasopharynx |
-
-### 8.4 Layout
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ WHONET Specimen Code Mapping                [+ Add New Code]│
-│ Map to WHONET code for AMR surveillance exports             │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ ✓ Currently mapped to "bl" (Blood)                      │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-│ [🔍 Search WHONET codes...                                ] │
-│                                                             │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ ○  —   No mapping (exclude from export)                 │ │
-│ ├─────────────────────────────────────────────────────────┤ │
-│ │ ● [bl] Blood                                            │ │
-│ ├─────────────────────────────────────────────────────────┤ │
-│ │ ○ [ur] Urine                                            │ │
-│ ├─────────────────────────────────────────────────────────┤ │
-│ │ ○ [sp] Sputum                                           │ │
-│ ├─────────────────────────────────────────────────────────┤ │
-│ │ ○ [cs] Cerebrospinal fluid                              │ │
-│ ├─────────────────────────────────────────────────────────┤ │
-│ │ ○ [af] Amniotic fluid                        [Custom]   │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-│ WHONET codes are used for AMR surveillance reporting.       │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 8.5 Add WHONET Code Modal
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Add New WHONET Code                                    [✕]  │
-│ Create a custom WHONET specimen code                        │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ ⚠️ Custom Code                                          │ │
-│ │ Custom codes may not be recognized by WHONET software.  │ │
-│ │ Use standard WHONET codes when possible.                │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-│ Code *                                                      │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ af                                                      │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│ 2-4 character code (lowercase)                              │
-│                                                             │
-│ Specimen Name *                                             │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ Amniotic fluid                                          │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-├─────────────────────────────────────────────────────────────┤
-│                                       [Cancel] [Add Code]   │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 8.6 Validation Rules
-
-| Rule | Message |
-|------|---------|
-| Code is required | "Code is required" |
-| Name is required | "Specimen name is required" |
-| Code max 4 characters | "Code must be 4 characters or less" |
-| Code must be unique | "This code already exists" |
-| Code lowercase only | Code auto-converted to lowercase |
+## Access
+Via the existing **Test Catalog Manager / Admin** capability that governs the rest of the Test Catalog surface.
 
 ---
 
-## 9. Data Model
-
-### 9.1 Sample Type Entity
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| id | UUID | Auto | Primary key |
-| name | String(100) | Yes | Display name |
-| description | String(500) | No | Optional description |
-| displayOrder | Integer | Yes | Sort order in dropdowns |
-| active | Boolean | Yes | Active status (default: true) |
-| whonetCode | String(4) | No | WHONET specimen code |
-| storageConditions | String(100) | No | Storage temperature/conditions |
-| storageDuration | Integer | No | Storage duration value |
-| storageDurationUnit | Enum | No | Hours/Days/Weeks |
-| disposalMethod | String(50) | No | Disposal method |
-| disposalTimeframe | Integer | No | Disposal timeframe value |
-| disposalTimeframeUnit | Enum | No | Hours/Days/Weeks |
-| specialInstructions | String(1000) | No | Special handling instructions |
-| createdAt | Timestamp | Auto | Creation timestamp |
-| updatedAt | Timestamp | Auto | Last update timestamp |
-
-### 9.2 Sample Type - Test Relationship
-
-| Field | Type | Description |
-|-------|------|-------------|
-| sampleTypeId | UUID (FK) | Reference to sample type |
-| testId | UUID (FK) | Reference to test |
+## Dependencies (net-new — not present today)
+1. **Sample Types context + editor** in the Test Catalog Management shell (list + `/rest/test-catalog/sample-types` beyond the current Display-Order-only endpoint). *Backend + frontend.*
+2. **Free-text Disposal instructions** on the sample type (one text column) — a small addition; the authoritative structured handling stays **per-test** (`TestSampleHandling`, OGC-752) and per-specimen (Sample Storage disposal). Deliberately not structured on the type, to avoid duplicating `TestSampleHandling`. *Backend + frontend.*
+3. **Terminology mappings for sample types** (incl. WHONET) — reuse the test terminology mechanism; a `sampletype↔terminology` store + endpoint. Optionally add WHONET to the source enum (currently LOINC/SNOMED/CIEL/OCL). *Backend + frontend.*
+4. **Domain migration** — replace/reinterpret the legacy `TYPE_OF_SAMPLE.DOMAIN` varchar(1) with the required single Clinical/Environmental/Vector domain (backfill existing rows to CLINICAL, matching the OGC-936 `test.domain` pattern). Mechanism is the dev's call; this FRS specifies only the behavior. *Backend.*
 
 ---
 
-## 10. Permissions
-
-### 10.1 Permission Codes
-
-| Code | Description |
-|------|-------------|
-| `sampleType.view` | View sample types |
-| `sampleType.create` | Create new sample types |
-| `sampleType.edit` | Edit existing sample types |
-| `sampleType.delete` | Delete sample types |
-| `sampleType.import` | Import sample type configuration |
-| `sampleType.export` | Export sample type configuration |
-
-### 10.2 Role Assignments
-
-| Role | Permissions |
-|------|-------------|
-| Lab Administrator | All permissions |
-| Lab Manager | view, edit |
-| Quality Manager | view |
-| Lab Technician | view |
+## Out of scope
+- **Standalone `/admin/sample-type-management` page** — replaced by the shell context.
+- **5-tab interface** — replaced by SideNav sections.
+- **Bulk export** — deferred (parity with panels' deferred import/export).
+- **Physical specimen storage/location tracking** — that's the Sample Storage feature; this only sets per-type defaults.
+- **Environmental / Vector at launch** — Clinical primary first.
 
 ---
 
-## 11. Acceptance Criteria
+## Localization (new/changed keys)
+| Key | English |
+|---|---|
+| `label.testCatalog.entity.sampleTypes` | Sample Types |
+| `label.sampleType.abbreviation` | Local abbreviation |
+| `label.sampleType.displayOrder` | Position in the Sample Type menu |
+| `label.sampleType.disposalInstructions` | Disposal instructions |
+| `warning.sampleType.deactivateInUse` | {count} active tests use this type; they won't be orderable while it's inactive. |
+| `note.sampleType.associatedTests.viewOnly` | View only — a test's specimen is part of its identity. To run a test on this sample type, create a specimen variant in the Test Catalog. |
+| `link.sampleType.associatedTests.openTest` | Open in Test Catalog |
 
-### 11.1 Sample Type CRUD
-- [ ] **AC-01**: Users can create a new sample type with required fields
-- [ ] **AC-02**: Users can edit existing sample type properties
-- [ ] **AC-03**: Users can activate/deactivate sample types
-- [ ] **AC-04**: Inactive sample types do not appear in order entry dropdowns
-- [ ] **AC-05**: Sample type names must be unique
-
-### 11.2 Display Order
-- [ ] **AC-06**: Users can reorder sample types via drag-and-drop
-- [ ] **AC-07**: Users can reorder sample types via up/down buttons
-- [ ] **AC-08**: Display order is reflected in all dropdowns
-
-### 11.3 Test Associations
-- [ ] **AC-09**: Users can view tests associated with a sample type
-- [ ] **AC-10**: Users can add tests to a sample type
-- [ ] **AC-11**: Users can remove tests from a sample type
-- [ ] **AC-12**: Test association changes update the test's sample type field
-
-### 11.4 Storage & Disposal
-- [ ] **AC-13**: Users can configure storage conditions and duration
-- [ ] **AC-14**: Users can configure disposal method and instructions
-- [ ] **AC-15**: Defaults are inherited by tests unless overridden
-
-### 11.5 WHONET Mapping
-- [ ] **AC-16**: Users can map sample types to WHONET codes
-- [ ] **AC-17**: Users can create custom WHONET codes
-- [ ] **AC-18**: Unmapped sample types are excluded from WHONET exports
-- [ ] **AC-19**: Custom codes are labeled as such in the UI
-
----
-
-## 12. Related Specifications
-
-| Document | Description |
-|----------|-------------|
-| **Test Catalog Management FRS** | Test configuration with sample type assignment |
-| **WHONET Integration FRS** | Export functionality using specimen codes |
-| **Sample Storage & Disposal FRS** | Detailed storage/disposal tracking |
-| **Order Entry FRS** | Sample type selection during ordering |
-
----
-
-## 13. Future Enhancements (Out of Scope v1)
-
-1. **Sample Type Groups** - Group related sample types for easier management
-2. **Collection Instructions** - Detailed patient collection instructions per sample type
-3. **Container Requirements** - Specify required tubes/containers per sample type
-4. **Volume Requirements** - Minimum/optimal sample volumes
-5. **Rejection Criteria** - Define sample rejection rules per sample type
-6. **Stability Matrix** - Define stability by analyte and storage condition
+Missing keys fall back to English.
 
 
 ---
