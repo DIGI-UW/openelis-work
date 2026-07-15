@@ -3740,3 +3740,16 @@
     jira: "https://uwdigi.atlassian.net/browse/OGC-1136"
     gallery: "https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-mapping-multi-component-column"
   added: "2026-07-14"
+- id: csv-bulk-sample-intake
+  type: jsx
+  path: designs/sample-collection/csv-bulk-sample-intake.jsx
+  spec: designs/sample-collection/csv-bulk-sample-intake.md
+  preview: designs/sample-collection/csv-bulk-sample-intake.html
+  category: sample-collection
+  description: >
+    CSV/XLSX bulk sample intake for Environmental and Vector orders - inline importer on the Enter Order page with three-state validation, set-in-bulk, and all-or-nothing commit through the existing order write path.
+  links:
+    jira: ['OGC-1138']
+    gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/csv-bulk-sample-intake
+    preview: https://digi-uw.github.io/openelis-work/designs/sample-collection/csv-bulk-sample-intake.html
+  added: '2026-07-15'

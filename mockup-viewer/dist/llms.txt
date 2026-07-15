@@ -1,6 +1,6 @@
 # OpenELIS Design Gallery
 
-> Design mockups and functional requirement specs for OpenELIS Global, an open-source laboratory information management system. 203 designs across 16 categories.
+> Design mockups and functional requirement specs for OpenELIS Global, an open-source laboratory information management system. 204 designs across 16 categories.
 
 ## Catalog
 - [JSON Catalog](https://digi-uw.github.io/openelis-work/catalog.json): Machine-readable index of all designs
@@ -201,6 +201,7 @@
 - [Reference Lab Results](https://digi-uw.github.io/openelis-work/designs/sample-collection/reference-lab-results.md): New SideNav item under Sample Shipment. Outstanding / Returned-needs-action / History views for tracking the data lifecycle of referrals after physical shipment. Migrates ReferralStatus enum to FHIR Task states; adds manual-entry path for non-OpenELIS reference labs; Accept/Reject with terminal close + re-collection notification; Box.Reconciled gate. Supersedes OGC-624 state-model scope.
 - [Pre-Analytical Eligibility Gate](https://digi-uw.github.io/openelis-work/designs/sample-collection/pre-analytical-eligibility-gate.md): S-09 v3.0 — Pre-Analytical Eligibility Gate & Resampling, simplification rewrite of v2.0. Replaces the auto-evaluating per-SampleType criteria engine with a generic, manually-completed sample acceptance checklist at reception Step 3, plus a Resample action that rejects a sample and spawns a linked pre-populated draft order with requester notification. Configuration is a lightweight master list, fully decoupled from the Test Catalog editor (which removed the SampleType admin tab v2.0 depended on). No new status enum, no new permission keys. See analysis + story-breakdown docs.
 - [Sample Collection Redesign v2.1 — Referral Addendum](https://digi-uw.github.io/openelis-work/designs/sample-collection/sample-collection-referral-addendum.md): v2.1 Addendum to Sample Collection Redesign — restores Refer Out workflow into Step 3 (Label & Store). Inline per-test referral assignment, bulk "Refer all" modal, REFERRED_OUT order status, QA bypass for fully-referred orders, partial referral handling, and Order Dashboard filters. Reuses existing Refer Out module mechanics and X-01 notification trigger.
+- [CSV Bulk Sample Intake](https://digi-uw.github.io/openelis-work/designs/sample-collection/csv-bulk-sample-intake.md): Bulk-load pre-collected Environmental/Vector samples into an order from a spreadsheet instead of keying them one at a time. A Bulk import samples action expands inline at the bottom of the Enter Order page: upload a CSV or XLSX manifest, map columns, validate each row three-state (Ready / advisory / required) against on-file sample types, tests and panels, set missing values in bulk or inline, normalize dates, then commit all-or-nothing through the existing order write path. v1 MVP; v2 saved import profiles; v3 container storage. Clinical out of scope.
 
 ## System
 - [Audit Trail](https://digi-uw.github.io/openelis-work/designs/system/audit-trail.md): System audit trail viewer

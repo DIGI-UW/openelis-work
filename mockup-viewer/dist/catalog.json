@@ -1,7 +1,7 @@
 {
-  "generated": "2026-07-15T19:41:55.795Z",
+  "generated": "2026-07-15T21:54:01.210Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 203,
+  "totalDesigns": 204,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -5611,6 +5611,36 @@
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/sample-collection-referral-addendum.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/sample-collection-referral-addendum.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/sample-collection-referral-addendum.html"
+      }
+    },
+    {
+      "name": "CSV Bulk Sample Intake",
+      "slug": "csv-bulk-sample-intake",
+      "category": "sample-collection",
+      "description": "Bulk-load pre-collected Environmental/Vector samples into an order from a spreadsheet instead of keying them one at a time. A Bulk import samples action expands inline at the bottom of the Enter Order page: upload a CSV or XLSX manifest, map columns, validate each row three-state (Ready / advisory / required) against on-file sample types, tests and panels, set missing values in bulk or inline, normalize dates, then commit all-or-nothing through the existing order write path. v1 MVP; v2 saved import profiles; v3 container storage. Clinical out of scope.",
+      "type": "jsx",
+      "added": "2026-07-15",
+      "status": "draft",
+      "tags": [
+        "sample-collection",
+        "environmental",
+        "vector",
+        "csv",
+        "bulk-import",
+        "order-entry"
+      ],
+      "jira": [
+        "OGC-1138"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/sample-collection/csv-bulk-sample-intake.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/sample-collection/csv-bulk-sample-intake",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/sample-collection/csv-bulk-sample-intake",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/sample-collection/csv-bulk-sample-intake",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/csv-bulk-sample-intake.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/csv-bulk-sample-intake.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/csv-bulk-sample-intake.html"
       }
     },
     {

@@ -2338,6 +2338,18 @@ export const MOCKUP_REGISTRY = [
     relatedTo: ['Sample Collection Redesign', 'Referral-Out Notification'],
     tags: ['sample-collection', 'referral', 'refer-out', 'order-status', 'clinical', 'environmental', 'vector'],
   },
+  {
+    name: 'CSV Bulk Sample Intake',
+    category: 'sample-collection',
+    component: React.lazy(() => import('@designs/sample-collection/csv-bulk-sample-intake.jsx')),
+    description: 'Bulk-load pre-collected Environmental/Vector samples into an order from a spreadsheet instead of keying them one at a time. A Bulk import samples action expands inline at the bottom of the Enter Order page: upload a CSV or XLSX manifest, map columns, validate each row three-state (Ready / advisory / required) against on-file sample types, tests and panels, set missing values in bulk or inline, normalize dates, then commit all-or-nothing through the existing order write path. v1 MVP; v2 saved import profiles; v3 container storage. Clinical out of scope.',
+    specPath: 'designs/sample-collection/csv-bulk-sample-intake.md',
+    htmlUrl: 'designs/sample-collection/csv-bulk-sample-intake.html',
+    added: '2026-07-15',
+    status: 'draft',
+    jira: ['OGC-1138'],
+    tags: ['sample-collection', 'environmental', 'vector', 'csv', 'bulk-import', 'order-entry'],
+  },
 
   // ─── Other ───
   {
