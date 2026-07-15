@@ -1,463 +1,157 @@
-# Panel Management Redesign
+# Panel Management — Domain Upgrade
 
-## Overview
+**Feature slug:** `panel-management-domain`
+**Target Release:** OpenELIS Global v3.2
+**Version:** 2.2 (2026-07-14) — aligned to the verified Test Catalog data model reference (`test-catalog-data-model.md`) and the Test Catalog Manageability decisions
+**Jira:** OGC-224 (this epic) · OGC-753 + OGC-980/981/982 (test-side Panels section, built) · OGC-1140 (inline create inherits domain) · OGC-949 (Test Catalog Management umbrella)
+**Related surfaces (planned, separate):** OGC-296 (Sample Type management) · OGC-189 (Lab Units management)
 
-Comprehensive redesign of the Panel management interface in OpenELIS Global. Panels are predefined groups of tests that are ordered together, with configurable display order and panel-specific LOINC codes for each test.
-
-**Target Release:** OpenELIS Global v3.2 (Q1 2026)
-**Version:** 1.2 (2026-04-23)
-**Related Modules:** Test Catalog, Results Entry, Vector Testing & Identification (V-03, OGC-583)
-
-### Change Log
-- **v1.2 (2026-04-23):** Removed `ALL` from `panelDomain` enum. Every panel must be explicitly assigned to exactly one domain (CLINICAL, ENVIRONMENTAL, or VECTOR). Default changed from ALL to CLINICAL. Domain routing is determined by the assigned lab unit's domain — the order entry UI never needs a panel from a different domain. Vector Config tab is now shown only when domain = VECTOR (not "VECTOR or ALL").
-- **v1.1 (2026-04-17):** Added `panelDomain` field and conditional Vector Configuration section to Basic Info tab. Vector panels are now a configuration step within the unified Panel editor — no separate VectorTestPanel entity. Adds Domain column and Domain filter to list view.
-
----
-
-## Problem Statement
-
-Current panel management lacks:
-- Easy configuration of test order within panels
-- Panel-specific LOINC codes for tests
-- Drag-and-drop reordering
-- Bulk import/export capabilities
-- Clear association with lab units and sample types
+> **Why v2.0:** the previous draft (v1.x) described an aspirational model — a per-test "panel LOINC," a panel `code`, panel-level lab units, stored panel sample types, and bulk import/export. Verified against source (`panel.Panel`, `panelitem.PanelItem`, and the OGC-949 API contract), **none of those exist**. This version is rebased on what a Panel really is and adds the one thing this effort is actually about: a **Domain** on the panel.
+>
+> **v2.1 (2026-07-14):** (1) Panels adopt the **full terminology mapper** the test editor uses (LOINC / SNOMED / CIEL / OCL, + proposed **WHONET**) instead of a lone LOINC string — the LOINC becomes the primary mapping in a new **Terminology** section. (2) IA correction: the editor's sections are **main-menu SideNav submenus** one level below the entity (Admin › Test Catalog Management › Panels › Basic Info / Tests / Terminology), **not** an editor-local rail and not in-page tabs. (3) Sample Type management will need the parallel updates (domain-aware + terminology mapper) — flagged on OGC-296.
+>
+> **v2.2 (2026-07-14):** aligned to the source-verified data model reference: (1) **`SAMPLETYPE_PANEL` is live in order entry and e-order intake** — panel sample types stay UI-derived, but membership writes must keep the junction in sync; (2) **panel LOINC is a live routing key at FHIR intake** (`getPanelByLoincCode`), not just metadata; (3) PanelItem's legacy columns and missing pair-uniqueness recorded; (4) the migration SQL sketch replaced by a behavioral dependency (schema mechanics are dev's call); (5) touchpoints with the Test Catalog Manageability variant model noted.
 
 ---
 
-## Solution
+## Lab Context
 
-A unified Panel management interface with:
-- List view with filtering by lab unit and status
-- Detail editor with test assignment and ordering
-- Panel-specific LOINC codes per test
-- Drag-and-drop and numeric ordering
-- Bulk import/export with panel selection
+### Current State
+A **panel** is a named bundle of tests a lab orders together — "Complete Blood Count" pulls white cells, red cells, hemoglobin, and so on. In OpenELIS a panel is a small record: a **name**, an optional **description**, a single **LOINC** code (the standardized identifier for the whole panel), a **sort order**, and an ordered list of its member tests. Panels are managed today on a set of separate legacy "Master Lists" pages (create a panel, order its tests, assign tests to it).
 
----
+### Pain
+Panels have **no notion of what kind of testing they belong to**. OpenELIS now runs three kinds of work — routine **clinical** testing, **environmental** testing (e.g. water quality), and **vector** surveillance (e.g. mosquito-borne disease). Nothing stops an admin from putting an environmental test and a clinical test in the same panel, which produces a nonsensical order and muddies where the panel shows up. There's also no single place to manage panels alongside the rest of the catalog — they live on their own legacy pages, disconnected from the test editor.
 
-## Data Model
-
-```sql
--- Panel (may already exist, showing full structure)
-CREATE TABLE panel (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(200) NOT NULL,
-    code VARCHAR(50) NOT NULL UNIQUE,
-    description TEXT,
-    loinc_code VARCHAR(20),
-    is_active BOOLEAN DEFAULT TRUE,
-    display_order INTEGER DEFAULT 0,
-    -- v1.1: domain classification
-    panel_domain VARCHAR(20) NOT NULL DEFAULT 'CLINICAL',  -- CLINICAL | ENVIRONMENTAL | VECTOR
-    vector_organism_group_id INTEGER REFERENCES vector_group(id),  -- nullable; filter hint for VECTOR panels
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    modified_at TIMESTAMP,
-    created_by INTEGER REFERENCES system_user(id)
-);
-
--- Panel Lab Unit Assignment
-CREATE TABLE panel_lab_unit (
-    id SERIAL PRIMARY KEY,
-    panel_id INTEGER NOT NULL REFERENCES panel(id),
-    lab_unit_id INTEGER NOT NULL REFERENCES lab_unit(id),
-    UNIQUE (panel_id, lab_unit_id)
-);
-
--- Panel Sample Type Assignment
-CREATE TABLE panel_sample_type (
-    id SERIAL PRIMARY KEY,
-    panel_id INTEGER NOT NULL REFERENCES panel(id),
-    sample_type_id INTEGER NOT NULL REFERENCES sample_type(id),
-    UNIQUE (panel_id, sample_type_id)
-);
-
--- Panel Test Assignment
-CREATE TABLE panel_test (
-    id SERIAL PRIMARY KEY,
-    panel_id INTEGER NOT NULL REFERENCES panel(id),
-    test_id INTEGER NOT NULL REFERENCES test(id),
-    panel_loinc_code VARCHAR(20),  -- Panel-specific LOINC for this test
-    display_order INTEGER NOT NULL DEFAULT 0,
-    UNIQUE (panel_id, test_id)
-);
-
--- Panel Import Log
-CREATE TABLE panel_import_log (
-    id SERIAL PRIMARY KEY,
-    import_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    imported_by INTEGER REFERENCES system_user(id),
-    file_name VARCHAR(255),
-    panels_created INTEGER DEFAULT 0,
-    panels_updated INTEGER DEFAULT 0,
-    panels_skipped INTEGER DEFAULT 0,
-    warnings TEXT,
-    import_data JSONB
-);
-```
+### What Changes
+Every panel gets an explicit **Domain** (Clinical / Environmental / Vector). Adding tests to a panel is **guarded** to that domain, so a panel can never mix a clinical test with an environmental one. Panel management moves into the unified **Test Catalog Management** surface (reached by switching that surface from **Tests** to **Panels**), so panels are curated next to tests instead of on separate legacy pages. At launch only **Clinical** is enabled and every existing panel is set to Clinical; Environmental and Vector turn on in a later phase.
 
 ---
 
-## Panel Editor Tabs
+## The real data model (verified in source — full reference: `test-catalog-data-model.md`)
 
-| Section | Tab | Description |
-|---------|-----|-------------|
-| **Configuration** | Basic Info | Name, code, description, LOINC, domain, lab units, sample types, status |
-| **Configuration** | Tests | Test assignment with ordering and panel-specific LOINC codes |
-| **Configuration** | Vector Config | Organism group filter — **conditional: only shown when Panel Domain = VECTOR** |
+- **`Panel`** (`org.openelisglobal.panel.valueholder.Panel`, table `PANEL`): `panelName` varchar(20), `description` varchar(60) NOT NULL, `loinc` varchar(10) (single), `sortOrderInt`, `localization` FK, active flag. **Confirmed absent on develop:** code, lab unit, sample-type column, **and domain** — no `3.5.x.x` changeset touches `panel`, so the domain is entirely this effort's addition (Dependency 1). Only `test.domain` exists in enum form today (OGC-936).
+- **`PanelItem`** (`org.openelisglobal.panelitem.valueholder.PanelItem`, table `PANEL_ITEM`): links `panel` ↔ `test` with a `sortOrder`. **No per-test LOINC.** Two legacy columns devs will meet but this UI never surfaces: `TEST_LOCAL_ABBREV` (hbm-unique, a bugzilla-2559 relic) and `METHOD_NAME`. **No unique constraint on (panel_id, test_id)** — duplicate membership is only app-prevented.
+- **`TypeOfSamplePanel`** (table `SAMPLETYPE_PANEL`): panel ↔ sample type. **Not surfaced in this UI** (sample types are derived from member tests), but **live on the hot path**: the order-entry panel list (`getTypeOfSamplePanelsForSampleType`) and e-order panel→sample-type resolution (`getTypeOfSampleForPanelId(..).get(0)`) consume it. **Membership writes must keep it in sync** (as `TestModifyServiceImpl` already does) or order entry shows stale panel lists; retirement is a separate backend story (derive from PanelItem × SAMPLETYPE_TEST).
+- **Panel LOINC is a live routing key**, not just metadata: FHIR intake matches panels by it (`PanelDAOImpl.getPanelByLoincCode` ← `TaskInterpreterImpl.createPanelFromFHIR`, `LabOrderSearchProvider`). Keep `panel.loinc` as the denormalized primary code in front of the terminology store.
+- **Not on a panel** (and not added here): a `code` (the **LOINC is the panel's identifier**); a **lab unit / test section** (a panel legitimately spans sections — scope by domain instead); a stored **sample-type** set (derived from member tests).
 
----
-
-## List View
-
-### Layout
-- Full-width table with sortable columns
-- Toolbar with filters and actions
-- Pagination footer
-
-### Toolbar
-- "Add Panel" button (primary)
-- "Import/Export" button (secondary)
-- Search input (name/code/LOINC)
-- Lab Unit filter dropdown
-- **Domain filter dropdown** (All Domains, Clinical, Environmental, Vector)
-- Status filter (All, Active, Inactive)
-- Panels count display
-
-### Table Columns
-
-| Column | Width | Sortable | Description |
-|--------|-------|----------|-------------|
-| Panel Name | flex | Yes | Full name, clickable row to open editor |
-| Code | 100px | Yes | Panel code (monospace) |
-| LOINC | 100px | Yes | Panel LOINC code |
-| Tests | 80px | Yes | Number of tests in panel |
-| Domain | 120px | Yes | Tag: CLINICAL (blue) / ENVIRONMENTAL (teal) / VECTOR (purple) |
-| Lab Units | 200px | No | Badges (max 2 visible, then "+X more") |
-| Sample Types | 200px | No | Badges (max 2 visible, then "+X more") |
-| Status | 100px | No | Active/Inactive badge |
-| Actions | 80px | No | Edit button, More menu |
-
-### Sorting Behavior
-- Click column header to sort ascending
-- Click again to toggle to descending
-- Sort icon indicates current sort direction
-- Default sort: Panel Name ascending
-
-### Row Behavior
-- Entire row clickable to open editor
-- Hover highlight on row
-- Action buttons use stopPropagation to prevent row click
-
-### Pagination
-- Page size options: 25, 50, 100 (default 25)
-- Navigation: First, Previous, numbered pages, Next, Last
-- Status text: "Showing X to Y of Z panels"
-- Filters reset to page 1 when changed
+**Domain addition (Dependency 1):** a single required domain on `panel`, existing rows
+backfilled to CLINICAL — matching the OGC-936 `test.domain` pattern. Mechanism is the dev's
+call; this FRS specifies the behavior, not the migration.
 
 ---
 
-## Basic Info Tab
+## Surface & IA
 
-### Fields
+Panel management lives **inside Test Catalog Management** (no standalone page). Entity switching is done through the **main SideNav**, not a top-of-list toggle: **Tests / Panels / Sample Types** are peer entries under `Test Catalog Management` in the Admin menu — a mutually-exclusive entity choice, **not** a filter. Selecting **Panels** lists panels; opening one loads the **same editor shell** as a test, with a **PANEL** entity badge (vs **TEST**). The panel's sections render as **SideNav submenus one level below the entity** (Admin › Test Catalog Management › Panels › Basic Info / Tests / Terminology) — the OpenELIS SideNav-submenu pattern, **not** in-page tabs, **not** an editor-local rail, and **not** a segmented control at the top of the list.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| **Panel Name** | Text | Yes | Full name (e.g., "Complete Blood Count") |
-| **Code** | Text | Yes | Short code (e.g., "CBC"), unique |
-| **LOINC Code** | Text | No | Panel LOINC (e.g., "58410-2") |
-| **Description** | Textarea | No | Detailed description |
-| **Panel Domain** | Select | Yes | CLINICAL / ENVIRONMENTAL / VECTOR. Default: CLINICAL. Controls where this panel appears at order entry. Selecting VECTOR reveals the Vector Config tab. |
-| **Lab Units** | Multi-select | Yes | At least one required |
-| **Sample Types** | Multi-select | No | Valid sample types for this panel |
-| **Active** | Toggle | Yes | Status |
+The SideNav is built to extend: **Sample Types** and **Lab Units** master-list management are follow-on contexts as peer entries in the same menu (separate stories — OGC-296, OGC-189).
 
-### Panel Domain Behavior
+- **List route:** `/admin/TestCatalogList?entity=panels` (deep-linkable / bookmarkable).
+- **Editor route:** `/MasterListsPage/TestCatalogEditor/panel/<id>/<section>` (mirrors the test route with a `panel` entity segment).
+- **Breadcrumb:** Home > Admin > Test Catalog > Panels > [Panel Name].
+- Replaces the legacy `PanelManagement` / `PanelCreate` / `PanelOrder` / `PanelTestAssign` pages (removed per OGC-949).
+- ⚠ Verify the exact switch/URL treatment against the live app before dev handoff.
 
-| Domain value | Appears at order entry for |
+---
+
+## Panels list
+
+Columns: **Panel Name** · **LOINC** · **Tests** (count) · **Domain** (tag) · **Sample Types** (derived from member tests, read-only) · **Status** (Active/Inactive) · **Actions**. Filters: search (name / LOINC), **Domain**, Status. Row opens the panel editor. "**Add Panel**" opens a blank panel in the editor shell.
+
+An info banner notes the upgrade: *"Panels now carry a Domain. The upgrade set every existing panel to Clinical; Environmental / Vector are editable in a later phase."*
+
+---
+
+## Panel editor sections (SideNav submenus — same shell, no tabs)
+
+### Basic Info
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| **Panel Name** | Text | Yes | The panel's name. |
+| **Terminology** | (own section) | — | Coded-system mappings are managed in the **Terminology** section (below). The **LOINC** mapping is the panel's primary identifier. **There is no separate panel code.** |
+| **Domain** | Radio | Yes | CLINICAL / ENVIRONMENTAL / VECTOR. **Only Clinical is enabled at launch**; the others are disabled with a "later phase" note. Set from the originating test on inline create. |
+| **Sample Types** | Read-only | — | **Derived** from the member tests; shown for reference. Editing sample types directly is the planned Sample Types work (OGC-296). |
+| **Description** | Textarea | No | |
+| **Active** | Toggle | Yes | Orderable when active. **Cannot be activated with zero tests** — see Activation rules. |
+
+### Activation rules
+- A panel **cannot be activated until it has at least one test.** With zero tests the Active toggle is **disabled (not clickable)** and shows helper text: *"Add at least one test before this panel can be activated."*
+- A **newly created** panel **defaults to Active when its first test is added** (create → add first test → active).
+- When **editing an existing** panel, its Active state is **preserved as-is** — adding/removing tests never auto-flips it (the auto-activate applies only to a panel's first-ever test at creation). Removing the last test from an active panel surfaces the same "needs ≥1 test" guard before it can be re-saved active.
+
+### Tests (the centerpiece)
+The ordered list of member tests — columns: **order** (drag-handle + numeric, writes `panel_item.sort_order`), **test name**, **test code**, remove. **LOINC is not shown here** — whoever manages membership doesn't need it. **Add a test** is a **typeahead searchable by name or test code**; picking a result **appends it to the end** of the list (positions renumber from there). The picker is **domain-guarded** — only tests in the panel's domain are offered, so a panel never mixes domains. **No per-test panel LOINC** — a test's LOINC lives on the Test and is unchanging.
+
+### Terminology
+Panels adopt the **same terminology mapper as tests** (parity with OGC-754). A table of coded-system mappings — **Source** (LOINC / SNOMED / CIEL / OCL; **WHONET** proposed for AMR alignment — not in the current source enum yet), **Code**, **Relationship** (SAME_AS / BROADER_THAN / NARROWER_THAN) — with add/remove. The **LOINC** mapping is the panel's primary identifier (replaces the lone `panel.loinc` string as the surfaced concept, though the primary LOINC can still be denormalized onto `panel.loinc` for list display and order-entry). Reconciles to the desired set on save, keyed on (source, code), exactly like the test terminology section.
+
+### Vector Config
+Deferred to the Environmental/Vector phase (organism-group metadata). Not shown while only Clinical is enabled.
+
+---
+
+## Domain — the core of this effort
+
+- Every panel has exactly one **Domain**. Default CLINICAL.
+- **Membership guard:** the Add-tests picker only offers tests in the panel's domain; a panel cannot contain tests from more than one domain.
+- **Order-entry filtering** follows domain (a panel appears only for orders of its domain). Which sample types a panel is relevant to continues to derive from its member tests.
+- **Inline create (OGC-1140):** a panel created inline from a test **inherits that test's domain** and is **Active on creation**; the test becomes the panel's first member. (No lab unit, no code — those don't exist on a panel.)
+- **Launch scope:** only **Clinical** is selectable; the upgrade backfills every existing panel to Clinical. Environmental and Vector (and Vector Config) arrive in a later phase.
+
+---
+
+## Relationship to the test-side Panels section (OGC-753, built)
+
+The Test Catalog editor's **test-side** Panels section ("which panels is *this test* in", add-to-panel, reposition this test) is already built (OGC-980/981/982) and writes the same `panel_item.sort_order`. This FRS is the **panel-side** (the panel list + panel editor). Both are two views of one model. The test-side inline "Create new panel" is where OGC-1140's inherit-domain behavior applies.
+
+**Variant-model touchpoint (Test Catalog Manageability FRS):** panel membership is
+**per test record** — i.e., per specimen variant. A panel contains "Glucose (Serum)", not
+"Glucose"; the Add-tests picker shows the specimen-specific records, and the panel's derived
+sample types follow from exactly which variants are members. Creating a specimen variant
+does **not** copy the source test's panel memberships (deliberate — the source already
+occupies those slots).
+
+---
+
+## Access
+
+Via the existing **Test Catalog Manager / Admin** capability that already governs the Test Catalog editor and list. A user without it doesn't see the Panels context or the editor.
+
+---
+
+## Dependencies (net-new — not present today)
+
+1. **`panel.domain` column** + the upgrade backfill to CLINICAL. *Backend / migration.*
+2. **Domain-guarded test membership** — the Add-tests picker and the membership write reject cross-domain tests. **The membership write also keeps `SAMPLETYPE_PANEL` synchronized** whenever it changes the panel's derived sample-type set (order entry and e-order intake read that junction today). *Backend + frontend.*
+3. **Inline-create inherits domain + Active-on-create** (OGC-1140) — extend the built `POST /rest/test-catalog/panels` (which currently takes name-only) to accept/inherit domain. *Backend + frontend.*
+4. **Panel list + panel editor** on the `/rest/test-catalog/panels` API (the list API currently returns only `{id, name}` — it needs domain, LOINC, test count, derived sample types, status). *Backend + frontend.*
+5. **Panel terminology mappings** — the full multi-source mapper (parity with the test Terminology section, OGC-754). Panels have only a single `loinc` string today, so this needs a panel↔terminology-mapping store (reuse the test terminology mechanism) + a `/rest/test-catalog/panels/{id}/terminology` endpoint. Optionally add **WHONET** to the source enum (currently LOINC/SNOMED/CIEL/OCL). *Backend + frontend.*
+
+---
+
+## Out of scope
+
+- **Panel code** — panels are identified by name + LOINC; no code field.
+- **Lab unit on a panel** — panels span sections; scoped by domain instead.
+- **Stored panel sample types** — derived from member tests (direct management is OGC-296).
+- **Per-test "panel LOINC"** — a test's LOINC is on the Test, unchanging.
+- **Bulk import/export** — not in current scope.
+- **Environmental / Vector domains and Vector Config** — later phase; Clinical only at launch.
+- **Sample Type / Lab Unit master-list management** — planned follow-on contexts in this shell (OGC-296, OGC-189).
+
+---
+
+## Localization (new/changed keys)
+
+| Key | English |
 |---|---|
-| CLINICAL | Clinical-domain orders only |
-| ENVIRONMENTAL | Environmental-domain orders only |
-| VECTOR | Vector-domain orders only |
-
-Domain is resolved automatically from the lab unit assigned to the order — no domain picker is shown to the user. The panel ComboBox is pre-filtered to only show panels matching the resolved domain. Changing a panel's domain does **not** affect existing orders that already used it; the filter applies only at time of new order entry panel selection.
-
-### Lab Units Section
-- Checkbox grid of available lab units
-- At least one required
-- Determines where panel appears in order entry
-
-### Sample Types Section
-- Multi-select dropdown or checkbox list
-- Optional but recommended
-- Used for validation during order entry
-
----
-
-## Tests Tab
-
-### Layout
-- Header with test count and action buttons
-- Sortable test list with drag-and-drop
-- Each test row shows order, name, code, panel LOINC, actions
-
-### Test List Table
-
-| Column | Width | Description |
-|--------|-------|-------------|
-| Drag Handle | 40px | Grip icon for drag-and-drop |
-| Order | 60px | Editable number input |
-| Test Name | flex | Test name (link to test) |
-| Test Code | 100px | Monospace |
-| Test LOINC | 100px | From test definition (read-only, gray) |
-| Panel LOINC | 120px | Editable - panel-specific LOINC |
-| Actions | 80px | Remove button |
-
-### Ordering Behavior
-
-**Drag-and-Drop:**
-- Grab handle on left of each row
-- Visual indicator during drag
-- Auto-renumbers on drop
-
-**Numeric Entry:**
-- Direct edit of order number
-- Tab to move between fields
-- Auto-reorders list when focus leaves field
-- Handles duplicates by shifting others
-
-### Add Tests Modal
-
-**Search/Filter:**
-- Search input for test name/code
-- Lab unit filter dropdown
-- Sample type filter dropdown
-
-**Test List:**
-- Checkbox multi-select
-- Shows tests not already in panel
-- Each row: checkbox, name, code, LOINC, sample type
-
-**On Add:**
-- New tests added to end of list
-- Order numbers assigned sequentially
-- Panel LOINC defaults to empty (user must enter)
-
-### Panel LOINC Entry
-- Inline editable field
-- Shows placeholder if empty: "Enter LOINC"
-- Can differ from test's own LOINC code
-- Used for panel-specific reporting
-
-### Remove Test
-- Click X button on row
-- No confirmation needed (can re-add)
-- List renumbers automatically
-
----
-
-## Vector Config Tab
-
-> **Conditional visibility:** This tab is only shown when Panel Domain = VECTOR. It is hidden for CLINICAL and ENVIRONMENTAL panels.
-
-This tab lets coordinators attach vector-specific metadata to a panel, enabling smarter filtering and auto-suggestion at order entry for VECTOR-domain orders.
-
-### Fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| **Organism Group** | ComboBox | No | Optional filter hint — e.g., MOSQUITO, TICK, RODENT. When set, this panel is suggested first at order entry when the CollectionLot's organism group matches. No hard constraint; any active VECTOR panel remains selectable. |
-
-### Organism Group Behavior at Order Entry
-
-When a VECTOR-domain order is being created and a CollectionLot is linked:
-1. The panel ComboBox shows all active panels with domain = VECTOR
-2. Panels whose `vectorOrganismGroup` matches the lot's organism group are sorted to the top and shown with a "Suggested for [group]" label
-3. All other VECTOR panels remain selectable
-
-This is a suggestion only — it does not hide or block selection of non-matching panels.
-
-### Empty State
-
-When Panel Domain is CLINICAL or ENVIRONMENTAL, this tab is hidden. If domain is later changed to VECTOR, any previously saved organism group value is restored.
-
----
-
-## Import/Export
-
-### Trigger
-"Import/Export" button in list view toolbar opens modal.
-
-### Export Tab
-
-**Panel Selection:**
-- Checkbox list of all panels
-- "Select All" / "Deselect All" buttons
-- Search/filter panels
-- Shows panel name, code, test count
-
-**Export Options:**
-- Format: JSON (for import) or CSV (for review)
-- Include: Panel config only, or Panel + test assignments
-
-**Export Button:**
-- Disabled if no panels selected
-- Downloads file immediately
-
-### Import Tab
-
-**File Upload:**
-- Drag-and-drop zone
-- Accepts JSON files only
-- Shows file name after selection
-
-**Import Mode:**
-- Create new panels only
-- Update existing panels only
-- Both (create and update)
-
-**Validation Preview:**
-After file selected, show:
-- Panels to CREATE (new codes)
-- Panels to UPDATE (existing codes)
-- Panels to SKIP (errors)
-- Warnings (e.g., unknown test codes)
-
-**Import Button:**
-- Disabled if file invalid
-- Shows summary after import
-
-### JSON Export Format
-
-```json
-{
-  "exportDate": "2025-01-15T10:30:00Z",
-  "exportedBy": "admin",
-  "panels": [
-    {
-      "code": "CBC",
-      "name": "Complete Blood Count",
-      "loincCode": "58410-2",
-      "description": "Standard complete blood count panel",
-      "labUnits": ["Hematology"],
-      "sampleTypes": ["Whole Blood EDTA"],
-      "isActive": true,
-      "tests": [
-        {
-          "testCode": "WBC",
-          "displayOrder": 1,
-          "panelLoincCode": "6690-2"
-        },
-        {
-          "testCode": "RBC",
-          "displayOrder": 2,
-          "panelLoincCode": "789-8"
-        },
-        {
-          "testCode": "HGB",
-          "displayOrder": 3,
-          "panelLoincCode": "718-7"
-        }
-      ]
-    }
-  ]
-}
-```
-
-### CSV Export Format
-
-For review purposes, flattened format:
-
-| Panel Code | Panel Name | Panel LOINC | Test Order | Test Code | Test Name | Panel Test LOINC |
-|------------|------------|-------------|------------|-----------|-----------|------------------|
-| CBC | Complete Blood Count | 58410-2 | 1 | WBC | White Blood Cell Count | 6690-2 |
-| CBC | Complete Blood Count | 58410-2 | 2 | RBC | Red Blood Cell Count | 789-8 |
-| CBC | Complete Blood Count | 58410-2 | 3 | HGB | Hemoglobin | 718-7 |
-
----
-
-## API Endpoints
-
-### Panel CRUD
-- `GET /api/panels` - List with filtering
-- `GET /api/panels/{id}` - Get with tests
-- `POST /api/panels` - Create
-- `PUT /api/panels/{id}` - Update
-- `DELETE /api/panels/{id}` - Soft delete (deactivate)
-
-### Lab Units & Sample Types
-- `GET /api/panels/{id}/lab-units`
-- `PUT /api/panels/{id}/lab-units`
-- `GET /api/panels/{id}/sample-types`
-- `PUT /api/panels/{id}/sample-types`
-
-### Tests
-- `GET /api/panels/{id}/tests` - List tests with order and panel LOINC
-- `POST /api/panels/{id}/tests` - Add tests
-- `PUT /api/panels/{id}/tests` - Update all (order, panel LOINC)
-- `PUT /api/panels/{id}/tests/{testId}` - Update single test
-- `DELETE /api/panels/{id}/tests/{testId}` - Remove test
-- `PUT /api/panels/{id}/tests/reorder` - Reorder tests
-
-### Import/Export
-- `POST /api/panels/export` - Export selected panels
-  - Request: `{ panelIds: [1,2,3], format: "json"|"csv", includeTests: true }`
-- `POST /api/panels/import/validate` - Validate import file
-- `POST /api/panels/import` - Execute import
-  - Request: `{ mode: "create"|"update"|"both", data: {...} }`
-
----
-
-## Acceptance Criteria
-
-### List View
-- [ ] Panels displayed with test counts
-- [ ] Lab unit filter works
-- [ ] Status filter works
-- [ ] Search by name/code works
-- [ ] Quick summary shows panel details
-- [ ] Duplicate action creates copy
-
-### Basic Info Tab
-- [ ] All fields editable
-- [ ] LOINC code field available
-- [ ] Lab unit multi-select (at least one required)
-- [ ] Sample type multi-select works
-- [ ] Status toggle works
-
-### Tests Tab
-- [ ] Tests displayed in order
-- [ ] Drag-and-drop reordering works
-- [ ] Order number editing works
-- [ ] Auto-renumbering on reorder
-- [ ] Panel LOINC editable per test
-- [ ] Test LOINC shown (read-only)
-- [ ] Add Tests modal filters correctly
-- [ ] Remove test works
-
-### Import/Export
-- [ ] Export modal shows panel selection
-- [ ] Select All / Deselect All work
-- [ ] JSON export includes all data
-- [ ] CSV export is flat format
-- [ ] Import validates file
-- [ ] Preview shows create/update/skip
-- [ ] Import modes work correctly
-- [ ] Import log created
-
----
-
-## Navigation
-
-**Menu Location:** Admin > Panel Setup
-
-**Breadcrumb:** Admin > Panel Setup > [Panel Name]
-
----
-
-## Related Features
-
-- **Test Catalog (OGC-173)**: Tests can be part of multiple panels
-- **Lab Units (OGC-189)**: Panels filtered by lab unit
-- **Order Entry**: Panels appear based on lab unit and sample type
-- **Methods (OGC-214)**: Methods can be assigned to panel tests
+| `label.testCatalog.entity.panels` | Panels |
+| `label.panel.domain` | Domain |
+| `helper.panel.domainGuard` | Only {domain}-domain tests can be added to this panel. |
+| `helper.panel.loincIsIdentifier` | The panel's LOINC serves as its identifier. |
+| `note.panel.sampleTypesDerived` | Sample types are derived from the tests in this panel. |
+| `note.panel.domainUpgrade` | Panels now have a Domain; existing panels were set to Clinical. |
+| `note.panel.domainLaterPhase` | Environmental and Vector domains are enabled in a later phase. |
+
+Missing keys fall back to English.

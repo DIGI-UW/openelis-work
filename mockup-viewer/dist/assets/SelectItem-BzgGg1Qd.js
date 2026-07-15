@@ -1,5 +1,0 @@
-<<<<<<<< HEAD:mockup-viewer/dist/assets/SelectItem-BzgGg1Qd.js
-import{c as n,u as p,P as e}from"./index-BO0jI9Tz.js";import{j as c}from"./index-CD0qKu55.js";const m=({className:s,value:t="",disabled:o=!1,hidden:r=!1,text:i="",...a})=>{const l=n({[`${p()}--select-option`]:!0,...s&&{[s]:s}});return c.jsx("option",{...a,className:l,value:t,disabled:o,hidden:r,children:i})};m.propTypes={className:e.string,disabled:e.bool,hidden:e.bool,text:e.string.isRequired,value:e.any.isRequired};export{m as S};
-========
-import{c as n,u as p,P as e}from"./index-Bff5Zifg.js";import{j as c}from"./index-C3Rl3ywK.js";const m=({className:s,value:t="",disabled:o=!1,hidden:r=!1,text:i="",...a})=>{const l=n({[`${p()}--select-option`]:!0,...s&&{[s]:s}});return c.jsx("option",{...a,className:l,value:t,disabled:o,hidden:r,children:i})};m.propTypes={className:e.string,disabled:e.bool,hidden:e.bool,text:e.string.isRequired,value:e.any.isRequired};export{m as S};
->>>>>>>> origin/main:mockup-viewer/dist/assets/SelectItem-CkAbYKr7.js

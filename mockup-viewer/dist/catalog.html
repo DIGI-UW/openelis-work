@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenELIS Design Gallery — Catalog</title>
-  <meta name="description" content="Searchable catalog of 202 design mockups and specifications for OpenELIS Global">
+  <meta name="description" content="Searchable catalog of 203 design mockups and specifications for OpenELIS Global">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 960px; margin: 0 auto; padding: 2rem 1rem; color: #161616; line-height: 1.5; }
     h1 { border-bottom: 2px solid #0f62fe; padding-bottom: 0.5rem; }
@@ -22,15 +22,15 @@
 </head>
 <body>
   <h1>OpenELIS Design Gallery — Catalog</h1>
-  <p>202 designs across 16 categories.
+  <p>203 designs across 16 categories.
     <a href="./">Interactive Gallery</a> |
     <a href="catalog.json">JSON Catalog</a> |
     <a href="llms.txt">LLM Index</a> |
     <a href="sitemap.xml">Sitemap</a>
   </p>
-  <nav><a href="#cat-admin-config">Admin & Config (45)</a> <a href="#cat-analyzer-integration">Analyzer Integration (24)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (3)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (7)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
+  <nav><a href="#cat-admin-config">Admin & Config (46)</a> <a href="#cat-analyzer-integration">Analyzer Integration (24)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (3)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (7)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
 
-  <h2 id="cat-admin-config">Admin & Config (45)</h2>
+  <h2 id="cat-admin-config">Admin & Config (46)</h2>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-editor-completion-correction">Test Catalog Editor — Completion & Correction</a></h3>
     <p>Completes the unified Test Catalog editor: create a test in place, edit shared settings across same-analyte/different-specimen tests together, result-type-first Sample & Results with live preview, LOINC integrity warnings (missing + duplicate-active), Ranges bug fixes, and language fallback for names/labels.</p>
@@ -43,6 +43,18 @@
       <a href="https://uwdigi.atlassian.net/browse/OGC-1112">OGC-1112</a>
     </div>
     <div class="tags"><span class="tag">test-catalog</span> <span class="tag">loinc</span> <span class="tag">ranges</span> <span class="tag">result-types</span> <span class="tag">i18n</span> <span class="tag">admin</span> <span class="tag">configuration</span></div>
+  </div>
+  <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-completion-v2">Test Catalog Completion v2</a></h3>
+    <p>Consolidated Test Catalog FRS (v2) — the single implementing-agent handoff. Part A corrects delivered gaps in the shipped unified editor (custom label presets filtered out of the picker, terminology mappings missing display names, LOINC integrity warnings siloed in one section, half the combined shared-settings editor shipped, activation allowed on tests that cannot capture a result). Part B adds Manageability: grouped catalog view treating specimen variants of an assay as one family (link/unlink, issues toggle), create-in-place, add-specimen-variant with completeness rail + activation gate. FR-46–86. Supersedes the test-catalog-editor-completion and test-catalog-manageability work lists.</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-completion-v2">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-completion-v2">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-completion-v2.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-completion-v2.jsx">Source (JSX)</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1112">OGC-1112</a>
+    </div>
+    <div class="tags"><span class="tag">test-catalog</span> <span class="tag">manageability</span> <span class="tag">specimen-variant</span> <span class="tag">loinc</span> <span class="tag">activation-gate</span> <span class="tag">admin</span> <span class="tag">configuration</span></div>
   </div>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/report-management">Report Management</a></h3>
@@ -70,16 +82,17 @@
     <div class="tags"><span class="tag">lookup-tables</span> <span class="tag">reference-data</span> <span class="tag">admin</span> <span class="tag">configuration</span></div>
   </div>
   <div class="design">
-    <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/lab-units">Lab Units</a></h3>
-    <p>Laboratory units configuration</p>
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/lab-units-management">Lab Units Management</a></h3>
+    <p>Lab Units Management (OGC-189) — v2.0, rebased on the real TEST_SECTION data model and aligned to the Test Catalog Management shell as a peer of Tests / Panels / Sample Types. Terminology is "Lab Unit" (never "test section"); no code field (no column exists); Description is required (NOT NULL). Domain is a declared dependency — unbuilt on develop despite OGC-361 (no test_section migration exists), so the single Clinical/Environmental/Vector domain requires a migration (backfill existing rows to Clinical, OGC-936 pattern).</p>
     <div class="links">
-      <a href="https://digi-uw.github.io/openelis-work/#/preview/admin-config/lab-units">Preview</a>
-      <a href="https://digi-uw.github.io/openelis-work/#/spec/admin-config/lab-units">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/admin-config/lab-units-management">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/admin-config/lab-units-management">Spec</a>
       <a href="https://digi-uw.github.io/openelis-work/designs/admin-config/lab-units.md">Raw Spec (MD)</a>
       <a href="https://digi-uw.github.io/openelis-work/designs/admin-config/lab-units.jsx">Source (JSX)</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-189">OGC-189</a>
       <a href="https://github.com/DIGI-UW/openelis-work/issues/2">#2</a>
     </div>
-    <div class="tags"><span class="tag">units</span> <span class="tag">measurement</span> <span class="tag">admin</span> <span class="tag">configuration</span></div>
+    <div class="tags"><span class="tag">lab-units</span> <span class="tag">test-section</span> <span class="tag">test-catalog</span> <span class="tag">domain</span> <span class="tag">admin</span> <span class="tag">configuration</span> <span class="tag">OGC-189</span></div>
   </div>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/methods">Methods</a></h3>
@@ -132,16 +145,17 @@
     <div class="tags"><span class="tag">barcode</span> <span class="tag">labels</span> <span class="tag">presets</span> <span class="tag">admin</span> <span class="tag">configuration</span> <span class="tag">test-catalog</span> <span class="tag">order-entry</span></div>
   </div>
   <div class="design">
-    <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/panel">Panel</a></h3>
-    <p>Test panel configuration</p>
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/panel-management">Panel Management</a></h3>
+    <p>Panel Management — Domain Upgrade (OGC-224) — v2.2, aligned to the verified Test Catalog data model and Manageability decisions. Managed as a Panels context in the Test Catalog Management shell (peer of Tests / Sample Types / Lab Units). Adds a single required domain (unbuilt on develop — Dependency 1, Clinical at launch, backfill existing panels to Clinical). A panel has no code (LOINC is its identifier), no lab unit (panels span sections; scoped by domain instead), and its sample types are DERIVED from member tests (SAMPLETYPE_PANEL stays backend-synced, never surfaced).</p>
     <div class="links">
-      <a href="https://digi-uw.github.io/openelis-work/#/preview/admin-config/panel">Preview</a>
-      <a href="https://digi-uw.github.io/openelis-work/#/spec/admin-config/panel">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/admin-config/panel-management">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/admin-config/panel-management">Spec</a>
       <a href="https://digi-uw.github.io/openelis-work/designs/admin-config/panel.md">Raw Spec (MD)</a>
       <a href="https://digi-uw.github.io/openelis-work/designs/admin-config/panel.jsx">Source (JSX)</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-224">OGC-224</a>
       <a href="https://github.com/DIGI-UW/openelis-work/issues/5">#5</a>
     </div>
-    <div class="tags"><span class="tag">panels</span> <span class="tag">test-groups</span> <span class="tag">admin</span> <span class="tag">configuration</span></div>
+    <div class="tags"><span class="tag">panels</span> <span class="tag">test-catalog</span> <span class="tag">domain</span> <span class="tag">test-groups</span> <span class="tag">admin</span> <span class="tag">configuration</span> <span class="tag">OGC-224</span></div>
   </div>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/range-editor">Range Editor</a></h3>
