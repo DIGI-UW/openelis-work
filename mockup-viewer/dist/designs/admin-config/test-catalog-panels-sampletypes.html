@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Test Catalog Management — Tests, Panels & Sample Types Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+  .app { max-width:1200px; margin:0 auto; background:#fff; border:1px solid #e0e0e0; }
+  .topbar { background:#161616; color:#fff; padding:12px 20px; font-size:14px; }
+  .body { display:flex; min-height:580px; }
+  .sidenav { width:264px; background:#f4f4f4; border-right:1px solid #e0e0e0; padding:6px 0; font-size:14px; }
+  .sn-group { padding:10px 16px 4px; font-size:11px; letter-spacing:.06em; color:#6f6f6f; text-transform:uppercase; }
+  .sn-item { display:flex; align-items:center; gap:6px; padding:9px 16px; cursor:pointer; color:#161616; border-left:3px solid transparent; }
+  .sn-item:hover { background:#e8e8e8; }
+  .sn-item.l2 { font-weight:600; }
+  .sn-item.l3 { padding-left:32px; }
+  .sn-item.l4 { padding-left:52px; font-size:13px; }
+  .sn-item.active { background:#fff; border-left-color:#0f62fe; font-weight:600; }
+  .sn-item.active.p { border-left-color:#6929c4; } .sn-item.active.s { border-left-color:#007d79; }
+  .sn-item.planned { color:#a8a8a8; cursor:not-allowed; }
+  .sn-item .pl { font-size:10px; color:#a8a8a8; margin-left:auto; }
+  .sn-caret { width:10px; color:#8d8d8d; font-size:10px; } .sn-open { color:#6f6f6f; font-size:12px; padding:6px 16px 2px 32px; }
+  .main { flex:1; padding:18px 24px; }
+  .crumbs { font-size:12px; color:#525252; margin-bottom:12px; } .crumbs b { color:#161616; }
+  .row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; } .spacer { flex:1; }
+  table.cds--data-table td, table.cds--data-table th { padding:10px 12px; }
+  .tag { display:inline-block; padding:2px 8px; border-radius:12px; font-size:12px; line-height:18px; }
+  .t-clin { background:#d0e2ff; color:#0043ce; } .t-env { background:#9ef0f0; color:#005d5d; } .t-vec { background:#e8daff; color:#6929c4; }
+  .t-active { background:#defbe6; color:#0e6027; } .t-inactive { background:#e0e0e0; color:#525252; }
+  .badge { display:inline-block; background:#e8e8e8; color:#393939; border-radius:2px; padding:1px 7px; font-size:12px; margin-right:4px; }
+  .ent { font-size:11px; font-weight:600; letter-spacing:.06em; padding:3px 9px; border-radius:2px; }
+  .ent-test { background:#d0e2ff; color:#0043ce; } .ent-panel { background:#e8daff; color:#6929c4; } .ent-sample { background:#9ef0f0; color:#005d5d; }
+  .filterbar { display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; margin:6px 0 2px; }
+  .field label { display:block; font-size:12px; color:#525252; margin-bottom:4px; }
+  .field select, .field input { border:0; border-bottom:1px solid #8d8d8d; background:#f4f4f4; padding:8px 10px; min-width:150px; font-size:14px; }
+  .btn { border:0; padding:9px 14px; font-size:14px; cursor:pointer; }
+  .btn-primary { background:#0f62fe; color:#fff; } .btn-tertiary { background:#fff; color:#0f62fe; border:1px solid #0f62fe; }
+  .btn-ghost { background:transparent; color:#0f62fe; } .btn-danger-ghost { background:transparent; color:#da1e28; }
+  .rowlink { color:#0f62fe; cursor:pointer; text-decoration:none; font-weight:500; }
+  .formgrid { display:grid; grid-template-columns:1fr 1fr; gap:16px 24px; max-width:720px; } .full { grid-column:1 / -1; }
+  .lab { font-size:12px; color:#525252; margin-bottom:4px; display:block; }
+  .inp { width:100%; border:0; border-bottom:1px solid #8d8d8d; background:#f4f4f4; padding:9px 10px; font-size:14px; box-sizing:border-box; }
+  .req { color:#da1e28; } .radio { margin-right:16px; font-size:14px; } .radio.dis { color:#a8a8a8; }
+  .muted { color:#6f6f6f; font-size:13px; } .grip { cursor:grab; color:#8d8d8d; }
+  h2.sec { font-size:20px; font-weight:400; margin:0 0 4px; } .subtitle { font-size:13px; color:#525252; margin:2px 0 12px; }
+  .derived { background:#f4f4f4; border:1px dashed #c6c6c6; padding:8px 10px; font-size:13px; }
+  .t-err { background:#ffd7d9; color:#a2191f; } .t-warn { background:#fcf4d6; color:#8e6a00; } .t-info { background:#e0e0e0; color:#393939; }
+  tr.grp td { background:#f4f4f4; font-weight:600; border-top:2px solid #e0e0e0; }
+  td.vind { padding-left:36px !important; }
+  .seg { display:inline-flex; border:1px solid #8d8d8d; border-radius:2px; overflow:hidden; }
+  .seg button { border:0; background:#fff; padding:6px 12px; cursor:pointer; font-size:12px; }
+  .seg button.on { background:#161616; color:#fff; }
+  .chk { font-size:13px; display:flex; gap:7px; align-items:center; padding:3px 0; }
+  .chk a { color:#0f62fe; text-decoration:none; }
+  .c-ok { color:#24a148; font-weight:700; } .c-todo { color:#8d8d8d; } .c-warn { color:#8e6a00; font-weight:700; }
+  .rail { border:1px solid #e0e0e0; padding:14px 16px; background:#fff; }
+  .rail h6 { margin:10px 0 4px; font-size:11px; letter-spacing:.05em; color:#6f6f6f; text-transform:uppercase; }
+  .notice { padding:10px 14px; font-size:13px; border-left:3px solid; margin:10px 0; }
+  .n-err { background:#fff1f1; border-color:#da1e28; } .n-info { background:#edf5ff; border-color:#0f62fe; } .n-warn { background:#fcf4d6; border-color:#f1c21b; } .n-ok { background:#defbe6; border-color:#24a148; }
+  .primarybox { background:#f4f4f4; border-left:3px solid #0f62fe; padding:12px 14px; margin:8px 0; }
+  .chev2 { background:none; border:0; cursor:pointer; font-size:11px; color:#525252; padding:0 6px 0 0; }
+  .ta-wrap { position:relative; max-width:380px; }
+  .ta-menu { position:absolute; z-index:5; background:#fff; border:1px solid #e0e0e0; width:100%; box-shadow:0 2px 6px rgba(0,0,0,.14); }
+  .ta-opt { padding:8px 10px; cursor:pointer; display:flex; justify-content:space-between; } .ta-opt:hover { background:#e8e8e8; }
+</style>
+</head>
+<body>
+<div class="preview-banner" id="banner">⚡ Visual Preview — Test Catalog Management (Tests · Panels · Sample Types) &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application</div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const PANELS = [
+  { id:1, name:"Complete Blood Count", loinc:"58410-2", tests:8, domain:"CLINICAL", derived:["Whole Blood EDTA"], active:true },
+  { id:2, name:"Basic Metabolic Panel", loinc:"51990-0", tests:8, domain:"CLINICAL", derived:["Serum","Plasma"], active:true },
+  { id:3, name:"Comprehensive Metabolic Panel", loinc:"24323-8", tests:14, domain:"CLINICAL", derived:["Serum"], active:true },
+  { id:4, name:"Lipid Panel", loinc:"24331-1", tests:4, domain:"CLINICAL", derived:["Serum"], active:true },
+  { id:6, name:"Thyroid Function Panel", loinc:"55204-3", tests:3, domain:"CLINICAL", derived:["Serum"], active:false },
+];
+/* Assay groups (FR-46): grouped by shared name localization; "linked:false" = name-stem-only match (FR-62.f) */
+const TEST_GROUPS = [
+  { assay:"Glucose", linked:true, domain:"CLINICAL", variants:[
+    { id:1042, name:"Glucose (Serum)", code:"GLU-S", sample:"Serum", loinc:"2345-7", active:true, findings:[] },
+    { id:1043, name:"Glucose (Plasma)", code:"GLU-P", sample:"Plasma (EDTA)", loinc:"2339-0", active:true, findings:["rangesUnrev"] },
+    { id:1044, name:"Glucose (CSF)", code:"GLU-C", sample:"Cerebrospinal Fluid", loinc:"2342-4", active:false, findings:[] },
+  ]},
+  { assay:"Hemoglobin", linked:false, domain:"CLINICAL", variants:[
+    { id:1051, name:"Hemoglobin (Whole Blood)", code:"HGB-WB", sample:"Whole Blood (EDTA)", loinc:"718-7", active:true, findings:[] },
+    { id:1052, name:"Hemoglobin (Serum)", code:"HGB-S", sample:"Serum", loinc:"718-7", active:true, findings:["dupCross"] },
+  ]},
+  { assay:"HIV 1/2 Ab", linked:true, domain:"CLINICAL", variants:[
+    { id:1061, name:"HIV 1/2 Ab (Serum)", code:"HIV-AB", sample:"Serum", loinc:"75622-1", active:true, findings:["noComp"] },
+  ]},
+  { assay:"Creatinine", linked:true, domain:"CLINICAL", variants:[
+    { id:1071, name:"Creatinine (Serum)", code:"CREA-S", sample:"Serum", loinc:"2160-0", active:true, findings:[] },
+    { id:1072, name:"Creatinine (Urine)", code:"CREA-U", sample:"Urine", loinc:"2161-8", active:true, findings:[] },
+  ]},
+  { assay:"Culture, Water", linked:true, domain:"ENVIRONMENTAL", variants:[
+    { id:1081, name:"Culture, Water (Water)", code:"CULT-W", sample:"Water", loinc:"", active:true, findings:["noLoinc","rangesInc"] },
+  ]},
+];
+const FINDINGS = {
+  dupSame:   { label:"Duplicate LOINC (same specimen)", cls:"t-err" },
+  dupCross:  { label:"Duplicate LOINC (cross-specimen)", cls:"t-warn" },
+  noComp:    { label:"No result components", cls:"t-err" },
+  links:     { label:"Sample-type link problem", cls:"t-err" },
+  rangesInc: { label:"Ranges incomplete", cls:"t-warn" },
+  rangesUnrev:{ label:"Copied ranges unreviewed", cls:"t-warn" },
+  noLoinc:   { label:"No LOINC", cls:"t-warn" },
+};
+const CBC_TESTS = [
+  { name:"White Blood Cell Count", code:"WBC" }, { name:"Red Blood Cell Count", code:"RBC" },
+  { name:"Hemoglobin", code:"HGB" }, { name:"Hematocrit", code:"HCT" },
+  { name:"Platelet Count", code:"PLT" }, { name:"Neutrophils %", code:"NEUT" },
+];
+const ADDABLE = [
+  { name:"Lymphocytes %", code:"LYMPH" }, { name:"Monocytes %", code:"MONO" }, { name:"Eosinophils %", code:"EOS" },
+  { name:"Basophils %", code:"BASO" }, { name:"Mean Corpuscular Hemoglobin", code:"MCH" }, { name:"MCH Concentration", code:"MCHC" },
+  { name:"Red Cell Distribution Width", code:"RDW" }, { name:"Reticulocyte Count", code:"RETIC" }, { name:"Glucose", code:"GLU" },
+  { name:"Creatinine", code:"CREA" }, { name:"Sodium", code:"NA" }, { name:"Potassium", code:"K" },
+];
+const SAMPLETYPES = [
+  { id:1, name:"Serum", abbr:"SER", domain:"CLINICAL", tests:87, storage:"Refrigerated 2–8°C", active:true },
+  { id:2, name:"Plasma (EDTA)", abbr:"PL-EDTA", domain:"CLINICAL", tests:45, storage:"Refrigerated 2–8°C", active:true },
+  { id:3, name:"Whole Blood (EDTA)", abbr:"WB-EDTA", domain:"CLINICAL", tests:34, storage:"Room temperature", active:true },
+  { id:4, name:"Urine", abbr:"UR", domain:"CLINICAL", tests:52, storage:"Refrigerated 2–8°C", active:true },
+  { id:5, name:"Cerebrospinal Fluid", abbr:"CSF", domain:"CLINICAL", tests:12, storage:"Frozen −20°C", active:true },
+  { id:6, name:"Stool", abbr:"ST", domain:"CLINICAL", tests:18, storage:"Refrigerated 2–8°C", active:false },
+];
+const PANEL_SECTIONS = ["Basic Info","Tests","Terminology"];
+const TEST_SECTIONS = ["Basic Info","Sample & Results","Methods","Ranges","Storage","Panels","Terminology","Analyzers","Display Order"];
+const SAMPLE_SECTIONS = ["Basic Info","Associated Tests","Display Order","Disposal","Terminology"];
+const domTag = (d) => { const m={CLINICAL:["t-clin","Clinical"],ENVIRONMENTAL:["t-env","Environmental"],VECTOR:["t-vec","Vector"]}; const [c,l]=m[d]; return <span className={"tag "+c}>{l}</span>; };
+
+function App(){
+  const [ctx,setCtx] = useState("panels");   // tests | panels | sampletypes
+  const [openRec,setOpenRec] = useState(null);
+  const [section,setSection] = useState(null);
+  const setBanner = (r) => { document.getElementById("banner").innerHTML="⚡ Visual Preview &nbsp;|&nbsp; <b>"+r+"</b> &nbsp;|&nbsp; Not a live application"; };
+  const goCtx = (c) => { setCtx(c); setOpenRec(null); setSection(null); setBanner("/admin/TestCatalogList?entity="+c); };
+  const openPanel = (p) => { setCtx("panels"); setOpenRec({kind:"panel",...p}); setSection("Basic Info"); setBanner("/MasterListsPage/TestCatalogEditor/panel/"+p.id+"/basic-info"); };
+  const openNewPanel = () => { setCtx("panels"); setOpenRec({kind:"panel", isNew:true, id:"new", name:"Untitled panel", loinc:"", domain:"CLINICAL", derived:[], active:false, tests:0}); setSection("Basic Info"); setBanner("/MasterListsPage/TestCatalogEditor/panel/new/basic-info"); };
+  const openTest = (v) => { setCtx("tests"); setOpenRec({kind:"test", ...v}); setSection("Panels"); setBanner("/MasterListsPage/TestCatalogEditor/"+v.id+"/panels"); };
+  const openNewTest = () => { setCtx("tests"); setOpenRec({kind:"test", isNew:true, name:"New test"}); setSection("Basic Info"); setBanner("/MasterListsPage/TestCatalogEditor/new/basic-info"); };
+  const openVariant = (group, sourceId) => { setCtx("tests"); setOpenRec({kind:"test", isNew:true, variantOf:group, sourceId:sourceId, name:"New variant — "+group.assay}); setSection("Basic Info"); setBanner("/MasterListsPage/TestCatalogEditor/new/basic-info?copyFrom="+(sourceId||"")); };
+  const openGroupEdit = (group) => { setCtx("tests"); setOpenRec({kind:"group", g:group, name:group.assay+" — edit together"}); setSection(null); setBanner("/MasterListsPage/TestCatalogEditor/group/"+group.variants.map(v=>v.id).join(",")+"/sample-results"); };
+  const openSample = (s) => { setCtx("sampletypes"); setOpenRec({kind:"sample",...s}); setSection("Basic Info"); setBanner("/MasterListsPage/TestCatalogEditor/sampleType/"+s.id+"/basic-info"); };
+  const editing = openRec!==null;
+  return (
+    <div className="app">
+      <div className="topbar">OpenELIS Global — Admin</div>
+      <div className="body">
+        <SideNav ctx={ctx} openRec={openRec} section={section} goCtx={goCtx} setSection={setSection} />
+        <div className="main">
+          {!editing && ctx==="panels" && <PanelsList openPanel={openPanel} openNew={openNewPanel} />}
+          {!editing && ctx==="tests" && <TestsList openTest={openTest} openNew={openNewTest} openVariant={openVariant} openGroupEdit={openGroupEdit} />}
+          {!editing && ctx==="sampletypes" && <SampleTypesList openSample={openSample} />}
+          {editing && openRec.kind==="panel" && <PanelEditor panel={openRec} section={section} isNew={!!openRec.isNew} back={()=>goCtx("panels")} />}
+          {editing && openRec.kind==="test" && <TestEditorContent rec={openRec} section={section} back={()=>goCtx("tests")} />}
+          {editing && openRec.kind==="group" && <GroupEditor g={openRec.g} back={()=>goCtx("tests")} />}
+          {editing && openRec.kind==="sample" && <SampleTypeEditor st={openRec} section={section} back={()=>goCtx("sampletypes")} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SideNav({ctx,openRec,section,goCtx,setSection}){
+  const k = openRec && openRec.kind;
+  const secFor = () => k==="panel" ? PANEL_SECTIONS.concat(openRec.domain==="VECTOR"?["Vector Config"]:[]) : k==="sample" ? SAMPLE_SECTIONS : TEST_SECTIONS;
+  const branch = (id,label,openKind,accent) => (<>
+    <div className={"sn-item l3"+(ctx===id&&!openRec?" active":"")} onClick={()=>goCtx(id)}><span className="sn-caret">{k===openKind?"▾":"›"}</span> {label}</div>
+    {k===openKind && <>
+      <div className="sn-open">{openRec.name}</div>
+      {secFor().map(s=><div key={s} className={"sn-item l4 "+accent+(section===s?" active "+accent:"")} onClick={()=>setSection(s)}>{s}</div>)}
+    </>}
+  </>);
+  return (
+    <div className="sidenav">
+      <div className="sn-group">Admin</div>
+      <div className="sn-item l2"><span className="sn-caret">▾</span> Test Catalog Management</div>
+      {branch("tests","Tests","test","")}
+      {branch("panels","Panels","panel","p")}
+      {branch("sampletypes","Sample Types","sample","s")}
+      <div className="sn-item l3 planned">Lab Units <span className="pl">planned</span></div>
+    </div>
+  );
+}
+
+function EditorHeader({name,badge,badgeClass,subtitle,back}){
+  const parent = badge==="PANEL"?"Panels":badge==="SAMPLE TYPE"?"Sample Types":"Tests";
+  return (<>
+    <div className="crumbs">Home / Admin / Test Catalog Management / {parent} / <b>{name}</b></div>
+    <div className="row"><button className="btn btn-ghost" onClick={back}>← Back to list</button>
+      <h2 className="sec" style={{marginLeft:6}}>{name}</h2><span className={"ent "+badgeClass}>{badge}</span>
+      <div className="spacer"></div><button className="btn btn-ghost" onClick={back}>Cancel</button><button className="btn btn-primary">Save</button></div>
+    <p className="subtitle">{subtitle}</p>
+  </>);
+}
+
+function AddTestSearch({onAdd, taken, placeholder}){
+  const [q,setQ] = useState("");
+  const ql = q.trim().toLowerCase();
+  const matches = ql ? ADDABLE.filter(c=> !taken.includes(c.code) && (c.name.toLowerCase().includes(ql) || c.code.toLowerCase().includes(ql))).slice(0,6) : [];
+  return (
+    <div className="ta-wrap">
+      <input className="inp" placeholder={placeholder||"Add a test — search by name or code…"} value={q} onChange={e=>setQ(e.target.value)} />
+      {matches.length>0 && <div className="ta-menu">{matches.map(m=>(
+        <div key={m.code} className="ta-opt" onMouseDown={()=>{ onAdd(m); setQ(""); }}><span>{m.name}</span><span style={{fontFamily:"monospace",color:"#6f6f6f"}}>{m.code}</span></div>
+      ))}</div>}
+    </div>
+  );
+}
+
+function TerminologyMapper({seed}){
+  const [maps,setMaps] = useState(seed);
+  return (
+    <div style={{marginTop:12, maxWidth:760}}>
+      <div className="cds--data-table-container">
+        <table className="cds--data-table cds--data-table--md" style={{width:"100%"}}>
+          <thead><tr><th>Coding system</th><th>Code</th><th>How it relates</th><th style={{width:80}}>Actions</th></tr></thead>
+          <tbody>{maps.map((m,i)=>(
+            <tr key={i}><td>{m.source}</td><td style={{fontFamily:"monospace"}}>{m.code}</td><td>{m.rel}</td><td><button className="btn btn-danger-ghost" onClick={()=>setMaps(x=>x.filter((_,j)=>j!==i))}>Remove</button></td></tr>
+          ))}</tbody>
+        </table>
+      </div>
+      <div className="row" style={{marginTop:12, alignItems:"flex-end"}}>
+        <div className="field"><label>Coding system</label><select><option>LOINC</option><option>SNOMED CT</option><option>CIEL</option><option>OCL</option><option>WHONET</option></select></div>
+        <div className="field"><label>Code</label><input placeholder="Enter code"/></div>
+        <div className="field"><label>How it relates</label><select><option>Same as</option><option>Broader than</option><option>Narrower than</option></select></div>
+        <button className="btn btn-tertiary">Add code</button>
+      </div>
+      <div style={{marginTop:16}}><button className="btn btn-primary">Save</button></div>
+    </div>
+  );
+}
+
+/* ---------- PANELS ---------- */
+function PanelsList({openPanel,openNew}){
+  return (
+    <div>
+      <div className="crumbs">Home / Admin / Test Catalog Management / <b>Panels</b></div>
+      <div className="row" style={{marginBottom:10}}><h2 className="sec">Panels</h2><div className="spacer"></div><button className="btn btn-primary" onClick={openNew}>＋ Add Panel</button></div>
+      <div className="filterbar">
+        <div className="field"><label>Search</label><input placeholder="name / LOINC"/></div>
+        <div className="field"><label>Domain</label><select><option>All domains</option><option>Clinical</option><option>Environmental</option><option>Vector</option></select></div>
+        <div className="field"><label>Status</label><select><option>All</option><option>Active</option><option>Inactive</option></select></div>
+      </div>
+      <div className="cds--data-table-container">
+        <table className="cds--data-table cds--data-table--md" style={{width:"100%"}}>
+          <thead><tr><th>Panel Name</th><th>LOINC</th><th>Tests</th><th>Domain</th><th>Sample Types</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>{PANELS.map(p=>(
+            <tr key={p.id}><td><a className="rowlink" onClick={()=>openPanel(p)}>{p.name}</a></td><td style={{fontFamily:"monospace"}}>{p.loinc}</td><td>{p.tests}</td><td>{domTag(p.domain)}</td>
+            <td>{p.derived.map(s=><span className="badge" key={s}>{s}</span>)}</td><td><span className={"tag "+(p.active?"t-active":"t-inactive")}>{p.active?"Active":"Inactive"}</span></td><td><button className="btn btn-ghost" onClick={()=>openPanel(p)}>Edit</button></td></tr>
+          ))}</tbody>
+        </table>
+      </div>
+      <div className="muted" style={{marginTop:10}}>Showing 1–5 of 5 panels</div>
+    </div>
+  );
+}
+
+function PanelEditor({panel,section,back,isNew}){
+  const [domain,setDomain] = useState(panel.domain);
+  const seed = isNew ? [] : (panel.name==="Complete Blood Count" ? CBC_TESTS : CBC_TESTS.slice(0, Math.max(2,Math.min(panel.tests,CBC_TESTS.length)))).map(t=>({...t}));
+  const [tests,setTests] = useState(seed);
+  const [active,setActive] = useState(panel.active);
+  const addTest = (m) => setTests(l => { if(l.some(x=>x.code===m.code)) return l; if(isNew && l.length===0) setActive(true); return [...l,m]; });
+  const removeTest = (code) => setTests(l => l.filter(x=>x.code!==code));
+  const dn = domain[0]+domain.slice(1).toLowerCase();
+  const canActivate = tests.length>0;
+  const derived = isNew ? [] : panel.derived;
+  return (
+    <div>
+      <EditorHeader name={isNew?"Untitled panel":panel.name} badge="PANEL" badgeClass="ent-panel" back={back} subtitle={(panel.loinc?"LOINC "+panel.loinc+" · ":"")+dn+" · "+(active?"Active":"Inactive")} />
+      <h2 className="sec" style={{marginTop:8}}>{section}</h2>
+      {section==="Basic Info" && (
+        <div className="formgrid" style={{marginTop:12}}>
+          <div className="full"><span className="lab">Panel name <span className="req">*</span></span><input className="inp" style={{maxWidth:360}} defaultValue={isNew?"":panel.name} placeholder={isNew?"e.g. Anemia Workup":""}/></div>
+          <div className="full"><span className="lab">Domain <span className="req">*</span></span>
+            <div style={{marginTop:6}}><label className="radio"><input type="radio" checked={domain==="CLINICAL"} onChange={()=>setDomain("CLINICAL")}/> Clinical</label>
+              <label className="radio dis"><input type="radio" disabled/> Environmental</label><label className="radio dis"><input type="radio" disabled/> Vector</label></div></div>
+          <div className="full"><span className="lab">Sample Types</span><div className="derived" style={{marginTop:6}}>{derived.length? derived.join(", ") : "—"}</div></div>
+          <div className="full"><span className="lab">Description</span><textarea className="inp" rows="2"></textarea></div>
+          <div className="full"><span className="lab">Active</span>
+            <div style={{marginTop:6}}><label className={"radio"+(canActivate?"":" dis")}><input type="checkbox" checked={active} disabled={!canActivate} onChange={e=>setActive(e.target.checked)}/> Panel is active</label></div>
+            {!canActivate && <div className="muted" style={{marginTop:4}}>Add at least one test before this panel can be activated.</div>}</div>
+        </div>
+      )}
+      {section==="Tests" && <PanelTests tests={tests} onAdd={addTest} onRemove={removeTest} />}
+      {section==="Terminology" && <TerminologyMapper seed={[{source:"LOINC",code:panel.loinc||"",rel:"Same as"},{source:"SNOMED CT",code:"26604007",rel:"Same as"}]} />}
+      {section==="Vector Config" && <div style={{marginTop:12}}></div>}
+    </div>
+  );
+}
+
+function PanelTests({tests,onAdd,onRemove}){
+  return (
+    <div style={{marginTop:12}}>
+      <div className="row" style={{marginBottom:10}}><span><b>{tests.length}</b> tests</span></div>
+      <AddTestSearch onAdd={onAdd} taken={tests.map(x=>x.code)} />
+      <div className="cds--data-table-container" style={{marginTop:12}}>
+        <table className="cds--data-table cds--data-table--md" style={{width:"100%"}}>
+          <thead><tr><th style={{width:34}}></th><th style={{width:64}}>Order</th><th>Test Name</th><th>Code</th><th style={{width:80}}>Actions</th></tr></thead>
+          <tbody>{tests.length===0 ? (<tr><td colSpan="5" className="muted" style={{padding:14}}>No tests yet — search above to add the first one.</td></tr>) : tests.map((t,i)=>(
+            <tr key={t.code}><td className="grip">≡</td><td><input className="inp" style={{width:42,padding:"4px 6px"}} value={i+1} readOnly/></td><td>{t.name}</td><td style={{fontFamily:"monospace"}}>{t.code}</td><td><button className="btn btn-danger-ghost" onClick={()=>onRemove(t.code)}>Remove</button></td></tr>
+          ))}</tbody>
+        </table>
+      </div>
+      <div style={{marginTop:16}}><button className="btn btn-primary">Save</button></div>
+    </div>
+  );
+}
+
+/* ---------- TESTS ---------- */
+/* FR-46..51 grouped list · FR-61..64 integrated health */
+function TestsList({openTest,openNew,openVariant,openGroupEdit}){
+  const [data,setData] = useState(TEST_GROUPS);                  // linking mutates state — live demo
+  const [view,setView] = useState("grouped");                    // FR-50
+  const [issuesOnly,setIssuesOnly] = useState(false);            // FR-61
+  const [banner,setBanner] = useState(true);
+  const [open,setOpen] = useState({ "Glucose":true, "Hemoglobin":true });
+  const [sel,setSel] = useState({});                             // FR-51: row selection for Link as variants
+  const [confirmLink,setConfirmLink] = useState(false);
+  const issueCount = data.flatMap(g=>g.variants).filter(v=>v.findings.length).length;
+  const groups = data.map(g=>({...g, variants:g.variants.filter(v=>!issuesOnly||v.findings.length)})).filter(g=>g.variants.length);
+  const selIds = Object.keys(sel).filter(k=>sel[k]).map(Number);
+  const selTests = data.flatMap(g=>g.variants).filter(v=>selIds.includes(v.id));
+  const doLink = () => {                                          // writes the variant-link record — no name/code side effects
+    setData(d=>d.map(g=> g.variants.some(v=>selIds.includes(v.id)) ? {...g, linked:true} : g));
+    setSel({}); setConfirmLink(false);
+  };
+  return (
+    <div>
+      <div className="crumbs">Home / Admin / Test Catalog Management / <b>Tests</b></div>
+      <div className="row" style={{marginBottom:10}}><h2 className="sec">Tests</h2><div className="spacer"></div>
+        <div className="seg"><button className={view==="grouped"?"on":""} onClick={()=>setView("grouped")}>Grouped</button><button className={view==="flat"?"on":""} onClick={()=>setView("flat")}>Flat</button></div>
+        <button className="btn btn-primary" onClick={openNew}>＋ New Test</button></div>
+      {banner && issueCount>0 && (
+        <div className="notice n-warn row"><span><b>{issueCount} tests</b> have configuration issues</span>
+          <button className="btn btn-ghost" onClick={()=>setIssuesOnly(true)}>Show</button><div className="spacer"></div>
+          <button className="chev2" onClick={()=>setBanner(false)}>✕</button></div>
+      )}
+      {selIds.length>=2 && !confirmLink && (
+        <div className="notice n-info row"><span><b>{selIds.length} tests selected</b></span>
+          <button className="btn btn-tertiary" onClick={()=>setConfirmLink(true)}>Link as variants</button>
+          <button className="btn btn-ghost" onClick={()=>setSel({})}>Clear</button></div>
+      )}
+      {confirmLink && (
+        <div className="notice n-info">
+          <b>Link these {selIds.length} tests as specimen variants of one assay?</b> They will group together in the list.
+          Names and codes are <b>not</b> changed — this only records membership, and it can be unlinked.
+          <ul style={{margin:"8px 0"}}>{selTests.map(v=><li key={v.id}>{v.name} <span style={{fontFamily:"monospace",color:"#6f6f6f"}}>{v.code}</span></li>)}</ul>
+          <button className="btn btn-primary" onClick={doLink}>Link variants</button>
+          <button className="btn btn-ghost" onClick={()=>setConfirmLink(false)}>Cancel</button>
+        </div>
+      )}
+      <div className="filterbar">
+        <div className="field"><label>Search</label><input placeholder="name / code"/></div>
+        <div className="field"><label>Domain</label><select><option>All domains</option><option>Clinical</option><option>Environmental</option><option>Vector</option></select></div>
+        <div className="field"><label>Sample Type</label><select><option>All</option><option>Serum</option><option>Plasma (EDTA)</option><option>Urine</option></select></div>
+        <div className="field"><label>Status</label><select><option>All</option><option>Active</option><option>Inactive</option></select></div>
+        <div className="field"><label>&nbsp;</label><label className="radio" style={{fontSize:13}}><input type="checkbox" checked={issuesOnly} onChange={e=>setIssuesOnly(e.target.checked)}/> <span style={{color:"#8e6a00",fontWeight:700}}>!</span> Only tests with issues</label></div>
+      </div>
+      <div className="cds--data-table-container">
+        <table className="cds--data-table cds--data-table--md" style={{width:"100%"}}>
+          <thead><tr><th style={{width:26}}></th><th>Test Name</th><th>Code</th><th>Sample Type</th><th>Domain</th><th>Status</th><th style={{width:230}}>Actions</th></tr></thead>
+          <tbody>{groups.map(g=>{
+            /* FR-46: a group row exists ONLY where a variant-link record exists. No name matching,
+               no suggestions — ungrouped tests are plain rows until an admin selects + links them. */
+            const isGrouped = view==="grouped" && g.linked && g.variants.length>1;
+            const isOpen = !isGrouped || !!open[g.assay];
+            const act = g.variants.filter(v=>v.active).length;
+            return (<React.Fragment key={g.assay}>
+              {isGrouped && (
+                <tr className="grp">
+                  <td><button className="chev2" onClick={()=>setOpen(o=>({...o,[g.assay]:!isOpen}))}>{isOpen?"▾":"▸"}</button></td>
+                  <td>{g.assay} <span style={{fontWeight:400,color:"#6f6f6f"}}>· {g.variants.length} specimen variants</span></td>
+                  <td></td>
+                  <td style={{fontWeight:400}}>{g.variants.map(v=>v.sample.split(" ")[0]).join(", ")}</td>
+                  <td>{domTag(g.domain)}</td>
+                  <td style={{fontWeight:400}}>{act} Active · {g.variants.length-act} Inactive</td>
+                  <td>
+                    <button className="btn btn-ghost" onClick={()=>openGroupEdit(g)} title="Combined editor — shared fields unlocked, identity per test read-only">Edit together</button>
+                    <button className="btn btn-ghost" onClick={()=>openVariant(g, g.variants.filter(v=>v.active).slice(-1)[0]?.id)} title="Copy source defaults to the most recently updated active variant — changeable in the form">＋ Variant</button>
+                  </td>
+                </tr>
+              )}
+              {isOpen && g.variants.map(v=>(
+                <tr key={v.id}>
+                  <td>{!(g.linked && g.variants.length>1) &&
+                    <input type="checkbox" checked={!!sel[v.id]} onChange={e=>setSel(s=>({...s,[v.id]:e.target.checked}))} title="Select to link as variants"/>}</td>
+                  <td className={isGrouped ? "vind" : ""}>
+                    <a className="rowlink" onClick={()=>openTest(v)}>{v.name}</a>{" "}
+                    {v.findings.map(f=><span key={f} className={"tag "+FINDINGS[f].cls} title={FINDINGS[f].label}>{FINDINGS[f].label}</span>)}
+                  </td>
+                  <td style={{fontFamily:"monospace"}}>{v.code}</td>
+                  <td>{v.sample}</td>
+                  <td>{domTag(g.domain)}</td>
+                  <td><span className={"tag "+(v.active?"t-active":"t-inactive")}>{v.active?"Active":"Inactive"}</span></td>
+                  <td><button className="btn btn-ghost" onClick={()=>openTest(v)}>Edit</button>
+                    <button className="btn btn-ghost" onClick={()=>openVariant(g, v.id)} title="Copies from this variant; creating a variant links the group automatically">＋ Variant</button></td>
+                </tr>
+              ))}
+            </React.Fragment>);
+          })}</tbody>
+        </table>
+      </div>
+      <div className="muted" style={{marginTop:10}}>{view==="grouped" ? "Showing 5 of 178 assay groups (412 tests)" : "Showing 1–9 of 412 tests"}</div>
+    </div>
+  );
+}
+
+function TestEditorContent({rec,section,back}){
+  if (rec.isNew) return <NewTestEditor rec={rec} back={back} />;
+  return (
+    <div>
+      <EditorHeader name={rec.name} badge="TEST" badgeClass="ent-test" back={back} subtitle={"Clinical · "+(rec.sample||"")+" · "+(rec.active?"Active":"Inactive")} />
+      <h2 className="sec" style={{marginTop:8}}>{section}</h2>
+      {section==="Panels" ? <TestPanels/> : <div style={{marginTop:12}}></div>}
+    </div>
+  );
+}
+
+/* Group C combined editor (launched from a group header) — shared fields unlocked,
+   per-test identity strictly read-only (FR-51 / FR-54a). */
+function GroupEditor({g,back}){
+  const [method,setMethod] = useState("Hexokinase, enzymatic");         // same across all → edit once, write to all
+  const [storage,setStorage] = useState("Refrigerated 2–8°C, 7 days");  // same across all
+  const [guidance,setGuidance] = useState(null);                       // differs across tests → "Set all to…"
+  const perTestGuidance = { 1042:"Fasting sample preferred", 1043:"Fasting sample preferred", 1044:"Note collection time on requisition" };
+  return (
+    <div>
+      <div className="crumbs">Home / Admin / Test Catalog Management / Tests / <b>{g.assay} — {g.variants.length} variants</b></div>
+      <div className="row"><button className="btn btn-ghost" onClick={back}>← Back to list</button>
+        <h2 className="sec" style={{marginLeft:6}}>Edit variants together — {g.assay}</h2><span className="ent ent-test">{g.variants.length} TESTS</span>
+        <div className="spacer"></div><button className="btn btn-ghost" onClick={back}>Cancel</button><button className="btn btn-primary">Save to all {g.variants.length}</button></div>
+      <p className="subtitle">Shared settings are edited once and written to every variant. Identity is per test and read-only here.</p>
+
+      <span className="lab" style={{marginTop:10}}>Identity — per test (read-only)</span>
+      <div className="cds--data-table-container" style={{maxWidth:760}}>
+        <table className="cds--data-table cds--data-table--md" style={{width:"100%"}}>
+          <thead><tr><th>Test</th><th>Code</th><th>Specimen</th><th>LOINC</th><th>Status</th></tr></thead>
+          <tbody>{g.variants.map(v=>(
+            <tr key={v.id}><td>{v.name}</td><td style={{fontFamily:"monospace"}}>{v.code}</td><td>{v.sample}</td>
+              <td style={{fontFamily:"monospace"}}>{v.loinc||"—"}</td><td><span className={"tag "+(v.active?"t-active":"t-inactive")}>{v.active?"Active":"Inactive"}</span></td></tr>
+          ))}</tbody>
+        </table>
+      </div>
+
+      <div style={{marginTop:18, maxWidth:640}}>
+        <span className="lab">Shared settings — one edit writes to all {g.variants.length} tests</span>
+        <div className="formgrid" style={{marginTop:8}}>
+          <div><span className="lab">Method</span>
+            <select className="inp" value={method} onChange={e=>setMethod(e.target.value)}>
+              <option>Hexokinase, enzymatic</option><option>Glucose oxidase</option><option>POCT meter</option></select>
+            <div className="muted" style={{marginTop:4}}>Same value on all {g.variants.length} tests</div></div>
+          <div><span className="lab">Storage &amp; stability</span>
+            <input className="inp" value={storage} onChange={e=>setStorage(e.target.value)}/>
+            <div className="muted" style={{marginTop:4}}>Same value on all {g.variants.length} tests</div></div>
+          <div className="full"><span className="lab">Sample &amp; Results guidance <span className="tag t-warn">Differs across tests</span></span>
+            {guidance===null ? (
+              <div>
+                <ul style={{margin:"6px 0", fontSize:13}}>{g.variants.map(v=>(
+                  <li key={v.id}><b>{v.sample}:</b> {perTestGuidance[v.id]||"—"}</li>))}</ul>
+                <button className="btn btn-tertiary" onClick={()=>setGuidance("")}>Set all to…</button>
+              </div>
+            ) : (
+              <div>
+                <input className="inp" autoFocus value={guidance} onChange={e=>setGuidance(e.target.value)} placeholder="New guidance for all variants"/>
+                <div className="row" style={{marginTop:6}}>
+                  <span className="muted">Will overwrite all {g.variants.length} values on Save</span>
+                  <button className="btn btn-ghost" onClick={()=>setGuidance(null)}>Keep per-test values</button></div>
+              </div>
+            )}</div>
+        </div>
+
+        <div style={{marginTop:14}}><span className="lab">Reference ranges</span>
+          <div className="notice n-warn" style={{marginTop:4}}>
+            <b>Ranges are specimen-dependent.</b> This selection spans {g.variants.length} specimen types —
+            "set all" edits here are usually wrong. Review and edit ranges per variant in each test's Ranges section.
+          </div>
+          <ul style={{margin:"6px 0", fontSize:13}}>{g.variants.map(v=>(
+            <li key={v.id}><b>{v.sample}:</b> {v.id===1044 ? "40–70 mg/dL (CSF)" : "74–106 mg/dL"} <a className="rowlink" style={{fontSize:12}}>Open ranges</a></li>))}</ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* FR-54: sample type is a typeahead ComboBox (D-007), not a plain select */
+function SpecimenTypeahead({value,onPick,options,helper}){
+  const [q,setQ] = useState("");
+  const [openTa,setOpenTa] = useState(false);
+  const ql = q.trim().toLowerCase();
+  const matches = options.filter(s=>!ql || s.toLowerCase().includes(ql));
+  return (
+    <div className="ta-wrap">
+      <input className="inp" placeholder="Type to search specimens…"
+        value={openTa ? q : (value||"")}
+        onFocus={()=>{setOpenTa(true); setQ("");}}
+        onBlur={()=>setTimeout(()=>setOpenTa(false),150)}
+        onChange={e=>setQ(e.target.value)} />
+      {openTa && matches.length>0 && <div className="ta-menu">{matches.map(s=>(
+        <div key={s} className="ta-opt" onMouseDown={()=>{onPick(s); setOpenTa(false);}}>{s}</div>
+      ))}</div>}
+      {helper && <div className="muted" style={{marginTop:4}}>{helper}</div>}
+    </div>
+  );
+}
+
+/* FR-52..59 — create / add-variant with pre-seeded primary component + activation gate */
+function NewTestEditor({rec,back}){
+  const g = rec.variantOf;
+  const isVariant = !!g;
+  const source = isVariant ? (g.variants.find(v=>v.id===rec.sourceId) || g.variants[0]) : null;
+  const [srcId,setSrcId] = useState(source ? source.id : null);
+  const src = isVariant ? g.variants.find(v=>v.id===srcId) : null;
+  const used = isVariant ? g.variants.map(v=>v.sample) : [];
+  const [name,setName] = useState(isVariant ? g.assay : "");
+  const [specimen,setSpecimen] = useState("");
+  /* FR-56: variant create copies the source's components whole — primary arrives complete */
+  const [compLabel,setCompLabel] = useState(isVariant ? g.assay : "");
+  const [resultType,setResultType] = useState(isVariant ? "N" : "");
+  const [code,setCode] = useState("");
+  const [codeEdited,setCodeEdited] = useState(false);
+  const [tried,setTried] = useState(false);
+  const SPECS = ["Serum","Plasma (EDTA)","Whole Blood (EDTA)","Urine","Cerebrospinal Fluid","Water"].filter(s=>!used.includes(s));
+  /* FR-54: shipped derive-from-name rule ("Amylase" + Serum → Amylase-Serum); re-derives until edited */
+  const SPEC_SHORT = {"Serum":"Serum","Plasma (EDTA)":"Plasma","Whole Blood (EDTA)":"WholeBlood","Urine":"Urine","Cerebrospinal Fluid":"CSF","Water":"Water"};
+  const suggestedCode = (name.trim() && specimen) ? name.trim().replace(/\s+/g,"") + "-" + SPEC_SHORT[specimen] : "";
+  const codeValue = codeEdited ? code : suggestedCode;
+  const pickSpecimen = (s) => { setSpecimen(s); };
+  const structural = [                                            // FR-57
+    { label:"Test name", met:name.trim().length>0 },
+    { label:"Primary component with a result type", met:compLabel.trim().length>0 && !!resultType },
+    { label:"Sample type selected", met:!!specimen },
+  ];
+  const advisory = [                                              // FR-58
+    { label:"LOINC assigned (Terminology)", met:false },
+    { label:isVariant?"Copied ranges reviewed":"Reference-range coverage", met:false },
+  ];
+  const canActivate = structural.every(c=>c.met);
+  return (
+    <div>
+      <div className="crumbs">Home / Admin / Test Catalog Management / Tests / <b>{isVariant?("New variant — "+g.assay):"New test"}</b></div>
+      <div className="row"><button className="btn btn-ghost" onClick={back}>← Back to list</button>
+        <h2 className="sec" style={{marginLeft:6}}>{isVariant?("Add specimen variant — "+g.assay):"Editing: New test"}</h2><span className="ent ent-test">TEST</span>
+        <div className="spacer"></div><button className="btn btn-ghost" onClick={back}>Cancel</button>
+        <button className="btn btn-tertiary">Save as Inactive</button>
+        <button className="btn btn-primary" onClick={()=>setTried(true)}>Save &amp; Activate</button></div>
+      {isVariant && (
+        <div className="notice n-info">
+          <b>Copying from {src ? src.name : "…"}.</b> Components, methods, storage, domain, Lab Unit, and flags carry over. Ranges copy as <b>drafts</b> —
+          saving the Ranges section (or pressing "Mark ranges reviewed" there) confirms them for the new specimen.
+          Panels, analyzer mappings, reflex rules, alerts, and <b>terminology (incl. LOINC — specimen-specific)</b> are <i>not</i> copied; add codes in the Terminology section.
+          <div className="row" style={{marginTop:8}}>
+            <div className="field"><label>Copy from</label>
+              <select value={srcId||""} onChange={e=>setSrcId(Number(e.target.value))}>
+                {g.variants.map(v=><option key={v.id} value={v.id}>{v.name} — {v.sample}</option>)}
+              </select></div>
+          </div>
+        </div>
+      )}
+      <div style={{display:"flex", gap:20, marginTop:12, alignItems:"flex-start"}}>
+        <div style={{flex:1, maxWidth:640}}>
+          <div className="formgrid">
+            {/* FR-54a: non-editable fields render as static text, never disabled inputs */}
+            {isVariant ? (
+              <div className="full"><span className="lab">Test name</span>
+                <div style={{fontSize:16, padding:"6px 0"}}>{name} <span className="tag t-info">Shared across {g.variants.length} variants</span></div>
+                <div className="muted">Renamed only via "Edit variants together" — changes apply to the whole assay group</div></div>
+            ) : (
+              <div className="full"><span className="lab">Test name <span className="req">*</span></span>
+                <input className="inp" style={{maxWidth:360}} value={name} onChange={e=>setName(e.target.value)}/></div>
+            )}
+            <div><span className="lab">Code <span className="req">*</span></span>
+              <input className="inp" value={codeValue} onChange={e=>{setCode(e.target.value); setCodeEdited(true);}}/>
+              <div className="muted" style={{marginTop:4}}>{codeEdited ? "Manual — no longer auto-derived" : "Suggested from the test name and specimen — edit to override"}</div></div>
+            <div><span className="lab">Sample type <span className="req">*</span></span>
+              <SpecimenTypeahead value={specimen} onPick={pickSpecimen} options={SPECS}
+                helper={isVariant ? "Already in this group: "+used.join(", ") : "One specimen per test — part of the test's identity"} /></div>
+            {isVariant ? (
+              <div><span className="lab">Domain</span>
+                <div style={{padding:"6px 0"}}>{domTag(g.domain)}</div>
+                <div className="muted">Inherited from {g.assay} — all variants share a domain</div></div>
+            ) : (
+              <div><span className="lab">Domain <span className="req">*</span></span>
+                <div style={{marginTop:6}}><label className="radio"><input type="radio" defaultChecked/> Clinical</label>
+                  <label className="radio"><input type="radio"/> Environmental</label><label className="radio"><input type="radio"/> Vector</label></div></div>
+            )}
+            <div><span className="lab">Lab Unit <span className="req">*</span></span>
+              <select className="inp" defaultValue={isVariant ? "Chemistry" : ""}>
+                <option value=""></option><option>Chemistry</option><option>Hematology</option><option>Microbiology</option><option>Serology</option></select>
+              {isVariant && <div className="muted" style={{marginTop:4}}>Copied from source — change if this specimen runs in a different unit</div>}</div>
+          </div>
+          <div style={{marginTop:16}}><span className="lab">Result components</span>
+            <div className="primarybox">
+              <span className="tag t-clin">Primary component</span>{isVariant && <span className="tag t-info" title="Copied whole from the source — result type, unit, and defaults intact. Edit freely.">Copied</span>}
+              <div className="formgrid" style={{marginTop:10}}>
+                <div><span className="lab">Label</span><input className="inp" value={compLabel} onChange={e=>setCompLabel(e.target.value)}/></div>
+                <div><span className="lab">Result type <span className="req">*</span></span>
+                  <select className="inp" value={resultType} onChange={e=>setResultType(e.target.value)} style={tried&&!resultType?{outline:"2px solid #da1e28"}:{}}>
+                    <option value=""></option><option value="N">Numeric</option><option value="A">Alphanumeric</option><option value="D">Dictionary (select list)</option></select>
+                  {tried&&!resultType && <div style={{color:"#da1e28",fontSize:12,marginTop:4}}>Required to activate</div>}</div>
+                {isVariant && <div><span className="lab">Unit</span><input className="inp" defaultValue="mg/dL"/></div>}
+              </div>
+            </div>
+            <button className="btn btn-tertiary">＋ Add component</button>
+            <div className="muted" style={{marginTop:6}}>{isVariant
+              ? "Components copied from the source — the primary arrives complete, so the activation gate is already satisfied. (FR-56)"
+              : "The first component is created for you and marked Primary — no ＋ needed. (FR-56)"}</div>
+          </div>
+        </div>
+        <div className="rail" style={{width:280}}>
+          <b style={{fontSize:14}}>Completeness</b>
+          <h6>Required to activate</h6>
+          {structural.map(c=><div key={c.label} className="chk"><span className={c.met?"c-ok":"c-todo"}>{c.met?"✓":"○"}</span><a>{c.label}</a></div>)}
+          <h6>Advisory</h6>
+          {advisory.map(c=><div key={c.label} className="chk"><span className={c.met?"c-ok":"c-warn"}>{c.met?"✓":"▲"}</span><a>{c.label}</a></div>)}
+          {tried && !canActivate && (
+            <div className="notice n-err" style={{marginTop:12}}><b>This test can't be activated yet.</b><br/>
+              {structural.filter(c=>!c.met).map(c=>c.label).join(" · ")}</div>
+          )}
+          {tried && canActivate && (
+            <div className="notice n-ok" style={{marginTop:12}}><b>Structural minimum met.</b> Advisory items remain open — they warn, never block.</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+function TestPanels(){
+  const [showCreate,setShowCreate] = useState(false); const [name,setName] = useState("");
+  const [members,setMembers] = useState([{panel:"Complete Blood Count", pos:3}]);
+  return (
+    <div style={{marginTop:12, maxWidth:820}}>
+      <span className="lab">Add this test to a panel</span>
+      <select className="inp" style={{maxWidth:340}} defaultValue="" onChange={(e)=>{ if(e.target.value){setMembers(m=>[...m,{panel:e.target.value,pos:null}]); e.target.value="";} }}><option value="">Search panels…</option><option>Basic Metabolic Panel</option><option>Lipid Panel</option></select>
+      <div className="cds--data-table-container" style={{marginTop:14}}>
+        <table className="cds--data-table cds--data-table--md" style={{width:"100%"}}>
+          <thead><tr><th>Panel</th><th style={{width:100}}>Position</th><th style={{width:200}}>Actions</th></tr></thead>
+          <tbody>{members.map((m,i)=>(<tr key={i}><td>{m.panel}</td><td><input className="inp" style={{width:54,padding:"4px 6px"}} defaultValue={m.pos==null?"":m.pos} placeholder="—"/></td><td><button className="btn btn-ghost">▲</button><button className="btn btn-ghost">▼</button><button className="btn btn-ghost">View order</button><button className="btn btn-danger-ghost" onClick={()=>setMembers(ms=>ms.filter((_,j)=>j!==i))}>Remove</button></td></tr>))}</tbody>
+        </table>
+      </div>
+      <div style={{marginTop:16}}>{!showCreate ? <button className="btn btn-tertiary" onClick={()=>setShowCreate(true)}>＋ Create new panel</button> : (
+        <div style={{border:"1px solid #e0e0e0",padding:14,maxWidth:520}}><span className="lab">New panel name <span className="req">*</span></span><input className="inp" value={name} onChange={(e)=>setName(e.target.value)} autoFocus/>
+          <div className="row" style={{marginTop:10}}><button className="btn btn-primary" disabled={!name.trim()} onClick={()=>{ if(name.trim()){setMembers(m=>[...m,{panel:name.trim(),pos:null}]); setName(""); setShowCreate(false);} }}>Create &amp; add</button><button className="btn btn-ghost" onClick={()=>{setShowCreate(false);setName("");}}>Cancel</button></div></div>
+      )}</div>
+      <div style={{marginTop:18}}><button className="btn btn-primary">Save</button></div>
+    </div>
+  );
+}
+
+/* ---------- SAMPLE TYPES ---------- */
+function SampleTypesList({openSample}){
+  return (
+    <div>
+      <div className="crumbs">Home / Admin / Test Catalog Management / <b>Sample Types</b></div>
+      <div className="row" style={{marginBottom:10}}><h2 className="sec">Sample Types</h2><div className="spacer"></div><button className="btn btn-primary">＋ Add Sample Type</button></div>
+      <div className="filterbar"><div className="field"><label>Search</label><input placeholder="name"/></div><div className="field"><label>Domain</label><select><option>All domains</option><option>Clinical</option><option>Environmental</option><option>Vector</option></select></div><div className="field"><label>Status</label><select><option>All</option><option>Active</option><option>Inactive</option></select></div></div>
+      <div className="cds--data-table-container">
+        <table className="cds--data-table cds--data-table--md" style={{width:"100%"}}>
+          <thead><tr><th>Name</th><th>Abbreviation</th><th>Domain</th><th>Tests</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>{SAMPLETYPES.map(s=>(
+            <tr key={s.id}><td><a className="rowlink" onClick={()=>openSample(s)}>{s.name}</a></td><td style={{fontFamily:"monospace"}}>{s.abbr}</td><td>{domTag(s.domain)}</td><td>{s.tests}</td><td><span className={"tag "+(s.active?"t-active":"t-inactive")}>{s.active?"Active":"Inactive"}</span></td><td><button className="btn btn-ghost" onClick={()=>openSample(s)}>Edit</button></td></tr>
+          ))}</tbody>
+        </table>
+      </div>
+      <div className="muted" style={{marginTop:10}}>Showing 1–6 of 6 sample types</div>
+    </div>
+  );
+}
+
+function SampleTypeEditor({st,section,back}){
+  const [domain,setDomain] = useState(st.domain);
+  const [tests,setTests] = useState(ADDABLE.slice(0,4).map(t=>({...t})));
+  const dn = domain[0]+domain.slice(1).toLowerCase();
+  return (
+    <div>
+      <EditorHeader name={st.name} badge="SAMPLE TYPE" badgeClass="ent-sample" back={back} subtitle={st.abbr+" · "+dn+" · "+(st.active?"Active":"Inactive")} />
+      <h2 className="sec" style={{marginTop:8}}>{section}</h2>
+
+      {section==="Basic Info" && (
+        <div className="formgrid" style={{marginTop:12}}>
+          <div><span className="lab">Name <span className="req">*</span></span><input className="inp" defaultValue={st.name}/></div>
+          <div><span className="lab">Local abbreviation</span><input className="inp" defaultValue={st.abbr}/></div>
+          <div className="full"><span className="lab">Domain <span className="req">*</span></span>
+            <div style={{marginTop:6}}><label className="radio"><input type="radio" checked={domain==="CLINICAL"} onChange={()=>setDomain("CLINICAL")}/> Clinical</label>
+              <label className="radio dis"><input type="radio" disabled/> Environmental</label><label className="radio dis"><input type="radio" disabled/> Vector</label></div></div>
+          <div><span className="lab">Active</span><div style={{marginTop:6}}><label className="radio"><input type="checkbox" defaultChecked={st.active}/> Available in order entry</label></div></div>
+        </div>
+      )}
+
+      {section==="Associated Tests" && (
+        <div style={{marginTop:12}}>
+          <div className="row" style={{marginBottom:10}}><span><b>{tests.length}</b> tests use this sample type</span></div>
+          <div className="notice n-info" style={{maxWidth:720}}>
+            <b>View only.</b> A test's specimen is part of its identity — adding a test to this sample type means
+            creating a <b>specimen variant</b> in the Test Catalog (＋ Variant on the test or its assay group).
+          </div>
+          <div className="cds--data-table-container" style={{marginTop:12, maxWidth:720}}>
+            <table className="cds--data-table cds--data-table--md" style={{width:"100%"}}>
+              <thead><tr><th>Test Name</th><th>Code</th><th style={{width:160}}></th></tr></thead>
+              <tbody>{tests.map(t=>(<tr key={t.code}><td>{t.name}</td><td style={{fontFamily:"monospace"}}>{t.code}</td><td><a className="rowlink" style={{fontSize:13}}>Open in Test Catalog</a></td></tr>))}</tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {section==="Display Order" && <SampleDisplayOrder current={st} />}
+
+      {section==="Disposal" && (
+        <div style={{marginTop:12, maxWidth:720}}>
+          <div><span className="lab">Disposal instructions</span><textarea className="inp" rows="3" placeholder="e.g. Autoclave before disposal via biohazard waste"></textarea></div>
+          <div style={{marginTop:16}}><button className="btn btn-primary">Save</button></div>
+        </div>
+      )}
+
+      {section==="Terminology" && <TerminologyMapper seed={[{source:"SNOMED CT",code:"119364003",rel:"Same as"},{source:"WHONET",code:"bl",rel:"Same as"}]} />}
+    </div>
+  );
+}
+
+function SampleDisplayOrder({current}){
+  return (
+    <div style={{marginTop:12, maxWidth:520}}>
+      <span className="lab">Position in the Sample Type menu</span>
+      <input className="inp" type="number" defaultValue={SAMPLETYPES.findIndex(s=>s.id===current.id)+1} style={{maxWidth:100}}/>
+      <div className="cds--data-table-container" style={{marginTop:12}}>
+        <table className="cds--data-table cds--data-table--md" style={{width:"100%"}}>
+          <thead><tr><th style={{width:34}}></th><th style={{width:56}}>#</th><th>Sample Type</th></tr></thead>
+          <tbody>{SAMPLETYPES.map((s,i)=>(
+            <tr key={s.id} style={{background:s.id===current.id?'#edf5ff':'#fff'}}><td className="grip">≡</td><td>{i+1}</td><td style={{fontWeight:s.id===current.id?600:400}}>{s.name}{s.id===current.id?"  ← this type":""}</td></tr>
+          ))}</tbody>
+        </table>
+      </div>
+      <div style={{marginTop:16}}><button className="btn btn-primary">Save</button></div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
