@@ -1148,3 +1148,34 @@ describe('journey stepper', () => {
     expect(screen.getByText(/STEP 2 OF/)).toBeInTheDocument();
   });
 });
+
+// ═══════════════════════════════════════════════════════════════
+// Carbon preview styles — lazy stylesheet injection (JsxMockupPreview)
+// ═══════════════════════════════════════════════════════════════
+
+describe('JsxMockupPreview Carbon stylesheet injection', () => {
+  beforeEach(() => {
+    window.location.hash = '';
+    document.head.querySelectorAll('link[data-carbon-preview]').forEach(l => l.remove());
+  });
+
+  it('injects the Carbon stylesheet when a Carbon JSX mockup mounts', async () => {
+    // Lab Units Management is a Carbon (@carbon/react) mockup with no htmlUrl,
+    // so it renders through JsxMockupPreview.
+    window.location.hash = '#/admin-config/lab-units-management';
+    render(<App />);
+    await waitFor(() => {
+      expect(document.head.querySelector('link[data-carbon-preview]')).toBeTruthy();
+    }, { timeout: 10000 });
+  }, 15000);
+
+  it('does not inject the Carbon stylesheet for entries with an HTML preview', async () => {
+    // Panel Management now has an htmlUrl, so it renders via iframe — no Carbon CSS needed.
+    window.location.hash = '#/admin-config/panel-management';
+    render(<App />);
+    await waitFor(() => {
+      expect(document.querySelector('iframe[title="Panel Management"]')).toBeTruthy();
+    }, { timeout: 10000 });
+    expect(document.head.querySelector('link[data-carbon-preview]')).toBeFalsy();
+  }, 15000);
+});
