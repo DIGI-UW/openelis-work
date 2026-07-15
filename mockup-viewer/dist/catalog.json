@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "generated": "2026-07-14T15:18:41.215Z",
+=======
+  "generated": "2026-07-15T04:05:54.327Z",
+>>>>>>> origin/main
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
   "totalDesigns": 202,
   "categories": [
@@ -1007,16 +1011,18 @@
       "name": "Sample Type Management",
       "slug": "sample-type-management",
       "category": "admin-config",
-      "description": "Centralized Sample Type Management module (OGC-296) — unified admin interface replacing fragmented sample type configuration. List view with search, filtering, and bulk actions. 5-tab editor: Basic Info, Display Order (drag-and-drop), Associated Tests (bidirectional), Storage & Disposal, and WHONET Mapping. Maps specimen types to WHONET codes for AMR surveillance exports. Route: /admin/sample-type-management.",
+      "description": "Sample Type Management (OGC-296) — v2.1. Managed as a context in the Test Catalog Management shell (peer of Tests/Panels) with SideNav sections rather than a standalone 5-tab page. Sections: Basic Info (incl. required single Clinical/Environmental/Vector domain), Associated Tests (read-only — a test\\",
       "type": "jsx",
       "added": "2026-05-14",
       "status": "draft",
       "tags": [
         "sample-type",
         "admin",
+        "test-catalog",
+        "domain",
+        "terminology",
         "WHONET",
         "AMR",
-        "storage",
         "OGC-296",
         "global"
       ],

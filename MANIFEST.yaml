@@ -51,19 +51,24 @@
   type: mockup
   path: designs/admin-config/lab-units.jsx
   category: admin-config
-  description: Laboratory units configuration
+  description: "Lab Units Management (OGC-189) — v2.0, rebased on TEST_SECTION and aligned to the Test Catalog Management shell (peer of Tests/Panels/Sample Types). No code field; Description required; domain is a declared dependency (unbuilt on develop despite OGC-361)."
   paired_with: lab-units-spec
-  links: {}
+  links:
+    jira: [OGC-189]
+    gallery: "https://digi-uw.github.io/openelis-work/#/admin-config/lab-units"
   added: "2026-03-03"
+  updated: "2026-07-15"
 
 - id: lab-units-spec
   type: spec
   path: designs/admin-config/lab-units.md
   category: admin-config
-  description: Lab units FRS
+  description: "Lab Units Management FRS v2.0 (OGC-189)."
   paired_with: lab-units
-  links: {}
+  links:
+    jira: [OGC-189]
   added: "2026-03-03"
+  updated: "2026-07-15"
 
 - id: methods
   type: mockup
@@ -106,20 +111,24 @@
   type: mockup
   path: designs/admin-config/panel.jsx
   category: admin-config
-  description: Test panel configuration
+  description: "Panel Management — Domain Upgrade (OGC-224) — v2.2. Panels context in the Test Catalog Management shell; single required domain (Clinical at launch); no code/lab-unit; sample types derived from member tests."
   paired_with: panel-spec
-  links: {}
+  links:
+    jira: [OGC-224]
+    gallery: "https://digi-uw.github.io/openelis-work/#/admin-config/panel"
   added: "2026-03-03"
+  updated: "2026-07-15"
 
 - id: panel-spec
   type: spec
   path: designs/admin-config/panel.md
   category: admin-config
-  description: Panel configuration FRS
+  description: "Panel Management — Domain Upgrade FRS v2.2 (OGC-224)."
   paired_with: panel
   links:
     jira: [OGC-173, OGC-189, OGC-214, OGC-224]
   added: "2026-03-03"
+  updated: "2026-07-15"
 
 - id: range-editor
   type: mockup
@@ -2120,7 +2129,28 @@
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-editor-completion
     preview: https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-editor-completion.html
   added: "2026-07-01"
-  updated: "2026-07-01"
+  updated: "2026-07-15"
+  superseded_by: test-catalog-completion-v2
+- id: test-catalog-completion-v2
+  type: jsx
+  path: designs/admin-config/test-catalog-completion-v2.jsx
+  spec: designs/admin-config/test-catalog-completion-v2.md
+  category: admin-config
+  description: >
+    Consolidated Test Catalog FRS v2 (FR-46–86) — the single implementing-agent
+    handoff. Part A corrects delivered gaps in the shipped unified editor (label
+    preset picker, terminology display names, LOINC integrity across sections,
+    combined shared-settings editor, activation gate on tests with no result
+    components). Part B adds Manageability: grouped catalog view treating specimen
+    variants as one assay family, create-in-place, and add-specimen-variant with a
+    completeness rail. Supersedes the test-catalog-editor-completion and
+    test-catalog-manageability work lists.
+  links:
+    jira: ["OGC-1112"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-completion-v2
+  added: "2026-07-15"
+  updated: "2026-07-15"
+  status: draft
 - id: barcode-config
   type: jsx
   path: designs/admin-config/barcode-config.jsx
@@ -2861,12 +2891,13 @@
   path: designs/admin-config/sample-type-management.jsx
   spec: designs/admin-config/sample-type-management.md
   category: admin-config
-  description: "Centralized Sample Type Management (OGC-296) — list view + 5-tab editor (Basic Info, Display Order, Associated Tests, Storage & Disposal, WHONET Mapping). Route: /admin/sample-type-management."
+  description: "Sample Type Management (OGC-296) — v2.1. Managed as a context in the Test Catalog Management shell (peer of Tests/Panels) via SideNav sections, replacing the standalone 5-tab page. Sections: Basic Info (incl. required single Clinical/Environmental/Vector domain), Associated Tests (read-only — a test's specimen is its identity, so adding a test = creating a specimen variant in the Test Catalog), Display Order, Disposal (free-text reference), and Terminology (full mapper incl. WHONET). Domain requires a declared migration from the legacy TYPE_OF_SAMPLE.DOMAIN varchar(1); SAMPLETYPE_PANEL is live in order entry (kept in sync by the backend, not surfaced here)."
   links:
     github: null
     jira: OGC-296
     gallery: "https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-management"
   added: "2026-05-14"
+  updated: "2026-07-14"
   status: draft
 
 - id: hil-specimen-quality

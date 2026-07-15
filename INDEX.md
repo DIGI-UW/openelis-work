@@ -11,14 +11,15 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Feature | Mockup | Spec |
 |---------|--------|------|
 | Data Dictionary | [data-dictionary.jsx](designs/admin-config/data-dictionary.jsx) | [data-dictionary.md](designs/admin-config/data-dictionary.md) |
-| Lab Units | [lab-units.jsx](designs/admin-config/lab-units.jsx) | [lab-units.md](designs/admin-config/lab-units.md) |
+| Lab Units Management | [lab-units.jsx](designs/admin-config/lab-units.jsx) | [lab-units.md](designs/admin-config/lab-units.md) |
 | Methods | [methods.jsx](designs/admin-config/methods.jsx) | [methods.md](designs/admin-config/methods.md) |
 | Organizations Management | [organizations-management.jsx](designs/admin-config/organizations-management.jsx) | [organizations-management.md](designs/admin-config/organizations-management.md) |
-| Panel | [panel.jsx](designs/admin-config/panel.jsx) | [panel.md](designs/admin-config/panel.md) |
+| Panel Management | [panel.jsx](designs/admin-config/panel.jsx) | [panel.md](designs/admin-config/panel.md) |
 | Range Editor | [range-editor.jsx](designs/admin-config/range-editor.jsx) | [range-editor.md](designs/admin-config/range-editor.md) |
 | Result Options | [result-options.jsx](designs/admin-config/result-options.jsx) | [result-options.md](designs/admin-config/result-options.md) |
 | Report Management | [report-management.jsx](designs/admin-config/report-management.jsx) · [preview](designs/admin-config/report-management.html) | [report-management.md](designs/admin-config/report-management.md) |
 | Test Catalog Editor — Completion & Correction | [test-catalog-editor-completion.jsx](designs/admin-config/test-catalog-editor-completion.jsx) · [preview](designs/admin-config/test-catalog-editor-completion.html) | [test-catalog-editor-completion.md](designs/admin-config/test-catalog-editor-completion.md) |
+| Test Catalog Completion v2 | [test-catalog-completion-v2.jsx](designs/admin-config/test-catalog-completion-v2.jsx) | [test-catalog-completion-v2.md](designs/admin-config/test-catalog-completion-v2.md) |
 | Test Catalog | [test-catalog.jsx](designs/admin-config/test-catalog.jsx) · [preview](designs/admin-config/test-catalog.html) | [test-catalog.md](designs/admin-config/test-catalog.md) |
 | Test Catalog — Microbiology Workflow Attribute | [preview](designs/admin-config/test-catalog-microbiology-workflow-attribute.html) | [test-catalog-microbiology-workflow-attribute.md](designs/admin-config/test-catalog-microbiology-workflow-attribute.md) |
 | RBAC Management | [rbac-ui-mockup.html](designs/rbac/rbac-ui-mockup.html) | [rbac-revamp-prd.md](designs/rbac/rbac-revamp-prd.md) |
