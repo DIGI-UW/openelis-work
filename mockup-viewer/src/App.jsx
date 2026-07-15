@@ -34,6 +34,18 @@ export const MOCKUP_REGISTRY = [
     tags: ['test-catalog', 'loinc', 'ranges', 'result-types', 'i18n', 'admin', 'configuration'],
   },
   {
+    name: 'Test Catalog Completion v2',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/test-catalog-completion-v2.jsx')),
+    description: 'Consolidated Test Catalog FRS (v2) — the single implementing-agent handoff. Part A corrects delivered gaps in the shipped unified editor (custom label presets filtered out of the picker, terminology mappings missing display names, LOINC integrity warnings siloed in one section, half the combined shared-settings editor shipped, activation allowed on tests that cannot capture a result). Part B adds Manageability: grouped catalog view treating specimen variants of an assay as one family (link/unlink, issues toggle), create-in-place, add-specimen-variant with completeness rail + activation gate. FR-46–86. Supersedes the test-catalog-editor-completion and test-catalog-manageability work lists.',
+    specPath: 'designs/admin-config/test-catalog-completion-v2.md',
+    added: '2026-07-15',
+    updated: '2026-07-15',
+    status: 'draft',
+    jira: ['OGC-1112'],
+    tags: ['test-catalog', 'manageability', 'specimen-variant', 'loinc', 'activation-gate', 'admin', 'configuration'],
+  },
+  {
     name: 'Report Management',
     category: 'admin-config',
     component: React.lazy(() => import('@designs/admin-config/report-management.jsx')),
@@ -55,13 +67,17 @@ export const MOCKUP_REGISTRY = [
     tags: ['lookup-tables', 'reference-data', 'admin', 'configuration'],
   },
   {
-    name: 'Lab Units',
+    name: 'Lab Units Management',
     category: 'admin-config',
     component: React.lazy(() => import('@designs/admin-config/lab-units.jsx')),
-    description: 'Laboratory units configuration',
+    description: 'Lab Units Management (OGC-189) — v2.0, rebased on the real TEST_SECTION data model and aligned to the Test Catalog Management shell as a peer of Tests / Panels / Sample Types. Terminology is "Lab Unit" (never "test section"); no code field (no column exists); Description is required (NOT NULL). Domain is a declared dependency — unbuilt on develop despite OGC-361 (no test_section migration exists), so the single Clinical/Environmental/Vector domain requires a migration (backfill existing rows to Clinical, OGC-936 pattern).',
     specPath: 'designs/admin-config/lab-units.md',
+    added: '2026-03-03',
+    updated: '2026-07-15',
+    status: 'draft',
     githubIssue: 2,
-    tags: ['units', 'measurement', 'admin', 'configuration'],
+    jira: ['OGC-189'],
+    tags: ['lab-units', 'test-section', 'test-catalog', 'domain', 'admin', 'configuration', 'OGC-189'],
   },
   {
     name: 'Methods',
@@ -106,13 +122,17 @@ export const MOCKUP_REGISTRY = [
     tags: ['barcode', 'labels', 'presets', 'admin', 'configuration', 'test-catalog', 'order-entry'],
   },
   {
-    name: 'Panel',
+    name: 'Panel Management',
     category: 'admin-config',
     component: React.lazy(() => import('@designs/admin-config/panel.jsx')),
-    description: 'Test panel configuration',
+    description: 'Panel Management — Domain Upgrade (OGC-224) — v2.2, aligned to the verified Test Catalog data model and Manageability decisions. Managed as a Panels context in the Test Catalog Management shell (peer of Tests / Sample Types / Lab Units). Adds a single required domain (unbuilt on develop — Dependency 1, Clinical at launch, backfill existing panels to Clinical). A panel has no code (LOINC is its identifier), no lab unit (panels span sections; scoped by domain instead), and its sample types are DERIVED from member tests (SAMPLETYPE_PANEL stays backend-synced, never surfaced).',
     specPath: 'designs/admin-config/panel.md',
+    added: '2026-03-03',
+    updated: '2026-07-15',
+    status: 'draft',
     githubIssue: 5,
-    tags: ['panels', 'test-groups', 'admin', 'configuration'],
+    jira: ['OGC-224'],
+    tags: ['panels', 'test-catalog', 'domain', 'test-groups', 'admin', 'configuration', 'OGC-224'],
   },
   {
     name: 'Range Editor',
@@ -398,13 +418,14 @@ export const MOCKUP_REGISTRY = [
     name: 'Sample Type Management',
     category: 'admin-config',
     component: React.lazy(() => import('@designs/admin-config/sample-type-management.jsx')),
-    description: 'Centralized Sample Type Management module (OGC-296) — unified admin interface replacing fragmented sample type configuration. List view with search, filtering, and bulk actions. 5-tab editor: Basic Info, Display Order (drag-and-drop), Associated Tests (bidirectional), Storage & Disposal, and WHONET Mapping. Maps specimen types to WHONET codes for AMR surveillance exports. Route: /admin/sample-type-management.',
+    description: 'Sample Type Management (OGC-296) — v2.1. Managed as a context in the Test Catalog Management shell (peer of Tests/Panels) with SideNav sections rather than a standalone 5-tab page. Sections: Basic Info (incl. required single Clinical/Environmental/Vector domain), Associated Tests (read-only — a test\'s specimen is its identity, so adding a test means creating a specimen variant in the Test Catalog), Display Order, Disposal (free-text reference), and Terminology (full mapper incl. WHONET for AMR surveillance exports). Grounded in the verified data model: domain needs a declared migration from the legacy TYPE_OF_SAMPLE.DOMAIN varchar(1); SAMPLETYPE_PANEL stays live in order entry.',
     specPath: 'designs/admin-config/sample-type-management.md',
     added: '2026-05-14',
+    updated: '2026-07-14',
     status: 'draft',
     githubIssue: null,
     jira: ['OGC-296'],
-    tags: ['sample-type', 'admin', 'WHONET', 'AMR', 'storage', 'OGC-296', 'global'],
+    tags: ['sample-type', 'admin', 'test-catalog', 'domain', 'terminology', 'WHONET', 'AMR', 'OGC-296', 'global'],
   },
   {
     name: 'Sample Type Domain Classification',
@@ -3817,6 +3838,9 @@ function GalleryApp() {
             const hasPreview = !!(selectedMockup.component || selectedMockup.figmaUrl || selectedMockup.htmlUrl);
             const hasSpec = !!selectedMockup.specPath;
             const hasDiscussion = !!selectedMockup.githubIssue;
+            // Walkthroughs are full-page HTML flows with their own left rail; give them
+            // near-full-viewport width + height so the rail and embedded mockup both fit.
+            const isWalkthrough = !!(selectedMockup.htmlUrl && selectedMockup.tags && selectedMockup.tags.includes('walkthrough'));
             const tabList = [];
             if (hasPreview) tabList.push('preview');
             if (hasSpec) tabList.push('spec');
@@ -3844,16 +3868,16 @@ function GalleryApp() {
                     <button style={{ ...styles.detailTab, ...styles.detailTabActive, color: t.accent, borderBottomColor: t.accent }}>{tabLabel[tabList[0]]}</button>
                   </div>
                 )}
-                <div style={{ ...styles.preview, background: t.previewBg, borderColor: t.border }}>
+                <div style={{ ...styles.preview, background: t.previewBg, borderColor: t.border, ...(isWalkthrough && activeTab === 'preview' ? styles.previewWide : {}) }}>
                   {activeTab === 'discussion' && hasDiscussion ? (
                     <CommentViewer issueNumber={selectedMockup.githubIssue} darkMode={darkMode} theme={t} designName={selectedMockup.name} />
                   ) : activeTab === 'spec' && hasSpec ? (
                     <SpecViewer specPath={selectedMockup.specPath} />
                   ) : selectedMockup.htmlUrl ? (
-                    <div style={styles.figmaEmbed}>
+                    <div style={{ ...styles.figmaEmbed, ...(isWalkthrough ? { width: '100%' } : {}) }}>
                       <iframe
                         src={import.meta.env.BASE_URL + selectedMockup.htmlUrl}
-                        style={{ ...styles.figmaIframe, height: 800, borderColor: t.border }}
+                        style={{ ...styles.figmaIframe, height: isWalkthrough ? '86vh' : 800, minHeight: isWalkthrough ? 820 : undefined, borderColor: t.border, borderRadius: isWalkthrough ? 0 : 8 }}
                         allowFullScreen
                         title={selectedMockup.name}
                       />
@@ -4036,6 +4060,8 @@ const styles = {
   link: { color: '#0f62fe', fontSize: 14, textDecoration: 'none' },
   permalinkButton: { background: '#e0e0e0', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: 12, cursor: 'pointer', color: '#393939', fontWeight: 500 },
   preview: { border: '1px solid #e0e0e0', borderRadius: 8, padding: 24, background: '#f4f4f4', minHeight: 400, overflow: 'auto' },
+  // Full-bleed wrapper for walkthrough previews: breaks out of the 1200px container to ~96vw.
+  previewWide: { padding: 0, minHeight: 820, overflow: 'hidden', borderRadius: 8, position: 'relative', left: '50%', width: '96vw', marginLeft: '-48vw' },
   loading: { textAlign: 'center', padding: 40, color: '#6f6f6f' },
   empty: { gridColumn: '1 / -1', textAlign: 'center', padding: 60, color: '#6f6f6f', fontSize: 15 },
   figmaLink: { display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1e1e1e', color: '#fff', padding: '6px 14px', borderRadius: 6, fontSize: 14, textDecoration: 'none', fontWeight: 500 },

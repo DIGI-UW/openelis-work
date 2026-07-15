@@ -32,6 +32,48 @@ drain source files to `processed/`; flag anything OPEN > 7 days.
 
 | design/multicomponent-corrections-analyzer-ingestion | https://github.com/DIGI-UW/openelis-work/compare/main...design/multicomponent-corrections-analyzer-ingestion?expand=1 | 2026-07-09 | **OPEN** (connector `create_pull_request` 403 — app lacks `pull_requests:write`; open via compare URL / CI auto-opener; auto-merge + required `test` check land it on green) | Multi-component round 2 + round 3 (epic OGC-1131 / program OGC-949). Round 2 update-in-place (slugs unchanged): overwrote the two PR-#205 integrated FRSs `designs/results-validation/{results-entry-multicomponent,validation-multicomponent}.md` with corrected copies — per-component-notes open question resolved (per-analysis, OGC-1124) + runtime dep now names nullable `RESULT.component_id` FK. Round 3 genuinely-new spec-only entry: `designs/results-validation/analyzer-multicomponent-ingestion.md` (Analyzer Ingestion of Multi-Component Results; jira OGC-1129 +OGC-1131; new slug `#/results-validation/analyzer-ingestion-multi-component-results`) — App.jsx MOCKUP_REGISTRY + MANIFEST + INDEX + dist. Tests 251/251, build clean. Corrected copies + analyzer FRS + STAGING note left in `upload/` pending merge; stale ROUND1 `*-frs.md` copies (md5-match main) drained to processed/. Verify MERGED next run. |
 
+## 2026-07-15 (interactive run) — Test Catalog Management shell surfaces
+- **Three genuinely-new changesets registered** on branch `design/test-catalog-shell-surfaces` (tests 252/252, build green):
+  1. **Lab Units Management v2.0** (OGC-189) — supersede-in-place of the 2026-03 `lab-units.{md,jsx}` stub (slug `#/admin-config/lab-units` unchanged). Rebased on TEST_SECTION; no code field; Description required; domain a declared dependency (unbuilt on develop despite OGC-361).
+  2. **Panel Management Domain Upgrade v2.2** (OGC-224) — supersede-in-place of the 2026-03 `panel.{md,jsx}` stub (slug `#/admin-config/panel` unchanged). Single required domain (Clinical at launch); no code/lab-unit; sample types derived from member tests.
+  3. **Test Catalog Completion v2** (OGC-1112, FR-46–86) — NEW entry `test-catalog-completion-v2.{md,jsx}`; consolidated single-handoff FRS (Part A delivered-gap corrections + Part B Manageability). Marks `test-catalog-editor-completion` `superseded_by`.
+  Superseded v1 stubs archived to `designs/_archive/2026-07-15/` (+ local `OpenELIS Feature Design/_archive/2026-07-15/`).
+- **dist/ intentionally NOT committed** — `deploy-gallery.yml` rebuilds dist from source on push to main, and the sample-type PR (still OPEN) also touches dist with hashed filenames; committing dist here would create a guaranteed merge conflict that blocks squash auto-merge. Source-only commit avoids it.
+- **PR:** connector `create_pull_request` returned 403 (app lacks `pull_requests:write`). Branch pushed with the PAT. One-click compare URL:
+  https://github.com/DIGI-UW/openelis-work/compare/main...design/test-catalog-shell-surfaces?expand=1
+  Auto-merge + required `test` check land it on green. This branch carries this ledger row too. **Status: OPEN** — verify MERGED next run.
+- **NOTE:** `design/sample-type-management` (OGC-296 v2.1, from the 2026-07-14 scheduled run) is **still OPEN/unmerged** on origin (HEAD `0ec76b4`). Two design PRs now open concurrently; they touch disjoint MANIFEST/App.jsx/INDEX regions and neither commits dist, so both should squash-merge cleanly.
+- **Jira (Step 11):** gallery permalinks posted to OGC-189, OGC-224, OGC-1112 this run.
+- **Source files** left in `upload/` (drain-on-merge): lab-units-management-{v2.0.md,mockup.jsx}, panel-management-{v2.1.md,mockup.jsx}, test-catalog-completion-v2-{frs.md,mockup.jsx}.
+
+## Reconciliation — 2026-07-14 (scheduled run, scoped: Sample Types only)
+- **Step 0:** No OPEN or stranded PRs coming in — every prior ledger row verified MERGED on origin/main
+  (HEAD `0ec76b4`, PR #213). The two most-recently-OPEN rows both landed: `design/report-mgmt-and-catalog-editor-20260701`
+  (report-management + test-catalog-editor-completion present on main) and `design/report-print-queue-r3`
+  (report-print-queue v1.3 on main).
+- **One genuinely-new change registered this run: Sample Type Management v2.1 (OGC-296).** Scoped per Casey's
+  2026-07-14 handoff — only the two Sample Type files were processed; everything else in `upload/` is mid-iteration
+  and was left untouched. Update-in-place / supersede at the unchanged slug `#/admin-config/sample-type-management`:
+  overwrote `designs/admin-config/sample-type-management.{md,jsx}` with the v2.1 spec (was v1.0, 634→130 ln) and the
+  OGC-296 developer-handoff Carbon mockup (was 711→346 ln, self-contained). Both were genuinely new content
+  (md5 no-match anywhere in `designs/`). MANIFEST + App.jsx bumped (`updated: 2026-07-14`, v2.1 description, tags).
+  INDEX row unchanged (same filenames). Superseded v1.0 archived to `designs/_archive/2026-07-14/` (+ local
+  `OpenELIS Feature Design/_archive/2026-07-14/`). Tests 251/251, `npm run build` clean.
+- **PR:** connector `create_pull_request` returned 403 ("Resource not accessible by integration" — GitHub App still
+  lacks `pull_requests:write`). Branch `design/sample-type-management` pushed with the PAT. CI auto-opener should open
+  it on push; one-click fallback compare URL:
+  https://github.com/DIGI-UW/openelis-work/compare/main...design/sample-type-management?expand=1
+  Auto-merge + required `test` check land it on green. This branch also carries this ledger row, so merging the one PR
+  syncs the ledger. **Status: OPEN** — verify MERGED next run.
+- **Jira (Step 11):** gallery permalinks (spec + mockup) to be posted on OGC-296. Slug is unchanged from v1.0 but the
+  content is a material v1.0→v2.1 supersede, so a refreshed comment is warranted. Related context tickets OGC-538 /
+  OGC-949 / OGC-985 intentionally NOT attached (per handoff). NOTE: OGC-538 domain enum is NOT built despite its Done
+  status — the spec's caveat.
+- **Explicitly left in `upload/` (not this run, per handoff):** panel-management-v2.1.md (content v2.2, not green-lit),
+  test-catalog-panels-sampletypes-preview.html (would leak un-analyzed Test Catalog Manageability changeset),
+  test-catalog-data-model-handoff.md (thread-internal, superseded), and the analyzer-import / multicomponent files
+  (different effort). sample-type-domain-classification.md + sample-type-multi-domain-addendum.md kept as-is (historical).
+
 ## Reconciliation — 2026-07-09 (scheduled run, r2)
 - **Second scheduled run of the day.** Coming in, origin/main HEAD was `965a82f` (PR #206 ledger sync
   from the earlier 07-09 run). The earlier run left `design/results-validation-multicomponent` recorded
