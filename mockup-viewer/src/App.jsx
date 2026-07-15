@@ -1,6 +1,68 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { marked } from 'marked';
 import './spec-styles.css';
+import carbonCssUrl from '@carbon/styles/css/styles.min.css?url';
+
+// ─── Carbon preview styles (lazy) ───
+// Carbon JSX mockups emit cds--* classes, but the viewer doesn't bundle Carbon's
+// global stylesheet (it carries resets/body styles that would leak into the gallery
+// chrome and the self-styled Tailwind-era mockups). Instead, the prebuilt CSS is
+// injected only while a Carbon mockup is actually mounted, and removed on unmount.
+let carbonStyleRefs = 0;
+let carbonStyleLink = null;
+function acquireCarbonStyles() {
+  carbonStyleRefs += 1;
+  if (!carbonStyleLink) {
+    carbonStyleLink = document.createElement('link');
+    carbonStyleLink.rel = 'stylesheet';
+    carbonStyleLink.href = carbonCssUrl;
+    carbonStyleLink.dataset.carbonPreview = 'true';
+    document.head.appendChild(carbonStyleLink);
+  }
+}
+function releaseCarbonStyles() {
+  carbonStyleRefs = Math.max(0, carbonStyleRefs - 1);
+  if (carbonStyleRefs === 0 && carbonStyleLink) {
+    carbonStyleLink.remove();
+    carbonStyleLink = null;
+  }
+}
+
+/**
+ * Renders a JSX mockup, auto-detecting Carbon usage (cds--* classes) and
+ * lazy-loading Carbon's stylesheet for the lifetime of the preview.
+ */
+export function JsxMockupPreview({ mockup, fallback }) {
+  const containerRef = React.useRef(null);
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof MutationObserver === 'undefined') return undefined;
+    let acquired = false;
+    const observer = new MutationObserver(() => check());
+    const check = () => {
+      if (!acquired && el.querySelector('[class*="cds--"]')) {
+        acquired = true;
+        acquireCarbonStyles();
+        observer.disconnect();
+      }
+    };
+    observer.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    check();
+    return () => {
+      observer.disconnect();
+      if (acquired) releaseCarbonStyles();
+    };
+  }, [mockup]);
+  return (
+    <div ref={containerRef}>
+      <Suspense fallback={fallback}>
+        <ErrorBoundary name={mockup.name}>
+          <mockup.component />
+        </ErrorBoundary>
+      </Suspense>
+    </div>
+  );
+}
 
 /**
  * OpenELIS Global — Design Gallery
@@ -42,7 +104,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-07-15',
     updated: '2026-07-15',
     status: 'draft',
-    jira: ['OGC-1112'],
+    jira: ['OGC-1142'],
     tags: ['test-catalog', 'manageability', 'specimen-variant', 'loinc', 'activation-gate', 'admin', 'configuration'],
   },
   {
@@ -127,6 +189,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/admin-config/panel.jsx')),
     description: 'Panel Management — Domain Upgrade (OGC-224) — v2.2, aligned to the verified Test Catalog data model and Manageability decisions. Managed as a Panels context in the Test Catalog Management shell (peer of Tests / Sample Types / Lab Units). Adds a single required domain (unbuilt on develop — Dependency 1, Clinical at launch, backfill existing panels to Clinical). A panel has no code (LOINC is its identifier), no lab unit (panels span sections; scoped by domain instead), and its sample types are DERIVED from member tests (SAMPLETYPE_PANEL stays backend-synced, never surfaced).',
     specPath: 'designs/admin-config/panel.md',
+    htmlUrl: 'designs/admin-config/test-catalog-panels-sampletypes.html',
     added: '2026-03-03',
     updated: '2026-07-15',
     status: 'draft',
@@ -420,6 +483,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/admin-config/sample-type-management.jsx')),
     description: 'Sample Type Management (OGC-296) — v2.1. Managed as a context in the Test Catalog Management shell (peer of Tests/Panels) with SideNav sections rather than a standalone 5-tab page. Sections: Basic Info (incl. required single Clinical/Environmental/Vector domain), Associated Tests (read-only — a test\'s specimen is its identity, so adding a test means creating a specimen variant in the Test Catalog), Display Order, Disposal (free-text reference), and Terminology (full mapper incl. WHONET for AMR surveillance exports). Grounded in the verified data model: domain needs a declared migration from the legacy TYPE_OF_SAMPLE.DOMAIN varchar(1); SAMPLETYPE_PANEL stays live in order entry.',
     specPath: 'designs/admin-config/sample-type-management.md',
+    htmlUrl: 'designs/admin-config/test-catalog-panels-sampletypes.html',
     added: '2026-05-14',
     updated: '2026-07-14',
     status: 'draft',
@@ -2927,11 +2991,7 @@ function StandalonePreview({ mockup }) {
             title={mockup.name}
           />
         ) : mockup.component ? (
-          <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading mockup...</div>}>
-            <ErrorBoundary name={mockup.name}>
-              <mockup.component />
-            </ErrorBoundary>
-          </Suspense>
+          <JsxMockupPreview mockup={mockup} fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading mockup...</div>} />
         ) : mockup.figmaUrl ? (
           <iframe
             src={mockup.figmaUrl.replace('/make/', '/embed/') + '&embed-host=share'}
@@ -3923,11 +3983,7 @@ function GalleryApp() {
                       />
                     </div>
                   ) : selectedMockup.component ? (
-                    <Suspense fallback={<div style={{ ...styles.loading, color: t.textMuted }}>Loading mockup...</div>}>
-                      <ErrorBoundary name={selectedMockup.name}>
-                        <selectedMockup.component />
-                      </ErrorBoundary>
-                    </Suspense>
+                    <JsxMockupPreview mockup={selectedMockup} fallback={<div style={{ ...styles.loading, color: t.textMuted }}>Loading mockup...</div>} />
                   ) : selectedMockup.figmaUrl ? (
                     <div style={styles.figmaEmbed}>
                       <iframe
@@ -4231,12 +4287,10 @@ function ProjectShowcase({ projectKey, initialMockup }) {
                 )}
                 {hasPreview && (hasSpec ? detailTab === 'preview' : true) && (
                   <div style={{ border: `1px solid ${t.border}`, borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
-                    {selected.component ? (
-                      <Suspense fallback={<div style={styles.loading}>Loading preview…</div>}>
-                        <selected.component />
-                      </Suspense>
-                    ) : selected.htmlUrl ? (
+                    {selected.htmlUrl ? (
                       <iframe title={selected.name} src={import.meta.env.BASE_URL + selected.htmlUrl} style={{ width: '100%', height: '80vh', border: 'none' }} />
+                    ) : selected.component ? (
+                      <JsxMockupPreview mockup={selected} fallback={<div style={styles.loading}>Loading preview…</div>} />
                     ) : selected.figmaUrl ? (
                       <iframe title={selected.name} src={selected.figmaUrl.replace('/make/', '/embed/').replace('/file/', '/embed/').replace('/design/', '/embed/')} style={{ width: '100%', height: '80vh', border: 'none' }} allowFullScreen />
                     ) : null}

@@ -110,12 +110,14 @@
 - id: panel
   type: mockup
   path: designs/admin-config/panel.jsx
+  preview: designs/admin-config/test-catalog-panels-sampletypes.html
   category: admin-config
   description: "Panel Management — Domain Upgrade (OGC-224) — v2.2. Panels context in the Test Catalog Management shell; single required domain (Clinical at launch); no code/lab-unit; sample types derived from member tests."
   paired_with: panel-spec
   links:
     jira: [OGC-224]
     gallery: "https://digi-uw.github.io/openelis-work/#/admin-config/panel"
+    preview: "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-panels-sampletypes.html"
   added: "2026-03-03"
   updated: "2026-07-15"
 
@@ -2148,7 +2150,7 @@
     completeness rail. Supersedes the test-catalog-editor-completion and
     test-catalog-manageability work lists.
   links:
-    jira: ["OGC-1112"]
+    jira: ["OGC-1142"]
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-completion-v2
   added: "2026-07-15"
   updated: "2026-07-15"
@@ -2892,12 +2894,14 @@
   type: mockup
   path: designs/admin-config/sample-type-management.jsx
   spec: designs/admin-config/sample-type-management.md
+  preview: designs/admin-config/test-catalog-panels-sampletypes.html
   category: admin-config
   description: "Sample Type Management (OGC-296) — v2.1. Managed as a context in the Test Catalog Management shell (peer of Tests/Panels) via SideNav sections, replacing the standalone 5-tab page. Sections: Basic Info (incl. required single Clinical/Environmental/Vector domain), Associated Tests (read-only — a test's specimen is its identity, so adding a test = creating a specimen variant in the Test Catalog), Display Order, Disposal (free-text reference), and Terminology (full mapper incl. WHONET). Domain requires a declared migration from the legacy TYPE_OF_SAMPLE.DOMAIN varchar(1); SAMPLETYPE_PANEL is live in order entry (kept in sync by the backend, not surfaced here)."
   links:
     github: null
     jira: OGC-296
     gallery: "https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-management"
+    preview: "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-panels-sampletypes.html"
   added: "2026-05-14"
   updated: "2026-07-14"
   status: draft
