@@ -4,8 +4,8 @@
     "total": 67,
     "by_maturity": {
       "production": 42,
-      "planned": 8,
-      "in-development": 8,
+      "planned": 6,
+      "in-development": 10,
       "beta": 4,
       "available": 5
     },
@@ -942,7 +942,7 @@
       "domain": [
         "clinical"
       ],
-      "maturity": "planned",
+      "maturity": "in-development",
       "since": null,
       "jira": [
         "OGC-782"
@@ -959,7 +959,7 @@
       "domain": [
         "clinical"
       ],
-      "maturity": "planned",
+      "maturity": "in-development",
       "since": null,
       "jira": [
         "OGC-782"
