@@ -30,9 +30,55 @@ drain source files to `processed/`; flag anything OPEN > 7 days.
 | design/results-entry-multicomponent-v1 | https://github.com/DIGI-UW/openelis-work/compare/main...design/results-entry-multicomponent-v1?expand=1 | 2026-07-08 | **MERGED** (PR #204, verified 2026-07-09 — merge commit `62d6ab8` is origin/main HEAD; all 3 files present on main, md5-identical to the upload trio → drained to `processed/`) | Multi-Component Result Entry **v1** — genuinely-new `results-validation` entry. Epic OGC-949 (Test Catalog Mgmt v2.5), consumes the M1 `test_result_component` model; replaces PR #3831 scalar-column approach. jsx mockup + preview html + FRS at `designs/results-validation/results-entry-multicomponent-v1.{jsx,md}` + `-preview.html` (+public mirror); App.jsx MOCKUP_REGISTRY + MANIFEST + INDEX updated. New slug `#/results-validation/multi-component-result-entry-v1`. Tests 251/251, build clean. This branch also carries this ledger sync. Verify MERGED next run. |
 | design/results-validation-multicomponent | https://github.com/DIGI-UW/openelis-work/pull/205 | 2026-07-09 | **MERGED** (PR #205, verified 2026-07-09 — both integrated FRSs present on origin/main; App.jsx v4 entries marked SUPERSEDED + OGC-811/OGC-817 repointed onto the new files; MANIFEST+INDEX carry the entries) | Multi-component **integrated** FRSs (epic OGC-1131, program OGC-949): two new full FRSs superseding the v4 specs — `results-entry-multicomponent.md` (supersedes results-entry-v4; OGC-811, OGC-1130, OGC-1131) + `validation-multicomponent.md` (supersedes validation-page-v4; OGC-817, OGC-1130, OGC-1131). v4 gallery entries marked SUPERSEDED (kept for history); OGC-811/OGC-817 repointed to the new files in App.jsx + MANIFEST. Also commits the in-place `designs/reports/patient-report-redesign.md` edit (PR-13 one-row-per-component + §7.5; data-contract stays OGC-1126). No JSX/HTML change (v4 previews stand). App.jsx + MANIFEST + INDEX + dist. Tests 251/251, build clean. New slugs `#/results-validation/results-entry-multi-component-integrated` + `#/results-validation/validation-page-multi-component-integrated`. Verify MERGED next run. |
 
-| design/multicomponent-corrections-analyzer-ingestion | https://github.com/DIGI-UW/openelis-work/compare/main...design/multicomponent-corrections-analyzer-ingestion?expand=1 | 2026-07-09 | **OPEN** (connector `create_pull_request` 403 — app lacks `pull_requests:write`; open via compare URL / CI auto-opener; auto-merge + required `test` check land it on green) | Multi-component round 2 + round 3 (epic OGC-1131 / program OGC-949). Round 2 update-in-place (slugs unchanged): overwrote the two PR-#205 integrated FRSs `designs/results-validation/{results-entry-multicomponent,validation-multicomponent}.md` with corrected copies — per-component-notes open question resolved (per-analysis, OGC-1124) + runtime dep now names nullable `RESULT.component_id` FK. Round 3 genuinely-new spec-only entry: `designs/results-validation/analyzer-multicomponent-ingestion.md` (Analyzer Ingestion of Multi-Component Results; jira OGC-1129 +OGC-1131; new slug `#/results-validation/analyzer-ingestion-multi-component-results`) — App.jsx MOCKUP_REGISTRY + MANIFEST + INDEX + dist. Tests 251/251, build clean. Corrected copies + analyzer FRS + STAGING note left in `upload/` pending merge; stale ROUND1 `*-frs.md` copies (md5-match main) drained to processed/. Verify MERGED next run. |
+| design/multicomponent-corrections-analyzer-ingestion | https://github.com/DIGI-UW/openelis-work/compare/main...design/multicomponent-corrections-analyzer-ingestion?expand=1 | 2026-07-09 | **MERGED** (verified on origin/main 2026-07-16 — round-3 new file `designs/results-validation/analyzer-multicomponent-ingestion.md` present; both round-2 corrected FRSs carry `component_id` + OGC-1124; App.jsx registry carries the `analyzer-ingestion-multi-component-results` slug) | Multi-component round 2 + round 3 (epic OGC-1131 / program OGC-949). Round 2 update-in-place (slugs unchanged): overwrote the two PR-#205 integrated FRSs `designs/results-validation/{results-entry-multicomponent,validation-multicomponent}.md` with corrected copies — per-component-notes open question resolved (per-analysis, OGC-1124) + runtime dep now names nullable `RESULT.component_id` FK. Round 3 genuinely-new spec-only entry: `designs/results-validation/analyzer-multicomponent-ingestion.md` (Analyzer Ingestion of Multi-Component Results; jira OGC-1129 +OGC-1131; new slug `#/results-validation/analyzer-ingestion-multi-component-results`) — App.jsx MOCKUP_REGISTRY + MANIFEST + INDEX + dist. Tests 251/251, build clean. Corrected copies + analyzer FRS + STAGING note left in `upload/` pending merge; stale ROUND1 `*-frs.md` copies (md5-match main) drained to processed/. Verify MERGED next run. |
 
-| design/custom-data-export-v1.1 | https://github.com/DIGI-UW/openelis-work/pull/225 | 2026-07-15 | **OPEN** — verify MERGED next run | Update-in-place: Custom Data Export & My Report Queue gallery entry (issue #70) v1.0 -> v1.1. Grain families + color legend, QC domain removed, single PII tag, overwrite-confirm saved configs, thresholds -> Printed Reports Config, 90-day cap; data model -> BaseObject<String>+Liquibase, /rest/ paths, ownership 404s, CSV format, async worker/restart recovery, corrected StatusService mappings, FR renumber, Testing Requirements section. All 3 artifacts refreshed (FRS .md, HTML preview, JSX mockup). Built clean off origin/main via isolated worktree (dist rebuilt, no asset conflicts); 238 registry entries preserved. Slug unchanged (#/reports/custom-data-export) -> no new Jira permalink. OGC-479/481/483; companion release 479+481. |
+| design/custom-data-export-v1.1 | https://github.com/DIGI-UW/openelis-work/pull/225 | 2026-07-15 | **MERGED** (PR #225, verified on origin/main 2026-07-16 — `designs/reports/custom-data-export.md` carries v1.1/grain-families; MANIFEST description reads "v1.1 (2026-07-15)". Ledger-tracking PR #226 also merged — is origin HEAD 776fe30) | Update-in-place: Custom Data Export & My Report Queue gallery entry (issue #70) v1.0 -> v1.1. Grain families + color legend, QC domain removed, single PII tag, overwrite-confirm saved configs, thresholds -> Printed Reports Config, 90-day cap; data model -> BaseObject<String>+Liquibase, /rest/ paths, ownership 404s, CSV format, async worker/restart recovery, corrected StatusService mappings, FR renumber, Testing Requirements section. All 3 artifacts refreshed (FRS .md, HTML preview, JSX mockup). Built clean off origin/main via isolated worktree (dist rebuilt, no asset conflicts); 238 registry entries preserved. Slug unchanged (#/reports/custom-data-export) -> no new Jira permalink. OGC-479/481/483; companion release 479+481. |
+
+## Reconciliation — 2026-07-16 (scheduled run)
+- **Both previously-OPEN PRs are now MERGED. No OPEN or stranded PRs remain.** Verified against a
+  fresh `origin/main` clone (HEAD `776fe30`, PR #226):
+  - `design/multicomponent-corrections-analyzer-ingestion` (compare-URL row, pushed 2026-07-09 → was
+    7 days old, on the stranded threshold) → **MERGED**. Round-3 new spec-only file
+    `designs/results-validation/analyzer-multicomponent-ingestion.md` present on main; both round-2
+    corrected integrated FRSs (`results-entry-multicomponent.md`, `validation-multicomponent.md`)
+    carry the nullable `RESULT.component_id` FK + per-analysis OGC-1124 resolution; App.jsx registry
+    carries the new `#/results-validation/analyzer-ingestion-multi-component-results` slug.
+  - `design/custom-data-export-v1.1` (PR #225, pushed 2026-07-15 → 1 day old) → **MERGED**.
+    `designs/reports/custom-data-export.md` carries v1.1 grain-families content; MANIFEST description
+    reads "v1.1 (2026-07-15)". The doc-only ledger-tracking PR **#226** also merged (origin HEAD).
+- **Canonical `upload/` reconcile (content md5 vs full `designs/` + `public/designs/` tree, 480 files).**
+  Five design-like files all IDENTICAL to files already on `origin/main` **and** already registered in
+  App.jsx + MANIFEST (landed via interactive sessions since the 07-15 run) → **drained to `processed/`**:
+  | Upload file | Class | Landed as |
+  |---|---|---|
+  | results-entry-multicomponent.md | IDENTICAL | designs/results-validation/results-entry-multicomponent.md |
+  | analyzer-import-redesign-v2-mockup.jsx | IDENTICAL (registered) | designs/system/analyzer-import-redesign-v2.jsx |
+  | analyzer-import-redesign-v2-preview.html | IDENTICAL (registered) | designs/system/analyzer-import-redesign-v2-preview.html |
+  | analyzer-import-redesign-v2-frs.md | IDENTICAL (registered) | designs/system/analyzer-import-redesign-v2.md |
+  | analyzer-multicomponent-mapping-preview.html | IDENTICAL (registered) | designs/analyzer-integration/analyzer-multicomponent-mapping-preview.html |
+- **Genuinely new design artifacts: NONE.** Everything design-like in canonical `upload/` is already on
+  `main` and registered → **no design push, no PR, no build.**
+- **Non-design working docs LEFT in `upload/` for Casey** (no gallery counterpart; not FRS/mockups):
+  `test-catalog-data-model-handoff.md` (Test Catalog data-model reference for the Panel/Sample-Type/Lab-Unit
+  threads), `analyzer-import-bench-experience-STAGING.md` and `multicomponent-analyzer-ui-STAGING.md`
+  (gallery-thread staging notes whose "register/commit" actions are already done — the v2 redesign +
+  multicomponent-mapping preview are landed & registered on main; their "after-merge" Jira permalink
+  steps for OGC-288 / OGC-1136 / OGC-1137 are the only residual — see below).
+- **Jira (Step 11):** this run registered nothing new (no new/changed slugs from this run) → **no gallery
+  permalinks posted, to avoid noise.** The analyzer-import-redesign-v2 (OGC-288) and
+  analyzer-multicomponent-mapping (OGC-1136), plus OGC-1137 (Pending Imports inbox), landed via
+  interactive sessions; per the two STAGING notes their post-merge permalink comments are still a
+  residual action — **flagged for Casey to confirm/post** rather than posted here.
+- **ANOMALY — mount on a dirty feature branch.** The workspace mount's git HEAD is
+  `0d2ff21` on branch `design/narrative-figures` (NOT main), with a dirty working tree (mods to
+  `designs/analyzer-integration/analyzer-profile-mapping.md`, `designs/reports/patient-report-redesign.md`,
+  `designs/system/analyzer-import.md`, `.gitignore`, `analyzer-mapping-spec.skill`, package-lock, plus a
+  batch of staged upload/ deletions). Interactive-session work-in-progress. **origin/main was used as the
+  source of truth for all verification; the mount was not touched for git.** → Casey: land/clean the
+  `design/narrative-figures` branch and the in-place `analyzer-profile-mapping.md` / `analyzer-import.md`
+  edits (referenced by the two STAGING notes) if intended.
+- **This run pushes a doc-only ledger sync** (`chore/ledger-reconcile-2026-07-16`) so origin's ledger
+  reflects the two newly-MERGED rows + this entry; auto-opener + required `test` check land it on green.
 
 ## Reconciliation — 2026-07-15 (interactive run — workbench cleanup)
 
