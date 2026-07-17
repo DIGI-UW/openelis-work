@@ -3758,3 +3758,20 @@
     gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/csv-bulk-sample-intake
     preview: https://digi-uw.github.io/openelis-work/designs/sample-collection/csv-bulk-sample-intake.html
   added: '2026-07-15'
+
+- id: order-entry-require-provider
+  type: jsx
+  path: designs/admin-config/order-entry-require-provider.jsx
+  spec: designs/admin-config/order-entry-require-provider.md
+  preview: designs/admin-config/order-entry-require-provider.html
+  category: admin-config
+  description: >
+    Optional Order Entry Configuration property (requireProviderEntry) that makes the
+    requesting provider optional and the referring facility (Site Name) required instead;
+    default keeps provider required. Includes a mandatory downstream null-safety data audit.
+  links:
+    jira: ["OGC-1143"]
+    github: https://github.com/DIGI-UW/openelis-work/issues/229
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/require-requesting-provider-order-entry
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/order-entry-require-provider.html
+  added: "2026-07-17"
