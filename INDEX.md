@@ -14,6 +14,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Lab Units Management | [lab-units.jsx](designs/admin-config/lab-units.jsx) | [lab-units.md](designs/admin-config/lab-units.md) |
 | Methods | [methods.jsx](designs/admin-config/methods.jsx) | [methods.md](designs/admin-config/methods.md) |
 | Organizations Management | [organizations-management.jsx](designs/admin-config/organizations-management.jsx) | [organizations-management.md](designs/admin-config/organizations-management.md) |
+| Require Requesting Provider (Order Entry) | [order-entry-require-provider.jsx](designs/admin-config/order-entry-require-provider.jsx) · [preview](designs/admin-config/order-entry-require-provider.html) | [order-entry-require-provider.md](designs/admin-config/order-entry-require-provider.md) |
 | Panel Management | [panel.jsx](designs/admin-config/panel.jsx) | [panel.md](designs/admin-config/panel.md) |
 | Range Editor | [range-editor.jsx](designs/admin-config/range-editor.jsx) | [range-editor.md](designs/admin-config/range-editor.md) |
 | Result Options | [result-options.jsx](designs/admin-config/result-options.jsx) | [result-options.md](designs/admin-config/result-options.md) |
