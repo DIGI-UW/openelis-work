@@ -3,14 +3,14 @@
   "counts": {
     "total": 67,
     "by_maturity": {
-      "production": 37,
-      "planned": 9,
-      "beta": 6,
+      "production": 43,
+      "planned": 5,
       "in-development": 10,
+      "beta": 4,
       "available": 5
     },
     "with_manual_page": 24,
-    "shipped_without_manual": 24
+    "shipped_without_manual": 28
   },
   "capabilities": [
     {
@@ -216,7 +216,7 @@
         "clinical",
         "cross-cutting"
       ],
-      "maturity": "beta",
+      "maturity": "production",
       "since": "3.2.1.4",
       "jira": [
         "OGC-61",
@@ -235,7 +235,7 @@
         "clinical",
         "cross-cutting"
       ],
-      "maturity": "beta",
+      "maturity": "production",
       "since": "3.2.1.4",
       "jira": [
         "OGC-313",
@@ -366,8 +366,8 @@
       "domain": [
         "environmental"
       ],
-      "maturity": "in-development",
-      "since": null,
+      "maturity": "production",
+      "since": "3.2.1.x",
       "jira": [
         "OGC-537",
         "OGC-768"
@@ -453,8 +453,8 @@
       "domain": [
         "vector"
       ],
-      "maturity": "in-development",
-      "since": null,
+      "maturity": "production",
+      "since": "3.2.1.x",
       "jira": [
         "OGC-585",
         "OGC-779"
@@ -773,8 +773,8 @@
         "cross-cutting",
         "platform"
       ],
-      "maturity": "planned",
-      "since": null,
+      "maturity": "production",
+      "since": "3.2.1.x",
       "jira": [],
       "manual_page": null,
       "manual_status": null,
@@ -942,7 +942,7 @@
       "domain": [
         "clinical"
       ],
-      "maturity": "planned",
+      "maturity": "in-development",
       "since": null,
       "jira": [
         "OGC-782"
@@ -959,7 +959,7 @@
       "domain": [
         "clinical"
       ],
-      "maturity": "planned",
+      "maturity": "in-development",
       "since": null,
       "jira": [
         "OGC-782"
@@ -1039,8 +1039,8 @@
       "domain": [
         "platform"
       ],
-      "maturity": "planned",
-      "since": null,
+      "maturity": "production",
+      "since": "3.2.1.x",
       "jira": [],
       "manual_page": null,
       "manual_status": null,
