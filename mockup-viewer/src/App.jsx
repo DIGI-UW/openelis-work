@@ -101,6 +101,7 @@ export const MOCKUP_REGISTRY = [
     component: React.lazy(() => import('@designs/admin-config/test-catalog-completion-v2.jsx')),
     description: 'Consolidated Test Catalog FRS (v2) — the single implementing-agent handoff. Part A corrects delivered gaps in the shipped unified editor (custom label presets filtered out of the picker, terminology mappings missing display names, LOINC integrity warnings siloed in one section, half the combined shared-settings editor shipped, activation allowed on tests that cannot capture a result). Part B adds Manageability: grouped catalog view treating specimen variants of an assay as one family (link/unlink, issues toggle), create-in-place, add-specimen-variant with completeness rail + activation gate. FR-46–86. Supersedes the test-catalog-editor-completion and test-catalog-manageability work lists.',
     specPath: 'designs/admin-config/test-catalog-completion-v2.md',
+    htmlUrl: 'designs/admin-config/test-catalog-panels-sampletypes.html',
     added: '2026-07-15',
     updated: '2026-07-15',
     status: 'draft',
