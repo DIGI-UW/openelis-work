@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-30T17:58:25Z",
+  "generatedAt": "2026-07-17T18:02:06Z",
   "repo": "DIGI-UW/OpenELIS-Global-2",
   "branchesWatched": [
     "develop",
@@ -7,61 +7,66 @@
   ],
   "windows": {
     "develop": {
-      "base": "c513e43e",
-      "head": "0189f10f",
-      "commitCount": 37,
+      "base": "b5e765d6",
+      "head": "7c68759b",
+      "commitCount": 51,
       "windowDays": 30
     },
     "demo-silnas": {
-      "base": "c513e43e",
-      "head": "e1c1b965",
-      "commitCount": 43,
+      "base": "127499a0",
+      "head": "63e8fc0f",
+      "commitCount": 18,
       "windowDays": 30
     }
   },
   "uncovered": [
     {
-      "componentDir": "frontend/src/components/vectorIdentification",
-      "branches": [
-        "demo-silnas"
-      ],
-      "fileCount": 8,
-      "files": [
-        "frontend/src/components/vectorIdentification/VectorBulkApplyTile.jsx",
-        "frontend/src/components/vectorIdentification/VectorDeconvolutionWorklist.jsx",
-        "frontend/src/components/vectorIdentification/VectorIdentificationService.js",
-        "frontend/src/components/vectorIdentification/VectorIdentificationWorklist.jsx",
-        "frontend/src/components/vectorIdentification/VectorInlineDeconPanel.jsx",
-        "frontend/src/components/vectorIdentification/VectorLotDetail.jsx",
-        "frontend/src/components/vectorIdentification/VectorSpecimenForm.jsx",
-        "frontend/src/components/vectorIdentification/index.js"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/layout",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 5,
-      "files": [
-        "frontend/src/components/layout/Header.jsx",
-        "frontend/src/components/layout/HelpMenu.jsx",
-        "frontend/src/components/layout/search/searchBar.tsx",
-        "frontend/src/components/layout/search/searchOutput.tsx",
-        "frontend/src/components/layout/search/searchService.ts"
-      ]
-    },
-    {
       "componentDir": "frontend/src/components/reports",
       "branches": [
         "demo-silnas"
       ],
-      "fileCount": 4,
+      "fileCount": 10,
       "files": [
-        "frontend/src/components/reports/Routine.jsx",
         "frontend/src/components/reports/compliance/LaporanHasilReport.jsx",
         "frontend/src/components/reports/compliance/__tests__/LaporanHasilReport.test.jsx",
-        "frontend/src/components/reports/routine/Index.jsx"
+        "frontend/src/components/reports/vectorSurveillance/Index.jsx",
+        "frontend/src/components/reports/vectorSurveillance/ManualEntryHelper.jsx",
+        "frontend/src/components/reports/vectorSurveillance/VectorSurveillanceDashboard.jsx",
+        "frontend/src/components/reports/vectorSurveillance/VectorSurveillanceDashboard.test.jsx",
+        "frontend/src/components/reports/vectorSurveillance/VectorSurveillanceService.js",
+        "frontend/src/components/reports/vectorSurveillance/__tests__/ManualEntryHelper.test.jsx",
+        "frontend/src/components/reports/vectorSurveillance/vectorPdfGenerator.js",
+        "frontend/src/components/reports/vectorSurveillance/vectorPdfGenerator.test.js"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/common",
+      "branches": [
+        "demo-silnas",
+        "develop"
+      ],
+      "fileCount": 6,
+      "files": [
+        "frontend/src/components/common/CustomDatePicker.jsx",
+        "frontend/src/components/common/CustomDatePicker.test.jsx",
+        "frontend/src/components/common/cascadingMultiSelect.jsx",
+        "frontend/src/components/common/CustomSelect.jsx",
+        "frontend/src/components/common/useUrlFilters.js",
+        "frontend/src/components/common/useUrlFilters.test.jsx"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/referenceLabResults",
+      "branches": [
+        "demo-silnas"
+      ],
+      "fileCount": 5,
+      "files": [
+        "frontend/src/components/referenceLabResults/MarkLostModal.jsx",
+        "frontend/src/components/referenceLabResults/ReferenceLabResults.css",
+        "frontend/src/components/referenceLabResults/ReferenceLabResults.jsx",
+        "frontend/src/components/referenceLabResults/RejectModal.jsx",
+        "frontend/src/components/referenceLabResults/index.js"
       ]
     },
     {
@@ -72,42 +77,19 @@
       "fileCount": 3,
       "files": [
         "frontend/src/components/formModel/innitialValues/OrderEntryFormValues.js",
-        "frontend/src/components/formModel/innitialValues/SearchResultFormValues.js",
+        "frontend/src/components/formModel/innitialValues/ReferredOutTestsFormValues.js",
         "frontend/src/components/formModel/validationSchema/OrderEntryValidationSchema.js"
       ]
     },
     {
-      "componentDir": "frontend/src/components/home",
-      "branches": [
-        "demo-silnas",
-        "develop"
-      ],
-      "fileCount": 2,
-      "files": [
-        "frontend/src/components/home/LandingPage.tsx",
-        "frontend/src/components/home/Dashboard.tsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/modifyOrder",
+      "componentDir": "frontend/src/components/layout",
       "branches": [
         "develop"
       ],
       "fileCount": 2,
       "files": [
-        "frontend/src/components/modifyOrder/SendToAnalyzerButton.jsx",
-        "frontend/src/components/modifyOrder/__tests__/SendToAnalyzerButton.test.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/compliance",
-      "branches": [
-        "demo-silnas"
-      ],
-      "fileCount": 2,
-      "files": [
-        "frontend/src/components/compliance/EnvironmentalDashboard.jsx",
-        "frontend/src/components/compliance/utils/compliancePdfGenerator.js"
+        "frontend/src/components/layout/Header.jsx",
+        "frontend/src/components/layout/HelpMenu.jsx"
       ]
     },
     {
@@ -121,23 +103,13 @@
       ]
     },
     {
-      "componentDir": "frontend/src/components/alerts",
+      "componentDir": "frontend/src/components/compliance",
       "branches": [
         "demo-silnas"
       ],
       "fileCount": 1,
       "files": [
-        "frontend/src/components/alerts/AlertsDashboard.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/notifications",
-      "branches": [
-        "demo-silnas"
-      ],
-      "fileCount": 1,
-      "files": [
-        "frontend/src/components/notifications/SlideOverNotifications.jsx"
+        "frontend/src/components/compliance/EnvironmentalDashboard.jsx"
       ]
     },
     {
