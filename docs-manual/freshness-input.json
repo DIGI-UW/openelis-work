@@ -3,14 +3,14 @@
   "counts": {
     "total": 67,
     "by_maturity": {
-      "production": 42,
-      "planned": 6,
+      "production": 43,
+      "planned": 5,
       "in-development": 10,
       "beta": 4,
       "available": 5
     },
     "with_manual_page": 24,
-    "shipped_without_manual": 27
+    "shipped_without_manual": 28
   },
   "capabilities": [
     {
@@ -1039,8 +1039,8 @@
       "domain": [
         "platform"
       ],
-      "maturity": "planned",
-      "since": null,
+      "maturity": "production",
+      "since": "3.2.1.x",
       "jira": [],
       "manual_page": null,
       "manual_status": null,
