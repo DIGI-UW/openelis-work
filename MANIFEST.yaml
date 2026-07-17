@@ -2139,6 +2139,7 @@
   type: jsx
   path: designs/admin-config/test-catalog-completion-v2.jsx
   spec: designs/admin-config/test-catalog-completion-v2.md
+  preview: designs/admin-config/test-catalog-panels-sampletypes.html
   category: admin-config
   description: >
     Consolidated Test Catalog FRS v2 (FR-46–86) — the single implementing-agent
