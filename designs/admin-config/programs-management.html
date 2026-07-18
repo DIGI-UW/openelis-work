@@ -82,6 +82,40 @@
       { id:6, name:'Malaria Pilot (2024) — closed', code:'VEC-MAL-99', domain:'VECTOR', unit:'Entomology', active:false, orders:74 },
     ];
 
+    // ===== Baked-in scope (OGC-781 unified with the Additional Information work) =====
+    function BakedIn(){
+      const cards=[
+        {d:'Clinical',host:'Clinical Information',details:'Provisional Diagnosis · Payment Status'},
+        {d:'Environmental',host:'Env order details',details:'Collection Method · Water/Ambient Temp · Weather · Preservation · Field Notes · Compliance Standards'},
+        {d:'Vector',host:'Sample',details:'Lifecycle Stage · Trap Type · Quantity in Pool · Traps/Nights Deployed'},
+      ];
+      return (
+        <div style={{marginTop:28,borderTop:'2px solid #e0e0e0',paddingTop:16}}>
+          <h2 style={{margin:'0 0 4px'}}>Baked-in: dynamic Additional Information (beyond Programs)</h2>
+          <p className="sub" style={{marginTop:0}}>Same feature. A Program's Questionnaire is one of <b>three attachment modes</b> of the <b>same Visual Builder ↔ JSON editor</b> above — not a separate builder:</p>
+          <div className="notif notif-info" style={{marginBottom:14}}>
+            <b>One builder, three attachments:</b> <b>Program</b> = a Questionnaire <i>selected</i> per order · <b>Order-baseline</b> = a Questionnaire <i>always</i> on every order · <b>Patient-baseline</b> = a Questionnaire <i>always</i> on the patient. Admin-authored fields export as <b>QuestionnaireResponse</b> (FHIR for free). Pre-existing structured fields (address hierarchy → <code>Patient.address</code>; Education / Marital Status / Nationality / Occupation / Notes) are <b>configured (show/hide/label)</b>, not re-authored. JSON mode = paste/edit the FHIR Questionnaire directly.
+          </div>
+          <h3 style={{margin:'6px 0'}}>Placement — Order Entry Step 1 “Enter Order” (verified live, indonesiademo v3.2.1.10)</h3>
+          <p className="sub" style={{marginTop:0}}>All three domains already have a Step-1 details section <b>and</b> a Program section — we <b>extend the existing section</b>, not add a new place. Routes <code>/order/&#123;clinical,environmental,vector&#125;/enter</code>.</p>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:14}}>
+            {cards.map(c=>(
+              <div key={c.d} style={{border:'1px solid #e0e0e0',background:'#fff'}}>
+                <div style={{padding:'8px 12px',fontWeight:600,fontSize:13,background:'#edf5ff',display:'flex',gap:8,alignItems:'center'}}>{c.d}<span style={{marginLeft:'auto',fontSize:10,padding:'1px 7px',borderRadius:9,background:'#defbe6',color:'#0e6027'}}>Step-1 verified</span></div>
+                <div style={{padding:'10px 12px',fontSize:12,lineHeight:1.7}}>
+                  <div>1 · Requester</div>
+                  <div>2 · Sample &amp; Tests</div>
+                  <div style={{background:'#f4f8ff',border:'1px dashed #0f62fe',borderRadius:3,padding:'4px 6px',margin:'3px 0',color:'#0043ce'}}>3 · <b>{c.host}</b> <span style={{color:'#8d8d8d'}}>({c.details})</span><br/><span style={{fontSize:11}}>→ extend with <b>Additional Order Details</b> (config-driven / always-order questionnaire)</span></div>
+                  <div style={{background:'#f6f2ff',border:'1px dashed #6929c4',borderRadius:3,padding:'4px 6px',color:'#6929c4'}}>4 · <b>Program</b> → its Questionnaire (when selected)</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="sub" style={{marginTop:10}}>Patient-baseline fields live on the patient form (<code>/PatientManagement</code>, edit = view). Madagascar: surveillance / HIV-PMTCT episode fields → Program questionnaire items; persistent traits (mother link, mother HIV status, medical history) → patient region.</p>
+        </div>
+      );
+    }
+
     function App(){
       const [rows,setRows] = useState(SEED);
       const [q,setQ] = useState('');
@@ -189,6 +223,8 @@
               </div>
             </div>
           )}
+
+          <BakedIn/>
         </div>
       );
     }

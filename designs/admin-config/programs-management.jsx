@@ -1,14 +1,27 @@
 // Route: /MasterListsPage/program   (edit + add happen INLINE on this list — no separate editor page)
 // SideNav: Admin → Test Management → Programs
-// FRS: programs-management.md  (this is the v2 consolidated ref set)
+// FRS: programs-management-frs-consolidated.md  (this is the v2 consolidated ref set)
 // Reference set (one coherent handoff for Claude Code):
-//   - programs-management.md   (spec)
-//   - programs-management.jsx          (this file)
-//   - programs-management.html        (interactive preview)
+//   - programs-management-frs-consolidated.md   (spec)
+//   - programs-management-v2-mockup.jsx          (this file)
+//   - programs-management-v2-preview.html        (interactive preview)
 //
 // Version-agnostic (dev slices from the Epic, D-028). Four pillars:
 //   Domain classification · Test Management IA · inline editor (ContentSwitcher + live preview) ·
 //   Deactivate/Reactivate lifecycle (no hard delete, D-002).
+//
+// BAKED-IN (OGC-781 unified with the Additional Information work — FRS FR-21..FR-27):
+//   The Questionnaire editor here is ONE builder used in THREE attachment modes — Program (selected
+//   per order), Order-baseline (always on every order), Patient-baseline (always on the patient).
+//   This mockup shows the Program mode; the baseline modes reuse the SAME editor component (do not
+//   build a second one). Admin-authored fields → QuestionnaireResponse (FHIR free). Pre-existing
+//   structured fields (address→Patient.address; Education/Marital Status/Nationality/Occupation/Notes)
+//   are configured (show/hide/label), not re-authored. JSON mode = paste/edit (no upload).
+//   Placement (verified live, indonesiademo v3.2.1.10): the Additional Order Details region + Program
+//   render on Order-Entry Step 1 for all three domains, extending the existing Step-1 details section —
+//   Clinical → "Clinical Information" (Provisional Diagnosis, Payment Status); Env → env details;
+//   Vector → Sample. Patient region = the /PatientManagement Additional Information block.
+//   See programs-management-v2-preview.html "Baked-in" section for the visual.
 // UI decisions folded in from review (2026-07-01):
 //   - Edit + Add are INLINE (row expansion / top panel), not a separate page/tab (D-005).
 //   - Code and UUID are system-managed and NOT surfaced in the UI.
