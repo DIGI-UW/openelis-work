@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-17T18:42:47.921Z",
+  "generatedAt": "2026-07-18T08:41:55.807Z",
   "sections": [
     {
       "id": "add-patient",
@@ -11,7 +11,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:38:37.445Z",
+      "checkedAt": "2026-07-18T08:37:38.737Z",
       "codeChanged": {
         "count": 2,
         "since": "2026-06-24",
@@ -42,7 +42,7 @@
         "/MasterListsPage/TestModifyEntry :: SOP Max Holding Time"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:42:18.185Z",
+      "checkedAt": "2026-07-18T08:41:26.250Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-06-24",
@@ -71,7 +71,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:42:20.830Z",
+      "checkedAt": "2026-07-18T08:41:28.904Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -94,7 +94,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:41:57.750Z",
+      "checkedAt": "2026-07-18T08:41:06.049Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-06-24",
@@ -124,7 +124,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:42:42.528Z"
+      "checkedAt": "2026-07-18T08:41:50.433Z"
     },
     {
       "id": "analyzer-file-import",
@@ -135,7 +135,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:38:40.155Z",
+      "checkedAt": "2026-07-18T08:37:41.399Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -159,7 +159,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:38:42.835Z",
+      "checkedAt": "2026-07-18T08:37:44.072Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -180,14 +180,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1439367188 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/commonproperties :: Common Properties",
-        "/MasterListsPage/commonproperties :: configuration.dir",
-        "/MasterListsPage/commonproperties :: Update"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:40:48.167Z"
+      "checkedAt": "2026-07-18T08:38:59.043Z"
     },
     {
       "id": "barcode-labels",
@@ -198,7 +194,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:38:45.527Z",
+      "checkedAt": "2026-07-18T08:37:46.741Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -220,14 +216,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1438842886 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/calculatedValue :: Calculated Value Tests Management",
-        "/MasterListsPage/calculatedValue :: Calculation Name",
-        "/MasterListsPage/calculatedValue :: Add Rule"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:41:07.358Z"
+      "checkedAt": "2026-07-18T08:40:17.594Z"
     },
     {
       "id": "calendar-management",
@@ -236,15 +228,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1439334404 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/calendarManagement :: Calendar Management",
-        "/MasterListsPage/calendarManagement :: Weekend Days",
-        "/MasterListsPage/calendarManagement :: Add Holiday",
-        "/MasterListsPage/calendarManagement :: Holiday Name"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:41:15.513Z"
+      "checkedAt": "2026-07-18T08:40:25.705Z"
     },
     {
       "id": "dictionary-menu",
@@ -253,15 +240,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1438973976 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/DictionaryMenu :: Dictionary Menu",
-        "/MasterListsPage/DictionaryMenu :: Category",
-        "/MasterListsPage/DictionaryMenu :: Dictionary Entry",
-        "/MasterListsPage/DictionaryMenu :: LOINC Code"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:41:01.799Z"
+      "checkedAt": "2026-07-18T08:40:12.207Z"
     },
     {
       "id": "electronic-lab-notebook",
@@ -272,7 +254,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:38:48.227Z",
+      "checkedAt": "2026-07-18T08:37:49.413Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -295,7 +277,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:38:53.661Z",
+      "checkedAt": "2026-07-18T08:37:54.745Z",
       "codeChanged": {
         "count": 3,
         "since": "2026-06-24",
@@ -325,7 +307,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:41:34.902Z",
+      "checkedAt": "2026-07-18T08:40:43.433Z",
       "codeChanged": {
         "count": 11,
         "since": "2026-06-24",
@@ -354,7 +336,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:41:49.576Z",
+      "checkedAt": "2026-07-18T08:40:57.987Z",
       "codeChanged": {
         "count": 16,
         "since": "2026-06-24",
@@ -384,7 +366,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:39:01.745Z",
+      "checkedAt": "2026-07-18T08:38:02.746Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -405,14 +387,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1439170565 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/labNumber :: Lab Number Management",
-        "/MasterListsPage/labNumber :: Lab Number Type",
-        "/MasterListsPage/labNumber :: Submit"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:40:42.664Z"
+      "checkedAt": "2026-07-18T08:38:53.680Z"
     },
     {
       "id": "logging-configuration",
@@ -421,15 +399,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1438908431 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/loggingManagement :: Logging Configuration",
-        "/MasterListsPage/loggingManagement :: Log Level",
-        "/MasterListsPage/loggingManagement :: Logger Name",
-        "/MasterListsPage/loggingManagement :: Apply Log Level"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:40:56.342Z"
+      "checkedAt": "2026-07-18T08:40:06.790Z"
     },
     {
       "id": "menu-configuration",
@@ -438,15 +411,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1439694850 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/globalMenuManagement :: Global Menu Management",
-        "/MasterListsPage/globalMenuManagement :: Side Nav Active",
-        "/MasterListsPage/globalMenuManagement :: Show Child Elements",
-        "/MasterListsPage/globalMenuManagement :: Submit"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:41:12.838Z"
+      "checkedAt": "2026-07-18T08:40:23.006Z"
     },
     {
       "id": "nce-capa",
@@ -457,7 +425,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:39:09.765Z",
+      "checkedAt": "2026-07-18T08:38:10.831Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-06-24",
@@ -483,12 +451,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "OpenELIS Feature Design/clinical-order-entry-manual-draft.md",
-      "status": "error",
+      "status": "review",
       "missingAnchors": [],
-      "routeErrors": [
-        "/SamplePatientEntry"
-      ],
-      "checkedAt": "2026-07-17T18:39:10.596Z",
+      "routeErrors": [],
+      "checkedAt": "2026-07-18T08:38:13.541Z",
       "codeChanged": {
         "count": 8,
         "since": "2026-06-30",
@@ -519,7 +485,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:42:37.168Z"
+      "checkedAt": "2026-07-18T08:41:45.044Z"
     },
     {
       "id": "organization-management",
@@ -528,20 +494,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1437892659 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/organizationManagement :: Organization Management",
-        "/MasterListsPage/organizationManagement :: Search By Org Name",
-        "/MasterListsPage/organizationManagement :: Add",
-        "/MasterListsPage/organizationManagement :: Org Name",
-        "/MasterListsPage/organizationManagement :: CLIA Number",
-        "/MasterListsPage/organizationEdit?ID=0 :: Add Organization",
-        "/MasterListsPage/organizationEdit?ID=0 :: Org Name",
-        "/MasterListsPage/organizationEdit?ID=0 :: Type of Activity",
-        "/MasterListsPage/organizationEdit?ID=0 :: Save"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:40:37.118Z",
+      "checkedAt": "2026-07-18T08:38:48.292Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-30",
@@ -561,12 +517,10 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
-      "status": "error",
+      "status": "review",
       "missingAnchors": [],
-      "routeErrors": [
-        "/MasterListsPage"
-      ],
-      "checkedAt": "2026-07-17T18:39:11.396Z",
+      "routeErrors": [],
+      "checkedAt": "2026-07-18T08:38:16.189Z",
       "codeChanged": {
         "count": 14,
         "since": "2026-06-24",
@@ -595,7 +549,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:42:34.510Z"
+      "checkedAt": "2026-07-18T08:41:42.362Z"
     },
     {
       "id": "patient-merge",
@@ -607,7 +561,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:42:45.254Z"
+      "checkedAt": "2026-07-18T08:41:53.131Z"
     },
     {
       "id": "patient-order-enhancements",
@@ -615,13 +569,10 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
-      "status": "drift",
-      "missingAnchors": [
-        "/PatientManagement :: Add Or Modify Patient",
-        "/PatientHistory :: Patient History"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:40:09.759Z",
+      "checkedAt": "2026-07-18T08:38:21.502Z",
       "codeChanged": {
         "count": 2,
         "since": "2026-06-24",
@@ -647,15 +598,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1439006727 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/program :: Add/Edit Program",
-        "/MasterListsPage/program :: Program Name",
-        "/MasterListsPage/program :: Program Code",
-        "/MasterListsPage/program :: Test Section"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:40:45.470Z"
+      "checkedAt": "2026-07-18T08:38:56.376Z"
     },
     {
       "id": "provider-management",
@@ -664,14 +610,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1439203334 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/providerMenu :: Provider Management",
-        "/MasterListsPage/providerMenu :: Provider Lastname",
-        "/MasterListsPage/providerMenu :: Is Active"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:40:39.839Z",
+      "checkedAt": "2026-07-18T08:38:50.994Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-30",
@@ -692,14 +634,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1439137808 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/reflex :: Reflex Tests Management",
-        "/MasterListsPage/reflex :: Rule Name",
-        "/MasterListsPage/reflex :: Add Rule"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:41:04.461Z"
+      "checkedAt": "2026-07-18T08:40:14.891Z"
     },
     {
       "id": "register-new-patient",
@@ -711,7 +649,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:42:47.914Z"
+      "checkedAt": "2026-07-18T08:41:55.799Z"
     },
     {
       "id": "result-reporting-configuration",
@@ -720,14 +658,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1439596548 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/resultReportingConfiguration :: Result Reporting Configuration",
-        "/MasterListsPage/resultReportingConfiguration :: Result Reporting",
-        "/MasterListsPage/resultReportingConfiguration :: Queue Size"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:41:18.302Z"
+      "checkedAt": "2026-07-18T08:40:28.394Z"
     },
     {
       "id": "result-validation",
@@ -735,14 +669,10 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
-      "status": "drift",
-      "missingAnchors": [
-        "/ResultValidation?type=&test= :: Validation",
-        "/AccessionValidation :: Validation",
-        "/ResultValidationByTestDate :: Validation"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:40:17.753Z",
+      "checkedAt": "2026-07-18T08:38:29.447Z",
       "codeChanged": {
         "count": 3,
         "since": "2026-06-24",
@@ -771,7 +701,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:42:26.438Z"
+      "checkedAt": "2026-07-18T08:41:34.285Z"
     },
     {
       "id": "running-reports",
@@ -783,7 +713,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:42:31.819Z"
+      "checkedAt": "2026-07-18T08:41:39.668Z"
     },
     {
       "id": "sample-acceptance-checklist",
@@ -795,7 +725,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:42:23.483Z",
+      "checkedAt": "2026-07-18T08:41:31.561Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-30",
@@ -815,13 +745,10 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
-      "status": "drift",
-      "missingAnchors": [
-        "/SampleShipment :: Shipment Dashboard",
-        "/ReferredOutTests :: Referrals"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:40:23.139Z",
+      "checkedAt": "2026-07-18T08:38:34.801Z",
       "codeChanged": {
         "count": 2,
         "since": "2026-06-24",
@@ -850,7 +777,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:42:39.868Z"
+      "checkedAt": "2026-07-18T08:41:47.767Z"
     },
     {
       "id": "sample-storage-management",
@@ -858,14 +785,10 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
-      "status": "drift",
-      "missingAnchors": [
-        "/Storage/sample-items :: Sample Items",
-        "/Storage/rooms :: Rooms",
-        "/FreezerMonitoring?tab=0 :: Cold Storage Dashboard"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:40:31.190Z",
+      "checkedAt": "2026-07-18T08:38:42.889Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-06-24",
@@ -892,13 +815,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1438973960 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/SearchIndexManagement :: Search Index Management",
-        "/MasterListsPage/SearchIndexManagement :: Start Reindexing"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:40:53.638Z"
+      "checkedAt": "2026-07-18T08:39:04.366Z"
     },
     {
       "id": "site-information",
@@ -907,15 +827,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1439432709 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/SiteInformationMenu :: Site Information",
-        "/MasterListsPage/SiteInformationMenu :: Description",
-        "/MasterListsPage/SiteInformationMenu :: Value",
-        "/MasterListsPage/SiteInformationMenu :: Modify"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:41:10.134Z"
+      "checkedAt": "2026-07-18T08:40:20.294Z"
     },
     {
       "id": "test-notification-configuration",
@@ -924,15 +839,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1439072261 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/testNotificationConfigMenu :: Test Notification Configuration",
-        "/MasterListsPage/testNotificationConfigMenu :: Test names",
-        "/MasterListsPage/testNotificationConfigMenu :: Patient Email",
-        "/MasterListsPage/testNotificationConfigMenu :: Provider SMS"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:40:50.848Z"
+      "checkedAt": "2026-07-18T08:39:01.715Z"
     },
     {
       "id": "user-management",
@@ -941,15 +851,10 @@
       "instanceVersion": "3.2.1.11",
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1439367205 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/MasterListsPage/userManagement :: User Management",
-        "/MasterListsPage/userManagement :: System User Login Name",
-        "/MasterListsPage/userManagement :: Add",
-        "/MasterListsPage/userManagement :: Is Active"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:40:59.122Z"
+      "checkedAt": "2026-07-18T08:40:09.492Z"
     },
     {
       "id": "validation",
@@ -961,7 +866,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:42:29.102Z"
+      "checkedAt": "2026-07-18T08:41:36.971Z"
     },
     {
       "id": "vector-surveillance",
@@ -978,7 +883,7 @@
         "/vector/identification :: Split"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-07-17T18:41:40.883Z",
+      "checkedAt": "2026-07-18T08:40:49.448Z",
       "codeChanged": {
         "count": 9,
         "since": "2026-06-24",
