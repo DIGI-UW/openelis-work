@@ -646,6 +646,18 @@ export const MOCKUP_REGISTRY = [
     tags: ['admin', 'programs', 'test-management', 'domain', 'fhir-questionnaire', 'visual-builder', 'json', 'live-preview', 'order-entry', 'global'],
   },
   {
+    name: 'Additional Information Builder (contexts)',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/additional-info-builder.jsx')),
+    description: 'One questionnaire builder, per-context via a SideNav submenu (Programs / per-domain Order form fields / Patient form fields); shipped fields hide-not-delete + collapse + JSON-exclusion. Part of OGC-781 (baked-in Additional Information).',
+    specPath: 'designs/admin-config/programs-management.md',
+    htmlUrl: 'designs/admin-config/additional-info-builder.html',
+    added: '2026-07-17',
+    status: 'draft',
+    jira: ['OGC-781'],
+    tags: ['programs','additional-information','fhir-questionnaire','builder','admin','madagascar'],
+  },
+  {
     name: 'Result & Validation Configuration v4',
     project: ['png'],
     category: 'admin-config',

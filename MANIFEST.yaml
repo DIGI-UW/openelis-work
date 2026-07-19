@@ -3775,3 +3775,18 @@
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/require-requesting-provider-order-entry
     preview: https://digi-uw.github.io/openelis-work/designs/admin-config/order-entry-require-provider.html
   added: "2026-07-17"
+
+- id: additional-info-builder
+  type: jsx
+  path: designs/admin-config/additional-info-builder.jsx
+  spec: designs/admin-config/programs-management.md
+  preview: designs/admin-config/additional-info-builder.html
+  category: admin-config
+  description: >
+    Additional Information questionnaire builder — one builder, per-context via a SideNav
+    submenu (Programs / per-domain Order form fields / Patient form fields). Shipped fields
+    hide-not-delete + collapse + JSON-exclusion. Part of OGC-781 (baked-in Additional Info).
+  links:
+    jira: ["OGC-781"]
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/additional-info-builder.html
+  added: "2026-07-17"

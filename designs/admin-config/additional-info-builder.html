@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Additional Information Builder — Contexts — OpenELIS Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body{background:#f4f4f4;margin:0;font-family:'IBM Plex Sans',sans-serif;color:#161616;}
+  .banner{background:#0f62fe;color:#fff;padding:6px 1rem;font-size:12px;font-family:monospace;}
+  .crumbs{font-size:12px;color:#525252;padding:10px 1.5rem 0;}
+  .crumbs a{color:#0f62fe;text-decoration:none;}
+  .shell{display:grid;grid-template-columns:250px 1fr;min-height:660px;}
+  .side{background:#fff;border-right:1px solid #e0e0e0;padding:10px 0;}
+  .side .grp{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:#6f6f6f;padding:12px 16px 4px;}
+  .side a{display:block;padding:8px 16px 8px 24px;font-size:13px;color:#393939;text-decoration:none;cursor:pointer;border-left:3px solid transparent;}
+  .side a:hover{background:#f4f4f4;}
+  .side a.on{background:#e8f0fe;border-left-color:#0f62fe;color:#0f62fe;font-weight:600;}
+  .side a.sub{padding-left:38px;font-size:12px;}
+  .side a.sub2{padding-left:52px;font-size:12px;}
+  .main{padding:18px 26px 60px;max-width:1160px;}
+  h1{font-weight:400;font-size:24px;margin:2px 0 2px;}
+  .ctxbar{display:flex;align-items:center;gap:10px;background:#edf5ff;border:1px solid #d0e2ff;border-radius:3px;padding:10px 14px;margin:10px 0 14px;font-size:13px;}
+  .ctxbar .pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;background:#0f62fe;color:#fff;white-space:nowrap;}
+  .tile{background:#fff;border:1px solid #e0e0e0;padding:16px;margin-bottom:16px;}
+  .tile h3{margin:0 0 12px;font-size:15px;}
+  .lbl{display:block;font-size:12px;color:#525252;margin:0 0 4px;}
+  .in{width:100%;height:34px;border:none;border-bottom:1px solid #8d8d8d;background:#f4f4f4;padding:0 10px;font-size:14px;box-sizing:border-box;}
+  textarea.in{height:auto;padding:8px 10px;font-family:monospace;font-size:12px;}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .radiog{display:flex;gap:16px;font-size:13px;margin-top:4px;}
+  .radiog label{display:flex;gap:5px;align-items:center;cursor:pointer;}
+  .switcher{display:inline-flex;border:1px solid #0f62fe;border-radius:2px;overflow:hidden;margin-bottom:14px;}
+  .switcher button{border:none;background:#fff;color:#0f62fe;padding:6px 16px;font-size:13px;cursor:pointer;}
+  .switcher button.on{background:#0f62fe;color:#fff;}
+  .build{display:grid;grid-template-columns:1fr 320px;gap:18px;}
+  .qcard{border:1px solid #e0e0e0;padding:10px 12px;margin-bottom:9px;background:#fff;}
+  .qcard.shipped{background:#f7f8fa;}
+  .qcard.hidden{opacity:.5;}
+  .qtop{display:flex;gap:8px;align-items:center;}
+  .qtop .in{flex:1;background:#fff;height:32px;}
+  .sel{height:32px;border:1px solid #c6c6c6;border-radius:2px;background:#fff;font-size:12px;padding:0 6px;}
+  .sw{width:30px;height:16px;border-radius:9px;position:relative;cursor:pointer;flex:0 0 auto;}
+  .sw .k{position:absolute;top:2px;width:12px;height:12px;border-radius:50%;background:#fff;}
+  .sw.on{background:#0f62fe;}.sw.on .k{left:16px;}.sw.off{background:#8d8d8d;}.sw.off .k{left:2px;}
+  .badge{font-size:9px;padding:1px 6px;border-radius:8px;white-space:nowrap;}
+  .badge.ship{background:#dde1e6;color:#4d5358;}
+  .badge.lock{background:#e0e0ff;color:#0043ce;}
+  .badge.new{background:#d0e2ff;color:#0043ce;}
+  .kebab{border:none;background:none;cursor:pointer;font-size:15px;color:#525252;padding:0 4px;}
+  .kebab.del{color:#da1e28;}
+  .kebab.dis{color:#c6c6c6;cursor:not-allowed;}
+  .opts{margin:8px 0 0 4px;}
+  .optrow{display:flex;gap:6px;align-items:center;margin-bottom:5px;}
+  .optrow .in{height:28px;background:#fff;max-width:230px;}
+  .ghost{border:none;background:none;color:#0f62fe;font-size:12px;cursor:pointer;padding:2px 4px;}
+  .del{color:#da1e28;}
+  .addq{border:1px dashed #8d8d8d;background:#fff;color:#0f62fe;width:100%;padding:8px;font-size:13px;cursor:pointer;border-radius:2px;}
+  .pane{border:1px solid #e0e0e0;background:#fff;padding:14px;}
+  .pane .h{font-size:12px;text-transform:uppercase;letter-spacing:.02em;color:#6f6f6f;margin-bottom:10px;}
+  .pv label{display:block;font-size:12px;color:#161616;margin:0 0 3px;}
+  .pv .c{width:100%;height:30px;border:1px solid #c6c6c6;background:#fff;margin-bottom:11px;}
+  .note{font-size:12px;color:#6f6f6f;line-height:1.5;margin-top:6px;}
+  .btnrow{margin-top:12px;display:flex;gap:10px;}
+  .btn{border:none;padding:8px 16px;font-size:13px;cursor:pointer;}
+  .btn.p{background:#0f62fe;color:#fff;} .btn.s{background:#fff;border:1px solid #0f62fe;color:#0f62fe;}
+  .info{background:#edf5ff;border-left:3px solid #0f62fe;padding:8px 12px;font-size:12px;margin-bottom:12px;line-height:1.5;}
+</style>
+</head>
+<body class="cds--white">
+<div class="banner">⚡ Preview — Additional Information Builder · one builder, per-context (submenu) | shipped fields hide-not-delete | Admin reference | Not a live app</div>
+<div class="crumbs" id="crumb"></div>
+<div id="root"></div>
+<script type="text/babel">
+const {useState}=React;
+const TYPES=["Boolean","Choice","Checkbox","Integer","Decimal","Date","Time","String","Text","Quantity"];
+let UID=1000;
+
+// q: {id,text,type,options,shipped,locked,vis}
+const mk=(text,type,opts,f)=>({id:++UID,text,type,options:opts||[],shipped:!!(f&&f.shipped),locked:!!(f&&f.locked),vis:f&&f.vis===false?false:true});
+
+const CONTEXTS={
+  program:{label:"Program (selected per order)",attach:"Attaches to an order when a user picks this Program at order entry.",basicInfo:true,
+    seed:()=>[ mk("ARV during pregnancy?","Boolean"), mk("Recent maternal viral load (copies/ml)","Decimal"),
+      mk("Reason for request","Choice",["1st PCR (6 wk)","2nd PCR (9 mo)","Confirmatory"]), mk("Breastfeeding?","Boolean") ]},
+  order_clinical:{label:"Clinical order — every clinical order",attach:"Always on every CLINICAL order (Step-1 “Clinical Information” section).",domainNote:"Clinical",
+    seed:()=>[ mk("Provisional Diagnosis","String",[],{shipped:true}), mk("Payment Status","Choice",["Cash","Insurance","Waived"],{shipped:true}) ]},
+  order_environmental:{label:"Environmental order — every env order",attach:"Always on every ENVIRONMENTAL order (Step-1 env details).",domainNote:"Environmental",
+    seed:()=>[ mk("Collection Method","Choice",["Grab","Composite"],{shipped:true}), mk("Water Temp (°C)","Decimal",[],{shipped:true}),
+      mk("Ambient Temp (°C)","Decimal",[],{shipped:true}), mk("Weather","String",[],{shipped:true}),
+      mk("Preservation Method","Choice",["Ice","Acid","None"],{shipped:true}), mk("Field Notes","Text",[],{shipped:true}),
+      mk("Compliance Standards","Choice",["ISO 17025","National"],{shipped:true}) ]},
+  order_vector:{label:"Vector order — every vector order",attach:"Always on every VECTOR order (Step-1 Sample section).",domainNote:"Vector",
+    seed:()=>[ mk("Lifecycle Stage","Choice",["Adult","Larva","Pupa"],{shipped:true}), mk("Trap Type","Choice",["Light","BG","Ovitrap"],{shipped:true}),
+      mk("Quantity in Pool","Integer",[],{shipped:true}), mk("Traps Deployed","Integer",[],{shipped:true}), mk("Nights Deployed","Integer",[],{shipped:true}) ]},
+  patient:{label:"Patient form — every patient",attach:"Always on the patient form (Additional Information). Cross-domain.",
+    seed:()=>[ mk("Education","Choice",["None","Primary","Secondary","Upper"],{shipped:true}),
+      mk("Marital Status","Choice",["Single","Married","Divorced","Widowed"],{shipped:true}),
+      mk("Nationality","Choice",["Malagasy","French","Other"],{shipped:true}),
+      mk("Occupation","String",[],{shipped:true}), mk("Custom Notes","Text",[],{shipped:true}),
+      mk("Health Region","String",[],{shipped:true,locked:true}), mk("Health District","String",[],{shipped:true,locked:true}) ]},
+};
+
+function PreviewCtl({q}){
+  const t=q.type;
+  if(t==="Boolean")return <div><label style={{display:"inline",marginRight:12,fontWeight:400}}><input type="radio" disabled/> Yes</label><label style={{display:"inline",fontWeight:400}}><input type="radio" disabled/> No</label></div>;
+  if(t==="Choice")return <select className="c" disabled><option>{q.options[0]||"—"}</option></select>;
+  if(t==="Checkbox")return <div>{(q.options.length?q.options:["option"]).map((o,i)=><label key={i} style={{display:"block",fontWeight:400}}><input type="checkbox" disabled/> {o}</label>)}</div>;
+  if(t==="Text")return <textarea className="c" style={{height:44}} disabled/>;
+  return <div className="c"/>;
+}
+
+function App(){
+  const [ctx,setCtx]=useState("program");
+  const [mode,setMode]=useState("visual");
+  const [store,setStore]=useState(()=>{const o={};Object.keys(CONTEXTS).forEach(k=>o[k]=CONTEXTS[k].seed());return o;});
+  const [name,setName]=useState("HIV / PMTCT–EID");
+  const [domain,setDomain]=useState("CLINICAL");
+  const C=CONTEXTS[ctx];
+  const qs=store[ctx];
+  const setQs=(fn)=>setStore(m=>({...m,[ctx]:fn(m[ctx])}));
+  const setQ=(id,patch)=>setQs(l=>l.map(q=>q.id===id?{...q,...patch}:q));
+  const addQ=()=>setQs(l=>[...l,mk("New question","String")]);
+  const delQ=(id)=>setQs(l=>l.filter(q=>q.id!==id));
+  const addOpt=(id)=>{const q=qs.find(x=>x.id===id);setQ(id,{options:[...q.options,""]});};
+  const setOpt=(id,i,v)=>{const q=qs.find(x=>x.id===id);const o=[...q.options];o[i]=v;setQ(id,{options:o});};
+  const delOpt=(id,i)=>{const q=qs.find(x=>x.id===id);setQ(id,{options:q.options.filter((_,j)=>j!==i)});};
+
+  const visQ=qs.filter(q=>q.vis);
+  const authQ=qs.filter(q=>!q.shipped&&!q.locked); // admin-authored only — shipped/perma fields excluded from JSON
+  const json=JSON.stringify({resourceType:"Questionnaire",status:"active",item:authQ.map(q=>({linkId:String(q.id),text:q.text,type:q.type.toLowerCase(),...(q.options.length?{answerOption:q.options.map(o=>({valueString:o}))}:{})}))},null,2);
+
+  const navItem=(key,txt,cls)=> <a className={(cls||"sub")+" "+(ctx===key?"on":"")} onClick={()=>{setCtx(key);setMode("visual");}}>{txt}</a>;
+
+  return (
+   <div>
+    <SetCrumb ctx={ctx}/>
+    <div className="shell">
+      <div className="side">
+        <div className="grp">Admin · Test Management</div>
+        <a>Test Catalog</a><a>Lab Units</a>
+        <div className="grp">Additional Information</div>
+        {navItem("program","Programs (per order)")}
+        <div style={{fontSize:11,color:"#6f6f6f",padding:"6px 16px 2px 24px"}}>Order form fields</div>
+        {navItem("order_clinical","Clinical","sub2")}
+        {navItem("order_environmental","Environmental","sub2")}
+        {navItem("order_vector","Vector","sub2")}
+        {navItem("patient","Patient form fields")}
+      </div>
+
+      <div className="main">
+        <h1>{ctx==="program"?"Programs":ctx==="patient"?"Patient form fields":C.domainNote+" order fields"}</h1>
+        <div className="ctxbar"><span className="pill">{C.label}</span><span>{C.attach}</span></div>
+        <div className="info"><b>One builder, per-context.</b> The submenu switches which context you author — each <b>order domain</b> has its own always-on set (so shared vs unique-per-domain is handled), plus the cross-domain <b>Patient</b> set and selectable <b>Programs</b>. New fields you add export as a FHIR <b>QuestionnaireResponse</b>.</div>
+
+        {C.basicInfo && (
+          <div className="tile"><h3>Basic Info</h3>
+            <div className="row">
+              <div><span className="lbl">Program Name</span><input className="in" value={name} onChange={e=>setName(e.target.value)}/></div>
+              <div><span className="lbl">Lab unit(s)</span><input className="in" defaultValue="Serology" readOnly/></div>
+            </div>
+            <div style={{marginTop:12}}><span className="lbl">Domain</span>
+              <div className="radiog">{["CLINICAL","ENVIRONMENTAL","VECTOR"].map(d=><label key={d}><input type="radio" checked={domain===d} onChange={()=>setDomain(d)}/> {d[0]+d.slice(1).toLowerCase()}</label>)}</div>
+            </div>
+          </div>
+        )}
+
+        <div className="tile">
+          <h3>Fields</h3>
+          <div className="info" style={{background:"#f7f8fa",borderLeftColor:"#8d8d8d"}}><span className="badge ship">shipped</span> fields come with OpenELIS — toggle <b>Visible</b> off to hide them, but they’re <b>kept, not deleted</b> (future use). <span className="badge lock">Site Information</span> fields (Region/District) are managed there — configure, don’t re-author. Only <span className="badge new">new</span> admin-added fields can be deleted.</div>
+          <div className="switcher">
+            <button className={mode==="visual"?"on":""} onClick={()=>setMode("visual")}>Visual Builder</button>
+            <button className={mode==="json"?"on":""} onClick={()=>setMode("json")}>JSON</button>
+          </div>
+
+          {mode==="visual" ? (
+            <div className="build">
+              <div>
+                {qs.map(q=> q.vis ? (
+                  <div className={"qcard"+(q.shipped?" shipped":"")} key={q.id}>
+                    <div className="qtop">
+                      <div className="sw on" title="Visible — hide" onClick={()=>setQ(q.id,{vis:false})}><div className="k"/></div>
+                      <input className="in" value={q.text} readOnly={q.locked} onChange={e=>setQ(q.id,{text:e.target.value})}/>
+                      <select className="sel" value={q.type} disabled={q.locked} onChange={e=>setQ(q.id,{type:e.target.value})}>{TYPES.map(t=><option key={t}>{t}</option>)}</select>
+                      {q.locked?<span className="badge lock">Site Information</span>:q.shipped?<span className="badge ship">shipped</span>:<span className="badge new">new</span>}
+                      {q.shipped||q.locked
+                        ? <span className="kebab dis" title="Shipped/managed — hide instead of delete">🔒</span>
+                        : <button className="kebab del" title="Delete" onClick={()=>delQ(q.id)}>🗑</button>}
+                    </div>
+                    {(q.type==="Choice"||q.type==="Checkbox")&&!q.locked && (
+                      <div className="opts">
+                        {q.options.map((o,i)=><div className="optrow" key={i}><input className="in" value={o} placeholder="Answer option" onChange={e=>setOpt(q.id,i,e.target.value)}/><button className="ghost del" onClick={()=>delOpt(q.id,i)}>Remove</button></div>)}
+                        <button className="ghost" onClick={()=>addOpt(q.id)}>+ Add option</button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="qcard hidden" key={q.id} style={{padding:"5px 12px",background:"#f4f4f4"}}>
+                    <div className="qtop">
+                      <div className="sw off" title="Hidden — show" onClick={()=>setQ(q.id,{vis:true})}><div className="k"/></div>
+                      <span style={{flex:1,fontSize:12,color:"#8d8d8d"}}>{q.text}</span>
+                      <span className="badge ship">hidden</span>
+                      {q.locked?<span className="badge lock">Site Information</span>:q.shipped?<span className="badge ship">shipped</span>:<span className="badge new">new</span>}
+                    </div>
+                  </div>
+                ))}
+                <button className="addq" onClick={addQ}>+ Add question</button>
+              </div>
+              <div className="pane">
+                <div className="h">Example — what staff sees ({visQ.length} visible)</div>
+                <div className="pv">
+                  {visQ.length===0&&<div className="note">All fields hidden.</div>}
+                  {visQ.map(q=><div key={q.id}><label>{q.text}</label><PreviewCtl q={q}/></div>)}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="build">
+              <div>
+                <span className="lbl">FHIR Questionnaire — admin-authored questions only</span>
+                <textarea className="in" style={{minHeight:280}} value={json} readOnly/>
+                <div className="btnrow"><button className="btn s">Validate</button></div>
+                <div className="note">Only the questions you can add/remove are shown here. <b>Shipped / permanent</b> fields aren’t editable and aren’t included in the JSON — manage them with the Visible toggle in the Visual Builder. Paste an LLM-authored or hand-written Questionnaire (no upload needed); round-trips to the Visual Builder for the supported subset.</div>
+              </div>
+              <div className="pane"><div className="h">Example</div><div className="pv">{visQ.map(q=><div key={q.id}><label>{q.text}</label><PreviewCtl q={q}/></div>)}</div></div>
+            </div>
+          )}
+          <div className="btnrow"><button className="btn p">Save</button><button className="btn s">Cancel</button></div>
+        </div>
+
+        <div className="note">Where these questions render on the order/patient forms already exists — not designed here. This screen is only the authoring/config UI.</div>
+      </div>
+    </div>
+   </div>
+  );
+}
+function SetCrumb({ctx}){
+  const leaf=ctx==="program"?"Programs":ctx==="patient"?"Patient form fields":CONTEXTS[ctx].domainNote+" order fields";
+  document.getElementById("crumb").innerHTML='<a>Home</a> / <a>Admin Management</a> / <a>Test Management</a> / '+leaf;
+  return null;
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
