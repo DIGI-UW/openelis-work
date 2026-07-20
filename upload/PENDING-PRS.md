@@ -34,6 +34,44 @@ drain source files to `processed/`; flag anything OPEN > 7 days.
 
 | design/custom-data-export-v1.1 | https://github.com/DIGI-UW/openelis-work/pull/225 | 2026-07-15 | **MERGED** (PR #225, verified on origin/main 2026-07-16 — `designs/reports/custom-data-export.md` carries v1.1/grain-families; MANIFEST description reads "v1.1 (2026-07-15)". Ledger-tracking PR #226 also merged — is origin HEAD 776fe30) | Update-in-place: Custom Data Export & My Report Queue gallery entry (issue #70) v1.0 -> v1.1. Grain families + color legend, QC domain removed, single PII tag, overwrite-confirm saved configs, thresholds -> Printed Reports Config, 90-day cap; data model -> BaseObject<String>+Liquibase, /rest/ paths, ownership 404s, CSV format, async worker/restart recovery, corrected StatusService mappings, FR renumber, Testing Requirements section. All 3 artifacts refreshed (FRS .md, HTML preview, JSX mockup). Built clean off origin/main via isolated worktree (dist rebuilt, no asset conflicts); 238 registry entries preserved. Slug unchanged (#/reports/custom-data-export) -> no new Jira permalink. OGC-479/481/483; companion release 479+481. |
 
+## Reconciliation — 2026-07-20 (scheduled run)
+- **Step 0 — no OPEN or stranded PRs.** `git ls-remote` shows origin has **only `refs/heads/main`**
+  (HEAD `9ba7a98`, PR #232, 2026-07-19) — every prior ledger branch merged and deleted. Nothing OPEN,
+  nothing past the 7-day stranded threshold.
+- **Merged interactively since the 07-16 ledger (#228)** and verified present on `origin/main`: **#230**
+  Require Requesting Provider / Order Entry (OGC-1143, issue #229), **#227** wire shared HTML preview to
+  Test Catalog Completion v2, **#231** Programs Management gallery entry v2 (OGC-781), **#232** Additional
+  Information Builder contexts (OGC-781); plus routine `docs-manual` freshness auto-commits direct to main.
+  None were scheduled-run work — recorded here for the trail.
+- **upload/ ↔ gallery reconcile (content md5 vs full designs/ + public/designs/ tree, 598 files).**
+  - **Canonical local staging** (`openelis-work/upload/` on the mount): only two STAGING checklist notes
+    (`analyzer-import-bench-experience-STAGING.md`, `multicomponent-analyzer-ui-STAGING.md`) + the GxAlert
+    gap-analysis `.docx`. Both STAGING notes' actions are already **done & registered on main**
+    (`analyzer-import-redesign-v2.{md,jsx,html}` + `analyzer-multicomponent-mapping-preview.html` present
+    and in App.jsx) → nothing to register.
+  - **Repo-committed `upload/` on main** (checked per Step 1b): 4 files **IDENTICAL** to already-registered
+    gallery files → **drained to `processed/` this run**: `V04-fhir-considerations-for-review.md`
+    (→ `designs/vector-surveillance/vector-surveillance-reporting-fhir-considerations.md`),
+    `preview-fhir-publication-settings.jsx` (→ `designs/system/fhir-publication-settings.jsx`),
+    `inventory-techdebt/inventory-item-type-management-{preview.html,mockup.jsx}`
+    (→ `designs/inventory/inventory-item-type-management.{html,jsx}`).
+  - **Gallery-newer (stale upload copies; do-not-push, LEFT in place):**
+    `order-entry-FRS-v3-three-workflows.md` (main's `designs/sample-collection/order-entry-frs-v3-three-workflows.md`
+    is larger/newer), `V04-vector-surveillance-reporting-preview.html` (main's `vector-surveillance-reporting.html`
+    updated 2026-07-19 via #232, far newer).
+  - **Non-design working docs LEFT in place for Casey:** GxAlert gap-analysis `.docx`,
+    `clinical-order-entry-GATES.md`, `order-entry-mockup-vs-delivered-UX-drift.md`,
+    `order-entry-three-domain-crosswalk.md`, `s06-lhu-domain-variants-jira-comment-draft.md`,
+    `v04-v1.5-ida-brief.md`, `v04-v1.5-jira-comment-draft.md`, `openelis-design-SKILL-updated.md`
+    (skill draft, not a gallery entry), `inventory-techdebt/*-jira-story.md`.
+- **Genuinely new design artifacts: NONE. Nothing upload-newer → no design push, no PR, no build.**
+- **Jira (Step 11):** no new/changed slugs from this run → **no gallery permalinks posted** (noise-avoidance).
+  The Atlassian connector was also unauthenticated in this non-interactive session. Residual per the two
+  STAGING notes (OGC-288 / OGC-1136 / OGC-1137 post-merge permalinks) was already posted in the 2026-07-15
+  interactive run.
+- **This run pushes a doc-only ledger sync** (`chore/ledger-reconcile-2026-07-20`) with the 4 IDENTICAL
+  drains + this entry; the auto-opener + required `test` check land it on green.
+
 ## Reconciliation — 2026-07-16 (scheduled run)
 - **Both previously-OPEN PRs are now MERGED. No OPEN or stranded PRs remain.** Verified against a
   fresh `origin/main` clone (HEAD `776fe30`, PR #226):
