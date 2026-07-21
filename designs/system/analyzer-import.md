@@ -588,3 +588,30 @@ interface RunSettings {
 4. System checks last known QC status
 5. If recent QC passed → Allow import with warning
 6. If no recent QC → Require manual verification
+
+---
+
+## Multi-component results on the import review — added, OGC-1131
+
+Multiplex molecular runs report **several values per patient sample** — an overall call plus a per-target
+value (Ct/Cq per gene / probe / channel). Where the test defines **result components** (`test_result_component`,
+OGC-949 M1) and the analyzer mapping resolves targets to those components (see the Analyzer Types & Mapping
+FRS + the analyzer ingestion FRS, OGC-1129), the import review must show and accept them.
+
+**Requirements**
+
+- **MC-1.** For an imported analysis with multiple result components, the review shows **each component's
+  value**, grouped under the analysis, in the component `display_order` (the primary/derived result first;
+  the per-target values beneath). Numeric Ct/Cq is a value; a **blank/absent Ct/Cq = no amplification /
+  negative** for that channel; empty renders blank (never a fabricated 0).
+- **MC-2.** Accept/reject operates on the **analysis** (all its components together), as today; the
+  QC-first gating and non-conformity flow are **unchanged** — a QC failure still blocks the whole analysis.
+- **MC-3.** A reported target with **no matching component** surfaces as a **visible unmapped-result
+  exception** on the review (consistent with the existing unmapped-code handling), never silently dropped.
+- **MC-4.** Instrument-reported **internal controls** (SPC/PCC, IPC channel) already extracted by the
+  QC-first workflow may also be modeled as components; the **QC program** stays in the QC domain (not
+  components).
+- **MC-5.** Single-component runs are **unchanged**.
+
+_Companion: analyzer ingestion FRS (`analyzer-multicomponent-ingestion.md`, OGC-1129); Results Entry /
+Validation multi-component FRSs; epic OGC-1131._
