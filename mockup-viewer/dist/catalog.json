@@ -1,7 +1,7 @@
 {
-  "generated": "2026-07-15T23:07:48.859Z",
+  "generated": "2026-07-21T23:14:03.472Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 204,
+  "totalDesigns": 206,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -21,6 +21,37 @@
     "vector-surveillance"
   ],
   "designs": [
+    {
+      "name": "Test Catalog — Specimen Many-to-Many",
+      "slug": "test-catalog-specimen-many-to-many",
+      "category": "admin-config",
+      "description": "One test associates many sample types (shared config, Phase 1) with per-specimen override for ranges/LOINC (Phase 2). Sample type single→multi on Basic Info; specimen-aware resolution replaces first-match (.get(0)); flat list shows one row per test with its specimens; multi-association is normal (not an error). Supersedes D-028 (specimen-is-identity) and retires the variant grouping + \"Add specimen variant\" copy subsystem. Hero case: environmental physical-chemistry across water types (Color/Turbidity span ~10 sample types on indonesiademo).",
+      "type": "jsx",
+      "added": "2026-07-20",
+      "status": "draft",
+      "tags": [
+        "test-catalog",
+        "specimen",
+        "many-to-many",
+        "sample-type",
+        "loinc",
+        "admin",
+        "configuration"
+      ],
+      "jira": [
+        "OGC-1145"
+      ],
+      "githubIssue": 234,
+      "specPath": "designs/admin-config/test-catalog-specimen-mn.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-specimen-many-to-many",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-specimen-many-to-many",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-specimen-many-to-many",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-specimen-mn.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-specimen-mn.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-specimen-mn-preview.html"
+      }
+    },
     {
       "name": "Test Catalog Editor — Completion & Correction",
       "slug": "test-catalog-editor-completion-correction",
@@ -79,7 +110,8 @@
         "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-completion-v2",
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-completion-v2",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-completion-v2.md",
-        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-completion-v2.jsx"
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-completion-v2.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-panels-sampletypes.html"
       }
     },
     {
@@ -214,6 +246,37 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/organizations-management",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/organizations-management.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/organizations-management.jsx"
+      }
+    },
+    {
+      "name": "Require Requesting Provider (Order Entry)",
+      "slug": "require-requesting-provider-order-entry",
+      "category": "admin-config",
+      "description": "Optional Order Entry Configuration property (requireProviderEntry) that makes the requesting provider optional and the referring facility (Site Name) required instead; default keeps provider required. Includes a mandatory downstream null-safety data audit (9 consumers).",
+      "type": "jsx",
+      "added": "2026-07-17",
+      "status": "draft",
+      "tags": [
+        "order-entry",
+        "requester",
+        "provider",
+        "facility",
+        "admin",
+        "configuration",
+        "Madagascar"
+      ],
+      "jira": [
+        "OGC-1143"
+      ],
+      "githubIssue": 229,
+      "specPath": "designs/admin-config/order-entry-require-provider.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/require-requesting-provider-order-entry",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/require-requesting-provider-order-entry",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/require-requesting-provider-order-entry",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/order-entry-require-provider.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/order-entry-require-provider.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/order-entry-require-provider.html"
       }
     },
     {

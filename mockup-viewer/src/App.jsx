@@ -84,6 +84,20 @@ export function toSlug(name) {
 export const MOCKUP_REGISTRY = [
   // ─── Admin & Configuration ───
   {
+    name: 'Test Catalog — Specimen Many-to-Many',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/test-catalog-specimen-mn.jsx')),
+    description: 'One test associates many sample types (shared config, Phase 1) with per-specimen override for ranges/LOINC (Phase 2). Sample type single→multi on Basic Info; specimen-aware resolution replaces first-match (.get(0)); flat list shows one row per test with its specimens; multi-association is normal (not an error). Supersedes D-028 (specimen-is-identity) and retires the variant grouping + "Add specimen variant" copy subsystem. Hero case: environmental physical-chemistry across water types (Color/Turbidity span ~10 sample types on indonesiademo).',
+    specPath: 'designs/admin-config/test-catalog-specimen-mn.md',
+    htmlUrl: 'designs/admin-config/test-catalog-specimen-mn-preview.html',
+    added: '2026-07-20',
+    updated: '2026-07-20',
+    status: 'draft',
+    jira: ['OGC-1145'],
+    githubIssue: 234,
+    tags: ['test-catalog', 'specimen', 'many-to-many', 'sample-type', 'loinc', 'admin', 'configuration'],
+  },
+  {
     name: 'Test Catalog Editor — Completion & Correction',
     category: 'admin-config',
     component: React.lazy(() => import('@designs/admin-config/test-catalog-editor-completion.jsx')),

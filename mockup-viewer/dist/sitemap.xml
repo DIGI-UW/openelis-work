@@ -4,11 +4,15 @@
   <url><loc>https://digi-uw.github.io/openelis-work/catalog.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/catalog.json</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/llms.txt</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-specimen-mn.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-specimen-mn.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-specimen-mn-preview.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-editor-completion.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-editor-completion.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-editor-completion.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-completion-v2.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-completion-v2.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-panels-sampletypes.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/report-management.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/report-management.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/report-management.html</loc></url>
@@ -20,6 +24,9 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/methods.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/organizations-management.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/organizations-management.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/order-entry-require-provider.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/order-entry-require-provider.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/order-entry-require-provider.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/barcode-config.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/barcode-config.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/barcode-config.html</loc></url>

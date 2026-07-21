@@ -1,7 +1,141 @@
 # OpenELIS Design Gallery — Full Spec Content
 
-Generated: 2026-07-15T23:07:48.861Z
-Total designs: 204
+Generated: 2026-07-21T23:14:03.474Z
+Total designs: 206
+
+---
+
+# Test Catalog — Specimen Many-to-Many (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-specimen-many-to-many
+Jira: OGC-1145
+
+# FRS — Test↔Sample-Type Many-to-Many, Phase 1 (shared config)
+
+**Feature slug:** `test-catalog-mn-phase1`
+**Status:** Draft for review · **Author:** Casey (with design assistant) · **Date:** 2026-07-20
+**Supersedes decision:** D-028 (specimen-is-identity) → record **D-035** before build.
+**Companion docs:** reassessment brief (`test-catalog-specimen-model-reassessment.md`), crosscheck (`test-catalog-mn-crosscheck.md`).
+**Scope note:** Phase 1 delivers *many sample types per test with **shared** configuration* + specimen-aware resolution. Per-specimen **override** (ranges/LOINC differing by specimen) is **Phase 2**; duplicate-collapse **migration** is **Phase 3**. This FRS is version-agnostic where noted; the phase boundary is called out in Out of Scope.
+
+---
+
+## Lab Context
+
+### Current State
+OpenELIS treats a "test" as bound to a single specimen (sample type). To offer the same measurement on more than one specimen, a lab today must create a **separate test record per specimen** — "Glucose(Serum)", "Glucose(Plasma)", "Glucose(CSF)" are three unrelated rows. In environmental and vector labs this is acute: a single physical-chemistry measurement like **Color** or **Turbidity** applies to a dozen or more water and environmental sample types (drinking water, surface water, sea water, spa water, waste, soil…). On the live env/vector instance, 155 of 459 catalog tests are already stretched across multiple sample types, and the catalog software has no first-class way to express that — so the same measurement is duplicated or awkwardly linked.
+
+### Pain
+A lab manager configuring "Turbidity" for nine water sample types must build and maintain **nine near-identical test records** — nine sets of result components, nine identical scales, nine places to fix a typo. When a value scale changes, eight of the nine silently drift out of sync. Worse, the underlying software assumes exactly one specimen per test: when an electronic order or analyzer result arrives keyed only by a code, the system resolves "which specimen?" by taking an **arbitrary first match**, so a result can attach to the wrong specimen with no warning. The current catalog also *flags* any test that a lab has (reasonably) attached to several specimens as a configuration **error**, telling managers their working setup is broken.
+
+### What Changes
+A measurement that runs on many specimens becomes **one test associated with many sample types**. The manager builds Turbidity once, ticks the water sample types it applies to, and it appears — correctly — under each of those specimens at order entry. Machine intake stops guessing: when an order or analyzer message carries a specimen, the system resolves to that specimen deterministically; when it carries none, the order is held for specimen clarification rather than silently mis-assigned. And having a test on several specimens is no longer an error — it's the supported, expected shape. (In this phase the configuration is *shared* across the specimens; letting ranges or codes differ per specimen comes in Phase 2.)
+
+## Overview
+
+A test may be associated with one or more sample types through the existing `SAMPLETYPE_TEST` junction, used as the genuine many-to-many relationship it already is at the schema level. All test configuration (result components, units, ranges, LOINC/terminology, storage) is **shared** across the associated specimens in Phase 1. Every place the application resolves a test↔specimen relationship becomes **specimen-aware** instead of first-match. The catalog list presents a multi-specimen test as a single row listing its specimens, and the catalog-health rule that treated multi-association as an error is inverted.
+
+### Navigation & URL
+- **Sample-type association** lives on the test editor's **Basic Info** section: `/MasterListsPage/TestCatalogEditor/<testId>/basic-info` (existing route; D-012 path-segment pattern).
+- **List:** `/admin/TestCatalogList` (existing; a multi-specimen test renders as one row with its specimens shown).
+- **Breadcrumb:** `Home / Admin / Test Catalog / <Test name>` (existing chain; D-013 "Admin Management" drift preserved).
+- **SideNav:** no new slot (existing Test Catalog placement).
+
+## User Stories
+1. As a **catalog manager**, I want to associate one test with several sample types so I configure a shared measurement (Turbidity, Color) once instead of cloning it per specimen.
+2. As a **catalog manager**, I want the list to show a multi-specimen test as one row with its specimens, so a large env catalog stays readable.
+3. As a **lab technologist / orderer**, I want a multi-specimen test to appear under each of its specimens at order entry and resolve to the specimen I chose, so results never attach to the wrong specimen.
+4. As an **integration/analyzer**, I want an incoming coded result to resolve to the correct specimen when the message carries one, and to be held for clarification (not guessed) when it doesn't.
+5. As a **catalog manager**, I want multi-specimen association to be a supported shape, not flagged as an error.
+
+## Functional Requirements
+
+### Association (editor)
+- **FR-1.** The shipped Basic Info already renders a single-value **Sample type** control (`basic-info-edit-sample-type`) alongside Name, Code, Description, Lab Unit, Domain, AMR surveillance, Active, Orderable (verified live, 2026-07-20). Phase 1 **changes that one control from single-select to a typeahead multi-select** (Carbon `FilterableMultiSelect`) over active sample types (D-007), rendering the selected specimens as **removable chips with labels** (never a bare count; addendum). At least one sample type is required to save an orderable/active test. No other Basic Info field changes.
+- **FR-2.** Adding a sample type writes a `SAMPLETYPE_TEST` row; removing one deletes that association (no hard delete of the *test*; association rows are join records, safe to remove — D-002 applies to domain records, not join rows). Duplicate associations are prevented in the write path.
+- **FR-3 (domain guard, D-030).** The sample-type control only offers, and only accepts, sample types whose domain matches the test's domain; attaching a mismatched domain is refused with an inline message.
+- **FR-4 (shared config, Phase 1).** All configuration (result components, units, ranges, LOINC/terminology, storage) applies identically to every associated sample type. The editor shows one configuration; there is no per-specimen divergence in this phase (see Out of Scope → Phase 2).
+
+### Resolution (the backend fix — the heart of Phase 1)
+- **FR-5.** Replace every first-match (`.get(0)`) test↔specimen resolution with **specimen-aware** resolution: `getTypeOfSample(test)` and the LOINC routing callers (`getActiveTestsByLoinc` in analyzer auto-create, the three e-order controllers, FHIR `TaskInterpreter`) resolve using the specimen in context. Generalize the existing `LabOrderSearchProvider.getActiveTestByLoincCodeAndSampleType(loinc, sampleTypeId)` disambiguation to all sites.
+- **FR-6 (manual order entry).** A test associated with N sample types appears in the order-entry test picker under **each** of those sample types; ordering it under a chosen specimen resolves to that specimen (the orderer already selects the sample type — no ambiguity).
+- **FR-7 (machine intake, specimen present).** When an e-order/analyzer/FHIR message carries a specimen coding, resolve deterministically to that specimen.
+- **FR-8 (machine intake, no specimen).** When no specimen is carried and the code maps to a multi-specimen test, **do not first-match**: hold the order at the assay level for specimen clarification, resolved at collection/accession (chooser surfaced to the accessioner). Hard-reject only when no valid specimen exists for the context. (Aligns with OGC-1142 "Intake Implications".)
+
+### List & health
+- **FR-9.** In the catalog list, a multi-specimen test renders as **one row** whose Sample-type cell lists its specimens (e.g. "Water +8"); the flat per-specimen duplicate rows disappear once associations replace duplicates (duplicates handled in Phase 3 migration; net-new multi-specimen tests show correctly immediately).
+- **FR-10 (invert FR-62.c).** Multiple sample-type associations are **no longer an error**. The health finding is re-scoped to flag only genuine problems: **zero** sample-type links (Error), and — reserved for Phase 2 — an incomplete per-specimen override. Pre-existing multi-association tests raise nothing.
+
+### Terminology & LOINC (per-specimen) — handle it right from day one
+LOINC is specimen-sensitive *by the standard* (Glucose in Serum/Plasma = 2345-7; in CSF = 2342-4), so terminology overrides are not an afterthought — they are the standard-conformant behavior. Phase 1 is shared, but the store and resolution must be built so per-specimen terminology drops in without migration.
+
+- **FR-11 (store is specimen-keyable now — Phase 1).** The test↔terminology mapping store (the OGC-1142 polymorphic terminology store) MUST key each mapping on **(entity_type, entity_id, sample_type_id)** where `sample_type_id` **null = shared** (applies to all the test's specimens) and a value = **specimen-specific**. Phase 1 writes only shared (null) mappings, but the schema must accept the specimen-scoped form immediately so Phase 2 adds no migration. This extends the *already-delivered* Terminology "Applies to" per-component scoping to sample-type scope.
+- **FR-12 (Phase 1 shared LOINC — env-safe).** A Phase 1 test carries one shared LOINC/terminology set across all its specimens — correct for environmental physical-chemistry, where the specimen doesn't change the code. The clinically-divergent case is the Phase 2 override.
+- **FR-13 (Phase 2 per-specimen override).** The Terminology section shows shared mappings by default with an **"Override for a specific specimen"** affordance (mirrors the Ranges override): pick a sample type, give it its own LOINC/SNOMED/CIEL/OCL mapping; it applies to that specimen only, others keep the shared set. Retires the FR-53 "LOINC not copied because specimen-specific" workaround — there's nothing to copy.
+- **FR-14 (specimen-aware reverse routing — Phase 1).** `getActiveTestsByLoinc` MUST honor specimen scope: a specimen-specific LOINC (CSF 2342-4) resolves directly to (test, CSF); a combined/shared LOINC (2345-7 Ser/Plas) resolves to the test and takes the specimen from context (FR-7/8) — never first-match. This is part of the Phase 1 `.get(0)` fix and makes today's non-conformant "same LOINC on every sibling" situation correct.
+
+## Data Model
+Authority: `openelis-design/references/test-catalog-data-model.md`. **No new entity in Phase 1.**
+- `SAMPLETYPE_TEST` is used as the true m:n association it already is (schema has no unique pair constraint; the app's `size()==1` write-path assertions are removed).
+- Resolution reads become specimen-parameterized; the `.get(0)` sites are the changed surface.
+- **Declared dependency (Phase 2, not built here):** per-(test, sample-type) override storage for `result_limits` (specimen scoping) and LOINC/terminology (hosted by the OGC-1142 polymorphic terminology store). Phase 1 is shared-only and needs no override storage.
+- Migration of existing duplicate/legacy multi-link data is **Phase 3** (deactivate/merge, never delete — D-002).
+
+## Access
+Entirely within the existing **Test Catalog Manager / Admin** capability. A manager who can edit tests can add/remove sample-type associations; viewers see the associations read-only. No new roles.
+
+## Retires / Supersedes (the complexity reduction)
+This model **replaces**, not augments, the shipped/spec'd variant subsystem. The many-to-many association + per-specimen override does the same job with one record instead of N linked duplicates, so the following are explicitly retired (coordinate via the crosscheck; migrate existing data in Phase 3):
+
+- **D-033 variant-link grouping** and the grouped list (Completion v2 **FR-46–FR-51**) — a test's specimens are now intrinsic to the one record, not a link across sibling records. The grouped-vs-flat toggle (**FR-50**) goes away (one row already shows all specimens).
+- **"Add specimen variant" copy flow** (Completion v2 **FR-52–FR-55**) — replaced by "tick another specimen" (shared) or "override one field for one specimen" (Phase 2). No copy, no sibling record.
+- **Copied-ranges review** (**FR-53** draft/review banner) and the **variant-drift** problem + its finding (Silent-Failure #5) — there are no siblings to drift.
+- **FR-62.c multi-link error** — inverted (FR-10): multi-association is normal.
+
+What a manager does instead: one test, its specimens on a multi-select, override the exceptions (Phase 2). "Spin off a separate test" survives only for a genuinely different test (different components/purpose) — which is just a new test, with no linking because it isn't a variant.
+
+> **Honest trade:** user-facing and maintenance complexity drop sharply (no duplicate records, no drift, no copy/link/review machinery). In exchange, complexity moves into the data layer (per-specimen override storage in Phase 2 + the specimen-aware resolution refactor here), and there is a one-time transition cost to supersede the already-built variant features and migrate existing grouped/duplicated data (Phase 3).
+
+## Out of Scope
+- **Per-specimen override** of ranges/LOINC/units (Phase 2) — Phase 1 config is shared across all associated specimens.
+- **Duplicate-collapse migration** of existing per-specimen test rows and the 56 pathology multi-links (Phase 3).
+- **AMR/isolate modeling** — a different axis (organism↔antibiotic), tracked separately.
+- Bulk association editing across many tests at once.
+
+## Non-Functional Requirements
+- **NFR-1.** Specimen-aware resolution adds no perceptible latency at order entry / intake vs. the current first-match.
+- **NFR-2.** The sample-type multi-select is keyboard-navigable and screen-reader labelled; selected specimens announced.
+- **NFR-3.** New strings localized, `[category].testCatalog.[identifier]`, universal-English fallback.
+
+## Dependencies
+- **Upstream (must land within Phase 1):** the specimen-aware resolution refactor of the `.get(0)` sites — this is the core work; the editor UI is thin over it.
+- **Downstream (coordinate — see crosscheck):** Sample Type Management v2.1 ("Associated Tests" becomes additive attach), Completion v2 (variant grouping / FR-62.c inversion), Panel Management (resolution consistency), Env/Vector order entry (consumer), Analyzer Types & Mapping (LOINC routing).
+
+## Localization (new keys)
+| Key | English |
+|---|---|
+| `label.testCatalog.basicInfo.sampleTypes` | Sample types |
+| `helper.testCatalog.basicInfo.sampleTypesMulti` | Select every specimen this test runs on. Configuration is shared across them. |
+| `error.testCatalog.basicInfo.sampleTypeRequired` | Select at least one sample type. |
+| `error.testCatalog.basicInfo.sampleTypeDomain` | This sample type's domain doesn't match the test's domain. |
+| `label.testCatalog.list.sampleTypesSummary` | {first} +{n} |
+| `notice.testCatalog.intake.awaitingSpecimen` | Awaiting specimen — this test runs on several specimens; resolve at collection. |
+| `tag.testCatalog.finding.noSampleTypeLink` | No sample-type link |
+
+## Acceptance spot checks
+1. On a CLINICAL test, the Sample types control offers only CLINICAL sample types; adding "Serum" and "Plasma" shows two removable chips and persists two `SAMPLETYPE_TEST` rows (read back on a different surface).
+2. An env test "Turbidity" associated with Water + Drinking + Surface appears under all three at order entry; ordering under "Surface Water" produces an analysis resolved to Surface Water.
+3. A FHIR e-order carrying LOINC + a Specimen coding resolves to that specimen; the same order with **no** specimen coding is held "awaiting specimen", not first-matched.
+4. A test with three sample-type associations shows **no** error tag; a test with **zero** links shows the "No sample-type link" error.
+5. The catalog list shows the multi-specimen test as one row with "Water +2", not three rows.
+
+## Suggested slicing (PR-sized, D-026 — dev owns final breakdown)
+| Slice | Content |
+|---|---|
+| P1a | Specimen-aware resolution: replace `.get(0)` at the 8 sites; manual order entry under each specimen (FR-5/6/7) |
+| P1b | Machine intake no-specimen hold + accession chooser (FR-8) |
+| P1c | Editor Sample-types multi-select + domain guard + write path (FR-1/2/3/4) |
+| P1d | List one-row rendering + health-finding inversion (FR-9/10) |
+
 
 ---
 
@@ -3156,6 +3290,292 @@ GET    /api/organizations/hierarchy/{type}/{id}  (subtree from node)
 - [ ] Validate parent references on import
 - [ ] Prevent deletion of parents with children
 - [ ] Hub data restrictions enforced
+
+
+---
+
+# Require Requesting Provider (Order Entry) (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/require-requesting-provider-order-entry
+Jira: OGC-1143
+
+# Optional Requesting Provider (Requester Requirement Toggle) — FRS
+
+**Feature area:** Admin → General Configurations → Order Entry Configuration
+**Route:** `/MasterListsPage/SampleEntryConfigurationMenu`
+**Status:** Draft for review
+**Version-agnostic** — version boundaries are decided in `/breakdown`, not here.
+
+---
+
+## Lab Context
+
+### Current State
+When a lab registers a new order in OpenELIS, the order-entry form asks *who asked for the
+test*. Today that "who" is split into two fields in the Requester section: the **requesting
+provider** (the clinician / physician who ordered the test) and the **referring facility**
+(the site or organization the sample came from — in OpenELIS this is the "Site Name"). In
+the shipped configuration, the requesting provider is a **required** field: the person doing
+data entry (usually Reception, sometimes the ordering Provider) cannot save the order and move
+on until a provider name is filled in.
+
+### Pain
+Many labs receive samples where the individual ordering clinician is genuinely unknown or
+irrelevant, and only the **sending facility** matters. Environmental and vector-surveillance
+samples come from a monitoring station, not a doctor. Referral samples arrive from a partner
+clinic with only the clinic named on the request form. Public-health screening batches are
+identified by site, not by an individual prescriber. Because the provider field is hard-required,
+staff work around it: they type junk ("Unknown", "N/A", a dot) into the provider name just to
+get past the validation. That junk then flows onto printed reports, into FHIR exports, and into
+provider-based search and notifications — polluting the very data the requirement was meant to
+protect. The lab has no way to say "for us, the facility is the requester of record."
+
+### What Changes
+An administrator can flip a single setting in Order Entry Configuration so that, for their
+deployment, the **requesting provider is optional and the referring facility is required
+instead**. With the setting on, a Reception clerk registering a batch of environmental samples
+picks the sending facility from the site list, leaves the provider blank, and saves — no more
+typing "Unknown" into a name field. Labs that need the individual provider (most clinical labs)
+change nothing: the setting ships **off**, so the requesting provider stays mandatory exactly
+as it is today. The requester attribution on reports, exports, and notifications is driven by
+whichever field the lab actually captured, instead of by placeholder text.
+
+---
+
+## Overview
+
+This feature adds one property, **`requireProviderEntry` ("Require requesting provider")**, to
+the existing Order Entry Configuration property table. Like every other row on that page, it is
+a name/description/value row edited by selecting the row and clicking **Modify** — this feature
+introduces no new UI control, only one new row.
+
+- **Default (value `true` — required):** the **requesting provider is required** — identical to
+  today's shipped behavior. No lab that upgrades sees any change unless an admin changes the value.
+- **Value `false` (optional):** the requesting provider becomes **optional** (the field still
+  appears on order entry, just without the required marker), and the **referring facility (Site
+  Name) becomes required** in its place, so every order still carries a requester of record.
+
+The property is deployment-wide (single tenant — D-001) and admin-controlled. It joins the
+existing Order-Entry properties (e.g. `restrictFreeTextProviderEntry`,
+`restrictFreeTextRefSiteEntry`, `eqaEnabled`) and is stored and edited exactly like them.
+
+Because the requesting provider has been mandatory for the life of the product, code and
+integrations downstream of order entry may assume it is always present. This FRS therefore
+carries a mandatory **Downstream Data Audit** section (below) that directs the implementing
+developer and Claude Code to enumerate and null-safe every consumer of provider data before
+the setting can ship — so making provider optional never produces a system error on a report,
+export, or notification.
+
+### Navigation & URL
+- **SideNav:** `Admin → General Configurations → Order Entry Configuration`
+- **Breadcrumb:** `Home / Admin Management / Sample Entry Configuration Menu / Order Entry Configuration`
+  *(verified against the live page; preserve the shipped label drift — SideNav reads "Admin",
+  breadcrumb reads "Admin Management" — D-013)*
+- **Route:** `/MasterListsPage/SampleEntryConfigurationMenu` (existing page; this feature adds
+  one row to it — it does not create a new route)
+
+---
+
+## User Stories
+
+1. **As a lab administrator**, I want to make the requesting provider optional and require the
+   referring facility instead, so that staff registering facility-attributed samples aren't
+   forced to invent a provider name.
+2. **As a Reception clerk** at a lab that has enabled the setting, I want to save an order with
+   only the referring facility filled in, so that I can register facility-sourced samples
+   without workarounds.
+3. **As a lab administrator at a clinical lab**, I want the requesting provider to stay
+   mandatory by default, so that upgrading OpenELIS changes nothing about how my staff register
+   orders.
+4. **As a validator / report consumer**, I want reports, exports, and notifications to show the
+   facility as the requester when no provider was captured, so that nothing breaks and the
+   requester of record is still accurate.
+
+---
+
+## Functional Requirements
+
+**FR-1 — New Order-Entry property.** Add one boolean property, `requireProviderEntry`
+("Require requesting provider"), to the Order Entry Configuration property table, defaulting to
+value **`true` (required)**. It is a name/description/value row edited the same way as every
+existing row — select the row's radio, click **Modify**, change the value. No new UI control is
+introduced.
+
+**FR-2 — Default preserves today's behavior.** When the value is `true` (the default), the order
+entry form requires the requesting provider exactly as it does today. An upgrade with no admin
+action produces no behavioral change.
+
+**FR-3 — Optional-provider behavior.** When the value is `false`, the order entry form:
+  - keeps the requesting provider field **visible** but removes its required marker and its
+    save-blocking validation (Provider stays a typeahead ComboBox — D-007);
+  - marks the **referring facility (Site Name)** field as **required**, and blocks save until a
+    facility is selected;
+  - allows the order to be saved with the provider left blank.
+
+**FR-4 — Clarity in the property description.** The property's Description text states the
+coupled effect — that setting it to `false` makes the referring facility required instead — so
+an admin editing the value understands the paired behavior without guessing (see Localization).
+
+**FR-5 — Facility field required only in this mode.** Requiring the referring facility is a
+consequence of setting `requireProviderEntry` to `false`; when it is `true`, the facility field
+keeps its current (unchanged) behavior. This feature does not otherwise change facility-field
+behavior.
+
+**FR-6 — Requester of record resolves to what was captured.** Wherever the order's "requester"
+is displayed or transmitted (reports, exports, notifications, search), the value resolves to
+the provider when present, otherwise to the referring facility. No placeholder text is
+introduced by the system.
+
+**FR-7 — No impact on existing orders.** Orders already saved (with or without a provider) are
+unaffected. The setting governs new order entry and edits going forward only.
+
+**FR-8 — Null-safe downstream (see Downstream Data Audit).** With the setting off, every
+downstream consumer of provider data must degrade gracefully (render blank or fall back to the
+facility) rather than error. This is a hard acceptance condition, verified per the audit
+section below.
+
+---
+
+## Data Model
+
+This feature is **configuration + validation behavior**; it does not introduce a new domain
+entity.
+
+| Element | Where it lives | Notes |
+|---|---|---|
+| `requireProviderEntry` property | Order Entry Configuration property table (`SampleEntryConfigurationMenu`), stored like every other row | New boolean, default `true`. Reuse the existing config-property store used by the other Order-Entry properties — declare, don't invent a new store. |
+| Requesting provider (order field) | Existing order/sample "Requester → Provider" field | No schema change proposed here; **the audit must confirm** the provider reference on the order/analysis is already nullable (see Downstream Data Audit item 7). |
+| Referring facility / Site Name (order field) | Existing order "Requester → Site Name" (Organization) field | Reused; becomes required when `requireProviderEntry` is `false`. |
+
+**Live-app check — resolved (D-008, D-009).** Verified against the live Order Entry Configuration
+page (v3.2.1.11): the existing provider/site properties are `restrictFreeTextProviderEntry`
+("Restrict Free Text Provider Entry") and `restrictFreeTextRefSiteEntry` ("Users cannot enter new
+referring sites through sample entry"). Neither governs whether the provider is *required* — they
+govern free-text entry. So `requireProviderEntry` is a genuinely new property, not a duplicate;
+it sits alongside these rows in the same table.
+
+---
+
+## Downstream Data Audit (implementation gate — for the developer & Claude Code)
+
+> The requesting provider has been mandatory for the entire history of the product, so code and
+> integrations may silently assume it is always present. **Before this setting can be shipped
+> enabled, the implementing developer and Claude Code must complete this audit** and make each
+> consumer null-safe. Each item is an acceptance condition, not a suggestion. Treat a
+> provider-absent order as a first-class case, not an error path.
+
+For each consumer below: (a) locate the code path, (b) confirm behavior when the order has **no
+provider**, (c) make it degrade gracefully — render blank or fall back to the referring facility
+per FR-6 — never throw, never emit placeholder text.
+
+1. **Order-entry validation (frontend + backend).** Remove the hard-required rule on provider
+   when the setting is off; add the required rule on Site Name. Confirm the backend save path
+   (not just the React form) enforces the same rule, so an API caller can't bypass it or be
+   wrongly blocked.
+2. **FHIR order export (ServiceRequest / Task `requester`, `Practitioner`).** Confirm the
+   `requester`/`performer` mapping is null-safe when there is no provider. Where the spec allows,
+   use the referring **Organization** as the requester reference instead of emitting an empty or
+   invalid Practitioner reference.
+3. **Printed patient/result reports.** The "Requesting Physician" line must render without error
+   when provider is blank — show the facility, or leave the line empty — and must not print
+   "null" or placeholder text.
+4. **Test Notification — Provider Email / Provider SMS channels.** These channels have **no
+   recipient** when the provider (and provider contact) are absent. Confirm delivery **skips
+   gracefully** (no send attempt, no error) rather than failing the whole notification run.
+   Coordinate with the Test Notification config owner — do not silently drop patient-channel
+   notifications for the same order.
+5. **Result Reporting Configuration / electronic result routing.** If any routing rule keys on
+   the ordering provider, confirm it tolerates a missing provider and still routes by
+   facility/site where applicable.
+6. **Search & reports that filter/group by provider.** Provider-based search, workplans, and any
+   "by provider" report must treat provider-less orders as a valid, findable group (e.g. filter
+   by facility), not drop or error on them.
+7. **Database constraints.** Confirm the provider reference on the order/sample/analysis is
+   **nullable** (no `NOT NULL` constraint, no non-null FK requirement). If a constraint exists,
+   a migration to relax it is a required part of this work — declare it in the story.
+8. **Barcodes / labels & any order summary views.** Confirm any label preset or order-summary
+   component that prints the provider handles a blank provider.
+9. **Audit/history.** Confirm order audit records a provider-less order cleanly (no exception on
+   diff/serialize).
+
+**Definition of done for the audit:** every consumer above has a confirmed, tested
+provider-absent behavior; no code path throws or emits placeholder text when an order has no
+provider; the Site-Name-required rule is enforced on both the form and the save API.
+
+---
+
+## Dependencies
+
+- **Order Entry Configuration property store** (existing) — reuse for the new boolean. Built.
+- **Test Notification system** (Provider Email / Provider SMS channels) — downstream; must be
+  made recipient-null-safe (audit item 4). Owner coordination required.
+- **FHIR order export** — downstream; requester mapping must be null-safe (audit item 2).
+- **Provider reference nullability** — must be confirmed/relaxed at the DB layer (audit item 7).
+- No unbuilt-upstream dependency; nothing here waits on EQA V2, Catalyst, or other pending work.
+
+---
+
+## Access & Roles
+
+- **Changing the setting:** Admin only, via the existing Order Entry Configuration admin page.
+  A non-admin user does not see the Order Entry Configuration menu item, consistent with the
+  rest of the admin area (binary admin — D-006). No new permission key is introduced.
+- **Effect on order entry:** the changed validation applies to whoever registers orders today
+  (Reception, and Providers entering their own orders) — this feature does not change *who* can
+  create orders, only which Requester field is required for them.
+
+---
+
+## Localization
+
+All new strings are domain-namespaced under `orderEntryConfig.*`; existing strings are reused
+by key. Reuse verified against the `common.*` snapshot (2026-07-17); confirm against
+`frontend/src/languages/en.json` at implementation.
+
+| UI text | Key | Status |
+|---|---|---|
+| Requester | `common.requester` | REUSE |
+| Provider | `common.provider` | REUSE |
+| Site Name | `common.siteName` | REUSE |
+| Save | `common.save` | REUSE |
+| Cancel | `common.cancel` | REUSE |
+| Home | `common.home` | REUSE |
+| Status | `common.status` | REUSE |
+| Require requesting provider | `orderEntryConfig.requireProviderEntry.name` | NEW |
+| When on, staff must select a requesting provider to save an order. When off, the referring facility (Site Name) is required instead. | `orderEntryConfig.requireProviderEntry.description` | NEW |
+| Requesting provider is optional for this laboratory. | `orderEntryConfig.requireProvider.optionalHint` | NEW |
+| Select a referring facility to save this order. | `orderEntryConfig.siteRequired.validation` | NEW |
+
+---
+
+## Out of Scope
+
+- Changing the *facility* field's behavior in any mode other than making it required when the
+  provider requirement is off.
+- Per-domain or per-test requester rules (this is a single deployment-wide setting).
+- Introducing a free-text "requester" fallback or any placeholder-text mechanism.
+- Redesigning the Order Entry Configuration page layout beyond adding this one setting.
+- Backfilling or altering existing saved orders.
+
+---
+
+## Acceptance Criteria
+
+- AC-1: A new `requireProviderEntry` ("Require requesting provider") row appears in Order Entry
+  Configuration, defaulting to `true`; an upgraded instance with no admin action behaves exactly
+  as before.
+- AC-2: With `requireProviderEntry` = `true`, an order cannot be saved without a requesting
+  provider (form + API).
+- AC-3: With `requireProviderEntry` = `false`, an order can be saved with the provider blank, and
+  **cannot** be saved without a referring facility (form + API).
+- AC-4: The property's Description states the coupled effect (value `false` ⇒ facility required),
+  visible to the admin when they Modify the value.
+- AC-5: Every consumer in the Downstream Data Audit has a confirmed provider-absent behavior;
+  no report, FHIR export, notification run, label, search, or audit action errors on a
+  provider-less order.
+- AC-6: No system-generated placeholder text ("Unknown", "null", ".") is written to the provider
+  field or emitted downstream.
+- AC-7: All new UI strings resolve through `orderEntryConfig.*` i18n keys; reused strings use
+  their existing `common.*` keys.
 
 
 ---
@@ -84200,6 +84620,33 @@ interface RunSettings {
 4. System checks last known QC status
 5. If recent QC passed → Allow import with warning
 6. If no recent QC → Require manual verification
+
+---
+
+## Multi-component results on the import review — added, OGC-1131
+
+Multiplex molecular runs report **several values per patient sample** — an overall call plus a per-target
+value (Ct/Cq per gene / probe / channel). Where the test defines **result components** (`test_result_component`,
+OGC-949 M1) and the analyzer mapping resolves targets to those components (see the Analyzer Types & Mapping
+FRS + the analyzer ingestion FRS, OGC-1129), the import review must show and accept them.
+
+**Requirements**
+
+- **MC-1.** For an imported analysis with multiple result components, the review shows **each component's
+  value**, grouped under the analysis, in the component `display_order` (the primary/derived result first;
+  the per-target values beneath). Numeric Ct/Cq is a value; a **blank/absent Ct/Cq = no amplification /
+  negative** for that channel; empty renders blank (never a fabricated 0).
+- **MC-2.** Accept/reject operates on the **analysis** (all its components together), as today; the
+  QC-first gating and non-conformity flow are **unchanged** — a QC failure still blocks the whole analysis.
+- **MC-3.** A reported target with **no matching component** surfaces as a **visible unmapped-result
+  exception** on the review (consistent with the existing unmapped-code handling), never silently dropped.
+- **MC-4.** Instrument-reported **internal controls** (SPC/PCC, IPC channel) already extracted by the
+  QC-first workflow may also be modeled as components; the **QC program** stays in the QC domain (not
+  components).
+- **MC-5.** Single-component runs are **unchanged**.
+
+_Companion: analyzer ingestion FRS (`analyzer-multicomponent-ingestion.md`, OGC-1129); Results Entry /
+Validation multi-component FRSs; epic OGC-1131._
 
 
 ---

@@ -20,6 +20,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Range Editor | [range-editor.jsx](designs/admin-config/range-editor.jsx) | [range-editor.md](designs/admin-config/range-editor.md) |
 | Result Options | [result-options.jsx](designs/admin-config/result-options.jsx) | [result-options.md](designs/admin-config/result-options.md) |
 | Report Management | [report-management.jsx](designs/admin-config/report-management.jsx) · [preview](designs/admin-config/report-management.html) | [report-management.md](designs/admin-config/report-management.md) |
+| Test Catalog — Specimen Many-to-Many | [test-catalog-specimen-mn.jsx](designs/admin-config/test-catalog-specimen-mn.jsx) · [preview](designs/admin-config/test-catalog-specimen-mn-preview.html) | [test-catalog-specimen-mn.md](designs/admin-config/test-catalog-specimen-mn.md) |
 | Test Catalog Editor — Completion & Correction | [test-catalog-editor-completion.jsx](designs/admin-config/test-catalog-editor-completion.jsx) · [preview](designs/admin-config/test-catalog-editor-completion.html) | [test-catalog-editor-completion.md](designs/admin-config/test-catalog-editor-completion.md) |
 | Test Catalog Completion v2 | [test-catalog-completion-v2.jsx](designs/admin-config/test-catalog-completion-v2.jsx) | [test-catalog-completion-v2.md](designs/admin-config/test-catalog-completion-v2.md) |
 | Test Catalog | [test-catalog.jsx](designs/admin-config/test-catalog.jsx) · [preview](designs/admin-config/test-catalog.html) | [test-catalog.md](designs/admin-config/test-catalog.md) |

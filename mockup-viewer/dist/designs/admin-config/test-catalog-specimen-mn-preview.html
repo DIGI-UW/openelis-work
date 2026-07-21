@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test↔Sample-Type m:n — OpenELIS Preview (grounded)</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+  .wrap { padding:1rem 2rem; max-width:1180px; margin:0 auto; }
+  .card { background:#fff; border:1px solid #e0e0e0; padding:1.25rem 1.5rem; margin-bottom:1.25rem; }
+  .card h2 { font-size:1.05rem; font-weight:600; margin:0 0 .25rem; }
+  .card .sub { color:#525252; font-size:.82rem; margin:0 0 1rem; }
+  .newbadge { background:#0f62fe; color:#fff; font-size:.62rem; padding:.05rem .35rem; border-radius:8px; margin-left:.4rem; vertical-align:middle; letter-spacing:.03em; }
+  .p2badge { background:#8a3ffc; color:#fff; font-size:.62rem; padding:.05rem .35rem; border-radius:8px; margin-left:.4rem; vertical-align:middle; }
+  table.cds--data-table td, table.cds--data-table th { padding:.5rem .75rem; }
+  .chip { display:inline-flex; align-items:center; gap:.35rem; background:#e0e0e0; border-radius:12px; padding:.12rem .55rem; margin:.15rem .25rem .15rem 0; font-size:.8rem; }
+  .chip button { border:0; background:transparent; cursor:pointer; font-size:.9rem; line-height:1; color:#525252; }
+  .fld { margin-bottom:.9rem; }
+  .fld label { display:block; font-size:.72rem; color:#525252; margin-bottom:.25rem; }
+  .fld input.txt, .fld select { width:100%; max-width:440px; padding:.45rem .6rem; border:0; border-bottom:1px solid #8d8d8d; background:#f4f4f4; }
+  .fld.hi input, .fld.hi .mswrap { outline:2px solid #0f62fe; outline-offset:2px; }
+  .helper { font-size:.73rem; color:#525252; margin-top:.25rem; }
+  .note { background:#edf5ff; border-left:3px solid #0f62fe; padding:.5rem .75rem; font-size:.8rem; margin:.5rem 0; }
+  .note.warn { background:#fff8e1; border-left-color:#f1c21b; }
+  .note.p2 { background:#f6f2ff; border-left-color:#8a3ffc; }
+  .addrow { display:flex; gap:.5rem; align-items:center; margin-top:.4rem; }
+  .addrow select { max-width:280px; }
+  .muted { color:#6f6f6f; }
+  .radios label { margin-right:1rem; font-size:.85rem; }
+  .tog { display:flex; gap:1.5rem; margin:.5rem 0; }
+  .tog span { font-size:.72rem; color:#525252; display:block; }
+  .tog b { font-size:.9rem; }
+  .rangerow { display:grid; grid-template-columns: 1.4fr .8fr .8fr auto; gap:.5rem; align-items:center; padding:.35rem 0; border-bottom:1px solid #f0f0f0; font-size:.85rem; }
+  .rangerow .sm { color:#6f6f6f; font-size:.75rem; }
+  .mswrap { background:#f4f4f4; border-bottom:1px solid #8d8d8d; padding:.35rem .5rem; max-width:560px; }
+</style>
+</head>
+<body class="cds--white">
+<div class="preview-banner">⚡ Visual Preview — Test↔Sample-Type Many-to-Many &nbsp;|&nbsp; Route: /MasterListsPage/TestCatalogEditor/&lt;id&gt;/basic-info &nbsp;|&nbsp; Grounded to shipped OGC-1142 Basic Info &nbsp;|&nbsp; Not a live app</div>
+<div class="wrap" id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+const ENV_TYPES = ["Water","Drinking Water","Surface Water","Sea Water","Spa Water","Swimming Pool Water","Hemodialysis Water","Sanitation Hygiene Water","Public Bath Water","Liquid Waste","Soil","Air"];
+
+const LIST = [
+  { name:"Turbidity (Kekeruhan)", code:"TURB", domain:"Environmental", types:["Water","Drinking Water","Surface Water","Sea Water","Spa Water","Swimming Pool Water","Hemodialysis Water","Sanitation Hygiene Water","Public Bath Water"], issue:null },
+  { name:"Color (Warna)", code:"COL", domain:"Environmental", types:["Water","Drinking Water","Surface Water","Sea Water","Spa Water","Public Bath Water","Liquid Waste"], issue:null },
+  { name:"Glucose", code:"GLU", domain:"Clinical", types:["Serum","Plasma","CSF"], issue:null, note:"CSF range overridden" },
+  { name:"Residual Chlorine", code:"RCL", domain:"Environmental", types:[], issue:"No sample-type link" },
+];
+
+function Chip({label, onRemove}) {
+  return <span className="chip">{label}{onRemove && <button onClick={onRemove} title="Remove">×</button>}</span>;
+}
+
+function ListPanel() {
+  const [issuesOnly, setIssuesOnly] = useState(false);
+  const rows = issuesOnly ? LIST.filter(r=>r.issue) : LIST;
+  return (
+    <div className="card">
+      <h2>Test Catalog — list</h2>
+      <p className="sub">A multi-specimen test is one row listing its specimens. Multiple sample types is normal — not an error (FR-9/10). The variant grouping / grouped-vs-flat toggle is retired.</p>
+      <label style={{fontSize:'.82rem', display:'flex', gap:'.4rem', alignItems:'center', marginBottom:'.75rem'}}>
+        <input type="checkbox" checked={issuesOnly} onChange={e=>setIssuesOnly(e.target.checked)} /> ⚠ Only tests with issues
+      </label>
+      <div className="cds--data-table-container">
+        <table className="cds--data-table cds--data-table--sm">
+          <thead><tr><th>Name</th><th>Sample types</th><th>Code</th><th>Domain</th><th>Health</th></tr></thead>
+          <tbody>
+            {rows.map((r,i)=>(
+              <tr key={i}>
+                <td><b>{r.name}</b></td>
+                <td>{r.types.length===0 ? <span className="muted">— none —</span> :
+                  <span>{r.types[0]}{r.types.length>1 && <span className="chip" style={{marginLeft:'.4rem'}}>+{r.types.length-1} more</span>}
+                  {r.note && <span className="p2badge">{r.note}</span>}</span>}</td>
+                <td className="muted">{r.code}</td>
+                <td><span className={"cds--tag cds--tag--"+(r.domain==='Environmental'?'teal':'blue')}>{r.domain}</span></td>
+                <td>{r.issue ? <span className="cds--tag cds--tag--red">{r.issue}</span> : <span className="muted">OK</span>}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="helper">"Turbidity" = one row ("Water +8") instead of 9 duplicate rows. "Glucose" shows a Phase-2 per-specimen override (CSF range differs) — still one test. "Residual Chlorine" (zero links) is the one genuine error the rule still raises.</p>
+    </div>
+  );
+}
+
+// Grounded to shipped Basic Info fields: Name, Code, Description, Lab Unit, Sample type, Domain, AMR, Active, Orderable
+function EditorPanel() {
+  const [types, setTypes] = useState(["Water","Drinking Water","Surface Water","Sea Water","Spa Water","Swimming Pool Water","Hemodialysis Water","Sanitation Hygiene Water","Public Bath Water"]);
+  const [pick, setPick] = useState("");
+  const remaining = ENV_TYPES.filter(t=>!types.includes(t));
+  return (
+    <div className="card">
+      <h2>Test editor — Basic Info <span className="muted" style={{fontWeight:400}}>· Turbidity (Kekeruhan)</span></h2>
+      <p className="sub">Shipped OGC-1142 Basic Info fields. The <b>only</b> Phase 1 change is Sample type: single → multi (highlighted).</p>
+      <div className="fld"><label>Name</label><input className="txt" value="Turbidity (Kekeruhan)" readOnly/></div>
+      <div className="fld"><label>Code</label><input className="txt" value="TURB" readOnly/></div>
+      <div className="fld"><label>Description</label><input className="txt" value="Turbidity, nephelometric" readOnly/></div>
+      <div className="fld"><label>Lab Unit</label>
+        <select defaultValue="Environmental Chemistry"><option>Environmental Chemistry</option><option>Water Microbiology</option></select></div>
+      <div className="fld hi">
+        <label>Sample type <span className="newbadge">SINGLE → MULTI</span> <span style={{color:'#da1e28'}}>*</span></label>
+        <div className="mswrap">
+          {types.map(t=><Chip key={t} label={t} onRemove={()=>setTypes(types.filter(x=>x!==t))} />)}
+          {types.length===0 && <span className="muted" style={{fontSize:'.8rem'}}>No sample types selected</span>}
+        </div>
+        <div className="addrow">
+          <select value={pick} onChange={e=>setPick(e.target.value)}>
+            <option value="">+ Add sample type…</option>
+            {remaining.map(t=><option key={t} value={t}>{t}</option>)}
+          </select>
+          <button className="cds--btn cds--btn--secondary cds--btn--sm" disabled={!pick}
+            onClick={()=>{ if(pick){ setTypes([...types,pick]); setPick(""); } }}>Add</button>
+        </div>
+        <p className="helper">Select every specimen this test runs on. Configuration is shared across them. ({types.length} selected · Environmental only — domain-guarded)</p>
+      </div>
+      <div className="fld"><label>Domain</label>
+        <div className="radios"><label><input type="radio" name="dom"/> Clinical</label>
+          <label><input type="radio" name="dom" defaultChecked/> Environmental</label>
+          <label><input type="radio" name="dom"/> Vector</label></div></div>
+      <div className="tog">
+        <div><span>AMR surveillance test</span><b>No</b></div>
+        <div><span>Active</span><b>Yes</b></div>
+        <div><span>Orderable</span><b>Yes</b></div>
+      </div>
+      <div style={{marginTop:'.5rem'}}>
+        <button className="cds--btn cds--btn--primary cds--btn--sm">Save</button>
+        <button className="cds--btn cds--btn--ghost cds--btn--sm">Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+// Phase 2 — per-specimen override, the answer to "how do you get divergent values without a separate test?"
+function OverridePanel() {
+  const [overridden, setOverridden] = useState(false);
+  return (
+    <div className="card">
+      <h2>Ranges — shared, with per-specimen override <span className="p2badge">PHASE 2</span></h2>
+      <p className="sub">Glucose runs on Serum, Plasma, CSF. Ranges are shared by default; override the one specimen that differs — no copy, no separate test, no variant link.</p>
+      <div style={{maxWidth:640}}>
+        <div className="rangerow"><span><b>Shared range</b><br/><span className="sm">Applies to: Serum, Plasma{overridden?"":" , CSF"}</span></span><span>Low 70</span><span>High 110 mg/dL</span><span className="muted sm">shared</span></div>
+        {overridden && (
+          <div className="rangerow" style={{background:'#f6f2ff'}}>
+            <span><b>CSF</b> <span className="p2badge">OVERRIDE</span><br/><span className="sm">Applies to: CSF only</span></span><span>Low 40</span><span>High 70 mg/dL</span>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setOverridden(false)}>Remove</button></div>
+        )}
+      </div>
+      {!overridden && (
+        <div className="addrow"><button className="cds--btn cds--btn--tertiary cds--btn--sm" onClick={()=>setOverridden(true)}>+ Override for a specific specimen…</button></div>
+      )}
+      <div className="note p2">CSF glucose runs ~60% of serum, so its range differs. The override applies to CSF only; Serum &amp; Plasma keep the shared range. LOINC can be overridden the same way (CSF glucose 2342-4 vs Serum 2345-7).</div>
+      <p className="helper">This replaces the shipped "Add specimen variant" copy flow + variant link. One test, one place, override the exception.</p>
+    </div>
+  );
+}
+
+function IntakePanel() {
+  return (
+    <div className="card">
+      <h2>Resolution — no first-match guessing</h2>
+      <p className="sub">Every test↔specimen resolution becomes specimen-aware; the arbitrary <code>.get(0)</code> is gone (FR-5–8).</p>
+      <div className="note">Specimen carried (manual order, or FHIR/analyzer with a Specimen coding) → resolves to that specimen deterministically. Turbidity ordered under <b>Surface Water</b> → analysis on Surface Water.</div>
+      <div className="note warn">No specimen carried → order held <b>Awaiting specimen</b>, resolved at collection/accession. Never silently first-matched.</div>
+    </div>
+  );
+}
+
+function App(){
+  return (<div>
+    <h1 style={{fontSize:'1.3rem', fontWeight:600, margin:'0 0 .25rem'}}>Test↔Sample-Type Many-to-Many</h1>
+    <p className="muted" style={{margin:'0 0 1.25rem', fontSize:'.85rem'}}>Phase 1: one field goes single→multi (shared config). Phase 2: per-specimen override for the exceptions. Retires the variant grouping + copy subsystem.</p>
+    <ListPanel/>
+    <EditorPanel/>
+    <OverridePanel/>
+    <IntakePanel/>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
