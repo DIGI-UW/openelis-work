@@ -34,6 +34,49 @@ drain source files to `processed/`; flag anything OPEN > 7 days.
 
 | design/custom-data-export-v1.1 | https://github.com/DIGI-UW/openelis-work/pull/225 | 2026-07-15 | **MERGED** (PR #225, verified on origin/main 2026-07-16 — `designs/reports/custom-data-export.md` carries v1.1/grain-families; MANIFEST description reads "v1.1 (2026-07-15)". Ledger-tracking PR #226 also merged — is origin HEAD 776fe30) | Update-in-place: Custom Data Export & My Report Queue gallery entry (issue #70) v1.0 -> v1.1. Grain families + color legend, QC domain removed, single PII tag, overwrite-confirm saved configs, thresholds -> Printed Reports Config, 90-day cap; data model -> BaseObject<String>+Liquibase, /rest/ paths, ownership 404s, CSV format, async worker/restart recovery, corrected StatusService mappings, FR renumber, Testing Requirements section. All 3 artifacts refreshed (FRS .md, HTML preview, JSX mockup). Built clean off origin/main via isolated worktree (dist rebuilt, no asset conflicts); 238 registry entries preserved. Slug unchanged (#/reports/custom-data-export) -> no new Jira permalink. OGC-479/481/483; companion release 479+481. |
 
+## Reconciliation — 2026-07-22 (scheduled run)
+- **Step 0 — no OPEN or stranded PRs.** Fresh `git ls-remote` shows origin has **only `refs/heads/main`**
+  (HEAD `92e61a0`, "analyzer-import: add multi-component import-review section (MC-1..5, OGC-1131)",
+  2026-07-21) — every prior ledger branch merged and deleted. Nothing OPEN, nothing past the 7-day
+  stranded threshold. Committed origin ledger was already current through the 2026-07-20 entry.
+- **Landed interactively on `origin/main` since the 07-20 ledger (recorded for the trail, not scheduled-run work):**
+  the **Test↔Sample-Type Many-to-Many** gallery entry — `designs/admin-config/test-catalog-specimen-mn.{md,jsx}`
+  + `-preview.html` (+ `mockup-viewer/public/` mirror); App.jsx MOCKUP_REGISTRY "Test Catalog — Specimen
+  Many-to-Many", MANIFEST id `test-catalog-specimen-mn`, INDEX row; jira **OGC-1145**, GitHub issue **#234**.
+  Plus the analyzer-import multi-component import-review section (MC-1..5, OGC-1131 — the HEAD commit).
+- **Canonical `upload/` ↔ gallery reconcile (content md5 vs full `designs/` + `public/designs/` tree, 594 files).**
+  A new `test-catalog-mn` set (epic **OGC-1145**, per `NOTE-test-catalog-mn.md`, staged 2026-07-20 for Mozzy)
+  was found in the mount's `upload/`. Content md5 shows the 3 gallery artifacts already landed on
+  `origin/main` under the renamed `test-catalog-specimen-mn` slug:
+  | Upload file | Class | Landed as |
+  |---|---|---|
+  | test-catalog-mn-phase1-frs.md | IDENTICAL (registered) | designs/admin-config/test-catalog-specimen-mn.md |
+  | test-catalog-mn-editor-mockup.jsx | IDENTICAL (registered) | designs/admin-config/test-catalog-specimen-mn.jsx |
+  | test-catalog-mn-phase1-preview.html | IDENTICAL (registered, +public mirror) | designs/admin-config/test-catalog-specimen-mn-preview.html |
+  → all 3 **drained to `processed/`** this run.
+- **Genuinely new design artifacts: NONE.** The m:n gallery entry is already on `main` + fully registered
+  (issue #234) → **no design push, no PR, no build.**
+- **Left in `upload/` for Casey (companion / working docs, no gallery counterpart):**
+  `test-catalog-specimen-model-reassessment.md` (D-028 → D-035 decision brief) and
+  `test-catalog-mn-crosscheck.md` (/crosscheck QA report) — companion/research artifacts referenced by the
+  FRS front-matter, not standalone gallery entries (precedent: analyze/breakdown/crosscheck docs);
+  `NOTE-test-catalog-mn.md` (staging note); the two analyzer STAGING notes
+  (`analyzer-import-bench-experience-STAGING.md`, `multicomponent-analyzer-ui-STAGING.md`) whose actions are
+  already done & registered on main (analyzer-import v2 MC import-review section is the HEAD commit);
+  and `Aspect_GxAlert_to_OpenELIS_Gap_Analysis.docx` (duplicate of the `processed/` copy, harmless).
+- **RESIDUAL — flagged for Casey, NOT done autonomously (skill-governance edits, outside gallery-mechanics scope):**
+  per `NOTE-test-catalog-mn.md`, the openelis-design skill's `skills/openelis-design/references/decision-log.md`
+  still needs **D-035** added (full m:n + per-specimen override, GLOBAL) with **D-028 marked superseded**, and
+  `references/spec-registry.md` needs a row for `test-catalog-specimen-mn` (OGC-1145) annotating Sample Type
+  Mgmt v2.1 + Completion v2 as affected — neither present on origin. The gallery entry itself is fully landed;
+  only this design-log bookkeeping is outstanding.
+- **Jira (Step 11):** no new/changed slugs from THIS run → **no gallery permalinks posted** (noise-avoidance);
+  the Atlassian connector was also unauthenticated in this non-interactive session. The OGC-1145 gallery
+  permalink (from the interactive registration behind issue #234) should be verified/posted by Casey if not
+  already on the ticket.
+- **This run pushes a doc-only ledger sync** (`chore/ledger-reconcile-2026-07-22`) recording the 3 IDENTICAL
+  drains + this entry; the auto-opener + required `test` check land it on green.
+
 ## Reconciliation — 2026-07-20 (scheduled run)
 - **Step 0 — no OPEN or stranded PRs.** `git ls-remote` shows origin has **only `refs/heads/main`**
   (HEAD `9ba7a98`, PR #232, 2026-07-19) — every prior ledger branch merged and deleted. Nothing OPEN,
