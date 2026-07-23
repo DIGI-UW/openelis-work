@@ -2120,7 +2120,7 @@ export const MOCKUP_REGISTRY = [
     name: 'Reagent Forecasting Facility View',
     category: 'inventory',
     component: React.lazy(() => import('@designs/inventory/reagent-forecasting-facility.jsx')),
-    description: 'Facility-level reagent stock view — per-cartridge days-of-stock monitoring, stock-count updates, and proactive reorder alerts for lab technicians at a single site',
+    description: '⚠️ SUPERSEDED by the Inventory Module Redesign (OGC-438), which replaces the facility forecast view. Facility-level reagent stock view — per-cartridge days-of-stock monitoring, stock-count updates, and proactive reorder alerts for lab technicians at a single site',
     specPath: 'designs/inventory/reagent-forecasting-facility.md',
     added: '2026-03-23',
     status: 'draft',

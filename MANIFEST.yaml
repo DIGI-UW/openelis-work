@@ -1843,6 +1843,7 @@
   path: designs/inventory/reagent-forecasting-facility.jsx
   category: inventory
   description: Facility-level reagent stock view — per-cartridge days-of-stock monitoring, stock-count updates, and proactive reorder alerts
+  superseded_by: inventory-module-redesign
   paired_with: reagent-forecasting-facility-spec
   links:
     jira: [OGC-436]
@@ -1853,6 +1854,7 @@
   path: designs/inventory/reagent-forecasting-facility.md
   category: inventory
   description: Reagent Forecasting Facility-Level Stock View FRS v1.0
+  superseded_by: inventory-module-redesign-spec
   paired_with: reagent-forecasting-facility
   links:
     jira: [OGC-436]
