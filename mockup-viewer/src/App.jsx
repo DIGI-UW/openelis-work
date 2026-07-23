@@ -2082,6 +2082,17 @@ export const MOCKUP_REGISTRY = [
 
   // ─── Inventory ───
   {
+    name: 'Inventory Module Redesign',
+    category: 'inventory',
+    component: null,
+    description: 'Full Inventory module redesign — stock board with search/filter and row actions, scan-first receive (GS1 lot/expiry auto-fill), \u00b11SD run-out projections, self-learning reorder suggestions, type-as-tag item model, and FEFO consumption coordinated with Results Entry reagent-usage. Supersedes the Reagent Forecasting Facility View. (OGC-438)',
+    specPath: 'designs/inventory/inventory-module-redesign.md',
+    htmlUrl: 'designs/inventory/inventory-module-redesign.html',
+    added: '2026-07-23',
+    status: 'draft',
+    tags: ['inventory', 'reagents', 'stock', 'forecasting', 'reorder', 'redesign'],
+  },
+  {
     name: 'Reagent Forecasting Workbench',
     category: 'inventory',
     component: React.lazy(() => import('@designs/inventory/reagent-forecasting-workbench.jsx')),

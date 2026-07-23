@@ -3443,6 +3443,21 @@
     gallery: https://digi-uw.github.io/openelis-work/#/inventory/inventory-item-type-management
     preview: https://digi-uw.github.io/openelis-work/designs/inventory/inventory-item-type-management.html
   added: "2026-06-12"
+- id: inventory-module-redesign
+  type: mockup
+  path: designs/inventory/inventory-module-redesign.html
+  spec: designs/inventory/inventory-module-redesign.md
+  preview: designs/inventory/inventory-module-redesign.html
+  category: inventory
+  description: >
+    Inventory Module Redesign (FRS v1.9, OGC-438) — stock board with search/filter, scan-first
+    receive, +/-1SD run-out projections, self-learning reorder suggestions, type-as-tag item
+    model, and FEFO consumption coordinated with Results Entry reagent-usage. Supersedes the
+    Reagent Forecasting Facility View.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/inventory/inventory-module-redesign
+    preview: https://digi-uw.github.io/openelis-work/designs/inventory/inventory-module-redesign.html
+  added: "2026-07-23"
 - id: admin-mvp-scope
   type: spec
   path: designs/admin-config/admin-mvp-scope.md

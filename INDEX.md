@@ -180,6 +180,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 |---------|--------|------|
 | Reagent Forecasting Workbench | [reagent-forecasting-workbench.jsx](designs/inventory/reagent-forecasting-workbench.jsx) | [reagent-forecasting-workbench.md](designs/inventory/reagent-forecasting-workbench.md) |
 | Reagent Forecasting Facility View | [reagent-forecasting-facility.jsx](designs/inventory/reagent-forecasting-facility.jsx) | [reagent-forecasting-facility.md](designs/inventory/reagent-forecasting-facility.md) |
+| Inventory Module Redesign | [inventory-module-redesign.html](designs/inventory/inventory-module-redesign.html) | [inventory-module-redesign.md](designs/inventory/inventory-module-redesign.md) |
 
 ## System
 

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenELIS Global — Inventory</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    :root{ --navy:#295785; --navy-hover:#072655; }
+    body { background:#f5f6f8; margin:0; font-family:'IBM Plex Sans', sans-serif; color:#161616; }
+    .appbar { height:48px; background:var(--navy); color:#fff; display:flex; align-items:center; padding:0 1rem; gap:1rem; }
+    .appbar .brand { font-weight:600; font-size:0.95rem; }
+    .appbar .spacer { flex:1; }
+    .appbar .fac { font-size:0.8rem; opacity:.9; }
+    .appbar .avatar { width:28px;height:28px;border-radius:50%;background:#0f62fe;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:600; }
+    .layout { display:flex; min-height:calc(100vh - 48px); }
+    .sidenav { width:240px; background:var(--navy); flex-shrink:0; padding-top:0.5rem; }
+    .sidenav a { display:block; padding:0.6rem 1rem 0.6rem 1.25rem; font-size:0.875rem; color:#e8eef5; text-decoration:none; cursor:pointer; border-left:3px solid transparent; }
+    .sidenav a:hover { background:var(--navy-hover); }
+    .sidenav a.parent { color:#fff; font-weight:600; }
+    .sidenav a.sub { padding-left:2.25rem; font-size:0.85rem; color:#cdd9e5; }
+    .sidenav a.sub.active { background:#0f62fe; color:#fff; border-left-color:#fff; font-weight:600; }
+    .sidenav a.dim { color:#9fb3c8; }
+    .content { flex:1; padding:1.25rem 2rem; max-width:1200px; }
+    .bc { font-size:0.75rem; color:#697077; margin-bottom:0.5rem; }
+    h2.page { font-size:1.4rem; font-weight:400; margin:0 0 0.15rem; }
+    .purpose { font-size:0.8125rem; color:#4d5358; margin:0 0 1rem; }
+    table.grid { width:100%; border-collapse:collapse; background:#fff; }
+    .grid th { text-align:left; padding:0.6rem 0.9rem; font-size:0.72rem; font-weight:600; background:#e0e0e0; color:#21272a; }
+    .grid td { padding:0.6rem 0.9rem; font-size:0.85rem; border-top:1px solid #e0e0e0; vertical-align:top; }
+    .num { font-variant-numeric:tabular-nums; }
+    .muted { color:#697077; font-size:0.72rem; }
+    .action-now td { background:#fff1f1; }
+    .expansion { background:#f2f4f8; padding:1rem 1.25rem; }
+    .sub { width:100%; border-collapse:collapse; background:#fff; }
+    .sub th, .sub td { text-align:left; padding:0.4rem 0.7rem; font-size:0.72rem; border-top:1px solid #e0e0e0; }
+    .sub th { background:#eef1f6; border-top:none; }
+    .up{color:#8a6d00;} .down{color:#0043ce;} .steady{color:#697077;}
+    .flow-card { background:#fff; border:1px solid #dde1e6; padding:1.1rem 1.35rem; margin-bottom:0.75rem; }
+    .toast { position:fixed; bottom:1rem; right:1rem; background:#fff; color:#161616; padding:0.6rem 1rem 0.6rem 0.85rem; font-size:0.8rem; border:1px solid #dde1e6; border-left:3px solid #24a148; box-shadow:0 2px 8px rgba(0,0,0,.12); z-index:60; }
+    .lot-flag{font-size:0.66rem;font-weight:600;}
+    .drawer { border:1px solid #0f62fe; background:#eef4ff; padding:0.75rem 1rem; margin-top:0.5rem; }
+    .panel { border:1px solid #c1c7cd; background:#fff; padding:1rem 1.25rem; margin-bottom:0.75rem; }
+    label.cds--label{font-size:0.72rem;}
+    .helper{font-size:0.72rem;color:#4d5358;margin-top:0.25rem;}
+    .toolbar{display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin-bottom:0.6rem;}
+    .search{flex:1;min-width:180px;}
+    .search input{width:100%;height:34px;border:none;border-bottom:1px solid #8d8d8d;background:#eef1f6;padding:0 0.6rem;font-size:0.85rem;}
+    select.flt{height:34px;border:none;border-bottom:1px solid #8d8d8d;background:#eef1f6;font-size:0.8rem;padding:0 0.4rem;}
+    .toggle{border:1px solid #0f62fe;background:#fff;color:#0f62fe;padding:0.35rem 0.75rem;font-size:0.8rem;cursor:pointer;font-weight:600;}
+    .toggle.on{background:#0f62fe;color:#fff;}
+    .fieldrow{display:flex;flex-wrap:wrap;gap:0.75rem;}
+    .fieldrow>div{display:flex;flex-direction:column;}
+    .countbar{display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;background:#fcf4d6;border:1px solid #f1c21b;padding:0.5rem 0.75rem;margin-bottom:0.5rem;font-size:0.8rem;}
+    .rowmenu{position:relative;display:inline-block;}
+    .rowmenu .menu{position:absolute;right:0;top:100%;background:#fff;border:1px solid #c1c7cd;box-shadow:0 2px 6px rgba(0,0,0,.15);z-index:20;min-width:160px;}
+    .rowmenu .menu button{display:block;width:100%;text-align:left;background:none;border:none;padding:0.5rem 0.75rem;font-size:0.8rem;cursor:pointer;}
+    .rowmenu .menu button:hover{background:#eef1f6;}
+    .iconbtn{background:none;border:1px solid #c1c7cd;cursor:pointer;font-size:0.85rem;padding:0.15rem 0.5rem;border-radius:2px;}
+    .tag{display:inline-block;background:#e0e7ef;color:#21486b;font-size:0.66rem;padding:1px 7px;border-radius:10px;margin-right:3px;}
+    @media(max-width:820px){ .sidenav{display:none;} .content{padding:1rem;} }
+  </style>
+</head>
+<body class="cds--white">
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    // ±1SD run-out window [early,late]; tight=steady use, wide=erratic. thr = reorder threshold.
+    const seed = [
+      { id:'i1', name:'GeneXpert MTB/RIF cartridge', tags:['cartridge','TB'], upc:'8 41234 00011', loc:'Fridge 1', onHand:12, unit:'tests', adc:3.2, thr:20, lead:14, trackLots:true,
+        trend:'up', trendPct:'+40% / 30d', roEarly:'Jul 24', roLate:'Jul 28', roDays:4, daysToThr:0, basis:'usage through Jul 21',
+        reorderBy:'past due', urgency:'now', onOrder:false, ack:false, lastCount:'2026-07-18',
+        hist:[3,4,2,5,3,4,3,2,4,5,3,4,6,5], lots:[{lot:'MTB-2451',exp:'2026-11-01',qty:12,loc:'Fridge 1 · Shelf B',flag:'oldest'}] },
+      { id:'i2', name:'Malaria RDT (P.f/P.v)', tags:['RDT','malaria'], upc:'8 80099 22014', loc:'Room 2', onHand:60, unit:'tests', adc:6.5, thr:45, lead:7, trackLots:true,
+        trend:'up', trendPct:'+55% / 30d', roEarly:'Jul 29', roLate:'Aug 5', roDays:10, daysToThr:3, basis:'usage through Jul 22',
+        reorderBy:'Jul 25', urgency:'soon', onOrder:false, ack:false, lastCount:'2026-07-20',
+        hist:[5,6,4,7,6,8,5,7,6,9,7,8,10,9], lots:[{lot:'MAL-887',exp:'2026-09-15',qty:20,loc:'Room 2 · Rack 3',flag:'oldest'},{lot:'MAL-902',exp:'2027-01-10',qty:40,loc:'Room 2 · Rack 3',flag:''}] },
+      { id:'i3', name:'HIV 1/2 rapid kit', tags:['HIV kit'], upc:'8 71000 55021', loc:'Fridge 2', onHand:24, unit:'tests', adc:0.8, thr:20, lead:10, trackLots:true,
+        trend:'steady', trendPct:'steady', roEarly:'Aug 12', roLate:'Sep 2', roDays:30, daysToThr:8, basis:'usage through Jul 15', stale:true,
+        reorderBy:null, urgency:'soon', onOrder:false, ack:false, lastCount:'2026-07-15',
+        hist:[1,0,1,2,0,1,1,0,2,1,0,1,1,0], lots:[{lot:'HIV-1120',exp:'2026-08-05',qty:9,loc:'Fridge 2 · Shelf A',flag:'expiring'},{lot:'HIV-1204',exp:'2027-02-01',qty:15,loc:'Fridge 2 · Shelf A',flag:''}] },
+      { id:'i4', name:'Examination gloves (box)', tags:['consumable'], upc:'6 42000 10037', loc:'Store room', onHand:14, unit:'boxes', adc:0.5, thr:12, lead:21, trackLots:false,
+        trend:'steady', trendPct:'steady', roEarly:'Aug 12', roLate:'Aug 26', roDays:28, daysToThr:4, basis:'recorded usage through Jul 20', manual:true,
+        reorderBy:'Jul 29', urgency:'soon', onOrder:false, ack:false, lastCount:'2026-07-12',
+        hist:[1,0,1,1,0,1,0,1,1,0,1,0,1,1], lots:[] },
+      { id:'i5', name:'Syphilis RDT kit', tags:['RDT','syphilis'], upc:'', loc:'Room 2', onHand:8, unit:'tests', adc:null, thr:10, lead:7, trackLots:true,
+        trend:'none', trendPct:'-', roEarly:null, roLate:null, roDays:null, daysToThr:0, basis:null, lowHistory:true,
+        reorderBy:null, urgency:'now', onOrder:false, ack:false, lastCount:'2026-07-10',
+        hist:[1,0,0,2,0,1], lots:[{lot:'SYP-330',exp:'2026-12-01',qty:8,loc:'Room 2 · Rack 1',flag:''}] },
+    ];
+    const URG = { now:{c:'cds--tag cds--tag--red',l:'Reorder now'}, soon:{c:'cds--tag cds--tag--warm-gray',l:'Reorder soon'},
+      ok:{c:'cds--tag cds--tag--green',l:'Adequate'}, nodata:{c:'cds--tag cds--tag--gray',l:'Building data'} };
+    const ORD = {now:0,soon:1,ok:2,nodata:3};
+    const Trend = ({trend,pct,lowVol}) => lowVol ? <span className="muted">low volume</span>
+      : trend==='none' ? <span className="muted">—</span>
+      : <span className={trend}>{trend==='up'?'▲':trend==='down'?'▼':'▬'} {pct}</span>;
+    const median=a=>{const s=[...a].sort((x,y)=>x-y);const m=Math.floor(s.length/2);return s.length?(s.length%2?s[m]:Math.round((s[m-1]+s[m])/2*10)/10):0;};
+    // demo: effective-lead-time tier per item + a learned "observed" value
+    const LEADSRC={i1:'set',i2:'set',i3:'observed',i4:'set',i5:'default'};
+    const OBSERVED={i3:18};
+    const leadNote=id=>LEADSRC[id]==='observed'?'observed':LEADSRC[id]==='default'?'default — set to improve':'set';
+
+    function ItemsBoard(){
+      const [items,setItems]=useState(seed);
+      const [open,setOpen]=useState(null);
+      const [drawer,setDrawer]=useState(null);
+      const [menu,setMenu]=useState(null);
+      const [countMode,setCountMode]=useState(false);
+      const [countLoc,setCountLoc]=useState('All');
+      const [counts,setCounts]=useState({});
+      const [q,setQ]=useState(''); const [fTags,setFTags]=useState([]); const [fStatus,setFStatus]=useState('All'); const [fLoc,setFLoc]=useState('All');
+      const [tagMenu,setTagMenu]=useState(false); const [showTags,setShowTags]=useState(false); const [deadTags,setDeadTags]=useState([]); const [showDeadTags,setShowDeadTags]=useState(false); const [extraTags,setExtraTags]=useState([]);
+      const [showReorder,setShowReorder]=useState(false); const [buffer,setBuffer]=useState(0); const [sel,setSel]=useState([]);
+      const toggleSel=id=>setSel(p=>p.includes(id)?p.filter(x=>x!==id):[...p,id]);
+      const [showAdd,setShowAdd]=useState(false); const [showLog,setShowLog]=useState(false);
+      const [toast,setToast]=useState('');
+      const fire=(m)=>{setToast(m);setTimeout(()=>setToast(''),2600);};
+      const setItem=(id,p)=>setItems(prev=>prev.map(i=>i.id===id?{...i,...p}:i));
+      const locs=['All',...Array.from(new Set(items.map(i=>i.loc)))];
+      const allTags=Array.from(new Set([...items.flatMap(i=>i.tags),...extraTags]));
+      const sugTags=allTags.filter(t=>!deadTags.includes(t));
+      const tagCount=t=>items.filter(i=>i.tags.includes(t)).length;
+      const toggleFTag=t=>setFTags(p=>p.includes(t)?p.filter(x=>x!==t):[...p,t]);
+      const toggleDeadTag=t=>setDeadTags(p=>p.includes(t)?p.filter(x=>x!==t):[...p,t]);
+      // reorder membership: at/below threshold OR projected to reach threshold within horizon days
+      const needsOrder=(i)=> i.onHand<=i.thr || (i.daysToThr!=null && i.daysToThr<=(i.lead+buffer));
+
+      let rows=[...items].sort((a,b)=>(ORD[a.urgency]-ORD[b.urgency])||((a.roDays??9999)-(b.roDays??9999)));
+      rows=rows.filter(i=>(!q||i.name.toLowerCase().includes(q.toLowerCase())||i.tags.join(' ').toLowerCase().includes(q.toLowerCase()))
+        &&(fTags.length===0||i.tags.some(t=>fTags.includes(t)))&&(fStatus==='All'||i.urgency===fStatus)&&(fLoc==='All'||i.loc===fLoc));
+      const nowUn=items.filter(i=>i.urgency==='now'&&!i.onOrder&&!i.ack);
+
+      const commitCount=()=>{const touched=Object.keys(counts).filter(id=>counts[id]!==''&&counts[id]!=null);
+        setItems(prev=>prev.map(i=>{if(!touched.includes(i.id))return i;const v=parseInt(counts[i.id],10);
+          let u=i.urgency,rd=i.roDays;if(i.adc){rd=Math.round(v/i.adc);u=v<=i.thr?'now':rd<30?'soon':'ok';}
+          return {...i,onHand:v,urgency:u,roDays:rd,lastCount:'2026-07-22',lowHistory:false};}));
+        setCountMode(false);setCounts({});fire('Count session committed ('+touched.length+' items)');};
+      const doReceive=(id,val)=>{const it=items.find(x=>x.id===id);const v=parseInt(val,10);if(isNaN(v)||v<=0){fire('Enter a quantity');return;}
+        const nh=it.onHand+v;let u=it.urgency,rd=it.roDays;if(it.adc){rd=Math.round(nh/it.adc);u=nh<=it.thr?'now':rd<30?'soon':'ok';}
+        setItem(id,{onHand:nh,urgency:u,roDays:rd});setDrawer(null);fire('Received '+v+' · stock updated');};
+      const doUsage=(id,val)=>{const it=items.find(x=>x.id===id);const v=parseInt(val,10);if(isNaN(v)||v<=0){fire('Enter a quantity');return;}
+        setItem(id,{onHand:Math.max(0,it.onHand-v)});setDrawer(null);setShowLog(false);fire('Usage recorded · feeds forecast');};
+      const doAdjust=(id,r,val)=>{const it=items.find(x=>x.id===id);const v=parseInt(val,10);if(isNaN(v)||v<=0){fire('Enter a quantity');return;}
+        setItem(id,{onHand:Math.max(0,it.onHand-v)});setDrawer(null);fire('Adjusted · '+r);};
+      const markOrdered=(id)=>{setItem(id,{onOrder:true});fire('Marked as ordered');};
+      const ackItem=(id)=>{setItem(id,{ack:true});setMenu(null);fire('Acknowledged');};
+      const openDrawer=(id,mode)=>{setOpen(id);setDrawer({id,mode});setMenu(null);};
+
+      return (
+        <div onClick={()=>setMenu(null)}>
+          <h2 className="page">Items</h2>
+          <p className="purpose">What you have and what to reorder. Add or edit items here; use Count mode to reconcile the shelf.</p>
+
+          <div className="toolbar" onClick={e=>e.stopPropagation()}>
+            <span className="search"><input placeholder="Search items or tags…" value={q} onChange={e=>setQ(e.target.value)}/></span>
+            <span className="rowmenu">
+              <button className="flt" style={{cursor:'pointer'}} onClick={()=>setTagMenu(!tagMenu)}>Tags{fTags.length?' ('+fTags.length+')':''} ▾</button>
+              {tagMenu&&<span className="menu" style={{left:0,right:'auto',minWidth:170,maxHeight:220,overflowY:'auto'}}>
+                {sugTags.map(t=><label key={t} style={{display:'flex',alignItems:'center',gap:6,padding:'0.35rem 0.6rem',fontSize:'0.8rem',cursor:'pointer'}}><input type="checkbox" checked={fTags.includes(t)} onChange={()=>toggleFTag(t)}/> {t} <span className="muted">({tagCount(t)})</span></label>)}
+              </span>}
+            </span>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setShowTags(!showTags)}>Manage tags</button>
+            <select className="flt" value={fStatus} onChange={e=>setFStatus(e.target.value)}><option value="All">Any status</option><option value="now">Reorder now</option><option value="soon">Reorder soon</option><option value="ok">Adequate</option></select>
+            <select className="flt" value={fLoc} onChange={e=>setFLoc(e.target.value)}>{locs.map(l=><option key={l}>{l}</option>)}</select>
+            <span style={{flex:1}}></span>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setShowLog(!showLog)}>Log usage</button>
+            <button className="cds--btn cds--btn--tertiary cds--btn--sm" onClick={()=>setShowReorder(!showReorder)}>Reorder suggestions</button>
+            <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>setShowAdd(!showAdd)}>New item</button>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>fire('CSV import — download template, upload, preview & fix rows, then commit (same as Test Catalog)')}>Import CSV</button>
+            <button className={'toggle'+(countMode?' on':'')} onClick={()=>{setCountMode(!countMode);setCounts({});setOpen(null);}}>{countMode?'● Counting':'Count mode'}</button>
+          </div>
+
+          {fTags.length>0 && (
+            <div style={{marginBottom:'0.5rem'}} onClick={e=>e.stopPropagation()}>
+              {fTags.map(t=><span key={t} className="tag" style={{cursor:'pointer'}} onClick={()=>toggleFTag(t)}>{t} ✕</span>)}
+              <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setFTags([])}>Clear tags</button>
+            </div>
+          )}
+
+          {showTags && (
+            <div className="panel" onClick={e=>e.stopPropagation()}>
+              <div style={{display:'flex',alignItems:'center',gap:'0.75rem'}}>
+                <strong style={{fontSize:'0.85rem'}}>Manage tags</strong>
+                <label style={{fontSize:'0.75rem'}}><input type="checkbox" checked={showDeadTags} onChange={()=>setShowDeadTags(!showDeadTags)}/> Show deactivated</label>
+              </div>
+              <p className="helper">Tidy up tags. Deactivating a tag stops it being suggested or offered as a filter; items already tagged keep it.</p>
+              <table className="sub" style={{marginTop:'0.4rem'}}>
+                <thead><tr><th>Tag</th><th>Items</th><th>Status</th><th></th></tr></thead>
+                <tbody>{allTags.filter(t=>showDeadTags||!deadTags.includes(t)).map(t=>{const dead=deadTags.includes(t);return (
+                  <tr key={t}><td>{t}</td><td className="num">{tagCount(t)}</td><td>{dead?<span className="cds--tag cds--tag--gray">Deactivated</span>:<span className="cds--tag cds--tag--green">Active</span>}</td>
+                  <td><button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>toggleDeadTag(t)}>{dead?'Reactivate':'Deactivate'}</button></td></tr>);})}</tbody>
+              </table>
+              <div style={{marginTop:'0.5rem',display:'flex',gap:'0.5rem',alignItems:'flex-end'}}>
+                <div><label className="cds--label">New tag</label><div className="cds--text-input-wrapper"><input id="newtag" className="cds--text-input" placeholder="e.g. TB" style={{width:150}}/></div></div>
+                <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>{const v=document.getElementById('newtag').value.trim();if(v){setExtraTags(x=>[...new Set([...x,v])]);document.getElementById('newtag').value='';fire('Tag "'+v+'" added');}}}>Add tag</button>
+              </div>
+            </div>
+          )}
+
+          {showLog && (
+            <div className="panel" onClick={e=>e.stopPropagation()}>
+              <strong style={{fontSize:'0.85rem'}}>Log usage</strong>
+              <p className="helper">Quick path — search an item, enter how many were used. Recorded as consumption (feeds the forecast).</p>
+              <div className="fieldrow" style={{alignItems:'flex-end',marginTop:'0.4rem'}}>
+                <div><label className="cds--label">Item</label><div className="cds--select"><select id="ql-item" className="cds--select-input" style={{width:230}}>{items.map(i=><option key={i.id} value={i.id}>{i.name}</option>)}</select></div></div>
+                <div><label className="cds--label">Quantity used</label><div className="cds--text-input-wrapper"><input id="ql-qty" className="cds--text-input" type="number" defaultValue={1} style={{width:100}}/></div></div>
+                <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>doUsage(document.getElementById('ql-item').value,document.getElementById('ql-qty').value)}>Record</button>
+                <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setShowLog(false)}>Close</button>
+              </div>
+            </div>
+          )}
+          {showAdd && (
+            <div className="panel" onClick={e=>e.stopPropagation()}>
+              <strong style={{fontSize:'0.85rem'}}>New item</strong>
+              <p className="helper">Defines a kind of item you stock. To add more of something you already stock, use Receive stock on its row.</p>
+              <div className="fieldrow" style={{marginTop:'0.5rem'}}>
+                <div><label className="cds--label">Name</label><div className="cds--text-input-wrapper"><input className="cds--text-input" placeholder="e.g. Pipette tips (rack)" style={{width:210}}/></div></div>
+                <div><label className="cds--label">Type (tag)</label><input list="tagsug" className="cds--text-input" placeholder="type to find or add…" style={{width:150,height:40,border:'none',borderBottom:'1px solid #8d8d8d',background:'#f4f4f4',padding:'0 0.6rem'}}/>
+                  <datalist id="tagsug">{sugTags.map(t=><option key={t} value={t}/>)}</datalist></div>
+                <div><label className="cds--label">UPC / product barcode</label><div style={{display:'flex',gap:4}}><div className="cds--text-input-wrapper"><input className="cds--text-input" placeholder="scan or type" style={{width:130}}/></div><button className="iconbtn" onClick={()=>fire('Scan product barcode…')}>▚</button></div></div>
+                <div><label className="cds--label">Reorder threshold</label><div className="cds--text-input-wrapper"><input className="cds--text-input" type="number" defaultValue={10} style={{width:90}}/></div></div>
+                <div><label className="cds--label">Lead time (days)</label><div className="cds--text-input-wrapper"><input className="cds--text-input" type="number" defaultValue={14} style={{width:90}}/></div></div>
+                <div style={{justifyContent:'flex-end'}}><label className="cds--label">&nbsp;</label><label style={{fontSize:'0.8rem'}}><input type="checkbox" defaultChecked/> Track lots &amp; expiry</label></div>
+              </div>
+              <p className="helper">Auto-consume isn't a setting — an item consumes automatically when it's linked to a test.</p>
+              <div style={{marginTop:'0.5rem',display:'flex',gap:'0.5rem'}}><button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>{setShowAdd(false);fire('Item added');}}>Save item</button><button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setShowAdd(false)}>Cancel</button></div>
+            </div>
+          )}
+          {showReorder && (
+            <div className="panel" onClick={e=>e.stopPropagation()}>
+              <div style={{display:'flex',alignItems:'center',gap:'0.5rem',flexWrap:'wrap'}}>
+                <strong style={{fontSize:'0.82rem'}}>Reorder suggestions</strong>
+                <span className="muted">advisory — doesn't place an order</span>
+              </div>
+              <div style={{fontSize:'0.72rem',color:'#4d5358',margin:'0.35rem 0'}}>
+                Shows items <strong>at or below their reorder threshold</strong>, or <strong>projected to reach it within their own lead time</strong> (so a slow-to-arrive item flags earlier than a fast one). Optional safety buffer
+                <input className="cds--text-input" type="number" value={buffer} onChange={e=>setBuffer(parseInt(e.target.value||0,10))} style={{width:56,height:26,border:'none',borderBottom:'1px solid #8d8d8d',background:'#f4f4f4',padding:'0 0.4rem',margin:'0 0.35rem'}}/>
+                days. Each row shows which rule triggered it.
+              </div>
+              <table className="sub" style={{marginTop:'0.5rem'}}><thead><tr><th style={{width:'1.6rem'}}></th><th>Item</th><th>On hand</th><th>Threshold</th><th>Why</th><th>Suggested order</th><th></th></tr></thead>
+                <tbody>{items.filter(needsOrder).map(i=><tr key={i.id}><td><input type="checkbox" checked={sel.includes(i.id)} onChange={()=>toggleSel(i.id)}/></td><td>{i.name}</td><td className="num">{i.onHand}</td><td className="num">{i.thr}</td>
+                  <td className="muted">{i.onHand<=i.thr?'below threshold':'hits threshold in ~'+i.daysToThr+'d'}</td>
+                  <td className="num">{i.adc?Math.max(i.thr,Math.round(i.adc*30)):i.thr}</td>
+                  <td>{i.onOrder?<span className="cds--tag cds--tag--blue">On order</span>:<button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>markOrdered(i.id)}>Mark ordered</button>}</td></tr>)}</tbody></table>
+              <div style={{marginTop:'0.5rem',display:'flex',gap:'0.5rem',alignItems:'center'}}>
+                <button className="cds--btn cds--btn--primary cds--btn--sm" disabled={!sel.length} onClick={()=>{sel.forEach(markOrdered);setSel([]);fire('Marked '+sel.length+' as ordered');}}>Mark selected as ordered{sel.length?' ('+sel.length+')':''}</button>
+                <button className="cds--btn cds--btn--tertiary cds--btn--sm" onClick={()=>fire(sel.length?'Exported '+sel.length+' selected (CSV)':'Exported all (CSV)')}>Export{sel.length?' selected':''} CSV</button>
+                <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>fire('Sent to printer')}>Print</button>
+              </div>
+            </div>
+          )}
+
+          {!countMode && (nowUn.length>0 ? (
+            <div style={{background:'#fff1f1',borderLeft:'3px solid #da1e28',padding:'0.6rem 1rem',marginBottom:'0.5rem'}}>
+              <div style={{fontWeight:600,fontSize:'0.85rem',color:'#161616'}}>Reorder now</div>
+              <div style={{fontSize:'0.78rem',color:'#4d5358'}}>{nowUn.map(i=>i.name).join(' · ')}</div>
+            </div>) : <div className="muted" style={{marginBottom:'0.5rem'}}>No unaddressed critical items.</div>)}
+
+          {countMode && (
+            <div className="countbar" onClick={e=>e.stopPropagation()}>
+              <strong>Counting</strong><span>Location</span>
+              <select className="flt" value={countLoc} onChange={e=>setCountLoc(e.target.value)}>{locs.map(l=><option key={l}>{l}</option>)}</select>
+              <span className="muted">only rows you enter are saved</span><span style={{flex:1}}></span>
+              <button className="iconbtn" onClick={()=>fire('Scan a lot barcode…')}>▚ Scan lot</button>
+              <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={commitCount}>Confirm count</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setCountMode(false)}>Cancel</button>
+            </div>
+          )}
+
+          <div className="cds--data-table-container">
+            <table className="grid">
+              <thead><tr><th style={{width:'1.6rem'}}></th><th>Item</th><th>{countMode?'Counted (exp)':'On hand'}</th><th>Usage trend</th><th>Runs out</th><th>Order by</th><th>Status</th><th style={{width:'2.4rem'}}></th></tr></thead>
+              <tbody>
+                {rows.filter(it=>!countMode||countLoc==='All'||it.loc===countLoc).map(it=>{ const isOpen=open===it.id;
+                  return (<React.Fragment key={it.id}>
+                    <tr className={(!countMode&&it.urgency==='now'&&!it.onOrder&&!it.ack)?'action-now':''}>
+                      <td>{!countMode&&<button onClick={()=>setOpen(isOpen?null:it.id)} style={{background:'none',border:'none',cursor:'pointer'}}>{isOpen?'▾':'▸'}</button>}</td>
+                      <td><strong>{it.name}</strong><div className="muted">{it.tags.map(t=><span key={t} className="tag">{t}</span>)} · {it.loc}
+                        {it.onOrder&&<span className="cds--tag cds--tag--blue" style={{marginLeft:6}}>On order</span>}
+                        {it.ack&&!it.onOrder&&<span className="cds--tag cds--tag--gray" style={{marginLeft:6}}>Acknowledged</span>}</div></td>
+                      {countMode ? (<td>{(()=>{const c=counts[it.id];const d=(c===''||c==null)?null:parseInt(c,10)-it.onHand;return (
+                        <span style={{display:'flex',alignItems:'center',gap:6}}>
+                          <input className="cds--text-input" type="number" placeholder={String(it.onHand)} style={{width:70}} value={c==null?'':c} onChange={e=>setCounts(p=>({...p,[it.id]:e.target.value}))}/>
+                          <span className="muted">({it.onHand})</span>{d!=null&&d!==0&&<span style={{color:'#8a6d00',fontWeight:600}}>{d>0?'+':''}{d}</span>}
+                        </span>);})()}</td>) : (<td className="num">{it.onHand} <span className="muted">{it.unit}</span></td>)}
+                      <td><Trend trend={it.trend} pct={it.trendPct} lowVol={it.adc&&it.adc<0.5&&!it.tags.includes('consumable')}/></td>
+                      <td>{it.lowHistory ? <span className="muted">building data</span>
+                        : <span style={it.roDays<=7?{color:'#da1e28',fontWeight:600}:null}>{it.roEarly}–{it.roLate}<div className="muted">{it.stale?'⚠ '+it.basis:it.basis}</div></span>}</td>
+                      <td>{it.reorderBy==='past due'?<span style={{color:'#da1e28',fontWeight:600}}>past due</span>:(it.reorderBy||'—')}<div className="muted">{it.lead}d ({leadNote(it.id)})</div></td>
+                      <td><span className={URG[it.urgency].c}>{URG[it.urgency].l}</span></td>
+                      <td>{!countMode&&(
+                        <span className="rowmenu" onClick={e=>e.stopPropagation()}>
+                          <button className="iconbtn" onClick={()=>setMenu(menu===it.id?null:it.id)}>⋯</button>
+                          {menu===it.id&&<span className="menu">
+                            <button onClick={()=>openDrawer(it.id,'receive')}>Receive stock</button>
+                            <button onClick={()=>openDrawer(it.id,'usage')}>Record usage</button>
+                            <button onClick={()=>openDrawer(it.id,'adjust')}>Adjust stock…</button>
+                            <button onClick={()=>openDrawer(it.id,'edit')}>Edit item details</button>
+                            {(it.urgency==='now'&&!it.onOrder&&!it.ack)&&<button onClick={()=>ackItem(it.id)}>Acknowledge</button>}
+                          </span>}
+                        </span>)}</td>
+                    </tr>
+                    {!countMode && isOpen && (<tr><td colSpan={8} style={{padding:0}}><div className="expansion" onClick={e=>e.stopPropagation()}>
+                      {it.lots.length>0 ? <table className="sub">
+                        <thead><tr><th>Lot</th><th>Expiry</th><th>Qty</th><th>Location</th><th>Flag</th></tr></thead>
+                        <tbody>{it.lots.map(l=><tr key={l.lot} style={l.flag==='expiring'?{background:'#fff1f1'}:null}><td className="num">{l.lot}</td><td className="num">{l.exp}</td><td className="num">{l.qty}</td><td>{l.loc}</td><td>{l.flag==='oldest'?<span className="lot-flag" style={{color:'#8a3800'}}>Use first</span>:l.flag==='expiring'?<span className="lot-flag" style={{color:'#da1e28'}}>Expiring &lt;30d</span>:<span className="muted">—</span>}</td></tr>)}</tbody>
+                      </table> : <div className="muted">This item does not track lots.</div>}
+                      <div style={{marginTop:'0.6rem'}} className="muted">
+                        Median daily use: <strong style={{color:'#161616'}}>{it.adc?median(it.hist)+' '+it.unit+'/day':'—'}</strong> <span>(last 30 days — median smooths one-off spikes)</span> &nbsp;·&nbsp; UPC {it.upc||'—'}
+                      </div>
+                      {it.lots.length>0 && <div className="muted" style={{marginTop:'0.25rem'}}>By location: {Object.entries(it.lots.reduce((a,l)=>{const k=l.loc.split(' · ')[0];a[k]=(a[k]||0)+l.qty;return a;},{})).map(([k,v])=>k+': '+v).join(' · ')}</div>}
+                      <div style={{marginTop:'0.6rem',display:'flex',gap:'0.4rem'}}>
+                        <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>setDrawer({id:it.id,mode:'receive'})}>Receive stock</button>
+                        <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setDrawer({id:it.id,mode:'usage'})}>Record usage</button>
+                        <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setDrawer({id:it.id,mode:'adjust'})}>Adjust stock…</button>
+                        <button className="cds--btn cds--btn--tertiary cds--btn--sm" onClick={()=>setDrawer({id:it.id,mode:'edit'})}>Edit item details</button>
+                      </div>
+                      {drawer&&drawer.id===it.id&&drawer.mode==='receive'&&(<div className="drawer"><strong style={{fontSize:'0.78rem'}}>Receive stock — {it.name}</strong>
+                        <p className="helper">Add more of this existing item that just arrived.</p>
+                        <div style={{display:'flex',gap:'0.5rem',alignItems:'flex-end',flexWrap:'wrap'}}>
+                          <div><label className="cds--label">Quantity ({it.unit})</label><div className="cds--text-input-wrapper"><input id={'rc'+it.id} className="cds--text-input" type="number" defaultValue={10} style={{width:100}}/></div></div>
+                          {it.trackLots&&<div><label className="cds--label">Lot</label><div style={{display:'flex',gap:4}}><div className="cds--text-input-wrapper"><input className="cds--text-input" placeholder="new lot" style={{width:100}}/></div><button className="iconbtn" onClick={()=>fire('Scan a lot barcode…')}>▚</button></div></div>}
+                          {it.trackLots&&<div><label className="cds--label">Expiry</label><div className="cds--text-input-wrapper"><input className="cds--text-input" type="date" defaultValue="2027-06-01"/></div></div>}
+                          <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>doReceive(it.id,document.getElementById('rc'+it.id).value)}>Receive</button>
+                          <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setDrawer(null)}>Cancel</button>
+                        </div></div>)}
+                      {drawer&&drawer.id===it.id&&drawer.mode==='usage'&&(<div className="drawer"><strong style={{fontSize:'0.78rem'}}>Record usage</strong>
+                        <div style={{display:'flex',gap:'0.5rem',alignItems:'flex-end'}}><div><label className="cds--label">Quantity used ({it.unit})</label><div className="cds--text-input-wrapper"><input id={'u'+it.id} className="cds--text-input" type="number" defaultValue={1} style={{width:100}}/></div></div>
+                          <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>doUsage(it.id,document.getElementById('u'+it.id).value)}>Record</button><button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setDrawer(null)}>Cancel</button></div></div>)}
+                      {drawer&&drawer.id===it.id&&drawer.mode==='adjust'&&(<div className="drawer"><strong style={{fontSize:'0.78rem'}}>Adjust stock</strong>
+                        <p className="helper">Use Count mode if you recounted the shelf; use Adjust for damage, disposal, or loss.</p>
+                        <div style={{display:'flex',gap:'0.5rem',alignItems:'flex-end',flexWrap:'wrap'}}><div><label className="cds--label">Reason</label><div className="cds--select"><select id={'r'+it.id} className="cds--select-input" style={{width:150}}><option>Damaged</option><option>Disposed (expired)</option><option>Spillage</option><option>Transferred out</option></select></div></div>
+                          <div><label className="cds--label">Quantity removed</label><div className="cds--text-input-wrapper"><input id={'a'+it.id} className="cds--text-input" type="number" defaultValue={1} style={{width:100}}/></div></div>
+                          <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>doAdjust(it.id,document.getElementById('r'+it.id).value,document.getElementById('a'+it.id).value)}>Save</button><button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setDrawer(null)}>Cancel</button></div></div>)}
+                      {drawer&&drawer.id===it.id&&drawer.mode==='edit'&&(<div className="drawer"><strong style={{fontSize:'0.78rem'}}>Edit item details</strong>
+                        <div className="fieldrow" style={{marginTop:'0.4rem'}}><div><label className="cds--label">Name</label><div className="cds--text-input-wrapper"><input className="cds--text-input" defaultValue={it.name} style={{width:210}}/></div></div>
+                          <div><label className="cds--label">Tags</label><div style={{display:'flex',alignItems:'center',flexWrap:'wrap',gap:4,minHeight:40,border:'1px solid #8d8d8d',background:'#f4f4f4',padding:'0 0.4rem',width:200}}>{it.tags.map(tg=><span key={tg} className="tag" style={{cursor:'pointer'}} title="remove" onClick={()=>fire('(demo) would remove '+tg)}>{tg} ✕</span>)}<input list="tagsug" placeholder="+ tag" style={{border:'none',background:'transparent',outline:'none',fontSize:'0.8rem',width:60}} onKeyDown={e=>{if(e.key==='Enter'&&e.target.value){fire('(demo) would add '+e.target.value);e.target.value='';}}}/></div></div>
+                          <div><label className="cds--label">UPC</label><div className="cds--text-input-wrapper"><input className="cds--text-input" defaultValue={it.upc} style={{width:130}}/></div></div>
+                          <div><label className="cds--label">Reorder threshold</label><div className="cds--text-input-wrapper"><input className="cds--text-input" type="number" defaultValue={it.thr} style={{width:90}}/></div></div>
+                          <div><label className="cds--label">Lead time (d)</label><div className="cds--text-input-wrapper"><input className="cds--text-input" type="number" defaultValue={it.lead||14} style={{width:80}}/></div></div>
+                          <div><label className="cds--label">&nbsp;</label><label style={{fontSize:'0.8rem'}}><input type="checkbox" defaultChecked={it.trackLots}/> Track lots</label></div></div>
+                        {OBSERVED[it.id]&&<div style={{marginTop:'0.4rem',fontSize:'0.72rem',color:'#4d5358'}}>Observed lead time <strong>~{OBSERVED[it.id]}d</strong> from your last 3 deliveries — <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>fire('Lead time set to '+OBSERVED[it.id]+'d')}>Use this</button></div>}
+                        <div style={{marginTop:'0.5rem',display:'flex',gap:'0.5rem'}}><button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>{setDrawer(null);fire('Saved');}}>Save</button><button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setDrawer(null)}>Cancel</button></div></div>)}
+                    </div></td></tr>)}
+                  </React.Fragment>);})}
+              </tbody>
+            </table>
+          </div>
+          {toast&&<div className="toast">{toast}</div>}
+        </div>
+      );
+    }
+
+    function ReceiveView(){
+      const [lines,setLines]=useState([{item:'Malaria RDT (P.f/P.v)',lot:'MAL-915',exp:'2027-03-01',qty:'50',loc:'Room 2 · Rack 3'}]);
+      const [toast,setToast]=useState('');
+      const [item,setItem]=useState(''); const [lot,setLot]=useState(''); const [exp,setExp]=useState(''); const [qty,setQty]=useState(''); const [manual,setManual]=useState(false);
+      const fire=(m)=>{setToast(m);setTimeout(()=>setToast(''),2200);};
+      const scan=()=>{ setItem('GeneXpert MTB/RIF cartridge'); setLot('MTB-2460'); setExp('2027-01-31'); setManual(true); fire('Scanned — item, lot & expiry filled. Just enter the quantity.'); };
+      const add=()=>{ if(!item){fire('Scan an item first');return;} if(!qty){fire('Enter a quantity');return;}
+        setLines(l=>[...l,{item,lot,exp,qty,loc:'Fridge 1 · Shelf B'}]); setLot('');setExp('');setQty('');setItem('');setManual(false); fire('Line added'); };
+      return (<div><h2 className="page">Receive delivery</h2>
+        <p className="purpose">Scan the item — lot &amp; expiry fill automatically — then just enter the quantity. No scanner? Enter it manually.</p>
+        <div className="flow-card">
+          {!manual ? (
+            <div style={{textAlign:'center',padding:'0.75rem 0'}}>
+              <button className="cds--btn cds--btn--primary" onClick={scan} style={{fontSize:'1rem',padding:'0.9rem 1.75rem'}}>▚ Scan item</button>
+              <div className="helper" style={{marginTop:'0.5rem'}}>Point the reader at the box. A GS1 barcode fills lot &amp; expiry too. &nbsp;·&nbsp; <button style={{background:'none',border:'none',color:'#0f62fe',cursor:'pointer',textDecoration:'underline',fontSize:'0.72rem',padding:0}} onClick={()=>setManual(true)}>No scanner? Enter manually</button></div>
+            </div>
+          ) : (
+            <div className="fieldrow" style={{alignItems:'flex-end'}}>
+              <div><label className="cds--label">Item {item&&<span className="muted">✓ scanned</span>}</label><div className="cds--text-input-wrapper"><input className="cds--text-input" value={item} onChange={e=>setItem(e.target.value)} placeholder="scan or choose…" style={{width:220}}/></div></div>
+              <div><label className="cds--label">Lot</label><div style={{display:'flex',gap:4}}><div className="cds--text-input-wrapper"><input className="cds--text-input" value={lot} onChange={e=>setLot(e.target.value)} style={{width:100}}/></div><button className="iconbtn" onClick={()=>fire('Scan a lot barcode…')}>▚</button></div></div>
+              <div><label className="cds--label">Expiry</label><div className="cds--text-input-wrapper"><input className="cds--text-input" type="date" value={exp} onChange={e=>setExp(e.target.value)}/></div></div>
+              <div style={{background:'#edf5ff',padding:'0.25rem 0.5rem',borderRadius:2}}><label className="cds--label" style={{fontWeight:600}}>Quantity</label><div className="cds--text-input-wrapper"><input className="cds--text-input" type="number" autoFocus value={qty} onChange={e=>setQty(e.target.value)} placeholder="0" style={{width:90}}/></div></div>
+              <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={add}>Add &amp; next</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>{setItem('');setLot('');setExp('');setQty('');setManual(false);}}>Scan another</button>
+            </div>
+          )}
+          {manual&&item&&<p style={{marginBottom:0,marginTop:'0.6rem'}}><span className="muted">Scanned item not in the catalog? </span><button style={{background:'none',border:'none',color:'#0f62fe',cursor:'pointer',textDecoration:'underline',fontSize:'0.8rem',padding:0}} onClick={()=>fire('New item — your delivery is kept')}>Add it as a new item</button></p>}
+        </div>
+        <h4 style={{fontWeight:600,fontSize:'0.85rem'}}>This delivery ({lines.length})</h4>
+        <table className="sub" style={{background:'#fff'}}><thead><tr><th>Item</th><th>Lot</th><th>Expiry</th><th>Qty</th><th>Location</th></tr></thead>
+          <tbody>{lines.map((l,i)=><tr key={i}><td>{l.item}</td><td className="num">{l.lot}</td><td className="num">{l.exp}</td><td className="num">{l.qty}</td><td>{l.loc}</td></tr>)}</tbody></table>
+        <div style={{marginTop:'0.6rem'}}><button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>setToast('Delivery confirmed')}>Confirm delivery</button></div>
+        {toast&&<div className="toast">{toast}</div>}
+      </div>);
+    }
+
+    function ReportsView(){
+      const [toast,setToast]=useState('');
+      const rows=[['GeneXpert MTB/RIF cartridge',50,22,12,0],['Malaria RDT (P.f/P.v)',100,65,60,0],['HIV 1/2 rapid kit',24,6,24,9],['Examination gloves (box)',20,6,14,0]];
+      return (<div><h2 className="page">Reports</h2>
+        <p className="purpose">Received, consumed, on hand, and expiring for a period. View or export.</p>
+        <div className="flow-card" style={{display:'flex',gap:'0.75rem',alignItems:'flex-end'}}>
+          <div><label className="cds--label">From</label><div className="cds--text-input-wrapper"><input className="cds--text-input" type="date" defaultValue="2026-07-01"/></div></div>
+          <div><label className="cds--label">To</label><div className="cds--text-input-wrapper"><input className="cds--text-input" type="date" defaultValue="2026-07-22"/></div></div>
+          <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={()=>setToast('Report generated')}>Run report</button>
+          <button className="cds--btn cds--btn--tertiary cds--btn--sm" onClick={()=>setToast('Exported CSV')}>Export CSV</button>
+        </div>
+        <table className="sub" style={{background:'#fff'}}><thead><tr><th>Item</th><th>Received</th><th>Consumed</th><th>On hand</th><th>Expiring</th></tr></thead>
+          <tbody>{rows.map((r,i)=><tr key={i}><td>{r[0]}</td><td className="num">{r[1]}</td><td className="num">{r[2]}</td><td className="num">{r[3]}</td><td className="num" style={r[4]>0?{color:'#da1e28',fontWeight:600}:null}>{r[4]||'—'}</td></tr>)}</tbody></table>
+        {toast&&<div className="toast">{toast}</div>}
+      </div>);
+    }
+
+    const VIEWS={items:ItemsBoard,receive:ReceiveView,reports:ReportsView};
+    const LABELS={items:'Items',receive:'Receive',reports:'Reports'};
+    function App(){
+      const [view,setView]=useState('items'); const V=VIEWS[view];
+      return (<div>
+        <div className="appbar"><span className="brand">OpenELIS Global</span><span className="spacer"></span><span className="fac">Port Moresby General Hospital</span><span className="avatar">CI</span></div>
+        <div className="layout">
+          <nav className="sidenav">
+            <a className="dim">Home</a><a className="dim">Order</a><a className="dim">Patient</a><a className="dim">Results</a>
+            <a className="parent">Inventory</a>
+            {Object.keys(VIEWS).map(k=><a key={k} className={'sub'+(view===k?' active':'')} onClick={()=>setView(k)}>{LABELS[k]}</a>)}
+            <a className="dim">Reports</a><a className="dim">Admin</a>
+          </nav>
+          <div className="content"><div className="bc">Home / Inventory / {LABELS[view]}</div><V/></div>
+        </div>
+      </div>);
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>
