@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-18T08:41:55.807Z",
+  "generatedAt": "2026-07-23T21:55:04.786Z",
   "sections": [
     {
       "id": "add-patient",
@@ -42,7 +42,7 @@
         "/MasterListsPage/TestModifyEntry :: SOP Max Holding Time"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:41:26.250Z",
+      "checkedAt": "2026-07-23T21:54:27.520Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-06-24",
@@ -71,7 +71,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:41:28.904Z",
+      "checkedAt": "2026-07-23T21:54:30.154Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -94,7 +94,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:41:06.049Z",
+      "checkedAt": "2026-07-23T21:54:07.255Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-06-24",
@@ -124,7 +124,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:41:50.433Z"
+      "checkedAt": "2026-07-23T21:54:51.462Z"
     },
     {
       "id": "analyzer-file-import",
@@ -137,17 +137,22 @@
       "routeErrors": [],
       "checkedAt": "2026-07-18T08:37:41.399Z",
       "codeChanged": {
-        "count": 0,
+        "count": 1,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/analyzers",
           "frontend/src/components/genericSample"
         ],
         "branches": {
-          "develop": 0,
+          "develop": 1,
           "demo-silnas": 0
         },
-        "latest": null
+        "latest": {
+          "sha": "4223f54",
+          "date": "2026-07-20",
+          "msg": "Week 3: migrate analyzer components and services to TypeScript (#3705)",
+          "branch": "develop"
+        }
       }
     },
     {
@@ -161,16 +166,21 @@
       "routeErrors": [],
       "checkedAt": "2026-07-18T08:37:44.072Z",
       "codeChanged": {
-        "count": 0,
+        "count": 1,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/analyzers"
         ],
         "branches": {
-          "develop": 0,
+          "develop": 1,
           "demo-silnas": 0
         },
-        "latest": null
+        "latest": {
+          "sha": "4223f54",
+          "date": "2026-07-20",
+          "msg": "Week 3: migrate analyzer components and services to TypeScript (#3705)",
+          "branch": "develop"
+        }
       }
     },
     {
@@ -307,17 +317,18 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:40:43.433Z",
+      "checkedAt": "2026-07-23T21:53:44.989Z",
       "codeChanged": {
-        "count": 11,
+        "count": 13,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/order",
-          "frontend/src/components/addOrder"
+          "frontend/src/components/addOrder",
+          "frontend/src/components/compliance"
         ],
         "branches": {
           "develop": 1,
-          "demo-silnas": 10
+          "demo-silnas": 12
         },
         "latest": {
           "sha": "63e8fc0",
@@ -336,9 +347,9 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:40:57.987Z",
+      "checkedAt": "2026-07-23T21:53:59.260Z",
       "codeChanged": {
-        "count": 16,
+        "count": 17,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/order",
@@ -346,14 +357,14 @@
           "frontend/src/components/validation"
         ],
         "branches": {
-          "develop": 6,
+          "develop": 7,
           "demo-silnas": 10
         },
         "latest": {
-          "sha": "63e8fc0",
-          "date": "2026-07-14",
-          "msg": "feat: streamline error handling and enhance validation messages in SamplePatientEntryRestController (#3854)",
-          "branch": "demo-silnas"
+          "sha": "c117f3b",
+          "date": "2026-07-22",
+          "msg": "feat(results): unified /Results worklist with per-analysis save \u2014 R1 of OGC-811 (OGC-1020) (#3890)",
+          "branch": "develop"
         }
       }
     },
@@ -391,6 +402,30 @@
       "missingAnchors": [],
       "routeErrors": [],
       "checkedAt": "2026-07-18T08:38:53.680Z"
+    },
+    {
+      "id": "laporan-hasil-report",
+      "title": "Compliance Report (Laporan Hasil)",
+      "base": "https://indonesiademo.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-07-23T21:55:02.102Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-07-23",
+        "paths": [
+          "frontend/src/components/reports/compliance"
+        ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
+        "latest": null
+      }
     },
     {
       "id": "logging-configuration",
@@ -485,7 +520,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:41:45.044Z"
+      "checkedAt": "2026-07-23T21:54:46.142Z"
     },
     {
       "id": "organization-management",
@@ -549,7 +584,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:41:42.362Z"
+      "checkedAt": "2026-07-23T21:54:43.480Z"
     },
     {
       "id": "patient-merge",
@@ -561,7 +596,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:41:53.131Z"
+      "checkedAt": "2026-07-23T21:54:54.132Z"
     },
     {
       "id": "patient-order-enhancements",
@@ -628,6 +663,30 @@
       }
     },
     {
+      "id": "reference-lab-results",
+      "title": "Reference Lab Results",
+      "base": "https://indonesiademo.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-07-23T21:55:04.780Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-07-23",
+        "paths": [
+          "frontend/src/components/referenceLabResults"
+        ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
+        "latest": null
+      }
+    },
+    {
       "id": "reflex-testing",
       "title": "Reflex Testing",
       "base": "https://testing.openelis-global.org",
@@ -649,7 +708,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:41:55.799Z"
+      "checkedAt": "2026-07-23T21:54:56.787Z"
     },
     {
       "id": "result-reporting-configuration",
@@ -701,7 +760,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:41:34.285Z"
+      "checkedAt": "2026-07-23T21:54:35.498Z"
     },
     {
       "id": "running-reports",
@@ -713,7 +772,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:41:39.668Z"
+      "checkedAt": "2026-07-23T21:54:40.817Z"
     },
     {
       "id": "sample-acceptance-checklist",
@@ -725,7 +784,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:41:31.561Z",
+      "checkedAt": "2026-07-23T21:54:32.799Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-30",
@@ -777,7 +836,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:41:47.767Z"
+      "checkedAt": "2026-07-23T21:54:48.807Z"
     },
     {
       "id": "sample-storage-management",
@@ -866,7 +925,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:41:36.971Z"
+      "checkedAt": "2026-07-23T21:54:38.139Z"
     },
     {
       "id": "vector-surveillance",
@@ -883,7 +942,7 @@
         "/vector/identification :: Split"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:40:49.448Z",
+      "checkedAt": "2026-07-23T21:53:50.831Z",
       "codeChanged": {
         "count": 9,
         "since": "2026-06-24",
@@ -901,6 +960,30 @@
           "msg": "feat: streamline error handling and enhance validation messages in SamplePatientEntryRestController (#3854)",
           "branch": "demo-silnas"
         }
+      }
+    },
+    {
+      "id": "vector-surveillance-report",
+      "title": "Vector Surveillance Report",
+      "base": "https://indonesiademo.openelis-global.org",
+      "instanceVersion": "3.2.1.10",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "",
+      "status": "ok",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-07-23T21:54:59.441Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-07-23",
+        "paths": [
+          "frontend/src/components/reports/vectorSurveillance"
+        ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
+        "latest": null
       }
     }
   ],

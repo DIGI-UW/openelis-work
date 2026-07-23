@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-18T08:42:39Z",
+  "generatedAt": "2026-07-23T21:55:46Z",
   "repo": "DIGI-UW/OpenELIS-Global-2",
   "branchesWatched": [
     "develop",
@@ -7,48 +7,31 @@
   ],
   "windows": {
     "develop": {
-      "base": "b5e765d6",
-      "head": "89a3f466",
-      "commitCount": 54,
+      "base": "c9443b92",
+      "head": "e816f7e4",
+      "commitCount": 59,
       "windowDays": 30
     },
     "demo-silnas": {
-      "base": "127499a0",
+      "base": "7f2c75a9",
       "head": "63e8fc0f",
-      "commitCount": 18,
+      "commitCount": 15,
       "windowDays": 30
     }
   },
   "uncovered": [
-    {
-      "componentDir": "frontend/src/components/reports",
-      "branches": [
-        "demo-silnas"
-      ],
-      "fileCount": 10,
-      "files": [
-        "frontend/src/components/reports/compliance/LaporanHasilReport.jsx",
-        "frontend/src/components/reports/compliance/__tests__/LaporanHasilReport.test.jsx",
-        "frontend/src/components/reports/vectorSurveillance/Index.jsx",
-        "frontend/src/components/reports/vectorSurveillance/ManualEntryHelper.jsx",
-        "frontend/src/components/reports/vectorSurveillance/VectorSurveillanceDashboard.jsx",
-        "frontend/src/components/reports/vectorSurveillance/VectorSurveillanceDashboard.test.jsx",
-        "frontend/src/components/reports/vectorSurveillance/VectorSurveillanceService.js",
-        "frontend/src/components/reports/vectorSurveillance/__tests__/ManualEntryHelper.test.jsx",
-        "frontend/src/components/reports/vectorSurveillance/vectorPdfGenerator.js",
-        "frontend/src/components/reports/vectorSurveillance/vectorPdfGenerator.test.js"
-      ]
-    },
     {
       "componentDir": "frontend/src/components/common",
       "branches": [
         "demo-silnas",
         "develop"
       ],
-      "fileCount": 6,
+      "fileCount": 8,
       "files": [
         "frontend/src/components/common/CustomDatePicker.jsx",
         "frontend/src/components/common/CustomDatePicker.test.jsx",
+        "frontend/src/components/common/PageTitle/PageTitle.test.tsx",
+        "frontend/src/components/common/PageTitle/PageTitle.tsx",
         "frontend/src/components/common/cascadingMultiSelect.jsx",
         "frontend/src/components/common/CustomSelect.jsx",
         "frontend/src/components/common/useUrlFilters.js",
@@ -56,29 +39,35 @@
       ]
     },
     {
-      "componentDir": "frontend/src/components/referenceLabResults",
+      "componentDir": "frontend/src/components/data",
       "branches": [
-        "demo-silnas"
+        "develop"
       ],
-      "fileCount": 5,
+      "fileCount": 8,
       "files": [
-        "frontend/src/components/referenceLabResults/MarkLostModal.jsx",
-        "frontend/src/components/referenceLabResults/ReferenceLabResults.css",
-        "frontend/src/components/referenceLabResults/ReferenceLabResults.jsx",
-        "frontend/src/components/referenceLabResults/RejectModal.jsx",
-        "frontend/src/components/referenceLabResults/index.js"
+        "frontend/src/components/data/LabTableHeaders.tsx",
+        "frontend/src/components/data/PatientResultsTableHeaders.tsx",
+        "frontend/src/components/data/SampleEntryTestsForTypeProvider.js",
+        "frontend/src/components/data/SampleEntryTestsForTypeProvider.ts",
+        "frontend/src/components/data/SampleTypesTableHeaders.tsx",
+        "frontend/src/components/data/countries.ts",
+        "frontend/src/components/data/orderCurrentTestsHeaders.tsx",
+        "frontend/src/components/data/orderOptions.ts"
       ]
     },
     {
-      "componentDir": "frontend/src/components/formModel",
+      "componentDir": "frontend/src/components/utils",
       "branches": [
-        "demo-silnas"
+        "demo-silnas",
+        "develop"
       ],
-      "fileCount": 3,
+      "fileCount": 5,
       "files": [
-        "frontend/src/components/formModel/innitialValues/OrderEntryFormValues.js",
-        "frontend/src/components/formModel/innitialValues/ReferredOutTestsFormValues.js",
-        "frontend/src/components/formModel/validationSchema/OrderEntryValidationSchema.js"
+        "frontend/src/components/utils/BrandingUtils.ts",
+        "frontend/src/components/utils/JsonPath.ts",
+        "frontend/src/components/utils/PathRoute.tsx",
+        "frontend/src/components/utils/Utils.ts",
+        "frontend/src/components/utils/Utils.js"
       ]
     },
     {
@@ -93,6 +82,16 @@
       ]
     },
     {
+      "componentDir": "frontend/src/components/cytology",
+      "branches": [
+        "develop"
+      ],
+      "fileCount": 1,
+      "files": [
+        "frontend/src/components/cytology/CytologyCaseView.jsx"
+      ]
+    },
+    {
       "componentDir": "frontend/src/components/inventory",
       "branches": [
         "develop"
@@ -103,23 +102,13 @@
       ]
     },
     {
-      "componentDir": "frontend/src/components/compliance",
+      "componentDir": "frontend/src/components/formModel",
       "branches": [
         "demo-silnas"
       ],
       "fileCount": 1,
       "files": [
-        "frontend/src/components/compliance/EnvironmentalDashboard.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/utils",
-      "branches": [
-        "demo-silnas"
-      ],
-      "fileCount": 1,
-      "files": [
-        "frontend/src/components/utils/Utils.js"
+        "frontend/src/components/formModel/innitialValues/ReferredOutTestsFormValues.js"
       ]
     }
   ]
