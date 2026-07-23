@@ -1,6 +1,6 @@
 # OpenELIS Design Gallery
 
-> Design mockups and functional requirement specs for OpenELIS Global, an open-source laboratory information management system. 206 designs across 16 categories.
+> Design mockups and functional requirement specs for OpenELIS Global, an open-source laboratory information management system. 208 designs across 16 categories.
 
 ## Catalog
 - [JSON Catalog](https://digi-uw.github.io/openelis-work/catalog.json): Machine-readable index of all designs
@@ -55,6 +55,7 @@
 - [Admin Phase 5 Roadmap](https://digi-uw.github.io/openelis-work/designs/admin-config/admin-phase5-roadmap.md): Roadmap for Phase 5 admin redesign — covers all admin pages bucketed into People & Access, Test Catalog, Configuration, QC & Quality, and Reports & Analytics. Sequencing, dependency graph, and spec completion status.
 - [Test Rules Authoring Redesign — MVP](https://digi-uw.github.io/openelis-work/designs/admin-config/test-rules-mvp-frs.md): Unified replacement for the legacy Reflex Tests Management and Calculated Value Tests Management admin pages — one route at /admin/testRules. List view mixes Rules + Calculations + Algorithms + Multi-step calcs. Inline row expansion for simple rule authoring; dedicated full-width editors for Reflex (WHEN/THEN compose + formula bar), Numeric Calc (formula bar + live preview + flowchart), and Coded Calc (decision table, e.g. TB GenoType interpretation). Algorithm-as-graph canvas is Phase 2 reference. All five previews are cross-linked — open the list view and click through. FRS: 43 numbered FRs, full AST data model, 29 acceptance criteria, ~100 i18n keys.
 - [Programs Management](https://digi-uw.github.io/openelis-work/designs/admin-config/programs-management.md): Programs admin rework (v2, consolidated) — Domain (Clinical/Environmental/Vector) field matching Test Catalog & Lab Units; moves under Admin → Test Management; inline Edit/Add (no separate page); Deactivate/Reactivate lifecycle (no hard delete) with a Show-deactivated toggle; Carbon ContentSwitcher (Visual Builder ↔ JSON) with a live "Example" preview; multi Lab-unit select; heavy on-screen guidance; API & i18n reuse guardrails. Epic: OGC-781.
+- [Additional Information Builder (contexts)](https://digi-uw.github.io/openelis-work/designs/admin-config/programs-management.md): One questionnaire builder, per-context via a SideNav submenu (Programs / per-domain Order form fields / Patient form fields); shipped fields hide-not-delete + collapse + JSON-exclusion. Part of OGC-781 (baked-in Additional Information).
 - [Result & Validation Configuration v4](https://digi-uw.github.io/openelis-work/designs/admin-config/results-validation-config-v4.md): Consolidated admin page (v4) that retires the flat Result Entry Configuration table and the binary validate-all-results toggle. Replaces them with a plain-language grouped toggles panel (13 legacy settings re-labelled across 4 groups: Result Entry, Modification/Rejection/Retest, Release & Display, Access & PII), a multi-level validation policy panel (lab-wide default + per-lab-unit overrides with 0–5 levels, trigger modes, role selects), an effective-config preview, and a plain-terms policy sentence. Route: /admin/results-validation-configuration. Drives Results Entry v4 and Validation Page v4.
 
 ## Analyzer Integration
@@ -92,6 +93,7 @@
 
 ## Inventory & Supply
 - [Reagent Forecasting Workbench](https://digi-uw.github.io/openelis-work/designs/inventory/reagent-forecasting-workbench.md): National/regional reagent forecasting workbench — multi-facility days-of-stock table, critical/low alerts, ADC-based projections, and reorder planning for program managers
+- [Inventory Module Redesign](https://digi-uw.github.io/openelis-work/designs/inventory/inventory-redesign.md): Decision-support redesign of the Inventory module — Items board (catalog + live stock, count mode, tags), scan-first Receive, Reorder suggestions with learned lead time, median-based run-out window, per-location visibility, CSV import. Coordinates with Results Entry reagent-usage (consumption + FEFO) and OGC-657 (shared storage).
 - [Inventory Item-Type Management](https://digi-uw.github.io/openelis-work/designs/inventory/inventory-item-type-management.md): Move the hard-coded "Type of Item" list into the Data Dictionary: managed item-type admin with add/edit/deactivate, replacing hardcoded values.
 - [Reagent Forecasting Facility View](https://digi-uw.github.io/openelis-work/designs/inventory/reagent-forecasting-facility.md): Facility-level reagent stock view — per-cartridge days-of-stock monitoring, stock-count updates, and proactive reorder alerts for lab technicians at a single site
 

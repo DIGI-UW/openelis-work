@@ -2082,17 +2082,6 @@ export const MOCKUP_REGISTRY = [
 
   // ─── Inventory ───
   {
-    name: 'Inventory Module Redesign',
-    category: 'inventory',
-    component: null,
-    description: 'Full Inventory module redesign — stock board with search/filter and row actions, scan-first receive (GS1 lot/expiry auto-fill), \u00b11SD run-out projections, self-learning reorder suggestions, type-as-tag item model, and FEFO consumption coordinated with Results Entry reagent-usage. Supersedes the Reagent Forecasting Facility View. (OGC-438)',
-    specPath: 'designs/inventory/inventory-module-redesign.md',
-    htmlUrl: 'designs/inventory/inventory-module-redesign.html',
-    added: '2026-07-23',
-    status: 'draft',
-    tags: ['inventory', 'reagents', 'stock', 'forecasting', 'reorder', 'redesign'],
-  },
-  {
     name: 'Reagent Forecasting Workbench',
     category: 'inventory',
     component: React.lazy(() => import('@designs/inventory/reagent-forecasting-workbench.jsx')),
@@ -2103,6 +2092,18 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 60,
     relatedTo: ['Reagent Forecasting Facility View'],
     tags: ['inventory', 'reagents', 'forecasting', 'stock'],
+  },
+  {
+    name: 'Inventory Module Redesign',
+    category: 'inventory',
+    component: null,
+    description: 'Decision-support redesign of the Inventory module — Items board (catalog + live stock, count mode, tags), scan-first Receive, Reorder suggestions with learned lead time, median-based run-out window, per-location visibility, CSV import. Coordinates with Results Entry reagent-usage (consumption + FEFO) and OGC-657 (shared storage).',
+    specPath: 'designs/inventory/inventory-redesign.md',
+    htmlUrl: 'designs/inventory/inventory-redesign.html',
+    added: '2026-07-23',
+    status: 'draft',
+    githubIssue: 237,
+    tags: ['inventory','decision-support','reorder','fefo','redesign','OGC-438'],
   },
   {
     name: 'Inventory Item-Type Management',

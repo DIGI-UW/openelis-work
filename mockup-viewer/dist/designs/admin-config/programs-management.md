@@ -197,6 +197,12 @@ assistive path — not a dependency here; D-023.)
 enum); inline Carbon `InlineNotification` error (with reason) or success ("Validated — N questions").
 Submit disabled until valid.
 
+**FR-12.1 — JSON: paste/edit (the "just give it the JSON" path).** JSON mode lets an admin **paste or
+edit** the FHIR Questionnaire directly in the editor and Validate (FR-12) — no file upload needed.
+This preserves the legacy "Edit JSON" capability: an admin (or an LLM) can author the whole
+Questionnaire and drop it in, bypassing the visual cards. Round-tripping to the Visual Builder follows
+FR-11.1. Applies equally to the baseline "always-attached" questionnaires (FR-21).
+
 **FR-13 — Visual Builder cards.** Questionnaire id input; repeating Question cards (Carbon `Tile`) with
 Question Text, Question Type (`Select`, 10 FHIR item.type values — FR-15), answer-options sub-section
 for Choice/Checkbox (FR-14), and an `OverflowMenu` (⋮) with Delete (Modal-confirmed). **No per-card
@@ -269,6 +275,114 @@ default-hide toggle, not a neutral show-all filter.)
 **FR-20 — Audit (lifecycle).** `PROGRAM_DEACTIVATED` (`{program_code, orderCount, actor}`) and
 `PROGRAM_REACTIVATED` (`{program_code, actor}`). Envers already tracks `active` on the `@Audited`
 entity.
+
+---
+
+## Baked-in: Baseline Additional Information — dynamic patient/order form regions (from OGC-1144)
+
+> **In plain language:** beyond the per-Program Questionnaire, we make **two more regions of the
+> forms dynamic** so a deployment can capture extra structured info without code changes. Together
+> with the Program Questionnaire, that's **three config-driven form regions**. Folded in here from
+> OGC-1144 (Madagascar disease-surveillance + HIV/PMTCT) because Programs hadn't started — one build,
+> not two. RETROCI is out of scope.
+
+**The three dynamic form regions:**
+1. **Patient region** — an Additional Information block on the **patient form** (`/PatientManagement`;
+   edit = view) for fields that **persist on the patient**.
+2. **Order-baseline region** — fields shown on **every order** regardless of program.
+3. **Order program region** — the selected **Program's Questionnaire** (FR-10–FR-16 above), attached
+   per order.
+
+**FR-21 — One builder, three attachment modes (the baseline regions are NOT a separate builder).**
+There is a **single field-authoring GUI** — the Programs **Visual Builder ↔ JSON** editor
+(FR-11–FR-16). The baseline regions **reuse it**, they are not a copy:
+- A **Program** is a Questionnaire that is **selectable** per order.
+- The **order-baseline** region is a Questionnaire **always attached** to every order.
+- The **patient-baseline** region is a Questionnaire **always attached** to the patient.
+The only differences are the **attachment mode** (selectable vs always-patient vs always-order) and
+where the live preview renders. One editor, one FHIR Questionnaire mechanism.
+
+**FR-21.1 — Admin-authored fields get FHIR free (QuestionnaireResponse).** Any field authored in the
+builder is a FHIR Questionnaire item → exported as **QuestionnaireResponse**, so **admins CAN create
+new extra fields** in any of the three modes without per-field developer FHIR mapping.
+
+**FR-21.2 — Existing structured fields are the exception (configure, don't re-author).** The
+pre-existing structured patient fields that already map to real FHIR resources — **address hierarchy**
+(`Patient.address`, delegated to Site Information per FR-23) and the existing **Education / Marital
+Status / Nationality / Occupation / Custom Notes / Target Disease Programme** — keep their **bespoke
+controls and existing FHIR mapping**. For these, admins **configure** (show/hide, label, required),
+they do not re-author them in the questionnaire builder. Only *these* carry the "dev-defined,
+don't-invent" rule; genuinely new extras are authored as questionnaire items (FR-21.1).
+
+**FR-22 — Existing patient fields folded in.** The current patient "Additional Information" fields —
+verified live: Health Region, Health District, Education, Marital Status, Nationality (+ Specify
+Other), Occupation, Target Disease Programme, Custom Notes — become the seed of the **patient region**
+with per-field Visible/Required/Type config. They default **on** (no regression).
+
+**FR-23 — Address hierarchy fields delegate to Site Information.** Health Region / Health District are
+**Address hierarchy** fields (locked type): admin can show/hide and edit their **label** in the
+patient region, but this **writes through the existing Site Information geographic-unit-label +
+address API** (values from Organization data) — no back-end change. Verified: Site Information →
+"Geographic Unit 1 Label" = Region, "Geographic Unit 2 Label" = District. FHIR = `Patient.address`.
+
+**FR-24 — Patient-level vs order-level placement (reuse what exists).** Baseline fields are tagged
+patient-level or order-level.
+- **Patient region already exists** — the patient form's "Additional Information" block
+  (`/PatientManagement`). Reuse it; this feature adds the per-field config layer + folds in the
+  existing fields (FR-22).
+- **Order-details region already exists for ENV order entry** (the Env/Vector wizard). Reuse that
+  pattern and **add a comparable order-details section to Clinical and Vector order entry** so all
+  three domains have one. This is the main order-side build — not a brand-new container.
+- Persistent patient traits that can't live in a per-order Questionnaire (e.g. a **mother
+  patient-link** + mother HIV status) belong to the patient region, not a Program.
+
+**FR-25 — Domain sensitivity for baseline regions.** The order-baseline region and the Program region
+already honor the order's Domain (FR-6). Patient-region fields are cross-domain (patient form isn't
+domain-routed).
+
+**FR-26 — FHIR mapping (baseline regions).** Program answers export as **QuestionnaireResponse**
+(existing). Baseline fields map to **Patient** / **Observation** (or `Patient.address` for the address
+fields); the dev records a field → FHIR mapping for each baseline field, or marks it "no FHIR export."
+
+**FR-27 — Placement: first page of order entry, all three domains (verified live).** The order-level
+**Additional Order Details** region and the selected **Program** questionnaire render on the **first
+page — Step 1 "Enter Order"** — of order entry for all three domains, for consistency. Verified on
+the **Indonesia demo** (`indonesiademo.openelis-global.org`, v3.2.1.10); routes are domain-scoped:
+`/order/clinical/enter`, `/order/environmental/enter`, `/order/vector/enter`.
+
+- **Environmental** — Step 1 already carries env order details (Collection Method, Water Temp,
+  Ambient Temp, Weather, Preservation Method, Field Notes, Compliance Standards) alongside a
+  **Program** field and the Requester block. Reuse this as the pattern.
+- **Vector** — Step 1 shows explicit sections **Requester · Program · Sample**, with vector order
+  details (Lifecycle Stage, Trap Type, Quantity in Pool, Traps Deployed, Nights Deployed). The
+  **Program section already exists on Step 1.**
+- **Clinical** — Step 1 sections are **Patient · Program · Clinical Information · Requester · Sample**.
+  The **"Clinical Information"** section already holds **Provisional Diagnosis** and **Payment Status** —
+  this is the clinical order-details section. **Add the config-driven Additional Order Details here**
+  (extend "Clinical Information"), not a new section.
+- **Exact placement per domain (all already have a Step-1 details section — extend it):**
+  Clinical → **Clinical Information** (Provisional Diagnosis, Payment Status); Environmental → the env
+  order-details block (Collection Method, temps, Weather, Preservation, Field Notes, Compliance
+  Standards); Vector → the **Sample** section (Lifecycle Stage, Trap Type, etc.). Every domain also
+  already has a **Program** section on Step 1. So this is **extending existing Step-1 sections**, not
+  adding new locations.
+- **Patient region:** the patient form (`/PatientManagement`) Additional Information block — reused.
+- Consistent Step-1 order (top→bottom): Requester → Sample & Tests (customary + domain details) →
+  **Additional Order Details (baseline, config-driven)** → **Program** → its Questionnaire (when
+  selected).
+
+**Madagascar content (config, not code):** the Disease-Surveillance and HIV/PMTCT–EID field sets from
+OGC-1144 are delivered as **Programs** (Questionnaires authored via FR-11–FR-16) plus the relevant
+baseline patient fields. The full field catalog + per-field type/level/response-source detail lives in
+the companion appendix `patient-additional-info-surveillance-pmtct-frs.md` (now an appendix to this
+spec, not a separate feature).
+
+**Config data (baseline):** per baseline field — `region` (patient | order-baseline), `visible`,
+`required`, `type` (Text / Single-select / Multi-select / Yes-No, or a locked intrinsic: Date / Number
+/ Patient-link / Address-hierarchy), `dictionaryCategoryId` (coded fields, reusing Dictionary +
+inline add/deactivate), and a `label` override (address fields). Stored with Order & Patient Entry
+Configuration. Order-level baseline fields **reuse the existing ENV order-details section** and
+**add a comparable section to Clinical + Vector** order entry (not a brand-new container).
 
 ---
 
@@ -370,6 +484,21 @@ slice, sized to a reviewable PR:
 - **Live preview + answer-options + round-trip safety** — the "Example" pane, Choice/Checkbox options
   editor, and FHIR advanced-feature preservation.
 
+**Baked-in baseline regions (from OGC-1144) — independent of the questionnaire-builder slices:**
+
+- **Patient region config layer** — per-field Visible/Required/Type/label on the existing patient
+  "Additional Information" block; fold in the existing fields; address-hierarchy label delegates to
+  Site Information. Ships without touching Programs.
+- **Order-details section for Clinical + Vector** — add the order-details region (which ENV already
+  has) to Clinical and Vector order entry, with the baseline order-level fields + config. Independent
+  of the builder.
+- **Madagascar content as Programs** — author the Disease-Surveillance and HIV/PMTCT–EID Questionnaires
+  via the builder (after the builder slice lands) + the relevant baseline patient fields. Config, not code.
+
+> **Sizing note:** this is **one Epic, several independently shippable PRs — not one pass.** The
+> baseline-region slices are loosely coupled to the Programs-redesign slices (they don't depend on the
+> questionnaire builder), so they can land in parallel. Don't attempt it as a single monolithic PR.
+
 Cross-cutting concerns (i18n keys, audit entries, Envers, role attachment) belong to whichever slice
 introduces them — not separate slices.
 
@@ -449,9 +578,9 @@ translation cycle.
 This feature ships as **one reference set** — a single implementer works all of it from these three
 files together (the implementer is Claude Code, so a consolidated set beats scattered docs):
 
-1. **Spec:** `programs-management.md` (this file)
-2. **Mockup:** `programs-management.jsx` (Carbon; all four pillars incl. the new lifecycle)
-3. **Preview:** `programs-management.html` (interactive; list + editor views)
+1. **Spec:** `programs-management-frs-consolidated.md` (this file)
+2. **Mockup:** `programs-management-v2-mockup.jsx` (Carbon; all four pillars incl. the new lifecycle)
+3. **Preview:** `programs-management-v2-preview.html` (interactive; list + editor views)
 
 These supersede the base `programs-management-frs.md`, the `programs-management-deactivate-addendum.md`,
 and the older `programs-management-mockup.jsx`/`-preview.html` — do not hand those off separately.
@@ -460,8 +589,8 @@ and the older `programs-management-mockup.jsx`/`-preview.html` — do not hand t
 
 | Asset | Type | Path | Shows |
 |---|---|---|---|
-| `programs-management.html` | interactive preview | workspace | target UI — list (Domain col, status, Show-deactivated toggle, Deactivate/Reactivate, confirm modal) + editor (Domain radio, lifecycle control, ContentSwitcher, live Example preview) |
-| `programs-management.jsx` | Carbon mockup | workspace | implementation reference for the above |
+| `programs-management-v2-preview.html` | interactive preview | workspace | target UI — list (Domain col, status, Show-deactivated toggle, Deactivate/Reactivate, confirm modal) + editor (Domain radio, lifecycle control, ContentSwitcher, live Example preview) |
+| `programs-management-v2-mockup.jsx` | Carbon mockup | workspace | implementation reference for the above |
 | `handoff-programs-before/01-programs-list-current.png` | live "before" screenshot | `OpenELIS QA/docs-media/handoff-programs-before/` | current Program editor — captures the pain the FRS fixes: the raw `program.name.program` i18n leak used as a label (FR-17), the legacy "Edit Json" toggle (FR-11 replaces with ContentSwitcher), the "Example" preview label (FR-13.5), **no Domain field** (FR-2), and the misplaced "Program Entry" main-menu location + "Admin Management" breadcrumb (the IA move) |
 | `handoff-programs-before/walkthrough.webm` | clip | same folder | navigation through the current editor |
 

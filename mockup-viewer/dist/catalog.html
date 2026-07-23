@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenELIS Design Gallery — Catalog</title>
-  <meta name="description" content="Searchable catalog of 206 design mockups and specifications for OpenELIS Global">
+  <meta name="description" content="Searchable catalog of 208 design mockups and specifications for OpenELIS Global">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 960px; margin: 0 auto; padding: 2rem 1rem; color: #161616; line-height: 1.5; }
     h1 { border-bottom: 2px solid #0f62fe; padding-bottom: 0.5rem; }
@@ -22,15 +22,15 @@
 </head>
 <body>
   <h1>OpenELIS Design Gallery — Catalog</h1>
-  <p>206 designs across 16 categories.
+  <p>208 designs across 16 categories.
     <a href="./">Interactive Gallery</a> |
     <a href="catalog.json">JSON Catalog</a> |
     <a href="llms.txt">LLM Index</a> |
     <a href="sitemap.xml">Sitemap</a>
   </p>
-  <nav><a href="#cat-admin-config">Admin & Config (48)</a> <a href="#cat-analyzer-integration">Analyzer Integration (24)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (3)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (8)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
+  <nav><a href="#cat-admin-config">Admin & Config (49)</a> <a href="#cat-analyzer-integration">Analyzer Integration (24)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (4)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (8)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
 
-  <h2 id="cat-admin-config">Admin & Config (48)</h2>
+  <h2 id="cat-admin-config">Admin & Config (49)</h2>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-specimen-many-to-many">Test Catalog — Specimen Many-to-Many</a></h3>
     <p>One test associates many sample types (shared config, Phase 1) with per-specimen override for ranges/LOINC (Phase 2). Sample type single→multi on Basic Info; specimen-aware resolution replaces first-match (.get(0)); flat list shows one row per test with its specimens; multi-association is normal (not an error). Supersedes D-028 (specimen-is-identity) and retires the variant grouping + "Add specimen variant" copy subsystem. Hero case: environmental physical-chemistry across water types (Color/Turbidity span ~10 sample types on indonesiademo).</p>
@@ -688,6 +688,19 @@
     <div class="tags"><span class="tag">admin</span> <span class="tag">programs</span> <span class="tag">test-management</span> <span class="tag">domain</span> <span class="tag">fhir-questionnaire</span> <span class="tag">visual-builder</span> <span class="tag">json</span> <span class="tag">live-preview</span> <span class="tag">order-entry</span> <span class="tag">global</span></div>
   </div>
   <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/additional-information-builder-contexts">Additional Information Builder (contexts)</a></h3>
+    <p>One questionnaire builder, per-context via a SideNav submenu (Programs / per-domain Order form fields / Patient form fields); shipped fields hide-not-delete + collapse + JSON-exclusion. Part of OGC-781 (baked-in Additional Information).</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/admin-config/additional-information-builder-contexts">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/admin-config/additional-information-builder-contexts">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/admin-config/programs-management.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/admin-config/programs-management.jsx">Source (JSX)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/admin-config/additional-info-builder.html">HTML Mockup</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-781">OGC-781</a>
+    </div>
+    <div class="tags"><span class="tag">programs</span> <span class="tag">additional-information</span> <span class="tag">fhir-questionnaire</span> <span class="tag">builder</span> <span class="tag">admin</span> <span class="tag">madagascar</span></div>
+  </div>
+  <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/result-validation-configuration-v4">Result & Validation Configuration v4</a></h3>
     <p>Consolidated admin page (v4) that retires the flat Result Entry Configuration table and the binary validate-all-results toggle. Replaces them with a plain-language grouped toggles panel (13 legacy settings re-labelled across 4 groups: Result Entry, Modification/Rejection/Retest, Release & Display, Access & PII), a multi-level validation policy panel (lab-wide default + per-lab-unit overrides with 0–5 levels, trigger modes, role selects), an effective-config preview, and a plain-terms policy sentence. Route: /admin/results-validation-configuration. Drives Results Entry v4 and Validation Page v4.</p>
     <div class="links">
@@ -1054,7 +1067,7 @@
     <div class="tags"><span class="tag">blood-bank</span> <span class="tag">transfusion</span> <span class="tag">issue</span> <span class="tag">emergency-release</span></div>
   </div>
 
-  <h2 id="cat-inventory">Inventory & Supply (3)</h2>
+  <h2 id="cat-inventory">Inventory & Supply (4)</h2>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/inventory/reagent-forecasting-workbench">Reagent Forecasting Workbench</a></h3>
     <p>National/regional reagent forecasting workbench — multi-facility days-of-stock table, critical/low alerts, ADC-based projections, and reorder planning for program managers</p>
@@ -1066,6 +1079,18 @@
       <a href="https://github.com/DIGI-UW/openelis-work/issues/60">#60</a>
     </div>
     <div class="tags"><span class="tag">inventory</span> <span class="tag">reagents</span> <span class="tag">forecasting</span> <span class="tag">stock</span></div>
+  </div>
+  <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/inventory/inventory-module-redesign">Inventory Module Redesign</a></h3>
+    <p>Decision-support redesign of the Inventory module — Items board (catalog + live stock, count mode, tags), scan-first Receive, Reorder suggestions with learned lead time, median-based run-out window, per-location visibility, CSV import. Coordinates with Results Entry reagent-usage (consumption + FEFO) and OGC-657 (shared storage).</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/inventory/inventory-module-redesign">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/inventory/inventory-module-redesign">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/inventory/inventory-redesign.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/inventory/inventory-redesign.html">HTML Mockup</a>
+      <a href="https://github.com/DIGI-UW/openelis-work/issues/237">#237</a>
+    </div>
+    <div class="tags"><span class="tag">inventory</span> <span class="tag">decision-support</span> <span class="tag">reorder</span> <span class="tag">fefo</span> <span class="tag">redesign</span> <span class="tag">OGC-438</span></div>
   </div>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/inventory/inventory-item-type-management">Inventory Item-Type Management</a></h3>

@@ -1,7 +1,7 @@
 {
-  "generated": "2026-07-21T23:14:03.472Z",
+  "generated": "2026-07-23T18:58:16.077Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 206,
+  "totalDesigns": 208,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -1462,6 +1462,36 @@
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/programs-management.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/programs-management.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/programs-management.html"
+      }
+    },
+    {
+      "name": "Additional Information Builder (contexts)",
+      "slug": "additional-information-builder-contexts",
+      "category": "admin-config",
+      "description": "One questionnaire builder, per-context via a SideNav submenu (Programs / per-domain Order form fields / Patient form fields); shipped fields hide-not-delete + collapse + JSON-exclusion. Part of OGC-781 (baked-in Additional Information).",
+      "type": "jsx",
+      "added": "2026-07-17",
+      "status": "draft",
+      "tags": [
+        "programs",
+        "additional-information",
+        "fhir-questionnaire",
+        "builder",
+        "admin",
+        "madagascar"
+      ],
+      "jira": [
+        "OGC-781"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/admin-config/programs-management.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/additional-information-builder-contexts",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/additional-information-builder-contexts",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/additional-information-builder-contexts",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/programs-management.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/programs-management.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/additional-info-builder.html"
       }
     },
     {
@@ -4830,6 +4860,33 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/inventory/reagent-forecasting-workbench",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/inventory/reagent-forecasting-workbench.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/inventory/reagent-forecasting-workbench.jsx"
+      }
+    },
+    {
+      "name": "Inventory Module Redesign",
+      "slug": "inventory-module-redesign",
+      "category": "inventory",
+      "description": "Decision-support redesign of the Inventory module — Items board (catalog + live stock, count mode, tags), scan-first Receive, Reorder suggestions with learned lead time, median-based run-out window, per-location visibility, CSV import. Coordinates with Results Entry reagent-usage (consumption + FEFO) and OGC-657 (shared storage).",
+      "type": "html",
+      "added": "2026-07-23",
+      "status": "draft",
+      "tags": [
+        "inventory",
+        "decision-support",
+        "reorder",
+        "fefo",
+        "redesign",
+        "OGC-438"
+      ],
+      "jira": [],
+      "githubIssue": 237,
+      "specPath": "designs/inventory/inventory-redesign.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/inventory/inventory-module-redesign",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/inventory/inventory-module-redesign",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/inventory/inventory-module-redesign",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/inventory/inventory-redesign.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/inventory/inventory-redesign.html"
       }
     },
     {
