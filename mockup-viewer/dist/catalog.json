@@ -1,7 +1,7 @@
 {
-  "generated": "2026-07-23T18:58:16.077Z",
+  "generated": "2026-07-25T05:14:29.396Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 208,
+  "totalDesigns": 209,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -1526,6 +1526,37 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/result-validation-configuration-v4",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/results-validation-config-v4.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/results-validation-config-v4.html"
+      }
+    },
+    {
+      "name": "Analyzer Maintenance & Service Tracking",
+      "slug": "analyzer-maintenance-service-tracking",
+      "category": "analyzer-integration",
+      "description": "Maintenance page in the existing analyzer area (/analyzers/maintenance): consolidated per-analyzer + cross-lab service log with multi-select scope filter, new EquipmentMaintenanceLog entity (service/calibration/repair/inspection/cleaning, verifiedBy for ISO 15189), archive-not-delete with no auto-purge, EQUIPMENT_MAINTENANCE_DUE reminders via the Alert entity, Dictionary-extensible event types. Epic OGC-1015 (Ready). Downstream: OGC-897 equipment cards, OGC-896 Lab Snapshot.",
+      "type": "html",
+      "added": "2026-07-24",
+      "status": "draft",
+      "tags": [
+        "analyzer",
+        "maintenance",
+        "calibration",
+        "service-log",
+        "iso-15189",
+        "alerts",
+        "equipment",
+        "PNG"
+      ],
+      "jira": [
+        "OGC-1015"
+      ],
+      "githubIssue": 239,
+      "specPath": "designs/analyzer-integration/analyzer-maintenance.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-maintenance-service-tracking",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/analyzer-integration/analyzer-maintenance-service-tracking",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/analyzer-integration/analyzer-maintenance-service-tracking",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-maintenance.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-maintenance-preview.html"
       }
     },
     {
@@ -4919,7 +4950,7 @@
       "name": "Reagent Forecasting Facility View",
       "slug": "reagent-forecasting-facility-view",
       "category": "inventory",
-      "description": "Facility-level reagent stock view — per-cartridge days-of-stock monitoring, stock-count updates, and proactive reorder alerts for lab technicians at a single site",
+      "description": "⚠️ SUPERSEDED by the Inventory Module Redesign (OGC-438), which replaces the facility forecast view. Facility-level reagent stock view — per-cartridge days-of-stock monitoring, stock-count updates, and proactive reorder alerts for lab technicians at a single site",
       "type": "jsx",
       "added": "2026-03-23",
       "status": "draft",

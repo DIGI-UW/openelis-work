@@ -70,6 +70,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Tecan Infinite F50 Companion Guide | — | [tecan-infinite-f50-companion-guide.md](designs/analyzer-integration/tecan-infinite-f50-companion-guide.md) |
 | Thermo Multiskan FC Companion Guide | — | [thermo-multiskan-fc-companion-guide.md](designs/analyzer-integration/thermo-multiskan-fc-companion-guide.md) |
 | Analyzer File Upload | [analyzer-file-upload.jsx](designs/analyzer-integration/analyzer-file-upload.jsx) | [analyzer-file-upload.md](designs/analyzer-integration/analyzer-file-upload.md) |
+| Analyzer Maintenance & Service Tracking | [preview](designs/analyzer-integration/analyzer-maintenance-preview.html) | [analyzer-maintenance.md](designs/analyzer-integration/analyzer-maintenance.md) |
 | Analyzer Mapping — Multi-Component Column | [preview](designs/analyzer-integration/analyzer-multicomponent-mapping-preview.html) | [analyzer-profile-mapping.md](designs/analyzer-integration/analyzer-profile-mapping.md) |
 | Analyzer Mapping Templates | [analyzer-mapping-templates.jsx](designs/analyzer-integration/analyzer-mapping-templates.jsx) | [astm-addendum](designs/analyzer-integration/astm-analyzer-mapping-addendum.md), [hl7-addendum](designs/analyzer-integration/hl7-analyzer-mapping-addendum.md) |
 | Flat File Analyzer Config | [flat-file-analyzer-config.jsx](designs/analyzer-integration/flat-file-analyzer-config.jsx) | [flat-file-analyzer-config.md](designs/analyzer-integration/flat-file-analyzer-config.md) |

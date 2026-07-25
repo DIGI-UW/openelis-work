@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenELIS Design Gallery — Catalog</title>
-  <meta name="description" content="Searchable catalog of 208 design mockups and specifications for OpenELIS Global">
+  <meta name="description" content="Searchable catalog of 209 design mockups and specifications for OpenELIS Global">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 960px; margin: 0 auto; padding: 2rem 1rem; color: #161616; line-height: 1.5; }
     h1 { border-bottom: 2px solid #0f62fe; padding-bottom: 0.5rem; }
@@ -22,13 +22,13 @@
 </head>
 <body>
   <h1>OpenELIS Design Gallery — Catalog</h1>
-  <p>208 designs across 16 categories.
+  <p>209 designs across 16 categories.
     <a href="./">Interactive Gallery</a> |
     <a href="catalog.json">JSON Catalog</a> |
     <a href="llms.txt">LLM Index</a> |
     <a href="sitemap.xml">Sitemap</a>
   </p>
-  <nav><a href="#cat-admin-config">Admin & Config (49)</a> <a href="#cat-analyzer-integration">Analyzer Integration (24)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (4)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (8)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
+  <nav><a href="#cat-admin-config">Admin & Config (49)</a> <a href="#cat-analyzer-integration">Analyzer Integration (25)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (4)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (8)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
 
   <h2 id="cat-admin-config">Admin & Config (49)</h2>
   <div class="design">
@@ -714,7 +714,20 @@
     <div class="tags"><span class="tag">admin</span> <span class="tag">results</span> <span class="tag">validation</span> <span class="tag">configuration</span> <span class="tag">v4</span> <span class="tag">multi-level</span> <span class="tag">feature-flag</span> <span class="tag">Indonesia</span> <span class="tag">SILNAS</span> <span class="tag">png-deliverable</span></div>
   </div>
 
-  <h2 id="cat-analyzer-integration">Analyzer Integration (24)</h2>
+  <h2 id="cat-analyzer-integration">Analyzer Integration (25)</h2>
+  <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-maintenance-service-tracking">Analyzer Maintenance & Service Tracking</a></h3>
+    <p>Maintenance page in the existing analyzer area (/analyzers/maintenance): consolidated per-analyzer + cross-lab service log with multi-select scope filter, new EquipmentMaintenanceLog entity (service/calibration/repair/inspection/cleaning, verifiedBy for ISO 15189), archive-not-delete with no auto-purge, EQUIPMENT_MAINTENANCE_DUE reminders via the Alert entity, Dictionary-extensible event types. Epic OGC-1015 (Ready). Downstream: OGC-897 equipment cards, OGC-896 Lab Snapshot.</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/analyzer-integration/analyzer-maintenance-service-tracking">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/analyzer-integration/analyzer-maintenance-service-tracking">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-maintenance.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-maintenance-preview.html">HTML Mockup</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1015">OGC-1015</a>
+      <a href="https://github.com/DIGI-UW/openelis-work/issues/239">#239</a>
+    </div>
+    <div class="tags"><span class="tag">analyzer</span> <span class="tag">maintenance</span> <span class="tag">calibration</span> <span class="tag">service-log</span> <span class="tag">iso-15189</span> <span class="tag">alerts</span> <span class="tag">equipment</span> <span class="tag">PNG</span></div>
+  </div>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-mapping-multi-component-column">Analyzer Mapping - Multi-Component Column</a></h3>
     <p>Delta to the Analyzer Types & Mapping table: adds a Component selector so an instrument target/channel maps to a specific result_component of a test (not only a test), resolving test-then-component by a stable code. Extends the existing analyzer-mapping-templates.jsx rather than adding a new screen. See the Multi-component mapping section of the Analyzer Types & Mapping FRS. Epic OGC-1131 / story OGC-1136.</p>
@@ -1106,7 +1119,7 @@
   </div>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/inventory/reagent-forecasting-facility-view">Reagent Forecasting Facility View</a></h3>
-    <p>Facility-level reagent stock view — per-cartridge days-of-stock monitoring, stock-count updates, and proactive reorder alerts for lab technicians at a single site</p>
+    <p>⚠️ SUPERSEDED by the Inventory Module Redesign (OGC-438), which replaces the facility forecast view. Facility-level reagent stock view — per-cartridge days-of-stock monitoring, stock-count updates, and proactive reorder alerts for lab technicians at a single site</p>
     <div class="links">
       <a href="https://digi-uw.github.io/openelis-work/#/preview/inventory/reagent-forecasting-facility-view">Preview</a>
       <a href="https://digi-uw.github.io/openelis-work/#/spec/inventory/reagent-forecasting-facility-view">Spec</a>

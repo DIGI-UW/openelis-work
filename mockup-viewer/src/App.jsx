@@ -687,6 +687,19 @@ export const MOCKUP_REGISTRY = [
 
   // ─── Analyzer Integration ───
   {
+    name: 'Analyzer Maintenance & Service Tracking',
+    category: 'analyzer-integration',
+    component: null,
+    description: 'Maintenance page in the existing analyzer area (/analyzers/maintenance): consolidated per-analyzer + cross-lab service log with multi-select scope filter, new EquipmentMaintenanceLog entity (service/calibration/repair/inspection/cleaning, verifiedBy for ISO 15189), archive-not-delete with no auto-purge, EQUIPMENT_MAINTENANCE_DUE reminders via the Alert entity, Dictionary-extensible event types. Epic OGC-1015 (Ready). Downstream: OGC-897 equipment cards, OGC-896 Lab Snapshot.',
+    specPath: 'designs/analyzer-integration/analyzer-maintenance.md',
+    htmlUrl: 'designs/analyzer-integration/analyzer-maintenance-preview.html',
+    added: '2026-07-24',
+    status: 'draft',
+    githubIssue: 239,
+    jira: ['OGC-1015'],
+    tags: ['analyzer', 'maintenance', 'calibration', 'service-log', 'iso-15189', 'alerts', 'equipment', 'PNG'],
+  },
+  {
     name: 'Analyzer Mapping - Multi-Component Column',
     category: 'analyzer-integration',
     component: null,

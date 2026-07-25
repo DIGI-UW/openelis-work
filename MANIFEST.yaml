@@ -3831,3 +3831,21 @@
     jira: ["OGC-781"]
     preview: https://digi-uw.github.io/openelis-work/designs/admin-config/additional-info-builder.html
   added: "2026-07-17"
+
+- id: analyzer-maintenance
+  type: html
+  path: designs/analyzer-integration/analyzer-maintenance-preview.html
+  spec: designs/analyzer-integration/analyzer-maintenance.md
+  preview: designs/analyzer-integration/analyzer-maintenance-preview.html
+  category: analyzer-integration
+  description: >
+    Analyzer Maintenance & Service Tracking — Maintenance page in the analyzer area:
+    consolidated per-analyzer + cross-lab service log, EquipmentMaintenanceLog entity,
+    archive-not-delete, EQUIPMENT_MAINTENANCE_DUE alerts, ISO 15189 verifiedBy.
+    FRS v1.0 + HTML preview v3. Registered from the 2026-06-12 orphan review backlog.
+  links:
+    jira:
+      - OGC-1015
+    github_issue: 239
+  added: "2026-07-24"
+
