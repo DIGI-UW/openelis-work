@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-23T21:55:04.786Z",
+  "generatedAt": "2026-07-25T08:40:53.514Z",
   "sections": [
     {
       "id": "add-patient",
@@ -11,7 +11,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:37:38.737Z",
+      "checkedAt": "2026-07-25T08:36:28.248Z",
       "codeChanged": {
         "count": 2,
         "since": "2026-06-24",
@@ -42,7 +42,7 @@
         "/MasterListsPage/TestModifyEntry :: SOP Max Holding Time"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:54:27.520Z",
+      "checkedAt": "2026-07-25T08:40:16.390Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-06-24",
@@ -71,7 +71,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:54:30.154Z",
+      "checkedAt": "2026-07-25T08:40:19.014Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -94,7 +94,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:54:07.255Z",
+      "checkedAt": "2026-07-25T08:39:55.555Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-06-24",
@@ -124,7 +124,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:54:51.462Z"
+      "checkedAt": "2026-07-25T08:40:40.260Z"
     },
     {
       "id": "analyzer-file-import",
@@ -135,7 +135,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:37:41.399Z",
+      "checkedAt": "2026-07-25T08:36:30.918Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-06-24",
@@ -164,7 +164,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:37:44.072Z",
+      "checkedAt": "2026-07-25T08:36:33.578Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-06-24",
@@ -193,7 +193,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:38:59.043Z"
+      "checkedAt": "2026-07-25T08:37:48.621Z"
     },
     {
       "id": "barcode-labels",
@@ -204,7 +204,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:37:46.741Z",
+      "checkedAt": "2026-07-25T08:36:36.239Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -229,7 +229,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:40:17.594Z"
+      "checkedAt": "2026-07-25T08:39:07.063Z"
     },
     {
       "id": "calendar-management",
@@ -241,7 +241,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:40:25.705Z"
+      "checkedAt": "2026-07-25T08:39:15.071Z"
     },
     {
       "id": "dictionary-menu",
@@ -253,7 +253,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:40:12.207Z"
+      "checkedAt": "2026-07-25T08:39:01.741Z"
     },
     {
       "id": "electronic-lab-notebook",
@@ -264,7 +264,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:37:49.413Z",
+      "checkedAt": "2026-07-25T08:36:38.915Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -287,7 +287,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:37:54.745Z",
+      "checkedAt": "2026-07-25T08:36:44.327Z",
       "codeChanged": {
         "count": 3,
         "since": "2026-06-24",
@@ -317,9 +317,9 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:53:44.989Z",
+      "checkedAt": "2026-07-25T08:39:33.387Z",
       "codeChanged": {
-        "count": 13,
+        "count": 14,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/order",
@@ -327,14 +327,14 @@
           "frontend/src/components/compliance"
         ],
         "branches": {
-          "develop": 1,
+          "develop": 2,
           "demo-silnas": 12
         },
         "latest": {
-          "sha": "63e8fc0",
-          "date": "2026-07-14",
-          "msg": "feat: streamline error handling and enhance validation messages in SamplePatientEntryRestController (#3854)",
-          "branch": "demo-silnas"
+          "sha": "d89c477",
+          "date": "2026-07-24",
+          "msg": "feat(catalog): test\u2194sample-type many-to-many \u2014 one test, many specimens + per-specimen override (OGC-1145) (#3907)",
+          "branch": "develop"
         }
       }
     },
@@ -347,7 +347,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:53:59.260Z",
+      "checkedAt": "2026-07-25T08:39:47.577Z",
       "codeChanged": {
         "count": 17,
         "since": "2026-06-24",
@@ -377,7 +377,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:38:02.746Z",
+      "checkedAt": "2026-07-25T08:36:52.333Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -401,7 +401,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:38:53.680Z"
+      "checkedAt": "2026-07-25T08:37:43.300Z"
     },
     {
       "id": "laporan-hasil-report",
@@ -413,7 +413,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:55:02.102Z",
+      "checkedAt": "2026-07-25T08:40:50.853Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-07-23",
@@ -437,7 +437,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:40:06.790Z"
+      "checkedAt": "2026-07-25T08:38:56.399Z"
     },
     {
       "id": "menu-configuration",
@@ -449,7 +449,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:40:23.006Z"
+      "checkedAt": "2026-07-25T08:39:12.410Z"
     },
     {
       "id": "nce-capa",
@@ -460,7 +460,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:38:10.831Z",
+      "checkedAt": "2026-07-25T08:37:00.387Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-06-24",
@@ -489,9 +489,9 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:38:13.541Z",
+      "checkedAt": "2026-07-25T08:37:03.115Z",
       "codeChanged": {
-        "count": 8,
+        "count": 9,
         "since": "2026-06-30",
         "paths": [
           "frontend/src/components/order",
@@ -499,14 +499,14 @@
           "frontend/src/components/sample"
         ],
         "branches": {
-          "develop": 1,
+          "develop": 2,
           "demo-silnas": 7
         },
         "latest": {
-          "sha": "63e8fc0",
-          "date": "2026-07-14",
-          "msg": "feat: streamline error handling and enhance validation messages in SamplePatientEntryRestController (#3854)",
-          "branch": "demo-silnas"
+          "sha": "d89c477",
+          "date": "2026-07-24",
+          "msg": "feat(catalog): test\u2194sample-type many-to-many \u2014 one test, many specimens + per-specimen override (OGC-1145) (#3907)",
+          "branch": "develop"
         }
       }
     },
@@ -520,7 +520,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:54:46.142Z"
+      "checkedAt": "2026-07-25T08:40:34.957Z"
     },
     {
       "id": "organization-management",
@@ -532,7 +532,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:38:48.292Z",
+      "checkedAt": "2026-07-25T08:37:37.978Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-30",
@@ -555,21 +555,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:38:16.189Z",
+      "checkedAt": "2026-07-25T08:37:05.765Z",
       "codeChanged": {
-        "count": 14,
+        "count": 15,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/admin"
         ],
         "branches": {
-          "develop": 12,
+          "develop": 13,
           "demo-silnas": 2
         },
         "latest": {
-          "sha": "0f4890a",
-          "date": "2026-07-17",
-          "msg": "feat(test-catalog): Test Catalog Completion v2 (OGC-1142) (#3859)",
+          "sha": "d89c477",
+          "date": "2026-07-24",
+          "msg": "feat(catalog): test\u2194sample-type many-to-many \u2014 one test, many specimens + per-specimen override (OGC-1145) (#3907)",
           "branch": "develop"
         }
       }
@@ -584,7 +584,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:54:43.480Z"
+      "checkedAt": "2026-07-25T08:40:32.313Z"
     },
     {
       "id": "patient-merge",
@@ -596,7 +596,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:54:54.132Z"
+      "checkedAt": "2026-07-25T08:40:42.918Z"
     },
     {
       "id": "patient-order-enhancements",
@@ -607,7 +607,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:38:21.502Z",
+      "checkedAt": "2026-07-25T08:37:11.116Z",
       "codeChanged": {
         "count": 2,
         "since": "2026-06-24",
@@ -636,7 +636,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:38:56.376Z"
+      "checkedAt": "2026-07-25T08:37:45.960Z"
     },
     {
       "id": "provider-management",
@@ -648,7 +648,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:38:50.994Z",
+      "checkedAt": "2026-07-25T08:37:40.631Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-30",
@@ -672,7 +672,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:55:04.780Z",
+      "checkedAt": "2026-07-25T08:40:53.508Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-07-23",
@@ -696,7 +696,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:40:14.891Z"
+      "checkedAt": "2026-07-25T08:39:04.400Z"
     },
     {
       "id": "register-new-patient",
@@ -708,7 +708,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:54:56.787Z"
+      "checkedAt": "2026-07-25T08:40:45.563Z"
     },
     {
       "id": "result-reporting-configuration",
@@ -720,7 +720,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:40:28.394Z"
+      "checkedAt": "2026-07-25T08:39:17.721Z"
     },
     {
       "id": "result-validation",
@@ -731,7 +731,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:38:29.447Z",
+      "checkedAt": "2026-07-25T08:37:19.135Z",
       "codeChanged": {
         "count": 3,
         "since": "2026-06-24",
@@ -760,7 +760,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:54:35.498Z"
+      "checkedAt": "2026-07-25T08:40:24.346Z"
     },
     {
       "id": "running-reports",
@@ -772,7 +772,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:54:40.817Z"
+      "checkedAt": "2026-07-25T08:40:29.658Z"
     },
     {
       "id": "sample-acceptance-checklist",
@@ -784,7 +784,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:54:32.799Z",
+      "checkedAt": "2026-07-25T08:40:21.660Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-30",
@@ -807,7 +807,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:38:34.801Z",
+      "checkedAt": "2026-07-25T08:37:24.521Z",
       "codeChanged": {
         "count": 2,
         "since": "2026-06-24",
@@ -836,7 +836,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:54:48.807Z"
+      "checkedAt": "2026-07-25T08:40:37.612Z"
     },
     {
       "id": "sample-storage-management",
@@ -847,7 +847,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:38:42.889Z",
+      "checkedAt": "2026-07-25T08:37:32.653Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-06-24",
@@ -877,7 +877,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:39:04.366Z"
+      "checkedAt": "2026-07-25T08:37:53.983Z"
     },
     {
       "id": "site-information",
@@ -889,7 +889,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:40:20.294Z"
+      "checkedAt": "2026-07-25T08:39:09.730Z"
     },
     {
       "id": "test-notification-configuration",
@@ -901,7 +901,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:39:01.715Z"
+      "checkedAt": "2026-07-25T08:37:51.302Z"
     },
     {
       "id": "user-management",
@@ -913,7 +913,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-18T08:40:09.492Z"
+      "checkedAt": "2026-07-25T08:38:59.067Z"
     },
     {
       "id": "validation",
@@ -925,7 +925,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:54:38.139Z"
+      "checkedAt": "2026-07-25T08:40:26.999Z"
     },
     {
       "id": "vector-surveillance",
@@ -942,7 +942,7 @@
         "/vector/identification :: Split"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:53:50.831Z",
+      "checkedAt": "2026-07-25T08:39:39.173Z",
       "codeChanged": {
         "count": 9,
         "since": "2026-06-24",
@@ -972,7 +972,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-23T21:54:59.441Z",
+      "checkedAt": "2026-07-25T08:40:48.211Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-07-23",

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-23T21:55:46Z",
+  "generatedAt": "2026-07-25T08:42:02Z",
   "repo": "DIGI-UW/OpenELIS-Global-2",
   "branchesWatched": [
     "develop",
@@ -7,19 +7,38 @@
   ],
   "windows": {
     "develop": {
-      "base": "c9443b92",
-      "head": "e816f7e4",
-      "commitCount": 59,
+      "base": "5d8b5324",
+      "head": "6b8c6e05",
+      "commitCount": 72,
       "windowDays": 30
     },
     "demo-silnas": {
-      "base": "7f2c75a9",
+      "base": "e819cdbb",
       "head": "63e8fc0f",
-      "commitCount": 15,
+      "commitCount": 12,
       "windowDays": 30
     }
   },
   "uncovered": [
+    {
+      "componentDir": "frontend/src/components/layout",
+      "branches": [
+        "develop"
+      ],
+      "fileCount": 10,
+      "files": [
+        "frontend/src/components/layout/Header.jsx",
+        "frontend/src/components/layout/Header.test.jsx",
+        "frontend/src/components/layout/HelpMenu.jsx",
+        "frontend/src/components/layout/Layout.jsx",
+        "frontend/src/components/layout/Layout.test.jsx",
+        "frontend/src/components/layout/_archive/TwoModeLayout.css",
+        "frontend/src/components/layout/_archive/TwoModeLayout.jsx",
+        "frontend/src/components/layout/index.js",
+        "frontend/src/components/layout/useSideNavPreference.jsx",
+        "frontend/src/components/layout/useSideNavPreference.test.jsx"
+      ]
+    },
     {
       "componentDir": "frontend/src/components/common",
       "branches": [
@@ -71,14 +90,23 @@
       ]
     },
     {
-      "componentDir": "frontend/src/components/layout",
+      "componentDir": "frontend/src/components/Style.css",
       "branches": [
         "develop"
       ],
-      "fileCount": 2,
+      "fileCount": 1,
       "files": [
-        "frontend/src/components/layout/Header.jsx",
-        "frontend/src/components/layout/HelpMenu.jsx"
+        "frontend/src/components/Style.css"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/analyserResults",
+      "branches": [
+        "develop"
+      ],
+      "fileCount": 1,
+      "files": [
+        "frontend/src/components/analyserResults/AnalyserResults.jsx"
       ]
     },
     {
@@ -99,6 +127,16 @@
       "fileCount": 1,
       "files": [
         "frontend/src/components/inventory/LotEntryModal.jsx"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/security",
+      "branches": [
+        "develop"
+      ],
+      "fileCount": 1,
+      "files": [
+        "frontend/src/components/security/SecureRoute.jsx"
       ]
     },
     {
