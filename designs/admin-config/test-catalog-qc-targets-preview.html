@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Catalog — QC Targets & LOD/LOQ — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .layout { display: flex; max-width: 1440px; margin: 0 auto; }
+    .sidenav { width: 220px; background: #fff; border-right: 1px solid #e0e0e0; min-height: calc(100vh - 30px); padding-top: 1rem; flex-shrink: 0; }
+    .sidenav-item { display: block; width: 100%; text-align: left; border: none; background: none; padding: 10px 16px; font-size: 14px; cursor: pointer; color: #161616; border-left: 3px solid transparent; }
+    .sidenav-item.active { background: #e8e8e8; border-left-color: #0f62fe; font-weight: 600; }
+    .sidenav-item.disabled { color: #a8a8a8; cursor: default; }
+    .content { flex: 1; padding: 1.5rem 2rem; }
+    .crumbs { font-size: 12px; color: #525252; margin-bottom: 4px; }
+    .crumbs a { color: #0f62fe; text-decoration: none; }
+    h2 { font-weight: 400; margin: 0 0 4px; }
+    .helper { font-size: 13px; color: #525252; margin: 4px 0 16px; max-width: 720px; }
+    table.cds--data-table td, table.cds--data-table th { vertical-align: middle; }
+    .expand-panel { background: #fafafa; border: 1px solid #e0e0e0; padding: 1rem; }
+    .field-row { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1rem; }
+    .field { display: flex; flex-direction: column; }
+    .field label { font-size: 12px; color: #525252; margin-bottom: 4px; }
+    .field input, .field select { height: 32px; border: none; border-bottom: 1px solid #8d8d8d; background: #fff; padding: 0 8px; font-size: 14px; min-width: 140px; }
+    .ovr-table { width: 100%; font-size: 13px; border-collapse: collapse; margin-top: 4px; }
+    .ovr-table th { text-align: left; padding: 6px 8px; color: #525252; font-weight: 600; border-bottom: 1px solid #e0e0e0; }
+    .ovr-table td { padding: 6px 8px; border-bottom: 1px solid #ececec; }
+    .section-title { font-size: 13px; font-weight: 600; margin: 12px 0 2px; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .toggle-label { font-size: 13px; color: #525252; display: flex; gap: 8px; align-items: center; }
+    .accordion-comp { border: 1px solid #e0e0e0; background: #fff; margin-bottom: 8px; }
+    .accordion-head { padding: 10px 14px; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; }
+    .accordion-body { padding: 4px 14px 14px; border-top: 1px solid #ececec; }
+    .muted { color: #6f6f6f; font-size: 12px; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    ⚡ Visual Preview — Test Catalog: QC Targets &amp; LOD/LOQ &nbsp;|&nbsp; Route: Test Catalog editor → section "QC Targets" (after Ranges) &nbsp;|&nbsp; Not a live application
+  </div>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+    const t = (k, f) => f || k;
+
+    const SECTIONS = [
+      { key: 'basic', label: 'Basic Info', scope: false },
+      { key: 'sampleResults', label: 'Sample & Results', scope: true },
+      { key: 'methods', label: 'Methods', scope: false },
+      { key: 'ranges', label: 'Ranges', scope: false },
+      { key: 'qcTargets', label: 'QC Targets', scope: true },
+      { key: 'storage', label: 'Sample Storage', scope: false },
+      { key: 'labels', label: 'Labels', scope: false },
+      { key: 'alerts', label: 'Alerts', scope: false },
+      { key: 'reflex', label: 'Reflex & Calc', scope: false },
+    ];
+
+    const LOTS = [
+      { id: 1, name: 'Lyphochek Assayed Chemistry L2', lot: '45671', from: '2026-05-01', to: '2026-11-30' },
+      { id: 2, name: 'Lyphochek Assayed Chemistry L2', lot: '45812', from: '2026-07-01', to: '2027-01-31' },
+      { id: 3, name: 'Lyphochek Assayed Chemistry L1', lot: '45320', from: '2026-04-15', to: '2026-10-31' },
+    ];
+
+    function QcTargetsSection() {
+      const [expanded, setExpanded] = useState('NORMAL');
+      const [showDeact, setShowDeact] = useState(false);
+      const [rows] = useState([
+        { level: 'Low', key: 'LOW', expected: '2.8', unc: '0.3', unit: 'mmol/L', overrides: [], active: true },
+        { level: 'Normal', key: 'NORMAL', expected: '5.5', unc: '0.4', unit: 'mmol/L',
+          overrides: [ { lot: 'Lyphochek Assayed Chemistry L2 · Lot 45812', expected: '5.7', unc: '0.4', from: '2026-07-01', to: '2027-01-31', active: true } ], active: true },
+        { level: 'High', key: 'HIGH', expected: null, unc: null, unit: 'mmol/L', overrides: [], active: true },
+        { level: 'Normal (superseded)', key: 'NORMAL_OLD', expected: '5.4', unc: '0.5', unit: 'mmol/L', overrides: [], active: false },
+      ]);
+      const visible = rows.filter(r => showDeact || r.active);
+
+      return (
+        <div>
+          <h2>{t('admin.testCatalog.qcTargets.section.label', 'QC Targets')}</h2>
+          <p className="helper">
+            {t('admin.testCatalog.qcTargets.helper.precedence',
+              'At results entry, the control form prefills from the lot override if one exists, otherwise the level default.')}
+            {' '}Targets are optional — an unconfigured level means techs enter expected values at capture.
+          </p>
+          <div className="toolbar">
+            <span className="muted">Test: Glucose, Serum · quantitative · primary component</span>
+            <label className="toggle-label">
+              <input type="checkbox" checked={showDeact} onChange={() => setShowDeact(!showDeact)} />
+              {t('admin.testCatalog.qcTargets.showDeactivated', 'Show deactivated')}
+            </label>
+          </div>
+          <div className="cds--data-table-container">
+            <table className="cds--data-table">
+              <thead><tr>
+                <th>{t('...column.level','Control level')}</th>
+                <th>{t('...column.expected','Expected value')}</th>
+                <th>{t('...column.uncertainty','Uncertainty (±)')}</th>
+                <th>{t('...column.unit','Unit')}</th>
+                <th>{t('...column.overrides','Lot overrides')}</th>
+                <th>Status</th><th></th>
+              </tr></thead>
+              <tbody>
+                {visible.map(r => (
+                  <React.Fragment key={r.key}>
+                    <tr>
+                      <td>{r.level}</td>
+                      <td>{r.expected ?? <span className="muted">—</span>}</td>
+                      <td>{r.expected ? '±' + r.unc : <span className="muted">—</span>}</td>
+                      <td>{r.unit}</td>
+                      <td>{r.overrides.length ? r.overrides.map(o => o.lot.split('·')[1].trim()).join(', ') : <span className="muted">none</span>}</td>
+                      <td>{r.active
+                        ? (r.expected ? <span className="cds--tag cds--tag--green">Configured</span> : <span className="cds--tag cds--tag--gray">Not configured</span>)
+                        : <span className="cds--tag cds--tag--warm-gray">Deactivated</span>}</td>
+                      <td>
+                        {r.expected || !r.active
+                          ? <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setExpanded(expanded === r.key ? null : r.key)}>{r.active ? 'Edit' : 'Reactivate'}</button>
+                          : <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setExpanded(expanded === r.key ? null : r.key)}>{t('...addTarget','Add target')}</button>}
+                      </td>
+                    </tr>
+                    {expanded === r.key && r.active && (
+                      <tr><td colSpan="7">
+                        <div className="expand-panel">
+                          <div className="field-row">
+                            <div className="field"><label>{t('...column.expected','Expected value')}</label><input defaultValue={r.expected || ''} placeholder="e.g. 5.5" /></div>
+                            <div className="field"><label>{t('...column.uncertainty','Uncertainty (±)')}</label><input defaultValue={r.unc || ''} placeholder="e.g. 0.4" /></div>
+                            <div className="field"><label>{t('...column.unit','Unit')}</label><input value={r.unit} disabled /></div>
+                          </div>
+                          <div className="section-title">{t('...column.overrides','Lot overrides')}</div>
+                          <div className="muted">Override the level default when a specific lot's package insert states different values.</div>
+                          {r.overrides.length > 0 && (
+                            <table className="ovr-table">
+                              <thead><tr><th>{t('...lot.label','Control lot')}</th><th>Expected</th><th>±</th><th>Active from / to</th><th>Status</th><th></th></tr></thead>
+                              <tbody>{r.overrides.map((o,i) => (
+                                <tr key={i}><td>{o.lot}</td><td>{o.expected}</td><td>{o.unc}</td><td>{o.from} → {o.to}</td>
+                                  <td><span className="cds--tag cds--tag--green">Active</span></td>
+                                  <td><button className="cds--btn cds--btn--ghost cds--btn--sm">{t('...deactivate','Deactivate')}</button></td></tr>
+                              ))}</tbody>
+                            </table>
+                          )}
+                          <div className="field-row" style={{marginTop: '8px'}}>
+                            <div className="field" style={{minWidth: '320px'}}>
+                              <label>{t('...lot.label','Control lot')}</label>
+                              <input list="lots" placeholder={t('...lot.placeholder','Search control lots…')} />
+                              <datalist id="lots">{LOTS.map(l => <option key={l.id} value={l.name + ' · Lot ' + l.lot} />)}</datalist>
+                            </div>
+                            <div className="field"><label>Expected value</label><input placeholder="from insert" /></div>
+                            <div className="field"><label>Uncertainty (±)</label><input placeholder="from insert" /></div>
+                            <button className="cds--btn cds--btn--tertiary cds--btn--sm">{t('...addOverride','Add lot override')}</button>
+                          </div>
+                          <div className="muted">No lots found? <a href="#">Manage lots in QC Lot Management →</a></div>
+                          <div style={{marginTop: '12px'}}>
+                            <button className="cds--btn cds--btn--primary cds--btn--sm">Save</button>{' '}
+                            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setExpanded(null)}>Cancel</button>{' '}
+                            {r.expected && <button className="cds--btn cds--btn--danger--ghost cds--btn--sm" style={{color:'#da1e28'}}>{t('...deactivate','Deactivate target')}</button>}
+                          </div>
+                        </div>
+                      </td></tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    function SampleResultsSection() {
+      const [open, setOpen] = useState('glu');
+      const comps = [
+        { id: 'glu', name: 'Glucose (primary)', type: 'Numeric', unit: 'mmol/L', sig: 1, lod: '0.3', loq: '0.6' },
+        { id: 'hba', name: 'HbA1c — NGSP', type: 'Numeric', unit: '%', sig: 1, lod: '', loq: '' },
+      ];
+      return (
+        <div>
+          <h2>Sample &amp; Results</h2>
+          <p className="helper">Existing per-component configuration — this design adds the two detection-limit fields (LOD / LOQ) beside unit and significant digits. Quantitative components only; blank means "not tracked".</p>
+          {comps.map(c => (
+            <div className="accordion-comp" key={c.id}>
+              <div className="accordion-head" onClick={() => setOpen(open === c.id ? null : c.id)}>
+                <span>{c.name}</span><span className="muted">{c.type} · {c.unit}</span>
+              </div>
+              {open === c.id && (
+                <div className="accordion-body">
+                  <div className="field-row">
+                    <div className="field"><label>Unit</label><input value={c.unit} disabled /></div>
+                    <div className="field"><label>Significant digits</label><input value={c.sig} disabled /></div>
+                    <div className="field"><label>{t('admin.testCatalog.sampleResults.lod.label','LOD')}</label><input defaultValue={c.lod} placeholder="optional" /><span className="muted">{t('...lod.helper','Limit of detection (optional)')}</span></div>
+                    <div className="field"><label>{t('admin.testCatalog.sampleResults.loq.label','LOQ')}</label><input defaultValue={c.loq} placeholder="optional" /><span className="muted">{t('...loq.helper','Limit of quantification (optional)')}</span></div>
+                  </div>
+                  <div className="muted">Validation: LOD ≤ LOQ, both ≥ 0. Existing fields (result type, ranges link, terminology) unchanged — omitted here for focus.</div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function App() {
+      const [section, setSection] = useState('qcTargets');
+      return (
+        <div className="layout">
+          <nav className="sidenav">
+            <div style={{padding:'0 16px 8px'}} className="muted">Test Catalog — Glucose, Serum</div>
+            {SECTIONS.map(s => (
+              <button key={s.key}
+                className={'sidenav-item' + (section === s.key ? ' active' : '') + (!s.scope ? ' disabled' : '')}
+                title={s.scope ? '' : 'Existing editor section — not part of this design'}
+                onClick={() => s.scope && setSection(s.key)}>
+                {s.label}{!s.scope ? '' : s.key === 'qcTargets' ? ' ●' : ' ●'}
+              </button>
+            ))}
+            <div style={{padding:'12px 16px'}} className="muted">● = touched by this design. Gray sections are the existing editor, unchanged.</div>
+          </nav>
+          <main className="content">
+            <div className="crumbs"><a href="#">Home</a> / <a href="#">Admin</a> / <a href="#">Test Catalog</a> / Glucose, Serum / {section === 'qcTargets' ? 'QC Targets' : 'Sample & Results'}</div>
+            {section === 'qcTargets' ? <QcTargetsSection /> : <SampleResultsSection />}
+          </main>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

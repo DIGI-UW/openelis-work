@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenELIS Design Gallery — Catalog</title>
-  <meta name="description" content="Searchable catalog of 209 design mockups and specifications for OpenELIS Global">
+  <meta name="description" content="Searchable catalog of 211 design mockups and specifications for OpenELIS Global">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 960px; margin: 0 auto; padding: 2rem 1rem; color: #161616; line-height: 1.5; }
     h1 { border-bottom: 2px solid #0f62fe; padding-bottom: 0.5rem; }
@@ -22,15 +22,15 @@
 </head>
 <body>
   <h1>OpenELIS Design Gallery — Catalog</h1>
-  <p>209 designs across 16 categories.
+  <p>211 designs across 16 categories.
     <a href="./">Interactive Gallery</a> |
     <a href="catalog.json">JSON Catalog</a> |
     <a href="llms.txt">LLM Index</a> |
     <a href="sitemap.xml">Sitemap</a>
   </p>
-  <nav><a href="#cat-admin-config">Admin & Config (49)</a> <a href="#cat-analyzer-integration">Analyzer Integration (25)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (4)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (15)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (8)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
+  <nav><a href="#cat-admin-config">Admin & Config (50)</a> <a href="#cat-analyzer-integration">Analyzer Integration (25)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (4)</a> <a href="#cat-microbiology">Microbiology (28)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (2)</a> <a href="#cat-pathology">Pathology (3)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-quality">Quality & EQA (16)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (8)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
 
-  <h2 id="cat-admin-config">Admin & Config (49)</h2>
+  <h2 id="cat-admin-config">Admin & Config (50)</h2>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-specimen-many-to-many">Test Catalog — Specimen Many-to-Many</a></h3>
     <p>One test associates many sample types (shared config, Phase 1) with per-specimen override for ranges/LOINC (Phase 2). Sample type single→multi on Basic Info; specimen-aware resolution replaces first-match (.get(0)); flat list shows one row per test with its specimens; multi-association is normal (not an error). Supersedes D-028 (specimen-is-identity) and retires the variant grouping + "Add specimen variant" copy subsystem. Hero case: environmental physical-chemistry across water types (Color/Turbidity span ~10 sample types on indonesiademo).</p>
@@ -70,6 +70,20 @@
       <a href="https://uwdigi.atlassian.net/browse/OGC-1142">OGC-1142</a>
     </div>
     <div class="tags"><span class="tag">test-catalog</span> <span class="tag">manageability</span> <span class="tag">specimen-variant</span> <span class="tag">loinc</span> <span class="tag">activation-gate</span> <span class="tag">admin</span> <span class="tag">configuration</span></div>
+  </div>
+  <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-qc-targets-lod-loq">Test Catalog — QC Targets & LOD/LOQ</a></h3>
+    <p>New QC Targets section in the Test Catalog unified editor: expected value ± uncertainty per control level (Low/Normal/High) with per-lot overrides linking existing qc_control_lot records; prefill contract for Results Entry control capture (lot override → level default → blank); plus LOD/LOQ fields per result component in Sample & Results (validated LOD ≤ LOQ). Interactive preview renders both touched sections in editor context.</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-qc-targets-lod-loq">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-qc-targets-lod-loq">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-qc-targets.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-qc-targets-preview.html">HTML Mockup</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1148">OGC-1148</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1147">OGC-1147</a>
+      <a href="https://github.com/DIGI-UW/openelis-work/issues/241">#241</a>
+    </div>
+    <div class="tags"><span class="tag">test-catalog</span> <span class="tag">qc-targets</span> <span class="tag">lod-loq</span> <span class="tag">quality</span> <span class="tag">prefill</span> <span class="tag">admin</span> <span class="tag">configuration</span></div>
   </div>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/admin-config/report-management">Report Management</a></h3>
@@ -1616,7 +1630,7 @@
     <div class="tags"><span class="tag">patient</span> <span class="tag">document-management</span> <span class="tag">FHIR</span> <span class="tag">scanning</span> <span class="tag">registration</span></div>
   </div>
 
-  <h2 id="cat-quality">Quality & EQA (15)</h2>
+  <h2 id="cat-quality">Quality & EQA (16)</h2>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/quality/eqa-enrollment">EQA Enrollment</a></h3>
     <p>EQA program enrollment, self-enrollment, and provider management</p>
@@ -1777,6 +1791,20 @@
       <a href="https://digi-uw.github.io/openelis-work/designs/quality/qa-westgard-phase2-preview.html">HTML Mockup</a>
     </div>
     <div class="tags"><span class="tag">quality</span> <span class="tag">westgard</span> <span class="tag">QC</span> <span class="tag">NCE</span> <span class="tag">sigma-metrics</span> <span class="tag">alert-banner</span> <span class="tag">export</span> <span class="tag">Phase-2</span></div>
+  </div>
+  <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/quality/manual-rdt-qc-persistence">Manual & RDT QC Persistence</a></h3>
+    <p>Source-typed QC result persistence (ASTM / MANUAL / RDT) for non-analyzer control results: QC target consumption with snapshot-on-capture, the Validation QC-fail signal (V1), and Statistical QC pillar integration (dashboard source filter, Levey-Jennings participation for manual quantitative). Schema decisions D1–D5 are build-time, owned by the implementer. Unblocks Results Entry R6 control capture (OGC-1025) and makes the Manual QC placeholder leaf (OGC-692) real.</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/quality/manual-rdt-qc-persistence">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/quality/manual-rdt-qc-persistence">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/quality/manual-rdt-qc-persistence.md">Raw Spec (MD)</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1147">OGC-1147</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1025">OGC-1025</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-692">OGC-692</a>
+      <a href="https://github.com/DIGI-UW/openelis-work/issues/240">#240</a>
+    </div>
+    <div class="tags"><span class="tag">quality</span> <span class="tag">QC</span> <span class="tag">manual-qc</span> <span class="tag">RDT</span> <span class="tag">westgard</span> <span class="tag">persistence</span> <span class="tag">validation-signal</span></div>
   </div>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/quality/qa-release-budget-calculator">QA Release Budget Calculator</a></h3>

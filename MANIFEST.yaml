@@ -3849,3 +3849,39 @@
     github_issue: 239
   added: "2026-07-24"
 
+
+- id: manual-rdt-qc-persistence
+  type: spec
+  path: designs/quality/manual-rdt-qc-persistence.md
+  category: quality
+  description: >
+    Manual & RDT QC Persistence — source-typed QC result storage (ASTM/MANUAL/RDT) for
+    non-analyzer control results: QC target consumption with snapshot-on-capture, the
+    Validation QC-fail signal (V1), and Statistical QC pillar integration (dashboard
+    source filter, Levey-Jennings participation). Schema decisions D1-D5 are build-time,
+    owned by the implementer. Unblocks Results Entry R6 control capture and the Manual QC leaf.
+  links:
+    jira:
+      - OGC-1147
+      - OGC-1025
+      - OGC-692
+    github_issue: 240
+  added: "2026-07-24"
+
+- id: test-catalog-qc-targets
+  type: html
+  path: designs/admin-config/test-catalog-qc-targets-preview.html
+  spec: designs/admin-config/test-catalog-qc-targets.md
+  preview: designs/admin-config/test-catalog-qc-targets-preview.html
+  category: admin-config
+  description: >
+    Test Catalog — QC Targets & Detection Limits (LOD/LOQ): new QC Targets editor section
+    (expected value ± uncertainty per control level, per-lot overrides linking qc_control_lot),
+    prefill contract for Results Entry control capture (lot override -> level default -> blank),
+    plus LOD/LOQ fields per result component in Sample & Results.
+  links:
+    jira:
+      - OGC-1148
+      - OGC-1147
+    github_issue: 241
+  added: "2026-07-24"
