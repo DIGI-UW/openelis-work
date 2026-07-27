@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patient Self-Registration Kiosk (Track R) — OpenELIS Preview</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background:#e0e0e0; margin:0; font-family:'IBM Plex Sans','Segoe UI',sans-serif; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+  .stage { display:flex; gap:24px; justify-content:center; padding:24px; align-items:flex-start; flex-wrap:wrap; }
+  .kiosk { width:560px; height:720px; background:#fff; border-radius:16px; border:10px solid #262626; box-shadow:0 8px 30px rgba(0,0,0,.35); display:flex; flex-direction:column; overflow:hidden; }
+  .khdr { background:#161616; color:#fff; padding:10px 18px; font-size:14px; display:flex; justify-content:space-between; }
+  .kbody { flex:1; padding:28px 32px; display:flex; flex-direction:column; }
+  .q { font-size:28px; font-weight:600; margin:0 0 22px; line-height:1.25; }
+  .tiles { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .tile { border:2px solid #c6c6c6; border-radius:12px; padding:22px 14px; font-size:22px; text-align:center; cursor:pointer; background:#fff; }
+  .tile:hover { border-color:#0f62fe; }
+  .tile.sel { border-color:#0f62fe; background:#edf5ff; font-weight:600; }
+  .tile .sub { display:block; font-size:14px; color:#6f6f6f; margin-top:4px; }
+  .biginput { font-size:26px; padding:18px; border:2px solid #8d8d8d; border-radius:10px; width:100%; box-sizing:border-box; }
+  .nudge { font-size:15px; color:#ba4e00; margin-top:10px; }
+  .kfoot { display:flex; gap:14px; padding:20px 32px 28px; }
+  .kbtn { flex:1; font-size:22px; padding:18px; border-radius:12px; border:none; cursor:pointer; }
+  .kbtn.pri { background:#0f62fe; color:#fff; } .kbtn.sec { background:#e8e8e8; color:#161616; }
+  .startover { position:absolute; margin:8px; }
+  .rev-row { display:flex; justify-content:space-between; font-size:20px; padding:14px 4px; border-bottom:1px solid #ececec; cursor:pointer; }
+  .rev-row .lbl { color:#6f6f6f; font-size:16px; }
+  .code { font-size:56px; font-weight:700; letter-spacing:10px; text-align:center; margin:18px 0; color:#161616; }
+  .qr { width:180px; height:180px; margin:0 auto; display:grid; grid-template-columns:repeat(12,1fr); gap:2px; }
+  .qr i { background:#161616; } .qr i.w { background:#fff; }
+  .prog { display:flex; gap:6px; padding:0 32px; }
+  .prog i { flex:1; height:6px; border-radius:3px; background:#e0e0e0; } .prog i.on { background:#0f62fe; }
+  .note { max-width:400px; font-size:12px; color:#525252; }
+  .center { text-align:center; }
+  .helper { font-size:15px; color:#525252; margin-top:16px; display:flex; align-items:center; gap:8px; cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="preview-banner">⚡ Visual Preview — Patient Self-Registration Kiosk (Track R) | candidate Patient → reception confirms | Not a live application</div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+const LANGS=[['English','English'],['Français','French'],['العربية','Arabic'],['Kiswahili','Swahili'],['Soomaali','Somali'],['አማርኛ','Amharic']];
+const CAMPS=['Camp 1 — Zone North','Camp 1 — Zone South','Camp 2','Camp 3 — Health Post area'];
+const QRBITS='101101001110110010101011010011101010110100101101101011010010110110101101001011011010110100101101101011010010110110101101001011011010110100101';
+function App(){
+  const [step,setStep]=useState(0); // 0 welcome,1 name,2 sex,3 dob,4 stay,5 phone,6 review,7 code
+  const [d,setD]=useState({lang:null,helper:false,name:'',sex:null,dobMode:null,dob:'',age:'',camp:null,phone:'',noPhone:false});
+  const set=(k,v)=>setD(p=>({...p,[k]:v}));
+  const reset=()=>{setD({lang:null,helper:false,name:'',sex:null,dobMode:null,dob:'',age:'',camp:null,phone:'',noPhone:false});setStep(0);};
+  const you=d.helper?'the patient':'you';
+  const Foot=({back,next,nextLabel,disabled})=>(
+    <div className="kfoot">
+      {back&&<button className="kbtn sec" onClick={()=>setStep(step-1)}>← Back</button>}
+      <button className="kbtn pri" style={disabled?{opacity:.4}:{}} onClick={()=>!disabled&&setStep(step+1)}>{nextLabel||'Next →'}</button>
+    </div>);
+  return (
+  <div className="stage">
+    <div className="kiosk">
+      <div className="khdr"><span>Camp Health Service — Registration</span>
+        {step>0&&step<7&&<span style={{cursor:'pointer',color:'#78a9ff'}} onClick={reset}>✕ Start over</span>}</div>
+      {step>=1&&step<=5&&<div className="prog" style={{paddingTop:12}}>{[1,2,3,4,5].map(i=><i key={i} className={step>=i?'on':''}></i>)}</div>}
+      {step===0&&<div className="kbody center">
+        <p className="q" style={{marginTop:30}}>Welcome · Bienvenue · مرحبا<br/>Karibu · Soo dhawoow</p>
+        <p style={{fontSize:18,color:'#525252'}}>Register while you wait — touch your language</p>
+        <div className="tiles">{LANGS.map(([nat,en])=><button key={en} className="tile" onClick={()=>{set('lang',en);setStep(1);}}>{nat}<span className="sub">{en}</span></button>)}</div>
+      </div>}
+      {step===1&&<div className="kbody">
+        <p className="q">What is {you==='you'?'your':"the patient's"} name?</p>
+        <input className="biginput" autoFocus placeholder="Type the full name" value={d.name} onChange={e=>set('name',e.target.value)} />
+        {d.name.length>0&&d.name.trim().split(' ').length<2&&<div className="nudge">Only one name? That's okay — you can continue.</div>}
+        <label className="helper"><input type="checkbox" checked={d.helper} onChange={e=>set('helper',e.target.checked)} style={{width:22,height:22}}/> I am filling this in for someone else</label>
+        <div style={{flex:1}}></div>
+      </div>}
+      {step===1&&<Foot back next disabled={!d.name.trim()} />}
+      {step===2&&<div className="kbody">
+        <p className="q">Sex</p>
+        <div className="tiles">
+          {['Female','Male'].map(s=><button key={s} className={'tile'+(d.sex===s?' sel':'')} onClick={()=>set('sex',s)}>{s}</button>)}
+        </div><div style={{flex:1}}></div>
+      </div>}
+      {step===2&&<Foot back disabled={!d.sex} />}
+      {step===3&&<div className="kbody">
+        <p className="q">When {you==='you'?'were you':'was the patient'} born?</p>
+        <div className="tiles">
+          <button className={'tile'+(d.dobMode==='date'?' sel':'')} onClick={()=>set('dobMode','date')}>I know the date<span className="sub">day / month / year</span></button>
+          <button className={'tile'+(d.dobMode==='age'?' sel':'')} onClick={()=>set('dobMode','age')}>I only know the age<span className="sub">that's fine</span></button>
+        </div>
+        {d.dobMode==='date'&&<input className="biginput" style={{marginTop:18}} placeholder="DD / MM / YYYY" value={d.dob} onChange={e=>set('dob',e.target.value)} />}
+        {d.dobMode==='age'&&<input className="biginput" style={{marginTop:18}} placeholder="Age in years, e.g. 29" value={d.age} onChange={e=>set('age',e.target.value)} />}
+        <div style={{flex:1}}></div>
+      </div>}
+      {step===3&&<Foot back disabled={!(d.dob||d.age)} />}
+      {step===4&&<div className="kbody">
+        <p className="q">Where {you==='you'?'do you':'does the patient'} stay?</p>
+        <div className="tiles">{CAMPS.map(c=><button key={c} className={'tile'+(d.camp===c?' sel':'')} style={{fontSize:18}} onClick={()=>set('camp',c)}>{c}</button>)}</div>
+        <div style={{flex:1}}></div>
+      </div>}
+      {step===4&&<Foot back disabled={!d.camp} />}
+      {step===5&&<div className="kbody">
+        <p className="q">Phone number <span style={{fontWeight:400,fontSize:20,color:'#6f6f6f'}}>(if there is one)</span></p>
+        <input className="biginput" placeholder="e.g. 07 xx xx xx" value={d.phone} disabled={d.noPhone} onChange={e=>set('phone',e.target.value)} />
+        <div className="tiles" style={{marginTop:18,gridTemplateColumns:'1fr'}}>
+          <button className={'tile'+(d.noPhone?' sel':'')} style={{fontSize:20}} onClick={()=>{set('noPhone',!d.noPhone);set('phone','');}}>No phone — skip this</button>
+        </div>
+        <div style={{flex:1}}></div>
+      </div>}
+      {step===5&&<Foot back disabled={!(d.phone||d.noPhone)} nextLabel="Review →" />}
+      {step===6&&<div className="kbody">
+        <p className="q">Is this correct?</p>
+        {[['Name',d.name,1],['Sex',d.sex,2],[d.dobMode==='age'?'Age (estimated)':'Date of birth',d.dob||d.age+' years',3],['Stays at',d.camp,4],['Phone',d.noPhone?'No phone':d.phone,5]].map(([l,v,s])=>
+          <div key={l} className="rev-row" onClick={()=>setStep(s)}><span className="lbl">{l}</span><span>{v} <span style={{color:'#0f62fe',fontSize:14}}>edit</span></span></div>)}
+        <div style={{flex:1}}></div>
+      </div>}
+      {step===6&&<Foot back nextLabel="✓ Finish registration" />}
+      {step===7&&<div className="kbody center">
+        <p className="q">Done! Show this at the desk</p>
+        <div className="qr">{QRBITS.slice(0,144).split('').map((b,i)=><i key={i} className={b==='0'?'w':''}></i>)}</div>
+        <div className="code">R-7Q4D</div>
+        <p style={{fontSize:18,color:'#525252'}}>The desk will confirm your details.<br/>This screen clears in a few seconds.</p>
+        <button className="kbtn sec" style={{marginTop:10}} onClick={reset}>Next person →</button>
+      </div>}
+    </div>
+    <div className="note">
+      <h3>Self-Registration Kiosk — Track R</h3>
+      <p><b>Try it:</b> tap a language and walk the five questions through to the code screen. Note the "I only know the age" path, the single name field, the "No phone" tile, and the helper checkbox.</p>
+      <p><b>What the patient never sees:</b> match candidates (dedup is server-side in the client registry), other people's data, clinical questions.</p>
+      <p><b>What happens next:</b> a candidate Patient (tagged unverified) lands in the registry / OpenELIS FHIR; reception scans <b>R-7Q4D</b>, confirms the self-entered details, and only then is the patient orderable. Unclaimed candidates expire in 30 days.</p>
+      <p>Idle for 60 seconds → everything clears and the kiosk returns to Welcome.</p>
+    </div>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

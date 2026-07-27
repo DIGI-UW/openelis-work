@@ -2628,6 +2628,39 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 49,
     tags: ['AI', 'assistant', 'natural-language', 'reporting', 'chatbot'],
   },
+  // ─── Results Portal ───
+  {
+    name: 'Facility Results Portal',
+    category: 'portal',
+    component: null,
+    description: 'Read-only results-delivery portal (C3) for requesting facilities, running as a standalone lightweight mobile-first web app against the central FHIR R4 store — not an OpenELIS module. Clinicians log in (PractitionerRole-scoped, bundled Keycloak IdP with optional OIDC federation), see new released results since last visit with critical values pinned first, search by any requisition identifier, read released results on screen, and download the report PDF. Visibility honors the Test Catalog portal-visibility labels. Deliberately no ordering, acknowledgment, patient editing, or analytics.',
+    specPath: 'designs/portal/facility-results-portal.md',
+    htmlUrl: 'designs/portal/facility-results-portal-preview.html',
+    added: '2026-07-27',
+    status: 'draft',
+    tags: ['portal', 'results-delivery', 'fhir', 'facility', 'requester', 'mobile-first', 'keycloak'],
+  },
+  {
+    name: 'Patient Self-Registration',
+    category: 'portal',
+    component: null,
+    description: 'Kiosk-first patient self-registration form (Track R) on the same portal infrastructure as C3, creating candidate patient records — never trusted records. Candidates flow registry-first (POST to a client registry such as OpenCR for dedup) or directly to OpenELIS FHIR into flexible patient-matching; a candidate becomes orderable only when reception confirms it. Single looping flow (Welcome/language → 5-step form → Review → short code + QR), big type, helper-fillable. Reception scans the code and confirms in seconds. Personal-phone pre-registration is v2 of the same form.',
+    specPath: 'designs/portal/patient-self-registration.md',
+    htmlUrl: 'designs/portal/patient-self-registration-preview.html',
+    added: '2026-07-27',
+    status: 'draft',
+    tags: ['portal', 'patient', 'self-registration', 'kiosk', 'fhir', 'candidate-record', 'client-registry'],
+  },
+  {
+    name: 'Results Portal — C0 Discovery Brief',
+    category: 'portal',
+    component: null,
+    description: 'Pre-FRS discovery and sequencing brief for the OpenELIS Results Portal (country-agnostic; camp-network anchoring scenario). Records the 11 decisions normative for the C3 and Track R FRSs: C3 (facility/requester portal) ships first; separate lightweight app on the central FHIR server; implementer/MoH-operated (never DIGI-hosted); configurable data-layer visibility policy; PractitionerRole access with expiry/attestation; bundled IdP with optional federation; portal-before-messaging. Includes a per-country readiness checklist.',
+    specPath: 'designs/portal/results-portal-c0-discovery-brief.md',
+    added: '2026-07-27',
+    status: 'draft',
+    tags: ['portal', 'discovery', 'strategy', 'fhir', 'sequencing', 'readiness-checklist'],
+  },
 ];
 
 export const GITHUB_BASE = 'https://github.com/DIGI-UW/openelis-work/blob/main/';
@@ -2652,6 +2685,7 @@ export const categories = [
   'patient',
   'sample-collection',
   'vector-surveillance',
+  'portal',
   'system',
   'other',
 ];
@@ -2672,6 +2706,7 @@ export const categoryLabels = {
   'patient': 'Patient',
   'sample-collection': 'Sample Collection',
   'vector-surveillance': 'Vector Surveillance',
+  'portal': 'Results Portal',
   'system': 'System',
   'other': 'Other',
 };

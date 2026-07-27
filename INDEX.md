@@ -185,6 +185,14 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Reagent Forecasting Facility View | [reagent-forecasting-facility.jsx](designs/inventory/reagent-forecasting-facility.jsx) | [reagent-forecasting-facility.md](designs/inventory/reagent-forecasting-facility.md) |
 | Inventory Module Redesign | [inventory-redesign.html](designs/inventory/inventory-redesign.html) | [inventory-redesign.md](designs/inventory/inventory-redesign.md) |
 
+## Results Portal
+
+| Feature | Mockup | Spec |
+|---|---|---|
+| Facility Results Portal (C3) | [preview](designs/portal/facility-results-portal-preview.html) | [facility-results-portal.md](designs/portal/facility-results-portal.md) |
+| Patient Self-Registration (Track R) | [preview](designs/portal/patient-self-registration-preview.html) | [patient-self-registration.md](designs/portal/patient-self-registration.md) |
+| Results Portal — C0 Discovery Brief | — | [results-portal-c0-discovery-brief.md](designs/portal/results-portal-c0-discovery-brief.md) |
+
 ## System
 
 | Feature | Mockup | Spec |
