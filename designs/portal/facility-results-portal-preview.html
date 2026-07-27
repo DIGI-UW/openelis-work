@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facility Results Portal (C3) — OpenELIS Preview</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background:#e0e0e0; margin:0; font-family:'IBM Plex Sans','Segoe UI',sans-serif; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+  .stage { display:flex; gap:24px; justify-content:center; padding:24px; align-items:flex-start; flex-wrap:wrap; }
+  .phone { width:390px; background:#f4f4f4; border-radius:24px; border:8px solid #262626; overflow:hidden; box-shadow:0 8px 30px rgba(0,0,0,.35); }
+  .hdr { background:#161616; color:#fff; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; }
+  .hdr .fac { font-size:13px; font-weight:600; display:flex; gap:6px; align-items:center; cursor:pointer; }
+  .hdr .fac .chev { font-size:10px; color:#c6c6c6; }
+  .badge { background:#da1e28; color:#fff; border-radius:9px; font-size:11px; padding:0 6px; font-weight:700; }
+  .nav { display:flex; background:#fff; border-bottom:1px solid #d0d0d0; }
+  .nav button { flex:1; border:none; background:none; padding:10px 4px; font-size:12px; cursor:pointer; color:#525252; border-bottom:3px solid transparent; }
+  .nav button.on { color:#0f62fe; border-bottom-color:#0f62fe; font-weight:600; }
+  .body { padding:12px; min-height:520px; }
+  .card { background:#fff; border:1px solid #e0e0e0; border-radius:6px; padding:10px 12px; margin-bottom:8px; cursor:pointer; }
+  .card.crit { border-left:4px solid #da1e28; }
+  .row1 { display:flex; justify-content:space-between; font-size:14px; font-weight:600; }
+  .row2 { font-size:12px; color:#525252; margin-top:2px; }
+  .chip { display:inline-block; border-radius:10px; padding:1px 8px; font-size:11px; font-weight:700; margin-left:6px; }
+  .chip.crit { background:#da1e28; color:#fff; }
+  .chip.abn { background:#ff832b; color:#161616; }
+  .chip.norm { background:#defbe6; color:#0e6027; }
+  .chip.new { background:#0f62fe; color:#fff; }
+  .search { width:100%; box-sizing:border-box; padding:12px; font-size:15px; border:1px solid #8d8d8d; border-radius:6px; }
+  .hint { font-size:11px; color:#6f6f6f; margin:6px 2px; }
+  .tl { display:flex; align-items:center; margin:14px 0; }
+  .tl .step { flex:1; text-align:center; font-size:11px; color:#525252; }
+  .tl .dot { width:22px; height:22px; border-radius:50%; margin:0 auto 4px; background:#c6c6c6; color:#fff; line-height:22px; font-size:12px; }
+  .tl .done .dot { background:#0e6027; } .tl .cur .dot { background:#0f62fe; }
+  .tl .bar { height:3px; flex:1; background:#c6c6c6; margin-bottom:16px; } .tl .bar.done { background:#0e6027; }
+  .res-line { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #ececec; font-size:14px; }
+  .ref { font-size:11px; color:#6f6f6f; }
+  .btn { background:#0f62fe; color:#fff; border:none; border-radius:6px; padding:12px; width:100%; font-size:14px; margin-top:12px; cursor:pointer; }
+  .btn.ghost { background:none; color:#0f62fe; border:1px solid #0f62fe; }
+  .facmenu { background:#fff; border:1px solid #d0d0d0; border-radius:8px; position:absolute; top:52px; left:10px; right:10px; z-index:9; box-shadow:0 4px 16px rgba(0,0,0,.25); }
+  .facmenu div { padding:12px 14px; border-bottom:1px solid #ececec; display:flex; justify-content:space-between; font-size:14px; cursor:pointer; }
+  .note { max-width:390px; font-size:12px; color:#525252; }
+  .backlink { font-size:12px; color:#0f62fe; cursor:pointer; margin-bottom:8px; display:inline-block; }
+  .wrap { position:relative; }
+</style>
+</head>
+<body>
+<div class="preview-banner">⚡ Visual Preview — Facility Results Portal (C3) | Standalone app on central FHIR — mobile-first | Not a live application</div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+const FACS = [
+  { id:'c1a', name:'Camp 1 — Clinic A (Zone North)', unseen:3 },
+  { id:'c3h', name:'Camp 3 — Health Post', unseen:1 },
+];
+const REPORTS = [
+  { id:1, fac:'c1a', pat:'Amina Yusuf', pid:'C1-2026-04412', sexAge:'F · 29y', tests:'Hemoglobin', time:'Today 09:41', flag:'crit', new:true,
+    obs:[{t:'Hemoglobin', v:'4.2', u:'g/dL', ref:'12.0–16.0', f:'crit'}], status:3 },
+  { id:2, fac:'c1a', pat:'Jean-Baptiste K.', pid:'C1-2026-04380', sexAge:'M · 41y', tests:'Malaria RDT', time:'Today 08:15', flag:'abn', new:true,
+    obs:[{t:'Malaria RDT (Pf)', v:'Positive', u:'', ref:'Negative', f:'abn'}], status:3 },
+  { id:3, fac:'c1a', pat:'Fatouma D.', pid:'C1-2026-04401', sexAge:'F · 6y', tests:'Glucose, Random', time:'Yesterday 16:20', flag:'norm', new:true,
+    obs:[{t:'Glucose, Random', v:'5.1', u:'mmol/L', ref:'3.9–7.8', f:'norm'}], status:3 },
+  { id:4, fac:'c1a', pat:'Samuel O.', pid:'C1-2026-04425', sexAge:'M · 33y', tests:'CBC panel', time:'—', flag:null, new:false,
+    obs:[], status:2 },
+  { id:5, fac:'c3h', pat:'Mariam T.', pid:'C3-2026-01108', sexAge:'F · 24y', tests:'Syphilis RDT', time:'Today 07:50', flag:'norm', new:true,
+    obs:[{t:'Syphilis RDT', v:'Negative', u:'', ref:'Negative', f:'norm'}], status:3 },
+];
+function Timeline({s, rejected}) {
+  const steps=['Received at lab','Testing','Result ready'];
+  return <div className="tl">
+    {steps.map((st,i)=>(
+      <React.Fragment key={i}>
+        {i>0 && <div className={'bar'+(s>i?' done':'')}></div>}
+        <div className={'step'+(s>i+1||s===3&&i===2?' done':s===i+1?' cur':'')}>
+          <div className="dot">{s>i+1||(s===3&&i===2)?'✓':i+1}</div>{st}
+        </div>
+      </React.Fragment>))}
+  </div>;
+}
+function App(){
+  const [fac,setFac]=useState('c1a');
+  const [view,setView]=useState('home');
+  const [open,setOpen]=useState(null);
+  const [menu,setMenu]=useState(false);
+  const [q,setQ]=useState('');
+  const facObj=FACS.find(f=>f.id===fac);
+  const mine=REPORTS.filter(r=>r.fac===fac);
+  const released=mine.filter(r=>r.status===3);
+  const sorted=[...released].sort((a,b)=>(b.flag==='crit')-(a.flag==='crit'));
+  const hits=q.length<2?[]:mine.filter(r=>(r.pat+' '+r.pid+' '+r.sexAge).toLowerCase().includes(q.toLowerCase()));
+  const rep=REPORTS.find(r=>r.id===open);
+  return (
+  <div className="stage">
+    <div className="phone">
+      <div className="wrap">
+        <div className="hdr">
+          <span className="fac" onClick={()=>setMenu(!menu)}>{facObj.name} <span className="chev">▼</span></span>
+          <span style={{fontSize:11,color:'#c6c6c6'}}>Dr. A. Traoré</span>
+        </div>
+        {menu && <div className="facmenu">
+          {FACS.map(f=><div key={f.id} onClick={()=>{setFac(f.id);setMenu(false);setOpen(null);setView('home');}}>
+            <span>{f.name}</span>{f.unseen>0&&<span className="badge">{f.unseen}</span>}</div>)}
+          <div style={{color:'#6f6f6f',fontSize:12}}>Your access: 2 facilities (expires 2026-10-12)</div>
+        </div>}
+      </div>
+      <div className="nav">
+        <button className={view==='home'?'on':''} onClick={()=>{setView('home');setOpen(null);}}>New results {facObj.unseen>0&&<span className="badge">{facObj.unseen}</span>}</button>
+        <button className={view==='search'?'on':''} onClick={()=>{setView('search');setOpen(null);}}>Search</button>
+      </div>
+      <div className="body">
+        {open==null && view==='home' && <div>
+          <div className="hint">Released since your last visit (Wed 14:02) — critical first</div>
+          {sorted.map(r=><div key={r.id} className={'card'+(r.flag==='crit'?' crit':'')} onClick={()=>setOpen(r.id)}>
+            <div className="row1"><span>{r.pat}</span>
+              <span>{r.flag&&<span className={'chip '+r.flag}>{r.flag==='crit'?'CRITICAL':r.flag==='abn'?'Abnormal':'Normal'}</span>}{r.new&&<span className="chip new">NEW</span>}</span></div>
+            <div className="row2">{r.pid} · {r.sexAge} · {r.tests} · {r.time}</div>
+          </div>)}
+          <div className="hint">Pending orders</div>
+          {mine.filter(r=>r.status<3).map(r=><div key={r.id} className="card" onClick={()=>setOpen(r.id)}>
+            <div className="row1"><span>{r.pat}</span><span className="chip" style={{background:'#e8e8e8'}}>Testing</span></div>
+            <div className="row2">{r.pid} · {r.tests} · in progress at lab</div>
+          </div>)}
+        </div>}
+        {open==null && view==='search' && <div>
+          <input className="search" placeholder="Lab no · camp ID · name · name + age" value={q} onChange={e=>setQ(e.target.value)} />
+          <div className="hint">Anything on the requisition slip works — partial names are fine.</div>
+          {q.length>=2 && hits.length===0 && <div className="card"><div className="row1">No match in {facObj.name}</div>
+            <div className="row2">Try your other facility, fewer characters, or call the lab: <b>+225 07 55 41 20</b></div></div>}
+          {hits.map(r=><div key={r.id} className="card" onClick={()=>setOpen(r.id)}>
+            <div className="row1"><span>{r.pat}</span>{r.flag&&<span className={'chip '+r.flag}>{r.flag==='crit'?'CRITICAL':r.flag==='abn'?'Abnormal':'Normal'}</span>}</div>
+            <div className="row2">{r.pid} · {r.sexAge} · {r.tests}</div></div>)}
+        </div>}
+        {open!=null && rep && <div>
+          <span className="backlink" onClick={()=>setOpen(null)}>← Back</span>
+          <div className="row1" style={{fontSize:16}}>{rep.pat}</div>
+          <div className="row2">{rep.pid} · {rep.sexAge} · Ordered by {facObj.name}</div>
+          <Timeline s={rep.status} />
+          {rep.status===3 ? <div>
+            {rep.obs.map((o,i)=><div key={i} className="res-line">
+              <div><div>{o.t}</div><div className="ref">Ref: {o.ref}</div></div>
+              <div style={{textAlign:'right'}}><b style={{color:o.f==='crit'?'#da1e28':o.f==='abn'?'#ba4e00':'#161616'}}>{o.v} {o.u}</b><br/>
+                <span className={'chip '+o.f}>{o.f==='crit'?'CRITICAL':o.f==='abn'?'Abnormal':'Normal'}</span></div>
+            </div>)}
+            {rep.flag==='crit'&&<div className="hint" style={{color:'#da1e28',fontWeight:600}}>⚠ Critical value — released Today 09:41. Contact patient immediately.</div>}
+            <button className="btn">Download PDF report</button>
+            <button className="btn ghost">Print</button>
+          </div> : <div className="hint">Sample received Today 07:32 — testing in progress. No action needed; this page updates when the result is released.</div>}
+          <div className="hint" style={{marginTop:14}}>Every view of this report is logged (you, {facObj.name}, now).</div>
+        </div>}
+      </div>
+    </div>
+    <div className="note">
+      <h3>Facility Results Portal — C3</h3>
+      <p><b>Try it:</b> tap the facility name (top-left) to switch camps; open the CRITICAL result; check a pending order's timeline; search "amina" or "C1-2026".</p>
+      <p><b>Five UX moments:</b> ① Home = new-since-last-visit, criticals pinned · ② forgiving search (no format errors ever) · ③ 3-step status timeline · ④ phone-readable results + PDF · ⑤ loud facility context with badges.</p>
+      <p>Desktop (≥1024px) renders the same data as tables. NONE-visibility reports are filtered server-side and never reach this UI.</p>
+    </div>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

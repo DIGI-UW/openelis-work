@@ -3885,3 +3885,49 @@
       - OGC-1147
     github_issue: 241
   added: "2026-07-24"
+
+# ─── Results Portal ─────────────────────────────────────────
+
+- id: facility-results-portal
+  type: html
+  path: designs/portal/facility-results-portal-preview.html
+  spec: designs/portal/facility-results-portal.md
+  preview: designs/portal/facility-results-portal-preview.html
+  category: portal
+  description: >
+    Facility Results Portal (C3): read-only results-delivery portal for requesting facilities,
+    a standalone mobile-first web app on the central FHIR store (not an OpenELIS module).
+    PractitionerRole-scoped access, bundled Keycloak IdP with optional OIDC federation, new-results
+    view with critical values pinned, identifier search, on-screen results, report PDF download;
+    visibility honors Test Catalog portal-visibility labels.
+  paired_with: results-portal-c0-discovery-brief
+  links: {}
+  added: "2026-07-27"
+
+- id: patient-self-registration
+  type: html
+  path: designs/portal/patient-self-registration-preview.html
+  spec: designs/portal/patient-self-registration.md
+  preview: designs/portal/patient-self-registration-preview.html
+  category: portal
+  description: >
+    Patient Self-Registration (Track R): kiosk-first self-registration on the same portal
+    infrastructure, creating candidate patient records (registry-first via OpenCR, or direct to
+    OpenELIS FHIR flexible matching). Single looping flow with big type, helper-fillable, short
+    code + QR handed to reception for confirmation; personal-phone pre-registration is v2.
+  paired_with: results-portal-c0-discovery-brief
+  links: {}
+  added: "2026-07-27"
+
+- id: results-portal-c0-discovery-brief
+  type: spec
+  path: designs/portal/results-portal-c0-discovery-brief.md
+  category: portal
+  description: >
+    Results Portal C0 discovery & sequencing brief (pre-FRS, country-agnostic): the 11 normative
+    decisions behind the C3 and Track R FRSs (C3 first; separate lightweight FHIR app;
+    implementer/MoH-operated; configurable visibility policy; PractitionerRole access with
+    attestation; bundled IdP + optional federation; portal-before-messaging) plus a per-country
+    readiness checklist.
+  links: {}
+  added: "2026-07-27"
