@@ -1,7 +1,7 @@
 {
-  "generated": "2026-07-25T05:32:38.615Z",
+  "generated": "2026-07-28T18:35:21.553Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 211,
+  "totalDesigns": 216,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -13,6 +13,7 @@
     "other",
     "pathology",
     "patient",
+    "portal",
     "quality",
     "reports",
     "results-validation",
@@ -5912,6 +5913,54 @@
       }
     },
     {
+      "name": "Style Guide v2 — Component Usage",
+      "slug": "style-guide-v2-component-usage",
+      "category": "other",
+      "description": "Machine-readable mirror of the Style Guide v2 Component Usage library (Confluence, OG space). Delta-only: Carbon upstream by default; documents only where OpenELIS diverges, extends, or pins Carbon — version pin, per-component rules, ratification register (R1 tables, R2 dates, R5 pagination, R8 report archetypes, slide-over geometry), and a two-pass codebase evidence appendix.",
+      "type": "spec-only",
+      "added": "2026-07-28",
+      "status": "draft",
+      "tags": [
+        "style-guide",
+        "carbon",
+        "design-system",
+        "governance"
+      ],
+      "jira": [],
+      "githubIssue": 244,
+      "specPath": "designs/other/openelis-style-guide-v2-component-usage.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/other/style-guide-v2-component-usage",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/other/style-guide-v2-component-usage",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/other/style-guide-v2-component-usage",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/other/openelis-style-guide-v2-component-usage.md"
+      }
+    },
+    {
+      "name": "Constitution Amendment — Style Guide Library",
+      "slug": "constitution-amendment-style-guide-library",
+      "category": "other",
+      "description": "Draft MINOR amendment expanding Constitution Principle II (Carbon Design System First) to bind the Style Guide library: documented deltas binding, no ad-hoc divergences, version-pin rule, badge semantics — plus PR-checklist addition, AGENTS.md/CLAUDE.md/CONTRIBUTING.md wiring, SYNC IMPACT REPORT block, and the ready-to-post constitution-amendment issue body.",
+      "type": "spec-only",
+      "added": "2026-07-28",
+      "status": "draft",
+      "tags": [
+        "constitution",
+        "governance",
+        "style-guide",
+        "carbon"
+      ],
+      "jira": [],
+      "githubIssue": 245,
+      "specPath": "designs/other/constitution-amendment-style-guide-library.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/other/constitution-amendment-style-guide-library",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/other/constitution-amendment-style-guide-library",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/other/constitution-amendment-style-guide-library",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/other/constitution-amendment-style-guide-library.md"
+      }
+    },
+    {
       "name": "Pre-Transfusion Testing",
       "slug": "pre-transfusion-testing",
       "category": "blood-bank",
@@ -6124,6 +6173,88 @@
       "urls": {
         "gallery": "https://digi-uw.github.io/openelis-work/#/system/catalyst-lab-data-assistant",
         "preview": "https://digi-uw.github.io/openelis-work/#/preview/system/catalyst-lab-data-assistant"
+      }
+    },
+    {
+      "name": "Facility Results Portal",
+      "slug": "facility-results-portal",
+      "category": "portal",
+      "description": "Read-only results-delivery portal (C3) for requesting facilities, running as a standalone lightweight mobile-first web app against the central FHIR R4 store — not an OpenELIS module. Clinicians log in (PractitionerRole-scoped, bundled Keycloak IdP with optional OIDC federation), see new released results since last visit with critical values pinned first, search by any requisition identifier, read released results on screen, and download the report PDF. Visibility honors the Test Catalog portal-visibility labels. Deliberately no ordering, acknowledgment, patient editing, or analytics.",
+      "type": "html",
+      "added": "2026-07-27",
+      "status": "draft",
+      "tags": [
+        "portal",
+        "results-delivery",
+        "fhir",
+        "facility",
+        "requester",
+        "mobile-first",
+        "keycloak"
+      ],
+      "jira": [],
+      "githubIssue": null,
+      "specPath": "designs/portal/facility-results-portal.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/portal/facility-results-portal",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/portal/facility-results-portal",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/portal/facility-results-portal",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/portal/facility-results-portal.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/portal/facility-results-portal-preview.html"
+      }
+    },
+    {
+      "name": "Patient Self-Registration",
+      "slug": "patient-self-registration",
+      "category": "portal",
+      "description": "Kiosk-first patient self-registration form (Track R) on the same portal infrastructure as C3, creating candidate patient records — never trusted records. Candidates flow registry-first (POST to a client registry such as OpenCR for dedup) or directly to OpenELIS FHIR into flexible patient-matching; a candidate becomes orderable only when reception confirms it. Single looping flow (Welcome/language → 5-step form → Review → short code + QR), big type, helper-fillable. Reception scans the code and confirms in seconds. Personal-phone pre-registration is v2 of the same form.",
+      "type": "html",
+      "added": "2026-07-27",
+      "status": "draft",
+      "tags": [
+        "portal",
+        "patient",
+        "self-registration",
+        "kiosk",
+        "fhir",
+        "candidate-record",
+        "client-registry"
+      ],
+      "jira": [],
+      "githubIssue": null,
+      "specPath": "designs/portal/patient-self-registration.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/portal/patient-self-registration",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/portal/patient-self-registration",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/portal/patient-self-registration",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/portal/patient-self-registration.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/portal/patient-self-registration-preview.html"
+      }
+    },
+    {
+      "name": "Results Portal — C0 Discovery Brief",
+      "slug": "results-portal-c0-discovery-brief",
+      "category": "portal",
+      "description": "Pre-FRS discovery and sequencing brief for the OpenELIS Results Portal (country-agnostic; camp-network anchoring scenario). Records the 11 decisions normative for the C3 and Track R FRSs: C3 (facility/requester portal) ships first; separate lightweight app on the central FHIR server; implementer/MoH-operated (never DIGI-hosted); configurable data-layer visibility policy; PractitionerRole access with expiry/attestation; bundled IdP with optional federation; portal-before-messaging. Includes a per-country readiness checklist.",
+      "type": "spec-only",
+      "added": "2026-07-27",
+      "status": "draft",
+      "tags": [
+        "portal",
+        "discovery",
+        "strategy",
+        "fhir",
+        "sequencing",
+        "readiness-checklist"
+      ],
+      "jira": [],
+      "githubIssue": null,
+      "specPath": "designs/portal/results-portal-c0-discovery-brief.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/portal/results-portal-c0-discovery-brief",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/portal/results-portal-c0-discovery-brief",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/portal/results-portal-c0-discovery-brief",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/portal/results-portal-c0-discovery-brief.md"
       }
     }
   ]

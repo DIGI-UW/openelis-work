@@ -1,6 +1,6 @@
 # OpenELIS Design Gallery
 
-> Design mockups and functional requirement specs for OpenELIS Global, an open-source laboratory information management system. 211 designs across 16 categories.
+> Design mockups and functional requirement specs for OpenELIS Global, an open-source laboratory information management system. 216 designs across 17 categories.
 
 ## Catalog
 - [JSON Catalog](https://digi-uw.github.io/openelis-work/catalog.json): Machine-readable index of all designs
@@ -142,6 +142,8 @@
 ## Other
 - [TAT Dashboard](https://digi-uw.github.io/openelis-work/designs/other/tat-dashboard.md): Turnaround time monitoring dashboard
 - [Calendar Management](https://digi-uw.github.io/openelis-work/#/other/calendar-management): Lab calendar and scheduling management
+- [Style Guide v2 — Component Usage](https://digi-uw.github.io/openelis-work/designs/other/openelis-style-guide-v2-component-usage.md): Machine-readable mirror of the Style Guide v2 Component Usage library (Confluence, OG space). Delta-only: Carbon upstream by default; documents only where OpenELIS diverges, extends, or pins Carbon — version pin, per-component rules, ratification register (R1 tables, R2 dates, R5 pagination, R8 report archetypes, slide-over geometry), and a two-pass codebase evidence appendix.
+- [Constitution Amendment — Style Guide Library](https://digi-uw.github.io/openelis-work/designs/other/constitution-amendment-style-guide-library.md): Draft MINOR amendment expanding Constitution Principle II (Carbon Design System First) to bind the Style Guide library: documented deltas binding, no ad-hoc divergences, version-pin rule, badge semantics — plus PR-checklist addition, AGENTS.md/CLAUDE.md/CONTRIBUTING.md wiring, SYNC IMPACT REPORT block, and the ready-to-post constitution-amendment issue body.
 
 ## Pathology
 - [Pathology Case View](https://digi-uw.github.io/openelis-work/designs/pathology/pathology-case-view.md): Pathology case view and reporting redesign
@@ -150,6 +152,11 @@
 
 ## Patient
 - [Patient ID Card Scanning](https://digi-uw.github.io/openelis-work/designs/patient/patient-id-card-scanning.md): Patient ID card scanning and document management. Adds an Identification Documents accordion to patient registration and edit screens, plus a document count column and inline preview panel in patient search results. Supports file upload, camera capture, and clipboard paste; stores documents as FHIR Patient attachments with full audit trail and role-based permissions.
+
+## Results Portal
+- [Facility Results Portal](https://digi-uw.github.io/openelis-work/designs/portal/facility-results-portal.md): Read-only results-delivery portal (C3) for requesting facilities, running as a standalone lightweight mobile-first web app against the central FHIR R4 store — not an OpenELIS module. Clinicians log in (PractitionerRole-scoped, bundled Keycloak IdP with optional OIDC federation), see new released results since last visit with critical values pinned first, search by any requisition identifier, read released results on screen, and download the report PDF. Visibility honors the Test Catalog portal-visibility labels. Deliberately no ordering, acknowledgment, patient editing, or analytics.
+- [Patient Self-Registration](https://digi-uw.github.io/openelis-work/designs/portal/patient-self-registration.md): Kiosk-first patient self-registration form (Track R) on the same portal infrastructure as C3, creating candidate patient records — never trusted records. Candidates flow registry-first (POST to a client registry such as OpenCR for dedup) or directly to OpenELIS FHIR into flexible patient-matching; a candidate becomes orderable only when reception confirms it. Single looping flow (Welcome/language → 5-step form → Review → short code + QR), big type, helper-fillable. Reception scans the code and confirms in seconds. Personal-phone pre-registration is v2 of the same form.
+- [Results Portal — C0 Discovery Brief](https://digi-uw.github.io/openelis-work/designs/portal/results-portal-c0-discovery-brief.md): Pre-FRS discovery and sequencing brief for the OpenELIS Results Portal (country-agnostic; camp-network anchoring scenario). Records the 11 decisions normative for the C3 and Track R FRSs: C3 (facility/requester portal) ships first; separate lightweight app on the central FHIR server; implementer/MoH-operated (never DIGI-hosted); configurable data-layer visibility policy; PractitionerRole access with expiry/attestation; bundled IdP with optional federation; portal-before-messaging. Includes a per-country readiness checklist.
 
 ## Quality & EQA
 - [EQA Enrollment](https://digi-uw.github.io/openelis-work/designs/quality/eqa-enrollment-addendum.md): EQA program enrollment, self-enrollment, and provider management

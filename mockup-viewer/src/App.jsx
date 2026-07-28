@@ -2526,6 +2526,28 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-306', 'OGC-310'],
     tags: ['calendar', 'scheduling', 'holidays', 'admin'],
   },
+  {
+    name: 'Style Guide v2 — Component Usage',
+    category: 'other',
+    component: null,
+    description: 'Machine-readable mirror of the Style Guide v2 Component Usage library (Confluence, OG space). Delta-only: Carbon upstream by default; documents only where OpenELIS diverges, extends, or pins Carbon — version pin, per-component rules, ratification register (R1 tables, R2 dates, R5 pagination, R8 report archetypes, slide-over geometry), and a two-pass codebase evidence appendix.',
+    specPath: 'designs/other/openelis-style-guide-v2-component-usage.md',
+    added: '2026-07-28',
+    status: 'draft',
+    githubIssue: 244,
+    tags: ['style-guide', 'carbon', 'design-system', 'governance'],
+  },
+  {
+    name: 'Constitution Amendment — Style Guide Library',
+    category: 'other',
+    component: null,
+    description: 'Draft MINOR amendment expanding Constitution Principle II (Carbon Design System First) to bind the Style Guide library: documented deltas binding, no ad-hoc divergences, version-pin rule, badge semantics — plus PR-checklist addition, AGENTS.md/CLAUDE.md/CONTRIBUTING.md wiring, SYNC IMPACT REPORT block, and the ready-to-post constitution-amendment issue body.',
+    specPath: 'designs/other/constitution-amendment-style-guide-library.md',
+    added: '2026-07-28',
+    status: 'draft',
+    githubIssue: 245,
+    tags: ['constitution', 'governance', 'style-guide', 'carbon'],
+  },
 
   // ─── Blood Bank ───
   {

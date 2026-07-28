@@ -239,6 +239,8 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Report Level Signatures | — | [report-level-signatures.md](designs/other/report-level-signatures.md) |
 | Change Management Strategy | — | [change-management-strategy.md](designs/other/change-management-strategy.md) |
 | Environmental & Vector Testing Roadmap | — | [environmental-vector-roadmap.md](designs/other/environmental-vector-roadmap.md) |
+| Style Guide v2 — Component Usage | — | [openelis-style-guide-v2-component-usage.md](designs/other/openelis-style-guide-v2-component-usage.md) |
+| Constitution Amendment — Style Guide Library | — | [constitution-amendment-style-guide-library.md](designs/other/constitution-amendment-style-guide-library.md) |
 
 ---
 

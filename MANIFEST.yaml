@@ -3931,3 +3931,32 @@
     readiness checklist.
   links: {}
   added: "2026-07-27"
+- id: openelis-style-guide-v2-component-usage
+  type: spec
+  path: designs/other/openelis-style-guide-v2-component-usage.md
+  category: other
+  description: >
+    Style Guide v2 Component Usage — machine-readable mirror of the Confluence library
+    (OG page 1514864643). Delta-only: Carbon upstream by default; documents only where
+    OpenELIS diverges/extends/pins Carbon. Version pin (@carbon/react 1.15 line / Carbon
+    v11 / React 17), per-component rules, ratification register (R1 tables, R2 dates,
+    R5 pagination, R8 report archetypes, slide-over geometry), two-pass evidence appendix.
+  links:
+    confluence:
+      - https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1514864643
+    github_issue: 244
+  added: "2026-07-28"
+
+- id: constitution-amendment-style-guide-library
+  type: spec
+  path: designs/other/constitution-amendment-style-guide-library.md
+  category: other
+  description: >
+    Draft MINOR amendment expanding Constitution Principle II (Carbon Design System First)
+    to bind the Style Guide library — replacement principle text, PR-checklist addition,
+    AGENTS.md/CLAUDE.md/CONTRIBUTING.md agent-consumption wiring, SYNC IMPACT REPORT block,
+    and ready-to-post constitution-amendment issue body for DIGI-UW/OpenELIS-Global-2.
+  paired_with: openelis-style-guide-v2-component-usage
+  links:
+    github_issue: 245
+  added: "2026-07-28"
