@@ -1,5 +1,47 @@
 # openelis-design — Changelog
 
+## 2026-08-01 — monthly consolidation
+
+**Decision log unblocked.** Applied `upload/decision-log-additions.md` (D-035…D-042) *and* the
+missing D-028…D-034 test-catalog data-model rows, both of which existed only in the untracked
+working copy at `OpenELIS Feature Design/openelis-design-skill-src/`. Resolved the
+D-028/D-029 **ID collision** that had blocked three consecutive gallery-ledger runs: the
+test-catalog rows keep D-028/D-029 (cited by ID elsewhere) and the two orphaned 2026-07-01
+process decisions land as **D-043** (Epic-only `/breakdown`) and **D-044** (API & i18n reuse).
+
+**Three decisions superseded against live verification** on `testing.openelis-global.org`:
+- D-017 → **D-045**: EQA V2 is built (`/rest/eqa/programs`, `/…/enrollments`, `/my-programs`, `/orders/summary` all 200).
+- D-018 → **D-046**: Test↔Reagent linkage is built (`/rest/test-catalog/{testId}/reagents` 200; the flat `/rest/reagents` 404s).
+- D-019 → **D-047**: configurable Label Preset Management is built (`/MasterListsPage/labelPresets`).
+- New **D-048**: alert acknowledgment is built; only per-*result* critical ack remains.
+
+**Route inventory rebuilt from the shipped router.** Extracted all `Route,{path:…}`
+declarations from the live bundle instead of guessing at HTTP status (a SPA 200s on
+everything). Six documented routes are wrong or nonexistent — `/Inventory` (really
+`/inventory`), `/Storage/samples` (really `/Storage/sample-items`), `/AuditLog` + `/SystemLog`
+(really `/AuditTrailReport`), `/ResultsByPatient`, `/ResultsByOrder`, `/LOINCManagement` — and
+three admin `editorKey`s are stale (`eqaProgram`, `barcodeConfiguration`, `testManagement`).
+`/MasterListsPage/menuConfiguration` is genuinely absent, which explains BUG-49.
+
+**Constitution pointer resynced 1.10.0 → 1.11.0.** The re-sync trigger fired: upstream
+amended Principle VII on 2026-07-15 (commit `496c910`) with a mandatory **i18n Key Reuse &
+Hygiene** section, after finding `en.json` had grown 2,385 → 7,133 keys with ~25% duplicates
+and ~35% orphans. This makes D-044's reuse-first Localization table a *constitutional*
+requirement — minting a near-synonym key is now a CRITICAL `/analyze` finding, and
+`openelis-ui-vocabulary` is the tool for it. The July label discrepancy (footer 1.9.1 vs
+pointer 1.10.0) resolved itself upstream; noted separately that upstream's amendment log
+still stops at v1.9.1, so read the `**Version**` line rather than that list.
+
+**Also:** spec-registry gained Inventory redesign, QA/QC (Westgard) and Test catalog data
+model rows; carbon-anti-patterns gained the D-042 acknowledge-to-quiet refinement of P-16 and
+the D-037 managed-lookup-vs-tag guidance.
+
+**Not done (needs Casey):** the untracked `openelis-design-skill-src/` SKILL.md has diverged
+from the committed one (63KB vs 60KB, plus `docs-spine.md` and `test-catalog-data-model.md`
+that don't exist in the repo). Only the decision rows were promoted this cycle; reconciling
+the SKILL.md bodies is a judgement call, not an unattended one.
+
+
 ## 2026-07-01 — Monthly consolidation pass
 
 - constitution.md pointer: added a **2026-07-01 verification note**. Upstream governance footer

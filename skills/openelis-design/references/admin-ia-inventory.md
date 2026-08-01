@@ -30,15 +30,15 @@ name** — e.g. Application Properties → `commonproperties`, Site Information 
 | Analyzer Test Name | `AnalyzerTestName` |
 | Lab Number Management | `labNumber` |
 | Program Entry | `program` |
-| EQA Program Management | `eqaProgram` |
+| ~~EQA Program Management~~ | ~~`eqaProgram`~~ — ⚠ **not in the shipped router (2026-08-01)**; EQA is its own module at `/EQAManagement` |
 | Provider Management | `providerMenu` |
-| Barcode Configuration | `barcodeConfiguration` |
+| ~~Barcode Configuration~~ | ~~`barcodeConfiguration`~~ — ⚠ **not in the shipped router (2026-08-01)** |
 | List Plugins | `PluginFile` |
 | Organization Management | `organizationManagement` |
 | Result Reporting Configuration | `resultReportingConfiguration` |
 | User Management | `userManagement` |
 | Batch Test Reassignment | `batchTestReassignment` |
-| Test Management | `testManagement` |
+| Test Management | `testManagementConfigMenu` — ⚠ corrected 2026-08-01 (bare `testManagement` is not a route) |
 | Application Properties | `commonproperties` |
 | Test Notification Configuration | `testNotificationConfigMenu` |
 | Dictionary Menu | `DictionaryMenu` |
@@ -77,16 +77,23 @@ new work.
 ## Non-admin route patterns (for completeness)
 
 - **Results:** `/AccessionResults`, `/ResultsByPatient`, `/ResultsByOrder`
-- **Validation:** `/ResultValidation?type=routine|order`, `/AccessionValidation`
-- **Workplan:** `/WorkPlanByTest?type=test`, `/WorkPlanByPanel?type=panel`, `/WorkPlanByTestSection`, `/WorkPlanByPriority?type=priority`
-- **Reports:** `/Report?type=patient`; generation via JSP `/api/OpenELIS-Global/ReportPrint`
-- **Referrals:** `/SampleShipment/reference-lab-results`
-- **Analyzers:** `/analyzers`, `/analyzers/types`, `/analyzers/errors`
-- **EQA:** `/EQADistribution`, `/EQAManagement`, `/EQAParticipants`, `/EQAResults`
-- **Alerts:** `/Alerts` · **Inventory:** `/Inventory` · **Storage:** `/Storage`, `/Storage/samples` · **Aliquot:** `/Aliquot`
-- **Orders:** `/ElectronicOrders`, `/SampleBatchEntrySetup`, `/PrintBarcode`
-- **Pathology:** `/PathologyDashboard`, `/ImmunohistochemistryDashboard`, `/CytologyDashboard`
-- **Audit:** `/AuditLog`, `/SystemLog`
+- **Validation:** `/ResultValidation`, `/ResultValidationByTestDate`, `/AccessionValidation`, `/AccessionValidationRange`, `/validation`
+- **Workplan:** `/WorkplanByTest`, `/WorkplanByPanel`, `/WorkplanByPriority`, **`/WorkPlanByTestSection`** (⚠ only this one has a capital `P` — a real inconsistency in the app)
+- **Reports:** `/Report`, `/RoutineReport`, `/RoutineReports`, `/StudyReport`, `/StudyReports`, `/TATReport`; generation via JSP `/api/OpenELIS-Global/ReportPrint`
+- **Referrals:** `/SampleShipment`, `/SampleShipment/:tab`, `/SampleShipment/{receive,create-box,reports,settings}`, `/SampleShipment/box/:boxId`, `/ReferredOutTests`
+- **Analyzers:** `/analyzers`, `/analyzers/new`, `/analyzers/types`, `/analyzers/errors`, `/analyzers/custom-field-types`, `/analyzers/:id/{edit,mappings,qc-rules}`, `/analyzers/qc/{db,rule-config,control-lots,control-lots/new,control-lots/:id,charts/:analyzerId,instruments/:instrumentId}`
+- **EQA:** `/EQAManagement`, `/EQADistribution`, `/EQADistribution/create`, `/EQAMyPrograms`, `/EQAOrders`, `/EQAParticipants`, `/EQAResults`
+- **Alerts:** `/Alerts` · **Inventory:** `/inventory` (⚠ lowercase) · **Aliquot:** `/Aliquot` · **Freezer:** `/FreezerMonitoring`
+- **Storage:** `/Storage` + `/Storage/{rooms,devices,shelves,racks,boxes}` (each with `/new` and `/:id/edit`) and `/Storage/sample-items`, `/Storage/sample-items/:id/manage-location` (⚠ **`/Storage/samples` is not a route**)
+- **Orders/Results:** `/ElectronicOrders`, `/SampleBatchEntrySetup`, `/PrintBarcode`, `/SamplePatientEntry`, `/SampleEdit`, `/ModifyOrder`, `/SampleManagement`, `/order`, `/result`, `/Results`, `/LogbookResults`, `/AccessionResults`, `/PatientResults(/:patientId)`, `/RangeResults`, `/StatusResults`, `/AnalyzerResults`
+- **Order wizard steps:** `<base>/enter`, `<base>/collect`, `<base>/label`, `<base>/qa`
+- **Patient:** `/PatientManagement/:patientId?`, `/PatientHistory`, `/PatientMerge`
+- **Pathology:** `/PathologyDashboard`, `/CytologyDashboard`, `/ImmunohistochemistryDashboard` (+ `…CaseView/:sampleId` for each)
+- **NCE:** `/NceDashboard`, `/ReportNonConformingEvent`, `/ViewNonConformingEvent`, `/NCECorrectiveAction`
+- **NoteBook:** `/NoteBookDashboard`, `/NoteBookEntryForm(/:notebookid)`, `/NoteBookInstanceEntryForm/:notebookid`, `/NoteBookInstanceEditForm/:notebookentryid`, `/NotebookSampleOrder/:notebookId(/:notebookEntryId)`
+- **Generic/Program:** `/GenericSample/{Order,Edit,Import,Results}`, `/genericProgram`, `/programView/:programSampleId`
+- **Audit:** `/AuditTrailReport` (nav link `?type=system`) — ⚠ `/AuditLog` and `/SystemLog` are **not routes**
+- **Not routes at all (previously listed here in error):** `/ResultsByPatient`, `/ResultsByOrder`, `/LOINCManagement`, `/MasterListsPage/LOINCCodes`, `/Inventory` (capital I), `/Storage/samples`, `/MasterListsPage/menuConfiguration` (its absence is what makes BUG-49 render blank)
 
 ## Breadcrumb quirk
 SideNav reads "Admin"; breadcrumbs read "Admin Management". Preserve this drift in specs
@@ -94,6 +101,19 @@ that render breadcrumbs.
 
 ---
 
+## Two admin prefixes
+Admin pages ship under **both** `/MasterListsPage/<editorKey>` **and** `/admin/<editorKey>`.
+`languageManagement` and `translationManagement` are linked from the nav as
+`/admin/languageManagement` and `/admin/translationManagement`. Check which prefix the nav
+uses before declaring a route.
+
+---
+
 ## Maintenance
-Snapshot taken from QA Section 4 (v3.2.1.x). When the QA skill's confirmed-URL table
-updates, re-sync this file. Flag any route you couldn't re-verify on the live instance.
+**Re-verified 2026-08-01** against `testing.openelis-global.org` by extracting the shipped
+SPA router (`Route,{path:…}`) and the SideNav `link:` map from the live bundle, then probing
+the REST surface with an authenticated session. This is a stronger check than HTTP status —
+a React SPA returns 200 for any path, so status codes cannot confirm a frontend route.
+Three admin `editorKey`s were found stale and are struck through above; the non-admin
+sections were rewritten from the router output. Repeat this extraction each cycle rather
+than re-checking routes by hand.

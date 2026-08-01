@@ -1,5 +1,23 @@
 # analyzer-mapping-spec — Changelog
 
+## 2026-08-01 — monthly consolidation
+
+**Resolved the canonical analyzer-profile home** (open since this reference was written).
+Neither original candidate won: profiles live in a **two-tier** arrangement — the distro's
+`configs/analyzer-profiles/` (mounted as `/data/analyzer-profiles`) is authoritative for
+deployed environments, and `projects/analyzer-profiles/{astm,hl7,file}/` in
+`DIGI-UW/OpenELIS-Global-2` is a **dev/test mirror**; the distro wins on drift, and new
+profiles go to the distro first. It is **not** the analyzer plugins repo. Recorded the
+13-profile mirror roster verified on `develop`, the authoring order, and the four downstream
+consumers (seed script, AnalyzerForm "Default Config" picker, bridge registration, mock
+server). Specs should stop declaring the profile home as an open dependency — but the
+"adapt by LOINC, there is still no community registry" caution stands.
+
+**Bundle/source drift fixed.** `references/multi-component-mapping.md` (MC-1..5, OGC-1131)
+existed only inside the packaged `analyzer-mapping-spec.skill` and was missing from
+`skills/analyzer-mapping-spec/references/`. Restored to the source tree so the checked-in
+directory is once again the complete truth and future repackaging can't silently drop it.
+
 ## 2026-06-18 (round 3) — LOINC reuse is Default-TC-conditional
 
 - Corrected the reuse claim: a profile's LOINC panel only auto-matches a deployment whose test

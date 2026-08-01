@@ -10,24 +10,39 @@
 
 ---
 
-## Where profiles live (and an open question)
+## Where profiles live — RESOLVED 2026-08-01
 
-Profiles ship inside **distro** config sets. The one we've seen:
-`DIGI-UW/openelis-madagascar-distro` → `configs/analyzer-profiles/{astm,hl7,file}/*.json`.
+The canonical-home question is settled, and the answer is a **two-tier** arrangement rather
+than either of the candidates that were originally on the table (it is **not** the analyzer
+plugins repo):
 
-⚠ **A distro set is distro-specific, not the universal source of truth.** The Madagascar set
-is *one deployment's* profiles (its LOINCs/tests reflect that catalog). Use it as a **reference
-example to adapt**, not as the canonical registry for every site.
+| Tier | Location | Role |
+|---|---|---|
+| **Authoritative (deployed)** | the distro's `configs/analyzer-profiles/` — mounted into the webapp as **`/data/analyzer-profiles`** | source of truth for a running deployment |
+| **Mirror (dev/test)** | `DIGI-UW/OpenELIS-Global-2` → **`projects/analyzer-profiles/{astm,hl7,file}/`** | local development + unit tests only |
 
-**Open question (dependency, not yet resolved):** where should a *canonical / community* profile
-set live so it's reused across deployments? Candidates:
-- the **analyzer plugins repo** (a community-maintained set), or
-- a **base set packaged with openelis-global** (the "shipped base catalog of profiles" the
-  Analyzer Types & Mapping FRS anticipates).
+**When the two drift, the distro wins.** Authoring rule: place a new profile in the
+authoritative distro location **first**, then sync it to the repo mirror — never the reverse.
 
-Until that's decided, treat distro sets as examples and **flag the canonical home as a
-dependency** in specs that assume reusable shipped profiles. Don't declare any one distro as
-the source.
+The mirror is a real starting set, not a stub (verified on `develop` 2026-08-01): ASTM —
+`genexpert-astm`, `horiba-micros60`, `horiba-pentra60`, `mindray-ba88a`, `stago-start4`,
+`sysmex-xn`; HL7 — `abbott-architect`, `genexpert-hl7`, `mindray-bc2000`, `mindray-bc5380`,
+`mindray-bs200`, `mindray-bs300`, `mindray-bs360e`; plus a `file/` set for GenericFile.
+
+**What this does and doesn't change for specs.** The structural question is answered, so stop
+flagging "where do profiles live" as an open dependency. But the substantive caution below
+still holds: **there is still no cross-deployment *community* profile registry.** Every
+profile — mirror included — carries the LOINCs and test names of the catalog it was authored
+against. Adapt by LOINC; never assume another deployment's value names.
+
+**Consumers to keep in mind** when a spec touches profiles: the seed script
+`projects/analyzer-harness/seed-analyzers.sh`; the unified
+`frontend/src/components/analyzers/AnalyzerForm/AnalyzerForm.jsx` ("Default Config" picker);
+bridge registration on analyzer creation (`tools/openelis-analyzer-bridge/`); and the mock
+server's peer templates. Profiles are **read-only runtime assets**.
+
+> Source: `DIGI-UW/OpenELIS-Global-2` → `projects/analyzer-profiles/README.md` (branch
+> `develop`, read 2026-08-01).
 
 ---
 
@@ -137,12 +152,17 @@ the catalog test.
    transport/port/framing, identifier pattern, QC rule field, aggregation. Don't inherit these
    blindly — they differ even within a manufacturer.
 5. **Carry the confidence + notes forward** honestly; downgrade if you couldn't verify.
-6. If no profile exists, build one to the schema above and (once validated) contribute it back
-   to wherever the canonical home lands — see the open question.
+6. If no profile exists, build one to the schema above and (once validated) contribute it back:
+   into the **distro's** `configs/analyzer-profiles/` first, then sync to the
+   `projects/analyzer-profiles/` mirror in `OpenELIS-Global-2`.
 
 ---
 
 ## Maintenance
 This file documents the schema + reuse discipline; it deliberately does **not** copy the
-profiles themselves (that would drift). When the canonical-home question is resolved, update the
-"Where profiles live" section to point at it.
+profiles themselves (that would drift).
+
+**2026-08-01 (monthly consolidation):** the canonical-home open question is **resolved** —
+distro `configs/analyzer-profiles/` is authoritative for deployments, `projects/analyzer-profiles/`
+in `OpenELIS-Global-2` is a dev/test mirror, distro wins on drift. Re-check the mirror's profile
+roster each cycle; it grows as new analyzers are integrated.
