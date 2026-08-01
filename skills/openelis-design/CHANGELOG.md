@@ -23,6 +23,15 @@ everything). Six documented routes are wrong or nonexistent — `/Inventory` (re
 three admin `editorKey`s are stale (`eqaProgram`, `barcodeConfiguration`, `testManagement`).
 `/MasterListsPage/menuConfiguration` is genuinely absent, which explains BUG-49.
 
+**Constitution pointer resynced 1.10.0 → 1.11.0.** The re-sync trigger fired: upstream
+amended Principle VII on 2026-07-15 (commit `496c910`) with a mandatory **i18n Key Reuse &
+Hygiene** section, after finding `en.json` had grown 2,385 → 7,133 keys with ~25% duplicates
+and ~35% orphans. This makes D-044's reuse-first Localization table a *constitutional*
+requirement — minting a near-synonym key is now a CRITICAL `/analyze` finding, and
+`openelis-ui-vocabulary` is the tool for it. The July label discrepancy (footer 1.9.1 vs
+pointer 1.10.0) resolved itself upstream; noted separately that upstream's amendment log
+still stops at v1.9.1, so read the `**Version**` line rather than that list.
+
 **Also:** spec-registry gained Inventory redesign, QA/QC (Westgard) and Test catalog data
 model rows; carbon-anti-patterns gained the D-042 acknowledge-to-quiet refinement of P-16 and
 the D-037 managed-lookup-vs-tag guidance.
