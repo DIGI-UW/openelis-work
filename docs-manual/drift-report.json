@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-25T08:40:53.514Z",
+  "generatedAt": "2026-08-01T08:42:23.792Z",
   "sections": [
     {
       "id": "add-patient",
@@ -11,22 +11,22 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:36:28.248Z",
+      "checkedAt": "2026-08-01T08:37:09.036Z",
       "codeChanged": {
-        "count": 2,
+        "count": 4,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/patient"
         ],
         "branches": {
           "develop": 2,
-          "demo-silnas": 0
+          "demo-silnas": 2
         },
         "latest": {
           "sha": "7c68759",
           "date": "2026-07-17",
           "msg": "Week 7: migrate patient management workflows to TypeScript (#3872)",
-          "branch": "develop"
+          "branch": "demo-silnas"
         }
       }
     },
@@ -42,9 +42,9 @@
         "/MasterListsPage/TestModifyEntry :: SOP Max Holding Time"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:16.390Z",
+      "checkedAt": "2026-08-01T08:41:38.926Z",
       "codeChanged": {
-        "count": 1,
+        "count": 2,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/admin/testManagement",
@@ -52,13 +52,13 @@
         ],
         "branches": {
           "develop": 1,
-          "demo-silnas": 0
+          "demo-silnas": 1
         },
         "latest": {
           "sha": "0f4890a",
           "date": "2026-07-17",
           "msg": "feat(test-catalog): Test Catalog Completion v2 (OGC-1142) (#3859)",
-          "branch": "develop"
+          "branch": "demo-silnas"
         }
       }
     },
@@ -71,7 +71,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:19.014Z",
+      "checkedAt": "2026-08-01T08:41:41.878Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -94,7 +94,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:39:55.555Z",
+      "checkedAt": "2026-08-01T08:41:19.234Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-06-24",
@@ -124,7 +124,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:40.260Z"
+      "checkedAt": "2026-08-01T08:42:07.843Z"
     },
     {
       "id": "analyzer-file-import",
@@ -135,9 +135,9 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:36:30.918Z",
+      "checkedAt": "2026-08-01T08:37:12.522Z",
       "codeChanged": {
-        "count": 1,
+        "count": 2,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/analyzers",
@@ -145,13 +145,13 @@
         ],
         "branches": {
           "develop": 1,
-          "demo-silnas": 0
+          "demo-silnas": 1
         },
         "latest": {
           "sha": "4223f54",
           "date": "2026-07-20",
           "msg": "Week 3: migrate analyzer components and services to TypeScript (#3705)",
-          "branch": "develop"
+          "branch": "demo-silnas"
         }
       }
     },
@@ -164,22 +164,22 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:36:33.578Z",
+      "checkedAt": "2026-08-01T08:37:15.740Z",
       "codeChanged": {
-        "count": 1,
+        "count": 2,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/analyzers"
         ],
         "branches": {
           "develop": 1,
-          "demo-silnas": 0
+          "demo-silnas": 1
         },
         "latest": {
           "sha": "4223f54",
           "date": "2026-07-20",
           "msg": "Week 3: migrate analyzer components and services to TypeScript (#3705)",
-          "branch": "develop"
+          "branch": "demo-silnas"
         }
       }
     },
@@ -193,7 +193,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:37:48.621Z"
+      "checkedAt": "2026-08-01T08:38:51.659Z"
     },
     {
       "id": "barcode-labels",
@@ -204,7 +204,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:36:36.239Z",
+      "checkedAt": "2026-08-01T08:37:18.858Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -229,7 +229,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:39:07.063Z"
+      "checkedAt": "2026-08-01T08:40:17.289Z"
     },
     {
       "id": "calendar-management",
@@ -241,7 +241,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:39:15.071Z"
+      "checkedAt": "2026-08-01T08:40:26.229Z"
     },
     {
       "id": "dictionary-menu",
@@ -253,7 +253,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:39:01.741Z"
+      "checkedAt": "2026-08-01T08:40:11.847Z"
     },
     {
       "id": "electronic-lab-notebook",
@@ -264,7 +264,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:36:38.915Z",
+      "checkedAt": "2026-08-01T08:37:21.895Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -287,9 +287,9 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:36:44.327Z",
+      "checkedAt": "2026-08-01T08:37:27.893Z",
       "codeChanged": {
-        "count": 3,
+        "count": 7,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/esignature",
@@ -297,13 +297,13 @@
         ],
         "branches": {
           "develop": 3,
-          "demo-silnas": 0
+          "demo-silnas": 4
         },
         "latest": {
-          "sha": "1da9569",
-          "date": "2026-07-11",
-          "msg": "feat(test-catalog): is_primary component flag + runtime multi-component result entry + config-loader bridges (OGC-949) (",
-          "branch": "develop"
+          "sha": "26b929d",
+          "date": "2026-07-21",
+          "msg": "Merge upstream/develop into demo-silnas",
+          "branch": "demo-silnas"
         }
       }
     },
@@ -317,9 +317,9 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:39:33.387Z",
+      "checkedAt": "2026-08-01T08:40:54.790Z",
       "codeChanged": {
-        "count": 14,
+        "count": 20,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/order",
@@ -327,13 +327,13 @@
           "frontend/src/components/compliance"
         ],
         "branches": {
-          "develop": 2,
-          "demo-silnas": 12
+          "develop": 3,
+          "demo-silnas": 17
         },
         "latest": {
-          "sha": "d89c477",
-          "date": "2026-07-24",
-          "msg": "feat(catalog): test\u2194sample-type many-to-many \u2014 one test, many specimens + per-specimen override (OGC-1145) (#3907)",
+          "sha": "24a854f",
+          "date": "2026-07-31",
+          "msg": "fix(order): do not crash Sample Entry when the departments load fails (#3962)",
           "branch": "develop"
         }
       }
@@ -347,9 +347,9 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:39:47.577Z",
+      "checkedAt": "2026-08-01T08:41:09.794Z",
       "codeChanged": {
-        "count": 17,
+        "count": 27,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/order",
@@ -358,13 +358,13 @@
         ],
         "branches": {
           "develop": 7,
-          "demo-silnas": 10
+          "demo-silnas": 20
         },
         "latest": {
-          "sha": "c117f3b",
-          "date": "2026-07-22",
-          "msg": "feat(results): unified /Results worklist with per-analysis save \u2014 R1 of OGC-811 (OGC-1020) (#3890)",
-          "branch": "develop"
+          "sha": "6934327",
+          "date": "2026-07-24",
+          "msg": "Merge upstream/develop (latest, b3ad665b3) into demo-silnas sync branch",
+          "branch": "demo-silnas"
         }
       }
     },
@@ -377,7 +377,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:36:52.333Z",
+      "checkedAt": "2026-08-01T08:37:46.287Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-24",
@@ -401,7 +401,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:37:43.300Z"
+      "checkedAt": "2026-08-01T08:38:45.723Z"
     },
     {
       "id": "laporan-hasil-report",
@@ -413,7 +413,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:50.853Z",
+      "checkedAt": "2026-08-01T08:42:20.784Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-07-23",
@@ -437,7 +437,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:38:56.399Z"
+      "checkedAt": "2026-08-01T08:40:01.385Z"
     },
     {
       "id": "menu-configuration",
@@ -449,7 +449,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:39:12.410Z"
+      "checkedAt": "2026-08-01T08:40:23.053Z"
     },
     {
       "id": "nce-capa",
@@ -460,7 +460,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:37:00.387Z",
+      "checkedAt": "2026-08-01T08:37:55.202Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-06-24",
@@ -489,9 +489,9 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:37:03.115Z",
+      "checkedAt": "2026-08-01T08:37:58.219Z",
       "codeChanged": {
-        "count": 9,
+        "count": 15,
         "since": "2026-06-30",
         "paths": [
           "frontend/src/components/order",
@@ -499,13 +499,13 @@
           "frontend/src/components/sample"
         ],
         "branches": {
-          "develop": 2,
-          "demo-silnas": 7
+          "develop": 3,
+          "demo-silnas": 12
         },
         "latest": {
-          "sha": "d89c477",
-          "date": "2026-07-24",
-          "msg": "feat(catalog): test\u2194sample-type many-to-many \u2014 one test, many specimens + per-specimen override (OGC-1145) (#3907)",
+          "sha": "24a854f",
+          "date": "2026-07-31",
+          "msg": "fix(order): do not crash Sample Entry when the departments load fails (#3962)",
           "branch": "develop"
         }
       }
@@ -520,7 +520,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:34.957Z"
+      "checkedAt": "2026-08-01T08:42:00.425Z"
     },
     {
       "id": "organization-management",
@@ -532,7 +532,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:37:37.978Z",
+      "checkedAt": "2026-08-01T08:38:39.806Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-30",
@@ -555,21 +555,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:37:05.765Z",
+      "checkedAt": "2026-08-01T08:38:01.211Z",
       "codeChanged": {
-        "count": 15,
+        "count": 31,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/admin"
         ],
         "branches": {
-          "develop": 13,
-          "demo-silnas": 2
+          "develop": 14,
+          "demo-silnas": 17
         },
         "latest": {
-          "sha": "d89c477",
-          "date": "2026-07-24",
-          "msg": "feat(catalog): test\u2194sample-type many-to-many \u2014 one test, many specimens + per-specimen override (OGC-1145) (#3907)",
+          "sha": "f45c5a0",
+          "date": "2026-07-28",
+          "msg": "feat: implement comprehensive Sample Type Management with enhanced Ad\u2026 (#3625)",
           "branch": "develop"
         }
       }
@@ -584,7 +584,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:32.313Z"
+      "checkedAt": "2026-08-01T08:41:57.393Z"
     },
     {
       "id": "patient-merge",
@@ -596,7 +596,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:42.918Z"
+      "checkedAt": "2026-08-01T08:42:10.839Z"
     },
     {
       "id": "patient-order-enhancements",
@@ -607,22 +607,22 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:37:11.116Z",
+      "checkedAt": "2026-08-01T08:38:07.138Z",
       "codeChanged": {
-        "count": 2,
+        "count": 4,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/patient"
         ],
         "branches": {
           "develop": 2,
-          "demo-silnas": 0
+          "demo-silnas": 2
         },
         "latest": {
           "sha": "7c68759",
           "date": "2026-07-17",
           "msg": "Week 7: migrate patient management workflows to TypeScript (#3872)",
-          "branch": "develop"
+          "branch": "demo-silnas"
         }
       }
     },
@@ -636,7 +636,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:37:45.960Z"
+      "checkedAt": "2026-08-01T08:38:48.718Z"
     },
     {
       "id": "provider-management",
@@ -648,7 +648,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:37:40.631Z",
+      "checkedAt": "2026-08-01T08:38:42.724Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-30",
@@ -672,7 +672,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:53.508Z",
+      "checkedAt": "2026-08-01T08:42:23.781Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-07-23",
@@ -696,7 +696,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:39:04.400Z"
+      "checkedAt": "2026-08-01T08:40:14.612Z"
     },
     {
       "id": "register-new-patient",
@@ -708,7 +708,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:45.563Z"
+      "checkedAt": "2026-08-01T08:42:13.804Z"
     },
     {
       "id": "result-reporting-configuration",
@@ -720,7 +720,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:39:17.721Z"
+      "checkedAt": "2026-08-01T08:40:29.287Z"
     },
     {
       "id": "result-validation",
@@ -731,22 +731,22 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:37:19.135Z",
+      "checkedAt": "2026-08-01T08:38:16.230Z",
       "codeChanged": {
-        "count": 3,
+        "count": 7,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/validation"
         ],
         "branches": {
           "develop": 3,
-          "demo-silnas": 0
+          "demo-silnas": 4
         },
         "latest": {
-          "sha": "1da9569",
-          "date": "2026-07-11",
-          "msg": "feat(test-catalog): is_primary component flag + runtime multi-component result entry + config-loader bridges (OGC-949) (",
-          "branch": "develop"
+          "sha": "26b929d",
+          "date": "2026-07-21",
+          "msg": "Merge upstream/develop into demo-silnas",
+          "branch": "demo-silnas"
         }
       }
     },
@@ -760,7 +760,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:24.346Z"
+      "checkedAt": "2026-08-01T08:41:49.249Z"
     },
     {
       "id": "running-reports",
@@ -772,7 +772,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:29.658Z"
+      "checkedAt": "2026-08-01T08:41:54.565Z"
     },
     {
       "id": "sample-acceptance-checklist",
@@ -784,7 +784,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:21.660Z",
+      "checkedAt": "2026-08-01T08:41:44.816Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-30",
@@ -807,7 +807,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:37:24.521Z",
+      "checkedAt": "2026-08-01T08:38:22.299Z",
       "codeChanged": {
         "count": 2,
         "since": "2026-06-24",
@@ -836,7 +836,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:37.612Z"
+      "checkedAt": "2026-08-01T08:42:03.769Z"
     },
     {
       "id": "sample-storage-management",
@@ -847,23 +847,23 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:37:32.653Z",
+      "checkedAt": "2026-08-01T08:38:34.294Z",
       "codeChanged": {
-        "count": 1,
+        "count": 2,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/storage",
           "frontend/src/components/coldStorage"
         ],
         "branches": {
-          "develop": 0,
+          "develop": 1,
           "demo-silnas": 1
         },
         "latest": {
-          "sha": "78c2a85",
-          "date": "2026-06-25",
-          "msg": "fix(storage): show skipped status in order 'label and store' step, guard hierarchy form submissions (#3771)",
-          "branch": "demo-silnas"
+          "sha": "bd5e25c",
+          "date": "2026-07-31",
+          "msg": "issue-3743: fix seconds/millisecond timestamp handling in Cold Storage (#3811)",
+          "branch": "develop"
         }
       }
     },
@@ -877,7 +877,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:37:53.983Z"
+      "checkedAt": "2026-08-01T08:38:57.565Z"
     },
     {
       "id": "site-information",
@@ -889,7 +889,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:39:09.730Z"
+      "checkedAt": "2026-08-01T08:40:20.069Z"
     },
     {
       "id": "test-notification-configuration",
@@ -901,7 +901,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:37:51.302Z"
+      "checkedAt": "2026-08-01T08:38:54.612Z"
     },
     {
       "id": "user-management",
@@ -913,7 +913,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:38:59.067Z"
+      "checkedAt": "2026-08-01T08:40:04.944Z"
     },
     {
       "id": "validation",
@@ -925,7 +925,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:26.999Z"
+      "checkedAt": "2026-08-01T08:41:51.859Z"
     },
     {
       "id": "vector-surveillance",
@@ -942,7 +942,7 @@
         "/vector/identification :: Split"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:39:39.173Z",
+      "checkedAt": "2026-08-01T08:41:01.225Z",
       "codeChanged": {
         "count": 9,
         "since": "2026-06-24",
@@ -972,7 +972,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-07-25T08:40:48.211Z",
+      "checkedAt": "2026-08-01T08:42:17.016Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-07-23",

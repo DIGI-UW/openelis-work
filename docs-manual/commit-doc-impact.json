@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-25T08:42:02Z",
+  "generatedAt": "2026-08-01T08:44:17Z",
   "repo": "DIGI-UW/OpenELIS-Global-2",
   "branchesWatched": [
     "develop",
@@ -7,29 +7,48 @@
   ],
   "windows": {
     "develop": {
-      "base": "5d8b5324",
-      "head": "6b8c6e05",
-      "commitCount": 72,
+      "base": "568f3240",
+      "head": "6e7a225e",
+      "commitCount": 85,
       "windowDays": 30
     },
     "demo-silnas": {
-      "base": "e819cdbb",
-      "head": "63e8fc0f",
-      "commitCount": 12,
+      "base": "568f3240",
+      "head": "5fa095f3",
+      "commitCount": 120,
       "windowDays": 30
     }
   },
   "uncovered": [
     {
-      "componentDir": "frontend/src/components/layout",
+      "componentDir": "frontend/src/components/common",
       "branches": [
+        "demo-silnas",
         "develop"
       ],
-      "fileCount": 10,
+      "fileCount": 9,
+      "files": [
+        "frontend/src/components/common/CustomDatePicker.jsx",
+        "frontend/src/components/common/CustomDatePicker.test.jsx",
+        "frontend/src/components/common/PageTitle/PageTitle.test.tsx",
+        "frontend/src/components/common/PageTitle/PageTitle.tsx",
+        "frontend/src/components/common/cascadingMultiSelect.jsx",
+        "frontend/src/components/common/useDomains.js",
+        "frontend/src/components/common/CustomSelect.jsx",
+        "frontend/src/components/common/useUrlFilters.js",
+        "frontend/src/components/common/useUrlFilters.test.jsx"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/layout",
+      "branches": [
+        "demo-silnas",
+        "develop"
+      ],
+      "fileCount": 9,
       "files": [
         "frontend/src/components/layout/Header.jsx",
         "frontend/src/components/layout/Header.test.jsx",
-        "frontend/src/components/layout/HelpMenu.jsx",
         "frontend/src/components/layout/Layout.jsx",
         "frontend/src/components/layout/Layout.test.jsx",
         "frontend/src/components/layout/_archive/TwoModeLayout.css",
@@ -40,26 +59,9 @@
       ]
     },
     {
-      "componentDir": "frontend/src/components/common",
-      "branches": [
-        "demo-silnas",
-        "develop"
-      ],
-      "fileCount": 8,
-      "files": [
-        "frontend/src/components/common/CustomDatePicker.jsx",
-        "frontend/src/components/common/CustomDatePicker.test.jsx",
-        "frontend/src/components/common/PageTitle/PageTitle.test.tsx",
-        "frontend/src/components/common/PageTitle/PageTitle.tsx",
-        "frontend/src/components/common/cascadingMultiSelect.jsx",
-        "frontend/src/components/common/CustomSelect.jsx",
-        "frontend/src/components/common/useUrlFilters.js",
-        "frontend/src/components/common/useUrlFilters.test.jsx"
-      ]
-    },
-    {
       "componentDir": "frontend/src/components/data",
       "branches": [
+        "demo-silnas",
         "develop"
       ],
       "fileCount": 8,
@@ -75,23 +77,74 @@
       ]
     },
     {
+      "componentDir": "frontend/src/components/vectorIdentification",
+      "branches": [
+        "demo-silnas"
+      ],
+      "fileCount": 8,
+      "files": [
+        "frontend/src/components/vectorIdentification/VectorBulkApplyTile.jsx",
+        "frontend/src/components/vectorIdentification/VectorDeconvolutionWorklist.jsx",
+        "frontend/src/components/vectorIdentification/VectorIdentificationService.js",
+        "frontend/src/components/vectorIdentification/VectorIdentificationWorklist.jsx",
+        "frontend/src/components/vectorIdentification/VectorInlineDeconPanel.jsx",
+        "frontend/src/components/vectorIdentification/VectorLotDetail.jsx",
+        "frontend/src/components/vectorIdentification/VectorSpecimenForm.jsx",
+        "frontend/src/components/vectorIdentification/index.js"
+      ]
+    },
+    {
       "componentDir": "frontend/src/components/utils",
       "branches": [
         "demo-silnas",
         "develop"
       ],
-      "fileCount": 5,
+      "fileCount": 4,
       "files": [
         "frontend/src/components/utils/BrandingUtils.ts",
         "frontend/src/components/utils/JsonPath.ts",
         "frontend/src/components/utils/PathRoute.tsx",
-        "frontend/src/components/utils/Utils.ts",
-        "frontend/src/components/utils/Utils.js"
+        "frontend/src/components/utils/Utils.ts"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/formModel",
+      "branches": [
+        "demo-silnas"
+      ],
+      "fileCount": 4,
+      "files": [
+        "frontend/src/components/formModel/innitialValues/OrderEntryFormValues.js",
+        "frontend/src/components/formModel/innitialValues/ReferredOutTestsFormValues.js",
+        "frontend/src/components/formModel/innitialValues/SearchResultFormValues.js",
+        "frontend/src/components/formModel/validationSchema/OrderEntryValidationSchema.js"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/reports",
+      "branches": [
+        "demo-silnas"
+      ],
+      "fileCount": 2,
+      "files": [
+        "frontend/src/components/reports/Routine.jsx",
+        "frontend/src/components/reports/routine/Index.jsx"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/ChangePassword.jsx",
+      "branches": [
+        "develop"
+      ],
+      "fileCount": 1,
+      "files": [
+        "frontend/src/components/ChangePassword.jsx"
       ]
     },
     {
       "componentDir": "frontend/src/components/Style.css",
       "branches": [
+        "demo-silnas",
         "develop"
       ],
       "fileCount": 1,
@@ -102,6 +155,7 @@
     {
       "componentDir": "frontend/src/components/analyserResults",
       "branches": [
+        "demo-silnas",
         "develop"
       ],
       "fileCount": 1,
@@ -110,8 +164,19 @@
       ]
     },
     {
+      "componentDir": "frontend/src/components/batchOrderEntry",
+      "branches": [
+        "develop"
+      ],
+      "fileCount": 1,
+      "files": [
+        "frontend/src/components/batchOrderEntry/SampleBatchEntrySetup.jsx"
+      ]
+    },
+    {
       "componentDir": "frontend/src/components/cytology",
       "branches": [
+        "demo-silnas",
         "develop"
       ],
       "fileCount": 1,
@@ -120,18 +185,9 @@
       ]
     },
     {
-      "componentDir": "frontend/src/components/inventory",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 1,
-      "files": [
-        "frontend/src/components/inventory/LotEntryModal.jsx"
-      ]
-    },
-    {
       "componentDir": "frontend/src/components/security",
       "branches": [
+        "demo-silnas",
         "develop"
       ],
       "fileCount": 1,
@@ -140,13 +196,33 @@
       ]
     },
     {
-      "componentDir": "frontend/src/components/formModel",
+      "componentDir": "frontend/src/components/alerts",
       "branches": [
         "demo-silnas"
       ],
       "fileCount": 1,
       "files": [
-        "frontend/src/components/formModel/innitialValues/ReferredOutTestsFormValues.js"
+        "frontend/src/components/alerts/AlertsDashboard.jsx"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/home",
+      "branches": [
+        "demo-silnas"
+      ],
+      "fileCount": 1,
+      "files": [
+        "frontend/src/components/home/Dashboard.tsx"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/notifications",
+      "branches": [
+        "demo-silnas"
+      ],
+      "fileCount": 1,
+      "files": [
+        "frontend/src/components/notifications/SlideOverNotifications.jsx"
       ]
     }
   ]
