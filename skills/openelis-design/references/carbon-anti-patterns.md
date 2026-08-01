@@ -105,3 +105,25 @@ Narrow exception: transient, non-clinical scratch data with no audit or referent
 - [ ] No site/tenant/lab selector
 - [ ] No invented per-action permission keys
 - [ ] Preview fully fleshed out — no stubbed sections, realistic data, interactive
+- [ ] Managed lookup vs free tag — if the entity carries no behaviour of its own, use a tag
+- [ ] Persistent operational criticals offer acknowledge-to-quiet (not a permanent red banner)
+
+---
+
+## Alerts: dismissibility (refines P-16)
+
+P-16 keeps *transient* criticals non-dismissible. **D-042 refines this:** a **persistent
+operational critical** (chronic stock-out, an instrument down for weeks) gets
+**acknowledge-to-quiet** — the user acknowledges, the banner stops shouting, the condition
+stays visible in its own surface. An always-red banner in a chronically-short lab becomes
+wallpaper and trains people to ignore every banner. Compose from the shipped ack model
+(`POST /rest/alerts/{id}/acknowledge`, `AlertAcknowledgeModal`, `acknowledgmentRequired`),
+don't invent a parallel one (D-048).
+
+## Managed lookup vs. free-form tag (D-037)
+
+Before adding a managed lookup entity + its CRUD admin page, ask what the entity carries
+that couldn't live on the item itself or be derived. If the answer is "nothing", make it a
+**free-form tag** and skip the admin page. Precedent: inventory item "type" became a tag,
+track-lots became a per-item property, and auto-consume is derived from the Test↔Reagent
+link — which closed OGC-658 as superseded (D-038).
