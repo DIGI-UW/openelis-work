@@ -627,12 +627,15 @@
   path: designs/microbiology/m-03-order-entry-micro-hook.md
   category: microbiology
   description: >
-    M-03: Order Entry Step 1 amendment — six micro fields when Program = MICROBIOLOGY.
+    M-03: Order Entry Step 1 amendment — seven micro fields when Program = MICROBIOLOGY,
+    including Date of Admission, the missing input for the WHO GLASS hospital- vs
+    community-origin (HO/CO/UNK) derivation consumed by M-09.
   links:
     jira: ["OGC-789"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-03-order-entry-micro-hook
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-03-order-entry-step1.html
   added: "2026-05-15"
+  updated: "2026-08-05"
 
 - id: m-04-case-workbench-core
   type: spec
