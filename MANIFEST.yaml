@@ -3166,6 +3166,10 @@
     (no separate page); Deactivate/Reactivate lifecycle (no hard delete) with a Show-deactivated
     toggle; Carbon ContentSwitcher (Visual Builder ↔ JSON) with a live "Example" preview pane;
     multi Lab-unit select; heavy on-screen guidance; API & i18n reuse guardrails.
+    FR-28 adds one builder with a per-context SideNav submenu (Programs / per-domain Order
+    form fields / Patient form fields); FR-29 adds shipped-field rules (badge + Visible
+    toggle, hide-not-delete, not deletable, excluded from the JSON view, Site-Information
+    fields locked, hidden rows collapse).
   links:
     jira:
       - OGC-781
@@ -3183,7 +3187,7 @@
     - order-entry
     - global
   added: "2026-05-27"
-  updated: "2026-07-01"
+  updated: "2026-08-05"
   status: draft
 
 # ─── Result & Validation Configuration — v4 ───────────────────────────────────
@@ -3829,8 +3833,44 @@
     hide-not-delete + collapse + JSON-exclusion. Part of OGC-781 (baked-in Additional Info).
   links:
     jira: ["OGC-781"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/additional-info-builder
     preview: https://digi-uw.github.io/openelis-work/designs/admin-config/additional-info-builder.html
   added: "2026-07-17"
+
+- id: patient-additional-info-surveillance-pmtct
+  type: jsx
+  path: designs/admin-config/patient-additional-info-surveillance-pmtct.jsx
+  spec: designs/admin-config/patient-additional-info-surveillance-pmtct.md
+  preview: designs/admin-config/patient-additional-info-surveillance-pmtct.html
+  category: admin-config
+  description: >
+    Field-catalog appendix to the Programs Management rework (OGC-781), which owns the build.
+    Madagascar content: Section G (existing patient Additional Information fields folded in),
+    Section A — Disease Surveillance (A1–A10), Section B — HIV/PMTCT–EID (B1–B14). Carries
+    per-field patient-level vs order-level placement, the six Dictionary categories to seed,
+    and the FHIR mapping table. Its earlier standalone sections/field-type/inline-options
+    admin surface is SUPERSEDED by OGC-781's questionnaire builder — content, not mechanism.
+  links:
+    jira: ["OGC-781"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/patient-additional-info-surveillance-pmtct
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/patient-additional-info-surveillance-pmtct.html
+  tags:
+    - programs
+    - additional-information
+    - appendix
+    - field-catalog
+    - surveillance
+    - pmtct
+    - eid
+    - hiv
+    - madagascar
+    - dictionary
+    - fhir
+    - admin
+    - order-entry
+    - patient
+  added: "2026-08-05"
+  status: draft
 
 - id: analyzer-maintenance
   type: html
