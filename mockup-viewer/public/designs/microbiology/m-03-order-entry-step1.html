@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>M-03 Order Entry Step 1 — Microbiology Hook Preview v1</title>
+  <title>M-03 Order Entry Step 1 — Microbiology Hook Preview v1.1</title>
   <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
   <style>
     body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; color: #161616; }
@@ -43,11 +43,13 @@
     .btn-primary { background: #0f62fe; color: #fff; }
     .btn-tertiary { background: transparent; color: #0f62fe; border-color: #0f62fe; }
     .btn-ghost { background: transparent; color: #0f62fe; }
+    .origin-hint { font-size: 11px; color: #0043ce; margin-top: 4px; background: #edf5ff; border-left: 2px solid #0f62fe; padding: 3px 8px; display: inline-block; }
+    .form-field input:disabled, .form-field select:disabled { color: #a8a8a8; background: #f4f4f4; cursor: not-allowed; }
   </style>
 </head>
 <body>
   <div class="preview-banner">
-    M-03 Order Entry Step 1 (Microbiology) Preview · <strong>v1.0</strong> · Phase 1A · See <strong>m-03-order-entry-micro-hook-frs-v1.md</strong>
+    M-03 Order Entry Step 1 (Microbiology) Preview · <strong>v1.1</strong> · Phase 1A · adds <strong>Date of Admission</strong> · See <strong>m-03-order-entry-micro-hook.md</strong> · OGC-789
   </div>
 
   <div class="app-header">
@@ -119,13 +121,26 @@
             <label>Patient Origin</label>
             <select>
               <option>(unknown)</option>
-              <option>Inpatient (INP)</option>
+              <option selected>Inpatient (INP)</option>
               <option>Outpatient (OUT)</option>
               <option>ICU (ICU)</option>
-              <option selected>Emergency (EME)</option>
+              <option>Emergency (EME)</option>
               <option>Long-term Care (LTC)</option>
             </select>
-            <div class="helper">Used in WHONET export (Phase 1B).</div>
+            <div class="helper">Where the patient is. Used in WHONET export (Phase 1B).</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Date of Admission</label>
+            <input type="date" value="2026-08-01" />
+            <div class="helper">Date the patient was admitted as an inpatient. Leave blank for outpatients.</div>
+            <div class="origin-hint">Collected 4 days after admission &rarr; hospital-origin for surveillance</div>
+          </div>
+          <div class="form-field">
+            <label>Department / Ward</label>
+            <input type="text" value="Medical Ward A" />
           </div>
         </div>
 
@@ -136,8 +151,9 @@
             <div class="helper">For blood cultures, typical is 2 sets from different sites.</div>
           </div>
           <div class="form-field">
-            <label>Department / Ward</label>
-            <input type="text" value="ER · Adult" />
+            <label>Collection Date <span style="text-transform:none;font-weight:400;">(set on Step 2)</span></label>
+            <input type="date" value="2026-08-05" disabled />
+            <div class="helper">Shown for context — admission date must not be later than this.</div>
           </div>
         </div>
 
