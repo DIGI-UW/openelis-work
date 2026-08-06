@@ -627,9 +627,12 @@
   path: designs/microbiology/m-03-order-entry-micro-hook.md
   category: microbiology
   description: >
-    M-03: Order Entry Step 1 amendment — seven micro fields when Program = MICROBIOLOGY,
-    including Date of Admission, the missing input for the WHO GLASS hospital- vs
-    community-origin (HO/CO/UNK) derivation consumed by M-09.
+    M-03: Order Entry Step 1 amendment — five editable micro fields when Program =
+    MICROBIOLOGY, plus a read-only derived Culture Protocol. Includes Date of Admission,
+    the missing input for the WHO GLASS hospital- vs community-origin (HO/CO/UNK)
+    derivation consumed by M-09. v2.2 moves the culture-protocol override to the bench
+    (M-04) and drops Critical Value Notify, which duplicated the Test Catalog notify
+    flag / Alerts section and TestNotificationConfig.
   links:
     jira: ["OGC-789"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-03-order-entry-micro-hook
