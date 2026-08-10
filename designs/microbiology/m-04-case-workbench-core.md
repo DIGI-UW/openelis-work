@@ -115,7 +115,7 @@ When a specimen drives more than one workflow (e.g. one sputum → a Bacteriolog
 So the chip is a projection of existing columns (`workflow_type`, `stage`) of rows found by a single `sample_item_id` match — **purely navigational**, no new entity, and the two cases never share state, results, or release; criticals and reports stay per-case. (Worklist-side grouping of siblings is in M-07.)
 
 ### 4.2 Inoculation — the system of record for media
-The Inoculation section owns media entry (not the Timeline). Its toolbar has **+ Start inoculation** (initial bottles/plates; RECEIVED→INCUBATING) and **+ Add subculture** (requires a parent media via `source_inoculation_id`). A **Source** column shows `Primary` or `subculture ← {parent}`. Each save writes the `micro_case_inoculation` row **and** an auto Timeline event. Reagent lots are chosen via the M-12 `ReagentLotPicker`, which reads `InventoryLot` and records consumption as an `InventoryUsage` (blocks expired/QC-failed lots). Empty state: "No media recorded yet — **+ Start inoculation** to begin."
+The Inoculation section owns media entry (not the Timeline). It also **displays the case's culture protocol** and hosts the **Set / Change protocol** action (§4.9a) — the protocol defines the expected media and incubation parameters, so it belongs beside the media record rather than in the collapsed Case Info summary. When no protocol resolved at order entry (M-03 AC-M03-04) the header shows an amber **"No protocol set"** chip with **Set protocol**. Its toolbar has **+ Start inoculation** (initial bottles/plates; RECEIVED→INCUBATING) and **+ Add subculture** (requires a parent media via `source_inoculation_id`). A **Source** column shows `Primary` or `subculture ← {parent}`. Each save writes the `micro_case_inoculation` row **and** an auto Timeline event. Reagent lots are chosen via the M-12 `ReagentLotPicker`, which reads `InventoryLot` and records consumption as an `InventoryUsage` (blocks expired/QC-failed lots). Empty state: "No media recorded yet — **+ Start inoculation** to begin."
 
 > **Subculture lineage vs. specimen aliquoting (distinct concepts — keep both).** `source_inoculation_id` here is **media-grown-from-media** (a colony subcultured onto a new plate) — it is *not* a specimen split, so it stays micro-specific on `micro_case_inoculation`. **Splitting the physical specimen** into derived sample items (e.g. TB decontamination → processed aliquot; aliquots for send-out) is a different operation and **reuses the existing sample-management aliquoting workflow** (`CreateAliquot` + `sample_item_aliquot_relationship`, parent→child `SampleItem` with volume tracking — see M-14 §4.1). Rule of thumb: parent/child **SampleItem** → aliquot workflow; media/plate provenance within a Case → `source_inoculation_id`.
 
@@ -165,7 +165,48 @@ The case's **`workflow_type`** is normally set automatically from the ordered te
 
 **Reclassify after surveillance export.** If the case was already exported for surveillance (WHONET M-09, or pushed to the consolidated FHIR server for GLASS, M-15) — which normally happens only post-final-release, so this is reached via the amendment path — the reclassification **marks the case for re-export/supersede** rather than leaving a stale surveillance record: M-09 re-includes it in the next run, and M-15 re-pushes an updated FHIR Bundle (idempotent on `fhir_uuid`, so the central server supersedes the prior submission). The Timeline note records that a prior surveillance submission was superseded.
 
+**Not the control for a recipe-only correction.** If the `workflow_type` is right and only the culture protocol is wrong — or was never set — use **§4.9a Set / change protocol** instead. Reclassifying to fix a recipe would needlessly re-instantiate the profile and, on a case with results, trip the detach-results warning above for nothing.
+
 **Why a tech action, not a clerk re-order.** During a weeks-long workup the right person to catch "this is actually TB" is the bench tech holding the plate, not a re-order at registration. This keeps the automatic test-driven routing as the default while giving the tech a single, audited correction path — and it is the same control that resolves the `UNASSIGNED` state for un-typed deployments.
+
+---
+
+### 4.9a Set or change the culture protocol — the narrow, protocol-only path
+
+**Why this exists separately from §4.9.** M-03 v2.2 makes the culture protocol **derived and read-only at order entry** — reception can see which workup will start but cannot pick or override it, because a media/incubation recipe is not a decision a clerk can evaluate. The override therefore has to live here. But it cannot live *only* inside **Change workflow**: that control requires choosing a workflow type, demands a reclassification reason, and re-instantiates the case profile, breakpoint family, organism vocabulary, reflex variant and WHONET flavour. Using it to correct a recipe would be a sledgehammer, and on a case with results it would trip the detach-results warning for no reason. A tech whose workflow is right and whose *recipe* is wrong needs a control that changes one thing.
+
+**It also has to cover "never set".** Per M-03 AC-M03-04, when the ordered test has no default Method the order still advances and Step 1 shows *"Not set — the bench will select a protocol."* That promise is only honoured if the bench actually can. So this is **Set or change**, not merely Change — the unset state is a first-class starting point, not an error.
+
+**Where it lives.** The **Inoculation** section (§4.2), because that is where the protocol bites: it defines the expected media set, the incubation parameters, and `max_incubation_days`. It is also the section a tech is already in when they realise the recipe is wrong. The section header shows the current protocol — or an amber **"No protocol set"** chip — with a **Set protocol** / **Change protocol** action beside it.
+
+**The action.** Inline expansion (Principle 3 / D-005, no modal):
+
+- A **Method** picker listing the **active** Methods linked to the case's ordered test **within the current `workflow_type`**. It must not offer another workflow's Methods — crossing that line is a reclassification and belongs to §4.9. **Inactive Methods are excluded from selection** (M-03 AC-M03-24); if the case currently *references* an inactive Method it is shown, marked inactive, as the incumbent value.
+- A short required **reason**. The protocol is what the report will state was performed, so a deviation from the test's default is an audited departure — ISO 15189 §7.3 expects the justification to be recoverable. Keep it one line, not a form.
+- Confirming writes the new Method reference on the case and a **Timeline note** (reuse History/Note per §4.3) recording who, when, from→to, and the reason. No new store.
+
+**What it deliberately does not do.** It does **not** touch `workflow_type`, the case profile, the breakpoint family, the organism vocabulary, the reflex variant, or the WHONET flavour. If any of those need to change, that is §4.9.
+
+**Already-recorded media are never rewritten.** The protocol is the *plan*; `micro_case_inoculation` is the *record* of what was actually put up. Changing the protocol must not retroactively edit, delete, or re-label existing inoculation rows — the case has to be able to say "we planned A, did A, then switched to B". Where the new protocol implies media not yet inoculated, that surfaces through the §5 next-step banner as a recommendation, never as an automatic write.
+
+**The incubation clock recomputes; it does not reset.** `max_incubation_days` comes from the Method (M-01 §6), and the Worklist renders "Day *n* of *max*" from it (AC-M01-C-04). On a protocol change the day count is recomputed against the **new** maximum but still measured from the **original inoculation date**. Stating this explicitly because both plausible alternatives are wrong: restarting the clock would hide an overdue culture, and freezing the old maximum would silently ignore the change the tech just made.
+
+**Guards.**
+
+- Permission: reuse **`micro.case.edit`** — no new key (D-006).
+- Free while the case is pre-release. After **final report release** it is blocked; use the amendment path, consistent with §4.9.
+- Unlike §4.9 there is **no detach-results warning**, because nothing profile-specific is being invalidated. Existing isolates, AST runs and interpretations are untouched.
+- If the case was already exported for surveillance, a protocol change alone does **not** mark it for re-export: `INFECTION_ORIGIN`, organism, and AST results are unaffected, and the protocol is not a GLASS RIS/SAMPLE field. This is a deliberate contrast with §4.9, which does trigger re-export.
+
+**Which control to use.**
+
+| Situation | Control |
+|---|---|
+| Right workflow, wrong recipe | **§4.9a Change protocol** |
+| No protocol resolved at order entry | **§4.9a Set protocol** |
+| Bacterial ↔ TB, or `UNASSIGNED` | **§4.9 Change workflow** (carries its own protocol picker, since changing workflow necessarily changes the recipe) |
+
+§4.9 keeps its Method picker unchanged — a workflow change implies a protocol change, so bundling them there is correct. §4.9a is the narrow path that was missing.
 
 ---
 
@@ -224,7 +265,7 @@ A Case is created by the Order-Entry post-save hook (`MicroCaseService.createCas
 Case Detail (5 isolates × 100 AST results × 30 timeline events) renders < 1 s; saves < 500 ms (NFR-02/05). WCAG 2.1 AA: all fields labeled; status by text + colour; modal focus management; macro dropdown keyboard-navigable (NFR-04). Offline: forms queue saves locally with reconnect conflict resolution (NFR-01).
 
 ## 12. i18n (pattern `micro.case.*`)
-~150–200 keys: stage labels, section headers, inoculation/subculture actions, timeline event types + AUTO badge, isolate ID-status + Identify CTA, AST section, release-prelim/final + checklist items, amend reasons, next-step banner per stage, error strings (e.g. `micro.case.error.releasePrelim.noGramStain`). (Full list maintained with implementation.)
+~150–200 keys: stage labels, section headers, inoculation/subculture actions, **culture-protocol set/change (`micro.case.inoculation.protocol.label` / `.none` "No protocol set" / `.set` / `.change` / `.reason` / `.reasonRequired`)**, timeline event types + AUTO badge, isolate ID-status + Identify CTA, AST section, release-prelim/final + checklist items, amend reasons, next-step banner per stage, error strings (e.g. `micro.case.error.releasePrelim.noGramStain`). (Full list maintained with implementation.)
 
 ## 13. Acceptance criteria
 - **AC-M04-01**: Micro order save auto-creates a Case (RECEIVED) via the hook; idempotent; trigger isolated in one resolver.
@@ -245,6 +286,12 @@ Case Detail (5 isolates × 100 AST results × 30 timeline events) renders < 1 s;
 - **AC-M04-16**: Server-side permission enforcement on every state-changing action; reagent-lot validation via M-12.
 - **AC-M04-17**: Report NCE action available in the header (reuses the NCE module's inline form, sample auto-linked); "Mark lost" raises a Specimen-lost NCE and rejects the test with reason "specimen lost" (reusing OE rejection), transitioning to LOST_SPECIMEN(_POSITIVE) — no new NCE/rejection entity.
 - **AC-M04-18**: All data-entry actions are inline section/row expansions, not pop-up modals (Principle 3). Bottle/plate IDs and analyzer card IDs are barcode-scannable. Reagent-lot pickers present lots FIFO (oldest-expiry first) with QC status, matching results-entry reagent selection; expired/locked lots are blocked.
+- **AC-M04-20**: The Inoculation section displays the case's culture protocol and offers **Set protocol** (amber "No protocol set" chip when none resolved at order entry, per M-03 AC-M03-04) or **Change protocol**. The control is an inline expansion, requires a one-line reason, and writes a Timeline note recording who/when/from→to/reason.
+- **AC-M04-21**: The protocol picker lists only **active** Methods linked to the ordered test **within the case's current `workflow_type`**; it never offers another workflow's Methods. An incumbent inactive Method is displayed marked inactive but cannot be re-selected.
+- **AC-M04-22**: Changing the protocol does **not** alter `workflow_type`, the case profile, breakpoint family, organism vocabulary, reflex variant, or WHONET flavour, and raises **no** detach-results warning. Existing isolates, AST runs and interpretations are untouched.
+- **AC-M04-23**: Changing the protocol never rewrites existing `micro_case_inoculation` rows. Media implied by the new protocol but not yet inoculated surface only as §5 next-step guidance, never as an automatic write.
+- **AC-M04-24**: After a protocol change the Worklist day count recomputes against the **new** `max_incubation_days` while still measuring from the **original** inoculation date — the clock is neither restarted nor frozen at the old maximum.
+- **AC-M04-25**: A protocol-only change does **not** mark an already-exported case for surveillance re-export (contrast AC for §4.9, which does).
 - **AC-M04-19**: At AST setup the breakpoint standard is selectable (defaults to the lab's active standard; any loaded standard/version choosable per run) and snapshotted on the run; switching the lab's active standard later does not change historical interpretations. Default active + loaded set managed in M-02.
 
 ## 14. References
