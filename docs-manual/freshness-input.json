@@ -1,11 +1,11 @@
 {
-  "generated": "2026-07-27",
+  "generated": "2026-08-09",
   "counts": {
     "total": 67,
     "by_maturity": {
       "production": 43,
-      "planned": 5,
-      "in-development": 10,
+      "planned": 4,
+      "in-development": 11,
       "beta": 4,
       "available": 5
     },
@@ -671,7 +671,7 @@
       "domain": [
         "cross-cutting"
       ],
-      "maturity": "planned",
+      "maturity": "in-development",
       "since": null,
       "jira": [
         "OGC-788"
