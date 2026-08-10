@@ -627,9 +627,12 @@
   path: designs/microbiology/m-03-order-entry-micro-hook.md
   category: microbiology
   description: >
-    M-03: Order Entry Step 1 amendment — seven micro fields when Program = MICROBIOLOGY,
-    including Date of Admission, the missing input for the WHO GLASS hospital- vs
-    community-origin (HO/CO/UNK) derivation consumed by M-09.
+    M-03: Order Entry Step 1 amendment — five editable micro fields when Program =
+    MICROBIOLOGY, plus a read-only derived Culture Protocol. Includes Date of Admission,
+    the missing input for the WHO GLASS hospital- vs community-origin (HO/CO/UNK)
+    derivation consumed by M-09. v2.2 moves the culture-protocol override to the bench
+    (M-04) and drops Critical Value Notify, which duplicated the Test Catalog notify
+    flag / Alerts section and TestNotificationConfig.
   links:
     jira: ["OGC-789"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-03-order-entry-micro-hook
@@ -637,6 +640,42 @@
   added: "2026-05-15"
   updated: "2026-08-05"
 
+- id: glass-submission-console
+  type: html
+  path: designs/microbiology/glass-submission-console.html
+  spec: designs/microbiology/glass-on-aspect-parity.md
+  category: microbiology
+  description: >
+    National GLASS submission surface — per-site ingest, unmapped-code queue, first-isolate
+    de-duplication funnel, RIS + SAMPLE generation, and an explicit human upload step.
+  links:
+    jira: ["OGC-918", "OGC-794"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/glass-submission-console
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/glass-submission-console.html
+  added: "2026-08-08"
+- id: glass-on-aspect-parity
+  type: spec
+  path: designs/microbiology/glass-on-aspect-parity.md
+  category: microbiology
+  description: >
+    Rescopes GLASS onto the Aspect/GxAlert replacement platform — consolidated server is W9,
+    national dashboards are W3. Aspect contains zero AMR content, so parity is a floor, not
+    partial progress toward GLASS.
+  links:
+    jira: ["OGC-918"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/glass-on-aspect-parity
+  added: "2026-08-08"
+- id: glass-amr-dashboard-indicators
+  type: spec
+  path: designs/microbiology/glass-amr-dashboard-indicators.md
+  category: microbiology
+  description: >
+    AMR indicator layer on the W3 analytics pipe: %R vs rate-per-100k, GLASS stratifications,
+    data-quality panels, and the Specimen / Patient / Encounter publication gap.
+  links:
+    jira: ["OGC-918"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/glass-amr-dashboard-indicators
+  added: "2026-08-08"
 - id: m-04-case-workbench-core
   type: spec
   path: designs/microbiology/m-04-case-workbench-core.md
