@@ -4042,3 +4042,25 @@
   links:
     github_issue: 245
   added: "2026-07-28"
+
+
+- id: multi-sample-order-entry
+  type: html
+  path: designs/sample-collection/multi-sample-order-entry-preview.html
+  spec: designs/sample-collection/multi-sample-order-entry.md
+  preview: designs/sample-collection/multi-sample-order-entry-preview.html
+  category: sample-collection
+  description: >
+    Multiple Samples per Test at Order Entry — add a second/third specimen of the
+    same sample type at Add Order without re-entering shared fields, with per-specimen
+    distinguishing labels carried through worklist, labels, result entry and the patient
+    report. Serves TB smear (2-3 sputa), stool O&P (3), timed urine, GTT, blood cultures.
+    Affects Add Order (/SamplePatientEntry), Edit Order, specimen labels, result display.
+    FRS v1.0 + HTML preview.
+  links:
+    jira:
+      - OGC-285
+    gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/multiple-samples-per-test-at-order-entry
+    preview: https://digi-uw.github.io/openelis-work/designs/sample-collection/multi-sample-order-entry-preview.html
+  added: "2026-08-11"
+

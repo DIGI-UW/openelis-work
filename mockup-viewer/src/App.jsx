@@ -2324,6 +2324,19 @@ export const MOCKUP_REGISTRY = [
 
   // ─── Sample Collection ───
   {
+    name: 'Multiple Samples per Test at Order Entry',
+    category: 'sample-collection',
+    component: null,
+    description: 'Multiple specimens of the same sample type at Add Order without re-entering the dozen shared fields, with per-specimen distinguishing labels (sputum #1/#2/#3, timed-urine 07:00/12:00, GTT fasting/1h/2h, blood-culture sets) carried through the worklist, tube labels, result entry and the patient report. Serves TB smear microscopy, stool O&P, timed urine, glucose tolerance, and blood cultures — replacing per-specimen re-entry, "1 of 3" marker-pen notes, or separate orders per specimen. Affects Add Order (/SamplePatientEntry), Edit Order, specimen labels, and result-entry display. FRS v1.0 + HTML preview.',
+    specPath: 'designs/sample-collection/multi-sample-order-entry.md',
+    htmlUrl: 'designs/sample-collection/multi-sample-order-entry-preview.html',
+    added: '2026-08-11',
+    status: 'draft',
+    githubIssue: null,
+    jira: ['OGC-285'],
+    tags: ['order-entry', 'sample-collection', 'specimen', 'tb', 'o-and-p', 'timed-urine', 'blood-culture', 'labels', 'add-order'],
+  },
+  {
     name: 'Sample Collection Redesign',
     category: 'vector-surveillance',
     component: null,
