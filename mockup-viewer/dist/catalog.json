@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-12T18:26:15.997Z",
+  "generated": "2026-08-12T18:28:35.441Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
   "totalDesigns": 222,
   "categories": [
@@ -1625,7 +1625,7 @@
         "OGC-1137",
         "OGC-1151"
       ],
-      "githubIssue": null,
+      "githubIssue": 262,
       "specPath": "designs/analyzer-integration/analyzer-results-lab-unit-access.md",
       "urls": {
         "gallery": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-results-lab-unit-access-control",

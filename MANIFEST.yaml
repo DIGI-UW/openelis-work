@@ -4079,6 +4079,7 @@
     upgrade backfill from each analyzer's configured tests. FRS + interactive HTML preview;
     JSX drop-in components shipped as a reference asset.
   links:
+    github_issue: 262
     jira:
       - OGC-1178
       - OGC-1057

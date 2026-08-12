@@ -1,6 +1,6 @@
 # OpenELIS Design Gallery — Full Spec Content
 
-Generated: 2026-08-12T18:26:15.999Z
+Generated: 2026-08-12T18:28:35.444Z
 Total designs: 222
 
 ---

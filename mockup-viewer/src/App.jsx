@@ -720,7 +720,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/analyzer-integration/analyzer-results-lab-unit-access-preview.html',
     added: '2026-08-11',
     status: 'draft',
-    githubIssue: null,
+    githubIssue: 262,
     jira: ['OGC-1178', 'OGC-1057', 'OGC-288', 'OGC-337', 'OGC-1137', 'OGC-1151'],
     tags: ['analyzer', 'analyzer-integration', 'access-control', 'rbac', 'lab-unit', 'iso-15189', 'results', 'authorization', 'test-unit-ids'],
   },
