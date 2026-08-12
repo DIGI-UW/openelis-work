@@ -712,6 +712,19 @@ export const MOCKUP_REGISTRY = [
 
   // ─── Analyzer Integration ───
   {
+    name: 'Analyzer Results — Lab Unit Access Control',
+    category: 'analyzer-integration',
+    component: null,
+    description: 'Analyzer Results Import access gated by the user\'s per-lab-unit Results rights instead of the bridge-account "Analyser Import" role: the analyzer menu lists only analyzers on the user\'s benches, an access-denied page names the bench they would need, and inside a shared analyzer a tech sees only their bench\'s result rows plus a count of the rest. Closes the unauthenticated /rest/AnalyzerResults gap (an ISO 15189 finding) and gives analyzer.test_unit_ids — dormant since OGC-337 — its first real consumer, with a one-time upgrade backfill inferring each analyzer\'s units from its configured tests. FRS + interactive HTML preview (JSX drop-in components shipped as a reference asset).',
+    specPath: 'designs/analyzer-integration/analyzer-results-lab-unit-access.md',
+    htmlUrl: 'designs/analyzer-integration/analyzer-results-lab-unit-access-preview.html',
+    added: '2026-08-11',
+    status: 'draft',
+    githubIssue: 262,
+    jira: ['OGC-1178', 'OGC-1057', 'OGC-288', 'OGC-337', 'OGC-1137', 'OGC-1151'],
+    tags: ['analyzer', 'analyzer-integration', 'access-control', 'rbac', 'lab-unit', 'iso-15189', 'results', 'authorization', 'test-unit-ids'],
+  },
+  {
     name: 'Analyzer Maintenance & Service Tracking',
     category: 'analyzer-integration',
     component: null,

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Additional Information — OpenELIS Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body{background:#f4f4f4;margin:0;font-family:'IBM Plex Sans',sans-serif;color:#161616;}
+  .banner{background:#0f62fe;color:#fff;padding:6px 1rem;font-size:12px;font-family:monospace;}
+  .wrap{max-width:1340px;margin:0 auto;padding:1rem 1.5rem 4rem;}
+  .cols{display:grid;grid-template-columns:530px 1fr;gap:22px;align-items:start;}
+  .card{background:#fff;border:1px solid #e0e0e0;}
+  .card h2{font-size:15px;margin:0;padding:12px 16px;border-bottom:1px solid #e0e0e0;background:#f4f4f4;}
+  .card .body{padding:14px 16px;}
+  h1{font-weight:400;font-size:24px;margin:6px 0 2px;}
+  .crumb{font-size:12px;color:#525252;margin:10px 0 0;}
+  .crumb a{color:#0f62fe;text-decoration:none;}
+  .seg{display:inline-flex;border:1px solid #0f62fe;border-radius:2px;overflow:hidden;margin:8px 8px 8px 0;}
+  .seg button{border:none;background:#fff;color:#0f62fe;padding:6px 14px;font-size:12px;cursor:pointer;}
+  .seg button.on{background:#0f62fe;color:#fff;}
+  .dseg{display:inline-flex;gap:4px;margin:2px 0 12px;}
+  .dseg button{border:1px solid #c6c6c6;background:#fff;color:#393939;padding:4px 10px;font-size:11px;cursor:pointer;border-radius:2px;}
+  .dseg button.on{background:#393939;color:#fff;border-color:#393939;}
+  .secbox{border:1px solid #e0e0e0;border-radius:3px;margin-bottom:12px;}
+  .sechead{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f4f4f4;}
+  .secname{border:none;border-bottom:1px solid transparent;background:transparent;font-weight:600;font-size:13px;flex:1;padding:2px 4px;}
+  .secname:hover,.secname:focus{border-bottom:1px solid #0f62fe;outline:none;background:#fff;}
+  .sysbadge{font-size:9px;background:#dde1e6;color:#4d5358;padding:1px 6px;border-radius:8px;}
+  .icon{cursor:pointer;color:#0f62fe;font-size:13px;padding:0 3px;}
+  .icon.del{color:#da1e28;}
+  .domtags{display:flex;gap:5px;align-items:center;padding:6px 10px 0;font-size:10px;}
+  .dt{font-size:10px;padding:1px 7px;border-radius:9px;cursor:pointer;border:1px solid transparent;}
+  .dt.on{background:#defbe6;color:#0e6027;border-color:#a7f0ba;}
+  .dt.off{background:#eee;color:#a8a8a8;}
+  .arow{display:flex;align-items:center;gap:7px;font-size:12px;padding:5px 0;border-top:1px solid #f0f0f0;}
+  .arow.off{opacity:.4;}
+  .arow .nm{flex:1 1 auto;min-width:90px;}
+  .sw{width:30px;height:16px;border-radius:9px;position:relative;cursor:pointer;flex:0 0 auto;transition:background .15s;}
+  .sw .k{position:absolute;top:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .15s;}
+  .sw.on{background:#0f62fe;}.sw.on .k{left:16px;}.sw.off{background:#8d8d8d;}.sw.off .k{left:2px;}
+  .tsel,.secsel{font-size:10px;padding:2px 3px;border:1px solid #c6c6c6;border-radius:2px;background:#fff;max-width:92px;}
+  .tlock{font-size:10px;color:#8d8d8d;font-style:italic;white-space:nowrap;}
+  .manage{color:#0f62fe;font-size:10px;cursor:pointer;text-decoration:underline;white-space:nowrap;}
+  .dash{color:#c6c6c6;font-size:11px;}
+  .opted{margin:2px 0 8px 30px;padding:8px 10px;background:#f4f8ff;border:1px solid #d0e2ff;border-radius:3px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .chip{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid #c6c6c6;border-radius:12px;padding:2px 6px 2px 10px;font-size:11px;}
+  .chip.inactive{opacity:.45;text-decoration:line-through;}
+  .chip .x{cursor:pointer;color:#8d8d8d;font-weight:600;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;}
+  .addinp{border:none;border-bottom:1px solid #0f62fe;background:#fff;font-size:11px;padding:3px 6px;width:130px;outline:none;}
+  .addbtn{background:#0f62fe;color:#fff;border:none;border-radius:2px;font-size:11px;padding:3px 10px;cursor:pointer;}
+  .shared{font-size:10px;color:#8d8d8d;margin-left:auto;}
+  .addsecbar{display:flex;gap:6px;align-items:center;margin-top:6px;}
+  .exist{font-size:9px;background:#dde1e6;color:#4d5358;padding:1px 6px;border-radius:8px;}
+  .sec{border:1px solid #e0e0e0;margin-bottom:14px;}
+  .sec .h{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#edf5ff;cursor:pointer;font-weight:600;font-size:14px;}
+  .sec .h .chev{margin-left:auto;color:#0f62fe;}
+  .sec .c{padding:14px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;}
+  .f{display:flex;flex-direction:column;gap:4px;margin-bottom:4px;}
+  .f.full{grid-column:1/3;}
+  .f label{font-size:12px;color:#525252;}
+  .f .ctl{height:34px;border:none;border-bottom:1px solid #8d8d8d;background:#f4f4f4;padding:0 10px;font-size:13px;display:flex;align-items:center;color:#8d8d8d;}
+  .f textarea.ctl{height:50px;padding:6px 10px;}
+  .lvl{font-size:9px;padding:1px 6px;border-radius:8px;margin-left:4px;vertical-align:middle;}
+  .lvl.pat{background:#d0e2ff;color:#0043ce;}
+  .lvl.ord{background:#e8daff;color:#6929c4;}
+  .star{color:#da1e28;}
+  .empty{color:#8d8d8d;font-size:13px;font-style:italic;padding:10px 0;}
+  .note{background:#edf5ff;border-left:3px solid #0f62fe;padding:10px 14px;font-size:12px;margin-top:14px;line-height:1.5;}
+  .legend{font-size:11px;color:#6f6f6f;margin:4px 0 0;line-height:1.5;}
+</style>
+</head>
+<body class="cds--white">
+<div class="banner">⚡ Preview — Additional Information (admin-managed sections · domain-sensitive · inline options) | tie-in: Order & Patient Entry Configuration redesign | Not a live app</div>
+<div class="wrap" id="root"></div>
+<script type="text/babel">
+const {useState}=React;
+const DOMAINS=["CLINICAL","ENVIRONMENTAL","VECTOR"];
+const CODED=["single","multi","yesno"];
+// dev-defined field catalog (admin assigns each to a section; can't invent new fields — FHIR mapping)
+const FIELDS=[
+ {id:"G1",label:"Health Region",lvl:"pat",t:"addr",existing:true,def:"G"},
+ {id:"G2",label:"Health District",lvl:"pat",t:"addr",existing:true,def:"G"},
+ {id:"G3",label:"Education",lvl:"pat",t:"sel",dict:"education",existing:true,def:"G"},
+ {id:"G4",label:"Marital Status",lvl:"pat",t:"sel",dict:"maritalStatus",existing:true,def:"G"},
+ {id:"G5",label:"Nationality",lvl:"pat",t:"sel",dict:"nationality",existing:true,def:"G"},
+ {id:"G6",label:"Occupation",lvl:"pat",t:"txt",existing:true,def:"G"},
+ {id:"G7",label:"Target Disease Programme",lvl:"pat",t:"sel",dict:"program",existing:true,def:"G"},
+ {id:"G8",label:"Custom Notes",lvl:"pat",t:"area",existing:true,def:"G"},
+ {id:"A1",label:"Signs & symptoms",lvl:"ord",t:"area",def:"A"},
+ {id:"A2",label:"Symptom onset date",lvl:"ord",t:"date",def:"A"},
+ {id:"A3",label:"Case classification",lvl:"ord",t:"sel",dict:"caseClassification",def:"A"},
+ {id:"A4",label:"Epidemiological link",lvl:"ord",t:"area",def:"A"},
+ {id:"A5",label:"Travel to endemic region",lvl:"ord",t:"yesno",def:"A"},
+ {id:"A6",label:"Dates of stay",lvl:"ord",t:"date",def:"A"},
+ {id:"A7",label:"Medical history",lvl:"pat",t:"area",def:"A"},
+ {id:"A8",label:"Comorbidity",lvl:"pat",t:"area",def:"A"},
+ {id:"A9",label:"Prior vaccination",lvl:"pat",t:"txt",def:"A"},
+ {id:"A10",label:"Other",lvl:"pat",t:"area",def:"A"},
+ {id:"B1",label:"Mother (patient link)",lvl:"pat",t:"combo",ph:"Search patients…",def:"B"},
+ {id:"B2",label:"Mother HIV status",lvl:"pat",t:"sel",dict:"hivStatus",def:"B"},
+ {id:"B3",label:"ARV during pregnancy",lvl:"ord",t:"yesno",def:"B"},
+ {id:"B4",label:"Treatment type (mother)",lvl:"ord",t:"sel",dict:"arvTreatmentType",def:"B"},
+ {id:"B5",label:"Recent maternal viral load",lvl:"ord",t:"yesno",def:"B"},
+ {id:"B6",label:"Value (copies/ml)",lvl:"ord",t:"num",def:"B"},
+ {id:"B7",label:"Breastfeeding",lvl:"ord",t:"yesno",def:"B"},
+ {id:"B8",label:"Breastfeeding duration (months)",lvl:"ord",t:"num",def:"B"},
+ {id:"B9",label:"Weaning",lvl:"ord",t:"yesno",def:"B"},
+ {id:"B10",label:"Weaning duration (months)",lvl:"ord",t:"num",def:"B"},
+ {id:"B11",label:"Reason for request",lvl:"ord",t:"sel",dict:"eidRequestReason",def:"B"},
+ {id:"B12",label:"At-risk population",lvl:"pat",t:"sel",dict:"riskPopulation",def:"B"},
+ {id:"B13",label:"ARV treatment start date",lvl:"pat",t:"date",def:"B"},
+ {id:"B14",label:"Treatment received",lvl:"ord",t:"sel",dict:"arvTreatmentType",def:"B"},
+];
+const F=(id)=>FIELDS.find(f=>f.id===id);
+const TYPE_LABELS={text:"Text",single:"Single-select",multi:"Multi-select",yesno:"Yes/No",date:"Date",num:"Number",patientlink:"Patient link",addr:"Address hierarchy"};
+const lockType=(f)=> f.t==="date"?"date": f.t==="num"?"num": f.t==="combo"?"patientlink": f.t==="addr"?"addr": null;
+const defType=(f)=>{const l=lockType(f); if(l)return l; if(f.t==="sel")return f.dict==="yesNo"?"yesno":"single"; if(f.t==="yesno")return"yesno"; return"text";};
+
+function Sw({on,onClick}){return <div className={"sw "+(on?"on":"off")} onClick={onClick}><div className="k"/></div>;}
+function Lvl({lvl}){return <span className={"lvl "+lvl}>{lvl==="pat"?"patient":"order"}</span>;}
+
+function App(){
+  const [surface,setSurface]=useState("order");
+  const [domain,setDomain]=useState("CLINICAL");
+  const [sections,setSections]=useState([
+    {id:"G",name:"General",system:true,domains:["CLINICAL","ENVIRONMENTAL","VECTOR"]},
+    {id:"A",name:"Disease Surveillance",domains:["CLINICAL"]},
+    {id:"B",name:"HIV / PMTCT–EID",domains:["CLINICAL"]},
+  ]);
+  const im={};FIELDS.forEach(f=>im[f.id]=f.def); const [fieldSec,setFieldSec]=useState(im);
+  const iv={};FIELDS.forEach(f=>iv[f.id]=true); const [vis,setVis]=useState(iv);
+  const [req,setReq]=useState({A3:true,B1:true});
+  const it={};FIELDS.forEach(f=>it[f.id]=defType(f)); const [types,setTypes]=useState(it);
+  const il={};FIELDS.forEach(f=>il[f.id]=f.label); const [labels,setLabels]=useState(il);
+  const [opts,setOpts]=useState({
+    caseClassification:[{t:"Suspected",a:1},{t:"Probable",a:1},{t:"Confirmed",a:1}],
+    hivStatus:[{t:"Positive",a:1},{t:"Negative",a:1},{t:"Unknown",a:1}],
+    yesNo:[{t:"Yes",a:1},{t:"No",a:1}],
+    arvTreatmentType:[{t:"AZT",a:1},{t:"NVP",a:1},{t:"TDF+3TC+DTG",a:1}],
+    eidRequestReason:[{t:"1st PCR (6 wk)",a:1},{t:"2nd PCR (9 mo)",a:1},{t:"Confirmatory",a:1}],
+    riskPopulation:[{t:"General population",a:1},{t:"Key population",a:1}],
+    education:[{t:"None",a:1},{t:"Primary",a:1},{t:"Secondary",a:1},{t:"Upper",a:1}],
+    maritalStatus:[{t:"Single",a:1},{t:"Married",a:1},{t:"Divorced",a:1},{t:"Widowed",a:1}],
+    nationality:[{t:"Malagasy",a:1},{t:"French",a:1},{t:"Other",a:1}],
+    program:[{t:"PMTCT",a:1},{t:"TB",a:1},{t:"Malaria",a:1}],
+  });
+  const [openSec,setOpenSec]=useState({A:true,B:true});
+  const [capOpen,setCapOpen]=useState({});
+  const [expField,setExpField]=useState(null);
+  const [draft,setDraft]=useState("");
+  const [newSec,setNewSec]=useState("");
+
+  const lbl=(f)=>labels[f.id]||f.label;
+  const catFor=(f)=> types[f.id]==="yesno"?"yesNo":(f.dict||f.id+"Opts");
+  const isCoded=(f)=>CODED.includes(types[f.id]);
+  const catUsage=(cat)=>FIELDS.filter(f=>isCoded(f)&&catFor(f)===cat).length;
+  const fieldsIn=(sid)=>FIELDS.filter(f=>fieldSec[f.id]===sid);
+  const addOpt=(cat)=>{const v=draft.trim();if(!v)return;setOpts(o=>({...o,[cat]:[...(o[cat]||[]),{t:v,a:1}]}));setDraft("");};
+  const toggleOpt=(cat,i)=>setOpts(o=>({...o,[cat]:o[cat].map((x,j)=>j===i?{...x,a:x.a?0:1}:x)}));
+
+  // --- section management ---
+  const secDomain=(sid,d)=>setSections(ss=>ss.map(s=>s.id===sid?{...s,domains:s.domains.includes(d)?s.domains.filter(x=>x!==d):[...s.domains,d]}:s));
+  const rename=(sid,v)=>setSections(ss=>ss.map(s=>s.id===sid?{...s,name:v}:s));
+  const move=(sid,dir)=>setSections(ss=>{const i=ss.findIndex(s=>s.id===sid);const j=i+dir;if(j<0||j>=ss.length)return ss;const c=[...ss];[c[i],c[j]]=[c[j],c[i]];return c;});
+  const del=(sid)=>{setFieldSec(fs=>{const n={...fs};Object.keys(n).forEach(id=>{if(n[id]===sid)n[id]="G";});return n;});setSections(ss=>ss.filter(s=>s.id!==sid));};
+  const addSection=()=>{const v=newSec.trim();if(!v)return;const id="S"+Date.now();setSections(ss=>[...ss,{id,name:v,domains:["CLINICAL"]}]);setOpenSec(o=>({...o,[id]:true}));setNewSec("");};
+  const moveField=(fid,sid)=>setFieldSec(fs=>({...fs,[fid]:sid}));
+
+  const showField=(sec,f)=>{
+    if(!vis[f.id])return false;
+    if(surface==="order"&&!sec.domains.includes(domain))return false;
+    if(surface==="patient"&&f.lvl!=="pat")return false;
+    return true;
+  };
+  const capCtl=(f)=>{
+    const ty=types[f.id];
+    if(ty==="text")return <textarea className="ctl" readOnly placeholder="Text…"/>;
+    if(ty==="date")return <div className="ctl">mm/dd/yyyy</div>;
+    if(ty==="num")return <div className="ctl">0</div>;
+    if(ty==="patientlink")return <div className="ctl">{f.ph||"Search patients…"}</div>;
+    if(ty==="addr")return <div className="ctl">▾ from address hierarchy (Organization data)</div>;
+    const active=(opts[catFor(f)]||[]).filter(o=>o.a).map(o=>o.t).join(" / ")||"—";
+    return <div className="ctl">{active}{ty==="multi"?"  (multi)":""}</div>;
+  };
+
+  // --- admin: one field row ---
+  const arow=(f)=>{
+    const locked=lockType(f), isAddr=locked==="addr", coded=isCoded(f), cat=catFor(f);
+    const rowOpen=expField===f.id&&(coded||isAddr);
+    const list=coded?(opts[cat]||[]):[];
+    return (
+     <React.Fragment key={f.id}>
+      <div className="arow">
+        <Sw on={vis[f.id]} onClick={()=>setVis(v=>({...v,[f.id]:!v[f.id]}))}/>
+        <span className="nm">{lbl(f)} <Lvl lvl={f.lvl}/> {f.existing&&<span className="exist">existing</span>}</span>
+        {locked
+          ? <span className="tlock" title={isAddr?"Address hierarchy — values from Organization; label/show-hide via existing API":"Fixed by data type"}>{TYPE_LABELS[locked]} 🔒</span>
+          : <select className="tsel" value={types[f.id]} onChange={e=>{setTypes(t=>({...t,[f.id]:e.target.value}));setExpField(null);}}>
+              <option value="text">Text</option><option value="single">Single-select</option>
+              <option value="multi">Multi-select</option><option value="yesno">Yes/No</option>
+            </select>}
+        <select className="secsel" title="Move to section" value={fieldSec[f.id]} onChange={e=>moveField(f.id,e.target.value)}>
+          {sections.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+        <span title="Required">req <Sw on={!!req[f.id]} onClick={()=>{if(vis[f.id])setReq(r=>({...r,[f.id]:!r[f.id]}));}}/></span>
+        {coded?<span className="manage" onClick={()=>{setExpField(rowOpen?null:f.id);setDraft("");}}>{list.filter(o=>o.a).length} opt {rowOpen?"▾":"▸"}</span>
+          :isAddr?<span className="manage" onClick={()=>setExpField(rowOpen?null:f.id)}>Label {rowOpen?"▾":"▸"}</span>
+          :<span className="dash">—</span>}
+      </div>
+      {rowOpen&&coded&&(
+        <div className="opted">
+          {list.map((o,i)=><span className={"chip"+(o.a?"":" inactive")} key={o.t+i}>{o.t}<span className="x" onClick={()=>toggleOpt(cat,i)}>{o.a?"×":"↺"}</span></span>)}
+          {list.length===0&&<span style={{fontSize:11,color:"#8d8d8d"}}>No options yet —</span>}
+          <input className="addinp" value={draft} placeholder="Add option…" autoFocus onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")addOpt(cat);}}/>
+          <button className="addbtn" onClick={()=>addOpt(cat)}>Add</button>
+          {catUsage(cat)>1&&<span className="shared">shared by {catUsage(cat)} fields ({cat})</span>}
+        </div>
+      )}
+      {rowOpen&&isAddr&&(
+        <div className="opted">
+          <span style={{fontSize:11}}>Label</span>
+          <input className="addinp" style={{width:170}} value={lbl(f)} onChange={e=>setLabels(l=>({...l,[f.id]:e.target.value}))}/>
+          <span className="shared">saved via existing Site Information / address API · values from Organization data</span>
+        </div>
+      )}
+     </React.Fragment>
+    );
+  };
+
+  // --- admin: one section box ---
+  const secBox=(s,idx)=>{
+    const list=fieldsIn(s.id); const shownCount=list.filter(f=>vis[f.id]).length;
+    const isOpen=openSec[s.id]??(s.id!=="G");
+    return (
+     <div className="secbox" key={s.id}>
+       <div className="sechead">
+         <span className="icon" title="Move up" onClick={()=>move(s.id,-1)} style={{opacity:idx===0?.3:1}}>↑</span>
+         <span className="icon" title="Move down" onClick={()=>move(s.id,1)} style={{opacity:idx===sections.length-1?.3:1}}>↓</span>
+         <input className="secname" value={s.name} onChange={e=>rename(s.id,e.target.value)}/>
+         {s.system&&<span className="sysbadge">system</span>}
+         <span style={{fontSize:10,color:"#6f6f6f"}}>{shownCount}/{list.length}</span>
+         {!s.system&&<span className="icon del" title="Delete section (fields → General)" onClick={()=>del(s.id)}>🗑</span>}
+         <span className="icon" onClick={()=>setOpenSec(o=>({...o,[s.id]:!isOpen}))}>{isOpen?"▾":"▸"}</span>
+       </div>
+       <div className="domtags">domains:{DOMAINS.map(d=><span key={d} className={"dt "+(s.domains.includes(d)?"on":"off")} onClick={()=>secDomain(s.id,d)}>{d.toLowerCase()}</span>)}</div>
+       {isOpen&&<div style={{padding:"4px 10px 8px"}}>{list.length?list.map(arow):<div style={{fontSize:11,color:"#8d8d8d",padding:"6px 0"}}>No fields — assign some via the “Move to section” dropdown.</div>}</div>}
+     </div>
+    );
+  };
+
+  // --- capture surface: group visible fields by section, in order ---
+  const renderSec=(s)=>{
+    if(surface==="order"&&!s.domains.includes(domain))return null;
+    const shown=fieldsIn(s.id).filter(f=>showField(s,f));
+    if(shown.length===0)return null;
+    const open=capOpen[s.id]??true;
+    const orderNote=surface==="order"&&shown.some(f=>f.lvl==="ord");
+    return (
+      <div className="sec" key={s.id}>
+        <div className="h" onClick={()=>setCapOpen(o=>({...o,[s.id]:!open}))}>{s.name}<span className="chev">{open?"▲":"▼"}</span></div>
+        {open&&<div className="c">
+          {orderNote&&<div className="legend" style={{marginBottom:8}}><Lvl lvl="ord"/> fields live in the new "Additional order details" area.</div>}
+          <div className="grid">{shown.map(f=>(
+            <div className={"f "+(types[f.id]==="text"?"full":"")} key={f.id}>
+              <label>{lbl(f)}{req[f.id]&&<span className="star"> *</span>}<Lvl lvl={f.lvl}/></label>{capCtl(f)}
+            </div>))}</div>
+        </div>}
+      </div>
+    );
+  };
+  const anyVisible=sections.some(s=>fieldsIn(s.id).some(f=>showField(s,f)));
+  const hint=surface==="order"?`Order Entry (${domain.toLowerCase()}) — patient AND order fields; sections scoped to ${domain.toLowerCase()} only.`:"Patient (Add/Modify) — edit = view; patient-level fields only.";
+
+  return (
+   <div>
+    <div className="crumb"><a>Home</a> / <a>Admin Management</a> / Order &amp; Patient Entry Configuration</div>
+    <h1>Additional Information — configuration</h1>
+    <div className="legend">Admin-managed <b>sections</b> (rename ✎, reorder ↑↓, delete 🗑, add ➕, domain-scope). Fields are dev-defined; assign each to a section via “Move to”. Per field: Visible + Type + Required + inline options/label. <span className="lvl pat">patient</span> persists · <span className="lvl ord">order</span> = per order/episode.</div>
+
+    <div className="cols" style={{marginTop:16}}>
+      <div className="card">
+        <h2>Admin · Order &amp; Patient Entry Configuration → Additional Information</h2>
+        <div className="body">
+          {sections.map(secBox)}
+          <div className="addsecbar">
+            <input className="addinp" style={{width:180}} value={newSec} placeholder="New section name…" onChange={e=>setNewSec(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")addSection();}}/>
+            <button className="addbtn" onClick={addSection}>➕ Add section</button>
+          </div>
+          <div className="note">General is a <b>system</b> section (existing built-in fields; can’t be deleted). Delete a custom section → its fields fall back to General. Fields can’t be invented here — the catalog is dev-defined so each has a FHIR mapping.</div>
+        </div>
+      </div>
+
+      <div className="card">
+        <h2>Capture surface</h2>
+        <div className="body">
+          <span className="seg">
+            <button className={surface==="order"?"on":""} onClick={()=>setSurface("order")}>Order Entry</button>
+            <button className={surface==="patient"?"on":""} onClick={()=>setSurface("patient")}>Patient (Add/Modify)</button>
+          </span>
+          {surface==="order"&&<div className="dseg">order domain:{DOMAINS.map(d=><button key={d} className={domain===d?"on":""} onClick={()=>setDomain(d)}>{d.toLowerCase()}</button>)}</div>}
+          <div className="legend" style={{marginBottom:10}}>{hint}</div>
+          {!anyVisible&&<div className="empty">Nothing to show for this surface/domain.</div>}
+          {sections.map(renderSec)}
+        </div>
+      </div>
+    </div>
+
+    <div className="note">Try it: rename “HIV / PMTCT–EID”, drag a field to another section via “Move to”, add a new section, or flip a section’s domain and switch the order-domain to watch it appear/disappear. Address (Region/District) is a locked type whose label + show/hide save via the existing Site Information API.</div>
+
+    <h2 style={{fontWeight:400,fontSize:20,margin:"26px 0 4px"}}>Proposed placement — Order Entry, Step 1 “Enter Order” (all three domains)</h2>
+    <div className="legend" style={{marginBottom:12}}>Verified live (indonesiademo v3.2.1.10): routes <code>/order/&#123;clinical,environmental,vector&#125;/enter</code>. <b>All three</b> already have a Step-1 details section (Clinical → <b>Clinical Information</b>; Env → env details; Vector → Sample) and a <b>Program</b> section — so we <b>extend an existing section</b> per domain, not add a new place. Patient-baseline fields live on the patient form.</div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16}}>
+      {[
+        {d:"Clinical",host:"Clinical Information",details:"Provisional Diagnosis · Payment Status"},
+        {d:"Environmental",host:"Env order details",details:"Collection Method · Water/Ambient Temp · Weather · Preservation · Field Notes · Compliance Standards"},
+        {d:"Vector",host:"Sample",details:"Lifecycle Stage · Trap Type · Quantity in Pool · Traps/Nights Deployed"},
+      ].map(c=>(
+        <div key={c.d} style={{border:"1px solid #e0e0e0",background:"#fff"}}>
+          <div style={{padding:"8px 12px",fontWeight:600,fontSize:13,background:"#edf5ff",display:"flex",gap:8,alignItems:"center"}}>{c.d}<span style={{marginLeft:"auto",fontSize:10,padding:"1px 7px",borderRadius:9,background:"#defbe6",color:"#0e6027"}}>Step-1 verified</span></div>
+          <div style={{padding:"10px 12px",fontSize:12,lineHeight:1.7}}>
+            <div>1 · Requester</div>
+            <div>2 · Sample &amp; Tests</div>
+            <div style={{background:"#f4f8ff",border:"1px dashed #0f62fe",borderRadius:3,padding:"4px 6px",margin:"3px 0",color:"#0043ce"}}>3 · <b>{c.host}</b> <span style={{color:"#8d8d8d"}}>({c.details})</span><br/><span style={{fontSize:11}}>→ extend with <b>Additional Order Details</b> (config-driven)</span></div>
+            <div style={{background:"#f6f2ff",border:"1px dashed #6929c4",borderRadius:3,padding:"4px 6px",color:"#6929c4"}}>4 · <b>Program</b> → its Questionnaire (when selected)</div>
+          </div>
+        </div>
+      ))}
+    </div>
+    <div className="note" style={{marginTop:12}}>Madagascar mapping: the surveillance / HIV-PMTCT <b>episode</b> fields become <b>Program</b> questionnaire items (box 4); persistent traits (mother link, mother HIV status, medical history) live in the <b>patient</b> region; box 3 is the config-driven order-level extras, added inside each domain’s existing details section. All three Step-1 structures verified live (indonesiademo v3.2.1.10) — Clinical’s <b>Clinical Information</b> (Provisional Diagnosis, Payment Status) is the exact host for the Clinical extras.</div>
+   </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
