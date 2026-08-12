@@ -371,6 +371,37 @@ the **Indonesia demo** (`indonesiademo.openelis-global.org`, v3.2.1.10); routes 
   **Additional Order Details (baseline, config-driven)** → **Program** → its Questionnaire (when
   selected).
 
+**FR-28 — Authoring UI: one builder, per-context (submenu switch).** The baseline sets and Programs
+are authored from a single admin surface — the questionnaire builder (FR-11–FR-16) — with a **SideNav
+submenu that switches the context**:
+- **Programs** (per-order, selectable — Basic Info + Domain + Lab unit).
+- **Order form fields → Clinical / Environmental / Vector** — **one always-attached set per order
+  domain** (not a single "every order" bucket). This is required: a single shared bucket can't express
+  fields that are **shared across domains vs unique to one**; per-domain sets do. (A future "common to
+  all orders" set may layer on top; per-domain is the v-scope default.)
+- **Patient form fields** — one cross-domain always-attached set.
+The builder is identical across contexts; only the attachment (and Basic Info for Programs) differs.
+
+**FR-29 — Shipped fields: represent, hide, don't delete.** Each context is seeded with its **shipped**
+fields (the ones OpenELIS ships — e.g. Clinical: Provisional Diagnosis, Payment Status; Env:
+Collection Method, temps, Weather, Preservation, Field Notes, Compliance Standards; Vector: Lifecycle
+Stage, Trap Type, counts; Patient: Education, Marital Status, Nationality, Occupation, Notes). Shipped
+fields:
+- appear in the builder with a **"shipped"** badge and a **Visible** toggle — an admin can **hide**
+  them, but they are **retained, never deleted** (D-002), because some have later use;
+- are **not deletable** (the delete affordance is a lock/hide, not remove). Only **admin-added** fields
+  are deletable.
+- **are excluded from the JSON view.** Since shipped/permanent fields can't be edited or removed, the
+  JSON editor shows **only admin-authored questions** — otherwise the JSON would imply an editable
+  field that isn't. Shipped fields are managed solely by the Visible toggle in the Visual Builder.
+- **Site-Information-managed fields** (Region/District address hierarchy — FR-23) show as **locked**
+  rows: configure (show/hide/label) but not re-authored here; their type/options are managed via Site
+  Information / Organization data.
+The **live preview reflects only visible fields**. Hiding a shipped field removes it from the form
+without losing its definition or history. In the builder, a **hidden field collapses to a compact
+row** (toggle + label + badge) rather than showing its full card — so the working list stays focused
+on active fields.
+
 **Madagascar content (config, not code):** the Disease-Surveillance and HIV/PMTCT–EID field sets from
 OGC-1144 are delivered as **Programs** (Questionnaires authored via FR-11–FR-16) plus the relevant
 baseline patient fields. The full field catalog + per-field type/level/response-source detail lives in

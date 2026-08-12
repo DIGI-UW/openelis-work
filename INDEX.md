@@ -56,7 +56,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 
 | Feature | Mockup | Spec |
 |---------|--------|------|
-| Analyzer Results — Lab Unit Access Control | [preview](designs/analyzer-integration/analyzer-results-lab-unit-access-preview.html) | [analyzer-results-lab-unit-access.md](designs/analyzer-integration/analyzer-results-lab-unit-access.md) |
+| Analyzer Results — Lab Unit Access Control | [preview](designs/analyzer-integration/analyzer-results-lab-unit-access-preview.html) | [analyzer-results-lab-unit-access.md](designs/analyzer-integration/analyzer-results-lab-unit-access.md) · [slices](designs/analyzer-integration/analyzer-results-lab-unit-access-breakdown.md) |
 | Sysmex XP Field Mapping | — | [sysmex-xp-field-mapping-v0.1.md](designs/analyzer-integration/sysmex-xp-field-mapping-v0.1.md) |
 | BioRad CFX Opus Connection Spec | — | [biorad-cfx-opus-analyzer-connection-spec.md](designs/analyzer-integration/biorad-cfx-opus-analyzer-connection-spec.md) |
 | MinION TB-Profiler Field Mapping Spec | — | [minion-tbprofiler-field-mapping-v2.2.md](designs/analyzer-integration/minion-tbprofiler-field-mapping-v2.2.md) |

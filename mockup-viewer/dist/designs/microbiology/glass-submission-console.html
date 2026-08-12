@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GLASS Submission Console — National AMR Surveillance (preview v1.0)</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+  .preview-banner strong { background:#fff; color:#0f62fe; padding:1px 6px; border-radius:2px; margin:0 4px; }
+  .app-header { background:#161616; color:#f4f4f4; padding:0 1rem; height:48px; display:flex; align-items:center; gap:1rem; font-size:14px; }
+  .breadcrumbs { padding:.75rem 2rem; background:#fff; border-bottom:1px solid #e0e0e0; font-size:13px; color:#525252; }
+  .breadcrumbs a { color:#0f62fe; text-decoration:none; }
+  .layout { display:flex; align-items:flex-start; }
+  .sidenav { width:232px; background:#fff; border-right:1px solid #e0e0e0; min-height:760px; flex:0 0 232px; }
+  .sidenav h4 { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:#6f6f6f; margin:1.25rem 1rem .5rem; }
+  .sidenav a { display:block; padding:.6rem 1rem; font-size:14px; color:#161616; text-decoration:none; border-left:3px solid transparent; }
+  .sidenav a.active { background:#e0e0e0; border-left-color:#0f62fe; font-weight:600; }
+  .main { padding:1.5rem 2rem 4rem; flex:1; max-width:1180px; }
+  h1 { font-size:28px; font-weight:300; margin:0 0 .25rem; }
+  .sub { color:#525252; font-size:14px; margin-bottom:1.5rem; }
+  .card { background:#fff; border:1px solid #e0e0e0; padding:1.25rem 1.5rem; margin-bottom:1rem; }
+  .card h2 { font-size:18px; font-weight:400; margin:0 0 .25rem; }
+  .card .hint { font-size:12px; color:#6f6f6f; margin-bottom:1rem; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:#525252; border-bottom:1px solid #e0e0e0; padding:.5rem .5rem .5rem 0; font-weight:600; }
+  td { padding:.6rem .5rem .6rem 0; border-bottom:1px solid #f0f0f0; vertical-align:top; }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:12px; font-weight:600; }
+  .t-green { background:#defbe6; color:#0e6027; } .t-amber { background:#fcf4d6; color:#684e00; }
+  .t-red { background:#fff1f1; color:#a2191f; } .t-grey { background:#e0e0e0; color:#525252; }
+  .t-blue { background:#d0e2ff; color:#0043ce; }
+  .btn { display:inline-flex; align-items:center; gap:.4rem; padding:.5rem 1rem; font-size:14px; font-family:inherit; border:1px solid transparent; cursor:pointer; }
+  .btn-primary { background:#0f62fe; color:#fff; } .btn-tertiary { background:transparent; color:#0f62fe; border-color:#0f62fe; }
+  .btn-ghost { background:transparent; color:#0f62fe; } .btn[disabled] { background:#c6c6c6; color:#8d8d8d; cursor:not-allowed; border-color:transparent; }
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1rem; }
+  .kpi { background:#fff; border:1px solid #e0e0e0; padding:1rem 1.25rem; }
+  .kpi .n { font-size:30px; font-weight:300; line-height:1.1; }
+  .kpi .l { font-size:12px; color:#525252; margin-top:.25rem; }
+  .kpi .d { font-size:11px; color:#6f6f6f; margin-top:.35rem; }
+  .notif { display:flex; gap:.75rem; padding:.75rem 1rem; font-size:13px; margin-bottom:1rem; border-left:3px solid; }
+  .n-info { background:#edf5ff; border-color:#0f62fe; }
+  .n-warn { background:#fcf4d6; border-color:#f1c21b; }
+  .n-ok  { background:#defbe6; border-color:#24a148; }
+  .funnel { display:flex; align-items:stretch; gap:0; margin:.5rem 0 1rem; }
+  .fstep { flex:1; background:#f4f4f4; border:1px solid #e0e0e0; border-right:0; padding:.75rem 1rem; }
+  .fstep:last-child { border-right:1px solid #e0e0e0; }
+  .fstep .fn { font-size:22px; font-weight:300; }
+  .fstep .fl { font-size:11px; color:#525252; text-transform:uppercase; letter-spacing:.4px; }
+  .fstep .fd { font-size:11px; color:#6f6f6f; margin-top:.3rem; }
+  .fstep.out { background:#fff1f1; }
+  .fstep.final { background:#defbe6; }
+  .split { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  code { background:#f4f4f4; padding:1px 5px; font-size:12px; }
+  .muted { color:#6f6f6f; font-size:12px; }
+  .human { background:#fff; border:2px dashed #0f62fe; padding:1.25rem 1.5rem; }
+</style>
+</head>
+<body>
+
+<div class="preview-banner">
+  GLASS Submission Console · <strong>preview v1.0</strong> · national instance · See <strong>glass-on-aspect-parity.md</strong> · OGC-918 / OGC-794
+</div>
+
+<div class="app-header">
+  <span style="font-weight:600;">OpenELIS Global</span><span style="opacity:.7;">|</span>
+  <span>National AMR Surveillance</span>
+  <div style="margin-left:auto; font-size:13px;">Dr A. Bamba · National Focal Point</div>
+</div>
+
+<div class="breadcrumbs"><a href="#">Home</a> / <a href="#">Surveillance</a> / GLASS Submission</div>
+
+<div class="layout">
+  <nav class="sidenav">
+    <h4>Surveillance</h4>
+    <a href="#">Site ingest</a>
+    <a href="#">Code mapping <span class="tag t-amber" style="margin-left:4px;">14</span></a>
+    <a href="#" class="active">GLASS submission</a>
+    <a href="#">AMR dashboards</a>
+    <a href="#">Antibiogram (M-13)</a>
+    <h4>Reference</h4>
+    <a href="#">GLASS scope profile</a>
+    <a href="#">Breakpoint standards</a>
+  </nav>
+
+  <main class="main">
+    <h1>GLASS submission</h1>
+    <div class="sub">Surveillance period <strong>1 Jan – 31 Dec 2025</strong> · 12 months · Early-implementation reporting</div>
+
+    <div class="notif n-info">
+      <span>ℹ️</span>
+      <div><strong>OpenELIS does not submit to GLASS.</strong> This console produces conformant RIS and SAMPLE files.
+      The nominated national focal point uploads them to the WHO GLASS IT platform — platform credentials are personal and cannot be shared or automated.</div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="n">38</div><div class="l">Sites contributing</div><div class="d">of 41 enrolled · 3 no data</div></div>
+      <div class="kpi"><div class="n">27,414</div><div class="l">Line-level records ingested</div><div class="d">isolates + negatives</div></div>
+      <div class="kpi"><div class="n">14</div><div class="l">Unmapped codes</div><div class="d">blocking · resolve before generating</div></div>
+      <div class="kpi"><div class="n">4</div><div class="l">Days since last ingest</div><div class="d">site CHU-Bouaké</div></div>
+    </div>
+
+    <!-- INGEST -->
+    <div class="card">
+      <h2>1 · Site ingest</h2>
+      <div class="hint">What arrived, from where, and by which route. Sites not running OpenELIS submit WHONET line-level files — not WHONET's own GLASS export, which de-duplicates before you get it.</div>
+      <table>
+        <thead><tr><th>Site</th><th>Route</th><th>Last received</th><th>Records</th><th>Unmapped</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>CHU Treichville</td><td>FHIR push (M-15)</td><td>2026-08-08 04:12</td><td>9,882</td><td>0</td><td><span class="tag t-green">Accepted</span></td></tr>
+          <tr><td>CHU Cocody</td><td>FHIR push (M-15)</td><td>2026-08-08 04:12</td><td>7,120</td><td>2</td><td><span class="tag t-amber">Needs mapping</span></td></tr>
+          <tr><td>Institut Pasteur CI</td><td>WHONET file upload</td><td>2026-08-06 16:40</td><td>6,455</td><td>12</td><td><span class="tag t-amber">Needs mapping</span></td></tr>
+          <tr><td>CHU Bouaké</td><td>FHIR push (M-15)</td><td>2026-08-04 03:58</td><td>3,957</td><td>0</td><td><span class="tag t-blue">Stale · 4 days</span></td></tr>
+          <tr><td>Hôpital Général Abobo</td><td>—</td><td>never</td><td>0</td><td>—</td><td><span class="tag t-grey">No data</span></td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:1rem; display:flex; gap:.5rem; align-items:center;">
+        <button class="btn btn-tertiary">Upload WHONET file</button>
+        <button class="btn btn-ghost">View all 41 sites</button>
+        <span class="muted" style="margin-left:auto;">Freshness per site mirrors the W8 site-sync dashboard — one source, two views.</span>
+      </div>
+    </div>
+
+    <!-- MAPPING -->
+    <div class="card">
+      <h2>2 · Resolve unmapped codes</h2>
+      <div class="hint">Sites send local codes. Each must resolve to a WHONET code before it can enter the submission. Resolutions persist, so a code is mapped once and not again.</div>
+      <div class="notif n-warn" style="margin-bottom:1rem;">
+        <span>⚠️</span>
+        <div><strong>14 unmapped codes across 2 sites.</strong> Records carrying them are held out of the submission — they are not dropped, and they re-enter automatically once mapped.</div>
+      </div>
+      <table>
+        <thead><tr><th>Local code</th><th>Site</th><th>Kind</th><th>Records</th><th>Suggested WHONET code</th><th></th></tr></thead>
+        <tbody>
+          <tr><td><code>E_COLI_ESBL</code></td><td>Institut Pasteur CI</td><td>Organism</td><td>412</td><td><em>eco</em> — <span class="muted">Escherichia coli</span></td><td><button class="btn btn-ghost" style="padding:2px 8px;">Map</button></td></tr>
+          <tr><td><code>CTX-30</code></td><td>Institut Pasteur CI</td><td>Antibiotic</td><td>388</td><td><em>CTX</em> — <span class="muted">Cefotaxime</span></td><td><button class="btn btn-ghost" style="padding:2px 8px;">Map</button></td></tr>
+          <tr><td><code>HEMOC_PED</code></td><td>CHU Cocody</td><td>Specimen</td><td>96</td><td><em>bl</em> — <span class="muted">Blood</span></td><td><button class="btn btn-ghost" style="padding:2px 8px;">Map</button></td></tr>
+          <tr><td><code>URINE_MI</code></td><td>Institut Pasteur CI</td><td>Specimen</td><td>1,204</td><td class="muted">no suggestion</td><td><button class="btn btn-ghost" style="padding:2px 8px;">Map</button></td></tr>
+        </tbody>
+      </table>
+      <div class="muted" style="margin-top:.75rem;">Suggestions are proposals shown for a human to accept — never auto-applied. A wrong organism mapping silently corrupts a national resistance rate.</div>
+    </div>
+
+    <!-- DEDUP -->
+    <div class="card">
+      <h2>3 · De-duplication &amp; scope</h2>
+      <div class="hint">First-isolate selection runs here, at national level — not at each site. Sites send every consecutive isolate; this is the only layer that can see a patient tested at two facilities.</div>
+      <div class="funnel">
+        <div class="fstep"><div class="fn">27,414</div><div class="fl">Ingested</div><div class="fd">all consecutive isolates + negatives</div></div>
+        <div class="fstep out"><div class="fn">−6,881</div><div class="fl">Duplicates removed</div><div class="fd">first isolate per patient / organism / specimen / period</div></div>
+        <div class="fstep out"><div class="fn">−2,110</div><div class="fl">Out of GLASS scope</div><div class="fd">non-target organism or specimen</div></div>
+        <div class="fstep out"><div class="fn">−316</div><div class="fl">Held — unmapped</div><div class="fd">returns once codes resolved</div></div>
+        <div class="fstep final"><div class="fn">18,107</div><div class="fl">In submission</div><div class="fd">4,902 RIS · 13,205 SAMPLE</div></div>
+      </div>
+      <div class="split" style="margin-top:1rem;">
+        <div>
+          <table>
+            <thead><tr><th>Dedup parameter</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td>Surveillance period</td><td>12 months</td></tr>
+              <tr><td>Same-day blood/CSF exception</td><td>Applied</td></tr>
+              <tr><td>Hospital→community origin change</td><td>Treated as new episode</td></tr>
+              <tr><td>Performed by</td><td>National (<code>NCC</code>)</td></tr>
+              <tr><td>Scope profile version</td><td>GLASS 2023 · v1.2</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <div class="notif n-info" style="margin:0;">
+            <span>🔒</span>
+            <div><strong>Parameters are recorded on the run.</strong> A prior period must be reproducible exactly when a country revises it — versioned scope profile, versioned dedup parameters, immutable source records.</div>
+          </div>
+          <div class="notif n-warn" style="margin:.75rem 0 0;">
+            <span>⚠️</span>
+            <div><strong>Negatives present — SAMPLE can be built.</strong> 13,205 negative/no-growth records give denominators, so this country can report <em>rates per 100 000</em>, not only percentage resistance.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENERATE -->
+    <div class="card">
+      <h2>4 · Generate files</h2>
+      <div class="hint">GLASS accepts tab-delimited text only. Preview before generating; counts above are what the files will contain.</div>
+      <table>
+        <thead><tr><th>Dataset</th><th>Contents</th><th>Records</th><th>Format</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>RIS</strong></td><td>Resistance / intermediate / susceptible, per isolate</td><td>4,902</td>
+            <td><code>.txt</code> tab-delimited</td><td><span class="tag t-amber">Blocked · 14 codes</span></td>
+            <td><button class="btn btn-ghost" style="padding:2px 8px;">Preview</button></td>
+          </tr>
+          <tr>
+            <td><strong>SAMPLE</strong></td><td>Denominator — specimens tested, incl. negatives</td><td>13,205</td>
+            <td><code>.txt</code> tab-delimited</td><td><span class="tag t-amber">Blocked · 14 codes</span></td>
+            <td><button class="btn btn-ghost" style="padding:2px 8px;">Preview</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:1rem; display:flex; gap:.5rem; align-items:center;">
+        <button class="btn" disabled>Generate RIS + SAMPLE</button>
+        <span class="muted">Resolve the 14 unmapped codes to enable.</span>
+      </div>
+    </div>
+
+    <!-- HUMAN STEP -->
+    <div class="human">
+      <h2 style="font-size:18px; font-weight:400; margin:0 0 .25rem;">5 · Upload to WHO GLASS</h2>
+      <div class="hint">This step is not automated and will not be.</div>
+      <div class="notif n-ok" style="margin-bottom:1rem;">
+        <span>✔️</span>
+        <div>The nominated focal point downloads both files and uploads them at
+        <code>glass.who.int</code>. GLASS platform credentials are issued to a named individual and cannot be shared or used by a system.</div>
+      </div>
+      <table>
+        <thead><tr><th>Focal point</th><th>Nominated by</th><th>Last submission</th><th>Period</th></tr></thead>
+        <tbody>
+          <tr><td>Dr A. Bamba</td><td>Ministry of Health</td><td>2025-06-30</td><td>Jan–Dec 2024</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:1rem; display:flex; gap:.5rem;">
+        <button class="btn" disabled>Download RIS</button>
+        <button class="btn" disabled>Download SAMPLE</button>
+        <button class="btn btn-ghost">Record a submission</button>
+      </div>
+      <div class="muted" style="margin-top:.75rem;">“Record a submission” logs date, period and who uploaded — so the next revision cycle knows what was already sent.</div>
+    </div>
+
+    <div class="muted" style="margin-top:1.25rem;">
+      Scope note — this console is the <strong>submission</strong> surface: periodic, WHO-format, produced for a human to upload.
+      Continuous programme views live under <strong>AMR dashboards</strong> and have no WHO format constraints.
+      A country can have excellent dashboards and still be unable to submit; the two must not be conflated.
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

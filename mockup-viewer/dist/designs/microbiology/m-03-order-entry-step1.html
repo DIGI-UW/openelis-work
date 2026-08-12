@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>M-03 Order Entry Step 1 — Microbiology Hook Preview v1</title>
+  <title>M-03 Order Entry Step 1 — Microbiology Hook Preview v1.1</title>
   <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
   <style>
     body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; color: #161616; }
@@ -43,11 +43,17 @@
     .btn-primary { background: #0f62fe; color: #fff; }
     .btn-tertiary { background: transparent; color: #0f62fe; border-color: #0f62fe; }
     .btn-ghost { background: transparent; color: #0f62fe; }
+    .origin-hint { font-size: 11px; color: #0043ce; margin-top: 4px; background: #edf5ff; border-left: 2px solid #0f62fe; padding: 3px 8px; display: inline-block; }
+    .readonly-value { font-size: 14px; padding: 0.5rem 0.75rem; background: transparent; border-bottom: 1px dashed #c6c6c6; color: #161616; }
+    .readonly-value .readonly-sub { display: block; font-size: 11px; color: #6f6f6f; margin-top: 2px; }
+    .derived-chip { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; background: #e0e0e0; color: #525252; padding: 1px 6px; border-radius: 10px; margin-left: 6px; }
+    .removed-note { font-size: 12px; color: #525252; background: #fff8e1; border-left: 3px solid #f1c21b; padding: 8px 10px; margin-top: 0.75rem; }
+    .form-field input:disabled, .form-field select:disabled { color: #a8a8a8; background: #f4f4f4; cursor: not-allowed; }
   </style>
 </head>
 <body>
   <div class="preview-banner">
-    M-03 Order Entry Step 1 (Microbiology) Preview · <strong>v1.0</strong> · Phase 1A · See <strong>m-03-order-entry-micro-hook-frs-v1.md</strong>
+    M-03 Order Entry Step 1 (Microbiology) Preview · <strong>v1.2</strong> · Phase 1A · Culture Protocol now <strong>derived/read-only</strong>, Critical Notify <strong>removed</strong> · See <strong>m-03-order-entry-micro-hook.md</strong> · OGC-789
   </div>
 
   <div class="app-header">
@@ -104,28 +110,37 @@
 
         <div class="form-row">
           <div class="form-field">
-            <label>Culture Protocol *</label>
-            <select>
-              <option selected>Blood Culture Standard (FA + FN; 5 days; 35°C; aerobic + anaerobic)</option>
-              <option>Urine Routine (BAP + MAC; 48h; 35°C; aerobic)</option>
-              <option>Respiratory Standard (BAP + CHOC + MAC; 48h; 35°C + CO₂)</option>
-              <option>Wound Culture (BAP + MAC + CNA + THIO; 48h; aerobic + anaerobic)</option>
-              <option>CSF Urgent (BAP + CHOC; 48h; 35°C + CO₂)</option>
-              <option>Stool Enteric (MAC + SS + XLD + Campy; 48h; mixed atmospheres)</option>
-            </select>
-            <div class="helper">Defaulted from the selected test; override if needed.</div>
+            <label>Culture Protocol <span class="derived-chip">derived</span></label>
+            <div class="readonly-value">
+              Blood Culture Standard
+              <span class="readonly-sub">FA + FN &middot; 5 days &middot; 35&deg;C &middot; aerobic + anaerobic</span>
+            </div>
+            <div class="helper">From the ordered test. Change it at the bench if the workup differs.</div>
           </div>
           <div class="form-field">
             <label>Patient Origin</label>
             <select>
               <option>(unknown)</option>
-              <option>Inpatient (INP)</option>
+              <option selected>Inpatient (INP)</option>
               <option>Outpatient (OUT)</option>
               <option>ICU (ICU)</option>
-              <option selected>Emergency (EME)</option>
+              <option>Emergency (EME)</option>
               <option>Long-term Care (LTC)</option>
             </select>
-            <div class="helper">Used in WHONET export (Phase 1B).</div>
+            <div class="helper">Where the patient is. Used in WHONET export (Phase 1B).</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>Date of Admission</label>
+            <input type="date" value="2026-08-01" />
+            <div class="helper">Date the patient was admitted as an inpatient. Leave blank for outpatients.</div>
+            <div class="origin-hint">Collected 4 days after admission &rarr; hospital-origin for surveillance</div>
+          </div>
+          <div class="form-field">
+            <label>Department / Ward</label>
+            <input type="text" value="Medical Ward A" />
           </div>
         </div>
 
@@ -136,8 +151,9 @@
             <div class="helper">For blood cultures, typical is 2 sets from different sites.</div>
           </div>
           <div class="form-field">
-            <label>Department / Ward</label>
-            <input type="text" value="ER · Adult" />
+            <label>Collection Date <span style="text-transform:none;font-weight:400;">(set on Step 2)</span></label>
+            <input type="date" value="2026-08-05" disabled />
+            <div class="helper">Shown for context — admission date must not be later than this.</div>
           </div>
         </div>
 
@@ -151,8 +167,11 @@
           <label><input type="checkbox" checked /> Patient has recent antibiotic exposure (within 2 weeks)</label>
         </div>
 
-        <div class="checkbox-row">
-          <label><input type="checkbox" checked /> Notify clinician immediately for positive blood culture</label>
+        <div class="removed-note">
+          <strong>Removed in v2.2:</strong> the &ldquo;Notify clinician immediately&rdquo; checkbox.
+          Critical notification is configured in the Test Catalog (notify flag, Alerts section,
+          critical Ranges) and dispatched by <code>TestNotificationService</code>. Phase 1A triggers
+          criticals manually at the bench, so nothing read this field.
         </div>
       </div>
     </section>

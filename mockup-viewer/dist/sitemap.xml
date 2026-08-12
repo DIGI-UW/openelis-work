@@ -116,8 +116,13 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/programs-management.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/programs-management.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/additional-info-builder.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/patient-additional-info-surveillance-pmtct.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/patient-additional-info-surveillance-pmtct.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/patient-additional-info-surveillance-pmtct.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/results-validation-config-v4.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/results-validation-config-v4.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-results-lab-unit-access.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-results-lab-unit-access-preview.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-maintenance.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-maintenance-preview.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-profile-mapping.md</loc></url>
@@ -158,6 +163,10 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-02-breakpoint-catalog.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-03-order-entry-micro-hook.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-03-order-entry-step1.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/glass-on-aspect-parity.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/glass-submission-console.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/glass-on-aspect-parity.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/glass-amr-dashboard-indicators.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-core.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-isolate-modal.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-06-expert-rules-engine.md</loc></url>
@@ -363,6 +372,8 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/lab-management-dashboard.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/electronic-signature.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/electronic-signature.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/multi-sample-order-entry.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/multi-sample-order-entry-preview.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/sample-collection-redesign.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/sample-collection-redesign-mockup.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/sampling-site-registry.md</loc></url>

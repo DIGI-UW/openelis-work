@@ -4066,6 +4066,7 @@
   type: html
   path: designs/analyzer-integration/analyzer-results-lab-unit-access-preview.html
   spec: designs/analyzer-integration/analyzer-results-lab-unit-access.md
+  breakdown: designs/analyzer-integration/analyzer-results-lab-unit-access-breakdown.md
   preview: designs/analyzer-integration/analyzer-results-lab-unit-access-preview.html
   category: analyzer-integration
   description: >
@@ -4079,6 +4080,7 @@
     JSX drop-in components shipped as a reference asset.
   links:
     jira:
+      - OGC-1178
       - OGC-1057
       - OGC-288
       - OGC-337
