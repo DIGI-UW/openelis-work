@@ -4062,5 +4062,29 @@
       - OGC-285
     gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/multiple-samples-per-test-at-order-entry
     preview: https://digi-uw.github.io/openelis-work/designs/sample-collection/multi-sample-order-entry-preview.html
+- id: analyzer-results-lab-unit-access
+  type: html
+  path: designs/analyzer-integration/analyzer-results-lab-unit-access-preview.html
+  spec: designs/analyzer-integration/analyzer-results-lab-unit-access.md
+  preview: designs/analyzer-integration/analyzer-results-lab-unit-access-preview.html
+  category: analyzer-integration
+  description: >
+    Analyzer Results — Lab Unit Access Control. Gates the Analyzer Results Import
+    screen by the user's per-lab-unit Results rights (not the bridge-account "Analyser
+    Import" role): analyzer menu filtered to the user's benches, access-denied page names
+    the required bench, per-row filtering inside shared analyzers with a hidden-count line.
+    Closes the unauthenticated /rest/AnalyzerResults gap (ISO 15189) and gives
+    analyzer.test_unit_ids (dormant since OGC-337) its first consumer, plus a one-time
+    upgrade backfill from each analyzer's configured tests. FRS + interactive HTML preview;
+    JSX drop-in components shipped as a reference asset.
+  links:
+    jira:
+      - OGC-1057
+      - OGC-288
+      - OGC-337
+      - OGC-1137
+      - OGC-1151
+    gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-results-lab-unit-access-control
+    preview: https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-results-lab-unit-access-preview.html
   added: "2026-08-11"
 

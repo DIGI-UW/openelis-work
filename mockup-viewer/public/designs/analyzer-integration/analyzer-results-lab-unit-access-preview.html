@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyzer Results — Lab Unit Access · OpenELIS Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:8px 1rem; font-size:12px; font-family:'IBM Plex Mono',monospace; }
+  .preview-content { padding:1rem 2rem 4rem; max-width:1440px; margin:0 auto; }
+  .harness { background:#e0e0e0; border-left:4px solid #8d8d8d; padding:.75rem 1rem; margin:1rem 0 1.5rem; }
+  .harness-label { font-size:11px; letter-spacing:.32px; text-transform:uppercase; color:#525252; margin-bottom:.5rem; font-weight:600; }
+  .persona-btn { border:1px solid #8d8d8d; background:#fff; padding:.5rem .75rem; margin-right:.5rem; margin-bottom:.25rem; cursor:pointer; font-family:inherit; font-size:13px; text-align:left; }
+  .persona-btn.sel { background:#0f62fe; color:#fff; border-color:#0f62fe; }
+  .persona-btn small { display:block; font-size:11px; opacity:.75; }
+  .shell { display:flex; gap:0; background:#fff; border:1px solid #e0e0e0; min-height:560px; }
+  .nav { width:272px; background:#f4f4f4; border-right:1px solid #e0e0e0; flex-shrink:0; padding:.5rem 0; }
+  .nav-group { padding:.5rem 1rem; font-size:14px; font-weight:600; color:#161616; }
+  .nav-sub { padding:.4rem 1rem .4rem 2rem; font-size:13px; color:#525252; }
+  .nav-item { padding:.5rem 1rem .5rem 3rem; font-size:13px; cursor:pointer; color:#161616; border-left:3px solid transparent; }
+  .nav-item:hover { background:#e8e8e8; }
+  .nav-item.sel { background:#e0e0e0; border-left-color:#0f62fe; font-weight:600; }
+  .nav-empty { padding:.5rem 1rem .5rem 3rem; font-size:12px; color:#6f6f6f; font-style:italic; }
+  .pane { flex:1; padding:1.25rem 1.5rem; min-width:0; }
+  .crumb { font-size:12px; color:#525252; margin-bottom:.5rem; }
+  .crumb a { color:#0f62fe; text-decoration:none; }
+  h3.page { font-size:1.75rem; font-weight:400; margin:.25rem 0 .25rem; }
+  .sub { font-size:13px; color:#525252; margin-bottom:1rem; }
+  .route { font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6f6f6f; }
+  table.cds--data-table td, table.cds--data-table th { font-size:13px; }
+  .section-head { margin:2.5rem 0 .5rem; font-size:1.25rem; font-weight:400; border-bottom:1px solid #e0e0e0; padding-bottom:.5rem; }
+  .note { font-size:12px; color:#6f6f6f; margin:.5rem 0 0; }
+  .denied { max-width:620px; margin:3rem auto; text-align:center; padding:2.5rem 2rem; }
+  .denied-icon { font-size:2.5rem; line-height:1; margin-bottom:1rem; color:#8d8d8d; }
+  .tags { display:flex; flex-wrap:wrap; gap:.25rem; }
+</style>
+</head>
+<body class="cds--white">
+<div class="preview-banner">
+  Visual Preview — Analyzer Results: Lab Unit Access &nbsp;|&nbsp; Route <b>/AnalyzerResults?id=&lt;analyzerId&gt;</b> &nbsp;|&nbsp; SideNav: Results → Analyzer → [analyzer] &nbsp;|&nbsp; OpenELIS Design Mockup — not a live application
+</div>
+<div class="preview-content" id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+const t = (k, f) => f || k;
+
+/* ---------- Lab units ---------- */
+const HAEM = "Haematology", BIO = "Biochemistry", MICRO = "Microbiology", SERO = "Serology";
+
+/* ---------- Analyzers (realistic instruments from the OpenELIS integration set) ---------- */
+const ANALYZERS = [
+  { id:"a-01", name:"Sysmex XN-550",        units:[HAEM],        pending:14, derived:true },
+  { id:"a-02", name:"Mindray BC-5380",      units:[HAEM],        pending:6,  derived:true },
+  { id:"a-03", name:"Stago START 4",        units:[HAEM],        pending:0,  derived:true },
+  { id:"a-04", name:"Mindray BS-240E",      units:[BIO],         pending:22, derived:true },
+  { id:"a-05", name:"Roche Cobas c311",     units:[BIO],         pending:9,  derived:true },
+  { id:"a-06", name:"GeneXpert GX-IV",      units:[MICRO,SERO],  pending:11, derived:true },
+  { id:"a-07", name:"FluoroCycler XT",      units:[MICRO],       pending:4,  derived:true },
+  { id:"a-08", name:"bioMérieux VIDAS",     units:[SERO],        pending:7,  derived:true },
+  { id:"a-09", name:"Thermo Multiskan FC",  units:[SERO],        pending:3,  derived:true },
+  { id:"a-11", name:"GeneXpert GX-XVI",     units:[MICRO,SERO],  pending:5,  derived:true },
+  { id:"a-10", name:"Tecan Infinite F50",   units:[],            pending:2,  derived:false },
+];
+
+/* ---------- Personas (preview harness only) ---------- */
+const PEOPLE = [
+  { id:"p1", name:"Amara Okoye",            role:"Results: Haematology",              units:[HAEM],        all:false },
+  { id:"p2", name:"Kwame Mensah",           role:"Results: Microbiology",             units:[MICRO],       all:false },
+  { id:"p3", name:"Dr. Priya Raman",        role:"Results: all lab units",            units:[],            all:true  },
+  { id:"p4", name:"Fatou Diallo",           role:"Reception only — no Results rights",units:[],            all:false },
+];
+
+/* ---------- Pending rows on the GeneXpert (a shared Micro + Sero instrument) ---------- */
+const ROWS = {
+  "a-06":[
+    { s:"25-004411", test:"MTB/RIF Ultra",            unit:MICRO, val:"MTB NOT DETECTED", flag:null,       time:"09:12" },
+    { s:"25-004412", test:"MTB/RIF Ultra",            unit:MICRO, val:"MTB DETECTED (LOW)", flag:"abnormal", time:"09:26" },
+    { s:"25-004415", test:"MTB/RIF Ultra",            unit:MICRO, val:"MTB NOT DETECTED", flag:null,       time:"09:41" },
+    { s:"25-004418", test:"MTB/RIF Ultra",            unit:MICRO, val:"INVALID — repeat",  flag:"error",    time:"09:55" },
+    { s:"25-004420", test:"MTB/RIF Ultra",            unit:MICRO, val:"MTB NOT DETECTED", flag:null,       time:"10:03" },
+    { s:"25-004402", test:"HIV-1 Viral Load",         unit:SERO,  val:"< 40 copies/mL",   flag:null,       time:"08:48" },
+    { s:"25-004403", test:"HIV-1 Viral Load",         unit:SERO,  val:"1,240 copies/mL",  flag:"abnormal", time:"08:52" },
+    { s:"25-004407", test:"HIV-1 Viral Load",         unit:SERO,  val:"< 40 copies/mL",   flag:null,       time:"09:04" },
+    { s:"25-004409", test:"Hepatitis C RNA",          unit:SERO,  val:"NOT DETECTED",     flag:null,       time:"09:08" },
+    { s:"25-004421", test:"Hepatitis C RNA",          unit:SERO,  val:"NOT DETECTED",     flag:null,       time:"10:11" },
+    { s:"25-004424", test:"HIV-1 Viral Load",         unit:SERO,  val:"84,500 copies/mL", flag:"critical", time:"10:19" },
+  ],
+  "a-01":[
+    { s:"25-004301", test:"Full Blood Count", unit:HAEM, val:"Hb 13.4 g/dL",  flag:null,       time:"08:20" },
+    { s:"25-004302", test:"Full Blood Count", unit:HAEM, val:"Hb 8.1 g/dL",   flag:"abnormal", time:"08:24" },
+    { s:"25-004305", test:"Full Blood Count", unit:HAEM, val:"Hb 14.0 g/dL",  flag:null,       time:"08:31" },
+    { s:"25-004311", test:"Full Blood Count", unit:HAEM, val:"Hb 5.2 g/dL",   flag:"critical", time:"08:49" },
+    { s:"25-004314", test:"Full Blood Count", unit:HAEM, val:"Hb 12.9 g/dL",  flag:null,       time:"08:56" },
+  ],
+  "a-11":[
+    { s:"25-004430", test:"HIV-1 Viral Load", unit:SERO, val:"< 40 copies/mL",    flag:null,       time:"11:20" },
+    { s:"25-004431", test:"HIV-1 Viral Load", unit:SERO, val:"2,910 copies/mL",   flag:"abnormal", time:"11:24" },
+    { s:"25-004432", test:"HIV-1 Viral Load", unit:SERO, val:"< 40 copies/mL",    flag:null,       time:"11:31" },
+    { s:"25-004433", test:"Hepatitis C RNA",  unit:SERO, val:"NOT DETECTED",      flag:null,       time:"11:38" },
+    { s:"25-004434", test:"HIV-1 Viral Load", unit:SERO, val:"156,000 copies/mL", flag:"critical", time:"11:45" },
+  ],
+  "a-10":[
+    { s:"25-004500", test:"ELISA plate read", unit:null, val:"OD 0.412", flag:null, time:"11:02" },
+    { s:"25-004501", test:"ELISA plate read", unit:null, val:"OD 1.883", flag:"abnormal", time:"11:02" },
+  ],
+};
+
+/* ---------- Access rules (FR-7, FR-8, FR-9, FR-15) ---------- */
+const hasAnyResults = (p) => p.all || p.units.length > 0;
+const canOpen = (p, a) => {
+  if (!hasAnyResults(p)) return false;          // FR-13a
+  if (p.all) return true;                        // FR-8
+  if (a.units.length === 0) return true;         // FR-5 / FR-9 unrestricted
+  return a.units.some(u => p.units.includes(u)); // FR-7
+};
+const canSeeRow = (p, r) => p.all || r.unit === null || p.units.includes(r.unit);
+
+const Tag = ({kind="gray", children}) => <span className={`cds--tag cds--tag--${kind}`}>{children}</span>;
+
+function UnitTags({units}) {
+  if (!units.length) return <Tag kind="warm-gray">{t('analyzerResults.labUnits.unassigned','No lab units assigned')}</Tag>;
+  return <span className="tags">{units.map(u => <Tag key={u} kind="blue">{u}</Tag>)}</span>;
+}
+
+/* ---------- Filtered SideNav (FR-10, FR-13) ---------- */
+function Nav({person, selId, onSel}) {
+  const visible = ANALYZERS.filter(a => canOpen(person, a));
+  return (
+    <div className="nav">
+      <div className="nav-group">{t('common.results','Results')}</div>
+      <div className="nav-sub">Enter Results</div>
+      <div className="nav-sub">Validation</div>
+      <div className="nav-sub" style={{fontWeight:600, color:'#161616'}}>{t('common.analyzer','Analyzer')}</div>
+      {visible.length === 0
+        ? <div className="nav-empty">{t('analyzerResults.access.emptyTitle','No analyzers in your lab units')}</div>
+        : visible.map(a => (
+            <div key={a.id} className={"nav-item" + (a.id===selId ? " sel" : "")} onClick={() => onSel(a.id)}>
+              {a.name}{a.pending > 0 && <span style={{color:'#6f6f6f'}}> · {a.pending}</span>}
+            </div>
+          ))
+      }
+      <div className="nav-sub" style={{marginTop:'.5rem'}}>Logbook</div>
+      <div className="nav-group" style={{marginTop:'.5rem'}}>Workplan</div>
+    </div>
+  );
+}
+
+/* ---------- Access denied (FR-12) ---------- */
+function Denied({analyzer, onBack}) {
+  return (
+    <div className="pane">
+      <div className="crumb"><a href="#">{t('common.home','Home')}</a> / <a href="#">{t('common.results','Results')}</a> / {t('common.analyzer','Analyzer')}</div>
+      <div className="cds--tile denied">
+        <div className="denied-icon">&#9888;</div>
+        <h3 style={{fontSize:'1.5rem', fontWeight:400, marginBottom:'.75rem'}}>
+          {t('analyzerResults.access.deniedTitle',"You don't have access to this analyzer")}
+        </h3>
+        <p style={{fontSize:14, color:'#525252', marginBottom:'1rem'}}>
+          <b>{analyzer.name}</b> is assigned to <b>{analyzer.units.join(", ")}</b>. You need results access
+          to one of those lab units to review its results.
+        </p>
+        <div style={{display:'flex', justifyContent:'center', marginBottom:'1.5rem'}}><UnitTags units={analyzer.units}/></div>
+        <button className="cds--btn cds--btn--primary" onClick={onBack}>
+          {t('analyzerResults.access.deniedAction','View analyzers you can access')}
+        </button>
+        <p className="route" style={{marginTop:'1.5rem'}}>/AnalyzerResults?id={analyzer.id} — no result data is returned</p>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- No analyzers at all (FR-13 / FR-13a) ---------- */
+function NoAccess({person}) {
+  return (
+    <div className="pane">
+      <div className="crumb"><a href="#">{t('common.home','Home')}</a> / <a href="#">{t('common.results','Results')}</a> / {t('common.analyzer','Analyzer')}</div>
+      <div className="cds--tile denied">
+        <div className="denied-icon">&#9673;</div>
+        <h3 style={{fontSize:'1.5rem', fontWeight:400, marginBottom:'.75rem'}}>
+          {t('analyzerResults.access.emptyTitle','No analyzers in your lab units')}
+        </h3>
+        <p style={{fontSize:14, color:'#525252'}}>
+          {t('analyzerResults.access.emptyBody',
+             "No analyzers are assigned to the lab units you have results access to. Ask your administrator to assign this analyzer to your lab unit, or to grant you access.")}
+        </p>
+        <p className="note" style={{marginTop:'1.25rem'}}>
+          {person.name} — {person.role}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Import screen with row filtering (FR-15 … FR-19, FR-24) ---------- */
+function ImportScreen({person, analyzer}) {
+  const all = ROWS[analyzer.id] || [];
+  const visible = all.filter(r => canSeeRow(person, r));
+  const hidden = all.filter(r => !canSeeRow(person, r));
+  const hiddenUnits = [...new Set(hidden.map(r => r.unit).filter(Boolean))];
+  const [sel, setSel] = useState([]);
+  const toggle = (s) => setSel(p => p.includes(s) ? p.filter(x=>x!==s) : [...p, s]);
+  const allSel = visible.length > 0 && sel.length === visible.length;
+  const toggleAll = () => setSel(allSel ? [] : visible.map(r => r.s));
+
+  const flagTag = (f) =>
+    f === "critical" ? <Tag kind="red">{t('common.critical','Critical')}</Tag> :
+    f === "abnormal" ? <Tag kind="warm-gray">Abnormal</Tag> :
+    f === "error"    ? <Tag kind="red">{t('common.error','Error')}</Tag> :
+                       <Tag kind="green">{t('common.normal','Normal')}</Tag>;
+
+  return (
+    <div className="pane">
+      <div className="crumb">
+        <a href="#">{t('common.home','Home')}</a> / <a href="#">{t('common.results','Results')}</a> / <a href="#">{t('common.analyzer','Analyzer')}</a> / {analyzer.name}
+      </div>
+      <h3 className="page">{analyzer.name}</h3>
+      <div className="sub">
+        <span style={{marginRight:'.75rem'}}>{t('analyzerResults.labUnits','Lab Units')}:</span>
+        <span style={{display:'inline-flex', gap:'.25rem', verticalAlign:'middle'}}><UnitTags units={analyzer.units}/></span>
+        <div className="route" style={{marginTop:'.4rem'}}>/AnalyzerResults?id={analyzer.id}</div>
+      </div>
+
+      {analyzer.units.length === 0 && (
+        <div className="cds--inline-notification cds--inline-notification--warning" style={{maxWidth:'none', marginBottom:'1rem'}}>
+          <div className="cds--inline-notification__details">
+            <div className="cds--inline-notification__text-wrapper">
+              <p className="cds--inline-notification__title">{t('analyzerResults.labUnits.unassigned','No lab units assigned')}</p>
+              <p className="cds--inline-notification__subtitle">
+                {t('analyzerResults.labUnits.unassignedHint',
+                   "Any user with results access can review this analyzer's results until lab units are assigned.")}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {hidden.length > 0 && visible.length > 0 && (
+        <div className="cds--inline-notification cds--inline-notification--info" style={{maxWidth:'none', marginBottom:'1rem'}}>
+          <div className="cds--inline-notification__details">
+            <div className="cds--inline-notification__text-wrapper">
+              <p className="cds--inline-notification__title">
+                {hidden.length} results from other lab units are hidden
+              </p>
+              <p className="cds--inline-notification__subtitle">
+                These results belong to {hiddenUnits.join(", ")}. A user with results access to those lab units must review them.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {visible.length === 0 ? (
+        <div className="cds--tile" style={{padding:'2.5rem', textAlign:'center'}}>
+          <h4 style={{fontWeight:400, marginBottom:'.5rem'}}>
+            {t('analyzerResults.hiddenRows.allHiddenTitle','No results for your lab units in this run')}
+          </h4>
+          <p style={{fontSize:13, color:'#525252'}}>
+            This run contains {all.length} results, all belonging to lab units you don't have results access to.
+          </p>
+        </div>
+      ) : (
+        <React.Fragment>
+          <div style={{display:'flex', gap:'.5rem', alignItems:'center', marginBottom:'.5rem'}}>
+            <button className="cds--btn cds--btn--primary cds--btn--sm" disabled={sel.length===0}>
+              {t('common.accept','Accept')} {sel.length > 0 ? `(${sel.length})` : ''}
+            </button>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" disabled={sel.length===0}>
+              {t('common.reject','Reject')}
+            </button>
+            <span style={{marginLeft:'auto', fontSize:12, color:'#6f6f6f'}}>
+              {visible.length} of {visible.length} results shown
+              {hidden.length > 0 && <span> · {hidden.length} hidden</span>}
+            </span>
+          </div>
+          <div className="cds--data-table-container">
+            <table className="cds--data-table">
+              <thead>
+                <tr>
+                  <th style={{width:40}}><input type="checkbox" checked={allSel} onChange={toggleAll} aria-label="Select all"/></th>
+                  <th>{t('common.sampleId','Sample ID')}</th>
+                  <th>{t('common.testName','Test Name')}</th>
+                  <th>{t('analyzerResults.labUnit','Lab Unit')}</th>
+                  <th>{t('common.result','Result')}</th>
+                  <th>{t('common.status','Status')}</th>
+                  <th>Received</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map(r => (
+                  <tr key={r.s}>
+                    <td><input type="checkbox" checked={sel.includes(r.s)} onChange={()=>toggle(r.s)} aria-label={"Select "+r.s}/></td>
+                    <td style={{fontFamily:"'IBM Plex Mono',monospace"}}>{r.s}</td>
+                    <td>{r.test}</td>
+                    <td><Tag kind="blue">{r.unit}</Tag></td>
+                    <td>{r.val}</td>
+                    <td>{flagTag(r.flag)}</td>
+                    <td>{r.time}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="note">Select all selects only the results you can see — a hidden result can never be accepted (FR-17).</p>
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Analyzers admin list: names, not "3 unit(s)" (FR-23, FR-6) ---------- */
+function AdminList() {
+  return (
+    <React.Fragment>
+      <h3 className="section-head">Analyzers list — lab units named, not counted</h3>
+      <p className="note" style={{marginBottom:'.75rem'}}>
+        Today this column reads “3 unit(s)”. FR-23 replaces the count with the unit names; FR-6 marks the
+        unassigned analyzers so an administrator can find them. Assignment itself is edited on the analyzer
+        form, delivered by OGC-1057.
+      </p>
+      <div className="cds--data-table-container">
+        <table className="cds--data-table">
+          <thead>
+            <tr>
+              <th>{t('common.name','Name')}</th>
+              <th>{t('analyzerResults.labUnits','Lab Units')}</th>
+              <th>{t('common.status','Status')}</th>
+              <th>{t('common.pending','Pending')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ANALYZERS.map(a => (
+              <tr key={a.id}>
+                <td>{a.name}</td>
+                <td><UnitTags units={a.units}/></td>
+                <td><Tag kind="green">{t('common.active','Active')}</Tag></td>
+                <td>{a.pending}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </React.Fragment>
+  );
+}
+
+/* ---------- App ---------- */
+function App() {
+  const [pid, setPid] = useState("p1");
+  const [selId, setSelId] = useState("a-01");
+  const person = PEOPLE.find(p => p.id === pid);
+  const analyzer = ANALYZERS.find(a => a.id === selId);
+
+  const visibleAnalyzers = ANALYZERS.filter(a => canOpen(person, a));
+
+  const pickPerson = (id) => {
+    setPid(id);
+    const p = PEOPLE.find(x => x.id === id);
+    const first = ANALYZERS.find(a => canOpen(p, a));
+    setSelId(first ? first.id : selId);
+  };
+
+  let body;
+  if (visibleAnalyzers.length === 0) body = <NoAccess person={person}/>;
+  else if (!canOpen(person, analyzer)) body = <Denied analyzer={analyzer} onBack={() => setSelId(visibleAnalyzers[0].id)}/>;
+  else body = <ImportScreen person={person} analyzer={analyzer}/>;
+
+  return (
+    <div>
+      <div className="harness">
+        <div className="harness-label">Preview control — not part of the design. Choose who is signed in:</div>
+        {PEOPLE.map(p => (
+          <button key={p.id} className={"persona-btn" + (p.id===pid ? " sel" : "")} onClick={()=>pickPerson(p.id)}>
+            {p.name}<small>{p.role}</small>
+          </button>
+        ))}
+        <div style={{marginTop:'.6rem', fontSize:12, color:'#525252'}}>
+          Then pick an analyzer in the menu. To see the access-denied page, choose an analyzer, switch persona,
+          and follow the link back — or open one you aren't entitled to:{" "}
+          {ANALYZERS.filter(a => !canOpen(person,a)).slice(0,3).map(a => (
+            <button key={a.id} className="cds--btn cds--btn--ghost cds--btn--sm" style={{padding:'0 .5rem', height:24}}
+                    onClick={()=>setSelId(a.id)}>{a.name}</button>
+          ))}
+          {ANALYZERS.filter(a => !canOpen(person,a)).length === 0 && <i>this user can open every analyzer.</i>}
+        </div>
+      </div>
+
+      <div className="shell">
+        <Nav person={person} selId={selId} onSel={setSelId}/>
+        {body}
+      </div>
+
+      <AdminList/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
