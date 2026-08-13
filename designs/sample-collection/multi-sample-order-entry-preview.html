@@ -9,184 +9,228 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>
-  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; }
-  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
-  .preview-content { padding:1rem 2rem 4rem; max-width:1200px; margin:0 auto; }
-  .group { background:#fff; border:1px solid #e0e0e0; border-left:3px solid #0f62fe; margin-bottom:1.5rem; }
-  .group-head { display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem; border-bottom:1px solid #e0e0e0; background:#f4f4f4; flex-wrap:wrap; }
+  body { background:var(--cds-background, #f4f4f4); margin:0; font-family:'IBM Plex Sans',sans-serif; }
+  .preview-banner { background:var(--cds-interactive, #0f62fe); color:var(--cds-text-on-color, #fff);
+                    padding:var(--cds-spacing-02, .25rem) var(--cds-spacing-05, 1rem); font-size:12px; font-family:monospace; }
+  .preview-content { padding:var(--cds-spacing-05, 1rem) var(--cds-spacing-07, 2rem) var(--cds-spacing-10, 4rem);
+                     max-width:1200px; margin:0 auto; }
+  .group { background:var(--cds-layer, #fff); border:1px solid var(--cds-border-subtle, #e0e0e0);
+           border-left:3px solid var(--cds-interactive, #0f62fe); margin-bottom:var(--cds-spacing-06, 1.5rem); }
+  .group-head { display:flex; align-items:center; gap:var(--cds-spacing-04, .75rem);
+                padding:var(--cds-spacing-04, .75rem) var(--cds-spacing-05, 1rem);
+                border-bottom:1px solid var(--cds-border-subtle, #e0e0e0);
+                background:var(--cds-background, #f4f4f4); flex-wrap:wrap; }
   .group-title { font-size:16px; font-weight:600; margin:0; }
-  .group-body { padding:1rem; }
-  .srow { border:1px solid #e0e0e0; border-top:none; }
-  .srow:first-of-type { border-top:1px solid #e0e0e0; }
-  .srow-head { display:grid; grid-template-columns:120px 1.4fr 130px 100px 150px 190px; gap:.75rem; align-items:center; padding:.5rem .75rem; }
-  .srow-head.voided { background:#f4f4f4; color:#8d8d8d; }
-  .srow-detail { background:#f4f4f4; padding:1rem .75rem; border-top:1px solid #e0e0e0; }
-  .fieldgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
-  .lbl { font-size:12px; color:#525252; display:block; margin-bottom:.25rem; }
-  .cds--text-input, .cds--select-input, .cds--date-picker__input { width:100%; }
-  .seq { font-size:13px; font-weight:600; white-space:nowrap; }
-  .muted { color:#6f6f6f; font-size:12px; }
-  .sectionhead { margin:2.5rem 0 .5rem; border-bottom:2px solid #161616; padding-bottom:.35rem; }
-  .helper { font-size:12px; color:#6f6f6f; margin-top:.25rem; }
-  .labelrow { display:grid; grid-template-columns:1fr 120px; gap:1rem; align-items:center; padding:.4rem 0; border-bottom:1px solid #e0e0e0; }
-  .chipwrap { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.75rem; }
-  .keynote { font-family:monospace; font-size:11px; color:#0f62fe; }
-  .callout { background:#edf5ff; border-left:3px solid #0f62fe; padding:.75rem 1rem; margin:1rem 0; font-size:13px; }
+  .group-body { padding:var(--cds-spacing-05, 1rem); }
+  .srow { border:1px solid var(--cds-border-subtle, #e0e0e0); border-top:none; }
+  .srow:first-of-type { border-top:1px solid var(--cds-border-subtle, #e0e0e0); }
+  .srow-head { display:grid; grid-template-columns:150px 1.4fr 130px 100px 150px 210px;
+               gap:var(--cds-spacing-04, .75rem); align-items:start;
+               padding:var(--cds-spacing-03, .5rem) var(--cds-spacing-04, .75rem); }
+  .srow-head.voided { background:var(--cds-background, #f4f4f4); color:var(--cds-text-disabled, #8d8d8d); }
+  .srow-detail { background:var(--cds-background, #f4f4f4); padding:var(--cds-spacing-05, 1rem) var(--cds-spacing-04, .75rem);
+                 border-top:1px solid var(--cds-border-subtle, #e0e0e0); }
+  .fieldgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--cds-spacing-05, 1rem); }
+  .lbl { font-size:12px; color:var(--cds-text-secondary, #525252); display:block; margin-bottom:var(--cds-spacing-02, .25rem); }
+  .cds--text-input, .cds--select-input { width:100%; }
+  .seq { font-size:13px; font-weight:600; }
+  .muted { color:var(--cds-text-secondary, #6f6f6f); font-size:12px; }
+  .sectionhead { margin:var(--cds-spacing-08, 2.5rem) 0 var(--cds-spacing-03, .5rem);
+                 border-bottom:2px solid var(--cds-text-primary, #161616); padding-bottom:var(--cds-spacing-02, .35rem); }
+  .helper { font-size:12px; color:var(--cds-text-secondary, #6f6f6f); margin-top:var(--cds-spacing-02, .25rem); }
+  .labelrow { display:grid; grid-template-columns:1fr 120px; gap:var(--cds-spacing-05, 1rem); align-items:center;
+              padding:var(--cds-spacing-03, .4rem) 0; border-bottom:1px solid var(--cds-border-subtle, #e0e0e0); }
+  .chipwrap { display:flex; gap:var(--cds-spacing-03, .5rem); flex-wrap:wrap; margin-bottom:var(--cds-spacing-04, .75rem); }
+  .callout { background:var(--cds-highlight, #edf5ff); border-left:3px solid var(--cds-interactive, #0f62fe);
+             padding:var(--cds-spacing-04, .75rem) var(--cds-spacing-05, 1rem); margin:var(--cds-spacing-05, 1rem) 0; font-size:13px; }
+  .modal-scrim { position:fixed; inset:0; background:rgba(22,22,22,.7); display:flex;
+                 align-items:center; justify-content:center; z-index:50; }
+  .modal-box { background:var(--cds-layer, #fff); width:min(560px, 92vw); padding:var(--cds-spacing-06, 1.5rem); }
+  .modal-actions { display:flex; justify-content:flex-end; gap:var(--cds-spacing-03, .5rem); margin-top:var(--cds-spacing-06, 1.5rem); }
+  .storagegrid { display:grid; grid-template-columns:repeat(6,1fr); gap:var(--cds-spacing-04, .75rem); }
 </style>
 </head>
 <body class="cds--white">
 <div class="preview-banner">
-  Visual Preview — Multiple Samples per Test at Order Entry &nbsp;|&nbsp; Route: /SamplePatientEntry &nbsp;|&nbsp; SideNav: Order → Add Order &nbsp;|&nbsp; OpenELIS Design Mockup — not a live application
+  Visual Preview — Multiple Samples per Test at Order Entry &nbsp;|&nbsp; Route: /SamplePatientEntry &nbsp;|&nbsp; SideNav: Order → Add Order &nbsp;|&nbsp; FRS v1.1 &nbsp;|&nbsp; OpenELIS Design Mockup — not a live application
 </div>
 <div class="preview-content" id="root"></div>
 
 <script type="text/babel">
 const { useState } = React;
-const t = (k, f) => f;
+
+/* i18n helper — fallback with ICU-style placeholder substitution, so the mockup
+   models the real t(key, fallback, vars) call shape instead of concatenating. */
+const t = (key, fallback, vars) => {
+  let s = fallback;
+  if (vars) Object.keys(vars).forEach(k => { s = s.split("{" + k + "}").join(vars[k]); });
+  return s;
+};
 
 function Tag({kind="gray", children, style}) {
   return <span className={"cds--tag cds--tag--"+kind} style={style}>{children}</span>;
 }
-function Btn({kind="primary", size="", children, onClick, disabled, title}) {
-  return <button title={title} disabled={disabled} onClick={onClick}
+function Btn({kind="primary", size="", children, onClick, disabled}) {
+  return <button disabled={disabled} onClick={onClick}
     className={"cds--btn cds--btn--"+kind+(size==="sm"?" cds--btn--sm":"")}
     style={{minHeight: size==="sm"?"32px":"40px", paddingRight:"1rem"}}>{children}</button>;
 }
-function TextField({label, value, onChange, placeholder, helper, type="text", disabled}) {
+function TextField({label, value, onChange, placeholder, helper, type="text", disabled, maxLength}) {
   return (
     <div>
-      <label className="lbl">{label}</label>
+      {label && <label className="lbl">{label}</label>}
       <div className="cds--text-input-wrapper">
         <input className="cds--text-input" type={type} value={value||""} placeholder={placeholder}
-          disabled={disabled} onChange={e=>onChange && onChange(e.target.value)} />
+          maxLength={maxLength} disabled={disabled} onChange={e=>onChange && onChange(e.target.value)} />
       </div>
       {helper && <div className="helper">{helper}</div>}
     </div>
   );
 }
-function SelectField({label, value, options, onChange}) {
+function SelectField({label, value, options, onChange, disabled}) {
   return (
     <div>
-      <label className="lbl">{label}</label>
+      {label && <label className="lbl">{label}</label>}
       <div className="cds--select">
-        <select className="cds--select-input" value={value} onChange={e=>onChange && onChange(e.target.value)}>
+        <select className="cds--select-input" value={value} disabled={disabled}
+          onChange={e=>onChange && onChange(e.target.value)}>
           {options.map(o=><option key={o} value={o}>{o}</option>)}
         </select>
       </div>
     </div>
   );
 }
+function Warn({title, children}) {
+  return (
+    <div className="cds--inline-notification cds--inline-notification--warning" style={{maxWidth:"none", minWidth:0}}>
+      <div className="cds--inline-notification__details">
+        {title && <p className="cds--inline-notification__title">{title}</p>}
+        <p className="cds--inline-notification__subtitle">{children}</p>
+      </div>
+    </div>
+  );
+}
+function Modal({title, children, onCancel, onConfirm, confirmLabel, confirmDisabled}) {
+  return (
+    <div className="modal-scrim" role="dialog" aria-modal="true">
+      <div className="modal-box">
+        <h3 style={{marginTop:0}}>{title}</h3>
+        {children}
+        <div className="modal-actions">
+          <Btn kind="secondary" onClick={onCancel}>{t('label.button.cancel','Cancel')}</Btn>
+          <Btn kind="danger" onClick={onConfirm} disabled={confirmDisabled}>{confirmLabel}</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const UOM_OPTIONS = ["mL","g","µL","Slide","Swab"];
+const REJECTION_REASONS = ["Choose Rejection Reason","Insufficient volume","Hemolyzed","Clotted","Damaged container","Mislabelled"];
+const STORAGE_LEVELS = [
+  {level:"Room",   options:["—","Room 1","Room 2"]},
+  {level:"Device", options:["—","Fridge A","Fridge B","TB bench"]},
+  {level:"Shelf",  options:["—","Shelf 1","Shelf 2"]},
+  {level:"Rack",   options:["—","Rack 1","Rack 2"]},
+  {level:"Box",    options:["—","Box 01","Box 02"]},
+];
 
 /* ---------------- Sample row ---------------- */
-function SampleRow({s, position, total, onChange, onRemove, onVoid, mode, dupWarning}) {
+function SampleRow({s, total, onChange, onRemove, onVoid, mode, dupWarning}) {
   const [open, setOpen] = useState(false);
   const voided = s.voided;
+  const blocked = !!s.hasValidatedResult;
   return (
     <div className="srow">
       <div className={"srow-head"+(voided?" voided":"")}>
         <div className="seq">
-          {voided
-            ? t('order.sample.void.tag','Voided')
-            : t('order.sample.positionOfTotal','Sample '+position+' of '+total)}
-          {s.addedLater && !voided &&
-            <div style={{marginTop:".25rem"}}>
-              <Tag kind="purple">{t('order.sample.addedLater.tag','Added after order placed')}</Tag>
-            </div>}
-        </div>
-
-        <div>
-          <TextField
-            label={t('common.description','Description')}
-            value={s.description}
-            disabled={voided}
-            onChange={v=>onChange({...s, description:v})}
-            placeholder={t('order.sample.description.placeholder','e.g. 0700 void, spot, day 2')} />
-        </div>
-
-        <div>
-          <label className="lbl">{t('common.collectionDate','Collection Date')}</label>
-          <div className="cds--text-input-wrapper">
-            <input className="cds--text-input" value={s.date} disabled={voided}
-              onChange={e=>onChange({...s, date:e.target.value})} />
+          {/* FR-9 / FR-35: `no` is the sample's permanent sort order — the same number
+              printed on the label and suffixed to the accession. `total` is a count of
+              non-voided samples, not an index; the two may legitimately disagree. */}
+          {t('order.sample.positionOfTotal','Sample {position} of {total}',
+             {position:s.no, total:total})}
+          <div style={{marginTop:".25rem", display:"flex", flexWrap:"wrap", gap:".25rem"}}>
+            {voided && <Tag kind="gray">{t('order.sample.void.tag','Voided')}</Tag>}
+            {s.addedLater && !voided && <Tag kind="gray">{t('order.sample.addedLater.tag','Added after order placed')}</Tag>}
           </div>
         </div>
 
-        <div>
-          <label className="lbl">{t('sample.collection.time','Collection Time')}</label>
-          <div className="cds--text-input-wrapper">
-            <input className="cds--text-input" value={s.time} disabled={voided} placeholder="hh:mm"
-              onChange={e=>onChange({...s, time:e.target.value})} />
-          </div>
-        </div>
+        <TextField
+          label={t('order.sample.description.label','Description')}
+          value={s.description}
+          disabled={voided}
+          maxLength={60}
+          onChange={v=>onChange({...s, description:v})}
+          placeholder={t('order.sample.description.placeholder','e.g. 0700 void, spot, day 2')} />
 
-        <div>
-          <label className="lbl">{t('collector.label','Collector')}</label>
-          <div className="cds--text-input-wrapper">
-            <input className="cds--text-input" value={s.collector} disabled={voided}
-              onChange={e=>onChange({...s, collector:e.target.value})} />
-          </div>
-        </div>
+        <TextField label={t('sample.collection.date','Collection Date')} value={s.date}
+          disabled={voided} onChange={v=>onChange({...s, date:v})} />
 
-        <div style={{display:"flex", gap:".25rem", justifyContent:"flex-end", alignItems:"center"}}>
+        <TextField label={t('sample.collection.time','Collection Time')} value={s.time}
+          disabled={voided} placeholder="hh:mm" onChange={v=>onChange({...s, time:v})} />
+
+        <TextField label={t('collector.label','Collector')} value={s.collector}
+          disabled={voided} onChange={v=>onChange({...s, collector:v})} />
+
+        <div style={{display:"flex", gap:".25rem", justifyContent:"flex-end", alignItems:"flex-start", flexWrap:"wrap"}}>
           <Btn kind="ghost" size="sm" onClick={()=>setOpen(!open)}>
-            {open ? "Hide details" : "More details"}
+            {open ? t('label.results.collapseRow','Collapse row') : t('label.results.expandRow','Expand row')}
           </Btn>
           {mode === "new"
-            ? <Btn kind="ghost" size="sm" onClick={onRemove} disabled={total===1 && !voided}>
-                {t('common.remove','Remove')}
+            ? <Btn kind="ghost" size="sm" onClick={onRemove} disabled={total===1}>
+                {t('label.button.remove','Remove')}
               </Btn>
-            : <Btn kind="danger--ghost" size="sm" onClick={onVoid}
-                disabled={voided || s.hasValidatedResult}
-                title={s.hasValidatedResult ? t('order.sample.void.blocked','This sample has validated results and cannot be voided.') : ""}>
+            : <Btn kind="danger--ghost" size="sm" onClick={onVoid} disabled={voided || blocked}>
                 {t('order.sample.void.action','Void sample')}
               </Btn>}
+          {mode !== "new" && blocked && !voided &&
+            <div className="helper" style={{flexBasis:"100%", textAlign:"right"}}>
+              {t('order.sample.void.blocked','This sample has validated results and cannot be voided.')}
+            </div>}
         </div>
       </div>
 
-      {s.justAdded && !open &&
+      {s.justAdded && !voided &&
         <div style={{padding:"0 .75rem .5rem"}} className="helper">
           {t('order.sample.inherited.helper','Collection details were copied from the previous sample. Set the time and description for this collection.')}
         </div>}
 
       {dupWarning &&
         <div style={{padding:"0 .75rem .5rem"}}>
-          <div className="cds--inline-notification cds--inline-notification--warning" style={{maxWidth:"none", minWidth:0}}>
-            <div className="cds--inline-notification__details">
-              <p className="cds--inline-notification__title">{t('common.warning','Warning')}</p>
-              <p className="cds--inline-notification__subtitle">
-                {t('order.sample.duplicateDescription.warning','Two samples in this group have the same description.')}
-              </p>
-            </div>
-          </div>
+          <Warn title={t('label.warning','Warning')}>
+            {t('order.sample.duplicateDescription.warning','Two samples in this group have the same description.')}
+          </Warn>
         </div>}
 
       {open &&
         <div className="srow-detail">
           <div className="fieldgrid">
-            <TextField label={t('common.quantity','Quantity')} value={s.quantity} type="number"
+            <TextField label={t('sample.quantity.label','Quantity')} value={s.quantity} type="number"
               disabled={voided} onChange={v=>onChange({...s, quantity:v})} />
-            <SelectField label={t('sample.uom.label','Unit of measure')} value={s.uom}
-              options={["mL","g","µL","Slide"]} onChange={v=>onChange({...s, uom:v})} />
+            <SelectField label={t('sample.uom.label','Sample Unit Of Measure')} value={s.uom}
+              options={UOM_OPTIONS} disabled={voided} onChange={v=>onChange({...s, uom:v})} />
             <TextField label={t('sample.collection.method','Collection Method')} value={s.method}
               disabled={voided} onChange={v=>onChange({...s, method:v})} />
             <TextField label={t('sample.temperature','Sample Temperature')} value={s.temp}
               disabled={voided} onChange={v=>onChange({...s, temp:v})} />
             <TextField label={t('sample.specimen.origin','Specimen Origin (referent lab)')} value={s.origin}
               disabled={voided} onChange={v=>onChange({...s, origin:v})} />
-            <SelectField label={t('common.storageLocation','Storage Location')} value={s.storage}
-              options={["Room 2 · Fridge A · Shelf 1","Room 2 · Fridge A · Shelf 2","Bench rack — not stored"]}
-              onChange={v=>onChange({...s, storage:v})} />
           </div>
-          <div style={{marginTop:"1rem"}}>
-            <label className="cds--checkbox-label" style={{fontSize:"14px"}}>
+          <div style={{marginTop:"1rem", maxWidth:"320px"}}>
+            <label className="cds--checkbox-label" style={{fontSize:"14px", display:"block", marginBottom:".5rem"}}>
               <input type="checkbox" style={{marginRight:".5rem"}} disabled={voided}
                 checked={!!s.rejected} onChange={e=>onChange({...s, rejected:e.target.checked})} />
-              {t('sample.reject.label','Reject this sample')}
+              {t('sample.reject.label','Reject Sample')}
             </label>
+            {s.rejected && !voided &&
+              <SelectField label={t('order.sample.rejectionReason.label','Choose a rejection reason')}
+                value={s.rejectionReason || REJECTION_REASONS[0]} options={REJECTION_REASONS}
+                onChange={v=>onChange({...s, rejectionReason:v})} />}
           </div>
           {voided &&
             <div style={{marginTop:"1rem"}} className="muted">
-              Void reason: <strong>{s.voidReason}</strong> · pending tests on this sample were cancelled.
+              {t('order.sample.void.summary','Voided — {reason}. Pending tests on this sample were cancelled.',
+                 {reason:s.voidReason})}
             </div>}
         </div>}
     </div>
@@ -195,149 +239,203 @@ function SampleRow({s, position, total, onChange, onRemove, onVoid, mode, dupWar
 
 /* ---------------- Sample group ---------------- */
 function SampleGroup({group, setGroup, mode, onRemoveGroup}) {
+  const [voidTarget, setVoidTarget] = useState(null);
+  const [voidReason, setVoidReason] = useState("");
+  const [typeChange, setTypeChange] = useState(null);
+
   const live = group.samples.filter(s=>!s.voided);
   const total = live.length;
+  const loading = !!group.loading;
 
   const descCounts = {};
   live.forEach(s => { const d=(s.description||"").trim().toLowerCase(); if(d) descCounts[d]=(descCounts[d]||0)+1; });
 
+  // FR-27: a new sample takes the next never-used number; voided numbers are never reissued.
   const addSample = () => {
     const last = group.samples[group.samples.length-1] || {};
+    const nextNo = Math.max(0, ...group.samples.map(s=>s.no)) + 1;
     setGroup({...group, samples:[...group.samples, {
       id: Math.max(0,...group.samples.map(s=>s.id))+1,
+      no: nextNo,
       description:"", date:last.date||"12/08/2026", time:"",
       collector:last.collector||"A. Rakoto",
       quantity:last.quantity||"10", uom:last.uom||"mL",
       method:last.method||"clean catch", temp:last.temp||"room temp",
-      origin:last.origin||"", storage:last.storage||"Room 2 · Fridge A · Shelf 1",
+      origin:last.origin||"",
       justAdded:true, addedLater: mode==="placed", labels: 1
     }]});
   };
 
-  let pos = 0;
+  const confirmVoid = () => {
+    setGroup({...group, samples: group.samples.map(x =>
+      x.id===voidTarget ? {...x, voided:true, voidReason:voidReason} : x)});
+    setVoidTarget(null); setVoidReason("");
+  };
+
+  const testCount = group.tests.length + group.panelTestCount;
+
   return (
     <div className="group">
       <div className="group-head">
-        <h4 className="group-title">{group.type}</h4>
-        <Tag kind="blue">{t('order.sample.group.count', total + ' samples')}</Tag>
-        <span className="muted">Lab number 26-004182</span>
+        <h4 className="group-title">{group.type || t('sample.select.type','Select sample type')}</h4>
+        <Tag kind="blue">{t('order.sample.group.count','{count} samples', {count:total})}</Tag>
         <div style={{marginLeft:"auto", display:"flex", gap:".5rem"}}>
           {mode==="new" &&
-            <Btn kind="ghost" size="sm" onClick={onRemoveGroup}>{t('sample.remove.action','Remove sample type')}</Btn>}
+            <Btn kind="ghost" size="sm" onClick={onRemoveGroup}>{t('sample.remove.action','Remove Sample')}</Btn>}
         </div>
       </div>
 
       <div className="group-body">
         <div style={{marginBottom:"1rem"}}>
-          <label className="lbl">{t('common.sampleType','Sample Type')}</label>
+          <label className="lbl">{t('field.sampleType','Sample Type')}</label>
           <div className="cds--select" style={{maxWidth:"340px"}}>
-            <select className="cds--select-input" value={group.type} onChange={()=>{}}>
-              <option>{group.type}</option>
+            <select className="cds--select-input" value={group.type}
+              onChange={e=>{
+                const next = e.target.value;
+                if (total > 1 && group.type) { setTypeChange(next); }
+                else { setGroup({...group, type:next, tests:[], panels:[], panelTestCount:0}); }
+              }}>
+              <option value="">{t('sample.select.type','Select sample type')}</option>
+              {["Urine","Serum","Sputum","Stool","Whole blood"].map(o=><option key={o} value={o}>{o}</option>)}
             </select>
           </div>
-          {total>1 && <div className="helper">
-            {t('order.sample.changeType.confirm','Changing the sample type will clear the tests selected for this group. The samples and their collection details are kept.')}
-          </div>}
         </div>
 
-        <h5 style={{margin:"0 0 .5rem"}}>{t('common.samples','Samples')}</h5>
-        <div style={{border:"none"}}>
+        <h5 style={{margin:"0 0 .5rem"}}>{t('order.sample.group.samplesHeading','Samples')}</h5>
+        <div>
           {group.samples.map((s, i) => {
-            if(!s.voided) pos += 1;
             const d = (s.description||"").trim().toLowerCase();
-            return <SampleRow key={s.id} s={s} position={pos} total={total} mode={mode}
-              dupWarning={!!d && descCounts[d] > 1}
+            return <SampleRow key={s.id} s={s} total={total} mode={mode}
+              dupWarning={!s.voided && !!d && descCounts[d] > 1}
               onChange={ns=>{ const arr=[...group.samples]; arr[i]={...ns, justAdded:false}; setGroup({...group, samples:arr}); }}
               onRemove={()=>{ if(total===1) return; setGroup({...group, samples:group.samples.filter(x=>x.id!==s.id)}); }}
-              onVoid={()=>{ const arr=group.samples.map(x=>x.id===s.id?{...x, voided:true, voidReason:"Insufficient volume"}:x); setGroup({...group, samples:arr}); }} />;
+              onVoid={()=>{ setVoidReason(""); setVoidTarget(s.id); }} />;
           })}
         </div>
 
         <div style={{marginTop:".75rem"}}>
-          <Btn kind="tertiary" size="sm" onClick={addSample}>
+          <Btn kind="tertiary" size="sm" onClick={addSample} disabled={loading}>
             {t('order.sample.addAnother','Add another sample')} &nbsp;+
           </Btn>
+          {loading &&
+            <span className="muted" style={{marginLeft:".75rem"}}>
+              <span className="cds--inline-loading__text">{t('order.sample.loadingTests','Loading tests for this sample type…')}</span>
+            </span>}
           {total >= 20 &&
             <div style={{marginTop:".5rem"}}>
-              <div className="cds--inline-notification cds--inline-notification--warning" style={{maxWidth:"none"}}>
-                <div className="cds--inline-notification__details">
-                  <p className="cds--inline-notification__subtitle">
-                    {t('order.sample.countGuard.warning','This group already has '+total+' samples. Add more only if the collection requires it.')}
-                  </p>
-                </div>
-              </div>
+              <Warn>{t('order.sample.countGuard.warning','This group already has {count} samples. Add more only if the collection requires it.', {count:total})}</Warn>
             </div>}
         </div>
 
-        <h5 style={{margin:"1.5rem 0 .5rem"}}>{t('common.tests','Tests')} &amp; {t('common.panels','Panels')}</h5>
+        <h5 style={{margin:"1.5rem 0 .5rem"}}>{t('order.sample.group.testsAndPanels','Tests & Panels')}</h5>
         <div className="chipwrap">
           {group.panels.map(p => <Tag key={p} kind="green">{p}</Tag>)}
           {group.tests.map(x => <Tag key={x} kind="red">{x}</Tag>)}
+          {!group.panels.length && !group.tests.length && <span className="muted">—</span>}
         </div>
         <div className="muted">
-          Selected once for the group — every sample above is tested for each of these.
-          <strong> {total} samples × {group.tests.length + group.panelTestCount} tests = {total*(group.tests.length+group.panelTestCount)} results.</strong>
+          {t('order.sample.group.testsHelper','Selected once for the group — every sample above is tested for each of these.')}
+          {" "}
+          <strong>{t('order.sample.group.resultCount','{samples} samples × {tests} tests = {results} results',
+            {samples:total, tests:testCount, results:total*testCount})}</strong>
         </div>
 
-        <h5 style={{margin:"1.5rem 0 .5rem"}}>{t('barcode.labels.section.title','Labels')}</h5>
+        <h5 style={{margin:"1.5rem 0 .5rem"}}>{t('storage.location.label','Storage Location')}</h5>
+        <div className="storagegrid">
+          {STORAGE_LEVELS.map(lv=>(
+            <SelectField key={lv.level}
+              label={t('storage.picker.select','Select {level}', {level:lv.level})}
+              value={group.storage[lv.level] || "—"} options={lv.options}
+              onChange={v=>setGroup({...group, storage:{...group.storage, [lv.level]:v}})} />
+          ))}
+          <TextField label={t('storage.picker.position.optional','Position (optional)')}
+            value={group.storage.position} onChange={v=>setGroup({...group, storage:{...group.storage, position:v}})} />
+        </div>
+        <div className="helper">{t('order.sample.storage.groupHelper','Storage applies to every sample in this group.')}</div>
+
+        <h5 style={{margin:"1.5rem 0 .5rem"}}>{t('barcode.labels.section.title','Label quantities')}</h5>
         <div>
-          <div className="labelrow" style={{fontWeight:600, fontSize:"13px"}}>
-            <div>Label</div><div>Quantity</div>
-          </div>
           <div className="labelrow">
-            <div>Order label — 26-004182</div>
+            <div>{t('barcode.labels.order.row','Order labels')}</div>
             <div><div className="cds--text-input-wrapper"><input className="cds--text-input" type="number" defaultValue="1" /></div></div>
           </div>
-          {group.samples.filter(s=>!s.voided).map((s,i)=>(
+          {live.map(s=>(
             <div className="labelrow" key={s.id}>
               <div>
-                {t('barcode.labels.sample.row','Sample '+(i+1))} of {total}
-                {s.description ? <span className="muted"> — {s.description}</span> : <span className="muted"> — no description</span>}
+                {t('order.sample.label.specimenRow','Sample {position} of {total} — {description}', {
+                  position: s.no, total: total,
+                  description: s.description || t('order.sample.label.noDescription','No description')
+                })}
               </div>
-              <div><div className="cds--text-input-wrapper"><input className="cds--text-input" type="number" defaultValue="1" /></div></div>
+              <div><div className="cds--text-input-wrapper">
+                <input className="cds--text-input" type="number" defaultValue={s.labels||1} />
+              </div></div>
             </div>
           ))}
+          <div className="labelrow" style={{fontWeight:600}}>
+            <div>{t('barcode.labels.running.total','Running total')}</div>
+            <div>{1 + total}</div>
+          </div>
         </div>
       </div>
+
+      {voidTarget !== null &&
+        <Modal title={t('order.sample.void.modalTitle','Void sample')}
+          onCancel={()=>setVoidTarget(null)} onConfirm={confirmVoid}
+          confirmLabel={t('order.sample.void.action','Void sample')}
+          confirmDisabled={!voidReason.trim()}>
+          <p style={{fontSize:"14px", marginBottom:"1rem"}}>
+            {t('order.sample.void.explanation','Voiding cancels the tests still pending on this sample. The sample stays on the order for the record.')}
+          </p>
+          <SelectField label={t('order.sample.void.reason','Reason for voiding')}
+            value={voidReason} options={["","Insufficient volume","Hemolyzed","Clotted","Damaged container","Collected in error"]}
+            onChange={setVoidReason} />
+        </Modal>}
+
+      {typeChange !== null &&
+        <Modal title={t('order.sample.changeType.modalTitle','Change sample type')}
+          onCancel={()=>setTypeChange(null)}
+          onConfirm={()=>{ setGroup({...group, type:typeChange, tests:[], panels:[], panelTestCount:0}); setTypeChange(null); }}
+          confirmLabel={t('label.confirm','Confirm')}>
+          <p style={{fontSize:"14px"}}>
+            {t('order.sample.changeType.confirm','Changing the sample type will clear the tests selected for this group. The samples and their collection details are kept.')}
+          </p>
+        </Modal>}
     </div>
   );
 }
 
-/* ---------------- App ---------------- */
+/* ---------------- Seed data ---------------- */
 const seedUrine = {
   type:"Urine", panels:[], panelTestCount:0, tests:["Urine Microscopy","Urine Protein"],
+  storage:{Room:"Room 2", Device:"Fridge A", Shelf:"Shelf 1", Rack:"—", Box:"—", position:""},
   samples:[
-    {id:1, description:"0700 void", date:"12/08/2026", time:"07:05", collector:"A. Rakoto",
-     quantity:"10", uom:"mL", method:"clean catch", temp:"room temp", origin:"",
-     storage:"Room 2 · Fridge A · Shelf 1", labels:1},
-    {id:2, description:"midday", date:"12/08/2026", time:"12:20", collector:"A. Rakoto",
-     quantity:"10", uom:"mL", method:"clean catch", temp:"room temp", origin:"",
-     storage:"Room 2 · Fridge A · Shelf 1", labels:1},
-    {id:3, description:"post-exercise", date:"12/08/2026", time:"16:40", collector:"A. Rakoto",
-     quantity:"8", uom:"mL", method:"clean catch", temp:"room temp", origin:"",
-     storage:"Room 2 · Fridge A · Shelf 1", labels:1},
+    {id:1, no:1, description:"0700 void", date:"12/08/2026", time:"07:05", collector:"A. Rakoto",
+     quantity:"10", uom:"mL", method:"clean catch", temp:"room temp", origin:"", labels:1},
+    {id:2, no:2, description:"midday", date:"12/08/2026", time:"12:20", collector:"A. Rakoto",
+     quantity:"10", uom:"mL", method:"clean catch", temp:"room temp", origin:"", labels:1},
+    {id:3, no:3, description:"post-exercise", date:"12/08/2026", time:"16:40", collector:"A. Rakoto",
+     quantity:"8", uom:"mL", method:"clean catch", temp:"room temp", origin:"", labels:1},
   ]
 };
 const seedBlood = {
   type:"Serum", panels:["Renal Panel"], panelTestCount:4, tests:[],
+  storage:{Room:"Room 2", Device:"Fridge A", Shelf:"Shelf 2", Rack:"—", Box:"—", position:""},
   samples:[
-    {id:1, description:"", date:"12/08/2026", time:"07:10", collector:"A. Rakoto",
-     quantity:"5", uom:"mL", method:"venipuncture", temp:"room temp", origin:"",
-     storage:"Room 2 · Fridge A · Shelf 2", labels:1},
+    {id:1, no:1, description:"", date:"12/08/2026", time:"07:10", collector:"A. Rakoto",
+     quantity:"5", uom:"mL", method:"venipuncture", temp:"room temp", origin:"", labels:1},
   ]
 };
 const seedSputum = {
   type:"Sputum", panels:[], panelTestCount:0, tests:["AFB Smear Microscopy"],
+  storage:{Room:"Room 1", Device:"TB bench", Shelf:"—", Rack:"—", Box:"—", position:""},
   samples:[
-    {id:1, description:"spot", date:"10/08/2026", time:"09:15", collector:"H. Randria",
-     quantity:"3", uom:"mL", method:"expectorated", temp:"room temp", origin:"",
-     storage:"Room 1 · TB bench", labels:1, hasValidatedResult:true},
-    {id:2, description:"morning", date:"11/08/2026", time:"06:30", collector:"H. Randria",
-     quantity:"4", uom:"mL", method:"expectorated", temp:"room temp", origin:"",
-     storage:"Room 1 · TB bench", labels:1, hasValidatedResult:true},
-    {id:3, description:"morning day 2", date:"12/08/2026", time:"06:20", collector:"H. Randria",
-     quantity:"2", uom:"mL", method:"expectorated", temp:"room temp", origin:"",
-     storage:"Room 1 · TB bench", labels:1, addedLater:true},
+    {id:1, no:1, description:"spot", date:"10/08/2026", time:"09:15", collector:"H. Randria",
+     quantity:"3", uom:"mL", method:"expectorated", temp:"room temp", origin:"", labels:1, hasValidatedResult:true},
+    {id:2, no:2, description:"morning", date:"11/08/2026", time:"06:30", collector:"H. Randria",
+     quantity:"4", uom:"mL", method:"expectorated", temp:"room temp", origin:"", labels:1, hasValidatedResult:true},
+    {id:3, no:3, description:"morning day 2", date:"12/08/2026", time:"06:20", collector:"H. Randria",
+     quantity:"2", uom:"mL", method:"expectorated", temp:"room temp", origin:"", labels:1, addedLater:true},
   ]
 };
 
@@ -347,28 +445,30 @@ function App() {
 
   return (
     <div>
+      {/* FR: breadcrumb matches the two crumbs the shipped page renders */}
       <nav className="cds--breadcrumb" style={{margin:"1rem 0"}}>
-        <div className="cds--breadcrumb-item"><a className="cds--link" href="#">{t('common.home','Home')}</a></div>
-        <div className="cds--breadcrumb-item"><a className="cds--link" href="#">Order</a></div>
-        <div className="cds--breadcrumb-item cds--breadcrumb-item--current">Add Order</div>
+        <div className="cds--breadcrumb-item"><a className="cds--link" href="#">{t('home.label','Home')}</a></div>
+        <div className="cds--breadcrumb-item cds--breadcrumb-item--current">{t('breadcrumb.label.addOrder','Add Order')}</div>
       </nav>
 
-      <h2 style={{marginTop:0}}>Add Order</h2>
+      <h2 style={{marginTop:0}}>{t('breadcrumb.label.addOrder','Add Order')}</h2>
       <div className="muted" style={{marginBottom:"1rem"}}>
-        Patient: RAKOTOARISOA, Naina · 34 · F · National ID 401 992 118 &nbsp;|&nbsp; Lab number 26-004182
+        Patient: RAKOTOARISOA, Naina · 34 · F · National ID 401 992 118 &nbsp;|&nbsp; {t('eorder.labNumber','Lab Number')} 26-004182
       </div>
 
       <div className="callout">
-        <strong>What changed.</strong> A sample block is now a <em>group</em> — one sample type and one
-        test selection, holding one or more numbered samples. <strong>Add another sample</strong> appends a
-        sibling collection that inherits the type, the tests, and the previous sample's collection details.
-        Every sample keeps its own time, collector, description, volume, storage, and label.
+        <strong>What changed.</strong> A sample block is now a <em>group</em> — one sample type, one
+        test selection and one storage location, holding one or more numbered samples.
+        <strong> Add another sample</strong> appends a sibling collection that inherits the type, the
+        tests, and the previous sample's collection details. Every sample keeps its own number, time,
+        collector, description, volume and label. The number shown is the same number printed on the
+        label and suffixed to the accession (<code>26-004182-2</code>) — it never changes, even after a void.
       </div>
 
       <h3 className="sectionhead">1 — Placing a new order</h3>
       <p className="muted" style={{marginTop:0}}>
-        Try it: edit a description to match another one to see the duplicate warning; open
-        <em> More details</em> on any row; add or remove samples.
+        Try it: edit a description to match another one to see the duplicate warning; expand any row;
+        add or remove samples; change a sample type on a multi-sample group to see the confirmation.
       </p>
 
       {groups.map((g,i)=>(
@@ -378,26 +478,27 @@ function App() {
       ))}
 
       <Btn kind="primary" onClick={()=>setGroups([...groups, {
-        type:"Stool", panels:[], panelTestCount:0, tests:["Ova & Parasites"],
-        samples:[{id:1, description:"", date:"12/08/2026", time:"", collector:"A. Rakoto",
-                  quantity:"", uom:"g", method:"", temp:"room temp", origin:"",
-                  storage:"Bench rack — not stored", labels:1}]
+        type:"", panels:[], panelTestCount:0, tests:[],
+        storage:{Room:"—", Device:"—", Shelf:"—", Rack:"—", Box:"—", position:""},
+        samples:[{id:1, no:1, description:"", date:"12/08/2026", time:"", collector:"",
+                  quantity:"", uom:"mL", method:"", temp:"", origin:"", labels:1}]
       }])}>
         {t('sample.add.action','Add Sample')} &nbsp;+
       </Btn>
       <span className="muted" style={{marginLeft:"1rem"}}>
-        Adds a group with a <em>different</em> sample type — distinct from “Add another sample” inside a group.
+        Adds an empty group with a <em>different</em> sample type — distinct from “Add another sample” inside a group.
       </span>
 
       <h3 className="sectionhead">2 — Adding to an order already placed</h3>
       <p className="muted" style={{marginTop:0}}>
         A tuberculosis smear order placed two days ago. Samples 1 and 2 have validated results, so
-        their void action is disabled. Sample 3 was added this morning when the patient returned —
-        it is flagged, and it picked up the AFB Smear test automatically. Voiding a sample records a
-        reason and leaves the numbering of the others alone.
+        their void action is disabled with a visible explanation. Sample 3 was added this morning when
+        the patient returned — it is flagged, and it picked up the AFB Smear test automatically.
+        Voiding a sample asks for a reason, and leaves every other sample's number alone: void sample 2
+        and sample 3 stays “Sample 3”, while the totals drop to 2.
       </p>
       <div className="muted" style={{marginBottom:".75rem"}}>
-        Patient: ANDRIAMANANA, Jean · 51 · M &nbsp;|&nbsp; Lab number 26-004077 &nbsp;|&nbsp; placed 10/08/2026
+        Patient: ANDRIAMANANA, Jean · 51 · M &nbsp;|&nbsp; {t('eorder.labNumber','Lab Number')} 26-004077 &nbsp;|&nbsp; placed 10/08/2026
       </div>
       <SampleGroup group={placed} setGroup={setPlaced} mode="placed" />
 
@@ -406,28 +507,28 @@ function App() {
         <table className="cds--data-table">
           <thead>
             <tr>
-              <th>{t('common.labNumber','Lab Number')}</th>
-              <th>{t('common.sample','Sample')}</th>
-              <th>{t('common.collectionDate','Collection Date')}</th>
-              <th>{t('common.test','Test')}</th>
-              <th>{t('common.result','Result')}</th>
-              <th>{t('common.status','Status')}</th>
+              <th>{t('eorder.labNumber','Lab Number')}</th>
+              <th>{t('label.results.sample','Sample')}</th>
+              <th>{t('sample.collection.date','Collection Date')}</th>
+              <th>{t('label.results.test','Test')}</th>
+              <th>{t('label.results.result','Result')}</th>
+              <th>{t('label.results.status','Status')}</th>
             </tr>
           </thead>
           <tbody>
-            <tr><td>26-004077</td><td>Sample 1 of 3 — spot</td><td>10/08/2026 09:15</td><td>AFB Smear Microscopy</td><td>Negative</td><td><Tag kind="teal">Validated</Tag></td></tr>
-            <tr><td>26-004077</td><td>Sample 2 of 3 — morning</td><td>11/08/2026 06:30</td><td>AFB Smear Microscopy</td><td>Positive (2+)</td><td><Tag kind="teal">Validated</Tag></td></tr>
-            <tr><td>26-004077</td><td>Sample 3 of 3 — morning day 2</td><td>12/08/2026 06:20</td><td>AFB Smear Microscopy</td><td>—</td><td><Tag kind="purple">Pending</Tag></td></tr>
-            <tr><td>26-004182</td><td>Sample 1 of 3 — 0700 void</td><td>12/08/2026 07:05</td><td>Urine Microscopy</td><td>—</td><td><Tag kind="purple">Pending</Tag></td></tr>
-            <tr><td>26-004182</td><td>Sample 2 of 3 — midday</td><td>12/08/2026 12:20</td><td>Urine Microscopy</td><td>—</td><td><Tag kind="purple">Pending</Tag></td></tr>
-            <tr><td>26-004182</td><td>Sample 3 of 3 — post-exercise</td><td>12/08/2026 16:40</td><td>Urine Microscopy</td><td>—</td><td><Tag kind="purple">Pending</Tag></td></tr>
+            <tr><td>26-004077-1</td><td>{t('order.sample.label.specimenRow','Sample {position} of {total} — {description}',{position:1,total:3,description:"spot"})}</td><td>10/08/2026 09:15</td><td>AFB Smear Microscopy</td><td>Negative</td><td><Tag kind="teal">Validated</Tag></td></tr>
+            <tr><td>26-004077-2</td><td>{t('order.sample.label.specimenRow','Sample {position} of {total} — {description}',{position:2,total:3,description:"morning"})}</td><td>11/08/2026 06:30</td><td>AFB Smear Microscopy</td><td>Positive (2+)</td><td><Tag kind="teal">Validated</Tag></td></tr>
+            <tr><td>26-004077-3</td><td>{t('order.sample.label.specimenRow','Sample {position} of {total} — {description}',{position:3,total:3,description:"morning day 2"})}</td><td>12/08/2026 06:20</td><td>AFB Smear Microscopy</td><td>—</td><td><Tag kind="purple">Pending</Tag></td></tr>
+            <tr><td>26-004182-1</td><td>{t('order.sample.label.specimenRow','Sample {position} of {total} — {description}',{position:1,total:3,description:"0700 void"})}</td><td>12/08/2026 07:05</td><td>Urine Microscopy</td><td>—</td><td><Tag kind="purple">Pending</Tag></td></tr>
+            <tr><td>26-004182-2</td><td>{t('order.sample.label.specimenRow','Sample {position} of {total} — {description}',{position:2,total:3,description:"midday"})}</td><td>12/08/2026 12:20</td><td>Urine Microscopy</td><td>—</td><td><Tag kind="purple">Pending</Tag></td></tr>
+            <tr><td>26-004182-3</td><td>{t('order.sample.label.specimenRow','Sample {position} of {total} — {description}',{position:3,total:3,description:"post-exercise"})}</td><td>12/08/2026 16:40</td><td>Urine Microscopy</td><td>—</td><td><Tag kind="purple">Pending</Tag></td></tr>
           </tbody>
         </table>
       </div>
       <p className="muted">
-        The specimen a result came from is now unambiguous — this is the whole point of the change.
-        Result entry, validation, worklists, and the patient report all show the sample's position
-        and description wherever they already name a sample.
+        The specimen a result came from is now unambiguous, and the number on screen is the number on
+        the tube. Result entry, validation, worklists, and the patient report all show the sample's
+        position and description wherever they already name a sample.
       </p>
 
       <h3 className="sectionhead">Not in this version</h3>
@@ -438,6 +539,8 @@ function App() {
           collection-time decision.</li>
         <li><strong>Aliquoting</strong> — dividing one collected sample into portions. Already exists,
           different concept; samples in a group are peers, never parent and child.</li>
+        <li><strong>Per-sample storage location</strong> — storage is set once per group and applies to
+          every sample in it.</li>
         <li><strong>Calculated results across samples</strong> — a mean, total, or ratio over the group.</li>
       </ul>
     </div>
