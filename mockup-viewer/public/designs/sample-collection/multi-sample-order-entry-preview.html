@@ -13,7 +13,7 @@
   .preview-banner { background:var(--cds-interactive, #0f62fe); color:var(--cds-text-on-color, #fff);
                     padding:var(--cds-spacing-02, .25rem) var(--cds-spacing-05, 1rem); font-size:12px; font-family:monospace; }
   .preview-content { padding:var(--cds-spacing-05, 1rem) var(--cds-spacing-07, 2rem) var(--cds-spacing-10, 4rem);
-                     max-width:1200px; margin:0 auto; }
+                     max-width:1280px; margin:0 auto; }
   .group { background:var(--cds-layer, #fff); border:1px solid var(--cds-border-subtle, #e0e0e0);
            border-left:3px solid var(--cds-interactive, #0f62fe); margin-bottom:var(--cds-spacing-06, 1.5rem); }
   .group-head { display:flex; align-items:center; gap:var(--cds-spacing-04, .75rem);
@@ -24,22 +24,32 @@
   .group-body { padding:var(--cds-spacing-05, 1rem); }
   .srow { border:1px solid var(--cds-border-subtle, #e0e0e0); border-top:none; }
   .srow:first-of-type { border-top:1px solid var(--cds-border-subtle, #e0e0e0); }
-  .srow-head { display:grid; grid-template-columns:150px 1.4fr 130px 100px 150px 210px;
+  .srow-head { display:grid; grid-template-columns:96px minmax(300px,3.2fr) 112px 84px 124px 146px 132px;
                gap:var(--cds-spacing-04, .75rem); align-items:start;
                padding:var(--cds-spacing-03, .5rem) var(--cds-spacing-04, .75rem); }
   .srow-head.voided { background:var(--cds-background, #f4f4f4); color:var(--cds-text-disabled, #8d8d8d); }
   .srow-detail { background:var(--cds-background, #f4f4f4); padding:var(--cds-spacing-05, 1rem) var(--cds-spacing-04, .75rem);
                  border-top:1px solid var(--cds-border-subtle, #e0e0e0); }
   .fieldgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--cds-spacing-05, 1rem); }
-  .lbl { font-size:12px; color:var(--cds-text-secondary, #525252); display:block; margin-bottom:var(--cds-spacing-02, .25rem); }
+  .lbl { font-size:12px; color:var(--cds-text-secondary, #525252); display:flex; align-items:center;
+         gap:var(--cds-spacing-02, .25rem); margin-bottom:var(--cds-spacing-02, .25rem); min-height:18px; }
   .cds--text-input, .cds--select-input { width:100%; }
   .seq { font-size:13px; font-weight:600; }
   .muted { color:var(--cds-text-secondary, #6f6f6f); font-size:12px; }
   .sectionhead { margin:var(--cds-spacing-08, 2.5rem) 0 var(--cds-spacing-03, .5rem);
                  border-bottom:2px solid var(--cds-text-primary, #161616); padding-bottom:var(--cds-spacing-02, .35rem); }
   .helper { font-size:12px; color:var(--cds-text-secondary, #6f6f6f); margin-top:var(--cds-spacing-02, .25rem); }
-  .labelrow { display:grid; grid-template-columns:1fr 120px; gap:var(--cds-spacing-05, 1rem); align-items:center;
-              padding:var(--cds-spacing-03, .4rem) 0; border-bottom:1px solid var(--cds-border-subtle, #e0e0e0); }
+  .ltable { width:100%; border-collapse:collapse; margin-bottom:var(--cds-spacing-05, 1rem); }
+  .ltable caption { text-align:left; font-size:14px; font-weight:600; padding:var(--cds-spacing-03,.5rem) 0; }
+  .ltable th, .ltable td { text-align:left; font-size:13px; padding:var(--cds-spacing-03, .5rem);
+                           border-bottom:1px solid var(--cds-border-subtle, #e0e0e0); vertical-align:top; }
+  .ltable thead th { font-weight:600; background:var(--cds-background, #f4f4f4); }
+  .ltable tbody tr:nth-child(even) { background:var(--cds-layer-accent-01, #f4f4f4); }
+  .lcell { display:flex; flex-direction:column; gap:var(--cds-spacing-02, .25rem); align-items:flex-start; }
+  .lcell input { width:72px; }
+  .locked { display:flex; align-items:center; gap:var(--cds-spacing-02, .25rem); font-weight:600; }
+  .lock-ico { font-size:13px; }
+  .ltotal { font-size:13px; font-weight:600; }
   .chipwrap { display:flex; gap:var(--cds-spacing-03, .5rem); flex-wrap:wrap; margin-bottom:var(--cds-spacing-04, .75rem); }
   .callout { background:var(--cds-highlight, #edf5ff); border-left:3px solid var(--cds-interactive, #0f62fe);
              padding:var(--cds-spacing-04, .75rem) var(--cds-spacing-05, 1rem); margin:var(--cds-spacing-05, 1rem) 0; font-size:13px; }
@@ -47,12 +57,39 @@
                  align-items:center; justify-content:center; z-index:50; }
   .modal-box { background:var(--cds-layer, #fff); width:min(560px, 92vw); padding:var(--cds-spacing-06, 1.5rem); }
   .modal-actions { display:flex; justify-content:flex-end; gap:var(--cds-spacing-03, .5rem); margin-top:var(--cds-spacing-06, 1.5rem); }
-  .storagegrid { display:grid; grid-template-columns:repeat(6,1fr); gap:var(--cds-spacing-04, .75rem); }
+  /* Existing shipped components are shown as muted placeholders, never redrawn. */
+  .stub { position:relative; border:1px dashed var(--cds-border-strong, #8d8d8d);
+          background:var(--cds-layer-accent-01, #f4f4f4); padding:var(--cds-spacing-05, 1rem);
+          margin-bottom:var(--cds-spacing-03, .5rem); }
+  .stub-blur { filter:blur(3px); opacity:.45; user-select:none; pointer-events:none; }
+  .stub-tag { position:absolute; top:-10px; left:12px; background:var(--cds-layer, #fff);
+              padding:0 .35rem; font-size:11px; text-transform:uppercase; letter-spacing:.04em;
+              color:var(--cds-text-secondary, #525252); border:1px solid var(--cds-border-subtle, #e0e0e0); }
+  .stub-label { font-size:13px; font-weight:600; color:var(--cds-text-secondary, #525252);
+                text-align:center; padding:var(--cds-spacing-03,.5rem) 0; }
+  .stub-lines div { height:12px; background:var(--cds-border-subtle, #c6c6c6); margin:.4rem 0; }
+  /* shipped test/panel search list (SampleType.jsx: ul.searchTestsList > li.singleTest) */
+  .searchTestsList { list-style:none; margin:0; padding:0; border:1px solid var(--cds-border-subtle, #e0e0e0);
+                     max-height:180px; overflow:auto; background:var(--cds-layer, #fff); }
+  .singleTest { padding:.4rem .75rem; font-size:13px; cursor:pointer;
+                border-bottom:1px solid var(--cds-border-subtle, #e0e0e0); }
+  .singleTest:hover { background:var(--cds-layer-hover, #e8e8e8); }
+  .emptyFilterTests { border:1px solid var(--cds-border-subtle, #e0e0e0); padding:var(--cds-spacing-05,1rem);
+                      font-size:13px; background:var(--cds-layer, #fff); }
+  .checklist { max-height:190px; overflow:auto; border:1px solid var(--cds-border-subtle, #e0e0e0);
+               padding:var(--cds-spacing-03,.5rem); margin-top:var(--cds-spacing-03,.5rem); background:var(--cds-layer,#fff); }
+  .checkrow { display:block; font-size:13px; padding:.15rem 0; }
+  .searchTestText { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.188rem; }
+  .twocol { display:grid; grid-template-columns:1fr 1fr; gap:var(--cds-spacing-06, 1.5rem); }
+  .copied-mark { font-size:10px; text-transform:uppercase; letter-spacing:.02em;
+                 background:var(--cds-layer-accent, #e0e0e0); color:var(--cds-text-secondary, #525252);
+                 padding:0 .25rem; border-radius:2px; }
+  .rejectcell { border-left:1px dashed var(--cds-border-subtle, #e0e0e0); padding-left:var(--cds-spacing-04, .75rem); }
 </style>
 </head>
 <body class="cds--white">
 <div class="preview-banner">
-  Visual Preview — Multiple Samples per Test at Order Entry &nbsp;|&nbsp; Route: /SamplePatientEntry &nbsp;|&nbsp; SideNav: Order → Add Order &nbsp;|&nbsp; FRS v1.1 &nbsp;|&nbsp; OpenELIS Design Mockup — not a live application
+  Visual Preview — Multiple Samples per Test at Order Entry &nbsp;|&nbsp; Route: /SamplePatientEntry &nbsp;|&nbsp; SideNav: Order → Add Order &nbsp;|&nbsp; FRS v1.4 &nbsp;|&nbsp; OpenELIS Design Mockup — not a live application
 </div>
 <div class="preview-content" id="root"></div>
 
@@ -67,6 +104,10 @@ const t = (key, fallback, vars) => {
   return s;
 };
 
+/* "Today" for the preview. FR-4: a collection date is only inherited when the
+   source sample was collected today. */
+const TODAY = "12/08/2026";
+
 function Tag({kind="gray", children, style}) {
   return <span className={"cds--tag cds--tag--"+kind} style={style}>{children}</span>;
 }
@@ -75,10 +116,17 @@ function Btn({kind="primary", size="", children, onClick, disabled}) {
     className={"cds--btn cds--btn--"+kind+(size==="sm"?" cds--btn--sm":"")}
     style={{minHeight: size==="sm"?"32px":"40px", paddingRight:"1rem"}}>{children}</button>;
 }
-function TextField({label, value, onChange, placeholder, helper, type="text", disabled, maxLength}) {
+/* FR-38: a copied value stays marked until THAT field is edited. */
+function CopiedMark({on}) {
+  if (!on) return null;
+  return <span className="copied-mark" title={t('order.sample.inherited.fieldTitle','Copied from the previous sample — not yet checked')}>
+    {t('order.sample.inherited.fieldTag','Copied')}
+  </span>;
+}
+function TextField({label, value, onChange, placeholder, helper, type="text", disabled, maxLength, copied}) {
   return (
     <div>
-      {label && <label className="lbl">{label}</label>}
+      {label && <label className="lbl">{label}<CopiedMark on={copied} /></label>}
       <div className="cds--text-input-wrapper">
         <input className="cds--text-input" type={type} value={value||""} placeholder={placeholder}
           maxLength={maxLength} disabled={disabled} onChange={e=>onChange && onChange(e.target.value)} />
@@ -87,10 +135,10 @@ function TextField({label, value, onChange, placeholder, helper, type="text", di
     </div>
   );
 }
-function SelectField({label, value, options, onChange, disabled}) {
+function SelectField({label, value, options, onChange, disabled, copied}) {
   return (
     <div>
-      {label && <label className="lbl">{label}</label>}
+      {label && <label className="lbl">{label}<CopiedMark on={copied} /></label>}
       <div className="cds--select">
         <select className="cds--select-input" value={value} disabled={disabled}
           onChange={e=>onChange && onChange(e.target.value)}>
@@ -110,7 +158,7 @@ function Warn({title, children}) {
     </div>
   );
 }
-function Modal({title, children, onCancel, onConfirm, confirmLabel, confirmDisabled}) {
+function Modal({title, children, onCancel, onConfirm, confirmLabel, confirmDisabled, confirmKind="danger"}) {
   return (
     <div className="modal-scrim" role="dialog" aria-modal="true">
       <div className="modal-box">
@@ -118,7 +166,7 @@ function Modal({title, children, onCancel, onConfirm, confirmLabel, confirmDisab
         {children}
         <div className="modal-actions">
           <Btn kind="secondary" onClick={onCancel}>{t('label.button.cancel','Cancel')}</Btn>
-          <Btn kind="danger" onClick={onConfirm} disabled={confirmDisabled}>{confirmLabel}</Btn>
+          <Btn kind={confirmKind} onClick={onConfirm} disabled={confirmDisabled}>{confirmLabel}</Btn>
         </div>
       </div>
     </div>
@@ -127,28 +175,169 @@ function Modal({title, children, onCancel, onConfirm, confirmLabel, confirmDisab
 
 const UOM_OPTIONS = ["mL","g","µL","Slide","Swab"];
 const REJECTION_REASONS = ["Choose Rejection Reason","Insufficient volume","Hemolyzed","Clotted","Damaged container","Mislabelled"];
-const STORAGE_LEVELS = [
-  {level:"Room",   options:["—","Room 1","Room 2"]},
-  {level:"Device", options:["—","Fridge A","Fridge B","TB bench"]},
-  {level:"Shelf",  options:["—","Shelf 1","Shelf 2"]},
-  {level:"Rack",   options:["—","Rack 1","Rack 2"]},
-  {level:"Box",    options:["—","Box 01","Box 02"]},
-];
+const REMOVE_REASONS = ["","Insufficient volume","Hemolyzed","Clotted","Damaged container","Collected in error"];
+const SAMPLE_TYPES = ["Urine","Serum","Sputum","Stool","Whole blood"];
+/* Per-sample-type catalog, standing in for GET /rest/sample-type-tests. */
+const CATALOG = {
+  Urine:  {tests:["Urine Microscopy","Urine Protein","Urine Glucose","Urine Culture","Urine Creatinine","Urine pH"],
+           panels:["Urinalysis Panel","Renal Panel"]},
+  Serum:  {tests:["Creatinine","Urea","Sodium","Potassium","Albumin","Total Protein"],
+           panels:["Renal Panel","Liver Panel"]},
+  Sputum: {tests:["AFB Smear Microscopy","GeneXpert MTB/RIF","Sputum Culture"], panels:["TB Screening Panel"]},
+  Stool:  {tests:["Ova & Parasites","Stool Culture","Occult Blood"], panels:["Enteric Panel"]},
+  "Whole blood": {tests:["Haemoglobin","White Cell Count","Platelet Count","Malaria RDT"], panels:["Full Blood Count"]},
+};
+const catalogFor = (type) => CATALOG[type] || {tests:[], panels:[]};
+const INHERITED_FIELDS = ["date","collector","quantity","uom","method","temp","origin"];
+
+/* Shared by the in-group action and by the FR-40 "add to the existing group instead" path. */
+function appendSample(group, mode) {
+  const last = group.samples[group.samples.length-1] || {};
+  const nextNo = Math.max(0, ...group.samples.map(s=>s.no||0)) + 1;
+  // FR-4: inherit the date only if the source sample was collected today.
+  const inheritDate = last.date === TODAY;
+  const copied = {};
+  INHERITED_FIELDS.forEach(f => { copied[f] = true; });
+  copied.date = inheritDate;
+  return {...group, samples:[...group.samples, {
+    id: Math.max(0,...group.samples.map(s=>s.id||0))+1,
+    no: nextNo,
+    description:"", time:"",
+    date: inheritDate ? last.date : "",
+    collector: last.collector||"",
+    quantity: last.quantity||"", uom: last.uom||"mL",
+    method: last.method||"", temp: last.temp||"", origin: last.origin||"",
+    copied, addedLater: mode==="placed", labels:1
+  }]};
+}
+
+/* ---------------- Existing-component placeholders ----------------
+   Anything already shipped is either reproduced exactly or stubbed as a muted
+   placeholder. It is never redrawn from imagination. */
+function StubBox({tag, label, note, lines=3}) {
+  return (
+    <div>
+      <div className="stub">
+        <span className="stub-tag">{tag}</span>
+        <div className="stub-blur">
+          <div className="stub-lines">
+            {Array.from({length:lines}).map((_,i)=>(
+              <div key={i} style={{width:(100 - i*14)+"%"}} />
+            ))}
+          </div>
+        </div>
+        <div className="stub-label">{label}</div>
+      </div>
+      {note && <div className="helper">{note}</div>}
+    </div>
+  );
+}
+
+/* ---------------- Test & panel selection ----------------
+   Reproduces the shipped SampleType.jsx pattern in order: filter Tags for the
+   current selection, a Carbon Search, a ul.searchTestsList of li.singleTest rows
+   while a term is present (or the emptyFilterTests Tile when nothing matches),
+   then the full checkbox list for the chosen sample type. */
+function PickerColumn({heading, legend, searchLabel, placeholder, noMatchMsg,
+                       options, selected, onToggle, onRemove, tagKind, idBase}) {
+  const [term, setTerm] = useState("");
+  const matches = term ? options.filter(o => o.toLowerCase().includes(term.toLowerCase())) : [];
+  return (
+    <div className="cds--col">
+      <h4 style={{fontSize:"14px", margin:"0 0 .5rem"}}>{heading}</h4>
+
+      <div className="searchTestText">
+        {selected.map(name => (
+          <span key={name} className={"cds--tag cds--tag--filter cds--tag--"+tagKind}>
+            {name}
+            <button type="button" className="cds--tag__close-icon" aria-label={"Remove "+name}
+              onClick={()=>onRemove(name)}>×</button>
+          </span>
+        ))}
+      </div>
+
+      <fieldset className="cds--fieldset" style={{margin:0}}>
+        <legend className="cds--label">{legend}</legend>
+        <div className="cds--search cds--search--lg" role="search">
+          <label className="cds--label" htmlFor={idBase+"_search"}>{searchLabel}</label>
+          <input id={idBase+"_search"} className="cds--search-input" type="text"
+            placeholder={placeholder} value={term} onChange={e=>setTerm(e.target.value)} />
+        </div>
+        <div>
+          {term && (matches.length
+            ? <ul className="searchTestsList">
+                {matches.map(m => (
+                  <li key={m} role="menuitem" className="singleTest"
+                      onClick={()=>{ setTerm(""); if(!selected.includes(m)) onToggle(m); }}>{m}</li>
+                ))}
+              </ul>
+            : <div className="emptyFilterTests">
+                <span>{noMatchMsg} <strong>&quot;{term}&quot;</strong></span>
+              </div>)}
+        </div>
+      </fieldset>
+
+      <div className="checklist">
+        {options.length === 0 && <span className="muted">—</span>}
+        {options.map(o => (
+          <label className="checkrow" key={o}>
+            <input type="checkbox" style={{marginRight:".5rem"}}
+              checked={selected.includes(o)} onChange={()=>onToggle(o)} />
+            {o}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TestPanelPicker({group, setGroup}) {
+  const cat = catalogFor(group.type);
+  const togglePanel = (name) => setGroup({...group,
+    panels: group.panels.includes(name) ? group.panels.filter(x=>x!==name) : [...group.panels, name]});
+  const toggleTest = (name) => setGroup({...group,
+    tests: group.tests.includes(name) ? group.tests.filter(x=>x!==name) : [...group.tests, name]});
+  return (
+    <div className="twocol">
+      {/* shipped order: panels block first, then tests */}
+      <PickerColumn idBase={"panels_"+group.type}
+        heading={t('sample.label.orderpanel','Order Panels')}
+        legend={t('sample.search.panel.legend.text','Search through the available panels')}
+        searchLabel={t('label.search.availablepanel','Search Available panel')}
+        placeholder={t('choose.availablepanel','Choose Available panel')}
+        noMatchMsg={t('sample.panel.search.error.msg','No panel found matching')}
+        options={cat.panels} selected={group.panels} tagKind="green"
+        onToggle={togglePanel} onRemove={togglePanel} />
+      <PickerColumn idBase={"tests_"+group.type}
+        heading={t('ordertests.title','Order Tests')}
+        legend={t('legend.search.availabletests','Search through the available tests')}
+        searchLabel={t('label.search.available.targetest','Search Available Tests')}
+        placeholder={t('holder.choose.availabletest','Choose Available Test')}
+        noMatchMsg={t('title.notestfoundmatching','No test Found Matching')}
+        options={cat.tests} selected={group.tests} tagKind="red"
+        onToggle={toggleTest} onRemove={toggleTest} />
+    </div>
+  );
+}
 
 /* ---------------- Sample row ---------------- */
-function SampleRow({s, total, onChange, onRemove, onVoid, mode, dupWarning}) {
+function SampleRow({s, onChange, onRemove, mode, dupWarning}) {
   const [open, setOpen] = useState(false);
   const voided = s.voided;
   const blocked = !!s.hasValidatedResult;
+  const cp = s.copied || {};
+  // FR-38: editing a field clears only that field's mark.
+  const set = (field, value) => onChange({...s, [field]:value, copied:{...cp, [field]:false}});
+  const anyCopied = INHERITED_FIELDS.some(f => cp[f]);
+
   return (
     <div className="srow">
       <div className={"srow-head"+(voided?" voided":"")}>
         <div className="seq">
-          {/* FR-9 / FR-35: `no` is the sample's permanent sort order — the same number
-              printed on the label and suffixed to the accession. `total` is a count of
-              non-voided samples, not an index; the two may legitimately disagree. */}
-          {t('order.sample.positionOfTotal','Sample {position} of {total}',
-             {position:s.no, total:total})}
+          {/* FR-9 / FR-35: the number alone. `no` is the permanent sort order, the same
+              number printed on the label and suffixed to the accession. The group count
+              lives on the group header and is never rendered beside this. */}
+          {t('order.sample.position','Sample {n}', {n:s.no})}
           <div style={{marginTop:".25rem", display:"flex", flexWrap:"wrap", gap:".25rem"}}>
             {voided && <Tag kind="gray">{t('order.sample.void.tag','Voided')}</Tag>}
             {s.addedLater && !voided && <Tag kind="gray">{t('order.sample.addedLater.tag','Added after order placed')}</Tag>}
@@ -157,42 +346,49 @@ function SampleRow({s, total, onChange, onRemove, onVoid, mode, dupWarning}) {
 
         <TextField
           label={t('order.sample.description.label','Description')}
-          value={s.description}
-          disabled={voided}
-          maxLength={60}
-          onChange={v=>onChange({...s, description:v})}
+          value={s.description} disabled={voided} maxLength={60}
+          onChange={v=>set('description', v)}
           placeholder={t('order.sample.description.placeholder','e.g. 0700 void, spot, day 2')} />
 
         <TextField label={t('sample.collection.date','Collection Date')} value={s.date}
-          disabled={voided} onChange={v=>onChange({...s, date:v})} />
+          copied={cp.date} disabled={voided} onChange={v=>set('date', v)} />
 
         <TextField label={t('sample.collection.time','Collection Time')} value={s.time}
-          disabled={voided} placeholder="hh:mm" onChange={v=>onChange({...s, time:v})} />
+          disabled={voided} placeholder="hh:mm" onChange={v=>set('time', v)} />
 
         <TextField label={t('collector.label','Collector')} value={s.collector}
-          disabled={voided} onChange={v=>onChange({...s, collector:v})} />
+          copied={cp.collector} disabled={voided} onChange={v=>set('collector', v)} />
+
+        {/* FR-36: rejection is reachable without expanding the row. */}
+        <div className="rejectcell">
+          <label className="cds--checkbox-label" style={{fontSize:"13px", display:"block", marginBottom:".25rem"}}>
+            <input type="checkbox" style={{marginRight:".4rem"}} disabled={voided}
+              checked={!!s.rejected} onChange={e=>set('rejected', e.target.checked)} />
+            {t('sample.reject.label','Reject Sample')}
+          </label>
+          {s.rejected && !voided &&
+            <SelectField value={s.rejectionReason || REJECTION_REASONS[0]} options={REJECTION_REASONS}
+              onChange={v=>set('rejectionReason', v)} />}
+        </div>
 
         <div style={{display:"flex", gap:".25rem", justifyContent:"flex-end", alignItems:"flex-start", flexWrap:"wrap"}}>
           <Btn kind="ghost" size="sm" onClick={()=>setOpen(!open)}>
             {open ? t('label.results.collapseRow','Collapse row') : t('label.results.expandRow','Expand row')}
           </Btn>
-          {mode === "new"
-            ? <Btn kind="ghost" size="sm" onClick={onRemove} disabled={total===1}>
-                {t('label.button.remove','Remove')}
-              </Btn>
-            : <Btn kind="danger--ghost" size="sm" onClick={onVoid} disabled={voided || blocked}>
-                {t('order.sample.void.action','Void sample')}
-              </Btn>}
+          {/* FR-25 / FR-26: the same word in both states. The difference is in the confirmation. */}
+          <Btn kind="danger--ghost" size="sm" onClick={onRemove} disabled={voided || blocked}>
+            {t('label.button.remove','Remove')}
+          </Btn>
           {mode !== "new" && blocked && !voided &&
             <div className="helper" style={{flexBasis:"100%", textAlign:"right"}}>
-              {t('order.sample.void.blocked','This sample has validated results and cannot be voided.')}
+              {t('order.sample.void.blocked','This sample has validated results and cannot be removed.')}
             </div>}
         </div>
       </div>
 
-      {s.justAdded && !voided &&
+      {anyCopied && !voided &&
         <div style={{padding:"0 .75rem .5rem"}} className="helper">
-          {t('order.sample.inherited.helper','Collection details were copied from the previous sample. Set the time and description for this collection.')}
+          {t('order.sample.inherited.helper','Collection details were copied from the previous sample. Check them, and set the time and description for this collection.')}
         </div>}
 
       {dupWarning &&
@@ -206,26 +402,15 @@ function SampleRow({s, total, onChange, onRemove, onVoid, mode, dupWarning}) {
         <div className="srow-detail">
           <div className="fieldgrid">
             <TextField label={t('sample.quantity.label','Quantity')} value={s.quantity} type="number"
-              disabled={voided} onChange={v=>onChange({...s, quantity:v})} />
+              copied={cp.quantity} disabled={voided} onChange={v=>set('quantity', v)} />
             <SelectField label={t('sample.uom.label','Sample Unit Of Measure')} value={s.uom}
-              options={UOM_OPTIONS} disabled={voided} onChange={v=>onChange({...s, uom:v})} />
+              options={UOM_OPTIONS} copied={cp.uom} disabled={voided} onChange={v=>set('uom', v)} />
             <TextField label={t('sample.collection.method','Collection Method')} value={s.method}
-              disabled={voided} onChange={v=>onChange({...s, method:v})} />
+              copied={cp.method} disabled={voided} onChange={v=>set('method', v)} />
             <TextField label={t('sample.temperature','Sample Temperature')} value={s.temp}
-              disabled={voided} onChange={v=>onChange({...s, temp:v})} />
+              copied={cp.temp} disabled={voided} onChange={v=>set('temp', v)} />
             <TextField label={t('sample.specimen.origin','Specimen Origin (referent lab)')} value={s.origin}
-              disabled={voided} onChange={v=>onChange({...s, origin:v})} />
-          </div>
-          <div style={{marginTop:"1rem", maxWidth:"320px"}}>
-            <label className="cds--checkbox-label" style={{fontSize:"14px", display:"block", marginBottom:".5rem"}}>
-              <input type="checkbox" style={{marginRight:".5rem"}} disabled={voided}
-                checked={!!s.rejected} onChange={e=>onChange({...s, rejected:e.target.checked})} />
-              {t('sample.reject.label','Reject Sample')}
-            </label>
-            {s.rejected && !voided &&
-              <SelectField label={t('order.sample.rejectionReason.label','Choose a rejection reason')}
-                value={s.rejectionReason || REJECTION_REASONS[0]} options={REJECTION_REASONS}
-                onChange={v=>onChange({...s, rejectionReason:v})} />}
+              copied={cp.origin} disabled={voided} onChange={v=>set('origin', v)} />
           </div>
           {voided &&
             <div style={{marginTop:"1rem"}} className="muted">
@@ -238,10 +423,11 @@ function SampleRow({s, total, onChange, onRemove, onVoid, mode, dupWarning}) {
 }
 
 /* ---------------- Sample group ---------------- */
-function SampleGroup({group, setGroup, mode, onRemoveGroup}) {
-  const [voidTarget, setVoidTarget] = useState(null);
-  const [voidReason, setVoidReason] = useState("");
+function SampleGroup({group, setGroup, mode, onRemoveGroup, otherTypes, onDuplicateType}) {
+  const [removeTarget, setRemoveTarget] = useState(null);
+  const [removeReason, setRemoveReason] = useState("");
   const [typeChange, setTypeChange] = useState(null);
+  const [addConfirm, setAddConfirm] = useState(false);
 
   const live = group.samples.filter(s=>!s.voided);
   const total = live.length;
@@ -250,38 +436,49 @@ function SampleGroup({group, setGroup, mode, onRemoveGroup}) {
   const descCounts = {};
   live.forEach(s => { const d=(s.description||"").trim().toLowerCase(); if(d) descCounts[d]=(descCounts[d]||0)+1; });
 
-  // FR-27: a new sample takes the next never-used number; voided numbers are never reissued.
-  const addSample = () => {
-    const last = group.samples[group.samples.length-1] || {};
-    const nextNo = Math.max(0, ...group.samples.map(s=>s.no)) + 1;
-    setGroup({...group, samples:[...group.samples, {
-      id: Math.max(0,...group.samples.map(s=>s.id))+1,
-      no: nextNo,
-      description:"", date:last.date||"12/08/2026", time:"",
-      collector:last.collector||"A. Rakoto",
-      quantity:last.quantity||"10", uom:last.uom||"mL",
-      method:last.method||"clean catch", temp:last.temp||"room temp",
-      origin:last.origin||"",
-      justAdded:true, addedLater: mode==="placed", labels: 1
-    }]});
-  };
-
-  const confirmVoid = () => {
-    setGroup({...group, samples: group.samples.map(x =>
-      x.id===voidTarget ? {...x, voided:true, voidReason:voidReason} : x)});
-    setVoidTarget(null); setVoidReason("");
-  };
-
+  const testNames = [...group.panels, ...group.tests];
   const testCount = group.tests.length + group.panelTestCount;
+
+  const doAdd = () => setGroup(appendSample(group, mode));
+
+  const confirmRemove = () => {
+    const s = group.samples.find(x=>x.id===removeTarget);
+    if (mode === "new") {
+      // FR-25: nothing recorded yet — taken straight off the form, no confirmation path.
+      setGroup({...group, samples: group.samples.filter(x=>x.id!==removeTarget)});
+    } else {
+      // FR-26: voided with a reason; the record stays.
+      setGroup({...group, samples: group.samples.map(x =>
+        x.id===removeTarget ? {...x, voided:true, voidReason:removeReason} : x)});
+    }
+    setRemoveTarget(null); setRemoveReason("");
+  };
+
+  const requestRemove = (s) => {
+    if (mode === "new") {
+      if (total === 1) return;
+      setGroup({...group, samples: group.samples.filter(x=>x.id!==s.id)});
+    } else {
+      setRemoveReason(""); setRemoveTarget(s.id);
+    }
+  };
+
+  const handleTypePick = (next) => {
+    if (!next) return;
+    if (otherTypes && otherTypes.includes(next)) { onDuplicateType(next); return; }  // FR-39/FR-40
+    if (total > 1 && group.type) { setTypeChange(next); return; }
+    setGroup({...group, type:next, tests:[], panels:[], panelTestCount:0});
+  };
 
   return (
     <div className="group">
       <div className="group-head">
         <h4 className="group-title">{group.type || t('sample.select.type','Select sample type')}</h4>
+        {/* the only place the count appears (FR-9) */}
         <Tag kind="blue">{t('order.sample.group.count','{count} samples', {count:total})}</Tag>
         <div style={{marginLeft:"auto", display:"flex", gap:".5rem"}}>
           {mode==="new" &&
-            <Btn kind="ghost" size="sm" onClick={onRemoveGroup}>{t('sample.remove.action','Remove Sample')}</Btn>}
+            <Btn kind="ghost" size="sm" onClick={onRemoveGroup}>{t('order.sample.removeGroup','Remove this sample type')}</Btn>}
         </div>
       </div>
 
@@ -289,14 +486,9 @@ function SampleGroup({group, setGroup, mode, onRemoveGroup}) {
         <div style={{marginBottom:"1rem"}}>
           <label className="lbl">{t('field.sampleType','Sample Type')}</label>
           <div className="cds--select" style={{maxWidth:"340px"}}>
-            <select className="cds--select-input" value={group.type}
-              onChange={e=>{
-                const next = e.target.value;
-                if (total > 1 && group.type) { setTypeChange(next); }
-                else { setGroup({...group, type:next, tests:[], panels:[], panelTestCount:0}); }
-              }}>
+            <select className="cds--select-input" value={group.type} onChange={e=>handleTypePick(e.target.value)}>
               <option value="">{t('sample.select.type','Select sample type')}</option>
-              {["Urine","Serum","Sputum","Stool","Whole blood"].map(o=><option key={o} value={o}>{o}</option>)}
+              {SAMPLE_TYPES.map(o=><option key={o} value={o}>{o}</option>)}
             </select>
           </div>
         </div>
@@ -305,21 +497,23 @@ function SampleGroup({group, setGroup, mode, onRemoveGroup}) {
         <div>
           {group.samples.map((s, i) => {
             const d = (s.description||"").trim().toLowerCase();
-            return <SampleRow key={s.id} s={s} total={total} mode={mode}
+            return <SampleRow key={s.id} s={s} mode={mode}
               dupWarning={!s.voided && !!d && descCounts[d] > 1}
-              onChange={ns=>{ const arr=[...group.samples]; arr[i]={...ns, justAdded:false}; setGroup({...group, samples:arr}); }}
-              onRemove={()=>{ if(total===1) return; setGroup({...group, samples:group.samples.filter(x=>x.id!==s.id)}); }}
-              onVoid={()=>{ setVoidReason(""); setVoidTarget(s.id); }} />;
+              onChange={ns=>{ const arr=[...group.samples]; arr[i]=ns; setGroup({...group, samples:arr}); }}
+              onRemove={()=>requestRemove(s)} />;
           })}
         </div>
 
         <div style={{marginTop:".75rem"}}>
-          <Btn kind="tertiary" size="sm" onClick={addSample} disabled={loading}>
-            {t('order.sample.addAnother','Add another sample')} &nbsp;+
+          {/* FR-3: prominent, and it names the sample type so it cannot be mistaken for FR-8. */}
+          <Btn kind="primary" size="sm" disabled={loading || !group.type}
+            onClick={()=> mode==="placed" ? setAddConfirm(true) : doAdd()}>
+            {t('order.sample.addAnotherOfType','Add another {sampleType} sample',
+               {sampleType:(group.type||"").toLowerCase()})} &nbsp;+
           </Btn>
           {loading &&
             <span className="muted" style={{marginLeft:".75rem"}}>
-              <span className="cds--inline-loading__text">{t('order.sample.loadingTests','Loading tests for this sample type…')}</span>
+              {t('order.sample.loadingTests','Loading tests for this sample type…')}
             </span>}
           {total >= 20 &&
             <div style={{marginTop:".5rem"}}>
@@ -328,68 +522,61 @@ function SampleGroup({group, setGroup, mode, onRemoveGroup}) {
         </div>
 
         <h5 style={{margin:"1.5rem 0 .5rem"}}>{t('order.sample.group.testsAndPanels','Tests & Panels')}</h5>
-        <div className="chipwrap">
-          {group.panels.map(p => <Tag key={p} kind="green">{p}</Tag>)}
-          {group.tests.map(x => <Tag key={x} kind="red">{x}</Tag>)}
-          {!group.panels.length && !group.tests.length && <span className="muted">—</span>}
-        </div>
-        <div className="muted">
+        {/* Reproduced from the shipped SampleType.jsx, not reinvented. */}
+        <TestPanelPicker group={group} setGroup={setGroup} />
+        <div className="muted" style={{marginTop:".75rem"}}>
           {t('order.sample.group.testsHelper','Selected once for the group — every sample above is tested for each of these.')}
           {" "}
           <strong>{t('order.sample.group.resultCount','{samples} samples × {tests} tests = {results} results',
             {samples:total, tests:testCount, results:total*testCount})}</strong>
         </div>
 
+        {/* Existing component, reused as-is at group level — deliberately not drawn. */}
         <h5 style={{margin:"1.5rem 0 .5rem"}}>{t('storage.location.label','Storage Location')}</h5>
-        <div className="storagegrid">
-          {STORAGE_LEVELS.map(lv=>(
-            <SelectField key={lv.level}
-              label={t('storage.picker.select','Select {level}', {level:lv.level})}
-              value={group.storage[lv.level] || "—"} options={lv.options}
-              onChange={v=>setGroup({...group, storage:{...group.storage, [lv.level]:v}})} />
-          ))}
-          <TextField label={t('storage.picker.position.optional','Position (optional)')}
-            value={group.storage.position} onChange={v=>setGroup({...group, storage:{...group.storage, position:v}})} />
-        </div>
-        <div className="helper">{t('order.sample.storage.groupHelper','Storage applies to every sample in this group.')}</div>
+        <StubBox
+          tag="Existing component"
+          label="Existing storage location picker — unchanged"
+          note={t('order.sample.storage.groupHelper','Storage applies to every sample in this group.')
+                + " The only change here is that it sits once at group level; the picker itself is untouched."} />
 
-        <h5 style={{margin:"1.5rem 0 .5rem"}}>{t('barcode.labels.section.title','Label quantities')}</h5>
-        <div>
-          <div className="labelrow">
-            <div>{t('barcode.labels.order.row','Order labels')}</div>
-            <div><div className="cds--text-input-wrapper"><input className="cds--text-input" type="number" defaultValue="1" /></div></div>
-          </div>
-          {live.map(s=>(
-            <div className="labelrow" key={s.id}>
-              <div>
-                {t('order.sample.label.specimenRow','Sample {position} of {total} — {description}', {
-                  position: s.no, total: total,
-                  description: s.description || t('order.sample.label.noDescription','No description')
-                })}
-              </div>
-              <div><div className="cds--text-input-wrapper">
-                <input className="cds--text-input" type="number" defaultValue={s.labels||1} />
-              </div></div>
-            </div>
-          ))}
-          <div className="labelrow" style={{fontWeight:600}}>
-            <div>{t('barcode.labels.running.total','Running total')}</div>
-            <div>{1 + total}</div>
-          </div>
-        </div>
+        {/* Existing component. One box listing every label that will print for this
+            order. The only delta is one row per sample in the group. */}
+        <h5 style={{margin:"1.5rem 0 .5rem"}}>{t('orderEntry.labels.heading','LABELS')}</h5>
+        <StubBox
+          tag="Existing component"
+          label="Existing labels section — every label that will print for this order"
+          lines={4}
+          note={"What this feature changes: the box gains one row per sample in this group ("
+                + live.map(x=>t('order.sample.label.specimenRow','Sample {position} — {description}', {
+                    position:x.no,
+                    description:x.description || t('order.sample.label.noDescription','No description')
+                  })).join("; ")
+                + "). Voided samples drop out. Everything else in this section is existing behaviour."} />
       </div>
 
-      {voidTarget !== null &&
-        <Modal title={t('order.sample.void.modalTitle','Void sample')}
-          onCancel={()=>setVoidTarget(null)} onConfirm={confirmVoid}
-          confirmLabel={t('order.sample.void.action','Void sample')}
-          confirmDisabled={!voidReason.trim()}>
+      {removeTarget !== null &&
+        <Modal title={t('order.sample.void.modalTitle','Remove sample')}
+          onCancel={()=>setRemoveTarget(null)} onConfirm={confirmRemove}
+          confirmLabel={t('label.button.remove','Remove')}
+          confirmDisabled={!removeReason.trim()}>
           <p style={{fontSize:"14px", marginBottom:"1rem"}}>
-            {t('order.sample.void.explanation','Voiding cancels the tests still pending on this sample. The sample stays on the order for the record.')}
+            {t('order.sample.void.explanation','The sample and its record stay on the order. Its pending tests are cancelled.')}
           </p>
-          <SelectField label={t('order.sample.void.reason','Reason for voiding')}
-            value={voidReason} options={["","Insufficient volume","Hemolyzed","Clotted","Damaged container","Collected in error"]}
-            onChange={setVoidReason} />
+          <SelectField label={t('order.sample.void.reason','Reason for removing')}
+            value={removeReason} options={REMOVE_REASONS} onChange={setRemoveReason} />
+        </Modal>}
+
+      {addConfirm &&
+        <Modal title={t('order.sample.addToPlaced.modalTitle','Add sample to this order')}
+          onCancel={()=>setAddConfirm(false)}
+          onConfirm={()=>{ doAdd(); setAddConfirm(false); }}
+          confirmKind="primary"
+          confirmLabel={t('order.sample.addAnotherOfType','Add another {sampleType} sample',
+                          {sampleType:(group.type||"").toLowerCase()})}>
+          <p style={{fontSize:"14px"}}>
+            {t('order.sample.addToPlaced.confirm','This will add {count} pending tests for this sample: {tests}',
+               {count:testCount, tests:testNames.join(", ")})}
+          </p>
         </Modal>}
 
       {typeChange !== null &&
@@ -410,11 +597,11 @@ const seedUrine = {
   type:"Urine", panels:[], panelTestCount:0, tests:["Urine Microscopy","Urine Protein"],
   storage:{Room:"Room 2", Device:"Fridge A", Shelf:"Shelf 1", Rack:"—", Box:"—", position:""},
   samples:[
-    {id:1, no:1, description:"0700 void", date:"12/08/2026", time:"07:05", collector:"A. Rakoto",
+    {id:1, no:1, description:"0700 void", date:TODAY, time:"07:05", collector:"A. Rakoto",
      quantity:"10", uom:"mL", method:"clean catch", temp:"room temp", origin:"", labels:1},
-    {id:2, no:2, description:"midday", date:"12/08/2026", time:"12:20", collector:"A. Rakoto",
+    {id:2, no:2, description:"midday", date:TODAY, time:"12:20", collector:"A. Rakoto",
      quantity:"10", uom:"mL", method:"clean catch", temp:"room temp", origin:"", labels:1},
-    {id:3, no:3, description:"post-exercise", date:"12/08/2026", time:"16:40", collector:"A. Rakoto",
+    {id:3, no:3, description:"post-exercise", date:TODAY, time:"16:40", collector:"A. Rakoto",
      quantity:"8", uom:"mL", method:"clean catch", temp:"room temp", origin:"", labels:1},
   ]
 };
@@ -422,10 +609,11 @@ const seedBlood = {
   type:"Serum", panels:["Renal Panel"], panelTestCount:4, tests:[],
   storage:{Room:"Room 2", Device:"Fridge A", Shelf:"Shelf 2", Rack:"—", Box:"—", position:""},
   samples:[
-    {id:1, no:1, description:"", date:"12/08/2026", time:"07:10", collector:"A. Rakoto",
+    {id:1, no:1, description:"", date:TODAY, time:"07:10", collector:"A. Rakoto",
      quantity:"5", uom:"mL", method:"venipuncture", temp:"room temp", origin:"", labels:1},
   ]
 };
+/* Placed order: collected on earlier days, so FR-4 must NOT inherit the date. */
 const seedSputum = {
   type:"Sputum", panels:[], panelTestCount:0, tests:["AFB Smear Microscopy"],
   storage:{Room:"Room 1", Device:"TB bench", Shelf:"—", Rack:"—", Box:"—", position:""},
@@ -434,18 +622,33 @@ const seedSputum = {
      quantity:"3", uom:"mL", method:"expectorated", temp:"room temp", origin:"", labels:1, hasValidatedResult:true},
     {id:2, no:2, description:"morning", date:"11/08/2026", time:"06:30", collector:"H. Randria",
      quantity:"4", uom:"mL", method:"expectorated", temp:"room temp", origin:"", labels:1, hasValidatedResult:true},
-    {id:3, no:3, description:"morning day 2", date:"12/08/2026", time:"06:20", collector:"H. Randria",
-     quantity:"2", uom:"mL", method:"expectorated", temp:"room temp", origin:"", labels:1, addedLater:true},
   ]
 };
 
 function App() {
   const [groups, setGroups] = useState([seedUrine, seedBlood]);
   const [placed, setPlaced] = useState(seedSputum);
+  const [dupType, setDupType] = useState(null);   // {type, fromIndex}
+
+  const typesOf = (i) => groups.filter((_,j)=>j!==i).map(g=>g.type).filter(Boolean);
+
+  // FR-40: add a sample to the group that already holds this type, and discard the new one.
+  const acceptDuplicate = () => {
+    const targetIdx = groups.findIndex(g => g.type === dupType.type);
+    const next = groups
+      .map((g,j)=> j===targetIdx ? appendSample(g, "new") : g)
+      .filter((_,j)=> j !== dupType.fromIndex);
+    setGroups(next);
+    setDupType(null);
+  };
+  // Decline: the new group is discarded and the order is unchanged.
+  const declineDuplicate = () => {
+    setGroups(groups.filter((_,j)=> j !== dupType.fromIndex));
+    setDupType(null);
+  };
 
   return (
     <div>
-      {/* FR: breadcrumb matches the two crumbs the shipped page renders */}
       <nav className="cds--breadcrumb" style={{margin:"1rem 0"}}>
         <div className="cds--breadcrumb-item"><a className="cds--link" href="#">{t('home.label','Home')}</a></div>
         <div className="cds--breadcrumb-item cds--breadcrumb-item--current">{t('breadcrumb.label.addOrder','Add Order')}</div>
@@ -456,51 +659,60 @@ function App() {
         Patient: RAKOTOARISOA, Naina · 34 · F · National ID 401 992 118 &nbsp;|&nbsp; {t('eorder.labNumber','Lab Number')} 26-004182
       </div>
 
+      <div className="callout" style={{background:"var(--cds-layer-accent-01, #e0e0e0)", borderLeftColor:"var(--cds-border-strong, #8d8d8d)"}}>
+        <strong>How to read this preview.</strong> Anything that already exists in OpenELIS is either
+        reproduced exactly as shipped (the sample type <em>Select</em>, the panel and test searches with
+        their checkbox lists) or shown as a <strong>muted dashed box</strong> — an existing component
+        reused as-is, deliberately not redrawn. Only what is genuinely new to this feature is designed
+        here. Each muted box says which component it stands for and, where relevant, the one thing this
+        feature changes about it.
+      </div>
+
       <div className="callout">
         <strong>What changed.</strong> A sample block is now a <em>group</em> — one sample type, one
         test selection and one storage location, holding one or more numbered samples.
-        <strong> Add another sample</strong> appends a sibling collection that inherits the type, the
-        tests, and the previous sample's collection details. Every sample keeps its own number, time,
-        collector, description, volume and label. The number shown is the same number printed on the
-        label and suffixed to the accession (<code>26-004182-2</code>) — it never changes, even after a void.
+        <strong> Add another urine sample</strong> is the prominent action inside a group and names the
+        type, so it can't be confused with <strong>Add a different sample type</strong> below.
+        Each row shows only its own permanent number — <em>Sample 3</em> — and the count sits once on the
+        group header, so removing a sample can never read “Sample 3 of 2”. The number is the same one
+        printed on the label and suffixed to the accession (<code>26-004182-2</code>).
       </div>
 
       <h3 className="sectionhead">1 — Placing a new order</h3>
       <p className="muted" style={{marginTop:0}}>
-        Try it: edit a description to match another one to see the duplicate warning; expand any row;
-        add or remove samples; change a sample type on a multi-sample group to see the confirmation.
+        Try it: add a sample and watch the <em>Copied</em> markers — edit one field and only that
+        marker clears. Duplicate a description to see the warning. Reject a sample without expanding
+        the row. Use <em>Add a different sample type</em> and pick Urine again to see the duplicate-type prompt.
       </p>
 
       {groups.map((g,i)=>(
-        <SampleGroup key={i} group={g} mode="new"
+        <SampleGroup key={i} group={g} mode="new" otherTypes={typesOf(i)}
+          onDuplicateType={(type)=>setDupType({type, fromIndex:i})}
           setGroup={ng=>{ const arr=[...groups]; arr[i]=ng; setGroups(arr); }}
           onRemoveGroup={()=>setGroups(groups.filter((_,j)=>j!==i))} />
       ))}
 
-      <Btn kind="primary" onClick={()=>setGroups([...groups, {
+      {/* FR-8: demoted to a secondary action, and renamed so it reads as the rarer choice. */}
+      <Btn kind="tertiary" onClick={()=>setGroups([...groups, {
         type:"", panels:[], panelTestCount:0, tests:[],
         storage:{Room:"—", Device:"—", Shelf:"—", Rack:"—", Box:"—", position:""},
-        samples:[{id:1, no:1, description:"", date:"12/08/2026", time:"", collector:"",
+        samples:[{id:1, no:1, description:"", date:"", time:"", collector:"",
                   quantity:"", uom:"mL", method:"", temp:"", origin:"", labels:1}]
       }])}>
-        {t('sample.add.action','Add Sample')} &nbsp;+
+        {t('order.sample.addDifferentType','Add a different sample type')} &nbsp;+
       </Btn>
-      <span className="muted" style={{marginLeft:"1rem"}}>
-        Adds an empty group with a <em>different</em> sample type — distinct from “Add another sample” inside a group.
-      </span>
 
       <h3 className="sectionhead">2 — Adding to an order already placed</h3>
       <p className="muted" style={{marginTop:0}}>
-        A tuberculosis smear order placed two days ago. Samples 1 and 2 have validated results, so
-        their void action is disabled with a visible explanation. Sample 3 was added this morning when
-        the patient returned — it is flagged, and it picked up the AFB Smear test automatically.
-        Voiding a sample asks for a reason, and leaves every other sample's number alone: void sample 2
-        and sample 3 stays “Sample 3”, while the totals drop to 2.
+        A tuberculosis smear order placed two days ago. Both samples have validated results, so their
+        Remove action is disabled with a visible explanation. Adding a third sample asks for
+        confirmation and names the tests it will create — and because sample 2 was collected on 11/08,
+        not today, the new sample's collection date is left blank rather than inheriting a stale date.
       </p>
       <div className="muted" style={{marginBottom:".75rem"}}>
         Patient: ANDRIAMANANA, Jean · 51 · M &nbsp;|&nbsp; {t('eorder.labNumber','Lab Number')} 26-004077 &nbsp;|&nbsp; placed 10/08/2026
       </div>
-      <SampleGroup group={placed} setGroup={setPlaced} mode="placed" />
+      <SampleGroup group={placed} setGroup={setPlaced} mode="placed" otherTypes={[]} onDuplicateType={()=>{}} />
 
       <h3 className="sectionhead">3 — What the lab sees downstream</h3>
       <div className="cds--data-table-container">
@@ -516,19 +728,27 @@ function App() {
             </tr>
           </thead>
           <tbody>
-            <tr><td>26-004077-1</td><td>{t('order.sample.label.specimenRow','Sample {position} of {total} — {description}',{position:1,total:3,description:"spot"})}</td><td>10/08/2026 09:15</td><td>AFB Smear Microscopy</td><td>Negative</td><td><Tag kind="teal">Validated</Tag></td></tr>
-            <tr><td>26-004077-2</td><td>{t('order.sample.label.specimenRow','Sample {position} of {total} — {description}',{position:2,total:3,description:"morning"})}</td><td>11/08/2026 06:30</td><td>AFB Smear Microscopy</td><td>Positive (2+)</td><td><Tag kind="teal">Validated</Tag></td></tr>
-            <tr><td>26-004077-3</td><td>{t('order.sample.label.specimenRow','Sample {position} of {total} — {description}',{position:3,total:3,description:"morning day 2"})}</td><td>12/08/2026 06:20</td><td>AFB Smear Microscopy</td><td>—</td><td><Tag kind="purple">Pending</Tag></td></tr>
-            <tr><td>26-004182-1</td><td>{t('order.sample.label.specimenRow','Sample {position} of {total} — {description}',{position:1,total:3,description:"0700 void"})}</td><td>12/08/2026 07:05</td><td>Urine Microscopy</td><td>—</td><td><Tag kind="purple">Pending</Tag></td></tr>
-            <tr><td>26-004182-2</td><td>{t('order.sample.label.specimenRow','Sample {position} of {total} — {description}',{position:2,total:3,description:"midday"})}</td><td>12/08/2026 12:20</td><td>Urine Microscopy</td><td>—</td><td><Tag kind="purple">Pending</Tag></td></tr>
-            <tr><td>26-004182-3</td><td>{t('order.sample.label.specimenRow','Sample {position} of {total} — {description}',{position:3,total:3,description:"post-exercise"})}</td><td>12/08/2026 16:40</td><td>Urine Microscopy</td><td>—</td><td><Tag kind="purple">Pending</Tag></td></tr>
+            {[
+              ["26-004077-1", 1, "spot", "10/08/2026 09:15", "AFB Smear Microscopy", "Negative", "teal", "Validated"],
+              ["26-004077-2", 2, "morning", "11/08/2026 06:30", "AFB Smear Microscopy", "Positive (2+)", "teal", "Validated"],
+              ["26-004182-1", 1, "0700 void", "12/08/2026 07:05", "Urine Microscopy", "—", "purple", "Pending"],
+              ["26-004182-2", 2, "midday", "12/08/2026 12:20", "Urine Microscopy", "—", "purple", "Pending"],
+              ["26-004182-3", 3, "post-exercise", "12/08/2026 16:40", "Urine Microscopy", "—", "purple", "Pending"],
+            ].map(r=>(
+              <tr key={r[0]}>
+                <td>{r[0]}</td>
+                <td>{t('order.sample.label.specimenRow','Sample {position} — {description}',{position:r[1],description:r[2]})}</td>
+                <td>{r[3]}</td><td>{r[4]}</td><td>{r[5]}</td>
+                <td><Tag kind={r[6]}>{r[7]}</Tag></td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
       <p className="muted">
         The specimen a result came from is now unambiguous, and the number on screen is the number on
         the tube. Result entry, validation, worklists, and the patient report all show the sample's
-        position and description wherever they already name a sample.
+        number and description wherever they already name a sample.
       </p>
 
       <h3 className="sectionhead">Not in this version</h3>
@@ -539,10 +759,22 @@ function App() {
           collection-time decision.</li>
         <li><strong>Aliquoting</strong> — dividing one collected sample into portions. Already exists,
           different concept; samples in a group are peers, never parent and child.</li>
-        <li><strong>Per-sample storage location</strong> — storage is set once per group and applies to
-          every sample in it.</li>
+        <li><strong>Per-sample storage location</strong> — a known, accepted limitation. Storage is set
+          once per group, so a lab storing three timed urines in three different boxes cannot record
+          that in OpenELIS for now.</li>
+        <li><strong>Two groups of the same sample type</strong> — prevented outright.</li>
         <li><strong>Calculated results across samples</strong> — a mean, total, or ratio over the group.</li>
       </ul>
+
+      {dupType &&
+        <Modal title={t('order.sample.sameType.modalTitle','{sampleType} already on this order', {sampleType:dupType.type})}
+          onCancel={declineDuplicate} onConfirm={acceptDuplicate} confirmKind="primary"
+          confirmLabel={t('order.sample.sameType.accept','Add another sample to it')}>
+          <p style={{fontSize:"14px"}}>
+            {t('order.sample.sameType.confirm','This order already has a {sampleType} group. Add another sample to it instead?',
+               {sampleType:dupType.type.toLowerCase()})}
+          </p>
+        </Modal>}
     </div>
   );
 }

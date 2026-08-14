@@ -1,11 +1,44 @@
 # Combined Collections at Order Entry — Functional Requirements Specification
 
-**Version:** 2.0
+> ## ⚠ WITHDRAWN — do not implement from this document
+>
+> **Withdrawn 2026-08-12.** This specification is superseded before review by a merged
+> spec, *Derived & Calculated Results*, which will own both the collection capture
+> described here and the calculation that consumes it.
+>
+> **Two reasons it was withdrawn:**
+>
+> 1. **Nothing here pays off on its own.** This spec captures the total volume and the
+>    collection window and then explicitly declines to compute the per-24-hour result. The
+>    bench would enter more data and get the same output, so the only consumer of the data
+>    is a feature that does not exist yet. Specifying the consumer first means capturing
+>    exactly the right shape once, rather than guessing at it now and reworking it later.
+>
+> 2. **Its central design decision is wrong.** This spec makes "combined collection" a
+>    **mode the collector chooses** (FR-1, FR-2). That is the wrong signal. Whether a
+>    collection is a 24-hour collection is determined by the **test that was ordered** — a
+>    24-hour urine protein is a different test from a random urine protein, with its own
+>    LOINC code, its own reference ranges, and its own reporting units. The ordering
+>    clinician, who told the patient to collect for 24 hours, has already declared the
+>    protocol by choosing that test. Asking the collector to declare it again in a mode
+>    chooser taxes every routine order to serve a rare one, invites the wrong choice, and
+>    duplicates information the order already carries.
+>
+> **What carries forward into the merged spec:** the Lab Context narrative, the container
+> model (containers are collection events, not specimens), the collection-window and
+> completeness concepts, the four declared data elements, and the whole `pool`-namespace
+> collision analysis in the Localization section. The mode chooser (FR-1 through FR-6) does
+> not carry forward and is replaced by a per-test collection protocol.
+>
+> Kept for the record rather than deleted, per the project's preserve-don't-delete
+> convention. The research and the container model in it remain sound.
+
+**Version:** 2.0 (withdrawn)
 **Date:** 2026-08-12
 **Author:** OpenELIS Global product design
-**Status:** Draft for review
+**Status:** WITHDRAWN — superseded by *Derived & Calculated Results* (not yet written)
 **Affects:** Add Order (`/SamplePatientEntry`), Edit Order, specimen labels, result entry display, patient report
-**Builds on:** *Multiple Samples per Test at Order Entry* v1.1 — this is the deferred second half of that feature
+**Was building on:** *Multiple Samples per Test at Order Entry* v1.1
 
 ---
 
