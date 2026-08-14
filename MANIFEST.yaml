@@ -4056,7 +4056,7 @@
     distinguishing labels carried through worklist, labels, result entry and the patient
     report. Serves TB smear (2-3 sputa), stool O&P (3), timed urine, GTT, blood cultures.
     Affects Add Order (/SamplePatientEntry), Edit Order, specimen labels, result display.
-    FRS v1.1 + HTML preview.
+    FRS v1.4 + HTML preview.
   links:
     jira:
       - OGC-285
@@ -4074,7 +4074,7 @@
     explicit collection window (a 24-hour urine in four bottles is one specimen, not four),
     rather than one specimen per collection. A result still points at exactly one specimen, so
     analysers, referrals and reports are unchanged. Excludes cross-patient pooling (OGC-527) and
-    result computation. The deferred second half of Multiple Samples per Test at Order Entry v1.
+    result computation. The deferred second half of Multiple Samples per Test at Order Entry v1. WITHDRAWN 2026-08-12 — superseded by the merged Derived & Calculated Results spec; kept for the record.
     Affects Add Order (/SamplePatientEntry), Edit Order, specimen labels, result display, patient report.
   links:
     jira:
