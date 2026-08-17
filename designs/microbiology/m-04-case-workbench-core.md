@@ -1,7 +1,7 @@
 # M-04 Case Workbench Core — Functional Requirements Specification
 
-**Version:** 2.0 (consolidated — folds the full AMR design review inline; no separate addendum)
-**Date:** 2026-06-05
+**Version:** 2.1 (separates no-growth recording from final report release)
+**Date:** 2026-08-17
 **Module:** Microbiology → Case Workbench
 **Route:** `/microbiology/case/:caseId`
 **Phase:** MVP-1A + Phase 1A+ (items marked)
@@ -10,6 +10,13 @@
 **Mockup:** `m-04-case-workbench-prototype.html` (single canonical interactive mockup; the earlier static `m-04-case-detail.html` is superseded)
 
 > Self-contained: the case-view UX decisions (interaction model, inoculation entry, two-pass isolate ID, auto-logging timeline, next-step guidance, compact Case Info, reports checklist, critical-notification placement), the data-reuse decisions (culture protocol → Method, reflex-driven cascade), the test-designation reconciliation, the mixed-order handling, and the no-ownership model are all written into the sections below, not kept as notes.
+
+**What changed from v2.0.** Recording no growth is a bench observation, not a
+report-release action. **Record no growth** writes the audited outcome and makes
+the case ready for review, but does not publish a patient result. An authorized
+reviewer separately releases the final negative report through the same final
+review/release workflow used for other final reports. Release publishes the
+negative result and locks the case; later growth requires the amendment path.
 
 ---
 
@@ -59,8 +66,8 @@ The Case is the central abstraction of the Microbiology module — a per-specime
 The state machine is the spine of the case; the page's next-step guidance (§5) and the worklist's filters are projections of it. Every transition writes an immutable `micro_case_stage_transition` row and is atomic with the action that triggered it.
 
 ### 3.1 Stages
-**Non-terminal:** RECEIVED → INCUBATING → POSITIVE_SIGNAL → GROWTH_DETECTED → ORGANISM_ID → AST_IN_PROGRESS → READY_REVIEW → PRELIM_REPORTED → FINAL_REPORTED → AMENDED.
-**Terminal:** NO_GROWTH_FINAL, REJECTED_AT_ACCESSIONING, CANCELLED_PRE_INOCULATION, CANCELLED_POST_INOCULATION, CANCELLED_POST_POSITIVE, LOST_SPECIMEN, LOST_SPECIMEN_POSITIVE.
+**Non-terminal:** RECEIVED → INCUBATING → POSITIVE_SIGNAL → GROWTH_DETECTED → ORGANISM_ID → AST_IN_PROGRESS → READY_REVIEW → PRELIM_REPORTED → FINAL_REPORTED → AMENDED; an incubating case with a recorded no-growth outcome remains review-ready until final release.
+**Terminal:** REJECTED_AT_ACCESSIONING, CANCELLED_PRE_INOCULATION, CANCELLED_POST_INOCULATION, CANCELLED_POST_POSITIVE, LOST_SPECIMEN, LOST_SPECIMEN_POSITIVE.
 
 **Classification is orthogonal to these stages — and is *not* a mandatory first step, nor its own stage value.** A case carries `workflow_type` (`BACTERIOLOGY` / `MYCOBACTERIOLOGY_TB`), set automatically from the ordered test at order entry (M-03 §2.1a). In the normal path **the case is born already classified** and enters `RECEIVED` directly in its profile — it never passes through a "classify" step.
 
@@ -75,20 +82,25 @@ The state machine is the spine of the case; the page's next-step guidance (§5) 
 | `workflow_type = NULL` | (workflow set) | Tech **Change workflow** (§4.9) | Profile instantiated (sections, breakpoint family, organism vocab, WHONET flavor); audited timeline note. *Not a stage transition — sets the classification attribute.* |
 | RECEIVED | INCUBATING | Save inoculation (§4 Inoculation) | `micro_case_inoculation` row + INOCULATION timeline event |
 | INCUBATING | POSITIVE_SIGNAL | Analyzer `POSITIVE_SIGNAL` event **or** manual "Mark positive" | Timeline event; worklist row highlights |
-| INCUBATING | NO_GROWTH_FINAL | "Mark no growth" after incubation hours met | Timeline event; final negative report |
+| INCUBATING | No growth recorded, ready for review | "Record no growth" after incubation is complete | Audited Timeline event; no patient result is released |
 | POSITIVE_SIGNAL | GROWTH_DETECTED | First isolate added **or** subculture recorded | Auto-transition |
 | GROWTH_DETECTED | ORGANISM_ID | Isolate workup begins (add/edit isolate) | Implicit on first edit |
 | ORGANISM_ID | AST_IN_PROGRESS | First AST setup saved (M-05) | `micro_ast_run` row |
 | AST_IN_PROGRESS | READY_REVIEW | All clinically-significant isolates have a **reviewed/accepted** AST run (analyzer results land as `RESULTS_IN`, then a tech **Accepts** → `COMPLETE`; auto-received alone does not count — see M-05 §5.6) | Surfaces in worklist "Ready" |
 | (any non-terminal, ≥1 Gram stain) | PRELIM_REPORTED | "Release preliminary" | Prelim report; distribution |
-| PRELIM_REPORTED | FINAL_REPORTED | "Release final" (checklist passes) | Final report; case locked |
+| READY_REVIEW or PRELIM_REPORTED | FINAL_REPORTED | Authorized "Release final" (checklist passes) | Final report; case locked |
+| No growth recorded, ready for review | FINAL_REPORTED | Authorized reviewer releases the final negative report | Negative patient result published; case locked |
 | FINAL_REPORTED | AMENDED→FINAL_REPORTED | "Amend" → "Release amended final" | New report version; originals preserved |
-| NO_GROWTH_FINAL | POSITIVE_SIGNAL | Late slow grower (reason required) | Revives case; prior final kept |
+| FINAL_REPORTED with a negative no-growth result | Amendment workflow | Late slow grower (reason required) | Prior final preserved; case reopens through the controlled amendment path |
 | Order cancelled | CANCELLED_* | Cancellation cascade from Order Entry | Terminal stage per current progress; reason captured |
 
 ### 3.3 Rules
 - **Preliminary release on Gram stain:** allowed as early as POSITIVE_SIGNAL once at least one isolate has a Gram-stain observation — a positive Gram stain is the clinically actionable result for empiric therapy. Not gated on final ID.
 - **Cancellation cascade:** Order Entry's cancellation event maps to the appropriate terminal stage based on the case's current stage; reason captured.
+- **No-growth review and release:** recording no growth is an audited bench
+  outcome that makes the case review-ready. It never publishes a result. Final
+  negative reporting requires a separate authorized review/release action,
+  after which the case is locked.
 - **Reidentification** of a finalized isolate (§6.3) creates a new isolate version and triggers an amendment cycle; AST runs are **not** auto-re-interpreted.
 - **No ownership in the lifecycle:** stage transitions are performed by whoever is on shift; the actor is recorded per action (§10), not as a case owner.
 
@@ -275,9 +287,9 @@ Case Detail (5 isolates × 100 AST results × 30 timeline events) renders < 1 s;
 - **AC-M04-05**: Timeline is read-mostly with AUTO badges; **+ Add note** offers only manual-only types.
 - **AC-M04-06**: Isolate shows ID status; pending isolates show **Identify organism**; AST setup disabled until identified; analyzer ID fills + clears pending; Edit (pre-final) vs Reidentify (post-final) differentiated.
 - **AC-M04-07**: AST rows expand to original→override with revert; matched breakpoint shown; awaiting-results state; no manual import.
-- **AC-M04-08**: Preliminary allowed once a Gram stain exists; Final gated by the pass/fail checklist with blocking count.
+- **AC-M04-08**: Preliminary allowed once a Gram stain exists; Final gated by the pass/fail checklist with blocking count. Recording no growth does not publish a result; an authorized reviewer separately releases the final negative report and locks the case.
 - **AC-M04-09**: Amendment preserves originals; reidentification versions the isolate without auto-re-interpreting AST.
-- **AC-M04-10**: Late slow grower revives NO_GROWTH_FINAL with reason; cancellation cascades to the right terminal stage.
+- **AC-M04-10**: Late growth after a released negative report reopens through the amendment workflow with a reason while preserving the prior final; cancellation cascades to the right terminal stage.
 - **AC-M04-11**: Analyzer events route correctly; unmatched → FAILED in admin.
 - **AC-M04-12**: Critical notification reachable from header + isolate; target_type set by entry point; optimistic badge.
 - **AC-M04-13**: Case Info renders as a compact collapsible summary (clinical history first).
