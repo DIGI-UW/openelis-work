@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-09",
+  "generated": "2026-08-16",
   "counts": {
     "total": 67,
     "by_maturity": {
@@ -799,7 +799,8 @@
         "OGC-189",
         "OGC-214",
         "OGC-224",
-        "OGC-1142"
+        "OGC-1142",
+        "OGC-1145"
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/257228825",
       "manual_status": null,
