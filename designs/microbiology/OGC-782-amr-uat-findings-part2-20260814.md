@@ -3,6 +3,7 @@
 **Instance:** amr.openelis-global.org · **Build:** `ad18410` (deployment `20260814T053419Z-ad18410c9222`, branch `feat/782-ogc-782-microbiology-r2-order-bench-protocol`)
 **Date:** 2026-08-14 · **Reviewer:** Casey Iiams-Hauser (executed by Claude, signed in as `admin`)
 **Supersedes in part:** `OGC-782-amr-uat-findings-20260814.md` (commit `a894697`) — see §1.
+**Contains a retraction of its own:** §4 originally reported a harness defect. That claim is withdrawn — the fix was already deployed and the fault was in my test method.
 
 ---
 
@@ -174,13 +175,47 @@ After a reload the user cannot tell from the tile row which queue is active; onl
 | AMR-S12 · Control breakpoint catalog lifecycle | 3/3 **Pass** |
 | AMR-S14 · Preview and export WHONET CSV | 6/6 **Pass** |
 
-### Blocked — tested but not recordable
+### RETRACTED — "the harness story selector is broken"
 
-The widget's **"Stories on this page"** selector will not open — not from script, and not from a physical click either (clicks never reach the widget's shadow DOM; `activeElement` stays `BODY`). Its fallback, the page→story resolver, takes the **first** story whose route path matches and will not yield: `prefs.story` is rewritten back on every load, and `activateStory()` bails at `knownStory()` for any story outside the current page's catalog even with *All server stories* toggled on.
+**This report originally claimed the widget's story selector was defective and recommended a ticket. That claim is withdrawn.** It was wrong, and the error was mine.
 
-Consequence — where two stories share a route path, only the first is reachable:
+The harness on this instance is `DIGI-UW/openelis-review-tooling` at `f3b34f7c` ("fix(review): mount independently of host app load", 2026-08-14). Walking that commit's ancestry, every story-navigation fix is **already in the deployed build**:
 
-| Unreachable story | Steps | Blocked behind |
+| Commit | |
+|---|---|
+| `870bab81` | fix(uat): review real stories separately |
+| `a490afaa` | feat(uat): **add route-aware story navigator** |
+| `91b87f8b` | fix(uat): reveal story overview after selection |
+| `fb2acf1d` | fix(uat): keep story description in view |
+| `fd820099` | refactor: declutter review widget controls |
+| `c3cc8882` | fix(uat): **reject stale story preferences** |
+| `f3b9975b` | fix(uat): **keep overlay disclosures exclusive** |
+| `bc5fd810` | fix: **make UAT story navigation transactional** |
+| `7fdde793` | fix: **preserve open panel across story switches** |
+
+All nine merged to `main` as PR #14, *"Fix UAT story navigation and review widget state"*. The deployment sits one commit behind that head but contains the lot.
+
+Each behaviour I catalogued as a defect is that fix working as designed:
+
+| What I observed | What it actually is |
+|---|---|
+| `prefs.story` rewritten back on every load | `c3cc8882` **reject stale story preferences** — a stale pref is supposed to be rejected |
+| Selection reverting after `activateStory()` | `bc5fd810` **make UAT story navigation transactional**. The source says so in a comment I quoted and still misread: *"the requested story does not become visible state until its checklist passes validation"* |
+| The disclosure closing itself | `f3b9975b` **keep overlay disclosures exclusive** |
+| Page→story resolution preferring one story | `a490afaa` **route-aware story navigator** |
+
+Two faults in my method produced the false finding:
+
+1. **Synthetic events were `composed: false`.** `new MouseEvent('click')` defaults to `composed: false`, so it does not cross the shadow boundary the way a trusted click does. Every conclusion I drew about "the widget ignores clicks" rests on events that were never equivalent to a user's.
+2. **Coordinates were measured across a display change.** Mid-session the Chrome window moved between monitors — `devicePixelRatio` went 1 → 2 and `innerHeight` 914 → 858. My screenshot-to-viewport scaling was computed before that and used after it, so the "physical" clicks that appeared to miss the widget were landing somewhere else on the page.
+
+**Correct characterisation:** the story selector was not shown to be broken. It was not successfully exercised. Those are different claims, and only the second is supported by what I did.
+
+### Recordable in principle, unrecorded in this run
+
+Where two stories share a route path, the route-aware navigator resolves to one of them, and reaching the other requires using the selector — which I never drove correctly:
+
+| Story | Steps | Shares a route with |
 |---|---|---|
 | AMR-S13 · Import breakpoint updates safely | 4 | AMR-S12 (`/MasterListsPage/MicrobiologyReference/breakpoints`) |
 | AMR-S22 · Work the AST queue | 3 | AMR-S17 (`/Microbiology/worklist`) |
@@ -188,11 +223,11 @@ Consequence — where two stories share a route path, only the first is reachabl
 | AMR-S04 · Shared-specimen reflection | 1 | AMR-S17 |
 | AMR-S08 · Review the workflow by keyboard | 1 | AMR-S17 |
 
-All of these were **tested**; the results are in §2 and §5. To land them in the widget, open the story selector manually and pick the story — a committed selection sticks.
+All were **tested against the live instance**; the substance is in §2 and §5 and stands on its own. Only the widget bookkeeping is outstanding, and a reviewer picking the story from the selector should be able to enter them.
 
 ---
 
-## 5. Verdicts for the five unrecordable stories
+## 5. Verdicts for the five stories not entered in the widget
 
 | Story | Step | Verdict | Basis |
 |---|---|---|---|
@@ -208,7 +243,7 @@ All of these were **tested**; the results are in §2 and §5. To land them in th
 | **S04** | 1 · TB sibling reflection | **Pass** | Distinguishable, cross-linked, one accession, one sample item — see §3. Gap noted as N-6 |
 | **S08** | 1 · keyboard inspection | **Partial** | All 28 focusable controls on the final case carry accessible names (0 unnamed); no keyboard trap — the hidden session-timeout modal's sentinels and Close correctly refuse focus. Amendment / attempt / reporting / lock status is conveyed in **text** (*Attempt 1, Original, Reviewed, Initial attempt, Included in report, Final Released, Final release ready*), not colour alone. **Focus-indicator visibility not verified** |
 
-**Method note on keyboard testing.** The browser extension could not deliver real `Tab` keystrokes or focusing clicks to the page in this session (`document.activeElement` stayed `BODY` after both). Order, names and trap behaviour were therefore verified programmatically via `.focus()`. That technique cannot observe `:focus-visible` styling, so focus-indicator visibility on the case workbench is **unverified**, not failed. It should be re-checked by hand. On the WHONET page the same method did show indicators, so at least that screen styles plain `:focus`.
+**Method note on keyboard testing — read with the §4 retraction in mind.** I reported that the browser extension could not deliver real `Tab` keystrokes or focusing clicks (`document.activeElement` stayed `BODY`). The same two method faults that produced the false harness finding apply here: the focusing clicks were aimed with scaling measured before the window changed displays, so they may simply have missed. Order, names and trap behaviour were verified programmatically via `.focus()`, which cannot observe `:focus-visible` styling. Focus-indicator visibility on the case workbench is therefore **unverified** — not failed, and not demonstrated to be untestable. It should be re-checked by hand or with correctly-aimed input. On the WHONET page the same method did show indicators, so at least that screen styles plain `:focus`.
 
 ---
 
