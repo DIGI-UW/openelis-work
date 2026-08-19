@@ -153,7 +153,7 @@ var ABX = ['Ampicillin','Ceftriaxone','Meropenem','Gentamicin','Ciprofloxacin','
 
 var S; // state
 function fresh(){ return {
-  stage:'RECEIVED', critical:null, nce:null, inoc:[], iso:[], tl:[], prelim:null, final:null, focus:'inoculation'
+  stage:'RECEIVED', critical:null, nce:null, inoc:[], iso:[], tl:[], prelim:null, final:null, finalType:null, focus:'inoculation'
 };}
 function logTL(cls,label,notes,by,auto){ S.tl.unshift({when:now(),cls:cls||'',label:label,notes:notes||'',by:by||'Olivia Mendez',auto:!!auto}); }
 
@@ -175,7 +175,7 @@ function seedMidway(){
 }
 
 /* ---------- derived helpers ---------- */
-var STAGE_LABEL={RECEIVED:'Received',INCUBATING:'Incubating',POSITIVE_SIGNAL:'Positive signal',GROWTH_DETECTED:'Growth detected',ORGANISM_ID:'Organism ID',AST_IN_PROGRESS:'AST in progress',READY_REVIEW:'Ready for review',PRELIM_REPORTED:'Preliminary reported',FINAL_REPORTED:'Final reported',NO_GROWTH_FINAL:'No growth',LOST_SPECIMEN:'Specimen lost',REJECTED:'Rejected'};
+var STAGE_LABEL={RECEIVED:'Received',INCUBATING:'Incubating',POSITIVE_SIGNAL:'Positive signal',GROWTH_DETECTED:'Growth detected',ORGANISM_ID:'Organism ID',AST_IN_PROGRESS:'AST in progress',READY_REVIEW:'Ready for review',NO_GROWTH_READY:'No growth — ready for review',PRELIM_REPORTED:'Preliminary reported',FINAL_REPORTED:'Final reported',LOST_SPECIMEN:'Specimen lost',REJECTED:'Rejected'};
 function hasGram(){ return S.iso.some(function(i){return i.gram;}); }
 function allIdentified(){ return S.iso.length>0 && S.iso.every(function(i){return i.org;}); }
 function astRuns(){ return S.iso.filter(function(i){return i.ast;}); }
@@ -184,6 +184,7 @@ function currentStep(){
   if(S.final) return 'reports';
   if(S.inoc.length===0) return 'inoculation';
   if(S.stage==='INCUBATING') return 'inoculation';
+  if(S.stage==='NO_GROWTH_READY') return 'reports';
   if(S.iso.length===0) return 'isolates';
   if(!allIdentified()) return 'isolates';
   if(astRuns().length===0) return 'ast';
@@ -192,12 +193,13 @@ function currentStep(){
 }
 function nextStepText(){
   var cs=currentStep();
-  if(['NO_GROWTH_FINAL','LOST_SPECIMEN','REJECTED'].indexOf(S.stage)>-1) return {done:true,txt:STAGE_LABEL[S.stage]+' — case closed via a non-conforming event; the test was rejected. See the Timeline for the NCE.',act:null};
-  if(S.final) return {done:true,txt:'Final report released — case complete. Amendments are still possible.',act:null};
+  if(['LOST_SPECIMEN','REJECTED'].indexOf(S.stage)>-1) return {done:true,txt:STAGE_LABEL[S.stage]+' — case closed via a non-conforming event; the test was rejected. See the Timeline for the NCE.',act:null};
+  if(S.final) return {done:true,txt:(S.finalType==='NEGATIVE_NO_GROWTH'?'Final negative report released':'Final report released')+' — case complete. Amendments are still possible.',act:null};
+  if(S.stage==='NO_GROWTH_READY') return {txt:'No growth recorded. Review and release the final negative report.',act:['Review final report','reports']};
   switch(cs){
     case 'inoculation':
       if(S.inoc.length===0) return {txt:'Case received. Record the initial inoculation to start incubation.',act:['Start inoculation','startInoculation']};
-      return {txt:'Incubating. Mark the case positive when the instrument signals growth (or mark no growth at end of incubation).',act:['Mark positive','markPositive']};
+      return {txt:'Incubating. Mark the case positive when the instrument signals growth, or record no growth when incubation is complete.',act:['Mark positive','markPositive']};
     case 'isolates':
       if(S.iso.length===0) return {txt:'Positive signal. Subculture the bottle and add an isolate with its Gram stain.',act:['Add isolate','addIsolate']};
       return {txt:'Growth detected. Identify each isolate — manually or from the analyzer.',act:['Identify organism','identify:'+firstPending()]};
@@ -227,7 +229,7 @@ function progress(){
     ['Isolates', S.iso.length===0?'none':(allIdentified()?'done':'part'),'isolates', S.iso.length?(S.iso.filter(function(i){return i.org;}).length+' of '+S.iso.length):''],
     ['AST Results', astRuns().length===0?'none':(astComplete()?'done':'part'),'ast', astRuns().length?(astRuns().filter(function(i){return i.ast.status==='Complete';}).length+' / '+astRuns().length):''],
     ['Expert Review','none','expert','N/A 1A'],
-    ['Reports', S.final?'done':(S.prelim?'part':'none'),'reports']
+    ['Reports', S.final?'done':(S.prelim||S.stage==='NO_GROWTH_READY'?'part':'none'),'reports']
   ];
   return rows.map(function(r){
     var cur = r[2]===cs;
@@ -251,7 +253,7 @@ function secInoc(){
   '<button class="btn b-ter b-sm" '+(primaryExists?'':'disabled title="Add a primary inoculation first"')+' onclick="act(\'addSubculture\')">+ Add subculture</button></div>'+
   (S.inoc.length? '<table class="t"><thead><tr><th>Media</th><th>Source</th><th>Bottle/Plate</th><th>Reagent lot</th></tr></thead><tbody>'+rows+'</tbody></table>'
     : '<div class="empty">No media recorded yet. <b>+ Start inoculation</b> to begin.</div>')+
-  (primaryExists && S.stage==='INCUBATING'? '<div class="acts"><button class="btn b-ghost b-sm" onclick="act(\'markPositive\')">Mark positive</button><button class="btn b-ghost b-sm" onclick="act(\'markNoGrowth\')">Mark no growth</button></div>':'')+
+  (primaryExists && S.stage==='INCUBATING'? '<div class="acts"><button class="btn b-ghost b-sm" onclick="act(\'markPositive\')">Mark positive</button><button class="btn b-ghost b-sm" onclick="act(\'markNoGrowth\')">Record no growth</button></div>':'')+
   '</section>';
 }
 function secTimeline(){
@@ -303,12 +305,13 @@ function secAst(){
   '<div class="help"><span class="ico">ⓘ</span>S/I/R is computed from the breakpoint standard recorded when the run was set up. Overridden rows are shaded.</div>'+body+'</section>';
 }
 function secReports(){
-  var checks=[['All isolates have a final organism ID',allIdentified()],['AST complete for significant isolates',astComplete()],['Expert flags addressed (N/A 1A)',true],['No pending additional tests',true],['Clinical correlation reviewed',true]];
+  var noGrowthCase=S.stage==='NO_GROWTH_READY'||S.finalType==='NEGATIVE_NO_GROWTH';
+  var checks=[noGrowthCase?['No-growth outcome recorded',true]:['All isolates have a final organism ID',allIdentified()],noGrowthCase?['No positive culture work remains',true]:['AST complete for significant isolates',astComplete()],['Expert flags addressed (N/A 1A)',true],['No pending additional tests',true],['Clinical correlation reviewed',true]];
   var blocking=checks.filter(function(c){return !c[1];}).length;
   return '<section class="card" id="sec-reports"><h2>Reports</h2>'+
   '<div class="help"><span class="ico">ⓘ</span>Release a preliminary report once a Gram stain exists. Final unlocks when all readiness items pass.</div>'+
   (S.prelim?'<div class="report-row"><b>Preliminary</b> — released '+S.prelim+' by Olivia Mendez · Email, Print, FHIR</div>':'')+
-  (S.final?'<div class="report-row"><b>Final</b> — released '+S.final+' by Dr. Adeyemi</div>':'')+
+  (S.final?'<div class="report-row"><b>'+(S.finalType==='NEGATIVE_NO_GROWTH'?'Final negative':'Final')+'</b> — released '+S.final+' by Dr. Adeyemi</div>':'')+
   '<div style="font-size:13px;font-weight:600;margin:0.6rem 0 0.25rem">Final release readiness</div><ul class="checklist">'+
   checks.map(function(c){return '<li><span class="'+(c[1]?'ok2':'no2')+'">'+(c[1]?'✓':'✕')+'</span> '+c[0]+'</li>';}).join('')+'</ul>'+
   '<div class="toolbar" style="margin-top:0.5rem">'+
@@ -325,6 +328,12 @@ function render(refocus){
   var ns = nextStepText();
   document.getElementById('banner').innerHTML = '<div class="nextstep'+(ns.done?' done':'')+'"><span style="font-size:18px">'+(ns.done?'✅':'🧭')+'</span><div class="txt"><b>Next step:</b> '+ns.txt+'</div>'+(ns.act?'<button class="btn b-pri b-sm" onclick="act(\''+ns.act[1].split(':')[0]+'\''+(ns.act[1].indexOf(':')>-1?','+ns.act[1].split(':')[1]:'')+')">'+ns.act[0]+'</button>':'')+'</div>';
   document.getElementById('sections').innerHTML = secInfo()+secInoc()+secTimeline()+secIsolates()+secAst()+secReports();
+  if(S.final){
+    Array.prototype.forEach.call(document.querySelectorAll('#sections button'),function(button){
+      button.disabled=true;
+      button.title='Case locked after final release';
+    });
+  }
   if(refocus!==false) focusSection(currentStep());
 }
 function focusSection(key){
@@ -359,6 +368,8 @@ function scanInto(id,val){ var el=document.getElementById(id); if(el){ el.value 
 /* ---------- actions ---------- */
 function act(name, arg){
   switch(name){
+    case 'reports':
+      focusSection('reports'); break;
     case 'startInoculation':
       openModal('Start inoculation',[
         {key:'media',label:'Media *',type:'select',options:['FA — Aerobic Blood Bottle','FN — Anaerobic Blood Bottle','BAP','MacConkey','Chocolate agar']},
@@ -376,7 +387,7 @@ function act(name, arg){
     case 'markPositive':
       S.stage='POSITIVE_SIGNAL'; logTL('pos','Positive signal','Instrument flagged positive.','BacT/Alert auto',true); render(); break;
     case 'markNoGrowth':
-      S.stage='NO_GROWTH_FINAL'; logTL('rep','No growth — final','Finalized as no growth after full incubation.','Olivia Mendez',false); render(); break;
+      S.stage='NO_GROWTH_READY'; logTL('','No growth recorded','No growth observed after full incubation; ready for final review.','Olivia Mendez',false); render(); break;
     case 'addIsolate':
       openModal('Add isolate',[
         {key:'gram',label:'Gram stain *',ph:'Gram negative rods, many'},
@@ -450,7 +461,7 @@ function act(name, arg){
     case 'releasePrelim':
       S.prelim=now(); if(S.stage==='READY_REVIEW'||S.stage==='AST_IN_PROGRESS'||S.stage==='ORGANISM_ID') S.stage='PRELIM_REPORTED'; logTL('rep','Report released','Preliminary report released.','Olivia Mendez',true); render(); break;
     case 'releaseFinal':
-      S.final=now(); S.stage='FINAL_REPORTED'; logTL('rep','Report released','Final report released and case locked.','Dr. Adeyemi',true); render(); break;
+      var negative=S.stage==='NO_GROWTH_READY'; S.final=now(); S.finalType=negative?'NEGATIVE_NO_GROWTH':'POSITIVE'; S.stage='FINAL_REPORTED'; logTL('rep','Report released',negative?'Final negative report released and case locked.':'Final report released and case locked.','Dr. Adeyemi',true); render(); break;
   }
 }
 resetCase();

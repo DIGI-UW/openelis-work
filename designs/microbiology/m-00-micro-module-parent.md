@@ -1,7 +1,7 @@
 # M-00 Microbiology Module — Parent Specification
 
-**Version:** 2.0 (consolidated — folds review edits inline; no separate addendum)
-**Date:** 2026-06-05
+**Version:** 2.1 (separates no-growth recording from final report release)
+**Date:** 2026-08-17
 **Module:** Microbiology (top-level)
 **Status:** Draft — anchors the M-01 through M-12 bundle.
 **Companion docs:** `amr-design-critique-v1.md`, `amr-micro-narrative-v1-for-devs.md`, `amr-crosswalk-working.md`, `whonet-export-design-review-v1.md`, `amr-pre-frs-planning-v1.md`
@@ -150,7 +150,7 @@ micro_case
    │          one specimen can hold a bacterial AND a TB Case sharing the SampleItem (M-04 §2A)
    ├── stage (enum: RECEIVED, INOCULATING, INCUBATING, POSITIVE_SIGNAL,
    │          GROWTH_DETECTED, ORGANISM_ID, AST_IN_PROGRESS, READY_REVIEW,
-   │          PRELIM_REPORTED, FINAL_REPORTED, NO_GROWTH_FINAL,
+   │          NO_GROWTH_READY, PRELIM_REPORTED, FINAL_REPORTED,
    │          REJECTED_AT_ACCESSIONING, CANCELLED_PRE_INOCULATION,
    │          CANCELLED_POST_INOCULATION, CANCELLED_POST_POSITIVE,
    │          LOST_SPECIMEN, LOST_SPECIMEN_POSITIVE, AMENDED)
@@ -481,14 +481,14 @@ Detailed in M-04. Summary diagram for orientation:
         ▼                                          │ max_incubation_days
    POSITIVE_SIGNAL                                 │
         │                                          ▼
-        ▼                                  NO_GROWTH_FINAL ──┐
+        ▼                                  NO_GROWTH_READY ──┐
    GROWTH_DETECTED                                            │
         │  (reflex: positive → order Organism ID — §8.2)      │
         ▼                                                     │
    ORGANISM_ID                                                │
-        │  (reflex: identified → order AST panel — §8.2)      │ late slow
-        ▼                                                     │ grower revives
-   AST_IN_PROGRESS                                            │ to POSITIVE_SIGNAL
+        │  (reflex: identified → order AST panel — §8.2)      │ authorized
+        ▼                                                     │ final review
+   AST_IN_PROGRESS                                            │ and release
         │  (reflex: phenotype → order confirmation — §8.2)    │
         ▼                                                     │
    READY_REVIEW                                               │
