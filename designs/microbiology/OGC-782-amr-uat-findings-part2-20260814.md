@@ -174,6 +174,17 @@ After a reload the user cannot tell from the tile row which queue is active; onl
 | AMR-S11 · Publish immutable AST panel versions | 2/2 **Pass** |
 | AMR-S12 · Control breakpoint catalog lifecycle | 3/3 **Pass** |
 | AMR-S14 · Preview and export WHONET CSV | 6/6 **Pass** |
+| AMR-S13 · Import breakpoint updates safely | 4/4 — Pass, Pass, **Fail**, **Fail** |
+| AMR-S21 · Review analyzer AST and QC | 2/2 **N/A** |
+| AMR-S22 · Work the AST queue | 2/3 **Pass**; step 3 left unanswered |
+| AMR-S04 · Shared-specimen reflection | 1/1 **Pass** |
+
+The last four were entered after the §4 retraction below, once the test method was corrected.
+
+**Deliberately left unanswered rather than guessed:**
+
+- **AMR-S22 step 3** — row commands were confirmed to open the case-scoped action, but focus preservation across a manual refresh was never verified.
+- **AMR-S08 step 1** — 28/28 focusable controls carry accessible names, there is no keyboard trap, and amendment / attempt / reporting / lock status is conveyed in text rather than colour. Focus-indicator visibility is unverified. Marking a keyboard-only step Pass without delivering a keystroke would repeat the overclaim §4 exists to correct.
 
 ### RETRACTED — "the harness story selector is broken"
 
@@ -227,7 +238,9 @@ All were **tested against the live instance**; the substance is in §2 and §5 a
 
 ---
 
-## 5. Verdicts for the five stories not entered in the widget
+## 5. Verdicts and evidence for the five late-entered stories
+
+These were tested against the live instance during the run but not entered at the time. After the §4 retraction, four of the five were entered normally — S13 4/4, S21 2/2, S22 2/3, S04 1/1. S08 and S22 step 3 remain unanswered on purpose; see §4. The table below is the evidence behind each verdict.
 
 | Story | Step | Verdict | Basis |
 |---|---|---|---|
@@ -256,3 +269,30 @@ All on the UAT instance; none should be hard-deleted (LIMS rule — deactivate i
 - Breakpoint standard `CLSI SYNTH-UAT-ED9ACA23` briefly activated (2026-08-15) to prove demotion, then reverted.
 - New breakpoint standard `CLSI SYNTH-UAT-QA1` created by CSV import — status **Loaded**, 1 rule, subsequently given a local correction (`R = 16`).
 - No cases created, no results released, no downloads written to disk (the WHONET CSV and rejected-rows CSV were captured in memory via the blob, not saved).
+
+---
+
+## 7. AMR-S29 — a new story, entirely untested
+
+**Not run. Zero of six steps answered.** `AMR-S29 · R2 · M-04/M-11 · Review and release a no-growth culture` appeared in the story list *after* this run — 22 options where there had been 21. It was not present while the work above was done, so nothing in this report covers it.
+
+It arrived with the harness update that also carries `feat(uat): add no-growth story fixture`, and it pairs with the `design/ogc-782-separate-no-growth-release` branch in `openelis-work`. Both point the same way: no-growth release is being separated from the ordinary final-release path, and this story is how that gets reviewed.
+
+**Why it matters more than a sixth untested story usually would.** No growth is the single most common bacteriology outcome — most cultures never grow anything. It is also the branch this whole UAT effort has touched least: the first pass established that no case on the instance had ever progressed past `PRELIM_RELEASED`, and the end-to-end walkthrough drove one case to `FINAL_RELEASED` through the *positive* path only. The negative path has still never been walked on this instance.
+
+It also lands on a naming divergence already on the books. M-00 §5 names the terminal state `NO_GROWTH_FINAL`; the build ships `NO_GROWTH_READY`. Step 3 of this story expects the stage to become **"No Growth Ready"**, which settles the question in the build's favour and makes the spec the stale party — worth folding into the §5 reconciliation rather than leaving as drift.
+
+**The script, for whoever picks it up:**
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | From Dashboard, open Microbiology → Microbiology worklist, search accession `UATMICROF1878986A7`, open the matching row. Do not substitute another case. | One matching row. Case shows that accession, stage **Received**, Inoculation as next step. *If it is not Received, stop and ask for the fixture to be reseeded.* |
+| 2 | Start inoculation: `NG-PRIMARY-01`, Blood culture bottle, 35 °C for 48 h, Ambient. Select the `UAT-MICRO-MEDIA-FEFO` lot when offered, then Save media. | Recorded media visible, stage **Incubating**, and **Mark positive** and **Mark no growth** both offered as separate outcomes. |
+| 3 | Choose **Mark no growth**, confirm the URL carries `action=mark-no-growth`, then Confirm no growth. Open Timeline. | Stage becomes **No Growth Ready**, the action parameter clears, Timeline shows *"Incubation complete with no growth"* with actor and time, next step directs to report release. |
+| 4 | Open Reports *before* releasing. Confirm **Release final report** is a separate action, then View patient results. | Case is ready for release but **not** Final Released, and Patient Results does **not** yet carry a final *No growth* result. |
+| 5 | Return to Reports as an authorized final-result reviewer, Release final report, then View patient results again. | Case becomes **Final Released** and Patient Results carries the standard final culture result **No growth**. |
+| 6 | Return to the final case and review Inoculation, Isolates, AST and Reports for anything that would mutate the completed culture. | *"Final case is read-only"* is visible, mutation controls unavailable, and any correction must go through the amendment workflow. |
+
+**Two things to watch when it is run.** Steps 4 and 5 are a deliberate two-stage gate — ready-to-release must not leak a result into Patient Results before an authorized reviewer releases it. That is the same class of boundary as F-2 (amended results indistinguishable on `/PatientResults`), which is still open, so the two should be looked at together. And step 6 tests the final-release lock on the *no-growth* path; the lock was confirmed server-side on the positive path in the first pass, but never on this one.
+
+**Prerequisite:** the story pins itself to fixture case `UATMICROF1878986A7` and says to stop rather than substitute. Confirm that case exists and is at **Received** before starting.
