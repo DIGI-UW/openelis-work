@@ -218,6 +218,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Feature | Mockup | Spec |
 |---------|--------|------|
 | Multiple Samples per Test at Order Entry | [preview](designs/sample-collection/multi-sample-order-entry-preview.html) | [multi-sample-order-entry.md](designs/sample-collection/multi-sample-order-entry.md) |
+| Combined Collections at Order Entry (WITHDRAWN) | [preview](designs/sample-collection/combined-collections-order-entry-preview.html) | [combined-collections-order-entry.md](designs/sample-collection/combined-collections-order-entry.md) |
 | Sample Collection Redesign | [sample-collection-redesign-mockup.html](designs/sample-collection/sample-collection-redesign-mockup.html) | [sample-collection-redesign.md](designs/sample-collection/sample-collection-redesign.md) |
 | Sampling Site Registry | [sampling-site-registry.jsx](designs/sample-collection/sampling-site-registry.jsx) | [sampling-site-registry.md](designs/sample-collection/sampling-site-registry.md) |
 | Environmental Order Entry | [environmental-order-entry.jsx](designs/sample-collection/environmental-order-entry.jsx) | [environmental-order-entry.md](designs/sample-collection/environmental-order-entry.md) |

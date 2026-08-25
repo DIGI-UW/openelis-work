@@ -4056,12 +4056,31 @@
     distinguishing labels carried through worklist, labels, result entry and the patient
     report. Serves TB smear (2-3 sputa), stool O&P (3), timed urine, GTT, blood cultures.
     Affects Add Order (/SamplePatientEntry), Edit Order, specimen labels, result display.
-    FRS v1.0 + HTML preview.
+    FRS v1.4 + HTML preview.
   links:
     jira:
       - OGC-285
     gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/multiple-samples-per-test-at-order-entry
     preview: https://digi-uw.github.io/openelis-work/designs/sample-collection/multi-sample-order-entry-preview.html
+- id: combined-collections-order-entry
+  type: html
+  path: designs/sample-collection/combined-collections-order-entry-preview.html
+  spec: designs/sample-collection/combined-collections-order-entry.md
+  preview: designs/sample-collection/combined-collections-order-entry-preview.html
+  category: sample-collection
+  description: >
+    Combined Collections at Order Entry (FRS v2.0) — combined-collection mode where several
+    recorded collection events assemble into ONE specimen with a summed total volume and an
+    explicit collection window (a 24-hour urine in four bottles is one specimen, not four),
+    rather than one specimen per collection. A result still points at exactly one specimen, so
+    analysers, referrals and reports are unchanged. Excludes cross-patient pooling (OGC-527) and
+    result computation. The deferred second half of Multiple Samples per Test at Order Entry v1. WITHDRAWN 2026-08-12 — superseded by the merged Derived & Calculated Results spec; kept for the record.
+    Affects Add Order (/SamplePatientEntry), Edit Order, specimen labels, result display, patient report.
+  links:
+    jira:
+      - OGC-285
+    gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/combined-collections-at-order-entry
+    preview: https://digi-uw.github.io/openelis-work/designs/sample-collection/combined-collections-order-entry-preview.html
 - id: analyzer-results-lab-unit-access
   type: html
   path: designs/analyzer-integration/analyzer-results-lab-unit-access-preview.html
