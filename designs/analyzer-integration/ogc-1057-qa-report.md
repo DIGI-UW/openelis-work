@@ -1,3 +1,9 @@
+> **SUPERSEDED — this report grades v3.2.1.11 (2026-08-12).** The feature was rebuilt and
+> re-graded on **v3.2.2.0** on 2026-08-25: **11 of the 13 findings below are fixed**, and the API
+> surface and routes this report cites no longer exist. Read
+> [`ogc-1057-qa-report-20260825-v3.2.2.0.md`](./ogc-1057-qa-report-20260825-v3.2.2.0.md) for the
+> current state. Kept for history — do not chase the findings below without checking it first.
+
 # OGC-1057 — Analyzer guided setup: QA report
 
 | | |
