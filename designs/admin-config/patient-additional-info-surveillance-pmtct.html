@@ -10,331 +10,716 @@
 <style>
   body{background:#f4f4f4;margin:0;font-family:'IBM Plex Sans',sans-serif;color:#161616;}
   .banner{background:#0f62fe;color:#fff;padding:6px 1rem;font-size:12px;font-family:monospace;}
-  .wrap{max-width:1340px;margin:0 auto;padding:1rem 1.5rem 4rem;}
-  .cols{display:grid;grid-template-columns:530px 1fr;gap:22px;align-items:start;}
+  .wrap{max-width:1420px;margin:0 auto;padding:1rem 1.5rem 5.5rem;}
+  .cols{display:grid;grid-template-columns:214px 570px 1fr;gap:18px;align-items:start;}
   .card{background:#fff;border:1px solid #e0e0e0;}
   .card h2{font-size:15px;margin:0;padding:12px 16px;border-bottom:1px solid #e0e0e0;background:#f4f4f4;}
   .card .body{padding:14px 16px;}
   h1{font-weight:400;font-size:24px;margin:6px 0 2px;}
+  .domheading{color:#0f62fe;}
   .crumb{font-size:12px;color:#525252;margin:10px 0 0;}
   .crumb a{color:#0f62fe;text-decoration:none;}
   .seg{display:inline-flex;border:1px solid #0f62fe;border-radius:2px;overflow:hidden;margin:8px 8px 8px 0;}
   .seg button{border:none;background:#fff;color:#0f62fe;padding:6px 14px;font-size:12px;cursor:pointer;}
   .seg button.on{background:#0f62fe;color:#fff;}
-  .dseg{display:inline-flex;gap:4px;margin:2px 0 12px;}
+  .dseg{display:inline-flex;gap:4px;}
   .dseg button{border:1px solid #c6c6c6;background:#fff;color:#393939;padding:4px 10px;font-size:11px;cursor:pointer;border-radius:2px;}
   .dseg button.on{background:#393939;color:#fff;border-color:#393939;}
+  /* --- search (FR-20) --- */
+  .searchbar{position:relative;margin-bottom:10px;}
+  .searchinp{width:100%;box-sizing:border-box;border:none;border-bottom:1px solid #8d8d8d;background:#f4f4f4;padding:9px 11px;font-size:13px;outline:none;font-family:inherit;}
+  .searchinp:focus{border-bottom:2px solid #0f62fe;}
+  .results{position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #e0e0e0;box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:5;max-height:290px;overflow:auto;}
+  .res{padding:8px 11px;border-bottom:1px solid #f0f0f0;cursor:pointer;font-size:12px;}
+  .res:hover{background:#e5e5e5;}
+  .res .path{font-size:10px;color:#6f6f6f;margin-top:2px;}
+  .res .st{font-size:9px;padding:0 6px;border-radius:8px;background:#f0f0f0;color:#6f6f6f;margin-left:5px;}
+  .resnone{padding:10px 11px;font-size:12px;color:#6f6f6f;}
+  .dombar{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:12px;background:#f4f4f4;border:1px solid #e0e0e0;border-radius:3px;}
+  .dombar .lab{font-size:11px;color:#525252;font-weight:600;}
+  .hidcount{font-size:10px;color:#6f6f6f;margin-left:auto;font-style:italic;}
   .secbox{border:1px solid #e0e0e0;border-radius:3px;margin-bottom:12px;}
   .sechead{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f4f4f4;}
   .secname{border:none;border-bottom:1px solid transparent;background:transparent;font-weight:600;font-size:13px;flex:1;padding:2px 4px;}
   .secname:hover,.secname:focus{border-bottom:1px solid #0f62fe;outline:none;background:#fff;}
   .sysbadge{font-size:9px;background:#dde1e6;color:#4d5358;padding:1px 6px;border-radius:8px;}
-  .icon{cursor:pointer;color:#0f62fe;font-size:13px;padding:0 3px;}
+  .icon{cursor:pointer;color:#0f62fe;font-size:13px;padding:0 3px;background:none;border:none;}
   .icon.del{color:#da1e28;}
-  .domtags{display:flex;gap:5px;align-items:center;padding:6px 10px 0;font-size:10px;}
-  .dt{font-size:10px;padding:1px 7px;border-radius:9px;cursor:pointer;border:1px solid transparent;}
-  .dt.on{background:#defbe6;color:#0e6027;border-color:#a7f0ba;}
-  .dt.off{background:#eee;color:#a8a8a8;}
-  .arow{display:flex;align-items:center;gap:7px;font-size:12px;padding:5px 0;border-top:1px solid #f0f0f0;}
-  .arow.off{opacity:.4;}
-  .arow .nm{flex:1 1 auto;min-width:90px;}
+  .icon:disabled{color:#c6c6c6;cursor:default;}
+  .domtags{display:flex;gap:8px;align-items:center;padding:6px 10px 0;font-size:10px;}
+  .domtag{font-size:10px;background:#393939;color:#fff;padding:1px 8px;border-radius:9px;letter-spacing:.03em;}
+  .lockwhy{font-size:10px;color:#8d8d8d;font-style:italic;}
+  /* --- collapsed question row (FR-19) --- */
+  .arow{display:flex;align-items:center;gap:8px;font-size:12px;padding:6px 0 6px 4px;border-top:1px solid #f0f0f0;border-left:3px solid transparent;}
+  .arow.isnew{border-left-color:#0f62fe;background:#f4f8ff;}
+  .arow.hiddenq{opacity:.62;}
+  .arow .nm{flex:1 1 auto;min-width:110px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+  .qmv{display:flex;flex-direction:column;line-height:.75;flex:0 0 auto;}
+  .qmv button{background:none;border:none;cursor:pointer;color:#0f62fe;font-size:10px;padding:0 2px;}
+  .qmv button:disabled{color:#d0d0d0;cursor:default;}
+  .qname{border:none;border-bottom:1px solid transparent;background:transparent;font-size:12px;padding:1px 3px;width:170px;font-family:inherit;}
+  .qname:hover,.qname:focus{border-bottom:1px solid #0f62fe;outline:none;background:#fff;}
   .sw{width:30px;height:16px;border-radius:9px;position:relative;cursor:pointer;flex:0 0 auto;transition:background .15s;}
   .sw .k{position:absolute;top:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .15s;}
   .sw.on{background:#0f62fe;}.sw.on .k{left:16px;}.sw.off{background:#8d8d8d;}.sw.off .k{left:2px;}
-  .tsel,.secsel{font-size:10px;padding:2px 3px;border:1px solid #c6c6c6;border-radius:2px;background:#fff;max-width:92px;}
+  .tsel,.secsel,.lvlsel,.possel{font-size:11px;padding:3px 4px;border:1px solid #c6c6c6;border-radius:2px;background:#fff;font-family:inherit;}
+  .tsel{max-width:118px;}
   .tlock{font-size:10px;color:#8d8d8d;font-style:italic;white-space:nowrap;}
-  .manage{color:#0f62fe;font-size:10px;cursor:pointer;text-decoration:underline;white-space:nowrap;}
-  .dash{color:#c6c6c6;font-size:11px;}
-  .opted{margin:2px 0 8px 30px;padding:8px 10px;background:#f4f8ff;border:1px solid #d0e2ff;border-radius:3px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .cfg{color:#0f62fe;font-size:11px;cursor:pointer;background:none;border:1px solid #d0e2ff;border-radius:2px;padding:3px 9px;white-space:nowrap;font-family:inherit;}
+  .cfg.open{background:#d0e2ff;}
+  /* --- expanded configure panel (FR-19) --- */
+  .cfgpanel{margin:0 0 8px 26px;padding:12px 14px;background:#f4f8ff;border:1px solid #d0e2ff;border-radius:3px;}
+  .cfggrid{display:grid;grid-template-columns:1fr 1fr;gap:11px 20px;}
+  .cfgf{display:flex;flex-direction:column;gap:3px;}
+  .cfgf.full{grid-column:1/3;}
+  .cfgf label{font-size:10px;color:#525252;text-transform:uppercase;letter-spacing:.03em;}
+  .cfgf .hlp{font-size:10px;color:#6f6f6f;font-style:italic;}
+  .cfgtxt{border:none;border-bottom:1px solid #8d8d8d;background:#fff;font-size:12px;padding:4px 7px;outline:none;font-family:inherit;width:100%;box-sizing:border-box;}
+  .cfgtxt:focus{border-bottom:2px solid #0f62fe;}
+  .reqrow{display:flex;align-items:center;gap:8px;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
   .chip{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid #c6c6c6;border-radius:12px;padding:2px 6px 2px 10px;font-size:11px;}
   .chip.inactive{opacity:.45;text-decoration:line-through;}
   .chip .x{cursor:pointer;color:#8d8d8d;font-weight:600;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;}
-  .addinp{border:none;border-bottom:1px solid #0f62fe;background:#fff;font-size:11px;padding:3px 6px;width:130px;outline:none;}
-  .addbtn{background:#0f62fe;color:#fff;border:none;border-radius:2px;font-size:11px;padding:3px 10px;cursor:pointer;}
-  .shared{font-size:10px;color:#8d8d8d;margin-left:auto;}
+  .addinp{border:none;border-bottom:1px solid #0f62fe;background:#fff;font-size:11px;padding:3px 6px;width:150px;outline:none;font-family:inherit;}
+  .addbtn{background:#0f62fe;color:#fff;border:none;border-radius:2px;font-size:11px;padding:4px 11px;cursor:pointer;font-family:inherit;}
+  .addq{background:none;border:1px dashed #0f62fe;color:#0f62fe;border-radius:2px;font-size:11px;padding:4px 12px;cursor:pointer;font-family:inherit;}
+  .addqbar{padding:8px 0 2px;border-top:1px solid #f0f0f0;margin-top:3px;display:flex;gap:10px;align-items:center;}
+  .hidtoggle{background:none;border:none;color:#0f62fe;font-size:11px;cursor:pointer;text-decoration:underline;padding:0;font-family:inherit;}
+  .shared{font-size:10px;color:#8d8d8d;}
   .addsecbar{display:flex;gap:6px;align-items:center;margin-top:6px;}
-  .exist{font-size:9px;background:#dde1e6;color:#4d5358;padding:1px 6px;border-radius:8px;}
+  .exist,.added{font-size:9px;padding:1px 6px;border-radius:8px;cursor:help;}
+  .exist{background:#dde1e6;color:#4d5358;}
+  .added{background:#d0e2ff;color:#0043ce;}
+  .newtag{font-size:9px;background:#0f62fe;color:#fff;padding:1px 7px;border-radius:8px;}
+  .anstag{font-size:9px;background:#fff8e1;color:#8a6a00;border:1px solid #f1c21b;padding:0 6px;border-radius:8px;}
+  .rm{background:#da1e28;color:#fff;border:none;border-radius:2px;font-size:11px;padding:4px 11px;cursor:pointer;font-family:inherit;}
+  .rmwhy{font-size:10px;color:#6f6f6f;font-style:italic;}
+  /* --- save bar (FR-18) --- */
+  .savebar{position:fixed;left:0;right:0;bottom:0;background:#161616;color:#fff;display:flex;align-items:center;gap:14px;padding:0 0 0 22px;z-index:8;box-shadow:0 -2px 8px rgba(0,0,0,.25);}
+  .savebar .cnt{font-size:13px;flex:1;padding:14px 0;}
+  .savebar .cnt b{color:#78a9ff;}
+  .savebar button{border:none;padding:16px 26px;font-size:13px;cursor:pointer;font-family:inherit;}
+  .sb-cancel{background:#393939;color:#fff;} .sb-save{background:#0f62fe;color:#fff;}
+  .sb-save:disabled,.sb-cancel:disabled{background:#525252;color:#8d8d8d;cursor:default;}
   .sec{border:1px solid #e0e0e0;margin-bottom:14px;}
   .sec .h{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#edf5ff;cursor:pointer;font-weight:600;font-size:14px;}
   .sec .h .chev{margin-left:auto;color:#0f62fe;}
   .sec .c{padding:14px;}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;}
-  .f{display:flex;flex-direction:column;gap:4px;margin-bottom:4px;}
+  .f{display:flex;flex-direction:column;gap:4px;margin-bottom:4px;cursor:pointer;}
+  .f:hover label{color:#0f62fe;}
   .f.full{grid-column:1/3;}
   .f label{font-size:12px;color:#525252;}
   .f .ctl{height:34px;border:none;border-bottom:1px solid #8d8d8d;background:#f4f4f4;padding:0 10px;font-size:13px;display:flex;align-items:center;color:#8d8d8d;}
   .f textarea.ctl{height:50px;padding:6px 10px;}
-  .lvl{font-size:9px;padding:1px 6px;border-radius:8px;margin-left:4px;vertical-align:middle;}
+  .lvl{font-size:9px;padding:1px 6px;border-radius:8px;vertical-align:middle;}
   .lvl.pat{background:#d0e2ff;color:#0043ce;}
   .lvl.ord{background:#e8daff;color:#6929c4;}
   .star{color:#da1e28;}
   .empty{color:#8d8d8d;font-size:13px;font-style:italic;padding:10px 0;}
   .note{background:#edf5ff;border-left:3px solid #0f62fe;padding:10px 14px;font-size:12px;margin-top:14px;line-height:1.5;}
+  .draghandle{cursor:grab;color:#a8a8a8;font-size:13px;letter-spacing:-1px;user-select:none;padding:0 1px;}
+  .draghandle:active{cursor:grabbing;}
+  .arow.dragging{opacity:.4;}
+  .arow.dropbefore{box-shadow:inset 0 2px 0 0 #0f62fe;}
+  .arow.dropafter{box-shadow:inset 0 -2px 0 0 #0f62fe;}
+  .surfbar{border:1px solid #e0e0e0;border-left:3px solid #0f62fe;background:#fff;padding:11px 14px;margin-bottom:12px;}
+  .surfbar .lab{font-size:10px;color:#525252;text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:6px;}
+  .surfseg{display:inline-flex;border:1px solid #0f62fe;border-radius:2px;overflow:hidden;}
+  .surfseg button{border:none;background:#fff;color:#0f62fe;padding:7px 16px;font-size:12px;cursor:pointer;font-family:inherit;}
+  .surfseg button.on{background:#0f62fe;color:#fff;}
+  .surfseg button:disabled{background:#f4f4f4;color:#c6c6c6;cursor:not-allowed;}
+  .surfhelp{font-size:11px;color:#525252;margin-top:7px;line-height:1.45;}
+  .surfblocked{font-size:11px;color:#8a3ffc;margin-top:7px;}
+  /* --- SideNav (FR-17) --- */
+  .snav{background:#fff;border:1px solid #e0e0e0;position:sticky;top:10px;}
+  .snav .grp{font-size:11px;color:#525252;padding:10px 14px 4px;font-weight:600;}
+  .snav .sub{font-size:10px;color:#8d8d8d;padding:2px 14px 6px;}
+  .snav a{display:block;padding:9px 14px 9px 22px;font-size:12px;color:#161616;text-decoration:none;cursor:pointer;border-left:3px solid transparent;}
+  .snav a:hover{background:#e5e5e5;}
+  .snav a.on{background:#e0e0e0;border-left-color:#0f62fe;font-weight:600;}
+  .snav a .rt{display:block;font-size:9px;color:#8d8d8d;font-family:monospace;margin-top:2px;}
+  .snav .pend{display:inline-block;font-size:9px;background:#0f62fe;color:#fff;border-radius:8px;padding:0 6px;margin-left:5px;}
+  .guide{background:#edf5ff;border-left:3px solid #0f62fe;padding:9px 13px;font-size:11px;color:#0043ce;margin-bottom:12px;line-height:1.45;}
+  .counterpart{font-size:10px;color:#0f62fe;cursor:pointer;text-decoration:underline;background:none;border:none;padding:0;font-family:inherit;}
+  .reqmark{color:#da1e28;font-weight:600;font-size:13px;cursor:help;}
+  .emptystate{font-size:11px;color:#6f6f6f;padding:10px 0;font-style:italic;line-height:1.5;}
+  .savebar .where{font-size:11px;color:#c6c6c6;display:block;margin-top:2px;}
+  .savebar .where a{color:#78a9ff;cursor:pointer;text-decoration:underline;margin-right:8px;}
+  .revbtn{background:none;border:1px solid #6f6f6f;color:#fff;padding:8px 14px;font-size:12px;cursor:pointer;margin-right:6px;font-family:inherit;}
+  .revlist{max-height:280px;overflow:auto;margin-top:8px;}
+  .revgrp{font-size:11px;font-weight:600;color:#0f62fe;margin:10px 0 4px;}
+  .revrow{font-size:12px;padding:4px 0;border-bottom:1px solid #f0f0f0;color:#393939;}
+  .revrow em{color:#6f6f6f;font-style:normal;}
   .legend{font-size:11px;color:#6f6f6f;margin:4px 0 0;line-height:1.5;}
+  .modal{position:fixed;inset:0;background:rgba(22,22,22,.5);display:flex;align-items:center;justify-content:center;z-index:9;}
+  .modalbox{background:#fff;width:430px;padding:20px 24px;}
+  .modalbox h3{margin:0 0 10px;font-size:18px;font-weight:400;}
+  .modalbox p{font-size:13px;color:#525252;line-height:1.5;}
+  .modalbtns{display:flex;justify-content:flex-end;gap:1px;margin-top:20px;}
+  .modalbtns button{border:none;padding:12px 22px;font-size:13px;cursor:pointer;font-family:inherit;}
+  .mb-c{background:#393939;color:#fff;} .mb-d{background:#da1e28;color:#fff;}
 </style>
 </head>
 <body class="cds--white">
-<div class="banner">⚡ Preview — Additional Information (admin-managed sections · domain-sensitive · inline options) | tie-in: Order & Patient Entry Configuration redesign | Not a live app</div>
+<div class="banner">⚡ Preview — Additional Information (four SideNav views · drag to re-order · staged save · data-entered lock) | Not a live app</div>
 <div class="wrap" id="root"></div>
 <script type="text/babel">
 const {useState}=React;
 const DOMAINS=["CLINICAL","ENVIRONMENTAL","VECTOR"];
 const CODED=["single","multi","yesno"];
-// dev-defined field catalog (admin assigns each to a section; can't invent new fields — FHIR mapping)
-const FIELDS=[
- {id:"G1",label:"Health Region",lvl:"pat",t:"addr",existing:true,def:"G"},
- {id:"G2",label:"Health District",lvl:"pat",t:"addr",existing:true,def:"G"},
- {id:"G3",label:"Education",lvl:"pat",t:"sel",dict:"education",existing:true,def:"G"},
- {id:"G4",label:"Marital Status",lvl:"pat",t:"sel",dict:"maritalStatus",existing:true,def:"G"},
- {id:"G5",label:"Nationality",lvl:"pat",t:"sel",dict:"nationality",existing:true,def:"G"},
- {id:"G6",label:"Occupation",lvl:"pat",t:"txt",existing:true,def:"G"},
- {id:"G7",label:"Target Disease Programme",lvl:"pat",t:"sel",dict:"program",existing:true,def:"G"},
- {id:"G8",label:"Custom Notes",lvl:"pat",t:"area",existing:true,def:"G"},
- {id:"A1",label:"Signs & symptoms",lvl:"ord",t:"area",def:"A"},
- {id:"A2",label:"Symptom onset date",lvl:"ord",t:"date",def:"A"},
- {id:"A3",label:"Case classification",lvl:"ord",t:"sel",dict:"caseClassification",def:"A"},
- {id:"A4",label:"Epidemiological link",lvl:"ord",t:"area",def:"A"},
- {id:"A5",label:"Travel to endemic region",lvl:"ord",t:"yesno",def:"A"},
- {id:"A6",label:"Dates of stay",lvl:"ord",t:"date",def:"A"},
- {id:"A7",label:"Medical history",lvl:"pat",t:"area",def:"A"},
- {id:"A8",label:"Comorbidity",lvl:"pat",t:"area",def:"A"},
- {id:"A9",label:"Prior vaccination",lvl:"pat",t:"txt",def:"A"},
- {id:"A10",label:"Other",lvl:"pat",t:"area",def:"A"},
- {id:"B1",label:"Mother (patient link)",lvl:"pat",t:"combo",ph:"Search patients…",def:"B"},
- {id:"B2",label:"Mother HIV status",lvl:"pat",t:"sel",dict:"hivStatus",def:"B"},
- {id:"B3",label:"ARV during pregnancy",lvl:"ord",t:"yesno",def:"B"},
- {id:"B4",label:"Treatment type (mother)",lvl:"ord",t:"sel",dict:"arvTreatmentType",def:"B"},
- {id:"B5",label:"Recent maternal viral load",lvl:"ord",t:"yesno",def:"B"},
- {id:"B6",label:"Value (copies/ml)",lvl:"ord",t:"num",def:"B"},
- {id:"B7",label:"Breastfeeding",lvl:"ord",t:"yesno",def:"B"},
- {id:"B8",label:"Breastfeeding duration (months)",lvl:"ord",t:"num",def:"B"},
- {id:"B9",label:"Weaning",lvl:"ord",t:"yesno",def:"B"},
- {id:"B10",label:"Weaning duration (months)",lvl:"ord",t:"num",def:"B"},
- {id:"B11",label:"Reason for request",lvl:"ord",t:"sel",dict:"eidRequestReason",def:"B"},
- {id:"B12",label:"At-risk population",lvl:"pat",t:"sel",dict:"riskPopulation",def:"B"},
- {id:"B13",label:"ARV treatment start date",lvl:"pat",t:"date",def:"B"},
- {id:"B14",label:"Treatment received",lvl:"ord",t:"sel",dict:"arvTreatmentType",def:"B"},
+const TYPE_LABELS={text:"Text",single:"Single-select",multi:"Multi-select",yesno:"Yes/No",date:"Date",datetime:"Date & time",num:"Number",dec:"Decimal",patientlink:"Patient link",addr:"Address hierarchy",combo:"Search / typeahead"};
+const AUTHORED_TYPES=["text","single","multi","yesno","date","num","dec"];
+const EXISTING_TYPES=["text","single","multi","yesno"];
+const LOCKED_TYPES=["date","datetime","num","patientlink","addr","combo"];
+const LEVEL_LABEL={pat:"Stays with the patient",ord:"Only this order"};
+const BADGE_HELP={
+  existing:"Built-in question. Configure it — it can't be re-authored or removed.",
+  authored:"You created this question. Full authoring; removable while unanswered."};
+
+// one baseline per (domain, level) pair — FR-1d
+const SECTIONS=[
+ {id:"G",name:"Patient details",domain:"CLINICAL",system:1,locked:1,level:"pat"},
+ {id:"O",name:"Order details",domain:"CLINICAL",system:1,level:"ord"},
+ {id:"A",name:"Disease Surveillance",domain:"CLINICAL"},
+ {id:"B",name:"HIV / PMTCT–EID",domain:"CLINICAL"},
+ {id:"E",name:"Environmental order details",domain:"ENVIRONMENTAL",system:1,level:"ord"},
+ {id:"V",name:"Vector order details",domain:"VECTOR",system:1,level:"ord"},
 ];
-const F=(id)=>FIELDS.find(f=>f.id===id);
-const TYPE_LABELS={text:"Text",single:"Single-select",multi:"Multi-select",yesno:"Yes/No",date:"Date",num:"Number",patientlink:"Patient link",addr:"Address hierarchy"};
-const lockType=(f)=> f.t==="date"?"date": f.t==="num"?"num": f.t==="combo"?"patientlink": f.t==="addr"?"addr": null;
-const defType=(f)=>{const l=lockType(f); if(l)return l; if(f.t==="sel")return f.dict==="yesNo"?"yesno":"single"; if(f.t==="yesno")return"yesno"; return"text";};
+// FR-17: four real configurations = four SideNav items = four routes
+const VIEWS=[
+ {id:"patient", label:"Patient screen",      domain:"CLINICAL",      lvl:"pat", route:"/MasterListsPage/addlInfoPatient"},
+ {id:"corder",  label:"Clinical order",      domain:"CLINICAL",      lvl:"ord", route:"/MasterListsPage/addlInfoClinicalOrder"},
+ {id:"eorder",  label:"Environmental order", domain:"ENVIRONMENTAL", lvl:"ord", route:"/MasterListsPage/addlInfoEnvOrder"},
+ {id:"vorder",  label:"Vector order",        domain:"VECTOR",        lvl:"ord", route:"/MasterListsPage/addlInfoVectorOrder"},
+];
+const VIEW_HELP={
+ pat:"Add / Modify Patient. Answered once and carried into every future order for this person.",
+ ord:"The Additional order details area on the order. Answered per order — a new order starts blank."};
+const SEED=[
+ {id:"G1",label:"Health Region",lvl:"pat",type:"addr",origin:"existing",sec:"G",vis:1},
+ {id:"G2",label:"Health District",lvl:"pat",type:"addr",origin:"existing",sec:"G",vis:1},
+ {id:"G3",label:"Education",lvl:"pat",type:"single",dict:"education",origin:"existing",sec:"G",vis:1},
+ {id:"G4",label:"Marital Status",lvl:"pat",type:"single",dict:"maritalStatus",origin:"existing",sec:"G",vis:1},
+ {id:"G5",label:"Nationality",lvl:"pat",type:"single",dict:"nationality",origin:"existing",sec:"G",vis:1},
+ {id:"G6",label:"Occupation",lvl:"pat",type:"text",origin:"existing",sec:"G",vis:1},
+ {id:"G7",label:"Target Disease Programme",lvl:"pat",type:"single",dict:"program",origin:"existing",sec:"G",vis:1},
+ {id:"G8",label:"Custom Notes",lvl:"pat",type:"text",origin:"existing",sec:"G",vis:0},
+ {id:"A1",label:"Signs & symptoms",lvl:"ord",type:"text",origin:"existing",sec:"A",vis:1},
+ {id:"A2",label:"Symptom onset date",lvl:"ord",type:"date",origin:"existing",sec:"A",vis:1},
+ {id:"A3",label:"Case classification",lvl:"ord",type:"single",dict:"caseClassification",origin:"existing",sec:"A",vis:1,req:1,hasData:1},
+ {id:"A4",label:"Epidemiological link",lvl:"ord",type:"text",origin:"existing",sec:"A",vis:1},
+ {id:"A5",label:"Travel to endemic region",lvl:"ord",type:"yesno",origin:"existing",sec:"A",vis:1},
+ {id:"A6",label:"Dates of stay",lvl:"ord",type:"date",origin:"existing",sec:"A",vis:1},
+ {id:"A7",label:"Medical history",lvl:"pat",type:"text",origin:"existing",sec:"A",vis:1},
+ {id:"A8",label:"Comorbidity",lvl:"pat",type:"text",origin:"existing",sec:"A",vis:1},
+ {id:"A9",label:"Prior vaccination",lvl:"pat",type:"text",origin:"existing",sec:"A",vis:0},
+ {id:"A10",label:"Other",lvl:"pat",type:"text",origin:"existing",sec:"A",vis:0},
+ {id:"B1",label:"Mother (patient link)",lvl:"pat",type:"patientlink",origin:"existing",sec:"B",vis:1,req:1,ph:"Search patients…"},
+ {id:"B2",label:"Mother HIV status",lvl:"pat",type:"single",dict:"hivStatus",origin:"existing",sec:"B",vis:1},
+ {id:"B3",label:"ARV during pregnancy",lvl:"ord",type:"yesno",origin:"existing",sec:"B",vis:1},
+ {id:"B4",label:"Treatment type (mother)",lvl:"ord",type:"single",dict:"arvTreatmentType",origin:"existing",sec:"B",vis:1},
+ {id:"B5",label:"Recent maternal viral load",lvl:"ord",type:"yesno",origin:"existing",sec:"B",vis:1},
+ {id:"B6",label:"Value (copies/ml)",lvl:"ord",type:"num",origin:"existing",sec:"B",vis:1},
+ {id:"B7",label:"Breastfeeding",lvl:"ord",type:"yesno",origin:"existing",sec:"B",vis:1},
+ {id:"B8",label:"Breastfeeding duration (months)",lvl:"ord",type:"num",origin:"existing",sec:"B",vis:1},
+ {id:"B9",label:"Weaning",lvl:"ord",type:"yesno",origin:"existing",sec:"B",vis:1},
+ {id:"B10",label:"Weaning duration (months)",lvl:"ord",type:"num",origin:"existing",sec:"B",vis:1},
+ {id:"B11",label:"Reason for request",lvl:"ord",type:"single",dict:"eidRequestReason",origin:"existing",sec:"B",vis:1},
+ {id:"B12",label:"At-risk population",lvl:"pat",type:"single",dict:"riskPopulation",origin:"existing",sec:"B",vis:1},
+ {id:"B13",label:"ARV treatment start date",lvl:"pat",type:"date",origin:"existing",sec:"B",vis:1},
+ {id:"B14",label:"Treatment received",lvl:"ord",type:"single",dict:"arvTreatmentType",origin:"existing",sec:"B",vis:1},
+ {id:"Q3",label:"Infant feeding method at 6 weeks",lvl:"ord",type:"single",origin:"authored",sec:"B",vis:1,hasData:0},
+ {id:"E1",label:"Sampling Site",lvl:"ord",type:"combo",origin:"existing",sec:"E",vis:1,ph:"Site name or code…"},
+ {id:"E2",label:"Submitter",lvl:"ord",type:"combo",origin:"existing",sec:"E",vis:1,req:1,ph:"Search organizations…"},
+ {id:"E3",label:"Container Type",lvl:"ord",type:"combo",origin:"existing",sec:"E",vis:1,ph:"Search container types…"},
+ {id:"E4",label:"GPS coordinates",lvl:"ord",type:"text",origin:"existing",sec:"E",vis:1},
+ {id:"E5",label:"Location Details",lvl:"ord",type:"text",origin:"existing",sec:"E",vis:1},
+ {id:"E6",label:"Address",lvl:"ord",type:"text",origin:"existing",sec:"E",vis:0},
+ {id:"E7",label:"Collection Date/Time",lvl:"ord",type:"datetime",origin:"existing",sec:"E",vis:1},
+ {id:"E8",label:"Notes",lvl:"ord",type:"text",origin:"existing",sec:"E",vis:1},
+ {id:"V1",label:"Organism Group",lvl:"ord",type:"combo",origin:"existing",sec:"V",vis:1,req:1,ph:"Mosquito, Tick, Rodent…"},
+ {id:"V2",label:"Lifecycle Stage",lvl:"ord",type:"single",dict:"vectorLifecycleStage",origin:"existing",sec:"V",vis:1},
+ {id:"V3",label:"Quantity (organisms)",lvl:"ord",type:"num",origin:"existing",sec:"V",vis:1,req:1},
+ {id:"V4",label:"Trap Type / Collection Method",lvl:"ord",type:"combo",origin:"existing",sec:"V",vis:1,ph:"BG-Sentinel, CDC light trap…"},
+ {id:"V5",label:"Sampling Site",lvl:"ord",type:"combo",origin:"existing",sec:"V",vis:1,ph:"Site name or code…"},
+ {id:"V6",label:"Time of Day",lvl:"ord",type:"single",dict:"vectorTimeOfDay",origin:"existing",sec:"V",vis:1},
+ {id:"V7",label:"Resting Context",lvl:"ord",type:"single",dict:"vectorRestingContext",origin:"existing",sec:"V",vis:1},
+ {id:"V8",label:"Human-Biting Catch",lvl:"ord",type:"yesno",origin:"existing",sec:"V",vis:1},
+ {id:"V9",label:"Collection Context Notes",lvl:"ord",type:"text",origin:"existing",sec:"V",vis:0},
+ {id:"Q1",label:"Bed net used at collection point",lvl:"ord",type:"yesno",origin:"authored",sec:"V",vis:1,hasData:1},
+];
+const SEED_OPTS={
+  caseClassification:[{t:"Suspected",a:1},{t:"Probable",a:1},{t:"Confirmed",a:1}],
+  hivStatus:[{t:"Positive",a:1},{t:"Negative",a:1},{t:"Unknown",a:1}],
+  yesNo:[{t:"Yes",a:1},{t:"No",a:1}],
+  arvTreatmentType:[{t:"AZT",a:1},{t:"NVP",a:1},{t:"TDF+3TC+DTG",a:1}],
+  eidRequestReason:[{t:"1st PCR (6 wk)",a:1},{t:"2nd PCR (9 mo)",a:1},{t:"Confirmatory",a:1}],
+  riskPopulation:[{t:"General population",a:1},{t:"Key population",a:1}],
+  education:[{t:"None",a:1},{t:"Primary",a:1},{t:"Secondary",a:1},{t:"Upper",a:1}],
+  maritalStatus:[{t:"Single",a:1},{t:"Married",a:1},{t:"Divorced",a:1},{t:"Widowed",a:1}],
+  nationality:[{t:"Malagasy",a:1},{t:"French",a:1},{t:"Other",a:1}],
+  program:[{t:"PMTCT",a:1},{t:"TB",a:1},{t:"Malaria",a:1}],
+  Q3Opts:[{t:"Exclusive breastfeeding",a:1},{t:"Replacement feeding",a:1},{t:"Mixed feeding",a:1}],
+  vectorLifecycleStage:[{t:"Egg",a:1},{t:"Larva",a:1},{t:"Pupa",a:1},{t:"Adult",a:1},{t:"Unknown",a:1}],
+  vectorTimeOfDay:[{t:"Dawn",a:1},{t:"Daylight",a:1},{t:"Dusk",a:1},{t:"Night",a:1},{t:"Unknown",a:1}],
+  vectorRestingContext:[{t:"Indoor",a:1},{t:"Outdoor",a:1},{t:"Unknown",a:1}],
+};
+const norm=(qs)=>qs.map(q=>({req:0,hasData:0,isNew:0,...q}));  // FR-14.5: a boolean, never a count
+const isLocked=(q)=> q.origin==="existing" && LOCKED_TYPES.includes(q.type);
+const cap1=(d)=>d.charAt(0)+d.slice(1).toLowerCase();
+const clone=(x)=>JSON.parse(JSON.stringify(x));
 
-function Sw({on,onClick}){return <div className={"sw "+(on?"on":"off")} onClick={onClick}><div className="k"/></div>;}
-function Lvl({lvl}){return <span className={"lvl "+lvl}>{lvl==="pat"?"patient":"order"}</span>;}
-
+function Sw({on,onClick,label}){return <div className={"sw "+(on?"on":"off")} role="switch" aria-checked={!!on} aria-label={label} tabIndex={0} onClick={onClick} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();onClick();}}}><div className="k"/></div>;}
+// Level chips removed (FR-23): the surface switch already states which level you are configuring.
 function App(){
-  const [surface,setSurface]=useState("order");
-  const [domain,setDomain]=useState("CLINICAL");
-  const [sections,setSections]=useState([
-    {id:"G",name:"General",system:true,domains:["CLINICAL","ENVIRONMENTAL","VECTOR"]},
-    {id:"A",name:"Disease Surveillance",domains:["CLINICAL"]},
-    {id:"B",name:"HIV / PMTCT–EID",domains:["CLINICAL"]},
-  ]);
-  const im={};FIELDS.forEach(f=>im[f.id]=f.def); const [fieldSec,setFieldSec]=useState(im);
-  const iv={};FIELDS.forEach(f=>iv[f.id]=true); const [vis,setVis]=useState(iv);
-  const [req,setReq]=useState({A3:true,B1:true});
-  const it={};FIELDS.forEach(f=>it[f.id]=defType(f)); const [types,setTypes]=useState(it);
-  const il={};FIELDS.forEach(f=>il[f.id]=f.label); const [labels,setLabels]=useState(il);
-  const [opts,setOpts]=useState({
-    caseClassification:[{t:"Suspected",a:1},{t:"Probable",a:1},{t:"Confirmed",a:1}],
-    hivStatus:[{t:"Positive",a:1},{t:"Negative",a:1},{t:"Unknown",a:1}],
-    yesNo:[{t:"Yes",a:1},{t:"No",a:1}],
-    arvTreatmentType:[{t:"AZT",a:1},{t:"NVP",a:1},{t:"TDF+3TC+DTG",a:1}],
-    eidRequestReason:[{t:"1st PCR (6 wk)",a:1},{t:"2nd PCR (9 mo)",a:1},{t:"Confirmatory",a:1}],
-    riskPopulation:[{t:"General population",a:1},{t:"Key population",a:1}],
-    education:[{t:"None",a:1},{t:"Primary",a:1},{t:"Secondary",a:1},{t:"Upper",a:1}],
-    maritalStatus:[{t:"Single",a:1},{t:"Married",a:1},{t:"Divorced",a:1},{t:"Widowed",a:1}],
-    nationality:[{t:"Malagasy",a:1},{t:"French",a:1},{t:"Other",a:1}],
-    program:[{t:"PMTCT",a:1},{t:"TB",a:1},{t:"Malaria",a:1}],
-  });
-  const [openSec,setOpenSec]=useState({A:true,B:true});
+  const [viewId,setViewId]=useState("patient");   // FR-17: navigation, not an in-page mode
+  const [review,setReview]=useState(false);
+  const [drag,setDrag]=useState(null);
+  const view=VIEWS.find(v=>v.id===viewId);
+  const domain=view.domain, surface=view.lvl;
+  // --- FR-18: staged edits. `saved` is the last persisted snapshot. ---
+  const [saved,setSaved]=useState(()=>clone({sections:SECTIONS,qs:norm(SEED),opts:SEED_OPTS}));
+  const [sections,setSections]=useState(()=>clone(SECTIONS));
+  const [qs,setQs]=useState(()=>clone(norm(SEED)));
+  const [opts,setOpts]=useState(()=>clone(SEED_OPTS));
+
+  const [openSec,setOpenSec]=useState({G:true,A:true,B:true,E:true,V:true});
+  const [showHidden,setShowHidden]=useState({});
   const [capOpen,setCapOpen]=useState({});
   const [expField,setExpField]=useState(null);
   const [draft,setDraft]=useState("");
   const [newSec,setNewSec]=useState("");
+  const [confirmRm,setConfirmRm]=useState(null);
+  const [query,setQuery]=useState("");
 
-  const lbl=(f)=>labels[f.id]||f.label;
-  const catFor=(f)=> types[f.id]==="yesno"?"yesNo":(f.dict||f.id+"Opts");
-  const isCoded=(f)=>CODED.includes(types[f.id]);
-  const catUsage=(cat)=>FIELDS.filter(f=>isCoded(f)&&catFor(f)===cat).length;
-  const fieldsIn=(sid)=>FIELDS.filter(f=>fieldSec[f.id]===sid);
+  const secOf=(sid)=>sections.find(s=>s.id===sid);
+  // FR-1d: baseline is keyed on (domain, level), so an order question never lands in a patient section
+  const baselineOf=(dom,lvl)=>sections.find(s=>s.system&&s.domain===dom&&s.level===lvl);
+  const catFor=(q)=> q.type==="yesno"?"yesNo":(q.dict||q.id+"Opts");
+  const isCoded=(q)=>CODED.includes(q.type);
+  const catUsage=(cat)=>qs.filter(q=>isCoded(q)&&catFor(q)===cat).length;
+  const qsIn=(sid)=>qs.filter(q=>q.sec===sid);
+  const upd=(id,patch)=>setQs(a=>a.map(q=>q.id===id?{...q,...patch}:q));
   const addOpt=(cat)=>{const v=draft.trim();if(!v)return;setOpts(o=>({...o,[cat]:[...(o[cat]||[]),{t:v,a:1}]}));setDraft("");};
   const toggleOpt=(cat,i)=>setOpts(o=>({...o,[cat]:o[cat].map((x,j)=>j===i?{...x,a:x.a?0:1}:x)}));
 
-  // --- section management ---
-  const secDomain=(sid,d)=>setSections(ss=>ss.map(s=>s.id===sid?{...s,domains:s.domains.includes(d)?s.domains.filter(x=>x!==d):[...s.domains,d]}:s));
-  const rename=(sid,v)=>setSections(ss=>ss.map(s=>s.id===sid?{...s,name:v}:s));
-  const move=(sid,dir)=>setSections(ss=>{const i=ss.findIndex(s=>s.id===sid);const j=i+dir;if(j<0||j>=ss.length)return ss;const c=[...ss];[c[i],c[j]]=[c[j],c[i]];return c;});
-  const del=(sid)=>{setFieldSec(fs=>{const n={...fs};Object.keys(n).forEach(id=>{if(n[id]===sid)n[id]="G";});return n;});setSections(ss=>ss.filter(s=>s.id!==sid));};
-  const addSection=()=>{const v=newSec.trim();if(!v)return;const id="S"+Date.now();setSections(ss=>[...ss,{id,name:v,domains:["CLINICAL"]}]);setOpenSec(o=>({...o,[id]:true}));setNewSec("");};
-  const moveField=(fid,sid)=>setFieldSec(fs=>({...fs,[fid]:sid}));
+  // --- FR-18: dirty accounting ---
+  const goView=(id)=>{setViewId(id);setExpField(null);};
+  const viewOf=(q)=>{const s=sections.find(x=>x.id===q.sec)||{domain:"CLINICAL"};
+    return (VIEWS.find(v=>v.domain===s.domain&&v.lvl===q.lvl)||VIEWS[0]).id;};
+  // FR-18.1: pending changes are attributed to the view they live in, and described
+  const pending=(()=>{
+    const out=[]; const sv={}; saved.qs.forEach(q=>sv[q.id]=q);
+    const NAMES={label:"text",type:"type",vis:"visible",req:"required",sec:"section",unit:"unit"};
+    qs.forEach(q=>{const o=sv[q.id];
+      if(!o){out.push({v:viewOf(q),q:q.label,p:"added",from:"",to:""});return;}
+      Object.keys(NAMES).forEach(k=>{if((q[k]||"")!==(o[k]||""))
+        out.push({v:viewOf(q),q:q.label,p:NAMES[k],
+          from:(k==="vis"||k==="req")?(o[k]?"on":"off"):String(o[k]||"—"),
+          to:(k==="vis"||k==="req")?(q[k]?"on":"off"):String(q[k]||"—")});});});
+    saved.qs.forEach(q=>{if(!qs.find(x=>x.id===q.id))out.push({v:viewOf(q),q:q.label,p:"removed",from:"",to:""});});
+    sections.forEach(s=>{
+      const now=qs.filter(q=>q.sec===s.id).map(q=>q.id).join(",");
+      const was=saved.qs.filter(q=>q.sec===s.id).map(q=>q.id).join(",");
+      if(now!==was&&now.split(",").sort().join()===was.split(",").sort().join()){
+        const lvl=(qs.find(q=>q.sec===s.id)||{lvl:"ord"}).lvl;
+        out.push({v:(VIEWS.find(x=>x.domain===s.domain&&x.lvl===lvl)||VIEWS[0]).id,q:s.name,p:"re-ordered",from:"",to:""});}});
+    const ss={}; saved.sections.forEach(s=>ss[s.id]=s);
+    sections.forEach(s=>{const o=ss[s.id];
+      const v=(VIEWS.find(x=>x.domain===s.domain&&x.lvl===(s.level||"ord"))||VIEWS[0]).id;
+      if(!o){out.push({v,q:s.name,p:"section added",from:"",to:""});return;}
+      if(s.name!==o.name)out.push({v,q:o.name,p:"section renamed",from:o.name,to:s.name});});
+    saved.sections.forEach(s=>{if(!sections.find(x=>x.id===s.id))
+      out.push({v:(VIEWS.find(x=>x.domain===s.domain&&x.lvl===(s.level||"ord"))||VIEWS[0]).id,q:s.name,p:"section deleted",from:"",to:""});});
+    if(JSON.stringify(opts)!==JSON.stringify(saved.opts))out.push({v:viewId,q:"Answer options",p:"changed",from:"",to:""});
+    return out;
+  })();
+  const pendingByView=(()=>{const m={};pending.forEach(x=>{m[x.v]=(m[x.v]||0)+1;});return m;})();
+  const dirty=pending.length;
+  const OLD_dirty=(()=>{
+    let n=0;
+    const sv={}; saved.qs.forEach(q=>sv[q.id]=q);
+    qs.forEach(q=>{const o=sv[q.id];
+      if(!o){n++;return;}                                   // added question = 1
+      ["label","type","lvl","vis","req","sec","unit"].forEach(k=>{if((q[k]||"")!==(o[k]||""))n++;});});
+    saved.qs.forEach(q=>{if(!qs.find(x=>x.id===q.id))n++;});// removed question = 1
+    // a re-order counts as ONE change per section, not one per question that shifted
+    sections.forEach(s=>{
+      const now=qs.filter(q=>q.sec===s.id).map(q=>q.id).join(",");
+      const was=saved.qs.filter(q=>q.sec===s.id).map(q=>q.id).join(",");
+      if(now!==was&&now.split(",").sort().join()===was.split(",").sort().join())n++;});
+    const ss={}; saved.sections.forEach(s=>ss[s.id]=s);
+    sections.forEach(s=>{const o=ss[s.id]; if(!o){n++;return;} if(s.name!==o.name)n++;});
+    saved.sections.forEach(s=>{if(!sections.find(x=>x.id===s.id))n++;});
+    if(sections.map(s=>s.id).join()!==saved.sections.map(s=>s.id).join()
+       &&sections.map(s=>s.id).sort().join()===saved.sections.map(s=>s.id).sort().join())n++;
+    if(JSON.stringify(opts)!==JSON.stringify(saved.opts))n++;
+    return n;
+  })();
+  const doSave=()=>{setReview(false);setQs(a=>a.map(q=>({...q,isNew:0})));
+    setSaved(clone({sections,qs:qs.map(q=>({...q,isNew:0})),opts}));};
+  const doCancel=()=>{setSections(clone(saved.sections));setQs(clone(saved.qs));setOpts(clone(saved.opts));setExpField(null);setReview(false);};
 
-  const showField=(sec,f)=>{
-    if(!vis[f.id])return false;
-    if(surface==="order"&&!sec.domains.includes(domain))return false;
-    if(surface==="patient"&&f.lvl!=="pat")return false;
-    return true;
+  const domSecs=sections.filter(s=>s.domain===domain);
+  const rename=(sid,v)=>setSections(ss=>ss.map(s=>s.id===sid?{...s,name:v}:s));
+  const move=(sid,dir)=>setSections(ss=>{
+    const sibs=ss.filter(s=>s.domain===secOf(sid).domain);
+    const si=sibs.findIndex(s=>s.id===sid); const tgt=sibs[si+dir]; if(!tgt)return ss;
+    const c=[...ss]; const i=c.findIndex(s=>s.id===sid), j=c.findIndex(s=>s.id===tgt.id);
+    [c[i],c[j]]=[c[j],c[i]]; return c;});
+  const del=(sid)=>{const dom=secOf(sid).domain;
+    setQs(a=>a.map(q=>q.sec===sid?{...q,sec:(baselineOf(dom,q.lvl)||baselineOf(dom,"ord")).id}:q));
+    setSections(ss=>ss.filter(s=>s.id!==sid));};
+  const addSection=()=>{const v=newSec.trim();if(!v)return;const id="S"+Date.now();
+    setSections(ss=>[...ss,{id,name:v,domain}]);setOpenSec(o=>({...o,[id]:true}));setNewSec("");};
+
+  let seq=0;
+  const addQuestion=(sid)=>{
+    const id="N"+Date.now()+(seq++); const sec=secOf(sid);
+    const sibs=qsIn(sid); const last=sibs[sibs.length-1];
+    const nq={id,label:"New question",lvl:sec.level||surface,type:"text",origin:"authored",sec:sid,vis:0,req:0,answers:0,isNew:1};
+    setQs(a=>{if(!last)return [...a,nq];
+      const i=a.findIndex(q=>q.id===last.id); const c=[...a]; c.splice(i+1,0,nq); return c;});
+    setOpenSec(o=>({...o,[sid]:true})); setExpField(id); setDraft("");
   };
-  const capCtl=(f)=>{
-    const ty=types[f.id];
+  const moveQ=(id,dir)=>setQs(a=>{
+    const q=a.find(x=>x.id===id); const sibs=a.filter(x=>x.sec===q.sec);
+    const si=sibs.findIndex(x=>x.id===id); const tgt=sibs[si+dir]; if(!tgt)return a;
+    const c=[...a]; const i=c.findIndex(x=>x.id===id), j=c.findIndex(x=>x.id===tgt.id);
+    [c[i],c[j]]=[c[j],c[i]]; return c;});
+  // FR-15.1 — move to an absolute position in one action
+  const moveTo=(id,pos)=>setQs(a=>{
+    const q=a.find(x=>x.id===id); const sibs=a.filter(x=>x.sec===q.sec);
+    const cur=sibs.findIndex(x=>x.id===id); if(pos===cur)return a;
+    const reord=[...sibs]; reord.splice(cur,1); reord.splice(pos,0,q);
+    const slots=a.map((x,i)=>x.sec===q.sec?i:-1).filter(i=>i>=0);
+    const c=[...a]; slots.forEach((slot,k)=>{c[slot]=reord[k];}); return c;});
+  const dropOn=(dragId,targetId)=>{
+    if(dragId===targetId)return;
+    setQs(a=>{
+      const d=a.find(x=>x.id===dragId), t2=a.find(x=>x.id===targetId);
+      if(!d||!t2||d.sec!==t2.sec)return a;                 // dropping outside the section is a no-op
+      const sibs=a.filter(x=>x.sec===d.sec);
+      const from=sibs.findIndex(x=>x.id===dragId), to=sibs.findIndex(x=>x.id===targetId);
+      const reord=[...sibs]; reord.splice(from,1); reord.splice(to,0,d);
+      const slots=a.map((x,i)=>x.sec===d.sec?i:-1).filter(i=>i>=0);
+      const c=[...a]; slots.forEach((slot,k)=>{c[slot]=reord[k];}); return c;});
+  };
+  const removeQ=(id)=>{setQs(a=>a.filter(q=>q.id!==id));setConfirmRm(null);setExpField(null);};
+
+  // --- FR-20: search every question in every domain ---
+  const results=query.trim()?qs.filter(q=>q.label.toLowerCase().includes(query.trim().toLowerCase())).slice(0,40):[];
+  const gotoQ=(q)=>{setViewId(viewOf(q)); setOpenSec(o=>({...o,[q.sec]:true}));
+    if(!q.vis&&!q.isNew)setShowHidden(h=>({...h,[q.sec]:true}));
+    setExpField(q.id); setQuery("");};
+
+  // Live preview shows exactly one physical area: this domain, this level (FR-23)
+  const showAtCapture=(sec,q)=>q.vis&&q.lvl===surface&&sec.domain===domain;
+  // admin panel is filtered the same way
+  const qsAt=(sid)=>qsIn(sid).filter(q=>q.lvl===surface);
+  const capCtl=(q)=>{
+    const ty=q.type;
     if(ty==="text")return <textarea className="ctl" readOnly placeholder="Text…"/>;
     if(ty==="date")return <div className="ctl">mm/dd/yyyy</div>;
-    if(ty==="num")return <div className="ctl">0</div>;
-    if(ty==="patientlink")return <div className="ctl">{f.ph||"Search patients…"}</div>;
+    if(ty==="datetime")return <div className="ctl">mm/dd/yyyy  --:--</div>;
+    if(ty==="num"||ty==="dec")return <div className="ctl">0</div>;
+    if(ty==="patientlink"||ty==="combo")return <div className="ctl">{q.ph||"Search…"}</div>;
     if(ty==="addr")return <div className="ctl">▾ from address hierarchy (Organization data)</div>;
-    const active=(opts[catFor(f)]||[]).filter(o=>o.a).map(o=>o.t).join(" / ")||"—";
+    const active=(opts[catFor(q)]||[]).filter(o=>o.a).map(o=>o.t).join(" / ")||"—";
     return <div className="ctl">{active}{ty==="multi"?"  (multi)":""}</div>;
   };
-
-  // --- admin: one field row ---
-  const arow=(f)=>{
-    const locked=lockType(f), isAddr=locked==="addr", coded=isCoded(f), cat=catFor(f);
-    const rowOpen=expField===f.id&&(coded||isAddr);
-    const list=coded?(opts[cat]||[]):[];
+  // ---------- collapsed question row + Configure panel (FR-19) ----------
+  const arow=(q,idx,list)=>{
+    const authored=q.origin==="authored"; const sec=secOf(q.sec);
+    const answered=!!q.hasData;                       // FR-14.5: a boolean, never a count
+    const intrinsic=isLocked(q);
+    const typeLocked=intrinsic||answered;                 // FR-14.3
+    const coded=isCoded(q), isAddr=q.type==="addr", cat=catFor(q);
+    const open=expField===q.id;
+    const list_=coded?(opts[cat]||[]):[];
+    const pos=list.findIndex(x=>x.id===q.id);
     return (
-     <React.Fragment key={f.id}>
-      <div className="arow">
-        <Sw on={vis[f.id]} onClick={()=>setVis(v=>({...v,[f.id]:!v[f.id]}))}/>
-        <span className="nm">{lbl(f)} <Lvl lvl={f.lvl}/> {f.existing&&<span className="exist">existing</span>}</span>
-        {locked
-          ? <span className="tlock" title={isAddr?"Address hierarchy — values from Organization; label/show-hide via existing API":"Fixed by data type"}>{TYPE_LABELS[locked]} 🔒</span>
-          : <select className="tsel" value={types[f.id]} onChange={e=>{setTypes(t=>({...t,[f.id]:e.target.value}));setExpField(null);}}>
-              <option value="text">Text</option><option value="single">Single-select</option>
-              <option value="multi">Multi-select</option><option value="yesno">Yes/No</option>
+     <React.Fragment key={q.id}>
+      <div className={"arow"+(q.isNew?" isnew":"")+(!q.vis&&!q.isNew?" hiddenq":"")
+             +(drag&&drag.id===q.id?" dragging":"")+(drag&&drag.over===q.id?(drag.after?" dropafter":" dropbefore"):"")}
+        onDragOver={e=>{if(!drag)return;e.preventDefault();
+          const r=e.currentTarget.getBoundingClientRect();
+          setDrag(d=>d&&(d.over!==q.id||d.after!==(e.clientY>r.top+r.height/2))
+            ?{...d,over:q.id,after:e.clientY>r.top+r.height/2}:d);}}
+        onDrop={e=>{e.preventDefault();if(drag)dropOn(drag.id,q.id);setDrag(null);}}>
+        <span className="draghandle" draggable="true" title={"Drag to reorder "+q.label}
+          onDragStart={e=>{e.dataTransfer.effectAllowed="move";setDrag({id:q.id,over:null,after:false});}}
+          onDragEnd={()=>setDrag(null)}>⠿</span>
+        <span className="qmv">
+          <button disabled={idx===0} aria-label={"Move "+q.label+" up"} title="Move up" onClick={()=>moveQ(q.id,-1)}>▲</button>
+          <button disabled={idx===list.length-1} aria-label={"Move "+q.label+" down"} title="Move down" onClick={()=>moveQ(q.id,1)}>▼</button>
+        </span>
+        <Sw on={q.vis} label={"Visible: "+q.label} onClick={()=>upd(q.id,{vis:q.vis?0:1})}/>
+        <span className="nm">
+          {authored
+            ? <input className="qname" value={q.label} aria-label="Question text" onChange={e=>upd(q.id,{label:e.target.value})}/>
+            : q.label}
+          <span className={authored?"added":"exist"} title={BADGE_HELP[authored?"authored":"existing"]}>{authored?"added":"existing"}</span>
+          {q.isNew?<span className="newtag">New — hidden until you switch it on</span>:null}
+          {answered?<span className="anstag" title="This question has saved answers — its type is locked and it can't be removed">Data entered</span>:null}
+          {q.req?<span className="reqmark" title="Required — blocks save until answered">*</span>:null}
+        </span>
+        {typeLocked
+          ? <span className="tlock" title={answered&&!intrinsic
+              ? "Locked — data entered. Changing the type would make saved answers unreadable."
+              : "Fixed by the data's nature"}>{TYPE_LABELS[q.type]} 🔒</span>
+          : <select className="tsel" aria-label="Type" value={q.type} onChange={e=>{upd(q.id,{type:e.target.value});}}>
+              {(authored?AUTHORED_TYPES:EXISTING_TYPES).map(x=><option key={x} value={x}>{TYPE_LABELS[x]}</option>)}
             </select>}
-        <select className="secsel" title="Move to section" value={fieldSec[f.id]} onChange={e=>moveField(f.id,e.target.value)}>
-          {sections.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
-        <span title="Required">req <Sw on={!!req[f.id]} onClick={()=>{if(vis[f.id])setReq(r=>({...r,[f.id]:!r[f.id]}));}}/></span>
-        {coded?<span className="manage" onClick={()=>{setExpField(rowOpen?null:f.id);setDraft("");}}>{list.filter(o=>o.a).length} opt {rowOpen?"▾":"▸"}</span>
-          :isAddr?<span className="manage" onClick={()=>setExpField(rowOpen?null:f.id)}>Label {rowOpen?"▾":"▸"}</span>
-          :<span className="dash">—</span>}
+        <button className={"cfg"+(open?" open":"")} aria-expanded={open} onClick={()=>{setExpField(open?null:q.id);setDraft("");}}>Configure {open?"▾":"▸"}</button>
       </div>
-      {rowOpen&&coded&&(
-        <div className="opted">
-          {list.map((o,i)=><span className={"chip"+(o.a?"":" inactive")} key={o.t+i}>{o.t}<span className="x" onClick={()=>toggleOpt(cat,i)}>{o.a?"×":"↺"}</span></span>)}
-          {list.length===0&&<span style={{fontSize:11,color:"#8d8d8d"}}>No options yet —</span>}
-          <input className="addinp" value={draft} placeholder="Add option…" autoFocus onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")addOpt(cat);}}/>
-          <button className="addbtn" onClick={()=>addOpt(cat)}>Add</button>
-          {catUsage(cat)>1&&<span className="shared">shared by {catUsage(cat)} fields ({cat})</span>}
-        </div>
-      )}
-      {rowOpen&&isAddr&&(
-        <div className="opted">
-          <span style={{fontSize:11}}>Label</span>
-          <input className="addinp" style={{width:170}} value={lbl(f)} onChange={e=>setLabels(l=>({...l,[f.id]:e.target.value}))}/>
-          <span className="shared">saved via existing Site Information / address API · values from Organization data</span>
+
+      {open&&(
+        <div className="cfgpanel">
+          <div className="cfggrid">
+            {authored&&<div className="cfgf">
+              <label>Question text</label>
+              <input className="cfgtxt" value={q.label} onChange={e=>upd(q.id,{label:e.target.value})}/>
+            </div>}
+            {isAddr&&<div className="cfgf">
+              <label>Label</label>
+              <input className="cfgtxt" value={q.label} onChange={e=>upd(q.id,{label:e.target.value})}/>
+              <span className="hlp">saved via the existing Site Information / address API</span>
+            </div>}
+            <div className="cfgf">
+              <label>Required</label>
+              <span className="reqrow">
+                <Sw on={q.req} label={"Required: "+q.label} onClick={()=>{if(q.vis)upd(q.id,{req:q.req?0:1});}}/>
+                <span className="hlp">{q.vis?(q.req?"blocks save until answered":"optional"):"no effect while hidden"}</span>
+              </span>
+            </div>
+            <div className="cfgf">
+              <label>Section</label>
+              <select className="secsel" value={q.sec} onChange={e=>upd(q.id,{sec:e.target.value})}>
+                {domSecs.filter(s=>!s.level||s.level===q.lvl)
+                  .map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+              <span className="hlp">only sections that appear on this screen</span>
+            </div>
+            <div className="cfgf">
+              <label>Move to position</label>
+              <select className="possel" value={pos} onChange={e=>moveTo(q.id,parseInt(e.target.value,10))}>
+                {list.map((x,i)=><option key={i} value={i}>{i+1} of {list.length}</option>)}
+              </select>
+            </div>
+            {(q.type==="num"||q.type==="dec")&&<div className="cfgf">
+              <label>Unit</label>
+              <input className="cfgtxt" placeholder="e.g. copies/ml" value={q.unit||""} onChange={e=>upd(q.id,{unit:e.target.value})}/>
+              <span className="hlp">written as the FHIR questionnaire-unit extension</span>
+            </div>}
+            {coded&&<div className="cfgf full">
+              <label>Answer options</label>
+              <div className="chips">
+                {list_.map((o,i)=><span className={"chip"+(o.a?"":" inactive")} key={o.t+i}>{o.t}<span className="x" title={o.a?"Deactivate":"Reactivate"} onClick={()=>toggleOpt(cat,i)}>{o.a?"×":"↺"}</span></span>)}
+                {list_.length===0&&<span className="hlp">No options yet —</span>}
+                <input className="addinp" value={draft} placeholder="Add option…" onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")addOpt(cat);}}/>
+                <button className="addbtn" onClick={()=>addOpt(cat)}>Add</button>
+              </div>
+              <span className="hlp">{catUsage(cat)>1?"shared by "+catUsage(cat)+" questions ("+cat+") — editing affects all of them":"options deactivate, never delete, so saved answers keep their meaning"}</span>
+            </div>}
+            <div className="cfgf full">
+              {authored
+                ? (answered
+                    ? <span className="rmwhy">Can't be removed — this question has data. Switch Visible off to take it off the form; the answers stay.</span>
+                    : <span><button className="rm" onClick={()=>setConfirmRm(q)}>Remove question</button> <span className="rmwhy">no data entered, so removing it loses nothing</span></span>)
+                : <span className="rmwhy">Built-in question — hide it instead of removing it. It keeps its existing FHIR mapping.</span>}
+            </div>
+          </div>
         </div>
       )}
      </React.Fragment>
     );
   };
-
-  // --- admin: one section box ---
-  const secBox=(s,idx)=>{
-    const list=fieldsIn(s.id); const shownCount=list.filter(f=>vis[f.id]).length;
-    const isOpen=openSec[s.id]??(s.id!=="G");
+  // ---------- section (FR-21 hidden disclosure) ----------
+  const secBox=(s,idx,arr)=>{
+    const all=qsAt(s.id);                            // this surface's level only (FR-23)
+    const shown=all.filter(q=>q.vis||q.isNew);      // new questions stay in the main list (FR-14.4)
+    const hidden=all.filter(q=>!q.vis&&!q.isNew);
+    const isOpen=openSec[s.id]??true;
+    const hopen=!!showHidden[s.id];
     return (
      <div className="secbox" key={s.id}>
        <div className="sechead">
-         <span className="icon" title="Move up" onClick={()=>move(s.id,-1)} style={{opacity:idx===0?.3:1}}>↑</span>
-         <span className="icon" title="Move down" onClick={()=>move(s.id,1)} style={{opacity:idx===sections.length-1?.3:1}}>↓</span>
-         <input className="secname" value={s.name} onChange={e=>rename(s.id,e.target.value)}/>
-         {s.system&&<span className="sysbadge">system</span>}
-         <span style={{fontSize:10,color:"#6f6f6f"}}>{shownCount}/{list.length}</span>
-         {!s.system&&<span className="icon del" title="Delete section (fields → General)" onClick={()=>del(s.id)}>🗑</span>}
-         <span className="icon" onClick={()=>setOpenSec(o=>({...o,[s.id]:!isOpen}))}>{isOpen?"▾":"▸"}</span>
+         <button className="icon" disabled={idx===0} title="Move section up" aria-label={"Move section "+s.name+" up"} onClick={()=>move(s.id,-1)}>↑</button>
+         <button className="icon" disabled={idx===arr.length-1} title="Move section down" aria-label={"Move section "+s.name+" down"} onClick={()=>move(s.id,1)}>↓</button>
+         <input className="secname" value={s.name} aria-label="Section name" onChange={e=>rename(s.id,e.target.value)}/>
+         {s.system&&<span className="sysbadge" title="Baseline section for this domain and level — renamable, not deletable">system</span>}
+         <span style={{fontSize:10,color:"#6f6f6f"}}>{shown.filter(q=>q.vis).length} on · {all.length} here</span>
+         {(()=>{const other=qsIn(s.id).filter(q=>q.lvl!==surface);
+            if(!other.length)return null;
+            const ov=VIEWS.find(v=>v.domain===s.domain&&v.lvl===other[0].lvl);
+            return <button className="counterpart" title={"Go to "+ov.label}
+              onClick={()=>{goView(ov.id);setOpenSec(o=>({...o,[s.id]:true}));}}>
+              {other.length} on {ov.label} →</button>;})()}
+         {!s.system&&<button className="icon del" title="Delete section (questions return to this domain and level's baseline)" onClick={()=>del(s.id)}>🗑</button>}
+         <button className="icon" aria-label="Expand section" onClick={()=>setOpenSec(o=>({...o,[s.id]:!isOpen}))}>{isOpen?"▾":"▸"}</button>
        </div>
-       <div className="domtags">domains:{DOMAINS.map(d=><span key={d} className={"dt "+(s.domains.includes(d)?"on":"off")} onClick={()=>secDomain(s.id,d)}>{d.toLowerCase()}</span>)}</div>
-       {isOpen&&<div style={{padding:"4px 10px 8px"}}>{list.length?list.map(arow):<div style={{fontSize:11,color:"#8d8d8d",padding:"6px 0"}}>No fields — assign some via the “Move to section” dropdown.</div>}</div>}
+       <div className="domtags">
+         <span className="domtag">{cap1(s.domain)}</span>
+         {s.locked
+           ? <span className="lockwhy">🔒 clinical only — environmental and vector orders have no patient record (vector FR-V02-S1-001)</span>
+           : <span className="lockwhy">domain is fixed when the section is created</span>}
+       </div>
+       {isOpen&&<div style={{padding:"2px 10px 8px"}}>
+         {shown.length?shown.map((q,i)=>arow(q,i,all)):<div className="emptystate">{
+            all.length?"Every question here is switched off."
+            :s.id==="O"?"Questions asked on every clinical order, whatever the program. Nothing here yet — add the first one."
+            :s.system?"Nothing here yet — add the first question."
+            :"No questions yet — add the first one."}</div>}
+         {hopen&&hidden.map((q)=>arow(q,all.findIndex(x=>x.id===q.id),all))}
+         <div className="addqbar">
+           <button className="addq" onClick={()=>addQuestion(s.id)}>+ Add question</button>
+           {hidden.length>0&&<button className="hidtoggle" onClick={()=>setShowHidden(h=>({...h,[s.id]:!hopen}))}>
+             {hopen?"Hide the "+hidden.length+" switched-off question"+(hidden.length===1?"":"s"):hidden.length+" hidden — show"}</button>}
+         </div>
+       </div>}
      </div>
     );
   };
 
-  // --- capture surface: group visible fields by section, in order ---
   const renderSec=(s)=>{
-    if(surface==="order"&&!s.domains.includes(domain))return null;
-    const shown=fieldsIn(s.id).filter(f=>showField(s,f));
+    const shown=qsIn(s.id).filter(q=>showAtCapture(s,q));
     if(shown.length===0)return null;
     const open=capOpen[s.id]??true;
-    const orderNote=surface==="order"&&shown.some(f=>f.lvl==="ord");
     return (
       <div className="sec" key={s.id}>
         <div className="h" onClick={()=>setCapOpen(o=>({...o,[s.id]:!open}))}>{s.name}<span className="chev">{open?"▲":"▼"}</span></div>
         {open&&<div className="c">
-          {orderNote&&<div className="legend" style={{marginBottom:8}}><Lvl lvl="ord"/> fields live in the new "Additional order details" area.</div>}
-          <div className="grid">{shown.map(f=>(
-            <div className={"f "+(types[f.id]==="text"?"full":"")} key={f.id}>
-              <label>{lbl(f)}{req[f.id]&&<span className="star"> *</span>}<Lvl lvl={f.lvl}/></label>{capCtl(f)}
+          <div className="grid">{shown.map(q=>(
+            <div className={"f "+(q.type==="text"?"full":"")} key={q.id} title="Configure this question" onClick={()=>gotoQ(q)}>
+              <label>{q.label}{q.req?<span className="star"> *</span>:null} {q.origin==="authored"&&<span className="added">added</span>}</label>{capCtl(q)}
             </div>))}</div>
         </div>}
       </div>
     );
   };
-  const anyVisible=sections.some(s=>fieldsIn(s.id).some(f=>showField(s,f)));
-  const hint=surface==="order"?`Order Entry (${domain.toLowerCase()}) — patient AND order fields; sections scoped to ${domain.toLowerCase()} only.`:"Patient (Add/Modify) — edit = view; patient-level fields only.";
+  // a section appears under a surface if it holds questions at that level, or is still empty (FR-23)
+  const visSecs=domSecs.filter(s=>s.level
+    ? s.level===surface                                    // a single-level section only ever shows on its own screen
+    : qsAt(s.id).length>0||qsIn(s.id).length===0);         // mixed/custom: show if it has questions here, or is brand new
+  const capSecs=visSecs;
+  const anyVisible=capSecs.some(s=>qsIn(s.id).some(q=>showAtCapture(s,q)));
+  const hint2=(surface==="pat"
+    ? "Add / Modify Patient — edit and view are the same screen."
+    : `The Additional order details area on a ${domain.toLowerCase()} order.`)
+    +" Click any question to configure it.";
 
   return (
    <div>
-    <div className="crumb"><a>Home</a> / <a>Admin Management</a> / Order &amp; Patient Entry Configuration</div>
-    <h1>Additional Information — configuration</h1>
-    <div className="legend">Admin-managed <b>sections</b> (rename ✎, reorder ↑↓, delete 🗑, add ➕, domain-scope). Fields are dev-defined; assign each to a section via “Move to”. Per field: Visible + Type + Required + inline options/label. <span className="lvl pat">patient</span> persists · <span className="lvl ord">order</span> = per order/episode.</div>
+    <div className="crumb"><a>Home</a> / <a>Admin Management</a> / <a>Order &amp; Patient Entry Configuration</a> / <a>Additional Information</a> / {view.label}</div>
+    <h1>Additional Information — <span className="domheading">{view.label}</span></h1>
+    <div className="legend">Four views in the SideNav — one per real area of the app, so patient and order questions are never mixed and no impossible combination can be selected. Each section belongs to exactly one domain. Per question: <b>drag ⠿</b> or <b>▲▼</b> to re-order, <b>Visible</b>, type, and a <b>Configure</b> panel holding required, section, position, options and remove. Nothing saves until you press <b>Save</b>.</div>
 
     <div className="cols" style={{marginTop:16}}>
+      <nav className="snav" aria-label="Additional Information views">
+        <div className="grp">Order &amp; Patient Entry Configuration</div>
+        <div className="sub">Additional Information</div>
+        {VIEWS.map(v=>(
+          <a key={v.id} className={v.id===viewId?"on":""} href="#" aria-current={v.id===viewId?"page":undefined}
+             onClick={e=>{e.preventDefault();goView(v.id);}}>
+            {v.label}{pendingByView[v.id]?<span className="pend">{pendingByView[v.id]}</span>:null}
+            <span className="rt">{v.route}</span>
+          </a>))}
+      </nav>
       <div className="card">
         <h2>Admin · Order &amp; Patient Entry Configuration → Additional Information</h2>
         <div className="body">
-          {sections.map(secBox)}
-          <div className="addsecbar">
-            <input className="addinp" style={{width:180}} value={newSec} placeholder="New section name…" onChange={e=>setNewSec(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")addSection();}}/>
-            <button className="addbtn" onClick={addSection}>➕ Add section</button>
+          <div className="searchbar">
+            <input className="searchinp" value={query} placeholder="Search questions — all domains…" aria-label="Search questions across all domains" onChange={e=>setQuery(e.target.value)}/>
+            {query.trim()&&<div className="results">
+              {results.length===0&&<div className="resnone">No question matches “{query.trim()}”.</div>}
+              {results.map(q=>{const s=secOf(q.sec);return (
+                <div className="res" key={q.id} onClick={()=>gotoQ(q)}>
+                  <div>{q.label}
+                    {!q.vis&&<span className="st">hidden</span>}
+                    {q.origin==="authored"&&<span className="st">added</span>}
+                    {q.hasData?<span className="st">data entered</span>:null}</div>
+                  <div className="path">{cap1(s.domain)} › {(VIEWS.find(v=>v.domain===s.domain&&v.lvl===q.lvl)||{label:"—"}).label} › {s.name}</div>
+                </div>);})}
+            </div>}
           </div>
-          <div className="note">General is a <b>system</b> section (existing built-in fields; can’t be deleted). Delete a custom section → its fields fall back to General. Fields can’t be invented here — the catalog is dev-defined so each has a FHIR mapping.</div>
+          <div className="guide">{VIEW_HELP[surface]}</div>
+          {visSecs.map((s,i,arr)=>secBox(s,i,arr))}
+          <div className="addsecbar">
+            <input className="addinp" style={{width:190}} value={newSec} placeholder="New section name…" onChange={e=>setNewSec(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")addSection();}}/>
+            <button className="addbtn" onClick={addSection}>+ Add section to {view.label}</button>
+          </div>
+          <div className="note">
+            <b>{(baselineOf(domain,surface)||{name:"—"}).name}</b> is the <b>baseline</b> section for this view — system, renamable, not deletable. Deleting a custom section returns each question to the baseline matching its own domain and screen.<br/>
+            <b>existing</b> questions are dev-defined and keep their bespoke FHIR mapping — configure them; they can't be re-authored or removed.<br/>
+            <b>added</b> questions are admin-authored. Removable while unanswered; once answered, switch them off instead so stored answers survive. Type locks once answers exist.
+          </div>
         </div>
       </div>
 
       <div className="card">
-        <h2>Capture surface</h2>
+        <h2>Live preview — {view.label}</h2>
         <div className="body">
-          <span className="seg">
-            <button className={surface==="order"?"on":""} onClick={()=>setSurface("order")}>Order Entry</button>
-            <button className={surface==="patient"?"on":""} onClick={()=>setSurface("patient")}>Patient (Add/Modify)</button>
-          </span>
-          {surface==="order"&&<div className="dseg">order domain:{DOMAINS.map(d=><button key={d} className={domain===d?"on":""} onClick={()=>setDomain(d)}>{d.toLowerCase()}</button>)}</div>}
-          <div className="legend" style={{marginBottom:10}}>{hint}</div>
-          {!anyVisible&&<div className="empty">Nothing to show for this surface/domain.</div>}
-          {sections.map(renderSec)}
+          <div className="legend" style={{margin:"0 0 12px"}}>{hint2}</div>
+          {capSecs.map(renderSec)}
+          {!anyVisible&&<div className="empty">Nothing enabled for this surface — the screens look exactly as they do today.</div>}
         </div>
       </div>
     </div>
 
-    <div className="note">Try it: rename “HIV / PMTCT–EID”, drag a field to another section via “Move to”, add a new section, or flip a section’s domain and switch the order-domain to watch it appear/disappear. Address (Region/District) is a locked type whose label + show/hide save via the existing Site Information API.</div>
+    <div className="savebar">
+      <span className="cnt">
+        {dirty===0?"No unsaved changes":<React.Fragment>
+          <b>{dirty}</b> unsaved change{dirty===1?"":"s"} — nothing is live until you save
+          <span className="where">in {Object.keys(pendingByView).map(vid=>{const v=VIEWS.find(x=>x.id===vid);
+            return <a key={vid} onClick={()=>goView(vid)}>{pendingByView[vid]} on {v.label}{vid===viewId?" (here)":""}</a>;})}</span>
+        </React.Fragment>}
+      </span>
+      {Object.keys(pendingByView).length>1&&<button className="revbtn" onClick={()=>setReview(true)}>Review changes</button>}
+      <button className="sb-cancel" disabled={dirty===0}
+        onClick={()=>{if(Object.keys(pendingByView).some(v=>v!==viewId))setReview("cancel");else doCancel();}}>Cancel</button>
+      <button className="sb-save" disabled={dirty===0} onClick={doSave}>Save</button>
+    </div>
 
-    <h2 style={{fontWeight:400,fontSize:20,margin:"26px 0 4px"}}>Proposed placement — Order Entry, Step 1 “Enter Order” (all three domains)</h2>
-    <div className="legend" style={{marginBottom:12}}>Verified live (indonesiademo v3.2.1.10): routes <code>/order/&#123;clinical,environmental,vector&#125;/enter</code>. <b>All three</b> already have a Step-1 details section (Clinical → <b>Clinical Information</b>; Env → env details; Vector → Sample) and a <b>Program</b> section — so we <b>extend an existing section</b> per domain, not add a new place. Patient-baseline fields live on the patient form.</div>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16}}>
-      {[
-        {d:"Clinical",host:"Clinical Information",details:"Provisional Diagnosis · Payment Status"},
-        {d:"Environmental",host:"Env order details",details:"Collection Method · Water/Ambient Temp · Weather · Preservation · Field Notes · Compliance Standards"},
-        {d:"Vector",host:"Sample",details:"Lifecycle Stage · Trap Type · Quantity in Pool · Traps/Nights Deployed"},
-      ].map(c=>(
-        <div key={c.d} style={{border:"1px solid #e0e0e0",background:"#fff"}}>
-          <div style={{padding:"8px 12px",fontWeight:600,fontSize:13,background:"#edf5ff",display:"flex",gap:8,alignItems:"center"}}>{c.d}<span style={{marginLeft:"auto",fontSize:10,padding:"1px 7px",borderRadius:9,background:"#defbe6",color:"#0e6027"}}>Step-1 verified</span></div>
-          <div style={{padding:"10px 12px",fontSize:12,lineHeight:1.7}}>
-            <div>1 · Requester</div>
-            <div>2 · Sample &amp; Tests</div>
-            <div style={{background:"#f4f8ff",border:"1px dashed #0f62fe",borderRadius:3,padding:"4px 6px",margin:"3px 0",color:"#0043ce"}}>3 · <b>{c.host}</b> <span style={{color:"#8d8d8d"}}>({c.details})</span><br/><span style={{fontSize:11}}>→ extend with <b>Additional Order Details</b> (config-driven)</span></div>
-            <div style={{background:"#f6f2ff",border:"1px dashed #6929c4",borderRadius:3,padding:"4px 6px",color:"#6929c4"}}>4 · <b>Program</b> → its Questionnaire (when selected)</div>
+    {review&&(
+      <div className="modal" onClick={()=>setReview(false)}>
+        <div className="modalbox" style={{width:560}} onClick={e=>e.stopPropagation()}>
+          <h3>{review==="cancel"?"Discard unsaved changes?":"Review changes"}</h3>
+          <p>{review==="cancel"
+            ? "Some of these changes are on views you aren't looking at. Discarding removes all of them."
+            : "Nothing below is live yet. Save commits every one of these in a single transaction."}</p>
+          <div className="revlist">
+            {VIEWS.filter(v=>pendingByView[v.id]).map(v=>(
+              <div key={v.id}>
+                <div className="revgrp">{v.label} — {pendingByView[v.id]} change{pendingByView[v.id]===1?"":"s"}</div>
+                {pending.filter(x=>x.v===v.id).map((x,i)=>(
+                  <div className="revrow" key={i}>{x.q} — <em>{x.p}</em>{x.from||x.to?<em> · {x.from} → {x.to}</em>:null}</div>))}
+              </div>))}
+          </div>
+          <div className="modalbtns">
+            <button className="mb-c" onClick={()=>setReview(false)}>{review==="cancel"?"Keep editing":"Close"}</button>
+            {review==="cancel"&&<button className="mb-d" onClick={doCancel}>Discard all</button>}
           </div>
         </div>
-      ))}
-    </div>
-    <div className="note" style={{marginTop:12}}>Madagascar mapping: the surveillance / HIV-PMTCT <b>episode</b> fields become <b>Program</b> questionnaire items (box 4); persistent traits (mother link, mother HIV status, medical history) live in the <b>patient</b> region; box 3 is the config-driven order-level extras, added inside each domain’s existing details section. All three Step-1 structures verified live (indonesiademo v3.2.1.10) — Clinical’s <b>Clinical Information</b> (Provisional Diagnosis, Payment Status) is the exact host for the Clinical extras.</div>
+      </div>)}
+
+    {confirmRm&&(
+      <div className="modal" onClick={()=>setConfirmRm(null)}>
+        <div className="modalbox" onClick={e=>e.stopPropagation()}>
+          <h3>Remove this question?</h3>
+          <p>“{confirmRm.label}” has never been answered and will be removed from {secOf(confirmRm.sec).name}. Questions that already have saved answers can’t be removed — switch them off instead.</p>
+          <div className="modalbtns">
+            <button className="mb-c" onClick={()=>setConfirmRm(null)}>Cancel</button>
+            <button className="mb-d" onClick={()=>removeQ(confirmRm.id)}>Remove</button>
+          </div>
+        </div>
+      </div>)}
    </div>
   );
 }
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
