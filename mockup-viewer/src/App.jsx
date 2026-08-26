@@ -704,6 +704,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/admin-config/patient-additional-info-surveillance-pmtct.md',
     htmlUrl: 'designs/admin-config/patient-additional-info-surveillance-pmtct.html',
     added: '2026-08-05',
+    updated: '2026-08-26',
     status: 'draft',
     jira: ['OGC-781'],
     tags: ['programs','additional-information','appendix','field-catalog','surveillance','pmtct','eid','hiv','madagascar','dictionary','fhir','admin','order-entry','patient'],
