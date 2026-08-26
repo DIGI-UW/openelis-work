@@ -647,6 +647,18 @@ export const MOCKUP_REGISTRY = [
     tags: ['admin', 'roadmap', 'planning', 'phase-5'],
   },
   {
+    name: 'Admin Phase 5 Finalization',
+    category: 'admin-config',
+    component: null,
+    description: 'Phase 5 admin redesign finalization (v2.0) — re-grounds the whole program against the live v3.2.2.0 app (44 SideNav entries resolving to 33 pages, a finalized 12-bucket IA), resolves the contradictions accumulated across the planning documents, and states a finalized disposition for every admin page. Supersedes admin-phase5-roadmap and admin-mvp-scope.',
+    specPath: 'designs/admin-config/admin-phase5-finalization.md',
+    htmlUrl: 'designs/admin-config/admin-phase5-finalization.html',
+    added: '2026-08-25',
+    status: 'draft',
+    githubIssue: null,
+    tags: ['admin', 'phase-5', 'planning', 'finalization', 'redesign', 'IA'],
+  },
+  {
     name: 'Test Rules Authoring Redesign — MVP',
     category: 'admin-config',
     component: null,
