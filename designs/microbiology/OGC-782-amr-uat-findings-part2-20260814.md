@@ -272,9 +272,9 @@ All on the UAT instance; none should be hard-deleted (LIMS rule — deactivate i
 
 ---
 
-## 7. AMR-S29 — a new story, entirely untested
+## 7. AMR-S29 — a new story, entirely untested *(at the time of writing — now run; see §8)*
 
-**Not run. Zero of six steps answered.** `AMR-S29 · R2 · M-04/M-11 · Review and release a no-growth culture` appeared in the story list *after* this run — 22 options where there had been 21. It was not present while the work above was done, so nothing in this report covers it.
+**Not run at the time this section was written. Zero of six steps answered.** `AMR-S29 · R2 · M-04/M-11 · Review and release a no-growth culture` appeared in the story list *after* this run — 22 options where there had been 21. It was not present while the work above was done, so nothing in this report covers it.
 
 It arrived with the harness update that also carries `feat(uat): add no-growth story fixture`, and it pairs with the `design/ogc-782-separate-no-growth-release` branch in `openelis-work`. Both point the same way: no-growth release is being separated from the ordinary final-release path, and this story is how that gets reviewed.
 
@@ -296,3 +296,58 @@ It also lands on a naming divergence already on the books. M-00 §5 names the te
 **Two things to watch when it is run.** Steps 4 and 5 are a deliberate two-stage gate — ready-to-release must not leak a result into Patient Results before an authorized reviewer releases it. That is the same class of boundary as F-2 (amended results indistinguishable on `/PatientResults`), which is still open, so the two should be looked at together. And step 6 tests the final-release lock on the *no-growth* path; the lock was confirmed server-side on the positive path in the first pass, but never on this one.
 
 **Prerequisite:** the story pins itself to fixture case `UATMICROF1878986A7` and says to stop rather than substitute. Confirm that case exists and is at **Received** before starting.
+
+---
+
+## 8. Addendum — re-run on build `b1c692b` (2026-08-27)
+
+**Instance:** amr.openelis-global.org · **Build:** `b1c692ba930decc371a67cd7c534c663a2932471`
+The instance was redeployed after Part 2 was written. All widget marks from the previous deployment are keyed to the old `deploymentId` and were deliberately left orphaned rather than migrated, so the review state on this build starts empty. **Only AMR-S29 has been executed on `b1c692b`.** F-1, F-2, F-3, F-5 and 28 of the 29 stories — including S30–S34 (the R9–R13 WHONET set), S15 and S16 — have *not* been re-run here.
+
+### 8.1 What changed in the build
+
+New on AST runs: a `reportable` flag (`false` until review, then `true`), `technique` (`VITEK_2` / `PHOENIX` / `LEGACY_UNSPECIFIED_MIC`), `qcState`, and `isolateSignificance`. New WHONET export parameters: `dedupBasis`, `dedupScope`, `excludeContaminants`, `includeScreening`, `includeUnspecified`, `profileSensitivity`. **The `reportable` gate behaves correctly** — unreviewed runs are withheld and appear only after review.
+
+### 8.2 Regression against the Part 2 findings
+
+**N-1, N-2, N-3 and N-4 all reproduce on `b1c692b`.**
+
+N-1 (duplicate AST readings not collapsed on export) is now better evidenced than before, and on seeded data rather than data I created. Case `DEV01260000000000038` arrived with **four identical Ciprofloxacin readings**. After review and release, the WHONET preview returned **five rows** — one GENUAT plus four identical CIPUAT. Case `DEV01260000000000034` shows **nine** CIPUAT rows. The *patient report* for the same case collapses correctly to a single "Ciprofloxacin (UAT) S", so the collapse logic exists on the reporting path and is simply absent from the export path.
+
+### 8.3 AMR-S29 executed in full — 6 steps, 5 pass / 1 fail (`ppppfp`)
+
+Fixture case `UATMICROF1878986A7` (`07f5af46-29d7-4164-a241-2536878d0815`) was found at **Received** as the story requires and was driven through the whole no-growth path. Steps 1, 2, 3, 4 and 6 pass as scripted: media recorded, stage moves to **No Growth Ready** with `action=mark-no-growth` in the URL and a Timeline entry with actor and time, release is a genuinely separate second-stage action that does not leak into Patient Results early, and the final case is read-only afterwards.
+
+### 8.4 N-9 — a released no-growth case still reports itself as blocked, and cannot reach WHONET
+
+**Step 5 FAIL.** After the final report is released, the case panel shows the badge **"Final Released"** while simultaneously displaying:
+
+- *"Final release blocked! Isolate Required"*
+- *"WHONET export blocked! Isolate Required"*
+- *"No reportable microbiology content is ready"*
+
+The negative result itself is handled correctly on the patient side — `/PatientResults/176` shows **"UAT microbiology culture — No growth"**. The contradiction is on the case workbench and in the export path.
+
+**Revalidated, not a cache artefact.** Re-checked in a fresh Chrome tab and by three consecutive reads of the readiness endpoint. All three returned identically:
+
+```json
+{"finalReleaseReady": false, "blockers": ["ISOLATE_REQUIRED"], "astRunsComplete": 0, "astRunsTotal": 0}
+```
+
+— for a case whose `stage` **and** `finalReleaseState` are both `FINAL_RELEASED`. The block is server-side.
+
+**In lab terms.** A culture that grows nothing is a complete, final, reportable result — it is the commonest result bacteriology produces. The system is treating "there is no isolate" as "the work is not finished", so a plate that was read, called negative, and signed out still sits there claiming it is waiting on something. Two consequences: the bench sees a released case that says it is blocked, which trains people to ignore the banner; and the negative never leaves the building, because the export refuses to carry a case with no isolate on it.
+
+`ISOLATE_REQUIRED` is the **single root cause** of both symptoms.
+
+### 8.5 The GLASS consequence, and a gap in M-15
+
+Negatives are not optional for GLASS-AMR. In a **sample-based** dataset the negatives are the denominator: %resistance is *resistant isolates ÷ specimens tested*. If only isolate-bearing cases can be exported, the numerator ships and the denominator does not, and every resistance proportion computed downstream is inflated by an unknown factor. It fails silently — the file looks well-formed.
+
+`designs/microbiology/m-15-glass-fhir-surveillance.md` does not currently close this. §5 states that GLASS-AMR is reported as either a **sample-based or isolate-based** dataset with first-isolate de-duplication — but **AC-M15-01 only emits a FHIR Bundle for a "finalized, first-isolate-eligible bacterial Case"**, i.e. a case that has an isolate. The spec contains **no** occurrence of *no growth*, *negative*, *denominator*, *specimens processed*, or *positivity*. Both the WHONET path and the FHIR path are isolate-anchored.
+
+**Recommendation.** This is a specification gap ahead of a code fix. M-15 should be amended to define the negative / no-growth contribution explicitly — what a no-growth case emits, how specimens-tested is counted, and whether the sample-based dataset is in scope for OpenELIS at all — before `ISOLATE_REQUIRED` is treated as correct behaviour on the release path. The build change and the spec amendment should land together.
+
+### 8.6 Also settled here
+
+M-00 §5 names the terminal state `NO_GROWTH_FINAL`; the build ships `NO_GROWTH_READY`, and S29 step 3 expects **"No Growth Ready"**. The build and the story agree; **M-00 is the stale party** and should be corrected in the §5 reconciliation.
