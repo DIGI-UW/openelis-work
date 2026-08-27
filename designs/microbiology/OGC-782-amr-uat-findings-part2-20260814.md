@@ -351,3 +351,64 @@ Negatives are not optional for GLASS-AMR. In a **sample-based** dataset the nega
 ### 8.6 Also settled here
 
 M-00 §5 names the terminal state `NO_GROWTH_FINAL`; the build ships `NO_GROWTH_READY`, and S29 step 3 expects **"No Growth Ready"**. The build and the story agree; **M-00 is the stale party** and should be corrected in the §5 reconciliation.
+
+---
+
+## 9. Addendum — microbiology **Programs** on build `b1c692b` (2026-08-27)
+
+Programs turned out to be the route into the micro workflow that §8 could not find, and the place where several things are visibly wrong. Everything marked **confirmed** below survived three consecutive API reads plus a fresh-tab reload, and was re-read with a visibility-aware DOM walker after the method fault in §9.5.
+
+### 9.1 P-1 — two indistinguishable "Microbiology" programs · **confirmed**
+
+| id | code | name | test section | questionnaire |
+|---|---|---|---|---|
+| 8 | `MICROBIOLOGY` | Microbiology | 57 · Bacteriology | 176-byte shell, **no items** |
+| 9 | `MICROBIOLO` | Microbiology | 57 · Bacteriology | 176-byte shell, **no items** |
+
+They render **adjacent in the order-entry Program dropdown with identical labels**, point at the same test section, carry empty questionnaires, and produce the same details panel. Whichever the user picks stamps a different `questionnaireUUID` on the order, so the choice is recorded, invisible, and — as far as could be detected — functionless. There is no way for an order-entry user to make the right choice, because there is no right choice.
+
+The codes are 12 and 10 characters, so this is **not** a column-truncation artefact; `MICROBIOLO` is a hand-entered near-duplicate.
+
+### 9.2 P-2 — Program → test-section wiring is crossed · **confirmed**
+
+| Program | Points at | Correct? |
+|---|---|---|
+| **Bacteriology** (10) | 97 · **Coliform analysis** | **No** — section 57 *is* "Bacteriology", and the two Microbiology programs use it |
+| **Cytology** (5) | 165 · **GRAM STAIN** | **No** — a Gram stain is a bacteriology procedure |
+| Microbiology (8, 9) | 57 · Bacteriology | Yes |
+| Coliform Analysis (11) | 97 · Coliform analysis | Yes |
+| Immunohistochemistry (6) | 164 · Immunohistochemistry | Yes |
+| Histopathology (7) | 163 · MACROSCOPY&MICROSCOPY | Probably intentional |
+
+Since the program's test section filters what an orderer can pick, a Cytology order surfaces Gram-stain work and the program named Bacteriology never reaches the Bacteriology bench.
+
+### 9.3 P-3 — the routing chip never resolves · **confirmed at the UI; server behaviour unconfirmed**
+
+The micro panel header (`microbiology-order-entry__header`) carries a blue Carbon `Tag` reading **"Unassigned"** directly beside the text **"Culture workflow selected — This will create a Microbiology Case for culture and susceptibility testing."** Both are shown at once.
+
+This persists on a clean tab with **Program = Microbiology, Sample type = Urines, and the real `Urine Culture` test ticked** — that is, with everything the resolver should need. M-03 §2.1a says the case is "born already classified" in the normal path, and M-04 §3.1 defines `UNASSIGNED` as `workflow_type IS NULL`, which gates all profile-dependent work.
+
+**What is not yet established:** whether the chip predicts what is saved. If it does, every Program-routed micro order lands `UNASSIGNED`, and **F-1** (the classify `500`) is the only exit from that state — which would explain the eight stuck cases in the first report and raises F-1 from High to a blocker. Settling this needs one order placed and its `workflow_type` read; that attempt is blocked (§9.6).
+
+### 9.4 P-4 — discard-confirmation copy does not match its trigger · **confirmed**
+
+Changing the Program away from Microbiology raises a modal titled **"Discard Microbiology details?"** (buttons *Cancel* / *Discard details*) whose body reads:
+
+> *"Removing the final culture test will discard the microbiology program details entered for this order."*
+
+The user did not remove a test; they changed a program. Either the copy is wrong, or the program switch silently removes the culture test — in which case the copy describes an effect the user was never told about. The guard itself is right to exist.
+
+### 9.5 WITHDRAWN — "the Bacteriology program shows a Microbiology panel"
+
+Briefly recorded and **wrong**. The order-entry page keeps the discard modal's markup, and an inert copy of the micro panel, permanently in the DOM; a plain text-node walk reads both regardless of visibility. Re-run on a clean tab with a walker that skips zero-size, `display:none`, `visibility:hidden`, and closed-modal subtrees: with **Bacteriology** selected, **no** Microbiology panel renders. That is correct behaviour.
+
+This is the third method fault of the same family in this engagement, after the `composed:false` events and the stale screenshot scaling in §4. The lesson is consistent enough to state as a rule: **on this app, never read state with a raw DOM text walk — filter for visibility first.** Findings 9.1–9.4 were all re-confirmed under the corrected method before being recorded here.
+
+### 9.6 Not tested, and why
+
+- **Placing an order** to settle §9.3 — the "Search for Patient" button does not fire a network request under synthetic clicks (no `patient-search` entry appears in Resource Timing), so no patient could be attached. Needs a hand-driven click or a working input path.
+- **Sample types offer very little micro work.** Sputum offers only *Gram stain*; Urine MCS offers only *Microscopy*; Urines offers *URINE MCS / Urine Microscopy / Urine Culture*. Only the last carries a culture test, despite every micro program promising "culture and susceptibility testing".
+
+### 9.7 Expected, not defects
+
+There is **no mycobacteriology / TB test section** — the eleven active sections are Hematology, Biochemistry, Bacteriology, Immunology, Virology, Coliform analysis, Serology-Immunology, Molecular Biology, MACROSCOPY&MICROSCOPY, Immunohistochemistry, GRAM STAIN. Per the Director of Product these arrive with the feature, so this is a known gap rather than a finding. It does mean **M-14 has nowhere to land yet**.
