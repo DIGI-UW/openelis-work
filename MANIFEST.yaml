@@ -581,11 +581,12 @@
   path: designs/microbiology/m-00-micro-module-parent.md
   category: microbiology
   description: >
-    M-00 spine spec: glossary, RBAC, data model overview, phase plan, OOS, v1.1 → v2 diff map.
+    M-00 spine spec: glossary, RBAC, data model overview, phase plan, OOS, v1.1 → v2 diff map. v2.1: NO_GROWTH_FINAL becomes NO_GROWTH_READY then releases to FINAL_REPORTED.
   links:
     jira: ["OGC-782"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-00-microbiology-module-parent
   added: "2026-05-15"
+  updated: "2026-08-27"
 
 - id: m-nfr-non-functional-requirements
   type: spec
@@ -681,12 +682,13 @@
   path: designs/microbiology/m-04-case-workbench-core.md
   category: microbiology
   description: >
-    M-04: Case + Isolate + Timeline + Reports + state machine + amendment workflow.
+    M-04: Case + Isolate + Timeline + Reports + state machine + amendment workflow. v2.1: release gate keys on a recorded outcome; NO_GROWTH_FINAL becomes NO_GROWTH_READY.
   links:
     jira: ["OGC-790"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-04-case-workbench-core-case-detail
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-prototype.html
   added: "2026-05-15"
+  updated: "2026-08-27"
 
 - id: m-04-isolate-modal
   type: mockup
@@ -801,12 +803,13 @@
   path: designs/microbiology/m-09-whonet-export.md
   category: microbiology
   description: >
-    M-09: WHONET surveillance export with dedup, validation, phenotype flag columns. Phase 1B.
+    M-09: WHONET surveillance export with dedup, validation, phenotype flag columns. Phase 1B. v2.1 adds no-growth rows + sample-based denominator (include-negatives).
   links:
     jira: ["OGC-794"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-09-whonet-export
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-09-whonet-export.html
   added: "2026-05-15"
+  updated: "2026-08-27"
 
 - id: m-10-hub-subscription
   type: spec
@@ -880,11 +883,12 @@
   category: microbiology
   description: >
     M-14 Mycobacteriology / TB — M-04 Case Workbench TB profile: smear, MGIT/LJ culture,
-    species ID, critical-concentration DST, molecular flags, staged interim reports, WHONET-TB.
+    species ID, critical-concentration DST, molecular flags, staged interim reports, WHONET-TB. v1.1 aligns TB bench with the no-growth amendment.
   links:
     jira: ["OGC-901"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-14-mycobacteriology-tb
   added: "2026-06-08"
+  updated: "2026-08-27"
 
 - id: m-14-tb-case-interactive-prototype
   type: mockup
@@ -917,11 +921,12 @@
   category: microbiology
   description: >
     M-15 GLASS — FHIR Surveillance. OE pushes finalized AMR results to a consolidated FHIR server.
-    Reuses FhirTransformService/FhirPersistanceService. Backend/admin spec; no mockup.
+    Reuses FhirTransformService/FhirPersistanceService. Backend/admin spec; no mockup. v1.1 adds the negative / no-growth path.
   links:
     jira: ["OGC-918"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-15-glass-fhir-surveillance
   added: "2026-06-08"
+  updated: "2026-08-27"
 
 - id: amr-micro-narrative-v2
   type: spec
