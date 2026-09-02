@@ -30,7 +30,7 @@
 | D-014 | QA Dashboard v1 = Average TAT only; no per-test TAT targets (deferred to v8) | scope control; avoid premature per-test thresholds | QA dashboard, home-page TAT | FEATURE | active | qa_dashboard_tat_v1_decisions |
 | D-015 | Home-page TAT must reuse the QA Dashboard threshold model — don't invent a parallel one | single source for TAT logic | home-page Attention/TAT | FEATURE | active | qa_dashboard_tat_v1_decisions |
 | D-016 | Referral in-transit signal uses the activated `ReferralStatus` enum; canonical view `/SampleShipment/reference-lab-results`; do NOT invent `Sample.location` | reuse existing status model | referral / shipment specs | FEATURE | active | referral_redesign_in_transit_signal |
-| D-017 | EQA-touching specs defer or gray-state until the EQA V2 controller is built (QA-menu sprint) | no V2 controller exists yet | any EQA feature | FEATURE | provisional | eqa_v2_status |
+| D-017 | EQA-touching specs defer or gray-state until the EQA V2 controller is built (QA-menu sprint) | no V2 controller exists yet | any EQA feature | FEATURE | superseded (EQA V2 controller built — verified live 2026-08-01: `/rest/eqa/programs`, `/…/enrollments`, `/my-programs`, `/orders/summary` all 200) | eqa_v2_status / current-state-gotchas.md |
 | D-018 | A "Reagents" tab / Test↔Reagent feature needs the linkage built first (declare as dependency) | reagents-as-inventory exist; linkage does not | Test Catalog reagents | FEATURE | superseded (linkage delivered on develop, audit 2026-07-14) | reagent_test_catalog_link |
 | D-019 | Label work may pick from the 4 fixed system presets; configurable preset management is a separate FRS | configurable presets don't exist yet | Labels tab / preset work | FEATURE | superseded (Label Preset Management delivered; OGC-285 owns the Labels-section evolution) | label_presets_state |
 | D-020 | Admin MVP introduces Feature Flags as the 10th Application Settings tab; Menu Config = navigation-scoped flags | hybrid auto-aggregate + curated dictionary | admin settings, menu config | FEATURE | active | admin_mvp_feature_flag_pattern |
@@ -60,6 +60,9 @@
 | D-044 | The gate for reviewing analyzer results is **per-lab-unit `Results` rights only**. `Analyser Import` is NOT a gate — it is granted to the **bridge account** instrument software signs in as, not to bench staff | gating on Analyser Import would lock out the technicians the screen exists for while admitting a machine identity; Results rights already describe which bench a person works on | analyzer results import; any future analyzer-facing permission design | FEATURE | active | Casey 2026-08-11; analyzer-results-lab-unit-access FRS FR-7a |
 | D-045 | An analyzer with **no** assigned lab units is **unrestricted** (fail-open), and initial assignments are **backfilled** from the distinct lab units of the analyzer's existing test mappings. Unassigned analyzers are visibly marked so "unrestricted" is never invisible | every analyzer's lab-unit list is empty on develop (no UI has ever written it); fail-closed would dark every instrument for every bench user on upgrade day | analyzer lab-unit scoping; any feature adding scoping to a never-populated field | FEATURE | active | analyzer-results-lab-unit-access FRS FR-2/FR-5/FR-6 |
 
+| D-049 | `/breakdown` creates **one Epic per mockup and no child Stories**; the implementing developer slices Stories from the Epic. `/breakdown` still produces the slicing-guide markdown (increments, dependency order, cross-cutting notes) and attaches it to the Epic, but does not materialize child tickets | slicing is better done by the implementer against live code; avoids stale pre-sliced tickets going out of date before dev starts | `/breakdown` Jira creation | GLOBAL | active — **NOT YET IMPLEMENTED in the shipped skill**: `SKILL.md` (Commands table line 37, `/breakdown` section lines 513–541, and the workflow table) still describes "Epic + versioned child Stories" as of this 2026-09 pass. Casey decided this 2026-07-01; the skill body was never updated to match. Needs a deliberate SKILL.md edit, not an unattended one (carried forward from the 2026-08-01 pass's same unresolved flag) | Casey 2026-07-01; feedback_breakdown_epic_only |
+| D-050 | Every FRS reuses existing API endpoints and i18n keys before minting new ones: an **"API & Data Reuse"** table (method+path, verified against repo/live app; new endpoints listed under Dependencies with justification), and a Localization table marking each key **Reuse**/**New** (common labels via the shared namespace) | "here's the feature" invites a from-scratch rebuild; every new i18n key is a translation job in every deployment language — now elevated by constitution v1.11.0 Principle VII (i18n Key Reuse & Hygiene) to a CRITICAL `/analyze` finding, not just a house rule | `/specify` FRS template, `/analyze` reuse passes | GLOBAL | active — **NOT YET IMPLEMENTED in the shipped skill**: `references/frs-template.md` has no "API & Data Reuse" section, and its "Localization" section (line ~78) is a plain description with no Reuse/New column. Casey decided this 2026-07-01; the skill body was never updated to match. Needs a deliberate template edit, not an unattended one (carried forward from the 2026-08-01 pass's same unresolved flag) | Casey 2026-07-01; feedback_reuse_api_and_i18n |
+
 ---
 
 ## How to use in a review
@@ -72,3 +75,15 @@
 `/specify` and `/breakdown` append any new precedent they set as a closing step. The monthly
 consolidation task promotes stable decisions out of memory into this log. Re-confirm
 `provisional` rows (e.g. D-017) each planning cycle.
+
+- **2026-09-02 (monthly consolidation):** re-confirmed the sole `provisional` row — **D-017 is now
+  superseded** (EQA V2 verified built 2026-08-01, matching `current-state-gotchas.md`; the row had
+  drifted out of sync with that verification). Recovered two decisions that Casey made 2026-07-01
+  (`/breakdown` Epic-only, API & i18n reuse) which were lost in the 2026-08-01 D-028/D-029 ID-collision
+  fix — the CHANGELOG for that pass claimed they'd land as D-043/D-044, but those IDs were
+  subsequently reused by the analyzer-results-lab-unit-access work (D-043–D-045, also 2026-08) without
+  cross-checking the earlier promise. Re-recorded as **D-049**/**D-050**. Verified against the current
+  `SKILL.md`/`frs-template.md`: **neither decision is actually implemented in the shipped skill yet** —
+  `/breakdown` still creates child Stories (SKILL.md lines 37, 513–541) and `frs-template.md` has no
+  API & Data Reuse section — flagging this precisely rather than silently marking them done. No
+  new decisions this cycle beyond these two recoveries.

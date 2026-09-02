@@ -166,3 +166,8 @@ profiles themselves (that would drift).
 distro `configs/analyzer-profiles/` is authoritative for deployments, `projects/analyzer-profiles/`
 in `OpenELIS-Global-2` is a dev/test mirror, distro wins on drift. Re-check the mirror's profile
 roster each cycle; it grows as new analyzers are integrated.
+
+**2026-09-02 (monthly consolidation):** re-checked the mirror roster against
+`DIGI-UW/OpenELIS-Global-2` → `projects/analyzer-profiles/` (develop) — **unchanged** since
+2026-08-01: same 6 ASTM, 7 HL7, and 7 `file/` profiles. No new analyzers integrated this
+cycle; nothing else needed for this file.
