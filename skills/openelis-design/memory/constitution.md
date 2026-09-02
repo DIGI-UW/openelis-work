@@ -26,6 +26,10 @@ no reconciliation with the repo owners is needed.
 **Amendment v1.9.1** — the v1.10.0 (Principle X) and v1.11.0 (Principle VII i18n) amendments
 were never added to that list. Read the `**Version**` line, not the amendment log.
 
+**2026-09-02 verification:** re-checked the raw upstream file — footer still reads
+`**Version**: 1.11.0 | **Ratified**: 2025-10-30 | **Last Amended**: 2026-07-15`, unchanged
+since the 2026-08-01 sync. Re-sync trigger did **not** fire this cycle.
+
 > ⚠️ **Re-sync trigger:** Before relying on this summary in `/analyze` or `/specify`, check
 > the raw URL's version header. If upstream is newer than the "Synced version" above,
 > re-read the upstream constitution, update this pointer (version + date + any changed
