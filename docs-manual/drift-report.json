@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-08T08:42:05.728Z",
+  "generatedAt": "2026-08-15T08:42:48.449Z",
   "sections": [
     {
       "id": "add-patient",
@@ -11,24 +11,611 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-08-08T08:36:40.352Z",
+      "checkedAt": "2026-08-15T08:36:18.149Z",
       "codeChanged": {
-        "count": 6,
+        "count": 7,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/patient"
         ],
         "branches": {
-          "develop": 4,
+          "develop": 5,
           "demo-silnas": 2
         },
         "latest": {
-          "sha": "c1db8ce",
-          "date": "2026-08-05",
-          "msg": "fix: catalog coverage + LOINC, FHIR specimen terminology, Results/Validation, patient photo, patient report (#3987)",
+          "sha": "25d9d7a",
+          "date": "2026-08-13",
+          "msg": "fix: Report Non-Conformity gating, and Patient History for multi-component tests (#4048)",
           "branch": "develop"
         }
       }
+    },
+    {
+      "id": "analyzer-file-import",
+      "title": "Analyzer file import",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:36:20.812Z",
+      "codeChanged": {
+        "count": 4,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/analyzers",
+          "frontend/src/components/genericSample"
+        ],
+        "branches": {
+          "develop": 3,
+          "demo-silnas": 1
+        },
+        "latest": {
+          "sha": "3561658",
+          "date": "2026-08-12",
+          "msg": "fix: report/analyzer breadcrumbs, the charted-report 500, and the panel Tests row (#4043)",
+          "branch": "develop"
+        }
+      }
+    },
+    {
+      "id": "analyzer-framework",
+      "title": "Analyzer integration framework",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:36:23.470Z",
+      "codeChanged": {
+        "count": 4,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/analyzers"
+        ],
+        "branches": {
+          "develop": 3,
+          "demo-silnas": 1
+        },
+        "latest": {
+          "sha": "3561658",
+          "date": "2026-08-12",
+          "msg": "fix: report/analyzer breadcrumbs, the charted-report 500, and the panel Tests row (#4043)",
+          "branch": "develop"
+        }
+      }
+    },
+    {
+      "id": "application-properties",
+      "title": "Application Properties",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1439367188 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:37:38.280Z"
+    },
+    {
+      "id": "barcode-labels",
+      "title": "Barcode label management",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:36:26.135Z",
+      "codeChanged": {
+        "count": 2,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/printBarcode",
+          "frontend/src/components/barcodeWorkflow"
+        ],
+        "branches": {
+          "develop": 2,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "2472856",
+          "date": "2026-08-12",
+          "msg": "feat(OGC-224): Panel Management Redesign \u2014 Domain Upgrade v2.2 (#4039)",
+          "branch": "develop"
+        }
+      }
+    },
+    {
+      "id": "calculated-value-tests",
+      "title": "Calculated Value Tests",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1438842886 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:38:56.730Z"
+    },
+    {
+      "id": "calendar-management",
+      "title": "Calendar Management",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1439334404 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:39:04.762Z"
+    },
+    {
+      "id": "dictionary-menu",
+      "title": "Dictionary Menu",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1438973976 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:38:51.379Z"
+    },
+    {
+      "id": "electronic-lab-notebook",
+      "title": "Electronic lab notebook",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:36:28.804Z",
+      "codeChanged": {
+        "count": 2,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/notebook"
+        ],
+        "branches": {
+          "develop": 2,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "2472856",
+          "date": "2026-08-12",
+          "msg": "feat(OGC-224): Panel Management Redesign \u2014 Domain Upgrade v2.2 (#4039)",
+          "branch": "develop"
+        }
+      }
+    },
+    {
+      "id": "electronic-signatures",
+      "title": "Electronic signatures",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:36:34.122Z",
+      "codeChanged": {
+        "count": 12,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/esignature",
+          "frontend/src/components/validation"
+        ],
+        "branches": {
+          "develop": 8,
+          "demo-silnas": 4
+        },
+        "latest": {
+          "sha": "2472856",
+          "date": "2026-08-12",
+          "msg": "feat(OGC-224): Panel Management Redesign \u2014 Domain Upgrade v2.2 (#4039)",
+          "branch": "develop"
+        }
+      }
+    },
+    {
+      "id": "eqa",
+      "title": "EQA / proficiency testing",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:36:42.111Z",
+      "codeChanged": {
+        "count": 1,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/eqa"
+        ],
+        "branches": {
+          "develop": 1,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "c6c6d61",
+          "date": "2026-08-03",
+          "msg": "chore(frontend): remove dead code (#3953)",
+          "branch": "develop"
+        }
+      }
+    },
+    {
+      "id": "lab-number-management",
+      "title": "Lab Number Management",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1439170565 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:37:32.945Z"
+    },
+    {
+      "id": "logging-configuration",
+      "title": "Logging Configuration",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1438908431 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:38:46.041Z"
+    },
+    {
+      "id": "menu-configuration",
+      "title": "Menu Configuration",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1439694850 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:39:02.094Z"
+    },
+    {
+      "id": "nce-capa",
+      "title": "Non-conforming events (NCE) & CAPA",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:36:50.143Z",
+      "codeChanged": {
+        "count": 2,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/nonconform"
+        ],
+        "branches": {
+          "develop": 1,
+          "demo-silnas": 1
+        },
+        "latest": {
+          "sha": "c6c6d61",
+          "date": "2026-08-03",
+          "msg": "chore(frontend): remove dead code (#3953)",
+          "branch": "develop"
+        }
+      }
+    },
+    {
+      "id": "order-entry",
+      "title": "Enter a Clinical Order",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "OpenELIS Feature Design/clinical-order-entry-manual-draft.md",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:36:52.834Z",
+      "codeChanged": {
+        "count": 21,
+        "since": "2026-06-30",
+        "paths": [
+          "frontend/src/components/order",
+          "frontend/src/components/addOrder",
+          "frontend/src/components/sample"
+        ],
+        "branches": {
+          "develop": 9,
+          "demo-silnas": 12
+        },
+        "latest": {
+          "sha": "431d8cf",
+          "date": "2026-08-14",
+          "msg": "feat(rules): make alert, calculated and reflex rules component + sample-type aware (#4057)",
+          "branch": "develop"
+        }
+      }
+    },
+    {
+      "id": "organization-management",
+      "title": "Organization Management",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1437892659 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:37:27.605Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-30",
+        "paths": [
+          "frontend/src/components/admin/organizationManagement"
+        ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
+        "latest": null
+      }
+    },
+    {
+      "id": "organizations-management",
+      "title": "Organizations management",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:36:55.493Z",
+      "codeChanged": {
+        "count": 39,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/admin"
+        ],
+        "branches": {
+          "develop": 22,
+          "demo-silnas": 17
+        },
+        "latest": {
+          "sha": "431d8cf",
+          "date": "2026-08-14",
+          "msg": "feat(rules): make alert, calculated and reflex rules component + sample-type aware (#4057)",
+          "branch": "develop"
+        }
+      }
+    },
+    {
+      "id": "patient-order-enhancements",
+      "title": "Patient & order enhancements",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:37:00.807Z",
+      "codeChanged": {
+        "count": 7,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/patient"
+        ],
+        "branches": {
+          "develop": 5,
+          "demo-silnas": 2
+        },
+        "latest": {
+          "sha": "25d9d7a",
+          "date": "2026-08-13",
+          "msg": "fix: Report Non-Conformity gating, and Patient History for multi-component tests (#4048)",
+          "branch": "develop"
+        }
+      }
+    },
+    {
+      "id": "program-entry",
+      "title": "Program Entry",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1439006727 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:37:35.605Z"
+    },
+    {
+      "id": "provider-management",
+      "title": "Provider Management",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1439203334 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:37:30.278Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-30",
+        "paths": [
+          "frontend/src/components/admin/providerManagement"
+        ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
+        "latest": null
+      }
+    },
+    {
+      "id": "reflex-testing",
+      "title": "Reflex Testing",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1439137808 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:38:54.051Z"
+    },
+    {
+      "id": "result-reporting-configuration",
+      "title": "Result Reporting Configuration",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1439596548 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:39:07.420Z"
+    },
+    {
+      "id": "result-validation",
+      "title": "Result validation",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:37:08.766Z",
+      "codeChanged": {
+        "count": 11,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/validation"
+        ],
+        "branches": {
+          "develop": 7,
+          "demo-silnas": 4
+        },
+        "latest": {
+          "sha": "2472856",
+          "date": "2026-08-12",
+          "msg": "feat(OGC-224): Panel Management Redesign \u2014 Domain Upgrade v2.2 (#4039)",
+          "branch": "develop"
+        }
+      }
+    },
+    {
+      "id": "sample-shipment-referral",
+      "title": "Sample shipment & referral",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:37:14.113Z",
+      "codeChanged": {
+        "count": 4,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/shipment"
+        ],
+        "branches": {
+          "develop": 2,
+          "demo-silnas": 2
+        },
+        "latest": {
+          "sha": "2472856",
+          "date": "2026-08-12",
+          "msg": "feat(OGC-224): Panel Management Redesign \u2014 Domain Upgrade v2.2 (#4039)",
+          "branch": "develop"
+        }
+      }
+    },
+    {
+      "id": "sample-storage-management",
+      "title": "Sample storage management",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:37:22.251Z",
+      "codeChanged": {
+        "count": 4,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/storage",
+          "frontend/src/components/coldStorage"
+        ],
+        "branches": {
+          "develop": 3,
+          "demo-silnas": 1
+        },
+        "latest": {
+          "sha": "c6c6d61",
+          "date": "2026-08-03",
+          "msg": "chore(frontend): remove dead code (#3953)",
+          "branch": "develop"
+        }
+      }
+    },
+    {
+      "id": "search-index-management",
+      "title": "Search Index Management",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1438973960 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:37:43.622Z"
+    },
+    {
+      "id": "site-information",
+      "title": "Site Information",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1439432709 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:38:59.401Z"
+    },
+    {
+      "id": "test-notification-configuration",
+      "title": "Test Notification Configuration",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1439072261 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:37:40.965Z"
+    },
+    {
+      "id": "user-management",
+      "title": "User Management",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.2.1.11",
+      "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1439367205 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-08-15T08:38:48.713Z"
     },
     {
       "id": "admin-compliance-standards",
@@ -44,20 +631,20 @@
       "routeErrors": [],
       "checkedAt": "2026-08-08T08:40:56.381Z",
       "codeChanged": {
-        "count": 3,
+        "count": 4,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/admin/testManagement",
           "frontend/src/components/admin/compliance"
         ],
         "branches": {
-          "develop": 2,
+          "develop": 3,
           "demo-silnas": 1
         },
         "latest": {
-          "sha": "c6c6d61",
-          "date": "2026-08-03",
-          "msg": "chore(frontend): remove dead code (#3953)",
+          "sha": "2472856",
+          "date": "2026-08-12",
+          "msg": "feat(OGC-224): Panel Management Redesign \u2014 Domain Upgrade v2.2 (#4039)",
           "branch": "develop"
         }
       }
@@ -131,197 +718,6 @@
       "checkedAt": "2026-08-08T08:41:40.806Z"
     },
     {
-      "id": "analyzer-file-import",
-      "title": "Analyzer file import",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:36:43.006Z",
-      "codeChanged": {
-        "count": 3,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/analyzers",
-          "frontend/src/components/genericSample"
-        ],
-        "branches": {
-          "develop": 2,
-          "demo-silnas": 1
-        },
-        "latest": {
-          "sha": "c6c6d61",
-          "date": "2026-08-03",
-          "msg": "chore(frontend): remove dead code (#3953)",
-          "branch": "develop"
-        }
-      }
-    },
-    {
-      "id": "analyzer-framework",
-      "title": "Analyzer integration framework",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:36:45.667Z",
-      "codeChanged": {
-        "count": 3,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/analyzers"
-        ],
-        "branches": {
-          "develop": 2,
-          "demo-silnas": 1
-        },
-        "latest": {
-          "sha": "c6c6d61",
-          "date": "2026-08-03",
-          "msg": "chore(frontend): remove dead code (#3953)",
-          "branch": "develop"
-        }
-      }
-    },
-    {
-      "id": "application-properties",
-      "title": "Application Properties",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439367188 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:38:00.323Z"
-    },
-    {
-      "id": "barcode-labels",
-      "title": "Barcode label management",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:36:48.324Z",
-      "codeChanged": {
-        "count": 1,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/printBarcode",
-          "frontend/src/components/barcodeWorkflow"
-        ],
-        "branches": {
-          "develop": 1,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "c6c6d61",
-          "date": "2026-08-03",
-          "msg": "chore(frontend): remove dead code (#3953)",
-          "branch": "develop"
-        }
-      }
-    },
-    {
-      "id": "calculated-value-tests",
-      "title": "Calculated Value Tests",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1438842886 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:39:18.730Z"
-    },
-    {
-      "id": "calendar-management",
-      "title": "Calendar Management",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439334404 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:39:26.724Z"
-    },
-    {
-      "id": "dictionary-menu",
-      "title": "Dictionary Menu",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1438973976 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:39:13.390Z"
-    },
-    {
-      "id": "electronic-lab-notebook",
-      "title": "Electronic lab notebook",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:36:50.989Z",
-      "codeChanged": {
-        "count": 1,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/notebook"
-        ],
-        "branches": {
-          "develop": 1,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "c6c6d61",
-          "date": "2026-08-03",
-          "msg": "chore(frontend): remove dead code (#3953)",
-          "branch": "develop"
-        }
-      }
-    },
-    {
-      "id": "electronic-signatures",
-      "title": "Electronic signatures",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:36:56.306Z",
-      "codeChanged": {
-        "count": 11,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/esignature",
-          "frontend/src/components/validation"
-        ],
-        "branches": {
-          "develop": 7,
-          "demo-silnas": 4
-        },
-        "latest": {
-          "sha": "2aa4375",
-          "date": "2026-08-07",
-          "msg": "fix: change validation page link from \"View Patient\" to \"Modify Order\" (#4009)",
-          "branch": "develop"
-        }
-      }
-    },
-    {
       "id": "environmental-order-results",
       "title": "Environmental Order Entry & Results",
       "base": "https://indonesiademo.openelis-global.org",
@@ -333,7 +729,7 @@
       "routeErrors": [],
       "checkedAt": "2026-08-08T08:39:56.952Z",
       "codeChanged": {
-        "count": 23,
+        "count": 24,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/order",
@@ -341,13 +737,13 @@
           "frontend/src/components/compliance"
         ],
         "branches": {
-          "develop": 6,
+          "develop": 7,
           "demo-silnas": 17
         },
         "latest": {
-          "sha": "a9fa7b9",
-          "date": "2026-08-07",
-          "msg": "feat: make requester fields optional by default on Add Order, admin-configurable (#4003)",
+          "sha": "431d8cf",
+          "date": "2026-08-14",
+          "msg": "feat(rules): make alert, calculated and reflex rules component + sample-type aware (#4057)",
           "branch": "develop"
         }
       }
@@ -363,7 +759,7 @@
       "routeErrors": [],
       "checkedAt": "2026-08-08T08:40:19.471Z",
       "codeChanged": {
-        "count": 32,
+        "count": 39,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/order",
@@ -371,56 +767,16 @@
           "frontend/src/components/validation"
         ],
         "branches": {
-          "develop": 12,
+          "develop": 19,
           "demo-silnas": 20
         },
         "latest": {
-          "sha": "2aa4375",
-          "date": "2026-08-07",
-          "msg": "fix: change validation page link from \"View Patient\" to \"Modify Order\" (#4009)",
+          "sha": "431d8cf",
+          "date": "2026-08-14",
+          "msg": "feat(rules): make alert, calculated and reflex rules component + sample-type aware (#4057)",
           "branch": "develop"
         }
       }
-    },
-    {
-      "id": "eqa",
-      "title": "EQA / proficiency testing",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:37:04.273Z",
-      "codeChanged": {
-        "count": 1,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/eqa"
-        ],
-        "branches": {
-          "develop": 1,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "c6c6d61",
-          "date": "2026-08-03",
-          "msg": "chore(frontend): remove dead code (#3953)",
-          "branch": "develop"
-        }
-      }
-    },
-    {
-      "id": "lab-number-management",
-      "title": "Lab Number Management",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439170565 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:37:55.014Z"
     },
     {
       "id": "laporan-hasil-report",
@@ -447,89 +803,6 @@
       }
     },
     {
-      "id": "logging-configuration",
-      "title": "Logging Configuration",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1438908431 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:39:08.069Z"
-    },
-    {
-      "id": "menu-configuration",
-      "title": "Menu Configuration",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439694850 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:39:24.062Z"
-    },
-    {
-      "id": "nce-capa",
-      "title": "Non-conforming events (NCE) & CAPA",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:37:12.337Z",
-      "codeChanged": {
-        "count": 2,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/nonconform"
-        ],
-        "branches": {
-          "develop": 1,
-          "demo-silnas": 1
-        },
-        "latest": {
-          "sha": "c6c6d61",
-          "date": "2026-08-03",
-          "msg": "chore(frontend): remove dead code (#3953)",
-          "branch": "develop"
-        }
-      }
-    },
-    {
-      "id": "order-entry",
-      "title": "Enter a Clinical Order",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "OpenELIS Feature Design/clinical-order-entry-manual-draft.md",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:37:15.034Z",
-      "codeChanged": {
-        "count": 19,
-        "since": "2026-06-30",
-        "paths": [
-          "frontend/src/components/order",
-          "frontend/src/components/addOrder",
-          "frontend/src/components/sample"
-        ],
-        "branches": {
-          "develop": 7,
-          "demo-silnas": 12
-        },
-        "latest": {
-          "sha": "a9fa7b9",
-          "date": "2026-08-07",
-          "msg": "feat: make requester fields optional by default on Add Order, admin-configurable (#4003)",
-          "branch": "develop"
-        }
-      }
-    },
-    {
       "id": "order-search",
       "title": "Order Search & Lookup",
       "base": "https://indonesiademo.openelis-global.org",
@@ -540,58 +813,6 @@
       "missingAnchors": [],
       "routeErrors": [],
       "checkedAt": "2026-08-08T08:41:28.286Z"
-    },
-    {
-      "id": "organization-management",
-      "title": "Organization Management",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1437892659 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:37:49.688Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-30",
-        "paths": [
-          "frontend/src/components/admin/organizationManagement"
-        ],
-        "branches": {
-          "develop": 0,
-          "demo-silnas": 0
-        },
-        "latest": null
-      }
-    },
-    {
-      "id": "organizations-management",
-      "title": "Organizations management",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:37:17.679Z",
-      "codeChanged": {
-        "count": 34,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/admin"
-        ],
-        "branches": {
-          "develop": 17,
-          "demo-silnas": 17
-        },
-        "latest": {
-          "sha": "c1db8ce",
-          "date": "2026-08-05",
-          "msg": "fix: catalog coverage + LOINC, FHIR specimen terminology, Results/Validation, patient photo, patient report (#3987)",
-          "branch": "develop"
-        }
-      }
     },
     {
       "id": "patient-management",
@@ -618,70 +839,6 @@
       "checkedAt": "2026-08-08T08:41:46.080Z"
     },
     {
-      "id": "patient-order-enhancements",
-      "title": "Patient & order enhancements",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:37:22.980Z",
-      "codeChanged": {
-        "count": 6,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/patient"
-        ],
-        "branches": {
-          "develop": 4,
-          "demo-silnas": 2
-        },
-        "latest": {
-          "sha": "c1db8ce",
-          "date": "2026-08-05",
-          "msg": "fix: catalog coverage + LOINC, FHIR specimen terminology, Results/Validation, patient photo, patient report (#3987)",
-          "branch": "develop"
-        }
-      }
-    },
-    {
-      "id": "program-entry",
-      "title": "Program Entry",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439006727 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:37:57.672Z"
-    },
-    {
-      "id": "provider-management",
-      "title": "Provider Management",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439203334 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:37:52.355Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-30",
-        "paths": [
-          "frontend/src/components/admin/providerManagement"
-        ],
-        "branches": {
-          "develop": 0,
-          "demo-silnas": 0
-        },
-        "latest": null
-      }
-    },
-    {
       "id": "reference-lab-results",
       "title": "Reference Lab Results",
       "base": "https://indonesiademo.openelis-global.org",
@@ -706,18 +863,6 @@
       }
     },
     {
-      "id": "reflex-testing",
-      "title": "Reflex Testing",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439137808 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:39:16.048Z"
-    },
-    {
       "id": "register-new-patient",
       "title": "Register a New Patient",
       "base": "https://indonesiademo.openelis-global.org",
@@ -728,46 +873,6 @@
       "missingAnchors": [],
       "routeErrors": [],
       "checkedAt": "2026-08-08T08:41:51.150Z"
-    },
-    {
-      "id": "result-reporting-configuration",
-      "title": "Result Reporting Configuration",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439596548 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:39:29.374Z"
-    },
-    {
-      "id": "result-validation",
-      "title": "Result validation",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:37:30.920Z",
-      "codeChanged": {
-        "count": 10,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/validation"
-        ],
-        "branches": {
-          "develop": 6,
-          "demo-silnas": 4
-        },
-        "latest": {
-          "sha": "2aa4375",
-          "date": "2026-08-07",
-          "msg": "fix: change validation page link from \"View Patient\" to \"Modify Order\" (#4009)",
-          "branch": "develop"
-        }
-      }
     },
     {
       "id": "results-entry",
@@ -818,34 +923,6 @@
       }
     },
     {
-      "id": "sample-shipment-referral",
-      "title": "Sample shipment & referral",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:37:36.264Z",
-      "codeChanged": {
-        "count": 3,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/shipment"
-        ],
-        "branches": {
-          "develop": 1,
-          "demo-silnas": 2
-        },
-        "latest": {
-          "sha": "c6c6d61",
-          "date": "2026-08-03",
-          "msg": "chore(frontend): remove dead code (#3953)",
-          "branch": "develop"
-        }
-      }
-    },
-    {
       "id": "sample-storage",
       "title": "Sample Storage",
       "base": "https://indonesiademo.openelis-global.org",
@@ -856,83 +933,6 @@
       "missingAnchors": [],
       "routeErrors": [],
       "checkedAt": "2026-08-08T08:41:32.851Z"
-    },
-    {
-      "id": "sample-storage-management",
-      "title": "Sample storage management",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:37:44.317Z",
-      "codeChanged": {
-        "count": 4,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/storage",
-          "frontend/src/components/coldStorage"
-        ],
-        "branches": {
-          "develop": 3,
-          "demo-silnas": 1
-        },
-        "latest": {
-          "sha": "c6c6d61",
-          "date": "2026-08-03",
-          "msg": "chore(frontend): remove dead code (#3953)",
-          "branch": "develop"
-        }
-      }
-    },
-    {
-      "id": "search-index-management",
-      "title": "Search Index Management",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1438973960 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:38:05.662Z"
-    },
-    {
-      "id": "site-information",
-      "title": "Site Information",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439432709 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:39:21.394Z"
-    },
-    {
-      "id": "test-notification-configuration",
-      "title": "Test Notification Configuration",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439072261 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:38:03.010Z"
-    },
-    {
-      "id": "user-management",
-      "title": "User Management",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.2.1.11",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1439367205 (draft)",
-      "status": "review",
-      "missingAnchors": [],
-      "routeErrors": [],
-      "checkedAt": "2026-08-08T08:39:10.732Z"
     },
     {
       "id": "validation",

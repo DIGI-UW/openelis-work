@@ -1,16 +1,16 @@
 {
-  "generated": "2026-08-09",
+  "generated": "2026-08-23",
   "counts": {
-    "total": 67,
+    "total": 70,
     "by_maturity": {
-      "production": 43,
+      "production": 46,
       "planned": 4,
       "in-development": 11,
       "beta": 4,
       "available": 5
     },
     "with_manual_page": 24,
-    "shipped_without_manual": 28
+    "shipped_without_manual": 31
   },
   "capabilities": [
     {
@@ -28,8 +28,8 @@
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/261423127",
       "manual_status": null,
-      "last_change_release": "3.2.1.11",
-      "last_change_date": "2026-07-14"
+      "last_change_release": "3.2.2.0",
+      "last_change_date": "2026-08-18"
     },
     {
       "id": "results-entry",
@@ -42,12 +42,15 @@
       "maturity": "production",
       "since": "v3.1",
       "jira": [
-        "OGC-811"
+        "OGC-811",
+        "OGC-1020",
+        "OGC-1170",
+        "OGC-1179"
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278626329",
       "manual_status": null,
-      "last_change_release": "3.2.1.11",
-      "last_change_date": "2026-07-14"
+      "last_change_release": "3.2.2.0",
+      "last_change_date": "2026-08-18"
     },
     {
       "id": "result-validation",
@@ -65,8 +68,8 @@
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/284196875",
       "manual_status": null,
-      "last_change_release": "3.2.1.11",
-      "last_change_date": "2026-07-14"
+      "last_change_release": "3.2.2.0",
+      "last_change_date": "2026-08-18"
     },
     {
       "id": "electronic-lab-notebook",
@@ -152,8 +155,8 @@
       "jira": [],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1047658526",
       "manual_status": null,
-      "last_change_release": "3.2.1.7",
-      "last_change_date": "2026-05-01"
+      "last_change_release": "3.2.2.0",
+      "last_change_date": "2026-08-18"
     },
     {
       "id": "sample-shipment-referral",
@@ -798,13 +801,14 @@
         "OGC-1112",
         "OGC-189",
         "OGC-214",
-        "OGC-224",
-        "OGC-1142"
+        "OGC-1142",
+        "OGC-1145",
+        "OGC-1153"
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/257228825",
       "manual_status": null,
-      "last_change_release": "3.2.1.11",
-      "last_change_date": "2026-07-14"
+      "last_change_release": "3.2.2.0",
+      "last_change_date": "2026-08-18"
     },
     {
       "id": "range-editor",
@@ -826,6 +830,40 @@
       "manual_status": null,
       "last_change_release": "3.2.1.11",
       "last_change_date": "2026-07-14"
+    },
+    {
+      "id": "sample-type-management",
+      "name": "Sample type management",
+      "area": "Test Catalog & Admin",
+      "domain": [
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.2.0",
+      "jira": [
+        "OGC-296"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.2.0",
+      "last_change_date": "2026-08-18"
+    },
+    {
+      "id": "panel-management",
+      "name": "Panel management",
+      "area": "Test Catalog & Admin",
+      "domain": [
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.2.0",
+      "jira": [
+        "OGC-224"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.2.0",
+      "last_change_date": "2026-08-18"
     },
     {
       "id": "organizations-management",
@@ -997,8 +1035,8 @@
       "jira": [],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278560771",
       "manual_status": null,
-      "last_change_release": null,
-      "last_change_date": null
+      "last_change_release": "3.2.2.0",
+      "last_change_date": "2026-08-18"
     },
     {
       "id": "catalyst-ai",
@@ -1060,8 +1098,8 @@
       "jira": [],
       "manual_page": null,
       "manual_status": null,
-      "last_change_release": "3.2.1.7",
-      "last_change_date": "2026-05-01"
+      "last_change_release": "3.2.2.0",
+      "last_change_date": "2026-08-18"
     },
     {
       "id": "security-hardening",
@@ -1077,8 +1115,8 @@
       ],
       "manual_page": null,
       "manual_status": null,
-      "last_change_release": "3.2.1.5",
-      "last_change_date": "2026-04-11"
+      "last_change_release": "3.2.2.0",
+      "last_change_date": "2026-08-18"
     },
     {
       "id": "live-logging",
@@ -1094,6 +1132,21 @@
       "manual_status": null,
       "last_change_release": "3.2.1.10",
       "last_change_date": "2026-06-04"
+    },
+    {
+      "id": "deployment-i18n",
+      "name": "Deployment-configurable translations",
+      "area": "Platform & AI",
+      "domain": [
+        "platform"
+      ],
+      "maturity": "production",
+      "since": "3.2.2.0",
+      "jira": [],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.2.0",
+      "last_change_date": "2026-08-18"
     },
     {
       "id": "blood-bank-component-types",

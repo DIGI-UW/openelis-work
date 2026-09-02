@@ -126,3 +126,13 @@ add a confirmation date. Promote new verified facts here as they surface in QA o
   linkage, configurable Label Presets, alert acknowledgment — superseding D-017/018/019 and
   adding D-048. Added a verified route-correction table; six previously-documented routes are
   wrong or nonexistent.
+
+- **2026-09-02 (monthly consolidation):** constitution re-checked against upstream raw file —
+  **still v1.11.0** (`Ratified 2025-10-30 | Last Amended 2026-07-15`), no change since the
+  2026-08-01 sync; re-sync trigger did not fire. Verified OGC-657 (PR #3840) is closed/not
+  merged via GitHub (see `spec-registry.md` 2026-09-02 note) — the Inventory redesign's
+  Storage-model dependency is not delivered, correcting the prior "in PR #3840 (open)" note.
+  No other route/data claims re-verified live this pass (see Section B — testing.openelis-global.org
+  route re-verification deferred: authenticated session/JS execution blocked by tool-use policy in
+  the unattended run; build hash cross-confirmed unchanged via the `openelis-qa-tracker` artifact's
+  own 2026-09-01 drift check instead).

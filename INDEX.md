@@ -39,6 +39,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Admin Shell | [preview](designs/admin-config/admin-shell.html) | [admin-shell.md](designs/admin-config/admin-shell.md) |
 | Admin Pattern Library | [preview](designs/admin-config/admin-pattern-library.html) | [admin-pattern-library.md](designs/admin-config/admin-pattern-library.md) |
 | Admin Phase 5 Roadmap | — | [admin-phase5-roadmap.md](designs/admin-config/admin-phase5-roadmap.md) |
+| Admin Phase 5 Finalization | [preview](designs/admin-config/admin-phase5-finalization.html) | [admin-phase5-finalization.md](designs/admin-config/admin-phase5-finalization.md) |
 | Test Rules Authoring — MVP | [list view ⬢](designs/admin-config/test-rules-list-view-preview.html) · [reflex editor](designs/admin-config/reflex-tests-redesign-preview.html) · [calc formula bar](designs/admin-config/calculated-values-redesign-v2-preview.html) · [calc decision table](designs/admin-config/calc-decision-table-preview.html) · [algorithm canvas (Ph2)](designs/admin-config/algorithm-as-graph-preview.html) | [test-rules-mvp-frs.md](designs/admin-config/test-rules-mvp-frs.md) |
 | Sample Type Management | [sample-type-management.jsx](designs/admin-config/sample-type-management.jsx) | [sample-type-management.md](designs/admin-config/sample-type-management.md) |
 
@@ -218,6 +219,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Feature | Mockup | Spec |
 |---------|--------|------|
 | Multiple Samples per Test at Order Entry | [preview](designs/sample-collection/multi-sample-order-entry-preview.html) | [multi-sample-order-entry.md](designs/sample-collection/multi-sample-order-entry.md) |
+| Combined Collections at Order Entry (WITHDRAWN) | [preview](designs/sample-collection/combined-collections-order-entry-preview.html) | [combined-collections-order-entry.md](designs/sample-collection/combined-collections-order-entry.md) |
 | Sample Collection Redesign | [sample-collection-redesign-mockup.html](designs/sample-collection/sample-collection-redesign-mockup.html) | [sample-collection-redesign.md](designs/sample-collection/sample-collection-redesign.md) |
 | Sampling Site Registry | [sampling-site-registry.jsx](designs/sample-collection/sampling-site-registry.jsx) | [sampling-site-registry.md](designs/sample-collection/sampling-site-registry.md) |
 | Environmental Order Entry | [environmental-order-entry.jsx](designs/sample-collection/environmental-order-entry.jsx) | [environmental-order-entry.md](designs/sample-collection/environmental-order-entry.md) |

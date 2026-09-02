@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-08T08:43:34Z",
+  "generatedAt": "2026-08-15T08:43:54Z",
   "repo": "DIGI-UW/OpenELIS-Global-2",
   "branchesWatched": [
     "develop",
@@ -7,42 +7,19 @@
   ],
   "windows": {
     "develop": {
-      "base": "b2c061cc",
-      "head": "e824e97f",
-      "commitCount": 89,
+      "base": "fa2ce0be",
+      "head": "785332c7",
+      "commitCount": 94,
       "windowDays": 30
     },
     "demo-silnas": {
-      "base": "31141f6e",
+      "base": "fa2ce0be",
       "head": "5fa095f3",
-      "commitCount": 110,
+      "commitCount": 101,
       "windowDays": 30
     }
   },
   "uncovered": [
-    {
-      "componentDir": "frontend/src/components/layout",
-      "branches": [
-        "demo-silnas",
-        "develop"
-      ],
-      "fileCount": 13,
-      "files": [
-        "frontend/src/components/layout/Header.jsx",
-        "frontend/src/components/layout/Header.test.jsx",
-        "frontend/src/components/layout/Layout.jsx",
-        "frontend/src/components/layout/Layout.test.jsx",
-        "frontend/src/components/layout/_archive/TwoModeLayout.css",
-        "frontend/src/components/layout/_archive/TwoModeLayout.jsx",
-        "frontend/src/components/layout/index.js",
-        "frontend/src/components/layout/useSideNavPreference.jsx",
-        "frontend/src/components/layout/useSideNavPreference.test.jsx",
-        "frontend/src/components/layout/HelpMenu.jsx",
-        "frontend/src/components/layout/search/searchBar.tsx",
-        "frontend/src/components/layout/search/searchOutput.tsx",
-        "frontend/src/components/layout/search/searchService.ts"
-      ]
-    },
     {
       "componentDir": "frontend/src/components/data",
       "branches": [
@@ -74,24 +51,45 @@
       "fileCount": 11,
       "files": [
         "frontend/src/components/common/Frame.jsx",
+        "frontend/src/components/common/PageBreadCrumb.jsx",
+        "frontend/src/components/common/PageBreadCrumb.test.jsx",
         "frontend/src/components/common/PageTitle/PageTitle.test.tsx",
         "frontend/src/components/common/PageTitle/PageTitle.tsx",
         "frontend/src/components/common/RouteErrorBoundary.test.jsx",
         "frontend/src/components/common/Spinner.jsx",
-        "frontend/src/components/common/cascadingMultiSelect.jsx",
         "frontend/src/components/common/useDomains.js",
-        "frontend/src/components/common/CustomDatePicker.jsx",
-        "frontend/src/components/common/CustomDatePicker.test.jsx",
+        "frontend/src/components/common/CustomSelect.jsx",
         "frontend/src/components/common/useUrlFilters.js",
         "frontend/src/components/common/useUrlFilters.test.jsx"
       ]
     },
     {
-      "componentDir": "frontend/src/components/formModel",
+      "componentDir": "frontend/src/components/layout",
       "branches": [
+        "demo-silnas",
         "develop"
       ],
-      "fileCount": 7,
+      "fileCount": 10,
+      "files": [
+        "frontend/src/components/layout/Header.jsx",
+        "frontend/src/components/layout/Header.test.jsx",
+        "frontend/src/components/layout/Layout.jsx",
+        "frontend/src/components/layout/Layout.test.jsx",
+        "frontend/src/components/layout/_archive/TwoModeLayout.css",
+        "frontend/src/components/layout/_archive/TwoModeLayout.jsx",
+        "frontend/src/components/layout/index.js",
+        "frontend/src/components/layout/search/searchOutput.tsx",
+        "frontend/src/components/layout/useSideNavPreference.jsx",
+        "frontend/src/components/layout/useSideNavPreference.test.jsx"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/formModel",
+      "branches": [
+        "demo-silnas",
+        "develop"
+      ],
+      "fileCount": 9,
       "files": [
         "frontend/src/components/formModel/innitialValues/BarcodeConfigurationFormValues.js",
         "frontend/src/components/formModel/innitialValues/OrderEntryFormValues.js",
@@ -99,38 +97,53 @@
         "frontend/src/components/formModel/result/ResultValidationSchema.js",
         "frontend/src/components/formModel/validationSchema/OrderEntryValidationSchema.js",
         "frontend/src/components/formModel/validationSchema/OrderEntryValidationSchema.test.js",
-        "frontend/src/components/formModel/validationSchema/RuleBuilderValidationSchema.js"
+        "frontend/src/components/formModel/validationSchema/RuleBuilderValidationSchema.js",
+        "frontend/src/components/formModel/innitialValues/ReferredOutTestsFormValues.js",
+        "frontend/src/components/formModel/innitialValues/SearchResultFormValues.js"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/vectorIdentification",
+      "branches": [
+        "demo-silnas"
+      ],
+      "fileCount": 8,
+      "files": [
+        "frontend/src/components/vectorIdentification/VectorBulkApplyTile.jsx",
+        "frontend/src/components/vectorIdentification/VectorDeconvolutionWorklist.jsx",
+        "frontend/src/components/vectorIdentification/VectorIdentificationService.js",
+        "frontend/src/components/vectorIdentification/VectorIdentificationWorklist.jsx",
+        "frontend/src/components/vectorIdentification/VectorInlineDeconPanel.jsx",
+        "frontend/src/components/vectorIdentification/VectorLotDetail.jsx",
+        "frontend/src/components/vectorIdentification/VectorSpecimenForm.jsx",
+        "frontend/src/components/vectorIdentification/index.js"
       ]
     },
     {
       "componentDir": "frontend/src/components/inventory",
       "branches": [
-        "demo-silnas",
         "develop"
       ],
-      "fileCount": 6,
+      "fileCount": 5,
       "files": [
         "frontend/src/components/inventory/InventoryItemForm.jsx",
         "frontend/src/components/inventory/InventoryList.jsx",
         "frontend/src/components/inventory/InventoryReportsModal.jsx",
         "frontend/src/components/inventory/LotDetailsPanel.jsx",
-        "frontend/src/components/inventory/StorageLocationModal.jsx",
-        "frontend/src/components/inventory/LotEntryModal.jsx"
+        "frontend/src/components/inventory/StorageLocationModal.jsx"
       ]
     },
     {
       "componentDir": "frontend/src/components/modifyOrder",
       "branches": [
-        "demo-silnas",
         "develop"
       ],
-      "fileCount": 5,
+      "fileCount": 4,
       "files": [
         "frontend/src/components/modifyOrder/EditOrderEntryAdditionalQuestions.jsx",
+        "frontend/src/components/modifyOrder/Index.jsx",
         "frontend/src/components/modifyOrder/ModifyOrder.jsx",
-        "frontend/src/components/modifyOrder/SearchOrder.jsx",
-        "frontend/src/components/modifyOrder/SendToAnalyzerButton.jsx",
-        "frontend/src/components/modifyOrder/__tests__/SendToAnalyzerButton.test.jsx"
+        "frontend/src/components/modifyOrder/SearchOrder.jsx"
       ]
     },
     {
@@ -149,12 +162,27 @@
     {
       "componentDir": "frontend/src/components/alerts",
       "branches": [
+        "demo-silnas",
         "develop"
       ],
-      "fileCount": 2,
+      "fileCount": 3,
       "files": [
+        "frontend/src/components/alerts/AlertsDashboard.jsx",
         "frontend/src/components/alerts/EQADeadlineSummary.jsx",
         "frontend/src/components/alerts/__tests__/AlertsDashboard.test.jsx"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/analyserResults",
+      "branches": [
+        "demo-silnas",
+        "develop"
+      ],
+      "fileCount": 3,
+      "files": [
+        "frontend/src/components/analyserResults/AnalyserResults.jsx",
+        "frontend/src/components/analyserResults/Index.jsx",
+        "frontend/src/components/analyserResults/Index.test.js"
       ]
     },
     {
@@ -169,14 +197,71 @@
       ]
     },
     {
+      "componentDir": "frontend/src/components/cytology",
+      "branches": [
+        "demo-silnas",
+        "develop"
+      ],
+      "fileCount": 2,
+      "files": [
+        "frontend/src/components/cytology/CytologyCaseView.jsx",
+        "frontend/src/components/cytology/CytologyDashBoard.jsx"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/eOrder",
+      "branches": [
+        "develop"
+      ],
+      "fileCount": 2,
+      "files": [
+        "frontend/src/components/eOrder/EOrderSearch.jsx",
+        "frontend/src/components/eOrder/Index.jsx"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/immunohistochemistry",
+      "branches": [
+        "develop"
+      ],
+      "fileCount": 2,
+      "files": [
+        "frontend/src/components/immunohistochemistry/ImmunohistochemistryCaseView.jsx",
+        "frontend/src/components/immunohistochemistry/ImmunohistochemistryDashboard.jsx"
+      ]
+    },
+    {
       "componentDir": "frontend/src/components/notifications",
       "branches": [
+        "demo-silnas",
         "develop"
       ],
       "fileCount": 2,
       "files": [
         "frontend/src/components/notifications/SlideOverNotifications.jsx",
         "frontend/src/components/notifications/Spinner.jsx"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/pathology",
+      "branches": [
+        "develop"
+      ],
+      "fileCount": 2,
+      "files": [
+        "frontend/src/components/pathology/PathologyCaseView.jsx",
+        "frontend/src/components/pathology/PathologyDashboard.jsx"
+      ]
+    },
+    {
+      "componentDir": "frontend/src/components/reports",
+      "branches": [
+        "demo-silnas"
+      ],
+      "fileCount": 2,
+      "files": [
+        "frontend/src/components/reports/Routine.jsx",
+        "frontend/src/components/reports/routine/Index.jsx"
       ]
     },
     {
@@ -211,38 +296,6 @@
       ]
     },
     {
-      "componentDir": "frontend/src/components/analyserResults",
-      "branches": [
-        "demo-silnas",
-        "develop"
-      ],
-      "fileCount": 1,
-      "files": [
-        "frontend/src/components/analyserResults/AnalyserResults.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/cytology",
-      "branches": [
-        "demo-silnas",
-        "develop"
-      ],
-      "fileCount": 1,
-      "files": [
-        "frontend/src/components/cytology/CytologyCaseView.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/eOrder",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 1,
-      "files": [
-        "frontend/src/components/eOrder/EOrderSearch.jsx"
-      ]
-    },
-    {
       "componentDir": "frontend/src/components/index.js",
       "branches": [
         "develop"
@@ -259,7 +312,7 @@
       ],
       "fileCount": 1,
       "files": [
-        "frontend/src/components/home/LandingPage.tsx"
+        "frontend/src/components/home/Dashboard.tsx"
       ]
     },
     {
