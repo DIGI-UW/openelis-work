@@ -117,6 +117,10 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Pathology Case View | [pathology-case-view.jsx](designs/pathology/pathology-case-view.jsx) | [pathology-case-view.md](designs/pathology/pathology-case-view.md) |
 | IHC Case View | [ihc-case-view.jsx](designs/pathology/ihc-case-view.jsx) | [ihc-case-view.md](designs/pathology/ihc-case-view.md) |
 | Cytology Case View | [cytology-case-view.jsx](designs/pathology/cytology-case-view.jsx) | [cytology-case-view.md](designs/pathology/cytology-case-view.md) |
+| **Case View Shell** (shared contract) | — | [case-view-shell.md](designs/pathology/case-view-shell.md) |
+| **Pathology Case View v2** | [pathology-case-view-mockup.jsx](designs/pathology/pathology-case-view-mockup.jsx) · [preview](designs/pathology/pathology-case-view-v2-preview.html) | [pathology-case-view-v2.md](designs/pathology/pathology-case-view-v2.md) · [slicing guide](designs/pathology/pathology-case-view-breakdown.md) · [handoff](designs/pathology/volunteer-handoff.md) |
+| **IHC Case View v2** (held) | [preview](designs/pathology/ihc-case-view-v2-preview.html) | [ihc-case-view-v2.md](designs/pathology/ihc-case-view-v2.md) · [threshold seed review](designs/pathology/ihc-threshold-seed-review.md) |
+| **The Specimen Journey** (dev orientation) | [specimen-journey.html](designs/pathology/specimen-journey.html) | — |
 
 ## Quality
 
