@@ -1082,7 +1082,7 @@
   type: mockup
   path: designs/pathology/pathology-case-view.jsx
   category: pathology
-  description: Pathology case view and reporting redesign
+  description: "SUPERSEDED (Dec 2025) — replaced by pathology-case-view-mockup. Kept for provenance; do not build from it"
   paired_with: pathology-case-view-spec
   links: {}
   added: "2026-03-03"
@@ -1091,7 +1091,7 @@
   type: spec
   path: designs/pathology/pathology-case-view.md
   category: pathology
-  description: Pathology case view FRS
+  description: "SUPERSEDED (Dec 2025) — replaced by pathology-case-view-v2. Kept for provenance; do not build from it"
   paired_with: pathology-case-view
   links: {}
   added: "2026-03-03"
@@ -1100,7 +1100,7 @@
   type: mockup
   path: designs/pathology/ihc-case-view.jsx
   category: pathology
-  description: Immunohistochemistry case view and scoring
+  description: "SUPERSEDED (Dec 2025) — replaced by ihc-case-view-v2-mockup. Kept for provenance; do not build from it"
   paired_with: ihc-case-view-spec
   links: {}
   added: "2026-03-03"
@@ -1109,7 +1109,7 @@
   type: spec
   path: designs/pathology/ihc-case-view.md
   category: pathology
-  description: IHC case view FRS
+  description: "SUPERSEDED (Dec 2025) — replaced by ihc-case-view-v2. Kept for provenance; do not build from it"
   paired_with: ihc-case-view
   links: {}
   added: "2026-03-03"
@@ -1224,7 +1224,7 @@
   path: designs/pathology/ihc-case-view-v2.md
   category: pathology
   description: IHC Case View FRS v2.0 — supersedes ihc-case-view.md (Dec 2025). Interpretive thresholds as versioned reference data on a composite key, HER2 0/1+ kept distinct, controls section, pre-analytic times. HELD from implementation pending the threshold-set mechanism
-  paired_with: ihc-case-view-v2-preview
+  paired_with: ihc-case-view-v2-mockup
   links:
     jira: [OGC-265]
     preview: https://digi-uw.github.io/openelis-work/designs/pathology/ihc-case-view-v2-preview.html
@@ -1240,6 +1240,16 @@
   links:
     preview: https://digi-uw.github.io/openelis-work/designs/pathology/ihc-case-view-v2-preview.html
     gallery: https://digi-uw.github.io/openelis-work/#/pathology/ihc-case-view-v2
+  added: "2026-09-04"
+
+- id: ihc-case-view-v2-mockup
+  type: mockup
+  path: designs/pathology/ihc-case-view-v2-mockup.jsx
+  category: pathology
+  description: IHC Case View v2 — Carbon reference implementation for developer handoff. Threshold sets modelled as versioned data resolved on the composite key, HER2 IHC 0/1+/2+/3+ as four distinct stored values, no ISH equivocal category, and every non-negotiable annotated with its FRS reference
+  paired_with: ihc-case-view-v2
+  links:
+    jira: [OGC-265]
   added: "2026-09-04"
 
 - id: ihc-threshold-seed-review
