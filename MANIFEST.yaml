@@ -1145,6 +1145,121 @@
   links: {}
   added: "2026-03-03"
 
+
+# ─── Pathology — Case View v2 harmonization pass (2026-09-04) ───
+
+- id: case-view-shell
+  type: spec
+  path: designs/pathology/case-view-shell.md
+  category: pathology
+  description: Case View Shell v1.0 — the shared structural contract (S-1..S-10) implemented by the Pathology, IHC and Cytology case views; includes the per-screen conformance table
+  links:
+    jira: [OGC-1195]
+  added: "2026-09-04"
+
+- id: pathology-case-view-v2
+  type: spec
+  path: designs/pathology/pathology-case-view-v2.md
+  category: pathology
+  description: Pathology Case View FRS v2.0 — supersedes pathology-case-view.md (Dec 2025). Reworked PathologyStatus bench stages, cassette-and-block continuous identity, slide-to-block parentage, derived reconciliation, scan-verified microtomy labelling, second-opinion consultation, critical-result hook
+  paired_with: pathology-case-view-mockup
+  links:
+    jira: [OGC-264]
+    preview: https://digi-uw.github.io/openelis-work/designs/pathology/pathology-case-view-v2-preview.html
+    gallery: https://digi-uw.github.io/openelis-work/#/pathology/pathology-case-view-v2
+  added: "2026-09-04"
+
+- id: pathology-case-view-v2-preview
+  type: html
+  path: designs/pathology/pathology-case-view-v2-preview.html
+  category: pathology
+  description: Pathology Case View v2 — interactive Carbon HTML preview. Stage and role switchers show the derived section-state model, derived reconciliation, and scan-verification match/mismatch behaviour
+  paired_with: pathology-case-view-v2
+  links:
+    preview: https://digi-uw.github.io/openelis-work/designs/pathology/pathology-case-view-v2-preview.html
+    gallery: https://digi-uw.github.io/openelis-work/#/pathology/pathology-case-view-v2
+  added: "2026-09-04"
+
+- id: pathology-case-view-mockup
+  type: mockup
+  path: designs/pathology/pathology-case-view-mockup.jsx
+  category: pathology
+  description: Pathology Case View v2 — Carbon reference implementation for developer handoff; every non-negotiable annotated with its FRS reference
+  paired_with: pathology-case-view-v2
+  links:
+    jira: [OGC-264]
+  added: "2026-09-04"
+
+- id: pathology-case-view-breakdown
+  type: spec
+  path: designs/pathology/pathology-case-view-breakdown.md
+  category: pathology
+  description: Pathology Case View v2 slicing guide — 5 versions, 15 slices, 91 points in dependency order; non-binding suggestion for the implementer. Initial ask is v1+v2 (39 points)
+  paired_with: pathology-case-view-v2
+  links:
+    jira: [OGC-264]
+  added: "2026-09-04"
+
+- id: volunteer-handoff
+  type: spec
+  path: designs/pathology/volunteer-handoff.md
+  category: pathology
+  description: Contributor orientation for the pathology case-view work — lab domain primer, the shipped entity landscape, module conventions, and what is owned by other epics
+  links:
+    jira: [OGC-264]
+  added: "2026-09-04"
+
+- id: specimen-journey
+  type: html
+  path: designs/pathology/specimen-journey.html
+  category: pathology
+  description: The Specimen Journey — illustrated developer orientation following one (fictional) patient through cytology, histopathology and IHC; SVG diagrams of the nine-stage journey and the case/part/block/slide hierarchy
+  links:
+    preview: https://digi-uw.github.io/openelis-work/designs/pathology/specimen-journey.html
+    gallery: https://digi-uw.github.io/openelis-work/#/pathology/specimen-journey
+  added: "2026-09-04"
+
+- id: ihc-case-view-v2
+  type: spec
+  path: designs/pathology/ihc-case-view-v2.md
+  category: pathology
+  description: IHC Case View FRS v2.0 — supersedes ihc-case-view.md (Dec 2025). Interpretive thresholds as versioned reference data on a composite key, HER2 0/1+ kept distinct, controls section, pre-analytic times. HELD from implementation pending the threshold-set mechanism
+  paired_with: ihc-case-view-v2-preview
+  links:
+    jira: [OGC-265]
+    preview: https://digi-uw.github.io/openelis-work/designs/pathology/ihc-case-view-v2-preview.html
+    gallery: https://digi-uw.github.io/openelis-work/#/pathology/ihc-case-view-v2
+  added: "2026-09-04"
+
+- id: ihc-case-view-v2-preview
+  type: html
+  path: designs/pathology/ihc-case-view-v2-preview.html
+  category: pathology
+  description: IHC Case View v2 — interactive Carbon HTML preview. Threshold-set switchers demonstrate the same measurement resolving differently under different guideline editions
+  paired_with: ihc-case-view-v2
+  links:
+    preview: https://digi-uw.github.io/openelis-work/designs/pathology/ihc-case-view-v2-preview.html
+    gallery: https://digi-uw.github.io/openelis-work/#/pathology/ihc-case-view-v2
+  added: "2026-09-04"
+
+- id: ihc-threshold-seed-review
+  type: spec
+  path: designs/pathology/ihc-threshold-seed-review.md
+  category: pathology
+  description: IHC interpretive threshold seed content for review — every proposed value with source, edition, date and URL, with sign-off boxes. UNREVIEWED; nothing ships until signed off
+  paired_with: ihc-case-view-v2
+  links:
+    jira: [OGC-265]
+  added: "2026-09-04"
+
+- id: pathology-v2-closing-actions
+  type: decision
+  path: designs/pathology/closing-actions.md
+  category: pathology
+  description: Closing actions for the case-view harmonization pass — cytology v2 amendment, spec-registry rows, eleven new decision-log entries (D-046..D-056), and the tickets written
+  links:
+    jira: [OGC-264, OGC-1195]
+  added: "2026-09-04"
 # ─── Quality ────────────────────────────────────────────────
 
 - id: eqa-requirements-spec

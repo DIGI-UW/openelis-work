@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IHC Case View v2 — OpenELIS Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',-apple-system,sans-serif; color:#161616; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:'IBM Plex Mono',monospace; }
+  .demo-bar { background:#161616; color:#f4f4f4; padding:8px 2rem; font-size:12px; display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap; }
+  .demo-bar label { color:#c6c6c6; margin-right:.35rem; }
+  .demo-bar select { font-size:12px; padding:2px 4px; }
+  .demo-note { color:#8d8d8d; font-style:italic; }
+  .crumb { padding:.75rem 2rem .25rem; font-size:12px; color:#525252; }
+  .crumb a { color:#0f62fe; text-decoration:none; }
+  h1.page { margin:0; padding:0 2rem .75rem; font-size:24px; font-weight:400; }
+  .patient-header { background:#f4f4f4; border-left:4px solid #0f62fe; padding:.75rem 1rem; margin:0 2rem; }
+  .patient-line { display:flex; gap:2rem; align-items:center; flex-wrap:wrap; font-size:14px; }
+  .patient-line .nm { font-weight:600; }
+  .prior { margin-top:.75rem; background:#fff; border:1px solid #e0e0e0; }
+  .prior h4 { margin:0; padding:.5rem .75rem; font-size:11px; font-weight:600; color:#525252; border-bottom:1px solid #e0e0e0; background:#f4f4f4; }
+  table.mini { width:100%; border-collapse:collapse; font-size:13px; }
+  table.mini th { text-align:left; font-weight:600; font-size:11px; color:#525252; padding:.4rem .75rem; border-bottom:1px solid #e0e0e0; }
+  table.mini td { padding:.4rem .75rem; border-bottom:1px solid #f4f4f4; }
+  .layout { display:grid; grid-template-columns:1fr 320px; gap:1rem; padding:1rem 2rem; align-items:start; }
+  .work { display:flex; flex-direction:column; gap:.6rem; }
+  .section-card { background:#fff; border:1px solid #e0e0e0; }
+  .section-header { display:flex; justify-content:space-between; align-items:center; padding:.7rem .9rem; cursor:pointer; font-size:15px; font-weight:600; }
+  .section-header:hover { background:#f4f4f4; }
+  .section-header.locked { cursor:not-allowed; opacity:.55; }
+  .section-header .chev { transition:transform .15s; display:inline-block; color:#525252; }
+  .section-header.open .chev { transform:rotate(180deg); }
+  .section-body { display:none; padding:.9rem; border-top:1px solid #e0e0e0; font-size:14px; }
+  .section-body.open { display:block; }
+  .fieldgrid { display:grid; grid-template-columns:1fr 1fr; gap:.35rem 1.5rem; font-size:13px; }
+  .fieldgrid .row { display:flex; gap:.5rem; padding:.2rem 0; border-bottom:1px solid #f4f4f4; }
+  .fieldgrid .k { color:#525252; min-width:180px; }
+  .prov { margin-top:.75rem; font-size:12px; color:#525252; }
+  textarea.ta { width:100%; box-sizing:border-box; min-height:80px; font-family:inherit; font-size:13px; padding:.5rem; border:none; border-bottom:1px solid #8d8d8d; background:#f4f4f4; }
+  .macro-bar { margin-top:.35rem; font-size:12px; color:#525252; display:flex; gap:.4rem; align-items:center; flex-wrap:wrap; }
+  .macro-pill { background:#e0e0e0; border-radius:12px; padding:1px 8px; font-family:'IBM Plex Mono',monospace; font-size:11px; }
+  table.dt { width:100%; border-collapse:collapse; font-size:13px; }
+  table.dt th { text-align:left; font-size:11px; font-weight:600; color:#525252; padding:.45rem .6rem; background:#e0e0e0; border-bottom:1px solid #c6c6c6; }
+  table.dt td { padding:.45rem .6rem; border-bottom:1px solid #f4f4f4; vertical-align:top; }
+  .mono { font-family:'IBM Plex Mono',monospace; font-size:12px; }
+  .toolbar { display:flex; gap:.5rem; align-items:center; margin-bottom:.6rem; flex-wrap:wrap; }
+  .toolbar .spacer { margin-left:auto; }
+  .chip { display:inline-flex; align-items:center; gap:.3rem; background:#e0e0e0; border-radius:12px; padding:2px 8px; font-size:12px; margin:2px 4px 2px 0; }
+  .banner { padding:.6rem .75rem; font-size:13px; display:flex; gap:.5rem; align-items:flex-start; margin-bottom:.7rem; border-left:3px solid; }
+  .banner.warn { background:#fff8e1; border-color:#f1c21b; }
+  .banner.err { background:#fff1f1; border-color:#da1e28; }
+  .banner.info { background:#edf5ff; border-color:#0f62fe; }
+  .banner.ok { background:#defbe6; border-color:#24a148; }
+  .marker { border:1px solid #e0e0e0; margin-bottom:.7rem; }
+  .marker h5 { margin:0; padding:.5rem .7rem; background:#f4f4f4; font-size:13px; display:flex; justify-content:space-between; align-items:center; gap:.5rem; }
+  .marker-body { padding:.7rem; }
+  .inputs { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:.6rem; }
+  .inputs label { display:block; font-size:11px; color:#525252; margin-bottom:.2rem; }
+  .inputs input, .inputs select { width:100%; box-sizing:border-box; font-size:13px; padding:.3rem; border:none; border-bottom:1px solid #8d8d8d; background:#fff; }
+  .derived { margin-top:.7rem; padding:.55rem .7rem; background:#edf5ff; border-left:3px solid #0f62fe; font-size:13px; }
+  .derived .setref { font-size:11px; color:#525252; font-family:'IBM Plex Mono',monospace; }
+  .provenance { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:.3rem 1rem; margin-top:.6rem; font-size:12px; color:#525252; }
+  .provenance b { color:#161616; font-weight:600; }
+  .summary { background:#fff; border:1px solid #e0e0e0; position:sticky; top:.5rem; }
+  .summary h4 { margin:0; padding:.5rem .75rem; font-size:11px; font-weight:600; color:#525252; border-bottom:1px solid #e0e0e0; }
+  .summary .row { display:flex; justify-content:space-between; gap:.5rem; padding:.35rem .75rem; font-size:13px; border-bottom:1px solid #f4f4f4; }
+  .summary .row .k { color:#525252; }
+  .action-bar { background:#fff; border-top:1px solid #e0e0e0; padding:.85rem 2rem; display:flex; justify-content:space-between; align-items:center; gap:.75rem; flex-wrap:wrap; }
+  .action-bar .status { font-size:13px; color:#525252; }
+  .btn-group { display:flex; gap:.5rem; flex-wrap:wrap; }
+  .toast { position:fixed; right:1rem; top:4.5rem; background:#161616; color:#fff; padding:.7rem 1rem; font-size:13px; z-index:99; max-width:340px; }
+  .sub { font-size:12px; color:#525252; }
+  h4.sh { margin:1rem 0 .5rem; font-size:13px; font-weight:600; }
+  .editionbox { background:#f4f4f4; border:1px dashed #8d8d8d; padding:.7rem; margin-bottom:.7rem; font-size:13px; }
+</style>
+</head>
+<body class="cds--white">
+<div class="preview-banner">
+  &#9889; Visual Preview &nbsp;|&nbsp; IHC Case View v2 &nbsp;|&nbsp; Route: <code>/ImmunohistochemistryCaseView/:immunohistochemistrySampleId</code> &nbsp;|&nbsp; OpenELIS Design Mockup &mdash; not a live application
+</div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const CASE = {
+  labNumber: '25IHC000044',
+  patient: { name: 'DOE, JANE', dob: '1965-07-22', age: 61, sex: 'F' },
+  uhid: 'UHI884420QQ',
+  referredFrom: { lab:'25TST000210', date:'2026-08-14', concl:'C50.9 Invasive ductal carcinoma, grade 2' },
+  blocks: [
+    { desig:'A1', tissue:'Breast — tumour, central' },
+    { desig:'A2', tissue:'Breast — tumour, periphery' }
+  ],
+  slides: [
+    { desig:'A1.1', stain:'ER (SP1)' }, { desig:'A1.2', stain:'PgR (1E2)' },
+    { desig:'A1.3', stain:'HER2 (4B5)' }, { desig:'A1.4', stain:'Ki-67 (30-9)' },
+    { desig:'A2.1', stain:'HER2 dual ISH' }
+  ],
+  prior: [
+    { lab:'25TST000210', date:'2026-08-14', spec:'Breast core biopsy', concl:'C50.9 Invasive ductal carcinoma' },
+    { lab:'24CYT000512', date:'2025-11-03', spec:'Breast FNA',        concl:'Suspicious for malignancy' }
+  ],
+  technician: 'Kankan Musa, Mansa',
+  pathologist: 'Samini, Privashi'
+};
+
+/* Threshold sets as DATA, each stamped with source and edition. */
+const THRESHOLD_SETS = {
+  'ER_PGR_2020': {
+    ref: 'ASCO/CAP ER-PgR 2020 · v1',
+    source: 'ASCO/CAP Guideline Update, Jan 2020 (JCO 10.1200/JCO.19.02309)',
+    effective: '2020-01-13',
+    resolve: (pct) => {
+      if (pct === null || isNaN(pct)) return null;
+      if (pct < 1) return { cat:'Negative', kind:'gray' };
+      if (pct <= 10) return { cat:'Low positive', kind:'warm-gray', comment:'ihc.banner.lowPositiveComment' };
+      return { cat:'Positive', kind:'green' };
+    }
+  },
+  'KI67_IKWG_2021': {
+    ref: 'IKWG Ki-67 2021 · v1',
+    source: 'International Ki-67 in Breast Cancer Working Group, 2021 (JNCI 113:808)',
+    effective: '2021-07-01',
+    resolve: (pct) => {
+      if (pct === null || isNaN(pct)) return null;
+      if (pct <= 5) return { cat:'Low', kind:'green' };
+      if (pct >= 30) return { cat:'High', kind:'red' };
+      return { cat:'Indeterminate', kind:'warm-gray', comment:'ihc.banner.ki67Indeterminate' };
+    }
+  },
+  'KI67_LEGACY_20': {
+    ref: 'Local legacy Ki-67 20% · v0',
+    source: 'Local protocol — single 20% cutpoint. Regulatory anchor withdrawn by FDA, March 2023.',
+    effective: '2018-01-01',
+    deprecated: true,
+    resolve: (pct) => {
+      if (pct === null || isNaN(pct)) return null;
+      return pct < 20 ? { cat:'Low', kind:'green' } : { cat:'High', kind:'red' };
+    }
+  },
+  'HER2_IHC_2023': {
+    ref: 'ASCO/CAP HER2 IHC 2023 · v1',
+    source: 'ASCO/CAP Guideline Update, Jun 2023 (JCO 10.1200/JCO.22.02864) — criteria unchanged from the 2018 focused update',
+    effective: '2023-06-07'
+  },
+  'HER2_ISH_2023': {
+    ref: 'ASCO/CAP HER2 ISH 2023 · Groups 1–5',
+    source: 'ASCO/CAP 2018 focused update, confirmed 2023. The ISH equivocal category was abolished in 2018.',
+    effective: '2023-06-07',
+    resolve: (ratio, her2) => {
+      if (ratio === null || her2 === null) return null;
+      if (ratio >= 2.0 && her2 >= 4.0) return { group:1, cat:'Positive', kind:'red' };
+      if (ratio >= 2.0 && her2 <  4.0) return { group:2, cat:'Requires concurrent IHC review', kind:'warm-gray' };
+      if (ratio <  2.0 && her2 >= 6.0) return { group:3, cat:'Requires concurrent IHC review', kind:'warm-gray' };
+      if (ratio <  2.0 && her2 >= 4.0) return { group:4, cat:'Requires concurrent IHC review', kind:'warm-gray' };
+      return { group:5, cat:'Negative', kind:'green' };
+    }
+  },
+  'HER2_ISH_2013': {
+    ref: 'ASCO/CAP HER2 ISH 2013 · superseded',
+    source: 'ASCO/CAP 2013 Update (JCO 10.1200/JCO.2013.50.9984). Superseded in 2018 — shown here only to demonstrate why the edition must be recorded.',
+    effective: '2013-10-07',
+    deprecated: true,
+    resolve: (ratio, her2) => {
+      if (ratio === null || her2 === null) return null;
+      if (ratio >= 2.0 || her2 >= 6.0) return { group:null, cat:'Positive', kind:'red' };
+      if (her2 >= 4.0 && her2 < 6.0)   return { group:null, cat:'Equivocal — retest with alternate assay', kind:'purple' };
+      return { group:null, cat:'Negative', kind:'green' };
+    }
+  }
+};
+
+function Tag({ kind, children, strong }) {
+  return <span className={"cds--tag cds--tag--" + kind} style={strong ? {background:'#da1e28',color:'#fff'} : {}}>{children}</span>;
+}
+
+function Section({ id, num, title, badge, open, onToggle, locked, lockedHint, children }) {
+  return (
+    <div className="section-card" id={id}>
+      <div className={"section-header" + (open?" open":"") + (locked?" locked":"")}
+           onClick={() => !locked && onToggle()} role="button" tabIndex={locked?-1:0} aria-expanded={open}>
+        <span style={{display:'flex',alignItems:'center',gap:'.6rem'}}><span>{num}. {title}</span>{badge}</span>
+        <span style={{display:'flex',alignItems:'center',gap:'.6rem'}}>
+          {locked && <span style={{fontSize:12,color:'#525252',fontWeight:400}}>&#128274; {lockedHint}</span>}
+          <span className="chev">&#9662;</span>
+        </span>
+      </div>
+      <div className={"section-body" + (open?" open":"")}>{children}</div>
+    </div>
+  );
+}
+
+const Prov = (props) => <div className="prov">&#8627; {props.children}</div>;
+
+function Provenance({ clone, platform, reg, scoring, counted, control, lot }) {
+  return (
+    <div className="provenance">
+      <span>Clone / probe: <b>{clone}</b></span>
+      <span>Assay &amp; platform: <b>{platform}</b></span>
+      <span>Regulatory: <b>{reg}</b></span>
+      <span>Scoring method: <b>{scoring}</b></span>
+      {counted ? <span>Cells counted: <b>{counted}</b></span> : null}
+      <span>Internal control: <b>{control}</b></span>
+      <span>External control lot: <b>{lot}</b></span>
+    </div>
+  );
+}
+
+function App() {
+  const [status, setStatus] = useState('READY_PATHOLOGIST');
+  const [open, setOpen] = useState({ info:false, pre:false, panel:false, markers:true, controls:false, find:false, rep:false });
+  const [toast, setToast] = useState(null);
+
+  const [erPct, setErPct] = useState(85);
+  const [pgrPct, setPgrPct] = useState(8);
+  const [ki67, setKi67] = useState(18);
+  const [ki67Set, setKi67Set] = useState('KI67_IKWG_2021');
+  const [her2Score, setHer2Score] = useState('2+');
+  const [ishRatio, setIshRatio] = useState(1.85);
+  const [ishHer2, setIshHer2] = useState(4.8);
+  const [ishSet, setIshSet] = useState('HER2_ISH_2023');
+
+  const toggle = (k) => setOpen(s => Object.assign({}, s, { [k]: !s[k] }));
+  const say = (m) => { setToast(m); setTimeout(() => setToast(null), 3200); };
+
+  const erSet = THRESHOLD_SETS['ER_PGR_2020'];
+  const er  = erSet.resolve(erPct);
+  const pgr = erSet.resolve(pgrPct);
+  const k67Set = THRESHOLD_SETS[ki67Set];
+  const k67 = k67Set.resolve(ki67);
+  const ish = THRESHOLD_SETS[ishSet].resolve(parseFloat(ishRatio), parseFloat(ishHer2));
+
+  const needsInternalControl = (p) => p !== null && !isNaN(p) && p <= 10;
+  const locked = status === 'IN_PROGRESS';
+  const critical = ish && ish.cat === 'Positive';
+
+  const markersDone = [er, pgr, k67, ish].filter(Boolean).length;
+
+  return (
+  <div>
+    <div className="demo-bar">
+      <span><label>Preview controls &mdash;</label></span>
+      <span><label>Status:</label>
+        <select value={status} onChange={e => setStatus(e.target.value)}>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="READY_PATHOLOGIST">Ready for Pathologist</option>
+          <option value="UNDER_REVIEW">Under Pathologist Review</option>
+          <option value="COMPLETED">Completed</option>
+        </select>
+      </span>
+      <span className="demo-note">This control exists only in the preview. The marker inputs and threshold-set pickers below are real design elements.</span>
+    </div>
+
+    <div className="crumb"><a href="#">Home</a> / <a href="#">Immunohistochemistry</a> / <a href="#">Dashboard</a> / Case {CASE.labNumber}</div>
+    <h1 className="page">Immunohistochemistry Case &mdash; {CASE.labNumber}</h1>
+
+    <div className="patient-header">
+      <div className="patient-line">
+        <span className="nm">{CASE.patient.name}</span>
+        <span>DOB {CASE.patient.dob} ({CASE.patient.age} y)</span>
+        <span>{CASE.patient.sex}</span>
+        <span className="sub">UHID {CASE.uhid}</span>
+        <span style={{marginLeft:'auto',display:'flex',gap:'1rem',alignItems:'center'}}>
+          <Tag kind="blue">{status.replace(/_/g,' ')}</Tag>
+          <span className="sub">Tech: {CASE.technician} &middot; Path: {CASE.pathologist}</span>
+        </span>
+      </div>
+      <div className="prior">
+        <h4>PRIOR ANATOMIC-PATHOLOGY RESULTS FOR THIS PATIENT</h4>
+        <table className="mini">
+          <thead><tr><th>Lab no.</th><th>Date</th><th>Specimen</th><th>Conclusion</th></tr></thead>
+          <tbody>{CASE.prior.map(p => (
+            <tr key={p.lab}><td className="mono">{p.lab}</td><td>{p.date}</td><td>{p.spec}</td><td>{p.concl}</td></tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div className="layout">
+      <div className="work">
+
+        <Section id="info" num={1} title="Case Information & Referral" badge={<span className="sub">Read only</span>}
+                 open={open.info} onToggle={() => toggle('info')}>
+          <div className="banner info"><span>&#8505;</span><span>
+            Referred from histopathology case <span className="mono">{CASE.referredFrom.lab}</span> &mdash; {CASE.referredFrom.concl}.
+            This uses the <span className="mono">pathology_sample_id</span> relationship and <span className="mono">reffered</span> flag the entity already carries. No new column on either side.
+          </span></div>
+          <h4 className="sh">Blocks and slides read from the referring case</h4>
+          <table className="dt">
+            <thead><tr><th>Block</th><th>Tissue</th></tr></thead>
+            <tbody>{CASE.blocks.map(b => <tr key={b.desig}><td className="mono">{b.desig}</td><td>{b.tissue}</td></tr>)}</tbody>
+          </table>
+          <table className="dt" style={{marginTop:'.5rem'}}>
+            <thead><tr><th>Slide</th><th>Stain</th></tr></thead>
+            <tbody>{CASE.slides.map(s => <tr key={s.desig}><td className="mono">{s.desig}</td><td>{s.stain}</td></tr>)}</tbody>
+          </table>
+          <Prov>Blocks and slides are the referring case&rsquo;s <span className="mono">pathology_block</span> and <span className="mono">pathology_slide</span> rows &mdash; already imported by <span className="mono">ImmunohistochemistryCaseViewDisplayItem</span>. IHC holds no copies, so one block has one identity across both screens.</Prov>
+        </Section>
+
+        <Section id="pre" num={2} title="Specimen & Pre-analytics" badge={<Tag kind="green">Within window</Tag>}
+                 open={open.pre} onToggle={() => toggle('pre')}>
+          <div className="inputs">
+            <span><label>Cold-ischemia time (minutes)</label><input defaultValue="22" /></span>
+            <span><label>Total fixation time (minutes)</label><input defaultValue="840" /></span>
+            <span><label>Fixative</label><select><option>10% neutral buffered formalin</option><option>Other — specify</option></select></span>
+          </div>
+          <div className="sub" style={{marginTop:'.5rem'}}>
+            Lab window: cold ischemia &le; 60 min, fixation 360&ndash;4320 min (configurable). Values outside it warn and carry a qualifying comment into the report &mdash; they do not block scoring, because the pathologist may still legitimately report with a caveat.
+          </div>
+          <div className="banner warn" style={{marginTop:'.6rem'}}><span>&#9888;</span><span>
+            Where the specimen was fixed at a referring facility and the times are unknown, they are recorded as <em>unknown</em> rather than defaulted. &ldquo;Not recorded&rdquo; is itself a reportable fact.
+          </span></div>
+          <Prov>Three nullable columns on <span className="mono">immunohistochemistry_sample</span>.</Prov>
+        </Section>
+
+        <Section id="panel" num={3} title="Panel & Markers" badge={<Tag kind="green">4 of 4 required</Tag>}
+                 open={open.panel} onToggle={() => toggle('panel')}>
+          <div className="toolbar">
+            <span><label className="sub" style={{marginRight:'.4rem'}}>Panel template:</label>
+              <select style={{fontSize:13,padding:'.3rem'}}><option>Breast — hormone receptor & HER2</option><option>Mismatch repair (MMR)</option><option>Tumour of unknown origin</option></select></span>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => say('Marker added beyond the template')}>+ Add marker</button>
+            <span className="spacer sub">Templates are dictionary and configuration content, never compiled marker lists.</span>
+          </div>
+          <table className="dt">
+            <thead><tr><th>Marker</th><th>Required</th><th>Clone</th><th>Result present</th></tr></thead>
+            <tbody>
+              {[['ER','Yes','SP1',true],['PgR','Yes','1E2',true],['HER2','Yes','4B5',true],['Ki-67','Yes','30-9',true],['HER2 dual ISH','Reflex','—',true]].map(r => (
+                <tr key={r[0]}><td>{r[0]}</td><td>{r[1]}</td><td className="mono">{r[2]}</td>
+                  <td>{r[3] ? <Tag kind="green">Yes</Tag> : <Tag kind="purple">Outstanding</Tag>}</td></tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="sub" style={{marginTop:'.5rem'}}>
+            Completion is <strong>derived from whether each required marker has a result</strong> &mdash; not from a checkbox someone ticks. The badge names what is outstanding rather than showing a bare count.
+          </div>
+          <Prov>Panel selection is a nullable <span className="mono">panel_template_id</span>; the markers are <span className="mono">ihc_marker_result</span> rows.</Prov>
+        </Section>
+
+        <Section id="markers" num={4} title="Marker Results"
+                 badge={<Tag kind="blue">{markersDone} interpreted</Tag>}
+                 open={open.markers} onToggle={() => toggle('markers')}>
+
+          <div className="banner info"><span>&#8505;</span><span>
+            Each result stores the <strong>raw measurement</strong> and the <strong>identity of the threshold set applied to it</strong>. The category is a consequence, not the record. Change a value below and watch the category and its cited edition move together.
+          </span></div>
+
+          {/* ER */}
+          <div className="marker">
+            <h5><span>ER &mdash; Oestrogen receptor</span>{er ? <Tag kind={er.kind}>{er.cat}</Tag> : null}</h5>
+            <div className="marker-body">
+              <div className="inputs">
+                <span><label>% nuclei stained</label>
+                  <input type="number" min="0" max="100" value={erPct} onChange={e => setErPct(e.target.value === '' ? null : parseFloat(e.target.value))} /></span>
+                <span><label>Intensity</label><select defaultValue="STRONG"><option value="NEGATIVE">Negative</option><option value="WEAK">Weak</option><option value="MODERATE">Moderate</option><option value="STRONG">Strong</option></select></span>
+                <span><label>Alternative score (Allred)</label><input defaultValue="8/8" /><span className="sub">supplementary only</span></span>
+              </div>
+              <div className="derived">
+                <strong>{er ? er.cat : 'Not interpreted'}</strong>{' '}
+                <span className="setref">&mdash; {erSet.ref}</span>
+                <div className="sub" style={{marginTop:'.2rem'}}>{erSet.source}</div>
+                {er && er.comment ? <div className="banner warn" style={{margin:'.5rem 0 0'}}><span>&#9888;</span><span>
+                  1&ndash;10% staining is reported as low positive. There are limited data on endocrine responsiveness in this range. This comment is threshold-set content and cannot be edited away.
+                </span></div> : null}
+              </div>
+              {needsInternalControl(erPct) ? <div className="banner err" style={{marginTop:'.6rem',marginBottom:0}} role="alert"><span>&#9888;</span><span>
+                Internal control status is <strong>required</strong> for any ER or PgR result of 0&ndash;10%. The marker cannot be completed without it.
+              </span></div> : null}
+              <Provenance clone="SP1" platform="Ventana BenchMark ULTRA" reg="FDA-cleared"
+                          scoring="Percentage + intensity" control="Present, adequate" lot="CTRL-2026-0184" />
+            </div>
+          </div>
+
+          {/* PgR */}
+          <div className="marker">
+            <h5><span>PgR &mdash; Progesterone receptor</span>{pgr ? <Tag kind={pgr.kind}>{pgr.cat}</Tag> : null}</h5>
+            <div className="marker-body">
+              <div className="inputs">
+                <span><label>% nuclei stained</label>
+                  <input type="number" min="0" max="100" value={pgrPct} onChange={e => setPgrPct(e.target.value === '' ? null : parseFloat(e.target.value))} /></span>
+                <span><label>Intensity</label><select defaultValue="MODERATE"><option value="NEGATIVE">Negative</option><option value="WEAK">Weak</option><option value="MODERATE">Moderate</option><option value="STRONG">Strong</option></select></span>
+              </div>
+              <div className="derived">
+                <strong>{pgr ? pgr.cat : 'Not interpreted'}</strong> <span className="setref">&mdash; {erSet.ref}</span>
+                {pgr && pgr.comment ? <div className="sub" style={{marginTop:'.3rem'}}>Mandatory low-positive comment applies.</div> : null}
+              </div>
+              {needsInternalControl(pgrPct) ? <div className="banner err" style={{marginTop:'.6rem',marginBottom:0}} role="alert"><span>&#9888;</span><span>
+                Internal control status required &mdash; this result is in the 0&ndash;10% band. <em>(Try changing PgR to 40% and this requirement clears.)</em>
+              </span></div> : null}
+              <Provenance clone="1E2" platform="Ventana BenchMark ULTRA" reg="FDA-cleared"
+                          scoring="Percentage + intensity" control="Present, adequate" lot="CTRL-2026-0184" />
+            </div>
+          </div>
+
+          {/* HER2 IHC */}
+          <div className="marker">
+            <h5><span>HER2 &mdash; IHC</span><Tag kind={her2Score === '3+' ? 'red' : her2Score === '2+' ? 'warm-gray' : 'green'}>{her2Score}</Tag></h5>
+            <div className="marker-body">
+              <div className="inputs">
+                <span><label>Score</label>
+                  <select value={her2Score} onChange={e => setHer2Score(e.target.value)}>
+                    <option value="0">0 — no staining observed</option>
+                    <option value="1+">1+ — incomplete, faint, &gt;10%</option>
+                    <option value="2+">2+ — weak-to-moderate complete, &gt;10%</option>
+                    <option value="3+">3+ — complete, intense circumferential, &gt;10%</option>
+                  </select></span>
+              </div>
+              <div className="derived">
+                <strong>Stored as {her2Score}</strong> <span className="setref">&mdash; {THRESHOLD_SETS['HER2_IHC_2023'].ref}</span>
+                <div className="sub" style={{marginTop:'.2rem'}}>{THRESHOLD_SETS['HER2_IHC_2023'].source}</div>
+              </div>
+              <div className="banner info" style={{marginTop:'.6rem',marginBottom:0}}><span>&#8505;</span><span>
+                <strong>0 and 1+ are distinct, non-collapsible stored values.</strong> Since trastuzumab deruxtecan was extended to IHC 1+ and 2+/ISH-negative disease, that distinction determines drug eligibility. Whether this deployment additionally renders a &ldquo;HER2-low&rdquo; descriptor is threshold-set vocabulary &mdash; ASCO/CAP declined to create the category in 2023, ESMO uses it.
+              </span></div>
+              {her2Score === '2+' ? <div className="banner warn" style={{marginTop:'.6rem',marginBottom:0}}><span>&#8594;</span><span>
+                A 2+ result reflexes to dual ISH &mdash; scored below.
+              </span></div> : null}
+              <Provenance clone="4B5" platform="Ventana BenchMark ULTRA" reg="FDA-cleared"
+                          scoring="HER2 IHC 0/1+/2+/3+" control="Present, adequate" lot="CTRL-2026-0184" />
+            </div>
+          </div>
+
+          {/* HER2 ISH — the edition demonstration */}
+          <div className="marker">
+            <h5><span>HER2 &mdash; dual ISH</span>{ish ? <Tag kind={ish.kind}>{ish.group ? 'Group ' + ish.group + ' · ' : ''}{ish.cat}</Tag> : null}</h5>
+            <div className="marker-body">
+              <div className="editionbox">
+                <strong>Why the edition has to be recorded</strong>
+                <div className="sub">The numbers below are unchanged. Switch the threshold set and the same measurement produces a different clinical result. This is the whole argument for versioned interpretive data &mdash; and for freezing the edition onto a signed-out result.</div>
+                <div style={{marginTop:'.5rem'}}>
+                  <label className="sub" style={{marginRight:'.4rem'}}>Threshold set:</label>
+                  <select value={ishSet} onChange={e => setIshSet(e.target.value)} style={{fontSize:13,padding:'.3rem'}}>
+                    <option value="HER2_ISH_2023">ASCO/CAP 2023 (current) — Groups 1–5, no equivocal</option>
+                    <option value="HER2_ISH_2013">ASCO/CAP 2013 (superseded) — has an equivocal category</option>
+                  </select>
+                </div>
+              </div>
+              <div className="inputs">
+                <span><label>Nuclei counted</label><input defaultValue="20" /></span>
+                <span><label>Avg HER2 signals / nucleus</label>
+                  <input type="number" step="0.1" value={ishHer2} onChange={e => setIshHer2(e.target.value)} /></span>
+                <span><label>Avg CEP17 signals / nucleus</label><input defaultValue="2.6" /></span>
+                <span><label>HER2 / CEP17 ratio</label>
+                  <input type="number" step="0.01" value={ishRatio} onChange={e => setIshRatio(e.target.value)} /></span>
+              </div>
+              <div className="derived">
+                <strong>{ish ? (ish.group ? 'Group ' + ish.group + ' — ' : '') + ish.cat : 'Not interpreted'}</strong>{' '}
+                <span className="setref">&mdash; {THRESHOLD_SETS[ishSet].ref}</span>
+                <div className="sub" style={{marginTop:'.2rem'}}>{THRESHOLD_SETS[ishSet].source}</div>
+              </div>
+              {THRESHOLD_SETS[ishSet].deprecated ? <div className="banner err" style={{marginTop:'.6rem',marginBottom:0}} role="alert"><span>&#9888;</span><span>
+                This threshold set is marked <strong>superseded</strong>. A deprecated set may be read back on historical results but cannot be applied to a new one. Note it produces &ldquo;Equivocal&rdquo; &mdash; a category the 2018 focused update abolished.
+              </span></div> : null}
+              <div className="banner info" style={{marginTop:'.6rem',marginBottom:0}}><span>&#8505;</span><span>
+                Groups 2, 3 and 4 route to <strong>concurrent IHC review</strong>, not to a retest-with-alternate-assay message. There is no ISH equivocal category under current guidance.
+              </span></div>
+              <Provenance clone="INFORM HER2 Dual ISH" platform="Ventana BenchMark ULTRA" reg="FDA-cleared"
+                          scoring="ISH ratio + signals per nucleus" counted="20" control="Present, adequate" lot="CTRL-2026-0191" />
+            </div>
+          </div>
+
+          {/* Ki-67 */}
+          <div className="marker">
+            <h5><span>Ki-67 &mdash; proliferation index</span>{k67 ? <Tag kind={k67.kind}>{k67.cat}</Tag> : null}</h5>
+            <div className="marker-body">
+              <div className="editionbox">
+                <div className="sub">The same demonstration, with a live consequence: the legacy single 20% cutpoint calls 18% &ldquo;Low&rdquo;; the current guideline calls it not actionable at all.</div>
+                <div style={{marginTop:'.5rem'}}>
+                  <label className="sub" style={{marginRight:'.4rem'}}>Threshold set:</label>
+                  <select value={ki67Set} onChange={e => setKi67Set(e.target.value)} style={{fontSize:13,padding:'.3rem'}}>
+                    <option value="KI67_IKWG_2021">IKWG 2021 (current) — 5% / 30% bands</option>
+                    <option value="KI67_LEGACY_20">Local legacy — single 20% cutpoint</option>
+                  </select>
+                </div>
+              </div>
+              <div className="inputs">
+                <span><label>% tumour cells positive</label>
+                  <input type="number" min="0" max="100" value={ki67} onChange={e => setKi67(e.target.value === '' ? null : parseFloat(e.target.value))} /></span>
+                <span><label>Cells counted</label><input defaultValue="500" /></span>
+              </div>
+              <div className="derived">
+                <strong>{k67 ? k67.cat : 'Not interpreted'}</strong> <span className="setref">&mdash; {k67Set.ref}</span>
+                <div className="sub" style={{marginTop:'.2rem'}}>{k67Set.source}</div>
+              </div>
+              {k67 && k67.comment ? <div className="banner warn" style={{marginTop:'.6rem',marginBottom:0}}><span>&#9888;</span><span>
+                Values between 5% and 30% are not currently actionable; concordance in this range is below the threshold the guideline accepts. The raw percentage is the durable observation and is reported prominently.
+              </span></div> : null}
+              {THRESHOLD_SETS[ki67Set].deprecated ? <div className="banner err" style={{marginTop:'.6rem',marginBottom:0}} role="alert"><span>&#9888;</span><span>
+                Deprecated set. The FDA removed the Ki-67 testing requirement from the adjuvant abemaciclib indication in March 2023, so a single 20% cutpoint now has neither prognostic nor companion-diagnostic support.
+              </span></div> : null}
+              <Provenance clone="30-9" platform="Ventana BenchMark ULTRA" reg="FDA-cleared"
+                          scoring="Percentage of tumour cells" counted="500" control="Present, adequate" lot="CTRL-2026-0184" />
+            </div>
+          </div>
+
+          <div className="banner warn"><span>&#9888;</span><span>
+            <strong>No threshold set for a combination?</strong> The measurement is recorded and the category reads <em>Not interpreted &mdash; no threshold set for this combination</em>. The screen never falls back to another set. A pathologist may override any derived category with a mandatory reason; the raw value and the set that would have applied are both retained.
+          </span></div>
+          <Prov>One <span className="mono">ihc_marker_result</span> row per marker, each carrying <span className="mono">threshold_set_ref</span>. Threshold sets themselves are owned by the Catalog Subscription epic &mdash; the same mechanism that serves AMR breakpoints.</Prov>
+        </Section>
+
+        <Section id="controls" num={5} title="Controls" badge={<Tag kind="teal">All pass</Tag>}
+                 open={open.controls} onToggle={() => toggle('controls')}>
+          <div className="banner info"><span>&#8505;</span><span>
+            This section does not exist in the December 2025 design at all, and it is required. CAP requires a predictive-marker report to state the antibody clone or probe and the scoring method; the ER/PgR guideline requires internal control status for every case scoring 0&ndash;10%.
+          </span></div>
+          <table className="dt">
+            <thead><tr><th>Marker</th><th>External control lot</th><th>Positive control</th><th>Negative control</th><th>Internal control</th></tr></thead>
+            <tbody>
+              {[['ER','CTRL-2026-0184','Pass','Pass','Present, adequate'],
+                ['PgR','CTRL-2026-0184','Pass','Pass','Present, adequate'],
+                ['HER2 IHC','CTRL-2026-0184','Pass','Pass','Present, adequate'],
+                ['HER2 ISH','CTRL-2026-0191','Pass','Pass','Present, adequate'],
+                ['Ki-67','CTRL-2026-0184','Pass','Pass','Present, adequate']].map(r => (
+                <tr key={r[0]}><td>{r[0]}</td><td className="mono">{r[1]}</td>
+                  <td><Tag kind="teal">{r[2]}</Tag></td><td><Tag kind="teal">{r[3]}</Tag></td><td>{r[4]}</td></tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="sub" style={{marginTop:'.5rem'}}>
+            A failed external control blocks the marker from completion, raises an error, and is retained rather than overwritten. Assay validation and proficiency-testing records are laboratory-level, not case-level &mdash; linked from here, not held here.
+          </div>
+          <div style={{marginTop:'.6rem'}}>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => say('Opens the laboratory-level validation and PT records')}>View assay validation &amp; PT records</button>
+          </div>
+          <Prov>Control fields live on <span className="mono">ihc_marker_result</span> &mdash; no separate controls table.</Prov>
+        </Section>
+
+        <Section id="find" num={6} title="Findings & Interpretation"
+                 badge={critical ? <Tag kind="red" strong>Critical</Tag> : <Tag kind="gray">Pending</Tag>}
+                 open={open.find} onToggle={() => toggle('find')}
+                 locked={locked} lockedHint="Available once the case is sent to the pathologist">
+          {critical ? <div className="banner err" role="alert"><span>&#9888;</span><span>
+            This result requires critical-result acknowledgment by the ordering clinician. The case will be flagged in the Alerts Dashboard on sign-out.
+          </span></div> : null}
+          <h4 className="sh">Marker summary</h4>
+          <table className="dt">
+            <thead><tr><th>Marker</th><th>Raw</th><th>Category</th><th>Threshold set applied</th></tr></thead>
+            <tbody>
+              <tr><td>ER</td><td>{erPct}%, strong</td><td>{er ? <Tag kind={er.kind}>{er.cat}</Tag> : '—'}</td><td className="sub">{erSet.ref}</td></tr>
+              <tr><td>PgR</td><td>{pgrPct}%, moderate</td><td>{pgr ? <Tag kind={pgr.kind}>{pgr.cat}</Tag> : '—'}</td><td className="sub">{erSet.ref}</td></tr>
+              <tr><td>HER2 IHC</td><td>{her2Score}</td><td><Tag kind={her2Score === '3+' ? 'red' : her2Score === '2+' ? 'warm-gray' : 'green'}>{her2Score}</Tag></td><td className="sub">{THRESHOLD_SETS['HER2_IHC_2023'].ref}</td></tr>
+              <tr><td>HER2 ISH</td><td>ratio {ishRatio}, {ishHer2} signals</td><td>{ish ? <Tag kind={ish.kind}>{ish.cat}</Tag> : '—'}</td><td className="sub">{THRESHOLD_SETS[ishSet].ref}</td></tr>
+              <tr><td>Ki-67</td><td>{ki67}%</td><td>{k67 ? <Tag kind={k67.kind}>{k67.cat}</Tag> : '—'}</td><td className="sub">{k67Set.ref}</td></tr>
+            </tbody>
+          </table>
+          <h4 className="sh">Interpretation</h4>
+          <textarea className="ta" defaultValue={"Invasive ductal carcinoma, hormone-receptor positive. ER strongly positive; PgR low positive with the qualifying comment applied. HER2 IHC 2+ with dual ISH in Group 4, requiring concurrent IHC review. Ki-67 in the indeterminate band; the raw index is reported without a prognostic call. Interpretation made against the threshold sets named above."} />
+          <MacroLine />
+          <div className="banner info" style={{marginTop:'.7rem'}}><span>&#8505;</span><span>
+            The screen reports marker categories and <strong>emits no therapy-eligibility or retesting recommendation</strong>. The December 2025 design&rsquo;s &ldquo;Patient eligible for HER2-targeted therapy&rdquo; is removed and not replaced &mdash; that is a clinical decision, not a rendered string in a case view.
+          </span></div>
+          <Prov>Persists to <span className="mono">immunohistochemistry_sample.interpretation</span> plus the marker rows above.</Prov>
+        </Section>
+
+        <Section id="rep" num={7} title="Reports" badge={<Tag kind="blue">v1 draft</Tag>}
+                 open={open.rep} onToggle={() => toggle('rep')}>
+          <div className="toolbar">
+            <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={() => say('Generated v2 — opened in a new tab')}>Generate report</button>
+            <span className="spacer sub">One click on a row opens that report in a new tab.</span>
+          </div>
+          <table className="dt">
+            <thead><tr><th>Version</th><th>Generated</th><th>By</th><th>Type</th></tr></thead>
+            <tbody>
+              <tr style={{cursor:'pointer'}} onClick={() => say('Opening report v1 in a new tab')} title="Open report v1 in a new tab">
+                <td className="mono">v1</td><td>2026-09-02 10:15</td><td>Samini, P.</td><td><Tag kind="blue">Draft</Tag></td></tr>
+            </tbody>
+          </table>
+          <div className="banner info" style={{marginTop:'.6rem'}}><span>&#8505;</span><span>
+            The report must state, <strong>per marker</strong>: antibody clone or probe, assay and platform, scoring method, raw measurement, derived category, the threshold set with its source and edition, control status, and the pre-analytic times. That is CAP&rsquo;s predictive-marker requirement plus the provenance this design adds.
+          </span></div>
+          <Prov>Existing <span className="mono">ImmunohistochemistrySampleReport</span> rows with <span className="mono">version_number</span>, <span className="mono">report_type</span> and <span className="mono">voided</span> added.</Prov>
+        </Section>
+      </div>
+
+      <div className="summary">
+        <h4>CASE SUMMARY</h4>
+        <div className="row"><span className="k">Status</span><span><Tag kind="blue">{status.replace(/_/g,' ')}</Tag></span></div>
+        <div className="row"><span className="k">Referred from</span><span className="mono">{CASE.referredFrom.lab}</span></div>
+        <div className="row"><span className="k">Panel</span><span>Breast HR &amp; HER2</span></div>
+        <div className="row"><span className="k">ER</span><span>{er ? er.cat + ' · ' + erPct + '%' : '—'}</span></div>
+        <div className="row"><span className="k">PgR</span><span>{pgr ? pgr.cat + ' · ' + pgrPct + '%' : '—'}</span></div>
+        <div className="row"><span className="k">HER2 IHC</span><span>{her2Score}</span></div>
+        <div className="row"><span className="k">HER2 ISH</span><span>{ish ? (ish.group ? 'Group ' + ish.group : ish.cat) : '—'}</span></div>
+        <div className="row"><span className="k">Ki-67</span><span>{k67 ? ki67 + '% · ' + k67.cat : '—'}</span></div>
+        <div className="row"><span className="k">Controls</span><span><Tag kind="teal">All pass</Tag></span></div>
+        <div className="row"><span className="k">Report</span><span>v1 draft</span></div>
+        <h4 style={{borderTop:'1px solid #e0e0e0'}}>THRESHOLD SETS IN FORCE</h4>
+        <div className="row"><span className="k">ER / PgR</span><span className="sub">ASCO/CAP 2020</span></div>
+        <div className="row"><span className="k">HER2 IHC</span><span className="sub">ASCO/CAP 2023</span></div>
+        <div className="row"><span className="k">HER2 ISH</span><span className="sub">{ishSet === 'HER2_ISH_2023' ? 'ASCO/CAP 2023' : 'ASCO/CAP 2013 (superseded)'}</span></div>
+        <div className="row"><span className="k">Ki-67</span><span className="sub">{ki67Set === 'KI67_IKWG_2021' ? 'IKWG 2021' : 'Local legacy 20%'}</span></div>
+        <div style={{padding:'.5rem .75rem',fontSize:11,color:'#8d8d8d',borderTop:'1px solid #e0e0e0'}}>
+          Each result stores the set applied to it. A newer edition does not retro-change a signed-out result.
+        </div>
+      </div>
+    </div>
+
+    <div className="action-bar">
+      <div className="status">
+        Status: <strong>{status.replace(/_/g,' ')}</strong>
+        {critical ? <span style={{marginLeft:'.75rem'}}><Tag kind="red" strong>Critical-result case</Tag></span> : null}
+        <span style={{marginLeft:'1rem'}} className="sub">&#9888; Unsaved changes</span>
+      </div>
+      <div className="btn-group">
+        <button className="cds--btn cds--btn--ghost">Discard changes</button>
+        <button className="cds--btn cds--btn--secondary" onClick={() => say('Draft saved — no validation, no status change')}>Save draft</button>
+        <button className="cds--btn cds--btn--primary" onClick={() => say(
+          status === 'IN_PROGRESS' ? 'Sent to pathologist' : 'Signed out — report opened in a new tab; CriticalResultEvent emitted')}>
+          {status === 'IN_PROGRESS' ? 'Send to pathologist' : 'Sign out & finalize'}
+        </button>
+      </div>
+    </div>
+    {toast ? <div className="toast">{toast}</div> : null}
+  </div>
+  );
+}
+
+function MacroLine() {
+  return (
+    <div className="macro-bar"><span>Quick insert:</span>
+      {['.hrpos','.her2ish','.ki67ind'].map(m => <span key={m} className="macro-pill">{m}</span>)}
+      <span className="sub">&mdash; expansion provided by the Macro Library (OGC-788)</span>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
