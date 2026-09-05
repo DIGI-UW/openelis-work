@@ -1420,6 +1420,19 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'narrative', 'workflow-selection', 'tb', 'antibiogram', 'glass', 'v2.1'],
   },
 
+  {
+    name: 'M-16 Cluster Detection & Outbreak Signals',
+    category: 'microbiology',
+    component: null,
+    description: 'Native-Java scan-statistic cluster/outbreak detection across all three surveillance domains (clinical, environmental, vector). Consumes a domain-aware detection-event stream — no SaTScan binary, works air-gapped; reuses M-09 first-isolate de-duplication; a scan never crosses a domain boundary (extends D-004). Inline signal queue + Detection History; the only modal is the outbound-send confirm. Alert-volume design target ~3-6 signals/lab/year. FRS v1.0 + interactive preview. Depends on the OGC-782 microbiology module (stacked, not yet on develop).',
+    specPath: 'designs/microbiology/m-16-cluster-detection.md',
+    htmlUrl: 'designs/microbiology/m-16-cluster-detection-preview.html',
+    added: '2026-09-04',
+    updated: '2026-09-04',
+    status: 'draft',
+    tags: ['microbiology', 'surveillance', 'cluster-detection', 'outbreak', 'scan-statistic', 'glass', 'phase-2'],
+  },
+
   // ─── NCE ───
   {
     name: 'NCE Analytics',

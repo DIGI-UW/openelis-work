@@ -928,6 +928,22 @@
   added: "2026-06-08"
   updated: "2026-08-27"
 
+- id: m-16-cluster-detection
+  type: html
+  path: designs/microbiology/m-16-cluster-detection.md
+  category: microbiology
+  description: >
+    M-16 Cluster Detection & Outbreak Signals. Native-Java scan-statistic outbreak detection across
+    clinical, environmental and vector domains; consumes a domain-aware detection-event stream (no
+    SaTScan binary, air-gapped), reuses M-09 first-isolate de-duplication, and never scans across a
+    domain boundary (extends D-004). Inline signal queue + Detection History. FRS v1.0 + interactive
+    preview. Depends on the OGC-782 microbiology module (not yet on develop).
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-16-cluster-detection-outbreak-signals
+    preview: designs/microbiology/m-16-cluster-detection-preview.html
+  added: "2026-09-04"
+  updated: "2026-09-04"
+
 - id: amr-micro-narrative-v2
   type: spec
   path: designs/microbiology/amr-micro-narrative.md
