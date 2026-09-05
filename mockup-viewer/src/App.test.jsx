@@ -254,6 +254,23 @@ describe('getEntryType', () => {
 });
 
 describe('relatedTo integrity', () => {
+  it('pre-archive permalinks still resolve for archived (renamed) entries', () => {
+    // Entries archived on 2026-09-04 gained a " [Completed]" / " [Superseded]" title
+    // marker, which changes their slug. PERMALINK_ALIASES must keep the ORIGINAL
+    // permalink resolving, because those URLs are cited in Jira and Confluence.
+    const marked = MOCKUP_REGISTRY.filter(
+      (m) => m.archived && / \[(Completed|Superseded)\]$/.test(m.name)
+    );
+    expect(marked.length).toBeGreaterThanOrEqual(1);
+    marked.forEach((entry) => {
+      const baseName = entry.name.replace(/ \[(Completed|Superseded)\]$/, '');
+      const oldHash = `#/${entry.category}/${toSlug(baseName)}`;
+      const resolved = findMockupByHash(oldHash);
+      expect(resolved, `old permalink ${oldHash} no longer resolves`).toBeTruthy();
+      expect(resolved.name, `old permalink ${oldHash} resolves to the wrong entry`).toBe(entry.name);
+    });
+  });
+
   it('all relatedTo references point to existing entries', () => {
     const names = new Set(MOCKUP_REGISTRY.map(m => m.name));
     MOCKUP_REGISTRY.forEach((entry) => {
@@ -452,7 +469,7 @@ describe('App component', () => {
     enterGrid();
 
     // Click the first card
-    const firstEntry = MOCKUP_REGISTRY[0];
+    const firstEntry = MOCKUP_REGISTRY.find((m) => !m.archived);
     const card = screen.getByText(firstEntry.name);
     await user.click(card);
 
@@ -467,7 +484,7 @@ describe('App component', () => {
     enterGrid();
 
     // Open a card — click on the h3 title specifically
-    const firstEntry = MOCKUP_REGISTRY[0];
+    const firstEntry = MOCKUP_REGISTRY.find((m) => !m.archived);
     const h3s = screen.getAllByRole('heading', { level: 3 });
     const targetH3 = h3s.find(h => h.textContent === firstEntry.name);
     await user.click(targetH3);
@@ -489,7 +506,7 @@ describe('App component', () => {
     enterGrid();
 
     // Find an entry with a specPath
-    const entryWithSpec = MOCKUP_REGISTRY.find(m => m.specPath);
+    const entryWithSpec = MOCKUP_REGISTRY.find(m => m.specPath && !m.archived);
     await user.click(screen.getByText(entryWithSpec.name));
 
     const specLink = screen.getByText('View Spec on GitHub');
@@ -503,7 +520,7 @@ describe('App component', () => {
     enterGrid();
 
     // Find an entry with Jira keys
-    const entryWithJira = MOCKUP_REGISTRY.find(m => m.jira && m.jira.length > 0);
+    const entryWithJira = MOCKUP_REGISTRY.find(m => m.jira && m.jira.length > 0 && !m.archived);
     await user.click(screen.getByText(entryWithJira.name));
 
     // Each Jira key should be a clickable link
@@ -517,7 +534,7 @@ describe('App component', () => {
     render(<App />);
     enterGrid();
 
-    const entryWithJira = MOCKUP_REGISTRY.find(m => m.jira && m.jira.length > 0);
+    const entryWithJira = MOCKUP_REGISTRY.find(m => m.jira && m.jira.length > 0 && !m.archived);
     // The Jira badge should appear in the card grid
     const jiraLinks = screen.getAllByText(entryWithJira.jira[0]);
     expect(jiraLinks.length).toBeGreaterThanOrEqual(1);
@@ -552,7 +569,7 @@ describe('App component', () => {
     enterGrid();
 
     // Find an entry with both a component and a specPath
-    const entryWithBoth = MOCKUP_REGISTRY.find(m => m.component && m.specPath);
+    const entryWithBoth = MOCKUP_REGISTRY.find(m => m.component && m.specPath && !m.archived);
     await user.click(screen.getByText(entryWithBoth.name));
 
     expect(screen.getByText('Mockup Preview')).toBeInTheDocument();
@@ -565,7 +582,7 @@ describe('App component', () => {
     enterGrid();
 
     // Find a spec-only entry (no component, no htmlUrl, no figmaUrl, but has specPath)
-    const specOnly = MOCKUP_REGISTRY.find(m => !m.component && !m.htmlUrl && !m.figmaUrl && m.specPath);
+    const specOnly = MOCKUP_REGISTRY.find(m => !m.component && !m.htmlUrl && !m.figmaUrl && m.specPath && !m.archived);
     await user.click(screen.getByText(specOnly.name));
 
     expect(screen.getByText('Spec Document')).toBeInTheDocument();
@@ -579,7 +596,7 @@ describe('App component', () => {
     enterGrid();
 
     // Find an entry with both a component and a specPath
-    const entryWithBoth = MOCKUP_REGISTRY.find(m => m.component && m.specPath);
+    const entryWithBoth = MOCKUP_REGISTRY.find(m => m.component && m.specPath && !m.archived);
     await user.click(screen.getByText(entryWithBoth.name));
 
     // Click the Spec Document tab
@@ -783,7 +800,7 @@ describe('GitHub Issues integration', () => {
     render(<App />);
     enterGrid();
 
-    const entryWithIssue = MOCKUP_REGISTRY.find(m => m.githubIssue);
+    const entryWithIssue = MOCKUP_REGISTRY.find(m => m.githubIssue && !m.archived);
     if (!entryWithIssue) return; // skip if none wired yet
 
     await user.click(screen.getByText(entryWithIssue.name));
@@ -795,7 +812,7 @@ describe('GitHub Issues integration', () => {
     render(<App />);
     enterGrid();
 
-    const entryWithoutIssue = MOCKUP_REGISTRY.find(m => !m.githubIssue && m.component);
+    const entryWithoutIssue = MOCKUP_REGISTRY.find(m => !m.githubIssue && m.component && !m.archived);
     if (!entryWithoutIssue) return;
 
     // Use getAllByText in case name appears in both card grid and elsewhere, click first match
@@ -1111,7 +1128,7 @@ describe('JOURNEYS', () => {
 
 describe('thumbUrl', () => {
   it('builds a thumbnail path for HTML mockups', () => {
-    const html = MOCKUP_REGISTRY.find((m) => m.htmlUrl);
+    const html = MOCKUP_REGISTRY.find((m) => m.htmlUrl && !m.archived);
     const url = thumbUrl(html);
     expect(url).toMatch(/thumbnails\/.+\.jpg$/);
     expect(url).toContain(html.category + '__');
@@ -1171,10 +1188,11 @@ describe('JsxMockupPreview Carbon stylesheet injection', () => {
 
   it('does not inject the Carbon stylesheet for entries with an HTML preview', async () => {
     // Panel Management now has an htmlUrl, so it renders via iframe — no Carbon CSS needed.
-    window.location.hash = '#/admin-config/panel-management';
+    // (Archived 2026-09-04 as delivered; direct hash navigation still renders archived entries.)
+    window.location.hash = '#/admin-config/panel-management-completed';
     render(<App />);
     await waitFor(() => {
-      expect(document.querySelector('iframe[title="Panel Management"]')).toBeTruthy();
+      expect(document.querySelector('iframe[title="Panel Management [Completed]"]')).toBeTruthy();
     }, { timeout: 10000 });
     expect(document.head.querySelector('link[data-carbon-preview]')).toBeFalsy();
   }, 15000);
