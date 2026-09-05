@@ -1130,6 +1130,147 @@
     "frontend/src/components/referenceLabResults"
    ],
    "capturedDate": "2026-07-23"
+  },
+  {
+   "id": "qc-setup-instrument",
+   "title": "Set up QC for an instrument",
+   "manualDoc": "OpenELIS QA/docs-manual/publish/qc-setup-instrument.xhtml",
+   "routes": [
+    {
+     "path": "/analyzers",
+     "anchors": [
+      "Analyzer List",
+      "Add Analyzer"
+     ]
+    },
+    {
+     "path": "/analyzers/qc/rule-config",
+     "anchors": [
+      "Rule Configuration",
+      "Configured Rule Sets",
+      "Analyzer",
+      "Test",
+      "Enabled Rules"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/qc/ruleConfig",
+    "frontend/src/components/analyzers"
+   ],
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.2.0",
+   "capturedDate": "2026-09-02",
+   "jiraEpic": "OGC-684",
+   "featureDoc": "OGC-1167",
+   "captureSpec": "tests/docs/qc-capture.docs.spec.ts"
+  },
+  {
+   "id": "qc-control-lot",
+   "title": "Receive and activate a control lot",
+   "manualDoc": "OpenELIS QA/docs-manual/publish/qc-control-lot.xhtml",
+   "routes": [
+    {
+     "path": "/analyzers/qc/control-lots",
+     "anchors": [
+      "Control Lots",
+      "New Control Lot",
+      "Lot Number",
+      "Control Material",
+      "Control Level",
+      "Calculation Method",
+      "Expiration Date"
+     ]
+    },
+    {
+     "path": "/analyzers/qc/control-lots/new",
+     "anchors": [
+      "New Control Lot",
+      "Lot Number",
+      "Control Material",
+      "Control Level",
+      "Expiration Date",
+      "Analyzer",
+      "Test",
+      "Statistics Configuration",
+      "Configure"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/qc/controlLots"
+   ],
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.2.0",
+   "capturedDate": "2026-09-02",
+   "jiraEpic": "OGC-684",
+   "featureDoc": "OGC-1167",
+   "captureSpec": "tests/docs/qc-capture.docs.spec.ts"
+  },
+  {
+   "id": "qc-review",
+   "title": "Review QC and act on violations",
+   "manualDoc": "OpenELIS QA/docs-manual/publish/qc-review.xhtml",
+   "routes": [
+    {
+     "path": "/analyzers/qc/db",
+     "anchors": [
+      "Quality Control Dashboard",
+      "Instruments In Control",
+      "Warning Status",
+      "Out of Control",
+      "Instruments",
+      "Alerts",
+      "Instrument Quality Control Status"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/qc/dashboard"
+   ],
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.2.0",
+   "capturedDate": "2026-09-02",
+   "jiraEpic": "OGC-684",
+   "featureDoc": "OGC-1167",
+   "captureSpec": "tests/docs/qc-capture.docs.spec.ts"
+  },
+  {
+   "id": "qc-empty-chart",
+   "title": "Why is my QC chart empty?",
+   "manualDoc": "OpenELIS QA/docs-manual/publish/qc-empty-chart.xhtml",
+   "routes": [
+    {
+     "path": "/analyzers/qc/db",
+     "anchors": [
+      "Quality Control Dashboard",
+      "Instruments"
+     ]
+    },
+    {
+     "path": "/analyzers/qc/control-lots",
+     "anchors": [
+      "Control Lots",
+      "Status"
+     ]
+    },
+    {
+     "path": "/analyzers/qc/rule-config",
+     "anchors": [
+      "Configured Rule Sets",
+      "Enabled Rules"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/qc"
+   ],
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.2.0",
+   "capturedDate": "2026-09-02",
+   "jiraEpic": "OGC-684",
+   "featureDoc": "OGC-1167",
+   "captureSpec": "tests/docs/qc-capture.docs.spec.ts"
   }
  ]
 }
