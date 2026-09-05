@@ -108,6 +108,8 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/admin-pattern-library.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/admin-pattern-library.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/admin-phase5-roadmap.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/admin-phase5-finalization.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/admin-phase5-finalization.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-rules-mvp-frs.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-rules-list-view-preview.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/programs-management.md</loc></url>
@@ -221,6 +223,14 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/pathology/ihc-case-view.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/pathology/cytology-case-view.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/pathology/cytology-case-view.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/pathology/case-view-shell.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/pathology/pathology-case-view-v2.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/pathology/pathology-case-view-v2.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/pathology/pathology-case-view-v2-preview.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/pathology/ihc-case-view-v2.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/pathology/ihc-case-view-v2.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/pathology/ihc-case-view-v2-preview.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/pathology/specimen-journey.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/quality/eqa-enrollment-addendum.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/quality/eqa-enrollment-addendum.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/quality/eqa-v1-crosswalk.md</loc></url>
@@ -374,6 +384,8 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/electronic-signature.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/multi-sample-order-entry.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/multi-sample-order-entry-preview.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/combined-collections-order-entry.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/combined-collections-order-entry-preview.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/sample-collection-redesign.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/sample-collection-redesign-mockup.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/sampling-site-registry.md</loc></url>

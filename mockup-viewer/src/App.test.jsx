@@ -407,16 +407,30 @@ describe('App component', () => {
     expect(titles.length).toBe(pathologyCount);
   });
 
-  it('search filters cards by name', async () => {
+  it('search filters cards by name, description or tag', async () => {
     const user = userEvent.setup();
     render(<App />);
 
     const searchInput = screen.getByPlaceholderText('Search by name, tag, Jira key\u2026');
     await user.type(searchInput, 'cytology');
 
+    // The search matches name, description, category, Jira key or tag \u2014 which is
+    // what the placeholder promises \u2014 so assert against that rule. Asserting the
+    // heading alone only held while no entry carried a tag absent from its name.
+    const q = 'cytology';
+    const matchesQuery = (m) =>
+      m.name.toLowerCase().includes(q) ||
+      m.description.toLowerCase().includes(q) ||
+      m.category.toLowerCase().includes(q) ||
+      (m.jira && m.jira.some((key) => key.toLowerCase().includes(q))) ||
+      (m.tags && m.tags.some((tag) => tag.toLowerCase().includes(q)));
+    const expectedNames = MOCKUP_REGISTRY.filter((m) => !m.archived && matchesQuery(m)).map((m) => m.name);
+
     const titles = screen.getAllByRole('heading', { level: 3 });
+    expect(titles.length).toBeGreaterThan(0);
+    expect(titles.length).toBe(expectedNames.length);
     titles.forEach((h3) => {
-      expect(h3.textContent.toLowerCase()).toContain('cytology');
+      expect(expectedNames).toContain(h3.textContent);
     });
   });
 

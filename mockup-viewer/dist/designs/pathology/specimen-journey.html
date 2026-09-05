@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Specimen Journey — Anatomic Pathology for OpenELIS Developers</title>
+<style>
+  :root {
+    --ink:#161616; --mid:#525252; --faint:#8d8d8d; --rule:#e0e0e0; --paper:#fff; --wash:#f4f4f4;
+    --blue:#0f62fe; --blue-wash:#edf5ff; --red:#da1e28; --red-wash:#fff1f1;
+    --green:#24a148; --green-wash:#defbe6; --amber:#f1c21b; --amber-wash:#fff8e1;
+    --purple:#8a3ffc; --purple-wash:#f6f2ff; --teal:#009d9a; --teal-wash:#d9fbfb;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--wash); color:var(--ink);
+         font-family:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+         font-size:16px; line-height:1.6; }
+  .banner { background:var(--blue); color:#fff; padding:8px 1rem; font-size:12px;
+            font-family:'IBM Plex Mono',ui-monospace,monospace; }
+  .page { max-width:940px; margin:0 auto; background:var(--paper); }
+  header.hero { padding:3rem 3rem 2rem; border-bottom:1px solid var(--rule); }
+  header.hero .kicker { font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+                        color:var(--blue); font-weight:600; margin-bottom:.6rem; }
+  h1 { font-size:38px; line-height:1.15; font-weight:300; margin:0 0 1rem; }
+  header.hero .standfirst { font-size:19px; color:var(--mid); max-width:62ch; margin:0; }
+  main { padding:0 3rem 3rem; }
+  h2 { font-size:26px; font-weight:400; margin:2.75rem 0 .25rem; }
+  h2 .num { color:var(--faint); font-family:'IBM Plex Mono',monospace; font-size:15px;
+            display:block; margin-bottom:.2rem; letter-spacing:.04em; }
+  h3 { font-size:18px; font-weight:600; margin:2rem 0 .5rem; }
+  p { margin:0 0 1rem; max-width:68ch; }
+  .lede { font-size:18px; color:var(--mid); }
+  strong { font-weight:600; }
+  .term { border-bottom:1px dotted var(--faint); font-weight:600; }
+  code, .mono { font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:.88em;
+                background:var(--wash); padding:.08em .35em; border-radius:2px; }
+  figure { margin:2rem 0; }
+  figure svg { display:block; width:100%; height:auto; }
+  figcaption { font-size:13px; color:var(--mid); margin-top:.6rem; padding-left:.2rem;
+               border-left:3px solid var(--rule); padding:.4rem .8rem; }
+  .callout { border-left:4px solid; padding:1rem 1.2rem; margin:1.75rem 0; font-size:15px; }
+  .callout p:last-child { margin-bottom:0; }
+  .callout h4 { margin:0 0 .5rem; font-size:14px; font-weight:600; letter-spacing:.02em; }
+  .c-dev   { border-color:var(--blue);   background:var(--blue-wash); }
+  .c-warn  { border-color:var(--amber);  background:var(--amber-wash); }
+  .c-risk  { border-color:var(--red);    background:var(--red-wash); }
+  .c-note  { border-color:var(--faint);  background:var(--wash); }
+  table { width:100%; border-collapse:collapse; margin:1.5rem 0; font-size:14px; }
+  th { text-align:left; font-size:11px; letter-spacing:.05em; text-transform:uppercase;
+       color:var(--mid); border-bottom:2px solid var(--rule); padding:.5rem .7rem; }
+  td { padding:.55rem .7rem; border-bottom:1px solid var(--rule); vertical-align:top; }
+  tbody tr:hover { background:var(--wash); }
+  .scroller { overflow-x:auto; }
+  .stagepill { display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px;
+               background:var(--ink); color:#fff; padding:2px 7px; border-radius:3px;
+               letter-spacing:.03em; white-space:nowrap; }
+  .timeline { border-left:2px solid var(--rule); margin:2rem 0; padding-left:0; list-style:none; }
+  .timeline > li { position:relative; padding:0 0 1.6rem 1.6rem; }
+  .timeline > li::before { content:''; position:absolute; left:-7px; top:.45rem; width:12px;
+                           height:12px; border-radius:50%; background:var(--blue); }
+  .timeline .when { font-size:12px; text-transform:uppercase; letter-spacing:.06em;
+                    color:var(--faint); font-weight:600; }
+  .timeline h3 { margin:.1rem 0 .4rem; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin:1.5rem 0; }
+  .card { border:1px solid var(--rule); padding:1rem 1.1rem; }
+  .card h4 { margin:0 0 .4rem; font-size:15px; }
+  .card p { font-size:14px; color:var(--mid); margin:0; }
+  .vocab dt { font-weight:600; margin-top:.9rem; }
+  .vocab dd { margin:.15rem 0 0; color:var(--mid); font-size:15px; }
+  footer { border-top:1px solid var(--rule); padding:2rem 3rem 3rem; font-size:14px;
+           color:var(--mid); }
+  footer a { color:var(--blue); }
+  ol.next { padding-left:1.2rem; }
+  ol.next li { margin-bottom:.5rem; }
+  @media (max-width:760px){
+    header.hero, main, footer { padding-left:1.25rem; padding-right:1.25rem; }
+    h1{font-size:28px;} .grid2{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="banner">OpenELIS Global &nbsp;|&nbsp; Developer orientation &nbsp;|&nbsp; Companion to the Pathology, IHC and Cytology case-view specifications</div>
+<div class="page">
+
+<header class="hero">
+  <div class="kicker">Anatomic pathology, for people who build software</div>
+  <h1>The specimen journey</h1>
+  <p class="standfirst">Three screens in OpenELIS handle tissue and cells: histopathology, immunohistochemistry and cytology. This is one patient's path through all three — what physically happens to her tissue, who touches it, and where each screen sits. Read it before the specifications; they assume it.</p>
+</header>
+
+<main>
+
+<p class="lede">Most of what makes these three screens hard is not the software. It is that a developer reading the spec has no picture of what is physically happening in the room. A "block" sounds like an abstraction. It is a lump of paraffin wax the size of a postage stamp with a piece of someone's liver set into it, and if it goes missing there is no getting it back.</p>
+
+<p>So: one patient, followed the whole way. Everything below is a realistic composite, not a real person.</p>
+
+<div class="callout c-note">
+  <h4>Meet the patient</h4>
+  <p><strong>Amara Bello, 52.</strong> She has a record in OpenELIS already — a cervical screening test from two years ago. Last month she found a lump in her left breast. By the end of this page her tissue will have passed through all three anatomic-pathology benches, and the result will decide which drugs she is offered.</p>
+</div>
+
+<h2><span class="num">Part one</span>Two years ago: a Pap smear</h2>
+
+<p>Amara went for routine cervical screening. A clinician swabbed cells from her cervix and fixed them in a liquid vial. That vial went to the <strong>cytology</strong> bench.</p>
+
+<p>Cytology looks at <em>individual cells</em>, not tissue architecture. There is no cutting, no wax, no blocks — the cells are spread on a slide, stained, and a <span class="term">cytopathologist</span> (a pathologist specialising in cells) decides three things: is the slide good enough to interpret, what does it show, and what should happen next. The reporting vocabulary worldwide is the <strong>Bethesda System</strong>, which fixes both the required report sections and the finding terms.</p>
+
+<p>Amara's result was <strong>NILM</strong> — negative for intraepithelial lesion or malignancy. Normal. It took one slide, one pathologist and about ninety seconds, because a busy cytopathologist screens between thirty and ninety slides a day. This is volume work.</p>
+
+<div class="callout c-dev">
+  <h4>What this tells you about the software</h4>
+  <p>Cytology is the <em>simplest</em> of the three screens: one specimen, one or two slides, no physical hierarchy to track. That is why the Cytology Case View has four work sections and no progress rail, while pathology has eleven sections and needs one. Same skeleton, different amount of workflow hanging on it.</p>
+</div>
+
+<h2><span class="num">Part two</span>Now: the lump</h2>
+
+<p>Amara's clinician feels the lump, sends her for an ultrasound, and the radiologist takes a <strong>core needle biopsy</strong> — a hollow needle that removes three thin cylinders of tissue, each a couple of centimetres long and about as thick as pencil lead. They go into a pot of <span class="term">formalin</span>, a preservative that stops the tissue decaying and fixes its structure in place.</p>
+
+<p>That pot, with a request form, arrives at the histopathology lab. Everything that follows is <strong>histopathology</strong> — the tissue bench — and it is where nearly all the workflow complexity in these three screens lives.</p>
+
+<figure>
+  <svg viewBox="0 0 900 260" role="img" aria-labelledby="journey-title journey-desc">
+    <title id="journey-title">The specimen journey from patient to report</title>
+    <desc id="journey-desc">A horizontal flow with nine steps: patient and biopsy, specimen received, grossing into cassettes, overnight tissue processing, embedding into blocks, microtomy cutting slides, staining, the pathologist reading the slides under a microscope, and the signed report. Beneath each step is the matching OpenELIS case status.</desc>
+
+    <!-- connecting rail -->
+    <line x1="52" y1="86" x2="848" y2="86" stroke="#e0e0e0" stroke-width="2"/>
+
+    <g font-family="'IBM Plex Sans',sans-serif">
+      <!-- step template: circle, label, sublabel, stage -->
+      <!-- 1 -->
+      <circle cx="52" cy="86" r="16" fill="#0f62fe"/>
+      <text x="52" y="91" text-anchor="middle" fill="#fff" font-size="13" font-weight="600">1</text>
+      <text x="52" y="128" text-anchor="middle" font-size="12" font-weight="600">Biopsy</text>
+      <text x="52" y="144" text-anchor="middle" font-size="10.5" fill="#525252">3 cores</text>
+      <text x="52" y="158" text-anchor="middle" font-size="10.5" fill="#525252">in formalin</text>
+
+      <!-- 2 -->
+      <circle cx="151" cy="86" r="16" fill="#0f62fe"/>
+      <text x="151" y="91" text-anchor="middle" fill="#fff" font-size="13" font-weight="600">2</text>
+      <text x="151" y="128" text-anchor="middle" font-size="12" font-weight="600">Received</text>
+      <text x="151" y="144" text-anchor="middle" font-size="10.5" fill="#525252">accessioned,</text>
+      <text x="151" y="158" text-anchor="middle" font-size="10.5" fill="#525252">given a lab no.</text>
+      <rect x="106" y="176" width="90" height="18" rx="3" fill="#161616"/>
+      <text x="151" y="189" text-anchor="middle" fill="#fff" font-size="9.5" font-family="'IBM Plex Mono',monospace">ACCESSIONED</text>
+
+      <!-- 3 -->
+      <circle cx="250" cy="86" r="16" fill="#0f62fe"/>
+      <text x="250" y="91" text-anchor="middle" fill="#fff" font-size="13" font-weight="600">3</text>
+      <text x="250" y="128" text-anchor="middle" font-size="12" font-weight="600">Grossing</text>
+      <text x="250" y="144" text-anchor="middle" font-size="10.5" fill="#525252">described &amp; cut</text>
+      <text x="250" y="158" text-anchor="middle" font-size="10.5" fill="#525252">into cassettes</text>
+      <rect x="212" y="176" width="76" height="18" rx="3" fill="#161616"/>
+      <text x="250" y="189" text-anchor="middle" fill="#fff" font-size="9.5" font-family="'IBM Plex Mono',monospace">GROSSING</text>
+
+      <!-- 4 -->
+      <circle cx="349" cy="86" r="16" fill="#8a3ffc"/>
+      <text x="349" y="91" text-anchor="middle" fill="#fff" font-size="13" font-weight="600">4</text>
+      <text x="349" y="128" text-anchor="middle" font-size="12" font-weight="600">Processing</text>
+      <text x="349" y="144" text-anchor="middle" font-size="10.5" fill="#525252">overnight, 8–14 h</text>
+      <text x="349" y="158" text-anchor="middle" font-size="10.5" fill="#8a3ffc" font-weight="600">batch — many cases</text>
+      <rect x="309" y="176" width="80" height="18" rx="3" fill="#161616"/>
+      <text x="349" y="189" text-anchor="middle" fill="#fff" font-size="9.5" font-family="'IBM Plex Mono',monospace">PROCESSING</text>
+
+      <!-- 5 -->
+      <circle cx="448" cy="86" r="16" fill="#0f62fe"/>
+      <text x="448" y="91" text-anchor="middle" fill="#fff" font-size="13" font-weight="600">5</text>
+      <text x="448" y="128" text-anchor="middle" font-size="12" font-weight="600">Embedding</text>
+      <text x="448" y="144" text-anchor="middle" font-size="10.5" fill="#525252">cassette becomes</text>
+      <text x="448" y="158" text-anchor="middle" font-size="10.5" fill="#525252">a wax block</text>
+      <rect x="408" y="176" width="80" height="18" rx="3" fill="#161616"/>
+      <text x="448" y="189" text-anchor="middle" fill="#fff" font-size="9.5" font-family="'IBM Plex Mono',monospace">EMBEDDING</text>
+
+      <!-- 6 -->
+      <circle cx="547" cy="86" r="16" fill="#da1e28"/>
+      <text x="547" y="91" text-anchor="middle" fill="#fff" font-size="13" font-weight="600">6</text>
+      <text x="547" y="128" text-anchor="middle" font-size="12" font-weight="600">Microtomy</text>
+      <text x="547" y="144" text-anchor="middle" font-size="10.5" fill="#525252">block sliced onto</text>
+      <text x="547" y="158" text-anchor="middle" font-size="10.5" fill="#525252">glass slides</text>
+      <rect x="507" y="176" width="80" height="18" rx="3" fill="#161616"/>
+      <text x="547" y="189" text-anchor="middle" fill="#fff" font-size="9.5" font-family="'IBM Plex Mono',monospace">MICROTOMY</text>
+      <text x="547" y="216" text-anchor="middle" font-size="10" fill="#da1e28" font-weight="600">52% of all mislabelling</text>
+      <text x="547" y="230" text-anchor="middle" font-size="10" fill="#da1e28" font-weight="600">happens here</text>
+
+      <!-- 7 -->
+      <circle cx="646" cy="86" r="16" fill="#0f62fe"/>
+      <text x="646" y="91" text-anchor="middle" fill="#fff" font-size="13" font-weight="600">7</text>
+      <text x="646" y="128" text-anchor="middle" font-size="12" font-weight="600">Staining</text>
+      <text x="646" y="144" text-anchor="middle" font-size="10.5" fill="#525252">H&amp;E and any</text>
+      <text x="646" y="158" text-anchor="middle" font-size="10.5" fill="#525252">special stains</text>
+      <rect x="610" y="176" width="72" height="18" rx="3" fill="#161616"/>
+      <text x="646" y="189" text-anchor="middle" fill="#fff" font-size="9.5" font-family="'IBM Plex Mono',monospace">STAINING</text>
+
+      <!-- 8 -->
+      <circle cx="745" cy="86" r="16" fill="#0f62fe"/>
+      <text x="745" y="91" text-anchor="middle" fill="#fff" font-size="13" font-weight="600">8</text>
+      <text x="745" y="128" text-anchor="middle" font-size="12" font-weight="600">The read</text>
+      <text x="745" y="144" text-anchor="middle" font-size="10.5" fill="#525252">pathologist at the</text>
+      <text x="745" y="158" text-anchor="middle" font-size="10.5" fill="#525252">microscope</text>
+      <rect x="694" y="176" width="102" height="18" rx="3" fill="#161616"/>
+      <text x="745" y="189" text-anchor="middle" fill="#fff" font-size="9.5" font-family="'IBM Plex Mono',monospace">UNDER_REVIEW</text>
+
+      <!-- 9 -->
+      <circle cx="848" cy="86" r="16" fill="#24a148"/>
+      <text x="848" y="91" text-anchor="middle" fill="#fff" font-size="13" font-weight="600">9</text>
+      <text x="848" y="128" text-anchor="middle" font-size="12" font-weight="600">Report</text>
+      <text x="848" y="144" text-anchor="middle" font-size="10.5" fill="#525252">signed out</text>
+      <rect x="812" y="176" width="72" height="18" rx="3" fill="#161616"/>
+      <text x="848" y="189" text-anchor="middle" fill="#fff" font-size="9.5" font-family="'IBM Plex Mono',monospace">COMPLETED</text>
+
+      <!-- day markers -->
+      <text x="52" y="40" text-anchor="middle" font-size="10.5" fill="#8d8d8d" letter-spacing="1">CLINIC</text>
+      <text x="250" y="40" text-anchor="middle" font-size="10.5" fill="#8d8d8d" letter-spacing="1">DAY 0</text>
+      <text x="349" y="40" text-anchor="middle" font-size="10.5" fill="#8d8d8d" letter-spacing="1">OVERNIGHT</text>
+      <text x="597" y="40" text-anchor="middle" font-size="10.5" fill="#8d8d8d" letter-spacing="1">DAY 1</text>
+      <text x="848" y="40" text-anchor="middle" font-size="10.5" fill="#8d8d8d" letter-spacing="1">DAY 2+</text>
+    </g>
+  </svg>
+  <figcaption>Two days of physical work, then the read. The black pills are the actual <code>PathologyStatus</code> values the case moves through — the same values the Pathology Dashboard filters on. Purple marks the one stage that is a shared batch rather than per-case.</figcaption>
+</figure>
+
+<h2><span class="num">Part three</span>Day 0: grossing</h2>
+
+<p>A senior technician opens the pot. This step is called <strong>grossing</strong> — from "gross" meaning <em>visible to the naked eye</em>, nothing to do with the everyday sense of the word. They describe what they see out loud, and that description becomes the <span class="term">macroscopic description</span>: three cores of tan-brown tissue, the longest 18 mm, one bearing a pale firm focus 6 mm across.</p>
+
+<p>Then they cut. The cores are placed into <strong>cassettes</strong> — small perforated plastic boxes about the size of a postage stamp. Amara's biopsy makes four: one for the centre of the lesion, one for its edge, one for surrounding normal-looking tissue, one for the capsule. A big resected colon might make thirty.</p>
+
+<div class="callout c-dev">
+  <h4>This is where objects are born</h4>
+  <p>Every cassette gets a label and a barcode <em>here</em>, at the moment it physically exists, because this is where the label is stuck on. Not later. In the data model this is the first <code>pathology_block</code> row — and yes, it is called a block even while it is still a cassette, for the reason in the next section.</p>
+</div>
+
+<h2><span class="num">Part four</span>Overnight: the processor</h2>
+
+<p>The four cassettes go into a <strong>tissue processor</strong> with cassettes from dozens of other patients. Over eight to fourteen hours the machine draws water out of the tissue through graded alcohols, clears it with a solvent, and infiltrates it with hot paraffin wax. Tissue that was soft and wet comes out firm enough to slice at two microns.</p>
+
+<div class="callout c-warn">
+  <h4>The one stage that is not per-case</h4>
+  <p>A processor run is a <em>batch</em> — one run, many patients. It is the only stage where the thing being tracked is a run containing cassettes, rather than a case. OpenELIS has no processor-run registry yet, so for now the case records a run reference as free text, and the screen says so rather than pretending otherwise.</p>
+</div>
+
+<h2><span class="num">Part five</span>Day 1: embedding, and the thing developers get wrong</h2>
+
+<p>Next morning a technician takes each cassette, opens it, orients the tissue in a small metal mould, floods it with molten wax and chills it. The result is a <strong>block</strong>: a solid wax rectangle with the tissue set into one face, and the cassette itself forming its base.</p>
+
+<div class="callout c-risk">
+  <h4>Read this twice</h4>
+  <p><strong>The block is the same physical object the cassette was.</strong> Nothing was created and nothing was consumed — a cassette with wax in it <em>is</em> a block. It keeps the same barcode, because it is the same label, still stuck to the same piece of plastic.</p>
+  <p>This is why the data model gives them one row with a state that moves <code>CASSETTE → BLOCK</code>, rather than two entities with a copy step between them. Modelling them as separate objects would mean the barcode on the bench and the barcode in the database stop agreeing, which is the exact failure the whole design is built to prevent.</p>
+</div>
+
+<h2><span class="num">Part six</span>Day 1: microtomy</h2>
+
+<p>Each block goes to a <strong>microtome</strong> — a precision instrument with a very sharp blade that shaves ribbons of tissue two to five microns thick, roughly a fortieth of the width of a human hair. The technician floats those ribbons on a warm water bath and lifts them onto glass <strong>slides</strong>. One block yields many slides, and slides cut at different depths into the same block are called <span class="term">levels</span>.</p>
+
+<p>Now the hierarchy is complete, and it is the single most important structure in these three specifications.</p>
+
+<figure>
+  <svg viewBox="0 0 900 340" role="img" aria-labelledby="hier-title hier-desc">
+    <title id="hier-title">The case, part, block and slide hierarchy</title>
+    <desc id="hier-desc">A tree. One case, lab number 25TST000318, contains one part labelled A. Part A contains four blocks A1 to A4. Block A1 contains three slides A1.1, A1.2 and A1.3. Each level composes into the barcode.</desc>
+    <g font-family="'IBM Plex Sans',sans-serif">
+      <!-- CASE -->
+      <rect x="330" y="16" width="240" height="46" rx="4" fill="#0f62fe"/>
+      <text x="450" y="37" text-anchor="middle" fill="#fff" font-size="13" font-weight="600">CASE</text>
+      <text x="450" y="53" text-anchor="middle" fill="#d0e2ff" font-size="11.5" font-family="'IBM Plex Mono',monospace">25TST000318</text>
+      <text x="596" y="43" font-size="11.5" fill="#525252">one accession — the pot that arrived</text>
+
+      <line x1="450" y1="62" x2="450" y2="86" stroke="#a8a8a8" stroke-width="1.5"/>
+
+      <!-- PART -->
+      <rect x="370" y="86" width="160" height="42" rx="4" fill="#009d9a"/>
+      <text x="450" y="105" text-anchor="middle" fill="#fff" font-size="12.5" font-weight="600">PART A</text>
+      <text x="450" y="120" text-anchor="middle" fill="#d9fbfb" font-size="11" >left breast core</text>
+      <text x="556" y="111" font-size="11.5" fill="#525252">one specimen from one site</text>
+
+      <line x1="450" y1="128" x2="450" y2="150" stroke="#a8a8a8" stroke-width="1.5"/>
+      <line x1="150" y1="150" x2="750" y2="150" stroke="#a8a8a8" stroke-width="1.5"/>
+
+      <!-- BLOCKS -->
+      <g>
+        <line x1="150" y1="150" x2="150" y2="172" stroke="#a8a8a8" stroke-width="1.5"/>
+        <line x1="350" y1="150" x2="350" y2="172" stroke="#a8a8a8" stroke-width="1.5"/>
+        <line x1="550" y1="150" x2="550" y2="172" stroke="#a8a8a8" stroke-width="1.5"/>
+        <line x1="750" y1="150" x2="750" y2="172" stroke="#a8a8a8" stroke-width="1.5"/>
+        <rect x="96" y="172" width="108" height="44" rx="4" fill="#8a3ffc"/>
+        <text x="150" y="191" text-anchor="middle" fill="#fff" font-size="12.5" font-weight="600">BLOCK A1</text>
+        <text x="150" y="207" text-anchor="middle" fill="#e8daff" font-size="10">lesion centre</text>
+        <rect x="296" y="172" width="108" height="44" rx="4" fill="#8a3ffc"/>
+        <text x="350" y="191" text-anchor="middle" fill="#fff" font-size="12.5" font-weight="600">BLOCK A2</text>
+        <text x="350" y="207" text-anchor="middle" fill="#e8daff" font-size="10">lesion edge</text>
+        <rect x="496" y="172" width="108" height="44" rx="4" fill="#8a3ffc"/>
+        <text x="550" y="191" text-anchor="middle" fill="#fff" font-size="12.5" font-weight="600">BLOCK A3</text>
+        <text x="550" y="207" text-anchor="middle" fill="#e8daff" font-size="10">background</text>
+        <rect x="696" y="172" width="108" height="44" rx="4" fill="#8a3ffc"/>
+        <text x="750" y="191" text-anchor="middle" fill="#fff" font-size="12.5" font-weight="600">BLOCK A4</text>
+        <text x="750" y="207" text-anchor="middle" fill="#e8daff" font-size="10">capsule</text>
+      </g>
+      <text x="828" y="197" font-size="11.5" fill="#525252">= 4 cassettes,</text>
+      <text x="828" y="211" font-size="11.5" fill="#525252">now 4 blocks</text>
+
+      <!-- SLIDES under A1 -->
+      <line x1="150" y1="216" x2="150" y2="238" stroke="#a8a8a8" stroke-width="1.5"/>
+      <line x1="62" y1="238" x2="238" y2="238" stroke="#a8a8a8" stroke-width="1.5"/>
+      <g>
+        <line x1="62" y1="238" x2="62" y2="258" stroke="#a8a8a8" stroke-width="1.5"/>
+        <line x1="150" y1="238" x2="150" y2="258" stroke="#a8a8a8" stroke-width="1.5"/>
+        <line x1="238" y1="238" x2="238" y2="258" stroke="#a8a8a8" stroke-width="1.5"/>
+        <rect x="22" y="258" width="80" height="40" rx="4" fill="#161616"/>
+        <text x="62" y="275" text-anchor="middle" fill="#fff" font-size="11.5" font-weight="600">A1.1</text>
+        <text x="62" y="289" text-anchor="middle" fill="#c6c6c6" font-size="10">H&amp;E · level 1</text>
+        <rect x="110" y="258" width="80" height="40" rx="4" fill="#161616"/>
+        <text x="150" y="275" text-anchor="middle" fill="#fff" font-size="11.5" font-weight="600">A1.2</text>
+        <text x="150" y="289" text-anchor="middle" fill="#c6c6c6" font-size="10">H&amp;E · level 2</text>
+        <rect x="198" y="258" width="80" height="40" rx="4" fill="#161616"/>
+        <text x="238" y="275" text-anchor="middle" fill="#fff" font-size="11.5" font-weight="600">A1.3</text>
+        <text x="238" y="289" text-anchor="middle" fill="#c6c6c6" font-size="10">H&amp;E · level 3</text>
+      </g>
+      <text x="300" y="282" font-size="11.5" fill="#525252">slides cut from block A1 — every other block has its own</text>
+
+      <!-- barcode composition -->
+      <rect x="22" y="312" width="856" height="24" rx="3" fill="#f4f4f4"/>
+      <text x="34" y="328" font-size="11.5" fill="#525252">Barcode composes down the tree:</text>
+      <text x="222" y="328" font-size="12" font-family="'IBM Plex Mono',monospace" fill="#161616" font-weight="600">25TST000318</text>
+      <text x="316" y="328" font-size="12" font-family="'IBM Plex Mono',monospace" fill="#8a3ffc" font-weight="600">.A1</text>
+      <text x="344" y="328" font-size="12" font-family="'IBM Plex Mono',monospace" fill="#161616" font-weight="600">.1</text>
+      <text x="368" y="328" font-size="11.5" fill="#525252">— and the exact scheme is configurable, because no standards body has ever set one.</text>
+    </g>
+  </svg>
+  <figcaption>Case → part → block → slide. Each level fans out. Every one of these is a physical object a person can drop, mislabel or lose, which is why each is a row with its own identity and a parent — never a count.</figcaption>
+</figure>
+
+<div class="callout c-risk">
+  <h4>The riskiest thirty seconds in the lab</h4>
+  <p>A study across 136 institutions found mislabelling at about 1.1 per 1,000 cases — and <strong>22% of it at block labelling, 30% at tissue cutting</strong>. Over half of all mislabelling happens at this one transition, where a technician has a blade in one hand and a rack of near-identical slides in the other.</p>
+  <p>This is why the design scans the block, prints its slide label, and requires the printed label be scanned back <em>before the section is cut</em>. Barcode verification at this point cut slide misidentification by 92% at one centre. It is the single highest-value control on the entire screen, and it costs one scan.</p>
+</div>
+
+<h2><span class="num">Part seven</span>Day 1: staining, and what a pathologist actually sees</h2>
+
+<p>A bare tissue section on glass is almost transparent. Staining makes it readable. The routine stain is <strong>H&amp;E</strong> — haematoxylin turns cell nuclei blue-purple, eosin turns cytoplasm and connective tissue pink. Nearly every slide in every histopathology lab in the world is an H&amp;E.</p>
+
+<p>Beyond that are <span class="term">special stains</span>, each answering a specific question: reticulin shows the scaffolding fibres between cells, Masson trichrome shows fibrosis, Perls iron shows iron deposits. The pathologist orders these when the H&amp;E raises a question it cannot answer.</p>
+
+<p>Slides are then coverslipped — a thin glass sheet glued over the section — checked, and delivered to the pathologist.</p>
+
+<h2><span class="num">Part eight</span>Day 2: the read, and asking for more</h2>
+
+<p>Amara's pathologist puts A1.1 under the microscope and sees a tumour: cells forming irregular ducts, invading the surrounding tissue. It is an <strong>invasive ductal carcinoma</strong>, the commonest kind of breast cancer.</p>
+
+<p>But she is not finished. The capsular margin in block A4 is not well represented in the section she has, and she wants deeper levels through A2 to see the tumour's edge properly. So she does two things that most people outside a lab never think about:</p>
+
+<ul class="timeline">
+  <li>
+    <span class="when">Back to the bench</span>
+    <h3>She requests more work</h3>
+    <p>"Deeper sections at 3 µm rather than 5 µm through block A2 — the lesional interface is not represented." That request goes back to a technician, who returns to block A2, cuts more slides, stains them, and sends them up. The case is not finished; it is waiting on the bench again. A case can bounce back and forth like this several times.</p>
+  </li>
+  <li>
+    <span class="when">A second opinion</span>
+    <h3>She asks a colleague</h3>
+    <p>Difficult cases go to another pathologist for concurrence — standard practice, and accrediting bodies require labs to have a documented review process and to <em>monitor the results of those reviews over time</em>. That last part is why the design stores the outcome as agree / disagree / modified in a field, not as a free-text comment. You cannot audit a paragraph.</p>
+  </li>
+</ul>
+
+<h2><span class="num">Part nine</span>Days 3–5: immunohistochemistry</h2>
+
+<p>Knowing Amara has a breast cancer is not enough to treat her. What decides her therapy is which proteins the tumour cells are making. That question goes to the <strong>immunohistochemistry</strong> bench — IHC.</p>
+
+<p>IHC uses antibodies. An antibody that binds one specific protein is washed over a tissue section, and wherever that protein is present it leaves a coloured deposit. The pathologist then scores how much, how strongly, and where. Crucially, <strong>IHC reuses the blocks the histopathology case already made</strong> — the same wax blocks go back to the microtome for more sections. It is the same tissue, not a new specimen.</p>
+
+<p>Four markers run on essentially every breast case:</p>
+
+<div class="scroller">
+<table>
+  <thead><tr><th>Marker</th><th>What it asks</th><th>Amara's result</th><th>What it decides</th></tr></thead>
+  <tbody>
+    <tr><td><strong>ER</strong> — oestrogen receptor</td><td>Does the tumour respond to oestrogen?</td><td>Positive, 85% of nuclei</td><td>Anti-hormonal therapy will probably work</td></tr>
+    <tr><td><strong>PgR</strong> — progesterone receptor</td><td>Same question, second receptor</td><td>Low positive, 8%</td><td>Reported with a mandatory caveat — see below</td></tr>
+    <tr><td><strong>HER2</strong></td><td>Is a growth-signal protein over-produced?</td><td>IHC 2+ → reflexed to ISH</td><td>Eligibility for HER2-targeted drugs</td></tr>
+    <tr><td><strong>Ki-67</strong></td><td>How fast is it dividing?</td><td>18%</td><td>Whether chemotherapy can be avoided</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout c-warn">
+  <h4>The number is not the answer</h4>
+  <p>"85% of nuclei stained" means nothing on its own. It becomes a clinical result only when a published threshold is applied to it — and those thresholds are set by external bodies and <strong>revised</strong>.</p>
+  <p>Amara's PgR is 8%. Under the current guideline that is "low positive" and carries a compulsory comment about limited evidence. Her Ki-67 is 18%: under a cutoff many labs still use, that reads as "low"; under the current working-group recommendation, 18% falls in a band the guideline says <em>should not drive treatment decisions at all</em> because pathologists do not agree with each other closely enough in that range.</p>
+  <p>Same measurement. Different answer. That is why the IHC design treats thresholds as versioned reference data with a source and an edition stamped onto every result — so a report can always be read back against the rules that produced it, and so a guideline revision is a content update rather than a software release.</p>
+</div>
+
+<h2><span class="num">Part ten</span>Sign-out</h2>
+
+<p>The pathologist writes the microscopic description, records the coded conclusion, and signs the case out. A report is generated. Because the conclusion is a malignancy, the case raises a critical result — the finding has to be actively acknowledged by the ordering clinician's queue, not just filed, because the failure mode this guards against is a cancer diagnosis sitting unread while a patient is lost to follow-up.</p>
+
+<p>Amara's oncologist now has what they need: an invasive ductal carcinoma, hormone-receptor positive, HER2 pending the ISH result, Ki-67 in an indeterminate band. From receipt to report, five days.</p>
+
+<h2><span class="num">The payoff</span>What Amara's case teaches about the software</h2>
+
+<div class="grid2">
+  <div class="card">
+    <h4>One patient, three screens</h4>
+    <p>Her record touches cytology (the Pap), histopathology (the biopsy) and IHC (the markers). A pathologist reading any one of them benefits from seeing the others — which is why a shared prior-results panel exists, and why the three screens share a skeleton.</p>
+  </div>
+  <div class="card">
+    <h4>Objects, not counts</h4>
+    <p>"Three of four blocks embedded" is only useful if the system can say <em>which</em> one is missing. That requires every block and slide to be a row with an identity and a parent. A stored count cannot answer the question anyone actually asks.</p>
+  </div>
+  <div class="card">
+    <h4>Work flows backwards too</h4>
+    <p>The pathologist sends work back to the bench, and trays genuinely return — a block that will not section, a stain that fails. A forward-only state machine makes technicians lie to the system to keep it moving.</p>
+  </div>
+  <div class="card">
+    <h4>Who did it, and when</h4>
+    <p>Four or five different people touched Amara's tissue across two shifts. Every stage records its operator and timestamp from the session — never typed, because a typed name is not an attribution record.</p>
+  </div>
+  <div class="card">
+    <h4>Nothing is deleted</h4>
+    <p>Her slides must be retained ten years and her blocks two. Blocks, slides, requests and reports are deactivated or voided, never destroyed — and a diagnosis can be revisited years later.</p>
+  </div>
+  <div class="card">
+    <h4>Interpretation has a version</h4>
+    <p>Her Ki-67 of 18% means different things under different guideline editions. Any result derived from a published threshold has to carry which threshold produced it.</p>
+  </div>
+</div>
+
+<h2><span class="num">Reference</span>Vocabulary that trips people up</h2>
+
+<dl class="vocab">
+  <dt>Gross / grossing</dt>
+  <dd>Visible to the naked eye. The <em>macroscopic</em> examination and cut-up. Nothing to do with the everyday meaning. <code>grossExam</code> is this field.</dd>
+
+  <dt>Macro — two different things</dt>
+  <dd>In pathology, "macro" is short for macroscopic. In this codebase, "macros" are typing shortcuts (type <code>.nmi</code>, get a canned sentence) owned by a separate cross-cutting epic. The collision is unfortunate and worth being alert to.</dd>
+
+  <dt>Block</dt>
+  <dd>A cassette of tissue infiltrated and set in paraffin wax. The same physical object as the cassette it came from.</dd>
+
+  <dt>Level</dt>
+  <dd>A slide cut at a particular depth into a block. Deeper levels reveal things the first section missed.</dd>
+
+  <dt>H&amp;E</dt>
+  <dd>Haematoxylin and eosin, the routine stain. Nuclei blue, cytoplasm pink.</dd>
+
+  <dt>Reflex</dt>
+  <dd>A result that automatically triggers a further test — an HER2 IHC score of 2+ reflexes to ISH.</dd>
+
+  <dt>Sign-out</dt>
+  <dd>The pathologist finalising the case. The point of no easy return, and the moment reports and critical-result events are generated.</dd>
+
+  <dt>Accession number</dt>
+  <dd>The lab number assigned when the specimen is received. The root of every barcode on the case.</dd>
+</dl>
+
+<h2><span class="num">Where to go next</span>The three specifications</h2>
+
+<ol class="next">
+  <li><strong>Case View Shell</strong> — the structure all three screens share: patient header, prior results, section states, action bar, critical-result path.</li>
+  <li><strong>Pathology Case View v2</strong> — parts three to eight above. The most workflow-heavy of the three.</li>
+  <li><strong>IHC Case View v2</strong> — part nine. Fewer stages, but the interpretive-threshold problem in full.</li>
+  <li><strong>Cytology Case View v2</strong> — part one. The simplest, and already converted.</li>
+</ol>
+
+<p>Each opens with a Lab Context section covering its own bench in more detail. This page is the thread that connects them.</p>
+
+</main>
+
+<footer>
+  <p><strong>Amara Bello is fictional.</strong> Her case is a realistic composite assembled to illustrate the workflow; no real patient's data appears anywhere on this page. Clinical details reflect current published guidance, and the specific threshold values and error-rate figures are cited in the IHC specification and its threshold-review document rather than repeated here.</p>
+  <p>Prepared as developer orientation for the anatomic-pathology case-view work. Companion to <code>case-view-shell.md</code>, <code>pathology-case-view-v2.md</code>, <code>ihc-case-view-v2.md</code> and <code>cytology-case-view.md</code>.</p>
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,7 +1,7 @@
 {
-  "generated": "2026-08-12T18:28:35.441Z",
+  "generated": "2026-09-05T00:31:00.046Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 222,
+  "totalDesigns": 228,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -1432,6 +1432,33 @@
       }
     },
     {
+      "name": "Admin Phase 5 Finalization",
+      "slug": "admin-phase-5-finalization",
+      "category": "admin-config",
+      "description": "Phase 5 admin redesign finalization (v2.0) — re-grounds the whole program against the live v3.2.2.0 app (44 SideNav entries resolving to 33 pages, a finalized 12-bucket IA), resolves the contradictions accumulated across the planning documents, and states a finalized disposition for every admin page. Supersedes admin-phase5-roadmap and admin-mvp-scope.",
+      "type": "html",
+      "added": "2026-08-25",
+      "status": "draft",
+      "tags": [
+        "admin",
+        "phase-5",
+        "planning",
+        "finalization",
+        "redesign",
+        "IA"
+      ],
+      "jira": [],
+      "githubIssue": null,
+      "specPath": "designs/admin-config/admin-phase5-finalization.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/admin-phase-5-finalization",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/admin-phase-5-finalization",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/admin-phase-5-finalization",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/admin-phase5-finalization.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/admin-phase5-finalization.html"
+      }
+    },
+    {
       "name": "Test Rules Authoring Redesign — MVP",
       "slug": "test-rules-authoring-redesign-mvp",
       "category": "admin-config",
@@ -1466,7 +1493,7 @@
       "name": "Programs Management",
       "slug": "programs-management",
       "category": "admin-config",
-      "description": "Programs admin rework (v2, consolidated) — Domain (Clinical/Environmental/Vector) field matching Test Catalog & Lab Units; moves under Admin → Test Management; inline Edit/Add (no separate page); Deactivate/Reactivate lifecycle (no hard delete) with a Show-deactivated toggle; Carbon ContentSwitcher (Visual Builder ↔ JSON) with a live \"Example\" preview; multi Lab-unit select; heavy on-screen guidance; API & i18n reuse guardrails. Also FR-28 (one builder, per-context SideNav submenu: Programs / per-domain Order form fields / Patient form fields) and FR-29 (shipped fields: badge + Visible toggle, hide-not-delete, not deletable, excluded from the JSON view, Site-Information fields locked, hidden rows collapse). Epic: OGC-781.",
+      "description": "Programs admin rework (v2, consolidated) — Domain (Clinical/Environmental/Vector) field matching Test Catalog & Lab Units; moves under Admin → Test Management; inline Edit/Add (no separate page); Deactivate/Reactivate lifecycle (no hard delete) with a Show-deactivated toggle; Carbon ContentSwitcher (Visual Builder ↔ JSON) with a live \"Example\" preview; multi Lab-unit select; heavy on-screen guidance; API & i18n reuse guardrails. Also FR-28 (one builder, per-context SideNav submenu: Programs / per-domain Order form fields / Patient form fields) and FR-29 (shipped fields: badge + Visible toggle, hide-not-delete, not deletable, excluded from the JSON view, Site-Information fields locked, hidden rows collapse). FR-13.1 adds Move up/Move down controls on each Question card (keyboard-reachable, disabled-not-hidden at ends; reorders Questionnaire.item[] without renumbering linkIds, preserving existing responses). Epic: OGC-781.",
       "type": "jsx",
       "added": "2026-05-27",
       "status": "draft",
@@ -2321,7 +2348,7 @@
       "name": "M-00 Microbiology Module Parent",
       "slug": "m-00-microbiology-module-parent",
       "category": "microbiology",
-      "description": "Spine spec for the M-* bundle: glossary, RBAC matrix, data model overview, phase plan, out-of-scope, v1.1 → v2 diff map.",
+      "description": "Spine spec for the M-* bundle: glossary, RBAC matrix, data model overview, phase plan, out-of-scope, v1.1 → v2 diff map. v2.1: NO_GROWTH_FINAL → NO_GROWTH_READY (releases to FINAL_REPORTED, not terminal).",
       "type": "spec-only",
       "added": "2026-05-15",
       "status": "draft",
@@ -2622,7 +2649,7 @@
       "name": "M-04 Case Workbench \\u2014 Interactive Prototype",
       "slug": "m-04-case-workbench-u2014-interactive-prototype",
       "category": "microbiology",
-      "description": "Clickable end-to-end case workup \\u2014 start inoculation, add/identify isolates, set up + receive AST, log critical, release reports; stage, sidebar and next-step guidance update live; opens on the current step.",
+      "description": "Clickable end-to-end case workup \\u2014 start inoculation, add/identify isolates, set up + receive AST, log critical, release reports; stage, sidebar and next-step guidance update live; opens on the current step. v2.1: release gate keys on a recorded outcome (isolate workup complete / no growth / all-contaminant / TB CONTAMINATED|NTM_IDENTIFIED), NO_GROWTH_FINAL to NO_GROWTH_READY.",
       "type": "html",
       "added": "2026-06-05",
       "status": "draft",
@@ -2758,7 +2785,7 @@
       "name": "M-09 WHONET Export",
       "slug": "m-09-whonet-export",
       "category": "microbiology",
-      "description": "Surveillance export with dedup parameters, validation pass, phenotype flag columns, lab profile bootstrap. To national reference lab. Phase 1B.",
+      "description": "Surveillance export with dedup parameters, validation pass, phenotype flag columns, lab profile bootstrap. To national reference lab. Phase 1B. v2.1 adds no-growth rows and the sample-based denominator (include-negatives toggle; export gated on recorded outcome).",
       "type": "html",
       "added": "2026-05-15",
       "status": "draft",
@@ -2874,7 +2901,7 @@
       "name": "M-14 TB Case — Interactive Prototype",
       "slug": "m-14-tb-case-interactive-prototype",
       "category": "microbiology",
-      "description": "The M-04 Case Workbench shell as a TB profile: smear, MGIT/LJ culture, species ID, critical-concentration DST, molecular flags, staged interim reports.",
+      "description": "The M-04 Case Workbench shell as a TB profile: smear, MGIT/LJ culture, species ID, critical-concentration DST, molecular flags, staged interim reports. v1.1 aligns the TB bench with the no-growth amendment (NO_GROWTH_READY + release; CONTAMINATED is not a result).",
       "type": "html",
       "added": "2026-06-08",
       "status": "draft",
@@ -3136,7 +3163,7 @@
       "name": "M-15 GLASS — FHIR Surveillance",
       "slug": "m-15-glass-fhir-surveillance",
       "category": "microbiology",
-      "description": "OE pushes finalized AMR results to a consolidated FHIR server (WHO GLASS reporting path). Reuses FhirTransformService / FhirPersistanceService + EQA submission pattern. Backend/admin spec — no clinical mockup. Cross-lab aggregation stays outside OE.",
+      "description": "OE pushes finalized AMR results to a consolidated FHIR server (WHO GLASS reporting path). Reuses FhirTransformService / FhirPersistanceService + EQA submission pattern. Backend/admin spec — no clinical mockup. Cross-lab aggregation stays outside OE. v1.1 adds the negative / no-growth path (case-keyed transform, include-negatives, release gated on recorded outcome).",
       "type": "spec-only",
       "added": "2026-06-08",
       "status": "draft",
@@ -3366,6 +3393,121 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/pathology/cytology-case-view",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/cytology-case-view.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/cytology-case-view.html"
+      }
+    },
+    {
+      "name": "Case View Shell",
+      "slug": "case-view-shell",
+      "category": "pathology",
+      "description": "The shared structural contract (S-1 \\u2026 S-10) implemented by the Pathology, IHC and Cytology case views: PatientHeader, prior related results, accordion sections, the four-state section model, the optional progress rail, the sticky Case Summary, the status-and-role-driven action bar, status transitions, the critical-result hook, and identified objects with no hard delete. Carries a per-screen conformance table \\u2014 an adopting screen may not silently omit an element.",
+      "type": "spec-only",
+      "added": "2026-09-04",
+      "status": "draft",
+      "tags": [
+        "pathology",
+        "cytology",
+        "IHC",
+        "shell",
+        "shared-contract",
+        "cross-cutting",
+        "v2"
+      ],
+      "jira": [],
+      "githubIssue": 295,
+      "specPath": "designs/pathology/case-view-shell.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/pathology/case-view-shell",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/pathology/case-view-shell",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/pathology/case-view-shell",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/case-view-shell.md"
+      }
+    },
+    {
+      "name": "Pathology Case View v2",
+      "slug": "pathology-case-view-v2",
+      "category": "pathology",
+      "description": "Rebuilds the histopathology case-detail screen around the real bench stages, reworking PathologyStatus to eleven values. Cassette and block become one row with a continuous identity, every slide references its parent block, reconciliation is computed over rows rather than typed, and slide labels are scan-verified against the block before sectioning \\u2014 the transition where published work puts 52% of all mislabelling. Supersedes the December 2025 design. Ships with a slicing guide and a contributor handoff.",
+      "type": "jsx",
+      "added": "2026-09-04",
+      "status": "draft",
+      "tags": [
+        "pathology",
+        "histology",
+        "biopsy",
+        "case-management",
+        "traceability",
+        "barcode",
+        "ISO-15189",
+        "v2"
+      ],
+      "jira": [],
+      "githubIssue": 296,
+      "specPath": "designs/pathology/pathology-case-view-v2.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/pathology/pathology-case-view-v2",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/pathology/pathology-case-view-v2",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/pathology/pathology-case-view-v2",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/pathology-case-view-v2.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/pathology-case-view-v2.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/pathology-case-view-v2-preview.html"
+      }
+    },
+    {
+      "name": "IHC Case View v2",
+      "slug": "ihc-case-view-v2",
+      "category": "pathology",
+      "description": "Moves every interpretive threshold out of application code into versioned, source-stamped reference data resolved on a composite key (marker, clone, assay/platform, scoring system, tumour type, indication). Each result stores its raw measurement alongside the set that interpreted it, and the set\\u2019s source and edition render beside the category. HER2 IHC stays four distinct values 0/1+/2+/3+; ISH has no equivocal category; Ki-67 5\\u201330% reports as indeterminate rather than being forced to a binary. HELD from implementation pending the threshold-set mechanism.",
+      "type": "jsx",
+      "added": "2026-09-04",
+      "status": "draft",
+      "tags": [
+        "pathology",
+        "IHC",
+        "immunohistochemistry",
+        "HER2",
+        "ER-PgR",
+        "Ki-67",
+        "thresholds",
+        "reference-data",
+        "held",
+        "v2"
+      ],
+      "jira": [],
+      "githubIssue": 297,
+      "specPath": "designs/pathology/ihc-case-view-v2.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/pathology/ihc-case-view-v2",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/pathology/ihc-case-view-v2",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/pathology/ihc-case-view-v2",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/ihc-case-view-v2.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/ihc-case-view-v2.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/ihc-case-view-v2-preview.html"
+      }
+    },
+    {
+      "name": "Specimen Journey",
+      "slug": "specimen-journey",
+      "category": "pathology",
+      "description": "Developer orientation, not a screen design. Follows one fictional patient through all three anatomic-pathology benches \\u2014 cytology, histopathology, IHC \\u2014 explaining what physically happens to the tissue, who touches it, and where each screen sits. Includes SVG diagrams of the nine-stage journey with its real PathologyStatus values, and of the case \\u2192 part \\u2192 block \\u2192 slide hierarchy. Read this before the three case-view specs; they assume it.",
+      "type": "html",
+      "added": "2026-09-04",
+      "status": "draft",
+      "tags": [
+        "pathology",
+        "cytology",
+        "IHC",
+        "orientation",
+        "onboarding",
+        "diagrams",
+        "developer-guide"
+      ],
+      "jira": [],
+      "githubIssue": 298,
+      "specPath": null,
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/pathology/specimen-journey",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/pathology/specimen-journey",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/specimen-journey.html"
       }
     },
     {
@@ -5466,7 +5608,7 @@
       "name": "Multiple Samples per Test at Order Entry",
       "slug": "multiple-samples-per-test-at-order-entry",
       "category": "sample-collection",
-      "description": "Multiple specimens of the same sample type at Add Order without re-entering the dozen shared fields, with per-specimen distinguishing labels (sputum #1/#2/#3, timed-urine 07:00/12:00, GTT fasting/1h/2h, blood-culture sets) carried through the worklist, tube labels, result entry and the patient report. Serves TB smear microscopy, stool O&P, timed urine, glucose tolerance, and blood cultures — replacing per-specimen re-entry, \"1 of 3\" marker-pen notes, or separate orders per specimen. Affects Add Order (/SamplePatientEntry), Edit Order, specimen labels, and result-entry display. FRS v1.0 + HTML preview.",
+      "description": "Multiple specimens of the same sample type at Add Order without re-entering the dozen shared fields, with per-specimen distinguishing labels (sputum #1/#2/#3, timed-urine 07:00/12:00, GTT fasting/1h/2h, blood-culture sets) carried through the worklist, tube labels, result entry and the patient report. Serves TB smear microscopy, stool O&P, timed urine, glucose tolerance, and blood cultures — replacing per-specimen re-entry, \"1 of 3\" marker-pen notes, or separate orders per specimen. Affects Add Order (/SamplePatientEntry), Edit Order, specimen labels, and result-entry display. FRS v1.4 + HTML preview.",
       "type": "html",
       "added": "2026-08-11",
       "status": "draft",
@@ -5492,6 +5634,37 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/sample-collection/multiple-samples-per-test-at-order-entry",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/multi-sample-order-entry.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/multi-sample-order-entry-preview.html"
+      }
+    },
+    {
+      "name": "Combined Collections at Order Entry",
+      "slug": "combined-collections-at-order-entry",
+      "category": "sample-collection",
+      "description": "Combined-collection mode for a sample group at Add Order: several recorded collection events assemble into ONE specimen with a summed total volume and an explicit collection window (a 24-hour urine arriving in four bottles is one specimen, not four), rather than one specimen per collection. A result still points at exactly one specimen, so analysers, referral messages and reports all continue to see one specimen with one result. Deliberately excludes cross-patient pooling (OGC-527) and result computation — it captures the total volume and window a calculation needs and leaves the math to the test config. The deferred second half of Multiple Samples per Test at Order Entry (v1 tests each collection separately; v2 combines them). Affects Add Order (/SamplePatientEntry), Edit Order, specimen labels, result-entry display, patient report. FRS v2.0 — WITHDRAWN 2026-08-12 (superseded before review by the merged Derived & Calculated Results spec, which will own both the collection capture and the calculation that consumes it; kept for the record). HTML preview.",
+      "type": "html",
+      "added": "2026-08-12",
+      "status": "draft",
+      "tags": [
+        "order-entry",
+        "sample-collection",
+        "specimen",
+        "combined-collection",
+        "24h-urine",
+        "pooled-single-patient",
+        "labels",
+        "add-order"
+      ],
+      "jira": [
+        "OGC-285"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/sample-collection/combined-collections-order-entry.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/sample-collection/combined-collections-at-order-entry",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/sample-collection/combined-collections-at-order-entry",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/sample-collection/combined-collections-at-order-entry",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/combined-collections-order-entry.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/combined-collections-order-entry-preview.html"
       }
     },
     {
